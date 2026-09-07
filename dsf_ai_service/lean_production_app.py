@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import asyncio
+import base64
+import binascii
 from contextlib import asynccontextmanager
 import os
 from pathlib import Path
@@ -10,31 +12,56 @@ from typing import Callable, Literal
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import Response
-from pydantic import BaseModel, ConfigDict, ValidationError
+from pydantic import BaseModel, ConfigDict, ValidationError, model_validator
 
 from dsf_ai_service.guala_home_world import home_world_authority
 from dsf_ai_service.lean_actor import LeanOrganismActor, PhysicalOccurrence
 from dsf_ai_service.lean_physical_loop import LeanPhysicalLoop
+from dsf_ai_service.lean_sensory_occurrence import LeanSensoryOccurrence
 from dsf_ai_service.paired_current_store import PairedCurrentStore
 
 
 CHECKPOINT_EVERY_INTERVALS = 4
 UNATTENDED_INTERVAL_SECONDS = 0.25
 MAILBOX_CAPACITY = 1
-MAX_OCCURRENCE_BODY_BYTES = 256
+MAX_OCCURRENCE_BODY_BYTES = 12_288
 PUBLIC_API_PREFIX = "/api/v1/guala"
 OBSERVATION_ROUTE = f"{PUBLIC_API_PREFIX}/observation"
 OCCURRENCE_ROUTE = f"{PUBLIC_API_PREFIX}/occurrence"
 PRESSURE_ROUTE = f"{PUBLIC_API_PREFIX}/pressure/{{receipt}}"
 
 
-class OccurrenceBody(BaseModel):
-    """The sole currently mounted external occurrence."""
+class SensoryBody(BaseModel):
+    """Bounded browser-side physical light and pressure."""
 
     model_config = ConfigDict(extra="forbid", frozen=True)
 
-    kind: Literal["unattended"]
-    payload: None = None
+    source: Literal[
+        "camera",
+        "camera-microphone",
+        "card-microphone",
+        "media",
+        "microphone",
+        "text-light",
+        "text-microphone",
+    ]
+    retina_u8: tuple[int, ...] | None = None
+    pcm_s16le_base64: str | None = None
+
+
+class OccurrenceBody(BaseModel):
+    """One unattended interval or one bounded physical sensory occurrence."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    kind: Literal["sensory", "unattended"]
+    payload: SensoryBody | None = None
+
+    @model_validator(mode="after")
+    def exact_payload_cardinality(self) -> "OccurrenceBody":
+        if (self.kind == "unattended") != (self.payload is None):
+            raise ValueError("occurrence kind and payload disagree")
+        return self
 
 
 def _positive_environment_integer(name: str) -> int:
@@ -54,12 +81,18 @@ async def _occurrence_body(request: Request) -> OccurrenceBody:
     body = bytearray()
     async for chunk in request.stream():
         if len(body) + len(chunk) > MAX_OCCURRENCE_BODY_BYTES:
-            raise HTTPException(status_code=413, detail="occurrence body exceeds 256 bytes")
+            raise HTTPException(
+                status_code=413,
+                detail="occurrence body exceeds 12288 bytes",
+            )
         body.extend(chunk)
     try:
         return OccurrenceBody.model_validate_json(bytes(body))
     except ValidationError as error:
-        raise HTTPException(status_code=422, detail=error.errors()) from error
+        raise HTTPException(
+            status_code=422,
+            detail=error.errors(include_input=False, include_url=False),
+        ) from error
 
 
 def _restore_production_actor() -> LeanOrganismActor:
@@ -104,6 +137,31 @@ def _restore_production_actor() -> LeanOrganismActor:
         mailbox_capacity=MAILBOX_CAPACITY,
         checkpoint_every_intervals=CHECKPOINT_EVERY_INTERVALS,
         unattended_interval_seconds=UNATTENDED_INTERVAL_SECONDS,
+    )
+
+
+def _physical_occurrence(body: OccurrenceBody) -> PhysicalOccurrence:
+    if body.kind == "unattended":
+        return PhysicalOccurrence("unattended", None)
+    payload = body.payload
+    if payload is None:
+        raise ValueError("sensory occurrence has no payload")
+    pressure = None
+    if payload.pcm_s16le_base64 is not None:
+        try:
+            pressure = base64.b64decode(
+                payload.pcm_s16le_base64,
+                validate=True,
+            )
+        except (binascii.Error, ValueError) as error:
+            raise ValueError("sensory pressure is not canonical base64") from error
+    return PhysicalOccurrence(
+        "sensory",
+        LeanSensoryOccurrence(
+            source=payload.source,
+            retina_u8=payload.retina_u8,
+            pressure_s16le=pressure,
+        ),
     )
 
 
@@ -175,7 +233,11 @@ def create_lean_production_app(
         body = await _occurrence_body(request)
         actor = actor_for(request)
         try:
-            offered = actor.offer(PhysicalOccurrence(body.kind, body.payload))
+            physical_occurrence = _physical_occurrence(body)
+        except ValueError as error:
+            raise HTTPException(status_code=422, detail=str(error)) from error
+        try:
+            offered = actor.offer(physical_occurrence)
         except RuntimeError as error:
             raise HTTPException(status_code=503, detail=str(error)) from error
         try:
@@ -184,7 +246,7 @@ def create_lean_production_app(
             raise HTTPException(status_code=409, detail=str(error)) from error
         return {
             "native_interval_count": result.native_interval_count,
-            "observation": result.observation,
+            "observation": actor.observation(),
             "pressure_sha256": (
                 None if result.pressure is None else result.pressure[0]
             ),

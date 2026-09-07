@@ -69,7 +69,11 @@ RETINAL_REFERENCE_IRRADIANCE_UNIT = (
     "fraction-of-declared-retinal-reference-irradiance"
 )
 RETINA_RECEPTOR_COUNT = RETINA_ROWS * RETINA_COLUMNS
-RETINA_SUBSTREAM_COUNT = RETINA_RECEPTOR_COUNT * OPTICAL_BANDS
+RETINA_FINE_ROWS = 6
+RETINA_FINE_COLUMNS = 18
+RETINA_FINE_RECEPTOR_COUNT = RETINA_FINE_ROWS * RETINA_FINE_COLUMNS
+RETINA_TOTAL_RECEPTOR_COUNT = RETINA_RECEPTOR_COUNT + RETINA_FINE_RECEPTOR_COUNT
+RETINA_SUBSTREAM_COUNT = RETINA_TOTAL_RECEPTOR_COUNT * OPTICAL_BANDS
 BODY_RECEPTOR_COUNT = 4
 TOUCH_RECEPTOR_COUNT = 3
 MAX_AUTHORITY_KEY_BYTES = 4096
@@ -102,6 +106,41 @@ _CORDIC_ANGLE_MILLIDEGREES = (
     1,
 )
 _CORDIC_SCALE_BITS = 24
+
+
+def _retinal_site_geometry() -> tuple[tuple[int, int, int, int, int], ...]:
+    """Return legacy sites unchanged, followed by the finer overlapping field."""
+
+    sites: list[tuple[int, int, int, int, int]] = []
+    for rows, columns in (
+        (RETINA_ROWS, RETINA_COLUMNS),
+        (RETINA_FINE_ROWS, RETINA_FINE_COLUMNS),
+    ):
+        horizontal_half = RETINA_HORIZONTAL_FOV_MILLIDEGREES // (2 * columns)
+        vertical_half = RETINA_VERTICAL_FOV_MILLIDEGREES // (2 * rows)
+        for row in range(rows):
+            vertical_center = (
+                RETINA_VERTICAL_FOV_MILLIDEGREES // 2
+                - row * (RETINA_VERTICAL_FOV_MILLIDEGREES // rows)
+                - vertical_half
+            )
+            for column in range(columns):
+                horizontal_center = (
+                    -(RETINA_HORIZONTAL_FOV_MILLIDEGREES // 2)
+                    + column * (RETINA_HORIZONTAL_FOV_MILLIDEGREES // columns)
+                    + horizontal_half
+                )
+                sites.append((
+                    len(sites),
+                    horizontal_center,
+                    vertical_center,
+                    horizontal_half,
+                    vertical_half,
+                ))
+    return tuple(sites)
+
+
+RETINAL_SITE_GEOMETRY = _retinal_site_geometry()
 
 
 def _canonical(value: object) -> bytes:
@@ -500,9 +539,9 @@ def _retinal_projection(
         )
     )
     pixels: list[tuple[Fraction, ...]] = [
-        background for _ in range(RETINA_RECEPTOR_COUNT)
+        background for _ in range(RETINA_TOTAL_RECEPTOR_COUNT)
     ]
-    depths: list[int | None] = [None] * RETINA_RECEPTOR_COUNT
+    depths: list[int | None] = [None] * RETINA_TOTAL_RECEPTOR_COUNT
     surfaces: list[_OpticalSurface] = []
     body_by_id = {candidate.body_id: candidate for candidate in observation.bodies}
     for other in observation.bodies:
@@ -545,13 +584,7 @@ def _retinal_projection(
         )
 
     half_horizontal = RETINA_HORIZONTAL_FOV_MILLIDEGREES // 2
-    half_horizontal_receptor = RETINA_HORIZONTAL_FOV_MILLIDEGREES // (
-        2 * RETINA_COLUMNS
-    )
     half_vertical = RETINA_VERTICAL_FOV_MILLIDEGREES // 2
-    half_vertical_receptor = RETINA_VERTICAL_FOV_MILLIDEGREES // (
-        2 * RETINA_ROWS
-    )
     for surface in surfaces:
         floor_position = PositionMM(
             surface.position.x,
@@ -600,88 +633,74 @@ def _retinal_projection(
         pattern = surface.optical_surface
         if pattern is not None:
             pattern.verify()
-        for row in range(RETINA_ROWS):
-            vertical_center = (
-                half_vertical
-                - row
-                * (RETINA_VERTICAL_FOV_MILLIDEGREES // RETINA_ROWS)
-                - half_vertical_receptor
-            )
+        for (
+            site_index,
+            horizontal_center,
+            vertical_center,
+            half_horizontal_receptor,
+            half_vertical_receptor,
+        ) in RETINAL_SITE_GEOMETRY:
             if abs(vertical_center - relative_vertical) > (
                 angular_radius + half_vertical_receptor
             ):
                 continue
-            for column in range(RETINA_COLUMNS):
-                horizontal_center = (
-                    -half_horizontal
-                    + column
-                    * (RETINA_HORIZONTAL_FOV_MILLIDEGREES // RETINA_COLUMNS)
-                    + half_horizontal_receptor
-                )
-                if abs(horizontal_center - relative_horizontal) > (
-                    angular_radius + half_horizontal_receptor
-                ):
-                    continue
-                reflectance = surface.reflectance_ppm
-                if pattern is not None and angular_radius > 0:
-                    pattern_column = min(
-                        pattern.columns - 1,
-                        max(
-                            0,
+            if abs(horizontal_center - relative_horizontal) > (
+                angular_radius + half_horizontal_receptor
+            ):
+                continue
+            reflectance = surface.reflectance_ppm
+            if pattern is not None and angular_radius > 0:
+                pattern_column = min(
+                    pattern.columns - 1,
+                    max(
+                        0,
+                        (
                             (
-                                (
-                                    horizontal_center
-                                    - relative_horizontal
-                                    + angular_radius
-                                )
-                                * pattern.columns
+                                horizontal_center
+                                - relative_horizontal
+                                + angular_radius
                             )
-                            // (2 * angular_radius),
-                        ),
-                    )
-                    pattern_row = min(
-                        pattern.rows - 1,
-                        max(
-                            0,
+                            * pattern.columns
+                        )
+                        // (2 * angular_radius),
+                    ),
+                )
+                pattern_row = min(
+                    pattern.rows - 1,
+                    max(
+                        0,
+                        (
                             (
-                                (
-                                    relative_vertical
-                                    + angular_radius
-                                    - vertical_center
-                                )
-                                * pattern.rows
+                                relative_vertical
+                                + angular_radius
+                                - vertical_center
                             )
-                            // (2 * angular_radius),
-                        ),
-                    )
-                    reflectance = pattern.reflectance_at_verified_ppm(
-                        row=pattern_row,
-                        column=pattern_column,
-                    )
-                emission = surface.emission_ppm or (
-                    (0,) * len(reflectance)
+                            * pattern.rows
+                        )
+                        // (2 * angular_radius),
+                    ),
                 )
-                # Reflected light keeps the law's distance attenuation;
-                # EMITTED light is surface radiance and does not fade with
-                # distance while the surface is resolved — a lit screen
-                # outshines a lit wall, as it does in a real room.
-                light = tuple(
-                    min(
-                        Fraction(1),
-                        Fraction(value * illumination, 1_000_000_000_000)
-                        * attenuation
-                        + Fraction(emitted, 1_000_000),
-                    )
-                    for value, illumination, emitted in zip(
-                        reflectance,
-                        current_region.illumination_ppm,
-                        emission,
-                    )
+                reflectance = pattern.reflectance_at_verified_ppm(
+                    row=pattern_row,
+                    column=pattern_column,
                 )
-                index = row * RETINA_COLUMNS + column
-                if depths[index] is None or distance_squared < depths[index]:
-                    depths[index] = distance_squared
-                    pixels[index] = light
+            emission = surface.emission_ppm or ((0,) * len(reflectance))
+            light = tuple(
+                min(
+                    Fraction(1),
+                    Fraction(value * illumination, 1_000_000_000_000)
+                    * attenuation
+                    + Fraction(emitted, 1_000_000),
+                )
+                for value, illumination, emitted in zip(
+                    reflectance,
+                    current_region.illumination_ppm,
+                    emission,
+                )
+            )
+            if depths[site_index] is None or distance_squared < depths[site_index]:
+                depths[site_index] = distance_squared
+                pixels[site_index] = light
     return tuple(pixels)
 
 
@@ -707,32 +726,43 @@ def _retinal_substreams(
         ),
     )
     result = []
-    for row in range(RETINA_ROWS):
-        for column in range(RETINA_COLUMNS):
-            receptor_index = row * RETINA_COLUMNS + column
-            for band in range(OPTICAL_BANDS):
-                topology_index = receptor_index * OPTICAL_BANDS + band
-                result.append(
-                    _native_signal(
-                        sense=PhysicalSense.SIGHT,
-                        sensor_id="W1-retina",
-                        substream_id=f"retinal-cell-{row}-{column}-band-{band}",
-                        topology_index=topology_index,
-                        coordinates=(
-                            NativeAxisCoordinate("retinal-row", str(row)),
-                            NativeAxisCoordinate("retinal-column", str(column)),
-                            NativeAxisCoordinate("optical-band", str(band)),
-                        ),
-                        physical_quantity="retinal-spectral-irradiance",
-                        physical_unit=RETINAL_REFERENCE_IRRADIANCE_UNIT,
-                        values=(
-                            before_pixels[receptor_index][band],
-                            after_pixels[receptor_index][band],
-                        ),
-                        source_time_start=source_time_start,
-                        source_time_end=source_time_end,
-                    )
+    for receptor_index in range(RETINA_TOTAL_RECEPTOR_COUNT):
+        if receptor_index < RETINA_RECEPTOR_COUNT:
+            row = receptor_index // RETINA_COLUMNS
+            column = receptor_index % RETINA_COLUMNS
+            name = f"retinal-cell-{row}-{column}"
+            row_coordinate = str(row)
+            column_coordinate = str(column)
+        else:
+            fine_index = receptor_index - RETINA_RECEPTOR_COUNT
+            row = fine_index // RETINA_FINE_COLUMNS
+            column = fine_index % RETINA_FINE_COLUMNS
+            name = f"retinal-fine-{row}-{column}"
+            row_coordinate = f"fine-{row}"
+            column_coordinate = f"fine-{column}"
+        for band in range(OPTICAL_BANDS):
+            topology_index = receptor_index * OPTICAL_BANDS + band
+            result.append(
+                _native_signal(
+                    sense=PhysicalSense.SIGHT,
+                    sensor_id="W1-retina",
+                    substream_id=f"{name}-band-{band}",
+                    topology_index=topology_index,
+                    coordinates=(
+                        NativeAxisCoordinate("retinal-row", row_coordinate),
+                        NativeAxisCoordinate("retinal-column", column_coordinate),
+                        NativeAxisCoordinate("optical-band", str(band)),
+                    ),
+                    physical_quantity="retinal-spectral-irradiance",
+                    physical_unit=RETINAL_REFERENCE_IRRADIANCE_UNIT,
+                    values=(
+                        before_pixels[receptor_index][band],
+                        after_pixels[receptor_index][band],
+                    ),
+                    source_time_start=source_time_start,
+                    source_time_end=source_time_end,
                 )
+            )
     return tuple(result)
 
 

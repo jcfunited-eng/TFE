@@ -14,6 +14,7 @@ from dsf_ai_service.lean_actor import (
     SettlementResult,
 )
 from dsf_ai_service.lean_production_app import (
+    MAX_OCCURRENCE_BODY_BYTES,
     OBSERVATION_ROUTE,
     OCCURRENCE_ROUTE,
     PRESSURE_ROUTE,
@@ -192,7 +193,7 @@ def test_exact_five_routes_and_one_bounded_pressure_receipt(
         ).status_code == 422
         assert client.post(
             OCCURRENCE_ROUTE,
-            content=b"x" * 257,
+            content=b"x" * (MAX_OCCURRENCE_BODY_BYTES + 1),
         ).status_code == 413
 
         first = client.post(

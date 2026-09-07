@@ -2,7 +2,10 @@ from __future__ import annotations
 
 from fractions import Fraction
 
-from dsf_ai_service.guala_physical_sensorium import compact_signal_body
+from dsf_ai_service.guala_physical_sensorium import (
+    PORT_COUNT,
+    compact_signal_body,
+)
 from dsf_ai_service.guala_world_sensorium import (
     passive_sensorium,
     prepare_passive_world_interval,
@@ -89,8 +92,10 @@ def test_real_world_passive_interval_builds_complete_truthful_sensorium() -> Non
     after = world.observation_snapshot()
 
     assert after.revision == before.revision + 1
-    assert len(sensorium.ordered_ports()) == 112
-    assert len(compact_signal_body(sensorium, frame_count=26)) == 112 * 26 * 8
+    assert len(sensorium.ordered_ports()) == PORT_COUNT
+    assert len(compact_signal_body(sensorium, frame_count=26)) == (
+        PORT_COUNT * 26 * 8
+    )
     assert all(len(trajectory) == 26 for trajectory in sensorium.ordered_ports())
     assert sensorium.legacy_ears == ((Fraction(0),) * 26,) * 2
     assert sensorium.cochleae == ((Fraction(0),) * 26,) * 32

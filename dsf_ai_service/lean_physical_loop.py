@@ -8,11 +8,16 @@ import hashlib
 from typing import Any
 
 from dsf_ai_service.guala_cochlea import one_self_hearing_hop
+from dsf_ai_service.lean_embodiment_observation import (
+    lean_embodiment_observation,
+)
+from dsf_ai_service.lean_sensory_occurrence import LeanSensoryOccurrence
 from dsf_ai_service.guala_motor_world import prepare_motor_consequence
 from dsf_ai_service.guala_physical_sensorium import settle_physical_sensorium
 from dsf_ai_service.guala_world_sensorium import (
     passive_sensorium,
     prepare_passive_world_interval,
+    retinal_carriage,
 )
 from dsf_ai_service.lean_actor import (
     MAX_PRESSURE_BYTES,
@@ -86,11 +91,23 @@ class LeanPhysicalLoop:
         world: Any,
         occurrence: PhysicalOccurrence,
     ) -> SettlementResult:
-        if occurrence.kind != "unattended" or occurrence.payload is not None:
-            raise ValueError("lean physical ingress kind is not mounted")
-        return self.unattended(runtime, world)
+        if occurrence.kind == "unattended" and occurrence.payload is None:
+            return self._advance(runtime, world, None)
+        if occurrence.kind == "sensory" and isinstance(
+            occurrence.payload, LeanSensoryOccurrence
+        ):
+            return self._advance(runtime, world, occurrence.payload)
+        raise ValueError("lean physical ingress kind is not mounted")
 
     def unattended(self, runtime: Any, world: Any) -> SettlementResult:
+        return self._advance(runtime, world, None)
+
+    def _advance(
+        self,
+        runtime: Any,
+        world: Any,
+        sensory: LeanSensoryOccurrence | None,
+    ) -> SettlementResult:
         pending_pressure = runtime.in_flight_acoustic_pressure_s16le
         pending_body = runtime.in_flight_acoustic_body_s16le
         pending_source_tick = runtime.in_flight_acoustic_source_tick
@@ -98,6 +115,14 @@ class LeanPhysicalLoop:
             pending_pressure is None
         ) != (pending_source_tick is None):
             raise RuntimeError("native in-flight acoustic state lost cardinality")
+        if (
+            sensory is not None
+            and sensory.pressure_s16le is not None
+            and pending_pressure is not None
+        ):
+            raise RuntimeError(
+                "external pressure refused while body-owned pressure awaits hearing"
+            )
 
         start_tick = runtime.live_organism_tick
         before_native = runtime.readiness()
@@ -114,6 +139,29 @@ class LeanPhysicalLoop:
                 frame_count=len(PASSIVE_TIMES),
                 pending_execution=primary_prepared.execution_receipt,
             )
+            external_heard_samples = 0
+            if sensory is not None and sensory.retina_u8 is not None:
+                _heading, transmission = retinal_carriage(
+                    tuple(before_native.articulated_body_axes)
+                )
+                primary_sensorium = replace(
+                    primary_sensorium,
+                    retina=tuple(
+                        (Fraction(value, 255) * transmission,) * len(PASSIVE_TIMES)
+                        for value in sensory.retina_u8
+                    ),
+                )
+            if sensory is not None and sensory.pressure_s16le is not None:
+                times, legacy, cochleae, external_heard_samples = (
+                    one_self_hearing_hop(sensory.pressure_s16le)
+                )
+                if times != PASSIVE_TIMES:
+                    raise RuntimeError("external hearing changed the passive clock")
+                primary_sensorium = replace(
+                    primary_sensorium,
+                    legacy_ears=(legacy, legacy),
+                    cochleae=cochleae,
+                )
             if pending_pressure is not None:
                 pressure = bytes(pending_pressure)
                 body = bytes(pending_body)
@@ -197,6 +245,13 @@ class LeanPhysicalLoop:
                     pressure_bytes,
                 )
             body_consequences = tuple(primary.articulated_body_consequences)
+            world_snapshot = world.observation_snapshot()
+            retinal_u8 = []
+            for trajectory in primary_sensorium.retina:
+                value = Fraction(trajectory[-1]).limit_denominator(1_000_000)
+                if not Fraction(0) <= value <= Fraction(1):
+                    raise RuntimeError("retinal observer left its physical range")
+                retinal_u8.append(round(value * 255))
             result = SettlementResult(
                 native_interval_count=lived_tick_delta,
                 observation={
@@ -208,6 +263,24 @@ class LeanPhysicalLoop:
                     "body_consequence_count": len(body_consequences),
                     "causal_transition_sha256": final.causal_transition_sha256,
                     "dsf_delivery_count": final.dsf_delivery_count,
+                    "embodiment": lean_embodiment_observation(
+                        world_snapshot,
+                        tuple(runtime.readiness().articulated_body_axes),
+                    ),
+                    "external_heard_sample_count": external_heard_samples,
+                    "external_retinal_site_count": (
+                        0
+                        if sensory is None or sensory.retina_u8 is None
+                        else len(sensory.retina_u8)
+                    ),
+                    "external_sensory_source": (
+                        None if sensory is None else sensory.source
+                    ),
+                    "external_source_receipt_sha256": (
+                        None
+                        if sensory is None
+                        else sensory.source_receipt_sha256
+                    ),
                     "physically_transitioned_neuron_count": (
                         final.physically_transitioned_neuron_count
                     ),
@@ -218,6 +291,10 @@ class LeanPhysicalLoop:
                     "requested_world_action": (
                         None if motor_plan is None else motor_plan.requested_action
                     ),
+                    "retinal_observer_kind": (
+                        "achromatic-u8-projection-of-native-retinal-input"
+                    ),
+                    "retinal_u8": retinal_u8,
                     "requested_root_motion": (
                         (0, 0, 0)
                         if motor_plan is None
@@ -232,7 +309,7 @@ class LeanPhysicalLoop:
                     "world_action_refusal": (
                         None if motor_plan is None else motor_plan.refusal_reason
                     ),
-                    "world_revision": world.observation_snapshot().revision,
+                    "world_revision": world_snapshot.revision,
                 },
                 pressure=pressure_record,
             )

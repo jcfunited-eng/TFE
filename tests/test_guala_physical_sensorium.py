@@ -9,6 +9,7 @@ import pytest
 
 from dsf_ai_service.guala_physical_sensorium import (
     PhysicalSensorium,
+    RETINAL_PORTS,
     compact_signal_body,
     settle_physical_sensorium,
 )
@@ -29,7 +30,7 @@ def _values(width: int, value: Fraction | float = Fraction(0)) -> tuple:
 def _constant(**changes) -> PhysicalSensorium:
     values = {
         "frame_count": len(TIMES),
-        "retina": _values(27),
+        "retina": _values(RETINAL_PORTS),
         "legacy_ears": _values(2),
         "cochleae": _values(32),
         "touch": _values(28),
@@ -61,7 +62,7 @@ def test_cached_anatomy_is_exact_and_zero_replacement_is_byte_identical() -> Non
 
 def test_compact_body_has_explicit_anatomical_order() -> None:
     sensorium = _constant(
-        retina=_values(27, 1),
+        retina=_values(RETINAL_PORTS, 1),
         legacy_ears=_values(2, 2),
         cochleae=_values(32, 3),
         touch=_values(28, 4),
@@ -77,7 +78,7 @@ def test_compact_body_has_explicit_anatomical_order() -> None:
         decoded.byteswap()
     per_port = tuple(decoded[index] for index in range(0, len(decoded), 4))
     assert per_port == (
-        (1.0,) * 27
+        (1.0,) * RETINAL_PORTS
         + (2.0,) * 2
         + (3.0,) * 32
         + (4.0,) * 28

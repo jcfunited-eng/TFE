@@ -28,8 +28,10 @@ dsf_ai_service/guala_receptor_anatomy.py
 dsf_ai_service/guala_world_sensorium.py
 dsf_ai_service/lean_actor.py
 dsf_ai_service/lean_checkpoint.py
+dsf_ai_service/lean_embodiment_observation.py
 dsf_ai_service/lean_physical_loop.py
 dsf_ai_service/lean_production_app.py
+dsf_ai_service/lean_sensory_occurrence.py
 dsf_ai_service/paired_current_store.py
 dsf_ai_service/substrate/__init__.py
 dsf_ai_service/substrate/approved_curriculum_physical_surfaces.py

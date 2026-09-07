@@ -14,7 +14,7 @@ from dsf_ai_service.glew_runtime.native_joint_source_episode import (
 from dsf_ai_service.guala_receptor_anatomy import PORT_COUNT, receptor_anatomy
 
 
-RETINAL_PORTS = 27
+RETINAL_PORTS = 135
 LEGACY_EAR_PORTS = 2
 COCHLEAR_PORTS = 32
 TOUCH_PORTS = 28

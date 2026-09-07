@@ -19,7 +19,11 @@ from dsf_ai_service.substrate.embodiment_world import (
 from dsf_ai_service.substrate.w1_coupled_material_sensory_physics import (
     material_receptor_substreams,
 )
-from dsf_ai_service.substrate.w1_physical_receptors import physical_receptor_substreams
+from dsf_ai_service.substrate.w1_physical_receptors import (
+    OPTICAL_BANDS,
+    RETINA_TOTAL_RECEPTOR_COUNT,
+    physical_receptor_substreams,
+)
 
 
 PASSIVE_INTERVAL_MICROSECONDS = 250_000
@@ -127,20 +131,26 @@ def prepare_passive_body_interval(
 def _retinal_endpoints(
     streams: tuple[Any, ...],
 ) -> tuple[tuple[Fraction, ...], tuple[Fraction, ...]]:
-    totals = ([Fraction(0)] * 27, [Fraction(0)] * 27)
-    counts = [0] * 27
+    totals = (
+        [Fraction(0)] * RETINA_TOTAL_RECEPTOR_COUNT,
+        [Fraction(0)] * RETINA_TOTAL_RECEPTOR_COUNT,
+    )
+    counts = [0] * RETINA_TOTAL_RECEPTOR_COUNT
     for stream in streams:
-        cell = stream.topology_index // 6
-        if 0 <= cell < 27:
+        cell = stream.topology_index // OPTICAL_BANDS
+        if 0 <= cell < RETINA_TOTAL_RECEPTOR_COUNT:
             if len(stream.normalized_signal) != 2:
                 raise RuntimeError("world retinal endpoint count changed")
             for endpoint, value in zip(totals, stream.normalized_signal, strict=True):
                 endpoint[cell] += Fraction(value).limit_denominator(1_000_000)
             counts[cell] += 1
-    if any(count != 6 for count in counts):
+    if any(count != OPTICAL_BANDS for count in counts):
         raise RuntimeError("world lost the six-band retinal field")
     return tuple(
-        tuple(total[index] / counts[index] for index in range(27))
+        tuple(
+            total[index] / counts[index]
+            for index in range(RETINA_TOTAL_RECEPTOR_COUNT)
+        )
         for total in totals
     )
 

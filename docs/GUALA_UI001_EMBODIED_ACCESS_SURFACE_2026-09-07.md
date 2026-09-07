@@ -1,0 +1,154 @@
+# Guala UI-001 embodied access surface
+
+Date: 2026-09-07 UTC
+
+Status: active. No interface implementation, deployment, or functional success
+is claimed. P-005 remains closed and protected. Production remains unchanged on
+task 1433 until this ledger records a reviewed candidate and complete live proof.
+
+Sole active item: deliver one bounded embodied-access surface around the lean
+shell. Phase I keeps the persistent nine-room/backyard world, established static
+Guala bust, camera, microphone, hear-Guala control, and one compact ABC/123 card
+drawer whose light and human voice must form a real native sensory occurrence.
+The prior page's caretaker/routine/affection controls are not required on the new
+surface; their historical claims are not copied into the lean shell. Speech repair
+and general autonomy repair remain later items. A real cleanup defect found during
+UI-001—development could still import the retired shell—was corrected first.
+
+## Architecture honesty gate
+
+1. Requested architecture: one lean live page with the continuous persistent
+   home/backyard, Guala's exact world and body pose, an upper-right optical view
+   derived from the same world and eye pose, text/microphone/camera/media
+   presentation, exact body-produced pressure playback, and a complementary
+   bounded Loom Scan.
+2. Current code reality: P-005 is live with five routes and one owner. Its pages
+   are read-only. External sensory presentation is not mounted. The lean visual
+   adapter reduces six spectral bands at each of 27 sites to one scalar. Native
+   body/root consequences exist, but genuine gait is not proved.
+3. Conflict with requested architecture: yes.
+4. Do not extend: the retired 40-route application; retired locks, session
+   managers, observers, retries, aliases, owner/database cognition, fake scene
+   swaps, fake gait, fabricated brain activity, or the 27-dot display. Do not
+   merge the old eye branch wholesale.
+5. Single exact next item: UI-001 embodied access surface.
+6. DSF evaluation: every admitted occurrence must continue through the unchanged
+   complete joint seven-field L0-L4 result; no observer projection becomes
+   cognition.
+7. Current visual reduction: the world models six optical bands but the mounted
+   retina receives one scalar per site. This is an explicit achromatic receptor
+   projection, not six-band neuronal sight and not a DSF-field reduction. UI-001
+   must preserve that distinction and separately label world optical geometry,
+   receptor sampling, and neural evidence.
+
+## Frozen acceptance map
+
+| Requested result | Required causal evidence | Failure condition |
+|---|---|---|
+| Continuous world view | One bounded cache record derived inside the sole actor from the exact committed `ObservationSnapshot`; room geometry, doorway apertures, objects, self/other body pose, revision, and state receipt agree. | Authored decoration or a second world state is shown as reality. |
+| Guala body | Exact self-body pose plus exact native articulated axes from the same accepted interval. The established Guala image may identify her; motion is shown only from changed physical state. | UI-only walking, limbs, speech, or expression is animated. |
+| Eye view | Projection is derived from the same exact world geometry, retinal pose, gaze, aperture, and optical source used by the receptor path. Observer rendering and receptor/neural evidence remain separately labelled. | A decorative room image or invented 27-dot brightness is called her sight. |
+| Text presentation | Browser-rendered glyph light, and external human pressure when supplied, are admitted as physical sight/sound; returned evidence belongs to that exact successor. The typed string is not meaning authority. | Text is treated as meaning, chat, or receipt-only success. |
+| Microphone | Browser permission is user-triggered; bounded mono pressure reaches the mounted cochlear path and the exact returned successor reports it. | Browser capture alone is called hearing. |
+| Camera/media | Browser permission/file choice is user-triggered; bounded optical samples reach the mounted sight path and the exact returned successor reports it. | Upload/capture alone is called sight. |
+| Guala sound | Only body-owned native pressure is playable through its exact SHA-256 receipt. Silence is explicit. | Tutor/microphone sound is presented as Guala's voice. |
+| Visible presence | Use the existing `Guala_Talking_Bust_No_Bow_Transparent.png` on the main page beside working camera, microphone, and hear-Guala controls. The static image identifies her but is not evidence of pose or expression. | A substitute alien/avatar is invented, or static art is called live expression. |
+| Movement | Actual root/body consequences and refusals from the native/world transaction are shown. | Recruitment/request is called movement, or root translation is called gait. |
+| Loom Scan | The accepted redrawn brain presentation lights only activity categories directly supported by the latest bounded native evidence and links back to the world page. | Static/sample activity, inferred thought, or human-anatomy placement is called live evidence. |
+| Resource bound | Existing one actor, depth-one custody worker, five API routes, zero Python cognition callbacks, bounded cached observation/pressure, CURRENT continuity, and no positive CPU/RAM/storage slope remain true. | New sessions, histories, native polling, route sprawl, or recurrent media storage appears. |
+| Compact ABC/123 cards | A closed-by-default drawer presents one authenticated existing card surface together with bounded live human pressure as one native sight/sound occurrence. Returned successor evidence is exact; no understanding is inferred. | Cards obstruct the world, a button press is called learning, or card identity/string becomes meaning authority. |
+| Phase boundary | Facial expression and mouth animation are Phase II. UI-001 may show the established static talking bust and exact sound state but may not animate speech or emotion. | Cosmetic mouth/expression animation delays Phase I or is presented as body-owned action. |
+
+## Applicable recurrence gates
+
+| Gate | UI-001 preflight/result |
+|---|---|
+| RF-001/RF-002/RF-003 | Exact worktree, production environment, and loaded native artifact must be resolved before tests; not yet run. |
+| RF-004/RF-010/RF-022/RF-048 | Any anatomy, observer, or world change must pass pristine plus copied production body/world, exact CURRENT, and cold continuation; not yet run. |
+| RF-005/RF-011/RF-012/RF-020 | Acceptance evidence is mapped above. HTTP, mounted counts, or browser cosmetics alone cannot pass. |
+| RF-007/RF-024/RF-031/RF-032/RF-033/RF-063 | Every command must guard executables, targets, workdir, and cloud inventory in the same block. UI-001 F-001 records the first violation. |
+| RF-017/RF-028/RF-030/RF-038/RF-046 | Census every changed observation constructor, aggregate, signature, producer shape, test mock, and browser consumer before compile. |
+| RF-018/RF-021/RF-027/RF-029/RF-035 | Bind every interactive acceptance to the exact submitted predecessor and returned successor; do not replay, substitute, or retry a possibly committed occurrence. |
+| RF-039/RF-044/RF-045 | Derive maximum camera/microphone/text cardinality and clock; no repeated held samples, population-proportional temporary explosion, or history growth. |
+| RF-042/RF-043/RF-054 | Preserve signed motion, distinguish recruitment from actual effect, and accept lawful mixed moved/stalled rows. |
+| RF-056/RF-060/RF-061 | A deployment must preserve one captured body/world predecessor, identity, and complete process-fixed roster. |
+
+## Protected successes
+
+| ID | Exact boundary |
+|---|---|
+| S-001 | P-005 remains live-closed at source ledger HEAD `49d9fdd6`; production task 1433/digest `13dd7018` has the unchanged identity and lean five-route boundary recorded by P-005. |
+| S-002 | Read-only source census confirmed current lean core sizes: app 222 lines, physical loop 247, world sensorium 363, physical sensorium 167, motor/world bridge 315, home anatomy 560, Guala page 115, Loom page 82. |
+| S-003 | Current source truth confirmed the only external occurrence is `unattended`; observation is immutable actor cache; pressure is bounded exact s16le by SHA-256. |
+| S-004 | Current world truth confirmed nine explicit regions and nine open portal apertures, exact body/object poses, optical/material properties, and one persistent world snapshot. Door leaves are not modeled and are outside UI-001 by Joe's approval. |
+| S-005 | Existing eye branch `eye/growth-stage-one` was found at `7bf181ac`; its eye-specific commits are `211a90fc`, `96f79109`, and `b4369809`. It retains legacy sites and adds 108 fine sites, but also changes the retired shell/native capacity and later unrelated cognition code, so it is evidence to review rather than a merge candidate. |
+| S-006 | Existing established image hashes were preserved: `docs/Guala_Cosmic_Refined_Transparent_Final.png` is `d3de1627...600ad`; static talking bust is `da9e0f8a...f115`; static brain foundation is `92d93f9d...b26f0b`. Pillow inspection proved PNG dimensions/modes 887x1774 RGBA, 1398x1125 RGBA, and 1672x941 RGB respectively. |
+| S-007 | Joe accepted the redrawn Loom Scan concept and authorized a production attempt; the concept source is retained at `/tmp/guala-interface-concept.2E5906/loomscan.html` but its sample highlights and local-file URI are explicitly non-production. |
+| S-008 | The exact retired application was frozen at Git commit `49d9fdd6`, path `dsf_ai_service/native_production_app.py`, SHA-256 `f904f891...1ba1ea`, size 20,248 lines/837,266 bytes. Active source is now a ten-line fail-closed marker and a guarded import proved it refuses. The lean image still proves that path absent and boots only `lean_production_app`. |
+| S-009 | A second explicit quiescent anatomy probe bypassed all persisted-world access and produced one 220-port/880-sample candidate declaration for 135 retina sites plus the unchanged 85 other sites, within existing native port/sample walls. This is construction evidence only, not copied-body or functional acceptance. |
+| S-010 | The permanent retired-shell regression passed 2/2 with the corrected exact host import root: the active marker contains no app/world/runtime construction and refuses import, while the lean image excludes that path and boots only `lean_production_app`. The marker is exactly ten physical lines. |
+| S-011 | The lean eye declaration now restores as one exact native episode with 220 ports, 880 samples, one occurrence, four frames, zero Python callbacks, and SHA-256 `3dc6aee5...00b0037`. It preserves the original 27 sight identities first and appends 108 unlearned fine sites. Focused quarantine/anatomy/sensorium/world tests pass 7/7. This is source-level integration success only; copied mature-body continuity and functional distinction remain open. |
+| S-012 | The lean application/actor/sensorium/world/cochlea/quarantine regression passes 18/18 after mounting the bounded sensory occurrence. Malformed request errors now serialize without echoing raw bytes, and the authoritative 12,288-byte request wall is directly tested. This is source-level transport success only, not native sensory function or production acceptance. |
+| S-013 | Exact copied mature production predecessor tick 508158/identity `1cc4e70a...15cc1` accepted separate dark and full-bright 135-site camera occurrences. Both advanced exactly one live interval with 221 complete native deliveries and zero Python callbacks. Body-owned eyelid transmission was exactly 5/6, yielding observer light 0 versus 212; causal successor hashes differed, and changed neurons were 1,531 versus 1,635. Each exact observer held nine regions, nine open doorways, 33 objects, and two bodies. This proves functional visual distinction on a copied mature body; production remains unchanged. |
+| S-014 | The same exact copied mature predecessor accepted separate 4,000-sample silent and alternating-pressure microphone occurrences. Both advanced one interval, reported exactly 4,000 externally heard samples, delivered all 221 native fields, and used zero Python callbacks. Their causal hashes differed; alternating pressure changed 1,644 neurons versus 1,635 for silence. This proves functional cochlear pressure distinction on the copied mature body; it is not speech success and production remains unchanged. |
+| S-015 | The focused source/UI/sensory/quarantine suite passes 30/30 and both inline scripts parse. A 124,151,300-byte source image proved the 64-code-file/five-route/no-retired-shell boundary but intentionally omitted physical cards; F-027 rejected that image before runtime. This is build-boundary evidence only and the card-free image is not a candidate. |
+| S-016 | Corrected-card release image restored the Docker-volume mature organism at live tick 508187, became internally HTTP-ready, and accepted exactly one camera POST. Its returned actor successor was tick 508189 with 135 external retinal sites, 221 DSF deliveries, 1,705 physically changed neurons, zero callbacks, exact embodiment, and HTTP 200. Docs and the retired observation route returned 404. It then advanced unattended to 508191 and stopped gracefully with exit 0/no OOM. This is complete local image/HTTP acceptance; production remains unchanged. |
+| S-017 | A fresh container cold-restored the same rehearsal volume at exact identity `1cc4e70a...15cc1`, live/persisted tick 508193, zero pending intervals, no outstanding checkpoint, no durability block, and no checkpoint/cleanup errors. It used 737.1 MiB of a 4 GiB wall with 7 PIDs, then stopped exit 0/no OOM. This closes local image cold-continuation/resource acceptance; production remains unchanged. |
+| S-018 | Final combined paired-store/migration/checkpoint/actor/app/sensorium/cochlea/home/world/sensory/UI/quarantine regression passes 50/50. Typed glyph light can remain light-only or, with the exact 16 kHz microphone enabled, pair with the next 4,000-sample tutor pressure block as one `text-microphone` occurrence. Text and card invitations are mutually exclusive single pending items; neither forms a queue. Both pages parse and the main page remains 26,082 bytes. |
+| S-019 | Read-only S3 inventory proved the exact 36 lesson-card keys used by the page have the same names, byte sizes, and single-part MD5s as the authenticated local physical surfaces, totaling 89,012,637 bytes. The established talking bust and brain foundation likewise match their live S3 objects exactly by byte size and MD5. No static upload or production mutation occurred. |
+
+## Failures and open seams
+
+| ID | Failure/implication |
+|---|---|
+| F-001 | A preflight command invoked absent `file` without `command -v file`. It produced no image-type evidence. The three SHA-256 commands in the same block succeeded and remain S-006. This is RF-063; future image inspection uses an available guarded decoder or no type claim. No organism, source, or production state changed. |
+| F-002 | Current 27-site lean adapter averages six optical bands before the compact sensorium. It cannot satisfy truthful functional vision and may not be relabelled or visually enlarged. |
+| F-003 | Prior interface mockup fabricated a detailed room and a 27-dot retina, omitted working ingress and embodiment, and was rejected by Joe. None of it may be promoted except the separately accepted Loom Scan visual direction and general control placement. |
+| F-004 | Genuine gait is not presently proved. UI-001 may show exact root displacement and articulated-axis changes but must label locomotion/gait unavailable unless the causal leg-to-root path is directly proved. |
+| F-005 | `docs/Brain Image.jpg` referenced by the accepted temporary Loom concept was not found in the active worktree. Joe explicitly allowed a redraw; the existing brain-foundation image is visually verified, but no claim that it is the missing source is made. |
+| F-006 | The prior eye handoff called 135 scalar sight ports “135 sites x 6 bands = 810 sight substreams.” Source inspection falsified that claim: `_whole_roster_hop_episode` emits 135 scalar luminance ports. Only its 27-preserving plus 108-site geometry remains admissible gold. |
+| F-007 | First 135-site anatomy probe enabled the retired world's flags and `_thermal_ports` reached `_world()`, which attempted obsolete persisted-world restore and refused. This exposed the development quarantine defect corrected by S-008. No production or persisted bytes changed. |
+| F-008 | Second anatomy probe correctly avoided persisted world but supplied zero as physical millikelvin temperature and was refused before anatomy settlement. The corrected explicit 303150/309950 mK input produced S-009. |
+| F-009 | First quarantine-test invocation repeated the documented host-import mistake by omitting `PYTHONPATH=.`. Pytest setup failed before either new assertion ran; no product assertion, organism state, or production state changed. The corrected invocation must name the exact worktree import root. |
+| F-010 | First explicit archived-eye anatomy command guessed the unresolved full commit suffix after knowing only short `7bf181ac`; its guard refused before Python ran and printed no anatomy. No old application code executed and no state changed. Exact `git rev-parse` resolved `7bf181ac7c1a13856bbbb692bc38c52f5a95b4c8`; future guards use only resolved identities. |
+| F-011 | Second archived-eye anatomy command set `PYTHONPATH` to the archived worktree but left the process working directory in the active tree, whose path correctly took import precedence and hit the quarantine marker. No archived code ran and no state changed. Corrected invocation must set both explicit worktree and explicit import root to the same archived commit. |
+| F-012 | Third archived-eye anatomy command reached construction without persisted-world access but supplied floating-point zero to exact articulatory trajectories; the receptor constructor refused before settlement. No state changed. Corrected quiescent trajectories use `Fraction(0)` at every exact physical port. |
+| F-013 | Fourth archived-eye anatomy command used exact fractions and settled an episode, but a compound postcondition assertion hid which declared cardinality differed. No bytes were admitted to active source. The next read-only probe prints every native cardinality before deciding whether the artifact matches S-009. |
+| F-014 | The first generated-anatomy full-file patch deleted the old declaration and then rejected the add-file delimiter. The worktree temporarily lacked that source file; no runtime or production process used it. The same deterministic generation was rerun and the verified 98,272-byte declaration was immediately restored before any test. |
+| F-015 | UI-001 initially treated the prior interface mainly as defective presentation and omitted its reported working interaction baseline. Joe corrected that scope before page implementation. The acceptance map now forbids losing those abilities and requires gold/garbage separation instead of reimplementation or wholesale shell restoration. |
+| F-016 | The first restored base85 anatomy contained an extra literal backslash and a mistaken literal `\\n` decoder; import refused. A first decoder correction then wrote literal newline escape text and produced a syntax error. No runtime advance occurred. The declaration was fully regenerated without a line-continuation sentinel and now passes S-011. |
+| F-017 | The first focused eye suite produced four expected stale-pin failures: tests still constructed 27 retinal ports and asserted 112 total ports. The implementation anatomy itself restored correctly. Test fixtures were updated to authoritative `RETINAL_PORTS`/`PORT_COUNT`, after which S-011 passed 7/7. |
+| F-018 | After the broader old-page baseline was added, Joe clarified that most of those controls were largely useless. Phase I therefore does not inherit caretaker/routine/affection orchestration. It keeps camera, microphone, hear-Guala, static bust, exact world, and a compact functional ABC/123 card interaction; expression/mouth animation remains Phase II. |
+| F-019 | The first combined sensory-shell regression exposed malformed under-limit JSON whose Pydantic diagnostic retained the raw `bytes` request input; FastAPI then failed while serializing that diagnostic. No occurrence was admitted and no organism or production state changed. The application now omits raw input and documentation URLs from validation diagnostics; S-012 proves the correction. |
+| F-020 | The existing oversized-body test was pinned to the former 256-byte observation-only envelope, so its 257-byte body became an ordinary malformed request after the sensory envelope was deliberately bounded at 12,288 bytes. This was a stale harness assertion, not a product capacity failure. The test now submits exactly `MAX_OCCURRENCE_BODY_BYTES + 1`; S-012 proves the hard refusal. |
+| F-021 | The first 30-test UI/sensory regression passed 29 product assertions and failed one harness assertion that required the JavaScript abort-controller variable to be literally named `controller`; the Guala page uses `pollController` and did call `.abort()` on hide/page exit. No product or production state changed. The test now proves the abort behavior without prescribing a variable name. |
+| F-022 | The first copied-mature-body dark/bright probe reached native physics on the dark occurrence, then Python refused its returned causal evidence because the locally installed `guala_core` binary lacked a named field present in current branch source. The source fixture and production were read-only and unchanged; no successor was accepted. Installed binary timestamp September 4 plus current Rust/Python field census identifies this as a stale local native build, not eye-function acceptance or rejection. |
+| F-023 | The first native rebuild command used `maturin develop --release`, which correctly refused because this workspace has no virtualenv/Conda environment. It compiled nothing and changed no project, organism, or production state. The documented correction is `maturin build --release` to a new explicit temporary directory followed by installation of that exact wheel. |
+| F-024 | The rebuilt-native copied-body dark/bright run completed both native transitions, but its harness repeated F-013 by placing multiple postconditions in compound assertions and printed no result before assertion. This recurrence is a harness failure and no acceptance is inferred from the completed transitions. Production and the read-only fixture remained unchanged. Every subsequent proof must print the complete result first and use separately labelled postconditions so a refusal names the exact failed fact. |
+| F-025 | The corrected named-postcondition probe printed both complete mature-body results and then rejected its `bright observer` assertion because the harness expected 255 rather than applying Guala's current eyelid transmission. The product returned 212 at every site, exactly consistent with the native five-sixths aperture; dark returned 0. The proof must derive expected receptor light from `retinal_carriage` and must never bypass body-owned eyelid physics. |
+| F-026 | The first runtime-image HTTP rehearsal bound a host `/tmp` fixture directory into Docker. This workspace's external Docker daemon saw that bind source as an empty directory, so startup correctly failed closed with `paired CURRENT is absent`, exit 3/no OOM, before any sensory submission. The host fixture remained exact and production was untouched. Container rehearsal in this environment must seed a new Docker-owned volume through `docker cp`; host `/tmp` bind mounts are not evidence. |
+| F-027 | The 124,151,300-byte card-free image restored the mature body but correctly refused the persisted world: the exact 36 curriculum PNG bytes participate in the authenticated physical-surface manifest, not merely static UI serving. Exit 3/no OOM occurred before HTTP readiness or sensory submission. The optimization is rejected; all 36 exact assets return to the runtime allowlist. Removing them would change preserved world authority and is not UI-001 cleanup. |
+| F-028 | The corrected-card image restored the Docker-volume mature body and autonomously advanced from tick 508158 through 508187, but the workspace could not reach the external Docker daemon's published `127.0.0.1:18081` port. The harness stopped the container normally after 50 seconds; exit 0/no OOM. No HTTP sensory request was submitted, so this is runtime/custody evidence but not HTTP acceptance. Like F-026, container HTTP in this environment must be probed with `docker exec` inside the daemon namespace. |
+| F-029 | A commentary update during F-028 incorrectly said the container had reached HTTP readiness before the command returned evidence. That statement is withdrawn. Status updates must distinguish `container started`, `native logs advancing`, and `HTTP ready proved`; only an actual successful `/ready` response may support the last phrase. |
+| F-030 | The first cold-continuation command started/restored the image, measured 730.1 MiB/7 PIDs, and stopped exit 0/no OOM, but its heredoc `docker exec` omitted `-i`; Python received no assertions and exited 0. Cold identity/tick continuity is therefore not accepted from that run. Subsequent heredoc container probes must use the already-proved exact `docker exec -i` form and require printed result markers. |
+| F-031 | The first pre-commit handoff read guessed `collaborative_todo.md` relative to this isolated worktree even though the handoff explicitly names `/workspaces/Tao_Financial_Engine/collaborative_todo.md`. `sed` refused and the chained command stopped before staging or committing. No state changed. Shared handoff reads/updates must use the supplied absolute workspace path, while source operations remain explicitly rooted in this worktree. |
+
+## Attempts
+
+| Attempt | Worked | Failed/not yet proved | Decision |
+|---|---|---|---|
+| UI-001 preflight 1 | S-001-S-007 | F-001-F-005 | Freeze exact boundary; inspect mechanics/assets. |
+| UI-001 retired-shell quarantine | S-008 | F-007 exposed defect | Keep tombstone; immutable Git history is the only archive. |
+| UI-001 eye separation/anatomy | S-009 | F-006/F-008 | Carry only exact 135-site geometry; author lean declaration without old shell. |
+| UI-001 quarantine regression | S-010 | F-009 was harness-only and corrected | Keep this focused gate in every UI-001 suite. |
+| UI-001 lean eye integration | S-011 | F-010-F-014/F-016-F-017 record harness and declaration mistakes | Proceed only to copied-body proof after interaction gold/garbage census. |
+| UI-001 sensory-shell regression | S-012 | F-019-F-020 found one product diagnostic defect and one stale harness pin | Keep the exact body wall and sanitized diagnostics; proceed to typed sensory and observer proofs. |
+| UI-001 copied mature vision | S-013 | F-022-F-025 record stale-native and harness assumptions | Preserve eyelid physics and 135-site functional distinction; proceed to copied mature hearing. |
+| UI-001 copied mature hearing | S-014 | Speech generation remains failed and outside this acceptance | Bind browser transport to the proved sensory shapes, then rehearse the release image. |
+| UI-001 release-image HTTP | S-016 | F-026-F-029 document the environment harness and status-report errors | Cold-restore the same volume, then close remaining interface truth gaps before release. |
+
+## Deployment history
+
+| ID | Outcome |
+|---|---|
+| D-001 | No UI-001 artifact has been built, registered, or deployed. Production remains unchanged on P-005 task 1433. |
