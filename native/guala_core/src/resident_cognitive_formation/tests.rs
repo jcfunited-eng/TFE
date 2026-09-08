@@ -162,6 +162,162 @@
         .unwrap()
     }
 
+    fn rejected_w1_source_site(topology_index: u32) -> NeuronSourceSite {
+        NeuronSourceSite::from_source_port(
+            &crate::joint_source_episode::JointSourcePortView {
+                sense: PhysicalSourceSense::Sight.declared_layer(),
+                topology_index,
+                body_proprioceptor_terminal: None,
+                root_yaw_proprioceptor_terminal: None,
+                root_translation_proprioceptor_terminal: None,
+                sensor_id: RETIRED_W1_RETINA_SENSOR_ID.into(),
+                substream_id: format!("retired-w1-{topology_index}"),
+                coordinates: vec![crate::joint_source_episode::JointSourceCoordinate {
+                    axis_id: "optical-band".into(),
+                    coordinate_id: topology_index.to_string(),
+                }],
+                physical_quantity: RETINAL_SPECTRAL_IRRADIANCE_QUANTITY.into(),
+                physical_unit: RETINAL_REFERENCE_IRRADIANCE_UNIT.into(),
+                relevance_rule: "source-only".into(),
+                relevance_origin: None,
+                input_map_id: "retired-w1-test-map".into(),
+                source_min: BigRational::from_integer(BigInt::from(0)),
+                source_max: BigRational::from_integer(BigInt::from(1)),
+                field_offset: BigRational::from_integer(BigInt::from(0)),
+                field_scale: BigRational::from_integer(BigInt::from(1)),
+                input_map_profile: vec![1],
+                input_map_group_receipt: [0; 32],
+                source_times: vec![
+                    BigRational::from_integer(BigInt::from(0)),
+                    BigRational::from_integer(BigInt::from(1)),
+                ],
+                exact_normalized_sources: vec![
+                    BigRational::from_integer(BigInt::from(0)),
+                    BigRational::from_integer(BigInt::from(0)),
+                ],
+                reported_phase_turns: vec![
+                    BigRational::from_integer(BigInt::from(0)),
+                    BigRational::from_integer(BigInt::from(0)),
+                ],
+                source_relevances: vec![
+                    BigRational::from_integer(BigInt::from(1)),
+                    BigRational::from_integer(BigInt::from(1)),
+                ],
+                dimensionless_fields: vec![
+                    BigRational::from_integer(BigInt::from(0)),
+                    BigRational::from_integer(BigInt::from(0)),
+                ],
+            },
+        )
+        .unwrap()
+    }
+
+    #[test]
+    fn rejected_w1_retirement_removes_only_the_duplicate_retina_and_integrators() {
+        let mut cohorts = Vec::new();
+        let mut next_lineage = 1;
+        let mut retired_pairs = Vec::new();
+        for topology_index in RETIRED_W1_RETINA_TOPOLOGY_START
+            ..RETIRED_W1_RETINA_TOPOLOGY_START
+                + u32::try_from(RETIRED_W1_RETINA_RECEPTOR_COUNT).unwrap()
+        {
+            let site = rejected_w1_source_site(topology_index);
+            let place = DeclaredNeuronPlace::from_source_site(&site);
+            let neuron = create_quiescent_virtual_material_neuron(place).unwrap();
+            let source_lineage = allocate_local_lineage(&mut next_lineage).unwrap();
+            let local_anatomy = SparseElectricalAnatomy::new(1, Vec::new()).unwrap();
+            let anatomy = ReachedCohortAnatomy::new_mounted(
+                vec![neuron.anatomy],
+                vec![source_lineage],
+                vec![ReachedNeuronMount::Receptor(site)],
+                local_anatomy.clone(),
+            )
+            .unwrap();
+            cohorts.push(ResidentReachedCohort {
+                state: ReachedCohortState::new(
+                    &anatomy,
+                    vec![neuron.state],
+                    SparseElectricalState::genesis(&local_anatomy),
+                )
+                .unwrap()
+                .into(),
+                anatomy,
+                pending_experience: None,
+                retained_experience: None,
+                pending_recurrence: None,
+            });
+            let integration = mount_intrinsic_neuron_at_place(
+                &mut cohorts,
+                &mut None,
+                &mut next_lineage,
+                local_integration_place(place).unwrap(),
+            )
+            .unwrap();
+            retired_pairs.push((source_lineage, integration));
+        }
+        let preserved = mount_intrinsic_neuron_at_place(
+            &mut cohorts,
+            &mut None,
+            &mut next_lineage,
+            DeclaredNeuronPlace::new(7, 999_999),
+        )
+        .unwrap();
+        let fabric = ResidentElectricalFabric::default()
+            .append_contacts(
+                &retired_pairs
+                    .iter()
+                    .map(|(source, integration)| {
+                        (
+                            *source,
+                            *integration,
+                            ExactRational::integer(
+                                DEVELOPMENTAL_CONTACT_CONDUCTANCE_PICOSIEMENS,
+                            ),
+                        )
+                    })
+                    .collect::<Vec<_>>(),
+            )
+            .unwrap();
+        let topology_index = Arc::new(ResidentTopologyIndex::build(&cohorts, &fabric).unwrap());
+        let state = ResidentCognitiveFormationState {
+            generation: 1,
+            next_lineage_ordinal: next_lineage,
+            vocal_articulatory_effector_lineage: None,
+            unexpressed_electrical_seeds: Box::new([]),
+            dormant_lineage_seeds: Box::new([]),
+            resting_population: None,
+            cohorts: cohorts.into_boxed_slice(),
+            electrical_fabric: fabric,
+            active_electrical_frontier: Box::new([]),
+            preceding_active_electrical_frontier: Box::new([]),
+            older_active_electrical_frontier: Box::new([]),
+            mosaics: Box::new([]),
+            hippocampal: ResidentHippocampalIndex::default(),
+            topology_index,
+            formation_index: ResidentFormationIndex::default(),
+        };
+        validate_lineage_state(&state).unwrap();
+
+        let corrected = state
+            .retire_rejected_w1_spectral_retina()
+            .unwrap()
+            .unwrap();
+        assert_eq!(corrected.electrical_fabric.contact_count(), 0);
+        assert_eq!(corrected.topology_index.flat_locations.len(), 1);
+        assert_eq!(corrected.topology_index.flat_locations[0].2, preserved);
+        assert!(corrected
+            .cohorts
+            .iter()
+            .flat_map(|cohort| cohort.anatomy.mounts())
+            .all(|mount| mount
+                .source_site()
+                .is_none_or(|site| site.sensor_id() != RETIRED_W1_RETINA_SENSOR_ID)));
+        assert!(corrected
+            .retire_rejected_w1_spectral_retina()
+            .unwrap()
+            .is_none());
+    }
+
     #[test]
     fn transient_bond_index_preserves_exact_parallel_ordinals() {
         let left = local_lineage(1);
@@ -2871,7 +3027,7 @@
         assert!(decode_sparse_experience_evidence_v8(&corrupt, &cohort.anatomy).is_err());
 
         let current = state.encode(16_000_000).unwrap();
-        assert_eq!(&current[..MAGIC_V41.len()], MAGIC_V41);
+        assert_eq!(&current[..MAGIC_V42.len()], MAGIC_V42);
         assert_eq!(
             ResidentCognitiveFormationState::decode(&current, 16_000_000).unwrap(),
             state
@@ -4538,7 +4694,7 @@
             MAX_BYTES,
         )
         .unwrap();
-        assert_eq!(&current[..MAGIC_V41.len()], MAGIC_V41);
+        assert_eq!(&current[..MAGIC_V42.len()], MAGIC_V42);
         let restored = ResidentCognitiveFormationState::decode(&current, MAX_BYTES).unwrap();
         let layers = restored.observe_reached_neuron_count_by_layer();
         assert!(layers.iter().all(|(layer, _)| !matches!(layer, 10 | 11)));
@@ -6127,7 +6283,7 @@
 
         // One-way and restart-proof: the migrated body is current and crossing
         // the boundary again is the identity.
-        assert_eq!(&migrated[..MAGIC_V41.len()], MAGIC_V41);
+        assert_eq!(&migrated[..MAGIC_V42.len()], MAGIC_V42);
         assert_eq!(
             ResidentCognitiveFormationState::migrate_to_current_format(&migrated, MAX_BYTES)
                 .unwrap(),
@@ -7294,7 +7450,7 @@
 
         let migrated =
             ResidentCognitiveFormationState::migrate_to_current_format(&v40, MAX_BYTES).unwrap();
-        assert_eq!(&migrated[..MAGIC_V41.len()], MAGIC_V41);
+        assert_eq!(&migrated[..MAGIC_V42.len()], MAGIC_V42);
         let restored = ResidentCognitiveFormationState::decode(&migrated, MAX_BYTES).unwrap();
         let dedicated = restored.vocal_articulatory_effector_lineage.unwrap();
         assert!(!historical.contains(&dedicated));
@@ -7429,7 +7585,7 @@
         let migrated =
             ResidentCognitiveFormationState::migrate_to_current_format(&v32, MAX_BYTES)
                 .unwrap();
-        assert_eq!(&migrated[..MAGIC_V41.len()], MAGIC_V41);
+        assert_eq!(&migrated[..MAGIC_V42.len()], MAGIC_V42);
         let restored = ResidentCognitiveFormationState::decode(&migrated, MAX_BYTES).unwrap();
         // V40/V41 law supersedes the V34 fixed-route bridge this test once
         // pinned: the V33 boundary retires the contaminated broad-pool
@@ -7611,7 +7767,7 @@
                 .contains_contact(non_vocal_motor, *cell));
         }
         assert_eq!(restored.electrical_fabric.contact_count(), 0);
-        assert_eq!(&migrated[..MAGIC_V41.len()], MAGIC_V41);
+        assert_eq!(&migrated[..MAGIC_V42.len()], MAGIC_V42);
         assert_eq!(
             ResidentCognitiveFormationState::migrate_to_current_format(&migrated, MAX_BYTES)
                 .unwrap(),
@@ -7755,7 +7911,7 @@
             MAX_BYTES,
         )
         .unwrap();
-        assert_eq!(&migrated[..MAGIC_V41.len()], MAGIC_V41);
+        assert_eq!(&migrated[..MAGIC_V42.len()], MAGIC_V42);
         let restored = ResidentCognitiveFormationState::decode(&migrated, MAX_BYTES).unwrap();
         assert!(restored.electrical_fabric.contains_contact(receptor, {
             restored
@@ -8034,7 +8190,7 @@
             MAX_BYTES,
         )
         .unwrap();
-        assert_eq!(&current[..MAGIC_V41.len()], MAGIC_V41);
+        assert_eq!(&current[..MAGIC_V42.len()], MAGIC_V42);
         let restored = ResidentCognitiveFormationState::decode(&current, MAX_BYTES).unwrap();
         assert_eq!(
             restored.observe_reached_neuron_count_by_layer()
@@ -9005,7 +9161,7 @@
             1_600_000_000,
         )
         .unwrap();
-        assert_eq!(&migrated[..MAGIC_V41.len()], MAGIC_V41);
+        assert_eq!(&migrated[..MAGIC_V42.len()], MAGIC_V42);
         let restored = ResidentCognitiveFormationState::decode(&migrated, 1_600_000_000).unwrap();
         assert!(!restored.electrical_fabric.contains_contact(ordering, motor));
         assert!(!restored.electrical_fabric.contains_contact(motor, articulatory));
@@ -9038,7 +9194,7 @@
             1_600_000_000,
         )
         .unwrap();
-        assert_eq!(&direct[..MAGIC_V41.len()], MAGIC_V41);
+        assert_eq!(&direct[..MAGIC_V42.len()], MAGIC_V42);
         let restored_direct =
             ResidentCognitiveFormationState::decode(&direct, 1_600_000_000).unwrap();
         assert!(restored_direct.electrical_fabric.contains_contact(ordering, motor));
@@ -9881,7 +10037,7 @@
         let current =
             ResidentCognitiveFormationState::migrate_to_current_format(&legacy, 16_000_000)
                 .unwrap();
-        assert_eq!(&current[..MAGIC_V41.len()], MAGIC_V41);
+        assert_eq!(&current[..MAGIC_V42.len()], MAGIC_V42);
         let cold = ResidentCognitiveFormationState::decode(&current, 16_000_000).unwrap();
         assert_eq!(cold.encode(16_000_000).unwrap(), current);
         assert!(cold.active_electrical_frontier.is_empty());

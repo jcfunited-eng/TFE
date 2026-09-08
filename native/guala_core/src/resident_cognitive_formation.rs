@@ -310,6 +310,13 @@ const MAGIC_V40: &[u8; 8] = b"GLCOG040";
 /// A V40 body that already names one valid effector preserves that exact
 /// lineage. The second migration is byte-identical.
 const MAGIC_V41: &[u8; 8] = b"GLCOG041";
+/// V42 retires the rejected duplicate spectral retina mounted by task 1437.
+/// The persisted body keeps its established 135-site retina and every
+/// unrelated neuron, contact, field, formation, and learned state.
+const MAGIC_V42: &[u8; 8] = b"GLCOG042";
+const RETIRED_W1_RETINA_SENSOR_ID: &str = "W1-retina";
+const RETIRED_W1_RETINA_TOPOLOGY_START: u32 = 135;
+const RETIRED_W1_RETINA_RECEPTOR_COUNT: usize = 810;
 const VERSION_V30: u16 = 30;
 const LINEAGE_DOMAIN: &[u8; 8] = b"GLNLINE1";
 /// Existing authored developmental-contact material shared by the retinal,
@@ -4873,11 +4880,12 @@ fn validate_dedicated_vocal_articulatory_effector(
 
 impl ResidentCognitiveFormationState {
     pub(crate) fn encoded_is_current(bytes: &[u8]) -> bool {
-        bytes.get(..MAGIC_V41.len()) == Some(MAGIC_V41)
+        bytes.get(..MAGIC_V42.len()) == Some(MAGIC_V42)
     }
 
     pub(crate) fn encoded_has_corrected_articulated_pose(bytes: &[u8]) -> bool {
-        bytes.get(..MAGIC_V41.len()) == Some(MAGIC_V41)
+        bytes.get(..MAGIC_V42.len()) == Some(MAGIC_V42)
+            || bytes.get(..MAGIC_V41.len()) == Some(MAGIC_V41)
             || bytes.get(..MAGIC_V40.len()) == Some(MAGIC_V40)
             || bytes.get(..MAGIC_V39.len()) == Some(MAGIC_V39)
             || bytes.get(..MAGIC_V38.len()) == Some(MAGIC_V38)
@@ -5028,6 +5036,192 @@ impl ResidentCognitiveFormationState {
                 .iter()
                 .copied()
                 .filter(|entry| !retired.contains(&entry.receiver()))
+                .collect::<Vec<_>>()
+                .into_boxed_slice(),
+            mosaics: mosaics.into_boxed_slice(),
+            hippocampal: self.hippocampal,
+            topology_index: self.topology_index.clone(),
+            formation_index: ResidentFormationIndex::default(),
+        };
+        successor.topology_index = Arc::new(ResidentTopologyIndex::build(
+            &successor.cohorts,
+            &successor.electrical_fabric,
+        )?);
+        successor.formation_index = ResidentFormationIndex::build(&successor.mosaics)?;
+        validate_lineage_state(&successor)?;
+        Ok(Some(successor))
+    }
+
+    /// Retire only the duplicate spectral retina admitted by task 1437.
+    ///
+    /// The rejected family is authenticated from persisted anatomy: exactly
+    /// 810 sight receptors named `W1-retina` at contiguous topology places
+    /// 135..944, each joined to its injectively derived layer-6 integrator.
+    /// A partial, renamed, aliased, or differently wired family refuses the
+    /// migration instead of guessing. All unrelated resident material and
+    /// learned state remain exact.
+    fn retire_rejected_w1_spectral_retina(&self) -> Result<Option<Self>, FormationError> {
+        let mut sources = Vec::<([u8; 16], DeclaredNeuronPlace)>::new();
+        for (mount, lineage) in self.cohorts.iter().flat_map(|cohort| {
+            cohort
+                .anatomy
+                .mounts()
+                .iter()
+                .zip(cohort.anatomy.neuron_lineages())
+        }) {
+            let Some(site) = mount.source_site() else {
+                continue;
+            };
+            if site.sensor_id() != RETIRED_W1_RETINA_SENSOR_ID {
+                continue;
+            }
+            if site.sense() != PhysicalSourceSense::Sight
+                || site.physical_quantity() != RETINAL_SPECTRAL_IRRADIANCE_QUANTITY
+            {
+                return Err(FormationError::NeuronLineageAuthorityChanged);
+            }
+            sources.push((*lineage, mount.place()));
+        }
+        if sources.is_empty() {
+            return Ok(None);
+        }
+        sources.sort_unstable_by_key(|(_, place)| place.topology_index());
+        if sources.len() != RETIRED_W1_RETINA_RECEPTOR_COUNT {
+            return Err(FormationError::NeuronLineageAuthorityChanged);
+        }
+        for (offset, (_, place)) in sources.iter().enumerate() {
+            let offset = u32::try_from(offset)
+                .map_err(|_| FormationError::NeuronLineageAuthorityChanged)?;
+            let expected_topology = RETIRED_W1_RETINA_TOPOLOGY_START
+                .checked_add(offset)
+                .ok_or(FormationError::NeuronLineageAuthorityChanged)?;
+            if place.layer() != u32::from(PhysicalSourceSense::Sight.declared_layer())
+                || place.topology_index() != expected_topology
+            {
+                return Err(FormationError::NeuronLineageAuthorityChanged);
+            }
+        }
+
+        let mut retired = sources
+            .iter()
+            .map(|(lineage, _)| *lineage)
+            .collect::<BTreeSet<_>>();
+        let mut integration_places = Vec::with_capacity(RETIRED_W1_RETINA_RECEPTOR_COUNT);
+        for (source_lineage, source_place) in &sources {
+            let integration_place = local_integration_place(*source_place)?;
+            let integration_lineage = self
+                .topology_index
+                .intrinsic_lineage_at_place(integration_place)?
+                .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
+            if !self
+                .electrical_fabric
+                .contains_contact(*source_lineage, integration_lineage)
+                || integration_places.contains(&integration_place)
+                || !retired.insert(integration_lineage)
+            {
+                return Err(FormationError::NeuronLineageAuthorityChanged);
+            }
+            integration_places.push(integration_place);
+        }
+        if retired.len() != RETIRED_W1_RETINA_RECEPTOR_COUNT * 2 {
+            return Err(FormationError::NeuronLineageAuthorityChanged);
+        }
+
+        let mut retired_places = Vec::with_capacity(retired.len());
+        let mut cohorts = Vec::with_capacity(self.cohorts.len());
+        for cohort in self.cohorts.iter() {
+            let retired_members = cohort
+                .anatomy
+                .neuron_lineages()
+                .iter()
+                .filter(|lineage| retired.contains(*lineage))
+                .count();
+            if retired_members == 0 {
+                cohorts.push(cohort.clone());
+                continue;
+            }
+            if retired_members != cohort.anatomy.neuron_count() {
+                return Err(FormationError::NeuronLineageAuthorityChanged);
+            }
+            for mount in cohort.anatomy.mounts() {
+                let valid_source = mount.source_site().is_some_and(|site| {
+                    site.sensor_id() == RETIRED_W1_RETINA_SENSOR_ID
+                        && site.sense() == PhysicalSourceSense::Sight
+                        && site.physical_quantity() == RETINAL_SPECTRAL_IRRADIANCE_QUANTITY
+                });
+                let valid_integrator = mount.source_site().is_none()
+                    && integration_places.contains(&mount.place());
+                if !valid_source && !valid_integrator {
+                    return Err(FormationError::NeuronLineageAuthorityChanged);
+                }
+                retired_places.push(mount.place());
+            }
+        }
+        if retired_places.len() != retired.len() {
+            return Err(FormationError::NeuronLineageAuthorityChanged);
+        }
+
+        let mut resting_population = self.resting_population.clone();
+        for place in retired_places {
+            let Some(population) = resting_population.as_ref() else {
+                continue;
+            };
+            if population.materialized_lineage_ordinal(place).is_some() {
+                resting_population = Some(
+                    population
+                        .release_claimed_place(place)
+                        .map_err(FormationError::DevelopmentalRestingPopulationUnavailable)?,
+                );
+            }
+        }
+        let retired_lineages = retired.iter().copied().collect::<Vec<_>>();
+        let keep_frontier = |entry: &&ActiveElectricalFrontierEntry| {
+            !retired.contains(&entry.receiver())
+                && entry.sender().is_none_or(|sender| !retired.contains(&sender))
+        };
+        let mosaics = self
+            .mosaics
+            .iter()
+            .filter(|formation| {
+                !formation
+                    .mosaic
+                    .member_lineages()
+                    .iter()
+                    .any(|lineage| retired.contains(lineage))
+            })
+            .cloned()
+            .collect::<Vec<_>>();
+        let mut successor = Self {
+            generation: self.generation,
+            next_lineage_ordinal: self.next_lineage_ordinal,
+            vocal_articulatory_effector_lineage: self.vocal_articulatory_effector_lineage,
+            unexpressed_electrical_seeds: self.unexpressed_electrical_seeds.clone(),
+            dormant_lineage_seeds: self.dormant_lineage_seeds.clone(),
+            resting_population,
+            cohorts: cohorts.into_boxed_slice(),
+            electrical_fabric: self
+                .electrical_fabric
+                .without_lineages(&retired_lineages)
+                .map_err(FormationError::ResidentElectricalUnavailable)?,
+            active_electrical_frontier: self
+                .active_electrical_frontier
+                .iter()
+                .filter(keep_frontier)
+                .copied()
+                .collect::<Vec<_>>()
+                .into_boxed_slice(),
+            preceding_active_electrical_frontier: self
+                .preceding_active_electrical_frontier
+                .iter()
+                .filter(keep_frontier)
+                .copied()
+                .collect::<Vec<_>>()
+                .into_boxed_slice(),
+            older_active_electrical_frontier: self
+                .older_active_electrical_frontier
+                .iter()
+                .filter(keep_frontier)
+                .copied()
                 .collect::<Vec<_>>()
                 .into_boxed_slice(),
             mosaics: mosaics.into_boxed_slice(),
@@ -9951,7 +10145,7 @@ impl ResidentCognitiveFormationState {
         let topology = indexed_organism_mosaic_topology(&self.cohorts, &self.topology_index)?;
 
         let mut output = Vec::new();
-        output.extend_from_slice(MAGIC_V41);
+        output.extend_from_slice(MAGIC_V42);
         output.extend_from_slice(&VERSION_V30.to_le_bytes());
         output.extend_from_slice(&self.generation.to_le_bytes());
         output.extend_from_slice(&self.next_lineage_ordinal.to_le_bytes());
@@ -10772,7 +10966,7 @@ impl ResidentCognitiveFormationState {
     }
 
     pub(crate) fn decode(bytes: &[u8], max_encoded_bytes: usize) -> Result<Self, FormationError> {
-        if bytes.get(..MAGIC_V41.len()) != Some(MAGIC_V41) {
+        if bytes.get(..MAGIC_V42.len()) != Some(MAGIC_V42) {
             return Err(FormationError::RetiredCognitiveState);
         }
         Self::decode_with_canonicality(bytes, max_encoded_bytes, true)
@@ -10799,8 +10993,10 @@ impl ResidentCognitiveFormationState {
                 available: max_encoded_bytes,
             });
         }
-        let current_v41 =
-            bytes.len() >= MAGIC_V41.len() && &bytes[..MAGIC_V41.len()] == MAGIC_V41;
+        let current_v42 =
+            bytes.len() >= MAGIC_V42.len() && &bytes[..MAGIC_V42.len()] == MAGIC_V42;
+        let current_v41 = current_v42
+            || (bytes.len() >= MAGIC_V41.len() && &bytes[..MAGIC_V41.len()] == MAGIC_V41);
         let current_v40 = current_v41
             || (bytes.len() >= MAGIC_V40.len() && &bytes[..MAGIC_V40.len()] == MAGIC_V40);
         let current_v39 = current_v40
@@ -11437,7 +11633,8 @@ impl ResidentCognitiveFormationState {
         bytes: &[u8],
         max_encoded_bytes: usize,
     ) -> Result<Vec<u8>, FormationError> {
-        let current_v41 = bytes.get(..MAGIC_V41.len()) == Some(MAGIC_V41);
+        let current_v42 = bytes.get(..MAGIC_V42.len()) == Some(MAGIC_V42);
+        let current_v41 = current_v42 || bytes.get(..MAGIC_V41.len()) == Some(MAGIC_V41);
         let current_v40 = current_v41 || bytes.get(..MAGIC_V40.len()) == Some(MAGIC_V40);
         let current_v39 = current_v40 || bytes.get(..MAGIC_V39.len()) == Some(MAGIC_V39);
         let current_v38 = current_v39 || bytes.get(..MAGIC_V38.len()) == Some(MAGIC_V38);
@@ -11478,7 +11675,8 @@ impl ResidentCognitiveFormationState {
                 || &bytes[..MAGIC_V38.len()] == MAGIC_V38
                 || &bytes[..MAGIC_V39.len()] == MAGIC_V39
                 || &bytes[..MAGIC_V40.len()] == MAGIC_V40
-                || &bytes[..MAGIC_V41.len()] == MAGIC_V41);
+                || &bytes[..MAGIC_V41.len()] == MAGIC_V41
+                || &bytes[..MAGIC_V42.len()] == MAGIC_V42);
         let state = Self::decode_for_one_way_migration(bytes, max_encoded_bytes)?;
         // Historical topology/channel corrections belong to this explicit
         // authenticated migration and nowhere in ordinary cognition.  The
@@ -11617,6 +11815,14 @@ impl ResidentCognitiveFormationState {
             state
         } else {
             state.into_dedicated_vocal_articulatory_effector()?
+        };
+        let state = if current_v42 {
+            state
+        } else {
+            match state.retire_rejected_w1_spectral_retina()? {
+                Some(corrected) => corrected,
+                None => state,
+            }
         };
         // A body that already carries its resting population is complete —
         // this guard alone protects every V34/V35 boundary crossing (a
