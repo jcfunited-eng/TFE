@@ -45,12 +45,14 @@ failure in one gate does not erase an already-proved success in another.
 | Q-F-002 | The hand-maintained lean allowlist named 64 Python files while static resolution found 81 reachable files. Seventeen current imports were missing. | The release manifest is generated and checked against the exact import closure; the allowlist now names all 81 Python files plus 36 optical surfaces. Required reachable code is correctness, not bloat. |
 | Q-F-003 | The first patch invocation targeted the primary checkout instead of `/tmp/guala-speech-existing-organ`; it replaced only the primary Dockerfile before the missing-manifest path stopped the operation. | The primary Dockerfile was restored byte-for-byte from its own HEAD and `git diff --exit-code` passed. Every later patch names and verifies the exact worktree. No production state was touched. |
 | Q-F-004 | The first focused pytest command repeated RF-001/F-055 by omitting `PYTHONPATH=.` in the temporary worktree. Pytest setup raised `ModuleNotFoundError`; no test body ran. | Every host Python/pytest command in this worktree begins with `PYTHONPATH=.`. Do not classify this as a product failure or rerun broader tests because of it. |
+| Q-F-005 | The first exact packaged-image build failed at Cargo compile because the reviewed native-core list omitted the already-committed 161-line `resident_cognitive_formation/lean_sensorimotor_route.rs`; the shell runtime was not started and no image exists from this attempt. | The exact missing compile input is added to the native-core release category. Before an image claim, compile the packaged crate rather than treating successful archive creation as a build success. |
 
 ## Deployment attempts
 
 | ID | Outcome |
 |---|---|
 | Q-D-001 | No deployment attempted. Live task1436, identity, and state remain untouched. The candidate must first pass exact reviewed packaging and container boot. |
+| Q-D-002 | Local immutable-image attempt from commit `cf13f521` failed during native compilation under Q-F-005. Nothing was pushed, registered, or deployed. |
 
 ## Next exact gate
 
