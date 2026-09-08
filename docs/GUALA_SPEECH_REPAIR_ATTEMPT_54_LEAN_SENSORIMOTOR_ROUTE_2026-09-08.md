@@ -1790,3 +1790,15 @@ pressure. This is successful live tutoring and the first proven production
 body actuation through that route; it is not autonomous speech. No second guide
 is authorized. The sole next observation is the existing frontier through at
 most 32 native interval advances for body-owned pressure and self-hearing.
+
+F-062-01 exact post-guide boundary: the first observation after the accepted
+tick-543664 guide found the same live identity already at tick 543708, beyond
+the predeclared tick-543696 limit. That unattended successor still reported
+four body consequences, proving that the newly founded body route remained
+causally active without another external guide, but it held zero self-heard
+samples, no self-hearing source tick, no pending self pressure, and no pressure
+receipt for the armed browser to play. The bounded live development therefore
+did not produce speech. Preserve S-062-01 as a real route/body-actuation
+success; do not repeat the guide, discard that route, blame the browser speaker,
+or broaden the failure. The remaining live failure is specifically between
+persisting vocal body consequences and pressure discharge/self-hearing.
