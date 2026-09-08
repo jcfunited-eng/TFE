@@ -79,6 +79,7 @@
         "native/guala_core/src/resident_cognitive_formation/lean_sensorimotor_route.rs",
         "native/guala_core/src/resident_cognitive_formation/real_body_migration_probe.rs",
         "native/guala_core/src/resident_cognitive_formation/reservoir_probe.rs",
+        "native/guala_core/src/resident_cognitive_formation/tests.rs",
         "native/guala_core/src/resident_electrical_fabric.rs",
         "native/guala_core/src/resident_receptor_transition.rs",
         "native/guala_core/src/root_translation_joint_source_builder.rs",

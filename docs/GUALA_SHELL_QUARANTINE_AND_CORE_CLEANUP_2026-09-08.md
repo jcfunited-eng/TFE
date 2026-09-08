@@ -37,6 +37,7 @@ failure in one gate does not erase an already-proved success in another.
 | Q-S-004 | Candidate release manifest has one runtime entrypoint and the exact resolved 81-file Python import closure. Retired app, candidate rehearsal, cold-restore probe, static publication, unused lesson audio, and songs are not in the image closure. |
 | Q-S-005 | Focused quarantine checks passed 3/3 with the correct host import root; manifest renderer reproduced the candidate byte-for-byte; Python compilation and whitespace checks passed. |
 | Q-S-006 | Exact reviewed package at commit `e53771cfc0d81b69de3eb036df234d7c1702fba2` verified 212 source files, archive `b39fa611...6523`, then built local image `sha256:2bdb8023...f798`/212,870,781 bytes. Image import proved exactly 81 Python files, five routes, exact BUILD_INFO, and no import spec for `app`, `native_production_app`, `candidate_release_rehearsal`, or `cold_restore_probe`. |
+| Q-S-007 | The 9,802-line inline native test body moved unchanged to `resident_cognitive_formation/tests.rs`; the production file fell from 32,940 to 23,137 lines with no production logic change. Exact locked library and test compilation passed. |
 
 ## Failures and recurrence guards
 
@@ -47,6 +48,7 @@ failure in one gate does not erase an already-proved success in another.
 | Q-F-003 | The first patch invocation targeted the primary checkout instead of `/tmp/guala-speech-existing-organ`; it replaced only the primary Dockerfile before the missing-manifest path stopped the operation. | The primary Dockerfile was restored byte-for-byte from its own HEAD and `git diff --exit-code` passed. Every later patch names and verifies the exact worktree. No production state was touched. |
 | Q-F-004 | The first focused pytest command repeated RF-001/F-055 by omitting `PYTHONPATH=.` in the temporary worktree. Pytest setup raised `ModuleNotFoundError`; no test body ran. | Every host Python/pytest command in this worktree begins with `PYTHONPATH=.`. Do not classify this as a product failure or rerun broader tests because of it. |
 | Q-F-005 | The first exact packaged-image build failed at Cargo compile because the reviewed native-core list omitted the already-committed 161-line `resident_cognitive_formation/lean_sensorimotor_route.rs`; the shell runtime was not started and no image exists from this attempt. | The exact missing compile input is added to the native-core release category. Before an image claim, compile the packaged crate rather than treating successful archive creation as a build success. |
+| Q-F-006 | The first test-compilation command after the test split ran Cargo from the repository root, where no `Cargo.toml` exists; compilation never began. | All native commands name `--manifest-path native/guala_core/Cargo.toml`; the corrected locked test compilation passed. |
 
 ## Deployment attempts
 
