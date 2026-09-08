@@ -21351,16 +21351,14 @@ fn settle_internal_contact_interval(
         // changed — by pumping, passive recovery, membrane settlement,
         // external ingress, or contact transfer. An unchanged endpoint
         // wakes nothing.
-        let mut endpoint_cache = std::iter::repeat_with(|| None)
-            .take(flat_locations.len())
-            .collect::<Vec<_>>();
+        let mut endpoint_cache = BTreeMap::new();
         for flat in selected.iter().copied() {
             let (cohort_index, neuron_index, _) = flat_locations[flat];
             let state = &cohorts[cohort_index].state.neurons()[neuron_index];
             let capacitance =
                 cohorts[cohort_index].anatomy.neuron_anatomies()[neuron_index].capacitance();
             let membrane = state.membrane_state();
-            endpoint_cache[flat] = Some((
+            endpoint_cache.insert(flat, (
                     membrane
                         .potential_millivolts(capacitance)
                         .map_err(FormationError::InternalMembraneUnavailable)?,
@@ -21375,8 +21373,14 @@ fn settle_internal_contact_interval(
         // pumping, passive recovery, membrane settlement, or contact
         // transfer. A receptor changed by silence is still a changed
         // endpoint, even though silence originates no causal frontier.
+        let mut change_candidates = selected.iter().copied().collect::<BTreeSet<_>>();
+        for lineage in pre_source_membranes.keys().copied() {
+            change_candidates.insert(topology_index.flat_for_lineage(lineage)?);
+        }
+        change_candidates.extend(passive_return_changed_flats.iter().copied());
+        change_candidates.extend(co_recruited_articulatory_flats.iter().copied());
         let mut changed_flats = Vec::new();
-        for flat in 0..flat_locations.len() {
+        for flat in change_candidates {
             let (cohort_index, neuron_index, lineage) = flat_locations[flat];
             let state = &cohorts[cohort_index].state.neurons()[neuron_index];
             let source_changed = pre_source_membranes
@@ -21407,10 +21411,6 @@ fn settle_internal_contact_interval(
                 changed_flats.push(flat);
             }
         }
-        let mut settled_contacts = vec![false; topology_index.contacts.len()];
-        for contact_index in compact_original_indices.iter().copied() {
-            settled_contacts[contact_index] = true;
-        }
         for (position, contact_index) in
             compact_original_indices.iter().copied().enumerate()
         {
@@ -21419,12 +21419,12 @@ fn settle_internal_contact_interval(
             let successor_state = &transition.successor;
             let (left_flat, right_flat) = compact_edge_flat_endpoints[position];
             let (left_potential, left_charges, left_capacitance, left_available) =
-                endpoint_cache[left_flat]
-                    .as_ref()
+                endpoint_cache
+                    .get(&left_flat)
                     .ok_or(FormationError::NoncanonicalState)?;
             let (right_potential, right_charges, right_capacitance, right_available) =
-                endpoint_cache[right_flat]
-                    .as_ref()
+                endpoint_cache
+                    .get(&right_flat)
                     .ok_or(FormationError::NoncanonicalState)?;
             // Two exact tiers. An ACTIVELY settled contact (whole carriers
             // moved or channels transitioned) reschedules from its raw
@@ -21507,7 +21507,10 @@ fn settle_internal_contact_interval(
         woken_contacts.sort_unstable();
         woken_contacts.dedup();
         for contact_index in woken_contacts {
-            if settled_contacts[contact_index] {
+            if compact_original_indices
+                .binary_search(&contact_index)
+                .is_ok()
+            {
                 continue;
             }
             let entry = topology_index.contacts[contact_index];
@@ -21651,7 +21654,7 @@ fn settle_internal_contact_interval(
                 ),
                 FormationError,
             > {
-                if let Some(cached) = endpoint_cache[flat].as_ref() {
+                if let Some(cached) = endpoint_cache.get(&flat) {
                     return Ok(cached.clone());
                 }
                 let (cohort_index, neuron_index, _) = flat_locations[flat];
