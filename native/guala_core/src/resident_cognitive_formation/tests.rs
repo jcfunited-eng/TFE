@@ -2089,6 +2089,7 @@
         let topology = ResidentTopologyIndex {
             flat_locations: Box::new([]),
             flat_by_lineage: Box::new([]),
+            intrinsic_locations: Box::new([]),
             source_locations: Box::new([]),
             lineage_layers,
             canonical_lineages: Box::new([]),
@@ -3400,6 +3401,7 @@
         let topology = ResidentTopologyIndex {
             flat_locations: Box::new([]),
             flat_by_lineage: Box::new([]),
+            intrinsic_locations: Box::new([]),
             source_locations: Box::new([]),
             lineage_layers: lineage_layers.into_boxed_slice(),
             canonical_lineages: Box::new([]),

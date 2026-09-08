@@ -8898,11 +8898,12 @@ impl ResidentCognitiveFormationState {
         let predecessor_active_electrical_frontier =
             predecessor_active_electrical_frontier.into_vec();
         let mut active_electrical_frontier = predecessor_active_electrical_frontier.clone();
-        mount_reached_local_integration(
+        mount_reached_local_integration_indexed(
             &mut cohorts,
             &mut resting_population,
             &mut next_lineage_ordinal,
             &mut electrical_fabric,
+            &topology_index,
             &externally_reached_receptor_places,
         )?;
         let mut reached_body_regulation_lineages = Vec::new();
@@ -14302,6 +14303,7 @@ fn mount_intrinsic_neuron_at_place(
 /// physical contact from the receptor lineage to that local integration
 /// lineage. Existing cells and contacts are reused exactly; this is
 /// developmental specialization, not a per-occurrence generator.
+#[cfg(test)]
 fn mount_reached_local_integration(
     cohorts: &mut Vec<ResidentReachedCohort>,
     resting_population: &mut Option<DevelopmentalRestingPopulation>,
@@ -14309,15 +14311,48 @@ fn mount_reached_local_integration(
     electrical_fabric: &mut ResidentElectricalFabric,
     reached_receptors: &[([u8; 16], DeclaredNeuronPlace)],
 ) -> Result<(), FormationError> {
+    let topology = ResidentTopologyIndex::build(cohorts, electrical_fabric)?;
+    mount_reached_local_integration_indexed(
+        cohorts,
+        resting_population,
+        next_lineage_ordinal,
+        electrical_fabric,
+        &topology,
+        reached_receptors,
+    )
+}
+
+fn mount_reached_local_integration_indexed(
+    cohorts: &mut Vec<ResidentReachedCohort>,
+    resting_population: &mut Option<DevelopmentalRestingPopulation>,
+    next_lineage_ordinal: &mut u64,
+    electrical_fabric: &mut ResidentElectricalFabric,
+    topology: &ResidentTopologyIndex,
+    reached_receptors: &[([u8; 16], DeclaredNeuronPlace)],
+) -> Result<(), FormationError> {
     for (receptor_lineage, receptor_place) in reached_receptors {
         let integration_place = local_integration_place(*receptor_place)?;
-        let integration_lineage = mount_intrinsic_neuron_at_place(
-            cohorts,
-            resting_population,
-            next_lineage_ordinal,
-            integration_place,
-        )?;
-        if !electrical_fabric.contains_contact(*receptor_lineage, integration_lineage) {
+        let existing_integration = topology.intrinsic_lineage_at_place(integration_place)?;
+        let integration_lineage = match existing_integration {
+            Some(lineage) => lineage,
+            None => mount_intrinsic_neuron_at_place(
+                cohorts,
+                resting_population,
+                next_lineage_ordinal,
+                integration_place,
+            )?,
+        };
+        let existing_contact = match existing_integration {
+            Some(_) => topology
+                .contains_fabric_contact(*receptor_lineage, integration_lineage)
+                .unwrap_or_else(|| {
+                    electrical_fabric
+                        .contains_contact(*receptor_lineage, integration_lineage)
+                }),
+            None => electrical_fabric
+                .contains_contact(*receptor_lineage, integration_lineage),
+        };
+        if !existing_contact {
             *electrical_fabric = electrical_fabric
                 .append_contact(
                     *receptor_lineage,
@@ -17534,6 +17569,7 @@ struct ResidentContactTopologyEntry {
 struct ResidentTopologyIndex {
     flat_locations: Box<[(usize, usize, [u8; 16])]>,
     flat_by_lineage: Box<[([u8; 16], usize)]>,
+    intrinsic_locations: Box<[((u32, u32), usize)]>,
     source_locations: Box<[(NeuronSourceSite, usize, usize, [u8; 16])]>,
     lineage_layers: Box<[([u8; 16], u32)]>,
     canonical_lineages: Box<[[u8; 16]]>,
@@ -17550,6 +17586,7 @@ impl ResidentTopologyIndex {
         Self {
             flat_locations: Box::new([]),
             flat_by_lineage: Box::new([]),
+            intrinsic_locations: Box::new([]),
             source_locations: Box::new([]),
             lineage_layers: Box::new([]),
             canonical_lineages: Box::new([]),
@@ -17598,6 +17635,7 @@ impl ResidentTopologyIndex {
         lineage_layers
             .try_reserve_exact(neuron_count)
             .map_err(|_| FormationError::ArithmeticOverflow)?;
+        let mut intrinsic_locations = Vec::new();
         let mut source_locations = Vec::new();
         let mut cohort_offsets = Vec::new();
         cohort_offsets
@@ -17624,11 +17662,17 @@ impl ResidentTopologyIndex {
                         neuron_index,
                         lineage,
                     ));
+                } else {
+                    intrinsic_locations.push((
+                        (mount.place().layer(), mount.place().topology_index()),
+                        flat,
+                    ));
                 }
             }
         }
         flat_by_lineage.sort_unstable_by_key(|(lineage, _)| *lineage);
         lineage_layers.sort_unstable_by_key(|(lineage, _)| *lineage);
+        intrinsic_locations.sort_unstable_by_key(|(place, _)| *place);
         source_locations.sort_unstable_by(|left, right| {
             left.0
                 .sensor_id()
@@ -17737,6 +17781,7 @@ impl ResidentTopologyIndex {
         Ok(Self {
             flat_locations: flat_locations.into_boxed_slice(),
             flat_by_lineage: flat_by_lineage.into_boxed_slice(),
+            intrinsic_locations: intrinsic_locations.into_boxed_slice(),
             source_locations: source_locations.into_boxed_slice(),
             lineage_layers: lineage_layers.into_boxed_slice(),
             canonical_lineages,
@@ -17787,6 +17832,52 @@ impl ResidentTopologyIndex {
             .binary_search_by_key(&lineage, |(candidate, _)| *candidate)
             .ok()
             .map(|index| self.lineage_layers[index].1)
+    }
+
+    fn intrinsic_lineage_at_place(
+        &self,
+        place: DeclaredNeuronPlace,
+    ) -> Result<Option<[u8; 16]>, FormationError> {
+        let key = (place.layer(), place.topology_index());
+        let found = self
+            .intrinsic_locations
+            .binary_search_by_key(&key, |(candidate, _)| *candidate)
+            .ok();
+        let Some(index) = found else {
+            return Ok(None);
+        };
+        if index
+            .checked_sub(1)
+            .and_then(|prior| self.intrinsic_locations.get(prior))
+            .is_some_and(|(candidate, _)| *candidate == key)
+            || self
+                .intrinsic_locations
+                .get(index + 1)
+                .is_some_and(|(candidate, _)| *candidate == key)
+        {
+            return Err(FormationError::NeuronLineageAuthorityChanged);
+        }
+        Ok(Some(
+            self.flat_locations[self.intrinsic_locations[index].1].2,
+        ))
+    }
+
+    fn contains_fabric_contact(
+        &self,
+        left_lineage: [u8; 16],
+        right_lineage: [u8; 16],
+    ) -> Option<bool> {
+        let left = self.flat_for_lineage(left_lineage).ok()?;
+        let right = self.flat_for_lineage(right_lineage).ok()?;
+        Some(self.incident_contacts_by_flat[left]
+            .iter()
+            .copied()
+            .any(|contact_index| {
+                let contact = self.contacts[contact_index];
+                matches!(contact.origin, ResidentContactOrigin::Fabric { .. })
+                    && ((contact.left == left && contact.right == right)
+                        || (contact.left == right && contact.right == left))
+            }))
     }
 
     fn source_location(
