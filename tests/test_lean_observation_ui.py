@@ -80,8 +80,11 @@ def test_world_page_has_the_authorized_embodied_access_only() -> None:
     for required in (
         "Guala_Talking_Bust_No_Bow_Transparent.png",
         "Guala's home and backyard",
-        "135 established achromatic receptor sites",
-        "135 spatial sites × 3 exact browser RGB channels",
+        "Native world light · 135 achromatic sites",
+        "Camera / tutor RGB · 135 sites",
+        "World light",
+        "Camera / tutor",
+        "Smoothing adds no receptor sites",
         "Enable camera",
         "Enable microphone",
         "Listen to Guala",
@@ -93,8 +96,8 @@ def test_world_page_has_the_authorized_embodied_access_only() -> None:
         "ABC / 123 lesson card",
         "Present with my voice",
         "Center on Guala",
-        "no recognition, meaning, gait, or learning is claimed",
-        "not live facial movement",
+        "delivery does not prove recognition, meaning, gait, or learning",
+        "portrait is static",
         "discarded, not queued",
         'href="/loomscan.html"',
     ):
@@ -117,9 +120,8 @@ def test_browser_senses_keep_exact_bounds_and_no_backlog() -> None:
         "audioContext.sampleRate!==16000",
         "new Uint8Array(8000)",
         "i<4000",
-        "external.length===405",
-        "spectral.length===810",
-        "achromatic.length===135",
+        "event.external_rgb_retinal_u8.length===405",
+        "event.retinal_u8.length===135",
         "if(inFlight)",
         "if(inFlight||document.hidden)return",
         "setInterval(sensoryPulse,1000)",
@@ -127,6 +129,21 @@ def test_browser_senses_keep_exact_bounds_and_no_backlog() -> None:
         "pcm_s16le_base64",
     ):
         assert exact_boundary in source
+    assert "spectral_retinal_u8" not in source
+
+
+def test_retinal_sources_are_bounded_separate_and_user_selected() -> None:
+    source = _source(GUALA)
+    for required in (
+        'retinaFrames={world:null,external:null}',
+        'retinaFrames.external={values:event.external_rgb_retinal_u8.slice()',
+        'retinaFrames.world={values:event.retinal_u8.slice()',
+        'retinaViewChosen=true',
+        'renderRetina()',
+    ):
+        assert required in source
+    assert "localStorage" not in source
+    assert "sessionStorage" not in source
 
 
 def test_loom_lights_only_direct_evidence_and_links_back() -> None:

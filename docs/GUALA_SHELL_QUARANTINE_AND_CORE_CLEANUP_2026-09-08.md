@@ -102,6 +102,7 @@ failure in one gate does not erase an already-proved success in another.
 | Q-S-070 | Q-C-004 replaced 1,895 per-cohort Rayon jobs/full energy records with at most one contiguous cohort chunk per existing Rayon worker while separately preserving the former cohort/neuron order for signed saturating charge observation. Its one exact serial-reference test passed 1/1. Baseline and candidate independently restored the same copied task1445 tick-536852 body under fixed solar second 43200. Candidate time was 606.403 ms versus baseline 952.938 ms, a 346.535-ms reduction. Both produced causal receipt `0a174573...dfd46f`, the same 221 full-DSF deliveries and 1,741 changed neurons, then sealed the identical 143,785,227-byte body `20076f15...8df9a` with exact energy receipt `0137d404...174e8`. This is accepted copied-current equality and local subsecond evidence, not live production cadence, speech, vision or autonomy. |
 | Q-S-071 | Clean commit `03638710` became live task1446 on immutable digest `sha256:7643c979...2e298`. The controller preserved identity `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`, advanced tick 537940 to 537979, admitted exactly one RUNNING/HEALTHY writer at `1/1/0`, completed rollout, and pinned the verified digest. One direct public unattended occurrence returned HTTP 200 in 2.492687 seconds with one native interval, all 221 full-DSF deliveries, zero body consequence/motion and no custody error. Immediate process RSS was 1,420,980 KiB, cgroup memory 1,551,757,312 bytes, and paired custody was 5,541,913 bytes with CURRENT plus exactly two body and two world generations. CPU, memory, EFS and refusal alarms remained OK. This accepts Q-C-004 as a deployed exact-observation cleanup and measured live improvement over task1445's 3.210765 seconds; Q-F-083 separately keeps cadence and function failed. |
 | Q-S-072 | Q-C-005's existing changed-endpoint/contact proof passed 1/1. Q-C-004 baseline and Q-C-005 independently restored the same copied task1445 body under fixed solar second 43200 and produced the identical causal receipt `0a174573...dfd46f`, 221 full-DSF deliveries, 1,741 changed neurons, sealed 143,785,227-byte body `20076f15...8df9a`, and exact energy receipt `0137d404...174e8`. This preserves exact equality evidence for the rejected scheduling idea; it is not a cadence success. |
+| Q-S-073 | The Q-UI-002 candidate separates the latest native-world achromatic retinal field from the latest accepted camera/tutor RGB field in two bounded browser-memory slots. The selected source remains stable across later observations until Joe selects the other source; no server history, browser storage, merged field, spectral fallback, inferred scene, or substrate mutation was added. The panel grew from 102 to 220 CSS pixels and presents the exact 108 central samples above the exact 27 coarse samples with explicitly disclosed screen interpolation. Focused UI/schema checks passed 10/10. Disposable Chromium proved external remained selected across an unattended observation and world remained selected across a later camera observation, with zero final console/network errors. This is an observation-interface success only; it does not make Guala's underlying 135-site vision meaningful. |
 | Q-S-048 | The regression recovery removes two active authors while preserving state: the rejected parallel receptor-preparation change is returned exactly to commit `877985f2`, and the later 810-port six-band retina is removed from both primary and body-return transitions. The established 135-site retinal episode still co-carries sight, both ears, touch, smell, taste, temperature, body position and effector load on one shared 250-ms clock; browser RGB is deterministically projected onto those same learned achromatic receptors. The two spectral modules remain in repository history but are absent from the reviewed production import closure. Direct motor/sensory/UI checks passed 16/16; exact manifest-closure and three shell-quarantine checks passed 4/4. This is source evidence pending live measurement. |
 
 ## Failures and recurrence guards
@@ -194,6 +195,8 @@ failure in one gate does not erase an already-proved success in another.
 | Q-F-084 | The first Q-C-005 ledger insertion used a stale wrapped-line context and was refused without changing the file. | Read the exact current contract tail before inserting the next candidate. A refused documentation patch is recorded but is not organism evidence. |
 | Q-F-085 | Q-C-005 bounded the already-parallel contact-pump preparation to one chunk per worker, but the same copied-current interval changed only from 590.108 ms to 588.754 ms. The 1.354-ms difference is noise, not material progress. | Preserve Q-S-072 equality, remove the executable candidate before commit/deployment, and do not rediscover pump-job chunking as the contact/cadence fix. The measured contact owner lies elsewhere. |
 | Q-F-086 | The first combined Q-C-005 outcome update matched its success/failure rows but used wrong capitalization for the later `Authorized files` context, so the atomic patch was refused and changed nothing. | Split unrelated ledger insertions and read the exact tail before applying them; never assume a partial documentation patch succeeded. |
+| Q-F-087 | The first Q-UI-002 pytest command repeated RF-001/Q-F-004 by omitting the exact worktree from `PYTHONPATH`; all nine selected tests failed in fixture setup before any test body ran. | This was a known harness mistake and no product evidence. Every remaining Python command used `PYTHONPATH=/tmp/guala-qc004-candidate-python:/tmp/guala-speech-existing-organ`; the corrected focused run passed 10/10 after the new retinal-source check was added. |
+| Q-F-088 | The first disposable Chromium run completed every retinal-source stability assertion, then the harness rejected a 404 for its own absent local lesson-card route. The corrected harness served the existing exact card and passed with zero console/network errors. A trailing shell diagnostic then assumed the absent `file` utility after browser success. | Do not classify either as a UI failure or rerun the browser proof. Local UI servers must map the existing curriculum-card directory, and diagnostic utilities must be guarded with `command -v` under RF-063. |
 
 ## Deployment attempts
 
@@ -402,3 +405,30 @@ claim.
 Outcome: Q-S-072 preserves the exact physical/equality proof, but Q-F-085
 rejects Q-C-005 as a performance correction. Its production source change was
 removed before commit or deployment. Do not repeat it.
+
+### Q-UI-002 — stable truthful retinal observer
+
+Production baseline is task1446 and the separately published live
+`gualaloom.html` that automatically replaces its retinal canvas whenever the
+latest event changes between external RGB and native-world achromatic light.
+Q-F-072 is the active interface failure. This item changes only the bounded
+read-only browser observer; it does not change Guala's retina, world, body,
+sensory delivery, neurons, cognition, or ECS task.
+
+Frozen correction law: retain at most one latest 405-byte RGB field and one
+latest 135-byte achromatic field in page memory only. Update each slot only
+from its exact matching observation kind. Select the first available source
+until Joe makes an explicit selection; after that, no later observation may
+change the selected source. Render the 108 central sites and 27 coarse sites
+as separate enlarged spatial projections. Any screen interpolation must be
+disclosed and may not be described as added visual evidence. Do not revive the
+retired spectral observer, combine sources, persist a history, synthesize room
+detail, infer recognition, or mutate the organism.
+
+Authorized files are `dsf_ai_service/static/gualaloom.html`, its focused UI
+contract, and this ledger. Acceptance is bounded size, valid HTML/JavaScript,
+exact route and sensory bounds, reciprocal page link, one disposable Chromium
+proof that both selected sources remain stable across the opposite event, zero
+final browser console/network errors, exact S3/CloudFront publication hash,
+and live page verification. Q-S-073 closes the local source/browser gates.
+Meaningful organism vision remains failed and outside this observer correction.
