@@ -1668,3 +1668,27 @@ authenticated production predecessor required by the gate. No successor was
 created and production was untouched. Permanent guard: authenticate and copy
 the current live body/world pair once; never rerun Candidate 61 against the
 tick-525927 cache or classify its decoder refusal as candidate behavior.
+
+F-061-H06 repeated observation-projection bloat: a pre-deployment `jq`
+projection retained the complete `last_occurrence`, including the full world
+and body observation, instead of selecting its scalar speech fields. This
+repeated the output-bounding failure class already recorded in F-061-H02/H03;
+it changed nothing. Permanent command guard: public observation checks may
+select only named scalar paths such as `.last_occurrence.self_heard_sample_count`
+and must never include the whole `.last_occurrence` or `.embodiment` object.
+
+D-061-02 immutable candidate and live baseline: bounded correction commit is
+`a1c2380c438c1b0a5b8bfa7407725d415baa9a8a`. Read-only preflight resolved the
+one healthy running writer as task definition 1446, task
+`b256fb46671d423abafcece08b620da3`, and image digest
+`sha256:7643c979f60c19ad124fdbb702e93db164f51d8a8d50a6eb37a5c37b03d2e298`
+on 4 vCPU / 16 GiB. Public tick advanced through 541346 with preserved identity
+and current body/world receipts, but held no pressure; its latest ordinary
+interval had zero body consequences and zero self-heard samples. The prior
+`guala-clock-stalled` alarm remains in `ALARM` from 14:15:41 UTC even though
+the current public tick is advancing, so it is not being called cleared.
+During the latest six five-minute CloudWatch buckets, ECS CPU averaged
+48.20-49.51% with maxima 58.74-62.30%; memory averaged 9.83-10.00% with maxima
+10.49-10.94%. There is no current RAM runaway in that window; CPU remains high
+and the clock alarm remains unresolved. Both public HTML pages returned 200.
+This is pre-cutover health evidence, not speech success.
