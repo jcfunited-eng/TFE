@@ -17976,38 +17976,6 @@ struct ResidentContactEdge {
 }
 
 
-/// One-time cold-restore rebuild of the derived carrier schedule.
-///
-/// Codex-defined boundary: walk every restored contact ONCE, compute its
-/// standing drive from the restored endpoint states exactly as settlement
-/// would, and schedule its computed carrier crossing relative to the
-/// persisted organism clock. Persisted frontier entries are the restored
-/// arrival sources; every integration clock starts at the persisted
-/// organism clock. No pump schedule exists to rebuild — the mounted pump
-/// law runs only for neurons already reached by another causal event, so
-/// pump work re-derives from ordinary wakes after restore. This pass is
-/// lawful because it is one boot-time walk, never the per-clock sweep.
-pub(crate) fn rebuild_carrier_schedule_on_restore(
-    cohorts: &[ResidentReachedCohort],
-    electrical_fabric: &ResidentElectricalFabric,
-    topology_index: &ResidentTopologyIndex,
-    persisted_organism_clock: u64,
-) -> Result<
-    (
-        crate::causal_event_scheduler::CarrierCrossingSchedule,
-        Vec<crate::causal_event_scheduler::ContactIntegrationClock>,
-    ),
-    FormationError,
-> {
-    rebuild_carrier_schedule_from_endpoint_holds(
-        cohorts,
-        electrical_fabric,
-        topology_index,
-        persisted_organism_clock,
-        None,
-    )
-}
-
 /// Rebuild the derived schedule at a topology-growth boundary without
 /// integrating this clock's newly admitted source backward through the
 /// preceding sleeping span. Existing lineages use the membrane and carrier
@@ -18135,26 +18103,6 @@ fn rebuild_carrier_schedule_from_endpoint_holds(
     Ok((schedule, clocks))
 }
 
-/// Build the complete causal-event residency for one state: the carrier
-/// schedule from every contact once (settlement-authority gated), every
-/// integration clock at the given organism clock, and the membrane
-/// recovery schedule from every neuron's own anatomy once. One boot-time
-/// walk at cold restore or topology change — never the per-clock sweep.
-pub(crate) fn rebuild_causal_event_residency(
-    cohorts: &[ResidentReachedCohort],
-    electrical_fabric: &ResidentElectricalFabric,
-    topology_index: &ResidentTopologyIndex,
-    persisted_organism_clock: u64,
-) -> Result<crate::causal_event_scheduler::CausalEventResidency, FormationError> {
-    rebuild_causal_event_residency_from_endpoint_holds(
-        cohorts,
-        electrical_fabric,
-        topology_index,
-        persisted_organism_clock,
-        None,
-    )
-}
-
 /// Only root yaw owns a cross-interval prepared-action hold. Root
 /// translation requires a fresh ordering-layer cause for every action, so an
 /// otherwise charged translation terminal remains eligible for the ordinary
@@ -18257,91 +18205,6 @@ fn rebuild_causal_event_residency_from_endpoint_holds(
     })
 }
 
-fn touches_local_gradient(
-    settlements: &[ReachedLayerTenGradientSettlement],
-    left_lineage: [u8; 16],
-    right_lineage: [u8; 16],
-) -> bool {
-    settlements.iter().any(|settlement| {
-        settlement.neuron_lineage == left_lineage
-            || settlement.neuron_lineage == right_lineage
-    })
-}
-
-/// True only when this contact's full settlement is provably the exact
-/// quiescent identity from the predecessor pair alone: equal potentials
-/// drive zero current, and an unequal pair still rests when moving one
-/// elementary charge in the driven direction cannot strictly lower the
-/// pair's stored energy — the same inequality the full path evaluates,
-/// cross-multiplied into checked integer arithmetic. Any overflow answers
-/// "not provable" and the contact takes the full path.
-fn contact_provably_quiescent(
-    left_potential: crate::exact_rational::ExactRational,
-    right_potential: crate::exact_rational::ExactRational,
-    left_membrane: crate::elementary_charge_membrane::ElementaryChargeMembraneState,
-    right_membrane: crate::elementary_charge_membrane::ElementaryChargeMembraneState,
-    left_capacitance: crate::elementary_charge_membrane::MembraneCapacitance,
-    right_capacitance: crate::elementary_charge_membrane::MembraneCapacitance,
-    left_available_carriers: u128,
-    right_available_carriers: u128,
-) -> bool {
-    if left_potential == right_potential {
-        return true;
-    }
-    // An empty sender reservoir is the law's own quiescent branch: with both
-    // reservoirs empty no direction can send regardless of the field.
-    if left_available_carriers == 0 && right_available_carriers == 0 {
-        return true;
-    }
-    (|| -> Option<bool> {
-        let (pl_n, pl_d) = left_potential.parts();
-        let (pr_n, pr_d) = right_potential.parts();
-        let left_cross = pl_n.checked_mul(i128::try_from(pr_d).ok()?)?;
-        let right_cross = pr_n.checked_mul(i128::try_from(pl_d).ok()?)?;
-        let toward_right = left_cross > right_cross;
-        let sender_available = if toward_right {
-            left_available_carriers
-        } else {
-            right_available_carriers
-        };
-        if sender_available == 0 {
-            return Some(true);
-        }
-        let (q_sender, q_receiver) = if toward_right {
-            (
-                left_membrane.separated_elementary_charges(),
-                right_membrane.separated_elementary_charges(),
-            )
-        } else {
-            (
-                right_membrane.separated_elementary_charges(),
-                left_membrane.separated_elementary_charges(),
-            )
-        };
-        let ((n_sender, d_sender), (n_receiver, d_receiver)) = if toward_right {
-            (
-                left_capacitance.picofarads().parts(),
-                right_capacitance.picofarads().parts(),
-            )
-        } else {
-            (
-                right_capacitance.picofarads().parts(),
-                left_capacitance.picofarads().parts(),
-            )
-        };
-        let sender_term = 1_i128
-            .checked_sub(q_sender.checked_mul(2)?)?
-            .checked_mul(n_receiver)?
-            .checked_mul(i128::try_from(d_sender).ok()?)?;
-        let receiver_term = 1_i128
-            .checked_add(q_receiver.checked_mul(2)?)?
-            .checked_mul(n_sender)?
-            .checked_mul(i128::try_from(d_receiver).ok()?)?;
-        Some(sender_term.checked_add(receiver_term)? >= 0)
-    })()
-    .unwrap_or(false)
-}
-
 fn contact_touches_causal_seed(
     left_flat: usize,
     right_flat: usize,
@@ -18349,39 +18212,6 @@ fn contact_touches_causal_seed(
 ) -> bool {
     causal_seed_flats.binary_search(&left_flat).is_ok()
         || causal_seed_flats.binary_search(&right_flat).is_ok()
-}
-
-/// One-field read of a contact's currently conducting channel population,
-/// by the same origin resolution the full materialization uses, without
-/// cloning anatomy or state. Zero conducting channels is the law's own
-/// impenetrable condition: effective conductance is exactly zero, so the
-/// settlement is the quiescent identity for any drive.
-fn peek_conducting_channel_population(
-    topology: ResidentContactTopologyEntry,
-    cohorts: &[ResidentReachedCohort],
-    electrical_fabric: &ResidentElectricalFabric,
-) -> Result<u128, FormationError> {
-    Ok(match topology.origin {
-        ResidentContactOrigin::Local {
-            cohort_index,
-            contact_index,
-            ..
-        } => cohorts
-            .get(cohort_index)
-            .ok_or(FormationError::NeuronLineageAuthorityAbsent)?
-            .state
-            .electrical()
-            .contact_states()
-            .get(contact_index)
-            .ok_or(FormationError::NeuronLineageAuthorityAbsent)?
-            .conducting_channel_population(),
-        ResidentContactOrigin::Fabric { contact_index } => electrical_fabric
-            .state()
-            .contact_states()
-            .get(contact_index)
-            .ok_or(FormationError::NeuronLineageAuthorityAbsent)?
-            .conducting_channel_population(),
-    })
 }
 
 fn materialize_resident_contact_edge(
@@ -18754,31 +18584,6 @@ fn stable_bond_for_next_edge(
         .ok_or(FormationError::ArithmeticOverflow)?;
     parallel_ordinals.insert(canonical, successor_ordinal);
     Ok(bond)
-}
-
-/// Advance an already-identified physical seed frontier across exactly one
-/// contact boundary.  This is deliberately not a graph traversal: material
-/// that reaches the far side of one contact must persist there before it can
-/// become authority for another interval.
-#[cfg(test)]
-fn one_interval_electrical_frontier(
-    seeds: &[bool],
-    contact_endpoints: &[(usize, usize)],
-) -> Result<Vec<bool>, FormationError> {
-    let mut reached = seeds.to_vec();
-    for (left, right) in contact_endpoints.iter().copied() {
-        let left_seed = *seeds
-            .get(left)
-            .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
-        let right_seed = *seeds
-            .get(right)
-            .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
-        if left_seed || right_seed {
-            reached[left] = true;
-            reached[right] = true;
-        }
-    }
-    Ok(reached)
 }
 
 fn exact_motor_body_afferent_paths(
