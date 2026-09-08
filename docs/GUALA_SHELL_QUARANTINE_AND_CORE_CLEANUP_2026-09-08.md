@@ -36,6 +36,7 @@ failure in one gate does not erase an already-proved success in another.
 | Q-S-003 | Candidate default Dockerfile boots only `dsf_ai_service.lean_production_app:app`, asserts four retired runtime paths absent, and removes the retired shell's unused runtime dependencies. |
 | Q-S-004 | Candidate release manifest has one runtime entrypoint and the exact resolved 81-file Python import closure. Retired app, candidate rehearsal, cold-restore probe, static publication, unused lesson audio, and songs are not in the image closure. |
 | Q-S-005 | Focused quarantine checks passed 3/3 with the correct host import root; manifest renderer reproduced the candidate byte-for-byte; Python compilation and whitespace checks passed. |
+| Q-S-006 | Exact reviewed package at commit `e53771cfc0d81b69de3eb036df234d7c1702fba2` verified 212 source files, archive `b39fa611...6523`, then built local image `sha256:2bdb8023...f798`/212,870,781 bytes. Image import proved exactly 81 Python files, five routes, exact BUILD_INFO, and no import spec for `app`, `native_production_app`, `candidate_release_rehearsal`, or `cold_restore_probe`. |
 
 ## Failures and recurrence guards
 
@@ -53,9 +54,11 @@ failure in one gate does not erase an already-proved success in another.
 |---|---|
 | Q-D-001 | No deployment attempted. Live task1436, identity, and state remain untouched. The candidate must first pass exact reviewed packaging and container boot. |
 | Q-D-002 | Local immutable-image attempt from commit `cf13f521` failed during native compilation under Q-F-005. Nothing was pushed, registered, or deployed. |
+| Q-D-003 | Corrected local image `sha256:2bdb8023...f798` built and passed shell-content/import inspection. It was not pushed, registered, or deployed because production task1436 already runs the accepted lean boundary and the next change is native-core cleanup. |
 
 ## Next exact gate
 
-Commit the reviewed quarantine, build the exact packaged context, and prove the
-resulting image can import the lean app while all four retired paths are absent.
-Do not run speech, vision, or broad organism experiments in this gate.
+Quarantine is protected complete. Review the 32,940-line native core by active
+production call path: timing authority, repeated whole-population scans,
+duplicate authors, synchronization/locks, and persistence-only bookkeeping.
+Remove nothing solely because it is large; preserve exact physics and state.
