@@ -1290,6 +1290,10 @@
         let restored = ResidentCognitiveFormationState::decode(&unexpressed, 16_000_000).unwrap();
         assert_eq!(restored, state);
         assert_eq!(restored.unexpressed_electrical_seeds.len(), 1);
+        assert!(restored
+            .observe_reached_contact_count_by_layer_pair()
+            .is_empty());
+        assert!(restored.observe_reached_contact_channel_states().is_empty());
 
         let prepared = restored.prepare(&source, 16_000_000).unwrap();
         assert_eq!(prepared.successor.unexpressed_electrical_seeds.len(), 0);
@@ -1297,6 +1301,88 @@
         assert_eq!(prepared.successor.summary().complete_neuron_count, 8);
         assert_eq!(prepared.successor.cohorts[0].anatomy.neuron_count(), 4);
         assert_eq!(prepared.successor.cohorts[0].anatomy.contact_count(), 3);
+        let mut reference_pairs = Vec::<(u32, u32, usize)>::new();
+        for cohort in &prepared.successor.cohorts {
+            for (left, right) in cohort.anatomy.electrical_anatomy().contact_endpoints() {
+                let mut pair = (
+                    cohort.anatomy.mounts()[left].place().layer(),
+                    cohort.anatomy.mounts()[right].place().layer(),
+                );
+                if pair.0 > pair.1 {
+                    pair = (pair.1, pair.0);
+                }
+                if let Some((_, _, count)) = reference_pairs
+                    .iter_mut()
+                    .find(|(left, right, _)| *left == pair.0 && *right == pair.1)
+                {
+                    *count += 1;
+                } else {
+                    reference_pairs.push((pair.0, pair.1, 1));
+                }
+            }
+        }
+        for (left, right) in prepared.successor.electrical_fabric.contact_endpoints() {
+            let layer_of = |lineage| {
+                prepared.successor.cohorts.iter().find_map(|cohort| {
+                    cohort
+                        .anatomy
+                        .mounts()
+                        .iter()
+                        .zip(cohort.anatomy.neuron_lineages())
+                        .find_map(|(mount, candidate)| {
+                            (*candidate == lineage).then_some(mount.place().layer())
+                        })
+                })
+            };
+            let mut pair = (
+                layer_of(prepared.successor.electrical_fabric.lineages()[left]).unwrap(),
+                layer_of(prepared.successor.electrical_fabric.lineages()[right]).unwrap(),
+            );
+            if pair.0 > pair.1 {
+                pair = (pair.1, pair.0);
+            }
+            if let Some((_, _, count)) = reference_pairs
+                .iter_mut()
+                .find(|(left, right, _)| *left == pair.0 && *right == pair.1)
+            {
+                *count += 1;
+            } else {
+                reference_pairs.push((pair.0, pair.1, 1));
+            }
+        }
+        reference_pairs.sort_unstable();
+        assert_eq!(
+            prepared
+                .successor
+                .observe_reached_contact_count_by_layer_pair(),
+            reference_pairs
+        );
+        let expressed_channels = prepared
+            .successor
+            .observe_reached_contact_channel_states();
+        let expected_contact_count = prepared
+            .successor
+            .cohorts
+            .iter()
+            .map(|cohort| cohort.anatomy.contact_count())
+            .sum::<usize>()
+            + prepared.successor.electrical_fabric.contact_count();
+        assert_eq!(expressed_channels.len(), expected_contact_count);
+        assert!(expressed_channels.windows(2).all(|pair| {
+            (pair[0].0, pair[0].1, pair[0].2) < (pair[1].0, pair[1].1, pair[1].2)
+        }));
+        for (position, channel) in expressed_channels.iter().enumerate() {
+            assert_eq!(
+                channel.2,
+                u32::try_from(
+                    expressed_channels[..position]
+                        .iter()
+                        .filter(|prior| prior.0 == channel.0 && prior.1 == channel.1)
+                        .count()
+                )
+                .unwrap()
+            );
+        }
         assert_eq!(prepared.observation.complete_neuron_fractal_count, 3);
         assert_eq!(prepared.observation.emitted_neuron_fractals.len(), 3);
         assert!(prepared.observation.mosaic_formed.is_none());

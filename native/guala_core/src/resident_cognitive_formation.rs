@@ -9575,32 +9575,14 @@ impl ResidentCognitiveFormationState {
     /// Read-only sparse-contact anatomy summarized by canonical endpoint
     /// layer pair. This is observer evidence only and advances no state.
     pub(crate) fn observe_reached_contact_count_by_layer_pair(&self) -> Vec<(u32, u32, usize)> {
-        let layer_of = |lineage: [u8; 16]| {
-            self.cohorts.iter().find_map(|cohort| {
-                cohort
-                    .anatomy
-                    .mounts()
-                    .iter()
-                    .zip(cohort.anatomy.neuron_lineages())
-                    .find_map(|(mount, candidate)| {
-                        (*candidate == lineage).then_some(mount.place().layer())
-                    })
-            })
-        };
-        let mut pairs = Vec::<(u32, u32, usize)>::new();
+        let mut pairs = BTreeMap::<(u32, u32), usize>::new();
         let mut admit_pair = |left: u32, right: u32| {
             let (left, right) = if left <= right {
                 (left, right)
             } else {
                 (right, left)
             };
-            if let Some((_, _, count)) =
-                pairs.iter_mut().find(|(a, b, _)| *a == left && *b == right)
-            {
-                *count += 1;
-            } else {
-                pairs.push((left, right, 1));
-            }
+            *pairs.entry((left, right)).or_insert(0) += 1;
         };
         for cohort in &self.cohorts {
             for (left, right) in cohort.anatomy.electrical_anatomy().contact_endpoints() {
@@ -9612,14 +9594,18 @@ impl ResidentCognitiveFormationState {
         }
         for (left, right) in self.electrical_fabric.contact_endpoints() {
             if let (Some(left), Some(right)) = (
-                layer_of(self.electrical_fabric.lineages()[left]),
-                layer_of(self.electrical_fabric.lineages()[right]),
+                self.topology_index
+                    .layer_of(self.electrical_fabric.lineages()[left]),
+                self.topology_index
+                    .layer_of(self.electrical_fabric.lineages()[right]),
             ) {
                 admit_pair(left, right);
             }
         }
-        pairs.sort_unstable();
         pairs
+            .into_iter()
+            .map(|((left, right), count)| (left, right, count))
+            .collect()
     }
 
     /// Read-only exact retained channel state for every reached sparse
@@ -9634,6 +9620,7 @@ impl ResidentCognitiveFormationState {
     ) -> Vec<([u8; 16], [u8; 16], u32, u128, i128, u128, i128, u128)> {
         let mut observed =
             Vec::<([u8; 16], [u8; 16], u32, u128, i128, u128, i128, u128)>::new();
+        let mut next_parallel_ordinals = BTreeMap::<([u8; 16], [u8; 16]), u32>::new();
         let mut admit = |first: [u8; 16],
                          second: [u8; 16],
                          anatomy: crate::sparse_electrical_contact::ElectricalContactAnatomy,
@@ -9643,13 +9630,11 @@ impl ResidentCognitiveFormationState {
             } else {
                 (second, first)
             };
-            let parallel_ordinal = u32::try_from(
-                observed
-                    .iter()
-                    .filter(|entry| entry.0 == left && entry.1 == right)
-                    .count(),
-            )
-            .expect("reached contact count fits its persisted ordinal");
+            let next_parallel_ordinal = next_parallel_ordinals.entry((left, right)).or_insert(0);
+            let parallel_ordinal = *next_parallel_ordinal;
+            *next_parallel_ordinal = next_parallel_ordinal
+                .checked_add(1)
+                .expect("reached contact count fits its persisted ordinal");
             let (transition_phase_numerator, transition_phase_denominator) =
                 state.transition_work_phase().parts();
             let (conductance_numerator, conductance_denominator) = anatomy
