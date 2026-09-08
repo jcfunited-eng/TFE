@@ -116,6 +116,7 @@ use crate::reached_neuron_cohort::{
     reached_cohort_state_v5_content_digest,
     settle_reached_cohort_interval_in_place,
     settle_reached_cohort_interval_precomputed_in_place,
+    settle_reached_gate_recovery_demand_in_place,
     settle_contact_modulated_gate_energy, LocalizedFluidChemistrySettlement,
     ReachedCohortAnatomy, ReachedCohortEnergyState, ReachedCohortError,
     ReachedCohortIntervalInput, ReachedCohortMetabolicObservation,
@@ -20579,7 +20580,7 @@ fn settle_internal_contact_interval(
             let (gate_work, receptor_successor_residue) = if let Some(offers) =
                 learned_motor_work_offers.get(&lineage)
             {
-                let predecessor_neuron = &cohort.state.neurons()[neuron_index];
+                let predecessor_neuron = cohort.state.neurons()[neuron_index].clone();
                 let predecessor_residue = predecessor_neuron
                     .receptor_quantum_residue
                     .energy()
@@ -20588,9 +20589,9 @@ fn settle_internal_contact_interval(
                     BigRational::zero(),
                     |sum, offer| sum + &offer.offered_work_zeptojoules,
                 );
-                let prepared = crate::complete_neuron::prepare_intrinsic_transduced_gate_work(
+                let mut prepared = crate::complete_neuron::prepare_intrinsic_transduced_gate_work(
                     neuron_anatomy,
-                    predecessor_neuron,
+                    &predecessor_neuron,
                     &prepared_psi,
                     total_offered.clone(),
                 )
@@ -20600,6 +20601,56 @@ fn settle_internal_contact_interval(
                         error,
                     })
                 })?;
+                // A full closed gate must settle its already-existing recovery
+                // demand before this same bounded source occurrence is
+                // evaluated.  The prior ordering calculated refusal first,
+                // recovered the neuron second, and then retained the obsolete
+                // refusal without ever evaluating the recovered gate.
+                if prepared.accepted_source_work_zeptojoules.is_zero()
+                    && prepared.retained_source_heat_zeptojoules > BigRational::zero()
+                    && predecessor_neuron.gate.open_population() == 0
+                    && predecessor_neuron.gate.dissipated_quanta()
+                        >= neuron_anatomy.gate_dissipation_capacity_quanta()
+                {
+                    let recovery_gate_work = GateWorkOccurrence::new(
+                        -(predecessor_residue.clone() + &total_offered),
+                    );
+                    let recovery_preparation = neuron_anatomy
+                        .prepare_gate_interval_settlement(
+                            &predecessor_neuron,
+                            &recovery_gate_work,
+                            &prepared_psi,
+                        )
+                        .map_err(|error| {
+                            FormationError::PhysicalSettlementUnavailable(
+                                ReachedCohortError::Neuron {
+                                    neuron_index,
+                                    error,
+                                },
+                            )
+                        })?;
+                    settle_reached_gate_recovery_demand_in_place(
+                        &cohort.anatomy,
+                        Arc::make_mut(&mut cohort.state),
+                        neuron_index,
+                        &recovery_preparation,
+                    )
+                    .map_err(FormationError::PhysicalSettlementUnavailable)?;
+                    prepared = crate::complete_neuron::prepare_intrinsic_transduced_gate_work(
+                        neuron_anatomy,
+                        &cohort.state.neurons()[neuron_index],
+                        &prepared_psi,
+                        total_offered.clone(),
+                    )
+                    .map_err(|error| {
+                        FormationError::PhysicalSettlementUnavailable(
+                            ReachedCohortError::Neuron {
+                                neuron_index,
+                                error,
+                            },
+                        )
+                    })?;
+                }
                 let consumed_source_work = &prepared.accepted_source_work_zeptojoules
                     - &prepared.residue_narrowing_heat_zeptojoules;
                 if consumed_source_work < BigRational::zero()
@@ -21253,6 +21304,25 @@ fn settle_internal_contact_interval(
         }
         transition.exported_heat_zeptojoules -= debit.consumed_work_zeptojoules;
     }
+    // Learned work is prepared on the compact contact cohort that owns its
+    // source route, while the resulting efferent event is emitted by the
+    // cohort that owns the motor. Join those already-settled facts only after
+    // all cohort results are aggregated. Matching by the unique motor lineage
+    // preserves the exact same-interval causal identity and creates no work,
+    // carrier transfer, contact, or action.
+    for recruitment in &mut motor_unit_recruitments {
+        let mut exact_learned_preparations = learned_motor_work_preparations
+            .iter()
+            .filter(|preparation| {
+                preparation.motor_lineage == recruitment.neuron_lineage
+                    && preparation.accepted_work_zeptojoules > BigRational::zero()
+            })
+            .cloned()
+            .collect::<Vec<_>>();
+        exact_learned_preparations.sort_by_key(|preparation| preparation.motor_lineage);
+        exact_learned_preparations.dedup();
+        recruitment.learned_work_preparations = exact_learned_preparations;
+    }
     if !motor_unit_recruitments.is_empty() {
         for recruitment in &mut motor_unit_recruitments {
             let motor_flat = lineage_member(recruitment.neuron_lineage)?;
@@ -21407,11 +21477,11 @@ fn settle_internal_contact_interval(
                 membrane_gradient_work_zeptojoules,
             });
         }
-        if let Some((successor_neuron, outward_carriers, released_work)) =
-            crate::complete_neuron::settle_efferent_terminal_transport(
+        let coupled_articulatory_transport = |carrier_limit| {
+            let transport = crate::complete_neuron::settle_efferent_terminal_transport(
                 &cohorts[cohort_index].anatomy.neuron_anatomies()[neuron_index],
                 &cohorts[cohort_index].state.neurons()[neuron_index],
-                discharge_limit,
+                carrier_limit,
                 interval_microseconds,
             )
             .map_err(|error| {
@@ -21419,8 +21489,10 @@ fn settle_internal_contact_interval(
                     neuron_index,
                     error,
                 })
-            })?
-        {
+            })?;
+            let Some((successor_neuron, outward_carriers, released_work)) = transport else {
+                return Ok(None);
+            };
             let released_exact = ExactRational::new(
                 i128::try_from(released_work.numer().clone())
                     .map_err(|_| FormationError::ArithmeticOverflow)?,
@@ -21428,36 +21500,61 @@ fn settle_internal_contact_interval(
                     .map_err(|_| FormationError::ArithmeticOverflow)?,
             )
             .map_err(|_| FormationError::ArithmeticOverflow)?;
-            if let Some(successor_reservoir) =
-                crate::metabolic_feeding::deposit_passive_return_work(
-                    cohorts[cohort_index]
-                        .anatomy
-                        .recovery_fluid_reservoir_anatomy(),
-                    cohorts[cohort_index].state.recovery_fluid(),
-                    released_exact,
-                )
-                .map_err(|_| FormationError::ArithmeticOverflow)?
-            {
-                Arc::make_mut(&mut cohorts[cohort_index].state)
-                    .apply_local_membrane_transport(
-                        neuron_index,
-                        successor_neuron,
-                        successor_reservoir,
-                    )
-                    .map_err(FormationError::PhysicalSettlementUnavailable)?;
-                physically_transitioned_neuron_lineages.insert(articulatory_lineage);
-                retain_first_transition_predecessor(&mut transition_predecessors, predecessor);
-                co_recruited_articulatory_flats.push(*articulatory_flat);
-                articulatory_unit_recruitments.push(ArticulatoryUnitRecruitment {
-                    neuron_lineage: articulatory_lineage,
-                    topology_index: cohorts[cohort_index].anatomy.mounts()[neuron_index]
-                        .place()
-                        .topology_index(),
-                    outward_elementary_carriers: outward_carriers,
-                    preparation_transfers: Vec::new(),
-                    learned_work_preparations: learned_vocal_work_preparations,
-                });
+            let successor_reservoir = crate::metabolic_feeding::deposit_passive_return_work(
+                cohorts[cohort_index]
+                    .anatomy
+                    .recovery_fluid_reservoir_anatomy(),
+                cohorts[cohort_index].state.recovery_fluid(),
+                released_exact,
+            )
+            .map_err(|_| FormationError::ArithmeticOverflow)?;
+            Ok(successor_reservoir.map(|reservoir| {
+                (successor_neuron, outward_carriers, reservoir)
+            }))
+        };
+        // Terminal release and reservoir heat acceptance are one coupled
+        // physical settlement. If the requested whole-carrier discharge is
+        // wider than the current thermal headroom, settle the largest exact
+        // whole-carrier prefix that both boundaries accept instead of
+        // discarding every otherwise-valid breath carrier. Monotonicity comes
+        // from the unchanged terminal work law and fixed reservoir capacity;
+        // binary search is bounded by the u128 carrier width.
+        let mut refused_ceiling = discharge_limit;
+        let mut accepted_floor = 0_u128;
+        let mut accepted_transport = None;
+        while accepted_floor < refused_ceiling {
+            let span = refused_ceiling - accepted_floor;
+            let candidate_limit = accepted_floor + span / 2 + span % 2;
+            match coupled_articulatory_transport(candidate_limit)? {
+                Some(transport) => {
+                    accepted_floor = candidate_limit;
+                    accepted_transport = Some(transport);
+                }
+                None => refused_ceiling = candidate_limit - 1,
             }
+        }
+        if let Some((successor_neuron, outward_carriers, successor_reservoir)) =
+            accepted_transport
+        {
+            Arc::make_mut(&mut cohorts[cohort_index].state)
+                .apply_local_membrane_transport(
+                    neuron_index,
+                    successor_neuron,
+                    successor_reservoir,
+                )
+                .map_err(FormationError::PhysicalSettlementUnavailable)?;
+            physically_transitioned_neuron_lineages.insert(articulatory_lineage);
+            retain_first_transition_predecessor(&mut transition_predecessors, predecessor);
+            co_recruited_articulatory_flats.push(*articulatory_flat);
+            articulatory_unit_recruitments.push(ArticulatoryUnitRecruitment {
+                neuron_lineage: articulatory_lineage,
+                topology_index: cohorts[cohort_index].anatomy.mounts()[neuron_index]
+                    .place()
+                    .topology_index(),
+                outward_elementary_carriers: outward_carriers,
+                preparation_transfers: Vec::new(),
+                learned_work_preparations: learned_vocal_work_preparations,
+            });
         }
     }
     let mut affective_balance_trajectories = Vec::new();
@@ -31190,6 +31287,10 @@ mod tests {
         assert_eq!(second_routes.len(), 1);
         assert_ne!(first_routes, second_routes);
         assert!(exact_route(sensory_only_association).is_empty());
+        assert!(fabric.contains_contact(first_association, first_regulation));
+        assert!(fabric.contains_contact(second_association, second_regulation));
+        assert!(!fabric.contains_contact(sensory_only_association, first_regulation));
+        assert!(!fabric.contains_contact(sensory_only_association, second_regulation));
         for ordering in first_routes.iter().chain(&second_routes) {
             let flat = topology.flat_for_lineage(*ordering).unwrap();
             let motor_count = topology.neighbours_by_flat[flat]

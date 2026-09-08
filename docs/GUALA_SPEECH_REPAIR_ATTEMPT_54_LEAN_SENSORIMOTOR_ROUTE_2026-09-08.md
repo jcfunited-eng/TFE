@@ -1183,3 +1183,342 @@ held an exact 8,000-byte pressure body with receipt
 OOM; the same container and volume cold-restored the identity and advanced from
 durable tick 525468. This closes final-image local rehearsal, not live
 production acceptance.
+
+F-055-30 task-registration stdin assumption: the first registration command
+piped a reviewed `jq` projection to AWS CLI using `file:///dev/stdin`. AWS CLI
+reported `Invalid JSON received` and registered no task definition. Production
+remained task 1434 and one healthy writer. The correction is to use boto3's
+typed `register_task_definition` call with the exact task-1434 members, avoiding
+both an unreviewed temporary file and the unsupported stdin-file assumption.
+
+F-055-31 live drain asserted a synchronous actor that production does not have:
+the first live guide and its 32 explicit recovery requests were accepted, but
+the production actor's autonomous interval can consume resident pressure between
+a returned observation and the next queued HTTP occurrence. A later explicit
+unattended result therefore lawfully held new body pressure without itself
+self-hearing the prior pressure. The copied TestClient driver's assertion that
+every such response must report positive self-hearing stopped the harness before
+the second guide. It did not stop or corrupt the organism, and must not be
+misclassified as a Candidate-55 mechanism failure. Current live identity remains
+exact; the correction is to observe the autonomous actor until a factual
+`self_pressure_pending=false` and durable-ready window, then continue with the
+next not-yet-submitted guide. Do not repeat the accepted first guide or add more
+manual drain occurrences.
+
+S-055-29 live installation and bounded tutoring through the working mechanism:
+task definition 1435 is an exact task-1434 clone except for Candidate 55's ECR
+digest
+`sha256:cb14e7dc3992ccbb1f3c56d441319da75699a5397068aff9343d5e308943b20c`.
+The controller captured old-task live/persisted tick 526496/526494, drained its
+container to exit 0 before starting the new task, and the new task cold-restored
+the unchanged identity beyond that predecessor. Twenty-nine live guided tutor
+occurrences were accepted. Every recorded guide carried all four exact vocal
+axes, 4,000 tutor-pressure samples, four body consequences, and 237 full-DSF
+deliveries; changed-neuron counts remained approximately 1,682-1,765. Guide 24
+also returned body-owned pressure receipt
+`34a469a4ed78716c946952ecd1660d8dad501a31b91a606c2e4440469f0afd83`.
+This is real live installation, multisensory tutoring, body action, and pressure
+evidence. It is not yet the cold learned-cue proof required for the speech claim.
+
+F-055-32 live clear-window race and correct refusal: after accepted guide 29,
+the observer reported a clear window, but Guala emitted new body-owned pressure
+before guide 30 reached the actor. The native overlap boundary refused the tutor
+event with HTTP 409, `external pressure refused while body-owned pressure awaits
+hearing`. Guide 30 did not enter the organism. This is correct safety behavior,
+not a Candidate-55 failure. Live tutoring ends at 29 accepted occurrences; do
+not retry merely to match the copied harness's count. The decisive next evidence
+is same-digest cold restore followed by one zero-pressure learned cue.
+
+F-055-33 incomplete live tutoring did not reproduce the copied cold result:
+after 29 accepted guides, task 1435 stopped cleanly at a clear live/persisted
+526861/526859 window and the same immutable digest cold-restored the exact
+identity beyond that tick. One zero-pressure/four-axis cue was accepted at tick
+526919, with no cue-owned pressure. Forty-two subsequent native ticks showed no
+new self-hearing. The observer also initially saw cached receipt
+`dd25e2d125e180172143335468581bbfab8b03636caa34a1e92bb002ad12570b`
+without having captured the pre-cue cache value, so that receipt is explicitly
+not accepted as post-cue evidence. The read-only observer was deliberately
+stopped rather than spending the full horizon on a body trained five accepted
+events short of the already-proved chronology. This does not reject Candidate
+55; complete only the five never-accepted guides, then repeat the same-digest
+cold check once.
+
+S-055-30 complete live tutoring chronology: the five guide events that had not
+entered the organism were subsequently accepted only from factual durable,
+pressure-clear windows. Guides 30-34 each returned HTTP 200, all four vocal-axis
+consequences, 4,000 tutor-pressure samples, four body consequences, 237 full-DSF
+deliveries, and 1,725-1,762 changed neurons; no overlap retry was needed. The
+34th accepted live guide settled at tick 526999 and the actor exposed durable
+tick 526997 with exact identity, no outstanding checkpoint, and no durability
+block. The full live training count now matches the copied proof. Speech success
+still awaits the final same-digest cold learned-cue result.
+
+F-055-34 complete live chronology still lost the durable cue-to-action link:
+after all 34 accepted guides, the same immutable Candidate-55 digest stopped
+cleanly and cold-restored the exact identity. From a genuinely empty pressure
+cache, one zero-pressure/four-vocal-axis cue entered at tick 527061 with 4,000
+heard samples and four body consequences. Ninety-five successor ticks produced
+neither new body-owned pressure nor self-hearing. This rejects durable learned
+cue reactivation in Candidate 55 while preserving its separately proved live
+tutoring, vocal pressure, and self-hearing successes.
+
+S-056-01 source-level causal isolation: the Candidate-55 sparse route retained
+association-to-ordering and ordering-to-motor contacts, but the moved layer-8
+body regulation neuron was used only to locate the motor and was not connected
+to the learned association. Candidate 56 adds only that exact local
+regulation-to-association contact. It does not change L0-L4, global contact
+rules, the acoustic organ, legacy shell code, or introduce a second author.
+
+S-056-02 focused construction evidence: the exact route topology test passes
+with the new regulation-to-association contact and rejects a contact to the
+sensory-only association. `cargo check` passes with the same 199 inherited
+warnings and `git diff --check` passes. The release wheel is
+`/tmp/guala-candidate56-wheel.Zks2Ms/guala_core-0.1.0-cp311-cp311-manylinux_2_35_x86_64.whl`,
+SHA-256 `d29dc8bb064fcfbb9ca88811f02c6e50ab1017e5fd1c5a505dc8e62ea0772e36`;
+its extracted native extension SHA-256 is
+`38ebfe5cdd77c0789360bbb81317fee4672c60ce6c90d400cb57d1e29d49da08`.
+
+S-056-03 durable body-action reactivation succeeded: the copied production
+organism completed 34 guided occurrences, cold-restored at tick 525362, crossed
+64 explicit unattended occurrences with no delayed pressure, and accepted the
+zero-pressure/four-axis cue at tick 525498. The following interval already
+reported four body consequences; body consequences continued across the
+bounded observation. This proves Candidate 56 changes the previously dead
+post-decay cue-to-body-action boundary.
+
+F-056-01 durable body action did not become sound: despite the immediate and
+repeated post-cue body consequences, no nonzero radiated-pressure receipt and
+no self-hearing occurred through the 256-interval ceiling. Exact proof:
+`/tmp/guala-candidate56-proof.UTLLkg/proof.json`, SHA-256
+`13b51afa8cbeb7153771cc3f29e816005839cd838ee2bddefffa63487ce31326`.
+Candidate 56 is therefore not deployable and speech remains failed. The next
+diagnostic must reuse this already-trained cold state and inspect only the
+motor-preparation-to-respiratory-recruitment-to-pressure boundary; it must not
+repeat the full tutoring chronology.
+
+F-056-02 targeted-harness import mistake: the first seven-second diagnostic
+used the nonexistent module path `dsf_ai_service.native_resource_admission`.
+The real module is
+`dsf_ai_service.substrate.native_resident_resource_admission`; no organism was
+loaded or changed. Future diagnostics must import the recorded real path.
+
+S-056-04 legacy-shell quarantine remained effective: an attempted reuse of the
+old `native_production_app` helper was explicitly refused at import with
+`retired Guala shell quarantined; use lean_production_app`. No legacy code ran.
+The targeted diagnostic was rebuilt from the active lean physical-loop
+components rather than weakening that quarantine.
+
+F-056-03 targeted-harness shape mistakes: one attempt passed a string where
+`PairedCurrentStore` requires `Path`; a second hand-copied the wrong vocal axis
+ordinals and carrier count; a third queried a nonexistent top-level learned
+preparation field. Each failed before a commit or persistence write. The
+corrected diagnostic imports `TARGET_AXES=(37,38,39,44)` and
+`GUIDE_CARRIERS=1500` from the accepted proof driver and reads learned work
+from `causal_interval_evidence`.
+
+S-056-05 seven-second final-boundary isolation on the already-trained,
+already-decayed tick-525890 Candidate-56 copy: one exact silent-pressure guided
+occurrence produced four externally guided body consequences and ten exact
+learned motor-work preparations. Every preparation had positive offered work,
+but accepted work, predecessor residue, successor residue, and delivered gate
+work were all exactly zero; every offered amount remained source heat. Zero
+motor units discharged, zero layer-13 respiratory units recruited, and zero
+pressure samples were nonzero. This proves the current break is the receiving
+L12 motor gate's inability to accept learned work, not route discovery,
+ordering-to-motor delivery, respiration, or the acoustic organ. The diagnostic
+aborted its unsealed candidate and wrote no state.
+
+Correction to S-056-03: its four-axis cue itself carried external guided body
+work. Those immediate body consequences prove the guided ingress and retained
+route chronology, not autonomous learned recall. The later Candidate-58 result
+below is the first evidence in this continuation where sound alone produces
+organism-authored motor discharge. Do not rediscover or restate S-056-03 as an
+autonomous action success.
+
+F-056-04 repeated-sound control: eight ordinary real tutor-pressure occurrences
+on the tick-525890 copy continued to expose the same ten learned preparations
+with zero accepted work and no motor discharge. Longer sound repetition did not
+open the full receiving gates and must not be retried as a latency hypothesis.
+
+F-057-01 rejected and reverted membrane-pump hypothesis: adding the learned
+motor population to the ordinary membrane-pump roster compiled but did not
+change the failure. Membrane pumping and gate-dissipation recovery are distinct
+physical paths. Candidate 57 was fully removed; never widen pump membership as
+the repair for a full intrinsic gate.
+
+F-058-H01 harness recurrence: `cargo test --release --lib
+reservoir_probe_dump -- --exact` ran zero tests because `--exact` requires the
+fully qualified name
+`resident_cognitive_formation::reservoir_probe::reservoir_probe_dump`. A second
+invocation omitted `--lib` and began an irrelevant rebuild before being stopped.
+This repeated an already-recorded preflight lesson. Exact native test commands
+must copy the complete recorded test name and target before execution.
+
+F-058-H02 additional harness-only refusals: one direct Python occurrence omitted
+the required `retina_u8=None` field and failed before native settlement; one
+TestClient copy allowed its background actor to advance while a manual
+checkpoint path expected a pending candidate and received `no pending
+candidate`. Neither changed the organism or falsified physics. The accepted
+evidence below uses one direct owner, an explicit sensory shape, and no
+background actor.
+
+S-058-01 exact gate-state localization: test-only observation of the unchanged
+tick-525890 copy found 96 layer-12 motors, 86 accepting gates, and exactly ten
+closed/full gates at `36/36`. Those ten lineages were exactly the ten learned
+preparation targets. Receipt
+`/tmp/guala-c56-gate-state.jU3JOD/gates.json`, SHA-256
+`f71df4c0215b8cf57db7012c2a844490320692f7d396eebb065b31162373dc22`.
+The deadlock was deterministic: refusal zeroed `gate_work`; recovery demand was
+then derived from that zero and could never drain the full gate.
+
+S-058-02 Candidate-58 gate correction: a full intrinsic gate still refuses the
+current occurrence and retains its source work as heat, but that exact refused
+occurrence now presents its unchanged prepared descent to the existing
+conserved recovery pre-pass. The first sound occurrence only recovers, the
+second lets eight exact motor targets accept work, and the third lets those
+eight discharge. No source work, carrier, contact, neuron, retry, or L0-L4 field
+is invented.
+
+F-058-01 first integrated Candidate-58 run: the third sound occurrence produced
+eight motor recruitments and six body consequences, but its immediate
+proprioceptive return refused with `resident neuron lineage authority changed`.
+Temporary stage receipts localized the refusal to the 148-line learned vocal
+route and were removed after diagnosis.
+
+S-058-03 return correction: the returned occurrence contained one valid
+left-grip regulation whose unique layer-12 motor was non-vocal. The vocal-route
+function previously filtered that motor out and then falsely classified the
+empty vocal subset as corrupt anatomy. It now first requires one unique typed
+motor and skips that regulation when its typed axis is non-vocal. The same
+three-sound path then completed its immediate body return without weakening any
+lineage check.
+
+F-058-02 truthful post-return result: after S-058-03, six vocal motors discharged
+but layer 13 still recruited zero breath. The agent incorrectly described the
+body-return refusal as the one remaining boundary despite an already-visible
+zero respiratory count. That proximity statement was false. Permanent reporting
+rule: never call a boundary `last`, `final`, `moments away`, or equivalent while
+any measured downstream acceptance field remains zero.
+
+S-058-04 exact breath-evidence correction: the same interval carried six
+accepted learned-work preparations for the same six vocal motor lineages, but
+preparations were owned by their compact source-route cohorts while motor events
+were emitted by motor-owning cohorts. The old cohort-local join lost this exact
+same-interval evidence. Candidate 58 joins only already-settled positive work to
+the globally aggregated motor event by its unique lineage; it creates no work,
+carrier transfer, contact, or action.
+
+F-058-03 mature respiratory capacity refusal: with S-058-04 active, layer 13
+truthfully prepared a 33-carrier discharge from 594 separated charges, but the
+all-or-nothing passive-return deposit refused because its reservoir could not
+accept the complete released heat. Breath transport was valid yet the event was
+discarded. This is the same failure class recorded in Attempt 45, now exposed by
+a wider six-motor learned discharge; do not reopen the organ or hearing path.
+
+S-058-05 coupled respiratory settlement: terminal discharge and reservoir heat
+acceptance now settle as one exact bounded operation. When the complete
+whole-carrier request exceeds current thermal headroom, a bounded binary search
+selects the largest whole-carrier prefix accepted by both unchanged physical
+laws. It does not resize capacity, discard heat, fabricate breath, or use a
+numeric carrier target. The search is bounded by the `u128` carrier width and
+runs only for the one already-recruited isolated respiratory cell.
+
+S-058-06 complete copied-organism result: from the immutable tick-525890 body and
+real tutor pressure SHA-256
+`00c6ec35000e84c01ceb41f5349559156ea70ed398614a1c4a14328e3afb166c`,
+sound occurrence one caused no act, occurrence two accepted learned work, and
+occurrence three produced eight motor recruitments, six body consequences,
+4,000 emitted pressure samples, 3,997 nonzero samples, peak magnitude 426, and
+4,000 self-heard samples. The causal self-hearing continuation terminated after
+25 bounded return occurrences, with 136,000 self-heard samples total, 100,000
+emitted samples, and 91,487 nonzero samples. It sealed at tick 525927 into
+142,974,410 bytes, SHA-256
+`e3bf64351843a180d0a9d87473bf22f0f460b704266b502737dd4a9305391eff`,
+and cold-restored byte-for-byte with unchanged identity
+`1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1` and no pending pressure.
+
+S-058-07 targeted regression and binary receipt: the fully qualified route test
+`resident_cognitive_formation::tests::exact_vocal_occurrences_mount_one_local_sensorimotor_route_each`
+passed (`1 passed`, `610 filtered out`), `git diff --check` passed, and the final
+release native extension SHA-256 is
+`ec12e5675a4bff85be5f79889507af1bbc425e9173d948a035fef758723b6570`.
+The Candidate-58 native source diff SHA-256 at this checkpoint is
+`e45999efe660bb418e0d9d4d864665a98cf1f6ab42ef30c2f433d1aa105f0125`.
+Production remains task 1435 and unchanged. This is copied-production success,
+not live-production delivery or meaningful-conversation proof.
+
+F-058-04 causal-control correction: S-058-06 proved that a resident pending act
+could traverse motor discharge, respiratory discharge, radiated pressure, and
+self-hearing. It did not prove that the tutor sound caused that act. From two
+identical immutable tick-525890 copies, three zero-pressure microphone frames
+and three completely unattended frames each produced the same six body
+consequences, 4,000 emitted pressure samples, 4,000 self-heard samples, and a
+pending continuation at tick 525894. The apparent response therefore predated
+the tutor stimulus. Preserve the downstream mechanical success; withdraw every
+fresh auditory-recall or tutor-causation claim.
+
+F-058-05 cleared-state causal control: after running the inherited continuation
+to quiescence at tick 525927 and cold-restoring two byte-identical copies, three
+tutor-sound frames and three unattended frames both produced zero body
+consequences, zero emitted pressure, zero self-heard samples, and no pending
+pressure. Extending the same exact A/B control to eight frames remained
+identical: both arms produced only two body consequences on frame seven and no
+emitted or self-heard pressure on any frame. Candidate 58 is therefore not a
+speech fix and is not deployable. The open failure is specifically that fresh
+auditory input does not distinguishably reach learned vocal action after the
+inherited causal frontier has cleared. Production remains task 1435 and is
+unchanged.
+
+S-059-01 preserved auditory-boundary evidence: two tutor runs from the same
+tick-525927 body were byte-identical to each other, and two unattended runs
+were byte-identical to each other. Tutor pressure caused 43 internal cue
+reassemblies and 339 thought transitions versus 27 and 257 unattended, while
+all 739 learned-route frontier transfers remained identical. Hearing and
+cognition are active; the learned vocal route did not inherit the acoustic
+difference. This success must not be rediscovered or restated as speech.
+
+F-059-01 rejected replacement: an experimental L9-auditory-memory to
+L11-vocal-ordering contact author grew contacts and carried positive offered
+work, but it replaced the already-proven L7/body route and therefore violated
+the success-preservation rule. After one guided occurrence and 64 unattended
+occurrences, a copied positive tutor run reported six vocal work preparations
+but every accepted value remained zero; there were zero motor recruitments,
+zero breath, zero pressure, and zero self-hearing. The experimental L9
+replacement is removed and must not displace Candidate-58 anatomy.
+
+F-059-H01 harness and reporting failure: the existing focused route fixture
+passed no auditory transfer. Its `1 passed; 610 filtered out` result proved
+only route preservation/idempotence and absence of the experimental passive
+contact; it did not prove the new auditory contact. The result was initially
+described too broadly and is not candidate evidence. A first Python run also
+refused only because multiple native route records were not emitted in the
+validator's canonical order; the initial claim that the validator required an
+L7 source was false and was corrected after reading the validator. Neither
+refusal changed production or the copied source body.
+
+Decision boundary after Joe's review: tutor-versus-unattended comparison may
+describe observations but is not a universal candidate rejection authority.
+Do not let a harness erase separately proved motor, breath, pressure, or
+self-hearing successes. Positive native causality remains required: tutor work
+must reach a gate, be accepted, recruit the body, radiate pressure, and return
+through hearing. Candidate-59 is removed; Candidate-58 successes remain.
+
+S-060-01 positive native gate correction: Candidate 60 preserves Candidate
+58's learned route and changes only full-gate ordering from calculating and
+retaining refusal before recovery to recovering before evaluating the same
+bounded offered work. From the authenticated copied production body at tick
+525890, the first positive occurrence accepted real work at seven of ten vocal
+gates; the bounded continuation produced eight motor recruitments, one breath
+recruitment, 20 body consequences, and 68,000 self-heard samples. L0-L4, full
+DSF, identity, route anatomy, body, and pressure custody are unchanged. Wheel
+SHA-256 is `715a4a63bbe38870e281349bb926256b3800dec9287586c9460bdf8ff8436535`;
+native extension SHA-256 is
+`7a1a99d32ceba9132ed62ec61dbcb3dfd4fabead08348ad6477ab2a8d421f806`.
+Live speech remains unclaimed before cutover.
+
+D-060-01 deployment start: Joe explicitly directed no more local tests and
+required the candidate in production. Read-only preflight resolved cluster
+`tfe-web-cluster`, service `dsf-ai-service-lb`, task definition 1435, healthy
+task `46c11de3d02d43eb9449f17f7de8ccf1`, and predecessor image digest
+`sha256:cb14e7dc3992ccbb1f3c56d441319da75699a5397068aff9343d5e308943b20c`.
+Production remains speech-failed at this boundary.

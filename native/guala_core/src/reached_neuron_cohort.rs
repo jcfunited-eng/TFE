@@ -3545,6 +3545,38 @@ pub(crate) fn apply_prepared_reached_cohort_membrane_pumps(
     prepared.observation
 }
 
+/// Settle only the already-defined conserved gate-recovery reaction for one
+/// reached neuron whose pending work exposed missing dissipation headroom.
+/// The caller retains authority over whether that refused work is presented
+/// again; this function neither accepts nor delivers it.
+pub(crate) fn settle_reached_gate_recovery_demand_in_place(
+    anatomy: &ReachedCohortAnatomy,
+    state: &mut ReachedCohortState,
+    neuron_index: usize,
+    prepared_gate: &crate::complete_neuron::PreparedGateIntervalSettlement,
+) -> Result<u128, ReachedCohortError> {
+    let neuron_anatomy = anatomy
+        .neuron_anatomies()
+        .get(neuron_index)
+        .ok_or(ReachedCohortError::AnatomyStateWidth)?;
+    let predecessor_neuron = state
+        .neurons()
+        .get(neuron_index)
+        .ok_or(ReachedCohortError::AnatomyStateWidth)?;
+    let recovered = settle_resident_gate_recovery_before_interval(
+        &anatomy.recovery_fluid,
+        neuron_index,
+        neuron_anatomy,
+        predecessor_neuron,
+        prepared_gate,
+        state.recovery_fluid,
+    )?;
+    let settled_extent = recovered.settled_extent;
+    state.neurons.as_mut()[neuron_index] = recovered.successor_neuron;
+    state.recovery_fluid = recovered.successor_reservoir;
+    Ok(settled_extent)
+}
+
 pub(crate) fn settle_reached_cohort_membrane_pumps_in_place(
     anatomy: &ReachedCohortAnatomy,
     state: &mut ReachedCohortState,

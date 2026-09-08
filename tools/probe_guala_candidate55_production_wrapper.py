@@ -290,6 +290,13 @@ def _continue_after_cold(root: Path) -> dict[str, object]:
     self_hearing: list[dict[str, object]] = []
     with TestClient(app) as client:
         cold = client.get(OBSERVATION_ROUTE).json()
+        decayed = None
+        for _ in range(RECOVERY_INTERVALS * 2):
+            decayed = _unattended(client)
+        if decayed is not None:
+            _decayed, delayed_drains = _drain_pending_self_pressure(client, decayed)
+        else:
+            delayed_drains = []
         cue = _guided(client, pressure=zero_pressure, direction=0)
         cue_last = _last(cue)
         if cue_last.get("external_guided_vocal_axis_count") != len(TARGET_AXES):
@@ -333,6 +340,8 @@ def _continue_after_cold(root: Path) -> dict[str, object]:
         "cold_identity": cold["identity"],
         "cold_live_tick": cold["live_tick"],
         "cold_persisted_tick": cold["persisted_tick"],
+        "pre_cue_unattended_occurrences": RECOVERY_INTERVALS * 2,
+        "pre_cue_self_pressure_drains": delayed_drains,
         "cue": {
             "tick": cue_last["native_tick"],
             "external_guided_vocal_axis_count": cue_last[

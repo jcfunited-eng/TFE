@@ -71,15 +71,16 @@ pub(super) fn mount_exact_vocal_sensorimotor_routes(
                         let mount = mounted_at(cohorts, topology, flat).ok()?;
                         let terminal = mount.body_effector_terminal()?;
                         (mount.source_site().is_none()
-                            && mount.place().layer() == 12
-                            && terminal.axis().is_vocal_articulator())
-                        .then_some(topology.flat_locations[flat].2)
+                            && mount.place().layer() == 12)
+                            .then_some((topology.flat_locations[flat].2, terminal))
                     })
                     .collect::<Vec<_>>();
                 motors.sort_unstable();
                 motors.dedup();
-                let [motor] = motors.as_slice() else {
-                    return Err(FormationError::NeuronLineageAuthorityChanged);
+                let motor = match motors.as_slice() {
+                    [(motor, terminal)] if terminal.axis().is_vocal_articulator() => motor,
+                    [(_, _)] => continue,
+                    _ => return Err(FormationError::NeuronLineageAuthorityChanged),
                 };
                 if !exact_routes.insert((association, *motor)) {
                     continue;
@@ -122,6 +123,18 @@ pub(super) fn mount_exact_vocal_sensorimotor_routes(
                     )?,
                     _ => return Err(FormationError::NeuronLineageAuthorityChanged),
                 };
+                if !electrical_fabric.contains_contact(association, regulation)
+                    && !additions.iter().any(|(left, right, _)| {
+                        canonical_lineage_pair(*left, *right)
+                            == canonical_lineage_pair(association, regulation)
+                    })
+                {
+                    additions.push((
+                        association,
+                        regulation,
+                        ExactRational::integer(DEVELOPMENTAL_CONTACT_CONDUCTANCE_PICOSIEMENS),
+                    ));
+                }
                 for participant in [association, *motor] {
                     if !electrical_fabric.contains_contact(ordering, participant)
                         && !additions.iter().any(|(left, right, _)| {

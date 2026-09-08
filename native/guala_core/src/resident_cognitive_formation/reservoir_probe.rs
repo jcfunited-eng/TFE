@@ -220,6 +220,9 @@ fn cohort_json(cohort: &super::ResidentReachedCohort) -> Value {
                 "source_site": mount.source_site().map(|site| format!("{:?}", site)),
                 "gate_population": anatomy.gate_population().to_string(),
                 "open_gate_population": state.gate.open_population().to_string(),
+                "gate_dissipated_quanta": state.gate.dissipated_quanta().to_string(),
+                "gate_dissipation_capacity_quanta":
+                    anatomy.gate_dissipation_capacity_quanta().to_string(),
                 "intracellular_carriers": state.carrier_reservoirs().intracellular().to_string(),
                 "extracellular_carriers": state.carrier_reservoirs().extracellular().to_string(),
                 "psi_winding_counts": {
