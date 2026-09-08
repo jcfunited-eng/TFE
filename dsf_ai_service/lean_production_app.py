@@ -21,7 +21,12 @@ from dsf_ai_service.lean_sensory_occurrence import LeanSensoryOccurrence
 from dsf_ai_service.paired_current_store import PairedCurrentStore
 
 
-CHECKPOINT_EVERY_INTERVALS = 4
+# One full current-body custody has measured as high as 6.8 seconds on the
+# production EFS. Thirty-two 250 ms physical intervals provide one eight-second
+# lived custody span, so the sole worker can finish before another snapshot is
+# due; the actor's existing two-span ceiling still bounds undurable life to
+# sixteen seconds instead of blocking perception behind continuous encoding.
+CHECKPOINT_EVERY_INTERVALS = 32
 UNATTENDED_INTERVAL_SECONDS = 0.25
 MAILBOX_CAPACITY = 1
 MAX_OCCURRENCE_BODY_BYTES = 13_312
