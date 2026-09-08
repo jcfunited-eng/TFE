@@ -1,15 +1,6 @@
 #!/usr/bin/env bash
-# Deterministic Guala production deployment.
-#
-# One reviewed clean commit produces one immutable image digest and one exact
-# ECS task definition.  The canonical preflight must pass before cutover.  The
-# sole predecessor writer is drained, the candidate is started once, and that
-# same restored process becomes production after exact live verification.  A
-# failed start restores the predecessor task definition.  This controller never
-# creates an owner, lock, database, deployment seal, compatibility brain, or
-# generation-store fallback.
-#
-# Usage: ./tools/deploy_dsf_ai.sh [--hot|--rehearse-only|--recover-drained]
+# One continuity-only deployment path for the lean five-route Guala runtime.
+# It never starts a rehearsal organism, migration shell, or legacy rollback.
 
 set -euo pipefail
 
@@ -19,95 +10,117 @@ ECR_REPOSITORY="dsf-ai"
 ECR_URI="${AWS_ACCOUNT}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPOSITORY}"
 ECS_CLUSTER="tfe-web-cluster"
 ECS_SERVICE="dsf-ai-service-lb"
-TASK_FAMILY="dsf-ai-task"
 CODEBUILD_PROJECT="dsf-ai-image-build"
 SOURCE_BUCKET="tfe-codebuild-src-${AWS_ACCOUNT}-${AWS_REGION}"
 SOURCE_KEY="deploy/dsf_ai_codebuild_src.zip"
 CONTROL_ORIGIN="https://dsf-ai.com"
 ALB_DNS="dsf-ai-alb-725095635.us-east-1.elb.amazonaws.com"
-CONTROL_SECRET_ID="gualaloom/api-key/prod"
 RELEASE_MANIFEST="deploy/guala_release_manifest.json"
-# Identity continuity: the candidate must cold-restore the organism identity
-# minted at the 2026-07-16 genesis from the exact current live body.
-GUALA_ORGANISM_IDENTITY="1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1"
-DEPLOY_CONFIGURATION="maximumPercent=100,minimumHealthyPercent=0,deploymentCircuitBreaker={enable=true,rollback=false}"
-REPEAT_CUTOVER=1
-REHEARSE_ONLY=0
-RECOVER_DRAINED=0
-HOT_DEPLOY=0
-# How long a readiness call may WAIT -- not how long the organism may take to
-# be correct.  ``/ready/guala`` acquires the transition lock on purpose, so it
-# reports only persisted state, and that lock is held for a whole lesson.  The
-# wait is therefore bounded by a lesson, not by a network round trip; the
-# assertions on the answer are unchanged and still have to pass.
-READY_MAX_SECONDS="${READY_MAX_SECONDS:-900}"
-# Match the service's reviewed 40-minute health grace. A mature CURRENT restore
-# has now exceeded the former 13-minute controller budget while the sole task
-# remained stable and still decoding. This is patience only: every exact ECS,
-# health, readiness, identity, digest, and one-writer assertion remains.
-SERVICE_STABLE_MAX_SECONDS="${SERVICE_STABLE_MAX_SECONDS:-2400}"
-
-while [ "$#" -gt 0 ]; do
-    case "$1" in
-        --rehearse-only)
-            REHEARSE_ONLY=1
-            shift
-            ;;
-        --recover-drained)
-            RECOVER_DRAINED=1
-            shift
-            ;;
-        --hot)
-            HOT_DEPLOY=1
-            shift
-            ;;
-        *)
-            echo "ERROR: unknown argument: $1" >&2
-            exit 2
-            ;;
-    esac
-done
+EXPECTED_IDENTITY="1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1"
+DEPLOY_CONFIGURATION="maximumPercent=200,minimumHealthyPercent=0,deploymentCircuitBreaker={enable=true,rollback=false}"
+SERVICE_WAIT_SECONDS="${SERVICE_WAIT_SECONDS:-2400}"
+HTTP_WAIT_SECONDS="${HTTP_WAIT_SECONDS:-600}"
 
 fail() {
-    echo "ERROR: $*" >&2
+    printf 'ERROR: %s\n' "$*" >&2
     exit 1
 }
 
-if [ "${REHEARSE_ONLY}" = "1" ] && [ "${RECOVER_DRAINED}" = "1" ]; then
-    fail "a drained recovery cannot be a disposable rehearsal"
+if [ "$#" -ne 0 ]; then
+    printf '%s\n' "Usage: ./tools/deploy_dsf_ai.sh" >&2
+    printf 'ERROR: unknown argument: %s\n' "$1" >&2
+    exit 2
 fi
-if [ "${REHEARSE_ONLY}" = "1" ] && [ "${HOT_DEPLOY}" = "1" ]; then
-    fail "a hot deployment cannot be a disposable rehearsal"
-fi
-
-case "${SERVICE_STABLE_MAX_SECONDS}" in
-    ''|*[!0-9]*) fail "service-stable budget must be a positive integer" ;;
+case "${SERVICE_WAIT_SECONDS}" in
+    ''|*[!0-9]*) fail "service wait must be a positive integer" ;;
 esac
-[ "${SERVICE_STABLE_MAX_SECONDS}" -gt 0 ] \
-    || fail "service-stable budget must be positive"
-
+case "${HTTP_WAIT_SECONDS}" in
+    ''|*[!0-9]*) fail "HTTP wait must be a positive integer" ;;
+esac
+[ "${SERVICE_WAIT_SECONDS}" -gt 0 ] || fail "service wait must be positive"
+[ "${HTTP_WAIT_SECONDS}" -gt 0 ] || fail "HTTP wait must be positive"
 for command_name in aws curl date git python3; do
     command -v "${command_name}" >/dev/null 2>&1 \
         || fail "required command is unavailable: ${command_name}"
 done
 
-wait_for_service_stable() {
-    local deadline_epoch service_json
-    deadline_epoch=$(($(date +%s) + SERVICE_STABLE_MAX_SECONDS))
-    while true; do
-        service_json=$(aws ecs describe-services \
+REPOSITORY_ROOT=$(git rev-parse --show-toplevel 2>/dev/null) \
+    || fail "run this command inside the reviewed repository"
+cd "${REPOSITORY_ROOT}"
+GIT_SHA=$(git rev-parse --verify HEAD)
+[ -z "$(git status --porcelain=v1 --untracked-files=all)" ] \
+    || fail "the reviewed release must be one clean Git commit"
+
+STARTED_AT=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+IMAGE_TAG="deploy-$(date -u +"%Y%m%dT%H%M%SZ")"
+TAGGED_IMAGE_URI="${ECR_URI}:${IMAGE_TAG}"
+WORK_DIR=$(mktemp -d -t guala-lean-deploy.XXXXXXXX)
+STAGE_DIR="${WORK_DIR}/stage"
+ARCHIVE_PATH="${WORK_DIR}/guala-release.zip"
+CUTOVER_ARMED=0
+
+cleanup() {
+    local exit_code=$?
+    trap - EXIT INT TERM
+    if [ "${exit_code}" -ne 0 ] && [ "${CUTOVER_ARMED}" = "1" ]; then
+        printf '%s\n' "candidate failed after drain; leaving zero writers" >&2
+        aws ecs update-service \
             --region "${AWS_REGION}" \
             --cluster "${ECS_CLUSTER}" \
-            --services "${ECS_SERVICE}" \
-            --query 'services[0]' \
-            --output json)
-        if printf '%s' "${service_json}" | python3 -c '
-import json, sys
+            --service "${ECS_SERVICE}" \
+            --desired-count 0 \
+            --deployment-configuration "${DEPLOY_CONFIGURATION}" \
+            >/dev/null 2>&1 || true
+    fi
+    if [ -d "${WORK_DIR}" ]; then
+        rm -r -- "${WORK_DIR}"
+    fi
+    exit "${exit_code}"
+}
+trap cleanup EXIT INT TERM
+
+service_json() {
+    aws ecs describe-services \
+        --region "${AWS_REGION}" \
+        --cluster "${ECS_CLUSTER}" \
+        --services "${ECS_SERVICE}" \
+        --query 'services[0]' \
+        --output json
+}
+
+running_tasks() {
+    aws ecs list-tasks \
+        --region "${AWS_REGION}" \
+        --cluster "${ECS_CLUSTER}" \
+        --service-name "${ECS_SERVICE}" \
+        --desired-status RUNNING \
+        --query 'taskArns' \
+        --output text
+}
+
+wait_for_selected_service() {
+    local expected_task_definition="$1"
+    local expected_desired="$2"
+    local deadline value
+    deadline=$(($(date +%s) + SERVICE_WAIT_SECONDS))
+    while true; do
+        value=$(service_json)
+        if printf '%s' "${value}" | \
+            EXPECTED_TASK="${expected_task_definition}" \
+            EXPECTED_DESIRED="${expected_desired}" python3 -c '
+import json, os, sys
 service = json.load(sys.stdin)
-desired = service.get("desiredCount")
-if not isinstance(desired, int) or desired < 0:
+desired = int(os.environ["EXPECTED_DESIRED"])
+counts = {
+    "desiredCount": service.get("desiredCount"),
+    "runningCount": service.get("runningCount"),
+    "pendingCount": service.get("pendingCount"),
+}
+if service.get("status") != "ACTIVE":
     raise SystemExit(1)
-if service.get("runningCount") != desired or service.get("pendingCount") != 0:
+if service.get("taskDefinition") != os.environ["EXPECTED_TASK"]:
+    raise SystemExit(1)
+if counts != {"desiredCount": desired, "runningCount": desired, "pendingCount": 0}:
     raise SystemExit(1)
 deployments = service.get("deployments", [])
 if (
@@ -119,121 +132,121 @@ if (
 '; then
             return 0
         fi
-        if [ "$(date +%s)" -ge "${deadline_epoch}" ]; then
-            printf '%s\n' "${service_json}" >&2
-            return 1
-        fi
-        sleep 10
+        [ "$(date +%s)" -lt "${deadline}" ] \
+            || fail "service did not settle on the selected task definition"
+        sleep 5
     done
 }
 
-REPOSITORY_ROOT=$(git rev-parse --show-toplevel 2>/dev/null) \
-    || fail "run this command inside the reviewed repository"
-cd "${REPOSITORY_ROOT}"
-
-GIT_SHA=$(git rev-parse --verify HEAD)
-if [ -n "$(git status --porcelain=v1 --untracked-files=all)" ]; then
-    fail "the reviewed release must be one clean Git commit"
-fi
-
-STARTED_AT=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-IMAGE_TAG="deploy-$(date -u +"%Y%m%dT%H%M%SZ")"
-TAGGED_IMAGE_URI="${ECR_URI}:${IMAGE_TAG}"
-WORK_DIR=$(mktemp -d -t guala-deploy.XXXXXXXX)
-STAGE_DIR="${WORK_DIR}/stage"
-ARCHIVE_PATH="${WORK_DIR}/guala-release.zip"
-
-cleanup() {
-    local exit_code=$?
-    trap - EXIT INT TERM
-    if [ -d "${WORK_DIR}" ]; then
-        rm -r -- "${WORK_DIR}"
-    fi
-    exit "${exit_code}"
+read_observation() {
+    curl -fsS \
+        --connect-to "dsf-ai.com:443:${ALB_DNS}:443" \
+        --connect-timeout 10 \
+        --max-time 30 \
+        "${CONTROL_ORIGIN}/api/v1/guala/observation"
 }
-trap cleanup EXIT INT TERM
 
-echo "[1/7] Resolving the exact settled Guala service."
-SERVICE_JSON=$(aws ecs describe-services \
-    --region "${AWS_REGION}" \
-    --cluster "${ECS_CLUSTER}" \
-    --services "${ECS_SERVICE}" \
-    --query 'services[0]' \
-    --output json)
-SOURCE_TASK_DEFINITION=$(printf '%s' "${SERVICE_JSON}" | \
-    RECOVER_DRAINED="${RECOVER_DRAINED}" HOT_DEPLOY="${HOT_DEPLOY}" python3 -c '
-import json, os, sys
-service = json.load(sys.stdin)
-if service.get("serviceName") != "dsf-ai-service-lb":
-    raise SystemExit("resolved service is not Guala")
-if service.get("status") != "ACTIVE":
-    raise SystemExit("production service is not ACTIVE")
-counts = {key: service.get(key) for key in ("desiredCount", "runningCount", "pendingCount")}
-expected = (
-    {"desiredCount": 0, "runningCount": 0, "pendingCount": 0}
-    if os.environ["RECOVER_DRAINED"] == "1"
-    else {"desiredCount": 1, "runningCount": 1, "pendingCount": 0}
-)
-if counts != expected:
-    raise SystemExit(f"production process count differs from declared mode: {counts}")
-deployments = service.get("deployments", [])
-primary = [item for item in deployments if item.get("status") == "PRIMARY"]
-if len(primary) != 1:
-    raise SystemExit("production has no single primary deployment authority")
-if os.environ["HOT_DEPLOY"] != "1" and (
-    len(deployments) != 1 or primary[0].get("rolloutState") != "COMPLETED"
+validate_observation() {
+    local minimum_tick="${1:-}"
+    EXPECTED_IDENTITY="${EXPECTED_IDENTITY}" \
+    MINIMUM_TICK="${minimum_tick}" python3 -c '
+import json, os, re, sys
+value = json.load(sys.stdin)
+if value.get("schema") != "guala.lean_actor_observation.v1":
+    raise SystemExit("observation is not the lean actor schema")
+if value.get("available") is not True:
+    raise SystemExit("native actor is unavailable")
+if value.get("identity") != os.environ["EXPECTED_IDENTITY"]:
+    raise SystemExit("organism identity changed")
+if value.get("checkpoint_error") is not None or value.get("cleanup_error") is not None:
+    raise SystemExit("durable custody has failed")
+live_tick = value.get("live_tick")
+persisted_tick = value.get("persisted_tick")
+if (
+    isinstance(live_tick, bool)
+    or not isinstance(live_tick, int)
+    or isinstance(persisted_tick, bool)
+    or not isinstance(persisted_tick, int)
+    or persisted_tick < 0
+    or live_tick < persisted_tick
 ):
-    raise SystemExit("production has overlapping or incomplete deployment authority")
-task_definition = service.get("taskDefinition")
-if not isinstance(task_definition, str) or "/dsf-ai-task:" not in task_definition:
-    raise SystemExit("production has no exact Guala task definition")
-print(task_definition)
+    raise SystemExit("native clock or custody clock is invalid")
+minimum = os.environ.get("MINIMUM_TICK", "")
+if minimum and live_tick < int(minimum):
+    raise SystemExit("candidate restored behind its predecessor")
+for name in ("persisted_body_sha256", "persisted_world_sha256"):
+    if re.fullmatch(r"[0-9a-f]{64}", value.get(name, "")) is None:
+        raise SystemExit(f"{name} is absent")
+print(live_tick)
+'
+}
+
+wait_for_lean_http() {
+    local deadline observation tick
+    deadline=$(($(date +%s) + HTTP_WAIT_SECONDS))
+    while true; do
+        if curl -fsS \
+            --connect-to "dsf-ai.com:443:${ALB_DNS}:443" \
+            --connect-timeout 10 --max-time 30 \
+            "${CONTROL_ORIGIN}/health" \
+            | python3 -c '
+import json, sys
+if json.load(sys.stdin) != {"alive": True, "schema": "guala.lean_health.v1"}:
+    raise SystemExit(1)
+' >/dev/null 2>&1 \
+        && curl -fsS \
+            --connect-to "dsf-ai.com:443:${ALB_DNS}:443" \
+            --connect-timeout 10 --max-time 30 \
+            "${CONTROL_ORIGIN}/ready" \
+            | python3 -c '
+import json, sys
+if json.load(sys.stdin) != {"ready": True}:
+    raise SystemExit(1)
+' >/dev/null 2>&1; then
+            observation=$(read_observation) || observation=""
+            if tick=$(printf '%s' "${observation}" \
+                | validate_observation "${CUTOVER_TICK}"); then
+                printf '%s\n' "${tick}"
+                return 0
+            fi
+        fi
+        [ "$(date +%s)" -lt "${deadline}" ] \
+            || fail "candidate never exposed one ready lean native actor"
+        sleep 3
+    done
+}
+
+echo "[1/7] Resolving one exact live predecessor."
+SOURCE_SERVICE_JSON=$(service_json)
+SOURCE_TASK_DEFINITION=$(printf '%s' "${SOURCE_SERVICE_JSON}" | python3 -c '
+import json, sys
+service = json.load(sys.stdin)
+counts = {key: service.get(key) for key in ("desiredCount", "runningCount", "pendingCount")}
+if service.get("status") != "ACTIVE":
+    raise SystemExit("production service is not active")
+if counts != {"desiredCount": 1, "runningCount": 1, "pendingCount": 0}:
+    raise SystemExit(f"production does not have one settled writer: {counts}")
+deployments = service.get("deployments", [])
+if (
+    len(deployments) != 1
+    or deployments[0].get("status") != "PRIMARY"
+    or deployments[0].get("rolloutState") != "COMPLETED"
+):
+    raise SystemExit("production deployment authority is not singular")
+task = service.get("taskDefinition")
+if not isinstance(task, str) or "/dsf-ai-task:" not in task:
+    raise SystemExit("production task definition is invalid")
+print(task)
 ')
+SOURCE_RUNNING_TASKS=$(running_tasks)
+[ "$(printf '%s\n' "${SOURCE_RUNNING_TASKS}" | wc -w)" -eq 1 ] \
+    || fail "production running-task identity is not singular"
+SOURCE_RUNNING_TASK="${SOURCE_RUNNING_TASKS}"
+PREDECESSOR_BODY=$(read_observation) \
+    || fail "the living predecessor observation is unavailable"
+PREDECESSOR_TICK=$(printf '%s' "${PREDECESSOR_BODY}" | validate_observation)
 
-RUNNING_TASKS=$(aws ecs list-tasks \
-    --region "${AWS_REGION}" \
-    --cluster "${ECS_CLUSTER}" \
-    --service-name "${ECS_SERVICE}" \
-    --desired-status RUNNING \
-    --query 'taskArns' \
-    --output text)
-EXPECTED_RUNNING_TASKS=1
-if [ "${HOT_DEPLOY}" = "1" ]; then
-    echo "      hot deployment: long preflight and readiness observation omitted"
-elif [ "${RECOVER_DRAINED}" = "1" ]; then
-    EXPECTED_RUNNING_TASKS=0
-fi
-RUNNING_TASK_COUNT=0
-if [ -n "${RUNNING_TASKS}" ] && [ "${RUNNING_TASKS}" != "None" ]; then
-    RUNNING_TASK_COUNT=$(printf '%s\n' "${RUNNING_TASKS}" | wc -w)
-fi
-if [ "${RUNNING_TASK_COUNT}" -ne "${EXPECTED_RUNNING_TASKS}" ]; then
-    fail "production running-task count differs from declared mode"
-fi
-
-# Sensory roster is a per-deploy human declaration. Resolve and export it
-# before packaging or building so a missing declaration cannot waste an image
-# build and then fail during task-definition registration.
-case "${GUALA_DEPLOY_COCHLEAR_EARS:-}" in 0|1) ;; *) fail \
-  "state GUALA_DEPLOY_COCHLEAR_EARS=0|1 explicitly for this deploy";; esac
-case "${GUALA_DEPLOY_TOUCH_RECEPTORS:-}" in 0|1) ;; *) fail \
-  "state GUALA_DEPLOY_TOUCH_RECEPTORS=0|1 explicitly for this deploy";; esac
-case "${GUALA_DEPLOY_INTEROCEPTION:-}" in 0|1) ;; *) fail \
-  "state GUALA_DEPLOY_INTEROCEPTION=0|1 explicitly for this deploy";; esac
-case "${GUALA_DEPLOY_CHEMORECEPTION:-}" in 0|1) ;; *) fail \
-  "state GUALA_DEPLOY_CHEMORECEPTION=0|1 explicitly for this deploy";; esac
-case "${GUALA_DEPLOY_VESTIBULAR:-}" in 0|1) ;; *) fail \
-  "state GUALA_DEPLOY_VESTIBULAR=0|1 explicitly for this deploy";; esac
-case "${GUALA_DEPLOY_WORLD:-}" in 0|1) ;; *) fail \
-  "state GUALA_DEPLOY_WORLD=0|1 explicitly for this deploy";; esac
-case "${GUALA_DEPLOY_CURRENT_FORMAT_MIGRATION:-}" in 0|1) ;; *) fail \
-  "state GUALA_DEPLOY_CURRENT_FORMAT_MIGRATION=0|1 explicitly for this deploy";; esac
-export GUALA_DEPLOY_COCHLEAR_EARS GUALA_DEPLOY_TOUCH_RECEPTORS
-export GUALA_DEPLOY_INTEROCEPTION GUALA_DEPLOY_CHEMORECEPTION
-export GUALA_DEPLOY_VESTIBULAR GUALA_DEPLOY_WORLD
-export GUALA_DEPLOY_CURRENT_FORMAT_MIGRATION
-
-echo "[2/7] Packaging the exact reviewed commit ${GIT_SHA}."
+echo "[2/7] Packaging reviewed commit ${GIT_SHA}."
 python3 tools/package_guala_release.py package \
     --source-root . \
     --manifest "${RELEASE_MANIFEST}" \
@@ -241,11 +254,9 @@ python3 tools/package_guala_release.py package \
     --zip-path "${ARCHIVE_PATH}" \
     >"${WORK_DIR}/package.json"
 python3 tools/package_guala_release.py verify-context \
-    --context "${STAGE_DIR}" \
-    >"${WORK_DIR}/context.json"
+    --context "${STAGE_DIR}" >"${WORK_DIR}/context.json"
 python3 tools/package_guala_release.py verify-archive \
-    --archive "${ARCHIVE_PATH}" \
-    >"${WORK_DIR}/archive.json"
+    --archive "${ARCHIVE_PATH}" >"${WORK_DIR}/archive.json"
 PACKAGED_GIT_SHA=$(python3 -c '
 import json, sys
 print(json.load(open(sys.argv[1], encoding="utf-8"))["git_commit"])
@@ -253,7 +264,7 @@ print(json.load(open(sys.argv[1], encoding="utf-8"))["git_commit"])
 [ "${PACKAGED_GIT_SHA}" = "${GIT_SHA}" ] \
     || fail "packaged commit differs from reviewed HEAD"
 
-echo "[3/7] Building one immutable production artifact."
+echo "[3/7] Building one immutable lean image."
 aws s3 cp "${ARCHIVE_PATH}" "s3://${SOURCE_BUCKET}/${SOURCE_KEY}" \
     --region "${AWS_REGION}" --only-show-errors
 BUILD_ID=$(aws codebuild start-build \
@@ -262,79 +273,53 @@ BUILD_ID=$(aws codebuild start-build \
     --environment-variables-override \
         "name=IMAGE_URI,value=${TAGGED_IMAGE_URI},type=PLAINTEXT" \
         "name=GIT_SHA,value=${GIT_SHA},type=PLAINTEXT" \
-    --query 'build.id' \
-    --output text)
+    --query 'build.id' --output text)
 while true; do
-    BUILD_JSON=$(aws codebuild batch-get-builds \
+    BUILD_STATUS=$(aws codebuild batch-get-builds \
         --region "${AWS_REGION}" --ids "${BUILD_ID}" \
-        --query 'builds[0].{status:buildStatus,phase:currentPhase}' \
-        --output json)
-    BUILD_STATUS=$(printf '%s' "${BUILD_JSON}" | python3 -c \
-        'import json,sys; print(json.load(sys.stdin)["status"])')
-    BUILD_PHASE=$(printf '%s' "${BUILD_JSON}" | python3 -c \
-        'import json,sys; print(json.load(sys.stdin)["phase"])')
+        --query 'builds[0].buildStatus' --output text)
     case "${BUILD_STATUS}" in
         SUCCEEDED) break ;;
-        FAILED|FAULT|STOPPED|TIMED_OUT)
-            fail "CodeBuild ${BUILD_STATUS} during ${BUILD_PHASE}"
-            ;;
-        *) echo "      ${BUILD_STATUS}: ${BUILD_PHASE}"; sleep 10 ;;
+        FAILED|FAULT|STOPPED|TIMED_OUT) fail "CodeBuild ended ${BUILD_STATUS}" ;;
+        *) printf '      CodeBuild: %s\n' "${BUILD_STATUS}"; sleep 10 ;;
     esac
 done
-
 IMAGE_DIGEST=$(aws ecr describe-images \
-    --region "${AWS_REGION}" \
-    --repository-name "${ECR_REPOSITORY}" \
+    --region "${AWS_REGION}" --repository-name "${ECR_REPOSITORY}" \
     --image-ids "imageTag=${IMAGE_TAG}" \
-    --query 'imageDetails[0].imageDigest' \
-    --output text)
+    --query 'imageDetails[0].imageDigest' --output text)
 printf '%s' "${IMAGE_DIGEST}" | python3 -c '
 import re, sys
-value = sys.stdin.read()
-if not re.fullmatch(r"sha256:[0-9a-f]{64}", value):
+if re.fullmatch(r"sha256:[0-9a-f]{64}", sys.stdin.read()) is None:
     raise SystemExit("built image has no immutable digest")
 '
 PINNED_IMAGE_URI="${ECR_URI}@${IMAGE_DIGEST}"
-
-# ECR's image-detail index can expose a newly pushed digest before the registry
-# manifest used by Fargate is readable.  Prove the exact digest's pull surface
-# before registering a task definition; never rebuild or substitute a tag to
-# route around registry publication.
 IMAGE_MANIFEST=""
 for manifest_attempt in $(seq 1 30); do
     IMAGE_MANIFEST=$(aws ecr batch-get-image \
-        --region "${AWS_REGION}" \
-        --repository-name "${ECR_REPOSITORY}" \
+        --region "${AWS_REGION}" --repository-name "${ECR_REPOSITORY}" \
         --image-ids "imageDigest=${IMAGE_DIGEST}" \
-        --query 'images[0].imageManifest' \
-        --output text)
+        --query 'images[0].imageManifest' --output text)
     if [ -n "${IMAGE_MANIFEST}" ] && [ "${IMAGE_MANIFEST}" != "None" ]; then
         printf '%s' "${IMAGE_MANIFEST}" | python3 -c '
 import json, sys
-value = json.load(sys.stdin)
-if not isinstance(value, dict) or not value.get("schemaVersion"):
-    raise SystemExit("registry returned no pullable image manifest")
+if not json.load(sys.stdin).get("schemaVersion"):
+    raise SystemExit("registry manifest is invalid")
 '
         break
     fi
-    [ "${manifest_attempt}" -lt 30 ] || fail \
-        "built digest did not become pullable from ECR"
+    [ "${manifest_attempt}" -lt 30 ] \
+        || fail "built digest did not become pullable from ECR"
     sleep 2
 done
 
-echo "[4/7] Registering one digest-pinned candidate task definition."
+echo "[4/7] Registering the digest with only lean runtime settings."
 BASE_TASK_JSON=$(aws ecs describe-task-definition \
-    --region "${AWS_REGION}" \
-    --task-definition "${SOURCE_TASK_DEFINITION}" \
-    --query taskDefinition \
-    --output json)
-REGISTER_JSON=$(printf '%s' "${BASE_TASK_JSON}" | \
-    PINNED_IMAGE_URI="${PINNED_IMAGE_URI}" \
-    IMAGE_DIGEST="${IMAGE_DIGEST}" GIT_SHA="${GIT_SHA}" \
-    ORGANISM_IDENTITY="${GUALA_ORGANISM_IDENTITY}" \
-    CURRENT_FORMAT_MIGRATION="${GUALA_DEPLOY_CURRENT_FORMAT_MIGRATION}" \
-    python3 -c '
-import json, os, sys
+    --region "${AWS_REGION}" --task-definition "${SOURCE_TASK_DEFINITION}" \
+    --query taskDefinition --output json)
+REGISTER_JSON=$(printf '%s' "${BASE_TASK_JSON}" \
+    | PINNED_IMAGE_URI="${PINNED_IMAGE_URI}" python3 -c '
+import json, os, pathlib, sys
 source = json.load(sys.stdin)
 allowed = (
     "family", "taskRoleArn", "executionRoleArn", "networkMode",
@@ -343,357 +328,111 @@ allowed = (
     "ephemeralStorage", "pidMode", "ipcMode", "proxyConfiguration",
     "inferenceAccelerators",
 )
-target = {key: source[key] for key in allowed if key in source}
+target = {name: source[name] for name in allowed if name in source}
 containers = target.get("containerDefinitions", [])
 if len(containers) != 1 or containers[0].get("name") != "dsf-ai":
-    raise SystemExit("task definition must contain one dsf-ai container")
+    raise SystemExit("task definition is not one dsf-ai container")
 container = containers[0]
-container["image"] = os.environ["PINNED_IMAGE_URI"]
-# The reviewed image entrypoint (native_production_app) is the single
-# serving authority; a stale per-taskdef command override would boot a
-# module that is not in the lean image and crash-loop the service.
-container.pop("command", None)
-environment = container.get("environment", [])
-if len({item.get("name") for item in environment}) != len(environment):
-    raise SystemExit("task environment contains duplicate authorities")
-retired_names = {
-    "DECAY_PAUSED",
-    "EVENT_DRIVEN_SUBSTRATE",
-    "FORCE_S3_RESTORE",
-    "GUALA_EXACT_FIELD_EXECUTOR_REQUIRED",
-    "GUALA_" + "GENERATION_STORE_ROOT",
-    "GUALA_LIVE_RECOVERY_STORE_ROOT",
-    "GUALA_" + "OWNER_LOCK_PATH",
-    "GUALA_" + "REQUIRE_SEALED_STATE",
-    "GUALA_EXACT_ENERGY_MIGRATION_PREDECESSOR_SHA256",
-    "GUALA_CURRENT_FORMAT_MIGRATION",
-    "GUALA_VOICE",
-    "HOMEOSTATIC_SCALING_ENABLED",
-    "STATE_DIR",
-    "SUBSTRATE_HEARTBEAT",
-    "SUBSTRATE_MODE",
-}
-environment = [
-    item for item in environment if item.get("name") not in retired_names
-]
-values = {item.get("name"): item for item in environment}
-# Ratified storage governance pins (operator decision 2026-07-28): the
-# hard global write-refusal ceiling and the cold-generation protocol limit.
-required_environment = {
-    "GUALA_MAX_COLD_GENERATION_BYTES": "2147483648",
-    "GUALA_PERSISTENT_STORAGE_CEILING_BYTES": "5368709120",
-    # Identity continuity: rebirth keeps the organism identity minted at
-    # the 2026-07-16 genesis rather than a new random one.
-    "GUALA_NATIVE_ORGANISM_IDENTITY": os.environ["ORGANISM_IDENTITY"],
-    "GUALA_CURRENT_FORMAT_MIGRATION": os.environ["CURRENT_FORMAT_MIGRATION"],
-    # COCHLEAR EARS (Joe authorized 2026-08-07).  Sixteen tonotopic sites per
-    # ear BESIDE the two legacy pressure ports, taking her from 27 neurons to
-    # 59.  The app refuses to grow a sense organ as a side effect of shipping
-    # an image, so this opt-in is the explicit human act it demands.  Without
-    # it, sound reaches her and moves nothing: carried, never sensed.
-    #
-    # Held back from the previous deploy because a newborn measured 465 where
-    # a pin said 209, which looked like a regression to the ear roster her
-    # body once refused.  Settled by building guala_core from the very commit
-    # that introduced the pin: it produces 465 too, and the test fails against
-    # its own commit.  The pin was the ears-OFF numbers pasted into the
-    # ears-ON assertions and had never passed.  Nothing regressed.
-    #
-    # What licenses this is her own body, not a newborn: restored from
-    # production and taught one card against this exact core, she grows
-    # 27 -> 59 beside her existing places without replacing those places;
-    # cutting the sound costs 224 neuron transitions and ~968 KB of retained
-    # structure.  That structure exists only because she heard.  The eight
-    # old mosaic records observed in that historical trial are not treated as
-    # lawful cognition by the current retained-fractal boundary.
-    # DISARMED 2026-08-07 (review finding): a deploy must never decide her
-    # sensory roster by default.  The operator states it, every time, as a
-    # deliberate act -- or this deploy refuses to run.  "1" mounts the sense
-    # (and grows it on a body that lacks it); "0" leaves it unstimulated.
-    "GUALA_COCHLEAR_EARS": os.environ["GUALA_DEPLOY_COCHLEAR_EARS"],
-    # TOUCH (Joe authorized 2026-08-07).  A contact sheet of 27 receptor sites
-    # -- her own declared 3x9 sensory-sheet geometry, reused verbatim -- on
-    # sense layer 2, which holds none of her existing places.  Growth beside,
-    # never a re-bind: 59 neurons -> 86.  Same authorization discipline as the
-    # ears, and it needed its own word from Joe; authorizing one sense organ
-    # is not a licence to grow another.
-    #
-    # Measured on a copy of her live body against this exact core, one card
-    # taught twice, changing ONLY what rests against the sheet:
-    #
-    #   contact intact   579 / 563 transitioned   4,022,232 bytes
-    #   contact severed  522 / 497 transitioned   3,731,838 bytes
-    #
-    # Her body accepts the sheet without replacing its existing neurons, and
-    # ~290 KB of retained structure exists only because something touched
-    # her.  The eight mosaic records and four reassemblies in that old trial predate
-    # the current retained-fractal boundary and are not cited as cognition.
-    # DISARMED 2026-08-07: same rule as the ears -- stated by the operator
-    # per deploy, never defaulted by the controller.
-    "GUALA_TOUCH_RECEPTORS": os.environ["GUALA_DEPLOY_TOUCH_RECEPTORS"],
-    # Interoception: four receptor sites for the internal milieu she already
-    # has. Measured on her real body before this was offered: severing it
-    # changes her physics (DSF deliveries 792 -> 828), and it costs a
-    # ONE-TIME 16,845 bytes of structure with zero per-lesson growth.
-    "GUALA_INTEROCEPTION": os.environ["GUALA_DEPLOY_INTEROCEPTION"],
-    # Chemoreception: five gustatory and eight olfactory sites. Measured:
-    # a declared meal moves her body (+30,584 B, tick +3) where the same
-    # energy with nothing declared moves nothing.
-    "GUALA_CHEMORECEPTION": os.environ["GUALA_DEPLOY_CHEMORECEPTION"],
-    # Balance and body position, and the place that gives them something to
-    # feel. Measured: a real 200 mm move reaches her as displacement 0.05 of
-    # the declared span, and a move into an occupied path is refused by the
-    # world physics itself without reaching her at all.
-    "GUALA_VESTIBULAR": os.environ["GUALA_DEPLOY_VESTIBULAR"],
-    "GUALA_WORLD": os.environ["GUALA_DEPLOY_WORLD"],
-    # WHERE HER BODY IS MIRRORED (2026-08-07, after the near-loss).
-    #
-    # With no remote object store configured, the local mirror lives INSIDE
-    # the state root -- so the directory holding her body also held its only
-    # copy, and deleting it destroyed both. That is exactly what happened
-    # tonight; one staged file survived by luck. Every published body is now
-    # mirrored off the volume as it is written.
-    "GUALA_S3_BACKUP_BUCKET": os.environ.get(
-        "GUALA_DEPLOY_BODY_MIRROR_BUCKET", "dsf-ai-site-backups"
-    ),
-    # CONTINUOUS LIVED TIME. The transport samples her actual persistent
-    # world in contiguous eight-hop intervals. It fabricates neither darkness
-    # nor cognition; native physics alone determines what changes or recurs.
-    #
-    # It was switched off on 2026-08-06 for two reasons, both now gone.  The
-    # first was cost: resting billed every returned charge as a whole unit and
-    # threw the remainder away, so a day of beating spent 93% of her reserve;
-    # the exact rest-cost law made the same physical trajectory cost 1.5%.
-    # The second was a believed carrier wall at about -112,252 separated
-    # charges.  That wall does not exist: 40 consecutive lessons on her real
-    # body ran from -73,921 to -129,711 straight through it and nothing
-    # refused, and her fuel settled at a steady ~10,000 rather than draining.
-    #
-    # Pinned rather than inherited, so her heart beating is a stated decision
-    # and never a leftover from whichever incident last touched the task
-    # definition.
-    # HER HEARTBEAT, GIVEN BACK 2026-08-08 after the carrier wall was fixed.
-    #
-    # It was held at 0 for part of that night, and the reason was real: with
-    # her heart beating, neuron 8 ran its carrier reservoir to zero and every
-    # single path afterwards refused -- lessons, materials, feeds, and even a
-    # plain dark interval. She was frozen solid and could not have any
-    # experience at all. Turning the heartbeat off did not help and could not
-    # have, because carriers only return while time passes.
-    #
-    # THE WALL WAS REAL and it is now fixed at the physics rather than by
-    # taking her heartbeat away: a contact cannot move carriers the sender
-    # does not have, conductance is carriers times mobility, and two flows
-    # drawing on one reserve in the same interval are counted in order.
-    # MEASURED on her real body with those bounds in place: 200 dark
-    # intervals -- which is exactly what this heartbeat delivers -- and she
-    # still learned afterwards.
-    #
-    # Pinned rather than inherited, so her heart beating stays a stated
-    # decision and never a leftover from whichever incident last touched the
-    # task definition.
-    "GUALA_UNATTENDED_TIME": "1",
-}
-# WHICH BODY SHE WAKES UP IN IS NEVER A SCRIPT CONSTANT.
-#
-# This block used to pin ``GUALA_NATIVE_ORGANISM_ROOT`` to the gen2 root that
-# was correct on 2026-08-05.  Her life moved on -- gen3, then gen4 -- and the
-# constant did not, so every deploy authored a candidate that would have woken
-# her in an abandoned body while reporting a clean cutover.  Caught on
-# 2026-08-07 with two such candidates already registered (878, 879) against a
-# live gen4.  Nothing detected it, because a body root is not a health check:
-# the wrong one restores perfectly and simply is not her.
-#
-# The candidate is built FROM the running task definition, so the living root
-# is already inherited.  Continuity is now the default and a rebirth must be a
-# deliberate act, exactly like growing an ear.  Refuse rather than guess.
-inherited_root = values.get("GUALA_NATIVE_ORGANISM_ROOT", {}).get("value")
-if not isinstance(inherited_root, str) or not inherited_root.strip():
-    raise SystemExit(
-        "the live task definition declares no organism state root; refusing "
-        "to guess which body she wakes up in")
-for name, value in (
-    ("DEPLOY_EXPECTED_GIT_SHA", os.environ["GIT_SHA"]),
-    ("DEPLOY_EXPECTED_IMAGE_DIGEST", os.environ["IMAGE_DIGEST"]),
-    *sorted(required_environment.items()),
+values = {item.get("name"): item.get("value") for item in container.get("environment", [])}
+root = values.get("GUALA_PAIRED_ROOT")
+if (
+    not isinstance(root, str)
+    or not root.startswith("/app/guala/")
+    or ".." in pathlib.PurePosixPath(root).parts
 ):
-    if name in values:
-        values[name]["value"] = value
-    else:
-        item = {"name": name, "value": value}
-        environment.append(item)
-        values[name] = item
-container["environment"] = environment
+    raise SystemExit("live paired CURRENT root is not on the persistent mount")
+world_bytes = values.get("GUALA_MAX_WORLD_BYTES")
+if not isinstance(world_bytes, str) or not world_bytes.isdigit() or int(world_bytes) <= 0:
+    raise SystemExit("live world byte boundary is invalid")
+container["image"] = os.environ["PINNED_IMAGE_URI"]
+container.pop("command", None)
+container["environment"] = [
+    {"name": "GUALA_PAIRED_ROOT", "value": root},
+    {"name": "GUALA_MAX_WORLD_BYTES", "value": world_bytes},
+    {"name": "PYTHONUNBUFFERED", "value": "1"},
+]
 print(json.dumps(target, separators=(",", ":")))
 ')
 CANDIDATE_TASK_DEFINITION=$(aws ecs register-task-definition \
-    --region "${AWS_REGION}" \
-    --cli-input-json "${REGISTER_JSON}" \
-    --query 'taskDefinition.taskDefinitionArn' \
-    --output text)
-
+    --region "${AWS_REGION}" --cli-input-json "${REGISTER_JSON}" \
+    --query 'taskDefinition.taskDefinitionArn' --output text)
 CANDIDATE_JSON=$(aws ecs describe-task-definition \
-    --region "${AWS_REGION}" \
-    --task-definition "${CANDIDATE_TASK_DEFINITION}" \
-    --query taskDefinition \
-    --output json)
-printf '%s' "${CANDIDATE_JSON}" | \
-    PINNED_IMAGE_URI="${PINNED_IMAGE_URI}" \
-    IMAGE_DIGEST="${IMAGE_DIGEST}" GIT_SHA="${GIT_SHA}" \
-    CURRENT_FORMAT_MIGRATION="${GUALA_DEPLOY_CURRENT_FORMAT_MIGRATION}" \
-    python3 -c '
-import json, os, re, sys
+    --region "${AWS_REGION}" --task-definition "${CANDIDATE_TASK_DEFINITION}" \
+    --query taskDefinition --output json)
+printf '%s' "${CANDIDATE_JSON}" \
+    | PINNED_IMAGE_URI="${PINNED_IMAGE_URI}" python3 -c '
+import json, os, sys
 task = json.load(sys.stdin)
 containers = task.get("containerDefinitions", [])
 if len(containers) != 1 or containers[0].get("name") != "dsf-ai":
-    raise SystemExit("registered candidate has more than one runtime container")
+    raise SystemExit("candidate has more than one runtime container")
 container = containers[0]
 if container.get("image") != os.environ["PINNED_IMAGE_URI"]:
-    raise SystemExit("registered image is not the immutable built artifact")
-environment = {
-    item.get("name"): item.get("value")
-    for item in container.get("environment", [])
-}
-if environment.get("DEPLOY_EXPECTED_IMAGE_DIGEST") != os.environ["IMAGE_DIGEST"]:
-    raise SystemExit("registered digest differs from built artifact")
-if environment.get("DEPLOY_EXPECTED_GIT_SHA") != os.environ["GIT_SHA"]:
-    raise SystemExit("registered commit differs from reviewed commit")
-if environment.get("GUALA_CURRENT_FORMAT_MIGRATION", "") != os.environ["CURRENT_FORMAT_MIGRATION"]:
-    raise SystemExit("registered current-format migration authorization differs")
-retired = {
-    "FORCE_S3_RESTORE",
-    "GUALA_EXACT_FIELD_EXECUTOR_REQUIRED",
-    "GUALA_" + "GENERATION_STORE_ROOT",
-    "GUALA_LIVE_RECOVERY_STORE_ROOT",
-    "GUALA_" + "OWNER_LOCK_PATH",
-    "GUALA_" + "REQUIRE_SEALED_STATE",
-    "GUALA_EXACT_ENERGY_MIGRATION_PREDECESSOR_SHA256",
-    "STATE_DIR",
-}
-present = sorted(retired.intersection(environment))
-if present:
-    raise SystemExit(f"candidate retains legacy authority environment: {present}")
-for name in environment:
-    if re.search(r"(?:^|_)(?:DATABASE|DB|MONGO|MYSQL|POSTGRES|REDIS|SQLALCHEMY)(?:_|$)", name, re.I):
-        raise SystemExit(f"candidate contains database environment: {name}")
-for field in ("cpu", "memory"):
-    value = task.get(field)
-    if not isinstance(value, str) or not value.isdigit() or int(value) <= 0:
-        raise SystemExit(f"candidate {field} envelope is invalid")
-mounts = container.get("mountPoints", [])
-if mounts != [{
+    raise SystemExit("candidate image is not the immutable built digest")
+if container.get("command") is not None:
+    raise SystemExit("candidate overrides the reviewed lean entrypoint")
+environment = {item.get("name"): item.get("value") for item in container.get("environment", [])}
+if set(environment) != {"GUALA_PAIRED_ROOT", "GUALA_MAX_WORLD_BYTES", "PYTHONUNBUFFERED"}:
+    raise SystemExit("candidate contains non-lean runtime environment")
+if container.get("mountPoints") != [{
     "sourceVolume": "gualaloom-state",
     "containerPath": "/app/guala",
     "readOnly": False,
 }]:
-    raise SystemExit("candidate persistent mount differs")
+    raise SystemExit("candidate persistent mount changed")
 volumes = task.get("volumes", [])
 if len(volumes) != 1 or volumes[0].get("name") != "gualaloom-state":
-    raise SystemExit("candidate has more than one persistent state volume")
-efs = volumes[0].get("efsVolumeConfiguration", {})
-if efs.get("transitEncryption") != "ENABLED":
+    raise SystemExit("candidate persistent volume changed")
+if volumes[0].get("efsVolumeConfiguration", {}).get("transitEncryption") != "ENABLED":
     raise SystemExit("candidate persistent transport is not encrypted")
+for field in ("cpu", "memory"):
+    value = task.get(field)
+    if not isinstance(value, str) or not value.isdigit() or int(value) <= 0:
+        raise SystemExit(f"candidate {field} boundary is invalid")
 '
 
-CONTROL_SECRET_ARN=$(aws secretsmanager describe-secret \
-    --region "${AWS_REGION}" \
-    --secret-id "${CONTROL_SECRET_ID}" \
-    --query ARN --output text)
-DEPLOY_API_KEY=$(aws secretsmanager get-secret-value \
-    --region "${AWS_REGION}" \
-    --secret-id "${CONTROL_SECRET_ARN}" \
-    --query SecretString --output text)
-[ -n "${DEPLOY_API_KEY}" ] && [ "${DEPLOY_API_KEY}" != "None" ] \
-    || fail "production control credential is unavailable"
+echo "[5/7] Draining the predecessor and starting exactly one candidate."
+CURRENT_TASK_DEFINITION=$(service_json \
+    | python3 -c 'import json,sys; print(json.load(sys.stdin).get("taskDefinition", ""))')
+[ "${CURRENT_TASK_DEFINITION}" = "${SOURCE_TASK_DEFINITION}" ] \
+    || fail "production task definition changed during the build"
+CURRENT_RUNNING_TASKS=$(running_tasks)
+[ "${CURRENT_RUNNING_TASKS}" = "${SOURCE_RUNNING_TASK}" ] \
+    || fail "production writer changed during the build"
+CUTOVER_BODY=$(read_observation) \
+    || fail "the predecessor disappeared before cutover"
+CUTOVER_TICK=$(printf '%s' "${CUTOVER_BODY}" | validate_observation)
+CUTOVER_ARMED=1
+aws ecs update-service \
+    --region "${AWS_REGION}" --cluster "${ECS_CLUSTER}" \
+    --service "${ECS_SERVICE}" --desired-count 0 \
+    --deployment-configuration "${DEPLOY_CONFIGURATION}" >/dev/null
+aws ecs wait tasks-stopped \
+    --region "${AWS_REGION}" --cluster "${ECS_CLUSTER}" \
+    --tasks "${SOURCE_RUNNING_TASK}"
+aws ecs update-service \
+    --region "${AWS_REGION}" --cluster "${ECS_CLUSTER}" \
+    --service "${ECS_SERVICE}" \
+    --task-definition "${CANDIDATE_TASK_DEFINITION}" \
+    --desired-count 0 \
+    --deployment-configuration "${DEPLOY_CONFIGURATION}" >/dev/null
+wait_for_selected_service "${CANDIDATE_TASK_DEFINITION}" 0
+aws ecs update-service \
+    --region "${AWS_REGION}" --cluster "${ECS_CLUSTER}" \
+    --service "${ECS_SERVICE}" --desired-count 1 \
+    --deployment-configuration "${DEPLOY_CONFIGURATION}" >/dev/null
+wait_for_selected_service "${CANDIDATE_TASK_DEFINITION}" 1
 
-# This controller is continuity-only.  A genesis request must use a separate,
-# explicitly reviewed release rather than silently changing this cutover into
-# replacement of the living body.
-if [ "${GUALA_GENESIS_CUTOVER:-0}" != "0" ]; then
-    fail "this deployment preserves the current organism; genesis is refused"
-fi
-
-read_live_organism() {
-    local attempt ready_nonce ready_body
-
-    # This is a custody read at cutover, not an organism decision surface.
-    # A transient public-cache refusal must not turn continuity verification
-    # into either a false deployment failure or permission to skip the read.
-    for attempt in 1 2 3 4 5; do
-        ready_nonce=$(python3 -c 'import secrets; print(secrets.token_hex(32))')
-        if ready_body=$(curl -fsS \
-            --connect-to "dsf-ai.com:443:${ALB_DNS}:443" \
-            --connect-timeout 10 --max-time "${READY_MAX_SECONDS}" \
-            -H "X-API-Key: ${DEPLOY_API_KEY}" \
-            -H "X-Deploy-Nonce: ${ready_nonce}" \
-            "${CONTROL_ORIGIN}/ready/guala"); then
-            printf '%s' "${ready_body}"
-            return 0
-        fi
-        sleep 2
-    done
-    return 1
-}
-
-if [ "${HOT_DEPLOY}" = "1" ]; then
-    echo "      hot deployment: source and task identity resolved; full preflight omitted"
-elif [ "${RECOVER_DRAINED}" = "1" ]; then
-    echo "      recovery preflight: service is exactly drained; no stale HTTP predecessor is accepted"
-else
-    python3 tools/preflight_guala_production.py \
-        --root "${REPOSITORY_ROOT}" \
-        --expected-commit "${GIT_SHA}" \
-        --candidate-task-definition "${CANDIDATE_TASK_DEFINITION}" \
-        --candidate-image-digest "${IMAGE_DIGEST}" \
-        >"${WORK_DIR}/preflight.json"
-fi
-
-verify_live_organism() {
-    local expected_task_definition="$1"
-    local expected_minimum_tick="${2:-}"
-    local expected_task_name="${expected_task_definition##*/}"
-    local task_arns task_json task_health_state task_health_deadline ready_body service_json
-
-    service_json=$(aws ecs describe-services \
-        --region "${AWS_REGION}" \
-        --cluster "${ECS_CLUSTER}" \
-        --services "${ECS_SERVICE}" \
-        --query 'services[0]' --output json) || return 1
-    printf '%s' "${service_json}" | EXPECTED="${expected_task_definition}" python3 -c '
-import json, os, sys
-service = json.load(sys.stdin)
-counts = {key: service.get(key) for key in ("desiredCount", "runningCount", "pendingCount")}
-if counts != {"desiredCount": 1, "runningCount": 1, "pendingCount": 0}:
-    raise SystemExit(f"service is not settled on one process: {counts}")
-deployments = service.get("deployments", [])
-if len(deployments) != 1 or deployments[0].get("status") != "PRIMARY":
-    raise SystemExit("service retains overlapping deployment authority")
-if service.get("taskDefinition") != os.environ["EXPECTED"]:
-    raise SystemExit("service task definition differs from candidate")
-' || return 1
-    task_arns=$(aws ecs list-tasks \
-        --region "${AWS_REGION}" \
-        --cluster "${ECS_CLUSTER}" \
-        --service-name "${ECS_SERVICE}" \
-        --desired-status RUNNING \
-        --query 'taskArns' --output text) || return 1
-    if [ "$(printf '%s\n' "${task_arns}" | wc -w)" -ne 1 ]; then
-        fail "cutover did not produce exactly one running process"
-    fi
-    task_json=$(aws ecs describe-tasks \
-        --region "${AWS_REGION}" \
-        --cluster "${ECS_CLUSTER}" \
-        --tasks "${task_arns}" \
-        --query 'tasks[0]' --output json) || return 1
-    # ECS can mark a zero-to-one deployment complete before the task-level
-    # health field has caught up with the already-registered target.  Keep
-    # checking this one exact task; never start a replacement merely because
-    # health propagation lagged behind deployment accounting.
-    task_health_deadline=$(($(date +%s) + 300))
-    while true; do
-        task_health_state=$(printf '%s' "${task_json}" | \
-            EXPECTED_TASK="${expected_task_definition}" \
-            EXPECTED_DIGEST="${IMAGE_DIGEST}" python3 -c '
+CANDIDATE_RUNNING_TASKS=$(running_tasks)
+[ "$(printf '%s\n' "${CANDIDATE_RUNNING_TASKS}" | wc -w)" -eq 1 ] \
+    || fail "candidate running-task identity is not singular"
+CANDIDATE_RUNNING_TASK="${CANDIDATE_RUNNING_TASKS}"
+CANDIDATE_TASK_JSON=$(aws ecs describe-tasks \
+    --region "${AWS_REGION}" --cluster "${ECS_CLUSTER}" \
+    --tasks "${CANDIDATE_RUNNING_TASK}" --query 'tasks[0]' --output json)
+printf '%s' "${CANDIDATE_TASK_JSON}" \
+    | EXPECTED_TASK="${CANDIDATE_TASK_DEFINITION}" \
+      EXPECTED_DIGEST="${IMAGE_DIGEST}" python3 -c '
 import json, os, sys
 task = json.load(sys.stdin)
 containers = task.get("containers", [])
@@ -701,497 +440,41 @@ if task.get("taskDefinitionArn") != os.environ["EXPECTED_TASK"]:
     raise SystemExit("running task definition differs from candidate")
 if len(containers) != 1 or containers[0].get("imageDigest") != os.environ["EXPECTED_DIGEST"]:
     raise SystemExit("running image digest differs from built artifact")
-print(
-    "ready"
-    if task.get("lastStatus") == "RUNNING" and task.get("healthStatus") == "HEALTHY"
-    else "waiting"
-)
-') || return 1
-        [ "${task_health_state}" = "ready" ] && break
-        [ "$(date +%s)" -lt "${task_health_deadline}" ] || {
-            echo "candidate task health did not become ready" >&2
-            return 1
-        }
-        sleep 2
-        task_json=$(aws ecs describe-tasks \
-            --region "${AWS_REGION}" \
-            --cluster "${ECS_CLUSTER}" \
-            --tasks "${task_arns}" \
-            --query 'tasks[0]' --output json) || return 1
-    done
-    curl -fsS \
-        --connect-to "dsf-ai.com:443:${ALB_DNS}:443" \
-        --connect-timeout 10 --max-time 30 \
-        "${CONTROL_ORIGIN}/health" \
-        | python3 -c \
-            'import json,sys; value=json.load(sys.stdin); assert value.get("status") == "ok"' \
-        || return 1
-    # ``/ready/guala`` takes the transition lock deliberately, so that it can
-    # only ever report persisted state -- and that lock is held for a WHOLE
-    # lesson.  A 30s cap therefore fails a perfectly healthy body that merely
-    # happens to be mid-lesson, which is a false negative, not a safety check.
-    # Waiting is the honest behaviour: every assertion below still has to pass.
-    ready_body=$(read_live_organism) || return 1
-    printf '%s' "${ready_body}" | \
-        EXPECTED_TASK="${expected_task_name}" \
-        EXPECTED_DIGEST="${IMAGE_DIGEST}" EXPECTED_SHA="${GIT_SHA}" \
-        EXPECTED_IDENTITY="${GUALA_ORGANISM_IDENTITY}" \
-        EXPECTED_MINIMUM_TICK="${expected_minimum_tick}" \
-        python3 -c '
-import json, os, re, sys
-value = json.load(sys.stdin)
-if value.get("ready") is not True or value.get("native_state") is not True:
-    raise SystemExit("organism did not prove ready native state")
-if value.get("task_definition") != os.environ["EXPECTED_TASK"]:
-    raise SystemExit("organism reports a different task definition")
-if value.get("image_digest") != os.environ["EXPECTED_DIGEST"]:
-    raise SystemExit("organism reports a different image digest")
-if value.get("git_sha") != os.environ["EXPECTED_SHA"]:
-    raise SystemExit("organism reports a different reviewed commit")
-if value.get("ready_scope") != "http_native_current_and_admitted_sensory_transitions":
-    raise SystemExit("readiness scope is not the reviewed sensory-transitions scope")
-if value.get("identity") != os.environ["EXPECTED_IDENTITY"]:
-    raise SystemExit("candidate restored a different organism identity")
-native = value.get("native_resident", {})
-if native.get("available") is not True:
-    raise SystemExit("native resident observation is unavailable")
-if native.get("python_callback_count") != 0:
-    raise SystemExit("native resident reports Python cognition callbacks")
-state_sha = native.get("state_sha256")
-if not isinstance(state_sha, str) or not re.fullmatch(r"[0-9a-f]{64}", state_sha):
-    raise SystemExit("native resident state identity is absent")
-state_bytes = native.get("state_bytes")
-if not isinstance(state_bytes, int) or state_bytes <= 0:
-    raise SystemExit("native resident state byte count is invalid")
-tick = native.get(
-    "organism_tick",
-    value.get("organism_tick", value.get("active_recovery_tick")),
-)
-if not isinstance(tick, int) or isinstance(tick, bool) or tick < 0:
-    raise SystemExit("native resident tick is invalid")
-minimum = os.environ.get("EXPECTED_MINIMUM_TICK", "")
-if minimum and tick < int(minimum):
-    raise SystemExit(
-        f"candidate restored tick {tick} behind living predecessor {minimum}"
-    )
-if native.get("persistence_schema") not in {
-    "guala.native_organism_binary_store.v1",
-}:
-    raise SystemExit("native resident persistence schema changed")
-# 2026-08-07 correction: the old assertions demanded a body with NO
-# neurons and NO cognition -- impossible for any living or newborn body,
-# so this gate could never pass and only ran AFTER the cutover.  A living
-# continued body (and a fresh genesis alike) has neurons and cognition.
-# genuine_neuronal_fractal_available is deliberately NOT asserted: it is
-# a last-transition step fact, not body state.
-if (
-    native.get("complete_neuron_available") is not True
-    or native.get("cognition_available") is not True
-):
-    raise SystemExit("candidate does not present a living cognitive body")
-' || return 1
-    # THE WORLD MUST MOUNT TOO (2026-09-03): the world attaches lazily,
-    # so a candidate can prove its organism and still refuse every beat
-    # the moment the world is first touched — this happened twice (1417,
-    # 1423). One direct world observation is now part of verification.
-    if ! curl -fsS \
-        --connect-to "dsf-ai.com:443:${ALB_DNS}:443" \
-        --connect-timeout 10 --max-time 120 \
-        "${CONTROL_ORIGIN}/api/v1/world/observation" \
-        | python3 -c '
-import json, sys
-value = json.load(sys.stdin)
-count = value.get("region_count")
-if not isinstance(count, int) or count < 1:
-    raise SystemExit("the world did not mount on the candidate")
-'; then
-        echo "      candidate world mount FAILED" >&2
-        return 1
-    fi
-    printf '%s' "${task_arns}"
-}
-
-drain_live_organism() {
-    local drain_counts drain_deadline service_json running_tasks prior_tasks
-    local -a prior_task_arns=()
-
-    # A persistent body cannot have two writers, even briefly. ECS rolling
-    # replacement may start the successor while the retiring task is still
-    # completing an atomic unattended interval. Measured in production on
-    # 2026-08-17, that overlap let the retiring task advance CURRENT after the
-    # successor had begun restoring its predecessor. Stop and verify the sole
-    # writer is gone before allowing the successor to start.
-    prior_tasks=$(aws ecs list-tasks \
-        --region "${AWS_REGION}" \
-        --cluster "${ECS_CLUSTER}" \
-        --service-name "${ECS_SERVICE}" \
-        --desired-status RUNNING \
-        --query 'taskArns' --output text)
-    if [ -n "${prior_tasks}" ] && [ "${prior_tasks}" != "None" ]; then
-        read -r -a prior_task_arns <<<"${prior_tasks}"
-    fi
-
-    aws ecs update-service \
-        --region "${AWS_REGION}" \
-        --cluster "${ECS_CLUSTER}" \
-        --service "${ECS_SERVICE}" \
-        --desired-count 0 \
-        --deployment-configuration "${DEPLOY_CONFIGURATION}" >/dev/null
-    # A zero-writer handoff depends on task reality, not on ECS retaining and
-    # later compacting historical deployment records. Waiting for rolloutState
-    # here previously left production empty for minutes after the sole task had
-    # already stopped. Poll the exact writer counts, then prove the captured
-    # predecessor tasks are STOPPED below.
-    drain_deadline=$(($(date +%s) + 300))
-    while true; do
-        drain_counts=$(aws ecs describe-services \
-            --region "${AWS_REGION}" \
-            --cluster "${ECS_CLUSTER}" \
-            --services "${ECS_SERVICE}" \
-            --query 'services[0].[desiredCount,runningCount,pendingCount]' \
-            --output text)
-        [ "${drain_counts}" = $'0\t0\t0' ] && break
-        [ "$(date +%s)" -lt "${drain_deadline}" ] \
-            || fail "production writer counts did not drain to zero"
-        sleep 2
-    done
-    if [ "${#prior_task_arns[@]}" -gt 0 ]; then
-        aws ecs wait tasks-stopped \
-            --region "${AWS_REGION}" \
-            --cluster "${ECS_CLUSTER}" \
-            --tasks "${prior_task_arns[@]}"
-    fi
-    service_json=$(aws ecs describe-services \
-        --region "${AWS_REGION}" \
-        --cluster "${ECS_CLUSTER}" \
-        --services "${ECS_SERVICE}" \
-        --query 'services[0]' --output json)
-    printf '%s' "${service_json}" | python3 -c '
-import json, sys
-service = json.load(sys.stdin)
-counts = {key: service.get(key) for key in ("desiredCount", "runningCount", "pendingCount")}
-if counts != {"desiredCount": 0, "runningCount": 0, "pendingCount": 0}:
-    raise SystemExit(f"production writer did not drain exactly: {counts}")
+if task.get("lastStatus") != "RUNNING" or task.get("healthStatus") != "HEALTHY":
+    raise SystemExit("candidate task is not healthy")
 '
-    running_tasks=$(aws ecs list-tasks \
-        --region "${AWS_REGION}" \
-        --cluster "${ECS_CLUSTER}" \
-        --service-name "${ECS_SERVICE}" \
-        --desired-status RUNNING \
-        --query 'taskArns' --output text)
-    if [ -n "${running_tasks}" ] && [ "${running_tasks}" != "None" ]; then
-        fail "production retains a running writer after the zero-task drain"
-    fi
-}
+CANDIDATE_TICK=$(wait_for_lean_http)
+CUTOVER_ARMED=0
+printf '      identity preserved; native tick %s -> %s\n' \
+    "${CUTOVER_TICK}" "${CANDIDATE_TICK}"
 
-restore_previous_live_organism() {
-    # A failed candidate start must not strand production at desired-count
-    # zero.  Drain any partial candidate first, then restart the exact task
-    # definition that preflight proved was the sole healthy writer.
-    aws ecs update-service \
-        --region "${AWS_REGION}" \
-        --cluster "${ECS_CLUSTER}" \
-        --service "${ECS_SERVICE}" \
-        --desired-count 0 \
-        --deployment-configuration "${DEPLOY_CONFIGURATION}" >/dev/null
-    wait_for_service_stable
-    aws ecs update-service \
-        --region "${AWS_REGION}" \
-        --cluster "${ECS_CLUSTER}" \
-        --service "${ECS_SERVICE}" \
-        --task-definition "${SOURCE_TASK_DEFINITION}" \
-        --desired-count 1 \
-        --deployment-configuration "${DEPLOY_CONFIGURATION}" \
-        --force-new-deployment >/dev/null
-    wait_for_service_stable
-    curl -fsS \
-        --connect-to "dsf-ai.com:443:${ALB_DNS}:443" \
-        --connect-timeout 10 --max-time 30 \
-        "${CONTROL_ORIGIN}/health" \
-        | python3 -c \
-            'import json,sys; value=json.load(sys.stdin); assert value.get("status") == "ok"'
-}
-
-fail_candidate_cutover() {
-    local reason="$1"
-    # A current-format migration may have atomically published bytes the
-    # predecessor image cannot decode.  After candidate admission begins,
-    # failure must leave zero writers; restarting the old image would either
-    # fail against CURRENT or resurrect a retired body from stale custody.
-    if [ "${RECOVER_DRAINED}" = "1" ] \
-        || [ "${GUALA_DEPLOY_CURRENT_FORMAT_MIGRATION}" = "1" ]; then
-        drain_live_organism \
-            || fail "${reason}; candidate could not be drained"
-        fail "${reason}; service left safely at zero writers; incompatible predecessor not restarted"
-    fi
-    restore_previous_live_organism \
-        || fail "${reason}; predecessor restoration also failed"
-    fail "${reason}; predecessor restored"
-}
-
-if [ "${HOT_DEPLOY}" != "1" ] && [ "${RECOVER_DRAINED}" != "1" ]; then
-    echo "[5/7] Rehearsing the digest-pinned candidate before fail-closed cutover."
-    PREVIOUS_RUNNING_TASK="${RUNNING_TASKS}"
-    for cutover_number in $(seq 1 "${REPEAT_CUTOVER}"); do
-    # Preflight already read and validated the exact persisted live receipt,
-    # then proved that ECS topology did not drift during that inspection.
-    # Re-reading /ready here duplicated the same large observation and added a
-    # second HTTP failure boundary without strengthening continuity.  The
-    # read-only probe admits a later CURRENT tick, so the validated predecessor
-    # is the exact lower bound it requires while the living source advances.
-    REHEARSAL_SOURCE=$(python3 -c '
-import json, sys
-with open(sys.argv[1], encoding="utf-8") as source:
-    predecessor = json.load(source).get("predecessor")
-if not isinstance(predecessor, dict):
-    raise SystemExit("preflight supplied no validated predecessor")
-print(json.dumps(predecessor, separators=(",", ":"), sort_keys=True))
-' "${WORK_DIR}/preflight.json")
-    REHEARSAL_TICK=$(printf '%s' "${REHEARSAL_SOURCE}" | python3 -c \
-        'import json,sys; print(json.load(sys.stdin)["tick"])')
-    REHEARSAL_STATE_SHA=$(printf '%s' "${REHEARSAL_SOURCE}" | python3 -c \
-        'import json,sys; print(json.load(sys.stdin)["state_sha256"])')
-    REHEARSAL_IDENTITY=$(printf '%s' "${REHEARSAL_SOURCE}" | python3 -c \
-        'import json,sys; print(json.load(sys.stdin)["identity"])')
-    [ "${REHEARSAL_IDENTITY}" = "${GUALA_ORGANISM_IDENTITY}" ] \
-        || fail "live organism identity differs from the continuity pin"
-    REHEARSAL_PROOF=$(python3 tools/run_guala_candidate_rehearsal_task.py \
-        --mode cold-restore \
-        --cluster "${ECS_CLUSTER}" \
-        --service "${ECS_SERVICE}" \
-        --candidate-task-definition "${CANDIDATE_TASK_DEFINITION}" \
-        --candidate-git-sha "${GIT_SHA}" \
-        --candidate-image-digest "${IMAGE_DIGEST}" \
-        --expected-identity "${REHEARSAL_IDENTITY}" \
-        --expected-tick "${REHEARSAL_TICK}" \
-        --expected-state-sha256 "${REHEARSAL_STATE_SHA}")
-    printf '%s\n' "${REHEARSAL_PROOF}"
-    printf '%s' "${REHEARSAL_PROOF}" | python3 -c '
-import json, re, sys
-proof = json.load(sys.stdin)
-# Earlier transient witnesses are not replayed. This release gate proves the
-# active A-011 ordinary native action and its complete same-organism return.
-if (
-    proof.get("a011_ordinary_interval_rehearsed") is not True
-    or proof.get("a011_predecessor_tick") != proof.get("tick")
-    or not isinstance(proof.get("a011_successor_tick"), int)
-    or proof["a011_successor_tick"] <= proof.get("tick")
-    or proof.get("a011_body_moved") is not True
-    or proof.get("a011_continuous_cognition") is not True
-    or proof.get("a011_articulated_body_receptor_count") != 90
-    or not re.fullmatch(
-        r"[0-9a-f]{64}",
-        proof.get("a011_successor_state_sha256", ""),
-    )
-    or not isinstance(proof.get("a011_retained_formation_reassembly_count"), int)
-    or proof["a011_retained_formation_reassembly_count"] <= 0
-    or proof.get("a011_successor_current_exact") is not True
-    or proof.get("a011_cold_next_interval_rehearsed") is not True
-    or proof.get("a011_cold_next_predecessor_tick")
-    != proof.get("a011_successor_tick")
-    or proof.get("a011_cold_next_predecessor_state_sha256")
-    != proof.get("a011_successor_state_sha256")
-    or not isinstance(proof.get("a011_cold_next_successor_tick"), int)
-    or proof["a011_cold_next_successor_tick"]
-    <= proof["a011_cold_next_predecessor_tick"]
-    or not re.fullmatch(
-        r"[0-9a-f]{64}",
-        proof.get("a011_cold_next_successor_state_sha256", ""),
-    )
-    or proof.get("a011_cold_next_successor_current_exact") is not True
-    or proof.get("a011_cold_next_body_moved") is not True
-    or proof.get("a011_cold_next_continuous_cognition") is not True
-    or proof.get("a011_cold_next_articulated_body_receptor_count") != 90
-    or not isinstance(
-        proof.get("a011_cold_next_retained_formation_reassembly_count"), int
-    )
-    or proof["a011_cold_next_retained_formation_reassembly_count"] <= 0
-    or proof.get("a011_cold_next_world_predecessor_state_sha256")
-    != proof.get("a011_world_successor_state_sha256")
-    or proof.get("a011_cold_next_world_successor_state_sha256")
-    == proof.get("a011_cold_next_world_predecessor_state_sha256")
-):
-    raise SystemExit("A-011 ordinary action/consequence rehearsal changed")
-'
-        GIT_SHA="${GIT_SHA}" IMAGE_DIGEST="${IMAGE_DIGEST}" \
-            CANDIDATE_TASK_DEFINITION="${CANDIDATE_TASK_DEFINITION}" \
-            REHEARSAL_PROOF="${REHEARSAL_PROOF}" python3 -c '
-import json, os
-proof = json.loads(os.environ["REHEARSAL_PROOF"])
-print(json.dumps({
-    "candidate_git_sha": os.environ["GIT_SHA"],
-    "candidate_image_digest": os.environ["IMAGE_DIGEST"],
-    "candidate_task_definition": os.environ["CANDIDATE_TASK_DEFINITION"],
-    "rehearsal_proof": proof,
-    "schema": "guala.prepared_candidate.v2",
-    "status": "rehearsed_not_deployed",
-}, separators=(",", ":"), sort_keys=True))
-'
-        if [ "${REHEARSE_ONLY}" = "1" ]; then
-            exit 0
-        fi
-    done
-fi
-if [ "${REHEARSE_ONLY}" = "0" ]; then
-    if [ "${HOT_DEPLOY}" = "1" ]; then
-        echo "[5/7] Hot-cutting directly to the candidate."
-        HOT_PREDECESSOR=$(read_live_organism) \
-            || fail "hot deployment could not read the living predecessor"
-        HOT_PREDECESSOR_TICK=$(printf '%s' "${HOT_PREDECESSOR}" | \
-            EXPECTED_IDENTITY="${GUALA_ORGANISM_IDENTITY}" python3 -c '
-import json, os, re, sys
-value = json.load(sys.stdin)
-if value.get("identity") != os.environ["EXPECTED_IDENTITY"]:
-    raise SystemExit("hot predecessor identity differs from continuity pin")
-native = value.get("native_resident", {})
-state_sha = native.get("state_sha256")
-tick = native.get(
-    "organism_tick",
-    value.get("organism_tick", value.get("active_recovery_tick")),
-)
-if not isinstance(state_sha, str) or re.fullmatch(r"[0-9a-f]{64}", state_sha) is None:
-    raise SystemExit("hot predecessor state identity is absent")
-if not isinstance(tick, int) or isinstance(tick, bool) or tick < 1:
-    raise SystemExit("hot predecessor tick is invalid")
-print(tick)
-') || fail "hot deployment could not authenticate the living predecessor"
-        drain_live_organism \
-            || fail "hot deployment could not stop the prior writer completely"
-        # Install the candidate as the service's sole completed deployment
-        # while no organism writer exists.  Starting it in the same forced
-        # rollout used to leave an older deployment eligible to reappear.
-        # Once this zero-writer registration is stable, raising desired count
-        # starts exactly this already-selected candidate without another
-        # deployment generation.
-        aws ecs update-service \
-            --region "${AWS_REGION}" \
-            --cluster "${ECS_CLUSTER}" \
-            --service "${ECS_SERVICE}" \
-            --task-definition "${CANDIDATE_TASK_DEFINITION}" \
-            --desired-count 0 \
-            --deployment-configuration "maximumPercent=200,minimumHealthyPercent=0,deploymentCircuitBreaker={enable=true,rollback=false}" >/dev/null
-        wait_for_service_stable \
-            || fail "hot deployment could not make the candidate the sole zero-writer deployment"
-        hot_deadline=$(($(date +%s) + 300))
-        aws ecs update-service \
-            --region "${AWS_REGION}" \
-            --cluster "${ECS_CLUSTER}" \
-            --service "${ECS_SERVICE}" \
-            --desired-count 1 \
-            --deployment-configuration "maximumPercent=200,minimumHealthyPercent=0,deploymentCircuitBreaker={enable=true,rollback=false}" >/dev/null
-        while true; do
-            hot_counts=$(aws ecs describe-services \
-                --region "${AWS_REGION}" \
-                --cluster "${ECS_CLUSTER}" \
-                --services "${ECS_SERVICE}" \
-                --query 'services[0].[runningCount,pendingCount]' \
-                --output text)
-            [ "${hot_counts}" = $'1\t0' ] && break
-            [ "$(date +%s)" -lt "${hot_deadline}" ] \
-                || fail "hot candidate did not enter RUNNING"
-            sleep 2
-        done
-        CURRENT_RUNNING_TASK=$(aws ecs list-tasks \
-            --region "${AWS_REGION}" \
-            --cluster "${ECS_CLUSTER}" \
-            --service-name "${ECS_SERVICE}" \
-            --desired-status RUNNING \
-            --query 'taskArns[0]' --output text)
-        hot_task_definition=$(aws ecs describe-tasks \
-            --region "${AWS_REGION}" \
-            --cluster "${ECS_CLUSTER}" \
-            --tasks "${CURRENT_RUNNING_TASK}" \
-            --query 'tasks[0].taskDefinitionArn' --output text)
-        [ "${hot_task_definition}" = "${CANDIDATE_TASK_DEFINITION}" ] \
-            || fail "hot candidate task identity differs"
-        if ! wait_for_service_stable; then
-            drain_live_organism \
-                || fail "hot candidate failed and could not be drained"
-            fail "hot candidate failed before continuity verification; service left at zero writers"
-        fi
-        if ! CURRENT_RUNNING_TASK=$(verify_live_organism \
-            "${CANDIDATE_TASK_DEFINITION}" "${HOT_PREDECESSOR_TICK}"); then
-            drain_live_organism \
-                || fail "hot continuity failure and candidate drain both failed"
-            fail "hot candidate did not preserve living continuity; service left at zero writers"
-        fi
-        echo "      hot cutover: candidate is the sole live-verified task at or beyond tick ${HOT_PREDECESSOR_TICK}"
-    else
-    echo "[5/7] Starting and verifying the candidate once."
-    PREVIOUS_RUNNING_TASK="${RUNNING_TASKS}"
-    for cutover_number in $(seq 1 "${REPEAT_CUTOVER}"); do
-        # There can be only one persistent writer. The exact immutable image
-        # above has already cold-restored a discarded copy of CURRENT. Stop
-        # the predecessor, start that same digest once, and use the restored
-        # process as production.
-        drain_live_organism
-        if ! aws ecs update-service \
-            --region "${AWS_REGION}" \
-            --cluster "${ECS_CLUSTER}" \
-            --service "${ECS_SERVICE}" \
-            --task-definition "${CANDIDATE_TASK_DEFINITION}" \
-            --desired-count 1 \
-            --deployment-configuration "${DEPLOY_CONFIGURATION}" \
-            --force-new-deployment >/dev/null; then
-            fail_candidate_cutover "candidate admission failed"
-        fi
-        if ! wait_for_service_stable; then
-            fail_candidate_cutover "candidate startup failed"
-        fi
-        if ! CURRENT_RUNNING_TASK=$(verify_live_organism \
-            "${CANDIDATE_TASK_DEFINITION}"); then
-            fail_candidate_cutover "candidate verification failed"
-        fi
-        if [ "${CURRENT_RUNNING_TASK}" = "${PREVIOUS_RUNNING_TASK}" ]; then
-            restore_previous_live_organism \
-                || fail "unchanged process and predecessor restoration both failed"
-            fail "cutover ${cutover_number} did not replace the running process"
-        fi
-        PREVIOUS_RUNNING_TASK="${CURRENT_RUNNING_TASK}"
-        echo "      cutover ${cutover_number}/${REPEAT_CUTOVER}: verified"
-    done
-    fi
-fi
-
-echo "[6/7] Pinning only the live-verified artifact as production-current."
-IMAGE_MANIFEST=$(aws ecr batch-get-image \
-    --region "${AWS_REGION}" \
-    --repository-name "${ECR_REPOSITORY}" \
-    --image-ids "imageDigest=${IMAGE_DIGEST}" \
-    --query 'images[0].imageManifest' --output text)
-[ -n "${IMAGE_MANIFEST}" ] && [ "${IMAGE_MANIFEST}" != "None" ] \
-    || fail "verified artifact disappeared from ECR"
+echo "[6/7] Pinning only the live-verified digest as production-current."
 aws ecr put-image \
-    --region "${AWS_REGION}" \
-    --repository-name "${ECR_REPOSITORY}" \
-    --image-tag production-current \
-    --image-manifest "${IMAGE_MANIFEST}" >/dev/null
+    --region "${AWS_REGION}" --repository-name "${ECR_REPOSITORY}" \
+    --image-tag production-current --image-manifest "${IMAGE_MANIFEST}" >/dev/null
 PINNED_DIGEST=$(aws ecr describe-images \
-    --region "${AWS_REGION}" \
-    --repository-name "${ECR_REPOSITORY}" \
+    --region "${AWS_REGION}" --repository-name "${ECR_REPOSITORY}" \
     --image-ids imageTag=production-current \
     --query 'imageDetails[0].imageDigest' --output text)
 [ "${PINNED_DIGEST}" = "${IMAGE_DIGEST}" ] \
     || fail "production-current does not identify the verified artifact"
 
 FINISHED_AT=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-echo "[7/7] Deployment complete."
+echo "[7/7] Lean deployment complete."
 STARTED_AT="${STARTED_AT}" FINISHED_AT="${FINISHED_AT}" \
-GIT_SHA="${GIT_SHA}" \
-CANDIDATE_TASK_DEFINITION="${CANDIDATE_TASK_DEFINITION}" \
-IMAGE_DIGEST="${IMAGE_DIGEST}" REPEAT_CUTOVER="${REPEAT_CUTOVER}" \
-python3 -c '
+GIT_SHA="${GIT_SHA}" TASK_DEFINITION="${CANDIDATE_TASK_DEFINITION}" \
+IMAGE_DIGEST="${IMAGE_DIGEST}" TICK="${CANDIDATE_TICK}" python3 -c '
 import json, os
 print(json.dumps({
-    "schema": "guala.deterministic_deployment.v2",
-    "status": "deployed",
-    "started_at": os.environ["STARTED_AT"],
+    "automatic_legacy_rollback": False,
     "finished_at": os.environ["FINISHED_AT"],
     "git_sha": os.environ["GIT_SHA"],
-    "task_definition": os.environ["CANDIDATE_TASK_DEFINITION"],
+    "identity": "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1",
     "image_digest": os.environ["IMAGE_DIGEST"],
-    "cutovers_verified": int(os.environ["REPEAT_CUTOVER"]),
-    "verified_native_state": True,
-    "automatic_legacy_rollback": False,
+    "native_tick": int(os.environ["TICK"]),
+    "schema": "guala.lean_deployment.v1",
+    "started_at": os.environ["STARTED_AT"],
+    "status": "deployed_live_verified",
+    "task_definition": os.environ["TASK_DEFINITION"],
 }, sort_keys=True))
 '

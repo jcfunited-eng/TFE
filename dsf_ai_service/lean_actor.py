@@ -170,8 +170,6 @@ class LeanOrganismActor:
             if self._fatal is not None:
                 raise RuntimeError("organism actor failed") from self._fatal
             raise RuntimeError("organism actor is not running")
-        if self._observation.durability_blocked:
-            raise RuntimeError("organism is waiting for durable custody")
         if not isinstance(occurrence, PhysicalOccurrence):
             raise TypeError("actor occurrence changed type")
         future: Future[SettlementResult] = Future()

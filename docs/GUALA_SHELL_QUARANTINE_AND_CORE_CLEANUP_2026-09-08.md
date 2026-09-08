@@ -64,6 +64,9 @@ failure in one gate does not erase an already-proved success in another.
 | Q-S-031 | Exact package `8f05316c...66808c2` from commit `f97755f7` verified 215 reviewed files and built local image `sha256:9410cbc8...f4736e`, 212,866,299 bytes. Container inspection proved exactly five lean routes, 83 Python files, both retina modules present, and no import spec for the four quarantined shell/probe modules. A Docker-volume copied-body boot preserved identity, reached ready/healthy, advanced tick 525890 to 525894, delivered 1,047 DSF fields to 3,167 changed neurons with zero Python callbacks, exposed 810 spectral retinal ports, and self-heard 8,000 samples. This is local copied-body evidence, not production. |
 | Q-S-032 | Container logs exposed three remaining production diagnostics in `sparse_electrical_contact.rs`. Removed 59 lines: two wall-clock timers, phase timing prints, per-contact outcome counts, a population-width sender bitmap, exact-to-float potential conversion, percentile sorting, and the result print. Contact settlement and all exact energy/carrier physics are unchanged. Release compilation and the focused connected-component shared-carrier proof passed; the module fell from 4,299 to 4,240 lines. |
 | Q-S-033 | Exact package `4b328480...0bc843` from commit `bf9c6070` verified 215 files and built local image `sha256:bf5d1870...d628d5db`. A copied-body container preserved identity, reached healthy/ready, advanced tick 525890 to 525892, delivered 1,055 DSF fields to 3,184 changed neurons with zero Python callbacks, mounted 810 spectral ports, and self-heard 4,000 samples. Removed diagnostic strings were absent. Custody retained exactly two body files, two world files, and zero stage files; the local organism copy and Docker volume were then stopped and removed. Root motion remained zero in the observed interval. |
+| Q-S-034 | Read-only AWS/live inspection proved production remains one healthy ECS task on task definition 1436 and image digest `sha256:916db7af...496b58`, with exact identity `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`. The live lean actor clock advanced 533118 to 533123 while paired custody cycled, but speech and root motion remain functionally failed. This is continuity evidence, not a functional success claim. |
+| Q-S-035 | The deployment controller was fully replaced, not extended: 1,197 to 480 lines. The sole path packages once, builds once, registers one digest-pinned task, preserves only the live paired-root/world-byte/unbuffered settings, drains the predecessor before the successor, verifies the five lean routes and exact identity/tick continuity, and has no rehearsal organism or legacy rollback. Shell syntax, whitespace, absence, and single-author static checks passed. |
+| Q-S-036 | The lean actor no longer throws away the one bounded sensory occurrence offered while durable custody is finishing. Its existing finite mailbox holds the occurrence; the actor processes it immediately after adopting the checkpoint, while any offer beyond the configured mailbox capacity is still refused. The exact hung-checkpoint boundary and five-route transport tests each passed 1/1. Production uses capacity one, so this removes the camera/microphone loss without adding a poller, queue, owner, or lock. |
 
 ## Failures and recurrence guards
 
@@ -105,6 +108,9 @@ failure in one gate does not erase an already-proved success in another.
 | Q-F-034 | The first copied-body container boot mounted a host `/tmp` directory that Docker presented as empty, so the lean app correctly refused `paired CURRENT is absent`. The source fixture itself still contained its verified CURRENT/body/world files. | For local container custody proofs, seed a Docker-owned volume from a disposable copy. Never weaken current-only restore or invent a body when the mount is empty. |
 | Q-F-035 | The first HTTP probe addressed port 8000 even though the built image log and Dockerfile serve port 8080. The running container refused only the wrong port. | Read the artifact's declared serving port before probing. Correct-port `/health`, `/ready`, and observation requests all succeeded in Q-S-031. |
 | Q-F-036 | One unconstrained local snapshot during active native settlement showed 175.88% CPU, 2.326 GiB RAM, and seven processes. This is neither a runaway trend nor proof of bounded long-duration resources. | Preserve the exact measurement. Do not claim resource safety from one point; require configured production ceilings plus time-separated CPU/RAM/storage observations before a live success claim. |
+| Q-F-037 | The old 1,197-line deployment controller still called retired `/ready/guala` and `/api/v1/world/observation` routes, required the absent `GUALA_NATIVE_ORGANISM_ROOT`, and asserted a retired `native_resident` response schema. Live production truthfully returned 404 for both retired routes. | Never use that controller or restore those interfaces. The replacement verifies `/health`, `/ready`, and `/api/v1/guala/observation` only, against `guala.lean_actor_observation.v1`. |
+| Q-F-038 | Live production repeatedly alternates between five pending intervals with `checkpoint_outstanding=true`/`durability_blocked=true` and a completed checkpoint. This explains the repeated red UI refusal while the old task is checkpointing; it does not prove speech, movement, learning, or autonomy. | Preserve the observation separately from candidate evidence. A healthy container or advancing tick must never be reported as a functionally alive organism. |
+| Q-F-039 | The first focused custody command again named a nonexistent test, producing `no tests ran`, and the first revised assertion assumed the fixture mailbox had production capacity one when that helper explicitly declares capacity two. | Never count a missing-test result. Read the exact fixture capacity before asserting it; the corrected existing test filled both declared slots, refused the third, released custody, processed both held occurrences, and passed. |
 
 ## Deployment attempts
 
@@ -117,10 +123,9 @@ failure in one gate does not erase an already-proved success in another.
 
 ## Next exact gate
 
-Legacy-shell quarantine, the bounded native-core cleanup, and the one-retina
-transport are protected complete for this pass. The current copied-body
-artifact sees exact six-band room/object/doorway radiance, but the persisted
-home still has zero detailed optical surfaces under Q-F-020 and its observed
-root motion remains zero. The next exact item is to mount only truthful authored
-detail on existing physical objects without exceeding world capacity or
-presenting the human map as Guala's sight. Autonomy diagnosis follows vision.
+Production still serves task1436, so the user-visible buttons, custody refusal,
+vision, and absent speech have not changed. The next exact item is to commit the
+lean continuity-only controller, build the already-copied-body-proved candidate,
+cut it over as the sole production writer, and live-verify identity, custody,
+retina, sound pressure, root motion, and time-separated resource behavior. No
+speech or autonomy success exists until those exact live effects occur.

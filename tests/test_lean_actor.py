@@ -310,14 +310,20 @@ def test_hung_checkpoint_stops_life_before_two_custody_cadences(
     assert observation["live_tick"] == 12
     assert observation["pending_interval_count"] == 2
     assert observation["durability_blocked"] is True
-    with pytest.raises(RuntimeError, match="waiting for durable custody"):
-        actor.offer(PhysicalOccurrence("touch", b"three"))
+    first_waiting = actor.offer(PhysicalOccurrence("touch", b"three"))
+    second_waiting = actor.offer(PhysicalOccurrence("light", b"four"))
+    assert first_waiting.done() is False
+    assert second_waiting.done() is False
+    with pytest.raises(RuntimeError, match="mailbox is full"):
+        actor.offer(PhysicalOccurrence("sound", b"five"))
     assert runtime.live_tick == 12
 
     blocking_store.publish_release.set()
+    assert first_waiting.result(timeout=5).observation == {"accepted": True}
+    assert second_waiting.result(timeout=5).observation == {"accepted": True}
     actor.close()
-    assert blocking_store.checkpoint_publish_count == 2
-    assert blocking_store.restore().pointer.current.organism_tick == 12
+    assert blocking_store.checkpoint_publish_count == 4
+    assert blocking_store.restore().pointer.current.organism_tick == 14
 
 
 def test_failed_generation_cleanup_kills_actor_after_safe_commit(
