@@ -1143,3 +1143,43 @@ again completed `1 passed`; final-source `cargo check` completed successfully;
 and `git diff --check` passed. The native crate still emits 199 inherited
 warnings. Those warnings and the 32,839-line core remain explicit cleanup debt,
 not a claim that the core is clean or a reason to expand Candidate 55.
+
+F-055-27 external-Docker bind-mount repeat: the first final-image rehearsal
+mounted a workspace `/tmp` path directly into Docker Desktop. As already recorded
+by UI-001, this daemon cannot see that host namespace; the container truthfully
+refused startup because paired `CURRENT` was absent and exited 3/no OOM. The
+image did not create genesis, no production state changed, and the copied source
+store remained intact. The established correction is an explicit Docker volume
+populated through `docker cp`, not another host bind mount.
+
+F-055-28 repeated heredoc-input omission: one read-only container observation
+probe again invoked `docker exec` without `-i`, so Python received no script,
+printed nothing, and exited 0. No organism request or state transition occurred.
+All subsequent heredoc container probes in this attempt must copy the already
+recorded `docker exec -i` form verbatim.
+
+F-055-29 rehearsal response-schema mistake: the first corrected HTTP cue probe
+was accepted and returned JSON, then the diagnostic looked for
+`last_occurrence` at the response root rather than under its existing
+`observation` member. The probe raised `KeyError` after the accepted copied-state
+transition, so it did not print the intended receipt. Production remained
+untouched. The corrected probe must read
+`result["observation"]["last_occurrence"]`; it must not submit a second guide to
+that already-advanced rehearsal copy merely to repair diagnostic output.
+
+S-055-28 exact lean-image rehearsal: committed code
+`f0be7e7da3135fe0a112f79a373f6763fb18c2c6` built only through
+`Dockerfile.lean` as local OCI digest
+`sha256:cb14e7dc3992ccbb1f3c56d441319da75699a5397068aff9343d5e308943b20c`,
+212,719,990 bytes. Its build label and `/BUILD_INFO` name that exact commit; it
+contains 64 allowlisted runtime Python files, 36 authenticated cards, exactly
+five FastAPI routes, and neither retired shell entrypoint. A Docker-volume copy
+of the trained paired store restored the unchanged identity, returned `/ready`
+200, accepted one zero-pressure/four-axis body cue through HTTP with two native
+intervals, 4,000 heard samples and four body consequences, then autonomously
+held an exact 8,000-byte pressure body with receipt
+`b86cdf9216dcc7cfa341daa0f60d4479f372f26d25cfc82d27eec975e90e2d80`,
+3,978 nonzero samples and peak magnitude 93. Graceful stop completed exit 0/no
+OOM; the same container and volume cold-restored the identity and advanced from
+durable tick 525468. This closes final-image local rehearsal, not live
+production acceptance.
