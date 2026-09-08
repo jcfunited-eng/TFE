@@ -92,6 +92,10 @@ failure in one gate does not erase an already-proved success in another.
 | Q-S-060 | The production shell's full-body checkpoint cadence is now derived from measured custody rather than the original unexplained value four. Thirty-two 250 ms intervals form one eight-second lived custody span; the existing two-span ceiling bounds unpersisted life to sixteen represented seconds. This gives the sole worker longer than the recorded 6.6-6.8-second production-EFS custody window to finish before another snapshot is due, without adding a queue, retry, lock, owner, or state format. The native core, hearing path, body, DSF, identity, and store transaction are unchanged. All nine focused actor/application tests passed in 2.13 seconds. This is source evidence pending copied-current and live timing. |
 | Q-S-061 | Clean commit `5104e672` packaged 213 reviewed files into archive `bac70f99...a708f` and built local image `sha256:174ae168...b5d5`. A Docker-owned V42 current crossed the corrected 32-interval cadence. While its complete checkpoint was already outstanding at live/persisted ticks 534690/534658 with 32 pending intervals, one microphone occurrence still advanced immediately to tick 534691, delivered all 4,000 samples through 221 full-DSF fields to 1,757 changed neurons, and remained `durability_blocked=false` with 33 pending intervals. Wall time was 1.063154 seconds. This proves the former custody stop no longer blocks copied perception; it does not meet the under-one-second gate or prove speech. |
 | Q-S-062 | Commit `7ee21d94` became live task1444 on immutable digest `sha256:c086c2e5...a07f8`. The controller proved unchanged identity and tick continuity 534932 to 534960 with one completed primary deployment and desired/running/pending `1/1/0`. During an actually outstanding 32-interval production checkpoint, one public microphone occurrence advanced live tick 534980 to 534982, accepted all 4,000 samples through 221 full-DSF deliveries, and remained unblocked at 34 pending intervals. The checkpoint subsequently cleared normally at live/persisted 534997/534980 with no checkpoint or cleanup error. This closes the recurring custody-stop defect only; speech and real-time cadence remain failed. |
+| Q-S-063 | The pre-core census found and removed exactly two abandoned local rehearsal containers, their two Docker-owned state volumes, and their two local image tags: `guala-custody-5104e672-run` / `guala-targeted-cadence-volume` and `guala-speech55-rehearsal-f0be7e7d` / `guala-speech55-rehearsal-f0be7e7d-state`. Both were bridge-network local Uvicorn rehearsals and neither was the ECS production writer. The only remaining Docker container is the shared development container. This cleanup changes no organism state or production artifact. |
+| Q-S-064 | One release-built diagnostic against the authenticated V42 copied body isolated the post-contact cost without changing or contacting production. Across 29 ordinary autonomous intervals with zero moved effectors, zero associations and zero moved regulations, `mount_reached_motor_effector_with_reach_index` alone spent 147.442-220.533 ms per interval while exact physical-delta construction spent 12.204-20.894 ms and every other measured post-contact function was ordinarily below 0.2 ms. The one genuine four-terminal movement kept its full path and measured 235.642 ms. The pre/post AWS envelope remained task1444, one healthy writer, desired/running/pending `1/1/0`, unchanged identity, advancing tick 535416 to 535513, no custody error and no durability block. This proves the no-author population rebuild is the Q-C-001 waste source; it does not prove the candidate or speech. |
+| Q-S-065 | Baseline and Q-C-001 candidate were restored independently from the same authenticated mature V42 body and given the same fixed real-world clock input. They produced byte-identical 142,708,669-byte successor bodies (`6d21d31c...0842f`), byte-identical worlds (`35b396c2...23cae`), identical primary/final causal receipts, 261 full-DSF deliveries, 1,771 physically changed neurons, 10 body consequences, 4,000 self-heard samples and identical pending pressure. The baseline settled in 2,861.805 ms and the candidate in 2,616.938 ms, a 244.867-ms local reduction. This proves the no-author gate preserves that lived successor while removing measured waste; it is copied mature-body evidence, not newest-task1444 or production acceptance, and it does not prove speech. |
+| Q-S-066 | One ECS command restored and verified task1444's exact paired CURRENT at tick 536004, transferred its immutable compressed body and world through a five-minute server-side-encrypted temporary object, and the object was deleted immediately after download. Local decompression matched production receipts exactly: body `36d3a446...60c00`, 143,473,749 bytes; world `cd225891...2e07`, 63,527 bytes. Baseline and candidate then independently restored that newest copied body under the same physical-clock input and produced byte-identical 143,802,900-byte successors (`f02a57ec...023a`), byte-identical worlds (`fd469869...a40c`), identical causal receipts, all 221 full-DSF deliveries and the same 1,750 physically changed neurons. Baseline settled in 1,157.358 ms; candidate settled in 983.884 ms. This closes Q-C-001 copied-current state equality and local subsecond evidence; it is not live-production acceptance or speech. |
 | Q-S-048 | The regression recovery removes two active authors while preserving state: the rejected parallel receptor-preparation change is returned exactly to commit `877985f2`, and the later 810-port six-band retina is removed from both primary and body-return transitions. The established 135-site retinal episode still co-carries sight, both ears, touch, smell, taste, temperature, body position and effector load on one shared 250-ms clock; browser RGB is deterministically projected onto those same learned achromatic receptors. The two spectral modules remain in repository history but are absent from the reviewed production import closure. Direct motor/sensory/UI checks passed 16/16; exact manifest-closure and three shell-quarantine checks passed 4/4. This is source evidence pending live measurement. |
 
 ## Failures and recurrence guards
@@ -165,6 +169,11 @@ failure in one gate does not erase an already-proved success in another.
 | Q-F-065 | The first clean-candidate copied microphone request took 1.543712 seconds without custody blocking. The decisive request during an actually outstanding checkpoint improved to 1.063154 seconds and remained unblocked, but still missed the explicit subsecond gate by 63 ms and produced zero pressure, self-hearing, body consequence, or motion. | Accept Q-S-061 only as custody-unblocking evidence. Do not call cadence or speech complete. After live installation of this bounded shell correction, return to the measured native phases; contact settlement and post-contact growth remain the two largest costs, while F-017/F-020 remain protected. |
 | Q-F-066 | The first clean packaging command guessed nonexistent `dsf_ai_service/lean_runtime_manifest.json`; packaging did not start and the following context/archive checks correctly found no artifacts. | Use the deployment controller's exact reviewed manifest path `deploy/guala_release_manifest.json`. The corrected unchanged commit packaged and verified Q-S-061; never infer artifact failure from the guessed path. |
 | Q-F-067 | Task1444's exact checkpoint-overlap public microphone occurrence remained unblocked but took 5.383071 seconds, advanced across one already-running unattended interval plus its own sensory interval, and produced zero pressure, self-hearing, body consequence, or root motion. Immediate CPU averaged 33.97% of four vCPU and memory 7.05%; this is bounded resource evidence, not functional success. | The shell's custody blockage is closed separately by Q-S-062. Production native settlement remains roughly 2.5 seconds per interval versus 0.49-0.63 seconds on the same copied body locally. Do not change checkpointing, hearing transport, or F-017/F-020 again. Reduce the two measured native cost centers—contact settlement and post-contact growth—without changing full DSF or learned state. |
+| Q-F-068 | The local artifact census tried `ps` inside the lean release image, but that intentionally minimal image does not contain `ps`; the command stopped after the first container. Docker inspection had already proved both exact names, images, bridge networks, Docker-owned state mounts, and running PIDs, so this did not confuse production identity or block their removal. | Use host `/proc` or `docker inspect` for release-process identity; never require diagnostic packages inside the lean production image. This was a diagnostic-command failure only. |
+| Q-F-069 | Diagnostic startup first checked for absent `ss`, then the first Uvicorn invocation omitted required production-parity variable `GUALA_MAX_WORLD_BYTES` and refused before restoring or advancing its disposable store. Neither command touched production. | Use a Python socket bind for local port availability and read task1444's exact environment before invocation: `GUALA_MAX_WORLD_BYTES=16777216`. The corrected unchanged diagnostic started once and produced Q-S-064. |
+| Q-F-070 | The first Q-C-001 comparison selected a retired paired fixture and called current-only restore without the authenticated one-way migration used by lean startup, so it correctly refused. Two format-inspection commands then looked for an embedded marker with `rg` and called absent `xxd`; neither proved an organism fact. A later public read also repeated the retired-route mistake by requesting `/guala/observation` rather than `/api/v1/guala/observation`. None changed production or source state. | Always cross the exact lean startup sequence—paired restore, authenticated migration, current-only restore—and use `/usr/bin/od` only when raw format inspection is actually required. Use only the five recorded lean routes. Never classify a harness refusal, missing utility or retired-route 404 as a product failure. |
+| Q-F-071 | The first baseline/candidate equality comparison ran the two occurrences at different real-world seconds. Guala's truthful outdoor illumination is explicitly driven by `time.time()`, so the resulting worlds differed and the comparison could not prove code equality even though both runs started from the same body receipt. | Equality evidence must hold the lawful external world-clock input identical for both independently restored runs. Repeating both sides at exact second `1800000000` produced Q-S-065; the fixed clock exists only in the disposable comparison harness and does not enter production code. |
+| Q-F-072 | The live eye panel alternates between the latest external RGB sample and the next autonomous achromatic native-retina observation. Joe's captured panels show that neither low-resolution grid provides a stable, meaningful representation of the light reaching Guala's eyes. This is truthful raw/projection data but a failed human observation interface; it does not prove meaningful organism vision. | Keep the underlying receipts and never fabricate scene detail. After Q-C-001 production settlement, replace the alternating panel with one stable truthful visual history/view derived from actual retinal input, and complete that interface item before resuming speech. |
 
 ## Deployment attempts
 
@@ -187,13 +196,85 @@ failure in one gate does not erase an already-proved success in another.
 
 ## Next exact gate
 
-Production serves healthy task1443 and the matching continuous-listener page.
-V42 retired the rejected 810-source/810-integrator spectral anatomy and cut the
-raw live body from 310,394,393 to approximately 143.8 million bytes while
-preserving identity, time, learned unrelated state, and full DSF. That repair
-is accepted. The one live public microphone occurrence still took 5.905396
-seconds and produced no speech, so the exact next item is a source/history
-review of active main-thread work added after closed performance fixes F-017
-and F-020. Remove only the demonstrated repeated or whole-population work;
-retain the live V42 body and every protected causal success. No speech, vision,
-or autonomy success is claimed here.
+### Q-C-001 — native post-contact reached-frontier cleanup
+
+Production baseline is task1444, commit `7ee21d94`, immutable image
+`sha256:c086c2e5...a07f8`, identity
+`1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`. Q-S-062 keeps its immediate
+predecessor closed: the 32-interval custody correction accepted a complete
+4,000-sample / 221-full-DSF microphone occurrence during an outstanding
+checkpoint without blocking and later published normally. This turn advances
+the ledger to Q-C-001; it does not reopen V42 retina retirement, shell custody,
+F-017 passive scheduling, F-019 shared full-field delivery, or F-020 shared Psi
+preparation.
+
+Exact input and path: one authenticated current V42 production body plus one
+ordinary 250-ms sensory or unattended occurrence; lean transport builds one
+coexisting sensorium and crosses one native boundary; native source/receptor
+settlement advances the reached cohorts; sparse contact settlement produces
+its exact directed transfers and frontier; post-contact code evaluates only
+physically possible developmental growth, exact transitioned-state deltas, and
+the downstream mosaic boundary; the unchanged successor then crosses body/world
+consequence, paired-current custody, cold restore, and read-only observation.
+
+Current defect: the same V42 body settles a native interval in approximately
+0.49-0.63 seconds locally but roughly 2.5 seconds in task1444, making the public
+checkpoint-overlap request take 5.383071 seconds. The measured post-contact
+region is one of the two largest native regions and contains production code
+that can rebuild population-wide mount/contact maps even though growth is a
+sparse exceptional event.
+
+Authorized files: `native/guala_core/src/resident_cognitive_formation.rs` and,
+only if its local contract is the proved source, the existing
+`native/guala_core/src/resident_cognitive_formation/lean_sensorimotor_route.rs`.
+No state schema, Python shell, checkpoint cadence, hearing transport, world,
+L0-L4, DSF field, neuron, learned state, migration, or observer change is in
+scope.
+
+Acceptance: on two identical restores of the newest authenticated task1444
+body, the baseline and candidate receive the same exact occurrence. Every
+physical successor byte and exposed causal count must match; all 4,000 sound
+samples and all 221 complete DSF deliveries remain; no lawful growth, motor,
+articulatory, recurrence, formation, body, or acoustic consequence may be
+suppressed. Candidate work must scale only with the reached/growth-capable
+frontier, cold restore and the next ordinary interval must pass, and the exact
+artifact must then complete the live public occurrence in under 1,000 ms with
+one identity/writer and bounded CPU/RAM/storage. This cadence acceptance alone
+does not claim speech, vision, movement, or autonomy.
+
+Frozen correction law: this developmental function can author only (a) a
+non-vocal articulated terminal named by `exact_moved_body_effectors`, or (b) a
+root terminal named by its exact yaw/translation proprioceptive continuation.
+Returned general vocal-body evidence is explicitly non-identifying and the
+existing implementation always skips it before authorship. Therefore, when no
+non-vocal moved terminal and no root continuation exist, returning before any
+mount clone or contact-map rebuild preserves every reachable successor and all
+energy, material, identity, topology and timing/order invariants. The changed
+zero-author branch becomes constant work; every real movement/growth branch is
+byte-for-byte the prior source path. The anti-resurrection test supplies both
+layer-8 and retained layer-11 activity but no terminal author and requires zero
+scan-dependent failure, neuron growth or contact growth.
+
+Source-only review: the production symbol has one native caller. Every
+articulated author consumed later in the function is first derived from
+`moved_effectors`; every root author is first derived from one of the two root
+continuation maps. The later code explicitly discards non-identifying vocal
+body evidence and all vocal-articulator terminals before mutation. The new
+gate therefore removes only the previously unguarded empty-author case. It is
+before every clone, allocation, map rebuild and mutation; mixed vocal/non-vocal
+movement and either root continuation enter the old path unchanged. No
+architectural finding, alternate owner, field loss, conservation change,
+schema change, migration, or cold-restore branch exists in the diff. The
+anti-resurrection fixture is deliberately shaped so the former scan would
+reject its active layer-8/layer-11 structure, while the corrected no-author
+path must sleep without adding or removing anatomy. Initial frozen worktree
+fingerprint before this review record:
+`e9625f279d920e53397ba2846fc5aa0c0d8a9c1366c61e73f63939e66b7e0089`.
+
+Copied-current acceptance: Q-S-065 proves exact mature lived-state equality
+through a body-consequence and self-hearing occurrence. Q-S-066 independently
+proves exact equality on the newest copied task1444 tick-536004 body and puts
+that ordinary native interval below one second locally. The only remaining
+Q-C-001 acceptance surface is immutable packaging, live cutover, and direct
+production cadence/resource evidence; no further source or test change is
+authorized for this candidate.

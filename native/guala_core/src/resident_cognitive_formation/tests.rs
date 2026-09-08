@@ -8435,6 +8435,70 @@
     }
 
     #[test]
+    fn motor_growth_sleeps_without_a_physical_terminal_author() {
+        let mut cohorts = Vec::new();
+        let mut population =
+            Some(DevelopmentalRestingPopulation::admit(1_600_000_000, 100_000, 100, &[]).unwrap());
+        let mut next_lineage = 1;
+        let mut fabric = ResidentElectricalFabric::default();
+        let regulation = mount_intrinsic_neuron_at_place(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            DeclaredNeuronPlace::new(8, 0),
+        )
+        .unwrap();
+        let ordering = mount_intrinsic_neuron_at_place(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            DeclaredNeuronPlace::new(11, 0),
+        )
+        .unwrap();
+        fabric = fabric
+            .append_contact(
+                regulation,
+                ordering,
+                ExactRational::integer(DEVELOPMENTAL_CONTACT_CONDUCTANCE_PICOSIEMENS),
+            )
+            .unwrap();
+        let topology = ResidentTopologyIndex::build(&cohorts, &fabric).unwrap();
+        let frontier = frontier_entries_from_bonds(&cohorts, &fabric);
+        let neuron_count = cohorts
+            .iter()
+            .map(|cohort| cohort.anatomy.neuron_count())
+            .sum::<usize>();
+        let contact_count = fabric.contact_count();
+
+        mount_reached_motor_effector_with_reach_index(
+            &mut cohorts,
+            &mut population,
+            &mut next_lineage,
+            &mut fabric,
+            &[regulation],
+            &[],
+            &frontier,
+            &frontier,
+            &frontier,
+            &[],
+            &BTreeMap::new(),
+            &BTreeMap::new(),
+            Some(&topology),
+            &[],
+        )
+        .unwrap();
+
+        assert_eq!(fabric.contact_count(), contact_count);
+        assert_eq!(
+            cohorts
+                .iter()
+                .map(|cohort| cohort.anatomy.neuron_count())
+                .sum::<usize>(),
+            neuron_count
+        );
+    }
+
+    #[test]
     fn returned_motor_synergy_grows_one_bounded_coaged_source_per_terminal() {
         let mut cohorts = Vec::new();
         let mut population =

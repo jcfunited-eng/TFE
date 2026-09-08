@@ -16707,10 +16707,14 @@ fn mount_reached_motor_effector_with_reach_index(
     topology: Option<&ResidentTopologyIndex>,
     current_motor_recruitments: &[MotorUnitRecruitment],
 ) -> Result<(), FormationError> {
-    if !moved_effectors.is_empty()
-        && moved_effectors
-            .iter()
-            .all(|terminal| terminal.axis().is_vocal_articulator())
+    // This function can author only a non-vocal articulated terminal named by
+    // a moved-body consequence, or a root terminal named by its exact returned
+    // proprioceptive continuation. General layer-8 activity and retained
+    // ordering activity cannot name a terminal. Return before cloning mounts
+    // or rebuilding contact maps when neither physical author exists.
+    if !moved_effectors
+        .iter()
+        .any(|terminal| !terminal.axis().is_vocal_articulator())
         && root_yaw_continuations.is_empty()
         && root_translation_continuations.is_empty()
     {
