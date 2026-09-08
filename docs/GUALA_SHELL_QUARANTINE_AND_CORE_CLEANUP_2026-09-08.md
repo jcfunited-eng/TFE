@@ -101,6 +101,7 @@ failure in one gate does not erase an already-proved success in another.
 | Q-S-069 | One release diagnostic restored the exact copied task1445 tick-536852 body (`424d3b8a...f8183`) and settled one ordinary 221-full-DSF interval without sealing or mutating production. The Python-visible native boundary took 938.326 ms and changed 1,741 neurons. Inside its 536.174-ms cognitive transition, source/receptor work took 64.512 ms, contact settlement 360.617 ms, post-contact/pre-mosaic work 16.644 ms, mosaic settlement 61.680 ms, post-mosaic work 32.640 ms, and successor construction 0.081 ms. The remaining approximately 402 ms is outside that cognitive-transition function. This isolates the active costs without changing a field, neuron, contact, successor, or production task; it is diagnostic evidence, not a fix or cadence success. |
 | Q-S-070 | Q-C-004 replaced 1,895 per-cohort Rayon jobs/full energy records with at most one contiguous cohort chunk per existing Rayon worker while separately preserving the former cohort/neuron order for signed saturating charge observation. Its one exact serial-reference test passed 1/1. Baseline and candidate independently restored the same copied task1445 tick-536852 body under fixed solar second 43200. Candidate time was 606.403 ms versus baseline 952.938 ms, a 346.535-ms reduction. Both produced causal receipt `0a174573...dfd46f`, the same 221 full-DSF deliveries and 1,741 changed neurons, then sealed the identical 143,785,227-byte body `20076f15...8df9a` with exact energy receipt `0137d404...174e8`. This is accepted copied-current equality and local subsecond evidence, not live production cadence, speech, vision or autonomy. |
 | Q-S-071 | Clean commit `03638710` became live task1446 on immutable digest `sha256:7643c979...2e298`. The controller preserved identity `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`, advanced tick 537940 to 537979, admitted exactly one RUNNING/HEALTHY writer at `1/1/0`, completed rollout, and pinned the verified digest. One direct public unattended occurrence returned HTTP 200 in 2.492687 seconds with one native interval, all 221 full-DSF deliveries, zero body consequence/motion and no custody error. Immediate process RSS was 1,420,980 KiB, cgroup memory 1,551,757,312 bytes, and paired custody was 5,541,913 bytes with CURRENT plus exactly two body and two world generations. CPU, memory, EFS and refusal alarms remained OK. This accepts Q-C-004 as a deployed exact-observation cleanup and measured live improvement over task1445's 3.210765 seconds; Q-F-083 separately keeps cadence and function failed. |
+| Q-S-072 | Q-C-005's existing changed-endpoint/contact proof passed 1/1. Q-C-004 baseline and Q-C-005 independently restored the same copied task1445 body under fixed solar second 43200 and produced the identical causal receipt `0a174573...dfd46f`, 221 full-DSF deliveries, 1,741 changed neurons, sealed 143,785,227-byte body `20076f15...8df9a`, and exact energy receipt `0137d404...174e8`. This preserves exact equality evidence for the rejected scheduling idea; it is not a cadence success. |
 | Q-S-048 | The regression recovery removes two active authors while preserving state: the rejected parallel receptor-preparation change is returned exactly to commit `877985f2`, and the later 810-port six-band retina is removed from both primary and body-return transitions. The established 135-site retinal episode still co-carries sight, both ears, touch, smell, taste, temperature, body position and effector load on one shared 250-ms clock; browser RGB is deterministically projected onto those same learned achromatic receptors. The two spectral modules remain in repository history but are absent from the reviewed production import closure. Direct motor/sensory/UI checks passed 16/16; exact manifest-closure and three shell-quarantine checks passed 4/4. This is source evidence pending live measurement. |
 
 ## Failures and recurrence guards
@@ -190,6 +191,9 @@ failure in one gate does not erase an already-proved success in another.
 | Q-F-081 | The first post-cutover public occurrence met a full one-slot mailbox and returned HTTP 503 in 0.173542 seconds without entering Guala. | Do not spam or enlarge the mailbox. Let the existing request clear, preserve the refusal as transport evidence, and issue at most one later acceptance occurrence. Q-S-071 records that later admitted result. |
 | Q-F-082 | The first task1446 storage census inspected only top-level files and therefore reported CURRENT alone, omitting the generation subdirectories. | Use one recursive read of the exact deployed paired root. The corrected read found CURRENT plus two body and two world generations totaling 5,541,913 bytes. |
 | Q-F-083 | Task1446's admitted public unattended occurrence improved from task1445's 3.210765 seconds to 2.492687 seconds, but remains far above the explicit under-one-second gate. The latest observation still shows zero body consequence and zero root motion; a later browser sensory occurrence likewise does not establish recognition, learning, speech or meaningful vision. | Retain Q-C-004 and Q-S-071 as exact deployed cleanup success, but do not call the organism responsive or alive. The next core item may address only the already-measured 360-ms local contact region; do not reopen the census, shell, sensory transport, checkpointing, speech, or retina retirement. |
+| Q-F-084 | The first Q-C-005 ledger insertion used a stale wrapped-line context and was refused without changing the file. | Read the exact current contract tail before inserting the next candidate. A refused documentation patch is recorded but is not organism evidence. |
+| Q-F-085 | Q-C-005 bounded the already-parallel contact-pump preparation to one chunk per worker, but the same copied-current interval changed only from 590.108 ms to 588.754 ms. The 1.354-ms difference is noise, not material progress. | Preserve Q-S-072 equality, remove the executable candidate before commit/deployment, and do not rediscover pump-job chunking as the contact/cadence fix. The measured contact owner lies elsewhere. |
+| Q-F-086 | The first combined Q-C-005 outcome update matched its success/failure rows but used wrong capitalization for the later `Authorized files` context, so the atomic patch was refused and changed nothing. | Split unrelated ledger insertions and read the exact tail before applying them; never assume a partial documentation patch succeeded. |
 
 ## Deployment attempts
 
@@ -366,3 +370,35 @@ world input, material local improvement, clean source review, immutable
 deployment, then one live public cadence and bounded-resource check. Q-S-070
 closes the test and copied-current gates. Speech, meaningful vision, movement,
 learning and autonomy remain separate failures regardless of this result.
+
+### Q-C-005 — bounded parallel contact-pump preparation
+
+Production baseline is task1446, commit `03638710`, immutable image
+`sha256:7643c979...2e298`. Q-S-013/Q-S-014 remain closed: this candidate does
+not restore any removed neighbour sweep, repeated lineage scan, endpoint
+bitmap, or population-width schedule update. Q-S-069 isolates approximately
+155 ms of copied-current contact preparation before the unchanged sparse
+carrier solve.
+
+Frozen correction law: `selected_cohort_indices` is already the exact sorted
+set of cohorts reached by this interval. Each cohort's
+`prepare_reached_cohort_membrane_pumps` call is immutable and independent; the
+existing code already executes those calls through Rayon and later applies the
+results serially in canonical cohort order. Replace one Rayon job per selected
+cohort with at most one contiguous index chunk per existing worker, retain the
+same per-cohort function and result tuple, then flatten the chunk results in
+the same original index order before the unchanged apply boundary. No pump,
+nutrition share, membrane state, contact, neuron, DSF field, error, or commit
+order changes.
+
+Authorized files are
+`native/guala_core/src/resident_cognitive_formation.rs`, its exact focused test
+only if required, and this ledger. Acceptance is clean source review, existing
+contact/pump physical proof, exact copied-current causal/sealed-body equality,
+material timing improvement, immutable deployment, and one live cadence and
+resource check. It is not a speech, vision, movement, learning or autonomy
+claim.
+
+Outcome: Q-S-072 preserves the exact physical/equality proof, but Q-F-085
+rejects Q-C-005 as a performance correction. Its production source change was
+removed before commit or deployment. Do not repeat it.
