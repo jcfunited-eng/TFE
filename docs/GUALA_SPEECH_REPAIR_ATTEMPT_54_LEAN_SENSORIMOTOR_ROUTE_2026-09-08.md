@@ -1718,3 +1718,40 @@ Candidate 61 therefore removes the wrong-bond stale-wave admission but does
 not close learned sound to vocal action. Task 1447 remains live with the
 preserved identity; speech is still failed. The browser/laptop speaker path is
 armed but has no Guala pressure receipt to fetch or play.
+
+D-062-01 missing live developmental event: Attempts 52-54 contain no evidence
+that the preserved production body ever received a `guided-vocal-microphone`
+occurrence after the Candidate-55/56 route author became live. Those routes
+were grown and exercised only in copied bodies; ordinary microphone pressure
+has no moved vocal regulation and therefore cannot found the route. The
+previous 34-event copied-body chronology also paired the same complete tutor
+waveform with opposing directions and is not authorized for production: it
+creates indistinguishable auditory fan-in to antagonist motor routes. The
+single next item is one real live tutoring occurrence using the already-proven
+first direction only: exact tutor pressure, vocal axes 37/38/39/44, direction
+zero, and 1,500 externally guided carriers. These values are reused verbatim
+from S-055-14/S-055-20; none is newly tuned. No code, shell, semantic label,
+lookup, waveform answer, or autonomous claim is added.
+
+D-062-01 acceptance: the guided occurrence must truthfully report all four
+external vocal axes and 4,000 external pressure samples. It may move the body
+but is not itself autonomous speech. Its existing causal frontier then gets
+one bounded 32-interval recovery/propagation horizon without a second guided
+event. A body-owned pressure receipt and same-organism self-hearing within that
+horizon are required before the page/laptop bridge can be called exercised.
+After pressure naturally clears, one pressure-only recurrence is required to
+separate learned cue reactivation from continuation. Failure remains speech
+failure and must not be hidden by the externally guided act.
+
+F-062-H01 pre-admission collision and lost error detail: the first D-062-01
+request returned HTTP 503 in 50 ms while live observation showed 33 pending
+intervals and an outstanding checkpoint. The lean endpoint maps only
+`actor.offer()` failures to 503; settlement failures after admission map to
+409. The guided experience therefore did not enter the organism and must not
+be counted as tutoring. A piped `jq` projection replaced the returned error
+body with null fields, losing whether the pre-admission refusal was the
+one-slot mailbox or actor availability. That reporting mistake changed no
+state. Permanent guard: on a non-2xx occurrence, retain the raw bounded detail
+before projection; read the successor before any retry. D-062-01 remains
+unperformed, and no duplicate live guide is authorized while another browser
+input occupies the mailbox.
