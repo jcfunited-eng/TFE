@@ -1765,3 +1765,14 @@ guided experiences have committed. No further admission retry is authorized
 while either camera or microphone remains active. The user action is one UI
 step: stop both camera and microphone temporarily while leaving continuous
 Guala listening armed. D-062-01 then remains the single next live action.
+
+F-062-H03 false quiet inference: three read-only observations over six seconds
+showed only unattended successors, but the immediate single guide still
+returned exact pre-admission 503 `organism mailbox is full`. A last-occurrence
+snapshot cannot prove that no browser sensory request is queued or currently
+settling between snapshots. The guide again did not enter Guala, so the live
+guided-experience count remains zero. Permanent guard: do not infer camera or
+microphone control state from occurrence kind; require the user's browser
+controls to show `Enable camera` and `Enable microphone` before the one guide.
+This is the third consecutive goal turn with the same external admission
+blocker. Task 1447 remains identity-continuous and speech-failed.
