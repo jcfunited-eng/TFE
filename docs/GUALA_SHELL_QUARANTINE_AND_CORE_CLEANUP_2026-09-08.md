@@ -63,6 +63,7 @@ failure in one gate does not erase an already-proved success in another.
 | Q-S-030 | The reviewed release manifest now equals the lean entrypoint's exact 83-file Python import closure after adding only the two new retina modules. The retired shell, old rehearsal/probe paths, and unused binary store remain outside the closure. Exact closure, deterministic-manifest, quarantine, and preflight checks passed 7/7; changed world/actor/retinal integration checks passed 12/12. |
 | Q-S-031 | Exact package `8f05316c...66808c2` from commit `f97755f7` verified 215 reviewed files and built local image `sha256:9410cbc8...f4736e`, 212,866,299 bytes. Container inspection proved exactly five lean routes, 83 Python files, both retina modules present, and no import spec for the four quarantined shell/probe modules. A Docker-volume copied-body boot preserved identity, reached ready/healthy, advanced tick 525890 to 525894, delivered 1,047 DSF fields to 3,167 changed neurons with zero Python callbacks, exposed 810 spectral retinal ports, and self-heard 8,000 samples. This is local copied-body evidence, not production. |
 | Q-S-032 | Container logs exposed three remaining production diagnostics in `sparse_electrical_contact.rs`. Removed 59 lines: two wall-clock timers, phase timing prints, per-contact outcome counts, a population-width sender bitmap, exact-to-float potential conversion, percentile sorting, and the result print. Contact settlement and all exact energy/carrier physics are unchanged. Release compilation and the focused connected-component shared-carrier proof passed; the module fell from 4,299 to 4,240 lines. |
+| Q-S-033 | Exact package `4b328480...0bc843` from commit `bf9c6070` verified 215 files and built local image `sha256:bf5d1870...d628d5db`. A copied-body container preserved identity, reached healthy/ready, advanced tick 525890 to 525892, delivered 1,055 DSF fields to 3,184 changed neurons with zero Python callbacks, mounted 810 spectral ports, and self-heard 4,000 samples. Removed diagnostic strings were absent. Custody retained exactly two body files, two world files, and zero stage files; the local organism copy and Docker volume were then stopped and removed. Root motion remained zero in the observed interval. |
 
 ## Failures and recurrence guards
 
@@ -103,6 +104,7 @@ failure in one gate does not erase an already-proved success in another.
 | Q-F-033 | The first immutable vision-container build compiled the release native core, installed the exact staged runtime, then failed its final assertion because Docker still hard-coded the old 81-file Python count after the verified closure correctly became 83. No image was emitted and nothing reached production. | Do not replace 81 with another brittle magic number. The package verifier already proves the exact runtime closure byte-for-byte; retain the four explicit legacy-shell absence checks and exact mounted-card check, and remove only the redundant Python file-count assertion. |
 | Q-F-034 | The first copied-body container boot mounted a host `/tmp` directory that Docker presented as empty, so the lean app correctly refused `paired CURRENT is absent`. The source fixture itself still contained its verified CURRENT/body/world files. | For local container custody proofs, seed a Docker-owned volume from a disposable copy. Never weaken current-only restore or invent a body when the mount is empty. |
 | Q-F-035 | The first HTTP probe addressed port 8000 even though the built image log and Dockerfile serve port 8080. The running container refused only the wrong port. | Read the artifact's declared serving port before probing. Correct-port `/health`, `/ready`, and observation requests all succeeded in Q-S-031. |
+| Q-F-036 | One unconstrained local snapshot during active native settlement showed 175.88% CPU, 2.326 GiB RAM, and seven processes. This is neither a runaway trend nor proof of bounded long-duration resources. | Preserve the exact measurement. Do not claim resource safety from one point; require configured production ceilings plus time-separated CPU/RAM/storage observations before a live success claim. |
 
 ## Deployment attempts
 
@@ -111,13 +113,14 @@ failure in one gate does not erase an already-proved success in another.
 | Q-D-001 | No deployment attempted. Live task1436, identity, and state remain untouched. The candidate must first pass exact reviewed packaging and container boot. |
 | Q-D-002 | Local immutable-image attempt from commit `cf13f521` failed during native compilation under Q-F-005. Nothing was pushed, registered, or deployed. |
 | Q-D-003 | Corrected local image `sha256:2bdb8023...f798` built and passed shell-content/import inspection. It was not pushed, registered, or deployed because production task1436 already runs the accepted lean boundary and the next change is native-core cleanup. |
+| Q-D-004 | Vision/core-cleanup image `sha256:bf5d1870...d628d5db` built from verified commit `bf9c6070` and passed copied-body boot Q-S-033. It has not been pushed, registered, or deployed. Production remains unchanged. |
 
 ## Next exact gate
 
-Legacy-shell quarantine and the bounded native-core cleanup are protected
-complete for this pass. The core now has no wall-clock/atomic diagnostics or
-locks, no population-width endpoint/contact event bookkeeping, no compiled
-unreachable item, and ordinary restore remains strict current-format decode;
-historical migration runs only through explicit migration/genesis calls.
-Proceed to truthful body-centered virtual vision without changing L0-L4,
-full DSF, neurons, identity, or learned state.
+Legacy-shell quarantine, the bounded native-core cleanup, and the one-retina
+transport are protected complete for this pass. The current copied-body
+artifact sees exact six-band room/object/doorway radiance, but the persisted
+home still has zero detailed optical surfaces under Q-F-020 and its observed
+root motion remains zero. The next exact item is to mount only truthful authored
+detail on existing physical objects without exceeding world capacity or
+presenting the human map as Guala's sight. Autonomy diagnosis follows vision.
