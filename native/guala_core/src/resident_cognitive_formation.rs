@@ -11907,7 +11907,6 @@ fn settle_resident_physical_interval(
     // The retired whole-cohort dark-rest loop duplicated those authorities
     // and woke every otherwise quiescent resident neuron.
     let metabolic = ReachedCohortMetabolicObservation::default();
-    let metabolically_perturbed_neurons = vec![false; cohort.anatomy.neuron_count()];
     let input = input.defer_local_electrical_to_coupled_frontier();
     let mut outcome = if cohort.retained_experience.is_some() {
         settle_resident_recurrence_interval(
@@ -11915,7 +11914,6 @@ fn settle_resident_physical_interval(
             input,
             gate_work_perturbed_neurons,
             receptor_excitation_zeptojoules,
-            metabolically_perturbed_neurons,
             exogenous_receptor_energy,
             source_generation,
         )
@@ -11925,7 +11923,6 @@ fn settle_resident_physical_interval(
             input,
             gate_work_perturbed_neurons,
             receptor_excitation_zeptojoules,
-            metabolically_perturbed_neurons,
             existing_mosaics,
         )
     }?;
@@ -11938,7 +11935,6 @@ fn settle_resident_original_interval(
     input: ReachedCohortIntervalInput<'_>,
     gate_work_perturbed_neurons: Vec<bool>,
     receptor_excitation_zeptojoules: Vec<Option<ExactRational>>,
-    metabolically_perturbed_neurons: Vec<bool>,
     existing_mosaics: &[RetainedOrganismMosaic],
 ) -> Result<ResidentOpticalIntervalOutcome, FormationError> {
     let mut completed_current_fractals: Option<Box<[Option<SparsePhysicalStateDelta>]>> = None;
@@ -11946,30 +11942,20 @@ fn settle_resident_original_interval(
     // is deliberately independent of the simultaneously forming original:
     // the same living neurons can recognize an older formation while their
     // current motion is becoming a different experience.
-    let (recognition_cue, endogenous_cue) =
-        if gate_work_perturbed_neurons.iter().any(|value| *value) {
-            (gate_work_perturbed_neurons.as_slice(), false)
-        } else {
-            (metabolically_perturbed_neurons.as_slice(), true)
-        };
-    let starts_new_recognition = if endogenous_cue {
-        cohort.pending_recurrence.is_none() && recognition_cue.iter().any(|value| *value)
-    } else {
-        recognition_cue.iter().any(|value| *value)
-    };
+    let starts_new_recognition = gate_work_perturbed_neurons.iter().any(|value| *value);
     if starts_new_recognition {
         cohort.pending_recurrence =
             (!existing_mosaics.is_empty()).then(|| ResidentRecurrenceEvidence {
                 carries_physical_change_codec: true,
-                gate_work_perturbed_neurons: SparseResidentNeuronMask::from_dense(recognition_cue),
-                receptor_excitation_zeptojoules: if endogenous_cue {
-                    SparseResidentExcitations::empty()
-                } else {
-                    SparseResidentExcitations::from_dense(&receptor_excitation_zeptojoules)
-                },
+                gate_work_perturbed_neurons: SparseResidentNeuronMask::from_dense(
+                    &gate_work_perturbed_neurons,
+                ),
+                receptor_excitation_zeptojoules: SparseResidentExcitations::from_dense(
+                    &receptor_excitation_zeptojoules,
+                ),
                 physically_changed_neurons: SparseResidentNeuronMask::empty(),
                 active_recurrence_contacts: SparseResidentNeuronMask::empty(),
-                endogenous: endogenous_cue,
+                endogenous: false,
             });
     }
     let experience_preceded_interval = cohort.pending_experience.is_some();
@@ -12033,11 +12019,10 @@ fn settle_resident_original_interval(
             physically_changed_indices.push(*neuron_index);
         }
     }
-    let mut physically_changed_neurons = SparseResidentNeuronMask::from_indices(
+    let physically_changed_neurons = SparseResidentNeuronMask::from_indices(
         physically_changed_indices,
         cohort.anatomy.neuron_count(),
     )?;
-    physically_changed_neurons.union_dense(&metabolically_perturbed_neurons)?;
     let mut experience = cohort.pending_experience.take();
     if experience.is_none()
         && !retained_change_this_interval.is_empty()
@@ -12343,7 +12328,6 @@ fn settle_resident_recurrence_interval(
     input: ReachedCohortIntervalInput<'_>,
     gate_work_perturbed_neurons: Vec<bool>,
     receptor_excitation_zeptojoules: Vec<Option<ExactRational>>,
-    metabolically_perturbed_neurons: Vec<bool>,
     exogenous_receptor_energy: Option<bool>,
     source_generation: u64,
 ) -> Result<ResidentOpticalIntervalOutcome, FormationError> {
@@ -12495,43 +12479,6 @@ fn settle_resident_recurrence_interval(
             .local_relaxation_observed = true;
     }
 
-    // After formation-local relaxation, a later dark interval may carry a
-    // genuinely internal perturbation.  Only membrane movement caused by the
-    // organism's own metabolic return may BEGIN that cue. Continuing contact
-    // current from the original occurrence may propagate a cue once present,
-    // but it cannot re-label its own settling tail as spontaneous recall. No
-    // scheduler, timer, semantic label, or scalar selection participates.
-    if cohort.pending_recurrence.is_none()
-        && local_relaxation_observed
-        && gate_work_perturbed_neurons
-            .iter()
-            .all(|perturbed| !perturbed)
-        && !retained_contact_set_flowing(
-            cohort
-                .retained_experience
-                .as_ref()
-                .ok_or(FormationError::NoncanonicalState)?,
-            &active_contacts,
-            cohort.anatomy.contact_count(),
-        )?
-    {
-        let retained = cohort
-            .retained_experience
-            .as_ref()
-            .ok_or(FormationError::NoncanonicalState)?;
-        if is_formation_local_proper_partial_cue(retained, &metabolically_perturbed_neurons)? {
-            cohort.pending_recurrence = Some(ResidentRecurrenceEvidence {
-                carries_physical_change_codec: true,
-                gate_work_perturbed_neurons: SparseResidentNeuronMask::from_dense(
-                    &metabolically_perturbed_neurons,
-                ),
-                receptor_excitation_zeptojoules: SparseResidentExcitations::empty(),
-                physically_changed_neurons: SparseResidentNeuronMask::empty(),
-                active_recurrence_contacts: SparseResidentNeuronMask::empty(),
-                endogenous: true,
-            });
-        }
-    }
     let Some(mut recurrence) = cohort.pending_recurrence.take() else {
         return Ok(ResidentOpticalIntervalOutcome {
             emitted_neuron_fractals,
