@@ -19775,7 +19775,7 @@ fn settle_internal_contact_interval(
                     } else {
                         founding_flat
                     };
-                    crosses_new_frontier_bond(causal_seed, motor_bond)
+                    crosses_new_frontier_bond(causal_seed, compact_bonds[position])
                         .then_some((position, founding_flat))
                 })
                 .collect::<Vec<_>>();

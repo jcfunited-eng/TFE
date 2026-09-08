@@ -1559,3 +1559,112 @@ held, fetches the exact receipt body, wraps it as 16 kHz mono PCM, and plays it
 only after Joe presses the button. Camera, microphone, text-light/text-voice,
 media, and ABC/123 card controls remain on that page. No interface or shell code
 was changed during the speech cutover.
+
+S-061-01 current live boundary confirmation: with Joe's production page open
+and its continuous listening control enabled, public observation at tick 539747
+reported the preserved identity, `available=true`, one sensory occurrence with
+4,000 externally heard samples, zero self-heard samples, and no held pressure
+receipt. This proves the microphone-to-organism path is currently delivering
+sound and the browser speaker bridge is armed, while the organism still emits
+no new pressure for that bridge to play. It is not speech success.
+
+F-061-H01 repeated nonexistent-path inspection: a read-only inspection assumed
+the already-known probe lived at
+`native/guala_core/src/bin/reservoir_probe.rs`; the repository's resolved path
+is `native/guala_core/src/resident_cognitive_formation/reservoir_probe.rs`.
+`rg` and `sed` alone failed, and no source, organism, build, or AWS state
+changed. Permanent guard: resolve the exact path with `rg --files` before every
+file read; do not infer a conventional Rust directory from a filename.
+
+F-061-H02 tool/schema preflight failures: a read-only command assumed the
+uninstalled `file` executable existed, so its chained source read did not run.
+A separate `jq` query asked for object keys at an array boundary and emitted
+12,877 array indices instead of the intended compact projection. No source,
+body, build, deployment, or AWS state changed. Permanent guard: run
+`command -v` for every non-shell executable and inspect/type-check the exact
+JSON boundary before projecting it.
+
+F-061-H03 output-bound failure: an unbounded `rg` included a very large
+single-line probe artifact and produced excessive diagnostic output. It did
+not change source, body, production, or AWS state. Permanent guard: constrain
+searches to named ledger/source files and project only the exact fields needed;
+never search generated probe output as an undelimited text corpus.
+
+S-061-02 exact learned-route topology and preserved-cause finding: the copied
+tick-525927 anatomy shows that each Candidate-55/56 vocal L7 association has a
+large multisensory fan-in, and the same 32 sound-L6 integrations reach nearly
+all of those otherwise distinct associations. The persisted active frontier
+already retains the exact incoming physical bond and whole-carrier transfer,
+so no new owner, semantic cue, lookup, modality label, or stored association is
+needed. This is source/anatomy evidence, not speech success.
+
+D-061-01 single active defect and impact map: in
+`settle_internal_contact_interval`, learned L7-to-L11 source work is admitted
+by `crosses_new_frontier_bond(causal_seed, motor_bond)`. `motor_bond` is the
+different downstream L11-to-L12 bond; every other frontier advance supplies
+the bond of the transition actually being evaluated. Consequently a wave that
+arrived across the same learned L7-to-L11 bond is not recognized as the same
+incoming wave and can be re-offered to motor output as stale causal work. The
+bounded correction is to supply `compact_bonds[source_position]`, the existing
+L7-to-L11 source bond. Upstream full seven-field DSF settlement, neurons,
+lineages, contact state, source pressure, and persisted frontier schema remain
+unchanged. Downstream learned-work allocation, motor/breath settlement,
+body-pressure custody, self-hearing, FFI observation, and browser playback
+remain the existing consumers. Work stays on the already reached sparse
+frontier and one erroneous stale offer is removed rather than adding state or
+computation. Rejected L9-to-L11 replacement, legacy vocal authors, Python
+shell cognition, semantic scripting, broad A/B rejection, and UI changes are
+explicit non-goals.
+
+Acceptance boundary for D-061-01: the focused frontier law must still refuse a
+non-fresh return across its actual incoming bond and admit a genuinely fresh
+seed; the exact vocal-route fixture must preserve one idempotent local route;
+then the authenticated mature copied body must show a new tutor-pressure cause
+crossing the learned route and reaching motor, breath, pressure, and
+self-hearing without an inherited pending act. Any failure at that first
+causal boundary rejects the candidate without reopening downstream mechanics
+already proved by S-060-01/S-060-02. Live laptop playback remains unavailable
+until production holds a new body-owned pressure receipt for the browser.
+
+F-061-H04 missing candidate-fingerprint helper: the active Guala worktree has
+no `scripts/` directory, so the skill-named
+`scripts/fingerprint-guala-candidate.py` cannot freeze this candidate. The
+inspection changed nothing, and no build or production mutation had begun.
+Permanent guard: preflight `test -f` before invoking this helper. For this
+bounded one-line candidate, the source-only binary-diff SHA-256 at freeze is
+`6a802b4f48236589ada47202853742dd0eff36b04f12094babe9773127ea608a`,
+the complete edited source-file SHA-256 is
+`2c7f8d013381853748b430e8abd858a4c73e5c03d239039dcdf8d4099c304510`,
+and predecessor HEAD is `34bb052987ed95342cbbde84b10ae4f0316e5615`; verify these values after source
+review and before compilation. This records the unavailable repository helper
+rather than pretending it ran.
+
+S-061-03 frozen source-only review: both recorded source fingerprints matched
+after the edit and `git diff --check` passed. The one changed argument now
+matches the same-bond anti-bounce law used by the ordinary frontier-route and
+next-frontier paths. The edit adds no Boolean, threshold, coefficient, state,
+scan, allocation, schema field, owner, lock, Python handoff, or alternate
+author; it removes false authority from an unrelated downstream bond. Review
+classification is localized with no architectural finding. Candidate testing
+is therefore limited to the existing directed-frontier law and exact local
+vocal-route fixture before the one mature copied-body acceptance path.
+
+S-061-04 focused candidate checks: the candidate compiled from the recorded
+source and executed exactly one matching test in each invocation. The directed
+frontier same-bond/fresh-seed law passed (`1 passed`, `612 filtered out`), and
+the exact vocal occurrence route/idempotence fixture passed (`1 passed`, `612
+filtered out`). The release wheel SHA-256 is
+`e5b4b25f572f1810c05398c1479a0f8bb64f1c33766b7f705adf9d30f172ce46`;
+its extracted native extension SHA-256 is
+`96a90e164e3d03825979da9928b88bb71b72eb49e94bd7fd9bc17d98067841a3`.
+These are localized source/build successes, not speech or deployment success.
+
+F-061-H05 stale mature-body fixture: candidate provenance resolved to the new
+wheel, but the cached tick-525927 body at `/tmp/guala-c58-cleared.body` refused
+before any candidate interval with `retired empty or DSF-impression cognitive
+state cannot be restored`. Live task 1446 has advanced through later
+current-format migrations, so this pre-migration cache is not the newest
+authenticated production predecessor required by the gate. No successor was
+created and production was untouched. Permanent guard: authenticate and copy
+the current live body/world pair once; never rerun Candidate 61 against the
+tick-525927 cache or classify its decoder refusal as candidate behavior.
