@@ -7,13 +7,14 @@
         "deploy/guala_release_manifest.json",
         "dsf_ai_service/Dockerfile",
         "dsf_ai_service/buildspec.yml",
+        "dsf_ai_service/lean_runtime_manifest.txt",
         "tools/deploy_dsf_ai.sh",
         "tools/package_guala_release.py",
         "tools/preflight_guala_production.py",
         "tools/run_guala_candidate_rehearsal_task.py"
       ],
       "name": "build_control",
-      "reason": "Single deterministic CodeBuild, immutable image registration, read-only preflight, ECS cutover, and exact package verification authority."
+      "reason": "One reviewed lean build, immutable package verification, read-only preflight, and deployment control. Retired shells are excluded from the runtime image."
     },
     {
       "archive_prefix": "",
@@ -111,13 +112,7 @@
       "archive_prefix": "runtime",
       "files": [
         "dsf_ai_service/__init__.py",
-        "dsf_ai_service/bounded_gutenberg_source.py",
-        "dsf_ai_service/bounded_source_media_store.py",
-        "dsf_ai_service/bounded_video_sensory_source.py",
-        "dsf_ai_service/candidate_release_rehearsal.py",
-        "dsf_ai_service/cold_restore_probe.py",
         "dsf_ai_service/glew_runtime/__init__.py",
-        "dsf_ai_service/glew_runtime/authenticated_task853_organism_migration.py",
         "dsf_ai_service/glew_runtime/certified_backend.py",
         "dsf_ai_service/glew_runtime/closed_experience.py",
         "dsf_ai_service/glew_runtime/commit.py",
@@ -140,7 +135,19 @@
         "dsf_ai_service/glew_runtime/safe_mode.py",
         "dsf_ai_service/glew_runtime/sensory_full_field_boundary.py",
         "dsf_ai_service/glew_runtime/structural_port_basin.py",
-        "dsf_ai_service/native_production_app.py",
+        "dsf_ai_service/guala_cochlea.py",
+        "dsf_ai_service/guala_home_world.py",
+        "dsf_ai_service/guala_motor_world.py",
+        "dsf_ai_service/guala_physical_sensorium.py",
+        "dsf_ai_service/guala_receptor_anatomy.py",
+        "dsf_ai_service/guala_world_sensorium.py",
+        "dsf_ai_service/lean_actor.py",
+        "dsf_ai_service/lean_checkpoint.py",
+        "dsf_ai_service/lean_embodiment_observation.py",
+        "dsf_ai_service/lean_physical_loop.py",
+        "dsf_ai_service/lean_production_app.py",
+        "dsf_ai_service/lean_sensory_occurrence.py",
+        "dsf_ai_service/paired_current_store.py",
         "dsf_ai_service/substrate/__init__.py",
         "dsf_ai_service/substrate/approved_curriculum_physical_surfaces.py",
         "dsf_ai_service/substrate/auditory_event_boundary.py",
@@ -164,7 +171,6 @@
         "dsf_ai_service/substrate/exact_causal_experience.py",
         "dsf_ai_service/substrate/exact_lattice_rotation.py",
         "dsf_ai_service/substrate/native_evidence_custody.py",
-        "dsf_ai_service/substrate/native_organism_binary_store.py",
         "dsf_ai_service/substrate/native_resident_resource_admission.py",
         "dsf_ai_service/substrate/physical_optical_surface_asset.py",
         "dsf_ai_service/substrate/senses/__init__.py",
@@ -188,21 +194,7 @@
         "uf_core/layer4.py"
       ],
       "name": "runtime_python",
-      "reason": "Exact statically reachable internal Python import closure rooted at the production app, isolated cold-restore probe, and raw native-organism binary persistence boundary."
-    },
-    {
-      "archive_prefix": "runtime",
-      "files": [
-        "dsf_ai_service/static/Guala_Talking_Bust_No_Bow_Transparent.png",
-        "dsf_ai_service/static/guala-brain-foundation-v1.png",
-        "dsf_ai_service/static/gualaloom-rich-room-v3.png",
-        "dsf_ai_service/static/gualaloom.html",
-        "dsf_ai_service/static/legal.html",
-        "dsf_ai_service/static/loomscan.html",
-        "dsf_ai_service/static/style.css"
-      ],
-      "name": "static_publication",
-      "reason": "The reviewed Guala browser, functional brain image, and stylesheet artifacts served by the runtime and published to the static origin."
+      "reason": "Exact import closure of the sole lean Guala HTTP and physical-loop entrypoint."
     },
     {
       "archive_prefix": "runtime",
@@ -233,7 +225,6 @@
         "guala_curriculum/cards/Z-is-for-Zebra.png",
         "guala_curriculum/cards/alphabet-a-apple-v1.png",
         "guala_curriculum/cards/alphabet-b-bee-v1.png",
-        "guala_curriculum/cards/number-00-zero-v1.png",
         "guala_curriculum/cards/number-01-one-v1.png",
         "guala_curriculum/cards/number-02-two-v1.png",
         "guala_curriculum/cards/number-03-three-v1.png",
@@ -243,91 +234,10 @@
         "guala_curriculum/cards/number-07-seven-v1.png",
         "guala_curriculum/cards/number-08-eight-v1.png",
         "guala_curriculum/cards/number-09-nine-v1.png",
-        "guala_curriculum/cards/number-10-ten-v1.png",
-        "guala_curriculum/cards/word-apple-v1.png",
-        "guala_curriculum/cards/word-ball-v1.png",
-        "guala_curriculum/cards/word-banana-v1.png",
-        "guala_curriculum/cards/word-bed-v1.png",
-        "guala_curriculum/cards/word-bird-v1.png",
-        "guala_curriculum/cards/word-book-v1.png",
-        "guala_curriculum/cards/word-car-v1.png",
-        "guala_curriculum/cards/word-cat-v1.png",
-        "guala_curriculum/cards/word-chair-v1.png",
-        "guala_curriculum/cards/word-cup-v1.png",
-        "guala_curriculum/cards/word-dada-v1.png",
-        "guala_curriculum/cards/word-dog-v1.png",
-        "guala_curriculum/cards/word-door-v1.png",
-        "guala_curriculum/cards/word-eye-v1.png",
-        "guala_curriculum/cards/word-fish-v1.png",
-        "guala_curriculum/cards/word-hand-v1.png",
-        "guala_curriculum/cards/word-hat-v1.png",
-        "guala_curriculum/cards/word-mama-v1.png",
-        "guala_curriculum/cards/word-milk-v1.png",
-        "guala_curriculum/cards/word-moon-v1.png",
-        "guala_curriculum/cards/word-shoe-v1.png",
-        "guala_curriculum/cards/word-sun-v1.png",
-        "guala_curriculum/cards/word-tree-v1.png",
-        "guala_curriculum/cards/word-water-v1.png"
+        "guala_curriculum/cards/number-10-ten-v1.png"
       ],
       "name": "physical_curriculum_surfaces",
-      "reason": "The 61 reviewed alphabet, number, and first-word teaching-card rasters are packaged for bounded physical curriculum presentation; no labels or semantic metadata enter the receptor boundary."
-    },
-    {
-      "archive_prefix": "runtime",
-      "files": [
-        "guala_curriculum/audio/a-apple-tutor-v1.wav",
-        "guala_curriculum/audio/b-bee-tutor-v1.wav",
-        "guala_curriculum/audio/c-cat-tutor-v1.wav",
-        "guala_curriculum/audio/d-dolphin-tutor-v1.wav",
-        "guala_curriculum/audio/e-elephant-tutor-v1.wav",
-        "guala_curriculum/audio/f-fox-tutor-v1.wav",
-        "guala_curriculum/audio/g-giraffe-tutor-v1.wav",
-        "guala_curriculum/audio/h-house-tutor-v1.wav",
-        "guala_curriculum/audio/i-ice-cream-tutor-v1.wav",
-        "guala_curriculum/audio/j-jellyfish-tutor-v1.wav",
-        "guala_curriculum/audio/k-kite-tutor-v1.wav",
-        "guala_curriculum/audio/l-lion-tutor-v1.wav",
-        "guala_curriculum/audio/m-mushroom-tutor-v1.wav",
-        "guala_curriculum/audio/n-nest-tutor-v1.wav",
-        "guala_curriculum/audio/number-00-zero-tutor-v1.wav",
-        "guala_curriculum/audio/number-01-one-tutor-v1.wav",
-        "guala_curriculum/audio/number-02-two-tutor-v1.wav",
-        "guala_curriculum/audio/number-03-three-tutor-v1.wav",
-        "guala_curriculum/audio/number-04-four-tutor-v1.wav",
-        "guala_curriculum/audio/number-05-five-tutor-v1.wav",
-        "guala_curriculum/audio/number-06-six-tutor-v1.wav",
-        "guala_curriculum/audio/number-07-seven-tutor-v1.wav",
-        "guala_curriculum/audio/number-08-eight-tutor-v1.wav",
-        "guala_curriculum/audio/number-09-nine-tutor-v1.wav",
-        "guala_curriculum/audio/number-10-ten-tutor-v1.wav",
-        "guala_curriculum/audio/o-owl-tutor-v1.wav",
-        "guala_curriculum/audio/p-penguin-tutor-v1.wav",
-        "guala_curriculum/audio/q-queen-tutor-v1.wav",
-        "guala_curriculum/audio/r-rabbit-tutor-v1.wav",
-        "guala_curriculum/audio/s-snail-tutor-v1.wav",
-        "guala_curriculum/audio/t-turtle-tutor-v1.wav",
-        "guala_curriculum/audio/u-umbrella-tutor-v1.wav",
-        "guala_curriculum/audio/v-violin-tutor-v1.wav",
-        "guala_curriculum/audio/w-whale-tutor-v1.wav",
-        "guala_curriculum/audio/x-xylophone-tutor-v1.wav",
-        "guala_curriculum/audio/y-yak-tutor-v1.wav",
-        "guala_curriculum/audio/z-zebra-tutor-v1.wav",
-        "guala_curriculum/card_experience_manifest-v1.json"
-      ],
-      "name": "candidate_rehearsal_pressure",
-      "reason": "The exact 61-card external teaching manifest and 37 reviewed tutor-pressure recordings are served as bounded physical curriculum transport; no transcript, label, meaning, recognition, or PCM retention is inserted into cognition."
-    },
-    {
-      "archive_prefix": "runtime",
-      "files": [
-        "guala_curriculum/songs/ATTRIBUTION.md",
-        "guala_curriculum/songs/alphabet-song-cc-by-sa-3.0-v1.wav",
-        "guala_curriculum/songs/count-down-ten-to-one-v1.wav",
-        "guala_curriculum/songs/count-up-one-to-ten-v1.wav",
-        "guala_curriculum/songs/song_experience_manifest-v1.json"
-      ],
-      "name": "physical_curriculum_songs",
-      "reason": "Three reviewed rights-clear tutor-pressure songs and their exact external visual timing contract; no transcript, label, meaning, recognition, or identity authority enters organism state."
+      "reason": "Exact rights-cleared optical lesson surfaces used by the lean runtime; no labels or meanings are embedded."
     }
   ],
   "forbidden_source_patterns": [
@@ -353,10 +263,7 @@
   ],
   "release_name": "guala-production",
   "runtime_entrypoints": [
-    "dsf_ai_service/native_production_app.py",
-    "dsf_ai_service/candidate_release_rehearsal.py",
-    "dsf_ai_service/cold_restore_probe.py",
-    "dsf_ai_service/substrate/native_organism_binary_store.py"
+    "dsf_ai_service/lean_production_app.py"
   ],
   "schema": "guala.reviewed_release_manifest.v1"
 }

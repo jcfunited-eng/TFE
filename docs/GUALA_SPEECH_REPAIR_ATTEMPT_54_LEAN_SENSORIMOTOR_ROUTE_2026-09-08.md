@@ -1522,3 +1522,40 @@ required the candidate in production. Read-only preflight resolved cluster
 task `46c11de3d02d43eb9449f17f7de8ccf1`, and predecessor image digest
 `sha256:cb14e7dc3992ccbb1f3c56d441319da75699a5397068aff9343d5e308943b20c`.
 Production remains speech-failed at this boundary.
+
+D-060-02 exact lean production cutover: commit
+`f337a090a0940868c5a16cdf830361e31bbb7d09` was built through
+`dsf_ai_service/Dockerfile.lean`, whose allowlist excludes both
+`dsf_ai_service/app.py` and `dsf_ai_service/native_production_app.py`. The
+published ECR image is digest-pinned at
+`sha256:916db7afc285fb119038aa451804494253053f3d688a6599f0401a1fcd496b58`.
+Task definition 1436 was cloned from 1435 with an asserted single-field
+difference: only the container image changed. The old sole writer
+`46c11de3d02d43eb9449f17f7de8ccf1` was reduced to zero and reached stopped
+state before task `a93ff06f926e4affadd3fc3d1d9a09bf` was started. AWS reported one running,
+zero pending, zero failed tasks and completed the deployment at
+`2026-09-08T09:25:57.969Z`.
+
+S-060-02 live production body-owned sound and self-hearing: the pre-cutover
+public observation at live tick 529860 / persisted tick 529857 held no pressure
+and reported zero self-heard samples. After task 1436 restored that same live
+identity, an unattended production transition at tick 529899 produced one body
+consequence, body-owned pressure receipt
+`c77c024c5b9aaa69ca3895caadfff4eb4715ff15fbdb2f2e1545643e72fe40d4`, and
+8,000 self-heard samples sourced at tick 529898. A later steady-state public
+observation at live tick 529906 / persisted tick 529904 reported no checkpoint,
+cleanup, or durability error and another 4,000 self-heard samples sourced at
+tick 529905. Its held 8,000-byte, 4,000-sample signed-16 little-endian pressure
+body exactly matched receipt
+`9da81583a42ebe08c8585f29edd1392d4ac441c60130bc31464d60418f17f1d5` at
+16,000 Hz. This is live proof that the production organism now performs the
+body-action -> breath/tract pressure -> self-hearing chain without a browser
+command. It is not evidence of a learned word, tutor-triggered response, or
+meaningful conversation, and those claims remain unmade.
+
+S-060-03 production access continuity: the public Guala page already polls the
+same live observation route, enables `Hear Guala` when a pressure receipt is
+held, fetches the exact receipt body, wraps it as 16 kHz mono PCM, and plays it
+only after Joe presses the button. Camera, microphone, text-light/text-voice,
+media, and ABC/123 card controls remain on that page. No interface or shell code
+was changed during the speech cutover.
