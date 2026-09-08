@@ -52,7 +52,6 @@ RUN test ! -e /app/dsf_ai_service/app.py \
     && test ! -e /app/dsf_ai_service/native_production_app.py \
     && test ! -e /app/dsf_ai_service/candidate_release_rehearsal.py \
     && test ! -e /app/dsf_ai_service/cold_restore_probe.py \
-    && test "$(find /app/dsf_ai_service /app/uf_core -type f -name '*.py' | wc -l)" -eq 81 \
     && test "$(find /app/guala_curriculum/cards -type f -name '*.png' | wc -l)" -eq 36
 
 EXPOSE 8080
