@@ -427,12 +427,14 @@ CANDIDATE_RUNNING_TASKS=$(running_tasks)
 [ "$(printf '%s\n' "${CANDIDATE_RUNNING_TASKS}" | wc -w)" -eq 1 ] \
     || fail "candidate running-task identity is not singular"
 CANDIDATE_RUNNING_TASK="${CANDIDATE_RUNNING_TASKS}"
-CANDIDATE_TASK_JSON=$(aws ecs describe-tasks \
-    --region "${AWS_REGION}" --cluster "${ECS_CLUSTER}" \
-    --tasks "${CANDIDATE_RUNNING_TASK}" --query 'tasks[0]' --output json)
-printf '%s' "${CANDIDATE_TASK_JSON}" \
-    | EXPECTED_TASK="${CANDIDATE_TASK_DEFINITION}" \
-      EXPECTED_DIGEST="${IMAGE_DIGEST}" python3 -c '
+TASK_HEALTH_DEADLINE=$(($(date +%s) + SERVICE_WAIT_SECONDS))
+while true; do
+    CANDIDATE_TASK_JSON=$(aws ecs describe-tasks \
+        --region "${AWS_REGION}" --cluster "${ECS_CLUSTER}" \
+        --tasks "${CANDIDATE_RUNNING_TASK}" --query 'tasks[0]' --output json)
+    TASK_HEALTH_STATE=$(printf '%s' "${CANDIDATE_TASK_JSON}" \
+        | EXPECTED_TASK="${CANDIDATE_TASK_DEFINITION}" \
+          EXPECTED_DIGEST="${IMAGE_DIGEST}" python3 -c '
 import json, os, sys
 task = json.load(sys.stdin)
 containers = task.get("containers", [])
@@ -440,9 +442,15 @@ if task.get("taskDefinitionArn") != os.environ["EXPECTED_TASK"]:
     raise SystemExit("running task definition differs from candidate")
 if len(containers) != 1 or containers[0].get("imageDigest") != os.environ["EXPECTED_DIGEST"]:
     raise SystemExit("running image digest differs from built artifact")
-if task.get("lastStatus") != "RUNNING" or task.get("healthStatus") != "HEALTHY":
-    raise SystemExit("candidate task is not healthy")
-'
+if task.get("lastStatus") != "RUNNING":
+    raise SystemExit("candidate task stopped before health propagation")
+print("healthy" if task.get("healthStatus") == "HEALTHY" else "waiting")
+')
+    [ "${TASK_HEALTH_STATE}" = "healthy" ] && break
+    [ "$(date +%s)" -lt "${TASK_HEALTH_DEADLINE}" ] \
+        || fail "candidate task health did not become ready"
+    sleep 3
+done
 CANDIDATE_TICK=$(wait_for_lean_http)
 CUTOVER_ARMED=0
 printf '      identity preserved; native tick %s -> %s\n' \
