@@ -6273,3 +6273,33 @@ must not be silently resumed by an agent.
 Closure addendum: the UI ledger's notification record is commit `b72a86da`.
 Completion notification was checked at `2026-09-07T20:37:43Z`:
 `status=slack_sent channel=#general`.
+
+## 2026-09-08 — Codex: Q-UI-002 retinal observer correction live
+
+The flipping eye-panel defect is closed in production. Active worktree remains
+`/tmp/guala-speech-existing-organ`, branch `sol/speech-existing-organ`.
+Implementation commit is `6aba7b432fb0c044d11fafdbe7dcb138ce88da12`; live
+publication evidence is recorded at ledger commit `ca85bff4` in
+`docs/GUALA_SHELL_QUARANTINE_AND_CORE_CLEANUP_2026-09-08.md`.
+
+The page keeps only one latest native-world achromatic field and one latest
+camera/tutor RGB field in page memory. Joe selects `World light` or
+`Camera / tutor`; later observations update their matching slot but cannot
+switch the selection. The enlarged 220-pixel projection shows the exact 108
+central samples above the exact 27 coarse samples and explicitly discloses that
+screen smoothing adds no receptor evidence. No history, spectral fallback,
+inferred scene, server state, or organism mutation was added.
+
+`s3://dsf-ai-site/gualaloom.html` is 29,759 bytes. CloudFront invalidation
+`I5LRI1HWLJL38O0LNWZGITOUTL` completed, and reviewed/live SHA-256 both equal
+`fdb880280ebf44eaa99efb0c0a9e87d9bf07ebd253ecffeafdd6688ad54c4bee`.
+Focused checks passed 10/10. Disposable and live Chromium proved stable source
+selection with zero final console/network errors. Live observation reported
+`Guala available`, exact identity `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`,
+and advancing tick 539200. ECS was not changed; production remains task1446.
+
+Truth boundary: this fixes the observer, not Guala's underlying 135-site vision.
+Meaningful vision and speech remain failed. Q-F-087 through Q-F-089 preserve
+the harness mistakes and their exact corrections. The next active item resumes
+speech only from the last documented learned-cue-to-vocal-action boundary; do
+not rerun the closed UI proof or earlier speech ladders.
