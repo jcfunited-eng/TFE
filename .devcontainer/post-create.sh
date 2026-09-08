@@ -41,4 +41,6 @@ python3 -c 'import guala_core; print("native Guala core installed")'
     || nohup bash tools/ch3_shadow_loop.sh >/dev/null 2>&1 &
   pgrep -f tools/channel_book_publication_loop.sh >/dev/null 2>&1 \
     || nohup bash tools/channel_book_publication_loop.sh >/dev/null 2>&1 &
+  pgrep -f tools/db_rotation_guard.sh >/dev/null 2>&1 \
+    || nohup bash tools/db_rotation_guard.sh >/dev/null 2>&1 &
 ) || true
