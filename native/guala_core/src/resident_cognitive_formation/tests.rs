@@ -3764,7 +3764,6 @@
         mosaics.push(RetainedOrganismMosaic::newly_admitted(second_recognized));
 
         let one_reassembled_relation = observe_organic_mosaic_relations(
-            &topology,
             &mosaics,
             &[0, 1],
             &[0],
@@ -3791,7 +3790,6 @@
         )
         .unwrap();
         let changed_receipt_same_structure = observe_organic_mosaic_relations(
-            &topology,
             &mosaics,
             &[0, 1],
             &[0],

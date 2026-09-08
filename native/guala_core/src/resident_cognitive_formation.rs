@@ -17,8 +17,8 @@
 
 use crate::articulated_body_joint_source_builder::exact_moved_effector_terminal;
 use crate::auditory_receptor_work::{
-    derive_auditory_receptor_sample_range_work, derive_auditory_receptor_work,
-    quantize_auditory_delivery, AuditoryReceptorAnatomy, AuditoryReceptorWorkError,
+    derive_auditory_receptor_sample_range_work, quantize_auditory_delivery,
+    AuditoryReceptorAnatomy, AuditoryReceptorWorkError,
     COCHLEAR_BAND_PRESSURE_QUANTITY, COCHLEAR_REFERENCE_PRESSURE_UNIT,
 };
 use crate::articulatory_receptor_work::{
@@ -138,8 +138,8 @@ use crate::sparse_electrical_contact::{
     SparseElectricalState, SparseElectricalTransferSettlement,
 };
 use crate::tactile_receptor_work::{
-    derive_tactile_receptor_sample_range_work, derive_tactile_receptor_work,
-    quantize_tactile_delivery, TactileReceptorAnatomy, TactileReceptorWorkError,
+    derive_tactile_receptor_sample_range_work, quantize_tactile_delivery,
+    TactileReceptorAnatomy, TactileReceptorWorkError,
     CONTACT_REFERENCE_OCCUPANCY_UNIT, CONTACT_SITE_OCCUPANCY_QUANTITY,
 };
 use crate::thermal_receptor_work::{
@@ -455,16 +455,6 @@ std::thread_local! {
     static RESIDENT_JOINT_FIELD_EVALUATIONS: std::cell::Cell<usize> = const {
         std::cell::Cell::new(0)
     };
-}
-
-#[cfg(test)]
-pub(crate) fn reset_resident_joint_field_evaluation_count() {
-    RESIDENT_JOINT_FIELD_EVALUATIONS.with(|count| count.set(0));
-}
-
-#[cfg(test)]
-pub(crate) fn resident_joint_field_evaluation_count() -> usize {
-    RESIDENT_JOINT_FIELD_EVALUATIONS.with(std::cell::Cell::get)
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -2286,19 +2276,6 @@ impl DormantLineageSeed {
         Ok(seed)
     }
 
-    fn from_port(
-        port: &crate::joint_source_episode::JointSourcePortView,
-        neuron_lineage: [u8; 16],
-    ) -> Result<Self, FormationError> {
-        Self::new(
-            port.sense,
-            port.topology_index,
-            &port.sensor_id,
-            &port.substream_id,
-            neuron_lineage,
-        )
-    }
-
     fn from_site(
         site: &NeuronSourceSite,
         neuron_lineage: [u8; 16],
@@ -2337,9 +2314,6 @@ impl DormantLineageSeed {
         Ok(())
     }
 
-    pub(crate) fn lineage(&self) -> [u8; 16] {
-        self.neuron_lineage
-    }
 }
 
 /// One compact retained physical formation. Identity is its exact original
@@ -3276,7 +3250,6 @@ fn ordered_path_relations_for_relation(
 /// this transition. The temporary component indices organize this calculation
 /// only; they are never encoded, retained, or used as cognitive authority.
 fn observe_organic_mosaic_relations(
-    topology: &OrganismMosaicTopology,
     mosaics: &[RetainedOrganismMosaic],
     frontier_indices: &[usize],
     reassembled_indices: &[usize],
@@ -4218,7 +4191,6 @@ fn settle_organism_mosaic_boundary(
         Vec::new()
     } else {
         observe_organic_mosaic_relations(
-        &topology,
         mosaics,
         &current_frontier_indices,
         &reassembled_indices,
@@ -8760,7 +8732,6 @@ impl ResidentCognitiveFormationState {
                             receptor_excitation_zeptojoules,
                             exogenous_receptor_energy,
                             &mosaics,
-                            max_encoded_bytes,
                             source_generation,
                         )?;
                         for (neuron_index, (successor, lineage)) in cohort
@@ -9381,14 +9352,6 @@ impl ResidentCognitiveFormationState {
                 energy: successor_energy,
             },
         })
-    }
-
-    pub(crate) fn advance_vestibular_transition(
-        self,
-        ingress: &ResidentVestibularIngress,
-        max_encoded_bytes: usize,
-    ) -> Result<(Self, CognitiveFormationObservation), FormationError> {
-        self.advance_vestibular_transition_with_residency(ingress, max_encoded_bytes, &mut None)
     }
 
     pub(crate) fn advance_vestibular_transition_with_residency(
@@ -10828,29 +10791,6 @@ impl ResidentCognitiveFormationState {
         Ok(prepared.successor_encoded.clone())
     }
 
-    /// The retired archive checkpoint must survive a transition byte-for-byte.
-    /// Nothing writes it, so a successor whose checkpoint differs from its
-    /// predecessor's is a codec fault, not a lawful advance.
-    pub(crate) fn encode_staged_successor(
-        &self,
-        prepared: &PreparedCognitiveFormationTransition,
-        max_encoded_bytes: usize,
-    ) -> Result<Vec<u8>, FormationError> {
-        if self.generation != prepared.predecessor_generation {
-            return Err(FormationError::PreparedPredecessorChanged);
-        }
-        if prepared.successor.hippocampal != prepared.predecessor_hippocampal {
-            return Err(FormationError::NoncanonicalState);
-        }
-        if prepared.successor_encoded.len() > max_encoded_bytes {
-            return Err(FormationError::BudgetExceeded {
-                required: prepared.successor_encoded.len(),
-                available: max_encoded_bytes,
-            });
-        }
-        Ok(prepared.successor_encoded.clone())
-    }
-
     pub(crate) fn decode(bytes: &[u8], max_encoded_bytes: usize) -> Result<Self, FormationError> {
         if bytes.get(..MAGIC_V41.len()) != Some(MAGIC_V41) {
             return Err(FormationError::RetiredCognitiveState);
@@ -11979,7 +11919,6 @@ fn settle_resident_physical_interval(
     receptor_excitation_zeptojoules: Vec<Option<ExactRational>>,
     exogenous_receptor_energy: Option<bool>,
     existing_mosaics: &[RetainedOrganismMosaic],
-    max_encoded_bytes: usize,
     source_generation: u64,
 ) -> Result<ResidentOpticalIntervalOutcome, FormationError> {
     // Darkness performs no population-wide metabolic heartbeat. Passive
@@ -14895,10 +14834,6 @@ impl ReachedAssociationsByOccurrence {
         }
     }
 
-    #[cfg(test)]
-    fn is_empty(&self) -> bool {
-        self.lineages.iter().all(Vec::is_empty)
-    }
 }
 
 /// Grow or reuse one exact physical cross-sensory assembly per admitted
