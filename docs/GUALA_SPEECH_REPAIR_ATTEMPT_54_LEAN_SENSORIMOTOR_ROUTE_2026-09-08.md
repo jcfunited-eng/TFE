@@ -1829,3 +1829,17 @@ is at most two further pressure-only occurrences, one at a time, with no guide,
 no A/B branch, no changed waveform, and no parameter adjustment. Stop on the
 first pressure/self-hearing result; if the third post-route sound remains
 silent, classify D-063 as failed and return to source localization.
+
+F-063-01 live three-cue chronology failed: the second and third exact
+post-route `microphone` occurrences were accepted at native ticks 543940 and
+543956. Each delivered all 4,000 external samples through 221 full-DSF
+deliveries with zero Python callbacks and changed 1,586 and 1,563 neurons,
+respectively. Both admitting intervals produced zero body consequences, zero
+pressure, and zero self-hearing. The third cue's unstimulated successors were
+then observed beyond its tick-543988 horizon to tick 543990; they remained
+body-still and silent with no pending self pressure. D-063 is exhausted and no
+further pressure repetition is authorized. Unlike the mature copied-body
+S-058 chronology, the newly live-taught state did not reach an accepted vocal
+motor discharge. The next boundary is exact live-state route/gate inspection,
+not breath, the acoustic organ, browser playback, more tutoring, or another
+A/B chronology.
