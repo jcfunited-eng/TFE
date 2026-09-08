@@ -1755,3 +1755,13 @@ state. Permanent guard: on a non-2xx occurrence, retain the raw bounded detail
 before projection; read the successor before any retry. D-062-01 remains
 unperformed, and no duplicate live guide is authorized while another browser
 input occupies the mailbox.
+
+F-062-H02 exact pre-admission blocker: after checkpoint backpressure cleared,
+one final non-looping request retained the bounded HTTP error body and again
+returned 503, now exactly `organism mailbox is full`. Live camera/microphone
+occurrences continue to arrive from the open page, and the actor intentionally
+has a one-item mailbox. The guide again did not enter the organism, so zero
+guided experiences have committed. No further admission retry is authorized
+while either camera or microphone remains active. The user action is one UI
+step: stop both camera and microphone temporarily while leaving continuous
+Guala listening armed. D-062-01 then remains the single next live action.
