@@ -1776,3 +1776,17 @@ microphone control state from occurrence kind; require the user's browser
 controls to show `Enable camera` and `Enable microphone` before the one guide.
 This is the third consecutive goal turn with the same external admission
 blocker. Task 1447 remains identity-continuous and speech-failed.
+
+S-062-01 first live guided-vocal development admitted: after the user's browser
+showed both `Enable camera` and `Enable microphone` and continuous laptop
+listening was armed, exactly one D-062-01 occurrence returned HTTP 200 at
+2026-09-08T23:24:15Z. The same organism identity
+`1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1` settled native tick 543664 with source
+`guided-vocal-microphone`, all four approved vocal axes, 4,000 exact external
+pressure samples, four body consequences, 1,539 physically transitioned
+neurons, 237 full-DSF deliveries, and zero Python callbacks. The admitting
+interval held no pressure receipt, no self-heard samples, and no pending self
+pressure. This is successful live tutoring and the first proven production
+body actuation through that route; it is not autonomous speech. No second guide
+is authorized. The sole next observation is the existing frontier through at
+most 32 native interval advances for body-owned pressure and self-hearing.
