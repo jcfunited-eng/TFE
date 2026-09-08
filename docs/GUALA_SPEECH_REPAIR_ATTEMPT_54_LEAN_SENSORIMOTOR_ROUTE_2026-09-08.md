@@ -1843,3 +1843,63 @@ S-058 chronology, the newly live-taught state did not reach an accepted vocal
 motor discharge. The next boundary is exact live-state route/gate inspection,
 not breath, the acoustic organ, browser playback, more tutoring, or another
 A/B chronology.
+
+F-063-H01 current-pair snapshot serialization mistake: the first read-only
+snapshot helper tried to serialize a slot-backed `PairDescriptor` through
+`__dict__`, which that object does not expose. It failed before upload and
+changed neither the organism nor its persistence. The corrected invocation
+used `dataclasses.asdict` and was run once. Permanent guard: inspect the
+declared Python data type before serialization; slot-backed dataclasses use
+`dataclasses.asdict`, never `__dict__`.
+
+S-063-01 authenticated current live-state capture: the corrected read-only
+capture copied the exact current production body/world pair at native tick
+544086 without advancing or modifying it. The body SHA-256 is
+`0cfdddd78f72c129cea7c45fed5b6b43eb5bbfcac672f402c994a490afd13b09` and
+the world SHA-256 is
+`f2f4af49781436d5037b8824e18e633767b902866340adea7983576e59e064d4`.
+The bounded archive is retained at
+`s3://guala-incident-bench-20260831/speech-attempt63/paired-task1447-post-live-teaching.zip`.
+This preserves the exact post-teaching live evidence independently of any
+candidate and does not make a speech-success claim.
+
+F-063-H02 malformed bounded projection: one local `jq` route-grouping
+projection omitted the required `if` before `then` and failed with a syntax
+error. It did not rerun the native probe or change its output. Permanent guard:
+compile any nontrivial `jq` filter against the already-created JSON before it
+is placed in a command that can run a probe or contact production.
+
+F-063-H03 copied-state trace reporting mistakes: the first two local trace
+reports referenced the retired `articulatory_body_transition` name and then a
+nonexistent loop-result `native_tick` key. In both cases the disposable copied
+runtime exited and no successor was saved; production was untouched. The
+correct report used the current `articulatory_body_trajectories` collection
+and the runtime `live_organism_tick`. Permanent guard: derive report fields
+from the current runtime class/schema before executing a copied-state trace;
+do not reuse names from an older ledger or UI projection.
+
+S-063-02 exact learned-route and gate boundary: the existing native reservoir
+probe ran once against S-063-01 and passed (one exact test, 612 filtered) in
+2.08 seconds after compilation. The body is structurally valid and quiescent,
+with 22 exact layer-11-to-layer-12 learned contacts distributed across ten
+learned vocal motor cells. Every such contact retains effective conductance
+500 and 50 conducting channels. All ten learned vocal motor gates are closed
+and exactly saturated at 36 dissipated quanta of 36 capacity. One corrected
+pressure-only copied-state trace from tick 544086 to 544087 then proved 4,000
+external heard samples, 14 external frontiers, 60 internal cues, five learned
+motor preparations, and five strictly positive learned-work offers. Exactly
+zero offers were accepted, zero gate work was delivered, and zero motor,
+articulatory, body, pressure, or self-hearing consequences followed. This is
+positive proof that hearing and learned-route reachability work in the current
+live state while the full receiving gates refuse the work. The single failure
+boundary is therefore gate recovery/acceptance upstream of all vocal effectors.
+Do not repeat tutoring, pressure cues, route growth, breath work, acoustic
+work, or browser work until this exact boundary is corrected.
+
+F-063-H04 oversized local probe projection: a later inspection requested the
+keys of the `electrical_fabric` array and emitted thousands of indices before
+output truncation. It used the already-created local JSON, changed no state,
+and produced no new evidence. This repeats the bounded-output error class
+already recorded in F-061-H02/H03/H06. Permanent guard: query `type`, `length`,
+or named scalar members first; never apply `keys` to an unbounded array and
+never print a whole probe subtree.
