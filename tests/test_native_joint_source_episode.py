@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import fields
+from dataclasses import fields, replace
 from fractions import Fraction
 import struct
 from types import SimpleNamespace
@@ -17,6 +17,7 @@ from dsf_ai_service.glew_runtime.native_joint_source_episode import (
 )
 from dsf_ai_service.glew_runtime.native_sensory_full_field import (
     NativeSensorySubstreamInput,
+    declare_joint_source_occurrences,
 )
 from dsf_ai_service.glew_runtime.sensory_full_field_boundary import (
     NativeAxisCoordinate,
@@ -163,6 +164,49 @@ def test_joint_relevance_and_profile_change_exact_source_body() -> None:
     assert baseline != changed_relevance
     assert baseline != changed_profile
     assert changed_relevance != changed_profile
+
+
+def test_contiguous_nonzero_topology_is_preserved_without_collision() -> None:
+    shifted = tuple(
+        replace(_input(PhysicalSense.SIGHT, index), topology_index=135 + index)
+        for index in range(2)
+    )
+    observed = {PhysicalSense.SIGHT: shifted}
+    occurrences = declare_joint_source_occurrences(
+        observed_substreams=observed,
+        declared_units=(
+            ((PhysicalSense.SIGHT, 135),),
+            ((PhysicalSense.SIGHT, 136),),
+        ),
+    )
+    states = {
+        sense: (
+            SenseBoundaryState.OBSERVED
+            if sense is PhysicalSense.SIGHT
+            else SenseBoundaryState.QUIESCENT
+        )
+        for sense in SENSE_ORDER
+    }
+
+    settled = settle_native_joint_source_episode(
+        assembly_id="nonzero-topology",
+        observed_substreams=observed,
+        states=states,
+        occurrences=occurrences,
+    )
+
+    assert settled.port_count == 2
+    assert settled.occurrence_count == 2
+
+
+def test_duplicate_physical_receptor_is_refused_before_encoding() -> None:
+    repeated = _input(PhysicalSense.SIGHT, 135)
+
+    with pytest.raises(ValueError, match="repeats a physical receptor"):
+        declare_joint_source_occurrences(
+            observed_substreams={PhysicalSense.SIGHT: (repeated, repeated)},
+            declared_units=(((PhysicalSense.SIGHT, 135),),),
+        )
 
 
 def test_missing_occurrence_argument_has_no_default() -> None:

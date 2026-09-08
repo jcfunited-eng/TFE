@@ -155,6 +155,28 @@ def _retinal_endpoints(
     )
 
 
+def passive_receptor_capture(
+    *,
+    snapshot: Any,
+    body_axes: tuple[Any, ...],
+) -> tuple[dict[PhysicalSense, tuple[Any, ...]], Fraction]:
+    """Render W1 physical receptors once for one passive world snapshot."""
+
+    heading, transmission = retinal_carriage(body_axes)
+    return (
+        physical_receptor_substreams(
+            snapshot,
+            snapshot,
+            causal_transition=False,
+            before_retinal_heading_offset_millidegrees=heading,
+            after_retinal_heading_offset_millidegrees=heading,
+            source_time_start=Fraction(0),
+            source_time_end=Fraction(1, 4),
+        ),
+        transmission,
+    )
+
+
 def _palmar_endpoints(streams: tuple[Any, ...]) -> tuple[Fraction, Fraction]:
     matches = tuple(
         stream
@@ -240,18 +262,16 @@ def passive_sensorium(
     body_axes: tuple[Any, ...],
     frame_count: int,
     pending_execution: ActionExecutionReceipt | None = None,
+    receptor_capture: tuple[
+        dict[PhysicalSense, tuple[Any, ...]], Fraction
+    ] | None = None,
 ) -> PhysicalSensorium:
     """Sample one current world/body state into every mounted receptor."""
 
-    heading, transmission = retinal_carriage(body_axes)
-    physical = physical_receptor_substreams(
-        snapshot,
-        snapshot,
-        causal_transition=False,
-        before_retinal_heading_offset_millidegrees=heading,
-        after_retinal_heading_offset_millidegrees=heading,
-        source_time_start=Fraction(0),
-        source_time_end=Fraction(1, 4),
+    physical, transmission = (
+        passive_receptor_capture(snapshot=snapshot, body_axes=body_axes)
+        if receptor_capture is None
+        else receptor_capture
     )
     retina = tuple(value * transmission for value in _retinal_endpoints(physical[PhysicalSense.SIGHT])[1])
     palmar = _palmar_endpoints(physical[PhysicalSense.TOUCH])[1]
@@ -309,18 +329,20 @@ def _world_displacement(before: Any, after: Any) -> tuple[Fraction, ...]:
     return values
 
 
-def passive_body_consequence_sensorium(
+def body_consequence_receptor_capture(
     *,
-    world: Any,
     execution: ActionExecutionReceipt,
     predecessor_body_axes: tuple[Any, ...],
     successor_body_axes: tuple[Any, ...],
-    source_times: tuple[Fraction, ...],
-) -> PhysicalSensorium:
-    """Build the exact world/body consequence of one passive 1 ms return."""
+) -> tuple[
+    dict[PhysicalSense, tuple[Any, ...]], Fraction, Fraction
+]:
+    """Render W1 receptors once across one exact body/world consequence."""
 
     action_end = Fraction(BODY_INTERVAL_MICROSECONDS, 1_000_000)
-    before_heading, before_transmission = retinal_carriage(predecessor_body_axes)
+    before_heading, before_transmission = retinal_carriage(
+        predecessor_body_axes
+    )
     after_heading, after_transmission = retinal_carriage(successor_body_axes)
     physical = physical_receptor_substreams(
         execution.before,
@@ -330,6 +352,32 @@ def passive_body_consequence_sensorium(
         after_retinal_heading_offset_millidegrees=after_heading,
         source_time_start=Fraction(0),
         source_time_end=action_end,
+    )
+    return physical, before_transmission, after_transmission
+
+
+def passive_body_consequence_sensorium(
+    *,
+    world: Any,
+    execution: ActionExecutionReceipt,
+    predecessor_body_axes: tuple[Any, ...],
+    successor_body_axes: tuple[Any, ...],
+    source_times: tuple[Fraction, ...],
+    receptor_capture: tuple[
+        dict[PhysicalSense, tuple[Any, ...]], Fraction, Fraction
+    ] | None = None,
+) -> PhysicalSensorium:
+    """Build the exact world/body consequence of one passive 1 ms return."""
+
+    action_end = Fraction(BODY_INTERVAL_MICROSECONDS, 1_000_000)
+    physical, before_transmission, after_transmission = (
+        body_consequence_receptor_capture(
+            execution=execution,
+            predecessor_body_axes=predecessor_body_axes,
+            successor_body_axes=successor_body_axes,
+        )
+        if receptor_capture is None
+        else receptor_capture
     )
     before_retina, after_retina = _retinal_endpoints(physical[PhysicalSense.SIGHT])
     before_palmar, after_palmar = _palmar_endpoints(physical[PhysicalSense.TOUCH])

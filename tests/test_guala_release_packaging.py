@@ -269,16 +269,35 @@ def test_candidate_manifest_is_exact_current_runtime_import_closure() -> None:
     expected_physical_surfaces = {
         item["surface"]["path"] for item in curriculum["experiences"]
     }
-    assert by_category["physical_curriculum_surfaces"] == expected_physical_surfaces
+    active_physical_surfaces = {
+        "guala_curriculum/cards/alphabet-a-apple-v1.png",
+        "guala_curriculum/cards/alphabet-b-bee-v1.png",
+        *(f"guala_curriculum/cards/{letter}-is-for-{noun}.png" for letter, noun in zip(
+            "CDEFGHIJKLMNOPQRSTUVWXYZ",
+            (
+                "Cat", "Dolphin", "Elephant", "Fox", "Giraffe", "House",
+                "Ice-Cream", "Jellyfish", "Kite", "Lion", "Mushroom", "Nest",
+                "Owl", "Penguin", "Queen", "Rabbit", "Snail", "Turtle",
+                "Umbrella", "Violin", "Whale", "Xylophone", "Yak", "Zebra",
+            ),
+            strict=True,
+        )),
+        *(f"guala_curriculum/cards/number-{value:02d}-{name}-v1.png" for value, name in enumerate(
+            ("one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"),
+            start=1,
+        )),
+    }
+    assert active_physical_surfaces <= expected_physical_surfaces
+    assert by_category["physical_curriculum_surfaces"] == active_physical_surfaces
     for required in (
-        "dsf_ai_service/native_production_app.py",
-        "dsf_ai_service/candidate_release_rehearsal.py",
-        "dsf_ai_service/cold_restore_probe.py",
         "dsf_ai_service/glew_runtime/native_resident_organism.py",
-        "dsf_ai_service/substrate/native_organism_binary_store.py",
     ):
         assert required in resolved
     for retired_or_unconnected in (
+        "dsf_ai_service/native_production_app.py",
+        "dsf_ai_service/candidate_release_rehearsal.py",
+        "dsf_ai_service/cold_restore_probe.py",
+        "dsf_ai_service/substrate/native_organism_binary_store.py",
         "dsf_ai_service/substrate/native_core.py",
         "dsf_ai_service/loom_model/physical_oscillators.py",
         "dsf_ai_service/loom_model/substrate_dna.py",
@@ -387,7 +406,7 @@ def test_retired_migration_control_is_absent_from_release() -> None:
         manifest["internal_import_aliases"],
     )
     assert "migration_control" not in by_category
-    assert "dsf_ai_service/cold_restore_probe.py" in runtime
+    assert "dsf_ai_service/cold_restore_probe.py" not in runtime
     packaged = set().union(*by_category.values())
     for retired_reader in (
         "dsf_ai_service/loom_model/binding_atlas.py",

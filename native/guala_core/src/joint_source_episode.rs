@@ -796,6 +796,16 @@ impl<'a> Parser<'a> {
             if sense_states[sense] == 0 && topology_indices[sense].is_empty() {
                 return Err("observed sense has no physical receptor".into());
             }
+            let contiguous_start = topology_indices[sense]
+                .first()
+                .copied()
+                .unwrap_or(0);
+            let contiguous_end = contiguous_start
+                .checked_add(
+                    u32::try_from(topology_indices[sense].len())
+                        .map_err(|_| "joint-source topology exceeds u32")?,
+                )
+                .ok_or("joint-source topology exceeds u32")?;
             if !(matches!(
                 version,
                 BODY_VERSION
@@ -807,7 +817,7 @@ impl<'a> Parser<'a> {
                 && topology_indices[sense]
                     .iter()
                     .copied()
-                    .ne(0..topology_indices[sense].len() as u32)
+                    .ne(contiguous_start..contiguous_end)
             {
                 return Err("joint-source topology is incomplete or reordered".into());
             }

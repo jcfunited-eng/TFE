@@ -24,7 +24,7 @@ from dsf_ai_service.paired_current_store import PairedCurrentStore
 CHECKPOINT_EVERY_INTERVALS = 4
 UNATTENDED_INTERVAL_SECONDS = 0.25
 MAILBOX_CAPACITY = 1
-MAX_OCCURRENCE_BODY_BYTES = 12_288
+MAX_OCCURRENCE_BODY_BYTES = 13_312
 PUBLIC_API_PREFIX = "/api/v1/guala"
 OBSERVATION_ROUTE = f"{PUBLIC_API_PREFIX}/observation"
 OCCURRENCE_ROUTE = f"{PUBLIC_API_PREFIX}/occurrence"
@@ -56,7 +56,7 @@ class SensoryBody(BaseModel):
         "text-light",
         "text-microphone",
     ]
-    retina_u8: tuple[int, ...] | None = None
+    retina_rgb_u8: tuple[int, ...] | None = None
     pcm_s16le_base64: str | None = None
     guided_vocal_drives: tuple[GuidedVocalDriveBody, ...] | None = None
 
@@ -95,7 +95,7 @@ async def _occurrence_body(request: Request) -> OccurrenceBody:
         if len(body) + len(chunk) > MAX_OCCURRENCE_BODY_BYTES:
             raise HTTPException(
                 status_code=413,
-                detail="occurrence body exceeds 12288 bytes",
+                detail=f"occurrence body exceeds {MAX_OCCURRENCE_BODY_BYTES} bytes",
             )
         body.extend(chunk)
     try:
@@ -171,7 +171,7 @@ def _physical_occurrence(body: OccurrenceBody) -> PhysicalOccurrence:
         "sensory",
         LeanSensoryOccurrence(
             source=payload.source,
-            retina_u8=payload.retina_u8,
+            retina_rgb_u8=payload.retina_rgb_u8,
             pressure_s16le=pressure,
             guided_vocal_drives=(
                 None

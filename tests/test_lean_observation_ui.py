@@ -80,7 +80,9 @@ def test_world_page_has_the_authorized_embodied_access_only() -> None:
     for required in (
         "Guala_Talking_Bust_No_Bow_Transparent.png",
         "Guala's home and backyard",
-        "135 achromatic receptor samples",
+        "135 spatial sites × 6 optical bands",
+        "all sites shown",
+        "screen-color projection",
         "Enable camera",
         "Enable microphone",
         "Hear Guala",
@@ -113,11 +115,12 @@ def test_browser_senses_keep_exact_bounds_and_no_backlog() -> None:
         "audioContext.sampleRate!==16000",
         "new Uint8Array(8000)",
         "i<4000",
-        "values.length!==135",
+        "external.length===405",
+        "spectral.length===810",
         "if(inFlight)",
         "if(inFlight||document.hidden)return",
         "setInterval(sensoryPulse,1000)",
-        "retina_u8",
+        "retina_rgb_u8",
         "pcm_s16le_base64",
     ):
         assert exact_boundary in source

@@ -8,17 +8,31 @@ import hashlib
 from typing import Any
 
 from dsf_ai_service.guala_cochlea import one_self_hearing_hop
+from dsf_ai_service.guala_external_rgb_retina import (
+    EXTERNAL_RGB_RETINAL_PORTS,
+    external_rgb_retina_admissions,
+    rgb_retina_luminance_u8,
+    settle_external_rgb_retina,
+    transmitted_rgb_retina_u8,
+)
 from dsf_ai_service.lean_embodiment_observation import (
     lean_embodiment_observation,
 )
 from dsf_ai_service.lean_sensory_occurrence import LeanSensoryOccurrence
 from dsf_ai_service.guala_motor_world import prepare_motor_consequence
+from dsf_ai_service.guala_spectral_retina import (
+    SPECTRAL_RETINAL_PORTS,
+    settle_spectral_retina,
+    spectral_retina_admissions,
+    spectral_retina_u8_observation,
+)
 from dsf_ai_service.guala_physical_sensorium import (
     settle_physical_sensorium,
     settle_projected_physical_sensorium,
 )
 from dsf_ai_service.glew_runtime.sensory_full_field_boundary import PhysicalSense
 from dsf_ai_service.guala_world_sensorium import (
+    passive_receptor_capture,
     passive_sensorium,
     prepare_passive_world_interval,
     retinal_carriage,
@@ -144,18 +158,30 @@ class LeanPhysicalLoop:
                 body_axes=tuple(before_native.articulated_body_axes),
                 frame_count=len(PASSIVE_TIMES),
                 pending_execution=primary_prepared.execution_receipt,
+                receptor_capture=(
+                    primary_capture := passive_receptor_capture(
+                        snapshot=primary_prepared.execution_receipt.after,
+                        body_axes=tuple(before_native.articulated_body_axes),
+                    )
+                ),
             )
             external_heard_samples = 0
-            if sensory is not None and sensory.retina_u8 is not None:
+            external_rgb_retina_u8 = None
+            if sensory is not None and sensory.retina_rgb_u8 is not None:
                 _heading, transmission = retinal_carriage(
                     tuple(before_native.articulated_body_axes)
                 )
+                luminance_u8 = rgb_retina_luminance_u8(sensory.retina_rgb_u8)
                 primary_sensorium = replace(
                     primary_sensorium,
                     retina=tuple(
                         (Fraction(value, 255) * transmission,) * len(PASSIVE_TIMES)
-                        for value in sensory.retina_u8
+                        for value in luminance_u8
                     ),
+                )
+                external_rgb_retina_u8 = transmitted_rgb_retina_u8(
+                    sensory.retina_rgb_u8,
+                    transmission,
                 )
             if sensory is not None and sensory.pressure_s16le is not None:
                 times, legacy, cochleae, external_heard_samples = (
@@ -189,23 +215,66 @@ class LeanPhysicalLoop:
                 source_times=PASSIVE_TIMES,
                 sensorium=primary_sensorium,
             )
+            spectral_retina_u8 = None
+            primary_sources = (primary_episode,)
+            primary_admissions = PASSIVE_ADMISSION
+            if sensory is None or sensory.retina_rgb_u8 is None:
+                spectral_episode = settle_spectral_retina(
+                    assembly_id=(
+                        "guala-lean-spectral-retina-"
+                        f"{before_native.identity}-{runtime.live_organism_tick + 1}"
+                    ),
+                    streams=primary_capture[0][PhysicalSense.SIGHT],
+                    source_times=PASSIVE_TIMES,
+                    before_transmission=primary_capture[1],
+                )
+                spectral_retina_u8 = spectral_retina_u8_observation(
+                    streams=primary_capture[0][PhysicalSense.SIGHT],
+                    transmission=primary_capture[1],
+                )
+                primary_sources = (*primary_sources, spectral_episode)
+                primary_admissions = (
+                    *primary_admissions,
+                    spectral_retina_admissions(Fraction(1, 4)),
+                )
+            else:
+                external_rgb_episode = settle_external_rgb_retina(
+                    assembly_id=(
+                        "guala-lean-external-RGB-retina-"
+                        f"{before_native.identity}-{runtime.live_organism_tick + 1}"
+                    ),
+                    rgb_u8=sensory.retina_rgb_u8,
+                    source_times=PASSIVE_TIMES,
+                    transmission=transmission,
+                )
+                primary_sources = (*primary_sources, external_rgb_episode)
+                primary_admissions = (
+                    *primary_admissions,
+                    external_rgb_retina_admissions(Fraction(1, 4)),
+                )
             if sensory is not None and sensory.guided_vocal_drives is not None:
                 primary = runtime.advance_guided_vocal_interval_unsealed(
-                    (primary_episode,),
-                    PASSIVE_ADMISSION,
+                    primary_sources,
+                    primary_admissions,
                     sensory.guided_vocal_drives,
                 )
             elif pending_pressure is None:
-                primary = runtime.advance_admitted_trajectory_unsealed(
-                    (primary_episode,), PASSIVE_ADMISSION
+                primary = (
+                    runtime.advance_coexisting_admitted_interval_unsealed(
+                        primary_sources, primary_admissions
+                    )
+                    if len(primary_sources) > 1
+                    else runtime.advance_admitted_trajectory_unsealed(
+                        primary_sources, primary_admissions
+                    )
                 )
             else:
                 primary = runtime.advance_in_flight_self_hearing_unsealed(
-                    (primary_episode,),
-                    PASSIVE_ADMISSION,
+                    primary_sources,
+                    primary_admissions,
                     pressure,
                     body,
-                    False,
+                    len(primary_sources) > 1,
                     self_heard_samples,
                 )
             _commit_prepared(world, primary_prepared)
@@ -287,6 +356,7 @@ class LeanPhysicalLoop:
                         final = runtime.advance_vestibular_trajectory_unsealed(
                             *motor_plan.vestibular
                         )
+                spectral_retina_u8 = motor_plan.spectral_retinal_u8
 
             lived_tick_delta = runtime.live_organism_tick - start_tick
             if (
@@ -345,9 +415,15 @@ class LeanPhysicalLoop:
                     ),
                     "external_retinal_site_count": (
                         0
-                        if sensory is None or sensory.retina_u8 is None
-                        else len(sensory.retina_u8)
+                        if sensory is None or sensory.retina_rgb_u8 is None
+                        else len(sensory.retina_rgb_u8) // 3
                     ),
+                    "external_retinal_port_count": (
+                        0
+                        if sensory is None or sensory.retina_rgb_u8 is None
+                        else EXTERNAL_RGB_RETINAL_PORTS
+                    ),
+                    "external_rgb_retinal_u8": external_rgb_retina_u8,
                     "external_sensory_source": (
                         None if sensory is None else sensory.source
                     ),
@@ -370,6 +446,21 @@ class LeanPhysicalLoop:
                         "achromatic-u8-projection-of-native-retinal-input"
                     ),
                     "retinal_u8": retinal_u8,
+                    "latest_retinal_field_kind": (
+                        "spectral"
+                        if spectral_retina_u8 is not None
+                        else (
+                            "external-rgb"
+                            if external_rgb_retina_u8 is not None
+                            else None
+                        )
+                    ),
+                    "spectral_retinal_port_count": (
+                        SPECTRAL_RETINAL_PORTS
+                        if spectral_retina_u8 is not None
+                        else 0
+                    ),
+                    "spectral_retinal_u8": spectral_retina_u8,
                     "requested_root_motion": (
                         (0, 0, 0)
                         if motor_plan is None

@@ -507,6 +507,111 @@ class _OpticalSurface:
     emission_ppm: tuple[int, ...] = ()
 
 
+def _region_radiance(region: PhysicalRegion) -> tuple[Fraction, ...]:
+    return tuple(
+        Fraction(reflectance * illumination, 1_000_000_000_000)
+        for reflectance, illumination in zip(
+            region.reflectance_ppm,
+            region.illumination_ppm,
+            strict=True,
+        )
+    )
+
+
+def _portal_aperture_background(
+    observation: ObservationSnapshot,
+    *,
+    eye: PositionMM,
+    body_heading_millidegrees: int,
+    current_region: PhysicalRegion,
+    pixels: list[tuple[Fraction, ...]],
+) -> None:
+    """Expose adjacent-room radiance only through authored doorway geometry."""
+
+    regions = {region.region_id: region for region in observation.regions}
+    for portal in observation.portals:
+        if current_region.region_id not in portal.region_ids:
+            continue
+        neighbour_id = next(
+            region_id
+            for region_id in portal.region_ids
+            if region_id != current_region.region_id
+        )
+        neighbour = regions.get(neighbour_id)
+        if neighbour is None:
+            raise RuntimeError("physical portal references an absent region")
+        if portal.axis == "x":
+            endpoints = (
+                (portal.plane_mm - eye.x, portal.aperture_min_mm - eye.y),
+                (portal.plane_mm - eye.x, portal.aperture_max_mm - eye.y),
+            )
+            centre_dx = portal.plane_mm - eye.x
+            centre_dy = (
+                portal.aperture_min_mm + portal.aperture_max_mm
+            ) // 2 - eye.y
+        else:
+            endpoints = (
+                (portal.aperture_min_mm - eye.x, portal.plane_mm - eye.y),
+                (portal.aperture_max_mm - eye.x, portal.plane_mm - eye.y),
+            )
+            centre_dx = (
+                portal.aperture_min_mm + portal.aperture_max_mm
+            ) // 2 - eye.x
+            centre_dy = portal.plane_mm - eye.y
+        if centre_dx == 0 and centre_dy == 0:
+            continue
+        horizontal_edges = tuple(
+            _wrap_heading_delta(
+                _atan2_millidegrees(dy, dx),
+                body_heading_millidegrees,
+            )
+            for dx, dy in endpoints
+        )
+        horizontal_min = min(horizontal_edges)
+        horizontal_max = max(horizontal_edges)
+        if horizontal_max - horizontal_min > 180_000:
+            continue
+        planar_distance = max(
+            isqrt(centre_dx * centre_dx + centre_dy * centre_dy),
+            1,
+        )
+        vertical_min = _atan2_millidegrees(-eye.z, planar_distance)
+        vertical_max = _atan2_millidegrees(
+            portal.height_mm - eye.z,
+            planar_distance,
+        )
+        radiance = _region_radiance(neighbour)
+        for (
+            site_index,
+            horizontal_center,
+            vertical_center,
+            horizontal_half,
+            vertical_half,
+        ) in RETINAL_SITE_GEOMETRY:
+            horizontal_overlap = max(
+                0,
+                min(horizontal_center + horizontal_half, horizontal_max)
+                - max(horizontal_center - horizontal_half, horizontal_min),
+            )
+            vertical_overlap = max(
+                0,
+                min(vertical_center + vertical_half, vertical_max)
+                - max(vertical_center - vertical_half, vertical_min),
+            )
+            if not horizontal_overlap or not vertical_overlap:
+                continue
+            coverage = Fraction(
+                horizontal_overlap * vertical_overlap,
+                4 * horizontal_half * vertical_half,
+            )
+            pixels[site_index] = tuple(
+                prior * (1 - coverage) + observed * coverage
+                for prior, observed in zip(
+                    pixels[site_index], radiance, strict=True
+                )
+            )
+
+
 def _retinal_projection(
     observation: ObservationSnapshot,
     *,
@@ -531,17 +636,20 @@ def _retinal_projection(
         region for region in observation.regions
         if region.region_id == observation.room_id
     )
-    background = tuple(
-        Fraction(reflectance * illumination, 1_000_000_000_000)
-        for reflectance, illumination in zip(
-            current_region.reflectance_ppm,
-            current_region.illumination_ppm,
-        )
-    )
+    background = _region_radiance(current_region)
     pixels: list[tuple[Fraction, ...]] = [
         background for _ in range(RETINA_TOTAL_RECEPTOR_COUNT)
     ]
-    depths: list[int | None] = [None] * RETINA_TOTAL_RECEPTOR_COUNT
+    _portal_aperture_background(
+        observation,
+        eye=eye,
+        body_heading_millidegrees=(
+            body.pose.heading_millidegrees
+            + retinal_heading_offset_millidegrees
+        ) % 360_000,
+        current_region=current_region,
+        pixels=pixels,
+    )
     surfaces: list[_OpticalSurface] = []
     body_by_id = {candidate.body_id: candidate for candidate in observation.bodies}
     for other in observation.bodies:
@@ -585,6 +693,12 @@ def _retinal_projection(
 
     half_horizontal = RETINA_HORIZONTAL_FOV_MILLIDEGREES // 2
     half_vertical = RETINA_VERTICAL_FOV_MILLIDEGREES // 2
+    # Far-to-near compositing lets a nearer surface cover only its actual
+    # receptor aperture instead of erasing the complete receptor cell.
+    surfaces.sort(
+        key=lambda surface: _position_distance_squared(eye, surface.position),
+        reverse=True,
+    )
     for surface in surfaces:
         floor_position = PositionMM(
             surface.position.x,
@@ -626,10 +740,13 @@ def _retinal_projection(
             or relative_vertical - angular_radius > half_vertical
         ):
             continue
-        attenuation = Fraction(
-            surface.radius_mm * surface.radius_mm,
-            surface.radius_mm * surface.radius_mm + max(distance_squared, 1),
+        surface_region = _region_for(
+            observation.regions,
+            surface.position,
+            surface.radius_mm,
         )
+        if surface_region is None:
+            continue
         pattern = surface.optical_surface
         if pattern is not None:
             pattern.verify()
@@ -647,6 +764,34 @@ def _retinal_projection(
             if abs(horizontal_center - relative_horizontal) > (
                 angular_radius + half_horizontal_receptor
             ):
+                continue
+            horizontal_overlap = max(
+                0,
+                min(
+                    horizontal_center + half_horizontal_receptor,
+                    relative_horizontal + angular_radius,
+                )
+                - max(
+                    horizontal_center - half_horizontal_receptor,
+                    relative_horizontal - angular_radius,
+                ),
+            )
+            vertical_overlap = max(
+                0,
+                min(
+                    vertical_center + half_vertical_receptor,
+                    relative_vertical + angular_radius,
+                )
+                - max(
+                    vertical_center - half_vertical_receptor,
+                    relative_vertical - angular_radius,
+                ),
+            )
+            coverage = Fraction(
+                horizontal_overlap * vertical_overlap,
+                4 * half_horizontal_receptor * half_vertical_receptor,
+            )
+            if coverage <= 0:
                 continue
             reflectance = surface.reflectance_ppm
             if pattern is not None and angular_radius > 0:
@@ -685,22 +830,24 @@ def _retinal_projection(
                     column=pattern_column,
                 )
             emission = surface.emission_ppm or ((0,) * len(reflectance))
-            light = tuple(
+            surface_light = tuple(
                 min(
                     Fraction(1),
                     Fraction(value * illumination, 1_000_000_000_000)
-                    * attenuation
                     + Fraction(emitted, 1_000_000),
                 )
                 for value, illumination, emitted in zip(
                     reflectance,
-                    current_region.illumination_ppm,
+                    surface_region.illumination_ppm,
                     emission,
                 )
             )
-            if depths[site_index] is None or distance_squared < depths[site_index]:
-                depths[site_index] = distance_squared
-                pixels[site_index] = light
+            pixels[site_index] = tuple(
+                prior * (1 - coverage) + observed * coverage
+                for prior, observed in zip(
+                    pixels[site_index], surface_light, strict=True
+                )
+            )
     return tuple(pixels)
 
 

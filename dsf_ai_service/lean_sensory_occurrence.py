@@ -5,11 +5,11 @@ from __future__ import annotations
 from dataclasses import dataclass
 import hashlib
 
-from dsf_ai_service.guala_physical_sensorium import RETINAL_PORTS
+from dsf_ai_service.guala_external_rgb_retina import EXTERNAL_RGB_VALUE_COUNT
 from dsf_ai_service.lean_actor import MAX_PRESSURE_BYTES
 
 
-RETINAL_SITE_COUNT = RETINAL_PORTS
+RETINAL_SITE_COUNT = EXTERNAL_RGB_VALUE_COUNT // 3
 SOURCES = frozenset({
     "camera",
     "camera-microphone",
@@ -32,18 +32,18 @@ CO_SENSORY_SOURCES = frozenset({
 @dataclass(frozen=True, slots=True)
 class LeanSensoryOccurrence:
     source: str
-    retina_u8: tuple[int, ...] | None
+    retina_rgb_u8: tuple[int, ...] | None
     pressure_s16le: bytes | None
     guided_vocal_drives: tuple[tuple[int, int, int], ...] | None = None
 
     def __post_init__(self) -> None:
         if self.source not in SOURCES:
             raise ValueError("sensory source is not mounted")
-        retina = self.retina_u8
+        retina = self.retina_rgb_u8
         pressure = self.pressure_s16le
         guided = self.guided_vocal_drives
         if retina is not None and (
-            len(retina) != RETINAL_SITE_COUNT
+            len(retina) != EXTERNAL_RGB_VALUE_COUNT
             or any(
                 isinstance(value, bool)
                 or not isinstance(value, int)
@@ -51,7 +51,7 @@ class LeanSensoryOccurrence:
                 for value in retina
             )
         ):
-            raise ValueError("sensory light changed the 135-site u8 retina")
+            raise ValueError("sensory light changed the 135-site RGB retina")
         if pressure is not None and (
             not isinstance(pressure, bytes)
             or not pressure
@@ -98,13 +98,13 @@ class LeanSensoryOccurrence:
 
     @property
     def source_receipt_sha256(self) -> str:
-        retina = b"" if self.retina_u8 is None else bytes(self.retina_u8)
+        retina = b"" if self.retina_rgb_u8 is None else bytes(self.retina_rgb_u8)
         pressure = b"" if self.pressure_s16le is None else self.pressure_s16le
         body = (
             (
-                b"guala.lean_sensory_occurrence.v1\0"
+                b"guala.lean_sensory_occurrence.v3\0"
                 if self.guided_vocal_drives is None
-                else b"guala.lean_sensory_occurrence.v2\0"
+                else b"guala.lean_sensory_occurrence.v4\0"
             )
             + self.source.encode("ascii")
             + len(retina).to_bytes(2, "little")

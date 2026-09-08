@@ -728,17 +728,22 @@ def declare_joint_source_occurrences(
         if joint_relevance_profile_payload is not None
         else UF_V1_4_SAMPLED_VOLUME_AND_RELEVANCE_PIECEWISE_LINEAR
     )
-    sense_offsets: dict[PhysicalSense, int] = {}
     ports_by_key: dict[
         tuple[PhysicalSense, int], NativeSensorySubstreamInput
     ] = {}
+    positions_by_key: dict[tuple[PhysicalSense, int], int] = {}
     running = 0
     for sense in SENSE_ORDER:
         ports = observed_substreams.get(sense, ())
-        sense_offsets[sense] = running
         for port in ports:
-            ports_by_key[(sense, port.topology_index)] = port
-        running += len(ports)
+            key = (sense, port.topology_index)
+            if key in ports_by_key:
+                raise ValueError(
+                    "observed joint-source topology repeats a physical receptor"
+                )
+            ports_by_key[key] = port
+            positions_by_key[key] = running
+            running += 1
     occurrences = []
     for unit in declared_units:
         if not unit:
@@ -751,7 +756,7 @@ def declare_joint_source_occurrences(
                     "declared joint-source unit references an "
                     "unobserved receptor"
                 )
-            global_indices.append(sense_offsets[sense] + topology_index)
+            global_indices.append(positions_by_key[key])
         port_indices = tuple(sorted(global_indices))
         if len(set(port_indices)) != len(port_indices):
             raise ValueError("declared joint-source unit repeats a receptor")

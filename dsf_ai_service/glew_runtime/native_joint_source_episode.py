@@ -237,8 +237,9 @@ def _ordered_ports(
             for port in ports
         ):
             raise TypeError("joint-source receptor crossed a physical sense")
-        if tuple(port.topology_index for port in ports) != tuple(
-            range(len(ports))
+        topology_indices = tuple(port.topology_index for port in ports)
+        if topology_indices and topology_indices != tuple(
+            range(topology_indices[0], topology_indices[0] + len(ports))
         ):
             raise ValueError("joint-source topology is incomplete or reordered")
         ordered.extend(ports)

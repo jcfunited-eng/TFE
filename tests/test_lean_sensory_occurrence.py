@@ -16,7 +16,7 @@ from dsf_ai_service.lean_sensory_occurrence import (
 
 
 IDENTITY = "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1"
-RETINA = tuple(index % 256 for index in range(RETINAL_SITE_COUNT))
+RETINA = tuple(index % 256 for index in range(RETINAL_SITE_COUNT * 3))
 PRESSURE = bytes(index % 256 for index in range(8_000))
 GUIDED = ((37, 0, 1_500), (38, 0, 1_500), (39, 0, 1_500), (44, 0, 1_500))
 BODY_AXES = (
@@ -75,7 +75,7 @@ def test_transport_decodes_one_typed_sensory_occurrence() -> None:
         "kind": "sensory",
         "payload": {
             "source": "camera-microphone",
-            "retina_u8": RETINA,
+            "retina_rgb_u8": RETINA,
             "pcm_s16le_base64": encoded,
         },
     })
