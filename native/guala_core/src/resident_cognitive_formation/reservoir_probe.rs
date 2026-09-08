@@ -4384,6 +4384,28 @@ fn guided_vocal_population_growth_json(
         .map(|value| value.parse::<u128>().expect("guided vocal carriers are u128"))
         .unwrap_or(1_500);
     assert!((1..=10_000).contains(&guide_carriers));
+    let tutor_pressure_bytes = fs::read(
+        std::env::var("GUALA_PROBE_GUIDED_VOCAL_TUTOR_PRESSURE_PCM")
+            .expect("guided vocal tutor pressure path must be set"),
+    )
+    .expect("guided vocal tutor pressure reads");
+    assert_eq!(
+        tutor_pressure_bytes.len(),
+        8_000,
+        "guided vocal tutor pressure is one exact 4,000-sample interval",
+    );
+    let tutor_pressure = tutor_pressure_bytes
+        .chunks_exact(2)
+        .map(|sample| i16::from_le_bytes([sample[0], sample[1]]))
+        .collect::<Vec<_>>();
+    assert!(
+        tutor_pressure.iter().any(|sample| *sample != 0),
+        "guided vocal tutor pressure must contain physical pressure",
+    );
+    let tutor_pressure_source = probe_hearing_episode(
+        &tutor_pressure,
+        "candidate-exact-external-tutor-pressure",
+    );
     let checkpoints = [1_u32, 2, 4, 8, 16, 32, 64, 128, 256];
     let mut observations = Vec::new();
     let mut occurrence = 0_u64;
@@ -4481,7 +4503,10 @@ fn guided_vocal_population_growth_json(
             &moved.proprioceptive_consequences,
         )
         .expect("guided vocal consequence source admits");
-        let mut admitted_sources = vec![super::admitted_fixture_episode(&source)];
+        let mut admitted_sources = vec![
+            super::admitted_fixture_episode(&source),
+            super::admitted_fixture_episode(&tutor_pressure_source),
+        ];
         if let Some(source) = pending_motor_consequence.take() {
             admitted_sources.push(super::admitted_fixture_episode(&source));
         }
@@ -4939,8 +4964,11 @@ fn guided_vocal_population_growth_json(
     let mut result = json!({
         "measurement_only": true,
         "guidance_is_finite_external_tissue_work": true,
+        "guidance_includes_external_tutor_pressure": true,
         "guidance_authors_no_contact_directly": true,
         "guide_carriers_per_terminal": guide_carriers.to_string(),
+        "tutor_pressure_sample_count": tutor_pressure.len(),
+        "tutor_pressure_nonzero_sample_count": tutor_pressure.iter().filter(|sample| **sample != 0).count(),
         "maximum_cycles": maximum_cycles,
         "completed_cycles": completed_cycles,
         "sequence_repetitions": sequence_repetitions,
@@ -5345,8 +5373,9 @@ fn probe_cochlear_coefficients() -> (Vec<f64>, Vec<f64>, Vec<f64>) {
     (pole_real, pole_imag, injection)
 }
 
-fn probe_self_hearing_episode(
+fn probe_hearing_episode(
     pressure: &[i16],
+    source_authority: &str,
 ) -> crate::joint_source_episode::NativeJointSourceEpisode {
     assert_eq!(pressure.len(), 4_000, "one exact 250 ms pressure interval");
     let normalized = pressure
@@ -5400,7 +5429,7 @@ fn probe_self_hearing_episode(
     let frames = envelopes.len();
     let mut output = b"GLJSRC02".to_vec();
     probe_u16(&mut output, 2);
-    probe_text(&mut output, "candidate-exact-self-pressure");
+    probe_text(&mut output, source_authority);
     output.extend_from_slice(&[1, 0, 1, 1, 1, 1]);
     probe_u32(&mut output, port_count);
     for topology_index in 0..PROBE_LEGACY_EAR_PORT_COUNT {
@@ -5431,7 +5460,13 @@ fn probe_self_hearing_episode(
         frames,
     );
     decode_native_joint_source_episode(&output, port_count, port_count * frames, 3, 3 * frames)
-        .expect("candidate self-hearing episode decodes")
+        .expect("candidate hearing episode decodes")
+}
+
+fn probe_self_hearing_episode(
+    pressure: &[i16],
+) -> crate::joint_source_episode::NativeJointSourceEpisode {
+    probe_hearing_episode(pressure, "candidate-exact-self-pressure")
 }
 
 /// Candidate-47H dynamic regime map over the immutable task-1429 body. This

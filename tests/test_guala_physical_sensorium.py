@@ -12,6 +12,11 @@ from dsf_ai_service.guala_physical_sensorium import (
     RETINAL_PORTS,
     compact_signal_body,
     settle_physical_sensorium,
+    settle_projected_physical_sensorium,
+)
+from dsf_ai_service.glew_runtime.sensory_full_field_boundary import (
+    PhysicalSense,
+    SENSE_ORDER,
 )
 from dsf_ai_service.guala_receptor_anatomy import (
     ANATOMY_SHA256,
@@ -88,6 +93,31 @@ def test_compact_body_has_explicit_anatomical_order() -> None:
         + (8.0,) * 4
         + (9.0,) * 2
     )
+
+
+def test_projected_senses_are_disjoint_and_retain_authored_port_counts() -> None:
+    sensorium = _constant()
+    hearing = settle_projected_physical_sensorium(
+        assembly_id="candidate55-immediate-self-hearing",
+        source_times=TIMES,
+        sensorium=sensorium,
+        senses=(PhysicalSense.SOUND,),
+    )
+    nonsound = settle_projected_physical_sensorium(
+        assembly_id="candidate55-immediate-motor-return",
+        source_times=TIMES,
+        sensorium=sensorium,
+        senses=tuple(
+            sense for sense in SENSE_ORDER if sense is not PhysicalSense.SOUND
+        ),
+    )
+
+    assert hearing.port_count == 34
+    assert nonsound.port_count == PORT_COUNT - hearing.port_count
+    assert hearing.source_sample_count == hearing.port_count * len(TIMES)
+    assert nonsound.source_sample_count == nonsound.port_count * len(TIMES)
+    assert hearing.occurrence_count == nonsound.occurrence_count == 1
+    assert hearing.python_callback_count == nonsound.python_callback_count == 0
 
 
 def test_compact_body_refuses_changed_anatomy_clock_and_nonfinite_sample() -> None:

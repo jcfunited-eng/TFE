@@ -3366,6 +3366,7 @@ impl ResidentOrganismRuntime {
             false,
             None,
             crate::exact_rational::ExactRational::integer(0),
+            None,
         )
     }
 
@@ -3383,6 +3384,7 @@ impl ResidentOrganismRuntime {
             false,
             None,
             real_nutrition_intake_zeptojoules,
+            None,
         )
     }
 
@@ -3430,6 +3432,7 @@ impl ResidentOrganismRuntime {
             coexisting_sources,
             Some(consumed_sample_count),
             real_nutrition_intake_zeptojoules,
+            None,
         )
     }
 
@@ -3446,6 +3449,38 @@ impl ResidentOrganismRuntime {
             true,
             None,
             crate::exact_rational::ExactRational::integer(0),
+            None,
+        )
+    }
+
+    /// Apply one externally supplied physical guide to vocal tissue and admit
+    /// its exact proprioceptive consequence beside the tutor's simultaneous
+    /// sensory source. The guide is transient caregiver work: only the body's
+    /// lawful successor and the ordinary neuronal consequence can persist.
+    fn advance_guided_vocal_interval_unsealed(
+        &mut self,
+        episodes: &[(NativeJointSourceEpisode, Vec<(i64, i64)>)],
+        drives: &[BodyEffectorDrive],
+    ) -> Result<ResidentPrepareReceipt, RuntimeError> {
+        if episodes.is_empty() || drives.is_empty() {
+            return Err(RuntimeError::AdmittedSourceRequired);
+        }
+        let mut axes = std::collections::BTreeSet::new();
+        for drive in drives {
+            if !drive.terminal.axis().is_vocal_articulator()
+                || !axes.insert(drive.terminal.axis())
+            {
+                return Err(RuntimeError::ArticulatedBody(
+                    "guided vocal work left unique vocal anatomy".into(),
+                ));
+            }
+        }
+        self.advance_admitted_intervals_unsealed(
+            episodes,
+            true,
+            None,
+            crate::exact_rational::ExactRational::integer(0),
+            Some(drives),
         )
     }
 
@@ -3455,6 +3490,7 @@ impl ResidentOrganismRuntime {
         coexisting_sources: bool,
         consume_in_flight_acoustic_samples: Option<usize>,
         real_nutrition_intake_zeptojoules: crate::exact_rational::ExactRational,
+        guided_vocal_drives: Option<&[BodyEffectorDrive]>,
     ) -> Result<ResidentPrepareReceipt, RuntimeError> {
         if self.pending.is_some()
             || self.direct_predecessor.is_some()
@@ -3469,6 +3505,29 @@ impl ResidentOrganismRuntime {
                 "pending self-pressure must be composed into the current physical hop".into(),
             ));
         }
+        let guided = if let Some(drives) = guided_vocal_drives {
+            let admitted = AdmittedBodyEffectorDrives::admit(drives.to_vec())
+                .map_err(|error| RuntimeError::ArticulatedBody(format!("{error:?}")))?;
+            let moved = settle_body_effector_drives(
+                self.live_articulated_body(),
+                &admitted,
+                BODY_SETTLEMENT_CLOCK_MICROSECONDS,
+            )
+            .map_err(|error| RuntimeError::ArticulatedBody(format!("{error:?}")))?;
+            let (source, _) = body_proprioceptive_source(
+                self.live_organism_tick(),
+                &moved.proprioceptive_consequences,
+            )?
+            .ok_or_else(|| {
+                RuntimeError::ArticulatedBody(
+                    "guided vocal work produced no physical movement".into(),
+                )
+            })?;
+            let intervals = vec![(1_i64, 1_000_i64); source.joint_source_occurrences().len()];
+            Some((source, intervals, moved.successor))
+        } else {
+            None
+        };
         let prior = self.unsealed.take();
         let (
             predecessor,
@@ -3476,7 +3535,7 @@ impl ResidentOrganismRuntime {
             current_observation,
             initial_cognitive,
             initial_vestibular,
-            initial_articulated_body,
+            mut initial_articulated_body,
             carried_in_flight_acoustic,
         ) = match prior {
             Some(state) => (
@@ -3497,6 +3556,16 @@ impl ResidentOrganismRuntime {
                 self.active.articulated_body.clone(),
                 self.active.in_flight_acoustic.clone(),
             ),
+        };
+        let mut guided_episodes = Vec::new();
+        let episodes = if let Some((source, intervals, successor_body)) = guided {
+            guided_episodes.reserve(episodes.len() + 1);
+            guided_episodes.push((source, intervals));
+            guided_episodes.extend_from_slice(episodes);
+            initial_articulated_body = successor_body;
+            guided_episodes.as_slice()
+        } else {
+            episodes
         };
         let mut residency = self.causal_event_residency.take();
         let built = self.build_admitted_trajectory(
@@ -5622,6 +5691,58 @@ impl NativeResidentOrganismRuntime {
             root_yaw_unit_recruitments: prepared.root_yaw_unit_recruitments,
             root_translation_unit_recruitments:
                 prepared.root_translation_unit_recruitments,
+            articulatory_unit_recruitments: prepared.articulatory_unit_recruitments,
+            causal_interval_evidence: prepared.causal_interval_evidence,
+            articulated_body_consequences: prepared.articulated_body_consequences,
+            body_proprioceptive_sources: prepared.body_proprioceptive_sources,
+        })
+    }
+
+    /// Apply bounded external physical work only to vocal anatomy, then admit
+    /// its real proprioceptive source beside the supplied tutor sensorium.
+    fn advance_guided_vocal_interval_unsealed(
+        &mut self,
+        py: Python<'_>,
+        sources: Vec<Py<NativeJointSourceEpisode>>,
+        maximum_causal_intervals: Vec<Vec<(i64, i64)>>,
+        guided_vocal_drives: Vec<(u8, u8, u128)>,
+    ) -> PyResult<NativeResidentOrganismPrepare> {
+        if sources.len() != maximum_causal_intervals.len() {
+            return Err(PyValueError::new_err(
+                "guided vocal source and interval counts differ",
+            ));
+        }
+        let drives = guided_vocal_drives
+            .into_iter()
+            .map(|(axis, direction, outward_elementary_carriers)| {
+                let terminal = BodyEffectorTerminal::from_ordinals(axis, direction)
+                    .ok_or_else(|| PyValueError::new_err("guided vocal terminal is invalid"))?;
+                Ok(BodyEffectorDrive {
+                    terminal,
+                    outward_elementary_carriers,
+                })
+            })
+            .collect::<PyResult<Vec<_>>>()?;
+        let episodes = sources
+            .iter()
+            .zip(maximum_causal_intervals)
+            .map(|(source, intervals)| (source.borrow(py).clone(), intervals))
+            .collect::<Vec<_>>();
+        let prepared = py
+            .allow_threads(|| {
+                self.runtime
+                    .advance_guided_vocal_interval_unsealed(&episodes, &drives)
+            })
+            .map_err(|error| PyValueError::new_err(error.to_string()))?;
+        Ok(NativeResidentOrganismPrepare {
+            token: prepared.token,
+            sealed: prepared.sealed,
+            observation: prepared.observation,
+            phase_counts: prepared.phase_counts,
+            receptor_ingress: prepared.receptor_ingress,
+            motor_unit_recruitments: prepared.motor_unit_recruitments,
+            root_yaw_unit_recruitments: prepared.root_yaw_unit_recruitments,
+            root_translation_unit_recruitments: prepared.root_translation_unit_recruitments,
             articulatory_unit_recruitments: prepared.articulatory_unit_recruitments,
             causal_interval_evidence: prepared.causal_interval_evidence,
             articulated_body_consequences: prepared.articulated_body_consequences,
@@ -8434,7 +8555,9 @@ fn take_u64(bytes: &[u8], offset: &mut usize) -> Result<u64, RuntimeError> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::virtual_articulated_body::BODY_EFFECTOR_TERMINAL_COUNT;
+    use crate::virtual_articulated_body::{
+        BodyAxis, BodyEffectorDirection, BODY_EFFECTOR_TERMINAL_COUNT,
+    };
     use std::fs;
     use std::path::PathBuf;
 
@@ -9856,6 +9979,55 @@ mod tests {
         assert_eq!(candidate.active.vestibular, reference.active.vestibular);
         assert!(candidate.unsealed.is_none());
         assert!(candidate.direct_predecessor.is_none());
+    }
+
+    #[test]
+    fn guided_vocal_interval_moves_only_vocal_body_and_rolls_back_exactly() {
+        let tutor = source("guided-vocal-native-tutor");
+        let episode = vec![(
+            tutor.clone(),
+            vec![(5, 1); tutor.joint_source_occurrences().len()],
+        )];
+        let mut runtime = create_resident_genesis(IDENTITY, 0, budget()).unwrap();
+        runtime.active.articulated_body.initialize_proprioception();
+        let predecessor_envelope = runtime.active_envelope().to_vec();
+        let predecessor_observation = runtime.observation();
+        let vocal_axis = BodyAxis::VocalTractSection0Area;
+        let predecessor_position = runtime.active.articulated_body.axis(vocal_axis);
+        let guide = [BodyEffectorDrive {
+            terminal: BodyEffectorTerminal::new(
+                vocal_axis,
+                BodyEffectorDirection::TowardMinimum,
+            ),
+            outward_elementary_carriers: 1_500,
+        }];
+
+        let prepared = runtime
+            .advance_guided_vocal_interval_unsealed(&episode, &guide)
+            .unwrap();
+        assert!(!prepared.sealed);
+        assert_eq!(prepared.causal_interval_evidence.len(), 1);
+        assert!(
+            runtime.live_articulated_body().axis(vocal_axis) < predecessor_position,
+            "external vocal work did not move its exact tissue",
+        );
+        runtime.abort_unsealed_trajectory().unwrap();
+        assert_eq!(runtime.active_envelope(), predecessor_envelope);
+        assert_eq!(runtime.observation(), predecessor_observation);
+
+        let non_vocal = [BodyEffectorDrive {
+            terminal: BodyEffectorTerminal::new(
+                BodyAxis::LeftGripAperture,
+                BodyEffectorDirection::TowardMinimum,
+            ),
+            outward_elementary_carriers: 1_500,
+        }];
+        assert!(runtime
+            .advance_guided_vocal_interval_unsealed(&episode, &non_vocal)
+            .is_err());
+        assert_eq!(runtime.active_envelope(), predecessor_envelope);
+        assert_eq!(runtime.observation(), predecessor_observation);
+        assert!(runtime.unsealed.is_none());
     }
 
     #[test]

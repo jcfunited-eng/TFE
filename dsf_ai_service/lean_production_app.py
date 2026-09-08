@@ -12,7 +12,7 @@ from typing import Callable, Literal
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import Response
-from pydantic import BaseModel, ConfigDict, ValidationError, model_validator
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
 
 from dsf_ai_service.guala_home_world import home_world_authority
 from dsf_ai_service.lean_actor import LeanOrganismActor, PhysicalOccurrence
@@ -31,6 +31,16 @@ OCCURRENCE_ROUTE = f"{PUBLIC_API_PREFIX}/occurrence"
 PRESSURE_ROUTE = f"{PUBLIC_API_PREFIX}/pressure/{{receipt}}"
 
 
+class GuidedVocalDriveBody(BaseModel):
+    """One bounded external physical drive on a native body axis."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
+
+    axis_ordinal: int = Field(ge=0, le=44)
+    direction_ordinal: Literal[0, 1]
+    outward_elementary_carriers: int = Field(ge=1, le=(1 << 32) - 1)
+
+
 class SensoryBody(BaseModel):
     """Bounded browser-side physical light and pressure."""
 
@@ -40,6 +50,7 @@ class SensoryBody(BaseModel):
         "camera",
         "camera-microphone",
         "card-microphone",
+        "guided-vocal-microphone",
         "media",
         "microphone",
         "text-light",
@@ -47,6 +58,7 @@ class SensoryBody(BaseModel):
     ]
     retina_u8: tuple[int, ...] | None = None
     pcm_s16le_base64: str | None = None
+    guided_vocal_drives: tuple[GuidedVocalDriveBody, ...] | None = None
 
 
 class OccurrenceBody(BaseModel):
@@ -161,6 +173,18 @@ def _physical_occurrence(body: OccurrenceBody) -> PhysicalOccurrence:
             source=payload.source,
             retina_u8=payload.retina_u8,
             pressure_s16le=pressure,
+            guided_vocal_drives=(
+                None
+                if payload.guided_vocal_drives is None
+                else tuple(
+                    (
+                        drive.axis_ordinal,
+                        drive.direction_ordinal,
+                        drive.outward_elementary_carriers,
+                    )
+                    for drive in payload.guided_vocal_drives
+                )
+            ),
         ),
     )
 

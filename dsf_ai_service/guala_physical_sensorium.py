@@ -10,6 +10,11 @@ import sys
 
 from dsf_ai_service.glew_runtime.native_joint_source_episode import (
     settle_native_joint_source_episode_batch_from_anatomy,
+    settle_native_joint_source_episode_for_senses_from_anatomy,
+)
+from dsf_ai_service.glew_runtime.sensory_full_field_boundary import (
+    PhysicalSense,
+    SENSE_ORDER,
 )
 from dsf_ai_service.guala_receptor_anatomy import PORT_COUNT, receptor_anatomy
 
@@ -138,6 +143,64 @@ def compact_signal_body(
     if sys.byteorder != "little":
         signals.byteswap()
     return signals.tobytes()
+
+
+def _sense_trajectories(
+    sensorium: PhysicalSensorium,
+) -> dict[PhysicalSense, PortTrajectories]:
+    return {
+        PhysicalSense.SIGHT: sensorium.retina,
+        PhysicalSense.SOUND: (*sensorium.legacy_ears, *sensorium.cochleae),
+        PhysicalSense.TOUCH: sensorium.touch,
+        PhysicalSense.SMELL: sensorium.smell,
+        PhysicalSense.TASTE: sensorium.taste,
+        PhysicalSense.BODY: (
+            *sensorium.displacement,
+            *sensorium.articulation,
+            *sensorium.thermal,
+        ),
+    }
+
+
+def settle_projected_physical_sensorium(
+    *,
+    assembly_id: str,
+    source_times: tuple[Fraction, ...],
+    sensorium: PhysicalSensorium,
+    senses: tuple[PhysicalSense, ...],
+) -> object:
+    """Settle explicit disjoint senses while preserving mounted port anatomy."""
+
+    _validate(sensorium, len(source_times))
+    if (
+        not isinstance(senses, tuple)
+        or not senses
+        or any(not isinstance(sense, PhysicalSense) for sense in senses)
+        or tuple(sorted(senses, key=SENSE_ORDER.index)) != senses
+    ):
+        raise ValueError("physical sense projection is empty or noncanonical")
+    if len(set(senses)) != len(senses):
+        raise ValueError("physical sense projection repeats a sense")
+    by_sense = _sense_trajectories(sensorium)
+    selected = tuple(
+        trajectory
+        for sense in senses
+        for trajectory in by_sense[sense]
+    )
+    if not selected:
+        raise RuntimeError("physical sense projection left mounted anatomy")
+    signals = array("d")
+    for trajectory in selected:
+        signals.extend(float(value) for value in trajectory)
+    if sys.byteorder != "little":
+        signals.byteswap()
+    return settle_native_joint_source_episode_for_senses_from_anatomy(
+        anatomy=receptor_anatomy(),
+        assembly_id=assembly_id,
+        source_times=source_times,
+        signal_body=signals.tobytes(),
+        selected_senses=senses,
+    )
 
 
 def settle_physical_sensorium(

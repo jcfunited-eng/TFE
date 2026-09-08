@@ -14,6 +14,7 @@ SOURCES = frozenset({
     "camera",
     "camera-microphone",
     "card-microphone",
+    "guided-vocal-microphone",
     "media",
     "microphone",
     "text-light",
@@ -33,12 +34,14 @@ class LeanSensoryOccurrence:
     source: str
     retina_u8: tuple[int, ...] | None
     pressure_s16le: bytes | None
+    guided_vocal_drives: tuple[tuple[int, int, int], ...] | None = None
 
     def __post_init__(self) -> None:
         if self.source not in SOURCES:
             raise ValueError("sensory source is not mounted")
         retina = self.retina_u8
         pressure = self.pressure_s16le
+        guided = self.guided_vocal_drives
         if retina is not None and (
             len(retina) != RETINAL_SITE_COUNT
             or any(
@@ -68,19 +71,55 @@ class LeanSensoryOccurrence:
             retina is None or pressure is None
         ):
             raise ValueError("co-sensory source lost light or pressure")
+        if self.source == "guided-vocal-microphone":
+            if retina is not None or pressure is None or not guided:
+                raise ValueError("guided vocal source lost pressure or body work")
+            if len(guided) > 13:
+                raise ValueError("guided vocal source exceeded fixed vocal anatomy")
+            axes: set[int] = set()
+            for drive in guided:
+                if (
+                    not isinstance(drive, tuple)
+                    or len(drive) != 3
+                    or any(isinstance(value, bool) or not isinstance(value, int) for value in drive)
+                ):
+                    raise ValueError("guided vocal drive changed exact shape")
+                axis, direction, carriers = drive
+                if (
+                    not 0 <= axis <= 44
+                    or direction not in (0, 1)
+                    or not 1 <= carriers <= (1 << 32) - 1
+                    or axis in axes
+                ):
+                    raise ValueError("guided vocal drive left bounded unique anatomy")
+                axes.add(axis)
+        elif guided is not None:
+            raise ValueError("ordinary sensory source carried vocal body work")
 
     @property
     def source_receipt_sha256(self) -> str:
         retina = b"" if self.retina_u8 is None else bytes(self.retina_u8)
         pressure = b"" if self.pressure_s16le is None else self.pressure_s16le
         body = (
-            b"guala.lean_sensory_occurrence.v1\0"
+            (
+                b"guala.lean_sensory_occurrence.v1\0"
+                if self.guided_vocal_drives is None
+                else b"guala.lean_sensory_occurrence.v2\0"
+            )
             + self.source.encode("ascii")
             + len(retina).to_bytes(2, "little")
             + retina
             + len(pressure).to_bytes(2, "little")
             + pressure
         )
+        if self.guided_vocal_drives is not None:
+            body += len(self.guided_vocal_drives).to_bytes(1, "little")
+            for axis, direction, carriers in self.guided_vocal_drives:
+                body += (
+                    axis.to_bytes(1, "little")
+                    + direction.to_bytes(1, "little")
+                    + carriers.to_bytes(4, "little")
+                )
         return hashlib.sha256(body).hexdigest()
 
 

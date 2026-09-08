@@ -18,6 +18,7 @@ from dsf_ai_service.lean_sensory_occurrence import (
 IDENTITY = "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1"
 RETINA = tuple(index % 256 for index in range(RETINAL_SITE_COUNT))
 PRESSURE = bytes(index % 256 for index in range(8_000))
+GUIDED = ((37, 0, 1_500), (38, 0, 1_500), (39, 0, 1_500), (44, 0, 1_500))
 BODY_AXES = (
     (0, "neck_yaw", "millidegree", 0, -180_000, 0, 180_000),
     (1, "left_eyelid_aperture", "micrometre", 320, 0, 0, 320),
@@ -92,6 +93,53 @@ def test_transport_decodes_one_typed_sensory_occurrence() -> None:
     })
     with pytest.raises(ValueError, match="canonical base64"):
         _physical_occurrence(malformed)
+
+
+def test_guided_vocal_pressure_retains_one_bounded_physical_guide() -> None:
+    encoded = base64.b64encode(PRESSURE).decode("ascii")
+    parsed = OccurrenceBody.model_validate({
+        "kind": "sensory",
+        "payload": {
+            "source": "guided-vocal-microphone",
+            "pcm_s16le_base64": encoded,
+            "guided_vocal_drives": [
+                {
+                    "axis_ordinal": axis,
+                    "direction_ordinal": direction,
+                    "outward_elementary_carriers": carriers,
+                }
+                for axis, direction, carriers in GUIDED
+            ],
+        },
+    })
+    physical = _physical_occurrence(parsed)
+    assert physical.payload == LeanSensoryOccurrence(
+        "guided-vocal-microphone", None, PRESSURE, GUIDED
+    )
+    assert physical.payload.source_receipt_sha256 != LeanSensoryOccurrence(
+        "guided-vocal-microphone",
+        None,
+        PRESSURE,
+        tuple((axis, 1, carriers) for axis, _direction, carriers in GUIDED),
+    ).source_receipt_sha256
+
+    for invalid in (
+        (),
+        ((37, 0, 1_500), (37, 1, 1_500)),
+        ((23, 0, 1_500),),
+        ((37, 2, 1_500),),
+        ((37, 0, 0),),
+    ):
+        if invalid == ((23, 0, 1_500),):
+            occurrence = LeanSensoryOccurrence(
+                "guided-vocal-microphone", None, PRESSURE, invalid
+            )
+            assert occurrence.guided_vocal_drives == invalid
+        else:
+            with pytest.raises(ValueError):
+                LeanSensoryOccurrence(
+                    "guided-vocal-microphone", None, PRESSURE, invalid
+                )
 
 
 def test_home_projection_is_exact_compact_geometry_not_a_second_world() -> None:

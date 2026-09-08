@@ -15,7 +15,14 @@ from dsf_ai_service.glew_runtime.native_resident_organism import (
     exact_native_root_yaw_proprioceptive_source,
     exact_native_yaw_trajectory,
 )
-from dsf_ai_service.guala_physical_sensorium import settle_physical_sensorium
+from dsf_ai_service.guala_physical_sensorium import (
+    settle_physical_sensorium,
+    settle_projected_physical_sensorium,
+)
+from dsf_ai_service.glew_runtime.sensory_full_field_boundary import (
+    PhysicalSense,
+    SENSE_ORDER,
+)
 from dsf_ai_service.guala_world_sensorium import (
     BODY_INTERVAL_MICROSECONDS,
     consequence_source_times,
@@ -163,6 +170,7 @@ def prepare_motor_consequence(
     predecessor_body_axes: tuple[Any, ...],
     successor_body_axes: tuple[Any, ...],
     passive_times: tuple[Fraction, ...],
+    exclude_sound: bool = False,
 ) -> PreparedMotorConsequence:
     """Prepare exactly one truthful world action and its complete return."""
 
@@ -248,11 +256,20 @@ def prepare_motor_consequence(
         successor_body_axes=successor_body_axes,
         source_times=times,
     )
-    world_episode = settle_physical_sensorium(
-        assembly_id="guala-lean-native-motor-" + evidence.causal_transition_sha256,
-        source_times=times,
-        sensorium=sensorium,
-    )
+    assembly_id = "guala-lean-native-motor-" + evidence.causal_transition_sha256
+    if exclude_sound:
+        world_episode = settle_projected_physical_sensorium(
+            assembly_id=assembly_id,
+            source_times=times,
+            sensorium=sensorium,
+            senses=tuple(sense for sense in SENSE_ORDER if sense is not PhysicalSense.SOUND),
+        )
+    else:
+        world_episode = settle_physical_sensorium(
+            assembly_id=assembly_id,
+            source_times=times,
+            sensorium=sensorium,
+        )
     consequence_sources = list(_body_sources(evidence))
     source_tick = int(evidence.organism_tick)
     if actual_yaw:

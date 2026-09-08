@@ -13,7 +13,11 @@ from dsf_ai_service.lean_embodiment_observation import (
 )
 from dsf_ai_service.lean_sensory_occurrence import LeanSensoryOccurrence
 from dsf_ai_service.guala_motor_world import prepare_motor_consequence
-from dsf_ai_service.guala_physical_sensorium import settle_physical_sensorium
+from dsf_ai_service.guala_physical_sensorium import (
+    settle_physical_sensorium,
+    settle_projected_physical_sensorium,
+)
+from dsf_ai_service.glew_runtime.sensory_full_field_boundary import PhysicalSense
 from dsf_ai_service.guala_world_sensorium import (
     passive_sensorium,
     prepare_passive_world_interval,
@@ -130,6 +134,8 @@ class LeanPhysicalLoop:
         primary_prepared = prepare_passive_world_interval(world)
         uncommitted_prepared: Any | None = primary_prepared
         self_heard_samples = 0
+        self_hearing_source_tick = pending_source_tick
+        immediately_heard_pressure: bytes | None = None
         motor_plan = None
         try:
             primary_sensorium = passive_sensorium(
@@ -183,7 +189,13 @@ class LeanPhysicalLoop:
                 source_times=PASSIVE_TIMES,
                 sensorium=primary_sensorium,
             )
-            if pending_pressure is None:
+            if sensory is not None and sensory.guided_vocal_drives is not None:
+                primary = runtime.advance_guided_vocal_interval_unsealed(
+                    (primary_episode,),
+                    PASSIVE_ADMISSION,
+                    sensory.guided_vocal_drives,
+                )
+            elif pending_pressure is None:
                 primary = runtime.advance_admitted_trajectory_unsealed(
                     (primary_episode,), PASSIVE_ADMISSION
                 )
@@ -202,6 +214,45 @@ class LeanPhysicalLoop:
             final = primary
             if _requires_physical_return(primary):
                 successor_axes = tuple(runtime.readiness().articulated_body_axes)
+                return_pressure = runtime.in_flight_acoustic_pressure_s16le
+                return_body = runtime.in_flight_acoustic_body_s16le
+                return_source_tick = runtime.in_flight_acoustic_source_tick
+                if (return_pressure is None) != (return_body is None) or (
+                    return_pressure is None
+                ) != (return_source_tick is None):
+                    raise RuntimeError(
+                        "native return acoustic state lost cardinality"
+                    )
+                return_hearing = None
+                return_heard_samples = 0
+                if return_pressure is not None:
+                    immediately_heard_pressure = bytes(return_pressure)
+                    (
+                        heard_times,
+                        heard_legacy,
+                        heard_cochleae,
+                        return_heard_samples,
+                    ) = one_self_hearing_hop(
+                        bytes(return_pressure),
+                    )
+                    if heard_times != PASSIVE_TIMES:
+                        raise RuntimeError(
+                            "return self-hearing changed its protected clock"
+                        )
+                    hearing_sensorium = replace(
+                        primary_sensorium,
+                        legacy_ears=(heard_legacy, heard_legacy),
+                        cochleae=heard_cochleae,
+                    )
+                    return_hearing = settle_projected_physical_sensorium(
+                        assembly_id=(
+                            "guala-lean-immediate-self-hearing-"
+                            + primary.causal_transition_sha256
+                        ),
+                        source_times=PASSIVE_TIMES,
+                        sensorium=hearing_sensorium,
+                        senses=(PhysicalSense.SOUND,),
+                    )
                 motor_plan = prepare_motor_consequence(
                     world=world,
                     evidence=primary,
@@ -209,6 +260,7 @@ class LeanPhysicalLoop:
                     predecessor_body_axes=tuple(before_native.articulated_body_axes),
                     successor_body_axes=successor_axes,
                     passive_times=PASSIVE_TIMES,
+                    exclude_sound=return_hearing is not None,
                 )
                 uncommitted_prepared = motor_plan.prepared_world
                 with world.prepared_action_visibility_transaction(
@@ -216,9 +268,21 @@ class LeanPhysicalLoop:
                 ):
                     world.commit_prepared_action(motor_plan.prepared_world)
                     uncommitted_prepared = None
-                    final = runtime.advance_coexisting_admitted_interval_unsealed(
-                        motor_plan.sources, motor_plan.admissions
-                    )
+                    if return_pressure is None:
+                        final = runtime.advance_coexisting_admitted_interval_unsealed(
+                            motor_plan.sources, motor_plan.admissions
+                        )
+                    else:
+                        final = runtime.advance_in_flight_self_hearing_unsealed(
+                            (*motor_plan.sources, return_hearing),
+                            (*motor_plan.admissions, [(250, 1_000)]),
+                            bytes(return_pressure),
+                            bytes(return_body),
+                            True,
+                            return_heard_samples,
+                        )
+                        self_heard_samples += return_heard_samples
+                        self_hearing_source_tick = return_source_tick
                     if motor_plan.vestibular is not None:
                         final = runtime.advance_vestibular_trajectory_unsealed(
                             *motor_plan.vestibular
@@ -230,7 +294,12 @@ class LeanPhysicalLoop:
                 or lived_tick_delta > MAX_NATIVE_INTERVALS_PER_OCCURRENCE
             ):
                 raise RuntimeError("physical occurrence exceeded its interval bound")
+            self_pressure_pending = (
+                runtime.in_flight_acoustic_pressure_s16le is not None
+            )
             pressure_body = runtime.in_flight_acoustic_pressure_s16le
+            if pressure_body is None:
+                pressure_body = immediately_heard_pressure
             pressure_record = None
             if pressure_body is not None:
                 pressure_bytes = bytes(pressure_body)
@@ -268,6 +337,12 @@ class LeanPhysicalLoop:
                         tuple(runtime.readiness().articulated_body_axes),
                     ),
                     "external_heard_sample_count": external_heard_samples,
+                    "external_guided_vocal_axis_count": (
+                        0
+                        if sensory is None
+                        or sensory.guided_vocal_drives is None
+                        else len(sensory.guided_vocal_drives)
+                    ),
                     "external_retinal_site_count": (
                         0
                         if sensory is None or sensory.retina_u8 is None
@@ -302,10 +377,11 @@ class LeanPhysicalLoop:
                     ),
                     "self_hearing_source_tick": (
                         None
-                        if pending_source_tick is None
-                        else int(pending_source_tick)
+                        if self_hearing_source_tick is None
+                        else int(self_hearing_source_tick)
                     ),
                     "self_heard_sample_count": self_heard_samples,
+                    "self_pressure_pending": self_pressure_pending,
                     "world_action_refusal": (
                         None if motor_plan is None else motor_plan.refusal_reason
                     ),

@@ -247,16 +247,49 @@ fn compact_lesson_episode_from_anatomy(
     assembly_id: &str,
     clock: &[(i64, i64)],
     signal_bytes: &[u8],
+    selected_senses: Option<&BTreeSet<u8>>,
 ) -> Result<NativeJointSourceEpisode, String> {
-    let ports = anatomy.joint_source_ports();
+    let anatomy_ports = anatomy.joint_source_ports();
     let occurrences = anatomy.joint_source_occurrences();
-    if ports.is_empty() || occurrences.len() != 1 {
+    if anatomy_ports.is_empty() || occurrences.len() != 1 {
         return Err("compact lesson anatomy must carry one nonempty joint occurrence".into());
     }
     let occurrence = &occurrences[0];
-    if occurrence.port_indices.iter().copied().ne(0..ports.len()) {
+    if occurrence.port_indices.iter().copied().ne(0..anatomy_ports.len()) {
         return Err("compact lesson anatomy occurrence does not cover every port once".into());
     }
+    let selected_indices = anatomy_ports
+        .iter()
+        .enumerate()
+        .filter_map(|(index, port)| {
+            selected_senses
+                .is_none_or(|senses| senses.contains(&port.sense))
+                .then_some(index)
+        })
+        .collect::<Vec<_>>();
+    if selected_indices.is_empty() {
+        return Err("compact lesson sense projection selected no receptor ports".into());
+    }
+    let ports = selected_indices
+        .iter()
+        .map(|index| &anatomy_ports[*index])
+        .collect::<Vec<_>>();
+    let selected_lookup = selected_indices
+        .iter()
+        .enumerate()
+        .map(|(projected, original)| (*original, projected))
+        .collect::<std::collections::BTreeMap<_, _>>();
+    let projected_groups = occurrence
+        .groups
+        .iter()
+        .filter_map(|group| {
+            let projected = group
+                .iter()
+                .filter_map(|member| selected_lookup.get(member).copied())
+                .collect::<Vec<_>>();
+            (!projected.is_empty()).then_some(projected)
+        })
+        .collect::<Vec<_>>();
     if clock.is_empty() {
         return Err("compact lesson clock is empty".into());
     }
@@ -323,12 +356,21 @@ fn compact_lesson_episode_from_anatomy(
         .to_le_bytes(),
     );
     compact_text(&mut output, assembly_id, "assembly identity")?;
-    output.extend_from_slice(&anatomy.storage.sense_states);
+    let sense_states = if let Some(senses) = selected_senses {
+        let mut states = [1_u8; SENSE_COUNT];
+        for sense in senses {
+            states[usize::from(*sense)] = 0;
+        }
+        states
+    } else {
+        anatomy.storage.sense_states
+    };
+    output.extend_from_slice(&sense_states);
     compact_u32(&mut output, ports.len(), "port count")?;
     let zero = BigRational::zero();
     let one = BigRational::one();
     let mut signal_offset = 0usize;
-    for port in ports {
+    for port in &ports {
         if port
             .reported_phase_turns
             .iter()
@@ -424,10 +466,10 @@ fn compact_lesson_episode_from_anatomy(
     compact_u32(&mut output, 1, "occurrence count")?;
     compact_u32(
         &mut output,
-        occurrence.port_indices.len(),
+        ports.len(),
         "occurrence vertex count",
     )?;
-    for &port_index in &occurrence.port_indices {
+    for port_index in 0..ports.len() {
         compact_u32(&mut output, port_index, "occurrence port index")?;
     }
     compact_u32(&mut output, source_times.len(), "occurrence frame count")?;
@@ -441,10 +483,10 @@ fn compact_lesson_episode_from_anatomy(
     )?;
     compact_u32(
         &mut output,
-        occurrence.groups.len(),
+        projected_groups.len(),
         "occurrence group count",
     )?;
-    for group in &occurrence.groups {
+    for group in &projected_groups {
         compact_u32(&mut output, group.len(), "occurrence group size")?;
         for &member in group {
             compact_u32(&mut output, member, "occurrence group member")?;
@@ -491,9 +533,47 @@ fn settle_native_joint_source_episode_batch_from_anatomy(
             .zip(&clocks)
             .zip(&signal_bodies)
             .map(|((assembly_id, clock), signals)| {
-                compact_lesson_episode_from_anatomy(&anatomy, assembly_id, clock, signals)
+                compact_lesson_episode_from_anatomy(
+                    &anatomy,
+                    assembly_id,
+                    clock,
+                    signals,
+                    None,
+                )
             })
             .collect::<Result<Vec<_>, _>>()
+    })
+    .map_err(PyValueError::new_err)
+}
+
+#[pyfunction]
+fn settle_native_joint_source_episode_for_senses_from_anatomy(
+    py: Python<'_>,
+    anatomy: PyRef<'_, NativeJointSourceEpisode>,
+    assembly_id: String,
+    clock: Vec<(i64, i64)>,
+    signal_body: Vec<u8>,
+    selected_senses: Vec<u8>,
+) -> PyResult<NativeJointSourceEpisode> {
+    let selected_senses = selected_senses.into_iter().collect::<BTreeSet<_>>();
+    if selected_senses.is_empty()
+        || selected_senses
+            .iter()
+            .any(|sense| usize::from(*sense) >= SENSE_COUNT)
+    {
+        return Err(PyValueError::new_err(
+            "compact lesson sense projection is empty or outside anatomy",
+        ));
+    }
+    let anatomy = anatomy.clone();
+    py.allow_threads(move || {
+        compact_lesson_episode_from_anatomy(
+            &anatomy,
+            &assembly_id,
+            &clock,
+            &signal_body,
+            Some(&selected_senses),
+        )
     })
     .map_err(PyValueError::new_err)
 }
@@ -551,6 +631,10 @@ pub fn register(module: &Bound<'_, PyModule>) -> PyResult<()> {
     )?)?;
     module.add_function(wrap_pyfunction!(
         settle_native_joint_source_episode_batch_from_anatomy,
+        module
+    )?)?;
+    module.add_function(wrap_pyfunction!(
+        settle_native_joint_source_episode_for_senses_from_anatomy,
         module
     )?)?;
     Ok(())

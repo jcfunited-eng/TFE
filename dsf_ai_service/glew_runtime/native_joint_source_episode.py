@@ -435,6 +435,63 @@ def settle_native_joint_source_episode(
     return result
 
 
+def _native_clock(clock: tuple[Fraction, ...]) -> list[tuple[int, int]]:
+    if not isinstance(clock, tuple) or not clock:
+        raise ValueError("compact joint-source clock is empty or mutable")
+    encoded: list[tuple[int, int]] = []
+    for value in clock:
+        if not isinstance(value, Fraction):
+            raise TypeError("compact joint-source clock is not exact")
+        if not -(1 << 63) <= value.numerator < (1 << 63):
+            raise ValueError("compact joint-source clock numerator exceeds i64")
+        if not 0 < value.denominator < (1 << 63):
+            raise ValueError("compact joint-source clock denominator exceeds i64")
+        encoded.append((value.numerator, value.denominator))
+    return encoded
+
+
+def settle_native_joint_source_episode_for_senses_from_anatomy(
+    *,
+    anatomy: object,
+    assembly_id: str,
+    source_times: tuple[Fraction, ...],
+    signal_body: bytes,
+    selected_senses: tuple[PhysicalSense, ...],
+) -> ImmutableJointSourceEpisode:
+    """Project authored anatomy onto explicit senses without changing its ports."""
+
+    if (
+        not isinstance(assembly_id, str)
+        or not assembly_id
+        or assembly_id.strip() != assembly_id
+    ):
+        raise ValueError("compact joint-source assembly identity is not canonical")
+    if (
+        not isinstance(signal_body, bytes)
+        or not signal_body
+        or not isinstance(selected_senses, tuple)
+        or not selected_senses
+        or any(not isinstance(sense, PhysicalSense) for sense in selected_senses)
+        or len(set(selected_senses)) != len(selected_senses)
+    ):
+        raise ValueError("compact joint-source sense projection is incomplete")
+    sense_indices = [tuple(SENSE_ORDER).index(sense) for sense in selected_senses]
+    result = _native_core().settle_native_joint_source_episode_for_senses_from_anatomy(
+        anatomy,
+        assembly_id,
+        _native_clock(source_times),
+        signal_body,
+        sense_indices,
+    )
+    if (
+        not isinstance(result, ImmutableJointSourceEpisode)
+        or result.schema != "guala.native.exact_joint_source_episode.v2"
+        or result.python_callback_count != 0
+    ):
+        raise RuntimeError("native compact joint-source projection lost authority")
+    return result
+
+
 def settle_native_joint_source_episode_batch_from_anatomy(
     *,
     anatomy: object,
@@ -452,20 +509,7 @@ def settle_native_joint_source_episode_batch_from_anatomy(
         and assembly_ids
     ):
         raise ValueError("compact joint-source batch changed cardinality")
-    clocks: list[list[tuple[int, int]]] = []
-    for clock in source_times:
-        if not isinstance(clock, tuple) or not clock:
-            raise ValueError("compact joint-source clock is empty or mutable")
-        encoded_clock: list[tuple[int, int]] = []
-        for value in clock:
-            if not isinstance(value, Fraction):
-                raise TypeError("compact joint-source clock is not exact")
-            if not -(1 << 63) <= value.numerator < (1 << 63):
-                raise ValueError("compact joint-source clock numerator exceeds i64")
-            if not 0 < value.denominator < (1 << 63):
-                raise ValueError("compact joint-source clock denominator exceeds i64")
-            encoded_clock.append((value.numerator, value.denominator))
-        clocks.append(encoded_clock)
+    clocks = [_native_clock(clock) for clock in source_times]
     if any(not isinstance(value, bytes) or not value for value in signal_bodies):
         raise ValueError("compact joint-source signal body is empty or untyped")
     result = _native_core().settle_native_joint_source_episode_batch_from_anatomy(
@@ -493,4 +537,5 @@ __all__ = (
     "encode_native_joint_source_episode",
     "settle_native_joint_source_episode",
     "settle_native_joint_source_episode_batch_from_anatomy",
+    "settle_native_joint_source_episode_for_senses_from_anatomy",
 )
