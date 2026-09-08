@@ -38,6 +38,7 @@ failure in one gate does not erase an already-proved success in another.
 | Q-S-005 | Focused quarantine checks passed 3/3 with the correct host import root; manifest renderer reproduced the candidate byte-for-byte; Python compilation and whitespace checks passed. |
 | Q-S-006 | Exact reviewed package at commit `e53771cfc0d81b69de3eb036df234d7c1702fba2` verified 212 source files, archive `b39fa611...6523`, then built local image `sha256:2bdb8023...f798`/212,870,781 bytes. Image import proved exactly 81 Python files, five routes, exact BUILD_INFO, and no import spec for `app`, `native_production_app`, `candidate_release_rehearsal`, or `cold_restore_probe`. |
 | Q-S-007 | The 9,802-line inline native test body moved unchanged to `resident_cognitive_formation/tests.rs`; the production file fell from 32,940 to 23,137 lines with no production logic change. Exact locked library and test compilation passed. |
+| Q-S-008 | Removed 279 lines of active wall-clock diagnostic bookkeeping from the resident transition and reached-cohort settlement paths: 11 timing prints, 17 atomic counters, their stopwatch reads/conversions, six unused timing result fields, and the artificial `settlement timing overflow` failure path. Deterministic organism/event time and all settlement physics remain. Locked library compilation retained the same 198 warning count; the focused shared-field/restart and changed-endpoint wake-law tests each passed 1/1. |
 
 ## Failures and recurrence guards
 
@@ -49,6 +50,8 @@ failure in one gate does not erase an already-proved success in another.
 | Q-F-004 | The first focused pytest command repeated RF-001/F-055 by omitting `PYTHONPATH=.` in the temporary worktree. Pytest setup raised `ModuleNotFoundError`; no test body ran. | Every host Python/pytest command in this worktree begins with `PYTHONPATH=.`. Do not classify this as a product failure or rerun broader tests because of it. |
 | Q-F-005 | The first exact packaged-image build failed at Cargo compile because the reviewed native-core list omitted the already-committed 161-line `resident_cognitive_formation/lean_sensorimotor_route.rs`; the shell runtime was not started and no image exists from this attempt. | The exact missing compile input is added to the native-core release category. Before an image claim, compile the packaged crate rather than treating successful archive creation as a build success. |
 | Q-F-006 | The first test-compilation command after the test split ran Cargo from the repository root, where no `Cargo.toml` exists; compilation never began. | All native commands name `--manifest-path native/guala_core/Cargo.toml`; the corrected locked test compilation passed. |
+| Q-F-007 | A targeted `cargo fmt` invocation reformatted 35 native files because the file argument was passed incorrectly. No formatted result was accepted or committed. | Every unintended native edit was restored exactly from `HEAD`, verified by an empty native diff, and the intended two-file cleanup was reapplied. Do not run crate-wide formatting during targeted core cleanup; verify changed-file scope immediately after every edit command. |
+| Q-F-008 | The first focused Rust test command used `--exact` with an unqualified function name, so it compiled the test target but selected zero tests. | A zero-test result is never evidence. Use the unique function-name filter without `--exact`, and require output showing `running 1 test` and `1 passed`; the corrected command did so. |
 
 ## Deployment attempts
 
@@ -60,7 +63,7 @@ failure in one gate does not erase an already-proved success in another.
 
 ## Next exact gate
 
-Quarantine is protected complete. Review the 32,940-line native core by active
-production call path: timing authority, repeated whole-population scans,
-duplicate authors, synchronization/locks, and persistence-only bookkeeping.
+Quarantine and the first core reduction are protected complete. Continue the
+23,137-line production core review by active call path: repeated
+whole-population scans, duplicate authors, and persistence-only bookkeeping.
 Remove nothing solely because it is large; preserve exact physics and state.

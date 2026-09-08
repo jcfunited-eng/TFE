@@ -3852,7 +3852,6 @@ fn settle_organism_mosaic_boundary(
     ),
     FormationError,
 > {
-    let boundary_stopwatch = std::time::Instant::now();
     if active_bonds.is_empty() {
         return Ok((
             None,
@@ -3935,7 +3934,6 @@ fn settle_organism_mosaic_boundary(
             deltas,
         });
     }
-    let components_wall = boundary_stopwatch.elapsed();
     let mut receipt = None;
     let mut reassemblies = 0usize;
     let mut internally_simulated_reassemblies = 0usize;
@@ -4178,16 +4176,6 @@ fn settle_organism_mosaic_boundary(
             ))
         })
         .collect::<Result<Vec<_>, _>>()?;
-    let formations_wall = boundary_stopwatch.elapsed();
-    eprintln!(
-        "guala-mosaic-subphase components_ms={} formations_ms={} deltas={} active_bonds={} candidates={} components={}",
-        components_wall.as_millis(),
-        (formations_wall - components_wall).as_millis(),
-        current_physical_deltas.len(),
-        active_bonds.len(),
-        retained_candidate_indices.len(),
-        active_components.len(),
-    );
     for (retained_index, prepared) in prepared_retained {
         if prepared.current_frontier || prepared.reassembled {
             current_frontier_indices.push(retained_index);
@@ -4226,7 +4214,6 @@ fn settle_organism_mosaic_boundary(
             internally_reassembled_formation_cues.push(observation);
         }
     }
-    let apply_wall = boundary_stopwatch.elapsed();
     let organic_relations = if !observe_relations {
         Vec::new()
     } else {
@@ -4244,14 +4231,6 @@ fn settle_organism_mosaic_boundary(
         formation_index.receipt_memo_mut(),
         )?
     };
-    let relations_wall = boundary_stopwatch.elapsed();
-    eprintln!(
-        "guala-mosaic-aftermath apply_ms={} relations_ms={} frontier_indices={} reassembled={}",
-        (apply_wall - formations_wall).as_millis(),
-        (relations_wall - apply_wall).as_millis(),
-        current_frontier_indices.len(),
-        reassembled_indices.len(),
-    );
     let recent_frontier_lineages = oldest_frontier
         .iter()
         .chain(older_frontier)
@@ -7612,7 +7591,6 @@ impl ResidentCognitiveFormationState {
         residency: &mut Option<crate::causal_event_scheduler::CausalEventResidency>,
         real_nutrition_intake_zeptojoules: ExactRational,
     ) -> Result<PreparedCognitiveFormationTransition, FormationError> {
-        let settlement_stopwatch = std::time::Instant::now();
         let Self {
             generation: predecessor_generation,
             next_lineage_ordinal: predecessor_next_lineage_ordinal,
@@ -8942,7 +8920,6 @@ impl ResidentCognitiveFormationState {
         if occurrence_index != admitted_occurrence_count {
             return Err(FormationError::NoncanonicalState);
         }
-        let source_physics_wall = settlement_stopwatch.elapsed();
         palmar_contact_onset_receptor_lineages.sort_unstable();
         palmar_contact_onset_receptor_lineages.dedup();
         gustatory_contact_onset_receptor_lineages.sort_unstable();
@@ -9016,21 +8993,12 @@ impl ResidentCognitiveFormationState {
             internal_frontier_lineages.into_iter().collect::<Vec<_>>();
         let locally_settled_lineages =
             locally_settled_lineages.into_iter().collect::<Vec<_>>();
-        eprintln!(
-            "guala-causal-seeds external={} regulation={} metabolic={} frontier={} total={}",
-            externally_reached_neuron_lineages.len(),
-            reached_body_regulation_lineages.len(),
-            metabolically_perturbed_body_receptor_lineages.len(),
-            active_electrical_frontier.len(),
-            locally_settled_lineages.len(),
-        );
         if !topology_index.matches_shape(&cohorts, &electrical_fabric) {
             topology_index = Arc::new(ResidentTopologyIndex::build(
                 &cohorts,
                 &electrical_fabric,
             )?);
         }
-        let precontact_growth_wall = settlement_stopwatch.elapsed();
         let internal_contact = settle_internal_contact_interval(
             &mut cohorts,
             &mut electrical_fabric,
@@ -9055,7 +9023,6 @@ impl ResidentCognitiveFormationState {
             &gustatory_contact_onset_receptor_lineages,
             real_nutrition_intake_zeptojoules,
         )?;
-        let internal_contact_wall = settlement_stopwatch.elapsed();
         let passive_membrane_returned_neuron_count =
             internal_contact.passive_membrane_returned_neuron_lineages.len();
         active_electrical_frontier = internal_contact.next_active_frontier.clone();
@@ -9182,18 +9149,11 @@ impl ResidentCognitiveFormationState {
                 &electrical_fabric,
             )?);
         }
-        let postcontact_growth_wall = settlement_stopwatch.elapsed();
-        let deltas_started = std::time::Instant::now();
         let current_physical_deltas = exact_transition_physical_deltas(
             &cohorts,
             &topology_index,
             &transition_neuron_predecessors,
         )?;
-        eprintln!(
-            "guala-delta-extraction deltas_ms={} predecessors={}",
-            deltas_started.elapsed().as_millis(),
-            transition_neuron_predecessors.len(),
-        );
         let (
             organism_mosaic_receipt,
             organism_reassemblies,
@@ -9221,7 +9181,6 @@ impl ResidentCognitiveFormationState {
                 max_encoded_bytes,
                 observe_relations,
             )?;
-        let mosaic_wall = settlement_stopwatch.elapsed();
         newly_retained_mosaic_indices.extend(organism_newly_retained_mosaic_indices);
         newly_retained_mosaic_indices.sort_unstable();
         newly_retained_mosaic_indices.dedup();
@@ -9304,7 +9263,6 @@ impl ResidentCognitiveFormationState {
                 &electrical_fabric,
             )?);
         }
-        let terminal_growth_wall = settlement_stopwatch.elapsed();
         let successor = Self {
             generation: source_generation,
             next_lineage_ordinal,
@@ -9334,20 +9292,6 @@ impl ResidentCognitiveFormationState {
             } else {
                 (Vec::new(), None, 0)
             };
-        let seal_wall = settlement_stopwatch.elapsed();
-        eprintln!(
-            "guala-native-physics-stopwatch source_physics_ms={} precontact_growth_ms={} internal_contact_ms={} postcontact_growth_ms={} mosaic_ms={} terminal_growth_ms={} seal_ms={} total_ms={} generation={} sealed={}",
-            source_physics_wall.as_millis(),
-            (precontact_growth_wall - source_physics_wall).as_millis(),
-            (internal_contact_wall - precontact_growth_wall).as_millis(),
-            (postcontact_growth_wall - internal_contact_wall).as_millis(),
-            (mosaic_wall - postcontact_growth_wall).as_millis(),
-            (terminal_growth_wall - mosaic_wall).as_millis(),
-            (seal_wall - terminal_growth_wall).as_millis(),
-            seal_wall.as_millis(),
-            source_generation,
-            seal_successor,
-        );
         // A direct trajectory composes many exact causal intervals before its
         // one final seal.  Population totals describe only the terminal
         // resident state; recomputing them after every unsealed interval
@@ -19025,7 +18969,6 @@ fn settle_internal_contact_interval(
     // caller combines those with this interval's external or metabolic cause.
     // This replaces the false rule that eventually made every reached neuron
     // and contact a permanent seed.
-    let contact_stopwatch = std::time::Instant::now();
     // Causal event selection. Work is proportional to events: this clock
     // settles exactly (a) contacts whose scheduled whole-carrier crossing
     // is due, (b) contacts incident to a causally reached neuron (external
@@ -19195,8 +19138,6 @@ fn settle_internal_contact_interval(
     events
         .contact_schedule
         .drain_due_at(clock, &mut compact_contact_indices);
-    let due_now_contact_count = compact_contact_indices.len();
-    let return_due_count = due_return_flats.len();
     for flat in seed_flats.iter().copied() {
         compact_contact_indices.extend(
             topology_index
@@ -19665,13 +19606,6 @@ fn settle_internal_contact_interval(
     let compact_predecessor =
         SparseElectricalState::from_contact_states(&compact_anatomy, compact_states)
             .map_err(FormationError::ResidentElectricalUnavailable)?;
-    let compact_wall = contact_stopwatch.elapsed();
-    eprintln!(
-        "guala-contact-frontier selected={} contacts={} compact_ms={}",
-        selected.len(),
-        compact_anatomy.contact_count(),
-        compact_wall.as_millis(),
-    );
     let mut settled = settle_sparse_electrical_transfers(
         &compact_anatomy,
         &compact_predecessor,
@@ -19681,7 +19615,6 @@ fn settle_internal_contact_interval(
         interval_microseconds,
     )
     .map_err(FormationError::ResidentElectricalUnavailable)?;
-    let solver_wall = contact_stopwatch.elapsed();
     let mut contact_successors = Vec::with_capacity(settled.transitions.len());
     let mut contact_transitions = Vec::with_capacity(settled.transitions.len());
     for ((contact, transition), (left_flat, right_flat)) in compact_anatomy
@@ -20014,7 +19947,6 @@ fn settle_internal_contact_interval(
         }
     }
     layer_ten_contact_activity.sort_unstable_by_key(|(lineage, _, _)| *lineage);
-    let contact_projection_wall = contact_stopwatch.elapsed();
 
     let mut pre_field = Vec::with_capacity(selected.len());
     let mut post_field = Vec::with_capacity(selected.len());
@@ -20094,9 +20026,7 @@ fn settle_internal_contact_interval(
             JointUfSourceError::Physics(error),
         ))
     })?;
-    let field_wall = contact_stopwatch.elapsed();
     let groups = contact_components(selected.len(), &compact_anatomy);
-    let component_wall = contact_stopwatch.elapsed();
     let source_body = Arc::<[u8]>::from(encode_internal_contact_source(
         &selected,
         &flat_locations,
@@ -20108,7 +20038,6 @@ fn settle_internal_contact_interval(
         &compact_predecessor,
     )?);
     let source_authority = sha256(&source_body);
-    let source_wall = contact_stopwatch.elapsed();
     let shared = prepare_complete_joint_field_from_evaluated(
         source_body,
         source_authority,
@@ -20123,7 +20052,6 @@ fn settle_internal_contact_interval(
     if shared.result().gates.len() != 1 {
         return Err(FormationError::NoncanonicalState);
     }
-    let shared_prepare_wall = contact_stopwatch.elapsed();
 
     // Local contact successors are prepared only for reached cohorts.  The
     // former population-width construction copied every local contact state
@@ -20188,7 +20116,6 @@ fn settle_internal_contact_interval(
     electrical_fabric
         .replace_contact_states(fabric_successors)
         .map_err(FormationError::ResidentElectricalUnavailable)?;
-    let contact_apply_wall = contact_stopwatch.elapsed();
 
     // Preserve the exact directed whole-carrier transfers from this settled
     // interval before the disjoint cohort consequences are applied. A motor
@@ -20304,36 +20231,6 @@ fn settle_internal_contact_interval(
     // so those local consequences can settle concurrently without changing
     // causal order or allowing one cohort to observe another's mutation.
     // Indexed collection preserves cohort order for the evidence merge below.
-    let shared_wall = contact_stopwatch.elapsed();
-    eprintln!(
-        "guala-shared-field-phases solver_ms={} projection_ms={} field_ms={} \
-         components_ms={} source_ms={} prepare_ms={} apply_ms={} routes_ms={}",
-        (solver_wall - compact_wall).as_millis(),
-        (contact_projection_wall - solver_wall).as_millis(),
-        (field_wall - contact_projection_wall).as_millis(),
-        (component_wall - field_wall).as_millis(),
-        (source_wall - component_wall).as_millis(),
-        (shared_prepare_wall - source_wall).as_millis(),
-        (contact_apply_wall - shared_prepare_wall).as_millis(),
-        (shared_wall - contact_apply_wall).as_millis(),
-    );
-    let cohort_prepare_us = std::sync::atomic::AtomicU64::new(0);
-    let cohort_growth_us = std::sync::atomic::AtomicU64::new(0);
-    let cohort_scaffold_us = std::sync::atomic::AtomicU64::new(0);
-    let cohort_input_us = std::sync::atomic::AtomicU64::new(0);
-    let cohort_pack_us = std::sync::atomic::AtomicU64::new(0);
-    let cohort_settle_us = std::sync::atomic::AtomicU64::new(0);
-    let cohort_material_prepare_us = std::sync::atomic::AtomicU64::new(0);
-    let cohort_neuron_settlement_us = std::sync::atomic::AtomicU64::new(0);
-    let cohort_gate_recovery_us = std::sync::atomic::AtomicU64::new(0);
-    let cohort_extended_interval_us = std::sync::atomic::AtomicU64::new(0);
-    let cohort_material_validation_us = std::sync::atomic::AtomicU64::new(0);
-    let cohort_apply_us = std::sync::atomic::AtomicU64::new(0);
-    let cohort_effector_us = std::sync::atomic::AtomicU64::new(0);
-    let cohort_evidence_us = std::sync::atomic::AtomicU64::new(0);
-    let cohort_tail_us = std::sync::atomic::AtomicU64::new(0);
-    let reached_cohort_count = std::sync::atomic::AtomicU64::new(0);
-    let reached_member_count = std::sync::atomic::AtomicU64::new(0);
     // Every selected neuron below is settling gate zero of this one completed
     // field. Its seven DSF values therefore have one exact balanced-ternary
     // conversion per mounted width, not one conversion per neuron. Psi remains
@@ -20422,7 +20319,6 @@ fn settle_internal_contact_interval(
         if selected_members.is_empty() {
             return Ok(None);
         }
-        let cohort_stopwatch = std::time::Instant::now();
         let mut required_positions = cohort
             .anatomy
             .neuron_anatomies()
@@ -20498,7 +20394,6 @@ fn settle_internal_contact_interval(
                 return Err(FormationError::NoncanonicalState);
             }
         }
-        let growth_wall = cohort_stopwatch.elapsed();
         let catalysts = selected_members
             .iter()
             .map(|(_, neuron_index)| {
@@ -20521,7 +20416,6 @@ fn settle_internal_contact_interval(
                         settled.outward_elementary_charges_by_neuron[*coordinate]
                     })
             .collect::<Vec<_>>();
-        let scaffold_wall = cohort_stopwatch.elapsed();
         let mut inputs = Vec::with_capacity(selected_members.len());
         let mut pending_layer_ten_plasticity = Vec::new();
         let mut cohort_learned_work_preparations = Vec::new();
@@ -20777,7 +20671,6 @@ fn settle_internal_contact_interval(
                 prepared_psi: Some(prepared_psi),
             });
         }
-        let input_wall = cohort_stopwatch.elapsed();
         let (local_successors, local_transitions) = local_contact_result
             .ok_or(FormationError::NoncanonicalState)?;
         let local_successor = SparseElectricalState::from_contact_states(
@@ -20801,7 +20694,6 @@ fn settle_internal_contact_interval(
             precomputed_local,
         )
         .map_err(FormationError::PhysicalSettlementUnavailable)?;
-        let preparation_wall = cohort_stopwatch.elapsed();
         // This interval is a native cross-cohort electrical consequence, not
         // a second externally admitted experience. Its retained changes join
         // the same pending local physical experience and may emit only after
@@ -20813,14 +20705,6 @@ fn settle_internal_contact_interval(
                     input,
                 )
                 .map_err(FormationError::PhysicalSettlementUnavailable)?;
-        let settlement_wall = cohort_stopwatch.elapsed();
-        let relaxed = std::sync::atomic::Ordering::Relaxed;
-        cohort_material_prepare_us.fetch_add(settlement.material_prepare_us, relaxed);
-        cohort_neuron_settlement_us.fetch_add(settlement.neuron_settlement_us, relaxed);
-        cohort_gate_recovery_us.fetch_add(settlement.gate_recovery_us, relaxed);
-        cohort_extended_interval_us.fetch_add(settlement.extended_interval_us, relaxed);
-        cohort_material_validation_us.fetch_add(settlement.material_validation_us, relaxed);
-        cohort_apply_us.fetch_add(settlement.apply_us, relaxed);
         // A mounted motor terminal is a second, neuron-local physical path.
         // Incoming contact carriers only prepare it by leaving retained
         // membrane displacement; they are never relabelled as the action.
@@ -21078,7 +20962,6 @@ fn settle_internal_contact_interval(
             })
             .collect::<Vec<_>>();
                 let articulatory_unit_recruitments = Vec::<ArticulatoryUnitRecruitment>::new();
-        let effector_wall = cohort_stopwatch.elapsed();
         let mut retained_interval_deltas = Vec::new();
         for predecessor in &comparison_predecessors {
             let neuron_index = predecessor.neuron_index();
@@ -21152,7 +21035,6 @@ fn settle_internal_contact_interval(
                 &active_electrical_contacts,
             )?);
         }
-        let evidence_wall = cohort_stopwatch.elapsed();
         let mut changed_predecessors = Vec::new();
         for predecessor in comparison_predecessors {
             let neuron_index = predecessor.neuron_index();
@@ -21164,57 +21046,6 @@ fn settle_internal_contact_interval(
                 ));
             }
         }
-        cohort_prepare_us.fetch_add(
-            u64::try_from(preparation_wall.as_micros())
-                .map_err(|_| FormationError::ArithmeticOverflow)?,
-            relaxed,
-        );
-        cohort_growth_us.fetch_add(
-            u64::try_from(growth_wall.as_micros())
-                .map_err(|_| FormationError::ArithmeticOverflow)?,
-            relaxed,
-        );
-        cohort_scaffold_us.fetch_add(
-            u64::try_from((scaffold_wall - growth_wall).as_micros())
-                .map_err(|_| FormationError::ArithmeticOverflow)?,
-            relaxed,
-        );
-        cohort_input_us.fetch_add(
-            u64::try_from((input_wall - scaffold_wall).as_micros())
-                .map_err(|_| FormationError::ArithmeticOverflow)?,
-            relaxed,
-        );
-        cohort_pack_us.fetch_add(
-            u64::try_from((preparation_wall - input_wall).as_micros())
-                .map_err(|_| FormationError::ArithmeticOverflow)?,
-            relaxed,
-        );
-        cohort_settle_us.fetch_add(
-            u64::try_from((settlement_wall - preparation_wall).as_micros())
-                .map_err(|_| FormationError::ArithmeticOverflow)?,
-            relaxed,
-        );
-        cohort_effector_us.fetch_add(
-            u64::try_from((effector_wall - settlement_wall).as_micros())
-                .map_err(|_| FormationError::ArithmeticOverflow)?,
-            relaxed,
-        );
-        cohort_evidence_us.fetch_add(
-            u64::try_from((evidence_wall - effector_wall).as_micros())
-                .map_err(|_| FormationError::ArithmeticOverflow)?,
-            relaxed,
-        );
-        cohort_tail_us.fetch_add(
-            u64::try_from((cohort_stopwatch.elapsed() - evidence_wall).as_micros())
-                .map_err(|_| FormationError::ArithmeticOverflow)?,
-            relaxed,
-        );
-        reached_cohort_count.fetch_add(1, relaxed);
-        reached_member_count.fetch_add(
-            u64::try_from(selected_members.len())
-                .map_err(|_| FormationError::ArithmeticOverflow)?,
-            relaxed,
-        );
         Ok(Some((
             changed_predecessors,
             motor_unit_recruitments,
@@ -21229,32 +21060,6 @@ fn settle_internal_contact_interval(
             },
         )
     .collect::<Vec<_>>();
-    let relaxed = std::sync::atomic::Ordering::Relaxed;
-    eprintln!(
-        "guala-cohort-aggregate wall_ms={} prepare_us={} growth_us={} scaffold_us={} \
-         input_us={} pack_us={} settle_us={} material_prepare_us={} neuron_us={} \
-         gate_recovery_us={} extended_us={} material_validate_us={} apply_us={} \
-         effector_us={} evidence_us={} tail_us={} \
-         cohorts={} members={}",
-        (contact_stopwatch.elapsed() - shared_wall).as_millis(),
-        cohort_prepare_us.load(relaxed),
-        cohort_growth_us.load(relaxed),
-        cohort_scaffold_us.load(relaxed),
-        cohort_input_us.load(relaxed),
-        cohort_pack_us.load(relaxed),
-        cohort_settle_us.load(relaxed),
-        cohort_material_prepare_us.load(relaxed),
-        cohort_neuron_settlement_us.load(relaxed),
-        cohort_gate_recovery_us.load(relaxed),
-        cohort_extended_interval_us.load(relaxed),
-        cohort_material_validation_us.load(relaxed),
-        cohort_apply_us.load(relaxed),
-        cohort_effector_us.load(relaxed),
-        cohort_evidence_us.load(relaxed),
-        cohort_tail_us.load(relaxed),
-        reached_cohort_count.load(relaxed),
-        reached_member_count.load(relaxed),
-    );
     let mut motor_unit_recruitments = Vec::new();
     let mut root_yaw_unit_recruitments = Vec::new();
     let mut root_translation_unit_recruitments = Vec::new();
@@ -21833,12 +21638,6 @@ fn settle_internal_contact_interval(
     // One shared full-field occurrence was evaluated for the entire reached
     // contact frontier, irrespective of how many neurons received their
     // coordinate-local perspectives.
-    eprintln!(
-        "guala-contact-phases shared_field_ms={} cohort_and_evidence_ms={} total_ms={}",
-        (shared_wall - compact_wall).as_millis(),
-        (contact_stopwatch.elapsed() - shared_wall).as_millis(),
-        contact_stopwatch.elapsed().as_millis(),
-    );
     // Event bookkeeping for the next clocks, read from the fully applied
     // state: every settled contact is marked integrated at this clock and
     // rescheduled from its successor state under the settlement authority;
@@ -21846,7 +21645,6 @@ fn settle_internal_contact_interval(
     // its own settled anatomy. Untouched contacts and neurons keep their
     // standing schedules — nothing about them changed.
     {
-        let event_stopwatch = std::time::Instant::now();
         let interval = u32::try_from(interval_microseconds)
             .map_err(|_| FormationError::ArithmeticOverflow)?;
         // One endpoint read per reached neuron, not per contact: the
@@ -21915,7 +21713,6 @@ fn settle_internal_contact_interval(
         for contact_index in compact_original_indices.iter().copied() {
             settled_contacts[contact_index] = true;
         }
-        let event_scan_wall = event_stopwatch.elapsed();
         for (position, contact_index) in
             compact_original_indices.iter().copied().enumerate()
         {
@@ -21991,7 +21788,6 @@ fn settle_internal_contact_interval(
                 .contact_schedule
                 .reschedule_from_clock(clock, contact_index, due);
         }
-        let settled_reschedule_wall = event_stopwatch.elapsed();
         // The wake law: a changed endpoint wakes EVERY contact incident to
         // it, now — adding it to a later frontier is insufficient. A
         // sleeping incident contact first catches up exactly through the
@@ -22012,8 +21808,6 @@ fn settle_internal_contact_interval(
         }
         woken_contacts.sort_unstable();
         woken_contacts.dedup();
-        let woken_contact_count = woken_contacts.len();
-        let wake_collect_wall = event_stopwatch.elapsed();
         for contact_index in woken_contacts {
             if settled_contacts[contact_index] {
                 continue;
@@ -22215,7 +22009,6 @@ fn settle_internal_contact_interval(
                 .contact_schedule
                 .reschedule_from_clock(clock, contact_index, due);
         }
-        let wake_reschedule_wall = event_stopwatch.elapsed();
         for flat in changed_flats.iter().copied() {
             let (cohort_index, neuron_index, lineage) = flat_locations[flat];
             // The neuron's displacement changed this clock, so its return
@@ -22322,31 +22115,7 @@ fn settle_internal_contact_interval(
                 .recovery_schedule
                 .reschedule_from_clock(clock, flat, due);
         }
-        eprintln!(
-            "guala-event-phases scan_ms={} settled_reschedule_ms={} wake_collect_ms={} \
-             wake_reschedule_ms={} recovery_ms={} total_ms={} changed={} woken={}",
-            event_scan_wall.as_millis(),
-            (settled_reschedule_wall - event_scan_wall).as_millis(),
-            (wake_collect_wall - settled_reschedule_wall).as_millis(),
-            (wake_reschedule_wall - wake_collect_wall).as_millis(),
-            (event_stopwatch.elapsed() - wake_reschedule_wall).as_millis(),
-            event_stopwatch.elapsed().as_millis(),
-            changed_flats.len(),
-            woken_contact_count,
-        );
     }
-    eprintln!(
-        "guala-event-census clock={} due_now_contacts={} future_contacts={} \
-         returns_due={} future_returns={} seeds={} selected={} contacts={}",
-        clock,
-        due_now_contact_count,
-        events.contact_schedule.scheduled_len(),
-        return_due_count,
-        events.recovery_schedule.scheduled_len(),
-        seed_flats.len(),
-        selected.len(),
-        compact_original_indices.len(),
-    );
     Ok(InternalContactSettlementObservation {
         dsf_delivery_count: 1,
         active_bonds,
