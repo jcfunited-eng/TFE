@@ -1802,3 +1802,30 @@ did not produce speech. Preserve S-062-01 as a real route/body-actuation
 success; do not repeat the guide, discard that route, blame the browser speaker,
 or broaden the failure. The remaining live failure is specifically between
 persisting vocal body consequences and pressure discharge/self-hearing.
+
+Correction to F-062-01: the four unattended body consequences prove continued
+physical tissue settlement, but the compact public projection cannot
+distinguish learned motor discharge from the fixed body's passive return toward
+equilibrium. They therefore do not independently prove that the newly mounted
+route fired. S-062-01 still proves accepted guided body movement and the exact
+coincident sensory/body conditions used by the route author. Do not promote a
+body-consequence count alone to learned-action evidence again.
+
+F-062-02 first exact pressure-only recurrence: one ordinary `microphone`
+occurrence carrying the same 4,000-sample pressure and no guided body drive was
+accepted at native tick 543853. It changed 1,767 neurons through 221 full-DSF
+deliveries with zero Python callbacks, but produced zero body consequences,
+zero pressure, and zero self-hearing in the admitting interval. Observation
+continued without stimulation beyond the predeclared tick-543885 horizon to
+tick 543888; every retained successor remained silent and body-still. This is
+a failed first cue, not a failed hearing path or a reason to repeat the guide.
+
+D-063-01 bounded known gate chronology: S-058-02 records the existing physical
+receiving-gate law—after an exact route exists, the first sound occurrence only
+recovers the full gate, the second admits conserved learned work, and the third
+can discharge it. D-062 supplied the founding sensory/body coincidence and
+F-062-02 supplied the first post-route sound. The only authorized continuation
+is at most two further pressure-only occurrences, one at a time, with no guide,
+no A/B branch, no changed waveform, and no parameter adjustment. Stop on the
+first pressure/self-hearing result; if the third post-route sound remains
+silent, classify D-063 as failed and return to source localization.
