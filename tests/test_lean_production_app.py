@@ -18,6 +18,7 @@ from dsf_ai_service.lean_production_app import (
     OBSERVATION_ROUTE,
     OCCURRENCE_ROUTE,
     PRESSURE_ROUTE,
+    _restore_production_actor,
     create_lean_production_app,
 )
 from dsf_ai_service.paired_current_store import PairedCurrentStore
@@ -131,6 +132,13 @@ class _Physical:
 class _FatalUnattendedPhysical(_Physical):
     def unattended(self, runtime: _Runtime, world: _World) -> SettlementResult:
         raise RuntimeError("unattended physical failure")
+
+
+@dataclass(frozen=True, slots=True)
+class _Admission:
+    max_envelope_bytes: int = 4096
+    max_fabric_bytes: int = 3072
+    max_logical_peak_bytes: int = 8192
 
 
 def _actor(
@@ -248,3 +256,80 @@ def test_health_fails_when_the_organism_owner_fails(tmp_path: Path) -> None:
                 "alive": False,
                 "schema": "guala.lean_health.v1",
             }
+
+
+def test_startup_publishes_native_migration_before_actor_verification(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    from dsf_ai_service import lean_production_app
+    from dsf_ai_service.glew_runtime import native_resident_organism
+    from dsf_ai_service.substrate import native_resident_resource_admission
+
+    predecessor_body = b"body-10-v41"
+    migrated_body = b"body-10-v42"
+    world_body = b"world-10"
+    store = PairedCurrentStore(
+        tmp_path,
+        max_body_bytes=4096,
+        max_world_bytes=4096,
+    )
+    predecessor = store.publish(
+        identity=IDENTITY,
+        organism_tick=10,
+        body=predecessor_body,
+        world=world_body,
+        expected_current_body_sha256=None,
+    )
+    calls: list[tuple[str, bytes]] = []
+
+    def migrate(**values: object) -> bytes:
+        assert values["current_envelope"] == predecessor_body
+        assert values["expected_predecessor_sha256"] == (
+            predecessor.current.body_sha256
+        )
+        calls.append(("migrate", predecessor_body))
+        return migrated_body
+
+    def restore(**values: object) -> _Runtime:
+        body = values["current_envelope"]
+        assert isinstance(body, bytes)
+        calls.append(("restore", body))
+        return _Runtime(body)
+
+    monkeypatch.setenv("GUALA_PAIRED_ROOT", str(tmp_path))
+    monkeypatch.setenv("GUALA_MAX_WORLD_BYTES", "4096")
+    monkeypatch.setattr(
+        native_resident_resource_admission,
+        "derive_native_resident_resource_admission",
+        lambda _root: _Admission(),
+    )
+    monkeypatch.setattr(
+        native_resident_organism,
+        "migrate_native_resident_organism_exact_energy",
+        migrate,
+    )
+    monkeypatch.setattr(
+        native_resident_organism,
+        "restore_native_resident_organism",
+        restore,
+    )
+    monkeypatch.setattr(
+        lean_production_app,
+        "home_world_authority",
+        lambda *, identity, encoded_world: (
+            _World(encoded_world) if identity == IDENTITY else None
+        ),
+    )
+
+    actor = _restore_production_actor()
+    actor.start()
+    actor.close()
+
+    current = store.restore()
+    assert calls == [("migrate", predecessor_body), ("restore", migrated_body)]
+    assert current.body == migrated_body
+    assert current.world == world_body
+    assert current.pointer.current.identity == IDENTITY
+    assert current.pointer.current.organism_tick == 10
+    assert current.pointer.predecessor == predecessor.current

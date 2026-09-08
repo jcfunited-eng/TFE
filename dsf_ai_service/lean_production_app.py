@@ -114,6 +114,7 @@ def _restore_production_actor() -> LeanOrganismActor:
     root = Path(root_text)
 
     from dsf_ai_service.glew_runtime.native_resident_organism import (
+        migrate_native_resident_organism_exact_energy,
         restore_native_resident_organism,
     )
     from dsf_ai_service.substrate.native_resident_resource_admission import (
@@ -129,9 +130,26 @@ def _restore_production_actor() -> LeanOrganismActor:
         ),
     )
     restored = store.restore()
-    store.reconcile(restored.pointer)
-    runtime = restore_native_resident_organism(
+    current = restored.pointer.current
+    current_body = migrate_native_resident_organism_exact_energy(
         current_envelope=restored.body,
+        expected_predecessor_sha256=current.body_sha256,
+        max_envelope_bytes=admission.max_envelope_bytes,
+        max_fabric_bytes=admission.max_fabric_bytes,
+        max_logical_peak_bytes=admission.max_logical_peak_bytes,
+    )
+    pointer = restored.pointer
+    if current_body != restored.body:
+        pointer = store.publish(
+            identity=current.identity,
+            organism_tick=current.organism_tick,
+            body=current_body,
+            world=restored.world,
+            expected_current_body_sha256=current.body_sha256,
+        )
+    store.reconcile(pointer)
+    runtime = restore_native_resident_organism(
+        current_envelope=current_body,
         max_envelope_bytes=admission.max_envelope_bytes,
         max_fabric_bytes=admission.max_fabric_bytes,
         max_logical_peak_bytes=admission.max_logical_peak_bytes,
@@ -143,7 +161,7 @@ def _restore_production_actor() -> LeanOrganismActor:
     return LeanOrganismActor(
         runtime=runtime,
         world=world,
-        pointer=restored.pointer,
+        pointer=pointer,
         store=store,
         physical=LeanPhysicalLoop(),
         mailbox_capacity=MAILBOX_CAPACITY,
