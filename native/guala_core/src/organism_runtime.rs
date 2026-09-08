@@ -6312,6 +6312,8 @@ fn restore_native_resident_organism_runtime(
         .allow_threads(move || {
             let budget =
                 RuntimeBudget::new(max_envelope_bytes, max_fabric_bytes, max_logical_peak_bytes)?;
+            let current_envelope =
+                migrate_resident_organism_exact_energy_envelope(current_envelope, budget)?;
             ResidentOrganismRuntime::restore_envelope(current_envelope, budget)
         })
         .map_err(|error| PyValueError::new_err(error.to_string()))?;
