@@ -97,6 +97,7 @@ failure in one gate does not erase an already-proved success in another.
 | Q-S-065 | Baseline and Q-C-001 candidate were restored independently from the same authenticated mature V42 body and given the same fixed real-world clock input. They produced byte-identical 142,708,669-byte successor bodies (`6d21d31c...0842f`), byte-identical worlds (`35b396c2...23cae`), identical primary/final causal receipts, 261 full-DSF deliveries, 1,771 physically changed neurons, 10 body consequences, 4,000 self-heard samples and identical pending pressure. The baseline settled in 2,861.805 ms and the candidate in 2,616.938 ms, a 244.867-ms local reduction. This proves the no-author gate preserves that lived successor while removing measured waste; it is copied mature-body evidence, not newest-task1444 or production acceptance, and it does not prove speech. |
 | Q-S-066 | One ECS command restored and verified task1444's exact paired CURRENT at tick 536004, transferred its immutable compressed body and world through a five-minute server-side-encrypted temporary object, and the object was deleted immediately after download. Local decompression matched production receipts exactly: body `36d3a446...60c00`, 143,473,749 bytes; world `cd225891...2e07`, 63,527 bytes. Baseline and candidate then independently restored that newest copied body under the same physical-clock input and produced byte-identical 143,802,900-byte successors (`f02a57ec...023a`), byte-identical worlds (`fd469869...a40c`), identical causal receipts, all 221 full-DSF deliveries and the same 1,750 physically changed neurons. Baseline settled in 1,157.358 ms; candidate settled in 983.884 ms. This closes Q-C-001 copied-current state equality and local subsecond evidence; it is not live-production acceptance or speech. |
 | Q-S-067 | Clean commit `e3c1d2b7` became live task1445 on immutable digest `sha256:09b2eca0...dd541`. The one-cutover controller preserved identity `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`, advanced tick 536246 to 536277, admitted exactly one RUNNING/HEALTHY writer at desired/running/pending `1/1/0`, and pinned only the verified digest. A direct live occurrence retained all 221 full-DSF deliveries, zero Python callbacks and no custody error. Immediate process RSS was 1,394,140 KiB inside the 16-GiB task; paired storage was 5,474,552 bytes with CURRENT plus exactly two body and two world generations. Recent ECS CPU averaged 42.90% with 53.01% maximum and memory averaged 7.55% with 8.50% maximum; CPU, memory, EFS and refusal-loop alarms remained OK. This is an accepted state-preserving core-waste deployment and bounded point/window, not cadence, speech, vision or autonomy success. |
+| Q-S-068 | Q-C-002's checked resident-width accumulation compiled, its explicit intermediate-overflow test passed 1/1, and the existing connected-component sub-carrier/energy proof passed 1/1. Baseline task1445 and candidate binaries independently restored the same newest copied tick-536692 body under the same world-clock input and produced identical 143,805,229-byte successor bodies (`5f88fec5...505c`), worlds (`8cdb7176...e5ad5`), causal receipts, all 221 full-DSF deliveries and 1,744 changed neurons. This proves the rejected idea preserved this successor and its overflow boundary; it does not establish a useful cadence improvement. |
 | Q-S-048 | The regression recovery removes two active authors while preserving state: the rejected parallel receptor-preparation change is returned exactly to commit `877985f2`, and the later 810-port six-band retina is removed from both primary and body-return transitions. The established 135-site retinal episode still co-carries sight, both ears, touch, smell, taste, temperature, body position and effector load on one shared 250-ms clock; browser RGB is deterministically projected onto those same learned achromatic receptors. The two spectral modules remain in repository history but are absent from the reviewed production import closure. Direct motor/sensory/UI checks passed 16/16; exact manifest-closure and three shell-quarantine checks passed 4/4. This is source evidence pending live measurement. |
 
 ## Failures and recurrence guards
@@ -177,6 +178,7 @@ failure in one gate does not erase an already-proved success in another.
 | Q-F-072 | The live eye panel alternates between the latest external RGB sample and the next autonomous achromatic native-retina observation. Joe's captured panels show that neither low-resolution grid provides a stable, meaningful representation of the light reaching Guala's eyes. This is truthful raw/projection data but a failed human observation interface; it does not prove meaningful organism vision. | Keep the underlying receipts and never fabricate scene detail. After Q-C-001 production settlement, replace the alternating panel with one stable truthful visual history/view derived from actual retinal input, and complete that interface item before resuming speech. |
 | Q-F-073 | The first task1445 resource command assumed cgroup-v2 files `/sys/fs/cgroup/memory.current` and `memory.max`; this Fargate task exposes cgroup-v1 paths, so the command failed before printing process or store data. It did not alter production. | Discover the mounted cgroup files read-only instead of assuming the host version. The corrected command read `/sys/fs/cgroup/memory/memory.usage_in_bytes`, `/proc/1/status`, and exact paired-store files and produced Q-S-067. |
 | Q-F-074 | Task1445's first direct public unattended occurrence returned HTTP 200 and preserved 221 full-DSF deliveries, 1,549 changed neurons, zero Python callbacks, zero false body consequence and one native interval, but wall time was 3.210765 seconds. The no-author growth gate is deployed and retained as Q-S-067, yet the explicit under-one-second production cadence gate remains failed. | Do not undo or re-test Q-C-001 and do not call cadence or speech fixed. Continue with the other already-measured dominant native region, contact settlement, and remove only proved repeated/population-wide work while preserving exact transfers, successor bytes, full DSF, identity and learned state. |
+| Q-F-075 | Q-C-002 removed ordinary arbitrary-width net-carrier accumulation exactly, but on the same copied production body the task1445 baseline settled in 1,000.479 ms and the candidate in 1,043.098 ms. That difference is noise or regression, not the material reduction needed for live cadence. The candidate never entered production and its source/test diff was removed; task1445 remains unchanged. | Do not rediscover or deploy the resident-width net-carrier idea as a cadence fix. The exact equality proof remains Q-S-068, but the result falsifies this operation as the dominant contact cost. Locate the actual repeated owner before another code candidate. |
 
 ## Deployment attempts
 
@@ -282,3 +284,35 @@ that ordinary native interval below one second locally. The only remaining
 Q-C-001 acceptance surface is immutable packaging, live cutover, and direct
 production cadence/resource evidence; no further source or test change is
 authorized for this candidate.
+
+### Q-C-002 — exact resident-width contact accumulation
+
+Production baseline is accepted task1445, commit `e3c1d2b7`, immutable image
+`sha256:09b2eca0...dd541`; Q-S-067 preserves the deployed Q-C-001 success and
+Q-F-074 keeps live cadence failed. Q-S-013 and Q-S-014 are closed and will not
+be repeated or reopened.
+
+Exact contract: `settled_outward_by_neuron` receives the already-settled sparse
+contact anatomy and its bounded signed `i128` whole-carrier transfers. It emits
+the exact signed net transfer for every reached neuron and refuses any result
+that cannot reside in `i128`. The function is pure preparation: it mutates no
+contact, neuron, DSF field, event schedule, body, identity, or persisted state;
+therefore commit, rollback, crash and cold-restore behavior are unchanged.
+Carrier conservation remains exact zero. The ordinary path accumulates with
+checked resident-width addition/subtraction; on the first intermediate or sum
+overflow, the unchanged arbitrary-width calculation remains the sole exact
+authority and performs the same final narrowing/refusal. Work remains
+O(neurons + contacts), but ordinary settlement no longer allocates and updates
+one heap-sized integer per neuron/contact endpoint.
+
+Authorized file: `native/guala_core/src/sparse_electrical_contact.rs` only.
+Acceptance requires source review, the existing connected-component carrier
+proof, an explicit resident-width/overflow-boundary test, and exact successor
+equality on one copied current production body before any release. Full joint
+seven-field DSF, L0-L4, contact physics, carrier allocation, neurons, learned
+state and identity remain unchanged.
+
+Outcome: Q-S-068 proves exact equality and both focused physical proofs;
+Q-F-075 rejects the candidate as a cadence repair because it produced no
+measurable improvement. Its executable source and test were removed before
+commit or deployment. Do not repeat it.
