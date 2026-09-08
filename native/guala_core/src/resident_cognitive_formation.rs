@@ -7332,7 +7332,7 @@ impl ResidentCognitiveFormationState {
                 } else {
                     return None;
                 };
-                lineages.contains(&predecessor_lineage).then_some(
+                lineages.binary_search(&predecessor_lineage).is_ok().then_some(
                     CausalFrontierTransferObservation {
                         transfer,
                         frontier_lineage,
@@ -9496,21 +9496,16 @@ impl ResidentCognitiveFormationState {
     /// not scan the compact resting population, assign functional meaning to
     /// a layer, expose neuronal state, or advance the organism.
     pub(crate) fn observe_reached_neuron_count_by_layer(&self) -> Vec<(u32, usize)> {
-        let mut counts = Vec::<(u32, usize)>::new();
+        let mut counts = BTreeMap::<u32, usize>::new();
         for layer in self
             .cohorts
             .iter()
             .flat_map(|cohort| cohort.anatomy.mounts())
             .map(|mount| mount.place().layer())
         {
-            if let Some((_, count)) = counts.iter_mut().find(|(candidate, _)| *candidate == layer) {
-                *count += 1;
-            } else {
-                counts.push((layer, 1));
-            }
+            *counts.entry(layer).or_insert(0) += 1;
         }
-        counts.sort_unstable_by_key(|(layer, _)| *layer);
-        counts
+        counts.into_iter().collect()
     }
 
     /// Enumerate the exact stable lineage, developmental layer, and receptor
