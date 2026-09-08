@@ -69,7 +69,6 @@ use crate::joint_uf_source_adapter::{AdmittedJointSourceEpisode, JointUfSourceEr
 use crate::joint_uf_v1_4::{
     self, JointIntersampleLaw, JointUfCoordinateBounds, JointUfInput, JointUfPhysicalBounds,
 };
-use crate::metabolic_feeding::MetabolicError;
 use crate::neuron_source_anchor::{
     bind_neuron_source_anchor, NeuronSourceSite, PhysicalSourceSense,
 };
@@ -22417,9 +22416,6 @@ pub(crate) enum FormationError {
     InternalMembraneUnavailable(MembraneChargeError),
     PhysicalMosaicUnavailable(PhysicalMosaicError),
     PhysicalMosaicCodecUnavailable(PhysicalMosaicCodecError),
-    /// The body truthfully refused an intake: it can absorb nothing, or the
-    /// declaration carried no energy at all.
-    NutritionUnavailable(MetabolicError),
     /// An authored contact could not be resolved against exactly two members
     /// of exactly one living cohort, or none was authored at all.  Naming a
     /// connection the organism does not have is refused, never inferred.
@@ -22509,9 +22505,6 @@ impl fmt::Display for FormationError {
             }
             Self::PhysicalMosaicCodecUnavailable(error) => {
                 write!(output, "physical mosaic persistence is unavailable: {error:?}")
-            }
-            Self::NutritionUnavailable(error) => {
-                write!(output, "the body refuses this nutrition intake: {error:?}")
             }
             Self::AuthoredContactUnavailable => write!(
                 output,

@@ -46,6 +46,7 @@ failure in one gate does not erase an already-proved success in another.
 | Q-S-013 | Removed four repeated scans from the active internal-contact settlement: layer-10 contact activity and causal lineages now accumulate in canonical ordered maps/sets, two layer-10 lineage resolutions use the resident topology index, and selected predecessors use their existing sorted order. Production compilation passed with the same 184 warnings. Focused affective-convergence, changed-endpoint scheduling, and exact vocal sensorimotor-route tests each passed 1/1. Full DSF and carrier settlement are unchanged. |
 | Q-S-014 | Removed three population-width costs from every active event-schedule update. Endpoint cache is now sparse over selected neurons; changed-endpoint evaluation visits only the exact union of selected, external-source, passive-return, and articulatory candidates in ascending flat order; already-settled contacts use binary search over the existing sorted compact contact list instead of allocating one Boolean per resident contact. Compilation passed with the same 184 warnings. Focused changed-endpoint wake, unrelated-neighbour non-authority, and exact vocal co-recruitment tests each passed 1/1. |
 | Q-S-015 | Removed a full-cohort all-false metabolic mask allocated for every resident sensory settlement and the two impossible endogenous-cue branches that consumed it. Real metabolic change remains in the later sparse internal-contact authority; retained relaxation state remains. Compilation passed with the same 184 warnings, and focused recurrent-cell-authority, post-quiescence fractal, and shared-field/restart tests each passed 1/1. |
+| Q-S-016 | Removed the final cognitive-core item unreachable even in the test build: a stale nutrition error variant/import/display arm referenced only by a permanently disabled archival test. Production and test compilation passed; warnings fell to 183 and 94 respectively, with no warning location in `resident_cognitive_formation.rs` in the test build. The production core is 22,547 lines, down 10,393 from 32,940. |
 
 ## Failures and recurrence guards
 
@@ -73,7 +74,10 @@ failure in one gate does not erase an already-proved success in another.
 
 ## Next exact gate
 
-Quarantine and the first core reduction are protected complete. Continue the
-23,137-line production core review by active call path: repeated
-whole-population scans, duplicate authors, and persistence-only bookkeeping.
-Remove nothing solely because it is large; preserve exact physics and state.
+Legacy-shell quarantine and the bounded native-core cleanup are protected
+complete for this pass. The core now has no wall-clock/atomic diagnostics or
+locks, no population-width endpoint/contact event bookkeeping, no compiled
+unreachable item, and ordinary restore remains strict current-format decode;
+historical migration runs only through explicit migration/genesis calls.
+Proceed to truthful body-centered virtual vision without changing L0-L4,
+full DSF, neurons, identity, or learned state.
