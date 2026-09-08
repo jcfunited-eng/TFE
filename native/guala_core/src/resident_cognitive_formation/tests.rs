@@ -91,7 +91,7 @@
     }
 
     #[test]
-    fn parallel_terminal_energy_observation_matches_serial_fixed_order() {
+    fn bounded_parallel_terminal_energy_observation_matches_serial() {
         let source = exact_four_single_optical_episode(0);
         let seed = explicit_optical_seed(&source, 500);
         let mut state =

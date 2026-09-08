@@ -7574,23 +7574,51 @@ impl ResidentCognitiveFormationState {
     /// recovery-fluid reservoir, the dissipation ledgers, and the separated
     /// membrane charge still standing away from rest.
     pub(crate) fn energy_state(&self) -> ReachedCohortEnergyState {
-        // This is terminal observation, never settlement authority. Each
-        // cohort owns independent anatomy/state, so its exact subtotal may be
-        // read concurrently. `IndexedParallelIterator::collect` preserves the
-        // canonical cohort order; the final BigRational additions therefore
-        // occur in precisely the former serial order and return bit-identical
-        // totals rather than an order-dependent reduction.
-        let cohort_energy = self
+        // This is terminal observation, never settlement authority. Mature
+        // production anatomy is intentionally sparse and currently carries
+        // almost one cohort per neuron. Preserve concurrent evaluation without
+        // dispatching and allocating one result for every tiny cohort: each
+        // existing worker receives one contiguous canonical chunk, and only
+        // those bounded chunk totals cross the final ordered reduction.
+        let chunk_width = self
             .cohorts
-            .par_iter()
-            .map(|cohort| {
-                reached_cohort_energy_state(&cohort.anatomy, &cohort.state)
+            .len()
+            .div_ceil(rayon::current_num_threads())
+            .max(1);
+        let chunk_energy = self
+            .cohorts
+            .par_chunks(chunk_width)
+            .map(|cohorts| {
+                let mut subtotal = ReachedCohortEnergyState::default();
+                for cohort in cohorts {
+                    accumulate_reached_cohort_energy(
+                        &mut subtotal,
+                        reached_cohort_energy_state(&cohort.anatomy, &cohort.state),
+                    );
+                }
+                // Signed saturation is intentionally order-sensitive. The
+                // exact historical cohort/neuron order is restored below;
+                // only associative rational energy crosses chunk boundaries.
+                subtotal.separated_elementary_charges = 0;
+                subtotal
             })
             .collect::<Vec<_>>();
         let mut total = ReachedCohortEnergyState::default();
-        for cohort in cohort_energy {
-            accumulate_reached_cohort_energy(&mut total, cohort);
+        for subtotal in chunk_energy {
+            accumulate_reached_cohort_energy(&mut total, subtotal);
         }
+        total.separated_elementary_charges = self.cohorts.iter().fold(
+            0_i128,
+            |organism_total, cohort| {
+                let cohort_total = cohort.state.neurons().iter().fold(
+                    0_i128,
+                    |cohort_total, neuron| {
+                        cohort_total.saturating_add(neuron.separated_elementary_charges())
+                    },
+                );
+                organism_total.saturating_add(cohort_total)
+            },
+        );
         total
     }
 
