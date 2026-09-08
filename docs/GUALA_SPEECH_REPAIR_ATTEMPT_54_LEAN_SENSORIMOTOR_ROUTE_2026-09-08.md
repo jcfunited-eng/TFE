@@ -1692,3 +1692,29 @@ During the latest six five-minute CloudWatch buckets, ECS CPU averaged
 10.49-10.94%. There is no current RAM runaway in that window; CPU remains high
 and the clock alarm remains unresolved. Both public HTML pages returned 200.
 This is pre-cutover health evidence, not speech success.
+
+D-061-03 production cutover: the clean release at HEAD
+`e8caebe2982823bb97f65203fc986c252a615b9e` was packaged by the sole lean
+controller, built once, and cut over from task definition 1446 to 1447 between
+2026-09-08T22:17:31Z and 22:25:23Z. The immutable live image digest is
+`sha256:9fc3552d129761e9c74211c22c35e6485445bac23e2a21bd12f133d04ee9078b`.
+The controller drained the predecessor before starting the candidate and
+proved the same organism identity with native tick continuity 541553 to
+541599. Both legacy Python shells remained excluded from the image. This is a
+successful identity-preserving deployment of the corrected bond check, not
+speech success.
+
+F-061-01 decisive live speech result: after task 1447 became healthy, the open
+production page delivered repeated `camera-microphone` occurrences with 4,000
+externally heard samples each. They produced zero body consequences, zero
+self-heard samples, and no held pressure receipt. One exact previously taught
+tutor-pressure body was then submitted once through the same live occurrence
+route at tick 541685. It was accepted as 4,000 external samples, changed 1,765
+neurons, preserved full 221-delivery DSF execution and zero Python callbacks,
+but produced zero body consequences, zero self-hearing, and no pressure. The
+same causal frontier was observed—not restimulated—through tick 541705 while
+ordinary and live page sensory intervals continued; output remained zero.
+Candidate 61 therefore removes the wrong-bond stale-wave admission but does
+not close learned sound to vocal action. Task 1447 remains live with the
+preserved identity; speech is still failed. The browser/laptop speaker path is
+armed but has no Guala pressure receipt to fetch or play.
