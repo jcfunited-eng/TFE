@@ -1054,7 +1054,6 @@ fn jointly_carrier_bound_transitions(
     interval_microseconds: u32,
     provisional: Vec<ElectricalContactTransition>,
 ) -> Result<Vec<ElectricalContactTransition>, SparseElectricalError> {
-    let reconciliation_stopwatch = std::time::Instant::now();
     // A neuron's per-contact demands are individually bounded whole-carrier
     // values, but their transient sum across a real fan-out need not fit the
     // width of one resident carrier store.  The sum exists only to derive the
@@ -1078,8 +1077,6 @@ fn jointly_carrier_bound_transitions(
                 .ok_or(SparseElectricalError::ArithmeticWidth)?;
         }
     }
-    let demand_wall = reconciliation_stopwatch.elapsed();
-
     let transitions = anatomy
         .contacts
         .par_iter()
@@ -1146,7 +1143,6 @@ fn jointly_carrier_bound_transitions(
             })
         })
         .collect::<Result<Vec<_>, _>>()?;
-    let allocation_wall = reconciliation_stopwatch.elapsed();
     let transitions = component_energy_descending_transitions(
         anatomy,
         predecessor_contacts,
@@ -1156,13 +1152,6 @@ fn jointly_carrier_bound_transitions(
         interval_microseconds,
         transitions,
     )?;
-    let energy_wall = reconciliation_stopwatch.elapsed();
-    eprintln!(
-        "guala-reconciliation-phases demand_ms={} allocation_ms={} energy_ms={}",
-        demand_wall.as_millis(),
-        (allocation_wall - demand_wall).as_millis(),
-        (energy_wall - allocation_wall).as_millis(),
-    );
     Ok(transitions)
 }
 
@@ -2470,7 +2459,6 @@ pub(crate) fn settle_sparse_electrical_transfers(
     // those independent pair proposals concurrently; the exact shared-sender
     // carrier bound and connected-component energy descent still follow as
     // their single deterministic reconciliation steps.
-    let solver_stopwatch = std::time::Instant::now();
     let provisional = anatomy
         .contacts
         .par_iter()
@@ -2496,7 +2484,6 @@ pub(crate) fn settle_sparse_electrical_transfers(
             )
         })
         .collect::<Result<Vec<_>, _>>()?;
-    let provisional_wall = solver_stopwatch.elapsed();
     let mut transitions = jointly_carrier_bound_transitions(
         anatomy,
         predecessor_contacts,
@@ -2506,7 +2493,6 @@ pub(crate) fn settle_sparse_electrical_transfers(
         interval_microseconds,
         provisional,
     )?;
-    let jointly_wall = solver_stopwatch.elapsed();
     attach_contact_local_released_work(
         anatomy,
         &potentials,
@@ -2514,52 +2500,7 @@ pub(crate) fn settle_sparse_electrical_transfers(
         predecessor_membranes,
         &mut transitions,
     )?;
-    let attach_wall = solver_stopwatch.elapsed();
     let outward_by_neuron = settled_outward_by_neuron(anatomy, &transitions)?;
-    eprintln!(
-        "guala-solver-phases provisional_ms={} jointly_ms={} attach_ms={} tail_ms_pending",
-        provisional_wall.as_millis(),
-        (jointly_wall - provisional_wall).as_millis(),
-        (attach_wall - jointly_wall).as_millis(),
-    );
-    let mut moved_whole = 0usize;
-    let mut phase_only = 0usize;
-    let mut true_identity = 0usize;
-    for (transition, predecessor) in transitions.iter().zip(&predecessor_contacts.contacts) {
-        if transition.outward_elementary_charges_from_left != 0 {
-            moved_whole += 1;
-        } else if transition.successor != *predecessor {
-            phase_only += 1;
-        } else {
-            true_identity += 1;
-        }
-    }
-    let mut sender_flags = vec![false; anatomy.neuron_count];
-    for (contact, transition) in anatomy.contacts.iter().zip(&transitions) {
-        if transition.outward_elementary_charges_from_left > 0 {
-            sender_flags[contact.left_neuron] = true;
-        } else if transition.outward_elementary_charges_from_left < 0 {
-            sender_flags[contact.right_neuron] = true;
-        }
-    }
-    let senders = sender_flags.iter().filter(|flag| **flag).count();
-    let mut approximate_potentials = potentials
-        .iter()
-        .map(|potential| {
-            let (numerator, denominator) = potential.parts();
-            numerator as f64 / denominator as f64
-        })
-        .collect::<Vec<f64>>();
-    approximate_potentials.sort_by(|a, b| a.partial_cmp(b).unwrap());
-    let quartile = |fraction: f64| {
-        approximate_potentials
-            [(fraction * (approximate_potentials.len() - 1) as f64) as usize]
-    };
-    eprintln!(
-        "guala-contact-outcomes moved_whole={} phase_only={} true_identity={} senders={} pot_min={:.3} p25={:.3} p50={:.3} p75={:.3} pot_max={:.3}",
-        moved_whole, phase_only, true_identity, senders,
-        quartile(0.0), quartile(0.25), quartile(0.5), quartile(0.75), quartile(1.0),
-    );
 
     Ok(SparseElectricalTransferSettlement {
         successor_contacts: SparseElectricalState {
