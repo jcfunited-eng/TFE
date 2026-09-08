@@ -19622,8 +19622,7 @@ fn settle_internal_contact_interval(
     // both its association (layer 7) and body-regulation (layer 8) contacts.
     // Magnitudes are catalyst quanta; direction is preserved separately by
     // the settled transfer evidence and is not converted into valence.
-    let mut layer_ten_contact_activity =
-        Vec::<([u8; 16], u128, u128)>::new();
+    let mut layer_ten_contact_activity = BTreeMap::<[u8; 16], (u128, u128)>::new();
     for (transition, (left_flat, right_flat)) in settled
         .transitions
         .iter()
@@ -19646,28 +19645,17 @@ fn settle_internal_contact_interval(
             if !matches!(adjacent_layer, Some(7 | 8)) {
                 continue;
             }
-            let index = match layer_ten_contact_activity
-                .iter()
-                .position(|(lineage, _, _)| *lineage == candidate)
-            {
-                Some(index) => index,
-                None => {
-                    layer_ten_contact_activity.push((candidate, 0, 0));
-                    layer_ten_contact_activity.len() - 1
-                }
-            };
+            let activity = layer_ten_contact_activity.entry(candidate).or_insert((0, 0));
             let target = if adjacent_layer == Some(7) {
-                &mut layer_ten_contact_activity[index].1
+                &mut activity.0
             } else {
-                &mut layer_ten_contact_activity[index].2
+                &mut activity.1
             };
             *target = target
                 .checked_add(magnitude)
                 .ok_or(FormationError::ArithmeticOverflow)?;
         }
     }
-    layer_ten_contact_activity.sort_unstable_by_key(|(lineage, _, _)| *lineage);
-
     let mut pre_field = Vec::with_capacity(selected.len());
     let mut post_field = Vec::with_capacity(selected.len());
     let mut coordinate_bounds = Vec::with_capacity(selected.len());
@@ -19866,14 +19854,11 @@ fn settle_internal_contact_interval(
     // physical settlement. It is scheduling state, not effector authority:
     // motor and articulatory emission are governed below by their mounted
     // preparation transfers and their own outward carrier discharge.
-    let mut causally_active_lineages = causal_seed_flats
+    let causal_seed_lineages = causal_seed_flats
         .iter()
         .map(|flat| flat_locations[*flat].2)
-        .collect::<Vec<_>>();
-    let causal_seed_lineages = causally_active_lineages
-        .iter()
-        .copied()
         .collect::<BTreeSet<_>>();
+    let mut causally_active_lineages = causal_seed_lineages.clone();
     let fresh_seed_lineages = fresh_seed_flats
         .iter()
         .map(|flat| flat_locations[*flat].2)
@@ -19893,13 +19878,9 @@ fn settle_internal_contact_interval(
         };
         if let Some(reached_flat) = reached_flat {
             let lineage = flat_locations[reached_flat].2;
-            if !causally_active_lineages.contains(&lineage) {
-                causally_active_lineages.push(lineage);
-            }
+            causally_active_lineages.insert(lineage);
         }
     }
-    causally_active_lineages.sort_unstable();
-    causally_active_lineages.dedup();
 
     // Resolve only the mounted reacted-load branch before the disjoint cohort
     // mutation begins. Tonic antagonist-length receptors share layer 8, but
@@ -20171,11 +20152,8 @@ fn settle_internal_contact_interval(
                     })
                 })?;
             let lineage = cohort.anatomy.neuron_lineages()[neuron_index];
-            let convergent_activity = match layer_ten_contact_activity
-                .binary_search_by_key(&lineage, |(candidate, _, _)| *candidate)
-            {
-                Ok(index) => {
-                    let (_, association, body) = layer_ten_contact_activity[index];
+            let convergent_activity = match layer_ten_contact_activity.get(&lineage) {
+                Some(&(association, body)) => {
                     if association != 0 && body != 0 {
                         Some(
                             association
@@ -20186,7 +20164,7 @@ fn settle_internal_contact_interval(
                         None
                     }
                 }
-                Err(_) => None,
+                None => None,
             };
             let gradient_changed = reached_layer_ten_gradient_settlements.iter().any(
                 |gradient| gradient.neuron_lineage == lineage && gradient.metabolic.changed(),
@@ -21084,13 +21062,12 @@ fn settle_internal_contact_interval(
     }
     let mut affective_balance_trajectories = Vec::new();
     for gradient in reached_layer_ten_gradient_settlements {
-        let interval_successor_separated_elementary_charges = flat_locations
-            .iter()
-            .find(|(_, _, lineage)| *lineage == gradient.neuron_lineage)
-            .map(|(cohort_index, neuron_index, _)| {
-                cohorts[*cohort_index].state.neurons()[*neuron_index].separated_elementary_charges()
-            })
-            .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
+        let gradient_flat = topology_index.flat_for_lineage(gradient.neuron_lineage)?;
+        let (gradient_cohort_index, gradient_neuron_index, _) = flat_locations[gradient_flat];
+        let interval_successor_separated_elementary_charges = cohorts[gradient_cohort_index]
+            .state
+            .neurons()[gradient_neuron_index]
+            .separated_elementary_charges();
         let mut association_influences = Vec::new();
         let mut body_influences = Vec::new();
         for ((transition, bond), (left_flat, right_flat)) in settled
@@ -21143,15 +21120,15 @@ fn settle_internal_contact_interval(
             .iter()
             .find(|settlement| settlement.neuron_lineage == gradient.neuron_lineage)
             .map(|settlement| {
-                let successor_plastic_rest_length_nanometres = flat_locations
-                    .iter()
-                    .find(|(_, _, lineage)| *lineage == settlement.neuron_lineage)
-                    .map(|(cohort_index, neuron_index, _)| {
-                        cohorts[*cohort_index].state.neurons()[*neuron_index]
-                            .plastic
-                            .rest_length_nanometres()
-                    })
-                    .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
+                let settlement_flat = topology_index.flat_for_lineage(settlement.neuron_lineage)?;
+                let (settlement_cohort_index, settlement_neuron_index, _) =
+                    flat_locations[settlement_flat];
+                let successor_plastic_rest_length_nanometres = cohorts
+                    [settlement_cohort_index]
+                    .state
+                    .neurons()[settlement_neuron_index]
+                    .plastic
+                    .rest_length_nanometres();
                 Ok(LocalAffectivePlasticitySettlementObservation {
                     cognitive_ordinal: settlement.cognitive_ordinal,
                     incident_catalyst_quanta: settlement.incident_catalyst_quanta,
@@ -21416,8 +21393,9 @@ fn settle_internal_contact_interval(
                 .as_ref()
                 .and_then(|predecessors| {
                     predecessors
-                        .iter()
-                        .find(|(candidate, _)| *candidate == neuron_index)
+                        .binary_search_by_key(&neuron_index, |(candidate, _)| *candidate)
+                        .ok()
+                        .map(|position| &predecessors[position])
                 })
                 .is_some_and(|(_, predecessor)| predecessor != state);
             let passive_return_changed = passive_return_changed_flats
@@ -21840,7 +21818,7 @@ fn settle_internal_contact_interval(
         dsf_delivery_count: 1,
         active_bonds,
         causal_active_bonds,
-        causally_transitioned_lineages: causally_active_lineages,
+        causally_transitioned_lineages: causally_active_lineages.into_iter().collect(),
         changed_contact_channel_states,
         frontier_routes,
         next_active_frontier,
