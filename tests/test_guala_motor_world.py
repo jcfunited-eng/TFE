@@ -68,11 +68,9 @@ def test_applied_root_yaw_returns_actual_world_motion_and_exact_sources() -> Non
     assert after_body.pose.heading_millidegrees == (
         before_body.pose.heading_millidegrees + 7
     )
-    assert len(plan.sources) == 3
-    assert plan.sources[1].port_count == 810
-    assert plan.sources[1].occurrence_count == 135
-    assert len(plan.admissions[1]) == 135
-    assert len(plan.spectral_retinal_u8) == 810
+    assert len(plan.sources) == 2
+    assert all(source.port_count != 810 for source in plan.sources)
+    assert not hasattr(plan, "spectral_retinal_u8")
     assert plan.vestibular == (before_body.pose.heading_millidegrees, (7,))
     world.discard_prepared_action(plan.prepared_world)
 
@@ -92,11 +90,9 @@ def test_refused_root_translation_returns_truthful_zero_motion() -> None:
     assert plan.refusal_reason is not None
     assert plan.requested_root_motion == (0, 2_000_000, 0)
     assert plan.actual_root_motion == (0, 0, 0)
-    assert len(plan.sources) == 2
-    assert plan.sources[1].port_count == 810
-    assert plan.sources[1].occurrence_count == 135
-    assert len(plan.admissions[1]) == 135
-    assert len(plan.spectral_retinal_u8) == 810
+    assert len(plan.sources) == 1
+    assert all(source.port_count != 810 for source in plan.sources)
+    assert not hasattr(plan, "spectral_retinal_u8")
     assert plan.vestibular is None
     world.discard_prepared_action(plan.prepared_world)
 

@@ -19,18 +19,12 @@ from dsf_ai_service.guala_physical_sensorium import (
     settle_physical_sensorium,
     settle_projected_physical_sensorium,
 )
-from dsf_ai_service.guala_spectral_retina import (
-    settle_spectral_retina,
-    spectral_retina_admissions,
-    spectral_retina_u8_observation,
-)
 from dsf_ai_service.glew_runtime.sensory_full_field_boundary import (
     PhysicalSense,
     SENSE_ORDER,
 )
 from dsf_ai_service.guala_world_sensorium import (
     BODY_INTERVAL_MICROSECONDS,
-    body_consequence_receptor_capture,
     consequence_source_times,
     passive_body_consequence_sensorium,
 )
@@ -59,7 +53,6 @@ class PreparedMotorConsequence:
     refusal_reason: str | None
     requested_root_motion: tuple[int, int, int]
     actual_root_motion: tuple[int, int, int]
-    spectral_retinal_u8: tuple[int, ...]
 
 
 def _receipt(value: object) -> str:
@@ -256,18 +249,12 @@ def prepare_motor_consequence(
     execution = prepared.execution_receipt
     actual_yaw, actual_x, actual_y = _actual_root_motion(execution)
     times = consequence_source_times(passive_times)
-    receptor_capture = body_consequence_receptor_capture(
-        execution=execution,
-        predecessor_body_axes=predecessor_body_axes,
-        successor_body_axes=successor_body_axes,
-    )
     sensorium = passive_body_consequence_sensorium(
         world=world,
         execution=execution,
         predecessor_body_axes=predecessor_body_axes,
         successor_body_axes=successor_body_axes,
         source_times=times,
-        receptor_capture=receptor_capture,
     )
     assembly_id = "guala-lean-native-motor-" + evidence.causal_transition_sha256
     if exclude_sound:
@@ -283,18 +270,6 @@ def prepare_motor_consequence(
             source_times=times,
             sensorium=sensorium,
         )
-    spectral_episode = settle_spectral_retina(
-        assembly_id=assembly_id + "-spectral-retina",
-        streams=receptor_capture[0][PhysicalSense.SIGHT],
-        source_times=times,
-        before_transmission=receptor_capture[1],
-        after_transmission=receptor_capture[2],
-        transition_time=Fraction(BODY_INTERVAL_MICROSECONDS, 1_000_000),
-    )
-    spectral_retinal_u8 = spectral_retina_u8_observation(
-        streams=receptor_capture[0][PhysicalSense.SIGHT],
-        transmission=receptor_capture[2],
-    )
     consequence_sources = list(_body_sources(evidence))
     source_tick = int(evidence.organism_tick)
     if actual_yaw:
@@ -312,13 +287,9 @@ def prepare_motor_consequence(
                 signed_y_millimetres=actual_y,
             )
         )
-    observed_interval = times[-1] - times[0]
-    if observed_interval <= 0:
-        raise RuntimeError("native motor return lost its exact observation interval")
-    sources = (world_episode, spectral_episode, *consequence_sources)
+    sources = (world_episode, *consequence_sources)
     admissions = (
-        [(observed_interval.numerator, observed_interval.denominator)],
-        spectral_retina_admissions(observed_interval),
+        [(250, 1_000)],
         *(
             [(1, 1_000)] * source.occurrence_count
             for source in consequence_sources
@@ -358,5 +329,4 @@ def prepare_motor_consequence(
         refusal_reason=refusal_reason,
         requested_root_motion=(requested_yaw, requested_x, requested_y),
         actual_root_motion=(actual_yaw, actual_x, actual_y),
-        spectral_retinal_u8=spectral_retinal_u8,
     )

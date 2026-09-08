@@ -3,13 +3,14 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from fractions import Fraction
 import hashlib
 
-from dsf_ai_service.guala_external_rgb_retina import EXTERNAL_RGB_VALUE_COUNT
 from dsf_ai_service.lean_actor import MAX_PRESSURE_BYTES
 
 
-RETINAL_SITE_COUNT = EXTERNAL_RGB_VALUE_COUNT // 3
+RETINAL_SITE_COUNT = 135
+EXTERNAL_RGB_VALUE_COUNT = RETINAL_SITE_COUNT * 3
 SOURCES = frozenset({
     "camera",
     "camera-microphone",
@@ -29,6 +30,47 @@ CO_SENSORY_SOURCES = frozenset({
 })
 
 
+def _validate_retina_rgb(values: tuple[int, ...]) -> None:
+    if (
+        not isinstance(values, tuple)
+        or len(values) != EXTERNAL_RGB_VALUE_COUNT
+        or any(
+            isinstance(value, bool)
+            or not isinstance(value, int)
+            or not 0 <= value <= 255
+            for value in values
+        )
+    ):
+        raise ValueError("sensory light changed the 135-site RGB retina")
+
+
+def rgb_retina_luminance_u8(values: tuple[int, ...]) -> tuple[int, ...]:
+    """Project browser RGB onto the established 135 achromatic receptors."""
+
+    _validate_retina_rgb(values)
+    return tuple(
+        (
+            values[index] * 299
+            + values[index + 1] * 587
+            + values[index + 2] * 114
+            + 500
+        )
+        // 1_000
+        for index in range(0, len(values), 3)
+    )
+
+
+def transmitted_rgb_retina_u8(
+    values: tuple[int, ...], transmission: Fraction
+) -> tuple[int, ...]:
+    """Expose the exact browser RGB field after body-owned eyelid transmission."""
+
+    _validate_retina_rgb(values)
+    if not isinstance(transmission, Fraction) or not 0 <= transmission <= 1:
+        raise ValueError("external retinal transmission left physical bounds")
+    return tuple(round(Fraction(value) * transmission) for value in values)
+
+
 @dataclass(frozen=True, slots=True)
 class LeanSensoryOccurrence:
     source: str
@@ -42,16 +84,8 @@ class LeanSensoryOccurrence:
         retina = self.retina_rgb_u8
         pressure = self.pressure_s16le
         guided = self.guided_vocal_drives
-        if retina is not None and (
-            len(retina) != EXTERNAL_RGB_VALUE_COUNT
-            or any(
-                isinstance(value, bool)
-                or not isinstance(value, int)
-                or not 0 <= value <= 255
-                for value in retina
-            )
-        ):
-            raise ValueError("sensory light changed the 135-site RGB retina")
+        if retina is not None:
+            _validate_retina_rgb(retina)
         if pressure is not None and (
             not isinstance(pressure, bytes)
             or not pressure
@@ -124,7 +158,10 @@ class LeanSensoryOccurrence:
 
 
 __all__ = (
+    "EXTERNAL_RGB_VALUE_COUNT",
     "LeanSensoryOccurrence",
     "RETINAL_SITE_COUNT",
     "SOURCES",
+    "rgb_retina_luminance_u8",
+    "transmitted_rgb_retina_u8",
 )

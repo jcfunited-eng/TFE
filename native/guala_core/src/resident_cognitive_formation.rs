@@ -8226,16 +8226,9 @@ impl ResidentCognitiveFormationState {
                         };
                         let mut receptor_excitation_zeptojoules =
                             vec![None; cohort.anatomy.neuron_count()];
-                        // Each receptor reads only its own mounted anatomy/state
-                        // and the same immutable full joint field. Prepare those
-                        // exact inputs concurrently; indexed Rayon collection
-                        // retains coordinate order, and all organism-owned sets
-                        // and residue slots are committed serially below.
-                        let prepared_inputs = coordinate_indices
-                            .par_iter()
-                            .copied()
-                            .enumerate()
-                            .map(|(reached_input_index, coordinate_index)| {
+                        for (reached_input_index, coordinate_index) in
+                            coordinate_indices.iter().copied().enumerate()
+                        {
                             let perspective = bind_neuron_perspective(
                                 &shared,
                                 coordinate_index,
@@ -8246,13 +8239,7 @@ impl ResidentCognitiveFormationState {
                                 .anatomy
                                 .source_site_member(&reached_source_sites[coordinate_index])
                                 .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
-                            let (
-                                gate_work,
-                                interval_microseconds,
-                                receptor_successor_residue,
-                                receptor_carries_exogenous_energy,
-                                receptor_excitation,
-                            ) =
+                            let (gate_work, interval_microseconds, receptor_successor_residue) =
                                 if let Some(ingress) = vestibular {
                                     if coordinate_index != 0 {
                                         return Err(FormationError::VestibularUnavailable(
@@ -8264,8 +8251,6 @@ impl ResidentCognitiveFormationState {
                                             ingress.transduction().gate_work_zeptojoules.clone(),
                                         ),
                                         ingress.transduction().reached_tick.interval_microseconds,
-                                        None,
-                                        false,
                                         None,
                                     )
                                 } else {
@@ -8429,9 +8414,21 @@ impl ResidentCognitiveFormationState {
                                             settlement.transduced_energy_zeptojoules
                                         }
                                     };
-                                    let receptor_carries_exogenous_energy =
-                                        !transduced_energy_zeptojoules.is_zero();
-                                    let receptor_excitation = Some(
+                                    if !transduced_energy_zeptojoules.is_zero() {
+                                        exogenous_receptor_energy = Some(true);
+                                        let lineage =
+                                            cohort.anatomy.neuron_lineages()[resident_index];
+                                        if !externally_energized_neuron_lineages.contains(&lineage) {
+                                            externally_energized_neuron_lineages.push(lineage);
+                                        }
+                                        if !externally_energized_by_occurrence[occurrence_index]
+                                            .contains(&lineage)
+                                        {
+                                            externally_energized_by_occurrence[occurrence_index]
+                                                .push(lineage);
+                                        }
+                                    }
+                                    receptor_excitation_zeptojoules[resident_index] = Some(
                                         big_to_exact_rational(&transduced_energy_zeptojoules)
                                             .map_err(|_| FormationError::ArithmeticOverflow)?,
                                     );
@@ -8644,8 +8641,6 @@ impl ResidentCognitiveFormationState {
                                         gate_interval_microseconds
                                             .ok_or(FormationError::NoncanonicalState)?,
                                         Some((delivery.successor_residue, prepared_psi)),
-                                        receptor_carries_exogenous_energy,
-                                        receptor_excitation,
                                     )
                                 };
                             let (receptor_successor_residue, prepared_psi) =
@@ -8669,50 +8664,19 @@ impl ResidentCognitiveFormationState {
                                         (None, Some(prepared))
                                     }
                                 };
-                            Ok((
-                                resident_index,
-                                cohort.anatomy.neuron_lineages()[resident_index],
-                                receptor_carries_exogenous_energy,
-                                receptor_excitation,
-                                NeuronIntervalInput {
-                                    perspective,
-                                    gate_work,
-                                    interval_microseconds,
-                                    recovery: RecoveryContact::new(
-                                        &catalysts[reached_input_index],
-                                        0,
-                                        0,
-                                    ),
-                                    dna_expression: DnaExpressionContact::new(0),
-                                    receptor_successor_residue,
-                                    prepared_psi,
-                                },
-                            ))
-                        })
-                        .collect::<Vec<Result<_, FormationError>>>();
-                        for prepared in prepared_inputs {
-                            let (
-                                resident_index,
-                                lineage,
-                                carries_exogenous_energy,
-                                receptor_excitation,
-                                input,
-                            ) = prepared?;
-                            if carries_exogenous_energy {
-                                exogenous_receptor_energy = Some(true);
-                                if !externally_energized_neuron_lineages.contains(&lineage) {
-                                    externally_energized_neuron_lineages.push(lineage);
-                                }
-                                if !externally_energized_by_occurrence[occurrence_index]
-                                    .contains(&lineage)
-                                {
-                                    externally_energized_by_occurrence[occurrence_index]
-                                        .push(lineage);
-                                }
-                            }
-                            receptor_excitation_zeptojoules[resident_index] =
-                                receptor_excitation;
-                            inputs.push(input);
+                            inputs.push(NeuronIntervalInput {
+                                perspective,
+                                gate_work,
+                                interval_microseconds,
+                                recovery: RecoveryContact::new(
+                                    &catalysts[reached_input_index],
+                                    0,
+                                    0,
+                                ),
+                                dna_expression: DnaExpressionContact::new(0),
+                                receptor_successor_residue,
+                                prepared_psi,
+                            });
                         }
                         let input = ReachedCohortIntervalInput::from_episode(source, inputs)
                             .map_err(FormationError::PhysicalSettlementUnavailable)?;
