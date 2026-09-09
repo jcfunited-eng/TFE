@@ -551,3 +551,10 @@ contract and JavaScript syntax passes, exact object publication and CloudFront
 invalidation, live/source SHA equality, live API continuity, and Joe's direct
 laptop observation. Only Joe can establish that the laptop actually emitted
 audible sound; code and HTTP evidence cannot make that claim.
+
+Outcome: Joe directly reported hearing "a mostly tonal sound" from the live
+page after enabling the listener. This closes Q-UI-003's laptop-audibility
+acceptance boundary. It does not close speech: the truthful heard result is an
+audible tone without identifiable articulation. The 64x browser gain and
+two-receipt transport are closed delivery mechanisms and must not be revisited
+as explanations for the remaining articulation failure.

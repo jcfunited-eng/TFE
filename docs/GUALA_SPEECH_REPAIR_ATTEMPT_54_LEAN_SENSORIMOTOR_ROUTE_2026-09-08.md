@@ -4710,3 +4710,18 @@ the exact public page remained healthy while waiting. The required blocked
 notification was checked at 2026-09-09T18:30:38Z:
 `status=slack_sent channel=#general`. No additional cue was sent and no other
 work item was opened while the laptop listener remained unobservable.
+
+`S-054-78-16`: Joe completed the local browser gesture, kept the live listener
+active, and directly reported hearing "a mostly tonal sound" after the one
+fresh pure cue at tick 579013. That exact occurrence had zero guided axes,
+4,000 external samples, four vocal-body consequences, 4,000 same-act
+self-heard samples, 237 complete-DSF deliveries, 2,173 changed neurons, and
+pressure receipt
+`6cf21f298445681897443e6087fb709416db51c011f0f6aa02ec53eabb0001bd`.
+This closes the previously unavailable human-observed browser-to-laptop
+audibility boundary and preserves every earlier physical-route success. It
+also directly falsifies meaningful articulated speech: the heard output was
+mostly tonal, not a vocal response that Joe could identify as speech. Laptop
+audibility is therefore a recorded success; learned temporal articulation
+remains the single active speech failure and must not be hidden by replaying,
+amplifying, or relabeling the tone.
