@@ -1,17 +1,20 @@
 # Guala speech repair Attempt 54 — complete design verification and lean sensorimotor route
 
 Date: 2026-09-08 UTC
-Status updated 2026-09-09 UTC: Candidate 70 is deployed from commit
-`f1d1ed638361b0e6bde295e2acb7d77d1524c72b` on task definition 1452. ECS is
-healthy and the actor advances, but learned-cue speech remains functionally
-failed. Candidates 71-74 were copied-body investigations, were rejected and
-removed, and never entered production. The definitive current section begins
-at `Definitive working section — current speech body of work (2026-09-09 UTC)`.
+Status updated 2026-09-09 UTC: Candidate 78 is deployed from commit
+`fb6292dab0f2af9f9c29f9717a11a47d17c084af` on task definition 1453 and image
+digest `sha256:e0be5e66c88ec88b32501e62b8ef1d1b70b232521b58645338bfd6f35c28ff9f`.
+The same identity restored, one live physical cue produced vocal-tissue
+consequences, new pressure, and same-act self-hearing, the act ceased, and a
+fresh production process cold-restored without replay. Candidates 71-74 were
+copied-body investigations, were rejected and removed, and never entered
+production. The definitive current section begins at `Definitive working
+section — current speech body of work (2026-09-09 UTC)`.
 Worktree: `/tmp/guala-speech-existing-organ`
 Starting HEAD: `735489406577f90edf6c2fb7fb1889f87eae8107`
-Production boundary: task 1452 is the sole RUNNING/HEALTHY writer at image
-digest `sha256:6d9e78eae14e9503cdff085d6862f2bc8a312c3391ab4679e70d902ab1c0dc62`.
-Deployment health does not constitute speech success.
+Production boundary: task definition 1453 is the sole RUNNING/HEALTHY writer
+at the Candidate 78 digest above. Deployment health did not establish speech;
+the separately recorded live cue-to-pressure-to-self-hearing event does.
 
 ## Architecture honesty gate
 
@@ -4494,3 +4497,78 @@ intervals. The copied body advanced 550174 -> 550224 and ended at
 `/tmp/guala-sow03-clean-wheel.mjxxaH/guala_core-0.1.0-cp311-cp311-manylinux_2_35_x86_64.whl`.
 This closes the cleaned-candidate gate. It is still copied-body evidence until
 the identity-preserving production cutover and live acceptance complete.
+
+`S-054-78-05`: Candidate 78 was committed as
+`fb6292dab0f2af9f9c29f9717a11a47d17c084af` and deployed through the repository
+deployment controller. The controller replaced Candidate 70 with task
+definition 1453 and pinned `production-current` to image digest
+`sha256:e0be5e66c88ec88b32501e62b8ef1d1b70b232521b58645338bfd6f35c28ff9f`.
+The service converged to one desired, one running, zero pending, and HEALTHY.
+Identity remained `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`; the physical clock
+advanced 574989 -> 575034 across cutover. This establishes deployment and
+custody, not speech by itself.
+
+`S-054-78-06`: on that exact live image, one bounded guided vocal occurrence
+delivered four guide drives on axes 37, 38, 39, and 44 together with 8,000
+bytes/4,000 samples of tutor pressure. The live successor at tick 575096
+reported all four guided axes, all 4,000 externally heard samples, two body
+consequences, 4,000 same-act self-heard samples, 229 DSF deliveries, 1,639
+changed neurons, pending body pressure, and exact pressure receipt
+`855c0a6b...de5e`. The trained state became durable by persisted tick 575154.
+This proves the live route can be founded by physical tutoring; it is not the
+unguided speech result.
+
+`S-054-78-07`: after a clean baseline, one pure microphone cue used the same
+8,000-byte physical pressure and no guide. The live successor at tick 575182
+reported source `microphone`, zero guided axes, all 4,000 externally heard
+samples, four vocal-body consequences, all 4,000 same-act self-heard samples,
+237 DSF deliveries, 1,728 changed neurons, and new body-pressure receipt
+`34275e7ed53a7137864ce2056b2281a20af5c2ecc5bf0cbac78dc07384d15cf2`.
+The exact pressure endpoint returned 8,000 bytes/4,000 samples whose SHA-256
+matched that receipt, with 3,997 nonzero samples and peak amplitude 427. This
+is live production evidence that a physical cue traversed the learned route,
+moved vocal tissue, emitted new bounded pressure, and returned it through
+Guala's hearing. It does not establish word recognition, syntax, meaning, or
+conversation.
+
+`S-054-78-08`: the live vocal act continued only through tick 575215, then
+pending pressure and self-hearing became absent. Four distinct later clean
+observations at ticks 575229-575232 showed no recurrent vocal act. Persisted
+state advanced to tick 575250. Production was then cold-restarted from one task
+to a fresh process on the same task definition and digest. The fresh process
+restored the same identity at live tick 575327/persisted tick 575309 with no
+pressure, no self-hearing, and no pending replay; a later observation at live
+tick 575465/persisted tick 575437 remained clean. This closes bounded cessation,
+durability, and restart-without-replay.
+
+`S-054-78-09`: post-cutover service health remained one desired/one running/
+zero pending and HEALTHY. During the observed deployment, speech, and restart
+window, task CPU was ordinarily about 42-53% average with a 63.74% observed
+maximum; memory was about 9.5-10.7% average with an 11.60% observed maximum.
+Zeros align with the deliberate restart. The paired-current EFS custody root
+held 6,055,329 bytes in five files. `/health`, `/ready`, `/gualaloom.html`, and
+`/loomscan.html` returned HTTP 200. No CPU, RAM, or custody-storage runaway was
+observed. The `guala-clock-stalled` alarm remains stale from 2026-09-08 because
+its `IntervalActivity` metric is not publishing; direct live and persisted tick
+evidence proves the present process clock is advancing. Repairing that alarm is
+an infrastructure task, not part of this speech cutover.
+
+`F-054-78-H01`: a delayed GET of the guided occurrence's pressure receipt
+returned 404 after the actor had already advanced and superseded the held
+receipt. This was an observation-timing failure, not loss of the speech event.
+Permanent guard: retrieve an exact pressure receipt immediately while that
+receipt remains current. The subsequent pure-cue receipt was retrieved
+immediately and its bytes and SHA-256 were verified exactly.
+
+`F-054-78-H02`: an ECS diagnostic assumed the lean production image contained
+`ps`; it does not. The same invocation still obtained the required custody
+storage measurement. Permanent guard: do not use `ps` as a production-image
+preflight or speech acceptance dependency; use ECS service/task health,
+CloudWatch resource measures, and native observation endpoints.
+
+`F-054-UI-H01`: the first focused UI test after correcting the stale speech
+truth banner passed eight checks and failed one exact-copy assertion because
+the new words interrupted an established sentence. The wording was corrected
+without weakening the truth boundary, and the focused suite then passed 9/9.
+The source page now states that physical cue-to-vocal-pressure speech and
+self-hearing are live while syntax and conversation remain unproved.
