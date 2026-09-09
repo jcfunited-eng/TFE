@@ -2554,3 +2554,34 @@ for `organism_runtime.rs`, and
 `847fa296fe1d871ea0692af444d78f4cae572d1541dcb719d7c381d48f3de5e5`
 for `resident_cognitive_formation.rs`. `git diff --check`, the full test-target
 compile, the one exact frontier-codec test, and the final copied chronology pass.
+
+S-070-06 reviewed Candidate 70 is deployed with exact identity and sole-writer
+custody preserved. Commit
+`f1d1ed638361b0e6bde295e2acb7d77d1524c72b` built immutable image digest
+`sha256:6d9e78eae14e9503cdff085d6862f2bc8a312c3391ab4679e70d902ab1c0dc62`.
+The lean controller stopped task 1451 before starting task 1452, whose sole
+running task is `e94edc90b5c54f05b7644d687cb2e862`. ECS reports desired one,
+running one, pending zero, and rollout completed. Identity remains exactly
+`1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`; the native clock advanced across
+cutover from tick 549942 to 549988. This proves deployment, custody, and live
+native health only. Speech still requires one live cue, causal pressure,
+self-hearing, and bounded cessation; laptop audibility remains a separate
+truth boundary.
+
+F-070-05 one and only post-cutover live tutor cue ended silently on the current
+task-1452 body. Preflight at live tick 550041 proved the actor available,
+identity exact, and latest `self_pressure_pending=false`. The unchanged frozen
+8,000-byte / 4,000-sample tutor pressure was then admitted once at native tick
+550043: all 4,000 samples were externally heard, 221 full-DSF deliveries reached
+1,793 physically changed neurons, and the actor remained live, but the event
+produced zero body consequences, no pressure receipt, zero self-hearing, and no
+pending pressure. Read-only observation across later unattended ticks 550056
+through 550070 found ordinary body consequences at ticks 550056, 550062, and
+550070 but no new pressure, self-hearing, or pending act; the held pressure
+receipt remained the pre-cue historical receipt
+`2161cab5bb0a167dcabb77196da46b4a1a8b4a3d7e6fe77248e624ca50efabb5`.
+No second cue was sent. Production deployment and organism life are healthy,
+but live speech is not fixed and laptop audibility is not claimed. Preserve
+S-070-03/S-070-05 as exact copied-state mechanism success; the next boundary is
+the current body at tick 550043 versus the authenticated tick-546298 body, not
+another cue, A/B ladder, capacity increase, or alternative speech author.
