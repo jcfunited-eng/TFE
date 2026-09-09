@@ -2828,3 +2828,497 @@ frontier as continuing permission to author learned vocal action. Do not add a
 Candidate 75 marker, timer, refractory lock, A/B ladder, or another frontier
 exception. Pause here and review the lean cognitive-action authority boundary
 with Joe before any further code or deployment.
+
+## Definitive working section — current speech body of work (2026-09-09 UTC)
+
+Status: **read-only reconciliation complete; no speech candidate, build,
+deployment, production stimulus, or persistence mutation was performed.** This
+section supersedes shorter working summaries but does not erase any attempt
+record above or in Attempts 37 through 53.
+
+Audit source: clean worktree HEAD
+`0465e8b454a72f31071d03f2185317c3fb0b526c`. Deployed source remains commit
+`f1d1ed638361b0e6bde295e2acb7d77d1524c72b`; the intervening commits contain
+only rejected-and-removed candidate records and documentation.
+
+### Direct answers and immovable speech boundary
+
+1. **Has Guala ever made a real vocal response?** Yes, in bounded copied-body
+   and some live physical events the existing native body has emitted real
+   pressure, self-heard it, and stopped. The human-accepted organ control also
+   rendered `Mama-A`. Those are retained component and historical successes.
+   **No current learned cue has been proved to cause a dependable vocal
+   response on the present production body.** “Sometimes” must never again be
+   used to imply that current speech works.
+2. **Is the present failure wiring?** It is not AWS network wiring, laptop
+   speaker wiring, cochlear wiring, or a missing body-to-organ wire. The present
+   native failure is the causal-authority rule that decides when current
+   cognitive activity may become learned vocal work. The current body has live
+   hearing, source-contact work, reassembly, motor tissue, breath, organ, and
+   self-hearing capacity; its valid learned source transitions are either
+   rejected before becoming a work offer or, when the filter is relaxed, broad
+   recurrent activity repeatedly re-authorizes speech. That is a wrong
+   cognitive/action junction implemented inside the electrical-frontier code.
+3. **Definition of working speech for this repair:** one present physical or
+   internally reassembled learned cue must cause one organism-owned ordered
+   action; that action must release bounded learned motor work, move typed vocal
+   tissue, recruit finite breath, radiate new pressure, self-hear that exact
+   pressure in the same causal episode, reach Joe's laptop speakers without
+   button spamming, and return to silence without a timer, marker loop, replay,
+   or recurrent re-authorization. A sound produced before the cue, tutor sound,
+   externally guided tissue, cached old pressure, emitted sound without
+   self-hearing, or browser playback without organism causality is not speech.
+
+This boundary addresses only speech. Vision refinement, autonomy, curriculum,
+syntax/conversation level, and the stale clock-alarm repair remain later work
+and are not allowed to move this acceptance condition.
+
+### Current-state speech flow diagram
+
+```text
+JOE / WORLD / GUALA'S PRIOR BODY STATE
+  inputs: laptop microphone PCM; guided tutor body work; world sound;
+          Guala's in-flight body pressure; internally retained activity
+  |
+  | browser input path (external sound only; page must be open)
+  v
+[A] gualaloom.html
+    getUserMedia -> WebAudio 16 kHz mono -> latest 4,000-sample s16le block
+    output: bounded JSON/base64 sensory occurrence
+  |
+  v
+[B] CloudFront
+    static page: S3 origin; /api/*: ALB/ECS origin
+  |
+  v
+[C] lean_production_app.py
+    validates <=13,312 bytes and typed source/guide -> PhysicalOccurrence
+  |
+  v
+[D] LeanOrganismActor (one owner, mailbox depth 1)
+    serializes sensory and 250-ms unattended physical occurrences
+  |
+  v
+[E] LeanPhysicalLoop
+    composes passive world/body + external light/pressure + pending self-sound
+  |
+  +--> external/self PCM -> guala_cochlea.one_self_hearing_hop
+  |                      -> two ears / 32 cochlear channels
+  |
+  v
+[F] guala_physical_sensorium -> NativeJointSourceEpisode
+    output: authenticated, occurrence-local receptor trajectories on one clock
+  |
+  v
+[G] Python native-resident wrapper -> PyO3 organism_runtime.rs
+    output: one coexisting admitted native interval; Python releases GIL
+  |
+  v
+[H] UNCHANGED FULL PHYSICS
+    full joint D_k, M_k, R_rev_k, U*_k, C_k, P_k, B_k
+    -> MathLoom balanced ternary
+    -> Psi/Krimelack phase/winding
+    -> receptor gate/conductance
+    -> membrane/material settlement
+    -> depletion/recovery/plasticity
+    output: exact changed neurons, directed transfers, work, heat, chemistry
+  |
+  v
+[I] resident_cognitive_formation.rs
+    post-quiescence fractals -> retained mosaics -> dynamic reassembly
+    -> recurrent physical frontier -> exact L7 association / L11 ordering route
+    output: currently many valid transitions/reassemblies
+  |
+  X  CURRENT PRIMARY BREAK
+[J] learned-work action authority
+    intended: one current reassembled causal path -> one L7/L11 founding-work
+              offer -> exact L11/L12 learned work
+    actual: current valid source work is filtered to zero offers; relaxing the
+            filter lets broad recurrent activity repeatedly authorize action
+  |
+  | only when J succeeds
+  v
+[K] complete_neuron + recovery_fluid_contact + reached_neuron_cohort
+    motor gate accepts bounded work -> motor's own membrane discharges carriers
+  |
+  v
+[L] typed L12 MotorUnitRecruitment
+    -> virtual_articulated_body antagonist tissue and proprioception
+  |
+  v
+[M] isolated L13 ArticulatoryUnitRecruitment
+    -> finite respiratory work / lung debit / recovery
+  |
+  v
+[N] virtual_articulatory_body
+    body posture + breath -> glottis/tract/lossy resonances -> 16-kHz s16 PCM
+  |
+  +--> [O] InFlightAcousticConsequence (source tick + pressure + body motion)
+  |         -> exact immediate/next-hop cochlear return -> H (self-hearing)
+  |
+  +--> [P] actor's bounded pressure receipt -> /pressure/{sha256}
+            -> CloudFront -> browser AudioContext -> laptop speakers
+
+Parallel custody path after accepted intervals:
+[D/G] live native successor + world bytes
+  -> snapshot every 32 native intervals
+  -> depth-one checkpoint worker
+  -> content-addressed paired body/world + atomic binary CURRENT on encrypted EFS
+  -> actor validates/adopts published checkpoint
+  -> same identity and exact cold restore
+```
+
+### Every active step, input, process, output, owner, and current verdict
+
+| Step | Exact input | Process and exact output | Active files / symbols | Current verdict |
+|---|---|---|---|---|
+| A0 external sound | Laptop microphone while the page is open and browser permission is granted | Browser requests mono 16-kHz audio, converts the latest 4,000 float samples to 8,000 s16le bytes | `dsf_ai_service/static/gualaloom.html`: `toggleMicrophone`, `audioProcessor.onaudioprocess` | Physically connected and live, but lossy: only the latest block survives until the one-second sensory pulse |
+| A1 co-sensory tutoring | Optional camera/card/text light plus current microphone block; guided path also accepts up to 13 unique vocal-axis drives | Produces one typed source: `microphone`, `camera-microphone`, `card-microphone`, `text-microphone`, or `guided-vocal-microphone` | `gualaloom.html`; `lean_sensory_occurrence.py:LeanSensoryOccurrence`; `lean_production_app.py:SensoryBody` | External hearing is live. Text is light, not meaning. Guided body work is tutor work, not Guala's answer |
+| A2 public ingress | Same-origin HTTPS request | CloudFront serves the UI from S3 and forwards `/api/*` to the Uvicorn/ALB/ECS origin | AWS CloudFront/S3/ALB; `lean_production_app.py` | Live. Fresh headers on 2026-09-09 proved S3/CloudFront UI and CloudFront/Uvicorn API routing |
+| A3 request validation | JSON body, optional base64 PCM, optional typed guide | Refuses oversized/unknown shapes; decodes exact bytes; constructs immutable `PhysicalOccurrence` | `lean_production_app.py:_occurrence_body`, `_physical_occurrence`; `lean_sensory_occurrence.py` | Working and bounded; five HTTP routes total |
+| A4 ownership and scheduling | One sensory offer or the due 250-ms unattended occurrence | One non-daemon actor thread is the sole runtime/world mutator; mailbox capacity is one; returns a `SettlementResult` future | `lean_actor.py:LeanOrganismActor._run`, `offer`, `_settle` | Working, but a full mailbox returns 503 and browser input is discarded rather than queued |
+| A5 physical composition | Current world, current body axes, pending self-pressure, optional external light/pressure | Prepares one passive world interval; composes coexisting sensory fields; refuses external pressure while body pressure awaits hearing | `lean_physical_loop.py:_advance`; `guala_world_sensorium.py`; `guala_home_world.py` | Working. Overlap refusal is intentional causal protection, not speech failure |
+| A6 acoustic transduction | Exactly 8,000 bytes / 4,000 s16le samples | Produces the protected 250-ms clock, legacy ear trajectories, 32 cochlear trajectories, and exact heard-sample count | `guala_cochlea.py:one_self_hearing_hop`; `auditory.rs`; `auditory_receptor_work.rs` | Working for external and self pressure. Fresh production observation recorded 4,000 external samples |
+| A7 whole sensorium | Passive world/body trajectories plus replaced external retina/ears/cochleae | Encodes an authenticated `NativeJointSourceEpisode` with occurrence-local ports and exact times | `guala_physical_sensorium.py:settle_physical_sensorium`, `settle_projected_physical_sensorium`; `glew_runtime/native_joint_source_episode.py`; `joint_source_episode.rs` | Working; sound, vision, touch/body remain distinct sources that may coexist in one interval |
+| A8 Python/native boundary | Native joint source objects and exact admission intervals | Validates cardinality/types and calls native resident runtime under `py.allow_threads`; returns native causal evidence | `glew_runtime/native_resident_organism.py`; `organism_runtime.rs` PyO3 methods; `lib.rs` | Working; Python callback count remains zero. Python transports physics but is not cognition |
+| A9 full DSF | Every reached receptor/internal physical occurrence | Evaluates the full joint seven-field DSF, exact MathLoom/phase boundary, without flattening | `joint_uf_v1_4.rs`; `joint_uf_source_adapter.rs`; `joint_field_l0_l4.rs`; `canonical_l0_l4.rs`; `full_field_bank_final.rs`; `positional_krimelack_boundary.rs` | Working and frozen. No speech repair may change it |
+| A10 definitive neuron | Full field, source material, local gate/contact state, membrane, recovery material | Settles conductance, charges, work, heat, metabolism, depletion, recovery, plasticity; emits only post-quiescence deltas | `complete_neuron.rs`; `reached_neuron_cohort.rs`; `recovery_fluid_contact.rs`; `resident_receptor_transition.rs`; `resident_electrical_fabric.rs`; `sparse_electrical_contact.rs` | Working, including repaired current arithmetic and local recovery. Motor capacity enlargement is rejected |
+| A11 cognition/memory | Exact emitted neuronal fractals and directed physical transfers | Retains/reassembles distributed mosaics and recurrent relations; maintains three persisted electrical frontiers | `resident_cognitive_formation.rs`: `settle_organism_mosaic_boundary`, `recurrent_formation_causal_cues`, frontier state | Active: current cue produced 50 internal and 8 external reassemblies. Cognitive activity is not absent |
+| A12 learned route growth | Same authenticated occurrence's moved vocal regulation plus sensory association | Mounts/reuses one sparse `association -> ordering -> motor` route without semantic labels or action during teaching | `resident_cognitive_formation/lean_sensorimotor_route.rs:mount_exact_vocal_sensorimotor_routes` | Working topology component; live/copies hold learned vocal contacts. It is not sufficient action authority |
+| A13 action authorization | Current/preceding/older frontier entries, exact L7/L11 founding transition, learned L11/L12 bond, positive exported work | Should create a bounded `LearnedMotorWorkOffer`, debit the exact source, and deliver accepted work to the exact motor gate | `resident_cognitive_formation.rs:settle_internal_contact_interval`, `LearnedMotorWorkOffer`, `LearnedMotorWorkPreparation` | **Broken.** Current cue: 30 positive-work L7/L11 transitions, zero offers. Relaxations: repeated vocal authorization. This is the primary repair boundary |
+| A14 motor gate | Exact learned-work offer and the motor's own gate residue/material | Recovers/accepts within fixed capacity and lets only the motor's own membrane discharge determine carrier count | `complete_neuron.rs`; `recovery_fluid_contact.rs`; `reached_neuron_cohort.rs`; learned-work settlement in `resident_cognitive_formation.rs` | Component-proven on the current copied body after Candidates 58/60/65/68/70. Not reached by the present cue |
+| A15 typed motor/body | Positive L12 discharge with retained `BodyEffectorTerminal` | Aggregates carriers per terminal; moves only typed antagonist tissue; creates exact proprioceptive consequences | `resident_cognitive_formation.rs:MotorUnitRecruitment`; `organism_runtime.rs:settle_motor_recruitments_into_articulated_body`; `virtual_articulated_body.rs` | Working when recruited; current motor tissue remains physically capable |
+| A16 respiration | Learned vocal motor discharge and isolated L13 cell's own finite state | Coupled bounded terminal/recovery settlement emits `ArticulatoryUnitRecruitment`; finite lung supplies flow | `resident_cognitive_formation.rs:ArticulatoryUnitRecruitment`; `complete_neuron.rs`; `recovery_fluid_contact.rs`; `virtual_articulatory_body.rs` | Working when causally recruited; no external power multiplier or 100x capacity is needed |
+| A17 vocal organ | Persisted tract/body posture, respiratory carriers, source duration | Settles glottal cycle, eight tract sections, five lossy resonant modes, tissue persistence, lung debit, radiated 16-kHz PCM | `virtual_articulatory_body.rs:settle_native_articulatory_interval`; `virtual_articulated_body.rs` acoustic state | Working. Recognizable control and many bounded native pressure records exist |
+| A18 physical consequence custody | Nonzero radiated pressure plus body-mechanical trajectories and source tick | Creates/replaces/superposes bounded `InFlightAcousticConsequence`; exact bytes survive cold state until consumed | `organism_runtime.rs:InFlightAcousticConsequence`, encode/decode and self-hearing methods | Working; exact custody, tamper refusal, bounded consumption, and cold restore are proved |
+| A19 self-hearing | Exact in-flight pressure/body bytes | Lean loop converts exact body sound through the same cochlea and admits projected sound beside body/world return; native runtime verifies bytes and consumes once | `lean_physical_loop.py`; `guala_cochlea.py`; `organism_runtime.rs:advance_in_flight_self_hearing_unsealed` | Working when sound exists. Current cue creates no sound, so current self-hearing is zero downstream, not independently broken |
+| A20 world/body return | Native motor evidence, predecessor/successor axes, world transaction | Applies root/body action, commits world once, then co-admits proprioceptive/vestibular/self-hearing consequence | `guala_motor_world.py:prepare_motor_consequence`; `lean_physical_loop.py`; `organism_runtime.rs` | Working transactionally; rollback restores native/world predecessor on refusal |
+| A21 durability | Live native snapshot, exact world bytes, expected CURRENT body receipt | Every 32 intervals submits one depth-one worker; encodes/publishes content-addressed body/world and atomically replaces binary `CURRENT`; actor validates/adopts | `lean_actor.py`; `lean_checkpoint.py`; `paired_current_store.py`; native checkpoint APIs | Working now. EFS latency can pause the actor only at the 64-pending-interval ceiling; no database is involved |
+| A22 observation/audio output | Immutable actor projection and the one cached pressure `(sha256, bytes)` | GET observation; GET exact pressure; browser polls observation and plays a new receipt through `AudioContext.destination` | `lean_actor.py:observation`, `pressure`; `lean_production_app.py`; `gualaloom.html:refresh`, `playGuala`, `toggleListening` | Physically connected to laptop speakers only while page/listening permission is active. Latest-only cache plus 3-second polling can miss multiple receipts; automatic reliable playback is not closed |
+
+### Active locks, queues, polling, persistence, and database truth
+
+| Mechanism | Exact current behavior | Speech impact | Disposition |
+|---|---|---|---|
+| Browser camera/microphone ownership | `getUserMedia` owns the laptop devices only while this page is enabled/open | Necessary external device permission; it does not lock native neurons | Keep, but do not mistake browser permission for organism hearing |
+| Browser `inFlight` Boolean | Refuses a second HTTP occurrence while one is unresolved | Prevents backlog but discards real current sensory input | Correct bounded intent; current cadence is too lossy for continuous hearing |
+| Browser one-second `sensoryPulse` | Sends at most one latest 250-ms microphone block each second | Deterministically discards roughly three quarters of continuous microphone time even before server delay | Must be corrected after the native action boundary, before speech is called usable |
+| Browser three-second observation polling | Read-only GET; aborts the prior GET; stops while hidden | Does not lock cognition, but can miss overwritten pressure receipts | Replace/close as bounded exact output delivery; do not add cognition to UI |
+| Actor mailbox depth one | One queued occurrence plus the one being settled; excess gets 503 | Camera/mic traffic can prevent a guided/manual occurrence from entering; this happened live | Keep a bounded owner, but make sensory cadence and admission explicit rather than silently lossy |
+| Actor unattended timer | `time.monotonic()` schedules a 250-ms physical occurrence after each completed event | Drives autonomy clock but wall cadence slips by settlement duration | It is shell scheduling, not cognitive permission. Measure later; do not use it to fix speech |
+| Checkpoint worker queues | One work item and one result, separate thread, no retry, no cognition reference | Encoding/publish occurs off actor; actor blocks only at bounded durability ceiling or shutdown | Keep bounded custody; not Candidate-74's cause |
+| Paired `CURRENT` publication | Content-addressed files, fsync, atomic `os.replace`, expected-predecessor hash | Protects single-writer identity. Slow EFS can delay durability | Keep. It is not a speech-action selector |
+| Database | No SQL, DynamoDB, Redis, or other database participates in the active speech path | No database lock can explain the present failure | Do not invent or add one |
+| Legacy Python shell | `Dockerfile.lean` excludes `app.py` and `native_production_app.py`; imports of the retired shell refuse; one Uvicorn worker boots only `lean_production_app:app` | The old 40-route/20,248-line shell cannot execute in the current image | Keep quarantined. Repository retention is archive/evidence only |
+| Lean image breadth | Five routes, 64 allowlisted runtime Python files, 100 allowlisted files plus cards, one native extension | Much smaller than the retired shell, but not a completed core cleanup | Audit imports later; do not call P-005 a complete system cleanup |
+
+### Current production and infrastructure truth at this audit
+
+Read-only checks on 2026-09-09 UTC found:
+
+- AWS account `418384447921`, region `us-east-1`;
+- ECS cluster `tfe-web-cluster`, service `dsf-ai-service-lb`;
+- one PRIMARY/COMPLETED deployment, desired/running/pending `1/1/0`;
+- task definition `dsf-ai-task:1452`, task
+  `e94edc90b5c54f05b7644d687cb2e862`, RUNNING/HEALTHY;
+- 4 vCPU / 16 GiB Fargate task, one `dsf-ai` container on port 8080;
+- exact ECR image digest
+  `sha256:6d9e78eae14e9503cdff085d6862f2bc8a312c3391ab4679e70d902ab1c0dc62`;
+- encrypted EFS `fs-0abb85854a3251b3c` mounted at `/app/guala`, with paired
+  root `/app/guala/paired-current-gen2`;
+- public UI bytes exactly match the worktree UI SHA-256
+  `fdb880280ebf44eaa99efb0c0a9e87d9bf07ebd253ecffeafdd6688ad54c4bee`;
+- actor available under unchanged identity
+  `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`, live/persisted ticks
+  `554691/554678`, no checkpoint/cleanup error, no durability block;
+- latest live `camera-microphone` occurrence heard all 4,000 external samples,
+  made 221 full-DSF deliveries and changed 1,792 neurons, but made zero body
+  consequences and zero self-heard samples; and
+- CPU, memory, EFS-storage, and refusal-loop alarms were `OK`.
+  `guala-clock-stalled` remained `ALARM` on its stale 2026-09-08 datapoint even
+  while the directly observed native tick advanced. It is an operations-metric
+  defect, not current evidence that this actor is stopped, and is deferred as
+  Joe directed.
+
+This proves a live computational organism and live external hearing. It does
+not prove speech, useful cognition, autonomy, or laptop output.
+
+### Definitive mechanism attempt table — successes and failures together
+
+There are standalone ledgers for Attempts 37–42, 44–47, and 49–54. No
+standalone Attempt-43 or Attempt-48 file exists; the work called Candidate 48
+is recorded in Attempt 49. The table below deliberately preserves positive
+components inside failed candidates instead of flattening every row to pass or
+fail.
+
+| Attempt/candidate | What was tried | What worked and remains true | What failed / permanent disposition |
+|---|---|---|---|
+| 37 | Sustained gesture boundary and one-timeline acoustic design | Established finite organism-owned gesture, composed external/self PCM, one native advance per hop, bounded pressure requirements | Fixed buzzer, human-mouth reconstruction, scalar impulse, L13-as-permission, recursive drain, separate self/external episodes, and semantic sequence were rejected |
+| 38 | Typed spectral body and exact self-hearing design | Corrected sequence claim: existing physical ordering can suffice; typed body events remain distinct from aggregate observation | No new stored speech-sequence layer authorized; design alone did not produce speech |
+| 39 | Exact copied task-1404 body pressure/self-hearing proof | Natural varied pressure, exact self-hearing, bounded 519–566 MB, exact restart, no replay; pressure reached all 34 ear sites | Vestibular/acoustic timing gap remained; copied component proof was not learned speech |
+| 40 | Release gate against inherited Rust failures | Commit-anchored known-failure roster separated 16 inherited failures; candidate added two passes and no new failure | Initial preflight failed until inherited baseline was made explicit |
+| 41 | Hop-local acoustic observation | Corrected observer to expose the exact 4,000-sample pressure hop instead of hiding it in a 16,000-sample aggregate | Observer error had made self-hearing look zero; observer fix did not create speech |
+| 42 | Bounded audible pressure cache | Articulation-only exact-hash cache made proven pressure retrievable | Earlier cache displacement caused 404. Current lean actor later regressed to one latest receipt, so reliable output delivery is open |
+| 44 | Separate swallow/glottal closure from breath | Learned L11 -> vocal L12 discharge can co-recruit isolated L13 respiration; downstream body/pressure/self-hearing worked; bounded lung debit/recovery established | First candidate recurred without ending; current seed/frontier restriction alone was insufficient |
+| 45 | Respiratory thermal reachability | Ordinary metabolic cooling restored reusable finite L13 breath; 512-hop copy produced 469 pressure and 468 self-heard events with exact restore | Proved breath capacity, not word order; do not reopen with more capacity |
+| 46 | Test-only whole-word organ control | Real native organ rendered human-accepted `Mama-A` from a bounded physical trajectory | Trajectory was externally supplied and cannot become a word/phoneme program or speech claim |
+| 47A–H | One-carrier split, phase/work, recovery, conductance, gate-population, intrinsic-gate alternatives | 47H restored dynamic thresholds and typed body/breath/pressure/self-hearing | Fixed carrier split, phase-as-energy, manufactured recovery, equal-conductance split, gate population, open-gate latch, and simple route deletion were rejected |
+| 47I | Real reached-cohort learned work transduction | Actual source heat -> learned contact work -> receiving gate residue -> state-varying L12 motor discharge, conserved and cold-exact | Component only; no ordered learned vocal act |
+| 47J/K | Hold gate / unfold 32-ms tissue | K proved physical duration changes posture | Open-gate latch failed; duration did not materially change pressure and is not the speech blocker |
+| Candidate 48 / 49 | Pitch/tension candidate and removal of complete-body vocal calibration | Removing snapshot-to-action authority preserved real learned routes, identity, body, and exact cold state | Pitch was premature; complete-body calibration authored 12 broad bindings and no word; ordinary copied continuation remained silent |
+| 50A | Six artificial missing motor contacts | One genuine ordering source eventually drove four coactive motors at occurrence 236 | Authored contacts cannot ship; 256 ceiling was too early to make a universal rejection |
+| 50B | Extended scale-one plus test-only 4x work population | Scale one eventually reached both four-motor directions; 4x control isolated that body/breath/pressure works with independently powered width | Artificial contacts and numeric work multiplier cannot ship; scale-one continuation had zero breath/pressure |
+| 51A | Lateral anchor-to-sibling contact | Cold/idempotent topology | Waveform/timing unchanged; different electrical histories remained; removed |
+| 51B | Complete co-aged motor population | First four-axis spatial coordination in both directions; finite pressure and self-hearing | Anatomy was authored without simultaneous organism motor discharge; spatial pass was not lawful production learning |
+| 51C | Test-only bridge between phase anchors | Mounted and cold-encoded | Did not change timing or cause ordered recurrence; removed |
+| 51D/E | Require exact learned motor discharge during co-movement | Corrected causal authority and exact body-specific counters | Sixteen cycles grew nothing; prior broad counter was invalid |
+| 51F | 256-cycle blind alternating tutor | Real discharges, routes, finite breath/pressure/self-hearing, exact cold | Tutor phase opposed the active antagonist; incomplete/isolated output; blind alternation rejected |
+| 51G/H | Sustained direction and family duplicate repair | Reached all eight terminals in 150.81 s with bounded sound/self-hearing | Duplicate/non-atomic nine-route population and mixed antagonist output; mutation order was authority |
+| 51I | Atomic ten-route population | Exact 10 routes, all 8 terminals, bounded breath/pressure/self-hearing, exact cold | Temporal gesture absent; mixed/incomplete groups; accepted only as spatial population evidence |
+| 51J | Complete ordinary transition loop | Proved 14,623 internal reassemblies and 289,456 causal transfers after teaching | Zero vocal motors/breath/pressure over 256 unassisted transitions; recurrence did not reach motor population |
+| 52A | Integrate known-good ordering, population, motor, organ, hearing; partial cue after cold | Teaching passed 10 routes, 8 terminals, 65 discharges, breath, pressure, exact cold; controls quiet | Partial cue caused extensive cognition but zero L11 vocal work; synergy had discarded current-experience ordering |
+| 52B | Preserve current-experience ordering and add one L11 family-hub link | Focused artificial topology/idempotence test passed | Real trained body grew no claimed link; copied cue remained silent; lived mechanism was a no-op |
+| 52C/D | Operator-authorized hot deployment despite failed copied gate | Task 1430 installed with identity/AWS health | Functional speech remained failed; deployment never converted failure to success |
+| 53A | Widen learned-work source to L11 lateral transfers | Preserved teaching/body prerequisites | Cue and controls had only tiny noncausal residue; no motor/breath; removed |
+| 53B | Retained-memory L9 -> vocal-ordering L11 contact | Focused invariant passed; static audit exposed disjoint memory/action founders | Coactivity never occurred in lived chronology; no contact grew; removed |
+| 53C | Accept reverse-direction L7 -> L11 founding work | Tested the actual direction issue | No correct cue-related route existed to use it; no speech; removed as standalone fix |
+| 53D | Collapse simultaneous occurrences for common association | Some route growth | Same-layer occurrences were falsely unioned and an old motor selected; rejected |
+| 53E | Preserve occurrence identity in staged ladder | Exact occurrence fixture passed; first direction grew three correct missing routes | Complete two-direction 512-cycle population still failed; no downstream cue test; rejected conclusively |
+| 53F | Only moved-body occurrences may found association | Removed sensory-only duplicate hubs, reduced contacts, focused test passed | Full 512-cycle vocal population still failed; no 53G extension |
+| 54 | Direct 148-line occurrence-owned L7-L11-L12 route | One sparse, local, semantic-free route author compiled and passed focused tests | Used zero reactive-load regulation as voluntary motion prerequisite; current body never selected a route |
+| 55 | Use exact moved position/same-direction regulation; delete redundant 102-line author; mount guided production ingress | Copied native and full wrapper proofs closed cue -> motor -> breath -> pressure -> self-hearing; live 34-event tutoring/body/pressure events worked; lean image/rehearsal passed | After same-digest cold restore the full live chronology produced no cue-to-action; component success retained, durable link failed |
+| 56 | Add exact regulation-to-association contact | Route found 10 positive learned-work offers after cold | All offers accepted zero; no motor/breath/pressure; immediate guided body motion was initially overstated as autonomy |
+| 57 | Add learned motors to membrane-pump roster | Compiled | Did not recover full intrinsic gates; pumping and gate recovery are distinct; removed |
+| 58 | Recover before work refusal; correct return typing; global same-lineage work/motor join; coupled respiratory prefix settlement | Current copied body produced motor, breath, pressure and self-hearing; exact gate saturation localized; mechanical chain complete | A/B causality correction showed the act pre-existed tutor sound; cleared state tutor and unattended both silent; not speech |
+| 59 | Replace L7/body route with L9 auditory-memory -> L11 | Demonstrated tutor/unattended cognition differs upstream | Violated success preservation; contacts/work still accepted zero; removed |
+| 60 | Perform exact gate recovery before evaluating retained offered work | Copied positive motor/breath/body/self-hearing; live production emitted autonomous body sound and self-heard it | Live tutor causality still not established; sound could be poised/recurrent rather than response |
+| 61 | Correct anti-bounce check from learned motor bond to actual L7/L11 source bond | Exact directed-frontier and route tests passed; identity-preserving task-1447 deploy | Live external sound reached neurons but caused no learned vocal action or pressure |
+| 62 | One live first-direction guided developmental occurrence then one pressure cue | Guided event entered production with all four axes, 4,000 sound samples, body movement, full DSF | Pressure-only cue and bounded tail were silent; passive body return was initially overstated as route firing |
+| 63 | Complete known three-cue gate chronology and inspect current state | Three exact cues reached full DSF; current copy proved 22 learned contacts, positive offers, 10 saturated gates | Every offer accepted zero; no motor/breath/pressure; further cue repetition prohibited |
+| 64 | Supply later powered-environment exchange to reached motors | Compiled against current copy | Same five offers accepted zero; larger energy delivery rejected and removed |
+| 65 | Let full gates consume local recovery fuel and retain products for later fluid exchange | Exact current copy closed cue -> motor -> L13 -> 48,000 pressure samples -> 92,000 self-heard; deployed task 1448; live body pressure/self-hearing existed | Fresh live cue did not yield new pressure; waveform observed was extremely weak; response causality unproved |
+| 66 | Run isolated L13 powered exchange every interval; remove duplicate metabolism/full scan | Copied route emitted bounded strong pressure/self-hearing; source removed 43 net core lines | Deployment preflight found production actor already dead from `RecoveryFluid(ArithmeticWidth)`; candidate not deployed then |
+| 67 | Keep final recovery expression wide until narrowing | Compiled | Same occurrence-21 arithmetic failure; wrong scope of widening; removed |
+| 68 | Widen exact temporary thermal sum through complete successor before narrowing | Localized and fixed deterministic actor fatal; task 1449 recovered identity and live actor | One identical cue still made zero motor/speech; infrastructure health restored, speech not fixed |
+| 69 | Contact-before-reaction plus removal of false recovery-material equality | Copied current-body chain closed | Forced minimum recovery author caused production vocal runaway on task 1450; forced author removed on task 1451. False equality removal retained |
+| 70 | Retain subthreshold learned work at full gate; one efference provenance bit to block self-speech recurrence | Physically recruited copied act emitted strong pressure, self-heard, and ceased; task 1452 deployed; motor/body/organ capacity retained | Correction proved copied act was already poised before cue. Current live/copy cue produced reassembly but zero learned offer/action |
+| 71 | Admit source contact if either/both endpoints have frontier authority | Debug proved 30 positive-work L7/L11 transitions and zero offers | Relaxation still produced zero action; lineage-wide efference suppression localized; removed |
+| 72 | Make efference refusal route-specific | Exposed current copy's poised act, pressure, self-hearing, cessation | After cue, recurrent activity repeatedly restarted action: 18 receipts/140,000 self-heard; removed |
+| 73 | Mark the whole coactive successor wave spent after one articulation | Reduced some repeat preparation width | Still 19 receipts/140,000 self-heard; ordinary body/internal seeds regained authority; removed |
+| 74 | Propagate transient per-bond spent provenance across recurrence and fix hardcoded provenance loss | Cue now crossed the physical route and produced preparations, motors, articulation, body, pressure, self-hearing | It produced 74 body consequences, 19 receipts, and 140,000 self-heard samples, not one bounded act; removed. No Candidate 75 frontier patch |
+
+### Harness, test, and operational failure register that remains binding
+
+These failures are not organism evidence. They are included because repeating
+them consumed most of the elapsed time and obscured retained successes.
+
+| Failure class | Recorded examples | Permanent preflight requirement |
+|---|---|---|
+| Wrong/nonexistent path | Cargo run from wrong root; `test_native_resident_organism_runtime_boundary.py`; `dsf_ai_service.native_resource_admission`; guessed cluster; absent fingerprint helper; stale constructor; this audit's nonexistent `native/guala_core/src/python.rs` | Resolve with `pwd`, `test -f`, and `rg --files` immediately before invocation; never reconstruct a path from memory |
+| Zero-test or wrong test target | Short name plus `--exact`, missing `--lib`, obsolete test filename | List the exact test first; paste full qualified name with `--exact` or use one unique suffix without it; acceptance must state `1 passed; 0 failed` |
+| Wrong executable/tool assumption | Debug instead of release; absent `/usr/bin/time`; absent `curl` in lean image | Prove executable path and version first; record the exact binary hash for any decisive run |
+| Stale patch context | F-012, F-037, F-040, F-071-H01, F-073-H02 and repeated-text insertion scope | Read the exact destination immediately before every patch; use the literal current lines, never remembered wrapping |
+| Schema/shape guessing | `jq` root/child mistakes; slot dataclass `__dict__`; pressure tuple treated as samples; old field names; response-root mistake | Inspect one proven type/schema level at a time, then request only named scalar fields |
+| Unbounded output | Whole observation/embodiment, large route arrays, array keys, compiler warning truncation | Bound output on the first call; do not pipe through `head` when buffering can hide the terminal result |
+| Process guard matched itself | Command-line regex for compiler/probe | Use executable identity such as `ps -C cargo -C rustc`, not prose search |
+| Environment/import mismatch | Missing repository/wheel `PYTHONPATH`; historical shell imports | Use the exact recorded active environment. A legacy-shell refusal is quarantine success, not a reason to re-enable it |
+| Docker namespace/stdin errors | Host `/tmp` bind invisible to Docker Desktop; missing `docker exec -i` | Populate an explicit Docker volume and use recorded stdin form |
+| Test harness changed the question | Artificial co-admission, underived drain ceiling, background actor/manual checkpoint race, controls run before positive causality | Test the production call order. A control may falsify only the causal fact it actually isolates |
+| Re-running already settled component ladders | Repeated breath, power, organ, pressure, self-hearing, cue-count, A/B, and capacity experiments | Read this table first; downstream components reopen only if a new positive upstream action reaches them and they then fail |
+
+New failure `F-054-AUDIT-H01`: during this audit the inventory command included
+nonexistent `native/guala_core/src/python.rs`. `wc` reported the missing file;
+no source or production changed. This repeated the recorded path-guessing class
+and is not hidden. The corrected inventory was derived solely from `rg --files`.
+
+### Exact validation inventory — no forgotten late test
+
+The next implementation is not authorized by this section. When Joe later
+authorizes it, the acceptance sequence is fixed now so a new last-minute test
+cannot move the goal:
+
+1. **Static end-to-end design review:** trace the exact current cue's receptor,
+   full-field, neuron, reassembly, action-authority, motor, breath, organ,
+   self-hearing, pressure, persistence, and browser consumers. Prove one action
+   author and no whole-population scan in the new boundary.
+2. **Native compile:**
+   `cargo check --tests --locked --manifest-path native/guala_core/Cargo.toml`.
+3. **Exact native focused tests:** list and then run the current full names for:
+   full-DSF/receptor settlement; exact directed frontier custody; exact local
+   vocal route idempotence; learned-work conservation/severing; fixed-gate
+   recovery; typed L12 motor/body settlement; L13 finite breath; organ zero-
+   breath silence and bounded pressure; in-flight acoustic encode/consume;
+   immediate self-hearing; exact cold restore; and the new one-action/cessation
+   law. Existing concrete anchors include
+   `exact_vocal_occurrences_mount_one_local_sensorimotor_route_each`,
+   `directed_transfer_frontier_preserves_direction_and_one_advancing_endpoint`,
+   `guided_vocal_interval_moves_only_vocal_body_and_rolls_back_exactly`,
+   `one_real_respiratory_discharge_uses_the_resident_body_and_radiates_pressure`,
+   `respiratory_work_is_the_source_while_body_axes_only_shape_it`,
+   `absent_new_discharge_releases_the_resident_pressure_instead_of_repeating_it`,
+   and `in_flight_acoustic_consequence_round_trips_without_padding_or_loss`.
+4. **Exact active Python suite:** copy, do not reconstruct, these nine resolved
+   files: `tests/test_guala_cochlea.py`, `tests/test_guala_motor_world.py`,
+   `tests/test_guala_physical_sensorium.py`, `tests/test_lean_actor.py`,
+   `tests/test_lean_observation_ui.py`, `tests/test_lean_production_app.py`,
+   `tests/test_lean_sensory_occurrence.py`,
+   `tests/test_native_joint_source_episode.py`, and
+   `tests/test_native_organism_runtime_boundary.py`. The three old tests that
+   import the quarantined shell remain excluded until replaced, never bypassed.
+5. **One current-body production-call-order proof:** one authenticated copy of
+   the newest production CURRENT, one known physical cue, one positive branch,
+   and only the severed-path falsifier after the positive chain passes. Record
+   exact inputs/outputs at every diagram step. No A/B ladder, broad probe, cycle
+   sweep, parameter sweep, or repeated component proof.
+6. **One exact lean-image rehearsal:** immutable commit/digest; retired shells
+   absent; same five routes; same EFS/current schema; one organism owner; one
+   causal speech act, exact self-hearing, automatic exact browser PCM delivery,
+   cessation, cold restart, flat bounded resources, and no survivors.
+7. **One hot production cutover and one live proof:** identity/tick continuity,
+   one cue, one new pressure source tick/receipt, same-act self-hearing, Joe
+   hears the exact PCM on the laptop, output stops, CPU/RAM/storage/calls remain
+   bounded, rollback readiness checked, and Slack notification sent and checked.
+
+Passing a local unit test, copied old body, image health check, AWS health,
+pressure cache fetch, or human hearing alone cannot skip an earlier row. A row
+that fails stops the one run and records both every preceding success and the
+one failure; it does not authorize a new candidate layer.
+
+### Comprehensive statement of work for speech
+
+No honest document can promise that unbuilt code is certain to work. The
+following work is what the evidence proves is **necessary**; it is also the
+smallest design that directly addresses every known failure without reopening
+working physics.
+
+**SOW-SPEECH-01 — replace the wrong action-authority junction, then close
+transport.**
+
+Scope:
+
+1. Decompose only the speech-relevant action-authority slice out of the
+   22,899-line `resident_cognitive_formation.rs` before another behavioral
+   candidate. Keep persisted formation/frontier codecs and exact learned bytes
+   unchanged. This is a controlled extraction of existing responsibilities,
+   not a rewrite of L0-L4, neurons, memory, body, or the whole organism.
+2. Separate **physical propagation** from **permission to initiate an action**.
+   A broad active/recurrent electrical frontier may continue carrying real
+   cognition, but it may not itself authorize learned vocal work.
+3. Define one transient, nonsemantic, occurrence-owned physical action
+   preparation derived from an actually reassembled ordered path and its exact
+   current L7/L11 founding transfer. It must carry the exact formation/cue
+   lineage, founding bond, ordering lineage, learned motor bond, and conserved
+   work already present in the settlement. It adds no word, intent label,
+   score, lookup, sequence object, timer, persistent marker, or new energy.
+4. Let that preparation cross the existing learned-work transducer exactly
+   once. The work debit, motor gate/material acceptance, motor membrane
+   discharge, L12 terminal, L13 respiration, organ, and self-hearing remain the
+   existing authorities.
+5. End eligibility through the same act's physical consumption: the exact
+   preparation is consumed when its work is debited or refused, and a later act
+   requires a new current reassembly and new physical work. Cessation comes
+   from one-use causal settlement plus existing material depletion/recovery,
+   not a refractory timer or “spent” bit propagated across the general
+   frontier.
+6. Delete/bypass only the current learned-vocal branches that use broad
+   current/preceding/older frontier membership or body-owned acoustic lineage
+   marking as permission. Preserve those frontiers for cognition, formation
+   reassembly, and exact persisted continuity.
+7. Keep the 161-line `lean_sensorimotor_route.rs` as the sole developmental
+   route author only if source review confirms no remaining competing vocal
+   author in the extracted path. Do not restore family/hub/sibling, affective
+   administrative prerequisites, calibration, L9 replacement, or Candidate
+   72–74 provenance patches.
+8. After the native positive chain passes once, repair external transport:
+   admit contiguous 250-ms microphone blocks at the physical cadence rather
+   than one latest block per second; retain bounded no-backlog refusal; deliver
+   each new body-owned pressure receipt to the armed browser exactly once so
+   latest-only overwrites and three-second polling cannot make laptop sound
+   disappear. Browser audio remains exact PCM transport only—no synthesis,
+   gain fabrication, or speech meaning.
+9. Execute only the fixed seven-row validation inventory above, deploy once,
+   and stop on the first failure with all earlier successes retained.
+
+Files expected to change only after authorization:
+
+- `native/guala_core/src/resident_cognitive_formation.rs` — remove the wrong
+  learned-vocal authorization and delegate to one lean typed boundary;
+- one small new or existing speech-action module under
+  `native/guala_core/src/resident_cognitive_formation/` — the one transient
+  action preparation/settlement owner;
+- directly corresponding Rust tests, with the large 6,720-line
+  `reservoir_probe.rs` prohibited as the acceptance driver;
+- only after native closure, `dsf_ai_service/static/gualaloom.html`,
+  `lean_actor.py`, and the minimal pressure observation/API schema needed for
+  contiguous bounded input and exact once-only output;
+- the nine active Python test files affected by those exact interfaces; and
+- this attempt ledger, release receipt, deployment evidence, and shared handoff.
+
+Explicitly unchanged: canonical L0-L4; all seven DSF fields; MathLoom;
+Psi/Krimelack; complete-neuron constitution; learned sensory state; existing
+neurons/contacts/formations; body geometry; fixed motor terminals; local gate
+and recovery chemistry; finite lung; vocal organ; cochlea; identity; world;
+paired CURRENT schema; no ML; no TTS; no scripted word/phoneme/meaning.
+
+### Assessment, discoveries, and recommendations
+
+**Is the overall AE architecture wrong?** No. The governing architecture—full
+physical sensing, distributed neuronal state, dynamic formation/reassembly,
+physical action, consequence, and sensory return—is capable of cognition and
+speech. The evidence already proves real activity and every downstream speech
+effector. Replacing it with a chatbot, TTS system, semantic program, or literal
+atom-by-atom human simulation would be wrong.
+
+**Is the current speech architecture wrong?** Yes, at one decisive junction.
+The implementation uses the same persisted broad electrical frontier both to
+propagate cognition and to decide whether vocal work is authorized. Candidate
+70 blocks valid current work; Candidates 72–74 allow recurrent waves to keep
+speaking. That is a structural category error, not a missing coefficient.
+
+**Has it been overengineered?** Yes. The retired 40-route shell is now boxed,
+but the cleanup was incomplete. The active surface is five routes and roughly
+1,500 lean Python lines across its direct shell, yet it imports a much larger
+64-file Python runtime. More importantly, active native responsibilities remain
+concentrated in `resident_cognitive_formation.rs` (22,899 lines),
+`organism_runtime.rs` (11,718), and `complete_neuron.rs` (9,589), while the
+test-only reservoir probe is about 6,720 lines. File length alone does not burn
+runtime, but the monolith has repeatedly enabled duplicate authors, topology
+rebuilds, broad scans, confused provenance, stale compatibility logic, long
+relinks, and late failure discovery. P-005 completed entrypoint quarantine; it
+did not complete lean-core separation or lossless sensory/output transport.
+
+**Were shell locks the speech root cause?** No, not for the current native
+failure: the exact 4,000-sample copied cue bypassed network contention, reached
+full DSF and reassembly, and still yielded zero action; Candidate 74 failed
+inside native recurrence without Python persistence deciding the result. But
+the shell has separate serious usability defects—75% nominal microphone block
+loss, one-slot contention, wall-clock slip, and latest-only playback—that would
+make working speech appear intermittent and must be closed before delivery.
+
+**What new discovery matters most?** The present body is neither silent because
+it cannot hear nor noisy because it lacks decay. It contains more frontier
+activity than the older poised body, 30 current L7/L11 source transitions carry
+positive work, and motor tissue remains capable. The defect is selection of
+which current physical transition constitutes one action. More channel area,
+more energy, more tutoring, another A/B test, or another provenance bit cannot
+solve that category error.
+
+**Alternatives:**
+
+- **Recommended:** the narrow typed cognitive-action boundary in
+  SOW-SPEECH-01, extracted from the monolith and verified once on the current
+  body. It preserves the organism and replaces only the wrong junction.
+- **Not recommended now:** a clean rewrite of the entire native organism. It
+  could ultimately reduce complexity, but simultaneously reimplementing exact
+  persistence, learned state, neuron physics, memory, body, and world creates a
+  much larger identity and regression risk than this localized architectural
+  correction.
+- **Rejected:** another Candidate-75 filter/marker/timer/frontier exception,
+  more power/capacity, longer tutoring, A/B sweeps, TTS, phoneme/word tables,
+  restoring the legacy shell, or using the UI/observer as cognition.
+
+Final recommendation: **authorize no new behavioral candidate until Joe and
+the next implementer agree that the diagram and SOW name every active owner and
+that the new action-preparation boundary is physically defined without a
+software permission token. Then implement only SOW-SPEECH-01 and use the fixed
+validation inventory once.**
