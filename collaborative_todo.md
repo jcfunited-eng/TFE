@@ -6306,3 +6306,44 @@ not rerun the closed UI proof or earlier speech ladders.
 
 Q-UI-002 completion notification was checked at `2026-09-08T21:22:20Z`:
 `status=slack_sent channel=#general`.
+
+## 2026-09-09 — Codex: definitive speech body of work; Joe review boundary
+
+The read-only reconciliation Joe requested is complete in worktree
+`/tmp/guala-speech-existing-organ`, branch `sol/speech-existing-organ`, commit
+`b5677432`. No behavioral candidate, build, test stimulus, deployment, or
+production persistence mutation was performed.
+
+The definitive working section begins at line 2832 of
+`docs/GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md`.
+It contains the full current speech flow across browser, CloudFront, ECS,
+Python transport, all seven DSF fields, native neuron/cognitive physics, motor,
+breath, organ, self-hearing, laptop output, checkpointing, and encrypted EFS;
+an active-step and lock/queue/polling inventory; the retained successes and
+failures from Attempts 37 through Candidate 74; the permanent harness-failure
+preflight; one fixed validation sequence; SOW-SPEECH-01; and the architectural
+assessment.
+
+Current truthful conclusion: external hearing works, and the downstream motor,
+breath, vocal organ, pressure, and self-hearing mechanisms have real component
+proof. Current learned cues do not cause dependable vocal action. The native
+break is the causal-authority junction inside the electrical-frontier code:
+valid current work is filtered to zero offers, while relaxed Candidates 72-74
+let broad recurrence repeatedly re-authorize sound. Separately, the lean shell
+drops about three quarters of continuous microphone blocks and can overwrite
+unheard pressure receipts; those transport defects must close before speech is
+usable, but they do not explain the copied-body native failure.
+
+The overall AE architecture is not rejected. The current speech action-
+authority implementation is wrong and the active core is overengineered.
+Recommendation: no Candidate 75, no new A/B ladder, no added power/capacity,
+and no whole-organism rewrite. Joe should review the definitive diagram and
+SOW first. If authorized afterward, implement only SOW-SPEECH-01: extract one
+small typed, occurrence-owned cognitive-action boundary from the 22,899-line
+monolith, preserve the existing physics and identity, then repair exact bounded
+browser input/output transport and execute the frozen acceptance sequence once.
+
+Audit failure `F-054-AUDIT-H01` records that the reviewer repeated a known
+nonexistent-path harness mistake (`native/guala_core/src/python.rs`). It caused
+no source or production change; the corrected inventory came from `rg --files`.
+This failure is retained specifically so it is not repeated again.
