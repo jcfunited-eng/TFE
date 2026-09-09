@@ -18954,6 +18954,16 @@ fn settle_internal_contact_interval(
     let flat_locations = topology_index.flat_locations.as_ref();
     let lineage_member = |lineage| topology_index.flat_for_lineage(lineage);
     let layer_of = |lineage| topology_index.layer_of(lineage);
+    let vocal_articulatory_effector_flat = vocal_articulatory_effector_lineage
+        .map(lineage_member)
+        .transpose()?;
+    if let Some(flat) = vocal_articulatory_effector_flat {
+        let (cohort_index, neuron_index, _) = flat_locations[flat];
+        let mount = &cohorts[cohort_index].anatomy.mounts()[neuron_index];
+        if mount.source_site().is_some() || mount.place().layer() != 13 {
+            return Err(FormationError::NeuronLineageAuthorityChanged);
+        }
+    }
     // One physical interval reaches only its explicitly carried causal
     // frontier and immediate electrical neighbours. Absolute nonzero
     // membrane charge is not activity: the phase-one pump gives a living
@@ -19250,6 +19260,23 @@ fn settle_internal_contact_interval(
         members.sort_unstable();
         members.dedup();
     }
+    // The layer-13 respiratory effector is electrically isolated but remains
+    // living body tissue. Its local powered-environment exchange must continue
+    // during every physical interval, not only when a learned motor happens to
+    // request breath. The old just-before-discharge-only ordering left its
+    // reservoir thermal state parked between acts and progressively reduced a
+    // valid discharge to the tiny prefix that still fit. This adds one fixed
+    // cell to the already-existing pump settlement; it scans no population and
+    // creates no capacity, work, carrier, clock, or second chemistry law.
+    if let Some(flat) = vocal_articulatory_effector_flat {
+        if selected.binary_search(&flat).is_ok() {
+            return Err(FormationError::NeuronLineageAuthorityChanged);
+        }
+        let (cohort_index, neuron_index, _) = flat_locations[flat];
+        pump_members_by_cohort[cohort_index].push(neuron_index);
+        pump_members_by_cohort[cohort_index].sort_unstable();
+        pump_members_by_cohort[cohort_index].dedup();
+    }
     let interval_microseconds = WORLD_MECHANICAL_TICK_MICROSECONDS;
     // THE DOORWAY'S ALLOCATION (R1 eating): the bite entered at the mouth,
     // but digestion feeds the body — the intake is allocated across the
@@ -19308,7 +19335,13 @@ fn settle_internal_contact_interval(
     // Cohort reservoirs are physically independent. Prepare their exact pump
     // successors concurrently, but retain canonical cohort order for the
     // deterministic resident commit and observation stream.
-    let prepared_cohort_pumps = selected_cohort_indices
+    let mut pump_cohort_indices = selected_cohort_indices.clone();
+    if let Some(flat) = vocal_articulatory_effector_flat {
+        pump_cohort_indices.push(flat_locations[flat].0);
+        pump_cohort_indices.sort_unstable();
+        pump_cohort_indices.dedup();
+    }
+    let prepared_cohort_pumps = pump_cohort_indices
         .par_iter()
         .copied()
         .map(|cohort_index| {
@@ -19330,12 +19363,24 @@ fn settle_internal_contact_interval(
     let mut localized_fluid_chemistry = Vec::new();
     for (cohort_index, reached_indices, prepared) in prepared_cohort_pumps {
         let reached_predecessors = selected_predecessor_neurons[cohort_index]
-            .as_ref()
-            .ok_or(FormationError::NoncanonicalState)?;
+            .as_deref()
+            .unwrap_or_default();
         let metabolic = apply_prepared_reached_cohort_membrane_pumps(
             Arc::make_mut(&mut cohorts[cohort_index].state),
             prepared,
         );
+        if let Some(flat) = vocal_articulatory_effector_flat {
+            let (articulatory_cohort, articulatory_neuron, articulatory_lineage) =
+                flat_locations[flat];
+            if articulatory_cohort == cohort_index
+                && metabolic
+                    .localized_fluid_chemistry
+                    .iter()
+                    .any(|settlement| settlement.neuron_index == articulatory_neuron)
+            {
+                physically_transitioned_neuron_lineages.insert(articulatory_lineage);
+            }
+        }
         let successor = cohorts[cohort_index].state.clone();
         if cohorts[cohort_index].anatomy.neuron_count() == 1
             && reached_indices.as_slice() == [0]
@@ -19411,7 +19456,10 @@ fn settle_internal_contact_interval(
     // Settlement receives only the sorted reached indices and writes only
     // those indices.  Derive the untouched active count from that sparse
     // write boundary; do not rescan the organism after every interval.
-    let reached_organism_neuron_count = selected.len();
+    let reached_organism_neuron_count = selected
+        .len()
+        .checked_add(usize::from(vocal_articulatory_effector_flat.is_some()))
+        .ok_or(FormationError::ArithmeticOverflow)?;
     let unchanged_unreached_organism_neuron_count = flat_locations
         .len()
         .checked_sub(reached_organism_neuron_count)
@@ -21152,110 +21200,16 @@ fn settle_internal_contact_interval(
                     .checked_add(event.outward_elementary_carriers)
                     .ok_or(FormationError::ArithmeticOverflow)
             })?;
-        let articulatory_flats = flat_locations
-            .iter()
-            .enumerate()
-            .filter_map(|(flat, (cohort_index, neuron_index, lineage))| {
-                let mount = &cohorts[*cohort_index].anatomy.mounts()[*neuron_index];
-                (mount.source_site().is_none()
-                    && mount.place().layer() == 13
-                    && Some(*lineage) == vocal_articulatory_effector_lineage)
-                    .then_some(flat)
-            })
-            .collect::<Vec<_>>();
-        let [articulatory_flat] = articulatory_flats.as_slice() else {
+        let Some(articulatory_flat) = vocal_articulatory_effector_flat else {
             return Err(FormationError::NeuronLineageAuthorityChanged);
         };
         let (cohort_index, neuron_index, articulatory_lineage) =
-            flat_locations[*articulatory_flat];
-        if selected.binary_search(articulatory_flat).is_ok() {
-            return Err(FormationError::NeuronLineageAuthorityChanged);
-        }
+            flat_locations[articulatory_flat];
         let predecessor = TransitionNeuronPredecessor {
             lineage: articulatory_lineage,
             anatomy: cohorts[cohort_index].anatomy.neuron_anatomies()[neuron_index].clone(),
             state: cohorts[cohort_index].state.neurons()[neuron_index].clone(),
         };
-
-        // Layer 13 is deliberately electrically isolated, so its learned
-        // motor-coupled recruitment occurs after the contact-selected cohorts
-        // have settled. It is nevertheless a real active motor cell and must
-        // receive the same local powered-environment/recovery settlement as
-        // every other reached neuron before it can discharge. Omitting this
-        // step trapped every prior discharge's returned work as heat: silence
-        // could never select the isolated cohort to export it, and the mature
-        // cell eventually became permanently unable to accept another return.
-        let prepared_articulatory_metabolism = prepare_reached_cohort_membrane_pumps(
-            &cohorts[cohort_index].anatomy,
-            cohorts[cohort_index].state.as_ref(),
-            &[neuron_index],
-            interval_microseconds,
-            ExactRational::integer(0),
-        )
-        .map_err(FormationError::PhysicalSettlementUnavailable)?;
-        let articulatory_metabolic = apply_prepared_reached_cohort_membrane_pumps(
-            Arc::make_mut(&mut cohorts[cohort_index].state),
-            prepared_articulatory_metabolism,
-        );
-        let reached_with_articulatory = selected
-            .len()
-            .checked_add(1)
-            .ok_or(FormationError::ArithmeticOverflow)?;
-        let unchanged_with_articulatory = flat_locations
-            .len()
-            .checked_sub(reached_with_articulatory)
-            .ok_or(FormationError::ArithmeticOverflow)?;
-        for observation in &mut localized_fluid_chemistry {
-            observation.unchanged_unreached_neuron_count = unchanged_with_articulatory;
-        }
-        for settlement in articulatory_metabolic
-            .localized_fluid_chemistry
-            .iter()
-            .copied()
-        {
-            let LocalizedFluidChemistrySettlement {
-                neuron_index: settled_neuron_index,
-                interval_microseconds,
-                pump_contact_power_zeptojoules_per_microsecond,
-                predecessor_separated_elementary_charges,
-                successor_separated_elementary_charges,
-                predecessor_intracellular_carriers,
-                predecessor_extracellular_carriers,
-                successor_intracellular_carriers,
-                successor_extracellular_carriers,
-                predecessor_reservoir,
-                successor_reservoir,
-                returned_elementary_charges,
-                pumped_elementary_charges,
-                membrane_gradient_work_zeptojoules,
-            } = settlement;
-            localized_fluid_chemistry.push(LocalizedFluidChemistryObservation {
-                cognitive_ordinal,
-                neuron_lineage: cohorts[cohort_index].anatomy.neuron_lineages()
-                    [settled_neuron_index],
-                neuron_place: cohorts[cohort_index].anatomy.mounts()[settled_neuron_index]
-                    .place(),
-                interval_microseconds,
-                pump_contact_power_zeptojoules_per_microsecond,
-                reached_neuron_count: articulatory_metabolic.reached_neuron_count,
-                changed_reached_neuron_count: articulatory_metabolic.changed_reached_neuron_count,
-                unchanged_unreached_neuron_count: unchanged_with_articulatory,
-                unchanged_developmental_resting_neuron_count,
-                changed_unreached_neuron_count: articulatory_metabolic
-                    .changed_unreached_neuron_count,
-                predecessor_separated_elementary_charges,
-                successor_separated_elementary_charges,
-                predecessor_intracellular_carriers,
-                predecessor_extracellular_carriers,
-                successor_intracellular_carriers,
-                successor_extracellular_carriers,
-                predecessor_reservoir,
-                successor_reservoir,
-                returned_elementary_charges,
-                pumped_elementary_charges,
-                membrane_gradient_work_zeptojoules,
-            });
-        }
         let coupled_articulatory_transport = |carrier_limit| {
             let transport = crate::complete_neuron::settle_efferent_terminal_transport(
                 &cohorts[cohort_index].anatomy.neuron_anatomies()[neuron_index],
@@ -21324,7 +21278,7 @@ fn settle_internal_contact_interval(
                 .map_err(FormationError::PhysicalSettlementUnavailable)?;
             physically_transitioned_neuron_lineages.insert(articulatory_lineage);
             retain_first_transition_predecessor(&mut transition_predecessors, predecessor);
-            co_recruited_articulatory_flats.push(*articulatory_flat);
+            co_recruited_articulatory_flats.push(articulatory_flat);
             articulatory_unit_recruitments.push(ArticulatoryUnitRecruitment {
                 neuron_lineage: articulatory_lineage,
                 topology_index: cohorts[cohort_index].anatomy.mounts()[neuron_index]
@@ -21682,7 +21636,10 @@ fn settle_internal_contact_interval(
                 .binary_search(&flat)
                 .is_ok();
             let articulatory_changed = co_recruited_articulatory_flats.contains(&flat);
-            if source_changed || selected_changed || passive_return_changed || articulatory_changed
+            if source_changed
+                || selected_changed
+                || passive_return_changed
+                || articulatory_changed
             {
                 changed_flats.push(flat);
             }

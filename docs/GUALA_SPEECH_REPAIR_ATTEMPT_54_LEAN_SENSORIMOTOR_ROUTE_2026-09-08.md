@@ -1,12 +1,14 @@
 # Guala speech repair Attempt 54 — complete design verification and lean sensorimotor route
 
 Date: 2026-09-08 UTC
-Status: Candidate 55 source, component checks, active-shell regression, exact
-release wheel, and copied-production wrapper proof complete; production remains
-unchanged on task 1434 and live speech is not yet claimed
+Status: Candidate 65 is deployed on task 1448 with live body pressure and
+self-hearing proved but useful audibility and fresh cue response still open.
+Candidate 66 respiratory chemistry source, compile, review, release wheel, and
+one copied-production wrapper trace are complete; production remains on 1448.
 Worktree: `/tmp/guala-speech-existing-organ`
 Starting HEAD: `735489406577f90edf6c2fb7fb1889f87eae8107`
-Production boundary: task 1434 remains untouched and functionally silent
+Production boundary: task 1448 remains the sole healthy writer; Candidate 66
+is not yet deployed
 
 ## Architecture honesty gate
 
@@ -2075,3 +2077,57 @@ clock and indicates the lean runtime no longer emits the legacy log-derived
 metric. Do not treat that stale alarm as current clock truth, and do not restore
 legacy activity logging merely to silence it. Alarm repair belongs to the lean
 operations cleanup.
+
+F-066-H01 omitted Cargo manifest path: the first formatting command was run
+from the repository root even though this repository has no root
+`Cargo.toml`; Cargo refused immediately and no file changed. Permanent guard:
+every native Cargo command from this worktree root must include
+`--manifest-path native/guala_core/Cargo.toml` (or run with that crate as its
+working directory). Do not retry a root-level bare `cargo fmt`, `cargo check`,
+or `cargo test`.
+
+F-066-H02 crate-wide formatter scope: adding the source path after Cargo's
+`--` did not restrict `cargo fmt`; it formatted every Rust source in the crate
+because that position is for rustfmt options. The worktree was clean before
+the command, so every unrelated formatter-only edit was identified and
+restored exactly; the intentional respiratory source and ledger edits remain.
+Permanent guard: do not invoke Cargo formatting for a single source path.
+Use the repository's already-reviewed formatting state and `git diff --check`
+for this narrow change; a future crate-wide formatting cleanup must be its own
+authorized item.
+
+S-066-01 respiratory chemistry correction on the exact copied production body:
+source review found that the dedicated layer-13 respiratory cell was
+electrically isolated as intended but its powered-environment exchange ran only
+inside the learned-discharge branch. Between acts, reservoir heat therefore
+remained parked indefinitely; the already-recorded S-058-05 binary search could
+then admit only the tiny whole-carrier prefix that still fit. Candidate 66
+makes that one already-known cell join the existing membrane-pump settlement on
+every native physical interval. It does not join electrical selection or DSF
+evaluation, scan the population, change capacity/anatomy/fields, introduce a
+clock or recovery law, or allocate persistent state. The later duplicate
+metabolism block and its full-population effector scan are removed. The final
+source is 22,834 lines, 43 fewer than its predecessor, with 59 added and 102
+removed lines in the exact diff; SHA-256 is
+`31c291570413d353309b96b0082f2ff296c0c7b918137102ad09f84d238ff7ff`.
+`cargo check --lib` passes with the same 183 inherited warnings and
+`git diff --check` passes.
+
+S-066-02 one targeted copied-wrapper trace: the release artifact built before
+the review-only removal of one unnecessary per-interval neuron clone has wheel
+SHA-256
+`458f0936b870ee77bea72b31951e7e094b3cdc9b4eb4962939932c430ca12554`
+and extension SHA-256
+`5cdaf94761b5670b73835aa141ac9fd3bf84dde2d92d11abe0eefcb704704cd0`.
+On the exact authenticated tick-544086 body, one unchanged 4,000-sample cue
+produced one learned motor recruitment, one respiratory/articulatory
+recruitment, and one initial body consequence. Its already-started act ended
+within 24 unattended continuations, producing 200,000 bytes / 100,000 signed
+samples, 92,520 nonzero samples, absolute peak 433, and 196,000 self-heard
+samples. The reporter's final `external_heard_samples` field again displayed
+zero for the already-recorded F-065-H03 reason; the admission input and causal
+route were unchanged, so this is not reclassified as hearing failure. The
+subsequent source review removed only the diagnostic predecessor clone and now
+uses the existing localized chemistry observation to count a changed layer-13
+cell; final `cargo check` proves that reduced source. Deployment remains the
+next boundary and live audibility remains unproved.
