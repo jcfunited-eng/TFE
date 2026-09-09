@@ -6406,3 +6406,34 @@ permanently requires scalar-only production queries.
 
 C1-detailed-review correction notification was checked at
 `2026-09-09T07:04:06Z`: `status=slack_sent channel=#general`.
+
+### 2026-09-09 — SOW-SPEECH-01 pre-code falsification
+
+Joe resumed the project goal and authorized the corrected SOW-SPEECH-01. Before
+code, Codex restored the preserved authenticated current-body copy at tick
+550174 read-only and joined its 183 exact retained formations to all 22 measured
+learned `association -> ordering -> motor` speech routes. The result falsifies
+one assumption in the approved design: zero ordering cells and zero motor cells
+belong to any retained formation; only one of 22 route-founding L7 association
+cells belongs to one. No formation contains a complete route or even an
+association/ordering or ordering/motor pair.
+
+Active source confirms the route was deliberately learned from exact
+association/body co-occurrence and is physically wired L7 -> L11 -> L12, not
+attached to a retained mosaic. Therefore a same-interval retained-formation
+reassembly cannot directly select these existing routes on the current body.
+Pretending otherwise would require a heuristic join, a marker, or newly
+authored persisted anatomy. None is authorized.
+
+The definitive evidence and implementation-contract falsification are in
+speech-ledger commit `369bfdd2`. The ledger also records the exact transaction-
+order finding, the preserved success/failure boundary, and audit harness
+failures H04-H06. No source, build, stimulus, deployment, task definition, or
+production state changed.
+
+Recommended next choice for Joe: authorize the narrow existing-route repair,
+where one exact fresh physical cue-arrival carries consumable causal work into
+the learned L7 -> L11 -> L12 path. The later cognition-to-action route must be
+learned explicitly if internally originated conversational speech is required.
+Do not implement the falsified claim that current formations already contain
+the speech route.
