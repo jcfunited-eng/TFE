@@ -2027,3 +2027,38 @@ prove live speech or laptop audibility. The next and only speech action is one
 fresh live 4,000-sample pressure occurrence followed by bounded observation of
 that act; no repeated cue, tutoring, A/B chronology, or capacity change is
 authorized.
+
+S-065-04 first live body-owned pressure and self-hearing after cutover: before
+any new external cue was admitted, task 1448's unattended native settlements
+produced multiple new exact pressure receipts. Observed examples included tick
+545704 with one body consequence, 8,000 self-heard samples, and pending return
+pressure, followed by tick 545720 with one body consequence and 4,000
+self-heard samples. Exact held receipt
+`cacca4fa83db05a157a76c0b794bd8996abd3bba4a3d07d7ceffe438b08581e0`
+was retrieved from the public pressure endpoint: its SHA-256 matches, it is
+8,000 bytes / 4,000 signed samples, 82 samples are nonzero, and its absolute
+peak is only 30 of 32,768. This proves live body-owned pressure publication,
+self-hearing, and browser-fetchable speaker material. It does not prove an
+audible laptop utterance; the measured waveform is extremely weak and Joe has
+not confirmed hearing it.
+
+F-065-02 one live external cue did not yield a new pressure receipt in its
+observed horizon: after an observed no-pending settlement, exactly one fresh
+8,000-byte / 4,000-sample pressure occurrence was posted to production. HTTP
+200 admitted it at tick 545733 through two native intervals, 229 full-DSF
+deliveries, 1,790 physically changed neurons, and zero Python callbacks. The
+event recorded all 4,000 external heard samples and two body consequences, but
+no event pressure, no self-hearing, and no pending self pressure. Subsequent
+read-only observations through tick 545765 showed no new receipt; the prior
+unattended receipt remained held. No second cue was sent. This preserves the
+important split result: Candidate 65 fixed live local gate recovery enough for
+unattended body pressure and self-hearing, but a fresh live cue-to-new-pressure
+response and useful audible amplitude remain unproved. Do not rediscover or
+erase either half of that result.
+
+D-065-02 capacity enlargement rejected: multiplying a gate, channel, surface,
+or reservoir by 100 would only delay renewed saturation, change preserved
+anatomy, and risk runaway resource growth. It would not repair the missing
+turnover law. The next correction boundary is the existing bounded chemical
+recovery/decay and respiratory-pressure settlement, with no capacity increase,
+new population, repeated cue, or browser-side amplitude fabrication.
