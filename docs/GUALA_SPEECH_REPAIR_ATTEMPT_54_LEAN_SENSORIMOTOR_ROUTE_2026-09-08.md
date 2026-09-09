@@ -2673,3 +2673,33 @@ F-071-H01 the first ledger append used a stale expected final line and
 `apply_patch` refused without changing the file. Permanent guard: inspect the
 current ledger tail immediately before every append and anchor only to text that
 is present in that exact view.
+
+F-071-H02 the first debug-only scalar counter print was anchored after a later,
+similarly named loop and therefore fell outside the counter scope. The debug
+build refused with two missing-value compile errors; no executable or organism
+ran. The print was moved beside the exact learned-offer loop, where the next
+build passed. Permanent guard: inspect both the insertion site and the compiled
+scope after any repeated-text patch anchor; do not rely on the first textual
+match.
+
+F-071-H03 piping the first debug invocation through `head` suppressed its
+buffered result until the command boundary and returned no evidence. It was not
+counted. The same already-bounded one-cue invocation was issued without the
+pipeline and produced the scalar result below. Permanent guard: a bounded
+diagnostic must write its own bounded output; do not add a buffering projection
+around it.
+
+S-071-01 one debug-only scalar measurement localized the exact current-body
+cue rejection, after which all diagnostic source was removed. On the
+authenticated task-1452 tick-550174 copy, the unchanged 4,000-sample cue
+created 30 nonzero L7/L11 learned-source transitions, and all 30 carried
+positive exported work, but they produced zero learned offers. The existing
+authority filter classified two transitions with neither endpoint seeded, one
+with both endpoints seeded, 28 as incident to a body-owned acoustic efference
+lineage, and 20 as having no new-bond advance; categories overlap. Thus source
+contact physics is live and energized. The dominant present blocker is the
+Candidate-70 efference refusal being applied at whole-lineage scope: a retained
+marked frontier entry suppresses ordinary learned work incident to that neuron
+even when the exact source route is not the marked returning route. Production
+was untouched, the diagnostic never entered release source, and no cue needs to
+be repeated to rediscover this boundary.
