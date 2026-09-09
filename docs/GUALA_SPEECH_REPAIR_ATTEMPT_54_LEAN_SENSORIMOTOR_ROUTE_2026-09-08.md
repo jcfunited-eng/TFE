@@ -3517,3 +3517,6 @@ proved rather than recreated.
 
 C1-review completion notification was checked at `2026-09-09T06:51:08Z`:
 `status=slack_sent channel=#general`.
+
+C1-detailed-review correction notification was checked at
+`2026-09-09T07:04:06Z`: `status=slack_sent channel=#general`.
