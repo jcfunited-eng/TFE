@@ -2355,3 +2355,36 @@ laptop-audibility claim. The final wheel SHA-256 is
 its extension SHA-256 is
 `be5937c3b4552ad5e9e01ff716b9eacab536beaacd8832b7fbd0118184d735c0`.
 `git diff --check` passes; no broad suite or second copied chronology was run.
+
+F-069-02 production exposed forced-recovery vocal runaway: commit
+`a8c455ab2fc33ad39cc41984644555d2cfc220ae` deployed with preserved identity as
+task definition 1450, immutable image digest
+`sha256:811e9453bf5ccdd01c4adeff1d1e5e439b2d33f4ffb0463cc21e3ecbaf04da0c`.
+The native clock advanced from 547350 to 547396 during cutover. Before any new
+production tutor cue was accepted, unattended activity began producing body
+pressure, body consequences, and 8,000 self-heard samples per observed event.
+It continued past tick 547616 with a new pressure receipt approximately every
+two native ticks and no observed quiescent boundary. CPU rose to approximately
+47-51% average with a 61.78% observed maximum; memory remained bounded around
+8.3-8.8% after cutover. This is not accepted as autonomous speech: the
+Candidate-69 `required_extent.max(1)` rule forcibly recovered one saturated
+gate quantum whenever sub-threshold learned work was present, allowing
+recurring unattended offers/self-hearing to keep reopening motor gates. The
+candidate is rejected for behavioral runaway. Preserve the valid contact
+acceptance and false-continuity findings, but do not preserve forced minimum
+recovery as production authority.
+
+F-069-H01 live POST was attempted without a final observation preflight: the
+request returned HTTP 409 and no external pressure occurrence was accepted.
+The immediate read showed that Guala was already in a body-owned vocal act;
+the refusal was actor serialization, not a speech or custody failure.
+Permanent guard: immediately read `last_occurrence.self_pressure_pending` and
+custody fields before a decisive live occurrence; never count a refused POST as
+a delivered cue and never resend while body pressure is in flight.
+
+F-069-H02 CloudWatch Logs filter syntax was invalid: one read-only command used
+`ERROR || Exception || Traceback || fatal`, which AWS rejected because `|` is
+not valid in that filter position. CPU and memory reads completed before the
+log query refusal; no AWS state changed. Permanent guard: use one valid quoted
+term per Logs filter query or retrieve the bounded task stream without an
+invented Boolean expression.
