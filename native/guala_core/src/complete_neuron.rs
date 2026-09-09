@@ -3653,12 +3653,14 @@ pub(crate) struct IntrinsicTransducedGateWorkPreparation {
 
 /// Prepare bounded learned-contact work on an intrinsic receiving gate.
 ///
-/// Closed gates with dissipation headroom retain sub-threshold work on the
-/// neuron's already-persisted input-work residue. The accumulated work is
-/// presented to the unchanged free-energy gate settlement and is cleared only
-/// when that physical gate opens. Open gates and closed gates with no
-/// dissipation headroom accept no new work. Retained work is floored onto the
-/// fixed 2^96 lattice; the positive discarded sliver remains source heat.
+/// Closed gates retain sub-threshold work on the neuron's already-persisted
+/// input-work residue. The accumulated work is presented to the unchanged
+/// free-energy gate settlement and is cleared only when that physical gate
+/// opens. A closed gate with no dissipation headroom can still retain input
+/// work; its already-existing recovery pre-pass may free headroom only after
+/// that accumulated work predicts a real transition. Open gates accept no new
+/// control work. Retained work is floored onto the fixed 2^96 lattice; the
+/// positive discarded sliver remains source heat.
 pub(crate) fn prepare_intrinsic_transduced_gate_work(
     anatomy: &NeuronPhysicalAnatomy,
     predecessor: &NeuronPhysicalState,
@@ -3669,10 +3671,7 @@ pub(crate) fn prepare_intrinsic_transduced_gate_work(
         return Err(GateSettlementError::InvalidAnatomy.into());
     }
     let predecessor_open_population = predecessor.gate.open_population;
-    let closed_without_dissipation_headroom = predecessor_open_population == 0
-        && predecessor.gate.dissipated_quanta >= anatomy.gate.dissipation_capacity_quanta;
-    let can_accept_control_work =
-        predecessor_open_population == 0 && !closed_without_dissipation_headroom;
+    let can_accept_control_work = predecessor_open_population == 0;
     if !can_accept_control_work {
         return Ok(IntrinsicTransducedGateWorkPreparation {
             gate_work: GateWorkOccurrence::new(Exact::zero()),

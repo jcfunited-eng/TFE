@@ -500,6 +500,7 @@ struct DirectedElectricalFrontierCause {
     bond: StablePhysicalBondReference,
     transferred_whole_carriers: u128,
     frontier_is_sender: bool,
+    body_owned_acoustic_efference: bool,
 }
 
 impl ActiveElectricalFrontierEntry {
@@ -528,6 +529,7 @@ impl ActiveElectricalFrontierEntry {
                 bond,
                 transferred_whole_carriers,
                 frontier_is_sender: false,
+                body_owned_acoustic_efference: false,
             }),
         })
     }
@@ -538,6 +540,7 @@ impl ActiveElectricalFrontierEntry {
         frontier: [u8; 16],
         bond: StablePhysicalBondReference,
         transferred_whole_carriers: u128,
+        body_owned_acoustic_efference: bool,
     ) -> Result<Self, FormationError> {
         let mut entry = Self::caused(sender, receiver, bond, transferred_whole_carriers)?;
         let cause = entry
@@ -551,6 +554,7 @@ impl ActiveElectricalFrontierEntry {
         } else {
             return Err(FormationError::NoncanonicalState);
         };
+        cause.body_owned_acoustic_efference = body_owned_acoustic_efference;
         Ok(entry)
     }
 
@@ -581,6 +585,11 @@ impl ActiveElectricalFrontierEntry {
         [Some(self.frontier_lineage()), None]
     }
 
+    fn carries_body_owned_acoustic_efference(self) -> bool {
+        self.cause
+            .is_some_and(|cause| cause.body_owned_acoustic_efference)
+    }
+
     fn directed_transfer(self) -> Option<DirectedPhysicalTransferObservation> {
         let cause = self.cause?;
         Some(DirectedPhysicalTransferObservation {
@@ -603,8 +612,15 @@ impl ActiveElectricalFrontierEntry {
     fn encode_v20(self, output: &mut Vec<u8>) {
         output.push(match self.cause {
             None => 0,
-            Some(cause) if cause.frontier_is_sender => 2,
-            Some(_) => 1,
+            Some(cause) => match (
+                cause.frontier_is_sender,
+                cause.body_owned_acoustic_efference,
+            ) {
+                (false, false) => 1,
+                (true, false) => 2,
+                (false, true) => 3,
+                (true, true) => 4,
+            },
         });
         output.extend_from_slice(&self.receiver);
         if let Some(cause) = self.cause {
@@ -638,7 +654,9 @@ impl ActiveElectricalFrontierEntry {
         *cursor = receiver_end;
         match tag {
             0 => Ok(Self::legacy_receiver(receiver)),
-            1 | 2 if tag == 1 || allow_sender_frontier => {
+            1 | 2 | 3 | 4
+                if matches!(tag, 1 | 3) || allow_sender_frontier =>
+            {
                 let left_end = cursor
                     .checked_add(16)
                     .ok_or(FormationError::ArithmeticOverflow)?;
@@ -693,7 +711,12 @@ impl ActiveElectricalFrontierEntry {
                     .cause
                     .as_mut()
                     .ok_or(FormationError::NoncanonicalState)?
-                    .frontier_is_sender = tag == 2;
+                    .frontier_is_sender = matches!(tag, 2 | 4);
+                entry
+                    .cause
+                    .as_mut()
+                    .ok_or(FormationError::NoncanonicalState)?
+                    .body_owned_acoustic_efference = matches!(tag, 3 | 4);
                 Ok(entry)
             }
             _ => Err(FormationError::NoncanonicalState),
@@ -7766,6 +7789,7 @@ impl ResidentCognitiveFormationState {
             max_encoded_bytes,
             true,
             true,
+            true,
             residency,
         
             real_nutrition_intake_zeptojoules,
@@ -7781,6 +7805,7 @@ impl ResidentCognitiveFormationState {
         max_encoded_bytes: usize,
         seal_successor: bool,
         observe_relations: bool,
+        admit_learned_motor_work: bool,
         residency: &mut Option<crate::causal_event_scheduler::CausalEventResidency>,
         real_nutrition_intake_zeptojoules: ExactRational,
     ) -> Result<PreparedCognitiveFormationTransition, FormationError> {
@@ -9215,6 +9240,7 @@ impl ResidentCognitiveFormationState {
             &palmar_contact_onset_receptor_lineages,
             &gustatory_contact_onset_receptor_lineages,
             real_nutrition_intake_zeptojoules,
+            admit_learned_motor_work,
         )?;
         let passive_membrane_returned_neuron_count =
             internal_contact.passive_membrane_returned_neuron_lineages.len();
@@ -9609,6 +9635,7 @@ impl ResidentCognitiveFormationState {
             max_encoded_bytes,
             false,
             true,
+            true,
             residency,
         
             ExactRational::integer(0),
@@ -9651,6 +9678,7 @@ impl ResidentCognitiveFormationState {
             max_encoded_bytes,
             false,
             observe_relations,
+            true,
             residency,
         
             real_nutrition_intake_zeptojoules,
@@ -9668,6 +9696,7 @@ impl ResidentCognitiveFormationState {
         admitted_sources: &[AdmittedJointSourceEpisode],
         max_encoded_bytes: usize,
         observe_relations: bool,
+        admit_learned_motor_work: bool,
         residency: &mut Option<crate::causal_event_scheduler::CausalEventResidency>,
         real_nutrition_intake_zeptojoules: ExactRational,
     ) -> Result<(Self, CognitiveFormationObservation), FormationError> {
@@ -9683,6 +9712,7 @@ impl ResidentCognitiveFormationState {
             max_encoded_bytes,
             false,
             observe_relations,
+            admit_learned_motor_work,
             residency,
             real_nutrition_intake_zeptojoules,
         )?;
@@ -17775,6 +17805,7 @@ fn retain_internally_reassembled_recurrent_frontier(
             recurrent_lineage,
             transfer.bond,
             transfer.transferred_whole_carriers,
+            false,
         )?);
     }
     next_frontier.sort_unstable();
@@ -18908,6 +18939,7 @@ fn settle_internal_contact_interval(
     palmar_contact_onset_receptor_lineages: &[[u8; 16]],
     gustatory_contact_onset_receptor_lineages: &[[u8; 16]],
     real_nutrition_intake_zeptojoules: ExactRational,
+    admit_learned_motor_work: bool,
 ) -> Result<InternalContactSettlementObservation, FormationError> {
     let residency_holds_due_events = residency.as_ref().is_some_and(|events| {
         events.matches_shape(
@@ -19179,6 +19211,20 @@ fn settle_internal_contact_interval(
         .collect::<Result<Vec<_>, _>>()?;
     fresh_seed_flats.sort_unstable();
     fresh_seed_flats.dedup();
+    let mut body_owned_acoustic_efference_seed_flats = predecessor_frontier
+        .iter()
+        .copied()
+        .filter(|entry| entry.carries_body_owned_acoustic_efference())
+        .map(ActiveElectricalFrontierEntry::frontier_lineage)
+        .map(lineage_member)
+        .collect::<Result<Vec<_>, _>>()?;
+    body_owned_acoustic_efference_seed_flats.sort_unstable();
+    body_owned_acoustic_efference_seed_flats.dedup();
+    let is_body_owned_acoustic_efference_seed = |flat: usize| {
+        body_owned_acoustic_efference_seed_flats
+            .binary_search(&flat)
+            .is_ok()
+    };
     let incoming_frontier_bonds = incoming_frontier_bonds(predecessor_frontier);
     let crosses_new_frontier_bond = |seed_flat: usize, bond| {
         frontier_crossing_advances(
@@ -19787,6 +19833,16 @@ fn settle_internal_contact_interval(
         for (ordering_flat, motor_flat, motor_bond, learned_conductance) in
             ordering_motor_bridges.iter().copied()
         {
+            // An in-flight body-owned acoustic consequence still reaches and
+            // settles the auditory/cognitive fabric.  Its returning pressure
+            // is efference from the act already being discharged, however, so
+            // it cannot author fresh learned motor work for that same act.
+            // This provenance lives only on the already-bounded causal
+            // frontier and expires with that frontier; it creates no separate
+            // owner, timer, or lifetime.
+            if !admit_learned_motor_work {
+                continue;
+            }
             let total_learned_conductance = ordering_motor_bridges
                 .iter()
                 .filter(|(candidate_ordering, _, _, _)| *candidate_ordering == ordering_flat)
@@ -19823,6 +19879,9 @@ fn settle_internal_contact_interval(
                     } else {
                         founding_flat
                     };
+                    if is_body_owned_acoustic_efference_seed(causal_seed) {
+                        return None;
+                    }
                     crosses_new_frontier_bond(causal_seed, compact_bonds[position])
                         .then_some((position, founding_flat))
                 })
@@ -20521,9 +20580,7 @@ fn settle_internal_contact_interval(
                 // evaluated.  The prior ordering calculated refusal first,
                 // recovered the neuron second, and then retained the obsolete
                 // refusal without ever evaluating the recovered gate.
-                if prepared.accepted_source_work_zeptojoules.is_zero()
-                    && prepared.retained_source_heat_zeptojoules > BigRational::zero()
-                    && predecessor_neuron.gate.open_population() == 0
+                if predecessor_neuron.gate.open_population() == 0
                     && predecessor_neuron.gate.dissipated_quanta()
                         >= neuron_anatomy.gate_dissipation_capacity_quanta()
                 {
@@ -20544,7 +20601,7 @@ fn settle_internal_contact_interval(
                                 },
                             )
                         })?;
-                    settle_reached_gate_recovery_demand_in_place(
+                    let recovered_extent = settle_reached_gate_recovery_demand_in_place(
                         &cohort.anatomy,
                         Arc::make_mut(&mut cohort.state),
                         neuron_index,
@@ -20552,20 +20609,22 @@ fn settle_internal_contact_interval(
                         &catalysts[reached_input_index],
                     )
                     .map_err(FormationError::PhysicalSettlementUnavailable)?;
-                    prepared = crate::complete_neuron::prepare_intrinsic_transduced_gate_work(
-                        neuron_anatomy,
-                        &cohort.state.neurons()[neuron_index],
-                        &prepared_psi,
-                        total_offered.clone(),
-                    )
-                    .map_err(|error| {
-                        FormationError::PhysicalSettlementUnavailable(
-                            ReachedCohortError::Neuron {
-                                neuron_index,
-                                error,
-                            },
+                    if recovered_extent != 0 {
+                        prepared = crate::complete_neuron::prepare_intrinsic_transduced_gate_work(
+                            neuron_anatomy,
+                            &cohort.state.neurons()[neuron_index],
+                            &prepared_psi,
+                            total_offered.clone(),
                         )
-                    })?;
+                        .map_err(|error| {
+                            FormationError::PhysicalSettlementUnavailable(
+                                ReachedCohortError::Neuron {
+                                    neuron_index,
+                                    error,
+                                },
+                            )
+                        })?;
+                    }
                 }
                 let consumed_source_work = &prepared.accepted_source_work_zeptojoules
                     - &prepared.residue_narrowing_heat_zeptojoules;
@@ -21551,13 +21610,19 @@ fn settle_internal_contact_interval(
             if !crosses_new_frontier_bond(seed_flat, *bond) {
                 continue;
             }
-            next_active_frontier.push(ActiveElectricalFrontierEntry::caused_with_frontier(
-                transfer.sender,
-                transfer.receiver,
-                frontier_lineage,
-                *bond,
-                transfer.transferred_whole_carriers,
-            )?);
+            let inherited_body_owned_acoustic_efference =
+                is_body_owned_acoustic_efference_seed(seed_flat)
+                    && fresh_seed_flats.binary_search(&seed_flat).is_err();
+            next_active_frontier.push(
+                ActiveElectricalFrontierEntry::caused_with_frontier(
+                    transfer.sender,
+                    transfer.receiver,
+                    frontier_lineage,
+                    *bond,
+                    transfer.transferred_whole_carriers,
+                    !admit_learned_motor_work || inherited_body_owned_acoustic_efference,
+                )?,
+            );
         }
     }
     next_active_frontier.sort_unstable();

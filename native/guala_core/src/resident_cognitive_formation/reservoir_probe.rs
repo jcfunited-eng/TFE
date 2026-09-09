@@ -1212,6 +1212,7 @@ fn motor_reachability_json(state: &ResidentCognitiveFormationState) -> Value {
         &[],
         &[],
         crate::exact_rational::ExactRational::integer(0),
+        true,
     )
     .expect("maximal external frontier settles");
     let pending_post_quiescence_candidates = successor
@@ -1522,6 +1523,7 @@ fn motor_bridge_gradient_population_range_json(state: &ResidentCognitiveFormatio
                         &[],
                         &[],
                         ExactRational::integer(0),
+                        true,
                     )
                     .expect("population-range contact settlement");
                     let signed_transfer = observation
@@ -1667,6 +1669,7 @@ fn motor_bridge_active_range_json(state: &ResidentCognitiveFormationState) -> Va
                 &[],
                 &[],
                 ExactRational::integer(0),
+                true,
             )
             .expect("active ordering range settles");
             let signed_transfer = observation
@@ -1828,6 +1831,7 @@ fn retained_frontier_motor_range_json(
             &[],
             &[],
             ExactRational::integer(0),
+            true,
         )
         .expect("retained copied-body frontier settles");
         let bridge_transfers = observation
@@ -2849,6 +2853,7 @@ fn source_work_to_motor_reservoir_range_json(state: &ResidentCognitiveFormationS
             &[],
             &[],
             ExactRational::integer(0),
+            true,
         )
         .expect("copied retained frontier settles for source-work range");
 
@@ -3078,6 +3083,7 @@ fn production_learned_motor_work_range_json(state: &ResidentCognitiveFormationSt
             &[],
             &[],
             ExactRational::integer(0),
+            true,
         )
         .expect("copied retained frontier settles through production learned-work law");
 
@@ -3256,6 +3262,7 @@ fn production_replayed_motor_discharge_json(
                 &[],
                 &[],
                 ExactRational::integer(0),
+                true,
             )
             .expect("controlled copied occurrence settles through production law");
             learned_bridge_carrier_transfer_count += observation
@@ -3378,6 +3385,7 @@ fn production_replayed_motor_discharge_json(
                 &[],
                 &[],
                 ExactRational::integer(0),
+                true,
             )
             .expect("post-opening copied motor continuation settles");
             let vocal = observation
@@ -3855,6 +3863,7 @@ fn artificial_vocal_synergy_unblock_json(
                 &[],
                 &[],
                 ExactRational::integer(0),
+                true,
             )
             .expect("artificial synergy repeated occurrence settles");
             for preparation in &observation.learned_motor_work_preparations {
@@ -3937,6 +3946,7 @@ fn artificial_vocal_synergy_unblock_json(
                 &[],
                 &[],
                 ExactRational::integer(0),
+                true,
             )
             .expect("artificial synergy natural continuation settles");
             let vocal = observation
@@ -4174,6 +4184,7 @@ fn run_guided_vocal_continuation(
             .advance_coexisting_admitted_transition_with_residency(
                 &admitted_sources,
                 usize::MAX,
+                true,
                 true,
                 &mut residency,
                 ExactRational::integer(0),
@@ -4520,6 +4531,7 @@ fn guided_vocal_population_growth_json(
             .advance_coexisting_admitted_transition_with_residency(
                 &admitted_sources,
                 usize::MAX,
+                true,
                 true,
                 &mut guided_residency,
                 ExactRational::integer(0),

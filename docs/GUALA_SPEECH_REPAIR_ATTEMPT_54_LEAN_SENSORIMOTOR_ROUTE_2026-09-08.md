@@ -2405,3 +2405,152 @@ are not reclassified as vocal pressure. Production is live and no longer in
 the Candidate-69 vocal loop. Speech remains incomplete: the next design
 boundary is exact sub-threshold learned-work retention/recovery without a
 forced firing quantum, not another cue or capacity increase.
+
+S-070-01 existing channel capacity is sufficient and exact residue retention
+works: Candidate 70 changed a closed learned motor gate so sub-threshold work
+is retained on its already-present input-work residue even when the gate is
+fully dissipated, then allowed the existing bounded recovery reaction to
+operate without forcing a minimum reaction quantum. Against the authenticated
+task-1448 tick-546298 copy, the first unchanged 4,000-sample tutor cue produced
+eight learned motor preparations and two body consequences at tick 546300,
+including body-pressure receipt
+`5e041ff93f7394fef862b26fe9e7a03cbda936236195fc2b05cd19272e2952c8`.
+No anatomy, surface area, capacity, population, timer, field, or alternate
+route was added. This proves that enlarging the channel is neither necessary
+nor justified by the observed saturation.
+
+F-070-01 Candidate 70 re-admitted the in-flight body-owned acoustic consequence
+as fresh learned motor work: the copied first-cue body act did not complete
+within the existing 32-interval bound, and the disposable harness refused with
+`body-owned pressure exceeded the 32-interval bound`. The candidate is not
+deployable as-is and production task 1451 was untouched. Preserve S-070-01;
+the exact next correction is a transient physical efference boundary during
+consumption of Guala's own in-flight acoustic consequence. Her auditory and
+cognitive settlement must remain active, while that returning body-owned
+pressure must not transduce new learned L11-to-L12 motor work during the same
+act. Do not enlarge capacity, suppress self-hearing, add persisted state, or
+restart a broad test ladder.
+
+F-070-H01 crate-wide formatting check is not a usable candidate preflight in
+this inherited worktree: `cargo fmt --check` emitted approximately 370,000
+tokens of unrelated historical formatting differences and, because it was
+chained before compilation, prevented that compilation command from running.
+No source was formatted or otherwise changed. Permanent guard: do not run the
+crate-wide formatter as a speech gate and do not chain it before a required
+check; use `cargo check --lib --locked` and `git diff --check` on the actual
+candidate. The separately invoked library check completed successfully with
+184 inherited warnings.
+
+F-070-02 in-flight-only efference was necessary but insufficient: one rebuilt
+candidate ran the same single authenticated tick-546298 copied chronology.
+The first cue again produced two body consequences and exact pressure receipt
+`5e041ff93f7394fef862b26fe9e7a03cbda936236195fc2b05cd19272e2952c8`.
+That act completed after 13 continuations with 104,000 pressure bytes, 47,486
+nonzero samples, peak 423, and 72,000 self-heard samples. However, four further
+unattended intervals produced three new pressure receipts, 20,000 additional
+self-heard samples, seven body consequences, and ended with pressure pending.
+Production task 1451 remained untouched. The retained frontier from the same
+source can therefore author learned motor work again after acoustic custody
+clears. The existing code already distinguishes fresh noncontinuation seeds
+from retained frontier continuations; the next correction must require both
+fresh source authority and non-self acoustic provenance for learned
+L7-to-L11-to-L12 motor-work transduction. Do not add a timer or persisted flag.
+
+S-070-02 duplicate-author chronology localized without another build: the
+already-built in-flight-efference artifact was rerun once with observation of
+the 32 post-completion intervals. After each acoustic chain cleared, a quiet
+unattended interval produced eight learned preparations; the following
+interval produced five more preparations, new motor/articulatory recruitment,
+and restarted body pressure. This repeated at ticks 546318/546320 and
+546354/546356, with another eight preparations at tick 546364. Across the tail
+there were 29 body consequences, 168,000 self-heard samples, and 27 pressure
+receipts. The restart is therefore new learned-work authorship by the retained
+source frontier, not unfinished discharge and not inadequate channel surface.
+
+F-070-03 direct endpoint-freshness was too restrictive and is rejected: a
+candidate required the L7/L11 endpoint that crossed into the learned motor
+transducer to itself be a fresh seed. The first unchanged external tutor cue
+then produced zero learned preparations, motors, body consequences, pressure,
+or self-hearing. The tutor's fresh receptor is upstream of that later learned
+crossing, so this rule erased the valid causal route. Production was untouched
+and the condition was removed. Preserve Attempt 61's same-bond anti-bounce law;
+the correct one-occurrence boundary is instead to stop carrying forward the
+exact L7-to-L11 transition after it has offered its released work, while
+leaving its already-settled electrical/thermal successor intact.
+
+F-070-04 source-transition-only frontier consumption was too local and is
+rejected: the candidate stopped carrying forward each exact L7-to-L11 contact
+position that offered learned work, but the same 32-interval copied chronology
+still restarted on the same ticks. It changed the second preparation count
+from five to three and the later count from five to four, without changing the
+recurring pressure chain. The self-generated causal wave can travel through
+other bonds and return to the learned route; one bond position cannot preserve
+the wave's origin. Production was untouched and the ineffective filter was
+removed. The required boundary is provenance carried on the already-bounded
+active frontier itself, not more local exclusions or a capacity change.
+
+S-070-03 bounded self-speech and cessation close on the authenticated copied
+body: the active frontier now carries one provenance bit distinguishing a
+body-owned acoustic efference wave from an ordinary causal wave. The bit uses
+the frontier entry's existing one-byte tag and adds no entry bytes, collection,
+timer, population, channel, or persisted owner. Self-hearing still settles the
+full auditory/cognitive path, but an efference-marked frontier cannot author
+fresh learned motor work; the mark propagates with that already-bounded wave
+and disappears when the frontier disappears. One unchanged tutor cue against
+the task-1448 tick-546298 copy produced five learned preparations, two motor
+recruitments, one articulatory recruitment, two immediate body consequences,
+104,000 pressure bytes containing 47,486 nonzero samples at peak 423, and
+72,000 self-heard samples. The pressure completed after 13 continuations.
+Across 32 further unattended intervals there were zero learned preparations,
+zero motor or articulatory recruitments, zero pressure receipts, zero
+self-heard samples, and no pending pressure. Six unrelated body consequences
+still occurred, proving the boundary did not freeze ordinary body activity.
+This is copied-state speech-and-cessation success, not yet deployment or laptop
+audibility.
+
+F-070-H02 the first targeted codec-test command incorrectly combined an
+unqualified Rust test name with `--exact`; Cargo therefore reported zero tests
+run and 614 filtered out. It was not counted as evidence. Permanent guard: use
+the unique substring without `--exact`, or first obtain and use the complete
+module-qualified test name; always read the executed-test count before calling
+a test successful.
+
+S-070-04 the final source compiles and the existing directed-frontier custody
+test now explicitly round-trips the body-owned acoustic efference bit through
+the unchanged v20 frontier entry codec. `cargo check --tests --locked` completed
+successfully, and the corrected targeted command ran exactly one test:
+`resident_cognitive_formation::tests::directed_transfer_frontier_preserves_direction_and_one_advancing_endpoint`;
+it passed. The source still adds no encoded bytes: previously unused values in
+the existing one-byte frontier tag distinguish ordinary and efferent direction.
+
+S-070-05 the final release artifact—not an earlier candidate—reproduced the
+copied-state speech-and-cessation success. Wheel SHA-256 is
+`453a2714b3afe2fb1bd5600cd1f8db43c63b15a29f32979e62b95d59be85e6b3`; native
+extension SHA-256 is
+`3e678a3ea62a35ec3fc8a2e6837ae63063c016d64ac597a654ffd5dec4e56b30`.
+One unchanged tutor cue produced five learned preparations, two delivered motor
+recruitments, one articulatory recruitment, two immediate body consequences,
+104,000 pressure bytes with 47,486 nonzero samples at peak 423, and 72,000
+self-heard samples. The act completed after 13 continuations. All 32 subsequent
+unattended intervals had zero learned preparations, zero motor/articulatory
+recruitments, zero pressure receipts, zero self-hearing, and no pending pressure;
+six unrelated body consequences continued. This is the immutable candidate for
+production review. It is not yet live-production or laptop-audibility evidence.
+
+D-070-01 final source and bloat review: Candidate 70 changes the existing closed
+gate residue/recovery order and the existing bounded active-frontier provenance;
+it does not create a shell, process, lock, retry loop, timer, population,
+capacity increase, lookup table, waveform author, or alternate cognition path.
+The three production files have 68 net added lines in total. The final review
+removed an avoidable wrapper, a duplicate constructor, and both rejected local
+frontier filters. `resident_cognitive_formation.rs` is still an unacceptable
+22,899-line core and is not declared clean; that inherited decomposition is the
+next task after live speech is locked. L0-L4 and all explicit DSF fields remain
+unchanged. Final source SHA-256 values are
+`2de8fc60ff7443d5bb9d72e7f5858bccac7310c970f34c1b4de97b50af0b86b0`
+for `complete_neuron.rs`,
+`8710f729e7fed7f73935aa001b3f9a93cf12adf5d15f1770427f16322fa968b7`
+for `organism_runtime.rs`, and
+`847fa296fe1d871ea0692af444d78f4cae572d1541dcb719d7c381d48f3de5e5`
+for `resident_cognitive_formation.rs`. `git diff --check`, the full test-target
+compile, the one exact frontier-codec test, and the final copied chronology pass.

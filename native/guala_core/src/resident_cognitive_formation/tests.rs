@@ -902,7 +902,7 @@
             .find(|bond| bond.endpoints() == pair)
             .expect("hop must be a real physical bond");
         vec![ActiveElectricalFrontierEntry::caused_with_frontier(
-            sender, receiver, frontier, bond, 1,
+            sender, receiver, frontier, bond, 1, false,
         )
         .unwrap()]
     }
@@ -3364,6 +3364,7 @@
             recurrent,
             predecessor_bond,
             3,
+            false,
         )
         .unwrap();
         let cue_bond = StablePhysicalBondReference::new(cue, recurrent, 0).unwrap();
@@ -3432,6 +3433,7 @@
             recurrent,
             predecessor_bond,
             3,
+            false,
         )
         .unwrap();
         let recurrent_bond =
@@ -3442,6 +3444,7 @@
             member,
             recurrent_bond,
             5,
+            false,
         )
         .unwrap();
 
@@ -3468,6 +3471,7 @@
             recurrent,
             recurrent_bond,
             5,
+            false,
         )
         .unwrap();
         assert!(recurrent_formation_causal_cues(
@@ -4809,6 +4813,7 @@
                 &[],
                 &[],
                 ExactRational::integer(0),
+                true,
             )
             .unwrap();
             if let Some(plasticity) = observation
@@ -6384,6 +6389,7 @@
                 &[],
                 &[],
                 ExactRational::integer(0),
+                true,
             )
             .unwrap();
             let events = residency.as_ref().expect("residency must persist");
@@ -6452,6 +6458,7 @@
                 &[],
                 &[],
                 ExactRational::integer(0),
+                true,
             )
             .unwrap();
         }
@@ -9872,7 +9879,7 @@
         );
 
         let reverse_frontier = ActiveElectricalFrontierEntry::caused_with_frontier(
-            sender, receiver, sender, bond, 7,
+            sender, receiver, sender, bond, 7, false,
         )
         .unwrap();
         assert_eq!(reverse_frontier.affected_lineages(), [Some(sender), None]);
@@ -9890,6 +9897,20 @@
             ActiveElectricalFrontierEntry::decode_v20(&encoded, &mut cursor, false),
             Err(FormationError::NoncanonicalState)
         );
+
+        let body_owned_acoustic_efference =
+            ActiveElectricalFrontierEntry::caused_with_frontier(
+                sender, receiver, sender, bond, 7, true,
+            )
+            .unwrap();
+        let mut encoded = Vec::new();
+        body_owned_acoustic_efference.encode_v20(&mut encoded);
+        let mut cursor = 0;
+        let decoded =
+            ActiveElectricalFrontierEntry::decode_v20(&encoded, &mut cursor, true).unwrap();
+        assert_eq!(decoded, body_owned_acoustic_efference);
+        assert!(decoded.carries_body_owned_acoustic_efference());
+        assert_eq!(cursor, encoded.len());
 
         let legacy = ActiveElectricalFrontierEntry::legacy_receiver(receiver);
         assert_eq!(legacy.affected_lineages(), [Some(receiver), None]);
