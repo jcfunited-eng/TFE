@@ -2585,3 +2585,37 @@ but live speech is not fixed and laptop audibility is not claimed. Preserve
 S-070-03/S-070-05 as exact copied-state mechanism success; the next boundary is
 the current body at tick 550043 versus the authenticated tick-546298 body, not
 another cue, A/B ladder, capacity increase, or alternative speech author.
+
+S-070-07 authenticated current-body capture completed without pausing or
+mutating production. A read-only task-1452 command selected paired CURRENT at
+tick 550174 and streamed its already-compressed immutable body and world through
+one SigV4 presigned PUT. Local verification matched body SHA-256
+`73b645c4e2daaa80695d99dcaba8c54514cfccd445610b098db9fa4b2bf60832`
+at 144,652,685 raw bytes and world SHA-256
+`b3811388ff457a3a576a07db399a28b53ba8120a4730fff115064cc61a9c7c9f`
+at 63,551 bytes. The 2,745,990-byte archive is retained at
+`s3://guala-incident-bench-20260831/speech-attempt70/paired-task1452-post-live-cue.zip`
+with SHA-256
+`5476a396fb6cc500b7f8765096c939a6b7862f03960a820e95d568adca39a26b`.
+This is the exact current body for the next narrow boundary inspection.
+
+F-070-H03 the first JSON projection of the narrow current-body motor report
+assumed its top level was an array, although the emitted schema has a `records`
+object member. `jq` refused before reporting data; the probe was not rerun.
+The corrected projection inspected `.records[0]`. A subsequent projection
+requested an entire nested `three_terminal_route_range` and emitted roughly
+45,000 tokens although only counts were needed. Permanent guard: inspect `keys`
+and `type` first, then project scalar counts explicitly; never include an
+unbounded nested route array in a terminal report.
+
+S-070-08 current-body no-stimulus motor census: exactly one focused existing
+probe decoded the authenticated tick-550174 body and ran one test (one passed,
+613 filtered out). Ten mounted motor neurons still release increasing physical
+work for every tested inward carrier extent, so the motor tissue itself is not
+dead. Its retained frontier contained 2,032 entries and 19 ordering lineages;
+one settlement produced 13,165 directed transfers and 39 ordering-incident
+transfers but zero L11/L12 bridge transfers, motor recruitment, or articulatory
+recruitment. Because this was an unstimulated retained-frontier census, it does
+not yet establish where the live microphone occurrence lost its route. The one
+next check is the same single microphone cue on this disposable copied body,
+with direct preparation/recruitment counts; do not repeat the production cue.
