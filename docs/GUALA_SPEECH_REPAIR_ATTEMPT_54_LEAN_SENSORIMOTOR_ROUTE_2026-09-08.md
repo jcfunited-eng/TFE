@@ -4583,3 +4583,6 @@ path polls the exact pressure receipt, decodes its signed 16-bit PCM, and plays
 each new receipt once. This verifies the production browser-to-speaker path in
 code and deployment; a remote server cannot observe whether a particular
 laptop's speakers produced human-perceived sound.
+
+Candidate 78 speech-closure notification was checked at
+`2026-09-09T16:22:42Z`: `status=slack_sent channel=#general`.
