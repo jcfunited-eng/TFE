@@ -2011,3 +2011,19 @@ commit. Deployment success will mean preserved identity/tick and healthy sole
 writer only. Speech remains unproved until a fresh live pressure cue produces
 body-owned pressure and self-hearing, and laptop audibility remains unproved
 until Joe's already-armed browser plays that live receipt.
+
+S-065-03 exact reviewed commit deployed with preserved custody: the existing
+lean deployment controller packaged commit
+`36ed512602587e0ae1598e026099070cd42a55dd`, built and registered immutable
+image digest
+`sha256:c5cd9142cbceaeae7cd772376c8737561afac7250daebe05b3b22361a8b4ae83`,
+and cut the sole ECS writer from task definition 1447 to task definition 1448.
+The controller verified identity
+`1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1` unchanged and the native clock
+advanced from tick 545623 to 545664. ECS independently reports desired one,
+running one, pending zero, and deployment completed. This proves deployment,
+single-writer health, identity custody, and clock advance only. It does not yet
+prove live speech or laptop audibility. The next and only speech action is one
+fresh live 4,000-sample pressure occurrence followed by bounded observation of
+that act; no repeated cue, tutoring, A/B chronology, or capacity change is
+authorized.
