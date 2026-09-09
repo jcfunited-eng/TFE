@@ -2271,3 +2271,31 @@ persisted tick, and has no legacy rollback. Normal live deployment continues
 to allow CURRENT to advance during its build. `bash -n` and `git diff --check`
 pass. This changes deployment custody only; it does not authorize a different
 identity, substitute state, second writer, legacy shell, or speech claim.
+
+S-068-05 production actor recovered and live-verified: reviewed commit
+`8263fd8c453376fa8dc2e96d1978367da8260ebc` built immutable image digest
+`sha256:977ad1e632f9db130e20a408bbcb8e2038413b5a8d69c21c1ea1f254dbff95bf`
+and deployed through the durable-dead custody path as task definition
+`dsf-ai-task:1449`, task
+`e192b224d5004b7c8197f26eb44de327`. The old task stopped before the new
+writer started. Identity remained exactly
+`1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`; paired CURRENT at tick 546298 was
+restored, and live production advanced through the formerly fatal tick 546319
+to at least tick 546331 with `available=true`, no checkpoint error, and no
+cleanup error. ECS task and container are both RUNNING/HEALTHY on the exact
+digest. The first candidate CloudWatch minute measured CPU average 13.52%, max
+27.05%, and memory average 2.08%, max 4.15% of the fixed 4-vCPU/16-GiB task;
+there is no initial runaway signal. The only arithmetic traceback in the
+ten-minute log window belongs to task 1448 shutting down with its already-known
+fatal; task 1449 started cleanly. Production-current was pinned only after live
+verification. This is deployed native-life recovery, not speech completion.
+
+F-068-02 one post-recovery live cue still did not recruit speech: exactly one
+unchanged 8,000-byte / 4,000-sample tutor pressure was sent after task 1449 had
+crossed the old fatal tick. At live tick 546380 it was accepted as one native
+interval, all 4,000 samples were externally heard, 221 DSF deliveries reached
+1,572 physically transitioned neurons, and the actor remained available while
+durable custody advanced to tick 546362. It produced zero body consequences,
+no pressure receipt, zero self-heard samples, and no pending pressure. No second
+cue was sent. Production is now alive and hearing; speech remains failed at the
+learned-cue-to-motor recruitment boundary.
