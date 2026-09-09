@@ -1,14 +1,17 @@
 # Guala speech repair Attempt 54 — complete design verification and lean sensorimotor route
 
 Date: 2026-09-08 UTC
-Status: Candidate 65 is deployed on task 1448 with live body pressure and
-self-hearing proved but useful audibility and fresh cue response still open.
-Candidate 66 respiratory chemistry source, compile, review, release wheel, and
-one copied-production wrapper trace are complete; production remains on 1448.
+Status updated 2026-09-09 UTC: Candidate 70 is deployed from commit
+`f1d1ed638361b0e6bde295e2acb7d77d1524c72b` on task definition 1452. ECS is
+healthy and the actor advances, but learned-cue speech remains functionally
+failed. Candidates 71-74 were copied-body investigations, were rejected and
+removed, and never entered production. The definitive current section begins
+at `Definitive working section — current speech body of work (2026-09-09 UTC)`.
 Worktree: `/tmp/guala-speech-existing-organ`
 Starting HEAD: `735489406577f90edf6c2fb7fb1889f87eae8107`
-Production boundary: task 1448 remains the sole healthy writer; Candidate 66
-is not yet deployed
+Production boundary: task 1452 is the sole RUNNING/HEALTHY writer at image
+digest `sha256:6d9e78eae14e9503cdff085d6862f2bc8a312c3391ab4679e70d902ab1c0dc62`.
+Deployment health does not constitute speech success.
 
 ## Architecture honesty gate
 
@@ -159,8 +162,15 @@ exact pressure through the cochlear path. No change is required downstream.
 
 ## Confirmed overengineering and runtime cost
 
-- The active cognitive source is 32,772 lines with Candidate 53F present; its
-  reservoir probe is 6,720 lines: 39,492 lines combined.
+- At this historical Candidate-53F inspection the uncommitted rejected
+  Candidate-53F worktree file measured 32,772 lines. The subsequently accepted
+  Candidate-54 commit `f0be7e7d` measured 32,839 lines; the difference is the
+  removed Candidate-53F diff, not unexplained production deletion. Commit
+  `d251b590` later moved 9,702 embedded `cfg(test)` lines out of the production
+  file into its test module, reducing this file to 23,137 lines without
+  claiming that much production logic was deleted. Subsequent recorded lean
+  changes produced the current 22,899-line file. The separate test-only
+  reservoir probe remained 6,720 lines at this inspection.
 - The approximately 767-line family/synergy author performs whole-population
   and whole-contact scans during developmental activity despite the governing
   reached-frontier law.
@@ -252,6 +262,10 @@ family author returns before scanning when an event contains only vocal moved
 terminals, and both old motor authors refuse vocal motor-contact authorship.
 Actual work eligibility now accepts either downhill direction across the exact
 L7-L11 founding contact while requiring one and only one causal endpoint.
+This 148-line count is historical and exact for commit `f0be7e7d`. Commit
+`f337a090` later added 18 lines and removed five while correcting non-vocal
+single-terminal refusal and mounting the exact association/regulation contact;
+the retained module has therefore been 161 lines since that commit.
 
 S-054-14: release build completed once in 2 minutes 54 seconds with the 114
 inherited warnings and no new warning attributed to the new route. Exact test
@@ -1254,6 +1268,16 @@ deliveries, and 1,725-1,762 changed neurons; no overlap retry was needed. The
 tick 526997 with exact identity, no outstanding checkpoint, and no durability
 block. The full live training count now matches the copied proof. Speech success
 still awaits the final same-digest cold learned-cue result.
+
+C-055-01 correction to S-055-30: matching 34 accepted guide events did **not**
+make the live chronology equivalent to the copied chronology. The live body
+settled thousands of ordinary occurrences between guides, and D-062-01 later
+established that the copied chronology paired the same tutor waveform with
+opposing directions that were never authorized live. S-063-02 then found all
+ten receiving gates saturated. Preserve S-055-30 only as proof of 34 admitted
+guided events and their exact sensory/body deliveries. Never cite equal event
+count as equal timing, state, direction pairing, gate condition, or learned
+cue-to-action causality.
 
 F-055-34 complete live chronology still lost the durable cue-to-action link:
 after all 34 accepted guides, the same immutable Candidate-55 digest stopped
@@ -3034,6 +3058,13 @@ Read-only checks on 2026-09-09 UTC found:
 - latest live `camera-microphone` occurrence heard all 4,000 external samples,
   made 221 full-DSF deliveries and changed 1,792 neurons, but made zero body
   consequences and zero self-heard samples; and
+- a stimulus-free two-observation timing window on task 1452 advanced native
+  tick `557009 -> 557016` over `12.185796147` wall-clock seconds. The seven-tick
+  mean was therefore `1.740828021` seconds per tick. The latest occurrence
+  remained `unattended` with `native_interval_count=1`. This is an exact
+  externally observed wall-cadence measurement, not a native-profiler
+  settlement measurement. It fails the intended real-time cadence even though
+  it does not rescale the native millisecond physics constants; and
 - CPU, memory, EFS-storage, and refusal-loop alarms were `OK`.
   `guala-clock-stalled` remained `ALARM` on its stale 2026-09-08 datapoint even
   while the directly observed native tick advanced. It is an operations-metric
@@ -3165,16 +3196,24 @@ cannot move the goal:
    `tests/test_native_joint_source_episode.py`, and
    `tests/test_native_organism_runtime_boundary.py`. The three old tests that
    import the quarantined shell remain excluded until replaced, never bypassed.
-5. **One current-body production-call-order proof:** one authenticated copy of
-   the newest production CURRENT, one known physical cue, one positive branch,
-   and only the severed-path falsifier after the positive chain passes. Record
-   exact inputs/outputs at every diagram step. No A/B ladder, broad probe, cycle
-   sweep, parameter sweep, or repeated component proof.
-6. **One exact lean-image rehearsal:** immutable commit/digest; retired shells
+5. **Mandatory pre-cue current-body control:** on the exact authenticated
+   copied-production predecessor and candidate binary, run the existing
+   no-stimulus motor census before presenting the cue. Require zero standing
+   learned vocal preparations, zero vocal motor recruitments, zero articulatory
+   recruitments, no pending body-owned pressure, and no new pressure receipt.
+   Any nonzero act makes the cue experiment causally contaminated and fails the
+   candidate; it may not be credited to the later cue.
+6. **One current-body production-call-order proof:** continue from that exact
+   proved-unpoised successor, present one known physical cue, require one
+   positive causal branch, and run only the severed-path falsifier after the
+   positive chain passes. Record exact inputs/outputs at every diagram step. No
+   A/B ladder, broad probe, cycle sweep, parameter sweep, or repeated component
+   proof.
+7. **One exact lean-image rehearsal:** immutable commit/digest; retired shells
    absent; same five routes; same EFS/current schema; one organism owner; one
    causal speech act, exact self-hearing, automatic exact browser PCM delivery,
    cessation, cold restart, flat bounded resources, and no survivors.
-7. **One hot production cutover and one live proof:** identity/tick continuity,
+8. **One hot production cutover and one live proof:** identity/tick continuity,
    one cue, one new pressure source tick/receipt, same-act self-hearing, Joe
    hears the exact PCM on the laptop, output stops, CPU/RAM/storage/calls remain
    bounded, rollback readiness checked, and Slack notification sent and checked.
@@ -3205,21 +3244,30 @@ Scope:
    A broad active/recurrent electrical frontier may continue carrying real
    cognition, but it may not itself authorize learned vocal work.
 3. Define one transient, nonsemantic, occurrence-owned physical action
-   preparation derived from an actually reassembled ordered path and its exact
-   current L7/L11 founding transfer. It must carry the exact formation/cue
-   lineage, founding bond, ordering lineage, learned motor bond, and conserved
-   work already present in the settlement. It adds no word, intent label,
-   score, lookup, sequence object, timer, persistent marker, or new energy.
+   preparation derived from an actually completed action-founding reassembly
+   and its exact same-interval L7/L11 transfer. The physical initiating cause
+   that completed that reassembly—external cue or internally originated
+   thought—must be part of the same causal path; ordinary circulation of an old
+   recurrent wave is not a new action founder. It must carry the exact
+   formation/cause lineage, founding bond, ordering lineage, learned motor bond,
+   and conserved work already present in the settlement. It adds no word,
+   intent label, score, lookup, sequence object, timer, persistent marker, or
+   new energy.
 4. Let that preparation cross the existing learned-work transducer exactly
-   once. The work debit, motor gate/material acceptance, motor membrane
+   once. Reuse the existing `LearnedSourceWorkDebit`: accepted work is removed
+   from the exact source transition's exported heat in the same settlement,
+   while the founding electrical transfer retains its ordinary membrane/contact
+   successor. Do not add a second donor debit, formation-owned energy store, or
+   motor-side substitute. The motor gate/material acceptance, motor membrane
    discharge, L12 terminal, L13 respiration, organ, and self-hearing remain the
    existing authorities.
 5. End eligibility through the same act's physical consumption: the exact
    preparation is consumed when its work is debited or refused, and a later act
-   requires a new current reassembly and new physical work. Cessation comes
-   from one-use causal settlement plus existing material depletion/recovery,
-   not a refractory timer or “spent” bit propagated across the general
-   frontier.
+   requires a new action-founding physical cause, a newly completed reassembly,
+   and new physical work. A later transfer caused only by circulation of the
+   prior recurrent wave is not a new founder. Cessation comes from one-use
+   causal settlement plus existing material depletion/recovery, not a
+   refractory timer or “spent” bit propagated across the general frontier.
 6. Delete/bypass only the current learned-vocal branches that use broad
    current/preceding/older frontier membership or body-owned acoustic lineage
    marking as permission. Preserve those frontiers for cognition, formation
@@ -3411,9 +3459,13 @@ autonomy chronology with its own causal founder.
 
 The cited 20.663510-second occurrence belongs to historical task 1440. Later
 accepted work reduced copied-current native intervals to approximately
-0.481-0.627 seconds and live task-1446 wall response to 2.492687 seconds; a
-fresh exact task-1452 live cadence is not recorded here and must be measured
-before final delivery. The internal contact physics uses the explicit
+0.481-0.627 seconds and live task-1446 wall response to 2.492687 seconds. A
+fresh stimulus-free task-1452 observation on 2026-09-09 advanced tick
+`557009 -> 557016` over `12.185796147` wall-clock seconds: seven ticks at a
+mean `1.740828021` seconds per tick. The latest event was unattended and
+reported one native interval. This measures the current externally visible
+wall cadence, not native-profiler settlement duration, and it fails the
+real-time cadence requirement. The internal contact physics uses the explicit
 `WORLD_MECHANICAL_TICK_MICROSECONDS = 1,000`, while sensory sound retains its
 protected 250-ms source clock. Computation taking longer in wall time does not
 rescale those depletion/recovery equations. It does delay real external
@@ -3433,6 +3485,26 @@ production state changed. The corrected command used
 verified active root `/tmp/guala-speech-existing-organ` at commit `15eee8db`.
 Permanent rule: resolve the script path with the installed skill inventory;
 never assume a repository-relative copy exists.
+
+`F-054-AUDIT-H03`: the first task-1452 timing query requested the complete
+`last_occurrence` object even though only its kind and interval count were
+needed. The response emitted 1,920 lines / approximately 10,322 tokens. No
+repository, organism, or production state changed, and the needed scalar values
+were recovered from the bounded response. This repeats the recorded unbounded-
+output class. Permanent rule: a production observation query must name only the
+required scalar members on its first call; never request a complete occurrence,
+observation, embodiment, or route object for a scalar check.
+
+### Disposition of C1's six detailed findings
+
+| Finding | Disposition | Permanent result |
+|---|---|---|
+| 1. Stale production header | Confirmed and corrected | The header now names Candidate 70, commit `f1d1ed6`, task 1452, and failed speech truth |
+| 2. Missing pre-cue control | Confirmed and corrected | Frozen validation row 5 now requires the existing no-stimulus census on the exact predecessor before the cue |
+| 3. Missing donor-side debit | Rejected literally; causal concern adopted | Existing source debit remains single and conserved; new action authority must come only from a same-interval action-founding event, never ordinary recurrence |
+| 4. Count treated as chronology | Confirmed and corrected | `C-055-01` explicitly limits S-055-30 to admitted-event evidence and forbids equivalence claims |
+| 5. Exact line-count drift | Confirmed and explained | The 32,772/32,839 and 148/161 transitions now name their exact causes and commits |
+| 6. Performance inconsistency | Confirmed, measured, and qualified | Current task-1452 wall cadence is 1.740828021 seconds/tick; this delays perception but does not rewrite native physical time |
 
 ### Final review verdict
 
