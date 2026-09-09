@@ -3677,3 +3677,6 @@ Option A is the recommended narrow external-cue speech repair; Option B is the
 necessary later route for internally originated conversational speech. Neither
 may be smuggled in as “the reassembled formation already contains the motor,”
 because the exact current body proves that claim false.
+
+Architecture-blocker notification was checked at `2026-09-09T07:54:24Z`:
+`status=slack_sent channel=#general`.
