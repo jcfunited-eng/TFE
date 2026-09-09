@@ -2131,3 +2131,28 @@ subsequent source review removed only the diagnostic predecessor clone and now
 uses the existing localized chemistry observation to count a changed layer-13
 cell; final `cargo check` proves that reduced source. Deployment remains the
 next boundary and live audibility remains unproved.
+
+F-066-01 deployment preflight found task-1448 actor dead: the unchanged lean
+controller refused Candidate 66 at step 1 with `native actor is unavailable`;
+it built no image, registered no task definition, and changed no AWS state.
+ECS still reports the one task/container RUNNING and HEALTHY, but the public
+actor observation truthfully reports `available=false`. Its last accepted
+unattended settlement reached live tick 546318 with 221 DSF deliveries, 1,547
+physically changed neurons, zero callbacks, no pending pressure, and no body
+consequence. Durable CURRENT remains identity
+`1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1` at tick 546298, body
+`bd19ffb2c21b4eea6d18a82bd5ee242a5d0ff4cbd066acf77bd51827be8fd4c8`
+(143,878,585 bytes), world
+`6b795e6c49c57f9ce6ce320d7199cb515ea6c2483e523aeb4e2fd0739d2f7576`
+(63,527 bytes). The actor catches its fatal exception without logging or
+projecting the cause, so ECS health is currently a false-positive transport
+health result. Candidate 66 remains compiled/copied-proved but undeployed.
+The exact next boundary is read-only reproduction from this durable pair, not
+a blind restart or deployment bypass.
+
+F-066-H03 CURRENT representation assumption: the first read-only ECS command
+tried to decode `CURRENT` as UTF-8 text. It is the already-declared binary
+`GLPAIR02` record and Python refused without changing any file. The corrected
+read used the existing `_decode` authority and produced the exact descriptor
+above. Permanent guard: paired `CURRENT` is binary; never inspect it with a
+text reader.
