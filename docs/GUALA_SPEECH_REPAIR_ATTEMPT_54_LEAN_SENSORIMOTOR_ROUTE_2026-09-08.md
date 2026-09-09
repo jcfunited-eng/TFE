@@ -4669,3 +4669,36 @@ settlement, a third retired only the first, and current/previous remained exact.
 It passed 1/1; the complete existing lean actor plus five-route transport files
 then passed 10/10. This is focused local transport evidence pending package,
 rehearsal, cutover and live supersession proof.
+
+`F-054-78-H07`: the first deployment-controller invocation stopped at step 1
+before packaging, build, registration, drain, or cutover because its single
+predecessor observation landed while an ordinary checkpoint was outstanding.
+Production task1454 and candidate commit remained unchanged. A following
+read-only observation showed settled custody with no block or error; the same
+committed candidate was then invoked once and completed. Permanent guard: a
+continuous sensory session makes an outstanding checkpoint an expected
+transient state. Require one settled custody observation immediately before
+controller entry, and add a bounded settled-custody wait to the controller in
+the next deployment-maintenance item rather than treating this as organism or
+candidate failure.
+
+`S-054-78-13`: the normal controller packaged commit
+`a9339e140ea795a12fd8704500cdeb00d79f78fb`, built immutable image
+`sha256:a10fe2c1e20cb6b1933965cde6ad9d2ebfe99eec1344d074e7d735dccb57f980`,
+waited for the exact task1454 predecessor to stop, registered and admitted
+task1455 as the sole writer, preserved identity, advanced native tick 578713
+to 578771, completed rollout, and pinned only that verified digest. Deployment
+ran from 18:16:18Z to 18:25:21Z. No manual restart or alternate image occurred.
+
+`S-054-78-14`: the decisive live supersession proof passed on task1455. One
+unchanged pure microphone cue at tick 578798 had zero guided axes, all 4,000
+external samples, four vocal-body consequences, all 4,000 same-act self-heard
+samples, 237 complete-DSF deliveries, 2,015 changed neurons and new pressure
+`db8ef6d4...ed627b`. After exact successor pressure
+`9b171a4d...cbe5f2` became current, GET by the original receipt still returned
+bytes whose SHA-256 was exactly `db8ef6d4...ed627b`. This directly closes the
+task1454 404 race. Post-proof ECS was one desired/one running/zero pending,
+HEALTHY and rollout complete. CPU averaged 54.31% with 65.97% maximum; memory
+averaged 7.46% with 8.50% maximum. Observation at tick 578816 was available,
+custody-settled and error-free. The physical and server-to-browser path is now
+live verified; actual laptop audibility still requires Joe's direct hearing.
