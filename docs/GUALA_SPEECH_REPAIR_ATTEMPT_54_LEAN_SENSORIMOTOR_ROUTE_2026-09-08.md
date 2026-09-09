@@ -2156,3 +2156,19 @@ tried to decode `CURRENT` as UTF-8 text. It is the already-declared binary
 read used the existing `_decode` authority and produced the exact descriptor
 above. Permanent guard: paired `CURRENT` is binary; never inspect it with a
 text reader.
+
+S-066-03 exact task-1448 fatal reproduction: the authenticated durable
+tick-546298 body/world pair was copied read-only to
+`s3://guala-incident-bench-20260831/speech-attempt66/` and its raw hashes and
+sizes exactly matched CURRENT. Using the exact Candidate-65 extension deployed
+in task 1448, one direct-owner copied runtime accepted unattended occurrences
+1 through 20, reaching tick 546318 with one native interval each, zero body
+pressure pending, and no wrapper failure. Unattended occurrence 21 then
+deterministically refused with
+`resident physical neuron settlement is unavailable:
+RecoveryFluid(ArithmeticWidth)`. The occurrence rollback restored the durable
+runtime; production was untouched. This exactly explains the actor death and
+proves a restart of task 1448 would merely repeat it. The next boundary is the
+fixed-width recovery-fluid arithmetic that compounds across otherwise-valid
+settlements; do not restart, widen capacity, repeat sound, or bypass deployment
+preflight.
