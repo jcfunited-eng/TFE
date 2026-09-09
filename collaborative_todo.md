@@ -6376,3 +6376,30 @@ skill path.
 
 C1-review completion notification was checked at `2026-09-09T06:51:08Z`:
 `status=slack_sent channel=#general`.
+
+### 2026-09-09 — C1 detailed-review corrections and live cadence
+
+The definitive speech ledger was corrected in worktree
+`/tmp/guala-speech-existing-organ` at commit `5e593d25`. No speech code,
+stimulus, organism state, image, task definition, or production deployment was
+changed.
+
+C1 findings 1, 2, 4, and 5 were confirmed: the stale production header is
+corrected to Candidate 70/task1452; the frozen inventory now requires the
+existing no-stimulus motor census on the exact current-body predecessor before
+the cue; equal guide count is explicitly retracted as evidence of equal
+chronology; and the 32,772/32,839/22,899 and 148/161 line-count changes now have
+exact explanations. Finding 3 is corrected rather than adopted literally:
+Attempt 47I and active source already perform donor/source debit. The SOW now
+requires one same-interval action-founding reassembly and reuses that existing
+debit exactly once; ordinary recurrence cannot found a new act. Do not add a
+second energy debit or formation-owned work store.
+
+Finding 6 is now measured. A stimulus-free public observation window on the
+healthy task1452 actor advanced tick `557009 -> 557016` over
+`12.185796147` seconds: `1.740828021` seconds per tick. This is observed wall
+cadence, not a native-profiler duration. It is too slow for the intended live
+cadence and delays sensory/autonomy scheduling, but it does not rescale the
+explicit native millisecond physical clocks. `F-054-AUDIT-H03` records that the
+first timing query unnecessarily requested a complete occurrence object and
+permanently requires scalar-only production queries.
