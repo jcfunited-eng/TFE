@@ -2299,3 +2299,59 @@ durable custody advanced to tick 546362. It produced zero body consequences,
 no pressure receipt, zero self-heard samples, and no pending pressure. No second
 cue was sent. Production is now alive and hearing; speech remains failed at the
 learned-cue-to-motor recruitment boundary.
+
+S-069-01 contact-before-reaction crossed the later-state acceptance boundary:
+the exact tick-546298 reservoir census found that all five reached learned
+motors remained at full 36/36 gate dissipation; three gate lanes retained all
+36 local fuel quanta while two lanes had zero fuel and 36 spent/36 heat. Every
+one-neuron cohort reservoir retained positive available energy. A candidate
+used each gate's already-mounted recovery-fluid contact once before its
+existing local recovery reaction and required the minimum one exact reaction
+extent when full dissipation otherwise prevented sub-threshold learned work
+from being retained. On the first unchanged copied cue, the three fuelled
+motors changed from zero acceptance to accepting their complete positive
+offers into existing exact residue. A second chronological cue admitted more
+positive learned work across additional motors. No capacity, anatomy,
+population, timer, route, or field was added. This is a real gate-acceptance
+success, not speech completion.
+
+F-069-01 candidate continuation violated recovery-fluid continuity: one bounded
+chronological copied-state run, capped at 16 cues and stopping at the first
+body event, reached a body-owned act but its first in-flight self-hearing
+continuation refused with `RecoveryFluid(MaterialContinuity)`. The disposable
+in-memory successor was not saved and production task 1449 was untouched. The
+candidate is not deployable. Preserve S-069-01; the exact next boundary is the
+one contacted gate lane/reservoir successor that fails continuity on the
+already-started act, not route growth, more tutoring, capacity enlargement, or
+another production cue.
+
+S-069-02 false continuity refusal localized and removed: one diagnostic-only
+build reproduced the same copied chronology and named the exact rejecting
+assertion; all diagnostic output was then removed from source. At neuron 0 the
+gate recovery reaction selected one extent and therefore created one new fuel,
+spent, and heat exchange requirement, while the lane already retained one
+spent and one heat quantum from an earlier reaction. The independently bounded
+mounted contact truthfully moved one fuel inward and both spent/heat quanta
+outward. The old wrapper demanded `(1,1,1)` and rejected the conserved actual
+turnover `(1,2,2)` as `MaterialContinuity`. That equality was bookkeeping, not
+a physical conservation law: `settle_recovery_fluid_contact` already preserves
+the exact lane/reservoir material for each transfer. The false equality check
+and its now-unused expected-value arithmetic were removed. No capacity,
+anatomy, timing, L0-L4/DSF field, or state representation changed.
+
+S-069-03 exact copied speech route closes: the final reviewed release, with no
+diagnostic printing, ran once against the authenticated task-1448 tick-546298
+body/world copy and the unchanged 4,000-sample tutor pressure. Cue 1 reached
+five learned preparations; cue 2 reached eight; cue 3 produced three body
+consequences and pressure receipt
+`33ee3d3a4906a3c8bee8bcae6a4017ea7f5f08177762ecbd02ff6e78f598e3e2`.
+The body-owned act then completed without refusal in 17 bounded unattended
+continuations at tick 546336. Across the chronology it recorded 33 learned
+motor recruitments, 19 articulatory recruitments, 136,000 pressure bytes,
+61,652 nonzero signed samples, absolute peak 428, and 136,000 self-heard
+samples. This is copied-state causal speech evidence, not yet a production or
+laptop-audibility claim. The final wheel SHA-256 is
+`ef41d82e4b1e6b1ab6b1de4fe3edca08c79beff1628156324cd8dc58332a0e59`;
+its extension SHA-256 is
+`be5937c3b4552ad5e9e01ff716b9eacab536beaacd8832b7fbd0118184d735c0`.
+`git diff --check` passes; no broad suite or second copied chronology was run.

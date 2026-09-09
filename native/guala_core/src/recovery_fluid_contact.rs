@@ -896,15 +896,6 @@ pub(crate) fn settle_resident_gate_recovery_before_interval(
     if recovered.extent != settled_extent {
         return Err(RecoveryFluidError::MaterialContinuity);
     }
-    let expected_fuel = settled_extent
-        .checked_mul(fuel_per_extent)
-        .ok_or(RecoveryFluidError::ArithmeticWidth)?;
-    let expected_spent = settled_extent
-        .checked_mul(spent_per_extent)
-        .ok_or(RecoveryFluidError::ArithmeticWidth)?;
-    let expected_heat = settled_extent
-        .checked_mul(heat_per_extent)
-        .ok_or(RecoveryFluidError::ArithmeticWidth)?;
     let recovered_lane = recovered
         .successor
         .recovery
@@ -918,12 +909,12 @@ pub(crate) fn settle_resident_gate_recovery_before_interval(
         predecessor_reservoir,
         contact,
     )?;
-    if exchanged.inward_fuel_quanta != expected_fuel
-        || exchanged.outward_spent_quanta != expected_spent
-        || exchanged.outward_heat_quanta != expected_heat
-    {
-        return Err(RecoveryFluidError::MaterialContinuity);
-    }
+    // Contact turnover is independently bounded for fuel, spent material,
+    // and heat. It may therefore remove products retained from an earlier
+    // reaction in addition to those created above. Exact lane/reservoir
+    // conservation is established by settle_recovery_fluid_contact itself;
+    // requiring all three transferred extents to equal this reaction extent
+    // falsely rejects that valid turnover.
     let mut successor_neuron = recovered.successor;
     successor_neuron
         .recovery

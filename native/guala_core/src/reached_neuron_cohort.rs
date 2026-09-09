@@ -39,9 +39,10 @@ use crate::recovery_fluid_contact::{
     encode_reached_recovery_fluid_anatomy, encode_reached_recovery_fluid_state,
     expand_reached_recovery_fluid_state, extend_reached_recovery_fluid_state,
     is_legacy_recovery_fluid_state, recovery_exchange_extent_is_representable,
-    settle_powered_environment_exchange, settle_resident_gate_recovery_before_interval,
-    whole_extents_carried, whole_extents_carried_difference, ReachedRecoveryFluidAnatomy,
-    RecoveryFluidError, RecoveryFluidReservoirState,
+    settle_powered_environment_exchange, settle_recovery_fluid_contact,
+    settle_resident_gate_recovery_before_interval, whole_extents_carried,
+    whole_extents_carried_difference, ReachedRecoveryFluidAnatomy, RecoveryFluidError,
+    RecoveryFluidReservoirState,
 };
 #[cfg(test)]
 use crate::recovery_fluid_contact::RecoveryFluidReservoirAnatomy;
@@ -3557,26 +3558,24 @@ pub(crate) fn settle_reached_gate_recovery_demand_in_place(
     let predecessor_neuron = state
         .neurons()
         .get(neuron_index)
-        .ok_or(ReachedCohortError::AnatomyStateWidth)?;
+        .ok_or(ReachedCohortError::AnatomyStateWidth)?
+        .clone();
     let required_extent =
         crate::complete_neuron::required_gate_recovery_extent_for_prepared_interval(
             neuron_anatomy,
-            predecessor_neuron,
+            &predecessor_neuron,
             prepared_gate,
         )
         .map_err(|error| ReachedCohortError::Neuron {
             neuron_index,
             error,
         })?;
-    if required_extent == 0 {
-        return Ok(0);
-    }
     // The lane's fuel is already resident local material. Recovery consumes
-    // that fuel and retains its spent and heat products locally. Requiring the
-    // surrounding reservoir to replace every consumed quantum in this same
-    // interval made a fully fuelled gate unusable whenever the later-reached
-    // motor cohort had not participated in the earlier seed-only exchange.
-    // Fluid exchange remains a subsequent, independently bounded settlement.
+    // that fuel and retains its spent and heat products locally. The already-
+    // mounted fluid contact first performs its one bounded turnover for this
+    // reached interval, so a lane depleted by an earlier reaction can refill
+    // before the pending learned work is reconsidered. A full local lane does
+    // not depend on reservoir delivery: the contact simply moves zero inward.
     let lane_anatomy = neuron_anatomy
         .recovery_anatomy()
         .lane(RecoveryLaneAddress::Gate)
@@ -3586,7 +3585,35 @@ pub(crate) fn settle_reached_gate_recovery_demand_in_place(
         .recovery_fluid
         .mounted_contact(neuron_index, RecoveryLaneAddress::Gate)
         .ok_or(ReachedCohortError::AnatomyStateWidth)?;
-    let requested_extent = required_extent.min(contact.parts().0 / catalyst_per_extent);
+    let predecessor_lane = predecessor_neuron
+        .recovery
+        .lane(RecoveryLaneAddress::Gate)
+        .ok_or(ReachedCohortError::AnatomyStateWidth)?;
+    let energy_per_extent = neuron_anatomy
+        .recovery_energy_per_extent_zeptojoules(RecoveryLaneAddress::Gate)
+        .map_err(|error| ReachedCohortError::Neuron {
+            neuron_index,
+            error,
+        })?;
+    let exchanged = settle_recovery_fluid_contact(
+        lane_anatomy,
+        energy_per_extent,
+        predecessor_lane,
+        anatomy.recovery_fluid.reservoir_anatomy(),
+        state.recovery_fluid,
+        contact,
+    )?;
+    let mut contacted_neuron = predecessor_neuron;
+    contacted_neuron
+        .recovery
+        .replace_lane(RecoveryLaneAddress::Gate, exchanged.successor_lane)
+        .map_err(|error| ReachedCohortError::Neuron {
+            neuron_index,
+            error: error.into(),
+        })?;
+    let requested_extent = required_extent
+        .max(1)
+        .min(contact.parts().0 / catalyst_per_extent);
     if requested_extent == 0 {
         return Ok(0);
     }
@@ -3602,7 +3629,7 @@ pub(crate) fn settle_reached_gate_recovery_demand_in_place(
     }
     let recovered = crate::complete_neuron::settle_recovery_only(
         neuron_anatomy,
-        predecessor_neuron,
+        &contacted_neuron,
         crate::complete_neuron::RecoveryContact::new(zero_psi_catalysts, catalyst, 0),
     )
     .map_err(|error| ReachedCohortError::Neuron {
@@ -3611,6 +3638,7 @@ pub(crate) fn settle_reached_gate_recovery_demand_in_place(
     })?;
     let settled_extent = recovered.extent;
     state.neurons.as_mut()[neuron_index] = recovered.successor;
+    state.recovery_fluid = exchanged.successor_reservoir;
     Ok(settled_extent)
 }
 
