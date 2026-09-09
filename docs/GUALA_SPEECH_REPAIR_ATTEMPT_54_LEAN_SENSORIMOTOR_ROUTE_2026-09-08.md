@@ -2619,3 +2619,39 @@ recruitment. Because this was an unstimulated retained-frontier census, it does
 not yet establish where the live microphone occurrence lost its route. The one
 next check is the same single microphone cue on this disposable copied body,
 with direct preparation/recruitment counts; do not repeat the production cue.
+
+F-070-06 the single microphone cue on the authenticated task-1452 tick-550174
+copy reproduced the live silence. The cue physically perturbed 139 neurons,
+caused 50 internal and eight external reassemblies, and advanced 6,432 frontier
+entries, but produced zero learned preparations, motor or articulatory
+recruitments, body consequences, pressure, or self-hearing. Thirty-two following
+unattended copied intervals also produced zero learned preparations, motor or
+articulatory recruitments, pressure, self-hearing, or pending pressure. This
+closes the possible delayed-reassembly explanation without a second production
+cue: current-body cue-to-vocal-action causality is absent despite real sensory
+delivery and later retained-frontier processing.
+
+C-070-01 correction to S-070-03 and S-070-05: their measured waveform,
+self-hearing, efference containment, and bounded cessation results remain valid,
+but their original description as copied-state cue-to-speech success is too
+broad. The same focused no-stimulus motor census on the old task-1448
+tick-546298 body produced exactly two motor recruitments and one articulatory
+recruitment—the same recruitment counts attributed to its one-cue run. The old
+retained frontier therefore already held a poised vocal act. The tutor cue was
+not proven to have caused that act. Preserve those entries only as proof that a
+physically recruited vocal act can create pressure, reach self-hearing, and stop
+under Candidate 70. Do not rediscover or cite them as proof of the missing
+learned-cue-to-vocal-action link.
+
+S-070-09 the paired old/current no-stimulus comparison localizes the remaining
+boundary without enlarging capacity. Old tick 546298 began with 2,015 frontier
+entries, 601 input lineages, and 14 ordering lineages; its one settlement made
+12,575 directed transfers, 31 ordering-incident transfers, two motor
+recruitments, and one articulatory recruitment. Current tick 550174 began with
+2,032 frontier entries, 619 input lineages, and 19 ordering lineages; its one
+settlement made 13,165 directed transfers and 39 ordering-incident transfers but
+zero motor or articulatory recruitment. Both made zero reported L11/L12 bridge
+transfers. Motor tissue remains physically capable; more frontier activity does
+not open the learned route. The remaining defect is the learned transducer's
+causal-authority selection, not auditory delivery, motor capacity, waveform
+physics, self-hearing, delayed reassembly, or a reason to repeat the cue.
