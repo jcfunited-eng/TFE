@@ -18912,6 +18912,36 @@ fn exact_root_yaw_preparation_regulations(
     regulations
 }
 
+/// Borrow only the sorted, distinct reached cohorts without scanning or
+/// aliasing the complete resident slice. The returned order is the exact input
+/// order, which is canonical organism cohort order at every caller.
+fn selected_cohorts_mut<'a>(
+    cohorts: &'a mut [ResidentReachedCohort],
+    selected_indices: &[usize],
+) -> Result<Vec<(usize, &'a mut ResidentReachedCohort)>, FormationError> {
+    let mut selected = Vec::with_capacity(selected_indices.len());
+    let mut remainder = cohorts;
+    let mut remainder_start = 0_usize;
+    for cohort_index in selected_indices.iter().copied() {
+        let relative = cohort_index
+            .checked_sub(remainder_start)
+            .ok_or(FormationError::NoncanonicalState)?;
+        if relative >= remainder.len() {
+            return Err(FormationError::NoncanonicalState);
+        }
+        let (_, at_selected) = remainder.split_at_mut(relative);
+        let (cohort, after_selected) = at_selected
+            .split_first_mut()
+            .ok_or(FormationError::NoncanonicalState)?;
+        selected.push((cohort_index, cohort));
+        remainder = after_selected;
+        remainder_start = cohort_index
+            .checked_add(1)
+            .ok_or(FormationError::ArithmeticOverflow)?;
+    }
+    Ok(selected)
+}
+
 /// Settle the bounded contact-connected frontier reached by this external
 /// occurrence, form one native membrane-potential occurrence from its exact
 /// predecessor/successor states, evaluate unchanged full DSF once, and let
@@ -19274,21 +19304,22 @@ fn settle_internal_contact_interval(
     // frontier before contact current is evaluated. This lets an intrinsic
     // neuron replenish its finite carrier gradient without polling or
     // recovering any unrelated neuron or dissipation lane.
-    // The causal frontier is sparse.  Keep predecessor custody only for the
-    // cohorts that this interval actually reaches.  The former population-
-    // width maps cloned every cohort state (including retained evidence) for
-    // one local contact interval and were the direct mature-body memory blowup.
-    let mut selected_predecessor_neurons = std::iter::repeat_with(|| None)
-        .take(cohorts.len())
-        .collect::<Vec<Option<Vec<(usize, NeuronPhysicalState)>>>>();
-    let mut selected_members_by_cohort = std::iter::repeat_with(Vec::new)
-        .take(cohorts.len())
-        .collect::<Vec<Vec<(usize, usize)>>>();
+    // The causal frontier is sparse. Keep predecessor custody only for the
+    // cohorts that this interval actually reaches. The former population-
+    // width containers reserved one slot or empty vector per resident cohort;
+    // selected predecessor state itself was already cloned only when reached.
+    let mut selected_predecessor_neurons =
+        BTreeMap::<usize, Vec<(usize, NeuronPhysicalState)>>::new();
+    let mut selected_members_by_cohort = BTreeMap::<usize, Vec<(usize, usize)>>::new();
     for (coordinate, flat) in selected.iter().copied().enumerate() {
         let (cohort_index, neuron_index, _) = flat_locations[flat];
-        selected_members_by_cohort[cohort_index].push((coordinate, neuron_index));
-        selected_predecessor_neurons[cohort_index]
-            .get_or_insert_with(Vec::new)
+        selected_members_by_cohort
+            .entry(cohort_index)
+            .or_default()
+            .push((coordinate, neuron_index));
+        selected_predecessor_neurons
+            .entry(cohort_index)
+            .or_default()
             .push((
                 neuron_index,
                 cohorts[cohort_index].state.neurons()[neuron_index].clone(),
@@ -19299,14 +19330,15 @@ fn settle_internal_contact_interval(
     // selection kept every sleeping neuron awake through its neighbours;
     // an unseeded endpoint's metabolism waits for its own reach, and its
     // excess charge drains through the passive return instead.
-    let mut pump_members_by_cohort = std::iter::repeat_with(Vec::new)
-        .take(cohorts.len())
-        .collect::<Vec<Vec<usize>>>();
+    let mut pump_members_by_cohort = BTreeMap::<usize, Vec<usize>>::new();
     for flat in seed_flats.iter().copied() {
         let (cohort_index, neuron_index, _) = flat_locations[flat];
-        pump_members_by_cohort[cohort_index].push(neuron_index);
+        pump_members_by_cohort
+            .entry(cohort_index)
+            .or_default()
+            .push(neuron_index);
     }
-    for members in pump_members_by_cohort.iter_mut() {
+    for members in pump_members_by_cohort.values_mut() {
         members.sort_unstable();
         members.dedup();
     }
@@ -19323,9 +19355,10 @@ fn settle_internal_contact_interval(
             return Err(FormationError::NeuronLineageAuthorityChanged);
         }
         let (cohort_index, neuron_index, _) = flat_locations[flat];
-        pump_members_by_cohort[cohort_index].push(neuron_index);
-        pump_members_by_cohort[cohort_index].sort_unstable();
-        pump_members_by_cohort[cohort_index].dedup();
+        let members = pump_members_by_cohort.entry(cohort_index).or_default();
+        members.push(neuron_index);
+        members.sort_unstable();
+        members.dedup();
     }
     let interval_microseconds = WORLD_MECHANICAL_TICK_MICROSECONDS;
     // THE DOORWAY'S ALLOCATION (R1 eating): the bite entered at the mouth,
@@ -19335,8 +19368,7 @@ fn settle_internal_contact_interval(
     // (the same bounds the per-cohort nutrition law re-enforces). Whatever
     // no settling cohort can absorb is waste; nothing is stored, nothing
     // is typed, and the sum of shares never exceeds the real transfer.
-    let mut cohort_intake_shares =
-        vec![ExactRational::integer(0); cohorts.len()];
+    let mut cohort_intake_shares = BTreeMap::<usize, ExactRational>::new();
     if {
         let (n, _) = real_nutrition_intake_zeptojoules.parts();
         n > 0
@@ -19378,7 +19410,7 @@ fn settle_internal_contact_interval(
             else {
                 continue;
             };
-            cohort_intake_shares[cohort_index] = exact_share;
+            cohort_intake_shares.insert(cohort_index, exact_share);
             remaining -= share;
         }
     }
@@ -19395,13 +19427,19 @@ fn settle_internal_contact_interval(
         .par_iter()
         .copied()
         .map(|cohort_index| {
-            let reached_indices = pump_members_by_cohort[cohort_index].clone();
+            let reached_indices = pump_members_by_cohort
+                .get(&cohort_index)
+                .cloned()
+                .unwrap_or_default();
             let prepared = prepare_reached_cohort_membrane_pumps(
                 &cohorts[cohort_index].anatomy,
                 cohorts[cohort_index].state.as_ref(),
                 &reached_indices,
                 interval_microseconds,
-                cohort_intake_shares[cohort_index],
+                cohort_intake_shares
+                    .get(&cohort_index)
+                    .copied()
+                    .unwrap_or_else(|| ExactRational::integer(0)),
             )
             .map_err(FormationError::PhysicalSettlementUnavailable)?;
             Ok((cohort_index, reached_indices, prepared))
@@ -19412,8 +19450,9 @@ fn settle_internal_contact_interval(
     let mut reached_layer_ten_gradient_settlements = Vec::new();
     let mut localized_fluid_chemistry = Vec::new();
     for (cohort_index, reached_indices, prepared) in prepared_cohort_pumps {
-        let reached_predecessors = selected_predecessor_neurons[cohort_index]
-            .as_deref()
+        let reached_predecessors = selected_predecessor_neurons
+            .get(&cohort_index)
+            .map(Vec::as_slice)
             .unwrap_or_default();
         let metabolic = apply_prepared_reached_cohort_membrane_pumps(
             Arc::make_mut(&mut cohorts[cohort_index].state),
@@ -19542,10 +19581,10 @@ fn settle_internal_contact_interval(
     // the predecessor clones captured ahead of pump application.
     let mut pre_pump_membranes = vec![None; selected.len()];
     let mut pre_pump_available = vec![0_u128; selected.len()];
-    for (cohort_index, members) in selected_members_by_cohort.iter().enumerate() {
-        let Some(predecessors) = selected_predecessor_neurons[cohort_index].as_ref() else {
-            continue;
-        };
+    for (cohort_index, members) in &selected_members_by_cohort {
+        let predecessors = selected_predecessor_neurons
+            .get(cohort_index)
+            .ok_or(FormationError::NoncanonicalState)?;
         for ((coordinate, neuron_index), (predecessor_index, predecessor)) in
             members.iter().zip(predecessors.iter())
         {
@@ -20245,19 +20284,16 @@ fn settle_internal_contact_interval(
     // Local contact successors are prepared only for reached cohorts.  The
     // former population-width construction copied every local contact state
     // and allocated one neuron-width outward array for every unrelated cohort.
-    let mut local_contact_results = std::iter::repeat_with(|| None)
-        .take(cohorts.len())
-        .collect::<
-            Vec<
-                Option<(
-                    Vec<ElectricalContactState>,
-                    Vec<ElectricalContactTransition>,
-                )>,
-            >,
-        >();
+    let mut local_contact_results = BTreeMap::<
+        usize,
+        (
+            Vec<ElectricalContactState>,
+            Vec<ElectricalContactTransition>,
+        ),
+    >::new();
     for cohort_index in selected_cohort_indices.iter().copied() {
         let cohort = &cohorts[cohort_index];
-        local_contact_results[cohort_index] = Some((
+        local_contact_results.insert(cohort_index, (
             cohort.state.electrical().contact_states().to_vec(),
             cohort
                 .state
@@ -20289,8 +20325,8 @@ fn settle_internal_contact_interval(
                 left_member,
                 right_member,
             } => {
-                let (successors, transitions) = local_contact_results[cohort_index]
-                    .as_mut()
+                let (successors, transitions) = local_contact_results
+                    .get_mut(&cohort_index)
                     .ok_or(FormationError::NoncanonicalState)?;
                 successors[contact_index] = transition.successor.clone();
                 transitions[contact_index] = transition.clone();
@@ -20422,9 +20458,9 @@ fn settle_internal_contact_interval(
     let shared_required_positions = required_mathloom_positions(canonical_perspective)
         .map_err(FormationError::JointFieldUnavailable)?;
     let mut reached_mathloom_widths = std::collections::BTreeSet::new();
-    for (cohort_index, selected_members) in selected_members_by_cohort.iter().enumerate() {
+    for (cohort_index, selected_members) in &selected_members_by_cohort {
         let cohort = cohorts
-            .get(cohort_index)
+            .get(*cohort_index)
             .ok_or(FormationError::NoncanonicalState)?;
         for (_, neuron_index) in selected_members {
             reached_mathloom_widths.insert(
@@ -20449,9 +20485,9 @@ fn settle_internal_contact_interval(
         );
     }
     let mut reached_psi_deliveries = BTreeMap::<usize, PreparedPsiKrimelackDelivery>::new();
-    for (cohort_index, selected_members) in selected_members_by_cohort.iter().enumerate() {
+    for (cohort_index, selected_members) in &selected_members_by_cohort {
         let cohort = cohorts
-            .get(cohort_index)
+            .get(*cohort_index)
             .ok_or(FormationError::NoncanonicalState)?;
         for (_, neuron_index) in selected_members {
             let anatomy = &cohort.anatomy.neuron_anatomies()[*neuron_index];
@@ -20478,13 +20514,27 @@ fn settle_internal_contact_interval(
             );
         }
     }
-    let cohort_results = cohorts
-        .par_iter_mut()
-        .zip(local_contact_results.into_par_iter())
-        .zip(selected_members_by_cohort.into_par_iter())
-        .enumerate()
+    let mut selected_cohort_work = Vec::with_capacity(selected_cohort_indices.len());
+    for cohort_index in selected_cohort_indices.iter().copied() {
+        let selected_members = selected_members_by_cohort
+            .remove(&cohort_index)
+            .ok_or(FormationError::NoncanonicalState)?;
+        let local_contact_result = local_contact_results
+            .remove(&cohort_index)
+            .ok_or(FormationError::NoncanonicalState)?;
+        selected_cohort_work.push((cohort_index, selected_members, local_contact_result));
+    }
+    if !selected_members_by_cohort.is_empty() || !local_contact_results.is_empty() {
+        return Err(FormationError::NoncanonicalState);
+    }
+    let cohort_results = selected_cohorts_mut(cohorts, &selected_cohort_indices)?
+        .into_par_iter()
+        .zip(selected_cohort_work.into_par_iter())
         .map(
-            |(cohort_index, ((cohort, local_contact_result), selected_members))| -> Result<
+            |(
+                (cohort_index, cohort),
+                (work_cohort_index, selected_members, local_contact_result),
+            )| -> Result<
             Option<(
                 Vec<TransitionNeuronPredecessor>,
                 Vec<MotorUnitRecruitment>,
@@ -20498,8 +20548,8 @@ fn settle_internal_contact_interval(
             )>,
             FormationError,
         > {
-        if selected_members.is_empty() {
-            return Ok(None);
+        if cohort_index != work_cohort_index || selected_members.is_empty() {
+            return Err(FormationError::NoncanonicalState);
         }
         let mut required_positions = cohort
             .anatomy
@@ -20521,8 +20571,8 @@ fn settle_internal_contact_interval(
             .iter()
             .zip(&required_positions)
             .any(|(anatomy, required)| *required > anatomy.mathloom_positions());
-        let held_predecessors = selected_predecessor_neurons[cohort_index]
-            .as_ref()
+        let held_predecessors = selected_predecessor_neurons
+            .get(&cohort_index)
             .ok_or(FormationError::NoncanonicalState)?;
         let comparison_predecessors = if positional_growth {
             held_predecessors
@@ -20851,8 +20901,7 @@ fn settle_internal_contact_interval(
                 prepared_psi: Some(prepared_psi),
             });
         }
-        let (local_successors, local_transitions) = local_contact_result
-            .ok_or(FormationError::NoncanonicalState)?;
+        let (local_successors, local_transitions) = local_contact_result;
         let local_successor = SparseElectricalState::from_contact_states(
             cohort.anatomy.electrical_anatomy(),
             local_successors,
@@ -21787,8 +21836,8 @@ fn settle_internal_contact_interval(
                             != state.carrier_reservoirs().extracellular()
                 })
                 .unwrap_or(false);
-            let selected_changed = selected_predecessor_neurons[cohort_index]
-                .as_ref()
+            let selected_changed = selected_predecessor_neurons
+                .get(&cohort_index)
                 .and_then(|predecessors| {
                     predecessors
                         .binary_search_by_key(&neuron_index, |(candidate, _)| *candidate)
