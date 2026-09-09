@@ -6350,3 +6350,26 @@ This failure is retained specifically so it is not repeated again.
 
 Documentation completion notification was checked at
 `2026-09-09T06:05:01Z`: `status=slack_sent channel=#general`.
+
+### 2026-09-09 — C1 speech-review disposition
+
+Claude's analysis-only review is reconciled in speech-ledger commit
+`92b5ca65`. Adopted: same-interval cue-founded action preparation, no standing-
+frontier permission, speech-slice extraction only, and an explicit silent/
+unpoised pre-cue baseline. Corrected: donor/source debit is not absent. Attempt
+47I and the deployed source already debit actually accepted work from the exact
+L7/L11 source transition's exported heat in the same settlement, while the
+underlying contact transfer changes endpoint membrane and persisted contact
+state. Candidates 72-74 repeated because later recurrent intervals generated
+new transfers that broad frontier authority treated as fresh permission, not
+because one source event was only consumed at the motor.
+
+Do not add a second donor debit or formation-owned work store. The proposed
+boundary must use the existing debit and admit only an exact newly completed
+action-founding event. The historical 20.663510-second figure was task1440;
+current task1452 cadence still needs an exact measurement before delivery.
+Wall delay harms live perception/autonomy but does not rescale the explicit
+1-ms internal or 250-ms sensory physical clocks. No code, test stimulus,
+deployment, or production mutation occurred. `F-054-AUDIT-H02` records the
+reviewer's repeated root-script path assumption and its corrected installed-
+skill path.
