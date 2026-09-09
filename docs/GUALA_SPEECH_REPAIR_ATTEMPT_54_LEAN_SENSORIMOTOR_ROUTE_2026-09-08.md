@@ -3680,3 +3680,70 @@ because the exact current body proves that claim false.
 
 Architecture-blocker notification was checked at `2026-09-09T07:54:24Z`:
 `status=slack_sent channel=#general`.
+
+### Existing-field and predecessor-path audit — 2026-09-09 UTC
+
+`S-054-AUDIT-13`: the complete neuron already emits the exact transient count
+of newly opened gate channels. `ReachedCohortIntervalSettlement` preserves that
+physical fact, but `settle_internal_contact_interval` currently discards it.
+The cognitive frontier instead advances from raw inter-neuron contact transfer.
+This proves depletion/recovery chemistry exists; it also proves that the
+current causal scheduler does not use the neuron's gate-opening emission as an
+origin witness.
+
+That emission cannot simply replace the frontier rule. Ordinary internal
+contacts enter the receiving membrane directly with zero authored gate work,
+so requiring newly opened gates would kill lawful sparse propagation rather
+than distinguish a fresh speech cause. No production edit was made.
+
+`S-054-AUDIT-14`: the active frontier retains exact bond, carrier count,
+physical transfer direction, advancing endpoint, and the existing body-owned
+acoustic-efference distinction. It does **not** retain the fresh external or
+new-thought work origin. Three frontier generations are persisted, but a
+circulating path can return after that bounded window and be indistinguishable
+from a new source-site departure. Therefore no existing field can prove that a
+later L7/L11 transfer still carries the one cue's unconsumed authority.
+
+`F-054-DESIGN-02`: the previously recommended Option A is rejected as stated.
+Calling a raw L7 arrival “fresh cue work” would either repeat Candidate 71's
+zero-offer condition on the saturated current body, repeat Candidates 72-74's
+recurrence when broadened, or require a new persisted provenance/work parcel.
+The last choice is new architecture and is not authorized by the accepted SOW.
+It would also prove only a learned sensory reflex, not the requested
+cognition-to-speech path.
+
+`S-054-AUDIT-15`: source history explains why the tempting alternative must
+also remain closed. Candidate 53E already exercised the general
+affective/ordering/population ladder in both directions for 512 cycles and
+produced no complete vocal route. `mount_reached_ordering_reach` remains a
+large accumulated recovery mechanism, and active source explicitly excludes
+vocal terminals from its motor join. Restoring that exclusion or adding vocal
+speech back to that path would repeat `F-054-06`, not repair it.
+
+`F-054-AUDIT-H07`: inspection of commit `f0be7e7d` requested its complete
+multi-file diff even though only the lean-route introduction and production
+call site were needed. The 1,819-line response was truncated. No conclusion
+depends on the truncated portion; the needed source was then read from the
+current 161-line module and exact bounded ledger sections. Permanent rule:
+inspect a historical commit by one named file and one bounded hunk; never ask
+for a campaign-scale commit diff.
+
+### Corrected recommendation awaiting architecture authorization
+
+Do not implement Option A, do not restore Candidate 53E, and do not add a
+frontier marker. The smallest direct mapping to the requested architecture is
+a **learned cognitive-action bridge**: a lived tutor occurrence must physically
+join the exact reassembled formation's recurrent neuron to the already learned
+ordering/motor route; later action work must arrive across that real retained
+contact. The old L7/L11 reflex may continue to carry physical propagation but
+must lose vocal-action authority. The bridge must be grown by exact
+co-occurring cue, body consequence, formation reassembly, and existing typed
+motor anatomy—never by a word, label, receipt lookup, or migration-authored
+contact.
+
+This is a change to the accepted SOW's developmental/action architecture. It
+requires Joe's explicit authorization before code. It preserves L0-L4, full
+DSF, every existing neuron and learned sensory byte, and gains new anatomy only
+through a future lived tutoring occurrence. It cannot honestly promise that
+the already-lived body speaks without one bounded reteaching chronology after
+deployment.
