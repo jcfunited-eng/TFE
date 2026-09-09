@@ -6437,3 +6437,6 @@ the learned L7 -> L11 -> L12 path. The later cognition-to-action route must be
 learned explicitly if internally originated conversational speech is required.
 Do not implement the falsified claim that current formations already contain
 the speech route.
+
+Architecture-blocker notification was checked at `2026-09-09T07:54:24Z`:
+`status=slack_sent channel=#general`.
