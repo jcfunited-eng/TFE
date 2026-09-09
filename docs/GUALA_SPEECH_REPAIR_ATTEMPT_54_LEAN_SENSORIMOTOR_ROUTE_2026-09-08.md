@@ -2256,3 +2256,18 @@ extension SHA-256 is
 The exact final extension—not an earlier diagnostic build—again advanced the
 authenticated tick-546298 production copy through 32 unattended occurrences
 to tick 546330 with no failure. `git diff --check` passes.
+
+S-068-04 dead-actor custody cutover rule: the sole lean deployment controller
+previously required `available=true` before it would even package a repair,
+making a native-actor fatal unrecoverable through the reviewed path despite an
+intact paired CURRENT. It now distinguishes a normal live predecessor from an
+unavailable predecessor with settled durable custody. Dead-actor recovery
+requires the expected identity, valid persisted/live clocks, exact persisted
+body/world hashes, no checkpoint or cleanup error, no outstanding checkpoint,
+and no durability blockade. It fingerprints persisted tick/body/world before
+the build and refuses cutover if any changes. The candidate still starts only
+after the sole old task stops, must become a live actor at or beyond the
+persisted tick, and has no legacy rollback. Normal live deployment continues
+to allow CURRENT to advance during its build. `bash -n` and `git diff --check`
+pass. This changes deployment custody only; it does not authorize a different
+identity, substitute state, second writer, legacy shell, or speech claim.

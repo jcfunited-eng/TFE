@@ -148,18 +148,27 @@ read_observation() {
 
 validate_observation() {
     local minimum_tick="${1:-}"
+    local required_availability="${2:-live}"
     EXPECTED_IDENTITY="${EXPECTED_IDENTITY}" \
-    MINIMUM_TICK="${minimum_tick}" python3 -c '
+    MINIMUM_TICK="${minimum_tick}" \
+    REQUIRED_AVAILABILITY="${required_availability}" python3 -c '
 import json, os, re, sys
 value = json.load(sys.stdin)
 if value.get("schema") != "guala.lean_actor_observation.v1":
     raise SystemExit("observation is not the lean actor schema")
-if value.get("available") is not True:
+required = os.environ["REQUIRED_AVAILABILITY"]
+if required == "live" and value.get("available") is not True:
     raise SystemExit("native actor is unavailable")
+if required == "durable" and value.get("available") is not False:
+    raise SystemExit("dead-actor recovery no longer has an unavailable predecessor")
+if required not in {"live", "durable"}:
+    raise SystemExit("invalid predecessor availability requirement")
 if value.get("identity") != os.environ["EXPECTED_IDENTITY"]:
     raise SystemExit("organism identity changed")
 if value.get("checkpoint_error") is not None or value.get("cleanup_error") is not None:
     raise SystemExit("durable custody has failed")
+if value.get("checkpoint_outstanding") is not False or value.get("durability_blocked") is not False:
+    raise SystemExit("durable custody is not settled")
 live_tick = value.get("live_tick")
 persisted_tick = value.get("persisted_tick")
 if (
@@ -172,12 +181,25 @@ if (
 ):
     raise SystemExit("native clock or custody clock is invalid")
 minimum = os.environ.get("MINIMUM_TICK", "")
-if minimum and live_tick < int(minimum):
+selected_tick = live_tick if required == "live" else persisted_tick
+if minimum and selected_tick < int(minimum):
     raise SystemExit("candidate restored behind its predecessor")
 for name in ("persisted_body_sha256", "persisted_world_sha256"):
     if re.fullmatch(r"[0-9a-f]{64}", value.get(name, "")) is None:
         raise SystemExit(f"{name} is absent")
-print(live_tick)
+print(selected_tick)
+'
+}
+
+observation_custody_fingerprint() {
+    python3 -c '
+import json, sys
+value = json.load(sys.stdin)
+print("|".join((
+    str(value["persisted_tick"]),
+    value["persisted_body_sha256"],
+    value["persisted_world_sha256"],
+)))
 '
 }
 
@@ -216,7 +238,7 @@ if json.load(sys.stdin) != {"ready": True}:
     done
 }
 
-echo "[1/7] Resolving one exact live predecessor."
+echo "[1/7] Resolving one exact live or durable predecessor."
 SOURCE_SERVICE_JSON=$(service_json)
 SOURCE_TASK_DEFINITION=$(printf '%s' "${SOURCE_SERVICE_JSON}" | python3 -c '
 import json, sys
@@ -243,8 +265,21 @@ SOURCE_RUNNING_TASKS=$(running_tasks)
     || fail "production running-task identity is not singular"
 SOURCE_RUNNING_TASK="${SOURCE_RUNNING_TASKS}"
 PREDECESSOR_BODY=$(read_observation) \
-    || fail "the living predecessor observation is unavailable"
-PREDECESSOR_TICK=$(printf '%s' "${PREDECESSOR_BODY}" | validate_observation)
+    || fail "the predecessor observation is unavailable"
+PREDECESSOR_AVAILABLE=$(printf '%s' "${PREDECESSOR_BODY}" | python3 -c '
+import json, sys
+available = json.load(sys.stdin).get("available")
+if available is True:
+    print("live")
+elif available is False:
+    print("durable")
+else:
+    raise SystemExit("predecessor availability is invalid")
+')
+PREDECESSOR_TICK=$(printf '%s' "${PREDECESSOR_BODY}" \
+    | validate_observation "" "${PREDECESSOR_AVAILABLE}")
+PREDECESSOR_CUSTODY=$(printf '%s' "${PREDECESSOR_BODY}" \
+    | observation_custody_fingerprint)
 
 echo "[2/7] Packaging reviewed commit ${GIT_SHA}."
 python3 tools/package_guala_release.py package \
@@ -401,7 +436,14 @@ CURRENT_RUNNING_TASKS=$(running_tasks)
     || fail "production writer changed during the build"
 CUTOVER_BODY=$(read_observation) \
     || fail "the predecessor disappeared before cutover"
-CUTOVER_TICK=$(printf '%s' "${CUTOVER_BODY}" | validate_observation)
+CUTOVER_TICK=$(printf '%s' "${CUTOVER_BODY}" \
+    | validate_observation "" "${PREDECESSOR_AVAILABLE}")
+CUTOVER_CUSTODY=$(printf '%s' "${CUTOVER_BODY}" \
+    | observation_custody_fingerprint)
+if [ "${PREDECESSOR_AVAILABLE}" = "durable" ]; then
+    [ "${CUTOVER_CUSTODY}" = "${PREDECESSOR_CUSTODY}" ] \
+        || fail "durable CURRENT changed during the candidate build"
+fi
 CUTOVER_ARMED=1
 aws ecs update-service \
     --region "${AWS_REGION}" --cluster "${ECS_CLUSTER}" \
