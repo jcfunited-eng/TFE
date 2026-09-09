@@ -4572,3 +4572,14 @@ the new words interrupted an established sentence. The wording was corrected
 without weakening the truth boundary, and the focused suite then passed 9/9.
 The source page now states that physical cue-to-vocal-pressure speech and
 self-hearing are live while syntax and conversation remain unproved.
+
+`S-054-78-10`: the corrected Guala page was published as the single exact S3
+object `gualaloom.html`, followed by CloudFront invalidation
+`I2F946FHKTCGPX12218JKINZ3F`. After completion, the live HTTP 200 body was
+29,842 bytes and its SHA-256
+`5bc57bc33b8d6116c5847806239ee7a4a948b18f82d14910c3058067542e5c98`
+matched the committed source exactly. The page's existing `Listen to Guala`
+path polls the exact pressure receipt, decodes its signed 16-bit PCM, and plays
+each new receipt once. This verifies the production browser-to-speaker path in
+code and deployment; a remote server cannot observe whether a particular
+laptop's speakers produced human-perceived sound.
