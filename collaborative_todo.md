@@ -6519,3 +6519,6 @@ were unchanged.
 Single recommended next item: preserve this exact pinned speech image and begin
 the separately authorized lean-core design review; do not mix that cleanup into
 the now-closed speech mechanism.
+
+Candidate 78 speech-closure notification was checked at
+`2026-09-09T16:22:42Z`: `status=slack_sent channel=#general`.
