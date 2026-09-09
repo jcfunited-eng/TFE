@@ -2655,3 +2655,21 @@ transfers. Motor tissue remains physically capable; more frontier activity does
 not open the learned route. The remaining defect is the learned transducer's
 causal-authority selection, not auditory delivery, motor capacity, waveform
 physics, self-hearing, delayed reassembly, or a reason to repeat the cue.
+
+F-071-01 admitting a learned L7/L11 source contact when either or both endpoints
+held advancing causal-frontier authority did not restore the current body's
+cue-to-motor link. One combined chronology on the authenticated task-1452
+tick-550174 copy first advanced one unattended interval, then admitted the one
+unchanged 4,000-sample tutor cue, then observed 32 unattended intervals. The cue
+physically perturbed 140 neurons and all 4,000 samples were heard, but it and the
+entire tail produced zero learned preparations, motor or articulatory
+recruitments, body pressure, or self-hearing. The candidate changed no capacity,
+state schema, anatomy, DSF, or production and was removed immediately. Do not
+retry relaxing the exclusive-endpoint rule: the next single boundary is whether
+cue settlement produces any nonzero L7/L11 source transition with exported work
+before causal-authority selection.
+
+F-071-H01 the first ledger append used a stale expected final line and
+`apply_patch` refused without changing the file. Permanent guard: inspect the
+current ledger tail immediately before every append and anchor only to text that
+is present in that exact view.
