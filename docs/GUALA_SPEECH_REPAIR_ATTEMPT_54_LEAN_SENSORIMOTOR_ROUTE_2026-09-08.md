@@ -3520,3 +3520,160 @@ C1-review completion notification was checked at `2026-09-09T06:51:08Z`:
 
 C1-detailed-review correction notification was checked at
 `2026-09-09T07:04:06Z`: `status=slack_sent channel=#general`.
+
+## SOW-SPEECH-01 implementation authority — resumed 2026-09-09 UTC
+
+Joe explicitly resumed the project goal and authorized the corrected
+SOW-SPEECH-01 recommendation, with the instruction to remain disciplined,
+focused, and on the single task of fixing speech. The browser is intentionally
+left open with camera, microphone, and continuous listening enabled for the
+eventual live production check. Those controls are transport endpoints only;
+their enabled state is not evidence that Guala has heard or spoken.
+
+### Frozen predecessor and acceptance boundary
+
+- Active repair ID: `SOW-SPEECH-01` (no Candidate 75 was created).
+- Deployed predecessor: Candidate 70, source commit `f1d1ed6`, ECS task
+  definition 1452, with unchanged organism identity and failed speech truth.
+- Closed successes remain closed: external pressure can reach hearing tissue;
+  the learned L7/L11 -> L11/L12 -> vocal motor route exists; accepted motor
+  work already uses a same-settlement `LearnedSourceWorkDebit`; downstream
+  vocal motor, articulation, breath/pressure, self-hearing, and exact PCM
+  transport have each been demonstrated in the bounded copied-body evidence.
+- The exact acceptance is not “some vocal activity.” Immediately before the
+  cue the authenticated current body must have zero standing learned vocal
+  preparations, zero vocal motor/articulation recruitment, zero pending body
+  pressure, and zero new pressure receipt. One known physical cue must then
+  yield exactly one causally new learned vocal preparation, one vocal act, one
+  new body-pressure receipt, same-act self-hearing, and exact browser PCM. The
+  act must stop, survive a cold restore without replay, preserve identity and
+  all learned state, and remain bounded in CPU, RAM, storage, and cadence.
+
+### Newly proved source-order defect
+
+The active source computes and commits learned vocal motor admission inside
+`settle_internal_contact_interval`, while exact current formation reassembly is
+proved only afterward by `settle_organism_mosaic_boundary`. Therefore the
+current action-authority decision is asked before the physical event that is
+supposed to authorize it exists. This is the source-order form of the category
+error already exposed by Candidates 71-74: another standing-frontier filter
+cannot distinguish a newly completed action-founding event from an ordinary
+recurrent pass.
+
+The single implementation item is consequently an occurrence-owned action
+transaction: prepare exact learned route work without authorizing or settling
+the vocal motor; prove the current reassembly once; admit at most one matching
+preparation from that same occurrence; settle that motor once; and apply the
+existing source debit once. It must not rerun DSF, settle a neuron twice, add a
+persistent spent marker, create energy, or extend the legacy Python shell.
+
+### Implementation contract before code
+
+- **Input:** the exact current interval's settled L7/L11 source transition,
+  retained learned L11/L12 contact, typed cue/thought causal predecessors, and
+  the exact current formation-reassembly receipt.
+- **Output:** zero or one transient `LearnedMotorWorkOffer`, followed by the
+  existing typed motor settlement, articulation/breath consequence, and
+  `LearnedSourceWorkDebit` when work is actually accepted.
+- **Authority:** only a newly completed current-occurrence reassembly whose
+  exact causal predecessors and learned route match the offer; standing
+  frontier membership alone has no action authority.
+- **Conservation:** offered work remains derived from actual source exported
+  heat and retained learned conductance; accepted work is debited once from
+  that exact source transition; no second donor debit or authored work store is
+  permitted.
+- **Commit order:** prepare without mutation; settle ordinary reached tissue;
+  prove reassembly; select at most one eligible offer deterministically; settle
+  the selected motor exactly once; then atomically commit its successor,
+  contact successor, recovery residue, downstream body consequence, and exact
+  source debit within the cloned prepared organism transition.
+- **Failure/crash behavior:** any error rejects the cloned prepared transition,
+  leaving the caller's prior organism state untouched. A crash before durable
+  current-state publication restores the preceding current state; no prepared
+  action is persisted independently and therefore none can replay.
+- **Cold restore:** only committed neuron/contact/body/formation successors are
+  encoded. The transient offer and reassembly match are never serialized.
+- **Bound:** work is linear in the already reached sparse cohort and exact
+  current reassembly observations, with at most the existing bounded vocal
+  route set; no historical scan, polling loop, retry loop, or unbounded store is
+  added.
+- **Retired paths:** legacy shell speech authority, broad-frontier permission,
+  relaxed Candidate 72-74 recurrence, timers, provenance/spent flags, TTS,
+  phoneme/word lookup, and duplicate donor debit remain forbidden.
+
+### Successes and failures recorded before implementation
+
+`S-054-AUDIT-09`: exact source tracing established the wrong transaction order:
+motor admission precedes current reassembly proof. This is a design fact from
+the active source, not a probe inference, and it narrows the repair to the
+action-authority transaction rather than another filter.
+
+`S-054-AUDIT-10`: fixed-string tracing located the existing probe's
+`teaching_vocal_route_formation_memberships` measurement and confirmed it counts
+ordering and motor membership in retained mosaics. It is measurement-only and
+does not grant action authority.
+
+`F-054-AUDIT-H04`: an initial source inventory piped `rg` through `head`,
+repeating the already recorded partial-output harness class. No state changed,
+and the partial result was not treated as complete authority. Permanent rule:
+use exact fixed-string anchors and bounded `sed` windows; never truncate an
+inventory whose completeness is part of the claim.
+
+`F-054-AUDIT-H05`: a later broad alternation search against this large ledger
+produced excessive output and was truncated. No state changed and no conclusion
+was based on the truncated output. The corrected query used only the exact
+fixed string `teaching_vocal_route_formation_memberships`. Permanent rule: one
+exact ledger fact per query; do not search a cumulative ledger with broad
+concept alternations.
+
+`F-054-AUDIT-H06`: an inventory of `/tmp` used a broad `find` name predicate
+and returned 1,240 paths before truncation. No state changed and no conclusion
+used that incomplete list. The corrected lookup constrained depth, object type,
+and the exact Candidate-74 name family, returning only the two relevant build
+artifact directories. Permanent rule: temporary-artifact discovery must name
+the exact candidate or receipt first; never inventory the complete historical
+Guala temporary namespace.
+
+### Pre-code falsification of the proposed reassembly join
+
+`S-054-AUDIT-11`: the preserved authenticated current-body copy at tick 550174
+was restored read-only through the Candidate-74-compatible native observer.
+The restore advanced nothing and wrote nothing. Its exact retained-formation
+structures were joined to the 22 measured `association -> ordering -> motor`
+routes in `/tmp/guala-live550174/motor-work.json`:
+
+- retained formations: 183;
+- measured learned vocal routes: 22;
+- route ordering cells present in any retained formation: 0 of 22;
+- route motor cells present in any retained formation: 0 of 22;
+- route association/founding L7 cells present in any retained formation:
+  1 of 22;
+- formations containing an association/ordering pair, ordering/motor pair, or
+  complete association/ordering/motor route: 0.
+
+`S-054-AUDIT-12`: active source confirms this is architecture, not observer
+loss. `lean_sensorimotor_route.rs` grows the route from the exact co-occurring
+association and moved body regulation and explicitly declares later physical
+current across the retained association/ordering contact as its action path.
+It does not attach the ordering or motor to a retained mosaic. Exact topology
+inspection independently found each ordering two contacts downstream of an
+L6 integration cell through its route-specific L7 association; that is the
+implemented learned sensorimotor path.
+
+`F-054-DESIGN-01`: SOW-SPEECH-01 as written assumes an exact join that the
+authenticated current organism does not contain. A completed retained-
+formation reassembly cannot be matched directly to 21 of 22 route founders or
+to any ordering/motor lineage without inventing authority, scanning for a
+heuristic association, or authoring new persisted anatomy. Therefore the
+implementation contract above is falsified before code. No candidate, compile,
+test, stimulus, deployment, or production mutation occurred.
+
+This does **not** erase the established speech chain. It sharpens the remaining
+choice: either (A) authorize the existing learned sensorimotor route by one
+exact fresh physical cue-arrival chain and make that causal work consumable, or
+(B) make cognition-to-action anatomy an explicit learned developmental route
+and provide an identity-preserving migration law for the already-lived body.
+Option A is the recommended narrow external-cue speech repair; Option B is the
+necessary later route for internally originated conversational speech. Neither
+may be smuggled in as “the reassembled formation already contains the motor,”
+because the exact current body proves that claim false.
