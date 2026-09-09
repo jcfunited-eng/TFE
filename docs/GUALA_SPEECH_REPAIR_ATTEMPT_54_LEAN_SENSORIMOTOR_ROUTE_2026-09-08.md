@@ -2732,3 +2732,38 @@ sequence, not one cue-bounded utterance. The candidate changed no persisted
 schema, capacity, anatomy, DSF, or production and was removed completely. Do
 not retry lineage-wide relaxation, exact-route relaxation, or treat the poised
 unattended act as proof that the tutor cue caused speech.
+
+F-073-H01 an unnecessary cleanup removed the existing
+`carries_body_owned_acoustic_efference` accessor while its codec regression
+still called it. The full test-target compile refused with one missing-method
+error; no artifact or organism ran. Restoring the accessor made the compile
+pass. Permanent guard: do not remove even apparently production-unused custody
+accessors without checking the focused persistence tests that own their
+round-trip evidence.
+
+F-073-H02 the first F-073 ledger append repeated F-071-H01 by anchoring to an
+incorrectly remembered line wrap instead of the exact current tail. The patch
+refused without changing the file. Permanent enforcement: every ledger append
+must use the literal last line returned by an immediately preceding `tail`;
+do not compose an anchor from memory, including within the same turn.
+
+F-073-01 whole-coactive-wave one-use authorization is rejected. This candidate
+combined route-specific spent-provenance resolution with marking every successor
+frontier entry spent when a real learned articulatory discharge occurred. The
+exact current-copy chronology again began with one poised unattended act: ten
+preparations, three motors, one articulatory recruitment, 36,000 self-heard
+samples, and bounded completion after five continuations. After that completion,
+the single 4,000-sample tutor cue had no immediate motor effect. Its later
+processing repeatedly created learned authority anyway: seven preparations at
+the first reached action interval, then repeated groups of three preparations
+and two or three motors through the next eleven observed action intervals.
+Nineteen later pressure receipts and 140,000 self-heard samples occurred within
+the 32-interval tail. Pending pressure finally cleared, but the sequence is a
+recurrent vocal chain, not one causal cue-bounded act. Marking the coactive
+successor wave reduced the repeated preparation population relative to F-072-01
+but did not remove it because ordinary internal/body seeds continuously become
+new action authority. The candidate was removed completely and production was
+untouched. Do not build Candidate 74 by adding another marker, timer, refractory
+lock, or exception inside this frontier design. The active core currently
+conflates ordinary physical activity with permission to speak; that authority
+boundary belongs in the lean-core replacement.
