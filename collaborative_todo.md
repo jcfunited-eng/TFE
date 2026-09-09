@@ -6440,3 +6440,21 @@ the speech route.
 
 Architecture-blocker notification was checked at `2026-09-09T07:54:24Z`:
 `status=slack_sent channel=#general`.
+
+#### Deeper disposition
+
+Read-only source reconciliation rejects both apparent shortcuts. The existing
+frontier has exact transfers and carrier counts but no conserved fresh-cue or
+new-thought origin after propagation; treating any later L7 arrival as fresh
+would repeat Candidates 71-74. The complete neuron does emit exact newly opened
+gate channels, but ordinary contact propagation bypasses authored gate work, so
+using that emission as a universal frontier gate would kill lawful propagation.
+
+Restoring the old general affective/ordering route is also prohibited:
+Candidate 53E already ran that staged ladder in both directions for 512 cycles
+and failed. The corrected recommendation is one learned cognitive-action
+bridge grown during a future exact tutor occurrence from a physically
+reassembled formation's recurrent neuron to the already learned typed
+ordering/motor route. The current L7/L11 reflex must lose vocal-action authority.
+This is an architecture amendment and requires Joe's explicit authorization;
+no code, test, stimulus, deployment, or production mutation occurred.
