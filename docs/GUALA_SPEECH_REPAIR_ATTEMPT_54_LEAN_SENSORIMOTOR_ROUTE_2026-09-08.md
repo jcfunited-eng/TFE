@@ -2388,3 +2388,20 @@ not valid in that filter position. CPU and memory reads completed before the
 log query refusal; no AWS state changed. Permanent guard: use one valid quoted
 term per Logs filter query or retrieve the bounded task stream without an
 invented Boolean expression.
+
+S-069-04 forced-recovery author removed from production: commit
+`44cd9ed5ae04a7384a5bdfdf261438c3827abe34` restores the pre-Candidate-69
+learned-gate recovery behavior while retaining only the independently valid
+removal of the false contact-turnover equality assertion. It passed the native
+library compile with the same 183 inherited warnings and `git diff --check`.
+The one-writer deployment controller preserved identity and cut over to task
+definition 1451, immutable image digest
+`sha256:8b6317cf4b92ac0b27c34659c05e36442023035dbe83cecd5b4cf025723f3c74`.
+The native clock advanced from 547847 to 547891 during live verification. The
+already-persisted vocal act completed at tick 547918; subsequent unattended
+events through tick 547929 had `self_pressure_pending=false`, zero self-heard
+samples, and no new pressure receipt. Other body consequences continued and
+are not reclassified as vocal pressure. Production is live and no longer in
+the Candidate-69 vocal loop. Speech remains incomplete: the next design
+boundary is exact sub-threshold learned-work retention/recovery without a
+forced firing quantum, not another cue or capacity increase.
