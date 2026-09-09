@@ -2767,3 +2767,64 @@ untouched. Do not build Candidate 74 by adding another marker, timer, refractory
 lock, or exception inside this frontier design. The active core currently
 conflates ordinary physical activity with permission to speak; that authority
 boundary belongs in the lean-core replacement.
+
+## Candidate 74 — transient one-use vocal-action provenance (2026-09-09 UTC)
+
+### Scope and reason
+
+Joe expressly authorized one final Candidate 74 followed by a pause. The
+candidate tested whether the lost provenance identified after Candidate 73
+could be repaired without a timer, lock, capacity change, alternate motor
+author, scripted meaning, persistence mutation, or L0-L4 change. It temporarily
+carried the existing body-owned acoustic-effector marker across an exact
+advancing frontier bond and across internal recurrent reassembly, and marked
+the successor frontier spent after learned vocal work was authored.
+
+### What worked
+
+- `cargo check --tests --locked` completed successfully.
+- The one focused recurrent-frontier unit test passed: 1 passed, 0 failed,
+  613 filtered out. It proved only that the temporary spent marker survived the
+  tested internal reassembly.
+- The release wheel built successfully.
+- Against a disposable copy of authenticated production body tick 550174, the
+  already-poised pre-cue vocal act remained intact: 10 preparations, 3 motors,
+  1 initial body consequence, and five bounded continuations produced 36,000
+  self-heard samples and cleared pending pressure.
+- The single 4,000-sample external cue reached 139 externally perturbed
+  neurons and caused learned vocal preparations, motor recruitment,
+  articulation, physical body consequences, pressure receipts, and self-hearing.
+  This confirms that the previously established hearing-to-vocal physical path
+  was not lost.
+
+### What failed — `F-074-01`
+
+The cue did not produce one bounded vocal act. Across the 32-interval tail the
+copy produced 74 body consequences, 19 pressure receipts, and 140,000
+self-heard samples. Learned preparation and articulation recurred after the
+cue, including a new seven-preparation event at post interval 15. Pending
+pressure eventually cleared, but cessation of pressure did not make the causal
+action one-use. Candidate 74 therefore failed the exact acceptance condition
+and is not deployable.
+
+The temporary source and unit-test changes were removed completely. Production
+task 1452, production persistence, and the live UI were not touched.
+
+### Harness lesson — `F-074-H01`
+
+The first compile invocation emitted more warning output than the tool could
+return, so its exit result was unavailable and was not counted as evidence. The
+same compile was rerun once with bounded output; that run returned exit 0. For
+future Rust compile/build checks, bound diagnostic output from the first call so
+tool truncation cannot force a repeat.
+
+### Permanent conclusion after Candidate 74
+
+Candidates 72, 73, and 74 each preserved the genuine sensorimotor path and each
+failed one-use action authorship on the current copied body. The failure is not
+missing hearing, vocal tissue, motor recruitment, body acoustics, or
+self-hearing. It is the active core's use of a broad recurrent electrical
+frontier as continuing permission to author learned vocal action. Do not add a
+Candidate 75 marker, timer, refractory lock, A/B ladder, or another frontier
+exception. Pause here and review the lean cognitive-action authority boundary
+with Joe before any further code or deployment.
