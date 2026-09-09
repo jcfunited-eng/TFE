@@ -2172,3 +2172,87 @@ proves a restart of task 1448 would merely repeat it. The next boundary is the
 fixed-width recovery-fluid arithmetic that compounds across otherwise-valid
 settlements; do not restart, widen capacity, repeat sound, or bypass deployment
 preflight.
+
+F-067-01 wide-until-final powered-exchange hypothesis rejected: one candidate
+kept the two nested spent/thermal reservoir expressions in `BigRational` until
+their final values instead of narrowing their intermediate sums. It compiled
+and produced release wheel SHA-256
+`aa7be09020b4ff2d0e21a4267d6af495632ba01c9fed806bc0b67bae2635709f`
+and extension SHA-256
+`f76936c58fc8ebdc50512aae7a88fb8d2e2ebf21583ad254c31cb4a6ad3cc087`.
+Against the exact tick-546298 pair, occurrences 1-20 again passed and occurrence
+21 failed with the identical `RecoveryFluid(ArithmeticWidth)`. The arithmetic
+edit was removed completely and will not be deployed or retried. This proves
+that widening the final expression alone is insufficient; it did not yet
+identify which complete successor was unrepresentable. The sole next
+diagnostic was the exact failing cohort/operation within the
+already-reproduced occurrence.
+
+S-068-01 exact fatal operation localized: one diagnostic-only release printed
+the error boundary and was removed immediately after one copied-state run.
+The deterministic occurrence-21 failure is cohort 1723, all 108 resident
+neurons reached, inside `settle_powered_environment_exchange`. The exact
+operation was the temporary thermal credit: predecessor thermal
+`11874155/8` plus conversion heat
+`17741711852649719205602611401730118009/
+340730186432377929687500000000000000`. Each physical quantity is valid and
+within capacity, but their intermediate fixed-width rational sum is not
+representable. This is arithmetic-width accumulation in shared recovery
+chemistry, not vocal-surface saturation and not a capacity violation. The
+diagnostic output is absent from final source.
+
+F-068-H01 temporary extraction cleanup command refused: the first diagnostic
+run command included recursive removal of one known temporary extraction
+directory. The execution guard refused the entire command before anything ran;
+no file and no production state changed. The successful rerun used a new empty
+temporary directory. Permanent guard: never place recursive cleanup in a
+diagnostic execution command; use a new bounded temporary directory.
+
+F-068-H02 Rust exact-name filter ran zero tests: the first command supplied
+`--exact` with only the function suffix, so Rust compiled the test target but
+reported `0 passed; 614 filtered out`. It was not counted as evidence. The
+corrected unique substring filter ran exactly
+`recovery_fluid_contact::tests::production_thermal_credit_width_stalls_instead_of_killing_the_actor`
+and passed `1 passed; 0 failed; 613 filtered out`. Permanent guard: either use
+the full module-qualified name with `--exact`, or use a unique suffix without
+`--exact`; always inspect the executed-test count.
+
+S-068-02 exact actor-fatal repair: powered environment conversion and same-
+interval heat export now form one widened exact successor before any resident
+narrowing. If that complete successor cannot inhabit the established
+fixed-width exact physical boundary, the already-established deterministic
+local-stall rule is applied: retry heat export without conversion, otherwise
+perform zero environmental exchange for that cohort. It does not round, enlarge
+anatomy, alter capacity, change L0-L4/DSF, or add retained state. Against the
+authenticated task-1448 tick-546298 pair, all 32 unattended occurrences passed
+and advanced exactly through the former fatal tick 546319 to tick 546330. The
+previous release failed deterministically on occurrence 21. This is a verified
+native-actor survival repair, not a speech-success claim. The exact production
+thermal/conversion fractions are also retained as the one focused unit
+regression above; it passed once, and no broad test suite was run.
+
+F-068-01 current-state speech remains absent: against the same authenticated
+tick-546298 body and world, the unchanged single 4,000-sample tutor pressure
+was externally heard, but produced zero motor recruitments, zero articulatory
+recruitments, zero body consequences, zero emitted pressure, and zero
+self-heard samples. After 32 successful unattended recovery intervals with the
+S-068-02 repair, one identical cue produced the same zero motor result. This
+rules out a short rest interval as sufficient recovery and preserves the exact
+next speech boundary as learned-cue-to-motor recruitment. Do not claim speech,
+enlarge vocal anatomy, repeat the same rest/cue probe, or reinterpret the
+actor-survival success as audible output.
+
+S-068-03 final artifact identity: the reviewed source contains no diagnostic
+printing. `recovery_fluid_contact.rs` is 1,499 lines and changes 98 additions /
+27 removals; the previously committed Candidate-66
+`resident_cognitive_formation.rs` remains exactly 22,834 lines with unchanged
+SHA-256
+`31c291570413d353309b96b0082f2ff296c0c7b918137102ad09f84d238ff7ff`.
+The final release build completed with the same 183 inherited warnings. Wheel
+SHA-256 is
+`24943b89a9b178c4869959cb49ca016dd2b8202ea3adc05218d8ea5b9947c21e`;
+extension SHA-256 is
+`8be40e74a1a97531a7b1072bcab135b921ff2866e1f2c2c716ee495e4de42e59`.
+The exact final extension—not an earlier diagnostic build—again advanced the
+authenticated tick-546298 production copy through 32 unattended occurrences
+to tick 546330 with no failure. `git diff --check` passes.

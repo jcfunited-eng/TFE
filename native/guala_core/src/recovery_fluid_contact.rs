@@ -130,7 +130,7 @@ pub(crate) fn settle_powered_environment_exchange(
         return Err(RecoveryFluidError::StateOutsideAnatomy);
     }
     let (available_capacity, _, _) = anatomy.capacities();
-    let (available, spent, thermal) = predecessor.physical_parts();
+    let (available, spent, _) = predecessor.physical_parts();
     // R1 DEPLETION LAW (Joe's directed shape, 2026-09-02): recycling is no
     // longer perfect. Converting one quantum of spent material back to
     // available costs one quantum of conversion heat, paid from the same
@@ -144,46 +144,91 @@ pub(crate) fn settle_powered_environment_exchange(
         / num_bigint::BigInt::from(2))
     .min(wide_rational(spent) / num_bigint::BigInt::from(2))
     .min(wide_rational(available_capacity) - wide_rational(available));
-    let delivered = match narrow_rational(delivered_wide) {
+    let candidate_delivered = match narrow_rational(delivered_wide) {
         Ok(value) => value,
         Err(RecoveryFluidError::ArithmeticWidth) => zero,
         Err(error) => return Err(error),
     };
-    let delivered = if representable_reservoir_change(available, delivered, 1, false)
-        && representable_reservoir_change(spent, delivered, 2, true)
-    {
-        delivered
-    } else {
-        zero
-    };
-    // The conversion toll: one quantum of spent becomes heat for every
-    // quantum delivered back as available. Spent falls by BOTH; the toll
-    // waits in the thermal channel for the export below — the one door out
-    // of her body. This is where irreversibility enters her economy.
-    let conversion_heat = delivered;
-    let exported_heat_wide = wide_rational(maximum_interval_energy_zeptojoules)
-        .min(wide_rational(thermal) + wide_rational(conversion_heat));
-    let exported_heat = match narrow_rational(exported_heat_wide) {
-        Ok(value) => value,
-        Err(RecoveryFluidError::ArithmeticWidth) => zero,
-        Err(error) => return Err(error),
-    };
-    let exported_heat = if representable_reservoir_change(thermal, exported_heat, 1, true) {
-        exported_heat
-    } else {
-        zero
-    };
-    let successor = RecoveryFluidReservoirState::new(
+    // Settle the coupled conversion and heat export as one exact change.  The
+    // conversion credit may be wider than resident ExactRational even when
+    // the heat exported in the same physical settlement cancels it to a
+    // representable successor.  Narrowing that temporary sum killed the
+    // complete organism despite no physical capacity violation.
+    let candidate = prepare_representable_powered_environment_exchange(
         anatomy,
-        wide_add(available, delivered)?,
-        wide_sub(spent, wide_add(delivered, conversion_heat)?)?,
-        wide_sub(wide_add(thermal, conversion_heat)?, exported_heat)?,
+        predecessor,
+        maximum_interval_energy_zeptojoules,
+        candidate_delivered,
     )?;
+    let (successor, delivered, exported_heat) = match candidate {
+        Some((successor, exported_heat)) => {
+            (successor, candidate_delivered, exported_heat)
+        }
+        None if candidate_delivered == zero => (predecessor, zero, zero),
+        None => match prepare_representable_powered_environment_exchange(
+            anatomy,
+            predecessor,
+            maximum_interval_energy_zeptojoules,
+            zero,
+        )? {
+            Some((successor, exported_heat)) => (successor, zero, exported_heat),
+            None => (predecessor, zero, zero),
+        },
+    };
     Ok(PoweredEnvironmentExchange {
         successor,
         delivered_energy_zeptojoules: delivered,
         exported_heat_zeptojoules: exported_heat,
     })
+}
+
+fn prepare_representable_powered_environment_exchange(
+    anatomy: RecoveryFluidReservoirAnatomy,
+    predecessor: RecoveryFluidReservoirState,
+    maximum_interval_energy_zeptojoules: ExactRational,
+    delivered: ExactRational,
+) -> Result<Option<(RecoveryFluidReservoirState, ExactRational)>, RecoveryFluidError> {
+    let (available, spent, thermal) = predecessor.physical_parts();
+    // The conversion toll: one quantum of spent becomes heat for every
+    // quantum delivered back as available. Spent falls by both quantities;
+    // that heat then leaves through the same interval's external heat path.
+    let conversion_heat = delivered;
+    let exported_heat_wide = wide_rational(maximum_interval_energy_zeptojoules)
+        .min(wide_rational(thermal) + wide_rational(conversion_heat));
+    let exported_heat = match narrow_rational(exported_heat_wide) {
+        Ok(value) => value,
+        Err(RecoveryFluidError::ArithmeticWidth) => return Ok(None),
+        Err(error) => return Err(error),
+    };
+    let successor_available =
+        wide_rational(available) + wide_rational(delivered);
+    let successor_spent = wide_rational(spent)
+        - (wide_rational(delivered) + wide_rational(conversion_heat));
+    let successor_thermal = wide_rational(thermal) + wide_rational(conversion_heat)
+        - wide_rational(exported_heat);
+    let narrow = |value| match narrow_rational(value) {
+        Ok(value) => Ok(Some(value)),
+        Err(RecoveryFluidError::ArithmeticWidth) => Ok(None),
+        Err(error) => Err(error),
+    };
+    let Some(successor_available) = narrow(successor_available)? else {
+        return Ok(None);
+    };
+    let Some(successor_spent) = narrow(successor_spent)? else {
+        return Ok(None);
+    };
+    let Some(successor_thermal) = narrow(successor_thermal)? else {
+        return Ok(None);
+    };
+    Ok(Some((
+        RecoveryFluidReservoirState::new(
+            anatomy,
+            successor_available,
+            successor_spent,
+            successor_thermal,
+        )?,
+        exported_heat,
+    )))
 }
 
 fn wide_rational(value: ExactRational) -> BigRational {
@@ -1384,6 +1429,32 @@ mod tests {
         )
         .unwrap();
         let settled = settle_powered_environment_exchange(anatomy, predecessor, quantum).unwrap();
+        assert_eq!(
+            settled.delivered_energy_zeptojoules,
+            ExactRational::integer(0)
+        );
+        assert_eq!(settled.exported_heat_zeptojoules, ExactRational::integer(0));
+        assert_eq!(settled.successor, predecessor);
+    }
+
+    #[test]
+    fn production_thermal_credit_width_stalls_instead_of_killing_the_actor() {
+        let conversion = ExactRational::new(
+            17741711852649719205602611401730118009,
+            340730186432377929687500000000000000,
+        )
+        .unwrap();
+        let budget = conversion.checked_mul_unsigned(2).unwrap();
+        let capacity = ExactRational::integer(i128::MAX);
+        let anatomy = RecoveryFluidReservoirAnatomy::new(capacity, capacity, capacity).unwrap();
+        let predecessor = RecoveryFluidReservoirState::new(
+            anatomy,
+            ExactRational::integer(0),
+            budget,
+            ExactRational::new(11874155, 8).unwrap(),
+        )
+        .unwrap();
+        let settled = settle_powered_environment_exchange(anatomy, predecessor, budget).unwrap();
         assert_eq!(
             settled.delivered_energy_zeptojoules,
             ExactRational::integer(0)
