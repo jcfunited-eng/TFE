@@ -4595,3 +4595,77 @@ live organism; do not assume an origin-only health route is exposed by the
 static distribution. The corrected final observation returned `available:
 true`, the unchanged identity, live tick 575732/persisted tick 575725, and no
 held or replayed pressure. The live page SHA remained exact.
+
+## Task1454 audible-output continuation — 2026-09-09 UTC
+
+`S-054-78-11`: after the Q-C-006 exact-successor cleanup became live as
+task1454, the unchanged frozen 8,000-byte cue SHA-256
+`00c6ec35000e84c01ceb41f5349559156ea70ed398614a1c4a14328e3afb166c`
+was admitted exactly once through the public `microphone` route. At tick
+578369 it reported zero guided axes, all 4,000 external samples, four vocal
+body consequences, all 4,000 same-act self-heard samples, 237 complete-DSF
+deliveries, 2,173 changed neurons, pending physical pressure, and new receipt
+`6cf21f29...001bd`. This independently preserves the exact live learned-cue
+speech result on task1454. It does not prove word recognition, conversation,
+or sound from Joe's laptop.
+
+`F-054-78-H04`: the bounded live POST printed the valid projected JSON result,
+then `jq` emitted a parse error because curl's separate `HTTP_STATUS` trailer
+was appended to the same JSON stream. The organism result is intact and was
+not retried. Permanent guard: keep response body and curl status in separate
+streams or parse only the response body; never append diagnostic text to JSON
+before a parser.
+
+`F-054-78-H05`: the immediate GET for receipt `6cf21f29...001bd` returned 404
+because a following physical pressure had already replaced the actor's one
+held receipt. A fresh read of current observation followed immediately by its
+receipt GET succeeded on the first attempt: exact receipt
+`ef339aa2...da864c`, 8,000 bytes/4,000 samples, 3,844 nonzero samples, range
+-3,073..3,072, RMS 1,287.873 and 95 zero crossings in 250 ms (190 Hz
+zero-crossing estimate). This proves non-silent, audible-band physical output
+exists while exposing a production transport race that can make the browser
+miss it. It is the same symptom class as F-054-78-H01, now proven to occur even
+with an immediate fetch.
+
+### SOW-SPEECH-04 — one bounded prior-pressure transport slot
+
+Input: a validated `SettlementResult.pressure` tuple whose exact bytes and
+SHA-256 have already passed the actor boundary. Output: the current receipt and
+the immediately preceding distinct receipt remain fetchable by exact hash.
+The actor retains at most two existing `(receipt, bytes)` references, with at
+most 16,000 PCM bytes total; it copies no pressure body, creates no history,
+queue, retry, persistence, cognitive state, identity, or author. A new pressure
+atomically replaces the immutable two-reference tuple in current-then-previous
+order. An identical content receipt remains one body because either occurrence
+has identical exact bytes. The observation continues to name only the current
+receipt. Cold restore begins with no transport-held pressure exactly as before.
+
+Authorized files: `dsf_ai_service/lean_actor.py`, the focused actor/application
+test, this definitive ledger, and the already-reviewed page only if its fetch
+contract must change. Acceptance: the first receipt remains byte-exactly
+fetchable after one different successor pressure; a third pressure retires only
+the oldest; malformed/unknown receipts still return 404; the existing five
+routes, one-owner actor, pressure SHA validation, bounded memory, observation,
+checkpoint and restart behavior remain unchanged. Then one immutable task
+replaces task1454 through the normal controller and the live page must fetch a
+receipt after one superseding pressure without 404. Laptop audibility remains
+Joe's direct observation gate.
+
+`F-054-78-H06`: an inspection of an existing live cue-response JSON projected
+the complete `last_occurrence`, including the full embodiment, and emitted
+roughly eleven thousand tokens although only speech scalars were needed. This
+repeated the bounded-evidence failure already governed by RF-011. Permanent
+guard: enumerate and project only the exact scalar fields before reading any
+live occurrence; never include `embodiment`, retina arrays, or raw DSF detail
+in a speech status command.
+
+`S-054-78-12`: the SOW-SPEECH-04 source uses one immutable tuple containing at
+most current and immediately previous distinct `(receipt, bytes)` references.
+Only a fully validated new physical pressure atomically replaces that tuple;
+lookup snapshots it once and compares at most two exact hashes. Observation
+still names current only, and startup remains empty. The exact supersession
+test proved first and second pressure bytes remained fetchable after the second
+settlement, a third retired only the first, and current/previous remained exact.
+It passed 1/1; the complete existing lean actor plus five-route transport files
+then passed 10/10. This is focused local transport evidence pending package,
+rehearsal, cutover and live supersession proof.

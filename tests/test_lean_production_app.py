@@ -27,6 +27,10 @@ from dsf_ai_service.paired_current_store import PairedCurrentStore
 IDENTITY = "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1"
 PRESSURE = b"\x01\x00\xfe\xff" * 16
 PRESSURE_SHA256 = hashlib.sha256(PRESSURE).hexdigest()
+SECOND_PRESSURE = b"\x03\x00\xfc\xff" * 16
+SECOND_PRESSURE_SHA256 = hashlib.sha256(SECOND_PRESSURE).hexdigest()
+THIRD_PRESSURE = b"\x05\x00\xfa\xff" * 16
+THIRD_PRESSURE_SHA256 = hashlib.sha256(THIRD_PRESSURE).hexdigest()
 
 
 @dataclass(slots=True)
@@ -127,6 +131,30 @@ class _Physical:
 
     def unattended(self, runtime: _Runtime, world: _World) -> SettlementResult:
         return self.settle(runtime, world, PhysicalOccurrence("unattended", None))
+
+
+class _ChangingPressurePhysical(_Physical):
+    def settle(
+        self,
+        runtime: _Runtime,
+        world: _World,
+        occurrence: PhysicalOccurrence,
+    ) -> SettlementResult:
+        assert occurrence == PhysicalOccurrence("unattended", None)
+        pressures = (
+            (PRESSURE_SHA256, PRESSURE),
+            (SECOND_PRESSURE_SHA256, SECOND_PRESSURE),
+            (THIRD_PRESSURE_SHA256, THIRD_PRESSURE),
+        )
+        pressure = pressures[self.count]
+        self.count += 1
+        runtime.tick += 1
+        world.body = f"world-{runtime.tick}".encode()
+        return SettlementResult(
+            native_interval_count=1,
+            observation={"causal": True},
+            pressure=pressure,
+        )
 
 
 class _FatalUnattendedPhysical(_Physical):
@@ -233,6 +261,46 @@ def test_exact_five_routes_and_one_bounded_pressure_receipt(
         assert client.get(
             PRESSURE_ROUTE.format(receipt="not-a-receipt")
         ).status_code == 404
+
+
+def test_immediately_preceding_pressure_remains_fetchable_once(
+    tmp_path: Path,
+) -> None:
+    actor = _actor(tmp_path, physical=_ChangingPressurePhysical())
+    application = create_lean_production_app(lambda: actor)
+
+    with TestClient(application) as client:
+        first = client.post(
+            OCCURRENCE_ROUTE,
+            json={"kind": "unattended", "payload": None},
+        )
+        assert first.json()["pressure_sha256"] == PRESSURE_SHA256
+        second = client.post(
+            OCCURRENCE_ROUTE,
+            json={"kind": "unattended", "payload": None},
+        )
+        assert second.json()["pressure_sha256"] == SECOND_PRESSURE_SHA256
+        assert client.get(
+            PRESSURE_ROUTE.format(receipt=PRESSURE_SHA256)
+        ).content == PRESSURE
+        assert client.get(
+            PRESSURE_ROUTE.format(receipt=SECOND_PRESSURE_SHA256)
+        ).content == SECOND_PRESSURE
+
+        third = client.post(
+            OCCURRENCE_ROUTE,
+            json={"kind": "unattended", "payload": None},
+        )
+        assert third.json()["pressure_sha256"] == THIRD_PRESSURE_SHA256
+        assert client.get(
+            PRESSURE_ROUTE.format(receipt=PRESSURE_SHA256)
+        ).status_code == 404
+        assert client.get(
+            PRESSURE_ROUTE.format(receipt=SECOND_PRESSURE_SHA256)
+        ).content == SECOND_PRESSURE
+        assert client.get(
+            PRESSURE_ROUTE.format(receipt=THIRD_PRESSURE_SHA256)
+        ).content == THIRD_PRESSURE
 
 
 def test_health_fails_when_the_organism_owner_fails(tmp_path: Path) -> None:

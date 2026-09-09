@@ -139,7 +139,7 @@ class LeanOrganismActor:
         self._checkpoint = LeanCheckpointWorker(store)
         self._pending_intervals = 0
         self._last_occurrence: dict[str, object] | None = None
-        self._pressure: tuple[str, bytes] | None = None
+        self._pressures: tuple[tuple[str, bytes], ...] = ()
         self._checkpoint_error: str | None = None
         self._cleanup_error: str | None = None
         self._fatal: BaseException | None = None
@@ -201,10 +201,11 @@ class LeanOrganismActor:
             canonical = bytes.fromhex(receipt).hex()
         except ValueError:
             return None
-        held = self._pressure
-        if held is None or not hmac.compare_digest(held[0], canonical):
-            return None
-        return held[1]
+        held_pressures = self._pressures
+        for held_receipt, held_body in held_pressures:
+            if hmac.compare_digest(held_receipt, canonical):
+                return held_body
+        return None
 
     def close(self) -> None:
         if not self._started:
@@ -335,7 +336,12 @@ class LeanOrganismActor:
         if self._pending_intervals + result.native_interval_count > self._pending_ceiling:
             raise RuntimeError("physical settlement breached its declared interval bound")
         if result.pressure is not None:
-            self._pressure = result.pressure
+            prior = tuple(
+                held
+                for held in self._pressures[:1]
+                if not hmac.compare_digest(held[0], result.pressure[0])
+            )
+            self._pressures = (result.pressure, *prior)
         self._pending_intervals += result.native_interval_count
         self._last_occurrence = {
             "kind": kind,
@@ -438,7 +444,7 @@ class LeanOrganismActor:
             pending_interval_count=self._pending_intervals,
             last_occurrence=self._last_occurrence,
             pressure_sha256=(
-                None if self._pressure is None else self._pressure[0]
+                None if not self._pressures else self._pressures[0][0]
             ),
             checkpoint_error=self._checkpoint_error,
             cleanup_error=self._cleanup_error,
