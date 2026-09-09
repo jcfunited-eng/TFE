@@ -6505,7 +6505,7 @@ human-perceived sound from Joe's laptop speakers.
 The definitive flow, SOW, complete attempt table, exact implementation,
 failures, successes, deployment, resource checks, and cold-restart evidence are
 in `docs/GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md`
-at documentation HEAD `bdf8668f`. Do not re-litigate Candidates 71-77 or rerun
+at documentation HEAD `40578579`. Do not re-litigate Candidates 71-77 or rerun
 their closed harness paths.
 
 Changed runtime files:
