@@ -4586,3 +4586,12 @@ laptop's speakers produced human-perceived sound.
 
 Candidate 78 speech-closure notification was checked at
 `2026-09-09T16:22:42Z`: `status=slack_sent channel=#general`.
+
+`F-054-78-H03`: the final handoff check incorrectly queried `/health` on the
+public static-site host, where that route is not published, and received HTTP
+404. This says nothing about the ECS actor. Permanent guard: use ECS service
+health and `/api/v1/guala/observation` through the public distribution for the
+live organism; do not assume an origin-only health route is exposed by the
+static distribution. The corrected final observation returned `available:
+true`, the unchanged identity, live tick 575732/persisted tick 575725, and no
+held or replayed pressure. The live page SHA remained exact.
