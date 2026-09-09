@@ -180,7 +180,10 @@ use sha2::{Digest, Sha256};
 use std::collections::{BTreeMap, BTreeSet};
 
 mod lean_sensorimotor_route;
-use lean_sensorimotor_route::mount_exact_vocal_sensorimotor_routes;
+use lean_sensorimotor_route::{
+    current_sound_reaches_route, mount_exact_reassembled_vocal_action_routes,
+    vocal_cognitive_action_route_for_motor,
+};
 use std::fmt;
 use std::sync::Arc;
 
@@ -9313,21 +9316,6 @@ impl ResidentCognitiveFormationState {
                 &electrical_fabric,
             )?);
         }
-        mount_exact_vocal_sensorimotor_routes(
-            &mut cohorts,
-            &mut resting_population,
-            &mut next_lineage_ordinal,
-            &mut electrical_fabric,
-            &topology_index,
-            &reached_associations_by_occurrence,
-            &exact_moved_body_regulations_by_occurrence,
-        )?;
-        if !topology_index.matches_shape(&cohorts, &electrical_fabric) {
-            topology_index = Arc::new(ResidentTopologyIndex::build(
-                &cohorts,
-                &electrical_fabric,
-            )?);
-        }
         let developmental_affective_pairs = exact_occurrence_affective_pairs(
             &reached_associations_by_occurrence,
             &exact_moved_body_regulations_by_occurrence,
@@ -9405,6 +9393,22 @@ impl ResidentCognitiveFormationState {
         newly_retained_mosaic_indices.dedup();
         if organism_mosaic_receipt.is_some() {
             mosaic_formed = organism_mosaic_receipt;
+        }
+        mount_exact_reassembled_vocal_action_routes(
+            &mut cohorts,
+            &mut resting_population,
+            &mut next_lineage_ordinal,
+            &mut electrical_fabric,
+            &topology_index,
+            &reached_associations_by_occurrence,
+            &exact_moved_body_regulations_by_occurrence,
+            &externally_reassembled_formation_frontiers,
+        )?;
+        if !topology_index.matches_shape(&cohorts, &electrical_fabric) {
+            topology_index = Arc::new(ResidentTopologyIndex::build(
+                &cohorts,
+                &electrical_fabric,
+            )?);
         }
         partial_cue_reassembly_count = partial_cue_reassembly_count
             .checked_add(organism_reassemblies)
@@ -19843,12 +19847,108 @@ fn settle_internal_contact_interval(
             if !admit_learned_motor_work {
                 continue;
             }
+            let motor_lineage = flat_locations[motor_flat].2;
+            let (motor_cohort, motor_neuron, _) = flat_locations[motor_flat];
+            let motor_is_vocal = cohorts[motor_cohort].anatomy.mounts()[motor_neuron]
+                .body_effector_terminal()
+                .is_some_and(|terminal| terminal.axis().is_vocal_articulator());
             let total_learned_conductance = ordering_motor_bridges
                 .iter()
                 .filter(|(candidate_ordering, _, _, _)| *candidate_ordering == ordering_flat)
                 .fold(BigRational::zero(), |sum, (_, _, _, conductance)| {
                     sum + exact_to_wide(*conductance)
                 });
+            if motor_is_vocal {
+                let routes = vocal_cognitive_action_route_for_motor(
+                    cohorts,
+                    topology_index,
+                    motor_lineage,
+                )?;
+                let mut matching_routes = routes
+                    .into_iter()
+                    .filter(|route| {
+                        route.ordering_lineage == flat_locations[ordering_flat].2
+                            && route.learned_bond == motor_bond
+                    })
+                    .collect::<Vec<_>>();
+                matching_routes.sort_by_key(|route| route.recurrent_bond);
+                matching_routes.dedup();
+                let [route] = matching_routes.as_slice() else {
+                    if matching_routes.is_empty() {
+                        // Retired L7 -> L11 -> L12 anatomy has no vocal authority.
+                        continue;
+                    }
+                    return Err(FormationError::NeuronLineageAuthorityChanged);
+                };
+                if !current_sound_reaches_route(
+                    cohorts,
+                    topology_index,
+                    fresh_seed_lineages,
+                    *route,
+                )? {
+                    continue;
+                }
+                let source_positions = settled
+                    .transitions
+                    .iter()
+                    .zip(compact_edge_flat_endpoints.iter().copied())
+                    .zip(compact_bonds.iter().copied())
+                    .enumerate()
+                    .filter_map(|(position, ((transition, (left, right)), bond))| {
+                        let transfer = directed_physical_transfer(
+                            transition.outward_elementary_charges_from_left,
+                            flat_locations[left].2,
+                            flat_locations[right].2,
+                            bond,
+                        )?;
+                        (bond == route.association_bond
+                            && canonical_lineage_pair(transfer.sender, transfer.receiver)
+                                == canonical_lineage_pair(
+                                    route.association_lineage,
+                                    route.ordering_lineage,
+                                )
+                            && transition.exported_heat_zeptojoules > BigRational::zero())
+                            .then_some(position)
+                    })
+                    .collect::<Vec<_>>();
+                let [source_position] = source_positions.as_slice() else {
+                    if source_positions.is_empty() {
+                        continue;
+                    }
+                    return Err(FormationError::NeuronLineageAuthorityChanged);
+                };
+                let source_conductance = compact_anatomy.contact_anatomies()[*source_position]
+                    .effective_conductance(
+                        &compact_predecessor.contact_states()[*source_position],
+                    )
+                    .map_err(FormationError::ResidentElectricalUnavailable)?;
+                let denominator = exact_to_wide(source_conductance)
+                    + &total_learned_conductance;
+                if denominator <= BigRational::zero()
+                    || learned_conductance.parts().0 <= 0
+                {
+                    continue;
+                }
+                let offered_work = &settled.transitions[*source_position]
+                    .exported_heat_zeptojoules
+                    * exact_to_wide(learned_conductance)
+                    / denominator;
+                if offered_work > BigRational::zero() {
+                    learned_motor_work_offers
+                        .entry(motor_lineage)
+                        .or_default()
+                        .push(LearnedMotorWorkOffer {
+                            ordering_lineage: route.ordering_lineage,
+                            founding_receiver_lineage: route.association_lineage,
+                            motor_lineage,
+                            founding_bond: route.association_bond,
+                            learned_bond: route.learned_bond,
+                            source_transition_position: *source_position,
+                            offered_work_zeptojoules: offered_work,
+                        });
+                }
+                continue;
+            }
             let source_candidates = settled
                 .transitions
                 .iter()
@@ -19912,7 +20012,6 @@ fn settle_internal_contact_interval(
                 if offered_work <= BigRational::zero() {
                     continue;
                 }
-                let motor_lineage = flat_locations[motor_flat].2;
                 learned_motor_work_offers
                     .entry(motor_lineage)
                     .or_default()

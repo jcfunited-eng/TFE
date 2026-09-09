@@ -8310,71 +8310,57 @@
             Some(DevelopmentalRestingPopulation::admit(1_600_000_000, 100_000, 100, &[]).unwrap());
         let mut next_lineage = 1;
         let mut fabric = ResidentElectricalFabric::default();
-        let first_terminal = BodyEffectorTerminal::new(
+        let terminal = BodyEffectorTerminal::new(
             BodyAxis::VocalTractSection0Area,
             BodyEffectorDirection::TowardMinimum,
         );
-        let second_terminal = BodyEffectorTerminal::new(
-            BodyAxis::VocalTractSection1Area,
-            BodyEffectorDirection::TowardMaximum,
-        );
-        let (first_regulation, _, _) = mount_body_regulation_fixture(
+        let (regulation, _, _) = mount_body_regulation_fixture(
             &mut cohorts,
             &mut population,
             &mut next_lineage,
             &mut fabric,
-            first_terminal.axis(),
-            first_terminal.direction(),
+            terminal.axis(),
+            terminal.direction(),
         );
-        let (second_regulation, _, _) = mount_body_regulation_fixture(
+        let (receptor, integration) = mount_receptor_local_integration_fixture(
             &mut cohorts,
             &mut population,
             &mut next_lineage,
             &mut fabric,
-            second_terminal.axis(),
-            second_terminal.direction(),
+            NeuronSourceSite::fixture_in_sense(PhysicalSourceSense::Sound, 91),
         );
-        let first_association = mount_intrinsic_neuron_at_place(
+        let association = mount_intrinsic_neuron_at_place(
             &mut cohorts,
             &mut population,
             &mut next_lineage,
             DeclaredNeuronPlace::new(7, 0),
         )
         .unwrap();
-        let second_association = mount_intrinsic_neuron_at_place(
+        let recurrent = mount_intrinsic_neuron_at_place(
             &mut cohorts,
             &mut population,
             &mut next_lineage,
-            DeclaredNeuronPlace::new(7, 1),
+            DeclaredNeuronPlace::new(9, 0),
         )
         .unwrap();
-        let sensory_only_association = mount_intrinsic_neuron_at_place(
-            &mut cohorts,
-            &mut population,
-            &mut next_lineage,
-            DeclaredNeuronPlace::new(7, 2),
-        )
-        .unwrap();
-        let associations = ReachedAssociationsByOccurrence {
-            lineages: vec![
-                vec![first_association],
-                vec![second_association],
-                vec![sensory_only_association],
-            ],
-        };
+        fabric = fabric
+            .append_contacts(&[(
+                association,
+                integration,
+                ExactRational::integer(DEVELOPMENTAL_CONTACT_CONDUCTANCE_PICOSIEMENS),
+            )])
+            .unwrap();
         let topology = ResidentTopologyIndex::build(&cohorts, &fabric).unwrap();
-        let moved = exact_moved_body_regulations_by_occurrence(
-            &cohorts,
-            &topology,
-            &[vec![first_regulation], vec![second_regulation], Vec::new()],
-            &[vec![first_terminal], vec![second_terminal], Vec::new()],
-        )
-        .unwrap();
-        assert_eq!(
-            moved,
-            vec![vec![first_regulation], vec![second_regulation], Vec::new()]
-        );
-        mount_exact_vocal_sensorimotor_routes(
+        let associations = ReachedAssociationsByOccurrence {
+            lineages: vec![vec![association]],
+        };
+        let moved = vec![vec![regulation]];
+        let reassemblies = vec![ExternallyReassembledFormationFrontierObservation {
+            formation_receipt: [7; 32],
+            cue_lineages: vec![receptor],
+            recurrent_lineage: recurrent,
+        }];
+        mount_exact_reassembled_vocal_action_routes(
             &mut cohorts,
             &mut population,
             &mut next_lineage,
@@ -8382,46 +8368,46 @@
             &topology,
             &associations,
             &moved,
+            &reassemblies,
         )
         .unwrap();
 
         let topology = ResidentTopologyIndex::build(&cohorts, &fabric).unwrap();
-        let exact_route = |association| {
-            let association_flat = topology.flat_for_lineage(association).unwrap();
-            topology.neighbours_by_flat[association_flat]
-                .iter()
-                .copied()
-                .filter(|flat| topology.layer_of(topology.flat_locations[*flat].2) == Some(11))
-                .map(|flat| topology.flat_locations[flat].2)
-                .collect::<Vec<_>>()
-        };
-        let first_routes = exact_route(first_association);
-        let second_routes = exact_route(second_association);
-        assert_eq!(first_routes.len(), 1);
-        assert_eq!(second_routes.len(), 1);
-        assert_ne!(first_routes, second_routes);
-        assert!(exact_route(sensory_only_association).is_empty());
-        assert!(fabric.contains_contact(first_association, first_regulation));
-        assert!(fabric.contains_contact(second_association, second_regulation));
-        assert!(!fabric.contains_contact(sensory_only_association, first_regulation));
-        assert!(!fabric.contains_contact(sensory_only_association, second_regulation));
-        for ordering in first_routes.iter().chain(&second_routes) {
-            let flat = topology.flat_for_lineage(*ordering).unwrap();
-            let motor_count = topology.neighbours_by_flat[flat]
-                .iter()
-                .filter(|neighbour| {
-                    topology.layer_of(topology.flat_locations[**neighbour].2) == Some(12)
-                })
-                .count();
-            assert_eq!(motor_count, 1);
-        }
+        let motor = cohorts
+            .iter()
+            .flat_map(|cohort| {
+                cohort
+                    .anatomy
+                    .mounts()
+                    .iter()
+                    .zip(cohort.anatomy.neuron_lineages())
+            })
+            .find_map(|(mount, lineage)| {
+                (mount.body_effector_terminal() == Some(terminal)).then_some(*lineage)
+            })
+            .unwrap();
+        let route = vocal_cognitive_action_route_for_motor(&cohorts, &topology, motor)
+            .unwrap()
+            .into_iter()
+            .next()
+            .unwrap();
+        assert_eq!(route.association_lineage, association);
+        assert_eq!(route.recurrent_lineage, recurrent);
+        assert_eq!(route.motor_lineage, motor);
+        assert_eq!(
+            route.association_bond.endpoints(),
+            canonical_lineage_pair(route.ordering_lineage, association)
+        );
+        assert!(fabric.contains_contact(route.ordering_lineage, association));
+        assert!(fabric.contains_contact(route.ordering_lineage, recurrent));
+        assert!(fabric.contains_contact(route.ordering_lineage, motor));
 
         let contact_count = fabric.contact_count();
         let lineage_count = cohorts
             .iter()
             .map(|cohort| cohort.anatomy.neuron_count())
             .sum::<usize>();
-        mount_exact_vocal_sensorimotor_routes(
+        mount_exact_reassembled_vocal_action_routes(
             &mut cohorts,
             &mut population,
             &mut next_lineage,
@@ -8429,6 +8415,7 @@
             &topology,
             &associations,
             &moved,
+            &reassemblies,
         )
         .unwrap();
         assert_eq!(fabric.contact_count(), contact_count);
