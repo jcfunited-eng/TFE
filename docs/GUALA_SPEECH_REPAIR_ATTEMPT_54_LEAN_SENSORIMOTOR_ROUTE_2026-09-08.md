@@ -2062,3 +2062,16 @@ anatomy, and risk runaway resource growth. It would not repair the missing
 turnover law. The next correction boundary is the existing bounded chemical
 recovery/decay and respiratory-pressure settlement, with no capacity increase,
 new population, repeated cue, or browser-side amplitude fabrication.
+
+S-065-05 post-cutover resource health: ECS independently reports task
+definition 1448 as the sole completed primary deployment with desired/running/
+pending `1/1/0`. During the first stable minutes after startup, service CPU
+settled around 43-50% average (observed maximum 60.31%) and memory around
+8.36-8.93% average (observed maximum 9.50%), with no rising memory or duplicate
+task. The native tick continued advancing. The `guala-clock-stalled` alarm
+remains in ALARM only on its unchanged 2026-09-08 13:45 UTC zero datapoint;
+its stale reason is inconsistent with the directly observed advancing native
+clock and indicates the lean runtime no longer emits the legacy log-derived
+metric. Do not treat that stale alarm as current clock truth, and do not restore
+legacy activity logging merely to silence it. Alarm repair belongs to the lean
+operations cleanup.
