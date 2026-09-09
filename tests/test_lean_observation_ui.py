@@ -91,6 +91,9 @@ def test_world_page_has_the_authorized_embodied_access_only() -> None:
         "Stop listening",
         "toggleListening",
         "lastPlayedReceipt",
+        "SPEAKER_GAIN=64",
+        "gain.gain.value=SPEAKER_GAIN",
+        "disclosed 64× speaker gain",
         "Show image",
         "Words to show as light",
         "ABC / 123 lesson card",
@@ -130,6 +133,9 @@ def test_browser_senses_keep_exact_bounds_and_no_backlog() -> None:
     ):
         assert exact_boundary in source
     assert "spectral_retinal_u8" not in source
+    assert source.index('if(!response.ok)throw new Error("HTTP "+response.status)') < source.index(
+        "const value=await response.json()"
+    )
 
 
 def test_retinal_sources_are_bounded_separate_and_user_selected() -> None:
