@@ -20501,6 +20501,7 @@ fn settle_internal_contact_interval(
                         Arc::make_mut(&mut cohort.state),
                         neuron_index,
                         &recovery_preparation,
+                        &catalysts[reached_input_index],
                     )
                     .map_err(FormationError::PhysicalSettlementUnavailable)?;
                     prepared = crate::complete_neuron::prepare_intrinsic_transduced_gate_work(

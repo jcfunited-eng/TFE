@@ -3548,6 +3548,7 @@ pub(crate) fn settle_reached_gate_recovery_demand_in_place(
     state: &mut ReachedCohortState,
     neuron_index: usize,
     prepared_gate: &crate::complete_neuron::PreparedGateIntervalSettlement,
+    zero_psi_catalysts: &[u128],
 ) -> Result<u128, ReachedCohortError> {
     let neuron_anatomy = anatomy
         .neuron_anatomies()
@@ -3557,17 +3558,59 @@ pub(crate) fn settle_reached_gate_recovery_demand_in_place(
         .neurons()
         .get(neuron_index)
         .ok_or(ReachedCohortError::AnatomyStateWidth)?;
-    let recovered = settle_resident_gate_recovery_before_interval(
-        &anatomy.recovery_fluid,
-        neuron_index,
+    let required_extent =
+        crate::complete_neuron::required_gate_recovery_extent_for_prepared_interval(
+            neuron_anatomy,
+            predecessor_neuron,
+            prepared_gate,
+        )
+        .map_err(|error| ReachedCohortError::Neuron {
+            neuron_index,
+            error,
+        })?;
+    if required_extent == 0 {
+        return Ok(0);
+    }
+    // The lane's fuel is already resident local material. Recovery consumes
+    // that fuel and retains its spent and heat products locally. Requiring the
+    // surrounding reservoir to replace every consumed quantum in this same
+    // interval made a fully fuelled gate unusable whenever the later-reached
+    // motor cohort had not participated in the earlier seed-only exchange.
+    // Fluid exchange remains a subsequent, independently bounded settlement.
+    let lane_anatomy = neuron_anatomy
+        .recovery_anatomy()
+        .lane(RecoveryLaneAddress::Gate)
+        .ok_or(ReachedCohortError::AnatomyStateWidth)?;
+    let catalyst_per_extent = lane_anatomy.stoichiometry().0;
+    let contact = anatomy
+        .recovery_fluid
+        .mounted_contact(neuron_index, RecoveryLaneAddress::Gate)
+        .ok_or(ReachedCohortError::AnatomyStateWidth)?;
+    let requested_extent = required_extent.min(contact.parts().0 / catalyst_per_extent);
+    if requested_extent == 0 {
+        return Ok(0);
+    }
+    let catalyst = requested_extent
+        .checked_mul(catalyst_per_extent)
+        .ok_or(ReachedCohortError::MaterialArithmetic(
+            "reached gate recovery catalyst overflow",
+        ))?;
+    if zero_psi_catalysts.len() != neuron_anatomy.psi_ring_count()
+        || zero_psi_catalysts.iter().any(|value| *value != 0)
+    {
+        return Err(ReachedCohortError::AnatomyStateWidth);
+    }
+    let recovered = crate::complete_neuron::settle_recovery_only(
         neuron_anatomy,
         predecessor_neuron,
-        prepared_gate,
-        state.recovery_fluid,
-    )?;
-    let settled_extent = recovered.settled_extent;
-    state.neurons.as_mut()[neuron_index] = recovered.successor_neuron;
-    state.recovery_fluid = recovered.successor_reservoir;
+        crate::complete_neuron::RecoveryContact::new(zero_psi_catalysts, catalyst, 0),
+    )
+    .map_err(|error| ReachedCohortError::Neuron {
+        neuron_index,
+        error,
+    })?;
+    let settled_extent = recovered.extent;
+    state.neurons.as_mut()[neuron_index] = recovered.successor;
     Ok(settled_extent)
 }
 

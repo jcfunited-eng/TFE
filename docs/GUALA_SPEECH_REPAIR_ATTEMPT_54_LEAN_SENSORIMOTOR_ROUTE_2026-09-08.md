@@ -1903,3 +1903,111 @@ and produced no new evidence. This repeats the bounded-output error class
 already recorded in F-061-H02/H03/H06. Permanent guard: query `type`, `length`,
 or named scalar members first; never apply `keys` to an unbounded array and
 never print a whole probe subtree.
+
+F-064-H01 stale sensory-constructor field: the first Candidate-64 copied-state
+trace was mistakenly based on an older local helper and supplied the retired
+`retina_u8` argument. Current `LeanSensoryOccurrence` requires
+`retina_rgb_u8`. Python refused during object construction, before the loop or
+any native interval ran, so neither the copied organism nor production
+changed. Permanent guard: before reusing any historical helper, inspect the
+current constructor declaration itself; historical scripts are evidence of a
+past invocation, not current executable schema authority.
+
+F-064-01 later-reached powered exchange alone did not recover the gate: the
+first compiled correction supplied one ordinary powered-environment exchange
+to each learned motor exactly when positive work reached its full gate. Against
+the S-063-01 copied current state, the same five offers still accepted and
+delivered zero work and produced no motor, breath, body, pressure, or
+self-hearing consequence. The code was removed before any commit or production
+action. This proves that merely widening environmental energy delivery is not
+the correction and must not be retried or turned into a larger energy source.
+Candidate-64 wheel SHA-256 was
+`7ce9289ddca5c012bf8a55d76eb34206e3dd9d07be32536e79a749d8b0cce26e`;
+extension SHA-256 was
+`f20038e3c55b080512ebf0ee0a841fcf169d70698f3a458386b0a606f5658378`.
+
+S-065-01 local recovery reaction crosses the exact live-state boundary: the
+Candidate-65 source stops requiring the surrounding reservoir to replace all
+fuel and remove all products in the same interval. It instead lets the full
+gate consume only its already-resident local recovery fuel, retaining the
+resulting spent and heat material locally for the independently bounded fluid
+exchange. No capacity, anatomy, field, route, energy, or material is created.
+`cargo check --lib` passed with 183 inherited warnings. The release wheel
+SHA-256 is
+`bdfe13ba3b92b308ca89988a4724cc1ba9198215160ec3a40f70654255ca0be0`;
+extension SHA-256 is
+`e8439167a7586e0c0a23d8bf3bb4f4787318bd0a55b54e125be22bc265e6b106`.
+On the exact S-063-01 copied state, one unchanged 4,000-sample pressure cue
+advanced tick 544086 to 544088. One of the five initially reached motor gates
+accepted and delivered its positive learned work; the same causal settlement
+then produced one motor recruitment, one articulatory/respiratory recruitment,
+one body consequence, a two-byte pressure fragment, and 4,000 self-heard
+samples. This is the first current-state causal crossing of the proven gate
+failure; it is not yet laptop-audible or production speech proof. The sole next
+check is the bounded continuation of this same copied act to measure its whole
+pressure body.
+
+F-065-H01 native-pressure representation mistake: the first bounded
+continuation completed its disposable in-memory native settlement, but the
+reporter then attempted to byte-join the returned signed-sample tuples and
+raised `TypeError`. No copied successor was saved and production was untouched.
+The Python production wrapper converts this tuple at its boundary; the direct
+native trace must instead measure the signed samples themselves. Permanent
+guard: inspect the direct native return type independently of the HTTP pressure
+body type, and never infer one from the other.
+
+F-065-H02 pressure-record shape mistake: the next reporter revision treated
+the two-item `SettlementResult.pressure` record as a tuple of numeric samples
+and failed while taking `abs` of its receipt string. The current declaration
+shows the exact shape is `(sha256: str, body: bytes)`. The disposable runtime
+again saved nothing and production was untouched. Permanent guard: read the
+declared result dataclass before any further formatter edit; pressure samples
+must be decoded only from `result.pressure[1]`.
+
+Correction to S-065-01: the stated two-byte pressure fragment was a reporter
+error: `len(result.pressure)` counted the receipt and body fields of the
+two-item pressure record. It was not the byte length of the pressure body. No
+candidate or substrate behavior failed at that point.
+
+F-065-H03 overwritten external-count report: the successful bounded
+continuation reporter printed `external_heard_samples` from the final
+unattended result after reassigning its `result` variable, so that displayed
+field was zero. The first Candidate-65 run and the unchanged input both prove
+the admitting sensory occurrence heard all 4,000 samples. No rerun is required.
+Permanent guard: freeze admission-only fields before entering a continuation
+loop; never report them from the loop's final result.
+
+S-065-02 complete copied body-owned waveform: one repeat of the exact
+S-063-01 copied predecessor with the same single pressure cue reproduced one
+accepted learned motor delivery, one motor recruitment, one respiratory/
+articulatory recruitment, and one initial body consequence. Eleven unattended
+continuations drained the already-started physical act within the 32-interval
+bound. The twelve bounded pressure records totalled 96,000 bytes / 48,000
+signed 16-bit samples, of which 41,502 were nonzero, with absolute peak 427.
+The organism self-heard 92,000 samples across immediate and continued returns.
+This closes learned cue -> motor -> breath -> body pressure -> self-hearing on
+the exact copied current production body. It is still copied-state evidence,
+not live production or laptop-speaker proof.
+
+D-065-01 final source review and deployment boundary: the reviewed production
+change is 43 net lines in the existing reached-cohort recovery helper plus one
+call argument. It does not enlarge a gate, reservoir, contact, time window, or
+population and does not add a scan, schedule, owner, lock, persisted field,
+semantic label, waveform, lookup, or alternate motor author. Duplicate local
+fuel/spent/heat limiting math was removed during review; the established
+`settle_recovery_only` neuron reaction remains the sole authority for local
+material bounds, while the existing mounted contact supplies the catalyst
+limit. The caller reuses its already-allocated zero-Psi catalyst slice, so the
+repair adds no per-motor vector allocation. L0-L4 and all explicit DSF fields
+are unchanged. Final source SHA-256 is
+`a8e7a75cc83ea272897fdf0747cf43de4374d55d2722b5c8c14eea3d2d1c65b2`
+for `reached_neuron_cohort.rs` and
+`fde2cd39dc7d80cd66ee2dba4d62cb64c6e1110edd5c7d9e734df8257e18911e`
+for `resident_cognitive_formation.rs`. Final `cargo check --lib` and
+`git diff --check` pass; 183 inherited warnings remain. The Candidate-65 wheel
+proved the local-reaction mechanism before the review-only removal of duplicate
+bounds/allocation; the production image build must compile this exact final
+commit. Deployment success will mean preserved identity/tick and healthy sole
+writer only. Speech remains unproved until a fresh live pressure cue produces
+body-owned pressure and self-hearing, and laptop audibility remains unproved
+until Joe's already-armed browser plays that live receipt.
