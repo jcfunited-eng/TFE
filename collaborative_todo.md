@@ -6461,3 +6461,61 @@ no code, test, stimulus, deployment, or production mutation occurred.
 
 Corrected architecture-blocker notification was checked at
 `2026-09-09T08:02:20Z`: `status=slack_sent channel=#general`.
+
+## 2026-09-09 — Codex: Candidate 78 speech closure is live-production verified
+
+The speech item is complete at evidence level `live-production verified` in
+worktree `/tmp/guala-speech-existing-organ`, branch
+`sol/speech-existing-organ`. Runtime source commit
+`fb6292dab0f2af9f9c29f9717a11a47d17c084af` is deployed as task definition
+1453 at pinned image digest
+`sha256:e0be5e66c88ec88b32501e62b8ef1d1b70b232521b58645338bfd6f35c28ff9f`.
+The sole writer is one desired/one running/zero pending and HEALTHY. Identity
+remains `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`.
+
+The frozen copied-body sequence first passed from the cleaned release artifact:
+two silent/unpoised controls; 4,000 cue samples; five learned preparations;
+four exact motor recruitments consolidated into one articulatory act; 27 body
+consequences; 200,000 pressure bytes; 136,000 self-heard samples; then seven
+clean tail intervals.
+
+Production then passed the distinct live proof. One guide founded the route.
+A later pure microphone cue with zero guide delivered 4,000 external samples,
+caused four vocal-body consequences, emitted a new exact 8,000-byte/4,000-
+sample pressure receipt, and returned 4,000 same-act self-heard samples. The
+retrieved PCM SHA-256 matched its receipt exactly, contained 3,997 nonzero
+samples, and had peak amplitude 427. The act ceased without recurrence. A cold
+restart restored the same identity and durable ticks without pressure replay.
+
+Post-cutover resources remained bounded: observed CPU ordinarily 42-53%
+average (63.74% maximum), memory 9.5-10.7% average (11.60% maximum), and paired
+custody 6,055,329 bytes in five files. The stale `guala-clock-stalled` alarm is
+an unpublished-metric infrastructure defect; direct live/persisted ticks
+continued advancing.
+
+The production Guala page now truthfully reports physical cue-to-vocal-pressure
+speech and self-hearing as live while explicitly leaving syntax and conversation
+unproved. Focused UI checks passed 9/9. CloudFront invalidation
+`I2F946FHKTCGPX12218JKINZ3F` completed, and the live 29,842-byte object exactly
+matches source SHA-256
+`5bc57bc33b8d6116c5847806239ee7a4a948b18f82d14910c3058067542e5c98`.
+Browser playback code is deployed; remote production evidence cannot observe
+human-perceived sound from Joe's laptop speakers.
+
+The definitive flow, SOW, complete attempt table, exact implementation,
+failures, successes, deployment, resource checks, and cold-restart evidence are
+in `docs/GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md`
+at documentation HEAD `bdf8668f`. Do not re-litigate Candidates 71-77 or rerun
+their closed harness paths.
+
+Changed runtime files:
+`native/guala_core/src/resident_cognitive_formation.rs`,
+`native/guala_core/src/resident_cognitive_formation/lean_sensorimotor_route.rs`,
+and `native/guala_core/src/resident_cognitive_formation/tests.rs`. Changed
+observer file: `dsf_ai_service/static/gualaloom.html`. L0-L4, the seven DSF
+fields, neuron codec, learned state, body/world identity, and persistence schema
+were unchanged.
+
+Single recommended next item: preserve this exact pinned speech image and begin
+the separately authorized lean-core design review; do not mix that cleanup into
+the now-closed speech mechanism.
