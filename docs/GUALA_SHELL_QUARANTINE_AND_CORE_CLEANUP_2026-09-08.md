@@ -2,9 +2,9 @@
 
 Date: 2026-09-08 UTC
 
-Status: active. This ledger governs the ordered work requested by Joe:
+Status updated 2026-09-09 UTC: active. This ledger governs the ordered work requested by Joe:
 permanent legacy-Python quarantine, then causal decomposition of the
-32,940-line native cognitive-formation core, then truthful virtual vision,
+formerly 32,940-line native cognitive-formation core, then truthful virtual vision,
 then autonomy and movement. Record worked and failed parts separately. A
 failure in one gate does not erase an already-proved success in another.
 
@@ -12,16 +12,18 @@ failure in one gate does not erase an already-proved success in another.
 
 1. Requested architecture: one bounded deterministic autonomous artificial
    entity behind an exceptionally lean physical transport shell.
-2. Current code reality: live task1436 boots the 308-line lean app, but the
-   reviewed default release manifest and Dockerfile still named the retired
-   Python app; the native `resident_cognitive_formation.rs` is 32,940 lines.
+2. Current code reality: live task1453 boots only the lean app and the retired
+   Python shell is quarantined. Candidate 78 has closed physical cue-to-vocal
+   pressure speech and same-act self-hearing. The native
+   `resident_cognitive_formation.rs` remains 22,998 lines and its internal
+   contact interval still allocates population-width scratch and visits the
+   complete cohort slice for a sparse reached frontier.
 3. Conflict: yes.
 4. Do not extend `dsf_ai_service/app.py`, `native_production_app.py`, old
    rehearsal/cold-restore harnesses, legacy polling/locks, or duplicate native
    authors. Historical inspection must explicitly name an immutable commit.
-5. Exact item: make the reviewed default build contain and boot only the
-   resolved lean runtime. Native-core decomposition follows only after this
-   boundary is proved and committed.
+5. Exact item: Q-C-006 removes only the population-width transient workspace
+   and full-cohort dispatch from one already-sparse internal-contact interval.
 6. Full joint seven-field L0-L4 remains authoritative, not a reduced
    approximation.
 7. Preserve D_k/M_k/R_rev_k/U_star_k/C_k/P_k/B_k, MathLoom, neurons, identity,
@@ -105,6 +107,7 @@ failure in one gate does not erase an already-proved success in another.
 | Q-S-073 | The Q-UI-002 candidate separates the latest native-world achromatic retinal field from the latest accepted camera/tutor RGB field in two bounded browser-memory slots. The selected source remains stable across later observations until Joe selects the other source; no server history, browser storage, merged field, spectral fallback, inferred scene, or substrate mutation was added. The panel grew from 102 to 220 CSS pixels and presents the exact 108 central samples above the exact 27 coarse samples with explicitly disclosed screen interpolation. Focused UI/schema checks passed 10/10. Disposable Chromium proved external remained selected across an unattended observation and world remained selected across a later camera observation, with zero final console/network errors. This is an observation-interface success only; it does not make Guala's underlying 135-site vision meaningful. |
 | Q-S-074 | Commit `6aba7b43`'s 29,759-byte Guala page is live at `https://dsf-ai.com/gualaloom.html`. S3 retained exact HTML content type and no-cache policy; CloudFront invalidation `I5LRI1HWLJL38O0LNWZGITOUTL` completed; reviewed and public SHA-256 both equal `fdb880280ebf44eaa99efb0c0a9e87d9bf07ebd253ecffeafdd6688ad54c4bee`. Live Chromium reported `Guala available`, zero final console/network errors, a 220-pixel eye canvas, both source controls, stable selection across opposite synthetic observer events, and exact identity `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1` from the live observation. A separate direct public read showed tick 539200 advancing. This closes the requested flipping-panel defect in production only; meaningful vision and speech remain failed. |
 | Q-S-075 | The required Q-UI-002 completion notice was sent through the repository notifier; the checked log reports `2026-09-08T21:22:20Z status=slack_sent channel=#general`. |
+| Q-S-076 | Candidate 78 is live-production verified on task1453/digest `sha256:e0be5e66...8ff9f`: one pure microphone cue with zero guide caused four vocal-body consequences, emitted a new exact 8,000-byte/4,000-sample pressure receipt, returned 4,000 same-act self-heard samples, ceased without recurrence, and cold-restored the unchanged identity without replay. The complete proof and separate limitations are in Attempt 54. This closes speech as Q-C-006's protected predecessor; syntax and conversation remain unproved. |
 | Q-S-048 | The regression recovery removes two active authors while preserving state: the rejected parallel receptor-preparation change is returned exactly to commit `877985f2`, and the later 810-port six-band retina is removed from both primary and body-return transitions. The established 135-site retinal episode still co-carries sight, both ears, touch, smell, taste, temperature, body position and effector load on one shared 250-ms clock; browser RGB is deterministically projected onto those same learned achromatic receptors. The two spectral modules remain in repository history but are absent from the reviewed production import closure. Direct motor/sensory/UI checks passed 16/16; exact manifest-closure and three shell-quarantine checks passed 4/4. This is source evidence pending live measurement. |
 
 ## Failures and recurrence guards
@@ -201,6 +204,8 @@ failure in one gate does not erase an already-proved success in another.
 | Q-F-088 | The first disposable Chromium run completed every retinal-source stability assertion, then the harness rejected a 404 for its own absent local lesson-card route. The corrected harness served the existing exact card and passed with zero console/network errors. A trailing shell diagnostic then assumed the absent `file` utility after browser success. | Do not classify either as a UI failure or rerun the browser proof. Local UI servers must map the existing curriculum-card directory, and diagnostic utilities must be guarded with `command -v` under RF-063. |
 | Q-F-089 | The first live-browser report read the closed raw-evidence panel through rendered `innerText`, so it printed `identity_present: False` although the public API directly held the unchanged identity. | Read collapsed bounded evidence through DOM `textContent`, make the exact identity a hard assertion, and rerun only that read-only browser check. The corrected check passed Q-S-074; no production or organism change was made. |
 | Q-F-090 | A cleanup command tried to remove the explicitly enumerated disposable `/tmp` browser and Q-C comparison artifacts after measuring them; the execution safety layer rejected the command before any path changed, and no recoverable trash utility exists in this environment. | Do not bypass the safety layer. The approximately 1.24 GB remains isolated outside the repository, image, ECS task, EFS custody, and production storage; report it as host-temporary residue rather than production bloat. |
+| Q-F-091 | Q-C-006 preflight repeated the already-recorded root-script assumption by calling absent worktree path `scripts/require-guala-root.sh`; no source, organism, or production state changed. | Resolve the script with `rg --files` first and invoke only `/root/.codex/skills/guala-project-truth/scripts/require-guala-root.sh`. The corrected check returned exact root and HEAD `40578579...`. |
+| Q-F-092 | The first read-only cadence sampler used jq variable name `$end`, which conflicts with jq syntax; both observations completed but the reporting expression failed and retained no result. | Use non-keyword `$finish_ns`; the corrected unchanged sampler measured task1453 advancing 576013 -> 576017 in 9.035632128 seconds, or 2.258908032 seconds per observed tick. This is a harness-expression failure, not an organism failure. |
 
 ## Deployment attempts
 
@@ -437,3 +442,61 @@ proof that both selected sources remain stable across the opposite event, zero
 final browser console/network errors, exact S3/CloudFront publication hash,
 and live page verification. Q-S-073 closes the local source/browser gates.
 Meaningful organism vision remains failed and outside this observer correction.
+
+### Q-C-006 — sparse reached-cohort interval workspace
+
+Production baseline is the accepted Candidate 78 task1453, runtime commit
+`fb6292dab0f2af9f9c29f9717a11a47d17c084af`, immutable image
+`sha256:e0be5e66c88ec88b32501e62b8ef1d1b70b232521b58645338bfd6f35c28ff9f`,
+and identity `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`. Q-S-076 keeps speech
+closed. A read-only current cadence sample advanced tick 576013 -> 576017 in
+9.035632128 seconds, 2.258908032 seconds per observed tick. This turn advances
+the cleanup ledger; it does not reopen speech, shell quarantine, checkpoint
+cadence, retinal design, or previously rejected Q-C-002/Q-C-003/Q-C-005 ideas.
+
+Exact input and complete path: one authenticated current body and one ordinary
+coexisting 250-ms sensorium reach a sorted sparse set of neuron flats and
+cohorts; scheduled or incident contacts settle once; each selected cohort
+receives its exact shared full-DSF perspective and neuron-local Psi/gate/
+membrane consequence; motor/body consequences and self-hearing remain in the
+same transaction; the successor crosses encoding, paired custody, current-only
+cold restore, and bounded observation.
+
+Current defect: `settle_internal_contact_interval` derives a sparse sorted
+`selected_cohort_indices` set, then allocates several containers at
+`cohorts.len()`—selected predecessors, selected members, pump members,
+nutrition shares, and local-contact results—and zips the later parallel
+settlement across every resident cohort. These transients represent neither
+physical anatomy nor custody. Their work scales with all 1,895 resident
+cohorts even when only a sparse frontier is reached. This is distinct from
+Q-C-002's rejected resident-width carrier arithmetic, Q-C-003's rejected
+serial energy census, and Q-C-005's rejected Rayon pump-job chunking.
+
+Frozen correction law: preserve the exact sorted selected cohort indices and
+all existing per-neuron/per-contact laws. Store predecessor neurons, selected
+members, pump members, nutrition shares, and local contact successors only for
+the cohorts in that sparse set (plus the single separately mounted respiratory
+cohort when physically due). Obtain disjoint mutable references to those
+sorted cohorts through safe slice partitioning and dispatch only those exact
+cohorts in parallel. Preserve original cohort order, member order, shared-field
+coordinate order, mutation/commit order, all error boundaries, and every
+current result type. Add no cache, queue, lock, owner, threshold, field
+reduction, state field, codec version, or Python authority.
+
+Authorized files are
+`native/guala_core/src/resident_cognitive_formation.rs`, its existing colocated
+tests only if a direct sparse-workspace falsifier is required, and this ledger.
+L0-L4, full DSF, MathLoom, Psi/Krimelack, neuron/contact physics, learned
+speech routes, body/world code, Python transport, persistence schema, and UI
+are unchanged.
+
+Acceptance: source review must prove only selected cohort indices can enter the
+new workspace and that no mutable cohort is aliased. Existing contact,
+changed-endpoint, shared-field/restart, recurrent-formation, and exact vocal
+route tests must pass. Baseline and candidate must independently restore the
+same authenticated production body under the same exact input and produce the
+same causal receipt, counts, body/world successor bytes, pressure, self-
+hearing, encoded body, and next ordinary interval. The candidate must materially
+reduce transient cohort entries and must not regress wall cadence. Only then
+may one immutable image replace task1453 and undergo identity, speech,
+cessation, restart, CPU, RAM, storage, and one-writer verification.
