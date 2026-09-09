@@ -3325,3 +3325,120 @@ validation inventory once.**
 
 Documentation completion notification was checked at
 `2026-09-09T06:05:01Z`: `status=slack_sent channel=#general`.
+
+## C1 review of the definitive speech body — adopted and corrected (2026-09-09 UTC)
+
+Evidence class: Claude's text is an architecture-review proposal only; it
+changed no code or organism. This disposition compares it with the deployed
+source, Attempt 47I's conservation record, Candidates 58 and 70, and the
+Candidate 74 chronology. No candidate, compile, test, stimulus, deployment, or
+production mutation was performed for this review.
+
+### What is adopted
+
+1. Action founding must be coupled to the exact completed cue-founded
+   reassembly transition in the same physical settlement. Standing or recurrent
+   frontier membership cannot grant permission to act.
+2. The preparation may contain only work that physically arrived through that
+   route in that interval. An absent learned route yields zero preparation, and
+   its work varies with the actual source work and retained learned-contact
+   conductance rather than a constant.
+3. The speech-authority slice alone is extracted. No general monolith cleanup
+   may enter the speech candidate.
+4. The frozen acceptance sequence gains an explicit pre-cue baseline on the
+   authenticated mature body: zero standing learned vocal preparations, zero
+   vocal motor/articulatory recruitment, no pending body pressure, and no new
+   pressure receipt immediately before the one cue. This directly prevents the
+   Candidates 58/70 poised-act error.
+5. Current wall-clock interval burden must be measured and brought inside the
+   already-ratified live cadence before final speech delivery. This remains a
+   separate performance requirement and cannot select or alter cognition.
+
+### Necessary correction: source/donor debit is not missing
+
+The proposed review says Candidate 74 consumed work only on the motor side and
+that donor debit is the missing law. Current source and Attempt 47I contradict
+that literal statement:
+
+- `LearnedMotorWorkOffer` identifies the exact L7/L11 source-transition
+  position and derives its offer from that transition's existing exported
+  work, weighted by the retained L11/L12 conductance.
+- `LearnedSourceWorkDebit` is created from the motor's actually consumed source
+  work in the same settlement.
+- After all cohort settlements join, the debit is subtracted from the exact
+  source transition's `exported_heat_zeptojoules`; it cannot exceed that source
+  work.
+- Before this transduction, the underlying L7/L11 electrical transfer already
+  changes endpoint membrane charge and the contact's persisted successor
+  channel/work-phase state. Thus donor-side physical transfer and source-heat
+  conservation are both present; accepted work is not merely removed from a
+  motor store.
+
+The active implementation of these facts is in
+`resident_cognitive_formation.rs` around `LearnedMotorWorkOffer`,
+`LearnedSourceWorkDebit`, offer construction, and the final source-debit commit;
+the underlying contact/material law is in
+`sparse_electrical_contact.rs:settle_contact_local_conductance`. Attempt 47I
+explicitly records: “Accepted work is debited from the source transition's
+exported heat in the same settlement.”
+
+Candidates 72-74 therefore did not repeat because one source event remained
+undeleted. They repeated because later recurrent intervals produced new
+physical transfers which the broadened standing-frontier rule again treated as
+new permission to speak. Adding another donor debit would either double-charge
+already conserved work or require a formation-owned work store/flag that does
+not exist in the ratified architecture.
+
+The governing amendment to SOW-SPEECH-01 is therefore:
+
+> Found one transient action preparation only from the exact cue-caused
+> reassembly transition and its same-interval L7/L11 work. Reuse the existing
+> donor/source debit exactly once; do not add a second debit. A later recurrent
+> transfer is ineligible merely because it recurs. It becomes eligible only
+> through a new causally completed action-founding event carrying new physical
+> work. If source review instead proves that the same physical transfer can be
+> replayed because its membrane/contact successor was not committed, correct
+> that missing physical commit rather than adding a flag or energy store.
+
+Claude's proposed fingerprint “no cue -> zero preparations ever” is too broad
+for an autonomous entity: an internally originated thought must eventually be
+able to found speech without an external cue. For this repair's external-cue
+acceptance experiment, however, the bounded pre-cue baseline must be silent and
+unpoised; an internally caused vocal act belongs to a separately proven
+autonomy chronology with its own causal founder.
+
+### Interval-burden correction
+
+The cited 20.663510-second occurrence belongs to historical task 1440. Later
+accepted work reduced copied-current native intervals to approximately
+0.481-0.627 seconds and live task-1446 wall response to 2.492687 seconds; a
+fresh exact task-1452 live cadence is not recorded here and must be measured
+before final delivery. The internal contact physics uses the explicit
+`WORLD_MECHANICAL_TICK_MICROSECONDS = 1,000`, while sensory sound retains its
+protected 250-ms source clock. Computation taking longer in wall time does not
+rescale those depletion/recovery equations. It does delay real external
+perception and unattended scheduling because `lean_actor.py` schedules the
+next occurrence only after the preceding settlement completes. Therefore slow
+cadence is a serious usability/autonomy failure and a final speech gate, but a
+copied-body causal result remains interpretable when its exact physical clocks
+are preserved.
+
+### New recorded harness failure
+
+`F-054-AUDIT-H02`: this review first invoked `scripts/require-guala-root.sh`
+from the shared checkout without resolving the script's actual installed skill
+path. The shell refused before the subsequent reads ran. No repository or
+production state changed. The corrected command used
+`/root/.codex/skills/guala-project-truth/scripts/require-guala-root.sh` and
+verified active root `/tmp/guala-speech-existing-organ` at commit `15eee8db`.
+Permanent rule: resolve the script path with the installed skill inventory;
+never assume a repository-relative copy exists.
+
+### Final review verdict
+
+The definitive body of work is accepted with the event-coupled founding and
+pre-cue-baseline amendments above. The donor-debit addition is rejected as
+stated because that conservation path already exists. No speech implementation
+is authorized by this review. The single next design item remains the small
+typed action-founding boundary, with the existing source debit preserved and
+proved rather than recreated.
