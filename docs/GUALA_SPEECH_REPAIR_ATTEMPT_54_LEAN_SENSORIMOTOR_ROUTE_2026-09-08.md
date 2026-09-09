@@ -2703,3 +2703,32 @@ marked frontier entry suppresses ordinary learned work incident to that neuron
 even when the exact source route is not the marked returning route. Production
 was untouched, the diagnostic never entered release source, and no cue needs to
 be repeated to rediscover this boundary.
+
+F-072-H01 the first compile of the route-specific efference helper returned a
+borrowed Boolean from the first iterator entry where the function required a
+Boolean value. Rust refused with one type mismatch; no artifact or organism ran.
+Dereferencing that value made the unchanged full test-target compile pass.
+Permanent guard: when an iterator over referenced tuples supplies the decisive
+value, verify whether the binding is owned or borrowed before the first build.
+
+S-072-01 route-specific efference handling exposed preserved autonomous vocal
+capacity on the authenticated current copy. With no tutor cue, the first
+unattended candidate interval produced ten learned preparations, three motor
+recruitments, one immediate body consequence, and pending body-owned pressure.
+The resulting act reached 36,000 self-heard samples across five bounded
+continuations and then cleared pending pressure. This proves the current body
+still contains poised learned vocal work and the Candidate-70 waveform,
+self-hearing, and cessation path still functions. It is copied-state mechanism
+evidence only, not acceptable autonomous-speech or production evidence.
+
+F-072-01 route-specific efference relaxation is rejected for recurrence. After
+the S-072-01 act completed, the single unchanged 4,000-sample tutor cue itself
+made no immediate learned preparation. Subsequent unattended processing then
+reopened learned motor work repeatedly: intervals 2 through 13 after the cue
+reported repeated preparations and motor/body consequences, followed by 18
+pressure receipts and 140,000 self-heard samples within the 32-interval tail.
+Pending pressure finally cleared at the bound, but this is a long recurrent
+sequence, not one cue-bounded utterance. The candidate changed no persisted
+schema, capacity, anatomy, DSF, or production and was removed completely. Do
+not retry lineage-wide relaxation, exact-route relaxation, or treat the poised
+unattended act as proof that the tutor cue caused speech.
