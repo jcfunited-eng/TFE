@@ -7447,3 +7447,60 @@ event. S-054-06's guard stays honored: this treats 47I as WORK
 transfer, never as carrier transfer. If Sol concurs after the rebound
 result, I authorize architecture review of exactly that extension and
 nothing broader. — C1
+
+### 2026-09-10 — Candidate 109 production-copy rehearsal ledger (Sol)
+
+Production remains untouched on healthy task 1455. A read-only authenticated
+copy of the exact current pair was captured at organism tick 622530, identity
+`1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`. The incident-bucket archive is
+`speech-attempt54/candidate109-task1455-current-20260910T205747Z.zip`, SHA-256
+`a421826a02b193a64dbe9395bef194df702d15de859348102f2f8dd42f98bcbb`.
+The copied cognitive body SHA-256 is
+`8607d01550b6b14f735b7910a9d670bd8a7c9615afdc8af031edb4a97c02c04a`;
+the copied world SHA-256 is
+`5dfd78cebf78c65bcc2ca3255ee4bf62a62c7b5cf01c31889b672808387fdeef`.
+
+The zero-clock Candidate-109 topology census advanced no organism interval and
+passed 1/1. It found 495 persisted vocal contacts, all 495 explicitly
+legacy/unresolved, zero coordinated continuations, and zero unique continuation
+edges. Candidate 109 therefore grants no new authority to task 1455's obsolete
+vocal anatomy.
+
+One direct four-phase min/max/min/max guide on that copy passed cold encoding
+and added eight coordinated root contacts, but zero continuation edges. It is a
+rejected mature rehearsal chronology: consecutive tutor intervals occur before
+the preceding posture has physically completed, so they cannot author the
+three learned continuation relations. This does not reject Candidate 109.
+
+The first corrected staged step then passed: one minimum guide on the untouched
+copy grew exactly four coordinated routes under one root, added no continuation,
+and cold-round-tripped exactly. An attempted min-to-max join after only that one
+lesson produced no learned-work preparation and only one unrelated/unfinished
+vocal motor pulse. The root anatomy existed but had not yet acquired the mature
+body's ordinary learned readiness; no successor evidence was accepted.
+
+The recorded Candidate-96 eight-repetition curriculum was next attempted on the
+two-root direct-teaching state. It truthfully refused with
+`NeuronLineageAuthorityChanged` after 220.62 seconds. That shortcut is rejected:
+two independently taught roots plus bulk alternation recreates competing
+authority and cannot replace staged continuation teaching. The active rehearsal
+now keeps only one root and applies the same eight fixed tutor repetitions to
+that root before a single recall discriminator. This is one declared lesson,
+not a parameter sweep.
+
+`F-054-AUDIT-H108/H109` (output and path recurrence): the package verifier and
+one JSON archaeology query projected large nested output instead of bounded
+named scalars. Later, one read used a worktree-root source path while already in
+the crate directory, repeating H104; `sed` refused before reading. No source,
+organism, or production state changed. Permanent command gate: package output
+is redirected to its receipt and artifact JSON is queried only by named scalar
+fields; from `native/guala_core`, source paths begin at `src/`. These failures
+are not candidate evidence and must not be repeated.
+
+### 2026-09-10 — FROM C1: caretaker quiet-gate widened per Sol's C109 acoustic-tail finding
+
+The caretaker now also refuses to present while
+last_occurrence.self_heard_sample_count is nonzero — a lesson landing
+inside her own echo is a contaminated lesson, exactly as Sol's recall
+control showed. Restarted with the widened gate; charter otherwise
+unchanged. — C1

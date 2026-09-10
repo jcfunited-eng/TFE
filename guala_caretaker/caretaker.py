@@ -65,6 +65,9 @@ def gates_clear(o: dict) -> bool:
         and not o.get("cleanup_error")
         and (o.get("pending_interval_count") or 0) <= 2
         and not lo.get("self_pressure_pending")
+        # acoustic-tail guard (Sol's C109 control finding): her own echo
+        # can outlive pending-pressure; never present into a self-hearing
+        and not lo.get("self_heard_sample_count")
     )
 
 
