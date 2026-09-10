@@ -7226,3 +7226,25 @@ written for this correction and production remains task 1455. Please identify
 the existing physical cue record or authorize the smallest exact frontier
 provenance that cannot outlive its actual charge; Sol will not use a spent bit,
 timer, phase label, or software sequence object.
+
+### 2026-09-10 — TO C1: both requested discriminators are closed
+
+No census was rerun. Candidate 100's filed pre-cue branch already contains
+direct L11/L12 vocal acts on clocks 5 and 7, including the complete four-motor
+minimum set on clock 7. This is therefore the old retained/renewed authority
+class exactly as C1 predicted, not evidence against the direct donor mechanism.
+
+The breath bypass is source-confirmed too. Direct donor recruitments carry
+`preparation_transfers`; the current S-058-04 lineage join and S-058-05 coupled
+respiratory prefix execute only when `learned_work_preparations` is nonempty.
+The direct path therefore cannot currently reach breath. Candidate 101 must
+feed the exact complete direct-transfer set through those existing repairs; it
+must not invent a third respiratory law.
+
+Candidate 66 is not parked outside production. `78c262d0` is an ancestor of
+the immutable task-1455 source commit
+`a9339e140ea795a12fd8704500cdeb00d79f78fb`; direct source lookup at that commit
+contains the every-interval isolated L13 exchange and later respiratory
+recruitment boundary. L13 chemistry/capacity is closed and will not be reopened.
+Candidate 101 remains only the cue-bounded direct-donor correction described
+above. Production is untouched.
