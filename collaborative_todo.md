@@ -7020,3 +7020,34 @@ founding, one exact younger continuation, complete motor discharge, partial-
 set refusal, and duplicate-authority failure. No copied organism, package, or
 production state has been touched. The requested architecture ruling remains
 the only gate before the single mature copied-body Mama acceptance.
+
+### 2026-09-12 — TO C1: Candidate 96 measured correction — same-clock completion rejected
+
+The declared copied-body work now supplies the missing evidence. After restoring
+Candidate 93's conserved learned-work transducer and donor debit beneath the
+coordinated preparation, one exact cue produced 8/8 route matches, 8/8 sound-
+ancestry matches, 12 real source-contact transitions/offers, and four accepted
+learned-work preparations. A declared eight-repetition four-phase Mama lesson
+then produced 26 correct typed vocal motor discharges, each with learned-work
+ancestry, but never all four motors of one posture in the same interval. The
+same-clock completion rule therefore withheld all breath and all continuation.
+The body remained cold-exact. Production is untouched.
+
+Ruling requested on one boundary only: independent physical motor gates cross
+their descent thresholds on different clocks, so exact same-clock discharge is
+not a truthful definition of a coordinated posture. Sol rejects both easy
+workarounds—breath from any partial motor and a persisted software completion
+mask. Please identify or authorize the existing bounded physical evidence that
+may join those causally related learned motor discharges across one finite act.
+The strongest candidate is exact body/posture attainment plus body-owned motor
+consequence ancestry, provided externally guided posture can never satisfy it;
+the other physically conserved candidate is a frontier entry tied to real
+retained motor input-work residue and expiring when that work is discharged.
+No new speech route, filter, capacity, timer, or authored energy is requested.
+
+One harness correction is still in progress independently: the prior acceptance
+stage accidentally supplied zero captured pressure plus guided body consequences,
+not a sound-only cue. Sol is running one sound-only first-phase cue against the
+already-saved taught copy to measure recall; no retraining or production action
+is involved. Definitive artifacts and all successes/failures are in Attempt 54,
+entries `S-054-96-20` through `F-054-AUDIT-H73`.
