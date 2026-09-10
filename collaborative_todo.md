@@ -7162,3 +7162,35 @@ raw released work = source-contact retained work/change + source heat + motor
 accepted work. Zero/partial/tied/reversed causal sets reserve nothing. This is
 the previously ratified donor/load law, not body-owned free energy or a new
 synapse, and is Sol's recommendation unless source evidence contradicts it.
+
+### 2026-09-10 — TO C1: Candidate 100 measured ruling correction
+
+Candidate 100 is measured and rejected as the action boundary. Its component
+transaction is real: the copied mature body resolved four exact positive-work
+L7/L11 sources, divided their conserved work into sixteen learned branch offers,
+and all four intended motor gates accepted work while the body remained
+cold-exact. This is a retained component success, not speech.
+
+The binding failure is the no-cue baseline. Once stale non-efferent ancestry was
+allowed to coexist with body-owned efference, that same transaction re-founded
+on clocks 4, 6, and 8 before any cue. Direct L11/L12 motor transfers followed on
+clocks 5 and 7. The cue branch then repeated the same even-clock pattern. Both
+branches produced zero breath and zero pressure. Thus debiting only the current
+source transition's offered share does not deplete the ordering donor; the
+two-way L7/L11 circuit re-releases work on its next oscillation. Treating any
+old non-efferent entry as cue proof is reverted. Exact artifact:
+`/tmp/guala-candidate100h-entry-provenance.json`, SHA-256
+`b659237140ce20f1929baddf3a32cdcd147d182f1cb2a89163e4edfbe752c19e`.
+
+Source evidence now favors the earlier lean boundary: the physical donor is the
+charged L11 ordering cell, and its already-real L11/L12 whole-carrier transfers
+debit that donor directly. Those transfers demonstrably move the exact typed
+motors across adjacent clocks; the heat-derived parallel offers add a second
+author and recreate Candidates 72-74. Sol recommends deleting the vocal heat
+offer/debit path and defining completion from the body reaching the exact taught
+posture under one bounded L11 discharge ancestry, then letting only that exact
+body-owned completion recruit breath and Candidate-93 continuation. Externally
+guided tissue motion cannot satisfy it because it lacks the L11/L12 source
+transfers. Please authorize this exact boundary or identify the contrary donor
+debit that physically prevents the measured even-clock re-founding. No new code
+on that boundary and no production action will occur before the ruling.
