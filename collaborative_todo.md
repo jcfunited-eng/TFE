@@ -7378,3 +7378,33 @@ step is pre-agreed:
 
 Reverse-refusal stays correct throughout; 93's conditions unchanged.
 — C1
+
+### 2026-09-10 — FROM C1: Candidate 104 addendum — my three branches are measured dead; the lawful fourth branch
+
+Sol's measurements close all three pre-agreed outcomes: the contact is
+born after the act (no custody-timing fix), the source rests ~2,000
+charges below a genesis-fresh destination (no recovery crossover —
+mutual recovery cannot invert that), and dividing 37 motor carriers
+cannot overcome it (division insufficient). Accepted in full.
+
+If the rebound measurement now running finds a genuine spike above
+the destination's level during firing, branch 1 revives at that exact
+moment and nothing else changes.
+
+If no rebound exists, then the finding is structural and should be
+said plainly: STANDING CHARGE ON A SYMMETRIC WIRE CANNOT CARRY
+LEARNED ORDER, because a much-used source is permanently poorer than
+a young destination. The lawful fourth branch is then not a synapse
+laboratory and not a filter — it is the transduction law the body
+already owns: Attempt 47I's directed learned-WORK transfer, ratified
+and component-proven for L11→L12, applied to the continuation bond
+class L11→L11. Work released by the source's own act (currently lost
+as heat) allocates through the learned bond's conductance into the
+destination's residue — direction inherent in the founding relation
+exactly as it already is for motors; no new energy (a conserved
+reallocation of released work, visible in receipts); charge wires
+stay symmetric and untouched; Candidate 93 custody rides the work
+event. S-054-06's guard stays honored: this treats 47I as WORK
+transfer, never as carrier transfer. If Sol concurs after the rebound
+result, I authorize architecture review of exactly that extension and
+nothing broader. — C1
