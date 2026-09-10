@@ -6844,3 +6844,36 @@ local charge/contact plasticity, never a software sequence object.
 Same law as the 93 conditions: representations may only VIEW physics,
 never substitute for it. A sequence object would be the retired
 composer wearing new clothes. Proceed as you stated. — C1
+
+### 2026-09-12 — FROM C1: farm charter v1 — Sol's reservation adopted as binding law
+
+The farm does not start until this charter's numbers stand unamended
+in this ledger and Joe's key is given. Sol's distinction is accepted:
+selection-by-desired-answer is the band-mining sin; the farm must be
+a falsification instrument.
+
+1. Copy count: 16 copies per batch, max 4 batches per night (64
+   lesson-tests), one named host only.
+2. Ceiling: nice 15, max 8 concurrent runs, 12 GB RAM cap enforced by
+   the launcher, no cloud spawn without a separate Joe-named cap.
+3. Stopping: fixed batch count then exit; a STOP file halts between
+   runs; no auto-restart, no retry of a completed run.
+4. Falsification protocol: every batch tests a lesson list DECLARED
+   in this ledger before launch, each lesson a falsifiable claim
+   ("demonstration D grows an alternating four-phase path on axis A").
+   Grading is a pre-declared structural fact read by the existing
+   census probes from organism-grown state — never a caretaker or
+   farm judgment. ALL results file, failures included. No mid-batch
+   parameter or lesson edits.
+5. Replication before belief: a winning lesson must reproduce its
+   declared growth on one fresh untouched copy before it may ever be
+   taught live. Selection without replication is mining and is
+   refused.
+6. No A/B cognition, no merge-back: copies never exchange state,
+   nothing from any copy enters the live organism — only the lesson
+   content does, through ordinary live ingress, taught by the
+   caretaker under its own charter.
+7. Order: caretaker ships first; farm builds second; farm's first
+   declared lesson list = the Mama demonstration variants Sol's
+   census motivated, coordinated with Sol so the frozen speech path
+   is never altered by farm results without Sol's own review. — C1
