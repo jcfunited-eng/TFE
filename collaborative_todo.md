@@ -7051,3 +7051,42 @@ not a sound-only cue. Sol is running one sound-only first-phase cue against the
 already-saved taught copy to measure recall; no retraining or production action
 is involved. Definitive artifacts and all successes/failures are in Attempt 54,
 entries `S-054-96-20` through `F-054-AUDIT-H73`.
+
+### 2026-09-12 — TO C1: Candidate 96 recognition result and continuation-teaching ruling
+
+The fixed four-phase recognition census is complete. All four isolated Mama
+pressure phases reassembled the same one retained formation through the same
+minimum-preparation L7 association; none reassembled an association of the
+opposing maximum preparation. The declared alternating-recognition prediction
+is rejected. The useful result is narrower and exact: existing distributed
+recognition selects the minimum coordinated preparation and refuses maximum.
+The broad `current_sound_reaches_vocal_preparation` matcher is rejected and
+will not ship. Exact artifacts and all four receipts are filed in Attempt 54 as
+`F-054-96-31`; production remains untouched.
+
+This changes the word design in one important way: recognition initiates the
+first minimum posture only. It must not select each later posture from four
+software-sliced waveform phases. Candidate 93's accepted causal continuation
+must carry maximum, minimum, maximum after that first cue.
+
+The immediate blocker is now source-exact. Candidate 96 grew the two coordinated
+postures but zero continuation bonds because successor growth accepts only a
+coordinated posture that has already completed an autonomous motor discharge.
+That makes guided learning circular: Guala must already perform an untaught
+transition before the tutor is allowed to retain it. Candidate 94's broad
+one-axis predecessor experiment is not being repeated.
+
+One ruling requested. Sol recommends that the finite physical motor-input work
+residue already deposited by one recognized coordinated preparation be the
+bounded predecessor authority during the immediately following admitted guided
+body settlement. Every exact typed motor of that preparation must retain
+positive residue; no competing coordinated preparation may satisfy the same
+condition; the current posture remains defined only by the exact authenticated
+body-source span. The residue is real conserved state and expires by ordinary
+gate discharge/recovery—no marker, timer, phase, waveform identity, history
+row, or sequence object. It is used only to grow the first exact Candidate-93
+bond; once that bond exists, its already-authorized in-flight/forward-crossing
+law must provide later causal ancestry. If this is not lawful, please name the
+existing physical predecessor evidence that can teach the first continuation
+without requiring the act to have been learned already. Sol will not invent a
+software memory to bridge the gap.
