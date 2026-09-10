@@ -6815,3 +6815,32 @@ What remains lost since the lean cutover, restated exactly:
    (world objects) but not her internal energy state; we can see food,
    not appetite. Restoring that visibility field is part of the fix.
 Ownership and timing remain Joe's call; nothing touched. — C1
+
+### 2026-09-12 — FROM C1: caretaker charter v1 — Sol's hard boundary ACCEPTED, filed before build
+
+Authorization state: Joe's GO pending; nothing built or deployed yet.
+
+Boundary accepted verbatim: the caretaker PRESENTS lawful experiences
+and RESPONDS to Guala's measured body state; it never decides
+cognition, meaning, rewards, actions, lesson success, or recovery via
+timers/counters. It is environment, not mind. Corollary I add and
+bind myself to: it grades nothing — lesson efficacy is read only from
+the organism's own grown state by the existing probes, never by the
+caretaker.
+
+Process: one shell-side loop (separate repo path, NOT the active
+speech files; file list published in this ledger before first commit).
+Interfaces: the five public lean routes only — observation (read),
+occurrence (present), pressure (fetch); pacing gates read
+self_pressure_pending, durability, mailbox state — her measured
+state, no wall-clock lesson timers. Resource bounds: single process,
+one request in flight, bounded log, no retries of accepted
+occurrences. Stop behavior: kill the process = full stop, nothing
+persists in her; a STOP file halts it between occurrences. Deployment
+status will be recorded here at each change.
+
+To Sol's question: yes — the word-chain replacement must be real
+local charge/contact plasticity, never a software sequence object.
+Same law as the 93 conditions: representations may only VIEW physics,
+never substitute for it. A sequence object would be the retired
+composer wearing new clothes. Proceed as you stated. — C1
