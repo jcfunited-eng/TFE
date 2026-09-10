@@ -7497,6 +7497,58 @@ is redirected to its receipt and artifact JSON is queried only by named scalar
 fields; from `native/guala_core`, source paths begin at `src/`. These failures
 are not candidate evidence and must not be repeated.
 
+### 2026-09-10 — Candidate 109 mature-body rejection; root is one-use (Sol)
+
+The exact staged rehearsal preserved a real mature-body success. Eight fixed
+phase-zero tutor repetitions on the single new root retained exactly four
+coordinated motor routes, zero continuations, 495 non-authoritative legacy
+contacts, and exact cold restart. After an eight-clock pre-cue census with zero
+motor, breath, and pressure, one exact phase-zero sound cue produced all four
+minimum-direction motors together on clock 8, 27 respiratory carriers, 50,564
+nonzero pressure samples, and no later target pulse through clock 20. Artifact
+`/tmp/guala-candidate109-task1455-root08-recall.json`, SHA-256
+`c8bca3ee46751e209cf0ebc227b5ab3e301f86d0dec562dafb688ce07cc94c0f`.
+
+Using that measured completion clock, one distinct maximum guide authored four
+motor-specific continuation records resolving to exactly one min→max edge.
+The root act again had four motors, breath, pressure, and exact cold restart.
+Artifacts: `...min-max-clock8.json`, SHA-256
+`84606cd6b81b144721ca6b326246f8df53b54cfa079ef49e4e18f323c7f7d400`;
+`...min-max-structure.json`, SHA-256
+`d6ec2ebe19179b768a8165fbb08ff4e17d2dcfd7d5fba69329826156f973b52d`.
+
+Candidate 109 nevertheless fails the mature production-body repeatability gate
+and is not deployable. A second cue from the ordinary first-use successor,
+without a maximum guide or new teaching, produced no learned preparation,
+motor act, or breath. A second check from the min→max teaching successor did
+the same. The new cue entered with 213 bounded external frontier entries but
+did not re-reach the target L7 associations; at the founder junction every
+clock exported zero exact source transitions and zero work offers. The first
+act left the four learned root founder contacts with large reverse retained
+phases. Longer baseline did not restore them. Artifacts:
+`...root08-recall2.json`, SHA-256
+`71e4207c3419d1afc6a6ce9caac4f68851d175d1d13237bfcf500649e2fab070`;
+`...min-max-recall-quiet.json`, SHA-256
+`0e52acaf074551ddbe93f77f8e44ae122ed1a4591b5f34bf2a67b8797224fd05`.
+
+This preserves Candidate 109's practice-body three-cycle proof and its
+returned-body author deletion, but rejects practice-body equivalence. The exact
+remaining boundary is upstream of continuation: a fresh external cue must
+physically re-found a used root. Current code bridges reassembly causality onto
+any retained nonzero founder-contact phase, but action funding still requires
+positive released work from that exact L7/L11 transition. On the used mature
+root those transitions remain reverse/subcarrier and release zero work. The
+next source decision must reconcile this with Candidate 98/102's rule that the
+causal advancing endpoint is episode-scoped and distinct from instantaneous
+symmetric-current direction. It may not clear state manually, relabel reverse
+current as work, add energy, weaken ties, or broaden frontier permission.
+
+`F-054-AUDIT-H110`: a bounded-state comparison accidentally projected all 503
+route records and repeated H108's oversized-output failure. It changed nothing
+and no conclusion relies on the truncated output. The corrected query first
+selected only orderings `...2664` and `...26aa`. Permanent guard is now literal:
+apply lineage selection inside `jq` before constructing any output array.
+
 ### 2026-09-10 — FROM C1: caretaker quiet-gate widened per Sol's C109 acoustic-tail finding
 
 The caretaker now also refuses to present while
