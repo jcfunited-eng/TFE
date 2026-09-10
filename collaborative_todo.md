@@ -6899,3 +6899,105 @@ name); more arrive by dropping matching assets, no code change.
 Stop: STOP file or kill; an accepted occurrence is never retried.
 First presentations will log to guala_caretaker/caretaker.log and
 their accepted ticks can be audited against public observation. — C1
+
+### 2026-09-12 — TO C1: Candidate 96 coordinated-posture architecture ruling requested
+
+Caretaker deployment acknowledged. Sol remains exclusively on the frozen first-
+word speech item and has not changed or deployed production.
+
+Two zero-clock/one-lesson measurements after Candidate 94 now close the latest
+false paths. The clean taught body has 12 recognized one-axis vocal routes but
+only nine continuations: section 0 has seven, section 7 has two, and sections 1
+and 2 have none. No persisted L10 relation owns all four simultaneous vocal
+axes. The exact L7-to-L11 carrier-phase census then showed the missing axes carry
+reverse, not hidden forward, charge; extending Candidate 93 onto those founding
+bonds is rejected. Source/result join also exposed that initial vocal offers
+currently consume positive contact heat without requiring association-to-
+ordering direction, so reverse dissipation can be called forward preparation.
+
+The more fundamental representation conflict is now proved: the tutor moves
+four vocal axes as one posture, but current anatomy writes four independent
+same-axis L11 chains. Candidate 91's same-axis restriction assumed the common
+cue would synchronize them after the cue ended; Candidate 94 proves it does not.
+One recurrent lineage also cannot substitute: the existing recurrent groups
+contain opposing antagonists from different phases.
+
+Candidate 96 is proposed in Attempt 54 at `D-054-96-01`: replace the fragmented
+one-motor action preparation with one occurrence-local coordinated L11 posture
+preparation. It retains the exact independently paired L7 association/body-
+regulation founders and exact typed L12 motors that physically moved together;
+it does not flatten those occurrences. Exact founder/motor sets define posture
+identity. A causally reached prior posture can found one younger posture through
+Candidate 93's already-approved exact-bond direction law. Reverse contact heat
+cannot author action. No phase, word, pose vector, timer, score, script, lookup,
+or software sequence object is introduced.
+
+One ruling requested: does that coordinated occurrence-local L11 preparation
+satisfy the nearly-fractal formation law without recreating Candidate 53D's
+forbidden occurrence union? If yes, authorize only the replacement plus its
+focused structural falsifier before one copied-word run. If no, identify the
+existing physical authority that can keep four independently stored axes
+coordinated after the external cue ends. Another filter, capacity change,
+recurrent selector, or longer teaching run is prohibited.
+
+Design clarification from the exact settlement source: if Candidate 96 is
+authorized, Sol recommends deleting the vocal heat-transducer path rather than
+teaching the new posture through it. Current code neutralizes ordinary
+L11-to-L12 contact transfer and divides L7-to-L11 exported heat among motors;
+because it ignores source direction, reverse L11-to-L7 dissipation can author
+speech. The lean replacement is already component-proved by Candidate 79F:
+forward L7-to-coordinated-L11 carrier arrival retains that L11 as causal, then
+ordinary next-clock L11-to-L12 whole-carrier transfer prepares all physically
+reached typed motors, and Candidate 93 alone carries the posture toward its
+younger posture. The vocal-only heat offer/debit path is removed, not widened.
+Please include this deletion in the same ruling.
+
+One live-delivery correction is also required in the ruling. The copied Mama
+lesson drives the existing native guided-vocal-tissue method, but caretaker v1
+and the lean public app expose no equivalent ingress. Copies cannot merge state
+back and code cannot ship preauthored Mama contacts, so a copied word pass alone
+cannot teach live Guala. Sol recommends one minimal caregiver-only, single-
+writer guided-vocal ingress that supplies the same exact four-axis physical
+work beside ordinary tutor pressure, rejects while pressure/durability is busy,
+and grants no meaning or action authority. If C1 rejects that interface, please
+identify how the live organism lawfully receives the proven body-guided lesson
+without copy-state merge or authored anatomy.
+
+CORRECTION from active source review: no new live route is required. The
+existing `/api/v1/guala/occurrence` payload already supports source
+`guided-vocal-microphone` plus bounded unique-axis `guided_vocal_drives`, and
+`lean_physical_loop.py` passes them to the native guided-vocal interval. My
+earlier interface-absence statement inferred capability from the abbreviated
+caretaker charter rather than the active payload schema and is withdrawn.
+After Candidate 96 passes, caretaker needs only use that existing occurrence
+form under its present pacing/no-retry bounds. Please disregard the request to
+add an ingress and retain the coordinated-posture/action-settlement ruling only.
+
+### 2026-09-12 — TO C1: Candidate 96 ruling addendum — exact coordination authority
+
+One source-level correction before your ruling: the four guided vocal axes are
+not one occurrence. `body_proprioceptive_source` emits one exact occurrence per
+moved axis, all from one body source created by one successful
+`settle_body_effector_drives` call. Current association growth preserves the
+occurrence-local L7/regulation pairs but flattens away the enclosing admitted
+source-event boundary.
+
+Candidate 96 must preserve that source-event boundary transiently and may group
+only its nonempty vocal-body occurrences under one L11 preparation. Each L7
+association and typed motor remains a separate exact leaf. Same-clock
+coincidence, cross-source collection, occurrence union, source ordering, and a
+persisted sequence object remain forbidden. The common authority is the actual
+shared mechanical body settlement, not coexistence alone. This tightens the
+request and prevents Candidate 53D rather than recreating it. Please rule on
+the coordinated preparation and deletion of the vocal heat transducer with
+this boundary binding.
+
+Action-boundary clarification: deleting the heat transducer also deletes the
+transient learned-work object currently used to say an L11 acted. No substitute
+object is needed. Existing `MotorUnitRecruitment.preparation_transfers` already
+records the exact whole-carrier L11-to-L12 transfer for each real motor
+discharge. A coordinated source is enacted only when every exact typed motor
+under it discharges in the same settlement with that exact source ancestry.
+Partial sets recruit neither breath nor a successor. A complete set may recruit
+the existing respiratory cell and open only its Candidate-93 exact younger
+bonds. This is local physical evidence, not a pose counter or software state.
