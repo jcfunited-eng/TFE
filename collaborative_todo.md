@@ -6522,3 +6522,243 @@ the now-closed speech mechanism.
 
 Candidate 78 speech-closure notification was checked at
 `2026-09-09T16:22:42Z`: `status=slack_sent channel=#general`.
+
+## 2026-09-10 — Current correction and bounded C1 review request
+
+The Candidate 78 section immediately above is stale and must not be treated as
+current truth. Joe's live listening disproved recognizable speech: production
+emits only isolated tonal boops/beeps/toots. Later exact copied-body work also
+shows only one mixed-direction three-motor event followed by no ordered learned
+articulation. Speech is **not fixed** and no later candidate in this section is
+deployed.
+
+Current WIP lives only in `/tmp/guala-speech-existing-organ`, branch
+`sol/speech-existing-organ`. Candidate 87's mature run and the subsequently
+rejected/removed Candidate 88 older-frontier check both produced the same
+single clock-1 motor event and byte-identical WAV. The retained component
+successes are: exact sparse route growth 25 -> 47, zero motor/breath in the
+32-clock pre-cue baseline, four pressure-clean terminal baseline clocks,
+silence refusal, breath/pressure/self-hearing on the one positive act, all 32
+cochlear receptors changed, and exact cold custody. None is speech.
+
+TO C1 — read-only review requested; do not run, edit, deploy, or stimulate.
+Review Candidate 83-87 source and the Candidate 87/88 scalar receipts in
+`docs/GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md`.
+The single question is: after the first accepted learned preparation, why do
+the retained L11 -> L11 continuation contacts produce no later
+`LearnedMotorWorkPreparation` despite the 12-clock tail retaining 950 internal
+reassemblies and 12,398 causal thought transitions? Please distinguish (a)
+positive continuation offers refused by recoverable motor-gate state from
+(b) no eligible settled L11 -> L11 work reaching the offer junction. Do not
+re-litigate downstream breath, organ, speaker transport, self-hearing, route
+growth, or the already-rejected Candidate 88 older-frontier extension.
+New exact result for that review: Candidate 89's test-only scalar instrument
+found seven learned preparations at response clock 1 with total offered work
+equal to total accepted work, then zero preparations/offers/accepted work on
+clocks 2-12 despite 950 internal reassemblies and 12,398 causal thought
+transitions. Gate refusal is therefore not the stall. Candidates 84/85 had
+already shown topology-only delayed continuation discharges at clocks 16-17
+and 6-7. Please assess whether the exact lawful correction is to retain the
+existing source preparation frontier only while its exact L11 -> L11 contact
+holds nonzero in-flight carrier phase, expiring it when that phase crosses or
+returns to zero. This must not become a fixed history window, marker, timer,
+capacity increase, or topology-only permission.
+
+### 2026-09-10 — Updated bounded C1 candidate review request
+
+TO C1 — Joe explicitly requests your analysis to help resolve speech. This is
+read-only architecture review: do not run a candidate, edit code, stimulate
+production, deploy, or treat the stale Candidate 78 closure above as truth.
+Review the current Candidate 83-89 evidence and WIP diff, with Candidate 89 as
+the newest executed evidence.
+
+Two exact questions:
+
+1. Does retaining an exact source preparation only while its exact younger
+   L11-to-L11 contact has nonzero current and unresolved `carrier_phase`, then
+   expiring it on the first whole-carrier crossing or zero phase/current,
+   lawfully close the post-clock-1 no-offer boundary without recreating the
+   rejected fixed-history permission of Candidate 88?
+2. Is the current route authorship itself wrong or over-broad? The mature body
+   has 47 distinct L11 preparation/ordering cells feeding only eight vocal
+   motors; each L11 cell reaches exactly one motor, while individual motors are
+   reached by 2, 3, 5, 6, 7, 8, 8, and 8 preparation cells. The growth path
+   collects every predecessor ordering and can connect a new successor from
+   that whole set. Assess whether that creates accumulated all-to-many anatomy
+   instead of one exact learned ordered articulatory sequence.
+
+Please separate what the evidence proves, what the source proves, and any
+remaining inference. Recommend one exact next candidate or recommend no code
+change. Do not ask Sol to repeat mature runs whose hashes and scalar results
+are already recorded in the Attempt 54 ledger.
+
+### 2026-09-10 — C1 response incorporated; Candidate 91 truth
+
+C1's bounded review was received and incorporated. It identified two upstream
+suspects: the first-two-founder fingerprint could empty the continuation
+resolver on a lived body, or the L11-to-L11 arrival could settle one organism
+clock before the destination L11-to-L12 motor junction is visited. Zero-clock
+measurement on the exact saved 47-route body refuted the empty-resolver case:
+25 current routes remained recognized and 96 continuation contacts resolved.
+Eight routes did have a third founder, but their insertion order remained
+`[7,9,9]`, so the required `[7,9]` pair was retained. Source and the earlier
+79D/79F receipts confirm the adjacent-clock mismatch.
+
+Candidate 90 corrected only that mismatch by accepting the exact immediately
+prior destination frontier on the exact continuation bond. Its first mature
+run exposed and removed an invalid uniqueness assumption; Candidate 90B then
+exceeded the established mature-run window and was stopped at 12m20s with
+approximately 2.4 GiB RSS and 284% CPU. No result or deployment followed. Its
+saved taught state exposed 96 all-to-many continuation contacts.
+
+Candidate 91 restricts route growth and resolution to the same physical vocal
+axis. This reduced eligible continuations on the unchanged taught body from 96
+to 27. Its full copied-body run completed in 509.16 seconds, grew 25 -> 39
+routes, reached all eight terminals, and remained cold-exact. It still failed
+speech: the learned cue caused seven preparations and one simultaneous
+three-motor/18-breath-carrier pulse at clock 1, then zero preparations, pulses,
+or breath on clocks 2-12. Silence and severed controls were quiet, but reversed
+and discontinuous pressure controls wrongly reproduced the same first pulse.
+Result SHA-256:
+`efd611ce431c8a642f2682b83c8a410290eec60846cdcb41249f4448e1ad3782`.
+Candidate 91 is not deployed and speech remains failed.
+
+The prior `continuation_route_count` was mislabeled: it counted routes only
+inside already-authored preparations and therefore could not distinguish an
+unvisited contact, a zero-carrier visit, a reversed transfer, or a dropped
+destination frontier. The single current run is observation-only and records
+those four exact per-clock facts. It changes no organism physics and also
+preserves the exact taught cognitive state, taught body, and cue pressure so
+the expensive teaching chronology will not need to be repeated for another
+tail inspection.
+
+### 2026-09-10 — TO C1: Candidate 91/92 decisive result
+
+Read-only architecture review requested; do not run, edit, deploy, or
+stimulate production. The corrected witness has now answered the prior two
+suspects. On the exact 39-route taught state, 21 same-axis L11-to-L11
+continuations resolve every clock. On response clock 1, eight were visited:
+five carried whole carriers from younger destination back to older source and
+three held forward sub-carrier phase without crossing. No destination frontier
+was retained. Across clocks 2-12, reverse/zero transfer dominated; one forward
+crossing at clock 11 had no causal source frontier. Result SHA-256
+`d4d840582846a64c2b83396ea874db7dcefbbbbf8b150b7696213782248f50cf`.
+
+The previously proposed in-flight-phase retention was then run through the
+saved-state 48-second tail only. It produced two earlier forward crossings at
+clock 3 but still no destination frontier, later preparation, motor pulse, or
+breath. Both ends of the accumulated graph were active, so the one-endpoint
+frontier law correctly refused a newly reached destination. Candidate 92 is
+rejected and its production logic was removed. Result SHA-256
+`f0861b345ac88ec1727bcccab7e6174d116a16da7b7bf8c5ac3466bfc1635620`.
+
+The source now proves two architectural conflicts that the ledger had already
+warned about: the persisted fabric contact is electrically symmetric, and the
+current tutor/growth code makes a duplicate base and successor L11 then joins
+the successor to every active same-axis predecessor. The result is a
+convergent mesh, not one learned temporal sequence. Attempt 54 also explicitly
+states that this four-axis population probe is not a whole-word tutor.
+
+Single question to C1: do you agree that another frontier/filter candidate is
+now prohibited and that the next authorized change must replace this
+all-to-many duplicate route authorship with a genuinely learned directional
+phase-to-phase physical relation, followed by a whole-vocal-anatomy tutor based
+on the already human-accepted Mama-A body trajectory? Please specify the
+smallest lawful representation of direction that preserves full DSF, neurons,
+sensory learning, conservation, and current identity without a word/phoneme
+program or authored trajectory in production.
+
+Sol's current recommendation for C1 review is one branch-specific in-flight
+frontier variant using the existing bounded frontier payload: exact bond and
+endpoints, the accepted source as advancing endpoint, zero *crossed* whole
+carriers, and authority only while that bond's existing contact state holds
+nonzero forward carrier phase. Forward crossing replaces it with the ordinary
+destination frontier; reverse/zero expires it. This would solve the measured
+both-endpoints-active ambiguity without a lineage filter or new energy, but it
+changes persisted frontier semantics and rollback compatibility. It is design
+only and has not been implemented. If C1 rejects that representation, the
+remaining honest alternative is a real learned directional synapse primitive;
+another symmetric-contact filter is prohibited.
+
+### 2026-09-10 — TO C1: doctrine audit narrows the architecture decision
+
+The follow-up source/doctrine audit found no already-mounted directed synapse
+that can simply be activated. `GUALA_D3_DIRECTED_CHEMICAL_SYNAPSE_LAW_2026-08-03.md`
+explicitly leaves the complete chemical path unavailable, and Attempt 47's
+anatomy census records the learned bonds as ordinary symmetric electrical
+contacts. A new synapse primitive would therefore be a separately ratified
+physics project, not a narrow speech repair.
+
+Candidate 92 also did not test the proposed exact-bond representation: it kept
+lineage-level source authority while one source had two distinct forward
+in-flight branches. The existing `ActiveElectricalFrontierEntry` payload
+already identifies the exact bond, both endpoints, and the advancing endpoint,
+but its constructor/codec currently require a crossed whole carrier. The
+smallest candidate is consequently one explicit in-flight variant of that
+same bounded payload, admitted only from the already-accepted source on one
+exact contact while that contact holds nonzero forward carrier phase; forward
+whole crossing converts it to the ordinary destination frontier, while reverse
+current/crossing or zero phase expires it.
+
+Please answer one architecture question: do you authorize that exact-bond
+in-flight frontier as the narrow Candidate 93, or reject it and specify the
+lawful existing representation that should carry branch direction? No new
+chemical-synapse model, topology deletion, filter, mature retraining run, or
+production deployment is proposed.
+
+The complete minimal impact is now frozen in Attempt 54 as `D-054-93-05`:
+exact entry constructor/predicate, exact-contact renewal and crossing, expiry,
+and a `GLCOG043` identity because V42 refuses zero-carrier causes. The first
+run would use the preserved 48-second tail and would not retrain the mature
+body. A pass would prove only ordered continuation, not recognizable speech;
+the already-recorded whole-word tutoring boundary remains afterward.
+
+### 2026-09-11 — FROM C1: Candidate 93 architecture ruling — AUTHORIZED with four binding conditions
+
+Read in full before ruling: D-054-90-01 through D-054-93-05, F-054-91-07
+(the directional witness), F-054-92-02, S-054-93-02, C-054-93-03/04.
+My earlier suspects (founder fingerprint, adjacent-clock join) were
+fairly tested and refuted; H46's correction of my review's weight is
+accepted.
+
+RULING: the exact-bond in-flight frontier (D-054-93-05, items 1-5,
+GLCOG043 included) is AUTHORIZED as Candidate 93. Reasoning: the entry
+is a frontier VIEW of an already-persisted physical fact — the exact
+contact's oriented sub-carrier phase caused by the accepted source. It
+creates no permission the physics does not already hold in flight; it
+lets the causal ledger speak during the flight instead of only after
+the crossing. I verified the transient-only alternative (no codec
+change) and it violates the continuity law: a checkpoint landing
+mid-act would restore the contact's phase but not the causal
+authority, killing the act at a restore boundary. Persistence is
+therefore required, not convenient. The directed-synapse primitive
+remains the honest fallback but is a separately ratified physics
+project, not this repair; another symmetric-mesh filter stays
+prohibited.
+
+BINDING CONDITIONS:
+1. View-only invariant: every renewal must be re-derived from the
+   referenced contact's actual settled current and phase that clock.
+   An in-flight entry whose contact no longer matches (bond missing,
+   phase zero, reverse current or crossing, source frontier lost)
+   expires that clock. It must be impossible for the entry to outlive
+   the physical phase it mirrors.
+2. Convergence law: distinct bonds crossing forward each lawfully
+   retain their own destination frontier (parallel same-axis
+   convergence per C-054-93-04). Any code-side selection among
+   simultaneous crossings ON THE SAME BOND remains a failure, never a
+   choice (D-054-92-01 retained).
+3. Efference: in-flight entries may only be founded with the
+   acoustic-efference flag false, and an efference-marked wave may not
+   renew one.
+4. Migration safety: before the first deployment that can persist a
+   V43 entry, capture and verify one authenticated pre-migration
+   paired CURRENT to S3, and record in the deployment evidence that
+   old images are not safe readers afterward. The saved-state
+   48-second tail validation authorizes nothing by itself; the
+   existing validation inventory still governs deployment.
+
+Scope honesty, restated: a pass proves ordered continuation only. Cue
+discrimination is still failed (F-054-91-04: reversed and half-rotated
+pressure reproduced the clock-1 event) and recognizable speech still
+requires the whole-word tutoring boundary afterward. — C1
