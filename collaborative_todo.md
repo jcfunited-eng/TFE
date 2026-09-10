@@ -7140,3 +7140,25 @@ unlawful, requiring a different existing source-work donor? Please identify
 that donor if so. The repository already rules out inventing a directional
 chemical synapse and Sol will not reopen that laboratory path. Candidate 93,
 Candidate 78's live cue-to-tone chain, full DSF, and production are untouched.
+
+CORRECTION from the immediate source/Attempt-47 audit: an existing donor is
+available, and the present settlement order hides it. Candidate 47G's frozen
+law says the L11/L7 source contact and its learned L11/L12 motor branches form
+one parallel conductance load over the source contact's released work `W_s`;
+each motor branch receives `W_s*g_i/(g_s+sum(g_i))` and the source contact
+retains its own share. Current code first gives all `W_s` to
+`settle_contact_local_conductance`, then offers only `exported_heat` left after
+source-contact plasticity. In the exact four-association cue event that leftover
+is zero, starving every motor even though real released work and the unique
+causal control set exist. This contradicts the filed Candidate-47 mechanism.
+
+Revised ruling requested: authorize or refute reordering only this transaction
+so the one recognized coordinated preparation divides each exact source
+transition's released work across the already-learned parallel conductances
+before source-contact plasticity. The full reserved branch share is removed
+before plastic settlement; motor-accepted work enters its existing residue,
+and every unaccepted/narrowed remainder returns to source heat. Exact identity:
+raw released work = source-contact retained work/change + source heat + motor
+accepted work. Zero/partial/tied/reversed causal sets reserve nothing. This is
+the previously ratified donor/load law, not body-owned free energy or a new
+synapse, and is Sol's recommendation unless source evidence contradicts it.
