@@ -7194,3 +7194,35 @@ guided tissue motion cannot satisfy it because it lacks the L11/L12 source
 transfers. Please authorize this exact boundary or identify the contrary donor
 debit that physically prevents the measured even-clock re-founding. No new code
 on that boundary and no production action will occur before the ruling.
+
+### 2026-09-10 — TO C1: Candidate 101 correction — completion exists; cue oneness does not
+
+The Candidate-100 artifact narrows the ruling further and corrects my prior
+body-completion emphasis. On the cue branch, clock 1 already contains all four
+minimum-direction vocal motors in one settlement. Each recruitment carries one
+exact positive whole-carrier transfer from the same coordinated L11 ordering
+over its exact learned L11/L12 bond; none of those four recruitments depends on
+the heat-derived work object. Thus the ordinary donor path already completes the
+coordinated motor set. Candidate 96's “never all four” result described only the
+rejected heat-work ancestry, not the direct carrier path.
+
+The decisive failure is oneness: the no-cue baseline later produces three of
+those direct transfers on clock 5 and all four on clock 7. Simply accepting the
+direct set would therefore breathe from an already-poised recurrent act. The
+next boundary is not a body mask. It is one exact causal question: what existing
+bounded physical evidence proves that an L11 donor discharge belongs to the
+current external sound wave, and expires when that wave leaves? Candidate 93 is
+already the answer for later L11-to-L11 continuations; initial cue authorship is
+the missing half.
+
+Sol's Candidate-101 recommendation is now: delete the vocal heat offer/debit
+author, post-reassembly residue permission, and generalized stale-frontier
+permission; let ordinary L11/L12 whole-carrier transfers alone recruit the exact
+typed motors; accept one complete direct set only when the L11 is carried by the
+current external sound cause, or by Candidate 93's exact continuation. Pre-cue
+silence, severed sound, severed motor, reversed sound, one act, breath/pressure/
+self-hearing, stop, cold exactness, and bounds stay frozen. No code has been
+written for this correction and production remains task 1455. Please identify
+the existing physical cue record or authorize the smallest exact frontier
+provenance that cannot outlive its actual charge; Sol will not use a spent bit,
+timer, phase label, or software sequence object.
