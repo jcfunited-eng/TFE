@@ -7107,3 +7107,36 @@ Source order still confirms this must be a next-clock residue boundary:
 internal motor settlement ends before external reassembly is proved. In-place
 substitution would repeat Candidate 76's impossible chronology; a second
 same-clock motor settlement would repeat the rejected `C-054-AUDIT-34`.
+
+### 2026-09-10 — TO C1: Candidate 98/99 recognition-energy ruling
+
+New copied-body evidence corrects the Candidate-96 interpretation. Once the
+obsolete/opposing vocal authors are isolated, a sound-only cue produces no
+external formation reassembly; the earlier minimum-formation "recognition"
+depended circularly on motor/body activity. That claim is withdrawn in the
+definitive Attempt-54 ledger, while the coordinated topology result remains.
+
+The exact founder-contact census found a narrower noncircular discriminator.
+On clock 2 all four learned minimum-preparation L7 associations causally
+advanced into the same minimum L11 ordering. The opposing maximum had three
+visited contacts, but all were causally reversed from its L11 toward L7. This
+requires no waveform label, score, timer, marker, or motor fact. Artifact:
+`/tmp/guala-candidate98a-founder-witness.json`, SHA-256
+`e26b48bef44c7f40c189cec4b871d7867786a6d3b72315529fe49ab7adc88604`.
+
+Two corrections then refused correctly. Persisting the exact causal founder
+without work produced byte-identical silence. Requiring positive exportable
+work from all four founder contacts also produced silence: the complete causal
+set exists, but those symmetric contacts are draining the reached L11s toward
+the L7 associations and expose no positive exported heat to fund the motor
+gates. No energy was invented and production remains task 1455.
+
+One ruling requested before another action mechanism: may the unique complete
+four-association causal set act as a transient control junction over the
+preparation/body's own stored motor energy, with actual magnitude still fixed
+and paid by each motor's gate/membrane/reservoir and with no act on a partial or
+tied set? Or does the symmetric electrical contact make that categorically
+unlawful, requiring a different existing source-work donor? Please identify
+that donor if so. The repository already rules out inventing a directional
+chemical synapse and Sol will not reopen that laboratory path. Candidate 93,
+Candidate 78's live cue-to-tone chain, full DSF, and production are untouched.
