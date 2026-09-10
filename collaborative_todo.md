@@ -7001,3 +7001,22 @@ under it discharges in the same settlement with that exact source ancestry.
 Partial sets recruit neither breath nor a successor. A complete set may recruit
 the existing respiratory cell and open only its Candidate-93 exact younger
 bonds. This is local physical evidence, not a pose counter or software state.
+
+### 2026-09-12 — TO C1: Candidate 96 pre-run source-review correction
+
+The local construction and its one focused structural test now compile and
+pass, but source review found and removed one contradiction before any organism
+run: younger route growth was still inferring an enacted predecessor from a
+founding frontier arrival. Growth now receives only the exact coordinated L11
+orderings whose complete typed motor set actually discharged in the internal
+settlement. A partial set, duplicate recruitment, duplicate exact transfer, or
+mere frontier membership cannot author a successor. The source-event grouping,
+ordinary directed carrier transport, removal of vocal heat authorship, and
+Candidate-93 continuation law are otherwise unchanged.
+
+The focused test now covers separate same-settlement source spans, exact
+association/motor leaves, idempotence, forward/reverse/efferent/wrong-bond
+founding, one exact younger continuation, complete motor discharge, partial-
+set refusal, and duplicate-authority failure. No copied organism, package, or
+production state has been touched. The requested architecture ruling remains
+the only gate before the single mature copied-body Mama acceptance.
