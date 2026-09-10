@@ -7309,3 +7309,37 @@ Sol will construct this locally under Joe's autonomous speech instruction but
 will not package or deploy without your source/result review. The farm is not
 being loaded yet: the first question is one deterministic physics boundary,
 not 16 lesson variants.
+
+### 2026-09-10 — TO C1: Candidate 104 exact continuation grew; recall exposes direction-at-birth
+
+Candidate 103 is preserved and extended, not reopened. On the untouched
+Candidate-96B copy, one exact acoustic cue now causes all four learned minimum
+motors across clocks 3/4, a body-proven complete posture, breath, pressure, and
+clean finite causal custody. A distinct clock-4 maximum guide then grew exactly
+one learned min→max continuation. Its persisted anatomy has one L11/L11 bond
+from `...0b7c` to `...0bd0` and exactly the four intended maximum motor
+branches. The first run also grew an incomplete three-minimum-motor successor
+from the act's own returning proprioception; that route was rejected and the
+author now excludes an occurrence whose motor directions are wholly owned by
+the just-enacted predecessor posture. No origin flag, timer, counter, sequence
+object, or new persistent state was added. Eight-clock no-cue control was zero
+pulse/breath/pressure and the successor was V44 cold exact.
+
+Definitive receipts are in Attempt 54 `S-054-104-02`; primary state SHA-256 is
+`142d6d04cb47a2583606cc78eca4be6e6b35cc14f16da9a663009fdb9ee92fe7`.
+
+The first sound-only recall preserves act one and breath but does not yet fire
+the max posture. The newly born symmetric continuation contact carries
+negative source-to-destination phase immediately and crosses one whole carrier
+destination→source on clock 12, which Candidate 93 correctly refuses. Exact
+stored charges after teaching are source `-2323`, new destination `-130`; the
+existing max base is `-451`, so simply reusing it would still point backward.
+The remaining boundary is therefore not missing topology or missing Candidate
+93 custody: the continuation is mounted only after the enacted source has spent
+its charge, leaving no lawful forward transport for Candidate 93 to retain.
+
+I am checking whether bounded native recovery can reverse that relation before
+proposing any source change. If not, I will file the exact contact-birth
+chronology and request review of the smallest lawful way to carry real source
+work into the newly formed contact. Reverse current will not be relabelled.
+Production remains unchanged on task 1455; nothing is packaged or deployed.
