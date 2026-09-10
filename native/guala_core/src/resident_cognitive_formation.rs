@@ -175,7 +175,8 @@ mod lean_sensorimotor_route;
 use lean_sensorimotor_route::{
     exact_completed_vocal_preparation_body_act, exact_completed_vocal_preparation_discharge,
     frontier_founds_vocal_action_preparation,
-    mount_exact_reassembled_vocal_action_routes, vocal_action_preparation_for_ordering,
+    mount_exact_reassembled_vocal_action_routes, preparation_predecessors,
+    vocal_action_preparation_for_ordering,
     vocal_action_preparation_from_association_founder,
     vocal_action_preparation_from_motor_branch,
     vocal_cognitive_action_continuation_routes_from_source, vocal_cognitive_action_route_for_motor,
@@ -4752,53 +4753,63 @@ fn retain_externally_reassembled_vocal_founder_frontier(
     }
     founders.sort_unstable();
     founders.dedup();
-    let [(association, _ordering, bond)] = founders.as_slice() else {
-        if founders.is_empty() {
-            return Ok(());
-        }
-        return Err(FormationError::NeuronLineageAuthorityChanged);
-    };
-    let contact = topology
-        .contacts
-        .iter()
-        .find(|contact| contact.stable_bond == *bond)
-        .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
-    let ResidentContactOrigin::Fabric { contact_index } = contact.origin else {
-        return Err(FormationError::NeuronLineageAuthorityChanged);
-    };
-    let anatomy = electrical_fabric
-        .anatomy()
-        .contact_anatomies()
-        .get(contact_index)
-        .copied()
-        .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
-    let phase = electrical_fabric
-        .state()
-        .contact_states()
-        .get(contact_index)
-        .ok_or(FormationError::NeuronLineageAuthorityAbsent)?
-        .carrier_phase()
-        .parts()
-        .0;
-    if phase == 0 {
+    if founders.is_empty() {
         return Ok(());
     }
-    let (left_flat, right_flat) = anatomy.endpoints();
-    let left = electrical_fabric.lineages()[left_flat];
-    let right = electrical_fabric.lineages()[right_flat];
-    let (sender, receiver) = if phase > 0 {
-        (left, right)
-    } else {
-        (right, left)
-    };
-    active_frontier.push(ActiveElectricalFrontierEntry::causal_in_flight_with_provenance(
-        sender,
-        receiver,
-        *association,
-        *bond,
-        false,
-        true,
-    )?);
+    let mut root_orderings = founders
+        .iter()
+        .map(|(_, ordering, _)| *ordering)
+        .collect::<Vec<_>>();
+    root_orderings.sort_unstable();
+    root_orderings.dedup();
+    if root_orderings.len() != 1 {
+        return Err(FormationError::NeuronLineageAuthorityChanged);
+    }
+    for (association, _ordering, bond) in founders {
+        let contact = topology
+            .contacts
+            .iter()
+            .find(|contact| contact.stable_bond == bond)
+            .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
+        let ResidentContactOrigin::Fabric { contact_index } = contact.origin else {
+            return Err(FormationError::NeuronLineageAuthorityChanged);
+        };
+        let anatomy = electrical_fabric
+            .anatomy()
+            .contact_anatomies()
+            .get(contact_index)
+            .copied()
+            .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
+        let phase = electrical_fabric
+            .state()
+            .contact_states()
+            .get(contact_index)
+            .ok_or(FormationError::NeuronLineageAuthorityAbsent)?
+            .carrier_phase()
+            .parts()
+            .0;
+        if phase == 0 {
+            continue;
+        }
+        let (left_flat, right_flat) = anatomy.endpoints();
+        let left = electrical_fabric.lineages()[left_flat];
+        let right = electrical_fabric.lineages()[right_flat];
+        let (sender, receiver) = if phase > 0 {
+            (left, right)
+        } else {
+            (right, left)
+        };
+        active_frontier.push(
+            ActiveElectricalFrontierEntry::causal_in_flight_with_provenance(
+                sender,
+                receiver,
+                association,
+                bond,
+                false,
+                true,
+            )?,
+        );
+    }
     active_frontier.sort_unstable();
     active_frontier.dedup();
     Ok(())
@@ -8162,6 +8173,7 @@ impl ResidentCognitiveFormationState {
             true,
             true,
             true,
+            false,
             residency,
             real_nutrition_intake_zeptojoules,
         )
@@ -8177,6 +8189,7 @@ impl ResidentCognitiveFormationState {
         seal_successor: bool,
         observe_relations: bool,
         admit_learned_motor_work: bool,
+        admit_guided_vocal_route_growth: bool,
         residency: &mut Option<crate::causal_event_scheduler::CausalEventResidency>,
         real_nutrition_intake_zeptojoules: ExactRational,
     ) -> Result<PreparedCognitiveFormationTransition, FormationError> {
@@ -9637,7 +9650,6 @@ impl ResidentCognitiveFormationState {
             &topology_index,
             predecessor_vocal_articulatory_effector_lineage,
             &active_electrical_frontier,
-            &predecessor_preceding_active_electrical_frontier,
             &exact_moved_body_effectors,
             &locally_settled_lineages,
             &internal_frontier_lineages,
@@ -9801,17 +9813,19 @@ impl ResidentCognitiveFormationState {
         if organism_mosaic_receipt.is_some() {
             mosaic_formed = organism_mosaic_receipt;
         }
-        mount_exact_reassembled_vocal_action_routes(
-            &mut cohorts,
-            &mut resting_population,
-            &mut next_lineage_ordinal,
-            &mut electrical_fabric,
-            &topology_index,
-            &reached_associations_by_occurrence,
-            &exact_moved_body_regulations_by_occurrence,
-            &admitted_source_occurrence_spans,
-            &internal_contact.completed_vocal_orderings,
-        )?;
+        if admit_guided_vocal_route_growth {
+            mount_exact_reassembled_vocal_action_routes(
+                &mut cohorts,
+                &mut resting_population,
+                &mut next_lineage_ordinal,
+                &mut electrical_fabric,
+                &topology_index,
+                &reached_associations_by_occurrence,
+                &exact_moved_body_regulations_by_occurrence,
+                &admitted_source_occurrence_spans,
+                &internal_contact.completed_vocal_orderings,
+            )?;
+        }
         if !topology_index.matches_shape(&cohorts, &electrical_fabric) {
             topology_index = Arc::new(ResidentTopologyIndex::build(&cohorts, &electrical_fabric)?);
         }
@@ -10054,6 +10068,7 @@ impl ResidentCognitiveFormationState {
             false,
             true,
             true,
+            false,
             residency,
             ExactRational::integer(0),
         )?;
@@ -10096,6 +10111,7 @@ impl ResidentCognitiveFormationState {
             false,
             observe_relations,
             true,
+            false,
             residency,
             real_nutrition_intake_zeptojoules,
         )?;
@@ -10113,6 +10129,7 @@ impl ResidentCognitiveFormationState {
         max_encoded_bytes: usize,
         observe_relations: bool,
         admit_learned_motor_work: bool,
+        admit_guided_vocal_route_growth: bool,
         residency: &mut Option<crate::causal_event_scheduler::CausalEventResidency>,
         real_nutrition_intake_zeptojoules: ExactRational,
     ) -> Result<(Self, CognitiveFormationObservation), FormationError> {
@@ -10129,6 +10146,7 @@ impl ResidentCognitiveFormationState {
             false,
             observe_relations,
             admit_learned_motor_work,
+            admit_guided_vocal_route_growth,
             residency,
             real_nutrition_intake_zeptojoules,
         )?;
@@ -19316,7 +19334,7 @@ fn settle_internal_contact_interval(
     topology_index: &ResidentTopologyIndex,
     vocal_articulatory_effector_lineage: Option<[u8; 16]>,
     predecessor_frontier: &[ActiveElectricalFrontierEntry],
-    preceding_frontier: &[ActiveElectricalFrontierEntry],
+    _preceding_frontier: &[ActiveElectricalFrontierEntry],
     locally_settled_lineages: &[[u8; 16]],
     causal_seed_lineages: &[[u8; 16]],
     fresh_seed_lineages: &[[u8; 16]],
@@ -19344,7 +19362,6 @@ fn settle_internal_contact_interval(
         topology_index,
         vocal_articulatory_effector_lineage,
         predecessor_frontier,
-        preceding_frontier,
         &[],
         locally_settled_lineages,
         causal_seed_lineages,
@@ -19375,7 +19392,6 @@ fn settle_internal_contact_interval_with_body_act(
     topology_index: &ResidentTopologyIndex,
     vocal_articulatory_effector_lineage: Option<[u8; 16]>,
     predecessor_frontier: &[ActiveElectricalFrontierEntry],
-    preceding_frontier: &[ActiveElectricalFrontierEntry],
     moved_body_effectors: &[BodyEffectorTerminal],
     locally_settled_lineages: &[[u8; 16]],
     causal_seed_lineages: &[[u8; 16]],
@@ -19774,6 +19790,91 @@ fn settle_internal_contact_interval_with_body_act(
                 permitted_vocal_motor_bonds
                     .extend(preparation.motors.into_iter().map(|motor| motor.bond));
             }
+        }
+    }
+    // A completed vocal act may transfer its already-released contact work
+    // through one learned L11/L11 predecessor bond. The work is retained in
+    // the younger ordering neuron's existing receptor-energy lattice; it is
+    // neither membrane charge nor a permission bit. While that exact residue
+    // or the gate it physically opened remains active, the younger ordering's
+    // real motor contacts are the only eligible continuation branches.
+    for entry in predecessor_frontier.iter().copied() {
+        let Some(cause) = entry.cause else {
+            continue;
+        };
+        let Some(sender) = entry.sender() else {
+            return Err(FormationError::NoncanonicalState);
+        };
+        let receiver = entry.receiver();
+        let mut candidate = None;
+        let mut continuation_motor_bond = None;
+        if cause.transferred_whole_carriers == 0
+            && entry.frontier_lineage() == receiver
+            && layer_of(sender) == Some(11)
+            && layer_of(receiver) == Some(11)
+        {
+            let matching = vocal_cognitive_action_continuation_routes_from_source(
+                cohorts,
+                topology_index,
+                sender,
+            )?
+            .into_iter()
+            .filter(|route| {
+                route.destination_ordering_lineage == receiver
+                    && route.continuation_bond == cause.bond
+            })
+            .count();
+            match matching {
+                0 => {}
+                1 => candidate = Some(receiver),
+                _ => return Err(FormationError::NeuronLineageAuthorityChanged),
+            }
+        } else if entry.is_in_flight()
+            && layer_of(sender) == Some(11)
+            && layer_of(receiver) == Some(12)
+        {
+            if vocal_action_preparation_from_motor_branch(
+                cohorts,
+                topology_index,
+                sender,
+                receiver,
+                cause.bond,
+            )?
+            .is_some()
+            {
+                candidate = Some(sender);
+                continuation_motor_bond = Some(cause.bond);
+            }
+        }
+        let Some(ordering) = candidate else {
+            continue;
+        };
+        let preparation = vocal_action_preparation_for_ordering(
+            cohorts,
+            topology_index,
+            ordering,
+        )?
+        .ok_or(FormationError::NeuronLineageAuthorityChanged)?;
+        let flat = lineage_member(ordering)?;
+        let (cohort_index, neuron_index, _) = flat_locations[flat];
+        let neuron = &cohorts[cohort_index].state.neurons()[neuron_index];
+        if neuron.receptor_quantum_residue.energy().is_zero()
+            && neuron.gate.open_population() == 0
+        {
+            continue;
+        }
+        let predecessors = preparation_predecessors(cohorts, topology_index, &preparation)?;
+        match predecessors.as_slice() {
+            [] => continue,
+            [_] => {}
+            _ => return Err(FormationError::NeuronLineageAuthorityChanged),
+        }
+        permitted_vocal_ordering_work.insert(ordering);
+        if let Some(bond) = continuation_motor_bond {
+            permitted_vocal_motor_bonds.insert(bond);
+        } else {
+            permitted_vocal_motor_bonds
+                .extend(preparation.motors.into_iter().map(|motor| motor.bond));
         }
     }
     if permitted_vocal_ordering_work.len() > 1 {
@@ -20412,6 +20513,13 @@ fn settle_internal_contact_interval_with_body_act(
             ordering,
         )?
         .ok_or(FormationError::NeuronLineageAuthorityChanged)?;
+        // Environmental association work may found only a root vocal
+        // preparation. A preparation with a learned predecessor is an
+        // internal word posture and receives authority only through that
+        // predecessor's conserved continuation work.
+        if !preparation_predecessors(cohorts, topology_index, &preparation)?.is_empty() {
+            continue;
+        }
         let mut exact_sources = Vec::new();
         for association in &preparation.associations {
             let mut matches = compact_bonds
@@ -20497,7 +20605,9 @@ fn settle_internal_contact_interval_with_body_act(
     let founded_preparation = match founded_preparations.as_slice() {
         [] => None,
         [founded] => Some(founded),
-        _ => return Err(FormationError::NeuronLineageAuthorityChanged),
+        _ => {
+            return Err(FormationError::NeuronLineageAuthorityChanged);
+        }
     };
     let mut preplastic_vocal_work_offers =
         BTreeMap::<[u8; 16], Vec<LearnedMotorWorkOffer>>::new();
@@ -21457,9 +21567,37 @@ fn settle_internal_contact_interval_with_body_act(
                             .any(|gradient| {
                                 gradient.neuron_lineage == lineage && gradient.metabolic.changed()
                             });
-                    let (gate_work, receptor_successor_residue) = if let Some(offers) =
-                        learned_motor_work_offers.get(&lineage)
-                    {
+                    let retained_continuation_work =
+                        cohort.anatomy.mounts()[neuron_index].place().layer() == 11
+                            && permitted_vocal_ordering_work.contains(&lineage)
+                            && !cohort.state.neurons()[neuron_index]
+                                .receptor_quantum_residue
+                                .energy()
+                                .is_zero();
+                    let (gate_work, receptor_successor_residue) = if retained_continuation_work {
+                        let prepared = crate::complete_neuron::prepare_intrinsic_transduced_gate_work(
+                            neuron_anatomy,
+                            &cohort.state.neurons()[neuron_index],
+                            &prepared_psi,
+                            BigRational::zero(),
+                        )
+                        .map_err(|error| {
+                            FormationError::PhysicalSettlementUnavailable(
+                                ReachedCohortError::Neuron {
+                                    neuron_index,
+                                    error,
+                                },
+                            )
+                        })?;
+                        if !prepared.accepted_source_work_zeptojoules.is_zero()
+                            || !prepared.retained_source_heat_zeptojoules.is_zero()
+                            || prepared.residue_narrowing_heat_zeptojoules
+                                < BigRational::zero()
+                        {
+                            return Err(FormationError::ArithmeticOverflow);
+                        }
+                        (prepared.gate_work, prepared.successor_residue_zeptojoules)
+                    } else if let Some(offers) = learned_motor_work_offers.get(&lineage) {
                         let predecessor_neuron = cohort.state.neurons()[neuron_index].clone();
                         let predecessor_residue =
                             predecessor_neuron.receptor_quantum_residue.energy().clone();
@@ -22226,56 +22364,6 @@ fn settle_internal_contact_interval_with_body_act(
             completed_vocal_preparation_transfers.extend(exact_transfers);
         }
     }
-    let mut recent_body_act_orderings = predecessor_frontier
-        .iter()
-        .chain(preceding_frontier)
-        .copied()
-        .filter(|entry| {
-            entry.carries_external_ingress_cause()
-                && !entry.carries_body_owned_acoustic_efference()
-        })
-        .filter_map(ActiveElectricalFrontierEntry::directed_transfer)
-        .filter(|transfer| topology_index.layer_of(transfer.sender) == Some(11))
-        .map(|transfer| transfer.sender)
-        .collect::<Vec<_>>();
-    recent_body_act_orderings.sort_unstable();
-    recent_body_act_orderings.dedup();
-    for ordering in recent_body_act_orderings {
-        let Some(preparation) =
-            vocal_action_preparation_for_ordering(cohorts, topology_index, ordering)?
-        else {
-            continue;
-        };
-        let complete_body_act = preparation.motors.iter().all(|motor| {
-            let Ok(motor_flat) = topology_index.flat_for_lineage(motor.lineage) else {
-                return false;
-            };
-            let (cohort_index, neuron_index, _) = topology_index.flat_locations[motor_flat];
-            let Some(terminal) = cohorts[cohort_index].anatomy.mounts()[neuron_index]
-                .body_effector_terminal()
-            else {
-                return false;
-            };
-            moved_body_effectors.binary_search(&terminal).is_ok()
-                && predecessor_frontier
-                    .iter()
-                    .chain(preceding_frontier)
-                    .copied()
-                    .any(|entry| {
-                        entry.carries_external_ingress_cause()
-                            && !entry.carries_body_owned_acoustic_efference()
-                            && entry.directed_transfer().is_some_and(|transfer| {
-                                transfer.sender == ordering
-                                    && transfer.receiver == motor.lineage
-                                    && transfer.bond == motor.bond
-                                    && transfer.transferred_whole_carriers > 0
-                            })
-                    })
-        });
-        if complete_body_act {
-            completed_vocal_orderings.push(ordering);
-        }
-    }
     completed_vocal_orderings.sort_unstable();
     completed_vocal_orderings.dedup();
     if completed_vocal_orderings.len() > 1 {
@@ -22283,6 +22371,169 @@ fn settle_internal_contact_interval_with_body_act(
         // ambiguous. Refuse the physical tie; never select by iteration order
         // or merge distinct preparations into one vocal act.
         return Err(FormationError::NeuronLineageAuthorityChanged);
+    }
+    let mut directed_continuation_work_frontiers = Vec::new();
+    // Returning body-owned pressure must never found a fresh learned act, but
+    // it can arrive on the same clock that the already externally caused act
+    // completes. Completion is independently proved above by that act's exact
+    // learned motor transfers and returned typed body motion. Do not let the
+    // acoustic-efference authorship guard erase the completed act's own
+    // conserved work transfer into its unique learned successor.
+    for source in completed_vocal_orderings.iter().copied() {
+            let continuation_routes = vocal_cognitive_action_continuation_routes_from_source(
+                cohorts,
+                topology_index,
+                source,
+            )?;
+            let continuation = match continuation_routes.as_slice() {
+                [] => continue,
+                [route] => route,
+                _ => {
+                    return Err(FormationError::NeuronLineageAuthorityChanged);
+                }
+            };
+            let destination_preparation = vocal_action_preparation_for_ordering(
+                cohorts,
+                topology_index,
+                continuation.destination_ordering_lineage,
+            )?
+            .ok_or(FormationError::NeuronLineageAuthorityChanged)?;
+            if preparation_predecessors(cohorts, topology_index, &destination_preparation)?
+                != [source]
+            {
+                return Err(FormationError::NeuronLineageAuthorityChanged);
+            }
+            let source_preparation = vocal_action_preparation_for_ordering(
+                cohorts,
+                topology_index,
+                source,
+            )?
+            .ok_or(FormationError::NeuronLineageAuthorityChanged)?;
+            let continuation_position = compact_bonds
+                .iter()
+                .position(|bond| *bond == continuation.continuation_bond);
+            let continuation_conductance = if let Some(position) = continuation_position {
+                compact_anatomy.contact_anatomies()[position]
+                    .effective_conductance(&compact_predecessor.contact_states()[position])
+                    .map_err(FormationError::ResidentElectricalUnavailable)?
+            } else {
+                let entry = topology_index
+                    .contacts
+                    .iter()
+                    .find(|entry| entry.stable_bond == continuation.continuation_bond)
+                    .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
+                let edge = materialize_resident_contact_edge(*entry, cohorts, electrical_fabric)?;
+                edge.anatomy
+                    .effective_conductance(&edge.state)
+                    .map_err(FormationError::ResidentElectricalUnavailable)?
+            };
+            if continuation_conductance.parts().0 <= 0 {
+                return Err(FormationError::NeuronLineageAuthorityChanged);
+            }
+            let continuation_conductance = exact_to_wide(continuation_conductance);
+            let mut offers = Vec::<(usize, BigRational)>::new();
+            for motor in &source_preparation.motors {
+                let Some(position) = compact_bonds.iter().position(|bond| *bond == motor.bond)
+                else {
+                    continue;
+                };
+                let (left_flat, right_flat) = compact_edge_flat_endpoints[position];
+                let Some(transfer) = directed_physical_transfer(
+                    settled.transitions[position].outward_elementary_charges_from_left,
+                    flat_locations[left_flat].2,
+                    flat_locations[right_flat].2,
+                    motor.bond,
+                ) else {
+                    continue;
+                };
+                if transfer.sender != source || transfer.receiver != motor.lineage {
+                    continue;
+                }
+                let available_work = settled.transitions[position]
+                    .exported_heat_zeptojoules
+                    .clone();
+                if available_work <= BigRational::zero() {
+                    continue;
+                }
+                let source_conductance = exact_to_wide(
+                    compact_anatomy.contact_anatomies()[position]
+                        .effective_conductance(
+                            &compact_predecessor.contact_states()[position],
+                        )
+                        .map_err(FormationError::ResidentElectricalUnavailable)?,
+                );
+                let denominator = &source_conductance + &continuation_conductance;
+                if source_conductance <= BigRational::zero()
+                    || denominator <= BigRational::zero()
+                {
+                    return Err(FormationError::ArithmeticOverflow);
+                }
+                let offered = available_work * &continuation_conductance / denominator;
+                if offered > BigRational::zero() {
+                    offers.push((position, offered));
+                }
+            }
+            let total_offered = offers
+                .iter()
+                .fold(BigRational::zero(), |sum, (_, work)| sum + work);
+            if total_offered <= BigRational::zero() {
+                continue;
+            }
+            let destination_flat =
+                lineage_member(continuation.destination_ordering_lineage)?;
+            let (cohort_index, neuron_index, lineage) = flat_locations[destination_flat];
+            let predecessor = cohorts[cohort_index].state.neurons()[neuron_index].clone();
+            let retained = crate::complete_neuron::retain_deferred_receptor_work(
+                &predecessor,
+                total_offered.clone(),
+            )
+            .map_err(|error| {
+                FormationError::PhysicalSettlementUnavailable(ReachedCohortError::Neuron {
+                    neuron_index,
+                    error,
+                })
+            })?;
+            let accepted = retained.accepted_source_work_zeptojoules.clone();
+            if accepted <= BigRational::zero() {
+                continue;
+            }
+            if retained.retained_source_heat_zeptojoules != BigRational::zero()
+                || retained.residue_narrowing_heat_zeptojoules < BigRational::zero()
+                || accepted > total_offered
+            {
+                return Err(FormationError::ArithmeticOverflow);
+            }
+            for (position, offered) in offers {
+                let debit = &accepted * offered / &total_offered;
+                if debit < BigRational::zero()
+                    || debit > settled.transitions[position].exported_heat_zeptojoules
+                {
+                    return Err(FormationError::ArithmeticOverflow);
+                }
+                settled.transitions[position].exported_heat_zeptojoules -= debit;
+            }
+            Arc::make_mut(&mut cohorts[cohort_index].state)
+                .replace_neuron_state(neuron_index, retained.successor)
+                .map_err(FormationError::PhysicalSettlementUnavailable)?;
+            retain_first_transition_predecessor(
+                &mut transition_predecessors,
+                TransitionNeuronPredecessor {
+                    lineage,
+                    anatomy: cohorts[cohort_index].anatomy.neuron_anatomies()[neuron_index]
+                        .clone(),
+                    state: predecessor,
+                },
+            );
+            physically_transitioned_neuron_lineages.insert(lineage);
+            causally_active_lineages.insert(lineage);
+            directed_continuation_work_frontiers.push(
+                ActiveElectricalFrontierEntry::causal_in_flight(
+                    source,
+                    continuation.destination_ordering_lineage,
+                    continuation.destination_ordering_lineage,
+                    continuation.continuation_bond,
+                )?,
+            );
     }
     completed_vocal_preparation_transfers.sort_unstable();
     completed_vocal_preparation_transfers.dedup();
@@ -22933,6 +23184,7 @@ fn settle_internal_contact_interval_with_body_act(
             )?);
         }
     }
+    next_active_frontier.extend(directed_continuation_work_frontiers);
     next_active_frontier.sort_unstable();
     next_active_frontier.dedup();
     // One shared full-field occurrence was evaluated for the entire reached

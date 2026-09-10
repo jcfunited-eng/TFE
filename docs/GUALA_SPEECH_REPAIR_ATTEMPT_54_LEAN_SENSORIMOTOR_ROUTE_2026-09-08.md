@@ -8259,3 +8259,260 @@ An absent route or unique route may settle; multiple successor ties refuse.
   remote URLs into tool output. No credential is copied into this ledger or any
   source file. Permanent guard: inspect remote names only; never print remote
   URLs in this workspace.
+
+### Candidate 105 — conserved learned continuation work closes two postures
+
+`F-054-105-01` (authorship guard accidentally suppressed lawful completion):
+the first directed-work implementation preserved the Candidate-103 minimum
+posture, breath, pressure, and cold exactness but authored no continuation
+work. The exact cause was one overloaded boolean: while body-owned pressure was
+being admitted, it correctly barred that pressure from founding a fresh act but
+also incorrectly barred the already externally caused posture from spending
+its own released work on the same clock its fourth muscle completed. The
+correction separates those authorities. Body-owned acoustic efference remains
+unable to found learned motor work; an independently proven completed posture
+may transfer its conserved released work into its unique learned successor.
+
+`F/S-054-105-02` (ordered successor first repeated, then acquired a physical
+one-act stop): the corrected transfer debited positive exported contact heat
+from the completed minimum preparation, divided it by the existing exact
+conductance law, and the maximum preparation's existing receptor-energy
+lattice accepted it. The first integration then reopened all four sibling
+motor bonds whenever any one successor motor frontier remained, so the maximum
+posture repeated through the tail. That result is rejected; it did prove the
+learned minimum-to-maximum edge can carry conserved work and drive the correct
+successor anatomy.
+
+The accepted correction distinguishes the initial learned continuation from a
+motor branch already in flight. The initial zero-carrier causal frontier may
+open the exact coordinated successor once. Thereafter only an exact in-flight
+L11/L12 bond may continue, and only that same bond; a completed whole-carrier
+motor frontier cannot reopen its siblings. The finite-body-act proof accepts
+such prior motor evidence only for a preparation with exactly one learned
+predecessor and still rejects body-owned acoustic efference and multiple
+predecessors.
+
+`S-054-105-03` (two postures, two breaths, clean stop, cold exact): from the
+untouched Candidate-104 copied state after eight silent baseline clocks, the
+exact phase-zero acoustic cue produced the established minimum posture across
+clocks 3 and 4 (three motors, then one motor and 10 respiratory carriers). Its
+own conserved work then produced the learned maximum posture across clocks 5
+and 6 (three motors, then one motor and 17 respiratory carriers). There were no
+further motor pulses through clock 16. The combined body pressure contained
+60,615 nonzero samples and the V44 successor cold-round-tripped byte exactly.
+No timer, counter, phase lookup, software sequence, reverse-current relabeling,
+new energy, or body-owned echo authored either act.
+
+Artifacts and SHA-256 receipts:
+
+- `/tmp/guala-candidate105i-clean-stop.json` —
+  `db4ca916d3dba5a9cfc3e0885865402629e8b113e2b38376a21dca416954f33d`;
+- `/tmp/guala-candidate105i-clean-stop.cognitive` —
+  `b68a6868ac20e5ea2a7c5fb0f49a52b6589137ce23042fce06e78c8de85b1ea2`;
+- `/tmp/guala-candidate105i-clean-stop.body` —
+  `bf18d5950825e845b5942bd8b9ffe4d3894b84230a46ec9614136fa4da998bec`.
+
+This is an accepted learned two-posture sound-chain component result. It is not
+yet a four-posture word shape, live production speech, or a speech-complete
+claim.
+
+### F-054-AUDIT-H101/H102/H103 — Candidate-105 diagnostic/build mistakes
+
+- **H101:** adding one field directly to an already-large test JSON macro hit
+  Rust's recursion limit at compile time. No organism ran. The field was moved
+  outside that macro attempt.
+- **H102:** the next diagnostic attempted to read the internal completed-act
+  vector from the public observation, where that field is not exposed. Compile
+  refused; no organism ran. Existing respiratory evidence plus a bounded
+  branch trace supplied the needed discriminator, and the invalid field was
+  removed.
+- **H103:** the continuation-predecessor check was first inserted into the
+  older same-clock helper rather than the finite-body-act helper. Compile
+  refused unresolved names; no organism ran. The lines were moved before the
+  next organism test. Permanent guard: inspect the complete function signature
+  and opening body after patching either similarly typed helper.
+
+### Candidates 106–108 — four-posture development and recurrent-use guard
+
+`F-054-106-01` (third continuation initially scheduled too late): the first
+four-phase chronology placed the third guided posture at clock 8, after the
+bounded developmental evidence that could join it to the preceding enacted
+posture. No third continuation grew. This rejected the harness chronology, not
+the accepted two-posture transfer law. The guide was moved to the next distinct
+lawful body event; no timing constant entered production physics.
+
+`F/S-054-106-02` (repeated Mama sound exposed two exact topology defects):
+because postures one and three share the same minimum mouth direction, the
+external sound could attempt to found both the root and the already-learned
+internal minimum posture. External acoustic evidence is now eligible to found
+only a preparation with no learned predecessor; every internal posture remains
+reachable only through its exact preceding learned bond. Separately, three
+real association contacts supporting one root action had been flattened into
+three competing actions. Root resolution now retains all nonzero-phase contacts
+only when they resolve to one unique root ordering; distinct roots still refuse.
+These are topology corrections, not sound labels, phase lookup, timers, or
+semantic sequence state.
+
+`F-054-107-01` (developmental author over-authored and then over-unioned): the
+old route author made both a new root and a successor for every internally
+guided posture. That duplicate root was removed: no predecessor means root;
+an exact predecessor means successor only. The first grouped replacement then
+unioned simultaneous association spans and produced an unresolved eight-
+association node. That result is rejected. The final author groups by exact
+motor set and predecessor, ignores a span whose association-plus-motor anatomy
+already exists, requires exactly one novel span, and refuses two novel spans.
+
+`S-054-107-02` (exact four-posture learned anatomy): the corrected chronology
+grew exactly three unique L11/L11 learned edges, represented by twelve motor-
+specific continuation records, spanning minimum -> maximum -> minimum ->
+maximum. The unresolved-formation count remained 25; no duplicate root or
+extra unresolved node was authored. Artifacts:
+`/tmp/guala-candidate107b-four-posture-taught.cognitive`,
+`/tmp/guala-candidate107b-four-posture-taught.body`, its JSON observation, and
+its structure report. This is locally exercised learned anatomy, not recall or
+production speech.
+
+`F-054-107-03` (ordinary self-feedback could still grow anatomy): the first
+sound-only recall grew an unintended fifth continuation because ordinary
+organism-owned body feedback called the same developmental route author as an
+external guided-vocal event. That successor is rejected. Vocal route growth is
+now admitted only while the already-distinct guided-vocal runtime input is
+present. The admission value is transient call context and is neither
+persisted nor cognitive authority. Ordinary sensory return can change the
+organism but cannot author tutor-guided vocal anatomy.
+
+`S-054-108-01` (first complete Mama-shaped recall cycle): from the exact
+Candidate-107 state, eight pre-cue clocks had zero motor pulses and zero
+respiratory carriers. One sound-only cue produced four ordered postures:
+minimum across clocks 3/4, maximum across clocks 5/6, minimum on clock 7, and
+maximum on clock 8. Respiratory carrier counts were 10, 9, 32, and 480; 68,409
+pressure samples were nonzero. Clocks 9–20 were silent, cold encoding was byte
+exact, and anatomy remained exactly three unique continuation edges with no
+new unresolved formation. Artifacts:
+`/tmp/guala-candidate108a-mama-cycle1.cognitive`, `.body`, and `.json`.
+
+`S-054-108-02` (second complete recurrent-use cycle): starting from the used
+Candidate-108 cycle-one successor, ten pre-cue clocks again had zero pulses and
+zero respiratory carriers. One cue again produced four ordered postures (some
+postures settled across adjacent clocks), with the last pulse on clock 9 and
+silence through clock 20. Total respiratory carriers were 54 and cold encoding
+was exact. Artifacts: `/tmp/guala-candidate108b-mama-cycle2.cognitive`, `.body`,
+and `.json`. This closes first and second local use only.
+
+`F-054-108-03` (Claude slow-battery guard found a third-use authorship tie):
+starting from the exact used cycle-two successor, the third sound-only cue
+refused on clock 4 with `NeuronLineageAuthorityChanged` because two vocal
+ordering cells simultaneously satisfied the complete-posture claim. No
+successor artifact was written and production was untouched. The first two
+cycles remain accepted evidence; Candidate 108 is not deployable. The sole
+active discriminator is the exact pair of ordering lineages in that refusal.
+The tie must remain a refusal; it may not be relaxed, selected by source order,
+or hidden by a counter, marker, timer, threshold, or history flag.
+
+`F-054-AUDIT-H104` (crate-relative preflight path): the first rerun command
+correctly checked all input artifacts but searched for the new diagnostic using
+`native/guala_core/src/...` while already working inside `native/guala_core`.
+`rg` refused before Cargo or any organism ran. Permanent command guard for this
+probe: from the crate directory, source preflights use `src/...`; from the
+worktree root, they use `native/guala_core/src/...`.
+
+`F-054-AUDIT-H105` (missing pipe-failure propagation): the corrected-path
+diagnostic rerun piped Cargo through `rg` without the already-recorded
+`bash -o pipefail` wrapper. The output visibly reported the expected failed
+test, but the shell exit status was zero. No acceptance claim used that status;
+the next rerun restored `bash -o pipefail` and returned Cargo's status 101.
+Permanent guard: every filtered Cargo command uses the recorded pipefail form.
+
+`D-054-108-05` (the third-use tie is duplicate completion authorship, not an
+uncaused battery discharge): the exact orderings were root minimum `...0b7c`
+and its first maximum successor `...0bd0`. A source-only discriminator proved
+the chronology: the root completed from its exact current four-motor evidence;
+on the next interval the maximum completed from its own exact current motor
+evidence, while the separate `recent_body_act_orderings` path re-declared the
+already-finished root from returned movement plus its old motor frontier. The
+second path is redundant. The ordinary complete-body helper already joins a
+split posture's current motor transfers to the immediately preceding exact
+motor frontier; when all four motors discharged together, the act necessarily
+completed in that prior interval and must not be authored again from its later
+body return. Candidate 109 therefore removes the duplicate recent-body
+completion pass. It retains the unique-completion tie refusal, exact motor-set
+proof, body return, directed conserved successor work, and all silence guards;
+it adds no state, marker, threshold, timer, or selection rule.
+
+`D-054-108-04` (single active item): identify the two exact ordering lineages
+in the third-use refusal and trace only the physical evidence that permitted
+both. Acceptance requires at least three successive cue-act cycles on the same
+persisted body, a pre-cue silent census before each cue, at least ten ordinary
+silent clocks after each completed act, unchanged three-edge anatomy, exact
+cold restart, and no uncaused motor, breath, or pressure. Production remains
+task 1455 and untouched.
+
+### Candidate 109 — redundant returned-body author removed; three recurrent uses pass
+
+`S-054-109-01` (third recurrent use, exact four-posture output, clean stop):
+the redundant `recent_body_act_orderings` completion pass was deleted. The
+sole remaining completion owner is the exact coordinated motor-set proof,
+which already joins a split posture's current transfers to the immediately
+preceding exact motor frontier and therefore loses no lawful body act.
+The unique-completion tie refusal is unchanged.
+
+Starting from the exact Candidate-108 cycle-two successor, ten pre-cue clocks
+again produced zero motor pulses and zero respiratory carriers. One sound-only
+cue then produced minimum on clock 3, maximum on clock 4, minimum split across
+clocks 5/6, and maximum on clock 7. Every completed posture had breath: 31,
+265, 10, and 9 respiratory carriers respectively, 315 total. There were no
+motor pulses on clocks 8–20. The successor cold-round-tripped byte exactly.
+Its retained anatomy remained 45 vocal-route contacts, 12 motor-specific
+continuation records resolving to exactly three unique L11/L11 edges, and 25
+unchanged unresolved/legacy route contacts. Sound-only recall authored no new
+anatomy.
+
+The diagnostic-bearing and cleaned builds produced byte-identical cognitive
+and body successors. Accepted cleaned artifacts and SHA-256 receipts:
+
+- `/tmp/guala-candidate109b-mama-cycle3.json` —
+  `15d45cb9eeb0a1a992c0d355af89474ac2eba72c516d76652c654ffb537ff66f`;
+- `/tmp/guala-candidate109b-mama-cycle3.cognitive` —
+  `4e5a48a01481b5bced1fddbb1e155adf9e289212490deaa39eddbf62b2ed0405`;
+- `/tmp/guala-candidate109b-mama-cycle3.body` —
+  `6247ab3b74180419d60eb5dc21a94c38e72cbe119ea078efa9f70a8d14ffd59f`;
+- `/tmp/guala-candidate109a-mama-cycle3-structure.json` —
+  `486964ee10d3b85d3d22363a651e068e0198b358589f055cd28cae3c910419f5`.
+
+This closes Claude's several-cycle slow-battery guard locally. It proves a
+physical learned four-posture Mama-shaped sound sequence, breath, pressure,
+bounded stop, repeatability, retained anatomy, and exact restart on the copied
+practice body. It is not yet packaged, rehearsed, deployed, heard on Joe's
+laptop, recognized as meaningful speech, or a conversation claim. Production
+remains task 1455 and untouched.
+
+`F-054-AUDIT-H106` (workspace-wide formatting baseline): `cargo fmt --all --
+--check` reported formatting drift across many untouched crate files. It made
+no writes and supplied no candidate verdict. A crate-wide mechanical reformat
+is outside this speech slice and is not authorized as a speech fix; candidate
+formatting is reviewed in its bounded diff.
+
+`F-054-AUDIT-H107` (successor artifact output omitted on the first accepted
+run): the first successful Candidate-109 command wrote its JSON result but did
+not set the probe's separate cognitive/body output variables. A structure-only
+preflight therefore stopped at its missing-file check before Cargo ran. The
+same frozen source was rerun once with the two explicit output paths; it
+reproduced the same acceptance result and wrote the accepted successor files.
+
+`S-054-109-02` (bounded source and conservation review): the Candidate-109
+diff was read end to end across the receptor lattice, runtime admission,
+learned-route topology, resident settlement, and probe. The returned-body
+completion deletion removes only a second author; the exact current/split
+motor-set completion owner remains. Root ingress remains restricted to a
+preparation with no learned predecessor. Internal continuation remains funded
+only by exact physically directed work on the enacted predecessor's motor
+contacts. The receiver accepts only the increase on its existing finite 2^96
+residue lattice; the fractional remainder is heat. The source debit is bounded
+by the exact accepted increase, and only its unconsumed remainder stays exported
+as heat. The earlier per-cohort contact copy retains contact state and transfer
+evidence but does not independently deposit exported contact heat, so the debit
+does not double-pay the donor. Tie refusal, body-owned acoustic exclusion,
+guided-only anatomy growth, bounded frontier expiry, and three-edge retained
+anatomy remain intact. `git diff --check` passed. No L0-L4, DSF field, codec,
+identity, persisted neuron schema, Python shell, UI transport, or production
+resource was changed.

@@ -3660,9 +3660,10 @@ pub(crate) struct DeferredReceptorWorkRetention {
 }
 
 /// Retain one externally resolved learned-work arrival for the receiver's
-/// next ordinary physical interval. An occupied residue or open gate refuses
-/// the arrival; no existing work is overwritten. The exact 2^96 lattice is
-/// the same bounded receptor medium used by ordinary intrinsic gate work.
+/// next ordinary physical interval. A closed gate accumulates the arrival with
+/// its existing sub-threshold residue; an open gate refuses new work. No
+/// existing work is overwritten. The exact 2^96 lattice is the same bounded
+/// receptor medium used by ordinary intrinsic gate work.
 pub(crate) fn retain_deferred_receptor_work(
     predecessor: &NeuronPhysicalState,
     offered_work_zeptojoules: Exact,
@@ -3670,10 +3671,7 @@ pub(crate) fn retain_deferred_receptor_work(
     if offered_work_zeptojoules.is_negative() {
         return Err(GateSettlementError::InvalidAnatomy.into());
     }
-    if offered_work_zeptojoules.is_zero()
-        || predecessor.gate.open_population != 0
-        || !predecessor.receptor_quantum_residue.energy().is_zero()
-    {
+    if offered_work_zeptojoules.is_zero() || predecessor.gate.open_population != 0 {
         return Ok(DeferredReceptorWorkRetention {
             successor: predecessor.clone(),
             accepted_source_work_zeptojoules: Exact::zero(),
@@ -3682,19 +3680,26 @@ pub(crate) fn retain_deferred_receptor_work(
         });
     }
     let lattice = BigInt::from(1_u128 << 96);
-    let floored_numerator = (&offered_work_zeptojoules * &lattice)
+    let predecessor_residue = predecessor.receptor_quantum_residue.energy();
+    let accumulated = predecessor_residue + &offered_work_zeptojoules;
+    let floored_numerator = (&accumulated * &lattice)
         .floor()
         .to_integer();
-    let retained = Exact::new(floored_numerator, lattice);
-    let narrowing_heat = &offered_work_zeptojoules - &retained;
-    if retained.is_negative() || narrowing_heat.is_negative() {
+    let successor_residue = Exact::new(floored_numerator, lattice);
+    let retained_source_work = &successor_residue - predecessor_residue;
+    let narrowing_heat = &offered_work_zeptojoules - &retained_source_work;
+    if successor_residue.is_negative()
+        || retained_source_work.is_negative()
+        || retained_source_work > offered_work_zeptojoules
+        || narrowing_heat.is_negative()
+    {
         return Err(GateSettlementError::ArithmeticWidth.into());
     }
     let mut successor = predecessor.clone();
-    successor.receptor_quantum_residue = PhysicalEnergyResidue::from_exact(retained.clone());
+    successor.receptor_quantum_residue = PhysicalEnergyResidue::from_exact(successor_residue);
     Ok(DeferredReceptorWorkRetention {
         successor,
-        accepted_source_work_zeptojoules: retained,
+        accepted_source_work_zeptojoules: retained_source_work,
         retained_source_heat_zeptojoules: Exact::zero(),
         residue_narrowing_heat_zeptojoules: narrowing_heat,
     })

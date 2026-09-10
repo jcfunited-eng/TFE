@@ -3314,6 +3314,7 @@ impl ResidentOrganismRuntime {
             self.active.in_flight_acoustic.clone(),
             true,
             true,
+            false,
             &mut residency,
             crate::exact_rational::ExactRational::integer(0),
         );
@@ -3583,6 +3584,7 @@ impl ResidentOrganismRuntime {
             },
             false,
             consume_in_flight_acoustic_samples.is_none(),
+            guided_vocal_drives.is_some(),
             &mut residency,
             real_nutrition_intake_zeptojoules,
         );
@@ -3849,6 +3851,7 @@ impl ResidentOrganismRuntime {
         initial_in_flight_acoustic: Option<InFlightAcousticConsequence>,
         seal_successor: bool,
         admit_learned_motor_work: bool,
+        admit_guided_vocal_route_growth: bool,
         residency: &mut Option<crate::causal_event_scheduler::CausalEventResidency>,
         real_nutrition_intake_zeptojoules: crate::exact_rational::ExactRational,
     ) -> Result<
@@ -3957,6 +3960,7 @@ impl ResidentOrganismRuntime {
                     cognitive_budget,
                     interval_terminal,
                     admit_learned_motor_work,
+                    admit_guided_vocal_route_growth,
                     residency,
                     interval_intake,
                 )

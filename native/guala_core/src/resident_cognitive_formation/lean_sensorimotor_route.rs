@@ -99,6 +99,11 @@ pub(super) fn exact_completed_vocal_preparation_body_act(
     predecessor_frontier: &[ActiveElectricalFrontierEntry],
     moved_body_effectors: &[BodyEffectorTerminal],
 ) -> Result<Option<(BTreeSet<[u8; 16]>, Vec<MotorPreparationTransfer>)>, FormationError> {
+    let predecessors = preparation_predecessors(cohorts, topology, preparation)?;
+    if predecessors.len() > 1 {
+        return Err(FormationError::NeuronLineageAuthorityChanged);
+    }
+    let is_learned_continuation = predecessors.len() == 1;
     let mut exact_motors = BTreeSet::new();
     let mut exact_transfers = Vec::new();
     for motor in &preparation.motors {
@@ -149,7 +154,7 @@ pub(super) fn exact_completed_vocal_preparation_body_act(
                 .iter()
                 .copied()
                 .filter(|entry| {
-                    entry.carries_external_ingress_cause()
+                    (entry.carries_external_ingress_cause() || is_learned_continuation)
                         && !entry.carries_body_owned_acoustic_efference()
                         && entry.directed_transfer().is_some_and(|transfer| {
                             transfer.sender == preparation.ordering_lineage
@@ -333,7 +338,7 @@ pub(super) fn vocal_action_preparation_for_ordering(
     }))
 }
 
-fn preparation_predecessors(
+pub(super) fn preparation_predecessors(
     cohorts: &[ResidentReachedCohort],
     topology: &ResidentTopologyIndex,
     preparation: &VocalActionPreparation,
@@ -470,6 +475,9 @@ pub(super) fn frontier_founds_vocal_action_preparation(
     else {
         return Ok(None);
     };
+    if !preparation_predecessors(cohorts, topology, &preparation)?.is_empty() {
+        return Ok(None);
+    }
     Ok(preparation
         .associations
         .iter()
@@ -506,6 +514,9 @@ pub(super) fn vocal_action_preparation_from_association_founder(
         else {
             continue;
         };
+        if !preparation_predecessors(cohorts, topology, &preparation)?.is_empty() {
+            continue;
+        }
         if preparation.associations.iter().any(|association| {
             association.lineage == association_lineage && association.bond == founder_bond
         }) {
@@ -715,6 +726,44 @@ fn existing_preparation(
     }
 }
 
+fn preparation_with_exact_participants_exists(
+    cohorts: &[ResidentReachedCohort],
+    topology: &ResidentTopologyIndex,
+    associations: &[[u8; 16]],
+    motors: &[[u8; 16]],
+) -> Result<bool, FormationError> {
+    let Some(first_association) = associations.first().copied() else {
+        return Ok(false);
+    };
+    let expected_associations = associations.iter().copied().collect::<BTreeSet<_>>();
+    let expected_motors = motors.iter().copied().collect::<BTreeSet<_>>();
+    let first_flat = topology.flat_for_lineage(first_association)?;
+    for flat in topology.neighbours_by_flat[first_flat].iter().copied() {
+        let ordering = topology.flat_locations[flat].2;
+        let Some(preparation) =
+            vocal_action_preparation_for_ordering(cohorts, topology, ordering)?
+        else {
+            continue;
+        };
+        if preparation
+            .associations
+            .iter()
+            .map(|contact| contact.lineage)
+            .collect::<BTreeSet<_>>()
+            == expected_associations
+            && preparation
+                .motors
+                .iter()
+                .map(|contact| contact.lineage)
+                .collect::<BTreeSet<_>>()
+                == expected_motors
+        {
+            return Ok(true);
+        }
+    }
+    Ok(false)
+}
+
 pub(super) fn mount_exact_reassembled_vocal_action_routes(
     cohorts: &mut Vec<ResidentReachedCohort>,
     resting_population: &mut Option<DevelopmentalRestingPopulation>,
@@ -767,6 +816,11 @@ pub(super) fn mount_exact_reassembled_vocal_action_routes(
     let mut additions = Vec::<([u8; 16], [u8; 16], ExactRational)>::new();
     let mut planned_preparations =
         BTreeMap::<(Vec<[u8; 16]>, Vec<[u8; 16]>, Vec<[u8; 16]>), [u8; 16]>::new();
+    let exact_predecessors = predecessor_orderings.clone();
+    let mut grouped_associations = BTreeMap::<
+        (Vec<[u8; 16]>, Vec<[u8; 16]>),
+        Vec<(Vec<[u8; 16]>, bool)>,
+    >::new();
     for (start, end) in source_occurrence_spans.iter().copied() {
         let mut pairs = Vec::<([u8; 16], [u8; 16])>::new();
         let mut incomplete_vocal_occurrence = false;
@@ -826,56 +880,44 @@ pub(super) fn mount_exact_reassembled_vocal_action_routes(
         }
         let association_lineages = associations_set.into_iter().collect::<Vec<_>>();
         let motor_lineages = motors_set.into_iter().collect::<Vec<_>>();
-
-        let base_key = (
-            association_lineages.clone(),
-            motor_lineages.clone(),
-            Vec::new(),
-        );
-        let base = match existing_preparation(
+        let already_learned = preparation_with_exact_participants_exists(
             cohorts,
             topology,
             &association_lineages,
             &motor_lineages,
-            &[],
-        )? {
-            Some(ordering) => ordering,
-            None => match planned_preparations.get(&base_key).copied() {
-                Some(ordering) => ordering,
-                None => mount_next_intrinsic_in_layer(
-                    cohorts,
-                    resting_population,
-                    next_lineage_ordinal,
-                    11,
-                )?,
-            },
-        };
-        planned_preparations.insert(base_key, base);
-        for participant in association_lineages.iter().chain(&motor_lineages).copied() {
-            append_contact_once(electrical_fabric, &mut additions, base, participant);
-        }
-        let exact_predecessors = predecessor_orderings
-            .iter()
-            .copied()
-            .filter(|predecessor| *predecessor != base)
+        )?;
+        grouped_associations
+            .entry((motor_lineages, exact_predecessors.clone()))
+            .or_default()
+            .push((association_lineages, already_learned));
+    }
+    for ((motor_lineages, predecessors), mut association_candidates) in grouped_associations {
+        association_candidates.sort_unstable();
+        association_candidates.dedup();
+        let novel = association_candidates
+            .into_iter()
+            .filter_map(|(associations, already_learned)| (!already_learned).then_some(associations))
             .collect::<Vec<_>>();
-        if exact_predecessors.is_empty() {
-            continue;
-        }
-        let successor_key = (
+        let [association_lineages] = novel.as_slice() else {
+            if novel.is_empty() {
+                continue;
+            }
+            return Err(FormationError::NeuronLineageAuthorityChanged);
+        };
+        let key = (
             association_lineages.clone(),
             motor_lineages.clone(),
-            exact_predecessors.clone(),
+            predecessors.clone(),
         );
-        let successor = match existing_preparation(
+        let ordering = match existing_preparation(
             cohorts,
             topology,
             &association_lineages,
             &motor_lineages,
-            &exact_predecessors,
+            &predecessors,
         )? {
             Some(ordering) => ordering,
-            None => match planned_preparations.get(&successor_key).copied() {
+            None => match planned_preparations.get(&key).copied() {
                 Some(ordering) => ordering,
                 None => mount_next_intrinsic_in_layer(
                     cohorts,
@@ -885,14 +927,14 @@ pub(super) fn mount_exact_reassembled_vocal_action_routes(
                 )?,
             },
         };
-        planned_preparations.insert(successor_key, successor);
-        for participant in exact_predecessors
+        planned_preparations.insert(key, ordering);
+        for participant in predecessors
             .iter()
-            .chain(&association_lineages)
+            .chain(association_lineages)
             .chain(&motor_lineages)
             .copied()
         {
-            append_contact_once(electrical_fabric, &mut additions, successor, participant);
+            append_contact_once(electrical_fabric, &mut additions, ordering, participant);
         }
     }
     if !additions.is_empty() {

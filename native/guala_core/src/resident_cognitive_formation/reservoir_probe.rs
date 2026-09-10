@@ -4190,16 +4190,19 @@ fn run_guided_vocal_continuation(
         .then(|| std::env::var("GUALA_PROBE_GUIDED_VOCAL_TAIL_NEXT_GUIDE_CLOCK").ok())
         .flatten()
         .map(|value| value.parse::<u64>().expect("next guide clock is u64"));
+    let scheduled_guide_phase = scheduled_guide_clock.map(|_| {
+        std::env::var("GUALA_PROBE_GUIDED_VOCAL_TAIL_NEXT_GUIDE_PHASE")
+            .ok()
+            .map(|value| value.parse::<usize>().expect("next guide phase is usize"))
+            .unwrap_or(1)
+    });
     let scheduled_guide_pressure = scheduled_guide_clock.map(|_| {
         let bytes = fs::read(
             std::env::var("GUALA_PROBE_GUIDED_VOCAL_TAIL_NEXT_GUIDE_PRESSURE_PCM")
                 .expect("next guide pressure path must be set"),
         )
         .expect("next guide pressure reads");
-        let phase = std::env::var("GUALA_PROBE_GUIDED_VOCAL_TAIL_NEXT_GUIDE_PHASE")
-            .ok()
-            .map(|value| value.parse::<usize>().expect("next guide phase is usize"))
-            .unwrap_or(1);
+        let phase = scheduled_guide_phase.expect("scheduled guide phase exists");
         assert_eq!(bytes.len(), 32_000);
         bytes
             .chunks_exact(2)
@@ -4237,6 +4240,14 @@ fn run_guided_vocal_continuation(
             );
         }
         if scheduled_guide_clock == Some(clock) {
+            let guide_direction = match scheduled_guide_phase
+                .expect("scheduled guide phase exists")
+                % 4
+            {
+                0 | 2 => BodyEffectorDirection::TowardMinimum,
+                1 | 3 => BodyEffectorDirection::TowardMaximum,
+                _ => unreachable!(),
+            };
             let mut axes = terminal_by_motor
                 .values()
                 .map(|terminal| terminal.axis())
@@ -4248,7 +4259,7 @@ fn run_guided_vocal_continuation(
                     .map(|axis| BodyEffectorDrive {
                         terminal: BodyEffectorTerminal::new(
                             axis,
-                            BodyEffectorDirection::TowardMaximum,
+                            guide_direction,
                         ),
                         outward_elementary_carriers: 1_500,
                     })
@@ -4291,10 +4302,13 @@ fn run_guided_vocal_continuation(
                 usize::MAX,
                 true,
                 !consuming_body_owned_pressure,
+                scheduled_guide_clock == Some(clock),
                 &mut residency,
                 ExactRational::integer(0),
             )
-            .expect("guided vocal continuation settles");
+            .unwrap_or_else(|error| {
+                panic!("guided vocal continuation clock {clock} settles: {error:?}")
+            });
         let [route_matches, sound_matches, source_transitions, work_offers, work_acceptances] =
             super::vocal_work_diagnostic();
         internal_reassemblies = internal_reassemblies
@@ -4792,6 +4806,12 @@ fn run_guided_vocal_continuation(
                         .carrier_reservoirs()
                         .intracellular()
                         .to_string(),
+                    "retained_receptor_work_zeptojoules": neuron
+                        .receptor_quantum_residue
+                        .energy()
+                        .to_string(),
+                    "gate_open_population": neuron.gate.open_population().to_string(),
+                    "gate_dissipated_quanta": neuron.gate.dissipated_quanta().to_string(),
                     "capacitance_picofarads": {
                         "numerator": capacitance.0.to_string(),
                         "denominator": capacitance.1.to_string(),
@@ -5564,6 +5584,7 @@ fn guided_vocal_population_growth_json(
             .advance_coexisting_admitted_transition_with_residency(
                 &admitted_sources,
                 usize::MAX,
+                true,
                 true,
                 true,
                 &mut guided_residency,
