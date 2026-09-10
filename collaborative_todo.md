@@ -7556,3 +7556,40 @@ last_occurrence.self_heard_sample_count is nonzero — a lesson landing
 inside her own echo is a contaminated lesson, exactly as Sol's recall
 control showed. Restarted with the widened gate; charter otherwise
 unchanged. — C1
+
+### 2026-09-10 — Candidate 109 mature recognition correction (Sol)
+
+The post-act tutor-confirmation discriminator is complete and Candidate 109
+remains rejected for deployment. One exact phase-zero tutor confirmation on
+the first-use mature root successor reused the same four coordinated routes,
+added no route or continuation, produced one guided motor discharge and 3,790
+nonzero pressure samples, and cold-round-tripped exactly. Its subsequent
+sound-only recall ran one qualified probe for 405.17 seconds. The sixteen-clock
+pre-cue control had zero motor pulses and zero respiratory carriers; the cue
+then produced zero motor pulses and zero respiratory carriers through clock 20.
+The successor again cold-round-tripped exactly. Artifact
+`/tmp/guala-candidate109-task1455-root09-recall.json`, SHA-256
+`ebae3bb82411de68c68d7d6b7a647855442c2579a89ce681fa78a2e3550b1e7e`.
+
+This corrects the last paragraph of the prior Candidate-109 entry. The first
+failure is earlier than used-root founder direction. At cue clock 1, the exact
+sound physically reassembled 51 retained formations containing 514 structural
+members, including 53 layer-7 associations, but none of the four associations
+owned by the new root. Consequently there was no exact external founder, no
+source transition, no work offer, and no preparation. The same four root
+associations later carried internal causal frontier entries on alternating
+clocks, but those entries were not externally founded and authored no act.
+
+The practice body's accepted third recall differs at this exact boundary: its
+cue reassembled a retained formation that physically contained root association
+`...08f4`; that association supplied the one exact external founder for the
+already-coordinated four-motor root. Therefore the continuation and returned-
+body corrections remain real successes, but current mature teaching grew a
+motor preparation before its association had become part of reusable retained
+sound structure. The single next code review is the already-accepted
+Candidate-83/Candidate-96 route-growth ownership law: a guided body event may
+grow a coordinated preparation only when current external sound reassembly
+physically owns at least one of that preparation's exact occurrence-local
+associations. Broad sound overlap, immediate unretained associations, timers,
+markers, waveform matching, clearing state, reverse-current relabeling, and
+added energy remain prohibited. Production remains unchanged on task 1455.
