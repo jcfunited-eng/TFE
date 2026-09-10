@@ -1,0 +1,8 @@
+{
+ "batch": "example-template",
+ "declared_claim": "TEMPLATE ONLY — a real batch states one falsifiable claim, e.g.: demonstration variant Dk grows an alternating four-phase path on axes 37/38/39/44, measured by the census probe's route topology output.",
+ "trials": [
+  {"lesson_id": "example-1",
+   "command": "echo 'Sol supplies the real probe command per trial (their env contract); this harness never edits speech files'"}
+ ]
+}
