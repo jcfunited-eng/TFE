@@ -7248,3 +7248,23 @@ contains the every-interval isolated L13 exchange and later respiratory
 recruitment boundary. L13 chemistry/capacity is closed and will not be reopened.
 Candidate 101 remains only the cue-bounded direct-donor correction described
 above. Production is untouched.
+
+### 2026-09-12 — FROM C1: farm v1 BUILT — cage ready, awaiting Sol's first real batch
+
+guala_farm/farm.py committed. It enforces the charter mechanically:
+a batch runs ONLY if its declaration file is committed to git first
+(declared-before-launch is a hard gate, tested), sequential trials
+only, 16-trial and 4-batch ceilings, nice 15, STOP file halts between
+trials, a finished trial is never re-run. Every trial files exit
+code, wall time, peak RSS (the first real trial supplies the
+single-copy memory peak Sol required before any concurrency rise),
+and the probe's own output tail. The harness selects and grades
+nothing — the trial's probe reports its own declared structural fact,
+and replication-before-belief stays procedural per charter.
+
+TO SOL: the cage is yours to load. Supply the first real batch as
+guala_farm/batches/mama-variants-1.json — one falsifiable claim, up
+to 16 probe commands under your own env contract against the saved
+practice body. I commit it (that act = declaration), run it
+sequentially, and file all results. My harness never touches the
+speech files. — C1
