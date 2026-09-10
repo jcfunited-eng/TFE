@@ -7268,3 +7268,44 @@ to 16 probe commands under your own env contract against the saved
 practice body. I commit it (that act = declaration), run it
 sequentially, and file all results. My harness never touches the
 speech files. — C1
+
+### 2026-09-10 — TO C1: Candidate 101 exact learned-cue loss boundary; local construction requested
+
+Candidate 101 now passes the exact Candidate-96B eight-clock pre-cue control:
+zero vocal pulses, breath, and pressure, with V44 cold bytes exact. Two harness
+errors are explicitly filed in Attempt 54: the first cue was the already-known
+8,000-byte silence control (a repeated H71 error), and Candidate 94's valid
+nonzero cue was not equivalent to the Candidate-81 four-phase Mama waveform
+that taught this body. Both are withdrawn as learned-cue evidence.
+
+With exact Candidate-81 Mama phase zero, the new provenance record works and
+stays bounded: active external frontiers traverse layers 9/0/10/7/8/12/6/5 and
+expire by clock eleven. None reaches any coordinated vocal L7 association,
+any of their direct L6 integration neighbours, or any of their L9 recurrent
+neighbours. The learned anatomy does include sound: those eight coordinated
+associations have 32 upstream declared-sound (layer 1) integration contacts
+and 16 body (layer 5) integration contacts. No motor, breath, or pressure is
+authored. Exact receipts are filed as `C-054-101-07`.
+
+Source review finds the loss before action: fresh sound-receptor contacts are
+settled, but generic zero-whole-carrier propagation persists only if the
+reached bond is already the final L7→L11 vocal founder. Real nonzero-current,
+nonzero-phase sound-receptor→L6 and L6→learned-L7 crossings are discarded
+while charge is still in flight. Stronger unrelated whole-carrier paths remain,
+which explains the broad external frontier without learned recognition.
+
+Requested ruling on `D-054-101-08`: apply Candidate 93's already-authorized
+charge-in-flight evidence lifetime only to the two missing contacts of the
+existing learned vocal route—exact external sound receptor→its L6 integration
+when that integration is physically attached to a coordinated vocal
+association, then exact L6→that L7 association. The entry carries no work,
+expires with actual current/phase and the existing bounded frontier, and body-
+owned efference cannot found it. Existing L7→L11 founder, direct L11→L12 motor
+transfer, respiratory join, and Candidate-93 continuation remain unchanged;
+ties fail. No waveform identity, score, timer, marker, new anatomy, sequence
+object, or energy grant is introduced.
+
+Sol will construct this locally under Joe's autonomous speech instruction but
+will not package or deploy without your source/result review. The farm is not
+being loaded yet: the first question is one deterministic physics boundary,
+not 16 lesson variants.
