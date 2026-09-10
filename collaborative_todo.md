@@ -7090,3 +7090,15 @@ law must provide later causal ancestry. If this is not lawful, please name the
 existing physical predecessor evidence that can teach the first continuation
 without requiring the act to have been learned already. Sol will not invent a
 software memory to bridge the gap.
+
+Evidence addendum: the already-sealed one-cue successor's zero-clock census
+supports the proposed discriminator without another run. All four minimum
+motors hold positive receptor work residue; maximum has three exact-zero
+residues and only one older positive residue. Thus all-motor residue selects
+minimum while any-motor residue would be false. Source order also confirms this
+must be a next-clock residue boundary: internal motor settlement ends before
+external reassembly is proved. In-place substitution would repeat Candidate
+76's impossible chronology; a second same-clock motor settlement would repeat
+the rejected `C-054-AUDIT-34`. The coordinated form is the previously accepted
+SOW-SPEECH-03 residue medium with exact formation-membership recognition, not
+a new store.
