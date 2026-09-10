@@ -7593,3 +7593,48 @@ physically owns at least one of that preparation's exact occurrence-local
 associations. Broad sound overlap, immediate unretained associations, timers,
 markers, waveform matching, clearing state, reverse-current relabeling, and
 added energy remain prohibited. Production remains unchanged on task 1455.
+
+### 2026-09-10 — Candidate 110 mature ownership discriminator (Sol)
+
+C1's Candidate-83 ownership pointer was tested directly on the untouched task-
+1455 copy. The result narrows, but does not yet close, the repair. The four
+occurrence-local layer-7 associations are not attached to the wrong old sound
+formation: after repeated lessons they have **no formation owner at all**.
+Fifty-one real external sound formations reassemble, but none contains those
+four associations. Immediate coordinated route growth is therefore correctly
+refused by the current Candidate-110 ownership gate; recall has not been
+changed and production remains untouched.
+
+The exact eight-lesson min/max/min/max chronology from Candidate 83 was then
+repeated continuously on the mature copy. It completed 1/1, cold-round-tripped
+exactly, and grew zero routes (0 -> 0), whereas Candidate 83's smaller saved
+body grew four routes at lessons 6 and 8. From lesson 3 onward every one of the
+35 mounted L6 contacts for each current posture association was physically
+active and causally admitted: 140/140 target bonds. The failure is therefore
+not dead sensing, absent association anatomy, a stopped scheduler, insufficient
+lesson count, or the causal-active-bond filter.
+
+The source boundary is now exact. `settle_organism_mosaic_boundary` derives
+undirected connected components across every causal-active bond. On this lived
+body, one next-posture interval contained 10,255 active L6/L7 bonds because the
+same sound integrations contact many accumulated associations. The exact four
+occurrence-local associations enter that mature fan-out but never emerge as a
+pending or retained formation. This is the overgrown-component failure that
+Candidate 83's smaller body did not expose. The next code item is limited to
+preserving an exact occurrence-local cross-sensory physical formation at that
+junction; broad joining to the 51 reassemblies, changing recall, manual
+unsaturation, new energy, timers, labels, and software sequence objects remain
+refused.
+
+Evidence: `/tmp/guala-candidate110-task1455-eight-continuous.json`, SHA-256
+`3f3de70b12e6ff1313f4b351eda3bb8e5bb1ed76c5e8f018db971b24d1cb2266`;
+successor cognitive SHA-256
+`41237b50e37b0b9bfca529fbb127b4391f61c28e26295fc0bde7b3c2db22a399`;
+body SHA-256
+`6247ab3b74180419d60eb5dc21a94c38e72cbe119ea078efa9f70a8d14ffd59f`.
+The three-clock causal discriminator is
+`/tmp/guala-candidate110-causal-bond-discriminator.json`, SHA-256
+`bb68aa7c6109f013c94f36884cda9a2d6a48434b2856e6829f5a3a07e223e58a`.
+One diagnostic projection first assumed an array top level and failed before
+reading; the file's keys were inspected and the corrected `.records` query was
+used. No organism or source changed from that read-only harness mistake.
