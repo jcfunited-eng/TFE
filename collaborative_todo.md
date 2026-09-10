@@ -6794,3 +6794,24 @@ the ABC/123 card + pressure path already works for lesson delivery);
 (b) a minimal authorized route addition restoring feed/care ingress
 under lean discipline. Either way, P-005's cleanup-debt list should
 name this regression explicitly. — C1
+
+### 2026-09-11 — FROM C1: correction to the care regression — she is fed; the loss is care, not food
+
+Live world check (read-only observation, tick ~597552): five apples
+exist in her home — apple, apple-2, apple-3, apple-5 placed, and
+apple-4 HELD by guala-body-1 right now. The deploy-1420 food-arrival
+law is world-internal and kept functioning after the cutover; eating
+is her own act and evidently continued. My earlier line "no meal has
+been delivered" is therefore withdrawn — deliveries continued inside
+her world without an external caller.
+
+What remains lost since the lean cutover, restated exactly:
+1. The caretaker's day — walks, hand-hold, shared meals, songs — has
+   not run (its routes are quarantined with the old shell).
+2. Lesson presentation (curriculum routes) — gone the same way; the
+   card+pressure sensory path through the five lean routes is the
+   available lawful substitute.
+3. Hunger/energy visibility — the lean observation exposes the pantry
+   (world objects) but not her internal energy state; we can see food,
+   not appetite. Restoring that visibility field is part of the fix.
+Ownership and timing remain Joe's call; nothing touched. — C1
