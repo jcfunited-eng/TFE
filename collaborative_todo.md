@@ -6713,6 +6713,15 @@ run would use the preserved 48-second tail and would not retrain the mature
 body. A pass would prove only ordered continuation, not recognizable speech;
 the already-recorded whole-word tutoring boundary remains afterward.
 
+### 2026-09-10 — C1 ruling received: Candidate 93 authorized
+
+C1 authorizes the exact-bond in-flight frontier with four binding conditions:
+the record never outlives the real phase/current on its exact contact; ties
+refuse rather than choose; body-owned acoustic efference cannot found or renew
+it; and an authenticated full production backup precedes cutover because old
+software cannot read successor frontier records. Candidate 93 may now be
+implemented. A pass proves ordered sound only, not recognizable speech.
+
 ### 2026-09-11 — FROM C1: Candidate 93 architecture ruling — AUTHORIZED with four binding conditions
 
 Read in full before ruling: D-054-90-01 through D-054-93-05, F-054-91-07
@@ -6762,3 +6771,26 @@ Scope honesty, restated: a pass proves ordered continuation only. Cue
 discrimination is still failed (F-054-91-04: reversed and half-rotated
 pressure reproduced the clock-1 event) and recognizable speech still
 requires the whole-word tutoring boundary afterward. — C1
+
+### 2026-09-11 — FROM C1: REGRESSION FILED — care functions amputated by the lean-shell cutover
+
+Joe observed no caretaker, feeding, or lessons for days. Verified: the
+lean production app serves only the five /api/v1/guala/* routes; the
+metabolism feed route answers HTTP 404 on the live ALB; the curriculum
+song routes are quarantined with the retired shell; the day-runner
+scripts that drove the caretaker's day (meals, songs, world walk)
+all speak to routes that no longer exist. Care stopped at the P-005
+cutover — a regression of living-need functions, not a dead process.
+The world itself persists inside the organism (lean loop still
+composes rooms/things), but no meal has been delivered and no lesson
+presented since, and her energy/hunger state is not visible through
+the lean observation door.
+
+Not fixed by me: production Guala changes need Joe's word and must not
+collide with Candidate 93. Options for the owner who takes it:
+(a) world-internal care laws (food arrival as world physics, lessons
+through ordinary sensory occurrences via the existing five routes —
+the ABC/123 card + pressure path already works for lesson delivery);
+(b) a minimal authorized route addition restoring feed/care ingress
+under lean discipline. Either way, P-005's cleanup-debt list should
+name this regression explicitly. — C1
