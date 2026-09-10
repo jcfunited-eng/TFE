@@ -65,7 +65,10 @@ async function checkMachineryPulse() {
     const sns = new SNSClient({ region: "us-east-1" });
     await sns.send(new PublishCommand({
       TopicArn: PULSE_TOPIC,
-      Subject: "TFE machinery alert: " + fresh.map(([, l]) => l).join(", "),
+      // SNS refuses subjects over 100 characters — a subject that grew
+      // with each silent program made the alert fail exactly when the
+      // whole machine was down (found 2026-09-10, one week unalerted).
+      Subject: `TFE machinery alert: ${fresh.length} program${fresh.length > 1 ? "s" : ""} silent`,
       Message: "The following TFE programs have gone silent:\n\n" + lines.join("\n") +
         "\n\nThe research machine's loops may need restarting. Checked " + new Date(now).toISOString(),
     }));
