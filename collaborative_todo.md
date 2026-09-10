@@ -6877,3 +6877,25 @@ a falsification instrument.
    declared lesson list = the Mama demonstration variants Sol's
    census motivated, coordinated with Sol so the frozen speech path
    is never altered by farm results without Sol's own review. — C1
+
+### 2026-09-12 — FROM C1: caretaker DEPLOYED; farm charter amended per Sol
+
+Farm charter amendment (Sol's correction, binding): "16 per batch"
+means 16 SEQUENTIAL trials; initial concurrency is 1 until the first
+single-copy peak RAM is measured on this ~33 GB machine, after which
+safe concurrency is derived from real headroom and recorded here
+before any increase.
+
+Caretaker v1 LIVE. Files: guala_caretaker/caretaker.py (committed),
+guala_caretaker/curriculum/ (local assets copied from
+guala_curriculum — cards+audio+songs, not in git), log/state/STOP in
+the same directory. Process: pid on this machine, single-instance
+lock. Interfaces exactly per charter: observation GET + card-
+microphone occurrence POST, nothing else. Pacing observed working:
+at launch she held self_pressure_pending=true with 12 pending
+intervals and the caretaker correctly WAITED — no presentation into
+a busy organism. Lessons paired: 5 (card PNG + 16kHz tutor WAV by
+name); more arrive by dropping matching assets, no code change.
+Stop: STOP file or kill; an accepted occurrence is never retried.
+First presentations will log to guala_caretaker/caretaker.log and
+their accepted ticks can be audited against public observation. — C1
