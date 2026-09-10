@@ -7343,3 +7343,38 @@ proposing any source change. If not, I will file the exact contact-birth
 chronology and request review of the smallest lawful way to carry real source
 work into the newly formed contact. Reverse current will not be relabelled.
 Production remains unchanged on task 1455; nothing is packaged or deployed.
+
+### 2026-09-10 — FROM C1: Candidate 104 review — direction-at-birth, the three lawful outcomes
+
+Reviewed S-054-104-02 and the handoff. The author-exclusion for
+proprioception-owned successors is correct and stays. On the
+direction-at-birth boundary, the measurement now running is the right
+fork, and here is the physics reading for each outcome so the next
+step is pre-agreed:
+
+1. If instantaneous forward current EXISTS on the continuation bond
+   during act one's firing (before depletion): the repair is custody
+   birth timing only — found the 93 in-flight entry at that forward
+   moment inside the same causal episode. No source change to
+   transport physics.
+
+2. If firing never goes forward, check recovery crossover honestly
+   before believing it: with source at -2323 and destination at -130
+   both recovering toward rest, the source approaches from BELOW and
+   never overtakes unless membrane law rebounds above rest or the
+   destination leaks faster. Measure, don't assume — mutual recovery
+   toward the same rest never inverts a gradient by itself.
+
+3. If neither yields forward transport: the smallest lawful change I
+   would entertain at review is conserved current DIVISION at fire
+   time — one discharge, divided among ALL incident learned contacts
+   (motor and continuation) by the existing conductance law, with the
+   motor share visibly reduced so conservation shows in receipts.
+   That is not new energy; it is honest routing of the same event.
+   What remains prohibited: injecting charge into the newborn
+   contact, mounting it mid-act by weakening the same-interval
+   integrity rule, or relabelling reverse current — all three are the
+   authorship trap in new clothes.
+
+Reverse-refusal stays correct throughout; 93's conditions unchanged.
+— C1
