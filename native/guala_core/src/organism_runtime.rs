@@ -9421,7 +9421,7 @@ mod tests {
         assert_eq!(parsed.vestibular, predecessor.vestibular);
         assert_eq!(parsed.articulated_body, Some(ArticulatedBodyState::at_neutral()));
         let corrected_cognitive = parsed.cognitive_bytes.unwrap();
-        // Migration lands on the CURRENT boundary (V42). For this body the
+        // Migration lands on the CURRENT boundary (V44). For this body the
         // crossing lawfully changes exactly two things beyond the magic: it
         // reinserts the V40 vocal-body marker as None (this body carries no
         // vocal anatomy, so the V41 boundary mounts nothing), and it admits
@@ -9429,7 +9429,7 @@ mod tests {
         // law genesis uses -- which advances the lineage authority and
         // inserts the encoded population. Every other cognitive byte is
         // untouched: the pose correction changes no lived cognition.
-        assert_eq!(&corrected_cognitive[..8], b"GLCOG042");
+        assert_eq!(&corrected_cognitive[..8], b"GLCOG044");
         assert_eq!(&corrected_cognitive[8..18], &v34_cognitive[8..18]);
         let predecessor_next_lineage =
             u64::from_le_bytes(v34_cognitive[18..26].try_into().unwrap());
@@ -9509,7 +9509,7 @@ mod tests {
         // Same lawful cognitive deltas as the V34 crossing: current magic,
         // None vocal-body marker reinserted, the once-only resting-population
         // admission (lineage authority + population section); nothing else.
-        assert_eq!(&migrated_cognitive[..8], b"GLCOG042");
+        assert_eq!(&migrated_cognitive[..8], b"GLCOG044");
         assert_eq!(&migrated_cognitive[8..18], &v35_cognitive[8..18]);
         assert!(
             u64::from_le_bytes(migrated_cognitive[18..26].try_into().unwrap())

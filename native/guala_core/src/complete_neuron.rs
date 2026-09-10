@@ -3651,6 +3651,55 @@ pub(crate) struct IntrinsicTransducedGateWorkPreparation {
     pub(crate) delivered_gate_work_zeptojoules: Exact,
 }
 
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub(crate) struct DeferredReceptorWorkRetention {
+    pub(crate) successor: NeuronPhysicalState,
+    pub(crate) accepted_source_work_zeptojoules: Exact,
+    pub(crate) retained_source_heat_zeptojoules: Exact,
+    pub(crate) residue_narrowing_heat_zeptojoules: Exact,
+}
+
+/// Retain one externally resolved learned-work arrival for the receiver's
+/// next ordinary physical interval. An occupied residue or open gate refuses
+/// the arrival; no existing work is overwritten. The exact 2^96 lattice is
+/// the same bounded receptor medium used by ordinary intrinsic gate work.
+pub(crate) fn retain_deferred_receptor_work(
+    predecessor: &NeuronPhysicalState,
+    offered_work_zeptojoules: Exact,
+) -> Result<DeferredReceptorWorkRetention, NeuronPhysicalError> {
+    if offered_work_zeptojoules.is_negative() {
+        return Err(GateSettlementError::InvalidAnatomy.into());
+    }
+    if offered_work_zeptojoules.is_zero()
+        || predecessor.gate.open_population != 0
+        || !predecessor.receptor_quantum_residue.energy().is_zero()
+    {
+        return Ok(DeferredReceptorWorkRetention {
+            successor: predecessor.clone(),
+            accepted_source_work_zeptojoules: Exact::zero(),
+            retained_source_heat_zeptojoules: offered_work_zeptojoules,
+            residue_narrowing_heat_zeptojoules: Exact::zero(),
+        });
+    }
+    let lattice = BigInt::from(1_u128 << 96);
+    let floored_numerator = (&offered_work_zeptojoules * &lattice)
+        .floor()
+        .to_integer();
+    let retained = Exact::new(floored_numerator, lattice);
+    let narrowing_heat = &offered_work_zeptojoules - &retained;
+    if retained.is_negative() || narrowing_heat.is_negative() {
+        return Err(GateSettlementError::ArithmeticWidth.into());
+    }
+    let mut successor = predecessor.clone();
+    successor.receptor_quantum_residue = PhysicalEnergyResidue::from_exact(retained.clone());
+    Ok(DeferredReceptorWorkRetention {
+        successor,
+        accepted_source_work_zeptojoules: retained,
+        retained_source_heat_zeptojoules: Exact::zero(),
+        residue_narrowing_heat_zeptojoules: narrowing_heat,
+    })
+}
+
 /// Prepare bounded learned-contact work on an intrinsic receiving gate.
 ///
 /// Closed gates retain sub-threshold work on the neuron's already-persisted

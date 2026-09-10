@@ -534,6 +534,21 @@ impl ReachedCohortState {
         Ok(())
     }
 
+    /// Replace one neuron with an already-validated exact physical successor.
+    /// This is used when a post-reassembly transaction retains conserved work
+    /// without changing the cohort's separate recovery-fluid reservoir.
+    pub(crate) fn replace_neuron_state(
+        &mut self,
+        neuron_index: usize,
+        successor: NeuronPhysicalState,
+    ) -> Result<(), ReachedCohortError> {
+        if neuron_index >= self.neurons.len() {
+            return Err(ReachedCohortError::AnatomyStateWidth);
+        }
+        self.neurons.as_mut()[neuron_index] = successor;
+        Ok(())
+    }
+
     pub(crate) fn recovery_fluid(&self) -> RecoveryFluidReservoirState {
         self.recovery_fluid
     }

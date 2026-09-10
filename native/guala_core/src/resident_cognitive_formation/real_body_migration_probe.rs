@@ -25,14 +25,11 @@ fn real_v40_production_body_mounts_one_new_dedicated_vocal_effector() {
     let body = fs::read(PathBuf::from(path)).expect("real V40 body readable");
     let (organism_tick, cognitive) = super::reservoir_probe::parse_envelope(&body);
     let budget = 2_147_483_590usize;
-    let predecessor = ResidentCognitiveFormationState::decode_for_one_way_migration(
-        &cognitive,
-        budget,
-    )
-    .expect("exact V40 body enters only the authenticated migration boundary");
+    let predecessor =
+        ResidentCognitiveFormationState::decode_for_one_way_migration(&cognitive, budget)
+            .expect("exact V40 body enters only the authenticated migration boundary");
     assert_eq!(
-        predecessor.vocal_articulatory_effector_lineage,
-        None,
+        predecessor.vocal_articulatory_effector_lineage, None,
         "this proof is specific to the marker-absent mature production body",
     );
     let historical_layer_thirteen = predecessor
@@ -46,8 +43,7 @@ fn real_v40_production_body_mounts_one_new_dedicated_vocal_effector() {
                 .zip(cohort.anatomy.neuron_lineages())
         })
         .filter_map(|(mount, lineage)| {
-            (mount.source_site().is_none() && mount.place().layer() == 13)
-                .then_some(*lineage)
+            (mount.source_site().is_none() && mount.place().layer() == 13).then_some(*lineage)
         })
         .collect::<BTreeSet<_>>();
     assert_eq!(historical_layer_thirteen.len(), 3);
@@ -62,11 +58,8 @@ fn real_v40_production_body_mounts_one_new_dedicated_vocal_effector() {
     let predecessor_mosaics = predecessor.mosaics.clone();
     let predecessor_hippocampal = predecessor.hippocampal;
 
-    let migrated = ResidentCognitiveFormationState::migrate_to_current_format(
-        &cognitive,
-        budget,
-    )
-    .expect("exact V40 body gains one dedicated V41 effector");
+    let migrated = ResidentCognitiveFormationState::migrate_to_current_format(&cognitive, budget)
+        .expect("exact V40 body gains one dedicated V41 effector");
     let restored = ResidentCognitiveFormationState::decode(&migrated, budget)
         .expect("dedicated V41 body cold decodes");
     let dedicated = restored
@@ -79,7 +72,10 @@ fn real_v40_production_body_mounts_one_new_dedicated_vocal_effector() {
         "every pre-existing neuron, anatomy, and physical state changed",
     );
     assert_eq!(restored.cohorts.len(), predecessor_cohort_count + 1);
-    assert_eq!(restored.summary().complete_neuron_count, predecessor_neuron_count + 1);
+    assert_eq!(
+        restored.summary().complete_neuron_count,
+        predecessor_neuron_count + 1
+    );
     assert_eq!(restored.electrical_fabric, predecessor_contacts);
     assert_eq!(
         (
@@ -206,7 +202,10 @@ fn real_production_body_migrates_losslessly() {
         redecoded.unexpressed_electrical_seeds,
         decoded.unexpressed_electrical_seeds
     );
-    assert_eq!(redecoded.dormant_lineage_seeds, decoded.dormant_lineage_seeds);
+    assert_eq!(
+        redecoded.dormant_lineage_seeds,
+        decoded.dormant_lineage_seeds
+    );
     assert_eq!(redecoded.cohorts.as_ref(), retained_cohorts.as_slice());
     assert_eq!(
         redecoded.electrical_fabric.contact_count(),
@@ -578,11 +577,11 @@ fn repeated_a_and_k_recurrence_coordinate_probe() {
                               index: usize| {
         ExactRational::integer(1)
             .checked_add(
-                ExactRational::integer(
-                    i128::try_from(state.probe_gate_open_population()).unwrap(),
-                )
-                .checked_div_unsigned(cohort.anatomy.neuron_anatomies()[index].gate_population())
-                .unwrap(),
+                ExactRational::integer(i128::try_from(state.probe_gate_open_population()).unwrap())
+                    .checked_div_unsigned(
+                        cohort.anatomy.neuron_anatomies()[index].gate_population(),
+                    )
+                    .unwrap(),
             )
             .unwrap()
     };
@@ -607,11 +606,7 @@ fn repeated_a_and_k_recurrence_coordinate_probe() {
                 ExactRational::integer(1)
                     .checked_add(
                         support_coordinate(cohort, &state.neurons()[left], left)
-                            .checked_sub(support_coordinate(
-                                cohort,
-                                &state.neurons()[right],
-                                right,
-                            ))
+                            .checked_sub(support_coordinate(cohort, &state.neurons()[right], right))
                             .unwrap()
                             .checked_abs()
                             .unwrap(),

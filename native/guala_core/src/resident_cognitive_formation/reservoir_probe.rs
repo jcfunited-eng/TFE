@@ -1201,6 +1201,8 @@ fn motor_reachability_json(state: &ResidentCognitiveFormationState) -> Value {
         &topology_index,
         None,
         &[],
+        &[],
+        &externally_reached,
         &externally_reached,
         &externally_reached,
         &externally_reached,
@@ -1512,6 +1514,8 @@ fn motor_bridge_gradient_population_range_json(state: &ResidentCognitiveFormatio
                         &topology,
                         None,
                         &[],
+                        &[],
+                        &seeds,
                         &seeds,
                         &seeds,
                         &seeds,
@@ -1658,6 +1662,8 @@ fn motor_bridge_active_range_json(state: &ResidentCognitiveFormationState) -> Va
                 &topology,
                 None,
                 &[],
+                &[],
+                &causal_seeds,
                 &causal_seeds,
                 &causal_seeds,
                 &causal_seeds,
@@ -1820,8 +1826,10 @@ fn retained_frontier_motor_range_json(
             &topology,
             successor.vocal_articulatory_effector_lineage,
             &frontier,
+            &[],
             &reached_lineages,
             &reached_lineages,
+            &[],
             &[],
             &mut changed,
             successor.generation + active_clock,
@@ -2842,8 +2850,10 @@ fn source_work_to_motor_reservoir_range_json(state: &ResidentCognitiveFormationS
             &topology,
             successor.vocal_articulatory_effector_lineage,
             &frontier,
+            &[],
             &reached_lineages,
             &reached_lineages,
+            &[],
             &[],
             &mut changed,
             successor.generation + active_clock,
@@ -3072,8 +3082,10 @@ fn production_learned_motor_work_range_json(state: &ResidentCognitiveFormationSt
             &topology,
             successor.vocal_articulatory_effector_lineage,
             &frontier,
+            &[],
             &reached_lineages,
             &reached_lineages,
+            &[],
             &[],
             &mut changed,
             successor.generation + active_clock,
@@ -3092,7 +3104,10 @@ fn production_learned_motor_work_range_json(state: &ResidentCognitiveFormationSt
             .iter()
             .filter(|transfer| {
                 matches!(
-                    (topology.layer_of(transfer.sender), topology.layer_of(transfer.receiver)),
+                    (
+                        topology.layer_of(transfer.sender),
+                        topology.layer_of(transfer.receiver)
+                    ),
                     (Some(11), Some(12)) | (Some(12), Some(11))
                 )
             })
@@ -3210,8 +3225,10 @@ fn production_replayed_motor_discharge_json(
 
     for repeated_event in 1_u32..=256 {
         let mut trial = state.clone();
-        let mut replacements_by_cohort =
-            std::collections::BTreeMap::<usize, Vec<(usize, crate::complete_neuron::NeuronPhysicalState)>>::new();
+        let mut replacements_by_cohort = std::collections::BTreeMap::<
+            usize,
+            Vec<(usize, crate::complete_neuron::NeuronPhysicalState)>,
+        >::new();
         for (lineage, motor_state) in &carried_states {
             let (cohort_index, neuron_index) = mounted_neuron_location(&trial, *lineage);
             replacements_by_cohort
@@ -3251,8 +3268,10 @@ fn production_replayed_motor_discharge_json(
                 &topology,
                 trial.vocal_articulatory_effector_lineage,
                 &frontier,
+                &[],
                 &reached_lineages,
                 &reached_lineages,
+                &[],
                 &[],
                 &mut changed,
                 trial.generation + active_clock,
@@ -3270,7 +3289,10 @@ fn production_replayed_motor_discharge_json(
                 .iter()
                 .filter(|transfer| {
                     matches!(
-                        (topology.layer_of(transfer.sender), topology.layer_of(transfer.receiver)),
+                        (
+                            topology.layer_of(transfer.sender),
+                            topology.layer_of(transfer.receiver)
+                        ),
                         (Some(11), Some(12)) | (Some(12), Some(11))
                     )
                 })
@@ -3299,10 +3321,13 @@ fn production_replayed_motor_discharge_json(
             );
         }
         if repeated_event == 26 {
-            let encoded = trial.encode(usize::MAX).expect("encode controlled midpoint");
+            let encoded = trial
+                .encode(usize::MAX)
+                .expect("encode controlled midpoint");
             let restored = ResidentCognitiveFormationState::decode(&encoded, usize::MAX)
                 .expect("decode controlled midpoint");
-            cold_midpoint_exact = restored.encode(usize::MAX)
+            cold_midpoint_exact = restored
+                .encode(usize::MAX)
                 .expect("re-encode controlled midpoint")
                 == encoded;
             for lineage in &learned_motors {
@@ -3318,21 +3343,24 @@ fn production_replayed_motor_discharge_json(
             if recruitment.learned_work_preparations.is_empty() {
                 continue;
             }
-            first_discharges.entry(recruitment.neuron_lineage).or_insert_with(|| {
-                json!({
-                    "repeated_event": repeated_event,
-                    "motor_lineage": lineage_hex(recruitment.neuron_lineage),
-                    "outward_elementary_carriers":
-                        recruitment.outward_elementary_carriers.to_string(),
-                    "terminal": format!("{:?}", recruitment.body_effector_terminal),
-                })
-            });
+            first_discharges
+                .entry(recruitment.neuron_lineage)
+                .or_insert_with(|| {
+                    json!({
+                        "repeated_event": repeated_event,
+                        "motor_lineage": lineage_hex(recruitment.neuron_lineage),
+                        "outward_elementary_carriers":
+                            recruitment.outward_elementary_carriers.to_string(),
+                        "terminal": format!("{:?}", recruitment.body_effector_terminal),
+                    })
+                });
             if recruitment.neuron_lineage.ends_with(&[0x00, 0xc5])
                 || recruitment.neuron_lineage.ends_with(&[0x04, 0xfb])
             {
-                if !first_vocal_recruitments.iter().any(|prior| {
-                    prior.neuron_lineage == recruitment.neuron_lineage
-                }) {
+                if !first_vocal_recruitments
+                    .iter()
+                    .any(|prior| prior.neuron_lineage == recruitment.neuron_lineage)
+                {
                     first_vocal_recruitments.push(recruitment);
                 }
             }
@@ -3374,8 +3402,10 @@ fn production_replayed_motor_discharge_json(
                 &topology,
                 continued.vocal_articulatory_effector_lineage,
                 &frontier,
+                &[],
                 &reached_lineages,
                 &reached_lineages,
+                &[],
                 &[],
                 &mut changed,
                 continued.generation + 2 + continuation_clock,
@@ -3445,14 +3475,11 @@ fn production_replayed_motor_discharge_json(
                 outward_elementary_carriers: recruitment.outward_elementary_carriers,
             })
             .collect::<Vec<_>>();
-        let admitted = AdmittedBodyEffectorDrives::admit(drives)
-            .expect("production-path vocal drives admit");
-        let transition = settle_body_effector_drives(
-            body,
-            &admitted,
-            BODY_SETTLEMENT_CLOCK_MICROSECONDS,
-        )
-        .expect("production-path vocal tissue settles");
+        let admitted =
+            AdmittedBodyEffectorDrives::admit(drives).expect("production-path vocal drives admit");
+        let transition =
+            settle_body_effector_drives(body, &admitted, BODY_SETTLEMENT_CLOCK_MICROSECONDS)
+                .expect("production-path vocal tissue settles");
         json!({
             "reached_terminal_count": transition.reached_terminal_count,
             "proprioceptive_consequences": transition
@@ -3490,15 +3517,12 @@ fn production_replayed_motor_discharge_json(
                 total.checked_add(event.outward_elementary_carriers)
             })
             .expect("duration respiratory carrier width");
-        let admitted = AdmittedBodyEffectorDrives::admit(drives)
-            .expect("duration vocal drives admit");
+        let admitted =
+            AdmittedBodyEffectorDrives::admit(drives).expect("duration vocal drives admit");
 
-        let shortcut_body = settle_body_effector_drives(
-            body,
-            &admitted,
-            BODY_SETTLEMENT_CLOCK_MICROSECONDS,
-        )
-        .expect("shortcut vocal body settles");
+        let shortcut_body =
+            settle_body_effector_drives(body, &admitted, BODY_SETTLEMENT_CLOCK_MICROSECONDS)
+                .expect("shortcut vocal body settles");
         let shortcut_acoustic = settle_native_articulatory_interval(
             shortcut_body.successor,
             &shortcut_body.proprioceptive_consequences,
@@ -3690,15 +3714,14 @@ fn artificial_vocal_synergy_unblock_json(
     };
     let closed_ordering = *closed_ordering;
 
-    let mut target_motors = Vec::<(
-        &'static str,
-        BodyEffectorTerminal,
-        [u8; 16],
-        [u8; 16],
-    )>::new();
+    let mut target_motors = Vec::<(&'static str, BodyEffectorTerminal, [u8; 16], [u8; 16])>::new();
     for axis in target_axes {
         for (phase, direction, ordering) in [
-            ("closed", BodyEffectorDirection::TowardMinimum, closed_ordering),
+            (
+                "closed",
+                BodyEffectorDirection::TowardMinimum,
+                closed_ordering,
+            ),
             ("open", BodyEffectorDirection::TowardMaximum, open_ordering),
         ] {
             let terminal = BodyEffectorTerminal::new(axis, direction);
@@ -3744,33 +3767,29 @@ fn artificial_vocal_synergy_unblock_json(
     let artificially_encoded = artificially_bridged
         .encode(usize::MAX)
         .expect("artificial copied body encodes");
-    let artificially_cold = ResidentCognitiveFormationState::decode(
-        &artificially_encoded,
-        usize::MAX,
-    )
-    .expect("artificial copied body cold-decodes");
+    let artificially_cold =
+        ResidentCognitiveFormationState::decode(&artificially_encoded, usize::MAX)
+            .expect("artificial copied body cold-decodes");
     let artificial_cold_exact = artificially_cold
         .encode(usize::MAX)
         .expect("artificial copied body re-encodes")
         == artificially_encoded;
-    let artificial_source_population_scale = std::env::var(
-        "GUALA_PROBE_ARTIFICIAL_VOCAL_SOURCE_POPULATION_SCALE",
-    )
-    .ok()
-    .map(|value| {
-        value
-            .parse::<u32>()
-            .expect("artificial vocal source population scale is u32")
-    })
-    .unwrap_or(1);
+    let artificial_source_population_scale =
+        std::env::var("GUALA_PROBE_ARTIFICIAL_VOCAL_SOURCE_POPULATION_SCALE")
+            .ok()
+            .map(|value| {
+                value
+                    .parse::<u32>()
+                    .expect("artificial vocal source population scale is u32")
+            })
+            .unwrap_or(1);
     assert!(
         (1..=16).contains(&artificial_source_population_scale),
         "artificial vocal source population scale must be 1..=16"
     );
-    let replaced_population_scale =
-        super::replace_artificial_learned_motor_source_population_scale(
-            artificial_source_population_scale,
-        );
+    let replaced_population_scale = super::replace_artificial_learned_motor_source_population_scale(
+        artificial_source_population_scale,
+    );
     assert_eq!(
         replaced_population_scale, 1,
         "artificial population scale leaked across probe"
@@ -3783,8 +3802,7 @@ fn artificial_vocal_synergy_unblock_json(
                 mounted_neuron_location(&artificially_bridged, *motor);
             (
                 *motor,
-                artificially_bridged.cohorts[cohort_index].state.neurons()[neuron_index]
-                    .clone(),
+                artificially_bridged.cohorts[cohort_index].state.neurons()[neuron_index].clone(),
             )
         })
         .collect::<std::collections::BTreeMap<_, _>>();
@@ -3793,16 +3811,15 @@ fn artificial_vocal_synergy_unblock_json(
         .map(|(_, _, _, motor)| *motor)
         .collect::<std::collections::BTreeSet<_>>();
     let checkpoints = [1_u32, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1_024];
-    let maximum_repeated_events = std::env::var(
-        "GUALA_PROBE_ARTIFICIAL_VOCAL_MAXIMUM_REPEATED_EVENTS",
-    )
-    .ok()
-    .map(|value| {
-        value
-            .parse::<u32>()
-            .expect("artificial vocal maximum repeated events is u32")
-    })
-    .unwrap_or(256);
+    let maximum_repeated_events =
+        std::env::var("GUALA_PROBE_ARTIFICIAL_VOCAL_MAXIMUM_REPEATED_EVENTS")
+            .ok()
+            .map(|value| {
+                value
+                    .parse::<u32>()
+                    .expect("artificial vocal maximum repeated events is u32")
+            })
+            .unwrap_or(256);
     assert!(
         (1..=1_024).contains(&maximum_repeated_events),
         "artificial vocal maximum repeated events must be 1..=1024"
@@ -3814,8 +3831,10 @@ fn artificial_vocal_synergy_unblock_json(
 
     for repeated_event in 1_u32..=maximum_repeated_events {
         let mut trial = artificially_bridged.clone();
-        let mut replacements_by_cohort =
-            std::collections::BTreeMap::<usize, Vec<(usize, crate::complete_neuron::NeuronPhysicalState)>>::new();
+        let mut replacements_by_cohort = std::collections::BTreeMap::<
+            usize,
+            Vec<(usize, crate::complete_neuron::NeuronPhysicalState)>,
+        >::new();
         for (lineage, motor_state) in &carried_states {
             let (cohort_index, neuron_index) = mounted_neuron_location(&trial, *lineage);
             replacements_by_cohort
@@ -3852,8 +3871,10 @@ fn artificial_vocal_synergy_unblock_json(
                 &topology,
                 trial.vocal_articulatory_effector_lineage,
                 &frontier,
+                &[],
                 &reached_lineages,
                 &reached_lineages,
+                &[],
                 &[],
                 &mut changed,
                 trial.generation + active_clock,
@@ -3935,8 +3956,10 @@ fn artificial_vocal_synergy_unblock_json(
                 &topology,
                 continued.vocal_articulatory_effector_lineage,
                 &frontier,
+                &[],
                 &reached_lineages,
                 &reached_lineages,
+                &[],
                 &[],
                 &mut changed,
                 continued.generation + 2 + continuation_clock,
@@ -4128,17 +4151,20 @@ fn artificial_vocal_synergy_unblock_json(
 struct GuidedVocalContinuation {
     state: ResidentCognitiveFormationState,
     body: ArticulatedBodyState,
+    residency: Option<crate::causal_event_scheduler::CausalEventResidency>,
     pulses: Vec<Value>,
     pressure: Vec<i16>,
     first_audible_frame: Option<Vec<i16>>,
     respiratory_carriers: u128,
     internal_reassemblies: u64,
     causal_thought_transitions: u64,
+    learned_work_by_clock: Vec<Value>,
 }
 
 fn run_guided_vocal_continuation(
     mut state: ResidentCognitiveFormationState,
     mut body: ArticulatedBodyState,
+    mut residency: Option<crate::causal_event_scheduler::CausalEventResidency>,
     initial_cue_sources: &[crate::joint_source_episode::NativeJointSourceEpisode],
     occurrence: u64,
     maximum_clocks: u64,
@@ -4153,22 +4179,101 @@ fn run_guided_vocal_continuation(
     };
     let mut pending_motor_consequence = None;
     let mut pending_self_pressure = None;
-    let mut residency = None;
     let mut pulses = Vec::new();
     let mut pressure = Vec::<i16>::new();
     let mut first_audible_frame = None::<Vec<i16>>;
     let mut respiratory_carriers = 0_u128;
     let mut internal_reassemblies = 0_u64;
     let mut causal_thought_transitions = 0_u64;
+    let mut learned_work_by_clock = Vec::new();
+    let scheduled_guide_clock = (!initial_cue_sources.is_empty())
+        .then(|| std::env::var("GUALA_PROBE_GUIDED_VOCAL_TAIL_NEXT_GUIDE_CLOCK").ok())
+        .flatten()
+        .map(|value| value.parse::<u64>().expect("next guide clock is u64"));
+    let scheduled_guide_pressure = scheduled_guide_clock.map(|_| {
+        let bytes = fs::read(
+            std::env::var("GUALA_PROBE_GUIDED_VOCAL_TAIL_NEXT_GUIDE_PRESSURE_PCM")
+                .expect("next guide pressure path must be set"),
+        )
+        .expect("next guide pressure reads");
+        let phase = std::env::var("GUALA_PROBE_GUIDED_VOCAL_TAIL_NEXT_GUIDE_PHASE")
+            .ok()
+            .map(|value| value.parse::<usize>().expect("next guide phase is usize"))
+            .unwrap_or(1);
+        assert_eq!(bytes.len(), 32_000);
+        bytes
+            .chunks_exact(2)
+            .skip(phase * 4_000)
+            .take(4_000)
+            .map(|sample| i16::from_le_bytes([sample[0], sample[1]]))
+            .collect::<Vec<_>>()
+    });
+
+    let mut target_preparations = target_motors
+        .iter()
+        .flat_map(|motor| {
+            super::lean_sensorimotor_route::vocal_cognitive_action_route_for_motor(
+                &state.cohorts,
+                &state.topology_index,
+                *motor,
+            )
+            .expect("target vocal preparations resolve")
+            .into_iter()
+            .map(|route| route.preparation)
+        })
+        .collect::<Vec<_>>();
+    target_preparations.sort_unstable();
+    target_preparations.dedup();
 
     for clock in 1..=maximum_clocks {
+        super::reset_vocal_work_diagnostic();
         let mut admitted_sources = Vec::new();
+        let consuming_body_owned_pressure = pending_self_pressure.is_some();
         if clock == 1 {
             admitted_sources.extend(
                 initial_cue_sources
                     .iter()
                     .map(super::admitted_fixture_episode),
             );
+        }
+        if scheduled_guide_clock == Some(clock) {
+            let mut axes = terminal_by_motor
+                .values()
+                .map(|terminal| terminal.axis())
+                .collect::<Vec<_>>();
+            axes.sort_unstable();
+            axes.dedup();
+            let drives = AdmittedBodyEffectorDrives::admit(
+                axes.into_iter()
+                    .map(|axis| BodyEffectorDrive {
+                        terminal: BodyEffectorTerminal::new(
+                            axis,
+                            BodyEffectorDirection::TowardMaximum,
+                        ),
+                        outward_elementary_carriers: 1_500,
+                    })
+                    .collect(),
+            )
+            .expect("next guided posture admits");
+            let guided = settle_body_effector_drives(
+                &body,
+                &drives,
+                BODY_SETTLEMENT_CLOCK_MICROSECONDS,
+            )
+            .expect("next guided posture settles");
+            let source = admit_articulated_body_consequence_source(
+                occurrence.checked_add(clock).expect("next guide occurrence fits"),
+                &guided.proprioceptive_consequences,
+            )
+            .expect("next guided posture consequence admits");
+            admitted_sources.push(super::admitted_fixture_episode(&source));
+            admitted_sources.push(super::admitted_fixture_episode(&probe_hearing_episode(
+                scheduled_guide_pressure
+                    .as_ref()
+                    .expect("next guide pressure is present"),
+                "candidate-exact-next-tutor-pressure",
+            )));
+            body = guided.successor;
         }
         if let Some(source) = pending_motor_consequence.take() {
             admitted_sources.push(super::admitted_fixture_episode(&source));
@@ -4185,11 +4290,13 @@ fn run_guided_vocal_continuation(
                 &admitted_sources,
                 usize::MAX,
                 true,
-                true,
+                !consuming_body_owned_pressure,
                 &mut residency,
                 ExactRational::integer(0),
             )
             .expect("guided vocal continuation settles");
+        let [route_matches, sound_matches, source_transitions, work_offers, work_acceptances] =
+            super::vocal_work_diagnostic();
         internal_reassemblies = internal_reassemblies
             .checked_add(
                 u64::try_from(observation.internally_reassembled_formation_cues.len())
@@ -4205,6 +4312,660 @@ fn run_guided_vocal_continuation(
                     .sum::<u64>(),
             )
             .expect("continuation causal thought count remains bounded");
+        let external_reassembly_receipts = observation
+            .externally_reassembled_formation_frontiers
+            .iter()
+            .map(|reassembly| reassembly.formation_receipt)
+            .collect::<std::collections::BTreeSet<_>>();
+        let exact_sound_reassembled_members = super::exact_sound_reassembled_structure_lineages(
+            &successor.cohorts,
+            &successor.topology_index,
+            &successor.mosaics,
+            &successor.formation_index,
+            &observation.externally_reassembled_formation_frontiers,
+            usize::MAX,
+        )
+        .expect("exact sound reassembly members resolve");
+        let target_associations = target_preparations
+            .iter()
+            .flat_map(|preparation| {
+                preparation
+                    .associations
+                    .iter()
+                    .map(|association| association.lineage)
+            })
+            .collect::<std::collections::BTreeSet<_>>();
+        let exact_sound_target_associations = exact_sound_reassembled_members
+            .intersection(&target_associations)
+            .copied()
+            .map(lineage_hex)
+            .collect::<Vec<_>>();
+        let mut exact_sound_reassembled_members_by_layer = std::collections::BTreeMap::new();
+        for layer in exact_sound_reassembled_members
+            .iter()
+            .filter_map(|lineage| successor.topology_index.layer_of(*lineage))
+        {
+            *exact_sound_reassembled_members_by_layer.entry(layer).or_insert(0usize) += 1;
+        }
+        let external_reassembly_witnesses = observation
+            .externally_reassembled_formation_frontiers
+            .iter()
+            .map(|reassembly| {
+                json!({
+                    "receipt": reassembly.formation_receipt.iter()
+                        .map(|byte| format!("{byte:02x}"))
+                        .collect::<String>(),
+                    "recurrent": lineage_hex(reassembly.recurrent_lineage),
+                    "cues": reassembly.cue_lineages.iter().map(|lineage| {
+                        let flat = successor.topology_index.flat_for_lineage(*lineage)
+                            .expect("external reassembly cue resolves");
+                        let (cohort, neuron, _) = successor.topology_index.flat_locations[flat];
+                        let mount = &successor.cohorts[cohort].anatomy.mounts()[neuron];
+                        json!({
+                            "lineage": lineage_hex(*lineage),
+                            "layer": mount.place().layer(),
+                            "source_sense": mount.source_site().map(|site| format!("{:?}", site.sense())),
+                        })
+                    }).collect::<Vec<_>>(),
+                })
+            })
+            .collect::<Vec<_>>();
+        let mut exact_sound_reassembled_founders = Vec::new();
+        for association in exact_sound_reassembled_members.iter().copied().filter(|lineage| {
+            successor.topology_index.layer_of(*lineage) == Some(7)
+        }) {
+            let association_flat = successor
+                .topology_index
+                .flat_for_lineage(association)
+                .expect("exact reassembled association resolves");
+            for resident_contact_index in successor.topology_index.incident_contacts_by_flat
+                [association_flat]
+                .iter()
+                .copied()
+            {
+                let contact = successor.topology_index.contacts[resident_contact_index];
+                let Some(ordering) = super::vocal_action_preparation_from_association_founder(
+                    &successor.cohorts,
+                    &successor.topology_index,
+                    association,
+                    contact.stable_bond,
+                )
+                .expect("exact reassembled founder resolves")
+                else {
+                    continue;
+                };
+                let super::ResidentContactOrigin::Fabric { contact_index } = contact.origin else {
+                    panic!("exact learned founder is resident fabric");
+                };
+                exact_sound_reassembled_founders.push(json!({
+                    "association": lineage_hex(association),
+                    "ordering": lineage_hex(ordering),
+                    "bond": format!("{:?}", contact.stable_bond),
+                    "carrier_phase_numerator": successor.electrical_fabric.state()
+                        .contact_states()[contact_index].carrier_phase().parts().0.to_string(),
+                }));
+            }
+        }
+        let mut reassembled_target_associations = std::collections::BTreeSet::new();
+        for preparation in &target_preparations {
+            for association in &preparation.associations {
+                for candidate in successor
+                    .formation_index
+                    .candidate_indices([association.lineage], std::iter::empty())
+                {
+                    let retained = successor
+                        .mosaics
+                        .get(candidate)
+                        .expect("formation index names retained mosaic");
+                    let encoded = super::encode_resident_admitted_physical_mosaic(
+                        &retained.mosaic,
+                        usize::MAX,
+                    )
+                    .expect("retained mosaic encodes for diagnostic receipt");
+                    if external_reassembly_receipts.contains(&super::sha256(&encoded)) {
+                        reassembled_target_associations.insert(association.lineage);
+                    }
+                }
+            }
+        }
+        let active_reassembled_association_frontiers = successor
+            .active_electrical_frontier
+            .iter()
+            .filter(|entry| {
+                reassembled_target_associations.contains(&entry.frontier_lineage())
+            })
+            .map(|entry| {
+                let cause = entry
+                    .cause
+                    .expect("active reassembled-association frontier has exact cause");
+                json!({
+                    "frontier": lineage_hex(entry.frontier_lineage()),
+                    "sender": entry.sender().map(lineage_hex),
+                    "receiver": lineage_hex(entry.receiver()),
+                    "bond": format!("{:?}", cause.bond),
+                    "transferred_whole_carriers": cause.transferred_whole_carriers.to_string(),
+                    "is_in_flight": entry.is_in_flight(),
+                    "body_owned_acoustic_efference": entry.carries_body_owned_acoustic_efference(),
+                    "external_ingress_cause": entry.carries_external_ingress_cause(),
+                })
+            })
+            .collect::<Vec<_>>();
+        let externally_reassembled_preparations = target_preparations
+            .iter()
+            .map(|preparation| {
+                let mut matching_associations = Vec::new();
+                let mut matching_formation_receipts = std::collections::BTreeSet::new();
+                for association in &preparation.associations {
+                    let candidates = successor
+                        .formation_index
+                        .candidate_indices([association.lineage], std::iter::empty());
+                    for candidate in candidates {
+                        let retained = successor
+                            .mosaics
+                            .get(candidate)
+                            .expect("formation index names retained mosaic");
+                        let encoded = super::encode_resident_admitted_physical_mosaic(
+                            &retained.mosaic,
+                            usize::MAX,
+                        )
+                        .expect("retained mosaic encodes for diagnostic receipt");
+                        let receipt = super::sha256(&encoded);
+                        if external_reassembly_receipts.contains(&receipt) {
+                            matching_associations.push(lineage_hex(association.lineage));
+                            matching_formation_receipts.insert(
+                                receipt
+                                    .iter()
+                                    .map(|byte| format!("{byte:02x}"))
+                                    .collect::<String>(),
+                            );
+                        }
+                    }
+                }
+                matching_associations.sort_unstable();
+                matching_associations.dedup();
+                json!({
+                    "ordering": lineage_hex(preparation.ordering_lineage),
+                    "association_count": preparation.associations.len(),
+                    "matching_associations": matching_associations,
+                    "matching_formation_receipts": matching_formation_receipts,
+                })
+            })
+            .collect::<Vec<_>>();
+        let founder_contact_witnesses = target_preparations
+            .iter()
+            .flat_map(|preparation| {
+                preparation.associations.iter().map(|association| {
+                    let route = observation.physical_frontier_routes.iter().find(|route| {
+                        route.bond() == association.bond
+                            && super::canonical_lineage_pair(
+                                route.seed_lineage(),
+                                route.adjacent_lineage(),
+                            ) == super::canonical_lineage_pair(
+                                association.lineage,
+                                preparation.ordering_lineage,
+                            )
+                    });
+                    let contact = successor
+                        .topology_index
+                        .contacts
+                        .iter()
+                        .find(|contact| contact.stable_bond == association.bond)
+                        .expect("founder contact exists in exact successor topology");
+                    let super::ResidentContactOrigin::Fabric { contact_index } = contact.origin else {
+                        panic!("learned founder contact is resident fabric");
+                    };
+                    let anatomy = successor.electrical_fabric.anatomy().contact_anatomies()
+                        [contact_index];
+                    let (left_index, _) = anatomy.endpoints();
+                    let left_lineage = successor.electrical_fabric.lineages()[left_index];
+                    let phase_numerator = successor.electrical_fabric.state().contact_states()
+                        [contact_index]
+                        .carrier_phase()
+                        .parts()
+                        .0;
+                    let outward_from_association_phase =
+                        if left_lineage == association.lineage {
+                            phase_numerator
+                        } else {
+                            -phase_numerator
+                        };
+                    let retained_causal_founder = successor.active_electrical_frontier.iter().any(
+                        |entry| {
+                            entry.frontier_lineage() == preparation.ordering_lineage
+                                && entry.cause.is_some_and(|cause| cause.bond == association.bond)
+                        },
+                    );
+                    let retained_external_founder = successor
+                        .active_electrical_frontier
+                        .iter()
+                        .any(|entry| {
+                            entry.frontier_lineage() == preparation.ordering_lineage
+                                && entry.carries_external_ingress_cause()
+                                && entry.cause.is_some_and(|cause| cause.bond == association.bond)
+                        });
+                    json!({
+                        "ordering": lineage_hex(preparation.ordering_lineage),
+                        "association": lineage_hex(association.lineage),
+                        "visited": route.is_some(),
+                        "seed": route.map(|route| lineage_hex(route.seed_lineage())),
+                        "adjacent": route.map(|route| lineage_hex(route.adjacent_lineage())),
+                        "directed_sender": route.and_then(|route| route.directed_sender()).map(lineage_hex),
+                        "outward_from_association_phase_numerator": outward_from_association_phase.to_string(),
+                        "retained_causal_founder": retained_causal_founder,
+                        "retained_external_founder": retained_external_founder,
+                    })
+                })
+            })
+            .collect::<Vec<_>>();
+        let motor_contact_witnesses = target_preparations
+            .iter()
+            .flat_map(|preparation| {
+                preparation.motors.iter().map(|motor| {
+                    let route = observation.physical_frontier_routes.iter().find(|route| {
+                        route.bond() == motor.bond
+                            && super::canonical_lineage_pair(
+                                route.seed_lineage(),
+                                route.adjacent_lineage(),
+                            ) == super::canonical_lineage_pair(
+                                preparation.ordering_lineage,
+                                motor.lineage,
+                            )
+                    });
+                    let contact = successor
+                        .topology_index
+                        .contacts
+                        .iter()
+                        .find(|contact| contact.stable_bond == motor.bond)
+                        .expect("vocal motor contact exists in exact successor topology");
+                    let super::ResidentContactOrigin::Fabric { contact_index } = contact.origin else {
+                        panic!("learned vocal motor contact is resident fabric");
+                    };
+                    let anatomy = successor.electrical_fabric.anatomy().contact_anatomies()
+                        [contact_index];
+                    let (left_index, _) = anatomy.endpoints();
+                    let left_lineage = successor.electrical_fabric.lineages()[left_index];
+                    let phase_numerator = successor.electrical_fabric.state().contact_states()
+                        [contact_index]
+                        .carrier_phase()
+                        .parts()
+                        .0;
+                    let outward_from_ordering_phase =
+                        if left_lineage == preparation.ordering_lineage {
+                            phase_numerator
+                        } else {
+                            -phase_numerator
+                        };
+                    let recruitment = observation.motor_unit_recruitments.iter().find(|event| {
+                        event.neuron_lineage == motor.lineage
+                    });
+                    json!({
+                        "ordering": lineage_hex(preparation.ordering_lineage),
+                        "motor": lineage_hex(motor.lineage),
+                        "visited": route.is_some(),
+                        "seed": route.map(|route| lineage_hex(route.seed_lineage())),
+                        "adjacent": route.map(|route| lineage_hex(route.adjacent_lineage())),
+                        "directed_sender": route.and_then(|route| route.directed_sender()).map(lineage_hex),
+                        "outward_from_ordering_phase_numerator": outward_from_ordering_phase.to_string(),
+                        "recruited_carriers": recruitment.map(|event| event.outward_elementary_carriers.to_string()),
+                    })
+                })
+            })
+            .collect::<Vec<_>>();
+        let total_offered = observation
+            .learned_motor_work_preparations
+            .iter()
+            .fold(BigRational::zero(), |sum, preparation| {
+                sum + &preparation.total_offered_work_zeptojoules
+            });
+        let total_accepted = observation
+            .learned_motor_work_preparations
+            .iter()
+            .fold(BigRational::zero(), |sum, preparation| {
+                sum + &preparation.accepted_work_zeptojoules
+            });
+        let continuation_routes = target_motors
+            .iter()
+            .flat_map(|motor| {
+                super::lean_sensorimotor_route::vocal_cognitive_action_continuation_routes_for_motor(
+                    &successor.cohorts,
+                    &successor.topology_index,
+                    *motor,
+                )
+                .expect("continuation routes resolve for exact clock witness")
+            })
+            .collect::<Vec<_>>();
+        let mut continuation_branches_visited = 0usize;
+        let mut continuation_source_to_destination_transfers = 0usize;
+        let mut continuation_destination_to_source_transfers = 0usize;
+        let mut continuation_zero_carrier_branches = 0usize;
+        let mut continuation_forward_carrier_phases = 0usize;
+        let mut continuation_reverse_carrier_phases = 0usize;
+        let mut continuation_zero_carrier_phases = 0usize;
+        let mut continuation_phase_witnesses = Vec::new();
+        for route in &observation.physical_frontier_routes {
+            let Some(continuation) = continuation_routes.iter().find(|continuation| {
+                continuation.continuation_bond == route.bond()
+                    && super::canonical_lineage_pair(
+                        continuation.source_ordering_lineage,
+                        continuation.destination_ordering_lineage,
+                    ) == super::canonical_lineage_pair(
+                        route.seed_lineage(),
+                        route.adjacent_lineage(),
+                    )
+            }) else {
+                continue;
+            };
+            continuation_branches_visited += 1;
+            match route.directed_sender() {
+                Some(sender) if sender == continuation.source_ordering_lineage => {
+                    continuation_source_to_destination_transfers += 1;
+                }
+                Some(sender) if sender == continuation.destination_ordering_lineage => {
+                    continuation_destination_to_source_transfers += 1;
+                }
+                Some(_) => panic!("continuation transfer sender belongs to exact bond"),
+                None => continuation_zero_carrier_branches += 1,
+            }
+            let contact = successor
+                .topology_index
+                .contacts
+                .iter()
+                .find(|contact| contact.stable_bond == continuation.continuation_bond)
+                .expect("continuation contact exists in exact successor topology");
+            let super::ResidentContactOrigin::Fabric { contact_index } = contact.origin else {
+                panic!("learned continuation contact is resident fabric");
+            };
+            let anatomy = successor.electrical_fabric.anatomy().contact_anatomies()[contact_index];
+            let (left_index, _) = anatomy.endpoints();
+            let left_lineage = successor.electrical_fabric.lineages()[left_index];
+            let phase_numerator = successor.electrical_fabric.state().contact_states()
+                [contact_index]
+                .carrier_phase()
+                .parts()
+                .0;
+            let outward_from_source_phase = if left_lineage == continuation.source_ordering_lineage
+            {
+                phase_numerator
+            } else {
+                -phase_numerator
+            };
+            match outward_from_source_phase.cmp(&0) {
+                std::cmp::Ordering::Greater => continuation_forward_carrier_phases += 1,
+                std::cmp::Ordering::Less => continuation_reverse_carrier_phases += 1,
+                std::cmp::Ordering::Equal => continuation_zero_carrier_phases += 1,
+            }
+            let current_from_seed = route.outward_current_from_seed_picoamperes();
+            let current_from_source = if route.seed_lineage()
+                == continuation.source_ordering_lineage
+            {
+                current_from_seed
+            } else if route.seed_lineage() == continuation.destination_ordering_lineage {
+                current_from_seed
+                    .checked_neg()
+                    .expect("continuation current orientation is exact")
+            } else {
+                panic!("continuation frontier seed belongs to exact bond");
+            }
+            .parts();
+            continuation_phase_witnesses.push(json!({
+                "source": lineage_hex(continuation.source_ordering_lineage),
+                "destination": lineage_hex(continuation.destination_ordering_lineage),
+                "seed": lineage_hex(route.seed_lineage()),
+                "adjacent": lineage_hex(route.adjacent_lineage()),
+                "directed_sender": route.directed_sender().map(lineage_hex),
+                "outward_current_from_source_picoamperes": {
+                    "numerator": current_from_source.0.to_string(),
+                    "denominator": current_from_source.1.to_string(),
+                },
+                "outward_from_source_phase_numerator": outward_from_source_phase.to_string(),
+            }));
+        }
+        let retained_destination_continuation_frontiers = continuation_routes
+            .iter()
+            .filter(|continuation| {
+                super::lean_sensorimotor_route::frontier_carries_vocal_action_continuation(
+                    &successor.active_electrical_frontier,
+                    continuation,
+                )
+            })
+            .count();
+        let retained_source_continuation_frontiers = continuation_routes
+            .iter()
+            .filter(|continuation| {
+                successor.active_electrical_frontier.iter().any(|entry| {
+                    entry.frontier_lineage() == continuation.source_ordering_lineage
+                        && ((entry.is_in_flight()
+                            && entry.sender() == Some(continuation.source_ordering_lineage)
+                            && entry.receiver() == continuation.destination_ordering_lineage
+                            && entry
+                                .cause
+                                .is_some_and(|cause| cause.bond == continuation.continuation_bond))
+                            || entry.directed_transfer().is_some_and(|transfer| {
+                                transfer.bond == continuation.continuation_bond
+                                    && super::canonical_lineage_pair(
+                                        transfer.sender,
+                                        transfer.receiver,
+                                    ) == super::canonical_lineage_pair(
+                                        continuation.source_ordering_lineage,
+                                        continuation.destination_ordering_lineage,
+                                    )
+                            }))
+                })
+            })
+            .count();
+        let mut ordering_lineages = target_preparations
+            .iter()
+            .map(|preparation| preparation.ordering_lineage)
+            .chain(continuation_routes.iter().flat_map(|route| {
+                [
+                    route.source_ordering_lineage,
+                    route.destination_ordering_lineage,
+                ]
+            }))
+            .collect::<Vec<_>>();
+        ordering_lineages.sort_unstable();
+        ordering_lineages.dedup();
+        let ordering_membrane_witnesses = ordering_lineages
+            .into_iter()
+            .map(|ordering| {
+                let flat = successor
+                    .topology_index
+                    .flat_for_lineage(ordering)
+                    .expect("target ordering resolves in exact successor topology");
+                let (cohort_index, neuron_index, _) =
+                    successor.topology_index.flat_locations[flat];
+                let anatomy = &successor.cohorts[cohort_index].anatomy.neuron_anatomies()
+                    [neuron_index];
+                let neuron = &successor.cohorts[cohort_index].state.neurons()[neuron_index];
+                let capacitance = anatomy.capacitance().picofarads().parts();
+                let potential = neuron
+                    .membrane_state()
+                    .potential_millivolts(anatomy.capacitance())
+                    .expect("target ordering potential is exact")
+                    .parts();
+                json!({
+                    "ordering": lineage_hex(ordering),
+                    "separated_elementary_charges": neuron
+                        .separated_elementary_charges()
+                        .to_string(),
+                    "intracellular_carriers": neuron
+                        .carrier_reservoirs()
+                        .intracellular()
+                        .to_string(),
+                    "capacitance_picofarads": {
+                        "numerator": capacitance.0.to_string(),
+                        "denominator": capacitance.1.to_string(),
+                    },
+                    "potential_millivolts": {
+                        "numerator": potential.0.to_string(),
+                        "denominator": potential.1.to_string(),
+                    },
+                })
+            })
+            .collect::<Vec<_>>();
+        let continuation_route_count = observation
+            .learned_motor_work_preparations
+            .iter()
+            .flat_map(|preparation| preparation.routes.iter())
+            .filter(|route| {
+                successor
+                    .topology_index
+                    .layer_of(route.founding_receiver_lineage)
+                    == Some(11)
+            })
+            .count();
+        let active_external_frontier_count = successor
+            .active_electrical_frontier
+            .iter()
+            .filter(|entry| entry.carries_external_ingress_cause())
+            .count();
+        let target_association_integrations = target_associations
+            .iter()
+            .flat_map(|association| {
+                let association_flat = successor
+                    .topology_index
+                    .flat_for_lineage(*association)
+                    .expect("target association resolves in exact successor topology");
+                successor.topology_index.incident_contacts_by_flat[association_flat]
+                    .iter()
+                    .filter_map(|contact_index| {
+                        let contact = successor.topology_index.contacts[*contact_index];
+                        let other_flat = if contact.left == association_flat {
+                            contact.right
+                        } else {
+                            contact.left
+                        };
+                        let lineage = successor.topology_index.flat_locations[other_flat].2;
+                        (successor.topology_index.layer_of(lineage) == Some(6)).then_some(lineage)
+                    })
+                    .collect::<Vec<_>>()
+            })
+            .collect::<std::collections::BTreeSet<_>>();
+        let target_association_recurrences = target_associations
+            .iter()
+            .flat_map(|association| {
+                let association_flat = successor
+                    .topology_index
+                    .flat_for_lineage(*association)
+                    .expect("target association resolves in exact successor topology");
+                successor.topology_index.neighbours_by_flat[association_flat]
+                    .iter()
+                    .filter_map(|flat| {
+                        let lineage = successor.topology_index.flat_locations[*flat].2;
+                        (successor.topology_index.layer_of(lineage) == Some(9)).then_some(lineage)
+                    })
+                    .collect::<Vec<_>>()
+            })
+            .collect::<std::collections::BTreeSet<_>>();
+        let mut target_integration_sources_by_layer = std::collections::BTreeMap::new();
+        for integration in &target_association_integrations {
+            let integration_flat = successor
+                .topology_index
+                .flat_for_lineage(*integration)
+                .expect("target integration resolves in exact successor topology");
+            for contact_index in &successor.topology_index.incident_contacts_by_flat[integration_flat] {
+                let contact = successor.topology_index.contacts[*contact_index];
+                let other_flat = if contact.left == integration_flat {
+                    contact.right
+                } else {
+                    contact.left
+                };
+                let (cohort_index, neuron_index, _) =
+                    successor.topology_index.flat_locations[other_flat];
+                let mount = &successor.cohorts[cohort_index].anatomy.mounts()[neuron_index];
+                if mount.source_site().is_some() {
+                    *target_integration_sources_by_layer
+                        .entry(mount.place().layer())
+                        .or_insert(0usize) += 1;
+                }
+            }
+        }
+        let active_external_target_association_frontiers = successor
+            .active_electrical_frontier
+            .iter()
+            .filter(|entry| {
+                entry.carries_external_ingress_cause()
+                    && target_associations.contains(&entry.frontier_lineage())
+            })
+            .count();
+        let active_external_target_integration_frontiers = successor
+            .active_electrical_frontier
+            .iter()
+            .filter(|entry| {
+                entry.carries_external_ingress_cause()
+                    && target_association_integrations.contains(&entry.frontier_lineage())
+            })
+            .count();
+        let active_external_target_recurrence_frontiers = successor
+            .active_electrical_frontier
+            .iter()
+            .filter(|entry| {
+                entry.carries_external_ingress_cause()
+                    && target_association_recurrences.contains(&entry.frontier_lineage())
+            })
+            .count();
+        let mut active_external_frontiers_by_layer = std::collections::BTreeMap::new();
+        for layer in successor
+            .active_electrical_frontier
+            .iter()
+            .filter(|entry| entry.carries_external_ingress_cause())
+            .filter_map(|entry| successor.topology_index.layer_of(entry.frontier_lineage()))
+        {
+            *active_external_frontiers_by_layer.entry(layer).or_insert(0usize) += 1;
+        }
+        let active_direct_vocal_motor_frontiers = successor
+            .active_electrical_frontier
+            .iter()
+            .filter_map(|entry| entry.directed_transfer())
+            .filter(|transfer| {
+                successor.topology_index.layer_of(transfer.sender) == Some(11)
+                    && target_motors.contains(&transfer.receiver)
+            })
+            .count();
+        learned_work_by_clock.push(json!({
+            "clock": clock,
+            "externally_perturbed_neuron_count": observation.externally_perturbed_neuron_lineages.len(),
+            "external_reassembly_count": observation.externally_reassembled_formation_frontiers.len(),
+            "exact_sound_reassembled_member_count": exact_sound_reassembled_members.len(),
+            "exact_sound_reassembled_members_by_layer": exact_sound_reassembled_members_by_layer,
+            "exact_sound_target_associations": exact_sound_target_associations,
+            "exact_sound_reassembled_founders": exact_sound_reassembled_founders,
+            "external_reassembly_witnesses": external_reassembly_witnesses,
+            "externally_reassembled_preparations": externally_reassembled_preparations,
+            "active_reassembled_association_frontiers": active_reassembled_association_frontiers,
+            "founder_contact_witnesses": founder_contact_witnesses,
+            "motor_contact_witnesses": motor_contact_witnesses,
+            "preparation_count": observation.learned_motor_work_preparations.len(),
+            "continuation_route_count": continuation_route_count,
+            "eligible_continuation_route_count": continuation_routes.len(),
+            "continuation_branches_visited": continuation_branches_visited,
+            "continuation_source_to_destination_transfers": continuation_source_to_destination_transfers,
+            "continuation_destination_to_source_transfers": continuation_destination_to_source_transfers,
+            "continuation_zero_carrier_branches": continuation_zero_carrier_branches,
+            "continuation_forward_carrier_phases": continuation_forward_carrier_phases,
+            "continuation_reverse_carrier_phases": continuation_reverse_carrier_phases,
+            "continuation_zero_carrier_phases": continuation_zero_carrier_phases,
+            "continuation_phase_witnesses": continuation_phase_witnesses,
+            "ordering_membrane_witnesses": ordering_membrane_witnesses,
+            "retained_destination_continuation_frontiers": retained_destination_continuation_frontiers,
+            "retained_source_continuation_frontiers": retained_source_continuation_frontiers,
+            "active_external_frontier_count": active_external_frontier_count,
+            "active_external_target_association_frontiers": active_external_target_association_frontiers,
+            "active_external_target_integration_frontiers": active_external_target_integration_frontiers,
+            "active_external_target_recurrence_frontiers": active_external_target_recurrence_frontiers,
+            "target_integration_sources_by_layer": target_integration_sources_by_layer,
+            "active_external_frontiers_by_layer": active_external_frontiers_by_layer,
+            "active_direct_vocal_motor_frontiers": active_direct_vocal_motor_frontiers,
+            "total_offered_work_zeptojoules": total_offered.to_string(),
+            "total_accepted_work_zeptojoules": total_accepted.to_string(),
+            "vocal_work_diagnostic": {
+                "exact_route_matches": route_matches,
+                "current_sound_matches": sound_matches,
+                "exact_source_transitions": source_transitions,
+                "work_offers": work_offers,
+                "accepted_work_preparations": work_acceptances,
+            },
+        }));
         let vocal = observation
             .motor_unit_recruitments
             .iter()
@@ -4235,6 +4996,23 @@ fn run_guided_vocal_continuation(
                     "lineage": lineage_hex(event.neuron_lineage),
                     "terminal": format!("{:?}", event.body_effector_terminal),
                     "carriers": event.outward_elementary_carriers.to_string(),
+                    "preparation_transfers": event.preparation_transfers.iter().map(|preparation| json!({
+                        "sender": lineage_hex(preparation.transfer.sender),
+                        "receiver": lineage_hex(preparation.transfer.receiver),
+                        "sender_layer": preparation.sender_layer,
+                        "transferred_whole_carriers": preparation.transfer.transferred_whole_carriers.to_string(),
+                        "bond": format!("{:?}", preparation.transfer.bond),
+                    })).collect::<Vec<_>>(),
+                    "learned_work_preparations": event.learned_work_preparations.iter().map(|preparation| json!({
+                        "accepted_work_zeptojoules": preparation.accepted_work_zeptojoules.to_string(),
+                        "routes": preparation.routes.iter().map(|route| json!({
+                            "ordering": lineage_hex(route.ordering_lineage),
+                            "founding_receiver": lineage_hex(route.founding_receiver_lineage),
+                            "founding_bond": format!("{:?}", route.founding_bond),
+                            "learned_bond": format!("{:?}", route.learned_bond),
+                            "offered_work_zeptojoules": route.offered_work_zeptojoules.to_string(),
+                        })).collect::<Vec<_>>(),
+                    })).collect::<Vec<_>>(),
                 })).collect::<Vec<_>>(),
             }));
         }
@@ -4253,20 +5031,19 @@ fn run_guided_vocal_continuation(
             AdmittedBodyEffectorDrives::admit(
                 carriers_by_terminal
                     .into_iter()
-                    .map(|(terminal, outward_elementary_carriers)| BodyEffectorDrive {
-                        terminal,
-                        outward_elementary_carriers,
-                    })
+                    .map(
+                        |(terminal, outward_elementary_carriers)| BodyEffectorDrive {
+                            terminal,
+                            outward_elementary_carriers,
+                        },
+                    )
                     .collect(),
             )
             .expect("continuation motor drives admit")
         };
-        let moved = settle_body_effector_drives(
-            &body,
-            &admitted,
-            BODY_SETTLEMENT_CLOCK_MICROSECONDS,
-        )
-        .expect("continuation vocal tissue settles");
+        let moved =
+            settle_body_effector_drives(&body, &admitted, BODY_SETTLEMENT_CLOCK_MICROSECONDS)
+                .expect("continuation vocal tissue settles");
         let acoustic = settle_native_articulatory_interval(
             moved.successor,
             &moved.proprioceptive_consequences,
@@ -4275,7 +5052,10 @@ fn run_guided_vocal_continuation(
         )
         .expect("continuation vocal acoustics settle");
         if first_audible_frame.is_none()
-            && acoustic.radiated_pressure_pcm.iter().any(|sample| *sample != 0)
+            && acoustic
+                .radiated_pressure_pcm
+                .iter()
+                .any(|sample| *sample != 0)
         {
             first_audible_frame = Some(acoustic.radiated_pressure_pcm.clone());
         }
@@ -4292,10 +5072,13 @@ fn run_guided_vocal_continuation(
                 .expect("continuation organism consequence source admits"),
             );
         }
-        if acoustic.radiated_pressure_pcm.iter().any(|sample| *sample != 0) {
-            pending_self_pressure = Some(probe_self_hearing_episode(
-                &acoustic.radiated_pressure_pcm,
-            ));
+        if acoustic
+            .radiated_pressure_pcm
+            .iter()
+            .any(|sample| *sample != 0)
+        {
+            pending_self_pressure =
+                Some(probe_self_hearing_episode(&acoustic.radiated_pressure_pcm));
         }
         state = successor;
         body = acoustic.successor_body;
@@ -4304,13 +5087,177 @@ fn run_guided_vocal_continuation(
     GuidedVocalContinuation {
         state,
         body,
+        residency,
         pulses,
         pressure,
         first_audible_frame,
         respiratory_carriers,
         internal_reassemblies,
         causal_thought_transitions,
+        learned_work_by_clock,
     }
+}
+
+fn saved_guided_vocal_tail_json(
+    mut state: ResidentCognitiveFormationState,
+    mut body: ArticulatedBodyState,
+    cue_pressure: Vec<i16>,
+    occurrence: u64,
+    maximum_clocks: u64,
+    guide_carriers: u128,
+    sound_only: bool,
+) -> Value {
+    let target_axes = [
+        BodyAxis::VocalTractSection0Area,
+        BodyAxis::VocalTractSection1Area,
+        BodyAxis::VocalTractSection2Area,
+        BodyAxis::VocalTractSection7Area,
+    ];
+    let target_terminals = target_axes
+        .iter()
+        .copied()
+        .flat_map(|axis| {
+            [
+                BodyEffectorTerminal::new(axis, BodyEffectorDirection::TowardMinimum),
+                BodyEffectorTerminal::new(axis, BodyEffectorDirection::TowardMaximum),
+            ]
+        })
+        .collect::<std::collections::BTreeSet<_>>();
+    let terminal_by_motor = state
+        .cohorts
+        .iter()
+        .flat_map(|cohort| {
+            cohort
+                .anatomy
+                .mounts()
+                .iter()
+                .zip(cohort.anatomy.neuron_lineages())
+        })
+        .filter_map(|(mount, lineage)| {
+            mount
+                .body_effector_terminal()
+                .filter(|terminal| target_terminals.contains(terminal))
+                .map(|terminal| (*lineage, terminal))
+        })
+        .collect::<std::collections::BTreeMap<_, _>>();
+    let target_motors = terminal_by_motor
+        .keys()
+        .copied()
+        .collect::<std::collections::BTreeSet<_>>();
+    let baseline_clocks = std::env::var("GUALA_PROBE_GUIDED_VOCAL_TAIL_BASELINE_CLOCKS")
+        .ok()
+        .map(|value| value.parse::<u64>().expect("saved-tail baseline clocks are u64"))
+        .unwrap_or(0);
+    assert!(baseline_clocks <= 64);
+    let baseline = (baseline_clocks > 0).then(|| {
+        run_guided_vocal_continuation(
+            state.clone(),
+            body.clone(),
+            None,
+            &[],
+            occurrence,
+            baseline_clocks,
+            &target_motors,
+            &terminal_by_motor,
+        )
+    });
+    let baseline_observation = baseline.as_ref().map(|baseline| {
+        json!({
+            "clocks": baseline_clocks,
+            "pulses": baseline.pulses,
+            "respiratory_carriers": baseline.respiratory_carriers.to_string(),
+            "nonzero_pressure_samples": baseline.pressure.iter().filter(|sample| **sample != 0).count(),
+            "learned_work_by_clock": baseline.learned_work_by_clock,
+        })
+    });
+    let mut cue_residency = None;
+    if let Some(baseline) = baseline {
+        state = baseline.state;
+        body = baseline.body;
+        cue_residency = baseline.residency;
+    }
+    let (cue_body, mut cue_sources) = if sound_only {
+        (body, Vec::new())
+    } else {
+        let cue_drives = AdmittedBodyEffectorDrives::admit(
+            target_axes
+                .iter()
+                .copied()
+                .map(|axis| BodyEffectorDrive {
+                    terminal: BodyEffectorTerminal::new(axis, BodyEffectorDirection::TowardMinimum),
+                    outward_elementary_carriers: guide_carriers,
+                })
+                .collect(),
+        )
+        .expect("saved-tail cue drives admit");
+        let cue_moved =
+            settle_body_effector_drives(&body, &cue_drives, BODY_SETTLEMENT_CLOCK_MICROSECONDS)
+                .expect("saved-tail cue tissue settles");
+        let cue_body_source = admit_articulated_body_consequence_source(
+            occurrence.checked_add(1).expect("saved-tail cue tick"),
+            &cue_moved.proprioceptive_consequences,
+        )
+        .expect("saved-tail body consequence admits");
+        (cue_moved.successor, vec![cue_body_source])
+    };
+    let cue_pressure_source = if sound_only {
+        probe_hearing_episode(&cue_pressure, "candidate-exact-external-tutor-pressure")
+    } else {
+        probe_self_hearing_episode(&cue_pressure)
+    };
+    cue_sources.push(cue_pressure_source);
+    let positive = run_guided_vocal_continuation(
+        state,
+        cue_body,
+        cue_residency,
+        &cue_sources,
+        occurrence,
+        maximum_clocks,
+        &target_motors,
+        &terminal_by_motor,
+    );
+    let encoded = positive
+        .state
+        .encode(usize::MAX)
+        .expect("saved-tail successor encodes");
+    let cold = ResidentCognitiveFormationState::decode(&encoded, usize::MAX)
+        .expect("saved-tail successor cold-decodes");
+    let cold_exact = cold
+        .encode(usize::MAX)
+        .expect("saved-tail cold successor re-encodes")
+        == encoded;
+    let successor_state_output =
+        std::env::var("GUALA_PROBE_GUIDED_VOCAL_TAIL_STATE_OUT")
+            .ok()
+            .map(|path| {
+                fs::write(&path, &encoded).expect("saved-tail cognitive successor writes");
+                json!({"path": path, "bytes": encoded.len()})
+            });
+    let successor_body_output =
+        std::env::var("GUALA_PROBE_GUIDED_VOCAL_TAIL_BODY_OUT")
+            .ok()
+            .map(|path| {
+                let encoded_body = positive.body.encode().expect("saved-tail body encodes");
+                fs::write(&path, &encoded_body).expect("saved-tail body successor writes");
+                json!({"path": path, "bytes": encoded_body.len()})
+            });
+    json!({
+        "measurement_only": true,
+        "sound_only": sound_only,
+        "saved_taught_state_advanced": true,
+        "pre_cue_baseline": baseline_observation,
+        "maximum_clocks": maximum_clocks,
+        "pulses": positive.pulses,
+        "respiratory_carriers": positive.respiratory_carriers.to_string(),
+        "nonzero_pressure_samples": positive.pressure.iter().filter(|sample| **sample != 0).count(),
+        "learned_work_by_clock": positive.learned_work_by_clock,
+        "internal_reassemblies": positive.internal_reassemblies,
+        "causal_thought_transitions": positive.causal_thought_transitions,
+        "cold_round_trip_exact": cold_exact,
+        "encoded_bytes": encoded.len(),
+        "successor_state_output": successor_state_output,
+        "successor_body_output": successor_body_output,
+    })
 }
 
 fn guided_vocal_population_growth_json(
@@ -4320,6 +5267,7 @@ fn guided_vocal_population_growth_json(
     let Some(mut body) = articulated_body.cloned() else {
         return json!({"error": "copied articulated body absent"});
     };
+    super::reset_vocal_work_diagnostic();
     let target_axes = [
         BodyAxis::VocalTractSection0Area,
         BodyAxis::VocalTractSection1Area,
@@ -4343,40 +5291,112 @@ fn guided_vocal_population_growth_json(
             .collect::<String>()
     };
     let vocal_routes = |state: &ResidentCognitiveFormationState| {
-        state
-            .electrical_fabric
-            .contact_endpoints()
-            .filter_map(|(left, right)| {
-                let left = state.electrical_fabric.lineages()[left];
-                let right = state.electrical_fabric.lineages()[right];
-                let (ordering, motor) = match (
-                    state.topology_index.layer_of(left),
-                    state.topology_index.layer_of(right),
-                ) {
-                    (Some(11), Some(12)) => (left, right),
-                    (Some(12), Some(11)) => (right, left),
-                    _ => return None,
-                };
-                let terminal = state
-                    .cohorts
-                    .iter()
-                    .flat_map(|cohort| {
-                        cohort
-                            .anatomy
-                            .mounts()
-                            .iter()
-                            .zip(cohort.anatomy.neuron_lineages())
-                    })
-                    .find_map(|(mount, lineage)| {
-                        (*lineage == motor).then(|| mount.body_effector_terminal()).flatten()
-                    })?;
-                target_terminals
-                    .contains(&terminal)
-                    .then_some((ordering, motor, terminal))
-            })
-            .collect::<std::collections::BTreeSet<_>>()
+        let mut routes = std::collections::BTreeSet::new();
+        for (mount, motor) in state.cohorts.iter().flat_map(|cohort| {
+            cohort
+                .anatomy
+                .mounts()
+                .iter()
+                .zip(cohort.anatomy.neuron_lineages())
+        }) {
+            let Some(terminal) = mount.body_effector_terminal() else {
+                continue;
+            };
+            if !target_terminals.contains(&terminal) {
+                continue;
+            }
+            for route in super::lean_sensorimotor_route::vocal_cognitive_action_route_for_motor(
+                &state.cohorts,
+                &state.topology_index,
+                *motor,
+            )
+            .expect("persisted coordinated vocal route resolves")
+            {
+                routes.insert((route.preparation.ordering_lineage, *motor, terminal));
+            }
+        }
+        routes
     };
-
+    let vocal_learning_frontier = |state: &ResidentCognitiveFormationState| {
+        let mut seen = std::collections::BTreeSet::new();
+        let mut records = Vec::new();
+        for (_, motor, terminal) in vocal_routes(state) {
+            for route in super::lean_sensorimotor_route::vocal_cognitive_action_route_for_motor(
+                &state.cohorts,
+                &state.topology_index,
+                motor,
+            )
+            .expect("persisted vocal route resolves")
+            {
+                for association in &route.preparation.associations {
+                    if !seen.insert((
+                        association.lineage,
+                        route.preparation.ordering_lineage,
+                        route.motor_lineage,
+                    )) {
+                        continue;
+                    }
+                    let contact = state
+                        .topology_index
+                        .contacts
+                        .iter()
+                        .find(|contact| contact.stable_bond == association.bond)
+                        .expect("vocal posture founding contact remains mounted");
+                    let super::ResidentContactOrigin::Fabric { contact_index } = contact.origin
+                    else {
+                        panic!("vocal posture founding contact is resident fabric");
+                    };
+                    let (left, _) = state.electrical_fabric.anatomy().contact_anatomies()
+                        [contact_index]
+                        .endpoints();
+                    let association_is_left =
+                        state.electrical_fabric.lineages()[left] == association.lineage;
+                    let (phase_numerator, phase_denominator) =
+                        state.electrical_fabric.state().contact_states()[contact_index]
+                            .carrier_phase()
+                            .parts();
+                    let phase_from_association = if association_is_left {
+                        phase_numerator
+                    } else {
+                        -phase_numerator
+                    };
+                    let exact_frontier = state
+                        .active_electrical_frontier
+                        .iter()
+                        .copied()
+                        .filter(|entry| {
+                            entry
+                                .cause
+                                .is_some_and(|cause| cause.bond == association.bond)
+                                && entry.sender() == Some(association.lineage)
+                                && entry.receiver() == route.preparation.ordering_lineage
+                        })
+                        .map(|entry| {
+                            json!({
+                                "in_flight": entry.is_in_flight(),
+                                "whole_carriers": entry.directed_transfer().map(|transfer| {
+                                    transfer.transferred_whole_carriers.to_string()
+                                }),
+                                "body_owned_acoustic_efference": entry
+                                    .carries_body_owned_acoustic_efference(),
+                            })
+                        })
+                        .collect::<Vec<_>>();
+                    records.push(json!({
+                        "association": lineage_hex(association.lineage),
+                        "ordering": lineage_hex(route.preparation.ordering_lineage),
+                        "motor": lineage_hex(route.motor_lineage),
+                        "terminal": format!("{terminal:?}"),
+                        "phase_from_association": format!(
+                            "{phase_from_association}/{phase_denominator}"
+                        ),
+                        "exact_frontier": exact_frontier,
+                    }));
+                }
+            }
+        }
+        records
+    };
     let before = vocal_routes(initial);
     let mut state = initial.clone();
     let maximum_cycles = std::env::var("GUALA_PROBE_GUIDED_VOCAL_CYCLES")
@@ -4395,7 +5415,11 @@ fn guided_vocal_population_growth_json(
     assert!((1..=64).contains(&sequence_repetitions));
     let guide_carriers = std::env::var("GUALA_PROBE_GUIDED_VOCAL_CARRIERS")
         .ok()
-        .map(|value| value.parse::<u128>().expect("guided vocal carriers are u128"))
+        .map(|value| {
+            value
+                .parse::<u128>()
+                .expect("guided vocal carriers are u128")
+        })
         .unwrap_or(1_500);
     assert!((1..=10_000).contains(&guide_carriers));
     let tutor_pressure_bytes = fs::read(
@@ -4403,10 +5427,9 @@ fn guided_vocal_population_growth_json(
             .expect("guided vocal tutor pressure path must be set"),
     )
     .expect("guided vocal tutor pressure reads");
-    assert_eq!(
-        tutor_pressure_bytes.len(),
-        8_000,
-        "guided vocal tutor pressure is one exact 4,000-sample interval",
+    assert!(
+        matches!(tutor_pressure_bytes.len(), 8_000 | 32_000),
+        "guided vocal tutor pressure is one or four exact 4,000-sample intervals",
     );
     let tutor_pressure = tutor_pressure_bytes
         .chunks_exact(2)
@@ -4416,19 +5439,18 @@ fn guided_vocal_population_growth_json(
         tutor_pressure.iter().any(|sample| *sample != 0),
         "guided vocal tutor pressure must contain physical pressure",
     );
-    let tutor_pressure_source = probe_hearing_episode(
-        &tutor_pressure,
-        "candidate-exact-external-tutor-pressure",
-    );
+    let tutor_pressure_phases = tutor_pressure.chunks_exact(4_000).collect::<Vec<_>>();
+    let route_growth_only =
+        std::env::var_os("GUALA_PROBE_GUIDED_VOCAL_ROUTE_GROWTH_ONLY").is_some();
     let checkpoints = [1_u32, 2, 4, 8, 16, 32, 64, 128, 256];
     let mut observations = Vec::new();
+    let mut vocal_learning_frontiers = Vec::new();
     let mut occurrence = 0_u64;
     let mut motor_discharges = 0_u64;
     let mut guided_vocal_discharges = Vec::new();
+    let mut inter_demonstration_pulses = Vec::new();
     let mut completed_cycles = 0_u32;
     let mut guided_residency = None;
-    let mut pending_motor_consequence = None;
-    let mut pending_self_pressure = None;
     let mut guided_pressure = Vec::<i16>::new();
     let mut first_learned_phase_pressure = None::<Vec<i16>>;
     let mut guided_respiratory_carriers = 0_u128;
@@ -4441,12 +5463,21 @@ fn guided_vocal_population_growth_json(
         BodyEffectorDirection::TowardMinimum,
         BodyEffectorDirection::TowardMaximum,
     ];
+    let sequence_start_phase = std::env::var("GUALA_PROBE_GUIDED_VOCAL_SEQUENCE_START_PHASE")
+        .ok()
+        .map(|value| value.parse::<usize>().expect("sequence start phase is usize"))
+        .unwrap_or(0);
+    assert!(sequence_start_phase < sequence_directions.len());
     let required_sequence_steps = sequence_repetitions
         .checked_mul(u32::try_from(sequence_directions.len()).unwrap())
         .expect("bounded sequence training width");
-    let maximum_total_cycles = maximum_cycles
-        .checked_add(required_sequence_steps)
-        .expect("bounded guided range width");
+    let maximum_total_cycles = if route_growth_only {
+        maximum_cycles
+    } else {
+        maximum_cycles
+            .checked_add(required_sequence_steps)
+            .expect("bounded guided range width")
+    };
     'guided: for cycle in 1..=maximum_total_cycles {
         // Assistance follows the anatomy that has not yet completed its
         // learned population. Blind alternation is not a neutral control: the
@@ -4462,16 +5493,22 @@ fn guided_vocal_population_growth_json(
             .map(|(_, _, terminal)| *terminal)
             .collect::<std::collections::BTreeSet<_>>();
         let direction_complete = |direction| {
-            target_axes.iter().copied().all(|axis| {
-                reached_before.contains(&BodyEffectorTerminal::new(axis, direction))
-            })
+            target_axes
+                .iter()
+                .copied()
+                .all(|axis| reached_before.contains(&BodyEffectorTerminal::new(axis, direction)))
         };
         let population_complete = reached_before == target_terminals;
         if !population_complete && cycle > maximum_cycles {
             break 'guided;
         }
-        let direction = if population_complete {
-            sequence_directions[usize::try_from(sequence_training_steps).unwrap()
+        let direction = if tutor_pressure_phases.len() == sequence_directions.len() {
+            sequence_directions[(sequence_start_phase
+                + usize::try_from(cycle - 1).unwrap())
+                % sequence_directions.len()]
+        } else if population_complete {
+            sequence_directions[(sequence_start_phase
+                + usize::try_from(sequence_training_steps).unwrap())
                 % sequence_directions.len()]
         } else if !direction_complete(BodyEffectorDirection::TowardMinimum) {
             BodyEffectorDirection::TowardMinimum
@@ -4506,27 +5543,23 @@ fn guided_vocal_population_growth_json(
                 .collect(),
         )
         .expect("finite guided vocal drives admit");
-        let moved = settle_body_effector_drives(
-            &body,
-            &drives,
-            BODY_SETTLEMENT_CLOCK_MICROSECONDS,
-        )
-        .expect("guided vocal tissue settles");
+        let moved = settle_body_effector_drives(&body, &drives, BODY_SETTLEMENT_CLOCK_MICROSECONDS)
+            .expect("guided vocal tissue settles");
         let source = admit_articulated_body_consequence_source(
             occurrence,
             &moved.proprioceptive_consequences,
         )
         .expect("guided vocal consequence source admits");
+        let tutor_pressure_source = probe_hearing_episode(
+            tutor_pressure_phases[(sequence_start_phase
+                + usize::try_from(cycle - 1).unwrap())
+                % tutor_pressure_phases.len()],
+            "candidate-exact-external-tutor-pressure",
+        );
         let mut admitted_sources = vec![
             super::admitted_fixture_episode(&source),
             super::admitted_fixture_episode(&tutor_pressure_source),
         ];
-        if let Some(source) = pending_motor_consequence.take() {
-            admitted_sources.push(super::admitted_fixture_episode(&source));
-        }
-        if let Some(source) = pending_self_pressure.take() {
-            admitted_sources.push(super::admitted_fixture_episode(&source));
-        }
         let (successor, observation) = state
             .advance_coexisting_admitted_transition_with_residency(
                 &admitted_sources,
@@ -4542,8 +5575,8 @@ fn guided_vocal_population_growth_json(
             .iter()
             .filter(|event| target_axes.contains(&event.body_effector_terminal.axis()))
             .collect::<Vec<_>>();
-        motor_discharges += u64::try_from(vocal_discharges.len())
-            .expect("vocal motor discharge count fits u64");
+        motor_discharges +=
+            u64::try_from(vocal_discharges.len()).expect("vocal motor discharge count fits u64");
         guided_vocal_discharges.extend(vocal_discharges.into_iter().map(|event| {
             json!({
                 "cycle": cycle,
@@ -4584,10 +5617,12 @@ fn guided_vocal_population_growth_json(
             AdmittedBodyEffectorDrives::admit(
                 carriers_by_terminal
                     .into_iter()
-                    .map(|(terminal, outward_elementary_carriers)| BodyEffectorDrive {
-                        terminal,
-                        outward_elementary_carriers,
-                    })
+                    .map(
+                        |(terminal, outward_elementary_carriers)| BodyEffectorDrive {
+                            terminal,
+                            outward_elementary_carriers,
+                        },
+                    )
                     .collect(),
             )
             .expect("guided organism motor drives admit")
@@ -4615,33 +5650,18 @@ fn guided_vocal_population_growth_json(
             4_000,
         )
         .expect("guided organism acoustics settle");
-        if population_complete && sequence_training_steps == 0 {
+        if population_complete && first_learned_phase_pressure.is_none() {
             first_learned_phase_pressure = Some(acoustic.radiated_pressure_pcm.clone());
-        }
-        if !organism_moved.proprioceptive_consequences.is_empty() {
-            pending_motor_consequence = Some(
-                admit_articulated_body_consequence_source(
-                    occurrence
-                        .checked_add(1)
-                        .expect("guided motor consequence tick"),
-                    &organism_moved.proprioceptive_consequences,
-                )
-                .expect("guided organism consequence source admits"),
-            );
-        }
-        if acoustic
-            .radiated_pressure_pcm
-            .iter()
-            .any(|sample| *sample != 0)
-        {
-            pending_self_pressure = Some(probe_self_hearing_episode(
-                &acoustic.radiated_pressure_pcm,
-            ));
         }
         guided_pressure.extend_from_slice(&acoustic.radiated_pressure_pcm);
         state = successor;
         body = acoustic.successor_body;
         completed_cycles = cycle;
+        vocal_learning_frontiers.push(json!({
+            "cycle": cycle,
+            "guided_direction": format!("{direction:?}"),
+            "transfers": vocal_learning_frontier(&state),
+        }));
         let routes = vocal_routes(&state);
         let reached = routes
             .iter()
@@ -4659,67 +5679,168 @@ fn guided_vocal_population_growth_json(
                 .checked_add(1)
                 .expect("guided sequence steps remain bounded");
         }
-        if reached == target_terminals && sequence_training_steps >= required_sequence_steps {
+        if tutor_pressure_phases.len() == sequence_directions.len()
+            && cycle % u32::try_from(sequence_directions.len()).unwrap() == 0
+            && cycle < maximum_total_cycles
+        {
+            let pause_routes = vocal_routes(&state);
+            let pause_motors = pause_routes
+                .iter()
+                .map(|(_, motor, _)| *motor)
+                .collect::<std::collections::BTreeSet<_>>();
+            let pause_terminals = pause_routes
+                .iter()
+                .map(|(_, motor, terminal)| (*motor, *terminal))
+                .collect::<std::collections::BTreeMap<_, _>>();
+            let pause = run_guided_vocal_continuation(
+                state,
+                body,
+                guided_residency.take(),
+                &[],
+                occurrence,
+                2,
+                &pause_motors,
+                &pause_terminals,
+            );
+            inter_demonstration_pulses.extend(pause.pulses.iter().cloned());
+            guided_pressure.extend_from_slice(&pause.pressure);
+            guided_respiratory_carriers = guided_respiratory_carriers
+                .checked_add(pause.respiratory_carriers)
+                .expect("guided pause respiratory total remains bounded");
+            guided_internal_reassemblies = guided_internal_reassemblies
+                .checked_add(pause.internal_reassemblies)
+                .expect("guided pause reassembly count remains bounded");
+            guided_causal_thought_transitions = guided_causal_thought_transitions
+                .checked_add(pause.causal_thought_transitions)
+                .expect("guided pause thought count remains bounded");
+            state = pause.state;
+            body = pause.body;
+            guided_residency = pause.residency;
+            occurrence = occurrence
+                .checked_add(2)
+                .expect("guided pause occurrence remains bounded");
+        }
+        if !route_growth_only
+            && reached == target_terminals
+            && sequence_training_steps >= required_sequence_steps
+        {
             break 'guided;
         }
     }
     let after = vocal_routes(&state);
-    let vocal_route_formation_memberships =
-        |state: &ResidentCognitiveFormationState| {
-            after
-                .iter()
-                .map(|(ordering, motor, terminal)| {
-                    let ordering_mosaics = state
-                        .mosaics
-                        .iter()
-                        .filter(|retained| {
-                            retained
-                                .mosaic
-                                .member_lineages()
-                                .binary_search(ordering)
-                                .is_ok()
-                        })
-                        .count();
-                    let motor_mosaics = state
-                        .mosaics
-                        .iter()
-                        .filter(|retained| {
-                            retained
+    if route_growth_only {
+        let encoded = state
+            .encode(usize::MAX)
+            .expect("route-growth successor encodes");
+        let teaching_state_output = std::env::var("GUALA_PROBE_GUIDED_VOCAL_TEACHING_STATE_OUT")
+            .ok()
+            .map(|path| {
+                fs::write(&path, &encoded).expect("route-growth cognitive state writes");
+                json!({"path": path, "bytes": encoded.len()})
+            });
+        let teaching_body_output = std::env::var("GUALA_PROBE_GUIDED_VOCAL_TEACHING_BODY_OUT")
+            .ok()
+            .map(|path| {
+                let encoded_body = body.encode().expect("route-growth body encodes");
+                fs::write(&path, &encoded_body).expect("route-growth body writes");
+                json!({"path": path, "bytes": encoded_body.len()})
+            });
+        let cold = ResidentCognitiveFormationState::decode(&encoded, usize::MAX)
+            .expect("route-growth successor cold-decodes");
+        let cold_exact = cold
+            .encode(usize::MAX)
+            .expect("route-growth successor cold re-encodes")
+            == encoded;
+        let [route_matches, sound_matches, source_transitions, offers, acceptances] =
+            super::vocal_work_diagnostic();
+        return json!({
+            "measurement_only": true,
+            "route_growth_only": true,
+            "single_sound_source_authority": true,
+            "tutor_pressure_sample_count": tutor_pressure.len(),
+            "tutor_phase_count": tutor_pressure_phases.len(),
+            "maximum_cycles": maximum_cycles,
+            "completed_cycles": completed_cycles,
+            "before_route_count": before.len(),
+            "after_route_count": after.len(),
+            "added_route_count": after.len().saturating_sub(before.len()),
+            "checkpoints": observations,
+            "vocal_learning_frontiers": vocal_learning_frontiers,
+            "motor_discharge_count": motor_discharges,
+            "guided_vocal_discharges": guided_vocal_discharges,
+            "guided_respiratory_carriers": guided_respiratory_carriers.to_string(),
+            "guided_pressure_sample_count": guided_pressure.len(),
+            "guided_pressure_nonzero_sample_count": guided_pressure.iter().filter(|sample| **sample != 0).count(),
+            "first_learned_phase_pressure_nonzero_sample_count": first_learned_phase_pressure
+                .as_ref()
+                .map(|pressure| pressure.iter().filter(|sample| **sample != 0).count()),
+            "vocal_work_diagnostic": {
+                "exact_route_matches": route_matches,
+                "current_sound_matches": sound_matches,
+                "exact_source_transitions": source_transitions,
+                "work_offers": offers,
+                "accepted_work_preparations": acceptances,
+            },
+            "cold_round_trip_exact": cold_exact,
+            "teaching_state_output": teaching_state_output,
+            "teaching_body_output": teaching_body_output,
+            "vocal_route_structure": vocal_route_structure_json(&state),
+        });
+    }
+    let vocal_route_formation_memberships = |state: &ResidentCognitiveFormationState| {
+        after
+            .iter()
+            .map(|(ordering, motor, terminal)| {
+                let ordering_mosaics = state
+                    .mosaics
+                    .iter()
+                    .filter(|retained| {
+                        retained
+                            .mosaic
+                            .member_lineages()
+                            .binary_search(ordering)
+                            .is_ok()
+                    })
+                    .count();
+                let motor_mosaics = state
+                    .mosaics
+                    .iter()
+                    .filter(|retained| {
+                        retained
+                            .mosaic
+                            .member_lineages()
+                            .binary_search(motor)
+                            .is_ok()
+                    })
+                    .count();
+                let shared_mosaics = state
+                    .mosaics
+                    .iter()
+                    .filter(|retained| {
+                        retained
+                            .mosaic
+                            .member_lineages()
+                            .binary_search(ordering)
+                            .is_ok()
+                            && retained
                                 .mosaic
                                 .member_lineages()
                                 .binary_search(motor)
                                 .is_ok()
-                        })
-                        .count();
-                    let shared_mosaics = state
-                        .mosaics
-                        .iter()
-                        .filter(|retained| {
-                            retained
-                                .mosaic
-                                .member_lineages()
-                                .binary_search(ordering)
-                                .is_ok()
-                                && retained
-                                    .mosaic
-                                    .member_lineages()
-                                    .binary_search(motor)
-                                    .is_ok()
-                        })
-                        .count();
-                    json!({
-                        "ordering": lineage_hex(*ordering),
-                        "motor": lineage_hex(*motor),
-                        "terminal": format!("{terminal:?}"),
-                        "ordering_mosaic_count": ordering_mosaics,
-                        "motor_mosaic_count": motor_mosaics,
-                        "shared_mosaic_count": shared_mosaics,
                     })
+                    .count();
+                json!({
+                    "ordering": lineage_hex(*ordering),
+                    "motor": lineage_hex(*motor),
+                    "terminal": format!("{terminal:?}"),
+                    "ordering_mosaic_count": ordering_mosaics,
+                    "motor_mosaic_count": motor_mosaics,
+                    "shared_mosaic_count": shared_mosaics,
                 })
-                .collect::<Vec<_>>()
-        };
-    let teaching_vocal_route_formation_memberships =
-        vocal_route_formation_memberships(&state);
+            })
+            .collect::<Vec<_>>()
+    };
+    let teaching_vocal_route_formation_memberships = vocal_route_formation_memberships(&state);
     let target_motors = after
         .iter()
         .map(|(_, motor, _)| *motor)
@@ -4733,12 +5854,82 @@ fn guided_vocal_population_growth_json(
         .map(|value| value.parse::<u64>().expect("unguided vocal clocks are u64"))
         .unwrap_or(128);
     assert!((1..=1_024).contains(&maximum_unguided_clocks));
-    let teaching_encoded = state.encode(usize::MAX).expect("guided teaching state encodes");
+    let baseline_clocks = std::env::var("GUALA_PROBE_GUIDED_VOCAL_BASELINE_CLOCKS")
+        .ok()
+        .map(|value| {
+            value
+                .parse::<u64>()
+                .expect("guided vocal baseline clocks are u64")
+        })
+        .unwrap_or(8);
+    assert!((4..=64).contains(&baseline_clocks));
+    let baseline = run_guided_vocal_continuation(
+        state,
+        body,
+        guided_residency.take(),
+        &[],
+        occurrence,
+        baseline_clocks,
+        &target_motors,
+        &terminal_by_motor,
+    );
+    let required_clean_baseline_clocks = baseline_clocks.min(4);
+    let latest_baseline_pulse_clock = baseline
+        .pulses
+        .iter()
+        .filter_map(|pulse| pulse.get("clock").and_then(Value::as_u64))
+        .max()
+        .unwrap_or(0);
+    let clean_pressure_width = usize::try_from(required_clean_baseline_clocks)
+        .expect("clean baseline clock width fits usize")
+        .checked_mul(4_000)
+        .expect("clean baseline pressure width remains bounded");
+    let clean_pressure_start = baseline
+        .pressure
+        .len()
+        .checked_sub(clean_pressure_width)
+        .expect("baseline produced every requested pressure interval");
+    let baseline_last_clocks_clean = latest_baseline_pulse_clock
+        <= baseline_clocks - required_clean_baseline_clocks
+        && baseline.pressure[clean_pressure_start..]
+            .iter()
+            .all(|sample| *sample == 0);
+    let baseline_pulse_count = baseline.pulses.len();
+    let baseline_pulses = baseline
+        .pulses
+        .iter()
+        .map(|pulse| {
+            json!({
+                "clock": pulse.get("clock"),
+                "motor_count": pulse.get("motor_count"),
+                "directions": pulse.get("directions"),
+                "respiratory_carriers": pulse.get("respiratory_carriers"),
+            })
+        })
+        .collect::<Vec<_>>();
+    let baseline_respiratory_carriers = baseline.respiratory_carriers;
+    let baseline_nonzero_pressure_samples = baseline
+        .pressure
+        .iter()
+        .filter(|sample| **sample != 0)
+        .count();
+    state = baseline.state;
+    body = baseline.body;
+    let teaching_encoded = state
+        .encode(usize::MAX)
+        .expect("guided teaching state encodes");
     let teaching_state_output = std::env::var("GUALA_PROBE_GUIDED_VOCAL_TEACHING_STATE_OUT")
         .ok()
         .map(|path| {
             fs::write(&path, &teaching_encoded).expect("guided teaching cognitive state writes");
             json!({"path": path, "bytes": teaching_encoded.len()})
+        });
+    let teaching_body_output = std::env::var("GUALA_PROBE_GUIDED_VOCAL_TEACHING_BODY_OUT")
+        .ok()
+        .map(|path| {
+            let teaching_body_encoded = body.encode().expect("guided teaching body encodes");
+            fs::write(&path, &teaching_body_encoded).expect("guided teaching body writes");
+            json!({"path": path, "bytes": teaching_body_encoded.len()})
         });
     let teaching_cold = ResidentCognitiveFormationState::decode(&teaching_encoded, usize::MAX)
         .expect("guided teaching state cold-decodes");
@@ -4755,26 +5946,31 @@ fn guided_vocal_population_growth_json(
     // enters the organism. All following output must be organism-produced.
     let first_learned_phase_pressure = first_learned_phase_pressure
         .expect("complete learned sequence retained its first pressure phase");
+    let continuation_cue_pressure_output =
+        std::env::var("GUALA_PROBE_GUIDED_VOCAL_CUE_PRESSURE_PCM_OUT")
+            .ok()
+            .map(|path| {
+                let pressure_bytes = first_learned_phase_pressure
+                    .iter()
+                    .flat_map(|sample| sample.to_le_bytes())
+                    .collect::<Vec<_>>();
+                fs::write(&path, &pressure_bytes).expect("continuation cue pressure writes");
+                json!({"path": path, "bytes": pressure_bytes.len()})
+            });
     let cue_drives = AdmittedBodyEffectorDrives::admit(
         target_axes
             .iter()
             .copied()
             .map(|axis| BodyEffectorDrive {
-                terminal: BodyEffectorTerminal::new(
-                    axis,
-                    BodyEffectorDirection::TowardMinimum,
-                ),
+                terminal: BodyEffectorTerminal::new(axis, BodyEffectorDirection::TowardMinimum),
                 outward_elementary_carriers: guide_carriers,
             })
             .collect(),
     )
     .expect("partial-cue drives admit");
-    let cue_moved = settle_body_effector_drives(
-        &body,
-        &cue_drives,
-        BODY_SETTLEMENT_CLOCK_MICROSECONDS,
-    )
-    .expect("partial-cue tissue settles");
+    let cue_moved =
+        settle_body_effector_drives(&body, &cue_drives, BODY_SETTLEMENT_CLOCK_MICROSECONDS)
+            .expect("partial-cue tissue settles");
     let cue_body_source = admit_articulated_body_consequence_source(
         occurrence.checked_add(1).expect("partial-cue tick"),
         &cue_moved.proprioceptive_consequences,
@@ -4786,6 +5982,7 @@ fn guided_vocal_population_growth_json(
     let positive = run_guided_vocal_continuation(
         teaching_cold.clone(),
         cue_moved.successor.clone(),
+        None,
         &positive_cue_sources,
         occurrence,
         maximum_unguided_clocks,
@@ -4800,6 +5997,7 @@ fn guided_vocal_population_growth_json(
     let silence = run_guided_vocal_continuation(
         teaching_cold.clone(),
         body.clone(),
+        None,
         &[],
         occurrence,
         control_clocks,
@@ -4815,6 +6013,7 @@ fn guided_vocal_population_growth_json(
     let reversed = run_guided_vocal_continuation(
         teaching_cold.clone(),
         body.clone(),
+        None,
         &[reversed_source],
         occurrence,
         control_clocks,
@@ -4828,6 +6027,7 @@ fn guided_vocal_population_growth_json(
     let discontinuous = run_guided_vocal_continuation(
         teaching_cold.clone(),
         body.clone(),
+        None,
         &[discontinuous_source],
         occurrence,
         control_clocks,
@@ -4838,6 +6038,7 @@ fn guided_vocal_population_growth_json(
     let severed = run_guided_vocal_continuation(
         severed_state,
         cue_moved.successor,
+        None,
         &positive_cue_sources,
         occurrence,
         control_clocks,
@@ -4853,26 +6054,31 @@ fn guided_vocal_population_growth_json(
     let respiratory_carriers = positive.respiratory_carriers;
     let unguided_internal_reassemblies = positive.internal_reassemblies;
     let unguided_causal_thought_transitions = positive.causal_thought_transitions;
+    let unguided_learned_work_by_clock = positive.learned_work_by_clock;
     let cue_control_results = json!({
         "control_clocks": control_clocks,
         "silence": {
             "pulses": silence.pulses,
+            "learned_work_by_clock": silence.learned_work_by_clock,
             "respiratory_carriers": silence.respiratory_carriers.to_string(),
             "nonzero_pressure_samples": silence.pressure.iter().filter(|sample| **sample != 0).count(),
         },
         "time_reversed_first_pressure": {
             "pulses": reversed.pulses,
+            "learned_work_by_clock": reversed.learned_work_by_clock,
             "respiratory_carriers": reversed.respiratory_carriers.to_string(),
             "nonzero_pressure_samples": reversed.pressure.iter().filter(|sample| **sample != 0).count(),
         },
         "discontinuous_first_pressure": {
             "pulses": discontinuous.pulses,
+            "learned_work_by_clock": discontinuous.learned_work_by_clock,
             "respiratory_carriers": discontinuous.respiratory_carriers.to_string(),
             "nonzero_pressure_samples": discontinuous.pressure.iter().filter(|sample| **sample != 0).count(),
         },
         "severed": {
             "removed_learned_contact_count": severed_contact_count,
             "pulses": severed.pulses,
+            "learned_work_by_clock": severed.learned_work_by_clock,
             "respiratory_carriers": severed.respiratory_carriers.to_string(),
             "nonzero_pressure_samples": severed.pressure.iter().filter(|sample| **sample != 0).count(),
         },
@@ -4995,10 +6201,12 @@ fn guided_vocal_population_growth_json(
             "pressure_nonzero_sample_count": first_learned_phase_pressure.iter().filter(|sample| **sample != 0).count(),
             "cue_admitted_once": true,
             "later_motor_commands_authored": false,
+            "pressure_output": continuation_cue_pressure_output,
         },
         "cue_control_results": cue_control_results,
         "teaching_cold_round_trip_exact": teaching_cold_exact,
         "teaching_state_output": teaching_state_output,
+        "teaching_body_output": teaching_body_output,
         "teaching_vocal_route_formation_memberships": teaching_vocal_route_formation_memberships,
         "before_route_count": before.len(),
         "after_route_count": after.len(),
@@ -5008,6 +6216,7 @@ fn guided_vocal_population_growth_json(
         "every_source_has_one_motor": source_to_motors.values().all(|motors| motors.len() == 1),
         "motor_discharges_during_guidance": motor_discharges,
         "guided_vocal_discharges": guided_vocal_discharges,
+        "inter_demonstration_pulses": inter_demonstration_pulses,
         "guided_respiratory_carriers": guided_respiratory_carriers.to_string(),
         "guided_nonzero_pressure_samples": guided_pressure.iter().filter(|sample| **sample != 0).count(),
         "guided_internal_reassemblies": guided_internal_reassemblies,
@@ -5015,10 +6224,21 @@ fn guided_vocal_population_growth_json(
     });
     let tail = json!({
         "maximum_unguided_clocks": maximum_unguided_clocks,
+        "pre_cue_baseline": {
+            "clocks": baseline_clocks,
+            "required_clean_clocks": required_clean_baseline_clocks,
+            "pulse_count": baseline_pulse_count,
+            "latest_pulse_clock": latest_baseline_pulse_clock,
+            "pulses": baseline_pulses,
+            "respiratory_carriers": baseline_respiratory_carriers.to_string(),
+            "nonzero_pressure_samples": baseline_nonzero_pressure_samples,
+            "last_clocks_clean": baseline_last_clocks_clean,
+        },
         "unguided_pulses": unguided_pulses,
         "unguided_respiratory_carriers": respiratory_carriers.to_string(),
         "unguided_internal_reassemblies": unguided_internal_reassemblies,
         "unguided_causal_thought_transitions": unguided_causal_thought_transitions,
+        "unguided_learned_work_by_clock": unguided_learned_work_by_clock,
         "pressure_sample_count": pressure.len(),
         "nonzero_pressure_samples": nonzero_pressure_samples,
         "pressure_peak": pressure_peak,
@@ -5062,8 +6282,7 @@ fn lineage_from_hex(value: &str) -> [u8; 16] {
     assert_eq!(value.len(), 32, "lineage hex width");
     let mut lineage = [0_u8; 16];
     for (index, byte) in lineage.iter_mut().enumerate() {
-        *byte = u8::from_str_radix(&value[index * 2..index * 2 + 2], 16)
-            .expect("lineage hex byte");
+        *byte = u8::from_str_radix(&value[index * 2..index * 2 + 2], 16).expect("lineage hex byte");
     }
     lineage
 }
@@ -5139,20 +6358,15 @@ fn transduced_gate_sample_json(
             exhaust_gate_dissipation,
         )
         .expect("candidate-47H isolated gate settlement");
-        let successor_residue = settled
-            .successor
-            .receptor_quantum_residue
-            .energy()
-            .clone();
+        let successor_residue = settled.successor.receptor_quantum_residue.energy().clone();
         let successor_carriers = settled
             .successor
             .carrier_reservoirs()
             .total()
             .expect("candidate motor carrier total");
-        all_offer_balances_close &= *offered_work
-            == &settled.accepted_work_zeptojoules + &settled.source_heat_zeptojoules;
-        all_gate_input_balances_close &= predecessor_residue
-            + &settled.accepted_work_zeptojoules
+        all_offer_balances_close &=
+            *offered_work == &settled.accepted_work_zeptojoules + &settled.source_heat_zeptojoules;
+        all_gate_input_balances_close &= predecessor_residue + &settled.accepted_work_zeptojoules
             == &settled.delivered_gate_work_zeptojoules
                 + &successor_residue
                 + &settled.residue_narrowing_heat_zeptojoules;
@@ -5162,12 +6376,10 @@ fn transduced_gate_sample_json(
         total_delivered += &settled.delivered_gate_work_zeptojoules;
         total_residue_narrowing_heat += &settled.residue_narrowing_heat_zeptojoules;
         total_gate_exported_heat += &settled.gate_exported_heat_zeptojoules;
-        maximum_residue_numerator_bytes = maximum_residue_numerator_bytes.max(
-            successor_residue.numer().to_signed_bytes_le().len(),
-        );
-        maximum_residue_denominator_bytes = maximum_residue_denominator_bytes.max(
-            successor_residue.denom().to_signed_bytes_le().len(),
-        );
+        maximum_residue_numerator_bytes = maximum_residue_numerator_bytes
+            .max(successor_residue.numer().to_signed_bytes_le().len());
+        maximum_residue_denominator_bytes = maximum_residue_denominator_bytes
+            .max(successor_residue.denom().to_signed_bytes_le().len());
         let open_population = settled.successor.probe_gate_open_population();
         if open_population > 0 && first_open_event.is_none() {
             first_open_event = Some(event);
@@ -5525,8 +6737,8 @@ fn temporal_gate_work_range_json(
         let predecessor = &cohort.state.neurons()[neuron_index];
 
         for (scale_numerator, scale_denominator) in scales {
-            let offered = &source_work * BigInt::from(scale_numerator)
-                / BigInt::from(scale_denominator);
+            let offered =
+                &source_work * BigInt::from(scale_numerator) / BigInt::from(scale_denominator);
             for interval_microseconds in intervals {
                 let (sample, _) = transduced_gate_sample_json(
                     anatomy,
@@ -5610,16 +6822,14 @@ fn temporal_gate_work_range_json(
                 let midpoint_bytes = midpoint_state
                     .encode(usize::MAX)
                     .expect("encode sub-threshold copied body");
-                let cold_state = ResidentCognitiveFormationState::decode(
-                    &midpoint_bytes,
-                    usize::MAX,
-                )
-                .expect("cold-decode sub-threshold copied body");
+                let cold_state =
+                    ResidentCognitiveFormationState::decode(&midpoint_bytes, usize::MAX)
+                        .expect("cold-decode sub-threshold copied body");
                 let (cold_cohort, cold_neuron) = mounted_neuron_location(&cold_state, motor);
-                let cold_anatomy = &cold_state.cohorts[cold_cohort]
-                    .anatomy
-                    .neuron_anatomies()[cold_neuron];
-                let cold_predecessor = &cold_state.cohorts[cold_cohort].state.neurons()[cold_neuron];
+                let cold_anatomy =
+                    &cold_state.cohorts[cold_cohort].anatomy.neuron_anatomies()[cold_neuron];
+                let cold_predecessor =
+                    &cold_state.cohorts[cold_cohort].state.neurons()[cold_neuron];
                 let (continued, _) = transduced_gate_sample_json(
                     cold_anatomy,
                     cold_predecessor,
@@ -5892,8 +7102,7 @@ fn temporal_gate_work_range_json(
     };
 
     let (severed, severed_bridge_count) = severed_learned_motor_copy(state);
-    let severed_route_count = production_learned_motor_work_range_json(&severed)
-        ["route_results"]
+    let severed_route_count = production_learned_motor_work_range_json(&severed)["route_results"]
         .as_array()
         .map_or(0, Vec::len);
     json!({
@@ -6392,8 +7601,360 @@ fn articulated_body_axis_census_json(body: Option<&ArticulatedBodyState>) -> Val
     })
 }
 
+/// Read-only audit of the persisted vocal-route anatomy. This advances no
+/// organism clock and authors no anatomy, work, frontier, or observation.
+/// It distinguishes retired one-motor contacts from exact coordinated posture
+/// preparations after lived route growth.
+fn vocal_route_structure_json(state: &ResidentCognitiveFormationState) -> Value {
+    let lineage_hex = |lineage: [u8; 16]| {
+        lineage
+            .iter()
+            .map(|byte| format!("{byte:02x}"))
+            .collect::<String>()
+    };
+    let mut records = Vec::new();
+    let mut vocal_motors = std::collections::BTreeSet::new();
+    for (left_flat, right_flat) in state.electrical_fabric.contact_endpoints() {
+        let left = state.electrical_fabric.lineages()[left_flat];
+        let right = state.electrical_fabric.lineages()[right_flat];
+        let (ordering, motor) = match (
+            state.topology_index.layer_of(left),
+            state.topology_index.layer_of(right),
+        ) {
+            (Some(11), Some(12)) => (left, right),
+            (Some(12), Some(11)) => (right, left),
+            _ => continue,
+        };
+        let Some(terminal) = state
+            .cohorts
+            .iter()
+            .flat_map(|cohort| {
+                cohort
+                    .anatomy
+                    .mounts()
+                    .iter()
+                    .zip(cohort.anatomy.neuron_lineages())
+            })
+            .find_map(|(mount, lineage)| {
+                (*lineage == motor)
+                    .then(|| mount.body_effector_terminal())
+                    .flatten()
+            })
+        else {
+            continue;
+        };
+        if !terminal.axis().is_vocal_articulator() {
+            continue;
+        }
+        vocal_motors.insert(motor);
+        let resolved_routes =
+            super::lean_sensorimotor_route::vocal_cognitive_action_route_for_motor(
+                &state.cohorts,
+                &state.topology_index,
+                motor,
+            )
+            .expect("persisted vocal routes resolve")
+            .into_iter()
+            .filter(|route| route.preparation.ordering_lineage == ordering)
+            .collect::<Vec<_>>();
+        let resolved_route_count = resolved_routes.len();
+        let route_founders = resolved_routes
+            .iter()
+            .map(|route| {
+                json!({
+                    "associations": route.preparation.associations.iter()
+                        .map(|contact| lineage_hex(contact.lineage))
+                        .collect::<Vec<_>>(),
+                    "motors": route.preparation.motors.iter()
+                        .map(|contact| lineage_hex(contact.lineage))
+                        .collect::<Vec<_>>(),
+                })
+            })
+            .collect::<Vec<_>>();
+        let resolved_continuation_count =
+            super::lean_sensorimotor_route::vocal_cognitive_action_continuation_routes_for_motor(
+                &state.cohorts,
+                &state.topology_index,
+                motor,
+            )
+            .expect("persisted vocal continuation routes resolve")
+            .into_iter()
+            .filter(|route| route.destination_ordering_lineage == ordering)
+            .count();
+        let motor_flat = state
+            .topology_index
+            .flat_for_lineage(motor)
+            .expect("persisted vocal motor resolves");
+        let ordering_flat = state
+            .topology_index
+            .flat_for_lineage(ordering)
+            .expect("persisted vocal ordering resolves");
+        let (ordering_cohort, ordering_neuron, _) =
+            state.topology_index.flat_locations[ordering_flat];
+        let ordering_state =
+            &state.cohorts[ordering_cohort].state.neurons()[ordering_neuron];
+        let (motor_cohort, motor_neuron, _) = state.topology_index.flat_locations[motor_flat];
+        let motor_anatomy = &state.cohorts[motor_cohort].anatomy.neuron_anatomies()[motor_neuron];
+        let motor_state = &state.cohorts[motor_cohort].state.neurons()[motor_neuron];
+        records.push(json!({
+            "ordering": ordering.iter().map(|byte| format!("{byte:02x}")).collect::<String>(),
+            "motor": motor.iter().map(|byte| format!("{byte:02x}")).collect::<String>(),
+            "terminal": format!("{terminal:?}"),
+            "coordinated_resolved": resolved_route_count == 1,
+            "resolved_route_count": resolved_route_count,
+            "resolved_continuation_count": resolved_continuation_count,
+            "route_founders": route_founders,
+            "ordering_separated_elementary_charges": ordering_state.separated_elementary_charges().to_string(),
+            "motor_gate_open_population": motor_state.gate.open_population(),
+            "motor_gate_population": motor_anatomy.gate_population(),
+            "motor_gate_dissipated_quanta": motor_state.gate.dissipated_quanta(),
+            "motor_gate_dissipation_capacity_quanta": motor_anatomy.gate_dissipation_capacity_quanta(),
+            "motor_gate_dissipation_quantum_zeptojoules": motor_anatomy.gate_dissipation_quantum_zeptojoules().to_string(),
+            "motor_receptor_residue_zeptojoules": motor_state.receptor_quantum_residue.energy().to_string(),
+            "motor_separated_elementary_charges": motor_state.separated_elementary_charges().to_string(),
+        }));
+    }
+    records.sort_by_key(|record| {
+        (
+            record["ordering"].as_str().unwrap_or_default().to_owned(),
+            record["motor"].as_str().unwrap_or_default().to_owned(),
+        )
+    });
+    let unresolved_route_contact_count = records
+        .iter()
+        .filter(|record| record["coordinated_resolved"].as_bool() != Some(true))
+        .count();
+    let mut association_motor_paths = Vec::new();
+    for motor in vocal_motors.iter().copied() {
+        let motor_flat = state
+            .topology_index
+            .flat_for_lineage(motor)
+            .expect("persisted vocal motor resolves");
+        let terminal = state
+            .cohorts
+            .iter()
+            .flat_map(|cohort| {
+                cohort
+                    .anatomy
+                    .mounts()
+                    .iter()
+                    .zip(cohort.anatomy.neuron_lineages())
+            })
+            .find_map(|(mount, lineage)| {
+                (*lineage == motor)
+                    .then(|| mount.body_effector_terminal())
+                    .flatten()
+            })
+            .expect("persisted vocal motor has a typed terminal");
+        let mut associations = std::collections::BTreeSet::new();
+        for regulation_flat in state.topology_index.neighbours_by_flat[motor_flat]
+            .iter()
+            .copied()
+        {
+            let regulation = state.topology_index.flat_locations[regulation_flat].2;
+            if state.topology_index.layer_of(regulation) != Some(8) {
+                continue;
+            }
+            for affective_flat in state.topology_index.neighbours_by_flat[regulation_flat]
+                .iter()
+                .copied()
+            {
+                let affective = state.topology_index.flat_locations[affective_flat].2;
+                if state.topology_index.layer_of(affective) != Some(10) {
+                    continue;
+                }
+                for association_flat in state.topology_index.neighbours_by_flat[affective_flat]
+                    .iter()
+                    .copied()
+                {
+                    let association = state.topology_index.flat_locations[association_flat].2;
+                    if state.topology_index.layer_of(association) == Some(7) {
+                        associations.insert(association);
+                    }
+                }
+            }
+        }
+        for association in associations {
+            let association_flat = state
+                .topology_index
+                .flat_for_lineage(association)
+                .expect("persisted association resolves");
+            let recurrent_count = state.topology_index.neighbours_by_flat[association_flat]
+                .iter()
+                .copied()
+                .filter(|flat| {
+                    state
+                        .topology_index
+                        .layer_of(state.topology_index.flat_locations[*flat].2)
+                        == Some(9)
+                })
+                .count();
+            association_motor_paths.push(json!({
+                "association": lineage_hex(association),
+                "motor": lineage_hex(motor),
+                "terminal": format!("{terminal:?}"),
+                "recurrent_count": recurrent_count,
+            }));
+        }
+    }
+    association_motor_paths.sort_by_key(|record| {
+        (
+            record["terminal"].as_str().unwrap_or_default().to_owned(),
+            record["association"]
+                .as_str()
+                .unwrap_or_default()
+                .to_owned(),
+        )
+    });
+    let mut continuations = vocal_motors
+        .into_iter()
+        .flat_map(|motor| {
+            super::lean_sensorimotor_route::vocal_cognitive_action_continuation_routes_for_motor(
+                &state.cohorts,
+                &state.topology_index,
+                motor,
+            )
+            .expect("persisted vocal continuation routes resolve")
+            .into_iter()
+            .map(move |route| {
+                json!({
+                    "source": lineage_hex(route.source_ordering_lineage),
+                    "destination": lineage_hex(route.destination_ordering_lineage),
+                    "motor": lineage_hex(motor),
+                    "bond": format!("{:?}", route.continuation_bond),
+                })
+            })
+        })
+        .collect::<Vec<_>>();
+    continuations.sort_by_key(|record| {
+        (
+            record["source"].as_str().unwrap_or_default().to_owned(),
+            record["destination"]
+                .as_str()
+                .unwrap_or_default()
+                .to_owned(),
+            record["motor"].as_str().unwrap_or_default().to_owned(),
+        )
+    });
+    continuations.dedup();
+    json!({
+        "measurement_only": true,
+        "organism_advanced": false,
+        "vocal_route_contact_count": records.len(),
+        "unresolved_or_legacy_route_contact_count": unresolved_route_contact_count,
+        "association_motor_paths": association_motor_paths,
+        "routes": records,
+        "continuation_count": continuations.len(),
+        "continuations": continuations,
+    })
+}
+
 #[test]
 fn reservoir_probe_dump() {
+    if let Ok(taught_state_path) = std::env::var("GUALA_PROBE_GUIDED_VOCAL_GROWTH_STATE_IN") {
+        let out_path = std::env::var("GUALA_PROBE_OUT").expect("GUALA_PROBE_OUT must be set");
+        let taught_body_path = std::env::var("GUALA_PROBE_GUIDED_VOCAL_GROWTH_BODY_IN")
+            .expect("saved guided-vocal growth body path must be set");
+        let cognitive = fs::read(&taught_state_path).expect("read saved growth cognitive state");
+        let cognitive =
+            ResidentCognitiveFormationState::migrate_to_current_format(&cognitive, usize::MAX)
+                .expect("migrate saved growth cognitive state to the candidate codec");
+        let state = ResidentCognitiveFormationState::decode(&cognitive, usize::MAX)
+            .expect("decode saved growth cognitive state");
+        let body = ArticulatedBodyState::decode(
+            &fs::read(&taught_body_path).expect("read saved growth body"),
+        )
+        .expect("decode saved growth body");
+        fs::write(
+            out_path,
+            serde_json::to_vec_pretty(&guided_vocal_population_growth_json(&state, Some(&body)))
+                .unwrap(),
+        )
+        .expect("write saved-state guided-vocal growth result");
+        return;
+    }
+    if let Ok(taught_state_path) = std::env::var("GUALA_PROBE_GUIDED_VOCAL_TAIL_STATE_IN") {
+        let out_path = std::env::var("GUALA_PROBE_OUT").expect("GUALA_PROBE_OUT must be set");
+        let taught_body_path = std::env::var("GUALA_PROBE_GUIDED_VOCAL_TAIL_BODY_IN")
+            .expect("saved guided-vocal tail body path must be set");
+        let cue_pressure_path = std::env::var("GUALA_PROBE_GUIDED_VOCAL_TAIL_CUE_PRESSURE_PCM")
+            .expect("saved guided-vocal tail cue pressure path must be set");
+        let maximum_clocks = std::env::var("GUALA_PROBE_UNGUIDED_VOCAL_CLOCKS")
+            .ok()
+            .map(|value| value.parse::<u64>().expect("saved-tail clocks are u64"))
+            .unwrap_or(12);
+        let occurrence = std::env::var("GUALA_PROBE_GUIDED_VOCAL_TAIL_OCCURRENCE")
+            .ok()
+            .map(|value| value.parse::<u64>().expect("saved-tail occurrence is u64"))
+            .unwrap_or(20);
+        let guide_carriers = std::env::var("GUALA_PROBE_GUIDED_VOCAL_CARRIERS")
+            .ok()
+            .map(|value| value.parse::<u128>().expect("saved-tail carriers are u128"))
+            .unwrap_or(1_500);
+        let cognitive = fs::read(&taught_state_path).expect("read saved taught cognitive state");
+        let cognitive =
+            ResidentCognitiveFormationState::migrate_to_current_format(&cognitive, usize::MAX)
+                .expect("migrate saved taught cognitive state to the candidate codec");
+        let state = ResidentCognitiveFormationState::decode(&cognitive, usize::MAX)
+            .expect("decode saved taught cognitive state");
+        let body = ArticulatedBodyState::decode(
+            &fs::read(&taught_body_path).expect("read saved taught body"),
+        )
+        .expect("decode saved taught body");
+        let cue_pressure_bytes = fs::read(&cue_pressure_path).expect("read saved cue pressure");
+        assert!(matches!(cue_pressure_bytes.len(), 8_000 | 32_000));
+        let cue_phase = std::env::var("GUALA_PROBE_GUIDED_VOCAL_TAIL_CUE_PHASE")
+            .ok()
+            .map(|value| {
+                value
+                    .parse::<usize>()
+                    .expect("saved-tail cue phase is usize")
+            })
+            .unwrap_or(0);
+        let available_phases = cue_pressure_bytes.len() / 8_000;
+        assert!(cue_phase < available_phases);
+        let cue_pressure = cue_pressure_bytes
+            .chunks_exact(2)
+            .skip(cue_phase * 4_000)
+            .take(4_000)
+            .map(|sample| i16::from_le_bytes([sample[0], sample[1]]))
+            .collect::<Vec<_>>();
+        let sound_only = std::env::var_os("GUALA_PROBE_GUIDED_VOCAL_TAIL_SOUND_ONLY").is_some();
+        fs::write(
+            out_path,
+            serde_json::to_vec_pretty(&saved_guided_vocal_tail_json(
+                state,
+                body,
+                cue_pressure,
+                occurrence,
+                maximum_clocks,
+                guide_carriers,
+                sound_only,
+            ))
+            .unwrap(),
+        )
+        .expect("write saved guided-vocal tail result");
+        return;
+    }
+    if let Ok(raw_cognitive_path) = std::env::var("GUALA_PROBE_RAW_COGNITIVE_IN") {
+        let out_path = std::env::var("GUALA_PROBE_OUT").expect("GUALA_PROBE_OUT must be set");
+        let cognitive = fs::read(&raw_cognitive_path).expect("read raw cognitive state");
+        let cognitive =
+            ResidentCognitiveFormationState::migrate_to_current_format(&cognitive, usize::MAX)
+                .expect("migrate raw cognitive state to the candidate codec");
+        let state = ResidentCognitiveFormationState::decode(&cognitive, usize::MAX)
+            .expect("decode raw cognitive state for vocal route structure");
+        fs::write(
+            out_path,
+            serde_json::to_vec_pretty(&json!({
+                "raw_cognitive_path": raw_cognitive_path,
+                "vocal_route_structure": vocal_route_structure_json(&state),
+            }))
+            .unwrap(),
+        )
+        .expect("write raw cognitive vocal route structure");
+        return;
+    }
     let Ok(input) = std::env::var("GUALA_PROBE_IN") else {
         return;
     };
@@ -6422,11 +7983,27 @@ fn reservoir_probe_dump() {
             std::env::var_os("GUALA_PROBE_ARTIFICIAL_VOCAL_SYNERGY_ONLY").is_some();
         let guided_vocal_population_growth_only =
             std::env::var_os("GUALA_PROBE_GUIDED_VOCAL_POPULATION_GROWTH_ONLY").is_some();
+        let vocal_route_structure_only =
+            std::env::var_os("GUALA_PROBE_VOCAL_ROUTE_STRUCTURE_ONLY").is_some();
         let antagonist_activation_range_only =
             std::env::var_os("GUALA_PROBE_ANTAGONIST_ACTIVATION_RANGE_ONLY").is_some();
         let candidate_tissue_proof_only =
             std::env::var_os("GUALA_PROBE_CANDIDATE_TISSUE_PROOF_ONLY").is_some();
-        let record = if guided_vocal_population_growth_only {
+        let record = if vocal_route_structure_only {
+            let cognitive =
+                ResidentCognitiveFormationState::migrate_to_current_format(&cognitive, usize::MAX)
+                    .expect("migrate cognitive state for vocal route structure");
+            let state = ResidentCognitiveFormationState::decode(&cognitive, usize::MAX)
+                .expect("decode cognitive state for vocal route structure");
+            json!({
+                "file": path.file_name().unwrap().to_string_lossy(),
+                "organism_tick": organism_tick,
+                "vocal_route_structure": vocal_route_structure_json(&state),
+            })
+        } else if guided_vocal_population_growth_only {
+            let cognitive =
+                ResidentCognitiveFormationState::migrate_to_current_format(&cognitive, usize::MAX)
+                    .expect("migrate cognitive state for guided vocal population growth");
             let state = ResidentCognitiveFormationState::decode(&cognitive, usize::MAX)
                 .expect("decode cognitive state for guided vocal population growth");
             json!({

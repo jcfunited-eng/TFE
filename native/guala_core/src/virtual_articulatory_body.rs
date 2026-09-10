@@ -11,9 +11,10 @@
 use core::cmp::{max, min};
 
 use crate::virtual_articulated_body::{
-    ArticulatedBodyState, ArticulatoryAcousticState, BodyAxis,
-    BodyProprioceptiveConsequence,
+    settle_body_effector_drives, AdmittedBodyEffectorDrives, ArticulatedBodyState,
+    ArticulatoryAcousticState, BodyAxis, BodyProprioceptiveConsequence,
     ACOUSTIC_TRANSDUCER_SURFACE_COUNT,
+    BODY_SETTLEMENT_CLOCK_MICROSECONDS,
     MIN_LUNG_AIR_MICROLITRES,
     NEUTRAL_LUNG_AIR_MICROLITRES,
     MAX_TRACT_AREA_SQUARE_MILLIMETRES, MIN_TRACT_AREA_SQUARE_MILLIMETRES,
@@ -158,7 +159,7 @@ pub(crate) fn settle_native_articulatory_interval(
 }
 
 fn settle_native_articulatory_interval_with_material(
-    articulated_body: ArticulatedBodyState,
+    mut articulated_body: ArticulatedBodyState,
     body_consequences: &[BodyProprioceptiveConsequence],
     respiratory_efferent_carriers: u128,
     interval_sample_count: usize,
@@ -255,8 +256,6 @@ fn settle_native_articulatory_interval_with_material(
         }
     }
     let glottal_apex = glottal_open_samples(&articulated_body)?;
-    let areas = articulated_vocal_tract_areas(&articulated_body)?;
-    let body_channels = articulated_body_channels(&articulated_body)?;
     let mut radiated = Vec::new();
     radiated
         .try_reserve_exact(interval_sample_count)
@@ -269,7 +268,20 @@ fn settle_native_articulatory_interval_with_material(
     }
 
     let mut strongest_surface_velocity = 0_i32;
-    for _interval_sample_index in 0..interval_sample_count {
+    const BODY_CLOCK_SAMPLES: usize =
+        ARTICULATORY_SAMPLE_RATE_HZ as usize / 1_000;
+    for interval_sample_index in 0..interval_sample_count {
+        if interval_sample_index != 0 && interval_sample_index % BODY_CLOCK_SAMPLES == 0 {
+            articulated_body = settle_body_effector_drives(
+                &articulated_body,
+                &AdmittedBodyEffectorDrives::quiescent(),
+                BODY_SETTLEMENT_CLOCK_MICROSECONDS,
+            )
+            .map_err(|_| ArticulatoryBodyError::ArithmeticWidth)?
+            .successor;
+        }
+        let areas = articulated_vocal_tract_areas(&articulated_body)?;
+        let body_channels = articulated_body_channels(&articulated_body)?;
         let mut legacy_reached_rest = false;
         let mut respiratory_flow_sample = 0_i16;
         let emitted = match &mut acoustic {
@@ -344,6 +356,8 @@ fn settle_native_articulatory_interval_with_material(
         body_mechanics[2].push(body_channels[1]);
         body_mechanics[3].push(body_channels[2]);
     }
+    let terminal_areas = articulated_vocal_tract_areas(&articulated_body)?;
+    let terminal_body_channels = articulated_body_channels(&articulated_body)?;
     let successor_body = articulated_body
         .with_respiratory_successor(acoustic, lung_air_microlitres)
         .map_err(|_| ArticulatoryBodyError::ArithmeticWidth)?;
@@ -352,8 +366,8 @@ fn settle_native_articulatory_interval_with_material(
         body_mechanical_trajectories: body_mechanics,
         peak_transducer_surface_velocity_pcm: strongest_surface_velocity,
         glottal_open_samples_at_apex: glottal_apex,
-        mouth_area_square_millimetres_at_apex: areas[TRACT_SECTION_COUNT - 1],
-        perioral_area_displacement_square_millimetres: i32::from(body_channels[2]),
+        mouth_area_square_millimetres_at_apex: terminal_areas[TRACT_SECTION_COUNT - 1],
+        perioral_area_displacement_square_millimetres: i32::from(terminal_body_channels[2]),
         applied_motor_quanta: applied,
         stalled_motor_quanta: stalled,
         relaxation_sample_count: 0,
