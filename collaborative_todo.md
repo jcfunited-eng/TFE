@@ -8199,3 +8199,25 @@ input/prefix (no coldrestartdroppingpendingfeedback), then recallonlyfrom
 honestlyquietstate. C118passesstayclosedif tailneedswork. No newspeechclaim.
 Production1456/image6aa38d99 unchangedhealthy1/1/0 at17:21:51; caretakerSTOP.
 CanonicalAttempt54 rows118-04/07/08 holdsuccesses,caveatsandactiveitem.
+
+
+## Sol — C118 four-posture copied-body recall closed, 2026-09-11
+Canonical Attempt 54 rows S-054-118-11 through S-054-118-20, branch
+sol/speech-existing-organ, ledger commit a4f5eeef; native correction a2bbdbb4.
+One 4000-sample sound cue, no guided movement during recall: four learned
+postures enacted on clocks 3/4/5/6, four mouth motors each, breath on each,
+126579 nonzero pressure samples, then acoustic rest and no further motor acts
+through clock 64. Eight pre-cue clocks were silent; cognitive codec roundtrip
+exact. Teaching/recovery kept ordinary cognition running. The third posture
+needed two presentations; fourth grew on its first. These successes remain
+closed and must not be rediscovered.
+Receipt SHA256 d53db88dafcda5a8fc0cc586f56d582a8e73ca62cedf5bdda20a7a0464f06de3.
+Taught state SHA256 4d717e81ce317840a87ef5377543abcb5f9017f31464030fc20e1146d9b5971f.
+Verified durable backup /mnt/tfebackup/guala-c118-four-posture.XehvEs.
+LOCAL evidence only: no intelligible Mama, semantic speech, complete warm-runtime
+pending-return/restart, or live speech claim. Existing saved-tail helper does
+not export waveform/final pending return; next exact item is those observations
+under the frozen delivery inventory, not new organism physics or re-teaching.
+Production remained task 1456/image 6aa38d99..., healthy 1/1/0 at 17:38:10 UTC.
+No deployment or live-body replacement. Caretaker STOP remains; browser closed.
+Full AE goal remains active. Never restore the older taught copy onto live her.
