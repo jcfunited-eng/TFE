@@ -2,6 +2,7 @@
 //! This module is reachable only through the test-only reservoir probe.
 
 use super::*;
+use crate::resident_cognitive_formation::CognitiveFormationObservation;
 use std::collections::{BTreeMap, BTreeSet};
 
 fn census(state: &ResidentCognitiveFormationState, associations: &[[u8; 16]]) -> Value {
@@ -85,5 +86,154 @@ fn saved_lesson_association_retention() {
         "after": after,
         "pulses": tail.pulses,
         "internal_reassemblies": tail.internal_reassemblies,
+    })).unwrap()).unwrap();
+}
+
+fn interval_census(
+    state: &ResidentCognitiveFormationState,
+    observation: &CognitiveFormationObservation,
+    associations: &[[u8; 16]],
+) -> Value {
+    let emitted = observation.emitted_neuron_fractals.iter()
+        .map(|fractal| fractal.neuron_lineage).collect::<BTreeSet<_>>();
+    let active = observation.active_physical_bonds.iter().copied().collect::<BTreeSet<_>>();
+    json!(associations.iter().map(|association| {
+        let topology = &state.topology_index;
+        let flat = topology.flat_for_lineage(*association).unwrap();
+        let mut participants = BTreeSet::from([*association]);
+        let mut association_contacts = 0;
+        let mut observed_active_contacts = 0;
+        for index in &topology.incident_contacts_by_flat[flat] {
+            let contact = topology.contacts[*index];
+            let other = if contact.left == flat { contact.right } else { contact.left };
+            let integration = topology.flat_locations[other].2;
+            if topology.layer_of(integration) != Some(6) { continue; }
+            association_contacts += 1;
+            observed_active_contacts += usize::from(active.contains(&contact.stable_bond));
+            participants.insert(integration);
+            for source_index in &topology.incident_contacts_by_flat[other] {
+                let source_contact = topology.contacts[*source_index];
+                let source_flat = if source_contact.left == other {
+                    source_contact.right
+                } else { source_contact.left };
+                let (cohort, neuron, lineage) = topology.flat_locations[source_flat];
+                if matches!(topology.layer_of(lineage), Some(0..=5))
+                    && state.cohorts[cohort].anatomy.mounts()[neuron].source_site().is_some() {
+                    participants.insert(lineage);
+                }
+            }
+        }
+        let mut layers = BTreeMap::<u32, [usize; 4]>::new();
+        for lineage in &participants {
+            let flat = topology.flat_for_lineage(*lineage).unwrap();
+            let (cohort_index, neuron, _) = topology.flat_locations[flat];
+            let layer = topology.layer_of(*lineage).unwrap();
+            let counts = layers.entry(layer).or_default();
+            counts[0] += 1;
+            counts[1] += usize::from(emitted.contains(lineage));
+            if let Some(experience) = &state.cohorts[cohort_index].pending_experience {
+                if let Some(members) = experience.pending_members() {
+                    if let Some(member) = members.iter().find(|member| member.neuron_index == neuron) {
+                        counts[2] += 1;
+                        counts[3] += usize::from(member.settled);
+                    }
+                }
+            }
+        }
+        json!({
+            "association": association.iter().map(|byte| format!("{byte:02x}")).collect::<String>(),
+            "mounted_neighborhood_is_only_an_upper_bound": true,
+            "layer_columns": ["mounted", "emitted_this_interval", "pending", "pending_settled"],
+            "layers": layers,
+            "association_l6_contacts": association_contacts,
+            "observed_active_l6_contacts_not_causal_selector": observed_active_contacts,
+        })
+    }).collect::<Vec<_>>())
+}
+
+#[test]
+fn saved_lesson_fractal_admission_trace() {
+    let Ok(predecessor_path) = std::env::var("GUALA_MEMORY_PREDECESSOR") else { return; };
+    let (_, cognitive, _) = parse_envelope_with_body(&fs::read(predecessor_path).unwrap());
+    let predecessor = ResidentCognitiveFormationState::decode(&cognitive, usize::MAX).unwrap();
+    let mut state = ResidentCognitiveFormationState::decode(
+        &fs::read(std::env::var("GUALA_MEMORY_STATE").unwrap()).unwrap(), usize::MAX,
+    ).unwrap();
+    let mut body = ArticulatedBodyState::decode(
+        &fs::read(std::env::var("GUALA_MEMORY_BODY").unwrap()).unwrap(),
+    ).unwrap();
+    let associations = state.topology_index.flat_locations.iter().map(|entry| entry.2)
+        .filter(|lineage| state.topology_index.layer_of(*lineage) == Some(7)
+            && predecessor.topology_index.layer_of(*lineage).is_none()).collect::<Vec<_>>();
+    assert_eq!(associations.len(), 4, "trace is scoped to the saved single lesson");
+    drop(predecessor);
+    drop(cognitive);
+    let terminal_by_motor = state.cohorts.iter()
+        .flat_map(|cohort| cohort.anatomy.mounts().iter().zip(cohort.anatomy.neuron_lineages()))
+        .filter_map(|(mount, lineage)| mount.body_effector_terminal().map(|terminal| (*lineage, terminal)))
+        .collect::<BTreeMap<_, _>>();
+    let motors = terminal_by_motor.keys().copied().collect::<BTreeSet<_>>();
+    // Establish exact equivalence to the existing chronology before trusting
+    // this diagnostic loop. No physics or memory code is duplicated here.
+    let oracle = run_guided_vocal_continuation(
+        state.clone(), body.clone(), None, &[], 1, 4, &motors, &terminal_by_motor,
+    );
+    let expected_state = oracle.state.encode(usize::MAX).unwrap();
+    let expected_body = oracle.body.encode().unwrap();
+    drop(oracle);
+    let mut residency = None;
+    let mut pending_motor = None;
+    let mut pending_sound = None;
+    let mut intervals = Vec::new();
+    for clock in 1..=4_u64 {
+        let consuming_body_owned_pressure = pending_sound.is_some();
+        let mut sources = Vec::new();
+        if let Some(source) = pending_motor.take() { sources.push(source); }
+        if let Some(source) = pending_sound.take() { sources.push(source); }
+        if sources.is_empty() { sources.push(probe_self_hearing_episode(&[0_i16; 4_000])); }
+        let admitted = sources.iter().map(super::super::admitted_fixture_episode).collect::<Vec<_>>();
+        let (successor, observation) = state.advance_coexisting_admitted_transition_with_residency(
+            &admitted, usize::MAX, true, !consuming_body_owned_pressure, false,
+            &mut residency, ExactRational::integer(0),
+        ).unwrap();
+        intervals.push(json!({
+            "clock": clock,
+            "total_emitted_fractals": observation.emitted_neuron_fractals.len(),
+            "association_neighborhoods": interval_census(&successor, &observation, &associations),
+            "formation_census": census(&successor, &associations),
+        }));
+        let mut carriers = BTreeMap::new();
+        for event in &observation.motor_unit_recruitments {
+            let total = carriers.entry(event.body_effector_terminal).or_insert(0_u128);
+            *total = total.checked_add(event.outward_elementary_carriers).unwrap();
+        }
+        let drives = if carriers.is_empty() { AdmittedBodyEffectorDrives::quiescent() } else {
+            AdmittedBodyEffectorDrives::admit(carriers.into_iter().map(|(terminal, outward_elementary_carriers)| {
+                BodyEffectorDrive { terminal, outward_elementary_carriers }
+            }).collect()).unwrap()
+        };
+        let respiratory = observation.articulatory_unit_recruitments.iter()
+            .try_fold(0_u128, |total, event| total.checked_add(event.outward_elementary_carriers)).unwrap();
+        let moved = settle_body_effector_drives(&body, &drives, BODY_SETTLEMENT_CLOCK_MICROSECONDS).unwrap();
+        let acoustic = settle_native_articulatory_interval(
+            moved.successor, &moved.proprioceptive_consequences, respiratory, 4_000,
+        ).unwrap();
+        if !moved.proprioceptive_consequences.is_empty() {
+            pending_motor = Some(admit_articulated_body_consequence_source(
+                1 + clock + 1, &moved.proprioceptive_consequences,
+            ).unwrap());
+        }
+        if acoustic.radiated_pressure_pcm.iter().any(|sample| *sample != 0) {
+            pending_sound = Some(probe_self_hearing_episode(&acoustic.radiated_pressure_pcm));
+        }
+        state = successor;
+        body = acoustic.successor_body;
+    }
+    assert_eq!(state.encode(usize::MAX).unwrap(), expected_state, "diagnostic must preserve exact native successor");
+    assert_eq!(body.encode().unwrap(), expected_body, "diagnostic must preserve exact body successor");
+    fs::write(std::env::var("GUALA_MEMORY_OUT").unwrap(), serde_json::to_vec_pretty(&json!({
+        "measurement_only": true,
+        "existing_continuation_successor_exact": true,
+        "intervals": intervals,
     })).unwrap()).unwrap();
 }

@@ -9374,3 +9374,76 @@ sensory/body neuronal fractals versus their focused pending-original admission
 and recurrence. The current probe does not expose those per-lesson facts, so
 their absence is not yet proved. Candidate 114 remains local and unaccepted
 for deployment. Production remains task 1456; no live lesson or cutover occurred.
+
+`D-054-114-05` (test-only fractal-to-memory discriminator): continue the
+F-054-114-04 boundary, not a new speech candidate. Acceptance remains taught
+sound-only root recall through real motor/breath/pressure, clean silence and
+exact restart, followed by word-chain and live proof at their existing scope.
+The next measurement follows the saved one-lesson four-association successor
+for four ordinary native/body/self-hearing intervals. Read the already emitted
+`CognitiveFormationObservation.emitted_neuron_fractals` and exact mounted
+receptor/L6/L7 neighborhoods. Count each layer's emitted and pending/settled
+members before interpreting the original-admission threshold. Mounted
+neighborhood membership is an observational upper bound, NOT a substitute
+for the production causal-active-bond set. Fewer than three emitted members
+even in that superset excludes a new original; more does not prove admission.
+
+Only `resident_cognitive_formation/memory_retention_probe.rs` changes (test-only).
+The observing loop uses the same native transition and body/acoustic functions
+as the established continuation helper and must match that helper's exact
+four-clock cognitive/body successor. No organism law, gate, energy, DSF field,
+codec, transport or production process changes. Input saved body/cognition are
+read-only; reports remain outside cognition. This is not permission to reuse
+old fractals as current experience, union old sound memories (95/107/113), or
+weaken the three-real-fractal law. Existing 110 vocal proofs remain closed at
+their copied-body scope. Baseline source is local 58f890b4; production census
+at 10:32:28 UTC remains one HEALTHY/RUNNING 1456, 1/1/0, unchanged image.
+CloudWatch 10:15-10:30 CPU averages 41.18-44.56%, memory 10.79-11.00%; maximum
+CPU 62.87%, memory 12.22%. Clock alarm remains its September-8 alarm, not
+new stall evidence. No heavy local child is running before compilation.
+
+`H-054-125`: initial ledger append used a paraphrased context line and was
+refused without changes. Corrected from literal `tail -4` output; copy exact
+context for ledger patches, never reconstruct the anchor from prose.
+
+`R/H-054-114-06`: independent test-only source review passed at fingerprint
+`4e48d188011334c5e154fef24fb2de0d0a8d65347328d7cbeaabd4e84c2a11c0`.
+Compiler then found the diagnostic's missing `CognitiveFormationObservation`
+import (E0425); no organism test executed. The reviewer explicitly retracted
+the initial type-scope pass. One explicit crate import corrected it; final
+localized review passed with before/after fingerprint
+`aa0777ccc952dc0c341a0170bcde6dd24e53a9ec51b03b5a4b9299081cc014d8`.
+The review also tried one nonexistent wildcard source path before resolving
+the actual file; use `rg --files` before source fragments. The equality guard
+covers final encoded cognitive/body successors, not transient scheduler
+residency or every intermediate state. Sparse pending counts exclude retained
+and historical codec evidence. These limits remain explicit in interpretation.
+
+`S/F-054-114-07` (sensory emission precedes association emission): the exact
+single test passed in 10.69 s, including byte-equal native/body final successors
+against the existing four-clock continuation helper. Compilation took 2m52s
+after the import correction. Each of the four new hubs has 32 sound receptors,
+3 body receptors, 35 L6 cells and itself in its mounted neighborhood. Clock 1
+emitted six sound fractals and one body fractal per neighborhood, but no hub
+fractal; clock 2 emitted just the hub fractal. Clocks 3/4 emitted no fractals
+in those neighborhoods. Every hub's formation census stayed empty throughout.
+Total organism emissions were 10,4,0,2, so this is not absent neuronal change.
+The sound/body cells and hub retained sparse pending members marked settled;
+the test reports those counts separately from newly emitted evidence.
+
+Combined with F-054-113-09's actual causal-contact counts (32/35 then 35/35),
+this locates a cross-clock handoff: complete focused-path selection occurs
+after the sensory emissions; `settle_organism_mosaic_boundary` builds its
+fractal input only from current emission. With one new hub fractal and no
+admissible pending original, the three-fractal gate skips it. This does NOT
+authorize treating every old pending delta as new experience or weakening
+the minimum. The next source decision is whether already-present sparse
+physical evidence can preserve this exact causal path across its adjacent
+settlements; no new production correction is yet selected or claimed.
+
+Receipt `/tmp/guala-candidate114-fractal-admission.json`, SHA-256
+`a2778a64d77f9bcfd2f9f004d11b1be7bfa0067caa69e3945083de02b7c84f32`.
+After-run census at 10:40:48 UTC: no remaining native test/compiler child;
+production still 1456 HEALTHY/RUNNING, 1/1/0, same 6aa38d99 image. The probe
+finished before RSS sampling; no peak-RAM measurement claimed for this run.
+No live mutation, lesson, cutover or speech-success claim.
