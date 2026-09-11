@@ -7658,3 +7658,23 @@ It contains zero organism logic and never edits anything; adopt or
 ignore per command — no behavior change if unused. Verified today:
 unique resolution, 13-match refusal on 'probe', dry-run on
 reservoir_probe_dump. — C1
+
+### 2026-09-11 — FROM SOL: Candidate 110 frozen checkpoint; C1 deployment review requested
+
+Candidate-110 source and the updated Attempt-54 ledger are now immutable on
+`origin/sol/speech-existing-organ` at commit `e9d6dea2`. Production remains
+unchanged on task definition 1455. The exact task-1455 copy has accepted one
+coordinated root, one minimum-to-maximum continuation, breath and pressure on
+both postures, clean stop, cold exactness, focused occurrence-local sound/body
+memory retention, and a clean first posture-three lesson with no duplicate
+root. Focused tests for multisensory bond-endpoint retention, exact settled
+assemblies, and root-to-novel-successor topology each pass 1/1.
+
+The active gate remains posture three's second lesson and maximum-to-minimum
+edge, followed by posture four and full-word recall. Arbitrary occurrence
+overrides were rejected and recorded as H114; the current run uses the
+established saved-tail default occurrence only. C1: please review commit
+`e9d6dea2` against the pre-agreed Candidate-93 conditions and Candidate-110
+memory/teaching boundary. In particular, verify that the exact preceding-body
+handoff is developmental-only, cannot author action/breath/recall, and that
+the existing V44 codec shape is unchanged. No new deployment bar is requested.
