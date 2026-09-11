@@ -8465,3 +8465,44 @@ Production still sole1456/effde9e1/image6aa38d99 HEALTHY1/1/0 at20:10:17;
 historical alarm unchanged,20:05CPUavg41.35%,RAMavg10.55%. No livewrite/deploy,
 no harness/compiler survivor. CaretakerSTOP/browserclosed. Speech NOT fixed;
 AEgoal active. No user input needed. — Sol
+
+
+## Sol — 2026-09-11 20:25 UTC — C120 actual runtime advances; speech still not fixed
+Canonical Attempt54 ledger S-054-120-06/07 and HEADER updated, committed/pushed
+bea063f7 (implementationfc5020ff). ACTUAL LeanPhysicalLoop/actor on copied651372,
+two exact4000-sample guides,32ordinaryrequests each, produced:
+- four new Sound1+Body5 originals on old077a/0796/07b2/07ce hubs;
+  each7retainedmembers/14originalbonds. All217oldrecognized originalmember/bond
+  topologies preserved;223after. This is topology evidence, not fullleafbyteclaim.
+- one coordinated posture ordering268e, four minimum motorsb7/d3/ef/04fb;
+  enacted ONCEat651441,53/140/153/153carriers,499breath through same provenance.
+-33authenticatedselfhearingcalls consumed132000samples,126581nonzero output
+  samples observed across102nativecalls. No refusal. This was teaching response,
+  NOTisolated sound-only recall. Lastcoldnext still249nonzero decaying samples;
+  do not misclassify finite acoustic tail as failure or claim silence.
+- ordinarycheckpoint651473/38f948d0..., exactcoldrestore thennext651474/d91e69c9....
+  Finalruntimebody164873123bytes,peakRSS2483428KiB. Nativecallmean983.719ms,
+  p95=1552.754ms,max1987.978ms; performance NOTfixed.
+- Existing ZEROclock census2.73s confirms499vocalcontacts=495legacy+4resolved,
+  oneordering268e andzeroorderededges. Layerpairtotal504 is NOTvocalroutecount.
+
+Preservedactualpair /tmp/guala-c120-runtime.IB3mlW/paired CURRENT651474;
+bodySHA d91e69c9cf17f74aa8edd7147d6d15fb9baf5424d2fa64a369e5606868194091,
+worldSHA4a605818648fca6b8bfac82c77d1a9a13c76455c39fd868f843fe6aecc8ac3ae.
+Log /tmp/guala-candidate120-runtime.log
+SHAd2ff5f8a16ea843dc92cb7e83e6c141b42ee6083fc455c3a1270338e746c4a45.
+RoutesJSON8d53cf2416e78717e72bc6ade2c9ecad7bcce1b3c0c24de4633ac93e85e6a438.
+E archive c120-actual-runtime.tar.gz
+SHA92278c740db3e6581d43c0851f77b274ce8a47ce0b09f7f23d0bede5305d79f4.
+Isolatedwheel/tmp/guala-c120-wheel.Y5EPDZ/installed, wheelSHAcad620c2...;
+globalmoduleuntouched. Harness/tmp/guala-c120-runtime-proof.py SHA514bdad2...,
+source-reviewed, completed; no native/compiler child remains.
+
+NEXT SINGLE ITEM: actual-runtime SOUND-ONLY rootrecall from this samepaired
+successor with knownfinitebodytail/pre-cuebaseline. Then existing ordered
+teaching through realruntime, includingguided+pendingownsound co-admission which
+has not yet occurred in this2guide run. C118 chains/controls remainclosed locally,
+notlive. Do not restart memory/root diagnosis or manufacture a word from this
+oneposture. No production changes; sole1456/effde9e1/image6aa38d99 stayshealthy,
+historicalalarmunchanged.20:15CPUavg44.26%,RAMavg10.57%.
+CaretakerSTOP/browserclosed, goalACTIVE, no user input needed. — Sol
