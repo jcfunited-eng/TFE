@@ -3834,6 +3834,26 @@ fn pending_original_association_lineages(
     Ok(associations.into_iter().collect())
 }
 
+/// Source classes carried by the exact original, never by the mounted fan.
+fn physical_original_source_layers(
+    members: &[[u8; 16]],
+    bonds: &[StablePhysicalBondReference],
+    topology: &ResidentTopologyIndex,
+) -> Result<BTreeSet<u32>, FormationError> {
+    let mut layers = BTreeSet::new();
+    for lineage in members.iter().copied().chain(bonds.iter().flat_map(|bond| {
+        let (left, right) = bond.endpoints();
+        [left, right]
+    })) {
+        match topology.layer_of(lineage) {
+            Some(layer @ 0..=5) => { layers.insert(layer); }
+            Some(_) => {}
+            None => return Err(FormationError::NeuronLineageAuthorityAbsent),
+        }
+    }
+    Ok(layers)
+}
+
 /// Whether this exact current physical path extends an existing association
 /// with a sensory/body layer that no reassembled formation on that same
 /// association already retains.
@@ -3852,84 +3872,77 @@ fn adds_unretained_cross_sensory_relation(
     overlapping_reassemblies: &[usize],
     topology_index: &ResidentTopologyIndex,
 ) -> Result<bool, FormationError> {
-    let mut current_sensory_layers = BTreeSet::new();
-    let mut current_associations = BTreeSet::new();
-    for lineage in current.member_lineages().iter().copied() {
-        match topology_index.layer_of(lineage) {
-            Some(layer @ 0..=5) => {
-                current_sensory_layers.insert(layer);
-            }
-            Some(7) => {
-                current_associations.insert(lineage);
-            }
-            Some(_) => {}
-            None => return Err(FormationError::NeuronLineageAuthorityAbsent),
-        }
-    }
-    for bond in current.original_bonds().iter().copied() {
-        let (left, right) = bond.endpoints();
-        for lineage in [left, right] {
-            match topology_index.layer_of(lineage) {
-                Some(layer @ 0..=5) => {
-                    current_sensory_layers.insert(layer);
-                }
-                Some(7) => {
-                    current_associations.insert(lineage);
-                }
-                Some(_) => {}
-                None => return Err(FormationError::NeuronLineageAuthorityAbsent),
-            }
-        }
-    }
-    if current_sensory_layers.len() < 2 || current_associations.is_empty() {
+    let current_layers = physical_original_source_layers(
+        current.member_lineages(), current.original_bonds(), topology_index,
+    )?;
+    let associations = pending_original_association_lineages(current, topology_index)?;
+    if current_layers.len() < 2 || associations.is_empty() {
         return Ok(false);
     }
-
-    for association in current_associations {
-        let mut relation_already_retained = false;
+    for association in associations {
+        let mut already_retained = false;
         for index in overlapping_reassemblies.iter().copied() {
-            let prior = &retained
-                .get(index)
-                .ok_or(FormationError::NoncanonicalState)?
-                .mosaic;
-            let carries_association = prior.member_lineages().binary_search(&association).is_ok()
-                || prior.original_bonds().iter().any(|bond| {
-                    let (left, right) = bond.endpoints();
-                    left == association || right == association
-                });
-            if !carries_association {
+            let prior = &retained.get(index).ok_or(FormationError::NoncanonicalState)?.mosaic;
+            if !pending_original_association_lineages(prior, topology_index)?
+                .contains(&association) {
                 continue;
             }
-            let mut prior_sensory_layers = BTreeSet::new();
-            for lineage in prior.member_lineages().iter().copied() {
-                match topology_index.layer_of(lineage) {
-                    Some(layer @ 0..=5) => {
-                        prior_sensory_layers.insert(layer);
-                    }
-                    Some(_) => {}
-                    None => return Err(FormationError::NeuronLineageAuthorityAbsent),
-                }
-            }
-            for bond in prior.original_bonds() {
-                let (left, right) = bond.endpoints();
-                for lineage in [left, right] {
-                    if let Some(layer @ 0..=5) = topology_index.layer_of(lineage) {
-                        prior_sensory_layers.insert(layer);
-                    }
-                }
-            }
-            relation_already_retained = current_sensory_layers
-                .iter()
-                .all(|layer| prior_sensory_layers.contains(layer));
-            if relation_already_retained {
+            let prior_layers = physical_original_source_layers(
+                prior.member_lineages(), prior.original_bonds(), topology_index,
+            )?;
+            if current_layers.is_subset(&prior_layers) {
+                already_retained = true;
                 break;
             }
         }
-        if !relation_already_retained {
-            return Ok(true);
-        }
+        if !already_retained { return Ok(true); }
     }
     Ok(false)
+}
+
+/// A retained relation is not exclusive ownership of its participating neuron.
+/// Pending custody wins before novelty; adjacency remains the original caller's
+/// responsibility. With no pending piece, actual source participation must add
+/// a relation not already carried by any one recognized original on this hub.
+/// This admits only an original piece, never recurrence, action or completion.
+fn focused_original_piece_is_eligible(
+    association: [u8; 16],
+    members: &[[u8; 16]],
+    bonds: &[StablePhysicalBondReference],
+    topology: &ResidentTopologyIndex,
+    formation_index: &ResidentFormationIndex,
+    mosaics: &[RetainedOrganismMosaic],
+) -> Result<bool, FormationError> {
+    let mut pending = 0usize;
+    let mut recognized = Vec::new();
+    for index in formation_index.candidate_indices([association], std::iter::empty()) {
+        let prior = &mosaics.get(index).ok_or(FormationError::NoncanonicalState)?.mosaic;
+        let hubs = pending_original_association_lineages(prior, topology)?;
+        // Recurrence-only postings locate current activity, not original ownership.
+        if hubs.binary_search(&association).is_err() { continue; }
+        if prior.is_original_only() {
+            if hubs.as_slice() != [association] { return Ok(false); }
+            pending += 1;
+        } else {
+            recognized.push(index);
+        }
+    }
+    match pending {
+        0 => {}
+        1 => return Ok(true),
+        _ => return Err(FormationError::NeuronLineageAuthorityChanged),
+    }
+    if recognized.is_empty() { return Ok(true); }
+    let current_layers = physical_original_source_layers(members, bonds, topology)?;
+    if current_layers.is_empty() { return Ok(false); }
+    for index in recognized {
+        let prior = &mosaics[index].mosaic;
+        let prior_layers = physical_original_source_layers(
+            prior.member_lineages(), prior.original_bonds(), topology,
+        )?;
+        if current_layers.is_subset(&prior_layers) { return Ok(false); }
+    }
+    Ok(true)
 }
 
 /// An unresolved original may continue across adjacent settlement intervals
@@ -4817,24 +4830,28 @@ fn settle_organism_mosaic_boundary(
             trace_original("own-recurrent-projection", &component.lineages, component.bonds.len(), Some(fractal_count));
             continue;
         }
-        // A newly reached layer-7 hub may first move one clock after it was
-        // mounted.  Its sound-side original must remain pending long enough
-        // for the adjacent body-side evidence to arrive; an older sound
-        // formation sharing receptors does not own this new exact hub.  Once
-        // a pending original owns it, only that exact physically adjacent
-        // continuation is eligible; expired ownership is never new authority.
-        let focused_unowned_association = if let Some(association) = focused_association {
+        // Sound/body leaves can settle on adjacent clocks at a new or
+        // familiar hub. An old recognized relation cannot exclude a genuinely
+        // novel partial, but pending custody still requires exact adjacency;
+        // expired custody is never permission to restart admission.
+        // Recurrence above may have promoted this interval's former pending
+        // piece. Resolve the post-recurrence original state before admitting
+        // another piece; pre-recurrence eligibility is not reusable permission.
+        let focused_eligible_original = if let Some(association) = focused_association {
             pending_original_association_lineages(&original, topology_index)?
-                .binary_search(&association)
-                .is_ok()
-                && formation_index
-                    .candidate_indices([association], std::iter::empty())
-                    .iter().all(|index| Some(*index) == focused_prior_index)
+                .binary_search(&association).is_ok()
+                && focused_original_piece_is_eligible(
+                    association, original.member_lineages(), original.original_bonds(),
+                    topology_index, formation_index, mosaics,
+                )?
         } else {
             false
         };
+        if focused_association.is_some() && !focused_eligible_original {
+            continue;
+        }
         if !overlapping_reassemblies.is_empty()
-            && !focused_unowned_association
+            && !focused_eligible_original
             && !adds_unretained_cross_sensory_relation(
                 &original,
                 mosaics,
@@ -15954,17 +15971,6 @@ fn exact_reached_cross_sensory_original_bonds(
     }
     let mut components = Vec::new();
     for association in candidate_associations {
-        let existing = formation_index.candidate_indices([association], std::iter::empty());
-        let mut eligible = true;
-        for index in existing {
-            let prior = &mosaics.get(index).ok_or(FormationError::NoncanonicalState)?.mosaic;
-            if !prior.is_original_only()
-                || pending_original_association_lineages(prior, topology)?.as_slice() != [association] {
-                eligible = false;
-                break;
-            }
-        }
-        if !eligible { continue; }
         if topology.layer_of(association) != Some(7) {
             return Err(FormationError::NeuronLineageAuthorityChanged);
         }
@@ -16016,7 +16022,12 @@ fn exact_reached_cross_sensory_original_bonds(
             }
         }
         if !bonds.is_empty() {
-            components.push((association, bonds.into_iter().collect::<Vec<_>>()));
+            let bonds = bonds.into_iter().collect::<Vec<_>>();
+            if focused_original_piece_is_eligible(
+                association, &[], &bonds, topology, formation_index, mosaics,
+            )? {
+                components.push((association, bonds));
+            }
         }
     }
     components.sort_unstable();

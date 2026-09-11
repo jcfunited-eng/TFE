@@ -2212,6 +2212,67 @@ fn surviving_association_can_relearn_one_missing_cross_sensory_relation() {
     );
 }
 
+
+#[test]
+fn focused_original_eligibility_preserves_pending_and_individual_ownership() {
+    let lineage_layers = (1_u8..=9).map(|id| (
+        structural_test_lineage(id),
+        match id { 1 | 3 => 5, 2 | 4 => 1, 7 | 8 => 7, _ => 6 },
+    )).collect::<Box<[_]>>();
+    let topology = ResidentTopologyIndex {
+        flat_locations: Box::new([]), flat_by_lineage: Box::new([]),
+        intrinsic_locations: Box::new([]), source_locations: Box::new([]),
+        lineage_layers, canonical_lineages: Box::new([]), canonical_bonds: Box::new([]),
+        contacts: Box::new([]), incident_contacts_by_flat: Box::new([]),
+        neighbours_by_flat: Box::new([]), cohort_shapes: Box::new([]),
+        fabric_contact_count: 0,
+    };
+    let body = synthetic_admitted_mosaic(&[1, 3, 7], &[(1, 7), (3, 7)], 1);
+    let sound = synthetic_admitted_mosaic(&[2, 4, 7], &[(2, 7), (4, 7)], 2);
+    let joint = synthetic_admitted_mosaic(&[1, 2, 7], &[(1, 7), (2, 7)], 1);
+    let eligible = |prior: &[AdmittedPhysicalMosaic], current: &AdmittedPhysicalMosaic| {
+        let retained = prior.iter().cloned().map(RetainedOrganismMosaic::newly_admitted)
+            .collect::<Vec<_>>();
+        let index = ResidentFormationIndex::build(&retained).unwrap();
+        focused_original_piece_is_eligible(
+            structural_test_lineage(7), current.member_lineages(), current.original_bonds(),
+            &topology, &index, &retained,
+        )
+    };
+    assert_eq!(eligible(&[], &joint), Ok(true));
+    assert_eq!(eligible(&[body.clone()], &sound), Ok(true));
+    assert_eq!(eligible(&[body.clone()], &body), Ok(false));
+    // Two separately retained senses are not one retained joint experience.
+    assert_eq!(eligible(&[body.clone(), sound.clone()], &joint), Ok(true));
+    assert_eq!(eligible(&[body.clone(), joint.clone()], &joint), Ok(false));
+
+    let recurrence_only = synthetic_admitted_mosaic(
+        &[1, 2, 8], &[(1, 7), (2, 7), (7, 8)], 1,
+    );
+    let posted = vec![RetainedOrganismMosaic::newly_admitted(recurrence_only.clone())];
+    assert_eq!(ResidentFormationIndex::build(&posted).unwrap()
+        .candidate_indices([structural_test_lineage(7)], std::iter::empty()), vec![0]);
+    assert_eq!(eligible(&[recurrence_only], &joint), Ok(true));
+
+    let pending = admit_physical_mosaic_original(
+        sound.member_lineages(), &[(1, 8); 3],
+        &sound.retained_fractals().iter().cloned().map(Some).collect::<Vec<_>>(),
+        sound.original_bonds(),
+    ).unwrap();
+    // Pending is resolved before novelty, even alongside a recognized owner.
+    // Whether it is still adjacent is the unchanged settlement caller's test.
+    assert_eq!(eligible(&[joint.clone(), pending.clone()], &sound), Ok(true));
+    assert_eq!(eligible(&[pending.clone(), pending], &sound),
+        Err(FormationError::NeuronLineageAuthorityChanged));
+    let mixed_base = synthetic_admitted_mosaic(&[1, 7, 8], &[], 1);
+    let mixed_pending = admit_physical_mosaic_original(
+        mixed_base.member_lineages(), &[(1, 8); 3],
+        &mixed_base.retained_fractals().iter().cloned().map(Some).collect::<Vec<_>>(),
+        mixed_base.original_bonds(),
+    ).unwrap();
+    assert_eq!(eligible(&[mixed_pending], &joint), Ok(false));
+}
+
 #[test]
 fn cross_sensory_retention_reads_original_bond_endpoints() {
     let base = synthetic_admitted_mosaic(&[7, 8, 9], &[], 7);
@@ -3902,6 +3963,134 @@ fn varied_multisensory_occurrences_mount_only_exact_settled_assemblies() {
         &mut expired_mosaics, &mut expired_index, 16_000_000, false,
     ), Err(FormationError::NeuronLineageAuthorityChanged)));
     assert_eq!(expired_mosaics, vec![sole_prior.clone(), sole_prior]);
+
+    // Candidate120: an old recognized one-sense original must coexist with
+    // a novel partial on the SAME real hub. Only the active source/L6/hub
+    // contacts are used; the sibling hub and inactive mounted fan stay out.
+    let sense_piece = |layer: u32| {
+        let integrations = hub_bonds.iter().filter_map(|bond| {
+            let (left, right) = bond.endpoints();
+            match (topology_index.layer_of(left), topology_index.layer_of(right)) {
+                (Some(source), Some(6)) if source == layer => Some(right),
+                (Some(6), Some(source)) if source == layer => Some(left),
+                _ => None,
+            }
+        }).collect::<BTreeSet<_>>();
+        hub_bonds.iter().copied().filter(|bond| {
+            let (left, right) = bond.endpoints();
+            (integrations.contains(&left)
+                && (right == *hub || topology_index.layer_of(right) == Some(layer)))
+                || (integrations.contains(&right)
+                    && (left == *hub || topology_index.layer_of(left) == Some(layer)))
+        }).collect::<Vec<_>>()
+    };
+    let sight_bonds = sense_piece(0);
+    let sound_bonds = sense_piece(1);
+    let piece_lineages = |bonds: &[StablePhysicalBondReference]| {
+        bonds.iter().flat_map(|bond| {
+            let (left, right) = bond.endpoints(); [left, right]
+        }).collect::<BTreeSet<_>>().into_iter().collect::<Vec<_>>()
+    };
+    let sight_members = piece_lineages(&sight_bonds);
+    let sight_anatomies = sight_members.iter().map(|lineage| {
+        topology.fractal_anatomies[topology_index.flat_for_lineage(*lineage).unwrap()]
+    }).collect::<Vec<_>>();
+    let sight_original = admit_physical_mosaic_original(
+        &sight_members, &sight_anatomies,
+        &vec![Some(fractal.clone()); sight_members.len()], &sight_bonds,
+    ).unwrap();
+    let sight_deltas = sight_members.iter().map(|lineage| (*lineage, fractal.clone()))
+        .collect::<Vec<_>>();
+    let sight_cue = [*sight_members.iter()
+        .find(|lineage| topology_index.layer_of(**lineage) == Some(0)).unwrap()];
+    let sight_recognized = prove_physical_mosaic_recurrence(
+        &sight_original, &sight_deltas, &sight_bonds, &sight_cue,
+    ).unwrap();
+    let old_sight = RetainedOrganismMosaic::newly_admitted(sight_recognized);
+    let mut lifecycle = vec![old_sight.clone()];
+    let mut lifecycle_index = ResidentFormationIndex::build(&lifecycle).unwrap();
+    let selected = exact_reached_cross_sensory_original_bonds(
+        &cohorts, &topology_index, &lifecycle_index, &lifecycle,
+        &ReachedAssociationsByOccurrence::empty(0), &sound_bonds,
+    ).unwrap();
+    assert_eq!(selected, vec![(*hub, sound_bonds.clone())]);
+    settle_organism_mosaic_boundary(
+        &cohorts, &topology_index, &[], &custody, &[], &[], &[], &[],
+        &sound_bonds, &selected, &[], &[], &[], &[],
+        &mut lifecycle, &mut lifecycle_index, 16_000_000, false,
+    ).unwrap();
+    assert_eq!(lifecycle.len(), 2);
+    assert_eq!(lifecycle[0], old_sight);
+    assert!(lifecycle[1].mosaic.is_original_only());
+    assert!(!pending_association_has_cross_sensory_members(
+        &lifecycle[1].mosaic, &topology_index,
+    ).unwrap());
+    assert_eq!(physical_original_source_layers(
+        lifecycle[1].mosaic.member_lineages(), lifecycle[1].mosaic.original_bonds(),
+        &topology_index,
+    ).unwrap(), BTreeSet::from([1]));
+    let pending_before = lifecycle.clone();
+    let next_piece = vec![(*hub, sight_bonds.clone())];
+    // Expired pending custody cannot be treated as permission for a fresh one.
+    settle_organism_mosaic_boundary(
+        &cohorts, &topology_index, &[], &custody, &[], &[], &[], &[],
+        &sight_bonds, &next_piece, &[], &[], &[], &[],
+        &mut lifecycle, &mut lifecycle_index, 16_000_000, false,
+    ).unwrap();
+    assert_eq!(lifecycle, pending_before);
+    let reached_bond = *sight_bonds.iter().find(|bond| {
+        let (left, right) = bond.endpoints(); left == *hub || right == *hub
+    }).unwrap();
+    let (left, right) = reached_bond.endpoints();
+    let sender = if left == *hub { right } else { left };
+    let preceding = [ActiveElectricalFrontierEntry::caused(
+        sender, *hub, reached_bond, 1,
+    ).unwrap()];
+    settle_organism_mosaic_boundary(
+        &cohorts, &topology_index, &[], &custody, &[], &[], &[], &[],
+        &sight_bonds, &next_piece, &[], &[], &preceding, &[],
+        &mut lifecycle, &mut lifecycle_index, 16_000_000, false,
+    ).unwrap();
+    assert_eq!(lifecycle.len(), 2);
+    assert_eq!(lifecycle[0], old_sight);
+    assert!(lifecycle[1].mosaic.is_original_only());
+    assert!(pending_association_has_cross_sensory_members(
+        &lifecycle[1].mosaic, &topology_index,
+    ).unwrap());
+    let joined_before = lifecycle[1].mosaic.clone();
+    let sound_cue = [*joined_before.member_lineages().iter()
+        .find(|lineage| topology_index.layer_of(**lineage) == Some(1)).unwrap()];
+    let joined_deltas = joined_before.member_lineages().iter()
+        .map(|lineage| (*lineage, fractal.clone())).collect::<Vec<_>>();
+    // Selector sees pending; settlement promotes it before its original pass.
+    // The second eligibility check must prevent a same-interval duplicate.
+    let selected_before_promotion = exact_reached_cross_sensory_original_bonds(
+        &cohorts, &topology_index, &lifecycle_index, &lifecycle,
+        &ReachedAssociationsByOccurrence::empty(0), hub_bonds,
+    ).unwrap();
+    assert_eq!(selected_before_promotion, focused_piece);
+    let promoted = settle_organism_mosaic_boundary(
+        &cohorts, &topology_index, &[], &custody, &joined_deltas, &sound_cue, &sound_cue, &[],
+        hub_bonds, &selected_before_promotion, &[], &[], &preceding, &[],
+        &mut lifecycle, &mut lifecycle_index, 16_000_000, false,
+    ).unwrap();
+    assert_eq!(promoted.1, 1);
+    assert_eq!(lifecycle.len(), 2);
+    assert_eq!(lifecycle[0], old_sight);
+    assert!(!lifecycle[1].mosaic.is_original_only());
+    assert_eq!(lifecycle[1].mosaic.member_lineages(), joined_before.member_lineages());
+    assert_eq!(lifecycle[1].mosaic.original_bonds(), joined_before.original_bonds());
+    assert_eq!(lifecycle[1].mosaic.retained_fractals(), joined_before.retained_fractals());
+    let cold_bytes = encode_retained_organism_mosaic(
+        &cohorts, &fabric, &lifecycle[1], 16_000_000,
+    ).unwrap();
+    assert_eq!(decode_retained_organism_mosaic(
+        &cohorts, &fabric, &cold_bytes, 16_000_000,
+    ).unwrap(), lifecycle[1]);
+    assert!(exact_reached_cross_sensory_original_bonds(
+        &cohorts, &topology_index, &lifecycle_index, &lifecycle,
+        &ReachedAssociationsByOccurrence::empty(0), hub_bonds,
+    ).unwrap().is_empty());
 
     let original = admit_physical_mosaic_original(
         &topology.lineages,

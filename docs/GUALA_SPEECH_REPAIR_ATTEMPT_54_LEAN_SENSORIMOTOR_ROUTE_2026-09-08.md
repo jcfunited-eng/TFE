@@ -20,21 +20,18 @@ so live speech acceptance remains open. This paragraph records the Candidate110
 deployment, not the current repair state. Any earlier “speech complete” wording
 is historical and retracted.
 
-Current repair status, 2026-09-11 19:49 UTC: C118's continuing-cognition
-four-posture recall, repeated use, breath/pressure, silence and exact cold restart
-remain CLOSED at their copied-body scope. C119 corrects the guided/self-hearing
-translation locally, NOT deployed. Its actual-runtime full-sensory lesson still
-does not grow the root. S119-10 proves the same newer651372 body CAN grow four
-routes with the helper source; F119-13 isolates the full-source difference.
-S119-15/17/20 now identify the measured double admission exclusion: old body-only
-owners block exact focused paths, and overlap with another focused component
-omits the generic component on all34 observed intervals. Diagnostics preserve
-byte-identical successors. D-054-120-01 is the next reviewed repair direction,
-DESIGN ONLY: allow a genuinely missing physical sensory relation on familiar
-anatomy while preserving old memories, pending custody and duplicate refusal.
-The definitive current working section is the C118/C119 evidence and D120-01
-at the END of this ledger, not the original Attempt54 gate below. Production
-remains1456/image6aa38d99; no new live speech success.
+Current repair status, 2026-09-11 20:12 UTC: C120 SOURCE REVIEW and five focused
+checks PASS. On the SAME651372 copied body, full220-port source,4000-sample cue,
+two guides and32 continuing-cognition recovery intervals, C120 now grows FOUR
+coordinated vocal routes by guide2; C119 grewZERO. Cold round trip exact.
+This closes the full-source route-growth discriminator, NOT actual-runtime
+speech acceptance. The real actor/transport/checkpoint path is the next check.
+No candidate120 deployment or live speech success is claimed.
+C118 continuing-cognition four-posture recall/repeated use/breath/pressure/
+silence/cold results remain closed at copied-body scope. C119 translation work
+and its exact double-exclusion diagnostic remain preserved. Current definitive
+working entries are S-054-120-03/04 at the END of this ledger. Production stays
+1456/image6aa38d99; caretaker STOP, browser unnecessary for copied-body work.
 Worktree: `/tmp/guala-speech-existing-organ`
 Starting HEAD: `735489406577f90edf6c2fb7fb1889f87eae8107`
 Production boundary: task definition 1456 is the live deployed writer. Its
@@ -11721,3 +11718,150 @@ header to distinguish live1456/C110 from closed localC118 wins, C119 failures/
 diagnostic successes and design-onlyD120-01. Original Attempt54 gate explicitly
 marked historical. No historical evidence deleted and no new production claim.
 Every closeout must reconcile the top status and shared tail, not only append.
+
+
+`D-054-120-02` — implementation contract frozen before source edit.
+Requested behavior: actual fullsensorium tutor/body event can retain a genuinely
+new physical sensory relation through familiar L7 anatomy; later sound-only
+reassembly may found the existing coordinated vocal route. One item F118-32;
+closed C118 mechanics and S119-10 remain prerequisites, not reopened campaigns.
+
+Files permitted: resident_cognitive_formation.rs and its existing tests.rs.
+One shared local source-layer extraction reads ONLY exact original members and
+actual original/contact endpoints. No mountedfan fallback or semantic labels.
+One focused-piece eligibility predicate resolves candidate postings into exact
+original ownership via existing pending_original_association_lineages. Resolve
+pending first: mixed ownership refuses, multiple samehub owners error, one
+continues to the UNCHANGED downstream adjacency/expiry check. With no pending,
+no recognized exactowner permits first use; otherwise a nonempty actual source
+piece is new only if NO individual exact recognized original covers all its
+source layers. Incidental recurrence-only postings are not original ownership.
+This is the existing novel physical relation criterion applied to pending
+pieces, not promotion, new charge/plasticity, or new memory storage.
+
+Call flow: actual LeanPhysicalLoop fullprimarysource (and C119 separate exact
+self-pressure when present) -> NativeResidentOrganism guided advance ->
+organism_runtime.advance_guided_vocal_interval_unsealed ->
+advance_admitted_intervals_unsealed common builder ->
+prepare_typed_admitted_transition_from_owned -> original/internal contact
+settlement -> emitted postquiescence leaves into existing SettledFractalCustody ->
+mount_reached_cross_sensory_association ->
+exact_reached_cross_sensory_original_bonds (scope real hub/L6/source FIRST,
+then new eligibility) -> settle_organism_mosaic_boundary.
+The latter prepares recurrence before originals. It must re-evaluate focused
+eligibility against this POST-recurrence state: an original just promoted in
+this same interval must not immediately found a duplicate. This is a distinct
+lifecycle state, not redundant repeated validation of the same input.
+
+Existing focused pending resolver remains existence-before-adjacency. Existing
+continue_physical_mosaic_original_with_reached_piece joins only current connected
+piece/true settled leaves; existing >=3trueleaf/connectivity/cohort checks stay.
+Replace focused_unowned_association with exact focused-piece eligibility at
+the post-recurrence boundary so a genuinely new one-layer PARTIAL can survive.
+The >=2actual-source-layer gate in pending_association_has_cross_sensory_members
+still prevents completion/recurrence until real other-sense evidence joins.
+General unfocused admission and adds_unretained_cross_sensory_relation retain
+their behavior; source-layer loops may share one exact extractor, no new policy.
+Existing duplicates/supersession retain old recognized originals and siblinghubs.
+
+Downstream unchanged: prove/alter_physical_mosaic_recurrence_with_origin ->
+new recurrent anatomy + exact_sound_reassembled_structure_lineages ->
+mount_exact_reassembled_vocal_action_routes -> learned finite work/order/motor ->
+respiratory/bodypressure -> original body/world consequence and authenticated
+self-hearing -> ordinary actor checkpoint -> cold restore -> next occurrence.
+No input/FFI/output fields are added or removed. Existing public exact structure,
+cue, route/bodypressure and runtime receipts carry acceptance evidence. Diagnostic
+branch traces are testonly, never neuron output or a learning authority.
+
+All changes prepare a private native successor under existing atomic transaction;
+early error cannot publish new original/anatomy. No live mutation or extra writer.
+C120 itself adds no persisted fields or schema. Cumulative candidate still uses
+C117 V45/settled-leaf migration from live C110's older format; existing explicit
+migration/fullbackup/one-way rollback rules remain mandatory. Do not overwrite
+latest production learning with an older taught copy.
+
+Bound: only currently scoped contacts and candidate original owners indexed from
+the reached hub are examined; no allpopulation memory search, new index/history,
+cache, timer, workqueue or perinterval retained record. Temporary source-layer
+sets derive from actual physical classes. Admission of the same relation closes
+when any one recognized original covers it; distinct prior owners are never
+unioned. Additional costs must be measured on the SAME fullsource two-guide
+path versus35.96s predecessor, not accepted merely by counting fewer source lines.
+
+Frozen verification sequence: source-only independent review before compile;
+targeted existing/new predicate and real-topology lifecycle assertions for
+recognized oldone-sense + novelpartial, pendingpriority, expiredpending,
+mixed/duplicate refusal, recurrence-only postings, two separate owners vs one
+jointowner, and closure after promotion. Small tests are supporting evidence.
+Then one SAME651372/220port/4000sample/two-guide32recovery copied-body path with
+existing rootdiagnostic if needed; must prove actual new sound/body original
+ownership and oldmemory retention, not just rootcount. If that progresses, use
+the already-reviewed actual actor runtime proof and existing sound-only ordered
+recall/self-hearing/cold/control evidence path before package/live verification.
+No helper substitution, biggerdose, extra-rest search or broad suite.
+
+
+`S-054-120-03` — Candidate120 reviewed, compiled, five focused checks PASS.
+Frozen source review c711cece4f8a393e192414eafa8bb76e7ceb1dd9e4a1845aeca01411574c70ee
+verified before/after by memory_probe_review. No architectural/localized defect.
+Exact hub/L6/source scope, pending-before-novelty/expiry, separate recognized
+owners, recurrence-only posting exclusion and postpromotion recheck confirmed.
+Shared source extractor now refuses an unknown original endpoint; canonical
+topology guarantees known endpoints. No schema or neuron/DSF/energy-law change.
+Build76111 completed2m31s,99 inherited warnings; no global extension replacement.
+Testbinary216cfaf7b60e7d38b03fcbf7311e8914a9bc8e5f40323ffd386f11e41445d705.
+Five EXACT one-test invocations (no zero-test passes):
+focused_original_eligibility_preserves_pending_and_individual_ownership,
+varied_multisensory_occurrences_mount_only_exact_settled_assemblies,
+surviving_association_can_relearn_one_missing_cross_sensory_relation,
+cross_sensory_retention_reads_original_bond_endpoints,
+pending_original_continuation_requires_the_same_recent_l7_frontier.
+Real-topology lifecycle0.01s, others0.00s: old recognized sight retained unchanged,
+new sound-only partial, expired refusal, exact adjacent body/sight join, later
+recurrence, SAME-interval duplicate refusal, original leaves/bonds retained,
+codec exact and later focused admission closed. Supporting evidence, not speech.
+BuildlogSHA7fe4c307fee7c5d0cc1348cbd1e40fd6eef979afb3a3a2ad8e0771961e41dc54;
+focusedlogSHAd86d35e39d8f837db84a3760ba7937515a30defcaeca68a56dd136ac8d8e485a.
+
+`S-054-120-04` — SAME fullsource growth discriminator PASS41285,85.15s.
+Authenticated651372 body8c4968b4..., fullsourceebfc9c48..., cue85a505e8...,
+4000samples,1500carriers,2guides32actualnative recovery unchanged. EXACT
+F119-13 input/chronology; only candidate memory-admission law changed.
+Routes0→4 by guide2 (one coordinated posture), sourcecount0→1; coldroundtripexact.
+No speech/recall/breath claim from growthonly: guidedbreath0/pressure0 as before;
+two unrelated motor discharges without learned preparations are NOT taught speech.
+Body remains byteidentical6247ab3b... toC119. Cognitive187441596bytes
+d3d15fb8f9b79331a15e40002ece2b6cd5bda531b4bed71cc3adeb8722357a45.
+C119 predecessor167049435bytes,35.96s; C120 added20,392,161bytes and49.19s.
+Those measured increases are NOT claimed optimized; new retained/recurrent
+anatomy is active. Bound assessment must distinguish its actual lawful cause
+from overhead before deployment, not dismiss the cost or infer runaway.
+
+All4oldtargethubs now enter original admission. Eight admitted-original events:
+four initial pieces111availableleaves/353actualbonds/354componentlineages, followed
+by four continuation pieces2newavailableleaves/9actualbonds/10componentlineages.
+The latter reuse prior>=3settled leaves; not a weakened two-leaf admission.
+76original-input traces vsZERO before; broad genericcomponent still omitted34/34.
+No admission of the9390–15333bond generic whole-population component.
+Old-memory preservation is unit/source-proven; mature retained-original census
+is still required before a broader preservation claim.
+Result /tmp/guala-candidate120-full-source.json
+SHA2201514908eeea6b055ac556de405b1c3312ef3ebfe9c7a6b9ac79c97a892cf1;
+logSHA025616e6521ee84556c739dae079285fa5e48445970e8a9e1434eb7af5a186ae.
+Cognitive/body paths sameprefix.cognitive/.body. Original inputs untouched.
+Live1456/effde9e1/image6aa38d99 remainedHEALTHY1/1/0 before20:08:05/after20:10:17.
+Alarm historical2026-09-08 unchanged.20:05CPUavg41.34863284/max48.41931376%,
+RAMavg10.54626465/max11.54479980%. NativePID73206 sampledRSS1666920KiB, NOTpeak;
+run finished and no harness/compiler survivor. No live write/lesson/deployment.
+Next is the already-existing ACTUAL actor runtime acceptance path, not another
+helper replay, strongerdose or longerrest search. Preserve this success.
+
+`H-054-120-01` — three observer-command failures, none an organism/test failure.
+Two read-only searches named nonexistent guessed paths (probe_guided_vocal*.rs,
+python_bindings.rs); no build was triggered by them. A log parser used an
+incorrect literal15-character prefix and failedJSON; corrected to prefix.length
+and read the SAME existing log, no native rerun. Allsuccesses retained.
+Mechanical rule for ALL following reads/searches, not just builds: discover files
+with rg --files on a verified directory, or test -f the exact known path in the
+same command before accessing it. Never supply an unexpanded guessed glob as a
+path. Parse log prefixes by their actual string length, never a typed offset.
