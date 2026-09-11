@@ -11494,3 +11494,108 @@ Read-only tool failure: largecore JSON read capped524288bytes, parse refused
 before any edit. Bounded240000-character chunks then recovered exactfullfile;
 28 diagnostic lines added by full-file Update. Do not reread giant files in a
 single tool response or interpret tool truncation as missing source.
+
+
+`S-054-119-15` — first-producer trace reviewPASS (44c9e4f...), build78442
+completed2m36s,99 inheritedwarnings; binarySHA
+5258a57f1aca1926660d440ba2efd07891f9d93636a0562c7158b77ed36ead2c.
+Exact failed-source replay95029 completed36.27s,1passed execution.
+Observer noninterference PASSED: every prior physical JSON value unchanged
+excluding only two output-path metadata strings, and cognitive/body byte hashes
+EXACTLY cd663642.../6247ab3b... as F119-13. No false failure created by tracing.
+
+`D-054-119-16` — first absent producer measured:
+guides at nativegenerations651373 and651406 have source spans[0,4],[4,5];
+allfour typed minimum vocal movements present; reached regulation counts3each,
+exact moved regulation1each; energized local integrations3each, fullscene178.
+Each body occurrence resolves one EXISTING L7 association:
+474c4e4c494e4531000000000000077a,
+474c4e4c494e45310000000000000796,
+474c4e4c494e453100000000000007b2,
+474c4e4c494e453100000000000007ce.
+Candidate assembly179 integrations each. SettledL6 counts175/301.
+Sound-reassembled member counts280/456, but intersection with thosefour exact
+associations ZERO on BOTH guides. No predecessor ordering.
+Thus input reaches movement, regulation and association; the first absent
+root prerequisite is exact sound ownership of these existing associations.
+Do not reopen breath, ordering, motion, L6 min3/two-layer eligibility or dose.
+Trace does not yet establish why those associations lack sound reassembly.
+
+Relevant current source: exact_reached_cross_sensory_original_bonds excludes
+associations already owned by any non-original-only retained formation.
+D116-01 explicitly froze the already-recognized branch as existing recurrence,
+not permission to mint another original. Existing adds_unretained_cross_sensory_relation
+separately compares sensory-layer coverage. Need inspect exact owners and
+existing recurrence route before touching either; no relaxation/parallel island.
+One zero-clock current copied-body public-observer census of those4 hubs is
+COMPLETED13747; actor NOT started, no lesson, no livepath; unchanged
+tick/state verified (receipt S119-17 below). Do not infer oldownership merely from hub age or these comments.
+
+Trace JSON /tmp/guala-candidate119-root-trace.json
+SHAadedbc204a50148bb33a6ebe3f40b10fcfabdd733003a24e2767f394b2b3e3ac;
+trace logSHA16ba970e92013feb1a491b6457797d3cc1cfca56054465d02ba33443027246ce.
+Verified E archive c119-root-trace.tar.gz in existing118backup
+SHA2bd2647619bb28ec0501660e645c5cf5ea7d1ac5feb3a2c274fd9460ade16381.
+AWS pre19:20:17/post19:21:44 sole1456/effde9e1/6aa38d99 HEALTHY1/1/0.
+No trace/test/compiler survivor afterreplay. No new deployment/live lessons,
+caretakerSTOP/browserclosed. C118/S119-10 wins remainclosed.
+
+
+`S-054-119-17` — zero-clock owner census completed, not a new lesson/test.
+Exact migrated local651372 state a091c0a8bb53f4b0e993180504d04b291655cfabedbec16d7e4fb72c30fbf555;
+tick/state unchanged, native actor never started. Existing public retained-
+formation observer resolves all4hubs in owner
+0a0a4c8223ba35da6e053f443734ef31ae7df133af4c9d9bbbee67d564e532f2:
+211members,299original bonds,231recurrence bonds,20L7 associations.
+Member+original-endpoint layers {5:8,6:12,7:20,8:10,9:50,10:16,11:175,12:9}.
+07ce also belongs to faea89140a42f9d5c2a4c7a119c548f31009383984e471722e59355fe3ce2add:
+5members,20original bonds,6recurrence bonds,4L7 associations;
+layers {5:4,6:5,7:4,8:3,9:1,10:3,12:1}.
+Neither original/member set contains sound-layer1; both have BODY5 only as
+sensory source. These are positive retained-owner findings, not proof that
+the observer exposes all pending originals. No neuronal transition was run.
+
+Receipt /tmp/guala-candidate119-owner-census.json
+SHAadd1b3ece15230470b352a89e4e424e2d73613d92f70ce09c13d6ee50204df29.
+E archive c119-owner-census.tar.gz SHA
+b7023af601dfef7f77437cca15f0ad3f0158d986f63aee576e53c81e4e7074f6
+in /mnt/tfebackup/guala-c118-four-posture.XehvEs.
+
+`D-054-119-18` — source impact review, same active F118-32 actual-runtime
+speech admission boundary; C118/S119-10 local successes not reopened.
+Acceptance remains actual full-sensory runtime teaching/recall/consequence/
+self-hearing/cold-next on the authenticated mature body, then live verification.
+No narrower growth count substitutes for speech. Production remains1456/C110.
+The preceding status-only turn was no-progress; this turn resumes evidence work.
+
+Existing adds_unretained_cross_sensory_relation permits an actual new sensory
+relation on familiar anatomy, but checks only currently REASSEMBLED overlapping
+owners. It is not a safe blanket bypass for recognized owners: an old sound/body
+owner might not reassemble now, causing repeated originals after quiet use.
+D116-01's focused recognized-owner exclusion is a frozen contract, not authority
+to erase the older general novel-relation law. A reviewed new clause is required
+if that exclusion proves to be the first missing input. Preserve exact pending
+owner-before-adjacency, expired pending preservation, old recognized formations,
+actual settled leaves/contacts, and ambiguity refusal. No C111 complete-assembly
+equality, C112 body-cue-as-sound authority, or C115 duplicate admission revival.
+
+Reviewer confirmed retained recurrence alters recurrence bonds/cue/origin only,
+never original members/fractals/bonds. Thus body-only old originals cannot gain
+auditory original membership by merely replaying that alteration call.
+IMPORTANT: the UNFOCUSED original path still exists; its actual disposition must
+be measured before blaming the focused exclusion alone. It can be omitted when
+any of its bonds belongs to another focused component, or can refuse later on
+fractal/recurrence/duplicate evidence. Next diagnostic must name that exact branch,
+not loosen a guard or rerun broad word acceptance. No production mechanism edit.
+
+Post-census AWS19:32:46 soleeffde9e1 task1456/image6aa38d99 RUNNING/HEALTHY1/1/0;
+historical alarm unchanged2026-09-08T14:15:41.275Z. 19:20/19:25 CPUavg44.08924940/
+41.83133275%,max62.36806671/46.40115736%;memoryavg10.49621582/10.76721191%,
+max11.40136719/11.77978516%. No local organism/harness/compiler survivors.
+No live lesson/write/deploy; caretaker STOP/browser closed.
+
+`H-054-119-03` — read-only path search included nonexistent scripts directory.
+rg reported absent path while returning real tools paths. No compile/run/state
+change. Resolve existing directory before searching; do not treat as organism fail.
+AWS task query used service-style taskDefinition key once (null); immutable
+service task1456 and exact task image/status were returned independently.
