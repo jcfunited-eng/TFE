@@ -11277,3 +11277,82 @@ takes one ordinary occurrence. Layer-pair census is NOT specific-root proof.
 Launch preflight must verify BOTH candidate guala_core and actual production
 Python module paths. Logged actual ticks, not requested32, govern chronology.
 This measures real runtime first-root teaching; fullword acceptance remains open.
+
+
+### 2026-09-11 18:54 UTC — C119 actual runtime result: custody passed, root absent
+
+`S-054-119-06` — actual production-call-path execution COMPLETED locally,
+session53678 exit0. Isolated candidate wheel2b371492...; native AND Python
+origins verified. Global installation untouched. Exact live environment:
+paired-root adapted only to new local store, world limit16777216,
+unbuffered1, no anatomy flags.
+Authenticated651372 -> guide1 primary651373, immediate return651374;
+32 ordinary requests consumed64 native clocks. Guide2 primary651439,
+return651440; second32 requests consumed64 clocks. Both4000-sample/four-axis
+minimum guides accepted. Taught/checkpoint published651504:
+bodya32c2c55789a94fbe2c2d3d43c4a0b9e69d5569719eeff0760f390137336aab9;
+world6c4e9e644e8edc8268a48433d63f5936e681699a3d524066ec1ed7b5091c0ba0.
+Cold factory matched published pair and advanced one ordinary request/two
+clocks to651506, bodyd7c1a96b8c9655ab40defc494f59e6c1a5edbce32f238202093227dd167982e9.
+134 native calls including cold-next; peakRSS2447312KiB. Actual checkpoint
+drained before census. Accepted guide/custody/cold continuation is NOT teaching.
+
+`F-054-119-07` — zero breath and zero nonzero sound samples throughout actual
+run. No pending acoustic consumption exercised: C119 combined branch therefore
+has UNIT evidence only, not mature exercise. Aggregate topology unchanged;
+500 L11/L12 contacts include nonvocal contacts, not500 vocal routes.
+Existing exact structure-only native census, ZERO clocks, on before651372
+and after651504: both495 vocal contacts, all495 unresolved/legacy, zero resolved
+coordinated routes and zero continuations. Existing32 association/motor paths
+are not a newly grown coordinated root. No unsaved-window false fail: the
+census used the completed checkpoint, not early CURRENT. This establishes
+absence in this chronology, not impossibility or its cause.
+
+Exact census1passed5.06s:
+ /tmp/guala-candidate119-actual-vocal-census.json
+SHAe927becc29964fa7fdef1baa1876290bcd1d5e6ac4185657463e92a357dc8b6f;
+logSHAf776c545bf3b1c686574bc933168ac0dfe6095d11c94b7eb86af775a655b66e4.
+Runtime /tmp/guala-candidate119-runtime-proof.log
+SHAab8a2915a7e7acbd2a65d744b796ca4536eece557e28ddef570779078a172dbc.
+ScriptSHAb2cb1eda4975ed4ff7affe15410c9593354d82b2ee07296e037d43f8ad29e438.
+Local pairedroot /tmp/guala-c119-runtime.A6Sott/paired.
+Verified durable archive of paired successors, script and receipts:
+ /mnt/tfebackup/guala-c118-four-posture.XehvEs/c119-runtime-evidence.tar.gz
+SHA946915ee3bf6487f78e5de7e600c302ed7a20df15492e6f63ba097ca21cf1481.
+C118 four-posture/three-use/severed/codec/audio successes stay CLOSED locally.
+C119 source correction retained, no speech completion or deployment claim.
+
+`F-054-119-H02` — census runner used --ignored on a NONignored exact test.
+Exit0/0tests and missing JSON caught, never accepted as pass or physical fail.
+Actual #[test] declaration and binary help checked. ONLY runner flag changed
+to --include-ignored; require literal1passed. No compile or repeat teaching.
+Permanent release invocation: exact --list name, --include-ignored covering
+both test declarations, literal1passed output guard before evidence parsing.
+Shared wrapper newest-debug selection/dropped ignored args are not this release
+command. Harness fumble, not organism failure.
+Documentation append also refused a same-path Delete+Add patch before mutation;
+full-file Update is the supported replacement operation. No content lost.
+
+`D-054-119-08` — continue F118-32, not new speech physics. First compare exact
+source inputs/root-admission producers. Confirmed source differences, NOT yet
+root cause: helper4000samples ->25 envelopes, legacy159/319/...3999,
+34 sound ports/3 occurrences,timestamps0..0.24; actual cochlea26timestamps0..0.25,
+160-zero padded tail, legacy0/160/...3840 then0. Actual tutor is part of complete
+220-port/one-occurrence sensorium. Full coexisting fields must remain; no
+sound-only shortcut/flattening to make helper pass. Actual32 recovery requests
+mean64 native clocks; equal counts do not establish chronology equivalence.
+Guided body source constructor shared. Fixture maximum interval5 is admission
+bound, NOT five-second sound dose. C112 body-cued author and one-eighth-dose
+theories already failed sound-only recall; do not recreate them.
+C119 combined path cannot close until mature actual teaching reaches it.
+
+AWS pre18:38:07/post18:41:28 and fresh18:53UTC: soleeffde9e1/task1456/
+image6aa38d99 RUNNING/HEALTHY1/1/0. Completed18:35 CPUavg42.81294741/
+max53.01483037%,memoryavg10.50882975/max11.70043945%;18:40 CPUavg44.98295352/
+max61.10049176%,memoryavg10.60485840/max11.52038574%;18:45 CPUavg41.18179071/
+max48.09146629%,memoryavg10.81461589/max11.64245605%.
+HistoricalSept8 alarm not relabeled new. No production write/lesson, caretaker
+restart or browser required. Census18:53 no C119 runtime/test/compiler survivor;
+unrelated sleeping TFE loops untouched. Full AE goal active. Previous status
+answer was no implementation progress; these executable results change the next
+action without reopening the preserved local chain.
