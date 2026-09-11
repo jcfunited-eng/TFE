@@ -8142,3 +8142,33 @@ an active-tail cold restart cannot be presumed identical to continuous warmth.
 Task1456/image6aa38d99 remained solehealthy1/1/0 at16:44:48; no live lessons,
 deploy or caretakerrestart. Passed memory/migration/route/recall components stay
 separate in the canonical Attempt54 ledger, not relitigated.
+
+
+### 2026-09-11 17:05 UTC — SOL: lesson-four refusal is an uncharged-newborn founder tie
+
+D117-18/R117-19/S-F117-20 committed and pushed on40011a43, canonical Attempt54.
+One saved-guide replay4.60s, no eightlessonrepeat. Exact predecessor/body/moved
+guide hashes match original; occurrence100,generation637679,maximum1500,
+4000samplephase0. Cold scheduler (not blanketwarm-equivalence) reproduces
+NeuronLineageAuthorityChanged. Exact stage external-founder AFTER vocal growth.
+Oldroot26d4 has three nonzero phase founders; NEWroot2798 has four phase0/1
+founders. Root2798 was absent from predecessor. Existing code counts both
+anatomical roots BEFORE skipping zero-phase contacts, so it rejects a newly
+grown, physically uncharged posture as a competing active founder. Transition
+is refused, so newposture is not committed; do not call it durable second-act
+learning yet. Firstposture growth/recall andmemory/migration successes stayclosed.
+
+Joe's wait/test question: preguidebody acousticallyquiet=true. Fourminimum
+motor gates36/36dissipated/open0, but this roots.len refusal does not read them.
+This specificfailure is not timeout/unfinishedsound; wholecurriculum readiness
+stillnotcertified. No rest increase/physicschange/tierelaxationperformed.
+NextD117-21: existing nonzero-phaseeligibility BEFOREdistinctrootcount; retain
+absolute refusal for multiplephysicallyeligible roots. Reuseactualreachedcontacts,
+no newstate/timer, avoidsecondwholecontactscan. This must not launder an
+independentsecondroot as an orderedwordedge.
+
+Binary7f824d55;receipt /tmp/guala-candidate117-single-guide.json.failure.json
+SHAe4c4b23aa30c373bb756c7d07778e8ec9a2185ccdead6bf3b590e63f330053c4.
+LogSHA95242c8a4afd906330066f6c60151ed31a908cb9477ab22457d9f401fc884f79.
+AWSpre/post17:02:13/37 unchangedsole1456/image6aa38d99 healthy1/1/0.
+No productionmutation/caretakerrestart. No test/build survives.
