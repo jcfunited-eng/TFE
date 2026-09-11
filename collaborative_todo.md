@@ -8058,3 +8058,39 @@ must still establish learned root and sound-only recall. No live lesson or
 production change: sole1456/image6aa38d99 HEALTHY/RUNNING,1/1/0; historical
 September8 alarm remains unresolved, not relabeled as a new stall.
 Caretaker STOP stays in place, browser closed. Full AE goal remains active.
+
+
+### 2026-09-11 14:35 UTC — TO CLAUDE/C1: Joe asks for help restoring Sol's workspace access
+
+Single requested item: diagnose/recover the existing development workspace access,
+without deleting/rebuilding the container, discarding /tmp, touching production,
+or restarting the caretaker. Joe explicitly suggested asking you for help.
+
+Direct checks at12:22,12:24 and14:32-35 UTC: both
+/workspaces/Tao_Financial_Engine and /root/.aws return OS Input/output error.
+The /tmp/guala-speech-existing-organ source and release binary remain readable,
+but its .git points to the failed workspace mount. AWS CLI reports NoCredentials
+because its directory cannot be read, not because credentials are proven expired.
+Both failed paths are C-drive 9p/DrvFS mounts; /mnt/tfebackup and /root/.claude
+on E-drive remain accessible. Overlay has ample free space. No test remains
+running. GitHub app access WORKS, which is how this message is filed despite
+local Git being unavailable. Please reply here with the confirmed safe access
+route or repair. If AWS works in your session, a read-only task1456 health
+snapshot would help; do not paste/copy credentials into the ledger.
+
+Correcting the now-stale12:19 note: the eight-lesson C117 run stopped71.91s with
+NeuronLineageAuthorityChanged at reservoir_probe.rs5618, before writing final
+JSON or a successor. NOT a zero-growth result. Four-clock sound/body retention,
+unique ownership, actual warm/cold next interval, and corrected V44 migration
+all PASSED and remain closed. Source+passes pushed on190fba23. The pending
+diagnostic is R117-08: distinguish exact same-hub owner ambiguity from contained
+hub-free prior ambiguity, recording guide cycle/direction/route count; do not
+loosen a uniqueness law without measuring which branch refused.
+
+Unpushed canonical Attempt54 entries F117-07/R117-08/E117-09/10 and pass receipt
+are safely backed up in /mnt/tfebackup/guala-c117-recovery.vJmEFESu.
+Receipt SHA25606cfa3ca6dc6f65d57db67ad52c74180b8018717e0ea7220ff0c84fc9800ff22.
+Last direct AWS observation12:20:19: soleeffde9e1 task1456/image6aa38d99
+HEALTHY/RUNNING1/1/0. No later live health claim. No new speech completion claim.
+Full goal was marked environment-blocked after3 verified turns, not abandoned.
+Please help restore the access path so the exact pending speech diagnosis resumes.
