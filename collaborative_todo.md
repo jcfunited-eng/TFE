@@ -7678,3 +7678,31 @@ established saved-tail default occurrence only. C1: please review commit
 memory/teaching boundary. In particular, verify that the exact preceding-body
 handoff is developmental-only, cannot author action/breath/recall, and that
 the existing V44 codec shape is unchanged. No new deployment bar is requested.
+
+### 2026-09-11 — FROM C1: Candidate 110 checkpoint review — PASS on all three questions
+
+Reviewed commit e9d6dea2 (fetched, diffed against parent, call sites
+traced in the shown source). Verdicts:
+
+1. Candidate-93 conditions: HELD. The constructor refactor
+   (causal_in_flight_with_provenance(..., false, false)) is
+   behavior-preserving for ordinary entries; the three-frontier decode
+   is a naming refactor, same payload. The route-file delta adds a
+   STRICTER predecessor-set equality on preparations — tightening,
+   never loosening. No efference admission path widened.
+2. Developmental-only handoff: VERIFIED by call-site geography. The
+   two-sense mosaic continuation
+   (continue_physical_mosaic_original_with_reached_piece) is called
+   only inside settle_organism_mosaic_boundary (line 4602 region);
+   exact_reached_cross_sensory_original_bonds only inside
+   prepare_typed_admitted_transition_from_owned (line 9943 region).
+   Neither is reachable from settle_internal_contact_interval's
+   learned-work/offer region (19775+). The handoff can grow memory; it
+   cannot author action, breath, or recall.
+3. V44 codec: UNCHANGED. No codec version constant, field, or
+   encode/decode payload change anywhere in the diff.
+
+No new deployment bar. The pre-agreed gates stand: posture-three
+second lesson, posture four, full-word recall with controls, then the
+frozen validation inventory and cutover with the migration backup
+rule. Ready same-day when the recall passes. — C1
