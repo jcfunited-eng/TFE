@@ -10441,3 +10441,122 @@ whole-contact scan. Before editing complete local caller/conservation review
 and match this same saved-guide failure plus zero/one/two eligible-root cases.
 This is not a new word-order law, not permission to treat a second independent
 root as a learned sequence, and not a deployment/speech-success claim.
+
+### Candidate 118 — physical eligibility before founder uniqueness (active)
+
+`D-054-118-01` — continues measured117-20, does not reopen117 memory/migration/
+firstposture learning/recall. Requested architecture is bodily learned speech;
+current native guard conflicts by counting phase-zero anatomy as active cause.
+Full DSF/L0-L4 unchanged, no field reduction or neuronal/energy law change.
+
+Frozen implementation contract: only retain_externally_reassembled_vocal_founder_frontier
+in resident_cognitive_formation.rs plus one bounded fixture block in the existing
+tests::exact_body_source_mounts_one_coordinated_vocal_preparation. Input remains
+current exact externally reassembled L7 members, mounted incident contacts,
+physical carrier phase and current motor frontier. Existing ongoing-external-
+motor branch exclusion stays unchanged. Resolve each real founder, read its
+already indexed fabric state once; phase0 contributes NO pending entry/root.
+For each nonzero phase construct the SAME exact in-flight entry from actual
+endpoint direction, stable bond, association frontier and external provenance.
+Collect transient (ordering,entry) tuples only; require at most ONE distinct
+ordering before any active-frontier mutation. Empty is no-op, real tie refuses
+unchanged. Then append/sort/dedup exact entries, no persisted extra state.
+This removes old duplicate roots vector and second whole-contact lookup.
+No current, work, charge, tissue, codec byte layout or learned route is edited.
+
+Single caller: prepare_typed_admitted_transition_from_owned after local
+settlement, true sound reassembly and optional guided route growth, before
+remaining affective/recurrent mounts and Prepared successor publication.
+Fallible entry constructors precede frontier mutation; caller-owned candidate
+drops on error, production commit path remains unchanged. Downstream existing
+active frontier -> next native contact settlement -> accepted vocal motor work
+-> body/respiratory pressure -> ordinary self-return remains authoritative.
+GLCOG045 encodes same frontier entry shape, no migration. Native runtime/FFI/
+paired persistence transport uses unchanged prepared successor, no new getter
+or live UI claim. Legacy shell and rejected new authority stores not extended.
+
+Conservation/bounds: pure attribution to existing nonzero in-flight phase,
+not injected work; same sign/endpoints as predecessor law. At most one tuple
+per reached founder, O(reached incident contacts plus existing route resolution);
+no new population walk, stored history, retry, timer or threshold.
+Prior90-05 convergence and108-03 real tie remain distinct: multiple branches
+to SAME root allowed; two eligible roots still fail. Newborn ZERO phase is
+the measured causal difference, not tolerance or root preference.
+
+Acceptance: existing zero/one/two eligible-root fixture (two independent
+anatomical roots), assert unchanged frontier on refusal and identical fabric/
+neurons on all outcomes. Same saved637679/occ100/max1500/phase0 guide must
+commit existing second posture, preserveold4, yield8routes and exact cold
+encoding. No all8lessons rerun. This proves this barrier only, not that the
+second independent root is an orderedword successor; sound-only fullsequence,
+quiet repeateduse, sensoryreturn and liveacceptance remain required later.
+One frozen source review before build, one focused unit then one savedguide.
+Before/after read-only AWS health; no production writes for this local proof.
+
+`R/F-054-118-02` — independent source review initially passed frozen
+dee5ac0d10725d665f3aaf72d5c957dfb7bcd09890cd4eb30ea1d8f4d93aa6d8.
+Owner translation preflight then caught LOCALIZED TEST orientation assumption:
+append_contact_once receives(ordering,association), preserving that endpoint
+order. Injecting+1/2 and asserting association->ordering would falsely fail.
+Corrected test to derive phase sign from ACTUAL contact endpoint/source, not
+static orientation. No compile/run had occurred. Production source unchanged.
+One final frozen review follows. This is a prevented false failure, not a failed
+organism mechanism or permission to weaken the assertion.
+
+`F-054-118-H01` — read-only guessed path learned_sensorimotor_growth.rs absent.
+Actual symbol resolved in lean_sensorimotor_route.rs. No test/build ran.
+Before naming an uncertain source file, search symbol under existing src tree;
+do not guess a filename. Active candidate files remain explicit and verified.
+
+`R-054-118-03` — final localized independent review PASS at fingerprint
+10fbc72bdb0e3d84878def1c106c9ad73d971830b0cde09074ebf2a05b5c485d,
+verifiedbefore/after. Actual endpoint/source sign now proved in test.
+Production method sourceSHAf6dad56e2314b5c2f49ac058ea29374477888acdf32a2d28f8acb0000ce42551;
+testsSHAd7a1b97a6f7a85ae67f61d7d7e6e5e449ced16899ac03bba39c726aaf52be1cc.
+One releasebuild2m32s passed firstcompile,99knownwarnings, session29908closed.
+No productionphysical/schema modifications beyond declaredphaseeligibility.
+
+`S-054-118-04` — phase eligibility correction PASSES same saved guide.
+Focused existing coordinated-preparation test1passed0.01s, including two
+anatomicalroots zero/one/two physicallyactive; exactdirection, nofabricmutation,
+genuine2active-root refusal/frontierunchanged. Testphaseinjection is supporting
+predicate evidence only, not learning. BinarySHA256
+569fdc00a7fdcf8c40d465e88882dc0c707b6c92a9e1164bc79e14cf102ae3e8.
+
+Same savedpredecessor637679/6b8a4547 + samebody6247ab3b + samephase0
+4000samples85a505e8 + sameoccurrence100/max1500, ONEguide,noextra32recovery.
+Native replay7.19s passes; before4 after8 added4, two independent L11 roots
+26d4/2798, no continuation. Existing4minimumroutes preserved. Cold V45encoded
+successor exact,166433830bytes. Oldfalse-root refusal no longer occurs.
+In this guidedevent one preexisting minimum motor recorded1carrier; zero
+breath and zero audiblepressure. Do not call this event learned recall or
+speech; it is durable second-posture anatomy. No changedphysicalneuronlaw.
+Body output6247ab3b remains exact preguidebody afterordinarysettlement.
+No schedulerwarm-equivalence claim beyond declaredcoldreplay.
+
+Artifacts /tmp/guala-candidate118-single-guide.json SHA256
+2c17ff0a2e38b9de5e4480b9612c3e292332795b4952c6a2c061901cd8f20147;
+.cognitive SHA4d8a8e07f7c408428abb38b4df0b13b1de62ec960332157ddee7ade674f55142;
+.body SHA6247ab3b74180419d60eb5dc21a94c38e72cbe119ea078efa9f70a8d14ffd59f;
+.log SHAbac90e44e5bcf793f7af14c4b5480b9fef3a42c55effc08c28750c68ace0537c.
+AWSpre17:15:02/post17:15:45 sole1456/effde9e1/image6aa38d99 healthy1/1/0.
+No live mutation. Build29908/test16367 terminal, processcensus no survivors.
+
+`F-054-118-H02` — read-only JSON display excluded only vocal_learning_frontiers
+but left large495legacy-route structure, outputtruncated. No test rerun needed:
+explicit scalar/key whitelist reads exactcounts/hashes; never spread whole
+receipt into terminal. Native testoutputs unchanged. This was diagnostic output
+waste, not organism failure.
+
+`D-054-118-05` — advance toward ordered speech using preserved first-root
+predecessor, NOT the independenttwo-root artifact as a supposedword. Existing
+S104-02/S110-03 teach opposite posture in distinct nextinterval after root
+completion. C117rootrecall measured complete4motors clock3; reuse same8quiet
+baseline/phase0cue and existing nextguideclock4,phase1. No new clock law:
+teacher selects the observed completion-boundary input; native author must
+resolve actual returnedbody plus previousmotorfrontier, as inC104/110.
+Start exactsaved4route6b8a4547/body6247ab3b; no merger of copies, no wiping
+saturation, no restart ofoldmemoryprobes. Validate existing4phase tutor bytes
+before run, never invent a waveform/name. Result must show exactpredecessor
+edge (not independentroot), preserved oldroutes, noechoauthor, and coldexact.
+One bounded existinghelperrun after source/inputpreflight; no newcode planned.

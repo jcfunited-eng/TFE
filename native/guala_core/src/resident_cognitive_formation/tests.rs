@@ -8560,6 +8560,74 @@ fn exact_body_source_mounts_one_coordinated_vocal_preparation() {
         );
     }
 
+    // C118: two anatomical roots are not two active roots. Reuse this
+    // small fixture; phase injection here is only a predicate falsifier.
+    {
+        let mut local_cohorts = cohorts.clone();
+        let mut local_population = population.clone();
+        let mut local_next = next_lineage;
+        let mut local_fabric = fabric.clone();
+        mount_exact_reassembled_vocal_action_routes(
+            &mut local_cohorts, &mut local_population, &mut local_next,
+            &mut local_fabric, &topology,
+            &ReachedAssociationsByOccurrence { lineages: reached.lineages[2..].to_vec() },
+            &moved[2..], &reassembled_associations, &[(0, 2)], &[],
+        ).unwrap();
+        let local_topology = ResidentTopologyIndex::build(&local_cohorts, &local_fabric).unwrap();
+        let other = vocal_cognitive_action_route_for_motor(
+            &local_cohorts, &local_topology, motors[2],
+        ).unwrap();
+        assert_eq!(other.len(), 1);
+        assert_ne!(first_preparation.ordering_lineage, other[0].preparation.ordering_lineage);
+        let set_phase = |fabric: &mut ResidentElectricalFabric, bond, source, numerator: i128| {
+            let contact = local_topology.contacts.iter()
+                .find(|contact| contact.stable_bond == bond).unwrap();
+            let ResidentContactOrigin::Fabric { contact_index } = contact.origin else {
+                panic!("fixture founder is fabric");
+            };
+            let (left, right) = fabric.anatomy().contact_anatomies()[contact_index].endpoints();
+            assert!(fabric.lineages()[left] == source || fabric.lineages()[right] == source);
+            let directed_numerator = if fabric.lineages()[left] == source {
+                numerator
+            } else {
+                -numerator
+            };
+            let replacement = fabric.state().contact_states()[contact_index].clone()
+                .with_caught_up_carrier_phase(
+                    crate::elementary_charge_transfer::ChargeCarrierPhase::new(directed_numerator, 2)
+                        .unwrap(),
+                );
+            fabric.replace_contact_states(vec![(contact_index, replacement)]).unwrap();
+        };
+        let retain = |fabric: &ResidentElectricalFabric, frontier: &mut Vec<_>| {
+            let before = fabric.clone();
+            let result = retain_externally_reassembled_vocal_founder_frontier(
+                &local_cohorts, &local_topology, fabric, &reassembled_associations, frontier,
+            );
+            assert_eq!(*fabric, before);
+            result
+        };
+        let mut frontier = Vec::new();
+        retain(&local_fabric, &mut frontier).unwrap();
+        assert!(frontier.is_empty(), "zero-phase roots author nothing");
+        let first_contact = first_preparation.associations[0];
+        set_phase(&mut local_fabric, first_contact.bond, first_contact.lineage, 1);
+        retain(&local_fabric, &mut frontier).unwrap();
+        assert_eq!(frontier.len(), 1, "one active root ignores its uncharged sibling");
+        assert!(frontier[0].is_in_flight());
+        assert!(frontier[0].carries_external_ingress_cause());
+        assert_eq!(frontier[0].sender(), Some(first_contact.lineage));
+        assert_eq!(frontier[0].receiver(), first_preparation.ordering_lineage);
+        let retained = frontier.clone();
+        let other_contact = other[0].preparation.associations[0];
+        set_phase(&mut local_fabric, other_contact.bond, other_contact.lineage, 1);
+        assert!(matches!(
+            retain(&local_fabric, &mut frontier),
+            Err(FormationError::NeuronLineageAuthorityChanged)
+        ));
+        assert_eq!(frontier, retained, "genuine tie cannot partly publish");
+    }
+
     let reached_successor = ReachedAssociationsByOccurrence {
         lineages: reached.lineages[2..].to_vec(),
     };

@@ -5025,83 +5025,58 @@ fn retain_externally_reassembled_vocal_founder_frontier(
             else {
                 continue;
             };
-            founders.push((association, ordering, contact.stable_bond));
-        }
-    }
-    founders.sort_unstable();
-    founders.dedup();
-    if founders.is_empty() {
-        return Ok(());
-    }
-    let mut root_orderings = founders
-        .iter()
-        .map(|(_, ordering, _)| *ordering)
-        .collect::<Vec<_>>();
-    root_orderings.sort_unstable();
-    root_orderings.dedup();
-    if root_orderings.len() != 1 {
-        #[cfg(test)]
-        {
-            eprintln!("C117_REFUSAL branch=external-founder-root-tie roots={root_orderings:x?}");
-            for (association, ordering, bond) in &founders {
-                let phase = topology.contacts.iter()
-                    .find(|contact| contact.stable_bond == *bond)
-                    .and_then(|contact| match contact.origin {
-                        ResidentContactOrigin::Fabric { contact_index } => electrical_fabric
-                            .state().contact_states().get(contact_index)
-                            .map(|state| state.carrier_phase().parts()),
-                        _ => None,
-                    });
-                eprintln!("C117_FOUNDER association={association:x?} ordering={ordering:x?} bond={bond:x?} phase={phase:?}");
+            let ResidentContactOrigin::Fabric { contact_index } = contact.origin else {
+                return Err(FormationError::NeuronLineageAuthorityChanged);
+            };
+            let phase = electrical_fabric
+                .state()
+                .contact_states()
+                .get(contact_index)
+                .ok_or(FormationError::NeuronLineageAuthorityAbsent)?
+                .carrier_phase()
+                .parts()
+                .0;
+            // New anatomy is not an in-flight cause. Apply the existing
+            // physical eligibility before asking whether active roots compete.
+            if phase == 0 {
+                continue;
             }
-        }
-        return Err(FormationError::NeuronLineageAuthorityChanged);
-    }
-    for (association, _ordering, bond) in founders {
-        let contact = topology
-            .contacts
-            .iter()
-            .find(|contact| contact.stable_bond == bond)
-            .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
-        let ResidentContactOrigin::Fabric { contact_index } = contact.origin else {
-            return Err(FormationError::NeuronLineageAuthorityChanged);
-        };
-        let anatomy = electrical_fabric
-            .anatomy()
-            .contact_anatomies()
-            .get(contact_index)
-            .copied()
-            .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
-        let phase = electrical_fabric
-            .state()
-            .contact_states()
-            .get(contact_index)
-            .ok_or(FormationError::NeuronLineageAuthorityAbsent)?
-            .carrier_phase()
-            .parts()
-            .0;
-        if phase == 0 {
-            continue;
-        }
-        let (left_flat, right_flat) = anatomy.endpoints();
-        let left = electrical_fabric.lineages()[left_flat];
-        let right = electrical_fabric.lineages()[right_flat];
-        let (sender, receiver) = if phase > 0 {
-            (left, right)
-        } else {
-            (right, left)
-        };
-        active_frontier.push(
-            ActiveElectricalFrontierEntry::causal_in_flight_with_provenance(
+            let anatomy = electrical_fabric
+                .anatomy()
+                .contact_anatomies()
+                .get(contact_index)
+                .copied()
+                .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
+            let (left_flat, right_flat) = anatomy.endpoints();
+            let left = electrical_fabric.lineages()[left_flat];
+            let right = electrical_fabric.lineages()[right_flat];
+            let (sender, receiver) = if phase > 0 {
+                (left, right)
+            } else {
+                (right, left)
+            };
+            let entry = ActiveElectricalFrontierEntry::causal_in_flight_with_provenance(
                 sender,
                 receiver,
                 association,
-                bond,
+                contact.stable_bond,
                 false,
                 true,
-            )?,
-        );
+            )?;
+            founders.push((ordering, entry));
+        }
     }
+    let Some((root, _)) = founders.first() else {
+        return Ok(());
+    };
+    if founders.iter().any(|(ordering, _)| ordering != root) {
+        #[cfg(test)]
+        eprintln!("C118_REFUSAL branch=external-founder-active-root-tie founders={founders:x?}");
+        return Err(FormationError::NeuronLineageAuthorityChanged);
+    }
+    // Prepare all exact entries and resolve genuine competition before
+    // mutating the frontier. No work, phase, anatomy or history is changed.
+    active_frontier.extend(founders.into_iter().map(|(_, entry)| entry));
     active_frontier.sort_unstable();
     active_frontier.dedup();
     Ok(())
