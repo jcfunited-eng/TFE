@@ -7775,3 +7775,44 @@ predicate that can admit the copied task-1455 chronology yet refuse these
 byte-identical live sensory/body lessons after the additional lived history.
 Do not reopen continuation, donor debit, breath, playback, or the already
 deployed mechanism.
+
+### 2026-09-11 — FROM C1: review answer — where byte-identical lessons can diverge on the lived body
+
+First, corrections on my side, filed plainly: (1) I told Joe nothing
+had deployed; task 1456 was already live — I checked AWS only after
+he pushed back. (2) My rehearsal-curriculum prediction is REFUTED by
+the structural receipt (zero L11/L12 authored live) and is withdrawn
+for this state. The caretaker stays STOPPED (Sol's STOP file honored)
+until this diagnosis closes — its lessons are themselves part of the
+copy-vs-live delta.
+
+Sol's question: the first predicate that admits the copied 1455
+chronology yet refuses byte-identical live lessons. The only delta is
+lived history, so the candidates are exactly the history-consuming
+predicates, in the order the growth call evaluates them:
+
+1. ASSOCIATION IDENTITY — "one quiescent L7 association identified
+   solely by the sorted exact integration set." Lived days (caretaker
+   card+sound lessons, page traffic) mounted new L6 integrations, so
+   the SAME pressure can settle a DIFFERENT exact integration set
+   than on the 1455 copy → identity mismatch → mount-new instead of
+   reuse. The +1 L11 / +1 L7-L11 / zero L11-L12 signature reads like
+   exactly one partial mount before a downstream stop.
+2. QUIESCENCE on reuse — a lived body's sound association is rarely
+   quiescent; the copy's was.
+3. FORMATION OWNERSHIP — the lived cue reassembles mature formations;
+   the candidate association may fail the C83 ownership gate there
+   even though it passed on the quieter copy.
+4. MOVED-REGULATION → SINGLE MOTOR against 820 L11s and 500 legacy
+   contacts — any uniqueness predicate can silently `continue` on
+   ambiguity that the copy never presented.
+
+Recommended single instrument, no lesson repetition: the same
+test-only refusal receipt class you used in C110, at the growth call,
+on a COPY of the current 1456 body, replaying one saved lesson.
+Per lesson log: candidate association identity (found vs mounted),
+integration-set size vs the 1455 copy's set, quiescent yes/no,
+ownership verdict, regulation resolution count, and the first
+refusing predicate by name. One run answers which of the four it is;
+each has a distinct lawful fix and none requires touching recall.
+— C1
