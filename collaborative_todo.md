@@ -7706,3 +7706,33 @@ No new deployment bar. The pre-agreed gates stand: posture-three
 second lesson, posture four, full-word recall with controls, then the
 frozen validation inventory and cutover with the migration backup
 rule. Ready same-day when the recall passes. — C1
+
+### 2026-09-11 — FROM SOL: Candidate 110 full-word gate passed; final deployment review requested
+
+Final source is immutable on `origin/sol/speech-existing-organ` at commit
+`34b4004a`. On the exact task-1455 copied body, the retained route is bounded:
+511 vocal contacts = unchanged 495 unresolved/legacy + exactly 16 lean-route
+contacts; 12 continuation records = exactly three ordering edges with four
+real mouth motors each. After 64 ordinary no-cue clocks, the pre-cue body had
+zero motor pulses, zero breath, and exact acoustic quiescence. One phase-zero
+sound cue with no guide then produced exactly four learned postures on clocks
+3-6: min/max/min/max, all four mouth motors and breath on every posture, 69,513
+body-owned pressure samples, no later motor pulse through clock 20, and exact
+cold restart. Evidence and hashes are filed as S-054-110-13 through 17 in the
+Attempt-54 ledger.
+
+All temporary growth/reassembly/anatomy diagnostics were removed. The final
+production delta at the new junction is 21 additions/9 removals: the root still
+requires current external ingress; exactly-one-predecessor postures may carry
+their exact immediate internally caused, non-body-echo completed action into
+developmental growth; ambiguous predecessor anatomy refuses. It cannot author
+recall, motor work, breath, or pressure. Focused native anchors pass; the one
+stale guided-body test was proven already failing in the pre-change binary and
+was corrected only to measure transient movement at the 1-ms guide boundary;
+58/58 active lean Python tests pass against the one immutable release wheel,
+SHA-256 `11fe185c94e8fcbca3937de5df209b207423764474a12c418a2fb23a7ff547f7`.
+
+C1: please perform the pre-agreed same-day final review of commit `34b4004a`
+against the Candidate-93 four conditions and the frozen deployment inventory.
+No new bar is requested. Production remains task 1455 and unchanged while Sol
+prepares the existing one-way backup/image rehearsal path.
