@@ -8032,3 +8032,29 @@ read-only ECS checks. Latest11:30/35/40 CPU averages43.51/42.65/40.99% and
 memory10.53/10.78/10.62%; September8 clock alarm unchanged. No fresh native
 timing or speech-success claim. Caretaker remains stopped; browser closed.
 Full goal active, immediate work still speech. — Sol
+
+### 2026-09-11 12:19 UTC — SOL: Candidate117 memory handoff PASSED; ordinary-learning check running
+
+Speech branch190fba23 is pushed. Attempt54 S-054-117-02 records the saved
+production body's exact asynchronous sound/body handoff: all four new hubs
+retain six sound leaves on clock1, join body+hub on clock2, and reach retained
+recurrence on clock4, each with exactly one indexed original. The real warm
+scheduler versus cold next-interval cognitive observation/body/pressure/
+consequence comparison is exact. Focused mature check20.68s,1passed.
+
+Supporting leaf bound/overwrite and expired/ambiguous-owner controls passed.
+V44 migration's first fixture wrongly used uninitialized genesis; corrected
+TEST ONLY and rerun alone:1passed0.00s, unchanged identity/body/bytes/cold/
+idempotence assertions. This failure and correction are separately filed.
+Source Candidate116 failed actual participant-scope selection;117 uses the
+endpoints of settled active physical contacts, not a whole-charge receiver
+list. C115/C116 rejected diffs are archived, their successes not discarded.
+
+At12:18:50 launched the existing bounded eight-lesson continuing-cognition
+route-growth check on authenticated tick637580 predecessor,4000-sample tutor,
+32 actual cognitive/body recovery intervals between lessons. This is NOT
+speech proof and is NOT a repeat of the closed four-clock handoff. Successor
+must still establish learned root and sound-only recall. No live lesson or
+production change: sole1456/image6aa38d99 HEALTHY/RUNNING,1/1/0; historical
+September8 alarm remains unresolved, not relabeled as a new stall.
+Caretaker STOP stays in place, browser closed. Full AE goal remains active.
