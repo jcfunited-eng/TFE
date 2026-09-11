@@ -123,14 +123,6 @@ class LeanPhysicalLoop:
             pending_pressure is None
         ) != (pending_source_tick is None):
             raise RuntimeError("native in-flight acoustic state lost cardinality")
-        if (
-            sensory is not None
-            and sensory.pressure_s16le is not None
-            and pending_pressure is not None
-        ):
-            raise RuntimeError(
-                "external pressure refused while body-owned pressure awaits hearing"
-            )
 
         start_tick = runtime.live_organism_tick
         before_native = runtime.readiness()
@@ -178,6 +170,7 @@ class LeanPhysicalLoop:
                     legacy_ears=(legacy, legacy),
                     cochleae=cochleae,
                 )
+            returning_episode = None
             if pending_pressure is not None:
                 pressure = bytes(pending_pressure)
                 body = bytes(pending_body)
@@ -186,11 +179,23 @@ class LeanPhysicalLoop:
                 )
                 if times != PASSIVE_TIMES:
                     raise RuntimeError("self-hearing changed the passive clock")
-                primary_sensorium = replace(
+                hearing_sensorium = replace(
                     primary_sensorium,
                     legacy_ears=(legacy, legacy),
                     cochleae=cochleae,
                 )
+                if sensory is not None and sensory.pressure_s16le is not None:
+                    returning_episode = settle_projected_physical_sensorium(
+                        assembly_id=(
+                            "guala-lean-coexisting-self-hearing-"
+                            f"{before_native.identity}-{runtime.live_organism_tick + 1}"
+                        ),
+                        source_times=PASSIVE_TIMES,
+                        sensorium=hearing_sensorium,
+                        senses=(PhysicalSense.SOUND,),
+                    )
+                else:
+                    primary_sensorium = hearing_sensorium
             primary_episode = settle_physical_sensorium(
                 assembly_id=(
                     "guala-lean-unattended-"
@@ -199,23 +204,34 @@ class LeanPhysicalLoop:
                 source_times=PASSIVE_TIMES,
                 sensorium=primary_sensorium,
             )
+            primary_sources = (
+                (primary_episode,)
+                if returning_episode is None
+                else (primary_episode, returning_episode)
+            )
+            primary_admissions = PASSIVE_ADMISSION * len(primary_sources)
             if sensory is not None and sensory.guided_vocal_drives is not None:
                 primary = runtime.advance_guided_vocal_interval_unsealed(
-                    (primary_episode,),
-                    PASSIVE_ADMISSION,
+                    primary_sources,
+                    primary_admissions,
                     sensory.guided_vocal_drives,
+                    pressure_s16le=None if pending_pressure is None else pressure,
+                    body_s16le=None if pending_pressure is None else body,
+                    consumed_sample_count=(
+                        None if pending_pressure is None else self_heard_samples
+                    ),
                 )
             elif pending_pressure is None:
                 primary = runtime.advance_admitted_trajectory_unsealed(
-                    (primary_episode,), PASSIVE_ADMISSION
+                    primary_sources, primary_admissions
                 )
             else:
                 primary = runtime.advance_in_flight_self_hearing_unsealed(
-                    (primary_episode,),
-                    PASSIVE_ADMISSION,
+                    primary_sources,
+                    primary_admissions,
                     pressure,
                     body,
-                    False,
+                    returning_episode is not None,
                     self_heard_samples,
                 )
             _commit_prepared(world, primary_prepared)

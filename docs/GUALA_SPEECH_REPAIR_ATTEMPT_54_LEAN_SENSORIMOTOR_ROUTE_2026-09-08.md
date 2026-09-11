@@ -11111,3 +11111,169 @@ reuse that existing native settlement, not a new speech law. Preserve exact
 source provenance, authentic pressure/body bytes, no own-echo founding,
 guide validation, full DSF, source count bounds, failure rollback, and next
 cold interval. No runtime edit or production-equivalence claim yet.
+
+
+## Candidate 119 — existing guided/self-hearing transport handoff
+
+`D-054-119-01` — continues F-054-118-32; no closed C118 mechanism reopened.
+Previous goal turn answered Joe's browser/status question and made no repair
+progress. C118 S118-20/23/25/27/31 remain local four-posture, exact sound,
+three-use silence/restart, and disconnected-cause successes. Production remains
+last authenticated task1456/image6aa38d99, tick651372 captured in S118-34.
+No live speech/intelligible Mama claim and no new deployed image.
+
+Architecture gate: body-owned learned speech with simultaneous external senses,
+guided physical tissue, and exact same-organism sensory return. Current runtime
+has one native builder accepting both guide and authenticated acoustic
+consumption, but no public call combines them; lean loop rejects the input.
+Conflict YES at this transport boundary. Do not extend old shell, legacy
+teaching app, frozen L0-L4, neuron/growth/memory/ordering/energy laws, or add
+sequence objects, queues, markers, echo authority, or another settlement owner.
+Single next item is the existing guided/self-hearing path. Full source-local
+seven-field DSF retained; no field structure removed or reduced.
+
+`D-054-119-02` — bounded implementation contract, before source edits.
+Owner Sol; authorized production files:
+native/guala_core/src/organism_runtime.rs,
+dsf_ai_service/glew_runtime/native_resident_organism.py,
+dsf_ai_service/lean_physical_loop.py.
+Focused custody regression remains in organism_runtime.rs; thin Python
+call-translation regression may be added in tests/test_lean_physical_loop.py.
+No existing historical native_production_app teaching test may be used as the
+current lean_production_app acceptance caller.
+
+Input/caller map:
+lean_production_app.OccurrenceBody -> _physical_occurrence ->
+LeanSensoryOccurrence(guided-vocal-microphone, exact <=4000 s16le samples,
+<=13 unique vocal-axis drives) -> existing actor -> LeanPhysicalLoop._advance.
+Runtime's exact in_flight pressure/body/source_tick are observed before intake.
+External tutor retains primary complete passive-world sensorium; simultaneous
+self-pressure uses the existing SOUND-only source projection, not overwriting
+tutor sound or duplicating vision/touch/smell/taste/body. Both episodes retain
+full source-local fields and enter the one coexisting native interval.
+
+NativeResidentOrganismBoundary.advance_guided_vocal_interval_unsealed ->
+same PyO3 method -> same ResidentOrganismRuntime method ->
+advance_admitted_intervals_unsealed(episodes, coexisting=true,
+consume=authenticated count, guided=actual drives). Reuse one extracted native
+authentication helper from the existing self-hearing method: exact resident
+pressure/body bytes, count within current acoustic span; all-or-none trailing
+FFI inputs, invalid combinations fail before mutation. No new state/schema.
+Guide conversion/unique anatomy stays in existing path. The inner method
+already moves tissue once, prepends its exact proprioceptive source, builds
+one native successor, consumes the exact heard prefix, and superposes any
+unheard suffix with new radiation. Existing consuming-self-pressure echo
+guard remains unchanged, including during guided input.
+
+Retained/observed outputs:
+ResidentPrepareReceipt -> NativeResidentOrganismPrepare ->
+ResidentPrepareEvidence retains causal_interval_evidence, body consequences,
+proprioceptive sources, motor/respiratory recruits, exact pressure/body
+trajectories and native tick; source-port count includes actual guide ports
+and the added sound source, not a guessed total. Lean result retains external
+and self-heard sample counts, guide axis count, source tick and pending flag.
+Existing immediate motor/world/self-return and vestibular calls remain; their
+actual tick cost MUST be measured. They may not be skipped, drained out-of-band,
+or called equivalent to the saved-tail scheduled guide. Passing the combined
+input alone does NOT establish successful production word teaching.
+
+Custody/lifecycle:
+native fallible authentication precedes state mutation; existing native
+unsealed predecessor restoration and Python/world _abort_occurrence remain
+sole rollback path. Existing actor/checkpoint -> PairedCurrentStore CURRENT
+-> _restore_production_actor explicit migration/cold restore unchanged.
+No new codec, body width, schema fields, store keys, writer, timer or lock.
+First-use no-pending guide remains identical. Used/cold-restored pending sound
+must admit exactly once; tampered/missing/oversized acoustic consumption must
+refuse without changing state. Source-only review before build.
+
+Bound/anti-resurrection:
+one extra 34-port SOUND episode only when two actual sounds coexist, on the
+same26 source timestamps, one native interval. Existing <=4 native intervals
+per physical occurrence remains. One native acoustic authentication implementation,
+no duplicate guide conversion, no population scan, recurring serialization,
+new persisted bytes, new process or additional compilation loops.
+Applies F001/002/007/008, F023-026, F028-030, R003/R006/R007:
+identity/current-only, unattended independence, one custody writer,
+read-only observation, nonblocking sense delivery, coexisting fields not
+temporal expansion, full return evidence/pressure preservation. Existing
+R002/no ambient-current authority and F004/R008 exact-axis authorship untouched.
+C118 pending-return checks and three-use successes are reused, not rerun
+to rediscover them.
+
+Frozen evidence path:
+(1) smallest native custody check: old guided path rejects pending sound;
+combined exact path advances one clock, retains exact suffix/new output,
+rejects substitution/invalid span, rolls back and cold-restores exactly;
+(2) thin loop check observes tutor and self sources remain distinct and
+guided native call receives authenticated bytes/count; no organism claim;
+(3) candidate wheel isolated from globally installed module, fresh S118-34
+body+world through actual production restore/_physical_occurrence/LeanPhysicalLoop,
+capture every native call/tick/guide/self-return, preserve paired custody and
+cold next interval. This is the decisive runtime path, not a stitched cognitive
+fixture or mocked proof. Teaching must use real admitted inputs; no test may
+inject an in-flight consequence into the mature acceptance state.
+If its chronology cannot grow/recall the next posture, preserve combined-input
+success but keep F118-32 open and name the measured first remaining boundary.
+No cutover until the actual mature teaching/recall path succeeds; newest live
+state must be preserved at cutover, never replaced by this older copied pair.
+
+
+`S-054-119-03` — frozen source review PASSED fd559f72822492771b8ac40196fb95465e4e7f9958f693672d18d20dab048011,
+verified before/after by independent memory_probe_review. No architectural or
+localized defect. Coexisting source law permits separately authenticated sound
+episodes at overlapping receptors; only SOUND is added, not duplicated other
+senses. Exact tuple cardinality/byte/span authentication precedes mutation;
+same inner settlement, suffix/new-emission composition and echo guard retained.
+Reviewer explicitly did NOT certify unchanged immediate-return teaching timing.
+
+`S-054-119-04` — focused proofs PASSED, no C118 positive rerun.
+Four thin primary-call translation cases passed0.65s: guided with/without pending
+sound, external microphone plus pending sound, and own-only hearing. These mocks
+prove call/data carriage, NOT biology or full runtime.
+Native existing guided_vocal_interval_moves_only_vocal_body_and_rolls_back_exactly
+extended with custody fixture: no-consume call refuses pending sound; altered
+pressure and invalid0/5 sample spans refuse before mutation; authenticated
+2/4 sample consumption advances exactly one interval, retains exact suffix plus
+new emission, rollback restores predecessor, and sealed cold state matches.
+1passed/0failed0.50s. Injected four-sample consequence is explicitly unit-only.
+Release build2m27s,99 inherited warnings, session57747 completed.
+Binary SHA cc6dca43dd8e1d237da35150df7931fe59fc4f330453c607aa1ecec933eb40cb.
+Receipt /tmp/guala-candidate119-guided-custody.log SHA
+a3945aad586fdea37fcc230881d8804de24745e240bf5eb86e43d06271072571.
+Source organism_runtime.rs SHA976845735073b3747cb7a10e85da0af0dd280b0a0b76cc8dc4093f9cdc48159e;
+native_resident_organism.py SHA56d9d67fa67bc5947f5f290db73674812702e5668a059056127ac2f544945fa9;
+lean_physical_loop.py SHAb7970ee0f75e14831ff40b0938becc10da4c6eee5a4cd6cb87ff27752c4db367.
+C118 cognitive source remains f6dad56e2314b5c2f49ac058ea29374477888acdf32a2d28f8acb0000ce42551.
+
+AWS pre18:30:31/post18:36:08 task1456/effde9e1/image6aa38d99 healthy1/1/0.
+Historical alarm unchanged sinceSept8 14:15:41, not new stall evidence.
+Completed18:25 window CPUavg44.07245196/max61.99976110%;
+memoryavg10.31311035/max11.19079590%. No live mutation. Compiler/test child census
+clean before separate wheel build; TFE heavy child no longer present.
+Isolated wheel build session77115 running under explicit manifest/features
+into /tmp/guala-c119-wheel.gkWnir; do not relaunch on observation timeout.
+Global installed module remains untouched.
+
+`F-054-119-H01` — owner repeated a read-only guessed-path error:
+motor_action_bridge.py does not exist. No import, compile, test, organism
+transition or production action used it. Actual motor/interval evidence is
+declared in native_resident_organism.py:440 onward, read successfully. Enforce
+test -f or existing shared preflight file resolver before every file read;
+do not create the guessed bridge, reinterpret this as a physical failure,
+or rerun a closed proof. Prior no-filename-guess lesson remains binding.
+
+`D-054-119-05` — next actual-runtime discriminator frozen and source-reviewed:
+outside-tree /tmp/guala-c119-runtime-proof.py
+SHA b2cb1eda4975ed4ff7affe15410c9593354d82b2ee07296e037d43f8ad29e438.
+Independent read-only review PASS, hash stable. Hash-checked S118-34 body/world
+and exact4000-sample phase0; new empty constrained /tmp paired store; actual
+_restore_production_actor / _physical_occurrence / actor.start/submit/close;
+two minimum root guides,32 ordinary submitted occurrences after each, actual
+unattended clock continuing. Passive/body/self return clocks logged per native
+call; no private state/pressure injection, no old helper and no live writes.
+Existing checkpoint closes/publishes, cold factory restores exact successor and
+takes one ordinary occurrence. Layer-pair census is NOT specific-root proof.
+Launch preflight must verify BOTH candidate guala_core and actual production
+Python module paths. Logged actual ticks, not requested32, govern chronology.
+This measures real runtime first-root teaching; fullword acceptance remains open.

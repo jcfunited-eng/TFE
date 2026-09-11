@@ -3406,6 +3406,26 @@ impl ResidentOrganismRuntime {
             })
     }
 
+    fn authenticate_in_flight_acoustic_consumption(
+        &self,
+        pressure_s16le: &[u8],
+        body_s16le: &[u8],
+        consumed_sample_count: usize,
+    ) -> Result<(), RuntimeError> {
+        let pending = self
+            .current_in_flight_acoustic()
+            .ok_or_else(|| RuntimeError::ArticulatedBody("no acoustic consequence is in flight".into()))?;
+        if !pending.matches_transport(pressure_s16le, body_s16le) {
+            return Err(RuntimeError::MountedSourceSubstitution);
+        }
+        if consumed_sample_count == 0 || consumed_sample_count > pending.pressure_pcm.len() {
+            return Err(RuntimeError::ArticulatedBody(
+                "in-flight acoustic consumption left its exact sample span".into(),
+            ));
+        }
+        Ok(())
+    }
+
     /// Consume one cold-restorable radiated consequence through the actual
     /// admitted cochlear/body episode. Exact transport bytes must match the
     /// resident physical state; a caller cannot substitute another sound.
@@ -3418,17 +3438,11 @@ impl ResidentOrganismRuntime {
         consumed_sample_count: usize,
         real_nutrition_intake_zeptojoules: crate::exact_rational::ExactRational,
     ) -> Result<ResidentPrepareReceipt, RuntimeError> {
-        let pending = self
-            .current_in_flight_acoustic()
-            .ok_or_else(|| RuntimeError::ArticulatedBody("no acoustic consequence is in flight".into()))?;
-        if !pending.matches_transport(pressure_s16le, body_s16le) {
-            return Err(RuntimeError::MountedSourceSubstitution);
-        }
-        if consumed_sample_count == 0 || consumed_sample_count > pending.pressure_pcm.len() {
-            return Err(RuntimeError::ArticulatedBody(
-                "in-flight acoustic consumption left its exact sample span".into(),
-            ));
-        }
+        self.authenticate_in_flight_acoustic_consumption(
+            pressure_s16le,
+            body_s16le,
+            consumed_sample_count,
+        )?;
         self.advance_admitted_intervals_unsealed(
             episodes,
             coexisting_sources,
@@ -3463,6 +3477,7 @@ impl ResidentOrganismRuntime {
         &mut self,
         episodes: &[(NativeJointSourceEpisode, Vec<(i64, i64)>)],
         drives: &[BodyEffectorDrive],
+        in_flight_acoustic: Option<(&[u8], &[u8], usize)>,
     ) -> Result<ResidentPrepareReceipt, RuntimeError> {
         if episodes.is_empty() || drives.is_empty() {
             return Err(RuntimeError::AdmittedSourceRequired);
@@ -3477,10 +3492,17 @@ impl ResidentOrganismRuntime {
                 ));
             }
         }
+        let consumed_samples = match in_flight_acoustic {
+            Some((pressure, body, count)) => {
+                self.authenticate_in_flight_acoustic_consumption(pressure, body, count)?;
+                Some(count)
+            }
+            None => None,
+        };
         self.advance_admitted_intervals_unsealed(
             episodes,
             true,
-            None,
+            consumed_samples,
             crate::exact_rational::ExactRational::integer(0),
             Some(drives),
         )
@@ -5707,14 +5729,33 @@ impl NativeResidentOrganismRuntime {
     }
 
     /// Apply bounded external physical work only to vocal anatomy, then admit
-    /// its real proprioceptive source beside the supplied tutor sensorium.
+    /// its real proprioceptive source beside the supplied tutor sensorium and
+    /// any authenticated returning acoustic consequence.
+    #[pyo3(signature = (
+        sources, maximum_causal_intervals, guided_vocal_drives,
+        pressure_s16le=None, body_s16le=None, consumed_sample_count=None
+    ))]
     fn advance_guided_vocal_interval_unsealed(
         &mut self,
         py: Python<'_>,
         sources: Vec<Py<NativeJointSourceEpisode>>,
         maximum_causal_intervals: Vec<Vec<(i64, i64)>>,
         guided_vocal_drives: Vec<(u8, u8, u128)>,
+        pressure_s16le: Option<Vec<u8>>,
+        body_s16le: Option<Vec<u8>>,
+        consumed_sample_count: Option<usize>,
     ) -> PyResult<NativeResidentOrganismPrepare> {
+        let in_flight_acoustic = match (
+            pressure_s16le.as_deref(),
+            body_s16le.as_deref(),
+            consumed_sample_count,
+        ) {
+            (None, None, None) => None,
+            (Some(pressure), Some(body), Some(count)) => Some((pressure, body, count)),
+            _ => return Err(PyValueError::new_err(
+                "guided acoustic transport requires pressure, body, and sample count together",
+            )),
+        };
         if sources.len() != maximum_causal_intervals.len() {
             return Err(PyValueError::new_err(
                 "guided vocal source and interval counts differ",
@@ -5739,7 +5780,9 @@ impl NativeResidentOrganismRuntime {
         let prepared = py
             .allow_threads(|| {
                 self.runtime
-                    .advance_guided_vocal_interval_unsealed(&episodes, &drives)
+                    .advance_guided_vocal_interval_unsealed(
+                        &episodes, &drives, in_flight_acoustic,
+                    )
             })
             .map_err(|error| PyValueError::new_err(error.to_string()))?;
         Ok(NativeResidentOrganismPrepare {
@@ -10066,7 +10109,7 @@ mod tests {
         );
 
         let prepared = runtime
-            .advance_guided_vocal_interval_unsealed(&episode, &guide)
+            .advance_guided_vocal_interval_unsealed(&episode, &guide, None)
             .unwrap();
         assert!(!prepared.sealed);
         assert_eq!(prepared.causal_interval_evidence.len(), 1);
@@ -10082,11 +10125,73 @@ mod tests {
             outward_elementary_carriers: 1_500,
         }];
         assert!(runtime
-            .advance_guided_vocal_interval_unsealed(&episode, &non_vocal)
+            .advance_guided_vocal_interval_unsealed(&episode, &non_vocal, None)
             .is_err());
         assert_eq!(runtime.active_envelope(), predecessor_envelope);
         assert_eq!(runtime.observation(), predecessor_observation);
         assert!(runtime.unsealed.is_none());
+
+        // Custody-only fixture: an exact already-radiated consequence, not a
+        // claimed learned act. The mature runtime proof must emit its own.
+        runtime.advance_admitted_trajectory_unsealed(&episode).unwrap();
+        let consequence = InFlightAcousticConsequence::new(
+            runtime.live_organism_tick(),
+            vec![0, 7, -11, 0],
+            std::array::from_fn(|_| vec![1, 2, 3, 4]),
+        ).unwrap().unwrap();
+        runtime.unsealed.as_mut().unwrap().in_flight_acoustic = Some(consequence.clone());
+        let (token, _) = runtime.seal_unsealed_trajectory_direct().unwrap();
+        runtime.acknowledge_direct_commit(token).unwrap();
+        let predecessor = runtime.active_envelope().to_vec();
+        let pressure = consequence.pressure_s16le();
+        let body = consequence.body_s16le();
+        let tick = runtime.live_organism_tick();
+
+        // Old uncombined call still cannot silently discard pending sound.
+        assert!(runtime
+            .advance_guided_vocal_interval_unsealed(&episode, &guide, None)
+            .is_err());
+        let mut substituted = pressure.clone();
+        substituted[0] ^= 1;
+        for (candidate_pressure, count) in [
+            (substituted.as_slice(), 2),
+            (pressure.as_slice(), 0),
+            (pressure.as_slice(), 5),
+        ] {
+            assert!(runtime.advance_guided_vocal_interval_unsealed(
+                &episode, &guide, Some((candidate_pressure, &body, count)),
+            ).is_err());
+            assert_eq!(runtime.active_envelope(), predecessor);
+            assert_eq!(runtime.live_organism_tick(), tick);
+            assert!(runtime.unsealed.is_none());
+        }
+
+        let prepared = runtime.advance_guided_vocal_interval_unsealed(
+            &episode, &guide, Some((&pressure, &body, 2)),
+        ).unwrap();
+        assert_eq!(prepared.observation.organism_tick, tick + 1);
+        assert_eq!(prepared.causal_interval_evidence.len(), 1);
+        let expected = consequence.clone().after_consuming_and_superposing(
+            2,
+            prepared.observation.organism_tick,
+            in_flight_acoustic_from_receipt(&prepared).unwrap(),
+        ).unwrap();
+        assert_eq!(runtime.current_in_flight_acoustic(), expected.as_ref());
+        runtime.abort_unsealed_trajectory().unwrap();
+        assert_eq!(runtime.active_envelope(), predecessor);
+        assert_eq!(runtime.current_in_flight_acoustic(), Some(&consequence));
+
+        runtime.advance_guided_vocal_interval_unsealed(
+            &episode, &guide, Some((&pressure, &body, 2)),
+        ).unwrap();
+        let (token, _) = runtime.seal_unsealed_trajectory_direct().unwrap();
+        runtime.acknowledge_direct_commit(token).unwrap();
+        let cold = ResidentOrganismRuntime::restore_envelope(
+            runtime.active_envelope().to_vec(), budget(),
+        ).unwrap();
+        assert_eq!(cold.active_envelope(), runtime.active_envelope());
+        assert_eq!(cold.current_in_flight_acoustic(), expected.as_ref());
+        assert_eq!(cold.live_articulated_body(), runtime.live_articulated_body());
     }
 
     #[test]

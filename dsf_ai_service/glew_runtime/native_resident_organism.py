@@ -3107,8 +3107,28 @@ class NativeResidentOrganism:
         sources: object,
         maximum_causal_intervals: object,
         guided_vocal_drives: object,
+        *,
+        pressure_s16le: bytes | None = None,
+        body_s16le: bytes | None = None,
+        consumed_sample_count: int | None = None,
     ) -> ResidentPrepareEvidence:
-        """Co-admit tutor sensorium and real externally guided vocal motion."""
+        """Co-admit tutor, guided tissue, and authenticated returning sound."""
+
+        acoustic_parts = (
+            pressure_s16le is not None,
+            body_s16le is not None,
+            consumed_sample_count is not None,
+        )
+        if any(acoustic_parts):
+            if not all(acoustic_parts):
+                raise ValueError(
+                    "guided acoustic transport requires pressure, body, and sample count together"
+                )
+            if not isinstance(pressure_s16le, bytes) or not isinstance(body_s16le, bytes):
+                raise TypeError("guided acoustic transport must be exact bytes")
+            consumed_sample_count = _positive_integer(
+                consumed_sample_count, "guided acoustic consumed sample count"
+            )
 
         if not isinstance(sources, tuple) or not sources:
             raise TypeError("guided vocal sources must be a nonempty tuple")
@@ -3155,7 +3175,8 @@ class NativeResidentOrganism:
         try:
             _rust_started = time.perf_counter()
             candidate = self.__runtime.advance_guided_vocal_interval_unsealed(
-                list(sources), [list(value) for value in intervals], drives
+                list(sources), [list(value) for value in intervals], drives,
+                pressure_s16le, body_s16le, consumed_sample_count,
             )
             _record_runtime_phase("rust_advance", _rust_started)
             _validation_started = time.perf_counter()
