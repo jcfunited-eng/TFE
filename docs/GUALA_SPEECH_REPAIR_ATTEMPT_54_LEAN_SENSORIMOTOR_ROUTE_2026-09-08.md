@@ -9447,3 +9447,25 @@ After-run census at 10:40:48 UTC: no remaining native test/compiler child;
 production still 1456 HEALTHY/RUNNING, 1/1/0, same 6aa38d99 image. The probe
 finished before RSS sampling; no peak-RAM measurement claimed for this run.
 No live mutation, lesson, cutover or speech-success claim.
+
+`D-054-115-01` (design direction only; no Candidate-115 source): the review
+confirms the ratified law does not require all real leaves to emit on one
+clock. Current exact causal contacts may form a NEW relation among already
+settled physical leaves, without claiming a new sensory impression. This is
+distinct from 111's identical-whole-assembly gate and 113's old-owner union.
+However, a pending-only reader is NOT implementation-ready. Source review
+proved three different custody branches: `settle_resident_original_interval`
+can leave complete but locally unconnected members pending, or move connected
+members to `retained_experience`; `advance_recurrent_neuronal_experience`
+discards completed pending evidence; the internal-contact path around 22576
+retains completed pending evidence when no retained original exists. A settled
+flag proves a delta settled, not that it belongs to the newest lesson.
+
+Thus a new focused relation must be grounded by its actual current contact
+path and genuine physical leaves, independent of the cohort-level pending/
+retained bookkeeping branch. Do not implement a pending-only fallback, a
+timer, a new owner, an unbounded event buffer, or generic reuse of every old
+delta. The single next implementation-contract question is a lifecycle-
+complete local leaf handoff; the authoritative production and 110 speech
+components are unchanged. This is a source-backed constraint discovered
+before writing another organism candidate, not another failed speech test.
