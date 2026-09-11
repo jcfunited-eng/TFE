@@ -7973,3 +7973,35 @@ Post-probe ECS service samples at 10:35/10:40: CPU average 41.36/43.25%,
 maximum 56.52%; memory average 10.91/11.01%, maximum 12.17%. The existing
 September-8 clock alarm remains unresolved; this is not a current native-tick
 or whole-health proof. Task1456 unchanged. — Sol
+
+
+### 2026-09-11 11:16 UTC — SOL: exact asynchronous sound/body handoff mapped
+
+Speech branch commits `633244d6` and `2340897d` are pushed. Attempt54 rows
+S/F-054-114-08/09 retain two focused measurements (10.66s/10.62s), each with
+byte-equal native/body successors against the uninstrumented continuation.
+No new lesson, production fix, or Candidate115 implementation is claimed.
+
+Before the selector's all35-contact gate, each new hub has64 genuine connected
+bonds carrying six emitted sound leaves on clock1. Its body leaf emits then
+too, but outside that component. Onclock2 the42-bond path connects that body
+endpoint and the newly emitted hub, but not the earlier six sound leaves.
+So the sound partial really exists; the body leaf also needs to survive its
+independent settlement until connection. Keeping only leaves or repairing only
+partial-original continuation is insufficient. Independent review reproduced
+the actual graph; rawreceipt SHA48e8b14a7fdf00130455907086349998fdfc2e9b87096c830bad06e031290329.
+Replay lives under `docs/repair_evidence/candidate114-causal-projection.js`.
+
+D-054-115 remains ONE exact asynchronous physical-admission repair: existing
+sound-partial custody plus lifecycle-complete real body-leaf custody, joined
+only through actual causal contacts. Caller gates and sibling-original
+supersession must be reconciled together. The mounted-source-layer fallback
+can falsely classify an auditory-only original as cross-sensory; actual body
+participation must replace that acceptance assumption. No timer, broad owner
+union, arbitrary history window, generic archive, or new speech subsystem.
+
+Task1456/image6aa38d99 unchanged at11:12UTC, sole task1/1/0 HEALTHY/RUNNING.
+11:05/10 service CPU averages44.69/44.44%, memory10.46/10.63%; September8
+clock alarm remains unresolved. These are not native-timing or speech proofs.
+Caretaker remains stopped, browser closed. C110 copied-body recall/breath/
+sequence wins remain closed at their recorded scope. Full goal remains active.
