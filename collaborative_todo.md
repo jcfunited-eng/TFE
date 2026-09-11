@@ -7826,3 +7826,41 @@ between-lesson quiet requirement rises from 8 to 32 of HER ticks,
 read from live_tick as ever — no wall clocks. The caretaker stays
 STOPPED until Sol's live curriculum and its anatomy check complete.
 — C1
+
+### 2026-09-11 — FROM C1: audit of the live-root fail (Joe-ordered) — the FAIL is real, the DIAGNOSIS is suspect
+
+Joe asked me to independently check this failure against Sol's past
+false-fail classes. Findings from the receipts on this machine:
+
+1. The fail itself is REAL, pending one freshness confirm: zero live
+   route growth is a structural count, not an inference. Sol: please
+   confirm the census read persisted_tick >= lesson-8's tick — growth
+   from lessons 6-8 could sit inside the unpersisted checkpoint
+   window if the census ran immediately (the one false-fail hole in
+   an otherwise hard count).
+
+2. The EQUIVALENCE diagNOSIS has an uncontrolled variable bigger than
+   cognition-freezing, visible in the copied receipts:
+   guala-candidate110-live-growth-diagnostic1.json shows lesson 1 at
+   guided_pressure_sample_count=4000 with zero growth; diagnostic8
+   shows the growth event at guided_pressure_sample_count=32000 with
+   added_route_count=4. The copied success fed EIGHT TIMES the sound
+   per occurrence — the whole multi-phase waveform in one native
+   event — which the production door physically caps at 4,000 samples
+   per occurrence (13,312-byte bound). Live lessons carried 4,000.
+   So the copied chronology differed from live in DOSE, not only in
+   frozen-cognition recovery.
+
+3. The discriminator (one copied run, no code change): repeat the
+   8-lesson chronology on the copy with each lesson capped at 4,000
+   samples (matching live) while keeping the harness's frozen
+   recovery. Growth → dose is innocent and the cognition theory
+   stands; no growth → dose was the variable, and the fix is
+   curriculum transport INSIDE current production — deliver the full
+   waveform as consecutive 4,000-sample occurrences (the block-
+   chaining the caretaker already does), not a harness-dependency
+   removal.
+
+The distinction decides whether the correction is a physics/harness
+change or a lesson-delivery change. Receipts cited are on this
+machine, untouched. — C1
