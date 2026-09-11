@@ -10009,16 +10009,22 @@ mod tests {
             ),
             outward_elementary_carriers: 1_500,
         }];
+        let guided_body = settle_body_effector_drives(
+            runtime.live_articulated_body(),
+            &AdmittedBodyEffectorDrives::admit(guide.to_vec()).unwrap(),
+            BODY_SETTLEMENT_CLOCK_MICROSECONDS,
+        )
+        .unwrap();
+        assert!(
+            guided_body.successor.axis(vocal_axis) < predecessor_position,
+            "external vocal work did not move its exact tissue at the guide boundary",
+        );
 
         let prepared = runtime
             .advance_guided_vocal_interval_unsealed(&episode, &guide)
             .unwrap();
         assert!(!prepared.sealed);
         assert_eq!(prepared.causal_interval_evidence.len(), 1);
-        assert!(
-            runtime.live_articulated_body().axis(vocal_axis) < predecessor_position,
-            "external vocal work did not move its exact tissue",
-        );
         runtime.abort_unsealed_trajectory().unwrap();
         assert_eq!(runtime.active_envelope(), predecessor_envelope);
         assert_eq!(runtime.observation(), predecessor_observation);

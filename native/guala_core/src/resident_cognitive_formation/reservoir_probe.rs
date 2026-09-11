@@ -5273,6 +5273,10 @@ fn saved_guided_vocal_tail_json(
         "internal_reassemblies": positive.internal_reassemblies,
         "causal_thought_transitions": positive.causal_thought_transitions,
         "cold_round_trip_exact": cold_exact,
+        "successor_body_acoustic_quiescent": positive
+            .body
+            .articulatory_acoustic_state()
+            .is_quiescent(),
         "encoded_bytes": encoded.len(),
         "successor_state_output": successor_state_output,
         "successor_body_output": successor_body_output,

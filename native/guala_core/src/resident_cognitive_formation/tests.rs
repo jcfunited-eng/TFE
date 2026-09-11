@@ -8508,6 +8508,87 @@ fn exact_body_source_mounts_one_coordinated_vocal_preparation() {
     )
     .unwrap();
     assert_eq!(continuations.len(), 1);
+    let successor_preparation = vocal_action_preparation_for_ordering(
+        &cohorts,
+        &topology,
+        continuations[0].destination_ordering_lineage,
+    )
+    .unwrap()
+    .unwrap();
+    let internal_completed_frontier = successor_preparation
+        .motors
+        .iter()
+        .map(|motor| {
+            ActiveElectricalFrontierEntry::caused_with_provenance(
+                successor_preparation.ordering_lineage,
+                motor.lineage,
+                successor_preparation.ordering_lineage,
+                motor.bond,
+                1,
+                false,
+                false,
+            )
+            .unwrap()
+        })
+        .collect::<Vec<_>>();
+    let internal_returned_terminals = successor_preparation
+        .motors
+        .iter()
+        .map(|motor| {
+            let terminal = cohorts
+                .iter()
+                .flat_map(|cohort| {
+                    cohort
+                        .anatomy
+                        .mounts()
+                        .iter()
+                        .zip(cohort.anatomy.neuron_lineages())
+                })
+                .find_map(|(mount, candidate)| {
+                    (*candidate == motor.lineage)
+                        .then(|| mount.body_effector_terminal())
+                        .flatten()
+                })
+                .unwrap();
+            vec![terminal]
+        })
+        .collect::<Vec<_>>();
+    assert_eq!(
+        exact_preceding_vocal_body_act_for_guided_growth(
+            &cohorts,
+            &topology,
+            &internal_completed_frontier,
+            &internal_returned_terminals,
+            &[(0, internal_returned_terminals.len())],
+        )
+        .unwrap(),
+        vec![successor_preparation.ordering_lineage],
+    );
+    let body_echo_frontier = successor_preparation
+        .motors
+        .iter()
+        .map(|motor| {
+            ActiveElectricalFrontierEntry::caused_with_provenance(
+                successor_preparation.ordering_lineage,
+                motor.lineage,
+                successor_preparation.ordering_lineage,
+                motor.bond,
+                1,
+                true,
+                false,
+            )
+            .unwrap()
+        })
+        .collect::<Vec<_>>();
+    assert!(exact_preceding_vocal_body_act_for_guided_growth(
+        &cohorts,
+        &topology,
+        &body_echo_frontier,
+        &internal_returned_terminals,
+        &[(0, internal_returned_terminals.len())],
+    )
+    .unwrap()
+    .is_empty());
     for continuation in &continuations {
         let arrival = ActiveElectricalFrontierEntry::caused_with_frontier(
             continuation.source_ordering_lineage,

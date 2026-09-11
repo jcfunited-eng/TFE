@@ -16046,10 +16046,13 @@ fn mount_reached_cross_sensory_association(
 /// returned-body action author: it cannot recruit a motor, prepare work, or
 /// co-recruit breath.  It only carries an already-complete posture into the
 /// developmental route author when (a) every exact learned motor branch is
-/// still present in the immediately preceding external causal frontier and
-/// (b) one current occurrence group returns exactly those body terminals.
-/// A guide matching some older posture cannot satisfy the immediate frontier;
-/// multiple complete orderings remain an authority failure.
+/// still present in the immediately preceding causal frontier and (b) one
+/// current occurrence group returns exactly those body terminals. A root
+/// posture requires external ingress. A posture with one learned predecessor
+/// may instead carry the organism's exact internal continuation; body-owned
+/// acoustic efference never qualifies. A guide matching some older posture
+/// cannot satisfy the immediate frontier; multiple complete orderings remain
+/// an authority failure.
 fn exact_preceding_vocal_body_act_for_guided_growth(
     cohorts: &[ResidentReachedCohort],
     topology: &ResidentTopologyIndex,
@@ -16080,9 +16083,7 @@ fn exact_preceding_vocal_body_act_for_guided_growth(
     let mut candidate_orderings = predecessor_frontier
         .iter()
         .copied()
-        .filter(|entry| {
-            entry.carries_external_ingress_cause() && !entry.carries_body_owned_acoustic_efference()
-        })
+        .filter(|entry| !entry.carries_body_owned_acoustic_efference())
         .filter_map(ActiveElectricalFrontierEntry::directed_transfer)
         .filter(|transfer| {
             transfer.transferred_whole_carriers > 0
@@ -16099,6 +16100,17 @@ fn exact_preceding_vocal_body_act_for_guided_growth(
         let Some(preparation) = vocal_action_preparation_for_ordering(cohorts, topology, ordering)?
         else {
             continue;
+        };
+        let requires_external_ingress = match preparation_predecessors(
+            cohorts,
+            topology,
+            &preparation,
+        )?
+        .len()
+        {
+            0 => true,
+            1 => false,
+            _ => return Err(FormationError::NeuronLineageAuthorityChanged),
         };
         let mut exact_terminals = BTreeSet::new();
         for motor in &preparation.motors {
@@ -16117,8 +16129,8 @@ fn exact_preceding_vocal_body_act_for_guided_growth(
         }
         let every_branch_is_immediate = preparation.motors.iter().all(|motor| {
             predecessor_frontier.iter().copied().any(|entry| {
-                entry.carries_external_ingress_cause()
-                    && !entry.carries_body_owned_acoustic_efference()
+                !entry.carries_body_owned_acoustic_efference()
+                    && (!requires_external_ingress || entry.carries_external_ingress_cause())
                     && entry.directed_transfer().is_some_and(|transfer| {
                         transfer.sender == ordering
                             && transfer.receiver == motor.lineage

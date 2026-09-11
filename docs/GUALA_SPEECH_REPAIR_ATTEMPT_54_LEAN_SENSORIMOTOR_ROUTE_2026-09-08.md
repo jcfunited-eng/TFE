@@ -1,20 +1,22 @@
 # Guala speech repair Attempt 54 — complete design verification and lean sensorimotor route
 
 Date: 2026-09-08 UTC
-Status corrected 2026-09-10 UTC: **speech is not fixed**. Production runs task
+Status corrected 2026-09-11 UTC: **live production speech is not yet fixed**. Production runs task
 definition 1455 from immutable image digest
 `sha256:a10fe2c1e20cb6b1933965cde6ad9d2ebfe99eec1344d074e7d735dccb57f980`.
 Joe's live hearing disproved the former speech-complete claim: the body emits
 isolated tonal boops/beeps/toots, not ordered or recognizable speech.
-Candidate 93 is copied-body evidence only: it proved one body-owned vocal act
-caused one distinct second act and then stopped, including cold restore, but it
-did not produce a recognizable word and was not deployed. Candidates 94 and 95
-were subsequently rejected by the definitive append-only evidence. Candidate
-96 is uncommitted local source: its coordinated-posture structural falsifier
-and mature-body zero-clock discriminator pass, but it has not been authorized
-by C1, run through copied-body Mama acceptance, packaged, or deployed. The
-definitive current evidence is the append-only section at the end of this
-ledger; any earlier “speech complete” wording is historical and retracted.
+Candidate 110 now has copied-production evidence from the exact task-1455 body:
+one sound-only cue produced the learned four-posture minimum/maximum/minimum/
+maximum chain, all four mouth motors per posture, breath on every posture,
+69,513 body-owned pressure samples, no further motor act through clock 20, and
+exact cold restart after a proved silent pre-cue baseline. The retained anatomy
+is exactly three learned edges and 16 lean-route contacts; it did not expand the
+495 unresolved legacy contacts. This is a learned word-shaped physical sound,
+not semantics or conversation, and it is not live production until the frozen
+image rehearsal, cutover, laptop hearing, bounded-resource, and Slack gates
+pass. The definitive current evidence is the append-only Candidate 110 section;
+any earlier “speech complete” wording is historical and retracted.
 Worktree: `/tmp/guala-speech-existing-organ`
 Starting HEAD: `735489406577f90edf6c2fb7fb1889f87eae8107`
 Production boundary: task definition 1455 is the live deployed writer. Its
@@ -8557,6 +8559,196 @@ body `c6a3ecd4b03a8244bef56104ecff055a2e82a37f3d76175f95ea6587fd47e5f9`.
 The second lesson and resulting maximum-to-minimum edge remain the active gate.
 Production remains task 1455 and unchanged.
 
+`H-054-116` (preflight variable-name refusal, no organism run): the first
+posture-four recovery invocation used the shortened historical name
+`GUALA_PROBE_GUIDED_VOCAL_CUE_PRESSURE_PCM`. The current saved-tail probe
+requires `GUALA_PROBE_GUIDED_VOCAL_TAIL_CUE_PRESSURE_PCM`, so the optional
+preflight wrapper resolved the exact existing test and the test refused at
+environment validation before decoding or advancing either saved state. No
+organism clock ran and no output state was written. Full harness log:
+`/tmp/preflight-20260911T042810Z-83852.log`. This is a harness failure only;
+the rerun must use the source-declared variable name and must not reinterpret
+or discard any Candidate 110 anatomy or behavioral success.
+
+`H-054-117` (saved-tail baseline namespace corrected): the next invocation
+used the teaching-path variable `GUALA_PROBE_GUIDED_VOCAL_BASELINE_CLOCKS`.
+The exact saved-tail probe instead reads
+`GUALA_PROBE_GUIDED_VOCAL_TAIL_BASELINE_CLOCKS`, so the resolved test passed
+without advancing a baseline and returned the input body unchanged. Its JSON
+truthfully reports `pre_cue_baseline: null`, zero emitted pressure, the same
+non-quiescent 680-byte body, and an exact cognitive cold round trip. Artifact
+`/tmp/guala-candidate110bt-posture4-quiet64.json`, SHA-256
+`cbcc8be8612556341bd606204b063297a7ae125aef6e94bcf70fcb503d66f34e`;
+full harness log `/tmp/preflight-20260911T042901Z-84100.log`. This successful
+test invocation is not a successful recovery and must never be cited as one.
+The rerun must use the saved-tail namespace declared at the consumption site.
+
+`S-054-110-13` (complete retained word anatomy): the second posture-four
+lesson on the exact task-1455 copy retained exactly one additional learned
+edge and then physically expressed the complete four-posture chain. The saved
+cognitive state contains 511 vocal-route contacts: the unchanged 495
+unresolved/legacy contacts plus exactly 16 contacts in the lean route. Its 12
+continuation records are exactly three learned ordering-to-ordering bonds,
+each repeated only for the four real vocal motor terminals:
+`...269c -> ...2736`, `...2736 -> ...2798`, and `...2798 -> ...27a6`.
+No legacy fan, timer, sequence object, forced neuron, injected work, or codec
+change exists. Teaching artifact
+`/tmp/guala-candidate110br-posture4-edge.json`, SHA-256
+`311c27f6deb9ac651d30c052ba5cc7d5b780a4863d31171af73d414a4b538cc6`;
+retained cognitive SHA-256
+`613ab66ed2831a1e8a4c58d41a3cd52bda60a1d1ecccebff359e333938fbb524`;
+body SHA-256
+`636c43d01980d5ad443355fc97cc432ef03dd80d70de7c094ad89d0ff143a0b8`;
+structure artifact `/tmp/guala-candidate110bs-posture4-edge-structure.json`,
+SHA-256
+`ee82cad568e968a539a18116ecbf36b7bc53d75641f117ef3f0d6bbda4b3f16b`.
+
+`S-054-110-14` (post-teaching physical recovery): that exact retained body
+was advanced for 64 ordinary organism clocks with no cue and no guide. Across
+the bound it produced zero motor pulses and zero respiratory carriers while
+106,607 already-existing pressure samples drained. The successor body reports
+exact acoustic quiescence, and cognitive state cold-decode/re-encode is exact.
+This proves the following recall begins un-poised and silent rather than on
+retained teaching residue. JSON
+`/tmp/guala-candidate110bu-posture4-quiet64.json`, SHA-256
+`eb53a5d0183d76061b4de808a0072027cc1696598850ad90192efd5dcc1b378d`;
+cognitive SHA-256
+`f7e7486e0aef6171965f674d9afeff8d3d99e11ae72488ce2c0cacf1bd9bb4a2`;
+quiet body SHA-256
+`6247ab3b74180419d60eb5dc21a94c38e72cbe119ea078efa9f70a8d14ffd59f`.
+
+`S-054-110-15` (first complete learned four-posture sound-only recall on the
+exact production copy): from `S-054-110-14`'s silent, un-poised state, one
+phase-zero external tutor-pressure cue and no guide produced exactly four
+complete coordinated vocal postures on consecutive organism clocks:
+
+- clock 3: all four `TowardMinimum` mouth motors and 306 respiratory carriers;
+- clock 4: all four `TowardMaximum` mouth motors and 22 respiratory carriers;
+- clock 5: all four `TowardMinimum` mouth motors and 131 respiratory carriers;
+- clock 6: all four `TowardMaximum` mouth motors and 7 respiratory carriers.
+
+The body emitted 69,513 nonzero body-owned pressure samples. No further motor
+pulse occurred through clock 20, so the learned action chain stopped once
+rather than recurring. The successor cognitive state cold-decode/re-encoded
+exactly. The body still contained the disclosed acoustic tail at clock 20;
+this is not mislabeled as final acoustic quiescence, whose ordinary bounded
+recovery was independently proved in `S-054-110-14`. JSON
+`/tmp/guala-candidate110bv-full-word-recall.json`, SHA-256
+`25ab0998f8777378f80e703ac72a3e9653d55215ebcd3038c55dc4f082157fd3`;
+cognitive successor SHA-256
+`b0e327d0fa7a01b0cd3b0d53f46cfd516790d2a146f0d6dd6e2b978d945f78ae`;
+body successor SHA-256
+`80c0a824a2815df7333884b7f23dc6b1d9878a796db4a0378d514fd92200509e`;
+full harness log `/tmp/preflight-20260911T043705Z-85983.log`.
+
+This is a retained copied-production success and must not be reopened. It is
+a learned four-posture word shape with breath and audible physical pressure,
+not yet semantics or conversation. Production remains task 1455 and unchanged
+until the candidate is cleaned and passes the already-frozen deployment gate.
+
+`S-054-110-16` (clean-source native validation, with one inherited test repair):
+after all temporary reassembly, growth, and anatomy diagnostics were removed,
+`cargo check --tests --locked --manifest-path native/guala_core/Cargo.toml`
+completed successfully with the repository's inherited warning inventory.
+The focused handoff test passed, followed by the frozen native anchors for all
+seven DSF fields, exact receptor work, directed frontier custody, sever/regrow,
+typed motor/body binding, finite respiratory discharge, body-only shaping,
+pressure cessation, in-flight acoustic persistence, and exact cold restore.
+
+The frozen guided-vocal rollback test initially failed because it asserted that
+the transient 1-ms caregiver guide must still displace the body after the whole
+tutor interval. The same exact failure reproduces in the older pre-Candidate-110
+binary `guala_core-77b72a056dfa58f1`, proving this candidate did not cause it.
+The test alone now measures exact tissue movement at the guide boundary and
+then retains its runtime abort-to-exact-predecessor proof. No production body,
+settlement, speech, or runtime code changed. The corrected test passed `1/1`;
+log `/tmp/preflight-20260911T044643Z-89084.log`. This supersedes only the stale
+final-position assumption, not the guided-movement or rollback requirement.
+
+`H-054-118` (Python package-root omission, no test ran): the first nine-file
+active Python invocation used the system `pytest` entry point without placing
+the exact worktree root on `PYTHONPATH`. Collection refused eight modules with
+`ModuleNotFoundError: dsf_ai_service`; zero tests and zero organism intervals
+ran. The package is present at the resolved path
+`/tmp/guala-speech-existing-organ/dsf_ai_service/__init__.py`. The correction is
+the existing exact environment boundary
+`PYTHONPATH=/tmp/guala-speech-existing-organ`, followed by the same copied
+nine-file command. No install, shim, shell restoration, or source edit is
+authorized by this harness failure.
+
+`F-054-110-09` (posture-three second lesson lost the learned predecessor):
+with the measured root rehearsal in place, all four maximum-posture motor
+transfers were present on the interval immediately before the guided minimum
+lesson. Each was positive, belonged to the same ordering `...2736`, and was
+explicitly neither direct external ingress nor body-owned acoustic efference.
+The developmental handoff nevertheless returned no predecessor because it
+accepted only directly external motor frontiers. The body source therefore
+supplied four valid minimum association/motor pairs, but the route author could
+not bind them to the preceding maximum posture. This was a root-only assumption
+inside `exact_preceding_vocal_body_act_for_guided_growth`, not missing sensory
+input, missing motor transfer, echo, or another memory failure.
+
+`S-054-110-10` (exact internal predecessor handoff): a root posture continues
+to require all of its immediate L11-to-L12 branches to carry external ingress.
+A posture with exactly one learned predecessor may now be the developmental
+predecessor when all of its exact L11-to-L12 branches are positive on the
+immediately preceding frontier, none carries body-owned acoustic efference,
+and one current source returns exactly its complete terminal set. Zero or more
+than one learned predecessor, a partial branch set, a wrong body set, echo, or
+multiple complete orderings still refuse. This changes only guided anatomy
+growth; it cannot prepare work, recruit a motor, co-recruit breath, or enter
+ordinary recall.
+
+The focused unit guard
+`exact_body_source_mounts_one_coordinated_vocal_preparation` passes 1/1 and now
+proves both direct external-root and exact internal-continuation acceptance,
+plus echo, partial-branch, and wrong-terminal refusal. On the exact task-1455
+copy, the same second posture-three lesson then grew route contacts from 503 to
+507 and continuation records from four to eight: exactly one new `...2736` to
+`...2798` maximum-to-minimum edge across all four mouth motors. No duplicate
+root or competing edge was added. The lesson successor cold-round-tripped
+exactly. Artifacts: `/tmp/guala-candidate110bk-posture3-edge.json`, SHA-256
+`2ac3d1d82723adf96138f051f80d2597ddcae94e617a88faaf6d305bfe6e5c94`;
+cognitive successor SHA-256
+`dc7e488dcf203510fd55b117aa0899bc6e1bc3cb37293b53ef63830802d9a045`;
+structure `/tmp/guala-candidate110bl-posture3-edge-structure.json`, SHA-256
+`84016321ba5958294d313b2e925a43c760fbdcb04a9841aa1fb1387966ff857d`.
+
+`S-054-110-11` (mature three-posture sound-only recall): after the exact taught
+body reached acoustic quiescence without any motor or breath during recovery,
+one ordinary phase-zero sound cue produced four minimum motors on clock 3,
+four maximum motors on clock 4, and four minimum motors on clock 5. Each posture
+co-recruited breath: 23, 306, and 22 carriers respectively; total body-owned
+pressure had 39,198 nonzero samples. No guide or second priming cue was used.
+The successor was cold-round-trip exact. JSON
+`/tmp/guala-candidate110bo-posture3-cue1.json`, SHA-256
+`64ee9788b0369a7110ae20acfe21d6e2bbdee067766dc98db7f6685bc499c191`;
+cognitive successor SHA-256
+`319a2953f616619f2250835ee64ca3f5bbccc82f630701ad3e261e9f00b39a41`.
+This three-posture success is retained and must not be reopened.
+
+`S-054-110-12` (first posture-four lesson): from the same frozen quiet
+three-posture predecessor, the unchanged cue reproduced the accepted three
+postures and the maximum guide was admitted only on clock 6, the next physical
+event. The successor persisted exactly. This is the first lived fourth-posture
+memory, not yet a learned minimum-to-maximum edge. JSON
+`/tmp/guala-candidate110bp-posture4-lesson1.json`, SHA-256
+`3438c9c5e767bd0a6eb66716c1b3d7b24983ce4eeed39e53fa44e3af7e5ed00d`;
+cognitive successor SHA-256
+`113c367f5cb5988dac24cba198488a57c4a04f07b787cf57966c52516efb2be5`.
+
+`F-054-AUDIT-H115` (new unit guard retained an immutable fixture borrow): the
+first internal-predecessor guard reused a local terminal-lookup closure after
+later fixture anatomy growth, so Rust correctly refused two mutable borrows at
+compile time. No organism ran and no state changed. The stored closure use was
+replaced with a one-statement read whose borrow ends before mutation; the exact
+guard then compiled and passed. This is a harness failure, not candidate
+physical evidence.
+
+The active gate is the second fourth-posture lesson, retained third edge, then
+one complete four-posture sound-only recall with silence and cold persistence.
+Production remains task 1455 and unchanged.
+
 `S-054-110-06` (focused source verification): the candidate compiles. The exact
 tests `cross_sensory_retention_reads_original_bond_endpoints`,
 `varied_multisensory_occurrences_mount_only_exact_settled_assemblies`, and
@@ -8619,3 +8811,79 @@ guided-only anatomy growth, bounded frontier expiry, and three-edge retained
 anatomy remain intact. `git diff --check` passed. No L0-L4, DSF field, codec,
 identity, persisted neuron schema, Python shell, UI transport, or production
 resource was changed.
+
+`F-054-110-07` (first lawful quiet instant and root-reference re-entry): the
+accepted first posture-three lesson successor was advanced only by ordinary
+organism clocks, with no cue and no guide. There were no motor recruitments or
+respiratory carriers at any measured clock. The body still held 15,154 nonzero
+pressure samples after 20 clocks and 7,577 after 22 clocks. During clock 23 it
+settled the final 249 nonzero samples and then reported exact acoustic
+quiescence; the cognitive and body state remained cold-round-trip exact. Thus
+clock 23 is the measured first lawful post-act tutoring boundary on this exact
+mature body. JSON receipts: `/tmp/guala-candidate110bb-quiet20.json`, SHA-256
+`2c3ec4bf6667833da44e773305d05e69e0cdea4704e4fa21af6fdc13d2cfe3cd`;
+`/tmp/guala-candidate110bc-quiet22.json`, SHA-256
+`90584737c5259f66ec8ee4fc155c563958bc86e4f3a348c1e309a4af5a07f413`;
+`/tmp/guala-candidate110bd-quiet23.json`, SHA-256
+`f919fbe7e76a14d89deb978f77a534893499fdcc1546c14f8ed3a0805da90394`.
+
+One unchanged phase-zero tutor-pressure cue at that first quiet state produced
+47 externally reassembled formations but no motor, breath, or pressure. It
+reassembled the younger maximum associations `...0980`, `...09b8`, and
+`...09d4`, but none of the four root associations `...093a`, `...0956`,
+`...0964`, or `...0972`. The cue perturbed sound lineages `...0023`, `...0024`,
+`...0031`, `...0033`, and `...0034`; the four root owner formations retain
+sound members `...0022`, `...0030`, and `...0032`, so the root was not a
+candidate for physical recurrence. This falsifies a single root-cue recall as
+a sufficient curriculum correction and localizes the absence before motor
+authority or conductance competition. Artifact
+`/tmp/guala-candidate110be-quiet23-root-cue.json`, SHA-256
+`0d73d814c05ccdb05cdb1918bdc4248f1dec8fa476e699069424a9ffb8539358`.
+
+`S-054-110-08` (ordinary second-cue re-entry succeeds): after the first cue's
+12 ordinary no-act clocks, a second byte-identical phase-zero tutor-pressure
+cue re-entered all four root associations and the three younger maximum
+associations. The root produced all four minimum motors on clock 3 with 326
+respiratory carriers; its retained continuation produced all four maximum
+motors on clock 4 with 26 respiratory carriers. Total nonzero body-owned
+pressure samples were 39,197. No timer, forced neuron, guide, body motion,
+authored work, threshold, or state edit was used. The successor cognitive state
+and body were encoded, decoded, and re-encoded exactly. JSON
+`/tmp/guala-candidate110bf-second-root-cue.json`, SHA-256
+`e1ced1cbcf9644e4b1b9154ecf7768e1f4940ded456676a71481c71d529557a1`;
+cognitive successor SHA-256
+`d232b07a62acea040c01e898087fc8db45006a914c96cbd08e27942e2d0182c7`;
+body successor SHA-256
+`d86c8f1a537e175f72bf7d9bc7b970a1a6026ca1a99b61d3a703269bfe42c5b6`.
+
+This is a retained success and must not be reopened: the mature root is not
+dead or overwritten. Its state-dependent sparse receptor reference requires
+one ordinary sensory re-entry before recall at this chronology. The immediate
+curriculum correction is therefore bounded rehearsal from the root using the
+measured two-cue sequence, followed by the already-proved posture-three
+teaching event. It does not justify relaxing exact mosaic admission or changing
+organism physics. The active gate remains a complete four-posture sound-only
+recall on the exact task-1455 copy, then the frozen deployment sequence.
+Production remains task 1455 and unchanged.
+
+`H-054-119` (old installed native extension, not candidate evidence): with the
+correct worktree `PYTHONPATH`, the first active Python run executed 58 tests:
+56 passed and two failed because Python loaded the previously installed
+`guala_core`. That binary lacked
+`settle_native_joint_source_episode_for_senses_from_anatomy` and retained the
+obsolete rejection of lawful contiguous nonzero topology. These are direct
+artifact-mismatch signatures; they neither implicate Candidate 110 nor count as
+candidate passes. No source or organism state changed.
+
+`S-054-110-17` (one immutable release wheel and active Python boundary): the
+clean reviewed source built one CPython 3.11 release wheel at
+`/tmp/guala-candidate110-wheel/guala_core-0.1.0-cp311-cp311-manylinux_2_35_x86_64.whl`,
+SHA-256
+`11fe185c94e8fcbca3937de5df209b207423764474a12c418a2fb23a7ff547f7`.
+Its extracted native extension is SHA-256
+`c440accbf83e255a07e15e11b0a9a93d0fed2c3c9f7ca6c91cd40ee59ab95a1b`.
+An isolated import proved the expected current API belongs to that exact
+extension. With that artifact first on `PYTHONPATH`, the frozen nine-file active
+lean suite completed `58 passed` in 2.82 seconds; its sole output warning was
+the inherited Starlette/httpx deprecation. This wheel is the sole candidate
+artifact for image rehearsal; it must not be silently rebuilt or substituted.
