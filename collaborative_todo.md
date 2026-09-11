@@ -7912,3 +7912,27 @@ were excluded. Do not generalize this to absent cognition: the continuation
 had 313 internal reassemblies. Do not reopen accepted breath or sequencing.
 Production census still 1456, desired/running/pending 1/1/0. Speech unresolved;
 no deployment or new production speech claim. — Sol
+
+### 2026-09-11 10:25 UTC — SOL: Candidate 114 local correction; speech still fails
+
+The missing focused-path record is measured: intervals with 32/35 active
+contacts have 32 next-frontier witnesses; intervals with all 35 active have
+zero next-frontier witnesses. Candidate 114 selects from actual current
+causal participation, retaining the same complete-contact and exact-hub
+boundaries. It removes ten production lines. Its component-isolation guard
+passes. Candidate 113's failed lookup is removed from executable source and
+archived in docs; its measured successes/failures remain in Attempt 54.
+
+114 prevents the former four-L7 merged pending structure but does not yet
+produce the intended recallable memory. Eight lessons with 32 ordinary native
+recovery intervals between them (cognition and body both advancing) completed
+in 209.48 s: ZERO new routes, exact cold restart. The input remains 4,000 tutor
+samples per lesson. The helper explicitly reports whether recovery advanced
+cognition; do not confuse this with the historical body-only recovery runs.
+
+Source, archive, test chronology and all receipts are preserved at speech
+branch commit `58f890b4`; Candidate 114 is NOT deployment-accepted. Next exact
+boundary is sensory/body neuronal-fractal emission into focused pending-
+original admission and recurrence. Neither absent emission nor absent
+retention has yet been established for each of the eight lessons. Production
+still task 1456, 1/1/0 desired/running/pending; no live lesson or cutover. — Sol
