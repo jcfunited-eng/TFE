@@ -10184,6 +10184,22 @@ impl ResidentCognitiveFormationState {
             };
         if admit_guided_vocal_route_growth {
             #[cfg(test)]
+            if std::env::var_os("GUALA_PROBE_GUIDED_VOCAL_ROOT_DIAGNOSTIC").is_some() {
+                eprintln!("C119_GROWTH_INPUT {}", serde_json::json!({
+                    "generation": source_generation,
+                    "source_spans": admitted_source_occurrence_spans,
+                    "moved_effectors": format!("{:?}", exact_moved_body_effectors_by_occurrence),
+                    "reached_regulations": reached_body_regulations_by_occurrence,
+                    "exact_moved_regulations": exact_moved_body_regulations_by_occurrence,
+                    "energized_receptors": externally_energized_by_occurrence,
+                    "associations": reached_associations_by_occurrence.lineages,
+                    "settled_l6": settled_layer_six_lineages,
+                    "sound_owned_members": exact_sound_reassembled_members,
+                    "external_reassemblies": format!("{:?}", externally_reassembled_formation_frontiers),
+                    "predecessor_orderings": guided_vocal_predecessor_orderings,
+                }));
+            }
+            #[cfg(test)]
             { phase_trace.stage = "vocal-growth"; }
             mount_exact_reassembled_vocal_action_routes(
                 &mut cohorts,
@@ -16100,6 +16116,18 @@ fn mount_reached_cross_sensory_association(
             })
         })
         .collect::<Vec<_>>();
+    #[cfg(test)]
+    if std::env::var_os("GUALA_PROBE_GUIDED_VOCAL_ROOT_DIAGNOSTIC").is_some()
+        && moved_body_regulations_by_occurrence.iter().any(|regulations| !regulations.is_empty())
+    {
+        eprintln!("C119_ASSOCIATION_INPUT {}", serde_json::json!({
+            "next_lineage_ordinal": *next_lineage_ordinal,
+            "moved_regulations": moved_body_regulations_by_occurrence,
+            "energized_integrations": energized_integrations_by_occurrence,
+            "candidate_assemblies": candidate_assemblies_by_occurrence,
+            "settled_l6": settled_layer_six_lineages,
+        }));
+    }
     let candidate_assemblies = candidate_assemblies_by_occurrence
         .iter()
         .filter_map(|assembly| assembly.clone())

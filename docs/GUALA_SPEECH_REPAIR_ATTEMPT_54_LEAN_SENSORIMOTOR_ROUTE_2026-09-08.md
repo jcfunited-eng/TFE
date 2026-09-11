@@ -11435,3 +11435,62 @@ before/after exact. No static signature issues; default behavior unchanged.
 Production C118/C119 sources unchanged; only testcompiled source differs.
 Proceed one release test build and exact two-guide source discriminator,
 not another fullruntime/speech acceptance. Exporter/test child census clear.
+
+
+`F-054-119-13` — captured actual FULL primary source reproduces ZERO root
+under the otherwise successful same651372 helper chronology. Build36322
+completed2m37s,99 inheritedwarnings; binarySHA
+42c488b0e26c3717d3f5209103e4d71aa6478de075d5d0600064d49478b24774.
+Source variant session8353 completed35.96s,1passed(test execution);
+two guides,32 native recovery, checkpoint1/2zero routes, zero sound/breath,
+coldexact. This is a growth failure result, NOT a passed speech assertion.
+Only source changed versus S119-10's4route result. Same captured first world
+scene repeated twice; actual actor chronology not replayed. Therefore source
+differences are sufficient to remove the TWO-LESSON helper growth result on
+thisbody. Does NOT establish permanent inability or which input detail/law
+fails; cannot justify reducing senses, switching to helper in production,
+or claiming all timing issues resolved.
+
+Receipt /tmp/guala-candidate119-full-source.json
+SHA55de0a82173cadc10d609f40f7f3ec0e689567dca34fe191ae550a40dcb16ee3;
+logSHAd65fe2bab5a95d41e98537541c1e93edbd149eecd6d3decc35b686e96591d5f0;
+cognitiveSHAcd66364280760588291a0b2bb01c4266a15eb978850382e9362b87579c64c98a;
+bodySHA6247ab3b74180419d60eb5dc21a94c38e72cbe119ea078efa9f70a8d14ffd59f.
+Exactsource+exporter E backup c119-primary-source.tar.gz
+SHA08bb9147663288f0a9388353aa6187858b936a174467e2e439ae1582e79c93e5.
+Read-only encoded-source check: all32 cochlear-band-pressure quantity/unit
+descriptors and34 organism-ear-pressure anchors PRESENT. Missing-descriptor
+hypothesis refuted without organism run; do not rediscover it.
+Next is the FIRST missing computed root producer (movedregulation, reached
+association, retainedsoundownership), not more guessed cue/rest parameters.
+
+AWS pre19:10:48/post19:11:45: sole1456/effde9e1/image6aa38d99 HEALTHY1/1/0.
+19:00 complete CPUavg42.25950562/max52.27362719%,memoryavg10.74320475/max11.15417480%;
+19:05 CPUavg45.27235601/max62.61645271%,memoryavg10.45817057/max11.28234863%.
+Nativechild57195 completed; observedRSS1646940KiB inrun, not exactpeak.
+No runtime/census/compiler survivors atpostcheck, no livewrite/lesson or
+caretakerrestart. All S119-10 and C118 local successes remainclosed.
+
+
+`D-054-119-14` — first-producer diagnostic, not another law or parameter sweep.
+One cfg(test)-only trace at existing vocal-growth call prints actual computed
+source spans, moved effectors, reached/exact regulations, energized receptors,
+occurrence associations, settledL6, exactsound-owned members, actual external
+reassembly witnesses and predecessor orderings. A second cfg(test)-only trace
+inside association growth prints existing candidate assemblies and energized
+integrations when real moved regulations exist. No predicate recomputation,
+new state/permission, omitted sense, production logging or changed physics.
+Helper recovery has guided-growthfalse, so outer trace is exactlytwo guides.
+Inner trace may also observe real body return during bounded32recovery; no
+additional clocks are introduced. Existing35.96s failed sourcevariant repeated
+ONCE for missing diagnostic evidence; all result/body hashes must remain exact.
+If input log reveals emptyassociations, distinguish absent physical L6 from
+sound-ownership failure before any correction. Full production root cause
+remains unproven. Independent frozen source review before build.
+
+F119-13 E archive c119-full-source-result.tar.gz
+SHA112f02e1a3ccf7537f9b59dd84b0bb2240a9384319bad45955c7459b2b044a24.
+Read-only tool failure: largecore JSON read capped524288bytes, parse refused
+before any edit. Bounded240000-character chunks then recovered exactfullfile;
+28 diagnostic lines added by full-file Update. Do not reread giant files in a
+single tool response or interpret tool truncation as missing source.
