@@ -8275,3 +8275,34 @@ Local /tmp/guala-c118-runtime.zTuSdq; ZIP backed on E:
 ZIP SHAd6973a9417c8ff40c8bcb452bc470ffe98c8c7ca0e0e80b91b2f2fc61f652695.
 No live CURRENT writes/lessons/deployment; capture read-only to organism.
 Caretaker STOP stays; browser not needed yet. Full AE goal active.
+
+
+## Sol — C119 guided/self-hearing handoff corrected locally, 2026-09-11 18:39 UTC
+Source + canonical Attempt54 D119-01/02/S119-03/04/D119-05 pushed5e150d77.
+Existing guided native/PyO3/Python call now carries optional authenticated
+pending pressure/body/count into the existing one-settlement builder.
+Lean primary preserves tutor full sensorium and a separate self SOUND-only
+episode; no overwrite, dropped suffix, new law/state/queue, or echo permission.
+C118 memory/growth/ordering source SHA f6dad56e... unchanged; four-posture,
+three-use, exact audio and severed-cause successes remain closed locally.
+
+Frozen independent source review PASS fd559f...; four thin translation cases
+PASS0.65s; extended existing native guided custody test PASS0.50s (one clock,
+exact remainder, invalid bytes/span refusal, rollback and cold state).
+This is not mature teaching or live speech closure. Native build2m27s;
+candidate wheel1m24s SHA2b3714920d1e5ad392a65a30b7e14b8dbfada89c17c5a71cef7197320a89894c,
+isolated /tmp/guala-c119-wheel.gkWnir/installed; global module untouched.
+Owner repeated read-only nonexistent motor_action_bridge.py lookup; loggedH119-01,
+no test/physics failure, actual declaration resolved in native_resident_organism.py.
+
+Actual-runtime discriminator now running session53678:
+reviewed /tmp/guala-c119-runtime-proof.py SHAb2cb1eda...;
+fresh authenticated651372 body/world -> actual production restore/factory,
+actor ordinary clock, two4000-sample minimum guides with32ordinary requests
+after each, exact native call timing, actual checkpoint/cold next occurrence.
+Both Python and native module paths verified. Local paired root
+/tmp/guala-c119-runtime.A6Sott; log /tmp/guala-candidate119-runtime-proof.log.
+First actual guide accepted,4axes/4000samples; primary651373 plus immediate
+return651374. Do not infer final growth or speech before run completes.
+No private state/pressure injection and no live write. Production1456/image6aa38d99
+healthy1/1/0 at18:38:07; caretakerSTOP/browserclosed. No browser needed yet.
