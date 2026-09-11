@@ -8506,3 +8506,47 @@ notlive. Do not restart memory/root diagnosis or manufacture a word from this
 oneposture. No production changes; sole1456/effde9e1/image6aa38d99 stayshealthy,
 historicalalarmunchanged.20:15CPUavg44.26%,RAMavg10.57%.
 CaretakerSTOP/browserclosed, goalACTIVE, no user input needed. — Sol
+
+
+## Sol — 2026-09-11 20:44 UTC — C120 recall baseline measured; no cue delivered
+Canonical Attempt54 HEADER and D12008–11/F12010/H12003–04 committed/pushed
+c9747e4eab91f73daa0b47dbf3b97f36d55195cc. C120 source remains fc5020ff;
+all previously recorded rootgrowth/fourmotors/breath/pressure/selfhearing/
+original-topology/cold successes remain closed LOCALLY. Nothing new deployed.
+Observer source review caught and corrected false-negative carrier-only motor
+evidence, main-thread cue timestamp race, and complete-occurrence window
+description. Final52458476075a20b71a5b2d1e98a6bc0d78f5fa961aaeaea0de412592d3332ee0 PASS.
+
+Actualruntime run15721 from preserved651474/d91e69c9 pair finished its64native
+PRE-CUE clocks. Root268e acted at651479 and651517, all4minimum motors+breath
+(251/502respiratorycarriers), BEFOREany newmiccue. Last8clocks no motors/breath
+but3788–3789nonzero pressure samples each. No quietbaseline so NOcue delivered.
+This is not failedsoundrecall, not indefinitevoiceproof, and not erasedgrowth.
+It is the D11204/F05804/C07001 prior post-teaching/poised-act class. Actualworld
+and ownbody sensing continued; no external microphone does not mean no sensory
+causes. Residual teaching versus incorrectly renewed authority remains unknown.
+No broad rerun, no longer wait, no root reteaching or physiology changes.
+
+64nativecalls: mean708.886ms,max923.730ms,total45368.678ms;224000selfheard samples,
+211241nonzerooutputsobserved. SampledRSS1325932KiB only, not exactpeak.
+Finalactorclose saved651538/bodydab36ac45a3878ad23ca9ce7305d448be4015dcc5d044f94c241f67e68651a48
+world433fe8e95386c3c312f859dccd71f6c54cab5e2330c0102ee763df59b2ec8bd3;
+prior651506/fe9f5489. Refused run did NOT reach post-cue topology/cold-next;
+prior proofs stay scoped to priorrun, no false newcoldclaim.
+Localpairedroot/tmp/guala-c120-recall.MTiEyI/paired;
+log/tmp/guala-candidate120-runtime-recall.log
+SHA5bb71e1f83645fa8947d073f6c3537854fa3e3bf294ab902fec96f2920139c69.
+E archive/mnt/tfebackup/guala-c118-four-posture.XehvEs/c120-actual-runtime-recall-baseline.tar.gz
+SHA2dd5f8108452c7d89fbe3e089d079d21e81044b3e11e5c3e67ba0ddd5399b660.
+
+NEXT SINGLE ITEM: exact retained founder/motor custody of those two pre-cue
+acts on ACTUALruntime, not a new helper/teaching campaign. Public frontier
+observer omits in-flight/external/echo flags; not sufficient discrimination.
+Existing reservoirhelper records full flags but uses DIFFERENT chronology.
+Trace reassembly-founder5031→rootpermission458→motorpermission20434→inflight23605;
+preserve exact bond/current/phase/orientation and actual fresh cause. No new
+neuron law or blind extra tail. Independent source reviewer concurs.
+Post20:39AWS sole1456/effde9e1/image6aa38d99 RUNNING/HEALTHY1/1/0,
+historicalSep8alarmunchanged;20:37CPUavg41.2667%,RAMavg10.5540%.
+No native/compiler child remains. CaretakerSTOP/browserclosed. FullAEgoalACTIVE,
+speechNOTfixed. User does not need to open browser or approve next check. — Sol
