@@ -9660,3 +9660,243 @@ claim. Single next item remains D-054-115: freeze the smallest lifecycle-
 complete implementation contract for exact asynchronous sound/body admission,
 using these actual leaf/contact bounds; do not add a generic history store,
 promote anatomy to experience, or repeat the same eight-lesson failure.
+
+
+### Candidate 115 — frozen asynchronous physical-admission contract (source work)
+
+`D-054-115-05`: requested architecture is actual sound/body neuronal fractals
+forming a connected retained path despite independent quiescence clocks.
+Current code both drops isolated emitted leaves and blocks a real partial path
+unless all mounted contacts act together. Conflict: YES, measured in114-09.
+No change to L0-L4/fullDSF, neuron settlement/energy, root/continuation/breath
+laws, Python cognition, legacy shell, or curriculum. No field reduction/loss.
+Single item: exact asynchronous original admission, with later causal recall
+still required before speech acceptance. Previous turn was progress, not a
+wait: two raw measurements and their replay were committed2340897d.
+C110 copied-body recall/order/breath remains closed at its recorded scope.
+
+Input/producer: saved1456 one-lesson cognitive/body pair named114-09, ordinary
+coexisting native intervals. `settle_resident_original_interval`,
+`advance_recurrent_neuronal_experience`, and internal contact settlement emit
+true settled deltas; `coalesce_emitted_neuron_fractals` is their sole finalized
+merge. Publish finalized outputs ONCE after that merge in
+`prepare_typed_admitted_transition_from_owned`. Zero/cancelled emissions add
+nothing. One latest real delta per stable lineage replaces its predecessor;
+reads do not emit, mark quiescence, alter the delta, or authorize action.
+
+Custody: new dedicated `settled_fractal_custody.rs`, no generic database or
+history API. Immutable compressed binary lineage tree: at most N leaves and
+N-1 branch nodes; branch-bit positions strictly increase within the existing
+128-bit lineage width. Preparation shares unchanged Arc nodes and copies only
+updated root paths, not all lived neurons. Get/update traverse at most128
+branches; retained payload is one actual delta per emitting neuron. No timer,
+queue, owner, semantic key, coefficient, per-leaf file, cache of raw media, or
+old hippocampal archive. Native runtime retains only its existing active and
+single prepared successor; discarded preparations drop their private root.
+No changed leaf means no tree write. Seal/restore alone traverses all leaves.
+Independent review found no existing lifecycle-complete container and approved
+this narrow representation because Arc<BTreeMap> would copy N on mutation.
+
+Consumer: `exact_reached_cross_sensory_original_bonds` selects each reached
+hub's actual connected L6/receptor piece, excluding sibling hubs/disconnected
+source legs. A pending original on that same hub is eligible for continuation;
+a recognized owner is not a new-original invitation. `settle_organism_mosaic_boundary`
+uses current emitted leaves for ordinary components and exact latest settled
+leaves ONLY at actual connected focused endpoints. Its existing
+`continue_physical_mosaic_original_with_reached_piece` retains the prior sound
+piece and joins the currently connected body/hub piece. Resolve at most one
+same-hub prior under the existing physical adjacency proof; ambiguity refuses.
+Do not require all prior contacts to conduct again. Retire only that replaced
+same-hub original; shared sound leaves do not erase sibling-hub originals.
+At least3 genuine leaves and actual connectedness remain mandatory. Remove
+mounted-fan augmentation from cross-sensory classification in
+`pending_association_has_cross_sensory_members` and
+`adds_unretained_cross_sensory_relation`; do not substitute topology for body
+experience. Old leaves may participate in a new relation, but are not relabelled
+as newly experienced or as currently quiescent.
+
+Predicted four-clock successor: clock1 retains separate exact-hub sound
+partials with >=3 real sound leaves; clock2 can join each actual body leaf and
+new hub through real contacts despite no renewed sound emission. No hub merges
+with its siblings. Later original recurrence/cue ownership uses the existing
+`prove_physical_mosaic_recurrence_with_origin`,
+`exact_sound_reassembled_structure_lineages`, and learned vocal author;
+none of their downstream physical laws is changed. Formation admission alone
+is NOT recall or speech. Ordinary recurrence remains a named downstream
+acceptance boundary, not an assumed success.
+
+Codec/lifecycle: GLCOG045 appends one sorted flat lineage/delta stream to the
+current body, not a serialized tree. Decode validates canonical order,
+uniqueness, live lineage, nonzero canonical delta, and coordinate/anatomy width.
+V44 explicit migration supplies EMPTY custody, preserves all previous state,
+learned formations, identity, clocks, body and in-flight sound; no inferred
+historical leaves. Ordinary decode becomes V45-only. All other state
+constructors/defaults, clone, nutritional/authored-contact successors and
+decode must carry the same root. `organism_runtime::migrate_resident_organism_exact_energy_envelope`
+currently confuses old cognitive codec with body observation requiring reset:
+separate that predicate so V44->45 does NOT call
+`requiring_proprioceptive_observation`. Older explicit pose migrations retain
+their existing rules. New source enters the explicit release manifest; no
+test probe enters the application. V45 is one-way: full authenticated backup
+before first future deploy; old software cannot consume its appended section.
+No packaging or cutover is authorized by this contract alone.
+
+Transaction/resource closure: producer builds local successor root after all
+fallible physical settlement; any later admission/encoding error discards the
+candidate without touching predecessor root/state. No mutex/owner required.
+Encoded-count limits use actual source bytes and topology widths; logical node
+and payload bytes remain distinct from allocator/RSS peak. No archive or
+population scan is added to ordinary updates. Existing seal/runtime resource
+limits still apply; measure actual native peak before future deployment.
+No parameter sweep: this changes evidence custody, not physical coefficients.
+
+Frozen validation order: first migrate saved pair explicitly and run the
+existing four-clock path with exact candidate-oracle equality, cold restore,
+actual sound/body membership and unique hub witnesses (not mounted counts).
+Then one bounded production-chronology root-learning/recall path: cognition
+and body both advance,4,000 input samples/lesson, pre-cue zero act/breath/sound,
+sound-only recall, complete posture, breath, pressure, clean stop, exact
+restart. Reuse frozen downstream word-chain/negative controls; no new bar at
+deployment. Native observation and test census already expose actual member/
+bond layers; full live proof must pass existing runtime/HTTP/source custody
+and laptop sound delivery, not backend-only counts. If recurrence or route
+growth fails, record that exact predeclared boundary without claiming speech.
+Do not rerun broad lessons until the measured four-clock handoff closes.
+
+Implementation owner Sol; files: resident_cognitive_formation.rs, its new
+settled_fractal_custody.rs module and focused test module, physical_mosaic.rs
+only for reuse of the existing coordinate validator/continuation interface
+if needed, organism_runtime.rs for the codec-vs-body migration distinction,
+and deploy/guala_release_manifest.json. Independent frozen source review
+precedes compile/test. Rejected111/113 mechanisms stay archived; no semantics,
+body control, energy transfer or old shell mechanism is revived.
+
+
+`D-054-115-06` — 2026-09-11 11:42 UTC, source preflight, not a test result.
+Candidate115's combined handoff and focused saved-body acceptance source are
+written. No candidate compilation/test/package/deploy has run. The previous
+user-status turn was no repair progress; this turn completes source/lifecycle
+preflight. New acceptance name:
+resident_cognitive_formation::reservoir_probe::memory_retention_probe::candidate115_saved_lesson_exact_sound_body_handoff
+(ignored unless deliberately selected with authenticated saved paths).
+Its receipt requires four distinct hub originals with actual sound/body
+members, candidate-helper byte equivalence, cold codec equality and the next
+ordinary warm/cold interval equality. It writes the failed membership census
+before its final assertion. Same known one-lesson input, not new broad lessons.
+
+All nine explicit self-derived constructors now carry settled_fractals; the
+two historical memory-reset constructors also carry it rather than silently
+defaulting. V45/V44 skip those historical retirements. Every encode validates
+custodied lineages against successor anatomy: an explicitly requested cleanup
+that removes a still-custodied lineage refuses before publication, rather
+than silently losing its evidence. This candidate does not add a pruning
+policy or authorize new historical cleanup. Ordinary growth and preparation
+retain unchanged Arc paths. The existing current-format contamination
+correction entry point was traced through runtime decode, correction, encode
+and restore; encoding failure cannot publish its local result.
+
+Formation index postings include original/recurrence bond endpoints as well
+as leaf members, so clock1 sound partials can be found by their hub even
+before the hub itself emits. Both occurrence-named and causally reached hubs
+now receive the same existing-owner exclusion; no special initial-list bypass.
+Old-owner union remains absent. Current source-layer classification uses
+actual members/bond endpoints; focused acceptance requires actual member
+leaves, not endpoint counts. The standalone custody test covers canonical
+insertion order, missing key, identical-write no allocation, overwrite without
+history, immutable predecessor, sorted visit and 2N-1 node/128-bit path bound.
+It is supporting container evidence, never speech evidence.
+
+`H-054-129`: the earlier full-file transform asserted two default constructors;
+source contained four, including two historical reset constructors. It
+aborted before applying the main file and before any build. Lifecycle
+inspection corrected all constructors before compile, including nine
+self-derived constructors omitted by that initial pattern. Test helper's
+integer type was matched to the actual i128 API during source preflight.
+These are source-preparation errors caught before running, not organism fails.
+No production changes. Frozen independent source review is next, required
+before the first candidate compile by the project-truth skill.
+
+
+### Candidate 115 source rejection; Candidate 116 exact same-hub lifecycle contract
+
+`F-054-115-01`: independent source review REJECTED fingerprint
+29f2aadf880fded40a5ab52978f9db52eb6c1760ff96601835290376412f7973,
+verified unchanged before/after. Architectural defect: the selector allowed a
+hub already owning a pending original, while the continuation resolver required
+recent adjacency. Once adjacency expired, no eligible prior was found, but the
+new permanent leaf custody could satisfy new-original admission. A different
+current subset could survive exact-duplicate comparison and coexist with the
+old same-hub original. An inactive pending original need not reassemble, so the
+overlapping-reassembly guard does not prevent this. Never treat expired
+continuation eligibility as lack of a prior owner.
+
+`F-054-115-02`: localized acceptance defect: both warm/cold next-step helper
+calls passed residency=None. This compared two reconstructed scheduler paths.
+The real warm scheduler and pending physical motor/sound return must be carried
+into the warm arm. Also count ALL same-hub originals, not only complete matches,
+so an extra unfinished duplicate cannot hide behind one complete match.
+
+`S-054-115-01` (SOURCE REVIEW ONLY): finalized-coalesced-only publication,
+immutable bounded path copying, exact connected endpoint reads, constructor
+propagation, V45 validation, V44 body-status preservation, explicit release
+inclusion and ignored test reachability were consistent with the contract.
+No compile, test, timing, or speech success follows from source consistency.
+Those reviewed components are preserved for reuse, not rediscovered.
+
+Rejected source/tests/manifest archived at
+docs/repair_evidence/candidate115-rejected-asynchronous-admission.patch,
+SHA256 1f078ed7384ada60b384f69bfc7f5b5e13743a45cfb7d3eb4174ad147e52b9fc.
+Executable tree restored exactly to2340897d; new runtime module removed from
+the executable tree and recoverable in that patch. No compiled candidate,
+test result, production update or learning state was discarded.
+
+`H-054-130`: read-only file discovery again supplied nonexistent root scripts/
+alongside valid directories. It emitted an rg path error, no native run.
+Correct procedure is rg --files from validated root, then filter returned
+paths. Shared wrapper was read: its test mode selects DEBUG only and does not
+forward --ignored. Candidate release acceptance must resolve from the explicit
+new release binary's --list; using that wrapper would select wrong build or
+skip this ignored test. No wrapper edit or stale binary run occurred.
+
+`D-054-116-01`: continue ONE asynchronous physical-admission item, replacing
+the rejected lifecycle decision, not opening new speech/neuron physics.
+All input, output, conserved state, codec, mutation/rollback, resource and
+physical-provenance clauses of115-05 remain. The extra state is bounded exact
+settled deltas, never action authority. Prior ownership is read from existing
+physical formations; no new marker, timer, queue or ownership state is added.
+
+Freeze these exhaustive focused-hub cases before implementation:
+| Existing physical formation on exact hub | Required outcome |
+| --- | --- |
+| None | Existing new-original admission may use actual connected leaves. |
+| Exactly one original-only formation; existing physical adjacency holds | Continue that exact prior; replace only it; preserve sibling hubs. |
+| Exactly one original-only formation; adjacency absent | No new original and no replacement. Preserve the pending original unchanged. |
+| Multiple same-hub originals, or conflicting/mixed-hub authority | Ambiguity refuses; never select one or merge them. |
+| Already recognized retained formation | Not a new-original invitation; existing recurrence law remains authority. |
+
+Resolve EXISTENCE before ADJACENCY. The no-adjacency branch must leave the
+original-admission loop before its >=3-leaf admission path. The already
+reviewed selector exclusions apply to both occurrence-named and reached hubs.
+No all-mounted-contact gate, old-owner union, anatomy-as-experience fallback
+or sibling deletion returns. Custody reads never renew adjacency.
+
+Acceptance remains the same saved four-clock actual sound/body handoff FIRST,
+with a sole indexed owner per hub and actual leaf checks. The real warm
+residency and pending motor/sound return from clock4 are carried into clock5;
+cold reconstructs cognitive/body bytes and uses the identical physical return
+inputs. Compare native successor and complete observation, then physical body,
+pressure and consequences. Do not use a helper that resets the warm scheduler.
+A tiny supporting expired-owner boundary case uses a different connected
+subset plus exact stored leaves, no fresh emissions and no prior frontier:
+candidate115 would create an additional pending original;116 must leave the
+sole prior unchanged. Ambiguous-owner case must refuse. These are declared
+anti-duplication checks, not extra speech criteria.
+
+After source review passes: one release lib compile, exact ignored four-clock
+acceptance, then only the supporting lifecycle/container/migration checks.
+Only if the handoff closes, proceed to the already frozen eight-lesson
+ordinary-cognition learning/recall path. Production remains task1456. Latest
+read-only cloud check: sole task effde9e1bf364ec9b4114355fb07eafb,
+RUNNING/HEALTHY,1/1/0, image6aa38d99. 11:30/35/40 CPU average
+43.51/42.65/40.99%, memory10.53/10.78/10.62%; clock alarm unchanged since
+September8. No current native-timing/whole-health/speech proof claimed.

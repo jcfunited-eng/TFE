@@ -1,0 +1,1158 @@
+diff --git a/deploy/guala_release_manifest.json b/deploy/guala_release_manifest.json
+index b2380bd3..47fa827a 100644
+--- a/deploy/guala_release_manifest.json
++++ b/deploy/guala_release_manifest.json
+@@ -77,6 +77,7 @@
+         "native/guala_core/src/recovery_fluid_contact.rs",
+         "native/guala_core/src/resident_cognitive_formation.rs",
+         "native/guala_core/src/resident_cognitive_formation/lean_sensorimotor_route.rs",
++        "native/guala_core/src/resident_cognitive_formation/settled_fractal_custody.rs",
+         "native/guala_core/src/resident_cognitive_formation/real_body_migration_probe.rs",
+         "native/guala_core/src/resident_cognitive_formation/reservoir_probe.rs",
+         "native/guala_core/src/resident_cognitive_formation/tests.rs",
+diff --git a/native/guala_core/src/organism_runtime.rs b/native/guala_core/src/organism_runtime.rs
+index e808ce91..081a2956 100644
+--- a/native/guala_core/src/organism_runtime.rs
++++ b/native/guala_core/src/organism_runtime.rs
+@@ -6358,7 +6358,7 @@ fn migrate_resident_organism_exact_energy_envelope(
+         let correct_articulated_body_pose =
+             !ResidentCognitiveFormationState::encoded_has_corrected_articulated_pose(cognitive);
+         let require_current_proprioceptive_observation =
+-            !ResidentCognitiveFormationState::encoded_is_current(cognitive);
++            !ResidentCognitiveFormationState::encoded_has_current_body_observation(cognitive);
+         let cognitive_budget = cognitive_budget_after_joint(parsed.joint_bytes.len(), budget)?;
+         let migrated =
+             ResidentCognitiveFormationState::migrate_to_current_format(cognitive, cognitive_budget)
+@@ -9382,6 +9382,8 @@ mod tests {
+         let runtime = resident(91, 17);
+         let predecessor = parse_current_envelope(runtime.active_envelope(), budget()).unwrap();
+         let mut v34_cognitive = predecessor.cognitive_bytes.unwrap().to_vec();
++        assert_eq!(&v34_cognitive[v34_cognitive.len() - 8..], &[0; 8]);
++        v34_cognitive.truncate(v34_cognitive.len() - 8);
+         v34_cognitive[..8].copy_from_slice(b"GLCOG034");
+         // A true V34 layout has no V40 vocal-body marker byte; strip it from
+         // the stamped current bytes or the V34 decode misparses one byte off.
+@@ -9433,7 +9435,7 @@ mod tests {
+         // law genesis uses -- which advances the lineage authority and
+         // inserts the encoded population. Every other cognitive byte is
+         // untouched: the pose correction changes no lived cognition.
+-        assert_eq!(&corrected_cognitive[..8], b"GLCOG044");
++        assert_eq!(&corrected_cognitive[..8], b"GLCOG045");
+         assert_eq!(&corrected_cognitive[8..18], &v34_cognitive[8..18]);
+         let predecessor_next_lineage =
+             u64::from_le_bytes(v34_cognitive[18..26].try_into().unwrap());
+@@ -9449,7 +9451,7 @@ mod tests {
+         .unwrap();
+         assert!(population_bytes > 0);
+         assert_eq!(
+-            &corrected_cognitive[51 + population_bytes..],
++            &corrected_cognitive[51 + population_bytes..corrected_cognitive.len() - 8],
+             &v34_cognitive[50..],
+         );
+         let restored =
+@@ -9468,6 +9470,8 @@ mod tests {
+         let runtime = resident(93, 19);
+         let predecessor = parse_current_envelope(runtime.active_envelope(), budget()).unwrap();
+         let mut v35_cognitive = predecessor.cognitive_bytes.unwrap().to_vec();
++        assert_eq!(&v35_cognitive[v35_cognitive.len() - 8..], &[0; 8]);
++        v35_cognitive.truncate(v35_cognitive.len() - 8);
+         v35_cognitive[..8].copy_from_slice(b"GLCOG035");
+         // A true V35 layout has no V40 vocal-body marker byte; strip it from
+         // the stamped current bytes or the V35 decode misparses one byte off.
+@@ -9513,7 +9517,7 @@ mod tests {
+         // Same lawful cognitive deltas as the V34 crossing: current magic,
+         // None vocal-body marker reinserted, the once-only resting-population
+         // admission (lineage authority + population section); nothing else.
+-        assert_eq!(&migrated_cognitive[..8], b"GLCOG044");
++        assert_eq!(&migrated_cognitive[..8], b"GLCOG045");
+         assert_eq!(&migrated_cognitive[8..18], &v35_cognitive[8..18]);
+         assert!(
+             u64::from_le_bytes(migrated_cognitive[18..26].try_into().unwrap())
+@@ -9528,7 +9532,7 @@ mod tests {
+         .unwrap();
+         assert!(population_bytes > 0);
+         assert_eq!(
+-            &migrated_cognitive[51 + population_bytes..],
++            &migrated_cognitive[51 + population_bytes..migrated_cognitive.len() - 8],
+             &v35_cognitive[50..],
+         );
+         assert_eq!(
+@@ -9537,6 +9541,43 @@ mod tests {
+         );
+     }
+ 
++    #[test]
++    fn v44_custody_migration_preserves_exact_body_and_old_cognitive_bytes() {
++        let runtime = resident(93, 19);
++        let predecessor = parse_current_envelope(runtime.active_envelope(), budget()).unwrap();
++        let mut old_cognitive = predecessor.cognitive_bytes.unwrap().to_vec();
++        assert_eq!(&old_cognitive[old_cognitive.len() - 8..], &[0; 8]);
++        old_cognitive.truncate(old_cognitive.len() - 8);
++        old_cognitive[..8].copy_from_slice(b"GLCOG044");
++        let mut axes = *ArticulatedBodyState::at_neutral().axes();
++        axes[crate::virtual_articulated_body::BodyAxis::NeckYaw.index()] = 1234;
++        let body = ArticulatedBodyState::from_physical_state(
++            axes, crate::virtual_articulated_body::NEUTRAL_LUNG_AIR_MICROLITRES, true,
++        ).unwrap();
++        let fabric = encode_fabric(
++            predecessor.fabric_generation, predecessor.joint_bytes, &old_cognitive,
++            predecessor.vestibular.as_ref().unwrap(), &body, None, budget(),
++        ).unwrap();
++        let old = encode_envelope(
++            predecessor.identity, predecessor.organism_tick, &fabric, budget(),
++        ).unwrap();
++        assert!(ResidentOrganismRuntime::restore_envelope(old.clone(), budget()).is_err());
++        let migrated = migrate_resident_organism_exact_energy_envelope(old, budget()).unwrap();
++        let parsed = parse_current_envelope(&migrated, budget()).unwrap();
++        assert_eq!(parsed.identity, predecessor.identity);
++        assert_eq!(parsed.organism_tick, predecessor.organism_tick);
++        assert_eq!(parsed.fabric_generation, predecessor.fabric_generation);
++        assert_eq!(parsed.joint_bytes, predecessor.joint_bytes);
++        assert_eq!(parsed.articulated_body.as_ref(), Some(&body));
++        let current = parsed.cognitive_bytes.unwrap();
++        assert_eq!(&current[..8], b"GLCOG045");
++        assert_eq!(&current[8..current.len() - 8], &old_cognitive[8..]);
++        assert_eq!(&current[current.len() - 8..], &[0; 8]);
++        let cold = ResidentOrganismRuntime::restore_envelope(migrated.clone(), budget()).unwrap();
++        assert_eq!(cold.active_envelope(), migrated);
++        assert_eq!(migrate_resident_organism_exact_energy_envelope(migrated.clone(), budget()).unwrap(), migrated);
++    }
++
+     #[test]
+     fn articulated_body_observation_is_exact_read_only_and_cold_persistent() {
+         let runtime = resident(91, 17);
+diff --git a/native/guala_core/src/physical_mosaic.rs b/native/guala_core/src/physical_mosaic.rs
+index d27ceb5c..5430236d 100644
+--- a/native/guala_core/src/physical_mosaic.rs
++++ b/native/guala_core/src/physical_mosaic.rs
+@@ -1522,7 +1522,7 @@ fn decode_coordinate(
+     Ok(coordinate)
+ }
+ 
+-fn fractal_coordinates_fit(fractal: &SparsePhysicalStateDelta, psi_ring_count: usize) -> bool {
++pub(crate) fn fractal_coordinates_fit(fractal: &SparsePhysicalStateDelta, psi_ring_count: usize) -> bool {
+     fractal
+         .entries()
+         .iter()
+diff --git a/native/guala_core/src/resident_cognitive_formation.rs b/native/guala_core/src/resident_cognitive_formation.rs
+index effd3031..f236cff6 100644
+--- a/native/guala_core/src/resident_cognitive_formation.rs
++++ b/native/guala_core/src/resident_cognitive_formation.rs
+@@ -1,6 +1,6 @@
+ //! Resident complete-neuron boundary.
+ //!
+-//! `GLCOG030` is the current resident complete-neuron carrier. On the first
++//! `GLCOG045` is the current resident complete-neuron carrier. On the first
+ //! admitted source occurrence it creates and retains exact source-specialized
+ //! virtual-material neuron cells. Explicit growth-DNA electrical seeds remain
+ //! unexpressed until their exact source-site cohort is reached, then become the
+@@ -15,6 +15,9 @@
+ //! never infers contacts or claims cognition merely from a seed, DSF delivery,
+ //! or three retained fractals.
+ 
++mod settled_fractal_custody;
++use settled_fractal_custody::SettledFractalCustody;
++
+ use crate::articulated_body_joint_source_builder::exact_moved_effector_terminal;
+ use crate::articulatory_receptor_work::{
+     derive_articulatory_receptor_sample_range_work, quantize_articulatory_delivery,
+@@ -333,6 +336,8 @@ const MAGIC_V43: &[u8; 8] = b"GLCOG043";
+ /// carries no work of its own, and expires with that physical entry. Historical
+ /// frontier entries remain unattributed; V43 readers reject the new tags.
+ const MAGIC_V44: &[u8; 8] = b"GLCOG044";
++/// V45 preserves finalized per-neuron leaves across independent settlement clocks.
++const MAGIC_V45: &[u8; 8] = b"GLCOG045";
+ const RETIRED_W1_RETINA_SENSOR_ID: &str = "W1-retina";
+ const RETIRED_W1_RETINA_TOPOLOGY_START: u32 = 135;
+ const RETIRED_W1_RETINA_RECEPTOR_COUNT: usize = 810;
+@@ -2721,6 +2726,7 @@ pub(crate) struct ResidentCognitiveFormationState {
+     /// two-contact paths; anything older has expired.
+     older_active_electrical_frontier: Box<[ActiveElectricalFrontierEntry]>,
+     mosaics: Box<[RetainedOrganismMosaic]>,
++    settled_fractals: SettledFractalCustody,
+     hippocampal: ResidentHippocampalIndex,
+     /// Runtime-only exact navigation over resident anatomy. Canonical bytes
+     /// remain owned by cohorts and the electrical fabric; ordinary physical
+@@ -2748,6 +2754,7 @@ impl Default for ResidentCognitiveFormationState {
+             preceding_active_electrical_frontier: Box::new([]),
+             older_active_electrical_frontier: Box::new([]),
+             mosaics: Box::new([]),
++            settled_fractals: SettledFractalCustody::default(),
+             hippocampal: ResidentHippocampalIndex::default(),
+             topology_index: Arc::new(ResidentTopologyIndex::empty()),
+             formation_index: ResidentFormationIndex::default(),
+@@ -3697,6 +3704,7 @@ fn mosaic_spans_multiple_cohorts_indexed(
+ /// those mounted paths preserves that exact cross-sensory fact when the
+ /// contributing receptor neurons emit their post-quiescence fractals on
+ /// different organism clocks.
++#[cfg(test)]
+ fn association_source_layers(
+     association: [u8; 16],
+     topology_index: &ResidentTopologyIndex,
+@@ -3777,11 +3785,6 @@ fn pending_association_has_cross_sensory_members(
+             }
+         }
+     }
+-    if has_association && sensory_layers.len() < 2 {
+-        for association in pending_original_association_lineages(pending, topology_index)? {
+-            sensory_layers.extend(association_source_layers(association, topology_index)?);
+-        }
+-    }
+     Ok(!has_association || sensory_layers.len() >= 2)
+ }
+ 
+@@ -3878,9 +3881,6 @@ fn adds_unretained_cross_sensory_relation(
+             }
+         }
+     }
+-    for association in current_associations.iter().copied() {
+-        current_sensory_layers.extend(association_source_layers(association, topology_index)?);
+-    }
+     if current_sensory_layers.len() < 2 || current_associations.is_empty() {
+         return Ok(false);
+     }
+@@ -3910,11 +3910,13 @@ fn adds_unretained_cross_sensory_relation(
+                     None => return Err(FormationError::NeuronLineageAuthorityAbsent),
+                 }
+             }
+-            for prior_association in pending_original_association_lineages(prior, topology_index)? {
+-                prior_sensory_layers.extend(association_source_layers(
+-                    prior_association,
+-                    topology_index,
+-                )?);
++            for bond in prior.original_bonds() {
++                let (left, right) = bond.endpoints();
++                for lineage in [left, right] {
++                    if let Some(layer @ 0..=5) = topology_index.layer_of(lineage) {
++                        prior_sensory_layers.insert(layer);
++                    }
++                }
+             }
+             relation_already_retained = current_sensory_layers
+                 .iter()
+@@ -3945,10 +3947,9 @@ fn pending_original_continues_through_association(
+     }
+     let prior_associations = pending_original_association_lineages(prior, topology_index)?;
+     let current_associations = pending_original_association_lineages(current, topology_index)?;
+-    Ok(prior_associations.iter().any(|lineage| {
+-        recent_frontier_lineages.contains(lineage)
+-            && current_associations.binary_search(lineage).is_ok()
+-    }))
++    Ok(prior_associations.len() == 1
++        && current_associations == prior_associations
++        && recent_frontier_lineages.contains(&prior_associations[0]))
+ }
+ 
+ struct PreparedRetainedMosaicBoundary {
+@@ -4066,6 +4067,7 @@ fn settle_organism_mosaic_boundary(
+     cohorts: &[ResidentReachedCohort],
+     topology_index: &ResidentTopologyIndex,
+     emitted_neuron_fractals: &[EmittedNeuronFractal],
++    settled_fractals: &SettledFractalCustody,
+     current_physical_deltas: &[([u8; 16], SparsePhysicalStateDelta)],
+     externally_reached_lineages: &[[u8; 16]],
+     externally_perturbed_lineages: &[[u8; 16]],
+@@ -4561,10 +4563,7 @@ fn settle_organism_mosaic_boundary(
+             .iter()
+             .map(|lineage| topology_index.flat_for_lineage(*lineage))
+             .collect::<Result<Vec<_>, _>>()?;
+-        let fractal_count = component_flats
+-            .iter()
+-            .filter(|flat| current_fractals[**flat].is_some())
+-            .count();
++
+         let component_fractal_anatomies = component_flats
+             .iter()
+             .map(|flat| {
+@@ -4578,12 +4577,14 @@ fn settle_organism_mosaic_boundary(
+         let component_fractals = component_flats
+             .iter()
+             .map(|flat| {
+-                current_fractals
+-                    .get(*flat)
+-                    .cloned()
+-                    .ok_or(FormationError::NeuronLineageAuthorityAbsent)
++                let emitted = current_fractals.get(*flat)
++                    .ok_or(FormationError::NeuronLineageAuthorityAbsent)?.clone();
++                Ok(emitted.or_else(|| focused_association.and_then(|_| {
++                    settled_fractals.get(topology.lineages[*flat]).cloned()
++                })))
+             })
+             .collect::<Result<Vec<_>, _>>()?;
++        let fractal_count = component_fractals.iter().filter(|leaf| leaf.is_some()).count();
+         let mut focused_prior_candidates = Vec::new();
+         if let Some(association) = focused_association
+             .filter(|association| component.lineages.binary_search(association).is_ok())
+@@ -4594,7 +4595,7 @@ fn settle_organism_mosaic_boundary(
+             ) {
+                 let prior = &mosaics[index].mosaic;
+                 if prior.is_original_only()
+-                    && prior.member_lineages().binary_search(&association).is_err()
++                    && pending_original_association_lineages(prior, topology_index)?.is_empty()
+                     && prior
+                         .member_lineages()
+                         .iter()
+@@ -4608,6 +4609,19 @@ fn settle_organism_mosaic_boundary(
+                 }
+             }
+         }
++        if let Some(association) = focused_association {
++            let owned = formation_index.candidate_indices([association], std::iter::empty())
++                .into_iter().filter(|index| mosaics[*index].mosaic.is_original_only())
++                .filter_map(|index| {
++                    match pending_original_association_lineages(&mosaics[index].mosaic, topology_index) {
++                        Ok(hubs) if hubs.as_slice() == [association]
++                            && recent_frontier_lineages.contains(&association) => Some(Ok(index)),
++                        Ok(_) => None,
++                        Err(error) => Some(Err(error)),
++                    }
++                }).collect::<Result<Vec<_>, _>>()?;
++            if !owned.is_empty() { focused_prior_candidates = owned; }
++        }
+         focused_prior_candidates.sort_unstable();
+         focused_prior_candidates.dedup();
+         let focused_prior_index = match focused_prior_candidates.as_slice() {
+@@ -4722,7 +4736,7 @@ fn settle_organism_mosaic_boundary(
+                 .is_ok()
+                 && formation_index
+                     .candidate_indices([association], std::iter::empty())
+-                    .is_empty()
++                    .iter().all(|index| Some(*index) == focused_prior_index)
+         } else {
+             false
+         };
+@@ -4761,7 +4775,10 @@ fn settle_organism_mosaic_boundary(
+                 current.original_bonds().iter().copied(),
+             ) {
+                 let prior = &mosaics[index].mosaic;
+-                if prior.is_original_only() && pending_originals_share_physical_path(prior, current)
++                if prior.is_original_only()
++                    && pending_original_association_lineages(prior, topology_index)?.is_empty()
++                    && pending_original_association_lineages(current, topology_index)?.is_empty()
++                    && pending_originals_share_physical_path(prior, current)
+                 {
+                     removed_pending_indices.insert(index);
+                 }
+@@ -5503,11 +5520,16 @@ fn validate_dedicated_vocal_articulatory_effector(
+ 
+ impl ResidentCognitiveFormationState {
+     pub(crate) fn encoded_is_current(bytes: &[u8]) -> bool {
+-        bytes.get(..MAGIC_V44.len()) == Some(MAGIC_V44)
++        bytes.get(..MAGIC_V45.len()) == Some(MAGIC_V45)
++    }
++
++    pub(crate) fn encoded_has_current_body_observation(bytes: &[u8]) -> bool {
++        Self::encoded_is_current(bytes) || bytes.get(..MAGIC_V44.len()) == Some(MAGIC_V44)
+     }
+ 
+     pub(crate) fn encoded_has_corrected_articulated_pose(bytes: &[u8]) -> bool {
+-        bytes.get(..MAGIC_V44.len()) == Some(MAGIC_V44)
++        Self::encoded_is_current(bytes)
++            || bytes.get(..MAGIC_V44.len()) == Some(MAGIC_V44)
+             || bytes.get(..MAGIC_V43.len()) == Some(MAGIC_V43)
+             || bytes.get(..MAGIC_V42.len()) == Some(MAGIC_V42)
+             || bytes.get(..MAGIC_V41.len()) == Some(MAGIC_V41)
+@@ -5664,6 +5686,7 @@ impl ResidentCognitiveFormationState {
+                 .collect::<Vec<_>>()
+                 .into_boxed_slice(),
+             mosaics: mosaics.into_boxed_slice(),
++            settled_fractals: self.settled_fractals.clone(),
+             hippocampal: self.hippocampal,
+             topology_index: self.topology_index.clone(),
+             formation_index: ResidentFormationIndex::default(),
+@@ -5852,6 +5875,7 @@ impl ResidentCognitiveFormationState {
+                 .collect::<Vec<_>>()
+                 .into_boxed_slice(),
+             mosaics: mosaics.into_boxed_slice(),
++            settled_fractals: self.settled_fractals.clone(),
+             hippocampal: self.hippocampal,
+             topology_index: self.topology_index.clone(),
+             formation_index: ResidentFormationIndex::default(),
+@@ -5980,6 +6004,7 @@ impl ResidentCognitiveFormationState {
+             preceding_active_electrical_frontier: Box::new([]),
+             older_active_electrical_frontier: Box::new([]),
+             mosaics: Box::new([]),
++            settled_fractals: self.settled_fractals.clone(),
+             hippocampal: ResidentHippocampalIndex::default(),
+             topology_index: Arc::new(ResidentTopologyIndex::empty()),
+             formation_index: ResidentFormationIndex::default(),
+@@ -6186,6 +6211,7 @@ impl ResidentCognitiveFormationState {
+                 .collect::<Vec<_>>()
+                 .into_boxed_slice(),
+             mosaics: self.mosaics.clone(),
++            settled_fractals: self.settled_fractals.clone(),
+             hippocampal: self.hippocampal,
+             topology_index: Arc::new(ResidentTopologyIndex::empty()),
+             formation_index: self.formation_index.clone(),
+@@ -6397,6 +6423,7 @@ impl ResidentCognitiveFormationState {
+                 .collect::<Vec<_>>()
+                 .into_boxed_slice(),
+             mosaics: mosaics.into_boxed_slice(),
++            settled_fractals: self.settled_fractals.clone(),
+             hippocampal: self.hippocampal,
+             topology_index: self.topology_index.clone(),
+             formation_index: ResidentFormationIndex::default(),
+@@ -6524,6 +6551,7 @@ impl ResidentCognitiveFormationState {
+             preceding_active_electrical_frontier: Box::new([]),
+             older_active_electrical_frontier: Box::new([]),
+             mosaics: Box::new([]),
++            settled_fractals: self.settled_fractals.clone(),
+             hippocampal: self.hippocampal,
+             topology_index: self.topology_index.clone(),
+             formation_index: ResidentFormationIndex::default(),
+@@ -6887,6 +6915,7 @@ impl ResidentCognitiveFormationState {
+                 .collect::<Vec<_>>()
+                 .into_boxed_slice(),
+             mosaics: surviving_mosaics.into_boxed_slice(),
++            settled_fractals: self.settled_fractals.clone(),
+             hippocampal: self.hippocampal,
+             topology_index: Arc::new(ResidentTopologyIndex::empty()),
+             formation_index: ResidentFormationIndex::default(),
+@@ -7546,6 +7575,7 @@ impl ResidentCognitiveFormationState {
+                 .collect::<Vec<_>>()
+                 .into_boxed_slice(),
+             mosaics: surviving_mosaics.into_boxed_slice(),
++            settled_fractals: self.settled_fractals.clone(),
+             hippocampal: self.hippocampal,
+             topology_index: Arc::new(ResidentTopologyIndex::empty()),
+             formation_index: ResidentFormationIndex::default(),
+@@ -7736,6 +7766,7 @@ impl ResidentCognitiveFormationState {
+                 .collect::<Vec<_>>()
+                 .into_boxed_slice(),
+             mosaics: mosaics.into_boxed_slice(),
++            settled_fractals: self.settled_fractals.clone(),
+             hippocampal: self.hippocampal,
+             topology_index: self.topology_index.clone(),
+             formation_index: ResidentFormationIndex::default(),
+@@ -7814,6 +7845,7 @@ impl ResidentCognitiveFormationState {
+             preceding_active_electrical_frontier: Box::new([]),
+             older_active_electrical_frontier: Box::new([]),
+             mosaics: Box::new([]),
++            settled_fractals: self.settled_fractals.clone(),
+             hippocampal: ResidentHippocampalIndex::default(),
+             topology_index: self.topology_index.clone(),
+             formation_index: ResidentFormationIndex::default(),
+@@ -7967,6 +7999,7 @@ impl ResidentCognitiveFormationState {
+             preceding_active_electrical_frontier: Box::new([]),
+             older_active_electrical_frontier: Box::new([]),
+             mosaics: Box::new([]),
++            settled_fractals: SettledFractalCustody::default(),
+             hippocampal: ResidentHippocampalIndex::default(),
+             topology_index: Arc::new(ResidentTopologyIndex::empty()),
+             formation_index: ResidentFormationIndex::default(),
+@@ -8405,6 +8438,7 @@ impl ResidentCognitiveFormationState {
+             preceding_active_electrical_frontier: predecessor_preceding_active_electrical_frontier,
+             older_active_electrical_frontier: predecessor_older_active_electrical_frontier,
+             mosaics: predecessor_mosaics,
++            mut settled_fractals,
+             hippocampal: predecessor_hippocampal,
+             topology_index: predecessor_topology_index,
+             formation_index: predecessor_formation_index,
+@@ -9924,6 +9958,9 @@ impl ResidentCognitiveFormationState {
+             .checked_add(internal_contact.dsf_delivery_count)
+             .ok_or(FormationError::ArithmeticOverflow)?;
+         emitted_neuron_fractals = coalesce_emitted_neuron_fractals(emitted_neuron_fractals)?;
++        for fractal in &emitted_neuron_fractals {
++            settled_fractals.record(fractal.neuron_lineage, fractal.delta.clone())?;
++        }
+         let settled_layer_six_lineages = internal_contact
+             .causally_transitioned_lineages
+             .iter()
+@@ -9961,6 +9998,7 @@ impl ResidentCognitiveFormationState {
+             &cohorts,
+             &topology_index,
+             &formation_index,
++            &mosaics,
+             &reached_associations_by_occurrence,
+             &internal_contact.causal_active_bonds,
+             &internal_contact.causally_transitioned_lineages,
+@@ -10018,6 +10056,7 @@ impl ResidentCognitiveFormationState {
+             &cohorts,
+             &topology_index,
+             &emitted_neuron_fractals,
++            &settled_fractals,
+             &current_physical_deltas,
+             &externally_reached_neuron_lineages,
+             &externally_perturbed_neuron_lineages,
+@@ -10165,6 +10204,7 @@ impl ResidentCognitiveFormationState {
+                 .into_boxed_slice(),
+             active_electrical_frontier: active_electrical_frontier.into_boxed_slice(),
+             mosaics: mosaics.into_boxed_slice(),
++            settled_fractals,
+             hippocampal,
+             topology_index,
+             formation_index,
+@@ -10739,6 +10779,7 @@ impl ResidentCognitiveFormationState {
+             preceding_active_electrical_frontier: self.preceding_active_electrical_frontier.clone(),
+             older_active_electrical_frontier: self.older_active_electrical_frontier.clone(),
+             mosaics: self.mosaics.clone(),
++            settled_fractals: self.settled_fractals.clone(),
+             hippocampal: self.hippocampal,
+             topology_index,
+             formation_index: self.formation_index.clone(),
+@@ -10867,7 +10908,7 @@ impl ResidentCognitiveFormationState {
+         let topology = indexed_organism_mosaic_topology(&self.cohorts, &self.topology_index)?;
+ 
+         let mut output = Vec::new();
+-        output.extend_from_slice(MAGIC_V44);
++        output.extend_from_slice(MAGIC_V45);
+         output.extend_from_slice(&VERSION_V30.to_le_bytes());
+         output.extend_from_slice(&self.generation.to_le_bytes());
+         output.extend_from_slice(&self.next_lineage_ordinal.to_le_bytes());
+@@ -11024,6 +11065,9 @@ impl ResidentCognitiveFormationState {
+         push_length(&mut output, hippocampal.len())?;
+         output.extend_from_slice(&hippocampal);
+         ensure_cognitive_output_budget(&output, max_encoded_bytes)?;
++        self.settled_fractals.encode_into(
++            &mut output, &self.cohorts, &self.topology_index, max_encoded_bytes,
++        )?;
+         let terminal = energy.map(|energy| {
+             (
+                 CognitiveFormationSummary {
+@@ -11051,6 +11095,9 @@ impl ResidentCognitiveFormationState {
+         format: CognitiveCodecFormat,
+         max_encoded_bytes: usize,
+     ) -> Result<Vec<u8>, FormationError> {
++        if self.settled_fractals.len() != 0 {
++            return Err(FormationError::RetiredCognitiveState);
++        }
+         if self
+             .older_active_electrical_frontier
+             .iter()
+@@ -11076,6 +11123,12 @@ impl ResidentCognitiveFormationState {
+                 return Err(FormationError::NeuronLineageAuthorityChanged);
+             }
+             let (mut encoded, _) = self.encode_current(max_encoded_bytes, false, false)?;
++            // Empty V45 leaf custody has no historical representation.
++            let end = encoded.len().checked_sub(8).ok_or(FormationError::NoncanonicalState)?;
++            if encoded.get(end..) != Some(&[0_u8; 8][..]) {
++                return Err(FormationError::NoncanonicalState);
++            }
++            encoded.truncate(end);
+             let marker_offset =
+                 MAGIC_V26.len() + std::mem::size_of::<u16>() + 2 * std::mem::size_of::<u64>();
+             if encoded.get(marker_offset) != Some(&0) {
+@@ -11688,7 +11741,7 @@ impl ResidentCognitiveFormationState {
+     }
+ 
+     pub(crate) fn decode(bytes: &[u8], max_encoded_bytes: usize) -> Result<Self, FormationError> {
+-        if bytes.get(..MAGIC_V44.len()) != Some(MAGIC_V44) {
++        if bytes.get(..MAGIC_V45.len()) != Some(MAGIC_V45) {
+             return Err(FormationError::RetiredCognitiveState);
+         }
+         Self::decode_with_canonicality(bytes, max_encoded_bytes, true)
+@@ -11699,7 +11752,7 @@ impl ResidentCognitiveFormationState {
+         max_encoded_bytes: usize,
+     ) -> Result<Self, FormationError> {
+         // This is the explicit historical-entry boundary. Ordinary decode
+-        // above remains V30-only; authenticated V12-V29 bodies are accepted
++        // above remains V45-only; authenticated historical bodies are accepted
+         // here solely so they can be rewritten once into the current format.
+         Self::decode_with_canonicality(bytes, max_encoded_bytes, false)
+     }
+@@ -11715,7 +11768,8 @@ impl ResidentCognitiveFormationState {
+                 available: max_encoded_bytes,
+             });
+         }
+-        let current_v44 = bytes.len() >= MAGIC_V44.len() && &bytes[..MAGIC_V44.len()] == MAGIC_V44;
++        let current_v45 = bytes.get(..MAGIC_V45.len()) == Some(MAGIC_V45);
++        let current_v44 = current_v45 || bytes.get(..MAGIC_V44.len()) == Some(MAGIC_V44);
+         let current_v43 = current_v44
+             || (bytes.len() >= MAGIC_V43.len() && &bytes[..MAGIC_V43.len()] == MAGIC_V43);
+         let current_v42 = current_v43
+@@ -12248,6 +12302,11 @@ impl ResidentCognitiveFormationState {
+         )
+         .map_err(FormationError::HippocampalCheckpointUnavailable)?;
+         cursor = hippocampal_end;
++        let settled_fractals = if current_v45 {
++            SettledFractalCustody::decode_from(bytes, &mut cursor, &cohorts, &topology_index)?
++        } else {
++            SettledFractalCustody::default()
++        };
+         if cursor != bytes.len() {
+             return Err(FormationError::NoncanonicalState);
+         }
+@@ -12266,6 +12325,7 @@ impl ResidentCognitiveFormationState {
+                 .into_boxed_slice(),
+             older_active_electrical_frontier: older_active_electrical_frontier.into_boxed_slice(),
+             mosaics: mosaics.into_boxed_slice(),
++            settled_fractals,
+             hippocampal,
+             topology_index,
+             formation_index,
+@@ -12357,7 +12417,8 @@ impl ResidentCognitiveFormationState {
+         bytes: &[u8],
+         max_encoded_bytes: usize,
+     ) -> Result<Vec<u8>, FormationError> {
+-        let current_v44 = bytes.get(..MAGIC_V44.len()) == Some(MAGIC_V44);
++        let current_v45 = bytes.get(..MAGIC_V45.len()) == Some(MAGIC_V45);
++        let current_v44 = current_v45 || bytes.get(..MAGIC_V44.len()) == Some(MAGIC_V44);
+         let current_v43 = current_v44 || bytes.get(..MAGIC_V43.len()) == Some(MAGIC_V43);
+         let current_v42 = current_v43 || bytes.get(..MAGIC_V42.len()) == Some(MAGIC_V42);
+         let current_v41 = current_v42 || bytes.get(..MAGIC_V41.len()) == Some(MAGIC_V41);
+@@ -12402,7 +12463,8 @@ impl ResidentCognitiveFormationState {
+                 || &bytes[..MAGIC_V41.len()] == MAGIC_V41
+                 || &bytes[..MAGIC_V42.len()] == MAGIC_V42
+                 || &bytes[..MAGIC_V43.len()] == MAGIC_V43
+-                || &bytes[..MAGIC_V44.len()] == MAGIC_V44);
++                || &bytes[..MAGIC_V44.len()] == MAGIC_V44
++                || &bytes[..MAGIC_V45.len()] == MAGIC_V45);
+         let state = Self::decode_for_one_way_migration(bytes, max_encoded_bytes)?;
+         // Historical topology/channel corrections belong to this explicit
+         // authenticated migration and nowhere in ordinary cognition.  The
+@@ -15695,6 +15757,7 @@ fn exact_reached_cross_sensory_original_bonds(
+     cohorts: &[ResidentReachedCohort],
+     topology: &ResidentTopologyIndex,
+     formation_index: &ResidentFormationIndex,
++    mosaics: &[RetainedOrganismMosaic],
+     associations: &ReachedAssociationsByOccurrence,
+     causal_active_bonds: &[StablePhysicalBondReference],
+     causally_reached_lineages: &[[u8; 16]],
+@@ -15736,15 +15799,7 @@ fn exact_reached_cross_sensory_original_bonds(
+             })
+             .collect::<Vec<_>>();
+         if association_bonds.is_empty()
+-            || association_bonds
+-                .iter()
+-                .any(|candidate| !causal.contains(candidate))
+-        {
+-            continue;
+-        }
+-        if !formation_index
+-            .candidate_indices([association], std::iter::empty())
+-            .is_empty()
++            || !association_bonds.iter().any(|candidate| causal.contains(candidate))
+         {
+             continue;
+         }
+@@ -15752,6 +15807,17 @@ fn exact_reached_cross_sensory_original_bonds(
+     }
+     let mut components = Vec::new();
+     for association in candidate_associations {
++        let existing = formation_index.candidate_indices([association], std::iter::empty());
++        let mut eligible = true;
++        for index in existing {
++            let prior = &mosaics.get(index).ok_or(FormationError::NoncanonicalState)?.mosaic;
++            if !prior.is_original_only()
++                || pending_original_association_lineages(prior, topology)?.as_slice() != [association] {
++                eligible = false;
++                break;
++            }
++        }
++        if !eligible { continue; }
+         if topology.layer_of(association) != Some(7) {
+             return Err(FormationError::NeuronLineageAuthorityChanged);
+         }
+@@ -15774,9 +15840,8 @@ fn exact_reached_cross_sensory_original_bonds(
+             if topology.layer_of(integration) != Some(6) {
+                 continue;
+             }
+-            if causal.contains(&contact.stable_bond) {
+-                bonds.insert(contact.stable_bond);
+-            }
++            if !causal.contains(&contact.stable_bond) { continue; }
++            bonds.insert(contact.stable_bond);
+             for source_contact_index in topology.incident_contacts_by_flat[integration_flat]
+                 .iter()
+                 .copied()
+diff --git a/native/guala_core/src/resident_cognitive_formation/memory_retention_probe.rs b/native/guala_core/src/resident_cognitive_formation/memory_retention_probe.rs
+index b8f6506b..042f8113 100644
+--- a/native/guala_core/src/resident_cognitive_formation/memory_retention_probe.rs
++++ b/native/guala_core/src/resident_cognitive_formation/memory_retention_probe.rs
+@@ -50,13 +50,21 @@ fn census(state: &ResidentCognitiveFormationState, associations: &[[u8; 16]]) ->
+     }).collect::<Vec<_>>())
+ }
+ 
++fn decode_saved_cognitive(bytes: &[u8]) -> ResidentCognitiveFormationState {
++    if ResidentCognitiveFormationState::encoded_is_current(bytes) {
++        return ResidentCognitiveFormationState::decode(bytes, usize::MAX).unwrap();
++    }
++    let migrated = ResidentCognitiveFormationState::migrate_to_current_format(bytes, usize::MAX).unwrap();
++    ResidentCognitiveFormationState::decode(&migrated, usize::MAX).unwrap()
++}
++
+ #[test]
+ fn saved_lesson_association_retention() {
+     let Ok(predecessor_path) = std::env::var("GUALA_MEMORY_PREDECESSOR") else { return; };
+     let (_, cognitive, _) = parse_envelope_with_body(&fs::read(predecessor_path).unwrap());
+-    let predecessor = ResidentCognitiveFormationState::decode(&cognitive, usize::MAX).unwrap();
++    let predecessor = decode_saved_cognitive(&cognitive);
+     let state_bytes = fs::read(std::env::var("GUALA_MEMORY_STATE").unwrap()).unwrap();
+-    let state = ResidentCognitiveFormationState::decode(&state_bytes, usize::MAX).unwrap();
++    let state = decode_saved_cognitive(&state_bytes);
+     let body = ArticulatedBodyState::decode(
+         &fs::read(std::env::var("GUALA_MEMORY_BODY").unwrap()).unwrap(),
+     ).unwrap();
+@@ -197,13 +205,23 @@ fn focused_input_census(
+ }
+ 
+ #[test]
+-fn saved_lesson_fractal_admission_trace() {
+-    let Ok(predecessor_path) = std::env::var("GUALA_MEMORY_PREDECESSOR") else { return; };
++fn saved_lesson_fractal_admission_trace() { run_saved_lesson_trace(false); }
++
++#[test]
++#[ignore = "requires the authenticated saved production lesson paths"]
++fn candidate115_saved_lesson_exact_sound_body_handoff() { run_saved_lesson_trace(true); }
++
++fn run_saved_lesson_trace(require_handoff: bool) {
++    let predecessor_path = match std::env::var("GUALA_MEMORY_PREDECESSOR") {
++        Ok(path) => path,
++        Err(_) if require_handoff => panic!("authenticated predecessor path is required"),
++        Err(_) => return,
++    };
+     let (_, cognitive, _) = parse_envelope_with_body(&fs::read(predecessor_path).unwrap());
+-    let predecessor = ResidentCognitiveFormationState::decode(&cognitive, usize::MAX).unwrap();
+-    let mut state = ResidentCognitiveFormationState::decode(
+-        &fs::read(std::env::var("GUALA_MEMORY_STATE").unwrap()).unwrap(), usize::MAX,
+-    ).unwrap();
++    let predecessor = decode_saved_cognitive(&cognitive);
++    let mut state = decode_saved_cognitive(
++        &fs::read(std::env::var("GUALA_MEMORY_STATE").unwrap()).unwrap(),
++    );
+     let mut body = ArticulatedBodyState::decode(
+         &fs::read(std::env::var("GUALA_MEMORY_BODY").unwrap()).unwrap(),
+     ).unwrap();
+@@ -302,9 +320,52 @@ fn saved_lesson_fractal_admission_trace() {
+     }
+     assert_eq!(state.encode(usize::MAX).unwrap(), expected_state, "diagnostic must preserve exact native successor");
+     assert_eq!(body.encode().unwrap(), expected_body, "diagnostic must preserve exact body successor");
++    let cold = ResidentCognitiveFormationState::decode(&expected_state, usize::MAX).unwrap();
++    assert_eq!(cold.encode(usize::MAX).unwrap(), expected_state);
++    let exact_handoffs = associations.iter().map(|association| {
++        let indices = state.formation_index.candidate_indices([*association], std::iter::empty());
++        let matching = indices.into_iter().filter(|index| {
++            let original = &state.mosaics[*index].mosaic;
++            let hubs = super::super::pending_original_association_lineages(
++                original, &state.topology_index,
++            ).unwrap();
++            let sound = original.member_lineages().iter()
++                .filter(|lineage| state.topology_index.layer_of(**lineage) == Some(1)).count();
++            let body = original.member_lineages().iter()
++                .filter(|lineage| state.topology_index.layer_of(**lineage) == Some(5)).count();
++            hubs.as_slice() == [*association] && sound >= 3 && body >= 1
++                && original.member_lineages().binary_search(association).is_ok()
++        }).collect::<Vec<_>>();
++        matching.len() == 1
++    }).collect::<Vec<_>>();
++    let handoff_closed = exact_handoffs.iter().all(|closed| *closed);
++    let leaf_count = state.settled_fractals.len();
++    assert!(leaf_count <= state.topology_index.flat_locations.len());
++    let mut next_interval_restart_exact = false;
++    if require_handoff && handoff_closed {
++        let warm_next = run_guided_vocal_continuation(
++            state.clone(), body.clone(), None, &[], 5, 1, &motors, &terminal_by_motor,
++        );
++        let cold_next = run_guided_vocal_continuation(
++            cold, ArticulatedBodyState::decode(&expected_body).unwrap(),
++            None, &[], 5, 1, &motors, &terminal_by_motor,
++        );
++        assert_eq!(warm_next.state.encode(usize::MAX).unwrap(), cold_next.state.encode(usize::MAX).unwrap());
++        assert_eq!(warm_next.body.encode().unwrap(), cold_next.body.encode().unwrap());
++        next_interval_restart_exact = true;
++    }
+     fs::write(std::env::var("GUALA_MEMORY_OUT").unwrap(), serde_json::to_vec_pretty(&json!({
+-        "measurement_only": true,
++        "measurement_only": !require_handoff,
+         "existing_continuation_successor_exact": true,
++        "exact_sound_body_handoffs": exact_handoffs,
++        "sound_body_handoff_closed": handoff_closed,
++        "settled_leaf_count": leaf_count,
++        "cold_codec_exact": true,
++        "next_interval_restart_exact": next_interval_restart_exact,
+         "intervals": intervals,
+     })).unwrap()).unwrap();
++    if require_handoff {
++        assert!(handoff_closed, "each distinct hub must retain real sound and body leaves");
++        assert!(next_interval_restart_exact);
++    }
+ }
+diff --git a/native/guala_core/src/resident_cognitive_formation/tests.rs b/native/guala_core/src/resident_cognitive_formation/tests.rs
+index 9802a996..8844723b 100644
+--- a/native/guala_core/src/resident_cognitive_formation/tests.rs
++++ b/native/guala_core/src/resident_cognitive_formation/tests.rs
+@@ -279,6 +279,7 @@ fn rejected_w1_retirement_removes_only_the_duplicate_retina_and_integrators() {
+         preceding_active_electrical_frontier: Box::new([]),
+         older_active_electrical_frontier: Box::new([]),
+         mosaics: Box::new([]),
++        settled_fractals: SettledFractalCustody::default(),
+         hippocampal: ResidentHippocampalIndex::default(),
+         topology_index,
+         formation_index: ResidentFormationIndex::default(),
+@@ -3806,6 +3807,7 @@ fn varied_multisensory_occurrences_mount_only_exact_settled_assemblies() {
+         &cohorts,
+         &topology_index,
+         &ResidentFormationIndex::default(),
++        &[],
+         &coexisting,
+         &all_active_bonds,
+         &[],
+@@ -3820,6 +3822,7 @@ fn varied_multisensory_occurrences_mount_only_exact_settled_assemblies() {
+         &cohorts,
+         &topology_index,
+         &ResidentFormationIndex::default(),
++        &[],
+         &ReachedAssociationsByOccurrence::empty(coexisting.lineages.len()),
+         &all_active_bonds,
+         &reached_associations,
+@@ -3925,6 +3928,7 @@ fn varied_multisensory_occurrences_mount_only_exact_settled_assemblies() {
+         &cohorts,
+         &topology_index,
+         &later_emitted,
++        &SettledFractalCustody::default(),
+         &current_deltas,
+         &changed_cue,
+         &changed_cue,
+@@ -4055,6 +4059,7 @@ fn varied_multisensory_occurrences_mount_only_exact_settled_assemblies() {
+         &cohorts,
+         &topology_index,
+         &[],
++        &SettledFractalCustody::default(),
+         &current_deltas,
+         &changed_cue,
+         &changed_cue,
+@@ -4100,6 +4105,7 @@ fn varied_multisensory_occurrences_mount_only_exact_settled_assemblies() {
+         &cohorts,
+         &topology_index,
+         &[],
++        &SettledFractalCustody::default(),
+         &current_deltas,
+         &changed_cue,
+         &changed_cue,
+@@ -4141,6 +4147,7 @@ fn varied_multisensory_occurrences_mount_only_exact_settled_assemblies() {
+             &cohorts,
+             &topology_index,
+             &[],
++            &SettledFractalCustody::default(),
+             &current_deltas,
+             &[],
+             &[],
+@@ -4191,6 +4198,7 @@ fn varied_multisensory_occurrences_mount_only_exact_settled_assemblies() {
+             &cohorts,
+             &topology_index,
+             &[],
++            &SettledFractalCustody::default(),
+             &current_deltas,
+             &unrelated_external,
+             &unrelated_external,
+@@ -4592,6 +4600,7 @@ fn v27_unlearned_affective_and_ordering_growth_is_retired_once() {
+         preceding_active_electrical_frontier: Box::new([]),
+         older_active_electrical_frontier: Box::new([]),
+         mosaics: Box::new([]),
++        settled_fractals: SettledFractalCustody::default(),
+         hippocampal: ResidentHippocampalIndex::default(),
+         topology_index,
+         formation_index: ResidentFormationIndex::default(),
+@@ -5908,6 +5917,7 @@ fn historical_load_correction_rewires_only_the_rejected_motor_contact() {
+         preceding_active_electrical_frontier: Box::new([]),
+         older_active_electrical_frontier: Box::new([]),
+         mosaics: Box::new([]),
++        settled_fractals: SettledFractalCustody::default(),
+         hippocampal: ResidentHippocampalIndex::default(),
+         topology_index,
+         formation_index: ResidentFormationIndex::default(),
+@@ -6112,6 +6122,7 @@ fn v33_migration_removes_reintroduced_effector_pools_one_way() {
+         preceding_active_electrical_frontier: Box::new([contaminated_entry]),
+         older_active_electrical_frontier: Box::new([]),
+         mosaics: Box::new([referencing_mosaic]),
++        settled_fractals: SettledFractalCustody::default(),
+         hippocampal: ResidentHippocampalIndex::default(),
+         topology_index,
+         formation_index: ResidentFormationIndex::default(),
+@@ -7164,6 +7175,7 @@ fn malformed_root_translation_motor_is_replaced_once_with_compatible_anatomy() {
+         preceding_active_electrical_frontier: Box::new([]),
+         older_active_electrical_frontier: Box::new([]),
+         mosaics: Box::new([]),
++        settled_fractals: SettledFractalCustody::default(),
+         hippocampal: ResidentHippocampalIndex::default(),
+         topology_index,
+         formation_index: ResidentFormationIndex::default(),
+@@ -7283,6 +7295,7 @@ fn v41_mounts_one_new_dedicated_vocal_body_without_selecting_historical_cells()
+         preceding_active_electrical_frontier: Box::new([]),
+         older_active_electrical_frontier: Box::new([]),
+         mosaics: Box::new([]),
++        settled_fractals: SettledFractalCustody::default(),
+         hippocampal: ResidentHippocampalIndex::default(),
+         topology_index,
+         formation_index: ResidentFormationIndex::default(),
+@@ -7315,6 +7328,8 @@ fn v41_mounts_one_new_dedicated_vocal_body_without_selecting_historical_cells()
+         .encode_current(MAX_BYTES, false, false)
+         .expect("marker-absent predecessor encodes for the migration fixture");
+     assert!(terminal.is_none());
++    assert_eq!(&v40[v40.len() - 8..], &[0; 8]);
++    v40.truncate(v40.len() - 8);
+     v40[..MAGIC_V40.len()].copy_from_slice(MAGIC_V40);
+     assert!(ResidentCognitiveFormationState::decode(&v40, MAX_BYTES).is_err());
+     let predecessor =
+@@ -7426,6 +7441,7 @@ fn v34_replaces_broad_articulatory_pool_with_fixed_vocal_route_once() {
+         preceding_active_electrical_frontier: Box::new([]),
+         older_active_electrical_frontier: Box::new([]),
+         mosaics: Box::new([]),
++        settled_fractals: SettledFractalCustody::default(),
+         hippocampal: ResidentHippocampalIndex::default(),
+         topology_index,
+         formation_index: ResidentFormationIndex::default(),
+@@ -7562,6 +7578,7 @@ fn v33_body_without_speech_anatomy_gains_only_the_fixed_vocal_bridge() {
+         preceding_active_electrical_frontier: Box::new([]),
+         older_active_electrical_frontier: Box::new([]),
+         mosaics: Box::new([]),
++        settled_fractals: SettledFractalCustody::default(),
+         hippocampal: ResidentHippocampalIndex::default(),
+         topology_index,
+         formation_index: ResidentFormationIndex::default(),
+@@ -7722,6 +7739,7 @@ fn v32_retires_misprojected_root_yaw_paths_once() {
+         preceding_active_electrical_frontier: Box::new([]),
+         older_active_electrical_frontier: Box::new([]),
+         mosaics: Box::new([]),
++        settled_fractals: SettledFractalCustody::default(),
+         hippocampal: ResidentHippocampalIndex::default(),
+         topology_index,
+         formation_index: ResidentFormationIndex::default(),
+@@ -7979,6 +7997,7 @@ fn historical_background_growth_migrates_once_and_cannot_restore() {
+         preceding_active_electrical_frontier: Box::new([]),
+         older_active_electrical_frontier: Box::new([]),
+         mosaics: Box::new([]),
++        settled_fractals: SettledFractalCustody::default(),
+         hippocampal: ResidentHippocampalIndex::default(),
+         topology_index,
+         formation_index: ResidentFormationIndex::default(),
+@@ -9401,6 +9420,7 @@ fn ambiguous_returned_vocal_consequence_cannot_author_motor_contact() {
+         preceding_active_electrical_frontier: Box::new([]),
+         older_active_electrical_frontier: Box::new([]),
+         mosaics: Box::new([]),
++        settled_fractals: SettledFractalCustody::default(),
+         hippocampal: ResidentHippocampalIndex::default(),
+         topology_index,
+         formation_index: ResidentFormationIndex::default(),
+diff --git a/native/guala_core/src/resident_cognitive_formation/settled_fractal_custody.rs b/native/guala_core/src/resident_cognitive_formation/settled_fractal_custody.rs
+new file mode 100644
+--- /dev/null
++++ b/native/guala_core/src/resident_cognitive_formation/settled_fractal_custody.rs
+@@ -0,0 +1,227 @@
++//! One last finalized physical delta per stable neuron. No event history.
++//! Path-copying keeps an uncommitted successor isolated without copying all
++//! resident leaves. Branch positions derive only from the 128-bit lineage.
++
++use super::{FormationError, SparsePhysicalStateDelta};
++use std::sync::Arc;
++
++#[derive(Clone, Debug, Default, Eq, PartialEq)]
++pub(super) struct SettledFractalCustody {
++    root: Option<Arc<Node>>,
++    len: usize,
++}
++
++#[derive(Debug, Eq, PartialEq)]
++enum Node {
++    Leaf { key: u128, delta: SparsePhysicalStateDelta },
++    Branch { bit: u32, zero: Arc<Node>, one: Arc<Node> },
++}
++
++fn is_one(key: u128, bit: u32) -> bool {
++    debug_assert!(bit < u128::BITS);
++    key & (1_u128 << (u128::BITS - 1 - bit)) != 0
++}
++
++impl Node {
++    fn leaf_for(&self, key: u128) -> (u128, &SparsePhysicalStateDelta) {
++        match self {
++            Self::Leaf { key, delta } => (*key, delta),
++            Self::Branch { bit, zero, one } => {
++                if is_one(key, *bit) { one } else { zero }.leaf_for(key)
++            }
++        }
++    }
++
++    fn insert(
++        node: &Arc<Self>, key: u128, split: u32, delta: SparsePhysicalStateDelta,
++    ) -> Arc<Self> {
++        if let Self::Branch { bit, zero, one } = node.as_ref() {
++            if *bit < split {
++                return if is_one(key, *bit) {
++                    Arc::new(Self::Branch {
++                        bit: *bit, zero: zero.clone(),
++                        one: Self::insert(one, key, split, delta),
++                    })
++                } else {
++                    Arc::new(Self::Branch {
++                        bit: *bit, zero: Self::insert(zero, key, split, delta),
++                        one: one.clone(),
++                    })
++                };
++            }
++        }
++        let leaf = Arc::new(Self::Leaf { key, delta });
++        if split == u128::BITS {
++            debug_assert!(matches!(node.as_ref(), Self::Leaf { key: old, .. } if *old == key));
++            leaf
++        } else if is_one(key, split) {
++            Arc::new(Self::Branch { bit: split, zero: node.clone(), one: leaf })
++        } else {
++            Arc::new(Self::Branch { bit: split, zero: leaf, one: node.clone() })
++        }
++    }
++
++    fn visit(
++        &self,
++        emit: &mut impl FnMut([u8; 16], &SparsePhysicalStateDelta) -> Result<(), FormationError>,
++    ) -> Result<(), FormationError> {
++        match self {
++            Self::Leaf { key, delta } => emit(key.to_be_bytes(), delta),
++            Self::Branch { zero, one, .. } => { zero.visit(emit)?; one.visit(emit) }
++        }
++    }
++}
++
++impl SettledFractalCustody {
++    pub(super) fn len(&self) -> usize { self.len }
++
++    pub(super) fn get(&self, lineage: [u8; 16]) -> Option<&SparsePhysicalStateDelta> {
++        let key = u128::from_be_bytes(lineage);
++        let (found, delta) = self.root.as_deref()?.leaf_for(key);
++        (found == key).then_some(delta)
++    }
++
++    /// Caller supplies only a finalized coalesced real emission. A read or a
++    /// continuing electrical wave may never manufacture or refresh this slot.
++    pub(super) fn record(
++        &mut self, lineage: [u8; 16], delta: SparsePhysicalStateDelta,
++    ) -> Result<(), FormationError> {
++        let key = u128::from_be_bytes(lineage);
++        let (root, added) = match &self.root {
++            None => (Arc::new(Node::Leaf { key, delta }), true),
++            Some(root) => {
++                let (old, previous) = root.leaf_for(key);
++                if old == key && previous == &delta { return Ok(()); }
++                (Node::insert(root, key, (old ^ key).leading_zeros(), delta), old != key)
++            }
++        };
++        let len = self.len.checked_add(usize::from(added))
++            .ok_or(FormationError::ArithmeticOverflow)?;
++        self.root = Some(root);
++        self.len = len;
++        Ok(())
++    }
++
++    pub(super) fn visit(
++        &self,
++        mut emit: impl FnMut([u8; 16], &SparsePhysicalStateDelta) -> Result<(), FormationError>,
++    ) -> Result<(), FormationError> {
++        match self.root.as_deref() { Some(root) => root.visit(&mut emit), None => Ok(()) }
++    }
++}
++
++
++fn validate_leaf(
++    lineage: [u8; 16], delta: &SparsePhysicalStateDelta,
++    cohorts: &[super::ResidentReachedCohort], topology: &super::ResidentTopologyIndex,
++) -> Result<(), FormationError> {
++    let flat = topology.flat_for_lineage(lineage)?;
++    let (cohort, neuron, _) = topology.flat_locations[flat];
++    let anatomy = &cohorts[cohort].anatomy.neuron_anatomies()[neuron];
++    let maximum = anatomy.sparse_delta_coordinate_count()
++        .ok_or(FormationError::ArithmeticOverflow)?;
++    if delta.entries().is_empty() || delta.entries().len() > maximum
++        || !crate::physical_mosaic::fractal_coordinates_fit(delta, anatomy.psi_ring_count()) {
++        return Err(FormationError::NoncanonicalState);
++    }
++    Ok(())
++}
++
++impl SettledFractalCustody {
++    pub(super) fn encode_into(
++        &self, output: &mut Vec<u8>, cohorts: &[super::ResidentReachedCohort],
++        topology: &super::ResidentTopologyIndex, maximum_bytes: usize,
++    ) -> Result<(), FormationError> {
++        super::push_length(output, self.len)?;
++        self.visit(|lineage, delta| {
++            validate_leaf(lineage, delta, cohorts, topology)?;
++            let encoded = super::encode_sparse_physical_state_delta(delta)
++                .map_err(|_| FormationError::NoncanonicalState)?;
++            output.extend_from_slice(&lineage);
++            super::push_length(output, encoded.len())?;
++            output.extend_from_slice(&encoded);
++            super::ensure_cognitive_output_budget(output, maximum_bytes)
++        })?;
++        super::ensure_cognitive_output_budget(output, maximum_bytes)
++    }
++
++    pub(super) fn decode_from(
++        bytes: &[u8], cursor: &mut usize, cohorts: &[super::ResidentReachedCohort],
++        topology: &super::ResidentTopologyIndex,
++    ) -> Result<Self, FormationError> {
++        let count = super::read_length(bytes, cursor)?;
++        if count > topology.flat_locations.len()
++            || count > bytes.len().saturating_sub(*cursor) / (16 + 8) {
++            return Err(FormationError::NoncanonicalState);
++        }
++        let mut result = Self::default();
++        let mut preceding = None;
++        for _ in 0..count {
++            let key_end = cursor.checked_add(16).ok_or(FormationError::ArithmeticOverflow)?;
++            let lineage: [u8; 16] = bytes.get(*cursor..key_end)
++                .ok_or(FormationError::NoncanonicalState)?.try_into()
++                .map_err(|_| FormationError::NoncanonicalState)?;
++            if preceding.is_some_and(|prior| prior >= lineage) {
++                return Err(FormationError::NoncanonicalState);
++            }
++            preceding = Some(lineage);
++            *cursor = key_end;
++            let length = super::read_length(bytes, cursor)?;
++            let end = cursor.checked_add(length).ok_or(FormationError::ArithmeticOverflow)?;
++            let delta = super::decode_sparse_physical_state_delta(
++                bytes.get(*cursor..end).ok_or(FormationError::NoncanonicalState)?,
++            ).map_err(|_| FormationError::NoncanonicalState)?;
++            validate_leaf(lineage, &delta, cohorts, topology)?;
++            result.record(lineage, delta)?;
++            *cursor = end;
++        }
++        Ok(result)
++    }
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++    use crate::complete_neuron::{ExactPhysicalStateDelta, PhysicalStateCoordinate, PhysicalStateDeltaEntry};
++
++    fn delta(value: i128) -> SparsePhysicalStateDelta {
++        SparsePhysicalStateDelta::from_canonical_entries(vec![
++            PhysicalStateDeltaEntry::new(
++                PhysicalStateCoordinate::PlasticRestLength,
++                ExactPhysicalStateDelta::Rational(crate::exact_rational::ExactRational::integer(value)),
++            ).unwrap(),
++        ]).unwrap()
++    }
++
++    #[test]
++    fn last_leaf_overwrites_without_history_and_preserves_prepared_predecessor() {
++        let keys = [0_u128, 1, 2, 1 << 127, u128::MAX];
++        let mut original = SettledFractalCustody::default();
++        for key in keys { original.record(key.to_be_bytes(), delta(1)).unwrap(); }
++        let mut reverse = SettledFractalCustody::default();
++        for key in keys.into_iter().rev() { reverse.record(key.to_be_bytes(), delta(1)).unwrap(); }
++        assert_eq!(original, reverse, "tree shape is canonical, not insertion order");
++        let mut successor = original.clone();
++        assert!(Arc::ptr_eq(original.root.as_ref().unwrap(), successor.root.as_ref().unwrap()));
++        successor.record(1_u128.to_be_bytes(), delta(1)).unwrap();
++        assert!(Arc::ptr_eq(original.root.as_ref().unwrap(), successor.root.as_ref().unwrap()));
++        successor.record(1_u128.to_be_bytes(), delta(2)).unwrap();
++        assert_eq!(original.get(1_u128.to_be_bytes()), Some(&delta(1)));
++        assert_eq!(successor.get(1_u128.to_be_bytes()), Some(&delta(2)));
++        assert_eq!(successor.len(), keys.len());
++        assert!(successor.get(3_u128.to_be_bytes()).is_none());
++        let mut visited = Vec::new();
++        successor.visit(|key, _| { visited.push(u128::from_be_bytes(key)); Ok(()) }).unwrap();
++        assert_eq!(visited, keys);
++        fn nodes(node: &Node, preceding: Option<u32>) -> usize {
++            match node {
++                Node::Leaf { .. } => 1,
++                Node::Branch { bit, zero, one } => {
++                    assert!(*bit < 128 && preceding.is_none_or(|prior| prior < *bit));
++                    1 + nodes(zero, Some(*bit)) + nodes(one, Some(*bit))
++                }
++            }
++        }
++        assert_eq!(nodes(successor.root.as_ref().unwrap(), None), 2 * keys.len() - 1);
++    }
++}
