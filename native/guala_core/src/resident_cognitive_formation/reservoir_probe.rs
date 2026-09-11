@@ -5158,6 +5158,12 @@ fn saved_guided_vocal_tail_json(
     guide_carriers: u128,
     sound_only: bool,
 ) -> Value {
+    let severed_learned_contact_pair_count =
+        std::env::var_os("GUALA_PROBE_GUIDED_VOCAL_TAIL_SEVER_LEARNED_MOTOR").map(|_| {
+            let (severed, removed) = severed_learned_motor_copy(&state);
+            state = severed;
+            removed
+        });
     let target_axes = [
         BodyAxis::VocalTractSection0Area,
         BodyAxis::VocalTractSection1Area,
@@ -5300,6 +5306,7 @@ fn saved_guided_vocal_tail_json(
         "measurement_only": true,
         "sound_only": sound_only,
         "saved_taught_state_advanced": true,
+        "severed_learned_contact_pair_count": severed_learned_contact_pair_count,
         "pressure_wav": guided_vocal_pressure_wav(&positive.pressure),
         "pressure_sample_count": positive.pressure.len(),
         "pending_motor_consequence": positive.pending_motor_consequence,

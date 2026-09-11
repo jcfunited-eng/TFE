@@ -10967,3 +10967,147 @@ body and exercise the same path through the actual runtime/persistence callers.
 Do not overwrite live state with these copied trained fixtures. No new
 physical mechanism is authorized by an observation gap. Actual intelligibility
 and live laptop delivery remain unverified; Joe does not yet need a browser.
+
+
+`D-054-118-28` — existing severed-cause control, frozen test-only contract.
+S118-20/23/25/27 remain closed local successes. Production baseline remains
+1456/image6aa38d99; live speech not proved. Requested architecture: learned
+physical links cause bodily sound. Current evidence lacks the disconnected
+control on this taught specimen. Conflict with complete acceptance: yes,
+missing causal-control evidence; not a new physics diagnosis. Full DSF unchanged,
+no reduced field/structure. Single next item: expose existing
+severed_learned_motor_copy through saved_guided_vocal_tail_json.
+
+Only reservoir_probe.rs is authorized. Add optional test-only
+GUALA_PROBE_GUIDED_VOCAL_TAIL_SEVER_LEARNED_MOTOR at saved-tail entry.
+When present, invoke existing severed_learned_motor_copy before the no-cue
+baseline and report its actual removed-contact count. With flag absent,
+no extra traversal or mutation. Existing severer removes physical L11/L12
+contact pairs, removes only their frontier references, rebuilds topology;
+neuron values, other contacts, body, and all learned-memory bytes remain.
+This is disposable copied-body ablation, never a runtime flag or live operation.
+No new severing implementation, semantic suppression, rescaling, quiet timer,
+or accepted-path authority. Module is cfg(test), production callers absent.
+No codec format or runtime/persistence/FFI/UI change.
+
+One independent frozen source review, then compile, then ONE saved-tail run
+from exact taught4d717e81/body6247ab3b, same phase0/occurrence500,
+eight baseline/64 positive clocks, no guidance, sever flag present.
+Require nonzero contacts actually removed, no learned four-posture motor
+response, no respiratory response/pressure, and no pending returns.
+Any exception/remaining act is recorded and examined as actual control evidence,
+not permission to discard preceding positive successes or alter physics.
+No new positive replay: simple flag-off path is unchanged and reviewed.
+Resource bound: existing linear one-time copied-fabric surgery plus bounded
+existing64-clock test; no production work or retained state.
+
+
+`R-054-118-29` — source review b367174f... found ONE localized observation
+label error: severed_learned_motor_copy returns unique removed endpoint-pair
+count, not physical contact count where parallel wires exist. Corrected the
+new variable/JSON key to severed_learned_contact_pair_count. D118-28's count
+requirement means actual removed endpoint pairs, not individual wire count.
+No surgery/physics change or extra counting scan. Review found no existing
+custody/codec incompatibility: all affected three-generation frontier entries
+removed, other fabric state and cohorts retained, topology rebuilt, cold
+scheduler absent/rebuilt. Flag-off unchanged, cfg(test) only. Source re-frozen
+for one final localized review before compilation. Positives remain closed.
+
+
+`S-054-118-30` — final source review PASSED fingerprint
+1d25240adc03cf3312fa9b81868e8e06015215f86c19f8c46fd250501c34980e,
+verified before/after. Diagnostic label accurate, no extra scan/behavior change,
+no remaining finding. One test binary build authorized; no production change.
+Read-only task environment re-resolved: paired root /app/guala/paired-current-gen2,
+world bytes16777216, PYTHONUNBUFFERED1, CPU4096/RAM16384. No anatomy flags.
+Capture helper located rather than recreated: /tmp/capture_guala_current.py
+SHA924983166c26aed42582cda4451b96e71b30ba0db9f52a908f4ad2282ca98284.
+It reads one CURRENT and that exact immutable body/world, validates hashes,
+uploads a distinct diagnostic ZIP and downloads it; never starts an organism,
+publishes CURRENT, locks, reconciles, or mutates the live store. AWS bucket
+guala-incident-bench-20260831 authenticated accessible in us-east-1. This is
+preparation for next-body runtime proof, not authorization to run old rehearsal
+or migration code. Existing run_guala_candidate_rehearsal_task.py is historical
+native-root machinery; do NOT use it to capture this paired-root live task.
+
+
+`S-054-118-31` — disconnected-path control PASSED39.65s, session12927.
+Build2m30s, same99 warnings. Binary SHA
+c06174d094a684f5a5860c7e723a66e61d311739ae6c2762ee3f37649ed21361.
+Existing severer removed516 unique L11/L12 endpoint pairs from the disposable
+taught specimen. Eight pre-cue clocks and64 cue/tail clocks: zero motor acts,
+zero breath, zero pressure, no pending motor/self returns, body at rest,
+cognitive codec exact. Thus the connected four-act result requires the removed
+physical motor connection set; no scripted or independent output appeared.
+Positive first/second/third-use results remain closed. No production surgery.
+JSON /tmp/guala-candidate118-severed.json SHA
+5f78234405086cbb5e5ed498fadfe68946642c1af34e2a960d7c1e81599a6bb8.
+AWS pre18:11:21/post18:13:19 same1456/image6aa38d99 healthy1/1/0;
+18:10 provisional metric window CPUavg41.7946/max47.4500%,
+memoryavg10.8521/max11.1847%. No native/compiler process survives.
+
+`F-054-118-32` — production chronology equivalence remains OPEN: confirmed
+test/runtime interface mismatch found BEFORE cutover. The native C118 wins
+are not false, but they do not establish whole-runtime lesson delivery.
+The saved-tail scheduled guide co-admits external tutor, moved tissue,
+preceding motor consequence, and pending self-pressure on one native clock
+(reservoir_probe.rs run_guided_vocal_continuation, original4288-4305).
+LeanPhysicalLoop._advance at125-136 refuses external pressure whenever native
+in-flight self-pressure exists. Native advance_guided_vocal_interval_unsealed
+passes consume=None/guided=Some; advance_admitted_intervals_unsealed rejects
+consume=None while current_in_flight_acoustic exists. Authenticated
+advance_in_flight_self_hearing_unsealed supports coexisting source episodes
+and consume=Some but passes guided=None. No exposed caller combines the
+existing authenticated consumption and guided movement. Production immediate
+body/self-hearing return also consumes the next native interval internally
+without a queued successor guide (lean_physical_loop.py226-298).
+Independent reviewer and owner source reads agree. No runtime/physics edit yet.
+
+Existing inner native builder already has both typed parameters; do not
+invent new energy, sequence objects, state flags, echo permission, delayed
+clearance, or drop pending sound. Determine the narrow translation/caller
+correction, its exact immediate-return chronology, and all public consumers
+before editing. Drain-then-guide changes chronology and is NOT assumed
+equivalent. This finding blocks production-equivalence claims, not reuse of
+closed memory, growth, ordering, breath, acoustic, and three-use mechanisms.
+The current generic rehearsal controller is not evidence of this behavior.
+
+`D-054-118-33` — fresh paired production snapshot for real-runtime proof.
+Using inspected existing capture helper, exact live1456 task
+effde9e1bf364ec9b4114355fb07eafb, paired-current-gen2, no mutation of live
+CURRENT/body/world or actor. New diagnostic ZIP key (not a live-state key):
+s3://guala-incident-bench-20260831/guala/candidate118/20260911T181319Z-runtime-current.zip.
+Local directory /tmp/guala-c118-runtime.zTuSdq. Capture session29265 retained.
+Authenticate archive members and exact pointer/body/world hashes after download;
+never substitute a later pointer into this frozen proof. CaretakerSTOP retained.
+
+
+`S-054-118-34` — fresh production pair authenticated, capture29265 completed.
+Task1456/image6aa38d99 same identity1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1,
+CURRENT tick651372 (predecessor651340). Local frozen input:
+ /tmp/guala-c118-runtime.zTuSdq/body.glorun
+164324753 bytes, SHA8c4968b446b5f26516c28958265dc59f8791a62e0fefc8db7c648f304e53cd3c.
+World /tmp/guala-c118-runtime.zTuSdq/world.json:
+63547 bytes, SHAec65d80a56d2b072ca1bd38cf5b4d20fdce306cf7661986e1eda167e7a5bd663.
+Pointer /tmp/guala-c118-runtime.zTuSdq/pointer.json contains exact matched
+descriptor. ZIP3243034 bytes SHA
+d6973a9417c8ff40c8bcb452bc470ffe98c8c7ca0e0e80b91b2f2fc61f652695.
+Archive contained exactly body.glorun.gz/world.json/pointer.json; local raw
+body/world hashes match authenticated remote receipts. SSM printed EOF after
+the completed upload; helper exit0/download/hash proof establish success.
+No retry, new snapshot, or interpretation of EOF as organism failure.
+Post18:14:35 live task stillRUNNING/HEALTHY; no Guala native/SSM/compiler
+child remained. A new TFE child of known ch6 loop PID3708 was observed
+(41456, RSS2071736KiB at2s); do not stop it or overlap a heavy measurement
+without checking its state again.
+
+Next exact implementation boundary: F118-32 source-to-production teaching
+handoff. Existing organism_runtime::advance_admitted_intervals_unsealed
+already receives authenticated consumption and guided_vocal_drives as distinct
+typed inputs, executes one physical build, preserves old/new acoustic
+superposition, and rolls back on failure. Public wrappers expose the two only
+separately. Complete the bounded wrapper/physical-loop/return chronology map;
+reuse that existing native settlement, not a new speech law. Preserve exact
+source provenance, authentic pressure/body bytes, no own-echo founding,
+guide validation, full DSF, source count bounds, failure rollback, and next
+cold interval. No runtime edit or production-equivalence claim yet.
