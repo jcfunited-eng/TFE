@@ -8172,3 +8172,30 @@ SHAe4c4b23aa30c373bb756c7d07778e8ec9a2185ccdead6bf3b590e63f330053c4.
 LogSHA95242c8a4afd906330066f6c60151ed31a908cb9477ab22457d9f401fc884f79.
 AWSpre/post17:02:13/37 unchangedsole1456/image6aa38d99 healthy1/1/0.
 No productionmutation/caretakerrestart. No test/build survives.
+
+
+### 2026-09-11 17:22 UTC — SOL: C118 guard fixed; ordered second posture now grows
+
+Source and first acceptance pushed a2bbdbb4. Existing nonzero-phase eligibility
+now precedes distinct-root competition; real active-root ties still refuse.
+No new law/state/schema; native method25lines smaller, duplicatefull-contact
+lookup removed. Independentreviewpassed; ownerpreflightcaught and corrected
+a TEST wire-orientation assumption beforecompile. Focusedzero/one/twoactive-root
+checkPASS0.01s. ExactpreviousfailingguidePASS7.19s,4->8routes,coldexact.
+That artifact has TWOindependentroots, NOT a learnedword; preservedasguardproof.
+
+Then reused actualsuccessfulS104/S110 tutoring chronology on saved4routebody,
+NOT independenttwo-rootartifact:8quietbaseline0acts/0breath/0pressure;
+soundcue produces4minimum motorsclock3+22breath; oppositeguidedphaseclock4.
+One15.22s lesson grew ONEphysicalcontinuation26d4->2798 acrossall4maximum
+motors (read-only anatomydecode2.69s). Exactcoldencoding. Noindependentroot/
+echoauthor added. OneL8-driven minimum twitchatclock4 recordedseparately,
+not mislabeledanotherL11posture. Oldminimumrootrecallremainsproved.
+
+Orderedguidecognitive01a269de0b8a8c567639b10dd7928d65e8dd57f68b8452fb131162837ea3fdae.
+StructureSHA55ba9cc214628adf13e83b7a84b98f1d4158b60e1f976e5d60d2e53fbe9027aa.
+Acousticsstillactiveat8clocks. Nowonecontinuous64clocktailmeasurement fromSAME
+input/prefix (no coldrestartdroppingpendingfeedback), then recallonlyfrom
+honestlyquietstate. C118passesstayclosedif tailneedswork. No newspeechclaim.
+Production1456/image6aa38d99 unchangedhealthy1/1/0 at17:21:51; caretakerSTOP.
+CanonicalAttempt54 rows118-04/07/08 holdsuccesses,caveatsandactiveitem.
