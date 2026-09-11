@@ -10345,3 +10345,99 @@ before checking each founder contact's nonzero phase. A newborn zero-phase
 secondroot could therefore create a false tie. No evidence yet proves this
 branch fired. Exact root/phase capture plus guide-phase diagnostic must precede
 any correction; no uniqueness law has been loosened.
+
+`D-054-117-18` — one saved-guide replay, test correctness first.
+Input exact failed predecessor637679/body6247ab3b, unchanged phase0sound and
+maximum1500carrier guide at occurrence100. Add a test-only initial-occurrence
+offset to the existing saved-state growth branch, restricted to ONE guide.
+Its first guide must not add another32recovery clocks; later-guide condition
+becomes cycle>1, identical for all existing zero-offset runs. No new curriculum
+or native law. Reconstructed moved-body bytes must match e69a91f0 before
+calling the result the same physical guide. Runtime starts cold; retain the
+warm/cold limitation until actual refusal correspondence is measured.
+
+Test-only phase-on-error guard names last native phase across source validation,
+ingress, body regulation, internal contact, prior-act resolution, leaf custody,
+memory, sound reassembly, vocal growth, external-founder retention and remaining
+growth/return. It prints only if the native preparation exits before success.
+The exact external-founder root tie additionally prints its root lineages and
+each founder's actual contact phase BEFORE the unchanged refusal.
+No source/phase/tie decision changes, timers, depletion edits, or new physics.
+
+Failure receipt adds actual pre-guide acoustic quiescence and existing vocal
+structure (gate/charge observations) to assess Joe's recovery/test question.
+Snapshot/receipt remains test-only, one failing predecessor, no per-clock archive.
+Files only resident_cognitive_formation.rs and reservoir_probe.rs. Final source
+review/fingerprint precede one build and ONE saved-guide diagnostic, not eight
+lessons. Do not re-run passed memory, migration or root-recall prefix.
+
+`R-054-117-19` — frozen diagnostic source PASS, independent memory_probe_review.
+Fingerprint75f61c88967e423363e3b7302ff2cabe1b2f2eb49af9c3a43d84254192896615
+verified before/after. No architectural/static type finding. cfg(test) phase
+guard marks success only after all fallible Prepared construction; existing
+refusal unchanged, founder phases read only on error. Offset99/cycle1 means
+occurrence100 with no added32 clocks; zero-offset chronology unchanged.
+Cold scheduler limitation remains explicit. SHA main12d4dc6119c992cf995b89e1a0a6bc25e2b1eacce25de415d967228e233f4e9e;
+probe64f490d38b236b039063b9a8d6f3970bdddf90112213fd934387b6d1b704dd7c.
+One release build started under retained session28632. No other harness runs.
+
+`F-054-117-H01` — read-only wrapper-path miss: rg used guala_preflight/preflight.sh
+inside the speech worktree although wrapper belongs to MAIN. No compile/test
+ran from that command. Absolute /workspaces/Tao_Financial_Engine/guala_preflight/preflight.sh
+resolved with test -f and read successfully. Existing warning retained: wrapper
+test subcommand selects DEBUG binary, not the required release executable.
+Release proof uses explicit manifest and exact release --list preflight instead.
+This repeated command-path mistake does not alter prior organism successes.
+
+`S/F-054-117-20` — ONE-GUIDE REFUSAL LOCATED, 4.60s, no eight-lesson replay.
+Build passed2m35s/99existing warnings; executable SHA256
+7f824d554d137bd0acfbe05faf030318994216e7f4e15b600493c468246ca152.
+Exact preflight --list found reservoir_probe_dump; diagnostic exited101 as
+expected from the unchanged original native error. Session3276 completed.
+No surviving cargo/rustc/test child in post-run process census17:03.
+Guide occurrence100/generation637679/maximum1500/sound4000phase0.
+Re-encoded predecessor6b8a4547, pre-body6247ab3b, moved-guide-bodye69a91f0
+match the original failing-input bytes EXACTLY. No added recovery. Cold replay
+reproduces error NeuronLineageAuthorityChanged, now exactly located at
+retain_externally_reassembled_vocal_founder_frontier, external-founder-root-tie.
+This correspondence does not claim full warm trajectory equivalence.
+
+Measured roots ...26d4 and ...2798. The OLD ...26d4 has three exact reached
+founder phases1517327176067/1522546515600,733047625147/924155327040,
+4542157853699/4674220874400. The NEW ...2798 has four founders ...09fe,...0a0c,
+...0a28,...0a36, EACH phase0/1. No ...2798 route existed in saved predecessor;
+only ...26d4 resolved there. Vocal growth returned successfully before this
+later retention guard refused, so the attempted second posture is constructed
+inside the rejected transition; it is NOT committed/durable learning yet.
+The guard counts anatomical roots before its existing zero-phase exclusion.
+Thus nonexistent in-flight work on a newborn root participates in the tie.
+No fabricated phase, root selection, ignored error, or softened tie used.
+
+Pre-guide acoustic quiescence=true. Four established minimum motor gates are
+closed/openpopulation0,dissipated36/capacity36, residue0. This is actual gate
+state, not a claim of all-body recovery. Those values are NOT consulted by the
+identified roots.len refusal. Therefore this specific refusal is neither test
+timeout nor unfinished acoustic tail, and extra waiting is not established as
+a correction. Global curriculum readiness/ordered second-posture teaching is
+not certified by this one result. First-root growth and recall remain closed;
+fullspeech and acoustic-tail closure remain unresolved.
+
+Artifacts /tmp/guala-candidate117-single-guide.json.failure.json SHA256
+e4c4b23aa30c373bb756c7d07778e8ec9a2185ccdead6bf3b590e63f330053c4;
+log /tmp/guala-candidate117-single-guide.log SHA256
+95242c8a4afd906330066f6c60151ed31a908cb9477ab22457d9f401fc884f79.
+Pre/post AWS17:02:13/17:02:37 sole1456/effde9e1/image6aa38d99 HEALTHY/RUNNING
+1/1/0 unchanged. Alarm unchangedSept8; CPU17:00avg46.1396,max57.5531%;
+17:01avg42.1009,max43.6241%; memory10.7686/10.4309%,max11.4227%.
+Latest returned metrics precede test minute17:02; no invented same-minute
+datapoint or latency proof. No production mutation, no caretaker restart.
+
+`D-054-117-21` — next bounded correction recommendation: apply the EXISTING
+nonzero physical-carrier-phase eligibility before counting distinct founder
+roots. Preserve absolute refusal for multiple physically eligible roots; no
+anatomical root selection by index, no source-order choice, no timer/new state.
+Reuse reached contact references so the phase is not re-looked up by a second
+whole-contact scan. Before editing complete local caller/conservation review
+and match this same saved-guide failure plus zero/one/two eligible-root cases.
+This is not a new word-order law, not permission to treat a second independent
+root as a learned sequence, and not a deployment/speech-success claim.

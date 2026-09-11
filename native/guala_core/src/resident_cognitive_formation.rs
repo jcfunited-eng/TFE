@@ -4064,6 +4064,23 @@ thread_local! {
 }
 
 #[cfg(test)]
+struct NativePreparationPhaseTrace {
+    predecessor_generation: u64,
+    stage: &'static str,
+    finished: bool,
+}
+
+#[cfg(test)]
+impl Drop for NativePreparationPhaseTrace {
+    fn drop(&mut self) {
+        if !self.finished {
+            eprintln!("C117_PREPARATION_EXIT predecessor_generation={} stage={}",
+                self.predecessor_generation, self.stage);
+        }
+    }
+}
+
+#[cfg(test)]
 fn trace_focused_original_refusal(
     branch: &str, association: Option<[u8; 16]>, candidates: &[usize],
     mosaics: &[RetainedOrganismMosaic], topology: &ResidentTopologyIndex,
@@ -5023,6 +5040,21 @@ fn retain_externally_reassembled_vocal_founder_frontier(
     root_orderings.sort_unstable();
     root_orderings.dedup();
     if root_orderings.len() != 1 {
+        #[cfg(test)]
+        {
+            eprintln!("C117_REFUSAL branch=external-founder-root-tie roots={root_orderings:x?}");
+            for (association, ordering, bond) in &founders {
+                let phase = topology.contacts.iter()
+                    .find(|contact| contact.stable_bond == *bond)
+                    .and_then(|contact| match contact.origin {
+                        ResidentContactOrigin::Fabric { contact_index } => electrical_fabric
+                            .state().contact_states().get(contact_index)
+                            .map(|state| state.carrier_phase().parts()),
+                        _ => None,
+                    });
+                eprintln!("C117_FOUNDER association={association:x?} ordering={ordering:x?} bond={bond:x?} phase={phase:?}");
+            }
+        }
         return Err(FormationError::NeuronLineageAuthorityChanged);
     }
     for (association, _ordering, bond) in founders {
@@ -8486,6 +8518,10 @@ impl ResidentCognitiveFormationState {
             topology_index: predecessor_topology_index,
             formation_index: predecessor_formation_index,
         } = expanded;
+        #[cfg(test)]
+        let mut phase_trace = NativePreparationPhaseTrace {
+            predecessor_generation, stage: "source-validation", finished: false,
+        };
         if admitted_sources.is_empty()
             || admitted_sources
                 .iter()
@@ -8621,6 +8657,8 @@ impl ResidentCognitiveFormationState {
         let mut endogenous_partial_cue_reassembly_count = 0usize;
         let mut metabolic = ReachedCohortMetabolicObservation::default();
         let mut occurrence_index = 0usize;
+        #[cfg(test)]
+        { phase_trace.stage = "receptor-ingress"; }
         for admitted_source in admitted_sources {
             let source = admitted_source.episode();
             for (source_occurrence_index, occurrence) in
@@ -9842,6 +9880,8 @@ impl ResidentCognitiveFormationState {
         palmar_contact_onset_receptor_lineages.dedup();
         gustatory_contact_onset_receptor_lineages.sort_unstable();
         gustatory_contact_onset_receptor_lineages.dedup();
+        #[cfg(test)]
+        { phase_trace.stage = "local-body-regulation"; }
         let mut electrical_fabric = predecessor_electrical_fabric;
         let predecessor_active_electrical_frontier =
             predecessor_active_electrical_frontier.into_vec();
@@ -9920,6 +9960,8 @@ impl ResidentCognitiveFormationState {
         if !topology_index.matches_shape(&cohorts, &electrical_fabric) {
             topology_index = Arc::new(ResidentTopologyIndex::build(&cohorts, &electrical_fabric)?);
         }
+        #[cfg(test)]
+        { phase_trace.stage = "internal-contact"; }
         let internal_contact = settle_internal_contact_interval_with_body_act(
             &mut cohorts,
             &mut electrical_fabric,
@@ -9951,6 +9993,8 @@ impl ResidentCognitiveFormationState {
             eprintln!("C117_STAGE stage=internal-contact generation={source_generation} error={error:?}");
             error
         })?;
+        #[cfg(test)]
+        { phase_trace.stage = "preceding-body-act"; }
         let mut guided_vocal_predecessor_orderings =
             internal_contact.completed_vocal_orderings.clone();
         if admit_guided_vocal_route_growth {
@@ -10006,6 +10050,8 @@ impl ResidentCognitiveFormationState {
         dsf_delivery_count = dsf_delivery_count
             .checked_add(internal_contact.dsf_delivery_count)
             .ok_or(FormationError::ArithmeticOverflow)?;
+        #[cfg(test)]
+        { phase_trace.stage = "fractal-custody"; }
         emitted_neuron_fractals = coalesce_emitted_neuron_fractals(emitted_neuron_fractals)?;
         for fractal in &emitted_neuron_fractals {
             settled_fractals.record(fractal.neuron_lineage, fractal.delta.clone())?;
@@ -10030,6 +10076,8 @@ impl ResidentCognitiveFormationState {
         // only sibling cannot found a second hub for the same interval. The
         // new resting layer-7 cell is not seeded into this interval; later
         // current must reach it through the retained assembly contacts.
+        #[cfg(test)]
+        { phase_trace.stage = "cross-sensory-mount"; }
         let reached_associations_by_occurrence = mount_reached_cross_sensory_association(
             &mut cohorts,
             &mut resting_population,
@@ -10047,6 +10095,8 @@ impl ResidentCognitiveFormationState {
         if !topology_index.matches_shape(&cohorts, &electrical_fabric) {
             topology_index = Arc::new(ResidentTopologyIndex::build(&cohorts, &electrical_fabric)?);
         }
+        #[cfg(test)]
+        { phase_trace.stage = "focused-original"; }
         let focused_cross_sensory_original_bonds = exact_reached_cross_sensory_original_bonds(
             &cohorts,
             &topology_index,
@@ -10059,6 +10109,8 @@ impl ResidentCognitiveFormationState {
             eprintln!("C117_STAGE stage=focused-original-selection generation={source_generation} error={error:?}");
             error
         })?;
+        #[cfg(test)]
+        { phase_trace.stage = "body-association-and-effector"; }
         let developmental_affective_pairs = exact_occurrence_affective_pairs(
             &reached_associations_by_occurrence,
             &exact_moved_body_regulations_by_occurrence,
@@ -10095,6 +10147,8 @@ impl ResidentCognitiveFormationState {
         if !topology_index.matches_shape(&cohorts, &electrical_fabric) {
             topology_index = Arc::new(ResidentTopologyIndex::build(&cohorts, &electrical_fabric)?);
         }
+        #[cfg(test)]
+        { phase_trace.stage = "mosaic"; }
         let current_physical_deltas = exact_transition_physical_deltas(
             &cohorts,
             &topology_index,
@@ -10138,6 +10192,8 @@ impl ResidentCognitiveFormationState {
         if organism_mosaic_receipt.is_some() {
             mosaic_formed = organism_mosaic_receipt;
         }
+        #[cfg(test)]
+        { phase_trace.stage = "sound-reassembly"; }
         let exact_sound_reassembled_members =
             if admit_guided_vocal_route_growth || admit_learned_motor_work {
                 exact_sound_reassembled_structure_lineages(
@@ -10152,6 +10208,8 @@ impl ResidentCognitiveFormationState {
                 BTreeSet::new()
             };
         if admit_guided_vocal_route_growth {
+            #[cfg(test)]
+            { phase_trace.stage = "vocal-growth"; }
             mount_exact_reassembled_vocal_action_routes(
                 &mut cohorts,
                 &mut resting_population,
@@ -10173,6 +10231,8 @@ impl ResidentCognitiveFormationState {
             topology_index = Arc::new(ResidentTopologyIndex::build(&cohorts, &electrical_fabric)?);
         }
         if admit_learned_motor_work {
+            #[cfg(test)]
+            { phase_trace.stage = "external-founder"; }
             retain_externally_reassembled_vocal_founder_frontier(
                 &cohorts,
                 &topology_index,
@@ -10191,6 +10251,8 @@ impl ResidentCognitiveFormationState {
         // association/body pairs already proved above. Resident formation
         // membership, unrelated active frontiers and whole-population
         // coincidence have no authority here.
+        #[cfg(test)]
+        { phase_trace.stage = "affective-growth"; }
         mount_reached_affective_reach_indexed(
             &mut cohorts,
             &mut resting_population,
@@ -10203,6 +10265,8 @@ impl ResidentCognitiveFormationState {
         // active bond carried by a current or reassembled retained formation
         // may author it. A large transient electrical frontier cannot mint a
         // resident ordering graph.
+        #[cfg(test)]
+        { phase_trace.stage = "ordering-growth"; }
         mount_reached_ordering_reach(
             &mut cohorts,
             &mut resting_population,
@@ -10210,6 +10274,8 @@ impl ResidentCognitiveFormationState {
             &mut electrical_fabric,
             &internal_contact.causal_active_bonds,
         )?;
+        #[cfg(test)]
+        { phase_trace.stage = "recurrent-frontier"; }
         retain_internally_reassembled_recurrent_frontier(
             &mut active_electrical_frontier,
             &predecessor_active_electrical_frontier,
@@ -10220,6 +10286,8 @@ impl ResidentCognitiveFormationState {
             .iter()
             .map(|index| mosaics[*index].mosaic.member_lineages().to_vec())
             .collect::<Vec<_>>();
+        #[cfg(test)]
+        { phase_trace.stage = "recurrent-mount"; }
         let mounted_retention_lineages = mount_new_recurrent_retention(
             &mut cohorts,
             &mut resting_population,
@@ -10254,6 +10322,8 @@ impl ResidentCognitiveFormationState {
         if !topology_index.matches_shape(&cohorts, &electrical_fabric) {
             topology_index = Arc::new(ResidentTopologyIndex::build(&cohorts, &electrical_fabric)?);
         }
+        #[cfg(test)]
+        { phase_trace.stage = "observation-return"; }
         let successor = Self {
             generation: source_generation,
             next_lineage_ordinal,
@@ -10299,7 +10369,7 @@ impl ResidentCognitiveFormationState {
             .map_or(0, |summary| summary.complete_neuron_count);
         let physically_transitioned_neuron_count = physically_transitioned_neuron_lineages.len();
         let complete_neuron_fractal_count = emitted_neuron_fractals.len();
-        Ok(PreparedCognitiveFormationTransition {
+        let prepared = PreparedCognitiveFormationTransition {
             predecessor_generation: predecessor_generation_authority,
             predecessor_hippocampal: predecessor_hippocampal_authority,
             successor,
@@ -10372,7 +10442,10 @@ impl ResidentCognitiveFormationState {
                 nutrition_vented_heat_quanta: 0,
                 energy: successor_energy,
             },
-        })
+        };
+        #[cfg(test)]
+        { phase_trace.finished = true; }
+        Ok(prepared)
     }
 
     pub(crate) fn advance_vestibular_transition_with_residency(

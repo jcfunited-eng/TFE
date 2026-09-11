@@ -5477,7 +5477,13 @@ fn guided_vocal_population_growth_json(
     let checkpoints = [1_u32, 2, 4, 8, 16, 32, 64, 128, 256];
     let mut observations = Vec::new();
     let mut vocal_learning_frontiers = Vec::new();
-    let mut occurrence = 0_u64;
+    let initial_occurrence = std::env::var("GUALA_PROBE_GUIDED_VOCAL_INITIAL_OCCURRENCE")
+        .ok().map(|value| value.parse::<u64>().expect("saved guide occurrence is u64"))
+        .unwrap_or(0);
+    assert!(initial_occurrence == 0 || (route_growth_only && maximum_cycles == 1
+        && std::env::var_os("GUALA_PROBE_GUIDED_VOCAL_GROWTH_STATE_IN").is_some()),
+        "nonzero occurrence offset is restricted to one saved guide");
+    let mut occurrence = initial_occurrence;
     let mut motor_discharges = 0_u64;
     let mut guided_vocal_discharges = Vec::new();
     let mut inter_demonstration_pulses = Vec::new();
@@ -5556,7 +5562,7 @@ fn guided_vocal_population_growth_json(
         // present, do not reset the body: the repeated antagonist phases must
         // unfold through the carried tissue, acoustic, neuronal, and recurrent
         // state that production itself retains.
-        if occurrence != 0 && !population_complete {
+        if cycle > 1 && !population_complete {
             if continuing_recovery {
                 let terminals = vocal_routes(&state).into_iter()
                     .map(|(_, motor, terminal)| (motor, terminal))
@@ -5582,7 +5588,7 @@ fn guided_vocal_population_growth_json(
                 }
             }
         }
-        occurrence += 1;
+        occurrence = occurrence.checked_add(1).expect("guide occurrence fits");
         let drives = AdmittedBodyEffectorDrives::admit(
             target_axes
                 .iter()
@@ -5643,6 +5649,8 @@ fn guided_vocal_population_growth_json(
                             "direction": format!("{direction:?}"),
                             "guide_carriers": guide_carriers.to_string(),
                             "routes": vocal_routes(predecessor).len(),
+                            "pre_guide_acoustic_quiescent": body.articulatory_acoustic_state().is_quiescent(),
+                            "pre_guide_vocal_structure": vocal_route_structure_json(predecessor),
                             "tutor_pressure_path": std::env::var("GUALA_PROBE_GUIDED_VOCAL_TUTOR_PRESSURE_PCM").unwrap(),
                             "tutor_phase": (sequence_start_phase + usize::try_from(cycle - 1).unwrap()) % tutor_pressure_phases.len(),
                             "cognition_continues_during_recovery": continuing_recovery,
