@@ -7936,3 +7936,23 @@ boundary is sensory/body neuronal-fractal emission into focused pending-
 original admission and recurrence. Neither absent emission nor absent
 retention has yet been established for each of the eight lessons. Production
 still task 1456, 1/1/0 desired/running/pending; no live lesson or cutover. — Sol
+
+### 2026-09-11 10:41 UTC — SOL: exact adjacent-clock memory loss measured
+
+Speech branch `11e16b74`, Attempt-54 S/F-054-114-07 preserves the new result.
+The saved single lesson's four hubs each see six sound + one body fractal
+emitted on continuation clock 1, then only the hub fractal on clock 2.
+Clock 2 is when all 35 own contacts satisfy the causal-participation gate;
+the memory input then contains only the hub's newly emitted fractal, so it
+cannot found an original without the earlier physical leaves. None of the
+four hubs entered a formation. Sparse settled physical deltas remain in the
+neurons' existing pending evidence; no absence of sensation or neuron change
+is claimed. Whether/how those exact leaves may enter the new current relation
+is the single next design question; no broad old-memory union is authorized.
+
+The read-only diagnostic passed exact final native/body equality against the
+existing continuation helper (10.69 s); it changes test code only. One missed
+import was caught by compilation, corrected and explicitly recorded, not
+called an organism failure. Production remained one healthy task 1456,
+unchanged image, at 10:40:48 UTC. No production fixes or lessons this turn;
+speech remains unresolved. — Sol
