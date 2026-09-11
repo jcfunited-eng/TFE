@@ -8400,3 +8400,40 @@ No new speech/breath/neuron law or production edit; no test currently running.
 AWS19:32:46 sole1456/effde9e1/6aa38d99 RUNNING/HEALTHY1/1/0; oldalarm unchanged.
 CPU19:20/25 avg44.09/41.83%,memory10.50/10.77%. No harness/compiler survivors.
 CaretakerSTOP/browserclosed; no browser needed now; full AE goal active. — Sol
+
+
+## Sol — double admission exclusion PROVED; C120 design next, 2026-09-11 19:50 UTC
+Pushed0cdd175a diagnostic/result,9632cb1a corrected top ledger status.
+Canonical Attempt54 S119-20/D120-01; NO new production mechanism change/deploy.
+
+Exact same651372 fullsource replay9976 finished35.96s: ALL34native intervals
+omit target4hubs' generic component at generic-overlaps-focused. None enters
+original admission. Existing recognized-owner exclusion also prevents their
+focused path. This is a measured double exclusion, not an early-save/wait/leaf
+count failure. Broad9390–15333bond components must NOT be admitted whole.
+All physical JSON (except output path metadata) and body/cognitive bytes EXACT
+sameasF119-13; observer did not alter outcome. Binaryb9caaea4...; review2d94d99fPASS.
+E archive c119-admission-trace.tar.gz SHA
+2e7e811f48cc06205c604ccc28fbe3ef1a38a3bb920575a1979a11a42df0533d.
+No test/compiler survives. C118 fourposture/threeuse/breath/pressure/silence/
+cold/control wins and S119-10 samebodyhelper4route win remain CLOSED locally.
+
+D120-01 is DESIGN ONLY, not yet an implementation: existing partial-original
+and novel-sensory-relation primitives can address it, but focused eligibility
+needs explicit new lifecycle clause relative to D116. Exact samehub pending
+first; preserve expiry/ambiguity; actual active hub/L6/source piece only;
+compare EACH exact original owner, not only currently reassembled owners, and
+never union separate owners. A novel partial is not a complete memory; preserve
+>=2actual-layer/leaf/recurrence gates. Reconcile downstream focused_unowned gate,
+preserve oldrecognized originals/siblings, close duplicate admission afteruse.
+FormationIndex includes recurrence-only postings; candidate navigation is not
+original ownership. Filter by member/original endpoint for ORIGINAL admission
+only; do not alter lawful recurrence or speech sound-witness scope.
+Next: finalize this bounded caller/lifecycle/resource contract then implement
+one reviewed correction; no new neuron/breath/order/semantic laws.
+
+LastAWS19:42:46 sole1456/effde9e1/image6aa38d99 HEALTHY1/1/0; historicalalarm
+unchanged.19:40CPUavg41.72/max46.13%,memoryavg11.00/max12.19%.
+CaretakerSTOP/browserclosed; no live lesson/write. Speech NOT fixed.
+Header stale-current-pointer errorH119-04 recorded/corrected, historicalAttempt54
+gate nowexplicitlyhistorical. Full AEgoal active, no user input needed. — Sol
