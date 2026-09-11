@@ -10560,3 +10560,83 @@ saturation, no restart ofoldmemoryprobes. Validate existing4phase tutor bytes
 before run, never invent a waveform/name. Result must show exactpredecessor
 edge (not independentroot), preserved oldroutes, noechoauthor, and coldexact.
 One bounded existinghelperrun after source/inputpreflight; no newcode planned.
+
+`D-054-118-06` — exact nextguide input preflight: existing
+/tmp/guala-candidate81-mama-four-intervals.pcm bytes32000
+SHAd6835e370273ebf3e1593a60233096a5831f94d1da75cbb412e2f8c980c22f28.
+Its first8000bytes equalacceptedphase0cue85a505e8 exactly.
+Phase1 SHA43692e736aec0fd200a1199e18af49978b473fa9e619a0459bb126e2f12fe374,
+3991/4000 nonzero; no silent/wrongwaveform substitution.
+Existing nextguide helper uses phase1 four-thousand-sample slice and
+maximum-body direction atclock4, co-admits real returnedrootbody and selfsound;
+native guideauthor still usesactualpredecessor, not the testclock aspermission.
+8quietbaseline +8positiveclocks, existingbounds. This is one teaching step,
+not fullword acceptance. If finalacoustics active, do NOT reuse coldartifact
+as a supposedly identicalcontinuouswarmtail: pendingreturn values are not
+exported. Previouslysilent baseline haszero pendingreturn by measuredreceipt.
+Output /tmp/guala-candidate118-ordered-guide.{json,cognitive,body}.
+
+`S-054-118-07` — ONE ORDERED EDGE GROWN with ordinary cognition continuing.
+Existing8baseline+8positive replay15.22s. Baseline0pulses/0breath/0pressure.
+Rootcue again produces4minimum motors clock3 viaexactL11...26d4,22breath.
+Distinct maximum tutor/body guide atclock4. Atclock4 one minimum motor b7
+also receives18carriers from L8...1003 (not a competingL11root act), zero extra
+breath. No latermotorpulsesthrough8. 23970nonzeropressuresamples;
+acousticquiescent=false at8. Exactcoldcognitive roundtrip.
+
+Read-only RAW_COGNITIVE_IN structuredecode2.69s, zero organismclocks:
+8coordinatedroutes,4motor-specific continuationrecords allONEphysicalbond
+26d4->2798, fourmaxmotors c5/e1/fd/0509; onlyoldroot26d4 iswordentry.
+495legacy/unresolvedroutecontacts unchanged. This is a learned anatomical
+success, not yet secondposture sound-only recall, acousticrest or speech.
+Do not re-open guard/root/memoryfixes or recastthis as nolearning.
+
+Artifacts ordered-guide.json SHAef7548a17eeae9e5c34f5f63332c809fdaf4cfbee37338ffe481504f6e392c7b;
+.cognitive SHA01a269de0b8a8c567639b10dd7928d65e8dd57f68b8452fb131162837ea3fdae;
+.body SHA8bc33e085754195168b9f6cac18089b590c7740ef5527f8b0433404d54aff144;
+-structure.json SHA55ba9cc214628adf13e83b7a84b98f1d4158b60e1f976e5d60d2e53fbe9027aa.
+AWS17:18:22/57 unchangedsole1456/effde9e1/image6aa38d99 HEALTHY/RUNNING1/1/0.
+Replay99756/decoder8120 terminal; no production/caretakerchange.
+
+`D-054-118-08` — test-correctness continuation, not a new physics fix:
+8clock lesson ends with activeacoustics. Do not coldrestart that tail anddrop
+pendinghearing/bodyfeedback. Reuse SAME continuous lesson with maximum_clocks64;
+sourceinspect confirms bound onlycontrols loop endpoint, no schedulingdecision.
+Compare first8clock learned_work/pulses with118-07; no changedinput.
+Existing spectral-organ body-only restfixture allows4*48000samples=192000
+(48ofthese4000sampleintervals). This is a reference for finiteobservation,
+not proof everymaturebodymustrestthere.64 gives bounded observationofactual
+coexistingcognitive/body recovery; never silence by reset/truncation.
+No new code/build or stimulus. If endingstillactive, measureactualstate rather
+than serialblindboundincreases. Endquiet required before coldartifact becomes
+next recallinput; pressure/bodyreturn atlastclock also mustbe absent, notjust
+a scalar codecPASS.
+
+`S-054-118-09` — finite continuous acoustic settling PASSED44.37s.
+Same8baseline and first8positive learned_work/pulses EXACT vs118-07; extended
+positivehorizon64 changed noearlierstep. Onlymotorpulsesclock3root4+clock4L8
+single, total22breath. Noextraacts through64. Acousticstateis_quiescent=true,
+bodySHA6247ab3b exactly initialquietbody, coldcognitiveencodingexact.
+126580nonzero pressure samples acrosswholepositive window; no claim that8/20
+clockcutoffs provedendlesssound. This is actualcontinuingcognition+bodyrest,
+not body-onlyforced relaxation or muting. Actorworkprepared/offeredzero
+anddirectvocalmotorfrontierszero overlast8clocks.
+
+ordered-rest.json SHAfdcec6c7a78bae3f11f1e922fc60e97906dfe5ea8345795cadd7caa015ff6449;
+.cognitive SHAf0040a286c2734d43e61241a59e8c2ec007cfacbb25f2073118f4ab2d51120da;
+.body SHA6247ab3b74180419d60eb5dc21a94c38e72cbe119ea078efa9f70a8d14ffd59f.
+AWSpre17:21:51/post17:22:54 sole1456/effde9e1/image6aa38d99 healthy1/1/0.
+At17:20 latestCPUavg49.0769,max62.0032%;memoryavg10.5377,max10.8368%.
+Session81600terminal/no child. No production/caretakerchange.
+
+`D-054-118-10` — next one SOUND-ONLY coldrecall on restedf0040a28/body6247ab3b.
+Sameexisting8quietbaseline thenphase0sound85a505e8, NO NEXT_GUIDE flags,
+64positiveclocks soexistingtailobservationdoesnotmisclassifyfinitevoice.
+Needfirstminimum thenmaximum underdifferentL11s/actuallearnededge,
+bodybreath/pressure, noextras, finalquiet,coldexact. Ifrootonly, retain
+learnedanatomysuccess; inspectexistingoffers/phaseevidence, don'trepeatgrowth.
+This is explicitcoldsavedbodyrecall, NOTproof of retained runtimewarmfeedback:
+helperdoesnotexportpendingeventfields. Finalbodyrest isproved; finaloutput
+frame's exactpendingreturnflags are notemitted and needclosurebeforeproduction
+rehearsal. Never infer ownhearingabsence from externally_perturbed count, which
+describes external ratherthan body-ownedpressure. No newsemanticacceptancebar.
