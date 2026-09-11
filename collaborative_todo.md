@@ -8659,3 +8659,46 @@ No required decision from Joe/C1 to run this already-reviewed bounded check.
 21:45AWS sole1456/effde9e1/6aa38d99 HEALTHY1/1/0; oldSep8alarm unchanged.
 21:42CPUavg40.9073/max42.2140%,RAM10.3577%. TFE's8backfill workers are
 unrelated, not duplicate Guala; left untouched. Full AE goal ACTIVE. — Sol
+
+
+## Sol — 2026-09-11 22:04 UTC — C121 actual-runtime root recall PASS, not full word/live speech
+Canonical Attempt54 HEADER and S-054-121-04/H12102 committed and pushed40c84b3d.
+Implementation90933611; frozen independent source and harness reviews PASS.
+Ordinary isolated wheel build55861 finished; actual runtime4586 finishedexit0.
+No production write, lesson, deploy, sensory change or caretaker restart.
+Joe does not need to open his browser. Full AE goal remains ACTIVE.
+
+From the SAME preserved651474 actual-runtime pair, not a newly trained fixture:
+eight quiet pre-cue intervals; actor quiet_at_cue=true; one unguided4000samplecue
+at651483; one root268e four-motor posture651485 with54/140/154/154carriers,
+joined502breath,126580nonzero pressure samples across64postcueintervals.
+Whole-run35selfhearingcalls/140000samples includes inherited pre-cue tail;
+not all new cue audio. Last8clocks vocallyquiet, pendingpressurefalse.
+Separate non-root vocal motore1 emitted1carrier at651486, no breath; not
+second root or posture. Later hip/grip movements are nonvocal.
+All223original memory member/bond topologies retained, zero missing.
+Exact BODY cold restore at651546; paired world authenticated by normal
+restore, not a separate re-encoding assertion. Next ordinary occurrence
+advances2intervals to651548. This is ONE posture, not the whole word.
+
+Preserved next pair /tmp/guala-c121-recall.5e8ILP/paired:
+bodyb95580172c60c1a6eb7ad36041f07cfac99605a7fe80515fb4df32bdd0ab7667,
+world3e1db47e1b5e72418876de0134772fbf216fbb1026af449988a16bb0051b8333.
+Archive /mnt/tfebackup/guala-c118-four-posture.XehvEs/c121-runtime-root-recall.tar.gz
+SHA939235a038a8e6ba0bdd550b640bfcdf1cb12187a9783a096ea8b2b09e82d925.
+Contains exact wheel, full preserved pair, result, script and logs.
+Result/tmp/guala-c121-runtime-result.json
+SHA6c271b61c1b365c29820be777cdd412d1294ef9ec5abc72bd87e4df599173742.
+
+F118-32 NEXT: actual-runtime next learned posture/ordered edge using recorded
+C118 chronology on THIS successor. No root reteaching or repeated observer/
+baseline diagnosis. C120growth/body and C118ordered/repeated-use/cold successes
+stay CLOSED at their LOCAL scopes. Production remains1456/C110, speechNOTfixed.
+Source net+45 typo corrected; no new state/codec/recognitionflag or sensory
+suppression. Initial admission now uses exact EXISTING reassembly handoff;
+generic sensory propagation and C103 delayed motor custody remain unchanged.
+
+74nativecalls mean1631.612ms,max3831.958ms,peakRSS2448416KiB; performanceNOTfixed.
+PostAWS21:59:22 sole1456/effde9e1/image6aa38d99 HEALTHY1/1/0,no ECSfailure;
+historicalSep8alarmunchanged.21:57CPUavg45.9067/max55.6560%,RAMavg10.6842/max11.1298%.
+CaretakerSTOP/browserclosed. No required user action. — Sol
