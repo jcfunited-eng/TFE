@@ -11,6 +11,7 @@ import pytest
 from dsf_ai_service.lean_actor import (
     LeanOrganismActor,
     PhysicalOccurrence,
+    PhysicalSettlementFailure,
     SettlementResult,
 )
 from dsf_ai_service.paired_current_store import PairedCurrentStore
@@ -348,3 +349,153 @@ def test_failed_generation_cleanup_kills_actor_after_safe_commit(
     assert store.restore().pointer.current.organism_tick == 11
     with pytest.raises(RuntimeError, match="organism actor stopped after failure"):
         actor.close()
+
+
+def test_post_native_failure_stops_without_publishing_mismatched_world(
+    tmp_path: Path, monkeypatch,
+) -> None:
+    actor, runtime, store = _actor(tmp_path)
+
+    def fail_after_native(self, runtime, world, occurrence):
+        runtime.advance()
+        raise PhysicalSettlementFailure("world consequence could not commit")
+
+    monkeypatch.setattr(_Physical, "settle", fail_after_native)
+    actor.start()
+    with pytest.raises(PhysicalSettlementFailure, match="world consequence"):
+        actor.submit(PhysicalOccurrence("light", b"one"), timeout=5)
+    _wait_until_unavailable(actor)
+    with pytest.raises(RuntimeError, match="organism actor stopped after failure"):
+        actor.close()
+    assert runtime.live_tick == 11
+    restored = store.restore()
+    assert restored.pointer.current.organism_tick == 10
+    assert restored.body == b"body-10"
+    assert restored.world == b"world-10"
+
+
+def test_cancelled_queued_request_never_advances_physics(
+    tmp_path: Path, monkeypatch,
+) -> None:
+    actor, runtime, store = _actor(tmp_path)
+    entered, release = threading.Event(), threading.Event()
+    settled = []
+    original = _Physical.settle
+
+    def blocked(self, runtime, world, occurrence):
+        if occurrence.kind == "first":
+            entered.set()
+            if not release.wait(timeout=5):
+                raise RuntimeError("test release absent")
+        settled.append(occurrence.kind)
+        return original(self, runtime, world, occurrence)
+
+    monkeypatch.setattr(_Physical, "settle", blocked)
+    actor.start()
+    try:
+        first = actor.offer(PhysicalOccurrence("first", None))
+        assert entered.wait(timeout=5)
+        cancelled = actor.offer(PhysicalOccurrence("cancelled", None))
+        assert cancelled.cancel()
+        release.set()
+        assert first.result(timeout=5).native_interval_count == 1
+        actor.submit(PhysicalOccurrence("last", None), timeout=5)
+    finally:
+        release.set()
+        actor.close()
+    assert settled == ["first", "last"]
+    assert runtime.live_tick == 12
+    assert store.restore().pointer.current.organism_tick == 12
+
+
+def test_fatal_interval_drains_only_already_submitted_good_checkpoint(tmp_path, monkeypatch):
+    blocking = _BlockingPublishStore(tmp_path)
+    actor, runtime, store = _actor(tmp_path, store=blocking, checkpoint_every_intervals=1)
+    original = _Physical.settle
+    def settle(self, runtime, world, occurrence):
+        if occurrence.kind == "fatal":
+            runtime.advance()
+            raise PhysicalSettlementFailure("after native, before world")
+        return original(self, runtime, world, occurrence)
+    monkeypatch.setattr(_Physical, "settle", settle)
+    blocking.block_publish = True
+    actor.start()
+    try:
+        actor.submit(PhysicalOccurrence("good", None), timeout=5)
+        assert blocking.publish_started.wait(timeout=5)
+        with pytest.raises(PhysicalSettlementFailure):
+            actor.submit(PhysicalOccurrence("fatal", None), timeout=5)
+        _wait_until_unavailable(actor)
+    finally:
+        blocking.publish_release.set()
+        with pytest.raises(RuntimeError, match="organism actor stopped after failure"):
+            actor.close()
+    current = store.restore()
+    assert runtime.live_tick == 12
+    assert blocking.checkpoint_publish_count == 1
+    assert current.pointer.current.organism_tick == 11
+    assert current.body == b"body-11" and current.world == b"world-11"
+
+
+def test_actor_stop_and_cold_next_preserve_and_consume_world_return(tmp_path):
+    # Custody fixture: actual actor, paired store and world codec; fake native
+    # body and fixed sensory bytes. This is not a cognition/physical proof.
+    from dsf_ai_service.guala_home_world import home_world_authority
+    from dsf_ai_service.guala_physical_return import PendingPhysicalReturn, RETURN_SAMPLE_BYTES
+    from dsf_ai_service.guala_world_sensorium import prepare_passive_world_interval
+
+    class ReturnPhysical:
+        maximum_native_intervals_per_occurrence = 1
+
+        def settle(self, runtime, world, occurrence):
+            runtime.advance()
+            if occurrence.kind == "make-return":
+                prepared = prepare_passive_world_interval(world)
+                after = prepared.execution_receipt.after
+                pending = PendingPhysicalReturn(
+                    IDENTITY, runtime.live_tick, "a" * 64, after.revision,
+                    after.authority_receipt_sha256, bytes(RETURN_SAMPLE_BYTES), (), None,
+                )
+                world.commit_prepared_action(prepared, physical_return=pending)
+            else:
+                world.consume_physical_return(world.pending_physical_return)
+            return SettlementResult(1, {"custody_fixture": True})
+
+        def unattended(self, runtime, world):
+            return self.settle(runtime, world, PhysicalOccurrence("consume", None))
+
+    world = home_world_authority(identity=IDENTITY)
+    store = PairedCurrentStore(tmp_path, max_body_bytes=4096, max_world_bytes=4 * 1024 * 1024)
+    pointer = store.publish(
+        identity=IDENTITY, organism_tick=10, body=b"body-10",
+        world=bytes(world.encoded_snapshot()), expected_current_body_sha256=None,
+    )
+    actor = LeanOrganismActor(
+        runtime=_Runtime(b"body-10", 10), world=world, pointer=pointer, store=store,
+        physical=ReturnPhysical(), mailbox_capacity=1,
+        checkpoint_every_intervals=32, unattended_interval_seconds=60,
+    )
+    actor.start()
+    actor.submit(PhysicalOccurrence("make-return", None), timeout=5)
+    held = world.pending_physical_return
+    actor.close()
+    saved = store.restore()
+    cold_world = home_world_authority(identity=IDENTITY, encoded_world=saved.world)
+    assert cold_world.pending_physical_return == held
+    revision = cold_world.observation_snapshot().revision
+    cold = LeanOrganismActor(
+        runtime=_Runtime(saved.body, saved.pointer.current.organism_tick),
+        world=cold_world, pointer=saved.pointer, store=store,
+        physical=ReturnPhysical(), mailbox_capacity=1,
+        checkpoint_every_intervals=32, unattended_interval_seconds=60,
+    )
+    cold.start()
+    try:
+        cold.submit(PhysicalOccurrence("consume", None), timeout=5)
+        assert cold_world.pending_physical_return is None
+        assert cold_world.observation_snapshot().revision == revision
+    finally:
+        cold.close()
+    restored = store.restore()
+    assert restored.pointer.current.organism_tick == 12
+    assert home_world_authority(identity=IDENTITY, encoded_world=restored.world).pending_physical_return is None

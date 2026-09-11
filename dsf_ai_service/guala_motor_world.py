@@ -3,29 +3,19 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from fractions import Fraction
 import hashlib
 import json
 from typing import Any
-
-import guala_core
 
 from dsf_ai_service.glew_runtime.native_resident_organism import (
     exact_native_root_translation_proprioceptive_source,
     exact_native_root_yaw_proprioceptive_source,
     exact_native_yaw_trajectory,
 )
-from dsf_ai_service.guala_physical_sensorium import (
-    settle_physical_sensorium,
-    settle_projected_physical_sensorium,
-)
-from dsf_ai_service.glew_runtime.sensory_full_field_boundary import (
-    PhysicalSense,
-    SENSE_ORDER,
-)
+from dsf_ai_service.guala_physical_sensorium import PhysicalSensorium
+from dsf_ai_service.guala_physical_return import PhysicalReturnSource, RETURN_TIMES
 from dsf_ai_service.guala_world_sensorium import (
     BODY_INTERVAL_MICROSECONDS,
-    consequence_source_times,
     passive_body_consequence_sensorium,
 )
 from dsf_ai_service.substrate.embodiment_world import (
@@ -46,9 +36,9 @@ from dsf_ai_service.substrate.embodiment_world import (
 @dataclass(frozen=True, slots=True)
 class PreparedMotorConsequence:
     prepared_world: PreparedActionExecution
-    sources: tuple[object, ...]
-    admissions: tuple[list[tuple[int, int]], ...]
-    vestibular: tuple[int, tuple[int, ...]] | None
+    sensorium: PhysicalSensorium
+    sources: tuple[PhysicalReturnSource, ...]
+    vestibular: tuple[int, int] | None
     requested_action: str
     refusal_reason: str | None
     requested_root_motion: tuple[int, int, int]
@@ -133,23 +123,21 @@ def _active_grips(evidence: Any) -> tuple[tuple[str, ...], tuple[str, ...]]:
     return closing, opening
 
 
-def _body_sources(evidence: Any) -> tuple[object, ...]:
+def _body_sources(evidence: Any) -> tuple[PhysicalReturnSource, ...]:
     bodies = tuple(bytes(value) for value in evidence.body_proprioceptive_sources)
     extents = tuple(evidence.body_proprioceptive_source_extents)
-    if len(bodies) != len(extents):
-        raise RuntimeError("native body source extents lost cardinality")
-    restored = []
+    if len(bodies) != len(extents) or len(bodies) > 1:
+        raise RuntimeError("one native interval lost its sparse body source")
+    sources = []
     for body, extent in zip(bodies, extents, strict=True):
         if not isinstance(extent, tuple) or len(extent) != 5:
             raise RuntimeError("native body source extent changed shape")
         _tick, ports, samples, occurrences, frames = extent
-        restored.append(
-            guala_core.settle_native_joint_source_episode(
-                body, ports, samples, occurrences, frames
-            )
-        )
-    return tuple(restored)
-
+        sources.append(PhysicalReturnSource(
+            body, (ports, samples, occurrences, frames),
+            ((1, 1000),) * occurrences,
+        ))
+    return tuple(sources)
 
 def _actual_root_motion(execution: ActionExecutionReceipt) -> tuple[int, int, int]:
     before = _self_body(execution.before).pose
@@ -169,8 +157,6 @@ def prepare_motor_consequence(
     predecessor_state_sha256: str,
     predecessor_body_axes: tuple[Any, ...],
     successor_body_axes: tuple[Any, ...],
-    passive_times: tuple[Fraction, ...],
-    exclude_sound: bool = False,
 ) -> PreparedMotorConsequence:
     """Prepare exactly one truthful world action and its complete return."""
 
@@ -248,54 +234,32 @@ def prepare_motor_consequence(
 
     execution = prepared.execution_receipt
     actual_yaw, actual_x, actual_y = _actual_root_motion(execution)
-    times = consequence_source_times(passive_times)
     sensorium = passive_body_consequence_sensorium(
         world=world,
         execution=execution,
         predecessor_body_axes=predecessor_body_axes,
         successor_body_axes=successor_body_axes,
-        source_times=times,
+        source_times=RETURN_TIMES,
     )
-    assembly_id = "guala-lean-native-motor-" + evidence.causal_transition_sha256
-    if exclude_sound:
-        world_episode = settle_projected_physical_sensorium(
-            assembly_id=assembly_id,
-            source_times=times,
-            sensorium=sensorium,
-            senses=tuple(sense for sense in SENSE_ORDER if sense is not PhysicalSense.SOUND),
-        )
-    else:
-        world_episode = settle_physical_sensorium(
-            assembly_id=assembly_id,
-            source_times=times,
-            sensorium=sensorium,
-        )
     consequence_sources = list(_body_sources(evidence))
     source_tick = int(evidence.organism_tick)
     if actual_yaw:
-        consequence_sources.append(
-            exact_native_root_yaw_proprioceptive_source(
-                source_tick=source_tick,
-                signed_displacement_millidegrees=actual_yaw,
-            )
+        source = exact_native_root_yaw_proprioceptive_source(
+            source_tick=source_tick,
+            signed_displacement_millidegrees=actual_yaw,
         )
+        consequence_sources.append(PhysicalReturnSource.capture(
+            source, [(1, 1000)] * source.occurrence_count,
+        ))
     if actual_x or actual_y:
-        consequence_sources.append(
-            exact_native_root_translation_proprioceptive_source(
-                source_tick=source_tick,
-                signed_x_millimetres=actual_x,
-                signed_y_millimetres=actual_y,
-            )
+        source = exact_native_root_translation_proprioceptive_source(
+            source_tick=source_tick,
+            signed_x_millimetres=actual_x,
+            signed_y_millimetres=actual_y,
         )
-    sources = (world_episode, *consequence_sources)
-    admissions = (
-        [(250, 1_000)],
-        *(
-            [(1, 1_000)] * source.occurrence_count
-            for source in consequence_sources
-        ),
-    )
-
+        consequence_sources.append(PhysicalReturnSource.capture(
+            source, [(1, 1000)] * source.occurrence_count,
+        ))
     predecessor_axes = {axis[1]: axis[3] for axis in predecessor_body_axes}
     successor_axes = {axis[1]: axis[3] for axis in successor_body_axes}
     if predecessor_axes.keys() != successor_axes.keys():
@@ -318,12 +282,14 @@ def prepare_motor_consequence(
         )
         if successor_heading != expected_heading:
             raise RuntimeError("native motor return lost vestibular geometry")
-        vestibular = predecessor_heading, trajectory
+        if len(trajectory) != 1:
+            raise RuntimeError("one body interval lost its single vestibular step")
+        vestibular = predecessor_heading, trajectory[0]
 
     return PreparedMotorConsequence(
         prepared_world=prepared,
-        sources=sources,
-        admissions=admissions,
+        sensorium=sensorium,
+        sources=tuple(consequence_sources),
         vestibular=vestibular,
         requested_action=requested_action,
         refusal_reason=refusal_reason,

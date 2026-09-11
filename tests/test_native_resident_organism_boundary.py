@@ -1579,3 +1579,57 @@ def test_internal_reassembly_refuses_the_retired_two_field_shape(
 
     with pytest.raises(RuntimeError, match="cue changed format"):
         organism.prepare(_Source())
+
+
+def test_real_coexisting_guide_keeps_moving_axis_input_and_pre_mutation_refusal():
+    # Native + FFI + Python boundary fixture, not a mature speech proof.
+    import guala_core
+    from dsf_ai_service.guala_physical_sensorium import (
+        PhysicalSensorium, settle_physical_sensorium,
+    )
+    from fractions import Fraction
+
+    bounds = dict(max_envelope_bytes=67_108_864, max_fabric_bytes=67_108_000,
+                  max_logical_peak_bytes=536_870_912)
+    native = guala_core.create_native_resident_organism_runtime(
+        "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1", 0, **bounds,
+    )
+    organism = boundary.restore_native_resident_organism(
+        current_envelope=bytes(native.save()), **bounds,
+    )
+    # Supporting 1ms native/FFI boundary, NOT production's 250ms chronology.
+    # A 250ms input lets this tissue reach rest before the second guide and
+    # cannot test the independently-moving-axis port count. Preserve the
+    # existing 1ms body source duration, all220ports, and exact admissions.
+    times = tuple(Fraction(index, 3000) for index in range(4))
+    sensorium = PhysicalSensorium.constant(
+        frame_count=len(times), retina=(0,) * 135,
+        legacy_ears=(0,) * 2, cochleae=(0,) * 32, touch=(0,) * 28,
+        smell=(0,) * 8, taste=(0,) * 5, displacement=(0,) * 4,
+        articulation=(0,) * 4, thermal=(0,) * 2,
+    )
+    source = settle_physical_sensorium(
+        assembly_id="c122-native-guide-boundary", source_times=times,
+        sensorium=sensorium,
+    )
+    sources = (source,)
+    admissions = ([(1, 1000)] * source.occurrence_count,)
+    first = organism.advance_coexisting_admitted_interval_unsealed(
+        sources, admissions, guided_vocal_drives=((37, 0, 1500),),
+    )
+    assert len(first.causal_interval_evidence) == 1
+    first_tick = organism.live_organism_tick
+    first_axes = tuple(organism.readiness().articulated_body_axes)
+    with pytest.raises(guala_core.NativePhysicalInputRefused):
+        organism.advance_coexisting_admitted_interval_unsealed(
+            sources, admissions, pressure_s16le=b"\x00\x00",
+            body_s16le=b"\x00\x00", consumed_sample_count=1,
+        )
+    assert organism.live_organism_tick == first_tick
+    assert tuple(organism.readiness().articulated_body_axes) == first_axes
+    second = organism.advance_coexisting_admitted_interval_unsealed(
+        sources, admissions, guided_vocal_drives=((38, 0, 1500),),
+    )
+    assert len(second.causal_interval_evidence) == 1
+    assert organism.live_organism_tick == first_tick + 1
+    assert sum(second.receptor_ingress_sense_counts) > source.port_count + 4

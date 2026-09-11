@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from array import array
+from dataclasses import replace
 from fractions import Fraction
 import hashlib
 import sys
@@ -156,4 +157,35 @@ def test_compact_body_refuses_changed_anatomy_clock_and_nonfinite_sample() -> No
         compact_signal_body(
             _constant(thermal=(0.0, float("nan"))),
             frame_count=4,
+        )
+
+
+def test_projected_hearing_and_body_keep_their_distinct_exact_sample_clocks() -> None:
+    hearing_times = tuple(Fraction(index, 100) for index in range(26))
+    body_times = tuple(sorted((*hearing_times, Fraction(1, 1000))))
+    body = PhysicalSensorium.constant(
+        frame_count=27, retina=_values(RETINAL_PORTS), legacy_ears=_values(2),
+        cochleae=_values(32), touch=_values(28), smell=_values(8), taste=_values(5),
+        displacement=_values(4), articulation=_values(4), thermal=_values(2),
+    )
+    together = replace(
+        body, legacy_ears=((0.0,) * 26,) * 2, cochleae=((0.0,) * 26,) * 32,
+    )
+    hearing = settle_projected_physical_sensorium(
+        assembly_id="physical-return-separate-hearing-clock",
+        source_times=hearing_times, sensorium=together, senses=(PhysicalSense.SOUND,),
+    )
+    nonsound = settle_projected_physical_sensorium(
+        assembly_id="physical-return-exact-body-clock",
+        source_times=body_times, sensorium=together,
+        senses=tuple(sense for sense in SENSE_ORDER if sense is not PhysicalSense.SOUND),
+    )
+    assert hearing.port_count == 34
+    assert hearing.source_sample_count == 34 * 26
+    assert nonsound.port_count == PORT_COUNT - 34
+    assert nonsound.source_sample_count == (PORT_COUNT - 34) * 27
+    with pytest.raises(ValueError, match="shared physical clock"):
+        settle_physical_sensorium(
+            assembly_id="mixed-clock-whole-packet-refused",
+            source_times=body_times, sensorium=together,
         )

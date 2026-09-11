@@ -142,6 +142,7 @@
         "dsf_ai_service/guala_home_world.py",
         "dsf_ai_service/guala_motor_world.py",
         "dsf_ai_service/guala_physical_sensorium.py",
+        "dsf_ai_service/guala_physical_return.py",
         "dsf_ai_service/guala_receptor_anatomy.py",
         "dsf_ai_service/guala_world_sensorium.py",
         "dsf_ai_service/lean_actor.py",

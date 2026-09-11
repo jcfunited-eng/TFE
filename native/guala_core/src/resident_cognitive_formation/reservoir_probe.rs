@@ -4304,6 +4304,7 @@ fn run_guided_vocal_continuation(
                 scheduled_guide_clock == Some(clock),
                 &mut residency,
                 ExactRational::integer(0),
+                None,
             )
             .unwrap_or_else(|error| {
                 panic!("guided vocal continuation clock {clock} settles: {error:?}")
@@ -5688,7 +5689,7 @@ fn guided_vocal_population_growth_json(
         }
         let transition = state.advance_coexisting_admitted_transition_with_residency(
             &admitted_sources, usize::MAX, true, true, true,
-            &mut guided_residency, ExactRational::integer(0),
+            &mut guided_residency, ExactRational::integer(0), None,
         );
         let (successor, observation) = match transition {
             Ok(value) => value,

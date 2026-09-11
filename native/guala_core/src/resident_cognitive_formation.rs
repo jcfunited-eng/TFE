@@ -8575,7 +8575,7 @@ impl ResidentCognitiveFormationState {
             self.generation,
             self.hippocampal,
             &[admitted_source],
-            vestibular,
+            vestibular.map(|ingress| (0, ingress)),
             max_encoded_bytes,
             true,
             true,
@@ -8591,7 +8591,7 @@ impl ResidentCognitiveFormationState {
         predecessor_generation_authority: u64,
         predecessor_hippocampal_authority: ResidentHippocampalIndex,
         admitted_sources: &[&AdmittedJointSourceEpisode],
-        vestibular: Option<&ResidentVestibularIngress>,
+        vestibular: Option<(usize, &ResidentVestibularIngress)>,
         max_encoded_bytes: usize,
         seal_successor: bool,
         observe_relations: bool,
@@ -8759,7 +8759,12 @@ impl ResidentCognitiveFormationState {
         let mut occurrence_index = 0usize;
         #[cfg(test)]
         { phase_trace.stage = "receptor-ingress"; }
-        for admitted_source in admitted_sources {
+        for (source_index, admitted_source) in admitted_sources.iter().enumerate() {
+            // Typed canal authority belongs to this exact physical source,
+            // never to the other senses admitted beside it.
+            let vestibular = vestibular.and_then(|(index, ingress)| {
+                (index == source_index).then_some(ingress)
+            });
             let source = admitted_source.episode();
             for (source_occurrence_index, occurrence) in
                 source.joint_source_occurrences().iter().enumerate()
@@ -8782,7 +8787,7 @@ impl ResidentCognitiveFormationState {
                 )
                 .map_err(FormationError::JointFieldUnavailable)?;
                 if vestibular.is_some()
-                    && (occurrence_index != 0
+                    && (source_occurrence_index != 0
                         || shared.vertex_count() != 1
                         || shared.groups().len() != 1
                         || shared.groups()[0].as_slice() != [0])
@@ -10594,7 +10599,7 @@ impl ResidentCognitiveFormationState {
             predecessor_generation,
             predecessor_hippocampal,
             &[&admitted_source],
-            Some(ingress),
+            Some((0, ingress)),
             max_encoded_bytes,
             false,
             true,
@@ -10663,16 +10668,38 @@ impl ResidentCognitiveFormationState {
         admit_guided_vocal_route_growth: bool,
         residency: &mut Option<crate::causal_event_scheduler::CausalEventResidency>,
         real_nutrition_intake_zeptojoules: ExactRational,
+        vestibular: Option<&ResidentVestibularIngress>,
     ) -> Result<(Self, CognitiveFormationObservation), FormationError> {
         let predecessor_generation = self.generation;
         let predecessor_hippocampal = self.hippocampal;
-        let admitted_source_refs = admitted_sources.iter().collect::<Vec<_>>();
+        let vestibular_source = if let Some(ingress) = vestibular {
+            let (source, contacts) = ingress.source().joint_source_with_contacts();
+            if source.joint_source_occurrences().len() != 1 || !contacts.is_empty() {
+                return Err(FormationError::VestibularUnavailable(
+                    FunctionalVestibularError::NotIsolatedSingleVertex,
+                ));
+            }
+            let admission = ingress.source().joint_uf_source_admission().map_err(|error| {
+                FormationError::JointFieldUnavailable(JointNeuronBoundaryError::Source(error))
+            })?;
+            Some(AdmittedJointSourceEpisode::new(source.clone(), vec![(0, admission)])
+                .map_err(|error| FormationError::JointFieldUnavailable(
+                    JointNeuronBoundaryError::Source(error)
+                ))?)
+        } else {
+            None
+        };
+        let mut admitted_source_refs = admitted_sources.iter().collect::<Vec<_>>();
+        let vestibular_binding = vestibular.map(|ingress| (admitted_source_refs.len(), ingress));
+        if let Some(source) = vestibular_source.as_ref() {
+            admitted_source_refs.push(source);
+        }
         let prepared = Self::prepare_typed_admitted_transition_from_owned(
             self,
             predecessor_generation,
             predecessor_hippocampal,
             &admitted_source_refs,
-            None,
+            vestibular_binding,
             max_encoded_bytes,
             false,
             observe_relations,

@@ -22,6 +22,10 @@ from dsf_ai_service.paired_current_store import CurrentPair, PairedCurrentStore
 MAX_PRESSURE_BYTES = 8_000
 
 
+class PhysicalSettlementFailure(RuntimeError):
+    """The live pair cannot continue; only its good checkpoint may recover."""
+
+
 @dataclass(frozen=True, slots=True)
 class PhysicalOccurrence:
     kind: str
@@ -275,10 +279,14 @@ class LeanOrganismActor:
                     next_unattended = time.monotonic() + self._unattended_seconds
                     continue
                 assert isinstance(message, _ActorMessage)
+                if not message.result.set_running_or_notify_cancel():
+                    continue
                 try:
                     result = self._settle(message.occurrence)
                 except BaseException as error:
                     message.result.set_exception(error)
+                    if isinstance(error, PhysicalSettlementFailure):
+                        raise
                 else:
                     message.result.set_result(result)
                 next_unattended = time.monotonic() + self._unattended_seconds
@@ -299,7 +307,10 @@ class LeanOrganismActor:
     def _settle(self, occurrence: PhysicalOccurrence) -> SettlementResult:
         before_tick = self._live_tick()
         result = self._physical.settle(self._runtime, self._world, occurrence)
-        self._accept_result(occurrence.kind, before_tick, result)
+        try:
+            self._accept_result(occurrence.kind, before_tick, result)
+        except BaseException as error:
+            raise PhysicalSettlementFailure("post-settlement acceptance failed") from error
         return result
 
     def _accept_result(

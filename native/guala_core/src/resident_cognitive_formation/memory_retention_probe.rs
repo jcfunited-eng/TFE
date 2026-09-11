@@ -291,7 +291,7 @@ fn run_saved_lesson_trace(require_handoff: bool) {
         });
         let (successor, observation) = state.advance_coexisting_admitted_transition_with_residency(
             &admitted, usize::MAX, true, !consuming_body_owned_pressure, false,
-            &mut residency, ExactRational::integer(0),
+            &mut residency, ExactRational::integer(0), None,
         ).unwrap();
         let focused = super::super::FOCUSED_ORIGINAL_INPUT_TRACE.with(|slot| {
             slot.borrow_mut().take().unwrap()
@@ -364,11 +364,11 @@ fn run_saved_lesson_trace(require_handoff: bool) {
         let admitted = sources.iter().map(super::super::admitted_fixture_episode).collect::<Vec<_>>();
         let (warm_next, warm_observation) = state.advance_coexisting_admitted_transition_with_residency(
             &admitted, usize::MAX, true, !consuming_body_owned_pressure, false,
-            &mut residency, ExactRational::integer(0),
+            &mut residency, ExactRational::integer(0), None,
         ).unwrap();
         let (cold_next, cold_observation) = cold.advance_coexisting_admitted_transition_with_residency(
             &admitted, usize::MAX, true, !consuming_body_owned_pressure, false,
-            &mut None, ExactRational::integer(0),
+            &mut None, ExactRational::integer(0), None,
         ).unwrap();
         assert_eq!(warm_next.encode(usize::MAX).unwrap(), cold_next.encode(usize::MAX).unwrap());
         assert_eq!(warm_observation, cold_observation);

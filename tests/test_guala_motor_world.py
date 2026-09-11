@@ -53,7 +53,6 @@ def test_applied_root_yaw_returns_actual_world_motion_and_exact_sources() -> Non
         predecessor_state_sha256="04" * 32,
         predecessor_body_axes=BODY_AXES,
         successor_body_axes=BODY_AXES,
-        passive_times=PASSIVE_TIMES,
     )
     after_body = next(
         body
@@ -68,10 +67,12 @@ def test_applied_root_yaw_returns_actual_world_motion_and_exact_sources() -> Non
     assert after_body.pose.heading_millidegrees == (
         before_body.pose.heading_millidegrees + 7
     )
-    assert len(plan.sources) == 2
-    assert all(source.port_count != 810 for source in plan.sources)
+    assert len(plan.sources) == 1
+    assert plan.sources[0].restore().port_count == 2
+    assert len(plan.sensorium.retina) == 135
+    assert all(len(port) == 3 for port in plan.sensorium.ordered_ports())
     assert not hasattr(plan, "spectral_retinal_u8")
-    assert plan.vestibular == (before_body.pose.heading_millidegrees, (7,))
+    assert plan.vestibular == (before_body.pose.heading_millidegrees, 7)
     world.discard_prepared_action(plan.prepared_world)
 
 
@@ -83,15 +84,14 @@ def test_refused_root_translation_returns_truthful_zero_motion() -> None:
         predecessor_state_sha256="04" * 32,
         predecessor_body_axes=BODY_AXES,
         successor_body_axes=BODY_AXES,
-        passive_times=PASSIVE_TIMES,
     )
 
     assert plan.requested_action == "move"
     assert plan.refusal_reason is not None
     assert plan.requested_root_motion == (0, 2_000_000, 0)
     assert plan.actual_root_motion == (0, 0, 0)
-    assert len(plan.sources) == 1
-    assert all(source.port_count != 810 for source in plan.sources)
+    assert not plan.sources
+    assert len(plan.sensorium.retina) == 135
     assert not hasattr(plan, "spectral_retinal_u8")
     assert plan.vestibular is None
     world.discard_prepared_action(plan.prepared_world)

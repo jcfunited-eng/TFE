@@ -143,26 +143,43 @@ def _restore_production_actor() -> LeanOrganismActor:
         max_fabric_bytes=admission.max_fabric_bytes,
         max_logical_peak_bytes=admission.max_logical_peak_bytes,
     )
-    pointer = restored.pointer
-    if current_body != restored.body:
-        pointer = store.publish(
-            identity=current.identity,
-            organism_tick=current.organism_tick,
-            body=current_body,
-            world=restored.world,
-            expected_current_body_sha256=current.body_sha256,
-        )
-    store.reconcile(pointer)
     runtime = restore_native_resident_organism(
         current_envelope=current_body,
         max_envelope_bytes=admission.max_envelope_bytes,
         max_fabric_bytes=admission.max_fabric_bytes,
         max_logical_peak_bytes=admission.max_logical_peak_bytes,
     )
+    native = runtime.readiness()
+    if (
+        native.identity != current.identity
+        or native.organism_tick != current.organism_tick
+        or runtime.live_organism_tick != current.organism_tick
+    ):
+        raise RuntimeError("restored native identity/tick differs from paired CURRENT")
     world = home_world_authority(
-        identity=restored.pointer.current.identity,
+        identity=current.identity,
         encoded_world=restored.world,
+        migrate_physical_return=True,
     )
+    current_world = bytes(world.encoded_snapshot())
+    pending = world.pending_physical_return
+    if pending is not None:
+        observed = world.observation_snapshot()
+        pending.validate_binding(
+            identity=current.identity, producer_tick=runtime.live_organism_tick,
+            world_revision=observed.revision,
+            world_receipt=observed.authority_receipt_sha256,
+        )
+    pointer = restored.pointer
+    if current_body != restored.body or current_world != restored.world:
+        pointer = store.publish(
+            identity=current.identity,
+            organism_tick=current.organism_tick,
+            body=current_body,
+            world=current_world,
+            expected_current_body_sha256=current.body_sha256,
+        )
+    store.reconcile(pointer)
     return LeanOrganismActor(
         runtime=runtime,
         world=world,

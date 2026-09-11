@@ -86,6 +86,7 @@ use num_bigint::BigInt;
 use num_rational::BigRational;
 use num_traits::{ToPrimitive, Zero};
 use pyo3::exceptions::PyValueError;
+pyo3::create_exception!(guala_core, NativePhysicalInputRefused, PyValueError);
 use pyo3::prelude::*;
 use pyo3::types::PyBytes;
 use std::collections::BTreeMap;
@@ -933,6 +934,7 @@ struct ResidentPrepareReceipt {
     causal_interval_evidence: Vec<CausalIntervalEvidence>,
     articulated_body_consequences: Vec<TimedBodyProprioceptiveConsequence>,
     body_proprioceptive_sources: Vec<BodyProprioceptiveSourceReceipt>,
+    guided_input_port_count: usize,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -1387,6 +1389,7 @@ pub struct NativeResidentOrganismPrepare {
     causal_interval_evidence: Vec<CausalIntervalEvidence>,
     articulated_body_consequences: Vec<TimedBodyProprioceptiveConsequence>,
     body_proprioceptive_sources: Vec<BodyProprioceptiveSourceReceipt>,
+    guided_input_port_count: usize,
 }
 
 #[pyclass(frozen, module = "guala_core")]
@@ -2020,6 +2023,11 @@ impl NativeResidentOrganismPrepare {
     #[getter]
     fn causal_interval_count(&self) -> usize {
         self.causal_interval_evidence.len().max(1)
+    }
+
+    #[getter]
+    fn guided_input_port_count(&self) -> usize {
+        self.guided_input_port_count
     }
 
     #[getter]
@@ -3317,6 +3325,7 @@ impl ResidentOrganismRuntime {
             false,
             &mut residency,
             crate::exact_rational::ExactRational::integer(0),
+            None,
         );
         self.causal_event_residency = if built.is_ok() { residency } else { None };
         let (pending, receipt, next_prepare_ordinal) = match built {
@@ -3369,6 +3378,8 @@ impl ResidentOrganismRuntime {
             None,
             crate::exact_rational::ExactRational::integer(0),
             None,
+            None,
+            None,
         )
     }
 
@@ -3386,6 +3397,8 @@ impl ResidentOrganismRuntime {
             false,
             None,
             real_nutrition_intake_zeptojoules,
+            None,
+            None,
             None,
         )
     }
@@ -3449,6 +3462,8 @@ impl ResidentOrganismRuntime {
             Some(consumed_sample_count),
             real_nutrition_intake_zeptojoules,
             None,
+            None,
+            None,
         )
     }
 
@@ -3459,37 +3474,28 @@ impl ResidentOrganismRuntime {
     fn advance_coexisting_admitted_interval_unsealed(
         &mut self,
         episodes: &[(NativeJointSourceEpisode, Vec<(i64, i64)>)],
-    ) -> Result<ResidentPrepareReceipt, RuntimeError> {
-        self.advance_admitted_intervals_unsealed(
-            episodes,
-            true,
-            None,
-            crate::exact_rational::ExactRational::integer(0),
-            None,
-        )
-    }
-
-    /// Apply one externally supplied physical guide to vocal tissue and admit
-    /// its exact proprioceptive consequence beside the tutor's simultaneous
-    /// sensory source. The guide is transient caregiver work: only the body's
-    /// lawful successor and the ordinary neuronal consequence can persist.
-    fn advance_guided_vocal_interval_unsealed(
-        &mut self,
-        episodes: &[(NativeJointSourceEpisode, Vec<(i64, i64)>)],
-        drives: &[BodyEffectorDrive],
+        drives: Option<&[BodyEffectorDrive]>,
         in_flight_acoustic: Option<(&[u8], &[u8], usize)>,
+        vestibular_motion: Option<(u32, i32)>,
+        mutation_started: &mut bool,
     ) -> Result<ResidentPrepareReceipt, RuntimeError> {
-        if episodes.is_empty() || drives.is_empty() {
+        *mutation_started = false;
+        if episodes.is_empty() {
             return Err(RuntimeError::AdmittedSourceRequired);
         }
-        let mut axes = std::collections::BTreeSet::new();
-        for drive in drives {
-            if !drive.terminal.axis().is_vocal_articulator()
-                || !axes.insert(drive.terminal.axis())
-            {
-                return Err(RuntimeError::ArticulatedBody(
-                    "guided vocal work left unique vocal anatomy".into(),
-                ));
+        if let Some(drives) = drives {
+            if drives.is_empty() {
+                return Err(RuntimeError::AdmittedSourceRequired);
+            }
+            let mut axes = std::collections::BTreeSet::new();
+            for drive in drives {
+                if !drive.terminal.axis().is_vocal_articulator()
+                    || !axes.insert(drive.terminal.axis())
+                {
+                    return Err(RuntimeError::ArticulatedBody(
+                        "guided vocal work left unique vocal anatomy".into(),
+                    ));
+                }
             }
         }
         let consumed_samples = match in_flight_acoustic {
@@ -3500,11 +3506,20 @@ impl ResidentOrganismRuntime {
             None => None,
         };
         self.advance_admitted_intervals_unsealed(
-            episodes,
-            true,
-            consumed_samples,
+            episodes, true, consumed_samples,
             crate::exact_rational::ExactRational::integer(0),
-            Some(drives),
+            drives, vestibular_motion, Some(mutation_started),
+        )
+    }
+
+    fn advance_guided_vocal_interval_unsealed(
+        &mut self,
+        episodes: &[(NativeJointSourceEpisode, Vec<(i64, i64)>)],
+        drives: &[BodyEffectorDrive],
+        in_flight_acoustic: Option<(&[u8], &[u8], usize)>,
+    ) -> Result<ResidentPrepareReceipt, RuntimeError> {
+        self.advance_coexisting_admitted_interval_unsealed(
+            episodes, Some(drives), in_flight_acoustic, None, &mut false,
         )
     }
 
@@ -3515,7 +3530,12 @@ impl ResidentOrganismRuntime {
         consume_in_flight_acoustic_samples: Option<usize>,
         real_nutrition_intake_zeptojoules: crate::exact_rational::ExactRational,
         guided_vocal_drives: Option<&[BodyEffectorDrive]>,
+        vestibular_motion: Option<(u32, i32)>,
+        mutation_started: Option<&mut bool>,
     ) -> Result<ResidentPrepareReceipt, RuntimeError> {
+        if vestibular_motion.is_some() && !coexisting_sources {
+            return Err(RuntimeError::Vestibular("return motion requires one coexisting interval".into()));
+        }
         if self.pending.is_some()
             || self.direct_predecessor.is_some()
             || self.pending_contact_growth.is_some()
@@ -3552,6 +3572,14 @@ impl ResidentOrganismRuntime {
         } else {
             None
         };
+        let guided_input_port_count = guided.as_ref().map_or(0, |(source, _, _)| {
+            source.joint_source_ports().len()
+        });
+        // Call-local failure classification, not organism state or a timer.
+        // No fallible work above this line has mutated the resident organism.
+        if let Some(started) = mutation_started {
+            *started = true;
+        }
         let prior = self.unsealed.take();
         let (
             predecessor,
@@ -3609,6 +3637,7 @@ impl ResidentOrganismRuntime {
             guided_vocal_drives.is_some(),
             &mut residency,
             real_nutrition_intake_zeptojoules,
+            vestibular_motion,
         );
         self.causal_event_residency = if built.is_ok() { residency } else { None };
         let (mut pending, mut receipt, next_prepare_ordinal) = match built {
@@ -3620,6 +3649,7 @@ impl ResidentOrganismRuntime {
                 return Err(error);
             }
         };
+        receipt.guided_input_port_count = guided_input_port_count;
         let successor_in_flight_acoustic = (|| {
             let emitted_acoustic = in_flight_acoustic_from_receipt(&receipt)?;
             if pending.in_flight_acoustic.is_some() {
@@ -3868,7 +3898,7 @@ impl ResidentOrganismRuntime {
         coexisting_sources: bool,
         initial_cognitive: ResidentCognitiveFormationState,
         predecessor: RuntimeObservation,
-        initial_vestibular: ResidentVestibularBody,
+        mut initial_vestibular: ResidentVestibularBody,
         initial_articulated_body: ArticulatedBodyState,
         initial_in_flight_acoustic: Option<InFlightAcousticConsequence>,
         seal_successor: bool,
@@ -3876,6 +3906,7 @@ impl ResidentOrganismRuntime {
         admit_guided_vocal_route_growth: bool,
         residency: &mut Option<crate::causal_event_scheduler::CausalEventResidency>,
         real_nutrition_intake_zeptojoules: crate::exact_rational::ExactRational,
+        vestibular_motion: Option<(u32, i32)>,
     ) -> Result<
         (
             PendingResidentOrganismState,
@@ -3885,6 +3916,12 @@ impl ResidentOrganismRuntime {
         RuntimeError,
     > {
         let derived_budget = self.budget.derive()?;
+        if vestibular_motion.is_some() && !coexisting_sources {
+            return Err(RuntimeError::Vestibular("return motion requires one coexisting interval".into()));
+        }
+        let vestibular_ingress = vestibular_motion.map(|(heading, step)| {
+            resident_vestibular_tick_ingress(&initial_vestibular, heading, step)
+        }).transpose()?;
         // The complete fixed-capacity body source establishes proprioception
         // exactly once.  After that boundary, only sparse consequences from
         // axes that physically moved may re-enter cognition. Re-injecting all
@@ -3937,6 +3974,19 @@ impl ResidentOrganismRuntime {
         let mut body_proprioceptive_sources = Vec::new();
         let mut trajectory_authority_entries = Vec::new();
         let mut processed_interval_count = 0usize;
+        let mut vestibular_duration_samples = 0;
+        if let Some(ingress) = vestibular_ingress.as_ref() {
+            let (source, _) = ingress.source().joint_source_with_contacts();
+            receptor_ingress = receptor_ingress
+                .checked_merge(observe_canonical_receptor_ingress(source))
+                .ok_or(RuntimeError::OrganismTickOverflow)?;
+            source_port_count = source.joint_source_ports().len();
+            source_occurrence_count = source.joint_source_occurrences().len();
+            trajectory_authority_entries.push((
+                source.joint_source_authority_receipt(), vec![(1, 1000)],
+            ));
+            vestibular_duration_samples = source_duration_samples_at_articulatory_rate(source)?;
+        }
         let mut advance_interval = |
             sources: &[(&NativeJointSourceEpisode, &[(i64, i64)])],
             interval_terminal: bool,
@@ -3965,7 +4015,8 @@ impl ResidentOrganismRuntime {
                     .ok_or(RuntimeError::OrganismTickOverflow)?;
             }
             let source_duration_samples =
-                coexisting_source_duration_samples_at_articulatory_rate(sources)?;
+                coexisting_source_duration_samples_at_articulatory_rate(sources)?
+                    .max(vestibular_duration_samples);
             // Real nutrition is absorbed inside the feed's own first lived
             // settlement interval; every later interval of the same
             // trajectory carries zero, so one bite is one intake.
@@ -3985,6 +4036,7 @@ impl ResidentOrganismRuntime {
                     admit_guided_vocal_route_growth,
                     residency,
                     interval_intake,
+                    vestibular_ingress.as_ref(),
                 )
                 .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?;
             let source_tick = predecessor
@@ -4093,6 +4145,11 @@ impl ResidentOrganismRuntime {
             }
         }
         drop(advance_interval);
+        if let Some(ingress) = vestibular_ingress {
+            initial_vestibular.canal = ingress.transduction().reached_tick.successor_canal;
+            initial_vestibular.source_tick = initial_vestibular.source_tick
+                .checked_add(1).ok_or(RuntimeError::OrganismTickOverflow)?;
+        }
         let cognitive = cognitive.expect("trajectory cognition has a final successor");
         articulated_body.initialize_proprioception();
         let interval_count = u64::try_from(processed_interval_count)
@@ -4221,6 +4278,7 @@ impl ResidentOrganismRuntime {
             causal_interval_evidence,
             articulated_body_consequences,
             body_proprioceptive_sources,
+            guided_input_port_count: 0,
         };
         Ok((pending, receipt, next_prepare_ordinal))
     }
@@ -4624,6 +4682,7 @@ impl ResidentOrganismRuntime {
             causal_interval_evidence,
             articulated_body_consequences: Vec::new(),
             body_proprioceptive_sources: Vec::new(),
+            guided_input_port_count: 0,
         };
         Ok((pending, receipt, next_prepare_ordinal))
     }
@@ -4824,6 +4883,7 @@ impl ResidentOrganismRuntime {
             causal_interval_evidence: Vec::new(),
             articulated_body_consequences,
             body_proprioceptive_sources,
+            guided_input_port_count: 0,
         })
     }
 
@@ -4999,6 +5059,7 @@ impl ResidentOrganismRuntime {
             causal_interval_evidence: Vec::new(),
             articulated_body_consequences: Vec::new(),
             body_proprioceptive_sources: Vec::new(),
+            guided_input_port_count: 0,
         })
     }
 
@@ -5346,6 +5407,7 @@ impl NativeResidentOrganismRuntime {
             causal_interval_evidence: prepared.causal_interval_evidence,
             articulated_body_consequences: prepared.articulated_body_consequences,
             body_proprioceptive_sources: prepared.body_proprioceptive_sources,
+            guided_input_port_count: prepared.guided_input_port_count,
         })
     }
 
@@ -5373,6 +5435,7 @@ impl NativeResidentOrganismRuntime {
             causal_interval_evidence: prepared.causal_interval_evidence,
             articulated_body_consequences: prepared.articulated_body_consequences,
             body_proprioceptive_sources: prepared.body_proprioceptive_sources,
+            guided_input_port_count: prepared.guided_input_port_count,
         })
     }
 
@@ -5407,6 +5470,7 @@ impl NativeResidentOrganismRuntime {
             causal_interval_evidence: prepared.causal_interval_evidence,
             articulated_body_consequences: prepared.articulated_body_consequences,
             body_proprioceptive_sources: prepared.body_proprioceptive_sources,
+            guided_input_port_count: prepared.guided_input_port_count,
         })
     }
 
@@ -5438,6 +5502,7 @@ impl NativeResidentOrganismRuntime {
             causal_interval_evidence: prepared.causal_interval_evidence,
             articulated_body_consequences: prepared.articulated_body_consequences,
             body_proprioceptive_sources: prepared.body_proprioceptive_sources,
+            guided_input_port_count: prepared.guided_input_port_count,
         })
     }
 
@@ -5480,6 +5545,7 @@ impl NativeResidentOrganismRuntime {
             causal_interval_evidence: prepared.causal_interval_evidence,
             articulated_body_consequences: prepared.articulated_body_consequences,
             body_proprioceptive_sources: prepared.body_proprioceptive_sources,
+            guided_input_port_count: prepared.guided_input_port_count,
         })
     }
 
@@ -5583,6 +5649,7 @@ impl NativeResidentOrganismRuntime {
             causal_interval_evidence: prepared.causal_interval_evidence,
             articulated_body_consequences: prepared.articulated_body_consequences,
             body_proprioceptive_sources: prepared.body_proprioceptive_sources,
+            guided_input_port_count: prepared.guided_input_port_count,
         })
     }
 
@@ -5623,6 +5690,7 @@ impl NativeResidentOrganismRuntime {
             causal_interval_evidence: prepared.causal_interval_evidence,
             articulated_body_consequences: prepared.articulated_body_consequences,
             body_proprioceptive_sources: prepared.body_proprioceptive_sources,
+            guided_input_port_count: prepared.guided_input_port_count,
         })
     }
 
@@ -5678,39 +5746,74 @@ impl NativeResidentOrganismRuntime {
             causal_interval_evidence: prepared.causal_interval_evidence,
             articulated_body_consequences: prepared.articulated_body_consequences,
             body_proprioceptive_sources: prepared.body_proprioceptive_sources,
+            guided_input_port_count: prepared.guided_input_port_count,
         })
     }
 
     /// Admit multiple source bodies beside one another in one physical
     /// interval. This is distinct from `advance_admitted_trajectory_unsealed`,
     /// whose source list is deliberately temporal.
+    #[pyo3(signature = (sources, maximum_causal_intervals, guided_vocal_drives=None,
+        pressure_s16le=None, body_s16le=None, consumed_sample_count=None,
+        vestibular_motion=None))]
     fn advance_coexisting_admitted_interval_unsealed(
         &mut self,
         py: Python<'_>,
         sources: Vec<Py<NativeJointSourceEpisode>>,
         maximum_causal_intervals: Vec<Vec<(i64, i64)>>,
+        guided_vocal_drives: Option<Vec<(u8, u8, u128)>>,
+        pressure_s16le: Option<Vec<u8>>,
+        body_s16le: Option<Vec<u8>>,
+        consumed_sample_count: Option<usize>,
+        vestibular_motion: Option<(u32, i32)>,
     ) -> PyResult<NativeResidentOrganismPrepare> {
         if sources.len() != maximum_causal_intervals.len() {
-            return Err(PyValueError::new_err(
+            return Err(NativePhysicalInputRefused::new_err(
                 "coexisting admitted source and interval counts differ",
             ));
         }
         if sources.is_empty() {
-            return Err(PyValueError::new_err(
+            return Err(NativePhysicalInputRefused::new_err(
                 "coexisting admitted interval has no source",
             ));
         }
+        let in_flight_acoustic = match (
+            pressure_s16le.as_deref(), body_s16le.as_deref(), consumed_sample_count,
+        ) {
+            (None, None, None) => None,
+            (Some(pressure), Some(body), Some(count)) => Some((pressure, body, count)),
+            _ => return Err(NativePhysicalInputRefused::new_err(
+                "acoustic consumption requires pressure, body and sample count together",
+            )),
+        };
+        let drives = guided_vocal_drives.map(|raw| raw.into_iter().map(
+            |(axis, direction, outward_elementary_carriers)| {
+                let terminal = BodyEffectorTerminal::from_ordinals(axis, direction)
+                    .ok_or_else(|| NativePhysicalInputRefused::new_err("guided vocal terminal is invalid"))?;
+                Ok(BodyEffectorDrive { terminal, outward_elementary_carriers })
+            }
+        ).collect::<PyResult<Vec<_>>>()).transpose()?;
         let episodes = sources
             .iter()
             .zip(maximum_causal_intervals)
             .map(|(source, intervals)| (source.borrow(py).clone(), intervals))
             .collect::<Vec<_>>();
+        let mut mutation_started = false;
         let prepared = py
             .allow_threads(|| {
                 self.runtime
-                    .advance_coexisting_admitted_interval_unsealed(&episodes)
+                    .advance_coexisting_admitted_interval_unsealed(
+                        &episodes, drives.as_deref(), in_flight_acoustic, vestibular_motion,
+                        &mut mutation_started,
+                    )
             })
-            .map_err(|error| PyValueError::new_err(error.to_string()))?;
+            .map_err(|error| {
+                if mutation_started {
+                    PyValueError::new_err(error.to_string())
+                } else {
+                    NativePhysicalInputRefused::new_err(error.to_string())
+                }
+            })?;
         Ok(NativeResidentOrganismPrepare {
             token: prepared.token,
             sealed: prepared.sealed,
@@ -5725,6 +5828,7 @@ impl NativeResidentOrganismRuntime {
             causal_interval_evidence: prepared.causal_interval_evidence,
             articulated_body_consequences: prepared.articulated_body_consequences,
             body_proprioceptive_sources: prepared.body_proprioceptive_sources,
+            guided_input_port_count: prepared.guided_input_port_count,
         })
     }
 
@@ -5798,6 +5902,7 @@ impl NativeResidentOrganismRuntime {
             causal_interval_evidence: prepared.causal_interval_evidence,
             articulated_body_consequences: prepared.articulated_body_consequences,
             body_proprioceptive_sources: prepared.body_proprioceptive_sources,
+            guided_input_port_count: prepared.guided_input_port_count,
         })
     }
 
@@ -5912,6 +6017,7 @@ impl NativeResidentOrganismRuntime {
             causal_interval_evidence: prepared.causal_interval_evidence,
             articulated_body_consequences: prepared.articulated_body_consequences,
             body_proprioceptive_sources: prepared.body_proprioceptive_sources,
+            guided_input_port_count: prepared.guided_input_port_count,
         })
     }
 
@@ -6980,6 +7086,7 @@ fn migrate_authenticated_legacy_predecessor(
 }
 
 pub(crate) fn register(module: &Bound<'_, PyModule>) -> PyResult<()> {
+    module.add("NativePhysicalInputRefused", module.py().get_type::<NativePhysicalInputRefused>())?;
     module.add_class::<NativeOrganismRuntimeTransition>()?;
     module.add_class::<NativeAuthenticatedTask853RuntimeMigration>()?;
     module.add_class::<NativeResidentOrganismRuntime>()?;
@@ -10350,7 +10457,7 @@ mod tests {
         coexisting.active.articulated_body.initialize_proprioception();
         let predecessor_tick = coexisting.observation().organism_tick;
         let admitted = coexisting
-            .advance_coexisting_admitted_interval_unsealed(&episodes)
+            .advance_coexisting_admitted_interval_unsealed(&episodes, None, None, None, &mut false)
             .unwrap();
 
         assert_eq!(admitted.observation.organism_tick, predecessor_tick + 1);
@@ -10370,6 +10477,37 @@ mod tests {
     }
 
     #[test]
+    fn coexisting_vestibular_return_is_source_local_and_advances_one_interval() {
+        let world = source("coexisting-world-with-typed-vestibular-return");
+        let world_occurrences = world.joint_source_occurrences().len();
+        let world_ports = world.joint_source_ports().len();
+        let episodes = vec![(world, vec![(5, 1); world_occurrences])];
+        let mut runtime = create_resident_genesis(IDENTITY, 0, budget()).unwrap();
+        runtime.active.articulated_body.initialize_proprioception();
+        let predecessor_tick = runtime.observation().organism_tick;
+        let predecessor_vestibular_tick = runtime.active.vestibular.source_tick;
+        let expected = resident_vestibular_tick_ingress(
+            &runtime.active.vestibular, 0, 7,
+        ).unwrap();
+        let (vestibular_source, _) = expected.source().joint_source_with_contacts();
+        let expected_ports = world_ports + vestibular_source.joint_source_ports().len();
+        let expected_occurrences =
+            world_occurrences + vestibular_source.joint_source_occurrences().len();
+        let expected_canal = expected.transduction().reached_tick.successor_canal;
+
+        let admitted = runtime
+            .advance_coexisting_admitted_interval_unsealed(&episodes, None, None, Some((0, 7)), &mut false)
+            .unwrap();
+        assert_eq!(admitted.observation.organism_tick, predecessor_tick + 1);
+        assert_eq!(admitted.causal_interval_evidence.len(), 1);
+        assert_eq!(admitted.phase_counts.reached_neuron_lookup_count, expected_ports);
+        assert_eq!(admitted.phase_counts.current_cohort_evaluation_count, expected_occurrences);
+        let lived = runtime.unsealed.as_ref().unwrap();
+        assert_eq!(lived.vestibular.canal, expected_canal);
+        assert_eq!(lived.vestibular.source_tick, predecessor_vestibular_tick + 1);
+    }
+
+    #[test]
     fn shorter_event_nests_once_inside_longer_coexisting_sensorium() {
         let short = source_spanning("one-second-body-event", 7, 8);
         let long = source_spanning("two-second-world-sensorium", 19, 21);
@@ -10381,7 +10519,7 @@ mod tests {
         runtime.active.articulated_body.initialize_proprioception();
         let predecessor_tick = runtime.observation().organism_tick;
         let admitted = runtime
-            .advance_coexisting_admitted_interval_unsealed(&episodes)
+            .advance_coexisting_admitted_interval_unsealed(&episodes, None, None, None, &mut false)
             .unwrap();
 
         assert_eq!(admitted.observation.organism_tick, predecessor_tick + 1);

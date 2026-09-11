@@ -3049,52 +3049,88 @@ class NativeResidentOrganism:
         self,
         sources: object,
         maximum_causal_intervals: object,
+        *,
+        guided_vocal_drives: object = None,
+        pressure_s16le: bytes | None = None,
+        body_s16le: bytes | None = None,
+        consumed_sample_count: int | None = None,
+        vestibular_motion: tuple[int, int] | None = None,
     ) -> ResidentPrepareEvidence:
-        """Advance simultaneous admitted sources as one physical interval."""
+        """One native interval for current input and exact physical returns."""
 
-        if not isinstance(sources, tuple) or not sources:
-            raise TypeError("coexisting admitted sources must be a nonempty tuple")
-        if (
-            not isinstance(maximum_causal_intervals, tuple)
-            or len(maximum_causal_intervals) != len(sources)
-        ):
-            raise TypeError(
-                "coexisting admitted intervals must match the source tuple"
-            )
-        intervals = tuple(
-            _validated_causal_intervals(value)
-            for value in maximum_causal_intervals
-        )
-        source_port_count = sum(
-            _nonnegative_integer(
-                getattr(source, "port_count", None),
-                "coexisting source port count",
-            )
-            for source in sources
-        )
-        active_before = self.readiness()
+        from guala_core import NativePhysicalInputRefused
+
+        native_entered = False
         candidate: object | None = None
         try:
+            if not isinstance(sources, tuple) or not sources:
+                raise TypeError("coexisting admitted sources must be a nonempty tuple")
+            if not isinstance(maximum_causal_intervals, tuple) or len(maximum_causal_intervals) != len(sources):
+                raise TypeError("coexisting admitted intervals must match the source tuple")
+            intervals = tuple(_validated_causal_intervals(value) for value in maximum_causal_intervals)
+            acoustic_parts = (pressure_s16le is not None, body_s16le is not None, consumed_sample_count is not None)
+            if any(acoustic_parts):
+                if not all(acoustic_parts) or not isinstance(pressure_s16le, bytes) or not isinstance(body_s16le, bytes):
+                    raise ValueError("acoustic consumption requires exact pressure, body and sample count together")
+                consumed_sample_count = _positive_integer(consumed_sample_count, "acoustic consumed sample count")
+            drives = None
+            if guided_vocal_drives is not None:
+                if not isinstance(guided_vocal_drives, tuple) or not 1 <= len(guided_vocal_drives) <= 13:
+                    raise ValueError("guided vocal drives exceeded fixed vocal anatomy")
+                drives = []
+                axes: set[int] = set()
+                for raw in guided_vocal_drives:
+                    if not isinstance(raw, tuple) or len(raw) != 3:
+                        raise TypeError("guided vocal drive changed exact shape")
+                    axis = _nonnegative_integer(raw[0], "guided vocal axis ordinal")
+                    direction = _nonnegative_integer(raw[1], "guided vocal direction ordinal")
+                    carriers = _positive_integer(raw[2], "guided vocal outward carriers")
+                    if not (14 <= axis <= 18 or 37 <= axis <= 44) or direction > 1 or carriers > (1 << 32) - 1 or axis in axes:
+                        raise ValueError("guided vocal drive left bounded unique anatomy")
+                    axes.add(axis)
+                    drives.append((axis, direction, carriers))
+            if vestibular_motion is not None:
+                if not isinstance(vestibular_motion, tuple) or len(vestibular_motion) != 2:
+                    raise ValueError("vestibular return requires one heading and signed step")
+                heading, step = vestibular_motion
+                if isinstance(heading, bool) or not isinstance(heading, int) or not 0 <= heading < 360000 or isinstance(step, bool) or not isinstance(step, int) or not -(1 << 31) <= step < (1 << 31):
+                    raise ValueError("vestibular return left its physical representation")
+            source_port_count = sum(
+                _nonnegative_integer(getattr(source, "port_count", None), "coexisting source port count")
+                for source in sources
+            ) + int(vestibular_motion is not None)
+            active_before = self.readiness()
             _rust_started = time.perf_counter()
-            candidate = (
-                self.__runtime.advance_coexisting_admitted_interval_unsealed(
-                    list(sources), [list(value) for value in intervals]
-                )
+            native_entered = True
+            candidate = self.__runtime.advance_coexisting_admitted_interval_unsealed(
+                list(sources), [list(value) for value in intervals], drives,
+                pressure_s16le, body_s16le, consumed_sample_count, vestibular_motion,
             )
             _record_runtime_phase("rust_advance", _rust_started)
             _validation_started = time.perf_counter()
+            guided_ports = _nonnegative_integer(
+                candidate.guided_input_port_count, "actual guided input port count",
+            )
+            if drives is None:
+                if guided_ports != 0:
+                    raise RuntimeError("native added a guide source without a guide")
+            elif (guided_ports % 4 or guided_ports < len(drives) * 4
+                  or guided_ports > len(active_before.articulated_body_axes) * 4):
+                raise RuntimeError("native guide source left actual body anatomy")
             validated = self._validated_prepare_evidence_body(
-                candidate,
-                source_port_count,
-                active_before,
-                causal_interval_count=1,
-                candidate_committed=False,
-                expected_sealed=False,
-                initial_body_coexists=True,
+                candidate, source_port_count + guided_ports, active_before,
+                causal_interval_count=1, candidate_committed=False,
+                expected_sealed=False, initial_body_coexists=True,
             )
             _record_runtime_phase("python_validation", _validation_started)
             return validated
-        except BaseException:
+        except NativePhysicalInputRefused:
+            # Native explicitly reports that its mutation boundary was not crossed.
+            # Preserve the current unsealed tick and all prior lived state.
+            raise
+        except BaseException as error:
+            if not native_entered:
+                raise NativePhysicalInputRefused(str(error)) from error
             try:
                 if candidate is not None:
                     self.__runtime.abort_unsealed_trajectory()
@@ -3103,101 +3139,21 @@ class NativeResidentOrganism:
             raise
 
     def advance_guided_vocal_interval_unsealed(
-        self,
-        sources: object,
-        maximum_causal_intervals: object,
-        guided_vocal_drives: object,
-        *,
+        self, sources: object, maximum_causal_intervals: object,
+        guided_vocal_drives: object, *,
         pressure_s16le: bytes | None = None,
         body_s16le: bytes | None = None,
         consumed_sample_count: int | None = None,
     ) -> ResidentPrepareEvidence:
-        """Co-admit tutor, guided tissue, and authenticated returning sound."""
-
-        acoustic_parts = (
-            pressure_s16le is not None,
-            body_s16le is not None,
-            consumed_sample_count is not None,
+        """An external vocal guide uses the same simultaneous physical entry."""
+        if guided_vocal_drives is None:
+            raise ValueError("guided vocal interval requires physical drives")
+        return self.advance_coexisting_admitted_interval_unsealed(
+            sources, maximum_causal_intervals,
+            guided_vocal_drives=guided_vocal_drives,
+            pressure_s16le=pressure_s16le, body_s16le=body_s16le,
+            consumed_sample_count=consumed_sample_count,
         )
-        if any(acoustic_parts):
-            if not all(acoustic_parts):
-                raise ValueError(
-                    "guided acoustic transport requires pressure, body, and sample count together"
-                )
-            if not isinstance(pressure_s16le, bytes) or not isinstance(body_s16le, bytes):
-                raise TypeError("guided acoustic transport must be exact bytes")
-            consumed_sample_count = _positive_integer(
-                consumed_sample_count, "guided acoustic consumed sample count"
-            )
-
-        if not isinstance(sources, tuple) or not sources:
-            raise TypeError("guided vocal sources must be a nonempty tuple")
-        if (
-            not isinstance(maximum_causal_intervals, tuple)
-            or len(maximum_causal_intervals) != len(sources)
-        ):
-            raise TypeError("guided vocal intervals must match the source tuple")
-        if not isinstance(guided_vocal_drives, tuple) or not guided_vocal_drives:
-            raise TypeError("guided vocal drives must be a nonempty tuple")
-        if len(guided_vocal_drives) > 13:
-            raise ValueError("guided vocal drives exceeded fixed vocal anatomy")
-        drives: list[tuple[int, int, int]] = []
-        axes: set[int] = set()
-        for raw in guided_vocal_drives:
-            if not isinstance(raw, tuple) or len(raw) != 3:
-                raise TypeError("guided vocal drive changed exact shape")
-            axis = _nonnegative_integer(raw[0], "guided vocal axis ordinal")
-            direction = _nonnegative_integer(
-                raw[1], "guided vocal direction ordinal"
-            )
-            carriers = _positive_integer(
-                raw[2], "guided vocal outward elementary carriers"
-            )
-            if axis > 44 or direction > 1 or carriers > (1 << 32) - 1:
-                raise ValueError("guided vocal drive exceeded body representation")
-            if axis in axes:
-                raise ValueError("guided vocal drive repeated one body axis")
-            axes.add(axis)
-            drives.append((axis, direction, carriers))
-        intervals = tuple(
-            _validated_causal_intervals(value)
-            for value in maximum_causal_intervals
-        )
-        source_port_count = sum(
-            _nonnegative_integer(
-                getattr(source, "port_count", None),
-                "guided vocal source port count",
-            )
-            for source in sources
-        ) + len(drives) * 4
-        active_before = self.readiness()
-        candidate: object | None = None
-        try:
-            _rust_started = time.perf_counter()
-            candidate = self.__runtime.advance_guided_vocal_interval_unsealed(
-                list(sources), [list(value) for value in intervals], drives,
-                pressure_s16le, body_s16le, consumed_sample_count,
-            )
-            _record_runtime_phase("rust_advance", _rust_started)
-            _validation_started = time.perf_counter()
-            validated = self._validated_prepare_evidence_body(
-                candidate,
-                source_port_count,
-                active_before,
-                causal_interval_count=1,
-                candidate_committed=False,
-                expected_sealed=False,
-                initial_body_coexists=True,
-            )
-            _record_runtime_phase("python_validation", _validation_started)
-            return validated
-        except BaseException:
-            try:
-                if candidate is not None:
-                    self.__runtime.abort_unsealed_trajectory()
-            finally:
-                self.__unsealed_tick = None
-            raise
 
     def seal_unsealed_trajectory_direct(self) -> NativeResidentObservationView:
         """Seal the completed lived intake once for immediate persistence."""

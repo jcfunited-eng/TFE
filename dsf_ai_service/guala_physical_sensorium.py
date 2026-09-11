@@ -95,33 +95,37 @@ class PhysicalSensorium:
         )
 
 
-def _validate(sensorium: PhysicalSensorium, frame_count: int) -> PortTrajectories:
+def _validate(
+    sensorium: PhysicalSensorium, frame_count: int,
+    *, senses: tuple[PhysicalSense, ...] | None = None,
+) -> PortTrajectories:
     expected = (
-        ("retina", sensorium.retina, RETINAL_PORTS),
-        ("legacy ears", sensorium.legacy_ears, LEGACY_EAR_PORTS),
-        ("cochleae", sensorium.cochleae, COCHLEAR_PORTS),
-        ("touch", sensorium.touch, TOUCH_PORTS),
-        ("smell", sensorium.smell, SMELL_PORTS),
-        ("taste", sensorium.taste, TASTE_PORTS),
-        ("displacement", sensorium.displacement, DISPLACEMENT_PORTS),
-        ("articulation", sensorium.articulation, ARTICULATORY_PORTS),
-        ("thermal", sensorium.thermal, THERMAL_PORTS),
+        ("retina", sensorium.retina, RETINAL_PORTS, PhysicalSense.SIGHT),
+        ("legacy ears", sensorium.legacy_ears, LEGACY_EAR_PORTS, PhysicalSense.SOUND),
+        ("cochleae", sensorium.cochleae, COCHLEAR_PORTS, PhysicalSense.SOUND),
+        ("touch", sensorium.touch, TOUCH_PORTS, PhysicalSense.TOUCH),
+        ("smell", sensorium.smell, SMELL_PORTS, PhysicalSense.SMELL),
+        ("taste", sensorium.taste, TASTE_PORTS, PhysicalSense.TASTE),
+        ("displacement", sensorium.displacement, DISPLACEMENT_PORTS, PhysicalSense.BODY),
+        ("articulation", sensorium.articulation, ARTICULATORY_PORTS, PhysicalSense.BODY),
+        ("thermal", sensorium.thermal, THERMAL_PORTS, PhysicalSense.BODY),
     )
-    for label, ports, width in expected:
+    ordered = []
+    for label, ports, width, sense in expected:
+        if senses is not None and sense not in senses:
+            continue
         if len(ports) != width:
             raise ValueError(f"{label} changed mounted receptor count")
         if any(len(trajectory) != frame_count for trajectory in ports):
             raise ValueError(f"{label} changed the shared physical clock")
-    ordered = sensorium.ordered_ports()
-    if len(ordered) != PORT_COUNT:
+        ordered.extend(ports)
+    if senses is None and len(ordered) != PORT_COUNT:
         raise RuntimeError("physical sensorium does not cover mounted anatomy")
     for trajectory in ordered:
         for value in trajectory:
-            numeric = float(value)
-            if not math.isfinite(numeric):
+            if not math.isfinite(float(value)):
                 raise ValueError("physical sensorium contains a non-finite sample")
-    return ordered
-
+    return tuple(ordered)
 
 def compact_signal_body(
     sensorium: PhysicalSensorium,
@@ -171,7 +175,6 @@ def settle_projected_physical_sensorium(
 ) -> object:
     """Settle explicit disjoint senses while preserving mounted port anatomy."""
 
-    _validate(sensorium, len(source_times))
     if (
         not isinstance(senses, tuple)
         or not senses
@@ -181,6 +184,9 @@ def settle_projected_physical_sensorium(
         raise ValueError("physical sense projection is empty or noncanonical")
     if len(set(senses)) != len(senses):
         raise ValueError("physical sense projection repeats a sense")
+    # Only these senses enter this episode. A concurrent return may carry
+    # a different exact sample grid for another, independently admitted sense.
+    _validate(sensorium, len(source_times), senses=senses)
     by_sense = _sense_trajectories(sensorium)
     selected = tuple(
         trajectory

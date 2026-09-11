@@ -20,31 +20,33 @@ so live speech acceptance remains open. This paragraph records the Candidate110
 deployment, not the current repair state. Any earlier “speech complete” wording
 is historical and retracted.
 
-Current repair status, 2026-09-11 22:17 UTC: speech NOT fixed in production.
-Candidate121 ACTUAL-runtime copied-body root recall remains CLOSED/PASS:
-quiet baseline, one cue, four coordinated motors, breath/pressure, finite
-quiet ending, all223 original member/bond topologies retained, exact body
-cold restore and next ordinary occurrence. Definitive receipt S12104 below.
-C120 growth/body/self-hearing and C118 ordered/repeated-use/cold wins remain
-CLOSED at their recorded LOCAL scopes. Preserved pair651548:
+Current repair status, 2026-09-11 23:52 UTC: speech NOT fixed in production.
+Candidate121 ACTUAL-runtime copied-body root recall remains CLOSED/PASS
+(S12104): quiet baseline, one cue, four coordinated motors, breath/pressure,
+finite quiet, all223 original member/bond topologies retained, exact cold-next.
+C120 growth/body/self-hearing and C118 ordered/repeated-use/cold successes stay
+CLOSED at their recorded LOCAL scopes. Preserve pair651548 unchanged:
  /tmp/guala-c121-recall.5e8ILP/paired
 Do not reteach the root or rerun its passing proof merely to regain confidence.
 
-F118-32 remains ACTIVE. Ordered teaching preflight confirms the explicitly
-recorded immediate-return chronology gap remains after C119's combined-input
-fix: the actor consumes root action and immediate return before accepting the
-next guide. Source/log reconciliation R12201 below, not a new failed lesson.
-A queue-only insertion was reviewed and rejected BEFORE code because newly
-generated motor consequences during return have no complete retained next-hop
-path. Proposed smaller complete direction: one ordinary native interval with
-coexisting external input and exact preceding physical consequences, removing
-private return chaining. D12202 is NOT a frozen implementation contract:
-pending body/world/vestibular custody and coherent failure/restore mapping
-must close before edits. No new neuronal/speech law, no stale evidence window,
-no delayed self-hearing or scripted sequence is authorized by this proposal.
-Source remains90933611; no new build, teaching run, or candidate patch this turn.
-Latest AWS22:16UTC sole1456/C110/6aa38d99 RUNNING/HEALTHY1/1/0.
-CaretakerSTOP/browserclosed; no browser needed. Full AE goal ACTIVE.
+F118-32 remains ACTIVE. D12203 is the complete source-mapped implementation
+contract for one ordinary interval carrying pending physical return alongside
+current external input. Independent source review PASS for implementation;
+not executable/production proof. Pending return REPLACES fresh passive-world
+sampling for that interval; three exact sampled frames preserve existing
+world/body return bytes, with source-local typed vestibular co-admission.
+Coupled-world v2->v3 explicit migration, native GLMFAB11 unchanged.
+No new neuron/recognition/speech law. No stale completion permission.
+Candidate122 final independent source review PASSED (R12208); isolated compile
+and focused boundary checks PASSED (S12209). One supporting test had two
+fixture defects, both recorded H12205; no production source altered to pass it.
+ONE actual-runtime mature proof completed: simultaneous handoff PASS (S12214),
+but no new ordered edge after one guide (F12215); two-posture recall NOT run.
+Do not discard the handoff success or label all learning absent. Next is the
+exact predecessor/association join discriminator D12216, no new physics yet.
+Production remains1456/C110/image6aa38d99; read-only23:28-23:40 envelope1/1/0,
+RUNNING/HEALTHY, historicalSep8clockalarm unchanged. CaretakerSTOP/browserclosed.
+No browser or user action required. Full AE goal ACTIVE.
 Worktree: `/tmp/guala-speech-existing-organ`
 Starting HEAD: `735489406577f90edf6c2fb7fb1889f87eae8107`
 Production boundary: task definition 1456 is the live deployed writer. Its
@@ -12783,3 +12785,631 @@ desired1/running1/pending0,no failures. This is task health only; latest
 CPU/RAM/alarm observation remains S12104 at21:59, not a new full health audit.
 No production or caretaker change. Browserclosed, no user action needed.
 Full AE goal ACTIVE; work continues on the exact input/return contract.
+
+## Candidate122 implementation contract — F-054-118-32, 2026-09-11 22:33:04 UTC
+
+`D-054-122-03` — source-mapped contract replacing D12202's open representation.
+Continues F11832; does not reopen S12104. Acceptance: the actual production
+restore/LeanPhysicalLoop/actor path on preserved C121 pair651548 must admit
+the next external guide alongside the immediately preceding root's physical
+return, grow the first ordered edge, and produce both postures on sound-only
+recall, finite quiet and exact cold-next. Existing C118 four-posture/three-use
+proofs remain LOCAL prerequisites, not a claim that this runtime has learned
+the whole word. Full-word teaching/recall and live delivery remain required.
+
+Gate: requested learned body-caused speech with concurrent senses; current
+runtime privately consumes feedback before accepting the next input; conflict
+YES. Do not extend private return chaining, queue-within-queue insertion,
+stale completion permission, new speech/recognition/neuron laws, legacy shell,
+L0-L4, or DSF reductions. Single next change is this ordinary input/physical
+return handoff. Full joint DSF unchanged; no field structure lost.
+
+Owner Sol. Independent memory_probe_review read-only source review confirms:
+(a) the outer ThermallyCoupledEmbodimentWorldAuthority envelope is the smaller
+existing custody seam; (b) consuming the pending return INSTEAD of a fresh
+passive-world interval removes duplicate world sampling; (c) the actual
+return builder has only three sampled states, not interpolation control points.
+
+### Frozen physical path and representation
+
+At most ONE native cognitive interval per actor settlement:
+- No pending non-acoustic return: prepare the existing passive250ms world
+  interval and sample its ordinary full sensorium.
+- Pending return: consume its already-settled world/body input instead; DO NOT
+  advance another passive250ms or resample/rerender that same world occurrence.
+- In either case current external light/pressure, an optional physical vocal
+  guide, and native pending acoustic return coexist in that same interval.
+  No external input is required for feedback/unattended life to continue.
+- After native settlement, every real motor/body/root consequence is applied
+  through the existing world motor bridge for its existing1ms. Capture its
+  exact pending sensory return for the NEXT ordinary call. Do not recursively
+  run cognition. This applies equally to actions caused during a return.
+- A returned consequence is never a future action permission. Native
+  reassembly, founder, work, growth, muscle, breath and own-sound laws remain.
+
+The pending record is physical-medium state, NOT a queue or cognition:
+one optional record containing producer organism identity/native tick,
+the producing causal-transition receipt and resulting world revision/receipt;
+three exact sampled world/body sensorium frames; sparse native body/root
+episodes with their existing extents/admissions; optional exact yaw start and
+one signed1ms displacement. Do not retain PreparedMotorConsequence wholesale,
+world commands, before/after worlds, all45body axes, lesson labels, raw tutor
+material, acoustic samples or native cognitive snapshots.
+
+Exact world/body sample representation:
+passive_body_consequence_sensorium uses a step at1ms, not interpolation.
+Retina/palmar/smell/taste/thermal change at t>=1ms; displacement is present
+through t<=1ms then zero; other fields are constant until external overlays.
+Existing source grid is0,10,...250ms plus1ms =27frames. Sample that actual
+builder at0/1/250ms, encode with its existing compact_signal_body boundary:
+220ports *3frames *8 little-endian binary64 bytes =5280bytes. Reconstruct
+the existing27frames by copying first/middle/last according to time, never
+interpolating or rerendering. This is exact reuse of existing boundary values,
+not a new approximation, quantization or reduction of joint DSF.
+The middle sample is essential: omitting it loses the inclusive displacement.
+Camera overlays the current body's transmitted135site light as today.
+On a return, external hearing and native self-hearing retain their separate
+26frame SOUND-only episodes, rather than inventing a1ms acoustic sample.
+World return uses its actual27frame non-SOUND episode. Sparse native body
+and root proprioceptive sources preserve their individual1ms admissions and
+exact original source ticks; do not rewrite them to the enclosing native tick.
+
+Native vestibular co-admission:
+virtual_body_yaw_motion SignedYawActuation derives duration_ticks =
+duration_microseconds/WORLD_MECHANICAL_TICK_MICROSECONDS; the motor bridge's
+BODY1000us is exactly ONE signed step. No trajectory array/history is needed
+in pending custody. Existing resident_vestibular_tick_ingress produces the
+actual canal input from that step and persisted canal state.
+Extend the EXISTING coexisting admitted native call to carry optional guided
+work, authenticated acoustic consumption and this typed yaw input together.
+Reuse build_admitted_trajectory's one settlement/body/breath/output path.
+Its admitted source roster must include the generated vestibular source and
+its exact admission. Scope ResidentVestibularIngress to THAT source index
+inside prepare_typed_admitted_transition_from_owned; never apply its gate,
+energy or provenance to every coexisting source. Update canal/source_tick/
+heading once on success. Existing joint fields and vestibular transduction
+unchanged. Retire the lean loop's separate advance_vestibular_trajectory call;
+do not duplicate its separate motor/body settlement builder in the new path.
+
+### Mutation, failure, persistence and boot contract
+
+Outer coupled world schema/domain v2 -> v3 only. Base worldv7 and native
+GLMFAB11/GLORUN01 unchanged; PairedCurrentStore format unchanged.
+Use one explicit predecessor migration, producing an EMPTY non-acoustic
+pending record because v2 did not retain one; never fabricate historical
+missing feedback. Preserve inner world bytes, thermal stocks/residue and
+native body/identity/tick. Ordinary v3 restore reproduces exact bytes.
+Production startup prepares BOTH native and coupled-world migrations before
+one paired publish at the same identity/tick, instead of publishing migrated
+native state first with unvalidated old-world bytes. Existing paired publish
+already permits same-tick schema replacement. Full pre-cutover paired backup
+and old-image incompatibility discipline remain mandatory before live use.
+
+Pending return must authenticate its producer identity/tick against the
+paired native current state at restore and before use; its world revision/
+receipt must match the actual medium state. Pair hashes remain the authoritative
+joint durable binding. No per-interval full native hash/copy is introduced.
+Prepared world action plus pending replacement are one atomic coupled-world
+commit; include the record in encoded_snapshot and
+encoded_committed_prepared_action, capacity checks and exact rollback values.
+No new lock/thread/store. Consume old record only after native settlement and
+world consequence preparation succeed; replace with the newly produced record
+or None. Any post-native/pre-publication failure is fail-stop: never continue
+with native-sealed/world-per-call mismatched state. Drain only an ALREADY
+submitted good checkpoint, never seal/publish a failed trajectory. Recovery is
+from paired CURRENT with explicitly bounded undurable-life loss, not an
+invented exact per-occurrence rollback. Normal STOP seals the good current
+pair INCLUDING pending return; cold-next consumes it once.
+Cancelled futures must be rejected before mutation with existing Future
+set_running_or_notify_cancel; do not turn completed-physics result delivery
+into a second failure/rollback path.
+
+Input validation remains outside mutation. Existing LeanSensoryOccurrence
+admits non-vocal ordinals0..44 despite claiming vocal-only; before introducing
+fail-stop, constrain its physical-guide transport to the native declared
+vocal axes14..18 and37..44 (BODY_AXES/is_vocal_articulator), preserving all13
+real axes. This is fixed anatomy validation, not a speech/semantic table.
+Malformed input is refused without stopping or advancing the body.
+Coupled geometry/material renovation while pending must explicitly refuse or
+preserve that exact record; it may not silently discard it. Ordinary external
+sensory arrivals enter the same actor, never mutate saved return in parallel.
+
+### File/function closure and evidence consumers
+
+Authorized implementation slice:
+- new dsf_ai_service/guala_physical_return.py: bounded typed physical transport,
+  exact record codec/three-sample expansion, no cognitive authority;
+- guala_motor_world.py: prepare_motor_consequence captures actual compact
+  return sensorium and existing sparse sources/yaw without pre-encoding a
+  redundant full-world source; retain physical action/thermal law;
+- substrate/thermally_coupled_embodiment_world.py: coupled pending state,
+  prepare/commit/rollback/capacity, v3 encoding and explicit v2 migration;
+- lean_physical_loop.py: one interval; consume pending or passive input,
+  coexist external/guide/own sound, produce next return; delete recursive
+  return branch and false whole-occurrence abort/snapshot path;
+- lean_actor.py: fatal post-settlement failure, cancellation before mutation,
+  paired pending validation/checkpoint visibility;
+- lean_sensory_occurrence.py: fixed-vocal transport validation above;
+- glew_runtime/native_resident_organism.py and
+  native/guala_core/src/organism_runtime.rs: existing coexisting call/
+  FFI exact optional-input field map and one body/vestibular settlement;
+- native/guala_core/src/resident_cognitive_formation.rs: source-local typed
+  vestibular binding only, no growth/recognition/action law modification;
+- guala_home_world.py and lean_production_app.py: explicit world migration,
+  exact ordinary restore, one paired migration publish before actor startup;
+- deploy/guala_release_manifest.json and directly relevant existing tests:
+  include new transport file and exact production import/restore acceptance.
+Base embodiment_world.py, PairedCurrentStore and its format NOT extended.
+No unrelated monolith cleanup, copied-body mergeback, new caretaker or UI work.
+
+Public result remains ONE primary native receipt, no discarded final return.
+Existing motor/body/breath/pressure/DSF/retina counters describe that interval.
+Add exact read-only pending producer tick, consumed producer tick, sparse
+return source count, actual native interval count and vestibular-consumed fact
+through SettlementResult -> actor last_occurrence -> existing observation API.
+These disclose transport facts, not recognition/speech success. Newly emitted
+pressure remains native-owned; existing output transport reads it unchanged.
+
+Work/custody bound:
+one pending record, fixed5280sample bytes plus at most one sparse articulated
+body episode and one root-yaw/translation source each, derived from actual
+one-interval producer, not history. One fixed signed vestibular step.
+Outer coupled MAX_COUPLED_STATE_BYTES is4MiB (NOT paired store16MiB): include
+base64/nested-envelope overhead before commit; do not raise the limit to hide
+bloat. One native settlement peractor request replaces max4private intervals.
+Delete existing per-call full-world snapshot used for false rollback; no
+replacement per-call native snapshot. Existing paired checkpoint frequency and
+resource ceilings remain. Exact speed improvement is UNMEASURED until run.
+
+### Frozen verification, not a reopened campaign
+
+Before compile: independent review of the frozen whole implementation and
+field/translation scope; classify architectural vs localized per skill.
+First focused boundary proof must cover:
+- byte-exact3sample reconstruction of all27frames including1ms displacement,
+  old/new coupled codec, malformed/over-capacity/foreign-tick refusal;
+- pending input + current guide + external sound + own sound + typed vestibular
+  admitted ONCE; another motor consequence becomes the next pending input;
+- no extra passive world advance or duplicate full sensorium on pending;
+- first-use/no pending, after-use/pending, STOP/checkpoint/cold-next, cancellation
+  before work, post-native failure with no new bad checkpoint;
+- native source-local vestibular binding does not tag other coexisting senses;
+- actual source/image/module load and package closure.
+
+Then ONE actual-runtime mature proof from a NEW disposable copy of preserved
+C121651548, exact frozen environment clock/roster and phase0/phase1 PCM hashes.
+A quiet baseline and measured root completion identify the already-declared
+next-clock guide (external tutor, not organism action selection). Do not
+assume an older fixture's fixed clock when the root fires elsewhere.
+Both teaching and recall use the REAL actor/native call with one interval,
+not the reservoir helper. Check all223original member/bond topologies remain,
+sound-only two-posture recall, breath/self-hearing, known64clock finite acoustic
+tail, saved tick, exact cold body/world and next ordinary interval. Existing
+C118 full-word recipe follows only after this first actual-runtime edge works.
+Pre/post read-only AWS health envelope; no live mutation from this proof.
+If the boundary fails, preserve precise partial successes/failure, inspect
+whether input/clock/loaded code/census is wrong before declaring organism
+failure. No broad repeat of closed C118/C120/C121 component tests.
+
+`H-054-122-02` — read-only command recurrence, no build or organism run:
+one guessed virtual_body_actuation.rs path was absent. Symbol search found
+virtual_body_yaw_motion.rs. A full shared-ledger print exceeded output budget;
+stored response was intact and blob dee7ff55 matched the already-read handoff.
+These are workflow mistakes, not speech failures. Resolve unknown paths with
+the existing preflight or rg --files/symbol search before opening them; print
+only newly appended handoff text, not the unchanged whole ledger.
+
+`R-054-122-04` — independent source-only contract review PASS for implementation.
+memory_probe_review read D12203 completely. No architectural blocker found.
+Mandatory localized checks: clear consumed pending atomically when no new
+action occurs (no extra world advance); preserve embedded source ticks apart
+from producer tick; enforce coexisting single-interval input before mutation.
+3sample means exact sampled states, not interpolation. No executable proof
+or production success claimed. Implementation owner Sol; reviewer edits none.
+
+
+## I-054-122-05 — Candidate122 implementation, source-only, 2026-09-11 23:06 UTC
+
+Continues F-054-118-32 / D12203. Previous conversational goal turn made no
+repair progress; this turn implemented the remaining boundary checks and
+completed the source candidate. No compile, test, mature run or live mutation
+has occurred. C121 root recall stays CLOSED LOCAL; no success is upgraded.
+
+Joe's architectural correction governs this work: enable bounded experience,
+persistent memory, needs, attention, choice and autonomous action; do not
+prescribe cognition as a chatbot response. A quiet control distinguishes cause;
+it does not prohibit spontaneous action or simultaneous cognitive events.
+Explain mechanism decisions to Joe plainly and expose the same receipts for
+Claude. memory_probe_review is an independent reviewer, NOT Claude.
+
+Source closure:
+- lean_physical_loop.py now314lines, guala_motor_world.py298lines,
+  new guala_physical_return.py207lines, native_resident_organism.py5040lines.
+  Native organism_runtime.rs11986lines, resident_cognitive_formation.rs25211.
+  These are exact current wc counts, not runtime measurements or a claim the
+  monolith is clean.
+- One native coexisting call carries world/non-acoustic return, current
+  external input, optional external vocal guide, native own sound and the
+  exact typed yaw step. Pending return substitutes for new passive sampling.
+  A subsequent action replaces pending once; no action consumes it without
+  an extra world advance. Silent SOUND remains in the world source when no
+  external or own pressure is present.
+- Native body sources retain original source ticks separately from the
+  pending producer tick. Existing source extents/readers are used directly.
+  One three-frame sample body is5280bytes; <=3 sparse sources and one signed
+  yaw step. Coupled-state capacity reserves the declared inner-world maximum
+  and both base64 expansions before commit. This is a conservative encoded
+  capacity reservation, NOT a measured allocation peak or performance claim.
+- Additional directly necessary file: guala_physical_sensorium.py validates
+  ONLY the explicit senses admitted by its existing projection call. The
+  complete-world call still validates all220ports. Return-world sampling has
+  27frames including1ms; separate hearing has26. Validating unrelated fields
+  against another source's sample clock would falsely refuse their coexistence.
+  Each admitted source retains its full DSF fields. No interpolation or
+  reduction of a source's DSF field is introduced.
+- Coupled worldv3 persists one return, explicitv2->v3 migrates to empty, native
+  GLMFAB11 unchanged. Production factory validates restored native and world
+  before ONE paired migration publication. No paired-store/base-world change.
+- Post-native failure is fatal; drain only an already-submitted good checkpoint.
+  Cancelled queued request does not run physics. Malformed non-vocal guide is
+  rejected before mutation using native vocal-axis anatomy.
+- Reservoir/memory diagnostic call sites only receive the new None vestibular
+  argument. Their campaigns are not reopened or run.
+- Source-only git diff --check PASS. Native test field name was checked against
+  ResidentPrepareReceipt before compile and corrected to the existing
+  phase_counts.reached_neuron_lookup_count; no failed run occurred.
+
+Focused supporting verification is written, NOT run:
+tests/test_guala_physical_return.py — actual motor-world three-frame/27-frame
+byte equivalence, sparse native source restore, exact coupled cold restore,
+producer mismatch, once-only consume, atomic successor/rollback, renovation
+refusal, explicitv2 migration, nonfinite/extent/admission rejection and capacity
+refusal before world commit.
+tests/test_lean_physical_loop.py — pending/no-pending with guide, external sound,
+own sound and silence, one call and no fresh passive resampling.
+tests/test_guala_physical_sensorium.py — independent26/27-frame sensory grids;
+whole mixed-grid source still refuses.
+tests/test_lean_actor.py — cancelled queued request cannot mutate; post-native
+failure cannot publish mismatched body/world. Existing pre-mutation refusal
+remains nonfatal.
+organism_runtime.rs test coexisting_vestibular_return_is_source_local_and_advances_one_interval
+— actual typed yaw source admitted beside world input, one native tick and
+exact canal successor. Supporting evidence only, never speech acceptance.
+
+H-054-122-03: two additional read-only guessed filenames in the implementation
+span were absent (virtual_articulated_body_source.rs and native_joint_source.rs).
+Symbol search resolved articulated_body_joint_source_builder.rs and
+joint_source_episode.rs. No compiler/runtime/organism affected. Recorded as
+workflow mistakes, not hidden or reclassified as organism failures. Use the
+existing path/test resolver or rg discovery before opening uncertain paths.
+
+Next and only gate: freeze the whole candidate, record fingerprint in shared
+ledger (embedding a fingerprint in the file it hashes would invalidate it),
+independent reviewer verify before/after and classify architectural/localized.
+Owner makes no edits during review. Only a PASS permits isolated compilation
+and focused checks, then the ONE D12203 actual-runtime mature edge proof.
+No need for Joe's browser. Production remains unchanged; current health not
+claimed from historical samples.
+
+
+## R-054-122-06 — frozen review, one localized correction batch
+
+Independent review verified fed3751e285029e6e9b49528d2dc611fa428ba6f638b0bc17e976c7ed85c815e
+before and after. NOT PASS yet, three LOCALIZED findings, no architectural
+rejection. No tests/compiler/organism run.
+1. Guide source includes every commanded or still-moving axis. Python inferred
+   only4ports/commandedaxis, falsely refusing lawful extra feedback after
+   mutation. Carry actual producer guide-source extent through existing native
+   prepare/FFI and validate exact roster; never count later motor OUTPUTS as
+   guide INPUTS. Reviewer's earlier clamped-axis reduction/no-movement example
+   is RETRACTED: commanded load retains the consequence even atzero displacement.
+2. Carry an explicit transient native mutation-boundary classification for
+   errors. Before self.unsealed.take(), refuse without changing the current
+   state; afterward fail-stop. Never infer from error text or apparent tick.
+   This is call-local failure metadata, not persisted cognition/permission.
+3. Check native restored identity/tick against paired CURRENT BEFORE publishing
+   any migration, including empty pending return.
+
+One correction batch: producer guide-port count/getter; typed pre-mutation
+refusal from native mutation boundary through Python to loop; pre-publish
+native binding check. Extend only supporting cases needed by existing D12203:
+guide with independently moving axes, return-caused new return, actual actor
+STOP/checkpoint/cold consumption, fatal while a good checkpoint is outstanding.
+Then re-freeze once and final independent source review. No broad campaign.
+
+
+## I-054-122-07 — one localized batch complete, source-only
+
+R12206's three fixes are applied; final frozen review still required.
+Actual guided source port count is measured at native body_proprioceptive_source,
+carried as transient ResidentPrepareReceipt/NativeResidentOrganismPrepare
+guided_input_port_count, and consumed by the Python exact input-roster check.
+Later motor output counts are not reused. Count bound is4*actual45-axis body;
+at least the commanded load ports must remain, including clamped loads.
+
+NativePhysicalInputRefused is an explicit call-local exception, not persisted
+state. A local mutation_started flag is set immediately before unsealed.take();
+the FFI distinguishes pre-boundary refusal from a post-boundary error.
+Python distinguishes its own validation-before-entry from native execution,
+preserves its prior unsealed tick on an explicit native refusal, and the
+physical loop discards only uncommitted world preparation while preserving
+pending return. All unclassified/post-mutation failures remain fatal. No
+message matching, apparent-tick inference, cognitive marker or rollback claim.
+Native exception registration remains in existing organism_runtime::register;
+lib.rs and native state codecs are unchanged.
+
+Production factory now checks restored native identity, durable tick and live
+tick against paired CURRENT before any world migration publish. Supporting
+startup test covers both valid migration and wrong tick without publication.
+
+Focused supporting inventory now includes:
+- return-caused subsequent motor return (same existing input matrix);
+- explicit native pre-mutation refusal preserving current pending return;
+- actor STOP/paired checkpoint/cold consume using actual world codec, with
+  clearly labelled fake native/sensory custody fixture (NOT physical proof);
+- fatal interval while one good checkpoint is outstanding: drain that good
+  checkpoint only, never publish failed body/world;
+- real native/FFI/Python two-guide fixture: retained movement of first axis
+  adds actual source ports during a different second guide; intervening native
+  pre-mutation acoustic refusal cannot erase first guide's live tick/state.
+  This fixture is not mature-word acceptance.
+
+Updated exact counts after this batch: loop319lines, native wrapper5059,
+organism_runtime12033. The earlier314/5040/11986 counts refer to I12205 before
+these changes. New return carrier207 and motor-world298 are unchanged.
+git diff --check PASS; still no compile/test/live lesson/deploy.
+
+Read-only preparation envelope23:06–23:10UTC: soleeffde9e1/task1456/image6aa38d99
+RUNNING/HEALTHY1/1/0, no ECS failures.22:50–23:05 five-minute CPUavg41.77–44.53%,
+max63.17%;RAMavg10.95–11.26%,max12.31%. Historical clock-stalledALARM retains
+Sep8 timestamp, other namedGualaalarmsOK. Observer657236->657260, durable657228,
+no checkpoint/cleanup error; observer is not native timing/cognition proof.
+Local eight ch6_stage_slate.py workers and parent belong to TFE, left untouched.
+About26GiB available, no swap use; no Guala build/probe child.
+H12204: overly broad read-only/tmp discovery produced truncated output; bounded
+maxdepth1 corrected it. CURRENT was once printed as text despite binaryGLPAIR02;
+no decode inference or mutation resulted. Use hashes/paired reader for that file.
+Test receipt field checked against actual API before run and changed from
+nonexistent causal_interval_count to len(causal_interval_evidence); no failed
+execution. Preserve these workflow lessons separately from organism results.
+
+Final source review will verify the next frozen fingerprint before/after.
+Only PASS unlocks compilation and the existing focused/mature acceptance.
+
+
+## R-054-122-08 — final source PASS, execution authorized
+
+Independent reviewer verified frozen1369b9cfa11c84872d9f4ae1df7ecffe7c42951eabf250d690bbf95cd532f7b8
+before and after final source review. All three LOCALIZED findings are closed.
+No architectural defect or further localized blocker. Added supporting test
+API/fields match source; fake-native custody cases are not organism proof.
+This is authorization for isolated compile and declared focused checks only.
+Actual-runtime mature edge proof and production speech remain OPEN.
+This appended receipt is the only change since the reviewed frozen source;
+no executable/test file is changed by recording the verdict.
+
+
+## S-054-122-09 — compiled and focused boundary proof, LOCAL only
+
+2026-09-11 23:24-23:40UTC. Previous goal turn completed/confirmed compilation;
+this continuation completed the focused execution, not a new speech campaign.
+Final reviewed production source R12208 remains unchanged. Only supporting
+native-boundary test input was corrected below; no recompile to change physics.
+
+cargo test --locked --lib --no-run PASS35.31s, log/tmp/guala-candidate122-build.log.
+Exact test binary guala_core-7cd36301111f54ab
+SHAe55541a8713e0ef5316b11950c1be1076140531b514101edc648c4cc3097ba13.
+preflight resolved exact organism_runtime::tests::coexisting_vestibular_return_is_source_local_and_advances_one_interval;
+PASS1/0failed/621filtered,0.02s, /tmp/preflight-20260911T232902Z-48614.log.
+Source-local vestibular and exactly-one-native-interval scope, not speech.
+
+Ordinary python-extension release wheel PASS82s, isolated
+/tmp/guala-c122-wheel.mtI941/guala_core-0.1.0-cp311-cp311-manylinux_2_35_x86_64.whl
+SHA4e25d1c0557c16fea697310387fa29ad5c0183c574bf936d20d65ec33c4bd011.
+Installed via --no-index --no-deps --target into same directory/installed.
+Loaded module path verified there; .so SHA31fb991bdd33cc86a1e872bef1916fd97c673e958c02e0e2212947f560bc90c3.
+No global/native production module replaced. No diagnostic-api feature.
+
+Focused six Python files plus one exact native-boundary case:
+/tmp/guala-c122-focused.log:49passed,1failed,3.49s. The49PASS cover exactreturn
+codec/27frames, physicalmotorworld, coexistinginputmatrix, sourcegrids,
+actorcancellation/fail-stop/checkpoint/coldcustody, startupmigration/routes.
+Those supporting successes remain closed; they were NOT rerun after fixture
+corrections. Fake-runtime custody cases remain labelled fake, not body proof.
+
+Corrected exact native/FFI/Python case ultimately PASS1,0.90s:
+/tmp/guala-c122-native-boundary-1ms.log. Two distinct guides settle1intervaleach;
+explicit nativepre-mutationrefusal preserves live tick/body; actual second
+input has additional uncommanded-but-moving axis ports. Strict >source+4
+assertion retained. This uses existing1ms body-boundary duration, NOT live
+250ms sensory chronology. Full mature actual-runtime proof still OPEN.
+
+Read-only AWS envelope23:28pre/23:40post: soleeffde9e1bf364ec9b4114355fb07eafb,
+1456/image6aa38d997522301c5e3ddd75bbb053871bdda12b81259cd2f44119292492a106,
+RUNNING/HEALTHY1desired1running0pending,no ECSfailures.23:10-23:25CPUavg
+42.26-44.84%,max60.45%;RAMavg10.62-10.97%,max12.25%.23:25/23:30CPUavg
+43.39/43.36%,max57.35%;23:25-23:35RAMavg10.65-10.72%,max12.00%.
+Historicalclock-stalledALARMstillSep8 14:15:41.275; othernamedGualaalarmsOK.
+These are service-resource observations, not native latency/cognition proof.
+Taskdefinition re-read:4096CPU/16384MiB; GUALA_PAIRED_ROOT=/app/guala/paired-current-gen2,
+GUALA_MAX_WORLD_BYTES=16777216,PYTHONUNBUFFERED=1; no anatomy overrides.
+Localbuild/testingterminal; no production requests that mutate, no live lesson,
+no caretaker/browserchange/deploy. FullAEgoalACTIVE.
+
+## H-054-122-05 — supporting fixture failures and workflow errors, not erased
+
+First native-boundary fixture used receptor_anatomy() directly, a zero-signal
+ROSTER TEMPLATE with times0,1/4,1/2,3/4s, under250ms admission. It failed first
+call: gate exceeds declared maximum causal interval. Existing exact anatomy
+byte-equivalence test proves its750ms span. Corrected to full220port250ms
+sample, preserving all assertions; independentsource review PASS.
+Second /tmp/guala-c122-native-boundary.log passedfirstguide,refusalpreservation,
+secondguide and1intervalcounts, then failed224>224. Test wrongly expected
+firstaxis37 to remain moving after250ms. virtual_articulatory_body.rs275
+settlespassivetissue each16samples; source-law arithmetic gives neutral125,
+activation0 after251bodyms. Jaw substitution also reachesrest and was REJECTED
+without execution. This result does not falsify producer-input-count repair.
+Independentreview confirmed1ms native-boundary fixture:4exact samples
+0,1/3000,2/3000,1/1000 with1/1000admission,220ports, sameguides/strictassertions.
+16acousticsamples have no internal nonzero16samplebodyclock; retained first
+axis movement makes the second-axis guide exercise the intended case. PASS
+recordedS12209. Production250ms chronology remains for the mature proof.
+
+Read-only/workflow recurrences: guessed rootpyproject.toml absent (actual
+native/guala_core/pyproject.toml); guessed/tmp/guala-c118-four-posture* absent
+(actual candidate118 files discovered with boundedfind); guessed
+virtual_articulatory_organ.rs absent (actualvirtual_articulatory_body.rs);
+plain.glorun absent because pairedstoreuses.glorun.gz; JSONdecode ofbinary
+nativeanatomy failed; apply_patch delete+addsamepath refused before mutation.
+Corrected via rg/knownsourcecodec/PairedCurrentStore.restore and full-file
+Update patch. No state/deploy/organismfailure arose. Do not repeat these paths,
+formats or patchsyntax. Mature script's guessed source-site-count call required
+sensor/substreamargs; removed at source inspection BEFORE any matureexecution.
+Actual input roster will be recorded from native call sources/receipt instead.
+
+## D-054-122-12 — first-edge actual-runtime proof prepared, review before run
+
+/tmp/guala-c122-runtime-edge.py SHA5c9d8a2635dfb4030774a62ff520616f6333cd5a8a2afbac4f9384ad787a8785.
+Reuses previouslyexecuted C121 observer module SHA
+b061c218ac5429619a1df469871478acd681fb450eb5a8ab209264a8ab2bab30.
+StartsNEWdisposablepair from exact651548 through PairedCurrentStore.restore;
+sourceCURRENT SHAe32442eb3370924a65211484528bed3b44925ec0c3e008cc4f7c8149f765d018,
+sourcebodyb9558017/world3e1db47e asS12104, never writespreservedsource.
+Actualproductionfactory/actor/physicalclock/checkpoints, exactphase0/phase1.
+No privatecognitivefixture mutation or productionnetworkcalls. Observe root's
+fourmotorcompletion then submitprebuiltguide atnextreturn; actor-threadcheck
+refuses BEFORE ingress if realclock movedpastit.64clockquiettail, original223
+membership/bondsretained, exactnewroot->maxL11edge, sound-onlycoldrecall,
+breath/pressure/selfhearing, exactbody/worldcoldnext. No fullwordclaim.
+Independent source-only harnessreview requested; no runyet. No newacceptancebar.
+
+
+## R-054-122-13 — mature harness final source PASS and pre-run envelope
+
+23:43UTC independent source review PASS on final script
+393fe88247e5077f10762943a863cf1df77d3bdd8c14e4fdb69edcc6ab892e6a,
+verifiedbefore/after. Localized corrections: pressure required on each
+ordering's own rows; cold receipt explicitly exactrestore+next execution,
+NOTwarm/coldnextbyteequivalence. ProductionPythonpathguard added.
+Invocation independently resolves productionapp/physloop/nativewrapper/
+returnmodule from reviewedworktree and guala_core fromisolatedinstallation;
+no inheritedGUALAenv. Actualnative inputport/sensecounts logged duringproof.
+Preallocatedemptydisposable /tmp/guala-c122-edge.ef4kg8; no existingbodyoverwritten.
+
+Read-only23:43AWS:1456/effde9e1/image6aa38d99 RUNNING/HEALTHY1/1/0,no failures.
+23:30-23:40CPUavg42.59-44.29%,max60.69%;RAMavg10.58-10.72%,max12.00%.
+Historicalalarmunchanged per23:40 snapshot. GETobserveridentity1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1,
+live657918,durable657900,pending18,nodurabilityblock/checkpoint/cleanuperror.
+ObserverGET cannot steer cognition; not native timingproof. No localGuala
+compiler/harnesssurvivor,28.7GiBavailable/no swapuse,637GiB/tmpfree,1.6TiBbackup.
+This is ONE local first-edge run; no productionnetworkwrites, deploy orlesson.
+
+
+## S-054-122-14 — actual-runtime simultaneous handoff PASSED, LOCAL
+
+Mature68925 terminalexit1 at finalmissingedgeassertion, not a runtimecrash.
+Actualcandidate matched module/source and authenticated C121pair651548.
+Beforecensus223 originalmembers/bondtopologies, root268e noL11successor.
+Eight actualquiet intervals to651556, actor-threadquiet_at_cue=true.
+Externalphase0cue651557,4000samples,no guide. Root268e allfourminimum motors
+at651559:27/70/77/77carriers; joined251breath;3994nonzero pressure samples
+inthatrootinterval. Simultaneous nonvocalhipmotor048b also6carriers.
+Prebuiltmaximumguide enters exactnextinterval651560, before651559 matches
+pendingphysicalproducer651559, nativependingownsoundtrue. ActualONEcall
+consumesprecisebodyreturn651559,4000externaltutorsamples,4000selfheardsamples,
+and4guidedaxes, thenproducesnewpendingreturn651560. No privatefeedbackchain,
+no missedclock or1/8dose substitution inthisstep. This is the sought runtime
+coexistenceboundary success, not proof of learnededge/wholeword/live speech.
+
+Native72callsmean879.568ms,max2410.047ms; wholephysicalcallsmean975.549ms,
+max2509.956ms;peakRSS2187472KiB. Different chronology fromC121 means these
+numbers do NOT establish successor-identicaloptimization or productionlatency.
+Tailends651620,64postcueintervals, last8vocallyquiet,pendingphysicalfalse,
+pendingpressurefalse.136000selfheardsamples overthisrun. Normalactor.close
+publishesactualpaired651620. All223 originalmember/bondtopologies retained,
+zero missing. This does not claim every oldstatebyte unchanged during life.
+
+Log/tmp/guala-c122-runtime-edge.log
+SHA468f9e769cad4c62e8ca06cdfd7bff4e9e55d0a3d069ce804fb749c36ecdc786.
+Preservednewpair /tmp/guala-c122-edge.ef4kg8/paired:
+CURRENT SHA c3a70c4ca495e378967d2a38169a7522b0a6fa58592df2c0488e463eb49199a7,
+body2bb78673d72a7d64b8a0de566917859d72c91dedd93953bd9c5104ad50b1796b,
+worldf2e199cc204665e86cd2ce7cac38d09f0cf5dc6a7f42a85c8c44cca240921816.
+Original651548pair andC118/C120/C121successartifacts remain untouched.
+
+PostAWS23:46:52 sole1456/effde9e1/image6aa38d99 HEALTHY/RUNNING1/1/0,
+no ECSfailures;23:40-23:45CPUavg40.54-47.55%,max60.54%;RAMavg10.35-10.75%,
+max11.54%.HistoricalSep8clockalarmunchanged, otherGualaalarmsOK.
+GETobserver657918->657978,durable657964,pending14,no errors/block.
+Readonlysavedcensus48111 laterfinishedexit0,zeroorganismclocks.23:52service
+still1/1/0,noGualabuild/probechildren. No production/caretakerchange/deploy.
+
+## F-054-122-15 — no ordered edge after ONE guide; diagnosis not assumed
+
+Aftertheactualguideand64clocktail, completecontactcensus foundedges=[] from
+root268e BEFORE itsfour-maxmotorfilter. No sound-onlytwo-posturerecall ran;
+no actual-runtime cold-nextacceptance was reached. Do not callthis speechPASS.
+Independentsourceaudit confirmedcensus coversEVERYcohort+fabriccontact,
+eitherendpointorientation,andallmountedlineagelayers: no identifiedblindspot
+for a retainedroot->L11edge. Root268e matches actualmotorprovenance.
+
+Read-only savedstatecensus /tmp/guala-c122-saved-census.py
+SHAc6caaee7fac664745ad85597f6e873cd1ea5a44de1dd65e19cfe24684d03c3d9;
+output/tmp/guala-c122-saved-census.jsonl
+SHA7adc6d41b50d337b5f9b3e77a89647049d989b66120e4269a16413f4744df0eb.
+Bothsource651548andafter651620restoreexactnativebodyhash/tick,zero intervals.
+L11count824unchanged;nonewL11ornewmaximumroot/preparation. Rootneighborssame
+4motors+4associations. L9count245->249; otherlayercountsunchanged. This is
+retainedstructuralchange, NOTsemantic learning/speech proof or 'nothing grew'.
+Pairedworldbytesauthenticatedbyreadstore; fullruntimecoldworld/nextproof notrun.
+
+## D-054-122-16 — exact join discriminator, not another whole campaign
+
+Two named conditions remain; do not guess which bound thisguide:
+1. resident_cognitive_formation.rs exact_preceding_vocal_body_act_for_guided_growth
+16472-16476 requires WHOLEsource moved-terminalset == root'sexactfourterminals.
+Theactualrootinterval alsohasright_hip_pitch motor048b andnextguideconsumed
+20portbodyreturn(5axes). ExtraGENUINELYmovedhip woulddefeatwhole-sourceequality.
+Portcount/motorreceipt alone does not prove thatpredicate: exact_moved_effector_terminal
+filters passive/opposed/stalledmotion. Needactualconsequence'spredecessor/
+successorpositions,newmin/maxwork,stalledwork andsourcegroup, alreadyemitted
+by ResidentPrepareEvidence.articulated_body_consequences/bodyproprioceptive
+sources but notretained byreusedC121 observer. Do notsilenceotherbodyactivity.
+This is aparticipant-scope concern directlyrelevanttoJoe'sconcurrentAEpremise.
+2. lean_sensorimotor_route.rs923-932 requiresatleastonecurrentassociation to
+belongtoexact_sound_reassembled_members. Existinglawexplicitlypermitsneeding
+anotherlivedrepetition. OrdinarytaildoesNOTretryguidedmounting. Therefore
+one-guideabsence is not proof thatthemechanismcanneverlearn. No newmaximum
+preparation leavesownership/admissionunresolved; donotdeclarepredecessor solecause.
+
+PriorartF11009/S11010 immediatepredecessor/exactreturnedterminal requirement,
+C104echoexclusion,C118nextguidedposture successes stayclosed. S12214 handoff,
+root/body/breath/selfhearing/finitequiet arepreserved. C122productioncode stays
+reviewedunchanged; no newcandidate/neuronlaw atthischeckpoint.
+Nextavailable diagnostic is ONLYthemissingexactjoin facts. Do not repeat
+full64clockmatureacceptance orpriorgrowthcampaign. If a boundedprefix replay
+is needed because observer omitted producerfields, explicitlyrecord that
+instrumentation omission, captureALREADYexistingfields, verify identicalinput/
+prefix beforeinterpreting, and stopaftertheguide. No newdiagnosticcognitiveowner,
+statefield,signalfilter,timer or forcedsuppression. This is diagnosis, notpermission
+to bypassskillreview ordeclareanunmeasuredone-linefix.
+
+Workflownotes: post-runlogcontainsJSONLplusPythontraceback, sojqwholefile
+refusedaftervalidrows; use line-selectionforJSONrecords, keepexactrawlog.
+jqreservedlabelkeyneededexplicitquoting. A repeatedguessedrootlean_sensorimotor_route.rs
+pathfailed; actualresident_cognitive_formation/lean_sensorimotor_route.rs
+resolvedbyrg. No statechanged. Arithmetic in jq views is NOTexactbigintauthority;
+originalPythonJSONL retainsunroundedintegers andremainsauthoritative.
+
+
+## A-054-122-17 — preserved checkpoint artifact
+
+Verified evidence archive (not a release package):
+/mnt/tfebackup/guala-c118-four-posture.XehvEs/c122-handoff-and-first-edge-attempt.tar.gz
+SHA573074a784278c6d309c6810771e3dfeefc9532cbff494f48425494c8facb6c8.
+Contains exactsourcebinarydiff against31b5daab, newuntrackedreturn/testfiles,
+ordinarywheel, exactmaturepair651620andpredecessor, fullrawlogs(includingfailures),
+source-reviewedharness anditsC121observerdependency, readonlysavedcensus.
+Archivecontentslistedandhashverified. Original651548/C121archiveunchanged.
+No source mechanism is declaredspeechcomplete ordiscarded becauseedgegrowth
+is stillopen. NextD12216 exactjoinfacts; no approvalblock orreasonstopgoal.

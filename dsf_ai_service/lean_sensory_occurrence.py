@@ -120,7 +120,7 @@ class LeanSensoryOccurrence:
                     raise ValueError("guided vocal drive changed exact shape")
                 axis, direction, carriers = drive
                 if (
-                    not 0 <= axis <= 44
+                    not (14 <= axis <= 18 or 37 <= axis <= 44)
                     or direction not in (0, 1)
                     or not 1 <= carriers <= (1 << 32) - 1
                     or axis in axes

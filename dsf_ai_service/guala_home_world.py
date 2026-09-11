@@ -460,6 +460,7 @@ def home_world_authority(
     *,
     identity: str,
     encoded_world: bytes | None = None,
+    migrate_physical_return: bool = False,
 ) -> Any:
     """Build the declared home and optionally cold-restore its exact state."""
 
@@ -548,8 +549,11 @@ def home_world_authority(
         return authority
     if not isinstance(encoded_world, bytes) or not encoded_world:
         raise ValueError("persisted world is not a nonempty byte body")
-    authority.restore_encoded(encoded_world)
-    if bytes(authority.encoded_snapshot()) != encoded_world:
+    authority.restore_encoded(
+        encoded_world,
+        allow_physical_return_migration=migrate_physical_return,
+    )
+    if not migrate_physical_return and bytes(authority.encoded_snapshot()) != encoded_world:
         raise RuntimeError("ordinary home-world restore changed canonical bytes")
     if not any(
         item.object_id == HOME_BOOK_OBJECT_ID
@@ -557,4 +561,3 @@ def home_world_authority(
     ):
         raise RuntimeError("the persistent home lost its physical book")
     return authority
-

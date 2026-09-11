@@ -98,6 +98,8 @@ class _Runtime:
 
 
 class _World:
+    pending_physical_return = None
+
     def __init__(self, body: bytes) -> None:
         self.body = body
 
@@ -326,9 +328,11 @@ def test_health_fails_when_the_organism_owner_fails(tmp_path: Path) -> None:
             }
 
 
-def test_startup_publishes_native_migration_before_actor_verification(
+@pytest.mark.parametrize("wrong_tick", [False, True])
+def test_startup_validates_both_components_before_migration_publication(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
+    wrong_tick: bool,
 ) -> None:
     from dsf_ai_service import lean_production_app
     from dsf_ai_service.glew_runtime import native_resident_organism
@@ -363,7 +367,10 @@ def test_startup_publishes_native_migration_before_actor_verification(
         body = values["current_envelope"]
         assert isinstance(body, bytes)
         calls.append(("restore", body))
-        return _Runtime(body)
+        runtime = _Runtime(body)
+        if wrong_tick:
+            runtime.tick = runtime.persisted_tick = 11
+        return runtime
 
     monkeypatch.setenv("GUALA_PAIRED_ROOT", str(tmp_path))
     monkeypatch.setenv("GUALA_MAX_WORLD_BYTES", "4096")
@@ -385,10 +392,16 @@ def test_startup_publishes_native_migration_before_actor_verification(
     monkeypatch.setattr(
         lean_production_app,
         "home_world_authority",
-        lambda *, identity, encoded_world: (
+        lambda *, identity, encoded_world, migrate_physical_return: (
             _World(encoded_world) if identity == IDENTITY else None
         ),
     )
+
+    if wrong_tick:
+        with pytest.raises(RuntimeError, match="native identity/tick"):
+            _restore_production_actor()
+        assert store.read_pointer() == predecessor
+        return
 
     actor = _restore_production_actor()
     actor.start()

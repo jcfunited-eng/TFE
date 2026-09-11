@@ -24,6 +24,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass, replace
 from fractions import Fraction
 
+from dsf_ai_service.guala_physical_return import PendingPhysicalReturn
 from dsf_ai_service.substrate.bounded_home_thermal_physics import (
     BoundedThermalState,
     ConductiveThermalEdge,
@@ -38,13 +39,16 @@ from dsf_ai_service.substrate.embodiment_world import (
     EmbodimentWorldAuthority,
     MountedBodySurfaceSite,
     PreparedActionExecution,
+    _canonical_byte_count,
 )
 
 
 LEGACY_COUPLED_SCHEMA = "guala.thermally_coupled_embodiment.state.v1"
-COUPLED_SCHEMA = "guala.thermally_coupled_embodiment.state.v2"
+V2_COUPLED_SCHEMA = "guala.thermally_coupled_embodiment.state.v2"
+COUPLED_SCHEMA = "guala.thermally_coupled_embodiment.state.v3"
 LEGACY_COUPLED_DOMAIN = b"guala-thermally-coupled-embodiment-state-v1\0"
-COUPLED_DOMAIN = b"guala-thermally-coupled-embodiment-state-v2\0"
+V2_COUPLED_DOMAIN = b"guala-thermally-coupled-embodiment-state-v2\0"
+COUPLED_DOMAIN = b"guala-thermally-coupled-embodiment-state-v3\0"
 LEGACY_TRANSITION_SCHEMA = "guala.thermally_coupled_embodiment.transition.v1"
 TRANSITION_SCHEMA = "guala.thermally_coupled_embodiment.transition.v2"
 LEGACY_TRANSITION_DOMAIN = b"guala-thermally-coupled-embodiment-transition-v1\0"
@@ -432,6 +436,8 @@ class _PendingThermal:
     candidate_world_observation_receipt_sha256: str
     receipt: ThermalTransitionReceipt
     prior_latest_transition: ThermalTransitionReceipt | None
+    prior_physical_return: PendingPhysicalReturn | None
+    candidate_physical_return: PendingPhysicalReturn | None
 
 
 class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
@@ -456,6 +462,7 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
         self._latest_thermal_transition: ThermalTransitionReceipt | None = None
         self._pending_thermal: _PendingThermal | None = None
         self._committed_thermal_tail: _PendingThermal | None = None
+        self._physical_return: PendingPhysicalReturn | None = None
         super().__init__(authority_key=authority_key, **world_parameters)
         observation = super().observation_snapshot()
         thermal_anatomy.verify(tuple(item.region_id for item in observation.regions))
@@ -672,6 +679,8 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
                 ),
                 receipt=receipt,
                 prior_latest_transition=self._latest_thermal_transition,
+                prior_physical_return=self._physical_return,
+                candidate_physical_return=self._physical_return,
             )
             return prepared
 
@@ -731,11 +740,36 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
                     self.discard_prepared_action(prepared)
                 raise
 
+    @property
+    def pending_physical_return(self) -> PendingPhysicalReturn | None:
+        with self._thermal_lock:
+            return self._physical_return
+
+    def consume_physical_return(self, expected: PendingPhysicalReturn) -> None:
+        """Clear an actually consumed return when no new world action occurred."""
+        with self._thermal_lock:
+            if self._pending_thermal is not None or self._physical_return is not expected:
+                raise RuntimeError("physical return consumption changed custody")
+            self._physical_return = None
+            self._committed_thermal_tail = None
+
     def commit_prepared_action(
-        self, prepared: PreparedActionExecution
+        self, prepared: PreparedActionExecution, *,
+        expected_physical_return: PendingPhysicalReturn | None = None,
+        physical_return: PendingPhysicalReturn | None = None,
     ) -> ActionExecutionReceipt:
         with self._thermal_lock:
             pending = self._require_pending(prepared)
+            if self._physical_return is not expected_physical_return or pending.prior_physical_return is not expected_physical_return:
+                raise RuntimeError("world action did not consume its exact physical return")
+            if physical_return is not None:
+                if not isinstance(physical_return, PendingPhysicalReturn) or (
+                    physical_return.world_revision != pending.candidate_world_revision
+                    or physical_return.world_observation_receipt_sha256 != pending.candidate_world_observation_receipt_sha256
+                ):
+                    raise ValueError("new physical return does not belong to the prepared world")
+            pending = replace(pending, candidate_physical_return=physical_return)
+            self._verify_coupled_capacity(pending)
             execution = super().commit_prepared_action(prepared)
             self._thermal_state = pending.candidate_state
             self._body_surface_heat_residue_nanojoules = (
@@ -746,6 +780,7 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
                 pending.candidate_world_observation_receipt_sha256
             )
             self._latest_thermal_transition = pending.receipt
+            self._physical_return = pending.candidate_physical_return
             self._pending_thermal = None
             self._committed_thermal_tail = pending
             return execution
@@ -778,12 +813,13 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
                         prepared.execution_receipt.before.authority_receipt_sha256
                     )
                     self._latest_thermal_transition = tail.prior_latest_transition
+                    self._physical_return = tail.prior_physical_return
                     self._committed_thermal_tail = None
                     rolled_back[0] = True
 
                 yield rollback_both
 
-    def _coupled_encoded(
+    def _coupled_payload(
         self,
         world_encoded: bytes,
         state: BoundedThermalState,
@@ -791,9 +827,11 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
         world_revision: int,
         world_observation_receipt_sha256: str,
         latest: ThermalTransitionReceipt | None,
-    ) -> bytes:
-        payload = {
+        physical_return: PendingPhysicalReturn | None,
+    ) -> dict[str, object]:
+        return {
             "anatomy_receipt_sha256": self._thermal_anatomy.receipt_sha256,
+            "pending_physical_return": None if physical_return is None else physical_return.record(),
             "body_surface_heat_residue_nanojoules": _fraction_record(
                 body_surface_heat_residue_nanojoules
             ),
@@ -808,7 +846,18 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
             "world_revision": world_revision,
             "world_state_base64": base64.b64encode(world_encoded).decode("ascii"),
         }
-        body = _canonical(payload)
+    def _coupled_encoded(
+        self, world_encoded: bytes, state: BoundedThermalState,
+        body_surface_heat_residue_nanojoules: Fraction,
+        world_revision: int, world_observation_receipt_sha256: str,
+        latest: ThermalTransitionReceipt | None,
+        physical_return: PendingPhysicalReturn | None,
+    ) -> bytes:
+        body = _canonical(self._coupled_payload(
+            world_encoded, state, body_surface_heat_residue_nanojoules,
+            world_revision, world_observation_receipt_sha256, latest,
+            physical_return,
+        ))
         signature = hmac.new(
             self._thermal_key,
             COUPLED_DOMAIN + body,
@@ -823,6 +872,31 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
             raise ValueError("coupled thermal world exceeds its exact byte capacity")
         return encoded
 
+    def _verify_coupled_capacity(self, pending: _PendingThermal) -> None:
+        """Reserve the declared inner-world capacity without re-encoding it."""
+        payload = self._coupled_payload(
+            b"", pending.candidate_state,
+            pending.candidate_body_surface_heat_residue_nanojoules,
+            pending.candidate_world_revision,
+            pending.candidate_world_observation_receipt_sha256,
+            pending.receipt, pending.candidate_physical_return,
+        )
+        # The inner bytes occupy base64 in the payload, whose bytes occupy
+        # base64 in the outer envelope. Reserve both expansions exactly.
+        inner_text_bytes = 4 * ((self._max_encoded_state_bytes + 2) // 3)
+        payload_bytes = _canonical_byte_count(payload) + inner_text_bytes
+        envelope_bytes = _canonical_byte_count({
+            "authority_hmac_sha256": "0" * 64,
+            "payload_base64": "",
+            "schema": COUPLED_SCHEMA,
+        }) + 4 * ((payload_bytes + 2) // 3)
+        if envelope_bytes > MAX_COUPLED_STATE_BYTES:
+            raise ValueError("coupled physical successor exceeds its declared world capacity")
+
+    def _require_no_physical_return_for_renovation(self) -> None:
+        if self._physical_return is not None:
+            raise RuntimeError("world renovation cannot discard pending physical experience")
+
     def encoded_snapshot(self) -> bytes:
         with self._thermal_lock:
             world = super().encoded_snapshot()
@@ -833,12 +907,14 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
                 self._thermal_world_revision,
                 self._thermal_world_observation_receipt_sha256,
                 self._latest_thermal_transition,
+                self._physical_return,
             )
 
     def migrate_declared_body_receptor_geometry(self) -> bool:
         """Atomically bind a restored world to its declared body anatomy."""
 
         with self._thermal_lock:
+            self._require_no_physical_return_for_renovation()
             changed = super().migrate_declared_body_receptor_geometry()
             if not changed:
                 return False
@@ -857,6 +933,7 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
         """Atomically bind one authored arrival to thermal custody."""
 
         with self._thermal_lock:
+            self._require_no_physical_return_for_renovation()
             state_sha = super().admit_authored_arrival(item)
             observation = super().observation_snapshot()
             self._thermal_world_revision = observation.revision
@@ -873,6 +950,7 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
         """Atomically bind a renovated home to thermal custody."""
 
         with self._thermal_lock:
+            self._require_no_physical_return_for_renovation()
             changed = super().migrate_declared_home_topology()
             if not changed:
                 return False
@@ -894,6 +972,7 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
         """Atomically bind restored material and air to thermal custody."""
 
         with self._thermal_lock:
+            self._require_no_physical_return_for_renovation()
             changed = super().migrate_declared_material_transport()
             if not changed:
                 return False
@@ -923,6 +1002,7 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
                 tail.candidate_world_revision,
                 tail.candidate_world_observation_receipt_sha256,
                 tail.receipt,
+                tail.candidate_physical_return,
             )
 
     def thermal_observation(self) -> ThermalObservation:
@@ -990,6 +1070,7 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
         *,
         allow_authenticated_physical_manifest_migration: bool = False,
         allow_legacy_thermal_genesis: bool = False,
+        allow_physical_return_migration: bool = False,
     ) -> None:
         with self._thermal_lock:
             self._restore_encoded_locked(
@@ -998,6 +1079,7 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
                     allow_authenticated_physical_manifest_migration
                 ),
                 allow_legacy_thermal_genesis=allow_legacy_thermal_genesis,
+                allow_physical_return_migration=allow_physical_return_migration,
             )
 
     def _restore_encoded_locked(
@@ -1006,6 +1088,7 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
         *,
         allow_authenticated_physical_manifest_migration: bool,
         allow_legacy_thermal_genesis: bool,
+        allow_physical_return_migration: bool,
     ) -> None:
         if not isinstance(encoded, bytes) or not encoded or len(encoded) > MAX_COUPLED_STATE_BYTES:
             raise ValueError("coupled thermal world exceeds its exact byte capacity")
@@ -1016,7 +1099,11 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
         envelope_schema = (
             envelope.get("schema") if isinstance(envelope, Mapping) else None
         )
-        if envelope_schema not in {COUPLED_SCHEMA, LEGACY_COUPLED_SCHEMA}:
+        if envelope_schema == V2_COUPLED_SCHEMA and not allow_physical_return_migration:
+            raise ValueError("v2 world requires explicit physical-return migration")
+        if envelope_schema == LEGACY_COUPLED_SCHEMA and not allow_legacy_thermal_genesis:
+            raise ValueError("v1 world requires explicit thermal migration")
+        if envelope_schema not in {COUPLED_SCHEMA, V2_COUPLED_SCHEMA, LEGACY_COUPLED_SCHEMA}:
             if not allow_legacy_thermal_genesis:
                 raise ValueError("bare world requires explicit thermal genesis migration")
             prior_world = super().encoded_snapshot()
@@ -1037,6 +1124,7 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
                 super().restore_encoded(prior_world)
                 raise
             self._thermal_state = self._thermal_anatomy.genesis_state()
+            self._physical_return = None
             self._body_surface_heat_residue_nanojoules = Fraction(0)
             self._thermal_world_revision = observation.revision
             self._thermal_world_observation_receipt_sha256 = (
@@ -1060,6 +1148,7 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
             (
                 COUPLED_DOMAIN
                 if envelope_schema == COUPLED_SCHEMA
+                else V2_COUPLED_DOMAIN if envelope_schema == V2_COUPLED_SCHEMA
                 else LEGACY_COUPLED_DOMAIN
             )
             + body,
@@ -1078,12 +1167,18 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
             "world_revision",
             "world_state_base64",
         }
-        if envelope_schema == COUPLED_SCHEMA:
+        if envelope_schema in {COUPLED_SCHEMA, V2_COUPLED_SCHEMA}:
             expected.add("body_surface_heat_residue_nanojoules")
+        if envelope_schema == COUPLED_SCHEMA:
+            expected.add("pending_physical_return")
         if not isinstance(payload, Mapping) or set(payload) != expected:
             raise ValueError("coupled thermal payload fields changed")
         if payload.get("schema") != envelope_schema:
             raise ValueError("coupled thermal schemas disagree")
+        raw_return = payload.get("pending_physical_return")
+        physical_return = None if raw_return is None else PendingPhysicalReturn.from_record(raw_return)
+        if physical_return is not None and allow_authenticated_physical_manifest_migration:
+            raise ValueError("world migration cannot discard pending physical experience")
         renovation = (
             payload.get("anatomy_receipt_sha256")
             != self._thermal_anatomy.receipt_sha256
@@ -1102,7 +1197,7 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
                 payload.get("body_surface_heat_residue_nanojoules"),
                 "body-surface heat residue",
             )
-            if envelope_schema == COUPLED_SCHEMA
+            if envelope_schema in {COUPLED_SCHEMA, V2_COUPLED_SCHEMA}
             else Fraction(0)
         )
         revision = _integer(payload.get("world_revision"), "thermal world revision")
@@ -1113,6 +1208,11 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
         latest = self._transition_from_record(
             payload.get("latest_thermal_transition")
         )
+        if physical_return is not None and (
+            physical_return.world_revision != revision
+            or physical_return.world_observation_receipt_sha256 != receipt
+        ):
+            raise ValueError("physical return does not bind the restored world")
         prior_world = super().encoded_snapshot()
         prior_state = self._thermal_state
         prior_body_surface_heat_residue_nanojoules = (
@@ -1216,6 +1316,7 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
             self._thermal_world_observation_receipt_sha256 = prior_receipt
             raise
         self._thermal_state = state
+        self._physical_return = physical_return
         self._body_surface_heat_residue_nanojoules = (
             body_surface_heat_residue_nanojoules
         )
