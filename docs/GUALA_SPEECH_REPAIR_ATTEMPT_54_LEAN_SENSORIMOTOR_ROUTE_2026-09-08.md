@@ -10113,3 +10113,94 @@ selectors required. Root growth alone cannot claim cue recall or speech;
 saved successor must then pass the existing quiet-baseline/sound-only recall.
 Previous turn was status-only, classified no progress;117-05 is new executable
 evidence and the next safe action remains available. Full AE goal stays active.
+
+`F-054-117-07` — bounded ordinary-cognition eight-lesson run REFUSED,
+not zero-growth measurement. Exact existing reservoir_probe_dump binary70989d54,
+all declared selectors present; authenticated637580 inputSHA0b6b6486 and
+4000-sample tutorSHA85a505e8 unchanged. Run12:18:50 to~12:20:02,71.91s,
+0passed/1failed, FormationError::NeuronLineageAuthorityChanged propagated at
+reservoir_probe.rs5618 in a guided lesson native transition. No final JSON or
+successor pair was produced. The failing cycle and internal refusal branch are
+not emitted by that helper; do not infer them from elapsed time or claim0growth.
+S117-02 four-clock sound/body retention and117-05 migration remain passed.
+This blocks the declared longer-learning acceptance, not deployment already
+claimed. No such deployment has been claimed or done.
+
+Prior same-error classes reviewed: F90-05 overstrict convergence uniqueness,
+F97-03 competing same-interval authorities, F108-03 two complete vocal
+preparations. Candidate117 introduces two pending-original uniqueness refusals
+as well. Error name alone cannot choose among them. Next is a bounded read-only
+diagnostic at the exact refusal, no law relaxation, duplicate-owner selection,
+new recognition mechanism or parameter sweep. Independent source inspection
+requested from existing memory reviewer before instrumenting. Full goal active.
+
+AWS pre12:18:50/post12:20:19 unchanged1456 soleeffde9e1/image6aa38d99,
+1/1/0 HEALTHY/RUNNING. No production writes or caretaker/browser change.
+`H-054-133`: bare git push refused because speech branch has no upstream.
+Commit190fba23 preserved; explicit git push origin HEAD:sol/speech-existing-organ
+succeeded. Use explicit remote ref thereafter, never display credentialed URLs.
+
+`R-054-117-08` — independent READ-ONLY diagnostic review:
+the two new memory refusals have distinct meaning. First is multiple exact
+same-hub pending owners; second is multiple hub-free originals wholly contained
+in the current focused component. Neither may be resolved by choosing iteration
+order or unioning prior owners. Reviewer also noted the existing helper switches
+guide direction once minimum terminals complete; the one-phase tutor does not
+switch. Record cycle/direction/route population before diagnosing mixed authority.
+Source review is not evidence either branch actually fired.
+
+Next diagnostic contract: test-only markers on the two named refusal sites,
+exact current association/component and candidate prior member/bond/hub sets,
+plus guide cycle, occurrence, direction and route count. Preserve the failing
+physical input and last successful state where feasible without modifying
+production semantics. No tolerance changes, new owner policy, meaning, energy,
+curriculum or neuron edits. If neither memory marker fires, retain memory pass
+and locate the downstream source of the same error. No rerun authorized without
+restored environment/health evidence and independent frozen source review.
+
+`E-054-117-09` — 2026-09-11 12:22 UTC environment interruption:
+both /workspaces/Tao_Financial_Engine and /root/.aws return operating-system
+Input/output error. /proc/mounts shows both on Windows C: 9p/DrvFS mounts.
+Git metadata for the /tmp speech worktree points into that failed workspace;
+AWS CLI consequently reports NoCredentials. This is not expired-auth evidence:
+the credential directory itself is unreadable. /tmp source, ledger and executable
+remain readable; overlay has641GiB free (34% used). No cargo/rustc/probe process
+is still running. No remount, restart, credential replacement or production
+mutation attempted. Last AWS proof12:20:19 remains the bounded pre/post snapshot;
+new metric collection unavailable. F117-07 and this entry are LOCAL ONLY until
+Git mount returns;190fba23 was pushed and sharedhandoff8dba487d pushed before
+the interruption. Full goal not achieved and not marked blocked on first turn.
+
+`E-054-117-10` — blocked audit, 2026-09-11T12:24:32Z:
+same C-drive 9p I/O failure verified across three consecutive goal turns,
+including original interruption12:22, recheck12:23-24, and12:24:32. Git metadata
+and AWS credential directory remain unreadable. No native process is live;
+there is no legitimate running-test wait to report. Safe read-only mount/process/
+disk checks exhausted. No rebuild, remount, container deletion or credential
+replacement authorized or attempted. Further candidate freezing and copied-body
+health envelope require the external workspace connection to return.
+
+Backup preserved on separate accessible E-drive mount at
+/mnt/tfebackup/guala-c117-recovery.vJmEFESu; saved-handoff JSON verified SHA256
+06cfa3ca6dc6f65d57db67ad52c74180b8018717e0ea7220ff0c84fc9800ff22.
+Canonical local ledger copied there too; backup is recovery evidence, not a
+parallel working ledger. Last turn made preservation progress, not speech progress.
+Full AE objective remains unmet and unchanged; mark goal BLOCKED on environment
+access, not on the speech hypothesis. Resume R117-08 after mount recovery.
+No Slack sending tool is exposed in this session; no notification is claimed.
+
+`E-054-117-11` — ACCESS RESTORED, 2026-09-11T16:26:11Z:
+Joe advised access should work; direct stat of workspace and /root/.aws now
+succeeds, Git status/log and fetch succeed, AWS ECS API succeeds. Source
+unchanged at190fba23; only the75 pending ledger lines differ from remote.
+Fresh ECS service1/1/0, sole existingeffde9e1 task1456/image6aa38d99
+RUNNING/HEALTHY. Caretaker STOP present. No cargo/rustc/probe running.
+E117-09/10 environment blocker resolved; do not restart an old process.
+Publish preserved F117-07/R117-08 before the next diagnostic.
+
+GitHub fallback at14:35 successfully posted help request to C1 on guala-live
+commitd18181f1; this path should have been checked before declaring all
+coordination unavailable. It did not restore local Git/AWS and was never live
+health proof. Remote handoff now fetched; no intervening C1 speech edits.
+Single next item remains R117-08, the exact lesson-refusal diagnostic.
+Memory S117-02 and migration S117-05 stay passed, neither is speech completion.
