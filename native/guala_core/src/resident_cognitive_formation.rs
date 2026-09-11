@@ -4573,6 +4573,22 @@ fn settle_organism_mosaic_boundary(
             }
         }
     }
+    #[cfg(test)]
+    let diagnostic_hubs = std::env::var("GUALA_PROBE_ORIGINAL_HUBS").ok()
+        .map(|value| value.split(',').map(|hub| {
+            u128::from_str_radix(hub, 16).expect("diagnostic hub must be exact hex").to_be_bytes()
+        }).collect::<BTreeSet<_>>()).unwrap_or_default();
+    #[cfg(test)]
+    let trace_original = |stage: &str, lineages: &[[u8; 16]], bonds: usize, leaves: Option<usize>| {
+        let hubs = lineages.iter().filter(|hub| diagnostic_hubs.contains(*hub))
+            .map(|hub| format!("{:032x}", u128::from_be_bytes(*hub))).collect::<Vec<_>>();
+        if !hubs.is_empty() {
+            eprintln!("C119_ORIGINAL {}", serde_json::json!({
+                "stage": stage, "hubs": hubs, "component_members": lineages.len(),
+                "component_bonds": bonds, "available_leaves": leaves
+            }));
+        }
+    };
     let mut superseded_pending_indices = BTreeSet::new();
     // The active components above are the exact physical pathways available
     // to form a new original. Reuse them directly: rebuilding the same graph
@@ -4585,10 +4601,14 @@ fn settle_organism_mosaic_boundary(
             active_components
                 .iter()
                 .filter(|component| {
-                    !component
+                    let included = !component
                         .bonds
                         .iter()
-                        .any(|bond| focused_bonds.contains(bond))
+                        .any(|bond| focused_bonds.contains(bond));
+                    #[cfg(test)]
+                    trace_original(if included { "generic-selected" } else { "generic-overlaps-focused" },
+                        &component.lineages, component.bonds.len(), None);
+                    included
                 })
                 .map(|component| (None, component)),
         )
@@ -4621,6 +4641,8 @@ fn settle_organism_mosaic_boundary(
             })
             .collect::<Result<Vec<_>, _>>()?;
         let fractal_count = component_fractals.iter().filter(|leaf| leaf.is_some()).count();
+        #[cfg(test)]
+        trace_original("original-input", &component.lineages, component.bonds.len(), Some(fractal_count));
         let mut focused_prior_candidates = Vec::new();
         if focused_association
             .is_some_and(|association| component.lineages.binary_search(&association).is_ok())
@@ -4698,6 +4720,8 @@ fn settle_organism_mosaic_boundary(
                 &component.bonds,
             )
         } else if fractal_count < 3 {
+            #[cfg(test)]
+            trace_original("fewer-than-three-leaves", &component.lineages, component.bonds.len(), Some(fractal_count));
             continue;
         } else {
             admit_physical_mosaic_original(
@@ -4709,7 +4733,12 @@ fn settle_organism_mosaic_boundary(
         };
         let settled_original = match admitted {
             Ok(original) => original,
-            Err(error) if physical_mosaic_non_admission(error) => continue,
+            Err(error) if physical_mosaic_non_admission(error) => {
+                #[cfg(test)]
+                trace_original(&format!("original-refused-{error:?}"),
+                    &component.lineages, component.bonds.len(), Some(fractal_count));
+                continue;
+            }
             Err(error) => return Err(FormationError::PhysicalMosaicUnavailable(error)),
         };
         let mut continuing_pending_candidates = BTreeSet::new();
@@ -4762,6 +4791,8 @@ fn settle_organism_mosaic_boundary(
             spans_multiple_cohorts |= cohort_index != first_member_cohort;
         }
         if !spans_multiple_cohorts {
+            #[cfg(test)]
+            trace_original("single-cohort", &component.lineages, component.bonds.len(), Some(fractal_count));
             continue;
         }
         // Repeated motion on an already-retained assembly is recurrence, not
@@ -4782,6 +4813,8 @@ fn settle_organism_mosaic_boundary(
         if overlapping_reassemblies.iter().any(|index| {
             retained_formation_contains_own_recurrent_projection(&mosaics[*index], &original)
         }) {
+            #[cfg(test)]
+            trace_original("own-recurrent-projection", &component.lineages, component.bonds.len(), Some(fractal_count));
             continue;
         }
         // A newly reached layer-7 hub may first move one clock after it was
@@ -4809,6 +4842,8 @@ fn settle_organism_mosaic_boundary(
                 topology_index,
             )?
         {
+            #[cfg(test)]
+            trace_original("no-new-sensory-relation", &component.lineages, component.bonds.len(), Some(fractal_count));
             continue;
         }
         let duplicate_candidates = formation_index.candidate_indices(
@@ -4822,8 +4857,12 @@ fn settle_organism_mosaic_boundary(
                 .iter()
                 .any(|prior: &AdmittedPhysicalMosaic| prior.same_retained_structure(&original));
         if duplicates_retained_structure {
+            #[cfg(test)]
+            trace_original("duplicate", &component.lineages, component.bonds.len(), Some(fractal_count));
             continue;
         }
+        #[cfg(test)]
+        trace_original("pending-original-admitted", &component.lineages, component.bonds.len(), Some(fractal_count));
         superseded_pending_indices.extend(continuing_pending_indices);
         new_pending_originals.push(original);
     }

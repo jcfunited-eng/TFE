@@ -11599,3 +11599,100 @@ rg reported absent path while returning real tools paths. No compile/run/state
 change. Resolve existing directory before searching; do not treat as organism fail.
 AWS task query used service-style taskDefinition key once (null); immutable
 service task1456 and exact task image/status were returned independently.
+
+
+`D-054-119-19` — exact generic-admission discriminator, test-only.
+40 cfg(test)/diagnostic lines around existing actual component selection and
+refusal branches. GUALA_PROBE_ORIGINAL_HUBS names only the four measured hubs
+for observer filtering, never physics. Prints whether their generic component
+is selected or omitted because it overlaps a focused component; if selected,
+actual available-leaf count and first actual admission/recurrence/duplicate
+refusal. No predicate repeated, clocks added, input/state changed, or law altered.
+The generic inclusion predicate has only been assigned a local variable so its
+actual result can be observed. Non-test semantics unchanged.
+One replay of F119-13's SAME two full-source guides/32recovery, requiring exact
+JSON (except output path metadata) and cognitive/body bytes. Existing original
+input trace doesn't expose these downstream branches; this adds only missing
+evidence. Source review before build; no acceptance expansion/parameter sweep.
+Post-result choose ONE existing-law correction only after complete lifecycle
+mapping; do not infer neworiginal permission from static mounted coverage.
+Slack milestone19:35:54 verified slack_sent#general; shared ece75623... updated.
+
+Source review fe7a... found two localized observer issues before compilation:
+selector-stage leaf count was unmeasured but printed0; now null. Existing <3leaf
+refusal now prints its actual branch explicitly. Both corrected in one batch;
+no physical predicate/state change. Final frozen review required before build.
+
+
+`S-054-119-20` — exact generic-path discriminator COMPLETED9976,35.96s,1passed.
+Frozen final source review2d94d99f...PASS, build57667 completed2m38s/99 inherited
+warnings; testbinary b9caaea453ecf40e4005a4958be23f9ad07c4079de3ccc50d4b4de1cdb241361.
+Only observer flags changed. ALL prior physical JSON values identical except
+two output-path metadata strings; cognitive/body bytes EXACT cd663642.../6247ab3b...
+as F119-13/S119-15. Observation did not cause the failure.
+
+34of34 native intervals report ALL4 target hubs in a generic component omitted
+at generic-overlaps-focused; NONE enters original-input/admission. First component
+2163lineages/10318bonds, last2280/15333; bond range9390–15333. This is not a
+minimum-leaf, saved-window, downstream recurrence or insufficient-wait refusal:
+the original-admission call is never reached for those components. Those broad
+components are NOT lawful focused originals and must not simply be admitted whole.
+The double exclusion is now measured: recognized ownership blocks exact focused
+paths, while overlap with another focused path drops the generic component.
+
+Receipt /tmp/guala-candidate119-admission-trace.json
+SHAb9074413f7d92adcc9c620b9cdfb1600ab4abfe13b1da31d863fefd8de7280bf;
+logSHA48ecd6edec6dfc723f941119345106c5a1d54069dd884c17bebe038abafb1d20;
+cognitiveSHAcd66364280760588291a0b2bb01c4266a15eb978850382e9362b87579c64c98a,
+bodySHA6247ab3b74180419d60eb5dc21a94c38e72cbe119ea078efa9f70a8d14ffd59f.
+E archive c119-admission-trace.tar.gz SHA
+2e7e811f48cc06205c604ccc28fbe3ef1a38a3bb920575a1979a11a42df0533d.
+Do not duplicate167MB unchanged cognitive artifact in backup; exact predecessor
+result already archived F119-13. All samebodyhelper and C118 wins remain closed.
+
+AWSpre19:40:54/post19:42:46 sole1456/effde9e1/image6aa38d99 healthy1/1/0,
+historicalalarmunchanged. Definition verified4096CPU/16384RAM, onlypairedroot/
+worldbytes/PYTHONUNBUFFERED env; no anatomical process flags. Localnative65862
+observedRSS1668800KiB during run (not peak); no survivor after run.
+19:35 CPUavg44.43099407/max64.17514844%,memoryavg10.92285156/max11.89270020%;
+19:40 CPUavg41.72382688/max46.13052087%,memoryavg10.99650065/max12.18566895%.
+No livewrite/lesson/deploy/caretakerrestart. Browser remains unnecessary now.
+
+`D-054-120-01` — next source contract, SAME F118-32 acceptance, not a new neuron law.
+Independent review agrees measured double exclusion justifies an explicit new
+eligibility clause relative to D116's blanket recognized-owner exclusion.
+It reuses existing active hub/L6/source projection, exact settled leaves,
+partial-original continuation, >=2actual-source-layer completion, recurrence
+and vocal authorship. No broad component, mounted179-member fan, raw media,
+semantic label, fake energy, timing change or new memory container is allowed.
+
+Required branch matrix before code:
+1. Resolve exact same-hub pending ORIGINAL first, before novelty. Unique pending
+continues only under existing causal adjacency; expired remains preserved/refused,
+multiple same-hub or mixed pending remains refused. No reset to new original.
+2. Without pending, a recognized old relation is not blanket ownership of the
+neuron. Permit ONLY a current exact active hub/L6/source piece introducing a
+sensory relation missing from every exact-hub recognized ORIGINAL. Compare each
+owner separately: ANY owner already covering the relation blocks repetition;
+never union separate owners into fictitious combined knowledge.
+3. A one-layer novel piece may remain partial while actual body/sound leaves
+arrive asynchronously; do not claim cross-sensory memory or recall before existing
+>=2actual-layer/trueleaf/connectedness/recurrence proofs. The downstream
+focused_unowned_association gate currently also blocks such a partial in the
+presence of a recognized owner; it must be reconciled, not bypassed unnoticed.
+4. Replace only the unique pending original when it lawfully continues; retain
+all old recognized originals (including both07ce owners) and sibling hub paths.
+5. Once promoted, the new relation itself blocks fresh duplicate admission even
+when not currently reassembled. Test later use and expiry, not only first growth.
+6. FormationIndex is navigation, not ownership: insert indexes original AND
+recurrence endpoints. Resolve exact original member/bond participation before
+calling a candidate posting an owner. Incidental recurrence-only reach cannot
+silently become a new exclusive memory restriction.
+
+No implementation yet: finalize actual scoped-component/leaf qualification and
+complete the caller/lifecycle/resource map before changing production code.
+Tests must preserve C115/C116 expiry/ambiguity controls and explicitly cover old
+recognized body-only + novel partial + completion + recurrence + later nonduplicate
+use. First mature result must use SAME full source/authenticated651372 predecessor;
+then actual actor fullsensorium/bodyreturn/checkpoint/cold-next, not helper-only
+promotion. Four-posture speech/control chain and live acceptance remain required.
