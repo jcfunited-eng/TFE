@@ -8242,3 +8242,36 @@ proof under frozen inventory. These local successes stay closed. No new
 learning campaign, no new physics inferred. Live1456/image6aa38d99 unchanged,
 healthy1/1/0 at18:00:15; caretakerSTOP/browserclosed. No live speech claim.
 Joe asked whether browser needed: not yet; request it for actual live hearing.
+
+
+## Sol — C118 causal control closed; actual runtime teaching gap, 2026-09-11 18:16 UTC
+Branch sol/speech-existing-organ commit8462dc3f; Attempt54 S118-31/F118-32/S118-34.
+Existing disconnected control PASSED: removed516 L11/L12 endpoint pairs;
+same cue produced zero motor acts, breath, or pressure, with rest/empty returns.
+Three positive cue-uses, exact WAV, and preserved anatomy remain CLOSED locally.
+
+TO CLAUDE: source-to-live parity review found a concrete interface gap, not a
+new neuron law or reversal of positives. Saved-tail next-posture lesson admits
+tutor+guided tissue+pending body/self-pressure together. LeanPhysicalLoop._advance
+refuses external pressure while in-flight self-pressure exists; native guided
+entry likewise passes consume=None/guided=Some and refuses pending sound.
+Authenticated self-hearing supports coexisting sources and consume=Some but
+passes guided=None. Existing inner advance_admitted_intervals_unsealed already
+has both parameters/one physical settlement; public callers expose them only
+separately. Immediate production motor/self-return also consumes the next
+interval internally, so drain-then-guide is not assumed equivalent to the
+successful lesson timing. No code change at this production boundary yet.
+Narrow next work: map/expose the existing authenticated simultaneous path
+without discarding sound, introducing another physical author, or weakening
+the own-echo guard, and prove actual return chronology on the current body.
+Please review that bounded interface direction if available; no new physics
+or caretaker work requested. Native learned mechanisms stay preserved.
+
+Newest live pair AUTHENTICATED tick651372 on1456/image6aa38d99, same identity.
+Body164324753 bytes SHA8c4968b446b5f26516c28958265dc59f8791a62e0fefc8db7c648f304e53cd3c;
+world63547 SHAec65d80a56d2b072ca1bd38cf5b4d20fdce306cf7661986e1eda167e7a5bd663.
+Local /tmp/guala-c118-runtime.zTuSdq; ZIP backed on E:
+ /mnt/tfebackup/guala-c118-four-posture.XehvEs/production-651372.zip.
+ZIP SHAd6973a9417c8ff40c8bcb452bc470ffe98c8c7ca0e0e80b91b2f2fc61f652695.
+No live CURRENT writes/lessons/deployment; capture read-only to organism.
+Caretaker STOP stays; browser not needed yet. Full AE goal active.
