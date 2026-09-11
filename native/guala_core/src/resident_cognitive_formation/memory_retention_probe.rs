@@ -151,6 +151,49 @@ fn interval_census(
     }).collect::<Vec<_>>())
 }
 
+
+fn focused_input_census(
+    state: &ResidentCognitiveFormationState,
+    observation: &CognitiveFormationObservation,
+    associations: &[[u8; 16]],
+    focused: &[([u8; 16], Vec<crate::physical_mosaic::StablePhysicalBondReference>)],
+    earlier_emissions: &BTreeSet<[u8; 16]>,
+) -> Value {
+    let emitted = observation.emitted_neuron_fractals.iter()
+        .map(|fractal| fractal.neuron_lineage).collect::<BTreeSet<_>>();
+    let hex = |lineage: &[u8; 16]| lineage.iter()
+        .map(|byte| format!("{byte:02x}")).collect::<String>();
+    json!(associations.iter().map(|association| {
+        let inputs = focused.iter().filter(|entry| entry.0 == *association)
+            .map(|(_, bonds)| {
+                let endpoints = bonds.iter().flat_map(|bond| {
+                    let (left, right) = bond.endpoints();
+                    [left, right]
+                }).collect::<BTreeSet<_>>();
+                let mut layers = BTreeMap::<u32, [usize; 3]>::new();
+                for lineage in &endpoints {
+                    let counts = layers.entry(state.topology_index.layer_of(*lineage).unwrap()).or_default();
+                    counts[0] += 1;
+                    counts[1] += usize::from(emitted.contains(lineage));
+                    counts[2] += usize::from(earlier_emissions.contains(lineage));
+                }
+                json!({
+                    "bond_count": bonds.len(),
+                    "endpoint_layers": layers,
+                    "bonds": bonds.iter().map(|bond| {
+                        let (left, right) = bond.endpoints();
+                        json!([hex(&left), hex(&right)])
+                    }).collect::<Vec<_>>(),
+                })
+            }).collect::<Vec<_>>();
+        json!({
+            "association": hex(association),
+            "columns": ["exact_endpoints", "emitted_now", "emitted_on_earlier_trace_clock"],
+            "inputs": inputs,
+        })
+    }).collect::<Vec<_>>())
+}
+
 #[test]
 fn saved_lesson_fractal_admission_trace() {
     let Ok(predecessor_path) = std::env::var("GUALA_MEMORY_PREDECESSOR") else { return; };
@@ -185,6 +228,7 @@ fn saved_lesson_fractal_admission_trace() {
     let mut pending_motor = None;
     let mut pending_sound = None;
     let mut intervals = Vec::new();
+    let mut earlier_emissions = BTreeSet::new();
     for clock in 1..=4_u64 {
         let consuming_body_owned_pressure = pending_sound.is_some();
         let mut sources = Vec::new();
@@ -192,16 +236,27 @@ fn saved_lesson_fractal_admission_trace() {
         if let Some(source) = pending_sound.take() { sources.push(source); }
         if sources.is_empty() { sources.push(probe_self_hearing_episode(&[0_i16; 4_000])); }
         let admitted = sources.iter().map(super::super::admitted_fixture_episode).collect::<Vec<_>>();
+        super::super::FOCUSED_ORIGINAL_INPUT_TRACE.with(|slot| {
+            assert!(slot.borrow_mut().replace(Vec::new()).is_none());
+        });
         let (successor, observation) = state.advance_coexisting_admitted_transition_with_residency(
             &admitted, usize::MAX, true, !consuming_body_owned_pressure, false,
             &mut residency, ExactRational::integer(0),
         ).unwrap();
+        let focused = super::super::FOCUSED_ORIGINAL_INPUT_TRACE.with(|slot| {
+            slot.borrow_mut().take().unwrap()
+        });
         intervals.push(json!({
             "clock": clock,
             "total_emitted_fractals": observation.emitted_neuron_fractals.len(),
             "association_neighborhoods": interval_census(&successor, &observation, &associations),
             "formation_census": census(&successor, &associations),
+            "exact_focused_inputs": focused_input_census(
+                &successor, &observation, &associations, &focused, &earlier_emissions,
+            ),
         }));
+        earlier_emissions.extend(observation.emitted_neuron_fractals.iter()
+            .map(|fractal| fractal.neuron_lineage));
         let mut carriers = BTreeMap::new();
         for event in &observation.motor_unit_recruitments {
             let total = carriers.entry(event.body_effector_terminal).or_insert(0_u128);

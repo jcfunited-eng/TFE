@@ -9469,3 +9469,98 @@ delta. The single next implementation-contract question is a lifecycle-
 complete local leaf handoff; the authoritative production and 110 speech
 components are unchanged. This is a source-backed constraint discovered
 before writing another organism candidate, not another failed speech test.
+
+`D-054-115-02` (complete the contact/leaf map before any schema change):
+source review found no complete existing last-emitted-leaf custody; a bounded
+per-lineage slot is physically justified in principle, but only finalized
+coalesced emission may publish it, and last emission is not proof of current
+quiescence. No such field is implemented yet. Before choosing storage, extend
+the existing four-clock test to capture the EXACT focused original bonds
+already passed to `settle_organism_mosaic_boundary`. The existing observation
+exposes all active bonds, not the causal subset. This closes that evidence
+gap without broadening any runtime selection. It determines whether preserving
+leaves alone can reach the consumer or whether their conducting path also
+crosses the adjacent boundary. Test-only thread-local capture, disabled outside
+that single probe; no production field, new law, changed native successor,
+codec, schema or transport. Final native/body equality guard stays mandatory.
+
+`H-054-126`: one source lookup again used a nonexistent wildcard filename
+(`resident_hippocampal*`) after the file-list query had already identified
+`hippocampal_sparse_path.rs`. The lookup failed; the actual file was then read.
+It is retired/inert and cannot be reused as a cognitive store. No archive,
+per-leaf file, old radix checkpoint or hippocampal publisher will be restored.
+
+
+`R-054-115-03` (test-only exact-input review): independent source review
+passed frozen tree `99648a282b0774cc9e58819be15117ec50b909d7e078f7085b1c0c7a9e7d4da0`
+before/after. Capture is on the actual admission thread; oracle stays disabled;
+each of four measured clocks enables then takes the capture. Current emission
+and earlier-in-this-trace membership are observational only. The final encoded
+native/body equality guard is unchanged. Bond endpoint pairs omit parallel
+contact ordinals in JSON (they are NOT claimed as full stable-bond identities).
+Earlier emission is NOT proof the physical delta is unchanged now. No
+production field, codec, authority, physics or energy changed; 69 test-only
+lines total. Exact loaded test name resolved from the existing binary before
+the rebuild; input cognitive/body/predecessor hashes match the previous run.
+Acceptance for this measurement is exact successor equality plus the actual
+focused endpoint/emission map; not route growth, recall or speech.
+
+`H-054-127`: a full-file patch generated through terminal stdout exceeded the
+tool's output cap and was refused as an invalid hunk. No partial edit occurred.
+Two bounded source reads then allowed apply_patch to receive the complete
+replacement directly; verified diff is only 14 test-only capture lines.
+Two further read-only path fumbles occurred this turn: searching nonexistent
+repo `scripts/` rather than the explicit skill script directory, then using
+repo-relative ledger path from the crate directory for `wc`. Neither ran an
+organism test or changed state. Use absolute validated paths for these tools;
+these are repeated workflow errors, not organism failures.
+
+Pre-run cloud envelope 2026-09-11 10:59 UTC: us-east-1/tfe-web-cluster/
+dsf-ai-service-lb, sole task `effde9e1bf364ec9b4114355fb07eafb`, 1456,
+RUNNING/HEALTHY, desired/running/pending 1/1/0; unchanged 6aa38d99 image.
+10:45/50/55 service CPU averages 44.01/42.12/40.70%, memory 10.90/10.94/10.73%.
+Maxima 60.58% CPU, 12.25% memory. Existing September-8 clock alarm unchanged;
+no native-tick or fresh whole-organism health claim. No heavy local compiler
+or organism child before the build. This local binary uses saved files only;
+it has no AWS, HTTP, caretaker or production mutation call.
+
+
+`S/F-054-114-08` (exact conducting endpoints, not the mounted superset):
+the single saved-lesson trace passed 1/1 in 10.66 s; final native/body bytes
+equal the uninstrumented continuation helper. Clock 1 gives no focused input
+for any of the four hubs. Clock 2 gives each hub 42 actual causal bonds:
+35 hub/L6 plus 7 receptor/L6, with 4 auditory and 3 body receptor endpoints.
+NONE of those four auditory endpoints is among the six auditory fractals
+emitted on clock 1. One body endpoint did emit on clock 1; the hub emits on
+clock 2. Clock 3 has no focused input. Clock 4 has 48 bonds, 10 auditory and
+3 body endpoints; again none of the earlier six auditory emitters is reached.
+All four formation censuses remain empty.
+
+This is the consequential correction to D-054-115-01/02: retaining only the
+clock-1 leaves cannot close the focused current-contact path. It gives at
+most one body leaf plus one hub leaf in the measured later components, not
+three. A general last-emitted slot MAY still be needed by the lifecycle law,
+but this run does not authorize it as the sufficient speech repair. Do not
+implement a new codec/storage field on that assumption. The earlier measured
+emissions remain real; the mounted neighborhood was explicitly a superset.
+The next bounded source question is the existing unresolved-original handoff:
+why require every hub contact at once to begin it, and why require every prior
+original bond to be conducting again before allowing an adjacent piece?
+Investigate that exact path without weakening causal connectedness, merging
+sibling associations, inventing a time window, or reopening C110 breath/order.
+
+Receipt `/tmp/guala-candidate114-exact-focused-inputs.json`, SHA-256
+`c79aeae11fc3fe2cca65be2ae1c4b04cf48dca6794b30737e4f7cfc43f423c60`.
+The rebuilt binary timestamp is 11:03:13 UTC; actual test output contains the
+new exact-input fields. Build handle was accidentally omitted from the first
+tool response; the SAME cargo PID37915/rustc37929 was followed until it
+finished, never restarted. This loses a captured build exit/duration; do not
+invent it. Binary execution exited0. Local test completed before RSS sampling,
+so no test peak-RAM claim. Last compiler RSS sample was1,391,940KiB.
+
+After-run 11:03:42 UTC: same sole task1456/image6aa38d99, RUNNING/HEALTHY,
+1/1/0. Clock alarm retains September-8 timestamp. 11:00 service CPU average
+43.56%, maximum53.83%; memory average10.80%, maximum11.99%. These are service
+metrics, not native interval timing. No live lesson, deployment, caretaker
+restart, or speech-success claim. The previous status-only turn was no
+progress; this new endpoint receipt changes the next design action.

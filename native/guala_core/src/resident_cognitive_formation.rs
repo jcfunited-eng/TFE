@@ -4051,6 +4051,14 @@ fn recurrent_formation_causal_cues(
     Ok(cues)
 }
 
+#[cfg(test)]
+thread_local! {
+    // Test-only capture of the actual original-admission input, never state.
+    static FOCUSED_ORIGINAL_INPUT_TRACE: std::cell::RefCell<
+        Option<Vec<([u8; 16], Vec<StablePhysicalBondReference>)>>
+    > = const { std::cell::RefCell::new(None) };
+}
+
 fn settle_organism_mosaic_boundary(
     cohorts: &[ResidentReachedCohort],
     topology_index: &ResidentTopologyIndex,
@@ -4081,6 +4089,12 @@ fn settle_organism_mosaic_boundary(
     ),
     FormationError,
 > {
+    #[cfg(test)]
+    FOCUSED_ORIGINAL_INPUT_TRACE.with(|slot| {
+        if let Some(trace) = slot.borrow_mut().as_mut() {
+            trace.extend_from_slice(focused_original_bonds);
+        }
+    });
     if active_bonds.is_empty() {
         return Ok((None, 0, 0, Vec::new(), Vec::new(), Vec::new(), Vec::new()));
     }
