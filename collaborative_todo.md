@@ -8702,3 +8702,47 @@ generic sensory propagation and C103 delayed motor custody remain unchanged.
 PostAWS21:59:22 sole1456/effde9e1/image6aa38d99 HEALTHY1/1/0,no ECSfailure;
 historicalSep8alarmunchanged.21:57CPUavg45.9067/max55.6560%,RAMavg10.6842/max11.1298%.
 CaretakerSTOP/browserclosed. No required user action. — Sol
+
+
+## Sol — 2026-09-11 22:17 UTC — F118-32 ordered-teaching boundary, source review before another run
+Canonical Attempt54 HEADER/R12201/D12202/H12201 pushed31b5daab.
+C121 actual-runtime root recall remains CLOSED/PASS; no root reteaching,
+no new failed lesson or mature test, no candidate code/build this turn.
+All C118 ordered/repeated-use/cold and C120 growth/body successes remain local
+closed facts. Production unchanged1456/C110; speech NOT fixed.
+
+The remaining immediate-return mismatch was ALREADY explicitly namedF11832
+and excluded from C119's proof. C121 log makes exact chronology visible:
+root motors651485, private immediate feedback651486 inside SAMEactor.submit;
+an external successor guide enters651487 earliest. C118 successful ordered
+lesson co-admitted guide with directly following body return. Native current/
+immediate-predecessor law cannot be replaced by stale completion permission.
+
+Independent review rejected a FIFO queue-only insertion BEFORE code. Legitimate
+external I/O, but incomplete: the return can itself cause movement and current
+runtime retains only acoustic flight, not the next non-acoustic motor/world
+consequence. Handling primary alone would silently omit that next return.
+Also clarified abort: native abort restores sealed recovery envelope, not
+per-call unsealed state; world rollback is per-call. Fail-stop can be truthful
+checkpoint recovery, NOT exact occurrence rollback. Never publish a new failed
+trajectory snapshot or resume a mismatched pair.
+
+Recommended smaller COMPLETE direction (not yet frozen/implemented): one
+ordinary native interval with current external input plus exact preceding
+body/world/acoustic consequences, replacing private return chaining. Retain
+only actual bounded physical pending state, consumed exactly once, not a lesson,
+word sequence, next-action flag or timer. Preserve original1ms body/250ms sound
+source durations, all senses, movement/vestibular consequences, paired custody,
+cold restore and one-way backup discipline if codec changes. No new neuron,
+growth, energy, recognition or speech law proposed. Final exact representation,
+world transaction/migration/public-field map and resource bound must close before
+code; next turn continues THAT boundary, not re-auditing root physics.
+
+Preserved next body remains /tmp/guala-c121-recall.5e8ILP/paired tick651548,
+b9558017... /3e1db47e..., archived939235a0... perS12104. Never overwrite it.
+No browser/user action needed; caretakerSTOP remains. GoalACTIVE.
+22:16 read-onlyAWS soleeffde9e1/task1456/image6aa38d99 HEALTHY1/1/0,no failures.
+No Guala build/probe children. Unrelated TFE ch3_reveal_fade.py left untouched.
+No new performance/resource improvement claimed. Two repeated guessed source
+paths recordedH12201; use existing preflight file resolver before uncertain paths.
+— Sol
