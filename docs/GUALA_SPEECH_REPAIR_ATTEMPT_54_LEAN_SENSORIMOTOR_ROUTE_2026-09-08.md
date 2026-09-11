@@ -20,24 +20,25 @@ so live speech acceptance remains open. This paragraph records the Candidate110
 deployment, not the current repair state. Any earlier “speech complete” wording
 is historical and retracted.
 
-Current repair status, 2026-09-11 21:52 UTC: speech NOT fixed in production.
-C120 growth/body/self-hearing and C118 ordered/repeated-use/cold successes remain
-CLOSED at their recorded LOCAL scope. Actual-runtime recall has not delivered
-its cue; the measured sight-driven pre-cue act is NOT by itself proof of a
-physiology defect. The initial root rule does admit generic external arrivals
-without establishing the specific learned reassembly-to-founder handoff.
-Source review found that C102's association-side zero-carrier founder entry,
-unlike the later ordering entry alone, uniquely records this handoff across
-two EXISTING retained boundaries. Candidate121's proposed correction consumes
-that initial same-bond handoff; delayed motors keep existing C103 custody.
-Frozen source review and the one extended fixture PASS; actual-runtime result
-is still pending. Isolated Python-native wheel is building under55861.
-No recognition flag, new state/codec, sensory suppression, root reteaching,
-heat motor author or generic frontier deletion. Contract D12101 below; source implemented and focused-test proved,
-not yet mature-runtime or production proved. F118-32 remains the single active item.
-S12020 matched-input observer equivalence and S12021 sight-origin trace remain
-closed. Latest AWS observation21:45UTC1456/6aa38d99 healthy1/1/0;
-historicalSep8alarm unchanged. No production change.
+Current repair status, 2026-09-11 22:04 UTC: speech NOT fixed in production.
+Candidate121 ACTUAL-runtime copied-body root recall PASSED: eight quiet
+pre-cue intervals; one unguided 4000-sample cue; one coordinated four-motor
+root posture with joined breath and pressure; finite quiet ending; all223
+original memory member/bond topologies retained; exact body cold restore and
+next ordinary occurrence. S-054-121-04 below is the definitive receipt.
+This is ONE posture, not the complete word, not live production acceptance.
+C120 root growth/body/self-hearing and C118 ordered/repeated-use/cold wins
+remain CLOSED at their recorded LOCAL scope. Do not reteach or rediscover them.
+C121 binds initial root admission to the exact existing reassembly-to-founder
+handoff, not generic external arrival; C103 delayed motor custody is unchanged.
+Source90933611; independent frozen review and focused fixture PASS.
+No new persistent fields, codec, recognition flags, sensory suppression,
+heat author or neuron/DSF law. Net production-source change +45 lines.
+F118-32 remains active: next is the next learned posture/ordered edge through
+the ACTUAL runtime from preserved /tmp/guala-c121-recall.5e8ILP/paired,
+using recorded C118 teaching chronology, not a new root-growth campaign.
+Latest recorded AWS21:59:22UTC: sole1456/C110/6aa38d99 HEALTHY1/1/0;
+historicalSep8 alarm unchanged. No production change or performance fix.
 CaretakerSTOP/browserclosed; no browser needed. Full AE goal ACTIVE.
 Worktree: `/tmp/guala-speech-existing-organ`
 Starting HEAD: `735489406577f90edf6c2fb7fb1889f87eae8107`
@@ -12494,7 +12495,7 @@ C103 motor continuation and conservation/codec/body rollback are unchanged.
 Source SHAs: core66331a2c6bca989dcb678d61d749e1f6acbbb930422c67cca3c23d01cb586f2e;
 lean25eeaab42a6bd922912c7f05cfaf0a6384f89fb80cdbb73bd1a2ede436db256b;
 tests f63dacb9efe80a8fddcf976d971cef505ff864d45dd1f024c631b75b36fc4d1e.
-Net production source +47 lines across existing files; zero new persistent
+Net production source +45 lines across existing files; zero new persistent
 fields/bytes, zero new logs/observation calls/physics in the production path.
 
 Harness /tmp/guala-c121-runtime-recall.py SHA
@@ -12542,3 +12543,88 @@ The first full-file ledger replacement attempted Delete+Add for the same path
 in one patch. apply_patch refused before mutation. Correct full-file Update
 hunk succeeded and git diff --check passed. Use full-file Update, not duplicate
 operations targeting one path. No organism/source transition was involved.
+
+
+## Candidate121 — actual-runtime root recall preserved, 2026-09-11 22:04 UTC
+
+`S-054-121-04` — PASS at actual-runtime COPIED-BODY root-recall scope.
+F118-32 continues; no reopening of C120 growth or C118 ordered/repeated-use
+wins. Complete-word/live speech acceptance remains OPEN. No live ingress,
+deployment, caretaker restart, or browser action occurred or is required.
+
+Implementation90933611fdc5a9f0ae66b7e0603ec884db547ee8, frozen review R12102,
+exact fixture S12103. Ordinary python-extension wheel build55861 completed
+exit0 in2m51s (191 inherited warnings). Isolated wheel
+/tmp/guala-c121-wheel.3YToCL/guala_core-0.1.0-cp311-cp311-manylinux_2_35_x86_64.whl
+SHAdc957a69ba95a9e472b7192dcc9d8178b3a6a550b1d26069eec0e63e3b09610e.
+Global module untouched; exact installed path checked before runtime restore.
+No diagnostic-api build or private body mutation entered this proof.
+
+Source651474 paired bodyd91e69c9cf17f74aa8edd7147d6d15fb9baf5424d2fa64a369e5606868194091,
+world4a605818648fca6b8bfac82c77d1a9a13c76455c39fd868f843fe6aecc8ac3ae.
+Existing actual restore/factory/LeanPhysicalLoop/actor, matched external
+environment clock0, full coexisting world/body senses. No root reteaching.
+Reviewed script /tmp/guala-c121-runtime-recall.py
+SHAb061c218ac5429619a1df469871478acd681fb450eb5a8ab209264a8ab2bab30.
+One process4586, exit0, no probe/compiler survivor.
+
+Observed chronology, not inferred from unit assertions:
+- Eight quiet baseline intervals651475–651482. Actual actor-thread
+  quiet_at_cue=true. Matched C120 first8 had root act651479; this no longer
+  occurred. Sight-caused action alone is not globally classified a defect.
+- One sound-only cue651483,4000samples, no guide; original cue85a505e8.
+- One root268e action651485: four learned motorsb7/d3/ef/04fb with exact
+  preparation transfers and54/140/154/154 outward carriers. Breath008e
+  discharged502 carriers joined to these exact four transfers.
+-126580nonzero pressure samples across64post-cue native intervals.
+  Whole run35self-hearing calls consumed140000samples, including inherited
+  pre-cue acoustic tail; do NOT claim all140000 originate in the new act.
+- Last8post-cue intervals vocallyquiet=true; pendingpressure=false.
+  Separate non-root vocal motore1 had1carrier at651486, L8reg1011, no breath.
+  It is not a second root/posture. Later grip/hip motions are nonvocal and
+  excluded from the vocal-quiet predicate; no meaningful autonomy claim.
+- All223original memory member/bond topologies retained; missingold=0.
+  This does not claim all neuronal or memory physical bytes unchanged.
+- Checkpoint651546 body27b38afc4ff46e121c968b87d92ace12dc3db10a23a0ecd4301342ac08a8957b,
+  worlda4996ef72db6bfdfd5d1d8e8c55d30e0eb20a4ef3ce7c19c035a317306548718.
+  Cold restore explicitly matched the body readiness hash. World was
+  authenticated by ordinary paired restore, not a separate re-encoding
+  equality assertion.
+- Next ordinary occurrence advanced2intervals to651548,
+  bodyb95580172c60c1a6eb7ad36041f07cfac99605a7fe80515fb4df32bdd0ab7667,
+  world3e1db47e1b5e72418876de0134772fbf216fbb1026af449988a16bb0051b8333.
+  Preserved next starting pair /tmp/guala-c121-recall.5e8ILP/paired.
+
+Measured cost:74native calls,total120739.320646ms,mean1631.612441ms,
+max3831.957647ms,peakRSS2448416KiB. These are native-call wall times
+including boundary work, not pure neuron timing; performance NOT fixed.
+Read-only AWS envelopes21:54 and21:59:22: same sole1456/effde9e1/image6aa38d99,
+RUNNING/HEALTHY,desired1/running1/pending0,no ECS failures. Historical
+guala-clock-stalled alarm remainsSep8 14:15:41.275UTC. Latest21:57 CPU
+avg45.9066955/max55.6560298%,RAMavg10.6842041/max11.1297607%.
+No production behavior improvement is claimed from copied-body evidence.
+
+Exact result /tmp/guala-c121-runtime-result.json
+SHA6c271b61c1b365c29820be777cdd412d1294ef9ec5abc72bd87e4df599173742.
+Log /tmp/guala-candidate121-runtime-recall.log
+SHA24ee9bd4fbeea9e4288158987b094071a76f6f04823275563d9732a0c686ad22.
+Durable archive /mnt/tfebackup/guala-c118-four-posture.XehvEs/c121-runtime-root-recall.tar.gz
+SHA939235a038a8e6ba0bdd550b640bfcdf1cb12187a9783a096ea8b2b09e82d925.
+Archive includes full preserved paired successor, exact wheel, result,
+script, runtime/focused/build logs. No success state deleted.
+
+Next exact item: F118-32 ordered teaching of the next posture through actual
+runtime from this preserved quiet successor. Consult closed C118 chronology
+and its measured completion/echo controls; do not redo root growth, matched
+observer proof or this passing root recall as discovery. This proof closes
+the initial runtime recall handoff, not ordered-word teaching on this body.
+Browser remains unnecessary until a specifically coordinated live listening
+check. Production remains Candidate110/task1456; full AE goal remains ACTIVE.
+
+`H-054-121-02` — reporting corrections, not organism failures.
+R12102's +47 net source lines was arithmetic/reporting error; git numstat is
+core12added/4removed and lean38added/1removed: NET+45. Corrected above.
+One ad-hoc output projection called motor[1] carriers; it is motor index.
+Actual carrier field is motor[2]; corrected final result records54/140/154/154.
+The runtime harness and physical transitions were not affected. Before any
+future tuple projection, check its exact producer/schema rather than guess.
