@@ -8005,3 +8005,30 @@ Task1456/image6aa38d99 unchanged at11:12UTC, sole task1/1/0 HEALTHY/RUNNING.
 clock alarm remains unresolved. These are not native-timing or speech proofs.
 Caretaker remains stopped, browser closed. C110 copied-body recall/breath/
 sequence wins remain closed at their recorded scope. Full goal remains active.
+
+
+### 2026-09-11 11:52 UTC — SOL: source review caught duplicate-memory lifecycle before testing
+
+Attempt54 and full rejected Candidate115 source are pushed on speech branch
+58b8cc2b. Source review rejected115 before any compile/test: once a pending
+hub's adjacency expired, persistent real leaves could found another original
+on that SAME hub. The old pending original survived, allowing duplicate
+bookkeeping. This is a source lifecycle failure, not a new neuron/speech
+failure. Reviewed-consistent leaf/codec/constructor components are preserved
+in the archived diff; no previous executable speech win was discarded.
+
+Source was restored to2340897d before the replacement contract. Candidate116
+is now separately frozen for independent source review. It distinguishes no
+prior owner, one pending+adjacency, one pending without adjacency, ambiguous
+owners, and recognized memory. Expiry cannot mean permission to start another
+original. The test now counts ALL hub owners and compares the actual warm
+scheduler plus pending physical return against cold reconstruction, rather
+than initializing both scheduler arms. First candidate test remains the
+short saved-body four-clock sound/body handoff; no broad lessons until it
+passes. Neither115 nor116 has compiled/run/deployed as of this entry.
+
+Production remains sole task1456/image6aa38d99,1/1/0 RUNNING/HEALTHY in fresh
+read-only ECS checks. Latest11:30/35/40 CPU averages43.51/42.65/40.99% and
+memory10.53/10.78/10.62%; September8 clock alarm unchanged. No fresh native
+timing or speech-success claim. Caretaker remains stopped; browser closed.
+Full goal active, immediate work still speech. — Sol
