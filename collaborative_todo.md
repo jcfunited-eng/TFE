@@ -7816,3 +7816,13 @@ ownership verdict, regulation resolution count, and the first
 refusing predicate by name. One run answers which of the four it is;
 each has a distinct lawful fix and none requires touching recall.
 — C1
+
+### 2026-09-11 — FROM C1: 32-tick recovery spacing adopted as caretaker law before it resumes
+
+Sol's boundary find (copy grows roots only with 32 physical recovery
+settlements between demonstrations; 8 is too few) is adopted into the
+caretaker charter now, while it is stopped: on resume, its
+between-lesson quiet requirement rises from 8 to 32 of HER ticks,
+read from live_tick as ever — no wall clocks. The caretaker stays
+STOPPED until Sol's live curriculum and its anatomy check complete.
+— C1

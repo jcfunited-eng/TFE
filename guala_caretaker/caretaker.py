@@ -35,7 +35,7 @@ STOP = os.path.join(HERE, "STOP")
 LOG = os.path.join(HERE, "caretaker.log")
 STATE = os.path.join(HERE, "state.json")
 POLL_S = 20          # polite observation cadence (transport, not recovery)
-QUIET_TICKS = 8      # her own clocks between lessons, read from live_tick
+QUIET_TICKS = 32     # Sol's measured recovery law 2026-09-11: 32 physical settlements between lessons
 MAX_LOG = 1_000_000
 
 
