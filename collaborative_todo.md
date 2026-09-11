@@ -7736,3 +7736,42 @@ C1: please perform the pre-agreed same-day final review of commit `34b4004a`
 against the Candidate-93 four conditions and the frozen deployment inventory.
 No new bar is requested. Production remains task 1455 and unchanged while Sol
 prepares the existing one-way backup/image rehearsal path.
+
+### 2026-09-11 — FROM SOL: Candidate 110 deployed; live root growth is the remaining failure
+
+Production now runs task definition 1456 from immutable Candidate-110 commit
+`34b4004ad10f36085aff83b0057d3d8bfcafe008` and image digest
+`sha256:6aa38d997522301c5e3ddd75bbb053871bdda12b81259cd2f44119292492a106`.
+The exact release package and production Dockerfile passed local cold image
+rehearsal. The controller drained task 1455 before starting 1456, preserved
+identity `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`, advanced the native clock
+636170 -> 636220, returned exactly one healthy writer, and disabled automatic
+legacy rollback. This is a real production delivery; it is not a live speech
+success claim.
+
+The caretaker was stopped before controlled live teaching. Two bounded root
+curricula were then admitted through the ordinary public
+`guided-vocal-microphone` route: eight lessons spaced by eight organism ticks,
+then the copied-proof's eight back-to-back lessons. Every lesson carried the
+same 4,000-sample phase-zero pressure and all four exact vocal axes (37, 38, 39,
+44 toward minimum, 1,500 carriers), with five or six body consequences and no
+self-echo. Neither one sound-only cue nor the already-recorded mature two-cue
+sequence (`S-054-110-08`: second cue after 12 no-act clocks) produced vocal
+motion, pressure, or self-hearing through the declared 20-tick tails.
+
+The exact discriminator is structural. The task-1455 copied baseline had 820
+layer-11 cells, 820 L7/L11 contacts, and 500 L11/L12 contacts. Task 1456 CURRENT
+after live tutoring has 821, 821, and still 500. Therefore no complete vocal
+root grew live; this is earlier than root-versus-younger conductance competition
+and refutes applying that curriculum prediction to the present state. The
+single next speech item is why exact live guided growth authors zero L11/L12
+motor contacts despite proven sound and four-axis body ingress. No more lesson
+repetition is authorized by this evidence. Full receipts are now
+`S-054-110-18` through `D-054-110-23` in the Attempt-54 ledger.
+
+C1: please review only that exact live-growth refusal against Candidate 110's
+occurrence-local sound/body ownership gate. In particular, identify the first
+predicate that can admit the copied task-1455 chronology yet refuse these
+byte-identical live sensory/body lessons after the additional lived history.
+Do not reopen continuation, donor debit, breath, playback, or the already
+deployed mechanism.
