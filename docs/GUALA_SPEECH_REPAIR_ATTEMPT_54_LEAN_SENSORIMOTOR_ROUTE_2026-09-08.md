@@ -20,23 +20,23 @@ so live speech acceptance remains open. This paragraph records the Candidate110
 deployment, not the current repair state. Any earlier “speech complete” wording
 is historical and retracted.
 
-Current repair status, 2026-09-11 20:24 UTC: C120 SOURCE REVIEW, five focused
-checks, SAME full-source growth discriminator AND actual LeanPhysicalLoop/actor
-root-growth test PASS. On copied651372, the actual runtime retained four new
-sound/body originals, grew one coordinated four-motor posture, enacted it once,
-produced breath/pressure and consumed authenticated self-hearing. All217 prior
-recognized original topologies remain (223after). Checkpoint/cold-next exact.
-This is actual-runtime TEACHING/ROOT evidence, not sound-only recall or speech.
-Current preserved runtime successor is651474/d91e69c9...; zero-clock census
-confirms4coordinatedroutes,495unresolved legacy contacts unchanged,0orderededges.
-Next: sound-only root recall from this same paired successor, with the already
-known finite acoustic settling/pre-cue baseline; then ordered teaching through
-the actual runtime. The combined guided+pending-self-pressure branch remains
-unit-proven until that subsequent live-shaped guide actually exercises it.
-C118 continuing-cognition four-posture/repeated-use/breath/pressure/silence/cold
-wins remain CLOSED locally. Current definitive entries S-054-120-03/04/06/07 at
-the END of this ledger. No livewrite/deployment; production stays1456/image6aa38d99.
-CaretakerSTOP/browserclosed; browser not needed for this copied-body work.
+Current repair status, 2026-09-11 20:43 UTC: C120 root-growth/mouth/breath/
+pressure/authenticated self-hearing and prior217-original topology preservation
+remain LOCALLY PROVED (S120-03/04/06/07), not deployed. Actual-runtime
+sound-only recall run15721 completed its64-clock PRE-CUE baseline; it delivered
+NO cue because target268e enacted twice at651479/651517 and quiet was not
+established. This is INVALID/UNREACHED recall evidence, not zero-cue-response.
+It does not erase rootgrowth or prove indefinite repetition. SeeF120-10.
+Exact preserved taught input651474/d91e69c9..., baseline successor651538/dab36ac4....
+Next single item: trace the two pre-cue acts' retained founder/motor authority
+against D112-04/F058-04/C070-01, separating residual teaching, fresh world input
+and wrong echo/custody renewal before any new neuron change or longer run.
+The existing public frontier observer omits in-flight/provenance; do not use it
+to decide that distinction. No repeated teaching or rootgrowth campaign.
+C118 four-posture/repeated-use/breath/pressure/silence/cold wins remain CLOSED at
+their recorded local scope. Production1456/image6aa38d99 unchanged/HEALTHY1/1/0
+at20:39UTC; historicalSep8alarm unchanged. CaretakerSTOP/browserclosed;
+browser not needed. The full AEgoal remains ACTIVE and speech NOT fixed.
 Worktree: `/tmp/guala-speech-existing-organ`
 Starting HEAD: `735489406577f90edf6c2fb7fb1889f87eae8107`
 Production boundary: task definition 1456 is the live deployed writer. Its
@@ -11965,3 +11965,129 @@ c120-actual-runtime.tar.gz SHA92278c740db3e6581d43c0851f77b274ce8a47ce0b09f7f23d
 Archive excludesduplicateuncompressed.glorun; BOTHcompressedpairedgenerations
 andCURRENTretained. FullAEgoal remainsactive. Next exactitem isACTUALsound-only
 rootrecall, then existingorderedteaching—not rediscovery ofC120admission.
+
+
+`D-054-120-08` — actual-runtime sound-only root recall, same F118-32.
+Prior goal turn PROGRESS: C120implemented+reviewed+helper/fullactorproved and
+committed/pushedbea063f7; no prerequisite reopened. No productioncodechange.
+One disposablecopy of preserved651474/d91e... pair, exact4000samplephase0.
+Script /tmp/guala-c120-runtime-recall.py
+SHA7abb6d820b52b2e6dd31f84d8483aea074bf93c512fe3a9dc4e43bc1a33675e8.
+Reusesreviewedactualactor/publicoccurrence/cold/topologyproof. One microphone
+cue with NOguided_vocal_drives. Realworld/fullsensorium/selfreturn staymounted.
+Beforecue, ordinaryactor advances atmost64nativeintervals to observe8consecutive
+intervals with zero targetvocalmotorrecruitment, zero targetlearnedwork offers,
+zero breath/pressure and no nativependingacoustics. These are observation bounds
+fromexistingC118proof, neverruntimeadmission or artificial recovery. Ifbaseline
+notobserved, emitthatfact and deliverNOcue; no blindlongerwait/candidatechange.
+Aftercue,observe64nativeintervals, preservingauthenticselfhearing andbodyreturn;
+reportexact268eprovenance, pressure, last8silence, pendingflight andcoldnext.
+Endpointmayovershootbyone indivisibleactoroccurrence; no nativeclockskipping.
+The observer now captures existing perinterval learned_motor_work_preparations
+alongside motors/breath/pressure; no new nativegetter. Originaltopology/restore
+observations remain outsideactiveactor. Singlefirst/source review before run.
+This doesNOTyetprovefourpostures, wordrecognition, semantics, or speechfixed.
+Laterfullword acceptance retains no-cue/severedcontrols; do not make a one-act
+observation into that claim. The body+world hashes and inputmodule are verified.
+
+
+`D-054-120-09` — source-review corrections to the recall OBSERVER, before run.
+Current turn continues D12008/F118-32. Previous status-only reply is no progress;
+the next available safe action is this batched observer correction, not a new
+organism candidate. C120 native source remains committed bea063f7/fc5020ff.
+Source reviewer found three localized evidence-contract defects:
+(1) carrier preparations alone omit lawful work-driven motor discharges;
+join motor lineage to same-interval learned_motor_work_preparations routes,
+preserving both evidence paths separately;
+(2) main-thread pre-submit tick can precede actual actor cue entry; observer
+now timestamps exact cue occurrence in the actor's physical-settle call and
+records eight-interval observed silence again there, without changing settlement;
+(3) completed occurrences may contain up to FOUR native intervals. The64 target
+is checked between complete occurrences, not a claimed strict64 cutoff.
+If quiet_at_cue is false, causal acceptance is unproven, not a speech failure.
+Quiet remains observed silence, not proof of every latent preparation's absence.
+Final script SHA52458476075a20b71a5b2d1e98a6bc0d78f5fa961aaeaea0de412592d3332ee0;
+one batched final source review requested before run. No native rebuild.
+Gate: requested body-owned learned speech/full simultaneous senses; currentC120
+locally exercised, live1456 unchanged; conflict introduced by observer: NO;
+no L0-L4/neuron/legacy/production extension; exactnextitem sound-only root recall;
+fullDSF remains native, no reduced field proxy or lost structure.
+`H-054-120-03` — editor orchestration used JavaScript index instead of indexOf.
+It failed before any apply_patch/file write; corrected the orchestration once.
+No organism run or compilation occurred. Path preflights also confirmed no
+develop-skill root-verifier or lean_native_actor.py; actual project-truth verifier
+and lean_actor.py were discovered before reading. No guessed-file run occurred.
+
+Final source reviewer PASS52458476 unchanged before/after, no additional edits.
+Pre-run20:36 UTC service1456/effde9e1/image6aa38d99 healthy1/1/0, sole deployment.
+HistoricalSep8clockalarmunchanged.20:30 CPUavg43.84582479/max60.24784751%,
+RAMavg10.58044434/max11.82861328%. No local native/compiler/test active;
+unrelatedTFE3707–3711 preserved. Disposable root/tmp/guala-c120-recall.MTiEyI.
+
+
+`F-054-120-10` — actual-runtime recall baseline NOT established; NO CUE delivered.
+Reviewed observer52458476 run15721 completed exit1 at20:38:42UTC through its
+explicit pre-cue refusal, not native failure. Exact same taught651474 pair,
+unmodified actual actor/physicalworld/sensorium/selfreturn,64nativeintervals.
+At651479 target268e recruited all4minimum motors27/70/77/77carriers and251breath.
+At651517 same target recruited54/140/154/154 and502breath. At651518 unrelated
+L8 regulation1011 recruited opposinge1 once; not counted as learned root.
+No learned_work offers emitted; the root acts are actual carrier-preparation
+receipts in motor[3]. The corrected observer would retain either work or carrier
+route evidence; these two are not artifacts of its added work join.
+No quiet_baseline, cue_entry, sound_only_cue or recall_result event exists.
+Eightfinalclocks651531–538 show zero motors/breath but3788–3789nonzero pressure
+samples each. This is not silence; two pre-cue acts do not establish endless
+repetition or failed sound recall. Do not relabel it as cue-responsive speech.
+D112-04/F058-04/C070-01 are the prior same-class cautions. Current difference:
+ACTUAL primary sensorium/actor/ownsound on C120's taught mature651474 copy, not
+a synthetic quiet/body-only helper. No microphone cue does not mean every
+world/body source was absent. Underlying cause not yet established.
+
+Measured64calls/64intervals,224000samplesconsumed via authenticatedselfhearing,
+211241nonzero output samples observed. Native total45368.678ms,
+mean708.886ms,max923.730ms (this baseline only, not global performance fixed).
+SampledRSS1325932KiB duringrun; no exact processpeak obtained because refusal
+precedes final peak reporter. Do not substitute sampledRSS for peak.
+Finally actor.close executed and paired pointer independently decoded:
+current651538/bodydab36ac45a3878ad23ca9ce7305d448be4015dcc5d044f94c241f67e68651a48
+164860552bytes/world433fe8e95386c3c312f859dccd71f6c54cab5e2330c0102ee763df59b2ec8bd3;
+predecessor651506/bodyfe9f5489342364ae3a7d7c880a9c8646dbd8ed2dbf9ddb8fb71e76d206237238
+world483912acea5e152d0fc7da8b8e7e0850d1a37bec50219637b2acaba328adedc9.
+Input651474pair untouched. This refused run did NOT reach its post-cue
+topology comparison/cold-next code; priorS12006cold proof stays scoped there.
+
+Log/tmp/guala-candidate120-runtime-recall.log
+SHA5bb71e1f83645fa8947d073f6c3537854fa3e3bf294ab902fec96f2920139c69.
+E archive /mnt/tfebackup/guala-c118-four-posture.XehvEs/c120-actual-runtime-recall-baseline.tar.gz
+SHA2dd5f8108452c7d89fbe3e089d079d21e81044b3e11e5c3e67ba0ddd5399b660.
+Contains full pairedCURRENT+bothcompressedgenerations/worlds, observer andlog.
+No test/compiler survivor.20:39postAWS sole1456/effde9e1/image6aa38d99 healthy1/1/0;
+alarmSep8unchanged;20:36/37CPUavg41.4872/41.2667%,max43.3473%;
+RAMavg10.3953/10.5540%,max10.8765%. No production write, deploy or live lesson.
+
+`D-054-120-11` — narrow next evidence boundary, not a new physics proposal.
+Source-only independent review reconciled prior class. Retained-authority path:
+core::retain_externally_reassembled_vocal_founder_frontier5031 ->
+lean_sensorimotor_route::frontier_founds_vocal_action_preparation458 ->
+core permitted_vocal_ordering_work/motor_bonds20434 ->
+core vocal_in_flight_branches23605–23643 -> exact carrier motor act/respiration.
+Reassembly must be sound-owned and exact; it adds no energy. Existing zero-clock
+publicobserve_active_electrical_frontier_advances_from omits in-flight entries
+and external/echo provenance, so it CANNOT decide renewal versus residue.
+Reservoir helper has the full flags at4461–4463, but only on its helper-driven
+trajectory; do not replace actual runtime chronology by that helper unnoticed.
+Existing route-only census does not expose these flags either. Next evidence
+must retain exact root/founder/motor bond, orientation, physical current/phase,
+external/echo provenance and source of fresh founding on ACTUAL runtime
+intervals around651479/651517. Do not rerun broad teaching or mutate physiology
+to make a silent baseline. F12010 changes the next action; no blocked claim.
+
+`H-054-120-04` — binary CURRENT read initially imported wrong workspace package:
+python -c places cwd before PYTHONPATH. Failed without reading/mutatingstate.
+Explicit workdir=/tmp/guala-speech-existing-organ corrected same read. ALL future
+python -c imports must set verified workdir as well as isolated PYTHONPATH.
+One source search also named substrate/native_resident_organism.py without
+preflight; nonexistent. Actual glew_runtime/native_resident_organism.py
+discovered with rg --files. No native run/build. This repeatsH12001's preventable
+path class and is recorded as such, not a newly discovered organism defect.
