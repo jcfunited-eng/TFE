@@ -4063,6 +4063,25 @@ thread_local! {
     > = const { std::cell::RefCell::new(None) };
 }
 
+#[cfg(test)]
+fn trace_focused_original_refusal(
+    branch: &str, association: Option<[u8; 16]>, candidates: &[usize],
+    mosaics: &[RetainedOrganismMosaic], topology: &ResidentTopologyIndex,
+    lineages: &[[u8; 16]], bonds: &[StablePhysicalBondReference], adjacent: bool,
+) {
+    eprintln!(
+        "C117_REFUSAL branch={branch} association={association:x?} adjacent={adjacent} candidates={candidates:?} component_lineages={lineages:x?} current_bonds={bonds:x?}",
+    );
+    for index in candidates {
+        let prior = &mosaics[*index].mosaic;
+        eprintln!(
+            "C117_PRIOR index={index} hubs={:x?} members={:x?} bonds={:x?}",
+            pending_original_association_lineages(prior, topology),
+            prior.member_lineages(), prior.original_bonds(),
+        );
+    }
+}
+
 fn settle_organism_mosaic_boundary(
     cohorts: &[ResidentReachedCohort],
     topology_index: &ResidentTopologyIndex,
@@ -4625,7 +4644,15 @@ fn settle_organism_mosaic_boundary(
                     focused_prior_candidates = owned;
                 }
                 [_] => continue, // Expired continuation is not an unowned new original.
-                _ => return Err(FormationError::NeuronLineageAuthorityChanged),
+                _ => {
+                    #[cfg(test)]
+                    trace_focused_original_refusal(
+                        "same-hub-pending-owners", Some(association), &owned, mosaics,
+                        topology_index, &component.lineages, &component.bonds,
+                        recent_frontier_lineages.contains(&association),
+                    );
+                    return Err(FormationError::NeuronLineageAuthorityChanged);
+                }
             }
         }
         focused_prior_candidates.sort_unstable();
@@ -4633,7 +4660,17 @@ fn settle_organism_mosaic_boundary(
         let focused_prior_index = match focused_prior_candidates.as_slice() {
             [] => None,
             [index] => Some(*index),
-            _ => return Err(FormationError::NeuronLineageAuthorityChanged),
+            _ => {
+                #[cfg(test)]
+                trace_focused_original_refusal(
+                    "contained-hub-free-priors",
+                    focused_association,
+                    &focused_prior_candidates, mosaics, topology_index,
+                    &component.lineages, &component.bonds,
+                    focused_association.is_some_and(|hub| recent_frontier_lineages.contains(&hub)),
+                );
+                return Err(FormationError::NeuronLineageAuthorityChanged);
+            }
         };
         let admitted = if let Some(prior_index) = focused_prior_index {
             continue_physical_mosaic_original_with_reached_piece(
@@ -9909,7 +9946,11 @@ impl ResidentCognitiveFormationState {
             &gustatory_contact_onset_receptor_lineages,
             real_nutrition_intake_zeptojoules,
             admit_learned_motor_work,
-        )?;
+        ).map_err(|error| {
+            #[cfg(test)]
+            eprintln!("C117_STAGE stage=internal-contact generation={source_generation} error={error:?}");
+            error
+        })?;
         let mut guided_vocal_predecessor_orderings =
             internal_contact.completed_vocal_orderings.clone();
         if admit_guided_vocal_route_growth {
@@ -9925,6 +9966,8 @@ impl ResidentCognitiveFormationState {
             guided_vocal_predecessor_orderings.sort_unstable();
             guided_vocal_predecessor_orderings.dedup();
             if guided_vocal_predecessor_orderings.len() > 1 {
+                #[cfg(test)]
+                eprintln!("C117_REFUSAL branch=guided-predecessor-tie generation={source_generation} orderings={guided_vocal_predecessor_orderings:x?}");
                 return Err(FormationError::NeuronLineageAuthorityChanged);
             }
         }
@@ -9996,7 +10039,11 @@ impl ResidentCognitiveFormationState {
             &externally_energized_by_occurrence,
             &exact_moved_body_regulations_by_occurrence,
             &settled_layer_six_lineages,
-        )?;
+        ).map_err(|error| {
+            #[cfg(test)]
+            eprintln!("C117_STAGE stage=cross-sensory-mount generation={source_generation} error={error:?}");
+            error
+        })?;
         if !topology_index.matches_shape(&cohorts, &electrical_fabric) {
             topology_index = Arc::new(ResidentTopologyIndex::build(&cohorts, &electrical_fabric)?);
         }
@@ -10007,7 +10054,11 @@ impl ResidentCognitiveFormationState {
             &mosaics,
             &reached_associations_by_occurrence,
             &internal_contact.causal_active_bonds,
-        )?;
+        ).map_err(|error| {
+            #[cfg(test)]
+            eprintln!("C117_STAGE stage=focused-original-selection generation={source_generation} error={error:?}");
+            error
+        })?;
         let developmental_affective_pairs = exact_occurrence_affective_pairs(
             &reached_associations_by_occurrence,
             &exact_moved_body_regulations_by_occurrence,
@@ -10076,7 +10127,11 @@ impl ResidentCognitiveFormationState {
             &mut formation_index,
             max_encoded_bytes,
             observe_relations,
-        )?;
+        ).map_err(|error| {
+            #[cfg(test)]
+            eprintln!("C117_STAGE stage=mosaic-boundary generation={source_generation} error={error:?}");
+            error
+        })?;
         newly_retained_mosaic_indices.extend(organism_newly_retained_mosaic_indices);
         newly_retained_mosaic_indices.sort_unstable();
         newly_retained_mosaic_indices.dedup();
@@ -10108,7 +10163,11 @@ impl ResidentCognitiveFormationState {
                 &exact_sound_reassembled_members,
                 &admitted_source_occurrence_spans,
                 &guided_vocal_predecessor_orderings,
-            )?;
+            ).map_err(|error| {
+                #[cfg(test)]
+                eprintln!("C117_STAGE stage=vocal-route-growth generation={source_generation} error={error:?}");
+                error
+            })?;
         }
         if !topology_index.matches_shape(&cohorts, &electrical_fabric) {
             topology_index = Arc::new(ResidentTopologyIndex::build(&cohorts, &electrical_fabric)?);
@@ -22860,6 +22919,8 @@ fn settle_internal_contact_interval_with_body_act(
     completed_vocal_orderings.sort_unstable();
     completed_vocal_orderings.dedup();
     if completed_vocal_orderings.len() > 1 {
+        #[cfg(test)]
+        eprintln!("C117_REFUSAL branch=completed-vocal-ordering-tie orderings={completed_vocal_orderings:x?}");
         // More than one complete preparation would make sequence authorship
         // ambiguous. Refuse the physical tie; never select by iteration order
         // or merge distinct preparations into one vocal act.

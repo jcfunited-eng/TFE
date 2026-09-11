@@ -10204,3 +10204,85 @@ coordination unavailable. It did not restore local Git/AWS and was never live
 health proof. Remote handoff now fetched; no intervening C1 speech edits.
 Single next item remains R117-08, the exact lesson-refusal diagnostic.
 Memory S117-02 and migration S117-05 stay passed, neither is speech completion.
+
+`D-054-117-12` — frozen diagnostic contract after access restoration:
+continue R117-08; no candidate physics change. Implement test-only error output
+at exact same-hub pending-owner and contained hub-free prior refusals, and the
+already-known competing completed/guided vocal-ordering refusals. Existing errors
+still return unchanged. Emit guide cycle, occurrence, generation, direction,
+route count and source sample count. Existing top-level stage errors receive
+test-only stage labels; normal build has no logging or new state.
+
+Files solely native/guala_core/src/resident_cognitive_formation.rs (cfg(test)
+diagnostics/error-preserving stage annotation) and its reservoir_probe.rs
+(test-only failing-guide predecessor/input preservation).
+The optional GUALA_PROBE_GUIDED_VOCAL_FAILURE_CAPTURE flag is a harness flag,
+never native state or organism permission. It is refused unless route-growth-only
+and at most8lessons. Keep at most one extra predecessor clone during each guide,
+drop after success; encode/write it ONLY on failure along with exact pre-guide
+and moved-guide body and scalar curriculum inputs. No per-clock snapshot/write,
+history, population scan, altered chronology or changed test acceptance.
+Diagnostic RSS/time cannot substantiate production efficiency.
+
+Run the SAME declared eight-lesson chronology once after frozen source review;
+stop at the same refusal, preserve its exact origin and failing predecessor.
+Existing successful four-clock memory and migration checks are not rerun for
+test-only logging. Failure output is not a new physics acceptance. After diagnosis,
+remove or retain test-only observation by demonstrated need; no broad fixes
+until the actual refusal is measured. Production/AWS checks stay read-only.
+
+`R-054-117-13`: independent source review on4ff8614b6611307e58f75b496bb848d5223ae4d929672c56843396e40c518778:
+architecture PASS, one localized log label. Route count in pre-guide log was
+captured before recovery; renamed routes_before_recovery. Failure JSON's routes
+is actual failing predecessor count. Component-lineage log no longer calls all
+endpoints members/fractals. Error values/order and non-test semantics unchanged.
+Saved body excludes runtime scheduler residency: it is failure evidence, not
+yet exact warm replay proof. No extra scalar or marker enters cognition.
+Owner also caught a missing closing parenthesis in generated stage annotation
+before freezing/compilation; corrected at source, no failed compile or organism
+run. Final source check follows the one localized batch, then one diagnostic.
+
+`R-054-117-14`: final localized source review PASS; fingerprint
+6a4967fbc704e722321f2d87273208fc49fa4ef92f650e8e55b0ce10f5f380b3
+unchanged before/after. Both diagnostic labels accurate, error/chronology/
+ordinary-build semantics unchanged. One release build and declared diagnostic
+authorized by this source gate; no older passed acceptance reopened.
+AWS16:26-33 same1456/image6aa38d99,1/1/0 HEALTHY;16:20/25/30 CPU avg41.53/
+43.08/45.73% max63.28%, memory10.74/10.78/10.86% max12.01%. Historical
+September8 alarm unchanged. These are health-envelope metrics, not native-time
+or cognition proof. This entry is documentation-only after frozen source review.
+
+`S/F-054-117-15` — ROOT GROWTH NOW OBSERVED with continuing cognition.
+Diagnostic source compiled first try2m29s,99warnings; binarySHA
+45089211dc0e50e4cb1bf81970225b458312585fe59c0b9f2df5cba5038e92d6.
+SAME predecessor637580,4000samples,1500 guide carriers,32ordinary intervals:
+guide1 occurrence1 generation637580 minimum,0routes;
+guide2 occurrence34 generation637613 minimum,0routes before recovery;
+guide3 occurrence67 generation637646 maximum,4routes before recovery;
+guide4 occurrence100 generation637679 maximum,4routes, then refusal.
+Because the helper switches to maximum only when all four minimum terminals
+exist, the four minimum vocal routes grew by lesson2. This reverses114's
+zero-root result on the same continuing-cognition chronology. It is actual
+route anatomy, NOT sound-only recall, breath/pressure proof, speech or deployment.
+
+Run68.89s,0passed/1failed. No C117_REFUSAL or C117_STAGE marker fired:
+neither named memory ambiguity nor vocal tie nor the five instrumented stage
+errors explains this refusal. Do not relax them. New evidence narrows it to
+the remaining uninstrumented native boundaries. Failure captured BEFORE
+guide4 at generation637679, actual4routes. Exact cold replay remains unproven
+because runtime scheduler residency is not in the snapshot. No further
+eight-lesson replay needed just to recover this predecessor.
+
+Artifacts /tmp/guala-candidate117-refusal8.json.failure.cognitive SHA256
+6b8a4547dfe04582dd814c87e653829617b8583422b0e7c9e9072f290fd67439;
+.failure.body SHA6247ab3b74180419d60eb5dc21a94c38e72cbe119ea078efa9f70a8d14ffd59f;
+.failure.guide-body SHAe69a91f07a5bb929225e549541b7548add50f3977188f759f289240dbb18fb23.
+Input .failure.json:cycle4,occurrence100,generation637679,TowardMaximum,
+guide_carriers1500,tutor_phase0,tutorpath110-phase0,cognition_continues=true.
+Log /tmp/guala-candidate117-refusal8.log SHA256
+bd8a7532191c0bec4c6674df90bb2688228ad3f3d3e56a35f6e017fda16f09d3.
+RSS sampled39s1,740,664KiB,notpeak and includes diagnostic predecessor copy.
+AWS pre16:37:17/post16:38:53 unchanged sole1456 effde9e1/image6aa38d99,
+1/1/0 RUNNING/HEALTHY. No live lessons/deployment; caretaker STOP retained.
+S117-02 memory, S117-05 migration and new minimum-route growth remain separate
+recorded wins. Next only the exact failed guide and unresolved native branch.

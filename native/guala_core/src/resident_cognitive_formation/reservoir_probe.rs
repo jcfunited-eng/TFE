@@ -5470,6 +5470,10 @@ fn guided_vocal_population_growth_json(
         std::env::var_os("GUALA_PROBE_GUIDED_VOCAL_ROUTE_GROWTH_ONLY").is_some();
     let continuing_recovery =
         std::env::var_os("GUALA_PROBE_GUIDED_VOCAL_CONTINUING_RECOVERY").is_some();
+    let capture_failure =
+        std::env::var_os("GUALA_PROBE_GUIDED_VOCAL_FAILURE_CAPTURE").is_some();
+    assert!(!capture_failure || (route_growth_only && maximum_cycles <= 8),
+        "failure capture is restricted to at most eight route-growth lessons");
     let checkpoints = [1_u32, 2, 4, 8, 16, 32, 64, 128, 256];
     let mut observations = Vec::new();
     let mut vocal_learning_frontiers = Vec::new();
@@ -5520,7 +5524,8 @@ fn guided_vocal_population_growth_json(
         // other, is the physical equivalent of a tutor sustaining the gesture.
         // It observes retained anatomy only; it neither predicts nor authors
         // a discharge, contact, carrier count, pose, or timing value.
-        let reached_before = vocal_routes(&state)
+        let existing_routes = vocal_routes(&state);
+        let reached_before = existing_routes
             .iter()
             .map(|(_, _, terminal)| *terminal)
             .collect::<std::collections::BTreeSet<_>>();
@@ -5605,17 +5610,50 @@ fn guided_vocal_population_growth_json(
             super::admitted_fixture_episode(&source),
             super::admitted_fixture_episode(&tutor_pressure_source),
         ];
-        let (successor, observation) = state
-            .advance_coexisting_admitted_transition_with_residency(
-                &admitted_sources,
-                usize::MAX,
-                true,
-                true,
-                true,
-                &mut guided_residency,
-                ExactRational::integer(0),
-            )
-            .expect("guided consequence settles through production cognition");
+        // Diagnostic-only custody, one predecessor at a time; never a live owner.
+        let diagnostic_predecessor = capture_failure.then(|| state.clone());
+        if capture_failure {
+            eprintln!("C117_GUIDE cycle={cycle} occurrence={occurrence} generation={} direction={direction:?} routes_before_recovery={} tutor_samples={}",
+                state.generation, existing_routes.len(), tutor_pressure_phases[0].len());
+        }
+        let transition = state.advance_coexisting_admitted_transition_with_residency(
+            &admitted_sources, usize::MAX, true, true, true,
+            &mut guided_residency, ExactRational::integer(0),
+        );
+        let (successor, observation) = match transition {
+            Ok(value) => value,
+            Err(error) => {
+                if let Some(predecessor) = diagnostic_predecessor.as_ref() {
+                    let prefix = std::env::var("GUALA_PROBE_OUT")
+                        .expect("failure capture output prefix is declared");
+                    fs::write(format!("{prefix}.failure.cognitive"),
+                        predecessor.encode(usize::MAX).expect("failed-guide predecessor encodes"))
+                        .expect("failed-guide predecessor writes");
+                    fs::write(format!("{prefix}.failure.body"),
+                        body.encode().expect("pre-guide body encodes"))
+                        .expect("pre-guide body writes");
+                    fs::write(format!("{prefix}.failure.guide-body"),
+                        moved.successor.encode().expect("moved guide body encodes"))
+                        .expect("moved guide body writes");
+                    fs::write(format!("{prefix}.failure.json"),
+                        serde_json::to_vec_pretty(&json!({
+                            "measurement_only": true, "error": format!("{error:?}"),
+                            "cycle": cycle, "occurrence": occurrence,
+                            "generation": predecessor.generation,
+                            "direction": format!("{direction:?}"),
+                            "guide_carriers": guide_carriers.to_string(),
+                            "routes": vocal_routes(predecessor).len(),
+                            "tutor_pressure_path": std::env::var("GUALA_PROBE_GUIDED_VOCAL_TUTOR_PRESSURE_PCM").unwrap(),
+                            "tutor_phase": (sequence_start_phase + usize::try_from(cycle - 1).unwrap()) % tutor_pressure_phases.len(),
+                            "cognition_continues_during_recovery": continuing_recovery,
+                        })).expect("failed-guide input receipt encodes"))
+                        .expect("failed-guide input receipt writes");
+                    eprintln!("C117_FAILURE_SAVED prefix={prefix} cycle={cycle} occurrence={occurrence}");
+                }
+                panic!("guided consequence settles through production cognition: {error:?}");
+            }
+        };
+        drop(diagnostic_predecessor);
         let vocal_discharges = observation
             .motor_unit_recruitments
             .iter()
