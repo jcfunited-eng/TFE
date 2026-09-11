@@ -2212,6 +2212,50 @@ fn surviving_association_can_relearn_one_missing_cross_sensory_relation() {
 }
 
 #[test]
+fn cross_sensory_retention_reads_original_bond_endpoints() {
+    let base = synthetic_admitted_mosaic(&[7, 8, 9], &[], 7);
+    let mut original_bonds = vec![
+        StablePhysicalBondReference::new(structural_test_lineage(1), structural_test_lineage(7), 0)
+            .unwrap(),
+        StablePhysicalBondReference::new(structural_test_lineage(2), structural_test_lineage(7), 0)
+            .unwrap(),
+    ];
+    original_bonds.sort_unstable();
+    let pending = AdmittedPhysicalMosaic::from_parts_for_tests(
+        base.member_lineages().to_vec(),
+        base.retained_fractals().to_vec(),
+        original_bonds,
+        Vec::new(),
+        vec![structural_test_lineage(1)],
+    );
+    let lineage_layers = [
+        (structural_test_lineage(1), 1),
+        (structural_test_lineage(2), 5),
+        (structural_test_lineage(7), 7),
+        (structural_test_lineage(8), 8),
+        (structural_test_lineage(9), 9),
+    ]
+    .into_iter()
+    .collect::<Box<[_]>>();
+    let topology = ResidentTopologyIndex {
+        flat_locations: Box::new([]),
+        flat_by_lineage: Box::new([]),
+        intrinsic_locations: Box::new([]),
+        source_locations: Box::new([]),
+        lineage_layers,
+        canonical_lineages: Box::new([]),
+        canonical_bonds: Box::new([]),
+        contacts: Box::new([]),
+        incident_contacts_by_flat: Box::new([]),
+        neighbours_by_flat: Box::new([]),
+        cohort_shapes: Box::new([]),
+        fabric_contact_count: 0,
+    };
+
+    assert!(pending_association_has_cross_sensory_members(&pending, &topology).unwrap());
+}
+
+#[test]
 fn legacy_transient_mosaic_is_not_cognitive_authority() {
     let valid = synthetic_admitted_mosaic(&[1, 2, 3], &[(1, 2), (2, 3)], 1);
     let transient = crate::complete_neuron::SparsePhysicalStateDelta::from_canonical_entries(vec![
@@ -3740,6 +3784,53 @@ fn varied_multisensory_occurrences_mount_only_exact_settled_assemblies() {
     assert_eq!(cohorts.len(), full_occurrence_cohort_count);
     assert_eq!(fabric.contact_count(), full_occurrence_contact_count);
 
+    // Shared layer-6 integrations do not merge two occurrence-local layer-7
+    // hubs into one original. Each focused component carries exactly its own
+    // association plus the active source/integration anatomy that reaches it.
+    let topology_index = ResidentTopologyIndex::build(&cohorts, &fabric).unwrap();
+    for association in coexisting.lineages.iter().flatten().copied() {
+        assert_eq!(
+            association_source_layers(association, &topology_index),
+            Ok(BTreeSet::from([
+                u32::from(PhysicalSourceSense::Sight.declared_layer()),
+                u32::from(PhysicalSourceSense::Sound.declared_layer()),
+            ])),
+        );
+    }
+    let all_active_bonds = topology_index
+        .contacts
+        .iter()
+        .map(|contact| contact.stable_bond)
+        .collect::<Vec<_>>();
+    let focused = exact_reached_cross_sensory_original_bonds(
+        &cohorts,
+        &topology_index,
+        &ResidentFormationIndex::default(),
+        &coexisting,
+        &all_active_bonds,
+        &[],
+    )
+    .unwrap();
+    assert_eq!(focused.len(), 2);
+    for ((association, component), expected_association) in focused.iter().zip(
+        coexisting
+            .lineages
+            .iter()
+            .filter_map(|lineages| lineages.first().copied())
+            .collect::<Vec<_>>(),
+    ) {
+        assert_eq!(*association, expected_association);
+        let layer_seven = component
+            .iter()
+            .flat_map(|bond| {
+                let (left, right) = bond.endpoints();
+                [left, right]
+            })
+            .filter(|lineage| topology_index.layer_of(*lineage) == Some(7))
+            .collect::<BTreeSet<_>>();
+        assert_eq!(layer_seven, BTreeSet::from([expected_association]));
+    }
+
     let topology = organism_mosaic_topology(&cohorts, &fabric).unwrap();
     let topology_index = ResidentTopologyIndex::build(&cohorts, &fabric).unwrap();
     let fractal = crate::complete_neuron::SparsePhysicalStateDelta::from_canonical_entries(vec![
@@ -3826,6 +3917,7 @@ fn varied_multisensory_occurrences_mount_only_exact_settled_assemblies() {
         &changed_cue,
         &[],
         &topology.bonds,
+        &[],
         &[],
         &[],
         &[],
@@ -3959,6 +4051,7 @@ fn varied_multisensory_occurrences_mount_only_exact_settled_assemblies() {
         &[],
         &[],
         &[],
+        &[],
         &mut mosaics,
         &mut formation_index,
         16_000_000,
@@ -4003,6 +4096,7 @@ fn varied_multisensory_occurrences_mount_only_exact_settled_assemblies() {
         &[],
         &[],
         &[],
+        &[],
         &mut mosaics,
         &mut formation_index,
         16_000_000,
@@ -4039,6 +4133,7 @@ fn varied_multisensory_occurrences_mount_only_exact_settled_assemblies() {
             &[],
             &internal_cue,
             &topology.bonds,
+            &[],
             &[],
             &[],
             &[],
@@ -4088,6 +4183,7 @@ fn varied_multisensory_occurrences_mount_only_exact_settled_assemblies() {
             &unrelated_external,
             &internal_cue,
             &topology.bonds,
+            &[],
             &[],
             &[],
             &[],
@@ -6955,13 +7051,7 @@ fn moved_root_translation_terminal_mounts_its_exact_feedback_anatomy() {
     assert_eq!(motors.len(), 1);
     let (translation_mount, translation_neuron) = cohorts
         .iter()
-        .flat_map(|cohort| {
-            cohort
-                .anatomy
-                .mounts()
-                .iter()
-                .zip(cohort.state.neurons())
-        })
+        .flat_map(|cohort| cohort.anatomy.mounts().iter().zip(cohort.state.neurons()))
         .find(|(mount, _)| mount.root_translation_effector_terminal() == Some(terminal))
         .unwrap();
     assert!(
@@ -8112,6 +8202,7 @@ fn exact_body_source_mounts_one_coordinated_vocal_preparation() {
         .map(|regulation| vec![regulation])
         .collect::<Vec<_>>();
     let source_spans = [(0, 2), (2, 4)];
+    let no_reassembled_associations = BTreeSet::new();
     mount_exact_reassembled_vocal_action_routes(
         &mut cohorts,
         &mut population,
@@ -8120,7 +8211,32 @@ fn exact_body_source_mounts_one_coordinated_vocal_preparation() {
         &topology,
         &reached,
         &moved,
+        &no_reassembled_associations,
         &source_spans,
+        &[],
+    )
+    .unwrap();
+    for motor in &motors {
+        assert!(
+            vocal_cognitive_action_route_for_motor(&cohorts, &topology, *motor)
+                .unwrap()
+                .is_empty()
+        );
+    }
+    let reassembled_associations = associations.iter().copied().collect::<BTreeSet<_>>();
+    let reached_first = ReachedAssociationsByOccurrence {
+        lineages: reached.lineages[..2].to_vec(),
+    };
+    mount_exact_reassembled_vocal_action_routes(
+        &mut cohorts,
+        &mut population,
+        &mut next_lineage,
+        &mut fabric,
+        &topology,
+        &reached_first,
+        &moved[..2],
+        &reassembled_associations,
+        &[(0, 2)],
         &[],
     )
     .unwrap();
@@ -8129,13 +8245,8 @@ fn exact_body_source_mounts_one_coordinated_vocal_preparation() {
     let first = vocal_cognitive_action_route_for_motor(&cohorts, &topology, motors[0]).unwrap();
     let second = vocal_cognitive_action_route_for_motor(&cohorts, &topology, motors[2]).unwrap();
     assert_eq!(first.len(), 1);
-    assert_eq!(second.len(), 1);
+    assert!(second.is_empty());
     assert_eq!(first[0].preparation.motors.len(), 2);
-    assert_eq!(second[0].preparation.motors.len(), 2);
-    assert_ne!(
-        first[0].preparation.ordering_lineage,
-        second[0].preparation.ordering_lineage
-    );
     assert_eq!(
         first[0]
             .preparation
@@ -8145,16 +8256,6 @@ fn exact_body_source_mounts_one_coordinated_vocal_preparation() {
             .collect::<BTreeSet<_>>(),
         associations[..2].iter().copied().collect()
     );
-    assert_eq!(
-        second[0]
-            .preparation
-            .associations
-            .iter()
-            .map(|contact| contact.lineage)
-            .collect::<BTreeSet<_>>(),
-        associations[2..].iter().copied().collect()
-    );
-
     let first_preparation = first[0].preparation.clone();
     let terminal_for = |lineage| {
         cohorts
@@ -8173,6 +8274,57 @@ fn exact_body_source_mounts_one_coordinated_vocal_preparation() {
             })
             .unwrap()
     };
+    let immediate_completed_frontier = first_preparation
+        .motors
+        .iter()
+        .map(|motor| {
+            ActiveElectricalFrontierEntry::caused_with_provenance(
+                first_preparation.ordering_lineage,
+                motor.lineage,
+                first_preparation.ordering_lineage,
+                motor.bond,
+                1,
+                false,
+                true,
+            )
+            .unwrap()
+        })
+        .collect::<Vec<_>>();
+    let exact_returned_terminals = first_preparation
+        .motors
+        .iter()
+        .map(|motor| vec![terminal_for(motor.lineage)])
+        .collect::<Vec<_>>();
+    assert_eq!(
+        exact_preceding_vocal_body_act_for_guided_growth(
+            &cohorts,
+            &topology,
+            &immediate_completed_frontier,
+            &exact_returned_terminals,
+            &[(0, exact_returned_terminals.len())],
+        )
+        .unwrap(),
+        vec![first_preparation.ordering_lineage],
+    );
+    assert!(exact_preceding_vocal_body_act_for_guided_growth(
+        &cohorts,
+        &topology,
+        &immediate_completed_frontier[..1],
+        &exact_returned_terminals,
+        &[(0, exact_returned_terminals.len())],
+    )
+    .unwrap()
+    .is_empty());
+    let wrong_returned_terminals = vec![vec![terminals[2]], vec![terminals[3]]];
+    assert!(exact_preceding_vocal_body_act_for_guided_growth(
+        &cohorts,
+        &topology,
+        &immediate_completed_frontier,
+        &wrong_returned_terminals,
+        &[(0, wrong_returned_terminals.len())],
+    )
+    .unwrap()
+    .is_empty());
     let complete_recruitments = first_preparation
         .motors
         .iter()
@@ -8224,9 +8376,10 @@ fn exact_body_source_mounts_one_coordinated_vocal_preparation() {
         &mut next_lineage,
         &mut fabric,
         &topology,
-        &reached,
-        &moved,
-        &source_spans,
+        &reached_first,
+        &moved[..2],
+        &reassembled_associations,
+        &[(0, 2)],
         &[],
     )
     .unwrap();
@@ -8254,16 +8407,17 @@ fn exact_body_source_mounts_one_coordinated_vocal_preparation() {
         frontier_founds_vocal_action_preparation(&cohorts, &topology, exact_predecessor).unwrap(),
         Some(first[0].preparation.ordering_lineage)
     );
-    let reverse_current_same_causal_frontier = ActiveElectricalFrontierEntry::caused_with_provenance(
-        first[0].preparation.ordering_lineage,
-        association_contact.lineage,
-        first[0].preparation.ordering_lineage,
-        association_contact.bond,
-        1,
-        false,
-        true,
-    )
-    .unwrap();
+    let reverse_current_same_causal_frontier =
+        ActiveElectricalFrontierEntry::caused_with_provenance(
+            first[0].preparation.ordering_lineage,
+            association_contact.lineage,
+            first[0].preparation.ordering_lineage,
+            association_contact.bond,
+            1,
+            false,
+            true,
+        )
+        .unwrap();
     assert_eq!(
         frontier_founds_vocal_action_preparation(
             &cohorts,
@@ -8341,6 +8495,7 @@ fn exact_body_source_mounts_one_coordinated_vocal_preparation() {
         &topology,
         &reached_successor,
         &moved[2..],
+        &reassembled_associations,
         &[(0, 2)],
         &[first[0].preparation.ordering_lineage],
     )
@@ -9812,14 +9967,9 @@ fn directed_transfer_frontier_preserves_direction_and_one_advancing_endpoint() {
     let mut encoded = Vec::new();
     body_owned_acoustic_efference.encode_v20(&mut encoded);
     let mut cursor = 0;
-    let decoded = ActiveElectricalFrontierEntry::decode_v20(
-        &encoded,
-        &mut cursor,
-        true,
-        false,
-        false,
-    )
-    .unwrap();
+    let decoded =
+        ActiveElectricalFrontierEntry::decode_v20(&encoded, &mut cursor, true, false, false)
+            .unwrap();
     assert_eq!(decoded, body_owned_acoustic_efference);
     assert!(decoded.carries_body_owned_acoustic_efference());
     assert_eq!(cursor, encoded.len());
@@ -9852,8 +10002,7 @@ fn directed_transfer_frontier_preserves_direction_and_one_advancing_endpoint() {
     external_in_flight.encode_v20(&mut encoded);
     let mut cursor = 0;
     assert_eq!(
-        ActiveElectricalFrontierEntry::decode_v20(&encoded, &mut cursor, true, true, true)
-            .unwrap(),
+        ActiveElectricalFrontierEntry::decode_v20(&encoded, &mut cursor, true, true, true).unwrap(),
         external_in_flight
     );
     assert_eq!(cursor, encoded.len());

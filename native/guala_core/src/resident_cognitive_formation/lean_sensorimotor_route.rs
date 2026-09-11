@@ -423,8 +423,7 @@ pub(super) fn exact_reassembled_work_founded_vocal_preparation(
 
     let mut matches = Vec::new();
     for ordering in candidate_orderings {
-        let Some(preparation) =
-            vocal_action_preparation_for_ordering(cohorts, topology, ordering)?
+        let Some(preparation) = vocal_action_preparation_for_ordering(cohorts, topology, ordering)?
         else {
             continue;
         };
@@ -509,8 +508,7 @@ pub(super) fn vocal_action_preparation_from_association_founder(
         .copied()
     {
         let ordering = topology.flat_locations[ordering_flat].2;
-        let Some(preparation) =
-            vocal_action_preparation_for_ordering(cohorts, topology, ordering)?
+        let Some(preparation) = vocal_action_preparation_for_ordering(cohorts, topology, ordering)?
         else {
             continue;
         };
@@ -731,17 +729,18 @@ fn preparation_with_exact_participants_exists(
     topology: &ResidentTopologyIndex,
     associations: &[[u8; 16]],
     motors: &[[u8; 16]],
+    predecessors: &[[u8; 16]],
 ) -> Result<bool, FormationError> {
     let Some(first_association) = associations.first().copied() else {
         return Ok(false);
     };
     let expected_associations = associations.iter().copied().collect::<BTreeSet<_>>();
     let expected_motors = motors.iter().copied().collect::<BTreeSet<_>>();
+    let expected_predecessors = predecessors.iter().copied().collect::<BTreeSet<_>>();
     let first_flat = topology.flat_for_lineage(first_association)?;
     for flat in topology.neighbours_by_flat[first_flat].iter().copied() {
         let ordering = topology.flat_locations[flat].2;
-        let Some(preparation) =
-            vocal_action_preparation_for_ordering(cohorts, topology, ordering)?
+        let Some(preparation) = vocal_action_preparation_for_ordering(cohorts, topology, ordering)?
         else {
             continue;
         };
@@ -757,6 +756,10 @@ fn preparation_with_exact_participants_exists(
                 .map(|contact| contact.lineage)
                 .collect::<BTreeSet<_>>()
                 == expected_motors
+            && preparation_predecessors(cohorts, topology, &preparation)?
+                .into_iter()
+                .collect::<BTreeSet<_>>()
+                == expected_predecessors
         {
             return Ok(true);
         }
@@ -772,6 +775,7 @@ pub(super) fn mount_exact_reassembled_vocal_action_routes(
     topology: &ResidentTopologyIndex,
     associations: &ReachedAssociationsByOccurrence,
     moved_regulations: &[Vec<[u8; 16]>],
+    exact_sound_reassembled_members: &BTreeSet<[u8; 16]>,
     source_occurrence_spans: &[(usize, usize)],
     enacted_predecessor_orderings: &[[u8; 16]],
 ) -> Result<(), FormationError> {
@@ -801,26 +805,22 @@ pub(super) fn mount_exact_reassembled_vocal_action_routes(
         .iter()
         .copied()
         .map(|ordering| {
-            let preparation =
-                vocal_action_preparation_for_ordering(cohorts, topology, ordering)?
-                    .ok_or(FormationError::NeuronLineageAuthorityChanged)?;
+            let preparation = vocal_action_preparation_for_ordering(cohorts, topology, ordering)?
+                .ok_or(FormationError::NeuronLineageAuthorityChanged)?;
             Ok(preparation
                 .motors
                 .into_iter()
                 .map(|motor| motor.lineage)
                 .collect::<BTreeSet<_>>())
         })
-        .collect::<Result<Vec<_>, FormationError>>()?
-        ;
+        .collect::<Result<Vec<_>, FormationError>>()?;
 
     let mut additions = Vec::<([u8; 16], [u8; 16], ExactRational)>::new();
     let mut planned_preparations =
         BTreeMap::<(Vec<[u8; 16]>, Vec<[u8; 16]>, Vec<[u8; 16]>), [u8; 16]>::new();
     let exact_predecessors = predecessor_orderings.clone();
-    let mut grouped_associations = BTreeMap::<
-        (Vec<[u8; 16]>, Vec<[u8; 16]>),
-        Vec<(Vec<[u8; 16]>, bool)>,
-    >::new();
+    let mut grouped_associations =
+        BTreeMap::<(Vec<[u8; 16]>, Vec<[u8; 16]>), Vec<(Vec<[u8; 16]>, bool)>>::new();
     for (start, end) in source_occurrence_spans.iter().copied() {
         let mut pairs = Vec::<([u8; 16], [u8; 16])>::new();
         let mut incomplete_vocal_occurrence = false;
@@ -861,14 +861,11 @@ pub(super) fn mount_exact_reassembled_vocal_action_routes(
         if associations_set.len() != pairs.len() || motors_set.len() != pairs.len() {
             return Err(FormationError::NeuronLineageAuthorityChanged);
         }
-        if predecessor_motor_lineages
-            .iter()
-            .any(|predecessor_motors| {
-                motors_set
-                    .iter()
-                    .all(|motor| predecessor_motors.contains(motor))
-            })
-        {
+        if predecessor_motor_lineages.iter().any(|predecessor_motors| {
+            motors_set
+                .iter()
+                .all(|motor| predecessor_motors.contains(motor))
+        }) {
             // These consequences are the body's proprioceptive return from
             // the just-enacted source posture, not evidence of a following
             // posture.  Their exact motor directions are already owned by one
@@ -880,11 +877,23 @@ pub(super) fn mount_exact_reassembled_vocal_action_routes(
         }
         let association_lineages = associations_set.into_iter().collect::<Vec<_>>();
         let motor_lineages = motors_set.into_iter().collect::<Vec<_>>();
+        if !association_lineages
+            .iter()
+            .any(|association| exact_sound_reassembled_members.contains(association))
+        {
+            // Guided motion can reveal an occurrence-local association, but
+            // it cannot make that association belong to the tutor sound. A
+            // later lived repetition must first reassemble retained sound
+            // structure that physically owns at least one exact association
+            // in this coordinated posture.
+            continue;
+        }
         let already_learned = preparation_with_exact_participants_exists(
             cohorts,
             topology,
             &association_lineages,
             &motor_lineages,
+            &exact_predecessors,
         )?;
         grouped_associations
             .entry((motor_lineages, exact_predecessors.clone()))
@@ -896,7 +905,9 @@ pub(super) fn mount_exact_reassembled_vocal_action_routes(
         association_candidates.dedup();
         let novel = association_candidates
             .into_iter()
-            .filter_map(|(associations, already_learned)| (!already_learned).then_some(associations))
+            .filter_map(|(associations, already_learned)| {
+                (!already_learned).then_some(associations)
+            })
             .collect::<Vec<_>>();
         let [association_lineages] = novel.as_slice() else {
             if novel.is_empty() {

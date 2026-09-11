@@ -8486,6 +8486,109 @@ practice body. It is not yet packaged, rehearsed, deployed, heard on Joe's
 laptop, recognized as meaningful speech, or a conversation claim. Production
 remains task 1455 and untouched.
 
+### Candidate 110 — mature-memory ownership and exact guided handoff
+
+`F-054-110-01` (mature sound/body memory was flattened and over-connected):
+on the authenticated task-1455 copy, current tutor sound reassembled 51 real
+formations but none owned the four new vocal associations. Repeated teaching
+proved all 140 exact association-to-layer-6 contacts active, while the generic
+original-forming pass expanded through 10,255 active mature fan-out bonds and
+never retained the exact occurrence-local sound/body assembly. This rejects
+missing sensation, stopped scheduling, too few lessons, and dead association
+anatomy. The failure was the memory boundary: the lived event carried sound
+and body, while the retained original lost the exact causal subset.
+
+`S-054-110-02` (bounded ownership correction): Candidate 110 forms one focused
+physical component per reached layer-7 association from that association's
+own causal layer-6 contacts and those integrations' causal source contacts.
+It admits the component only when every one of the association's own L6 bonds
+is causally active; the broad generic pass then skips components overlapping
+those exact focused bonds. A pending original may continue with that reached
+piece, and cross-sensory retention reads the source layers from both retained
+members and exact original-bond endpoints. This preserves the full physical
+sound/body relation without admitting the mature 10,255-bond fan. No lookup
+table, sensory score, timer, semantic label, new energy, or codec field was
+added. Existing encoded formations remain valid; Candidate 110 adds lawful
+members under the existing V44 codec and requires no state-schema migration.
+
+`S-054-110-03` (mature root and two-posture causal speech component): eight
+fixed minimum lessons on the exact production copy grew exactly four
+coordinated routes under one root and no continuation. After a zero-motor,
+zero-breath, zero-pressure baseline, one sound cue produced all four minimum
+motors on clock 3, 348 respiratory carriers, 69,507 nonzero pressure samples,
+silence through clock 20, and exact cold restart. Artifact
+`/tmp/guala-candidate110p-root-accepted.json`, SHA-256
+`d0dcfbe0e3ceb0bd98b4a02922f87412a88b2bbd36447032985af3f8519b53db`.
+Two exact maximum demonstrations then grew four motor-specific continuation
+records resolving to one minimum-to-maximum edge. The accepted sound-only
+recall produced minimum on clock 3 with 331 respiratory carriers, maximum on
+clock 4 with 25, 69,505 nonzero pressure samples in total, no later pulse, and
+exact cold restart. Artifact `/tmp/guala-candidate110u-min-max-recall.json`,
+SHA-256 `0ea23ac505c1d13a1d08b7403a7e5ce301f8860540a3aaaf2067553004d9cfd1`.
+These are retained mature-body successes; do not reopen them. They are not a
+four-posture word or live production speech.
+
+`F-054-110-04` (posture-three chronology discriminators): guiding the third
+posture on clock 4 collided with the still-enacting maximum posture and was
+rejected. Guiding on clock 6 arrived after the bounded predecessor evidence
+expired and authored no edge. Clock 5 is the exact distinct event after the
+maximum act. The first old clock-5 run exposed a second memory error: returned
+maximum-body evidence could be retained as a new independent root while the
+new minimum guide was present. That artifact and every successor derived from
+it are rejected.
+
+`S-054-110-05` (guided-only one-event completion handoff): the developmental
+route author may now receive one immediately preceding completed vocal posture
+only when every exact ordering-to-motor branch remains in the immediately
+preceding externally caused, non-body-echo frontier and one current occurrence
+group returns exactly that preparation's complete body-terminal set. This
+evidence can only exclude the returning posture and found guided sequence
+growth; it cannot prepare action work, recruit a motor, co-recruit breath, or
+enter recall. Missing branches, a wrong returned motor set, or multiple
+orderings refuse. The clean task-1455-copy replay from the last accepted
+two-posture state retained the first posture-three lesson without creating a
+third root: route contacts remained 503 = 495 unresolved legacy + eight exact
+routes, continuation records remained four = one unique edge, and cold restart
+was exact. Artifacts and hashes: JSON
+`5424d46b37bce4a57f4eafbaca22d09569b78dc7aca36245698bb8b7e09415e5`;
+structure `902ac331190ce0e49ed682a677f89035e8f258528862092210f0b97895000926`;
+cognitive `218e2e1b25a0be39e5e2b43b5ce7ace5c09c7d13ee9b4df14c90b6a17bed5b35`;
+body `c6a3ecd4b03a8244bef56104ecff055a2e82a37f3d76175f95ea6587fd47e5f9`.
+The second lesson and resulting maximum-to-minimum edge remain the active gate.
+Production remains task 1455 and unchanged.
+
+`S-054-110-06` (focused source verification): the candidate compiles. The exact
+tests `cross_sensory_retention_reads_original_bond_endpoints`,
+`varied_multisensory_occurrences_mount_only_exact_settled_assemblies`, and
+`exact_body_source_mounts_one_coordinated_vocal_preparation` each pass 1/1.
+The last test now proves exact complete preceding posture acceptance, missing-
+branch refusal, wrong-terminal refusal, root growth from one novel posture,
+and continuation growth only for a distinct novel successor.
+
+`F-054-AUDIT-H111/H112/H113` (Candidate-110 harness/tooling failures):
+
+- **H111:** the first structure-only read used the guided-growth state variable
+  instead of `GUALA_PROBE_RAW_COGNITIVE_IN`, entered the wrong test branch, and
+  refused for a missing tutor-pressure path. No organism or source changed.
+- **H112:** `cargo fmt` was invoked at crate scope and mechanically reformatted
+  29 untouched Rust files. Those exact files were restored to frozen HEAD
+  before review; only the five pre-existing Candidate-110 files remain dirty.
+  Permanent check: inspect `git status --short` immediately after formatting,
+  and format only named changed files.
+- **H113:** the new bond-endpoint unit fixture also called the mounted-anatomy
+  relation helper despite intentionally constructing only a minimal layer map;
+  it refused `NeuronLineageAuthorityAbsent`. The unrelated assertion was
+  removed, the intended exact bond-endpoint assertion passed, and no organism
+  ran. This is a fixture failure, not Candidate-110 physical evidence.
+- **H114:** successive posture-three replays overrode the established saved-
+  tail occurrence (`20`) with invented ordinals while retaining a fixed guide
+  clock. Exact DSF timing changed with the source occurrence, moving the act
+  from clocks 7/8 to 11/12; a later invented occurrence produced no recall at
+  all. These artifacts are rejected because the harness changed the cue's
+  exact source field. Permanent gate: use the established default occurrence,
+  first run a no-guide timing census from one frozen state, then replay that
+  identical state once with guidance on the measured next physical event.
+
 `F-054-AUDIT-H106` (workspace-wide formatting baseline): `cargo fmt --all --
 --check` reported formatting drift across many untouched crate files. It made
 no writes and supplied no candidate verdict. A crate-wide mechanical reformat

@@ -142,11 +142,7 @@ impl AdmittedPhysicalMosaic {
             return Some(self.clone());
         }
         if self.member_lineages.len() > 1 {
-            connecting_bond_witness(
-                &self.member_lineages,
-                &self.member_lineages,
-                &original,
-            )?;
+            connecting_bond_witness(&self.member_lineages, &self.member_lineages, &original)?;
         }
         if !self.original_only
             && !mosaic_lineages_connect(
@@ -498,10 +494,7 @@ pub(crate) fn continue_physical_mosaic_original(
         return Err(PhysicalMosaicError::WidthMismatch);
     }
 
-    let mut retained_by_lineage = BTreeMap::<
-        StableNeuronLineage,
-        SparsePhysicalStateDelta,
-    >::new();
+    let mut retained_by_lineage = BTreeMap::<StableNeuronLineage, SparsePhysicalStateDelta>::new();
     for (lineage, fractal) in prior
         .member_lineages
         .iter()
@@ -538,13 +531,92 @@ pub(crate) fn continue_physical_mosaic_original(
     }
     available_lineages.sort_unstable();
     available_lineages.dedup();
-    let original_bonds = connecting_bond_witness(
-        &available_lineages,
-        &member_lineages,
-        &available_bonds,
-    )
-    .ok_or(PhysicalMosaicError::OriginalRelationNotConnected)?;
+    let original_bonds =
+        connecting_bond_witness(&available_lineages, &member_lineages, &available_bonds)
+            .ok_or(PhysicalMosaicError::OriginalRelationNotConnected)?;
 
+    Ok(AdmittedPhysicalMosaic {
+        original_only: true,
+        exact_pattern_recognition: false,
+        member_lineages: member_lineages.into_boxed_slice(),
+        retained_fractals: retained_fractals.into_boxed_slice(),
+        retained_excitation_zeptojoules: Box::new([]),
+        original_bonds: original_bonds.into_boxed_slice(),
+        recurrence_bonds: Box::new([]),
+        partial_cue_lineages: Box::new([]),
+        recurrence_origin: None,
+    })
+}
+
+/// Continue one unresolved original with a later, causally connected physical
+/// piece that has not independently reached the three-fractal admission width.
+/// The prior supplies only its already-retained exact deltas; the later piece
+/// supplies only deltas emitted now and bonds active now. The combined original
+/// must still contain at least three valid neuronal fractals and one connected
+/// physical witness. This is adjacent-settlement custody, not a relaxation of
+/// mosaic width or an authored recurrence.
+pub(crate) fn continue_physical_mosaic_original_with_reached_piece(
+    prior: &AdmittedPhysicalMosaic,
+    neuron_lineages: &[StableNeuronLineage],
+    fractal_anatomies: &[(usize, usize)],
+    neuron_fractals: &[Option<SparsePhysicalStateDelta>],
+    active_bonds: &[StablePhysicalBondReference],
+) -> Result<AdmittedPhysicalMosaic, PhysicalMosaicError> {
+    if !prior.original_only
+        || prior.member_lineages.len() != prior.retained_fractals.len()
+        || neuron_lineages.len() != fractal_anatomies.len()
+        || neuron_lineages.len() != neuron_fractals.len()
+    {
+        return Err(PhysicalMosaicError::WidthMismatch);
+    }
+    let mut retained_by_lineage = prior
+        .member_lineages
+        .iter()
+        .copied()
+        .zip(prior.retained_fractals.iter().cloned())
+        .collect::<BTreeMap<_, _>>();
+    if retained_by_lineage.len() != prior.member_lineages.len() {
+        return Err(PhysicalMosaicError::WidthMismatch);
+    }
+    for ((lineage, fractal), (ring_count, maximum)) in neuron_lineages
+        .iter()
+        .copied()
+        .zip(neuron_fractals)
+        .zip(fractal_anatomies.iter().copied())
+    {
+        let Some(fractal) = fractal else {
+            continue;
+        };
+        if fractal.entries().is_empty()
+            || fractal.entries().len() > maximum
+            || !fractal_coordinates_fit(fractal, ring_count)
+        {
+            return Err(PhysicalMosaicError::InvalidRetainedFractal);
+        }
+        retained_by_lineage
+            .entry(lineage)
+            .or_insert_with(|| fractal.clone());
+    }
+    if retained_by_lineage.len() < 3 {
+        return Err(PhysicalMosaicError::FewerThanThreeRetainedFractals);
+    }
+    let member_lineages = retained_by_lineage.keys().copied().collect::<Vec<_>>();
+    let retained_fractals = retained_by_lineage.into_values().collect::<Vec<_>>();
+    let mut available_bonds = prior.original_bonds.to_vec();
+    available_bonds.extend_from_slice(active_bonds);
+    available_bonds.sort_unstable();
+    available_bonds.dedup();
+    let mut available_lineages = neuron_lineages.to_vec();
+    for bond in &prior.original_bonds {
+        let (left, right) = bond.endpoints();
+        available_lineages.push(left);
+        available_lineages.push(right);
+    }
+    available_lineages.sort_unstable();
+    available_lineages.dedup();
+    let original_bonds =
+        connecting_bond_witness(&available_lineages, &member_lineages, &available_bonds)
+            .ok_or(PhysicalMosaicError::OriginalRelationNotConnected)?;
     Ok(AdmittedPhysicalMosaic {
         original_only: true,
         exact_pattern_recognition: false,
@@ -574,14 +646,11 @@ fn current_recurrence_witness(
     if current_physical_deltas
         .windows(2)
         .any(|pair| pair[0].0 >= pair[1].0)
-        || retained
-            .member_lineages
-            .iter()
-            .any(|lineage| {
-                current_physical_deltas
-                    .binary_search_by_key(lineage, |(candidate, _)| *candidate)
-                    .is_err()
-            })
+        || retained.member_lineages.iter().any(|lineage| {
+            current_physical_deltas
+                .binary_search_by_key(lineage, |(candidate, _)| *candidate)
+                .is_err()
+        })
     {
         return Err(PhysicalMosaicError::RecurrenceDidNotChangeEveryMember);
     }
@@ -1504,13 +1573,14 @@ fn physical_mosaic_encoded_bytes(
         })
         .ok_or(PhysicalMosaicCodecError::ArithmeticWidth)?;
     PHYSICAL_MOSAIC_CODEC_HEADER_BYTES
-        .checked_add(if mosaic.recurrence_origin
-            == Some(PhysicalMosaicRecurrenceOrigin::InternallySimulated)
-        {
-            INTERNAL_PHYSICAL_MOSAIC_ORIGIN_BYTES
-        } else {
-            0
-        })
+        .checked_add(
+            if mosaic.recurrence_origin == Some(PhysicalMosaicRecurrenceOrigin::InternallySimulated)
+            {
+                INTERNAL_PHYSICAL_MOSAIC_ORIGIN_BYTES
+            } else {
+                0
+            },
+        )
         .ok_or(PhysicalMosaicCodecError::ArithmeticWidth)?
         .checked_add(
             mosaic
@@ -2113,6 +2183,40 @@ mod codec_tests {
         );
         assert_eq!(completed.original_bonds().len(), 6);
 
+        let sensory_prior_bonds = [
+            StablePhysicalBondReference::new(lineage(1), lineage(2), 0).unwrap(),
+            StablePhysicalBondReference::new(lineage(2), lineage(3), 0).unwrap(),
+        ];
+        let sensory_prior = admit_physical_mosaic_original(
+            &[lineage(1), lineage(2), lineage(3)],
+            &[(1, 24); 3],
+            &[
+                Some(fractal(1, 3)),
+                Some(fractal(2, 5)),
+                Some(fractal(3, 5)),
+            ],
+            &sensory_prior_bonds,
+        )
+        .unwrap();
+        let delayed_association_bonds = [
+            sensory_prior_bonds[0],
+            sensory_prior_bonds[1],
+            StablePhysicalBondReference::new(lineage(3), association, 0).unwrap(),
+        ];
+        let temporally_completed = continue_physical_mosaic_original_with_reached_piece(
+            &sensory_prior,
+            &[lineage(1), lineage(2), lineage(3), association],
+            &[(1, 24); 4],
+            &[None, None, None, Some(fractal(9, 11))],
+            &delayed_association_bonds,
+        )
+        .unwrap();
+        assert_eq!(
+            temporally_completed.member_lineages(),
+            &[lineage(1), lineage(2), lineage(3), association]
+        );
+        assert_eq!(temporally_completed.original_bonds().len(), 3);
+
         let unrelated_association = lineage(10);
         let unrelated = admit_physical_mosaic_original(
             &[lineage(4), lineage(5), lineage(6), unrelated_association],
@@ -2124,12 +2228,9 @@ mod codec_tests {
                 None,
             ],
             &[
-                StablePhysicalBondReference::new(lineage(4), unrelated_association, 0)
-                    .unwrap(),
-                StablePhysicalBondReference::new(lineage(5), unrelated_association, 0)
-                    .unwrap(),
-                StablePhysicalBondReference::new(lineage(6), unrelated_association, 0)
-                    .unwrap(),
+                StablePhysicalBondReference::new(lineage(4), unrelated_association, 0).unwrap(),
+                StablePhysicalBondReference::new(lineage(5), unrelated_association, 0).unwrap(),
+                StablePhysicalBondReference::new(lineage(6), unrelated_association, 0).unwrap(),
             ],
         )
         .unwrap();
@@ -2223,7 +2324,8 @@ mod codec_tests {
         .unwrap();
         assert_eq!(cold, internal);
         assert_eq!(
-            cold.recurrence_origin().map(PhysicalMosaicRecurrenceOrigin::as_str),
+            cold.recurrence_origin()
+                .map(PhysicalMosaicRecurrenceOrigin::as_str),
             Some("internally_simulated")
         );
     }
