@@ -10901,3 +10901,69 @@ pending return. This is the already-required recurrent/cold branch of the
 frozen inventory, not a re-teaching campaign. Preserve first-use success if
 recurrent operation differs; identify actual first differing boundary rather
 than rejecting the known working motor/breath/ordering components.
+
+
+`S-054-118-25` — second cue-use/cold branch PASSED44.73s, session8718.
+Input used successor651eb0c1/body6247ab3b. Eight pre-cue clocks:
+zero acts, breath, pressure; both pending returns false.
+Cue again caused four motors at clocks3/4/5/6 from the SAME learned orderings
+26d4/2798/27ec/27fa. Respiratory carriers21/438/6/7, not claimed equal-strength
+acts.126581 nonzero samples; no extra acts, acoustic rest, pending motor/self
+returns false, cognitive codec exact. No relearning or physical change.
+Successor cognitive SHA a785781b9276e50c50b5d031c8fa5987fe121e4c198952a5c912217c89676229;
+body SHA6247ab3b74180419d60eb5dc21a94c38e72cbe119ea078efa9f70a8d14ffd59f;
+JSON /tmp/guala-candidate118-repeat-recall.json SHA7456a894d6f02f17e0eb1f8034dc78724987d53d7efac3531e1229e3700fac4f;
+WAV SHAe68c7a4a956edb3d52c4bab5030bd77967d42dc0412c3d26880aafd9025f8a09.
+AWS17:56:42/17:57:48 same1456/image6aa38d99 healthy1/1/0.
+17:55 CPUavg42.6501/max49.5884%, memoryavg10.6644/max11.1603%;
+clock alarm remains historical; no test/build process survives.
+Exact first-use WAV backup hash verified on E: (same b7eca2ca...).
+No live speech claim.
+
+`D-054-118-26` — apply EXISTING third-use guard from D-054-108-04:
+"Acceptance requires at least three successive cue-act cycles on the same"
+body (continued in that original entry). S108-01/02 passed but F108-03 failed
+on third use; do not silently omit that already-known boundary. One more
+unchanged saved-tail recall from a785781b, occurrence700, eight baseline/
+64 positive, exact same phase0, no guidance. Measure the same pre-cue,
+four-posture, breath, pressure, final pending-return/rest facts. No new gate,
+test law, parameter search, or re-teaching. Preserve S118-20/23/25 if third
+use differs and diagnose its actual evidence before any new correction.
+
+
+`S-054-118-27` — THIRD consecutive cue-use PASSED46.54s; session67748
+completed. From used a785781b/body6247ab3b: eight pre-cue clocks zero acts,
+breath, pressure, or pending returns. Four motors each at clocks3/4/5/6,
+same26d4->2798->27ec->27fa, breath19/440/7/6.126582 nonzero pressure samples.
+No extra acts; final acoustic rest, both pending returns false, codec exact.
+Read-only anatomy decoder2.63s (session18070), zero organism clocks:
+16 coordinated routes, exactly the SAME three continuation bonds (12
+motor-specific continuation records), 495 old unresolved contacts unchanged.
+This closes the historical three-use guard locally without re-teaching.
+Not a claim of identical loudness, intelligible speech, or live speech.
+
+Artifacts /tmp/guala-candidate118-third-use:
+.cognitive SHA6e200aaa0e0a1f2b7339e49e3cadb3b93f8e99e8129c4e7b9c38b248ad8de285;
+.body SHA6247ab3b74180419d60eb5dc21a94c38e72cbe119ea078efa9f70a8d14ffd59f;
+.json SHA7732eefbdece7a5e1816e4d5ba09e7d441942d4bb9cb03e2c55573df4004dedf;
+.wav SHA8116809018cd65fd9cae2eeda453030938f846102a89464fec727ead18cd8364;
+-structure.json SHA85fd2538f869696d746dc43dc5315c151d2687ae5f022887d40f8da030d60bac.
+AWS17:59:05/18:00:15 task1456/image6aa38d99 healthy1/1/0; task reread also
+healthy after the read-only anatomy decode. Latest completed17:55 service
+window CPUavg43.9289/max61.9101%, memoryavg10.7782/max12.0270%.
+Clock alarm unchanged since September8. No native test/build survivor.
+
+`F-054-118-H04` — post-result Node projection had one extra closing
+parenthesis and failed parsing before reading the artifact. The native run and
+JSON were intact. Corrected only the read-only projection, using a named
+edges variable instead of nested spread/Set syntax; no native rerun.
+D118-26's original cross-reference108-05 corrected to108-04; the quoted
+three-use requirement itself was unchanged.
+
+Next exact item remains the frozen production-call-order delivery proof:
+reuse the closed C118 teaching/three-use mechanics, apply the existing severed
+cause control without a broad sweep, then authenticate the newest production
+body and exercise the same path through the actual runtime/persistence callers.
+Do not overwrite live state with these copied trained fixtures. No new
+physical mechanism is authorized by an observation gap. Actual intelligibility
+and live laptop delivery remain unverified; Joe does not yet need a browser.
