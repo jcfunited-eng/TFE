@@ -178,7 +178,8 @@ use std::collections::{BTreeMap, BTreeSet};
 mod lean_sensorimotor_route;
 use lean_sensorimotor_route::{
     exact_completed_vocal_preparation_body_act, exact_completed_vocal_preparation_discharge,
-    frontier_founds_vocal_action_preparation, mount_exact_reassembled_vocal_action_routes,
+    frontier_founds_vocal_action_preparation, frontier_reaches_vocal_action_preparation,
+    mount_exact_reassembled_vocal_action_routes, reassembled_vocal_founder_bonds,
     preparation_predecessors, vocal_action_preparation_for_ordering,
     vocal_action_preparation_from_association_founder, vocal_action_preparation_from_motor_branch,
     vocal_cognitive_action_continuation_routes_from_source, vocal_cognitive_action_route_for_motor,
@@ -10067,6 +10068,7 @@ impl ResidentCognitiveFormationState {
             &topology_index,
             predecessor_vocal_articulatory_effector_lineage,
             &active_electrical_frontier,
+            &predecessor_preceding_active_electrical_frontier,
             &exact_moved_body_effectors,
             &locally_settled_lineages,
             &internal_frontier_lineages,
@@ -20106,7 +20108,7 @@ fn settle_internal_contact_interval(
     topology_index: &ResidentTopologyIndex,
     vocal_articulatory_effector_lineage: Option<[u8; 16]>,
     predecessor_frontier: &[ActiveElectricalFrontierEntry],
-    _preceding_frontier: &[ActiveElectricalFrontierEntry],
+    preceding_frontier: &[ActiveElectricalFrontierEntry],
     locally_settled_lineages: &[[u8; 16]],
     causal_seed_lineages: &[[u8; 16]],
     fresh_seed_lineages: &[[u8; 16]],
@@ -20134,6 +20136,7 @@ fn settle_internal_contact_interval(
         topology_index,
         vocal_articulatory_effector_lineage,
         predecessor_frontier,
+        preceding_frontier,
         &[],
         locally_settled_lineages,
         causal_seed_lineages,
@@ -20164,6 +20167,7 @@ fn settle_internal_contact_interval_with_body_act(
     topology_index: &ResidentTopologyIndex,
     vocal_articulatory_effector_lineage: Option<[u8; 16]>,
     predecessor_frontier: &[ActiveElectricalFrontierEntry],
+    preceding_frontier: &[ActiveElectricalFrontierEntry],
     moved_body_effectors: &[BodyEffectorTerminal],
     locally_settled_lineages: &[[u8; 16]],
     causal_seed_lineages: &[[u8; 16]],
@@ -20498,12 +20502,16 @@ fn settle_internal_contact_interval_with_body_act(
     selected.extend(due_terminal_flats.iter().copied());
     selected.sort_unstable();
     selected.dedup();
+    let reassembled_founder_bonds =
+        reassembled_vocal_founder_bonds(topology_index, preceding_frontier);
     let mut permitted_vocal_ordering_work = BTreeSet::new();
     let mut permitted_vocal_motor_bonds = BTreeSet::new();
     let mut externally_permitted_vocal_motor_bonds = BTreeSet::new();
     for entry in predecessor_frontier.iter().copied() {
         if let Some(ordering) =
-            frontier_founds_vocal_action_preparation(cohorts, topology_index, entry)?
+            frontier_founds_vocal_action_preparation(
+                cohorts, topology_index, entry, &reassembled_founder_bonds,
+            )?
         {
             permitted_vocal_ordering_work.insert(ordering);
             let preparation =
@@ -23864,7 +23872,7 @@ fn settle_internal_contact_interval_with_body_act(
                             false,
                             is_external_ingress_seed(seed_flat),
                         )?;
-                    if frontier_founds_vocal_action_preparation(cohorts, topology_index, candidate)?
+                    if frontier_reaches_vocal_action_preparation(cohorts, topology_index, candidate)?
                         .is_some()
                     {
                         next_active_frontier.push(candidate);

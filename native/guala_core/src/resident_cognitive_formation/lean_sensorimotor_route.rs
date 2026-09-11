@@ -455,7 +455,7 @@ pub(super) fn exact_reassembled_work_founded_vocal_preparation(
     }
 }
 
-pub(super) fn frontier_founds_vocal_action_preparation(
+pub(super) fn frontier_reaches_vocal_action_preparation(
     cohorts: &[ResidentReachedCohort],
     topology: &ResidentTopologyIndex,
     entry: ActiveElectricalFrontierEntry,
@@ -486,6 +486,43 @@ pub(super) fn frontier_founds_vocal_action_preparation(
                     == canonical_lineage_pair(entry.receiver, sender)
         })
         .then_some(ordering))
+}
+
+/// C102 preserves a current reassembly at the association endpoint of its
+/// exact founder contact while that contact already holds real carrier phase.
+/// Generic propagation may reach the same ordering, but cannot create this
+/// association-side zero-carrier antecedent. Read only the immediately
+/// preceding retained boundary; neither ancestry nor a permanent mark is used.
+pub(super) fn reassembled_vocal_founder_bonds(
+    topology: &ResidentTopologyIndex,
+    preceding_frontier: &[ActiveElectricalFrontierEntry],
+) -> BTreeSet<StablePhysicalBondReference> {
+    preceding_frontier
+        .iter()
+        .copied()
+        .filter(|entry| {
+            entry.is_zero_carrier_frontier()
+                && entry.carries_external_ingress_cause()
+                && topology.layer_of(entry.frontier_lineage()) == Some(7)
+        })
+        .filter_map(|entry| entry.cause.map(|cause| cause.bond))
+        .collect()
+}
+
+/// Admit the initial learned handoff, not any external arrival through shared
+/// anatomy. Both sub-carrier and whole-carrier ordering arrivals qualify.
+/// Thereafter the existing individual motor in-flight law carries unfinished
+/// movement; it does not demand this earlier reassembly again.
+pub(super) fn frontier_founds_vocal_action_preparation(
+    cohorts: &[ResidentReachedCohort],
+    topology: &ResidentTopologyIndex,
+    entry: ActiveElectricalFrontierEntry,
+    reassembled_founder_bonds: &BTreeSet<StablePhysicalBondReference>,
+) -> Result<Option<[u8; 16]>, FormationError> {
+    if !entry.cause.is_some_and(|cause| reassembled_founder_bonds.contains(&cause.bond)) {
+        return Ok(None);
+    }
+    frontier_reaches_vocal_action_preparation(cohorts, topology, entry)
 }
 
 /// Resolve the one learned vocal preparation reached from an exact layer-7

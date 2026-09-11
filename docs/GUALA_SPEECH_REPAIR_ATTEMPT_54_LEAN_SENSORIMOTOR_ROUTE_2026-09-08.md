@@ -20,28 +20,25 @@ so live speech acceptance remains open. This paragraph records the Candidate110
 deployment, not the current repair state. Any earlier “speech complete” wording
 is historical and retracted.
 
-Current repair status, 2026-09-11 21:25 UTC: speech NOT fixed in production.
-C120 root growth, mouth/breath/pressure/self-hearing, retained original topology
-and prior C118 ordered/repeated-use/cold successes remain CLOSED at their
-recorded LOCAL scope. Actual-runtime recall has NOT delivered its cue because
-root268e acts before it (F12010); do not call this failed sound-only recall.
-The diagnostic-only getter is now PROVED observer-equivalent over8 matched-input
-actual-runtime intervals: complete body/world hashes and all common evidence
-match normal C120. Earlier differing hashes came from unmatched world TV clock.
-That comparison defect is CLOSED at this scope (H12016/S12020), not a new
-biological failure and not permission to repeat the old diagnostic.
-The missing origin is now measured: world sight receptors b9/d5 advance causal
-custody into L6 22c3/26c1 at476, then associations477, root478, four motors and
-251breath479. Physical current and causal frontier direction remain distinct.
-This is NOT fresh microphone recognition or own-sound replay. Current root rule
-checks generic external provenance and founder anatomy, not current recognition
-of the learned relation. A legitimate learned visual response is also unproved.
-Next single item F118-32: reconcile/correct that recognition-to-root-action
-boundary against C83/C101/D11204 using S12021's exact trace. No sensory
-suppression, retaught root, speculative C104 transplant, or new broad baseline.
-Production1456/image6aa38d99 sole RUNNING/HEALTHY1/1/0 at21:24UTC;
-historical Sep8 alarm unchanged. CaretakerSTOP/browserclosed; no browser needed.
-Full AE goal ACTIVE. No new production changes.
+Current repair status, 2026-09-11 21:52 UTC: speech NOT fixed in production.
+C120 growth/body/self-hearing and C118 ordered/repeated-use/cold successes remain
+CLOSED at their recorded LOCAL scope. Actual-runtime recall has not delivered
+its cue; the measured sight-driven pre-cue act is NOT by itself proof of a
+physiology defect. The initial root rule does admit generic external arrivals
+without establishing the specific learned reassembly-to-founder handoff.
+Source review found that C102's association-side zero-carrier founder entry,
+unlike the later ordering entry alone, uniquely records this handoff across
+two EXISTING retained boundaries. Candidate121's proposed correction consumes
+that initial same-bond handoff; delayed motors keep existing C103 custody.
+Frozen source review and the one extended fixture PASS; actual-runtime result
+is still pending. Isolated Python-native wheel is building under55861.
+No recognition flag, new state/codec, sensory suppression, root reteaching,
+heat motor author or generic frontier deletion. Contract D12101 below; source implemented and focused-test proved,
+not yet mature-runtime or production proved. F118-32 remains the single active item.
+S12020 matched-input observer equivalence and S12021 sight-origin trace remain
+closed. Latest AWS observation21:45UTC1456/6aa38d99 healthy1/1/0;
+historicalSep8alarm unchanged. No production change.
+CaretakerSTOP/browserclosed; no browser needed. Full AE goal ACTIVE.
 Worktree: `/tmp/guala-speech-existing-organ`
 Starting HEAD: `735489406577f90edf6c2fb7fb1889f87eae8107`
 Production boundary: task definition 1456 is the live deployed writer. Its
@@ -12370,3 +12367,178 @@ anatomy/script, matchedcomparison, one complete authenticated outputpairedroot,
 and exactdiagnosticwheel. Prior source8run archive retains its differingTVworld.
 No success state was deleted or overwritten. New Rust85lines are observation
 only behindexistingdiagnostic-api, absent fromordinaryproductionfeaturebuild.
+
+### Candidate121 — initial learned-reassembly handoff; existing state only
+
+`C-054-120-22` — source-audit qualification, 2026-09-11 21:43 UTC.
+The statement to Joe that the sight-driven act was a proved "specific defect"
+was too categorical. S12021 proves its external visual cause and absence of
+fresh Sound reassembly, not that every spontaneous or visually initiated act
+is wrong. An unattended occurrence still carries the changing whole world.
+The six original owners of target L7 hubs have identical receipts before/after
+S12020; none appears in that run's external reassembly observations. Those
+observations count8/12/6/17/6/39/6/48 at651475..482. Recurrence-only participation
+is not exhausted by the original-owner census, so this is NOT a full exclusion
+of visual recognition. The sound-only recall claim remains untested.
+
+`S-054-120-23` — exact source distinction found without a new state field.
+The independent reviewer initially concluded no current fields distinguish
+C102 reassembly from generic external arrival. That is true of the ORDERING
+entry alone, but too broad across the already-retained two boundaries:
+C102 core5114 uniquely creates external=true, zero-carrier custody with
+frontier=L7 association on that association's exact L7/L11 founder bond.
+Generic zero-carrier producer23859 admits only frontier=L11; ordinary generic
+whole-carrier entries cannot satisfy zero; continuation23266 is L11/L11 and
+external=false; motor continuation23823 is L11/L12. Decoder840 preserves
+existing shape; it is not a fresh cause. No extra producer was found.
+At the next actual contact settlement, the dedicated branch23672..23813
+transforms the association-side entry to an ordering-side arrival on the SAME
+physical bond. It accepts real whole transfer of either sign, or nonzero
+current+phase when still sub-carrier. Physical current direction and causal
+direction remain separate. The ordering entry alone loses origin, but the
+immediately preceding retained frontier still contains its exact antecedent.
+Source review corrected its earlier insufficiency conclusion accordingly.
+No organism run, new code, or live change occurred for this finding.
+
+`D-054-121-01` — implementation contract, frozen before code.
+Active item F118-32, actual-runtime sound-only root recall. Predecessors
+S12003/04/06/07 growth/body, S12020 observer equivalence and S12021 traced cause
+stay CLOSED locally. Production baseline remains1456/C110/34b4004a/6aa38d99.
+Owner Sol. Authorized source scope is resident_cognitive_formation.rs,
+resident_cognitive_formation/lean_sensorimotor_route.rs, and its existing
+tests.rs; Python/runtime/codec/neuron/memory-growth/DSF/legacy shell excluded.
+
+Input: the existing current predecessor frontier AND the immediately preceding
+retained frontier, plus unchanged learned anatomy/current physical contact
+settlement. Output: initial root motor admission only when the current
+ordering-side founder arrival has an exact preceding C102 association-side
+zero-carrier external entry on the SAME bond. Build one transient reached-
+frontier set of exact founder bonds; do not scan history for each candidate.
+The structural root resolver remains available to generic propagation, but
+it is no longer sufficient by itself for initial motor admission.
+
+Full local causal path:
+advance_admitted... reads predecessor_active/preceding frontiers ->
+settle_internal_contact_interval_with_body_act receives BOTH by borrow ->
+exact initial handoff -> existing permitted root/motor bond sets ->
+existing21468..21565 single L11/L12 transfer settlement ->
+exact_motor_preparation_transfers and motor discharge ->
+existing exact completed body-act/cross-cohort breath join ->
+same native body pressure/self-hearing -> existing runtime evidence ->
+unchanged paired checkpoint/cold restore. No physics is moved to an observer.
+
+Chronology/lifetime: recognition k retains association-side real contact phase;
+k+1 settles that exact incident contact and advances causal custody to ordering;
+k+2 accepts ZERO or whole-carrier ordering arrival with its preceding antecedent.
+Do NOT wait for a whole founder carrier. Existing C103 motor in-flight custody
+then sustains only the individual still-unfinished physical motor branches;
+it does NOT repeatedly require the old L7 witness. Zero/reversed motor
+current/phase expires that branch and existing special-branch continue prevents
+generic fallback. No timer, widening window, spent lineage or permanent right.
+Association seed guarantees its incident founder is selected by20422. An
+interval with no current/phase/crossing creates no successor handoff.
+
+Conservation/mutation: this changes which existing learned motor circuit is
+admitted, not its source charge, work, conductance, anatomy or body law. Generic
+electrical/cognitive frontier entries remain; clearing their external flag or
+deleting them is expressly rejected. Existing immutable-predecessor prepared
+transition provides rollback; no new fallible write or publication order.
+Current/preceding frontier fields already persist, so no byte-format change,
+migration, historical-field invention or startup alternative. The production
+caller must pass the real preceding field, never an empty placeholder. The
+existing test wrapper's ignored preceding parameter must likewise be wired.
+
+Cost: one bounded transient BTreeSet over preceding reached frontier, O(F log F)
+construction and O(log F) exact-bond membership; no population/history scan,
+new durable bytes, flags, duplicate authority, queue or cache. Remove the
+initial generic-arrival-as-sufficient-authority path rather than adding a
+fallback beside it. Kernel/full DSF/neurons/retained sensory state unchanged.
+
+Required focused checks on the existing coordinated-posture fixture:
+generic whole/zero arrival without exact antecedent refuses initial founding;
+exact same-bond preceding association custody permits both zero/whole ordering
+arrivals and both physical orientations; wrong bond, wrong advancing endpoint,
+echo and unattributed inputs refuse; all generic structural propagation checks
+remain unchanged. Existing C103 delayed branch law remains source-identical.
+
+End-to-end acceptance remains unchanged: actual-runtime copied mature body,
+full concurrent world/body senses, lawful quiet pre-cue evidence, one exact
+4000-sample sound cue, complete learned root motor set, breath/pressure/self-
+hearing, finite stop, retained old originals, exact checkpoint/cold-next.
+Start with the preserved651474 pair; do not reteach or re-run growth. Compare
+against already recorded generic pre-cue cause, not a new baseline campaign.
+If the new initial handoff passes but C103 delay does not, do not weaken this
+join or invent a window: locate the first missing physical motor continuation.
+A passing predicate cannot substitute for this actual-runtime evidence.
+Independent source reviewer agrees this narrowed initial-handoff lifecycle
+needs no new flag/codec or whole-lineage exclusion; frozen CODE review and
+behavioral acceptance are still required before packaging. No deploy authorized
+by this design record alone.
+
+`H-054-120-24` — read-only method waste in this audit.
+An overbroad JSON projection printed full receptor lists and truncated; it was
+replaced with exact counts/layer sets and a receipt intersection on the same
+existing log. Several rg pipelines used head/tail despite the existing no-pipe
+guard, and a /tmp-wide filename search was unnecessarily broad/truncated.
+These are repeat audit-method failures, not organism failures. No runtime or
+body changed. Do not repeat those reads: use direct bounded rg in the validated
+worktree and inspect only the scalar/member evidence needed. The closed source
+and matched-run findings above use the corrected complete projections.
+
+`R-054-121-02` — frozen source and runtime-harness reviews PASS.
+Independent memory_probe_review verified fingerprint
+c6d2ad15824ea7a5ac86effb35a5536d692b22b3bf03f8cc968a466064f6b10b
+before/after. No localized or architectural finding. Initial handoff has the
+real preceding production field; generic frontier structural predicate remains;
+C103 motor continuation and conservation/codec/body rollback are unchanged.
+Source SHAs: core66331a2c6bca989dcb678d61d749e1f6acbbb930422c67cca3c23d01cb586f2e;
+lean25eeaab42a6bd922912c7f05cfaf0a6384f89fb80cdbb73bd1a2ede436db256b;
+tests f63dacb9efe80a8fddcf976d971cef505ff864d45dd1f024c631b75b36fc4d1e.
+Net production source +47 lines across existing files; zero new persistent
+fields/bytes, zero new logs/observation calls/physics in the production path.
+
+Harness /tmp/guala-c121-runtime-recall.py SHA
+b061c218ac5429619a1df469871478acd681fb450eb5a8ab209264a8ab2bab30
+is the existing reviewed C120 runtime-recall script, with only candidate/root
+name, matched environment-clock override0 set before restore, and explicit
+refusal if actual actor-thread quiet_at_cue has become false. That last refusal
+means cue already delivered but interpretation INCONCLUSIVE, not "no cue".
+Body651474/d91e69c9, world4a605818, cue85a505e8/4000samples, coexisting senses,
+eight quiet pre-cue intervals within64, and64post-cue intervals are unchanged.
+No private-state injection, guided teaching, copied diagnostic mutation,
+physical lock or production network write. Exact isolated module path is
+checked before restore. Source-only harness review PASS; not execution evidence.
+
+`S-054-121-03` — focused initial-handoff fixture PASS,2026-09-11.
+Release build82252 completed exit0 in5m24s,99 inherited warnings.
+This is BUILD overhead, not neuron interval time. No compile restart.
+Compiler artifact resolved exact executable:
+native/guala_core/target/release/deps/guala_core-3b4e6ae94e95937d.
+Its --list returned exactly the existing
+resident_cognitive_formation::tests::exact_body_source_mounts_one_coordinated_vocal_preparation.
+Then --exact --nocapture ran1test:1passed,0failed,620filtered,0.01s.
+The printed C118 active-root tie is its expected negative assertion, not failure.
+New cases prove zero/whole ordering arrivals in both physical orientations,
+exact preceding same-bond requirement, rejection of generic/wrong/echo/old
+ordering entries, and unchanged codec round trip of the antecedent.
+Existing structural/growth checks in this fixture still pass. It does not
+prove mature speech or multi-clock physical acceptance by itself.
+Log/tmp/guala-candidate121-focused.log SHA
+d98f17255fca9d90d338f91484d8ad7d29913857ac8b30af3cb45ca7c6046d1d.
+Build output /tmp/guala-candidate121-build.jsonl and .stderr.
+
+Read-only preflight21:45UTC: ECS1456/effde9e1/image6aa38d99 RUNNING/HEALTHY,
+desired1/running1/pending0, no ECS failures; historical guala-clock-stalled
+ALARM stillSep8 14:15:41.275UTC.21:42 CPUavg40.9073/max42.2140%,
+RAMavg/max10.3577%. Local20logical CPUs,24,961MiB available,swap0,
+638GiB/tmp free and1.6TiB backup free. Eight existing Python workers belong
+to TFE population_reading_backfill, not duplicate Guala; untouched.
+No copied Guala body was advanced during source review/fixture build.
+Isolated ordinary python-extension wheel now builds under55861, output
+/tmp/guala-c121-wheel.3YToCL; not a deployment package or live claim.
+
+`H-054-121-01` — documentation edit tool refusal; no partial change.
+The first full-file ledger replacement attempted Delete+Add for the same path
+in one patch. apply_patch refused before mutation. Correct full-file Update
+hunk succeeded and git diff --check passed. Use full-file Update, not duplicate
+operations targeting one path. No organism/source transition was involved.

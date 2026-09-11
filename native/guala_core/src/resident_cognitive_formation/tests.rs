@@ -8669,7 +8669,7 @@ fn exact_body_source_mounts_one_coordinated_vocal_preparation() {
     )
     .unwrap();
     assert_eq!(
-        frontier_founds_vocal_action_preparation(&cohorts, &topology, exact_predecessor).unwrap(),
+        frontier_reaches_vocal_action_preparation(&cohorts, &topology, exact_predecessor).unwrap(),
         Some(first[0].preparation.ordering_lineage)
     );
     let reverse_current_same_causal_frontier =
@@ -8684,7 +8684,7 @@ fn exact_body_source_mounts_one_coordinated_vocal_preparation() {
         )
         .unwrap();
     assert_eq!(
-        frontier_founds_vocal_action_preparation(
+        frontier_reaches_vocal_action_preparation(
             &cohorts,
             &topology,
             reverse_current_same_causal_frontier,
@@ -8704,7 +8704,7 @@ fn exact_body_source_mounts_one_coordinated_vocal_preparation() {
     )
     .unwrap();
     assert_eq!(
-        frontier_founds_vocal_action_preparation(&cohorts, &topology, wrong_frontier).unwrap(),
+        frontier_reaches_vocal_action_preparation(&cohorts, &topology, wrong_frontier).unwrap(),
         None,
     );
 
@@ -8744,9 +8744,58 @@ fn exact_body_source_mounts_one_coordinated_vocal_preparation() {
     .unwrap();
     for refused in [efferent, wrong_bond, unattributed] {
         assert_eq!(
-            frontier_founds_vocal_action_preparation(&cohorts, &topology, refused).unwrap(),
+            frontier_reaches_vocal_action_preparation(&cohorts, &topology, refused).unwrap(),
             None
         );
+    }
+
+    // C121: generic arrival still propagates, but only the exact preceding
+    // reassembly-to-founder handoff may initially admit the learned motor act.
+    // This fixture checks both physical orientations and the sub-carrier case.
+    let ordering = first[0].preparation.ordering_lineage;
+    for (sender, receiver) in [
+        (association_contact.lineage, ordering),
+        (ordering, association_contact.lineage),
+    ] {
+        let association_custody = ActiveElectricalFrontierEntry::causal_in_flight_with_provenance(
+            sender, receiver, association_contact.lineage, association_contact.bond, false, true,
+        ).unwrap();
+        let handoffs = reassembled_vocal_founder_bonds(&topology, &[association_custody]);
+        assert_eq!(handoffs, BTreeSet::from([association_contact.bond]));
+        let sub_carrier_arrival = ActiveElectricalFrontierEntry::causal_in_flight_with_provenance(
+            sender, receiver, ordering, association_contact.bond, false, true,
+        ).unwrap();
+        for arrival in [exact_predecessor, reverse_current_same_causal_frontier, sub_carrier_arrival] {
+            assert_eq!(
+                frontier_founds_vocal_action_preparation(&cohorts, &topology, arrival, &handoffs).unwrap(),
+                Some(ordering),
+            );
+            assert_eq!(
+                frontier_founds_vocal_action_preparation(&cohorts, &topology, arrival, &BTreeSet::new()).unwrap(),
+                None,
+                "generic propagation alone is not the learned reassembly handoff",
+            );
+        }
+        // A later ordering arrival cannot impersonate its association-side
+        // antecedent, and genuine motor continuation is handled elsewhere.
+        for not_antecedent in [exact_predecessor, sub_carrier_arrival, efferent, unattributed] {
+            assert!(reassembled_vocal_founder_bonds(&topology, &[not_antecedent]).is_empty());
+        }
+        for refused in [wrong_frontier, efferent, wrong_bond, unattributed] {
+            assert_eq!(
+                frontier_founds_vocal_action_preparation(&cohorts, &topology, refused, &handoffs).unwrap(),
+                None,
+            );
+        }
+        let mut encoded = Vec::new();
+        association_custody.encode_v20(&mut encoded);
+        let mut cursor = 0;
+        let cold_antecedent = ActiveElectricalFrontierEntry::decode_v20(
+            &encoded, &mut cursor, true, true, true,
+        ).unwrap();
+        assert_eq!(cursor, encoded.len());
+        assert_eq!(cold_antecedent, association_custody);
+        assert_eq!(reassembled_vocal_founder_bonds(&topology, &[cold_antecedent]), handoffs);
     }
 
     // C118: two anatomical roots are not two active roots. Reuse this
