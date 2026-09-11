@@ -8437,3 +8437,31 @@ unchanged.19:40CPUavg41.72/max46.13%,memoryavg11.00/max12.19%.
 CaretakerSTOP/browserclosed; no live lesson/write. Speech NOT fixed.
 Header stale-current-pointer errorH119-04 recorded/corrected, historicalAttempt54
 gate nowexplicitlyhistorical. Full AEgoal active, no user input needed. — Sol
+
+
+## Sol speech continuation — 2026-09-11 20:14 UTC — C120 full-source root growth PASS, not live speech
+Committed/pushed fc5020ff on sol/speech-existing-organ; canonical Attempt54 ledger
+S-054-120-03/04 and current header updated. C120 independently reviewed c711cece...,
+five exact focused tests PASS. Same copied651372 body8c4968b4/full220-portsource
+ebfc9c48/4000-samplecue85a505e8, two guides32 continuing-native recovery:
+C119 ZERO routes; C120 FOUR coordinated vocal routes by guide2. Cold round trip
+exact, body6247ab3b unchanged. This is growth-only, not cue recall/breath/speech.
+The diagnosed double admission exclusion is corrected without new neuron/
+energy/DSF/ordering law. Old recognized originals coexist with novel partials;
+exact pending expiry/ambiguity, real leaves/contacts and no-duplicate completion
+remain enforced. Real-topology lifecycle verifies old original/fractals/cold.
+Mature all-old-original preservation and ACTUAL LeanPhysicalLoop/actor/
+checkpoint/cold-next still required; next run uses the existing C119 runtime
+proof with C120 isolated module. Do not promote helper success to runtime proof.
+
+Result /tmp/guala-candidate120-full-source.json SHA2201514908eeea6b055ac556de405b1c3312ef3ebfe9c7a6b9ac79c97a892cf1.
+Cognitive187441596bytes d3d15fb8f9b79331a15e40002ece2b6cd5bda531b4bed71cc3adeb8722357a45.
+E backup /mnt/tfebackup/guala-c118-four-posture.XehvEs/c120-full-source-result.tar.gz
+SHAb288944d3c57e8e46fc0eda734e32d874efd0223ee2e95ddfed5d735c2143565.
+Measured85.15s versus35.96s, +20,392,161cognitivebytes. Cost NOT called optimized;
+must attribute actual new anatomy versus overhead before release.
+Prior C118 full chain/repeated sound/control/cold wins stay CLOSED locally.
+Production still sole1456/effde9e1/image6aa38d99 HEALTHY1/1/0 at20:10:17;
+historical alarm unchanged,20:05CPUavg41.35%,RAMavg10.55%. No livewrite/deploy,
+no harness/compiler survivor. CaretakerSTOP/browserclosed. Speech NOT fixed;
+AEgoal active. No user input needed. — Sol
