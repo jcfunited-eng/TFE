@@ -8221,3 +8221,24 @@ under the frozen delivery inventory, not new organism physics or re-teaching.
 Production remained task 1456/image 6aa38d99..., healthy 1/1/0 at 17:38:10 UTC.
 No deployment or live-body replacement. Caretaker STOP remains; browser closed.
 Full AE goal remains active. Never restore the older taught copy onto live her.
+
+
+## Sol — C118 exact audio and three cue-uses, 2026-09-11 18:03 UTC
+Canonical Attempt54 S-054-118-23/25/27; source/test commit1f59ce2a,
+success ledger f3bb3c2c, branch sol/speech-existing-organ.
+Test-only existing WAV writer now exposes the saved-tail's exact pressure,
+plus actual pending feedback flags. Same replay retained EVERY old physical
+observation and identical canonical cognitive/body hashes; no physics change.
+Three successive sound-only cue uses on the same progressively used/cold-
+restored copied body PASSED. Each: eight silent pre-cue clocks, four learned
+postures on clocks3/4/5/6 with breath/pressure, cessation, no pending motor or
+self-hearing return, exact codec. Three continuation bonds/16 coordinated
+routes unchanged after third use. The old third-use tie did not return.
+Exact first-use WAV b7eca2ca880873934a0a92aced1cdf92d4920d454d17a827bd9da75eb70759e0,
+16kHz mono, 16seconds including silence, peak433/32768; no amplification or
+speech-intelligibility claim. Durable /mnt/tfebackup/guala-c118-four-posture.XehvEs.
+Next: existing severed-cause control and newest-body full runtime/persistence
+proof under frozen inventory. These local successes stay closed. No new
+learning campaign, no new physics inferred. Live1456/image6aa38d99 unchanged,
+healthy1/1/0 at18:00:15; caretakerSTOP/browserclosed. No live speech claim.
+Joe asked whether browser needed: not yet; request it for actual live hearing.
