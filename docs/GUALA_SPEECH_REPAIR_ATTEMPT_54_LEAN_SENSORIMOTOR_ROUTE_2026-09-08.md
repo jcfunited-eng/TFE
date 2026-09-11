@@ -8961,3 +8961,273 @@ identify why the live guided-growth event authors zero layer-11/layer-12 motor
 contacts despite proving all four guided axes and sound at ingress. No further
 lesson repetition, capacity widening, manual unsaturation, recall change, or
 legacy-shell work is authorized by this result.
+
+`S-054-110-24` (first exact live-body refusal): the authenticated task-1456
+CURRENT at tick 636876 cold-decoded with 495 raw layer-11-to-vocal-layer-12
+contacts, all 495 unresolved/legacy and zero coordinated preparations. One
+measurement-only guided lesson on that exact body supplied four valid
+occurrence-local associations and four exact vocal motors. Route growth still
+added zero contacts because none of those four associations was a member of
+the 306 lineages owned by sound formations reassembled in that interval. An
+eight-lesson copied replay first obtained exact sound ownership for all four
+associations on lesson six and then grew exactly four coordinated routes,
+cold-round-trip exact. This rejects Claude's root-versus-younger conductance
+prediction: no learned root yet existed, and the refusal occurred at retained
+sound ownership before conductance or recall.
+
+`F-054-110-25` (copied acceptance was not production-equivalent): the copied
+growth harness performs 32 quiescent articulated-body settlements between
+demonstrations while holding cognition fixed. Live production has no such
+chronology: each physical-loop recovery settlement is also a cognitive
+interval, and the open browser additionally supplied ordinary
+`camera-microphone` occurrences. Eight new production demonstrations were
+therefore admitted only after at least 32 native ticks apiece, with 4,000 heard
+samples, all four guides, and five or six real body consequences each. They
+still grew no root. The copied success proves the route can grow under frozen
+cognition; it does not prove the route can learn under the live causal clock.
+That former equivalence claim is withdrawn and must not be reused.
+
+`S-054-110-26` (negative anatomy result independently verified): after the
+recovered live curriculum, two separately uploaded immutable CURRENT bodies at
+ticks 637516 and 637580 were downloaded and SHA-256 authenticated. A read-only
+raw physical-contact iteration—not the coordinated route resolver—counted 495
+layer-11-to-typed-vocal-layer-12 contacts on both, with zero additional contact.
+The coordinated resolver independently classified all 495 as legacy/unresolved
+and found zero continuation bonds. The production root-growth failure is real,
+not a stale pointer, checkpoint race, or resolver false negative.
+
+`D-054-111-01` (one exact correction before code): the current route author
+wrongly treats current external-sound reassembly as the only proof that a
+guided association belongs to tutor sound. That proof is unnecessary and
+production-hostile after the association boundary itself became exact. Each
+association is already identified by equality of its complete local layer-6
+neighbour set, formed from the same authenticated body-source span and its
+coexisting sound integrations. Candidate 111 may admit a coordinated posture
+only when every current occurrence resolves to an association that physically
+existed before this lesson. Thus one demonstration still cannot author a motor
+route; a repeated exact sound/body assembly can. Mixed new/existing,
+sensory-only, partial-motor, cross-source, predecessor-echo, and ambiguous
+groups still refuse. The evidence is transient topology, not a persisted flag,
+counter, timer, label, score, injected work, or scripted meaning. No L0-L4,
+recall, continuation, breath, acoustic, shell, schema, or persistence boundary
+is changed.
+
+`F-054-111-02` (exact-assembly recurrence rejected before deployment): the
+focused structural guard passed, but one 4,000-sample minimum lesson on the
+authenticated post-curriculum task-1456 body grew zero routes. A test-only
+scalar then proved why: the event again supplied four coordinated
+association/motor pairs, but zero of the four association assemblies existed
+before the lesson. Exact receptor participation legitimately changes while
+other sensation and cognition continue, so byte-identical complete assembly
+equality is not a lawful general recurrence criterion. Candidate 111's source
+changes and scalar were fully removed; only this failure record remains. It
+was never committed, packaged, deployed, or applied to production.
+
+`H-054-121` (test-only reference depth): the first compile of Candidate 111's
+temporary scalar passed `&&[u8;16]` to `BTreeSet::contains`, which requires
+`&[u8;16]`. Rust refused before any test or organism interval. The scalar's
+single borrow was corrected, the test target compiled, the discriminator ran,
+and the entire rejected candidate plus diagnostic was then removed. No
+production source or state used the failed build.
+
+`H-054-122` (repeated path/name preflight failures; no organism run): two
+read-only source searches first used the nonexistent `crates/...` prefix and
+then repeated a repository-relative path while already inside the native crate.
+Rust later refused transient diagnostic builds for six omitted call-site
+arguments, one tuple-versus-lineage iteration mismatch, missing test fixture
+fields, and the already recorded extra-reference error class. Every failure
+occurred before an organism interval and none reached production. Permanent
+lesson: use the absolute speech-worktree crate path, resolve the exact test from
+the built binary's `--list`, and compile temporary signatures at every caller
+before launching a mature-body run.
+
+`D-054-112-01` (one exact live-chronology correction): the current guided
+lesson was already physically reaching retained cross-sensory sound/body
+associations through their occurrence-local body members while external tutor
+sound was simultaneously present. Exact mosaic settlement then reassembled
+one such retained association for each guided mouth occurrence, but route
+growth discarded them because their immediate recurrence cue was Body rather
+than Sound. Candidate 112 admits that existing evidence only when the current
+assembly carries positive external-sound work, every occurrence-local body
+integration is retained by the prior cross-sensory association, and exact
+external reassembly selects exactly one prior association for that occurrence.
+Zero candidates refuse; multiple candidates refuse. The evidence is transient
+current transfer, sparse local anatomy, and exact reassembly—not a score,
+similarity, count threshold, timer, flag, authored energy, or persisted schema.
+Existing direct sound-reassembly remains valid. L0-L4, full DSF delivery,
+continuation, breath, acoustics, shell, codec, and identity are unchanged.
+
+`S-054-112-02` (exact refusal named on the task-1456 body): one guided lesson
+on the authenticated mature copy physically reached four prior layer-7
+associations in occurrence zero and three apiece in occurrences one through
+three. Requiring complete retention of each occurrence's local body
+integrations reduced those to two candidates for occurrence zero and exactly
+one for each other occurrence. Exact current external reassembly selected
+`...0822` over `...0884` for occurrence zero and selected `...083e`, `...084c`,
+and `...085a` for the remaining occurrences. All four selected associations
+were retained cross-sensory memories; none was classified as immediately
+sound-reassembled because reassembly arrived through the body half. This is
+the precise production-chronology evidence the former gate lost.
+
+`S-054-112-03` (first root growth under continuing cognition): the focused
+route-authority test passed exactly `1 passed`, including refusal when two
+prior owners are equally eligible. One exact guided lesson on the authenticated
+task-1456 copied body then grew four and only four new layer-11-to-vocal-layer-12
+contacts, resolving as one coordinated four-muscle preparation beside the 495
+unchanged legacy contacts. The state and articulated body survived exact cold
+round trips. Growth receipt
+`/tmp/guala-candidate112-live-body-growth-v2.json`, SHA-256
+`45ccac53c0fe1aa2feda54befda93ddc9f23094a69ce9e9eeee5f1a4cbf2661d`.
+The retained root successor was independently reproduced as
+`/tmp/guala-candidate112-root.cognitive`, SHA-256
+`ebc6abc8936d0f6a73df40523f7d9d5b892af5da8f8f68d38948f7e1464763a0`,
+and `/tmp/guala-candidate112-root.body`, SHA-256
+`6247ab3b74180419d60eb5dc21a94c38e72cbe119ea078efa9f70a8d14ffd59f`;
+its JSON receipt SHA-256 is
+`3476a0bb99cf0688b46131e68c5a646db170fdb0899bc13d2b68772675fd981b`.
+Candidate 112 is not yet committed or deployed.
+
+`D-054-112-04` (first recall observation invalid, not a candidate failure): a
+12-clock nominal baseline from the just-grown root produced exactly one
+four-muscle minimum act on clock 2, 270 respiratory carriers, and retained
+nonzero pressure. The later sound-only cue therefore entered a body that was
+still sounding; its lack of a new motor act is not admissible recall evidence.
+The act itself proves the newly grown route can discharge all four motors with
+breath, but it was teaching residue rather than cue-caused recall. Receipt
+`/tmp/guala-candidate112-root-recall1.json`, SHA-256
+`037dc73c43d00cc2d78b6023bf2239223139c5ff7804e97655ffb1d17a9f5772`.
+The frozen next item is to advance that same saved root with no stimulus until
+its articulated body reports exact quiescence, save that state, and only then
+apply the established sound-only recall chronology.
+
+`F-054-112-05` (body-owned founder cannot be recalled from sound): after 64
+ordinary no-stimulus clocks, the Candidate-112 successor reached exact body
+quiescence. Its first phase-zero sound cue produced sensory re-entry but zero
+motor, breath, or pressure; a second identical cue after 12 clocks also
+produced zero. At that second cue, 77 formations reassembled from external
+sound and 537 exact structure members were recovered, but none of the four
+Candidate-112 founder associations belonged to them, so the action boundary
+received zero offers. Claude's cheaper dose alternative was then tested from
+the same clean root: all four consecutive 4,000-sample Mama blocks were
+delivered as four distinct occurrences. Every block caused internal
+reassembly; none caused a preparation, motor, breath, or pressure. The final
+20-clock tail remained exactly silent and cold-round-trip exact. Phase JSON
+SHA-256 values were `821cd21c...5a7e3`, `20da542e...b46b1`,
+`b9815614...09cd5`, and `bd7b1c8c...21c7d`. Candidate 112 and the
+one-eighth-dose diagnosis are rejected for deployment. The retained success is
+only the discriminator: a body-reassembled memory can grow and discharge a
+coordinated route once, but it is not an auditory founder.
+
+`D-054-113-01` (auditory owner, not body echo, is the required founder): the
+same guided interval already carries the narrower Candidate-83 authority that
+Candidate 112 bypassed: prior layer-7 associations reached by positive current
+external-sound transfer, and exact retained formations reassembled by that
+sound. Candidate 113 may reuse such a prior association only when the current
+occurrence's mounted receptor/integration assembly physically reaches it and
+the exact sound-reassembly receipt owns it now. Each body occurrence must
+resolve exactly one association and one guided motor; zero refuses and
+multiple refuses. This binds real recognized sound to the simultaneous exact
+body consequence without requiring byte-identical receptor participation and
+without treating a body-cued formation as an auditory memory. No old sound
+formation is widened, no formation receipt is selected by code order, and no
+lookup, similarity, threshold, timer, or authored work is added. The single
+next check is whether the exact task-1456 body supplies one such auditory owner
+per occurrence; if it does not, Candidate 113 is rejected before recall.
+
+`S-054-113-02` (focused mechanism guard passes): the optimized Candidate-113
+test binary resolved the exact test name mechanically and ran only
+`resident_cognitive_formation::tests::exact_body_source_mounts_one_coordinated_vocal_preparation`.
+It passed exactly `1 passed; 0 failed` in 0.01 seconds. The guard proves that
+one exact current external-auditory transfer plus one exact sound-reassembled
+owner admits one coordinated vocal preparation, while ambiguous ownership
+refuses. This is isolated mechanism evidence only; it is not mature-body or
+production speech evidence.
+
+`H-054-123` (mature-body acceptance run exceeds the bounded working envelope):
+the same release binary began the single Candidate-113 growth question on the
+authenticated task-1456 copy, with one tutor phase, one guided cycle, and
+route-growth-only enabled. After ten minutes it was still active at roughly
+2.5 CPU cores and 1.6 GiB RSS, had emitted no successor or JSON artifact, and
+was stopped rather than allowed to repeat the earlier open-ended debug runs.
+No organism successor existed, no production state changed, and Candidate 113
+is neither accepted nor rejected by this interrupted run. The release build
+removed compilation/debug overhead but did not remove the mature-body burden;
+the next check must name the active costly path before this same acceptance
+question is repeated.
+
+`C-054-123-01` (retract the runtime diagnosis in H-054-123): source review of
+`reservoir_probe_dump` found that the interrupted command omitted
+`GUALA_PROBE_GUIDED_VOCAL_POPULATION_GROWTH_ONLY=1`. Setting the inner
+`GUALA_PROBE_GUIDED_VOCAL_ROUTE_GROWTH_ONLY` does NOT select that outer branch.
+The command entered the default broad diagnostic branch, including motor
+range sweeps; it did not run the intended growth lesson. Neither CPU/RSS nor
+the absence of artifacts diagnosed Candidate 113's runtime. The statements
+that the mature speech path took ten minutes or that Candidate 113's lookup
+caused that cost are retracted. This was an invocation failure. Resolve the
+outer dispatcher as well as the inner test before any future probe command.
+
+`F-054-113-03` (first valid mature-body growth result): rerunning the same
+release binary with the missing outer selector completed in 7.72 seconds.
+One guided cycle on the copied task-1456 predecessor produced zero new vocal
+routes (before 0, after 0), zero work offers, and exact cold round trip. The
+test process passed because the probe completed; speech/root acceptance did
+not pass. No production change. Receipt `/tmp/guala-candidate113-root-growth.json`
+SHA-256 `e1f1a03ba1189649ffedf247fd2f06450c1aa95376c454143f3e0b91eeeb996c`;
+successor cognitive SHA-256
+`771f676d45062f69f58c1c3d00c61f26284562c86eb4b48ff3ea3a9b892f757d`;
+body SHA-256
+`6247ab3b74180419d60eb5dc21a94c38e72cbe119ea078efa9f70a8d14ffd59f`.
+The output does not identify which auditory-owner predicate refused, so it
+does not yet justify a new mechanism or a global performance correction.
+
+`C-054-113-04` (dose audit corrected from the actual producer and receipts):
+`guala-candidate110-live-growth-diagnostic1.json` and `...diagnostic8.json`
+both report `tutor_pressure_sample_count=4000`, `tutor_phase_count=1`.
+They completed one and eight cycles respectively. Their
+`guided_pressure_sample_count=4000/32000` is the accumulated emitted body
+pressure (`guided_pressure.extend_from_slice(&acoustic.radiated_pressure_pcm)`)
+across those cycles, not the tutor dose per event. C1's one-eighth-dose
+interpretation was false. F-054-112-05's later four-block recall test did not
+in itself test training-dose equivalence; the original input fields directly
+resolve the alleged discrepancy. Preserve the separate growth-versus-recall
+results without treating generated sound sample totals as incoming lessons.
+
+`H-054-123-GUARD` (test-only anti-recurrence repair): `reservoir_probe_dump`
+now refuses `ROUTE_GROWTH_ONLY` unless the outer population-growth selector
+or explicit growth-state input is also present, before opening any organism
+file. The pending diagnostic adds only test-compiled printing of current
+associations, auditory-reached prior associations, exact sound members,
+eligible owners, and motor count at the first growth refusal. No cognition,
+schema, or production byte path changes in this diagnostic. Acceptance is
+still the same single growth question; no recall run is justified at zero
+routes. Read-only AWS service census at 2026-09-11 09:37:38 UTC: task 1456,
+desired/running/pending 1/1/0, one PRIMARY deployment, rollout COMPLETED.
+
+`F-054-113-05` (first refusal identified without changing the successor): the
+test-only owner diagnostic completed in 6.78 seconds on the same predecessor.
+Occurrence 0 had one motor, one current association, 74 prior associations
+reached by auditory transfer, 285 sound-reassembled structure members, and
+61 eligible owners. The `occurrence_associations.len() != 1` predicate refused
+before growth. This is not absent auditory input. Both successor hashes match
+F-054-113-03 exactly, proving the diagnostic changed no physical successor.
+The malformed command also now fails at the startup assertion in 0.00 seconds,
+before body loading. Diagnostic binary SHA-256
+`76016b98ce3d9025c69c5e9dc164aa06de977d34d5ec38db5ea5bc88feeb2911`.
+
+Prior-art disposition: F-054-95-05 already rejected broad frontier plus old
+association topology as an occurrence-local body pairing. F-054-107-01 rejected
+unioning distinct association spans. F/S-054-106-02 retained several contacts
+only after they resolve to one already-established root; it does not authorize
+selecting or unioning 61 prior associations into a new root. Therefore simply
+relaxing Candidate 113's uniqueness gate is not a justified repair. The next
+source question is why the current exact sound/body association fails to
+become sound-recallable under ordinary continuing cognition. Preserve the
+Candidate-110 recall/continuation/breath successes and the 112 growth result
+at their demonstrated scope. Candidate 113 remains unaccepted and undeployed.
+
+Cloud envelope: task `effde9e1bf364ec9b4114355fb07eafb`, task definition 1456,
+HEALTHY/RUNNING, expected image `6aa38d99...492a106`. CloudWatch service bins
+09:25–09:40 UTC showed CPU means 43.75–45.42%, maximum 62.49%; memory means
+10.64–10.84%, maximum 11.96%. These service measurements are distinct from
+local probe costs. `guala-clock-stalled` remains ALARM with state-change time
+2026-09-08 14:15:41 UTC; this inspection did not measure a live tick window.

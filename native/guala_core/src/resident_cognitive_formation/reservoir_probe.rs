@@ -7904,6 +7904,12 @@ fn vocal_route_structure_json(state: &ResidentCognitiveFormationState) -> Value 
 
 #[test]
 fn reservoir_probe_dump() {
+    assert!(
+        std::env::var_os("GUALA_PROBE_GUIDED_VOCAL_ROUTE_GROWTH_ONLY").is_none()
+            || std::env::var_os("GUALA_PROBE_GUIDED_VOCAL_POPULATION_GROWTH_ONLY").is_some()
+            || std::env::var_os("GUALA_PROBE_GUIDED_VOCAL_GROWTH_STATE_IN").is_some(),
+        "route-growth-only requires the population-growth selector or an explicit growth-state input",
+    );
     if let Ok(taught_state_path) = std::env::var("GUALA_PROBE_GUIDED_VOCAL_GROWTH_STATE_IN") {
         let out_path = std::env::var("GUALA_PROBE_OUT").expect("GUALA_PROBE_OUT must be set");
         let taught_body_path = std::env::var("GUALA_PROBE_GUIDED_VOCAL_GROWTH_BODY_IN")
