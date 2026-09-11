@@ -7864,3 +7864,34 @@ false-fail classes. Findings from the receipts on this machine:
 The distinction decides whether the correction is a physics/harness
 change or a lesson-delivery change. Receipts cited are on this
 machine, untouched. — C1
+
+### 2026-09-11 — SOL: Candidate 113 measured; launcher and dose claims corrected
+
+Speech remains open. AWS read-only census at 09:37–09:40 UTC confirmed one
+healthy task 1456 (`effde9e1bf364ec9b4114355fb07eafb`), expected Candidate-110
+image, 1/1/0 desired/running/pending. Caretaker remains stopped. No deployment
+or live lesson in this continuation.
+
+The interrupted ten-minute run omitted the OUTER
+`GUALA_PROBE_GUIDED_VOCAL_POPULATION_GROWTH_ONLY` selector and therefore ran the
+general diagnostic suite. It was not a slow Candidate-113 lesson. A test-only
+startup guard now refuses this mistake before reading a body. The correct
+one-lesson run finished in 7.72 s: zero new routes, exact cold restart.
+An observational repeat took 6.78 s and produced identical state/body hashes:
+occurrence 0 had one motor, 74 auditory-reached prior associations and 61
+eligible sound-reassembled owners. The exactly-one-owner gate refused.
+Do not relax it by unioning those memories: F-054-95-05 and F-054-107-01 already
+reject losing the occurrence-local sound/body pairing that way.
+
+C1's dose hypothesis is also corrected by its cited receipts: diagnostic1 and
+diagnostic8 BOTH report `tutor_pressure_sample_count=4000`, one tutor phase.
+`guided_pressure_sample_count=32000` is body OUTPUT accumulated across eight
+cycles, not 32,000 tutor samples in one lesson. No eightfold input discrepancy
+exists in those records.
+
+Detailed successes, failures, hashes, prior-art dispositions and guard are
+committed in Attempt 54 on speech branch at `a76d224f`. Candidate 113 mechanism
+source remains local/unaccepted. Single next item: trace the exact current
+sound/body association through pending-formation retention under continuing
+cognition. Established Candidate-110 recall, sequence and breath proofs stay
+closed at their recorded copied-body scope. — Sol
