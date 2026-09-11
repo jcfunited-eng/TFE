@@ -5514,6 +5514,23 @@ fn guided_vocal_population_growth_json(
         std::env::var_os("GUALA_PROBE_GUIDED_VOCAL_ROUTE_GROWTH_ONLY").is_some();
     let continuing_recovery =
         std::env::var_os("GUALA_PROBE_GUIDED_VOCAL_CONTINUING_RECOVERY").is_some();
+    // Test-only source discriminator: retain the real full primary source
+    // from the production caller while keeping the helper's body chronology.
+    // The same captured scene is presented twice; this is not live replay.
+    let tutor_source_override = std::env::var("GUALA_PROBE_GUIDED_VOCAL_TUTOR_SOURCE_IN")
+        .ok()
+        .map(|path| {
+            assert!(route_growth_only && continuing_recovery && maximum_cycles == 2
+                && tutor_pressure_phases.len() == 1,
+                "captured tutor source is restricted to the two-guide discriminator");
+            let bytes = fs::read(path).expect("captured actual primary source reads");
+            let source = decode_native_joint_source_episode(&bytes, 220, 5_720, 1, 26)
+                .expect("captured actual primary source decodes canonically");
+            assert_eq!((source.joint_source_ports().len(), source.joint_source_sample_count(),
+                source.joint_source_occurrences().len(), source.joint_source_occurrence_frame_count()),
+                (220, 5_720, 1, 26), "captured primary source has exact live extent");
+            source
+        });
     let capture_failure =
         std::env::var_os("GUALA_PROBE_GUIDED_VOCAL_FAILURE_CAPTURE").is_some();
     assert!(!capture_failure || (route_growth_only && maximum_cycles <= 8),
@@ -5651,11 +5668,14 @@ fn guided_vocal_population_growth_json(
             &moved.proprioceptive_consequences,
         )
         .expect("guided vocal consequence source admits");
-        let tutor_pressure_source = probe_hearing_episode(
-            tutor_pressure_phases[(sequence_start_phase + usize::try_from(cycle - 1).unwrap())
-                % tutor_pressure_phases.len()],
-            "candidate-exact-external-tutor-pressure",
-        );
+        let tutor_pressure_source = match tutor_source_override.as_ref() {
+            Some(source) => source.clone(),
+            None => probe_hearing_episode(
+                tutor_pressure_phases[(sequence_start_phase + usize::try_from(cycle - 1).unwrap())
+                    % tutor_pressure_phases.len()],
+                "candidate-exact-external-tutor-pressure",
+            ),
+        };
         let mut admitted_sources = vec![
             super::admitted_fixture_episode(&source),
             super::admitted_fixture_episode(&tutor_pressure_source),
@@ -5894,7 +5914,8 @@ fn guided_vocal_population_growth_json(
             "route_growth_only": true,
             "cognition_continues_during_recovery": continuing_recovery,
             "recovery_intervals_between_lessons": 32,
-            "single_sound_source_authority": true,
+            "single_sound_source_authority": tutor_source_override.is_none(),
+            "captured_full_primary_source_repeated": tutor_source_override.is_some(),
             "tutor_pressure_sample_count": tutor_pressure.len(),
             "tutor_phase_count": tutor_pressure_phases.len(),
             "maximum_cycles": maximum_cycles,

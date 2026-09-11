@@ -11356,3 +11356,82 @@ restart or browser required. Census18:53 no C119 runtime/test/compiler survivor;
 unrelated sleeping TFE loops untouched. Full AE goal active. Previous status
 answer was no implementation progress; these executable results change the next
 action without reopening the preserved local chain.
+
+
+`D-054-119-09` — 19:03 UTC frozen no-new-code discriminator, independently
+source-reviewed by memory_probe_review. Actual651372 root failure cannot be
+attributed to transport yet: C118 positive helper lineage began637580.
+Use existing exactrelease reservoir_probe_dump; explicit outerPOPULATION_GROWTH_ONLY
+and innerROUTE_GROWTH_ONLY; CYCLES2, CONTINUING_RECOVERY1, CARRIERS1500,
+one exact8000-byte phase0 file, single651372 envelope input, no state/tail overrides,
+save both encoded cognitive/body outputs. No compile, no source/physics edit.
+Expected chronology two guides with32 cognitive/body recovery intervals BETWEEN,
+34native ticks. This is NOT actual actor parity or speech acceptance.
+Positive: newer body can grow under helper delivery; remaining differences are
+source/context/return chronology. Negative: old helper success does not reproduce
+on this exactbody/chronology; no specific root cause follows. Preserve both.
+Check checkpoint1/2 routes, finalcold exact, actual saved generation. No broad
+eightlesson/recall/sequence test. Read-only AWS before/after; exact child census.
+C118 positives remainclosed. H119-03: one read-only rg usedwrongparent for
+lean_sensorimotor_route.rs; resolver found resident_cognitive_formation subdir.
+No compile/test used wrongpath; apply test-f/preflight to all source reads.
+Preflight safely refused ambiguous guala_cochlea.py basename (production/test),
+then exact dsf_ai_service path verified. This refusal is the guard working.
+
+
+`S-054-119-10` — SAME651372 body helper baseline PASS35.28s,1passed, session91804
+completed. Two4000-sample minimum guides,32 actual recovery clocks BETWEEN:
+checkpoint1zero routes; checkpoint2 FOUR coordinated routes/one vocal source.
+Before0/after4, coldexact; zero guided breath/sound (this is growth, not recall).
+Receipt /tmp/guala-candidate119-helper-baseline.json
+SHA4c2a5c9c446ab09aa93fbdd94bca3ee6883c0e0abe942aefd218af423058b107;
+logSHAf0bbdc017c299703487676118406e6a36a3166204ce16a8c7157b1056645a967;
+cognitiveSHA54feb7f1e7b001526ceaaf3580a5cadcb05867ea7d902cab1a4d93f5abe76f9f;
+bodySHA6247ab3b74180419d60eb5dc21a94c38e72cbe119ea078efa9f70a8d14ffd59f.
+Verified E archive c119-helper-baseline.tar.gz in existing118backup directory,
+SHA708762371d3eb61b88a54863ac9536185e8bf210f2f5fad0d55a21f449896261.
+D119-09 timestamp prose19:03 was mistaken: actual launch19:00:01,
+postcheck19:01:03. Task1456/6aa38d99 remainedHEALTHY; historicalalarm unchanged.
+18:55 complete CPUavg42.94653747/max55.94246095%,memoryavg10.89172363/max12.10632324%.
+Process54139 completed; observedRSS2371000KiB during run, not claimed exactpeak.
+Newer lived body can grow; actual failure is not established as loss of that
+capability. Difference now source/context/chronology, not another chain law.
+
+`D-054-119-11` — next exact discriminator: hold helper chronology and651372
+body constant, substitute exact actual application's first full primary source.
+Existing probe had no source-override option. Add only test-compiled
+reservoir_probe.rs optional TUTOR_SOURCE_IN with strict two-guide/continuing-
+recovery/onephase extent checks220ports/5720samples/1occurrence/26frames.
+No production source, neuron law, admission law, fullfield or returncode change.
+Default oldhelper source remains unchanged; record override explicitly.
+Source repeated in both guides is the same captured first scene; this is
+controlled-source diagnosis, NOT faithful two-live-lessons/world chronology.
+If it grows, actual source alone under this chronology is sufficient; pursue
+actual immediate-return/recovery differences. If it does not, actual fullsource
+input prevents helper's root result in this body/chronology; locate its first
+missing physical producer, not drop other senses or declare recognitionbroken.
+
+Outside-tree /tmp/guala-c119-export-primary-source.py
+SHA8b3e6ca7a04f411fefa600c667d3c6f9bf866884442c98a403bbe85c800fef91,
+independent frozen source reviewPASS. Seeds onlynewlocal pair; noactorstart.
+Actual LeanPhysicalLoop constructs source; interception BEFORE native guide
+exports bytes then raises. Actual rollback must preserve exactworld/state/tick.
+Only successfulexit plus finalreceipt accepts file; a file alone is notproof.
+No network/livewrite. Originalpairhashes and bothloadedmoduleorigins enforced.
+Fixture maxinterval5 remains mere upperbound, no sample/timing fabrication.
+Native test override separately reviewed/frozen BEFORE compile/run. One
+sourcecapture, one changed-source two-guide run; no baseline/wholeword repeats.
+
+
+`S-054-119-12` — exporter session70306 completed exit0: zero native clocks,
+tick651372 unchanged, exactworld restored, exactstate unchanged. Actual source
+ /tmp/guala-c119-source.4tlU6Q/primary.glsrc
+SHAebfc9c48d0b646e5fc580515cf96f7991ef9514fa7974204d905e23431e62736,
+393124bytes,220ports,5720port-samples,1occurrence,26frames,admission250/1000.
+Module paths+input hashes checked. No native interval or livewrite.
+Independent test-only override review PASS fingerprint
+9f5bba561bca4a0d4642a0eca44737b00ab5187a4f511075f96a0b85727f910f,
+before/after exact. No static signature issues; default behavior unchanged.
+Production C118/C119 sources unchanged; only testcompiled source differs.
+Proceed one release test build and exact two-guide source discriminator,
+not another fullruntime/speech acceptance. Exporter/test child census clear.
