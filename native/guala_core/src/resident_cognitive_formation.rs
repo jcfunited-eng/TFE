@@ -8280,6 +8280,74 @@ impl ResidentCognitiveFormationState {
             .collect()
     }
 
+
+    /// Diagnostic-only projection of existing custody, including zero-carrier
+    /// entries. No state changes; current phase is never labeled historical.
+    #[cfg(feature = "diagnostic-api")]
+    pub(crate) fn observe_active_frontier_custody(
+        &self,
+        lineages: &[[u8; 16]],
+    ) -> Result<serde_json::Value, FormationError> {
+        let hex = |lineage: [u8; 16]| {
+            lineage.iter().map(|byte| format!("{byte:02x}")).collect::<String>()
+        };
+        let mut rows = Vec::new();
+        for (age, frontier) in [
+            (0_u8, self.active_electrical_frontier.as_ref()),
+            (1_u8, self.preceding_active_electrical_frontier.as_ref()),
+            (2_u8, self.older_active_electrical_frontier.as_ref()),
+        ] {
+            for entry in frontier {
+                if !lineages.contains(&entry.receiver())
+                    && !entry.sender().is_some_and(|sender| lineages.contains(&sender))
+                {
+                    continue;
+                }
+                let cause = if let Some(cause) = entry.cause {
+                    let (left, right) = cause.bond.endpoints();
+                    let flat = self.topology_index.flat_for_lineage(left)?;
+                    let contact = self.topology_index.incident_contacts_by_flat[flat]
+                        .iter()
+                        .map(|index| self.topology_index.contacts[*index])
+                        .find(|contact| contact.stable_bond == cause.bond)
+                        .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
+                    let state = match contact.origin {
+                        ResidentContactOrigin::Local { cohort_index, contact_index, .. } => {
+                            &self.cohorts[cohort_index].state.electrical().contact_states()[contact_index]
+                        }
+                        ResidentContactOrigin::Fabric { contact_index } => {
+                            &self.electrical_fabric.state().contact_states()[contact_index]
+                        }
+                    };
+                    let (numerator, denominator) = state.carrier_phase().parts();
+                    serde_json::json!({
+                        "bond_left": hex(left),
+                        "bond_right": hex(right),
+                        "parallel_ordinal": cause.bond.parallel_ordinal(),
+                        "whole_carriers": cause.transferred_whole_carriers.to_string(),
+                        "frontier_is_sender": cause.frontier_is_sender,
+                        "external_ingress_cause": cause.external_ingress_cause,
+                        "body_owned_acoustic_efference": cause.body_owned_acoustic_efference,
+                        "is_in_flight": entry.is_in_flight(),
+                        "phase_left": hex(self.topology_index.flat_locations[contact.left].2),
+                        "phase_right": hex(self.topology_index.flat_locations[contact.right].2),
+                        "current_carrier_phase": [numerator.to_string(), denominator.to_string()],
+                    })
+                } else {
+                    serde_json::Value::Null
+                };
+                rows.push(serde_json::json!({
+                    "frontier_age": age,
+                    "frontier": hex(entry.frontier_lineage()),
+                    "sender": entry.sender().map(hex),
+                    "receiver": hex(entry.receiver()),
+                    "cause": cause,
+                }));
+            }
+        }
+        Ok(serde_json::json!({ "entries": rows }))
+    }
+
     /// Read every exact transfer on the current sparse electrical frontier.
     ///
     /// This crate-private projection lets the one-seal organism trajectory

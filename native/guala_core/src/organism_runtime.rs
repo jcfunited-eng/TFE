@@ -5969,6 +5969,23 @@ impl NativeResidentOrganismRuntime {
         ))
     }
 
+
+    /// Absent from ordinary release builds; reads the current native body only.
+    #[cfg(feature = "diagnostic-api")]
+    fn observe_active_frontier_custody(&self, lineage_hexes: Vec<String>) -> PyResult<String> {
+        if lineage_hexes.is_empty() {
+            return Err(PyValueError::new_err("custody observer requires exact lineages"));
+        }
+        let mut lineages = lineage_hexes.iter()
+            .map(|value| parse_lineage_hex(value))
+            .collect::<PyResult<Vec<_>>>()?;
+        lineages.sort_unstable();
+        lineages.dedup();
+        self.runtime.cognitive_state().observe_active_frontier_custody(&lineages)
+            .map(|value| value.to_string())
+            .map_err(|error| PyValueError::new_err(error.to_string()))
+    }
+
     /// Read-only reached-neuron electrical evidence for translation-boundary
     /// diagnosis. Cognition never consumes this observer projection.
     fn observe_reached_neuron_electrical_by_layer(

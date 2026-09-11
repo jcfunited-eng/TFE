@@ -20,23 +20,28 @@ so live speech acceptance remains open. This paragraph records the Candidate110
 deployment, not the current repair state. Any earlier “speech complete” wording
 is historical and retracted.
 
-Current repair status, 2026-09-11 20:43 UTC: C120 root-growth/mouth/breath/
-pressure/authenticated self-hearing and prior217-original topology preservation
-remain LOCALLY PROVED (S120-03/04/06/07), not deployed. Actual-runtime
-sound-only recall run15721 completed its64-clock PRE-CUE baseline; it delivered
-NO cue because target268e enacted twice at651479/651517 and quiet was not
-established. This is INVALID/UNREACHED recall evidence, not zero-cue-response.
-It does not erase rootgrowth or prove indefinite repetition. SeeF120-10.
-Exact preserved taught input651474/d91e69c9..., baseline successor651538/dab36ac4....
-Next single item: trace the two pre-cue acts' retained founder/motor authority
-against D112-04/F058-04/C070-01, separating residual teaching, fresh world input
-and wrong echo/custody renewal before any new neuron change or longer run.
-The existing public frontier observer omits in-flight/provenance; do not use it
-to decide that distinction. No repeated teaching or rootgrowth campaign.
-C118 four-posture/repeated-use/breath/pressure/silence/cold wins remain CLOSED at
-their recorded local scope. Production1456/image6aa38d99 unchanged/HEALTHY1/1/0
-at20:39UTC; historicalSep8alarm unchanged. CaretakerSTOP/browserclosed;
-browser not needed. The full AEgoal remains ACTIVE and speech NOT fixed.
+Current repair status, 2026-09-11 21:25 UTC: speech NOT fixed in production.
+C120 root growth, mouth/breath/pressure/self-hearing, retained original topology
+and prior C118 ordered/repeated-use/cold successes remain CLOSED at their
+recorded LOCAL scope. Actual-runtime recall has NOT delivered its cue because
+root268e acts before it (F12010); do not call this failed sound-only recall.
+The diagnostic-only getter is now PROVED observer-equivalent over8 matched-input
+actual-runtime intervals: complete body/world hashes and all common evidence
+match normal C120. Earlier differing hashes came from unmatched world TV clock.
+That comparison defect is CLOSED at this scope (H12016/S12020), not a new
+biological failure and not permission to repeat the old diagnostic.
+The missing origin is now measured: world sight receptors b9/d5 advance causal
+custody into L6 22c3/26c1 at476, then associations477, root478, four motors and
+251breath479. Physical current and causal frontier direction remain distinct.
+This is NOT fresh microphone recognition or own-sound replay. Current root rule
+checks generic external provenance and founder anatomy, not current recognition
+of the learned relation. A legitimate learned visual response is also unproved.
+Next single item F118-32: reconcile/correct that recognition-to-root-action
+boundary against C83/C101/D11204 using S12021's exact trace. No sensory
+suppression, retaught root, speculative C104 transplant, or new broad baseline.
+Production1456/image6aa38d99 sole RUNNING/HEALTHY1/1/0 at21:24UTC;
+historical Sep8 alarm unchanged. CaretakerSTOP/browserclosed; no browser needed.
+Full AE goal ACTIVE. No new production changes.
 Worktree: `/tmp/guala-speech-existing-organ`
 Starting HEAD: `735489406577f90edf6c2fb7fb1889f87eae8107`
 Production boundary: task definition 1456 is the live deployed writer. Its
@@ -12091,3 +12096,277 @@ One source search also named substrate/native_resident_organism.py without
 preflight; nonexistent. Actual glew_runtime/native_resident_organism.py
 discovered with rg --files. No native run/build. This repeatsH12001's preventable
 path class and is recorded as such, not a newly discovered organism defect.
+
+
+`D-054-120-12` — existing-log/source narrowing; eight-clock observer contract.
+Previous goal turn PROGRESS: actual baselineF12010 committedc9747e4e, backed up
+and sharedhandoff76f1949540b0cbf1440584aa94ad7e32a81a5140; Slackverified
+2026-09-11T20:43:17Z. NativeC120/source/module and production1456 unchanged.
+Existing log, no rerun:651475 own-pressure clears; ordinary native476/477/478/
+479 then targetact479. Same pattern513clear,514/515/516/517then targetact517.
+LeanPhysicalLoop::passive_sensorium returns zero legacyears/cochleae for those
+ordinary intervals; no external mic/tutor event was submitted. Ownsound interval
+sets admit_learned_motor_work=false; ordinary interval reenables existing law.
+This correlation alone is NOT proof of a bad authority or indefinite repetition.
+
+Source separates fresh transduced work (externally_energized, core9431) from
+nonzero delivered gate_work (externally_perturbed, core9727). Gate delivery
+quantizes new energy PLUS retained receptor residue. Mosaic external cue at4330
+uses reached∩perturbed, not fresh-energy provenance. Sound-tagged reassembly
+can then call retain_externally_reassembled_vocal_founder_frontier5031.
+Need measured actual cue lineages before diagnosis; no broad physics edit.
+
+Cheaper existing evidence exists BEFORE adding a native in-flight getter:
+ResidentCausalIntervalEvidence already carries external reassemblies, cue
+lineages, externally perturbed lineages and directed frontier transfers through
+the Rust/Python boundary. Observe first8ACTUALintervals from SAME651474pair,
+covering measuredfirstact479. No teacher/cue, no architecture/counter/timer in
+organism. New script/tmp/guala-c120-runtime-cause.py
+SHAc16c2d2587a6f9c3036211bf4408cffa317b904aa5e9f520997225ecec0ad800.
+One layer lookup before actor, no inference for new/unmappedlineages (null).
+Read-only perinterval rows do not alter nativecalls/args/results. Compare every
+common physicalfield to F12010first8 to detect observer-induced chronology drift.
+After actorclose, retain pairedcheckpoint and originaltopology comparison;
+NOcold-next/recall/silenceacceptanceclaim. Wholeoccurrence<=4 may cross8target.
+If measured external Sound cue precedes rootact under zero input, isolate that
+classification boundary. If absent, do not infer residualcause; fullinflight
+custodyflags remain needed. This is a bounded discriminator, not another lesson
+or a substitute for the frozen speechacceptance. Review before8clockrun.
+
+Final source reviewer PASSc16c2d25 unchanged before/after. Common logged fields
+are the equivalence scope, NOT waveform-byte equality (oldlog has samplecounts,
+not rawwave). Pre20:47:53AWS sole1456/effde9e1/image6aa38d99 healthy1/1/0;
+alarmSep8unchanged;20:45CPUavg42.2595/max46.9068%,RAMavg10.7305/max11.7584%.
+No localheavy/native/compiler concurrent. Disposable/tmp/guala-c120-cause.3s84mm.
+
+
+`S-054-120-13` — eight-clock actual-runtime observer90969 PASS, same physical log.
+Root-cause hypothesis inD12012 REFUTED for this trace: across651475–482 there
+are ZERO Sound-layer externally_perturbed lineages and ZERO Sound-cued external
+reassemblies. Do NOT change mosaic admission or receptor quantization on that
+theory. All common logged calls/motors/work/breath/pressure samplecounts EXACT
+match F12010first8; this is not rawwave/fullstate byteequivalence.
+The same target268e act at479 has4motors27/70/77/77+251breath. At476 and478,
+charge flows FROM268e into4associations (5/4carriers each), but the advancing
+frontier pointsTO268e. Same reverse-association pattern480/482. Direction and
+advancing endpoint are preserved separately; no relabeling current as energy.
+No miccue, no guide; actualworld/fullsensorium remainsmounted.
+All223recognized originaltopologies remain; contacts unchanged.
+Closecheckpoint651482/body8993e242efe98f65a65e74022de6ab9264fa1cecf98668d4ef7c84de6b742bed
+world13c3f3145d37266e0bc7aa6d5e83a11c54f71ab7829db33281faf3c80844f850.
+8calls5735.030ms total,mean716.879,max879.647;peakRSS1909020KiB.
+No coldrestart done/claimed. LogSHA
+cc1553b3028be6cacf214fd56423b7c3ea84c2337fb38f6723ad14d8dbfc436d.
+Earchivec120-eight-clock-cause.tar.gz
+SHA37396cefe1951332baa51df2f366b01b87e7f78d74fedd734ab1f04de05e2a33.
+Post20:51:15 sole1456/effde9e1/image6aa38d99 healthy1/1/0,alarmSep8unchanged;
+20:49CPUavg44.5026/max52.9764%,RAMavg10.5886/max10.9894%. No live writes.
+
+`D-054-120-14` — diagnostic-only full custody projection; no physics change.
+Existing rootgate accepts generic external ingress plus exactfounderbond;
+not automatically a defect: other senses/autonomous causes must not be
+suppressed to manufacture silence. Need actual source flags before diagnosis.
+One read-only core getter and PyO3 bridge behind EXISTING diagnostic-api feature.
+No public UI/API exposure, ordinary release feature absent, no Pythonproduction
+change, no codec/persistence/statefield/mutation/newauthority. Retained current,
+preceding andolder frontiers only; filterexactrequestedlineages on endpoints
+before projection, preserve cause=None and zero-carrierinflight entries.
+Emit age,frontier,sender/receiver,exactbond/parallel,wholecarriers,external/echo
+flags,frontier-is-sender,is-inflight, CURRENT actualelectricalcarrierphase.
+Do not call channeltransition-workphase carrierphase; do not inventhistorical
+phase/current. Currentphase is read from exactlocal/fabriccontact custody.
+No settlement or neuronal scan; iterate3existingboundedfrontiers and matching
+endpoint incidentcontacts. JSON is externaldiagnostic transport only, not state.
+Observed NativeResidentOrganism private underlying handle read only in disposable
+script; no new Pythoncognitivecontroller. Schema exactnamedfields, no lossy
+numericfloat; allwideintegers/rationals text. Forwardexistingcalls unchanged.
+
+Acceptance: source-onlyreview before one isolatedreleasewheel withdiagnostic-api,
+then same8ACTUALclocks from651474, before/aftercustody on actor thread. Compare
+common physicalfields and endcheckpoint hashes to S12013; if unequal refuse
+diagnostic equivalence. Nonemptytargetendpoint filter validatedcanonically.
+Featureaudit: existing diagnostic-api only exposes canonical L0-L4 differential
+snapshotAPI; no kerneltransition switch. L0-L4files unchanged/notcalledviaAPI.
+No rootphysicscandidate or deploy authorization inferred from diagnosticresults.
+
+Diagnostic source review found one LOCALIZED phase-orientation ambiguity:
+rawcarrierphase follows contact-anatomy orientation, while stablebond endpoints
+are canonical. Batchedcorrection adds phase_left/right from actualtopology
+contact orientation. Finalfingerprintd8d0166f9c4ddaa4961b3c354c732b0260d8d28449559f806302fa69dae181b8
+PASSunchanged before/after. Scriptf4f202a309ccc3ce4f5f5147ca1ef991b72493d98ac2a7a0d766bf9056e7778f.
+No architecturalfinding. Existingmodule remainsuntouched. One isolatedwheel
+build now uses existingpython-extension,diagnostic-api features in
+/tmp/guala-c120-custody-wheel.GCk0xA. Added85source lines behinddiagnosticfeature.
+`H-054-120-05` — two avoidable observer-read failures recorded, no native rerun:
+an acoustic* glob path was absent in a source search; corrected to knownfile/
+directory search. Unfiltered tail of addeddiagnostic JSON truncated output;
+filtered samefile by soundlayer/exactroot instead, no evidence lost. A gitdiff
+check initially ran in workspace rather than activeworktree; no mutation,
+completedexit0, repeatedread-only in explicitactiveworkdirpassed.
+
+Diagnostic-onlybuild17048 completed1m27s/191inheritedwarnings.
+WheelSHA064865a85fc2eeb6ceaf841614a40fe80fbca69a37877bfcfde12f490f3d0e6f;
+isolatedinstall/tmp/guala-c120-custody-wheel.GCk0xA/installed, globaluntouched.
+Pre20:58sole1456/effde9e1/image6aa38d99 healthy1/1/0,alarmhistoricalunchanged.
+20:55CPUavg42.4397/max49.5389%,RAMavg10.7925/max11.6699%.
+Eightclockroot/tmp/guala-c120-custody.KPiBQz, same651474predecessor.
+
+
+`S-054-120-15` — custody observation6718 completed; bounded evidence retained.
+Same taught651474 input,8 native intervals through651482, no cue/guide.
+All common extended fields (calls/ticks, motors/work/breath, pressure counts,
+perturbed lineages, reassemblies and root transfers) equal S12013.
+At476 root268e->four associations: echo=true/external=false,5 carriers each.
+At477 association links to22c3/26c1 advance frontier into associations with
+external=true/echo=false; physical current remains association->L6, not reversed
+by the observer. At478 root->associations4 carriers, external=true;479 root
+recruits4 minimum motors27/70/77/77 and251breath. This is new propagated custody,
+not one record changing flags. Current root law accepts generic external ingress
+on exact founder bonds; this does NOT prove a fresh acoustic cue or wrongdoing.
+No Sound-layer perturbation/reassembly across8 still stands.
+223 old original topologies retained; full-state equivalence NOT claimed.
+Finalbody7f6ef753e4d646a260606e05325a4671a929994b544d0fac94827439d054faa2
+world0bc3b59973cde0f2fa3d05201408fcf7ee811d48951cf2c34307a9b4482a6e6c.
+8calls5883.068ms total/735.384mean/912.786max;peakRSS1895688KiB.
+Log/tmp/guala-candidate120-runtime-custody.log
+SHAa11c08a3b68941e8252d44e015e53746d28660bc0939bccdf8521fbae694a783.
+Source reviewer agrees own echo versus ambient source is NOT decided yet.
+
+`H-054-120-16` — saved-state comparison INPUT defect; not a biological failure.
+Full output hashes differ from S12013. Offline exact nested JSON/base64 comparison
+(/tmp/guala-c120-compare-worlds.py SHA9911f2f46caaef73dca13b203c614b580db6ec77d18a6d22e99ac9bda2232e8e)
+found12 changed world leaves:6 television emission bands plus6 derived receipt/
+signature fields. Not random HMAC-only drift. Old TV600000 in each band;
+new850000/500000/200000/120000/90000/70000. Object28 is television.
+Exact source: embodiment_world.py::_settle_solar_illumination4572–4608 reads
+GUALA_SOLAR_UTC_OVERRIDE or time.time()%86400. guala_home_world.py534–546 mounts
+6 physical frames,45seconds/frame. Neither observer captured/fixed that external
+clock. Same body/world start and same calls therefore do NOT imply same input.
+Fullbody164851934bytes both: envelopeheader58, body/acoustic fabricprefix40980,
+joint68bytes exactly equal; cognitive164810828bytes unequal (14046 byte
+positions differ). Do not discard those differences as receipts or assert every
+neuron is equal. This invalidates a same-input equivalence conclusion, not the
+observed act and not C120's closed root-growth successes.
+Permanent earliest check: all successor-equality harnesses must capture/replay
+external world clock (solar AND TV) or pass one explicitly identical value via
+the existing environment-only override in both disposable processes. Never set
+that override in production, suppress world senses, or change cognition for this.
+No native interval was run to discover this mismatch.
+
+`S-054-120-17` — existing anatomy read81358, ZERO native intervals.
+Reader/tmp/guala-c120-read-cause-anatomy.py
+SHA25d63fb68cac60be47ffe5fc05caaf8159a7de792596366d7e7d2c2d6e19e23b,
+source-reviewed, exact restored651482 bodyhash7f6ef753 before/after unchanged.
+Output/tmp/guala-c120-cause-anatomy.jsonl
+SHA0ee5ee57355c50d9e6f7cb2a3adbf8bf384ebbda6fa221471ed081094d3262ee.
+22c3,26c1,28d5 are layer6; root268e layer11.22c3 recurrence bonds appear in
+0a0a4c82 (211 original members, not a230-member claim) and44a9e08d sound/body
+formation.26c1 absent from this observer's matched original/recurrence endpoints;
+do NOT infer absent physical contacts.28d5 belongs to7d7ea494 original with
+body006fa andL8cbb. No semantics/recognition claim from membership.
+C104 excludes returned motor tissue from TEACHING-edge authorship; its use here
+would be an unproved change to existing-root recall. Do not transplant it.
+PeakRSS912020KiB; no actor, migration, publication or production action.
+Still missing: incoming custody of22c3/26c1 before477, not another growth test.
+
+`D-054-120-18` — corrected equality/causal-origin check, test transport only.
+One script/tmp/guala-c120-runtime-matched.py
+SHAe3ee5aaa1d83161ead3b9d4e163a49347fe32a62f37b90f4ae2a3405f9848d82.
+Same preserved651474 pair, same8 actual native intervals/real actor; no teaching,
+mic cue, physiology, build or release. Two SERIAL disposable processes: old
+normal C120 wheelcad620c2 and reviewed diagnostic wheel064865a8. Both explicitly
+set existing GUALA_SOLAR_UTC_OVERRIDE=0 (environment input only). This is a
+matched-input diagnostic comparison, NOT a replay of production's wall clock.
+Do not remove non-sound inputs or demand silence by force. Output says the scope.
+Diagnostic adds only22c3/26c1/28d5 to the existing9-endpoint filter and maps actual
+endpoint layers from the existing startup lookup. Observe before/after each call;
+no new native getter/code. Normal mode never accesses the diagnostic-only getter.
+Frozen source-only review before runs; pre/postAWS envelopes; no concurrency.
+Acceptance: equal native chronology/common evidence and exact final body/world
+hashes. If equal, getter observer equivalence closes at this8-clock scope and
+new incoming custody identifies origin; if unequal, inspect first differing
+input/output, do NOT declare biology failed or start a broad teaching run.
+
+`H-054-120-19` — command/review preflight record.
+One read guessed native/guala_core/src/bin/reservoir_probe.rs; absent, no run.
+Resolved actual resident_cognitive_formation/reservoir_probe.rs with rg --files.
+Two oversized source/log outputs truncated; re-read same artifacts with bounded
+JSON field projection; no native rerun or evidence loss. Whole-file script
+construction refused an ambiguous root-text anchor before any write; corrected
+to unique custody_targets declaration. No production code changed.
+Review fingerprintd8d016 drifted only after ledger build notes; reviewer stopped
+correctly. Refrozen78b9af9781493c798a57c44265ce61979bb686f23ed6621cc80293ac74c6fc7e;
+bounded custody/source and zero-clock reader reviews passed unchanged.
+Post priorrun/read-onlyAWS21:09–10 sole1456/effde9e1/image6aa38d99
+HEALTHY/RUNNING1/1/0; Sep8alarm unchanged.21:03–08 CPUavg39.94–46.66%,max59.08%;
+RAMavg10.687–11.010%,max11.649%. No Guala native/compiler orphan in process census.
+Previous user-status turn was no progress; this turn completed the offline
+comparison and zero-clock anatomy evidence. Full AE goal remains active.
+
+
+`S-054-120-20` — corrected observer equivalence PROVED,8 actual-runtime clocks.
+D12018 script/source review PASS frozen97fd2d42c166b729c9eb6dbd9ab65cb0709e6bba5236ab9331e471f4006e3e31.
+Normalrun73721 at/tmp/guala-c120-matched.BNMtQ1; diagnosticrun55623 at
+/tmp/guala-c120-matched.6lPN2a. SERIAL, bothexit0, native651475–482 fromsame651474.
+Samephysicalworldinput GUALA_SOLAR_UTC_OVERRIDE=0 onlyinbothdisposableprocesses.
+Both end EXACT samebody7f6ef753e4d646a260606e05325a4671a929994b544d0fac94827439d054faa2
+andworld0bc3b59973cde0f2fa3d05201408fcf7ee811d48951cf2c34307a9b4482a6e6c.
+Every common native field except measured wall milliseconds is exactly equal,
+including method/args-derived self-consumption/ticks, all causal interval
+evidence, motor/work/breath, pressurecounts, external perturbations/reassemblies,
+roottransfers; contact and original-topology outputs alsoexact.223originals,
+zero originals lost. Eight-clock observer equivalence CLOSED. No cold-next
+was performed here; prior exact restart proofs retain their own scope.
+This also equals the earlier8clockcustody651482 fulloutput. H12016 was an
+external-input mismatch, not evidence that the diagnostic mutated cognition.
+Normal8calls11369.351ms total/1421.169mean/2401.849max,peakRSS2096932KiB;
+diagnostic12459.076total/1557.384mean/1947.892max,peakRSS1928660KiB.
+No speedup claim; native timing is not cold restore/sealing wall time.
+Normal logSHA0dcf8965c1be9f2d8ab17c40d5a058c33b01c7855b09d736b9f0308c416e6a25.
+Diagnostic logSHA4eeed0e36b3488770bf44c0e9036724ae063862061a9059e8eec6894e2de67c2.
+Comparison/tmp/guala-c120-matched-comparison.json
+SHA59bc112386aa98fa1698cb50ceaae8a32a3f28bc03d601f21c920bf98c4f69c1.
+Pre21:17 service/task/image/health unchanged; latest21:15CPUavg46.8845/max61.3072%,
+RAMavg11.0199/max11.6608%. Initial21:16–20query had no published metric yet;
+usedpublished21:15 sample, never inferredzero/unhealthy fromemptyCloudWatch.
+Post21:24 sole1456/effde9e1/image6aa38d99 HEALTHY1/1/0,Sep8alarmunchanged;
+21:22CPUavg39.6292/max41.1574%,RAMavg10.9548/max11.2823%.
+No native/compiler child from either command remains. No production writes.
+
+`S-054-120-21` — pre-cue root's sight-origin custody traced; not a speech pass.
+Matched diagnostic651476 current frontier:
+- exactbond b9(L0,Sight)–22c3(L6),121carriers physically22c3->b9,
+  advancing frontier22c3,external=true,echo=false,notinflight;
+- exactbond d5(L0,Sight)–26c1(L6),121carriers physically26c1->d5,
+  advancing frontier26c1,external=true,echo=false,notinflight.
+At477 thoseL6 incidentbonds advance into077a/0796/07b2/07ce associations;
+at478 their exactfounder bonds advance into root268e; at479 four minimum
+motors27/70/77/77 and251breath. Thus no new Sound cue is required by the CURRENT
+root permission, and this particular observed cause is not acoustic echo.
+Keep physical direction separate from causal propagation: the receptor's
+changed state can alter a contact even while carriers travel toward it.
+Source reviewer independently confirms:
+lean_sensorimotor_route.rs::frontier_founds_vocal_action_preparation458 checks
+external ingress, root topology/no predecessor, exactassociation-founder bond;
+it does NOT check current formation recognition or the originating modality.
+core10051/20657 seeds/propagation allow real non-sound input as designed.
+C83's exact formation ownership at GROWTH is not proof of every later shared
+anatomy arrival recalling it. Candidate101's current external-sound-wave
+acceptance cannot be satisfied by this sight-origin act.
+Do NOT call it learned visual recognition or meaningful autonomy without that
+causal proof, and do NOT call all unprompted behavior defective. The missing
+recognition/action distinction is the repair junction, not permission to blind
+the organism. C104's teaching-edge body-echo exclusion is not a demonstrated
+recall correction. Do not add a timer, cue flag, semantic label, or selection
+heuristic; consult the existing physical reassembly/work laws before a change.
+F118-32 continues at that junction. Do not repeat the nowclosed observer,
+retained-anatomy, input-clock diagnosis, root-growth or downstream-body proofs.
+
+Evidence archived once on E:
+`/mnt/tfebackup/guala-c118-four-posture.XehvEs/c120-custody-matched-cause.tar.gz`
+SHA373aff8526db4f5879d5b8b86e0023e8fcffb65f67487e21007f77bacd41f3b4.
+Contains exactold/newdiagnostic logs/scripts, offlineworldcomparator, zero-clock
+anatomy/script, matchedcomparison, one complete authenticated outputpairedroot,
+and exactdiagnosticwheel. Prior source8run archive retains its differingTVworld.
+No success state was deleted or overwritten. New Rust85lines are observation
+only behindexistingdiagnostic-api, absent fromordinaryproductionfeaturebuild.
