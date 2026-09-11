@@ -20,18 +20,23 @@ so live speech acceptance remains open. This paragraph records the Candidate110
 deployment, not the current repair state. Any earlier “speech complete” wording
 is historical and retracted.
 
-Current repair status, 2026-09-11 20:12 UTC: C120 SOURCE REVIEW and five focused
-checks PASS. On the SAME651372 copied body, full220-port source,4000-sample cue,
-two guides and32 continuing-cognition recovery intervals, C120 now grows FOUR
-coordinated vocal routes by guide2; C119 grewZERO. Cold round trip exact.
-This closes the full-source route-growth discriminator, NOT actual-runtime
-speech acceptance. The real actor/transport/checkpoint path is the next check.
-No candidate120 deployment or live speech success is claimed.
-C118 continuing-cognition four-posture recall/repeated use/breath/pressure/
-silence/cold results remain closed at copied-body scope. C119 translation work
-and its exact double-exclusion diagnostic remain preserved. Current definitive
-working entries are S-054-120-03/04 at the END of this ledger. Production stays
-1456/image6aa38d99; caretaker STOP, browser unnecessary for copied-body work.
+Current repair status, 2026-09-11 20:24 UTC: C120 SOURCE REVIEW, five focused
+checks, SAME full-source growth discriminator AND actual LeanPhysicalLoop/actor
+root-growth test PASS. On copied651372, the actual runtime retained four new
+sound/body originals, grew one coordinated four-motor posture, enacted it once,
+produced breath/pressure and consumed authenticated self-hearing. All217 prior
+recognized original topologies remain (223after). Checkpoint/cold-next exact.
+This is actual-runtime TEACHING/ROOT evidence, not sound-only recall or speech.
+Current preserved runtime successor is651474/d91e69c9...; zero-clock census
+confirms4coordinatedroutes,495unresolved legacy contacts unchanged,0orderededges.
+Next: sound-only root recall from this same paired successor, with the already
+known finite acoustic settling/pre-cue baseline; then ordered teaching through
+the actual runtime. The combined guided+pending-self-pressure branch remains
+unit-proven until that subsequent live-shaped guide actually exercises it.
+C118 continuing-cognition four-posture/repeated-use/breath/pressure/silence/cold
+wins remain CLOSED locally. Current definitive entries S-054-120-03/04/06/07 at
+the END of this ledger. No livewrite/deployment; production stays1456/image6aa38d99.
+CaretakerSTOP/browserclosed; browser not needed for this copied-body work.
 Worktree: `/tmp/guala-speech-existing-organ`
 Starting HEAD: `735489406577f90edf6c2fb7fb1889f87eae8107`
 Production boundary: task definition 1456 is the live deployed writer. Its
@@ -11865,3 +11870,98 @@ Mechanical rule for ALL following reads/searches, not just builds: discover file
 with rg --files on a verified directory, or test -f the exact known path in the
 same command before accessing it. Never supply an unexpanded guessed glob as a
 path. Parse log prefixes by their actual string length, never a typed offset.
+
+
+`D-054-120-05` — actual-runtime continuation of F118-32, no new acceptance bar.
+C120 implementation committed/pushedfc5020ff. Fullsource result archive on E:
+c120-full-source-result.tar.gz SHAb288944d3c57e8e46fc0eda734e32d874efd0223ee2e95ddfed5d735c2143565.
+Sharedhandoff cb66711363781c83ec5a66541c7292cf999a13fb; verified Slack
+2026-09-11T20:13:41Z status=slack_sent channel=#general.
+One isolated release Python-extension build27805 into/tmp/guala-c120-wheel.Y5EPDZ,
+globalmoduleuntouched. Same actual actor proof fromC119; new script
+/tmp/guala-c120-runtime-proof.py SHA514bdad2a332f53a79952ee1b3e71c0138173ecd3deb015c9f9ec1fd774a2d6f.
+Onlychanges: C120disposablepath label; before/after public read-only exact
+recognized-original membership/contact Counter and old4hub owner census.
+Counter checks no old original topology disappears; this does NOT claim full
+neuronal/fractal byte comparison. It never selects, grades, changes, or waits
+during a lesson. Observations occur before actor.start and after actor.close.
+Existing native observations retain perinterval motors/breath/pressure/selfreturn.
+Exact current651372paired input, source4000samples,2guides32ordinary requests each,
+real unattended actor/fullsensory world/body/selfreturn, ordinary checkpoint,
+exact current-only coldrestore and nextordinary remain unchanged.
+Runtime lesson count/requests are NOT assumed equal native chronology tohelper:
+C119 emitted134nativeintervals due to realactor/bodyreturn. Classify literally.
+Same-source schema and known producer/consumer signatures reviewed; no new field
+needed for speech mechanism. Source-only observer review before actualrun.
+
+`H-054-120-02` — default gitpush refused because branch has no configured upstream.
+Commitfc5020ff succeeded and was preserved; explicit
+git push origin HEAD:refs/heads/sol/speech-existing-organ succeeded.
+No reset, repeatedcommit or sourcechange. Allfuture pushes must name verified
+remote/branch explicitly; do not assume upstream from prior successful pushes.
+
+
+`S-054-120-06` — ACTUAL runtime root-growth/body/self-hearing proof PASS48154.
+Observer source review514bdad2...PASS before/after hash; no causal/timing edits.
+Isolated Python wheel build27805 completed1m23s/191 inherited warnings.
+Wheel /tmp/guala-c120-wheel.Y5EPDZ/guala_core-0.1.0-cp311-cp311-manylinux_2_35_x86_64.whl
+SHA cad620c2e5ab4de5d8319628e00a0672e148f169a443a132667fbf3cfe46316d.
+Globalinstalledextension untouched; loadedmodule guard proves isolatedpath.
+Real actor used same651372pairedpredecessor/cue/2guides/32ordinary requests each.
+102actualnativecalls:2guided,34coexisting,33trajectory,33authenticatedselfhearing.
+132000 samples consumed through native in-flight self-hearing;126581nonzero
+pressure samples OBSERVED acrossoutputintervals, not assumedallconsumed already.
+Differentnativecount fromC119's134 is actualbody/selfreturnchronology, not skipped
+requests or suppressedcognition. No native refusal/exception.
+
+Exact learned root ordering268e enacted ONCE at651441 through all4minimum
+mouthmotors b7/d3/ef/04fb, work53/140/153/153carriers; breath499 via SAME four
+learned-preparation provenance records. Unrelated body/L8motoractivity is reported
+separately, not called this learned act. No second268e motor act through651474.
+Pressurepersists duringphysicaldecay; lastcoldnextstill249nonzerosamples.
+Do NOTcall thatsilence, failedselfhearing or indefinitevoice. ExistingC118
+S118-09 provedknownfinite126580-sampledecay/64clockobservation. Do NOT coldrestart
+withoutpendingreturn or repeat8clockfalsefail. FullruntimecoldherePRESERVESflight.
+No isolatedsound-onlyrecall yet: this act followedguide2, not a new recall cue.
+
+Recognizedoriginaltopology217→223, missingoldcountZERO. Exact4targethubs
+077a/0796/07b2/07ce each gained an original with7retainedmembers,14originalbonds,
+actualsourceclassesSound1+Body5; oldbody-onlyowners remain. Old217member/bond
+topologies preserved; this observer is NOTfullneuronal/fractalbytecomparison.
+Original leaves preserved by unchanged/source-reviewed replacement law and
+real-topology lifecycle test, not inferred from a topologycount alone.
+
+Ordinaryactor checkpoint651473 body38f948d01f889a0e86bdfaa524132a8f6e2b1b9531fc05d08f5dd70a53bef81e
+worldc7a1bd7a35dbf9a0666e02c6cd92e37e403cf3c53552f2ef7902f050c64c55b7.
+ColdrestorestateSHA EXACT before nextordinary.
+Coldnext651474 bodyd91e69c9cf17f74aa8edd7147d6d15fb9baf5424d2fa64a369e5606868194091,
+world4a605818648fca6b8bfac82c77d1a9a13c76455c39fd868f843fe6aecc8ac3ae.
+Finalbody164873123bytes. Do not equate rawpre/postenvelopesize difference to
+learning growth alone; original651372 input required explicitcurrentmigration.
+Nativecalls100339.358ms total,mean983.719ms,p50nearest-rank742.307ms,
+p95 1552.754ms,max1987.978ms. Notsubsecondworstcase, notperformancefixed.
+PeakRSS2483428KiB; no compiler/harnesssurvivor aftercompletion.
+
+Log /tmp/guala-candidate120-runtime.log
+SHAd2ff5f8a16ea843dc92cb7e83e6c141b42ee6083fc455c3a1270338e746c4a45.
+Localpairedroot /tmp/guala-c120-runtime.IB3mlW/paired retainscurrent+predecessor;
+no copiedstate ever installedlive. Before20:15:43/after20:18:50health sole
+1456/effde9e1/image6aa38d99HEALTHY1/1/0. AlarmhistoricalSep8 unchanged.
+20:15CPUavg44.26206494/max56.70229246%,RAMavg10.57094998/max11.35559082%.
+Productionhealthy is NOTspeechsuccess.
+
+`S-054-120-07` — existing ZERO-CLOCK exact route census PASS42191,2.73s.
+Authenticated coldnextd91e... decoded unchanged, organism_advanced=false.
+499vocalroutecontacts =495unresolvedlegacy +FOURcoordinated resolved contacts.
+ONEordering268e connects all4targetassociations andmotors;0continuations.
+Do not useaggregate504 L11/L12contactpairs as vocalroutecount: that includes
+nonvocal contacts. Existingresolvercensus is authoritative for anatomy.
+Receipt /tmp/guala-candidate120-runtime-routes.json
+SHA8d53cf2416e78717e72bc6ade2c9ecad7bcce1b3c0c24de4633ac93e85e6a438;
+logSHA92de9c48e323dc2a56de948ae8fd1a459f1fe148d219638ed6d6d0b0d673f894.
+No nativeinterval/lesson added by census. Pre/postAWSidentityunchanged; nochild.
+Backupactualpairedcurrent+predecessor+world+script+logs+census onE:
+c120-actual-runtime.tar.gz SHA92278c740db3e6581d43c0851f77b274ce8a47ce0b09f7f23d0bede5305d79f4.
+Archive excludesduplicateuncompressed.glorun; BOTHcompressedpairedgenerations
+andCURRENTretained. FullAEgoal remainsactive. Next exactitem isACTUALsound-only
+rootrecall, then existingorderedteaching—not rediscovery ofC120admission.
