@@ -10286,3 +10286,62 @@ AWS pre16:37:17/post16:38:53 unchanged sole1456 effde9e1/image6aa38d99,
 1/1/0 RUNNING/HEALTHY. No live lessons/deployment; caretaker STOP retained.
 S117-02 memory, S117-05 migration and new minimum-route growth remain separate
 recorded wins. Next only the exact failed guide and unresolved native branch.
+
+`D-054-117-16` — Joe asks to verify the test, especially pacing, before
+blaming mechanism. Source confirms eight-lesson helper aims at ALL8minimum/
+maximum terminals, whereas active root-learning bar needs first4minimum routes
+followed by sound-only recall. Cycles3/4 are both maximum;4 differs from3 in
+lived state, not nominal direction/dose/recovery. Explicit native refusal is
+not a timeout, but timing/curriculum validity is not proved by that fact.
+
+The existing saved tail check is now available on the genuine4route predecessor
+at637679. Run it ONCE before modifying a neuron/uniqueness law:8ordinary quiet
+baseline clocks, then one exact4000-sample external sound-only cue and20existing
+tail clocks. No guided body motion in recall. Require baseline0pulses/breath/
+pressure, then all4minimum motors with breath/pressure, clean ending and exact
+cold encoding. These are existing frozen bars, not new speech criteria.
+Uses unchanged diagnostic binary45089211 and saved failure predecessor6b8a4547.
+No second growth run or proposed delay increase. This advances root recall,
+keeps lesson4's refusal recorded/unresolved, and does not claim full speech.
+The saved state includes one prior maximum lesson; report that chronology rather
+than pretending it is the pristine two-lesson body. Native scheduler begins cold;
+do not claim exact warm refusal reproduction from this separate recall check.
+
+`S/F-054-117-17` — FIRST-POSTURE SOUND-ONLY RECALL PROVED; acoustic
+quiescence NOT yet proved. Existing saved-tail helper, no source edits,
+binary45089211,8baseline+20cue/tail intervals,20.06s execution1passed.
+Interpret JSON, not libtest status: pre-cue baseline8 has0pulses/0respiratory/
+0nonzero pressure. One4000sample external cue, NO guided body movement.
+At positiveclock3 one L11...26d4 sends exact carrier transfers to all4minimum
+motors (...b7:2,...d3:6,...ef:6,...04fb:8),22respiratory carriers.
+No later motor pulses through20. Body produced69,506nonzero pressure samples.
+Final codec roundtrip exact. HOWEVER successor_body_acoustic_quiescent=false.
+Thus recalled coordinated posture/breath/pressure and no repeated motor acts
+are successes. Do not call the acoustic tail silent/fully stopped; the
+20clock bound is not evidence of failed motor learning or of an endless sound.
+No clean-stop/full-speech/deployment acceptance claimed.
+
+Predecessor includes3guided lessons+ordinary recovery, with4minimum routes and
+one prior maximum teaching occurrence. This is not an untouchedtwo-lessonbody.
+Receipt /tmp/guala-candidate117-root-recall.json SHA256
+f144136f3e72088d25b49c98bd3f12cb8d8a81ecd8dd35919aaaea6533ebe82c.
+Successor .cognitive SHAbad1a4f1269ca22e80b36e502e8e7fe7c3717ad38badcfa94123489b33ac6fbd;
+.body SHA80c0a824a2815df7333884b7f23dc6b1d9878a796db4a0378d514fd92200509e.
+AWS pre16:44:11/post16:44:48 unchanged1456/effde9e1/image6aa38d99,
+1/1/0 HEALTHY/RUNNING. No live intervention. Source/root failures remain recorded.
+
+Test-correctness caution: run_guided_vocal_continuation retains pending motor
+and self-hearing inputs within its loop but does not export those pending values.
+Restarting an acoustically active tail from only saved cognitive/body files
+would not prove exact continuous warm-tail equivalence. Do not run such a
+shortcut and label it the same trajectory. If checking a longer physical tail,
+extend the same existing continuous replay, verify bound does not alter earlier
+steps, and retain the successful first20clock behavior as a closed prefix.
+No guessed wait interval may be called a physics fix.
+
+Independent reviewer names one remaining uninstrumented hypothesis:
+retain_externally_reassembled_vocal_founder_frontier checks root_orderings.len
+before checking each founder contact's nonzero phase. A newborn zero-phase
+secondroot could therefore create a false tie. No evidence yet proves this
+branch fired. Exact root/phase capture plus guide-phase diagnostic must precede
+any correction; no uniqueness law has been loosened.
