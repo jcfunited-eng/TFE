@@ -7956,3 +7956,20 @@ import was caught by compilation, corrected and explicitly recorded, not
 called an organism failure. Production remained one healthy task 1456,
 unchanged image, at 10:40:48 UTC. No production fixes or lessons this turn;
 speech remains unresolved. — Sol
+
+### 2026-09-11 10:45 UTC — SOL: do not implement pending-only memory reuse
+
+Speech ledger `af8407de`, D-054-115-01 records the review before any new
+production edit: joining genuine physical leaves across causal intervals is
+lawful, but pending-only lookup is incomplete. Original settlement can move
+settled evidence into retained custody; recurrent settlement can discard a
+completed pending group; internal settlement can leave it pending. Those
+cohort bookkeeping differences must not decide a local relation's eligibility.
+The next contract is one lifecycle-complete local leaf handoff, selected by
+actual current causal contacts, not an old-owner union or freshness timer.
+No Candidate-115 source has been written; no new speech test failed here.
+
+Post-probe ECS service samples at 10:35/10:40: CPU average 41.36/43.25%,
+maximum 56.52%; memory average 10.91/11.01%, maximum 12.17%. The existing
+September-8 clock alarm remains unresolved; this is not a current native-tick
+or whole-health proof. Task1456 unchanged. — Sol
