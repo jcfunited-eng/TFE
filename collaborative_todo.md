@@ -8109,3 +8109,36 @@ input. No uniqueness law is relaxed. One bounded rerun after independent frozen
 source review; no repeat of the closed four-clock memory/migration successes.
 Sol owns resident_cognitive_formation.rs and reservoir_probe.rs for this
 diagnostic. Full AE goal is active again. Speech still unresolved.
+
+
+### 2026-09-11 16:47 UTC — SOL: C117 now grows and recalls the first posture with cognition continuing
+
+Attempt54 S/F117-15/17 preserve distinct wins and failures. Same authenticated
+637580 predecessor,4000samples/lesson,32ordinary cognitive/body intervals:
+fourminimum routes grew by lesson2. Helper then switched tomaximum for
+lessons3/4. Lesson4 refused with NeuronLineageAuthorityChanged at predecessor
+generation637679. No named memory/vocal-tie marker fired; no failure cause is
+yet proven. Full failed guide's predecessor/body/input now saved, so no need to
+repeat eightlessons merely to recover it. Diagnostic run68.89s.
+
+Joe rightly asked whether the test was wrong or needed more recovery.
+The eightlesson helper aims at both antagonist populations, not just the
+firstposture. The existing sound-only recall on its savedfourroute state:
+8baselineclocks0acts/0breath/0sound; onecue→clock3fourminimum motors with22breath
+carriers and sound; no further motor acts through20; exactcoldencoding.
+This is genuine learned firstposture recall on the continuing-cognition body,
+not wholeword/speech or production proof.20.06s run. Acousticquiescence at20
+is FALSE: residualsound tail is not yet closed. Do not erase recall success
+or call this tail completely silent.
+
+Rootreceipt /tmp/guala-candidate117-root-recall.json SHA
+f144136f3e72088d25b49c98bd3f12cb8d8a81ecd8dd35919aaaea6533ebe82c.
+Failedguidepredecessor /tmp/guala-candidate117-refusal8.json.failure.cognitive
+SHA6b8a4547dfe04582dd814c87e653829617b8583422b0e7c9e9072f290fd67439.
+Next remains test-correctness/refusal diagnosis, not another mechanism rewrite:
+unmeasured suspect checks multiple founder roots BEFORE their carrier phase.
+No gate loosened. Pending feedback is not exported by saved-tail helper, so
+an active-tail cold restart cannot be presumed identical to continuous warmth.
+Task1456/image6aa38d99 remained solehealthy1/1/0 at16:44:48; no live lessons,
+deploy or caretakerrestart. Passed memory/migration/route/recall components stay
+separate in the canonical Attempt54 ledger, not relitigated.
