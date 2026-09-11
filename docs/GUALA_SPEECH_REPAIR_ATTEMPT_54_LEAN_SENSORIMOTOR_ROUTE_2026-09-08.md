@@ -10077,3 +10077,39 @@ the failed exact migration test. The first version and full failure are in
 this record; do not relabel its 2/3 batch as all-pass.
 AWS afterbatch12:10:42 same sole task1456/image6aa38d99,1/1/0 HEALTHY/RUNNING,
 same historical alarm; latest CPU/memory window remains117-02. No live writes.
+
+`R-054-117-04`: localized test-only correction SOURCE PASS, frozen
+21b2225196f3507aa2a0dd53acb9f4114407156f74a2812759d2cdd730e4b088
+verified unchanged before/after. Five added/one removed test lines initialize
+the known genesis reserve before V44 stamping; no production change and no
+weakened identity/body/byte/cold/idempotence assertion. Rebuild to rerun ONLY
+the failed migration test. Mature handoff and two supporting passes retained
+at90f8f545 on origin; not reopened by this test correction.
+
+
+`S-054-117-05` — corrected V44 migration check PASS, 1 passed/0 failed,
+0.00s at 2026-09-11 12:17 UTC. Exact release binary test selected from --list.
+Binary SHA25670989d54797d5f2b78f00c01381d26ebfc953e05483b31a2a6d8da0deb4abf17,
+mtime12:15:35. Earlier rebuild handle/output was lost during context truncation;
+actual process census showed no cargo/rustc/test remaining and the newer executable
+was present. No duplicate build launched and no invented compiler exit receipt.
+The actual executable test proves the corrected fixture compiled and passes.
+All identity, tick, exact moved body, old cognitive bytes, cold-envelope and
+migration idempotence assertions executed. Test-only correction does not reopen
+S-054-117-02's mature memory handoff or the two supporting passes.
+
+AWS pre12:17:21/post12:17:42: sole1456 task effde9e1, image6aa38d99,1/1/0,
+HEALTHY/RUNNING; historical September8 clock alarm unchanged. Latest service
+12:10/15 CPU average43.84/46.37% max57.26%, memory10.93/11.01% max12.16%.
+This is a harness health envelope, not a native timing or complete-life proof.
+No production writes, lessons or deployment. Browser closed; caretaker stopped.
+
+`D-054-117-06` — advance, not reopen: memory acceptance117-02 remains closed.
+Next existing eight-lesson route-growth check uses the authenticated637580
+predecessor, exact4000-sample tutor, and32 ordinary cognitive/body recovery
+intervals between lessons, same chronology that failed114. No frozen cognition,
+new parameter sweep or broad suite. Outer population-growth AND route-growth
+selectors required. Root growth alone cannot claim cue recall or speech;
+saved successor must then pass the existing quiet-baseline/sound-only recall.
+Previous turn was status-only, classified no progress;117-05 is new executable
+evidence and the next safe action remains available. Full AE goal stays active.

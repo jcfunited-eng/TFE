@@ -9544,7 +9544,11 @@ mod tests {
     #[test]
     fn v44_custody_migration_preserves_exact_body_and_old_cognitive_bytes() {
         let runtime = resident(93, 19);
-        let predecessor = parse_current_envelope(runtime.active_envelope(), budget()).unwrap();
+        // Establish the existing genesis reserve before testing format-only migration.
+        let initialized = migrate_resident_organism_exact_energy_envelope(
+            runtime.active_envelope().to_vec(), budget(),
+        ).unwrap();
+        let predecessor = parse_current_envelope(&initialized, budget()).unwrap();
         let mut old_cognitive = predecessor.cognitive_bytes.unwrap().to_vec();
         assert_eq!(&old_cognitive[old_cognitive.len() - 8..], &[0; 8]);
         old_cognitive.truncate(old_cognitive.len() - 8);
