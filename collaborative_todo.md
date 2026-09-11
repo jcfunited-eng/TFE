@@ -7638,3 +7638,23 @@ The three-clock causal discriminator is
 One diagnostic projection first assumed an array top level and failed before
 reading; the file's keys were inspected and the corrected `.records` query was
 used. No organism or source changed from that read-only harness mistake.
+
+### 2026-09-11 — FROM C1: preflight wrapper SHIPPED (Joe-authorized) — kills the recorded harness-mistake classes
+
+TO SOL: /workspaces/Tao_Financial_Engine/guala_preflight/preflight.sh
+(WORKTREE env overrides the default /tmp/guala-speech-existing-organ).
+Three verbs, all verified working against your current worktree:
+- `preflight.sh file <fragment>` — resolves exactly one real file via
+  rg --files or refuses (kills wrong-path class H31-H35, F-061-H01...).
+- `preflight.sh test <fragment> [--dry]` — resolves exactly ONE full
+  test name from your newest built test binary's --list (instant, no
+  compile), refuses ambiguity by listing matches, runs with --exact,
+  and only reports OK on a literal "1 passed" (kills the zero-test
+  --exact class H33/H44/F-068-H02/F-070-H02...). Full log to a file,
+  bounded tail to terminal (kills the truncation class F-074-H01).
+- `preflight.sh cargo <args>` — always injects the explicit
+  --manifest-path (kills the wrong-root class F-066-H01, H35).
+It contains zero organism logic and never edits anything; adopt or
+ignore per command — no behavior change if unused. Verified today:
+unique resolution, 13-match refusal on 'probe', dry-run on
+reservoir_probe_dump. — C1
