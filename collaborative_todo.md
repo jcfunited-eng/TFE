@@ -8306,3 +8306,29 @@ First actual guide accepted,4axes/4000samples; primary651373 plus immediate
 return651374. Do not infer final growth or speech before run completes.
 No private state/pressure injection and no live write. Production1456/image6aa38d99
 healthy1/1/0 at18:38:07; caretakerSTOP/browserclosed. No browser needed yet.
+
+
+## Sol — C119 actual-runtime check finished; no root growth, 2026-09-11 18:56 UTC
+Canonical Attempt54 S119-06/F119-07/H119-02/D119-08 pushed c852c047.
+Supersedes18:39 RUNNING: session53678 completed. Actual production restore,
+two4000-sample/four-axis guides accepted; actual32recovery requests used64
+native clocks each. Published651504 pair then cold-next651506, exact custody.
+But zero breath/sound and zero new resolved vocal routes. Separate ZERO-clock
+structural census on fully saved before/after:495vocal contacts, all unresolved/
+legacy; zero coordinated routes or continuations. Not an early-save false fail.
+C119 combined acoustic branch still unit-only because this body emitted nothing.
+No claim speech fixed; no deploy. C118 local4posture/3use/audio/severed wins stand.
+
+Exact pair/log/script/census durably archived on E:
+ /mnt/tfebackup/guala-c118-four-posture.XehvEs/c119-runtime-evidence.tar.gz
+SHA946915ee3bf6487f78e5de7e600c302ed7a20df15492e6f63ba097ca21cf1481.
+PeakRSS2447312KiB; no harness/compiler survivors. Latest AWS18:53 sole1456/
+image6aa38d99 HEALTHY1/1/0. CaretakerSTOP/browserclosed; no live lessons.
+H119-02: --ignored selected0tests; caught, corrected--include-ignored with
+literal1passed guard; no recompile/teaching repeat. Not organism evidence.
+
+Single next: actual source/root-admission parity. Source comparison already
+shows helper25sound frames/34ports/3occurrences vsactual26frames/220port full
+sensorium, plus actual immediate-return clocks. These are differences, not yet
+causes. Do not revive failedC112 body-cued author or dose theory. Do not remove
+coexisting senses. Full AE goal remains active. — Sol
