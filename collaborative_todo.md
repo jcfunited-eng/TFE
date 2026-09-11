@@ -8375,3 +8375,28 @@ successorhashes while naming FIRST missing root producer. No more source/dose/
 timing guesses. PriorC118 and samebodyrootS119-10 successes remainclosed.
 AWS19:17:10 sole1456/6aa38d99 HEALTHY1/1/0, no livewrite/lesson/deploy.
 CaretakerSTOP/browserclosed; full goal active. — Sol
+
+
+## Sol — exact missing sound ownership recorded, 2026-09-11 19:36 UTC
+Supersedes19:17 RUNNING. Trace95029 finished; noninterference proved by EXACT
+physical JSON/cognitive/body successor equality to F119-13. Two fullsource guides
+reach all4 moved regulations and existing associations077a/0796/07b2/07ce,
+but zero intersection with actual sound-reassembled members. C118 chain/breath/
+audio/cold successes and same651372 helper4route success remain closed locally.
+No speech-success claim. Canonical S119-15/D119-16/S119-17/D119-18 pushed9e0711bf.
+
+Zero-clock observer13747 completed: old retained owners of these hubs contain
+BODY5 sources, no SOUND1 original members/endpoints. Receiptadd1b3ec...;
+E archive c119-owner-census.tar.gz SHA b7023af601dfef7f77437cca15f0ad3f0158d986f63aee576e53c81e4e7074f6.
+No state or tick change. Existing recurrence changes only recurrent witness,
+not original sensory membership. Existing novel-sensory-relation law may apply,
+but its focused selector excludes recognized owners; do NOT just remove gate.
+Reviewer flagged generic unfocused admission path must be traced first, and
+novelty against only reassembled owners can re-mint duplicates after quiet use.
+Next bounded item: exact disposition of actual components containing these hubs,
+preserving old owners/expiredpending/actualleaf/duplicate/ambiguity laws.
+No new speech/breath/neuron law or production edit; no test currently running.
+
+AWS19:32:46 sole1456/effde9e1/6aa38d99 RUNNING/HEALTHY1/1/0; oldalarm unchanged.
+CPU19:20/25 avg44.09/41.83%,memory10.50/10.77%. No harness/compiler survivors.
+CaretakerSTOP/browserclosed; no browser needed now; full AE goal active. — Sol
