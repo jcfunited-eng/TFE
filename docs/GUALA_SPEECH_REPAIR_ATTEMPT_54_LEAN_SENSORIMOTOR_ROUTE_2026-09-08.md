@@ -10640,3 +10640,171 @@ helperdoesnotexportpendingeventfields. Finalbodyrest isproved; finaloutput
 frame's exactpendingreturnflags are notemitted and needclosurebeforeproduction
 rehearsal. Never infer ownhearingabsence from externally_perturbed count, which
 describes external ratherthan body-ownedpressure. No newsemanticacceptancebar.
+
+`S-054-118-11` — TWO-POSTURE SOUND-ONLY RECALL PASSED on continuing-cognition
+taughtbody. 44.22s,8quietbaseline0pulses/0breath/0pressure; phase0 externalcue,
+NOguidedbody input. Clock3fourminimum motors fromL11...26d4,21respiratory
+carriers; clock4fourmaximum motors fromL11...2798,262respiratorycarriers.
+Noextra motorpulsesthrough64.126581nonzero pressure samples,
+finalacousticquiescent=true/body6247ab3b,coldcognitiveencodingexact.
+Olddiagnostic offer/preparation scalars remain0 while exactL11->motor transfers
+proveaction; do not mistake oldfieldnoncoverage for failedorderedaction.
+The same learned edge grew withcognitioncontinuing, and is now causallyused.
+Not fullword, semanticrecognition, unbrokenwarmruntimecustody orliveproof.
+
+two-posture-recall.json SHAed1efa79cdc68e5682536670398aa0b36cfe4b8e3176cff3a6b5be81a3c2e6be;
+.cognitive SHAea1dd871959be8372b30e612471c8ad564574f1071b25be572bab6d5ed50ab0a;
+.body SHA6247ab3b74180419d60eb5dc21a94c38e72cbe119ea078efa9f70a8d14ffd59f.
+AWS17:24:52/17:26:05 sole1456/effde9e1/image6aa38d99 healthy1/1/0.
+Replay87972terminal. No production/caretakerchange. Guard/root/memory/two-posture
+successes remainclosed; do not rerun sameacceptance merelyto regainconfidence.
+
+`D-054-118-12` — thirdposture next: reuse exactf0040a28 restedtwo-posture
+predecessor (NOT usedrecall successor), body6247ab3b, same8baseline+phase0cue.
+The identicalinput means measuredfirst4clocksmustmatch118-11 before newguide.
+ExistingS110-04 timinglaw: thirdminimum guidephase2 atclock5, afteractualmax
+completionclock4;clock4collides,clock6late. Same4phasefiled6835e37,
+phase2ba7b9530/4000samples. Existingteacherinputflag only, no newclockpermission
+insideorganism.64positiveclocksallowcontinuousacousticrest.
+Firstlesson may retainnewmemory beforethirdroute grows (S110-05 priorart);
+do not label an incompletefirstlesson as regression ofretainedtwoposturelaw.
+Read exactanatomy afterrun: preserve8oldroutes, no thirdindependentroot,
+onlyactual max->newminimum edge qualifies. Oneexistinghelperrun,no newcode.
+
+`S/F-054-118-13` — firstthirdposture lessonaccepted, thirdedge NOTgrownyet.
+Run44.97s/structuredecode2.65s. Precuebaseline andfirst4clocksexactlymatch
+118-11; rootclock3/secondclock4bothcomplete, guide5properlyaftersecondact.
+Guide5 addsoneL8/body-driven maximumtwitch, noextrarespiratoryact.
+Finalacousticquiet,coldexact. Existing8routes/ONE26d4->2798edgepreserved,
+noindependentthirdroot/echoauthor. Thirdpostureroutesstillabsent afterfirst
+lesson, matching priorS110-05 incompletefirstlessonclass; do not claimthird
+posturelearned. Nextone repeat fromthisquiettaughtsuccessor, notnewcode.
+Needactualroot/secondacttiming inrepeat tovalidate clock5 guide; iftiming
+changes,classifylessonchronologybeforeblamingmechanism.
+
+third-guide-a.json SHA0b40ce8d6c4536e08edfbbcb2f2ca3704222c9ea8d507c14499a1f464045e21f;
+.cognitive SHA8eccc84924a742cae9d0d4e220dec31f92e0fce3f187b4acf735dc03c820a11e;
+.body SHA6247ab3b74180419d60eb5dc21a94c38e72cbe119ea078efa9f70a8d14ffd59f;
+-structure.json SHA1fdc8a69779b8b3ed8d1c62f79a666b5b81ed8033013e9d959b0515d59a2f406.
+AWS17:27:47/17:29:03 unchangedsole1456/image6aa38d99healthy1/1/0.
+Test25551/decoder59108terminal. No source/production/caretakerchanges.
+
+`S-054-118-14` — THIRDPOSTURE anatomy grows on secondpresentation.
+Run44.82s/readonlydecode2.97s. Quietbaseline0acts/0breath/0pressure.
+Rootminimumclock3all4/22breath; secondmaximumclock4all4/529breath;
+guide5thereforecorrectlyafteractualsecondact. One L8...1011 maximumtwitch
+on guide5 recorded separately. Restexact/coldexact.12coordinatedroutes,
+ONEchain26d4->2798->27ec (two physicaledges/eightmotor-specificrecords),
+noindependentthirdroot. Prior8routespreserved.126587pressure samples.
+This is learnedthirdpostureanatomy; nextone sound-onlyrecall measures actual
+thirdact completion before selecting fourthguideclock. No newcode/timinglaw.
+
+third-guide-b.json SHAf22f43f61206ba6535ec67de2a75b6aabcc98cdc0873de23c7bf0503ea2fbf93;
+.cognitive SHAe139912316db016a78e1812173529ee773da9e1ee1c2435494ad5ea3170edebc;
+.body SHA6247ab3b74180419d60eb5dc21a94c38e72cbe119ea078efa9f70a8d14ffd59f;
+-structure.json SHAa90141f6280d777ef2436e6bd31d9c453ece6ac07f0e9729d120a5e995a219dc.
+AWS17:30:02/17:31:38 same1456/image6aa38d99healthy1/1/0.
+Test80778/decoder49142terminal. No production/caretakerchanges.
+
+`D-054-118-15` — one sound-only3posture recall on quiete1399123,8baseline,
+phase0,64positive,NOguideflags, occurrence400. Preserveanatomygrowth ifrecall
+doesnotyetcomplete. Readexact perclockL11motor transfers, breath, noextras,
+finalrest/coldexact; no oldaggregateoffer counters as falsefailureauthority.
+
+`S-054-118-16` — THREE-POSTURE sound-onlyrecall PASSED44.06s.
+8quietbaselinezeroacts/breath/pressure; externalphase0only.
+Clock3minimum26d4/all4/20breath;clock4maximum2798/all4/527breath;
+clock5minimum27ec/all4/16breath. Noextraactthrough64;126579pressure samples;
+finalacousticrest/body6247ab3b,coldexact. This demonstrates retainedordering
+throughreusedminimum motors, not justthreeunrelatedroutes.
+RSSsample21s1478352KiB(notpeak);oneprocess273%CPU, freeoverlay640G.
+No runaway/storageexhaustion indicated bythesepoints; no whole-runtimeboundclaim.
+
+three-posture-recall.json SHAbf46362d19c12cb65fffa3ca146816a9f112e82576289664bb3933beed25c859;
+.cognitive SHA5b96e88960b590ce77e5bf0316387884f6f1d73c0804710e5cabc68046c6f7a3;
+.body SHA6247ab3b74180419d60eb5dc21a94c38e72cbe119ea078efa9f70a8d14ffd59f.
+AWS17:32:31/17:33:29 same1456/image6aa38d99 healthy1/1/0.
+Session92862terminal. Threeposturecomponentclosed, no fullspeech/liveclaim.
+
+`D-054-118-17` — fourthposture tutoring. Start samee1399123 predecessoras
+successful3posturerecall,8baseline/phase0cue, actualthirdcompleteclock5.
+Existing nextguideclock6,phase3 maximum4000samplesfromd6835e37; phase3hash
+b0aa872cf4138bc31bb34ff28684d326237ba1574bc3c6850b2b76d1b883bde7,
+2067nonzerosamplecount, fullquartersecondnottruncated.64positiveallowsrest.
+Requireprefixfirst5exactbeforeguide, preserve12routes/2edges; new27ec->fourth
+maximumedge only, noindependentroot/echoauthor. Aspriorcurriculum, inspect
+firstlessonbefore one repeat; no blindmultipletrainingbatches/newcode.
+
+`S-054-118-18` — FOURTHPOSTURE grew on FIRSTpresentation; no repeatneeded.
+Run44.64s/readonlydecode2.54s. Baseline+first5clocks EXACT vs118-16.
+Guide6 followsactualthirdcomplete5.16coordinatedroutes/4L11postures,
+ONEchain26d4->2798->27ec->27fa (3physicalcontinuationbonds).
+Noindependentextra root/echoauthor, prior12routespreserved.
+One minimumL8twitchclock6 duringguide, noadditionalrespiratoryact.
+Rest/coldexact,126580pressure samples. This is learnedfourpostureanatomy,
+not yet unguidedfourposture output or a discernibleword.
+
+fourth-guide-a.json SHAdd321e23560bd9fa454d8bdb695b50f8beaf6f9539555f5b486d62bc8dd1863c;
+.cognitive SHA4d717e81ce317840a87ef5377543abcb5f9017f31464030fc20e1146d9b5971f;
+.body SHA6247ab3b74180419d60eb5dc21a94c38e72cbe119ea078efa9f70a8d14ffd59f;
+-structure.json SHAf442ef4ec6c87ecc5270b26ea7744a5e0fb023db0ceb8de5ae43e289a1bd97e9.
+AWS17:34:40/17:35:54 same1456/image6aa38d99healthy1/1/0.
+Test93072/decoder50052terminal. No source/production/caretakerchanges.
+
+`D-054-118-19` — one full4posture sound-onlyrecall onquiet4d717e81,8baseline,
+phase0cue,64positive,NOguideflags,occurrence500. Exactmotor transfers must
+showeachposture throughretainedchain, breath/pressure, noextraacts,
+rest/coldexact. A passedtest orpressurecount is not intelligibleMama/audio-
+recognition/semanticproof. Existinghelperdoesnotexportwaveform orpendingreturn
+flags; don'tclaim thosefacts fromcounts. Fullproductiondelivery remainsopen.
+
+
+`S-054-118-20` — FOUR-POSTURE sound-only recall PASSED, 44.85 seconds.
+Continues D-054-118-19; does not reopen the closed two/three-posture results.
+Exact taught input 4d717e81ce317840a87ef5377543abcb5f9017f31464030fc20e1146d9b5971f;
+eight pre-cue clocks: zero motor acts, breath, and pressure. One phase-0
+4000-sample external cue, NO guided movement during recall, 64 positive clocks.
+Clock 3: minimum 26d4, four motors, 21 respiratory carriers.
+Clock 4: maximum 2798, four motors, 529 respiratory carriers.
+Clock 5: minimum 27ec, four motors, 19 respiratory carriers.
+Clock 6: maximum 27fa, four motors, 124 respiratory carriers.
+No extra motor acts through clock 64. 126579 nonzero pressure samples.
+Final body acoustically quiescent; cognitive encode/decode exact.
+This curriculum retained ordinary cognition during teaching/recovery. It does
+not inherit the old frozen-cognition recovery assumption.
+
+Receipt /tmp/guala-candidate118-four-posture-recall.json:
+SHA256 d53db88dafcda5a8fc0cc586f56d582a8e73ca62cedf5bdda20a7a0464f06de3.
+Successor .cognitive:
+SHA256 651eb0c1c6aef664e58472a8c2752e8b01309ad79c971228b3a42e580ea80552.
+Successor .body:
+SHA256 6247ab3b74180419d60eb5dc21a94c38e72cbe119ea078efa9f70a8d14ffd59f.
+Binary/source unchanged from reviewed C118 (native commit a2bbdbb4).
+Test session 14739 completed; no remaining native test process.
+AWS read-only pre 17:37:12/post 17:38:10 UTC September 11:
+sole task 1456, immutable image 6aa38d99..., healthy service 1/1/0.
+No production mutation, deployment, or caretaker restart.
+
+Durable backup VERIFIED outside /tmp:
+ /mnt/tfebackup/guala-c118-four-posture.XehvEs
+Contains taught fourth-posture state/body/receipt/anatomy, recalled successor
+state/body/receipt, the exact phase-0 and four-phase PCM sources, and README.
+Backup taught-state, recalled-state, and receipt hashes match above; copy
+session 41437 completed successfully. Never overwrite the newer live organism
+with this older taught copy.
+
+Evidence boundary: this closes LOCAL four ordered bodily acts with breath,
+pressure, rest, and cognitive codec equality. It does NOT establish an
+intelligible "Mama", semantic recognition, complete warm-runtime pending
+sensory-return/cold-restart equivalence, or production speech. The existing
+saved-tail helper does not export its waveform or final pending return fields.
+Those are missing observations, not a reversal of the motor-chain success.
+Next exact item: reconcile the existing frozen delivery inventory and expose
+the already-produced audio/pending-return evidence through the existing helper,
+without changing organism physics or repeating the closed teaching curriculum.
+
+`F-054-118-H03` — another avoidable source-path lookup failure:
+virtual_articulatory_acoustics.rs was guessed and did not exist. Correct source
+is virtual_articulatory_body.rs, with acoustic state in virtual_articulated_body.rs.
+No organism/test failure. Resolve symbols with rg before opening an uncertain
+path; do not repeat this filename guess.
