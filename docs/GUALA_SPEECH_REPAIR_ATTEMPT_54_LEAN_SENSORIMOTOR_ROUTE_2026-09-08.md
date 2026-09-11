@@ -2,8 +2,9 @@
 
 Date: 2026-09-08 UTC
 Status corrected 2026-09-11 UTC: **live production speech is not yet fixed**. Production runs task
-definition 1455 from immutable image digest
-`sha256:a10fe2c1e20cb6b1933965cde6ad9d2ebfe99eec1344d074e7d735dccb57f980`.
+definition 1456 from Candidate-110 commit `34b4004ad10f36085aff83b0057d3d8bfcafe008`
+and immutable image digest
+`sha256:6aa38d997522301c5e3ddd75bbb053871bdda12b81259cd2f44119292492a106`.
 Joe's live hearing disproved the former speech-complete claim: the body emits
 isolated tonal boops/beeps/toots, not ordered or recognizable speech.
 Candidate 110 now has copied-production evidence from the exact task-1455 body:
@@ -13,14 +14,14 @@ maximum chain, all four mouth motors per posture, breath on every posture,
 exact cold restart after a proved silent pre-cue baseline. The retained anatomy
 is exactly three learned edges and 16 lean-route contacts; it did not expand the
 495 unresolved legacy contacts. This is a learned word-shaped physical sound,
-not semantics or conversation, and it is not live production until the frozen
-image rehearsal, cutover, laptop hearing, bounded-resource, and Slack gates
-pass. The definitive current evidence is the append-only Candidate 110 section;
+not semantics or conversation. The mechanism is now live, but the current body
+did not grow a complete vocal root from either accepted live lesson chronology,
+so laptop hearing and Slack completion remain open. The definitive current evidence is the append-only Candidate 110 section;
 any earlier “speech complete” wording is historical and retracted.
 Worktree: `/tmp/guala-speech-existing-organ`
 Starting HEAD: `735489406577f90edf6c2fb7fb1889f87eae8107`
-Production boundary: task definition 1455 is the live deployed writer. Its
-infrastructure health and isolated pressure/self-hearing events prove neither
+Production boundary: task definition 1456 is the live deployed writer. Its
+infrastructure health and deployed Candidate-110 mechanism prove neither
 ordered articulation nor recognizable speech.
 
 ## Architecture honesty gate
@@ -8887,3 +8888,76 @@ extension. With that artifact first on `PYTHONPATH`, the frozen nine-file active
 lean suite completed `58 passed` in 2.82 seconds; its sole output warning was
 the inherited Starlette/httpx deprecation. This wheel is the sole candidate
 artifact for image rehearsal; it must not be silently rebuilt or substituted.
+
+### Candidate 110 production deployment and live-growth truth
+
+`H-054-120` (wrong local Dockerfile selected; no production change): the first
+local image command selected the retired source allow-list
+`dsf_ai_service/Dockerfile.lean`. Its stale fixed source-count assertion refused
+the current reviewed manifest. The tentative local edit was fully reverted
+before any image or deployment. The authoritative package and AWS build path is
+`tools/package_guala_release.py` plus `dsf_ai_service/Dockerfile`, exactly as
+invoked by `tools/deploy_dsf_ai.sh`. Permanent guard: deployment rehearsal uses
+the Dockerfile inside the verified 213-file staged release, never
+`Dockerfile.lean`.
+
+`S-054-110-18` (exact production image rehearsal): the reviewed package for
+commit `34b4004ad10f36085aff83b0057d3d8bfcafe008` verified at 213 explicitly
+admitted files and excluded every retired shell entrypoint. Its exact production
+Dockerfile built successfully. A disposable paired store made from the exact
+task-1455 copy restored identity `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1` at tick
+622530, served the lean health/ready/observation schemas, advanced and published
+settled custody without checkpoint or cleanup error, then cold-restored that
+new custody. Observed memory was 1.1-1.8 GiB under the production 16-GiB ceiling.
+The disposable container and volume were removed after the proof.
+
+`D-054-110-19` (first deployment invocation refused before mutation): between
+the read-only preflight and the controller's own authority read, task 1455 began
+one checkpoint. `tools/deploy_dsf_ai.sh` refused with `durable custody is not
+settled` before packaging, registration, drain, or service mutation. The
+checkpoint completed normally; no candidate conclusion relies on this refusal.
+
+`S-054-110-20` (mechanism deployed live): the unchanged controller packaged
+commit `34b4004ad10f36085aff83b0057d3d8bfcafe008`, built and pinned immutable ECR
+digest `sha256:6aa38d997522301c5e3ddd75bbb053871bdda12b81259cd2f44119292492a106`,
+drained task 1455 before starting its successor, and live-verified task
+definition 1456. Exactly one writer returned healthy. Identity was unchanged,
+the native clock advanced from cutover tick 636170 to 636220, legacy rollback
+was disabled, and the production health, ready, custody, and rollout checks all
+passed. This is successful delivery of the Candidate-110 mechanism. It is not
+a live speech-success claim.
+
+`F-054-110-21` (spaced live root curriculum): with the caretaker stopped, eight
+ordinary `guided-vocal-microphone` lessons were admitted on task 1456. Every
+lesson delivered 4,000 external sound samples and all four exact vocal axes
+(37, 38, 39, and 44 toward minimum with 1,500 carriers each), produced five or
+six body consequences, and contained no body-owned echo. Lessons were separated
+by eight organism ticks and waited through checkpoint custody. A later sound-
+only cue produced no vocal-axis motion, pressure, or self-hearing through 20
+native ticks. This chronology is rejected as curriculum evidence; the admitted
+sensory/body delivery remains a success.
+
+`F-054-110-22` (fixed live root curriculum and exact two-cue recall): the exact
+eight back-to-back minimum lessons from the copied-body success were then
+admitted with the same receipts. A first sound-only cue after eight quiet ticks
+produced no act through 20 ticks. The ledger was re-read before classification
+and `S-054-110-08` was found: on the mature copied body, the first cue is a
+silent sensory re-entry and a second identical cue after 12 ordinary clocks is
+the known recall path. That exact two-cue sequence was therefore run live; both
+cues delivered 4,000 samples without a guide, but neither produced vocal motion,
+pressure, breath evidence, or self-hearing through the second cue's 20-tick
+tail. Live speech remains failed.
+
+`D-054-110-23` (live anatomy discriminator): one read-only cold view of the
+exact task-1455 copied baseline reported 820 reached layer-11 neurons, 820
+layer-7/layer-11 contacts, and 500 layer-11/layer-12 contacts. A read-only ECS
+view of task 1456's immutable CURRENT after the live lessons reported 821, 821,
+and 500 respectively. Total retained formations changed from 183 to 214 across
+the intervening lived history, but the motor-contact count did not change.
+Therefore no complete coordinated vocal root was grown live; this is earlier
+than root-versus-younger conductance competition and earlier than continuation,
+breath, acoustic output, or browser playback. The sole next speech item is to
+identify why the live guided-growth event authors zero layer-11/layer-12 motor
+contacts despite proving all four guided axes and sound at ingress. No further
+lesson repetition, capacity widening, manual unsaturation, recall change, or
+legacy-shell work is authorized by this result.
