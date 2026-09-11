@@ -10808,3 +10808,96 @@ virtual_articulatory_acoustics.rs was guessed and did not exist. Correct source
 is virtual_articulatory_body.rs, with acoustic state in virtual_articulated_body.rs.
 No organism/test failure. Resolve symbols with rg before opening an uncertain
 path; do not repeat this filename guess.
+
+
+`D-054-118-21` — frozen observation-only contract: exact saved-tail audio
+and final pending sensory return. Predecessor S-054-118-20 remains CLOSED
+locally; task 1456 remains the unchanged live predecessor, not speech proof.
+Requested architecture: bodily learned speech with exact self-hearing.
+Current reality: full four-posture copied output exists but saved-tail JSON
+drops waveform and final pending-return observations. Conflict: yes, evidence
+is insufficient for the requested delivered speech; no new physics conflict
+inferred. Full DSF remains untouched; no field structure is reduced.
+Single next item: expose those existing test-only outputs in
+resident_cognitive_formation/reservoir_probe.rs.
+
+Impact: run_guided_vocal_continuation settles real body/acoustics, collects
+radiated_pressure_pcm in pressure, and stages pending_motor_consequence and
+pending_self_pressure for the next iteration. Return only two observational
+presence flags alongside the existing result; expose them at pre-cue and final
+saved-tail boundaries. Extract the EXISTING 16kHz mono signed-16-bit WAV writer
+from guided_vocal_population_growth_json into one shared test-only function;
+call it on positive.pressure from saved_guided_vocal_tail_json using the same
+existing optional GUALA_PROBE_GUIDED_VOCAL_PRESSURE_WAV. No resampling, gain,
+normalization, trimming, synthesis, changed cue, extra clocks, or guiding.
+No production caller, schema, native physics, package, Python, UI, or persisted
+state changes. reservoir_probe is cfg(test); no deployment authority here.
+Work: two booleans per continuation; optional one WAV allocation/write linear
+in existing bounded pressure output. Reuse one writer, not duplicate it.
+No production retained bytes or recurring work.
+
+Acceptance: source-only independent review before compilation, then ONE
+replay of S118-20 from the exact saved taught state/body with identical cue,
+occurrence 500, eight baseline and 64 positive clocks. All previously observed
+physical outputs and canonical successor hashes must match S118-20 exactly;
+new WAV must have exactly the unchanged emitted sample count and nonzero
+count. Measure pending return on both boundaries rather than assuming silence
+or codec equality proves complete runtime restart. Missing pending return
+would be a harness observation/lifecycle issue, not loss of the four-act win.
+Record actual waveform properties and report no intelligible word until heard.
+Frozen inventory rows 5-8 remain open at their full production scope. Do not
+reopen root/2/3/4 learning, retutor, run an A/B ladder, or change physical laws.
+
+
+`S-054-118-22` — independent source review PASSED fingerprint
+5d9a573854db1a26f90be8f5dd87999e3efdf51e74a1d18c6147710b26b394a5,
+verified before/after. No localized or architectural finding. Writer preserves
+exact LE i16/16kHz mono native pressure; single constructor updated; cfg(test)
+only. Flags measure actual pending Options, not acoustic silence. A true flag
+at a boundary forbids claiming lossless handoff there; observation alone does
+not preserve pending returns. No physics change or semantic/audio claim.
+Build preflight: sole live1456/image6aa38d99 healthy1/1/0; historical clock alarm
+unchanged since September8; no local heavy Guala/TFE child; overlay640G free,
+backup1.6T free; command paths resolved. Native source owner remains unchanged.
+
+
+`S-054-118-23` — exact audio/pending-return observation PASSED.
+Reviewed test-only delta built in 2m33s with the same 99 existing warnings;
+binary SHA256 4df93c017a971719a08b66edc12f6333ca41646678b1a3bc18273cb865a502c8.
+Exact listed reservoir_probe_dump ran once, 44.66s, session19398 completed.
+Every prior JSON observation matches S118-20 exactly (only new observation
+keys and output paths excluded). Canonical successor cognitive/body hashes
+also EXACTLY match 651eb0c1... and 6247ab3b..., respectively.
+Both pre-cue and final pending_motor_consequence=false and
+pending_self_pressure=false. Thus neither boundary in THIS run discarded an
+unconsumed return. Acoustic rest and codec equality remain true. This does
+not substitute for whole-runtime warm/cold next-interval equivalence.
+
+Exact unmodified 16kHz mono i16 WAV:
+ /tmp/guala-candidate118-four-posture-audio.wav
+SHA256 b7eca2ca880873934a0a92aced1cdf92d4920d454d17a827bd9da75eb70759e0.
+512044 bytes, 256000 samples/16 seconds including silence; 126579 nonzero
+samples. Peak433/32768 (~1.32% full scale), RMS91.5128 over the full recording.
+First nonzero at0.500125s, last at8.766375s. Four learned motor acts on clocks
+3/4/5/6 unchanged; residual acoustic output is not a new motor act.
+No gain, trimming, resampling, synthesis, or intelligibility claim.
+JSON /tmp/guala-candidate118-four-posture-audio.json SHA256
+bbfdac99846797fb776ab82a7918bb6fc97660b65653fa1f804cd87eaa37edd2.
+Native production source SHA remains f6dad56e...; probe SHA
+e2c7f6b0c896c8571e88226548de148e367af847e83084daa6eb3b6859812b25.
+
+AWS pre17:53:16/post17:54:33 UTC same1456/image6aa38d99, RUNNING/HEALTHY,
+service1/1/0. Historical clock alarm unchanged. 17:50 metric window CPU
+avg41.7558/max47.1336%, memoryavg10.5278/max11.4868%. These are service health,
+not native latency or complete runaway proof. Post-process census no
+rustc/cargo/guala_core child. No production mutation; caretaker STOP retained.
+
+`D-054-118-24` — next frozen recurrent-use check, not new physics:
+from the exact S118-23 used successor651eb0c1/body6247ab3b, cold decode,
+eight no-cue clocks, one same phase0 sound cue at occurrence600, 64 positive
+clocks, no guide. Require pre-cue silence and no pending return, then the
+same four ordered learned postures, breath, pressure, cessation, no remaining
+pending return. This is the already-required recurrent/cold branch of the
+frozen inventory, not a re-teaching campaign. Preserve first-use success if
+recurrent operation differs; identify actual first differing boundary rather
+than rejecting the known working motor/breath/ordering components.

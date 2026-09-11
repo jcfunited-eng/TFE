@@ -4162,6 +4162,8 @@ struct GuidedVocalContinuation {
     internal_reassemblies: u64,
     causal_thought_transitions: u64,
     learned_work_by_clock: Vec<Value>,
+    pending_motor_consequence: bool,
+    pending_self_pressure: bool,
 }
 
 fn run_guided_vocal_continuation(
@@ -5115,7 +5117,36 @@ fn run_guided_vocal_continuation(
         internal_reassemblies,
         causal_thought_transitions,
         learned_work_by_clock,
+        pending_motor_consequence: pending_motor_consequence.is_some(),
+        pending_self_pressure: pending_self_pressure.is_some(),
     }
+}
+
+fn guided_vocal_pressure_wav(pressure: &[i16]) -> Option<Value> {
+    std::env::var("GUALA_PROBE_GUIDED_VOCAL_PRESSURE_WAV")
+        .ok()
+        .map(|path| {
+            let data_bytes = u32::try_from(pressure.len() * std::mem::size_of::<i16>())
+                .expect("guided vocal WAV data width");
+            let mut wav = Vec::with_capacity(44 + data_bytes as usize);
+            wav.extend_from_slice(b"RIFF");
+            wav.extend_from_slice(&(36_u32 + data_bytes).to_le_bytes());
+            wav.extend_from_slice(b"WAVEfmt ");
+            wav.extend_from_slice(&16_u32.to_le_bytes());
+            wav.extend_from_slice(&1_u16.to_le_bytes());
+            wav.extend_from_slice(&1_u16.to_le_bytes());
+            wav.extend_from_slice(&16_000_u32.to_le_bytes());
+            wav.extend_from_slice(&32_000_u32.to_le_bytes());
+            wav.extend_from_slice(&2_u16.to_le_bytes());
+            wav.extend_from_slice(&16_u16.to_le_bytes());
+            wav.extend_from_slice(b"data");
+            wav.extend_from_slice(&data_bytes.to_le_bytes());
+            for sample in pressure {
+                wav.extend_from_slice(&sample.to_le_bytes());
+            }
+            fs::write(&path, &wav).expect("guided vocal pressure WAV writes");
+            json!({"path": path, "bytes": wav.len()})
+        })
 }
 
 fn saved_guided_vocal_tail_json(
@@ -5188,6 +5219,8 @@ fn saved_guided_vocal_tail_json(
     let baseline_observation = baseline.as_ref().map(|baseline| {
         json!({
             "clocks": baseline_clocks,
+            "pending_motor_consequence": baseline.pending_motor_consequence,
+            "pending_self_pressure": baseline.pending_self_pressure,
             "pulses": baseline.pulses,
             "respiratory_carriers": baseline.respiratory_carriers.to_string(),
             "nonzero_pressure_samples": baseline.pressure.iter().filter(|sample| **sample != 0).count(),
@@ -5267,6 +5300,10 @@ fn saved_guided_vocal_tail_json(
         "measurement_only": true,
         "sound_only": sound_only,
         "saved_taught_state_advanced": true,
+        "pressure_wav": guided_vocal_pressure_wav(&positive.pressure),
+        "pressure_sample_count": positive.pressure.len(),
+        "pending_motor_consequence": positive.pending_motor_consequence,
+        "pending_self_pressure": positive.pending_self_pressure,
         "pre_cue_baseline": baseline_observation,
         "maximum_clocks": maximum_clocks,
         "pulses": positive.pulses,
@@ -6237,30 +6274,7 @@ fn guided_vocal_population_growth_json(
             "dsf_delivery_count": observation.dsf_delivery_count,
         })
     });
-    let pressure_wav = std::env::var("GUALA_PROBE_GUIDED_VOCAL_PRESSURE_WAV")
-        .ok()
-        .map(|path| {
-            let data_bytes = u32::try_from(pressure.len() * std::mem::size_of::<i16>())
-                .expect("guided vocal WAV data width");
-            let mut wav = Vec::with_capacity(44 + data_bytes as usize);
-            wav.extend_from_slice(b"RIFF");
-            wav.extend_from_slice(&(36_u32 + data_bytes).to_le_bytes());
-            wav.extend_from_slice(b"WAVEfmt ");
-            wav.extend_from_slice(&16_u32.to_le_bytes());
-            wav.extend_from_slice(&1_u16.to_le_bytes());
-            wav.extend_from_slice(&1_u16.to_le_bytes());
-            wav.extend_from_slice(&16_000_u32.to_le_bytes());
-            wav.extend_from_slice(&32_000_u32.to_le_bytes());
-            wav.extend_from_slice(&2_u16.to_le_bytes());
-            wav.extend_from_slice(&16_u16.to_le_bytes());
-            wav.extend_from_slice(b"data");
-            wav.extend_from_slice(&data_bytes.to_le_bytes());
-            for sample in &pressure {
-                wav.extend_from_slice(&sample.to_le_bytes());
-            }
-            fs::write(&path, &wav).expect("guided vocal pressure WAV writes");
-            json!({"path": path, "bytes": wav.len()})
-        });
+    let pressure_wav = guided_vocal_pressure_wav(&pressure);
     let encoded = state.encode(usize::MAX).expect("guided successor encodes");
     let cold = ResidentCognitiveFormationState::decode(&encoded, usize::MAX)
         .expect("guided successor cold-decodes");
