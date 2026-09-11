@@ -35,6 +35,9 @@ use serde_json::{json, Value};
 use std::fs;
 use std::path::PathBuf;
 
+#[path = "memory_retention_probe.rs"]
+mod memory_retention_probe;
+
 const ENVELOPE_MAGIC: &[u8; 8] = b"GLORUN01";
 const PRE_VESTIBULAR_FABRIC_MAGIC: &[u8; 8] = b"GLMFAB07";
 const PRE_ARTICULATED_FABRIC_MAGIC: &[u8; 8] = b"GLMFAB08";

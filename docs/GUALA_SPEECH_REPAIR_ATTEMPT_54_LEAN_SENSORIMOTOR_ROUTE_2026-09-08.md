@@ -9231,3 +9231,55 @@ HEALTHY/RUNNING, expected image `6aa38d99...492a106`. CloudWatch service bins
 10.64–10.84%, maximum 11.96%. These service measurements are distinct from
 local probe costs. `guala-clock-stalled` remains ALARM with state-change time
 2026-09-08 14:15:41 UTC; this inspection did not measure a live tick window.
+
+`D-054-113-06` (continue the saved lesson at the retention boundary): the
+next diagnostic restores the original task-1456 envelope only to identify
+which four L7 associations are new in F-054-113-03's saved successor. It
+censuses the exact formations containing those association members or original
+bond endpoints, then uses the existing body/sound continuation helper for four
+ordinary intervals with no tutor cue or guide. It compares pending/retained
+status, actual member and original-bond source layers, and recurrent-cell
+presence afterward. Four intervals inspect the existing three-frontier
+continuity window and its successor; they do not define a new organism timer.
+No memory, topology, growth, or recall law changes. This uses the existing
+saved lesson rather than repeating training. Source questions are
+`exact_reached_cross_sensory_original_bonds`,
+`pending_original_continues_through_association`, and
+`pending_originals_share_physical_path` in `resident_cognitive_formation.rs`.
+The observation-only module is nested beneath test-only `reservoir_probe`;
+it has no production caller, export, schema field, or packaging change.
+
+`F-054-113-07` (new association memory lacks the learned sensory/body path):
+the saved-lesson continuation diagnostic completed in 4.82 seconds. The four
+new associations are `...0956`, `...0964`, `...0972`, and `...0980`. Immediately
+after the lesson none had a containing formation. After four ordinary
+intervals, each belonged to a pending structure with four L7 members and four
+original bonds whose endpoint layers were only L6/L7. There were no retained
+auditory/body receptor members or original-bond endpoints, and no recurrent
+cell. Internal reassembly still occurred 313 times during the continuation.
+Thus ongoing cognition was not absent, and the four cells were not deleted;
+the specific new sound/body path had not become recallable at this measured
+point. This is not a claim that it can never complete at later clocks.
+Receipt `/tmp/guala-candidate113-memory-retention.json`, SHA-256
+`46a081d457913f733049defbfb190da858deb82bdc0e8bf7f77d7e09273baa5c`.
+Source review now targets why the exact focused path loses eligibility:
+the all-L6-bonds-active requirement and the any-existing-formation exclusion.
+A test-only four-cell count of actual active bonds, indexed formations and
+focused output will distinguish those gates on the same saved continuation.
+
+`F-054-113-08` (focused-path selection omits actual active association work):
+the four-cell diagnostic completed in 4.79 seconds and produced the identical
+JSON SHA-256 as F-054-113-07. All four associations have 35 L6 contacts.
+Across the four continuation intervals, active-contact counts were
+32, 35, 32, 35 for each cell; indexed-formation counts were 0, 0, 1, 1;
+focused-path bond counts were 0 at every interval. In particular, at interval
+two all contacts were active and no existing formation excluded the cell,
+yet no focused component was produced. Therefore neither incomplete contact
+activity nor existing-formation exclusion explains that interval's refusal.
+The earlier source-selection gates still require a current frontier entry
+with a cause on the active L6/L7 bond and with `frontier_lineage()==association`.
+Their exact incident/endpoint counts have not yet been measured; do not
+declare a directed-transfer explanation proven from active-contact totals.
+The next source decision is whether those receipt/endpoint requirements
+correctly represent the bidirectional physical participation needed for
+forming memory. No production neuron, memory or speech correction has shipped.
