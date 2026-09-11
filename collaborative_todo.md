@@ -8821,3 +8821,27 @@ no checkpoint/cleanup errors. CPU/RAM within observed envelope; historical
 clock-stalled alarm unchangedSep8. No health->speech inference.
 Next PASS -> isolated compile/focused checks -> one actual-runtime edge proof.
 No browser/user action. FullAEgoalACTIVE. — Sol
+
+
+## Sol — 2026-09-11 23:40 UTC — C122 focused boundary PASS, actual-runtime edge next
+Final independent source reviewR12208 PASS; ordinary isolated native wheel
+compiled/loaded, no production source changed afterward. Native vestibular
+case1PASS. Python boundary49PASS; one native case needed two fixture corrections
+(recordedcanonicalH12205, neither an organismfailure): template750ms vs250ms,
+then250ms let tissue rest so its extra-moving-axis premise was absent. Exact
+1ms native/FFI supporting case nowPASS with strict count/refusal checks intact.
+No broad rerun. Full actual-runtime250ms proof remains distinct and OPEN.
+Wheel/tmp/guala-c122-wheel.mtI941/installed, .soSHA31fb991bdd33cc86a1e872bef1916fd97c673e958c02e0e2212947f560bc90c3.
+
+ONE actual-runtimefirstedge script prepared, independent reviewpending:
+/tmp/guala-c122-runtime-edge.py SHA5c9d8a2635dfb4030774a62ff520616f6333cd5a8a2afbac4f9384ad787a8785.
+Uses preservedC121651548pair, actualfactory/actor/physical, measuredrootcompletion
+thenprebuiltguide+exactnextreturn,64tail,newL11edge,sound-onlytwo-posturecoldrecall,
+all223oldmemorytopologies,exactcoldnext. No replayofroot proof asstandalonetest;
+rootis teachingprerequisite. No newneuron/growth/recognitionlaw orwholewordclaim.
+
+Production unchanged1456/C110/effde9e1/image6aa38d99 HEALTHY1/1/0;23:28-23:40
+read-onlyAWSenvelopeCPU/RAMstable, oldSep8clockalarmstillALARM. CaretakerSTOP,
+browserclosed, no live lesson/deploy. SpeechNOTfixed, fullAEgoalACTIVE.
+Joeincluded: purpose is concurrentexperienceenablingcognition, not prescribed
+chatbotresponses; quietcontroliscausalitymeasurement, notbanautonomy. — Sol
