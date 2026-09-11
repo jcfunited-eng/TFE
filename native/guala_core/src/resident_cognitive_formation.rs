@@ -1,6 +1,6 @@
 //! Resident complete-neuron boundary.
 //!
-//! `GLCOG030` is the current resident complete-neuron carrier. On the first
+//! `GLCOG045` is the current resident complete-neuron carrier. On the first
 //! admitted source occurrence it creates and retains exact source-specialized
 //! virtual-material neuron cells. Explicit growth-DNA electrical seeds remain
 //! unexpressed until their exact source-site cohort is reached, then become the
@@ -14,6 +14,9 @@
 //! recovery state remains separate. It
 //! never infers contacts or claims cognition merely from a seed, DSF delivery,
 //! or three retained fractals.
+
+mod settled_fractal_custody;
+use settled_fractal_custody::SettledFractalCustody;
 
 use crate::articulated_body_joint_source_builder::exact_moved_effector_terminal;
 use crate::articulatory_receptor_work::{
@@ -333,6 +336,8 @@ const MAGIC_V43: &[u8; 8] = b"GLCOG043";
 /// carries no work of its own, and expires with that physical entry. Historical
 /// frontier entries remain unattributed; V43 readers reject the new tags.
 const MAGIC_V44: &[u8; 8] = b"GLCOG044";
+/// V45 preserves finalized per-neuron leaves across independent settlement clocks.
+const MAGIC_V45: &[u8; 8] = b"GLCOG045";
 const RETIRED_W1_RETINA_SENSOR_ID: &str = "W1-retina";
 const RETIRED_W1_RETINA_TOPOLOGY_START: u32 = 135;
 const RETIRED_W1_RETINA_RECEPTOR_COUNT: usize = 810;
@@ -2721,6 +2726,7 @@ pub(crate) struct ResidentCognitiveFormationState {
     /// two-contact paths; anything older has expired.
     older_active_electrical_frontier: Box<[ActiveElectricalFrontierEntry]>,
     mosaics: Box<[RetainedOrganismMosaic]>,
+    settled_fractals: SettledFractalCustody,
     hippocampal: ResidentHippocampalIndex,
     /// Runtime-only exact navigation over resident anatomy. Canonical bytes
     /// remain owned by cohorts and the electrical fabric; ordinary physical
@@ -2748,6 +2754,7 @@ impl Default for ResidentCognitiveFormationState {
             preceding_active_electrical_frontier: Box::new([]),
             older_active_electrical_frontier: Box::new([]),
             mosaics: Box::new([]),
+            settled_fractals: SettledFractalCustody::default(),
             hippocampal: ResidentHippocampalIndex::default(),
             topology_index: Arc::new(ResidentTopologyIndex::empty()),
             formation_index: ResidentFormationIndex::default(),
@@ -3697,6 +3704,7 @@ fn mosaic_spans_multiple_cohorts_indexed(
 /// those mounted paths preserves that exact cross-sensory fact when the
 /// contributing receptor neurons emit their post-quiescence fractals on
 /// different organism clocks.
+#[cfg(test)]
 fn association_source_layers(
     association: [u8; 16],
     topology_index: &ResidentTopologyIndex,
@@ -3775,11 +3783,6 @@ fn pending_association_has_cross_sensory_members(
                 Some(_) => {}
                 None => return Err(FormationError::NeuronLineageAuthorityAbsent),
             }
-        }
-    }
-    if has_association && sensory_layers.len() < 2 {
-        for association in pending_original_association_lineages(pending, topology_index)? {
-            sensory_layers.extend(association_source_layers(association, topology_index)?);
         }
     }
     Ok(!has_association || sensory_layers.len() >= 2)
@@ -3878,9 +3881,6 @@ fn adds_unretained_cross_sensory_relation(
             }
         }
     }
-    for association in current_associations.iter().copied() {
-        current_sensory_layers.extend(association_source_layers(association, topology_index)?);
-    }
     if current_sensory_layers.len() < 2 || current_associations.is_empty() {
         return Ok(false);
     }
@@ -3910,11 +3910,13 @@ fn adds_unretained_cross_sensory_relation(
                     None => return Err(FormationError::NeuronLineageAuthorityAbsent),
                 }
             }
-            for prior_association in pending_original_association_lineages(prior, topology_index)? {
-                prior_sensory_layers.extend(association_source_layers(
-                    prior_association,
-                    topology_index,
-                )?);
+            for bond in prior.original_bonds() {
+                let (left, right) = bond.endpoints();
+                for lineage in [left, right] {
+                    if let Some(layer @ 0..=5) = topology_index.layer_of(lineage) {
+                        prior_sensory_layers.insert(layer);
+                    }
+                }
             }
             relation_already_retained = current_sensory_layers
                 .iter()
@@ -3945,10 +3947,9 @@ fn pending_original_continues_through_association(
     }
     let prior_associations = pending_original_association_lineages(prior, topology_index)?;
     let current_associations = pending_original_association_lineages(current, topology_index)?;
-    Ok(prior_associations.iter().any(|lineage| {
-        recent_frontier_lineages.contains(lineage)
-            && current_associations.binary_search(lineage).is_ok()
-    }))
+    Ok(prior_associations.len() == 1
+        && current_associations == prior_associations
+        && recent_frontier_lineages.contains(&prior_associations[0]))
 }
 
 struct PreparedRetainedMosaicBoundary {
@@ -4066,6 +4067,7 @@ fn settle_organism_mosaic_boundary(
     cohorts: &[ResidentReachedCohort],
     topology_index: &ResidentTopologyIndex,
     emitted_neuron_fractals: &[EmittedNeuronFractal],
+    settled_fractals: &SettledFractalCustody,
     current_physical_deltas: &[([u8; 16], SparsePhysicalStateDelta)],
     externally_reached_lineages: &[[u8; 16]],
     externally_perturbed_lineages: &[[u8; 16]],
@@ -4561,10 +4563,7 @@ fn settle_organism_mosaic_boundary(
             .iter()
             .map(|lineage| topology_index.flat_for_lineage(*lineage))
             .collect::<Result<Vec<_>, _>>()?;
-        let fractal_count = component_flats
-            .iter()
-            .filter(|flat| current_fractals[**flat].is_some())
-            .count();
+
         let component_fractal_anatomies = component_flats
             .iter()
             .map(|flat| {
@@ -4578,15 +4577,17 @@ fn settle_organism_mosaic_boundary(
         let component_fractals = component_flats
             .iter()
             .map(|flat| {
-                current_fractals
-                    .get(*flat)
-                    .cloned()
-                    .ok_or(FormationError::NeuronLineageAuthorityAbsent)
+                let emitted = current_fractals.get(*flat)
+                    .ok_or(FormationError::NeuronLineageAuthorityAbsent)?.clone();
+                Ok(emitted.or_else(|| focused_association.and_then(|_| {
+                    settled_fractals.get(topology.lineages[*flat]).cloned()
+                })))
             })
             .collect::<Result<Vec<_>, _>>()?;
+        let fractal_count = component_fractals.iter().filter(|leaf| leaf.is_some()).count();
         let mut focused_prior_candidates = Vec::new();
-        if let Some(association) = focused_association
-            .filter(|association| component.lineages.binary_search(association).is_ok())
+        if focused_association
+            .is_some_and(|association| component.lineages.binary_search(&association).is_ok())
         {
             for index in formation_index.candidate_indices(
                 component.lineages.iter().copied(),
@@ -4594,7 +4595,7 @@ fn settle_organism_mosaic_boundary(
             ) {
                 let prior = &mosaics[index].mosaic;
                 if prior.is_original_only()
-                    && prior.member_lineages().binary_search(&association).is_err()
+                    && pending_original_association_lineages(prior, topology_index)?.is_empty()
                     && prior
                         .member_lineages()
                         .iter()
@@ -4606,6 +4607,25 @@ fn settle_organism_mosaic_boundary(
                 {
                     focused_prior_candidates.push(index);
                 }
+            }
+        }
+        if let Some(association) = focused_association {
+            let owned = formation_index.candidate_indices([association], std::iter::empty())
+                .into_iter().filter(|index| mosaics[*index].mosaic.is_original_only())
+                .filter_map(|index| {
+                    match pending_original_association_lineages(&mosaics[index].mosaic, topology_index) {
+                        Ok(hubs) if hubs.as_slice() == [association] => Some(Ok(index)),
+                        Ok(_) => None,
+                        Err(error) => Some(Err(error)),
+                    }
+                }).collect::<Result<Vec<_>, _>>()?;
+            match owned.as_slice() {
+                [] => {}
+                [_] if recent_frontier_lineages.contains(&association) => {
+                    focused_prior_candidates = owned;
+                }
+                [_] => continue, // Expired continuation is not an unowned new original.
+                _ => return Err(FormationError::NeuronLineageAuthorityChanged),
             }
         }
         focused_prior_candidates.sort_unstable();
@@ -4714,15 +4734,15 @@ fn settle_organism_mosaic_boundary(
         // mounted.  Its sound-side original must remain pending long enough
         // for the adjacent body-side evidence to arrive; an older sound
         // formation sharing receptors does not own this new exact hub.  Once
-        // any retained or pending formation owns it, the ordinary relation
-        // and duplicate gates regain sole authority.
+        // a pending original owns it, only that exact physically adjacent
+        // continuation is eligible; expired ownership is never new authority.
         let focused_unowned_association = if let Some(association) = focused_association {
             pending_original_association_lineages(&original, topology_index)?
                 .binary_search(&association)
                 .is_ok()
                 && formation_index
                     .candidate_indices([association], std::iter::empty())
-                    .is_empty()
+                    .iter().all(|index| Some(*index) == focused_prior_index)
         } else {
             false
         };
@@ -4761,7 +4781,10 @@ fn settle_organism_mosaic_boundary(
                 current.original_bonds().iter().copied(),
             ) {
                 let prior = &mosaics[index].mosaic;
-                if prior.is_original_only() && pending_originals_share_physical_path(prior, current)
+                if prior.is_original_only()
+                    && pending_original_association_lineages(prior, topology_index)?.is_empty()
+                    && pending_original_association_lineages(current, topology_index)?.is_empty()
+                    && pending_originals_share_physical_path(prior, current)
                 {
                     removed_pending_indices.insert(index);
                 }
@@ -5503,11 +5526,16 @@ fn validate_dedicated_vocal_articulatory_effector(
 
 impl ResidentCognitiveFormationState {
     pub(crate) fn encoded_is_current(bytes: &[u8]) -> bool {
-        bytes.get(..MAGIC_V44.len()) == Some(MAGIC_V44)
+        bytes.get(..MAGIC_V45.len()) == Some(MAGIC_V45)
+    }
+
+    pub(crate) fn encoded_has_current_body_observation(bytes: &[u8]) -> bool {
+        Self::encoded_is_current(bytes) || bytes.get(..MAGIC_V44.len()) == Some(MAGIC_V44)
     }
 
     pub(crate) fn encoded_has_corrected_articulated_pose(bytes: &[u8]) -> bool {
-        bytes.get(..MAGIC_V44.len()) == Some(MAGIC_V44)
+        Self::encoded_is_current(bytes)
+            || bytes.get(..MAGIC_V44.len()) == Some(MAGIC_V44)
             || bytes.get(..MAGIC_V43.len()) == Some(MAGIC_V43)
             || bytes.get(..MAGIC_V42.len()) == Some(MAGIC_V42)
             || bytes.get(..MAGIC_V41.len()) == Some(MAGIC_V41)
@@ -5664,6 +5692,7 @@ impl ResidentCognitiveFormationState {
                 .collect::<Vec<_>>()
                 .into_boxed_slice(),
             mosaics: mosaics.into_boxed_slice(),
+            settled_fractals: self.settled_fractals.clone(),
             hippocampal: self.hippocampal,
             topology_index: self.topology_index.clone(),
             formation_index: ResidentFormationIndex::default(),
@@ -5852,6 +5881,7 @@ impl ResidentCognitiveFormationState {
                 .collect::<Vec<_>>()
                 .into_boxed_slice(),
             mosaics: mosaics.into_boxed_slice(),
+            settled_fractals: self.settled_fractals.clone(),
             hippocampal: self.hippocampal,
             topology_index: self.topology_index.clone(),
             formation_index: ResidentFormationIndex::default(),
@@ -5980,6 +6010,7 @@ impl ResidentCognitiveFormationState {
             preceding_active_electrical_frontier: Box::new([]),
             older_active_electrical_frontier: Box::new([]),
             mosaics: Box::new([]),
+            settled_fractals: self.settled_fractals.clone(),
             hippocampal: ResidentHippocampalIndex::default(),
             topology_index: Arc::new(ResidentTopologyIndex::empty()),
             formation_index: ResidentFormationIndex::default(),
@@ -6186,6 +6217,7 @@ impl ResidentCognitiveFormationState {
                 .collect::<Vec<_>>()
                 .into_boxed_slice(),
             mosaics: self.mosaics.clone(),
+            settled_fractals: self.settled_fractals.clone(),
             hippocampal: self.hippocampal,
             topology_index: Arc::new(ResidentTopologyIndex::empty()),
             formation_index: self.formation_index.clone(),
@@ -6397,6 +6429,7 @@ impl ResidentCognitiveFormationState {
                 .collect::<Vec<_>>()
                 .into_boxed_slice(),
             mosaics: mosaics.into_boxed_slice(),
+            settled_fractals: self.settled_fractals.clone(),
             hippocampal: self.hippocampal,
             topology_index: self.topology_index.clone(),
             formation_index: ResidentFormationIndex::default(),
@@ -6524,6 +6557,7 @@ impl ResidentCognitiveFormationState {
             preceding_active_electrical_frontier: Box::new([]),
             older_active_electrical_frontier: Box::new([]),
             mosaics: Box::new([]),
+            settled_fractals: self.settled_fractals.clone(),
             hippocampal: self.hippocampal,
             topology_index: self.topology_index.clone(),
             formation_index: ResidentFormationIndex::default(),
@@ -6887,6 +6921,7 @@ impl ResidentCognitiveFormationState {
                 .collect::<Vec<_>>()
                 .into_boxed_slice(),
             mosaics: surviving_mosaics.into_boxed_slice(),
+            settled_fractals: self.settled_fractals.clone(),
             hippocampal: self.hippocampal,
             topology_index: Arc::new(ResidentTopologyIndex::empty()),
             formation_index: ResidentFormationIndex::default(),
@@ -7546,6 +7581,7 @@ impl ResidentCognitiveFormationState {
                 .collect::<Vec<_>>()
                 .into_boxed_slice(),
             mosaics: surviving_mosaics.into_boxed_slice(),
+            settled_fractals: self.settled_fractals.clone(),
             hippocampal: self.hippocampal,
             topology_index: Arc::new(ResidentTopologyIndex::empty()),
             formation_index: ResidentFormationIndex::default(),
@@ -7736,6 +7772,7 @@ impl ResidentCognitiveFormationState {
                 .collect::<Vec<_>>()
                 .into_boxed_slice(),
             mosaics: mosaics.into_boxed_slice(),
+            settled_fractals: self.settled_fractals.clone(),
             hippocampal: self.hippocampal,
             topology_index: self.topology_index.clone(),
             formation_index: ResidentFormationIndex::default(),
@@ -7814,6 +7851,7 @@ impl ResidentCognitiveFormationState {
             preceding_active_electrical_frontier: Box::new([]),
             older_active_electrical_frontier: Box::new([]),
             mosaics: Box::new([]),
+            settled_fractals: self.settled_fractals.clone(),
             hippocampal: ResidentHippocampalIndex::default(),
             topology_index: self.topology_index.clone(),
             formation_index: ResidentFormationIndex::default(),
@@ -7967,6 +8005,7 @@ impl ResidentCognitiveFormationState {
             preceding_active_electrical_frontier: Box::new([]),
             older_active_electrical_frontier: Box::new([]),
             mosaics: Box::new([]),
+            settled_fractals: SettledFractalCustody::default(),
             hippocampal: ResidentHippocampalIndex::default(),
             topology_index: Arc::new(ResidentTopologyIndex::empty()),
             formation_index: ResidentFormationIndex::default(),
@@ -8405,6 +8444,7 @@ impl ResidentCognitiveFormationState {
             preceding_active_electrical_frontier: predecessor_preceding_active_electrical_frontier,
             older_active_electrical_frontier: predecessor_older_active_electrical_frontier,
             mosaics: predecessor_mosaics,
+            mut settled_fractals,
             hippocampal: predecessor_hippocampal,
             topology_index: predecessor_topology_index,
             formation_index: predecessor_formation_index,
@@ -9924,6 +9964,9 @@ impl ResidentCognitiveFormationState {
             .checked_add(internal_contact.dsf_delivery_count)
             .ok_or(FormationError::ArithmeticOverflow)?;
         emitted_neuron_fractals = coalesce_emitted_neuron_fractals(emitted_neuron_fractals)?;
+        for fractal in &emitted_neuron_fractals {
+            settled_fractals.record(fractal.neuron_lineage, fractal.delta.clone())?;
+        }
         let settled_layer_six_lineages = internal_contact
             .causally_transitioned_lineages
             .iter()
@@ -9961,9 +10004,9 @@ impl ResidentCognitiveFormationState {
             &cohorts,
             &topology_index,
             &formation_index,
+            &mosaics,
             &reached_associations_by_occurrence,
             &internal_contact.causal_active_bonds,
-            &internal_contact.causally_transitioned_lineages,
         )?;
         let developmental_affective_pairs = exact_occurrence_affective_pairs(
             &reached_associations_by_occurrence,
@@ -10018,6 +10061,7 @@ impl ResidentCognitiveFormationState {
             &cohorts,
             &topology_index,
             &emitted_neuron_fractals,
+            &settled_fractals,
             &current_physical_deltas,
             &externally_reached_neuron_lineages,
             &externally_perturbed_neuron_lineages,
@@ -10165,6 +10209,7 @@ impl ResidentCognitiveFormationState {
                 .into_boxed_slice(),
             active_electrical_frontier: active_electrical_frontier.into_boxed_slice(),
             mosaics: mosaics.into_boxed_slice(),
+            settled_fractals,
             hippocampal,
             topology_index,
             formation_index,
@@ -10739,6 +10784,7 @@ impl ResidentCognitiveFormationState {
             preceding_active_electrical_frontier: self.preceding_active_electrical_frontier.clone(),
             older_active_electrical_frontier: self.older_active_electrical_frontier.clone(),
             mosaics: self.mosaics.clone(),
+            settled_fractals: self.settled_fractals.clone(),
             hippocampal: self.hippocampal,
             topology_index,
             formation_index: self.formation_index.clone(),
@@ -10867,7 +10913,7 @@ impl ResidentCognitiveFormationState {
         let topology = indexed_organism_mosaic_topology(&self.cohorts, &self.topology_index)?;
 
         let mut output = Vec::new();
-        output.extend_from_slice(MAGIC_V44);
+        output.extend_from_slice(MAGIC_V45);
         output.extend_from_slice(&VERSION_V30.to_le_bytes());
         output.extend_from_slice(&self.generation.to_le_bytes());
         output.extend_from_slice(&self.next_lineage_ordinal.to_le_bytes());
@@ -11024,6 +11070,9 @@ impl ResidentCognitiveFormationState {
         push_length(&mut output, hippocampal.len())?;
         output.extend_from_slice(&hippocampal);
         ensure_cognitive_output_budget(&output, max_encoded_bytes)?;
+        self.settled_fractals.encode_into(
+            &mut output, &self.cohorts, &self.topology_index, max_encoded_bytes,
+        )?;
         let terminal = energy.map(|energy| {
             (
                 CognitiveFormationSummary {
@@ -11051,6 +11100,9 @@ impl ResidentCognitiveFormationState {
         format: CognitiveCodecFormat,
         max_encoded_bytes: usize,
     ) -> Result<Vec<u8>, FormationError> {
+        if self.settled_fractals.len() != 0 {
+            return Err(FormationError::RetiredCognitiveState);
+        }
         if self
             .older_active_electrical_frontier
             .iter()
@@ -11076,6 +11128,12 @@ impl ResidentCognitiveFormationState {
                 return Err(FormationError::NeuronLineageAuthorityChanged);
             }
             let (mut encoded, _) = self.encode_current(max_encoded_bytes, false, false)?;
+            // Empty V45 leaf custody has no historical representation.
+            let end = encoded.len().checked_sub(8).ok_or(FormationError::NoncanonicalState)?;
+            if encoded.get(end..) != Some(&[0_u8; 8][..]) {
+                return Err(FormationError::NoncanonicalState);
+            }
+            encoded.truncate(end);
             let marker_offset =
                 MAGIC_V26.len() + std::mem::size_of::<u16>() + 2 * std::mem::size_of::<u64>();
             if encoded.get(marker_offset) != Some(&0) {
@@ -11688,7 +11746,7 @@ impl ResidentCognitiveFormationState {
     }
 
     pub(crate) fn decode(bytes: &[u8], max_encoded_bytes: usize) -> Result<Self, FormationError> {
-        if bytes.get(..MAGIC_V44.len()) != Some(MAGIC_V44) {
+        if bytes.get(..MAGIC_V45.len()) != Some(MAGIC_V45) {
             return Err(FormationError::RetiredCognitiveState);
         }
         Self::decode_with_canonicality(bytes, max_encoded_bytes, true)
@@ -11699,7 +11757,7 @@ impl ResidentCognitiveFormationState {
         max_encoded_bytes: usize,
     ) -> Result<Self, FormationError> {
         // This is the explicit historical-entry boundary. Ordinary decode
-        // above remains V30-only; authenticated V12-V29 bodies are accepted
+        // above remains V45-only; authenticated historical bodies are accepted
         // here solely so they can be rewritten once into the current format.
         Self::decode_with_canonicality(bytes, max_encoded_bytes, false)
     }
@@ -11715,7 +11773,8 @@ impl ResidentCognitiveFormationState {
                 available: max_encoded_bytes,
             });
         }
-        let current_v44 = bytes.len() >= MAGIC_V44.len() && &bytes[..MAGIC_V44.len()] == MAGIC_V44;
+        let current_v45 = bytes.get(..MAGIC_V45.len()) == Some(MAGIC_V45);
+        let current_v44 = current_v45 || bytes.get(..MAGIC_V44.len()) == Some(MAGIC_V44);
         let current_v43 = current_v44
             || (bytes.len() >= MAGIC_V43.len() && &bytes[..MAGIC_V43.len()] == MAGIC_V43);
         let current_v42 = current_v43
@@ -12248,6 +12307,11 @@ impl ResidentCognitiveFormationState {
         )
         .map_err(FormationError::HippocampalCheckpointUnavailable)?;
         cursor = hippocampal_end;
+        let settled_fractals = if current_v45 {
+            SettledFractalCustody::decode_from(bytes, &mut cursor, &cohorts, &topology_index)?
+        } else {
+            SettledFractalCustody::default()
+        };
         if cursor != bytes.len() {
             return Err(FormationError::NoncanonicalState);
         }
@@ -12266,6 +12330,7 @@ impl ResidentCognitiveFormationState {
                 .into_boxed_slice(),
             older_active_electrical_frontier: older_active_electrical_frontier.into_boxed_slice(),
             mosaics: mosaics.into_boxed_slice(),
+            settled_fractals,
             hippocampal,
             topology_index,
             formation_index,
@@ -12357,7 +12422,8 @@ impl ResidentCognitiveFormationState {
         bytes: &[u8],
         max_encoded_bytes: usize,
     ) -> Result<Vec<u8>, FormationError> {
-        let current_v44 = bytes.get(..MAGIC_V44.len()) == Some(MAGIC_V44);
+        let current_v45 = bytes.get(..MAGIC_V45.len()) == Some(MAGIC_V45);
+        let current_v44 = current_v45 || bytes.get(..MAGIC_V44.len()) == Some(MAGIC_V44);
         let current_v43 = current_v44 || bytes.get(..MAGIC_V43.len()) == Some(MAGIC_V43);
         let current_v42 = current_v43 || bytes.get(..MAGIC_V42.len()) == Some(MAGIC_V42);
         let current_v41 = current_v42 || bytes.get(..MAGIC_V41.len()) == Some(MAGIC_V41);
@@ -12402,7 +12468,8 @@ impl ResidentCognitiveFormationState {
                 || &bytes[..MAGIC_V41.len()] == MAGIC_V41
                 || &bytes[..MAGIC_V42.len()] == MAGIC_V42
                 || &bytes[..MAGIC_V43.len()] == MAGIC_V43
-                || &bytes[..MAGIC_V44.len()] == MAGIC_V44);
+                || &bytes[..MAGIC_V44.len()] == MAGIC_V44
+                || &bytes[..MAGIC_V45.len()] == MAGIC_V45);
         let state = Self::decode_for_one_way_migration(bytes, max_encoded_bytes)?;
         // Historical topology/channel corrections belong to this explicit
         // authenticated migration and nowhere in ordinary cognition.  The
@@ -15695,9 +15762,9 @@ fn exact_reached_cross_sensory_original_bonds(
     cohorts: &[ResidentReachedCohort],
     topology: &ResidentTopologyIndex,
     formation_index: &ResidentFormationIndex,
+    mosaics: &[RetainedOrganismMosaic],
     associations: &ReachedAssociationsByOccurrence,
     causal_active_bonds: &[StablePhysicalBondReference],
-    causally_reached_lineages: &[[u8; 16]],
 ) -> Result<Vec<([u8; 16], Vec<StablePhysicalBondReference>)>, FormationError> {
     #[cfg(test)]
     CAUSAL_ORIGINAL_INPUT_TRACE.with(|slot| {
@@ -15712,46 +15779,30 @@ fn exact_reached_cross_sensory_original_bonds(
         .flatten()
         .copied()
         .collect::<BTreeSet<_>>();
-    // Memory forms from this interval's actual participation. The frontier
-    // scheduled for a later propagation step can be empty after these same
-    // contacts settle; it is not the authority for what just happened.
-    for association in causally_reached_lineages.iter().copied() {
-        if topology.layer_of(association) != Some(7) {
-            continue;
+    // Memory participation follows actual causal contacts, including current
+    // that has not delivered a whole carrier into the hub. The directed
+    // receiver list serves propagation/action and is not this input's scope.
+    for bond in &causal {
+        let (left, right) = bond.endpoints();
+        for participant in [left, right] {
+            if topology.layer_of(participant) == Some(7) {
+                candidate_associations.insert(participant);
+            }
         }
-        let association_flat = topology.flat_for_lineage(association)?;
-        let association_bonds = topology.incident_contacts_by_flat[association_flat]
-            .iter()
-            .copied()
-            .filter_map(|contact_index| {
-                let contact = topology.contacts[contact_index];
-                let neighbour_flat = if contact.left == association_flat {
-                    contact.right
-                } else {
-                    contact.left
-                };
-                (matches!(contact.origin, ResidentContactOrigin::Fabric { .. })
-                    && topology.layer_of(topology.flat_locations[neighbour_flat].2) == Some(6))
-                .then_some(contact.stable_bond)
-            })
-            .collect::<Vec<_>>();
-        if association_bonds.is_empty()
-            || association_bonds
-                .iter()
-                .any(|candidate| !causal.contains(candidate))
-        {
-            continue;
-        }
-        if !formation_index
-            .candidate_indices([association], std::iter::empty())
-            .is_empty()
-        {
-            continue;
-        }
-        candidate_associations.insert(association);
     }
     let mut components = Vec::new();
     for association in candidate_associations {
+        let existing = formation_index.candidate_indices([association], std::iter::empty());
+        let mut eligible = true;
+        for index in existing {
+            let prior = &mosaics.get(index).ok_or(FormationError::NoncanonicalState)?.mosaic;
+            if !prior.is_original_only()
+                || pending_original_association_lineages(prior, topology)?.as_slice() != [association] {
+                eligible = false;
+                break;
+            }
+        }
+        if !eligible { continue; }
         if topology.layer_of(association) != Some(7) {
             return Err(FormationError::NeuronLineageAuthorityChanged);
         }
@@ -15774,9 +15825,8 @@ fn exact_reached_cross_sensory_original_bonds(
             if topology.layer_of(integration) != Some(6) {
                 continue;
             }
-            if causal.contains(&contact.stable_bond) {
-                bonds.insert(contact.stable_bond);
-            }
+            if !causal.contains(&contact.stable_bond) { continue; }
+            bonds.insert(contact.stable_bond);
             for source_contact_index in topology.incident_contacts_by_flat[integration_flat]
                 .iter()
                 .copied()

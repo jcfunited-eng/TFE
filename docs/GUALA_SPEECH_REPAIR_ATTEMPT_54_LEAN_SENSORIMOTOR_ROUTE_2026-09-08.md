@@ -10014,3 +10014,66 @@ input path instead of passing a hand-selected receiver list. Expired/ambiguous
 owner controls and actual warm/cold return remain unchanged. First run is
 again the SAME declared four-clock saved-body acceptance, not broad lessons.
 All previous component successes remain retained at their measured scope.
+
+`S-054-117-01`: independent source-only PASS fingerprint
+87cf22cde5680175a904d63e41a1c9274f8597e3f60cc9edb97eb76384692a02,
+verified unchanged before/after and by owner. Actual causal endpoint input,
+own-L6/source connectivity, ownership cases and corrected two-hub active-contact
+fixture verified. Directed producer/other consumers unchanged. Reviewed116
+custody/body/codec/restart closure reused, not re-proven by assertion.
+This documentation-only entry follows review; source unchanged. Compile then
+same four-clock acceptance. No speech or retention success claimed.
+
+
+`S-054-117-02` — EXACT SAVED-BODY ASYNCHRONOUS HANDOFF PASS.
+Release compiled first try2m51s,99warnings. Binary SHA256
+4ffdcfcb925a9d3996d1e1c86dac32b9832768f26c01f8c6a8a37ce82656efa6.
+Source+record fingerprint ee1fe4594b5c66f9083e48a54a2b5cab18c5b8d3a854a9c0f6264d3b2170fe7c
+verified immediately before the exact ignored test. SAME authenticated saved
+one-lesson pair, SAME four-clock path and acceptance:1passed/0failed20.68s.
+All four hubs passed, each with EXACTLY ONE total indexed owner.
+Clock1: six real sound leaves retained separately per hub,12 actual witness
+bonds per original (not all64 connected candidates or35 mounted contacts).
+Clock2: exact body and hub leaves joined,8 actual leaves and14 witness bonds.
+Clock3: same originals preserved.
+Clock4: all four original paths reached retained recurrence and each acquired
+its own real recurrent cell. No source-layer/anatomy substitute was accepted.
+Four-clock candidate-oracle final cognitive/body bytes match. Cold codec
+bytes match. Actual warm-residency next interval and cold reconstruction
+match full native successor/observation and complete body/pressure/consequence.
+14 finalized leaves in bounded custody. No larger lesson or word recall has
+been run on117; this closes admission/retention for this saved body, NOT speech.
+
+Receipt /tmp/guala-candidate117-saved-handoff.json SHA256
+06cfa3ca6dc6f65d57db67ad52c74180b8018717e0ea7220ff0c84fc9800ff22.
+Test RSS sampled at19s:1,614,956KiB, NOT peak or live RAM. Input digests unchanged.
+AWS before12:08:33/after12:09:20: same sole1456 task/image,1/1/0 HEALTHY/RUNNING,
+clock alarm stillSeptember8. Latest11:59/12:04 CPU avg41.22/40.31% max45.89%;
+memory10.65/10.60% max11.88%. No live lesson, cutover or production correction.
+Next only the three predeclared supporting checks, then ordinary-cognition
+lesson/recall path. This success is preserved independently of later results.
+
+
+`S/F-054-117-03`: three exact supporting tests, one serial bounded batch:
+2passed/1failed,0.00s. PASS last-leaf overwrite/no-history/predecessor isolation
+and tree bound; PASS actual two-hub selector and expired/ambiguous-owner
+falsifiers. FAILED migration fixture old-byte comparison. Identity, tick,
+fabric generation, joint bytes and exact moved-body state assertions BEFORE
+that comparison passed. The fixture used resident(93,19), an uninitialized
+genesis with no resting population, then restamped it V44. Existing migration
+law explicitly admits the reserve when it is absent, changing next_lineage
+and population bytes. This is not a V45 loss of mature learned state; the
+test conflated ordinary genesis initialization with format-only migration.
+Cold-envelope/idempotence assertions AFTER the failed byte comparison did not
+execute and remain unproven by this batch.
+
+`H-054-132`: migration fixture must initialize genesis through its existing
+explicit admission before presenting it as an already initialized V44 body.
+One localized TEST-ONLY correction will do that, leaving all body/migration
+assertions and production source unchanged. No removal of reserve physics,
+no relaxed comparison, and no repeat of the passed mature handoff for this
+fixture change. Independent source review precedes rebuilding only to rerun
+the failed exact migration test. The first version and full failure are in
+this record; do not relabel its 2/3 batch as all-pass.
+AWS afterbatch12:10:42 same sole task1456/image6aa38d99,1/1/0 HEALTHY/RUNNING,
+same historical alarm; latest CPU/memory window remains117-02. No live writes.

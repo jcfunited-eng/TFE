@@ -1522,7 +1522,7 @@ fn decode_coordinate(
     Ok(coordinate)
 }
 
-fn fractal_coordinates_fit(fractal: &SparsePhysicalStateDelta, psi_ring_count: usize) -> bool {
+pub(crate) fn fractal_coordinates_fit(fractal: &SparsePhysicalStateDelta, psi_ring_count: usize) -> bool {
     fractal
         .entries()
         .iter()

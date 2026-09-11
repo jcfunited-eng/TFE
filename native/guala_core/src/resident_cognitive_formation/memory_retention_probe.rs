@@ -50,13 +50,21 @@ fn census(state: &ResidentCognitiveFormationState, associations: &[[u8; 16]]) ->
     }).collect::<Vec<_>>())
 }
 
+fn decode_saved_cognitive(bytes: &[u8]) -> ResidentCognitiveFormationState {
+    if ResidentCognitiveFormationState::encoded_is_current(bytes) {
+        return ResidentCognitiveFormationState::decode(bytes, usize::MAX).unwrap();
+    }
+    let migrated = ResidentCognitiveFormationState::migrate_to_current_format(bytes, usize::MAX).unwrap();
+    ResidentCognitiveFormationState::decode(&migrated, usize::MAX).unwrap()
+}
+
 #[test]
 fn saved_lesson_association_retention() {
     let Ok(predecessor_path) = std::env::var("GUALA_MEMORY_PREDECESSOR") else { return; };
     let (_, cognitive, _) = parse_envelope_with_body(&fs::read(predecessor_path).unwrap());
-    let predecessor = ResidentCognitiveFormationState::decode(&cognitive, usize::MAX).unwrap();
+    let predecessor = decode_saved_cognitive(&cognitive);
     let state_bytes = fs::read(std::env::var("GUALA_MEMORY_STATE").unwrap()).unwrap();
-    let state = ResidentCognitiveFormationState::decode(&state_bytes, usize::MAX).unwrap();
+    let state = decode_saved_cognitive(&state_bytes);
     let body = ArticulatedBodyState::decode(
         &fs::read(std::env::var("GUALA_MEMORY_BODY").unwrap()).unwrap(),
     ).unwrap();
@@ -197,13 +205,50 @@ fn focused_input_census(
 }
 
 #[test]
-fn saved_lesson_fractal_admission_trace() {
-    let Ok(predecessor_path) = std::env::var("GUALA_MEMORY_PREDECESSOR") else { return; };
-    let (_, cognitive, _) = parse_envelope_with_body(&fs::read(predecessor_path).unwrap());
-    let predecessor = ResidentCognitiveFormationState::decode(&cognitive, usize::MAX).unwrap();
-    let mut state = ResidentCognitiveFormationState::decode(
-        &fs::read(std::env::var("GUALA_MEMORY_STATE").unwrap()).unwrap(), usize::MAX,
+fn saved_lesson_fractal_admission_trace() { run_saved_lesson_trace(false); }
+
+#[test]
+#[ignore = "requires the authenticated saved production lesson paths"]
+fn candidate117_saved_lesson_exact_sound_body_handoff() { run_saved_lesson_trace(true); }
+
+
+fn settle_trace_body(
+    body: &ArticulatedBodyState,
+    observation: &CognitiveFormationObservation,
+) -> (
+    crate::virtual_articulatory_body::ArticulatoryBodyTransition,
+    Vec<crate::virtual_articulated_body::BodyProprioceptiveConsequence>,
+) {
+    let mut carriers = BTreeMap::new();
+    for event in &observation.motor_unit_recruitments {
+        let total = carriers.entry(event.body_effector_terminal).or_insert(0_u128);
+        *total = total.checked_add(event.outward_elementary_carriers).unwrap();
+    }
+    let drives = if carriers.is_empty() { AdmittedBodyEffectorDrives::quiescent() } else {
+        AdmittedBodyEffectorDrives::admit(carriers.into_iter().map(|(terminal, outward_elementary_carriers)| {
+            BodyEffectorDrive { terminal, outward_elementary_carriers }
+        }).collect()).unwrap()
+    };
+    let respiratory = observation.articulatory_unit_recruitments.iter()
+        .try_fold(0_u128, |total, event| total.checked_add(event.outward_elementary_carriers)).unwrap();
+    let moved = settle_body_effector_drives(&body, &drives, BODY_SETTLEMENT_CLOCK_MICROSECONDS).unwrap();
+    let acoustic = settle_native_articulatory_interval(
+        moved.successor, &moved.proprioceptive_consequences, respiratory, 4_000,
     ).unwrap();
+    (acoustic, moved.proprioceptive_consequences)
+}
+
+fn run_saved_lesson_trace(require_handoff: bool) {
+    let predecessor_path = match std::env::var("GUALA_MEMORY_PREDECESSOR") {
+        Ok(path) => path,
+        Err(_) if require_handoff => panic!("authenticated predecessor path is required"),
+        Err(_) => return,
+    };
+    let (_, cognitive, _) = parse_envelope_with_body(&fs::read(predecessor_path).unwrap());
+    let predecessor = decode_saved_cognitive(&cognitive);
+    let mut state = decode_saved_cognitive(
+        &fs::read(std::env::var("GUALA_MEMORY_STATE").unwrap()).unwrap(),
+    );
     let mut body = ArticulatedBodyState::decode(
         &fs::read(std::env::var("GUALA_MEMORY_BODY").unwrap()).unwrap(),
     ).unwrap();
@@ -273,25 +318,10 @@ fn saved_lesson_fractal_admission_trace() {
         }));
         earlier_emissions.extend(observation.emitted_neuron_fractals.iter()
             .map(|fractal| fractal.neuron_lineage));
-        let mut carriers = BTreeMap::new();
-        for event in &observation.motor_unit_recruitments {
-            let total = carriers.entry(event.body_effector_terminal).or_insert(0_u128);
-            *total = total.checked_add(event.outward_elementary_carriers).unwrap();
-        }
-        let drives = if carriers.is_empty() { AdmittedBodyEffectorDrives::quiescent() } else {
-            AdmittedBodyEffectorDrives::admit(carriers.into_iter().map(|(terminal, outward_elementary_carriers)| {
-                BodyEffectorDrive { terminal, outward_elementary_carriers }
-            }).collect()).unwrap()
-        };
-        let respiratory = observation.articulatory_unit_recruitments.iter()
-            .try_fold(0_u128, |total, event| total.checked_add(event.outward_elementary_carriers)).unwrap();
-        let moved = settle_body_effector_drives(&body, &drives, BODY_SETTLEMENT_CLOCK_MICROSECONDS).unwrap();
-        let acoustic = settle_native_articulatory_interval(
-            moved.successor, &moved.proprioceptive_consequences, respiratory, 4_000,
-        ).unwrap();
-        if !moved.proprioceptive_consequences.is_empty() {
+        let (acoustic, consequences) = settle_trace_body(&body, &observation);
+        if !consequences.is_empty() {
             pending_motor = Some(admit_articulated_body_consequence_source(
-                1 + clock + 1, &moved.proprioceptive_consequences,
+                1 + clock + 1, &consequences,
             ).unwrap());
         }
         if acoustic.radiated_pressure_pcm.iter().any(|sample| *sample != 0) {
@@ -302,9 +332,65 @@ fn saved_lesson_fractal_admission_trace() {
     }
     assert_eq!(state.encode(usize::MAX).unwrap(), expected_state, "diagnostic must preserve exact native successor");
     assert_eq!(body.encode().unwrap(), expected_body, "diagnostic must preserve exact body successor");
+    let cold = ResidentCognitiveFormationState::decode(&expected_state, usize::MAX).unwrap();
+    assert_eq!(cold.encode(usize::MAX).unwrap(), expected_state);
+    let exact_handoffs = associations.iter().map(|association| {
+        let indices = state.formation_index.candidate_indices([*association], std::iter::empty());
+        let owner_count = indices.len();
+        let matching = indices.into_iter().filter(|index| {
+            let original = &state.mosaics[*index].mosaic;
+            let hubs = super::super::pending_original_association_lineages(
+                original, &state.topology_index,
+            ).unwrap();
+            let sound = original.member_lineages().iter()
+                .filter(|lineage| state.topology_index.layer_of(**lineage) == Some(1)).count();
+            let body = original.member_lineages().iter()
+                .filter(|lineage| state.topology_index.layer_of(**lineage) == Some(5)).count();
+            hubs.as_slice() == [*association] && sound >= 3 && body >= 1
+                && original.member_lineages().binary_search(association).is_ok()
+        }).collect::<Vec<_>>();
+        owner_count == 1 && matching.len() == 1
+    }).collect::<Vec<_>>();
+    let handoff_closed = exact_handoffs.iter().all(|closed| *closed);
+    let leaf_count = state.settled_fractals.len();
+    assert!(leaf_count <= state.topology_index.flat_locations.len());
+    let mut next_interval_restart_exact = false;
+    if require_handoff && handoff_closed {
+        let consuming_body_owned_pressure = pending_sound.is_some();
+        let mut sources = Vec::new();
+        if let Some(source) = pending_motor.take() { sources.push(source); }
+        if let Some(source) = pending_sound.take() { sources.push(source); }
+        if sources.is_empty() { sources.push(probe_self_hearing_episode(&[0_i16; 4_000])); }
+        let admitted = sources.iter().map(super::super::admitted_fixture_episode).collect::<Vec<_>>();
+        let (warm_next, warm_observation) = state.advance_coexisting_admitted_transition_with_residency(
+            &admitted, usize::MAX, true, !consuming_body_owned_pressure, false,
+            &mut residency, ExactRational::integer(0),
+        ).unwrap();
+        let (cold_next, cold_observation) = cold.advance_coexisting_admitted_transition_with_residency(
+            &admitted, usize::MAX, true, !consuming_body_owned_pressure, false,
+            &mut None, ExactRational::integer(0),
+        ).unwrap();
+        assert_eq!(warm_next.encode(usize::MAX).unwrap(), cold_next.encode(usize::MAX).unwrap());
+        assert_eq!(warm_observation, cold_observation);
+        let warm_body = settle_trace_body(&body, &warm_observation);
+        let cold_body = settle_trace_body(
+            &ArticulatedBodyState::decode(&expected_body).unwrap(), &cold_observation,
+        );
+        assert_eq!(warm_body, cold_body, "exact body, pressure and physical return survive restart");
+        next_interval_restart_exact = true;
+    }
     fs::write(std::env::var("GUALA_MEMORY_OUT").unwrap(), serde_json::to_vec_pretty(&json!({
-        "measurement_only": true,
+        "measurement_only": !require_handoff,
         "existing_continuation_successor_exact": true,
+        "exact_sound_body_handoffs": exact_handoffs,
+        "sound_body_handoff_closed": handoff_closed,
+        "settled_leaf_count": leaf_count,
+        "cold_codec_exact": true,
+        "next_interval_restart_exact": next_interval_restart_exact,
         "intervals": intervals,
     })).unwrap()).unwrap();
+    if require_handoff {
+        assert!(handoff_closed, "each distinct hub must retain real sound and body leaves");
+        assert!(next_interval_restart_exact);
+    }
 }

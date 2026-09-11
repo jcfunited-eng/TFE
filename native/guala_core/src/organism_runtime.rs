@@ -6358,7 +6358,7 @@ fn migrate_resident_organism_exact_energy_envelope(
         let correct_articulated_body_pose =
             !ResidentCognitiveFormationState::encoded_has_corrected_articulated_pose(cognitive);
         let require_current_proprioceptive_observation =
-            !ResidentCognitiveFormationState::encoded_is_current(cognitive);
+            !ResidentCognitiveFormationState::encoded_has_current_body_observation(cognitive);
         let cognitive_budget = cognitive_budget_after_joint(parsed.joint_bytes.len(), budget)?;
         let migrated =
             ResidentCognitiveFormationState::migrate_to_current_format(cognitive, cognitive_budget)
@@ -9382,6 +9382,8 @@ mod tests {
         let runtime = resident(91, 17);
         let predecessor = parse_current_envelope(runtime.active_envelope(), budget()).unwrap();
         let mut v34_cognitive = predecessor.cognitive_bytes.unwrap().to_vec();
+        assert_eq!(&v34_cognitive[v34_cognitive.len() - 8..], &[0; 8]);
+        v34_cognitive.truncate(v34_cognitive.len() - 8);
         v34_cognitive[..8].copy_from_slice(b"GLCOG034");
         // A true V34 layout has no V40 vocal-body marker byte; strip it from
         // the stamped current bytes or the V34 decode misparses one byte off.
@@ -9433,7 +9435,7 @@ mod tests {
         // law genesis uses -- which advances the lineage authority and
         // inserts the encoded population. Every other cognitive byte is
         // untouched: the pose correction changes no lived cognition.
-        assert_eq!(&corrected_cognitive[..8], b"GLCOG044");
+        assert_eq!(&corrected_cognitive[..8], b"GLCOG045");
         assert_eq!(&corrected_cognitive[8..18], &v34_cognitive[8..18]);
         let predecessor_next_lineage =
             u64::from_le_bytes(v34_cognitive[18..26].try_into().unwrap());
@@ -9449,7 +9451,7 @@ mod tests {
         .unwrap();
         assert!(population_bytes > 0);
         assert_eq!(
-            &corrected_cognitive[51 + population_bytes..],
+            &corrected_cognitive[51 + population_bytes..corrected_cognitive.len() - 8],
             &v34_cognitive[50..],
         );
         let restored =
@@ -9468,6 +9470,8 @@ mod tests {
         let runtime = resident(93, 19);
         let predecessor = parse_current_envelope(runtime.active_envelope(), budget()).unwrap();
         let mut v35_cognitive = predecessor.cognitive_bytes.unwrap().to_vec();
+        assert_eq!(&v35_cognitive[v35_cognitive.len() - 8..], &[0; 8]);
+        v35_cognitive.truncate(v35_cognitive.len() - 8);
         v35_cognitive[..8].copy_from_slice(b"GLCOG035");
         // A true V35 layout has no V40 vocal-body marker byte; strip it from
         // the stamped current bytes or the V35 decode misparses one byte off.
@@ -9513,7 +9517,7 @@ mod tests {
         // Same lawful cognitive deltas as the V34 crossing: current magic,
         // None vocal-body marker reinserted, the once-only resting-population
         // admission (lineage authority + population section); nothing else.
-        assert_eq!(&migrated_cognitive[..8], b"GLCOG044");
+        assert_eq!(&migrated_cognitive[..8], b"GLCOG045");
         assert_eq!(&migrated_cognitive[8..18], &v35_cognitive[8..18]);
         assert!(
             u64::from_le_bytes(migrated_cognitive[18..26].try_into().unwrap())
@@ -9528,13 +9532,50 @@ mod tests {
         .unwrap();
         assert!(population_bytes > 0);
         assert_eq!(
-            &migrated_cognitive[51 + population_bytes..],
+            &migrated_cognitive[51 + population_bytes..migrated_cognitive.len() - 8],
             &v35_cognitive[50..],
         );
         assert_eq!(
             migrate_resident_organism_exact_energy_envelope(migrated.clone(), budget()).unwrap(),
             migrated,
         );
+    }
+
+    #[test]
+    fn v44_custody_migration_preserves_exact_body_and_old_cognitive_bytes() {
+        let runtime = resident(93, 19);
+        let predecessor = parse_current_envelope(runtime.active_envelope(), budget()).unwrap();
+        let mut old_cognitive = predecessor.cognitive_bytes.unwrap().to_vec();
+        assert_eq!(&old_cognitive[old_cognitive.len() - 8..], &[0; 8]);
+        old_cognitive.truncate(old_cognitive.len() - 8);
+        old_cognitive[..8].copy_from_slice(b"GLCOG044");
+        let mut axes = *ArticulatedBodyState::at_neutral().axes();
+        axes[crate::virtual_articulated_body::BodyAxis::NeckYaw.index()] = 1234;
+        let body = ArticulatedBodyState::from_physical_state(
+            axes, crate::virtual_articulated_body::NEUTRAL_LUNG_AIR_MICROLITRES, true,
+        ).unwrap();
+        let fabric = encode_fabric(
+            predecessor.fabric_generation, predecessor.joint_bytes, &old_cognitive,
+            predecessor.vestibular.as_ref().unwrap(), &body, None, budget(),
+        ).unwrap();
+        let old = encode_envelope(
+            predecessor.identity, predecessor.organism_tick, &fabric, budget(),
+        ).unwrap();
+        assert!(ResidentOrganismRuntime::restore_envelope(old.clone(), budget()).is_err());
+        let migrated = migrate_resident_organism_exact_energy_envelope(old, budget()).unwrap();
+        let parsed = parse_current_envelope(&migrated, budget()).unwrap();
+        assert_eq!(parsed.identity, predecessor.identity);
+        assert_eq!(parsed.organism_tick, predecessor.organism_tick);
+        assert_eq!(parsed.fabric_generation, predecessor.fabric_generation);
+        assert_eq!(parsed.joint_bytes, predecessor.joint_bytes);
+        assert_eq!(parsed.articulated_body.as_ref(), Some(&body));
+        let current = parsed.cognitive_bytes.unwrap();
+        assert_eq!(&current[..8], b"GLCOG045");
+        assert_eq!(&current[8..current.len() - 8], &old_cognitive[8..]);
+        assert_eq!(&current[current.len() - 8..], &[0; 8]);
+        let cold = ResidentOrganismRuntime::restore_envelope(migrated.clone(), budget()).unwrap();
+        assert_eq!(cold.active_envelope(), migrated);
+        assert_eq!(migrate_resident_organism_exact_energy_envelope(migrated.clone(), budget()).unwrap(), migrated);
     }
 
     #[test]

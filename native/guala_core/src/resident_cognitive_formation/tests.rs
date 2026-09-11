@@ -279,6 +279,7 @@ fn rejected_w1_retirement_removes_only_the_duplicate_retina_and_integrators() {
         preceding_active_electrical_frontier: Box::new([]),
         older_active_electrical_frontier: Box::new([]),
         mosaics: Box::new([]),
+        settled_fractals: SettledFractalCustody::default(),
         hippocampal: ResidentHippocampalIndex::default(),
         topology_index,
         formation_index: ResidentFormationIndex::default(),
@@ -3797,32 +3798,38 @@ fn varied_multisensory_occurrences_mount_only_exact_settled_assemblies() {
             ])),
         );
     }
+    let intended_hubs = coexisting.lineages.iter().flatten().copied().collect::<BTreeSet<_>>();
     let all_active_bonds = topology_index
         .contacts
         .iter()
         .map(|contact| contact.stable_bond)
+        .filter(|bond| {
+            let (left, right) = bond.endpoints();
+            [left, right].into_iter().all(|lineage| {
+                topology_index.layer_of(lineage) != Some(7) || intended_hubs.contains(&lineage)
+            })
+        })
         .collect::<Vec<_>>();
     let focused = exact_reached_cross_sensory_original_bonds(
         &cohorts,
         &topology_index,
         &ResidentFormationIndex::default(),
+        &[],
         &coexisting,
         &all_active_bonds,
-        &[],
     )
     .unwrap();
     assert_eq!(focused.len(), 2);
-    // The same reached physical hubs remain eligible on a later interval
-    // without a new moved-body occurrence or a next-propagation receipt.
+    // Actual contact endpoints identify the same hubs without a named
+    // occurrence, a whole-carrier arrival list or a next-propagation receipt.
     // Unrelated mounted hubs do not become participants just by existing.
-    let reached_associations = coexisting.lineages.iter().flatten().copied().collect::<Vec<_>>();
     let continued = exact_reached_cross_sensory_original_bonds(
         &cohorts,
         &topology_index,
         &ResidentFormationIndex::default(),
+        &[],
         &ReachedAssociationsByOccurrence::empty(coexisting.lineages.len()),
         &all_active_bonds,
-        &reached_associations,
     ).unwrap();
     assert_eq!(continued, focused);
     for ((association, component), expected_association) in focused.iter().zip(
@@ -3856,6 +3863,46 @@ fn varied_multisensory_occurrences_mount_only_exact_settled_assemblies() {
         .unwrap(),
     ])
     .unwrap();
+    // Candidate116: expired ownership is not permission to found another
+    // original from a different set of already-settled leaves.
+    let (hub, hub_bonds) = &focused[0];
+    let component_lineages = hub_bonds.iter().flat_map(|bond| {
+        let (left, right) = bond.endpoints(); [left, right]
+    }).collect::<BTreeSet<_>>().into_iter().collect::<Vec<_>>();
+    assert!(component_lineages.len() > 3);
+    let anatomies = component_lineages.iter().map(|lineage| {
+        let flat = topology_index.flat_for_lineage(*lineage).unwrap();
+        topology.fractal_anatomies[flat]
+    }).collect::<Vec<_>>();
+    let partial = admit_physical_mosaic_original(
+        &component_lineages, &anatomies,
+        &component_lineages.iter().enumerate()
+            .map(|(index, _)| (index < 3).then(|| fractal.clone())).collect::<Vec<_>>(),
+        hub_bonds,
+    ).unwrap();
+    let mut custody = SettledFractalCustody::default();
+    for lineage in &component_lineages { custody.record(*lineage, fractal.clone()).unwrap(); }
+    let sole_prior = RetainedOrganismMosaic::newly_admitted(partial);
+    let mut expired_mosaics = vec![sole_prior.clone()];
+    let mut expired_index = ResidentFormationIndex::build(&expired_mosaics).unwrap();
+    let focused_piece = vec![(*hub, hub_bonds.clone())];
+    for _ in 0..3 {
+        settle_organism_mosaic_boundary(
+            &cohorts, &topology_index, &[], &custody, &[], &[], &[], &[],
+            hub_bonds, &focused_piece, &[], &[], &[], &[],
+            &mut expired_mosaics, &mut expired_index, 16_000_000, false,
+        ).unwrap();
+        assert_eq!(expired_mosaics, vec![sole_prior.clone()]);
+    }
+    expired_mosaics.push(sole_prior.clone());
+    expired_index = ResidentFormationIndex::build(&expired_mosaics).unwrap();
+    assert!(matches!(settle_organism_mosaic_boundary(
+        &cohorts, &topology_index, &[], &custody, &[], &[], &[], &[],
+        hub_bonds, &focused_piece, &[], &[], &[], &[],
+        &mut expired_mosaics, &mut expired_index, 16_000_000, false,
+    ), Err(FormationError::NeuronLineageAuthorityChanged)));
+    assert_eq!(expired_mosaics, vec![sole_prior.clone(), sole_prior]);
+
     let original = admit_physical_mosaic_original(
         &topology.lineages,
         &topology.fractal_anatomies,
@@ -3925,6 +3972,7 @@ fn varied_multisensory_occurrences_mount_only_exact_settled_assemblies() {
         &cohorts,
         &topology_index,
         &later_emitted,
+        &SettledFractalCustody::default(),
         &current_deltas,
         &changed_cue,
         &changed_cue,
@@ -4055,6 +4103,7 @@ fn varied_multisensory_occurrences_mount_only_exact_settled_assemblies() {
         &cohorts,
         &topology_index,
         &[],
+        &SettledFractalCustody::default(),
         &current_deltas,
         &changed_cue,
         &changed_cue,
@@ -4100,6 +4149,7 @@ fn varied_multisensory_occurrences_mount_only_exact_settled_assemblies() {
         &cohorts,
         &topology_index,
         &[],
+        &SettledFractalCustody::default(),
         &current_deltas,
         &changed_cue,
         &changed_cue,
@@ -4141,6 +4191,7 @@ fn varied_multisensory_occurrences_mount_only_exact_settled_assemblies() {
             &cohorts,
             &topology_index,
             &[],
+            &SettledFractalCustody::default(),
             &current_deltas,
             &[],
             &[],
@@ -4191,6 +4242,7 @@ fn varied_multisensory_occurrences_mount_only_exact_settled_assemblies() {
             &cohorts,
             &topology_index,
             &[],
+            &SettledFractalCustody::default(),
             &current_deltas,
             &unrelated_external,
             &unrelated_external,
@@ -4592,6 +4644,7 @@ fn v27_unlearned_affective_and_ordering_growth_is_retired_once() {
         preceding_active_electrical_frontier: Box::new([]),
         older_active_electrical_frontier: Box::new([]),
         mosaics: Box::new([]),
+        settled_fractals: SettledFractalCustody::default(),
         hippocampal: ResidentHippocampalIndex::default(),
         topology_index,
         formation_index: ResidentFormationIndex::default(),
@@ -5908,6 +5961,7 @@ fn historical_load_correction_rewires_only_the_rejected_motor_contact() {
         preceding_active_electrical_frontier: Box::new([]),
         older_active_electrical_frontier: Box::new([]),
         mosaics: Box::new([]),
+        settled_fractals: SettledFractalCustody::default(),
         hippocampal: ResidentHippocampalIndex::default(),
         topology_index,
         formation_index: ResidentFormationIndex::default(),
@@ -6112,6 +6166,7 @@ fn v33_migration_removes_reintroduced_effector_pools_one_way() {
         preceding_active_electrical_frontier: Box::new([contaminated_entry]),
         older_active_electrical_frontier: Box::new([]),
         mosaics: Box::new([referencing_mosaic]),
+        settled_fractals: SettledFractalCustody::default(),
         hippocampal: ResidentHippocampalIndex::default(),
         topology_index,
         formation_index: ResidentFormationIndex::default(),
@@ -7164,6 +7219,7 @@ fn malformed_root_translation_motor_is_replaced_once_with_compatible_anatomy() {
         preceding_active_electrical_frontier: Box::new([]),
         older_active_electrical_frontier: Box::new([]),
         mosaics: Box::new([]),
+        settled_fractals: SettledFractalCustody::default(),
         hippocampal: ResidentHippocampalIndex::default(),
         topology_index,
         formation_index: ResidentFormationIndex::default(),
@@ -7283,6 +7339,7 @@ fn v41_mounts_one_new_dedicated_vocal_body_without_selecting_historical_cells() 
         preceding_active_electrical_frontier: Box::new([]),
         older_active_electrical_frontier: Box::new([]),
         mosaics: Box::new([]),
+        settled_fractals: SettledFractalCustody::default(),
         hippocampal: ResidentHippocampalIndex::default(),
         topology_index,
         formation_index: ResidentFormationIndex::default(),
@@ -7315,6 +7372,8 @@ fn v41_mounts_one_new_dedicated_vocal_body_without_selecting_historical_cells() 
         .encode_current(MAX_BYTES, false, false)
         .expect("marker-absent predecessor encodes for the migration fixture");
     assert!(terminal.is_none());
+    assert_eq!(&v40[v40.len() - 8..], &[0; 8]);
+    v40.truncate(v40.len() - 8);
     v40[..MAGIC_V40.len()].copy_from_slice(MAGIC_V40);
     assert!(ResidentCognitiveFormationState::decode(&v40, MAX_BYTES).is_err());
     let predecessor =
@@ -7426,6 +7485,7 @@ fn v34_replaces_broad_articulatory_pool_with_fixed_vocal_route_once() {
         preceding_active_electrical_frontier: Box::new([]),
         older_active_electrical_frontier: Box::new([]),
         mosaics: Box::new([]),
+        settled_fractals: SettledFractalCustody::default(),
         hippocampal: ResidentHippocampalIndex::default(),
         topology_index,
         formation_index: ResidentFormationIndex::default(),
@@ -7562,6 +7622,7 @@ fn v33_body_without_speech_anatomy_gains_only_the_fixed_vocal_bridge() {
         preceding_active_electrical_frontier: Box::new([]),
         older_active_electrical_frontier: Box::new([]),
         mosaics: Box::new([]),
+        settled_fractals: SettledFractalCustody::default(),
         hippocampal: ResidentHippocampalIndex::default(),
         topology_index,
         formation_index: ResidentFormationIndex::default(),
@@ -7722,6 +7783,7 @@ fn v32_retires_misprojected_root_yaw_paths_once() {
         preceding_active_electrical_frontier: Box::new([]),
         older_active_electrical_frontier: Box::new([]),
         mosaics: Box::new([]),
+        settled_fractals: SettledFractalCustody::default(),
         hippocampal: ResidentHippocampalIndex::default(),
         topology_index,
         formation_index: ResidentFormationIndex::default(),
@@ -7979,6 +8041,7 @@ fn historical_background_growth_migrates_once_and_cannot_restore() {
         preceding_active_electrical_frontier: Box::new([]),
         older_active_electrical_frontier: Box::new([]),
         mosaics: Box::new([]),
+        settled_fractals: SettledFractalCustody::default(),
         hippocampal: ResidentHippocampalIndex::default(),
         topology_index,
         formation_index: ResidentFormationIndex::default(),
@@ -9401,6 +9464,7 @@ fn ambiguous_returned_vocal_consequence_cannot_author_motor_contact() {
         preceding_active_electrical_frontier: Box::new([]),
         older_active_electrical_frontier: Box::new([]),
         mosaics: Box::new([]),
+        settled_fractals: SettledFractalCustody::default(),
         hippocampal: ResidentHippocampalIndex::default(),
         topology_index,
         formation_index: ResidentFormationIndex::default(),
