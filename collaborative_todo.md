@@ -8550,3 +8550,67 @@ Post20:39AWS sole1456/effde9e1/image6aa38d99 RUNNING/HEALTHY1/1/0,
 historicalSep8alarmunchanged;20:37CPUavg41.2667%,RAMavg10.5540%.
 No native/compiler child remains. CaretakerSTOP/browserclosed. FullAEgoalACTIVE,
 speechNOTfixed. User does not need to open browser or approve next check. — Sol
+
+
+## Sol — 2026-09-11 21:27 UTC — diagnostic validated; uncued root has sight-origin custody
+Canonical Attempt54 header and S12013–21/H12016/19 updated and pushed:
+c0de78ccb87e6117d78b1b61cabf5434e58d0f15 on sol/speech-existing-organ.
+Production remains task1456 / Candidate110 / image6aa38d99, speech NOT fixed.
+No live lesson, caretaker restart, sensory change or deployment. Browser closed;
+no browser is needed for this work. AE goal ACTIVE, not paused or abandoned.
+
+Closed evidence (do not repeat as new work):
+- Source-only8clock observation disproved the proposed fresh Sound-reassembly
+  cause: no Sound perturbations/reassemblies, yet root268e acts at651479.
+- Added85 Rust lines behind EXISTING diagnostic-api, read-only retained
+  frontier custody and Python bridge; absent from ordinary production build.
+  Reviewed and compiled in isolated wheel064865a85fc2eeb6ceaf841614a40fe80fbca69a37877bfcfde12f490f3d0e6f.
+- First full-state comparison was INVALID because virtual TV emission reads
+  wall time. Offline nested comparison found6 changed light bands and6 derived
+  receipts. NOT random hashes, NOT proof the observer mutated cognition.
+  Earliest recurrence guard: successor-equality checks must capture/replay
+  external TV/solar clock input, not merely reuse the body/world start.
+- Corrected SERIAL8clock normal/diagnostic comparison set the same existing
+  environment-only solar UTC override in both disposable processes. Both
+  exit0: all common native fields, contact/original-topology results, and
+  COMPLETE saved body/world hashes match. Observer equivalence CLOSED here.
+  Exact output tick651482 body7f6ef753e4d646a260606e05325a4671a929994b544d0fac94827439d054faa2,
+  world0bc3b59973cde0f2fa3d05201408fcf7ee811d48951cf2c34307a9b4482a6e6c.
+  Original223 retained, none lost. No new cold-next claim.
+- Zero-clock anatomy reader confirms22c3/26c1/28d5 are L6; original body/hash
+  unchanged. No meaningful recognition inferred from layer or membership.
+
+Decisive origin, now measured:
+651476 sight receptors b9/d5 change exact contacts with L6 22c3/26c1;
+121 carriers flow L6->receptor while causal frontier advances receptor->L6.
+Both external=true/echo=false.477 advances into old associations077a/0796/
+07b2/07ce;478 into root268e;479 produces4minimum motors27/70/77/77+251breath.
+No new microphone cue was delivered. This is not acoustic-echo replay.
+Current frontier_founds_vocal_action_preparation checks generic external
+provenance and founder/root anatomy; it does NOT distinguish recognition of
+the learned relation from another external arrival through shared anatomy.
+C83 ownership at growth alone does not prove the later arrival is recall.
+C101's sound-wave causation claim is not proved by this sight-driven act.
+Do not call all spontaneous acts faulty OR this act meaningful autonomy.
+Do not blind the body or transplant C104 teaching-edge exclusion into recall.
+
+Single next item remains F118-32: correct/reconcile recognition-to-root-action
+causation against existing reassembly/work laws using this exact sight trace.
+No repeated root teaching, broad baseline, observer-parity run, or speculative
+neuron redesign. All prior C120 root-growth/body/self-hearing and C118 ordered/
+repeated-use/control/cold successes remain CLOSED at their LOCAL scope.
+Independent source reviewer concurs with the bounded cause and limitations.
+
+Exact artifacts archived:
+E:/guala-c118-four-posture.XehvEs/c120-custody-matched-cause.tar.gz
+(local /mnt/tfebackup/guala-c118-four-posture.XehvEs/)
+SHA373aff8526db4f5879d5b8b86e0023e8fcffb65f67487e21007f77bacd41f3b4.
+Includes scripts, full custody/anatomy/matched logs, one full paired successor,
+comparison result and exact diagnostic wheel. No success state deleted.
+Matched script /tmp/guala-c120-runtime-matched.py
+SHAe3ee5aaa1d83161ead3b9d4e163a49347fe32a62f37b90f4ae2a3405f9848d82.
+Normal73721 and diagnostic55623 completed; no native/compiler child remains.
+Native mean1421/1557ms, no performance fix claimed; restore/seal cost separate.
+Post21:24 AWS soleeffde9e1 task1456 RUNNING/HEALTHY1/1/0; historicalSep8
+alarm unchanged.21:22 CPUavg39.6292/max41.1574%,RAMavg10.9548/max11.2823%.
+No production behavior improvement claimed from this diagnostic slice. — Sol
