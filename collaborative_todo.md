@@ -8845,3 +8845,50 @@ read-onlyAWSenvelopeCPU/RAMstable, oldSep8clockalarmstillALARM. CaretakerSTOP,
 browserclosed, no live lesson/deploy. SpeechNOTfixed, fullAEgoalACTIVE.
 Joeincluded: purpose is concurrentexperienceenablingcognition, not prescribed
 chatbotresponses; quietcontroliscausalitymeasurement, notbanautonomy. — Sol
+
+
+## Sol — 2026-09-11 23:56 UTC — C122 handoff succeeds; first edge still absent; all evidence preserved
+Source/tests/canonical Attempt54 committed and pushed843a4272 on
+origin/sol/speech-existing-organ. Canonical ledger is on THAT branch, notguala-live;
+sharedguala-live holdscoordination. S12214/F12215/D12216/A12217 aredefinitive.
+Sourceworktreeclean; no productioncodechangesafterfinalreview/compiledwheel.
+
+ONE actual-runtime copied-body run completed68925exit1 atmissingedgeassertion,
+notruntimecrash. Same preservedC121651548, quiet8intervals, cue651557,
+root268e fourmotors651559/251breath/3994nonzeropressuresamplesinrootinterval.
+Guide651560 consumedexactphysicalreturn651559 AND4000tutorsamples AND4000
+selfheardsamples ANDfourguidedaxes inONEordinaryinterval; newreturn651560.
+That simultaneoushandoff is LOCAL PASS, not speech ororderededgePASS.
+Tail651620 last8vocallyquiet,no pendingbody/sound;all223oldmemorytopologies
+retained. Native72callsmean879.568ms;wholephysicalmean975.549ms;peakRSS2187472KiB.
+No production speedclaim fromdifferentchronology.
+
+Failureproperlynarrowed: wholecontactcensusfoundNOroot->L11edge. Independentreview
+confirmedcensuscoverage; readonlysavedbodycheckconfirmsL11=824before/after,
+no newmaximumroot/preparation. L9=245->249 (structuralgrowth,notsemanticclaim).
+No sound-onlytwo-posturerecall orfullruntimecold-nextwasrunafterfailededgecheck.
+The original C118/C120/C121 successes are NOT reopened/discarded.
+
+TO C1/Joe: nextdiagnosticisoneexactjoin, notanothercampaign. Rootinterval also
+recruitedright_hip_pitch048b andreturnwas20ports/fiveaxes. Existing
+exact_preceding_vocal_body_act_for_guided_growth demandsENTIREsource'smoved
+terminalsetequalroot'sfourterminals. An extraGENUINELYmovedhipwoulddefeatthat
+whole-sourceequality—potentiallyexactlyJoe'sconcurrenceconcern. Needactual
+moved-terminalset;portcountaloneisNOTproof(passive/opposedmotionfiltered).
+Also existingrouteauthorrequirescurrentassociationownedbysoundreassembly;
+oneguidecantruthfullyneedlaterrepetition. No newpreparationmeanseitherjoin
+orownershipremainspossible. No newphysicsfix/serialretutoringauthorizedbyguess.
+Missing transientbodyconsequencefields werealreadyexposedbyPythonreceipt but
+notloggedbyreusedobserver. Ifneeded, captureonlysameexactprefixthroughguide
+withthoseexistingfields, explicitlydiagnosticnotsecondfullacceptancerun.
+
+Savedcurrentpair /tmp/guala-c122-edge.ef4kg8/paired tick651620:
+body2bb78673d72a7d64b8a0de566917859d72c91dedd93953bd9c5104ad50b1796b,
+worldf2e199cc204665e86cd2ce7cac38d09f0cf5dc6a7f42a85c8c44cca240921816.
+Archive /mnt/tfebackup/guala-c118-four-posture.XehvEs/c122-handoff-and-first-edge-attempt.tar.gz
+SHA573074a784278c6d309c6810771e3dfeefc9532cbff494f48425494c8facb6c8.
+Containsnativewheel,sourcepatch,newfiles,harnesses,fullfailure/successlogs,pairedstate.
+OriginalC121651548pairunchanged. No liveinput/deploy/caretaker/browserchange.
+AWS23:46-23:52sole1456/effde9e1/image6aa38d99 HEALTHY1/1/0, CPU/RAMstable,
+oldSep8clockalarmstillALARM, GETobserver657918->657978,no errors/block.
+SpeechNOTfixed; fullAEgoalACTIVE. No useraction/approvalblock. — Sol
