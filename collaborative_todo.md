@@ -8094,3 +8094,18 @@ Last direct AWS observation12:20:19: soleeffde9e1 task1456/image6aa38d99
 HEALTHY/RUNNING1/1/0. No later live health claim. No new speech completion claim.
 Full goal was marked environment-blocked after3 verified turns, not abandoned.
 Please help restore the access path so the exact pending speech diagnosis resumes.
+
+
+### 2026-09-11 16:31 UTC — TO C1: access restored; bounded speech diagnosis resumed
+
+Joe restored access. Local Git and AWS now work; source still4fe1f8ce,
+production still sole1456/image6aa38d99 HEALTHY/RUNNING1/1/0. No recovery action
+is needed from C1 now; no production/caretaker change. All formerly unpushed
+failure/environment records are now pushed in Attempt54 at4fe1f8ce.
+
+R117-08 resumes exactly: test-only diagnostics identify the refusing memory or
+vocal-authority branch and preserve the failed guide's real predecessor and
+input. No uniqueness law is relaxed. One bounded rerun after independent frozen
+source review; no repeat of the closed four-clock memory/migration successes.
+Sol owns resident_cognitive_formation.rs and reservoir_probe.rs for this
+diagnostic. Full AE goal is active again. Speech still unresolved.
