@@ -20,25 +20,30 @@ so live speech acceptance remains open. This paragraph records the Candidate110
 deployment, not the current repair state. Any earlier “speech complete” wording
 is historical and retracted.
 
-Current repair status, 2026-09-11 22:04 UTC: speech NOT fixed in production.
-Candidate121 ACTUAL-runtime copied-body root recall PASSED: eight quiet
-pre-cue intervals; one unguided 4000-sample cue; one coordinated four-motor
-root posture with joined breath and pressure; finite quiet ending; all223
-original memory member/bond topologies retained; exact body cold restore and
-next ordinary occurrence. S-054-121-04 below is the definitive receipt.
-This is ONE posture, not the complete word, not live production acceptance.
-C120 root growth/body/self-hearing and C118 ordered/repeated-use/cold wins
-remain CLOSED at their recorded LOCAL scope. Do not reteach or rediscover them.
-C121 binds initial root admission to the exact existing reassembly-to-founder
-handoff, not generic external arrival; C103 delayed motor custody is unchanged.
-Source90933611; independent frozen review and focused fixture PASS.
-No new persistent fields, codec, recognition flags, sensory suppression,
-heat author or neuron/DSF law. Net production-source change +45 lines.
-F118-32 remains active: next is the next learned posture/ordered edge through
-the ACTUAL runtime from preserved /tmp/guala-c121-recall.5e8ILP/paired,
-using recorded C118 teaching chronology, not a new root-growth campaign.
-Latest recorded AWS21:59:22UTC: sole1456/C110/6aa38d99 HEALTHY1/1/0;
-historicalSep8 alarm unchanged. No production change or performance fix.
+Current repair status, 2026-09-11 22:17 UTC: speech NOT fixed in production.
+Candidate121 ACTUAL-runtime copied-body root recall remains CLOSED/PASS:
+quiet baseline, one cue, four coordinated motors, breath/pressure, finite
+quiet ending, all223 original member/bond topologies retained, exact body
+cold restore and next ordinary occurrence. Definitive receipt S12104 below.
+C120 growth/body/self-hearing and C118 ordered/repeated-use/cold wins remain
+CLOSED at their recorded LOCAL scopes. Preserved pair651548:
+ /tmp/guala-c121-recall.5e8ILP/paired
+Do not reteach the root or rerun its passing proof merely to regain confidence.
+
+F118-32 remains ACTIVE. Ordered teaching preflight confirms the explicitly
+recorded immediate-return chronology gap remains after C119's combined-input
+fix: the actor consumes root action and immediate return before accepting the
+next guide. Source/log reconciliation R12201 below, not a new failed lesson.
+A queue-only insertion was reviewed and rejected BEFORE code because newly
+generated motor consequences during return have no complete retained next-hop
+path. Proposed smaller complete direction: one ordinary native interval with
+coexisting external input and exact preceding physical consequences, removing
+private return chaining. D12202 is NOT a frozen implementation contract:
+pending body/world/vestibular custody and coherent failure/restore mapping
+must close before edits. No new neuronal/speech law, no stale evidence window,
+no delayed self-hearing or scripted sequence is authorized by this proposal.
+Source remains90933611; no new build, teaching run, or candidate patch this turn.
+Latest AWS22:16UTC sole1456/C110/6aa38d99 RUNNING/HEALTHY1/1/0.
 CaretakerSTOP/browserclosed; no browser needed. Full AE goal ACTIVE.
 Worktree: `/tmp/guala-speech-existing-organ`
 Starting HEAD: `735489406577f90edf6c2fb7fb1889f87eae8107`
@@ -12628,3 +12633,153 @@ One ad-hoc output projection called motor[1] carriers; it is motor index.
 Actual carrier field is motor[2]; corrected final result records54/140/154/154.
 The runtime harness and physical transitions were not affected. Before any
 future tuple projection, check its exact producer/schema rather than guess.
+
+
+## F118-32 continuation — ordered teaching runtime contract, 2026-09-11 22:17 UTC
+
+`R-054-122-01` — completed SOURCE plus EXISTING-TRACE preflight; no new body run.
+Previous goal turn made progress: C121's actual-runtime root-recall result,
+preserved successor and cold-next were committed/pushed40c84b3d and shared.
+This turn continues F118-32, not a new growth or recall investigation.
+No production correction is claimed. No memory/physics code changed.
+
+Requested architecture: all concurrent external senses plus authentic body,
+world and acoustic consequences reach the next physical occurrence; learned
+contact physics alone supplies ordered actions. Current code reality:
+C119 closes pending-acoustic plus external-guide co-admission at a PRIMARY
+native call, but not at the loop's private immediate-return call. ConflictYES:
+production caller cannot deliver the already-proved ordered teaching chronology.
+Do not extend legacy shell, word/lesson sequence objects, timers, observer
+injection, delayed feedback, stale completion evidence, root filtering,
+neuron/energy/DSF laws, or a second input queue. Full seven-field DSF remains
+unchanged; no reduction or lost field structure is proposed.
+Single next item: complete the one-interval physical input/return/custody
+contract. C118/C120/C121 successes remain prerequisites, not reopened attempts.
+
+Concrete evidence, no new falsification run:
+C121 existing log24ee9bd4... shows
+  native651485: four root268e motors;
+  native651486: immediate self-hearing/body return, non-root motore1=1carrier;
+  native651487: following primary self-hearing interval.
+LeanPhysicalLoop._advance calls both485 and486 synchronously inside ONE
+actor.submit. The return branch294–310 has no guided drives.
+The next external guide can enter487 earliest. C118 S11807/11 instead paired
+the guide with the directly following root-body return. The failed assumption
+would be treating two actor requests as two native clocks.
+
+Native exact_preceding_vocal_body_act_for_guided_growth16374 requires exact
+immediately preceding L11->motor transfers plus the CURRENT returned terminal
+set. internal_contact.completed_vocal_orderings reports CURRENT completion,
+not a retained permission from an earlier return. Extending the frontier window
+or relabeling487 as486 would reinstate a rejected stale/poised act.
+This is the unclosed part explicitly named F11832 and D11902/R11903; it is NOT
+a newly invented speech criterion. The proposed lesson has NOT been delivered,
+so there is no new evidence that the word failed to grow.
+
+Source-only independent memory_probe_review agrees on the above call path.
+Considered repair: consume one already-offered FIFO message from the EXISTING
+mailbox during immediate return, never wait for input or inspect cognition.
+Review finds this legitimate I/O but NOT a complete repair:
+- actor owns two futures until settlement/accounting; count actual intervals
+  once, preserve separate truthful input receipt/count/tick, cancellation,
+  STOP order and refusal of both on failure;
+- no recursive draining or second queue;
+- a guide or internal act in the return can itself produce motor/world/body
+  consequences. Current loop processes primary's consequences only. Its final
+  evidence does not enter a retained non-acoustic return record.
+
+The last point is an independently confirmed normal-success omission:
+guala_motor_world.prepare_motor_consequence consumes transient
+ResidentPrepareReceipt body sources/motor discharges and before/after axes.
+UnsealedResidentOrganismState and NativeLivedStateSnapshot retain cognition,
+vestibular/body pose, acoustic flight and observation; NOT the pending
+non-acoustic motor/world consequence. Current pose cannot reconstruct all
+unapplied trajectories, loads or world actions. Acoustic body_s16le is not
+that missing body-return record. A queue-only patch would hide this omission.
+The proposal is therefore rejected BEFORE code/build, not patched through
+a fresh failing candidate. No user input was required for this rejection.
+
+Related existing failure-path truth, NOT an exact-rollback claim:
+organism_runtime.abort_unsealed_trajectory3820 restores active.envelope, the
+sealed recovery predecessor, not the per-call unsealed body. Python loop abort
+restores per-call world bytes. Actor._run currently catches a message error
+and continues. Reusing that as 'exact occurrence rollback' would be false when
+the body has lived unsealed intervals. A coherent implementation must either
+provide exact per-occurrence rollback or fail-stop and recover the paired
+checkpoint, explicitly acknowledging bounded undurable life loss. Fatal cleanup
+may drain only an already-submitted good checkpoint, never call finish or seal
+new work from a damaged trajectory. This is a required lifecycle part of the
+SAME input/return transaction, not a second optimization campaign.
+
+Source receipts at40c84b3d:
+lean_physical_loop.py b7970ee0f75e14831ff40b0938becc10da4c6eee5a4cd6cb87ff27752c4db367
+lean_actor.py ac10f702c8f39e1da6d8395ba250d2ebdf291120ff953a8e863a6e7683c430d6
+guala_motor_world.py 8fd7c4ac0ef4bee79311b84ff1744e2a720597bad26526d761c6f65d29e7dcbc
+organism_runtime.rs31394a7a0f72f1eeafbd1bfab89d4a81b3b4c02a665f610d9ae544f0779ab075.
+No reviewed-file diff exists. Native source90933611 unchanged.
+
+`D-054-122-02` — recommended complete direction; NOT frozen/code-authorized yet.
+Owner and reviewer prefer replacing private return chaining with one ordinary
+native interval that co-admits the real previous body/world/acoustic return
+and any current external input. This reuses C118's demonstrated physical
+pending-consequence chronology in the ACTUAL runtime, not its private test
+driver. It must not put a lesson plan, word sequence, next-action flag, owner,
+timer or choice in the organism.
+
+Retain only the actual pending physical consequence of one interval, consumed
+exactly once and replaced by its real successor, bounded by reached body
+anatomy rather than lifetime history. Acoustic suffix retains its existing
+physical duration. All movement, touch/load, world action and vestibular
+consequences must be included. No external input is required for return to
+continue. No prior motor event is relabeled as fresh energy or future action.
+Do not implement FIFO callback + an additional pending path beside the old
+chaining; remove the duplicate chronology once the complete contract is proved.
+Implementation line count/resource saving is unmeasured, not promised.
+
+Existing concrete producers/consumers to finish mapping, without rediscovery:
+- BodyProprioceptiveConsequence in virtual_articulated_body.rs475 already
+  contains exact axis/unit, before/after positions, displacement and admitted/
+  opposed/stalled carrier quantities; derive sparse prior axis geometry from
+  this, do not copy all body anatomy into a second record.
+- RootYawUnitRecruitment1731 and RootTranslationUnitRecruitment1743 in
+  resident_cognitive_formation.rs are typed physical discharges, NOT semantic
+  move commands. Preserve their actual world conversion and returned senses.
+- organism_runtime.body_proprioceptive_source5133 produces exact current
+  source bytes/extents; source duration law coexisting_source_duration...
+  already supports nested1ms body and250ms sound WITHOUT stretching either.
+- guala_world_sensorium declares PASSIVE250000us and BODY1000us.
+  A native-clock count is not elapsed duration. Do not silently substitute
+  250ms for1ms or claim fewer calls imply successor-equivalent physics.
+- Existing native build_admitted_trajectory and C119 guided consumption keep
+  tutor, moved tissue, returned body and own sound distinct in one occurrence.
+- Snapshot/checkpoint, encode/decode fabric (currentlyGLMFAB11), active/unsealed
+  state, restart, Python FFI, world transaction, actor accounting and observer
+  must all carry the same pending physical fact. Any format change requires
+  the existing full-backup/one-way migration discipline; no old pending body
+  evidence may be fabricated during migration.
+
+Freeze only after exact representation, mutation/consumption order, world
+commit, failure recovery, migration, public-field map and bound are known.
+Then one independent source review, smallest focused boundary proof, and
+actual-runtime next-edge teaching on preserved651548 plus sound-only recall,
+finite return/quiet, old-original retention and cold-next. Do not rerun closed
+root-growth/C118 ordered-law campaigns. This turn has not run that acceptance.
+
+`H-054-122-01` — repeat path-search mistakes, recorded without disguising them.
+Two read-only rg commands named nonexistent lean_native_actor.py and python.rs.
+Actual files are lean_actor.py and organism_runtime.rs, resolved by rg --files
+and exact symbols. No compile or organism test ran. Several combined skill
+reads overflowed the tool-output budget; missing content was reread explicitly.
+Command recurrence action: use the existing reviewed
+/workspaces/Tao_Financial_Engine/guala_preflight/preflight.sh file <fragment>
+to resolve any uncertain file BEFORE opening/searching it, or rg --files on
+the exact source root. Its test command selects debug, so release tests still
+must use compiler-reported artifact + --list + --exact. No new wrapper needed.
+
+Operational close: no build/probe was launched, no native Guala child survives.
+Unrelated TFE child26430 of3707 ran ch3_reveal_fade.py and was left untouched.
+Read-only AWS22:16UTC confirmed soleeffde9e1/1456/image6aa38d99 RUNNING/HEALTHY,
+desired1/running1/pending0,no failures. This is task health only; latest
+CPU/RAM/alarm observation remains S12104 at21:59, not a new full health audit.
+No production or caretaker change. Browserclosed, no user action needed.
+Full AE goal ACTIVE; work continues on the exact input/return contract.
