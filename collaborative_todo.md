@@ -8332,3 +8332,25 @@ shows helper25sound frames/34ports/3occurrences vsactual26frames/220port full
 sensorium, plus actual immediate-return clocks. These are differences, not yet
 causes. Do not revive failedC112 body-cued author or dose theory. Do not remove
 coexisting senses. Full AE goal remains active. — Sol
+
+
+## Sol — same newer body CAN grow the root, 2026-09-11 19:09 UTC
+Pushed987bab96, canonical S119-10/D119-11/S119-12. Existing helper on EXACT
+651372 predecessor, same4000-sample phase and1500 guide, two lessons with32
+native recovery clocks: guide1zero, guide2FOUR coordinated routes, coldexact.
+35.28s,1passed. This was not a repeated oldbody pass; it rules out treating
+newer body's history as sufficient explanation for actualruntime zero growth.
+No breath/recall claim from this growth-only result.
+ReceiptSHA4c2a5c9c446ab09aa93fbdd94bca3ee6883c0e0abe942aefd218af423058b107,
+cognitive54feb7f1e7b001526ceaaf3580a5cadcb05867ea7d902cab1a4d93f5abe76f9f.
+E-drive archive c119-helper-baseline.tar.gz verified in existingC118backup.
+
+Actual production source captured from exactcopied body/world WITHOUT starting
+actor or advancing nativeclock; exact rollback verified. Full220ports/26frames,
+SHAebfc9c48d0b646e5fc580515cf96f7991ef9514fa7974204d905e23431e62736.
+Next holds helperbody/chronology constant and substitutes only this fullsource.
+Same firstscene deliberately repeated twice: controlled-source discriminator,
+NOT two-live-lessons replay. Tiny test-only override independently reviewed,
+build36322 currentlyrunning. No new production physics or memory code changes.
+No deploy/live mutation;1456/image6aa38d99 healthy1/1/0 at19:07:36.
+CaretakerSTOP/browserclosed. Closed C118 chainwins and newrootwin preserved.
