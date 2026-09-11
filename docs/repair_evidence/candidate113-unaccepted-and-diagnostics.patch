@@ -1,0 +1,457 @@
+diff --git a/native/guala_core/src/resident_cognitive_formation.rs b/native/guala_core/src/resident_cognitive_formation.rs
+index 5337dedd..e810938c 100644
+--- a/native/guala_core/src/resident_cognitive_formation.rs
++++ b/native/guala_core/src/resident_cognitive_formation.rs
+@@ -4800,12 +4800,12 @@ fn settle_organism_mosaic_boundary(
+ }
+ 
+ /// Return the complete physical lineage structure of the exact retained
+-/// formations reassembled by current external sound.  Formation membership
+-/// alone is incomplete: recurrent wiring can own a reached association as an
+-/// exact bond endpoint without flattening that endpoint into the member list.
+-/// Receipt and recurrent lineage must still resolve one current retained
+-/// owner; neither a shared auditory integration nor a broad population match
+-/// can enter this set.
++/// formations reassembled by current external sound.
++/// Formation membership alone is incomplete: recurrent wiring can own a
++/// reached association as an exact bond endpoint without flattening that
++/// endpoint into the member list. Receipt and recurrent lineage must still
++/// resolve one current retained owner; neither a shared integration nor a
++/// broad population match can enter this set.
+ fn exact_sound_reassembled_structure_lineages(
+     cohorts: &[ResidentReachedCohort],
+     topology: &ResidentTopologyIndex,
+@@ -9936,6 +9936,7 @@ impl ResidentCognitiveFormationState {
+             &externally_energized_by_occurrence,
+             &exact_moved_body_regulations_by_occurrence,
+             &settled_layer_six_lineages,
++            &active_electrical_frontier,
+         )?;
+         if !topology_index.matches_shape(&cohorts, &electrical_fabric) {
+             topology_index = Arc::new(ResidentTopologyIndex::build(&cohorts, &electrical_fabric)?);
+@@ -15656,13 +15657,20 @@ fn mount_next_intrinsic_in_layer(
+ 
+ #[derive(Clone, Debug, Eq, PartialEq)]
+ struct ReachedAssociationsByOccurrence {
++    /// The exact association formed or reused from this occurrence's complete
++    /// currently energized integration assembly.
+     lineages: Vec<Vec<[u8; 16]>>,
++    /// Earlier associations physically reached from this occurrence's exact
++    /// auditory integrations by current external-sound transfer. This is
++    /// transient settlement evidence; it is never encoded.
++    reached_prior_lineages: Vec<Vec<[u8; 16]>>,
+ }
+ 
+ impl ReachedAssociationsByOccurrence {
+     fn empty(occurrence_count: usize) -> Self {
+         Self {
+             lineages: vec![Vec::new(); occurrence_count],
++            reached_prior_lineages: vec![Vec::new(); occurrence_count],
+         }
+     }
+ }
+@@ -15796,9 +15804,74 @@ fn exact_reached_cross_sensory_original_bonds(
+     }
+     components.sort_unstable();
+     components.dedup();
++    #[cfg(test)]
++    if let Ok(watched) = std::env::var("GUALA_MEMORY_WATCH_L7") {
++        for encoded in watched.split(',') {
++            assert_eq!(encoded.len(), 32);
++            let mut association = [0_u8; 16];
++            for (index, byte) in association.iter_mut().enumerate() {
++                *byte = u8::from_str_radix(&encoded[index * 2..index * 2 + 2], 16).unwrap();
++            }
++            let flat = topology.flat_for_lineage(association)?;
++            let association_bonds = topology.incident_contacts_by_flat[flat].iter()
++                .filter_map(|index| {
++                    let contact = topology.contacts[*index];
++                    let other = if contact.left == flat { contact.right } else { contact.left };
++                    (matches!(contact.origin, ResidentContactOrigin::Fabric { .. })
++                        && topology.layer_of(topology.flat_locations[other].2) == Some(6))
++                        .then_some(contact.stable_bond)
++                }).collect::<Vec<_>>();
++            let witnesses = current_frontier.iter().filter(|entry| {
++                entry.cause.is_some_and(|cause| association_bonds.contains(&cause.bond)
++                    && causal.contains(&cause.bond))
++            }).collect::<Vec<_>>();
++            eprintln!(
++                "memory-focus association={encoded} l6_bonds={} active_l6_bonds={} indexed_formations={} focused_bonds={} frontier_witnesses={} frontier_at_association={}",
++                association_bonds.len(),
++                association_bonds.iter().filter(|bond| causal.contains(bond)).count(),
++                formation_index.candidate_indices([association], std::iter::empty()).len(),
++                components.iter().find(|(lineage, _)| *lineage == association)
++                    .map_or(0, |(_, bonds)| bonds.len()),
++                witnesses.len(),
++                witnesses.iter().filter(|entry| entry.frontier_lineage() == association).count(),
++            );
++        }
++    }
+     Ok(components)
+ }
+ 
++/// Whether this currently energized layer-6 integration belongs to mounted
++/// auditory receptor anatomy.
++fn integration_carries_sound_source(
++    cohorts: &[ResidentReachedCohort],
++    topology: &ResidentTopologyIndex,
++    integration: [u8; 16],
++) -> Result<bool, FormationError> {
++    let integration_flat = topology.flat_for_lineage(integration)?;
++    for contact_index in topology.incident_contacts_by_flat[integration_flat]
++        .iter()
++        .copied()
++    {
++        let contact = topology.contacts[contact_index];
++        if !matches!(contact.origin, ResidentContactOrigin::Fabric { .. }) {
++            continue;
++        }
++        let source_flat = if contact.left == integration_flat {
++            contact.right
++        } else {
++            contact.left
++        };
++        let (cohort_index, neuron_index, _) = topology.flat_locations[source_flat];
++        if cohorts[cohort_index].anatomy.mounts()[neuron_index]
++            .source_site()
++            .is_some_and(|site| site.sense() == PhysicalSourceSense::Sound)
++        {
++            return Ok(true);
++        }
++    }
++    Ok(false)
++}
++
+ /// Grow or reuse one exact physical cross-sensory assembly per admitted
+ /// moved-body occurrence after layer-6 settlement. Each body occurrence keeps
+ /// its own local integrations and may share only the simultaneous context
+@@ -15818,6 +15891,7 @@ fn mount_reached_cross_sensory_association(
+     externally_energized_by_occurrence: &[Vec<[u8; 16]>],
+     moved_body_regulations_by_occurrence: &[Vec<[u8; 16]>],
+     settled_layer_six_lineages: &BTreeSet<[u8; 16]>,
++    current_frontier: &[ActiveElectricalFrontierEntry],
+ ) -> Result<ReachedAssociationsByOccurrence, FormationError> {
+     if externally_energized_by_occurrence.len() != moved_body_regulations_by_occurrence.len() {
+         return Err(FormationError::NoncanonicalState);
+@@ -15930,6 +16004,81 @@ fn mount_reached_cross_sensory_association(
+             })
+         })
+         .collect::<Vec<_>>();
++    let mut current_auditory_integrations = BTreeSet::new();
++    for integration in candidate_assemblies_by_occurrence
++        .iter()
++        .filter_map(Option::as_ref)
++        .flatten()
++        .copied()
++        .collect::<BTreeSet<_>>()
++    {
++        if integration_carries_sound_source(cohorts, topology, integration)? {
++            current_auditory_integrations.insert(integration);
++        }
++    }
++    let mut current_external_auditory_transfers = BTreeSet::new();
++    for entry in current_frontier.iter().copied() {
++        if !entry.carries_external_ingress_cause() || entry.carries_body_owned_acoustic_efference()
++        {
++            continue;
++        }
++        let Some(transfer) = entry.directed_transfer() else {
++            continue;
++        };
++        if transfer.transferred_whole_carriers == 0
++            || topology.layer_of(transfer.sender) != Some(6)
++            || topology.layer_of(transfer.receiver) != Some(7)
++            || !current_auditory_integrations.contains(&transfer.sender)
++        {
++            continue;
++        }
++        current_external_auditory_transfers.insert((
++            transfer.sender,
++            transfer.receiver,
++            transfer.bond,
++        ));
++    }
++    let reached_prior_lineages = candidate_assemblies_by_occurrence
++        .iter()
++        .map(|assembly| -> Result<Vec<[u8; 16]>, FormationError> {
++            let Some(assembly) = assembly else {
++                return Ok(Vec::new());
++            };
++            let mut reached = BTreeSet::new();
++            for integration in assembly.iter().copied() {
++                if !current_auditory_integrations.contains(&integration) {
++                    continue;
++                }
++                let integration_flat = topology.flat_for_lineage(integration)?;
++                for contact_index in topology.incident_contacts_by_flat[integration_flat]
++                    .iter()
++                    .copied()
++                {
++                    let contact = topology.contacts[contact_index];
++                    if !matches!(contact.origin, ResidentContactOrigin::Fabric { .. }) {
++                        continue;
++                    }
++                    let other_flat = if contact.left == integration_flat {
++                        contact.right
++                    } else {
++                        contact.left
++                    };
++                    let association = topology.flat_locations[other_flat].2;
++                    if topology.layer_of(association) != Some(7) {
++                        continue;
++                    }
++                    if current_external_auditory_transfers.contains(&(
++                        integration,
++                        association,
++                        contact.stable_bond,
++                    )) {
++                        reached.insert(association);
++                    }
++                }
++            }
++            Ok(reached.into_iter().collect())
++        })
++        .collect::<Result<Vec<_>, _>>()?;
+     let candidate_assemblies = candidate_assemblies_by_occurrence
+         .iter()
+         .filter_map(|assembly| assembly.clone())
+@@ -16038,7 +16187,10 @@ fn mount_reached_cross_sensory_association(
+                 .map(|association| association.into_iter().collect())
+         })
+         .collect::<Result<Vec<Vec<[u8; 16]>>, FormationError>>()?;
+-    Ok(ReachedAssociationsByOccurrence { lineages })
++    Ok(ReachedAssociationsByOccurrence {
++        lineages,
++        reached_prior_lineages,
++    })
+ }
+ 
+ /// Recover one just-completed vocal posture for guided sequence growth on the
+diff --git a/native/guala_core/src/resident_cognitive_formation/lean_sensorimotor_route.rs b/native/guala_core/src/resident_cognitive_formation/lean_sensorimotor_route.rs
+index 907ebc5c..47cc4877 100644
+--- a/native/guala_core/src/resident_cognitive_formation/lean_sensorimotor_route.rs
++++ b/native/guala_core/src/resident_cognitive_formation/lean_sensorimotor_route.rs
+@@ -782,6 +782,9 @@ pub(super) fn mount_exact_reassembled_vocal_action_routes(
+     if associations.lineages.len() != moved_regulations.len() {
+         return Err(FormationError::NoncanonicalState);
+     }
++    if associations.reached_prior_lineages.len() != associations.lineages.len() {
++        return Err(FormationError::NoncanonicalState);
++    }
+     let mut expected_start = 0usize;
+     for (start, end) in source_occurrence_spans.iter().copied() {
+         if start != expected_start || end <= start || end > associations.lineages.len() {
+@@ -838,7 +841,37 @@ pub(super) fn mount_exact_reassembled_vocal_action_routes(
+             if motors.is_empty() {
+                 continue;
+             }
+-            let occurrence_associations = &associations.lineages[occurrence];
++            // A lived receptor assembly need not repeat byte-for-byte, but a
++            // learned vocal founder must still be auditory. Admit the one
++            // exact current association owned by sound reassembly, or the one
++            // prior association physically reached by this occurrence's
++            // external-sound transfer and owned by exact sound reassembly now.
++            // Zero remains no learning; more than one remains an authority
++            // failure.
++            let mut occurrence_associations = associations.lineages[occurrence]
++                .iter()
++                .copied()
++                .filter(|association| exact_sound_reassembled_members.contains(association))
++                .chain(
++                    associations.reached_prior_lineages[occurrence]
++                        .iter()
++                        .copied()
++                        .filter(|association| exact_sound_reassembled_members.contains(association)),
++                )
++                .collect::<Vec<_>>();
++            occurrence_associations.sort_unstable();
++            occurrence_associations.dedup();
++            #[cfg(test)]
++            if std::env::var_os("GUALA_PROBE_GUIDED_VOCAL_OWNER_DIAGNOSTIC").is_some() {
++                eprintln!(
++                    "vocal-owner occurrence={occurrence} motors={} current_associations={} auditory_reached_prior={} sound_structure_members={} eligible_owners={}",
++                    motors.len(),
++                    associations.lineages[occurrence].len(),
++                    associations.reached_prior_lineages[occurrence].len(),
++                    exact_sound_reassembled_members.len(),
++                    occurrence_associations.len(),
++                );
++            }
+             if occurrence_associations.len() != 1 || motors.len() != 1 {
+                 incomplete_vocal_occurrence = true;
+                 break;
+@@ -877,17 +910,6 @@ pub(super) fn mount_exact_reassembled_vocal_action_routes(
+         }
+         let association_lineages = associations_set.into_iter().collect::<Vec<_>>();
+         let motor_lineages = motors_set.into_iter().collect::<Vec<_>>();
+-        if !association_lineages
+-            .iter()
+-            .any(|association| exact_sound_reassembled_members.contains(association))
+-        {
+-            // Guided motion can reveal an occurrence-local association, but
+-            // it cannot make that association belong to the tutor sound. A
+-            // later lived repetition must first reassemble retained sound
+-            // structure that physically owns at least one exact association
+-            // in this coordinated posture.
+-            continue;
+-        }
+         let already_learned = preparation_with_exact_participants_exists(
+             cohorts,
+             topology,
+diff --git a/native/guala_core/src/resident_cognitive_formation/tests.rs b/native/guala_core/src/resident_cognitive_formation/tests.rs
+index 26656230..43b24ca1 100644
+--- a/native/guala_core/src/resident_cognitive_formation/tests.rs
++++ b/native/guala_core/src/resident_cognitive_formation/tests.rs
+@@ -3652,6 +3652,7 @@ fn varied_multisensory_occurrences_mount_only_exact_settled_assemblies() {
+         ],
+         &[vec![[1; 16]], vec![[2; 16]], Vec::new()],
+         &settled_layer_six,
++        &[],
+     )
+     .unwrap();
+     assert_eq!(coexisting.lineages.len(), 3);
+@@ -3675,6 +3676,7 @@ fn varied_multisensory_occurrences_mount_only_exact_settled_assemblies() {
+         ]],
+         &[vec![[1; 16]]],
+         &settled_layer_six,
++        &[],
+     )
+     .unwrap();
+     let association = cohorts
+@@ -3706,6 +3708,7 @@ fn varied_multisensory_occurrences_mount_only_exact_settled_assemblies() {
+         ]],
+         &[vec![[1; 16]]],
+         &settled_layer_six,
++        &[],
+     )
+     .unwrap();
+     let association = cohorts
+@@ -3739,6 +3742,7 @@ fn varied_multisensory_occurrences_mount_only_exact_settled_assemblies() {
+         ]],
+         &[vec![[1; 16]]],
+         &settled_layer_six,
++        &[],
+     )
+     .unwrap();
+     assert_eq!(cohorts.len(), cohort_count);
+@@ -3759,6 +3763,7 @@ fn varied_multisensory_occurrences_mount_only_exact_settled_assemblies() {
+         &[receptor_lineages.to_vec()],
+         &[vec![[1; 16]]],
+         &settled_layer_six,
++        &[],
+     )
+     .unwrap();
+     let full_occurrence_cohort_count = cohorts.len();
+@@ -3779,6 +3784,7 @@ fn varied_multisensory_occurrences_mount_only_exact_settled_assemblies() {
+         &[receptor_lineages.to_vec()],
+         &[vec![[1; 16]]],
+         &changed_settled_subset,
++        &[],
+     )
+     .unwrap();
+     assert_eq!(cohorts.len(), full_occurrence_cohort_count);
+@@ -4318,6 +4324,7 @@ fn affective_growth_is_occurrence_local_and_requires_both_physical_transfers() {
+ 
+     let associations = ReachedAssociationsByOccurrence {
+         lineages: vec![vec![association], vec![bystander_association]],
++        reached_prior_lineages: vec![Vec::new(); 2],
+     };
+     let regulations = vec![vec![regulation], vec![bystander_regulation]];
+     let transfers = first
+@@ -8195,6 +8202,7 @@ fn exact_body_source_mounts_one_coordinated_vocal_preparation() {
+             .copied()
+             .map(|association| vec![association])
+             .collect(),
++        reached_prior_lineages: vec![Vec::new(); associations.len()],
+     };
+     let moved = regulations
+         .iter()
+@@ -8224,8 +8232,80 @@ fn exact_body_source_mounts_one_coordinated_vocal_preparation() {
+         );
+     }
+     let reassembled_associations = associations.iter().copied().collect::<BTreeSet<_>>();
++    let mut prior_cohorts = cohorts.clone();
++    let mut prior_population = population.clone();
++    let mut prior_next_lineage = next_lineage;
++    let mut prior_fabric = fabric.clone();
++    let reached_from_prior = ReachedAssociationsByOccurrence {
++        lineages: vec![Vec::new(); 2],
++        reached_prior_lineages: reached.lineages[..2].to_vec(),
++    };
++    mount_exact_reassembled_vocal_action_routes(
++        &mut prior_cohorts,
++        &mut prior_population,
++        &mut prior_next_lineage,
++        &mut prior_fabric,
++        &topology,
++        &reached_from_prior,
++        &moved[..2],
++        &reassembled_associations,
++        &[(0, 2)],
++        &[],
++    )
++    .unwrap();
++    let prior_topology = ResidentTopologyIndex::build(&prior_cohorts, &prior_fabric).unwrap();
++    assert_eq!(
++        vocal_cognitive_action_route_for_motor(&prior_cohorts, &prior_topology, motors[0])
++            .unwrap()
++            .len(),
++        1
++    );
++    assert_eq!(
++        vocal_cognitive_action_route_for_motor(&prior_cohorts, &prior_topology, motors[1])
++            .unwrap()
++            .len(),
++        1
++    );
++
++    let mut ambiguous_cohorts = cohorts.clone();
++    let mut ambiguous_population = population.clone();
++    let mut ambiguous_next_lineage = next_lineage;
++    let mut ambiguous_fabric = fabric.clone();
++    let reached_ambiguously = ReachedAssociationsByOccurrence {
++        lineages: vec![Vec::new(); 2],
++        reached_prior_lineages: vec![
++            vec![associations[0], associations[2]],
++            vec![associations[1], associations[3]],
++        ],
++    };
++    mount_exact_reassembled_vocal_action_routes(
++        &mut ambiguous_cohorts,
++        &mut ambiguous_population,
++        &mut ambiguous_next_lineage,
++        &mut ambiguous_fabric,
++        &topology,
++        &reached_ambiguously,
++        &moved[..2],
++        &reassembled_associations,
++        &[(0, 2)],
++        &[],
++    )
++    .unwrap();
++    let ambiguous_topology =
++        ResidentTopologyIndex::build(&ambiguous_cohorts, &ambiguous_fabric).unwrap();
++    assert!(
++        vocal_cognitive_action_route_for_motor(
++            &ambiguous_cohorts,
++            &ambiguous_topology,
++            motors[0],
++        )
++        .unwrap()
++        .is_empty()
++    );
++
+     let reached_first = ReachedAssociationsByOccurrence {
+         lineages: reached.lineages[..2].to_vec(),
++        reached_prior_lineages: vec![Vec::new(); 2],
+     };
+     mount_exact_reassembled_vocal_action_routes(
+         &mut cohorts,
+@@ -8486,6 +8566,7 @@ fn exact_body_source_mounts_one_coordinated_vocal_preparation() {
+ 
+     let reached_successor = ReachedAssociationsByOccurrence {
+         lineages: reached.lineages[2..].to_vec(),
++        reached_prior_lineages: vec![Vec::new(); 2],
+     };
+     mount_exact_reassembled_vocal_action_routes(
+         &mut cohorts,

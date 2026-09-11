@@ -3812,6 +3812,19 @@ fn varied_multisensory_occurrences_mount_only_exact_settled_assemblies() {
     )
     .unwrap();
     assert_eq!(focused.len(), 2);
+    // The same reached physical hubs remain eligible on a later interval
+    // without a new moved-body occurrence or a next-propagation receipt.
+    // Unrelated mounted hubs do not become participants just by existing.
+    let reached_associations = coexisting.lineages.iter().flatten().copied().collect::<Vec<_>>();
+    let continued = exact_reached_cross_sensory_original_bonds(
+        &cohorts,
+        &topology_index,
+        &ResidentFormationIndex::default(),
+        &ReachedAssociationsByOccurrence::empty(coexisting.lineages.len()),
+        &all_active_bonds,
+        &reached_associations,
+    ).unwrap();
+    assert_eq!(continued, focused);
     for ((association, component), expected_association) in focused.iter().zip(
         coexisting
             .lineages

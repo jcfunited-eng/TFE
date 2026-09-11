@@ -9283,3 +9283,94 @@ declare a directed-transfer explanation proven from active-contact totals.
 The next source decision is whether those receipt/endpoint requirements
 correctly represent the bidirectional physical participation needed for
 forming memory. No production neuron, memory or speech correction has shipped.
+
+`F-054-113-09` (contradictory-clock selector measured): the final four-cell
+count completed in 4.90 seconds, with identical retained-memory JSON. On
+intervals one/three each association had 32/35 active contacts and 32 next-
+frontier witnesses at that association; on intervals two/four all 35 contacts
+were active but there were zero incident next-frontier witnesses at either
+endpoint. This is not reversed transfer misread as forward: the entire
+next-frontier contact entry is absent. Current physical participation and
+next propagation are different quantities; requiring both at once prevented
+the focused memory component from ever being selected in this trajectory.
+
+`D-054-114-01` (current participation selects the focused memory path):
+Candidate 113's unaccepted auditory-owner lookup and tests were archived at
+`docs/repair_evidence/candidate113-unaccepted-and-diagnostics.patch`, SHA-256
+`4e5eade177dd99d0b18c77db751f17be43fed486b61c893f5ea7838f5b236771`,
+then removed from executable source. The accepted Candidate-110 source is
+the baseline; saved neuron/body copies are untouched. Candidate 114 replaces
+only the final input of `exact_reached_cross_sensory_original_bonds`: use
+`internal_contact.causally_transitioned_lineages` (current causal seeds and
+receiving cells actually reached by settled transfers), not
+`internal_contact.next_active_frontier` (future propagation). The selector
+still requires L7 anatomy, all of that hub's own L6 contacts in the actual
+causal-active-bond set, and no existing indexed formation. Each component
+still contains only that hub, its own active L6 bonds and their active receptor
+bonds; no sibling hub is unioned. The production change removes ten net lines.
+
+Impact/authority: unchanged ingress -> current native contact settlement ->
+corrected focused-component selection -> existing original/fractal admission,
+retention and recurrence -> unchanged vocal root, continuation, breath,
+pressure and same-body sensory return -> unchanged encoding/restore and
+transport. No new stored state, energy, coefficient, timer, owner, neuron,
+codec, caller, migration, Python or UI path. Full L0-L4/DSF unchanged; no field
+structure lost. Existing original admission still requires the real neuronal
+fractals, and its result must be measured rather than assumed. The next
+checks are the extended existing component-isolation guard and the same
+saved four-interval memory continuation; root/word acceptance remains open.
+
+`H-054-124` (source cleanup tooling): the patch tool refused a combined
+delete/add targeting one file and a subsequent oversized whole-file context;
+neither refusal changed source. One orchestration call also failed JavaScript
+parsing before execution. Applying the exact inverse of the archived local
+diff restored the three owned files, verified by an empty source diff before
+Candidate 114. Do not repeat multi-operation same-path replacement or huge
+whole-file context patches on this core.
+
+`S/F-054-114-02` (selector corrected; recallable memory not yet demonstrated):
+the extended existing component-isolation guard passed 1/1 in 0.01 s. The
+same saved-lesson four-interval continuation completed in 5.10 s. None of the
+four associations was in a formation afterward; the former merged four-L7
+pending original did not recur. There were 320 internal reassemblies. This
+is a changed local retention result, not proof that the intended sound/body
+memory now forms. Receipt `/tmp/guala-candidate114-memory-retention.json`,
+SHA-256 `20c3221d862fdabec7e5545f91aadcc9da09502b8fbf240d84ad4733c50795b7`.
+
+`D-054-114-03` (eight lessons with ordinary cognition during recovery): the
+next growth run uses the established eight-lesson/32-recovery chronology on
+the authenticated task-1456 predecessor. The test-only teaching helper now
+has an explicit continuing-recovery mode that calls its existing ordinary
+native/body/self-hearing continuation for those 32 intervals instead of
+settling only the body while cognition is frozen. State, body, residency and
+occurrence advance together; no guide or tutor pressure is supplied during
+recovery. The JSON explicitly names which recovery mode ran and the interval
+count. This is a harness chronology correction, not a new organism timer or
+curriculum law. No source roster, field, energy, or production state changes.
+The output must report actual root growth and exact cold restart; four quiet
+intervals alone are not substituted for this full teaching chronology.
+
+`F-054-114-04` (eight continuing-cognition lessons still grow zero routes):
+the correct outer growth selector and continuing-recovery mode completed
+eight lessons plus seven 32-interval recovery periods in 209.48 seconds.
+Every lesson used the same 4,000 tutor samples, one phase. Route counts were
+zero before, after, and at checkpoints 1/2/4/8; cold round trip was exact.
+This run confirms that the selector correction alone is insufficient for
+root growth under this continuing-cognition chronology. It does not invalidate
+the measured selector defect, and it is not a production or speech success.
+The four-interval result in S/F-054-114-02 must not be treated as complete
+learning evidence. No additional speech acceptance bar was introduced.
+
+Receipt `/tmp/guala-candidate114-continuing8.json`, SHA-256
+`f0e04310187f18b83584ebbc66634b7e6a5ea56d3a39670b892b1bb11e4b026a`;
+cognitive successor SHA-256
+`6f724ba66ceee023783a707da38735a3aa57c88b22aa5bb8b1887469ca0d76c4`;
+body SHA-256
+`6247ab3b74180419d60eb5dc21a94c38e72cbe119ea078efa9f70a8d14ffd59f`.
+Runtime scope: one local native test, approximately 2.2 CPU cores/1.6 GiB RSS
+at the sampled point, 232 native intervals plus restore/reporting; not a live
+production interval-time measurement. The next exact boundary is the emitted
+sensory/body neuronal fractals versus their focused pending-original admission
+and recurrence. The current probe does not expose those per-lesson facts, so
+their absence is not yet proved. Candidate 114 remains local and unaccepted
+for deployment. Production remains task 1456; no live lesson or cutover occurred.

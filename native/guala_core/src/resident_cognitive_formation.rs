@@ -9946,7 +9946,7 @@ impl ResidentCognitiveFormationState {
             &formation_index,
             &reached_associations_by_occurrence,
             &internal_contact.causal_active_bonds,
-            &active_electrical_frontier,
+            &internal_contact.causally_transitioned_lineages,
         )?;
         let developmental_affective_pairs = exact_occurrence_affective_pairs(
             &reached_associations_by_occurrence,
@@ -15680,7 +15680,7 @@ fn exact_reached_cross_sensory_original_bonds(
     formation_index: &ResidentFormationIndex,
     associations: &ReachedAssociationsByOccurrence,
     causal_active_bonds: &[StablePhysicalBondReference],
-    current_frontier: &[ActiveElectricalFrontierEntry],
+    causally_reached_lineages: &[[u8; 16]],
 ) -> Result<Vec<([u8; 16], Vec<StablePhysicalBondReference>)>, FormationError> {
     let causal = causal_active_bonds.iter().copied().collect::<BTreeSet<_>>();
     let mut candidate_associations = associations
@@ -15689,21 +15689,11 @@ fn exact_reached_cross_sensory_original_bonds(
         .flatten()
         .copied()
         .collect::<BTreeSet<_>>();
-    for entry in current_frontier.iter().copied() {
-        let Some(cause) = entry.cause else {
-            continue;
-        };
-        let bond = cause.bond;
-        if !causal.contains(&bond) {
-            continue;
-        }
-        let (left, right) = bond.endpoints();
-        let association = match (topology.layer_of(left), topology.layer_of(right)) {
-            (Some(6), Some(7)) => right,
-            (Some(7), Some(6)) => left,
-            _ => continue,
-        };
-        if entry.frontier_lineage() != association {
+    // Memory forms from this interval's actual participation. The frontier
+    // scheduled for a later propagation step can be empty after these same
+    // contacts settle; it is not the authority for what just happened.
+    for association in causally_reached_lineages.iter().copied() {
+        if topology.layer_of(association) != Some(7) {
             continue;
         }
         let association_flat = topology.flat_for_lineage(association)?;

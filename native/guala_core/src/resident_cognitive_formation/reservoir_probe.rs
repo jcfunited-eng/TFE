@@ -5468,6 +5468,8 @@ fn guided_vocal_population_growth_json(
     let tutor_pressure_phases = tutor_pressure.chunks_exact(4_000).collect::<Vec<_>>();
     let route_growth_only =
         std::env::var_os("GUALA_PROBE_GUIDED_VOCAL_ROUTE_GROWTH_ONLY").is_some();
+    let continuing_recovery =
+        std::env::var_os("GUALA_PROBE_GUIDED_VOCAL_CONTINUING_RECOVERY").is_some();
     let checkpoints = [1_u32, 2, 4, 8, 16, 32, 64, 128, 256];
     let mut observations = Vec::new();
     let mut vocal_learning_frontiers = Vec::new();
@@ -5550,14 +5552,29 @@ fn guided_vocal_population_growth_json(
         // unfold through the carried tissue, acoustic, neuronal, and recurrent
         // state that production itself retains.
         if occurrence != 0 && !population_complete {
-            for _ in 0..32 {
-                body = settle_body_effector_drives(
-                    &body,
-                    &AdmittedBodyEffectorDrives::quiescent(),
-                    BODY_SETTLEMENT_CLOCK_MICROSECONDS,
-                )
-                .expect("guided vocal tissue recovery settles")
-                .successor;
+            if continuing_recovery {
+                let terminals = vocal_routes(&state).into_iter()
+                    .map(|(_, motor, terminal)| (motor, terminal))
+                    .collect::<std::collections::BTreeMap<_, _>>();
+                let motors = terminals.keys().copied().collect();
+                let recovery = run_guided_vocal_continuation(
+                    state, body, guided_residency.take(), &[], occurrence,
+                    32, &motors, &terminals,
+                );
+                state = recovery.state;
+                body = recovery.body;
+                guided_residency = recovery.residency;
+                occurrence = occurrence.checked_add(32).expect("recovery chronology fits");
+            } else {
+                for _ in 0..32 {
+                    body = settle_body_effector_drives(
+                        &body,
+                        &AdmittedBodyEffectorDrives::quiescent(),
+                        BODY_SETTLEMENT_CLOCK_MICROSECONDS,
+                    )
+                    .expect("guided vocal tissue recovery settles")
+                    .successor;
+                }
             }
         }
         occurrence += 1;
@@ -5785,6 +5802,8 @@ fn guided_vocal_population_growth_json(
         return json!({
             "measurement_only": true,
             "route_growth_only": true,
+            "cognition_continues_during_recovery": continuing_recovery,
+            "recovery_intervals_between_lessons": 32,
             "single_sound_source_authority": true,
             "tutor_pressure_sample_count": tutor_pressure.len(),
             "tutor_phase_count": tutor_pressure_phases.len(),
