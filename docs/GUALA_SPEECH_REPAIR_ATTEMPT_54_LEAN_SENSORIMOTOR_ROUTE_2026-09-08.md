@@ -9900,3 +9900,117 @@ read-only cloud check: sole task effde9e1bf364ec9b4114355fb07eafb,
 RUNNING/HEALTHY,1/1/0, image6aa38d99. 11:30/35/40 CPU average
 43.51/42.65/40.99%, memory10.53/10.78/10.62%; clock alarm unchanged since
 September8. No current native-timing/whole-health/speech proof claimed.
+
+
+`D-054-116-02`: source complete for independent freeze review. Reused115's
+review-consistent physical leaf container/codec/constructor closure unchanged.
+Owned-prior existence now resolves before adjacency in the focused admission
+loop: exactly one expired prior skips admission, multiple exact pending
+owners refuse. No new owner field or physical law. The existing small
+multisensory fixture now checks three repeated expired-owner admissions leave
+the sole prior unchanged and ambiguous owners refuse. The four-clock mature
+acceptance requires total owner count=1, not just one completed match.
+
+Restart acceptance now uses the live four-clock residency in the warm native
+call, a rebuilt scheduler in the cold call, and the same pending motor and
+self-pressure inputs with correct acoustic-efference classification. Complete
+native observation/successor and body/pressure/consequence outputs are compared.
+The test's existing physical body settlement was extracted unchanged into one
+shared test-only helper rather than duplicating that mapping for restart.
+No production body or scheduler logic changed. Exact test name is now
+resident_cognitive_formation::reservoir_probe::memory_retention_probe::candidate116_saved_lesson_exact_sound_body_handoff.
+No compiler/test launched. Review occurs against frozen source, not a moving
+implementation. All previous wins retain their recorded scope.
+
+
+`S-054-116-01` — independent source review PASS, fingerprint
+b19eb89a0bed6eb03687c0911bdfc70b2dae837e7837dc85811c1f9acf2b1358
+verified unchanged before and after review, and by owner before this entry.
+No new architectural/localized blocker found. Reviewed all116 ownership
+branches, negative fixture, total-owner acceptance, real warm/cold scheduler
+and body comparison, and reused custody/constructor/codec/manifest closure.
+This entry changes documentation only; reviewed source is unchanged.
+Source PASS is not compiled/local handoff/recall/speech acceptance.
+Proceed one release lib build then exact ignored saved-body test, with fresh
+read-only AWS pre/post envelope. No broad lesson run until handoff passes.
+
+
+`S/F-054-116-02` — first candidate compile and narrow acceptance, 2026-09-11.
+Release lib compiled first try in2m52s (100 warnings, including a new unused
+local association binding; no compilation error). Exact new binary SHA256
+84cfed37cf3e3dd88d527073f2fad66cff6affbf71186cbb0d8b5b69988bf3d3,
+620 enumerated tests. Only candidate116_saved_lesson_exact_sound_body_handoff
+ran (--ignored --exact), not the suite: FAILED15.02s, exit101,0passed/1failed.
+No inherited GUALA_* environment variables; all four input/output variables
+explicit and authenticated fixture hashes unchanged. Test RSS sampled at6s
+was1,204,804KiB; this is NOT a peak-RSS measurement or production memory.
+
+SUCCESS at its actual scope:14 finalized leaves retained, exact final
+candidate-oracle cognitive/body successor, exact cold cognitive bytes.
+FAILURE: zero target formations on all four clocks and all four hubs. Thus
+next_interval_restart_exact=false means NOT EXERCISED (guarded by handoff),
+not a failed restart test. No larger lessons or supporting tests were run.
+Receipt /tmp/guala-candidate116-saved-handoff.json SHA256
+463d499f20b59dacbff791e49d989f955eead38777709e5dea456f9b2f8e20a9.
+
+`F-054-116-03`: source-review pass was incomplete at the selector's INPUT
+producer. Both owner and reviewer missed this, now explicitly corrected.
+causally_transitioned_lineages is NOT all actual causal-contact participants:
+its producer starts with causal seeds, adds the receiver of a nonzero whole
+carrier transfer FROM a seed, and separately adds directed work recipients.
+causal_active_bonds also includes seed-touching nonzero current/conductance
+with no whole carrier into a hub. The selector still enumerated the former.
+Captured focused inputs on clocks1/3 are EMPTY; clock2 has42bonds, clock4has48.
+Existing raw graph replay (no new organism run) still shows clock1's64
+hub-connected bonds and six emitted sound leaves. Clock2's connected sound
+endpoints own none of those six leaves; only body+hub are available, below
+three. This is the measured omission, not a failed donor/breath/voice law.
+Candidate114's broad description “actual current causal participation” was
+too strong for that lineage-list input and must not be inherited as truth.
+
+Independent bounded read confirmed the producer mismatch and the lawful
+correction: memory candidate hubs come from exact causal_active_bond endpoints,
+not from a directed whole-carrier receiver list. Do NOT alter the global
+directed list: its action/growth/scheduling consumers keep their current laws.
+This is no old-owner union and no frontier-as-action-permission. The topology
+unit fixture also passed every mounted contact as active but expected only
+two named hubs; that inconsistent inactive/active claim must be corrected
+before interpreting its result under endpoint selection.
+
+Per incomplete-frontier rejection discipline,116 source is archived at
+docs/repair_evidence/candidate116-failed-memory-selector-scope.patch,
+SHA256 f08545b2deb318d6433d17ea35004d7bea99f657d0d5efe19bf11627775a95e6,
+and executable source restored to2340897d. Compiled116 binary remains an
+UNACCEPTED diagnostic artifact and must not be confused with current source.
+
+`H-054-131`: first offline receipt print dumped full neighborhoods and was
+truncated; then a summary assumed each inputs element was an array, but source
+defines it as an object. That analysis refused TypeError, not native failure.
+Source schema was read and summary corrected to bond_count/endpoint_layers.
+Permanent procedure: inspect the producer/schema before projecting receipt
+fields and output only required scalars. No native rerun for either error.
+
+AWS envelope before11:57:01/after11:57:50: same sole1456 task/image,1/1/0,
+RUNNING/HEALTHY. Clock alarm unchanged September8. Matching/latest11:50/55
+service CPU averages44.43/42.28%, max61.45%; memory10.41/10.59%, max11.84%.
+No fresh native-speed proof, live lesson or production mutation.
+
+`D-054-117-01`: one translation correction to116's retained contract.
+Input exact seed-touching physically active contacts already produced by
+settlement; output candidate L7 endpoints of those contacts. The existing
+own-L6/source connected selection, new/continued/expired/ambiguous/recognized
+ownership branches, real-leaf custody, full V45 lifecycle and rollback/resource
+constraints stay unchanged. No new state, physical coefficient, neuron law,
+meaning, direction, action permission or sensory-dose change. Remove the
+wrong-scope selector argument and its sole production caller argument, not
+its producer or other consumers. Scanning the same active bond set replaces
+per-candidate incident-contact qualifying scans; no whole-population work.
+
+Supporting multisensory fixture must mark as active only its intended two-hub
+contacts (exclude other hub contacts, retain intended active non-hub legs).
+Add same-output check with no occurrence-named hubs: active physical contacts
+alone must identify those two participants. This checks the exact failed
+input path instead of passing a hand-selected receiver list. Expired/ambiguous
+owner controls and actual warm/cold return remain unchanged. First run is
+again the SAME declared four-clock saved-body acceptance, not broad lessons.
+All previous component successes remain retained at their measured scope.
