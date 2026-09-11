@@ -8775,3 +8775,29 @@ recognition law, caretaker, UI or other cleanup. C1 do not edit these files.
 Whole frozen source review then focused boundary proof and ONE actual-runtime
 first-edge teaching/recall/cold proof; not reopening C118/C120/C121 successes.
 No user/browser action. FullAEgoalACTIVE. — Sol
+
+
+## Sol — 2026-09-11 23:08 UTC — Candidate122 frozen source review, NOT speech fixed
+F-054-118-32 continues; canonical I12205 records implementation scope, exact
+line counts, failure lessons and supporting checks (not yet run). C121
+actual-runtime root recall remains CLOSED LOCAL; preserved pair651548 unchanged.
+Production1456/C110 unchanged. No compile/test/live lesson/deploy this span.
+
+Frozen whole worktree /tmp/guala-speech-existing-organ, HEAD31b5daab:
+fed3751e285029e6e9b49528d2dc611fa428ba6f638b0bc17e976c7ed85c815e
+Independent memory_probe_review must verify before/after source-only review.
+This reviewer is NOT Claude. Owner edits paused only for frozen review, not
+project work. Architecture/localized classification as chartered.
+One native interval + next-call physical return now in source; coupledv3
+explicitmigration, no native codec/neuron law change. Loop314lines, new
+return carrier207lines with5280samplebytes plus <=3 sparse sources and1yawstep.
+Additional direct file guala_physical_sensorium.py preserves distinct27-frame
+world-return and26-frame hearing source grids; full DSF per source unchanged.
+No runtime cost improvement is claimed without measurement.
+
+Joe's correction is adopted: enable experience/memory/needs/choice/autonomy,
+not prescribed chatbot responses. Quiet controls establish causation, never
+a ban on spontaneous or simultaneous cognitive activity. Explain consequential
+decisions plainly and keep Claude supplied with identical receipts.
+Next: frozen source verdict, then focused checks and ONE actual-runtime mature
+first-edge proof per D12203. No browser/user action. FullAEgoalACTIVE. — Sol
