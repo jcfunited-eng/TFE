@@ -4057,6 +4057,9 @@ thread_local! {
     static FOCUSED_ORIGINAL_INPUT_TRACE: std::cell::RefCell<
         Option<Vec<([u8; 16], Vec<StablePhysicalBondReference>)>>
     > = const { std::cell::RefCell::new(None) };
+    static CAUSAL_ORIGINAL_INPUT_TRACE: std::cell::RefCell<
+        Option<Vec<StablePhysicalBondReference>>
+    > = const { std::cell::RefCell::new(None) };
 }
 
 fn settle_organism_mosaic_boundary(
@@ -15696,6 +15699,12 @@ fn exact_reached_cross_sensory_original_bonds(
     causal_active_bonds: &[StablePhysicalBondReference],
     causally_reached_lineages: &[[u8; 16]],
 ) -> Result<Vec<([u8; 16], Vec<StablePhysicalBondReference>)>, FormationError> {
+    #[cfg(test)]
+    CAUSAL_ORIGINAL_INPUT_TRACE.with(|slot| {
+        if let Some(trace) = slot.borrow_mut().as_mut() {
+            trace.extend_from_slice(causal_active_bonds);
+        }
+    });
     let causal = causal_active_bonds.iter().copied().collect::<BTreeSet<_>>();
     let mut candidate_associations = associations
         .lineages

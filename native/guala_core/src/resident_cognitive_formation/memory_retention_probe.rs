@@ -143,6 +143,8 @@ fn interval_census(
         json!({
             "association": association.iter().map(|byte| format!("{byte:02x}")).collect::<String>(),
             "mounted_neighborhood_is_only_an_upper_bound": true,
+            "mounted_lineages": participants.iter().map(|lineage| lineage.iter()
+                .map(|byte| format!("{byte:02x}")).collect::<String>()).collect::<Vec<_>>(),
             "layer_columns": ["mounted", "emitted_this_interval", "pending", "pending_settled"],
             "layers": layers,
             "association_l6_contacts": association_contacts,
@@ -239,6 +241,9 @@ fn saved_lesson_fractal_admission_trace() {
         super::super::FOCUSED_ORIGINAL_INPUT_TRACE.with(|slot| {
             assert!(slot.borrow_mut().replace(Vec::new()).is_none());
         });
+        super::super::CAUSAL_ORIGINAL_INPUT_TRACE.with(|slot| {
+            assert!(slot.borrow_mut().replace(Vec::new()).is_none());
+        });
         let (successor, observation) = state.advance_coexisting_admitted_transition_with_residency(
             &admitted, usize::MAX, true, !consuming_body_owned_pressure, false,
             &mut residency, ExactRational::integer(0),
@@ -246,8 +251,19 @@ fn saved_lesson_fractal_admission_trace() {
         let focused = super::super::FOCUSED_ORIGINAL_INPUT_TRACE.with(|slot| {
             slot.borrow_mut().take().unwrap()
         });
+        let causal = super::super::CAUSAL_ORIGINAL_INPUT_TRACE.with(|slot| {
+            slot.borrow_mut().take().unwrap()
+        });
+        let hex = |lineage: &[u8; 16]| lineage.iter()
+            .map(|byte| format!("{byte:02x}")).collect::<String>();
         intervals.push(json!({
             "clock": clock,
+            "raw_causal_bonds_before_selection": causal.iter().map(|bond| {
+                let (left, right) = bond.endpoints();
+                json!([hex(&left), hex(&right), bond.parallel_ordinal()])
+            }).collect::<Vec<_>>(),
+            "emitted_lineages": observation.emitted_neuron_fractals.iter()
+                .map(|fractal| hex(&fractal.neuron_lineage)).collect::<Vec<_>>(),
             "total_emitted_fractals": observation.emitted_neuron_fractals.len(),
             "association_neighborhoods": interval_census(&successor, &observation, &associations),
             "formation_census": census(&successor, &associations),

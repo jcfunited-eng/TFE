@@ -9564,3 +9564,99 @@ After-run 11:03:42 UTC: same sole task1456/image6aa38d99, RUNNING/HEALTHY,
 metrics, not native interval timing. No live lesson, deployment, caretaker
 restart, or speech-success claim. The previous status-only turn was no
 progress; this new endpoint receipt changes the next design action.
+
+
+`R-054-115-04` (raw selector-input capture, same bounded probe): source-only
+review passed fingerprint
+`9dbb7bde320ba615480ebd79e4205727447f9f419e41c5f12912a55a1f97adae`
+before/after. 25 additional test-only lines expose actual causal bonds before
+the all-contact gate, full endpoint/parallel-ordinal identities, actual emitted
+lineages, and the already-measured mounted neighborhood. Both thread-local
+captures are enabled/taken only around four diagnostic clocks; oracle disabled
+and final byte-equality guard unchanged. No production mechanism or codec edit.
+Offline graph projection must keep only this hub's L6 contacts and their
+receptor contacts, not other edge classes merely sharing neighborhood members.
+This is required to decide whether the earlier >=3-fractal partial original
+exists; previous post-selector trace explicitly cannot answer rejected clocks.
+
+Source review identified existing caller constraints to reconcile together:
+all-own-L6-current selection, blanket exclusion of indexed pending hubs,
+all-prior-bonds-current continuation, and broad supersession on any shared
+member/bond. None is being relaxed independently to chase a pass. Existing
+`continue_physical_mosaic_original_with_reached_piece` already holds earlier
+true deltas/bonds and checks combined connectivity. Before implementation,
+prove one exact-hub partial and its lawful causal continuation. Also inspect
+`pending_association_has_cross_sensory_members`: its mounted-source-layer
+extension is not proof an actual body leaf participated. No cross-sensory
+completion claim may rest on that static anatomy alone.
+
+Pre-run envelope 11:07:38 UTC: sole task1456 RUNNING/HEALTHY,1/1/0, same immutable
+image; old clock alarm unchanged. Most recent11:00 CPU43.56% avg53.83% max,
+memory10.80% avg11.99% max. Same saved input files/hashes and exact test name;
+no live writer, request, lesson, caretaker, or cloud mutation in this probe.
+
+
+`S/F-054-114-09` (pre-filter connected path measured): build exited0 in
+2m51s; same exact four-clock test passed1/1 in10.62s, native/body successor
+equality retained. Raw causal bonds before selection numbered15005,10562,
+15186,10289 over the four clocks. These organism-wide counts are observation,
+NOT permission to admit a whole-population formation. For each exact new hub,
+the independently projected allowed hub/L6/source component has64 connected
+bonds on clock1 (32hub/L6 plus32sound/L6),42 onclock2,64 onclock3 (three other
+scoped source bonds are disconnected),48 onclock4. The35 integration identities
+are all resolved from actual hub contacts across the recorded clocks and
+checked against the mounted35 count; only hub/L6 and L6/source edges enter
+the graph. Other neighborhood edge classes and sibling hubs are excluded.
+
+All six clock1 sound leaves (...0022,0023,0030,0031,0033,0034) are in that
+hub-connected clock1 component. The body leaf (respectively ...0a34,0a50,
+0a6c,0af8) is NOT. Onclock2 that body endpoint is connected, but only the hub
+leaf newly emits. This proves two constraints on one handoff: a genuine
+>=3-leaf SOUND partial can be retained before all35 contacts fire together;
+but preserving only that partial still cannot recover its earlier separate
+BODY leaf through a new-emission-only input. Neither the proposed last-leaf
+slot ALONE nor partial-original continuation ALONE is proven sufficient.
+
+The existing partial-original primitive remains the lawful basis for retaining
+previous sound leaves/bonds and joining the later hub piece. Its callers must
+resolve the unique same-hub pending original, not require every prior bond to
+be active again, not refuse merely because that pending original is indexed,
+and not delete sibling-hub originals sharing auditory members. Current actual
+body evidence must also survive its cohort pending/retained lifecycle until
+its real contact joins it. This is one asynchronous physical-memory admission
+boundary, not new speech, breath, motor, or curriculum machinery.
+
+Source-only review also confirms a separate wrong evidence classification in
+this same path: `pending_association_has_cross_sensory_members` can augment
+actual member/bond source layers with the hub's MOUNTED source fan. That lets
+an auditory-only original pass the cross-sensory guard (ordinary recurrence
+checks still follow; promotion is not automatic). `adds_unretained_cross_sensory_relation`
+uses the same fallback for current/prior originals. Mounted connectivity
+does not prove retained participation; this shortcut cannot be used as the
+candidate's body-evidence acceptance. Earlier C110 executable recall successes
+remain real at their recorded scope; no claim that this measurement undoes
+them, and no claim that its static-anatomy classification is sound.
+
+Raw receipt `/tmp/guala-candidate114-raw-causal-inputs.json`, SHA-256
+`48e8b14a7fdf00130455907086349998fdfc2e9b87096c830bad06e031290329`.
+Read-only replay:
+`node docs/repair_evidence/candidate114-causal-projection.js /tmp/guala-candidate114-raw-causal-inputs.json`.
+This16-line offline projection reads the captured actual graph; it runs no
+organism, changes no state, and never enters a production build.
+
+`H-054-128`: offline Node analysis initially passed JSON-escaped newlines as
+shell source and refused with SyntaxError. Literal single-quoted source fixed
+it. When preserving that analysis as a file, argv1 still named the script
+rather than the input (node -e uses argv1; script files use argv2); that read
+also refused without any native run or mutation. Corrected argv2 replay
+produced the same result. These are recorded tooling errors, not failed
+organism experiments. No second native run was used to repair either.
+
+After-run11:12:14 UTC: same task1456 RUNNING/HEALTHY,1/1/0, image6aa38d99.
+Clock alarm unchanged sinceSeptember8. 11:05/11:10 CPU averages44.69/44.44%,
+max62.96%; memory10.46/10.63%, max11.67%. No native timing/peak test-RAM claim.
+No production edits, lesson, cutover, caretaker restart or speech-success
+claim. Single next item remains D-054-115: freeze the smallest lifecycle-
+complete implementation contract for exact asynchronous sound/body admission,
+using these actual leaf/contact bounds; do not add a generic history store,
+promote anatomy to experience, or repeat the same eight-lesson failure.
