@@ -16,15 +16,32 @@ is exactly three learned edges and 16 lean-route contacts; it did not expand the
 495 unresolved legacy contacts. This is a learned word-shaped physical sound,
 not semantics or conversation. The mechanism is now live, but the current body
 did not grow a complete vocal root from either accepted live lesson chronology,
-so laptop hearing and Slack completion remain open. The definitive current evidence is the append-only Candidate 110 section;
-any earlier “speech complete” wording is historical and retracted.
+so live speech acceptance remains open. This paragraph records the Candidate110
+deployment, not the current repair state. Any earlier “speech complete” wording
+is historical and retracted.
+
+Current repair status, 2026-09-11 19:49 UTC: C118's continuing-cognition
+four-posture recall, repeated use, breath/pressure, silence and exact cold restart
+remain CLOSED at their copied-body scope. C119 corrects the guided/self-hearing
+translation locally, NOT deployed. Its actual-runtime full-sensory lesson still
+does not grow the root. S119-10 proves the same newer651372 body CAN grow four
+routes with the helper source; F119-13 isolates the full-source difference.
+S119-15/17/20 now identify the measured double admission exclusion: old body-only
+owners block exact focused paths, and overlap with another focused component
+omits the generic component on all34 observed intervals. Diagnostics preserve
+byte-identical successors. D-054-120-01 is the next reviewed repair direction,
+DESIGN ONLY: allow a genuinely missing physical sensory relation on familiar
+anatomy while preserving old memories, pending custody and duplicate refusal.
+The definitive current working section is the C118/C119 evidence and D120-01
+at the END of this ledger, not the original Attempt54 gate below. Production
+remains1456/image6aa38d99; no new live speech success.
 Worktree: `/tmp/guala-speech-existing-organ`
 Starting HEAD: `735489406577f90edf6c2fb7fb1889f87eae8107`
 Production boundary: task definition 1456 is the live deployed writer. Its
 infrastructure health and deployed Candidate-110 mechanism prove neither
 ordered articulation nor recognizable speech.
 
-## Architecture honesty gate
+## Original Attempt54 architecture honesty gate — historical, not current status
 
 1. Requested architecture: tutor pressure and the exact consequence of a
    guided vocal-body movement must form one sparse physical sensorimotor
@@ -11696,3 +11713,11 @@ recognized body-only + novel partial + completion + recurrence + later nonduplic
 use. First mature result must use SAME full source/authenticated651372 predecessor;
 then actual actor fullsensorium/bodyreturn/checkpoint/cold-next, not helper-only
 promotion. Four-posture speech/control chain and live acceptance remain required.
+
+
+`H-054-119-04` — stale ledger HEADER found during continuity closeout:
+it still called Candidate110 the definitive current working section. Updated
+header to distinguish live1456/C110 from closed localC118 wins, C119 failures/
+diagnostic successes and design-onlyD120-01. Original Attempt54 gate explicitly
+marked historical. No historical evidence deleted and no new production claim.
+Every closeout must reconcile the top status and shared tail, not only append.
