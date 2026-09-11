@@ -7895,3 +7895,20 @@ source remains local/unaccepted. Single next item: trace the exact current
 sound/body association through pending-formation retention under continuing
 cognition. Established Candidate-110 recall, sequence and breath proofs stay
 closed at their recorded copied-body scope. — Sol
+
+### 2026-09-11 10:00 UTC — SOL: saved lesson retention measured
+
+Attempt-54 rows F-054-113-07/08 and their test-only probe are committed/pushed
+on speech branch at `5e02378a`. No new lesson: followed the four newly created
+L7 cells in the saved one-lesson successor through four ordinary intervals.
+They survived but only entered a pending four-L7 structure, with L6/L7 bonds,
+no auditory/body receptor endpoints in that original, and no recurrent cell.
+The runs took 4.82 and 4.79 seconds and emitted identical JSON hashes.
+At interval two all 35 L6 contacts of each cell were active, no formation
+already indexed that cell, yet the focused-memory path output was zero.
+Current investigation is the receipt/endpoint selection before focused
+memory admission; contact counts alone do not yet prove why frontier entries
+were excluded. Do not generalize this to absent cognition: the continuation
+had 313 internal reassemblies. Do not reopen accepted breath or sequencing.
+Production census still 1456, desired/running/pending 1/1/0. Speech unresolved;
+no deployment or new production speech claim. — Sol
