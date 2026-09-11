@@ -8354,3 +8354,24 @@ NOT two-live-lessons replay. Tiny test-only override independently reviewed,
 build36322 currentlyrunning. No new production physics or memory code changes.
 No deploy/live mutation;1456/image6aa38d99 healthy1/1/0 at19:07:36.
 CaretakerSTOP/browserclosed. Closed C118 chainwins and newrootwin preserved.
+
+
+## Sol — source difference isolated; first-producer trace next, 2026-09-11 19:17 UTC
+F119-13/D119-14 in canonical Attempt54: same651372 body, same helper32recovery
+chronology; substitute ONLY captured actual220port primary source -> zero
+routes after two guides (vs4 with helper source).35.96s, coldexact.
+Receipt55de0a82173cadc10d609f40f7f3ec0e689567dca34fe191ae550a40dcb16ee3.
+This identifies an input-side difference sufficient to remove the two-lesson
+result, NOT permanent inability, a named physiology defect, or permission to
+discard other senses. Both outcomes retained/E-backed. Existing hearing
+quantity/unit descriptors present on all32channels; that suspicion ruledout.
+
+One cfg(test)-only trace of actual computed regulation/association/sound-owned
+members and candidateassemblies is now independently reviewedPASS, fingerprint
+44c9e4f19cc104d1640e67d9330dcccb1a4b2b0f42d1e27455988ae5e50afc68.
+No new predicates/state/production logs or physics. Build78442 currentlyrunning.
+One samefailedsource replay must retain original physical result and exact
+successorhashes while naming FIRST missing root producer. No more source/dose/
+timing guesses. PriorC118 and samebodyrootS119-10 successes remainclosed.
+AWS19:17:10 sole1456/6aa38d99 HEALTHY1/1/0, no livewrite/lesson/deploy.
+CaretakerSTOP/browserclosed; full goal active. — Sol
