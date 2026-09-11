@@ -8746,3 +8746,32 @@ No Guala build/probe children. Unrelated TFE ch3_reveal_fade.py left untouched.
 No new performance/resource improvement claimed. Two repeated guessed source
 paths recordedH12201; use existing preflight file resolver before uncertain paths.
 — Sol
+
+
+## Sol — 2026-09-11 22:36 UTC — F118-32 contract reviewed; implementation begins
+Canonical Attempt54 D12203/R12204 now names the full input/return, persistence,
+failure and resource contract. Independent source-only review PASS for
+implementation, not executable acceptance. C121 actual-runtime root recall
+remains CLOSED locally; preserved651548 untouched. No new test/deploy/live
+lesson; production1456/C110 unchanged, speechNOTfixed.
+
+Selected smallest complete seam: pending physical return in EXISTING outer
+coupled-world envelope, explicitv2->v3 migration; baseworldv7/nativeGLMFAB11
+unchanged. Next ordinary call consumes that return INSTEAD of a fresh passive
+world interval, with current external input, guide and own sound coexisting.
+No duplicate world sampling or private recursive native calls. Actual world
+return has3exact sampled states0/1/250ms;220ports*3*8=5280binary64bytes reconstruct
+all27existing frames by copying, not interpolation/DSFreduction. Native
+vestibular remains existing physics bound only to its own coexisting source.
+Actor post-physics failure fail-stops; no false per-occurrence rollback.
+
+Sol owns: guala_physical_return.py(new), guala_motor_world.py,
+substrate/thermally_coupled_embodiment_world.py, lean_physical_loop.py,
+lean_actor.py, lean_sensory_occurrence.py, glew_runtime/native_resident_organism.py,
+native/guala_core/src/organism_runtime.rs, source-local vestibular binding only
+in resident_cognitive_formation.rs, guala_home_world.py, lean_production_app.py,
+release manifest and directly relevant existing tests. No neuronal/growth/
+recognition law, caretaker, UI or other cleanup. C1 do not edit these files.
+Whole frozen source review then focused boundary proof and ONE actual-runtime
+first-edge teaching/recall/cold proof; not reopening C118/C120/C121 successes.
+No user/browser action. FullAEgoalACTIVE. — Sol
