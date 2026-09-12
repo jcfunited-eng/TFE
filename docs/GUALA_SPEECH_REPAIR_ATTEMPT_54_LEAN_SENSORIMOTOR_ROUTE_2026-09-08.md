@@ -21955,3 +21955,36 @@ only remaining applicable newest-body/cutover/live-verification safeguards.
 The broader memory expectation remains owned in this ledger without becoming
 another active research campaign. No release gate, migration backup, identity,
 state or full-field safeguard is waived by this scope correction.
+
+
+### S122237 — current production release backup captured and verified
+
+Continues R122236 bounded release preparation, not a memory experiment.
+Validated clean source1d202792. Latest shared read b9845c4e still contains the
+C1 release-scope request, not a decision. No verified active reviewer job claimed.
+Capture helper SHA924983166c26aed42582cda4451b96e71b30ba0db9f52a908f4ad2282ca98284
+unchanged/re-read; session46149exit0. One read-only CURRENT/body/world capture:
+s3://guala-incident-bench-20260831/c131-feedback-release-20260912/PNbIh8/current.zip
+Local /tmp/guala-c131-current.PNbIh8/current.zip,3385992bytes.
+Archive SHA2620be193a9c07f057ccef68f7fd289fa3fc2e4fd44d380f1eb4667ab5f0087e.
+Identity1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1, tick677770.
+Body166059076bytes, SHAb1384716e0a324e64ecc29567285e6056179b0503d4f4e82ae6b8a8315bc3019.
+World63583bytes, SHA4546e62d9bda0fa6fb532d2c5902a2a145e89be13942b857c6b3a01530ac9214.
+
+The reviewed controller's own backup_receipt and require functions/constants
+were selected by AST and executed locally, without controller top-level code,
+AWS calls, cutover or a duplicate validator. Exact three-member archive and
+bounded full body/world hashes PASS. This is a backup, not a candidate rehearsal
+or deployment. No production state lock, pause, steering or write. The sole
+cloud write is this new bounded evidence object, not CURRENT or learned state.
+
+ReadonlyAWS18:41:33.733154→18:43:13.513357UTC same1458/task/image HEALTHY1/1/0;
+CPUmax52.225741%,RAMmax12.823487%; runaway/storage/refusalalarmsOK;
+clock-stalledALARM persists. All capture/health handles terminal.
+No test, compile, new memory diagnostic, image or cutover this pass.
+Next remains explicit C1 release-scope disposition and applicable final delivery
+safeguards, not reopening closed local feedback.
+
+Joe requests that updates stop repeating the same negative speech-status
+sentence. Honor that: report concrete changes, production delivery and actual
+decisions; retain exact evidence internally without repetitive disclaimers.
