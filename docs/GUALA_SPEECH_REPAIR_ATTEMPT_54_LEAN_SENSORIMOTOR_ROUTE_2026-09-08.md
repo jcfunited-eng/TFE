@@ -22124,3 +22124,16 @@ ONEguide, <=1ordinaryPOST; exactproducer/sourcecount join proves compactkind,
 not rawtrajectorybytes. Missed latest-event witness is inconclusive, never
 physiologyfailure or permission to repeat guide. Persistedtick>=consumer.
 No new API/schema/native observer or caretaker change.
+
+### S/D-054-122-245 — controller dry run PASS; one C131 cutover now
+
+Dryrun6480exit0: cloud_writesfalse, exactimage708fc271, source1458/71289,
+controller6869f2a6, image8efb79e0, backup57398f51/tick678282, live678335.
+ECRpush20327exit0 and immutablepull matched708fc271; no rebuild.
+Imageproof archive21e81d933d583f2313bc3c4c1a82432924b5bcc7bb354ffd2c3ca7283e6d6ffc.
+Owned inert54fc7b22rehearsal and guala-c131-8efb79e0 builder removed after
+archive/export; only unrelated devcontainer remains, no brain/process deleted.
+Use identical controller invocation replacing --dry-run with --cutover ONCE.
+Preserve exact oldSTOPPED/exit0/shutdownreceipt/zero writers, then newactual
+CURRENTstartup and continuity. No taughtcopy imported or oldbinaryrollback.
+Livefeedback gate and caretakerrestart remain pending, not inferred from health.
