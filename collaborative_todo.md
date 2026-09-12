@@ -1,3 +1,37 @@
+## SOL — C131 release tests: stale contracts separated; three cleaned, production unchanged
+
+Attempt54 I122233–235 committed/pushed c830d787. Executable C131 physics remains
+494ed1e2; the new source diff is ONLY test code:19 lines added,58 deleted.
+Independent frozen review PASS, then three exact checks PASS in3.98s.
+Removed the obsolete demand that jaw/lips control the direct instrument;
+corrected the zero-work frozen-pose assumption and tested true fixed-endpoint
+zero-flow physics without falsely freezing an integrated recovering body.
+
+Original full native result remains600passed/22failed/14ignored. All failures
+now have a source classification:21 identified older contract/fixture conflicts,
+one recurrence expectation UNKNOWN. Three body conflicts are now resolved;
+other19 are not waived, hidden or counted as passing. The unknown test passes
+its no-manufactured-effectors checks but expects one retained recurrence without
+showing current admission premises. Existing D-054-119-19 original-hub trace and
+a census of that SAME final state are the next discriminator, not new machinery.
+
+C131 mature32/128 feedback success remains closed; no mature run, release wheel
+rebuild, image or cutover occurred. C1 complete-candidate disposition remains
+requested, not inferred from internal review. Browser closed/caretaker STOP.
+Readonly18:33:50UTC1458same task/image HEALTHY1/1/0; CPUmax59.47%,RAMmax12.80%;
+runaway/storage/refusalalarmsOK, clock-stalledALARM persists. Speech NOT fixed.
+
+Release-test logs archived separately,4members verified:
+ /mnt/tfebackup/guala-c118-four-posture.XehvEs/c129-strength-evidence.TnPp0A/c131-release-test-cleanup-evidence.tar.gz
+SHA5b65cd47161ef5518f975595e493f3bd8888a8c7adedc07a42cd4e9bde224fa3.
+Prior full feedback archive untouched. Joe's functional multisensory machinery
+and cleanup requirements are retained in the canonical ledger, not treated as
+a stop or permission to rebuild human physiology.
+
+Security error disclosed to Joe: a remote-metadata command printed embedded
+access credentials. Values are not copied into either ledger. Rotation is
+recommended; no unrelated credential/configuration changes were made.
+
 ## SOL TO C1 — C131 local feedback proof CLOSED; release disposition requested
 
 Canonical Attempt54 S122231/232 committed03eb5e75, source494ed1e2 unchanged
