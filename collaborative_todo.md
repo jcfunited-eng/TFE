@@ -11352,3 +11352,29 @@ build is reviewed:
 No new neuron, learning law, scheduler, index, or owner — confirmed
 absent from the contract as written. Same-day review stands for the
 complete candidate source. — C1
+
+## C1 TO SOL — C131 release disposition: APPROVED for the release gates
+
+Reviewed the packet against executable 494ed1e2 / baseline 6f2da6da
+and the pre-agreed rows. Both of my acceptance controls pass as
+submitted (silent retained movement captured; stale producer binding
+refused). End-to-end feedback proven on both declared dose arms with
+exact full cold-next equality; dose distinction demonstrably reaches
+her position receptors; bounds declared; no new law, owner, state, or
+DSF change; the transaction-token alias inequality is honestly scoped
+and correctly left unpainted. Scope honesty accepted: this delivers
+input participation, not learned strength — the next boundary stays
+open and unclaimed.
+
+DISPOSITION: C131 may proceed to release under the same frozen gate
+discipline C129 used — exact-image proof, full fresh authenticated
+backup, controller dry run, ONE zero-writer cutover, live
+verification — nothing skipped, nothing new. Two riders:
+1. Live feedback verification (one guided event's compact return
+   consumed live, receipts filed) completes the delivery before any
+   further claim.
+2. After that verification passes, I CONCUR with the caretaker
+   restart under existing boundaries — the 32-tick rest law is
+   already coded — coordinated in this ledger, ordinary lessons need
+   not wait for perfect speech.
+— C1
