@@ -1,31 +1,31 @@
 # Guala speech repair Attempt 54 — complete design verification and lean sensorimotor route
 
-## Current resume point — 2026-09-12, Candidate128 source review; five127 passes preserved
+## Current resume point — 2026-09-12, C128 recovery passes; restart index mismatch isolated
 
-**Speech is not fixed. Full AE goal ACTIVE.** Joe-approved reuse of the nine
-existing acoustic controls is implemented, source-reviewed and locally exercised.
-Source93724276; R122141 contract, S/H122143-146 receipts. No production deployment.
-No duplicate anatomy/new dynamics/codec. Broad old route completion remains.
+**Speech is not fixed. Full AE goal ACTIVE.** Nine-control C126 acoustic/cue
+successes remain locally proved and archived; no production126/128 delivery.
+Live task1457/41d3db93/image80755ca0, last read-only AWS10:01:52.763716UTC:
+1/1/0; CPU/RAM/storage/refusal alarmsOK, historical clockALARM remains.
+Browser CLOSED/caretakerSTOP; no live mutation.
 
-Saved1457body cue under ordinary126 artifact: output-quiet baseline8, one
-4000-sample cue, MIN act663383 then MAX663384, breath on both,24000 self-heard
-samples, exact local checkpoint publication. Motor/work/breath/return evidence
-matches archived125 sound-only run at all17 intervals. Actual sound differs;
-recognizable speech or quantitative demonstration learning is NOT proved.
-Tail remains sounding at eight intervals, as it also did on the predecessor;
-not a newly discovered regression or proof it never stops. Earlier longer
-live tail S122106 is preserved, not reopened by this short observation.
+Single active item remains physical restart custody, R122147/R122152.
+Candidate128 source checkpoint9ddbe721 retains five127 support passes and two
+new physical PASS proofs: recovery-only first/second future return, and
+fraction/thermal-refusal ordinary continuation, both warm/cold exact.
+Migration/local-contact fixture still fails before commit. Test-only sealing
+diagnostic S122156 locates refusal specifically in physical_progress encoding.
+Independent source review confirms the two incorrect ordering consumers:
+canonical_lineages is anatomical/cohort order, not sorted; membership binary
+search and decoder ordering wrongly assume otherwise. No missing physics,
+no justification to sort anatomy or alter neurons. Candidate129 narrow
+translation correction is the next named item, not a new speech mechanism.
+C128 other unrun lifecycle tests stay unrun; no broad acceptance claimed.
 
-Single active item: physical restart custody, continuing R122147/R122152.
-Candidate127 rejected/archive ad52b513; accepted126 restored351eb78d.
-Candidate128 now implements the amended common-finalization contract; SOURCE
-ONLY, awaiting frozen independent review. S/H122153. Five127 support passes
-and126 acoustic/cue wins preserved. No compilation/test/lesson/deploy of128.
-Latest AWS09:24:29.188934UTC same1457/task41d3db93/image80755ca0,1/1/0.
-Runaway/storage/refusal alarmsOK; historicalclock-stalledALARM persists.
-Caller/build terminal, no orphan. Browser CLOSED/caretakerSTOP; no live mutation.
-C126 evidence saved9MiB at /mnt/tfebackup/guala-c118-four-posture.XehvEs/c126-physical-cue.wSS9hB/.
-C125 successes/failures and invalid saturated dose comparison remain preserved.
+C126 saved1457body proof remains S122143-146: baseline8, 4000sample cue, MIN then
+MAX, breath on both,24000 self-heard samples, all17 motor/work receipts matching
+125. Not recognizable speech; eight-interval sounding tail was unchanged,
+earlier longer live silence preserved. Evidence backup:
+ /mnt/tfebackup/guala-c118-four-posture.XehvEs/c126-physical-cue.wSS9hB/.
 
 The earlier live-lesson status below is HISTORICAL context, not the resume point.
 
@@ -18361,3 +18361,75 @@ on verified Guala root PASS); attempted root pyproject.toml was absent while
 native/guala_core/pyproject.toml existed. These repeated path habits are failures
 of procedure, not physics. GDB unavailable; no package installed.
 Full goalACTIVE, no speech or production completion. Source stays preserved.
+
+
+### S/H-054-122-156 — sealing refusal isolated; two index consumers are wrong
+
+2026-09-12. Prior goal work progress preserved9ddbe721; intervening user
+acknowledgment turn was not implementation progress. Continued S155, no restart
+of passed recovery/acoustic proofs. Diagnostic only42 cfg(test) lines reuses
+NativePreparationPhaseTrace in encode_current; frozen ac68ea10bf3073ecaaae99706ae03fde5685f0d3f9f34d50e903567471a8982d.
+Independent before/after review PASS. Build5.75668s/99warnings. Diagnostic binary
+cce81dc431865a1db48ee2a5f7bc33b44d7ca7c37048b267c910f4f433fc7a41.
+Exact unchanged fixture once FAIL0.06223s, exit101:
+generation1 C128-seal-progress; outer generation0 observation-return.
+All preceding encoder stages including fractals completed. No source physics
+changes or softened assertions. Native children terminal, no orphan observed.
+
+Read source then independently confirmed LOCALIZED producer/consumer mismatch:
+ResidentTopologyIndex::build canonical_lineages is flat cohort order. Its
+flat_by_lineage is separately sorted. PhysicalEventProgress::validate_members
+binary-searches unsorted canonical_lineages. Its radix encoder emits sorted
+keys but decode_from expects cohort order. This can reject authentic grown
+bodies; the exact offending key was not logged, but both faulty consumers are
+proved by source and the failing stage. Do NOT sort canonical_lineages: it
+aligns neuronal anatomies in indexed_organism_mosaic_topology.
+Earlier pre-pump predecessor-width hypothesis REFUTED: exact_transition_physical_deltas
+already extends the predecessor to successor positions before computing deltas.
+No new physics, coefficient, energy, learning or voice law is required.
+
+AWS10:00:52.636285->10:01:52.763716UTC same1457/task/image1/1/0.
+LatestCPUmax39.3677->55.7602%,RAMmax10.1318->10.6140%.
+Resource/storage/refusal alarmsOK, oldclockALARM persists. No production change.
+Shared d90f772a records successes and diagnostic before this result.
+Procedural failures retained: delete+add-same-path apply_patch was refused
+atomically; corrected to full-file update (no intermediate missing source).
+Guessed resident_topology_index.rs and physical_neuron_fractal.rs/
+settled_neuron_fractal.rs did not exist; symbol search resolved actual core and
+physical_mosaic.rs. /root/.local/bin did not exist in wrapper search. These are
+repeated preflight mistakes, not physics failures. Actual C1 wrapper fully read:
+ /workspaces/Tao_Financial_Engine/guala_preflight/preflight.sh.
+Use its file resolver before named-file reads; tests still resolve from exact
+compiler artifact rather than its newest-by-mtime binary shortcut.
+Diagnostic removed before normal-artifact proof; archive source/evidence first.
+Two128/five127/C126 successes remain. Full goalACTIVE.
+
+### R-054-122-157 — Candidate129 localized sorted-index translation contract
+
+Continue physical restart custody under unchanged R122147/R122152. C128 one
+localized batch was already used for its genesis fixture, so preserve128 as
+superseded incomplete evidence and name this separate correction129; no silent
+second batch or relabelled whole acceptance. Not an architectural redesign.
+Owner Sol. Authorized correction ONLY physical_event_progress.rs; remove S155
+test-only trace from core back to9ddbe721 source. No production edits elsewhere.
+
+Producer: topology build keeps anatomy-aligned canonical_lineages and separately
+sorted flat_by_lineage. Consumer membership uses existing flat_for_lineage;
+decoder expects existing sorted flat_by_lineage IDs. Radix writer/order/schema,
+counts, conservation, clocks, full DSF, physical finalizer, progress memory,
+ordinary restore/migration, and transaction/abort semantics unchanged.
+No new index, fields, retention, allocation, scan, validator or authority.
+Membership remains O(log N); decoding already O(N+E), no new sorting.
+Canonical anatomy order MUST remain unchanged. Contact order is already correct:
+StablePhysicalBondReference Ord is left/right/ordinal, identical to big-endian
+bond_key/radix traversal.
+
+Update supporting topology fixture to contain both real index views and
+nonmonotonic anatomical order. Preserve foreign/duplicate/missing/future/
+noncanonical-fraction refusals and exact growth/discard. Frozen source review
+before compilation. Execute the failed genesis/migration/local-contact test
+FIRST, then changed two codec tests and previously unrun wake/runtime-lifecycle
+tests; no rerun unchanged two128 physical or other127 passes.
+Normal copied-body acceptance still mandatory afterward: exact migration,
+warm/cold next event, body/world/action/self-hearing and resource/AWS bounds.
+No speech completion, no deployment authorization from supporting tests alone.
