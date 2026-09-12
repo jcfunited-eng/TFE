@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import base64
 import binascii
+import json
 from contextlib import asynccontextmanager
 import os
 from pathlib import Path
@@ -171,6 +172,17 @@ def _restore_production_actor() -> LeanOrganismActor:
             world_revision=observed.revision,
             world_receipt=observed.authority_receipt_sha256,
         )
+    # One startup-only receipt of the validated bytes actually read. It precedes
+    # any migration publication and never participates in cognition or identity.
+    print(json.dumps({
+        "schema": "guala.paired_predecessor.v1",
+        "identity": current.identity,
+        "organism_tick": current.organism_tick,
+        "body_sha256": current.body_sha256,
+        "body_bytes": current.body_bytes,
+        "world_sha256": current.world_sha256,
+        "world_bytes": current.world_bytes,
+    }, sort_keys=True, separators=(",", ":")), flush=True)
     pointer = restored.pointer
     if current_body != restored.body or current_world != restored.world:
         pointer = store.publish(

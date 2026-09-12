@@ -20,7 +20,7 @@ so live speech acceptance remains open. This paragraph records the Candidate110
 deployment, not the current repair state. Any earlier “speech complete” wording
 is historical and retracted.
 
-Current repair status, 2026-09-12 02:37 UTC: speech NOT fixed in production.
+Current repair status, 2026-09-12 03:14 UTC: speech NOT fixed in production.
 AWS rechecked: production remains1456/C110/image6aa38d99, one RUNNING/HEALTHY
 writer. No deployment or live lessons. Full AE goal ACTIVE; caretakerSTOP and
 browserclosed unchanged.
@@ -58,18 +58,22 @@ PreviousS12264pair/archive retained, no success overwritten.
 
 S12238/S12245/S12250-53/S12257/S12260/S12264/S12269/S12272 remain CLOSED locally.
 H12251 originalrootfalsefail remainsanobservererror, notlearningfailure.
-NEXT D12273: releasebackup/controllerrehearsal/cutover closure, NOT another
-speechtest, physicschange, teachingcampaign or extra posture.
-Controller RF058 (no rehearsal/backup) andRF065 (one-shot unsettledcustody read)
-were already recorded; resolve without claiming they are new organismfailures.
+Release control S12281 PASSED source review and 17 focused checks. The first
+replacement was rejected before execution for RF064 failure-cleanup ambiguity;
+that rejected diff and its lesson are retained. The replacement verifies actual
+task termination in both normal and failed cutover, including unselected startup.
+Latest backup661388 -> migration -> exact cold-next661389 -> cold-next661390
+PASSED S12283 using ordinary native5fc6b612 and the startup-only receipt.
+NEXT D12273: commit/package, one bounded immutable image build, same-image
+rehearsal, read-only dry run, cutover and live acceptance. No new speech mechanism.
 
-Known delivery work: final matched backup and
-compatible recovery (old binary cannot read migrated state), live proof and
-public playback/evidence. Known3second/latest-receipt gap and stale speech-live
-banner remain; never infer missing body sound from dropped playback.
-Controller is continuity-only; historical native-root rehearsal is excluded.
-Copy learning must NOT be imported into live identity; ordinary live ingress
-must teach her. No image build/registration/cutover started.
+Recovery backup661388 is hash-verified and archived; it is not normal cutover
+input. Candidate restores final live CURRENT after old shutdown, never a taught
+copy. Old binary must never read migrated state. The three-second/latest-receipt
+gap and stale speech-live banner are corrected in the candidate but remain on
+the older live page until publication. No image build/registration/cutover has
+started as of this header update. Live ordinary ingress must teach the real her;
+copy learning is never imported.
 
 Worktree: `/tmp/guala-speech-existing-organ`
 Starting HEAD: `735489406577f90edf6c2fb7fb1889f87eae8107`
@@ -14793,3 +14797,292 @@ Recovery artifactC110mustonlyreadthiscompatiblepredecessor, nevera migrated
 candidatepair. Reconcile this currentcapture inreleaseclosure; don'tdiscard
 the closedS12264/S12272 proofs or blindly reteach/retune. Noimmutablebuild,
 taskregistration, drain, UIpublication, live lesson, orcutover yet.
+
+### R-054-122-75 — frozen staged release-control contract, D12273 (2026-09-12 02:48 UTC)
+
+Previousgoalturn wasPROGRESS: source3658a9ff,26tests,actual34blockHTTPproof,
+recurrenttwo-posture/coldnext,immutablearchives andproductionbackup661388.
+Currentworktreef5f971c3 clean; productionre-read1456/C110,1/1/0. FullgoalACTIVE.
+
+Requested: deliver existing provenvocalability withonepreservedlivingbody.
+CurrentcontrolconflictYES: automaticCodeBuild->registration->drain has no
+opportunity to exercise THAT immutableimage first; no backupcheck; transient
+custodyread canabort; tasks-stopped ignoresfailedshutdown; cleanupclaimszerowriters
+while suppressingfailure. KnownRF058/RF065 plusboundedsourceaudit, notspeechwalls.
+Do notextend legacyrehearsal/owner/seal/rollback helpers ornativephysics.
+FullDSF/L0-L4 unchanged; no reducedfield structure.
+
+Replacement stays intools/deploy_dsf_ai.sh, TWO explicit modes:
+--dry-run IMAGE_DIGEST BACKUP_ZIP and --cutover IMAGE_DIGEST BACKUP_ZIP.
+No default/implicitcutover or in-controllerimagebuild. Buildreviewedpackage ONCE
+withlocalDocker, exerciseexactimage ondiscardedlocalcopy, publishSAMEimage,
+thenactualread-onlydryrun, thenexplicitcutover. LocalDocker29.7.2daemon available,
+DockerDesktop33341743104bytesRAM; copiedfiles mustuseDockerCP/namedephemeral
+storage, NOT /tmp bindmounts whosehostfilesystem differs. No Dockerprune or
+unrelatedcontainer changes. Releasehelper remainsonecontroller, notanother
+deploymentframework. CodeBuild/oldhelper never autoenters this path.
+
+Controllerinput validation precedesexternalaction: mode,digestformat,backupfile.
+Require cleanreviewedHEAD andexistinglocallypullableimmutableimage whose
+org.opencontainers.image.revision equalsHEAD. ReadexactECRdigestmanifest, no tag
+substitution. Validatefullbackupzip (exact3members,identity/tick/counts/hashes,
+streamdecompression boundedbydeclaredbodylength); reportbackupSHA/recoverypoint.
+Backup is NOTcutoverinput; oldimage mayneverreadmigratedCURRENT orautomatically
+restorethisolderpoint.
+
+Dryrun re-resolvesactualservice/task/taskdefinition,resource/mount/environment,
+currentobservation andpairedidentity; producescandidateJSON and validatesreal
+AWSCLI registershape withgenerate-cli-skeletonoutput (no registration). Returns
+plannedexacttarget/digest/backupidentity andno mutations. No cloudbuild,service
+update,taskregistration,UIpublish,pin, orcontainerstart in dryrun.
+Normalbuild/package/imagebehavior proofs are requiredrecordedprerequisites,
+not a self-authored readinessBoolean. Human/agentmustverifyactualreceipts.
+
+Cutover repeatsallreadchecks beforeone registration. Existingcandidatecloning
+preservesCPU/RAM/EFS andexactpairedroot; removesnon-leanenv/commandoverride as
+before. RetryONLY healthytemporarycheckpointbusy underHTTP_WAIT_SECONDS;
+identity/schema/cleanup/checkpointfailure ishardrefusal. No operatorpauseinput.
+Stop EXACTrunningtask andwait; requireservice0/0/0 andoldcontainerexit0 AND
+task-boundCloudWatchApplication shutdown complete (no shutdownfailed), proving
+oldactor.close reacheditsfinalcheckpoint. Refuseuncertainshutdownatzerowriters.
+Then installcandidatewhilezero, verifyzero, startone, verifyexacttask/image.
+
+One missingobserver is necessary: lean_production_app._restore_production_actor
+will emitONCE a compactJSON guala.paired_predecessor.v1 receipt ofthevalidated
+CURRENTit actuallyread BEFOREmigration/publication. Identity,tick,body/world
+hashes/bytecounts only. No newstate,cognitivecall,receiptwriter, orsecondowner.
+Task-boundstartup log afterzero boundary proveswhichFINALproductionCURRENT
+candidateused, rather than confusingearlierbackupwithcutoverstate.
+Requireexactidentity andstartupreadtick>=predrainliveclock; currentvalidated
+health/custody mustadvancefromthatstartupread. Oldshutdowncomplete provesfinal
+publication throughalreadyreviewedactor.close; never inferfromexitstatusalone.
+No newphysicalbar, onlycustodyevidence missingfromcontroller.
+
+Failureafterdrain: requestzero, WAITandre-censusactual0/0/0; ifAWSrefuses ortimes
+out reportzeroUNVERIFIED, notfalseclaim. No automaticoldimage rollback.
+Completionrecordnamescontinuity/healthverified, behavioralacceptancepending;
+neverlabelsHTTPhealthasfixedspeech. Publictwo-posture/liveaudio acceptance still
+followscutover beforeD12240closure. UIpublishedseparatelyafterbackendfeedexists.
+
+Filesauthorized: tools/deploy_dsf_ai.sh, itsstale
+tests/test_deterministic_guala_deployment.py (replaceassertionsforretiredowner
+helpers withactualclosedleancommandpath), lean_production_app.py once-only
+startupreceipt +existingstartuptest, Dockerfiledescriptivelean-native label.
+Manifestclosure remainsunchanged. SourceownerSol; source-onlyreview beforetests.
+Focusedproofs: fakeCLI dryrunzeroexternalswrites; explicitcutoverorder/zeroand
+shutdown checks; healthybusyretry/hardidentityrefusal; corruptbackup/digestrefusal;
+actualreadonlydryrun lateragainstexactbuiltimage/target. These arecontroltests,
+not another speechcampaign. Existing26transport/nativeproofs remainclosed.
+
+### D-054-122-76 — Joe confirms vocal ability first; broader AE development follows
+
+Joe's latest clarification is a delivery-scope confirmation, not an instruction
+to stop the active release. Deliver the demonstrated ability to produce her own
+ordered vocal actions, with her actual sound reaching the live listening page.
+Do not make complete words, conversational meaning, or a four-year-old language
+level prerequisites for this incremental delivery. Do not label ordered sounds
+as demonstrated meaningful speech.
+
+D-054-122-40 remains the active two-posture production-delivery item. S12264
+(native two-posture recall, stop, persistence and cold-next) and S12272 (all 34
+actual sound blocks through HTTP, exact order and bytes) remain CLOSED LOCAL
+successes. They are not live-production proof and are not reopened by this
+clarification. R12275 release-control closure remains the single next item;
+no new speech physics, extra posture campaign, or broader core rewrite enters
+this release.
+
+After live delivery, the requested broader work is experiences, thinking,
+memory, autonomy and movement. This does not authorize skipping the existing
+identity/state protections or substituting authored behavior for cognition.
+The full AE goal remains active; this smaller deliverable does not redefine it.
+No new image build, task registration, production cutover, or live behavioral
+success is claimed by this entry.
+
+### R-054-122-77 — release-controller implementation frozen for source review
+
+Previous goal turn was NO DEPLOYMENT PROGRESS: D12276 recorded Joe's scope
+clarification, but did not change release code or complete a release gate.
+This turn implements R12275; D12240 and its local successes remain unchanged.
+
+Changed production surface: lean_production_app._restore_production_actor emits
+one compact predecessor JSON after native/world validation and before any paired
+migration publication. It records the original CURRENT identity/tick, both
+hashes and byte counts. No extra native call, worker, persistent state or hot-loop
+operation. The existing startup test checks that receipt BEFORE publish and
+checks no receipt is emitted when native/tick validation fails. Docker metadata
+says lean-native instead of a stale route count.
+
+The existing single controller is replaced in place (530 to 412 lines):
+explicit dry-run/cutover plus supplied immutable image and full backup;
+no automatic build, cloud rehearsal, backup restore or legacy helper.
+Python stdlib inside the shell controller replaces repeated embedded validation
+processes; it is release-only and absent from Docker runtime COPY.
+
+Control sequence: validate invocation and streaming backup -> clean HEAD ->
+ECR manifest hash and local immutable image revision -> exact service/task and
+resource/mount/log configuration -> healthy settled predecessor -> AWS local
+registration-shape validation. Dry run stops here with zero cloud writes.
+Explicit cutover registers once, verifies the exact clone and original task,
+reads pre-drain custody, requests zero, waits for that exact old task STOPPED,
+checks counts 0/0/0, exit 0 and task-bound shutdown-complete log, installs candidate
+at verified zero, starts one, checks exact task/image, validates actual startup
+CURRENT receipt and advancing persisted/live clocks. Final status is continuity/
+health verified and behavioral acceptance pending, never speech fixed.
+The production-current tag identifies the running image, not behavioral proof.
+Failure after drain requests zero and verifies actual counts/tasks; refusal
+reports zero UNVERIFIED. No automatic rollback to an incompatible image.
+
+Bounds: backup hashes use <=1 MiB buffers, body <= approved 16 GiB envelope,
+world <=16 MiB, pointer <=16 KiB; declared-length overrun refuses. One image,
+one task registration, one runtime container; each command has a 90-second cap
+and service/HTTP retry loops have explicit finite deadlines. HTTP retries only
+healthy checkpoint-busy observations, not schema/identity/custody failures.
+Task-bound receipt reads are capped at one 100-event page and refuse overflow.
+Current source task log read returned zero shutdown events and no next token,
+as expected for the still-running predecessor. Production task definition still
+1456, 4096 CPU units, 16384 MiB, same EFS mount and paired-current-gen2 root.
+
+Focused pre-declared checks: the actual controller against fake command processes
+(dry-run no cloud writes, single registration and zero-before-start order,
+healthy-busy retry, hard identity refusal, invalid invocation/digest/backup,
+unclean/missing shutdown, stale startup predecessor, failure cleanup refusal),
+plus the two existing startup migration-publication test cases. The fake commands
+touch only each test's tmp directory and do not construct a real native organism.
+Do not rerun the closed vocal, lesson, full native, or 26-test audio campaign for
+this release-only correction. No tests, compilation, image build, registration,
+service mutation or cutover have run for this new controller yet.
+
+### F-054-122-78 / R-054-122-79 — release failure-branch rejection and replacement contract
+
+Frozen source fe2a07605c2a8919aaface7f91315654718741521df24983661c1403268d5458
+was ARCHITECTURALLY REJECTED before tests/build/production changes. Review found
+RF-064 recurring in failure cleanup: service zero and desired-RUNNING list empty
+do not prove an already STOP-requested candidate has finished saving. The fake
+itself still described that candidate as RUNNING, yet the planned test accepted
+zero. This is a release-control failure, not a vocal failure. The whole executable
+candidate was restored to accepted HEAD f5f971c3 before revising this contract.
+Rejected diff retained /tmp/guala-c123-release-control-rejected-fe2a076.patch,
+SHA cd9b55df3978cde6bb21f205f147af8cbc4210c50e248a4bdf11089132d877dc.
+Backup validation, startup receipt ordering, dry-run isolation and unchanged
+speech scope passed source review and are preserved as component findings.
+
+R12279 replaces the incomplete failure portion of R12275:
+retain exact source and discovered candidate ARNs throughout the release;
+before candidate start mark that it may have been accepted even if the command
+response is lost. Failure requests zero, then boundedly censuses service tasks
+under BOTH desired RUNNING and desired STOPPED, retains discovered identities,
+describes each and waits for actual lastStatus STOPPED plus service 0/0/0.
+If candidate start was attempted, require discovering that candidate definition's
+task before claiming verified termination. If no task can be identified, the
+result stays UNVERIFIED rather than inventing termination from an empty list.
+Bound each service-task listing to 100 and refuse pagination/identity overflow.
+This is release-only evidence, no organism owner or runtime bookkeeping.
+Re-read original service/task authority AFTER the healthy custody wait, directly
+before the first drain request, as well as before the wait.
+
+Updated RF-064 in the permanent deployment recurrence register. The replacement
+focused fake must retain a candidate whose desired status is STOPPED while its
+actual status is still RUNNING, including failure before ARN selection; it must
+prove waiting until real STOPPED, and UNVERIFIED if it never stops. All existing
+release checks remain in the frozen scope. No new native mechanism or speech
+acceptance condition is added. AWS ListTasks documentation confirms desired
+status is not lastStatus (https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_ListTasks.html).
+Read-only production STOPPED-task census returned empty/no pagination; source
+service remains task definition 1456 with 1/1/0.
+
+H-054-122-80: a read-only rg targeted nonexistent local collaborative_todo.md even
+though the shared handoff is remote-only. No state changed. Use GitHub guala-live
+fetch for that shared file; canonical local Attempts ledger remains this file.
+This was an RF-063 path/preflight recurrence, not organism evidence.
+
+### S-054-122-81 — replacement release-control review and 17 focused tests PASS
+
+R12279 replacement fingerprint
+27b8da8d4d181b3974d8f008ea777325b5e2725f1fa37529fc701168c9b9c075
+passed source-only review, unchanged before/after, with no outstanding findings.
+438-line controller retains exact writer identities and checks actual STOPPED
+in cleanup. Delayed shutdown, permanent nontermination, and failure before ARN
+selection are executable falsifiers, not text-order assertions.
+
+Executed once, session 23525 exit 0:
+PYTHONPATH=/tmp/guala-c123-release-wheel.buI3mv/installed:/tmp/guala-speech-existing-organ
+OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1
+NUMEXPR_NUM_THREADS=1 RAYON_NUM_THREADS=4 python3 -m pytest --noconftest -q
+tests/test_deterministic_guala_deployment.py
+tests/test_lean_production_app.py::test_startup_validates_both_components_before_migration_publication
+Result: 17 passed in 14.39 seconds. One already-known Starlette/httpx deprecation
+warning; no skip or failed assertion. git diff --check passed. Worktree fingerprint
+remained unchanged through tests. No actual cloud mutation or native organism run.
+
+### R-054-122-82 — final startup receipt on latest authenticated backup, pre-build
+
+Reuse the CLOSED S12245 migration/cold-next proof; only its authenticated input
+path, archive hash, and tick change to S12274 backup 661388. Source-only review
+confirmed exactly those three changes and unchanged artifact/environment guards.
+External script /tmp/guala-c123-final-startup.py SHA
+417997818c95137ea291f2e51b1230ee5752f4ff23aa870f3b69e245e30c87d3.
+Preserve existing disposable root prefix guala-c123-release-migration.*, expected
+normal native SHA 5fc6b612daffc1fcc862c3b8261b3d913c198888e8b64e84e50505093777210f.
+No lessons, private state edits, sensory retuning, or production writes.
+The changed startup-only receipt must name the actual captured predecessor before
+migration publication. Existing exact migration/world-content checks and two
+cold-next steps remain unchanged. This is release-startup evidence, not a reopened
+vocal proof. AWS read-only health envelope precedes and follows this copied run.
+After passing, commit/package this reviewed release and build one immutable image.
+
+### S-054-122-83 — final authenticated startup/migration and cold-next PASS
+
+R12282 ran once, session 94439 exit 0. The reviewed normal native5fc6b612 and
+candidate Python restored S12274 backup tick661388. Its first startup receipt
+exactly named source body296c7e64.../worlda43f8446... and sizes164341200/63527
+BEFORE publication. Lawful migration retained identity/tick and exact prior
+world content, adding only the existing v3 schema/empty physical-return field.
+Migrated body 0c572db509ee65e6a3fbde8ea6b72b878cc7eb5c05f391721190263daa35f45e,
+world b43bef1c06ae5d4de5a291beea1cc165f943591c5acd4a1fe446ea9de5641b2e.
+
+Exact cold-next661389 completed; its successor cold-restored exactly and the
+second next interval661390 completed. Final retained pair:
+body704e9eaa65eca31d341867b2ad5b76d4952bb4dbc5a86f5776f7827d5373ebf9
+world9d39f5c112588e8d2fda3f02d0cbc483f7e9ad0553b283696d476525b2ad3d93
+at /tmp/guala-c123-release-migration.OM2q7TEe/paired.
+Peak RSS2226336 KiB. No source archive change; no lessons or native change.
+Full log /tmp/guala-c123-final-startup.log SHA
+99e911a824f97d46a3f3e7f86d21ddbdff54ac44b21e95bb79aff10725899dc5.
+Script, log, successor pair and rejected release diff archived at
+/mnt/tfebackup/guala-c118-four-posture.XehvEs/c123-release-control-and-startup.tar.gz
+SHA d0f86b04143964cabc3687251949658bf175d37e70b99d2db93e9880f4e8bffe.
+
+Read-only AWS before03:10:51 and after03:12:32: task1456, counts1/1/0;
+CPU averages40.72–48.04%, observed maximum59.96%; RAM averages10.44–10.76%,
+observed maximum11.40%. CPU/RAM/EFS/refusal alarms OK. Existing Sept8 clock alarm
+still ALARM, not declared repaired. Copied startup never touched production.
+H12232 recurrence: a raw tail included nested world JSON and was truncated;
+replaced by jq's explicit scalar projection. Raw proof file remained complete;
+no physical/test failure and no rerun.
+
+### D-054-122-84 — immutable build and cutover preparation, release-only
+
+S12281 and S12283 close the changed release/startup boundaries. Original vocal
+S12264/S12272 and browser S12269 remain closed. Commit and package this source;
+verify the existing 215-file runtime/build closure, not stale owner-era tests.
+
+Use ONE local image build from that package. Docker Desktop is linux/amd64,
+20 CPUs/33341743104 bytes. A dedicated standard BuildKit builder will cap build
+CPU at four cores and RAM at16 GiB (swap16 GiB total, restart policy no), rather
+than changing the reviewed Dockerfile or using unrestricted build concurrency.
+This is a build-only Docker container, not an organism, and has no live EFS mount.
+Docker's official docker-container driver documents these resource options:
+https://docs.docker.com/build/builders/drivers/docker-container/.
+Keep unrelated Docker resources untouched; remove only this named builder after
+the immutable image is exported and its evidence is secured.
+
+Build once with --platform linux/amd64, --provenance=false and --load, revision
+label equal to this clean reviewed commit. Record image ID, exercise that exact
+image on an isolated discarded copy, then publish the same image, re-read its
+ECR digest and use the explicit controller dry run/cutover. Never build again
+merely to run the controller. No trained copy may replace production CURRENT.
+Keep the build's commit clean until cutover; append transient build/rehearsal
+receipts to the shared remote handoff and external evidence, then reconcile them
+into this canonical ledger. This avoids changing HEAD beneath the image label.
+UI publication and public/browser/live vocal acceptance still follow cutover.
+Full AE goal remains ACTIVE; no approval block or speech-complete claim.

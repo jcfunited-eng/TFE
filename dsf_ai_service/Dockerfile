@@ -16,8 +16,8 @@ ARG GIT_SHA=unknown
 ARG BUILD_TS=unknown
 LABEL org.opencontainers.image.revision="${GIT_SHA}" \
       com.gualaloom.build_ts="${BUILD_TS}" \
-      com.gualaloom.runtime="lean-five-route"
-RUN printf 'git_sha=%s built=%s runtime=lean-five-route\n' \
+      com.gualaloom.runtime="lean-native"
+RUN printf 'git_sha=%s built=%s runtime=lean-native\n' \
       "${GIT_SHA}" "${BUILD_TS}" > /BUILD_INFO
 ENV GIT_SHA=${GIT_SHA} \
     BUILD_TS=${BUILD_TS} \

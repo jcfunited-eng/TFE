@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 import base64
 import hashlib
+import json
 from pathlib import Path
 import time
 
@@ -336,6 +337,7 @@ def test_startup_validates_both_components_before_migration_publication(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
     wrong_tick: bool,
+    capsys: pytest.CaptureFixture[str],
 ) -> None:
     from dsf_ai_service import lean_production_app
     from dsf_ai_service.glew_runtime import native_resident_organism
@@ -404,9 +406,34 @@ def test_startup_validates_both_components_before_migration_publication(
         with pytest.raises(RuntimeError, match="native identity/tick"):
             _restore_production_actor()
         assert store.read_pointer() == predecessor
+        assert capsys.readouterr().out == ""
         return
 
+    receipt = {
+        "schema": "guala.paired_predecessor.v1",
+        "identity": IDENTITY,
+        "organism_tick": 10,
+        "body_sha256": hashlib.sha256(predecessor_body).hexdigest(),
+        "body_bytes": len(predecessor_body),
+        "world_sha256": hashlib.sha256(world_body).hexdigest(),
+        "world_bytes": len(world_body),
+    }
+    publish = PairedCurrentStore.publish
+    receipts = []
+
+    def checked_publish(self, **values):
+        # The old CURRENT receipt must already exist BEFORE publication replaces it.
+        lines = capsys.readouterr().out.splitlines()
+        assert len(lines) == 1
+        receipts.append(json.loads(lines[0]))
+        assert receipts == [receipt]
+        return publish(self, **values)
+
+    monkeypatch.setattr(PairedCurrentStore, "publish", checked_publish)
     actor = _restore_production_actor()
+    assert receipts == [receipt]
+    assert capsys.readouterr().out == ""
+    monkeypatch.setattr(PairedCurrentStore, "publish", publish)
     actor.start()
     actor.close()
 
