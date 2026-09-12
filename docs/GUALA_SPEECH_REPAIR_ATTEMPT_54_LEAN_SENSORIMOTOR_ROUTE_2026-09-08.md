@@ -22339,3 +22339,139 @@ must be field-selected before terminal output. Existing RF011 applies.
 Joe's vision lane is retained without interrupting this incident: improve
 usable image detail, distinguish actual135-site sampling from browser smoothing;
 ~1000sites is only C1's sizing proposal, not measured requirement/approval.
+
+### S-054-122-253 / R-054-122-254 — copied refusal reproduced; locate original branch, not new physics
+
+Exactimage copiedCURRENT678788 run75551/23b7c0de finished14.68s exit1,
+peak1485804KiB, noOOM. Native refused 'resident cognitive formation failed:
+resident neuron lineage authority changed' before guide returned. Python wrapper
+caused same physical-settlement error. pending_return=null at start; no compact
+return decoded in this copiedguide. This is a diagnostic reproduction of the
+error class, not proof of the inaccessible exact live678813 branch. Source
+resident_cognitive_formation.rs and lean_sensorimotor_route.rs are unchanged
+from accepted6f2da6da to C1318efb79e0; do not assume C131 invented this guard.
+
+Priorart read FIRST: F/S058-01/03 non-vocal empty-subset false corruption, and
+F076-03/05,C076-06,S076-07 false global uniqueness. Reviewer confirms S058's
+skip remains present. Another exact-one-L6 check lives upstream in
+mount_reached_cross_sensory_association::integration_for_receptor. Zero and
+multiple both yield shared error; current incident branch still unproved.
+
+R122254 scope: enable EXISTING test-only phase trace in diagnostic-api ONLY
+(21cfg attributes), plus2diagnostic-only lines at that receptor/L6 refusal to
+print exact receptor/place/matchinglineages. No predicate, anatomy, timing,
+energy, state, or production path change. CoretemporarySHAd7d40c8d. Ordinary
+release excludes trace; it will be removed and original bytes restored after
+one diagnostic run. One diagnostic wheel from exact current source, one
+repeat of the SAME failed copiedcheckpoint/input using locate.py and known
+loaded diagnostic hash; no productionimage/redeploy/liveguide/curriculum.
+Only original branch evidence sought, not passing behavior. Source review
+before compile, health brackets around run, no broad tests. Existing C131
+component/cold/image proofs are not reopened.
+
+Evidence archived before cleanup: c131-live-incident-aP5epj.tar.gz
+SHA6a6e223255cdd1b37ba59a15e9e16739216d6b28fe26bcf4f88db7e9315240a1;
+rawreproduceSHA25f71e5df53f2fc5139ee1d66668acc3c095303a3398409fea09c9685dec6da3.
+Stopped disposablecontainer23b7c0de removed; original backups/image/logs retained.
+AWS19:45:43 actual1459task2dbdd9bf UNHEALTHY,service1/1/0, CPU0.40%,RAM10.82%;
+this reports failure honestly, not success from infrastructure counters.
+
+### S-054-122-255 / R-054-122-256 — stage is external-founder, NOT integration mapping
+
+Diagnosticbuild45282exit0 in1m25s; wheelinstalledexplicitly/no cache, loaded
+native0ca586137c8c7067e2ce3763a2ea44280cdb691574a7e1bdcff4298faa436cf8.
+One copiedguide71231 exits1 at C117_PREPARATION_EXIT stage=external-founder,
+predecessor678788; no C131_INTEGRATION_REFUSAL. Original same native error.
+Peak1485316KiB,15.43s, noOOM. Thus integration_for_receptor is NOT the failing
+branch for this copied input. Temporary trace removed; core33adbb85 restored.
+Do not 'fix' that separately observed uniqueness assumption for this incident.
+
+Read prior D117-18/SF117-20/C118-01 and D120-11/12 completely. Existing C118
+zero-phase eligibility-before-tie remains present. The stage alone cannot
+name the tie: two nested route resolvers and non-Fabric check can raise same
+error. Previous phase diagnostic omitted existing cfg(test) C118_REFUSAL,
+so it narrowed the stage but did not close origin localization. Record this
+observation incompleteness rather than call another physiology failure.
+
+R122256: ONE bounded diagnostic refinement in the already named founder
+function ONLY. Expose existing C118_REFUSAL in diagnostic-api; add diagnostic
+error-exit labels to its two route resolvers/non-Fabric branch. Same predicates,
+inputs, returns, work and state. No actual-tie weakening/no successful-no-op,
+no whole-organism failure-policy change. C1 ratification needed for such change.
+Compile ONE diagnostic wheel, same archived678788 input once, then remove
+instrumentation. No production action/restart/retry. Pure source review first.
+Exact route path is native/guala_core/src/resident_cognitive_formation/lean_sensorimotor_route.rs.
+Two commands initially omitted resident_cognitive_formation directory and
+failed; full rg--files corrected it, no test ran. Earlier unchanged-route diff
+with nonexistent path was not evidence; actual correct-path diff6f2da6da to
+8efb79e0 now confirmed EMPTY. Core unchanged proof remains independently valid.
+
+### S-054-122-257 — exact copied refusal: two roots counted on reverse in-flight contacts
+
+R122256 source-only review PASS before/after a9f3ab8c. One diagnostic build75980
+exit0; loaded bf518bd970ff75e80b885df344c73706756a00bdee56399a7bfce524f660fd50.
+Single offline copied guide98929/cac61c34 exit1, 20:07:36–20:07:51UTC,
+peak1486312KiB, noOOM. Existing C118_REFUSAL explicitly names active-root tie:
+eight entries across ordering endings268e (four) and26aa (four). All receivers
+are association endpoints, not ordering endpoints; transferredwholecarriers=0
+is in-flight custody, not evidence that contact phase is zero. Need distinguish
+lawful reverse-flow provenance from permission to act before changing eligibility.
+No resolver/non-Fabric refusal. These are olderCURRENT678788/currentUTC receipts,
+NOT the inaccessible exact live678813 predecessor. Ordinary native core restored
+33adbb8530490dbe5680fe6cc4c4558e3fb4c2bc221ecd7a231934b03393c750.
+No physiology/predicate/state/image/production change. Raw founder.log
+SHA4de626e12adfa47fc8c8e3f180ee15597902b934f23447ea7a116d7abf5a596e.
+Reviewer asked source-only direction-law assessment, no further runs authorized.
+
+### O-054-122-258 — automatic AWS replacement; do not report dead actor as current
+
+Read-only20:05 ECS caught changed task, correctly tripping pinned-old-task
+assertion. Service/taskdefinition1459/image708fc271 unchanged. Replacement
+eb041bb2647a4259b372d504e40a6ac9 started19:59:49.390 HEALTHY.
+Old2dbdd9bf STOPPED20:02:35.495, ServiceSchedulerInitiated, reason:
+Task failed container health checks. Old stopping20:00:44.022.
+ECS task lifetimes overlapped; old actor had already failed. Do not claim this
+as a controlled zero-writer cutover or infer simultaneous writes merely from
+RUNNING status. Sol issued NO restart/deploy/second live guide.
+Public read returned available=true, live678910/persisted678884, sameidentity,
+checkpointoutstanding=false/durabilityblocked=false. Recovery is not a fix for
+the guide refusal. Caretaker not resumed. Historical clock alarm remainsALARM;
+CPU/memory/runaway alarmsOK. Shared current header commit60f241ba corrects prior
+unavailable status without deleting incident history.
+
+Vision: Joe relayed C1's sized-first proposal. Speech stays first; no vision
+code/growth authorized by commentary. Approximately1000sites remains a proposal,
+not proven needed resolution, speedup, or recognition evidence.
+
+### D-054-122-259 — direction theory not established; explicit refusal-policy decision
+
+Independent source review: C102 founder branch explicitly accepts_reverse_transfer=true
+(core23775/23854). Current construction preserves actual phase sender/receiver;
+C118 excluded zero phase without changing direction semantics. C93 forward-only
+L11->L11 continuation is a different bond class. Therefore eight reverse founder
+entries do NOT establish a direction bug. No forward-only filter will be added.
+
+Measured tie is real under current founder-custody definition, not proof of two
+competing motor discharges. Current error propagates through native settlement
+into actor failure. Single recommended policy for C1/Joe decision: explicitly
+refuse ambiguous vocal founding locally, choose no root, emit no authorized act
+from those competing founders, while allowing ordinary physical/sensory interval
+settlement to complete. Refusal remains observable, not silently reported as
+successful vocal work. No new priority heuristic/timer/cognitive score/state.
+This is a proposal requiring explicit architectural ratification, NOT implemented
+and not claimed sufficient for a word. Conservation and unchanged nonvocal
+settlement must be specified in its bounded acceptance contract before code.
+
+Honesty gate: requested architecture is concurrent sensory/cognitive experience
+with causally founded action, no heuristic winner. Current code escalates this
+founder tie into failed whole-organism settlement. Conflict: YES with desired
+continued experience under action ambiguity; current absolute tie-refusal contract
+nevertheless cannot be silently waived. Do not extend fatal-as-choice policy or
+add arbitrary root selection. Exact next item: C1/Joe disposition on local explicit
+vocal refusal versus whole-interval failure. Full joint DSF remains unchanged;
+no reduced-field approximation proposed.
+
+Archive c131-founder-localization-2vZ696.tar.gz
+SHAa8fe918d958c531912b98beea2ef106ae281c1a4f79d45e8b85a50d87be1aad7
+retains both diagnostic builds, rawlogs, original paired backup and sourcepatch.
+Core restored byte-exactly; only this ledger is dirty. No new tests/cues scheduled.
