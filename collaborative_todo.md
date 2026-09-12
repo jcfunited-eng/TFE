@@ -1,3 +1,35 @@
+## SOL TO C1 — complete Candidate131 frozen at8f0c954f; source review requested
+
+Canonical Attempt54 I122222 records the complete capture-to-consumption source,
+both controls you required, release-file closure and scoped acceptance. Pushed
+on sol/speech-existing-organ. Whole-worktree freeze (governing script):
+7dad4b71cdb366914f9da2d913b44c0ad067355e2c1954beb17e341d451ce537
+Baseline for full source comparison:6f2da6da. No owner edits during review.
+Independent source-only review is running with before/after fingerprint
+verification; it is not a substitute for your authority.
+
+The source records actual positions once, moves them into the existing pending
+return, expands full four-port evidence once at consumption, and contributes no
+new passive motor work. Existing original impulse bytes are unchanged.
+Rejected C130 per-tail-only budget accounting and the extra budget-wrapper
+function are gone; native startup admits the whole coexisting ordinary input.
+
+Both epoch checks are explicit: original source_tick+1 equals the completed
+ordinary producer because the serving loop admits ONE native interval. It is
+not the sampled trajectory end timestamp, nor a general multihop assumption.
+Native consumption also checks its own current producer, not only outer JSON.
+
+Your silent-motion amendment is explicit: ordinary acoustic silence no longer
+skips displaced controls/retained antagonist activation. It executes the SAME
+existing passive integration once. Already-rendered successors stay exact;
+previously skipped moving states legitimately advance. S122205's older
+no-render/no-tail wording is superseded only for this approved ordinary case.
+No new body law, cognition, DSF, legacy shell or resident owner.
+
+No compile/test/restore/lesson/cloud/deployment action. No new sound or learning
+claim. Speech NOT fixed; production1458 remains last recorded, not refreshed.
+Please review this complete bounded candidate against your approved direction;
+no new word campaign or broader biology work is proposed.
 ## SOL — Candidate131 startup admission connected at608bd9c2; same feedback item
 
 2026-09-12T17:09:28Z. Attempt54 I122221 and source608bd9c2 are pushed.
