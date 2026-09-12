@@ -16544,3 +16544,268 @@ Tooling correction: one grep named nonexistent auditory_gammatone.rs; recursive
 symbol search resolved native/guala_core/src/auditory.rs. No compile ran on the
 guess. A combined source output truncated; selected doctrine mirror was reread
 alone before relying on it. Stop constructing filenames from symbol names.
+
+### R-054-122-125 — continue shared learning correction; output proposal not a stop
+
+Joe has not approved replacing the output apparatus. No new expression law is
+implemented. R122124's question is not a stop instruction: generic C125 contact
+plasticity can be verified within existing authority without adding vocal
+anatomy or changing body constants. Previous turn PROGRESS recorded the actual
+memory/output boundary. C1 shared ledger still has no response after Sol's
+b062b6e7898443165d59d941f2cab3de2edea094 note; no reply is implied.
+
+Ordinary isolated C125 module built from reviewed source, release86seconds,
+191 inherited warnings, session96925 exit0. Directory
+/tmp/guala-c125-native.u6OJiE; installed explicit wheel with no-index/no-deps/
+no-cache-dir and --target isolated/installed. No global module replaced.
+Wheel SHA256f8589a8d8bdfd898035ee153ae6945be386d6bfbd1f7bf41aedbe369b6ff96a4;
+native SHA256974858ca63758a684905639e9259c99aaaf00cca1d06fe52f697c40d93ff9549.
+No diagnostic-api feature. Source remains f8019d0e/testa7a2eaf9.
+
+Actual task-definition read confirms1457/80755ca0,4096CPU/16384MiB,
+GUALA_PAIRED_ROOT=/app/guala/paired-current-gen2,
+GUALA_MAX_WORLD_BYTES=16777216,PYTHONUNBUFFERED=1; no receptor-roster overrides.
+Copied proof must use the same anatomy settings. Only local paired-root and
+explicit shared test-world solar second may differ, disclosed as controlled
+external environment, not claimed byte-identical live weather/TV timing.
+
+Bounded applicability caller contract, not speech-completion acceptance:
+same authenticated actual saved663372 body/world and exact4000-sample phase0;
+normal LeanPhysicalLoop and NativeResidentOrganism wrapper, one native interval
+per ordinary or sensory occurrence, retaining real pending body/self-hearing.
+No actor/UI concurrency claim: deterministic serial replay of physical
+occurrences, with ordinary cognition between inputs. Do not suppress physical
+returns, reset state, import a taught copy live, or label the output a word.
+Sequential arms only: predecessor sound-only, candidate sound-only, candidate
+same sound plus four existing vocal drives at750, candidate same at1500.
+750 is a declared test input at half the existing1500 drive, not a coefficient
+or proposed teaching policy. No-dose is absence of guided drives, not a zero
+drive spoof. All arms start at identical saved physical state. Eight ordinary
+pre-input intervals measure vocal baseline; then one input, eight ordinary
+tail intervals, checkpoint, exact restore and one matching warm/cold next
+ordinary interval. A short tail is NOT a speech clean-stop acceptance bound.
+Any ongoing pressure is recorded, not relabelled silence or organism failure.
+
+Read contact-channel population, phase and conductance before/after and exact
+native causal motor/work/breath/pressure evidence per interval. Compare actual
+changed contacts and physical output, not one aggregate score. Preserve every
+arm, including no change/refusal. Native source/restore/hash failures stop the
+caller; no retries/parameter search. Warm/cold next equality requires the same
+declared external clock and full successor body/world equality, not only decode.
+Persist via the ordinary snapshot/checkpoint/pair publication APIs in fresh
+local storage; observers never mutate native state.
+
+This is supporting mature applicability/contrast evidence. It cannot by itself
+prove recognizable speech, arbitrary learned dose transfer, full acceptance
+inventory or deployment readiness. Existing D12240 live functional bar remains.
+
+### R-054-122-126 — Joe's no-overengineering direction; localized observer correction
+
+Joe explicitly says simplification is NOT a stop command. Continue the active
+learning correction; human anatomy is a guide, not an end or evidence of
+cognition/syntax/autonomy. No new human-only mechanism, output redesign,
+caretaker restart, or acceptance weakening is authorized by that comment.
+
+Continue D-054-122-40: normal live learning, sound-only two ordered
+sound-producing postures, clean stop, preserved state and audible evidence to
+Joe. Its immediate supporting predecessors (live two-posture anatomy,
+ordered playback with disclosed gain, C125 source/focused direction test)
+remain closed at their recorded evidence levels. No deployment or recognizable
+speech claim is added. Requested architecture: learned causal expression;
+current C125 reality: packaged-unmounted input routing into an existing
+ratified learning law. Conflict YES in the existing observation validator,
+not a reason to extend the body model or reduce full DSF. No fields lost.
+
+Independent source-only applicability review at fingerprint
+30748a316107fb68025af4dbcfbafdb4cd8fc70f1cc6a7a21608523d0323ea6c,
+caller SHA1e41afe87b4709a16c8c3ee84bb197ba07d6316d13b2c489bfc6c60706e8eb34:
+one LOCALIZED finding, no execution. Ordinary Python channel observer
+dsf_ai_service/glew_runtime/native_resident_organism.py:4557 rejects
+conductance_numerator <=0. Native resident_cognitive_formation:10856 ->
+ElectricalContactAnatomy::effective_conductance (sparse_electrical_contact:174)
+returns single-channel conductance times retained conducting population:
+zero open channels lawfully gives zero. organism_runtime:6115 preserves
+every tuple field, so Python alone misclassifies this lawful state.
+
+Bounded correction contract BEFORE EDIT: replace <=0 refusal with <0 only.
+Keep exact lineage/order/population/phase/denominator checks and pre/post
+state identity check. Same eight tuple fields reach caller.channels ->
+contact-changes.json unchanged. No native state, codec, restore, physics,
+clock, work, producer, consumer semantics or UI route changes. Current and
+cold-restored closed contacts use the same getter; zero is observed, not
+turned into activity. Work/allocation unchanged: same linear observation
+over the already-returned contact tuple, no extra scan or retained object.
+No runtime/native rebuild needed. One supporting boundary test uses the
+existing mock runtime to check exact zero and positive rows and refusal of
+negative conductance; mature ordinary caller then exercises actual native.
+
+Review otherwise accepted declared dosing, interval forwarding, ordinary
+paired checkpoint path, external clock and exact warm/cold comparison.
+Eight-interval baseline/tail is supporting evidence only, not a new speech
+acceptance threshold. Do not classify short-bound or observer refusal as
+new speech physics failure. Batch localized correction, freeze, final
+source review before any caller execution.
+
+Tooling miss on resumption: read used the guessed path
+dsf_ai_service/native_resident_organism.py (nonexistent), returned exit2,
+no code/test ran. rg --files immediately resolved glew_runtime location.
+Recorded rather than hidden; use discovered paths, not shorthand filenames.
+
+### R-054-122-127 — functional emulation, not biological duplication
+
+Joe clarifies: self-hearing MUST remain. Cognitive functions associated with
+prefrontal/parietal/basal-ganglia descriptions—considering alternatives,
+retaining/integrating evidence over experience, choosing, and realizing choice
+as action—are essential, but need not reproduce biological processes one for
+one. These are requested functional capabilities, not claims that named brain
+regions/modules already exist or prove cognition. "Emulatory" means the
+substrate performs the required causal function through its own lawful state.
+
+Design interpretation: preserve actual sensed consequences of Guala's own
+output, learned relations, competing possibilities, context/needs, bounded
+retained change, and endogenous action. No raw-history warehouse, duplicated
+state, new software decision supervisor, arbitrary score/threshold, semantic
+lookup, or renamed observer is authorized. Existing rules forbidding ML,
+scripted meaning and field flattening remain. Biological detail has no
+independent acceptance value; an implementation must justify its necessary
+causal function and bounded cost, not its resemblance to human tissue.
+Redundant validation/representation/authority and unnecessary bookkeeping
+remain waste, not cognition. Necessary persistence and identity protection
+remain outside cognition and must not become duplicate physical owners.
+
+This is a clarification to continuing C125/D12240, not stop, deployment
+authorization for an unreviewed redesign, or evidence that the full cognitive
+inventory works. Self-hearing is an explicit preserved downstream boundary
+in the current ordinary physical-loop applicability check.
+
+### H-054-122-128 — isolated observer test hit stale restore mock, not physics
+
+Final source-only localized review PASS at e00ab7362fb92d1d06a3143816db7ad3dcd682e568c05dbf6ea0bdf06a50116d;
+caller unchanged, no additional finding. Exact three-case pytest target
+(--noconftest, reviewed C125 native + exact worktree, single CPU/thread)
+ran0.47seconds: all3 FAILED before the channel getter. Old _restore mock
+does not expose exact_neutral_articulated_body_state, and its body width is
+hardcoded195. It is an out-of-date unrelated fixture, not evidence about
+zero conductance, C125, or speech. No mature run/input occurred.
+
+Localized test-only correction: invoke the entire actual observer method on
+an explicitly fake observation receiver carrying readiness and native tuple
+getter. No mock native restore or biological width used; no bypass inside the
+observer; zero/positive exact tuple and negative refusal remain required.
+This is a unit boundary test, not claimed native integration. Do not modify
+production readiness, cache authority, anatomy, or native constructor to make
+this fixture pass. Re-review this bounded fixture correction before execution.
+
+### S-054-122-129 — observer boundary closed; mature applicability started
+
+Final localized fixture review PASS, fingerprint
+8e8f3fa45b75d693dbd102b36bdf6ebb77ab1cf119cd84d7ed6f7596d5b88461
+unchanged before/after. Reviewer explicitly acknowledged missing the old
+restore-mock dependency in the prior review. Exact isolated target then
+3passed in0.10seconds, exit0. Zero and positive tuples preserved, negative
+refused, state unchanged. This closes only the observer unit boundary.
+
+C125 native/core remain SHA974858ca/f8019d0e; predecessor native5fc6b612.
+No rebuild after Python observer correction, no native drift. git diff
+--check passed. Source observer adds no loop/state/allocation; only <= to <.
+
+Mature applicability run started once at06:41UTC, session26685:
+PYTHONPATH=/tmp/guala-c123-release-wheel.buI3mv/installed:/tmp/guala-speech-existing-organ
+OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1
+NUMEXPR_NUM_THREADS=1 RAYON_NUM_THREADS=1 taskset -c0 nice -n15
+python3 /tmp/guala-c125-applicability.py --variant predecessor --dose0
+(actual shell uses separated -c 0 and --dose 0).
+Log /tmp/guala-c125-applicability.yRf6UM/predecessor-0.log.
+Only predecessor no-guide arm started; no result presumed.
+
+AWS immediately before06:40:55UTC: same1457/80755ca0, one running task
+41d3db93f2ef49d7a06b61a0bea7dba1,1desired/1running/0pending.
+Latest3CPUmax47.4089percent; memorymax10.8582percent. CPU/RAM/EFS/refusal
+alarmsOK; historical clock-stalled remainsALARM. Full receipt
+/tmp/guala-c125-applicability.yRf6UM/aws-pre.json. No cloud writes.
+Local available memory~28GiB, no swap used, /tmp636GiB free; one single-core
+low-priority copied-body process. The recorded production resource values
+are service samples, not a measured local proof runtime.
+
+### F-054-122-130 / S-054-122-131 — predecessor physical pass, restart inequality
+
+Session26685 terminal exit1. No Candidate125 arm ran. Predecessor native
+5fc6b612, exact663372 body, ordinary cognition intact:8 vocally quiet baseline
+intervals663373-380,4000-sample cue663381; breath/motor acts663383 and663384,
+nonzero pressure and4000 self-heard samples on following clocks. Retain this
+component PASS.16,365 contacts before/after, zero channel/phase/conductance
+changes. Tail remains sounding as disclosed; not classified clean stop.
+
+Warm/cold next both663390: same observed motor/breath absence,3662 nonzero
+pressure samples and4000 self-heard samples, but full body SHA differs:
+warm e73e3e644f13baffb7f656a0befc313bbff2d9a7f7b80b7724a99e74c160d279,
+cold d47435c8fc7abf0350b3e86f3208b3793d3d07e4aea4c77907bc79e7776649e0.
+PeakRSS1,769,120KiB. This is a predecessor warm/cold discrepancy, NOT a
+C125 rejection or proof speech component wins were false. Prior S12245 and
+related release proofs explicitly tested cold-next only, not warm/cold
+equivalence; no fabricated claim that they already closed this comparison.
+
+PostAWS06:42:16 same1457/digest/task1/1/0; latest CPUmax51.7812%,
+RAMmax10.8582%; runaway/refusal alarmsOK, old clock alarm stillALARM.
+Raw /tmp/guala-c125-applicability.yRf6UM/aws-predecessor-post.json.
+
+Source-only follow-up: warm causal_event_residency survives checkpoint
+adoption; cold restore initializes it absent. Rebuild resets recovery_phase
+and last-integrated clocks (resident_cognitive_formation:19484-19578).
+Snapshot includes cognitive/body/acoustic, not this residency. There is no
+random checkpoint nonce in encode_envelope. This is a concrete asymmetry,
+NOT yet proven the differing bytes' cause. No timing/physics fix selected.
+
+The paired store retains pre-next663389 (body66d44ef0/worldf6762626) and
+warm663390(bodye73e3e64/world56bdde00). Cold bytes were omitted by caller;
+only hash retained. Smallest next discriminator: ONE cold-next from saved
+663389 under identical predecessor module/solar condition; preserve full
+cold artifact, require original d47435 hash, compare sections against saved
+warm. No lessons, cue delivery, full chronology rerun, production state
+write, reset or candidate mutation. Review that caller before execution.
+
+Observation-command fumble: jq shorthand label is a reserved keyword and
+refused compilation; explicit phase:.label projection fixed log display.
+No second organism process was launched; same session26685 was polled to
+terminal. Do not restart a process after merely an observation failure.
+
+### S-054-122-132 — one retained cold interval isolates predecessor difference
+
+Source-only review PASS f6cf129115eac0565c57876cb321bc5f28e3cb37e224cf9fd7f02b6ad0200340;
+external caller /tmp/guala-c125-cold-next.py SHA
+c05770bcb2f1b36e1764b0f6dbf6a62f3bc58f4cc1d302886634fcdd6746603d.
+Preflight corrected pointer.previous to actual pointer.predecessor before
+execution and uses memoryview sections to avoid repeated full-body copying.
+
+Session75873 exit0, one ordinary interval only, no repeated lessons.
+Cold successor reproduces d47435 exactly; persisted in separate
+/tmp/guala-c125-cold-next.dDJSvQ/cold.glorun.gz and cold.glworld.
+comparison.json: world, envelope header, fabric header/body/acoustic,
+and mounted-joint bytes EQUAL to saved warm successor. Cognitive bytes
+same length165063654, first difference126309. PeakRSS1,428,156KiB.
+One physical interval2281.74ms,4000 self-heard samples,3662 nonzero output
+samples, same reported actions as warm. This closes the reproduction
+discriminator, NOT warm/cold equivalence or its repair.
+
+Read-only codec attribution: cognitive electrical fabric21509..3202037,
+GLSEC03 contact records start62645,192bytes each.39/16351 fabric contacts
+differ ONLY in stored carrier-phase rational (record112..144), not conductance,
+channel population, anatomy or transition-work phase. First contact331:
+23cd->07b3, warm -104496473/1105106096, cold -96636533/552553048.
+Prefix before electrical fabric equal; cognitive suffix after it also differs,
+so do NOT claim the39 phases explain all differences. Reviewer is tracing
+that retained suffix without further organism execution. No repair selected.
+One parser command had an unmatched closing parenthesis, failed before
+reading artifacts; corrected read-only command completed0.38s. No state rerun.
+
+AWS06:47:46/06:48:39 same1457/80755ca0/task41d3...1/1/0; latestCPUmax57.6252%,
+RAMmax11.8225%, runaway/refusal alarmsOK, historicalclockALARM.
+Raw aws-pre.json/aws-post.json retained beside discriminator artifact.
+
+Continue the already-declared C125 contact-applicability arms to measure the
+original input-routing question. The predecessor restart discrepancy remains
+an OPEN promotion blocker, not a reason to relabel supporting contact data as
+speech failure or abandon C125. No acceptance bar removed: no candidate
+deployment or exact-restart success without resolving it. Candidate arms use
+the unchanged reviewed caller and inputs, record their own complete outcomes,
+and do not repeat the predecessor lesson chronology.

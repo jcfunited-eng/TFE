@@ -4593,7 +4593,7 @@ class NativeResidentOrganism:
             or population > 6_400
             or transition_phase_numerator < 0
             or transition_phase_numerator >= transition_phase_denominator
-            or conductance_numerator <= 0
+            or conductance_numerator < 0
             or (index > 0 and observed[index - 1][:3] >= row[:3])
             for index, row in enumerate(observed)
             for (

@@ -1633,3 +1633,30 @@ def test_real_coexisting_guide_keeps_moving_axis_input_and_pre_mutation_refusal(
     assert len(second.causal_interval_evidence) == 1
     assert organism.live_organism_tick == first_tick + 1
     assert sum(second.receptor_ingress_sense_counts) > source.port_count + 4
+
+
+@pytest.mark.parametrize("conductance", (0, 500, -1))
+def test_contact_channel_observation_preserves_zero_and_rejects_negative(
+    conductance: int,
+) -> None:
+    # Exercise the complete observer without the unrelated old restore fixture.
+    from types import SimpleNamespace
+
+    active = _active()
+    before = active.state_sha256
+    row = ("01" * 16, "02" * 16, 0, 50 if conductance else 0,
+           0, 1, conductance, 1)
+    subject = SimpleNamespace(
+        readiness=lambda: active,
+        _NativeResidentOrganism__runtime=SimpleNamespace(
+            observe_reached_contact_channel_states=lambda: [row],
+        ),
+    )
+    observe = boundary.NativeResidentOrganism.observe_reached_contact_channel_states
+
+    if conductance < 0:
+        with pytest.raises(RuntimeError, match="projection is not canonical"):
+            observe(subject)
+    else:
+        assert observe(subject) == (row,)
+    assert active.state_sha256 == before
