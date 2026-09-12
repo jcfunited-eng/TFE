@@ -76,6 +76,22 @@ class PhysicalReturnSource:
             _integer(value, maximum, minimum=1)
         if samples != 2 * ports or frames != 2 * occurrences:
             raise ValueError("physical return source lost its two endpoints")
+        # These are the actual native producer formats, not interchangeable
+        # generic GLJS episodes. Startup capacity admission relies on this
+        # fixed source anatomy; raw bytes are decoded only after it is checked.
+        kind = self.payload[:8]
+        if kind == b"GLJSRC03":
+            exact_shape = ports == 2 * occurrences
+        elif kind == b"GLJSRC04":
+            exact_shape = ports == 4 * occurrences
+        elif kind == b"GLJSRC05":
+            exact_shape = self.extents == (2, 4, 1, 2)
+        elif kind == b"GLJSRC06":
+            exact_shape = self.extents == (4, 8, 1, 2)
+        else:
+            raise ValueError("physical return source kind is not mounted")
+        if not exact_shape:
+            raise ValueError("physical return extent differs from its native source kind")
         if not isinstance(self.admissions, tuple) or any(
             not isinstance(interval, tuple) or len(interval) != 2
             or any(isinstance(value, bool) or not isinstance(value, int) for value in interval)
@@ -140,6 +156,20 @@ class PendingPhysicalReturn:
             raise ValueError("physical return contains a non-finite boundary value")
         if not isinstance(self.sources, tuple) or len(self.sources) > MAX_RETURN_SOURCES or any(not isinstance(source, PhysicalReturnSource) for source in self.sources):
             raise ValueError("physical return exceeded one interval's source anatomy")
+        prior_kind = -1
+        for source in self.sources:
+            prefix = source.payload[:8]
+            if prefix in (b"GLJSRC03", b"GLJSRC04"):
+                kind = 0
+            elif prefix == b"GLJSRC05":
+                kind = 1
+            elif prefix == b"GLJSRC06":
+                kind = 2
+            else:
+                raise ValueError("physical return source kind is not mounted")
+            if kind <= prior_kind:
+                raise ValueError("physical return repeats or reorders a native source")
+            prior_kind = kind
         if self.vestibular is not None:
             if not isinstance(self.vestibular, tuple) or len(self.vestibular) != 2:
                 raise ValueError("physical return yaw changed shape")

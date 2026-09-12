@@ -153,3 +153,26 @@ def test_return_capacity_refuses_before_world_commit(monkeypatch):
     assert world.pending_physical_return is None
     assert world.observation_snapshot() == before
     world.discard_prepared_action(plan.prepared_world)
+
+
+def test_native_return_kind_bounds_refuse_oversize_or_duplicate_before_decode():
+    """Boundary falsifier only; this does not assert memory or speech success."""
+    world = home_world_authority(identity=IDENTITY)
+    before = world.observation_snapshot()
+    plan = _plan(world)
+    pending = _capture(plan)
+    yaw = pending.sources[0]
+    assert yaw.payload.startswith(b"GLJSRC05")
+    assert yaw.extents == (2, 4, 1, 2)
+    with pytest.raises(ValueError, match="native source kind"):
+        replace(yaw, extents=(4, 8, 1, 2))
+    with pytest.raises(ValueError, match="native source kind"):
+        replace(yaw, extents=(2, 4, 2, 4), admissions=((1, 1000), (1, 1000)))
+    with pytest.raises(ValueError, match="kind is not mounted"):
+        replace(yaw, payload=b"GLJSRC02" + yaw.payload[8:])
+    with pytest.raises(ValueError, match="repeats or reorders"):
+        replace(pending, sources=(yaw, yaw))
+    assert world.pending_physical_return is None
+    assert world.observation_snapshot() == before
+    assert pending.sources == (yaw,)
+    world.discard_prepared_action(plan.prepared_world)

@@ -58,8 +58,10 @@ allfour sensory ports and zero new motor/load work. No new endpoint convention.
 S122205 records the compact-return contract. Candidate130 integration below is
 HISTORICAL REJECTED SOURCE, not work currently in the executable tree:
 I122206/I122207/I122208 preserve its capture, renderer, encoder and transport work.
-I122211 now records the source-derived aggregate allocation map and Joe's explicit
-small-slice boundary. No new anatomy, cognitive law or allocator framework.
+I122211 records the source allocation map. S122212 selects ONE startup-only
+ordinary-input capacity check instead of hot-loop accounting. I122213 begins
+Candidate131 with exact pending-source type/extents/order checks; partial source,
+NOT compiled, tested, reviewed or deployed. No new anatomy or cognitive law.
 F122209: complete Candidate130 source review REJECTED its already-known
 compact-versus-expanded resource/custody gap, BEFORE build or test. Exact source
 and patch are archived; executable files restored byte-for-byte to92af3470.
@@ -20715,3 +20717,169 @@ commit; clean executable tree, core33adbb85, runtimeb5a7cab1, body451378d1.
 Last AWS14:44:05UTC is HISTORICAL only: baseline1458 HEALTHY1/1/0, clock alarm
 still ALARM. No new live health or production improvement is claimed.
 Speech NOT fixed; full AE goal ACTIVE; browser CLOSED, caretaker STOP.
+
+
+### S-054-122-212 — R122210 selects startup admission, not hot-loop accounting
+
+2026-09-12 UTC. Same sensory-return repair. Previous I122211 was source-review
+progress, not a production fix. This source-only continuation resolves the
+admission placement: ONE capacity check on the maximum lawful ordinary input
+set at production startup, under the native runtime's existing fixed budget.
+This SUPERSEDES R122210/I122211's proposed repeated coexisting-batch checks.
+No stored profile, admission flag, owner, queue, arena manager or sample scan.
+
+Internal independent reviewer explicitly accepted this simpler direction:
+startup admission can close F122209 if ordinary ingress and restored pending
+records enforce the same bounds. F122209 concerned incompatible producer/
+consumer resource allowances, NOT absence of a new exact allocator manager.
+
+Verified serving closure:
+- lean_production_app::_restore_production_actor is the sole production
+  LeanOrganismActor/LeanPhysicalLoop construction site.
+- RuntimeBudget is fixed on restore; no live budget setter was found.
+- Existing receptor_anatomy() supplies one immutable native anatomy Arc.
+  Read its actual metadata; do not create a second anatomy/footprint owner.
+- LeanSensoryOccurrence caps pressure at8000B (4000s16 samples), exactly135 RGB
+  sites, and9 unique guided vocal axes with u32-positive carrier counts.
+- guala_cochlea::one_self_hearing_hop admits/pads only4000samples and returns
+ 26 times; LeanPhysicalLoop checks those times against PASSIVE_TIMES.
+- Returning primary uses consequence_source_times(PASSIVE_TIMES),27 times
+  across250ms. Native coexisting duration is the maximum source span, not the
+  sum of source epochs or durations. The guide and root events each span1ms.
+- Ordinary pending source endpoints are2 per occurrence; C131's only longer
+  source is the bounded250-frame compact passive return.
+- Existing thermal world envelope MAX_COUPLED_STATE_BYTES is4MiB; decoded
+  return extents and source kind/order still need their own precise limits.
+  Do not treat the outer envelope's byte cap as proof of decoded memory.
+
+Maximum source roster for the STARTUP calculation (superset is capacity only;
+never emitted as a new sensory roster):
+
+| Source | Ports | Frames per occurrence | Occurrences |
+|---|---:|---:|---:|
+| Full primary anatomy |220|27|1|
+| External hearing projection |34|26|1|
+| Self-hearing projection |34|26|1|
+| Prior body impulse |4*45|2|45|
+| Passive body return |4*45|250|45|
+| Root yaw return |2|2|1|
+| Root translation return |4|2|1|
+| Native guide consequence |4*45|2|45|
+| First-use body source |2*45|2|45|
+| Native vestibular source |1|2|1|
+
+Source review corrections, not new physical defects: guide commands at most9
+vocal axes, but settling that guide can also return existing passive motion
+on other axes, so its source bound is45. First-use body has TWO endings per
+axis, not four. Vestibular_motion adds its own one-port/two-frame native
+source, separate from the two root-yaw proprioceptors.
+Reserve the superset numerically only; existing omission/projection and sparse
+capture decide which REAL sources exist. No unchanged-body polling is added.
+
+Successor implementation contract (Candidate131, no new physical law):
+1. Derive the ordinary input storage/processing requirement once from the
+   existing source anatomy, type widths, codec/producer limits and current
+   physical transport frame bounds. Use source format counts for retained
+   containers, owned bytes, exact rational limbs and construction overlap.
+   Never use a guessed memory multiplier, blind u64 rational assumption or
+   encoded-length-only check. Primary binary64-derived rationals need their
+   full exponent range; body load fractions can be u128. Restore's old GLJS
+   inputs must fit the same bounded representation, not just the same count.
+2. Compare aggregate retained inputs plus the largest simultaneously active
+   construction/UF phase with RuntimeBudget's derived workspace. No claim
+   that changing the later4189 restore variable enforces sensory admission.
+   I122211's passive-versus-primary processing comparison is reusable for
+   the ordinary250-frame route; generic native30s sources are NOT covered.
+3. Proposed read-only native API admit_ordinary_physical_workspace is called
+   by _restore_production_actor through the existing NativeResidentOrganism
+   wrapper before migration publication and actor construction/start.
+   It returns normally or refuses; no persisted proof token/flag is created.
+   The caller supplies existing physical anatomy/frame limits, never a second
+   memory budget. There is no per-interval budget polling/checkpoint.
+4. Enforce source type/extents/order at the existing pending-return boundary:
+   GLJSRC03 two ports/axis, GLJSRC04 four ports/axis, GLJSRC05 exactly2ports,
+   GLJSRC06 exactly4ports, each legacy occurrence exactly2frames/1ms;
+   compact GLBPTR01 four ports/axis, <=45axes/250frames, original epoch rule.
+   Bound encoded/raw rational representation as well as cardinality before
+   expansion. No normalization, truncation, state deletion or alternate
+   restore is allowed to make an out-of-contract pending source fit.
+5. An admitted ordinary producer can only emit within this same roster,
+   duration and representation bound. The finite45-axis bound is available
+   BEFORE its successor active axes exist; capture still records only actual
+   active axes. The current cold pending source must also be checked before
+   publication. A smaller restored budget refuses without deleting custody.
+6. One compact pending return still owns the original impulse plus actual
+   passive samples; full four-port expansion, self-hearing, exact warm/cold
+   feedback, identity/learned state and zero new passive action work remain
+   unchanged requirements. No body/core/L0-L4 law is extended.
+7. Source/translation/resource review must cover the whole completed candidate
+   before compile or the already-scoped MAX32/128 copied-body acceptance.
+   Ordinary boot must run the startup check in that acceptance; a bare native
+   restore that bypasses it cannot serve as production resource proof.
+   Keep logical allocation versus measured RSS/cgroup scope explicit.
+
+Authorized file scope: the already traced C130 capture/codec/encoder/native
+runtime/wrapper/world-return/loop/supporting-test files, plus one small native
+ordinary-input admission calculation, lean_production_app's startup call and
+release-manifest closure. No production edit in resident_cognitive_formation,
+the actual body-mechanics law or L0-L4. Existing reviewed C130 source findings
+may be reused deliberately from the archive; do not revive its incomplete
+per-tail-only admission as the production guarantee. Candidate131 is not
+accepted, compiled, exercised or deployed by this contract.
+
+The next implementation step is the existing pending-return type/extent
+boundary, followed by the native startup calculation and its caller. These
+are steps of ONE feedback repair, not separate cognitive mechanisms.
+No build, test, cue, deployment, process action or fresh AWS check occurred
+during this source-contract decision. Baseline1458/closed proofs unchanged.
+Browser CLOSED/caretaker STOP; full goal ACTIVE, speech NOT fixed.
+
+Fumble record: author reads again guessed lean_sensory_ingress.py,
+native_resident_organism.py at the wrong package level, and
+functional_vestibular_body.rs. Actual paths were resolved from rg --files and
+imports: lean_sensory_occurrence.py, glew_runtime/native_resident_organism.py,
+vestibular_joint_source_builder.rs and reached_vestibular_bundle_path.rs.
+Reviewer separately guessed guala_self_hearing.py; actual guala_cochlea.py.
+No compile or organism run followed any guessed path. This remains an actual
+recurring command-discipline failure, not a repaired or eliminated class.
+
+
+### I-054-122-213 — Candidate131 first source change, pending input shape only
+
+Continues the S122212 startup-only admission contract. No new architecture,
+compile, test execution, mature-body run, cue, deployment or production change.
+
+Changed dsf_ai_service/guala_physical_return.py:
+- PhysicalReturnSource checks the actual native prefix and its exact relation
+  between ports/occurrences. GLJSRC03 has2 ports/axis, GLJSRC04 has4;
+  root yaw is exactly(2ports,4samples,1occurrence,2frames), translation exactly
+  (4,8,1,2). Unsupported source kinds and inflated root extents refuse.
+- PendingPhysicalReturn requires producer order body -> yaw -> translation
+  and refuses duplicate roles. No new retained field, index or owner.
+- Original bytes and existing two-endpoint/1ms admission are unchanged for
+  valid sources. These checks run before native decoding, not in cognition.
+  Compact passive support and its position between impulse and roots are
+  still to be integrated deliberately from the archived source in this
+  candidate; this partial file is NOT described as that completed consumer.
+- Cardinality is only one prerequisite. Encoded/rational representation bounds
+  and the actual native startup calculation are NOT completed by this edit.
+
+Written tests/test_guala_physical_return.py supporting control:
+test_native_return_kind_bounds_refuse_oversize_or_duplicate_before_decode.
+Uses the existing world/root-yaw producer fixture, then changes only header/
+extents or repeats its source. Checks refusal without pending publication or
+changed world observation. This is a boundary control, NOT a mature-body,
+memory-capacity, full-format or speech proof. NOT RUN.
+
+git diff --check passed (whitespace only). Actual body law, resident core,
+L0-L4, native runtime, acoustic path and production image remain unchanged.
+No candidate freeze/review may begin until the startup calculation, cold
+placement, compact capture/consumption and package closure are complete.
+
+Single next implementation step in SAME Candidate131: derive the native
+ordinary-input startup requirement from the source/codec/anatomy bounds in
+S122212, expose it through the existing wrapper, and invoke it before startup
+publication. No per-interval budget owner or sample-scanning machinery.
+The full native runtime/capture integration remains uncompiled until the
+complete source review. Closed physical/sound/restart evidence remains closed.
+Full goal ACTIVE; speech NOT fixed; no production delivery in this checkpoint.
