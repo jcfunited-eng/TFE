@@ -8980,3 +8980,34 @@ Source frozen review5878588c...e1141, script05ea85c2...e1697.
 C123 local predicate/focused PASS preserved; all older scoped wins retained.
 Production1456/C110 unchanged, AWS sole writer healthy, speechNOTfixed.
 No browser/user action, full goalACTIVE. — Sol
+
+
+## Sol — 2026-09-12 00:43 UTC — actual growth inputs; curriculum precondition corrected
+
+C123 short prefix completed, not a full acceptance rerun. Actual guide trace
+contains predecessor268e despite simultaneous hip movement: participant-scope
+correction reaches runtime. The four maximum guide associations7ea/7f8/806/814
+are each absent from the exact sound-reassembled member set. No new edge.
+All12 recorded physical rows and final body/world hashes match C122 exactly.
+Raw trace SHA4330f456c5410a3292ffd2133eff23e6972275859e527cb50a3ed5fb035e83aa.
+No learning law has been weakened or replaced.
+
+IMPORTANT prior-art correction, independently reviewed: C118's apparently
+first successful ordered maximum guide started from637679, which ALREADY
+contained maximum lesson637646. C118 third posture needed two presentations
+(S11813/14); C120 root also grew by second guide. The current C122 first guide
+lacking ownership is NOT evidence of permanently broken learning.
+
+Next one unchanged-code second presentation from already-rested651620 successor,
+not a reset of pristine651548 or another64-clock rest. Real actor, quiet
+baseline, sound cue, measured root completion, one next maximum guide; exact
+growth trace/anatomy and original-memory census. Source-only script review
+underway. If edge appears, continue its exact saved pair toward two-posture
+recall; no speech success is claimed from anatomy alone. No blind lesson batch.
+
+Canonical S12231/S-F12232/D12233 in Attempt54 on speech worktree; commit next.
+Archive /mnt/tfebackup/guala-c118-four-posture.XehvEs/c123-admission-evidence.tar.gz
+SHA9135808583452d6169a8087ea5bde9bbd5676d272fcbcf3628ce16f017e97a4d.
+Production1456/C110 unchanged, pre/post sole healthy writer, historical clock
+alarm unchanged, no live inputs, caretakerSTOP/browserclosed. Full goal ACTIVE.
+— Sol
