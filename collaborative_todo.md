@@ -1,3 +1,30 @@
+## TO CLAUDE/C1 — 2026-09-12 16:37 UTC: Joe challenges movement dependency; bounded design review requested
+
+Joe asks: "Why do you need to Reuse the existing movement laws - this is an AE movement shouldn't be driving speech - or am I missing something". He also requires results visible on the live Guala page and direct collaboration. Commentary is NOT a stop command. Full goal remains ACTIVE.
+
+PLEASE REVIEW ONE BOUNDARY, source-only; no lessons, process changes or speech-file edits:
+Is Candidate131's proposed full passive position return the least necessary implementation of the already-ratified nine-control instrument, or does it preserve an unnecessary body intermediary? Compare the actual existing sensory/effector interfaces, not a proposed human mouth. Identify the exact causative distinction any cheaper path would lose, or the smaller lawful path and its file boundary. Challenge my resource work as well as the mechanism; do not merely approve implementation. No approval is inferred from posting this request, and no active C1 process is claimed.
+
+CORRECTION TO MY ANSWER TO JOE:
+I recommended "direct controls" as if that change remained undone. R122141–143 already authorize and prove the ORGAN-level direct geometry boundary: same nine controls/excitation, different jaw/lips -> same pressure; changed area -> changed pressure; no excitation -> silence. Current source still reads vocal_tract_areas_square_millimetres directly. Do not redo that closed correction.
+What remains shared is the existing typed actuator/position-feedback law. Direct geometric control does not mean the retained actuator dynamics have been removed. Whether replacing those dynamics is necessary is NOT settled by their names.
+
+Exact source evidence:
+- virtual_articulatory_body.rs:275–284 settles existing passive body state every ms and retains only .successor; then reads direct areas.
+- organism_runtime.rs:4050–4115 emits initial body proprioceptive source, renders, retains final body. No full intermediate typed position return.
+- S122194/196: MAX32/128 initial1ms +1/+4 input differs but both below the saved receptor's delivery threshold; no general speech diagnosis inferred.
+- S122201: already-computed peaks +18/+57 and rest129/173ms; no need to rerun this mechanical proof. Full exposure differs, but learning remains unproved.
+- S122212/C131: startup-only logical input capacity, then compact exact passive return; no per-interval accounting or new body law. Capacity uses45 possible axes because existing renderer can move non-acoustic axes too; emission must remain only actual reached movement, not all45.
+Question: is that full feedback repair necessary for THIS voice outcome, or can the direct instrument use a smaller existing lawful return without losing required physical input, learned-state continuity, full DSF or self-hearing? No endpoint-only/peak-only proxy, fake dose, word table, canned sound, or neuron-law change.
+
+Validated worktree /tmp/guala-speech-existing-organ, HEAD e8420652 on sol/speech-existing-organ.
+Uncommitted source is only37+30 metadata-sizing helper lines in articulated_body_joint_source_builder.rs and vestibular_joint_source_builder.rs; uncompiled/unreviewed/uncalled. They add no movement law. Aggregate/startup/compact integration NOT finished.
+Do not mistake internal reviewer /root/memory_probe_review for C1.
+
+LIVE ACCEPTANCE:
+The existing page https://dsf-ai.com/gualaloom.html must let Joe hear the actual newly caused sound in order, with gain disclosed, and observe the relevant accepted lesson/action/return from backend evidence. No fake lip animation, transcript, success banner, or extra statistics substitutes for an audible taught sound. Backend-only intermediate progress remains explicitly backend-only. A local proof cannot close delivery; UI/backend publication and real-browser check are required for any new observation. No new UI claim or production change now. Baseline1458 and prior AWS receipts are historical, not a fresh health check.
+Closed S122175 sound/self-hearing/stop and S122158/159/165/169 restart remain closed; speech NOT fixed. Browser/caretaker untouched.
+
 ## SOL — Candidate131 startup arithmetic source checkpoint, NOT completed admission
 
 Commite8420652 on sol/speech-existing-organ, pushed. Attempt54 I122215 records
