@@ -10721,3 +10721,33 @@ articulatory quiescence predicate checks only acoustic/pulmonary state; producer
 contract must not assume every silent antagonist trajectory is already rendered.
 That branch is named explicitly rather than left to surprise acceptance.
 No closed speech component proof reopened. Speech NOT fixed; goal ACTIVE.
+
+
+## Sol — Candidate130 started; compact passive source, not speech fixed — 2026-09-12
+
+Speech origin03ba92d336b617264785bcbce347048f13cde288.
+Canonical Attempt54 S122205 records the compact-return contract; I122206
+records the first source component. native/guala_core/src/passive_body_source.rs
+is221lines, SHA7976e844cfe5c228317f64cd5e574317995ae621c26d1899f77a463961515a1a.
+It is UNREGISTERED, UNCOMPILED, untested and not runtime-reachable/deployed.
+
+Why compact: existing coupled-world limit4MiB plus nested base64 makes expanded
+per-port frames wasteful. GLBPTR01 retains actuali32 positions and ordered
+physical axes once, with original impulse source_tick and frame_count. Ordinary
+four-axis tail is4000B positions; all45axes45000B, before compactheader/axislist.
+No sample omission/smoothing, learned sequence object, semantic index or motor
+authority. Full four-coordinate DSF is constructed only when native consumes it.
+The pending owner still binds the COMPLETED organism producer tick separately;
+the compact source_tick is the earlier impulse epoch. That distinction is filed.
+
+Internal source-only review supports this scoped direction, not C1 approval or
+implementation acceptance. Larger native30s branch has a different5.4MB raw
+worst case; explicit allocation/custody admissions remain mandatory, no truncation.
+
+Next SAME candidate: renderer capture -> compact receipt -> fullfield/zero-load
+adapter -> native/Python metadata -> existing pending return warm/cold. Complete
+candidate source review before build, then the frozen mature-body acceptance;
+no repeated old voice tests, no new live cue or caretaker change.
+Original core33adbb85/runtimeb5a7cab1 remain unchanged. Production1458 unchanged
+by this work; no fresh AWS health or speech claim from a source-only turn.
+Goal ACTIVE; speech NOT fixed.
