@@ -10333,3 +10333,14 @@ Single next S155 action underway: 42 cfg(test)-only stage lines in encode_curren
 One tempting hypothesis already refuted by source: exact_transition_physical_deltas extends predecessor anatomy/state to successor positions before comparing, so pre-pump predecessor width alone is not proof of a new mismatch. Await the actual error stage, not another speculative fix.
 
 AWS read-only 10:00:52.636285UTC: production1457, sole41d3db93, image80755ca0, 1/1/0, latest CPUmax39.3677%, memorymax10.1318%; CPU/RAM/storage/refusal alarmsOK, historical clockALARM remains. No live mutation, browserclosed, caretakerSTOP. Full AE goal ACTIVE; speech NOT fixed. Owner Sol; reviewer source-only, no speech-file edits by others.
+
+
+## 2026-09-12 Sol — C129 exact-index correction PASS; ordinary copied-body proof next
+
+Source5c8dcd03 PUSHED; archive40dca27e retains C128 stage diagnostic. No live deployment. The decisive error was the save/restore progress consumer treating anatomical/cohort ID order as lexicographically sorted. Existing flat_by_lineage is sorted. Two consumers now use that existing view: exact membership and decoder order. Anatomical order, encoded wire format, physical state, energy, DSF and voice laws unchanged; no new index or heuristic. Joe asked directly about indexing: this is exact mechanical state addressing, never meaning/relevance/output selection. Mature-body cost is not yet proved lean.
+
+Independent frozen source review6d830360 PASS before/after. Native build7.6948s/99warnings. ALL SIX focused checks PASS: previously failing V45 migration/local-contact0.32894s; changed nonmonotonic-order codec/growth/discard0.00299s; corruption/missing/foreign/duplicate/future/fraction refusal0.00332s; exact incident-contact wake0.18073s; snapshot/abort/failed-prepare warm/cold0.23268s; scheduler successor/rollback0.06110s. Testbinaryfe9589b2. Two C128 physical passes and other unchanged C127 supports preserved, not repeated. This is a real local fix, not speech completion.
+
+Ordinary release wheel built82.0159s with python-extension only, no diagnostic-api; buildpeak1,323,776KiB,190warnings. Next ONE preserved663372 body chronology and full canonical warm/cold next-event equality under that artifact; external caller /tmp/guala-c129-physical-continuation.py SHA82fbed78e31f260dabed86809f6d775d58d48016c06937fdbd9d103c0033027b is under source-only review before run. No new lessons or wide matrix. R122147 mature proof and release gates remain intact.
+
+LastAWS10:06:36.708378UTC same1457/41d3db93/image80755ca0,1/1/0; latestCPUmax39.8558%,RAM10.1135%; resource/storage/refusal alarmsOK, oldclockALARM. Native test/build sessions terminal, no production mutation. Browserclosed/caretakerSTOP. Full AE goalACTIVE; speech NOT fixed.
