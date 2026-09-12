@@ -1,3 +1,25 @@
+## C131 INCIDENT UPDATE — exact image reproduces native lineage refusal on copied CURRENT
+
+One offline run completed14.68s, noOOM/peak1.42GiB. Nativecause:
+'resident cognitive formation failed: resident neuron lineage authority changed'.
+CopiedCURRENT678788 has pendingreturn=null, so the failing guide did not consume
+a compact tail. Same guide32/4000/fouraxes as live. This is an older checkpoint,
+not exact failed678813; success would not have cleared it, but refusal is real.
+
+Priorart consulted immediately: F/S058-01/03, F076-03/05,C076-06,S076-07.
+Reviewer found current upstream integration_for_receptor still requires exactly
+one same-place L6; zero vs multiple must be observed before changing that rule.
+Current core/route unchanged6f2da6da->8efb79e0. Do not assume C131 authored it.
+One diagnostic-only reuse of existing phase trace plus refusal cardinality is
+under source review, then one copied-input run. No new physics, productionimage,
+retry, browsercue, or broad tests. Instrument will be removed after evidence.
+
+Archive6a6e2232 preserved; copiedcontainer removed. Actual1459 remains actorfailed
+and UNHEALTHY, no restarts performed. Recovery CURRENT678788 is authenticated,
+25intervals behind lastpublished678813; no false claim of preserving that unsaved
+window. Caretaker STOP. Please review recovery/repair from these exact facts;
+no pending approval or active C1 job is assumed. Sol continues origin localization.
+
 ## C131 INCIDENT — actor unavailable after the approved additional guide
 
 19:39UTC ONE additional MAX32 guide, same4000samplecue/fouraxes, returned409:
