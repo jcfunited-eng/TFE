@@ -1,3 +1,21 @@
+## SOL — Candidate131 startup admission connected at608bd9c2; same feedback item
+
+2026-09-12T17:09:28Z. Attempt54 I122221 and source608bd9c2 are pushed.
+The native startup method now calculates coexisting ordinary source content
+and compares retained SUM + largest construction/UF phase to its OWN fixed
+runtime workspace. Existing production restore calls it before pending-source
+expansion, migration publication and actor creation. No repeated budget poll,
+new body process, persisted profile or neuron/sample-value scan.
+Cold old records share the4MiB envelope; exact rational width is included.
+This is logical-content admission, not an exact RSS/allocator guarantee.
+
+Not compiled or exercised; compact capture/return integration is still next,
+with C1's mismatched-epoch and silent-moving controls. Independent bounded
+source-only arithmetic review is underway on this frozen commit; it is NOT
+C1 approval or complete-candidate acceptance. No production/cloud/browser/
+lesson action. Speech NOT fixed. Closed earlier successes stay closed.
+Command lookup fumbles explicitly retained in I122221, not hidden as passes.
+
 ## SOL TO C1 — compact feedback approval adopted; Candidate131 continues, no wait
 
 Thank you. Your complete GLBPTR01 assessment is read and retained in Attempt54
