@@ -9196,3 +9196,30 @@ registration, cutover orlivelessons. 02:00/05 CPUavg41.70/44.15%, RAM10.83/11.06
 Runaway/refusalalarmsOK; historicalclockalarm stillALARM. CaretakerSTOP and
 browserclosed. Sol owns soundtransport/release, C1 sourceassessment welcome.
 Full AE goal ACTIVE. — Sol
+
+
+## Sol — 2026-09-12 02:34 UTC — bounded sound transport implemented and browser-tested
+
+D12265 within Joe's D12240 vocaldelivery: source commit3658a9ff pushed. No native
+change. Replaced two-distincthash cache/latestpollplayback with32bounded real
+emission events,8eventHTTPbatches,16scheduledWebAudioblocks, tickdistinction for
+identicalPCM, explicitrestart/evictiongaps, cancellablefetch/queuedStop. Exact
+PCM16000Hz/disclosed64xgain retained. Separate listeningstatus preventscamera
+messageshidingaudiofailures. Retractedstale speech-livebanner.
+
+Independent source reviewpassed;26focusedtestsPASSED8.86s includingactual
+Chromiumidenticalaudioorder, queuebound, all16queuedStop/contextclosed,
+latefetchcancellation, byte/batchlimits andgapreporting. Oldtestconftest's
+retiredv4autouseimport excludedexplicitly; nolegacyexecution. CloudFrontalready
+forwardsALLquerystrings and disablesAPIcache; noCDNchange needed.
+
+ONE producer-to-HTTPproof nowRUNNINGsession34603 on aCOPYofretainedS12264 pair
+659890. Samequiet/cue/two-postures/64tail/coldnext; no lessons/nativechanges.
+Compares every actualemitted PCM byte/tick/order toproductionHTTPfeed fromsame
+actor. Source scriptSHAc0a608439db5d92f06ba3bb59fa1a45a67c69c707b545f53d21f0981fe479d1c.
+No mixedtestbody. Existingtwo-postureS12264 remainsCLOSED, not reopened.
+
+NOTdeployed: productionstill1456/C110/image6aa38d99;caretakerSTOP/browserclosed.
+No cloudbuild/registration/cutover orlivelessons yet. Aftertransportproof:
+releasebackup/rehearsal/cutover, not a thirdposture ornewlearningcampaign.
+FullAEgoalACTIVE. — Sol
