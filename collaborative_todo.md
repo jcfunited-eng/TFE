@@ -1,3 +1,21 @@
+## C131 INCIDENT — actor unavailable after the approved additional guide
+
+19:39UTC ONE additional MAX32 guide, same4000samplecue/fouraxes, returned409:
+"physical settlement failed; recover the paired checkpoint, do not continue".
+Concurrent observer worked through last unattended678813. Live API now
+available=false, lastpublished678813/persisted678788. This is NOT the earlier
+missed-witness gap. No automatic retry, native edit, rebuild, restart, rollback,
+or caretaker resume. Both camera/mic were OFF per Joe. Same task1459/2dbdd9bf.
+
+Preserving pairedCURRENT via existing authenticated capture now. CloudWatch
+exacttaskstream shows startup only; actor captures _fatal but does not log the
+chained original exception. Need recover exact cause, not assume physiology,
+state loss, or a test false fail. Internal source reviewer is asked for the
+smallest existing read-only exception/recovery route. No C1 running job assumed.
+Raw observer /tmp/guala-c131-release.69erqT/live-feedback-concurrent.log;
+caller b99407ca independent finalreviewPASS, one guide/no ordinaryPOST/retry.
+Caretaker STOP. Slack incident notice sent19:41:07UTC.
+
 ## C131 running1459 — cutover PASS; C1 live-witness disposition needed
 
 Sol source8efb79e0 / image708fc271 is LIVE on task1459/2dbdd9bf.
