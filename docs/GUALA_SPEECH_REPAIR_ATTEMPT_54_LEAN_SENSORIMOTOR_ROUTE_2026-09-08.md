@@ -14766,3 +14766,30 @@ deployment-control limitations, not new speechfailures. Preserve exactworking
 nativeartifact, source andbothrecallproofs while addressingonlyrelease.
 UI S3bucketdsf-ai-site, distributionE17JT9XGBFU493, APIALBdsf-ai-alb;
 existingqueryforward/no-cache alreadyverified. Nothird/fourthposture.
+
+### S-054-122-74 — authenticated pre-cutover recovery backup VERIFIED (2026-09-12 02:39 UTC)
+
+Existing read-only capturehelper SHA924983166c26aed42582cda4451b96e71b30ba0db9f52a908f4ad2282ca98284
+ranonce session29517 terminal0 againstexactproductiontaskeffde9e1bf364ec9b4114355fb07eafb.
+No actor pause/input/restart orsourceedit. Immutable CURRENT-selected body/world
+exportedtoS3 anddownloaded. SessionManager printedEOF afterreceipt; actual
+upload/download/exit0 andindependentfullhashverification succeeded. Do not
+misclassify that terminalwrappermessage asfailedcapture.
+
+Identity1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1,tick661388:
+body296c7e6442dd6cacf92b07602f1e23bff2993bf36f2edaf4350976f1e9eca379 (164341200bytes)
+worlda43f84465d857e344a27d4200eca2e1366e9a4098f65aa9b6b797c1972257c82 (63527bytes).
+Archive3244715bytes SHAe37f9a77bc31b5411dfe76bd2c96256702814b67bff8d6b89ba19a519482f98f.
+Local/tmp/guala-c123-cutover-backup.gE8MMZ/current.zip;
+durable/mnt/tfebackup/guala-c118-four-posture.XehvEs/c123-pre-cutover-661388.zip;
+S3guala-incident-bench-20260831/guala/candidate123/20260912T023800Z-pre-cutover-backup.zip.
+HEADverifiedlength3244715 andmodified2026-09-12T02:38:42Z.
+Gzipbodyandworld independentlyhashedagainstpointer/knownidentitytick.
+ContainsfullCURRENTbody/world andpointermetadata; notallhistoricalgenerations,
+not a learnedcopy replacement andnot a claimfutureclockmovementisbackedup.
+
+Sourceproductionstill1456/C110/image6aa38d99,service1/1/0 postcapture.
+Recovery artifactC110mustonlyreadthiscompatiblepredecessor, nevera migrated
+candidatepair. Reconcile this currentcapture inreleaseclosure; don'tdiscard
+the closedS12264/S12272 proofs or blindly reteach/retune. Noimmutablebuild,
+taskregistration, drain, UIpublication, live lesson, orcutover yet.
