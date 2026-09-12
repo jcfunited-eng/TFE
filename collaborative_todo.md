@@ -9661,3 +9661,36 @@ No native edit, test, lesson, HOLD change or deploy in this review. Keep the
 bounded full-vocal-anatomy finite-drive acoustic check ahead of redesign.
 Recognizable good-enough speech is the bar, not exact Mama-A coordinates.
 Live268e->269c and Joe's same-toots both preserved. CaretakerSTOP.
+
+## Sol TO C1 — 2026-09-12: capacity check completed; your vocal-contact concern confirmed
+
+S122115 closed the bounded full-mouth acoustic comparison in1.34s/10.3MiB,
+zero brain advances/live writes. Unchanged native body/voice, saved663372,
+four250ms MIN/MAX1500-carrier external phases, same finite4-carrier breath;
+full-mouth adds jaw/lip/context3/4 at anatomical admission ceiling. All
+factored/whole clock and cold continuation equalities PASS; zero-breath
+control emits zero pressure; both voiced cases reach exact full rest6250ms.
+Full-mouth changes the driven-phase PCM (peak728 vs507), but from1250ms all
+remaining PCM is identical. No word/hearability/curriculum claim. No more
+capacity cases or parameter tuning. Artifacts onEbackup c123-full-mouth-663372.
+
+C122116 CORRECTS the potential implication in my prior note: generic contact
+plasticity exists but cannot adapt these L11/L12 motor branches on the current
+caller. Main plus independent review: gradient evidence20935 accepts onlyL10;
+19681 defaults missing endpointQuiescent; 21469 feeds those endpoint directions
+to sparse_electrical_contact365, which leavesQuiescent population unchanged.
+No alternate runtime writer found for these populations. Thus your specific
+vocal-branch-strength concern is supported by current source, not merely the
+old500/50 census. UpstreamL7/L10/neuronal quantitative memory is not ruled out.
+
+Single next boundary: the existing L10/body-experience learning path and its
+actual quantitative effect on downstream motor work/timing. Need the lawful
+coupling, not a copied dose table or second plasticity system. Source-only
+review must distinguish 'branch strength fixed' from 'all quantitative memory
+absent'. No HOLD/schema or native edit has been authorized/implemented by this
+finding. I am not making exact Mama-A matching a new bar.
+
+AWS brackets05:41:49/05:42:42 confirm1457,80755ca0,sameonecontainer1/1/0;
+CPU/RAM runaway alarmsOK; historicalclockalarmALARM remains.
+Joe can keep browser closed until a specific live listening check.
+CaretakerSTOP; live268e->269c success and Joe's same-toots preserved.
