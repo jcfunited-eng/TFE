@@ -14,7 +14,8 @@ these tokens; no native change or32 rerun. Future newly emitted return identitie
 are NOT proved restart-equivalent by this no-new-motion consumption.
 MAX128 warm34549 PASS; cold15772 has the SAME exact physical/input equality
 PASS and the same two raw transaction aliases unequal. Both arms complete.
-Next: offline saved-receptor participation attribution; no guide reruns.
+Offline exact-receptor inspection and independent result review PASS (S122231).
+Next: release readiness for this feedback-only correction; no guide reruns.
 All earlier partial-source checkpoints below are historical. Do not rebuild.
 Browser CLOSED/caretaker STOP. Production1458 unchanged; speech NOT fixed.
 
@@ -21664,3 +21665,103 @@ the entire old neuron map and produced truncated243939token output instead of
 bounded receptor rows. Neither ran physics. Corrected with rg source discovery
 and selected eight saved-cell rows. These are repeat-class preflight/bounding
 failures, not organism defects; do not describe them as eliminated.
+
+
+### I122230 — offline receptor inspector frozen; no new native run
+
+C131 executable494ed1e2/native0388cacf unchanged; mature results committed and
+pushed6cdf449b. Shared top updated2a07ba22ec89a1204773cabdd2890192c22cf3b5,
+blobaaa77d627237a8fcac3a028f480ac424e6a2bd7a; readback matches. Actual C1 full
+candidate review remains requested; independent reviewer is not C1.
+
+Single offline file /tmp/guala-c131-feedback.N72UuO/inspect_position_receptors.py,
+SHA27a4b12a7fb5ae0164453ac7154e84495327d5928839bc650a8eabecf0589de1.
+Reuses original compare_saved_sections.py only Reader/sections functions,
+SHAf97015f54393e97fd1cc7c19995eb08ee56f09ff43c47f3f3ba797f0dd44925e.
+One source-only review requested before execution. It reads native-validated
+guide/consumed pairs from both doses, verifies identity/tick/bodySHA, follows
+GLORUN01/GLMFAB11 length fields and GLCOG046 sections, GLRCC09–11 neuron mount
+and state digest, then exact body terminal/position quantity. Requires8 unique
+receptors (axes37/38/39/44 directions0/1) with stable lineage/anatomy across the
+same guide/consume. GLNPS01–05 decode their actual header; GLNPS05 trailing
+zero is never reported as the receptor residue. Fractions remain exact.
+No production observer, native restore/advance, additional interval or lesson.
+Only one new diagnostic result written; saved pointers rechecked unchanged.
+Gate occupancy/residue and nonzero-supplied-work membership are reported as
+different facts, NOT cumulative delivered work or quantitative learned strength.
+Imported parser/schema assumptions reviewed against actual source before use.
+Independent reviewer's nonexistent content_digest_table.rs lookup was also
+corrected via rg to inline reached_neuron_cohort.rs; no execution/code effect.
+
+
+### S122231 — exact saved position-receptor participation measured, no lesson replay
+
+Inspector source review PASS, before/after frozen hashes unchanged. One offline
+run49270exit0, empty stderr. No native restore/advance; no live body mutation.
+Four existing guide/consumed paired states read once per dose/phase.
+Result /tmp/guala-c131-feedback.N72UuO/saved-position-receptors.json,
+SHA4d0237ef01127a86de463aee64fd1e7d62f4ac69a4b8bf5c78d0f6ebf3a63814.
+Bounded2320B summary saved separately. All eight exact endings found; neither
+cohort position nor a compatibility projection was used to identify them.
+Actual saved receptors happen to remainGLNPS01, but inspector correctly supports
+allcurrent01–05 layouts rather than silently assuming the oldcodec.
+
+All8 position receptor states/residues differ between dose32 and128 after
+complete feedback. In EACH consume, four MAX-direction endings37/1,38/1,39/1,
+44/1 are in native nonzero-supplied-gate-work evidence; four opposite endings
+are not. This is direct receptor-level input participation, not generic count.
+Every final opening count is0. Gate dissipation remains exactly its guide value:
+37/0=36,37/1=36,38/0=20,38/1=36,39/0=32,39/1=36,44/0=36,44/1=36.
+Do not conflate supplied work with accepted opening, firing, cumulative work,
+learned bond strength or speech. No existing recovery/threshold diagnosis is
+reopened from this final snapshot. Dose-dependent residues are NOT by themselves
+dose-dependent learned strength. Coupled selfhearing/primary/impulse inputs
+remain admitted; no passive-only work attribution is asserted.
+
+This preserves the full feedback repair's source/return/consumption/receptor
+participation success without inventing a speaking/learning pass.
+Independent bounded result interpretation requested; no new experiment.
+Pre/post readonlyAWS18:10:26.605515→18:10:49.551820UTC same1458/task/image
+HEALTHY1/1/0; combinedCPUmax48.557673%,RAMmax12.786865%; runaway/storage/refusal
+alarmsOK, clock-stalled ALARM remains. No cloud writes.
+Own Slack progress notification verified2026-09-12T18:09:57Z status=slack_sent,
+channel#general, for6cdf449b/shared2a07ba22 checkpoint; not goal completion.
+
+
+### S122232 — local C131 feedback boundary CLOSED; release readiness next
+
+Independent bounded result review PASS: actual trajectory capture, durable compact
+custody, exact full expansion, ordinary receptor input participation, and matched
+same-input warm/cold physical successors are all evidenced. No further C131
+feedback-only proof gap identified. This is LOCAL closure, not deployment approval
+or speech/learned-strength success. No source change/rebuild since494ed1e2.
+Do not reopen32/128 lessons, threshold/voice/breath/recovery or a broad word campaign.
+
+Durable evidence archive written ONCE, verified tar listing54members:
+ /mnt/tfebackup/guala-c118-four-posture.XehvEs/c129-strength-evidence.TnPp0A/c131-complete-feedback-evidence.tar.gz
+SHAcf8de98954976e1deca0a2b8688d4097ee50993d15540a70f5b22cff658b904a.
+Contains wheel, build/caller logs (including failures), both exact guide/consumed
+pairs and results, current offline inspector/helper, receptor evidence and
+scope/provenance manifest. Raw folder sizes11MiB each dose plus2.5MiB wheel.
+Existing archives/source body not deleted or overwritten. Source remains Git
+494ed1e2; canonical ledger is the sole living attempt record, not this archive.
+Archive manifest explicitly says LOCAL feedback, no learned-strength or speech.
+
+NEXT SINGLE stage remains R122210/S122212 release readiness. Required facts
+not silently declared done: actual C1 complete-candidate disposition requested;
+release-controller checks/native regression scope and newest authenticated
+production predecessor; immutable image and inside-image changed-path proof;
+one-way compact-record backup/cutover rules; live accepted/consumed return and
+existing read-only page evidence. No CodeBuild/ECR/task-definition/cloud writes.
+I122218 already maps final controls and pending/consumed producer to existing
+API; do not invent another observer. Intra-action trajectory animation is NOT
+available from final positions and must not be fabricated for the live page.
+This remains a backend feedback delivery, not an audible word or avatar claim.
+
+Read-only release source inspection: preflight verify_native_tests uses locked
+native manifest, named baseline-debt roster, and refuses new failures; no suite
+started or outcome inferred here. Release manifest includes both new native
+modules. A search incorrectly named absent scripts/ beside tools/; tools paths
+resolved. Earliest prevention: rg --files from verified root, then select actual
+paths; not guessed directories. This command fumble had no runtime effect.
+Browser closed/caretaker STOP. Production1458 unchanged. Full AE goal ACTIVE.
