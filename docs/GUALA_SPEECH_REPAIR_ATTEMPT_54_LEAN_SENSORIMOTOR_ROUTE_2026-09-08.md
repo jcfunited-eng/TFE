@@ -15283,3 +15283,112 @@ be sourced from actual retainedstate, not inferred from sound or hidden fixture
 guards. Installing1457 is machinery delivery; it has not yet live-closed D12240.
 After actual vocal ability, continue experiences/thought/memory/autonomy/movement,
 as Joe requested; no demand for conversation first. Full AE goal remainsACTIVE.
+
+### R-054-122-96 — bounded live reuse of root curriculum, before successor timing
+
+Previous goal turn delivered1457/UI; caretaker question rechecked actualSTOP/no
+process and coordinated C1 via sharedcommit6ca00f26. No speech code reopened.
+Joe opened camera/mic, observed no speech, then explicitly turned them off and
+left ListenON for this controlledcheck. Public662750 confirmsunattended/no
+external source/no selfpressure. This is observedquiet, NOT an unseen motor
+preparation census or evidence of understanding.
+
+External sender /tmp/guala-c123-live-root.py SHA
+f8580ef6361537f83ba05a0f2e05dfd93c75b9594ebcad122ea63452161914ab.
+Noorganismimports orstateedits. At mostTHREEordinaryPOSTs: twoexistingMINguides
+(phase0first8000PCMbytes/4000samples, axes37/38/39/44,1500carriers), then one
+sound-onlycue. Canonical32000bytePCM SHA
+d6835e370273ebf3e1593a60233096a5831f94d1da75cbb412e2f8c980c22f28.
+Between lessons at least32actual live ticks and observed8quietticks; autonomy
+continues, not replaced by test pause. Does not stop ordinary body/thought work.
+64tickcue-tail, max1200wallseconds/1500HTTPcalls, 128KiBresponse, max256native
+soundblocks retained externally. One-secondreads observe currentstate; noCPU
+spin orobserverinsidephysics. Readiness/custody waits cause no repeatedPOST.
+On refused/uncertainPOST preserve request,response andactualsuccessor; NEVER
+retrylesson automatically. Cachedobservation ambiguity is markedasambiguous,
+not zero nativegrowth. No root/learned/orderedclaim inferredfromPCMalone.
+
+DirectALB TLS hostmapping reusesrevieweddeploymenttransport. Source-to-output:
+exact external guide/cue -> existing OccurrenceBody -> _physical_occurrence ->
+actor.offer -> existing leanphysical/native fullfield/body/memory -> accepted
+state -> existing checkpoint -> publiccachedobservation and boundedPCMfeed.
+Physical machinery isunchanged80755ca0. FullDSF andoldlearning preserved.
+The sender's three own-eventticks are externalrequest attribution ONLY, never
+neworganismstate orauthority. Authoringlessoncontent isexternalteaching, not
+Guala'ssound. Independent source review precedesactual livePOST; not another
+copiedbody run/build/physiologytest. Itsresult willnameactuallearningevidence
+orwhat isunobserved, preservingallclosednative/image/successes.
+
+### S-054-122-97 — external live sender source review PASS
+
+One localized reviewbatch corrected strict tickorder/cursor insideaudiofeed
+and filtered postcueaudio byactualacceptedcuetick, nottimeoffetch. Finalscript
+SHA3512d12a257d54fe02e6bed0b894745914b57c43f47b7beaadf73d4e897fdec4
+verifiedbefore/afterfinalsource review; noarchitecturalfinding, noexecution.
+Sampledpublicacousticquiet isnot completeper-clock nativepreparation census.
+ThreePOSTmax, exactpriorlessonpayloads, norestoring/copy/nativeedit, noretry.
+04:08preAWS1457healthy1/1/0;CPUmax51.0109% RAMmax10.1197% in04:04–06window;
+runaway/refusalalarmsOK,historicalclockalarmunchanged. Joeconfirmedcamera/micoff,
+ListenON. Nextsameverifiedscriptoneactual livecheck; stdout/stderrexternalfile,
+boundedscalarprogressonly, preservefullrequest/reply/PCM externally.
+
+### S-054-122-98 — actual live sound delivered and heard by Joe; not speech
+
+Task 1457, unchanged image 80755ca0965635ded9baa02d9df60463f1a27fab057365a8a0f0d8d1341a0bc7.
+The reviewed external sender completed its three normal live POSTs:
+MIN guides at ticks 662808 and 662842, then sound-only cue at 662876.
+Each delivered 4000 external samples; guides each had four guided axes;
+the cue had zero guided axes. No actor pause, state replacement or native edit.
+Execution ended normally (session 6728 exit 0), 636 bounded HTTP calls.
+The feed supplied 34 exact PCM blocks at ticks 662878 through 662911:
+136000 samples, checked for hash and increasing order, with no feed gaps.
+Self-hearing of 4000 samples was observed on subsequent intervals.
+Output returned to acoustic silence. Final observed tick 662940, saved 662924.
+Joe independently confirmed: "I hear beep like toots in short bursts at
+varyinging volume." This closes audible laptop delivery for this live check;
+it does NOT close intelligibility, learned causal root recruitment, ordered
+two-posture recall, a word, or recognition. Public observations lack the
+per-motor causal joins required to claim those. Observed axis projections
+remained neutral; actual mouth movement is not claimed from these fields.
+Sampled acoustic quiet is not a complete native preparation census.
+
+Sender SHA 3512d12a257d54fe02e6bed0b894745914b57c43f47b7beaadf73d4e897fdec4.
+Full request/response/PCM log SHA
+491f4cf2aa2be1add4f1a045c0de139c70b9d8fd02460d188951138edfdd2fcb.
+Preserve this positive independently of the still-open speech acceptance.
+
+### S-054-122-99 — post-lesson saved live anatomy: complete MIN candidate, no MAX
+
+Read-only CURRENT export from the exact running task captured tick 662956,
+after the entire live lesson/cue/tail (not an unsaved or pre-lesson census).
+Identity 1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1 unchanged.
+Body 164817225 bytes, SHA
+628113a83aaa5964d617c1d4ecb756b14d86abc803f4cf1ae8208d928c53c07b.
+World 63571 bytes, SHA
+8025385bd55aeeda66559d3550f5c5eaa1bc1e38b211fbe4e7d2faab5b7c70fa.
+ZIP 3253286 bytes, SHA
+039fb9bb16d5d5f5df67f07ab84d65898f6ae57ca6415d3241d968181e25977f.
+S3 bucket guala-incident-bench-20260831, key
+guala/candidate123/20260912T041800Z-live-root-current.zip.
+Local original /tmp/guala-c123-live-root-current.RPXKZ5/current.zip.
+Capture log contains successful receipt and completed download; the known
+post-receipt SSM EOF is not recategorized as failed growth or failed capture.
+
+Single read-only cold census completed, process no longer running:
+2743 neurons, 16308 contacts; complete MIN candidate
+474c4e4c494e4531000000000000268e; no complete MAX candidates or candidate edges.
+Zero native advances and zero state edits; peak RSS 911828 KiB on one CPU.
+This is structural presence on saved live state, not proof these lessons
+created it or that it caused the observed output. No pre-lesson anatomy
+difference was measured in this check.
+Normal host native binary SHA 5fc6b612daffc1fcc862c3b8261b3d913c198888e8b64e84e50505093777210f
+uses the release native source, not the image's differently compiled binary.
+Census script SHA 744b8a5c155812728c2cf9027ce44c1a2ef163f26ababa4b6a1cca28c8e51330.
+Census log SHA 5fee960764cda8f72d89c84ce3c5966c0b8037f715ea29cbf02ad535be8b3f1e.
+All scripts, logs and exported pair archived under
+/mnt/tfebackup/guala-c118-four-posture.XehvEs/c123-live-audible.pwvOJ8/.
+
+D-054-122-40 remains OPEN: next item is the existing successor-posture
+lesson through ordinary live ingress with measured physical-return timing.
+No third/fourth-posture scope, new native law, rebuild or copied-state import.
+Caretaker remains STOP; Joe's camera/mic are temporarily off, Listen on.
