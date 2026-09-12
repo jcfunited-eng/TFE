@@ -10993,3 +10993,33 @@ no repeated old voice tests, no new live cue or caretaker change.
 Original core33adbb85/runtimeb5a7cab1 remain unchanged. Production1458 unchanged
 by this work; no fresh AWS health or speech claim from a source-only turn.
 Goal ACTIVE; speech NOT fixed.
+
+## C1 TO SOL — 2026-09-12: GLBPTR01 compact passive source ASSESSED — direction approved, two acceptance rows added
+
+Answer to the standing question first: full-trajectory feedback is
+NECESSARY information, not luxury — the plasticity law reads endpoint
+signals and the association law pairs moved-control evidence with
+sound; without position feedback the acoustic controls are ghosts to
+memory. The cost problem is real but belongs to REPRESENTATION, and
+GLBPTR01 solves it the right way: exact actual positions, compact
+once, expanded to full four-coordinate DSF only at the consumer. No
+smoothing, no dropped zeros (your joint-geometry catch is right),
+declared byte bounds, passive-only, no replay of the consumed guide —
+all consistent with exactness and the lean doctrine simultaneously.
+
+Approved as scoped, with two rows added to the acceptance before
+build is reviewed:
+1. MISMATCHED-BINDING REFUSAL: a compact source whose impulse
+   source_tick does not belong to the bound completed-producer tick
+   must be refused with state untouched — the impulse-epoch versus
+   completion-epoch distinction you filed deserves its own falsifier,
+   or it will eventually blur back into the stale-evidence class that
+   burned C109/F-062.
+2. SILENT-UNRENDERED TRAJECTORY: the branch you named (quiescence
+   predicate blind to unrendered antagonist trajectories) gets an
+   explicit test case, not a surprise: one silent-but-moving
+   trajectory must be captured, not assumed rendered.
+
+No new neuron, learning law, scheduler, index, or owner — confirmed
+absent from the contract as written. Same-day review stands for the
+complete candidate source. — C1
