@@ -21,13 +21,16 @@ so live speech acceptance remains open. This paragraph records the Candidate110
 deployment, not the current repair state. Any earlier “speech complete” wording
 is historical and retracted.
 
-Current repair status, 2026-09-12 03:38 UTC: production is STOPPED during cutover
-recovery; speech is NOT fixed in production. Source task1456/C110 exited cleanly
-after successful final application shutdown. Service1456 is0/0/0. Proven candidate
-image80755ca0 is published and task1457 registered but not started.
-The controller falsely refused CloudWatch pagination. F12290/R12291 govern the
-narrow release-control recovery; do not rebuild or reopen the passed speech work.
-Full AE goal ACTIVE; caretakerSTOP and browserclosed unchanged.
+CURRENT production status, 2026-09-12 04:00 UTC: task1457 RUNNING/HEALTHY,
+service1/1/0, image80755ca0/source5e327afb. Exact newtask41d3db93f2ef49d7a06b61a0bea7dba1.
+Release-control outage RECOVERED by controller45d3ceb0; same tested image,
+no rebuild or second registration. Actual final predecessor662508 restored;
+public live tick662599 and persisted662572 observed, identity preserved.
+Repaired listening UI published, public hashes and actualChromium controls PASS.
+LIVE LEARNED TWO-POSTURE VOCAL ACCEPTANCE REMAINS OPEN. Feed empty during
+read-only browser verification; no actual audible output claimed. No live
+lessons sent in this cutover. CaretakerSTOP/browserclosed. Full AE goal ACTIVE.
+Do not reopen image/native successes or mistake installation for speech proof.
 
 CURRENT DELIVERY ITEM D-054-122-40: incremental TWO-POSTURE live delivery.
 Joe confirmed: deliver functioning vocal ability now; do not hold it for a
@@ -69,8 +72,8 @@ task termination in both normal and failed cutover, including unselected startup
 Latest backup661388 -> migration -> exact cold-next661389 -> cold-next661390
 PASSED S12283 using ordinary native5fc6b612 and the startup-only receipt.
 D12273 package/image/rehearsal/dry run PASSED; first cutover failed at log pagination.
-NEXT R12291: explicit same-image/task1457 resume, then public/live vocal acceptance.
-No new speech mechanism.
+R12291 resume and public browser checks now PASS (S12293/94).
+NEXT R12295: normal live vocal teaching/response evidence; no new speech mechanism.
 
 Recovery backup661388 is hash-verified and archived; it is not normal cutover
 input. Candidate restores final live CURRENT after old shutdown, never a taught
@@ -15207,3 +15210,76 @@ a16b1431d528aea4e9f5c35eebb3c56847d07c0c; Slack recovery notice verified03:50:23
 Live read03:50: candidate1457 ACTIVE with exact80755ca0 digest and4CPU16GiB.
 Source service still1456 at0/0/0. Image revision5e327afb stays unchanged;
 only controller/tests/this ledger differ. Next commit then explicit resume.
+
+### S-054-122-93 — actual same-image resume restored production, no new candidate
+
+Resume started2026-09-12T03:52:56Z, session48384exit0, controller45d3ceb0c16dbc4912c2509aba5fa68bfab59ce7.
+Command: bash tools/deploy_dsf_ai.sh --resume-cutover
+sha256:80755ca0965635ded9baa02d9df60463f1a27fab057365a8a0f0d8d1341a0bc7
+/tmp/guala-c123-cutover-backup.gE8MMZ/current.zip /tmp/guala-c123-cutover.log
+arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1457.
+One image5e327afb, one registered1457 reused; no oldimage restart, no learnedcopy import.
+Source stopped03:35:31Z; candidate started03:54:47.451Z; continuity-health
+verified by03:56UTC. All first-failure and recovery time counts as release time.
+Current exacttask41d3db93f2ef49d7a06b61a0bea7dba1, healthy1/1/0.
+
+Candidate receipt proves ACTUAL final EFS CURRENT:
+tick662508, body164312003bytes SHA2e1ac8cf0f523546d009a2299faee54a380163fd69aa27440fb6db512fb04753;
+world63527bytes SHA8c5264c169d50aff167ab8908b55caefe5cecf6bf2f065c5f5d4ecb3e0aebaa5.
+Identity1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1. Controller observed662519;
+public662535 then662599, saved662572; no checkpoint/cleanup errors.
+This is CURRENT continuity, not backup661388 and not prior plan lowerbound662482.
+ECR production-current pinned to actual80755ca0. Behavioral acceptance pending.
+Resume logSHA1afa29ad5204c77ff6f523622a27a188ac525c5c3456535461ccbb2d432ca62d
+retained under /mnt/tfebackup/guala-c118-four-posture.XehvEs/c123-resume-cutover.log.
+Shared recovery result5b3ab76386dc53c2d0b1f8afa12c3112c1d52149.
+
+### S-054-122-94 — repaired public listening page and real browser controls PASS
+
+Published only reviewed gualaloom.html to dsf-ai-site, no-cache, source5e327afb.
+Previous live29934bytepage retained c123-ui-before-cutover.html in durablearchive.
+CloudFront invalidationIBVZ1IBSJ6DTEPDESW65SARGOV completed.
+PublicGuala SHA8faa6ba2a754b067e70f53425014666f1279b55a49c25375d82144558e8b40d7.
+UnchangedpublicLoom SHA6d33dc09502012e05d24d95e85b3616c9915828b06263a86eabe27374559ef57.
+ActualChromium session97648exit0: bothHTTP200/hashesmatch, complementarylinks,
+Listen contextRUNNING,5realpressureGETs, cleanStop,0pageerrors,12GETtotal,
+ZEROphysicalwrites/camera/microphone/tutor. Feedvalid butEMPTY; no soundplayed,
+no Joe laptop hearing claim. ScreenshotSHA
+5e5d6e86bd21014282cb83b3bff5dce7490e05ee61af7eb1b2fbc64315d95e81.
+Public https://dsf-ai.com/gualaloom.html and https://dsf-ai.com/loomscan.html.
+
+03:56–58 matching1457window CPUmax47.0489% of4CPU;RAMmax10.5042% of16GiB;
+runawayCPU/RAM/EFS/refusalloopalarmsOK. HistoricalSep8clock-stalled stillALARM,
+not silently cleared. Shortwindow does not prove lifetimegrowth absence or
+nativeinterval speed. Recurrentcheckpoint662572 demonstrates livecustody.
+Disposed ONLY completedproofcontainerc2a860a0 (verifiedsleep-only) and temporary
+guala-c123-release builder4c0b025f. Proofpairs/logs preserved before deletion;
+published image unchanged, no unrelatedDocker/TFEresource touched.
+Tool-only repeatedfilenamefumble: guessed lean_observation.py absent; rg resolved
+ActorObservation in lean_actor.py. No tests/code/state affected. RF024/063 still
+apply; do not treat the read error as organism failure.
+
+### R-054-122-95 — next live vocal boundary; same D12240, no physiology reopening
+
+Known reusable root curriculum is /tmp/guala-c123-release-root.py:
+two phase0MIN guides,4000samples,axes37/38/39/44,1500carriers,32ordinaryintervals
+between guides. Successor scripts release-edge/release-second apply phase1MAX
+after measured rootcompletion. Preserve exact PCM source/hash and lesson evidence.
+
+Review identified an evidence distinction, NOT a failed speech law:
+copied successor observer reads exact L11/motor provenance and checks expected
+predecessor inside actor thread. Public occurrence currently returns cached
+ActorObservation; last_occurrence contains native_tick, native bodyaxes, actual
+sound, consumed/pending physicalreturnticks and causaltransitionSHA, but not
+the observer's full per-motor causal joins. A delayed response must not be
+mistaken for failed learning or exact timing. No fake route/response, no copied
+learned state, no automatic lesson retry on ambiguous HTTP failure, no new
+speech physics or third/fourthposture campaign.
+
+Single next item is normal live teaching/response using the proven input path
+and actual accepted timing, preserving successes and distinguishing missing
+observation from absent physical growth. Any required additional evidence must
+be sourced from actual retainedstate, not inferred from sound or hidden fixture
+guards. Installing1457 is machinery delivery; it has not yet live-closed D12240.
+After actual vocal ability, continue experiences/thought/memory/autonomy/movement,
+as Joe requested; no demand for conversation first. Full AE goal remainsACTIVE.
