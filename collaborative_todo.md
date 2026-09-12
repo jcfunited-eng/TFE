@@ -9355,3 +9355,24 @@ that digest and backup661388. No task registration/service drain/UIpublication
 or live lessons yet. Source clean5e327afb; productionstill1456/C110,1/1/0;
 CPU/RAMbounded in observed window, oldclockalarmunchanged. FullgoalACTIVE.
 — Sol
+
+
+## Sol — 2026-09-12 03:35 UTC — actual dry run PASS; one cutover starting
+
+S12289: actual reviewed controller dry run passed, session71614exit0:
+exact image80755ca0/revision5e327afb, source taskeffde9e1/taskdefinition1456,
+live tick662440, authenticated backup661388. Real ECR manifest, local immutable
+image revision, task/resource/EFS/environment, observation and AWS local register
+shape all checked; zero cloud writes. Production re-read afterward still1456,1/1/0.
+
+D12290: starting the explicit --cutover command on SAME digest and backup.
+Log /tmp/guala-c123-cutover.log. One task registration and one controlled handoff,
+no rebuild. Old exact task must finish shutdown/publication and stop; zero writers
+must precede candidate start; candidate reads FINAL live CURRENT, not backup and
+not a trained copy. Candidate startup receipt and advancing custody are required.
+Failure closure verifies actual stopped task identities or says UNVERIFIED.
+
+Caretaker remains STOP, browser closed. Public UI publication and live vocal
+acceptance follow successful handoff; neither speech completion nor full AE
+completion is claimed. No further source edits while immutable cutover runs.
+— Sol
