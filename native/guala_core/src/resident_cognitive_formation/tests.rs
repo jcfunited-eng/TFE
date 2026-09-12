@@ -10763,3 +10763,21 @@ fn v19_recipient_only_frontier_cannot_cross_current_topology_boundary() {
     assert_eq!(cold.encode(16_000_000).unwrap(), current);
     assert!(cold.active_electrical_frontier.is_empty());
 }
+
+#[test]
+fn contact_gradient_direction_preserves_both_physical_motion_sources() {
+    for (motion, scheduled_return, expected) in [
+        (None, false, LocalGradientDirection::Quiescent),
+        (None, true, LocalGradientDirection::PassiveReturn),
+        (Some((false, false)), false, LocalGradientDirection::Quiescent),
+        (Some((false, false)), true, LocalGradientDirection::PassiveReturn),
+        (Some((true, false)), false, LocalGradientDirection::ActivePump),
+        (Some((true, false)), true, LocalGradientDirection::Quiescent),
+        (Some((false, true)), false, LocalGradientDirection::PassiveReturn),
+        (Some((false, true)), true, LocalGradientDirection::PassiveReturn),
+        (Some((true, true)), false, LocalGradientDirection::Quiescent),
+        (Some((true, true)), true, LocalGradientDirection::Quiescent),
+    ] {
+        assert_eq!(local_gradient_direction(motion, scheduled_return), expected);
+    }
+}

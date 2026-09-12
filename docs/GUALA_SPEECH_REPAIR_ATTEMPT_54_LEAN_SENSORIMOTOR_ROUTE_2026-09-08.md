@@ -16220,3 +16220,247 @@ law boundary before a learned-mechanism change. The full-mouth check is now
 closed as capacity evidence; do not repeat it or treat different PCM as speech.
 No native correction is yet derived/authorized by this source finding alone.
 Full goal ACTIVE/incomplete; D12240 remains open at its functional live bar.
+
+### R-054-122-117 — Candidate124: restore the ratified endpoint-direction input
+
+Continues D12240; previous turn PROGRESS via S122115 capacity evidence and
+C122116 source applicability correction. Full AE goal remains unchanged.
+Source baseline f91252ed; production remains1457/80755ca0 (not a new cutover).
+
+Architecture gate: requested learned body-owned quantitative movement within
+full-field cognition; current contact law receives directions only fromL10
+despite exact per-neuron physical pump/return signals already being available.
+Conflict YES with ratified A0116 item5's endpoint-local law. Do not extend
+legacy shell, C100 dead reservation/offer path, word/pose/dose tables, a
+founding-event strength rule, L0-L4, body constants, codec or guide HOLD.
+Single correction: replace the layer-filtered contact direction input with
+each reached endpoint's actual same-interval physical pump/return direction.
+No DSF approximation; full fields remain unchanged.
+
+Authority: GUALA_A0116_SINGLE_RATIFICATION_DECISION_2026-08-15.md, approved
+by Joe, explicitly uses actual endpoint uphill pumping/passive downhill return.
+No layer10 restriction is present. The contact's OWN exact released work funds
+channel transitions; endpoint motion supplies direction only, never work.
+Both/missing directions remainquiescent; opposite endpoints tie unchanged.
+General reached-contact input repair is lawful; a vocal-only semantic override
+would not be. Keep separate L10 convergent gate/plasticity/affective paths.
+
+Complete bounded value-flow:
+prepare_reached_cohort_membrane_pumps (reached_neuron_cohort) -> exact
+LocalizedFluidChemistrySettlement[neuron_index,pumped_elementary_charges,
+returned_elementary_charges] -> applied same-cohort successor -> temporary
+sparse endpoint-direction view keyed by stable lineage -> existing
+settle_contact_local_conductance for each compact reached contact ->
+successor channel population/proper work phase -> existing fabric replacement
+and changed-contact observation -> ordinary native body/runtime transition ->
+unchanged Python paired-current seal/persistence -> existing codec/cold restore.
+Seed membership controls actual pumping; selecting a contact endpoint does NOT
+invent pump activity. Layer13's isolated metabolism gains no fabricated contact.
+Physical source records are read BEFORE the late observer truncates them.
+
+Frozen implementation files: resident_cognitive_formation.rs and its existing
+tests.rs only. One ephemeral enum per actually changed pump endpoint; no new
+persistent field, lineage, anatomy, contact, reservoir, owner, timer or caller.
+Replace the current per-contact linear search through L10 observations with
+exact sparse endpoint lookup; work scales with reached pump endpoints/contacts,
+not lifetime population. Existing physical state and mutation transaction remain
+unchanged except the lawfully affected contact successors and their subsequent
+consequences. Failures stay within the existing prepared/disposable transition;
+no new publication or rollback branch and no migration is introduced.
+
+Important audit correction BEFORE implementation:
+reviewer/main initially treated reserved_by_source's missing read as a live
+conservation defect. Full consumer trace REFUTES that conclusion:
+preplastic_vocal_work_offers itself is write-only; its true reservation flag
+never reaches the actual learned_motor_work_offers map. The consumed map's sole
+producer is false and its existing debit subtracts consumed source heat.
+Actual vocal continuation23230 likewise reads post-plastic exported heat and
+23290 subtracts accepted work. Do NOT repair/reactivate C100's dead reservation.
+Record this as a false-positive review inference, not an organism failure.
+The obsolete preplastic scans/maps are real waste but have fallible topology
+checks; deleting their side effects requires a separately bounded closure.
+Their existence is not an excuse to extend them.
+
+Acceptance plan for this correction (not a claim of speech):
+1. Source-only frozen review of exact producer/consumer, no same-interval use
+   of successor conductance, locality/zero/tie/conservation, and codec closure.
+2. One focused input-mapping test: exact active/passive/absent/tied physical
+   inputs, no layer privilege. Existing channel-law proofs remain prerequisites,
+   not a new broad test campaign.
+3. One authenticated saved-production-body runtime proof with normal inputs:
+   capture existing contact-channel before/after and native action/pressure,
+   preserve uncued baseline and cold continuation, show changed channels only
+   where the exact newly connected endpoint law applies. No copy imports tolive.
+   Current normal native API already exposes contact-channel state, motor work,
+   pressure and per-interval physical evidence; do not add diagnostic API.
+   Full input/clock/native-binary identity must be checked before this run.
+4. Deployment remains unapproved until actual copied runtime behavior and
+   existing speech invariants are measured; changed channel counts alone are
+   insufficient. Timing, breath, self-hearing, clean stop and human-readable
+   outcome retain their existing evidence bars. No exact Mama-A waveform bar.
+
+This correction may change post-plastic heat available to later continuation.
+That is a predicted consequence of conserving work, not permission to bypass
+the contact law, invent more energy, weaken cue/echo refusal or tune thresholds.
+Demonstration-dependent strength/timing and recognizable speech remain OPEN.
+
+### R-054-122-118 — C124 acceptance clarification and implementation freeze
+
+Joe relayed C1's three proposed acceptance conditions. Routing-only/no-new-law
+is accepted. Reservation repair is NOT included: R117's complete consumer trace
+retracted the claimed live defect; reconnecting its unused map would revive
+the retired C100 route. Conservation remains required on the ACTUAL consumed
+contact/motor/continuation paths, not on a fabricated reserved/released path.
+
+Demonstration-specific strength evidence must compare different declared drives
+from the same authenticated initial body against a matched no-demonstration
+trajectory. "Every control bond untouched" is not a lawful universal condition:
+ordinary internal pumping, recovery and retained experience can change contacts
+without an external demonstration. Controls isolate the demonstration's causal
+effect; they must not disable legitimate ongoing cognition. This clarification
+was sent to Joe; C1's agreement is not claimed. A changed Nopen count alone is
+not speech or proof of learned strength/duration.
+
+Implementation replaces the L10-only direction search with a transient sparse
+stable-lineage map populated from exact LocalizedFluidChemistrySettlement
+pump/return counts before observer truncation. Existing L10-specific observers
+remain unchanged. Both nonzero counts still mean Quiescent; magnitude does not
+break a tie. Only actual physical participants enter the map. The generic
+contact settlement and its work/phase accounting remain unchanged.
+Supporting test name:
+resident_cognitive_formation::tests::contact_gradient_direction_uses_exact_endpoint_motion_not_layer_role.
+No compilation, execution, packaging or production change at this checkpoint.
+
+Editing-tool lesson: a one-megabyte source read silently omitted interior text
+despite a high requested token allowance. Comparing two identically truncated
+reads did not detect that. Full-file replacement correctly refused and changed
+nothing. Recovery read the source in bounded 2000-line pieces, checked its
+25214-line extent, and the resulting git diff is only the intended 46-line
+hunk set (23 additions/23 removals), plus the 16-line supporting test. For these
+large files use bounded reads and verify full extent before replacement; catch
+tool errors without printing an entire monolith. This was a tooling failure,
+not a substrate result. No test or deployment was repeated because of it.
+
+### F-054-122-119 — C124 rejected before compile: omitted scheduled return input
+
+Source-only reviewer verified frozen199cea2e4bb0c3cde2b3ac16d85c2738bb6be2a29d7d2fe7d64ae98da40604f7
+before/after. Architectural rejection: the proposed map omitted successful
+scheduled passive membrane returns. Core20386 settles the return;20435 applies
+transport after thermal deposit acceptance;20441 records its exact lineage.
+That producer does not run the pump, while the same contact may be selected
+by its own due event or the other endpoint. Treating it as Quiescent loses
+real return; treating a later pump alone as ActivePump loses opposing motion.
+
+No compile, mature-body run, packaging or deploy occurred. Rejected source/test
+diff archived /tmp/guala-c124-review-rejection.7S4GJE/c124.patch,
+SHA2568044281f479211d524aba5bbbf8e369c070441daaca3ff96f7976cfbdd3070d9.
+Executable files restored exactly to f91252ed. This is an implementation
+preflight failure, not evidence against the approved plasticity law or against
+the preserved live two-posture anatomy. Do not resubmit the incomplete map.
+Also record two harmless lookup errors during caller preflight: guessed
+native_resident_organism_runtime.rs (actual organism_runtime.rs) and python*
+(no matching source files). Use recursive symbol search, not invented paths.
+
+### R-054-122-120 — C125 complete pre-contact endpoint-motion contract
+
+Continues the SAME D12240 input-routing correction; predecessor S122115 capacity
+check remains closed. Architecture gate and exclusions from R117 remain:
+full DSF unchanged, no new strength law/persistent state/energy/anatomy/guide,
+no C100 revival, no change to body timing, and no silent new speech bar.
+
+Main and independent CONTRACT review traced both active gradient producers
+before contact plasticity; no third active producer found. Original source
+settlement13173 explicitly sets metabolic default and defers local electrical
+settlement to coupled frontier; retired whole-cohort dark rest is not active.
+Later motor/respiratory discharge22755/23393 occurs AFTER contact plasticity,
+so is not retroactively fed into this input or mistaken for active pumping.
+
+C125 routes the exact sparse per-neuron metabolic (pump-present, return-present)
+pair, PLUS the already retained-in-this-call sorted successful passive-return
+lineage list. For each existing selected contact endpoint:
+pump = its physical metabolic pumped count !=0;
+return = its physical metabolic returned count !=0 OR its successful scheduled
+return in this settlement. Missing contributions are absent, never invented.
+Preserve both flags independently: pump+return remains the existing Quiescent
+opposition; no greater-count winner. No flags survive the transition.
+
+The scheduler's elapsed span accumulates phase, but its successful return
+commits one whole carrier at this settlement, resets phase, and conserves
+carriers/work. Read that successful event once, not fractional progress,
+refused thermal deposit, or historical replay across skipped clocks. Contact
+directions apply only to selected CURRENT transitions; sleeping-span heat is
+added afterward by the existing law, not retroactively converted to plasticity.
+No extra wake, seed, contact or persistent direction history is introduced.
+
+All other R117 transaction, conservation, next-interval conductance, ordinary
+native observation, codec, cold-restore and bounded-runtime acceptance paths
+remain. Temporary routing space is O(actual pump/return participants), contact
+lookup O(log participants) plus binary search of the existing returned list.
+The supporting test must cover absent/pump/return/mixed metabolic evidence with
+both scheduled-return states; critically pump+scheduled-return => Quiescent.
+This repairs input completeness; demonstration-dependent strength and human
+recognizable speech are still unproved, not promised by source review.
+
+### S-054-122-121 — C125 source review PASS; focused execution authorized
+
+Independent reviewer verified f6941426d8044f5dc14094b046c784c3a706cfd782576e09b47b7738ea9f89ff
+before/after. No localized or architectural finding. Confirmed both actual
+producers, exact unique-lineage routing, sorted return-list lookup, opposition,
+unchanged L10 consumers, current contact work, next-interval conductance,
+sleeping spans, transaction/codec and disconnected retired reservation path.
+
+Translation evidence map for the bounded correction:
+successful per-neuron membrane transport -> transient exact endpoint-motion
+routing -> existing contact's conducting_channel_population/transition_work_phase
+-> unchanged electrical-fabric state and codec -> ordinary
+observe_reached_contact_channel_states -> organism_runtime PyO3 getter returns
+(left,right,parallel,population,phase numerator/denominator,conductance numerator/
+denominator). No required contact state field is lost. Observer is read-only;
+it is NOT cognition, semantic learning or a live UI speech claim.
+The full per-endpoint input view remains source-level evidence, not an existing
+public telemetry stream; the final localized_fluid_chemistry observation is
+truncated and MUST NOT be treated as all participating endpoints.
+
+Supporting execution is only the exact named test
+resident_cognitive_formation::tests::contact_gradient_direction_preserves_both_physical_motion_sources.
+It proves the ten routing combinations, not demonstration-dependent adaptation,
+mature-body safety, word quality, or authorization to deploy. The prior C124
+test never ran and is not retained.
+
+Read-only AWS envelope at06:09:59Z: task1457/same80755ca0,1 desired/1 running/0
+pending, same task ARN. Latest available06:06-06:08CPU max44.8177%, RAMmax11.9141%.
+Runaway/storage/refusal alarmsOK; historical clock-stalled alarmALARM unchanged.
+No production changes. This receipt append changes documentation only after
+the completed frozen source review.
+
+### S-054-122-122 — C125 focused input-routing check PASS, local only
+
+Source-only review S122121 remained the compile gate. One bounded one-CPU/nice15
+cargo test --locked --manifest-path native/guala_core/Cargo.toml --lib --no-run
+-j1 completed in22.02s, session11757 exit0,99 inherited warnings,
+log /tmp/guala-c125-focused-build.log. No automatic cargo fixes were applied.
+
+Resolved the exact test name from the built binary's --list before executing:
+resident_cognitive_formation::tests::contact_gradient_direction_preserves_both_physical_motion_sources.
+Result: literal1 passed,0failed,622filtered,0.00s,exit0. This covers the ten
+actual motion-input combinations only, including pump+scheduled-return
+opposition. No full-body run, learning claim or deployment is implied.
+
+Built test binary guala_core-7cd36301111f54ab SHA256
+e458979377d2b4007a8caa37c477fcb1e4e54ab990db6418bb7f7af34bbb771a.
+Reviewed core SHA256f8019d0edb3c04d5418f2651fd7440bbdd19f15dd7706c9222f7141835a42982;
+tests SHA256a7a2eaf9671064866e7d74586131c505a51e26c6cec93120b58c090ae625f463.
+Production source changes total23added/19removed lines; no persistent schema.
+
+Post-check AWS06:11:29Z confirms same1457/80755ca0/one task1-1-0. Latest
+available06:07-06:09CPUmax53.4972%,RAMmax11.9141%; runaway/storage/refusal
+alarmsOK, historical clock-stalled ALARM still present. No live writes or
+caretaker/browser dependency, no lingering compile process.
+
+Single next item: authenticated saved663372 normal-runtime applicability and
+demonstration/control evidence with the candidate's isolated ordinary native
+module. Existing sound-only cue/guide formats, per-interval causal evidence and
+contact-state getter are reused; no generic reservoir probe or diagnostic API.
+Before execution freeze the caller's precise input/clock/binary/stop and
+warm/cold comparison boundaries. Do not claim that helper success establishes
+demonstration-dependent strength, duration, or intelligible speech.

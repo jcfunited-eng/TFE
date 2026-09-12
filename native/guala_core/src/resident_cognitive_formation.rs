@@ -19679,22 +19679,15 @@ struct ReachedLayerTenGradientSettlement {
 }
 
 fn local_gradient_direction(
-    settlements: &[ReachedLayerTenGradientSettlement],
-    lineage: [u8; 16],
+    metabolic_motion: Option<(bool, bool)>,
+    passive_return_settled: bool,
 ) -> LocalGradientDirection {
-    settlements
-        .iter()
-        .find(|settlement| settlement.neuron_lineage == lineage)
-        .map_or(LocalGradientDirection::Quiescent, |settlement| {
-            match (
-                settlement.metabolic.pumped_elementary_charges != 0,
-                settlement.metabolic.returned_elementary_charges != 0,
-            ) {
-                (true, false) => LocalGradientDirection::ActivePump,
-                (false, true) => LocalGradientDirection::PassiveReturn,
-                (false, false) | (true, true) => LocalGradientDirection::Quiescent,
-            }
-        })
+    let (pumped, returned) = metabolic_motion.unwrap_or((false, false));
+    match (pumped, returned || passive_return_settled) {
+        (true, false) => LocalGradientDirection::ActivePump,
+        (false, true) => LocalGradientDirection::PassiveReturn,
+        (false, false) | (true, true) => LocalGradientDirection::Quiescent,
+    }
 }
 
 /// Return the exact physical transfers that can prepare one mounted motor.
@@ -20910,6 +20903,7 @@ fn settle_internal_contact_interval_with_body_act(
 
     let mut metabolically_perturbed_body_receptor_lineages = Vec::new();
     let mut reached_layer_ten_gradient_settlements = Vec::new();
+    let mut endpoint_gradient_motion = BTreeMap::new();
     let mut localized_fluid_chemistry = Vec::new();
     for (cohort_index, reached_indices, prepared) in prepared_cohort_pumps {
         let reached_predecessors = selected_predecessor_neurons
@@ -20964,6 +20958,10 @@ fn settle_internal_contact_interval_with_body_act(
                 pumped_elementary_charges,
                 membrane_gradient_work_zeptojoules,
             } = settlement;
+            endpoint_gradient_motion.insert(
+                cohorts[cohort_index].anatomy.neuron_lineages()[neuron_index],
+                (pumped_elementary_charges != 0, returned_elementary_charges != 0),
+            );
             localized_fluid_chemistry.push(LocalizedFluidChemistryObservation {
                 cognitive_ordinal,
                 neuron_lineage: cohorts[cohort_index].anatomy.neuron_lineages()[neuron_index],
@@ -21465,13 +21463,19 @@ fn settle_internal_contact_interval_with_body_act(
         .zip(settled.transitions.iter().cloned())
         .zip(compact_edge_flat_endpoints.iter().copied())
     {
+        let left_lineage = flat_locations[left_flat].2;
+        let right_lineage = flat_locations[right_flat].2;
         let left_direction = local_gradient_direction(
-            &reached_layer_ten_gradient_settlements,
-            flat_locations[left_flat].2,
+            endpoint_gradient_motion.get(&left_lineage).copied(),
+            passive_membrane_returned_neuron_lineages
+                .binary_search(&left_lineage)
+                .is_ok(),
         );
         let right_direction = local_gradient_direction(
-            &reached_layer_ten_gradient_settlements,
-            flat_locations[right_flat].2,
+            endpoint_gradient_motion.get(&right_lineage).copied(),
+            passive_membrane_returned_neuron_lineages
+                .binary_search(&right_lineage)
+                .is_ok(),
         );
         let transition =
             settle_contact_local_conductance(contact, transition, left_direction, right_direction)
