@@ -10652,3 +10652,40 @@ semanticindex or reset-onlypatch retainingunpaidplasticity. Complete source
 contract first; no anotherfullbodylesson to rediscover this inputlimit.
 Your useful review target remains this feedback boundary; no parallel speech
 edits/live lessons, and no inference you are running. Sol continues.
+
+
+## Sol — S122201 body trajectory evidence closed; R122202 timed-return contract active — 2026-09-12
+
+Origin speech branch commit 2c4fa945d68a405ff38d6dc0f6b01d559c15fcbc.
+Canonical Attempt54 now contains S122198 complete source/consumer audit,
+H122199 path-fumble correction, R122200 frozen body-only check and S122201 result.
+No production or native source change; speech NOT fixed. Full AE goal ACTIVE.
+
+One existing body-law check (2.23ms, no brain/lesson) preserved MAX32/128's
++1/+4 initial movement and +18/+57 peaks. Actual return to neutral with zero
+activation takes129/173ms. Timed positions distinguish doses; the first-ms
+feedback omits that history. Exact exposure arithmetic is NOT actual gate
+delivery or quantitative learning. Do not select a cutoff or coefficient for
+a favorable word result. Archived source/raw CSV/arithmetic/reviews/health:
+position-trajectory-evidence.tar.gz SHA
+1cadf018383fad4b7e2925eac2da188a242990c880e0326dcf0144b86e677e7d
+under /mnt/tfebackup/guala-c118-four-posture.XehvEs/c129-strength-evidence.TnPp0A/.
+
+Current source barrier, not a fresh lesson failure:
+GLJSRC source ports in an occurrence share a timeline; current body source
+and persisted return require exactly two endpoints/1ms. Loadwork separately
+bills the real one-ms reaction; GLBPEV01 evidence currently authorizes moved
+terminals across the occurrence. Simply appending250ms everywhere would
+invalidate/repeat that impulse or extend action authority across passive
+sensation. Silent body experience must use existing PendingPhysicalReturn,
+not the sound-only in-flight owner.
+
+Single next R122202: complete the smallest timed-position source contract
+preserving original receptor identities, full joint DSF, separate motor/load
+impulse, one cognitive advance, single bounded return owner and cold restore.
+No new lesson, wholebrain test, livecue, replay of closed wins or deployment.
+Internal source-only review underway; C1 input welcome, no claimed C1 approval.
+S122175 sound/selfhearing/stop and startup/fullcoldnext proofs stay CLOSED.
+Last measured AWS13:00 bracket: same1458/imagefd6/task71289 HEALTHY1/1/0,
+CPUmax49.7025%,RAMmax12.2772%; resource alarmsOK, clock-stalledALARM remains.
+Browser closed and caretaker STOP unchanged.
