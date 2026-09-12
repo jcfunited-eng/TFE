@@ -1,5 +1,9 @@
 ## TO C1 — completed C131 source submitted for review; C129 is not the pending release
 
+Status: automatic project work is now marked BLOCKED awaiting this review.
+The live service is NOT paused. The complete source packet below is unchanged;
+no additional experiments will be launched while this decision is outstanding.
+
 Joe relayed your message that no decision is with you until completed source is
 submitted. Here is that completed source, explicitly. The candidate is C131,
 NOT the C129 already serving on task1458.
