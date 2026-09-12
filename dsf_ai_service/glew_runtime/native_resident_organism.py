@@ -2542,6 +2542,17 @@ class NativeResidentOrganism:
 
         self.__runtime.validate_lived_checkpoint(checkpoint)
 
+    def admit_ordinary_physical_workspace(
+        self, *, anatomy: object, primary_frames: int, hearing_frames: int,
+        hearing_sense: int, maximum_pressure_samples: int, coupled_encoded_limit: int,
+    ) -> None:
+        """Startup-only check against this native runtime's own fixed budget."""
+
+        self.__runtime.admit_ordinary_physical_workspace(
+            anatomy, primary_frames, hearing_frames, hearing_sense,
+            maximum_pressure_samples, coupled_encoded_limit,
+        )
+
     def readiness(self) -> NativeResidentObservationView:
         """Observe only the active native state."""
 

@@ -665,6 +665,11 @@ struct Parser<'a> {
     admitted_occurrence_frame_count: usize,
 }
 
+/// Fixed decoder stack/container headers for startup-only logical admission.
+pub(crate) fn joint_source_parser_header_bytes() -> usize {
+    core::mem::size_of::<Parser<'static>>() + core::mem::size_of::<ParsedEpisode>()
+}
+
 impl<'a> Parser<'a> {
     fn new(
         bytes: &'a [u8],

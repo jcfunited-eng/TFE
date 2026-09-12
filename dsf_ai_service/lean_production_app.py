@@ -158,6 +158,23 @@ def _restore_production_actor() -> LeanOrganismActor:
         or runtime.live_organism_tick != current.organism_tick
     ):
         raise RuntimeError("restored native identity/tick differs from paired CURRENT")
+    # Before pending-source expansion, migration publication or actor start.
+    # These are existing producer limits, not a second resource allowance.
+    from dsf_ai_service.guala_receptor_anatomy import receptor_anatomy
+    from dsf_ai_service.guala_world_sensorium import consequence_source_times
+    from dsf_ai_service.glew_runtime.sensory_full_field_boundary import PhysicalSense, SENSE_ORDER
+    from dsf_ai_service.lean_actor import MAX_PRESSURE_BYTES
+    from dsf_ai_service.lean_physical_loop import PASSIVE_TIMES
+    from dsf_ai_service.substrate.thermally_coupled_embodiment_world import MAX_COUPLED_STATE_BYTES
+
+    runtime.admit_ordinary_physical_workspace(
+        anatomy=receptor_anatomy(),
+        primary_frames=len(consequence_source_times(PASSIVE_TIMES)),
+        hearing_frames=len(PASSIVE_TIMES),
+        hearing_sense=SENSE_ORDER.index(PhysicalSense.SOUND),
+        maximum_pressure_samples=MAX_PRESSURE_BYTES // 2,
+        coupled_encoded_limit=MAX_COUPLED_STATE_BYTES,
+    )
     world = home_world_authority(
         identity=current.identity,
         encoded_world=restored.world,

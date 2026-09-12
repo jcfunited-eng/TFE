@@ -21195,3 +21195,52 @@ release closure and new C1 controls. Encoded/retained logical storage is NOT
 construction peak or RSS. No compiled or invoked admission method exists yet.
 No compile/test/restore/harness/browser/cloud or production action this pass.
 git diff --check PASS. Full AE goal ACTIVE; speech NOT fixed.
+
+
+### I-054-122-221 — Candidate131 startup capacity path connected; source only
+
+2026-09-12T17:09:28Z. Same R122210/S122212 item, actual C1 approval and both
+I122219 controls retained. No new movement, learning, DSF or resource owner.
+
+ordinary_physical_input_admission.rs now507 lines: cold raw-source retained
+content and decoder temporary calculation, actual producer construction
+overlap, and aggregate retained SUM plus largest sequential parser/UF phase.
+The old body/yaw/translation bytes SHARE the existing4MiB world envelope.
+Cold parser arithmetic does not assume every partial port has2samples: its
+preallocation bound is aggregate occurrence frames. Exact inverse-map limb
+growth is counted; decimal digits <=4bits each and coordinate record >=6bytes.
+Cached anatomy is also included by immutable extents/metadata, not neurons
+or a scan of sample values. Primary binary64 subnormal widths remain intact.
+Generated passive samples retain all four ports per reached axis, but each
+axis is processed as its own four-port occurrence. Capacity45axes is not a
+new emitted roster. Actual compact capture/consumer is STILL pending.
+
+Native admit_ordinary_physical_workspace now compares that requirement with
+the restored runtime's own derived max_joint_working_bytes. The existing
+NativeResidentOrganism wrapper forwards it, and _restore_production_actor
+calls it after identity/tick validation but BEFORE home_world_authority,
+pending expansion, migration publication and actor creation. Frame/anatomy/
+world limits come from the existing producers; no second budget or retained
+admission flag. This method is written, not yet compiled or executed.
+The calculation covers logical owned content, NOT allocator/BTree node/spare
+capacity or bigint-private scratch; scoped RSS/cgroup proof is still required.
+Do not describe this as an exact RSS guarantee.
+
+Internal source-only reviewer supplied the bounded cold-decoder arithmetic;
+this is not C1 review or full-candidate acceptance. Complete-candidate source
+review still precedes build and the already-scoped copied-body acceptance.
+No core/body-mechanics/L0-L4 edits, compile/test/harness/restore/lesson/cue,
+browser/cloud or production action. git diff --check PASS. Runtime1458 is
+only the previously recorded baseline, not freshly verified. Speech NOT fixed.
+
+Command-discipline failures preserved: this continuation guessed the Attempt54
+suffix, resident_organism_runtime.rs and guala_passive_world.py; each missing
+path refused read-only. Actual files were then resolved with rg --files/imports:
+this ledger, organism_runtime.rs and guala_world_sensorium.py. Reviewer also
+repeated the wrong full_field_bank.rs name; lib maps full_field_bank_final.rs.
+No failed lookup compiled or ran the organism. Wrapper existence has NOT
+eliminated this class; filenames must come from discovery before commands.
+
+Single next item: finish compact capture/consumption and the epoch/silent-motion
+controls, using the preserved C130 code deliberately but NOT its rejected
+per-tail-only admission. Then freeze the entire source path for review.
