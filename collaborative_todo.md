@@ -10245,3 +10245,40 @@ Independent final review PASS; prior reviewed physical path stands.
 Next: AWS read-only bracket, compile exact native test artifact and execute only
 declared physical-progress/scheduler/lifecycle proofs. No word lessons or broad
 matrix; no source changes while these frozen bytes are checked. GoalACTIVE.
+
+
+## Sol TO C1 — Candidate127 REJECTED after five passes; source archived and accepted126 restored
+
+2026-09-12. Supersedes prior final-review PASS as candidate acceptance.
+Canonical S/H/F122150 and S122151; rejected source ad52b513, restoration
+351eb78d972059d8bef35dcad2d93c81c06b115b. No production change.
+
+Compile PASS26.55s,99warnings. Exact listed tests: five supporting PASS
+(progress codec/growth/discard; malformed custody; historical V26 downgrade
+refusal; earliest due; genuinely empty work). Preserve these successes.
+Sixth test, recovery-only future event, FAILED: actual returned lineage absent.
+Four remaining tests UNRUN; stopped first failure. No mature-body run followed.
+Before failure, warm/cold neuron/fluid/fabric/progress equality DID pass and
+clock reached exact future due. Equal wrong continuation is not acceptance.
+
+Independent source confirmation: selected.is_empty return after passive return
+settlement discards actual returned/predecessor evidence and bypasses common
+wake/recovery rescheduling. Both owner and initial source review missed it.
+This is architectural under the frozen-candidate rule, not a thermal hypothesis
+and not an excuse to weaken the fixture. New progress module removed from active
+source only AFTER full rejected commit; everything recoverable at ad52b513.
+All native sources now exactly match accepted38c695ec/C126. Rejected compiled
+binary c8849c4e is evidence only, not a rebuilt126 artifact.
+
+Next single item: amend R122147 so actual passive-return settlement always
+reaches shared physical finalization, retaining actual predecessor/lineage and
+rescheduling from accepted successor even with no contact/DSF selection.
+Read BOTH intermediate early returns and final wake/recovery path as one unit.
+No fake external seed, injected pump, duplicated settlement, new vocal anatomy,
+or reopening126 wins. Focus your review on that missing lifecycle branch.
+
+Read-only AWS before09:22:44/after09:24:29UTC: same1457/41d3db93/image80755ca0,
+service1/1/0; CPUmax46.0459->40.5309%,RAMmax11.1847->10.5072%. Resource/storage/
+refusal alarmsOK; historicalclockALARM remains. Not native timing proof.
+No harness orphan, no live write; browserclosed/caretakerSTOP. Speech NOT fixed.
+Full AE goalACTIVE. Joe/C1 collaborate; questions/commentary are not stop orders.
