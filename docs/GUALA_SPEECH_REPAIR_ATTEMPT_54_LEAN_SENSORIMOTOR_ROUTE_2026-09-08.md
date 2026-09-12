@@ -17190,3 +17190,82 @@ isolated ordinary candidate package and both external callers (37MiB total).
 All three archived directories compare byte-for-byte equal to their originals
 with diff -qr (exit0); originals retained. No redundant brain snapshot was
 introduced into runtime. This is bounded external attempt evidence.
+
+
+### R-054-122-137 — narrower same-unit actuator replacement; prior accumulator refusal recovered
+
+2026-09-12 source-only continuation of R122136. Validated clean worktree
+da98c52d before reading. Shared C1 file still17d01e58: no new C1 reply,
+no live review process inferred. Main and independent reviewer examined the
+existing terminal/learning/consequence consumers; no code or body run.
+
+Important refinement: a NEW acoustic-control vocabulary is not necessarily
+required. BodyEffectorTerminal already retains axis37-44 and direction;
+BodyAxisAnatomy declares those coordinates in square millimetres.
+A changed actuator can preserve those exact destinations and neuron lineages
+while changing HOW finite discharge moves the aperture. That is not the
+forbidden renaming of a jaw length into a frequency. It is a functional
+actuator redesign, not proof of trajectory equivalence.
+
+Concrete reusable write/read path:
+actual sound plus actual aperture/load consequence -> existing joint source
+and participating neurons -> existing retained associations/contacts ->
+existing ordered motor recruitment -> SAME area terminal and carrier count
+-> replacement aperture mechanics -> actual position/load consequence plus
+new acoustic pressure -> existing proprioception and self-hearing.
+Quantitative learning adequacy is still unproved; topological reuse is not
+a claim that any new constitutive law will produce intelligible speech.
+
+| Consumer | Exact dependency found | Activation-specific requirement |
+|---|---|---|
+| MotorUnitRecruitment, resident1697 | retained typed efferent terminal, outward carriers, preparation provenance | No activation array in the event |
+| mount_exact_reassembled_vocal_action_routes, nested lean_sensorimotor_route810ff | actually moved regulation/motor participants, sound-owned associations, exact predecessors | No direct antagonist activation input |
+| exact_moved_effector_terminal, articulated_body_joint_source_builder53 | position delta, newly discharged carriers, opposition/stall, direction | No stored activation read; passive movement cannot become a new act |
+| body_proprioceptive_source, organism_runtime5194 | actual BodyProprioceptiveConsequence into unchanged source admission | Positions, declared units, load and clocks, not activation |
+| exact_completed_vocal_preparation_body_act, nested route101 | exact current recruitment or causally joined returned movement | No activation magnitude required |
+| Spectral organ | effective areas/aperture and actual finite excitation | Existing area-to-sound map can remain; jaw/lip caps and temporal integration still matter |
+| Body encode/restore/validate | current array of90activation integers | DOES require explicit migration treatment; cannot drop live pending activation |
+
+The reviewed runtime and formation consumers therefore do not force the
+present32ms antagonist simulation. Direct activation accessor references
+outside body implementation are diagnostic/test paths in the inspected source.
+This finding narrows the prospective replacement; it does not authorize
+removing real sensory consequences or dropping stored state.
+
+PRIOR-ART GATE CAUGHT BEFORE CODING:
+docs/GUALA_ARTICULATED_BODY_TISSUE_IMPLEMENTATION_CONTRACT_2026-09-03.md
+explicitly replaced the old undamped accumulator
+q_next=clamp(q+u_max-u_min). Its copied predecessor retained seven off-neutral
+hard stops. The32ms damped tissue corrected that physical problem and made
+passive movement truthful without falsely calling it new motor discharge.
+The historical contract also distinguishes real body successes from two
+cloud rehearsal harness failures. Preserve those successes; do not revive
+permanent position accumulation under the new name "direct voice".
+An undamped held coordinate is therefore a reviewed historical rejection,
+not a fresh shortcut to try. No trial was run.
+
+The same contract states Phase1 carrier-to-lattice displacement is already a
+declared virtual-body constitutive relation; detailed torque/ATP/mechanical
+work conversion was deferred. Do not invent a second body-energy reservoir
+or falsely require microscopic biology to propose simpler actuator mechanics.
+However, the old coupling ratio and a desired sound do NOT automatically
+derive a new passive-response law or justify deleting pending activation.
+
+Single next design item narrowed to:
+a bounded finite-discharge-to-area law for the SAME existing vocal terminals,
+with explicit opposition, displacement/capacity/stall, unforced behavior,
+causal feedback, and exact migration. Reuse the learned path rather than
+assuming a new memory subsystem. A parameter-free promise or a gain fitted
+to Mama-A is not an implementation contract. No such new law is ratified here.
+
+Retain S122110/C122111's temporal limitation: area-actuator replacement alone
+does not create an endogenous action stream inside the250ms acoustic render.
+Do not claim that controls are truly time-varying because a transport schema
+contains a list. Nor does changing areas37-44 bypass actual jaw/lip output caps.
+These are known design constraints, not newly invented acceptance bars.
+
+No code edit, build, test, native-body run, lesson, cloud write or deployment.
+C125 success/invalid-dose contrast/restart discrepancy and all saved evidence
+remain preserved. This is architectural narrowing from source and prior art,
+not another failed candidate. Full AE goal ACTIVE; next C1 review now has the
+specific same-terminal law to assess instead of an unspecified new decoder.
