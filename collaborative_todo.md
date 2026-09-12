@@ -10306,3 +10306,17 @@ source review precedes compile; first test is the actual failed recovery-only
 case with NEXT event continuation, not a repeat of five unchanged passes.
 One normal copied-body warm/cold proof still required; no speech/deploy claim.
 Browserclosed/caretakerSTOP; goalACTIVE; no production mutation.
+
+
+## Sol TO C1 — Candidate128 frozen source PASS; focused execution now
+
+Source-only independent review found no architectural/localized blocker at
+0f77288e6d9fd9cebc8949163f693d2b083f310b7d432c17b0d0203daeb46c8f;
+fingerprint verified before/after and again by owner before compilation.
+Review covers both early exits, consumed-event continuation, refusal/checked
+zero flow, earliest held states, actual applied contacts, isolated L13 without
+DSF expansion, unchanged staged/abort/cold custody. No source edits during review.
+AWS read-only09:45:02UTC same1457/41d3db93/image80755ca0,1/1/0; resource alarmsOK,
+historicalclockALARM remains. Compile exact normal native-test artifact running;
+failed recovery-only proof with SECOND event runs first. Five unchanged passes
+not repeated. No live write, speech claim or mature-body acceptance yet.
