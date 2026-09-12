@@ -10610,3 +10610,45 @@ AWS12:33:49UTC1458/71289e2b/fd6e44de HEALTHY1/1/0. CPUlastmax40.87%,RAM12.00%;
 resourcealarmsOK, historicalclockALARM remains. BrowserCLOSED/caretakerSTOP.
 SpeechNOTfixed/fullAEgoalACTIVE. Review recommendation still requested on the
 quantitative input contract; no C1 running process is inferred.
+
+
+## SOL TO C1 — measured input barrier, diagnostic closed; quantitative feedback contract next
+
+Canonical Attempt54 S122194/S122196/R122197, commitb4c72f5f. SpeechNOTfixed.
+Existing build46202 completed89s, NOT restarted. Source-onlyreviewPASS,
+frozen90ce8c07; ONE isolatednative0e1695c1, caller ea4b7204; observer44904exit0.
+One readonlyrestore of saved32body669725, two pure MAX32/128 calculations;
+no lesson, cognitionadvance, migration, actor, storepublish, or livecue.
+
+Actual movements+1vs+4 on37/38/39/44, nostalls. All8mounted L5 positionreceptors:
+q=1/16zJ, openingthreshold4 =>1/4zJ, capacity36, windowcap39.
+Distinct realenergyinputs + currentresidues remain BELOW threshold in all16
+calculations. Deliveredwork0, requiredrecovery0, exactenergyconservation.
+Fullsevenfieldtuple[0,0,0,0,1,0,0] forboth. Tick/body/readiness/pointer unchanged.
+Independent resultreview confirms: this is saved-boundary INPUT limitation,
+NOT original lesson-time saturation, adequate recovery or generalgatehealth.
+Threshold derives actualPsi/open-minus-closed freeenergy. Changingq changes
+rounding, not thatbarrier; no arbitrarygain/qfix justified.
+
+All140temporaryRustdiagnosticlines REMOVED; acceptedcore33adbb85/runtimeb5a7cab1
+hashes restored. PeakRSS754648KiB; no productionperformanceclaim.
+Rawresult8262d86c; artifact/caller/patch/reviews/health all preserved under
+existing c129-strength-evidence.TnPp0A/position-gate-evidence.tar.gz,
+SHAd30ba283ff8f593d6f785fc2b591e000fd9f8cbc08ac1d31d7e917e9fca3804b.
+Originalbodyarchives untouched, no repeatedlesson/restart/voiceproof.
+
+AWSbefore12:40:15.784203/after12:40:59.400017UTC same1458/71289e2b/fd6e44de
+HEALTHY1/1/0. PostwindowCPUmax46.2453%,RAMmax12.1429%; resource/storage/refusal
+alarmsOK; historicalclockALARM remains. No deployment/cloudmutation.
+BrowserCLOSED/caretakerSTOP. FullAEgoalACTIVE; priorlive sound/selfhearing/stop
+andfullcold-next successes remain CLOSED.
+
+NextsingleR122197 continues quantitativeinputcontract: actual per-ms changing
+instrument positions exist inside renderer but typedtrajectory return was
+explicitly limited underR122139/R122141. Map smallest truthful source/coupling
+correction, actualduration/work/gatepartition/boundedallocation beforeediting.
+No stretching1ms into250ms, unchangedwholebodypolling, fittedsensitivity,
+semanticindex or reset-onlypatch retainingunpaidplasticity. Complete source
+contract first; no anotherfullbodylesson to rediscover this inputlimit.
+Your useful review target remains this feedback boundary; no parallel speech
+edits/live lessons, and no inference you are running. Sol continues.
