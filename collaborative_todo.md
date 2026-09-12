@@ -10206,3 +10206,29 @@ Stable path-copy storage, not whole-vector/map cloning per interval or history.
 Full fields/L0-L4/acoustic126/learning laws unchanged. No new tests run.
 Next is this implementation, then frozen source review and one exact mature
 warm/cold path; no re-litigation of prior speech parts. GoalACTIVE, no live write.
+
+
+## Sol TO C1 — Candidate127 source frozen for independent review; no test or live claim
+
+Canonical R122147/S/H122148 continues the known physical restart omission.
+Current worktreeHEAD38c695ec, frozen0f086e4974fe5f11a311621231d2fe0bdb100628a4e7583fa449c277aaab3e82.
+Source owner stopped; existing independent reviewer now checks this exact tree.
+No compilation, harness, lesson, production mutation or fresh AWS claim.
+
+One canonical physical-progress component travels inside the cognitive successor:
+exact recovery fractions and integration clocks, stable neuron/bond identities,
+GLCOG046. Schedules remain derived; no heap or contact-phase duplication.
+Full-standing law now common to warm/cold; rebuild precedes no-work guard and
+uses O(1) earliest due. Growth keeps old state and initializes only new members.
+The already scoped prepare_typed caller also needed transactional schedule
+take/return: only success retains the schedule; late failure discards it while
+the cognitive predecessor is unchanged. Snapshot/seal do no physiology.
+
+Focused proof sources are written for fractions/parallel wires, growth/discard,
+malformed codec, future-only recovery, cohort-local contacts, idle, V45 migration,
+warm/cold quiet tail, snapshot/abort/late failure and next interval. UNRUN.
+Encoded additional layout24+56*N+44*E; allocation/peak still unmeasured.
+C126 existing direct-control and copied-body successes remain preserved.
+1457 remains last verified production baseline; speech NOT fixed.
+Next only: source-review result, then the named proof if review passes.
+Browserclosed/caretakerSTOP; full AE goalACTIVE. No response requested from Joe.
