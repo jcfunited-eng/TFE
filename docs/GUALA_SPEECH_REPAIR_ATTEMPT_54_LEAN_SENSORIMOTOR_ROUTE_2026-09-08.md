@@ -17360,3 +17360,73 @@ that reviewed contract. No new candidate has failed or passed in this entry.
 Last live evidence remains06:57:10UTC task1457/image80755ca0, with historical
 clock-stalled ALARM; not a current health claim. Browser closed, caretakerSTOP,
 full AE goal ACTIVE.
+
+
+### R-054-122-139 — completed consumer audit: preserve continuation, separate excitation; exact feedback limit
+
+2026-09-12. Continuation of the one direct-voice contract item, not a new
+candidate or reopened test. Root d8f1e4f6 verified clean. Shared origin blob
+ce24b207 is unchanged; no reply to the shared-versus-independent question.
+The independent source-only review finished; no running test or C1 process
+is inferred. This turn adds evidence changing the proposed edit boundary.
+
+DECISIVE CORRECTION TO THE PROSPECTIVE EDIT:
+Do NOT narrow resident core23125's candidate/completed vocal-ordering census
+to the nine acoustic axes. That same completed-ordering result authors
+continuation work, not just breath. Narrowing it could disable retained
+jaw/lip-only sequences. Full existing preparation membership and exact
+completion remain authoritative. If a nine-control excitation restriction is
+adopted, it belongs at L13's discharge contribution (core23321), not at the
+shared completion/continuation producer. This was caught before any edit.
+
+The reviewed broad-predicate consumer inventory:
+- Core5427/5497/6766/6919/16734/16825: anatomy, migration and mounting;
+  preserve broad identity.
+- Core17596/17938/18330 and nested route262/306/375: exclude/resolve exact
+  existing learning routes; narrowing could erase routes or admit them to
+  generic authorship. Preserve.
+- Core21246/21528/21626/22667/22671/22796/22800: exact motor work authority;
+  preserve.
+- Core22476: cfg(test) counter, not an acoustic law.
+- Runtime3492: a specifically acoustic guide may use distinct nine-control
+  eligibility, without redefining the old BodyEffectorTerminal type.
+- Core23125: shared full completion/continuation, preserve as above.
+- Core23321: proposed acoustic-excitation contribution boundary.
+- Axis18 remains the shared glottal coordinate and retains its existing
+  protective reflex; no generic predicate change severs that coupling.
+
+FEEDBACK SCOPE, SOURCE-VERIFIED, NOT A NEW LEARNING-FAILURE CLAIM:
+Runtime4063 emits typed position/load consequences from the initial1ms body
+settlement. virtual_articulatory_body275 then advances passive mechanics
+each1ms but keeps only each transition's successor, not its typed
+proprioceptive consequences. Final body state is retained, plus four sampled
+mechanical channels: respiratory flow, glottal displacement, oral geometry,
+perioral geometry. Those channels are NOT the eight tract-area trajectories.
+Next ordinary body settlement can emit fresh typed consequences from the
+retained final state; it does not reconstruct the intervening area trajectory.
+
+Main traced the actual transport rather than assuming a second producer:
+native_resident_organism4029-4078 preserves the emitted GLJSRC03/04 bytes and
+extents; guala_motor_world._body_sources127 preserves those bytes with1ms
+admission; LeanPhysicalLoop._advance admits returning.sources beside ordinary
+sense and self-hearing. No typed37-44 intra-render reconstruction found there.
+Initial complete body proprioception (runtime3932) runs once only; do NOT
+restore whole-anatomy injection each interval as a workaround.
+
+Consequently the contract may truthfully reuse existing sparse sampled
+position/load feedback, but may NOT describe it as complete per-millisecond
+nine-control sensation. Whether that sampling meets the chosen acoustic
+effector contract must be explicit. This finding does not prove recognition,
+learning or speech impossible, and does not reopen the closed body runs.
+
+Command mistake preserved: an rg lookup passed nonexistent lean*/shell*
+paths beneath glew_runtime, exiting2. Corrected by searching the validated
+dsf_ai_service directory with --glob '*.py'. No compile, test, organism run or
+source edit resulted. Use directory discovery rather than guessed paths.
+
+No body law, coefficient, codec, route, production process, lesson or UI
+changed. C125's scoped success and invalid saturation contrast remain as in
+R122133; no additional native test. Last AWS evidence remains06:57:10UTC,
+not a fresh health assertion. Browser closed/caretakerSTOP. Single next item
+remains the explicit direct-control implementation contract, incorporating
+these consumer boundaries; full AE goal remains ACTIVE.
