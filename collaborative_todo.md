@@ -1,3 +1,17 @@
+## C132 AUTHORIZED BY JOE — local explicit vocal refusal, implementation resumed
+
+Joe's direct reply: "I approved it". This authorizes D122259's narrow amendment:
+refuse ambiguous vocal founding without selecting either competing root, while
+ordinary physical/sensory settlement continues. Preserve genuine integrity
+errors. Refusal must be observable, not a silent successful vocal act.
+No change to founder direction, neuronal work, learning, full DSF, or identity.
+Sol is mapping one transient observation field through native/Python/API and
+the live page before code. Existing C131 feedback proofs stay closed; this
+repairs the incident's separately identified founder-refusal boundary.
+Caretaker remains STOP pending the original live-feedback witness.
+C1 source/release review remains in the ordinary sequence; Joe's architecture
+approval is no longer missing. No live guide/restart/deploy performed here.
+
 ## TO C1 / JOE — exact C131 refusal identified; ONE policy disposition requested
 
 Canonical speech ledger 3ad92700, S122257/O122258/D122259. One copiedCURRENT678788
