@@ -55,11 +55,11 @@ guala-clock-stalled ALARM remains. No all-green or performance closure.
 S122204 source review recommends two ordered physical episodes under ONE
 existing pending return: unchanged1ms impulse, then measured passive tail with
 allfour sensory ports and zero new motor/load work. No new endpoint convention.
-S122205 records the compact-return contract. Candidate130 integration is in progress:
-I122206 added the compact capture/codec; I122207 registers it, captures existing
-renderer steps, moves compact bytes into native return receipts, shares the full
-four-port encoder, validates zero-load passive evidence before cognition, and
-carries independently authored temporal admission through native/Python.
+S122205 records the compact-return contract. Candidate130 integration below is
+HISTORICAL REJECTED SOURCE, not work currently in the executable tree:
+I122206/I122207/I122208 preserve its capture, renderer, encoder and transport work.
+I122211 now records the source-derived aggregate allocation map and Joe's explicit
+small-slice boundary. No new anatomy, cognitive law or allocator framework.
 F122209: complete Candidate130 source review REJECTED its already-known
 compact-versus-expanded resource/custody gap, BEFORE build or test. Exact source
 and patch are archived; executable files restored byte-for-byte to92af3470.
@@ -68,7 +68,7 @@ Next SINGLE R122210: close shared expanded-consumability admission BEFORE pendin
 publication, including coexisting sources, then reimplement from that contract.
 Do not patch the rejected tree or reopen voice/order/restart/lesson campaigns.
 S122198 records all native, wrapper, pending-return, restore and action-evidence
-consumers. No new lesson or fullbrain run before the complete Candidate130 review.
+consumers. No new lesson or fullbrain run before the successor source review passes.
 Do not stretch1ms into250ms, lowerq, fitgain/cutoff to Mama, add a second owner,
 extend motor authority over passive sensation, or reinstate unchanged-body polling.
 Fullfield/identity/learning preserved. Speech and full AE acceptance OPEN.
@@ -20563,3 +20563,155 @@ recording the exact rejection, preserving all source/evidence and removing the
 known unconsumable candidate from the executable tree. It delivered NO new
 production behavior. Full AE goal ACTIVE, speech NOT fixed; browser CLOSED,
 caretaker STOP. Nothing waits on Joe or Claude for this bounded contract work.
+
+
+### I-054-122-211 — R122210 source allocation map; smaller scope, not implementation
+
+2026-09-12 UTC. Continues R122210; does not close it or reopen S122175 live
+sound/self-hearing/stop, S122158/159/165/169 restart, or S122201 body mechanics.
+Previous conversational turn was NO PROGRESS: scope restatement, no code or
+production change. This turn changed the next implementation decision by
+resolving simultaneous-versus-sequential source allocations from source and an
+independent source-only review. No compile, test, lesson, harness, live cue,
+deployment, process restart or fresh AWS health observation was performed.
+
+Joe's scope clarification is binding: emulate the needed AE function, not every
+human mechanism. This slice only returns already-computed physical positions to
+the existing sensory input. Preserve self-hearing. No added biological machinery,
+cognitive law, permanent resource manager, second queue/owner, historical
+allocator rewrite, or general memory-accounting project. Larger changes must be
+explicitly brought to Joe/C1, not silently added to this repair.
+
+Architecture gate:
+1. Requested: exact bounded feedback of the existing body's actual trajectory
+   through the existing full-field sensory/learning boundary.
+2. Reality: executable files remain exactly accepted92af3470; C130 archived.
+   Its producer admitted compact bytes but not the aggregate expanded input.
+3. Conflict: YES, incomplete feedback and the rejected consumability gap;
+   this receipt does not declare either implementation corrected.
+4. Do not extend the rejected candidate, legacy shell, body mechanics,
+   resident_cognitive_formation, L0-L4, or a new general allocator/owner.
+5. Next SAME R122210: finish the one stateless aggregate admission calculation
+   and exact producer/consumer placement before successor code.
+6. Full D/M/R/U/C/P/B and source positions/times/load ports remain required.
+7. No field reduction or lost physical distinction is authorized.
+
+SOURCE FINDINGS, not runtime measurements:
+
+A. The runtime allowance is not currently an input-processing allocator.
+organism_runtime::RuntimeBudget::derive (330–374) supplies
+max_joint_working_bytes = max_logical_peak_bytes - 2*max_envelope_bytes.
+build_admitted_trajectory (3894 onward) instead supplies cognition with a
+retained-fabric budget derived by cognitive_budget_after_joint (7739).
+prepare_complete_joint_field_with_admission has NO workspace argument.
+The later max_joint_working_bytes use at4189 is mounted-state restore AFTER
+the sensory transition. Merely reducing that later local variable does NOT
+constrain sensory processing. Do not implement that false fix.
+
+B. Live allocations have two different scopes.
+joint_source_episode::Storage retains encoded Arc bytes, decoded ports and
+occurrences. Five rational vectors are retained per port sample; each occurrence
+retains its own times/relevances, groups, port indices and metadata.
+Cloning NativeJointSourceEpisode clones its Arc, not all these bodies.
+Retained distinct source storage must be added across simultaneous sources;
+aliases are not a reason to charge the whole payload again.
+
+joint_uf_source_adapter::build_input (195 onward) makes the input matrix,
+relevance vector and cloned rational times. evaluate_with_physical_bounds
+(1014 onward) retains that input while accumulating the result.
+For one occurrence with P ports, N frames and G<=N-1 gates:
+- input: NP binary64 coordinates, N vector headers, N binary64 relevances,
+  N rational timestamp headers/limbs;
+- result: N SevFrame headers, 2NP binary64 coordinates, G JointUfGate headers
+  and G sets of three [i64;3] lattice projections;
+- stream: W=20 P-wide history vectors and their headers, pending/current
+  vectors, open-gate field/delta, two P+2 mean vectors, P physical bounds,
+  constant-count exact interval/duration state;
+- scoped temporaries: actual sample/frame clones, delta/mean/curvature,
+  P+2 drift, rational arithmetic/conversion and fixed lattice collection.
+The evaluated field is occurrence-local in resident_cognitive_formation's
+source/occurrence loop (8814 onward). Perspectives borrow it; source review
+found no retained evaluated-field clone across occurrences.
+
+Therefore the check's phase shape is:
+  max(decoder construction peak with coexisting retained sources,
+      sum(distinct retained decoded sources) + max(occurrence UF peak)).
+It is NOT sum(UF peak for every occurrence).
+The existing ContinuousJointUf::bounded_resident_bytes (616) is insufficient
+alone: it omits input/results, history vector headers, four extra mean-vector
+elements, rational limbs and temporary allocations.
+mounted_joint_fractal::derived_working_bytes (1790) is for a DIFFERENT
+JointFieldInput/relation evaluator; do not borrow that formula as this proof.
+
+C. Actual ordinary production dimensions constrain the small repair.
+The complete primary has220 ports; excluding34 hearing ports leaves186.
+A returning primary uses27 frames (consequence_source_times includes the1ms
+boundary), not the ordinary no-return26. Separate external/self-hearing
+projections each have34 ports/26 frames when present.
+The proposed passive source has A separate occurrences, each FOUR ports and
+250 frames, NOT one4A-wide occurrence. A<=45 comes from actual body anatomy.
+Decoded retained storage still grows with A; UF scratch does not multiply by A.
+Original body impulse, root sources, native guide and first-use body source
+remain separately accounted when present; do not omit them because the saved
+mature proof initializes proprioception already.
+
+Independent source-only review derived a useful64-bit logical-layout comparison:
+extra passive frame/gate metadata versus the27-frame primary =
+223*[(24+80+8+104)+(240+72)] =117744 bytes;
+primary input/SEV vector saving =8*3*(27*P-250*4);
+streaming vector/bound saving =(P-4)*(8*(20+5)+16).
+This gives a primary logical margin47472B atP220 and18096B atP186.
+The comparison assumes the same authored timestamp-limb bound; omitted fixed
+terms cancel and P-wide temporaries favor the primary. It proves only this
+logical shape comparison, NOT allocator capacity, library scratch or RSS.
+Portable implementation must derive sizes from actual types, not hardcode
+these byte constants. Ordinary250-frame passive processing does not by itself
+justify enlarging the primary processing reservation or a new processing engine.
+Other admitted frame counts must use the general dimension calculation; never
+silently apply the250-frame comparison to the native30-second limit.
+
+D. Exact scope/placement retained for R122210.
+One shared transient calculation uses the existing runtime allowance:
+producer admission before unreadable pending bytes can become current,
+actual coexisting-batch admission before source expansion/native mutation,
+cold required-return admission before migration publication or actor start.
+The early producer cannot know successor active axes before cognition. Using
+the finite45 possible axes at the already-admitted render frame count is a
+source-derived capacity bound, not a future-state owner or permission to emit
+all45 axes. Actual capture remains sparse. No dormant-axis samples are created.
+Optional external input may refuse before mutation if it cannot coexist; the
+pending experience may not be discarded to make it fit. Smaller-budget cold
+restore must refuse before publication/start without deleting saved experience.
+
+Generic decoded primary values are NOT all u64 rationals: exact binary64
+construction can require a1074-bit denominator, and map operands contribute.
+The tail's known integer/time bounds must not be generalized to generic inputs.
+Remaining implementation-contract detail is how those producer-derived source
+storage bounds are supplied/reused at all three callers without another sample
+scan, duplicate parser, persistent footprint owner, or guessed multiplier.
+No candidate is authorized on the strength of this allocation map alone.
+
+The superseded Aug3 allocator audits explicitly distinguish logical lengths
+from allocator-exact peak; the Aug4 resident-runtime law supersedes their old
+unmounted status and requires measured candidate RSS/cgroup proof. This repair
+must not resurrect a historical whole-runtime arena rewrite. Conversely,
+logical arithmetic is not an exact-RSS certificate. Keep actual capacity,
+rational-library scratch and measured peak qualifications visible in the
+already-scoped copied-body acceptance; no separate general benchmark campaign.
+
+Mistakes and corrections:
+- A read guessed nonexistent joint_source_to_uf.rs. rg --files and symbol search
+  immediately resolved joint_uf_source_adapter.rs. No compile/run wasted, but
+  this is another real repeat of the documented path-resolution failure, not
+  a new organism defect. Resolve paths before reading; the optional wrapper
+  does not protect commands that bypass it.
+- Review coordination briefly stated188 no-hearing ports; corrected to
+  220-34=186 before comparison. Do not carry188 into admission or a test.
+- Header's old 'Candidate130 integration is in progress' wording is now marked
+  historical rejected source; the accepted executable baseline is unambiguous.
+
+Current source authority at this receipt: HEAD6f2da6da before this documentation
+commit; clean executable tree, core33adbb85, runtimeb5a7cab1, body451378d1.
+Last AWS14:44:05UTC is HISTORICAL only: baseline1458 HEALTHY1/1/0, clock alarm
+still ALARM. No new live health or production improvement is claimed.
+Speech NOT fixed; full AE goal ACTIVE; browser CLOSED, caretaker STOP.
