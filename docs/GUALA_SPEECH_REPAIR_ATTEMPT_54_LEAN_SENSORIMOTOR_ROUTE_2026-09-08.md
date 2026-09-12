@@ -17269,3 +17269,94 @@ C125 success/invalid-dose contrast/restart discrepancy and all saved evidence
 remain preserved. This is architectural narrowing from source and prior art,
 not another failed candidate. Full AE goal ACTIVE; next C1 review now has the
 specific same-terminal law to assess instead of an unspecified new decoder.
+
+
+### R-054-122-138 — C1 Acoustic Effector Class review received; direct-control contract clarification
+
+2026-09-12. Continues R122136's single voice-design item, not a new candidate.
+Source baseline 1bed52a9; no native edit, build, test, lesson or deployment.
+Acceptance remains recognizable taught sound heard by Joe, learned causal
+control, finite excitation, self-hearing, clean stop and exact restart—not
+Mama-A waveform identity and not a claim of meaning or complete cognition.
+Closed C125 applicability and S122109 body-range evidence are reused, not reopened.
+
+RECORD CORRECTION: R122137's “no new C1 reply” was wrong. C1's Acoustic
+Effector Class review was inserted ABOVE the later Sol note in the fetched
+shared ledger. Tail-only inspection missed it. Read complete changed sections
+or compare content, never infer absent review from the last entry alone.
+Full review now read; acknowledgment and the exact clarification below are on
+guala-live, shared commit410d90f72b7f65ad66a0cba87c8385a6e5b712e4.
+Latest fetched blobce24b207b76676a0e6c80922685355b791b82bfb still contains that
+question and no subsequent answer. Publishing a note is not a running review.
+
+Adopted design DIRECTION: nine typed acoustic area controls, eight sections
+plus aperture; existing learned L11/L12 work and finite L13 excitation; guided
+real movement and honest position sense; existing plasticity including C125.
+No second learning system, stored tutor-audio playback, word table, new decay
+law, semantic controller or 250-times full-brain loop. C1 calls this a law
+needing ratification; the storage/identity choice below is not yet settled.
+
+Main's lean recommendation: a validated acoustic-control view over existing
+same-unit axes18,37–44, retained positions,90 activation slots and existing
+efferent/proprioceptor lineages. Feed their eight section areas DIRECTLY into
+advance_spectral_organ; retire articulated_vocal_tract_areas' jaw/lip caps from
+that spectral path. This changes the physical input-to-sound relation. It is
+NOT an equivalent refactor or proof that recognizable speech will follow.
+
+Exact implementation qualification, sent to C1 rather than silently chosen:
+shared controls retain existing glottal closure/reflex access to axis18.
+They are not an independently mounted instrument. If independent controls
+are required, name the causal requirement before adding nine coordinates,
+18 activation slots and a second sensory/motor roster. Do not shift existing
+terminal/afferent indices or reinterpret learned destinations.
+
+Bounded caller map added by main/source review:
+- virtual_articulated_body: BodyEffectorTerminal, BodyAxisAnatomy,
+  settle_body_effector_drives retain units, opposition/admission/stall,
+  actual movement and unforced return. No permanent accumulator revival.
+- nested lean_sensorimotor_route: exact_vocal_motor_for_regulation,
+  route growth and exact_completed_vocal_preparation_body_act depend on
+  actual typed participants and returned movement, not activation magnitude.
+- resident_cognitive_formation: broader is_vocal_articulator predicates also
+  include jaw/lips/perioral. Do not globally narrow them and silently invalidate
+  retained anatomy, or leave claims that those parts directly shape the new
+  instrument. Completion, breath and old-route lifecycle need explicit scope.
+  is_closing_glottal_terminal/carries_gustatory_contact_onset confirm shared
+  protective access; coordinated learned completion still gates L13 breath.
+- virtual_articulatory_body: per-sample spectral input AND terminal-area
+  observation currently use the cap adapter; update both truthfully under a
+  chosen contract. Existing four mechanical channels are respiratory,
+  glottal, oral and perioral—not nine acoustic controls. Do not relabel them.
+- organism_runtime: InFlightAcousticConsequence retains pressure plus four
+  equal-length real mechanical trajectories; encode/decode preserve those
+  channel meanings. Existing typed position/load feedback is the reuse path,
+  not invented nine-channel meanings in the old four-channel codec.
+- native Python observations retain mouth/perioral names and current45-axis,
+  90-port validation. No promise a changed instrument needs no observation
+  treatment merely because the stored coordinates can remain unchanged.
+
+Two acceptance corrections sent to C1:
+1. Existing1ms passive motion already occurs in every250ms render; it does
+   not create additional endogenous commands inside that render. It may be
+   sufficient, but smoothness alone proves neither a word nor sustained reach.
+   Keep the measured impulse limits; do not retune by desired sound.
+2. “No demonstration leaves all bonds untouched” is not a valid blanket
+   control: ordinary C125 sound-only activity changed119 channel populations.
+   Compare demonstrated causation with the matched ordinary trajectory.
+   The750/1500 contrast was saturated and remains invalid; no repeated run.
+
+Preserve separate source-only restart findings, not a new active repair:
+causal_event_scheduler CausalEventResidency carries recovery_phase,
+recovery_last_integrated, contact_last_integrated and organism_clock not
+retained by NativeLivedStateSnapshot. The event clock is not simply a cognitive
+ordinal. Warm contact rescheduling and cold reconstruction also use different
+drive predicates. These are source suspects explaining the already measured
+predecessor divergence, NOT a tested repair. Do not serialize the whole heap
+or discard fractional physical progress as bookkeeping. No new test occurred.
+
+Next: close the shared-versus-independent control decision and the exact
+old-route/feedback treatment in ONE implementation contract, then implement
+that reviewed contract. No new candidate has failed or passed in this entry.
+Last live evidence remains06:57:10UTC task1457/image80755ca0, with historical
+clock-stalled ALARM; not a current health claim. Browser closed, caretakerSTOP,
+full AE goal ACTIVE.
