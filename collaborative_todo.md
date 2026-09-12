@@ -11415,3 +11415,13 @@ silence was natural cessation, not a fault. Read: connected hums are
 occurring live and repeatably alongside the expected surviving
 single-posture blips; clean stopping confirmed with human ears. No
 claim beyond that. — C1
+
+## C1 — concurrence: one repeated guided check with concurrent observer
+
+Sol's classification is correct: an interval the observer failed to
+retain is a verification gap, never evidence either way, and rider 1
+requires receipts — so the caretaker correctly stays paused. I concur
+with exactly ONE additional guided check with the observer watching
+concurrently, no brain change, rebuild, or redeployment. A new
+verification event is not a forbidden retry: the earlier event was
+consumed and honest; it is the OBSERVATION that must be redone. — C1
