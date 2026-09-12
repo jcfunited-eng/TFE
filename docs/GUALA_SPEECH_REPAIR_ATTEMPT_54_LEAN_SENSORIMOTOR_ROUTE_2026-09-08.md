@@ -1,17 +1,20 @@
 # Guala speech repair Attempt 54 — complete design verification and lean sensorimotor route
 
-## Latest decision checkpoint — 2026-09-12, C1 feedback approval S122219
+## Latest decision checkpoint — 2026-09-12, Candidate131 component checks passed
 
-C1 has APPROVED the compact full-trajectory feedback direction; the necessity
-review below is historical, NOT an approval wait. Continue R122210/S122212.
-Add exact producer/impulse epoch mismatch refusal and silent-but-moving capture
-to acceptance before candidate review/build. Direct acoustic geometry remains
-closed at R122141–143. No new mouth or neuron law; no reopened word campaign.
-I122220 adds generated body/vestibular retained-layout arithmetic. Aggregate,
-startup invocation and compact-return integration remain unfinished.
-Joe-visible live-page acceptance is explicit in I122217/218. No deployment.
+Active R122210/S122212. C1 compact-feedback direction APPROVED (S122219).
+Complete candidate494ed1e2 passed full independent source review, one localized
+test correction and final review. Compiled ordinary native wheel, no diagnostic
+feature. Three focused native tests and five Python transport/startup cases PASS.
+This is component evidence, NOT mature-body, deployment, learning or speech proof.
+See I122224 for exact artifact provenance, commands, review and health receipts.
+The earlier “aggregate/startup/capture unfinished” resume paragraphs below are
+HISTORICAL checkpoints, superseded by I122221–224; do not rebuild those pieces.
+Next SINGLE item: SAME669725 copied-body MAX32/128 full-feedback consumption,
+cold-next equality and measured resources using this candidate. No word campaign.
+Browser CLOSED/caretaker STOP. Production1458 unchanged; speech NOT fixed.
 
-## Current resume point — 2026-09-12, measured position-input limit; speech NOT fixed
+## Historical prerequisite evidence — measured position-input limit; speech NOT fixed
 
 Full AE goal ACTIVE. Production baseline1458/71289e2b95be4d79a5c9f74ac2708b7d,
 imagefd6e44defbc83a305a52229822c9f77155d0a640c8ffa8a7dc00265d7d1fec77.
@@ -21373,3 +21376,70 @@ no test/organism result inferred. Future reads use bounded sections.
 Full candidate source is refrozen after this sole localized batch for one final
 review. No compile/test/harness/deploy yet. Mature changed-path and resource
 proofs remain pending; speech NOT fixed. Production1458 unchanged.
+
+
+### I122224 — C131 final source PASS; native and translation controls executed
+
+Continues R122210/S122212. Final independent source review494ed1e2 PASS:
+fingerprint f611ad661b69865e1fdd2bf145e132119408ba62ae3d8f05386f5496047e5603
+verified before/after review and after compilation/tests. Single localized
+correction I122223 accepted; no architectural finding. Review is independent
+helper review, not actual C1 final candidate approval. Shared review packet
+commit8238d53b8e58d817dbd18ea55109d78c5af1ff21 readback verified.
+
+Executed source-controlled build/tests (no organism in production touched):
+- preflight.sh cargo test --locked --lib --no-run -j2, nice15: PASS32.35s,
+ 99warnings. Actual debug binaryguala_core-7cd36301111f54ab,
+ SHAddab30584ca96e3fe3f94aeefba4f9b362f435c4c8187bffd0e6a4bdeedee21e.
+- Exact silent_controls_without_new_impulse_still_return_real_motion:
+ 1passed0.03s, log/tmp/preflight-20260912T173757Z-63059.log.
+- Exact source_counts_refuse_before_sample_allocation:
+ 1passed0.00s, log/tmp/preflight-20260912T173757Z-63082.log.
+- Exact existing_passive_steps_roundtrip_without_new_motor_authority:
+ 1passed0.21s, log/tmp/preflight-20260912T173757Z-63106.log.
+ Preflight resolved actual built binary/full names; no zero-test pass.
+- Ordinary maturin build --release --locked --jobs1 --features python-extension
+ (actual CLI separate --jobs 1), nice15: PASS1m26s,190warnings.
+ No diagnostic-api and no automatic cargo fix. Build log and isolated wheel:
+ /tmp/guala-c131-feedback.N72UuO/build.log and wheels/.
+ WheelSHA03c40e7f366a7d74b63e0102b2219d1e65a0b4a88ae5319966edfdefce9e6a2e.
+ Isolated no-deps/no-cache install into that root's installed/.
+ Loaded nativeSHA0388cacfe5164d18bf0dea8a3ece8bcc918726e8bcef212e833f1330f1cb65ee.
+ Actual module path verified, new startup API present, diagnostic gate API absent;
+ real anatomy220ports/880samples/1occurrence verified, no roster flags locally.
+- pytest --noconftest: exact compact-tail cold custody; native-return kind bounds;
+ startup migration/publication test's3cases =5passed in1.27s, one inherited
+ FastAPI/Starlette deprecation warning. These are codec/mocked-startup controls.
+ --noconftest intentionally prevents tests/conftest.py's legacy Guala import;
+ the selected tests use only built-in pytest fixtures. Legacy runtime NOT opened.
+ No all-suite result, mature learning, full RSS or startup-fit claim inferred.
+
+Fresh live environment from actual service-resolved taskdefinition:
+arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1458,
+container dsf-ai; GUALA_MAX_WORLD_BYTES=16777216,
+GUALA_PAIRED_ROOT=/app/guala/paired-current-gen2; no GUALA secret names.
+Private copy must change ONLY paired output path, not anatomy; no diagnostic
+flag. Command failure retained: guessed dsf-ai-service:1458 was refused by
+DescribeTaskDefinition. Corrected by resolving service.taskDefinition ARN first;
+no code/organism consequence. This is a recurring lookup mistake, not eliminated.
+
+Read-only health brackets:17:37:44.407658→17:38:09.429564UTC native controls,
+17:40:18.814462UTC before Python controls, post health recorded below in tool
+receipt. Same1458/task71289e2b95be4d79a5c9f74ac2708b7d/imagefd6e44de...
+HEALTHY1/1/0. Native windowCPUmax45.4769%,RAMmax13.2782%; Python prewindow
+CPUmax42.4076%,RAMmax12.3383%. Resource/storage/refusal alarmsOK;
+guala-clock-stalled ALARM persists. Not full clock/resource closure.
+No live cue, lesson, checkpoint, actor, deployment or browser action.
+
+Single NEXT: already-declared SAME669725 source/body, MAX32 thenMAX128,
+ordinary production startup+guide+pending compact feedback, next ordinary
+consumption and exact paired warm/cold-next equality, actual quantitative
+participation and resource measurements. Use this ordinary isolated wheel;
+do NOT rebuild diagnostic observer or rerun8baseline+8tail chronology.
+Prior sound/self-hearing/stop/restore successes stay closed. If input remains
+insufficient, record that distinction without failing closed mechanics.
+Speech NOT fixed; this source change is NOT deployed. Full AE goal ACTIVE.
+
+Post Python health UTC2026-09-12T17:40:42.109249+00:00: task1458 HEALTHY1/1/0,
+CPUmax42.40751940011978%,
+RAMmax12.3382568359375%; same alarms above.
