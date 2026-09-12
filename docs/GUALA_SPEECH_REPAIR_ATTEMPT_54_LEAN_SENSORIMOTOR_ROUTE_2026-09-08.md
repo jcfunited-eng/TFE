@@ -1,49 +1,51 @@
 # Guala speech repair Attempt 54 — complete design verification and lean sensorimotor route
 
-## Current resume point — 2026-09-12, equal delivered position-receptor work proved; speech NOT fixed
+## Current resume point — 2026-09-12, measured position-input limit; speech NOT fixed
 
 Full AE goal ACTIVE. Production baseline1458/71289e2b95be4d79a5c9f74ac2708b7d,
 imagefd6e44defbc83a305a52229822c9f77155d0a640c8ffa8a7dc00265d7d1fec77.
 S122175 live sound/self-hearing/observed acoustic stop remain CLOSED.
 S122158/159/165/169 startup/migration/full cold-next equality remain CLOSED.
 DO NOT restart80467, re-cue production, or repeat those tests.
-Browser CLOSED/caretaker STOP. No new physical law or production delivery here.
+Browser CLOSED/caretaker STOP. No production delivery or new physical law here.
 
-R122179/S122182: same authenticated669708 body, quiet8, one4000sample guide,
-tail8; dose32/128 caused+1vs+4 on37/38/39/44, zero stalls.
-All8583loggedvocalcontacttransitions and16385finalcontactstates identical.
-16identical fractionalupdates on fournew26aa motorcontacts were discarded for
-absent actionpermission. Keeping identical discarded updates cannot prove
-doselearning; do not cancel paying current while retaining its plasticity.
+Prior measured successes retained: MAX32/128 causes real +1/+4 motion without
+stalling on37/38/39/44. Source position values differ. S122187–189 accounts for
+all458 differing cognitive bytes in eight L5 position-receptor input residues.
+S122191 proves equal cumulative quantized work across the two earlier lessons.
+All8583 contact transitions and16385 final contacts were equal; keeping identical
+discarded updates would not establish dose learning or preserve conservation.
 
-S122187–189: all458differentcognitivebytes are exactly eight L5 position
-receptors' input-energy residues. Allotherneuronal/cognitivebytes match.
-Actualanatomy: ONEgate, quantum1/16zJ, capacity36. No >1population assumption.
+S122194: actual first1ms source, four ports/two samples, yields full DSF tuple
+[0,0,0,0,1,0,0] for both guides. LocalSEV and receptor energy remain separate.
+S122196: ONE readonly restore of already saved669725, two pure calculations,
+NO organism advance. All8 measured receptors need4quanta at1/16zJ =1/4zJ.
+For both doses, real input differs but predecessorresidue+input is BELOW that
+threshold. Deliveredwork0 and requiredrecovery0 in ALL16 calculations.
+Exact conservation and unchanged native tick/body/pointer verified.
+This is an input limit at the saved boundary, NOT original lesson-time
+saturation, adequate recovery, generalgatehealth, or a speech-failure test.
 
-S122191 now proves, from unchanged source and existing saved evidence:
-Eposition <=1/500zJ per1ms source; ninepostbaseline intervals admit at most
-10position sources perreceptor, total <=1/50zJ. Equalpredecessors and measured
-finalresidue differences force cumulative quantized delivered work to be
-EXACTLY EQUAL between doses for EACH of the eight receptors.
-Independent readonlyreview confirmed actualmounts, sourcecount and no other
-applicable residuewriter/sink. No lesson, compile or intervaladvance needed.
-This does NOT prove equal timing, zero absolute work, saturation, no future
-learning, or that lowering a gate quantum would fix the problem.
+ONE diagnostic build89s/one observer44904exit0; peakRSS754648KiB.
+140temporaryRustdiagnosticlines REMOVED; exact accepted core33adbb85 and
+runtimeb5a7cab1 restored. Native ordinary production unchanged.
+Raw result8262d86c, native0e1695c1, source/result reviews, caller, hashes and
+health bracket preserved in position-gate-evidence.tar.gz SHA
+d30ba283ff8f593d6f785fc2b591e000fd9f8cbc08ac1d31d7e917e9fca3804b,
+under /mnt/tfebackup/guala-c118-four-posture.XehvEs/c129-strength-evidence.TnPp0A/.
+Earlier archivesbbd1641e/a783dc14 and effective-input bound57681e13 untouched.
 
-Next singleR122193: close the quantitative body-feedback/input contract before
-any contact-strength correction. Reuse R122139/R122141: initial1ms sparse
-feedback is real but the within-render37-44 position trajectory is not returned
-as typed sensation. That limitation was already recorded, NOT a new discovery.
-Determine the smallest lawful quantitative-input correction, with actual
-source duration/energy/gate response mapped; no desired-sound coefficient,
-whole-body polling, new semantic index, or blind reset deletion.
-C1 review requested on this INPUT boundary; owner continues, not waiting.
+AWS12:40:15.784203/12:40:59.400017UTC same1458/task/image HEALTHY1/1/0.
+Postwindow CPUmax46.2453%,RAMmax12.1429%; resource/storage/refusalalarmsOK;
+historicalclockALARM remains. This is not full resource or clock closure.
 
-Sourcecore33adbb85/runtimeb5a7cab1 unchanged; clean native code.
-New exact bound receipt57681e13 and sourcehashes39486665 preserved locally and
-in /mnt/tfebackup/guala-c118-four-posture.XehvEs/c129-strength-evidence.TnPp0A/.
-Originalarchivesbbd1641e/a783dc14 untouched. Last AWS observation11:59:21UTC
-same1458HEALTHY1/1/0/resourcealarmsOK/clockALARM is HISTORICAL, not a new check.
+Next SINGLE R122197 continues R122193: quantitative instrument-feedback
+contract. Reuse R122139/R122141: initial1ms sparse feedback exists but actual
+intra-render position trajectory is omitted. Map the smallest truthful
+trajectory/source/coupling correction before any edit; do not stretch1ms into
+250ms, change UF, lowerq or fitgain to Mama, reinstate unchanged-body polling,
+or retain plasticity after cancelling its paying current. No new lesson run
+until that contract is complete. C1 review requested; Sol continues.
 Fullfield/identity/learning preserved. Speech and full AE acceptance OPEN.
 
 The earlier live-lesson status below is HISTORICAL context, not the resume point.
@@ -19529,3 +19531,211 @@ this arithmetic result. C1's review target is this input/coupling boundary;
 the owner continues source/design work without inferring a running C1 process.
 Goal ACTIVE; speech NOT fixed; existing live sound/self-hearing/stop and
 restart proofs remain closed. Browser closed/caretaker STOP unchanged.
+
+
+### S-054-122-194 — both guide sources also give identical seven-field constraints
+
+2026-09-12, continues R122193. Root20a5c14b clean; shared8cfed460 unchanged.
+Source-only deduction, independently reviewed; no native run or source edit.
+
+Active path is joint_uf_source_adapter::evaluate_admitted_occurrence ->
+joint_uf_v1_4::evaluate_with_physical_bounds, NOT historical
+joint_field_l0_l4.rs. Each GLJSRC04 axis occurrence contains its two position
+and two load ports, two samples1ms apart. Actual nonsaturating32/128 guides
+have zero load, displacement1/4 across the same980mm2 tract span.
+
+A fresh ContinuousJointUf is created for each occurrence. Two samples give
+exactly one positive-duration DSF gate. T=R=1/1000; four bounded coordinates
+give delta_norm<=2, sigma<=1 and kappa=0, hence V<=3/2000.
+All T/V/R lattice projections at scales1/2/4 are therefore0, so C=1.
+Actual movement is well above Negative Space's1e-6 displacement threshold;
+the gate is not wholly Negative Space. First-gate history/drift/contrast
+terms have no predecessor. Source gives exactly:
+[D_k,M_k,R_rev_k,U_star_k,C_k,P_k,B_k]=[0,0,0,0,1,0,0]
+for both doses, including each of the four guided axes.
+
+joint_uf_neuron_boundary519 converts those seven values exactly into MathLoom;
+complete_neuron1516 prepares Psi from those constraints. Source-local SEV
+and receptor energy remain separate evidence; do NOT claim they disappeared.
+The kernel is frozen, unchanged and not accused of violating its specification.
+This identifies the input framing's consequence, not a license to alter UF,
+add persistent L0-L4 state, or insert a numerical teaching label.
+
+Independent reviewer confirmed actual4-port occurrence, span980, positive
+motion, single gate, exactsevenfieldtuple and active imports. More samples
+inside the SAME first gate do not by themselves prove a quantitative repair.
+R122139's omitted intra-render trajectory remains prior art, not rediscovery.
+Together with S122191, neither seven-field constraints nor cumulative position
+gate work distinguished these two demonstrations at the measured boundaries.
+
+
+### R-054-122-195 — frozen scope for read-only actual gate-input observer
+
+Continues R122193. Single owner Sol. This is an evidence-only native observer,
+NOT a new physical law, lesson, whole-word campaign, acceptance bar or deployment.
+Need: current measured neuron-specific opening requirements, not inferred
+saturation or an arbitrary receptor gain. Existing public observations do not
+expose that field; code inspection established this before a new run.
+
+EXACT INPUT:
+One readonly restore of the already saved dose32 successor669725,
+body9eed2752a82c1581e97e45c49adf164a2ccfe96a27ab603e65b57a60d59d15f2,
+world885798667ea89dc4cd7b26db48807fdb1d2d30e5c7af4c1662ec040e05174fee.
+Two calculations on that SAME unchanged saved predecessor: hypothetical
+MAX32 and MAX128 drives to37/38/39/44. No live body, cue, tutor recording,
+actor, worker, startup migration, native advance, checkpoint or storepublish.
+These are current-boundary input calculations, NOT a reconstruction of the
+unrecorded original lesson-time gate state and NOT a new lesson.
+
+FILES AND EVIDENCE PATH:
+- organism_runtime.rs: one diagnostic-api-only &self method. Validate bounded
+  unique acoustic axes as at the actual guide door; call the existing pure
+  settle_body_effector_drives on a small temporary body successor for1ms;
+  use the actual body_proprioceptive_source builder. Never assign that result
+  to runtime/body state. Pass exact source and requested axis subset to the
+  cognitive observer; return movement and exact native gate-input evidence.
+- resident_cognitive_formation.rs: one diagnostic-api-only &self method.
+  Resolve the actual source sites to exactly one current mounted neuron each;
+  only selected position receptors, not load/motor cells. Require one source
+  gate and one physical transduction gate for this scoped observer.
+  Call unchanged prepare_complete_joint_field_with_admission,
+  prepare_psi_settlement, exact_proprioceptive_receptor_anatomy,
+  derive_proprioceptive_receptor_sample_range_work,
+  gate_opening_quantum_window_with_psi, quantize_proprioceptive_delivery, and
+  required_gate_recovery_extent_for_interval_with_psi. No duplicated equations.
+- External caller under existing diagnostic evidence directory: restore once,
+  call twice, verify same tick/readiness/pointer, save complete JSON and hashes.
+
+OUTPUT / FROZEN EVIDENCE:
+Per position receptor: exact stable lineage/axis/direction, sampled position
+fractions, seven DSF values, transduced energy, actual gate population/quantum/
+capacity/current dissipation/open count, predecessor input residue, opening
+threshold and cap, delivered quanta/work, successor residue, and REQUIRED
+recovery extent. Required recovery is NOT proof of supplied fuel or recovery
+actually performed. Movement before/after, admitted/stalled carriers and
+current tick identify the actual temporary demonstration.
+All rationals/counts cross native->JSON->Python exactly as strings; no float
+conversion of energy, no default evidence, no output reduction to a pass bit.
+
+RESOURCE / LIFECYCLE / SOURCE REVIEW:
+Only one saved fullbody in memory; <=9requested axes, <=18position observations
+percall (this caller expects8); bounded pure body1ms calculation and source
+field work. One readonly source-site search per observed member is diagnostic
+only, never production cognition. No new persisted bytes, codec, neuron,
+contact, semantic address, process, runtime owner or endpoint. Ordinary build
+excludes BOTH new methods. No production image is built or deployed.
+Freeze source and caller; independent source-only review BEFORE one diagnostic
+build. Health-check AWS read-only before/after the one saved-state observation;
+no historical alarm is silently treated as new/all-green. Preserve all results
+and remove diagnostic source after evidence, restoring accepted native hashes.
+Do not repeat prior body-range, coupled-body, cold-next, livecue or speech tests.
+
+TRANSLATION/FAILURE CHECK:
+The exact functions, source-site mapping, one-gate guard, borrowed-state
+ownership, immutable input and JSON fields above are the complete diagnostic
+path. Refusals are observer/configuration failures until classified, not a
+speech failure. There is no install into the ordinary artifact or production.
+No request to change body coefficients, receptor quantum, learning law, or
+feedback format has been inferred from the need to observe these quantities.
+
+
+### S-054-122-196 — actual saved-state position gate limit measured, no lesson repeated
+
+2026-09-12. Continues R122195/R122193. Previous conceptual index reply made no
+implementation progress; the existing build46202 was polled, NOT relaunched.
+Terminalexit0, release89s/189warnings. Frozen90ce8c07843909cab600dc110f27f8a6aa494d0f6b03fd6dac010e053cb00566
+verified before install and again before diagnostic removal. Independent
+source review PASS; ordinary production excludes both diagnosticmethods.
+
+ONE isolated install at /tmp/guala-c129-strength-check.5Cl6tl/position-installed.
+NativeSHA0e1695c1c7b58e46f127eaadfbb3f341b64fe2ffb31b3dff5a7491067ceaf1ab.
+CallerSHAea4b72041550fd03db36048b7d0d4ad0d63815cef393bda68a0988e6a7995afb.
+Observer44904exit0, empty stderr, one restore of saved32successor669725:
+body9eed2752a82c1581e97e45c49adf164a2ccfe96a27ab603e65b57a60d59d15f2,
+world885798667ea89dc4cd7b26db48807fdb1d2d30e5c7af4c1662ec040e05174fee.
+Two pure MAX32/128 calculations, same predecessor, not lesson chronology.
+No cue, advance, migration, actor, save, returned-body installation or liveinput.
+PeakRSS754648KiB for this observer; not productionperformance evidence.
+
+WHAT WORKED / EXACT RESULT:
+Allfouraxes37/38/39/44 moved +1 for32 and +4 for128, no stalledcarriers.
+Each actual axis retains different exact position samples and inputenergy.
+All16 receptor computations use the complete sevenfields[0,0,0,0,1,0,0].
+Each actualonegate receptor q=1/16zJ, capacity36, threshold4, windowcap39.
+Thresholdenergy=1/4zJ. Each residue+input belowthreshold, deliveredquanta0,
+deliveredenergy0, requiredrecoveryextent0; successorresidue=predecessor+input.
+Native tick669725/body state2b73f22c4ebb4ede11073ae67abfe1fdc785d024a87790a010df339b516574f6
+and whole-state readiness digest/pointer unchanged after BOTH calculations.
+
+Per receptor (suffix of474c4e4c494e4531000000000000), exact input energies:
+
+| Axis/direction | Lineage suffix | E32 zJ | E128 zJ | Existing residue zJ |
+| --- | --- | --- | --- | --- |
+| 37/0 | 0954 | 22261/960400000 | 11453/480200000 | 140613/7503125 |
+| 37/1 | 0962 | 1529501/960400000 | 762133/480200000 | 543029/60025000 |
+| 38/0 | 0970 | 31501/960400000 | 16133/480200000 | 2638763/240100000 |
+| 38/1 | 097e | 1460341/960400000 | 727613/480200000 | 6593063/240100000 |
+| 39/0 | 098c | 42341/960400000 | 21613/480200000 | 69681/428750 |
+| 39/1 | 099a | 1392781/960400000 | 693893/480200000 | 17729/214375 |
+| 44/0 | 0a18 | 120541/960400000 | 61013/480200000 | 35196881/480200000 |
+| 44/1 | 0a26 | 1078981/960400000 | 537293/480200000 | 24467841/480200000 |
+
+DECISIVE INTERPRETATION AND LIMIT:
+The existing input conversion supplies zero gate work for BOTH demonstrations
+at this saved boundary, before supplied recovery could distinguish them.
+It is NOT evidence all gates are recovered/healthy, that original lesson-time
+saturation was proved, that all learning is impossible, or that these are
+failed lessons. No new lesson was performed. Quantitative source data exists,
+but it does not yet cause a differentiated gate-work signal here.
+gate_opening_quantum_window_with_psi derives threshold from positive
+open-minus-closed free-energy barrier: floor(barrier/q)+1. Smallerq changes
+rounding, NOT the underlying barrier; arbitraryq reduction is not justified.
+Independent source/resultreview verified conservation and all inference limits.
+
+LEAN CLOSURE / ARTIFACTS:
+Exactly140temporaryRustdiagnosticlines removed after resultreview; coreSHA
+33adbb8530490dbe5680fe6cc4c4558e3fb4c2bc221ecd7a231934b03393c750 andruntimeSHA
+b5a7cab120f2145badfefa07c1983226f290f6f20b7d4432f1db4f4a0698e75b restored.
+Only ledger changes remain in worktree; no ordinarynative/package change.
+Rawresult8262d86c57b6e2558c09ad85b5c178f5ee229fe75f9880c5c2ebec42c2ef4f8b;
+diagnosticpatch834f84dbede288a147b649914dcc37a843b306e72b81ced4946c43f65f9e40dc.
+Caller/native/wheel/source+resultreview/logs/results/health archived once as
+position-gate-evidence.tar.gz SHA
+d30ba283ff8f593d6f785fc2b591e000fd9f8cbc08ac1d31d7e917e9fca3804b.
+Existing durable c129-strength-evidence.TnPp0A directory; no oldarchives overwritten,
+no originalbodyarchive duplicated. Diagnostic install is isolated, not live.
+
+READONLY AWS bracket12:40:15.784203/12:40:59.400017UTC confirms same
+1458/71289e2b95be4d79a5c9f74ac2708b7d/fd6e44de HEALTHY1/1/0.
+Before metricwindowCPUmax60.6339%,RAMmax12.1429%; afterwindowCPUmax46.2453%,
+RAMmax12.1429%. CPU/RAM/EFS/refusalalarmsOK, oldclockALARM remains.
+HealthJSONeaff114e/46d0ba21 preserved. No cloudmutation or completeclockclaim.
+Alllivevoice/selfhearing/stop/cold-next passes remain closed. SpeechNOTfixed.
+
+
+### R-054-122-197 — next single item: truthful quantitative instrument-feedback contract
+
+Continues R122193 using CLOSED S122194/S122196 input evidence. This is not a
+new failed speech candidate and does not reopen passed voice/ordering laws.
+Exact missing deliverable: the control's real changing position must reach
+the existing neuronal learning path with its duration and quantitative
+distinctions intact, under the agreed directinstrument architecture.
+
+Source/design review only until contract is complete: trace already-computed
+per-ms instrument trajectories through renderer, one native returned source,
+Python transport, persisted in-flight return and next ordinary admission;
+derive actual units, gate partition, transduced work, and bounded allocation.
+Compare to R122139/R122141's explicitly LIMITED initial1ms feedback.
+Prefer carrying existing actual consequences once, not extra body settlement,
+a second sensory owner or unchanged all-body polling. Do not assert that
+recovering omitted trajectory alone is sufficient before deriving actual gate
+and input behavior over the bounded source. No invented sample duration,
+semantic cue tag, fitted sensitivity, arbitraryq or new meaning/index layer.
+Any altered anatomy/source law must be separately explicit and reviewed;
+no architecture change is inferred from this diagnostic result.
+
+SingleownerSol. C1's pending input-contract review remains useful; no running
+C1 process or permission wait is inferred. No new lessons, compile, candidate,
+livecue or deployment in this handoff. Browserclosed/caretakerSTOP.
+FullAEgoalACTIVE, speechNOTfixed. Immediate next action is the source contract,
+not a repeated wholebody test.
