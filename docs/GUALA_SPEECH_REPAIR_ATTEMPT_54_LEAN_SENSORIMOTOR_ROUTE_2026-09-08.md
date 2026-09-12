@@ -60,8 +60,9 @@ HISTORICAL REJECTED SOURCE, not work currently in the executable tree:
 I122206/I122207/I122208 preserve its capture, renderer, encoder and transport work.
 I122211 records the source allocation map. S122212 selects ONE startup-only
 ordinary-input capacity check instead of hot-loop accounting. I122213 begins
-Candidate131 with exact pending-source type/extents/order checks; partial source,
-NOT compiled, tested, reviewed or deployed. No new anatomy or cognitive law.
+Candidate131 with exact pending-source type/extents/order checks. I122214 moves
+native decoder count checks before allocation and removes the old duplicate.
+Partial source, NOT compiled, tested, reviewed or deployed; no new physical law.
 F122209: complete Candidate130 source review REJECTED its already-known
 compact-versus-expanded resource/custody gap, BEFORE build or test. Exact source
 and patch are archived; executable files restored byte-for-byte to92af3470.
@@ -20883,3 +20884,46 @@ publication. No per-interval budget owner or sample-scanning machinery.
 The full native runtime/capture integration remains uncompiled until the
 complete source review. Closed physical/sound/restart evidence remains closed.
 Full goal ACTIVE; speech NOT fixed; no production delivery in this checkpoint.
+
+### I-054-122-214 — Candidate131 decoder preallocation boundary
+
+Continues R122210/S122212, not a new speech campaign. Previous conversational
+turn was NO PROGRESS; current source work remains partial and not deployable.
+Requested architecture: existing exact physical feedback, no added biology.
+Current conflict: pending expansion can allocate sample vectors before checking
+the caller's admitted aggregate, so the startup consumability claim needs that
+existing admission enforced earlier. No new physics, state owner, capacity
+profile, hot accounting or L0-L4/core/body-law change is authorized.
+
+Scoped edit in joint_source_episode.rs: pass the remaining admitted sample
+count into Parser::port; refuse an excessive count before its five reserves.
+Each port's clock must fit the admitted aggregate occurrence clock, since
+every port belongs to exactly one occurrence. Before occurrence/group reserves,
+enforce the existing nonempty partition cardinalities. Before coordinate/sample
+reserves, require enough remaining encoded bytes even for the format's smallest
+valid elements. These are earlier refusals of already-invalid representations,
+not new limits on lawful data. Keep exact final equality and partition checks.
+Supporting source_counts_refuse_before_sample_allocation is now written:
+excessive count, truncated payload, remaining-count refusal and unchanged valid
+port. NOT RUN before complete Candidate131 source review; not peak/speech proof.
+
+Independent reviewer corrected arithmetic for the pending startup function:
+binary64 denominator exponent1074 means denominator bit length1075.
+For generic two-endpoint raw sources, serialized rational total bits R<=4E;
+retained raw and inverse-map rational bits <=5R+S, not a binary64/u64 bound.
+This remains a logical bound, not allocator/RSS proof; parser scratch and
+encoded buffer overlap must be accounted separately.
+
+Command mistakes retained: author again guessed lean_resource_admission.py;
+the actual import names substrate/native_resident_resource_admission.py.
+Reviewer used a nonexistent physical_sensorium glob before finding the actual
+compact source builder. Read-only failures, no compile or organism effect.
+Actual native edit removes the old post-allocation total check rather than
+retaining duplicate admission. Net45 lines including29 fixture/control lines;
+no retained fields, new module, physical law, sample scan or budget owner.
+Whitespace check passed; no compiler/test run. Caller search finds only the
+updated production parser call and the new supporting controls.
+Native source SHA bd16bb608a2ee6c054bab2638ffb4c2f613666301b061002e8df9aca86bec8de.
+Core33adbb85, runtimeb5a7cab1 and body451378d1 remain byte-identical.
+The native startup calculation and compact feedback integration remain pending.
+Production baseline1458 unchanged; no new cloud check, cue or deployment.

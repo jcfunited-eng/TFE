@@ -712,13 +712,10 @@ impl<'a> Parser<'a> {
         let mut root_translation_proprioceptor_terminals = BTreeSet::new();
         let mut sample_count = 0usize;
         for _ in 0..port_count {
-            let port = self.port(version)?;
-            sample_count = sample_count
-                .checked_add(port.source_times.len())
-                .ok_or_else(|| "joint-source sample count overflow".to_string())?;
-            if sample_count > self.admitted_sample_count {
-                return Err("joint-source samples exceed caller-derived admission".into());
-            }
+            let port = self.port(version, self.admitted_sample_count - sample_count)?;
+            // port() admitted this count against the remaining total
+            // before allocation, so this addition cannot overflow.
+            sample_count += port.source_times.len();
             if !keys.insert((
                 port.sense,
                 port.sensor_id.clone(),
@@ -829,7 +826,7 @@ impl<'a> Parser<'a> {
                 "joint-source occurrence count differs from caller-derived admission".into(),
             );
         }
-        if (port_count == 0) != (occurrence_count == 0) {
+        if occurrence_count > port_count || (port_count == 0) != (occurrence_count == 0) {
             return Err("joint-source occurrences must partition every admitted port".into());
         }
         let mut occurrences = Vec::new();
@@ -842,8 +839,8 @@ impl<'a> Parser<'a> {
         for _ in 0..occurrence_count {
             let occurrence_start = self.offset;
             let vertex_count = self.u32()? as usize;
-            if vertex_count == 0 {
-                return Err("joint-source occurrence has no vertex".into());
+            if vertex_count == 0 || vertex_count > port_count {
+                return Err("joint-source occurrence vertices exceed admitted partition".into());
             }
             let mut port_indices = Vec::new();
             port_indices
@@ -907,8 +904,8 @@ impl<'a> Parser<'a> {
             let joint_intersample_profile = self.bytes()?;
 
             let group_count = self.u32()? as usize;
-            if group_count == 0 {
-                return Err("joint-source occurrence has no declared physical group".into());
+            if group_count == 0 || group_count > vertex_count {
+                return Err("joint-source group count exceeds occurrence partition".into());
             }
             let mut groups = Vec::new();
             groups
@@ -918,8 +915,8 @@ impl<'a> Parser<'a> {
             let mut prior_group: Option<Vec<usize>> = None;
             for _ in 0..group_count {
                 let member_count = self.u32()? as usize;
-                if member_count == 0 {
-                    return Err("joint-source occurrence group is empty".into());
+                if member_count == 0 || member_count > vertex_count {
+                    return Err("joint-source group members exceed occurrence partition".into());
                 }
                 let mut members = Vec::new();
                 members
@@ -999,7 +996,11 @@ impl<'a> Parser<'a> {
         })
     }
 
-    fn port(&mut self, version: u16) -> Result<JointSourcePortView, String> {
+    fn port(
+        &mut self,
+        version: u16,
+        remaining_samples: usize,
+    ) -> Result<JointSourcePortView, String> {
         let sense = self.u8()?;
         if sense as usize >= SENSE_COUNT {
             return Err("joint-source receptor sense is outside topology".into());
@@ -1072,8 +1073,12 @@ impl<'a> Parser<'a> {
         let substream_id = self.identifier("substream_id")?;
 
         let coordinate_count = self.u16()? as usize;
-        if coordinate_count == 0 {
-            return Err("joint-source receptor has no physical coordinate".into());
+        // Each coordinate encodes two nonempty u16-length identifiers.
+        let minimum_coordinate_bytes = 2 * (std::mem::size_of::<u16>() + 1);
+        if coordinate_count == 0
+            || coordinate_count > (self.bytes.len() - self.offset) / minimum_coordinate_bytes
+        {
+            return Err("joint-source coordinates exceed remaining encoded input".into());
         }
         let mut coordinate_axes = BTreeSet::new();
         let mut coordinates = Vec::new();
@@ -1127,8 +1132,19 @@ impl<'a> Parser<'a> {
         let input_map_group_receipt = sha256(&group_authority);
 
         let sample_count = self.u32()? as usize;
-        if sample_count == 0 {
-            return Err("joint-source receptor has no samples".into());
+        // A port belongs to exactly one admitted occurrence. Check its
+        // count BEFORE allocating the five rational vectors, not afterward.
+        if sample_count == 0 || sample_count > remaining_samples
+            || sample_count > self.admitted_occurrence_frame_count
+        {
+            return Err("joint-source samples exceed caller-derived admission".into());
+        }
+        // Four encoded rationals (two length-prefixed integers each) plus
+        // one binary64. Even zero needs one decimal byte per integer.
+        let minimum_sample_bytes = 4 * (2 * (std::mem::size_of::<u16>() + 1))
+            + std::mem::size_of::<f64>();
+        if sample_count > (self.bytes.len() - self.offset) / minimum_sample_bytes {
+            return Err("joint-source samples exceed remaining encoded input".into());
         }
         let mut source_times = Vec::new();
         let mut exact_normalized_sources = Vec::new();
@@ -1368,7 +1384,7 @@ mod tests {
         short_text(output, &denominator.to_string());
     }
 
-    fn port(output: &mut Vec<u8>) {
+    fn port_header(output: &mut Vec<u8>) {
         output.push(0);
         push_u32(output, 0);
         short_text(output, "retina");
@@ -1386,6 +1402,10 @@ mod tests {
         rational(output, 1, 1);
         rational(output, 1, 2);
         bytes(output, &[7]);
+    }
+
+    fn port(output: &mut Vec<u8>) {
+        port_header(output);
         push_u32(output, 2);
         for (time, signal, phase, field, local_relevance) in [
             (0, 0.0_f64, (0, 1), (1, 1), (1, 1)),
@@ -1475,6 +1495,31 @@ mod tests {
         output[port_start + 1..port_start + 5]
             .copy_from_slice(&topology_index.to_le_bytes());
         output
+    }
+
+    #[test]
+    fn source_counts_refuse_before_sample_allocation() {
+        let mut oversized = Vec::new();
+        port_header(&mut oversized);
+        push_u32(&mut oversized, u32::MAX);
+        let error = Parser::new(&oversized, 1, 2, 1, 2)
+            .port(VERSION, 2).unwrap_err();
+        assert_eq!(error, "joint-source samples exceed caller-derived admission");
+
+        let mut truncated = Vec::new();
+        port_header(&mut truncated);
+        push_u32(&mut truncated, 2);
+        let error = Parser::new(&truncated, 1, 2, 1, 2)
+            .port(VERSION, 2).unwrap_err();
+        assert_eq!(error, "joint-source samples exceed remaining encoded input");
+
+        let mut valid = Vec::new();
+        port(&mut valid);
+        let error = Parser::new(&valid, 1, 2, 1, 2)
+            .port(VERSION, 1).unwrap_err();
+        assert_eq!(error, "joint-source samples exceed caller-derived admission");
+        assert_eq!(Parser::new(&valid, 1, 2, 1, 2)
+            .port(VERSION, 2).unwrap().source_times.len(), 2);
     }
 
     #[test]
