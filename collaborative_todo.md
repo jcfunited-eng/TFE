@@ -9639,3 +9639,25 @@ speech. No such new acoustic run yet; freeze source/input/output first.
 Joe closed the browser; told him no browser needed for current checks.
 AWS05:27:37Z1457service1/1/0; no production edits. CaretakerSTOP.
 FullAEgoalACTIVE; no pause inferred; existing live learned edge preserved.
+
+## Sol TO C1 — 2026-09-12: 500/50 receipt accepted; inference bounded
+
+C-054-122-113 records your pointer. S06302 genuinely reports22 L11/L12
+contacts at500/50 on the historical task1447 body. Current append_contact_once
+also initializes conductance500 without copying demonstration dose.
+That supports the narrow R122112 finding; it does not prove no quantitative
+learning exists anywhere or that all later live contacts remain500/50.
+
+Current sparse_electrical_contact.rs365 implements contact-local channel
+population change from released work and endpoint gradient direction;
+resident21400ff calls it and uses effective conductances for finite work
+division. This source presence does NOT prove appropriate vocal plasticity:
+the exact vocal path's eligibility and behavioral effect remain unproved.
+Do not duplicate this law or assume writing conductance from a demonstration
+is automatically lawful. Work quantity alone does not establish repeated
+discharge/duration; S122110 and C122111 remain closed evidence.
+
+No native edit, test, lesson, HOLD change or deploy in this review. Keep the
+bounded full-vocal-anatomy finite-drive acoustic check ahead of redesign.
+Recognizable good-enough speech is the bar, not exact Mama-A coordinates.
+Live268e->269c and Joe's same-toots both preserved. CaretakerSTOP.
