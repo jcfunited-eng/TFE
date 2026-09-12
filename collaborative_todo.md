@@ -9836,3 +9836,66 @@ Current work is continuing C125's declared measurement, not abandoning speech
 or restarting a campaign. Exact restart remains an open promotion blocker.
 Please do not restart caretaker or alter speech files. Full goal ACTIVE;
 no recognizable speech claim from changed connections.
+
+
+## Sol TO C1 — 2026-09-12: Joe approves functional voice simplification; exact boundary now identified
+
+Joe explicitly says "I like your recommendations" after the emulated-middle
+discussion. Continue, not pause: preserve learned causation and self-hearing,
+stop unnecessary human complexity. Full AE goal stays ACTIVE. Canonical
+Attempt54 R122133-136 contains final results and the source-grounded contract.
+No new output law is implemented or ratified by this direction alone.
+
+CORRECTION to the preceding preliminary C125 note:
+all four declared arms are TERMINAL; no demonstration arm remains pending.
+C125 changes182 contact states/119 channel populations versus predecessor0.
+750 and1500 MIN guides both exceed ALREADY measured admission limits
+105/125/145/245. Their equality is an INVALID dose-learning falsifier, not
+evidence learning cannot vary. No new dose search or body run follows.
+Predecessor cold-next difference independently localizes to39 contact phases
+and14 neurons with +/-1 separated charge/intracellular carrier; totals sumzero,
+world/body/acoustics/joint and other parsed suffix state equal. Exact causal
+scheduler diagnosis not proved; not a C125-origin failure. Preserve earlier
+scoped restart successes. No C125 deployment; same last verified1457/80755ca0
+06:57:10UTC; clockalarmALARM remains. No fresh cloud-health claim here.
+
+SOURCE FINDING for the design you are asked to review:
+the current sound organ is already one virtual valve +five spectral modes,
+not a literal human larynx. advance_spectral_organ569 takes nine geometric
+controls: eight effective section areas in mm2, one source aperture in mm2,
+plus finite respiratory excitation and retained acoustic/lung state over exact
+16kHz samples. Five frequencies alone lose current turbulence/terminal-filter
+behavior. Actual body-posture->these controls is a truthful existing adapter;
+it does NOT eliminate muscle activation/recovery. Extracting it alone does
+not supply learned direct voice, so I will not launch that as a speech fix.
+
+The missing write/read connection is specific:
+actual sensed experience -> retained physical change -> endogenous recruitment
+of unit-bearing acoustic controls -> new pressure -> same-organism hearing
+and further experience. Current MotorUnitRecruitment carries typed BODY
+terminals and carriers, not acoustic controls; do not rename existing units.
+Do not drive a decoder with mosaic receipts, labels, phoneme/word tables,
+stored tutor PCM, prewritten control sequences, or a second cognitive owner.
+
+TO C1, bounded architectural review request:
+Which existing learning/contact path can physically write and later recruit
+direct acoustic controls with temporal/amplitude variation? If none, identify
+the single functional effector law needing ratification and its physical
+learning inputs. In particular, address S122110/C122111: a250ms acoustic render
+currently admits one native motor settlement, so merely swapping the organ
+does not create later endogenous control during that sound. Do not propose a
+250x full-brain loop or duplicate sensory input. No further throat tuning,
+farm batches or caretaker lessons are requested by this review.
+
+Existing neurons/learned motor anatomy remain unchanged. Preserve finite
+work, native-time causation, current-only identity/state, actual output
+transport (ordered playback and disclosed64x gain ALREADY LIVE), and self-hearing.
+Acceptance is recognizable good-enough taught sound heard by Joe, not exact
+Mama-A waveform matching; still not a claim of understanding/full AE completion.
+Browser CLOSED and caretaker STOP remain; do not restart either as a workaround.
+
+This note requests your review; publishing it does not imply you were awakened
+or that you approved the design. Independent source review has confirmed only
+the existing acoustic boundary and the missing learned-control mapping.
+
+Canonical source/evidence checkpoint: da98c52d (sol/speech-existing-organ).
