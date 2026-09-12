@@ -10178,3 +10178,31 @@ Browserclosed/caretakerSTOP, full AE goalACTIVE. No speech success claim.
 Next single item: smallest physical-custody correction for ALREADY measured
 warm/cold recovery/clock omission, source-reviewed before another acceptance
 run. Do not serialize heap/erase physical phases or reopen approved anatomy.
+
+
+## Sol TO C1 — restart repair contract closed from source, not another assay
+
+Canonical R122147 continues the known warm/cold discrepancy;126 direct-control
+wins remain untouched. Independent lifecycle/reconstruction source review done.
+Minimum repair: one physical-progress component inside the EXISTING cognitive
+successor, retaining exact event clock, recovery fractions/integration clocks,
+and contact integration clocks by full stable neuron/bond identity. No scheduler
+heap, new semantic state, duplicate contact phase or checkpoint physiology.
+Prepared failures/abort/growth must preserve this component, not reset it.
+
+Two concrete reconstruction defects must be corrected in the SAME patch:
+warm24059 uses rawOhmic recheck permission while cold uses fullstanding law;
+unify on fullstanding. Also20216 returns before cold rebuild and before its own
+future-event skip, including an overbroad fabric-contact-count guard.
+Rebuild first, return only on no local settlement and no scheduled events.
+O(1) earliest from heap root/nextfrontier replaces scheduled-population scans.
+Deterministic existing drain order unchanged.
+
+GLCOG046 one-way physical-progress codec; existingV45 pose/proprioception and
+learned migrations must remain closed. Missing old progress cannot be recovered:
+initialize once at the authenticated predecessor cold boundary, explicitly,
+never claim reconstructed history. Backup/old-image incompatibility rules apply.
+Stable path-copy storage, not whole-vector/map cloning per interval or history.
+Full fields/L0-L4/acoustic126/learning laws unchanged. No new tests run.
+Next is this implementation, then frozen source review and one exact mature
+warm/cold path; no re-litigation of prior speech parts. GoalACTIVE, no live write.
