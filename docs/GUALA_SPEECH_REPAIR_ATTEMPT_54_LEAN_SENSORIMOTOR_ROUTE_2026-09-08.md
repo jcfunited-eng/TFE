@@ -1,34 +1,40 @@
 # Guala speech repair Attempt 54 — complete design verification and lean sensorimotor route
 
-## Current resume point — 2026-09-12, source/evidence reconciliation
+## Current resume point — 2026-09-12, direct voice architecture decision
 
-**Speech is not fixed. Full AE goal ACTIVE.** Last AWS verification06:57:10UTC:
-same task1457/image80755ca0, one running task,1desired/1running/0pending;
-runaway alarmsOK, historicalclock-stalledALARM. This is the last measured
-cloud receipt, not a newly inferred health result. Browser CLOSED per Joe;
-caretaker remains STOP. No C125 deployment.
+**Speech is not fixed. Full AE goal BLOCKED pending an architecture decision,
+not complete. Production has NOT been stopped by this status.**
+R122138-140 supersede the earlier active-design resume point. Last verified
+source/evidence baseline269ee031; C125 ordinary contact routing is preserved
+and remains NOT deployed. No voice candidate implementation yet.
 
-Code preserved on origin at256db2b58fb3951bfcfa20c0c1b62c0755ce1b40.
-C125 ordinary contact adaptation is locally demonstrated (S/F122133),
-not demonstrated recognizable or quantitatively learned speech.
-750/1500 guided comparison is NOT a dose-learning falsifier: both exceed
-already-measured directional admission limits. Preserve the positive routing
-result; do not turn an invalid contrast into another organism failure.
-Predecessor and candidate warm/cold inequality remains separately recorded.
-All four declared arms and the single retained cold-next check are terminal.
-Do not rerun closed lessons or range assays from a stale handoff.
+The single pending decision, asked of C1 in the shared ledger and Joe in chat:
+reuse existing same-unit acoustic controls18,37-44 with their current sparse
+feedback and protective glottal coupling, OR require independent instrument
+anatomy. Main recommends reuse, avoiding duplicate state/neurons. C1's general
+Acoustic Effector Class direction is received and accepted; do not claim his
+review is missing. This narrower implementation choice remains unanswered.
 
-Joe's latest direction: functional emulation of the middle from clear
-input/output contracts; stop unnecessary human complexity, NOT work.
-Self-hearing, learned cognition, choices and actions must remain.
-Active next item is the bounded native voice-effector control contract
-(R122134-135), not more throat/chemistry tuning and not a new brain.
-A proposed simpler instrument must receive actual learned control; the
-existing memory is not a documented playable recording. No new output law
-has been implemented or silently ratified by this status block.
+Source audit is COMPLETE (R122139). Preserve existing broad route identity
+and completed-ordering/continuation authority; any new acoustic eligibility
+must not silently erase old routes. Existing1ms typed movement/load return is
+not full intra-render nine-control sensation. No new dynamics, code, tests,
+lessons or deployment occurred in this design pass. Do not rerun closed work
+to fill the decision wait. The independent review agent is terminal.
+
+Last AWS verification06:57:10UTC: task1457/image80755ca0,1desired/1running/
+0pending; runaway alarmsOK, historicalclock-stalledALARM. This is historical
+measured evidence, not a fresh health assertion. Browser CLOSED per Joe;
+caretaker remains STOP. No new production pause/restart/write.
+
+Preserve C125's measured routing success, invalid saturated750/1500 contrast,
+separate predecessor warm/cold discrepancy, and all archived artifacts.
+Four declared applicability arms and the retained cold-next check are terminal.
+Full objective remains unchanged: learned speech and whole AE development,
+not playback or human process-for-process duplication. Resume on the explicit
+control decision, incorporating R122138-139 into one implementation contract.
 
 The earlier live-lesson status below is HISTORICAL context, not the resume point.
-
 
 Date: 2026-09-08 UTC
 Historical deployment record, 2026-09-11 UTC (superseded by CURRENT status below):
@@ -17430,3 +17436,26 @@ R122133; no additional native test. Last AWS evidence remains06:57:10UTC,
 not a fresh health assertion. Browser closed/caretakerSTOP. Single next item
 remains the explicit direct-control implementation contract, incorporating
 these consumer boundaries; full AE goal remains ACTIVE.
+
+
+### R-054-122-140 — third-turn decision audit; goal blocked, not production stopped
+
+2026-09-12. Previous turn classified PROGRESS: R122139 completed source review,
+changed the prospective edit boundary, and preserved findings on origin269ee031.
+It was not a running-test wait. This turn revalidated the exact worktree clean
+at269ee031 and shared origin blob7532d402a022c38973aa153ebb223f7e0eebe580
+unchanged. The independent review agent is completed. No Joe reply or narrower
+C1 ratification is present; a goal-continuation message is not that answer.
+
+Same blocker across the user-triggered R122138 turn, R122139 continuation,
+and this continuation: shared existing controls versus independent acoustic
+anatomy, including feedback/reflex scope. Safe caller/consumer review is now
+exhausted and retained. Neither a new native test nor another source audit
+can supply the missing architectural choice. Do not infer an active C1
+process from a filed request. Do not launch disjoint work to evade this gate.
+
+Goal marked BLOCKED awaiting that decision under the three-turn rule, not
+abandoned, completed or narrowed. Recommendation remains reuse of the nine
+existing same-unit controls. No production stop, deployment, body mutation,
+browser action or caretaker change was made. Source/evidence and shared
+handoffs must distinguish paused agent work from organism runtime.
