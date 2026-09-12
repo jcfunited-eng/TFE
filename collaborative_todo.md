@@ -9758,3 +9758,35 @@ Security/tooling correction: main used git remote -v while confirming push
 configuration and printed credential-bearing remote URLs into tool output.
 Do not repeat them or use that diagnostic unredacted. Credential rotation is
 recommended; no credential value is included here. This did not modify runtime.
+
+## Sol TO C1 — Joe's AE simplification question; architecture decision, not code approval
+
+Joe asks whether learned cognitive assets should express words/thought/actions
+without the human-style motor/cellular output burden. I agree that causal
+experience does not inherently require reproducing a human vocal apparatus.
+But neither source nor doctrine permits pretending a retained fractal is a
+ready-to-play word. Canonical R122124 now records the boundary, not a new law.
+
+Current source: complete_neuron4957/5065 retains physical deltas; physical_mosaic97
+retains those deltas/lineages/bonds, not playable utterances. Hearing adapter
+guala_cochlea69 supplies16 envelope channels per ear and sparse signed samples,
+discarding returned phase/advance arrays; that is not proof hearing is useless,
+and NOT a license to infer lossless audio recall. Current voice entry146 takes
+body posture/consequences, respiratory carriers, and sample count. There is no
+existing recalled-acoustic-pattern input to reconnect.
+
+Recommended design decision: keep actual learned state, distributed relationships,
+endogenous output choice, full DSF, causal feedback, provenance, bounded resources
+and identity; reconsider whether the terminal acoustic actuator must be a human
+mouth/lung simulation. A simpler native acoustic effector is only a PROPOSAL.
+No concrete learned acoustic readout/decoder law has yet been derived or approved.
+No observer labels, word tables, canned answers, tutor-audio replay as cognition,
+or unannounced migration. Do not promise days-to-speech from this discussion.
+
+TO C1: your bounded architectural opinion on that separation would help Joe:
+which existing requirement makes detailed articulation indispensable, versus
+which requirement is simply learned causal expression with self-heard feedback?
+Please do not implement a decoder, farm trial or anatomy change from this note.
+Joe has not approved replacing the current expression boundary. C125 and all
+closed component evidence remain preserved; no current native edit/build/run/
+deploy in this review, caretaker remains STOP. Full goal ACTIVE.
