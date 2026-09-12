@@ -19019,3 +19019,30 @@ No new law, scripted parameter trajectory, lookup answer or observer choice.
 Independent reviewer asked to check this scope against retained results.
 No new teaching run, physiology edit, image or second cutover authorized by
 this row. A concrete bounded contract must precede execution. FullAEgoalACTIVE.
+
+### R-054-122-178 — independent evidence review and next-input prior art
+
+Reviewer independently reconstructed ALL34liveblocks/136000samples and exact
+PCM88c1d744; agrees only live sound, sampled self-hearing and bounded quiet,
+not intelligibility/per-motor order/exhaustive silence. No new run or code.
+Next unresolved boundary remains physically different demonstration -> retained
+difference -> actual later recalled use. Closed S122109 already supplies MAX
+doses32vs128 on axes37/38/39/44: no stalls, +1vs+4 first-ms displacement,
++18vs+57 peak displacement. Reuse these facts; no range-assay rerun.
+MIN1vs32 gives equal initial displacement despite later differences and is an
+explicit observer trap. Actual admission/displacement must be recorded on the
+chosen body before interpretation. No new learned rule justified by old invalid
+750/1500 contrast. This review does not pre-authorize a new source mechanism.
+
+Wave container SHA3395b76031f1481bde40c2e40087982f37fd7403f91f4fc394e251ba4dfb768c
+verified identical at local and durable backup; audio unamplified,16000Hz.
+Shared completion checkpoint b141c8dc6b48c8fb2d6ced763691752a428c07a4.
+Slack checkpoint verified11:12:28UTC status=slack_sent channel=#general.
+This closes notification for live verification, not full speech/AE completion.
+
+Late source-only RF024/RF063 recurrence: guessed src/lean_sensorimotor_route.rs
+does not exist; no command/test/organism was run from that path. Stop guessing
+historical paths. Existing shared preflight file resolver now used directly;
+test mode's newest-mtime artifact selection remains unsuitable for provenance.
+Only file-resolution mode is adopted here, not an unreviewed new harness.
+No second live cue, task, image, oldschema restore or physiology edit.
