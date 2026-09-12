@@ -4,12 +4,14 @@ from __future__ import annotations
 
 from concurrent.futures import Future
 from dataclasses import dataclass, replace
+import base64
 import hashlib
 import hmac
 from queue import Empty, Full, Queue
 import threading
 import time
 from typing import Any, Protocol
+from uuid import uuid4
 
 from dsf_ai_service.lean_checkpoint import (
     CheckpointOutcome,
@@ -20,6 +22,10 @@ from dsf_ai_service.paired_current_store import CurrentPair, PairedCurrentStore
 
 
 MAX_PRESSURE_BYTES = 8_000
+# External listening budget, never a cognitive or physical limit.
+MAX_HELD_PRESSURE_BYTES = 256_000
+MAX_HELD_PRESSURES = MAX_HELD_PRESSURE_BYTES // MAX_PRESSURE_BYTES
+MAX_PRESSURE_BATCH = 8
 
 
 class PhysicalSettlementFailure(RuntimeError):
@@ -143,7 +149,9 @@ class LeanOrganismActor:
         self._checkpoint = LeanCheckpointWorker(store)
         self._pending_intervals = 0
         self._last_occurrence: dict[str, object] | None = None
-        self._pressures: tuple[tuple[str, bytes], ...] = ()
+        # Stream nonce is ephemeral HTTP transport identity, not organism identity.
+        self._pressure_stream = uuid4().hex
+        self._pressure_feed: tuple[int, tuple[tuple[int, str, bytes], ...]] = (0, ())
         self._checkpoint_error: str | None = None
         self._cleanup_error: str | None = None
         self._fatal: BaseException | None = None
@@ -197,7 +205,7 @@ class LeanOrganismActor:
         return self._observation.record()
 
     def pressure(self, receipt: str) -> bytes | None:
-        """Return the one bounded cached pressure body; never call the organism."""
+        """Read bounded retained PCM by content receipt; never call the organism."""
 
         if not isinstance(receipt, str) or len(receipt) != 64:
             return None
@@ -205,11 +213,52 @@ class LeanOrganismActor:
             canonical = bytes.fromhex(receipt).hex()
         except ValueError:
             return None
-        held_pressures = self._pressures
-        for held_receipt, held_body in held_pressures:
+        _, held_pressures = self._pressure_feed
+        for _, held_receipt, held_body in held_pressures:
             if hmac.compare_digest(held_receipt, canonical):
                 return held_body
         return None
+
+    def pressure_feed(
+        self, stream: str | None, after: int | None,
+    ) -> dict[str, object]:
+        """Read one bounded immutable emission snapshot without actor work."""
+        if (stream is None) != (after is None):
+            raise ValueError("stream and after must be supplied together")
+        if after is not None and (
+            isinstance(after, bool) or not isinstance(after, int)
+            or not 0 <= after < (1 << 64)
+        ):
+            raise ValueError("pressure cursor is outside native tick range")
+        evicted, held = self._pressure_feed
+        latest = held[-1][0] if held else 0
+        gap = None
+        if stream is not None:
+            if stream != self._pressure_stream:
+                gap = "stream-restarted"
+            elif after < evicted:
+                gap = "audio-evicted"
+            elif after > latest:
+                gap = "cursor-ahead"
+        selected = (
+            tuple(event for event in held if event[0] > after)[:MAX_PRESSURE_BATCH]
+            if stream is not None and gap is None else ()
+        )
+        return {
+            "schema": "guala.pressure_feed.v1",
+            "stream": self._pressure_stream,
+            "cursor": selected[-1][0] if selected else (
+                latest if stream is None or gap is not None else after
+            ),
+            "latest": latest,
+            "gap": gap,
+            "sample_rate_hz": 16000,
+            "events": [
+                {"tick": tick, "sha256": receipt,
+                 "pcm_s16le_base64": base64.b64encode(body).decode("ascii")}
+                for tick, receipt, body in selected
+            ],
+        }
 
     def close(self) -> None:
         if not self._started:
@@ -347,12 +396,13 @@ class LeanOrganismActor:
         if self._pending_intervals + result.native_interval_count > self._pending_ceiling:
             raise RuntimeError("physical settlement breached its declared interval bound")
         if result.pressure is not None:
-            prior = tuple(
-                held
-                for held in self._pressures[:1]
-                if not hmac.compare_digest(held[0], result.pressure[0])
+            evicted, held = self._pressure_feed
+            if len(held) == MAX_HELD_PRESSURES:
+                evicted, held = held[0][0], held[1:]
+            # Identical PCM from distinct native intervals remains distinct.
+            self._pressure_feed = (
+                evicted, (*held, (live_tick, *result.pressure)),
             )
-            self._pressures = (result.pressure, *prior)
         self._pending_intervals += result.native_interval_count
         self._last_occurrence = {
             "kind": kind,
@@ -455,7 +505,7 @@ class LeanOrganismActor:
             pending_interval_count=self._pending_intervals,
             last_occurrence=self._last_occurrence,
             pressure_sha256=(
-                None if not self._pressures else self._pressures[0][0]
+                None if not self._pressure_feed[1] else self._pressure_feed[1][-1][1]
             ),
             checkpoint_error=self._checkpoint_error,
             cleanup_error=self._cleanup_error,

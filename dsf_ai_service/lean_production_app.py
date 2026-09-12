@@ -1,4 +1,4 @@
-"""Five-route production transport for one lean resident Guala organism."""
+"""Bounded production transport for one lean resident Guala organism."""
 
 from __future__ import annotations
 
@@ -10,8 +10,8 @@ import os
 from pathlib import Path
 from typing import Callable, Literal
 
-from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import Response
+from fastapi import FastAPI, HTTPException, Query, Request
+from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
 
 from dsf_ai_service.guala_home_world import home_world_authority
@@ -33,6 +33,7 @@ MAX_OCCURRENCE_BODY_BYTES = 13_312
 PUBLIC_API_PREFIX = "/api/v1/guala"
 OBSERVATION_ROUTE = f"{PUBLIC_API_PREFIX}/observation"
 OCCURRENCE_ROUTE = f"{PUBLIC_API_PREFIX}/occurrence"
+PRESSURE_FEED_ROUTE = f"{PUBLIC_API_PREFIX}/pressure"
 PRESSURE_ROUTE = f"{PUBLIC_API_PREFIX}/pressure/{{receipt}}"
 
 
@@ -232,7 +233,7 @@ def _physical_occurrence(body: OccurrenceBody) -> PhysicalOccurrence:
 def create_lean_production_app(
     actor_factory: Callable[[], LeanOrganismActor] | None = None,
 ) -> FastAPI:
-    """Create the exact five-route surface without starting a second owner."""
+    """Create the bounded surface without starting a second owner."""
 
     factory = _restore_production_actor if actor_factory is None else actor_factory
 
@@ -317,6 +318,18 @@ def create_lean_production_app(
             "schema": "guala.lean_occurrence_result.v1",
         }
 
+    @application.get(PRESSURE_FEED_ROUTE)
+    async def pressure_feed(
+        request: Request,
+        stream: str | None = Query(default=None, max_length=32, pattern=r"^[0-9a-f]{32}$"),
+        after: int | None = Query(default=None, ge=0, lt=(1 << 64)),
+    ) -> Response:
+        try:
+            record = actor_for(request).pressure_feed(stream, after)
+        except ValueError as error:
+            raise HTTPException(status_code=422, detail=str(error)) from error
+        return JSONResponse(record, headers={"Cache-Control": "no-store"})
+
     @application.get(PRESSURE_ROUTE)
     async def pressure(receipt: str, request: Request) -> Response:
         body = actor_for(request).pressure(receipt)
@@ -343,6 +356,7 @@ __all__ = (
     "OBSERVATION_ROUTE",
     "OCCURRENCE_ROUTE",
     "PRESSURE_ROUTE",
+    "PRESSURE_FEED_ROUTE",
     "app",
     "create_lean_production_app",
 )

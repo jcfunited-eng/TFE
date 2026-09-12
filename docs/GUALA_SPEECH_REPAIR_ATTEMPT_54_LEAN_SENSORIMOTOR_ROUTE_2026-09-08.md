@@ -14553,3 +14553,163 @@ R12263 source review identified latest-hash/two-receipt loss. Replace that
 transport path, not native sound, memory, body/self-return, cadence, custody,
 or learning. Complete bounded transport contract and source review before tests.
 No runtime-independent scripted sound and no full-state observer.
+
+### R-054-122-66 — sound-transport implementation contract (2026-09-12 02:12 UTC)
+
+Scope D12265 within D12240; owner Sol. Native S12264 unchanged.
+Input: LeanPhysicalLoop's validated result.pressure (SHA256, PCM16LE bytes,
+1..4000 samples) at accepted live_tick. Runtime in-flight self-pressure remains
+its sole physical source; actor never generates a sample.
+Path: native body pressure -> LeanPhysicalLoop.settle -> SettlementResult ->
+LeanOrganismActor._accept_result -> immutable bounded emission projection ->
+GET /api/v1/guala/pressure -> gualaloom playback -> laptop WebAudio.
+Existing hash GET remains a bounded evidence lookup for other readers; no
+second byte cache. API observation retains latest hash but no longer drives
+playback. Source consumers searched before final review.
+
+Transport-only immutable tuple (stream nonce, evicted-through tick, events)
+is replaced by actor after the existing acceptance validations; each event
+(native tick, hash, exactbytes). Startup nonce identifies a network stream ONLY,
+not Guala. No serializing it, no migration, neuron, physics, or identity use.
+Each separate event survives even if bytes/hash equal. Fixed external transport
+budget256000PCM bytes:32maximum8000byte blocks (8seconds of encoded audio).
+At most32 tuple entries scanned/copied per emission/request, independent of
+organism lifetime/population. Python allocation failure follows existing fatal
+acceptance handling; projection is not physical/custody authority.
+No observer thread, new lock, disk, database, blocking reader, or backpressure.
+A read borrows one immutable tuple; in-flight response may retain its bounded
+slice while next tuple replaces it. No unbounded historical retention.
+
+New GETfeed has optional stream and after cursor (both or neither); no cursor
+returns HEAD only to start listening NOW, not replay a previous visit.
+Same stream returns at most8events inlinebase64 after native tick. Response
+has stream, after/current cursor, latest tick, gap reason, PCM rate, events.
+Missing evicted events / stream restart / cursor ahead are explicit gaps;
+gap reset returns current HEAD and no invented/replayed audio. Stream/gap state
+has no causal effect. Cursor advances only over returned events, or explicitreset.
+No exactly-once claim over crash/network outage/browser suspension.
+Response <=8*base64(8000)+boundedmetadata (<90KiB at live tick widths).
+
+Browser: independent single-inflight output reader while listening (also when
+page hidden; background throttling may create explicitgap). 250ms retry/poll
+is transport pacing, not organismclock. At most16scheduled blocks/4seconds;
+fetch <=8 only with <=8queued. Sequential WebAudio currentTime scheduling;
+unchanged PCM at16000Hz, disclosed64xgain; not speedup, pitch shift or smoothing.
+Validate bounded fullresponse before any schedule; eventtick/order and exact
+SHA checked. Identical PCM eventticks play separately. Cursor moves per scheduled
+event, never per contenthash. One GainNode/context per listen session.
+Stop/ pagehide abort fetch, clear timer, invalidate continuation token, stop and
+disconnect all sources, close context. Late async responses cannot schedule or
+restart. Startup/resume failure stops rather than remaining falsely enabled.
+A separate listening status prevents camera/mic responses overwriting audio
+gap/error evidence. No broader controls redesign or microphone change.
+
+Frozen acceptance: bounded actor/API tests of identical emissions, orderedbatch,
+cursor repeat, eviction, restart, ahead/refusedcursor, emptyfeed, unchangedhash
+lookup. Real browser test of two emissions/identicalbytes, order, no duplicate
+poll playback, stopduringfetch, gapmessage, bounds. Synthetictransport tests are
+not speech evidence. Then one saved-taught-body cue through changed transport,
+same physical result/persistence/coldnext (no repeatteaching), retaining S12264.
+Deployment uses existing full mature gate; no new nativebuild merely for UI.
+
+Authorized code: dsf_ai_service/lean_actor.py,
+dsf_ai_service/lean_production_app.py, dsf_ai_service/static/gualaloom.html;
+focused tests and manifest closure only as necessitated by exact paths.
+Retire hash-based playback dedup, immediate-overlap source.start, two-distinct
+hash retention; don't retain them as fallback. Other senses/world/Loom unchanged.
+Known wholecore speed burden is separately owned, not silently declared fixed.
+
+Tool mistakes this checkpoint: summary omitted dsf_ai_service prefix from
+static/gualaloom.html; resolved with existingpreflight. Also guessed nonexistent
+guala_runtime_manifest.json; no content relied on. Use rg --files or existing
+controller's manifest argument, never guess packaging paths.
+
+### R-054-122-67 — bounded sound transport source review PASS (2026-09-12 02:26 UTC)
+
+Independent source reviewer verified06c7ebb1 before/after. No architectural
+finding: immutable event tuple is observation-only; source emits one newly
+settled interval, no native/custody/identity change; identical audio remains
+tick-distinct;32retained/8response/16scheduled bounds hold without backpressure.
+Localized batch: register browser source only after successfulstart (so cleanup
+does not stop an unstarted node), correct fixture HEADlatest==cursor, directly
+exercise16queued Stop/contextclosure and byte/batch/queue limits. Final fixture
+review isolated9eventcount using1samplePCM rather than9fullblocks which would
+first exceed90000bytes. No physical failure or executed test failure occurred.
+Final sourcePASS fingerprint18d27cc3425872410dc78a210b12766054e082da59dd78406ff2d75648a3017a.
+No outstanding findings. Review is not production/behaviorproof.
+
+Exact browser discovered, not downloaded:
+/root/.cache/ms-playwright/chromium_headless_shell-1208/chrome-headless-shell-linux64/chrome-headless-shell.
+PythonPlaywright existing/tmp/guala-ui-playwright. Normal native.so5fc6b612
+still exact. Focused execution: tests/test_lean_actor.py,
+tests/test_lean_production_app.py, tests/test_lean_observation_ui.py,
+tests/test_lean_audio_browser.py. No full native rerun for unchangednative.
+Synthetictransport fixtures explicitly not speech evidence.
+
+CloudFront live read: E17JT9XGBFU493 API/* ->
+Managed-CachingDisabled(4135ea2d-6df8-44a3-9df3-4b5a84be39ad) TTL0;
+Managed-AllViewer(216adef6-5c7f-47e4-b989-5492eafa07d3) forwardsALLquerystrings.
+No cloud configuration change needed forstream/after. Newexactroutecount6.
+UI source33747bytes beforelocalizedchange, replacing29884bytes; testbound35000.
+No new productionmodule or dependency. ExistingDocker/controller descriptive
+lean-five-route metadata is stale and must be reconciled atrelease closure;
+it is not proof of actualroutecount. LegacyDockerfile.lean remains excluded.
+
+### H-054-122-68 — tool-only preflight corrections, never organism failures
+
+Source-read wc withoutworkdir observed OTHERworkspace110364byteUI; rejected
+that reading and remeasured exact speechworktree33747bytes. No edit elsewhere.
+Attempted guessed UIvenv paths missing; resolved existing/tmp/guala-ui-playwright
+by bounded maxdepthfind; no install/newenvironment. Erroneously invoked
+require-guala-root.sh throughpython; immediateSyntaxError, correcteddeclaredbash
+invocation confirmedexactworktree15ec03c0. JSassembly useds.index instead of
+indexOf, failedbeforetestfilewrite; correctedsamebatch. These are operator
+mistakes, not substrate failures. Carry explicitworkdir/interpreter/unique
+path resolution into commands, no broad newpreflightwrapper.
+
+Pre-testAWS02:26: sametaskeffde9e1/1456/C110/image6aa38d99 RUNNING/HEALTHY,
+1/1/0;02:15/20 CPUavg44.1782/42.1538 max63.8509/53.2423%;
+RAMavg10.9517/10.9186 max12.2986/11.7401%; no livewrite.
+
+### S-054-122-69 — focused transport + real Chromium checks PASS (2026-09-12 02:28 UTC)
+
+Exact command used ordinarynative path plus existingPlaywright, allthreadenv1/
+RAYON4:
+PYTHONPATH=/tmp/guala-c123-release-wheel.buI3mv/installed:/tmp/guala-ui-playwright:/tmp/guala-speech-existing-organ
+GUALA_TEST_CHROMIUM=/root/.cache/ms-playwright/chromium_headless_shell-1208/chrome-headless-shell-linux64/chrome-headless-shell
+python3 -m pytest --noconftest -q tests/test_lean_actor.py
+tests/test_lean_production_app.py tests/test_lean_observation_ui.py
+tests/test_lean_audio_browser.py
+Session67902 terminal0:26passed in8.86seconds, one externalStarlette/httpx
+deprecation warning. No zero-test/skip pass. ActualChromium/realWebAudio:
+identicalPCM distinctevents, exact16000Hz/samples, sequential .25s blocks,
+no duplicatepoll playback,16scheduledcap/noextra fetchwhilefull, Stop invoked
+onall16queued sources/contextclosed, pendingfetch cannotrestart, explicitgap,
+90000byte and8eventresponse limits. No meaning/speechclaim from fixtures.
+
+Readpreflight caught tests/conftest.py autouse import of retiredv4Guala.
+--noconftest intentionally excludes that unrelatedlegacyfixture; these four
+tests use their own leanactors and normalbuiltinpytestfixtures. No newlegacy
+import, no shellchange, no assertion removed. Separate deferredcleanup: remove
+automatic legacytesthook during archivalclosure, not by extendingtheoldengine.
+
+### D-054-122-70 / R-054-122-71 — ONE saved-body emission-to-HTTP proof authorized
+
+Reuse retained S12264 pair659890 with normalartifact5fc6b612. No lessons,
+nativechanges, third/fourthposture, restartofoldproof, orliveinputs.
+Script /tmp/guala-c123-audio-recall.py
+SHAc0a608439db5d92f06ba3bb59fa1a45a67c69c707b545f53d21f0981fe479d1c.
+Samequiet8/onecue/64tail/strict8L11/breath/selfhearing/oldtopology/coldnext,
+now each realphysicalresult.pressure is compared byte-for-byte and INORDER
+to the SAMEactor's productionHTTPfeed. Atmost4*8blocks drainedperobservation.
+TestClient has no secondlifespan/runtime; sourcepair untouched; onlydisposable
+copy mutated. Realbrowsertransport fixtureproof is separate, not livebrowser
+or laptopaudibilityproof.
+
+IndependentreviewPASS withwholeworktreefb56ada55de9ae1ca3906f79abff60e3f01c9fd94392a9608871d9aac396ec84.
+Beforeexecution reviewer caught HTTPheadJSON overwritingCURRENTbytes and
+dictionaryequality failingtoassertorder; fixedbothinonebatch. Neither became
+an executedfalsefail. ToolJS undeclaredneedle failedbeforeanyfilewrite; corrected.
+No source/runtime change after26testPASS. Publication is stillNOTdone.
+PreprobeAWS02:30 same1456/C110/onehealthywriter;02:25CPU44.0969%avg61.3329%max,
+RAM11.0740%avg12.4023%max; runaway/refusalalarmsOK,historicalclockalarmunchanged.

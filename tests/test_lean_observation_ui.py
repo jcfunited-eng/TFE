@@ -14,7 +14,7 @@ GUALA = ROOT / "dsf_ai_service" / "static" / "gualaloom.html"
 LOOM = ROOT / "dsf_ai_service" / "static" / "loomscan.html"
 OBSERVATION_ROUTE = "/api/v1/guala/observation"
 OCCURRENCE_ROUTE = "/api/v1/guala/occurrence"
-PRESSURE_PREFIX = "/api/v1/guala/pressure/"
+PRESSURE_FEED_ROUTE = "/api/v1/guala/pressure"
 SCHEMA = "guala.lean_actor_observation.v1"
 
 
@@ -37,7 +37,7 @@ def _literal_api_routes(source: str) -> set[str]:
 
 
 def test_pages_are_bounded_valid_and_share_the_lean_contract() -> None:
-    assert GUALA.stat().st_size < 30_000
+    assert GUALA.stat().st_size < 35_000  # bounded ordered playback replaces hash polling
     assert LOOM.stat().st_size < 15_000
     for path in (GUALA, LOOM):
         source = _source(path)
@@ -48,13 +48,13 @@ def test_pages_are_bounded_valid_and_share_the_lean_contract() -> None:
         parser.close()
 
 
-def test_route_graph_uses_only_three_of_the_existing_five_routes() -> None:
+def test_route_graph_uses_three_bounded_routes() -> None:
     guala = _source(GUALA)
     loom = _source(LOOM)
     assert _literal_api_routes(guala) == {
         OBSERVATION_ROUTE,
         OCCURRENCE_ROUTE,
-        PRESSURE_PREFIX,
+        PRESSURE_FEED_ROUTE,
     }
     assert _literal_api_routes(loom) == {OBSERVATION_ROUTE}
     assert 'method:"POST"' in guala
@@ -90,7 +90,11 @@ def test_world_page_has_the_authorized_embodied_access_only() -> None:
         "Listen to Guala",
         "Stop listening",
         "toggleListening",
-        "lastPlayedReceipt",
+        "receiveSounds",
+        "stopListening",
+        "Audio gap:",
+        "AUDIO_QUEUE=16",
+        "AUDIO_RESPONSE_BYTES=90000",
         "SPEAKER_GAIN=64",
         "gain.gain.value=SPEAKER_GAIN",
         "disclosed 64× speaker gain",
@@ -179,6 +183,8 @@ def test_pages_poll_one_cached_observation_only_while_visible() -> None:
         assert ".abort()" in source
     assert _script(LOOM).count("fetch(") == 1
     assert _script(GUALA).count("fetch(") == 3
+    assert "lastPlayedReceipt" not in _script(GUALA)
+    assert "Cue-to-pressure speech and self-hearing are live" not in _source(GUALA)
 
 
 def test_rendered_external_values_use_text_content_only() -> None:

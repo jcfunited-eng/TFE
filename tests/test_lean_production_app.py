@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import base64
 import hashlib
 from pathlib import Path
 import time
@@ -18,6 +19,7 @@ from dsf_ai_service.lean_production_app import (
     OBSERVATION_ROUTE,
     OCCURRENCE_ROUTE,
     PRESSURE_ROUTE,
+    PRESSURE_FEED_ROUTE,
     _restore_production_actor,
     create_lean_production_app,
 )
@@ -203,7 +205,7 @@ def _actor(
     )
 
 
-def test_exact_five_routes_and_one_bounded_pressure_receipt(
+def test_exact_six_routes_and_bounded_pressure_receipt(
     tmp_path: Path,
 ) -> None:
     actor = _actor(tmp_path)
@@ -212,6 +214,7 @@ def test_exact_five_routes_and_one_bounded_pressure_receipt(
     assert sorted(route.path for route in application.routes) == [
         "/api/v1/guala/observation",
         "/api/v1/guala/occurrence",
+        "/api/v1/guala/pressure",
         "/api/v1/guala/pressure/{receipt}",
         "/health",
         "/ready",
@@ -265,7 +268,7 @@ def test_exact_five_routes_and_one_bounded_pressure_receipt(
         ).status_code == 404
 
 
-def test_immediately_preceding_pressure_remains_fetchable_once(
+def test_three_emissions_remain_fetchable_in_the_bounded_feed(
     tmp_path: Path,
 ) -> None:
     actor = _actor(tmp_path, physical=_ChangingPressurePhysical())
@@ -296,7 +299,7 @@ def test_immediately_preceding_pressure_remains_fetchable_once(
         assert third.json()["pressure_sha256"] == THIRD_PRESSURE_SHA256
         assert client.get(
             PRESSURE_ROUTE.format(receipt=PRESSURE_SHA256)
-        ).status_code == 404
+        ).content == PRESSURE
         assert client.get(
             PRESSURE_ROUTE.format(receipt=SECOND_PRESSURE_SHA256)
         ).content == SECOND_PRESSURE
@@ -414,3 +417,63 @@ def test_startup_validates_both_components_before_migration_publication(
     assert current.pointer.current.identity == IDENTITY
     assert current.pointer.current.organism_tick == 10
     assert current.pointer.predecessor == predecessor.current
+
+
+class _RepeatedPressurePhysical(_Physical):
+    def settle(self, runtime, world, occurrence):
+        result = super().settle(runtime, world, occurrence)
+        return SettlementResult(
+            result.native_interval_count, result.observation,
+            (PRESSURE_SHA256, PRESSURE),
+        )
+
+
+def test_emission_feed_preserves_identical_events_and_reports_gaps(tmp_path):
+    actor = _actor(tmp_path, physical=_RepeatedPressurePhysical())
+    with TestClient(create_lean_production_app(lambda: actor)) as client:
+        head = client.get(PRESSURE_FEED_ROUTE).json()
+        assert head["events"] == [] and head["cursor"] == 0
+        cursor = {"stream": head["stream"], "after": 0}
+        for _ in range(3):
+            assert client.post(OCCURRENCE_ROUTE, json={"kind": "unattended"}).status_code == 200
+        feed = client.get(PRESSURE_FEED_ROUTE, params=cursor)
+        assert feed.headers["cache-control"] == "no-store"
+        record = feed.json()
+        assert [event["tick"] for event in record["events"]] == [11, 12, 13]
+        assert all(
+            base64.b64decode(event["pcm_s16le_base64"]) == PRESSURE
+            and event["sha256"] == PRESSURE_SHA256
+            for event in record["events"]
+        )
+        assert client.get(PRESSURE_FEED_ROUTE, params=cursor).json() == record
+        cursor["after"] = record["cursor"]
+        assert client.get(PRESSURE_FEED_ROUTE, params=cursor).json()["events"] == []
+        assert client.get(PRESSURE_FEED_ROUTE).json()["cursor"] == 13
+        assert client.get(PRESSURE_FEED_ROUTE, params={"after": 0}).status_code == 422
+        assert client.get(PRESSURE_FEED_ROUTE, params={"stream": head["stream"]}).status_code == 422
+        for after in (-1, 1 << 64):
+            assert client.get(PRESSURE_FEED_ROUTE, params={**cursor, "after": after}).status_code == 422
+        restart = client.get(PRESSURE_FEED_ROUTE, params={
+            "stream": "f" * 32 if head["stream"] != "f" * 32 else "e" * 32,
+            "after": 13,
+        }).json()
+        assert restart["gap"] == "stream-restarted" and restart["events"] == []
+        ahead = client.get(PRESSURE_FEED_ROUTE, params={**cursor, "after": 14}).json()
+        assert ahead["gap"] == "cursor-ahead" and ahead["cursor"] == 13
+
+        for _ in range(31):
+            assert client.post(OCCURRENCE_ROUTE, json={"kind": "unattended"}).status_code == 200
+        evicted, held = actor._pressure_feed
+        assert evicted == 12 and len(held) == 32
+        assert sum(len(item[2]) for item in held) <= 256000
+        gap = client.get(PRESSURE_FEED_ROUTE, params={
+            "stream": head["stream"], "after": 11,
+        }).json()
+        assert gap["gap"] == "audio-evicted" and gap["events"] == []
+        assert gap["cursor"] == 44
+        batch = client.get(PRESSURE_FEED_ROUTE, params={
+            "stream": head["stream"], "after": 12,
+        }).json()
+        assert batch["gap"] is None
+        assert [event["tick"] for event in batch["events"]] == list(range(13, 21))
+        assert batch["cursor"] == 20 and batch["latest"] == 44
