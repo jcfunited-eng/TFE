@@ -16464,3 +16464,21 @@ contact-state getter are reused; no generic reservoir probe or diagnostic API.
 Before execution freeze the caller's precise input/clock/binary/stop and
 warm/cold comparison boundaries. Do not claim that helper success establishes
 demonstration-dependent strength, duration, or intelligible speech.
+
+### R-054-122-123 — durable C125 checkpoint and tooling disclosure
+
+Source/test/review/result ledger commit4287dac8a25c848fca3553ccf0e4d82621dd8b21
+pushed and matched origin/sol/speech-existing-organ. Shared handoff updated at
+6c1d6182c96f1e65936d8fc6037f5638657a5394. Rejected C124 patch also persisted at
+/mnt/tfebackup/guala-c118-four-posture.XehvEs/c124-review-rejection.patch with
+the exact F122119 SHA. Slack checkpoint confirmed06:13:33Z status=slack_sent
+channel=#general. Neither checkpoint nor push means deployment or speech success.
+
+Security mistake: git remote -v printed credential-bearing remote URLs in tool
+output. Joe was told and credential rotation recommended. No values are copied
+into documentation or Slack. Use remote names/ref SHAs, never print unredacted
+remote URLs; future tool results must redact embedded authentication before
+display. No credential changes or production mutations were performed.
+
+Full goal remains ACTIVE. Next work is the R122120/S122122 copied-runtime
+applicability evidence, not another body-capacity run or broader architecture.
