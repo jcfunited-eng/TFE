@@ -15838,3 +15838,73 @@ Read-only command fumble: guessed lean_sensorimotor_route.rs directly under
 src; rg exited2 for that nonexistent path. Resolved actual nested source via
 rg --files: resident_cognitive_formation/lean_sensorimotor_route.rs.
 No test/build occurred; preserve error as another path-preflight recurrence.
+
+### C-054-122-111 — C1 path1 checked against retained successful recall, no rerun
+
+2026-09-12. Joe relayed C1's ranked alternatives: (1) learned recall might
+re-discharge within the acoustic block and reach farther than the tutor,
+(2) back-to-back250ms guides, (3) externally billed bounded caregiving HOLD
+subject to Joe's approval. Took path1 first by inspecting EXISTING completed
+immutable-image recall evidence rather than re-teaching or rerunning the brain.
+
+Exact existing /tmp/guala-c123-image-recall.log SHA
+5f5c845a103058aecc65b8b0c14fb0ee6d9731c145e81e36bb942381f4743c72,
+from closed S12286. Observer helper393fe88247e5077f10762943a863cf1df77d3bdd8c14e4fdb69edcc6ab892e6a;
+its native observation producer preserves actual motor carrier counts,
+breath, sample count and interval tick (guala-c121-runtime-recall.py).
+Source record659890 -> sound cue659899 -> fourMIN659901 -> fourMAX659902.
+The accepted proof's learned_events count is EXACTLY8, four per posture,
+not a sustained or repeated discharge train. Both native act records render
+4000pressure samples. No unexplained learned events or extra breath.
+This remains a successful two-posture causal proof, not a new failure.
+
+Recorded outward carriers:
+MIN b7/d3/ef/4fb =56/138/152/145.
+MAX c5/e1/fd/509 =5/2/5/5.
+Their retained afferent anatomy names tract0/1/2/7 respectively; that anatomy
+is corroborating evidence only, NOT permission to replace each motor's own
+efferent mount with afferent-direction authority. Current native motor settle
+reads the latter (organism_runtime.rs5097), once per outer occurrence.
+No claim of an actual original continuous position trace: the preserved log
+records recruitments/pressure but not every millisecond's axis position.
+S122109 is the separately authenticated actualbody mechanics range measure.
+
+Correction to terminology: historical MIN/MAX postures name antagonist
+terminal DIRECTIONS. They never proved that coordinates reached anatomical
+minima/maxima. C1's proposed repeated-firing explanation is absent in this
+record and cannot justify "no change needed." Current body mechanics and
+runtime timing apply to native as well as guided impulses. A native clock
+number is NOT proof of a1ms wall/source span.
+
+Path2 is already strongly constrained by S122109 (airway coordinates return
+neutral by250ms) and S122110's clock trace. No expensive new chronology or
+production lesson is justified to rediscover it. Do not claim an unmeasured
+entire-body reset: S122109 did not print end activation or acoustic state.
+
+Path3 remains a PROPOSAL, not automatically sufficient. A bounded external
+caregiver force/drive with billed work can be a lawful teaching input if
+approved and reviewed. But a guide-only HOLD leaves learned recall's one
+aggregate impulse and recovery-only acoustic interval unchanged. Both the
+presentation and later body-owned reproduction must be specified. Do not
+ship a guided recording as the missing learned word.
+
+The native scheduler examined this pass is contact/recovery residency, not
+an existing intra-acoustic motor pump: causal_event_scheduler.rs326 stores
+derived contact/recovery dues; resident_cognitive_formation.rs20220ff is
+entered from one admitted transition. The public cognitive advance refuses
+empty source lists (8589ff). Blindly re-entering it250times with the same
+source would re-deliver sensory work and repeat expensive preparation;
+inventing an empty-source bypass is not approved. No such loop added.
+
+Exact next item remains the bounded native timing/drive integration contract,
+with C1 asked to review both teaching and recall together. No native edits,
+compilation, new body/brain test, live occurrence, image or caretaker change.
+Goal ACTIVE. Previous goal turn PROGRESS via S122110 source-boundary evidence.
+
+Read-only observation fumbles retained: an rg command included nonexistent
+/tmp/guala-c118-four-posture.XehvEs; real archive is under/mnt/tfebackup.
+Another relative source rg omitted explicit workdir and searched the wrong
+root; corrected read under validated root succeeded. Neither executed a test.
+A projection read pressure_samples from aggregate recall_result rows (field
+absent); read the existing native-event rows instead, which explicitly say4000.
+No record was defaulted into a physical zero, and no original proof rerun.
