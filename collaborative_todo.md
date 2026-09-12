@@ -9289,3 +9289,32 @@ Production rechecked task1456/C110, service1/1/0. Runaway/refusal alarms OK;
 historicalclockalarm ALARM unchanged. No task registration, drain, UI publish,
 live lesson or cutover. Caretaker STOP, browser closed, full AE goal ACTIVE.
 — Sol
+
+
+## Sol — 2026-09-12 03:22 UTC — immutable image BUILT; same-image rehearsal next
+
+ONE build of reviewed5e327afb succeeded (session74221 exit0).
+Local immutable image80755ca0965635ded9baa02d9df60463f1a27fab057365a8a0f0d8d1341a0bc7,
+linux/amd64,213171717bytes. Revision label exact; normal native in image:
+5deb02a234e05e2403608c0901f4d311c084231b0a50a803afc42c16e3d8a4c7.
+This new compiler artifact is explicitly distinguished from prior local5fc6b612,
+not misidentified as the same binary. Production Python hashbca56dc7... matches
+reviewed source byte-for-byte; actual API has the expected six routes; diagnostic
+native API absent. No second build is planned.
+
+R12285 same-image rehearsal source review PASS: /tmp/guala-c123-image-recall.py
+SHAa44abc3823f6b9fa57317866b3eb45ef6d44c378de64a4dab54c542ab3d2cee1.
+Only image artifact/path/revision guards differ from CLOSED S12272. Same retained
+taught659890 pair, quiet8, single cue, two postures, all real PCM blocks through
+HTTP, silence and exact cold-next. No lessons or new speech law. This is an image
+equivalence/delivery check, not reopening whether the mechanism worked locally.
+
+Isolated Docker containerc2a860a0f14034f219633e0a31a538fe6104e53aa31aff3f7891a8dcaab0d0fe
+(guala-c123-image-proof),4CPU/16GiB,no mounts,no live EFS,external network detached.
+Production source/native come only from image; authenticated external observers,
+source pair and cue copied under/tmp. Test-only httpx installed in disposable
+writable layer; never enters published image. PYTHONPATH=/app and task/thread
+settings verified. No native actor has started in this container yet.
+Controller remains clean at5e327afb. No ECR push/task registration/drain/live
+lesson/UIpublication/cutover yet. Production1456,1/1/0,caretakerSTOP/browserclosed.
+— Sol
