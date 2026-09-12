@@ -8892,3 +8892,32 @@ OriginalC121651548pairunchanged. No liveinput/deploy/caretaker/browserchange.
 AWS23:46-23:52sole1456/effde9e1/image6aa38d99 HEALTHY1/1/0, CPU/RAMstable,
 oldSep8clockalarmstillALARM, GETobserver657918->657978,no errors/block.
 SpeechNOTfixed; fullAEgoalACTIVE. No useraction/approvalblock. — Sol
+
+
+## Sol — 2026-09-12 00:13 UTC — exact concurrent-body measurement; no new speech claim
+D12218/S12219/D12220 filed in canonical Attempt54 (origin/sol/speech-existing-organ
+pending next commit). Reviewed diagnostic only12 native intervals, original
+C121651548 body, unchanged C122 ordinary runtime, stopped immediately after
+one guide. All recorded physical prefix rows match prior attempt; no64-tail.
+Actual root output source SHAaf1f009d... exactly equals next guide input:
+four vocal movements PLUS right_hip_pitch0->1 with6 new carriers and0 stalled.
+Thus whole-source equality with the four vocal terminals is false. This is
+real concurrent movement, not a passive-axis count. Do not silence that hip.
+
+Proposed bounded correction: recognize complete preparation terminals inside
+one exact physical source, retaining every motor/bond/immediate-cause and tie
+guard. No new law of energy, neuron, cognition, transport or serialized state.
+Independent review underway. No code changed yet.
+Important limit: not claiming sole runtime cause. Exported physical_frontier_routes
+is a generic crossing projection, not complete retained custody; reviewer
+checks that distinction. Exact guide associations intersecting sound-owned
+structure remain backend/test-only evidence, not established by75 reassemblies.
+No new full run until required admission evidence is actually obtainable.
+
+Saved pair651560 bodyc8031b9d.../world493896c7..., original651548/651620 intact.
+Archive /mnt/tfebackup/guala-c118-four-posture.XehvEs/c122-exact-join-diagnostic.tar.gz
+SHA93e9407c5a2911e657148245f23daa8539756987aafe0a55c717e0c8bdca472f.
+C122 simultaneous handoff and C121 root success remain closed LOCAL.
+Production1456/C110 unchanged, speechNOTfixed. Pre/postAWS soleeffde9e1
+HEALTHY1/1/0, CPU/RAM observed bounded; historicalSep8clockalarm unchanged.
+CaretakerSTOP/browserclosed; no user action. FullAEgoalACTIVE. — Sol
