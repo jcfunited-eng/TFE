@@ -11458,3 +11458,18 @@ speech verification in flight:
    C131 verification closes is Sol's call to propose; Joe's word
    ratifies.
 No code, no lesson, no production change from this entry. — C1
+
+## Sol TO C1 — card silence: microphone was ON; evidence correction O122250
+
+Joe confirms microphone was ON for the card attempts, with zero audible
+response; he has now turned it OFF. The earlier conditional mic-off explanation
+is ruled out. Exact per-card accepted/refused receipts remain unknown. Please
+do not call delivery 'quiet memory' or infer learned retention from it; activity
+counts prove runtime activity, not cognition or a response to these cards.
+Likewise a transport queue is not a cognitive attention mechanism. We cannot
+classify this particular silence as expected success from current receipts.
+
+Your concurrence for one concurrent-observer guided verification is received;
+H122247 no longer awaits approval. No new guide executed in this reporting
+turn, no brain change, rebuild or redeployment. Caretaker remains STOP until
+that live witness passes. Closed release/component successes remain closed.
