@@ -1,6 +1,6 @@
 # Guala speech repair Attempt 54 — complete design verification and lean sensorimotor route
 
-## Current resume point — 2026-09-12, C128 recovery passes; restart index mismatch isolated
+## Current resume point — 2026-09-12, C129 six focused checks PASS; normal artifact next
 
 **Speech is not fixed. Full AE goal ACTIVE.** Nine-control C126 acoustic/cue
 successes remain locally proved and archived; no production126/128 delivery.
@@ -18,8 +18,10 @@ Independent source review confirms the two incorrect ordering consumers:
 canonical_lineages is anatomical/cohort order, not sorted; membership binary
 search and decoder ordering wrongly assume otherwise. No missing physics,
 no justification to sort anatomy or alter neurons. Candidate129 narrow
-translation correction is the next named item, not a new speech mechanism.
-C128 other unrun lifecycle tests stay unrun; no broad acceptance claimed.
+translation correction is implemented and source-reviewed: all SIX planned
+focused checks PASS, including previously failed migration/local-contact and
+runtime abort/restart tests. S122158. Normal mature-body proof is next;
+no deployment or broad speech acceptance claimed.
 
 C126 saved1457body proof remains S122143-146: baseline8, 4000sample cue, MIN then
 MAX, breath on both,24000 self-heard samples, all17 motor/work receipts matching
@@ -18433,3 +18435,44 @@ tests; no rerun unchanged two128 physical or other127 passes.
 Normal copied-body acceptance still mandatory afterward: exact migration,
 warm/cold next event, body/world/action/self-hearing and resource/AWS bounds.
 No speech completion, no deployment authorization from supporting tests alone.
+
+
+### S/H-054-122-158 — C129 six focused proofs PASS, not speech or live acceptance
+
+Frozen6d830360e3ed6b5699fa97aafab37f3ead0259501843a06a4b4fdcca045b5ad1.
+Independent source review PASS before/after; core exactly9ddbe721, diagnostic
+removed. Two production-line corrections reuse existing exact lineage index;
+15 additions/5 removals within progress module including revised test views.
+No new state, no semantic lookup, no heuristic. Joe asked explicitly about
+indexing: disclosed the existing exact-address index; it locates neuron state
+for integrity/restore, does not classify/retrieve meaning, choose relevance or
+author output. Distinctions remain in actual physical state and relationships.
+
+Compile7.69478s PASS/99warnings, exact compiler-reported test binary SHA
+fe9589b256d9d794f083ff7913e01ab72c28c28345b20168e48caf1f06e93602.
+All selected names exactly once in --list; all exit0 AND literal1passed/0failed:
+1.physical_progress_v45_migration_and_local_contact_only_continuation PASS0.32894s.
+  Previously failed full prepare now seals/commits, exact current encode/decode,
+  explicit V45 migration preserves neurons/fractals/fabric and initializes only
+  absent progress; local-contact-only warm/cold physical continuation passes.
+2.physical_progress_exact_codec_growth_and_discard PASS0.00299s.
+  Nonmonotonic anatomical order retained, exact ordered codec, growth, discard.
+3.physical_progress_refuses_noncanonical_or_missing_custody PASS0.00332s.
+  Duplicate/foreign/missing/future/noncanonical fraction/budget controls intact.
+4.changed_endpoints_wake_exactly_their_incident_contacts PASS0.18073s.
+5.physical_progress_survives_snapshot_abort_and_failed_prepare PASS0.23268s.
+  Snapshot no catch-up, exact cold state, abort/failed prepare preserve predecessor,
+  subsequent warm/cold body/vestibular/envelope exact.
+6.scheduler_residency_follows_the_successor_lifecycle PASS0.06110s.
+  No fabricated quiet work, three physical hops, rollback restores predecessor.
+Two128 physical passes and three other unchanged127 passes preserved, not rerun.
+The two changed127 codec supports were rerun because their fixture changed.
+
+AWS10:05:27.710846->10:06:36.708378UTC same1457/task/image1/1/0;
+latestCPUmax44.4180->39.8558%,RAMmax11.5540->10.1135%.
+Resource/storage/refusal alarmsOK, historicalclockALARM still. All native test/
+compile children terminal, no orphan in census. No live mutation.
+Next single item: ordinary release artifact (no diagnostic-api), explicit
+authenticated saved-body migration then warm/cold physical continuation, preserving
+the original R122147 end-to-end acceptance. No rerun acoustic design campaign.
+This is a fixed local translation defect; full AE goal remainsACTIVE.

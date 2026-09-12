@@ -11203,18 +11203,8 @@ impl ResidentCognitiveFormationState {
         include_terminal_observation: bool,
         require_v34_anatomy: bool,
     ) -> Result<(Vec<u8>, Option<(CognitiveFormationSummary, usize)>), FormationError> {
-        #[cfg(test)]
-        let mut seal_trace = NativePreparationPhaseTrace {
-            predecessor_generation: self.generation,
-            stage: "C128-seal-lineage",
-            finished: false,
-        };
         validate_lineage_state(self)?;
-        #[cfg(test)]
-        { seal_trace.stage = "C128-seal-mounts"; }
         validate_motor_effector_mounts(&self.cohorts)?;
-        #[cfg(test)]
-        { seal_trace.stage = "C128-seal-vocal-route"; }
         if require_v34_anatomy {
             validate_motor_coupled_vocal_articulatory_route(
                 &self.cohorts,
@@ -11222,8 +11212,6 @@ impl ResidentCognitiveFormationState {
                 self.vocal_articulatory_effector_lineage,
             )?;
         }
-        #[cfg(test)]
-        { seal_trace.stage = "C128-seal-global-anatomies"; }
         let mut global_anatomies = GlobalNeuronAnatomyTable::default();
         for cohort in &self.cohorts {
             for anatomy in cohort.anatomy.neuron_anatomies() {
@@ -11232,17 +11220,11 @@ impl ResidentCognitiveFormationState {
                     .map_err(|_| FormationError::NoncanonicalState)?;
             }
         }
-        #[cfg(test)]
-        { seal_trace.stage = "C128-seal-global-anatomy-encoding"; }
         let encoded_global_anatomies = global_anatomies
             .encode()
             .map_err(|_| FormationError::NoncanonicalState)?;
-        #[cfg(test)]
-        { seal_trace.stage = "C128-seal-topology"; }
         let topology = indexed_organism_mosaic_topology(&self.cohorts, &self.topology_index)?;
 
-        #[cfg(test)]
-        { seal_trace.stage = "C128-seal-seeds"; }
         let mut output = Vec::new();
         output.extend_from_slice(MAGIC_V46);
         output.extend_from_slice(&VERSION_V30.to_le_bytes());
@@ -11271,8 +11253,6 @@ impl ResidentCognitiveFormationState {
             output.extend_from_slice(&encoded);
             ensure_cognitive_output_budget(&output, max_encoded_bytes)?;
         }
-        #[cfg(test)]
-        { seal_trace.stage = "C128-seal-population"; }
         let resting_population = self
             .resting_population
             .as_ref()
@@ -11283,8 +11263,6 @@ impl ResidentCognitiveFormationState {
         if let Some(encoded) = resting_population {
             output.extend_from_slice(&encoded);
         }
-        #[cfg(test)]
-        { seal_trace.stage = "C128-seal-fabric-frontier"; }
         let electrical_fabric = self
             .electrical_fabric
             .encode()
@@ -11302,8 +11280,6 @@ impl ResidentCognitiveFormationState {
         let mut energy = include_terminal_observation.then(ReachedCohortEnergyState::default);
         push_length(&mut output, self.cohorts.len())?;
         for cohort in &self.cohorts {
-        #[cfg(test)]
-        { seal_trace.stage = "C128-seal-cohort-kind"; }
             if cohort
                 .pending_experience
                 .as_ref()
@@ -11315,8 +11291,6 @@ impl ResidentCognitiveFormationState {
             {
                 return Err(FormationError::NoncanonicalState);
             }
-        #[cfg(test)]
-        { seal_trace.stage = "C128-seal-cohort-cell"; }
             let cell = if let Some(total_energy) = energy.as_mut() {
                 let (cell, cohort_energy) = encode_reached_cohort_cell_v9_global_with_energy(
                     &cohort.anatomy,
@@ -11339,8 +11313,6 @@ impl ResidentCognitiveFormationState {
             };
             push_length(&mut output, cell.len())?;
             output.extend_from_slice(&cell);
-        #[cfg(test)]
-        { seal_trace.stage = "C128-seal-cohort-experience"; }
             for evidence in [
                 cohort.pending_experience.as_ref(),
                 cohort.retained_experience.as_ref(),
@@ -11365,8 +11337,6 @@ impl ResidentCognitiveFormationState {
                     output.extend_from_slice(&encoded);
                 }
             }
-        #[cfg(test)]
-        { seal_trace.stage = "C128-seal-cohort-recurrence"; }
             output.push(u8::from(cohort.pending_recurrence.is_some()));
             if let Some(recurrence) = cohort.pending_recurrence.as_ref() {
                 let encoded = encode_recurrence_evidence(&cohort.anatomy, recurrence)?;
@@ -11376,8 +11346,6 @@ impl ResidentCognitiveFormationState {
             ensure_cognitive_output_budget(&output, max_encoded_bytes)?;
         }
 
-        #[cfg(test)]
-        { seal_trace.stage = "C128-seal-mosaics"; }
         let mut mosaic_count = 0usize;
         let mut mosaic_of_mosaics_count = 0usize;
         push_length(&mut output, self.mosaics.len())?;
@@ -11405,8 +11373,6 @@ impl ResidentCognitiveFormationState {
             }
             ensure_cognitive_output_budget(&output, max_encoded_bytes)?;
         }
-        #[cfg(test)]
-        { seal_trace.stage = "C128-seal-hippocampal"; }
         let hippocampal = self
             .hippocampal
             .encode()
@@ -11417,16 +11383,10 @@ impl ResidentCognitiveFormationState {
         push_length(&mut output, hippocampal.len())?;
         output.extend_from_slice(&hippocampal);
         ensure_cognitive_output_budget(&output, max_encoded_bytes)?;
-        #[cfg(test)]
-        { seal_trace.stage = "C128-seal-fractals"; }
         self.settled_fractals.encode_into(
             &mut output, &self.cohorts, &self.topology_index, max_encoded_bytes,
         )?;
-        #[cfg(test)]
-        { seal_trace.stage = "C128-seal-progress"; }
         self.physical_progress.encode_into(&mut output, &self.topology_index, max_encoded_bytes)?;
-        #[cfg(test)]
-        { seal_trace.stage = "C128-seal-terminal"; }
         let terminal = energy.map(|energy| {
             (
                 CognitiveFormationSummary {
@@ -11446,8 +11406,6 @@ impl ResidentCognitiveFormationState {
                 mosaic_of_mosaics_count,
             )
         });
-        #[cfg(test)]
-        { seal_trace.finished = true; }
         Ok((output, terminal))
     }
 

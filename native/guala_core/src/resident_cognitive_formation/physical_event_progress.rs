@@ -263,7 +263,7 @@ impl PhysicalEventProgress {
 
     fn validate_members(&self, topology: &ResidentTopologyIndex) -> Result<(), FormationError> {
         self.recovery.visit(|key, value| {
-            if value.last > self.clock || topology.canonical_lineages.binary_search(key).is_err() {
+            if value.last > self.clock || topology.flat_for_lineage(*key).is_err() {
                 return Err(FormationError::NoncanonicalState);
             }
             Ok(())
@@ -350,7 +350,7 @@ impl PhysicalEventProgress {
         {
             return Err(FormationError::NoncanonicalState);
         }
-        for expected in topology.canonical_lineages.iter() {
+        for (expected, _) in topology.flat_by_lineage.iter() {
             let lineage = take::<16>(bytes, cursor)?;
             if lineage != *expected {
                 return Err(FormationError::NoncanonicalState);
@@ -398,7 +398,9 @@ mod tests {
     // Codec/custody support only: the settlement tests use real mounted cells.
     fn topology() -> ResidentTopologyIndex {
         let mut topology = ResidentTopologyIndex::empty();
-        topology.canonical_lineages = Box::new([[1; 16], [2; 16], [3; 16]]);
+        // Physical/cohort order is independent of lexicographic lineage order.
+        topology.canonical_lineages = Box::new([[3; 16], [1; 16], [2; 16]]);
+        topology.flat_by_lineage = Box::new([([1; 16], 1), ([2; 16], 2), ([3; 16], 0)]);
         topology.canonical_bonds = Box::new([
             StablePhysicalBondReference::new([1; 16], [2; 16], 0).unwrap(),
             StablePhysicalBondReference::new([1; 16], [2; 16], 1).unwrap(),
@@ -434,6 +436,8 @@ mod tests {
         let restored = PhysicalEventProgress::decode_from(&bytes, &mut cursor, &topology).unwrap();
         assert_eq!(cursor, bytes.len());
         assert_eq!(restored, original);
+        assert_eq!(topology.canonical_lineages.as_ref(), &[[3; 16], [1; 16], [2; 16]],
+            "codec must not reorder anatomical participants");
         assert_eq!(
             restored.contact_clock(topology.canonical_bonds[0]).unwrap(),
             11
@@ -468,7 +472,10 @@ mod tests {
         );
 
         let mut grown = original.clone();
-        topology.canonical_lineages = Box::new([[1; 16], [2; 16], [3; 16], [4; 16]]);
+        topology.canonical_lineages = Box::new([[3; 16], [1; 16], [2; 16], [4; 16]]);
+        topology.flat_by_lineage = Box::new([
+            ([1; 16], 1), ([2; 16], 2), ([3; 16], 0), ([4; 16], 3),
+        ]);
         topology.canonical_bonds = Box::new([
             topology.canonical_bonds[0],
             topology.canonical_bonds[1],
@@ -498,7 +505,10 @@ mod tests {
         let unchanged = grown.clone();
         grown.admit_topology(&topology).unwrap();
         assert_eq!(grown, unchanged, "same topology adds no history");
-        topology.canonical_lineages = Box::new([[1; 16], [2; 16], [3; 16], [5; 16]]);
+        topology.canonical_lineages = Box::new([[3; 16], [1; 16], [2; 16], [5; 16]]);
+        topology.flat_by_lineage = Box::new([
+            ([1; 16], 1), ([2; 16], 2), ([3; 16], 0), ([5; 16], 3),
+        ]);
         assert!(
             grown.admit_topology(&topology).is_err(),
             "equal population counts cannot replace a stable identity"
