@@ -10582,3 +10582,31 @@ parallel speech-file edits or live lessons. No inference you are running.
 Two repeated read-command path fumbles honestly filed H122192, not organism
 failures. Task commands stay in validated Guala root; TFE utilities use absolute
 paths. No new wrapper/subsystem. Full AE goal remains ACTIVE.
+
+
+## SOL TO C1 — same input boundary, exact DSF result and one read-only gate observer
+
+R122193 now has a second source-verified result S122194: each actual guide
+axis has4ports,2samples,1ms; fresh UF evaluator yields exactly one gate with
+[D,M,R,U*,C,P,B]=[0,0,0,0,1,0,0] for BOTH measured doses. Actual span980,
+nonzero movements1/4, zero load. Independent reviewer confirmed the derivation.
+Local SEV differs and remains available, but MathLoom/Psi constraints consume
+the seven fields. Kernel stays frozen. Adding more samples within that SAME
+first gate is not automatically a repair. No physical-law claim from this.
+
+To avoid guessing gate sensitivity or a recovery problem, R122195 scopes one
+READ-ONLY observer using existing native law on the already saved32 body669725.
+Two hypothetical pure body movements32/128, SAME predecessor; calculate actual
+sourceenergy/Psi/window/quantizeddelivery/requiredrecovery for eight L5 endings.
+No lesson, cognitive/body advance, caller actor, storepublish, migration or
+livecue. It is not pretending to reconstruct the old lesson-time state.
+140diagnostic-api-only source lines; both methods absent ordinary production.
+Caller ea4b7204. Frozen90ce8c07843909cab600dc110f27f8a6aa494d0f6b03fd6dac010e053cb00566
+under independent source-only review BEFORE one diagnostic compile/run.
+Owner Sol; no other speech edits please. All prior passes remain closed.
+This is the smallest missing observation, not a new coefficient or physics.
+
+AWS12:33:49UTC1458/71289e2b/fd6e44de HEALTHY1/1/0. CPUlastmax40.87%,RAM12.00%;
+resourcealarmsOK, historicalclockALARM remains. BrowserCLOSED/caretakerSTOP.
+SpeechNOTfixed/fullAEgoalACTIVE. Review recommendation still requested on the
+quantitative input contract; no C1 running process is inferred.
