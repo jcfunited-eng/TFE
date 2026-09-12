@@ -55,10 +55,15 @@ guala-clock-stalled ALARM remains. No all-green or performance closure.
 S122204 source review recommends two ordered physical episodes under ONE
 existing pending return: unchanged1ms impulse, then measured passive tail with
 allfour sensory ports and zero new motor/load work. No new endpoint convention.
-S122205 records the compact-return contract. Candidate130 has begun:
-I122206 adds a221line compact sensory capture/codec, UNREGISTERED/UNCOMPILED.
-Next SINGLE: integrate that SAME candidate through renderer, full-field source,
-wrapper and existing pending return; freeze/review the complete path before build.
+S122205 records the compact-return contract. Candidate130 integration is in progress:
+I122206 added the compact capture/codec; I122207 registers it, captures existing
+renderer steps, moves compact bytes into native return receipts, shares the full
+four-port encoder, validates zero-load passive evidence before cognition, and
+carries independently authored temporal admission through native/Python.
+SOURCE ONLY, UNCOMPILED/UNTESTED/NOT DEPLOYABLE. The existing pending-return
+consumer still refuses compact tails and must be completed before ANY run.
+Next SINGLE: finish this SAME candidate's compact consumption/decoded-memory
+admission and warm/cold pending return, then freeze/review before build.
 S122198 records all native, wrapper, pending-return, restore and action-evidence
 consumers. No new lesson or fullbrain run before the complete Candidate130 review.
 Do not stretch1ms into250ms, lowerq, fitgain/cutoff to Mama, add a second owner,
@@ -20239,3 +20244,86 @@ witness, preserve metadata through native/Python, admit compact custody through
 existing pending return and cold restore, then freeze/review the complete
 candidate before any compile/test. Unchanged core33adbb85/runtimeb5a7cab1,
 all prior live and restart successes remain closed. No production action.
+
+
+### I-054-122-207 — Candidate130 producer/source/translation integration, still INCOMPLETE
+
+2026-09-12 source-only continuation of S122205/I122206. Previous user exchange
+about indexing was conceptual, not implementation progress. Revalidated exact
+worktree at03ba92d336b617264785bcbce347048f13cde288, clean before edits.
+No task/image/caretaker/browser/controller change; no cue, lesson, build,
+benchmark or test run. Full goal ACTIVE; speech NOT fixed.
+
+Written in the SAME candidate:
+- lib.rs registers passive_body_source. Renderer captures its first actual
+  postcognitive position and every EXISTING quiescent1ms successor. No extra
+  settlement or resampling. Zero pressure does not erase the trajectory.
+  Native frame ceiling derives from480000samples/16samples per1ms =30000frames,
+  distinct from ordinary250frames. Capture is admitted against the caller's
+  existing source workspace; no new resource owner. Transient Clone remains
+  because the containing transition is Clone, but the ordinary runtime TAKES
+  the capture before storing/cloning causal acoustic observation.
+- build_admitted_trajectory emits unchanged impulse receipt then compact
+  GLBPTR01 tail, same original source_tick. Port/sample/frame extents and an
+  independently authored duration tuple come from actual captured dimensions.
+  Native body_proprioceptive_source_admissions getter carries that duration.
+  Specialized no-render paths do not invent a tail; generic renderer callers
+  still require lifecycle review before acceptance.
+- articulated_body_joint_source_builder shares the ORIGINAL four-port header
+  encoder between impulse and passive sources. Passive expansion retains exact
+  i32 positions/times, both length endings AND both zero-load endings, same
+  source identities, exact relevance and full joint field. No fake impulse
+  consequence or motor witness is used. One bounded timestamp vector is shared
+  while encoding; exact decimal-width bounds preflight encoded sample storage.
+  This bounds ENCODED expansion only: decoded rational/metadata working-memory
+  admission and measured allocator peak are NOT yet complete or claimed.
+  The owned native decoder avoids an additional full encoded Vec copy.
+- Parser validates the complete GLBPAS01 profile/timeline once before source
+  admission. Requires typed axis/direction, one-ms samples, actual axis lattice,
+  exact zero load/phase and relevance1. Per-gate load work returns zero NEW
+  energy while retaining the original positive one-ms elementary unit for
+  existing residue. exact_moved_effector_terminal remains GLBPEV01-only.
+- native_resident_organism.py preserves source admission and validates format,
+  extent and order. Shared epoch is allowed only for impulse THEN passive;
+  passive-only is permitted. It does not inspect every sample or choose meaning.
+  guala_motor_world._body_sources carries that admission instead of manufacturing
+  one millisecond, and accepts atmost2body episodes under the existing owner.
+
+Author inspection/git diff --check: no whitespace error. NOT a compile, frozen
+review, behavioral proof, byte-equivalence proof, or performance result.
+One combined source-read output was display-truncated; the missing relevant
+ranges were read separately before editing. A subsequent whole-ledger transport
+read did not match the retained full text; the guard stopped BEFORE any edit.
+Git confirmed no ledger change from HEAD. Full-file patch context validates
+the retained original against disk. Do not infer concurrent ledger edits from
+a transport-sized read; use the existing matched original/full-file patch or
+bounded chunks. No harness was launched.
+
+Checkpoint source SHA256:
+- source builder32dfb4ee9db081b54f547329e5e86fce12c8810f9de3c17951a8a59bca8aaec3
+- parsera2f5e6e557d3fde365e6f353077891e937e653fd433b758c246e08364bc0532d
+- runtime45f9f4552b6af6a7a1961cb5bcd15b7374bfd3697aebd480dd1ebaa7c0a7950b
+- compact60fc92f6bb6edf093282a59c53746c5cfc2c132f2f164e947f5d1d954d571ebe
+- receptor5d61522f4c123cc1ae02e7092c3a4811c5aedc2ee196b7c49adeb6051e8e6bb6
+- renderer13e918fd5ca38d33ded2be201debadb540caab32e4129f512c9958b8e551981e
+- wrapper0b42236c73f4e5cab6e8692c3fe755cba3d9b75e02dc1fd6c5acb26c50983783
+- motorworld671bc589c177e4b826595a154825a04a1867795005ae9fab7dfd4c1c3cf56afe
+Core33adbb85 and actual body law451378d1 remain byte-unchanged. No L0-L4,
+neuron, retained learning, guide, acoustic law, semantic index or heuristic edit.
+
+Exact remaining SAME item: implement the native compact-return consumption
+entry with independent decoded-memory admission, canonical compact roundtrip
+and derived extent check; connect PhysicalReturnSource.restore to that ONE path
+for warm/cold; update its independent live frame/byte bounds and pending
+source cardinality3->4; preserve impulse/consequence equivalence separately
+from passive-only evidence in _requires_physical_return. The current consumer
+STILL rejects these tails. Do not run/deploy this partial integration.
+
+Then full candidate source freeze/review before compile/test, followed by the
+already frozen S122205 acceptance, including source equivalence, zero motor/load
+authority, warm/cold next-successor equality and measured mature-body quantitative
+input, compact/expanded bytes and actual resource costs. Do not rerun closed
+voice/restart or whole-brain teaching campaigns; do not claim captured
+trajectory or codec construction proves learned strength or intelligible speech.
+No fresh AWS health observation in this source-only turn; previous13:00 bracket
+is historical and includes the persistent clock ALARM.

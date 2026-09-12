@@ -61,6 +61,7 @@ mod ordered_gate_delivery_candidate;
 pub mod organism;
 mod organism_runtime;
 mod physical_mosaic;
+mod passive_body_source;
 mod proprioceptive_receptor_work;
 #[cfg(test)]
 mod positional_krimelack_boundary;

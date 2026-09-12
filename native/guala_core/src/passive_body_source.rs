@@ -23,7 +23,7 @@ pub(crate) enum PassiveBodySourceError {
 
 /// Row-major physical positions. No repeated timestamps, zero-load arrays,
 /// motor directions, desired values, or learned-state fields are retained.
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct PassiveBodyTrajectory {
     axes: Vec<BodyAxis>,
     positions: Vec<i32>,

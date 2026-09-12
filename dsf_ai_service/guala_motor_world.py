@@ -126,16 +126,17 @@ def _active_grips(evidence: Any) -> tuple[tuple[str, ...], tuple[str, ...]]:
 def _body_sources(evidence: Any) -> tuple[PhysicalReturnSource, ...]:
     bodies = tuple(bytes(value) for value in evidence.body_proprioceptive_sources)
     extents = tuple(evidence.body_proprioceptive_source_extents)
-    if len(bodies) != len(extents) or len(bodies) > 1:
+    admissions = tuple(evidence.body_proprioceptive_source_admissions)
+    if len(bodies) != len(extents) or len(bodies) != len(admissions) or len(bodies) > 2:
         raise RuntimeError("one native interval lost its sparse body source")
     sources = []
-    for body, extent in zip(bodies, extents, strict=True):
+    for body, extent, admission in zip(bodies, extents, admissions, strict=True):
         if not isinstance(extent, tuple) or len(extent) != 5:
             raise RuntimeError("native body source extent changed shape")
         _tick, ports, samples, occurrences, frames = extent
         sources.append(PhysicalReturnSource(
             body, (ports, samples, occurrences, frames),
-            ((1, 1000),) * occurrences,
+            (admission,) * occurrences,
         ))
     return tuple(sources)
 
