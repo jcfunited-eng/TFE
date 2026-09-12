@@ -16482,3 +16482,65 @@ display. No credential changes or production mutations were performed.
 
 Full goal remains ACTIVE. Next work is the R122120/S122122 copied-runtime
 applicability evidence, not another body-capacity run or broader architecture.
+
+### R-054-122-124 — Joe's AE simplification question: evidence and decision boundary
+
+Previous goal turn: PROGRESS through current doctrine/source inspection, which
+changes the next decision from assuming human-style articulation is obligatory
+to reviewing that requirement explicitly. Joe asked whether cognition can
+express learned experience more directly. This is commentary/design discussion,
+NOT a stop command and NOT authorization to delete mechanics, rewrite memory,
+install an output decoder, or change production. Full AE goal remains ACTIVE.
+
+Architecture gate: requested experience-led autonomous entity, using the human
+brain as guidance; current speech consumes learned motor recruitments, body
+posture and respiratory discharge. Conflict: a direct recalled-acoustic output
+proposal conflicts with the current detailed articulation requirement, not with
+the broad experience-led AE objective. No legacy shell, answer table, stored
+meaning, ML, waveform replay-as-cognition, L0-L4 change or silent state migration
+will be extended. Single next decision is whether to authorize a replacement
+expression boundary. Full DSF remains unchanged; no reduced field is proposed.
+
+Read evidence:
+- Developmental Connectivity Law2026-08-11 explicitly distinguishes biological
+  guidance from literal embryology/human scale/undefined chemistry.
+- Cognitive Chain Specification2026-08-08 treats fractals/mosaics/tapestries/
+  weaves as relational integration and evidence terms, not fixed semantic
+  classes or automatic promotions into words, questions, ambitions or expertise.
+- complete_neuron4957/5065: fractal coordinates retain exact physical state
+  changes (winding, membrane, channels, recovery, plastic and material state).
+- physical_mosaic97 retains these deltas, participating lineages, excitation,
+  learned bonds and cue lineages; it is not a stored playable utterance.
+- guala_cochlea69 consumes4000 PCM samples, derives16 envelopes per ear and
+  sparse signed samples at160-sample spacing. The current adapter discards
+  returned gammatone phase/advance arrays. This source fact does NOT prove
+  hearing useless or no acoustic information retained; it means a byte-exact
+  recording/inverse must not be assumed from the word 'experience'.
+- organism_runtime5097 converts recruitment carriers to typed body drives.
+  Runtime4089/4510 call virtual_articulatory_body146, whose inputs are resident
+  articulated body, body consequences, respiratory carriers, sample count.
+  No recalled acoustic-pattern input is supplied by that existing interface.
+
+Recommendation/proposal ONLY: distinguish the machinery implementing learned
+causal state from the detailed motor model serving an output device. Preserve
+neurons, lawful memory/relations, endogenous expression selection, full fields,
+self/other provenance, resources, sensed action consequences and cold identity.
+Consider a simpler native acoustic effector without requiring human-style
+mouth/lung reproduction. It must not choose a word from an observer label,
+retrieve a canned answer, or copy tutor audio and call that Guala speaking.
+No exact decoder, signal law, or learned acoustic readout is yet derived;
+none is declared an existing capability. Current neuronal memory alone is not
+evidence that a reconstructible word-shaped signal already exists.
+
+C125 is preserved at7756211b (source4287dac8), source-reviewed/focused-test-only.
+No new build/run/deploy or current-state mutation in this architectural review.
+Its generic contact-plasticity correction is not invalidated by questioning the
+downstream actuator; its mature runtime effect remains unproved. No old passes
+reopened. Live two-posture anatomy, ordered audio/64x gain, and Joe's same-toots
+remain the last respective evidence, not updated production claims.
+Browser need not open; caretaker restart not authorized.
+
+Tooling correction: one grep named nonexistent auditory_gammatone.rs; recursive
+symbol search resolved native/guala_core/src/auditory.rs. No compile ran on the
+guess. A combined source output truncated; selected doctrine mirror was reread
+alone before relying on it. Stop constructing filenames from symbol names.
