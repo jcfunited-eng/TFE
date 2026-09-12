@@ -77,7 +77,11 @@ base = {
 }
 if name == "git":
     if args == ["rev-parse", "--show-toplevel"]: reply(str(root))
-    if args == ["rev-parse", "--verify", "HEAD"]: reply("f" * 40)
+    if args == ["rev-parse", "--verify", "HEAD"]: reply("e" * 40 if scenario.startswith("revision-") else "f" * 40)
+    if args == ["rev-parse", "--verify", "f" * 40 + "^{commit}"]: reply("f" * 40)
+    if args[:4] == ["diff", "--no-renames", "--name-only", "-z"]:
+        reply("native/guala_core/src/lib.rs" if scenario == "revision-runtime"
+              else "tools/deploy_dsf_ai.sh" + chr(0) + "tests/test_deterministic_guala_deployment.py")
     if args == ["status", "--porcelain=v1", "--untracked-files=all"]: reply("")
 if name == "docker":
     if args == ["image", "inspect", image]:
@@ -123,7 +127,7 @@ if name == "aws":
         reply({"taskArns": ([new_task if new else old_task] if desired else [])})
     if operation == ("ecs", "describe-tasks"):
         arn = opt("--tasks")
-        stopped = arn == old_task and state.get("drained", False)
+        stopped = arn == old_task and state.get("drained", False) and scenario != "resume-source-running"
         if arn == new_task and not desired:
             state["candidate_stop_reads"] = state.get("candidate_stop_reads", 0) + 1
             stopped = scenario != "cleanup-never-stops"
@@ -139,6 +143,11 @@ if name == "aws":
     if operation == ("ecs", "describe-task-definition"):
         arn = opt("--task-definition")
         result = state.get("registered", base) if arn == new_definition else base
+        if arn == new_definition and state.get("resume"):
+            result = json.loads(json.dumps(base))
+            result["containerDefinitions"][0]["image"] = image
+            result["containerDefinitions"][0].pop("command")
+            if scenario == "resume-wrong-candidate": result["cpu"] = "8192"
         reply({"taskDefinition": {**result, "taskDefinitionArn": arn}})
     if operation == ("ecs", "register-task-definition"):
         if "--generate-cli-skeleton" in args: reply({})
@@ -157,6 +166,19 @@ if name == "aws":
     if operation == ("logs", "filter-log-events"):
         if opt("--log-stream-names").endswith("/source"):
             if scenario == "no-shutdown": reply({"events": []})
+            if scenario.startswith("pages-"):
+                page = int(opt("--next-token")) if "--next-token" in args else 0
+                if scenario == "pages-repeat":
+                    reply({"events": [], "nextToken": "1"})
+                if scenario == "pages-bound":
+                    reply({"events": [], "nextToken": str(page + 1)})
+                if scenario == "pages-events":
+                    reply({"events": [{"message": "Application shutdown complete."}] * (100 if page == 0 else 1),
+                           **({"nextToken": "1"} if page == 0 else {})})
+                if page == 0:
+                    reply({"events": [{"message": "Application shutdown complete."}], "nextToken": "1"})
+                reply({"events": [{"message": "Application shutdown failed."}]
+                       if scenario == "pages-late-failure" else []})
             line = ("Application shutdown failed. Exiting."
                     if scenario in ("shutdown", "cleanup-refused")
                     else "INFO: Application shutdown complete.")
@@ -200,9 +222,32 @@ def release(tmp_path):
     }
 
     def run(mode="--dry-run", scenario="", digest=DIGEST):
-        (tmp_path / "state.json").write_text(json.dumps({"scenario": scenario}))
+        state = {"scenario": scenario}
+        extra = []
+        if mode == "--resume-cutover":
+            state.update(resume=True, desired=0, drained=True)
+            if scenario == "resume-service-live": state["desired"] = 1
+            prefix = "arn:aws:ecs:us-east-1:418384447921:"
+            plan = {
+                "schema": "guala.release_plan.v1", "mode": "--cutover", "cloud_writes": False,
+                "source_task": prefix + "task/tfe-web-cluster/source",
+                "source_definition": prefix + "task-definition/dsf-ai-task:1456",
+                "image": "418384447921.dkr.ecr.us-east-1.amazonaws.com/dsf-ai@" + DIGEST,
+                "git_sha": "f" * 40, "live_tick": 100,
+                "backup": {"archive_sha256": hashlib.sha256(backup.read_bytes()).hexdigest(), **current},
+            }
+            failure = {"status": "failed_closed", "zero_writers": "verified",
+                       "automatic_legacy_rollback": False}
+            if scenario == "resume-wrong-backup": plan["backup"]["archive_sha256"] = "0" * 64
+            if scenario == "resume-unverified": failure["zero_writers"] = "UNVERIFIED"
+            prior = tmp_path / "prior.log"
+            prior.write_text(chr(10).join([json.dumps(plan),
+                                         "ERROR: task receipt query exceeded its bounded page",
+                                         json.dumps(failure), ""]))
+            extra = [str(prior), prefix + "task-definition/dsf-ai-task:1457"]
+        (tmp_path / "state.json").write_text(json.dumps(state))
         result = subprocess.run(
-            ["bash", str(CONTROLLER), mode, digest, str(backup)],
+            ["bash", str(CONTROLLER), mode, digest, str(backup), *extra],
             env=env, text=True, capture_output=True, timeout=25,
         )
         log = tmp_path / "calls.jsonl"
@@ -341,3 +386,57 @@ def test_candidate_that_never_stops_cannot_be_reported_as_zero_writers(release):
         and c[c.index("--tasks") + 1].endswith("/candidate")
         for c in calls
     )
+
+
+def test_log_pagination_is_exhausted_before_candidate_start(release):
+    run, _ = release
+    result, calls = run("--cutover", "pages-pass")
+    assert result.returncode == 0, result.stderr
+    pages = [i for i, c in enumerate(calls)
+             if c[:3] == ["aws", "logs", "filter-log-events"]
+             and c[c.index("--log-stream-names") + 1].endswith("/source")]
+    assert len(pages) == 2
+    start = next(i for i, c in enumerate(calls)
+                 if c[:3] == ["aws", "ecs", "update-service"]
+                 and c[c.index("--desired-count") + 1] == "1")
+    assert pages[-1] < start
+
+
+@pytest.mark.parametrize("scenario", [
+    "pages-late-failure", "pages-repeat", "pages-bound", "pages-events",
+])
+def test_log_success_cannot_hide_later_failure_or_unbounded_pages(release, scenario):
+    run, _ = release
+    result, calls = run("--cutover", scenario)
+    assert result.returncode != 0
+    assert not any(c[:3] == ["aws", "ecs", "update-service"]
+                   and c[c.index("--desired-count") + 1] == "1" for c in calls)
+    assert json.loads(result.stdout.splitlines()[-1])["zero_writers"] == "verified"
+
+
+@pytest.mark.parametrize("scenario", ["pages-pass", "revision-controller"])
+def test_resume_reuses_existing_candidate_without_registration_or_live_source_observation(release, scenario):
+    run, _ = release
+    result, calls = run("--resume-cutover", scenario)
+    assert result.returncode == 0, result.stderr
+    assert not any(c[:3] == ["aws", "ecs", "register-task-definition"] for c in calls)
+    updates = [c for c in mutations(calls) if c[:3] == ["aws", "ecs", "update-service"]]
+    assert [c[c.index("--desired-count") + 1] for c in updates] == ["0", "1"]
+    first_write = calls.index(updates[0])
+    assert not any(c[0] == "curl" for c in calls[:first_write])
+    receipt = json.loads(result.stdout.splitlines()[-1])
+    assert receipt["git_sha"] == "f" * 40
+    assert receipt["controller_git_sha"] == ("e" * 40 if scenario.startswith("revision-") else "f" * 40)
+    assert receipt["behavioral_acceptance"] == "pending"
+    assert json.loads(result.stdout.splitlines()[0])["retained_tick_lower_bound"] == 100
+
+
+@pytest.mark.parametrize("scenario", [
+    "resume-wrong-backup", "resume-unverified", "resume-source-running",
+    "resume-service-live", "resume-wrong-candidate", "pages-late-failure", "revision-runtime",
+])
+def test_resume_refuses_drift_without_any_cloud_write(release, scenario):
+    run, _ = release
+    result, calls = run("--resume-cutover", scenario)
+    assert result.returncode != 0
+    assert mutations(calls) == []

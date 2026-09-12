@@ -1,7 +1,8 @@
 # Guala speech repair Attempt 54 — complete design verification and lean sensorimotor route
 
 Date: 2026-09-08 UTC
-Status corrected 2026-09-11 UTC: **live production speech is not yet fixed**. Production runs task
+Historical deployment record, 2026-09-11 UTC (superseded by CURRENT status below):
+**live production speech was not fixed**. Production then ran task
 definition 1456 from Candidate-110 commit `34b4004ad10f36085aff83b0057d3d8bfcafe008`
 and immutable image digest
 `sha256:6aa38d997522301c5e3ddd75bbb053871bdda12b81259cd2f44119292492a106`.
@@ -20,10 +21,13 @@ so live speech acceptance remains open. This paragraph records the Candidate110
 deployment, not the current repair state. Any earlier “speech complete” wording
 is historical and retracted.
 
-Current repair status, 2026-09-12 03:14 UTC: speech NOT fixed in production.
-AWS rechecked: production remains1456/C110/image6aa38d99, one RUNNING/HEALTHY
-writer. No deployment or live lessons. Full AE goal ACTIVE; caretakerSTOP and
-browserclosed unchanged.
+Current repair status, 2026-09-12 03:38 UTC: production is STOPPED during cutover
+recovery; speech is NOT fixed in production. Source task1456/C110 exited cleanly
+after successful final application shutdown. Service1456 is0/0/0. Proven candidate
+image80755ca0 is published and task1457 registered but not started.
+The controller falsely refused CloudWatch pagination. F12290/R12291 govern the
+narrow release-control recovery; do not rebuild or reopen the passed speech work.
+Full AE goal ACTIVE; caretakerSTOP and browserclosed unchanged.
 
 CURRENT DELIVERY ITEM D-054-122-40: incremental TWO-POSTURE live delivery.
 Joe confirmed: deliver functioning vocal ability now; do not hold it for a
@@ -64,8 +68,9 @@ that rejected diff and its lesson are retained. The replacement verifies actual
 task termination in both normal and failed cutover, including unselected startup.
 Latest backup661388 -> migration -> exact cold-next661389 -> cold-next661390
 PASSED S12283 using ordinary native5fc6b612 and the startup-only receipt.
-NEXT D12273: commit/package, one bounded immutable image build, same-image
-rehearsal, read-only dry run, cutover and live acceptance. No new speech mechanism.
+D12273 package/image/rehearsal/dry run PASSED; first cutover failed at log pagination.
+NEXT R12291: explicit same-image/task1457 resume, then public/live vocal acceptance.
+No new speech mechanism.
 
 Recovery backup661388 is hash-verified and archived; it is not normal cutover
 input. Candidate restores final live CURRENT after old shutdown, never a taught
@@ -15086,3 +15091,119 @@ receipts to the shared remote handoff and external evidence, then reconcile them
 into this canonical ledger. This avoids changing HEAD beneath the image label.
 UI publication and public/browser/live vocal acceptance still follow cutover.
 Full AE goal remains ACTIVE; no approval block or speech-complete claim.
+
+### S-054-122-85 through S-054-122-89 — immutable image and actual dry run PASSED
+
+Reviewed commit5e327afbdfa85c45ceed16f45c8f1264d4d1c153 was pushed, packaged and
+verified as the existing215-file closure. PackageZIP SHA
+5814c1be8550921d63a709bcf41bcf371913585c575c2adc80d2e6b0fbf3b3be.
+One bounded4CPU/16GiB local build completed, session74221exit0:
+image sha256:80755ca0965635ded9baa02d9df60463f1a27fab057365a8a0f0d8d1341a0bc7,
+213171717bytes, linux/amd64. Image native SHA
+5deb02a234e05e2403608c0901f4d311c084231b0a50a803afc42c16e3d8a4c7.
+Normal/nondiagnostic artifact; image production Python matched reviewed bytes.
+Do not mislabel it as the earlier host-compiled5fc6b612.
+
+Same-image two-posture proof session10373exit0 PASSED: source659890, quiet8,
+one cue659899, fourMIN659901 and fourMAX659902, breath/pressure on both,
+exactly8 learned motor events,136000selfheard, silence and exactcoldnext659963.
+All228prior topologies preserved. ALL34real soundblocks/272000PCMbytes delivered
+through production HTTP feed exactlyonce and in order. Image-specific finalpair:
+body5784c4b217efc6abf9ccf67c3781231f2cf13509c9ceeb4f9ea49138dcf1c1c8
+world8bbea05e6c03ee7e7e1852dd092fb4d40a3d8c08b464db1e79eb7124ed52828c
+CURRENT52c830af435f90f9c09805a3f3b66296c840b6de41f039cda2a3c6f2be23b695.
+PeakRSS2601544KiB. Functional image proof, not asserted byte-identical to host
+successors; each exact cold restore used its own actual saved successor.
+
+Same image then PASSED the old C110 backup661388 migration and two cold-next
+steps to661390, session80806exit0, peakRSS2133908KiB. No simultaneous actors;
+after each run docker top showed only inert sleep. Container had no mounts or
+external network. Observer/test dependencies lived only in disposable writable
+layer, never published image. Image-only source-path guards were reviewed.
+Proof archive /mnt/tfebackup/guala-c118-four-posture.XehvEs/c123-immutable-image-proofs.tar.gz
+SHA a30c66b729d13abaffa860f34604f5b6b037fd9978c97954de2210c100b50889.
+Image recall log SHA5f5c845a103058aecc65b8b0c14fb0ee6d9731c145e81e36bb942381f4743c72.
+Image startup log SHAa4b7e23ba08012991935b7bb90845a41eed9c348ab55541ae1436dded82a0dd1.
+
+Same image pushed once, session99491exit0, exact ECR digest80755ca0, tagc123-5e327afb.
+Actual controller dry run PASSED session71614exit0, source effde9e1/1456,
+recorded live tick662440, backup661388, exact image/revision and AWS register shape.
+Zero cloud writes in dry run. Shared handoff received every stage while build
+commit stayed clean. No native/speech success was reopened or discarded.
+
+### F-054-122-90 — first cutover stopped on a FALSE CloudWatch pagination refusal
+
+Actual cutover began2026-09-12T03:33:26Z (shared heading's03:35 was approximate;
+this retained execution timestamp is authoritative). Session7624exit1.
+Registered task1457 once. Old sourceeffde9e1 exited0, actualSTOPPED
+2026-09-12T03:35:31.330Z. CloudWatch recorded successful application shutdown
+timestamp1789184096514. Thus old actor completed its final save.
+Service remains source1456 at0/0/0; candidate1457 was never installed/started.
+
+Failure: messages() equated ANY nextToken with >100-event overflow. Actual
+CloudWatch returned ONE shutdown-complete event and a nextToken. A continuation
+token does not imply overflow; the reader must exhaust bounded pages. The focused
+fake never emitted a page token. Main and source reviewer both missed this.
+This is a release-controller false refusal, not an image, native, or vocal failure.
+Failed log retained /tmp/guala-c123-cutover.log. Correct failure cleanup verified
+actual stopped source and0/0/0; no rollback or overwritten state occurred.
+
+### R-054-122-91 — narrow explicit resume contract, no new build or physiology
+
+Requested architecture unchanged: one preserved body and actual learned vocal
+delivery. Current conflict is ONLY release pagination/resume control. No native,
+DSF, memory, curriculum, environment or image code will be extended. Full fields
+remain intact. Single next item: correct that controller and finish its existing
+post-drain tail on the already registered1457 and rehearsed80755ca0 image.
+
+Bounded pagination must collect all matching task-log pages to exhaustion, up to
+10 pages and100 total events, refusing repeated tokens or either bound. Inspect
+all shutdown lines for both success and failure; never stop at the first positive.
+A token alone is not an error. Add focused fake pages, including a late failure.
+
+Add explicit --resume-cutover DIGEST BACKUP_ZIP PRIOR_LOG CANDIDATE_TASK_DEFINITION
+to the SAME controller. Authenticate the retained first plan and failed-closed
+result, image/revision/backup, exact source ARN STOPPED/exit0, original source
+definition still selected at0/0/0, and existing candidate's exact cloned settings.
+No registration or old-image restart in resume. The original plan's662482 is
+only a retained lower bound, not falsely called the final unlogged pre-drain
+sample. Complete old shutdown plus candidate CURRENT-only startup receipt proves
+the actual final predecessor. Reuse the normal install-at-zero/start/verification/
+failure-cleanup tail; do not create a second recovery controller.
+
+The deployment controller is NOT runtime image input. To avoid rebuilding a
+proven image merely for an external control correction, image revision may differ
+from controller HEAD only when Git proves differences are confined to exactly:
+tools/deploy_dsf_ai.sh, tests/test_deterministic_guala_deployment.py and this
+canonical Attempts ledger. Every runtime/native/Dockerfile/manifest/build input
+must remain unchanged. Require a clean reviewed controller commit; name image
+revision and controller revision separately. No weak readiness flags or arbitrary
+dirty-worktree exception. Source review agreed this exact recovery shape before
+implementation. Preserve all successful image/startup/vocal evidence.
+
+### S-054-122-92 — release recovery source review and focused checks PASSED
+
+Continues D12240/R12291. Source-only reviewer found three localized escaping
+mistakes before execution: literal backslash-zero instead of NUL in Git path
+split/fake, literal backslash-n instead of newline in retained-log fixture.
+Corrected once using chr(0)/chr(10); no architectural finding, no runtime change.
+Final frozen source fingerprint4dba88c670378f84ee4d4c17f04a15e62e7525ed8f16b3e14808c9dd8f9d65b6
+verified unchanged before/after final review. No outstanding findings.
+
+Focused actual controller commands plus startup receipt tests PASSED:
+session44763 exit0,31passed24.28s, one existing Starlette/httpx deprecation warning.
+Includes successful paginated shutdown, later failure after success, repeated
+page token, page/event bounds; same1457 resume with no registration and no
+pre-start HTTP observation; backup/zero/source-running/candidate/source-diff
+refusals; original actual-STOPPED cleanup controls retained. No native/probe
+rebuild or biological test repeated. PYTHONPATH exactworktree/normalwheel;
+--noconftest avoids retiredshell global fixture as already documented.
+
+Permanent deployment register RF066 now names the pagination false refusal and
+its earliest focused guard. Firstfailedlog SHA
+bb822b8191dad6e650b7ba26951357a5e367a682ea7f49fd888323567f08bec5
+matches durable c123-cutover-first-failure.log. Shared failure handoff committed
+a16b1431d528aea4e9f5c35eebb3c56847d07c0c; Slack recovery notice verified03:50:23Z.
+Live read03:50: candidate1457 ACTIVE with exact80755ca0 digest and4CPU16GiB.
+Source service still1456 at0/0/0. Image revision5e327afb stays unchanged;
+only controller/tests/this ledger differ. Next commit then explicit resume.
