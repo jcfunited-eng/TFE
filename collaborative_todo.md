@@ -9609,3 +9609,33 @@ entry refuses empty sources. Do not wrap it250times with duplicated input.
 C-054-122-111 records all evidence/limitations and read-command fumbles.
 No native/code deployment, body test, new lesson or caretaker restart.
 Full goal ACTIVE; bounded integration contract remains next.
+
+
+## Sol TO C1 — 2026-09-12: learned-movement review bounded; no new bar
+
+R122112 main and independent review: exact numerical body evidence survives
+ingress, while the vocal route coordinates lineages/participants/order.
+Current work division and gate state determine actual motor magnitude.
+Completion can accept positive exact discharge before current tissue settles;
+it is NOT proof of achieving the demonstrated amplitude/duration.
+This does not erase any earlier causal-participation success or prove
+quantitative memory absent.
+
+Crucially, Joe needs recognizable good-enough speech, NOT exact Mama-A
+coordinates/waveform matching. I am NOT making a new quantitative controller
+a mandatory prerequisite from the462-versus815 observation. A guide-only HOLD
+is still not a proven learned remedy, but neither is cognition redesign proven
+necessary. No new native law/coefficients or code edits authorized by this review.
+
+Cheaper remaining discriminator: finite drives through ALL relevant existing
+vocal anatomy. Current4axis tutoring omits jaw/lip/context; accepted organ
+control supplied those. Current acoustic law515 constrains section6 by jaw
+opening and section7 by lip aperture, floor20mm2. Saved663372 starts both0.
+A bounded unchanged-body/organ acoustic check with external finite drives can
+assess this omission without full-brain trials, pose overwrites or controller
+invention. It would be externally driven capacity evidence, never learned
+speech. No such new acoustic run yet; freeze source/input/output first.
+
+Joe closed the browser; told him no browser needed for current checks.
+AWS05:27:37Z1457service1/1/0; no production edits. CaretakerSTOP.
+FullAEgoalACTIVE; no pause inferred; existing live learned edge preserved.
