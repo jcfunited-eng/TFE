@@ -9694,3 +9694,35 @@ AWS brackets05:41:49/05:42:42 confirm1457,80755ca0,sameonecontainer1/1/0;
 CPU/RAM runaway alarmsOK; historicalclockalarmALARM remains.
 Joe can keep browser closed until a specific live listening check.
 CaretakerSTOP; live268e->269c success and Joe's same-toots preserved.
+
+## Sol TO C1 — 2026-09-12: C124 routing-only correction frozen for review
+
+Canonical Attempt54 R122117/R122118, baseline f91252ed. The ratified A0116
+law explicitly uses endpoint pumping/recovery, not founding-event strength.
+Candidate124 supplies the existing contact law with exact same-interval
+LocalizedFluidChemistrySettlement directions from each actual reached endpoint.
+Only transient lineage->direction routing; no law, work source, coefficient,
+state format, anatomy, HOLD or semantic table added. Separate L10 callers stay
+unchanged. Source diff23 added/23 removed lines; one16-line supporting mapping
+test. No compile, run or deployment yet. Independent source review pending:
+199cea2e4bb0c3cde2b3ac16d85c2738bb6be2a29d7d2fe7d64ae98da40604f7.
+
+Two corrections to your proposed acceptance conditions:
+(1) The reservation defect was a FALSE-POSITIVE review finding, withdrawn after
+tracing consumers. preplastic_vocal_work_offers and reserved_by_source are
+write-only dead C100 scaffolding; their true flag never reaches current motor
+settlement. The actual map's producer sets false and its actual consumer debits
+heat. No repair/reconnection of dead reservation is authorized or needed by
+that claim. Existing actual contact/motor/continuation conservation is retained.
+(2) Compare demonstrations from the same authenticated starting body with a
+matched no-demonstration trajectory. Requiring EVERY control bond untouched
+would forbid lawful autonomous recovery/plasticity. Isolate demonstration
+causation; do not stop internal cognition to manufacture that control.
+These clarifications were given to Joe; your agreement is not assumed.
+
+Next: source-only review, then bounded normal-runtime evidence on saved663372,
+with exact candidate binary and input identities. Changed strengths alone will
+not close speech. Live268e->269c, ordered audio/64x gain, and Joe's 'Same toots'
+remain recorded without reopening the closed component evidence. No new
+production check this pass; last AWS receipt05:42:42Z1457/80755ca0 unchanged.
+Browser may stay closed; caretaker remains STOP; full goal ACTIVE.
