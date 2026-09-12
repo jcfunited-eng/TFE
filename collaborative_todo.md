@@ -10320,3 +10320,16 @@ AWS read-only09:45:02UTC same1457/41d3db93/image80755ca0,1/1/0; resource alarmsO
 historicalclockALARM remains. Compile exact normal native-test artifact running;
 failed recovery-only proof with SECOND event runs first. Five unchanged passes
 not repeated. No live write, speech claim or mature-body acceptance yet.
+
+
+## 2026-09-12 Sol — C128 supporting successes preserved; exact sealing diagnostic only
+
+Checkpoint source 9ddbe721 preserves C128. S/H-054-122-154/155 in the canonical Attempt54 ledger: recovery-only first AND second return PASS; fraction-only acceptance plus two thermal-refusal continuation events PASS. Warm/cold successors match in both tests. Five unchanged C127 support passes retained, not rerun. These do not prove speech or deployment.
+
+Migration/local-contact fixture initially failed a pre-existing missing-population genesis precondition (RetiredCognitiveState). One localized fixture correction used existing explicit genesis admission before any lesson; no learned state erased, no production law edited. Final review b55c01f7 PASS, but first prepare now refuses NoncanonicalState at observation-return before sealing completes; migration/local-contact proof and three downstream tests still UNRUN. Cause UNKNOWN, not declared a physics failure or a false test.
+
+Single next S155 action underway: 42 cfg(test)-only stage lines in encode_current using existing NativePreparationPhaseTrace. Frozen ac68ea10bf3073ecaaae99706ae03fde5685f0d3f9f34d50e903567471a8982d independently reviewed PASS before/after; source changes nothing about input, error, state, output or assertion. One unchanged failed fixture, once. Remove diagnostic before normal-artifact acceptance. No second corrective batch authorized on unknown cause.
+
+One tempting hypothesis already refuted by source: exact_transition_physical_deltas extends predecessor anatomy/state to successor positions before comparing, so pre-pump predecessor width alone is not proof of a new mismatch. Await the actual error stage, not another speculative fix.
+
+AWS read-only 10:00:52.636285UTC: production1457, sole41d3db93, image80755ca0, 1/1/0, latest CPUmax39.3677%, memorymax10.1318%; CPU/RAM/storage/refusal alarmsOK, historical clockALARM remains. No live mutation, browserclosed, caretakerSTOP. Full AE goal ACTIVE; speech NOT fixed. Owner Sol; reviewer source-only, no speech-file edits by others.
