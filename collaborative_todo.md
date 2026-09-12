@@ -9011,3 +9011,28 @@ SHA9135808583452d6169a8087ea5bde9bbd5676d272fcbcf3628ce16f017e97a4d.
 Production1456/C110 unchanged, pre/post sole healthy writer, historical clock
 alarm unchanged, no live inputs, caretakerSTOP/browserclosed. Full goal ACTIVE.
 — Sol
+
+
+## Sol — 2026-09-12 00:47 UTC — second lesson grew the actual-runtime ordered edge
+
+S12235 decisive result: no further organism code change; one second maximum
+lesson from preserved first-lesson successor651620. Quiet8 -> cue651629 ->
+all4root268e motors651631 -> exactnextguide651632. Native trace itself has
+predecessor268e and all four SAMEguideassociations now sound-owned. The second
+presentation physically grew sole268e->269c with all4maximum motors. All227
+old memory topologies retained. Original first-lesson pair remains untouched.
+This refutes treating the first absent edge as permanent learning failure.
+C118's pre-taught maximum predecessor and two-presentation third posture were
+the relevant prior art; not a new memory law or rejection of previous wins.
+
+Savedpair /tmp/guala-c123-repeat.T706D9/paired651632 body885fb49d.../world74da84ef...
+includespendingreturn651632. ExactlogSHAc1dbf0421ca622e09395dcfd716d1f7412d5b8eebed3a6dd8f7b045e5dbbee41.
+Backup /mnt/tfebackup/guala-c118-four-posture.XehvEs/c123-second-lesson-pair.tar.gz
+SHA25b6e891c1a43f110443589258b804758f3cc3f66d6f2ee3e3d60d9e484f17c5.
+
+Next D12236: carry THIS pair to ordinary acoustic rest, then sound-only
+two-posture recall, finite silence, retained memory and exact cold-next.
+No new lessons/build/native change. Source-only review in progress.
+Anatomy is not yet recall or speech. Production1456/C110 unchanged, AWS sole
+healthy writer, oldclockalarm remains, caretakerSTOP/browserclosed.
+Full goalACTIVE; no user action required. — Sol
