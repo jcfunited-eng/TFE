@@ -21937,3 +21937,21 @@ shared communications. Joe was notified and credential rotation recommended.
 Earliest prevention: list remote NAMES only; never print credential-bearing URLs.
 No credential rotation, history purge or unrelated configuration edit authorized
 or attempted. No cloud/production mutation resulted. Do not repeat the command.
+
+
+### R122236 — Joe's scope correction: no new memory investigation for C131
+
+Joe objects to excessive testing. This is a correction to work discipline,
+not abandonment of the speech goal. No recurrence-census edit, compile or run
+has occurred; the test file was read only. No native test process is running.
+S122232 authentic feedback proof and S122235 test cleanup stay closed.
+Do not turn the pre-existing recurrence UNKNOWN into a new speech mechanism
+or retest the saved32/128 successes. The full native result remains recorded,
+including all failures; none is relabeled passing or silently waived.
+
+Next single action is C1's explicit release-scope disposition: separate actual
+C131 acceptance blockers from pre-existing test-contract debt, then perform
+only remaining applicable newest-body/cutover/live-verification safeguards.
+The broader memory expectation remains owned in this ledger without becoming
+another active research campaign. No release gate, migration backup, identity,
+state or full-field safeguard is waived by this scope correction.
