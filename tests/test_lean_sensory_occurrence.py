@@ -130,16 +130,10 @@ def test_guided_vocal_pressure_retains_one_bounded_physical_guide() -> None:
         ((37, 2, 1_500),),
         ((37, 0, 0),),
     ):
-        if invalid == ((23, 0, 1_500),):
-            occurrence = LeanSensoryOccurrence(
+        with pytest.raises(ValueError):
+            LeanSensoryOccurrence(
                 "guided-vocal-microphone", None, PRESSURE, invalid
             )
-            assert occurrence.guided_vocal_drives == invalid
-        else:
-            with pytest.raises(ValueError):
-                LeanSensoryOccurrence(
-                    "guided-vocal-microphone", None, PRESSURE, invalid
-                )
 
 
 def test_home_projection_is_exact_compact_geometry_not_a_second_world() -> None:
@@ -163,3 +157,24 @@ def test_home_projection_is_exact_compact_geometry_not_a_second_world() -> None:
         set(item["optical_surface"] or ()) <= {"columns", "rows"}
         for item in record["objects"]
     )
+
+
+def test_direct_acoustic_guide_retains_nine_existing_controls_only() -> None:
+    axes = (18, 37, 38, 39, 40, 41, 42, 43, 44)
+    for direction in (0, 1):
+        drives = tuple((axis, direction, 1) for axis in axes)
+        occurrence = LeanSensoryOccurrence(
+            "guided-vocal-microphone", None, PRESSURE, drives
+        )
+        assert occurrence.guided_vocal_drives == drives
+    for axis in range(45):
+        if axis not in axes:
+            with pytest.raises(ValueError, match="bounded unique anatomy"):
+                LeanSensoryOccurrence(
+                    "guided-vocal-microphone", None, PRESSURE, ((axis, 0, 1),)
+                )
+    with pytest.raises(ValueError, match="fixed vocal anatomy"):
+        LeanSensoryOccurrence(
+            "guided-vocal-microphone", None, PRESSURE,
+            tuple((axis, 0, 1) for axis in axes) + ((18, 1, 1),),
+        )

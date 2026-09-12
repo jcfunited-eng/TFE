@@ -533,6 +533,13 @@ impl BodyAxis {
         )
     }
 
+    /// The direct acoustic instrument uses these existing area coordinates.
+    /// This is a same-unit view, not new anatomy. Keep is_vocal_articulator
+    /// broad: historical route membership and completion also use that law.
+    pub(crate) fn is_acoustic_control(self) -> bool {
+        self == Self::GlottalAperture || self.is_vocal_tract_section()
+    }
+
     /// True only for the eight independently movable airway sections added
     /// after the original articulated-body axes. This is anatomical identity,
     /// not a sound, phoneme, word, or learned target.

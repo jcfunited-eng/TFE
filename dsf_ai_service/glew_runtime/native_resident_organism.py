@@ -3075,7 +3075,7 @@ class NativeResidentOrganism:
                 consumed_sample_count = _positive_integer(consumed_sample_count, "acoustic consumed sample count")
             drives = None
             if guided_vocal_drives is not None:
-                if not isinstance(guided_vocal_drives, tuple) or not 1 <= len(guided_vocal_drives) <= 13:
+                if not isinstance(guided_vocal_drives, tuple) or not 1 <= len(guided_vocal_drives) <= 9:
                     raise ValueError("guided vocal drives exceeded fixed vocal anatomy")
                 drives = []
                 axes: set[int] = set()
@@ -3085,7 +3085,7 @@ class NativeResidentOrganism:
                     axis = _nonnegative_integer(raw[0], "guided vocal axis ordinal")
                     direction = _nonnegative_integer(raw[1], "guided vocal direction ordinal")
                     carriers = _positive_integer(raw[2], "guided vocal outward carriers")
-                    if not (14 <= axis <= 18 or 37 <= axis <= 44) or direction > 1 or carriers > (1 << 32) - 1 or axis in axes:
+                    if not (axis == 18 or 37 <= axis <= 44) or direction > 1 or carriers > (1 << 32) - 1 or axis in axes:
                         raise ValueError("guided vocal drive left bounded unique anatomy")
                     axes.add(axis)
                     drives.append((axis, direction, carriers))

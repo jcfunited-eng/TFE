@@ -1,38 +1,24 @@
 # Guala speech repair Attempt 54 — complete design verification and lean sensorimotor route
 
-## Current resume point — 2026-09-12, direct voice architecture decision
+## Current resume point — 2026-09-12, approved direct acoustic-control implementation
 
-**Speech is not fixed. Full AE goal BLOCKED pending an architecture decision,
-not complete. Production has NOT been stopped by this status.**
-R122138-140 supersede the earlier active-design resume point. Last verified
-source/evidence baseline269ee031; C125 ordinary contact routing is preserved
-and remains NOT deployed. No voice candidate implementation yet.
+**Speech is not fixed. Full AE goal ACTIVE.** Joe explicitly approved proceeding
+with the recommended reuse and usual skills/safeguards, and resumed the goal.
+R122141 closes the shared-versus-independent decision: reuse axes18,37-44,
+their existing learned lineages, dynamics, sparse position/load feedback and
+protective glottal coupling. No duplicate anatomy or new response law.
 
-The single pending decision, asked of C1 in the shared ledger and Joe in chat:
-reuse existing same-unit acoustic controls18,37-44 with their current sparse
-feedback and protective glottal coupling, OR require independent instrument
-anatomy. Main recommends reuse, avoiding duplicate state/neurons. C1's general
-Acoustic Effector Class direction is received and accepted; do not claim his
-review is missing. This narrower implementation choice remains unanswered.
+Single active item: Candidate126 direct acoustic-control path, including the
+already-preserved C125 endpoint plasticity. Contract in R122141; source review
+before compile/test; no deployment claimed. The source/consumer audit is closed,
+not to be repeated. Preserve broad route completion/continuation authority.
 
-Source audit is COMPLETE (R122139). Preserve existing broad route identity
-and completed-ordering/continuation authority; any new acoustic eligibility
-must not silently erase old routes. Existing1ms typed movement/load return is
-not full intra-render nine-control sensation. No new dynamics, code, tests,
-lessons or deployment occurred in this design pass. Do not rerun closed work
-to fill the decision wait. The independent review agent is terminal.
-
-Last AWS verification06:57:10UTC: task1457/image80755ca0,1desired/1running/
-0pending; runaway alarmsOK, historicalclock-stalledALARM. This is historical
-measured evidence, not a fresh health assertion. Browser CLOSED per Joe;
-caretaker remains STOP. No new production pause/restart/write.
-
-Preserve C125's measured routing success, invalid saturated750/1500 contrast,
-separate predecessor warm/cold discrepancy, and all archived artifacts.
-Four declared applicability arms and the retained cold-next check are terminal.
-Full objective remains unchanged: learned speech and whole AE development,
-not playback or human process-for-process duplication. Resume on the explicit
-control decision, incorporating R122138-139 into one implementation contract.
+Last AWS evidence remains06:57:10UTC task1457/image80755ca0,1/1/0;
+runaway alarmsOK, historicalclock-stalledALARM. This is NOT a new health check.
+Browser CLOSED, caretakerSTOP; no new production pause/restart.
+C125 applicability, invalid saturated dose contrast, separate predecessor
+warm/cold discrepancy and all artifacts remain preserved. Recognizable
+speech and full AE completion remain unproved.
 
 The earlier live-lesson status below is HISTORICAL context, not the resume point.
 
@@ -17459,3 +17445,215 @@ abandoned, completed or narrowed. Recommendation remains reuse of the nine
 existing same-unit controls. No production stop, deployment, body mutation,
 browser action or caretaker change was made. Source/evidence and shared
 handoffs must distinguish paused agent work from organism runtime.
+
+
+### R-054-122-141 — Joe authorizes reuse; Candidate126 direct acoustic-control contract
+
+2026-09-12, source baseline af122c34, clean validated root. Joe says:
+“Proceed with the usual controls skills and direction along with your project
+safe guards - I ahve also resumed the goal”. This explicitly answers the reuse
+question. Goal tool reports ACTIVE. No further architecture permission wait.
+Previous blocked audit is historical; production was not stopped by it.
+
+ONE IMPLEMENTATION OWNER: Sol. Frozen scope is direct control of the existing
+native instrument, not a speech decoder or a new memory/anatomy system.
+The biological functional analogy is learned control of an instrument with
+sensory feedback, not reconstructing microscopic throat biology. Joe's explicit
+functional simplification authorizes changed acoustic coupling, NOT an
+equivalence claim for the old emitted waveform.
+
+Requested architecture: existing learned cause -> finite work -> nine actual
+area controls -> new sound -> self-hearing. Current conflict: jaw/lip-derived
+area caps additionally restrict the last two controls. Remove that coupling.
+No L0-L4 or DSF changes; all explicit fields retained; no reduced DSF authority.
+
+EXACT FILE/MECHANISM BOUNDARY:
+1. virtual_articulated_body.rs: separate nine-axis acoustic membership from
+   broad historical vocal-participant membership. Existing BodyEffectorTerminal
+   remains the typed direction/axis identity; the acoustic class is its checked
+   same-unit subset (18,37-44), not a new stored terminal or independent organ.
+   No new positions, drives, neurons, coefficients, decay law or codec.
+2. virtual_articulatory_body.rs: consume vocal_tract_areas_square_millimetres
+   directly at every sample and terminal observation. Remove the jaw/lip-cap
+   adapter. Source aperture remains existing axis18. All existing area bounds,
+   mode/filter/valve laws, finite L13 excitation, per-ms passive settlement and
+   pressure-sample timing remain. Four mechanical channels keep their actual
+   body meanings; mouth-area observation reports actual final instrument outlet.
+   No pressure replay, scripted targets, sound matching or observer control.
+3. organism_runtime.rs: guide eligibility becomes the nine-control subset at
+   the existing validated guided-vocal door. Unchanged carrier/direction and
+   unique-axis rules; native remains the actual admission authority.
+4. resident_cognitive_formation.rs: restrict ONLY the L13 discharge contribution
+   to completed acoustic-control motor events. Preserve full old preparation
+   membership, completion, continuation, route authority, growth and migration.
+   In particular do NOT narrow core23125. Non-acoustic movement is still real
+   movement; it alone does not contribute instrument excitation. The existing
+   exact membrane-work/thermal-prefix settlement pays for every breath.
+5. lean_sensory_occurrence.py and native_resident_organism.py: existing bounded
+   guided transport exposes the same nine permitted ordinals, at most9unique
+   controls, same tuple bytes and one native call; no new endpoint or owner.
+6. Focused tests only at these boundaries. No edits to L0-L4, neuronal law,
+   scheduler, legacy shell, caretaker, UI or demonstration corpus in this item.
+
+TRANSACTION/LIFECYCLE:
+Same immutable predecessor and prepared successor path. Guide refusal remains
+before native mutation; existing native abort/commit and current-only publication
+remain. No new mutable state, serialization version, topology addresses or
+migration; retained positions, activations, neurons and old routes keep meaning.
+Changed emitted pressure is the explicit new physical law, not a lost-state
+repair. Existing LegacyV6 acoustic-state handling is not rewritten; the new
+direct geometric boundary applies to the instrument entry. Never delete pending
+physical state to obtain a clean sound. Exact restart of the acoustic organ must
+hold; the separately measured predecessor cognitive warm/cold discrepancy
+remains an OPEN release blocker, not falsely attributed to126.
+
+FEEDBACK/EVIDENCE MAP:
+guide tuple -> native body drive -> actual typed movement/load -> existing
+GLJSRC03/04 source -> Python exact bytes/extents -> pending physical return ->
+ordinary joint sense admission. Learned work -> same terminal -> direct area ->
+ArticulatoryBodyTransition.pressure + exact existing four body channels ->
+native InFlightAcousticConsequence/codec -> existing self-hearing ingress and
+ordered playback/64xgain. No relabeling four channels as nine trajectories.
+Existing sparse initial1ms position/load return is preserved as approved;
+complete intra-render nine-control sensation is NOT claimed.
+
+RESOURCE/WASTE BOUND:
+No extra persistent bytes, mounted anatomy, source roster, process, queue,
+thread, lock, HTTP endpoint or full-brain call. Remove two geometric cap
+computations per rendered sample plus terminal observation. Body/sample
+settlement count unchanged; no claim of measured speedup or whole-core cleanup.
+Remove only this bounded coupling, not needed body expression or old identity.
+
+FROZEN PROOF SCOPE:
+- Source review before first compile: confirm exact reachable mapping, unchanged
+  broad continuation, no artificial work/state, guide parity, codec/feedback
+  truth, and absence of cap adapter. Review against frozen whole-worktree hash.
+- Focused native direct-control falsifier: same nine coordinates and excitation,
+  different jaw/lip positions -> identical pressure/acoustic successor; changed
+  direct area -> changed pressure; no excitation -> silence; serialized organ
+  continuation -> exact same successor. Check all nine membership ordinals and
+  retained units, not only one nominal control. This is supporting organ proof,
+  not cognition or deployment.
+- Focused transport membership/refusal checks for all9 accepted axes and former
+  jaw/lip axes refused; retain direction/carrier/cardinality refusals.
+- One authenticated saved-body causal run after those boundaries pass, through
+  the existing real runtime/physical loop, with the preserved pre-cue baseline,
+  sound-only cue, learned acts, finite sound, self-hearing and silence. Do not
+  replay closed lessons or saturated750/1500 comparisons. Record what changes
+  relative to the preserved predecessor; do not claim a recognizable word from
+  changed wave bytes. AWS health brackets and exact native fingerprint required.
+- Live promotion remains contingent on full current-body path, known restart
+  blocker resolution, deployment review/backups, and Joe hearing a recognizable
+  taught sound. No new success bar invented at deployment; no claim the cap
+  removal alone guarantees speech or satisfies the full AE goal.
+
+C125 stays in the candidate because its endpoint routing was independently
+reviewed and locally exercised; its invalid saturated dose contrast is not
+re-used as a learning test. No new law is fitted to an audible target.
+
+
+### R-054-122-142 — Candidate126 implemented; source freeze before tests
+
+Authorized R122141 implementation now exists in the seven named source/test
+files. Production delta removes the26-line jaw/lip-cap adapter, adds the
+same-unit acoustic subset predicate, restricts guide membership coherently
+in native/Python, and restricts ONLY L13 contribution—not full completion or
+continuation. No new anatomy/state/codec/coefficients/source roster/processes.
+The ordinary C125 endpoint-routing code remains unchanged.
+
+Main translation review: direct stored area reads at both sample and terminal
+observation; exact pressure and existing four physical channels follow the
+same native/Python/self-hearing path. Existing body feedback and reflexes stay;
+no claim of full intra-render nine-channel sensation. Full-field DSF untouched.
+Existing broad learned-route predicates remain unchanged. Native guide refusal
+still precedes mutation; no additional transaction owner. Whole-body identity,
+pending activation and old routes stay encoded under the existing format.
+
+Pre-existing TEST defect found before running: test_lean_sensory_occurrence
+had an exception expecting axis23 to be accepted as vocal, although both
+predecessor native and Python membership already excluded it. Corrected that
+test expectation; not a newly broken body or weakening of admission. New
+test checks all9 axes/both directions, other axes and excess cardinality.
+Native test isolates direct-control geometry, actual finite sound, distinct
+body feedback, no-excitation silence and organ-only cold continuation.
+
+git diff --check clean. No compilation, test, lesson or deployment yet.
+Owner now stops source edits for frozen independent review. Fingerprint is
+recorded externally during the review to avoid mutating the frozen worktree.
+
+
+### S/H-054-122-143 — Candidate126 source approved and focused boundary proofs pass
+
+2026-09-12. Independent source review PASS on frozen
+bf21d653adfa5a9e6c97360cf089fbb5c819c4c55ffd09aecfc0992e57d9bff8,
+verified before/after review. No architectural/localized production blocker.
+Native compilation succeeded11.68s;99 warnings remain, not a warning-free or
+whole-core-clean claim. Compiler-reported test artifact:
+native/guala_core/target/debug/deps/guala_core-7cd36301111f54ab.
+No feature-enabled diagnostic organ or old test binary substituted.
+
+PRESERVED PARTIAL SUCCESSES AND TWO HARNESS MISTAKES:
+- First pytest executable invocation exited4 during collection because its
+  import path omitted the worktree. No test ran. Mechanical recurrence guard:
+  from the validated root, use
+  python3 -c 'import importlib.util; assert importlib.util.find_spec("dsf_ai_service") is not None'
+  followed by python3 -m pytest with exact existing test names. Do NOT invoke
+  the bare pytest entrypoint for this root. No source fix was needed.
+- Both exact Python guide tests then PASS:2passed in0.81s. All nine axes/both
+  directions retained; non-acoustic axes/excess cardinality refused; existing
+  guide transport/refusals preserved. These tests exercise transport, not
+  native learning or production.
+- First native test exited101 at its body-feedback inequality. Earlier
+  assertions DID pass: all9 membership/units, unchanged body bytes on read,
+  nonzero pressure, same pressure/acoustic state/finite lung result with the
+  same controls, and correct direct outlet observation. Later changed-area,
+  no-excitation and cold-continuation assertions had not executed.
+- Cause was TEST setup: neutral lip aperture is already0, so minimum posture
+  and neutral both have oral geometry0. Expecting different oral channels was
+  a false falsifier. The source reviewer also acknowledged missing this.
+  Corrected only the contrasting test body to declared MAX jaw/lip geometry;
+  acoustic coordinates/excitation unchanged. No production code was altered
+  to satisfy the assertion. Failure output now bounded rather than printing
+  two4000-sample vectors.
+
+Localized fixture review PASS, verified before/after at
+37211104eaa563c7c40c52f158dad8ef6e5ba5aaabcb6010e8587ad51c5ed005.
+One rebuild6.83s. Final exact native test:
+virtual_articulatory_body::tests::direct_acoustic_controls_preserve_identity_and_bypass_jaw_lip_caps
+PASS1/0,623filtered,0.16s. The compiled inventory was checked for that exact
+name before invocation; no empty filter counted as success. Test binary SHA:
+c849286326fdd0266cca8dc90574325d505f04029b2dff812ebbeb5a48947e24.
+
+Now proved at the ORGAN boundary: same nine controls/excitation yield the same
+nonzero pressure regardless of jaw/lip geometry, while actual body feedback
+remains different; changing a real area changes pressure; no excitation is
+silent; same organ continuation with/without serialize/restore is exact.
+No proof of whole-organism identity, new learned strength, recognizable speech,
+full cognitive restart or deployment is inferred from this supporting test.
+
+Source hashes after the test-only correction:
+body451378d105bc51153d9ff26a952fb15ce512164e84253acf40cfbb8727dc669f;
+organ8ea7392168d0c183395a4de536de2380394fac5e7bdf4c39267b8dfd09129383;
+core225ce7a47beebd10a27f7e664d9783fce41e71a86d282f48c12467b54bc26884;
+runtime590a1f743b7e736c779203e513084c3d8a74d1f411e7df472899fa6db9fb14f1.
+
+AWS READ-ONLY ENVELOPE:
+08:17:09.919100UTC before tests;08:20:29.041991UTC after first group;
+08:21:50.478914UTC after final native proof. Every sample confirms the SAME
+1457/41d3db93/image80755ca0, service1desired/1running/0pending.
+Before latestCPUmax45.0853%,RAMmax11.0016%; middle56.2192%/11.3068%;
+final48.8714%/11.0107%. These are recent CloudWatch datapoints, not exact
+per-interval native timings. CPU/memory/storage/refusal alarmsOK; old
+clock-stalledALARM remains. No fresh whole-organism health/speech claim.
+Local process census after completion shows no cargo/rustc/test/pytest child
+or orphan from these commands; only the census shell/rg match. No TFE child
+was stopped. No production mutation, caretaker/browser change or deployment.
+
+Single next action: build isolated ordinary Candidate126 native bytes and run
+the predeclared saved-body physical-loop path once, not the closed C125
+saturated-dose arms. Before running, authenticate artifact/body/cue/environment
+and carry the same exact receipt/output fields. The existing caller's fixed
+C125 native path and output directory must be explicitly updated for126;
+never point a126 label at125 bytes or overwrite earlier results.
+Known predecessor cognitive restart discrepancy remains separately open.
+Full goal ACTIVE; recognizable speech still NOT fixed.

@@ -23315,10 +23315,13 @@ fn settle_internal_contact_interval_with_body_act(
     completed_vocal_preparation_transfers.sort_unstable();
     completed_vocal_preparation_transfers.dedup();
     if !completed_vocal_preparation_transfers.is_empty() {
+        // Full preparation completion above also owns continuation: preserve
+        // it for every retained route. Only direct area-control discharges
+        // contribute to excitation of the simplified acoustic instrument.
         let discharge_limit = motor_unit_recruitments
             .iter()
             .filter(|event| {
-                event.body_effector_terminal.axis().is_vocal_articulator()
+                event.body_effector_terminal.axis().is_acoustic_control()
                     && completed_vocal_motors.contains(&event.neuron_lineage)
             })
             .try_fold(0_u128, |total, event| {

@@ -108,7 +108,7 @@ class LeanSensoryOccurrence:
         if self.source == "guided-vocal-microphone":
             if retina is not None or pressure is None or not guided:
                 raise ValueError("guided vocal source lost pressure or body work")
-            if len(guided) > 13:
+            if len(guided) > 9:
                 raise ValueError("guided vocal source exceeded fixed vocal anatomy")
             axes: set[int] = set()
             for drive in guided:
@@ -120,7 +120,7 @@ class LeanSensoryOccurrence:
                     raise ValueError("guided vocal drive changed exact shape")
                 axis, direction, carriers = drive
                 if (
-                    not (14 <= axis <= 18 or 37 <= axis <= 44)
+                    not (axis == 18 or 37 <= axis <= 44)
                     or direction not in (0, 1)
                     or not 1 <= carriers <= (1 << 32) - 1
                     or axis in axes

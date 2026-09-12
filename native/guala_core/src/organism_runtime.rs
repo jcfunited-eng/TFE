@@ -3489,11 +3489,11 @@ impl ResidentOrganismRuntime {
             }
             let mut axes = std::collections::BTreeSet::new();
             for drive in drives {
-                if !drive.terminal.axis().is_vocal_articulator()
+                if !drive.terminal.axis().is_acoustic_control()
                     || !axes.insert(drive.terminal.axis())
                 {
                     return Err(RuntimeError::ArticulatedBody(
-                        "guided vocal work left unique vocal anatomy".into(),
+                        "guided acoustic work left unique area controls".into(),
                     ));
                 }
             }

@@ -3,7 +3,8 @@
 //!
 //! This is body mechanics, not language. A transient whole-carrier discharge
 //! from the resident respiratory effector supplies finite pressure while the
-//! persisted articulated-body posture shapes the airway and acoustic tube.
+//! existing nine area controls directly shape the acoustic instrument. Jaw and
+//! lip geometry no longer caps those controls; their body senses remain real.
 //! Resonator damping and tube wall loss return every coordinate to exact rest.
 //! No phoneme, word, target waveform, retained program, or learned meaning is
 //! present here.
@@ -127,6 +128,8 @@ pub(crate) struct ArticulatoryBodyTransition {
     pub(crate) body_mechanical_trajectories: [Vec<i16>; 4],
     pub(crate) peak_transducer_surface_velocity_pcm: i32,
     pub(crate) glottal_open_samples_at_apex: i32,
+    /// Existing observation field: final direct section-7 outlet area, not
+    /// an area reconstructed from jaw/lip geometry or a new semantic signal.
     pub(crate) mouth_area_square_millimetres_at_apex: i32,
     pub(crate) perioral_area_displacement_square_millimetres: i32,
     pub(crate) applied_motor_quanta: u128,
@@ -280,7 +283,7 @@ fn settle_native_articulatory_interval_with_material(
             .map_err(|_| ArticulatoryBodyError::ArithmeticWidth)?
             .successor;
         }
-        let areas = articulated_vocal_tract_areas(&articulated_body)?;
+        let areas = articulated_body.vocal_tract_areas_square_millimetres();
         let body_channels = articulated_body_channels(&articulated_body)?;
         let mut legacy_reached_rest = false;
         let mut respiratory_flow_sample = 0_i16;
@@ -356,7 +359,7 @@ fn settle_native_articulatory_interval_with_material(
         body_mechanics[2].push(body_channels[1]);
         body_mechanics[3].push(body_channels[2]);
     }
-    let terminal_areas = articulated_vocal_tract_areas(&articulated_body)?;
+    let terminal_areas = articulated_body.vocal_tract_areas_square_millimetres();
     let terminal_body_channels = articulated_body_channels(&articulated_body)?;
     let successor_body = articulated_body
         .with_respiratory_successor(acoustic, lung_air_microlitres)
@@ -510,32 +513,6 @@ fn glottal_open_samples(
             )?)
             .ok_or(ArticulatoryBodyError::ArithmeticWidth)
     }
-}
-
-fn articulated_vocal_tract_areas(
-    body: &ArticulatedBodyState,
-) -> Result<[i32; TRACT_SECTION_COUNT], ArticulatoryBodyError> {
-    let mut areas = body.vocal_tract_areas_square_millimetres();
-    let lip_width = i64::from(body.axis(BodyAxis::LipWidth));
-    let lip_aperture = i64::from(body.axis(BodyAxis::LipAperture));
-    let jaw_opening = i64::from(body.axis(BodyAxis::JawOpening));
-    let oral_area = round_div(lip_width * jaw_opening, 1_000_000)?;
-    let mouth_area = round_div(lip_width * lip_aperture, 1_000_000)?;
-    areas[TRACT_SECTION_COUNT - 2] = min(
-        areas[TRACT_SECTION_COUNT - 2],
-        max(
-            MIN_TRACT_AREA_SQUARE_MILLIMETRES,
-            min(MAX_TRACT_AREA_SQUARE_MILLIMETRES, oral_area),
-        ),
-    );
-    areas[TRACT_SECTION_COUNT - 1] = min(
-        areas[TRACT_SECTION_COUNT - 1],
-        max(
-            MIN_TRACT_AREA_SQUARE_MILLIMETRES,
-            min(MAX_TRACT_AREA_SQUARE_MILLIMETRES, mouth_area),
-        ),
-    );
-    Ok(areas)
 }
 
 fn articulated_body_channels(
@@ -1208,6 +1185,76 @@ mod tests {
             samples,
         )
         .unwrap()
+    }
+
+
+    #[test]
+    fn direct_acoustic_controls_preserve_identity_and_bypass_jaw_lip_caps() {
+        use crate::virtual_articulated_body::{BodyAxisUnit, BODY_AXES};
+        let expected = [18, 37, 38, 39, 40, 41, 42, 43, 44];
+        for axis in BODY_AXES {
+            assert_eq!(axis.is_acoustic_control(), expected.contains(&axis.index()));
+            if axis.is_acoustic_control() {
+                assert_eq!(axis.anatomy().unit, BodyAxisUnit::SquareMillimetre);
+            }
+        }
+        let neutral = ArticulatedBodyState::at_neutral();
+        let mut shut_axes = *neutral.axes();
+        for axis in [BodyAxis::JawOpening, BodyAxis::LipAperture, BodyAxis::LipWidth] {
+            shut_axes[axis.index()] = axis.anatomy().minimum;
+        }
+        let shut = ArticulatedBodyState::from_physical_state(
+            shut_axes, neutral.lung_air_microlitres(), neutral.proprioception_initialized(),
+        ).unwrap();
+        let unchanged_bytes = shut.encode().unwrap();
+        let direct_areas = shut.vocal_tract_areas_square_millimetres();
+        assert_eq!(direct_areas, neutral.vocal_tract_areas_square_millimetres());
+        assert_eq!(shut.encode().unwrap(), unchanged_bytes);
+        // Neutral oral aperture is already closed. Use the declared maximum
+        // posture for the contrasting body, not another zero-area mouth.
+        let mut open_axes = *neutral.axes();
+        for axis in [BodyAxis::JawOpening, BodyAxis::LipAperture, BodyAxis::LipWidth] {
+            open_axes[axis.index()] = axis.anatomy().maximum;
+        }
+        let open = ArticulatedBodyState::from_physical_state(
+            open_axes, neutral.lung_air_microlitres(), neutral.proprioception_initialized(),
+        ).unwrap();
+        let voice = settle_native_articulatory_interval(open, &[], 2, 4_000).unwrap();
+        let uncapped = settle_native_articulatory_interval(shut.clone(), &[], 2, 4_000).unwrap();
+        assert!(voice.radiated_pressure_pcm.iter().any(|sample| *sample != 0));
+        assert_eq!(voice.radiated_pressure_pcm, uncapped.radiated_pressure_pcm);
+        assert_eq!(
+            voice.successor_body.articulatory_acoustic_state(),
+            uncapped.successor_body.articulatory_acoustic_state()
+        );
+        assert_eq!(voice.successor_body.lung_air_microlitres(), uncapped.successor_body.lung_air_microlitres());
+        assert_eq!(
+            uncapped.mouth_area_square_millimetres_at_apex,
+            uncapped.successor_body.axis(BodyAxis::VocalTractSection7Area)
+        );
+        // The body remains different and is not relabeled as the instrument.
+        assert!(
+            voice.body_mechanical_trajectories[2] != uncapped.body_mechanical_trajectories[2],
+            "distinct jaw/lip geometry must retain distinct oral body feedback"
+        );
+        let mut changed_axes = *neutral.axes();
+        changed_axes[BodyAxis::VocalTractSection0Area.index()] =
+            BodyAxis::VocalTractSection0Area.anatomy().maximum;
+        let changed = ArticulatedBodyState::from_physical_state(
+            changed_axes, neutral.lung_air_microlitres(), neutral.proprioception_initialized(),
+        ).unwrap();
+        let shaped = settle_native_articulatory_interval(changed, &[], 2, 4_000).unwrap();
+        assert_ne!(voice.radiated_pressure_pcm, shaped.radiated_pressure_pcm);
+        let silent = settle_native_articulatory_interval(shut, &[], 0, 4_000).unwrap();
+        assert!(silent.radiated_pressure_pcm.iter().all(|sample| *sample == 0));
+
+        // Same continuation, with and without serialization at the boundary.
+        // This proves the organ codec, not the separate cognitive scheduler.
+        let warm = voice.successor_body;
+        let restored = ArticulatedBodyState::decode(&warm.encode().unwrap()).unwrap();
+        let a = settle_native_articulatory_interval(warm, &[], 0, 4_000).unwrap();
+        let b = settle_native_articulatory_interval(restored, &[], 0, 4_000).unwrap();
+        assert_eq!(a, b);
     }
 
     #[test]
