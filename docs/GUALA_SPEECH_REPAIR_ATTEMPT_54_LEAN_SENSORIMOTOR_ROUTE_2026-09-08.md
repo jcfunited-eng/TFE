@@ -20,34 +20,39 @@ so live speech acceptance remains open. This paragraph records the Candidate110
 deployment, not the current repair state. Any earlier “speech complete” wording
 is historical and retracted.
 
-Current repair status, 2026-09-12 00:49 UTC: speech NOT fixed in production.
+Current repair status, 2026-09-12 00:54 UTC: speech NOT fixed in production.
 Last verified production1456/C110/image6aa38d99; no deployment or live lessons
 this span. Full AE goal ACTIVE; caretakerSTOP/browserclosed, no user action.
 
-F118-32 remains ACTIVE. C123 now has actual-runtime learned-edge growth:
-C121 root recall and C122 simultaneous sensory/body/self-hearing handoff stay
-CLOSED LOCAL. C123 complete-preparation inclusion fixes unrelated hip movement
-vetoing predecessor recognition. Diagnostic native trace proves predecessor268e.
-The FIRST maximum guide lacked sound-owned associations and grew no edge.
-Do NOT treat that as permanent learning failure: prior C118 successful ordered
-guide already had an earlier maximum lesson; C118 third posture neededtwo.
+F118-32 remains ACTIVE toward actual-runtime whole-word/live delivery.
+C123 closes ACTUAL-RUNTIME TWO-POSTURE recall LOCALLY (S12238):
+exact saved pairedbody/world withpendingreturn -> ordinaryrest -> coldrestore ->
+quiet8 -> ONEsoundcue -> root268e fourminimum motors651703/249breath ->
+successor269c fourmaximum motors651704/18breath -> selfhearing136000samples ->
+finitequiet/noextravocalacts -> all227oldmemorytopologies -> exactcoldnext651765.
+No guide duringrecall. Non-vocal hip/grip activity coexists and isnot suppressed.
+This is NOT fullword, intelligibleMama, semanticrecognition orlive speech.
 
-S12235: ONE secondpresentation on preserved naturallyquiet firstlesson successor
-651620, unchangedC123code, grew sole268e->269c andall4maximummotors.
-All227originalmemorytopologies preserved. Saved651632pair retains pendingbody/
-sound; source651620 unchanged. This is learned anatomy, NOT two-posture recall.
-Archive c123-second-lesson-pair.tar.gz SHA25b6e891...f17c5 on Ebackup.
+C123 participant-scope correction is active in copiedruntime; no additional
+organism law was needed after it. Firstmaximumlesson lacked sound-owned
+associations. SECONDpresentation madeall4sameassociations sound-owned andgrew
+sole268e->269c. PriorC118 successfulorderedguide alreadyhadmaximumexperience;
+its thirdposture also neededtwo. Do NOT relabel firstlesson incompleteness as
+permanentfailedlearning or reopen closedC120memory/C121root/C122handoff laws.
 
-Single next item D12236: ordinaryrest ofTHISexactpairedstate, sound-only
-two-posture recall, finitequiet, originalmemory andexactcold-next.
-Reviewed onecontinuation script, sameartifact, no newguide/physics/build.
-Existing C118 ordered/repeated-use/cold and C120growth/selfhearing remain
-CLOSED at their recorded LOCAL scopes. No passed prerequisite is reopened.
+Preserve currentpasspair /tmp/guala-c123-recall.7m7KBL/paired651765:
+bodyfa73dd48dfe7b0c6dafc33c6d8e86002dfd094f2ffe4aa7ce2def17f0466d82c
+world218e8ff00c7be3ffd3f5265e3f97b9951de3802047bfa55cc2f4c872ac61c8d0
+Archive c123-runtime-two-posture-pass.tar.gz SHA50f6e05c...19d2 on Ebackup.
+Single nextitem D12239: thirdposture lesson from thislivedsuccessor,
+phase2/minimum afterMEASUREDsecondposturecompletion. ExistingC118/110curriculum,
+no newphysics/build or priorpassrerun; inspectfirstpresentationbeforedeciding
+whetheroneadditionalrepetitionisneeded. No blindbatch or teachingfromscratch.
 
-C123 diagnostic wheel704b9054...f325, loaded.so d015e3b9...afb7b, includes
-existinggrowthinputtrace only underdiagnostic-api; NEVER ship that feature.
-Ordinary production packaging must exclude it. Native GLMFAB11 unchanged;
-cumulative C122 coupled-world migration remains required.
+C123 diagnostic wheel704b9054...f325, .so d015e3b9...afb7b remains isolated;
+existingtrace onlydiagnostic-api, NEVERshipthatfeature. Ordinaryrelease still
+requires productionpackage withoutdiagnosticfeature andfullword acceptance.
+NativeGLMFAB11 unchanged; cumulative C122 coupled-world migration remains.
 Worktree: `/tmp/guala-speech-existing-organ`
 Starting HEAD: `735489406577f90edf6c2fb7fb1889f87eae8107`
 Production boundary: task definition 1456 is the live deployed writer. Its
@@ -13953,3 +13958,72 @@ Only ledger update afterfreeze; source/script/artifact unchanged.
 S12235 archive25b6e891...f17c5 and shared e8909665...ed8b preserve success.
 00:44CPUavg40.33/max43.19%,RAMavg10.81/max11.14% nowpublished, closes secondrun
 healthwindow.00:45/46CPUavg45.32/40.61,max51.78%;RAMavg10.86/10.64,max11.29%.
+
+
+## S-054-122-38 — actual-runtime TWO-POSTURE recall PASSES
+
+One reviewedcontinuation52659 terminalexit0, no source/build/teachingchange.
+Initial651632 pairedbody/worldexact afterrestore, pendingreturn651632 preserved.
+60ordinaryremaininglessonclocks finishat651692 withlast8vocallyquiet,
+no pendingphysicalreturn; no body-onlyrest or feedbackdiscard.
+Exactquietpairedcoldrestore then8quietbaseline; one4000samplephase0cue651701.
+
+Clock651703: root268e fourminimum motors b7/d3/ef/4fb,
+27/70/76/76carriers,249respiratorycarriers,3994nonzeropressuresamples.
+Clock651704: successor269c fourmaximum motors c5/e1/fd/509,
+5/1/6/6carriers,18respiratorycarriers,3995nonzeropressuresamples.
+These are exactL11-to-L12transfers withbreath, notoldoffercounters.
+Exactly8vocalmotor events, no repeat/extrautterance through651764.
+126579nonzeropressuresamples acrossrecall;136000selfheardsamples.
+No externalguideddirection anywhereinrecall. Hip/gripmotor activity remains
+separateandlawful; vocallyquiet doesnotmeanwholeorganismisforcedstill.
+All227originalmemorymember/bondtopologies retained, missing0.
+
+Finalquiet651764 body6dedb338f41fc650bda6589e4dc175229e726f74cb8b257953e7d86b3cd55f33
+world372c64ed0d58d5bcbfd997d50e6e95b7c3a36726e3fff7a202b4ee442d84dbbf.
+Exactcoldrestore and nextordinaryinterval651765 succeeded:
+bodyfa73dd48dfe7b0c6dafc33c6d8e86002dfd094f2ffe4aa7ce2def17f0466d82c
+world218e8ff00c7be3ffd3f5265e3f97b9951de3802047bfa55cc2f4c872ac61c8d0
+CURRENTc9ddefb0c18a497f07d70b84b20851104498c1f98d2a660d2f2763e9cf4205f1
+at/tmp/guala-c123-recall.7m7KBL/paired. Original651632pairunchanged.
+Cold-next proves exactrestore+subsequentexecution, NOT warm-next equivalence.
+This closes two-postureactualruntimebehavior locally; fullword/live remainopen.
+
+Log/tmp/guala-c123-runtime-recall.log
+SHA2b9448fc0c6ba480267acd59757aaba2352c90d6e988d1e5ace5e4b0fcf992b5.
+Script01a1446b...c68; sameC123native.so d015e3b9...afb7b.
+Archive/mnt/tfebackup/guala-c118-four-posture.XehvEs/c123-runtime-two-posture-pass.tar.gz
+SHA50f6e05cca4086e4e981d911a015c89fee1eb2ce1a134c634459873c049019d2.
+All earlierclosedwins remainclosed; no new speechcompleteclaim.
+
+Resource scope LOCAL diagnostic runtime133intervals:
+native mean847.823ms,median725.294,p95nearest-rank1562.184,max1816.913;
+wholephysical mean944.244ms,median835.220,p951600.158,max1952.431.
+PeakRSS2541620KiB acrossrestores/observations, notproductionsteadyRAM.
+No survivingrun/buildchild atpostcensus; no unboundedgrowthclaim fromthisrun.
+AWSpre00:49:07/post00:53:02 same1456/effde9e1/image6aa38d99
+RUNNING/HEALTHY1/1/0, soletask, nofailures, namedalarmsunchanged.
+00:49-51CPUavg41.41-45.50%,max54.09%;RAMavg10.64-10.96%,max11.59%.
+00:52metricnotyetpublished. HistoricalclockalarmSep8stillALARM.
+No productionwrites/deploy/lessons/caretaker/browserchanges.
+
+## D-054-122-39 — third posture through same lived runtime, existing teaching law
+
+Nextsingleitem: use saved651765successor, not an olderpristinebody orrootretutor.
+Externalteacher presents phase0cue aftermeasuredquiet, observes actualcomplete
+secondposture269c, then ONE phase2minimumguide inexactnextreturninterval.
+Tutorphase2 SHAba7b9530... from canonicald6835e37 file; resolvefullhashbeforeuse.
+Usefullpendingpairedstate, ordinaryclock/recovery, no replacement ofnative
+ordering bysoftwaresequence. ExistingS11812/13/14 andS11005 establish firstlesson
+canretainmemorywithoutedge; inspectexactadmission/anatomybeforeonerepetition.
+No new organismcode/buildplanned. Preserve227oldoriginals and existing268e->269c.
+Require secondpredecessor fromnative exacttrace, notteacher's motorunion alone.
+Ifthirdedgegrows, prove sound-onlythreeposturebehavior usingthisretainedstate.
+Fullword/runtime/repeateduse/release/liveacceptance remainrequired, notinvented
+newbars. Performancecleanup remainsnamedlaterwork unlessactive runawayappears.
+
+Process lesson: this turn changedauthoritativeevidence andretainedlearnedstate.
+Do NOT revisit capturedownership/priorrest/two-posturerecall merely to regain
+confidence. Nextwork is thirdpostureteaching, not another root-growthcampaign.
+Slackcheckpoint00:49:55Z verifiedslack_sent#general for source87728313/edgewin;
+fullrecallcheckpointnotification follows this record's commit.
