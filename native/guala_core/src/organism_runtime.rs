@@ -75,7 +75,6 @@ use crate::root_yaw_terminal::RootYawDirection;
 use crate::root_translation_terminal::{RootTranslationAxis, RootTranslationDirection};
 use crate::virtual_articulatory_body::{
     settle_native_articulatory_interval,
-    settle_native_articulatory_interval_with_passive_admission,
     ArticulatoryBodyTransition as NativeArticulatoryBodyTransition,
     ARTICULATORY_SAMPLE_RATE_HZ,
 };
@@ -947,8 +946,6 @@ struct TimedBodyProprioceptiveConsequence {
 #[derive(Clone, Debug, Eq, PartialEq)]
 struct BodyProprioceptiveSourceReceipt {
     source_tick: u64,
-    /// Independent duration authored by the body settlement/renderer.
-    admission: (i64, i64),
     payload: Vec<u8>,
     port_count: usize,
     sample_count: usize,
@@ -2151,11 +2148,6 @@ impl NativeResidentOrganismPrepare {
                 )
             })
             .collect()
-    }
-
-    #[getter]
-    fn body_proprioceptive_source_admissions(&self) -> Vec<(i64, i64)> {
-        self.body_proprioceptive_sources.iter().map(|source| source.admission).collect()
     }
 
     /// Exact per-interval causal observation retained only for the lifetime of
@@ -4084,7 +4076,7 @@ impl ResidentOrganismRuntime {
                     }),
             );
             let body_successor = body_transition.successor;
-            let mut articulatory_transition = if body_transition
+            let articulatory_transition = if body_transition
                 .proprioceptive_consequences
                 .is_empty()
                 && respiratory_efferent_carriers == 0
@@ -4093,12 +4085,11 @@ impl ResidentOrganismRuntime {
                 None
             } else {
                 Some(
-                    settle_native_articulatory_interval_with_passive_admission(
+                    settle_native_articulatory_interval(
                         body_successor.clone(),
                         &body_transition.proprioceptive_consequences,
                         respiratory_efferent_carriers,
                         source_duration_samples,
-                        derived_budget.max_joint_working_bytes,
                     )
                     .map_err(|error| RuntimeError::ArticulatedBody(format!("{error:?}")))?,
                 )
@@ -4106,28 +4097,6 @@ impl ResidentOrganismRuntime {
             articulated_body = articulatory_transition
                 .as_ref()
                 .map_or(body_successor, |transition| transition.successor_body.clone());
-            if let Some(trajectory) = articulatory_transition.as_mut()
-                .and_then(|transition| transition.passive_body_trajectory.take())
-            {
-                // One pending return owns these samples. Move them out before
-                // causal observation can clone the acoustic transition.
-                let axes = trajectory.axes().len();
-                let frames = trajectory.frame_count();
-                let duration_ms = i64::try_from(frames - 1)
-                    .map_err(|_| RuntimeError::OrganismTickOverflow)?;
-                let payload = trajectory.into_compact(
-                    source_tick, derived_budget.max_joint_working_bytes,
-                ).map_err(|error| RuntimeError::ArticulatedBody(format!("{error:?}")))?;
-                body_proprioceptive_sources.push(BodyProprioceptiveSourceReceipt {
-                    source_tick,
-                    admission: (duration_ms, 1_000),
-                    payload,
-                    port_count: axes * 4,
-                    sample_count: axes * 4 * frames,
-                    occurrence_count: axes,
-                    occurrence_frame_count: axes * frames,
-                });
-            }
             causal_interval_evidence.push(CausalIntervalEvidence {
                 source_duration_samples_at_articulatory_rate: source_duration_samples,
                 rest_recovered_neuron_count: observation.rest_recovered_neuron_count,
@@ -5239,7 +5208,6 @@ fn body_proprioceptive_source(
         .map_err(|error| RuntimeError::ArticulatedBody(format!("{error:?}")))?;
     let receipt = BodyProprioceptiveSourceReceipt {
         source_tick,
-        admission: (1, 1_000),
         payload: source.joint_source_body().to_vec(),
         port_count: source.joint_source_ports().len(),
         sample_count: source.joint_source_sample_count(),

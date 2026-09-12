@@ -11,8 +11,6 @@
 
 use core::cmp::{max, min};
 
-use crate::passive_body_source::{PassiveBodyTrajectory, PassiveBodySourceError};
-
 use crate::virtual_articulated_body::{
     settle_body_effector_drives, AdmittedBodyEffectorDrives, ArticulatedBodyState,
     ArticulatoryAcousticState, BodyAxis, BodyProprioceptiveConsequence,
@@ -52,12 +50,6 @@ const WALL_RETENTION_PARTS_PER_MILLION: i64 = 985_000;
 const PARTS_PER_MILLION: i64 = 1_000_000;
 const RADIATION_LOAD_AREA_SQUARE_MILLIMETRES: i32 = 265;
 const MAX_ARTICULATORY_INTERVAL_SAMPLES: usize = 480_000;
-const BODY_CLOCK_SAMPLES: usize = ARTICULATORY_SAMPLE_RATE_HZ as usize / 1_000;
-pub(crate) const MAX_PASSIVE_BODY_FRAMES: usize =
-    1 + (MAX_ARTICULATORY_INTERVAL_SAMPLES - 1) / BODY_CLOCK_SAMPLES;
-pub(crate) const MAX_PASSIVE_BODY_SOURCE_BYTES: usize =
-    21 + crate::virtual_articulated_body::BODY_AXES.len()
-        * (1 + std::mem::size_of::<i32>() * MAX_PASSIVE_BODY_FRAMES);
 const FIXED_ONE: i64 = 1_i64 << 30;
 #[derive(Clone, Copy)]
 struct SpectralOrganMaterial {
@@ -123,7 +115,6 @@ pub(crate) enum ArticulatoryBodyError {
     ResourceUnavailable,
     RelaxationDidNotQuiesce,
     PressureOutsideAudioWidth,
-    PassiveSource(PassiveBodySourceError),
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -145,9 +136,6 @@ pub(crate) struct ArticulatoryBodyTransition {
     pub(crate) stalled_motor_quanta: u128,
     pub(crate) relaxation_sample_count: usize,
     pub(crate) successor_body: ArticulatedBodyState,
-    /// Transient exact samples; the runtime moves these into its existing
-    /// pending sensory return before retaining acoustic observation.
-    pub(crate) passive_body_trajectory: Option<PassiveBodyTrajectory>,
 }
 
 /// Advance the vocal body across one exact causal source interval.
@@ -164,27 +152,12 @@ pub(crate) fn settle_native_articulatory_interval(
     respiratory_efferent_carriers: u128,
     interval_sample_count: usize,
 ) -> Result<ArticulatoryBodyTransition, ArticulatoryBodyError> {
-    settle_native_articulatory_interval_with_passive_admission(
-        articulated_body, body_consequences, respiratory_efferent_carriers,
-        interval_sample_count, MAX_PASSIVE_BODY_SOURCE_BYTES,
-    )
-}
-
-/// Same physical law with the caller's existing source-memory admission.
-pub(crate) fn settle_native_articulatory_interval_with_passive_admission(
-    articulated_body: ArticulatedBodyState,
-    body_consequences: &[BodyProprioceptiveConsequence],
-    respiratory_efferent_carriers: u128,
-    interval_sample_count: usize,
-    max_passive_source_bytes: usize,
-) -> Result<ArticulatoryBodyTransition, ArticulatoryBodyError> {
     settle_native_articulatory_interval_with_material(
         articulated_body,
         body_consequences,
         respiratory_efferent_carriers,
         interval_sample_count,
         SPECTRAL_ORGAN_MATERIAL,
-        max_passive_source_bytes.min(MAX_PASSIVE_BODY_SOURCE_BYTES),
     )
 }
 
@@ -194,15 +167,10 @@ fn settle_native_articulatory_interval_with_material(
     respiratory_efferent_carriers: u128,
     interval_sample_count: usize,
     material: SpectralOrganMaterial,
-    max_passive_source_bytes: usize,
 ) -> Result<ArticulatoryBodyTransition, ArticulatoryBodyError> {
     if interval_sample_count == 0 || interval_sample_count > MAX_ARTICULATORY_INTERVAL_SAMPLES {
         return Err(ArticulatoryBodyError::NoRecruitment);
     }
-    let frame_count = 1 + (interval_sample_count - 1) / BODY_CLOCK_SAMPLES;
-    let mut passive_body_trajectory = PassiveBodyTrajectory::begin(
-        &articulated_body, frame_count, max_passive_source_bytes,
-    ).map_err(ArticulatoryBodyError::PassiveSource)?;
     let mut acoustic = articulated_body.articulatory_acoustic_state();
     let mut lung_air_microlitres = articulated_body.lung_air_microlitres();
     let mut applied = 0_u128;
@@ -303,19 +271,17 @@ fn settle_native_articulatory_interval_with_material(
     }
 
     let mut strongest_surface_velocity = 0_i32;
+    const BODY_CLOCK_SAMPLES: usize =
+        ARTICULATORY_SAMPLE_RATE_HZ as usize / 1_000;
     for interval_sample_index in 0..interval_sample_count {
         if interval_sample_index != 0 && interval_sample_index % BODY_CLOCK_SAMPLES == 0 {
-            let settled = settle_body_effector_drives(
+            articulated_body = settle_body_effector_drives(
                 &articulated_body,
                 &AdmittedBodyEffectorDrives::quiescent(),
                 BODY_SETTLEMENT_CLOCK_MICROSECONDS,
             )
-            .map_err(|_| ArticulatoryBodyError::ArithmeticWidth)?;
-            if let Some(trajectory) = passive_body_trajectory.as_mut() {
-                trajectory.append_quiescent(&settled)
-                    .map_err(ArticulatoryBodyError::PassiveSource)?;
-            }
-            articulated_body = settled.successor;
+            .map_err(|_| ArticulatoryBodyError::ArithmeticWidth)?
+            .successor;
         }
         let areas = articulated_body.vocal_tract_areas_square_millimetres();
         let body_channels = articulated_body_channels(&articulated_body)?;
@@ -409,7 +375,6 @@ fn settle_native_articulatory_interval_with_material(
         stalled_motor_quanta: stalled,
         relaxation_sample_count: 0,
         successor_body,
-        passive_body_trajectory,
     })
 }
 
@@ -523,8 +488,6 @@ pub(crate) fn settle_physical_transducer_interval_discharges(
         stalled_motor_quanta,
         relaxation_sample_count,
         successor_body: final_body,
-        // A test composition spans separate acts, not one pending return.
-        passive_body_trajectory: None,
     })
 }
 
@@ -1779,7 +1742,6 @@ mod tests {
             carriers,
             samples,
             material,
-            MAX_PASSIVE_BODY_SOURCE_BYTES,
         )
         .unwrap()
     }

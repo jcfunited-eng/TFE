@@ -60,10 +60,13 @@ I122206 added the compact capture/codec; I122207 registers it, captures existing
 renderer steps, moves compact bytes into native return receipts, shares the full
 four-port encoder, validates zero-load passive evidence before cognition, and
 carries independently authored temporal admission through native/Python.
-SOURCE ONLY, UNCOMPILED/UNTESTED/NOT DEPLOYABLE. The existing pending-return
-consumer still refuses compact tails and must be completed before ANY run.
-Next SINGLE: finish this SAME candidate's compact consumption/decoded-memory
-admission and warm/cold pending return, then freeze/review before build.
+F122209: complete Candidate130 source review REJECTED its already-known
+compact-versus-expanded resource/custody gap, BEFORE build or test. Exact source
+and patch are archived; executable files restored byte-for-byte to92af3470.
+Valid source observations are preserved separately; no speech proof was failed.
+Next SINGLE R122210: close shared expanded-consumability admission BEFORE pending
+publication, including coexisting sources, then reimplement from that contract.
+Do not patch the rejected tree or reopen voice/order/restart/lesson campaigns.
 S122198 records all native, wrapper, pending-return, restore and action-evidence
 consumers. No new lesson or fullbrain run before the complete Candidate130 review.
 Do not stretch1ms into250ms, lowerq, fitgain/cutoff to Mama, add a second owner,
@@ -20327,3 +20330,236 @@ voice/restart or whole-brain teaching campaigns; do not claim captured
 trajectory or codec construction proves learned strength or intelligible speech.
 No fresh AWS health observation in this source-only turn; previous13:00 bracket
 is historical and includes the persistent clock ALARM.
+
+
+### I-054-122-208 — Candidate130 complete source path; frozen review next, NO execution claim
+
+Continuation of S122205/I122207, same candidate and one pending-return owner.
+Authoritative source resumed ate5e7a393 with nine uncommitted files, no running
+review/test process. Previous implementation turn made source progress; the
+indexing conversation was conceptual, not a reopened speech prerequisite.
+Production baseline1458, browser CLOSED, caretaker STOP. No cue, deployment,
+native compilation or test. Full AE goal ACTIVE; speech NOT fixed.
+
+New source boundary:
+- organism_runtime::restore_passive_body_source derives the existing runtime
+  workspace, decodes bounded GLBPTR01, checks independently supplied extents and
+  duration, expands through the original full-field parser, and requires a
+  canonical compact-byte roundtrip. Read-only, GIL released, no native advance.
+- NativeResidentOrganism delegates to that runtime-owned decoder; Python stores
+  no second resource budget. PhysicalReturnSource.restore uses it for both warm
+  and cold pending sources. Original GLJS byte-equality checks remain intact.
+- PhysicalReturnSource bounds live passive frame count to250 BEFORE expansion,
+  ports to180, axes to45, compact length to21+A+4*A*N (all45axes45066B).
+  Per-axis frame bounds are checked directly, not only a total-frame ceiling.
+  Base64 length is checked before decoding compact records; native source
+  decoder validates physical positions/axis order without Python sample loops.
+- PendingPhysicalReturn retains atmost4 ordered sources: original body impulse,
+  passive tail, root yaw, root translation. Passive source_tick+1 must equal
+  the pending producer's completed organism tick. No duplicate source owner.
+- LeanPhysicalLoop restores pending sources BEFORE native_started becomes true;
+  it still performs one native advance. _requires_physical_return separately
+  preserves impulse/body-consequence equivalence and admits passive-only input.
+  World commit, full-envelope capacity preflight and paired recovery unchanged.
+  A failure after native mutation remains fatal paired recovery, not rollback.
+
+Memory preflight in articulated_body_joint_source_builder now counts both
+encoded expansion (including Vec-to-Arc overlap) and decoded logical storage:
+five rational vectors/port sample, two/occurrence frame, shared encoding times,
+map rationals, port/occurrence structs, bounded metadata, and raw positions.
+Every generated rational numerator/denominator fits u64; counted limb-body
+storage is explicit. This is NOT an exact RSS or allocator-scratch bound.
+Parser indices/temporary allocation and actual peak still require review and
+measurement; no unsupported claim of allocation completeness is made.
+Capture uses compact-byte admission; consumer expansion uses the existing
+workspace. Production's actual workspace must admit its full250ms source before
+deployment so a compact return is not durably accepted but unreadable next hop.
+
+Other renderer callers inspected: specialized vestibular source is a1ms path
+(no fabricated250ms tail); evidence renderer is not the ordinary feedback path.
+Ordinary runtime moves the transient tail before acoustic observation cloning.
+Actual body law451378d1 and core33adbb85 remain byte-unchanged. No L0-L4,
+neuronal update, learned-state codec, guide, acoustic law, semantic index, timer,
+heuristic, additional actuator or full-brain observer was introduced.
+
+WRITTEN SUPPORTING CONTROLS, NOT RUN:
+- passive_body_source::tests::existing_passive_steps_roundtrip_without_new_motor_authority:
+  actual existing neutral-body MAX32/128 drives, captured samples compared with
+  existing1ms mechanics, compact roundtrip, same full-field warm/cold bytes,
+  unchanged physical source identities, both position endings and zero loads,
+  exact249ms admission, no exact_moved_effector_terminal for the passive source,
+  zero new load energy, unchanged1ms residue unit, malformed load refusal.
+  It is a component test, NOT a mature-body learning or speech claim.
+- test_compact_tail_cold_custody_keeps_samples_order_and_duration:
+  explicitly synthetic two-frame codec fixture; compact world custody survives
+  exact cold restore; frame/byte/duration/epoch/order violations refuse.
+- Existing wrapper/motor-world fixtures now carry the new admissions field.
+  Legacy A009 test-only callers are not extended or mounted by this candidate.
+Author inspection corrected an indentation error and made invalid trailing test
+bytes explicit. git diff --check passes; this is not executable acceptance.
+
+ONE SCOPED COPIED-BODY ACCEPTANCE (caller not yet launched):
+Use the authenticated already-saved quiet669725 predecessor, not another
+8baseline+8tail learning campaign. Actual paired path is
+/tmp/guala-c129-strength-check.5Cl6tl/32/paired/CURRENT (binary GLPAIR02),
+body9eed2752a82c1581e97e45c49adf164a2ccfe96a27ab603e65b57a60d59d15f2,
+world885798667ea89dc4cd7b26db48807fdb1d2d30e5c7af4c1662ec040e05174fee.
+Each MAX32/128 branch starts from THAT SAME predecessor and4000-sample cue
+85a505e8569b7e4407ded73eab2539565096fad17a71afa67a9e93acddb5c545,
+using ordinary guided ingress and axes37/38/39/44. Do not use the old128
+successor as the second predecessor. Resolve and validate pointer via the
+existing PairedCurrentStore; do not parse it as JSON.
+Actual _restore_production_actor constructs an unstarted actor; start() is
+separate. A private-copy caller may use the production restore then close its
+checkpoint worker before controlled manual steps, as the closed predecessor
+caller did. Never start the live actor or write the source paired directory.
+
+Record actual native compact source/extents/admissions and original impulse.
+Persist the resulting new pending pair once; compare warm consumption with
+cold consumption of that exact pair through source.restore(runtime=runtime)
+and one ordinary LeanPhysicalLoop advance. Input equality must include complete
+sources/admissions, world sky input and predecessor identity/tick/body.
+Measure compact/expanded bytes, native-call count, elapsed and RSS, and actual
+quantitative receptor consequence. No source-present or codec pass may be
+renamed learned strength. If the source still fails to reach that quantitative
+path, retain the result and do not package it as a speech fix.
+This is new-boundary cold equality, NOT reopening S122158/159/165/169.
+Current live environment/native roster parity and the exact loaded candidate
+artifact must be verified before the run; old diagnostic flags are not assumed
+live. Read-only AWS health brackets remain mandatory around execution.
+
+Preflight/fumble record (no organism evidence):
+- A read used /root/.cargo/registry/src; actual CARGO_HOME is/usr/local/cargo.
+- A wrapper lookup used the isolated worktree; actual validated wrapper is
+  /workspaces/Tao_Financial_Engine/guala_preflight/preflight.sh.
+- Guessed paired/CURRENT.json is not the pointer; rg --files resolved CURRENT.
+  Reading CURRENT as text exposed its binary format; use existing codec.
+- Guessed lean_organism_actor.py is absent; rg --files resolves
+  dsf_ai_service/lean_actor.py. Resolve exact paths BEFORE the next read.
+No compile/test was spent on these. They remain real repeated path fumbles,
+not new organism defects and not claimed eliminated.
+
+Current source hashes:
+runtime8258c4e5fa97e5173e2b588fc1d0ab9ad92e77d4293d989c5dd22b373f7bf636
+compactca458af4dad137d825c4f2050acb5f45a44669932bd46438d8ae19a2e57b8406
+builder454280dcdad06c21bf6451e8f59f9e683c9abf8a17baa6b6b2c9bff850ee8a29
+returna5acfa1ea77a7b87bf9560f37efa96bb34bc9a9973ccaaaada340436d1f9d6ee
+loopfb4a2d802843c3390f6f36ca40c7068cb2678b549ff469a9837aa79b2e599385
+
+Next: freeze the WHOLE candidate (accepted baseline92af3470 through current,
+including prior committed producer/parser changes) and obtain source-only
+independent review. No worktree edits/commits while reviewer is active.
+The freeze hash is emitted externally to avoid changing its own fingerprint;
+record the verified hash and findings here when the review closes.
+No fresh AWS check during this source-only turn; prior13:00 evidence remains
+historical and its clock ALARM is not erased.
+
+
+### F-054-122-209 — Candidate130 source review rejected the known resource/custody gap
+
+Internal reviewer /root/memory_probe_review reviewed the COMPLETE candidate
+92af3470 through frozen50323cde6f387d16edfd812b45336f5380a45fed49c5d3550658da68d1d618a9,
+verified that fingerprint before and after, ran nothing and changed nothing.
+Not a C1 ruling. Review completed; no reviewer remains active.
+No compile, test, learner, live cue or deployment was attempted.
+
+ARCHITECTURAL REJECTION:
+Producer organism_runtime4109–4128 admits compact bytes only. Expanded retained
+storage is admitted later in articulated_body_joint_source_builder496–512 during
+restore. A source can fit pending durable custody yet refuse under the SAME
+runtime budget when the next ordinary step tries to consume it.
+I122208 already identified this possibility. Sol submitted the frozen candidate
+before closing that known lifecycle gap; this is a preflight/design error, NOT
+a newly discovered speech wall or a falsification of the unchanged body law.
+Checking only today's large production memory allowance would not close it.
+
+VALID SOURCE FINDINGS PRESERVED (not executable successes):
+- Capture follows already-executed mechanical clocks; impulse encoding remains
+  source-consistent with the predecessor.
+- Passive load has zero new work with the original residue unit; its evidence
+  cannot enter exact_moved_effector_terminal.
+- No second physical settlement or neuronal identity was introduced.
+- Same warm/cold native decoder direction remains appropriate.
+- Existing offline checkpoint diagnostics can provide the needed neuronal-state
+  evidence without a new production observer API, if current codecs are honored.
+
+OTHER FINDINGS:
+- Component/source tests do not prove actual FFI->loop->pending->warm/cold return,
+  nor the resource failure. The one acceptance caller must include both.
+- passive_body_source.rs was absent from the explicit release manifest.
+  Localized packaging omission, not the architectural rejection reason.
+- Old inspect_saved_cells.py assumes GLNPS01 with the final32byte fixed-width
+  residue. Current complete_neuron.rs supports GLNPS02–05, including wide exact
+  receptor fractions. A successor can lawfully change codec head. Do not use
+  that old reader unchanged and then call its assertion a neuronal failure.
+  Exact source bytes, residue differences or counts alone do not prove learning.
+
+REJECTED SOURCE PRESERVED, NOT THROWN AWAY:
+Directory /mnt/tfebackup/guala-c118-four-posture.XehvEs/c130-rejected-source.WKVtJk/
+candidate130.patch SHA256
+296bcb72f024cc0cd064006752f00dcff498cd2f3f06f5c7f8bddd37cc998994
+candidate130-source.tar.gz SHA256
+a60f5b3a67e1f18dff596d81f12c58441e55804ba9a891baa86f4e5006096f10
+Archive includes every candidate source/test file and I122208 ledger snapshot;
+patch is the full executable delta from92af3470. Earlier committed checkpoints
+03ba92d3/e5e7a393 remain history, NOT accepted runnable candidates.
+
+After the review ended, full-file replacements restored all13 modified existing
+executable/test files to92af3470; removed the new unmounted passive_body_source.rs
+from the executable tree only. It is fully recoverable from both artifacts and
+prior git history. git diff --name-only92af3470 now names ONLY this ledger.
+Core33adbb85, body451378d1, runtimeb5a7cab1 confirmed. git diff --check passes.
+No installed native artifact or running production process was changed.
+
+Fresh READ-ONLY AWS observation 2026-09-12T14:44:05.807976UTC:
+us-east-1, tfe-web-cluster/dsf-ai-service-lb, desired/running/pending1/1/0,
+task1458/71289e2b95be4d79a5c9f74ac2708b7d, HEALTHY, immutableimagefd6e44de unchanged.
+Recent matching-task window CPUmax45.08873392641544%,RAMmax12.95166015625%.
+CPU/RAM/EFS/refusal alarmsOK; guala-clock-stalled ALARM remains.
+This was not an execution bracket or proof that the clock is fixed.
+Task definition4096CPUunits/16384MiB; GUALA environment contains ONLY
+GUALA_PAIRED_ROOT=/app/guala/paired-current-gen2 and
+GUALA_MAX_WORLD_BYTES=16777216. No diagnostic/probe lesson flags are live.
+A copied acceptance changes paired-root to its private directory, preserves
+the live roster, and declares any controlled external sky input explicitly.
+
+Additional command-fumble record: read-only searches guessed nonexistent
+scripts/ and resident_resource_budget.rs. Actual budget is RuntimeBudget::derive
+in organism_runtime.rs, discovered by directory search. No test was run.
+Operational correction: file searches must use the validated directory or the
+absolute preflight wrapper FIRST, then read only returned paths; filenames in
+inference are not evidence. Do not describe these repeated fumbles as solved.
+
+
+### R-054-122-210 — same sensory-return repair, close consumability before code
+
+Single next item, no new physics candidate authorized by this row.
+Preserve S122205's compact actual samples, full four-port fields, one pending
+owner, unchanged impulse/new-work boundary and exact warm/cold replay. Fix the
+resource contract that Candidate130 did not complete:
+
+Before a new passive return can be committed/published, derive and admit its
+expanded retained and transient storage through ONE shared bound also used by
+consumption. Include simultaneously coexisting primary, hearing, impulse,
+passive and root sources—not a per-tail allowance applied after other sources
+already allocate. Use actual source anatomy/extents and the existing runtime
+workspace; no semantic cap, second budget owner or heuristic multiplier.
+The admission check belongs before fallible mutation/publication, not in
+cognition and not as a retry loop around an unreadable pending record.
+
+Name exact producer, boundary and consumer callers, their allocation order,
+aggregate source bound, and ordinary/cold lifecycle before reimplementation.
+The contract is NOT complete yet: do not implement a one-line per-tail
+precheck and pretend it accounts for the simultaneous input set.
+Once complete, one reviewed implementation; focused source/resource controls
+and the already-scoped actual copied-body return. Preserve zero-authority,
+full-field and learned-state invariants. Do not reopen closed voice/restart
+proofs or restart a whole-word campaign. Fix release-manifest closure in the
+same candidate before package review. Existing approved typed-source design
+and mechanical measurements remain evidence, not discarded failures.
+
+This turn made authoritative progress by completing the consumer source review,
+recording the exact rejection, preserving all source/evidence and removing the
+known unconsumable candidate from the executable tree. It delivered NO new
+production behavior. Full AE goal ACTIVE, speech NOT fixed; browser CLOSED,
+caretaker STOP. Nothing waits on Joe or Claude for this bounded contract work.

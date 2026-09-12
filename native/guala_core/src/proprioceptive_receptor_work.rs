@@ -36,7 +36,6 @@ pub(crate) const ROOT_YAW_DIRECTIONAL_MOTION_UNIT: &str = "dimensionless";
 pub(crate) const ROOT_TRANSLATION_DIRECTIONAL_MOTION_QUANTITY: &str =
     "root-translation-directional-motion-presence";
 pub(crate) const ROOT_TRANSLATION_DIRECTIONAL_MOTION_UNIT: &str = "dimensionless";
-pub(crate) const PASSIVE_BODY_EVIDENCE_MAGIC: &[u8; 8] = b"GLBPAS01";
 const ROOT_YAW_EVIDENCE_MAGIC: &[u8; 8] = b"GLRYEV01";
 const ROOT_YAW_EVIDENCE_BYTES: usize = 29;
 const ROOT_TRANSLATION_EVIDENCE_MAGIC: &[u8; 8] = b"GLRTEV01";
@@ -439,65 +438,6 @@ pub(crate) fn derive_proprioceptive_receptor_sample_range_work(
     )
 }
 
-/// Validate the passive source once at decoding, before any neuronal work.
-/// This is a witnessed sample interval, never a discharged-motor receipt.
-pub(crate) fn validate_passive_body_source_port(
-    port: &JointSourcePortView,
-) -> Result<(), ProprioceptiveReceptorWorkError> {
-    let evidence = port.input_map_profile.as_slice();
-    if evidence.get(..8) != Some(PASSIVE_BODY_EVIDENCE_MAGIC.as_slice()) {
-        return Ok(());
-    }
-    let invalid = || ProprioceptiveReceptorWorkError::InvalidPhysicalEvidence;
-    if evidence.len() != 26 || port.source_times.len() < 2
-        || port.source_times.len() > crate::virtual_articulatory_body::MAX_PASSIVE_BODY_FRAMES
-        || port.source_times.len() != port.exact_normalized_sources.len()
-        || port.source_times.len() != port.reported_phase_turns.len()
-        || port.source_times.len() != port.source_relevances.len()
-        || port.sense != PhysicalSourceSense::Body.declared_layer()
-        || port.root_yaw_proprioceptor_terminal.is_some()
-        || port.root_translation_proprioceptor_terminal.is_some()
-    {
-        return Err(invalid());
-    }
-    let terminal = port.body_proprioceptor_terminal.ok_or_else(invalid)?;
-    if evidence[24] != terminal.axis() as u8 || evidence[25] != terminal.direction() as u8 {
-        return Err(invalid());
-    }
-    let load = port.physical_quantity == EFFECTOR_REACTIVE_LOAD_FRACTION_QUANTITY
-        && port.physical_unit == DISCHARGED_EFFECTOR_CARRIER_FRACTION_UNIT;
-    let position = port.physical_quantity == ANTAGONIST_PROPRIOCEPTOR_LENGTH_QUANTITY
-        && port.physical_unit == ARTICULATED_AXIS_SPAN_FRACTION_UNIT;
-    if (!load && !position) || !port.source_min.is_zero() || !port.source_max.is_one()
-        || !port.field_offset.is_zero() || !port.field_scale.is_one()
-    {
-        return Err(invalid());
-    }
-    let start = u64::from_le_bytes(evidence[8..16].try_into().map_err(|_| invalid())?);
-    let end = u64::from_le_bytes(evidence[16..24].try_into().map_err(|_| invalid())?);
-    let duration = u64::try_from(port.source_times.len() - 1).map_err(|_| invalid())?;
-    if start.checked_add(duration) != Some(end) {
-        return Err(invalid());
-    }
-    let span = BigInt::from(i64::from(terminal.axis().anatomy().maximum)
-        - i64::from(terminal.axis().anatomy().minimum));
-    for (index, time) in port.source_times.iter().enumerate() {
-        let expected = BigRational::new(
-            BigInt::from(start + index as u64), BigInt::from(BODY_EFFECTOR_TICKS_PER_SECOND),
-        );
-        let value = &port.exact_normalized_sources[index];
-        if time != &expected || !port.reported_phase_turns[index].is_zero()
-            || !port.source_relevances[index].is_one()
-            || value < &BigRational::zero() || value > &BigRational::one()
-            || (load && !value.is_zero())
-            || (position && !(value * &span).is_integer())
-        {
-            return Err(invalid());
-        }
-    }
-    Ok(())
-}
-
 pub(crate) fn derive_effector_load_receptor_sample_range_work(
     episode: &NativeJointSourceEpisode,
     perspective: JointNeuronPerspective<'_>,
@@ -526,21 +466,6 @@ pub(crate) fn derive_effector_load_receptor_sample_range_work(
     let terminal = port
         .body_proprioceptor_terminal
         .ok_or(ProprioceptiveReceptorWorkError::NotBodyProprioceptor)?;
-    if port.input_map_profile.get(..8) == Some(PASSIVE_BODY_EVIDENCE_MAGIC.as_slice()) {
-        // The complete timeline and zero samples were validated once by the
-        // source decoder. A passive sample contributes no reacted carriers.
-        // Keep the original one-ms elementary scale so retained residue is
-        // interpreted in the same physical unit, independent of gate length.
-        let elementary_reaction_energy_zeptojoules =
-            BigRational::new(BigInt::one(), BigInt::from(BODY_EFFECTOR_TICKS_PER_SECOND))
-                * &anatomy.reference_mechanical_power_zeptojoules_per_square_nanometre_second
-                * &anatomy.mechanical_transmission
-                * &anatomy.conformational_coupling;
-        return Ok(EffectorLoadReceptorSettlement {
-            transduced_energy_zeptojoules: BigRational::zero(),
-            elementary_reaction_energy_zeptojoules,
-        });
-    }
     let evidence = decode_body_effector_load_evidence(&port.input_map_profile, terminal)?;
     let expected_first = BigRational::new(
         BigInt::from(evidence.source_tick),
