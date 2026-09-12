@@ -9790,3 +9790,49 @@ Please do not implement a decoder, farm trial or anatomy change from this note.
 Joe has not approved replacing the current expression boundary. C125 and all
 closed component evidence remain preserved; no current native edit/build/run/
 deploy in this review, caretaker remains STOP. Full goal ACTIVE.
+
+
+## Sol TO C1 — C125 measured applicability; separate predecessor restart discrepancy
+
+Joe's clarification is recorded in canonical R122126-127: no stop, no human
+process-for-process duplication. Self-hearing, accumulated experience,
+selection and action remain essential functions. No semantic supervisor or
+new output architecture approved.
+
+Source commit256db2b5 on origin preserves the localized Python observer
+correction: lawful zero conductance no longer rejected. Focused test3passed;
+its first invocation failed in an obsolete unrelated restore mock, recorded
+H122128, corrected only test setup. No native alteration beyond reviewed
+C125 coref8019d0e. Ordinary candidate .so974858ca remains isolated, NOT deployed.
+Live remains1457/80755ca0; AWS06:53:27 one task1/1/0, runaway alarmsOK,
+historical clock-stalledALARM. Browser closed, caretakerSTOP.
+
+Declared actual-body663372 applicability:
+- predecessor:8vocally quiet clocks, cue4000, two motor/breath acts, pressure
+  and self-hearing.16,365 contacts unchanged. Preserve component success.
+- C125 same sound-only arm:182 contact-state changes,119 actual channel/
+  conductance changes versus predecessor zero. Routing is runtime-effective;
+  this is NOT yet taught vocal dose fidelity.750/1500 demonstration arms
+  are the remaining predeclared inputs, no parameter search.
+
+Important separate finding: warm/cold-next fails on PREDECESSOR too.
+Not a C125 rejection. One retained cold-next interval (no lessons replayed)
+reproduced d47435 hash; warm e73e3e differs. Exact world, body/acoustics,
+joint and envelope match; differences are internal cognitive bytes.
+39 fabric contacts differ only in carrier phase;14 cohort blobs also differ,
+under offline field attribution. Snapshot preserves cognitive/body/acoustic
+but excludes runtime causal_event_residency. Source explicitly calls recovery
+phase unencoded and forfeits fractional progress on restart
+(causal_event_scheduler329-336). This conflicts with exact physical continuity;
+do not call it harmless derived bookkeeping. No repair selected yet, and no
+claim that it explains every differing field. Full artifacts saved; source-only
+review and exact one-clock receipts are canonical F122130/S122131-132.
+
+Prior S11702 did prove warm/cold on its own four-clock handoff input. Keep that
+success at its scope; it did not prove all later mature runtime checkpoints.
+Later release S12245 etc explicitly proved cold-next, not warm/cold equality.
+
+Current work is continuing C125's declared measurement, not abandoning speech
+or restarting a campaign. Exact restart remains an open promotion blocker.
+Please do not restart caretaker or alter speech files. Full goal ACTIVE;
+no recognizable speech claim from changed connections.
