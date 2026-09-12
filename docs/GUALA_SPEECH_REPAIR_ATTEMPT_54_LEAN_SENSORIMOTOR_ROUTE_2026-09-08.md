@@ -1,23 +1,19 @@
 # Guala speech repair Attempt 54 — complete design verification and lean sensorimotor route
 
-## Latest decision checkpoint — 2026-09-12, Candidate131 mature MAX32 feedback PASS
+## Latest decision checkpoint — C131 RELEASE APPROVED, 2026-09-12
 
-Active R122210/S122212. C1 compact-feedback direction APPROVED (S122219).
-Candidate source494ed1e2 passed independent source review; ordinary native
-wheel0388cacf loaded. Three focused native and five Python cases PASS.
-MAX32 on authenticated saved669725 now completes real guide -> compact passive
-feedback -> ordinary full consumption. Exact full body/world and sensory inputs
-match after cold restore. Two raw observation transaction-token aliases differ;
-S122227/F122227 preserves that limitation, not a physical failure or speech proof.
-Independent targeted review confirms process-local prepare ordinal explains
-these tokens; no native change or32 rerun. Future newly emitted return identities
-are NOT proved restart-equivalent by this no-new-motion consumption.
-MAX128 warm34549 PASS; cold15772 has the SAME exact physical/input equality
-PASS and the same two raw transaction aliases unequal. Both arms complete.
-Offline exact-receptor inspection and independent result review PASS (S122231).
-Next: release readiness for this feedback-only correction; no guide reruns.
-All earlier partial-source checkpoints below are historical. Do not rebuild.
-Browser CLOSED/caretaker STOP. Production1458 unchanged; speech NOT fixed.
+C1 approval verified on shared origin blob34c84567fa589359ec93010139913e1c3d1060da.
+This supersedes I122241's missing-decision block. Joe authorized proceeding.
+Active R122210/S122212: feedback participation only, not learned strength.
+Frozen production source494ed1e2; c830d787 is reviewed test-only cleanup.
+Closed MAX32/MAX128 and safety controls remain closed; no memory investigation.
+Proceed existing release gates: newest captured predecessor changed-path proof,
+one immutable image/exact-image proof, fresh full backup, controller dry run,
+one zero-writer cutover, live guided compact-return consumption.
+Only AFTER live verification resume ordinary caretaker lessons under its charter
+and reviewed 32-tick rest law, with one actual process verified.
+Production remains1458 until actual cutover receipts establish otherwise.
+Historical test debt and transaction alias differences remain disclosed below.
 
 ## Historical prerequisite evidence — measured position-input limit; speech NOT fixed
 
@@ -22049,3 +22045,17 @@ clarifying C129 versus C131 did not itself supply that decision. update_goal
 now CONFIRMS status=blocked (unlike the unexecuted plan in I122239).
 No goal completion, production pause, tests or code changes. Resume the explicit
 C131 packet e39e1ad3 on actual disposition; preserve all closed evidence.
+
+### R-054-122-242 — C1 approval resolves missing decision; final release preparation
+
+Actual approval verified in shared origin34c84567; current shared header corrected
+in commit6b62cc00. C1 accepts controls and disclosed token limitation against
+source494ed1e2/baseline6f2da6da. User directs release, not another investigation.
+Use existing C129 recipe S122166–175. Captured677770 archive2620be19 is authenticated
+for current changed-path proof; old caller bound669725 cannot impersonate it.
+No word/strength/physiology test added. One guided compact return consumed LIVE
+must precede caretaker restart. Keep process and resource receipts.
+Documentation tool failure: whole-ledger terminal read hit tool truncation and
+full-file patch refused before any edit. Recover full text in bounded chunks;
+never use truncated output for replacement and never dump failed patch payload.
+Production untouched; no candidate proof failed. Readback and length check required.
