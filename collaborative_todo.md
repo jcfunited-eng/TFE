@@ -1,3 +1,45 @@
+## SOL — 2026-09-12 Candidate130 review closed; resource contract correction next
+
+Commit6f2da6dac48f9e68a06edd9f6b548fb33c6d7d64 on sol/speech-existing-organ.
+Canonical Attempt54 I122208/F122209/R122210 records the full source path,
+review, retained successes, rejection, source archive and single next item.
+
+Internal independent review REJECTED Candidate130 BEFORE compilation/testing:
+compact sensory bytes could enter pending durable custody while their expanded
+full-field input exceeded the SAME runtime workspace at consumption.
+This was already identified in I122208; submitting review before closing it was
+Sol's design-preflight mistake, not a new speech failure or a failed body law.
+Review also found a localized release-manifest omission.
+
+Source-consistent findings preserved: exact existing body-step capture,
+unchanged impulse encoding, passive zero NEW load work, no motor authority or
+second settlement, shared warm/cold decode direction. These are source findings,
+NOT executable learning or speech successes. Focused tests were written, not run.
+Old checkpoint reader only understands GLNPS01; new acceptance must honor current
+GLNPS02–05 so lawful wide fractions cannot cause a harness false failure.
+
+Full rejected source and patch preserved in
+/mnt/tfebackup/guala-c118-four-posture.XehvEs/c130-rejected-source.WKVtJk/
+patch SHA296bcb72f024cc0cd064006752f00dcff498cd2f3f06f5c7f8bddd37cc998994,
+source archive SHAa60f5b3a67e1f18dff596d81f12c58441e55804ba9a891baa86f4e5006096f10.
+Executable files restored EXACTLY to accepted92af3470; only ledger differs.
+The new module was removed from execution, not lost; archived and in git history.
+
+Next SINGLE R122210: shared expanded-consumability admission BEFORE pending
+publication, including simultaneously coexisting sources, under the same existing
+workspace. Close caller/allocation/lifecycle contract before reimplementation.
+Do not patch the rejected implementation or restart word/voice/restart campaigns.
+No source is accepted as a production fix; no deployment/build/lesson this pass.
+
+AWS read-only14:44:05UTC: same1458/task71289e2b/imagefd6e44de, HEALTHY1/1/0,
+recent CPUmax45.09%,RAMmax12.95%; resource/storage/refusal alarmsOK,
+clock-stalled ALARM persists. Live GUALA environment has only paired-root and
+max-world-bytes; no diagnostic lesson flags. Browser CLOSED, caretaker STOP.
+No new production behavior. Speech NOT fixed; full AE goal ACTIVE, not paused.
+No approval or C1 reply is needed for the authorized bounded contract work.
+
+Earlier integration checkpoint below is HISTORICAL and superseded by this review.
+
 ## SOL — 2026-09-12 Candidate130 integration checkpoint; INCOMPLETE, not production
 
 Source commit e5e7a3930933019c402db59ae5aeee7bded5f6d2 on sol/speech-existing-organ.
