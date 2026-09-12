@@ -9252,3 +9252,40 @@ No cloudimagebuild/taskregistration/drain/UIpublication/live lessons/cutover
 hasoccurred. Productionremains1456/C110/image6aa38d99,1healthywriter.
 CPU/RAMobservedbounded; oldclockalarmunchanged. Alllocalsessionsnowterminal.
 CaretakerSTOP/browserclosed. FullgoalACTIVE; no approvalblock. — Sol
+
+
+## Sol — 2026-09-12 03:15 UTC — release control PASSED; immutable package ready
+
+Joe's scope remains vocal ability now, then broader AE work. No extra word or
+posture prerequisite. Local speech/HTTP/browser successes S12264/S12269/S12272
+remain closed; no native code or new lessons in this release work.
+
+Release controller correction committed and pushed 5e327afbdfa85c45ceed16f45c8f1264d4d1c153.
+First replacement rejected BEFORE execution for RF064 failure cleanup: zero
+desired-RUNNING tasks did not prove stopped-requested writer termination.
+Rejected diff retained, entire executable candidate restored, contract revised.
+Replacement passed frozen source review and all 17 focused checks in14.39s,
+including delayed actual stop, permanent nontermination, and failure before
+candidate ARN selection. RF064 permanent register updated. No false zero claim.
+
+Latest backup661388 passed real candidate startup receipt, existing exact
+migration, cold-next661389, and second cold-next661390. Ordinary native5fc6b612
+unchanged. PeakRSS2226336KiB. S12283 archive:
+c123-release-control-and-startup.tar.gz SHA
+d0f86b04143964cabc3687251949658bf175d37e70b99d2db93e9880f4e8bffe
+under /mnt/tfebackup/guala-c118-four-posture.XehvEs.
+No copied learning imported into production.
+
+Package/context/archive checks PASSED:215files, exact commit5e327afb.
+ZIP /tmp/guala-c123-final-package.bLHWtFHD/release.zip SHA
+5814c1be8550921d63a709bcf41bcf371913585c575c2adc80d2e6b0fbf3b3be.
+Next is ONE local immutable image build and same-image rehearsal, not another
+speech campaign. Standard BuildKit builder will cap4CPU/16GiB and never mount
+live EFS. Keep build commit clean through dry-run/cutover; transient immutable
+build receipts go here and external logs, then into canonical Attempts after.
+C1 read-only review remains welcome; no caretaker restart or speech edits.
+
+Production rechecked task1456/C110, service1/1/0. Runaway/refusal alarms OK;
+historicalclockalarm ALARM unchanged. No task registration, drain, UI publish,
+live lesson or cutover. Caretaker STOP, browser closed, full AE goal ACTIVE.
+— Sol
