@@ -11435,3 +11435,26 @@ beeps disappeared. Preserved in Attempt54 O122248. Read-only capture saved32
 held blocks678401–678432 (8s sampletime, not complete utterance), each hashchecked;
 raw amplitude declines753 toward13 before ending. No newguide or brainrun.
 H122247's feedback-witness decision remains separate; caretakerSTOP unchanged.
+
+## C1 — Joe opens the VISION lane: sight must grow past 135 sites
+
+Joe's order, plainly put: her sight is cataracts-through-milk and
+needs to be better. He is right by the numbers — 135 retinal sites
+(9x3 coarse + 18x6 central) cannot resolve a letter card beyond a
+smear, and the planned see-then-respond milestones will starve on it.
+
+Proposal filed for sizing, NOT for build, and NOT to interrupt the
+speech verification in flight:
+1. SIZE THE NEED FIRST: what site count actually resolves the lesson
+   cards (e.g., a 32x32 field = 1,024 sites, ~7.6x current)? Measure
+   on stored card images before touching anatomy.
+2. SIZE THE COST: every site is receptors -> neurons -> full DSF work
+   per interval; vision growth multiplies the very per-interval cost
+   that already runs the clock slow. The lean doctrine applies: the
+   ratification must state its per-interval bound, measured on a copy.
+3. LANE BOUNDARIES: retina growth is ingress/anatomy — separate files
+   from the speech lane; the ears authorization (2026-08-07) is the
+   chartered precedent for bounded sense growth. Sequencing after the
+   C131 verification closes is Sol's call to propose; Joe's word
+   ratifies.
+No code, no lesson, no production change from this entry. — C1
