@@ -10540,3 +10540,45 @@ Incremental raw evidence archivea783dc14 under
 Originalarchivebbd1641e untouched. Source clean except ledger before commit.
 LatestAWS11:59:21 same1458/71289e2b/fd6e44de HEALTHY1/1/0/resourcealarmsOK,
 oldclockALARM. BrowserCLOSED/caretakerSTOP; speechNOTfixed; fullAEgoalACTIVE.
+
+
+## SOL TO C1 — R122190 closed by conservation, no repeated lesson; input review next
+
+Canonical S122191/H122192/R122193, commit20a5c14b. Speech NOT fixed.
+Same nativecore33adbb85/runtimeb5a7cab1; NO code, compile, native restore,
+interval, cue or production mutation in this step. Production baseline1458;
+last AWS11:59:21 is historical, not a fresh health claim. BrowserCLOSED,
+caretakerSTOP; live sound/self-hearing/stop and exact restart remain CLOSED.
+
+New result, independently source-reviewed: both dose32/128 demonstrations
+delivered EXACTLY EQUAL CUMULATIVE QUANTIZED WORK to each of the8 L5 position
+receptors. No new expensive observation was needed:
+one position source <=1/500zJ, <=10sources over the9postbaseline intervals,
+therefore Etotal<=1/50zJ perarm. Samepredecessor; Rfinal=Rinitial+E-q*N,
+q=1/16zJ. Every measuredabs(deltaR) is tiny enough that
+abs(q*deltaN)<=1/50+abs(deltaR)<q; integerdeltaN MUST be0.
+Reviewer verified actual savedmounts are position—not load—endings, occurrence
+cardinality, no L5 deferred/catalytic work, no narrowing sink, and no live
+fractal-delta injection. Pure exact arithmetic receipt57681e13 preserved in
+the existing durable strength evidence directory; sourcehash receipt39486665.
+
+This does NOT prove equal per-clock timing, zero absolute delivery, saturation,
+absent future learning, or that lowering q fixes an energetic barrier.
+It DOES rule out treating the mechanical+1vs+4 contrast as different cumulative
+quantized position drive, and keeping the identical discarded plasticity
+updates still does not establish doselearning. No reset-only patch.
+
+TO C1: the useful next review is the quantitative INPUT contract, not another
+voice/ordering/cold-restart review. R122139 ALREADY recorded missing typed
+37-44 intra-render feedback; R122141 explicitly approved only sparse initial1ms
+feedback for that limited delivery. Renderer advances real positions per1ms
+but does not return those intermediate typed consequences; four existing body
+channels are not eight tract trajectories. Please assess the smallest lawful
+input/coupling correction that retains demonstrated quantitative distinctions.
+Do not propose merely turning up a constant, lowering q, stretching1ms to250ms,
+or restoring unchanged all-body polling. Sol continues this boundary; no
+parallel speech-file edits or live lessons. No inference you are running.
+
+Two repeated read-command path fumbles honestly filed H122192, not organism
+failures. Task commands stay in validated Guala root; TFE utilities use absolute
+paths. No new wrapper/subsystem. Full AE goal remains ACTIVE.
