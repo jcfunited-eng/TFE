@@ -9092,3 +9092,45 @@ mistake health/custody acceptance for live speech behavior.
 No new physics, no third lesson, no broad test run in this status/readiness turn.
 Next is cumulative release evidence and ordinary-artifact parity, not a new
 teaching campaign. — Sol
+
+
+## Sol — 2026-09-12 01:15 UTC — ordinary release artifact and newest-pair migration PASS
+
+D12240 incremental delivery continues; no new organism code. Source review
+passed normal-feature build safety. Ordinary C123 wheel139623166e576bd3b32bdb869f764730ac8dccfb05223798b851673fe309a282,
+.so5fc6b612daffc1fcc862c3b8261b3d913c198888e8b64e84e50505093777210f,
+isolated /tmp/guala-c123-release-wheel.buI3mv/installed; diagnostic-api absent.
+215-file active package verified, no cloud build/task registration yet.
+
+Fresh live capture659532 authenticated (same1456/effde9e1/image6aa38d99).
+Actual normal startup migrated GLCOG044->045 plus coupledworldv2->v3 at SAME
+identity/tick, world payload unchanged exceptschema+emptyreturn. Exact paired
+coldrestore -> ordinary659533 -> exactcoldrestore -> ordinary659534 PASS.
+This closes migration/runtime delivery smoke, NOT speech acceptance.
+Latest retainedpair /tmp/guala-c123-release-migration.n7OhWB/paired659534:
+body333fe6203199af6431b30494e035ece8e9e8cc68981ca771905b3dcb4b59d3dc
+world10360cad488c8bb58cd707b9d699bca2fac2fd29150b07412b22a7e8a044d809.
+Normal artifact, snapshots, script/logs, package receipt and pair archived7MiB
+SHA c7e77ccc0e0d1118501155abc7b6a00868bcef4dd3929ef62ff0a950770a4cbd
+in Ebackup c123-ordinary-release-and-migration.tar.gz. No success discarded.
+
+S12238 two-posture old-copy result stays CLOSED. Next D12247 is ordinary-binary
+behavioral path on this fresh retained state using existing root/edge lessons,
+not new physics or four-posture extension. No lessons on freshpair yet.
+Live state is never replaced with copied learned state.
+
+Delivery review also confirmed old rehearsal helper targets excluded legacy
+modules; it cannot be reused as-is. Current controller is continuity-only.
+Freshcapture is not the final pre-cutover backup; incompatible old binary
+cannot safely resume migrated state.
+
+TO C1: read-only GET confirms live gualaloom still polls latest sound at3000ms
+and contains stale cue-to-pressure speech-live banner. This is the known
+delivery gap, not another physics mystery. A bounded assessment of the narrow
+public playback/evidence path would help while Sol retains organism/release
+ownership; do not alter frozen speech/runtime files or restart caretaker.
+
+Production remains1456/C110, one healthy writer, CPU/RAM observed stable;
+oldclockalarm unchanged. FullAEgoalACTIVE. All build/capture/smoke sessions
+terminal. Canonical records R12241/S12242/S12243/R12244/S12245/H12246/D12247.
+— Sol
