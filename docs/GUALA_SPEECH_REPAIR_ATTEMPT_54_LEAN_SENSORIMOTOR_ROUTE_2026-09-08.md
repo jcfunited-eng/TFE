@@ -55,10 +55,12 @@ guala-clock-stalled ALARM remains. No all-green or performance closure.
 S122204 source review recommends two ordered physical episodes under ONE
 existing pending return: unchanged1ms impulse, then measured passive tail with
 allfour sensory ports and zero new motor/load work. No new endpoint convention.
-Next SINGLE R122202 continues R122197/R122193: finalize typed passive evidence,
-clocks, bounded transport and lifecycle, preserving the one-ms impulse.
+S122205 records the compact-return contract. Candidate130 has begun:
+I122206 adds a221line compact sensory capture/codec, UNREGISTERED/UNCOMPILED.
+Next SINGLE: integrate that SAME candidate through renderer, full-field source,
+wrapper and existing pending return; freeze/review the complete path before build.
 S122198 records all native, wrapper, pending-return, restore and action-evidence
-consumers. No new lesson, candidate or fullbrain run until that contract closes.
+consumers. No new lesson or fullbrain run before the complete Candidate130 review.
 Do not stretch1ms into250ms, lowerq, fitgain/cutoff to Mama, add a second owner,
 extend motor authority over passive sensation, or reinstate unchanged-body polling.
 Fullfield/identity/learning preserved. Speech and full AE acceptance OPEN.
@@ -20077,3 +20079,163 @@ shared origin ffec7347816036468c270dafdb2bd6453caa438a. Slack send verified
 2026-09-12T13:12:50Z #general. Next single item remains R122202: finalize typed
 zero-work tail, exact clocks, bounded transport and lifecycle contract, then
 source review before code/build. Full AE goal ACTIVE.
+
+
+### S-054-122-205 — final compact-return design review and lifecycle/resource closure
+
+Continues R122202; source-only reviews on clean92af3470, fingerprint
+bd04ff63f70db6e2038dea13de8d2489c1cc55f3af4d5ce663f7725f2ddcbad9.
+Internal reviewer has no architectural objection to compact sensory retention.
+No C1 ruling is claimed. No native test, lesson or deployment this turn.
+
+DECISION: persist the passive POSITION SAMPLES once, not expanded GLJS frames.
+The current coupled world has MAX_COUPLED_STATE_BYTES=4MiB and reserves the
+inner world's declared capacity (default2MiB) through both base64 layers.
+Expanded per-port timestamps, metadata, rationals and zero loads would waste
+this limited custody. Native raw integer positions require4*A*N bytes:
+ordinary4axes/250frames=4000B, all45axes=45000B, plus one bounded header/axislist.
+No sample is removed, interpolated differently, rounded or compressed into a
+meaning/score. Expansion to the SAME full four-port joint field happens once
+on consumption, through one native decoder shared by warm and cold paths.
+
+The30s native renderer ceiling (480000samples) is a DIFFERENT bound from the
+ordinary live250ms hop. At that ceiling,45axes/30000frames require5.4MB RAW.
+Do not claim ordinary45KB bounds cover that branch. Both producer capture and
+decoder validate caller-independent physical frame/axis limits and checked
+byte arithmetic before allocation; expansion must additionally respect the
+declared working budget. Never silently truncate a source to fit world storage.
+Current live ingress/primary world admits250ms; pending-return capacity is
+still verified before world commit including all sources and JSON/base64.
+No capacity increase or new memory/budget owner is authorized.
+
+Canonical compact format GLBPTR01:
+magic8, original impulse source_tick u64LE, frame_count u32LE, axis_count u8,
+ordered unique physical axis ordinals, then row-major exacti32LE positions.
+The first frame is the actual successor of the original post-cognitive1ms
+body settlement. Each later frame is the successor of one EXISTING passive1ms
+body settlement. Elapsed source time starts at source_tick+1ms in that source clock. This is
+the original impulse's source epoch, NOT PendingPhysicalReturn.producer_tick
+(which binds the completed organism successor). Neither advances per sample. Decoder requires
+exact length21+A+4*A*N, >=2frames, valid axis/range, checkedtime and no trailing
+bytes. No motor direction, work receipt or desired posture is encoded.
+
+GLBPAS01 is the DISTINCT expanded per-port passive input-map witness:
+exact source start/end millisecond timestamps and typedaxis/direction, fixed
+width26bytes. Validate the whole supported sample timeline and zero-load data,
+not magic alone. This describes no-new-drive sensory history, not permission.
+Initial GLBPEV01 impulse stays byte-identical. The existing position integral
+uses actual measured samples. Passive load returns zero new energy while
+retaining the existing positive1ms elementary-reaction scale for residue.
+No passive marker or displacement may recruit a motor or author a guide.
+
+Required producer scope: gather only axes physically displaced from neutral or
+carrying retained antagonist activation at the start of an already-running
+render. Record actual held positions too, not only nonzero-displacement rows.
+Capture from the existing quiescent-body calls, verify they admitted no drives,
+never run mechanics twice. A zero-acoustic result does not discard the samples.
+If the existing runtime skips rendering, do not invent249ms evolution in this
+feedback patch; no computed tail means no tail. That preserves mechanical
+successors while making the present omission repair explicit and bounded.
+Original body/genesis/guide, selfhearing and allneuron/learning laws unchanged.
+
+TRANSLATION/LIFECYCLE CONTRACT:
+- virtual_articulatory_body returns one transient captured tail with its actual
+  body successor; no new resident body field or acoustic ownership.
+- organism_runtime consumes/moves that transient into one compact source receipt
+  following the unchanged original impulse receipt. It does not retain a second
+  expanded copy in causal observation. Legacy specialized no-render callers
+  produce no fabricated tail.
+- Existing body_proprioceptive_sources/extents carry compact bytes and full
+  derived four-port extents. Carry independently authored per-source temporal
+  admission alongside those extents, not a duration inferred from payload.
+  Producer ticks may match ONLY for the original+following passive pair in
+  that order. A passive-only pair member is valid without a fake impulse.
+- Native wrapper validates complete format-specific cardinality/order and
+  preserves that metadata. Original impulse counts remain separate from
+  passive evidence; _active_grips and discharge consumers remain unchanged.
+- _body_sources admits atmost2body episodes; PendingPhysicalReturn atmost4
+  total including existing2root sources. Same owner, no new clock or queue.
+- PhysicalReturnSource retains compact bytes and exact extents/admissions.
+  Its warm/cold restore uses the SAME native expansion. Existing GLJS sources
+  retain byte-equality validation. Compact validation requires canonical
+  compact roundtrip and expanded derived extents; never weaken the old check
+  into blanket acceptance.
+- _requires_physical_return preserves original impulse/consequence equivalence
+  and separately accepts validated passive-only evidence. Its body world
+  consequence branch already exists; no new movement or action category.
+- World consume/commit/discard and paired checkpoint machinery stay unchanged.
+  BEFORE native mutation, malformed returning bytes fail and remain pending.
+  After native mutation, an infrastructure failure is currently fatal paired
+  recovery, NOT automatic rollback or safe continued running. This existing
+  rule is explicit (lean_physical_loop302), not a claimed rollback pass.
+- No neuronal/body envelope schema change. World record shape stays the same;
+  new compact payload/admission values are a source-format extension. Existing
+  legitimate impulse pending records remain valid. Old software cannot consume
+  new compact tails: full paired backup and no automatic old-image rollback
+  apply before eventual first deployment. Do not erase pending experience to
+  make a cutover or downgrade pass.
+
+Frozen acceptance shape for the implementation: actual postcognitive impulse
+bytes unchanged; native-produced compact tail matches every already-measured
+position/time; valid zero-load tail never supplies new load/motor authority;
+warm and cold consumption yield the same full DSF, source identities and
+successor; one ordinary native advance; exact body/acoustic mechanics unchanged
+by capture. Then the authenticated mature-body MAX32/128 path must demonstrate
+that the corrected source actually reaches the intended quantitative neuronal
+path, retaining failures and successes separately. Source/codec-only passes do
+not establish learned strength, intelligible speech or full AE completion.
+Measure compact/expanded bytes, calls, peak and elapsed cost on that path and
+keep pre/post read-only AWS health. No broad test campaign or prior voice
+proof rerun. One frozen source review before build; acceptance before package.
+
+Single next item: implement the bounded source-return correction under this
+contract (Candidate130, not previously used in the ledger). Begin with the
+compact transient capture/codec, then wire the named producer, source adapter,
+wrapper and existing pending return in one candidate. No deployment until the
+complete candidate review and its acceptance path pass. Full goal ACTIVE.
+
+Path-preflight lesson: both Sol and internal reviewer initially supplied the
+wrong top-level thermally_coupled_embodiment_world.py path in read-only searches.
+Actual path is dsf_ai_service/substrate/thermally_coupled_embodiment_world.py.
+Preflight refused the ambiguous filename (test+implementation) correctly.
+No candidate failure or organism mutation; use resolved full paths.
+
+
+### I-054-122-206 — Candidate130 begun: compact passive sensory capture/codec, source only
+
+New native/guala_core/src/passive_body_source.rs,221lines, SHA
+7976e844cfe5c228317f64cd5e574317995ae621c26d1899f77a463961515a1a.
+UNREGISTERED module, NOT compiled, tested, runtime-reachable or deployed.
+This is the first implementation component of the S122205 contract, not a
+standalone accepted fix or proof of learning.
+
+Captures exact row-major i32 positions for physical axes with nonneutral
+position or retained antagonist activation. No body settlement, sound render,
+neuron access, meaning/index, timer, work production or cognitive state.
+Append accepts only an existing no-drive body settlement and rejects a newly
+reached axis omitted by the initial physical roster. It retains held positions.
+Native loop must supply the exact expected frame count and independent byte
+admission; no raw source gets to choose its own limits.
+
+One canonical GLBPTR01 payload carries source_tick, frame_count, orderedaxes
+and positions. Decode preflights length, frame/byte bounds, uniqueordered axes,
+range, clockoverflow and trailingbytes before retaining sample data.
+Begin/encode/decode reserve bounded buffers explicitly. Frame count derives
+from actual recorded position length; the redundant running count was removed
+during local author inspection. Exact axis lookup uses the ordered physical
+roster, not a semantic index or decision heuristic. Transient raw and encoded
+buffers still overlap during encoding; do not claim allocator-zero-copy.
+
+Clock naming corrected before integration: source_tick is the original
+postcognitive impulse's epoch; pending owner producer_tick is the later
+completed organism successor. This codec never advances either clock.
+The first captured position is the impulse successor, then actual passive
+steps. Do not include the earlier external guide again.
+
+Remaining SAME candidate work (not a new attempt): register/invoke capture in
+the existing renderer, move the compact result into ordinary source receipts,
+expand once via the full four-port source adapter with validated zero-load
+witness, preserve metadata through native/Python, admit compact custody through
+existing pending return and cold restore, then freeze/review the complete
+candidate before any compile/test. Unchanged core33adbb85/runtimeb5a7cab1,
+all prior live and restart successes remain closed. No production action.
