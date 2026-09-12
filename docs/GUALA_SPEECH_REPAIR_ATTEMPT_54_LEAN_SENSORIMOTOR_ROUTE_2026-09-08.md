@@ -1,27 +1,28 @@
 # Guala speech repair Attempt 54 — complete design verification and lean sensorimotor route
 
-## Current resume point — 2026-09-12, C129 newest-CURRENT release path PASS
+## Current resume point — 2026-09-12, C129 cutover dry run PASS; controlled cutover next
 
-**Speech is not fixed. Full AE goal ACTIVE.** Live remains task1457/
-41d3db93/image80755ca0. Latest read-only AWS10:34:22.123652UTC:1/1/0,
-CPU/RAM/EFS/refusal alarmsOK; historicalclock-stalledALARM remains.
-Browser CLOSED/caretakerSTOP; no production mutation in this slice.
+**Speech is not fixed. Full AE goal ACTIVE.** Source production remains
+task1457/41d3db93/image80755ca0 until D122172 records otherwise.
+Browser CLOSED/caretakerSTOP. No sourcework/newphysiology remains for this slice.
+Current local and exact-image gates S122165/S122169 PASSED:
+actual startup/migration,quiet8,cue4000,twofour-controlacts/breath/sound,
+self-hearing,pairedsave,coldrestore,FULLbody/world/causalevidence next exact.
+Six focused checks S158 and older savedbody S159 stay CLOSED.
 
-Single next item R122166: ONE bounded immutable image build from already verified
-source package bad5eeb907f61e1c59248ed731914de812b1a1d3.
-Do not substitute later ledger-only HEAD for this package's image revision.
-Local release path on newest captured CURRENT669708 PASSED S122165:
-actual startup/migration -> quiet8 -> one4000sample cue -> four-control
-MIN669719/MAX669720, breath/sound each ->24000selfheard -> paired save ->
-cold restore -> exact full body/world/causal next669726.
-No new physics, first-word or live-speech claim. Tail8 residual pressure unchanged.
-Source5c8dcd03/C126+C129, ordinary native06c374fd. Six focused checks S122158,
-older saved-body exact proof S122159 and217-file package S122161 remain CLOSED.
-New capture/pass evidence backed up with hash verification:
- /mnt/tfebackup/guala-c118-four-posture.XehvEs/c129-current-release.59nFXh/.
-Latest resultSHA19a9daff; source archiveSHA0ab6fccb.
-Exact-image proof, final backup, zero-writer cutover and live verification remain.
-Earlier C126 proof and rejected C127/C128 diagnostics retained, not reopened.
+Candidateimagefd6e44defbc83a305a52229822c9f77155d0a640c8ffa8a7dc00265d7d1fec77
+(sourcepackagebad5eeb907f61e1c59248ed731914de812b1a1d3) built ONCE,
+image-nativecebdfaca, pushed/pulled exactECR; no diagnosticAPI/oldPython shell.
+Actual controller dryrun37744exit0 PASS S122171, source1457/live670179;
+fullbackup670092/archive db940f29 authenticated. Image and fullproof/backup at
+/mnt/tfebackup/guala-c118-four-posture.XehvEs/c129-current-release.59nFXh/.
+Ownedbuilder/inertrehearsal removed; no orphanbuild/runtime left.
+
+Single next item D122172: SAMEcontroller --cutover, sameimage/samebackup,
+one registration, exactsourceSTOPPED/exit0/shutdownreceipt/zero writers,
+then candidate startup from realfinalCURRENT and live verification.
+No automatic old rollback afterGLCOG046 migration. Continuityhealth is not
+speech acceptance; recognizable word, quantitative learning and fullAE remain.
 
 The earlier live-lesson status below is HISTORICAL context, not the resume point.
 
@@ -18860,3 +18861,36 @@ Keep clean/pushed beforecontroller. No trainedcopy imported; candidate restores
 oldwriter'sfinalCURRENT after exactSTOPPED/exit0/shutdownreceipt/zerowriters.
 One-wayGLCOG046 rule: oldartifact cannot readsuccessor, no automaticoldrollback.
 Livevocalverification remainsaftercontinuityhealth; neither is speechcomplete.
+
+
+### S-054-122-171 — actual controller dry run PASS
+
+Session37744exit0, mode--dry-run/cloud_writesfalse. Authenticated fullbackup
+db940f29/tick670092; actualECRmanifestfd6e44de and localimmutableimage exact;
+imagecommitbad5eeb9 exists, controller85f1ac18 differs onlyAttempt54ledger.
+Source1457/41d3db93 remains one settled writer; observedlive670179; current
+identity/hash/custody valid. Exacttaskdefinition env/resources/mount and local
+AWS registration skeleton passed. No cloudregistration/service mutation.
+This is the complete current cutover-only controller dryrun, not an oldhelper.
+
+Temporaryownedtestcontainer72347f8c (onlysleep) andbuildcontainer7973382d/
+builderguala-c129-bad5eeb9 removed after imageexport/proofbackup. Existing
+developmentcontainer/imagearchives leftintact. Cleanup observer initially used
+docker top -eo comm; Docker needs PID in ps output and refused BEFORE deletion.
+Reused already-proven -eo pid,ppid,comm,args, verified identities/inertsleep,
+then removed onlyownedresources successfully. Toolobserver failure, not test,
+image or organism failure; preserve PID in allfuture docker top projections.
+
+### D-054-122-172 — one controlled C129 cutover authorized by passed release gates
+
+S122171 predecessorclosed. Execute SAME command through bash, replacing
+--dry-run with--cutover, imagefd6e44de and
+/tmp/guala-c129-final-backup.ide9O9/current.zip.
+No new native/Python/UI edit. Controller re-resolves current service/environment
+before drain and authenticates actual finalsourceCURRENT on candidate startup.
+Brief zero-writer interval is deliberate only within this already-authorized
+cutover. On error follow controller's exact failedclosed state; do not improvise
+rollback, secondactor, oldschema restore or a new registration. Record all
+attempt/failure/success events including sourcefinaltick and realcandidateARN.
+SpeechNOTfixed; fullAEgoalACTIVE. Livevocalconsequence verification follows
+continuityhealth and must not be inferred from AWS green checks.
