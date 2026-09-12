@@ -15775,3 +15775,66 @@ do not invert equilibrium into a supposedly sufficient one-shot dose, add a
 cognitive sequence/pose controller, change recovery constants, or repeat the
 already-grown edge lessons. This result closes the single-impulse discriminator,
 not speech or the full AE goal.
+
+### S-054-122-110 — current callers have no intra-block motor-drive path
+
+2026-09-12. Continues R122107/D12240 after completed S122109.
+Previous goal turn classification: PROGRESS (measured impulse ranges changed
+the next action). Validated root/HEAD7db909377463e36d49ba3cf1354f8408e8421f40;
+clean executable tree. No new body run, compile, test, lesson or deployment.
+Read current body/acoustic/runtime/cochlear callers and prior S05422/23,
+S79B01 and C79 chronology. Existing independent reviewer confirms this trace.
+
+| Input -> process -> output | Exact source boundary | Timing fact |
+| --- | --- | --- |
+| External vocal guide -> admitted tissue drive -> moved body + proprioception | organism_runtime.rs advance_admitted_intervals_unsealed:3555 | one1ms drive before coexisting transition |
+| Native cognitive transition -> motor recruitments | resident_cognitive_formation.rs MotorUnitRecruitment:1697 | terminal, total carriers, causal provenance; NO subinterval motor timestamp |
+| Recruitments -> per-terminal carrier sums -> tissue | organism_runtime.rs settle_motor_recruitments_into_articulated_body:5097 | one1ms settlement, not a stream |
+| Coexisting sources -> cognition -> tissue -> acoustic successor | organism_runtime.rs:4052/4089/4140 | one cognitive transition; acoustic duration follows longest source |
+| Vestibular path -> tissue -> acoustics | organism_runtime.rs:4489/4510 | also one aggregate drive, then full source span |
+| Retained body/respiratory work -> successive16kHz samples | virtual_articulatory_body.rs:275 | subsequent1ms body settlements have QUIESCENT drives only |
+| Production hearing/world source -> common time domain | guala_cochlea.py one_self_hearing_hop; lean_physical_loop.py:129/143/156 |4000samples/250ms, shorter PCM zero-padded; external/native output share outer boundary |
+| Test-only multi-span composition | virtual_articulatory_body.rs settle_physical_transducer_interval_discharges |cfg(test), not a hidden production alternative |
+
+Thus NO existing producer is emitting a time-resolved motor schedule that the
+wrapper merely drops. The timing is absent upstream as well. A new guide schema
+alone cannot make learned recall sustain movement; preserving guided movement
+alone would repeat the external-control-versus-learned-output mistake.
+Similarly, shortening only the audio buffer does not supply genuine repeated
+motor discharge, dosage, sensory return or learning.
+
+S79B01 remains a VALID repair: positions must evolve with their activation
+while sound is rendered. Reverting to frozen positions is rejected. S122109
+does NOT justify changing the32ms material constants or converting excess
+stalled carriers into newly retained work without a ratified physical law.
+S05423 small-drive success remains valid; it proved a real movement/return,
+not the accepted whole-word trajectory. No return to the one-carrier versus
+1500-carrier tuning loop.
+
+The supported engineering conclusion is a missing time-resolved sensorimotor
+integration path, NOT a new claim that memory rejects the live lessons.
+Current learned268e->269c, native work transfer, breath, self-hearing and ordered
+laptop delivery remain preserved at their recorded evidence levels.
+
+Recommended correction direction (PROPOSAL, no executable change authorized
+by this paragraph): separate transport batching from native causal action
+boundaries, so genuine new motor discharge can affect the body while pressure
+continues. Both tutor input AND autonomous learned output must cross the same
+body settlement law with exact source/local clocks, finite work, sensory
+return and restart continuity. No body target/controller/word sequence inside
+Guala, no repeated full-brain or repeated full-field evaluation per audio sample,
+no source truncation/relabeling of observation duration as membrane duration.
+The definitive neuron model explicitly keeps those two clocks distinct.
+Do not claim the complete design or its compute bound is already known.
+
+Single next item: complete that native timing integration contract against the
+existing source/native/reached-frontier boundaries, with C1 review requested.
+A frozen source/field/work/return/persistence map must identify whether a
+bounded existing path can serve it before coding. Acceptance stays a taught
+sound-only cue leading to recognizable body-owned output heard byJoe and clean
+stop, preserving identity/learned state—not an externally controlled recording.
+
+Read-only command fumble: guessed lean_sensorimotor_route.rs directly under
+src; rg exited2 for that nonexistent path. Resolved actual nested source via
+rg --files: resident_cognitive_formation/lean_sensorimotor_route.rs.
+No test/build occurred; preserve error as another path-preflight recurrence.
