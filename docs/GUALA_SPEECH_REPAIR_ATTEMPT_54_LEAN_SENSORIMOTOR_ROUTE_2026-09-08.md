@@ -17794,3 +17794,130 @@ no heap serialization, no erased phase. Freeze smallest physical-custody
 correction and source-review before another complete acceptance run.
 Direct-control source and these successes stay preserved. Full goal ACTIVE,
 production still1457; speech not fixed; no deployment attempt made here.
+
+### R-054-122-147 — restart repair causal/lifecycle contract; no repeat assay
+
+2026-09-12. Previous turn PROGRESS: ordinary126 saved-body path exercised,
+receipts488f0179 and sharedb3354bc2. Current root488f0179 initially clean.
+Single active item is the measured warm/cold discrepancy F122130/S122132,
+not another word lesson or revision of approved acoustic anatomy.
+C126 motor/work/breath/self-hearing comparisons S122146 remain preserved.
+
+NEW SOURCE EVIDENCE CHANGES THE REQUIRED IMPLEMENTATION:
+- scheduler326 CausalEventResidency calls recovery fractions disposable and
+  explicitly forfeits less than one carrier per neuron at cold restore.
+  They affect successors and are physical state, not discardable bookkeeping.
+- runtime snapshot1247/5332 -> build_checkpoint1268 -> encode_fabric7682 ->
+  restore_cognitive_state7745/restore_envelope3270 never carries residency.
+  Warm adoption3734 preserves it, while cold restore initializesNone.
+- failed direct3314/4301 and unsealed3622/4390 paths, abort3850, rollback3887,
+  discard4949 clear residency while recovering cognitive state. prepare_typed
+  4742/4750 also advances it before acceptance. Therefore an envelope-only
+  copy fixes neither failed preparation nor topology change.
+- core20294 shape rebuild resets recovery phases and integration times;
+  merely equal vector lengths do not prove stable participant identity.
+- core24059 warm raw-Ohmic shortcut differs from fullstanding authority used
+  at reconstruction193xx. A saved clock alone cannot make those equivalent.
+- core20216-20232 returns BEFORE reconstructing cold schedules. Seedless cold
+  execution therefore never rebuilds; warm future-only events also return
+  before reaching the documented future-event skip. The fabric-contact-count
+  shortcut can suppress cohort-local contacts and passive recovery too.
+  Independent source review confirms all these paths; no run/experiment used.
+
+CANDIDATE127 IMPLEMENTATION CONTRACT:
+Requested architecture: same physical continuation under warm execution,
+snapshot/cold restore, failed prepare, abort and topology growth.
+ConflictYES: physical progress lives in disposable runtime residency.
+Do not extend raw-Ohmic permission, heap persistence, zero-on-every-restore,
+checkpoint-driven physiology, legacy shell, semantic memory or new voice organs.
+FullL0-L4/DSF unchanged; no reduced field and no lost field structure.
+
+One canonical PhysicalEventProgress component in ResidentCognitiveFormationState
+owns event_clock, stable-neuron recovery fraction+last-integration clock, and
+stable-bond last-integration clock. Contact carrier/work fractions remain in
+their EXISTING contact states; do not duplicate them. Stable bonds include both
+full128-bit endpoint lineages AND32-bit parallel ordinal. No content hash or
+Chi identity substitute. Remove these authoritative arrays/clock from
+CausalEventResidency; runtime retains only derived schedules/topology indexing.
+
+Hot successor updates touch reached identities only. Use exact path-copying
+storage for stable keys (same native structural method already used for
+SettledFractalCustody), not clone-whole BTreeMap/Vec per interval or an added
+history. One current entry per mounted neuron/contact, O(N+E) residency;
+snapshot shares roots, updates copy bounded key paths, codec emits sorted
+flat records, never tree/heap implementation bytes. No new dependency.
+Key width16bytes/neuron,36bytes/bond; recovery fraction is existing signed128/
+unsigned128 exact representation. Declared serialized upper layout bound:
+24 +56*N +44*E bytes (event clock+two counts+fixed per-identity fields).
+Allocator/path-copy peak must be measured, not inferred from encoded length.
+No per-sample calls, locks, timer process, source roster or field changes.
+
+Transaction: clone/share progress with the owned cognitive predecessor and
+mutate only prepared successor. Existing try_into_successor/admission commits
+it with the same cognitive/body transition. All failures/discards restore
+that predecessor; clearing derived residency loses no physical state.
+Snapshot/encode/observation perform NO physical catch-up or charge transport.
+Checkpoint adoption must retain any newer unsealed state, as it already does.
+Growth preserves exact old identity entries; initialize only genuinely new
+participants at the pre-growth physical clock, never age newborns backward.
+Current-format missing/foreign/duplicate/noncanonical entries refuse; topology
+rebuild is not permission to reset old identities.
+
+Derived-schedule repair: reconstruct before no-work early return. No-work is
+no locally_settled_lineages AND no contact/recovery events, not no fabric
+contacts or no immediately-due events. Preserve local-settlement meaning,
+not an external-only surrogate. Keep existing earliest-future event skip.
+Add O(1) earliest-due read from heap root/next-clock frontier; remove two whole
+scheduled_dues scans on this path. Preserve existing deterministic drain order.
+Warm rescheduling uses the SAME full standing_contact_current law as cold/wake,
+retiring raw-Ohmic recheck permission. This is an explicit scheduling correction,
+not a claim warm successors can remain identical to the broken predecessor.
+Rebuild next crossing from retained fraction and its last-integration clock;
+do not rebase to now. Checked clock arithmetic throughout.
+
+Codec boundary: GLORUN01 -> GLMFAB11 -> currentGLCOG045 becomes GLCOG046.
+Append canonical physical progress to cognitive format; current-only ordinary
+decode. Explicit authenticated V45 migration initializes progress ONCE from
+the known persisted predecessor cold boundary; zero absent recovery fractions
+and predecessor cognitive clock are initialization, not recovered history.
+Older bytes never contained that history. Record this limitation and do NOT
+describe it as restoring lost phases. Preserve all already-saved neurons,
+learned contacts, body pose, proprioception, frontiers and acoustic pressure.
+encoded_has_current_body_observation / encoded_has_corrected_articulated_pose
+must continue treatingV45 as already corrected: a version change must not
+rerun old pose, sensory or learned-route migrations. Backup before live
+one-way cutover; old binary cannot readV46; rollback must use paired old backup,
+not reinterpret new state. No live migration authorized by this local contract
+alone; ordinary release safeguards remain.
+
+Bounded file map: causal_event_scheduler.rs plus physical-progress module;
+resident_cognitive_formation.rs threading/codec/growth/reconstruction;
+organism_runtime.rs only necessary version/lifecycle tests/admission parity.
+No complete_neuron equations/DSF/source roster/acoustic126/curriculum/UI edits.
+Avoid a generic framework beyond the two exact physical key/value types.
+Runtime/progress bounds must include new immutable roots and transactional
+paths; do not claim zero bytes for previously unpersisted physical state.
+
+Frozen proof map BEFORE RUNNING:
+1.Source review of whole frozen implementation: exact producer -> retained
+  cognitive successor -> snapshot ->V46codec ->cold/abort/growth -> next
+  physical interval. No heap, duplicated state, stale raw rule or early return.
+2.Focused physical/progress/codec tests: future-only seedless warm/cold,
+  local-contact-only/recovery-only, exact fractions/clocks, parallel bonds,
+  rollback/discard, growth preserving old state, zero-work no events, O(1) due.
+  No new acoustic tests or saturated teaching comparisons.
+3.ONE saved authentic mature body path under ordinary artifact, migrated once
+  into126+127: same input on warm/cold branches, full canonical next body/world
+  equality, same action/self-hearing evidence, resource/AWS brackets. First
+  divergence localizes a failed assertion, not permission for another campaign.
+  Existing predecessor artifact comparison is already measured—do not rerun
+  its full lessons to prove the known omission again.
+4.Current production copy/startup/one-way backup/deployment review/live proof
+  remain required for release. No local pass equals recognizable speech.
+Latent preparation, longer clean-stop and learned quantitative sound acceptance
+remain literal open requirements; this repair does not replace them.
+
+Independent bounded lifecycle/reconstruction review completed, no architectural
+objection to these corrections. No source implementation, build, test, lesson,
+production write or fresh AWS health claim occurred in this source-only turn.
+Next action is implementation of this single contract, not another audit.
