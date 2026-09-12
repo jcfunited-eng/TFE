@@ -10355,3 +10355,31 @@ Prior vocal success preserved: MIN663383/MAX663384, four acoustic motors each, b
 Resource truth:17intervals21.358s vs prior18.928s, NOT controlled comparison and no speedup claim. Two-runtime comparison peak2,673,460KiB; migration adds873972encodedbytes. Exact addressing remains mechanical, not semantic cognition; its cost is not excused by correct output. Long-run resource closure remains required. Full raw body/world/cue/result/artifact/caller backup24MiB at /mnt/tfebackup/guala-c118-four-posture.XehvEs/c129-exact-continuation.1QRG26; resultSHA6ce4f46423482cee7a8f799203654c4a288d6005408a59d996b0afd986d1f546.
 
 AWS bracket10:11:35.567111/10:13:13.554653UTC production1457/41d3db93/image80755ca0/1/1/0 unchanged. Resource/storage/refusal alarmsOK, oldclockALARM persists. Browserclosed/caretakerSTOP. Nothing deployed. Next SINGLE item: newestCURRENT release-readiness for this same slice, startup/explicit migration/one-way backup/resource controls. No repeated voice-law campaign and no cloud cutover before current-body gate. Full AE goal ACTIVE, speech NOT fixed.
+
+
+## SOL — 2026-09-12 C129 newest CURRENT release gate PASSED; image build next
+
+Canonical Attempt54 S122161-165/R122166, commit71c45e91 PUSHED on
+sol/speech-existing-organ. SPEECH NOT FIXED; live remains1457/41d3db93/
+image80755ca0, no production mutation; browserCLOSED/caretakerSTOP.
+New current capture669708/body179cffc2 authenticated, not an old fixture.
+Real production startup/migration preserved identity/tick/world; baseline8quiet,
+one4000sample cue, fourMIN669719/fourMAX669720, breath and nonzero pressure
+EACH,24000selfheard. Actual pairedsave/coldrestart/ordinarynext669726:
+FULLbody/world/causalevidence EXACT. Result19a9daff, backedup with capture and
+release package at /mnt/tfebackup/guala-c118-four-posture.XehvEs/c129-current-release.59nFXh/.
+Two-runtime peakRSS2706060KiB, first17intervals20.8767s; no speedup/prodpeakclaim.
+Tail8 stillpressure per oldproof, not a new silence gate or recognizableword.
+Source5c8dcd03/native06c374fd unchanged; all earlier126/129 passes preserved.
+
+Manifestmissing2modules corrected, ordinarypackageverified217files;
+all67compilerinputs matchstagedbytes. Packagecommit
+bad5eeb907f61e1c59248ed731914de812b1a1d3 (NOT laterledgerHEAD),
+archive0ab6fccb. Independentreadinessreview agrees no newphysiologytests
+before imagebuild. CurrentDockerfile is dsf_ai_service/Dockerfile, NOT
+retiredDockerfile.lean. Runtime closure excludes oldshell.
+ONE local build started 2026-09-12T10:39:03Z, exactsession76976,
+localtagguala-c129:bad5eeb9, builderguala-c129-bad5eeb9.
+Builderactualbounds verified4CPU/16GiB/noextraSwap/restartno, nohostorEFSbinds.
+No newcloudimage/task/cutover yet. Exact-image proof, final backup,
+zero-writer cutover and liveverification still required. FullAEgoalACTIVE.
