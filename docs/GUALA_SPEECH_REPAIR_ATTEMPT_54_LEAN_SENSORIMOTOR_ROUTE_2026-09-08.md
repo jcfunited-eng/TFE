@@ -22220,3 +22220,16 @@ No additionalguide/tutoring/nativeevent or release was executed.
 Files joe-hearing-pressure-head.json and joe-hearing-held-0..3.json in release
 folder retain rawPCMbase64 without terminaltruncation. Audio does not replace
 H122247's missing compactfeedbackconsumption witness. CaretakerSTOP unchanged.
+
+### O-054-122-249 — unanswered card attempts; actual UI requirement checked
+
+Joe reports trying a couple of cards with no response. Do not label that
+successful interaction. Current served-page SHA8faa6ba2 matches source:
+choosing a card only displays it; Present with my voice refuses unless
+audioStream exists, then submits card-microphone on the next captured block.
+If microphone stayedOFF from our prior controlled-check instructions, no card
+was delivered by that button. This is conditional, not an assumption about Joe.
+Asked which status appeared under the card; no further user action required yet.
+One readonly snapshot live678559/persisted678532 shows unattended/noexternalinput,
+no custodyerrors; latest-only projection cannot establish earlier carddelivery.
+No new lesson, voicechange, restart or caretakerresume. Pending H122247 unchanged.
