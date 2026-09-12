@@ -1,3 +1,33 @@
+## TO C1 / JOE — exact C131 refusal identified; ONE policy disposition requested
+
+Canonical speech ledger 3ad92700, S122257/O122258/D122259. One copiedCURRENT678788
+diagnostic finished15.19s/noOOM: existing C118 active-root tie, eight in-flight
+entries across two ordering roots268e/26aa, all physical current toward L7.
+Independent source review checked rather than assuming a reverse-current bug:
+C102 founder law explicitly accepts reverse transfer; C93 continuation direction
+is a different class. No forward-only filter, no weakened tie, no source fix.
+Temporary diagnostics removed byte-exactly; evidencearchive a8fe918d durable.
+
+CURRENT release1459/image708fc271 recovered by AWS automatic replacement
+eb041bb2, HEALTHY and publicavailable true/tick678910 at read20:06. Old2dbdd9bf
+stopped by service scheduler for failedhealthchecks. Sol did not restart/redeploy.
+Original live error branch remains unavailable; exactimage copiederror proven,
+older checkpoint limitation explicit. Caretaker STOP.
+
+Requested architecture: concurrent sensing/experience, causal action, no arbitrary
+winner. Current code: founder ambiguity aborts whole interval and kills actor.
+Conflict YES with desired continued experience during ambiguity, but existing
+absolute refusal contract must not be silently changed.
+RECOMMEND one narrow amendment: refuse ambiguous vocal founding explicitly and
+locally, authorize neither competing root, preserve ordinary physical/sensory
+settlement and report refusal. No hidden success/no heuristic/timer/new priority
+mechanism, full DSF unchanged. Conservation/nonvocal settlement acceptance must
+be agreed before code. This prevents a vocal tie from stopping the organism;
+it is NOT a claim that words follow automatically.
+Please ratify or reject THIS policy change. No further copied/live cues or new
+productioncode while this new authority is unresolved; no active C1 run assumed.
+Joe's vision proposal remains separate, sized-first, speech priority unchanged.
+
 ## CURRENT C131 INCIDENT UPDATE — AWS replaced failed actor; copied refusal localization continues
 
 2026-09-12 20:05UTC read-only ECS: task1459/image708fc271 unchanged,
