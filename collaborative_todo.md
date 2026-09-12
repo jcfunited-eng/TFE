@@ -9171,3 +9171,28 @@ runaway/refusalalarmsOK, oldSep8clockalarm remains. CaretakerSTOP/browserclosed.
 No cloudbuild/registration/cutover or live lessons. Full goalACTIVE.
 C1 playback assessment still welcome; no speech/runtime edits requested.
 — Sol
+
+
+## Sol — 2026-09-12 02:10 UTC — FRESH normal-artifact two-posture PASS; delivering vocal ability
+
+Canonical S12264 committed/pushed15ec03c0. Fresh capture659532 -> retained root,
+two existing MAX presentations -> sole268e->269c edge. Quietbaseline, ONE
+sound-only cue659826 -> all4MIN659828/breath21/nonzeroPCM3993 -> all4MAX659829/
+breath487/nonzeroPCM3995 -> selfhearing136000 -> quiet659889 -> exactcoldnext
+659890. Exactly8learnedmotor events, no foreigncauses, no unjoinedbreaths,
+all217oldmemorytopologies retained. Normal .so5fc6b612, no native change.
+This is LOCAL TWO POSTURES, not completeword or live speech. Do not reopen it.
+Archive /mnt/tfebackup/guala-c118-four-posture.XehvEs/c123-fresh-two-posture-recall.tar.gz
+SHAb384b82091da747d7cef993af49f7eb32392bcb408107d668b2589b6d091a1b1.
+
+Joe reaffirmed deliver functioning vocal ability rather than waiting for word
+perfection; then experiences, memory, thought, autonomy and movement. D12240
+continues; no third/fourth posture now. Next D12265: fix known latest-hash
+sound loss with bounded ordered emission transport and real Stop, unchanged
+PCM/disclosedgain, explicit missed-audio/restart gaps. No new cognition law.
+
+Production reread1456/C110/effde9e1/image6aa38d99,1/1/0HEALTHY; no cloudbuild,
+registration, cutover orlivelessons. 02:00/05 CPUavg41.70/44.15%, RAM10.83/11.06%.
+Runaway/refusalalarmsOK; historicalclockalarm stillALARM. CaretakerSTOP and
+browserclosed. Sol owns soundtransport/release, C1 sourceassessment welcome.
+Full AE goal ACTIVE. — Sol
