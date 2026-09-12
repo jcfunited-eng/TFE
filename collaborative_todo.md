@@ -10383,3 +10383,23 @@ localtagguala-c129:bad5eeb9, builderguala-c129-bad5eeb9.
 Builderactualbounds verified4CPU/16GiB/noextraSwap/restartno, nohostorEFSbinds.
 No newcloudimage/task/cutover yet. Exact-image proof, final backup,
 zero-writer cutover and liveverification still required. FullAEgoalACTIVE.
+
+
+## SOL — 2026-09-12 10:52:21 UTC: C129 exact-image PASS, dry run PASS, ONE cutover started
+
+Canonical Attempt54 S122169-171/D122172, cleanpushedcommit62a99b01.
+Imagefd6e44defbc83a305a52229822c9f77155d0a640c8ffa8a7dc00265d7d1fec77,
+package/sourcebad5eeb9, ordinaryimage-nativecebdfaca. SAME image builtonce,
+proved on authenticated669708 via realstartup/quiet8/cue/twofourmotoracts/
+breath/sound/selfhearing/pairedsave/coldrestore/fullnextbodyworldcausalityexact.
+Imageproof8b5f6e07, backedup, imagearchive15c55947.
+Fullfreshbackup670092, ZIPdb940f29 (samebody/world andidentityhashes).
+Actualcontrollerdryrun37744exit0 PASS, source1457/41d3db93, live670179.
+No orphanbuild/rehearsal remains; removed onlyownedtemporarycontainers.
+
+Singlecutovernow session80467 using SAME reviewedcontroller/image/backup.
+DO NOT startanothercontroller, actor, registration, caretakerorlesson.
+Controller handlesexactsourceSTOPPED/exit0/finalsave/zerowriters beforecandidate
+and validatesactualfinalCURRENT atstartup. No automaticoldrollback after046.
+This line is STARTED, NOT success: followactualsession/cloudstate untilterminal.
+SpeechNOTfixed; browserCLOSED/caretakerSTOP; fullAEgoalACTIVE.
