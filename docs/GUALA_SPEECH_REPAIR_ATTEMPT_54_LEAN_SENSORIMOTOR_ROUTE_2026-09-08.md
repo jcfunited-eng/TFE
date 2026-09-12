@@ -1,6 +1,6 @@
 # Guala speech repair Attempt 54 — complete design verification and lean sensorimotor route
 
-## Current resume point — 2026-09-12, Candidate126 copied-body path exercised
+## Current resume point — 2026-09-12, Candidate127 rejected; five supporting passes preserved
 
 **Speech is not fixed. Full AE goal ACTIVE.** Joe-approved reuse of the nine
 existing acoustic controls is implemented, source-reviewed and locally exercised.
@@ -16,10 +16,13 @@ Tail remains sounding at eight intervals, as it also did on the predecessor;
 not a newly discovered regression or proof it never stops. Earlier longer
 live tail S122106 is preserved, not reopened by this short observation.
 
-Single next item: correct the ALREADY measured predecessor cognitive warm/cold
-physical-state omission under a frozen source-reviewed contract before another
-full acceptance run. Do not rerun the failed assay to rediscover it, serialize
-the scheduler heap, discard fractional state, or reopen direct-control anatomy.
+Single active item: physical restart custody, continuing R122147. Candidate127
+compiled and passed five supporting tests, but the recovery-only physical test
+exposed a missed finalization branch (S/H/F122150). Candidate127 is rejected,
+not deployable; its source/results are preserved. No test condition weakened.
+The next contract amendment routes actual passive returns through common
+physical finalization even when contact selection is empty. Do not reopen126
+acoustics or repeat the five preserved custody/codec/scheduler checks unchanged.
 Latest AWS08:38:01.996800UTC same1457/task41d3db93/image80755ca0,1/1/0.
 Runaway/storage/refusal alarmsOK; historicalclock-stalledALARM persists.
 Caller/build terminal, no orphan. Browser CLOSED/caretakerSTOP; no live mutation.
@@ -17921,3 +17924,206 @@ Independent bounded lifecycle/reconstruction review completed, no architectural
 objection to these corrections. No source implementation, build, test, lesson,
 production write or fresh AWS health claim occurred in this source-only turn.
 Next action is implementation of this single contract, not another audit.
+
+
+### S/H-054-122-148 — Candidate127 implementation and focused proof sources; not yet compiled
+
+2026-09-12 09:14UTC. Continues R122147; predecessor126 proof488f0179 remains
+closed at its declared LOCAL level. Last conversational turn was coordination,
+not technical progress. This turn changes source and completes the next review
+input; no speech/deployment success claim. Production baseline remains last
+verified1457; no fresh AWS measurement or live mutation this source-only turn.
+
+IMPLEMENTATION:
+- physical_event_progress.rs: one current event clock, stable-lineage recovery
+  fraction/last clock and stable-bond last clock. Two fixed-key compressed
+  path-copy maps share roots on predecessor snapshots; no heap/history/schema
+  object is persisted. Canonical flat codec is24+56*N+44*E bytes. Exact measured
+  allocator/peak cost remains UNPROVEN until the declared native proof.
+- causal_event_scheduler.rs: derived schedule/topology only, O(1) earliest-due
+  read from heap root/immediate frontier. Removed obsolete documentation that
+  reads/seals advance physical accumulators. No new scheduling process.
+- resident_cognitive_formation.rs: progress travels with every cognitive
+  constructor/prepared successor; explicit growth admits only new stable
+  participants. Warm rescheduling now uses the same full standing-current law
+  as reconstruction. Cold reconstruction precedes no-work return; neither
+  future-only events nor cohort-local/recovery-only paths are excluded by
+  the old fabric-count condition. Clock increment uses retained physical clock.
+  CurrentGLCOG046; V45 entry is explicit, initializes only absent old progress,
+  retains prior pose/observation correction classification. Old lost fractions
+  are not recoverable and are NOT claimed recovered.
+- organism_runtime.rs: snapshots/abort/rollback naturally carry the cognitive
+  progress. The already scoped prepare_typed path required a transactional
+  derived-schedule take/return: on any preparation error the candidate schedule
+  is dropped; on success it follows the pending successor. The previous direct
+  borrow left a partially advanced schedule after late preparation failure.
+  No physics law, source roster or body organ change. Diff line count includes
+  indentation of that existing preparation body inside the error boundary.
+- tests.rs/reservoir_probe.rs: the13 direct test-only settlement callers now
+  supply the owning state's progress (or one retained fixture progress).
+  Historical explicit state literals name absent predecessor progress; no
+  production observer, lesson or diagnostic feature is enabled. Ten dormant
+  reservoir probe callers are signature-adapted, NOT re-executed or promoted.
+
+PRE-COMPILE SOURCE/EVIDENCE MAP:
+physical contact/recovery settlement -> PhysicalEventProgress in prepared
+ResidentCognitiveFormationState -> accepted cognitive successor ->
+snapshot_lived_state/build_checkpoint -> GLORUN01/GLMFAB11/GLCOG046 ->
+ordinary current decoder -> rebuilt derived schedules -> next exact interval.
+Reconstruction uses retained last-integration time, not generation or now.
+Contact fractions stay in existing contact state, not duplicated in progress.
+No FFI/public API field is needed for this internal byte-equivalence proof:
+full checkpoint/body bytes plus ordinary returned evidence are its consumers.
+Progress itself is backend-only; it is NOT a new UI cognition claim.
+Existing one-way backup/startup/current-body/live verification gates remain
+required before any release. No changes to L0-L4/full fields,126acoustics,
+tutoring, UI, semantic rules, neuron equations or the active source roster.
+
+FOCUSED PROOF SOURCES NOW WRITTEN (UNRUN):
+causal_event_scheduler::tests::earliest_due_reads_heap_and_immediate_frontier
+resident_cognitive_formation::physical_event_progress::tests::
+  physical_progress_exact_codec_growth_and_discard
+  physical_progress_refuses_noncanonical_or_missing_custody
+resident_cognitive_formation::tests::
+  physical_progress_recovery_only_future_event_survives_cold_restore
+  physical_progress_zero_work_with_no_events_is_exact
+  physical_progress_v45_migration_and_local_contact_only_continuation
+  changed_endpoints_wake_exactly_their_incident_contacts (extended quiet tail)
+organism_runtime::tests::
+  scheduler_residency_follows_the_successor_lifecycle
+  physical_progress_survives_snapshot_abort_and_failed_prepare
+
+The codec tests preserve negative exact fractions, distinguish parallel bonds,
+verify bounded flat bytes, forbid malformed/future/duplicate/missing records,
+share snapshot roots, and preserve old identities across growth. Physical
+fixtures explicitly exercise no-fabric recovery, future-only/no-input advance,
+local-cohort contacts, and no-work idle. They are supporting fixtures, never
+claims about live teaching. The existing quiet-tail path compares full neuron,
+fluid, contact and progress successors warm versus cold. Runtime check follows
+snapshot/codec -> abort -> late prepare overflow -> next ordinary physical step.
+Old historical broad tests are NOT claimed run or green. No broad suite planned.
+
+PREFLIGHT/FUMBLE RECORD, WITH SUCCESSES KEPT:
+Prior staged edit guards refused expected2-vs-actual5 topology occurrences and
+expected5-vs-actual4 recovery assignments before any write; exact blocks then
+read and edited. This turn found the unconverted multiline event-clock
+reference before compile. Full-core read via exec_command was output-limited;
+disk/store equality guard refused before edits. Full-file apply_patch exact
+context subsequently matched. Do not diagnose truncated tool output as a
+worktree mismatch; use bounded chunks or full-file patch matching.
+Two avoidable read-path mistakes recurred: nonexistent
+local_gradient_membrane_gate.rs and unmatched resident_reached* glob. Both
+rg invocations returned exit2; no compile/test/organism failure occurred.
+Mechanical rule: searches for a symbol start at the already verified src
+directory; add a new file argument ONLY after rg --files resolves it. Never
+include guessed companion filenames or unmatched globs. The actual sources
+complete_neuron.rs and reached_neuron_cohort.rs were then read. No erased
+success or redefined physical acceptance follows these command failures.
+New scheduler test method and contact-origin variant were resolved in source
+before applying the draft; actual names reschedule_from_clock and Local.
+
+git diff --check PASS. New module formatted; no compiler/test/harness started,
+no child process to babysit and no new resource/health claim.
+Frozen implementation review is the single next item. Its fingerprint is kept
+outside the frozen worktree until review finishes. Owner stops source edits
+during review. Review conditions remain localized-vs-architectural as in skill;
+only an approved frozen candidate may compile. Full AE goal ACTIVE.
+
+
+### S/H-054-122-149 — first source review; one localized historical-writer correction
+
+2026-09-12. Frozen0f086e4974fe5f11a311621231d2fe0bdb100628a4e7583fa449c277aaab3e82
+verified unchanged before and after independent review. No architectural
+rejection. Reviewer confirmed current physical custody/snapshots/codec/growth,
+cold/warm reconstruction, late-prepare schedule disposal and supporting fixture
+signatures. Resource bound accepted as layout only; peak still unmeasured.
+No compiler/test/organism run occurred during review.
+
+Localized finding: encode_with_format(V26), a historical test-fixture writer,
+still assumed its current encoder ended with only8 empty V45-leaf bytes.
+V46 appends progress; stripping8 could refuse for the wrong reason or emit
+malformed old bytes. Current production and named focused proofs do not select
+that writer. This is not a failed speech path.
+
+Single correction batch: production V26 writing now explicitly refuses;
+cfg(test) historical fixture writer accepts only absent progress at its declared
+generation, temporarily constructs canonical empty progress for encoding, strips
+that exact checked24+56N+44E suffix and the absent8byte leaf section, then emits
+its original V26 layout. It cannot discard lived fractions/clocks. No ordinary
+decode or persistence initializes progress during encoding. Original historical
+fixtures remain available without restoring an active compatibility surface.
+Added one narrowly scoped historical-fixture/refused-lived-downgrade test.
+No change to settlement, quantitative learning, acoustic controls or production.
+Final frozen localized source review is next; no compile before PASS.
+
+
+### S/H/F-054-122-150 — Candidate127 supporting passes, physical failure and required rejection
+
+2026-09-12 09:24UTC. Final localized source review PASS at
+022008abf0adbc7ac0dd52ef49d789db89f198b64e63de51cbe9f7d5911b98db,
+verified before/after; approval recorded sharedorigin02bdb880 before execution.
+No source edits occurred between approval, compilation and execution.
+Compile PASS26.55s,99warnings (not warning-free).
+Compiler-reported executable:
+native/guala_core/target/debug/deps/guala_core-0d59e23b299c9b83
+SHAc8849c4e94023388d4d5b9b4c1abb4e66e452c0c562f41eb19a1c7f2372c916c.
+Actual --list inventory verified exactly one occurrence of all10 named tests
+before running any. Each pass requires literal1passed/0failed and exit0.
+Runner stopped at first failure; no broad suite or copied-body run followed.
+
+PRESERVED SUCCESSES, never erase or re-litigate under a failed candidate label:
+1.physical_progress_exact_codec_growth_and_discard PASS0.0033s:
+  stable fractions/parallel bonds, exact codec, snapshot-root sharing, discarded
+  updates leave predecessor exact, growth preserves existing identities.
+2.physical_progress_refuses_noncanonical_or_missing_custody PASS0.0096s:
+  absent/truncated/foreign/duplicate/future/noncanonical/fraction records refuse.
+3.physical_progress_historical_fixture_writer_cannot_downgrade_lived_progress
+  PASS0.0032s: historical writer correction works; lived downgrade refused.
+4.earliest_due_reads_heap_and_immediate_frontier PASS0.0026s.
+5.physical_progress_zero_work_with_no_events_is_exact PASS0.0034s.
+These are support-boundary proofs, not speech or complete restart acceptance.
+
+FIRST PHYSICAL TEST:
+physical_progress_recovery_only_future_event_survives_cold_restore FAILED
+exit101 at tests.rs10878: expected returned lineage
+474c4e4c494e4531000000000000006a; observed[].
+Before that assertion the test DID prove: genuine future due>1; physical clock
+advanced to that exact due; warm/cold cohort/neuron/fluid, fabric and progress
+were equal. The final charge-displacement assertion did NOT execute.
+The last4 named tests were NOT run. No conclusion is drawn about their outcome.
+
+SOURCE-VERIFIED CAUSE, NOT A RETUNING OR NEW SPEECH HYPOTHESIS:
+core20755 selected.is_empty return runs AFTER passive-return settlement but
+before the common wake/recovery finalization. Selected contains external/local
+seeds, contact endpoints and prepared terminals, not an isolated passive return.
+The return replaces the accumulated returned-neuron/predecessor evidence with
+empty vectors/maps and bypasses subsequent recovery scheduling. An empty contact
+selection does not mean no physical event happened.
+Independent bounded source review CONFIRMS architectural rejection is required:
+a newly reachable accepted transition loses causal evidence and continuation.
+Both owner and prior independent source review missed this downstream return.
+No thermal-refusal explanation is proved, and no such diagnosis is adopted.
+Warm/cold equality at one boundary is insufficient if both drop later work.
+
+Required action under frozen-candidate skill: archive the complete127 source
+and results, restore accepted126 executable source, amend the contract before
+new implementation. Preserve all5 successes and original126 successes.
+Do not weaken the failed assertion, fabricate external seeds for recovered
+neurons, pump to manufacture activity, or duplicate physical settlement.
+Smallest amendment: actual passive-return settlement always reaches the shared
+physical finalization path, retains its actual predecessor/returned-lineage
+evidence, and schedules subsequent recovery from that accepted successor,
+regardless of whether contact/DSF selection is empty. Read both intermediate
+empty-selection returns and the existing wake/reschedule tail as one bounded
+path before the successor implementation; no new law or voice anatomy needed.
+
+AWS brackets READ-ONLY:
+09:22:44.265773UTC before compile;09:24:29.188934UTC after stopped proof.
+Same1457/task41d3db93/image80755ca0,service1desired/1running/0pending.
+Latest CPUmax46.0459 then40.5309%;RAMmax11.1847 then10.5072%.
+RunawayCPU/memory/storage/refusal alarmsOK; historicalclockALARM persists.
+These are recent service metrics, not a native interval performance measure.
+Local compile/test processes terminal; post-run census finds no matching child
+or orphan. AvailablehostRAM beforecompile28.1GiB; no current127 runtime peak
+or native mature-body performance measured. CaretakerSTOP/browserclosed.
+No production mutation. Speech NOT fixed; full AE goalACTIVE.

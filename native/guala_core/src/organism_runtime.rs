@@ -1210,11 +1210,10 @@ struct ResidentOrganismRuntime {
     unsealed: Option<UnsealedResidentOrganismState>,
     pending: Option<PendingResidentOrganismState>,
     direct_predecessor: Option<UnacknowledgedDirectPredecessor>,
-    /// Runtime-resident derived event state of the causal scheduler.
-    /// Never encoded; rebuilt in one walk at cold restore (lazily, on the
-    /// first interval) and after growth; invalidated to None whenever a
-    /// prepared trajectory aborts so a stale schedule can never leak into
-    /// a live clock.
+    /// Derived schedules only. Exact fractions and integration clocks live in
+    /// the cognitive successor and therefore survive snapshots and rollback.
+    /// Rebuilt lazily after cold restore or topology change; invalidated on
+    /// trajectory abort so a discarded successor cannot leave stale due work.
     causal_event_residency:
         Option<crate::causal_event_scheduler::CausalEventResidency>,
     /// One prepared authored contact growth.  Like a feed it carries no
@@ -4702,189 +4701,196 @@ impl ResidentOrganismRuntime {
         {
             return Err(RuntimeError::PendingCandidateExists);
         }
-        let derived_budget = self.budget.derive()?;
-        let predecessor = self.active.observation.clone();
-        let organism_tick = predecessor
-            .organism_tick
-            .checked_add(1)
-            .ok_or(RuntimeError::OrganismTickOverflow)?;
-        let fabric_generation = predecessor
-            .fabric_generation
-            .checked_add(1)
-            .ok_or(RuntimeError::FabricGenerationOverflow)?;
-        let admitted_source_authority = source.joint_source_authority_receipt();
-        let receptor_ingress = observe_canonical_receptor_ingress(source);
-        let joint_state =
-            encode_empty_mounted_joint_state().map_err(RuntimeError::MountedTransition)?;
-        let (mounted, _) = restore_resident_mounted_state(
-            &joint_state,
-            derived_budget.max_joint_state_bytes,
-            derived_budget.max_joint_working_bytes,
-        )
-        .map_err(RuntimeError::MountedTransition)?;
-        let phase_counts = MountedTransitionPhaseCounts {
-            predecessor_authentication_count: 0,
-            predecessor_decode_count: 0,
-            predecessor_rebuilt_field_count: 0,
-            retained_neuron_index_entry_count: predecessor.complete_neuron_count,
-            reached_neuron_lookup_count: source.joint_source_ports().len(),
-            current_cohort_evaluation_count: source.joint_source_occurrences().len(),
-            successor_seal_count: 1,
-        };
-        let cognitive_budget = cognitive_budget_after_joint(joint_state.len(), self.budget)?;
-        let cognitive = match (vestibular, admitted_source) {
-            (Some(vestibular), None) => self
-                .active
-                .cognitive
-                .prepare_vestibular_transition_with_residency(
-                    vestibular,
-                    cognitive_budget,
-                    &mut self.causal_event_residency,
-                ),
-            (None, Some(admitted_source)) => self
-                .active
-                .cognitive
-                .prepare_admitted_transition_with_residency(
-                    admitted_source,
-                    cognitive_budget,
-                    &mut self.causal_event_residency,
-                    real_nutrition_intake_zeptojoules,
-                ),
-            (None, None) => self
-                .active
-                .cognitive
-                .prepare_bare_source(source, cognitive_budget),
-            (Some(_), Some(_)) => {
-                Err(crate::resident_cognitive_formation::FormationError::NoncanonicalState)
-            }
-        }
-        .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?;
-        let cognitive_state = self
-            .active
-            .cognitive
-            .encode_successor(&cognitive, cognitive_budget)
-            .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?;
-        let cognitive_observation = cognitive.observation().clone();
-        let motor_unit_recruitments = cognitive_observation.motor_unit_recruitments.clone();
-        let root_yaw_unit_recruitments =
-            cognitive_observation.root_yaw_unit_recruitments.clone();
-        let root_translation_unit_recruitments =
-            cognitive_observation.root_translation_unit_recruitments.clone();
-        let articulated_body_transition = settle_motor_recruitments_into_articulated_body(
-            &self.active.articulated_body,
-            &motor_unit_recruitments,
-        )?;
-        let body_proprioceptive_sources = body_proprioceptive_source(
-            predecessor.organism_tick,
-            &articulated_body_transition.proprioceptive_consequences,
-        )?
-        .map(|(_, receipt)| receipt)
-        .into_iter()
-        .collect();
-        let articulated_body_consequences = articulated_body_transition
-            .proprioceptive_consequences
-            .iter()
-            .copied()
-            .map(|consequence| TimedBodyProprioceptiveConsequence {
-                source_tick: predecessor.organism_tick,
-                consequence,
-            })
-            .collect();
-        let mut successor_articulated_body = articulated_body_transition.successor;
-        if initialize_articulated_body_proprioception {
-            successor_articulated_body.initialize_proprioception();
-        }
-        let articulatory_unit_recruitments =
-            cognitive_observation.articulatory_unit_recruitments.clone();
-        let successor_mounted_generation = cognitive_observation.cognitive_ordinal;
-        let transition = MountedJointDsfTransition {
-            joint_field_count: source.joint_source_occurrences().len(),
-            joint_neuron_count: 0,
-            l0_l4_evaluation_count: source.joint_source_occurrences().len(),
-            dsf_delivery_count: cognitive_observation.dsf_delivery_count,
-            recurrent_dsf_delivery_count: 0,
-            transition_receipt: None,
-            episode_relation_candidate_receipt: None,
-        };
-        let successor_vestibular = match vestibular {
-            Some(ingress) => ResidentVestibularBody {
-                anatomy: self.active.vestibular.anatomy.clone(),
-                canal: ingress.transduction().reached_tick.successor_canal,
-                source_tick: self
+        // The derived schedule follows only a completed preparation. Physical
+        // progress already belongs to the immutable cognitive predecessor.
+        let mut residency = self.causal_event_residency.take();
+        let prepared = (|| {
+            let derived_budget = self.budget.derive()?;
+            let predecessor = self.active.observation.clone();
+            let organism_tick = predecessor
+                .organism_tick
+                .checked_add(1)
+                .ok_or(RuntimeError::OrganismTickOverflow)?;
+            let fabric_generation = predecessor
+                .fabric_generation
+                .checked_add(1)
+                .ok_or(RuntimeError::FabricGenerationOverflow)?;
+            let admitted_source_authority = source.joint_source_authority_receipt();
+            let receptor_ingress = observe_canonical_receptor_ingress(source);
+            let joint_state =
+                encode_empty_mounted_joint_state().map_err(RuntimeError::MountedTransition)?;
+            let (mounted, _) = restore_resident_mounted_state(
+                &joint_state,
+                derived_budget.max_joint_state_bytes,
+                derived_budget.max_joint_working_bytes,
+            )
+            .map_err(RuntimeError::MountedTransition)?;
+            let phase_counts = MountedTransitionPhaseCounts {
+                predecessor_authentication_count: 0,
+                predecessor_decode_count: 0,
+                predecessor_rebuilt_field_count: 0,
+                retained_neuron_index_entry_count: predecessor.complete_neuron_count,
+                reached_neuron_lookup_count: source.joint_source_ports().len(),
+                current_cohort_evaluation_count: source.joint_source_occurrences().len(),
+                successor_seal_count: 1,
+            };
+            let cognitive_budget = cognitive_budget_after_joint(joint_state.len(), self.budget)?;
+            let cognitive = match (vestibular, admitted_source) {
+                (Some(vestibular), None) => self
                     .active
-                    .vestibular
-                    .source_tick
-                    .checked_add(1)
-                    .ok_or(RuntimeError::OrganismTickOverflow)?,
-            },
-            None => self.active.vestibular.clone(),
-        };
-        let fabric = encode_fabric(
-            fabric_generation,
-            &joint_state,
-            &cognitive_state,
-            &successor_vestibular,
-            &successor_articulated_body,
-            self.active.in_flight_acoustic.as_ref(),
-            self.budget,
-        )?;
-        let envelope = encode_envelope(predecessor.identity, organism_tick, &fabric, self.budget)?;
-        let observation = make_step_observation(
-            &envelope,
-            predecessor.identity,
-            predecessor.organism_tick,
-            organism_tick,
-            predecessor.fabric_generation,
-            fabric_generation,
-            predecessor.mounted_generation,
-            successor_mounted_generation,
-            &fabric,
-            admitted_source_authority,
-            transition,
-            phase_counts.current_cohort_evaluation_count,
-            derived_budget,
-            predecessor.state_receipt,
-            &cognitive_observation,
-        );
-        let next_prepare_ordinal = self
-            .next_prepare_ordinal
-            .checked_add(1)
-            .ok_or(RuntimeError::PrepareTokenOrdinalOverflow)?;
-        let token = prepare_token(
-            predecessor.state_receipt,
-            observation.state_receipt,
-            admitted_source_authority,
-            self.next_prepare_ordinal,
-        );
-        let (cognitive, _) = cognitive
-            .try_into_successor(&self.active.cognitive)
-            .map_err(|(error, _)| RuntimeError::CognitiveFormation(error.to_string()))?;
-        self.pending = Some(PendingResidentOrganismState {
-            token,
-            envelope,
-            mounted,
-            cognitive,
-            vestibular: successor_vestibular,
-            articulated_body: successor_articulated_body,
-            in_flight_acoustic: self.active.in_flight_acoustic.clone(),
-            observation: observation.clone(),
-        });
-        self.next_prepare_ordinal = next_prepare_ordinal;
-        Ok(ResidentPrepareReceipt {
-            token,
-            sealed: true,
-            observation,
-            phase_counts,
-            receptor_ingress,
-            motor_unit_recruitments,
-            root_yaw_unit_recruitments,
-            root_translation_unit_recruitments,
-            articulatory_unit_recruitments,
-            causal_interval_evidence: Vec::new(),
-            articulated_body_consequences,
-            body_proprioceptive_sources,
-            guided_input_port_count: 0,
-        })
+                    .cognitive
+                    .prepare_vestibular_transition_with_residency(
+                        vestibular,
+                        cognitive_budget,
+                        &mut residency,
+                    ),
+                (None, Some(admitted_source)) => self
+                    .active
+                    .cognitive
+                    .prepare_admitted_transition_with_residency(
+                        admitted_source,
+                        cognitive_budget,
+                        &mut residency,
+                        real_nutrition_intake_zeptojoules,
+                    ),
+                (None, None) => self
+                    .active
+                    .cognitive
+                    .prepare_bare_source(source, cognitive_budget),
+                (Some(_), Some(_)) => {
+                    Err(crate::resident_cognitive_formation::FormationError::NoncanonicalState)
+                }
+            }
+            .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?;
+            let cognitive_state = self
+                .active
+                .cognitive
+                .encode_successor(&cognitive, cognitive_budget)
+                .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?;
+            let cognitive_observation = cognitive.observation().clone();
+            let motor_unit_recruitments = cognitive_observation.motor_unit_recruitments.clone();
+            let root_yaw_unit_recruitments =
+                cognitive_observation.root_yaw_unit_recruitments.clone();
+            let root_translation_unit_recruitments =
+                cognitive_observation.root_translation_unit_recruitments.clone();
+            let articulated_body_transition = settle_motor_recruitments_into_articulated_body(
+                &self.active.articulated_body,
+                &motor_unit_recruitments,
+            )?;
+            let body_proprioceptive_sources = body_proprioceptive_source(
+                predecessor.organism_tick,
+                &articulated_body_transition.proprioceptive_consequences,
+            )?
+            .map(|(_, receipt)| receipt)
+            .into_iter()
+            .collect();
+            let articulated_body_consequences = articulated_body_transition
+                .proprioceptive_consequences
+                .iter()
+                .copied()
+                .map(|consequence| TimedBodyProprioceptiveConsequence {
+                    source_tick: predecessor.organism_tick,
+                    consequence,
+                })
+                .collect();
+            let mut successor_articulated_body = articulated_body_transition.successor;
+            if initialize_articulated_body_proprioception {
+                successor_articulated_body.initialize_proprioception();
+            }
+            let articulatory_unit_recruitments =
+                cognitive_observation.articulatory_unit_recruitments.clone();
+            let successor_mounted_generation = cognitive_observation.cognitive_ordinal;
+            let transition = MountedJointDsfTransition {
+                joint_field_count: source.joint_source_occurrences().len(),
+                joint_neuron_count: 0,
+                l0_l4_evaluation_count: source.joint_source_occurrences().len(),
+                dsf_delivery_count: cognitive_observation.dsf_delivery_count,
+                recurrent_dsf_delivery_count: 0,
+                transition_receipt: None,
+                episode_relation_candidate_receipt: None,
+            };
+            let successor_vestibular = match vestibular {
+                Some(ingress) => ResidentVestibularBody {
+                    anatomy: self.active.vestibular.anatomy.clone(),
+                    canal: ingress.transduction().reached_tick.successor_canal,
+                    source_tick: self
+                        .active
+                        .vestibular
+                        .source_tick
+                        .checked_add(1)
+                        .ok_or(RuntimeError::OrganismTickOverflow)?,
+                },
+                None => self.active.vestibular.clone(),
+            };
+            let fabric = encode_fabric(
+                fabric_generation,
+                &joint_state,
+                &cognitive_state,
+                &successor_vestibular,
+                &successor_articulated_body,
+                self.active.in_flight_acoustic.as_ref(),
+                self.budget,
+            )?;
+            let envelope = encode_envelope(predecessor.identity, organism_tick, &fabric, self.budget)?;
+            let observation = make_step_observation(
+                &envelope,
+                predecessor.identity,
+                predecessor.organism_tick,
+                organism_tick,
+                predecessor.fabric_generation,
+                fabric_generation,
+                predecessor.mounted_generation,
+                successor_mounted_generation,
+                &fabric,
+                admitted_source_authority,
+                transition,
+                phase_counts.current_cohort_evaluation_count,
+                derived_budget,
+                predecessor.state_receipt,
+                &cognitive_observation,
+            );
+            let next_prepare_ordinal = self
+                .next_prepare_ordinal
+                .checked_add(1)
+                .ok_or(RuntimeError::PrepareTokenOrdinalOverflow)?;
+            let token = prepare_token(
+                predecessor.state_receipt,
+                observation.state_receipt,
+                admitted_source_authority,
+                self.next_prepare_ordinal,
+            );
+            let (cognitive, _) = cognitive
+                .try_into_successor(&self.active.cognitive)
+                .map_err(|(error, _)| RuntimeError::CognitiveFormation(error.to_string()))?;
+            self.pending = Some(PendingResidentOrganismState {
+                token,
+                envelope,
+                mounted,
+                cognitive,
+                vestibular: successor_vestibular,
+                articulated_body: successor_articulated_body,
+                in_flight_acoustic: self.active.in_flight_acoustic.clone(),
+                observation: observation.clone(),
+            });
+            self.next_prepare_ordinal = next_prepare_ordinal;
+            Ok(ResidentPrepareReceipt {
+                token,
+                sealed: true,
+                observation,
+                phase_counts,
+                receptor_ingress,
+                motor_unit_recruitments,
+                root_yaw_unit_recruitments,
+                root_translation_unit_recruitments,
+                articulatory_unit_recruitments,
+                causal_interval_evidence: Vec::new(),
+                articulated_body_consequences,
+                body_proprioceptive_sources,
+                guided_input_port_count: 0,
+            })
+        })();
+        self.causal_event_residency = if prepared.is_ok() { residency } else { None };
+        prepared
     }
 
     #[cfg(test)]
@@ -10624,8 +10630,10 @@ mod tests {
             .advance_admitted_trajectory_unsealed(&episodes)
             .unwrap();
         assert!(
-            runtime.causal_event_residency.is_none(),
-            "a physically quiescent advance must not fabricate a residency"
+            runtime.causal_event_residency.as_ref().is_none_or(|events|
+                events.contact_schedule.scheduled_len() == 0
+                    && events.recovery_schedule.scheduled_len() == 0),
+            "a physically quiescent advance must not fabricate scheduled work"
         );
         runtime.abort_unsealed_trajectory().unwrap();
         assert!(
@@ -10639,25 +10647,24 @@ mod tests {
         let (token, _) = runtime.seal_unsealed_trajectory_direct().unwrap();
         runtime.acknowledge_direct_commit(token).unwrap();
         assert!(
-            runtime.causal_event_residency.is_none(),
-            "committing a quiescent successor must not fabricate a residency"
+            runtime.causal_event_residency.as_ref().is_none_or(|events|
+                events.contact_schedule.scheduled_len() == 0
+                    && events.recovery_schedule.scheduled_len() == 0),
+            "committing a quiescent successor must not fabricate scheduled work"
         );
 
         // Multi-hop vestibular trajectory: one residency, one clock per
         // settled interval, no rebuild between hops.
-        let predecessor_tick = runtime.active.observation.organism_tick;
+        let predecessor_clock = runtime.cognitive_state().physical_event_clock();
+        let predecessor_cognitive = runtime.cognitive_state().clone();
         runtime
             .advance_vestibular_trajectory_unsealed(0, &[1, 1, 1])
             .unwrap();
-        let clock_after_vestibular = runtime
-            .causal_event_residency
-            .as_ref()
-            .expect("vestibular hops must thread the same residency")
-            .organism_clock;
+        let clock_after_vestibular = runtime.cognitive_state().physical_event_clock();
         assert_eq!(
             clock_after_vestibular,
-            predecessor_tick + 3,
-            "three vestibular hops must advance the one event clock thrice"
+            predecessor_clock + 3,
+            "three vestibular hops must advance the physical event clock thrice"
         );
         let (token, _) = runtime.seal_unsealed_trajectory_direct().unwrap();
         runtime.rollback_direct_commit(token).unwrap();
@@ -10665,6 +10672,51 @@ mod tests {
             runtime.causal_event_residency.is_none(),
             "direct rollback must invalidate the residency"
         );
+        assert_eq!(runtime.cognitive_state(), &predecessor_cognitive,
+            "rollback restores physical progress with the exact cognitive predecessor");
+    }
+
+    #[test]
+    fn physical_progress_survives_snapshot_abort_and_failed_prepare() {
+        let mut native = NativeResidentOrganismRuntime {
+            runtime: create_resident_genesis(IDENTITY, 0, budget()).unwrap(),
+        };
+        native.runtime.active.articulated_body.initialize_proprioception();
+        let receipt = native.runtime.commit_vestibular_trajectory_direct(0, &[64]).unwrap();
+        native.runtime.acknowledge_direct_commit(receipt.token).unwrap();
+        let predecessor = native.runtime.cognitive_state().clone();
+        let mut snapshot = native.snapshot_lived_state();
+        let mut checkpoint = snapshot.build_checkpoint().unwrap();
+        assert_eq!(native.runtime.cognitive_state(), &predecessor,
+            "snapshot and seal must perform no physical catch-up");
+        let mut cold = ResidentOrganismRuntime::restore_envelope(
+            checkpoint.envelope.take().unwrap(), budget()).unwrap();
+        assert_eq!(cold.cognitive_state(), &predecessor);
+
+        native.runtime.advance_vestibular_trajectory_unsealed(0, &[1]).unwrap();
+        native.runtime.abort_unsealed_trajectory().unwrap();
+        assert_eq!(native.runtime.cognitive_state(), &predecessor);
+        assert!(native.runtime.causal_event_residency.is_none());
+
+        // Force the existing final fallible preparation boundary, AFTER the
+        // physical successor is computed, without changing organism state.
+        let ordinal = native.runtime.next_prepare_ordinal;
+        native.runtime.next_prepare_ordinal = u64::MAX;
+        let error = native.runtime.prepare(&source("physical-progress-failed-prepare")).unwrap_err();
+        assert_eq!(error, RuntimeError::PrepareTokenOrdinalOverflow);
+        assert_eq!(native.runtime.cognitive_state(), &predecessor);
+        assert!(native.runtime.causal_event_residency.is_none());
+        assert!(native.runtime.pending.is_none());
+        native.runtime.next_prepare_ordinal = ordinal;
+
+        let warm_receipt = native.runtime.commit_vestibular_trajectory_direct(0, &[1]).unwrap();
+        let cold_receipt = cold.commit_vestibular_trajectory_direct(0, &[1]).unwrap();
+        native.runtime.acknowledge_direct_commit(warm_receipt.token).unwrap();
+        cold.acknowledge_direct_commit(cold_receipt.token).unwrap();
+        assert_eq!(native.runtime.cognitive_state(), cold.cognitive_state());
+        assert_eq!(native.runtime.active.articulated_body, cold.active.articulated_body);
+        assert_eq!(native.runtime.active.vestibular, cold.active.vestibular);
+        assert_eq!(native.runtime.active_envelope(), cold.active_envelope());
     }
 
     #[test]
