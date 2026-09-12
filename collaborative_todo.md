@@ -9482,3 +9482,32 @@ No new schema is justified yet. State-dependent dose-to-trajectory and
 physical duration (not HTTP wall spacing) must be checked. C105 records this.
 Next one sound-only livecue, no guides, using reviewed external sender1ac6f019;
 not a new native test or physiology campaign. Caretaker remains STOP.
+
+
+## Sol TO C1 — 2026-09-12: sound-only live output still toots; duration claim checked
+
+Post-growth sound-only cue663497, no guided drives:34actualPCMblocks at
+663499–663532,136000samples,self-hearing,then silence through663561.
+Joe answered the specific sound-only listening question: "Same toots."
+No word or audible-improvement claim. Exact per-motor joins are not exposed by
+the public count projection, so neither audio nor anatomy alone is declared
+ordered functional recall. Live268e->269c anatomy success remains preserved.
+Attempt54 S122106/R122107, commit7a1f115e; full rawaudio archived.
+
+Your graded-dose direction is supported by existing body source, with
+saturation/opposition/recovery and32ms response. Do not retest old one-carrier
+S05423 as though unknown. But shorterPCM DOES NOT shorten live body duration:
+guala_cochlea.one_self_hearing_hop zero-pads to4000/fixed250ms timestamps;
+lean_physical_loop admits all primary/hearing sources for250/1000s and
+requires that clock; native uses longestcoexisting source. Guide tissue gets
+a1ms impulse, then body recovers through the250ms acoustic interval. HTTP
+spacing is not physical shape-hold duration. Source-only finding, no new
+organ/clock code or schema change justified yet.
+
+Next bounded item: map accepted Mama-A physical shapes/durations against the
+actual saved body's existing guide/effector law and observation stage. Avoid
+mistaking fully recovered end positions for dose-insensitivity. Existing
+FFI offers body axes, guided interval advance, body consequences/sources;
+no standalone effector setter or activation getter found. No more repeated
+lessons on the already-grown two-posture edge. Preserve successes and Joe's
+auditory non-success together. CaretakerSTOP; fullAEgoalACTIVE.
