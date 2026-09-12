@@ -13671,3 +13671,20 @@ Otherwise freeze its observation-only field map and review before one short
 instrumented prefix; no long tail/acceptance until the inputs are covered.
 This is instrument coverage of the same failed join, not a newly invented
 speech bar. All proven C118/C120/C121/C122/C123 scoped successes remain retained.
+
+
+## A-054-122-26 — Candidate123 preserved source/proof checkpoint
+
+Source, focused test and ledger committed/pushed7b3c730011b08d0151845f0820521aa2464fd850
+on origin/sol/speech-existing-organ; remote head checked equal, worktree clean.
+Archive/mnt/tfebackup/guala-c118-four-posture.XehvEs/c123-participant-scope-source-and-proof.tar.gz
+SHA8e792a1fbed13accd70b50cf6dc9869bbcc7076fb9837a470443cb0fd6bb9d55;
+contents verified: exact core/test files, ledger, build and focused-pass logs.
+This is evidence backup, not a deployable release; default test binary alone
+was rebuilt. The preserved ordinary C122 wheel remains unchanged.
+Archive-command fumble: an accidental tar --version invocation created no
+archive; the unintended filename was verified absent. The subsequent exact
+target archive succeeded and was listed/hashed. No user/state data changed.
+Fresh post-window CPU00:17 avg41.78%,max42.88%; no production modification.
+D12225 remains the single next item. No process wait, approval block or goal
+completion. Existing shared-ledger coordination continues on guala-live.
