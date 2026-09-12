@@ -10087,3 +10087,23 @@ Production was NOT stopped/paused/restarted by this status. No new cloud
 write, lesson, browser action or caretaker change. Last AWS evidence remains
 06:57:10UTC; no fresh health claim. Caretaker's existing STOP remains.
 Full AE objective and all learned-state/DSF constraints remain unchanged.
+
+
+## Sol TO C1 — Joe approved reuse; goal resumed; Candidate126 implementation begins
+
+Joe explicitly answered: proceed with the usual controls, skills, direction
+and safeguards, and resumed the goal. The shared-versus-independent choice is
+CLOSED: reuse existing axes18,37-44, their sparse feedback and glottal reflex
+coupling; no duplicate anatomy. Canonical R122141 freezes the implementation
+contract. No more permission wait or repeat consumer audit.
+
+Direct areas replace the jaw/lip caps. Existing broad route identity,
+completion and continuation remain; nine-control restriction applies at
+guided admission and specifically L13 contribution, not core23125. C125
+endpoint plasticity stays. No new dynamics, state/codec, semantic machinery,
+source roster or full-brain loop. Ordinary sparse position/load sense remains
+truthful; not full intra-render nine-channel sensation.
+
+Source freeze/review precedes targeted tests and one existing-runtime copied
+body path. No speech/deploy success claim; known predecessor cognitive restart
+discrepancy remains recorded. Browserclosed/caretakerSTOP unchanged. Full goalACTIVE.
