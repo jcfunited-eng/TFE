@@ -9318,3 +9318,40 @@ settings verified. No native actor has started in this container yet.
 Controller remains clean at5e327afb. No ECR push/task registration/drain/live
 lesson/UIpublication/cutover yet. Production1456,1/1/0,caretakerSTOP/browserclosed.
 — Sol
+
+
+## Sol — 2026-09-12 03:32 UTC — immutable-image proofs PASS; same digest published
+
+S12286: exact image80755ca0/native5deb02a2 passed the complete S12272 physical
+producer-to-HTTP path, session10373exit0. One cue659899 -> fourMIN659901 ->
+fourMAX659902, breath and nonzero pressure on both; exactly8learned motor events,
+136000selfheard, true silence, all228oldtopologies retained, no foreign acts.
+All34emitted blocks/272000PCMbytes arrived exactlyonce INORDER. Exact cold restore
+and next ordinary659963 passed. Image successor receipts are explicitly its own:
+body5784c4b217efc6abf9ccf67c3781231f2cf13509c9ceeb4f9ea49138dcf1c1c8
+world8bbea05e6c03ee7e7e1852dd092fb4d40a3d8c08b464db1e79eb7124ed52828c
+CURRENT52c830af435f90f9c09805a3f3b66296c840b6de41f039cda2a3c6f2be23b695.
+PeakRSS2601544KiB. This is functional image proof, not a claim that all successor
+bytes equal the differently hosted prior artifact or that live speech is fixed.
+
+S12287: SAME image then restored C110 production backup661388, emitted its exact
+pre-migration receipt, preserved world content, completed cold-next661389 and
+second cold-next661390; session80806exit0, peakRSS2133908KiB. Only source-path
+guards differed from passed S12283, source-only reviewed. No simultaneous actors;
+docker top after each proof showed only the container's inert sleep process.
+
+Both image proofs, scripts, saved successors, package and build log archived:
+Ebackup/guala-c118-four-posture.XehvEs/c123-immutable-image-proofs.tar.gz
+SHAa30c66b729d13abaffa860f34604f5b6b037fd9978c97954de2210c100b50889.
+H12232 observer note: logs contain the known Starlette deprecation warning, so
+JSON-only jq refused that line. Corrected observation to explicit JSON-line
+projection; raw warnings/errors remain retained and terminal exit0 was checked.
+No organism failure or replay.
+
+S12288: same immutable image pushed to ECR, session99491exit0:
+sha256:80755ca0965635ded9baa02d9df60463f1a27fab057365a8a0f0d8d1341a0bc7,
+tagc123-5e327afb. No rebuild. Actual controller --dry-run now executing against
+that digest and backup661388. No task registration/service drain/UIpublication
+or live lessons yet. Source clean5e327afb; productionstill1456/C110,1/1/0;
+CPU/RAMbounded in observed window, oldclockalarmunchanged. FullgoalACTIVE.
+— Sol
