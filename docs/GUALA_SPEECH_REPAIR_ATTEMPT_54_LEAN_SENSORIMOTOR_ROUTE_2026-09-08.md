@@ -20,7 +20,7 @@ so live speech acceptance remains open. This paragraph records the Candidate110
 deployment, not the current repair state. Any earlier “speech complete” wording
 is historical and retracted.
 
-Current repair status, 2026-09-12 02:10 UTC: speech NOT fixed in production.
+Current repair status, 2026-09-12 02:37 UTC: speech NOT fixed in production.
 AWS rechecked: production remains1456/C110/image6aa38d99, one RUNNING/HEALTHY
 writer. No deployment or live lessons. Full AE goal ACTIVE; caretakerSTOP and
 browserclosed unchanged.
@@ -41,19 +41,29 @@ Exact cold restore and next ordinary659890 PASSED. This is LOCAL evidence,
 not live speech, full word, semantics, or four-year-old cognition.
 Normal artifact5fc6b612, native/source mechanism unchanged.
 
-Latest continuation /tmp/guala-c123-release-recall.hsgWCI/paired659890:
-body55609c3bfbd1421e055bfbc6376220f9f8b04fefdfe4913f0cae15fcede847bd
-world9b1b52557f10d54dc4e876391d3db1ee4ebaa25a00bec0b589c453da3b16cf67
-CURRENT2c39ef1d457dbdcf776da1545bfe7640468288d396116f77df82c83e01a3b27c.
-Full retained proof archive c123-fresh-two-posture-recall.tar.gz SHA
-b384b82091da747d7cef993af49f7eb32392bcb408107d668b2589b6d091a1b1.
+Sound transport implementation3658a9ff PASSED26focused checks including actual
+Chromium ordered identical-audio playback, Stop, bounds, gaps. Producer-to-HTTP
+recurrent proof S12272 also PASSED: savedtaught659890 -> quiet8 -> cue659899 ->
+fourMIN659901 -> fourMAX659902 -> selfhearing136000 -> quiet659962 ->
+exactcoldnext659963. All228preexisting topologies retained. ALL34real emitted
+blocks (272000PCM bytes) crossed productionHTTPfeed exactlyonce and INORDER.
 
-Closed successes S12238/S12245/S12250-53/S12257/S12260/S12264 are not reopened.
-H12251 root-script false failure remains preserved as an observer error, not
-failed root learning. Next: bounded emission-to-browser delivery, then exact
-release closure and cutover. No new native physics, teaching, or extra postures.
+Latest continuation /tmp/guala-c123-audio-recall.u9UCzP/paired659963:
+bodyed5e35eb7dfac2d418a3617df605fd731135238fc587b16168a1d672cc4882d8
+worldbf68583b96830ed0a5ce24343c9807b68c0359ef9f19f62295860d71f2ec1ea0
+CURRENT936430ceb5fa3c3abbaf18fd294d128dfcee449a797790883afc09862286fd4a.
+Archivec123-two-posture-http-delivery.tar.gz SHA
+b678a26b195df9b059ce739c831e42f0fa1ee455c527ef2b0dde2667a54987e4.
+PreviousS12264pair/archive retained, no success overwritten.
 
-Known delivery work: latest-body two-posture path, final matched backup and
+S12238/S12245/S12250-53/S12257/S12260/S12264/S12269/S12272 remain CLOSED locally.
+H12251 originalrootfalsefail remainsanobservererror, notlearningfailure.
+NEXT D12273: releasebackup/controllerrehearsal/cutover closure, NOT another
+speechtest, physicschange, teachingcampaign or extra posture.
+Controller RF058 (no rehearsal/backup) andRF065 (one-shot unsettledcustody read)
+were already recorded; resolve without claiming they are new organismfailures.
+
+Known delivery work: final matched backup and
 compatible recovery (old binary cannot read migrated state), live proof and
 public playback/evidence. Known3second/latest-receipt gap and stale speech-live
 banner remain; never infer missing body sound from dropped playback.
@@ -14713,3 +14723,46 @@ an executedfalsefail. ToolJS undeclaredneedle failedbeforeanyfilewrite; correcte
 No source/runtime change after26testPASS. Publication is stillNOTdone.
 PreprobeAWS02:30 same1456/C110/onehealthywriter;02:25CPU44.0969%avg61.3329%max,
 RAM11.0740%avg12.4023%max; runaway/refusalalarmsOK,historicalclockalarmunchanged.
+
+### S-054-122-72 — recurrent two-posture producer-to-HTTP path PASS (2026-09-12 02:37 UTC)
+
+Session34603 terminal0, scriptc0a60843, candidatePython3658a9ff,
+normalnative5fc6b612, retainedS12264sourcepair659890 unchanged.
+Quiet8 -> ONEcue659899 -> fourMIN659901 -> fourMAX659902, breathandpressure
+both ->136000self-heardsamples ->quietthrough659962 ->exactcoldnext659963.
+Exactly8learnedL11motor events, no unexplainedacts/unjoinedbreaths. All228
+preexistingmemorytopologies retained. Native success remains unchanged, no
+lessons or nativeedit. Non-vocal movement maycoexist; no wholebodyquiet rule.
+PeakRSS2644296KiB; this is localproof resourcecost, notproductionintervalspeed.
+
+Actor captured34actualemissions at659901..659934. ProductionHTTPfeed delivered
+ALL272000PCMbytes with exacttick/hash/order, noduplicates,gaps,loss or fabricated
+samples. Normal feedretention max32 was crossed overthewhole run while bounded
+reads keptup; noeventlife-sized storage inproduction. Harnessretainsfinite34
+blocks onlyforcomparison and exits. RealChromiumtransport was separately
+exercised S12269; this is notJoe'slaptop orpublicnetworkproof.
+
+Resultpair659963 hashes inheader. Log/tmp/guala-c123-audio-recall.log SHA
+3cc7774abef5be6333b8aaab635304a0b25412ba72569e78a198f46a50fc3ca1.
+Fullpair/script/log archive under /mnt/tfebackup/guala-c118-four-posture.XehvEs/
+c123-two-posture-http-delivery.tar.gz SHAb678a26b195df9b059ce739c831e42f0fa1ee455c527ef2b0dde2667a54987e4.
+No processsurvivor; alltest/proof sessions terminal. Sourcecommit3658a9ff
+pushed, sharedledgercoordinationebdfe278. Slack02:35:14verifiedslack_sent#general
+wasprogresscheckpoint, notdeploymentcompletion.
+
+AWSpost02:37: sameC110/task1456/effde9e1/image6aa38d99 RUNNING/HEALTHY.
+02:30/35CPUavg42.3195/43.6976 max49.9136/51.6728%;RAMavg11.0854/11.1898
+max12.3016/11.4716%. Noobservedrunaway inthiswindow; historicalclockalarm
+unchanged. No live inputs, camera/mic/caretaker changes orcloudwrites.
+
+### D-054-122-73 — release closure for the proven vocal increment (next)
+
+Complete finalmatchedbackup and existingcontroller's recordedRF058/RF065
+closure beforeoneimmutablebuild/cutover. Do notinvokezeroargumentcontroller
+blindly: its onlystage afterimagebuild registers anddrains directly, contains
+nobehavioralrehearsal/fullbackup/dryrun. Currenttrap leaveszerowriters on
+postdrainfailure; oldimage cannotreadnewpairedschemas. These are known
+deployment-control limitations, not new speechfailures. Preserve exactworking
+nativeartifact, source andbothrecallproofs while addressingonlyrelease.
+UI S3bucketdsf-ai-site, distributionE17JT9XGBFU493, APIALBdsf-ai-alb;
+existingqueryforward/no-cache alreadyverified. Nothird/fourthposture.
