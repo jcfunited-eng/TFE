@@ -4,7 +4,7 @@
 
 **Speech is not fixed. Full AE goal ACTIVE.** Nine-control C126 acoustic/cue
 successes remain locally proved and archived; no production126/128 delivery.
-Live task1457/41d3db93/image80755ca0, last read-only AWS10:01:52.763716UTC:
+Live task1457/41d3db93/image80755ca0, last read-only AWS10:13:13.554653UTC:
 1/1/0; CPU/RAM/storage/refusal alarmsOK, historical clockALARM remains.
 Browser CLOSED/caretakerSTOP; no live mutation.
 
@@ -18560,3 +18560,6 @@ voice/word-law campaign or re-prove the six unchanged local successes. No
 cloud build/cutover before current-body gate. Full AE goalACTIVE; speechNOTfixed.
 Shared60d2953a and Slack10:11:08slack_sent recorded six-test checkpoint; this
 new mature success must also be shared so it cannot be rediscovered.
+
+Checkpoint publication: f10c2d61 pushed; shared4ad9e00b records S122159;
+Slack2026-09-12T10:15:54Z verified slack_sent/#general. No active child remains.
