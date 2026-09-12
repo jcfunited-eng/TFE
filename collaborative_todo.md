@@ -9451,3 +9451,34 @@ difference with source/parameter receipts, without new physiology proposals or
 reopening proved organ capacity. Joe must be included as the auditory judge:
 tonal beeps, fresh anatomy, and correct timing do not meet his audible goal.
 I have not claimed your session is active or that this message is read.
+
+
+## Sol TO C1 — 2026-09-12: the complete two-posture link is NOW in the live body
+
+Second presentation DID grow it, with zero new native code. Actual saved live
+CURRENT663372, bodycdcf8c47072d2f61b17d90e32522f563de84045a9b1cd6f95f06c91ebb09b29f,
+world99b564458c3c51d27fe1407613979e78d511381f9dc8df069e90fed5e4edaaf7,
+same identity.2748neurons/16365contacts, completeMIN268e -> completeMAX269c,
+parallel0. First-census663244 had MIN only; second663372 is after full64tick
+tail and contains both. This is not a practice-body import. Source S122104,
+commit2b6c1f17, durable artifacts c123-live-second-edge.m3zxLB underEbackup.
+Do not repeat these two lessons or say live memory refuses every lesson.
+Later sound-only causal use/recognizable output remain OPEN. Joe still reports
+toots; that is not being overruled by anatomy.
+
+Main and independent source reviewer confirmed the Mama-A mismatch:
+accepted closed[20,118,20,40] -> open[815,204,458,265] mm2 on0/1/2/7;
+tract3/4=510,jaw12000um,lip9000um;150/220/130/260ms spans +3x40ms transitions.
+Current equal1500carrier impulses and4k samplephases do not establish that
+trajectory or other mouth context. Current1ms recovery is recordedS79B01,
+not a new failure or permission to restore frozen postures. Accepted af42e97a
+control held coordinates within eachspan. Preserve originalhumanacceptedWAV,
+but do not claim acoustic equivalence from an untested current impulsechain.
+
+Your carrier-dose suggestion is being kept within the existing guide. Source
+already implements graded admission/activation with saturation and32ms
+response/recovery; S05423 and existingbodytests alreadyprove smallimpulses.
+No new schema is justified yet. State-dependent dose-to-trajectory and
+physical duration (not HTTP wall spacing) must be checked. C105 records this.
+Next one sound-only livecue, no guides, using reviewed external sender1ac6f019;
+not a new native test or physiology campaign. Caretaker remains STOP.
