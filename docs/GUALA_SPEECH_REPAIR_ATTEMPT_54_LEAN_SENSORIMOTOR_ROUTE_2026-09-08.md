@@ -18600,3 +18600,108 @@ RF063 file resolver used; RF064-066 existing current cutover fixes preserved.
 Remaining live gates require newest authenticated CURRENT, startup/migration,
 backup/zero-writer continuity and production resources. Historical protocol
 owner/atlas/genesis clauses must not resurrect the archived Python shell.
+
+
+### S-054-122-161 — C129 source package verified, not a deployment
+
+2026-09-12. R122160 closed locally. Clean commit
+bad5eeb907f61e1c59248ed731914de812b1a1d3 adds exactly the two reviewed
+physical-event module paths to the manifest. Existing package_release completed
+with status verified, source_file_count217, its verify-context and verify-archive
+checks included; no new build, native code, process or semantic index.
+All67 compiler-reported local inputs independently compared byte-for-byte with
+staged sources; native diff since accepted source5c8dcd03 is empty.
+Archive /tmp/guala-c129-release.iWi7gA/release.zip,90103295bytes,
+SHA0ab6fccb240c62905e86becd80a8adb9336076fb1a52c605e5b4174ff4745c75.
+Receipt SHAabfa6c399d9b4133609eb98f9ecc71d8b6f62cc505a8e7d1e905d07218139415.
+Package command session15701 terminalexit0. Do not rebuild or rerun six tests
+to rediscover this source-closure result. This is packaged source, not a cloud
+image or live behavior; production remains1457, speechNOTfixed.
+
+### R-054-122-162 — newest CURRENT capture and release-path authority
+
+Single next item: read-only authenticated CURRENT acquisition, followed by
+candidate startup/migration and the already-declared mature causal/restart path.
+Predecessor S122159 warm/cold exactness and S122161 package remain closed.
+Fresh AWS10:25:39.835245UTC confirms1457/41d3db93/image80755ca0,1/1/0;
+CPU latestmax44.0399%,memory10.7300%. CPU/RAM/EFS/refusal alarmsOK;
+historicalclock-stalledALARM still, not all-green.
+Exacttask definition read:4096CPU/16384MiB; env only GUALA_PAIRED_ROOT=
+/app/guala/paired-current-gen2, GUALA_MAX_WORLD_BYTES=16777216,
+PYTHONUNBUFFERED=1; EFSfs-0abb85854a3251b3c mounted/app/guala, TLSenabled.
+No altered roster or process-fixed anatomy is authorized.
+
+Existing /tmp/capture_guala_current.py read completely,80lines.
+It reads checksummed CURRENT, immutable compressedbody/world, verifies raw
+hashes/counts, uploads isolated archive to a NEW S3 key, downloads to NEW local
+destination. Constructor/read_pointer/resource-admission reviewed: no organism
+write, lock, pause, native restore, clock advance or cognition invocation.
+Live persistent pair can advance during export: an unavailable pruned file
+must refuse, not cause a stall/restart. Authenticate downloaded archive again
+before using it. Independent read-only helper review requested before reuse.
+This acquisition is not live lesson delivery and cannot satisfy behavioral
+acceptance. No caretaking, camera/mic or browser needed; all remain unchanged.
+
+
+### S-054-122-163 / R-054-122-164 — current capture passed; frozen release caller
+
+Acquisition S163 PASS: independent helper review before reuse; helper
+SHA924983166c26aed42582cda4451b96e71b30ba0db9f52a908f4ad2282ca98284.
+Session29398 exit0, remote upload then local download3260521bytes. ECS plugin
+printed EOF after the successful upload; this is not assumed success from EOF:
+local decompression, exact member set, counts and both hashes independently PASS.
+CURRENT669708, identity1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1,
+body165077238bytes SHA179cffc28469d0057e064bef7584fbe895efe77ce3f9420848d0f51ae8497d48;
+world63583bytes SHA8ba366cf26c8d271f3680c0905bbd4e10049e8f1b8708be41c52089264beff4c.
+Archive SHA622bade512ae01367274c710a2e7cfefb9430874ab42c08b56d195d78cb9a92a,
+ /tmp/guala-c129-current.Hn94ff/current.zip;
+ s3://guala-incident-bench-20260831/guala/candidate129/20260912T102900Z-current-Hn94ff.zip.
+AWS after10:27:35.736559UTC same1457/41d3db93/image80755ca0,1/1/0,
+latestCPUmax41.9021%,RAM10.2570%; same fourOK/historicalclockALARM.
+This is newest captured persisted pair, NOT the newest unsealed live tick.
+
+R164 single next execution: reuse S159's reviewed real physical-loop caller,
+substitute authenticated669708 pair, and route startup through actual
+lean_production_app._restore_production_actor instead of manually invoking its
+migration/restore components. Worktree/native source unchanged. Only isolated
+paired root relocation differs at startup from inspected task environment.
+No actor start: its constructor starts one checkpoint thread; finally actor.close
+joins that idle thread before the explicit physical chronology. No live endpoint.
+Actual startup reads original pair, authenticates/migrates body, restores world,
+checks pending-return binding and publishes the same-tick migrated pair exactly
+as production would. Explicitly verify its CURRENT equals runtime custody.
+Then existing baseline8 -> one4000sample cue -> tail8 -> real paired checkpoint
+publish/adopt -> cold restore -> same ordinary warm/cold next interval.
+Both branches receive the same measured external sky/screen second through the
+existing external-time override. This is declared replay input, not anatomy,
+learning, cognitive timing or live cadence equivalence. No solar coefficient
+changes, no suppression of concurrent body/sensory activity.
+Acceptance: pre-cue acoustic silence; two four-motor acoustic acts each with
+breath, nonzero pressure and self-hearing; exactly one4000sample external cue;
+canonical successor body, full world and complete causal evidence warm/cold
+exact. Tail8 pressure must NOT be falsely required silent (S146/S159).
+No first-word, waveform-Mama, semantic learning, long-run performance or live
+deployment claim. This carries current-body startup and the changed C126/C129
+path, not a repetition of the six closed unit tests. Failed assertions retain
+raw evidence and do not authorize new physiology. Review caller before execute.
+Resource receipt reports walltime/peakRSS as a two-runtime comparison, not a
+one-runtime production peak.
+
+Command preflight failure: guessed lean_organism_actor.py (nonexistent) during
+read-only lookup; no code/test executed. This REPEATS RF063, not a new class.
+Immediately rg --files resolved actual lean_actor.py; constructor/start/close,
+physical-loop path and checkpoint-thread lifecycle then read directly.
+No claim that tooling alone prevented this human/agent misuse; use resolver
+before the next named file lookup.
+
+R164 source review completed before execution. Frozen root44b7ae5a,
+ordinary native source5c8dcd03 unchanged. External caller
+/tmp/guala-c129-current.Hn94ff/verify_release_path.py finalSHA
+b1c21bccb67eda640c1f616f94cf89aaf43f8537c5cb84190c9df7bb3400c1f1.
+One localized correction only: explicitly require nonzero pressure PER act,
+not merely positive aggregate pressure. Final independent review PASS with
+before/after hashes; caller syntax/provenancePASS. Reviewer also repeated
+RF063 by guessing lean_checkpoint_worker.py; actual lean_checkpoint.py was
+resolved and read. Both filename misuses are recorded, no false prevention claim.
+AWS pre-run10:32:18.769889UTC same1457/41d3db93/image80755ca0,1/1/0,
+latestCPUmax41.3494%,RAM10.2905%; fourOK/historicalclockALARM.
