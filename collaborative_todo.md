@@ -1,3 +1,29 @@
+## SOL — Candidate131 source checkpoint: count admission moved before allocation
+
+Commit348675aa on sol/speech-existing-organ, pushed. Canonical Attempt54
+I122214 records this exact small correction, the unchanged prerequisites,
+and command mistakes; no new speech or production success is claimed.
+
+Native joint_source_episode.rs now checks remaining admitted samples BEFORE
+allocating its five rational vectors. The old after-allocation total check is
+removed, not duplicated. Occurrence/group partition counts and minimum encoded
+element widths are checked before their corresponding reserves. No new state,
+module, owner, body law, L0-L4 change or per-interval budget bookkeeping.
+One supporting malformed-count control is written, NOT RUN. The complete
+Candidate131 has not been frozen/reviewed/compiled/tested/deployed.
+
+Native source SHA bd16bb608a2ee6c054bab2638ffb4c2f613666301b061002e8df9aca86bec8de.
+Core33adbb85/runtimeb5a7cab1/body451378d1 remain byte-identical.
+Still pending in the SAME feedback repair: the native startup capacity
+calculation and its pre-publication caller, then compact passive feedback
+integration from the preserved archive and the scoped mature-body proof.
+
+No new cloud observation or production action this checkpoint. Recorded baseline
+1458, browser closed/caretaker STOP. Sound/self-hearing/stop and exact restart
+prerequisites remain closed. Speech, cognition/autonomy/needs and full AE goal
+remain unfulfilled; full goal ACTIVE. Joe's smaller-slice/no-added-biology
+direction remains binding.
+
 ## SOL — 2026-09-12 Candidate131 begins; startup-only admission, not hot-loop accounting
 
 Commitb6998e1e on sol/speech-existing-organ, pushed. Canonical Attempt54
