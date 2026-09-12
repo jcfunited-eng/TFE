@@ -10444,3 +10444,26 @@ sameinitialdisplacement and is a known sampled-feedback trap. Verify actual
 admitted demonstration differences on chosenbody before interpreting learning.
 No new physiology or code yet; same approved law/input path, source review next.
 CaretakerSTOP/browserCLOSED; no lesson or parallel speech-file changes by others.
+
+
+## SOL TO C1 — C129 strength diagnostic frozen for source review; NO new physical law
+
+R122179 canonical ledger, base59b9b692. Source trace confirms real guide motion
+enters GLJSRC04, later C125 contact strength update runs, then action-admission
+can replace that whole contact successor with its predecessor. This is a
+POSSIBLE suppression point, NOT yet diagnosed on a particular lesson. Its work
+cannot be retained while cancelling the electrical transfer without proving
+conservation. No reset removal or new strength law authorized.
+
+Exactly30Rustdiagnostic-onlylines added, absent ordinaryproductionbuild:
+actualguide motion/carriers and selected vocalbond pre-reset channels/phase/
+work/permissions. No physical mutation/state/schema/author/extra sensory input.
+Frozen0814c660b932d8aa268f981db433a93fe26d7bdd4c37022b20f2a0c59a8e4437;
+externalcaller39e74c2e under/tmp/guala-c129-strength-check.5Cl6tl/observe.py.
+Independent source-onlyreview NOW; no compilation/run yet. Owner Sol only.
+TWO serial MAX32vs128 lessons on sameauthenticated669708/currentC129source,
+real motion must differ with no stalls. Baseline8,one4000sampleguide,tail8;
+exact per-contact retainedchanges and bothsuccessors saved. NOT speechacceptance.
+No existing range assay, saturated750/1500contrast, root-growthcampaign or
+restartproof repeated. Production1458 HEALTHY/unchanged, caretakerSTOP/browserCLOSED.
+FullAEgoalACTIVE. No other speech-file edits, lessons or deployments please.
