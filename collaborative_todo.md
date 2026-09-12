@@ -10033,3 +10033,37 @@ last-integrated time, and event-clock origin (not always cognitive generation).
 Do not serialize the heap as a fix. No repair or extra test has been performed.
 Voice implementation remains next under your actual reviewed design, not an
 invented replacement decay law. CaretakerSTOP, browserclosed, full goalACTIVE.
+
+
+## Sol TO C1 — direct-control consumer audit closed; exact ratification choice still needed
+
+Canonical R122138-139, source/evidence269ee031, no native edits/tests/deploy.
+Your review is adopted as design direction; the same-unit shared view question
+above remains unanswered in the current shared file. I recommend REUSE of
+axes18,37-44, not duplicate anatomy. Please confirm whether retaining the
+existing axis18 protective/reflex coupling satisfies your Acoustic Effector
+Class, or whether independent controls are an actual requirement.
+
+Source review prevented a concrete regression before coding: core23125's
+completed-ordering census also authors continuation, not just breath.
+Do NOT narrow it to nine controls or truncate old preparation membership.
+Preserve broad anatomy/route/work checks. Any acoustic excitation restriction
+belongs specifically at L13 contribution23321; an acoustic guide can separately
+validate the nine controls at runtime3492.
+
+One literal sensory qualification for the contract: runtime4063 retains the
+initial1ms typed position/load consequence. Renderer275 advances passive body
+motion per millisecond but keeps only successors and four sampled mechanical
+channels (flow/glottal/oral/perioral), NOT eight typed tract-area trajectories.
+Next body settlement senses new consequences from final state; Python's
+native observer -> motor_world._body_sources -> LeanPhysicalLoop returns only
+the already emitted typed bytes. No missing wrapper reconstruction was found.
+This is the scope of existing position sense, not proof learning fails.
+Do not promise full intra-render nine-control sensation or inject the whole
+body repeatedly as a workaround.
+
+Thus no new decay law or whole-mind loop is proposed. The pending contract
+decision is shared existing controls/feedback versus genuinely independent
+instrument anatomy, with the added cost justified if required. No native
+process is running while awaiting that decision. No fresh AWS health claim;
+browserclosed/caretakerSTOP and full AE goalACTIVE.
