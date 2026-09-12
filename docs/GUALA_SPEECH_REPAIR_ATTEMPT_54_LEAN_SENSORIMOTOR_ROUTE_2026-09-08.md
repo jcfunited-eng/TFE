@@ -15665,3 +15665,113 @@ no more repeats of the two already-grown MAX lessons, no new word-complete
 claim, no broad candidate campaign. D12240 remains open where exact live
 functional participation/ordered vocal acceptance is unproved; the full AE
 goal is unchanged. Joe and C1 remain part of the acoustic assessment.
+
+### R-054-122-108 — one native body-law range measurement on authenticated live body
+
+Continues R122107/D12240; live268e->269c and transport successes remain
+closed at their stated levels; Joe's same-toots non-success unchanged.
+No production occurrence, image, native source edit or new physiology.
+Question: can an existing single finite per-axis guide impulse span the
+accepted Mama-A geometry during its real recovery, rather than merely change
+the final recovered endpoint? This is a body-law discriminator, NOT cognition,
+learning, complete physical ingress, acoustic equivalence or speech proof.
+
+Cheap implementation: compile a tiny external Rust caller importing the
+UNCHANGED self-contained virtual_articulated_body.rs by absolute path; it uses
+only core/std. No full-brain build. SourceSHA
+d35753bd5749bec5fb81081b26051dc9b40113643ef0da182e13b4718cff80aa.
+The compiled existing native readonly census authenticates saved663372 ZIP
+0f824b4c...777fabd and full resident hash, then its canonical readiness body
+hash and canonical body width identify the exact current GLBODY bytes.
+Every matching candidate must be byte-identical; Rust native decode/encode
+must roundtrip exactly. No neuron/learning change, import, body reset or
+neutral-body substitution for the actual measurement.
+
+The external runner calls existing settle_body_effector_drives only.
+One decoded real body reused independently per case; actual predecessor
+axes/activation reported. Relevant axes14/15/37/38/39/40/41/44, both directions
+where anatomical capacity is nonzero. Declared doses1/32/128/512/1500 plus
+the exact direction's capacity-derived carrier ceiling (duplicates removed).
+At most96 cases, each at most250one-ms body settlements,45fixedaxes, no
+brain scan inside those calls. Report initial position,1ms position,
+peak/min/max andtheir clock,250ms endpoint,stalledwork. This tests dose
+sensitivity/saturation/recovery; no target score, optimization, inverse lookup
+or fitted coefficient enters cognition. Input-output rows are external evidence.
+
+Before actual-body rows, tiny caller sanity checks repeat the already recorded
+source examples (127carrier eye+4,7carrier tract+1; onecarrier250ms rest).
+They validate the isolated caller, not reopen priorart. No new organism trials.
+Rustcompiler1.97.1 available; --edition2021, std-only, singleCPU/nice15.
+No /usr/bin/time, Cargo, test-name guessing or test-only nativeextension.
+Source-only review precedes compile/extract/run; AWS readonly health brackets.
+Exact artifacts will remain in /tmp/guala-c123-shape-check.PoSJGL and archive.
+Any failure is classified at its actual extraction/caller/physics boundary.
+
+### S-054-122-109 — measured dose sensitivity AND single-impulse range limit
+
+2026-09-12 05:07 UTC. R122108 measurement completed; no production edit,
+lesson, native brain advance, image change or learned-state import.
+Independent frozen source review PASS before execution. Actual saved663372
+body authenticated against resident cdcf8c47072d2f61b17d90e32522f563de84045a9b1cd6f95f06c91ebb09b29f.
+Canonical 680-byte body SHA6247ab3b74180419d60eb5dc21a94c38e72cbe119ea078efa9f70a8d14ffd59f,
+one matching GLBODY01; exact roundtrip and unchanged source verified.
+Extract SHA2706e22f7296066e48a114019a1540103f52469c3ba5f9f76c61a6e6354eccd6;
+caller SHA1714c84db3ca91d508a6d994bf3b2d79b9965ae05dd212e41bc115d4f689c25e;
+unchanged native body law SHAd35753bd5749bec5fb81081b26051dc9b40113643ef0da182e13b4718cff80aa.
+Single std-only rustc build and one execution both exit0; 3 caller controls
+passed, 84 actual-body cases, 250 one-ms settlements each. No full brain build.
+All tested starting axes were at anatomical neutral with zero activation.
+
+Confirmed success: dose changes actual movement below capacity; excess is
+reported stalled; decay/position following occur inside the existing law.
+Confirmed limit: target equilibrium is NOT actual instantaneous position.
+Even capacity-saturating single impulses cannot reproduce several accepted
+Mama-A coordinates from this saved starting body:
+
+| Axis | Actual neutral | Measured min/max at saturating impulses | Mama-A relevant target |
+| --- | ---: | --- | --- |
+| jaw14 | 0 um | 0 / 13090 um | 12000 um |
+| lip15 | 0 um | 0 / 7484 um | 9000 um |
+| tract0/37 | 125 mm2 | 77 / 462 mm2 | closed20 / open815 |
+| tract1/38 | 145 mm2 | 90 / 476 mm2 | closed118 / open204 |
+| tract2/39 | 165 mm2 | 102 / 487 mm2 | closed20 / open458 |
+| tract3/40 | 185 mm2 | 115 / 499 mm2 | context510 |
+| tract4/41 | 205 mm2 | 126 / 512 mm2 | context510 |
+| tract7/44 | 265 mm2 | 164 / 551 mm2 | closed40 / open265 |
+
+Peak times are25–31ms for these saturating airway impulses; all airway
+positions return exactly neutral by250ms. Jaw/lip at saturation retain86/42um
+at250ms, respectively. Example1500-carrier tract0-max admits875, stalls625,
+peaks462 at31ms, ends125. This confirms activation saturation, NOT C1's
+suggestion that the physical mouth necessarily reaches its anatomical clamp.
+1500 on jaw/lip is not saturation: peak569um on each. Blanket claims that
+1500 rails every part are explicitly rejected.
+
+Raw CSV SHA05ecb7a05e370dcf711343ebf6d48774de00bfe41bfc335a5cc7e622152755d9;
+binary f5ecbe0745ae699e1c1cfb439941ed2906120235b279591d6ad85d6e1a4408d9.
+Artifacts in /tmp/guala-c123-shape-check.PoSJGL. This is body-only single-
+impulse evidence, NOT proof sustained guidance fails, acoustic regression,
+word learning, or live recall. No changes to body coefficients justified.
+Historical Mama-A acceptance and live268e->269c anatomy remain valid at their
+stated levels; Joe's later "Same toots" remains the live auditory result.
+
+AWS readonly brackets05:06:45Z/05:07:32Z: taskdefinition1457,1/1/0;
+immutable deployed baseline80755ca0 remains unchanged by this local run.
+Latest available05:03–05:05CPUmax58.1837%,RAMmax10.7666%.
+CPU/RAM/EFS/refusal alarmsOK; historical clock-stalled ALARM remains.
+No live writes, pause, lock, restart, occurrence or copied-state import.
+
+Execution fumbles retained, NOT organism failures: first two launch commands
+used invalid taskset -c0 (requires taskset -c 0); both exited1 before Python
+or rustc ran. Corrected launches executed once and exited0. Their error logs
+remain separate, not overwritten. A shared-ledger fetch was accidentally
+printed in full and tool output truncated; future fetches must store full
+content but print bounded metadata/tail only. Neither changes organism evidence.
+
+Single next item under R122107/D12240: trace existing sustained/repeated muscle
+drive and physical timing through the guide, motor and acoustic callers.
+Determine the smallest lawful way to present the already-accepted trajectory;
+do not invert equilibrium into a supposedly sufficient one-shot dose, add a
+cognitive sequence/pose controller, change recovery constants, or repeat the
+already-grown edge lessons. This result closes the single-impulse discriminator,
+not speech or the full AE goal.
