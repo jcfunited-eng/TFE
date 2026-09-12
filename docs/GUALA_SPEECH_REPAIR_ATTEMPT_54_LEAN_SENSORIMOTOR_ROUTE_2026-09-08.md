@@ -22020,3 +22020,22 @@ service. Production/caretaker/browser state is not changed. All local feedback
 successes, release-test debt, candidate artifact and verified677770 backup
 remain available. Resume from R122236 release disposition; do not restart
 the prior lesson campaign. A user resumption starts a fresh blocked audit.
+
+
+### I122240 — C1 message resolves the coordination misunderstanding, not the review
+
+Joe relayed C1's C129 production-audio report and statement that completed next
+source must be submitted. C129 serving1458 and C131 review are DIFFERENT items.
+Completed C131 source494ed1e2546c0a2eed3be24e8df290f11e147f01 against
+6f2da6dac48f9e68a06edd9f6b548fb33c6d7d64 is now explicitly submitted with direct
+GitHub compare/tree links, exact scope, proof/archive references and release
+debt disposition request. Shared commit e39e1ad36e8636f18fa0598c8d74adf824c23623.
+After494ed1e2 only c830d787 test cleanup changes code; runtime remains unchanged.
+
+Correction to I122239: user input arrived BEFORE any update_goal(blocked) call.
+get_goal verifies ACTIVE; no goal block or production pause was executed.
+Reset decision audit on this new coordination input. C1's message is not yet
+C131 source approval; no active review job is claimed. No new tests launched.
+C1 reports8.5s/34connected breaths after C129,64x playback gain. No recording is
+attached in this turn; this is attributed C1 evidence, not our own listening
+or fresh measurement. Preserve prior production sound successes.
