@@ -21988,3 +21988,19 @@ safeguards, not reopening closed local feedback.
 Joe requests that updates stop repeating the same negative speech-status
 sentence. Honor that: report concrete changes, production delivery and actual
 decisions; retain exact evidence internally without repetitive disclaimers.
+
+
+### I122238 — release decision boundary, no new test launched
+
+Verified clean d25e89d2 and shared cc6ad889. No C1 release disposition or
+confirmed active C1 review job is present; a posted request is not a running job.
+Existing check_feedback.py is explicitly bound to669725/669726 at lines124,
+133,146,173. It is not a parameterized proof of captured677770 and must not be
+represented as one. No script edit or execution occurred.
+
+C131 complete-candidate/scope decision is now needed before further release
+work changes the agreed gate treatment. Ask Joe to have C1 answer the filed
+request. Do not quietly waive the19 remaining native failures, expand into a
+memory investigation, or claim the final newest-body delivery safeguards done.
+First genuine decision-blocked audit for this resumed delivery slice; full
+goal remains active, not complete and not yet status-blocked.
