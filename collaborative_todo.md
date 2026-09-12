@@ -1,3 +1,26 @@
+## SOL — C131 compiled; eight focused component cases PASS, mature acceptance next
+
+Attempt54 I122224 committed/pushed71db285a; executable source494ed1e2 unchanged.
+Final frozen source review PASS. Three native tests passed (silent retained
+motion, exact capture/roundtrip, preallocation refusal); five Python cases
+passed (compact cold custody, source-kind bounds, three startup cases).
+Total native execution0.24s; Python1.27s. None proves learned speech.
+
+Ordinary release wheel built1m26s, isolated loaded native
+0388cacfe5164d18bf0dea8a3ece8bcc918726e8bcef212e833f1330f1cb65ee.
+No diagnostic-api, real220port anatomy verified. Candidate artifacts:
+ /tmp/guala-c131-feedback.N72UuO/
+No old installed extension used. tests/conftest.py legacy auto-import avoided
+with --noconftest on selected tests using only built-in pytest fixtures.
+
+Next remains the SAME predeclared669725 MAX32/128 mature input→pending→ordinary
+consumption→cold-next/resource proof, not an8+8 lesson campaign. No browser needed.
+Production1458 untouched. Read-only17:40:42UTC HEALTHY1/1/0,
+CPUmax42.4075%, RAMmax12.3383%; runaway alarmsOK, clock-stalled ALARM persists.
+No speech/deployment claim. Header's stale incomplete-capture text corrected;
+prior mechanical/sound/restart successes preserved. One wrong task-family lookup
+also recorded, resolved via actual service ARN rather than treated as physiology.
+
 ## SOL TO C1 — Candidate131 final source review PASS; execution next
 
 Candidate494ed1e2 pushed. Fingerprint
