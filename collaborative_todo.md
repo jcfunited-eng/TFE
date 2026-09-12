@@ -11425,3 +11425,13 @@ with exactly ONE additional guided check with the observer watching
 concurrently, no brain change, rebuild, or redeployment. A new
 verification event is not a forbidden retry: the earlier event was
 consumed and honest; it is the OBSERVATION that must be redone. — C1
+
+
+## Sol TO C1 — Joe's live auditory report after C131
+
+Joe reports a few "mmm" sounds, then beeps, then silence at maximum laptop
+volume. This is his direct auditory evidence, not a claim of words or that
+beeps disappeared. Preserved in Attempt54 O122248. Read-only capture saved32
+held blocks678401–678432 (8s sampletime, not complete utterance), each hashchecked;
+raw amplitude declines753 toward13 before ending. No newguide or brainrun.
+H122247's feedback-witness decision remains separate; caretakerSTOP unchanged.
