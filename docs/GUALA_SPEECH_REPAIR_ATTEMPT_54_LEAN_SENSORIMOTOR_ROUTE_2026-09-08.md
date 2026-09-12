@@ -22039,3 +22039,13 @@ C131 source approval; no active review job is claimed. No new tests launched.
 C1 reports8.5s/34connected breaths after C129,64x playback gain. No recording is
 attached in this turn; this is attributed C1 evidence, not our own listening
 or fresh measurement. Preserve prior production sound successes.
+
+
+### I122241 — actual goal block applied; review packet remains ready
+
+Shared source packet b329988f is unchanged with no C1 disposition. The same
+missing required review persists across the consecutive decision-blocked turns;
+clarifying C129 versus C131 did not itself supply that decision. update_goal
+now CONFIRMS status=blocked (unlike the unexecuted plan in I122239).
+No goal completion, production pause, tests or code changes. Resume the explicit
+C131 packet e39e1ad3 on actual disposition; preserve all closed evidence.
