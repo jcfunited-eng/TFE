@@ -22200,3 +22200,23 @@ newlesson, resume, farm or assetrewrite. Skillcharter keeps presentation outside
 cognition; current check delivered feedback, not a sound-quality judgment.
 Joe may openpage; browser is not required, never prohibited or a reason to
 exclude him. Claude's earlier8.5s C129 report does not establish no futuretoots.
+
+### O-054-122-248 — Joe heard mmm-like sounds, then beeps and silence
+
+Joe's direct laptop report: "when I started the browser there we are few mmm's
+and at max volume I heard beeps, beeps, then silence". Preserve these distinctions
+verbatim; do not overwrite as onlytoots, words, comprehension or no-more-beeps.
+This is actual user auditory evidence, not our own listening or a microphone
+recording. Browseropening time and exact playbackstartcursor were not measured.
+
+Read-only productionpressurehead stream eb119f09017741279250f87f181124d2,
+latest678432. Four boundedGETs preserved32heldblocks678401–678432, each4000
+samples;128000samples=8s of sampletime (not walltime), hashverified each.
+The first part of the utterance may no longer be held; no completeutteranceclaim.
+Rawpeaks753,745,736,728,607,302 then13 through678431; final678432peak64 with273
+nonzeros. This supports an amplitude decrease in retained sound, not phonetic
+recognition, exact linkage to Joe's mmm perception or proof of learnedstrength.
+No additionalguide/tutoring/nativeevent or release was executed.
+Files joe-hearing-pressure-head.json and joe-hearing-held-0..3.json in release
+folder retain rawPCMbase64 without terminaltruncation. Audio does not replace
+H122247's missing compactfeedbackconsumption witness. CaretakerSTOP unchanged.
