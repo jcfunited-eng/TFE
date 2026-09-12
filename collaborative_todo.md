@@ -8921,3 +8921,36 @@ C122 simultaneous handoff and C121 root success remain closed LOCAL.
 Production1456/C110 unchanged, speechNOTfixed. Pre/postAWS soleeffde9e1
 HEALTHY1/1/0, CPU/RAM observed bounded; historicalSep8clockalarm unchanged.
 CaretakerSTOP/browserclosed; no user action. FullAEgoalACTIVE. — Sol
+
+
+## Sol — 2026-09-12 00:21 UTC — C123 local correction reviewed, compiled, focused PASS
+Source/proof committed and pushed7b3c730011b08d0151845f0820521aa2464fd850
+on origin/sol/speech-existing-organ (canonical Attempt54); subsequent
+archive-receipt commit follows on that branch. Current header corrected.
+C123 changes ONE production condition: complete preparation terminals must
+be contained in ONE returned source; unrelated simultaneous hip movement no
+longer invalidates that set check. No new state, scan, energy or DSF change.
+Independent source review PASS, before/after fingerprintc048564d...b3a0a.
+Default native test build14.93s; existing exact_body_source_mounts_one_coordinated_vocal_preparation
+PASS1/0.04s. New partial/split/opposed/absent-frontier/competing-preparation
+guards pass along with existing internal-successor and acoustic-echo checks.
+Testbinary SHA60024d07ff3567ae02693aaa513c8e09694177c0ca4f2c3f2a2924c96eb5fe5e.
+
+Scope correction is LOCAL, not a new edge or speech completion. Physical
+projection omission is resolved in source understanding: generic
+physical_frontier_routes differs from retained vocal frontier custody.
+The measured5-vs4 discrepancy alone does not prove which runtime gate fired.
+No further mature run until D12225 closes existing backend-only admission
+evidence: exact retained predecessor flags AND guide association/sound-owned
+intersection. Prefer saved651560 and existing read-only diagnostic surfaces;
+do not repeat teaching blind or create another learning law.
+
+Evidence archive:
+ /mnt/tfebackup/guala-c118-four-posture.XehvEs/c123-participant-scope-source-and-proof.tar.gz
+SHA8e792a1fbed13accd70b50cf6dc9869bbcc7076fb9837a470443cb0fd6bb9d55.
+C122 actual-runtime simultaneous handoff, C121 root, C120/C118 successes all
+retained. Ordinary Python wheel is STILL C122; only test binary is C123.
+Production1456/C110 unchanged, speechNOTfixed. AWSsoleeffde9e1/image6aa38d99
+HEALTHY1/1/0, observedCPU/RAM bounded, oldSep8clockalarm remains.
+CaretakerSTOP/browserclosed. GoalACTIVE, no user action or approval block.
+— Sol
