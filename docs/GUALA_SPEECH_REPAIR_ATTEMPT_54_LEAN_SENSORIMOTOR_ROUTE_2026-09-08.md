@@ -1,6 +1,6 @@
 # Guala speech repair Attempt 54 — complete design verification and lean sensorimotor route
 
-## Current resume point — 2026-09-12, quantitative strength diagnostic complete; recognizable speech NOT fixed
+## Current resume point — 2026-09-12, retained dose distinction located at eight receptors; speech NOT fixed
 
 Full AE goal ACTIVE. Production1458/71289e2b95be4d79a5c9f74ac2708b7d,
 imagefd6e44defbc83a305a52229822c9f77155d0a640c8ffa8a7dc00265d7d1fec77.
@@ -9,32 +9,35 @@ S122158/159/165/169 startup/migration/full cold-next equality remain CLOSED.
 DO NOT restart80467, re-cue production, or repeat those tests.
 Browser CLOSED/caretaker STOP. No new physical law or production delivery here.
 
-R122179 diagnostic DONE, S122182: same authenticated669708 body, same artifact,
-quiet8, one4000sample guide, tail8; two serial doses32/128, sessions57619/61636exit0.
-Actual displacement+1 versus+4 on axes37/38/39/44, zero stalls.
-Each8583 logged vocal-contact transitions: ALL identical between doses.
-Sixteen computed fractional phase changes on four new26aa motor contacts were
-discarded for absent action permission. No whole-channel change computed.
-All16385 final contact states AND each interval's contact changes identical.
-Different saved body hashes preserve a distinction somewhere; do not claim
-the whole experience or all quantitative learning vanished.
-Independent result review agrees: reset loss is proven, but retaining the
-identical provisional updates is NOT demonstrated dose learning and may break
-conservation if their paying transfer is cancelled.
+R122179 diagnostic DONE, S122182: same authenticated669708 body, quiet8,
+one4000sample guide, tail8; dose32/128 caused+1vs+4 on37/38/39/44, no stalls.
+All8583loggedvocalcontacttransitions and16385finalcontactstates identical.
+16identical fractionalupdates on fournew26aa motorcontacts discarded for absent
+actionpermission. Reset-only correction does NOT establish doselearning.
 
-Both successors, raw logs, diagnostic patch, caller, artifact and arithmetic
-analysis retained under /tmp/guala-c129-strength-check.5Cl6tl and durable
-/mnt/tfebackup/guala-c118-four-posture.XehvEs/c129-strength-evidence.TnPp0A/.
-Native diagnostics REMOVED; accepted source hashes restored exactly.
-Next single item R122185: locate the retained quantitative distinction using
-these SAVED successors and the existing body-source/receptor/contact path.
-Inspect available read-only state access before any further run; no new lesson,
-no guessed strength law, no reset deletion, no reopening C125/C126/C129 wins.
-Full fields preserved; no semantic index/heuristic introduced.
+R122185 saved-state location DONE at S122187-189, no intervaladvanced:
+all458differentcognitivebytes accounted for in fourcohortcells.
+Exactdigest-to-lineage comparison: ONLY receptor_quantum_residue differs in
+eight L5body-positionneurons954/962/970/97e/98c/99a/a18/a26.
+Allotherneuronalbytes, mounts/anatomy/fluid/electricaltails match; allother
+cognitivecodecsections match. Distinction retained, NOT a learnedstrengthclaim.
+Actualsharedanatomyfb3f56cd: ONEgate, quantum1/16zJ, capacity36 (not >1population).
+Final gatesallclosed; dissipated36/36/20/36/32/36/36/36; residue wholequanta
+0/0/0/0/2/1/1/0 SAMEbothdoses. Exactinstantlessonopeningbarrier notmeasured.
+Do not infer population-deliverybranch, permanent saturation, or nolearning.
 
-Last AWS11:38:50UTC same1458 HEALTHY/service1-1-0, CPU/RAM/storage/refusal
-alarmsOK, historical clock alarm ALARM. Latest sampled CPUmax59.5534%,
-RAMmax11.8408%; not proof of long-run efficiency. Speech/whole AE remain open.
+Next single R122190 continues SAME quantitative-learning boundary:
+read actualsingle-gate admission/recovery and body-sourceduration/energy map,
+reconcile prior successes, determine whether demonstrated input produced a
+different effective neuronal learning signal BEFORE changing contactplasticity.
+No new guide, broad assay, reset deletion, or voice-law candidate authorized
+by this saved-state result. Existingclosedvoice/strength-routingpasses stand.
+Sourcecore33adbb85/runtimeb5a7cab1 unchanged; no diagnostic Rust remains.
+Artifacts /tmp/guala-c129-strength-check.5Cl6tl; durable original+incremental
+archives in /mnt/tfebackup/guala-c118-four-posture.XehvEs/c129-strength-evidence.TnPp0A/.
+LatestAWS11:59:21UTC same1458HEALTHY1/1/0/resourcealarmsOK/clockALARM.
+Last sampledCPUmax41.5543%,RAM11.5662%; no long-run efficiency claim.
+Fullfield/identity/learning preserved; no semantic index/heuristic introduced.
 
 The earlier live-lesson status below is HISTORICAL context, not the resume point.
 
@@ -19270,3 +19273,117 @@ bounded evidence map first rather than repeating the lesson prefix.
 No new strength-law candidate, synthetic energy, copied semantic target,
 timer, semantic index, anatomy expansion, or production change authorized by
 this diagnostic. S122175 live output and C125/C126/C129 successes stay closed.
+
+### R-054-122-186 — saved-state inspection evidence map, no new chronology
+
+ContinuesR122185; S122182/183 data preserved unchanged. Externalcaller
+/tmp/guala-c129-strength-check.5Cl6tl/inspect_saved.py
+SHA5c3355de3467326a29cd7fb83c765b14dfc33cca1bb4dac2ed53ea3d7ffd151f
+in source-only review. Acceptednative sources unchanged; reuses verified
+external95d45c7c artifact solely to restore/read existing32/128 saved669725.
+No advance, migrate, actor, thread, guided event, cue, paired publication,
+resource change, or production mutation. Two restorations serially, release
+each native instance; existing restore validates complete envelopes.
+
+Evidence map: exact savedpair/hash -> existing native restore ->
+cognitive.cohorts order -> ordinary lineage/layer/receptor and electrical
+observers -> per-lineage Python integer comparison. Electrical tuple is layer,
+separated charge, capacitance numerator/denominator, inside/outside carriers;
+it excludes receptor residue/gates/Psi/history and CANNOT prove full equality.
+Both observers traverse same mounts/order and counts/layers are checked.
+Readiness supplies exactcurrent bodyaxes and bodystatehash. Existing CURRENT
+GLORUN01/GLMFAB11 parse law puts joint+cognitive as last two sizedblocks:
+after nativevalidation caller slices by those lengths, checksGLCOG046, hashes
+wholepayloads. Hash comparison adds whole-payload distinction, not semantic
+recognition. Exacttick669725 and unchangedCURRENT pointer verifiedafterread.
+Full JSON output redirectedfile, no broadterminal output. AWSread-only before/
+after required. A changed saved hash or wrong API is observer failure, not
+organism failure; do not regenerate lessons to repair an observer.
+
+### S-054-122-187 — saved successors restored/read once; no new lesson or interval
+
+Caller5c3355de source-only independentreview PASS unchangedbefore/after.
+Run60675exit0, fullsaved-inspection.json497199bytes SHA
+055c62837ffb920d4e8691c8ffd19972a96ec431090801bbce6c7cf9b471da02; stderr0.
+Two serial native restores, no actor/startup/migration/advance/publish.
+Both savedCURRENT669725/hashverified; allreadpointers/ticks unchanged.
+Peak756476KiB. Allpaired electrical/lineage projections equal.
+Exactbody-statehash2b73f22c equal and fullworld/joint68bytes equal.
+Cognitivepayloads166412900bytes each DIFFER:32=5f95bb3bddced069017113de27a9294e75969c471462e815ced95d70a6565352;
+128=56eb4d12152730f993fe13bbb3bbb940a28d49bc32b554b98f83b0bcb85120eb.
+Correct inference is retained distinction somewhere in cognitivepayload, NOT
+all neuronalstateequal and NOT semantically learned shape.
+
+### S/H-054-122-188 — all saved cognitive difference localized without running organism
+
+Purebyteanalysis callercompare_saved_sections.py SHA
+f97015f54393e97fd1cc7c19995eb08ee56f09ff43c47f3f3ba797f0dd44925e,
+independent source-only reviewPASS before/after. Run28582exit0,
+saved-sections.jsonece2bba95ca2173a9ee5539d927705aa2643a62fbaec6c5a64daf01dff0187b5.
+CurrentGLCOG046/version30 explicitlengths parsed; nativepriorinspection
+authenticatedwholebody; no magicsearch.4161sections,458differentbytes TOTAL,
+allcovered in cells1417/1418/1419/1424. Pending/retainedexperience,mosaics,
+frontiers,hippocampal,settled-fractal/progresstail all byteidentical.
+
+Digest-to-neuron mapping (NOT tableposition) then compared these cells:
+eightlineages954/962/970/97e/98c/99a/a18/a26, allL5receptors, GLNPS01,
+32258bytes each. Onlylast32statebytes differ. Complete_neuron encoder2919–2940
+defines those as receptor_quantum_residue i128numerator/u128denominator.
+Everyotherbyte in each matchedstate, mountedanatomy/capacitance, and
+cohortfluid/electricaltail equal. Tableorder/digestreferences account for
+remainingcellbytedifferences. This is actualretainedsensoryenergy, not a
+cognitivelevel/recognition/learning claim.
+saved-cells.json SHA648f9cda720423e815cbb4902f3010331a9dce8bb477bc1d192d8c0fd577ea0f.
+Independent reviewer confirmedsectionreceipt+tailcodec; did NOT independently
+reconstructalleightdigestjoins. Owner's exactparser/assertions recordthose.
+
+Two source/observerfumbles: guessed reached_cohort* path absent; symbol search
+resolved reached_neuron_cohort.rs. Firstinlinecellinspection omittedexactcwd;
+workspacepackage shadowedPYTHONPATH, ModuleNotFoundError BEFORE any savedbodyread.
+Rerun SAMEread-onlycommand with cwd/tmp/guala-speech-existing-organexit0.
+No organismfailure/replayedlesson/compile. Always pass exactcwd, even for
+python stdin where cwd can precede PYTHONPATH.
+
+### S/C-054-122-189 — actual receptors use single-gate law; no saturation inference
+
+All8states reference exactheavyanatomy
+fb3f56cd4b23d4f7c0de4254b42e4c7155b063221f85c43d67e394d336743ffa.
+Readactualglobalanatomy bythatdigest, not a defaultfactory. GLNPA02:
+35MathLoompositions,7constraints,490rings, gatepopulation1,gatingcharge0,
+chemical0, dissipationquantum1/16zJ, capacity36.
+Savedgateanatomyreceiptbdbb03ec136f86424801edebd4c48aaa0f1563d7f1db998943b7b57698a488b8.
+Allfinalgatesclosed. Dissipatedquanta inlistedlineageorder:
+36,36,20,36,32,36,36,36. Residuefloorin1/16quanta botharms:
+0,0,0,0,2,1,1,0. Fullfractions retainedinsaved-cells.json.
+Thus reviewer genericwarning about populationdelivery is NOT this actual
+branch: core gate_population>1 test is false; exactproprioceptive single-gate
+quantize_receptor_delivery is active. No claimednewdefect from that alone.
+
+Law: accumulateexactreceptorenergy; thresholdfloor(open-minus-closedbarrier/
+gatequantum)+1; atthreshold deliver min(availablequanta,windowcap).
+Existing required_gate_recovery_extent usesactualpreparedconformation.
+Finalresidue/closedgate alone do NOT distinguish lower-than-barrier input,
+retainedremainderafterequalwholework, or saturationduringthelesson.
+Actualpendinglessonbarrier notmeasured; never substitute finalclockvalues.
+Sourceproprioceptive input uses4*aperturepopulation*1/2 timesintegratedsquared
+normalizedlength; actualguidedbodyevent supplies1ms sourceintervals.
+No physicalcoefficient/timing/gatecapacity edited or proposedfrom desiredoutput.
+
+### R-054-122-190 — next: effective body-sense learning input, not reset-only patch
+
+ContinuesR122185/R122177. We now know precisely WHATdiffers in thesavedbody.
+Next causalread reconciles actual single-gate receptor admission/recovery and
+guidedbodyduration/energy with ordinary routegrowth/plasticity. Do not treat
+different mechanical movement alone as proof of different neural activation.
+No new lesson or reset-only candidate before that source boundary is closed.
+Review priorS122109dosemechanics/C125directionrouting/S122182actualcontacts;
+those successes stayclosed. Any new observation must use existing savedstates
+wherepossible and exactnative law, not a duplicatephysicsimplementation.
+
+Allnewcallers/rawoutputs/health saved as incremental archive
+/mnt/tfebackup/guala-c118-four-posture.XehvEs/c129-strength-evidence.TnPp0A/saved-inspection-evidence.tar.gz
+SHAa783dc149d0709a1e0237c3cf9e78bf06053499c68f9c5cb504cfb4712f68af9.
+Originalevidencearchivebbd1641e NOT overwritten; no repeatedbodybackup.
+AWSbefore11:47:20/after11:48:06/final11:59:21UTC same1458/71289e2b/fd6e44de,
+HEALTHY1/1/0, resourcealarmsOK, historicalclockALARM. No live mutation,
+newnativecode, compile, deployment or speechclaim. GoalACTIVE.
