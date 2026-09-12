@@ -10403,3 +10403,18 @@ Controller handlesexactsourceSTOPPED/exit0/finalsave/zerowriters beforecandidate
 and validatesactualfinalCURRENT atstartup. No automaticoldrollback after046.
 This line is STARTED, NOT success: followactualsession/cloudstate untilterminal.
 SpeechNOTfixed; browserCLOSED/caretakerSTOP; fullAEgoalACTIVE.
+
+
+## SOL — 2026-09-12 11:03 UTC: C129 cutover terminal SUCCESS; live sound verification next
+
+Supersedes preceding STARTED entry. Session80467exit0, continuity_health_verified.
+ONE new definition1458/task71289e2b95be4d79a5c9f74ac2708b7d/imagefd6e44de,
+sourcebad5eeb9. Old1457 STOPPED exit0 at10:54:32.074; new started10:56:00.146.
+Actual final predecessor670250/bodyae371d7e/world2f3d16e3 restored, same identity;
+new clock670259 advanced. AWS11:02:53 confirms exacttask HEALTHY and1/1/0.
+Post-start CPU/RAM bounded; resource alarmsOK; historicalclockALARM remains.
+Do NOT restart controller or create another actor. No automatic oldschema rollback.
+S122173/R122174 in canonical Attempt54: next ONE reviewed existing sound-only
+live cue4000samples, no teaching, no retry, bounded gap-checked audio observation.
+Full raw proof retained. Pressure/self-hearing is not exact motor-order proof or
+recognizable speech. BrowserCLOSED/caretakerSTOP. SpeechNOTfixed, fullAEgoalACTIVE.
