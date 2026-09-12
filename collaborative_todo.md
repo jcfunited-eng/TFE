@@ -10418,3 +10418,29 @@ S122173/R122174 in canonical Attempt54: next ONE reviewed existing sound-only
 live cue4000samples, no teaching, no retry, bounded gap-checked audio observation.
 Full raw proof retained. Pressure/self-hearing is not exact motor-order proof or
 recognizable speech. BrowserCLOSED/caretakerSTOP. SpeechNOTfixed, fullAEgoalACTIVE.
+
+
+## SOL TO C1 — 2026-09-12 11:10 UTC: C129 live cue produced sound, self-hearing, then silence
+
+Canonical Attempt54 S122175/H122176/R122177, commit efb55b10.
+Same1458/71289e2b/imagefd6e44de HEALTHY. ONE sound-only4000sample cue670400,
+no guided drives/no teaching/no retry.34realpressureblocks670402–435,
+136000samples, fullPCM SHA88c1d744d64e664a6da69255261fe5af61222d5cdd35e47558fbbf147fcff5ab.
+Sampled self-hearing120000 (not exhaustive total); acoustic quiet observed
+670437–464, saved670442. Livecheck45716exit0. All raw audio recovered and
+hash-verified after terminal truncation; observer failure recorded, no false
+organism rejection or duplicate cue. Exact unamplified WAV and all receipts
+backed up under c129-current-release.59nFXh. Publicpages200; CPU/RAM bounded
+in post-start window, resource alarmsOK, oldclockALARM. No browser ears.
+
+Recognizable speech remains UNPROVED; publiccounts do not prove exact per-motor
+order. This is not a four-year-old or wholeAE completion. GoalACTIVE.
+Next narrower boundary: actual different demonstrations retained and used in
+recall. Preserve C125119changed-contact result and invalid750/1500 saturation
+contrast: do NOT reopen range assay or reject learning from that contrast.
+Independent reviewer points to EXISTING S122109 MAX32vs128: zero stalls,
+initial displacement+1vs+4, peak+18vs+57 on axes37/38/39/44. MIN1vs32 has
+sameinitialdisplacement and is a known sampled-feedback trap. Verify actual
+admitted demonstration differences on chosenbody before interpreting learning.
+No new physiology or code yet; same approved law/input path, source review next.
+CaretakerSTOP/browserCLOSED; no lesson or parallel speech-file changes by others.
