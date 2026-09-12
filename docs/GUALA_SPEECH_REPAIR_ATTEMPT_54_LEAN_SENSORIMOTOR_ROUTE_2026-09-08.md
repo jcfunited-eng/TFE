@@ -20,39 +20,45 @@ so live speech acceptance remains open. This paragraph records the Candidate110
 deployment, not the current repair state. Any earlier “speech complete” wording
 is historical and retracted.
 
-Current repair status, 2026-09-12 00:54 UTC: speech NOT fixed in production.
-Last verified production1456/C110/image6aa38d99; no deployment or live lessons
-this span. Full AE goal ACTIVE; caretakerSTOP/browserclosed, no user action.
+Current repair status, 2026-09-12 01:02 UTC: speech NOT fixed in production.
+Read-only AWS service verification this turn still reports task1456/C110,
+one desired/running, zero pending, rollout COMPLETED, no service failures.
+No deployment, live lessons, or third-posture teaching occurred this turn.
 
-F118-32 remains ACTIVE toward actual-runtime whole-word/live delivery.
-C123 closes ACTUAL-RUNTIME TWO-POSTURE recall LOCALLY (S12238):
-exact saved pairedbody/world withpendingreturn -> ordinaryrest -> coldrestore ->
-quiet8 -> ONEsoundcue -> root268e fourminimum motors651703/249breath ->
-successor269c fourmaximum motors651704/18breath -> selfhearing136000samples ->
-finitequiet/noextravocalacts -> all227oldmemorytopologies -> exactcoldnext651765.
-No guide duringrecall. Non-vocal hip/grip activity coexists and isnot suppressed.
-This is NOT fullword, intelligibleMama, semanticrecognition orlive speech.
+CURRENT PRIORITY: D-054-122-40, incremental two-posture release readiness.
+Joe asks to move functioning code into production and make progress observable.
+This advances the delivery assessment before D12239 third-posture teaching;
+it does NOT reset or reopen the closed C120/C121/C122/C123 local successes.
+Full AE goal remains ACTIVE. Caretaker/browser unchanged.
 
-C123 participant-scope correction is active in copiedruntime; no additional
-organism law was needed after it. Firstmaximumlesson lacked sound-owned
-associations. SECONDpresentation madeall4sameassociations sound-owned andgrew
-sole268e->269c. PriorC118 successfulorderedguide alreadyhadmaximumexperience;
-its thirdposture also neededtwo. Do NOT relabel firstlesson incompleteness as
-permanentfailedlearning or reopen closedC120memory/C121root/C122handoff laws.
+S12238 is retained LOCAL evidence: one sound cue, root268e four minimum motors
+at651703 with249 breath carriers, successor269c four maximum motors at651704
+with18 breath carriers, body pressure,136000 self-heard samples, quiet stop,
+227 original memory topologies preserved, exact cold restore plus ordinary
+interval651765. No guide during recall; other hip/grip activity coexists.
+This is NOT a full word, intelligible Mama, semantic recognition, or live proof.
 
-Preserve currentpasspair /tmp/guala-c123-recall.7m7KBL/paired651765:
-bodyfa73dd48dfe7b0c6dafc33c6d8e86002dfd094f2ffe4aa7ce2def17f0466d82c
-world218e8ff00c7be3ffd3f5265e3f97b9951de3802047bfa55cc2f4c872ac61c8d0
+Preserve /tmp/guala-c123-recall.7m7KBL/paired at651765:
+body fa73dd48dfe7b0c6dafc33c6d8e86002dfd094f2ffe4aa7ce2def17f0466d82c
+world 218e8ff00c7be3ffd3f5265e3f97b9951de3802047bfa55cc2f4c872ac61c8d0
 Archive c123-runtime-two-posture-pass.tar.gz SHA50f6e05c...19d2 on Ebackup.
-Single nextitem D12239: thirdposture lesson from thislivedsuccessor,
-phase2/minimum afterMEASUREDsecondposturecompletion. ExistingC118/110curriculum,
-no newphysics/build or priorpassrerun; inspectfirstpresentationbeforedeciding
-whetheroneadditionalrepetitionisneeded. No blindbatch or teachingfromscratch.
+First maximum lesson was incomplete, not permanently failed: the second lesson
+made the same four associations sound-owned and grew sole268e->269c.
+Do not repeat that diagnosis or discard either lesson's retained success.
 
-C123 diagnostic wheel704b9054...f325, .so d015e3b9...afb7b remains isolated;
-existingtrace onlydiagnostic-api, NEVERshipthatfeature. Ordinaryrelease still
-requires productionpackage withoutdiagnosticfeature andfullword acceptance.
-NativeGLMFAB11 unchanged; cumulative C122 coupled-world migration remains.
+Release target proposed for this increment: real live learning and sound-only
+two-posture recall, breath/pressure/self-hearing, clean stop, preserved state
+and truthful public playback/evidence. Four-posture word teaching follows it.
+Installing code DOES NOT import the copy's learned state into the live body.
+The copy remains a proof artifact; live lessons use ordinary sensory/body ingress.
+
+C123 diagnostic wheel704b9054...f325/.so d015e3b9...afb7b stays isolated.
+Ordinary production artifact must exclude diagnostic-api. Native GLMFAB11 is
+unchanged in this slice; cumulative C122 coupled-world v2-to-v3 migration
+requires the documented backup/compatible recovery. Release not yet ready:
+normal artifact, current-live predecessor parity, cumulative release evidence,
+and existing controller's migration/rehearsal closure must be reconciled first.
+These are delivery checks, not permission to reopen closed mechanism proofs.
 Worktree: `/tmp/guala-speech-existing-organ`
 Starting HEAD: `735489406577f90edf6c2fb7fb1889f87eae8107`
 Production boundary: task definition 1456 is the live deployed writer. Its
@@ -14027,3 +14033,65 @@ Do NOT revisit capturedownership/priorrest/two-posturerecall merely to regain
 confidence. Nextwork is thirdpostureteaching, not another root-growthcampaign.
 Slackcheckpoint00:49:55Z verifiedslack_sent#general for source87728313/edgewin;
 fullrecallcheckpointnotification follows this record's commit.
+
+
+## D-054-122-40 — prioritize an observable incremental release before more postures
+
+Joe requested an agile delivery approach: move functioning code to production
+so he can observe and help. Sol recommends a two-posture increment, not waiting
+for four-posture word completion. D12239 is unstarted and deferred behind this
+release assessment. F118-32 and the full AE goal remain active; no goal completion.
+
+Requested architecture: full-field, learned physical actions with concurrent
+experience. Current reality: S12238 passes on a copied body through the actual
+runtime; production remains1456/C110. No new cognitive conflict established by
+this read-only check. No legacy shell, L0-L4, reduced DSF, synthetic speech,
+diagnostic-api production feature, copied learned-state replacement, or new
+cognitive owner will be extended. Full DSF unchanged; no lost field structure.
+Single next item: reconcile the cumulative candidate's release closure against
+this incremental live acceptance, reusing existing evidence.
+
+Acceptance for this increment is NOT an image rollout alone. The live body must
+learn through its normal inputs, later produce the two ordered sound-producing
+postures from sound alone, stop, preserve its own state, and expose actual sound
+and truthful evidence to Joe. A release can deliver machinery before full-word
+completion, but must not claim the copy's acquired lesson is already live.
+No new UI mockup, observer-authored response, or transfer of practice-body state.
+
+Read-only receipts: clean source HEAD373b849dac47d03c17f3b95aef2b1faf89883e84;
+AWS service remains dsf-ai-task:1456, desired1/running1/pending0, one completed
+rollout, failures[]. No service mutation, cloud build, registration, or lesson.
+Production-code diff from34b4004ad10f36085aff83b0057d3d8bfcafe008 touches19
+native/runtime/manifest files (2894 additions,834 removals), including test-only
+sources; this is a cumulative C111-C123 delivery, not just C123's predicate edit.
+
+Controller read in full: tools/deploy_dsf_ai.sh,530lines, accepts ZERO arguments.
+Do not invent --dry-run/--rehearse-only or obsolete GUALA_DEPLOY_* flags.
+Its current path is continuity-only: package/build/register/drain/start, then
+health/custody checks. It does not itself execute the skill's discarded-state
+behavioral rehearsal or take the cumulative migration backup. Therefore old
+protocol/skill wording cannot be assumed to describe active controller behavior.
+This is release-process reconciliation, not evidence the speech mechanism failed.
+Do not blindly run the controller or introduce an alternate release ceremony.
+Resolve existing image-rehearsal and backup receipts/helpers before deciding the
+smallest necessary release-control change.
+
+Applicable recurrence map for this readiness stage (reuse prior recorded checks):
+RF001/002/003/036: exact worktree/environment and ordinary binary provenance;
+diagnostic success is retained but diagnostic-api cannot ship.
+RF005/012: backend receipts and health do not establish laptop playback.
+RF007/061/063: controller exists, full source read, zero-argument invocation
+resolved; no nonexistent flag or guessed test launched.
+RF010/022/048/059: retained pending return and coupled-world migration must keep
+body/world paired; S12238 cold-next is retained proof, not warm/cold equivalence.
+RF016/019/034/040: this explicit priority/scope update precedes packaging;
+full-word teaching is not silently retained as this increment's acceptance.
+RF035/060: fresh live proof must use actual4000-sample inputs and one authenticated
+predecessor, not mixed copies or an enlarged laboratory lesson.
+RF056/064: no copied-body replacement; exact old task must stop before new writer.
+RF058: current controller has no rehearsal branch; do not claim it has one.
+RF065: controller still reads settled custody once; prior transient refusal
+D11019 remains a known controller issue, not a new organism failure.
+
+Next delivery work is normal-artifact/current-production parity and release
+evidence mapping. No third lesson or broad historical rerun was launched.
