@@ -18774,3 +18774,89 @@ Tool-only preflight correction: Docker info JSON is valid but the .CpuCfsQuota
 Go-template field is not exported under that spelling. First projection exited1;
 corrected by decoding docker info JSON and selecting exact published keys.
 No builder or image started by that failed observer; no organism/test failure.
+
+
+### S-054-122-167 / R-054-122-168 — immutable image built; exact-image caller frozen
+
+ONE build76976exit0, started2026-09-12T10:39:03Z, completed before10:42:13UTC.
+Image213223177bytes linux/amd64:
+sha256:fd6e44defbc83a305a52229822c9f77155d0a640c8ffa8a7dc00265d7d1fec77,
+localtagguala-c129:bad5eeb9. OCIrevision exactlypackagebad5eeb9fullSHA.
+ConfigSHAfd7f12c74302ad8b532f9fd2a9c6e8a07b623101d019afe93d33bc6c27ec2ef0.
+No cloud push/taskregistration/cutover. Builderactualcontainer7973382d:
+4CPU/16GiB/noadditionalswap/restartno, only ownBuildKitvolume, noEFS/binds.
+Observed build376.30%CPU/597.3MiB at compilerstage; this is a sample,
+not exactpeak. Buildwarnings output was partly tool-truncated; no full-warning
+transcript claim and no rebuild. Successfulimage/exportmetadata authoritative.
+
+R168 uses exact image, not hostwheel. Inert disposable container
+72347f8c0a65b9407aa23e8d23850e232df04783418db7fb348a0904eb321668,
+nameguala-c129-rehearsal: networknone,4CPU/16GiB/noextraSwap, zero mounts;
+entrypointsleep, noorganismboot/backgroundlesson.
+All118 staged runtime files byte-identical under/app. Image-owned ordinarynative
+/usr/local/lib/python3.11/site-packages/guala_core/guala_core.cpython-311-x86_64-linux-gnu.so
+SHAcebdfacac630e4f5e5cac32f2b0ec8a1a2b6a63f46c40a0aa26e943c0113b3e2,
+diagnosticAPIabsent. Do not mislabel this as hostnative06c374fd.
+
+Imagecaller /tmp/guala-c129-current.Hn94ff/verify_image_path.py
+SHA4804a550185290e796e4898667ca5efe70d028592ad5dbe5b58e2559f2aa08b8.
+Independent sourcePASS before/after: exactly docstring and actual/app origin
+guard differ from passedcallerb1c21bcc. Same669708originalpair/cue/chronology,
+sameper-actpressure and completewarmcoldassertions. Copy onlycaller/archive/cue,
+not old proof state. No alternateextension/dependency install, nocode patch,
+no actorfarm. Existing R164 inputs and acceptance unchanged except exactimage
+artifact authority. Read-only AWS10:42:13.001228UTC samehealthy1457,1/1/0,
+latestCPUmax41.6783%,RAM10.3821%; samefourOK/historicalclockALARM.
+
+
+### S-054-122-169 — exact immutable image response/restart PASS
+
+R168 ran once, dockerexecsession24756exit0, no replacement extension or code.
+Imagefd6e44de/nativecebdfaca real startup669708 retainedsameidentity/tick,
+same migratedbody3a9d6bd5 andunchangedworld. Measured skysecond38643.
+Quiet8, cue669717, fourMIN669719/fourMAX669720, breath andnonzeropressureeach;
+24000selfheard,27980nonzero pressurethrough669725. Realpairpublish/adopt,
+coldrestore and ordinarynext669726 FULLbody/world/causalevidence EXACT:
+body166016926bytes SHAccfbe3e4e186ab33f8129a1a76bbf8343bfaa90b93a94dcf883a0a37da1d8eb1;
+worldSHA44e8a520f7759056a0aec8e476c1163338b2fd70a7d07fc7cd6c896fb02098cb.
+First17intervals22.721314s; peakRSS2533780KiB (TWO runtimes+comparison).
+ResultSHA8b5f6e07a2a205ff0f746e6f101acdb277011acf02583930258823064d82c85e,
+ /tmp/guala-c129-current.Hn94ff/image-proof/result.json,
+backupmatchinghash underc129-current-release.59nFXh/image-proof/.
+Coldproofscope is exactimage's OWN committedsuccessor; different external
+skytime means host/imagefullsuccessors are not asserted identical.
+Afterrun docker top showed ONLY inert sleep, no remainingorganism/thread.
+Imageown productionclosure118files matchedstagedbytes; no source change.
+AWS10:42:13.001228->10:45:48.696763UTC same1457/41d3db93,1/1/0,
+latestCPUmax41.6783->45.0391%,RAM10.3821->10.9802%;
+fourresource/refusalalarmsOK, historicalclockALARMstill.
+These are functioning copied-body imageproofs, not live speech.
+
+### R-054-122-170 — publication, final backup and controller dry run
+
+Same image pushed ONCE as ECRdsf-ai:c129-bad5eeb9, session51817exit0:
+registrydigestfd6e44defbc83a305a52229822c9f77155d0a640c8ffa8a7dc00265d7d1fec77.
+No rebuild. Local imagearchive213239808bytes retained:
+ /mnt/tfebackup/guala-c118-four-posture.XehvEs/c129-current-release.59nFXh/c129-image.tar,
+SHA15c559471bdc0b1ed2a8fc34adac2ddd98cbbe6570bd30eed1317e916c81e369.
+New pre-cutover fullCURRENT backupsession45900exit0:
+tick670092,body165093243bytes SHA8a686652a584c80291dbfc3b7015cbbed310ea9f5c218ace6d1c38abbb33e048,
+world63595bytes SHAb9203417491c1333b641d37da75d16cc4b8a96639d6288cfe4f0f31240eb46b0,
+identityunchanged. Archive3263097bytes SHAdb940f295cd2dba76db277e81d5c8dcd9983f91100bc4da03eaa324157547693,
+ /tmp/guala-c129-final-backup.ide9O9/current.zip,
+ s3://guala-incident-bench-20260831/guala/candidate129/final-backup-ide9O9.zip,
+backupbytehashmatched /mnt/tfebackup/guala-c118-four-posture.XehvEs/c129-current-release.59nFXh/final-backup.zip.
+No capture/liveorganismwrites; persistedcurrent only, not latestunsealedclock.
+
+Next exactcommand: bash tools/deploy_dsf_ai.sh --dry-run
+sha256:fd6e44defbc83a305a52229822c9f77155d0a640c8ffa8a7dc00265d7d1fec77
+/tmp/guala-c129-final-backup.ide9O9/current.zip.
+Controller524lines re-readfully; sourceunchanged. Dryrun reauthenticatesbackup
+body/worldbytes, actualECRmanifest, localimage/sourcecommit, exactservice/task/
+environment, HTTPcurrentauthority andlocalAWSregistrationshape, withoutcloudwrites.
+OnlyafterPASS may the samecontroller --cutover run ONCE withsameimage/backup.
+Currentheadmaydiffer frombad5eeb9 onlybyAttempt54ledger, expresslyallowed.
+Keep clean/pushed beforecontroller. No trainedcopy imported; candidate restores
+oldwriter'sfinalCURRENT after exactSTOPPED/exit0/shutdownreceipt/zerowriters.
+One-wayGLCOG046 rule: oldartifact cannot readsuccessor, no automaticoldrollback.
+Livevocalverification remainsaftercontinuityhealth; neither is speechcomplete.
