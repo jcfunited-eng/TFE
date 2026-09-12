@@ -1,6 +1,6 @@
 //! Resident complete-neuron boundary.
 //!
-//! `GLCOG046` is the current resident complete-neuron carrier. On the first
+//! `GLCOG045` is the current resident complete-neuron carrier. On the first
 //! admitted source occurrence it creates and retains exact source-specialized
 //! virtual-material neuron cells. Explicit growth-DNA electrical seeds remain
 //! unexpressed until their exact source-site cohort is reached, then become the
@@ -14,9 +14,6 @@
 //! recovery state remains separate. It
 //! never infers contacts or claims cognition merely from a seed, DSF delivery,
 //! or three retained fractals.
-
-mod physical_event_progress;
-use physical_event_progress::PhysicalEventProgress;
 
 mod settled_fractal_custody;
 use settled_fractal_custody::SettledFractalCustody;
@@ -342,7 +339,6 @@ const MAGIC_V43: &[u8; 8] = b"GLCOG043";
 const MAGIC_V44: &[u8; 8] = b"GLCOG044";
 /// V45 preserves finalized per-neuron leaves across independent settlement clocks.
 const MAGIC_V45: &[u8; 8] = b"GLCOG045";
-const MAGIC_V46: &[u8; 8] = b"GLCOG046";
 const RETIRED_W1_RETINA_SENSOR_ID: &str = "W1-retina";
 const RETIRED_W1_RETINA_TOPOLOGY_START: u32 = 135;
 const RETIRED_W1_RETINA_RECEPTOR_COUNT: usize = 810;
@@ -2703,7 +2699,6 @@ fn remove_formation_posting<K: Copy + Ord>(
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct ResidentCognitiveFormationState {
     generation: u64,
-    physical_progress: PhysicalEventProgress,
     next_lineage_ordinal: u64,
     /// The one resident respiratory/articulatory body effector. This is a
     /// persisted anatomical identity only; it supplies no activation and can
@@ -2760,7 +2755,6 @@ impl Default for ResidentCognitiveFormationState {
             preceding_active_electrical_frontier: Box::new([]),
             older_active_electrical_frontier: Box::new([]),
             mosaics: Box::new([]),
-            physical_progress: PhysicalEventProgress::default(),
             settled_fractals: SettledFractalCustody::default(),
             hippocampal: ResidentHippocampalIndex::default(),
             topology_index: Arc::new(ResidentTopologyIndex::empty()),
@@ -5632,22 +5626,16 @@ fn validate_dedicated_vocal_articulatory_effector(
 }
 
 impl ResidentCognitiveFormationState {
-    #[cfg(test)]
-    pub(crate) fn physical_event_clock(&self) -> u64 { self.physical_progress.clock }
-
     pub(crate) fn encoded_is_current(bytes: &[u8]) -> bool {
-        bytes.get(..MAGIC_V46.len()) == Some(MAGIC_V46)
+        bytes.get(..MAGIC_V45.len()) == Some(MAGIC_V45)
     }
 
     pub(crate) fn encoded_has_current_body_observation(bytes: &[u8]) -> bool {
-        Self::encoded_is_current(bytes)
-            || bytes.get(..MAGIC_V45.len()) == Some(MAGIC_V45)
-            || bytes.get(..MAGIC_V44.len()) == Some(MAGIC_V44)
+        Self::encoded_is_current(bytes) || bytes.get(..MAGIC_V44.len()) == Some(MAGIC_V44)
     }
 
     pub(crate) fn encoded_has_corrected_articulated_pose(bytes: &[u8]) -> bool {
         Self::encoded_is_current(bytes)
-            || bytes.get(..MAGIC_V45.len()) == Some(MAGIC_V45)
             || bytes.get(..MAGIC_V44.len()) == Some(MAGIC_V44)
             || bytes.get(..MAGIC_V43.len()) == Some(MAGIC_V43)
             || bytes.get(..MAGIC_V42.len()) == Some(MAGIC_V42)
@@ -5805,7 +5793,6 @@ impl ResidentCognitiveFormationState {
                 .collect::<Vec<_>>()
                 .into_boxed_slice(),
             mosaics: mosaics.into_boxed_slice(),
-            physical_progress: self.physical_progress.clone(),
             settled_fractals: self.settled_fractals.clone(),
             hippocampal: self.hippocampal,
             topology_index: self.topology_index.clone(),
@@ -5995,7 +5982,6 @@ impl ResidentCognitiveFormationState {
                 .collect::<Vec<_>>()
                 .into_boxed_slice(),
             mosaics: mosaics.into_boxed_slice(),
-            physical_progress: self.physical_progress.clone(),
             settled_fractals: self.settled_fractals.clone(),
             hippocampal: self.hippocampal,
             topology_index: self.topology_index.clone(),
@@ -6125,7 +6111,6 @@ impl ResidentCognitiveFormationState {
             preceding_active_electrical_frontier: Box::new([]),
             older_active_electrical_frontier: Box::new([]),
             mosaics: Box::new([]),
-            physical_progress: self.physical_progress.clone(),
             settled_fractals: self.settled_fractals.clone(),
             hippocampal: ResidentHippocampalIndex::default(),
             topology_index: Arc::new(ResidentTopologyIndex::empty()),
@@ -6333,7 +6318,6 @@ impl ResidentCognitiveFormationState {
                 .collect::<Vec<_>>()
                 .into_boxed_slice(),
             mosaics: self.mosaics.clone(),
-            physical_progress: self.physical_progress.clone(),
             settled_fractals: self.settled_fractals.clone(),
             hippocampal: self.hippocampal,
             topology_index: Arc::new(ResidentTopologyIndex::empty()),
@@ -6546,7 +6530,6 @@ impl ResidentCognitiveFormationState {
                 .collect::<Vec<_>>()
                 .into_boxed_slice(),
             mosaics: mosaics.into_boxed_slice(),
-            physical_progress: self.physical_progress.clone(),
             settled_fractals: self.settled_fractals.clone(),
             hippocampal: self.hippocampal,
             topology_index: self.topology_index.clone(),
@@ -6675,7 +6658,6 @@ impl ResidentCognitiveFormationState {
             preceding_active_electrical_frontier: Box::new([]),
             older_active_electrical_frontier: Box::new([]),
             mosaics: Box::new([]),
-            physical_progress: self.physical_progress.clone(),
             settled_fractals: self.settled_fractals.clone(),
             hippocampal: self.hippocampal,
             topology_index: self.topology_index.clone(),
@@ -7040,7 +7022,6 @@ impl ResidentCognitiveFormationState {
                 .collect::<Vec<_>>()
                 .into_boxed_slice(),
             mosaics: surviving_mosaics.into_boxed_slice(),
-            physical_progress: self.physical_progress.clone(),
             settled_fractals: self.settled_fractals.clone(),
             hippocampal: self.hippocampal,
             topology_index: Arc::new(ResidentTopologyIndex::empty()),
@@ -7701,7 +7682,6 @@ impl ResidentCognitiveFormationState {
                 .collect::<Vec<_>>()
                 .into_boxed_slice(),
             mosaics: surviving_mosaics.into_boxed_slice(),
-            physical_progress: self.physical_progress.clone(),
             settled_fractals: self.settled_fractals.clone(),
             hippocampal: self.hippocampal,
             topology_index: Arc::new(ResidentTopologyIndex::empty()),
@@ -7893,7 +7873,6 @@ impl ResidentCognitiveFormationState {
                 .collect::<Vec<_>>()
                 .into_boxed_slice(),
             mosaics: mosaics.into_boxed_slice(),
-            physical_progress: self.physical_progress.clone(),
             settled_fractals: self.settled_fractals.clone(),
             hippocampal: self.hippocampal,
             topology_index: self.topology_index.clone(),
@@ -7973,7 +7952,6 @@ impl ResidentCognitiveFormationState {
             preceding_active_electrical_frontier: Box::new([]),
             older_active_electrical_frontier: Box::new([]),
             mosaics: Box::new([]),
-            physical_progress: self.physical_progress.clone(),
             settled_fractals: self.settled_fractals.clone(),
             hippocampal: ResidentHippocampalIndex::default(),
             topology_index: self.topology_index.clone(),
@@ -8128,7 +8106,6 @@ impl ResidentCognitiveFormationState {
             preceding_active_electrical_frontier: Box::new([]),
             older_active_electrical_frontier: Box::new([]),
             mosaics: Box::new([]),
-            physical_progress: PhysicalEventProgress::at_clock(generation),
             settled_fractals: SettledFractalCustody::default(),
             hippocampal: ResidentHippocampalIndex::default(),
             topology_index: Arc::new(ResidentTopologyIndex::empty()),
@@ -8636,7 +8613,6 @@ impl ResidentCognitiveFormationState {
             preceding_active_electrical_frontier: predecessor_preceding_active_electrical_frontier,
             older_active_electrical_frontier: predecessor_older_active_electrical_frontier,
             mosaics: predecessor_mosaics,
-            mut physical_progress,
             mut settled_fractals,
             hippocampal: predecessor_hippocampal,
             topology_index: predecessor_topology_index,
@@ -8798,7 +8774,6 @@ impl ResidentCognitiveFormationState {
                         &cohorts,
                         &predecessor_electrical_fabric,
                     )?);
-                    physical_progress.admit_topology(&topology_index)?;
                 }
                 #[cfg(test)]
                 RESIDENT_JOINT_FIELD_EVALUATIONS.with(|count| count.set(count.get() + 1));
@@ -10089,7 +10064,6 @@ impl ResidentCognitiveFormationState {
         let locally_settled_lineages = locally_settled_lineages.into_iter().collect::<Vec<_>>();
         if !topology_index.matches_shape(&cohorts, &electrical_fabric) {
             topology_index = Arc::new(ResidentTopologyIndex::build(&cohorts, &electrical_fabric)?);
-            physical_progress.admit_topology(&topology_index)?;
         }
         #[cfg(test)]
         { phase_trace.stage = "internal-contact"; }
@@ -10115,7 +10089,6 @@ impl ResidentCognitiveFormationState {
                 .map_err(|_| FormationError::ArithmeticOverflow)?
                 .unwrap_or(0),
             residency,
-            &mut physical_progress,
             &pre_source_membranes,
             &palmar_contact_onset_receptor_lineages,
             &gustatory_contact_onset_receptor_lineages,
@@ -10227,7 +10200,6 @@ impl ResidentCognitiveFormationState {
         })?;
         if !topology_index.matches_shape(&cohorts, &electrical_fabric) {
             topology_index = Arc::new(ResidentTopologyIndex::build(&cohorts, &electrical_fabric)?);
-            physical_progress.admit_topology(&topology_index)?;
         }
         #[cfg(test)]
         { phase_trace.stage = "focused-original"; }
@@ -10280,7 +10252,6 @@ impl ResidentCognitiveFormationState {
         )?;
         if !topology_index.matches_shape(&cohorts, &electrical_fabric) {
             topology_index = Arc::new(ResidentTopologyIndex::build(&cohorts, &electrical_fabric)?);
-            physical_progress.admit_topology(&topology_index)?;
         }
         #[cfg(test)]
         { phase_trace.stage = "mosaic"; }
@@ -10380,7 +10351,6 @@ impl ResidentCognitiveFormationState {
         }
         if !topology_index.matches_shape(&cohorts, &electrical_fabric) {
             topology_index = Arc::new(ResidentTopologyIndex::build(&cohorts, &electrical_fabric)?);
-            physical_progress.admit_topology(&topology_index)?;
         }
         if admit_learned_motor_work {
             #[cfg(test)]
@@ -10473,7 +10443,6 @@ impl ResidentCognitiveFormationState {
             .count();
         if !topology_index.matches_shape(&cohorts, &electrical_fabric) {
             topology_index = Arc::new(ResidentTopologyIndex::build(&cohorts, &electrical_fabric)?);
-            physical_progress.admit_topology(&topology_index)?;
         }
         #[cfg(test)]
         { phase_trace.stage = "observation-return"; }
@@ -10491,7 +10460,6 @@ impl ResidentCognitiveFormationState {
                 .into_boxed_slice(),
             active_electrical_frontier: active_electrical_frontier.into_boxed_slice(),
             mosaics: mosaics.into_boxed_slice(),
-            physical_progress,
             settled_fractals,
             hippocampal,
             topology_index,
@@ -11092,14 +11060,11 @@ impl ResidentCognitiveFormationState {
             preceding_active_electrical_frontier: self.preceding_active_electrical_frontier.clone(),
             older_active_electrical_frontier: self.older_active_electrical_frontier.clone(),
             mosaics: self.mosaics.clone(),
-            physical_progress: self.physical_progress.clone(),
             settled_fractals: self.settled_fractals.clone(),
             hippocampal: self.hippocampal,
             topology_index,
             formation_index: self.formation_index.clone(),
         };
-        let mut successor = successor;
-        successor.physical_progress.admit_topology(&successor.topology_index)?;
         // Every retained mosaic must still be expressible against the grown
         // anatomy, or the growth is refused and the body is left as it is.
         let sealed = successor.seal_with_terminal_observation(max_encoded_bytes)?;
@@ -11224,7 +11189,7 @@ impl ResidentCognitiveFormationState {
         let topology = indexed_organism_mosaic_topology(&self.cohorts, &self.topology_index)?;
 
         let mut output = Vec::new();
-        output.extend_from_slice(MAGIC_V46);
+        output.extend_from_slice(MAGIC_V45);
         output.extend_from_slice(&VERSION_V30.to_le_bytes());
         output.extend_from_slice(&self.generation.to_le_bytes());
         output.extend_from_slice(&self.next_lineage_ordinal.to_le_bytes());
@@ -11384,7 +11349,6 @@ impl ResidentCognitiveFormationState {
         self.settled_fractals.encode_into(
             &mut output, &self.cohorts, &self.topology_index, max_encoded_bytes,
         )?;
-        self.physical_progress.encode_into(&mut output, &self.topology_index, max_encoded_bytes)?;
         let terminal = energy.map(|energy| {
             (
                 CognitiveFormationSummary {
@@ -11429,55 +11393,33 @@ impl ResidentCognitiveFormationState {
             return Err(FormationError::NoncanonicalState);
         }
         if format == CognitiveCodecFormat::V26 {
-            #[cfg(not(test))]
-            return Err(FormationError::RetiredCognitiveState);
-            #[cfg(test)]
-            {
-                // Historical V26--V33 bodies share the current compact byte
-                // layout EXCEPT the V40 vocal-body marker field, which
-                // postdates them (c978fbfb): a V26-family decode consumes no
-                // marker byte, so leaving it in shifted every later field by
-                // one and broke this shim's own documented contract. A state
-                // carrying a dedicated vocal effector lineage has no V26
-                // representation at all and is refused rather than guessed.
-                if self.vocal_articulatory_effector_lineage.is_some() {
-                    return Err(FormationError::NeuronLineageAuthorityChanged);
-                }
-                // This is a historical fixture writer, never a production downgrade.
-                // Only a fixture that has never acquired physical-progress custody
-                // is representable. Real retained progress cannot be stripped.
-                if self.physical_progress != PhysicalEventProgress::at_clock(self.generation) {
-                    return Err(FormationError::RetiredCognitiveState);
-                }
-                let mut historical = self.clone();
-                historical.physical_progress.admit_topology(&historical.topology_index)?;
-                let (mut encoded, _) = historical.encode_current(max_encoded_bytes, false, false)?;
-                let progress_bytes = historical.topology_index.canonical_lineages.len()
-                    .checked_mul(56)
-                    .and_then(|neurons| historical.topology_index.canonical_bonds.len()
-                        .checked_mul(44).and_then(|contacts| neurons.checked_add(contacts)))
-                    .and_then(|members| members.checked_add(24))
-                    .ok_or(FormationError::ArithmeticOverflow)?;
-                let progress_start = encoded.len().checked_sub(progress_bytes)
-                    .ok_or(FormationError::NoncanonicalState)?;
-                encoded.truncate(progress_start);
-                // Empty V45 leaf custody has no historical representation.
-                let end = encoded.len().checked_sub(8).ok_or(FormationError::NoncanonicalState)?;
-                if encoded.get(end..) != Some(&[0_u8; 8][..]) {
-                    return Err(FormationError::NoncanonicalState);
-                }
-                encoded.truncate(end);
-                let marker_offset =
-                    MAGIC_V26.len() + std::mem::size_of::<u16>() + 2 * std::mem::size_of::<u64>();
-                if encoded.get(marker_offset) != Some(&0) {
-                    return Err(FormationError::NoncanonicalState);
-                }
-                encoded.remove(marker_offset);
-                encoded[..MAGIC_V26.len()].copy_from_slice(MAGIC_V26);
-                encoded[MAGIC_V26.len()..MAGIC_V26.len() + std::mem::size_of::<u16>()]
-                    .copy_from_slice(&VERSION_V26.to_le_bytes());
-                return Ok(encoded);
+            // Historical V26--V33 bodies share the current compact byte
+            // layout EXCEPT the V40 vocal-body marker field, which
+            // postdates them (c978fbfb): a V26-family decode consumes no
+            // marker byte, so leaving it in shifted every later field by
+            // one and broke this shim's own documented contract. A state
+            // carrying a dedicated vocal effector lineage has no V26
+            // representation at all and is refused rather than guessed.
+            if self.vocal_articulatory_effector_lineage.is_some() {
+                return Err(FormationError::NeuronLineageAuthorityChanged);
             }
+            let (mut encoded, _) = self.encode_current(max_encoded_bytes, false, false)?;
+            // Empty V45 leaf custody has no historical representation.
+            let end = encoded.len().checked_sub(8).ok_or(FormationError::NoncanonicalState)?;
+            if encoded.get(end..) != Some(&[0_u8; 8][..]) {
+                return Err(FormationError::NoncanonicalState);
+            }
+            encoded.truncate(end);
+            let marker_offset =
+                MAGIC_V26.len() + std::mem::size_of::<u16>() + 2 * std::mem::size_of::<u64>();
+            if encoded.get(marker_offset) != Some(&0) {
+                return Err(FormationError::NoncanonicalState);
+            }
+            encoded.remove(marker_offset);
+            encoded[..MAGIC_V26.len()].copy_from_slice(MAGIC_V26);
+            encoded[MAGIC_V26.len()..MAGIC_V26.len() + std::mem::size_of::<u16>()]
+                .copy_from_slice(&VERSION_V26.to_le_bytes());
+            return Ok(encoded);
         }
         validate_lineage_state(self)?;
         if matches!(
@@ -12080,7 +12022,7 @@ impl ResidentCognitiveFormationState {
     }
 
     pub(crate) fn decode(bytes: &[u8], max_encoded_bytes: usize) -> Result<Self, FormationError> {
-        if bytes.get(..MAGIC_V46.len()) != Some(MAGIC_V46) {
+        if bytes.get(..MAGIC_V45.len()) != Some(MAGIC_V45) {
             return Err(FormationError::RetiredCognitiveState);
         }
         Self::decode_with_canonicality(bytes, max_encoded_bytes, true)
@@ -12091,7 +12033,7 @@ impl ResidentCognitiveFormationState {
         max_encoded_bytes: usize,
     ) -> Result<Self, FormationError> {
         // This is the explicit historical-entry boundary. Ordinary decode
-        // above remains V46-only; authenticated historical bodies are accepted
+        // above remains V45-only; authenticated historical bodies are accepted
         // here solely so they can be rewritten once into the current format.
         Self::decode_with_canonicality(bytes, max_encoded_bytes, false)
     }
@@ -12107,8 +12049,7 @@ impl ResidentCognitiveFormationState {
                 available: max_encoded_bytes,
             });
         }
-        let current_v46 = bytes.get(..MAGIC_V46.len()) == Some(MAGIC_V46);
-        let current_v45 = current_v46 || bytes.get(..MAGIC_V45.len()) == Some(MAGIC_V45);
+        let current_v45 = bytes.get(..MAGIC_V45.len()) == Some(MAGIC_V45);
         let current_v44 = current_v45 || bytes.get(..MAGIC_V44.len()) == Some(MAGIC_V44);
         let current_v43 = current_v44
             || (bytes.len() >= MAGIC_V43.len() && &bytes[..MAGIC_V43.len()] == MAGIC_V43);
@@ -12647,12 +12588,6 @@ impl ResidentCognitiveFormationState {
         } else {
             SettledFractalCustody::default()
         };
-        let physical_progress = if current_v46 {
-            PhysicalEventProgress::decode_from(bytes, &mut cursor, &topology_index)?
-        } else {
-            // Explicit old-format entry only: unsaved fractions cannot be recovered.
-            PhysicalEventProgress::at_clock(generation)
-        };
         if cursor != bytes.len() {
             return Err(FormationError::NoncanonicalState);
         }
@@ -12671,7 +12606,6 @@ impl ResidentCognitiveFormationState {
                 .into_boxed_slice(),
             older_active_electrical_frontier: older_active_electrical_frontier.into_boxed_slice(),
             mosaics: mosaics.into_boxed_slice(),
-            physical_progress,
             settled_fractals,
             hippocampal,
             topology_index,
@@ -12764,8 +12698,7 @@ impl ResidentCognitiveFormationState {
         bytes: &[u8],
         max_encoded_bytes: usize,
     ) -> Result<Vec<u8>, FormationError> {
-        let current_v46 = bytes.get(..MAGIC_V46.len()) == Some(MAGIC_V46);
-        let current_v45 = current_v46 || bytes.get(..MAGIC_V45.len()) == Some(MAGIC_V45);
+        let current_v45 = bytes.get(..MAGIC_V45.len()) == Some(MAGIC_V45);
         let current_v44 = current_v45 || bytes.get(..MAGIC_V44.len()) == Some(MAGIC_V44);
         let current_v43 = current_v44 || bytes.get(..MAGIC_V43.len()) == Some(MAGIC_V43);
         let current_v42 = current_v43 || bytes.get(..MAGIC_V42.len()) == Some(MAGIC_V42);
@@ -12784,7 +12717,7 @@ impl ResidentCognitiveFormationState {
         let previous_current_v29 = bytes.get(..MAGIC_V29.len()) == Some(MAGIC_V29);
         let previous_current_v28 = bytes.get(..MAGIC_V28.len()) == Some(MAGIC_V28);
         let previous_current_v27 = bytes.get(..MAGIC_V27.len()) == Some(MAGIC_V27);
-        let already_geometry_provisioned = current_v45 || bytes.len() >= MAGIC_V18.len()
+        let already_geometry_provisioned = bytes.len() >= MAGIC_V18.len()
             && (&bytes[..MAGIC_V18.len()] == MAGIC_V18
                 || &bytes[..MAGIC_V19.len()] == MAGIC_V19
                 || &bytes[..MAGIC_V20.len()] == MAGIC_V20
@@ -12968,8 +12901,6 @@ impl ResidentCognitiveFormationState {
         // migrated predecessor receives. The former `current_v34` early
         // return (81d15b57) sat above this check and silently stripped
         // every fresh genesis of its compact developmental reserve.
-        let mut state = state;
-        state.physical_progress.admit_topology(&state.topology_index)?;
         if state.resting_population.is_some() {
             return state.encode(max_encoded_bytes);
         }
@@ -19053,7 +18984,7 @@ struct ResidentContactTopologyEntry {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub(crate) struct ResidentTopologyIndex {
+struct ResidentTopologyIndex {
     flat_locations: Box<[(usize, usize, [u8; 16])]>,
     flat_by_lineage: Box<[([u8; 16], usize)]>,
     intrinsic_locations: Box<[((u32, u32), usize)]>,
@@ -19421,7 +19352,7 @@ fn rebuild_carrier_schedule_from_endpoint_holds(
     cohorts: &[ResidentReachedCohort],
     electrical_fabric: &ResidentElectricalFabric,
     topology_index: &ResidentTopologyIndex,
-    physical_progress: &PhysicalEventProgress,
+    persisted_organism_clock: u64,
     endpoint_holds: Option<
         &BTreeMap<
             [u8; 16],
@@ -19432,12 +19363,24 @@ fn rebuild_carrier_schedule_from_endpoint_holds(
             ),
         >,
     >,
-) -> Result<crate::causal_event_scheduler::CarrierCrossingSchedule, FormationError> {
-    use crate::causal_event_scheduler::CarrierCrossingSchedule;
+) -> Result<
+    (
+        crate::causal_event_scheduler::CarrierCrossingSchedule,
+        Vec<crate::causal_event_scheduler::ContactIntegrationClock>,
+    ),
+    FormationError,
+> {
+    use crate::causal_event_scheduler::{CarrierCrossingSchedule, ContactIntegrationClock};
     use crate::elementary_charge_transfer::next_whole_carrier_crossing_clocks;
 
     let contact_count = topology_index.contacts.len();
     let mut schedule = CarrierCrossingSchedule::with_contact_count(contact_count);
+    let clocks = vec![
+        ContactIntegrationClock {
+            last_integrated_clock: persisted_organism_clock,
+        };
+        contact_count
+    ];
     let interval = u32::try_from(WORLD_MECHANICAL_TICK_MICROSECONDS)
         .map_err(|_| FormationError::ArithmeticOverflow)?;
     for contact_index in 0..contact_count {
@@ -19516,13 +19459,13 @@ fn rebuild_carrier_schedule_from_endpoint_holds(
         )
         .map_err(|_| FormationError::ArithmeticOverflow)?;
         if let Some(clocks_until) = crossing {
-            let due = physical_progress.contact_clock(edge.stable_bond)?
+            let due = persisted_organism_clock
                 .checked_add(clocks_until)
                 .ok_or(FormationError::ArithmeticOverflow)?;
             schedule.reschedule(contact_index, Some(due));
         }
     }
-    Ok(schedule)
+    Ok((schedule, clocks))
 }
 
 /// Only root yaw owns a cross-interval prepared-action hold. Root
@@ -19541,8 +19484,8 @@ fn terminal_retains_prepared_action_charge(
 fn rebuild_causal_event_residency_from_endpoint_holds(
     cohorts: &[ResidentReachedCohort],
     electrical_fabric: &ResidentElectricalFabric,
-    topology_index: &Arc<ResidentTopologyIndex>,
-    physical_progress: &PhysicalEventProgress,
+    topology_index: &ResidentTopologyIndex,
+    persisted_organism_clock: u64,
     endpoint_holds: Option<
         &BTreeMap<
             [u8; 16],
@@ -19556,12 +19499,13 @@ fn rebuild_causal_event_residency_from_endpoint_holds(
 ) -> Result<crate::causal_event_scheduler::CausalEventResidency, FormationError> {
     use crate::causal_event_scheduler::{CarrierCrossingSchedule, CausalEventResidency};
     use crate::complete_neuron::next_passive_membrane_return_crossing_clocks;
+    use crate::elementary_charge_transfer::ChargeCarrierPhase;
 
-    let schedule = rebuild_carrier_schedule_from_endpoint_holds(
+    let (schedule, clocks) = rebuild_carrier_schedule_from_endpoint_holds(
         cohorts,
         electrical_fabric,
         topology_index,
-        physical_progress,
+        persisted_organism_clock,
         endpoint_holds,
     )?;
     let interval = u32::try_from(WORLD_MECHANICAL_TICK_MICROSECONDS)
@@ -19583,7 +19527,6 @@ fn rebuild_causal_event_residency_from_endpoint_holds(
             },
         );
         let neuron = held_neuron.as_ref().unwrap_or(current_neuron);
-        let recovery = physical_progress.recovery(lineage)?;
         // Root yaw deliberately retains a prepared turn across intervals.
         // Root translation does not: its returned position evidence was
         // severed from motor preparation, so held translation charge without
@@ -19596,7 +19539,7 @@ fn rebuild_causal_event_residency_from_endpoint_holds(
             terminal_retains_prepared_action_charge(mount, neuron, coordinated_vocal_preparation);
         let due = if mounted_terminal_ready {
             Some(
-                physical_progress.clock
+                persisted_organism_clock
                     .checked_add(1)
                     .ok_or(FormationError::ArithmeticOverflow)?,
             )
@@ -19604,12 +19547,12 @@ fn rebuild_causal_event_residency_from_endpoint_holds(
             next_passive_membrane_return_crossing_clocks(
                 &cohorts[cohort_index].anatomy.neuron_anatomies()[neuron_index],
                 neuron,
-                recovery.phase,
+                ChargeCarrierPhase::zero(),
                 interval,
             )
             .map_err(|_| FormationError::ArithmeticOverflow)?
             .map(|clocks_until| {
-                recovery.last
+                persisted_organism_clock
                     .checked_add(clocks_until)
                     .ok_or(FormationError::ArithmeticOverflow)
             })
@@ -19618,9 +19561,14 @@ fn rebuild_causal_event_residency_from_endpoint_holds(
         recovery_schedule.reschedule(flat, due);
     }
     Ok(CausalEventResidency {
+        contact_last_integrated: vec![persisted_organism_clock; clocks.len()],
         contact_schedule: schedule,
         recovery_schedule,
-        topology_index: topology_index.clone(),
+        recovery_phase: vec![ChargeCarrierPhase::zero(); neuron_count],
+        recovery_last_integrated: vec![persisted_organism_clock; neuron_count],
+        contact_count: topology_index.contacts.len(),
+        neuron_count,
+        organism_clock: persisted_organism_clock,
     })
 }
 
@@ -20180,7 +20128,7 @@ fn selected_cohorts_mut<'a>(
 fn settle_internal_contact_interval(
     cohorts: &mut [ResidentReachedCohort],
     electrical_fabric: &mut ResidentElectricalFabric,
-    topology_index: &Arc<ResidentTopologyIndex>,
+    topology_index: &ResidentTopologyIndex,
     vocal_articulatory_effector_lineage: Option<[u8; 16]>,
     predecessor_frontier: &[ActiveElectricalFrontierEntry],
     preceding_frontier: &[ActiveElectricalFrontierEntry],
@@ -20192,7 +20140,6 @@ fn settle_internal_contact_interval(
     cognitive_ordinal: u64,
     unchanged_developmental_resting_neuron_count: usize,
     residency: &mut Option<crate::causal_event_scheduler::CausalEventResidency>,
-    physical_progress: &mut PhysicalEventProgress,
     pre_source_membranes: &BTreeMap<
         [u8; 16],
         (
@@ -20222,7 +20169,6 @@ fn settle_internal_contact_interval(
         cognitive_ordinal,
         unchanged_developmental_resting_neuron_count,
         residency,
-        physical_progress,
         pre_source_membranes,
         palmar_contact_onset_receptor_lineages,
         gustatory_contact_onset_receptor_lineages,
@@ -20241,7 +20187,7 @@ fn settle_internal_contact_interval(
 fn settle_internal_contact_interval_with_body_act(
     cohorts: &mut [ResidentReachedCohort],
     electrical_fabric: &mut ResidentElectricalFabric,
-    topology_index: &Arc<ResidentTopologyIndex>,
+    topology_index: &ResidentTopologyIndex,
     vocal_articulatory_effector_lineage: Option<[u8; 16]>,
     predecessor_frontier: &[ActiveElectricalFrontierEntry],
     preceding_frontier: &[ActiveElectricalFrontierEntry],
@@ -20254,7 +20200,6 @@ fn settle_internal_contact_interval_with_body_act(
     cognitive_ordinal: u64,
     unchanged_developmental_resting_neuron_count: usize,
     residency: &mut Option<crate::causal_event_scheduler::CausalEventResidency>,
-    physical_progress: &mut PhysicalEventProgress,
     pre_source_membranes: &BTreeMap<
         [u8; 16],
         (
@@ -20268,6 +20213,47 @@ fn settle_internal_contact_interval_with_body_act(
     real_nutrition_intake_zeptojoules: ExactRational,
     admit_learned_motor_work: bool,
 ) -> Result<InternalContactSettlementObservation, FormationError> {
+    let residency_holds_due_events = residency.as_ref().is_some_and(|events| {
+        events.matches_shape(
+            topology_index.flat_locations.len(),
+            topology_index.contacts.len(),
+        ) && (events
+            .contact_schedule
+            .scheduled_dues()
+            .any(|(_, due)| due <= events.organism_clock + 1)
+            || events
+                .recovery_schedule
+                .scheduled_dues()
+                .any(|(_, due)| due <= events.organism_clock + 1))
+    });
+    if (locally_settled_lineages.is_empty() && !residency_holds_due_events)
+        || electrical_fabric.contact_count() == 0
+    {
+        return Ok(InternalContactSettlementObservation {
+            dsf_delivery_count: 0,
+            active_bonds: Vec::new(),
+            causal_active_bonds: Vec::new(),
+            causally_transitioned_lineages: Vec::new(),
+            changed_contact_channel_states: Vec::new(),
+            frontier_routes: Vec::new(),
+            next_active_frontier: Vec::new(),
+            settled_directed_transfers: Vec::new(),
+            metabolically_perturbed_body_receptor_lineages: Vec::new(),
+            affective_balance_trajectories: Vec::new(),
+            localized_fluid_chemistry: Vec::new(),
+            deferred_vocal_work_offers: Vec::new(),
+            learned_motor_work_preparations: Vec::new(),
+            motor_unit_recruitments: Vec::new(),
+            completed_vocal_orderings: Vec::new(),
+            root_yaw_unit_recruitments: Vec::new(),
+            root_translation_unit_recruitments: Vec::new(),
+            articulatory_unit_recruitments: Vec::new(),
+            emitted_neuron_fractals: Vec::new(),
+            passive_membrane_returned_neuron_lineages: Vec::new(),
+            transition_predecessors: BTreeMap::new(),
+        });
+    }
+
     if !topology_index.matches_shape(cohorts, electrical_fabric) {
         return Err(FormationError::NeuronLineageAuthorityChanged);
     }
@@ -20304,66 +20290,54 @@ fn settle_internal_contact_interval_with_body_act(
     // The event clock counts SETTLED intervals, never generations: a
     // generation that performs no settlement advances no physics, so it
     // advances no clock and no due can ever lapse unseen.
-    let needs_rebuild = residency.as_ref()
-        .is_none_or(|events| !events.matches_topology(topology_index));
+    let needs_rebuild = residency.as_ref().is_none_or(|events| {
+        !events.matches_shape(flat_locations.len(), topology_index.contacts.len())
+    });
     if needs_rebuild {
+        let base_clock = residency
+            .as_ref()
+            .map_or(cognitive_ordinal.saturating_sub(1), |events| {
+                events.organism_clock
+            });
         *residency = Some(rebuild_causal_event_residency_from_endpoint_holds(
-            cohorts, electrical_fabric, topology_index, physical_progress,
+            cohorts,
+            electrical_fabric,
+            topology_index,
+            base_clock,
             Some(pre_source_membranes),
         )?);
     }
     let events = residency
         .as_mut()
         .ok_or(FormationError::NoncanonicalState)?;
-    let earliest_due = match (
-        events.contact_schedule.earliest_due(), events.recovery_schedule.earliest_due(),
-    ) {
-        (Some(left), Some(right)) => Some(left.min(right)),
-        (left, right) => left.or(right),
-    };
-    if locally_settled_lineages.is_empty() && earliest_due.is_none() {
-        return Ok(InternalContactSettlementObservation {
-            dsf_delivery_count: 0,
-            active_bonds: Vec::new(),
-            causal_active_bonds: Vec::new(),
-            causally_transitioned_lineages: Vec::new(),
-            changed_contact_channel_states: Vec::new(),
-            frontier_routes: Vec::new(),
-            next_active_frontier: Vec::new(),
-            settled_directed_transfers: Vec::new(),
-            metabolically_perturbed_body_receptor_lineages: Vec::new(),
-            affective_balance_trajectories: Vec::new(),
-            localized_fluid_chemistry: Vec::new(),
-            deferred_vocal_work_offers: Vec::new(),
-            learned_motor_work_preparations: Vec::new(),
-            motor_unit_recruitments: Vec::new(),
-            completed_vocal_orderings: Vec::new(),
-            root_yaw_unit_recruitments: Vec::new(),
-            root_translation_unit_recruitments: Vec::new(),
-            articulatory_unit_recruitments: Vec::new(),
-            emitted_neuron_fractals: Vec::new(),
-            passive_membrane_returned_neuron_lineages: Vec::new(),
-            transition_predecessors: BTreeMap::new(),
-        });
-    }
-
     // Discrete event time: with no external ingress this clock, nothing
     // can change before the earliest scheduled event, so the clock skips
     // the silent span exactly — zero settlements spent on silence.
     if locally_settled_lineages.is_empty() {
+        let earliest_due = events
+            .contact_schedule
+            .scheduled_dues()
+            .map(|(_, due)| due)
+            .chain(
+                events
+                    .recovery_schedule
+                    .scheduled_dues()
+                    .map(|(_, due)| due),
+            )
+            .min();
         if let Some(earliest) = earliest_due {
-            if earliest > physical_progress.clock.checked_add(1)
-                .ok_or(FormationError::ArithmeticOverflow)? {
-                physical_progress.clock = earliest
+            if earliest > events.organism_clock + 1 {
+                events.organism_clock = earliest
                     .checked_sub(1)
                     .ok_or(FormationError::ArithmeticOverflow)?;
             }
         }
     }
-    physical_progress.clock = physical_progress.clock
+    events.organism_clock = events
+        .organism_clock
         .checked_add(1)
         .ok_or(FormationError::ArithmeticOverflow)?;
-    let clock = physical_progress.clock;
+    let clock = events.organism_clock;
     let mut seed_flats = locally_settled_lineages
         .iter()
         .copied()
@@ -20394,12 +20368,12 @@ fn settle_internal_contact_interval_with_body_act(
         let coordinated_vocal_preparation = mount.place().layer() == 11
             && vocal_action_preparation_for_ordering(cohorts, topology_index, lineage)?.is_some();
         if terminal_retains_prepared_action_charge(mount, neuron, coordinated_vocal_preparation) {
-            physical_progress.set_recovery_clock(lineage, clock)?;
+            events.recovery_last_integrated[flat] = clock;
             due_terminal_flats.push(flat);
             continue;
         }
         let elapsed = clock
-            .checked_sub(physical_progress.recovery(lineage)?.last)
+            .checked_sub(events.recovery_last_integrated[flat])
             .ok_or(FormationError::ArithmeticOverflow)?;
         if elapsed == 0 {
             continue;
@@ -20409,7 +20383,7 @@ fn settle_internal_contact_interval_with_body_act(
         let settled_return = crate::complete_neuron::settle_passive_membrane_return(
             &cohorts[cohort_index].anatomy.neuron_anatomies()[neuron_index],
             &cohorts[cohort_index].state.neurons()[neuron_index],
-            physical_progress.recovery(lineage)?.phase,
+            events.recovery_phase[flat],
             interval_u32,
             elapsed,
         )
@@ -20419,13 +20393,13 @@ fn settle_internal_contact_interval_with_body_act(
                 error,
             })
         })?;
-        physical_progress.set_recovery_clock(lineage, clock)?;
+        events.recovery_last_integrated[flat] = clock;
         let Some((successor_neuron, successor_phase, released)) = settled_return else {
-            physical_progress.set_recovery_phase(lineage,
-                crate::elementary_charge_transfer::ChargeCarrierPhase::zero())?;
+            events.recovery_phase[flat] =
+                crate::elementary_charge_transfer::ChargeCarrierPhase::zero();
             continue;
         };
-        physical_progress.set_recovery_phase(lineage, successor_phase)?;
+        events.recovery_phase[flat] = successor_phase;
         if successor_neuron == cohorts[cohort_index].state.neurons()[neuron_index] {
             continue;
         }
@@ -21105,7 +21079,7 @@ fn settle_internal_contact_interval_with_body_act(
         // catch-up asserts zero outward charges. The span's conduction
         // heat is deposited on this clock's settled transition.
         let mut contact_state = edge.state;
-        let last = physical_progress.contact_clock(edge.stable_bond)?;
+        let last = events.contact_last_integrated[contact_index];
         let mut span_heat: Option<num_rational::BigRational> = None;
         if last
             .checked_add(1)
@@ -24063,7 +24037,7 @@ fn settle_internal_contact_interval_with_body_act(
             }
         }
         for (position, contact_index) in compact_original_indices.iter().copied().enumerate() {
-            physical_progress.set_contact_clock(topology_index.contacts[contact_index].stable_bond, clock)?;
+            events.contact_last_integrated[contact_index] = clock;
             let transition = &settled.transitions[position];
             let successor_state = &transition.successor;
             let (left_flat, right_flat) = compact_edge_flat_endpoints[position];
@@ -24074,13 +24048,45 @@ fn settle_internal_contact_interval_with_body_act(
                 endpoint_cache
                     .get(&right_flat)
                     .ok_or(FormationError::NoncanonicalState)?;
-            // One physical current authority in warm, cold and endpoint-wake paths.
-            // Prior activity cannot grant a different schedule after restart.
-            let standing = crate::sparse_electrical_contact::standing_contact_current(
-                compact_anatomy.contact_anatomies()[position], successor_state,
-                *left_potential, *left_charges, *left_capacitance, *left_available,
-                *right_potential, *right_charges, *right_capacitance, *right_available,
-            ).map_err(FormationError::ResidentElectricalUnavailable)?;
+            // Two exact tiers. An ACTIVELY settled contact (whole carriers
+            // moved or channels transitioned) reschedules from its raw
+            // Ohmic drive without re-proving energy descent: if the pair
+            // has in fact come to rest, its scheduled clock settles it
+            // quiescently exactly once and THAT settlement pays the full
+            // authority, unscheduling it for good. A QUIESCENTLY settled
+            // contact pays the full settlement authority now — the only
+            // path that may refuse forever, so the only one needing the
+            // refusal proof. No polling loop can form: active -> at most
+            // one quiescent settle -> authority decision.
+            let actively_settled = transition.outward_elementary_charges_from_left != 0
+                || transition.conductance_changed;
+            let standing = if actively_settled {
+                let difference = left_potential
+                    .checked_sub(*right_potential)
+                    .map_err(|_| FormationError::ArithmeticOverflow)?;
+                let raw = compact_anatomy.contact_anatomies()[position]
+                    .effective_conductance(successor_state)
+                    .map_err(FormationError::ResidentElectricalUnavailable)?
+                    .checked_mul(difference)
+                    .map_err(|_| FormationError::ArithmeticOverflow)?
+                    .checked_div_unsigned(1_000)
+                    .map_err(|_| FormationError::ArithmeticOverflow)?;
+                (raw.parts().0 != 0).then_some(raw)
+            } else {
+                crate::sparse_electrical_contact::standing_contact_current(
+                    compact_anatomy.contact_anatomies()[position],
+                    successor_state,
+                    *left_potential,
+                    *left_charges,
+                    *left_capacitance,
+                    *left_available,
+                    *right_potential,
+                    *right_charges,
+                    *right_capacitance,
+                    *right_available,
+                )
+                .map_err(FormationError::ResidentElectricalUnavailable)?
+            };
             let due = match standing {
                 Some(current) => {
                     crate::elementary_charge_transfer::next_whole_carrier_crossing_clocks(
@@ -24132,7 +24138,7 @@ fn settle_internal_contact_interval_with_body_act(
             let entry = topology_index.contacts[contact_index];
             let edge = materialize_resident_contact_edge(entry, cohorts, electrical_fabric)?;
             let mut sleeping_state = edge.state;
-            let last = physical_progress.contact_clock(edge.stable_bond)?;
+            let last = events.contact_last_integrated[contact_index];
             // The endpoint's change reaches this sleeping neighbour at the
             // NEXT clock (the one-clock arrival law), so the sleeping span
             // integrates THROUGH this clock at the held pre-change drive;
@@ -24257,7 +24263,7 @@ fn settle_internal_contact_interval_with_body_act(
                     }
                 }
             }
-            physical_progress.set_contact_clock(edge.stable_bond, span_end)?;
+            events.contact_last_integrated[contact_index] = span_end;
             // New drive from the changed successor endpoints, full authority.
             let successor_endpoint = |flat: usize| -> Result<
                 (
@@ -24331,7 +24337,7 @@ fn settle_internal_contact_interval_with_body_act(
             // separate path at the next clock — then reschedule under the
             // new rate. A crossing inside the caught-up span cannot occur:
             // its due would have fired.
-            let last = physical_progress.recovery(lineage)?.last;
+            let last = events.recovery_last_integrated[flat];
             let scheduled_return_due = events.recovery_schedule.due_clock(flat);
             if last < clock {
                 // An unscheduled return means the descent law refused its
@@ -24339,7 +24345,7 @@ fn settle_internal_contact_interval_with_body_act(
                 // Only a scheduled span integrates, at the exact held
                 // state's current — membrane and compartments together.
                 if scheduled_return_due.is_none() {
-                    physical_progress.set_recovery_clock(lineage, clock)?;
+                    events.recovery_last_integrated[flat] = clock;
                 } else if let Some((held_membrane, held_intracellular, held_extracellular)) =
                     pre_source_membranes.get(&lineage)
                 {
@@ -24362,7 +24368,7 @@ fn settle_internal_contact_interval_with_body_act(
                     if let Some(current) = held_current {
                         let caught =
                             crate::elementary_charge_transfer::settle_elementary_charge_transfer_clocks(
-                                physical_progress.recovery(lineage)?.phase,
+                                events.recovery_phase[flat],
                                 current,
                                 interval,
                                 clock - last,
@@ -24377,16 +24383,16 @@ fn settle_internal_contact_interval_with_body_act(
                              clock={clock} due={scheduled_return_due:?} \
                              phase={:?} current={:?} held_charges={} \
                              held_intracellular={} held_extracellular={}",
-                            physical_progress.recovery(lineage)?.phase.parts(),
+                            events.recovery_phase[flat].parts(),
                             current.parts(),
                             held_membrane.separated_elementary_charges(),
                             held_intracellular,
                             held_extracellular,
                         );
-                        physical_progress.set_recovery_phase(lineage, caught.successor_phase)?;
+                        events.recovery_phase[flat] = caught.successor_phase;
                     }
                 }
-                physical_progress.set_recovery_clock(lineage, clock)?;
+                events.recovery_last_integrated[flat] = clock;
             }
             let mount = &cohorts[cohort_index].anatomy.mounts()[neuron_index];
             let neuron = &cohorts[cohort_index].state.neurons()[neuron_index];
@@ -24408,7 +24414,7 @@ fn settle_internal_contact_interval_with_body_act(
                 crate::complete_neuron::next_passive_membrane_return_crossing_clocks(
                     &cohorts[cohort_index].anatomy.neuron_anatomies()[neuron_index],
                     neuron,
-                    physical_progress.recovery(lineage)?.phase,
+                    events.recovery_phase[flat],
                     interval,
                 )
                 .map_err(|error| {

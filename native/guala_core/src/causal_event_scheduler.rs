@@ -20,11 +20,14 @@
 //! crossing clock is computed from the same exact arithmetic the settlement
 //! itself uses.
 //!
-//! Integration progress is physical custody in the cognitive successor:
-//! retained fractions and their exact integration clocks survive cold restore.
-//! A due crossing or endpoint change settles the elapsed physical span; read,
-//! snapshot and seal do not advance physiology. The schedule below is derived
-//! from that retained state, never persisted, and holds no cognitive authority.
+//! Companion contract (enforced by the integration layer, tested against
+//! the settlement oracle below): every contact carries
+//! `last_integrated_clock`; whenever a contact is read, settled, sealed, or
+//! its endpoints change, its accumulators are first advanced exactly from
+//! `last_integrated_clock` to the present clock under the standing drive —
+//! so no observation or persistence can ever see stale phase. The schedule
+//! is derived state: rebuilt from the organism on restore, never persisted,
+//! and holding no cognitive authority.
 
 /// Preallocated exact schedule over contacts.
 ///
@@ -86,15 +89,6 @@ impl CarrierCrossingSchedule {
             .map(move |contact| {
                 (*contact as usize, self.due_by_contact[*contact as usize])
             })
-    }
-
-    /// Earliest physical crossing, without walking the scheduled population.
-    pub(crate) fn earliest_due(&self) -> Option<u64> {
-        let heap_due = (self.len != 0).then(|| self.due_by_contact[self.heap[0] as usize]);
-        match (heap_due, self.next_clock.filter(|_| self.next_len != 0)) {
-            (Some(left), Some(right)) => Some(left.min(right)),
-            (left, right) => left.or(right),
-        }
     }
 
     pub(crate) fn scheduled_len(&self) -> usize {
@@ -322,23 +316,32 @@ pub(crate) struct SleepingSpanCatchUp {
     pub(crate) exported_heat_zeptojoules: num_rational::BigRational,
 }
 
-/// Derived event indexes only. Physical fractions and clocks belong to the
-/// retained cognitive successor; discarding this view cannot discard physics.
+/// Advance a sleeping contact exactly from its retained clock to `now`.
+/// The runtime-resident derived event state of the causal scheduler: the
+/// carrier-crossing schedule and last-integrated clock per contact, and
+/// the membrane-recovery schedule per neuron. Derived, never encoded,
+/// rebuilt at cold restore and on any topology change; owning it in the
+/// runtime keeps every retained predecessor state value-consistent.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct CausalEventResidency {
     pub(crate) contact_schedule: CarrierCrossingSchedule,
+    pub(crate) contact_last_integrated: Vec<u64>,
+    /// Per-neuron schedule of the PASSIVE MEMBRANE RETURN — the true
+    /// rest transition, separate from the active gradient pump. The
+    /// return path's sub-carrier phase lives here as derived state: a
+    /// cold restore restarts each neuron's return progress at zero,
+    /// forfeiting strictly less than one elementary charge per neuron.
     pub(crate) recovery_schedule: CarrierCrossingSchedule,
-    pub(crate) topology_index: std::sync::Arc<
-        crate::resident_cognitive_formation::ResidentTopologyIndex,
-    >,
+    pub(crate) recovery_phase: Vec<crate::elementary_charge_transfer::ChargeCarrierPhase>,
+    pub(crate) recovery_last_integrated: Vec<u64>,
+    pub(crate) contact_count: usize,
+    pub(crate) neuron_count: usize,
+    pub(crate) organism_clock: u64,
 }
 
 impl CausalEventResidency {
-    pub(crate) fn matches_topology(
-        &self,
-        topology: &std::sync::Arc<crate::resident_cognitive_formation::ResidentTopologyIndex>,
-    ) -> bool {
-        std::sync::Arc::ptr_eq(&self.topology_index, topology)
+    pub(crate) fn matches_shape(&self, neuron_count: usize, contact_count: usize) -> bool {
+        self.neuron_count == neuron_count && self.contact_count == contact_count
     }
 }
 
@@ -410,24 +413,6 @@ mod tests {
         settle_elementary_charge_transfer, ChargeCarrierPhase,
     };
     use crate::exact_rational::ExactRational;
-
-    #[test]
-    fn earliest_due_reads_heap_and_immediate_frontier() {
-        let mut schedule = CarrierCrossingSchedule::with_contact_count(3);
-        assert_eq!(schedule.earliest_due(), None);
-        schedule.reschedule(0, Some(20));
-        schedule.reschedule(1, Some(9));
-        assert_eq!(schedule.earliest_due(), Some(9));
-        let mut due = Vec::new();
-        schedule.drain_due_at(9, &mut due);
-        assert_eq!(due, vec![1]);
-        schedule.reschedule_from_clock(9, 2, Some(10));
-        assert_eq!(schedule.earliest_due(), Some(10));
-        schedule.reschedule(2, None);
-        assert_eq!(schedule.earliest_due(), Some(20));
-        schedule.reschedule(0, None);
-        assert_eq!(schedule.earliest_due(), None);
-    }
 
     /// The scheduler's soundness claim against the settlement oracle: for a
     /// contact under constant standing drive, integrating clock-by-clock

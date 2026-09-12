@@ -19,11 +19,12 @@ live tail S122106 is preserved, not reopened by this short observation.
 Single active item: physical restart custody, continuing R122147. Candidate127
 compiled and passed five supporting tests, but the recovery-only physical test
 exposed a missed finalization branch (S/H/F122150). Candidate127 is rejected,
-not deployable; its source/results are preserved. No test condition weakened.
+not deployable; source/results archived at ad52b513. Executable sources restored
+exactly to accepted126 baseline38c695ec (S122151). No test condition weakened.
 The next contract amendment routes actual passive returns through common
 physical finalization even when contact selection is empty. Do not reopen126
 acoustics or repeat the five preserved custody/codec/scheduler checks unchanged.
-Latest AWS08:38:01.996800UTC same1457/task41d3db93/image80755ca0,1/1/0.
+Latest AWS09:24:29.188934UTC same1457/task41d3db93/image80755ca0,1/1/0.
 Runaway/storage/refusal alarmsOK; historicalclock-stalledALARM persists.
 Caller/build terminal, no orphan. Browser CLOSED/caretakerSTOP; no live mutation.
 C126 evidence saved9MiB at /mnt/tfebackup/guala-c118-four-posture.XehvEs/c126-physical-cue.wSS9hB/.
@@ -18127,3 +18128,24 @@ Local compile/test processes terminal; post-run census finds no matching child
 or orphan. AvailablehostRAM beforecompile28.1GiB; no current127 runtime peak
 or native mature-body performance measured. CaretakerSTOP/browserclosed.
 No production mutation. Speech NOT fixed; full AE goalACTIVE.
+
+
+### S-054-122-151 — rejected source archived; accepted executable baseline restored
+
+2026-09-12. Rejected Candidate127 source and all preserved success/failure
+receipts committed as ad52b513. Full-file source restoration, not destructive
+checkout/reset: scheduler, runtime, core, tests and reservoir_probe now exactly
+match accepted38c695ec (C126 executable lineage). Removed only the new rejected
+physical_event_progress.rs from the active source tree; its complete source is
+recoverable in ad52b513. git diff38c695ec -- native/guala_core/src is empty.
+No accepted126 implementation or proof was discarded. Five127 supporting passes
+remain evidence for unchanged components, not acceptance of the rejected whole.
+The compiled test executable c8849c4e remains REJECTED127 evidence; restoration
+of source does not magically rebuild or relabel that binary. Do not run it as126.
+
+Single next item remains contract amendment at the already identified physical
+finalization path, before a new implementation. Both early empty-selection
+returns and common endpoint/recovery rescheduling must be reconciled together.
+No new law, coefficient, fake source, memory/voice redesign or lesson run.
+No production mutation or fresh cloud claim after09:24:29UTC. Full goalACTIVE.
+Joe and C1 remain collaborators; questions/commentary are not stop commands.

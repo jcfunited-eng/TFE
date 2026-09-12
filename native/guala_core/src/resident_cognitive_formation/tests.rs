@@ -268,7 +268,6 @@ fn rejected_w1_retirement_removes_only_the_duplicate_retina_and_integrators() {
     let topology_index = Arc::new(ResidentTopologyIndex::build(&cohorts, &fabric).unwrap());
     let state = ResidentCognitiveFormationState {
         generation: 1,
-        physical_progress: PhysicalEventProgress::at_clock(1),
         next_lineage_ordinal: next_lineage,
         vocal_articulatory_effector_lineage: None,
         unexpressed_electrical_seeds: Box::new([]),
@@ -4823,7 +4822,6 @@ fn v27_unlearned_affective_and_ordering_growth_is_retired_once() {
         .unwrap_or(next_lineage);
     let state = ResidentCognitiveFormationState {
         generation: 5,
-        physical_progress: PhysicalEventProgress::at_clock(5),
         next_lineage_ordinal,
         vocal_articulatory_effector_lineage: None,
         unexpressed_electrical_seeds: Box::new([]),
@@ -4937,9 +4935,7 @@ fn reached_affective_cell_exposes_its_existing_local_plastic_consequence() {
     };
     let association_predecessor = participant_plastic(association, &cohorts);
     let regulation_predecessor = participant_plastic(regulation, &cohorts);
-    let topology_index = Arc::new(ResidentTopologyIndex::build(&cohorts, &fabric).unwrap());
-    let mut physical_progress = PhysicalEventProgress::at_clock(0);
-    physical_progress.admit_topology(&topology_index).unwrap();
+    let topology_index = ResidentTopologyIndex::build(&cohorts, &fabric).unwrap();
     let mut transitioned = BTreeSet::new();
     let mut retained_settlement = None;
     for ordinal in 1..=128 {
@@ -4969,7 +4965,6 @@ fn reached_affective_cell_exposes_its_existing_local_plastic_consequence() {
             ordinal,
             0,
             &mut None,
-            &mut physical_progress,
             &BTreeMap::new(),
             &[],
             &[],
@@ -6144,7 +6139,6 @@ fn historical_load_correction_rewires_only_the_rejected_motor_contact() {
     next_lineage = resting_population.lineage_end_exclusive();
     let state = ResidentCognitiveFormationState {
         generation: 5,
-        physical_progress: PhysicalEventProgress::at_clock(5),
         next_lineage_ordinal: next_lineage,
         vocal_articulatory_effector_lineage: None,
         unexpressed_electrical_seeds: Box::new([]),
@@ -6346,7 +6340,6 @@ fn v33_migration_removes_reintroduced_effector_pools_one_way() {
     };
     let state = ResidentCognitiveFormationState {
         generation: 5,
-        physical_progress: PhysicalEventProgress::at_clock(5),
         next_lineage_ordinal: next_lineage,
         vocal_articulatory_effector_lineage: None,
         unexpressed_electrical_seeds: Box::new([]),
@@ -6503,9 +6496,7 @@ fn changed_endpoints_wake_exactly_their_incident_contacts() {
             ExactRational::integer(DEVELOPMENTAL_CONTACT_CONDUCTANCE_PICOSIEMENS),
         )
         .unwrap();
-    let topology_index = Arc::new(ResidentTopologyIndex::build(&cohorts, &fabric).unwrap());
-    let mut physical_progress = PhysicalEventProgress::at_clock(0);
-    physical_progress.admit_topology(&topology_index).unwrap();
+    let topology_index = ResidentTopologyIndex::build(&cohorts, &fabric).unwrap();
     let isolated_contact = topology_index
         .contacts
         .iter()
@@ -6538,7 +6529,6 @@ fn changed_endpoints_wake_exactly_their_incident_contacts() {
             ordinal,
             0,
             &mut residency,
-            &mut physical_progress,
             &BTreeMap::new(),
             &[],
             &[],
@@ -6548,7 +6538,7 @@ fn changed_endpoints_wake_exactly_their_incident_contacts() {
         .unwrap();
         let events = residency.as_ref().expect("residency must persist");
         assert_eq!(
-            physical_progress.clock, ordinal,
+            events.organism_clock, ordinal,
             "one residency must advance one clock per settled interval"
         );
         // The zero-displacement pair is UNCHANGED every clock under the
@@ -6557,7 +6547,7 @@ fn changed_endpoints_wake_exactly_their_incident_contacts() {
         // return schedule must stay empty. An unchanged endpoint wakes
         // nothing — strictly, forever.
         assert_eq!(
-            physical_progress.contact_clock(topology_index.contacts[isolated_contact].stable_bond).unwrap(), 0,
+            events.contact_last_integrated[isolated_contact], 0,
             "an unchanged endpoint must wake nothing"
         );
         let isolated_return_scheduled = events
@@ -6571,11 +6561,12 @@ fn changed_endpoints_wake_exactly_their_incident_contacts() {
         // The SEEDED subsystem's endpoints change every clock (external
         // seed + pump + settlement): every contact incident to a
         // changed endpoint is woken to the current epoch.
-        let reached_advanced = topology_index.contacts
+        let reached_advanced = events
+            .contact_last_integrated
             .iter()
             .enumerate()
             .filter(|(index, _)| *index != isolated_contact)
-            .all(|(_, entry)| physical_progress.contact_clock(entry.stable_bond).unwrap() + 1 >= physical_progress.clock);
+            .all(|(_, last)| *last + 1 >= events.organism_clock);
         assert!(
             reached_advanced,
             "every contact incident to a changed endpoint must be woken"
@@ -6593,15 +6584,7 @@ fn changed_endpoints_wake_exactly_their_incident_contacts() {
         {
             break;
         }
-        let next_ordinal = physical_progress.clock + 1;
-        let mut cold_cohorts = cohorts.clone();
-        let mut cold_fabric = fabric.clone();
-        let mut bytes = Vec::new();
-        physical_progress.encode_into(&mut bytes, &topology_index, usize::MAX).unwrap();
-        let mut cold_progress = PhysicalEventProgress::decode_from(
-            &bytes, &mut 0, &topology_index).unwrap();
-        settle_quiet_progress_fixture(&mut cold_cohorts, &mut cold_fabric,
-            &topology_index, &mut cold_progress, &mut None);
+        let next_ordinal = events.organism_clock + 1;
         settle_internal_contact_interval(
             &mut cohorts,
             &mut fabric,
@@ -6617,7 +6600,6 @@ fn changed_endpoints_wake_exactly_their_incident_contacts() {
             next_ordinal,
             0,
             &mut residency,
-            &mut physical_progress,
             &BTreeMap::new(),
             &[],
             &[],
@@ -6625,9 +6607,6 @@ fn changed_endpoints_wake_exactly_their_incident_contacts() {
             true,
         )
         .unwrap();
-        assert_eq!(cohorts, cold_cohorts, "warm/cold neuron and fluid successors");
-        assert_eq!(fabric, cold_fabric, "warm/cold contact successors");
-        assert_eq!(physical_progress, cold_progress, "warm/cold integration progress");
     }
     let events = residency.as_ref().unwrap();
     assert_eq!(
@@ -7418,7 +7397,6 @@ fn malformed_root_translation_motor_is_replaced_once_with_compatible_anatomy() {
     let topology_index = Arc::new(ResidentTopologyIndex::build(&cohorts, &fabric).unwrap());
     let malformed_state = ResidentCognitiveFormationState {
         generation: 0,
-        physical_progress: PhysicalEventProgress::at_clock(0),
         next_lineage_ordinal: next_lineage,
         vocal_articulatory_effector_lineage: None,
         unexpressed_electrical_seeds: Box::new([]),
@@ -7539,7 +7517,6 @@ fn v41_mounts_one_new_dedicated_vocal_body_without_selecting_historical_cells() 
     let topology_index = Arc::new(ResidentTopologyIndex::build(&cohorts, &fabric).unwrap());
     let state = ResidentCognitiveFormationState {
         generation: 41,
-        physical_progress: PhysicalEventProgress::at_clock(41),
         next_lineage_ordinal: population.as_ref().unwrap().lineage_end_exclusive(),
         vocal_articulatory_effector_lineage: None,
         unexpressed_electrical_seeds: Box::new([]),
@@ -7686,7 +7663,6 @@ fn v34_replaces_broad_articulatory_pool_with_fixed_vocal_route_once() {
     let topology_index = Arc::new(ResidentTopologyIndex::build(&cohorts, &fabric).unwrap());
     let state = ResidentCognitiveFormationState {
         generation: 7,
-        physical_progress: PhysicalEventProgress::at_clock(7),
         next_lineage_ordinal: population.as_ref().unwrap().lineage_end_exclusive(),
         vocal_articulatory_effector_lineage: None,
         unexpressed_electrical_seeds: Box::new([]),
@@ -7824,7 +7800,6 @@ fn v33_body_without_speech_anatomy_gains_only_the_fixed_vocal_bridge() {
     let topology_index = Arc::new(ResidentTopologyIndex::build(&cohorts, &fabric).unwrap());
     let state = ResidentCognitiveFormationState {
         generation: 9,
-        physical_progress: PhysicalEventProgress::at_clock(9),
         next_lineage_ordinal: population.as_ref().unwrap().lineage_end_exclusive(),
         vocal_articulatory_effector_lineage: None,
         unexpressed_electrical_seeds: Box::new([]),
@@ -7986,7 +7961,6 @@ fn v32_retires_misprojected_root_yaw_paths_once() {
     let topology_index = Arc::new(ResidentTopologyIndex::build(&cohorts, &fabric).unwrap());
     let state = ResidentCognitiveFormationState {
         generation: 5,
-        physical_progress: PhysicalEventProgress::at_clock(5),
         next_lineage_ordinal: next_lineage,
         vocal_articulatory_effector_lineage: None,
         unexpressed_electrical_seeds: Box::new([]),
@@ -8245,7 +8219,6 @@ fn historical_background_growth_migrates_once_and_cannot_restore() {
     let topology_index = Arc::new(ResidentTopologyIndex::build(&cohorts, &fabric).unwrap());
     let mut state = ResidentCognitiveFormationState {
         generation: 5,
-        physical_progress: PhysicalEventProgress::at_clock(5),
         next_lineage_ordinal: next_lineage,
         vocal_articulatory_effector_lineage: None,
         unexpressed_electrical_seeds: Box::new([]),
@@ -9839,7 +9812,6 @@ fn ambiguous_returned_vocal_consequence_cannot_author_motor_contact() {
     let topology_index = Arc::new(ResidentTopologyIndex::build(&cohorts, &fabric).unwrap());
     let state = ResidentCognitiveFormationState {
         generation: 7,
-        physical_progress: PhysicalEventProgress::at_clock(7),
         next_lineage_ordinal: population.as_ref().unwrap().lineage_end_exclusive(),
         vocal_articulatory_effector_lineage: None,
         unexpressed_electrical_seeds: Box::new([]),
@@ -10808,181 +10780,4 @@ fn contact_gradient_direction_preserves_both_physical_motion_sources() {
     ] {
         assert_eq!(local_gradient_direction(motion, scheduled_return), expected);
     }
-}
-
-fn settle_quiet_progress_fixture(
-    cohorts: &mut [ResidentReachedCohort],
-    fabric: &mut ResidentElectricalFabric,
-    topology: &Arc<ResidentTopologyIndex>,
-    progress: &mut PhysicalEventProgress,
-    residency: &mut Option<crate::causal_event_scheduler::CausalEventResidency>,
-) -> InternalContactSettlementObservation {
-    settle_internal_contact_interval(
-        cohorts, fabric, topology, None, &[], &[], &[], &[], &[], &[],
-        &mut BTreeSet::new(), progress.clock.checked_add(1).unwrap(), 0,
-        residency, progress, &BTreeMap::new(), &[], &[],
-        ExactRational::integer(0), true,
-    ).unwrap()
-}
-
-#[test]
-fn physical_progress_recovery_only_future_event_survives_cold_restore() {
-    use crate::elementary_charge_membrane::ElementaryChargeMembraneState;
-    let mut cohorts = Vec::new();
-    let mut population = Some(
-        DevelopmentalRestingPopulation::admit(1_600_000_000, 100_000, 100, &[]).unwrap());
-    let mut next_lineage = 1;
-    let lineage = mount_intrinsic_neuron_at_place(
-        &mut cohorts, &mut population, &mut next_lineage, DeclaredNeuronPlace::new(6, 0),
-    ).unwrap();
-    let mut fabric = ResidentElectricalFabric::default();
-    let topology = Arc::new(ResidentTopologyIndex::build(&cohorts, &fabric).unwrap());
-    assert_eq!(topology.contacts.len(), 0);
-    let (cohort, neuron, _) = topology.flat_locations[0];
-    let anatomy = &cohorts[cohort].anatomy.neuron_anatomies()[neuron];
-    // Declared test starting displacement opposes the reversal sign, so
-    // both capacitor and gradient work strictly descend on passive return.
-    // This is a supporting physical fixture, never a live body mutation.
-    let reversal_sign = anatomy.gate_reversal_potential_millivolts().parts().0.signum();
-    let displacement = if reversal_sign == 0 { 5 } else { -5 * reversal_sign };
-    let prior = &cohorts[cohort].state.neurons()[neuron];
-    let displaced = crate::complete_neuron::with_held_membrane_and_carriers(
-        prior, ElementaryChargeMembraneState::genesis(displacement),
-        prior.carrier_reservoirs().intracellular(),
-        prior.carrier_reservoirs().extracellular(),
-    );
-    let reservoir = cohorts[cohort].state.recovery_fluid().clone();
-    Arc::make_mut(&mut cohorts[cohort].state)
-        .apply_local_membrane_transport(neuron, displaced, reservoir).unwrap();
-    let mut progress = PhysicalEventProgress::at_clock(0);
-    progress.admit_topology(&topology).unwrap();
-    let mut warm = Some(rebuild_causal_event_residency_from_endpoint_holds(
-        &cohorts, &fabric, &topology, &progress, None,
-    ).unwrap());
-    let due = warm.as_ref().unwrap().recovery_schedule.earliest_due().unwrap();
-    assert!(due > 1, "fixture must exercise a genuinely future-only event");
-    let mut cold_cohorts = cohorts.clone();
-    let mut cold_fabric = fabric.clone();
-    let mut bytes = Vec::new();
-    progress.encode_into(&mut bytes, &topology, usize::MAX).unwrap();
-    let mut cold_progress =
-        PhysicalEventProgress::decode_from(&bytes, &mut 0, &topology).unwrap();
-    let warm_output = settle_quiet_progress_fixture(
-        &mut cohorts, &mut fabric, &topology, &mut progress, &mut warm);
-    let cold_output = settle_quiet_progress_fixture(
-        &mut cold_cohorts, &mut cold_fabric, &topology, &mut cold_progress, &mut None);
-    assert_eq!(progress.clock, due);
-    assert_eq!(cohorts, cold_cohorts);
-    assert_eq!(fabric, cold_fabric);
-    assert_eq!(progress, cold_progress);
-    assert_eq!(warm_output.passive_membrane_returned_neuron_lineages, vec![lineage]);
-    assert_eq!(cold_output.passive_membrane_returned_neuron_lineages, vec![lineage]);
-    assert_eq!(cohorts[cohort].state.neurons()[neuron].separated_elementary_charges(),
-        displacement - displacement.signum());
-}
-
-#[test]
-fn physical_progress_zero_work_with_no_events_is_exact() {
-    let mut cohorts = Vec::new();
-    let mut fabric = ResidentElectricalFabric::default();
-    let topology = Arc::new(ResidentTopologyIndex::build(&cohorts, &fabric).unwrap());
-    let mut progress = PhysicalEventProgress::at_clock(7);
-    let predecessor = progress.clone();
-    let mut residency = None;
-    for _ in 0..3 {
-        let output = settle_quiet_progress_fixture(
-            &mut cohorts, &mut fabric, &topology, &mut progress, &mut residency);
-        assert_eq!(output.dsf_delivery_count, 0);
-        assert_eq!(progress, predecessor);
-        assert_eq!(residency.as_ref().unwrap().contact_schedule.earliest_due(), None);
-        assert_eq!(residency.as_ref().unwrap().recovery_schedule.earliest_due(), None);
-    }
-}
-
-#[test]
-fn physical_progress_v45_migration_and_local_contact_only_continuation() {
-    let source = exact_four_single_optical_episode(0);
-    let seed = explicit_optical_seed(&source, 1);
-    let mut state =
-        ResidentCognitiveFormationState::from_developmental_electrical_seeds(vec![seed]).unwrap();
-    let prepared = state.prepare_admitted_transition(
-        &admitted_fixture_episode(&source), 16_000_000).unwrap();
-    state.commit(prepared).unwrap();
-    let current = state.encode(16_000_000).unwrap();
-    assert!(ResidentCognitiveFormationState::encoded_is_current(&current));
-    let decoded = ResidentCognitiveFormationState::decode(&current, 16_000_000).unwrap();
-    assert_eq!(decoded, state);
-
-    // V45 is exactly this codec prefix, without the newly added progress.
-    let progress_len = 24 + 56 * state.topology_index.canonical_lineages.len()
-        + 44 * state.topology_index.canonical_bonds.len();
-    let mut v45 = current[..current.len() - progress_len].to_vec();
-    v45[..MAGIC_V45.len()].copy_from_slice(MAGIC_V45);
-    assert!(ResidentCognitiveFormationState::decode(&v45, 16_000_000).is_err());
-    assert!(ResidentCognitiveFormationState::encoded_has_current_body_observation(&v45));
-    assert!(ResidentCognitiveFormationState::encoded_has_corrected_articulated_pose(&v45));
-    let migrated = ResidentCognitiveFormationState::migrate_to_current_format(
-        &v45, 16_000_000).unwrap();
-    let restored = ResidentCognitiveFormationState::decode(&migrated, 16_000_000).unwrap();
-    assert_eq!(restored.cohorts, state.cohorts);
-    assert_eq!(restored.electrical_fabric, state.electrical_fabric);
-    assert_eq!(restored.mosaics, state.mosaics);
-    assert_eq!(restored.settled_fractals, state.settled_fractals);
-    assert_eq!(restored.physical_progress.clock, state.generation);
-    for lineage in restored.topology_index.canonical_lineages.iter().copied() {
-        let recovery = restored.physical_progress.recovery(lineage).unwrap();
-        assert_eq!(recovery.phase, crate::elementary_charge_transfer::ChargeCarrierPhase::zero());
-        assert_eq!(recovery.last, state.generation);
-    }
-    assert_eq!(ResidentCognitiveFormationState::migrate_to_current_format(
-        &migrated, 16_000_000).unwrap(), migrated);
-
-    // Supporting severed-fabric fixture: keep the real cohort-local wires.
-    // Copy their exact integration progress; do not reset retained fractions.
-    let mut cohorts = state.cohorts.to_vec();
-    let mut fabric = ResidentElectricalFabric::default();
-    let topology = Arc::new(ResidentTopologyIndex::build(&cohorts, &fabric).unwrap());
-    assert!(topology.contacts.len() > 0);
-    assert!(topology.contacts.iter().all(|entry|
-        matches!(entry.origin, ResidentContactOrigin::Local { .. })));
-    let mut progress = PhysicalEventProgress::at_clock(state.physical_progress.clock);
-    progress.admit_topology(&topology).unwrap();
-    for lineage in topology.canonical_lineages.iter().copied() {
-        progress.set_recovery(lineage, state.physical_progress.recovery(lineage).unwrap()).unwrap();
-    }
-    for bond in topology.canonical_bonds.iter().copied() {
-        progress.set_contact_clock(bond, state.physical_progress.contact_clock(bond).unwrap()).unwrap();
-    }
-    let mut residency = Some(rebuild_causal_event_residency_from_endpoint_holds(
-        &cohorts, &fabric, &topology, &progress, None).unwrap());
-    assert!(residency.as_ref().unwrap().contact_schedule.earliest_due().is_some(),
-        "local-only fixture must contain actual scheduled wire work");
-    let mut cold_cohorts = cohorts.clone();
-    let mut cold_fabric = fabric.clone();
-    let mut cold_progress = progress.clone();
-    let before_clock = progress.clock;
-    settle_quiet_progress_fixture(&mut cohorts, &mut fabric, &topology,
-        &mut progress, &mut residency);
-    settle_quiet_progress_fixture(&mut cold_cohorts, &mut cold_fabric, &topology,
-        &mut cold_progress, &mut None);
-    assert!(progress.clock > before_clock);
-    assert_eq!(cohorts, cold_cohorts);
-    assert_eq!(fabric, cold_fabric);
-    assert_eq!(progress, cold_progress);
-}
-
-#[test]
-fn physical_progress_historical_fixture_writer_cannot_downgrade_lived_progress() {
-    let state = ResidentCognitiveFormationState::from_genesis_parts(
-        5, 1, Vec::new(), Vec::new()).unwrap();
-    let legacy = state.encode_with_format(CognitiveCodecFormat::V26, 16_000_000).unwrap();
-    let restored = ResidentCognitiveFormationState::decode_for_one_way_migration(
-        &legacy, 16_000_000).unwrap();
-    assert_eq!(restored.generation, 5);
-    assert!(restored.cohorts.is_empty());
-    assert!(ResidentCognitiveFormationState::decode(&legacy, 16_000_000).is_err());
-    let mut lived = state.clone();
-    lived.physical_progress.clock = 6;
-    assert_eq!(lived.encode_with_format(CognitiveCodecFormat::V26, 16_000_000),
-        Err(FormationError::RetiredCognitiveState));
 }
