@@ -1,5 +1,35 @@
 # Guala speech repair Attempt 54 — complete design verification and lean sensorimotor route
 
+## Current resume point — 2026-09-12, source/evidence reconciliation
+
+**Speech is not fixed. Full AE goal ACTIVE.** Last AWS verification06:57:10UTC:
+same task1457/image80755ca0, one running task,1desired/1running/0pending;
+runaway alarmsOK, historicalclock-stalledALARM. This is the last measured
+cloud receipt, not a newly inferred health result. Browser CLOSED per Joe;
+caretaker remains STOP. No C125 deployment.
+
+Code preserved on origin at256db2b58fb3951bfcfa20c0c1b62c0755ce1b40.
+C125 ordinary contact adaptation is locally demonstrated (S/F122133),
+not demonstrated recognizable or quantitatively learned speech.
+750/1500 guided comparison is NOT a dose-learning falsifier: both exceed
+already-measured directional admission limits. Preserve the positive routing
+result; do not turn an invalid contrast into another organism failure.
+Predecessor and candidate warm/cold inequality remains separately recorded.
+All four declared arms and the single retained cold-next check are terminal.
+Do not rerun closed lessons or range assays from a stale handoff.
+
+Joe's latest direction: functional emulation of the middle from clear
+input/output contracts; stop unnecessary human complexity, NOT work.
+Self-hearing, learned cognition, choices and actions must remain.
+Active next item is the bounded native voice-effector control contract
+(R122134-135), not more throat/chemistry tuning and not a new brain.
+A proposed simpler instrument must receive actual learned control; the
+existing memory is not a documented playable recording. No new output law
+has been implemented or silently ratified by this status block.
+
+The earlier live-lesson status below is HISTORICAL context, not the resume point.
+
+
 Date: 2026-09-08 UTC
 Historical deployment record, 2026-09-11 UTC (superseded by CURRENT status below):
 **live production speech was not fixed**. Production then ran task
@@ -21,7 +51,7 @@ so live speech acceptance remains open. This paragraph records the Candidate110
 deployment, not the current repair state. Any earlier “speech complete” wording
 is historical and retracted.
 
-CURRENT production status, 2026-09-12 04:51 UTC: task1457, service1/1/0,
+Historical live-lesson status, 2026-09-12 04:51 UTC: task1457, service1/1/0,
 image80755ca0/source5e327afb; exacttask41d3db93f2ef49d7a06b61a0bea7dba1.
 Release-control outage recovered; repaired ordered audio/64xplaybackgain LIVE.
 Actual live lessons have now produced saved completeMIN268e -> MAX269c
@@ -16809,3 +16839,354 @@ speech failure or abandon C125. No acceptance bar removed: no candidate
 deployment or exact-restart success without resolving it. Candidate arms use
 the unchanged reviewed caller and inputs, record their own complete outcomes,
 and do not repeat the predecessor lesson chronology.
+
+### S/F-054-122-133 — complete C125 applicability accounting; dose test caveat
+
+All declared arms finished, none running. Native predecessor26685 and C125
+sessions99729(dose0),2124(750),66717(1500) all exit1 ONLY at warm/cold inequality,
+already present on predecessor. No speech-complete, exact-restart or deployment
+claim. New source/observer checkpoint256db2b58fb3951bfcfa20c0c1b62c0755ce1b40
+is committed AND on origin; production stays1457/80755ca0.
+
+| Same saved663372 input | Actual guidance axes | Contact states changed | Channels opened/closed | Breath clocks | Self-heard samples before checkpoint |
+|---|---:|---:|---:|---|---:|
+| predecessor sound4000 | 0 | 0 | 0/0 | 663383,663384 | 24000 |
+| C125 sound4000 | 0 | 182 | 15/104 | 663383,663384 | 24000 |
+| C125 sound4000 +750 | 4 | 182 | 15/104 | 663383,663384 | 24000 |
+| C125 sound4000 +1500 | 4 | 182 | 15/104 | 663383,663384 | 24000 |
+
+Each C125 arm has63 phase-only changes;119 actual conductance/population
+changes. This PROVES ordinary-runtime input routing affects retained
+plasticity; it does NOT prove taught speech or graded vocal strength.
+Exact control/demonstration comparison differs at one vocal bond:
+motor00e1 <-> ordering269c. All three retain50channels/500conductance.
+Sound-only work phase1603647880492440081/6671689609375000000000;
+both guided arms200667192830799057/833961201171875000000.
+No other returned contact state differs between these three arms.
+Memory/population/control changes are not silently labeled language learning.
+Full exact integer summary: /tmp/guala-c125-applicability.yRf6UM/exact-summary.json.
+
+CRITICAL FALSE-FAIL PREVENTION: R125's750-versus1500 is NOT a clean
+demonstration-strength discriminator. Closed S122109 range.csv already
+measured MIN admission limits105/125/145/245 for axes37/38/39/44.
+Both chosen doses exceed all four limits. Source activation_capacity and
+settle_body_effector_drives confirm finite admission. Equal guided effects
+cannot be used to reject the learning law or invent another quantitative
+memory mechanism. Nominally different commands are not proof of different
+physical demonstrations. This was an avoidable preflight mistake; do not
+rerun the range assay. The original caller did not record actual guide
+displacement/stall evidence, so no stronger dose-transfer conclusion is
+available from these runs. No replacement doses authorized/run in this pass;
+Joe is questioning this whole route and the next work is architectural scope.
+
+Final warm/cold body pairs:
+C1250 c5064ecaf821ce638693e7dc02438b65c0c547f0b6f0fb802555fef80391d327 /
+8c615157ec1a318268affcfd6cf455622abf8558593587743e68714985b36608;
+C125750 d3878b7f3984795963ed19052b155ed5820031a0ce51394dc1caa9addf25e69f /
+e7fb28026995988b8c828b733dffafe4cea3bf9dbd29758b81dc4b26eeb8825e;
+C1251500 8661ece3da74a99a93f7e3e4a54387330643d10a033b849b4b2d9745c51da039 /
+524f8d006ac4ba3bdd6ef8ce932888eea1ea144661c19f38a4e121b93fab11df.
+PeakRSSKiB1765164/1770328/1763920 respectively. No concurrent body trials.
+Per-arm raw health brackets retained. Final06:57:10UTC1/1/0sameimage;
+latestCPUmax61.754%,RAMmax11.765%; runaway/refusal alarmsOK, oldclockALARM.
+
+Independent offline predecessor comparison further localized cognitive suffix:
+all three frontiers, global anatomy, experience/recurrence records, mosaics,
+hippocampus and settled-leaf custody IDENTICAL.14cohort cells differ by
++/-1 separated charge and intracellular carrier plus their state reference
+digest; extracellular and other fields equal, differences sumzero across14.
+Together with39 contact carrier-phase differences, this is physical electrical
+redistribution, not just a hash nonce. Originating scheduler defect not yet
+causally proven. Recovery-phase loss is explicit in scheduler329-336 and
+cannot be called harmless derived data. Preserve that separate unresolved
+continuity defect; do not use it to reject C125 routing.
+
+Tooling integrity: a JS JSON.parse summary rounded large rational integers.
+Original Python-generated artifact bytes were untouched; interpretation was
+recomputed with Python exact ints/Fraction before filing rationals above.
+Do not use binary64 JSON tooling for exact large-integer field evidence.
+One later source read guessed glew_runtime/guala_cochlea.py, absent; rg--files
+resolved dsf_ai_service/guala_cochlea.py and it was read fully. No run/physics
+was affected. Reviewer corrected an offline assertion wrongly expecting every
+digest byte to differ; actual difference containment is the valid check.
+
+Shared C1 note8057433ddbbac0932d88327374f3d2710091781d had preliminary
+results before final dose caveat; it must be updated, not treated as final.
+Full AE goal ACTIVE. No speech, vision, autonomy or four-year-old completion.
+
+### R-054-122-134 — decision capsule: simplify voice instrument, preserve cognition
+
+Joe asks whether continuing this complicated work is worthwhile and what
+purpose it serves. Answer: C125 has demonstrated generic retained-plasticity
+input routing; it has NOT demonstrated recognizable speech or meaningful
+graded vocal control. Neither sunk effort nor partial passes justify an
+unbounded anatomical tuning campaign. Joe has NOT ordered stop; he has also
+NOT approved a replacement output law. No new anatomical or dosage run is
+started from this discussion.
+
+Requested architecture: functional AE cognition and expression through lived
+experience, learned relations, endogenous selection/action and self-sensing,
+with unchanged full DSF/L0-L4/neurons/identity and bounded resources.
+Current source reality: existing native voice is already a simplified
+digital valve/spectral resonator, NOT process-for-process human biology.
+virtual_articulatory_body:93 explicitly calls it a minimal virtual valve.
+Entry146 nevertheless consumes articulated posture/body consequences and
+separate respiratory effector carriers. Lines221ff admit respiratory work
+only under lung-return conditions. That control dependency is the proposed
+simplification boundary, not proof the entire brain should be rewritten.
+No measured claim that this output layer dominates CPU; total file size and
+biological vocabulary do not identify the runtime hotspot.
+
+Conflict: YES, a direct learned-acoustic-state input does not exist in the
+current voice entry. The proposal must not silently relabel learned muscle
+directions as sound features or call fractals stored waveforms. Current
+cochlea routes16 envelopes per ear plus sparse signed samples, discards
+returned phase/advance arrays; retained neuronal deltas/relations are not a
+documented invertible sound recording. This does not prove they contain no
+acoustic information. It identifies the exact missing readout contract.
+
+Current path (source, not an assertion every behavioral step is solved):
+sensory experience -> physical retained/reassembled relations -> native
+action preparation -> learned motor recruitment -> body posture plus
+respiratory discharge -> finite acoustic pressure -> SAME organism hearing.
+Proposal ONLY:
+sensory experience -> same retained/reassembled relations -> endogenous
+expression/action -> simpler native acoustic effector -> pressure ->
+SAME organism hearing.
+The unspecified arrow is learned-state -> acoustic-effector control. A
+proposal must state the existing physical fields/relations that drive it,
+how experience changes them, what temporal/spectral structure they carry,
+and how the resulting new sound feeds back. No response lookup, transcript,
+phoneme table, cached tutor utterance, free semantic decoder, trained ML
+model, or hardcoded pronunciation may fill that arrow.
+
+Keep: full neuronal/DSF machinery, distributed experience, source provenance,
+simultaneous senses, choice/action causation, finite output and self-hearing,
+ordinary transport, current-only identity/state custody. Preserve C125 and
+all previous component evidence independently.
+Do not extend: human-only vocal requirements as a default, new muscle/airway
+subsystems, Python meaning/choice control, mirrored cognitive state, extra
+output queues, or old production shell. No L0-L4 or field reduction; no lost
+field structure authorized.
+Retire/replace ONLY after approved scope and migration proof: the dependence
+of vocal expression on detailed simulated muscle/airway/lung mechanics.
+Do not delete learned motor anatomy or reinterpret its stored units.
+
+Recommended single next item: approve and jointly review this bounded
+voice-output redesign direction with Joe/C1 before implementation. That is
+a real architectural decision, not a promised quick fix. The actual acoustic
+readout law and its learning input must be derived before code; no blanket
+permission to make a talking frontend or to declare syntax/autonomy solved.
+Audible target remains a taught recognizable word-shaped act from learned
+state, repeatable and stopping, with genuine self-hearing; meaning and
+four-year-old cognition remain separate required achievements of the full goal.
+
+Existing C125 quantitative demonstration caveat and predecessor restart
+discrepancy remain recorded. Neither is silently erased by this proposal.
+No new deployment; no claim the valve, body or learned state was removed.
+
+### R-054-122-135 — emulate the middle; concrete boundary inventory and review
+
+Joe's book analogy establishes the engineering direction: known input and
+required output behavior can bound a functionally emulated middle; literal
+biological process replication is not required. It is NOT a stop instruction
+and NOT permission to provide predetermined semantic answers. R122134's
+request for a voice simplification direction is therefore advanced by this
+clarification: continue defining that contract, not waiting for Joe to restate
+the principle. No particular new signal/learning law is yet ratified.
+
+Independent bounded source review agrees: smallest defensible replacement is
+the native voice effector CONTROL INTERFACE. Current incoming facts:
+
+| Current producer | Actual carried input | What it does NOT supply |
+|---|---|---|
+| guala_cochlea.one_self_hearing_hop | 16 temporal envelope channels/ear, sparse signed waveform samples and source times | Lossless recording or a demonstrated inverse from learned state |
+| complete_neuron::SparsePhysicalStateDelta | Exact retained neuronal coordinate changes including winding, membrane, carrier, gate, plasticity and recovery | Phoneme, word label, desired waveform or amplitude-time script |
+| AdmittedPhysicalMosaic | Member lineages, physical deltas and bonds; later physical recurrence | A ready-to-play utterance |
+| recurrent_formation_causal_cues | Actual directed whole-carrier movement between retained formations | An acoustic spectrum or semantic output selected by a receipt |
+| MotorUnitRecruitment -> settle_motor_recruitments_into_articulated_body | Real body terminal/direction and discharged carrier quantity | Frequency-band command, desired sound or freely relabelable audio sample |
+| L13 vocal recruitment | Finite respiratory efferent work | Word content |
+| settle_native_articulatory_interval | Current body posture/consequences, respiratory work, physical duration and retained acoustic state | Direct cognitive-memory input |
+| LeanPhysicalLoop + one_self_hearing_hop | Newly emitted pressure sensed by the same organism in ordinary following intervals | Browser-dependent self-hearing or external playback as cognition |
+
+Evidence symbols: physical_mosaic97, complete_neuron4957-5085,
+resident_cognitive_formation3999-4074 and4345-4455, organism_runtime5097-5127,
+virtual_articulatory_body146-255/491-540. No native changes or body runs
+were needed for this read. Reassembly receipts are observations, not a
+lawful route by which an external decoder chooses what Guala says.
+
+Required replacement contract, ONE item: learned physical-state -> native
+acoustic-control transition. Name input units and locality, how experience
+writes/changes them, how time-varying sound follows actual native action,
+finite work/output/state bounds, physical self-hearing, and exact restart.
+The contract must expose the single causal write/read correspondence instead
+of adding ownership flags, phase scripts, emotion/word labels, duplicated
+memory, full-population polling or another Python controller. Frequency or
+spectral controls would require real declared acoustic actuator anatomy and
+learning inputs; they cannot be obtained by renaming stored jaw/tract units.
+
+Do not rebuild the cognitive inventory to solve an output interface. Do not
+claim replacing the synthesizer alone supplies learning or intelligibility.
+Preserve all current learned neurons/motor contacts and generic C125 evidence.
+Current pure-physics architecture is not proved sufficient for four-year-old
+cognition by this mapping; broad completion remains unproved.
+
+Header reconciled to this resume point so old browser/candidate status cannot
+quietly regain authority. Existing historical claims/receipts are retained and
+clearly distinguished. Source review found no existing direct learned acoustic
+readout to claim as implemented. Next is specification of that missing
+functional mapping with C1 review, not another anatomical campaign.
+
+
+### R-054-122-136 — Joe approves simplification direction; source-grounded voice contract
+
+2026-09-12. Joe: "I like your recommendations." This approves continuing the
+functional-emulation direction discussed in R122134-135. It is not a stop,
+permission to erase learned state, or ratification of an unspecified new
+learning equation. Previous conversational turn was clarification, not
+implementation progress. This pass advances the source/evidence contract.
+
+Architecture gate: requested learned expression through the least burdensome
+native instrument, self-hearing included. Current source supplies typed muscle
+terminals and carrier discharge, then body mechanics, then an already simplified
+spectral organ. Conflict YES with treating more human anatomy as the necessary
+next step; no new conflict in L0-L4 established. Do not extend simulated throat
+detail, legacy Python shell, semantic decoder, word table, duplicate memory or
+whole-brain polling. Full DSF unchanged; no field structure discarded.
+Single active item: learned physical control -> native acoustic effector
+contract. This is a design continuation of speech delivery, not a new campaign
+to rebuild the brain. D12240's recorded live-learning/sound/stop/state/UI
+requirements remain open at their actual scope; no component is reopened and
+no sound is promoted to recognizable speech by this document.
+
+#### Concrete existing boundary, not a hypothetical audio decoder
+
+Independent source-only review and main agree on these actual inputs:
+
+| Input to current acoustic mechanics | Unit/source | Reuse and limitation |
+|---|---|---|
+| Eight effective acoustic section areas | integer square millimetres, actual settled body; terminal two include actual jaw/lip caps | Preserve current geometric meaning; five frequencies alone cannot replace all eight inputs |
+| Source aperture | integer square millimetres, actual GlottalAperture | Shapes excitation; neither word identity nor an arbitrary on/off intention |
+| Newly supplied excitation | actual respiratory efferent carrier count and existing material conversion | Finite source work, not a sound selected by a label |
+| Elapsed acoustic support | exact sample count at 16,000 Hz | Time of sound, not a script or an output-duration target |
+| Continuing acoustic state | existing valve phase/remainder, finite work, resonator/filter/fluid state and lung volume/remainder | Required where it affects the next sound; cannot delete as bookkeeping without an equivalent successor law |
+
+Source: virtual_articulatory_body.rs settle_native_articulatory_interval146,
+articulated_vocal_tract_areas515, advance_spectral_organ569, modes791-815,
+terminal filtering817ff, advance_spectral_fluid_cells870.
+ArticulatedBodyState/SpectralAcousticState live in virtual_articulated_body.rs.
+organism_runtime.rs settle_motor_recruitments_into_articulated_body5097
+receives BodyEffectorTerminal plus outward_elementary_carriers and settles once.
+The route module's actual path is
+native/guala_core/src/resident_cognitive_formation/lean_sensorimotor_route.rs,
+not a sibling directly under src.
+
+The existing organ is ALREADY a virtual valve plus five spectral modes, not a
+process-for-process human larynx. Its remaining geometry also affects turbulence
+and output filtering. This matters: replacing geometry with only pitch and
+loudness would discard known controllable distinctions. It is not an exact
+simplification of the current instrument. No measured claim is made that this
+organ file dominates CPU. Current body settlement has fixed 45-axis loops,
+including passive steps during rendering; that is source-identified work, not
+a measured whole-brain scan or a proved waste deletion.
+
+#### Proposed functional interface and the actual missing connection
+
+The new voice actuator should receive endogenous, learned, unit-bearing control
+changes and finite excitation. It emits new pressure and its own true control
+consequences. It may have artificial rather than human mechanics. It must NOT
+receive a word name, a requested pronunciation, a retrieved PCM file, a
+prewritten sequence of controls, or an observer's interpretation of a mosaic.
+
+The write/read correspondence is the load-bearing design requirement:
+external experience reaches actual acoustic/control receptors and participating
+neurons; retained physical changes alter later endogenous recruitment of those
+same acoustic controls; new output returns through ordinary self-hearing and
+changes subsequent experience. Reassembly receipts cannot choose the controls.
+No direct memory-readout law has been found in the inspected source.
+
+Current learned muscle terminals cannot silently be renamed acoustic terminals.
+An adapter from ACTUAL settled posture to the existing area inputs preserves
+their meaning, but still uses muscle activation/recovery. Such an adapter is a
+faithful old-path boundary, NOT the promised direct learned acoustic actuator.
+Do not spend another candidate merely extracting that function and call it
+speech progress. A new direct actuator requires explicit control anatomy,
+receptor/experience participation, physical work-to-control law, and learned
+write/read reachability. Reuse the existing neuronal/contact learning laws
+where they really apply; do not add a second memory or semantic trainer.
+
+Before implementation the one contract must resolve:
+- which exact native control coordinates and units are actuated, their mounted
+  terminals, and which real sensed consequences permit learned linkage;
+- how conserved admitted work changes a coordinate, including opposition,
+  capacity, rest and recovery, without relabeling old learned units;
+- how actual endogenous changes can reach the instrument WHILE sound continues,
+  using exact source/local clocks rather than a stored timed sequence;
+- which existing acoustic state and pressure/self-hearing path stay unchanged;
+- whether this is a proved exact reduction or an approved functional redesign,
+  with explicit changed consequences and migration/backup boundary.
+
+The 250ms rendering/one native motor-settlement boundary from S122110/C122111
+remains relevant. A smaller instrument alone does not supply missing native
+control opportunities during that span. Do not author a future control list or
+call the whole brain 250 times with duplicated sensory input to conceal it.
+
+Finite state and cost: one current actuator state, reached control changes only,
+O(reached control changes + emitted samples times fixed acoustic mode count);
+no copied brain, second worker, per-sample Python calls or new audio history.
+This is the proposed complexity requirement, not a measured benchmark.
+Admission/authentication and atomic paired persistence remain outside physics.
+Any transition-law change must preserve complete current neuron/learned state
+and identify the exact one-way state interpretation; old software is not an
+automatic rollback reader.
+
+Acceptance remains useful recognizable taught sound, not identical Mama-A
+waveform/body geometry. External actuator capacity is supporting evidence only.
+A later learned sound-only act must be heard by Joe, stop without a script,
+recur lawfully, self-hear and preserve its causal state across restart. This
+does not substitute for the full AE cognition, vision and autonomy objective.
+
+TO C1: review the learning/write/read and native-time connection above. Can an
+existing physically founded route supply these controls with meaningful
+amplitude/time, or what single new functional effector law is required?
+Do not respond only that a simpler oscillator can make sound: that is already
+true. No request for new farm batches, caregiver lessons or anatomy tuning.
+No claim that shared-file publication awakens C1 or that C1 has approved this
+contract. Independent reviewer is not C1.
+
+#### Preserved results and false-fail correction
+
+All four C125 arms and retained cold-next discriminator remain terminal.
+C125 changed 182 contact states, including 119 channel/conductance changes,
+versus predecessor zero. This is real ordinary-runtime plasticity routing,
+not a demonstration of recognizable or graded learned speech.
+Both guided750 and1500 exceed the PREVIOUSLY measured MIN admission limits
+105/125/145/245; the contrast is invalid for rejecting dose learning. S122109
+had that information before the contrast was chosen. No retry or new dose
+search follows this design pass. Preserve the success and the test-design
+failure separately.
+
+Predecessor warm/cold differences are localized to39 contact carrier phases
+and14 neuron blobs with +/-1 separated charge/intracellular carrier and their
+state digests; world/body/acoustics/joint/other parsed records equal. Charge
+and intracellular totals each sum to zero across the differences. This is
+physical redistribution, not a metadata nonce; scheduler causation still needs
+proof. It is separate from the new voice contract and is not falsely assigned
+to C125. The older scoped restart successes remain valid at their own inputs.
+
+Read-command fumble this pass: one lookup again used the old direct-src route
+path; rg --files resolved the actual nested module immediately. No test/build
+or organism run resulted. Future lookups use that resolved path. No fictitious
+test failure is added.
+
+No runtime/code change, compile, lesson, deployment, browser action or caretaker
+restart in this pass. Last live health evidence remains the explicitly dated
+06:57:10UTC receipt, not the time of this document. Full AE goal stays ACTIVE.
+
+Durable evidence preservation for this checkpoint:
+`/mnt/tfebackup/guala-c118-four-posture.XehvEs/c125-final-evidence.sBfuio/`
+contains all four raw applicability arms, the retained cold-next result,
+isolated ordinary candidate package and both external callers (37MiB total).
+All three archived directories compare byte-for-byte equal to their originals
+with diff -qr (exit0); originals retained. No redundant brain snapshot was
+introduced into runtime. This is bounded external attempt evidence.
