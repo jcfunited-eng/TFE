@@ -1,19 +1,22 @@
 # Guala speech repair Attempt 54 — complete design verification and lean sensorimotor route
 
-## Latest decision checkpoint — C131 RELEASE APPROVED, 2026-09-12
+## Latest decision checkpoint — C131 running on1459; live witness incomplete
 
-C1 approval verified on shared origin blob34c84567fa589359ec93010139913e1c3d1060da.
-This supersedes I122241's missing-decision block. Joe authorized proceeding.
-Active R122210/S122212: feedback participation only, not learned strength.
-Frozen production source494ed1e2; c830d787 is reviewed test-only cleanup.
-Closed MAX32/MAX128 and safety controls remain closed; no memory investigation.
-Proceed existing release gates: newest captured predecessor changed-path proof,
-one immutable image/exact-image proof, fresh full backup, controller dry run,
-one zero-writer cutover, live guided compact-return consumption.
-Only AFTER live verification resume ordinary caretaker lessons under its charter
-and reviewed 32-tick rest law, with one actual process verified.
-Production remains1458 until actual cutover receipts establish otherwise.
-Historical test debt and transaction alias differences remain disclosed below.
+C1-approved C131 image708fc271 is now running on task1459/2dbdd9bf.
+ONE controlled cutover91698 exited0, same identity, actual predecessor678372,
+not a taught-copy import. Current-body and exact-image feedback/cold-next proofs
+remain CLOSED. See S122243–246. Do not repeat build, cutover or those proofs.
+Both live pages HTTP200, real Chromium available, no pageerrors, 0physicalwrites.
+ONE live MAX32 guide678397 accepted, pending678397; the observer then saw678399,
+missing678398. Required compact-consumption witness is INCONCLUSIVE, not an
+observed physical failure. No further guide was sent. Actual persisted678404
+passed the guide, but persistence alone does not reconstruct the missing witness.
+Caretaker remains STOP under C1's binding live-verification rider.
+Single next decision: C1 disposition of missed-observer evidence and permission
+for a narrowly corrected live observation, not new speech physics or retesting.
+Do not silently substitute inferred consumption or restart caretaker.
+Production healthy1/1/0, no custodyerrors; historicalclockALARM remains.
+This is feedback participation scope, not learnedstrength or new soundquality.
 
 ## Historical prerequisite evidence — measured position-input limit; speech NOT fixed
 
@@ -22137,3 +22140,63 @@ Use identical controller invocation replacing --dry-run with --cutover ONCE.
 Preserve exact oldSTOPPED/exit0/shutdownreceipt/zero writers, then newactual
 CURRENTstartup and continuity. No taughtcopy imported or oldbinaryrollback.
 Livefeedback gate and caretakerrestart remain pending, not inferred from health.
+
+### S-054-122-246 — C131 single cutover and live continuity PASS
+
+Controller91698exit0, controllerbe21eded, image8efb79e0/708fc271.
+Old1458/71289 stopping19:15:48.658UTC, actuallySTOPPED19:17:42.259UTC;
+new1459/2dbdd9bf70f74479abc9d39d869574d7 started19:19:15.752UTC.
+Oldexit0/shutdownreceipt/zero-writer gates passed in the actual controller.
+Actual final CURRENT678372 body166066806bytes
+e284cf901877fa5671e2cf39406bb345ba69745a1fa65db1fd9ae47b7a19e20b,
+world63587bytes746abec9cdf738e8f5fad9552bf7d65d8a2bbda52d3649b732f7829fb1c48de6.
+Sameidentity, advanced678381, production-current tag exact708fc271.
+ONEbuild/ONEregisteredtaskdefinition/ONEcutover; no compatibilityrollback,
+no learnedcopyimport. Controllerlog9c2709bd4da8fc9cf51cf9a883f5c2e3eefe2b4cd124924e6e9e17974667ce2d.
+Dryrunlog1014d27f746777ed2cbe4b4336b8cbf9d00da29e604d6443571a910b525adbf8.
+
+Real Chromium90962exit0: GualaHTTP200 SHA8faa6ba2a754b067e70f53425014666f1279b55a49c25375d82144558e8b40d7;
+LoomHTTP200 SHA6d33dc09502012e05d24d95e85b3616c9915828b06263a86eabe27374559ef57.
+BothshowGualaavailable, reciprocal links, zeroJSerrors,11GET/0physicalwrites.
+No camera/mic, playback or userhearing claim; UIbytes unchanged.
+Screenshots retained in release folder. No fabricated intra-control animation.
+
+AWS19:23:31UTC exact1459/2dbdd9bf/708fc271 HEALTHY1/1/0.
+Only datapoints AFTERnewstart attributed:19:20CPUmax40.1983%RAM7.2998%,
+19:21CPU54.6221%RAM9.8999%. Resource/EFS/refusalalarmsOK; historicalclockALARM.
+No compile, releasecontroller, test or caretaker process left running.
+
+### H-054-122-247 — live observer missed required intermediate receipt; NOT a physiology fail
+
+Reviewed livecallerbf3b5f97 ranONCE89833, terminalexit1/inconclusive as designed.
+Before678395 pendingreturn678395; ONE MAX32guide678397,
+4000knowncue samples/fourguideaxes, HTTP200 and matchingevent, six actual
+bodyconsequences/rootzero/pendingreturn678397. ImmediateGETstill678397.
+ONEordinaryPOSTaccepted678399, bodyconsequences5/rootzero/pending678399,
+consumedreturnnull/sourcecount0. Native678398 interleaved autonomously.
+Rawresponse recorded first; no test result or state discarded.
+No automaticretry or secondguide. Rawlog
+dd2bdbab2149302252bc0b8ccdb81ba2589e044769e897f884ff40d275e2f93b.
+Later read678436/persisted678404, no checkpoint/cleanuperrors.
+Guide was physically delivered and is past durable CURRENT; that does NOT
+supply the missing producer678397 -> consumer678398 compact-kind receipt.
+
+Independent source/evidence review confirms latest-event overwrite race:
+actor.last_occurrence only newest; worldpending only current unconsumed return;
+32interval paired checkpoints not a per-tick historical record. Existing
+artifacts cannot reconstruct678398. Source makes consumption consistent with
+continuing interval678399, but it is inference, not the frozen observed witness.
+This does NOT reopen the passed candidate/copiedbody/image proofs, justify
+rollback, prove a feedback failure or authorize changing cognition.
+Caretaker STOP remains until C1 rider disposition; do not silently substitute
+later autonomous evidence for the guided event. Ask C1 whether a narrowly
+corrected observation/additional guided exposure is authorized, with no new
+productioncode or image. User's active simplification/lean direction unchanged.
+
+Caretaker readiness (read-only): exactsource578d437014dfacf7e1e2ee0a7a4c51ee40ad1966634644b71281dffcff0301d0,
+32ticks and echo guard present,5validcard/audio pairs,405retinalvalues/16kmonoS16;
+no activeprocess, STOPpresent46bytes, no state.json existed. No state reset,
+newlesson, resume, farm or assetrewrite. Skillcharter keeps presentation outside
+cognition; current check delivered feedback, not a sound-quality judgment.
+Joe may openpage; browser is not required, never prohibited or a reason to
+exclude him. Claude's earlier8.5s C129 report does not establish no futuretoots.
