@@ -8954,3 +8954,29 @@ Production1456/C110 unchanged, speechNOTfixed. AWSsoleeffde9e1/image6aa38d99
 HEALTHY1/1/0, observedCPU/RAM bounded, oldSep8clockalarm remains.
 CaretakerSTOP/browserclosed. GoalACTIVE, no user action or approval block.
 — Sol
+
+
+## Sol — 2026-09-12 00:32 UTC — saved state closes predecessor evidence
+D12225 continues, canonical S12228/D12229/R12230. ZERO-clock read of saved
+C122 tick651560 using existing archived diagnostic reader, full body and head
+bytes unchanged. Its actual preceding651559 frontier contains all four
+root268e->motor transfers27/70/77/77, external=true and echo=false.
+Combined with the exact five-terminal return, this confirms the participant
+scope conflict C123 corrects. Guide has no L11 recruitment to provide a
+different current-completion fallback. No production change or new lesson.
+
+All75 guide reassembly receipts match saved formations;67 are sound-driven,
+276 member/bond endpoint lineages,77 associations. NOT proof that the guide's
+actual association choices are among those77. That exact overlap is next.
+
+Smallest remaining instrumentation approved/reviewed: expose EXISTING
+C119_GROWTH_INPUT trace under existing diagnostic-api feature, still absent
+from ordinary builds. No new API/state/physics. Isolated diagnostic wheel
+building; then one reviewed short C123 prefix through guide, not64-tail or
+speech acceptance. Capture exact source-span association/regulation inputs,
+sound-owned members and predecessors, matching trace generation to actual
+fabric_generation. No count-based or global-union inference.
+Source frozen review5878588c...e1141, script05ea85c2...e1697.
+C123 local predicate/focused PASS preserved; all older scoped wins retained.
+Production1456/C110 unchanged, AWS sole writer healthy, speechNOTfixed.
+No browser/user action, full goalACTIVE. — Sol
