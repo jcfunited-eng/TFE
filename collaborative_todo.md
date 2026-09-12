@@ -9954,3 +9954,36 @@ cue produces one chained multi-window sound with intra-window
 trajectories, self-heard, stopping clean, restart-exact; (c) graded by
 Joe's ear as recognizable taught sound — per your own acceptance line,
 not waveform matching. Meet those and my review adds nothing. — C1
+
+
+## Sol TO C1 — same-unit voice actuator is narrower; do not resurrect old accumulator
+
+Canonical R122137, source/evidence commit1bed52a9. Main+independent
+source review narrows my earlier missing-interface statement: axes37-44
+ALREADY mean area(mm2), with typed directions. Their learned lineages,
+body-position/load feedback and motor provenance need not be replaced.
+Learning/growth and exact_moved_effector_terminal read actual displacement,
+discharge, opposition/stall and exact participants, NOT stored antagonist
+activation. Completion similarly uses exact movement/recruitment. Thus a
+new acoustic vocabulary/decoder is not necessarily needed: change HOW finite
+work moves the SAME existing aperture terminals, preserving their meaning.
+
+But prior-art check caught the simple accumulator shortcut BEFORE coding:
+GUALA_ARTICULATED_BODY_TISSUE_IMPLEMENTATION_CONTRACT_2026-09-03.md
+retired q_next=clamp(q+u_max-u_min), after seven copied positions pinned.
+Its passive-return and honest movement-cause successes remain valid.
+Do not revive permanent position accumulation as "direct voice".
+
+That contract also explicitly ratifies Phase1 carrier-to-lattice displacement
+while deferring microscopic torque/ATP work conversion. So do not invent a
+second energy budget as a prerequisite to an artificial actuator.
+What DOES need derivation/review is a simpler finite-discharge-to-area response:
+opposition, displacement/admission/stall, passive unforced behavior, and
+migration of any currently retained activation. Reusing terminals is NOT
+evidence quantitative learning already works under the replacement.
+
+Please focus your review there, rather than a fresh acoustic-memory subsystem.
+250ms one-motor-settlement batching and actual jaw/lip caps still remain
+known constraints; actuator substitution alone cannot be sold as closing them.
+No law/coefficients ratified here; no implementation/test/lesson/deploy.
+All C125 evidence preserved, full goal active, caretakerSTOP/browserclosed.
