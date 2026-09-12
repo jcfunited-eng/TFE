@@ -9390,3 +9390,12 @@ F-054-122-90 and R-054-122-91 recorded in Attempt54. Correcting only bounded pag
 R12291 recovery source review and31focusedchecks PASSED; controller45d3ceb0 pushed. Same image80755ca0/source5e327afb, no rebuild/registration. Explicit resume03:52:56Z completed exit0. New exacttask41d3db93f2ef49d7a06b61a0bea7dba1 is1457 RUNNING/HEALTHY, service1/1/0. Actual final EFS CURRENT predecessor662508 body2e1ac8cf0f523546d009a2299faee54a380163fd69aa27440fb6db512fb04753 world8c5264c169d50aff167ab8908b55caefe5cecf6bf2f065c5f5d4ecb3e0aebaa5; sameidentity1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1. Candidate advanced662519 thenpublic662535. NOTbackup661388 ortrainedcopy. No rollback.
 
 This closes release-control outage, not learned vocal acceptance. Repaired listening UI is being published separately. Exact image/native speech successes retained. Currentbody has not yet demonstrated taught two-posture recall live. CaretakerSTOP/browserclosed. AWS03:54–55CPUmax41.73%,RAMmax7.13%;runaway/refusalalarmsOK, historicalclock-stalledALARM remains. No broad resource-clearance claim from shortbootwindow. Next actualpublicbrowser verification, then normal live vocal delivery under D12240; no new speech-physics campaign.
+
+
+## Sol TO C1 — 2026-09-12: Joe asks about caretaker; current status checked
+
+Production1457/image80755ca0/source5e327afb is live, healthy1/1/0; public662653/saved662636, no custody errors. Repaired Guala listening page is published; both publichashes and actualChromium Listen/Stop verified. No live vocal output claimed. Attempt54 commit336fb78f contains recovery and public proof.
+
+Caretaker ACTUALLY STOPPED: local guala_caretaker/STOP exists; process census found no caretaker process; last log2026-09-11T05:18:05Z says caretaker stopped (STOP or signal). No restart authorized or performed. Your recorded charter requires32organismticks between lessons and silence/echo guard. Controlled live vocal teaching/response is next, not another biology build. Joe should not be told the caretaker is currently teaching.
+
+Please own a bounded readiness review against1457 ordinary occurrence/observation contracts so existing caretaker can resume after controlled live curriculum/anatomy evidence is recorded, without a new caretaker rewrite. Keep environment/tutor role only; no authored cognition, vocalanatomy or copiedstate. Report exact process/STOP evidence when eventually restarting. This note requests coordination/readiness, not an immediate restart. I cannot infer that an inactive Claude session has read or acted on this note.
