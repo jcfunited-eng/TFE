@@ -62,7 +62,9 @@ I122211 records the source allocation map. S122212 selects ONE startup-only
 ordinary-input capacity check instead of hot-loop accounting. I122213 begins
 Candidate131 with exact pending-source type/extents/order checks. I122214 moves
 native decoder count checks before allocation and removes the old duplicate.
-Partial source, NOT compiled, tested, reviewed or deployed; no new physical law.
+I122215 adds source for primary-input retained storage and per-occurrence UF
+working storage; the aggregate/startup caller and passive integration are STILL
+PENDING. Partial source, NOT compiled/tested/reviewed/deployed; no new physics.
 F122209: complete Candidate130 source review REJECTED its already-known
 compact-versus-expanded resource/custody gap, BEFORE build or test. Exact source
 and patch are archived; executable files restored byte-for-byte to92af3470.
@@ -20927,3 +20929,57 @@ Native source SHA bd16bb608a2ee6c054bab2638ffb4c2f613666301b061002e8df9aca86bec8
 Core33adbb85, runtimeb5a7cab1 and body451378d1 remain byte-identical.
 The native startup calculation and compact feedback integration remain pending.
 Production baseline1458 unchanged; no new cloud check, cue or deployment.
+
+### I-054-122-215 — Candidate131 startup storage calculation, first native parts
+
+Previous goal turn was PROGRESS (348675aa committed/pushed decoder admission).
+Continues ONE R122210/S122212 feedback repair. Existing sound/self-hearing/stop
+and exact restart predecessors remain closed; no production cue or new anatomy.
+Requested architecture/current conflict remain unchanged: carry existing
+movement through learning, without added biology; current feedback is incomplete.
+No legacy shell, cognitive-core, actual body-law or L0-L4 extension. Full DSF
+fields remain intact; no reduced sensory field is created by memory arithmetic.
+
+New ordinary_physical_input_admission.rs is153 lines of startup-only logical
+size arithmetic, registered in lib.rs but NOT YET CALLED from runtime/startup.
+- primary_source_logical_layout reads immutable receptor metadata/maps once,
+  optionally for one existing sense. It bounds binary64 exact sources with
+  numerator<=53bits/denominator<=1075bits, derives affine field widths from the
+  actual map, and includes retained payload, metadata, coordinates, port and
+  occurrence headers, sample/map rational limbs, groups and indices.
+  It returns encoded and retained logical sizes, NOT construction/UF peak.
+  Decimal digits<=bit count is an integer upper bound, not a fitted ratio.
+- uf_logical_working_bytes covers the existing adapter input, accumulating SEV
+  and gate outputs, continuous stream, active vectors/index copies and native
+  interval rational content for ONE occurrence. Aggregate admission must use
+  MAX of these working phases, not SUM over body axes.
+  History<=N is used numerically; frozen kernel W and every physical equation
+  remain unchanged. No object is constructed to run UF or fabricate a lesson.
+- joint_source_storage_header_bytes adds7 lines in the existing source module:
+  sizeof its actual private Storage/handle plus the two Arc counter pairs.
+  Dynamic arrays and rational limbs are counted separately, not guessed from
+  the encoded payload alone.
+
+Independent /root/memory_probe_review supplied source-only UF ownership formulas.
+This was bounded arithmetic assistance, NOT frozen Candidate131 review/C1 approval.
+Logical live content excludes Vec spare capacity/reallocation, BTreeSet node
+overhead and bigint/allocator internals. These remain explicit scoped RSS/cgroup
+acceptance obligations. Nothing here proves the full resource budget or speech.
+No tests/compile/native restore/actor/source generation were run.
+
+STILL REQUIRED BEFORE FREEZE: remaining generated body/vestibular source bounds,
+generic cold-return retained/construction bounds, primary construction/map
+scratch, aggregate native budget comparison, wrapper/pre-publication startup
+caller, compact passive capture/return integration and release-manifest closure.
+Do not expose this partial calculation as a completed admission method.
+The raw-return bound MUST NOT assume every port has two frames from aggregate
+counts alone: the decoder enforces remaining samples and aggregate occurrence
+frames; each port can have that larger bound until its own occurrence is read.
+Use that derived upper bound or explicitly enforce the existing producer shape;
+do not invent a second parser/profile. The startup contract remains the same.
+
+Fumbles: author guessed vestibular_canal.rs (actual imported
+virtual_vestibular_canal.rs) and full_field_bank.rs (lib.rs maps the module to
+full_field_bank_final.rs). Read-only errors; no compilation or organism effect.
+Again not eliminated. Resolve filenames/imports before addressing symbols.
+Current source is partial/uncompiled/unreviewed; production baseline1458 unchanged.

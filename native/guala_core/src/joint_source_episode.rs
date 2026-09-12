@@ -169,6 +169,13 @@ impl NativeJointSourceEpisode {
     }
 }
 
+/// Fixed native headers only; payload, vectors and rational limbs are
+/// accounted separately by the startup input calculation.
+pub(crate) fn joint_source_storage_header_bytes() -> usize {
+    std::mem::size_of::<Storage>() + std::mem::size_of::<NativeJointSourceEpisode>()
+        + 4 * std::mem::size_of::<usize>() // strong/weak counts for both Arcs
+}
+
 impl NativeJointSourceEpisode {
     pub(crate) fn joint_source_ports(&self) -> &[JointSourcePortView] {
         &self.storage.ports

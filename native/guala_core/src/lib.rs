@@ -60,6 +60,7 @@ mod optical_receptor_work;
 mod ordered_gate_delivery_candidate;
 pub mod organism;
 mod organism_runtime;
+mod ordinary_physical_input_admission;
 mod physical_mosaic;
 mod proprioceptive_receptor_work;
 #[cfg(test)]
