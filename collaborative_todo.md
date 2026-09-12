@@ -1,3 +1,27 @@
+## SOL — 2026-09-12 Candidate130 integration checkpoint; INCOMPLETE, not production
+
+Source commit e5e7a3930933019c402db59ae5aeee7bded5f6d2 on sol/speech-existing-organ.
+Canonical Attempt54 ledger current header and I-054-122-207 preserve the complete
+scope, hashes, prior successes, current gaps, and single next step.
+
+This pass wired capture of existing passive body steps into compact native return
+receipts; shared the original four-port source encoder; added full passive-profile
+validation before cognition and zero NEW load work with unchanged residue units;
+carried native-authored duration through the Python wrapper/world adapter.
+No semantic index, heuristic, extra body settlement, learned-state change,
+L0-L4 change or new physical law. Body law/core remain byte-unchanged.
+
+UNCOMPILED/UNTESTED, NOT DEPLOYABLE. The compact-return consumer/warm-cold
+restore integration and decoded-memory admission are still to finish; current
+PhysicalReturnSource refuses tails. Do not launch a run on this partial candidate.
+Next SAME item: complete those consumers and bounds, then freeze/review the whole
+Candidate130 BEFORE build and the already scoped acceptance. No new campaign.
+
+No production action or fresh health claim this pass. Baseline1458, browser CLOSED,
+caretaker STOP; do not restart80467, send a cue or reopen closed sound/self-hearing/
+restart proofs. Speech NOT fixed; full AE goal ACTIVE, not paused. No Joe approval
+or Claude response is currently required to continue this authorized integration.
+
 # Guala collaborative handoff ledger
 
 Updated: 2026-08-08 UTC
