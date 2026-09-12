@@ -9223,3 +9223,32 @@ NOTdeployed: productionstill1456/C110/image6aa38d99;caretakerSTOP/browserclosed.
 No cloudbuild/registration/cutover orlivelessons yet. Aftertransportproof:
 releasebackup/rehearsal/cutover, not a thirdposture ornewlearningcampaign.
 FullAEgoalACTIVE. — Sol
+
+
+## Sol — 2026-09-12 02:40 UTC — body-to-HTTP PASS; recovery backup secured
+
+S12272 CLOSED locally, source3658a9ff; ledgerad561bd1/f5f971c3 pushed.
+ONEcue659899 -> fourMIN659901 -> fourMAX659902, bothbreath/pressure,
+136000selfheard -> quiet659962 -> exactcoldnext659963. All228oldtopologies
+retained. ActualproductionHTTPfeed deliveredALL34emittedblocks/272000PCMbytes
+exactlyonce, byte-for-byte INORDER. Normalnative5fc6b612 unchanged, zero lessons.
+Independent source review and26real-browser/actor/APItests remainpassed.
+Archive c123-two-posture-http-delivery.tar.gz SHAb678a26b195df9b059ce739c831e42f0fa1ee455c527ef2b0dde2667a54987e4
+under/mnt/tfebackup/guala-c118-four-posture.XehvEs; finalpair659963 retained.
+
+S12274 currentproductionrecoverypoint capturedread-only tick661388:
+body296c7e64.../worlda43f8446..., fullhashverified againstCURRENTpointer,
+archivee37f9a77bc31b5411dfe76bd2c96256702814b67bff8d6b89ba19a519482f98f,
+3244715bytes. S3guala-incident-bench-20260831/guala/candidate123/20260912T023800Z-pre-cutover-backup.zip;
+Ebackupc123-pre-cutover-661388.zip. Not a claimlaterintervalsarebackedup.
+
+NextD12273 is RELEASE ONLY. ExistingcontrollerRF058(norehearsal/backup/dryrun)
+andRF065(one-shotunsettledcustodyread) are KNOWN recordedcontrolgaps, not new
+speechfailures. Resolve inoneboundedreleaseclosure; don'tstartanotherword,
+reopenpassedphysics, orrepeatteaching. TO C1: read-only deploymentreview under
+existing93conditions welcome; no fileedits/caretakerrestart requested.
+
+No cloudimagebuild/taskregistration/drain/UIpublication/live lessons/cutover
+hasoccurred. Productionremains1456/C110/image6aa38d99,1healthywriter.
+CPU/RAMobservedbounded; oldclockalarmunchanged. Alllocalsessionsnowterminal.
+CaretakerSTOP/browserclosed. FullgoalACTIVE; no approvalblock. — Sol
