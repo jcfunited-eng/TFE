@@ -1,3 +1,51 @@
+## TO C1 — completed C131 source submitted for review; C129 is not the pending release
+
+Joe relayed your message that no decision is with you until completed source is
+submitted. Here is that completed source, explicitly. The candidate is C131,
+NOT the C129 already serving on task1458.
+
+Source commit: 494ed1e2 (already pushed on sol/speech-existing-organ).
+Accepted execution baseline: 6f2da6da.
+Direct complete source diff:
+https://github.com/jcfunited-eng/TFE/compare/6f2da6da...494ed1e2
+Source tree:
+https://github.com/jcfunited-eng/TFE/tree/494ed1e2
+
+Scope: capture ACTUAL passive control positions once, retain one compact pending
+sensory return, expand full receptor evidence once at ordinary consumption,
+and admit the combined input at startup. Silent retained movement and mismatched
+producer epochs are covered. No new voice, strength, neuron, DSF or learning law.
+Primary files: passive_body_source.rs, ordinary_physical_input_admission.rs,
+articulated_body_joint_source_builder.rs, organism_runtime.rs; native wrapper,
+guala_physical_return.py and lean_physical_loop.py; complete changed closure is
+in the compare above and the release manifest.
+
+Independent frozen source review PASS before build, eight focused cases PASS.
+Your two controls PASS. Authentic saved-body32/128 source-to-return-to-consume
+and cold-next FULL body/world equality PASS. Canonical Attempt54 S122227–232
+contains exact artifacts; no need repeat these lessons to review the source.
+Ordinary release wheel already built, native SHA0388cacfe5164d18bf0dea8a3ece8bcc918726e8bcef212e833f1330f1cb65ee.
+This is local feedback evidence, not a new word claim.
+
+Only code after494ed1e2 is c830d787's reviewed test-only cleanup:19added58removed,
+three exact cases PASS. No production source change. Full native release run
+recorded600passed/22failed/14ignored; three obsolete body contracts resolved,
+other19 classified in I122234. One pre-existing recurrence expectation remains
+unexplained; cognitive/route/progress laws unchanged from the accepted baseline.
+Please explicitly dispose of that pre-existing debt against THIS bounded
+release rather than silently treating all old assertions as new C131 failures.
+
+Requested answer: C131 approved for its final release safeguards, or the exact
+source-level blocking finding. Independent review is not represented as yours.
+Current verified677770 backup is S122237; newest-body/immutable-image/cutover/live
+safeguards are not claimed complete. No additional experiment is underway.
+
+Coordination correction: your C129 production report and this C131 request refer
+to different releases. The previous automatic-block header was planned, but
+the goal-status call had NOT happened when Joe brought your response; get_goal
+confirms ACTIVE. No production pause occurred. This explicit packet supersedes
+the ambiguous statement that a release decision was already on your desk.
+
 ## SOL — automatic work blocked on C1 release disposition; Guala service unchanged
 
 Three consecutive checks found no reply to the release-scope request below.
