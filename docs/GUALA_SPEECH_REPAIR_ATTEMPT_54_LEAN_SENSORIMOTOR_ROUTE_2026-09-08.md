@@ -52,8 +52,11 @@ AWS13:00:01.160874/13:00:33.709153UTC same1458/task/image HEALTHY1/1/0;
 window CPUmax49.7025%,RAMmax12.2772%; resource/storage/refusalalarmsOK,
 guala-clock-stalled ALARM remains. No all-green or performance closure.
 
-Next SINGLE R122202 continues R122197/R122193: finish the timed position-return
-representation contract, preserving the separate one-ms motor/load impulse.
+S122204 source review recommends two ordered physical episodes under ONE
+existing pending return: unchanged1ms impulse, then measured passive tail with
+allfour sensory ports and zero new motor/load work. No new endpoint convention.
+Next SINGLE R122202 continues R122197/R122193: finalize typed passive evidence,
+clocks, bounded transport and lifecycle, preserving the one-ms impulse.
 S122198 records all native, wrapper, pending-return, restore and action-evidence
 consumers. No new lesson, candidate or fullbrain run until that contract closes.
 Do not stretch1ms into250ms, lowerq, fitgain/cutoff to Mama, add a second owner,
@@ -19957,3 +19960,120 @@ Joe's indexing question changes no active code: ordinary exact address access
 may locate physical state, but no label, nearest match, stored answer or index
 may decide recognition, meaning, action or fabricate a distinction.
 Full AE goal ACTIVE; speech NOT fixed.
+
+
+### H-054-122-203 — coordination/path preflight failures; no organism failure
+
+While requesting source-only R122202 review, Sol committed documentation.
+The fingerprint includes HEAD and tracked diff, so reviewer correctly refused
+old d89fd8a0 rather than certify a mixed tree. No native source changed.
+Confirmed clean HEAD2c4fa945d68a405ff38d6dc0f6b01d559c15fcbc and refroze
+07130114b35a60542cbe64bc5febaeb48f6370eb5f5c2e6205218535e8f93953.
+Reviewer verified before/after each resumed read. Do not commit even docs while
+a frozen review is active; finish review, THEN append its result and commit.
+
+Two more read-only guessed-file arguments repeated H122199:
+native/guala_core/src/python_module.rs is absent; the actual PyO3 return getters
+are in organism_runtime.rs2130/2138. lean_sensorimotor_route.rs is under
+resident_cognitive_formation/, NOT directly under src. Both searches exit2,
+no build/test/organism mutation; resolved by rg --files/global symbol search.
+Using the wrong file path is not source evidence or a failed candidate.
+No guessed path may accompany a symbol search; use only a resolved exact path.
+
+
+### S-054-122-204 — source review narrows return representation to two episodes, one owner
+
+R122202 continues. Independent /root/memory_probe_review source-only review
+completed on frozen07130114; no native executions, edits or new teaching.
+Main source reads confirm the following. These are SOURCE facts and a proposed
+representation, not deployed functionality or proven quantitative learning.
+
+1. Original four-port body event's GLBPEV01 load fraction is r at both endpoints
+t0/t1. A following quiescent event has zero new discharged/reaction carriers
+and therefore zero load at its own starting boundary t1. A single-valued shared
+timeline cannot preserve both endpoint meanings unchanged. Proposed padding
+[r,r,0,...] is NOT a neutral format extension: joint_uf_source_adapter169 and
+joint_uf_v1_4 operate on sampled L1-volume/relevance geometry, including
+lookahead. It changes the DSF source even if physical reaction work remains
+separately conserved. No new endpoint convention is silently ratified here.
+
+2. Gates partition adjacent source spans (joint_uf_v1_4::gate_intervals300).
+The load adapter is called per gate (core9511), but moved terminals are
+deduplicated before one later internal-contact settlement (8667/10105).
+Repeated motor execution caused by multiple sensory gates is NOT established.
+Load energy must remain billed once for its actual event; the positive fixed
+one-ms elementary reaction scale must remain unchanged even on zero-new-work
+gates, because canonical_effector_load_predecessor_residue150 uses that scale
+to preserve lawful retained residue. Do not set it to zero, stretch it across
+the tail, or retire old residue just because this gate had no reaction.
+
+3. The preference for ONE body source was transport bookkeeping, not a law
+requiring ONE physical owner. Current PendingPhysicalReturn can remain the sole
+owner while carrying two ordered source episodes. Core8787-8854 processes
+sources in order, resolves exact NeuronSourceSite identities through topology,
+and mutates the same owned cohorts. Duplicate-source-site refusals apply within
+an episode, not across sequential admitted episodes. One native cognitive
+advance remains one; sources need not create new neurons or controllers.
+
+RECOMMENDED REPRESENTATION TO FINISH IN R122202:
+- Preserve original post-cognitive body settlement source unchanged: first1ms,
+  allfour position/load endings, actual original GLBPEV01 motor/load evidence.
+- Retain subsequent already-computed passive positions in a second episode
+  starting at that actual successor, covering only the following249ms for the
+  current250ms output span. Do not return250ms in addition to the original1ms.
+  Do not repay/re-author the separate external guide already consumed BEFORE
+  cognition. Its chronology is different from the post-cognitive body event.
+- Keep FOUR ports per reached axis in the passive episode. Existing passive
+  moving-axis sources still include zero-load endings; removing those two
+  zero coordinates changes joint geometry and is not a transport cleanup.
+  All tail load values/work are zero, physical receptor identities unchanged.
+  Actual positions/times are retained; no new motor author, newly discharged
+  carriers, scripted direction or full-trajectory fabricated displacement.
+- Keep the one existing pending world return, same commit/consume/restore
+  transaction and same next ordinary coexisting-source cognitive call.
+  One owner may carry two bounded physical episodes; do not add an owner,
+  second queue, timer, lookup-based cognition or recursion.
+
+The recommendation avoids a new nonzero-load endpoint convention. It is a
+source-contract direction, not approval to loosen validators generically.
+Remaining required explicit mapping before candidate code:
+A. Typed passive evidence must attest actual zero-discharge body settlements
+   across the measured tail; do not counterfeit a one-ms GLBPEV01 by replacing
+   its endpoints with the entire trajectory's displacement.
+B. Bound source frames by actual existing renderer body steps, not a chosen
+   word duration. Capture from that existing computation once; no replay.
+   Runtime output must distinguish initial action evidence from passive
+   trajectory evidence, including a tail when initial sparse movement is empty.
+C. Wrapper4030-4082 currently requires one source per producer tick/twoframes;
+   _body_sources126 caps one body; PhysicalReturnSource caps45axes/twoframes/
+   one-ms admission and MAX_RETURN_SOURCES3. A two-episode return needs explicit
+   ordered same-producer transport and independently authored temporal
+   admission, with at most2body+2root sources under one PendingPhysicalReturn.
+   Do not derive an admitted maximum from untrusted payload times.
+D. _requires_physical_return currently equates body-source presence with
+   original articulated_body_consequence presence. A passive-only source
+   must be backed by its own truthful trajectory evidence, never a fake motor
+   consequence or suppressed return.
+E. Original precursor joins remain source-scoped: exact_preceding_vocal_body_act
+   (core16475) groups actual moved terminals by source, and the route author
+   (resident_cognitive_formation/lean_sensorimotor_route.rs807) ignores sources
+   with no moved motors. Tail must carry no new motor authority. This is source
+   reasoning, not a recurrent/cold-return pass.
+F. Actual source exposure can change receptor gate count/duration; the unchanged
+   core uses each full-DSF gate span for NeuronIntervalInput (9286/9757). Do not
+   confuse no extra organism advance with identical local neuronal work.
+   Resource and quantitative downstream effects remain required acceptance.
+
+Additional scope fact: body.articulatory_system_is_quiescent1217 checks
+acoustic/pulmonary state, not antagonist activation. Current renderer skip
+branch therefore cannot be assumed to produce every possible silent held
+trajectory. This review does not authorize new body evolution; the producer
+contract must name which already-computed steps it captures and disclose any
+missing required silent branch before implementation.
+
+No closed voice/order/self-hearing/restart proof reopened. No speech claim,
+new native build, live lesson or deployment. Main docs checkpoint2c4fa945 pushed;
+shared origin ffec7347816036468c270dafdb2bd6453caa438a. Slack send verified
+2026-09-12T13:12:50Z #general. Next single item remains R122202: finalize typed
+zero-work tail, exact clocks, bounded transport and lifecycle contract, then
+source review before code/build. Full AE goal ACTIVE.
