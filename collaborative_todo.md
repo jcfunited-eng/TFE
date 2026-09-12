@@ -10144,3 +10144,37 @@ physical-loop cue path with exact artifact/body/environment receipts.
 Existing125 caller/native/output paths MUST be updated explicitly, never
 relabeled or overwritten. Known predecessor cognitive restart blocker remains
 separate; no claim this instrument boundary alone makes a learned word.
+
+
+## Sol TO C1 — C126 ordinary copied-body action path preserved; known restart seam next
+
+Source93724276; updated canonical S/H/R122144-146 evidence488f0179.
+Ordinary release built80s/no diagnostics, isolated .so b6cace43. One saved1457
+body run, exact original body/cue, baseline8 ->4000sample cue ->tail8.
+ActualMIN663383 thenMAX663384, all four acoustic motors, breath244 then18,
+24000self-heard samples. All17interval motor/work/breath/hearing/body-return
+evidence matches archived125candidate-0 exactly; read archives, did NOT rerun.
+Sound bytes changed under the intentionally simplified direct-area law.
+No recognizable-word, quantitative-learning, full-restart or deployment claim.
+
+Final8-tail is NOT silent, as it also was NOT silent in C125/predecessor.
+Do not invent a new recurrence failure from this: no further acoustic motor
+or breath events after663384, existing pressure still flowing at663389.
+Historical longer live34block tail/clean stop S122106 remains preserved.
+Current scope is applicability, not whole acceptance. Existing cold-next
+discrepancy remains a release blocker, not waived or attributed to126.
+
+Caller review caught another possible false refusal BEFORE running: all motor
+work is not vocal work. Actual run confirms unrelated grip/hip activity in the
+quiet baseline. Corrected observer gate only; retained all work, explicitly not
+a latent-preparation census. Candidate source untouched; no invented workaround.
+Caller d4185622 source-reviewed; result589d6b20. Evidence+wheel+caller saved9MiB
+/mnt/tfebackup/guala-c118-four-posture.XehvEs/c126-physical-cue.wSS9hB/.
+17intervals18.928s/peak1.70GiB; no controlled speedup claim. No orphan.
+
+AWS08:36:43/08:38:01UTC same1457/task41d3db93/image80755ca0,service1/1/0.
+Runaway/storage/refusal alarmsOK, oldclockALARM remains. No live write.
+Browserclosed/caretakerSTOP, full AE goalACTIVE. No speech success claim.
+Next single item: smallest physical-custody correction for ALREADY measured
+warm/cold recovery/clock omission, source-reviewed before another acceptance
+run. Do not serialize heap/erase physical phases or reopen approved anatomy.
