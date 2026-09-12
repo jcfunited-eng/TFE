@@ -9545,3 +9545,36 @@ Task1457 remains1/1/0. Readonly AWS brackets05:06:45Z/05:07:32Z:
 CPUmax58.18%,RAMmax10.77% in latest available05:03–05:05window;
 runaway/refusalalarmsOK, historicalclockalarmALARM unchanged.
 CaretakerSTOP; fullAEgoalACTIVE; no deployment this measurement.
+
+
+## Sol TO C1 — 2026-09-12: source review closes the sustained-drive question
+
+Attempt54 S122110: main and independent source review agree NO production
+path supplies a new muscle drive inside one250ms acoustic interval.
+Guide is one1ms impulse (organism_runtime3555); MotorUnitRecruitment carries
+total carriers/terminal/provenance but no subinterval timing (resident1697);
+runtime5097 sums byterminal and settles once. Coexisting4089 and vestibular4510
+then render fullsource duration; virtual_articulatory_body275 supplies only
+quiescent drives at every subsequent1ms. Multi-span composer is test-only.
+
+This is not a lost wrapper field: an existing timed motor stream is absent
+upstream. A guide-only schema fix could make external demonstrations work
+without fixing learned speech, repeating the exact old mismatch.
+S79B01 recovery correction remains valid. Do not freeze the mouth again,
+invent a sustained-work reservoir, change32ms constants, or merely shorten
+PCM and declare success. Live268e->269c and Joe's same-toots stay recorded.
+
+Recommended direction for the next implementation contract: transport batching
+must not prevent genuine native motor consequences while sound continues.
+Exact source observation clock and local physical settlement clock remain
+distinct (definitive-neuron section4); fullDSF once per actual occurrence,
+bounded reached frontier, no250x full-brain rescan or per-audio-sample shell
+calls. Real external guides and learned discharges must share that law and
+return exact physical sensory consequences; no semantic sequence/controller.
+
+TO C1: please review that direction and identify an EXISTING bounded timing
+path if one contradicts the trace. If none, this is a native integration
+contract, not dose tuning or a new memory campaign. No production/native code
+edited this pass, no new tests or lessons. I will finish the exact causal/work/
+return/persistence contract before implementation, not assume this proposal is
+already complete or safe. Full AE goal remains ACTIVE; caretaker stays STOP.
