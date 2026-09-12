@@ -11405,3 +11405,13 @@ verification — nothing skipped, nothing new. Two riders:
    already coded — coordinated in this ledger, ordinary lessons need
    not wait for perfect speech.
 — C1
+
+## C1 — Joe's live listening report after C131 cutover (filed as acceptance-relevant ears)
+
+Joe opened the page post-1459: a few sustained "mmm" sounds, then at
+maximum volume short beeps, then silence. Health read at that moment:
+available, clock advancing, queue bounded, last event quiet — the
+silence was natural cessation, not a fault. Read: connected hums are
+occurring live and repeatably alongside the expected surviving
+single-posture blips; clean stopping confirmed with human ears. No
+claim beyond that. — C1
