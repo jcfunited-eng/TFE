@@ -1,6 +1,6 @@
 # Guala speech repair Attempt 54 — complete design verification and lean sensorimotor route
 
-## Current resume point — 2026-09-12, C129 six focused checks PASS; normal artifact next
+## Current resume point — 2026-09-12, C129 ordinary copied-body warm/cold equality PASS
 
 **Speech is not fixed. Full AE goal ACTIVE.** Nine-control C126 acoustic/cue
 successes remain locally proved and archived; no production126/128 delivery.
@@ -20,8 +20,11 @@ search and decoder ordering wrongly assume otherwise. No missing physics,
 no justification to sort anatomy or alter neurons. Candidate129 narrow
 translation correction is implemented and source-reviewed: all SIX planned
 focused checks PASS, including previously failed migration/local-contact and
-runtime abort/restart tests. S122158. Normal mature-body proof is next;
-no deployment or broad speech acceptance claimed.
+runtime abort/restart tests. S122158. Normal artifact then PASSED the exact
+saved1457body warm/cold next event: full body/world and causal evidence equal,
+all17 prior126 displayed physical rows unchanged. S122159. Local discrepancy
+F122130 closed on this path; fresh-current release verification remains next.
+No deployment or broad speech acceptance claimed.
 
 C126 saved1457body proof remains S122143-146: baseline8, 4000sample cue, MIN then
 MAX, breath on both,24000 self-heard samples, all17 motor/work receipts matching
@@ -18476,3 +18479,84 @@ Next single item: ordinary release artifact (no diagnostic-api), explicit
 authenticated saved-body migration then warm/cold physical continuation, preserving
 the original R122147 end-to-end acceptance. No rerun acoustic design campaign.
 This is a fixed local translation defect; full AE goal remainsACTIVE.
+
+
+### S/H-054-122-159 — ordinary-artifact mature warm/cold continuation PASS
+
+Source5c8dcd03 pushed, clean. Release build82.0159s PASS, python-extension only,
+no diagnostic-api,190warnings; buildpeak childRSS1,323,776KiB. Isolated wheel:
+ /tmp/guala-c129-native.fdjLK2/guala_core-0.1.0-cp311-cp311-manylinux_2_35_x86_64.whl
+SHA c84b9104ea8979a40f842d4bed6729a40f284c4964a455b9037b64a22097578f.
+Installed only under that attempt's installed directory; native.so SHA
+06c374fd092ff348face8124e4fb8acf133fe6ea70974e0690cf4e55313193fb.
+No shared runtime install, cloud build or live mutation.
+
+External caller /tmp/guala-c129-physical-continuation.py
+SHA82fbed78e31f260dabed86809f6d775d58d48016c06937fdbd9d103c0033027b.
+Entire caller independently source-reviewed PASS before/after; unchanged inputs,
+native provenance checks, same solar override0, no inheritedGUALA settings,
+all real LeanPhysicalLoop calls, publication only in isolated paired store.
+SyntaxPASS before execution. Exact session18166 terminalexit0; build13555exit0.
+Process census afterward found no remaining native build/proof child or orphan.
+
+INPUT AUTHORITY: original1457saved663372 bodycdcf8c47/165039953bytes,
+world99b56445; archive0f824b4c; identity1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1.
+Not newest current live body: this is the authenticated prior failing path,
+not the fresh-current release rehearsal. Same4000sample85a505e8 cue.
+Existing explicit authenticated migration produced body
+b64729afa34f43c3ea3469a0a0f1c5aebc78ce3bf38efc1a18529bda4bdb22cd,
+165913925bytes (+873972). This initializes absent progress at the old saved
+cold boundary; it does not recover unsaved past fractions. World bytes unchanged.
+Ordinary restore confirms nine existing acoustic axes, no new anatomy.
+
+PASS CHRONOLOGY:
+8 output-quiet intervals663373-380; one cue663381; MIN663383/MAX663384 with
+four acoustic motors and breath each;24000 self-heard samples through663389,
+27979 nonzero pressure samples. All17 rows' existing physical/evidence fields
+match archived126 EXACTLY (excluded only label and wall time). No acoustic
+regression in this observation. Sound still persists at tail8 as before;
+not a new failure or clean-stop proof, not recognizable speech.
+
+Warm663389 checkpoint was sealed, verified, published/adopted through the real
+paired store. Cold branch restores that exact body/world pair. Same ordinary
+occurrence on each produces663390, each with4000 self-heard samples:
+- full canonical body EQUAL,165983970bytes, SHA
+  b7dae11a647b06105a0e4af31717164ea85cb8b3675a08633c5485db013f7ddd;
+- full world EQUAL SHA
+  56bdde0001da639a463f719ded64dfe77232713230779081b79921c04c13209a;
+- complete returned causal-evidence dataclasses and bindings EQUAL;
+- displayed physical rows EQUAL, excluding label/time only.
+This closes recorded F122130 warm/cold discrepancy on the exact saved-body
+chronology. No normalization, selected-field body comparison, synthetic event,
+reset or substituted successor. Supporting tests also cover growth/abort/
+failed prepare; this one mature path does not prove all possible trajectories.
+
+RESOURCE TRUTH: first17 intervals21.357835s vs archived12618.928247s; this is
+NOT a controlled performance comparison and NOT evidence of speedup. Warm next
+1016.85ms/cold next1161.85ms. Proofprocess peakRSS2,673,460KiB includes TWO
+simultaneously held runtimes plus complete compared output envelopes; do not
+compare it as one-runtime memory with the old one-branch probe. New physical
+custody costs873972encodedbytes at migration. No long-run allocation/cost
+closure or general efficiency success claimed. Resource scaling remains a
+release requirement; exact addressing is not automatically justified bloat.
+
+AWS read-only10:11:35.567111->10:13:13.554653UTC same1457/41d3db93/image80755ca0,
+1/1/0. LatestCPUmax40.8561->40.0722%,RAM10.1501->10.2478%.
+CPU/RAM/storage/refusal alarmsOK; historicalclock-stalledALARM still.
+No organism/customer traffic injected, live schema migration, caretaker restart
+or browser requirement. Existing1457 remains production.
+
+IMMUTABLE EVIDENCE: result.json SHA
+6ce4f46423482cee7a8f799203654c4a288d6005408a59d996b0afd986d1f546.
+Full raw warm/cold GLORUNgz and worlds, pairedpredecessor/successor, pressure,
+wheel, isolatedextension, and caller backed up24MiB at
+ /mnt/tfebackup/guala-c118-four-posture.XehvEs/c129-exact-continuation.1QRG26/.
+Backup result/wheel hashes verified. No tests rerun to make the backup.
+
+Next SINGLE item: release-readiness of this same functioning C126+C129 slice
+against newest authenticated CURRENT, ordinary startup/migration/one-way backup,
+resource accounting and already-ratified release controls. Do not restart the
+voice/word-law campaign or re-prove the six unchanged local successes. No
+cloud build/cutover before current-body gate. Full AE goalACTIVE; speechNOTfixed.
+Shared60d2953a and Slack10:11:08slack_sent recorded six-test checkpoint; this
+new mature success must also be shared so it cannot be rediscovered.
