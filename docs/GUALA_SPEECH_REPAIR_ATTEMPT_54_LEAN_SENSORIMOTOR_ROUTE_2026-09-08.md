@@ -1,6 +1,6 @@
 # Guala speech repair Attempt 54 — complete design verification and lean sensorimotor route
 
-## Current resume point — 2026-09-12, Candidate127 rejected; five supporting passes preserved
+## Current resume point — 2026-09-12, Candidate128 source review; five127 passes preserved
 
 **Speech is not fixed. Full AE goal ACTIVE.** Joe-approved reuse of the nine
 existing acoustic controls is implemented, source-reviewed and locally exercised.
@@ -16,14 +16,11 @@ Tail remains sounding at eight intervals, as it also did on the predecessor;
 not a newly discovered regression or proof it never stops. Earlier longer
 live tail S122106 is preserved, not reopened by this short observation.
 
-Single active item: physical restart custody, continuing R122147. Candidate127
-compiled and passed five supporting tests, but the recovery-only physical test
-exposed a missed finalization branch (S/H/F122150). Candidate127 is rejected,
-not deployable; source/results archived at ad52b513. Executable sources restored
-exactly to accepted126 baseline38c695ec (S122151). No test condition weakened.
-The next contract amendment routes actual passive returns through common
-physical finalization even when contact selection is empty. Do not reopen126
-acoustics or repeat the five preserved custody/codec/scheduler checks unchanged.
+Single active item: physical restart custody, continuing R122147/R122152.
+Candidate127 rejected/archive ad52b513; accepted126 restored351eb78d.
+Candidate128 now implements the amended common-finalization contract; SOURCE
+ONLY, awaiting frozen independent review. S/H122153. Five127 support passes
+and126 acoustic/cue wins preserved. No compilation/test/lesson/deploy of128.
 Latest AWS09:24:29.188934UTC same1457/task41d3db93/image80755ca0,1/1/0.
 Runaway/storage/refusal alarmsOK; historicalclock-stalledALARM persists.
 Caller/build terminal, no orphan. Browser CLOSED/caretakerSTOP; no live mutation.
@@ -18149,3 +18146,218 @@ returns and common endpoint/recovery rescheduling must be reconciled together.
 No new law, coefficient, fake source, memory/voice redesign or lesson run.
 No production mutation or fresh cloud claim after09:24:29UTC. Full goalACTIVE.
 Joe and C1 remain collaborators; questions/commentary are not stop commands.
+
+
+### R-054-122-152 — amended physical-finalization contract after archived127 rejection
+
+2026-09-12. Previous goal turn PROGRESS: rejected127/source+results archived
+ad52b513, accepted126 exact native baseline restored351eb78d, shared80dcf777,
+verified Slack09:32:55UTC. Current clean source351eb78d checked. Single active
+item continues R122147 physical restart custody; no closed acoustic work reopened.
+Accepted126/S122146 stays closed at its stated local evidence level, NOT live.
+
+Bounded source review of archived127 found the SAME continuation omission at
+selected.is_empty (~20755) and compact_contacts.is_empty (~21215). The latter
+can follow real pumping yet emits empty metabolic observations. Consumed return
+events are drained20382 but final scheduling24325 visits only changed cells;
+unchanged/refused/retained-terminal events can disappear. Passive returns occur
+BEFORE pre-pump snapshots, so sleeping contacts can wrongly read post-return
+endpoints. The exact pre-return state already exists in transition_predecessors.
+Independent reviewer confirms all four within this same custody contract.
+
+Requested: one continuous physical successor with exact warm/cold continuation.
+ConflictYES: bypassed finalization and mixed held/successor endpoint evidence.
+Retire both bypasses and phase-before-thermal-acceptance partial commit.
+Do NOT extend old voice anatomy, new chemistry, fake external seeds, second
+settlement, pump-on-return, forced empty DSF, saved event heaps or silent resets.
+L0-L4 and full joint DSF unchanged; no reduced field/lost structure.
+
+CANDIDATE128 implements R122147 with this concrete amendment:
+- Extract the existing end-of-interval physical finalizer ONCE. Both early
+  returns and normal full-contact completion call it; no copied parallel tail.
+- Input: exact selected/pumped predecessor neurons; earliest actual transition
+  predecessors; pre-source membrane+carrier holds; settled contact indices;
+  consumed recovery event indices; passive changed endpoints; co-recruited
+  endpoints. These are already bounded interval evidence, never retained history.
+- The finalizer owns held-span catch-up, contact wake and successor schedules,
+  NOT pumping, contact settlement, DSF, action choice or learning.
+- Held endpoint order: pre-source ingress hold, earliest actual transition
+  predecessor (including pre-return), selected/pump predecessor, then live ONLY
+  where endpoint is unchanged. Both compact-contact catch-up and wake catch-up
+  use this same ordering. No scheduled recovery span may silently skip integration
+  because its predecessor was not an external-ingress hold.
+- Material successor scheduling reads actual applied contacts and neurons.
+  Finalize recovery over sorted union(consumed_due_events, changed_endpoints),
+  including accepted, fractional/no-material-change, refused and prepared-terminal
+  outcomes. Contacts integrated once; incident wakes only on actual change.
+- Stage passive candidate neuron, fraction and exact heat deposit first.
+  Accepted material+heat+fraction/clock commit together. A fraction-only accepted
+  result advances fraction/clock without inventing a returned-neuron receipt.
+  No-current means no phase flow, not permission to erase the retained fraction.
+  Thermal refusal retains predecessor material AND exact recovery fraction,
+  while recording this examined interval's zero ACCEPTED flow at current clock.
+  It never commits the refused candidate fraction. This is coupled settlement,
+  not observational clock mutation. Derive due from that accepted tuple exactly
+  as cold reconstruction: progress.last + existing next-crossing. A later pump
+  or contact change starts its new rate here, never retroactively. No refusal
+  marker, past-due retry, same-call loop, timer or new thermal capacity.
+- First empty return preserves actual passive receipts/predecessors after
+  finalization, without a pump or DSF. Second also preserves actual metabolic
+  observations and pumped predecessors after finalization; no false empty result.
+  Capture fixed L13 pump predecessor if it changes, without broadening selection
+  or changing existing L13 exchange timing. No duplicate pump/return equations.
+
+Transaction/crash/growth/codec remain R122147: physical progress belongs to the
+prepared cognitive successor; failed prepare/abort discards it; checkpoint
+performs no physiology; V46 current-only with explicit authenticated V45 boundary
+initialization, never a claim to reconstruct unsaved history. Cold reconstructs
+the same due from the same accepted tuple. No additional retained field or
+process beyond R122147. Five127 support proofs and126 successes preserved.
+
+Leanness: common finalizer replaces the old tail and both skipped paths, not
+three copies. All work is on selected/pumped/due/changed endpoints and their
+incident contacts; union sorting O(F log F), stable progress updates bounded
+by fixed key widths, schedule updates O(log E). No whole-population hot scan.
+Existing codec bound24+56*N+44*E unchanged; allocator peak still must be measured.
+No acoustic, complete_neuron equation, DSF, UI, Python orchestration or curriculum
+file edits. Same six source/test files plus physical-progress module as127; extract the
+existing finalizer into physical_event_finalization.rs to remove its bulk from
+core, not create a second execution path.
+
+Frozen acceptance remains R122147 with the actual missing boundary made explicit:
+1.Source review on frozen128 checks ALL physical exits, due outcomes, earliest
+  predecessor choice, preparation failure, cold restore and ordinary next event.
+2.Run the failed recovery-only proof FIRST with an additional next-event equality
+  assertion (not only equality of one wrong successor). No repeat of the five
+  unchanged support passes. Run remaining unrun local-contact/migration/wake/
+  runtime-lifecycle checks and one focused refusal/fraction continuation check.
+3.One normal-artifact authentic saved-body warm/cold path after explicit migration,
+  exact next body/world/action/self-hearing equality and resource/AWS brackets.
+  Supporting fixtures never replace mature-body acceptance or live release proof.
+No new speech bar, shape/word promise or claim of deployment. Browserclosed,
+caretakerSTOP, no production changes. Full AE objective remains ACTIVE.
+
+Independent contract review: one pre-code interaction found and resolved.
+Refused return followed by same-interval endpoint change must not re-integrate
+the refused span under a new rate. C1-independent reviewer concurs with the
+explicit checked-zero-accepted-flow rule above; older last-clock retention was
+withdrawn before implementation. No laws/coefficients changed, no assay run.
+
+
+### S/H-054-122-153 — Candidate128 source implemented; source-only review next
+
+2026-09-12. R122152 closed before implementation; shared67839992. Main and
+independent contract review resolved the rejected-return/current-change
+interaction before any source edits. No changed law or coefficient.
+Candidate128 reuses the unchanged127 progress/scheduler/runtime/codec components;
+their five support proofs are retained. It replaces the incomplete finalization
+integration, not the acoustic mechanism, and does not silently relabel127.
+
+Common extracted finalizer515lines replaces core's448line tail. Both existing
+contact-free exits invoke it; no new persistent type/field. Same held_endpoint
+lookup serves compact-contact and wake catch-up; two redundant pre-pump vectors
+and their population-of-selection fill loop removed. Finalizer candidate set
+does not redundantly rewalk selected predecessors. Actual applied contact
+states author next scheduling, not a stale local solver copy.
+Consumed recovery list joins changed endpoints for exact successor scheduling.
+
+Passive candidate fraction commits only on accepted flow/material. Refused heat
+keeps prior fraction/material and accounts examined zero accepted flow at the
+current integration boundary. Pump predecessors/actual chemistry survive the
+compact-empty return. One isolated L13 predecessor is kept separately; it does
+NOT extend DSF-selected members or alter pump timing. Existing contact/motor/
+body equations, full fields, source roster, curriculum and UI unchanged.
+
+First failed test source now checks returned lineage, real predecessor, zero
+DSF, the next due and SECOND return, warm/cold state equal at both boundaries.
+One additional test source covers early fractional-only accepted integration
+(the schedule explicitly permits early examination), full-thermal refused
+material/unchanged fraction, and two ordinary subsequent warm/cold events.
+All128 tests UNRUN. No inference from source labels. Five unchanged127 passing
+tests will not be repeated. The four previously unrun focused proofs remain.
+
+Owner caught a duplicate selected-predecessor walk in the extraction before
+freeze and removed it. One repeated READ-path fumble still happened:
+recovery_fluid.rs was guessed and absent; actual rg--files resolved
+recovery_fluid_contact.rs, then APIs were read before writing test source.
+No compile/run/body was affected, but this violates the recorded filename
+preflight lesson; preserve it rather than claiming zero repeated mistakes.
+All file edits were exact full-file apply_patch; only new finalizer formatted.
+git diff --check PASS. No tests/build processes started, no live mutation.
+
+Next ONLY: freeze whole candidate and independent source review. Review must
+inspect held-state precedence, both exits, refusal-plus-later-change, actual
+applied contact states, all staged/abort/restart branches, and test reachability.
+Architectural finding rejects128; genuinely localized findings get one batch.
+No production or speech success claim. Full AE goalACTIVE.
+
+
+### S/H-054-122-154 — two physical passes preserved; localized migration fixture correction
+
+Frozen0f77288e independently source-reviewed PASS and verified before/after;
+shared e9617447 records review before execution. Native compile PASS15.3246s,
+99warnings. Exact compiler-reported binary guala_core-0d59e23b299c9b83 SHA
+a844dc9ee7ac5dfc1a5d1b212ca211cad860e91d27b3b55d7cbbb0be8064e2cd.
+All six names resolved exactly once against --list before running.
+1.RECOVERY-ONLY NEXT EVENT PASS0.00836s: first and SECOND conserved returns,
+  actual predecessors, zero DSF, exact future due, warm/cold material/progress.
+  This directly closes the previously failed supporting path.
+2.FRACTION/THERMAL REFUSAL PASS0.00827s: accepted fractional span without whole
+  material, then two refused full-thermal events preserving exact fraction and
+  material, checked clocks and ordinary next events, warm/cold identical.
+These successes are preserved; no rerun because the next fixture failed.
+
+3.V45-migration/local-contact test FAILED at10944 RetiredCognitiveState before
+the local-contact branch. Current encode/decode equality DID pass.
+Source identified a fixture precondition error, independently confirmed:
+from_developmental_electrical_seeds creates no resting_population. After a
+lesson the fixture has retained fractals. Missing-population migration invokes
+the pre-existing V14 genesis-size writer, which correctly refuses retained
+fractals. That same limitation exists in accepted351eb78d; actual1457 body
+already has its admitted population. No claim that no-pop bootstrap is repaired.
+The remaining three tests were NOT run.
+
+One LOCALIZED correction batch: explicit existing genesis admission BEFORE
+the fixture's first lesson, preserving its native reserved lineage range.
+Then the same V45 prefix, full neurons/fractals, migration and local-contact
+checks. No erasure, softened assertion, production-code or migration change.
+Independent source reviewer confirmed classification and acknowledged missing
+this fixture precondition in review. Final frozen review before compile/rerun.
+Run corrected migration/localcontact first and the three unrun tests only;
+do not repeat the two128 or five127 passes unchanged.
+
+AWS bracket09:45:02.631876/09:46:20.047518UTC: same1457/41d3db93/image80755ca0,
+1/1/0. LatestCPUmax40.5793->52.5757%,RAMmax10.3210->11.7676%. Resource/storage/
+refusal alarmsOK; oldclockALARM remains. No native mature-body/resource claim.
+All compile/test children terminal, no production mutation. GoalACTIVE.
+
+
+### S/H-054-122-155 — final fixture still refuses; do not invent its cause
+
+Final localized source review PASS b55c01f7365d02e7bdad89410d1eecfd8fabde3218dae39ea858a8262c539a89,
+verified before/after. Compile PASS4.0462s/99warnings; binary6849bb1820afd628f632b7d955743afba373dc0d9d6e21ec1273138ef0803f75.
+Corrected fixture passes explicit genesis/migration/decode/population assertion,
+then first prepare_admitted_transition refuses NoncanonicalState at10936.
+Existing trace names observation-return, immediately before sealing. It does
+NOT identify which encoder invariant refused. Three remaining tests UNRUN.
+Two physical128 passes and five127 supporting passes stay preserved.
+
+Independent review UNKNOWN, not an architectural verdict or a faulty-test claim.
+Topology's final shape/admission runs before sealing; sealing can refuse lineage,
+anatomy/cell/experience/mosaic/fractal/progress encoding or terminal summary.
+No second production/fixture correction batch is authorized by this result.
+Next single action: reuse existing NativePreparationPhaseTrace ONLY under
+cfg(test) at those encode_current stage boundaries, retaining every original
+error/assertion. Run only the exact same failing fixture once. This is bounded
+error-origin instrumentation, not an altered lesson or acceptance condition.
+Freeze/source-review diagnostic before compile. Remove diagnostic before any
+normal-artifact interpretation; preserve both fingerprints/results.
+
+AWS second bracket09:49:42.099170/09:50:14.443954UTC same1457/task/image1/1/0;
+latestCPUmax40.5589%,RAM10.3119%, resource alarmsOK, oldclockALARM unchanged.
+No production mutation. Read-only preflight mistakes also retained: one
+git diff --check omitted explicit workdir and read shared root (no edit; rerun
+on verified Guala root PASS); attempted root pyproject.toml was absent while
+native/guala_core/pyproject.toml existed. These repeated path habits are failures
+of procedure, not physics. GDB unavailable; no package installed.
+Full goalACTIVE, no speech or production completion. Source stays preserved.
