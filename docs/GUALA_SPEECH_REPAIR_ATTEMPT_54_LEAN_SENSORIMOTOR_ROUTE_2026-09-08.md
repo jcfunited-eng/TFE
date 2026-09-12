@@ -16065,3 +16065,158 @@ file. rg refused; no organism run or state change. Correct source was already
 explicit in that file's import, sparse_electrical_contact.rs, verified with
 test -f before reading. This repeats the path-preflight failure class:
 resolve the imported real file before searching; never infer a sibling folder.
+
+### R-054-122-114 — frozen external full-mouth capacity discriminator
+
+Previous turn PROGRESS: C122113 corrected a historical-census inference and
+preserved the existing contact-law boundary. Continues D12240, acceptance:
+normal live learning -> sound-only two ordered sound-producing postures ->
+stop, preserved state, actual sound and truthful evidence to Joe. S122104
+live anatomy and S122106 sound delivery remain closed at their stated scopes.
+This check cannot close learned recall or recognizable speech by itself.
+
+Architecture gate: requested body-owned recognizable speech, current four-axis
+lessons omit jaw/lip/context used by the accepted organ control; conflict YES
+with declaring those lessons acoustically equivalent. Do not extend native
+physics, cognition, old shell, body pose setters, HOLD ingress, or coefficients.
+Single next item is the unchanged body+voice finite-drive capacity comparison.
+Full DSF unchanged, none evaluated or reduced by this organ-only caller.
+
+Frozen input/output:
+- One authenticated680-byte saved663372 body, SHA6247ab3b74180419d60eb5dc21a94c38e72cbe119ea078efa9f70a8d14ffd59f,
+  reused independently for each external case. No full resident/brain load.
+- Existing four drives on tract0/1/2/7 alternate MIN,MAX,MIN,MAX at250ms
+  physical spans,1500 external carriers per driven axis as in the lesson.
+- Full-mouth case keeps EXACTLY those four drives and adds jaw, lip aperture,
+  tract3 and tract4 in each span, all toward maximum. Additional doses are
+  their declared neutral-to-maximum spans, the existing resting admission
+  ceiling, NOT tuned to an output. Lip width and glottal anatomy remain
+  unchanged, matching their unchanged context in the historical control.
+  Stalled work remains reported; no dose-over-capacity bypass.
+- Both cases receive four EXTERNAL respiratory carriers only at the first
+  phase (the accepted Mama-A control's finite breath budget); no refills.
+  This is not claimed to replicate learned efferent output or live lessons.
+- A full-mouth zero-respiratory-work control must remain pressure-silent.
+- Four250ms spans then a bounded twelve-second no-drive/no-breath tail.
+  Record exact PCM, per-ms axes, admitted/stalled external drive quantities,
+  actual respiratory admission/stall, peak/RMS as observer facts only, terminal
+  body/activation/acoustic/lung state, and whether the tail reached rest.
+  No recognition score, speech pass threshold, or desired waveform matching.
+
+Caller path: native canonical decode -> unchanged
+settle_body_effector_drives(1ms) -> unchanged
+settle_native_articulatory_interval(16samples) -> carry exact successor ->
+repeat physical clock. A per-phase equivalence control compares this factored
+readout to the real1ms drive +4000sample production-style render, requiring
+byte-identical final body and PCM. This validates the observer's time split,
+not a new runtime schedule. No callback enters native cognition.
+No axes overwrite, reset, altered acoustic material, or synthetic pressure.
+Same finite input/state determinism is rechecked across canonical restart
+at the existing phase boundary, without running another brain test.
+
+Read-only AWS before/after, one low-priority core, direct rustc/std only,
+no cargo or Python native import, no live writes/network in the caller.
+At most three output traces, fixed52blocks/case, fixed anatomy45axes;
+no parameter search or new law. Capacity evidence can establish a physical
+difference or named limitation; it cannot itself establish human-recognizable
+speech or a learned remedy. One source-only review before compile/run.
+
+Read failure recorded: initial embodiment reference command guessed
+embodiment-law.md before using the SKILL's exact embodiment-ui-law.md.
+cat refused, no code/body/runtime touched. Correct named references read.
+Mandatory path preflight applies to instruction files too.
+
+### S-054-122-115 — full-mouth capacity check executed; no speech claim
+
+R122114's frozen three cases completed in1.341897s wall,0.892221s user,
+0.442091s system, child maxRSS10560KiB on one low-priority core.
+No resident brain loaded/advanced and no production access in caller.
+Source-only reviewer PASS, then compiler found two localized array-versus-Vec
+assertion type errors BEFORE execution. Corrected both comparisons to slices
+(the already-used S122109 form), independent delta review PASS, recompiled
+once successfully. No physical design/input change; no rejected body run.
+Final caller a1f5d7ea633c526e3e2c11944be4b92eadc3950dd8ffb581d492d672bed2c0e2;
+binary7be7e6dfe476410b2d7e098183d19b003458bbc1262d712b1fa54a7463119888.
+Native source/input hashes and reviewed42edea3c fingerprint verified.
+Runtime session27112 exited0; compiler89820 exited0. Final process census
+shows no harness/compiler child (only the current census shell/rg).
+
+Preserved success:
+- All12 phase comparisons: factored1ms body+16samples produces exact same PCM
+  and canonical successor as1ms body+4000sample ordinary acoustic call.
+- All3 phase2 canonical cold continuations produce exact same successor/PCM.
+- Full-mouth zero-breath case emits ZERO pressure throughout208000samples;
+  mouth drives do not manufacture respiratory work.
+- Four-axis and full-mouth cases each admit only the initial4 external breath
+  carriers, stop exactly, and reach full body/activation/lung/acoustic rest by
+  the6250ms sampled boundary. Zero-breath full-mouth rests by1250ms.
+- Original authenticated source bytes remain unchanged.
+
+Measured contrast, not speech recognition:
+four-axis rawpeak507, full-mouth728; their first four4000sample blocks differ
+at3789/3729/3164/3778 sample positions. Additional mouth context therefore
+has an actual acoustic consequence under the existing law.
+After1000ms only41 samples differ, each by one PCM unit; from1250ms through
+the entire remaining output the waveforms are byte-identical.
+Both voiced cases' final nonzero sample is96550 (about6.03s); source interval
+size is not an obligatory quarter-second end of phonation.
+Full-mouth jaw reaches13123um, lip7501um; four-axis jaw/lip never move from0.
+Tract0/1/2/7 min/max ranges are unchanged between cases; context3/4 reach499/512.
+Finite tissue recovery remains active and unchanged.
+
+Additional context uses MORE explicitly billed external muscle work, by the
+frozen anatomical input contract, NOT free energy: four-axis admitted620/3300/
+620/3300 versus full-mouth57230/59891/57211/59891. This comparison does not
+isolate which of the four additions caused how much change, claim matching
+learned efferent supply, reproduce Mama-A, prove a word, or establish a
+curriculum remedy. No tuning/search or extra cases followed. These WAVs are
+external capacity evidence, never Guala speaking through learned recall.
+
+Artifacts retained in
+/mnt/tfebackup/guala-c118-four-posture.XehvEs/c123-full-mouth-663372/
+(6924KiB total, includes exact caller/binary/traces/outputs/health records).
+run.log bf76b6d52edfadf9b41b21cf48882d32b0aad588d79224ce245d98b72c8da02a;
+analysis.log62fd62d7ee73af2b5f50c269539280da42f388ad7b92918803adf21a1d28060d;
+four-axis.wav fbda185661612ce89d2169ff139340f13335f9439f30e7caa89d3bb1ddd70d72;
+full-mouth.wav a7c5e4d5880aa72a52709bfb45b817e83ff6186b052c49f5a142f39010f5efb0;
+no-breath.wav30e23b4c22743c4abb0fd79b4e8fec7605dc098017676cc5d0ce5dc5933d1fe5.
+No public/UI publication or laptop-audibility claim for these artifacts.
+
+AWS pre05:41:49Z/post05:42:42Z: same task1457, one running container,
+desired/running/pending1/1/0, exact80755ca0 immutable image unchanged.
+Latest service metrics pre05:38–05:40 CPUmax46.9952%,RAMmax10.9772%;
+post05:39–05:41 CPUmax57.2888%,RAMmax11.3190%. Metrics lag run time; not
+invented instantaneous measurements. CPU/RAM/EFS/refusal alarmsOK; historical
+clock-stalled ALARM remains. No deployment, lesson, caretaker restart or
+production mutation. Joe asked again whether browser is needed: NO for this
+local check; closed browser does not stop the server.
+
+### C-054-122-116 — applicability correction to C122113: vocal branch strength
+
+New exact evidence strengthens C1's specific concern. C122113 correctly said
+generic plasticity code exists, but that must NOT imply it can adapt the
+cited existing L11/L12 vocal contacts. Main and independent source review
+both verified the actual caller:
+resident19681 local_gradient_direction defaultsQuiescent for absent lineage;
+20935 populates its evidence ONLY from reached singleton layer10 cells;
+21469 passes the two endpoints' directions into the contact law;
+sparse_electrical_contact376 leaves channel population unchanged forQuiescent.
+Thus existing L11/L12 endpoints receiveQuiescent/Quiescent. Exact writer search
+found no other runtime updater for those channel populations; genesis/decode,
+test writes, successor publication, and sleeping phase changes are not one.
+
+Conclusion: initial500/50 vocal branch strengths do not become demonstrated
+strength through this law. This is a SOURCE-level applicability finding,
+not a new live census or globally absent quantitative memory.
+L7/L10 contacts can receive a real nonquiescent endpoint; upstream retained
+quantitative state may still change available work/discharge. Do not erase
+that distinction, invent a demonstration-dose lookup, or duplicate existing
+plasticity. Completion/ordering successes remain intact.
+
+Next bounded decision: map the existing L10/body-experience physical learning
+path to its actual downstream motor-work effect, including why it does or
+does not preserve demonstrated strength/timing. Use C1's review on that exact
+law boundary before a learned-mechanism change. The full-mouth check is now
+closed as capacity evidence; do not repeat it or treat different PCM as speech.
+No native correction is yet derived/authorized by this source finding alone.
+Full goal ACTIVE/incomplete; D12240 remains open at its functional live bar.
