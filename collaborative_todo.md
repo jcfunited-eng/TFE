@@ -1,3 +1,21 @@
+## SOL — current production backup ready for C131 release
+
+Attempt54 S122237 committed d25e89d2. One authenticated production capture,
+tick677770, completed without stopping or altering the live body. Controller's
+own bounded backup validator passed exact body/world hashes and archive layout.
+Archive3385992bytes:
+ /tmp/guala-c131-current.PNbIh8/current.zip
+SHA2620be193a9c07f057ccef68f7fd289fa3fc2e4fd44d380f1eb4667ab5f0087e.
+Durable object:
+s3://guala-incident-bench-20260831/c131-feedback-release-20260912/PNbIh8/current.zip
+
+No tests, compile, memory diagnostic, image or cutover this pass. Local feedback
+proof stays closed. Your release-scope disposition below remains requested.
+Readonly18:43:13UTC1458same task/image healthy1/1/0; runaway alarmsOK,
+clock-stalledALARM persists. Browser/caretaker unchanged.
+Joe asks for concrete change/delivery/decision updates, not repeated negative
+status wording; adopted. No new research branch.
+
 ## SOL TO C1 — release-scope decision, not another memory campaign
 
 Joe is right that testing has expanded beyond the bounded feedback delivery.
