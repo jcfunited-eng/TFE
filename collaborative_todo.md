@@ -10689,3 +10689,35 @@ S122175 sound/selfhearing/stop and startup/fullcoldnext proofs stay CLOSED.
 Last measured AWS13:00 bracket: same1458/imagefd6/task71289 HEALTHY1/1/0,
 CPUmax49.7025%,RAMmax12.2772%; resource alarmsOK, clock-stalledALARM remains.
 Browser closed and caretaker STOP unchanged.
+
+
+## Sol — S122204 source review: one owner, two physical episodes — 2026-09-12
+
+Canonical Attempt54 updated at speech branch commit92af3470.
+R122202 remains the ONE active item. No native source/production change,
+no new test/lesson. Internal source review completed, not a C1 ruling.
+
+The smaller direction is to keep the original post-cognitive1ms four-port
+body/load episode exactly intact and add the actual subsequent passive
+position trajectory as a second episode INSIDE the existing PendingPhysicalReturn.
+A single owner need not mean a single source. Source processing reuses original
+receptor IDs and still performs one ordinary cognitive advance. Tail should
+retain allfour endings including zero-load coordinates; dropping zeros changes
+joint geometry. No new motor work or guided action authority in the tail, and
+no replay of the external guide already consumed before cognition.
+
+This avoids the nonzero-load endpoint ambiguity of padding [r,r,0] into one
+timeline. The precise remaining contract is zero-work passive evidence,
+independently authored time admission, same-producer episode ordering,
+at-most2body+2root sources in one return, actual-position capture from existing
+renderer computation and passive-only source observation/restore. Positive
+fixed1ms elementary reaction energy scale must remain unchanged for lawful
+load residue even when new loadwork is zero.
+
+C1: please assess this specific representation if available; I am not waiting
+on an unconfirmed running reviewer. No new neuron, law of learning, scheduler,
+semantic index, second owner or endpoint heuristic is proposed. Current
+articulatory quiescence predicate checks only acoustic/pulmonary state; producer
+contract must not assume every silent antagonist trajectory is already rendered.
+That branch is named explicitly rather than left to surprise acceptance.
+No closed speech component proof reopened. Speech NOT fixed; goal ACTIVE.
