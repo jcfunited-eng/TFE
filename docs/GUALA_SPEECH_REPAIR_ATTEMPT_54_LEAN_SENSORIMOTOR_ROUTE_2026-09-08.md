@@ -21,16 +21,20 @@ so live speech acceptance remains open. This paragraph records the Candidate110
 deployment, not the current repair state. Any earlier “speech complete” wording
 is historical and retracted.
 
-CURRENT production status, 2026-09-12 04:00 UTC: task1457 RUNNING/HEALTHY,
-service1/1/0, image80755ca0/source5e327afb. Exact newtask41d3db93f2ef49d7a06b61a0bea7dba1.
-Release-control outage RECOVERED by controller45d3ceb0; same tested image,
-no rebuild or second registration. Actual final predecessor662508 restored;
-public live tick662599 and persisted662572 observed, identity preserved.
-Repaired listening UI published, public hashes and actualChromium controls PASS.
-LIVE LEARNED TWO-POSTURE VOCAL ACCEPTANCE REMAINS OPEN. Feed empty during
-read-only browser verification; no actual audible output claimed. No live
-lessons sent in this cutover. CaretakerSTOP/browserclosed. Full AE goal ACTIVE.
-Do not reopen image/native successes or mistake installation for speech proof.
+CURRENT production status, 2026-09-12 04:51 UTC: task1457, service1/1/0,
+image80755ca0/source5e327afb; exacttask41d3db93f2ef49d7a06b61a0bea7dba1.
+Release-control outage recovered; repaired ordered audio/64xplaybackgain LIVE.
+Actual live lessons have now produced saved completeMIN268e -> MAX269c
+anatomy and its real contact, CURRENT663372 (S122104). No copied-state import.
+A later live sound-only cue663497 produced34PCMblocks/136000samples and
+self-hearing, then acoustic silence through663561 (S122106).
+JOE'S AUDITORY VERDICT: SAME TOOTS. RECOGNIZABLE SPEECH IS NOT FIXED.
+Native per-motor causal joins are not exposed by the public count projection;
+do not infer exact ordered recruitment from audio/anatomy alone.
+Accepted historical Mama-A remains preserved; current impulse lessons are
+not an acoustically equivalent curriculum (C122105/R122107).
+Caretaker remains STOP; Joe's browser ListenON, camera/micOFF at last report.
+Full AE goal ACTIVE. No new native change or release in these live lessons.
 
 CURRENT DELIVERY ITEM D-054-122-40: incremental TWO-POSTURE live delivery.
 Joe confirmed: deliver functioning vocal ability now; do not hold it for a
@@ -73,21 +77,20 @@ Latest backup661388 -> migration -> exact cold-next661389 -> cold-next661390
 PASSED S12283 using ordinary native5fc6b612 and the startup-only receipt.
 D12273 package/image/rehearsal/dry run PASSED; first cutover failed at log pagination.
 R12291 resume and public browser checks now PASS (S12293/94).
-NEXT R12295: normal live vocal teaching/response evidence; no new speech mechanism.
+NEXT R122107: map accepted mouth shapes and physical durations through existing
+body/guided-ingress laws; preserve live link, no repeated wiring lessons.
 
 Recovery backup661388 is hash-verified and archived; it is not normal cutover
 input. Candidate restores final live CURRENT after old shutdown, never a taught
 copy. Old binary must never read migrated state. The three-second/latest-receipt
-gap and stale speech-live banner are corrected in the candidate but remain on
-the older live page until publication. No image build/registration/cutover has
-started as of this header update. Live ordinary ingress must teach the real her;
-copy learning is never imported.
+gap and stale speech-live banner were corrected and published in this release.
+Live ordinary ingress has taught the real body; copy learning was not imported.
 
 Worktree: `/tmp/guala-speech-existing-organ`
 Starting HEAD: `735489406577f90edf6c2fb7fb1889f87eae8107`
-Production boundary: task definition 1456 is the live deployed writer. Its
-infrastructure health and deployed Candidate-110 mechanism prove neither
-ordered articulation nor recognizable speech.
+Production boundary: task definition 1457 is the live deployed writer. Live
+learned anatomy and audible output are now recorded separately from the still
+unproved ordered causal recruitment and recognizable speech.
 
 ## Original Attempt54 architecture honesty gate — historical, not current status
 
@@ -15599,3 +15602,66 @@ No native edits/build/test reruns in this comparison. Next immediate item:
 one sound-only observation of the now-grown LIVE two-posture route, retaining
 raw audio and Joe's judgment; no more guiding those already-grown edges.
 Acoustic-equivalence work follows from actual comparison, not a speech claim.
+
+### S-054-122-106 — one sound-only live check; Joe reports SAME TOOTS
+
+Source-only review PASS for /tmp/guala-c123-live-recall.py
+SHA1ac6f019df83f6198609278dc5e6698d7c4f2e132796b58e3e8c7d8660b10a91.
+Run28143 EXIT0, exactlyONEPOST/no guides:4000samplecue663497.
+Native body-consequence counts at663499/663500 were5/4 with actual
+pressure, not a per-motor causal proof. Output34blocks663499–663532,
+136000samples; self-hearing observed, then acoustic silence. End663561,
+saved663532.323boundedHTTPcalls. No runtime/code change or imported state.
+Joe answered the specific sound-only question: "Same toots."
+Raw log SHA dd450047535a6ec86266a6e34d4562ba4028a3cd297851963c5ec3f168805728,
+archived with reviewed sender under
+/mnt/tfebackup/guala-c118-four-posture.XehvEs/c123-live-sound-only.P62Aiv/.
+This is actual sound-only live output after the saved new link, not proof of
+a word, correct per-motor provenance, or auditory improvement. Keep both the
+structural success and auditory non-success; do not relabel one as the other.
+
+AWS04:51:08Z1457service1/1/0;04:47–49CPUmax47.3317%,RAMmax10.8521%;
+runaway/refusalalarmsOK,historicalclock-stalledALARM remains.
+
+### R-054-122-107 — accepted trajectory mapping, not another wiring campaign
+
+C1's proposal to use per-axis carrier dose is relevant. Existing mechanical
+source/tests already show finite graded response, saturation, opposition and
+recovery; this is not an unknown all-or-nothing switch. A one-ms endpoint can
+quantize multiple small doses to the same displacement; an after250ms endpoint
+can have returned to neutral. Neither alone proves dose insensitivity.
+Do not blindly invert a single endpoint into a held acoustic posture.
+
+Independent source review and main verified duration path:
+dsf_ai_service/guala_cochlea.py:one_self_hearing_hop zero-pads shortPCM to4000
+and returns fixed250ms timestamps. lean_physical_loop requires those same
+PASSIVE_TIMES and admits primary/coexisting hearing sources for250/1000s.
+organism_runtime guided movement first settles over1ms; native acoustic
+duration follows the longest coexisting source. Therefore shorter sound or
+HTTP wall spacing does NOT express the accepted40ms transition/variable spans
+through the current live ingress. This is a source-proven constraint, not a
+failed duration experiment or evidence that a new schema is required.
+Current native body recovery inside acoustic emission is knownS79B01, not a
+new mechanism to undo. The accepted Mama-A held trajectory and current finite
+impulse protocol are not equivalent.
+
+Ordinary existing FFI surfaces found:
+live_articulated_body_axes,readiness.articulated_body_axes,
+advance_guided_vocal_interval_unsealed, returned articulated_body_consequences
+and body_proprioceptive_sources. No standalone exported settle_body_effector_drives
+or antagonist-activation getter found. A future small actual-saved-body
+dose/trajectory check must observe the correct physical stage, not mistake
+recovered endpoints for an insensitive actuator. It must not put pose targets,
+speech labels, timers or a sequencer inside Guala. Preserve previously closed
+first/second-posture and audio delivery successes.
+
+Owner recurrence recorded: read command guessed nonexistent lean_self_hearing.py;
+rg refused with exit2. Resolved actual definition with rg under dsf_ai_service:
+guala_cochlea.py. No execution, native failure or state effect. All subsequent
+reads used the resolved source. RF024/existing path preflight remains required.
+
+Next bounded work is the accepted-shape/duration versus actual-body mapping;
+no more repeats of the two already-grown MAX lessons, no new word-complete
+claim, no broad candidate campaign. D12240 remains open where exact live
+functional participation/ordered vocal acceptance is unproved; the full AE
+goal is unchanged. Joe and C1 remain part of the acoustic assessment.
