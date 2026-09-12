@@ -1,29 +1,31 @@
 # Guala speech repair Attempt 54 — complete design verification and lean sensorimotor route
 
-## Current resume point — 2026-09-12, C129 task1458 continuity healthy; live sound check next
+## Current resume point — 2026-09-12, C129 live sound and self-hearing verified; recognizable speech NOT fixed
 
-**Speech is not fixed. Full AE goal ACTIVE.**
-D122172 cutover session80467 TERMINAL exit0, continuity_health_verified.
-Production task1458/71289e2b95be4d79a5c9f74ac2708b7d, immutable image
+**Full AE goal ACTIVE. Do not restart closed tests or the cutover.**
+Production1458/71289e2b95be4d79a5c9f74ac2708b7d HEALTHY, image
 fd6e44defbc83a305a52229822c9f77155d0a640c8ffa8a7dc00265d7d1fec77.
-Old1457/41d3db93 STOPPED exit0 before new writer started.
-Actual final predecessor670250 restored; candidate clock670259 advanced.
-Do NOT restart the controller or deploy another candidate.
+One cutover80467exit0, actual oldfinalCURRENT670250 restored, identity preserved.
+S122175 one live cue670400 -> real pressure670402–435, self-hearing,
+then acoustic silence observed670437–464; saved670442. No guided events.
+All34 raw pressure blocks recovered and hash-verified; full PCM88c1d744.
+NO recognizable-word or public per-motor-order proof. Browser CLOSED/caretaker STOP.
 
-Browser CLOSED/caretaker STOP. Same native source5c8dcd03/packagebad5eeb9.
-S122165/S122169 remain CLOSED: authentic CURRENT startup/migration,
-quiet8/cue4000/two four-control acts/breath/nonzero sound/self-hearing,
-paired save/cold restore/FULL next body/world/causal evidence exact.
-S158 focused checks and S159 older saved-body proof remain CLOSED.
-Full backup670092 and image/proofs preserved under
+S122165/S122169 exact startup/migration, two four-control acts, breath/sound,
+self-hearing, paired save/cold restore/FULL next body/world/causal equality
+remain CLOSED locally and inside immutable image. S158/S159 also remain CLOSED.
+Physical persistence correction no longer blocks use of this simpler instrument.
+Full backup/image/proofs/live audio retained under
 /mnt/tfebackup/guala-c118-four-posture.XehvEs/c129-current-release.59nFXh/.
-GLCOG046 one-way migration: no automatic old rollback.
+One-way GLCOG046: no automatic old rollback.
 
-Single next item R122174: reuse reviewed unchanged ONE sound-only live cue,
-no teaching, then observe existing ordered pressure feed and self-hearing.
-Do not infer motor ordering, speech, or intelligibility from pressure alone.
-11:02:53UTC exact new task HEALTHY, service1/1/0, matching image;
-post-start resource datapoints bounded, resource alarms OK, clock alarm ALARM.
+Single next item R122177: reconcile the remaining demonstrated-strength
+retention/use boundary with preserved S122109/S122133 and actual source.
+Do NOT repeat saturated750/1500 contrast or redesign learned machinery from
+that invalid comparison. No new test/lesson/code before this bounded review.
+Last AWS11:08:13UTC exacttask HEALTHY, service1/1/0; recent CPUmax46.929%,
+RAMmax11.2824%; resource alarms OK, historical clock alarm ALARM.
+Long-run efficiency, recognizable speech and whole AE capability remain open.
 
 The earlier live-lesson status below is HISTORICAL context, not the resume point.
 
@@ -18944,3 +18946,76 @@ self-hearing. Public observer lacks per-motor causal joins, so no live exact
 motor-order or intelligibility claim. Sampled pre-cue quiet is not an exhaustive
 native no-preparation census. These are declared existing live evidence limits,
 not a new gate invented after the run. Preserve all raw output and post-health.
+
+### S-054-122-175 — live single-cue sound, self-hearing and finite output verified
+
+R122174 ran unchanged ONCE, session45716exit0. Read-only baseline starts670390;
+one accepted sensory POST670400, exact4000sound samples/guided0.
+HTTP200 accepted-event projection matches same native tick. No retry, no lesson.
+Existing stream c986c1f6fa92479080b3e367611a1e8c emitted34 ordered blocks
+670402 through670435 inclusive, each4000samples:136000total/272000PCMbytes.
+Every retained PCM block independently hash-verified; duplicate download blocks
+byte-identical. Concatenated PCM SHA
+88c1d744d64e664a6da69255261fe5af61222d5cdd35e47558fbbf147fcff5ab.
+129510 nonzero samples; peak absolute772. First two blocks peak772/756,
+last three13/13/64. These are measured raw amplitudes, not perceived words.
+Self-hearing directly observed:120000samples across preserved sampled rows.
+Do NOT call that the exhaustive total; some observations were not retained.
+First retained quiet row after sound670437, quiet through final670464;
+no additional feed events through end. Persisted670442 is beyond entire sound.
+325 total HTTP calls within the existing fixed helper bound, exactly1POST.
+No native per-motor causality exposed publicly; no exact learned-order claim
+from these aggregates. No browser ears present; intelligibility UNPROVED.
+
+Posthealth11:08:13.961236UTC exact1458/71289e2b/imagefd6e44de HEALTHY,
+1/1/0;11:04–11:06 maxCPU41.2216/46.9290/44.9176% and
+maxRAM10.6384/11.2823/10.8063%. These timestamps are all after newtask startup.
+CPU/RAM/EFS/refusal alarms OK; clock ALARM persists despite advancing clock.
+Public page census: gualaloom200/33747bytes,loomscan200/11567bytes.
+No UI edits or new browser interaction claim. Resource observations bounded
+in this window, not proof of zero future growth or millisecond latency.
+
+Raw terminal (PARTLY TRUNCATED, see H176), two direct feed recovery JSON files,
+exact unamplified WAV, analysis and post-health retained under same durable
+c129-current-release.59nFXh directory. WAV wraps chronological emitted PCM
+at16000Hz; it concatenates blocks, NOT a reproduction of wall-clock delays.
+
+### H-054-122-176 — observer output truncation recovered; live action not repeated
+
+Existing RF011/RF063 recurred: base64 sound plus public event JSON exceeded
+terminal max_output_tokens20000 in two polls. Six lines became unparseable;
+two otherwise JSON-parseable sound records contained an ellipsis inside base64.
+Initial offline parser correctly refused damaged base64; not a sound failure.
+Never count terminal text as complete raw evidence merely because a call exited.
+Production feed unchanged/bounded32blocks; read-only downloads before eviction:
+after0 ->670402–409, after670409 ->670410–417, both gapnull, same stream.
+Merged with intact terminal blocks; every one of result's34ticks present,
+exact PCM hashes match, overlapping bytes equal. No fabricated/replaced samples.
+Only damaged terminal records rejected; their independent original feed bytes
+provide the replacement evidence. Baseline/other missing text NOT reconstructed.
+Frozen live check continued, no second POST or process restart.
+Next invocation must write full raw output directly to a bounded artifact and
+emit only selected receipt summaries, not base64 through terminal budgets.
+This is the existing RF011 earliest guard, not grounds for another native test.
+Other harmless source-read fumbles this pass: exact cue hash verified85a505e8,
+then rg for misspelled085a505e returned no match; actual caller CUE_SHA read
+proved equality. A multi-root rg included nonexistent localguala_preflight;
+known shared wrapper exists. Neither changed test or production state.
+
+### R-054-122-177 — next speech boundary: actual quantitative learning, not another restart campaign
+
+S175 closes live pressure/self-hearing continuation for this release, not speech.
+Joe's acoustic simplification remains approved; no human-muscle reconstruction.
+Preserve all C125/C126/C129 successes. Relevant unresolved S122133:
+ordinary endpoint routing changes retained plasticity, but the750/1500 guided
+comparison was invalid because both exceed measured MIN admission limits
+105/125/145/245. Uniform results there do NOT refute strength learning.
+Single next read-only item: reconcile same-input demonstrated displacement,
+ratified endpoint strength update, retained vocal contact conductance/phase,
+and later autonomous dose/use on the CURRENT direct9-control source.
+Use measured nonsaturated distinctions if a test is still required, record
+actual admitted drive and displacement, never nominal dose alone.
+No new law, scripted parameter trajectory, lookup answer or observer choice.
+Independent reviewer asked to check this scope against retained results.
+No new teaching run, physiology edit, image or second cutover authorized by
+this row. A concrete bounded contract must precede execution. FullAEgoalACTIVE.
