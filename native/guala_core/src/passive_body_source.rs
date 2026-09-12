@@ -3,7 +3,7 @@
 
 use crate::virtual_articulated_body::{
     ArticulatedBodyState, ArticulatedBodyTransition, BodyAxis, BodyEffectorDirection,
-    BodyEffectorTerminal, BODY_AXES,
+    BodyEffectorTerminal, BodyProprioceptiveConsequence, BODY_AXES,
 };
 
 pub(crate) const PASSIVE_BODY_SOURCE_MAGIC: &[u8; 8] = b"GLBPTR01";
@@ -41,6 +41,19 @@ fn axis_has_passive_motion(body: &ArticulatedBodyState, axis: BodyAxis) -> bool 
 /// Acoustic silence does not imply that the instrument's controls are at rest.
 pub(crate) fn has_passive_body_motion(body: &ArticulatedBodyState) -> bool {
     BODY_AXES.into_iter().any(|axis| axis_has_passive_motion(body, axis))
+}
+
+/// The ordinary runtime may skip its existing passive renderer only when
+/// neither an impulse, breath, acoustic state nor retained motion requires it.
+pub(crate) fn can_skip_ordinary_articulatory_interval(
+    body: &ArticulatedBodyState,
+    consequences: &[BodyProprioceptiveConsequence],
+    respiratory_efferent_carriers: u128,
+) -> bool {
+    consequences.is_empty()
+        && respiratory_efferent_carriers == 0
+        && body.articulatory_system_is_quiescent()
+        && !has_passive_body_motion(body)
 }
 
 fn encoded_length(axes: usize, frames: usize) -> Result<usize, PassiveBodySourceError> {
@@ -256,25 +269,45 @@ mod tests {
 
     #[test]
     fn silent_controls_without_new_impulse_still_return_real_motion() {
-        // A valid quiet physical state, not a cue/learning fixture. No new
-        // drive or pressure is needed for a displaced control to return.
+        // Reach the actual ordinary skip boundary through the unchanged law:
+        // after a one-carrier impulse, one quiet ms has no displacement or
+        // consequence, yet retained activation still requires later motion.
         let neutral = ArticulatedBodyState::at_neutral();
         let axis = BodyAxis::VocalTractSection0Area;
-        let mut axes = *neutral.axes();
-        axes[axis.index()] += 1;
-        let quiet = ArticulatedBodyState::from_physical_state(
-            axes, neutral.lung_air_microlitres(), true,
+        let terminal = BodyEffectorTerminal::new(axis, BodyEffectorDirection::TowardMaximum);
+        let drive = AdmittedBodyEffectorDrives::admit(vec![BodyEffectorDrive {
+            terminal, outward_elementary_carriers: 1,
+        }]).unwrap();
+        let impulse = settle_body_effector_drives(
+            &neutral, &drive, BODY_SETTLEMENT_CLOCK_MICROSECONDS,
         ).unwrap();
+        assert_eq!(impulse.successor.axis(axis), axis.anatomy().neutral + 1);
+        assert_eq!(impulse.successor.antagonist_activation(terminal), 31);
+        let quiet_step = settle_body_effector_drives(
+            &impulse.successor, &AdmittedBodyEffectorDrives::quiescent(),
+            BODY_SETTLEMENT_CLOCK_MICROSECONDS,
+        ).unwrap();
+        assert!(quiet_step.proprioceptive_consequences.is_empty());
+        assert_eq!(quiet_step.reached_terminal_count, 0);
+        let quiet = quiet_step.successor;
+        assert_eq!(quiet.axis(axis), axis.anatomy().neutral + 1);
+        assert_eq!(quiet.antagonist_activation(terminal), 30);
         assert!(quiet.articulatory_system_is_quiescent());
-        assert!(has_passive_body_motion(&quiet));
-        assert!(!has_passive_body_motion(&neutral));
-        let rendered = settle_native_articulatory_interval(quiet, &[], 0, 4_000).unwrap();
+        assert!(!can_skip_ordinary_articulatory_interval(
+            &quiet, &quiet_step.proprioceptive_consequences, 0,
+        ));
+        assert!(can_skip_ordinary_articulatory_interval(&neutral, &[], 0));
+        let rendered = settle_native_articulatory_interval(
+            quiet, &quiet_step.proprioceptive_consequences, 0, 4_000,
+        ).unwrap();
         assert!(rendered.radiated_pressure_pcm.iter().all(|value| *value == 0));
         let trace = rendered.passive_body_trajectory.unwrap();
         assert_eq!(trace.axes(), &[axis]);
         assert_eq!(trace.frame_count(), 250);
         assert_eq!(trace.position(0, 0), Some(axis.anatomy().neutral + 1));
-        assert_eq!(trace.position(1, 0), Some(axis.anatomy().neutral));
+        assert_eq!(trace.position(1, 0), Some(axis.anatomy().neutral + 1));
+        assert_eq!(trace.position(249, 0), Some(axis.anatomy().neutral));
+        assert_eq!(rendered.successor_body.antagonist_activation(terminal), 0);
     }
 
     /// Component proof only. Mature neuronal delivery and production remain

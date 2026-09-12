@@ -4083,12 +4083,11 @@ impl ResidentOrganismRuntime {
                     }),
             );
             let body_successor = body_transition.successor;
-            let mut articulatory_transition = if body_transition
-                .proprioceptive_consequences
-                .is_empty()
-                && respiratory_efferent_carriers == 0
-                && body_successor.articulatory_system_is_quiescent()
-                && !crate::passive_body_source::has_passive_body_motion(&body_successor)
+            let mut articulatory_transition = if crate::passive_body_source::can_skip_ordinary_articulatory_interval(
+                &body_successor,
+                &body_transition.proprioceptive_consequences,
+                respiratory_efferent_carriers,
+            )
             {
                 None
             } else {

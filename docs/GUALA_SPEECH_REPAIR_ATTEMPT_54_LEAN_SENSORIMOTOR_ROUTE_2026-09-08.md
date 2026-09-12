@@ -21343,3 +21343,33 @@ No new audio, learning, production-health or speech-success claim.
 Browser CLOSED/caretaker STOP unchanged; last recorded production1458.
 Single next item: independent full frozen-source review, then only the scoped
 acceptance under candidate binary provenance and pre/post read-only health.
+
+
+### I122223 — C131 frozen review: one localized supporting-test correction
+
+Continues R122210/S122212; no prerequisite reopened. Independent source review
+of baseline6f2da6da to8f0c954f verified fingerprint
+7dad4b71cdb366914f9da2d913b44c0ad067355e2c1954beb17e341d451ce537
+before/after. No architectural finding. Startup allowance, compact capture,
+original epoch, zero-load full-field expansion, one pending owner, native/Python
+translation and package closure remain source-reviewed, NOT executed proofs.
+
+Localized finding: the neutral+1/zero-activation silent-control fixture in
+I122222 would already move in the initial1ms settlement, so it did not exercise
+the ordinary caller's former skip branch. It proved only renderer capture.
+One batch corrects the fixture through the existing physical law: one carrier,
+one1ms impulse gives neutral+1/activation31; following quiescent1ms gives the
+same position/activation30 with zero consequences and no breath/acoustic drive.
+The ordinary skip predicate is extracted once, unchanged, and used by both its
+production caller and this test. Test requires it NOT skip this state, quiet
+PCM, initial held position, later real return to neutral; neutral inactive
+control does skip. No new physical law, state, extra integration or body edit.
+
+Read-command failure: a full canonical-ledger read exceeded the tool output
+limit and was rejected before use; the existing complete retained ledger text
+is used with exact full-file preimage matching. No partial ledger overwritten,
+no test/organism result inferred. Future reads use bounded sections.
+
+Full candidate source is refrozen after this sole localized batch for one final
+review. No compile/test/harness/deploy yet. Mature changed-path and resource
+proofs remain pending; speech NOT fixed. Production1458 unchanged.
