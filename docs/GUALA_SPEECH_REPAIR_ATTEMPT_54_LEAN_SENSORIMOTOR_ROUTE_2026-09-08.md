@@ -22233,3 +22233,24 @@ Asked which status appeared under the card; no further user action required yet.
 One readonly snapshot live678559/persisted678532 shows unattended/noexternalinput,
 no custodyerrors; latest-only projection cannot establish earlier carddelivery.
 No new lesson, voicechange, restart or caretakerresume. Pending H122247 unchanged.
+
+### O-054-122-250 — microphone confirmed ON; silence is not memory evidence
+
+Joe confirms microphone was ON during the card attempts and has now turned it
+OFF. He reports zero sound to the card lesson. This rules out O122249's
+conditional microphone-OFF explanation for those attempts; do not repeat it.
+Exact accepted/refused status and per-card ingress receipts remain unavailable.
+No causal inference of recognition, learning, retained memory or expected
+silence follows from a delivery receipt or an advancing clock. The quoted
+claim that cards become quiet memory is not established for Joe's attempts;
+nor is the universal claim that no shown input can cause any action established.
+Transport backlog is not a cognitive attention mechanism. No new live check,
+guide, caretaker action or production code change was performed for this report.
+
+Shared blob46bea5c70474f6031f363aa0ada4bc19fe4b3ce0 contains C1's explicit
+concurrence for exactly ONE repeated guided verification with concurrent
+observer, no brain change/rebuild/redeployment. The previous pending-decision
+wording is superseded. H122247 remains an observation gap, not a reopened
+physiology failure. Next is that bounded approved verification; caretaker stays
+STOP until its required live receipt is captured. Microphone is now OFF by
+Joe's statement; camera state has not been newly confirmed.
