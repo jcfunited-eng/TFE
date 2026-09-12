@@ -15908,3 +15908,106 @@ root; corrected read under validated root succeeded. Neither executed a test.
 A projection read pressure_samples from aggregate recall_result rows (field
 absent); read the existing native-event rows instead, which explicitly say4000.
 No record was defaulted into a physical zero, and no original proof rerun.
+
+### R-054-122-112 — quantitative learned-movement boundary review
+
+Continues D12240 after C122111; prior turn PROGRESS because the retained recall
+record refuted the sustained-firing premise without a new experiment.
+Current clean executable source dfaf29cddc1eadae7605a49cfbaaccfac86755d8.
+Source-only inspection; no test, compile, guided HOLD, native edit or deploy.
+
+Architecture honesty gate:
+requested architecture = learned, endogenous physical articulation with full
+sensory experience; current reality = demonstrated participant/order recall,
+one aggregate motor impulse, recovery-only intra-block body evolution;
+conflict = YES for treating that proof as demonstrated trajectory reproduction;
+not extended = retired shell, semantic pose/word controllers, target lookup,
+underived lifetime/reservoir changes, guide-only "speech fix";
+single next item = quantitative learned-movement and completion boundary;
+fullDSF unchanged, no reduced replacement proposed or field structure discarded.
+
+Source fingerprints:
+lean_sensorimotor_route25eeaab42a6bd922912c7f05cfaf0a6384f89fb80cdbb73bd1a2ede436db256b;
+resident_cognitive_formation d43187110cd4e80999ea1fe7019ce4dd36e14d56e3dc76fdc2475b99b6cb6bd7;
+articulated_body_joint_source_builder46e4e8341364d6904ce920ca5fb800ec545d1747d5f970d8256305bc11b109d0;
+organism_runtime f7babbd1b25f0c03a003436d0f920b3ca362f13595c5ebd110f480c8829363cd.
+
+Observed map:
+1. Body source preserves numerical predecessor/successor positions, signed
+   displacement, incoming/opposed/applied/stalled carriers in exact evidence.
+   Proprioceptive field coordinates depend on position. It is FALSE to claim
+   all quantitative experience was discarded from the organism.
+2. exact_moved_effector_terminal (builder53) classifies a freshly driven
+   direction only when newly admitted work actually moved that direction.
+   This projection intentionally returns a terminal, not a position/hold target.
+3. mount_exact_reassembled_vocal_action_routes (lean807) receives association/
+   regulation lineages, sound-owned structure and predecessor orderings.
+   It coordinates participating motor contacts; append_contact_once695 uses
+   the existing developmental conductance, not a copied demonstrated dose.
+   Contact/neuron plastic state can change—this is not proof that amplitude
+   information is absent everywhere or could never influence discharge.
+4. Current positive donor work is divided by actual conductances
+   (resident21400ff), transduced against current gate/residue state
+   (22358ff), and generates actual whole-carrier motor output. That is causal
+   physical output, not an identified law for reproducing a demonstrated
+   dose/hold duration.
+5. exact_completed_vocal_preparation_body_act (lean94) accepts each required
+   motor's positive exact current discharge, or its exact preceding transfer
+   joined to a currently moved terminal. It does NOT compare achieved
+   coordinates or duration with the demonstrated experience.
+6. This completion is calculated at resident23138 INSIDE the cognitive
+   transition, BEFORE runtime4052 applies the resulting current motor carriers
+   to tissue. It establishes coordinated discharge/causal participation, not
+   physical attainment of the taught shape. Closed proof must keep that scope.
+
+Independent review requested on this exact conclusion and any existing
+quantitative reproduction path it could miss. No assumption of missing memory,
+no frozen body, no source replay, no retuned dose or new candidate accepted.
+A bounded external caregiver HOLD remains an unapproved proposal requiring
+Joe's word; improving that input alone has no demonstrated end-to-end learned
+trajectory consequence. Source discrepancy must be settled before claiming a
+transport-only remedy.
+
+The immediate decision is whether to authorize a focused learned-movement
+integration repair, covering the demonstrated numerical experience -> native
+drive -> actual body trajectory -> feedback/completion chain, with C1 reviewing
+the actual law before native edits. This is NOT permission to rebuild cognition,
+invent physical coefficients, add a semantic target or weaken existing controls.
+Until an exact lawful mapping is identified/reviewed, implementation is not
+authorized by this proposed scope. Full AE goal remains active/incomplete.
+
+#### R122112 review disposition and scope correction
+
+Independent source review concurs with the bounded finding: quantitative
+reproduction is not established by the reviewed participant/order path, and a
+guide-only HOLD is not a demonstrated learned-output fix. It explicitly does
+NOT conclude that all quantitative memory is missing or that the substrate can
+never produce recognizable speech.
+
+Critical scope correction BEFORE any implementation/approval request:
+Joe requires recognizable good-enough body-owned speech, NOT exact reproduction
+of Mama-A coordinates, duration, waveform or a control-theory trajectory.
+Therefore failure to reach815 or to prove a matching controller does not, by
+itself, justify a cognition redesign. The preceding proposal is NOT a claim
+that such a redesign is necessary. No new architectural bar is added.
+
+There is a cheaper unresolved curriculum/body-capacity question within the
+unchanged mechanics: current4axis tutoring omits jaw/lip/context that the
+accepted organ control supplied. Current articulated_vocal_tract_areas
+(virtual_articulatory_body.rs515) constrains section6 by lip_width*jaw_opening
+and section7 by lip_width*lip_aperture, floored at20mm2. Actual saved663372
+starts jaw/lip at0; prior single-impulse assay gives their real ranges.
+Thus a full-vocal-anatomy finite-drive acoustic check is a smaller next
+discriminator than assuming that exact held Mama-A trajectories or a new
+learned controller are mandatory. It must use unchanged body and organ laws,
+externally declared finite test drives, no pose overwrites, no new energy law,
+no full-brain rerun, and be labeled externally driven capacity evidence—not
+learned speech. No such acoustic run has occurred yet. Freeze its bounded
+input/output and source-review it before executing; no parameter-search loop.
+
+Joe closed the page and asked whether it is needed: answered NO for present
+source/local checks; request listening only for a specific later live judgment.
+No camera/mic/browser dependence is introduced. AWS read05:27:37Z confirms
+service1457 desired/running/pending1/1/0; latest05:23–05:25CPUmax55.8031%,
+RAMmax11.9293%; CPU/RAM/EFS/refusal alarmsOK, historicalclockalarmALARM remains.
+No production change. GoalACTIVE; no request to stop or pause inferred.
