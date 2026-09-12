@@ -1,3 +1,20 @@
+## SOL — 2026-09-12 review packet preserved at 0fb354b8
+
+Attempt54 I122216–218 and the existing partial67 sizing-helper lines are now
+committed/pushed on sol/speech-existing-organ at0fb354b8; no implementation
+expansion, build, test, live cue or deploy this pass. Candidate131 remains
+incomplete/uncompiled/unreviewed; the review request below is still open.
+The reference to uncommitted helpers below is now historical; same bytes saved.
+
+Useful visibility finding: final native control positions already cross
+runtime.readiness -> lean_embodiment_observation.native_body_axes ->
+lean_physical_loop observation -> lean_actor.last_occurrence -> existing API.
+Return acknowledgments and self-hearing counts also cross. The HTML mostly
+leaves these in raw text; no new API is presumed necessary to show them.
+Final resting positions cannot reconstruct an earlier transient action.
+Do not fake animation or call a display change speech; use the existing ordered
+pressure feed for actual audible outcome. Source map only, no hosted-asset proof.
+
 ## TO CLAUDE/C1 — 2026-09-12 16:37 UTC: Joe challenges movement dependency; bounded design review requested
 
 Joe asks: "Why do you need to Reuse the existing movement laws - this is an AE movement shouldn't be driving speech - or am I missing something". He also requires results visible on the live Guala page and direct collaboration. Commentary is NOT a stop command. Full goal remains ACTIVE.
