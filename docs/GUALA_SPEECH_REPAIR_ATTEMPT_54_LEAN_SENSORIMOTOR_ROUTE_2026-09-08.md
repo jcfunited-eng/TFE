@@ -15392,3 +15392,210 @@ D-054-122-40 remains OPEN: next item is the existing successor-posture
 lesson through ordinary live ingress with measured physical-return timing.
 No third/fourth-posture scope, new native law, rebuild or copied-state import.
 Caretaker remains STOP; Joe's camera/mic are temporarily off, Listen on.
+
+### R-054-122-100 — one existing MAX lesson on the current live body
+
+Continues D-054-122-40; predecessor live audible delivery S12298 and saved
+MIN anatomy S12299 stay closed at their stated evidence levels. Production
+1457/image80755ca0, no native/core/UI change, no new build or copied-state
+import. Requested acceptance remains live learned two-posture output from
+sound alone, clean stop and durable state, not merely tonal PCM or anatomy.
+
+The next exact item is one already-proven phase-1 MAX external lesson
+(4000 samples, axes37/38/39/44 direction1,1500carriers), following an observed
+body-pressure event after a phase-0 sound-only cue. Prior ordinary-artifact
+MAX presentation1 S12257 did not yet produce the edge; presentation2 S12260
+did. Therefore an incomplete first presentation cannot be called permanent
+failure. Root guides and closed physics are not repeated.
+
+Translation review: existing OccurrenceBody -> _physical_occurrence ->
+actor.offer -> same lean/native settlement -> physical body return ->
+actor._accept_result -> POST result and cached actor observation. Use the
+POST result's own pressure_sha256, not retained latest pressure. Require
+cached last_occurrence native_tick=live_tick, source/cardinality/kind and
+pressure agree with this POST. The observer cannot prove every motor's causal
+join; do not pretend it does. Public pending/consumed_physical_return_tick
+already carries exact body-return chronology. Native author alone decides
+whether the event can teach an edge. No new state or permission gate.
+
+External sender /tmp/guala-c123-live-edge.py initial frozen SHA
+d676a1414443e8237c56cce9dc31a09a04fec4080c20aa1ea91cc6903db5083f,
+reusing reviewed live helper3512d12a. At most one cue,64 ordinary POSTs,
+one guide (66 POST total),1200seconds/1500HTTPcalls from helper. Ordinary
+autonomy remains enabled; HTTP can miss adjacency. After one guide record
+actual consumed return and whether it equals the observed body-event tick
+with guide tick exactly predecessor+1. Mismatch is delivery-timing ambiguity,
+NOT failed physiology; preserve the accepted event, no automatic retry.
+One sampled acoustic-quiet baseline and64tick recovery. No sound=>no guide
+within the declared bound. Capture persisted live state only after guide is
+durable, not an unsaved-window false census.
+
+This is external tutoring triggered by observable body sound, not a claim
+that sound proves complete root recruitment. It does not synthesize Guala's
+sound or set her cognitive state. Full DSF and existing body/neuron laws are
+unchanged. Later saved anatomy and recall, not the tutor, determine success.
+Source-only review of this frozen sender precedes live execution.
+AWS04:27:43Z service1457 1/1/0;04:24–26CPUmax46.9753%,RAMmax10.6720%;
+runaway/refusalalarmsOK, historicalclock-stalledALARM remains.
+
+### S-054-122-101 — reviewed live MAX presentation1 delivered at exact next return
+
+Frozen sender d676a141 passed independent source-only review unchanged.
+Actual run58000 EXIT0, no retry. Cue663186; ordinary663187 produced2body
+consequences; ordinary663188 produced4 and actualpressure957e40ac..., pending
+physical return663188. MAX guide663189 consumed663188 exactly,4000external
+samples/4guidedaxes/4bodyconsequences, actualpressurecb23bd3e...
+Only4POSTs used (one cue,two ordinary,one guide). Total324HTTPcalls including
+read-only64ticktail. End663253,saved663244, acoustically quiet. This proves
+actual delivery chronology; it does not substitute for per-motor causal proof.
+Log /tmp/guala-c123-live-edge.log SHA
+d6beebabd02b6ebdfc6f394ee5e3b487caf77d973b0335e2a170d99b6e1e66ba.
+Task1457 exact41d3db93... remains RUNNING/HEALTHY on80755ca0, no ECS failures.
+
+### S-054-122-102 — first MAX live successor saved; incomplete anatomy preserved
+
+Read-only capture75232 EXIT0, CURRENT663244 (55ticks after accepted guide).
+Body165002566bytes SHA
+ebe0fe7ae9b7e511973adec32851e285d6335f5dcb83ac93ed70d101886c5cc4.
+World63571bytes SHA
+b3b450913f9b6d898943ad46ff0a065d81831aa35f82508a1876cddc91154993.
+Same identity. ZIP3258481bytes SHA
+78acef5d0489918a86026ebe43cabf4bf875985ef2f91a782e654da9aab72351,
+S3 bucketguala-incident-bench-20260831,
+keyguala/candidate123/20260912T043400Z-live-first-edge-current.zip.
+Local /tmp/guala-c123-live-edge-current.3ZdySw/current.zip.
+
+Existing read-only census now accepts exact archive path, ZIP SHA and exact
+tick, replacing the fixed priorpath/lowerbound. It additionally exposes actual
+partial motor-contact groups without authoring anatomy. Source-only review
+PASS SHA20aff70f814c29f2e621cdeec5b577e5bedba9c5f733bd95b313883ac6ebe9e6.
+Run7053 EXIT0, zero advances/edits, peakRSS912816KiB.
+2747neurons/16356contacts (prior2743/16308); complete MIN268e remains;
+no completeMAX/orderededge yet. Growth occurred in this lived span; do not
+attribute every new cell/contact to the lesson without participant evidence.
+Census logdcdbc33b749b1fa7cb6c96d5575ad6bdcae369072508cafc2018c470d27a0523.
+Archive scripts/logs/pair:
+/mnt/tfebackup/guala-c118-four-posture.XehvEs/c123-live-first-edge.qJBLPN/.
+This matches the incomplete-first-presentation class already recorded S12257,
+not a new permanent refusal or a reason to rerun closed physiology.
+
+Health04:34:11Z1457 1/1/0;04:30–32CPUmax62.5746%,RAMmax10.6689%;
+runaway/refusalalarmsOK; historicalclockalarm remains. No broad speed claim.
+
+Owner fumbles preserved: one functions-JS draft used Python triple-quote syntax;
+parser refused before any nested tool executed, corrected without organism
+effect. A subsequent tail command exposed too-large one-line census output;
+full log stayed intact, reread via jq excluding partial-members instead of
+rerunning census. Use bounded projections for console; external raw evidence
+can remain complete. Neither was a physiology/test failure.
+
+### R-054-122-103 — second existing MAX presentation, no reset or code change
+
+Next item: second presentation from the retained first lesson, as S12258–60.
+Same reviewed sender d676a141 and payloads, same public body-pressure timing,
+same post-hoc consumed-return evidence. At most one further cue and guide.
+Existing64ticktail has completed. No native edit/rebuild, no imported copy,
+no added learning law, no retry of first delivery. Stage string inside reused
+script says first-successor-guide; second execution log is explicitly
+/tmp/guala-c123-live-second-edge.log and this is presentation2, not a repeated
+first-run or an automatic retry. Do not use that static diagnostic label as
+physical evidence. Preserve actual receipt/ticks and inspect saved successor.
+
+### S-054-122-104 — complete successor posture and root-to-successor link now LIVE
+
+Second presentation run52005 EXIT0. Cue663297 -> body663299 ->
+MAXguide663300 consumed exactreturn663299,4000external samples/fourguidedaxes.
+No code change, copied-state import or repetition of a refused POST.
+End663364,saved663340;320HTTPcalls, fourPOSTs total,64tickrecovery.
+Afterward public663387/persisted663372 verified available/no custodyerrors.
+Thus second census uses savedstate AFTER the whole tail, not the final
+lesson's unsaved window. Run log SHA
+4cd74cf9772d28bc2efeeab39802595bd2727557eac39aba6773b38902182eaf.
+
+Read-only capture11716 EXIT0: CURRENT663372, same identity,
+body165039953bytes SHA
+cdcf8c47072d2f61b17d90e32522f563de84045a9b1cd6f95f06c91ebb09b29f;
+world63567bytes SHA
+99b564458c3c51d27fe1407613979e78d511381f9dc8df069e90fed5e4edaaf7.
+ZIP3258630bytes SHA
+0f824b4c2c8c79db0eb09879dacbfe25a6a2b75c3b118e170bdc81a88777fabd.
+S3guala-incident-bench-20260831/key
+guala/candidate123/20260912T044100Z-live-second-edge-current.zip.
+Local /tmp/guala-c123-live-second-current.RZXNzA/current.zip.
+
+Exact same reviewed census20aff70f,run39759 EXIT0:
+2748neurons/16365contacts; completeMIN268e PRESERVED;
+completeMAX269c NOW PRESENT; physical268e/269c contact parallel0 NOW PRESENT.
+Full stable lineages have prefix474c4e4c494e4531000000000000.
+Zero native advances/state edits,peakRSS912972KiB.
+Census SHA7806644ae8132601585e94dca8df50190c2842886efe664665f309880f5dd0a2.
+Archive /mnt/tfebackup/guala-c118-four-posture.XehvEs/c123-live-second-edge.m3zxLB/.
+This is the actual living production body's new anatomy, not a practice copy
+merged into her. The decoding was read-only on an exported saved successor.
+The first/second-presentation prior art S12257/S12260 was faithfully reused.
+Do not repeat the first or second lesson as though this success were absent.
+
+Joe's auditory verdict on these live events: same noises as last time, then
+"Loud toots - in bursts - getting lower in volume." No audible word improvement
+is accepted. Anatomy does NOT prove later sound-only two-posture causal recall;
+D12240 therefore remains OPEN. It does refute a blanket claim that no
+successor wiring exists live or every live learning attempt refuses growth.
+Do not call MIN presence the first-ever live root or attribute its origin to
+the two MIN lessons without a pre-lesson anatomy difference.
+
+Health04:43:16Z1457 1/1/0;04:39–41CPUmax61.6456%,RAMmax11.7249%;
+runaway/refusalalarmsOK,historicalclock-stalledALARM unchanged.
+Ordered bounded audio and64xobservergain were already shipped; claims that
+they remain on the transport to-do list are stale. No new release this turn.
+
+### C-054-122-105 — preserve Mama-A; MIN/MAX ordering is not acoustic equivalence
+
+Joe correctly recalled accepted Mama-A. Main reread full Attempt46 and
+native source; independent reviewer compared it to current tutoring. Public
+https://dsf-ai.com/speech-proof/attempt46-af42e97a/ returned original page,
+including mama-a.wav. Joe's historical audible acceptance remains CLOSED.
+
+Exact accepted test trajectory (virtual_articulatory_body.rs:
+body_for_modal_frequencies, write_temporary_native_whole_word_control):
+sections0/1/2/7 closed20/118/20/40 -> open815/204/458/265 squaremillimetres;
+sections3/4=510; jaw12000micrometres,lipaperture9000micrometres.
+Spans150/220/130/260ms plus three40ms transitions,total880ms.
+Four initial respiratorycarriers; continuous acoustic/body successor.
+These were TEST-SUPPLIED coordinates, not learned-state meaning or authority.
+Current lessons supply finite equal1500carrier pushes on0/1/2/7 with4000
+samples; they do not prescribe the accepted intermediate shapes, jaw/lip
+context, durations, or sustained movement. articulated_vocal_tract_areas also
+depends on lip aperture. Hence a learned MIN/MAX chain alone is not proof of
+the human-accepted acoustic trajectory. Do not describe current extremal
+tutoring as already being a faithful Mama-A curriculum.
+
+Version qualification already has prior art: accepted af42e97a held body
+coordinates inside each span. Current organ advances existing antagonist
+recovery every16samples/1ms (source line275). This is the RECORDED S79B01
+body-clock correction, not a newly found missing law, and must not be reverted
+to resurrect frozen body physics. Original WAV is historical organ capacity,
+not proof the current impulse sequence reproduces it. No matched current
+organ regression run has occurred; no loss or preservation of current acoustic
+equivalence may be asserted from the old file alone.
+
+C1 proposes carrier-dose mapping through the existing schema. Source already
+shows graded bounded admission, not an all-or-nothing actuator:
+settle_body_effector_drives admits carriers into finite antagonist activation;
+equilibrium and32ms response depend on that activation, with saturation and
+recovery. Prior S05423/one-carrier proof and the 7carrier tract/127carrier axis
+tests exist; do not reopen them as discoveries. Input supports vocalaxes14–18
+and37–44, up to13uniqueguides; no new guide schema is justified by the
+four-axis lesson's omissions. Inversion for the ACTUAL saved body's trajectory
+is not yet measured. Wall wait cannot substitute for exact physical duration.
+Check existing acoustic sample-duration composition before proposing a schema
+or physiology change. This is a curriculum/trajectory mapping question, not
+permission for a target-pose controller inside Guala.
+
+Shared C1 request3bc21364682b59167bff7c54bb150ab68ff5540b records Joe's verdict,
+retained Mama-A and the exact comparison requested. C1 subsequently accepted
+transport/root corrections in text relayed by Joe and suggested dose mapping.
+Independent local reviewer is not being misrepresented as Claude.
+No native edits/build/test reruns in this comparison. Next immediate item:
+one sound-only observation of the now-grown LIVE two-posture route, retaining
+raw audio and Joe's judgment; no more guiding those already-grown edges.
+Acoustic-equivalence work follows from actual comparison, not a speech claim.
