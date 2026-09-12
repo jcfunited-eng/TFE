@@ -20,37 +20,38 @@ so live speech acceptance remains open. This paragraph records the Candidate110
 deployment, not the current repair state. Any earlier “speech complete” wording
 is historical and retracted.
 
-Current repair status, 2026-09-12 01:40 UTC: speech NOT fixed in production.
-Production remains1456/C110/image6aa38d99, sole healthy writer. No new deployment
-or live lessons. Full AE goal ACTIVE; caretakerSTOP/browserclosed unchanged.
+Current repair status, 2026-09-12 02:10 UTC: speech NOT fixed in production.
+AWS rechecked: production remains1456/C110/image6aa38d99, one RUNNING/HEALTHY
+writer. No deployment or live lessons. Full AE goal ACTIVE; caretakerSTOP and
+browserclosed unchanged.
 
-CURRENT DELIVERY ITEM D-054-122-40: incremental TWO-POSTURE live delivery before
-D12239 third-posture teaching. Ordinary C123 artifact5fc6b612 and migration
-S12245 stay closed. Fresh production-derived root behavior now PASSES:
-two existing minimum lessons grew268e; quiet -> one sound-only cue659609 ->
-four minimum muscles/breath/pressure659611 -> self-hearing -> quiet659672.
-All217 original memory topologies retained. Exact cold-next659673 PASSED.
-This is first-posture LOCAL release evidence, not two-posture or live speech.
+CURRENT DELIVERY ITEM D-054-122-40: incremental TWO-POSTURE live delivery.
+Joe confirmed: deliver functioning vocal ability now; do not hold it for a
+complete word or conversation. Experiences/memory/thought/autonomy/movement
+remain in the full goal; third/fourth-posture campaign deferred.
 
-Initial root script exit1 was a TEST FALSE FAILURE: it counted exact
-L8-1011 -> e1 one-carrier load-relief659612 as a fifth learned motor.
-C121 already documented the same reflex as non-root, no L11 work/breath.
-Independent review confirms the error. Original log/exit1 preserved; no repeated
-teaching or recall. Only missing cold-next was run. See S12250-H12253 below.
+FRESH NORMAL-ARTIFACT TWO-POSTURE PATH PASSED (S12264):
+two existing MIN lessons grew root268e; two measured-completion MAX lessons
+grew sole successor269c. After ordinary recovery, exact restart, quiet8:
+ONE sound-only cue659826 -> fourMIN659828/breath21/nonzeroPCM3993 ->
+fourMAX659829/breath487/nonzeroPCM3995 -> self-hearing136000 -> quiet659889.
+Exactly eight learned motor events, zero foreign learned causes/unjoined
+breaths/reflex exceptions; all217original memory topologies retained.
+Exact cold restore and next ordinary659890 PASSED. This is LOCAL evidence,
+not live speech, full word, semantics, or four-year-old cognition.
+Normal artifact5fc6b612, native/source mechanism unchanged.
 
-Latest continuation pair /tmp/guala-c123-release-root-cold.RwrXn7/paired659673:
-body5925d4d00da3acfec1341f81b70f7cd76ae06dc1bf64be8cc3e54d5a3b894755
-world51ba531741ceebb1f8297e0ac71a50e9da90cb788fc23a6e6e720afd712b53b8
-CURRENT622c7ea34159ff2ee6c6a61ddb6a6750fd89b0ec927abb265855df10f7282700.
-Preserve prior659672 pair, raw659532 capture, normal artifact and both backups.
+Latest continuation /tmp/guala-c123-release-recall.hsgWCI/paired659890:
+body55609c3bfbd1421e055bfbc6376220f9f8b04fefdfe4913f0cae15fcede847bd
+world9b1b52557f10d54dc4e876391d3db1ee4ebaa25a00bec0b589c453da3b16cf67
+CURRENT2c39ef1d457dbdcf776da1545bfe7640468288d396116f77df82c83e01a3b27c.
+Full retained proof archive c123-fresh-two-posture-recall.tar.gz SHA
+b384b82091da747d7cef993af49f7eb32392bcb408107d668b2589b6d091a1b1.
 
-S12238 stays CLOSED locally: older copied body, one cue, two ordered
-four-muscle postures, breath/pressure/self-hearing, stop,227oldtopologies,
-exactcold-next651765. Do not redo its diagnosis or discard the success.
-Next D12254 continues D12247: first ordered-edge teaching on latest659673
-normal-artifact successor, using existing measured-completion/two-presentation
-curriculum. Do not reteach root or add third/fourthpostures. No blind batch
-or new physics. First-lesson incompleteness is not permanent learning failure.
+Closed successes S12238/S12245/S12250-53/S12257/S12260/S12264 are not reopened.
+H12251 root-script false failure remains preserved as an observer error, not
+failed root learning. Next: bounded emission-to-browser delivery, then exact
+release closure and cutover. No new native physics, teaching, or extra postures.
 
 Known delivery work: latest-body two-posture path, final matched backup and
 compatible recovery (old binary cannot read migrated state), live proof and
@@ -14355,3 +14356,200 @@ Source-review exactsavedstate adaptation/provenance; no nativechange,
 rootlessons, global-silence demand, solaroverride or fullword detour.
 Preserve each taughtsuccessor. Live stays1456 until changed two-posture path
 and release continuity proof complete; no additional user action required.
+
+
+## D-054-122-55 / R-054-122-56 — one fresh first-edge lesson preflight
+
+Previous turn PROGRESS: root and exactcold-next closed S12250/S12253.
+Continuing D12254 under D12240; production1456 unchanged. No native edits.
+Script/tmp/guala-c123-release-edge.py SHA
+f618834952ce7003a198ad22f2ca10ff7a2d32d11735f6f9937f030494b9ea86;
+source-only reviewPASS, fingerprint
+a76d02cd3d71c81e4f2834c7df7751a067153b4066932b818f238d41d61a2f11
+verified before/after. Exact saved659673 source/current/native/helper/PCM hashes
+checked. Same source->ordinary actor->native->physicalreturn->guide->paired
+publication path as S12235, NOT a changed cognitive mechanism or new acceptance.
+Fieldmap:4000PCM16samples+4(axis,direction1,1500carrier) guides through
+OccurrenceBody->_physical_occurrence->LeanSensoryOccurrence->physicalsettle;
+rootL11motor provenance determines observed completion; pendingreturn producer
+must equal exact previousclock when guide enters. Real actor keeps advancing.
+Onepresentation only; save and inspect, no blind batch or recall.
+An incomplete first edge does not reopen proven learning law; two presentations
+were required by prior successful curriculum. No arbitrary all-vocal-count bar.
+
+Command task+imageENV exported BEFOREimports, exactworktree/nativePYTHONPATH,
+no diagnostic/solaroverride; fresh/tmp/guala-c123-release-edge.NpIr0g,
+pairedwithin/log/tmp/guala-c123-release-edge.log OUTSIDE. Expectedroot268e
+is the actually observed freshroot, not developer-authored anatomy.
+Reviewer notes accumulated motor set alone is not episode proof: inspect exact
+root motor/work interval provenance before interpreting the taught anatomy.
+No synthetic native state, production requests, actor pause, or copied learning
+back into livebody. Resource:onecopy,28.9GiBavailable,swap0,no othernative run.
+AWS01:46pre samehealthy1456/effde9e1/image6aa38d99,1/1/0,nofailures;
+runaway/refusalloopalarmsOK,Sep8clockalarm unchanged.01:40CPUavg41.84%max46.20%;
+RAMavg10.56%max11.03%. No production timingclaim.
+
+Read-only path errors this turn: wc named embodiment-law.md instead of
+skill-stated embodiment-ui-law.md; rg guessed src/organism for resident core
+instead of resolving src/resident_cognitive_formation.rs. Both refused before
+any execution, corrected by exact skill path/rg--files. These are owner fumbles,
+not organism failures; no compile/retest. RF024/RF063 remain applicable.
+
+
+## S-054-122-57 — first fresh maximum lesson delivered; edge not yet present
+
+Single run63351 exit0. Quietbaseline659681 -> soundcue659682 -> SAMEroot268e
+all4minimum motors659684 (2/6/6/6carriers),20breathcarriers,3993nonzeropressure.
+This verifies actual single-episode completion, not union across unrelated acts.
+Guide659685 consumed exactpendingreturn659684,4axes/4000externalsamples,
+4000selfheardsamples from659684. No L11orderededge yet; no originaltopology loss.
+Guide's L8-1003->b7 loadrelief27carriers is not a new learned root episode.
+
+Pair/tmp/guala-c123-release-edge.NpIr0g/paired659685:
+body2d0dd514de47ec287d5f5975dfa77055297c3f457fa012b9bf07af5a5724fecb
+world83c905df8a01a2d205a1e4cdef2d260419a87b08f857406d84590cffc08f2eb5
+CURRENT086c44e120cb5f643a12f54b4c17c536f1d697bcdd29d31a01fbc3fa42178b64.
+Pendingphysicalreturn659685 retained. PeakRSS1815960KiB.
+Logee2f237d2c75e99b824da32962c197fb5adcda1203962f5f47655215de6d8242.
+Archive/mnt/tfebackup/guala-c118-four-posture.XehvEs/c123-fresh-first-edge.tar.gz
+SHA233af1e23bc71d11369bcf762825bc91593faffa0e1404763c7697974eac0eff.
+
+No permanent growthfailure inferred: S12235/C118/C120 priorart requires second
+presentation in corresponding curriculum. Keep first learning, no physicsedit.
+AWSpost same1456healthy1/1/0,image6aa38d99; CPU/RAM/EFS/refusalalarmsOK,
+historicalclockalarm unchanged.01:45-47CPUavg42.13-47.47%,max62.56%;
+RAMavg10.49-10.96%,max11.91%. Onecopy only, no productioncalls.
+
+## D-054-122-58 / R-054-122-59 — recorded rest and one second presentation
+
+Script/tmp/guala-c123-release-second.py SHA
+be37098e7c202c68ca7f6e4dce947cbf8a700d9d5382017c8a188aec7e95436a.
+Independent sourcereviewPASS, fingerprint
+5792ea204fd928a0cfffcaf35e44212b748d957cc07fa70835e0c59a8f82d461
+verified before/after. Same normalartifact/helper/physicalguide law.
+Saved659685 -> existing64clocktail since659681 to659745, consuming actual
+pendingphysical/selfreturn; publish, coldrestore ->8quiet ->cue -> measured
+rootcompletion ->exactnextguide. Single secondlesson, no batch/recall.
+Endpoint saves anatomy regardless of edge; no reset of firstlesson learning.
+Rootinterval provenance remains interpreted explicitly, never globalcount.
+Exacttask/imageENVbeforeimports,no solar/diagnostic, logoutsideemptyroot:
+ /tmp/guala-c123-release-second.22QySc/paired
+ /tmp/guala-c123-release-second.log.
+Postfirst-run AWShealth envelope above is presecond-run evidence.
+No new codecompiled, no immutablecloud build, no livewrite/caretakerchange.
+
+Playback read-only confirms known retained-two-distinct-bodies cache in
+lean_actor.py, only latestsha exposed, page3secondpoll and hash-baseddedup.
+Equal PCM emitted twice has no event identity here; a soundhash is not an act.
+This is a transport limitation, not evidence of absent articulation.
+No UI/sourceedit. Another owner read-path fumble guessed lean_organism_actor.py;
+resolved actuallean_actor.py via rg--files; no runimpact. Use actualimportlist.
+
+
+## S-054-122-60 — fresh second presentation GROWS complete ordered edge
+
+Run61396exit0. Ordinarytail to659745 last8vocallyquiet; pendingphysicalreturn
+was retained (nonvocal body life allowed), then exactcoldrestore/quiet8.
+Cue659754 -> root268e all4MIN659756 -> exactnextguide659757,4000soundsamples,
+4guidedaxes,4000selfheard, consumedreturn659756. Sole new268e->269c bond and
+all4MAXcontacts now present. All217originalmemorytopologies retained.
+No new nativecode; repeats prior successful two-presentation curriculum.
+
+Pair/tmp/guala-c123-release-second.22QySc/paired659757:
+body4aa50523c1bc027c7fee69f2f8f435d5e0917665192a7c238982a259072e4a45
+worldb573e2643cab5c580588559a792dac2985a4386666d264e40e3c02ef77caf527
+CURRENT58b0c9c61dc5540342c7aad540420732d2f639b7ae33736e99563e44146339d2.
+Log08d889a64782b94e87f2df38d7ad26757a755df31811e36dc3bf51f0a602ff00.
+PeakRSS2350092KiB. Archivec123-fresh-second-edge.tar.gz atsameEbackup directory,
+SHA4f8e53ee9a8c836b606c99e63369bd35e29bb2508b8149013339e10c37c27abf.
+Do not repeat first/secondguides or claim anatomy proves sound-onlyrecall.
+
+AWSpost1:57 same1456/effde9e1/image6aa38d99HEALTHY1/1/0;
+alarmsunchanged.01:50/55CPUavg42.44/41.69%,max51.35%;
+RAMavg10.80/10.76%,max11.96%. Live unchanged.
+
+## D-054-122-61 / R-054-122-62 — normal-artifact sound-only two-posture recall
+
+Source-onlyreview finalPASS /tmp/guala-c123-release-recall.py SHA
+b9178369117dc0f5b47acfb0f674a263acaa7951b597a18a60b2309053bfc89e.
+Worktree97a7c240cbf42966efa3638cb83857aca467c5cff030fc40286c0554f8ed5382
+verifiedbeforeafter; no nativeedit. Initialscript e998560b... had two localized
+acceptanceholes caught BEFORErun: ANYexpectedordering on motor admitted mixed
+foreignL11; breathwas matched onlybyclock. Onebatch correction explicitly
+checks positiveintended L11carrier provenance/all accompanying orderingwork,
+and exact fourbranch breath join against same/previousclock actualmotortransfers.
+KnownL8reflex remains separate; no amplitudewaiver, no sameclock-only posture
+demand. Native law unchanged. Prior S12238 rawsuccess confirms exactshape.
+
+Fresh659757 -> actual ordinaryrest64since659753 -> exactcoldrestore ->
+quiet8 -> ONE4000sample soundcue -> rootMIN then successorMAX,8learnedmotorevents,
+both joinedbreath/nonzeropressure,selfhearing, finitequiet, oldmemory,
+exactpairedcoldrestore+nextordinary. NO guidedmovement duringrecall.
+No newbar for fullword/semantics/wholebodyrest.
+Environment exacttask/image,no diagnostic/solar, source/module/hashpinned.
+Disposable/tmp/guala-c123-release-recall.hsgWCI/paired;
+logOUTSIDE /tmp/guala-c123-release-recall.log. Reuse saved learning only.
+AWS02:00pre samehealthy1/1/0task/image,alarmsunchanged;02:00metrics not yet
+published, mostrecent measuredwindow01:50/55 above. No health/timing invention.
+One localcopy, no cloudwrite or productionrequest.
+
+## R-054-122-63 — bounded playback source review, no code changes
+
+Internalreview (NOT C1 authorization) confirms producerlean_physical_loop.py
+exactPCM -> lean_actor.py two distincthash cache -> lean_production_app.py
+receiptGET -> gualaloom latest3secondpoll/hashdedup/immediate source.start.
+Identical emittedPCM in different intervals is wrongly conflated; earlier
+sounds can evict; StopListening leaves inflightfetch/scheduledsources alive.
+Known transportgap is not missingvoicephysics; fasterpoll alone insufficient.
+Narrow deliverycontract: bounded emissionidentity+PCMhash feed, orderedcursor
+read, explicit eviction/restartgaps, bounded response/clientbacklog, no observer
+backpressure on organism, unchangedPCM/sampleclock/disclosedgain, stop aborts
+fetch/sources/latecallbacks. No persistent cognition/lessonqueue/secondbrain.
+Existing tests verify two-receipt eviction, not streaming; focused actor/API/
+browser delivery assertions needed for repairedsurface. No implementation yet.
+
+### S-054-122-64 — fresh ordinary-artifact two-posture recall CLOSED locally (2026-09-12 02:10 UTC)
+
+D12261/R12262 ran ONCE as session86103, terminal exit0. Final reviewed script
+/tmp/guala-c123-release-recall.py SHA
+b9178369117dc0f5b47acfb0f674a263acaa7951b597a18a60b2309053bfc89e.
+Input S12260 exact pair659757; no lessons or physics edits during recall.
+Ordinary recovery659817; exactcold; quiet8; cue659826; root659828 (3/6/6/6
+carriers, breath21); successor659829 (137/48/164/138, breath487). Each breath
+joined its own four measured motor transfers. Nonzero PCM3993/3995.
+Eight learned events, no extra breath, no unexplained/reflex events.
+136000 self-heard samples; quiet through659889; 217original topologies
+retained. Cold exact659889 and nextordinary659890 exit0. No warm-next comparison
+claimed. Peak RSS2176320KiB. This is two learned postures, not word understanding.
+
+Log /tmp/guala-c123-release-recall.log SHA
+f365ccf1e9e23f95791ce7e06178fb41cb756cb3c7c0504c53b299d8b0226c8f.
+Pair hashes and archive in current header. Archive under
+/mnt/tfebackup/guala-c118-four-posture.XehvEs/ includes exactpair/script/rawlog.
+Do not repeat this diagnosis or curriculum. No tested native source changed.
+
+AWS envelope: pre02:00:31, post02:09 same sole taskeffde9e1bf364ec9b4114355fb07eafb,
+task1456/image6aa38d99, desired/running/pending1/1/0, HEALTHY, no failures.
+02:00/02:05 CPUavg41.6972/44.1474%, max48.8082/54.6137%; RAMavg10.8276/11.0619%,
+max11.9293/12.2345%. These are bounded matching-window observations, not a
+long-duration no-growth proof. CPU/RAM/EFS/refusal alarmsOK; clock-stalled
+ALARM unchanged since2026-09-08T14:15:41.275Z. No production changes.
+
+Progress classification: previous turn recovered the exact terminal result and
+changed the next action from recall to delivery; this turn archives that success.
+Additional tool-only waste: broad /tmp filename discovery flooded output in the
+prior continuation. Resolve exact named path with existing guala_preflight;
+use bounded maxdepth discovery only for non-repo artifacts. No new wrapper.
+
+### D-054-122-65 — bounded ordered sound delivery; continues D12240, not a new speech law
+
+Acceptance: each retained physical emission is available in order to a listening
+browser, identical PCM from separate acts is not deduplicated, normal delivery
+plays each emission once, explicit eviction/restart gaps are never silent,
+Stop cancels in-flight fetch and queued playback. Browser gain remains disclosed;
+PCM samples/rate are unchanged. No claim of exactly-once across browser crash.
+
+R12263 source review identified latest-hash/two-receipt loss. Replace that
+transport path, not native sound, memory, body/self-return, cadence, custody,
+or learning. Complete bounded transport contract and source review before tests.
+No runtime-independent scripted sound and no full-state observer.
