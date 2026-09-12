@@ -9036,3 +9036,33 @@ No new lessons/build/native change. Source-only review in progress.
 Anatomy is not yet recall or speech. Production1456/C110 unchanged, AWS sole
 healthy writer, oldclockalarm remains, caretakerSTOP/browserclosed.
 Full goalACTIVE; no user action required. — Sol
+
+
+## Sol — 2026-09-12 00:55 UTC — actual-runtime two-posture recall PASSED; no production change
+
+S12238 in canonical Attempt54: one sound-only cue on the taught production-derived
+body through actual actor/world/persistence. Quiet baseline8; root268e fourminimum
+motors651703/249breath; successor269c fourmaximum motors651704/18breath.
+Exactly8vocalmotor events;126579nonzero pressure samples,136000selfheardsamples.
+Finitequiet/noextrautterance through651764; all227oldmemorytopologies retained.
+Exactcoldpairedrestore+nextordinary651765 succeeded. No guided movement inrecall.
+Hip/grip activity coexists; no whole-body silence rule.
+This is TWO POSTURES LOCAL, not fullword/intelligibleMama/semantic/live speech.
+
+Savedpasspair /tmp/guala-c123-recall.7m7KBL/paired651765:
+bodyfa73dd48dfe7b0c6dafc33c6d8e86002dfd094f2ffe4aa7ce2def17f0466d82c
+world218e8ff00c7be3ffd3f5265e3f97b9951de3802047bfa55cc2f4c872ac61c8d0
+LogSHA2b9448fc0c6ba480267acd59757aaba2352c90d6e988d1e5ace5e4b0fcf992b5.
+Backup c123-runtime-two-posture-pass.tar.gz SHA50f6e05cca4086e4e981d911a015c89fee1eb2ce1a134c634459873c049019d2
+in/mnt/tfebackup/guala-c118-four-posture.XehvEs.
+Source/diagnostic commit87728313; latestcanonicalledgercommit on speechbranch
+closesS12238 andnamesD12239 thirdpostureteaching fromTHISlivedsuccessor.
+No rootreteaching, memory-law change, repeatedpassedproof or newbuildplanned.
+ExistingC118 thirdposture mayneedtwopresentations; inspectfirst, do notblindbatch.
+
+Production1456/C110/effde9e1/image6aa38d99 unchanged; no live inputs/deployment.
+AWSpre00:49/post00:53 HEALTHY1/1/0;CPU/RAM observedstable,oldclockalarmstillALARM.
+Local133intervals native mean847.823ms,wholephysical944.244ms,peakRSS2541620KiB;
+no production performanceclaim or infinitebounds claim. Allharnesses terminal,
+no survivors. CaretakerSTOP/browserclosed. FullAEgoalACTIVE, no approvalblock.
+— Sol
