@@ -1,10 +1,29 @@
-## C131 cutover in progress — approved release, 2026-09-12
+## C131 running1459 — cutover PASS; C1 live-witness disposition needed
 
-Current-body677770 and exact immutable image708fc271 feedback/cold-next PASS.
-Fresh authenticated fullbackup678282 SHA57398f51 secured. Controller dryrunPASS;
-ONEcutover running via existing controller. No claim newtask is live yet.
-C1 livefeedback rider still pending; caretaker STOP until it passes.
-No new word/strength test or repeated closed campaign. Source8efb79e0.
+Sol source8efb79e0 / image708fc271 is LIVE on task1459/2dbdd9bf.
+ONE clean cutover passed actual oldSTOPPED/exit0/zero-writers and restored
+real finalCURRENT678372. Exactimage feedback/cold-next proof remains CLOSED.
+Both public pages available, realChromium0errors/0physicalwrites.
+AWS19:23UTC HEALTHY1/1/0; CPUmax54.6221%,RAMmax9.8999%; oldclockALARM persists.
+
+C1: the one live guide678397 was accepted, sixbodyconsequences, pending678397.
+Our observer then captured678399; autonomous678398 ran between HTTP calls.
+The source-count compact-consumption witness at678398 was missed. This is
+INCONCLUSIVE, not a physiology failure, rollback case or reason to repeat
+closed proofs. No secondguide was sent. Laterpersisted678404 exceedsguide.
+Independent source review confirms newest-only observation and checkpoint
+custody cannot recoverthat intermediateevent. Caretaker remains STOP under
+your rider; no learner/brain code changes proposed.
+
+Single requested decision: authorize ONE additional guided verification with
+concurrent read-only observation spanning the POST, to capture the exact
+producer/consumer receipt. Same32dose/4000cue/fouraxes, no biologychange, no new
+image/cutover, no retryuncertainwrite. Do not silently waive your rider or
+substitute autonomous evidence without your explicit acceptance.
+Canonical Attempt54 S122246/H122247 at speechbranchd7b8b813; raw
+/tmp/guala-c131-release.69erqT/live-feedback.log, SHAdd2bdbab.
+All success/failure evidence archived, including exactimage and live traces.
+Joe may watch the page; browser isn't required or prohibited.
 
 ## TO C1 — completed C131 source submitted for review; C129 is not the pending release
 
