@@ -21765,3 +21765,175 @@ modules. A search incorrectly named absent scripts/ beside tools/; tools paths
 resolved. Earliest prevention: rg --files from verified root, then select actual
 paths; not guessed directories. This command fumble had no runtime effect.
 Browser closed/caretaker STOP. Production1458 unchanged. Full AE goal ACTIVE.
+
+
+### I122233 — release preflight underway; Joe's teaching observation retained
+
+Previous goal turn PROGRESS: S122232 closed LOCAL feedback, source unchanged.
+Current worktree03eb5e75 clean. Shared closure packetc6f1d55c readback verified;
+own Slack2026-09-12T18:16:14Z status=slack_sent #general, not goal completion.
+Read-only governing preflight11280exit0: samehealthy1458/task71289e2b... image
+fd6e44de...,4096CPU/16384MiB, onecompleteddeployment, bothpagesHTTP200
+(33747B Guala/11567B Loom). This is target/HTTP evidence, not speech.
+
+Full current controller70a6af8c... and unchanged controltestfb9b2314... read;
+tools/deploy_dsf_ai.sh accepts --dry-run|--cutover DIGEST BACKUP_ZIP and declared
+resume form. Older preflight_guala_production.py still expects Bash ECS_CLUSTER/
+ECS_SERVICE assignments and /ready/guala readiness, not this lean controller.
+It is NOT invoked as the serving deployment authority. Do not fail the candidate
+on its stale interface or resurrect its legacy readiness/duplicate test-build
+ceremony. Existing controller dry-run remains required after immutable image.
+No controller/native production file edited.
+
+One locked native regression28597 is terminalexit101; log
+/tmp/guala-c131-feedback.N72UuO/release-native-regression.log.
+Compilation19.78s;636unitcases finished142.59s:600passed,22failed,14ignored.
+Full failure details are retained in the log and not yet classified. Do not
+diagnose from terse names, suppress them, or discard closed real feedback proof.
+This is release regression assessment, not a repeated mature lesson.
+Read-only prehealth18:18:14.884261UTC same1458HEALTHY1/1/0,
+CPUmax42.618401%,RAMmax12.783813%; runaway/storage/refusalalarmsOK,
+clock-stalledALARM persists. Posthealth requested after28597 completed;
+
+Existing CURRENT capture helper read in full and SHA92498316... matches
+reviewedS122163. No capture or cloudwrite performed. New exclusive directory
+/tmp/guala-c131-current.PNbIh8 is EMPTY and reserved for the next authenticated
+snapshot, not evidence one has been taken. Candidate artifact still494ed1e2.
+
+Joe's latest message is expressly a THOUGHT, not stop/change authorization:
+he has taught300+children/adults and stresses that speech learning involves
+usable sight/sound/touch together, attention, needs, comforting contact, and
+prompt reciprocal interaction. He questions whether these experiences are
+currently available to Guala rather than mere UI controls. Preserve this as
+creator teaching guidance and a whole-experience requirement, NOT a new speech
+acceptance gate or permission for scripted reward/meaning or human physiology
+reconstruction. Current feedback repair continues. Adequate vision, integrated
+touch/social consequences, attention and responsive reciprocal learning remain
+unproved end-to-end; sound delivery alone must never be labeled that capability.
+
+
+### I122234 — release failures classified; cleanup is part of this delivery
+
+Continues R122210/S122212, not a new speech mechanism. Prior user-reply turn
+was NO PROGRESS (instruction acknowledgment only); this turn validates root
+03eb5e75 and classifies the retained regression. S122232 local feedback remains
+closed on its exact evidence. No repeated MAX32/128 lesson and no new build/run.
+Full result remains 600 passed, 22 failed, 14 ignored; integrations/doctests
+did not run after the failed library phase. No new failure allowlist.
+
+Independent source-only review compared accepted6f2da6da to C131494ed1e2:
+cognitive core, its tests, route author, progress codec, neuron and body laws
+are unchanged. The three contact fixtures call unchanged mounting functions;
+the recurrence specimen uses unchanged optical/vestibular construction.
+This establishes pre-existing conflicts, NOT permission to dismiss them.
+
+| Count | Exact failure class | Disposition |
+| ---: | --- | --- |
+| 8 | Tests expect GLCOG043 while current encoder writes GLCOG046 (tests.rs3051,4858,6450,7721,7895,8302,9867,10789) | Stale format assertions; preserve migration/state invariants when repairing fixtures. |
+| 1 | Empty-genesis fixture allows197bytes but current encoding requires205 (tests.rs876) | Stale minimum-size assumption; derive size from current format, not a failure allowance. |
+| 3 | Runtime V34/V35/V44 fixtures strip8bytes from V46 and stamp old magic | Malformed historical bytes retain the physical-progress suffix. Same recorded writer class as S/H122149; do not restore production downgrade code. |
+| 3 | Populated historical cognitive fixtures encode with empty physical-progress membership (tests.rs6169,7585,8006) | Invalid fixture construction; current codec correctly requires exact topology membership. |
+| 3 | Generic author/contact expectations contradict retired-vocal or single-motor authority | See exact premises below; no old author may return. |
+| 3 | Body tests expect jaw-driven voice or frozen displaced controls | Stale direct-control/passive-law contracts; bounded test-only cleanup proposed below. |
+| 1 | Separated sensory episodes expected exactly one recurrent formation, observed0 | UNKNOWN: qualifying retained-member/bond admission not evidenced. No assertion weakening or formation diagnosis yet. |
+
+Three author conflicts, not inferred from names:
+- changed_ordering_set_reuses_the_terminal_bound_motor expects a second direct
+  nonsynergy ordering on an already-owned motor. Core18620 refuses it; fixture
+  supplies no current learned motor recruitment. Attempt51/51D requires actual
+  positive learned-anchor discharge for its synergy exception.
+- distinct_body_regulations_mount_distinct_unambiguous_motor_pools obtains two
+  typed motors but demands the SAME ordering directly on both. Core18668 creates
+  a separately powered sibling for the occupied ordering; terminal anatomy is
+  not shown absent.
+- delayed_body_return_uses_the_existing_third_exact_frontier sends vocal-only
+  VocalTractSection3Area through the generic author. Core18008 refuses it by
+  design. F-054-12 already records this retired duplicate-author fixture class.
+
+Three body conflicts were checked in current and accepted source:
+- virtual_articulatory_body.rs1664 demands jaw/lip changes alter PCM. Existing
+  passing direct_acoustic_controls_preserve_identity_and_bypass_jaw_lip_caps
+  proves equal PCM with distinct oral feedback and changed sound from an actual
+  acoustic control. Obsolete test opposes Joe's ratified direct-instrument law.
+- :1838 demands a displaced, undriven body remain unchanged through16000samples.
+  Actual successor is exactly neutral, with silentPCM, no respiratory work and
+  unchanged lung. Existing renderer already settles passive motion every1ms
+  before C131; C131 only records those same successors.
+- :1894 places the glottal control at an endpoint but lets it recover for250ms,
+  then assumes it stayed there. Pure advance_spectral_organ still computes zero
+  flow at the actual endpoint; later internal positions are not endpoints.
+
+Frozen next test-only cleanup contract (source review requested, no edits yet):
+remove the obsolete jaw-voice test because its stronger direct-control successor
+already exists; retain no-work silence and assert exact neutral successor after
+the existing passive chronology; test fixed-endpoint zero flow/PCM at the pure
+spectral step instead of silently freezing an integrated moving body.
+Only the cfg(test) section of virtual_articulatory_body.rs may change in that
+batch. No production arithmetic, counters, schema, action authority, learned
+state, native artifact or C131 physical proof changes. Other19 failures remain
+owned; the unresolved recurrence expectation remains explicit, not waived.
+
+Production-health bracket for the completed native suite is now complete:
+post18:22:01.007242UTC same1458/task71289e2b.../imagefd6e44de..., HEALTHY1/1/0;
+CPUmax40.893798%,RAMmax12.368774%; runaway/storage/refusalalarmsOK;
+clock-stalledALARM persists. This turn does no live mutation. Fresh shared
+read confirms cc5590bc header still requests C1 review; no approval received.
+
+Output hygiene failure retained: one read dumped a huge PCM assertion line.
+The log is sound evidence, not permission to flood context with identical arrays.
+Bounded awk now truncates each diagnostic line at500characters; rawlog remains
+intact. Do not run a test again merely to recover its already-saved failure.
+
+Joe clarified that sight/sound/touch, attention, needs and reciprocal experience
+are FUNCTIONAL MACHINERY to deliver, not merely teaching advice. He also requires
+cleanup within each delivered slice: no test apparatus, dead author, duplicate
+process or needless bookkeeping in the cognitive/production path. This neither
+stops C131 nor authorizes a broad physiology rebuild. Necessary full sensory
+feedback remains; observer/persistence work must not acquire cognitive authority.
+
+
+### S122235 — three body-test conflicts cleaned; focused PASS, no production change
+
+Independent source review PASS on frozen802154165dfb2000d21fe49820e5180069addbf5ad6d700499d0f9c97efbf0d6,
+verified before/after. One approved batch changes only mod tests in
+virtual_articulatory_body.rs:19lines added,58removed (net39removed).
+The obsolete jaw-dependent voice test is deleted; its stronger direct-control
+successor already covers independence, true acoustic-control sensitivity and
+distinct bodily feedback. No production law, runtime code or release wheel changed.
+
+Locked --lib --no-run compile48643exit0 in10.61s;99warnings remain, not a
+warning-free claim. Actual emitted test binary:
+native/guala_core/target/debug/deps/guala_core-7cd36301111f54ab
+SHA918772b381982af3bf629e2f4b8fffcfd31ee9f785f8031fe6d238a3be1764a3.
+Its --help confirms multiple exact filters; --list resolved exactly3tests before
+execution. No guessed test name or absent timing utility.
+
+Test session11483exit0:3passed,0failed,632filtered,3.98s:
+- direct_acoustic_controls_preserve_identity_and_bypass_jaw_lip_caps
+- dynamic_source_material_range_locates_duration_rate_and_pressure_boundaries
+- fully_closed_and_fully_open_boundaries_cannot_pass_paid_work
+Log /tmp/guala-c131-feedback.N72UuO/test-cleanup-result.log
+SHAf2960ac7f01522040624aead03d1eea82b5ac6ce8bb06decb0735388a780075e.
+The exact endpoint test also preserves lung volume. No full regression repeat,
+mature lesson, source-to-speech inference or claim the other19 failures passed.
+
+Read-onlyAWS bracket18:32:36.361643→18:33:50.549951UTC same1458/task/image,
+HEALTHY1/1/0. CombinedCPUmax59.474154%,RAMmax12.796021%; runaway/storage/
+refusalalarmsOK; clock-stalledALARM remains. Browser/caretaker untouched.
+All compile/test/health handles above are terminal; do not poll/restart them.
+
+For the remaining recurrence UNKNOWN, independent review resolves the existing
+next discriminator without another harness: census the SAME test final state's
+mosaic stage, exact members/bonds/partial cues/recurrence origin and the existing
+cross-sensory predicate. Fully retained withoutL9 is a mounting inconsistency;
+pending originals need admission analysis; no originals means admission was not
+established. In the last case reuse GUALA_PROBE_ORIGINAL_HUBS, already recorded
+D-054-119-19, on actual association lineages. Do not assume repeated input creates
+a qualifying formation. No diagnostic edit/run has happened yet.
+
+Security command failure, not organism failure: git remote -v exposed embedded
+repository access credentials in tool output. Values are NOT copied here or to
+shared communications. Joe was notified and credential rotation recommended.
+Earliest prevention: list remote NAMES only; never print credential-bearing URLs.
+No credential rotation, history purge or unrelated configuration edit authorized
+or attempted. No cloud/production mutation resulted. Do not repeat the command.
