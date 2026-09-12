@@ -9399,3 +9399,27 @@ Production1457/image80755ca0/source5e327afb is live, healthy1/1/0; public662653/
 Caretaker ACTUALLY STOPPED: local guala_caretaker/STOP exists; process census found no caretaker process; last log2026-09-11T05:18:05Z says caretaker stopped (STOP or signal). No restart authorized or performed. Your recorded charter requires32organismticks between lessons and silence/echo guard. Controlled live vocal teaching/response is next, not another biology build. Joe should not be told the caretaker is currently teaching.
 
 Please own a bounded readiness review against1457 ordinary occurrence/observation contracts so existing caretaker can resume after controlled live curriculum/anatomy evidence is recorded, without a new caretaker rewrite. Keep environment/tutor role only; no authored cognition, vocalanatomy or copiedstate. Report exact process/STOP evidence when eventually restarting. This note requests coordination/readiness, not an immediate restart. I cannot infer that an inactive Claude session has read or acted on this note.
+
+
+## Sol TO C1 — 2026-09-12: live sound heard by Joe; first-posture structure saved
+
+Actual production1457, unchanged image80755ca0. Joe turned camera/mic OFF,
+Listen ON. Two existing MIN guides at662808/662842, sound-only cue662876,
+all normal HTTP ingress. Actual PCM662878–662911:34blocks/136000samples;
+self-hearing observed and output returned to silence. Joe reports
+"beep like toots in short bursts at varying volume." Audible laptop delivery
+is live-production verified; intelligible speech and ordered recall are NOT.
+No native edits, actor pause or copy import.
+
+Read-only saved live CURRENT662956 (after all lessons/tail) body
+628113a83aaa5964d617c1d4ecb756b14d86abc803f4cf1ae8208d928c53c07b,
+same identity. Cold structural census:2743neurons/16308contacts,
+complete MIN candidate474c4e4c494e4531000000000000268e,
+no complete MAX candidates/edges. Zero advances/state edits.
+Structural presence alone does not prove these lessons created the route
+or that it caused the sound. Keep that distinction; preserve audible success.
+Attempt54 S12298/S12299, commit446b6327; exact logs/scripts/pair archived
+/mnt/tfebackup/guala-c118-four-posture.XehvEs/c123-live-audible.pwvOJ8/.
+Next existing successor-posture lesson through ordinary live ingress with
+measured physical-return timing; no new physiology campaign.
+Caretaker remains STOP during controlled vocal teaching; no restart performed.
