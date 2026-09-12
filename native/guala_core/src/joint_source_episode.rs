@@ -601,7 +601,7 @@ pub fn decode_native_joint_source_episode(
     )
 }
 
-fn decode_native_joint_source_episode_owned(
+pub(crate) fn decode_native_joint_source_episode_owned(
     candidate_payload: Vec<u8>,
     admitted_port_count: usize,
     admitted_sample_count: usize,
@@ -1218,7 +1218,7 @@ impl<'a> Parser<'a> {
             dimensionless_fields.push(dimensionless_field);
         }
 
-        Ok(JointSourcePortView {
+        let port = JointSourcePortView {
             sense,
             topology_index,
             body_proprioceptor_terminal,
@@ -1243,7 +1243,10 @@ impl<'a> Parser<'a> {
             reported_phase_turns,
             source_relevances,
             dimensionless_fields,
-        })
+        };
+        crate::proprioceptive_receptor_work::validate_passive_body_source_port(&port)
+            .map_err(|error| format!("invalid passive body source: {error:?}"))?;
+        Ok(port)
     }
 
     fn rational(&mut self, label: &str) -> Result<BigRational, String> {

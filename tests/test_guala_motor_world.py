@@ -33,7 +33,7 @@ def _evidence(*, yaw: int = 0, x: int = 0, y: int = 0) -> SimpleNamespace:
     )
     return SimpleNamespace(
         articulated_body_consequences=(),
-        body_proprioceptive_source_extents=(),
+        body_proprioceptive_source_extents=(), body_proprioceptive_source_admissions=(),
         body_proprioceptive_sources=(),
         causal_transition_sha256="03" * 32,
         organism_tick=41,

@@ -21244,3 +21244,102 @@ eliminated this class; filenames must come from discovery before commands.
 Single next item: finish compact capture/consumption and the epoch/silent-motion
 controls, using the preserved C130 code deliberately but NOT its rejected
 per-tail-only admission. Then freeze the entire source path for review.
+
+
+### I-054-122-222 — Candidate131 complete source path frozen for review, NOT tested
+
+2026-09-12T17:24:28Z. Same R122210/S122212 delivery item; no new campaign.
+Internal independent source review of608bd9c2 found no concrete logical-content
+undercount, type mismatch or startup-placement defect. This is arithmetic
+assistance, not C1 acceptance, measured RSS or permission to deploy.
+
+The preserved C130 capture/encoder/translation source was deliberately reused
+from the authenticated archive named in F122209. Its rejected per-tail-only
+resource calculation and extra renderer-with-budget wrapper were REMOVED,
+not reinstated. C131 startup admission is the production capacity boundary.
+Physical format/length limits and allocation errors remain explicit.
+Existing generic native30s renderer bounds are NOT ordinary250ms admission.
+
+Completed source path:
+- passive_body_source.rs:386lines INCLUDING unit controls. One compact raw
+  position trajectory, active-axis scan once; each existing passive step
+  appends its real row and no new work. Ordinary bound21+A+4*A*N,
+  A<=45,N<=250 =>45066bytes. Only actual active axes are captured.
+- virtual_articulatory_body: observes the existing1ms settlements without
+  repeating them. Eight direct tract controls/voice geometry and all body
+  integration laws stay unchanged. No extra human-mouth mechanism.
+- organism_runtime coexisting transition moves capture into its existing
+  body-source receipt BEFORE retaining acoustic observation, preventing a
+  second retained trajectory there. Original impulse remains unchanged and
+  precedes passive; independently authored per-source admissions are carried.
+- Native/Python warm and cold consumption uses the same compact decoder and
+  full four-port expansion. Compact bytes remain custody; no expanded history.
+  GLBPAS01 is validated over the actual timeline and canonical position
+  lattice; zero passive load does not create motor/guide work. The original
+  one-ms elementary residue scale remains unchanged.
+- wrapper, guala_motor_world, guala_physical_return and lean_physical_loop
+  preserve exact metadata/order and passive-only return. Existing kind-specific
+  C131 raw-source bounds retained. One pending owner, max4sources, no new queue.
+- Native decoder and PendingPhysicalReturn both require the original compact
+  source_tick+1 == completed ordinary producer tick. This relation is VERIFIED
+  from advance_coexisting: source_tick=predecessor+processed_count BEFORE its
+  increment; LeanPhysicalLoop admits exactly1interval. It is NOT equality with
+  the final sampled ms time, and NOT a general multi-interval custody rule.
+- Release manifest includes both new native modules. No extra Python module
+  or runtime owner, no legacy shell, body-law/core/L0-L4 edit.
+
+C1 silent-motion amendment, explicit change in scope:
+The earlier S122205 no-render/no-tail wording is superseded by I122219/C1 for
+the ordinary coexisting caller. Acoustic/lung silence alone no longer skips
+a body that has a displaced axis or retained antagonist activation. That
+caller now executes the SAME existing passive integration once and captures
+it. Already-rendered paths must keep exact mechanical/acoustic successors;
+a previously skipped-but-moving path now advances and therefore must NOT be
+falsely required to match the old skipped successor. The separate specialized
+vestibular trajectory caller remains unchanged; ordinary production uses the
+coexisting path. No fabricated samples or second settlement is permitted.
+
+Controls written, not run:
+passive_body_source::tests::silent_controls_without_new_impulse_still_return_real_motion
+uses a valid quiet displaced control, no breath/drive, and requires zero PCM
+plus the real1ms return. The existing capture component now checks the new
+no-budget-argument encoder and exact warm/cold sample equality.
+test_compact_tail_cold_custody_keeps_samples_order_and_duration additionally
+proves a mismatched producer refuses before pending/world mutation.
+test_startup_validates_both_components_before_migration_publication includes
+success, wrong tick and insufficient-capacity cases; the latter must refuse
+before world decode, receipt publication, CURRENT change or actor construction.
+These fixtures are transport/component evidence only, never speech success.
+
+Translation census RF017:
+both native ArticulatoryBodyTransition constructors, both body-source receipt
+constructors/getters, wrapper evidence construction/validation, motor/world/
+return/loop consumers and all three Python mock producers updated. Material
+test-helper signature remains unchanged. New release-file closure accounted.
+A009 historical evidence reading extents needs no renamed-field migration.
+
+Applicable recurrence carry-forward for this SAME sprint:
+| IDs | Prior failure / earliest gate | Current evidence |
+|---|---|---|
+| RF001/002/003/015/036 | wrong worktree/env/native; resolve before import, exact fresh wheel | build/import NOT started; exact task env/provenance required |
+| RF004/010/021/027/060 | cold/live or wrong-successor false proof | same predecessor/input/successor and current paired cold-next gate retained |
+| RF005/012/017/030/037/046 | lost/wrong translated evidence or mock | census above; native API and wrapper/startup signature source-reviewed; execution pending |
+| RF006 | producer fits but consumer budget fails |608bd9c2 startup SUM+MAX calculation reviewed; real ordinary boot/RSS still pending |
+| RF007/024/031/032/063 | wrong path/test/tool or zero tests | resolve files/names before compile; no command may infer a test pass from exit alone |
+| RF013/026 | unrelated formatter drift | no formatter run; full diff scoped, diff-check PASS |
+| RF019/034/040 | reopened closed prerequisites | no word campaign,80467, prior voice/cold proofs or historical rehearsal source restarted |
+| RF020/035/043 | synthetic/helper mistaken for lived causation | mature MAX32/128 source-to-return-to-neuron proof remains required |
+| RF022/048/059 | incompatible persisted successor/world | compact new kind; paired backup/no old-image automatic rollback; ordinary cold-next required |
+| RF044/045 | multiplicative waste or fabricated fast-grid samples | capture is existing250 real states; expand once4*A*N samples; MAX45axes=45000port samples, not new observations |
+| RF057 | nested source/admission shape | each impulse/passive/root remains its own top-level source plus own admission |
+No runtime/RSS/live guarantee from this table; gates are pending where stated.
+
+Source-edit preflight also refused an import-order anchor and a nonunique
+quiescence predicate before ANY file write. The latter distinguished the
+ordinary coexisting caller from the separate vestibular-only method; only
+the authorized ordinary caller changed. Not a failed organism test.
+No compile/test/harness/restore/lesson/live cue/cloud/deployment action.
+No new audio, learning, production-health or speech-success claim.
+Browser CLOSED/caretaker STOP unchanged; last recorded production1458.
+Single next item: independent full frozen-source review, then only the scoped
+acceptance under candidate binary provenance and pre/post read-only health.

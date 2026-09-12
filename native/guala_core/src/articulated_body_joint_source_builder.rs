@@ -10,16 +10,19 @@ use num_bigint::BigInt;
 use num_rational::BigRational;
 use num_traits::{One, ToPrimitive, Zero};
 
+use crate::passive_body_source::PassiveBodyTrajectory;
 use crate::joint_source_episode::{
-    decode_native_joint_source_episode, JointSourcePortView, NativeJointSourceEpisode,
+    decode_native_joint_source_episode, JointSourcePortView,
+    NativeJointSourceEpisode,
 };
 use crate::joint_uf_source_adapter::SAMPLED_VOLUME_AND_RELEVANCE_PIECEWISE_LINEAR_PROFILE;
 use crate::proprioceptive_receptor_work::{
     ANTAGONIST_PROPRIOCEPTOR_LENGTH_QUANTITY, ARTICULATED_AXIS_SPAN_FRACTION_UNIT,
+    PASSIVE_BODY_EVIDENCE_MAGIC,
     DISCHARGED_EFFECTOR_CARRIER_FRACTION_UNIT, EFFECTOR_REACTIVE_LOAD_FRACTION_QUANTITY,
 };
 use crate::virtual_articulated_body::{
-    ArticulatedBodyState, BodyEffectorDirection, BodyEffectorTerminal,
+    ArticulatedBodyState, BodyAxis, BodyEffectorDirection, BodyEffectorTerminal,
     BodyProprioceptiveConsequence, BodyProprioceptorTerminal, BODY_AXES,
 };
 
@@ -79,6 +82,7 @@ pub(crate) enum ArticulatedBodyJointSourceError {
     NoncanonicalConsequences,
     ArithmeticWidth,
     NonFiniteCoordinate,
+    ResourceUnavailable,
     Carrier(String),
 }
 
@@ -268,7 +272,7 @@ pub(crate) fn admit_articulated_body_proprioceptive_source(
                 consequence.predecessor_position,
                 consequence.successor_position,
             ]) {
-                let exact = normalized_antagonist_length(consequence, position, direction)?;
+                let exact = normalized_antagonist_length(consequence.axis, position, direction)?;
                 let projection = exact
                     .to_f64()
                     .filter(|value| value.is_finite() && (0.0..=1.0).contains(value))
@@ -375,96 +379,10 @@ pub(crate) fn admit_articulated_body_consequence_source(
                 BodyEffectorDirection::TowardMaximum,
             ] {
                 let terminal = BodyProprioceptorTerminal::new(consequence.axis, direction);
-                output.push(5);
-                u32_value(
-                    &mut output,
-                    if load_ending {
-                        terminal.load_topology_index()
-                    } else {
-                        terminal.proprioceptor_topology_index()
-                    },
-                )?;
-                output.push(1);
-                output.push(
-                    u8::try_from(consequence.axis.index())
-                        .map_err(|_| ArticulatedBodyJointSourceError::ArithmeticWidth)?,
-                );
-                output.push(direction as u8);
-                text(
-                    &mut output,
-                    if load_ending {
-                        "articulated-body-effector-load-receptor"
-                    } else {
-                        "articulated-body-proprioceptor"
-                    },
-                )?;
-                let direction_name = match direction {
-                    BodyEffectorDirection::TowardMinimum => "toward-minimum",
-                    BodyEffectorDirection::TowardMaximum => "toward-maximum",
-                };
-                text(
-                    &mut output,
-                    &if load_ending {
-                        format!(
-                            "{}-{direction_name}-load",
-                            consequence.axis.anatomical_name()
-                        )
-                    } else {
-                        format!("{}-{direction_name}", consequence.axis.anatomical_name())
-                    },
-                )?;
-                output.extend_from_slice(&1_u16.to_le_bytes());
-                text(
-                    &mut output,
-                    if load_ending {
-                        "body-effector-load-terminal"
-                    } else {
-                        // GLJSRC04 extends the occurrence with load endings;
-                        // it does not rename the already-mounted GLJSRC03
-                        // length receptor.
-                        "body-antagonist-proprioceptor-terminal"
-                    },
-                )?;
-                text(&mut output, &terminal.ordinal().to_string())?;
-                text(
-                    &mut output,
-                    if load_ending {
-                        EFFECTOR_REACTIVE_LOAD_FRACTION_QUANTITY
-                    } else {
-                        ANTAGONIST_PROPRIOCEPTOR_LENGTH_QUANTITY
-                    },
-                )?;
-                text(
-                    &mut output,
-                    if load_ending {
-                        DISCHARGED_EFFECTOR_CARRIER_FRACTION_UNIT
-                    } else {
-                        ARTICULATED_AXIS_SPAN_FRACTION_UNIT
-                    },
-                )?;
-                text(
-                    &mut output,
-                    if load_ending {
-                        LOAD_PORT_RELEVANCE
-                    } else {
-                        PORT_RELEVANCE
-                    },
-                )?;
-                text(&mut output, "")?;
-                text(
-                    &mut output,
-                    if load_ending {
-                        LOAD_INPUT_MAP
-                    } else {
-                        INPUT_MAP
-                    },
-                )?;
-                rational(&mut output, &BigRational::zero())?;
-                rational(&mut output, &BigRational::one())?;
-                rational(&mut output, &BigRational::zero())?;
-                rational(&mut output, &BigRational::one())?;
                 let evidence = exact_evidence(source_tick, successor_tick, consequence, terminal);
-                bytes(&mut output, &evidence)?;
+                encode_position_load_port_header(
+                    &mut output, consequence.axis, direction, load_ending, &evidence,
+                )?;
                 u32_value(&mut output, 2)?;
                 let load = reactive_load_fraction(consequence, direction)?;
                 for (time, position) in times.iter().zip([
@@ -474,7 +392,7 @@ pub(crate) fn admit_articulated_body_consequence_source(
                     let exact = if load_ending {
                         load.clone()
                     } else {
-                        normalized_antagonist_length(consequence, position, direction)?
+                        normalized_antagonist_length(consequence.axis, position, direction)?
                     };
                     let projection = exact
                         .to_f64()
@@ -525,6 +443,239 @@ pub(crate) fn admit_articulated_body_consequence_source(
     .map_err(ArticulatedBodyJointSourceError::Carrier)
 }
 
+/// Expand one compact passive trajectory into the existing full joint field.
+/// Production admits the complete coexisting input set once at startup.
+/// This encoder checks its physical shape and reserves its bounded output;
+/// it does not re-account the runtime budget per return. No motor receipt.
+pub(crate) fn admit_passive_body_trajectory_source(
+    source_tick: u64,
+    trajectory: &PassiveBodyTrajectory,
+) -> Result<NativeJointSourceEpisode, ArticulatedBodyJointSourceError> {
+    let axes = trajectory.axes();
+    let frames = trajectory.frame_count();
+    if axes.is_empty() || frames < 2
+        || frames > crate::virtual_articulatory_body::MAX_PASSIVE_BODY_FRAMES
+    {
+        return Err(ArticulatedBodyJointSourceError::NoncanonicalConsequences);
+    }
+    let start = source_tick.checked_add(1)
+        .ok_or(ArticulatedBodyJointSourceError::SourceTickOverflow)?;
+    let end = source_tick.checked_add(u64::try_from(frames)
+        .map_err(|_| ArticulatedBodyJointSourceError::ArithmeticWidth)?)
+        .ok_or(ArticulatedBodyJointSourceError::SourceTickOverflow)?;
+    let ports = axes.len() * 4;
+    let samples = ports * frames;
+    let occurrence_frames = axes.len() * frames;
+
+    // Metadata is built once per physical ending and reused in the encoding.
+    // Its roster is bounded by the body's 45 axes, independently of payload.
+    let mut headers = Vec::new();
+    headers.try_reserve_exact(ports)
+        .map_err(|_| ArticulatedBodyJointSourceError::ResourceUnavailable)?;
+    for axis in axes {
+        for load in [false, true] {
+            for direction in [
+                BodyEffectorDirection::TowardMinimum,
+                BodyEffectorDirection::TowardMaximum,
+            ] {
+                let mut witness = [0_u8; 26];
+                witness[..8].copy_from_slice(PASSIVE_BODY_EVIDENCE_MAGIC);
+                witness[8..16].copy_from_slice(&start.to_le_bytes());
+                witness[16..24].copy_from_slice(&end.to_le_bytes());
+                witness[24] = *axis as u8;
+                witness[25] = direction as u8;
+                let mut header = Vec::new();
+                encode_position_load_port_header(&mut header, *axis, direction, load, &witness)?;
+                u32_value(&mut header, frames)?;
+                headers.push(header);
+            }
+        }
+    }
+    let mut output = CONSEQUENCE_MAGIC.to_vec();
+    output.extend_from_slice(&CONSEQUENCE_VERSION.to_le_bytes());
+    text(&mut output, "articulated-body-position-and-load-interval")?;
+    output.extend_from_slice(&[1, 1, 1, 1, 1, 0]);
+    u32_value(&mut output, ports)?;
+    // Decimal u64 time numerator: at most 20 chars, denominator: at most
+    // four (1000). Each rational has two u16 string lengths. Position/span
+    // uses differences of i32 values: at most ten chars in each component.
+    // A port frame is time + binary64 + phase 0/1 + relevance 1/1 + position.
+    const TIME_BYTES: usize = 2 + 20 + 2 + 4;
+    const FRACTION_BYTES: usize = 2 + 10 + 2 + 10;
+    const UNIT_RATIONAL_BYTES: usize = 2 + 1 + 2 + 1;
+    const PORT_FRAME_BYTES: usize =
+        TIME_BYTES + 8 + 2 * UNIT_RATIONAL_BYTES + FRACTION_BYTES;
+    let occurrence_header_bytes = 4 + 4 * 4 + 4
+        + 4 + SAMPLED_VOLUME_AND_RELEVANCE_PIECEWISE_LINEAR_PROFILE.len()
+        + 4 + 4 + 4 * 4 + 4 + JOINT_RELEVANCE.len() + 4;
+    let bound = headers.iter().try_fold(output.len() + 4, |total, header| {
+        total.checked_add(header.len())
+    }).and_then(|total| total.checked_add(samples.checked_mul(PORT_FRAME_BYTES)?))
+        .and_then(|total| total.checked_add(axes.len().checked_mul(occurrence_header_bytes)?))
+        .and_then(|total| total.checked_add(
+            occurrence_frames.checked_mul(TIME_BYTES + UNIT_RATIONAL_BYTES)?))
+        .ok_or(ArticulatedBodyJointSourceError::ArithmeticWidth)?;
+    output.try_reserve_exact(bound - output.len())
+        .map_err(|_| ArticulatedBodyJointSourceError::ResourceUnavailable)?;
+    let mut times = Vec::new();
+    times.try_reserve_exact(frames)
+        .map_err(|_| ArticulatedBodyJointSourceError::ResourceUnavailable)?;
+    for frame in 0..frames {
+        times.push(BigRational::new(BigInt::from(start + frame as u64),
+            BigInt::from(TICKS_PER_SECOND)));
+    }
+    let zero = BigRational::zero();
+    let one = BigRational::one();
+    for (port_index, header) in headers.into_iter().enumerate() {
+        output.extend_from_slice(&header);
+        let axis_index = port_index / 4;
+        let load = port_index % 4 >= 2;
+        let direction = if port_index % 2 == 0 {
+            BodyEffectorDirection::TowardMinimum
+        } else {
+            BodyEffectorDirection::TowardMaximum
+        };
+        for (frame, time) in times.iter().enumerate() {
+            let value = if load { zero.clone() } else {
+                normalized_antagonist_length(
+                    axes[axis_index],
+                    trajectory.position(frame, axis_index)
+                        .ok_or(ArticulatedBodyJointSourceError::NoncanonicalConsequences)?,
+                    direction,
+                )?
+            };
+            let projection = value.to_f64().filter(|value| value.is_finite()
+                && (0.0..=1.0).contains(value))
+                .ok_or(ArticulatedBodyJointSourceError::NonFiniteCoordinate)?;
+            rational(&mut output, time)?;
+            output.extend_from_slice(&projection.to_bits().to_le_bytes());
+            rational(&mut output, &zero)?;
+            rational(&mut output, &one)?;
+            rational(&mut output, &value)?;
+        }
+    }
+    u32_value(&mut output, axes.len())?;
+    for axis_index in 0..axes.len() {
+        u32_value(&mut output, 4)?;
+        for port in axis_index * 4..axis_index * 4 + 4 {
+            u32_value(&mut output, port)?;
+        }
+        u32_value(&mut output, frames)?;
+        for time in &times { rational(&mut output, time)?; }
+        bytes(&mut output, SAMPLED_VOLUME_AND_RELEVANCE_PIECEWISE_LINEAR_PROFILE)?;
+        u32_value(&mut output, 1)?;
+        u32_value(&mut output, 4)?;
+        for member in 0..4 { u32_value(&mut output, member)?; }
+        bytes(&mut output, JOINT_RELEVANCE)?;
+        u32_value(&mut output, frames)?;
+        for _ in 0..frames { rational(&mut output, &one)?; }
+    }
+    crate::joint_source_episode::decode_native_joint_source_episode_owned(
+        output, ports, samples, axes.len(), occurrence_frames,
+    ).map_err(ArticulatedBodyJointSourceError::Carrier)
+}
+
+fn encode_position_load_port_header(
+    output: &mut Vec<u8>,
+    axis: BodyAxis,
+    direction: BodyEffectorDirection,
+    load_ending: bool,
+    evidence: &[u8],
+) -> Result<(), ArticulatedBodyJointSourceError> {
+    let terminal = BodyProprioceptorTerminal::new(axis, direction);
+    output.push(5);
+    u32_value(
+        output,
+        if load_ending {
+            terminal.load_topology_index()
+        } else {
+            terminal.proprioceptor_topology_index()
+        },
+    )?;
+    output.push(1);
+    output.push(
+        u8::try_from(axis.index())
+            .map_err(|_| ArticulatedBodyJointSourceError::ArithmeticWidth)?,
+    );
+    output.push(direction as u8);
+    text(
+        output,
+        if load_ending {
+            "articulated-body-effector-load-receptor"
+        } else {
+            "articulated-body-proprioceptor"
+        },
+    )?;
+    let direction_name = match direction {
+        BodyEffectorDirection::TowardMinimum => "toward-minimum",
+        BodyEffectorDirection::TowardMaximum => "toward-maximum",
+    };
+    text(
+        output,
+        &if load_ending {
+            format!(
+                "{}-{direction_name}-load",
+                axis.anatomical_name()
+            )
+        } else {
+            format!("{}-{direction_name}", axis.anatomical_name())
+        },
+    )?;
+    output.extend_from_slice(&1_u16.to_le_bytes());
+    text(
+        output,
+        if load_ending {
+            "body-effector-load-terminal"
+        } else {
+            // GLJSRC04 extends the occurrence with load endings;
+            // it does not rename the already-mounted GLJSRC03
+            // length receptor.
+            "body-antagonist-proprioceptor-terminal"
+        },
+    )?;
+    text(output, &terminal.ordinal().to_string())?;
+    text(
+        output,
+        if load_ending {
+            EFFECTOR_REACTIVE_LOAD_FRACTION_QUANTITY
+        } else {
+            ANTAGONIST_PROPRIOCEPTOR_LENGTH_QUANTITY
+        },
+    )?;
+    text(
+        output,
+        if load_ending {
+            DISCHARGED_EFFECTOR_CARRIER_FRACTION_UNIT
+        } else {
+            ARTICULATED_AXIS_SPAN_FRACTION_UNIT
+        },
+    )?;
+    text(
+        output,
+        if load_ending {
+            LOAD_PORT_RELEVANCE
+        } else {
+            PORT_RELEVANCE
+        },
+    )?;
+    text(output, "")?;
+    text(
+        output,
+        if load_ending {
+            LOAD_INPUT_MAP
+        } else {
+            INPUT_MAP
+        },
+    )?;
+    rational(output, &BigRational::zero())?;
+    rational(output, &BigRational::one())?;
+    rational(output, &BigRational::zero())?;
+    rational(output, &BigRational::one())?;
+    bytes(output, evidence)?;
+
+    Ok(())
+}
+
 /// Observe the complete fixed-capacity body once without inventing motion.
 /// This gives every terminal a stable receptor site before any motor ancestry
 /// can reach it. The roster is bounded at 74 ports and contains no history.
@@ -555,11 +706,11 @@ pub(crate) fn admit_complete_articulated_body_state_source(
 }
 
 fn normalized_antagonist_length(
-    consequence: &BodyProprioceptiveConsequence,
+    axis: BodyAxis,
     position: i32,
     direction: BodyEffectorDirection,
 ) -> Result<BigRational, ArticulatedBodyJointSourceError> {
-    let anatomy = consequence.axis.anatomy();
+    let anatomy = axis.anatomy();
     let span = i64::from(anatomy.maximum) - i64::from(anatomy.minimum);
     if span <= 0 {
         return Err(ArticulatedBodyJointSourceError::NoncanonicalConsequences);

@@ -946,6 +946,8 @@ struct TimedBodyProprioceptiveConsequence {
 #[derive(Clone, Debug, Eq, PartialEq)]
 struct BodyProprioceptiveSourceReceipt {
     source_tick: u64,
+    /// Independent duration authored by the body settlement/renderer.
+    admission: (i64, i64),
     payload: Vec<u8>,
     port_count: usize,
     sample_count: usize,
@@ -2148,6 +2150,11 @@ impl NativeResidentOrganismPrepare {
                 )
             })
             .collect()
+    }
+
+    #[getter]
+    fn body_proprioceptive_source_admissions(&self) -> Vec<(i64, i64)> {
+        self.body_proprioceptive_sources.iter().map(|source| source.admission).collect()
     }
 
     /// Exact per-interval causal observation retained only for the lifetime of
@@ -4076,11 +4083,12 @@ impl ResidentOrganismRuntime {
                     }),
             );
             let body_successor = body_transition.successor;
-            let articulatory_transition = if body_transition
+            let mut articulatory_transition = if body_transition
                 .proprioceptive_consequences
                 .is_empty()
                 && respiratory_efferent_carriers == 0
                 && body_successor.articulatory_system_is_quiescent()
+                && !crate::passive_body_source::has_passive_body_motion(&body_successor)
             {
                 None
             } else {
@@ -4097,6 +4105,28 @@ impl ResidentOrganismRuntime {
             articulated_body = articulatory_transition
                 .as_ref()
                 .map_or(body_successor, |transition| transition.successor_body.clone());
+            if let Some(trajectory) = articulatory_transition.as_mut()
+                .and_then(|transition| transition.passive_body_trajectory.take())
+            {
+                // One pending return owns these samples. Move them out before
+                // causal observation can clone the acoustic transition.
+                let axes = trajectory.axes().len();
+                let frames = trajectory.frame_count();
+                let duration_ms = i64::try_from(frames - 1)
+                    .map_err(|_| RuntimeError::OrganismTickOverflow)?;
+                let payload = trajectory.into_compact(
+                    source_tick, crate::virtual_articulatory_body::MAX_PASSIVE_BODY_SOURCE_BYTES,
+                ).map_err(|error| RuntimeError::ArticulatedBody(format!("{error:?}")))?;
+                body_proprioceptive_sources.push(BodyProprioceptiveSourceReceipt {
+                    source_tick,
+                    admission: (duration_ms, 1_000),
+                    payload,
+                    port_count: axes * 4,
+                    sample_count: axes * 4 * frames,
+                    occurrence_count: axes,
+                    occurrence_frame_count: axes * frames,
+                });
+            }
             causal_interval_evidence.push(CausalIntervalEvidence {
                 source_duration_samples_at_articulatory_rate: source_duration_samples,
                 rest_recovered_neuron_count: observation.rest_recovered_neuron_count,
@@ -5208,6 +5238,7 @@ fn body_proprioceptive_source(
         .map_err(|error| RuntimeError::ArticulatedBody(format!("{error:?}")))?;
     let receipt = BodyProprioceptiveSourceReceipt {
         source_tick,
+        admission: (1, 1_000),
         payload: source.joint_source_body().to_vec(),
         port_count: source.joint_source_ports().len(),
         sample_count: source.joint_source_sample_count(),
@@ -5330,6 +5361,51 @@ impl NativeResidentOrganismRuntime {
     #[getter]
     fn schema(&self) -> &'static str {
         RESIDENT_RUNTIME_SCHEMA
+    }
+
+    /// Read-only expansion of this runtime's pending passive body input.
+    /// The owning world authenticates custody before calling this boundary.
+    fn restore_passive_body_source(
+        &self,
+        py: Python<'_>,
+        payload: &[u8],
+        extents: (usize, usize, usize, usize),
+        admission: (i64, i64),
+    ) -> PyResult<NativeJointSourceEpisode> {
+        use crate::passive_body_source::PassiveBodyTrajectory;
+        use crate::virtual_articulatory_body::{
+            MAX_PASSIVE_BODY_FRAMES, MAX_PASSIVE_BODY_SOURCE_BYTES,
+        };
+        // Ordinary custody is from one completed interval. source_tick was
+        // read before organism_tick incremented, not at the sampled ms end.
+        let producer_tick = self.runtime.live_organism_tick();
+        py.allow_threads(|| {
+            let max_bytes = MAX_PASSIVE_BODY_SOURCE_BYTES;
+            let (source_tick, trajectory) = PassiveBodyTrajectory::from_compact(
+                payload, MAX_PASSIVE_BODY_FRAMES, max_bytes,
+            ).map_err(|error| PyValueError::new_err(format!("passive body source: {error:?}")))?;
+            if source_tick.checked_add(1) != Some(producer_tick) {
+                return Err(PyValueError::new_err("passive source epoch differs from current producer"));
+            }
+            let axes = trajectory.axes().len();
+            let frames = trajectory.frame_count();
+            let expected = (axes * 4, axes * 4 * frames, axes, axes * frames);
+            if extents != expected || admission.0 <= 0 || admission.1 <= 0
+                || BigRational::new(BigInt::from(admission.0), BigInt::from(admission.1))
+                    != BigRational::new(BigInt::from(frames - 1), BigInt::from(1_000))
+            {
+                return Err(PyValueError::new_err("passive body admission differs from captured interval"));
+            }
+            let source = crate::articulated_body_joint_source_builder::admit_passive_body_trajectory_source(
+                source_tick, &trajectory,
+            ).map_err(|error| PyValueError::new_err(format!("passive body expansion: {error:?}")))?;
+            let canonical = trajectory.into_compact(source_tick, max_bytes)
+                .map_err(|error| PyValueError::new_err(format!("passive body roundtrip: {error:?}")))?;
+            if canonical != payload {
+                return Err(PyValueError::new_err("passive body bytes changed on restore"));
+            }
+            Ok(source)
+        })
     }
 
     /// One fast clone of the complete lived state (unsealed if a

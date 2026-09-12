@@ -584,6 +584,7 @@ class ResidentPrepareEvidence:
     body_proprioceptive_source_extents: tuple[
         tuple[int, int, int, int, int], ...
     ] = ()
+    body_proprioceptive_source_admissions: tuple[tuple[int, int], ...] = ()
     articulatory_unit_recruitments: tuple[
         tuple[
             str,
@@ -3217,6 +3218,13 @@ class NativeResidentOrganism:
         finally:
             self.__unsealed_tick = None
 
+    def restore_passive_body_source(
+        self, payload: bytes, extents: tuple[int, int, int, int],
+        admission: tuple[int, int],
+    ) -> object:
+        """Decode pending input with this runtime's already-declared budget."""
+        return self.__runtime.restore_passive_body_source(payload, extents, admission)
+
     def live_articulated_body_axes(
         self,
     ) -> tuple[tuple[int, str, str, int, int, int, int], ...]:
@@ -4039,57 +4047,71 @@ class NativeResidentOrganism:
 
         raw_body_sources = candidate.body_proprioceptive_sources
         raw_body_source_extents = candidate.body_proprioceptive_source_extents
+        raw_body_admissions = candidate.body_proprioceptive_source_admissions
         if (
             not isinstance(raw_body_sources, list)
             or not isinstance(raw_body_source_extents, list)
+            or not isinstance(raw_body_admissions, list)
             or len(raw_body_sources) != len(raw_body_source_extents)
+            or len(raw_body_sources) != len(raw_body_admissions)
         ):
             raise RuntimeError("body proprioceptive sources changed format")
         body_proprioceptive_sources: list[bytes] = []
-        body_proprioceptive_source_extents: list[
-            tuple[int, int, int, int, int]
-        ] = []
+        body_proprioceptive_source_extents: list[tuple[int, int, int, int, int]] = []
+        body_proprioceptive_source_admissions: list[tuple[int, int]] = []
         prior_source_tick: int | None = None
-        for raw_body, raw_extent in zip(
-            raw_body_sources, raw_body_source_extents, strict=True
+        prior_passive = False
+        for raw_body, raw_extent, raw_admission in zip(
+            raw_body_sources, raw_body_source_extents, raw_body_admissions, strict=True
         ):
-            body_source_version = (
-                3
-                if isinstance(raw_body, bytes) and raw_body.startswith(b"GLJSRC03")
-                else 4
-                if isinstance(raw_body, bytes) and raw_body.startswith(b"GLJSRC04")
-                else None
+            if not isinstance(raw_body, bytes):
+                raise RuntimeError("body proprioceptive source is not bytes")
+            passive = raw_body.startswith(b"GLBPTR01")
+            version = 3 if raw_body.startswith(b"GLJSRC03") else (
+                4 if raw_body.startswith(b"GLJSRC04") or passive else None
             )
             if (
-                not isinstance(raw_body, bytes)
-                or body_source_version is None
-                or not isinstance(raw_extent, tuple)
-                or len(raw_extent) != 5
+                version is None or not isinstance(raw_extent, tuple) or len(raw_extent) != 5
+                or not isinstance(raw_admission, tuple) or len(raw_admission) != 2
             ):
-                raise RuntimeError("body proprioceptive source is not exact GLJSRC03/04")
+                raise RuntimeError("body proprioceptive source or admission changed format")
             source_tick = _nonnegative_integer(raw_extent[0], "body source tick")
-            port_count = _positive_integer(raw_extent[1], "body source port count")
-            sample_count = _positive_integer(raw_extent[2], "body source sample count")
-            occurrence_count = _positive_integer(
-                raw_extent[3], "body source occurrence count"
-            )
-            frame_count = _positive_integer(raw_extent[4], "body source frame count")
+            ports = _positive_integer(raw_extent[1], "body source port count")
+            samples = _positive_integer(raw_extent[2], "body source sample count")
+            occurrences = _positive_integer(raw_extent[3], "body source occurrence count")
+            frames = _positive_integer(raw_extent[4], "body source frame count")
+            numerator = _positive_integer(raw_admission[0], "body source duration numerator")
+            denominator = _positive_integer(raw_admission[1], "body source duration denominator")
+            per_axis_frames = frames // occurrences
             if (
-                source_tick < predecessor_organism_tick
-                or source_tick >= organism_tick
-                or prior_source_tick is not None
-                and source_tick <= prior_source_tick
-                or port_count
-                != occurrence_count * (2 if body_source_version == 3 else 4)
-                or sample_count != port_count * 2
-                or frame_count != occurrence_count * 2
+                source_tick < predecessor_organism_tick or source_tick >= organism_tick
+                or prior_source_tick is not None and (
+                    source_tick < prior_source_tick
+                    or source_tick == prior_source_tick and (not passive or prior_passive)
+                )
+                or occurrences > len(active_before.articulated_body_axes)
+                or ports != occurrences * (2 if version == 3 else 4)
+                or per_axis_frames < 2 or frames != occurrences * per_axis_frames
+                or samples != ports * per_axis_frames
+                or Fraction(numerator, denominator) != Fraction(per_axis_frames - 1, 1000)
             ):
                 raise RuntimeError("body proprioceptive source extents lost causality")
-            prior_source_tick = source_tick
+            if passive:
+                # Check translation metadata here; the native consumer alone
+                # validates every sampled position and expands the full field.
+                if (
+                    len(raw_body) != 21 + occurrences + 4 * occurrences * per_axis_frames
+                    or int.from_bytes(raw_body[8:16], "little") != source_tick
+                    or int.from_bytes(raw_body[16:20], "little") != per_axis_frames
+                    or raw_body[20] != occurrences
+                ):
+                    raise RuntimeError("compact passive source lost its native extent")
+            elif per_axis_frames != 2 or raw_admission != (1, 1000):
+                raise RuntimeError("body impulse changed its one-ms admission")
+            prior_source_tick, prior_passive = source_tick, passive
             body_proprioceptive_sources.append(raw_body)
-            body_proprioceptive_source_extents.append(
-                (source_tick, port_count, sample_count, occurrence_count, frame_count)
-            )
+            body_proprioceptive_source_extents.append((source_tick, ports, samples, occurrences, frames))
+            body_proprioceptive_source_admissions.append((numerator, denominator))
         initial_body_source_count = int(
             not active_before.articulated_body_proprioception_initialized
         )
@@ -4347,6 +4369,7 @@ class NativeResidentOrganism:
             body_proprioceptive_source_extents=tuple(
                 body_proprioceptive_source_extents
             ),
+            body_proprioceptive_source_admissions=tuple(body_proprioceptive_source_admissions),
             articulatory_unit_recruitments=tuple(
                 articulatory_unit_recruitments
             ),

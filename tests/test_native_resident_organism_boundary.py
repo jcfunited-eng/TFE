@@ -245,6 +245,7 @@ class _NativeResidentOrganismPrepare:
     articulated_body_consequences: list[tuple[object, ...]] | None = None
     body_proprioceptive_sources: list[bytes] | None = None
     body_proprioceptive_source_extents: list[tuple[int, int, int, int, int]] | None = None
+    body_proprioceptive_source_admissions: list[tuple[int, int]] | None = None
     active_physical_bonds: list[tuple[str, str, int]] | None = None
     changed_contact_channel_states: list[tuple[object, ...]] | None = None
     physical_frontier_routes: list[
@@ -302,6 +303,8 @@ class _NativeResidentOrganismPrepare:
             self.body_proprioceptive_sources = []
         if self.body_proprioceptive_source_extents is None:
             self.body_proprioceptive_source_extents = []
+        if self.body_proprioceptive_source_admissions is None:
+            self.body_proprioceptive_source_admissions = []
         if self.active_physical_bonds is None:
             self.active_physical_bonds = []
         if self.changed_contact_channel_states is None:

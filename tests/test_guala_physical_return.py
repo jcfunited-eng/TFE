@@ -33,7 +33,7 @@ def _plan(world, tick=41):
         world=world,
         evidence=SimpleNamespace(
             articulated_body_consequences=(), body_proprioceptive_sources=(),
-            body_proprioceptive_source_extents=(),
+            body_proprioceptive_source_extents=(), body_proprioceptive_source_admissions=(),
             root_yaw_unit_recruitments=(("01" * 16, 4, 7, "positive"),),
             root_translation_unit_recruitments=(),
             causal_transition_sha256="03" * 32, organism_tick=tick,
@@ -153,6 +153,44 @@ def test_return_capacity_refuses_before_world_commit(monkeypatch):
     assert world.pending_physical_return is None
     assert world.observation_snapshot() == before
     world.discard_prepared_action(plan.prepared_world)
+
+
+def test_compact_tail_cold_custody_keeps_samples_order_and_duration():
+    """Codec fixture only; not a claim that these samples were lived."""
+    from dsf_ai_service.guala_physical_return import PhysicalReturnSource, MAX_PASSIVE_BODY_BYTES
+    payload = b"GLBPTR01" + struct.pack("<QIBii", 40, 2, 1, 512, 513)
+    # One physical axis ordinal follows the21byte fixed header.
+    payload = payload[:21] + bytes([37]) + payload[21:]
+    tail = PhysicalReturnSource(payload, (4, 8, 1, 2), ((1, 1000),))
+    assert PhysicalReturnSource.from_record(tail.record()) == tail
+    with pytest.raises(RuntimeError, match="native runtime budget"):
+        tail.restore()
+    with pytest.raises(ValueError, match="compact extent"):
+        replace(tail, payload=payload + b"x")
+    with pytest.raises(ValueError, match="physical duration"):
+        replace(tail, admissions=((249, 1000),))
+    oversized = tail.record()
+    oversized["payload_base64"] = base64.b64encode(
+        payload + bytes(MAX_PASSIVE_BODY_BYTES)
+    ).decode("ascii")
+    with pytest.raises(ValueError, match="exceeds its admission"):
+        PhysicalReturnSource.from_record(oversized)
+    world = home_world_authority(identity=IDENTITY)
+    plan = _plan(world)
+    pending = replace(_capture(plan), sources=(tail,) + plan.sources)
+    with pytest.raises(ValueError, match="repeats or reorders"):
+        replace(pending, sources=(tail, tail) + plan.sources)
+    before = world.observation_snapshot()
+    with pytest.raises(ValueError, match="pending producer"):
+        replace(pending, producer_tick=42)
+    assert world.pending_physical_return is None
+    assert world.observation_snapshot() == before
+    world.commit_prepared_action(plan.prepared_world, physical_return=pending)
+    encoded = bytes(world.encoded_snapshot())
+    cold = home_world_authority(identity=IDENTITY, encoded_world=encoded)
+    assert bytes(cold.encoded_snapshot()) == encoded
+    assert cold.pending_physical_return == pending
+    assert cold.pending_physical_return.sources[0].payload == payload
 
 
 def test_native_return_kind_bounds_refuse_oversize_or_duplicate_before_decode():

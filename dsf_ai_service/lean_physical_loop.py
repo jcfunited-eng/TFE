@@ -13,7 +13,7 @@ from dsf_ai_service.lean_sensory_occurrence import (
     LeanSensoryOccurrence, rgb_retina_luminance_u8, transmitted_rgb_retina_u8,
 )
 from dsf_ai_service.guala_motor_world import prepare_motor_consequence
-from dsf_ai_service.guala_physical_return import PendingPhysicalReturn
+from dsf_ai_service.guala_physical_return import PendingPhysicalReturn, PASSIVE_BODY_MAGIC
 from dsf_ai_service.guala_physical_sensorium import (
     settle_physical_sensorium, settle_projected_physical_sensorium,
 )
@@ -35,8 +35,13 @@ MAX_NATIVE_INTERVALS_PER_OCCURRENCE = 1
 def _requires_physical_return(evidence: Any) -> bool:
     body_sources = tuple(evidence.body_proprioceptive_sources)
     body_consequences = tuple(evidence.articulated_body_consequences)
-    if bool(body_sources) != bool(body_consequences):
-        raise RuntimeError("native body consequence lost its physical source")
+    impulse_sources = tuple(source for source in body_sources
+        if source.startswith((b"GLJSRC03", b"GLJSRC04")))
+    if len(impulse_sources) > 1 or bool(impulse_sources) != bool(body_consequences):
+        raise RuntimeError("native body consequence lost its impulse source")
+    if any(not source.startswith((b"GLJSRC03", b"GLJSRC04", PASSIVE_BODY_MAGIC))
+           for source in body_sources):
+        raise RuntimeError("native body source format is not mounted")
     return bool(
         body_sources or evidence.motor_unit_recruitments
         or evidence.root_yaw_unit_recruitments
@@ -156,7 +161,7 @@ class LeanPhysicalLoop:
             admissions.insert(0, [(250, 1000)])
             if returning is not None:
                 for source in returning.sources:
-                    sources.append(source.restore())
+                    sources.append(source.restore(runtime=runtime))
                     admissions.append(list(source.admissions))
 
             native_started = True

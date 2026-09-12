@@ -332,14 +332,17 @@ def test_health_fails_when_the_organism_owner_fails(tmp_path: Path) -> None:
             }
 
 
-@pytest.mark.parametrize("wrong_tick", [False, True])
+@pytest.mark.parametrize(("wrong_tick", "capacity_refused"), [
+    (False, False), (True, False), (False, True),
+])
 def test_startup_validates_both_components_before_migration_publication(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
     wrong_tick: bool,
+    capacity_refused: bool,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    from dsf_ai_service import lean_production_app
+    from dsf_ai_service import lean_production_app, guala_receptor_anatomy
     from dsf_ai_service.glew_runtime import native_resident_organism
     from dsf_ai_service.substrate import native_resident_resource_admission
 
@@ -394,18 +397,42 @@ def test_startup_validates_both_components_before_migration_publication(
         "restore_native_resident_organism",
         restore,
     )
-    monkeypatch.setattr(
-        lean_production_app,
-        "home_world_authority",
-        lambda *, identity, encoded_world, migrate_physical_return: (
-            _World(encoded_world) if identity == IDENTITY else None
-        ),
-    )
+    anatomy = object()
+    monkeypatch.setattr(guala_receptor_anatomy, "receptor_anatomy", lambda: anatomy)
+
+    def admit_workspace(runtime, **values):
+        assert values == {
+            "anatomy": anatomy, "primary_frames": 27, "hearing_frames": 26,
+            "hearing_sense": 1, "maximum_pressure_samples": 4000,
+            "coupled_encoded_limit": 4 * 1024 * 1024,
+        }
+        calls.append(("admit", runtime.persisted))
+        if capacity_refused:
+            raise ValueError("ordinary physical input needs more logical working bytes")
+
+    def restore_world(*, identity, encoded_world, migrate_physical_return):
+        assert identity == IDENTITY and migrate_physical_return
+        assert calls[-1] == ("admit", migrated_body)
+        calls.append(("world", encoded_world))
+        return _World(encoded_world)
+
+    monkeypatch.setattr(_Runtime, "admit_ordinary_physical_workspace", admit_workspace, raising=False)
+    monkeypatch.setattr(lean_production_app, "home_world_authority", restore_world)
 
     if wrong_tick:
         with pytest.raises(RuntimeError, match="native identity/tick"):
             _restore_production_actor()
         assert store.read_pointer() == predecessor
+        assert capsys.readouterr().out == ""
+        return
+
+    if capacity_refused:
+        with pytest.raises(ValueError, match="logical working bytes"):
+            _restore_production_actor()
+        assert calls == [("migrate", predecessor_body), ("restore", migrated_body),
+                         ("admit", migrated_body)]
+        assert store.read_pointer() == predecessor
+        assert store.restore().body == predecessor_body
         assert capsys.readouterr().out == ""
         return
 
@@ -438,7 +465,10 @@ def test_startup_validates_both_components_before_migration_publication(
     actor.close()
 
     current = store.restore()
-    assert calls == [("migrate", predecessor_body), ("restore", migrated_body)]
+    assert calls == [
+        ("migrate", predecessor_body), ("restore", migrated_body),
+        ("admit", migrated_body), ("world", world_body),
+    ]
     assert current.body == migrated_body
     assert current.world == world_body
     assert current.pointer.current.identity == IDENTITY

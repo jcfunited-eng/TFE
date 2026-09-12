@@ -68,6 +68,8 @@
         "native/guala_core/src/ordered_gate_delivery_candidate.rs",
         "native/guala_core/src/organism.rs",
         "native/guala_core/src/organism_runtime.rs",
+        "native/guala_core/src/ordinary_physical_input_admission.rs",
+        "native/guala_core/src/passive_body_source.rs",
         "native/guala_core/src/physical_mosaic.rs",
         "native/guala_core/src/positional_krimelack_boundary.rs",
         "native/guala_core/src/proprioceptive_receptor_work.rs",

@@ -30,10 +30,14 @@ _PORTS = (
     ("articulation", ARTICULATORY_PORTS), ("thermal", THERMAL_PORTS),
 )
 RETURN_SAMPLE_BYTES = sum(count for _, count in _PORTS) * 3 * 8
-# One native interval emits at most one sparse body episode and the two
-# existing root-motion episodes. The body has 45 axes, four endings each.
-MAX_RETURN_SOURCES = 3
+# One native interval: impulse, passive tail, and the two root-motion
+# episodes. This remains one pending owner. Its live physical hop is250ms.
+MAX_RETURN_SOURCES = 4
 MAX_BODY_AXES = 45
+MAX_PASSIVE_BODY_FRAMES = int(RETURN_TIMES[-1] * 1000)
+MAX_PASSIVE_BODY_BYTES = 21 + MAX_BODY_AXES * (1 + 4 * MAX_PASSIVE_BODY_FRAMES)
+PASSIVE_BODY_MAGIC = b"GLBPTR01"
+_PASSIVE_BASE64_PREFIX = base64.b64encode(PASSIVE_BODY_MAGIC[:6]).decode("ascii")
 
 
 def _integer(value: object, maximum: int, *, minimum: int = 0) -> int:
@@ -48,9 +52,11 @@ def _receipt(value: object) -> str:
     return value
 
 
-def _body(value: object) -> bytes:
+def _body(value: object, maximum_bytes: int | None = None) -> bytes:
     if not isinstance(value, str):
         raise ValueError("physical return byte body is not base64 text")
+    if maximum_bytes is not None and len(value) > 4 * ((maximum_bytes + 2) // 3):
+        raise ValueError("physical return byte body exceeds its admission")
     try:
         decoded = base64.b64decode(value, validate=True)
     except (ValueError, TypeError) as error:
@@ -71,18 +77,25 @@ class PhysicalReturnSource:
             raise ValueError("physical return source is empty")
         if not isinstance(self.extents, tuple) or len(self.extents) != 4:
             raise ValueError("physical return source extent changed")
-        ports, samples, occurrences, frames = self.extents
-        for value, maximum in zip(self.extents, (4 * MAX_BODY_AXES, 8 * MAX_BODY_AXES, MAX_BODY_AXES, 2 * MAX_BODY_AXES), strict=True):
-            _integer(value, maximum, minimum=1)
-        if samples != 2 * ports or frames != 2 * occurrences:
-            raise ValueError("physical return source lost its two endpoints")
-        # These are the actual native producer formats, not interchangeable
-        # generic GLJS episodes. Startup capacity admission relies on this
-        # fixed source anatomy; raw bytes are decoded only after it is checked.
         kind = self.payload[:8]
+        passive = kind == PASSIVE_BODY_MAGIC
+        ports, samples, occurrences, frames = self.extents
+        maximum_frames = MAX_PASSIVE_BODY_FRAMES if passive else 2
+        for value, maximum in zip(self.extents, (
+            4 * MAX_BODY_AXES, 4 * MAX_BODY_AXES * maximum_frames,
+            MAX_BODY_AXES, MAX_BODY_AXES * maximum_frames,
+        ), strict=True):
+            _integer(value, maximum, minimum=1)
+        per_axis_frames = frames // occurrences
+        if (
+            not 2 <= per_axis_frames <= maximum_frames
+            or frames != per_axis_frames * occurrences
+            or samples != per_axis_frames * ports
+        ):
+            raise ValueError("physical return source lost its sampled endings")
         if kind == b"GLJSRC03":
             exact_shape = ports == 2 * occurrences
-        elif kind == b"GLJSRC04":
+        elif kind == b"GLJSRC04" or passive:
             exact_shape = ports == 4 * occurrences
         elif kind == b"GLJSRC05":
             exact_shape = self.extents == (2, 4, 1, 2)
@@ -96,8 +109,17 @@ class PhysicalReturnSource:
             not isinstance(interval, tuple) or len(interval) != 2
             or any(isinstance(value, bool) or not isinstance(value, int) for value in interval)
             for interval in self.admissions
-        ) or self.admissions != ((1, 1000),) * occurrences:
+        ) or self.admissions != ((per_axis_frames - 1, 1000),) * occurrences:
             raise ValueError("physical return source changed its physical duration")
+        if passive:
+            if (
+                len(self.payload) > MAX_PASSIVE_BODY_BYTES
+                or len(self.payload) != 21 + occurrences + 4 * occurrences * per_axis_frames
+                or int.from_bytes(self.payload[16:20], "little") != per_axis_frames
+                or self.payload[20] != occurrences
+            ):
+                raise ValueError("passive physical return lost its compact extent")
+            # Native decoding checks every position and unfolds the full field.
 
     @classmethod
     def capture(cls, source: object, admissions: list[tuple[int, int]]) -> PhysicalReturnSource:
@@ -108,7 +130,15 @@ class PhysicalReturnSource:
             tuple(admissions),
         )
 
-    def restore(self) -> object:
+    def restore(self, *, runtime: object | None = None) -> object:
+        if self.payload.startswith(PASSIVE_BODY_MAGIC):
+            if runtime is None:
+                raise RuntimeError("passive physical return requires the native runtime budget")
+            # Warm and cold returns share this one exact native decoder and
+            # its compact-byte roundtrip; expanded GLJS bytes are not custody.
+            return runtime.restore_passive_body_source(
+                self.payload, self.extents, self.admissions[0],
+            )
         import guala_core
         source = guala_core.settle_native_joint_source_episode(self.payload, *self.extents)
         if bytes(source.as_bytes()) != self.payload:
@@ -129,7 +159,11 @@ class PhysicalReturnSource:
         extents, admissions = value["extents"], value["admissions"]
         if not isinstance(extents, list) or not isinstance(admissions, list) or any(not isinstance(item, list) for item in admissions):
             raise ValueError("physical return source dimensions changed")
-        return cls(_body(value["payload_base64"]), tuple(extents), tuple(tuple(item) for item in admissions))
+        encoded = value["payload_base64"]
+        maximum = MAX_PASSIVE_BODY_BYTES if (
+            isinstance(encoded, str) and encoded.startswith(_PASSIVE_BASE64_PREFIX)
+        ) else None
+        return cls(_body(encoded, maximum), tuple(extents), tuple(tuple(item) for item in admissions))
 
 
 @dataclass(frozen=True, slots=True)
@@ -161,10 +195,17 @@ class PendingPhysicalReturn:
             prefix = source.payload[:8]
             if prefix in (b"GLJSRC03", b"GLJSRC04"):
                 kind = 0
-            elif prefix == b"GLJSRC05":
+            elif prefix == PASSIVE_BODY_MAGIC:
                 kind = 1
-            elif prefix == b"GLJSRC06":
+                # LeanPhysicalLoop admits one native interval. Its impulse
+                # precedes the completed producer by one; the sampled ms end
+                # is a different physical epoch and must not be substituted.
+                if int.from_bytes(source.payload[8:16], "little") + 1 != self.producer_tick:
+                    raise ValueError("passive source epoch differs from its pending producer")
+            elif prefix == b"GLJSRC05":
                 kind = 2
+            elif prefix == b"GLJSRC06":
+                kind = 3
             else:
                 raise ValueError("physical return source kind is not mounted")
             if kind <= prior_kind:
