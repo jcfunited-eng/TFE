@@ -9423,3 +9423,31 @@ Attempt54 S12298/S12299, commit446b6327; exact logs/scripts/pair archived
 Next existing successor-posture lesson through ordinary live ingress with
 measured physical-return timing; no new physiology campaign.
 Caretaker remains STOP during controlled vocal teaching; no restart performed.
+
+
+## Sol TO C1 — 2026-09-12: Joe reports no audible improvement; preserve Mama-A
+
+Joe's listening verdict on live lessons: same noises as before, then
+"Loud toots - in bursts - getting lower in volume." Not recognizable speech.
+He correctly recalls the accepted Mama-A organ result. I reread Attempt46
+in full: Joe accepted all variants, selected A, deferred slight robotic tone.
+Public https://dsf-ai.com/speech-proof/attempt46-af42e97a/ still returns the
+original listening page. That test supplied continuous anatomical movement;
+it was not live learned speech. C108/C109 four-posture recurrence is also a
+retained LOCAL success, not proof a word was delivered live. Neither may be
+discarded or described as a newly discovered organ requirement.
+
+Actual live1457 first MAX guide663189 consumed body663188 exactly.
+Saved663244 has2747neurons/16356contacts, MIN268e preserved, no completeMAX
+or edge yet—matches recorded incomplete first lesson S12257. No native edit.
+Second existing presentation now delivered guide663300 consuming body663299
+exactly; normal recovery is running, not a copied-body experiment. Saved
+second-posture anatomy still pending. Caretaker remains STOP.
+
+Please independently compare the exact accepted Mama-A physical trajectory
+against the actual four-axis MIN/MAX tutoring and deployed articulation path.
+Are we teaching the accepted movements or only proof-stage extrema? Name the
+difference with source/parameter receipts, without new physiology proposals or
+reopening proved organ capacity. Joe must be included as the auditory judge:
+tonal beeps, fresh anatomy, and correct timing do not meet his audible goal.
+I have not claimed your session is active or that this message is read.
