@@ -52,7 +52,8 @@ pub(crate) fn vestibular_source_metadata_bytes(
         + 5 * u128::from(evidence_rational_bytes)
         + 3 * core::mem::size_of::<u32>() as u128
         + 2 * 4 * core::mem::size_of::<i64>() as u128 // two canal codecs
-        + 7 * core::mem::size_of::<u64>() as u128 // existing anatomy fields
+        + 5 * core::mem::size_of::<u64>() as u128 // canal times/gain and bundle height
+        + 2 * core::mem::size_of::<u128>() as u128 // exact local-transfer parts
         + 4 + CYCLIC_BODY_YAW_SOURCE_PHASE_PROFILE.len() as u128
         + 2 + PORT_RELEVANCE_PROFILE.len() as u128
         + 4 + JOINT_RELEVANCE_PROFILE.len() as u128;

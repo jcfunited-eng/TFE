@@ -1,15 +1,15 @@
 # Guala speech repair Attempt 54 — complete design verification and lean sensorimotor route
 
-## Latest decision checkpoint — 2026-09-12 16:37 UTC, I122217
+## Latest decision checkpoint — 2026-09-12, C1 feedback approval S122219
 
-Joe's movement-dependency question is NOT a stop order. R122210/S122212 remains
-the one active repair, now undergoing a bounded necessity review with actual C1
-before further implementation expansion. Direct acoustic geometry was ALREADY
-implemented/proved at the organ boundary in R122141–143; do not repeat it.
-Existing shared actuator dynamics are a separate question. No new live result.
-C1 request published/read-back on origin4d5e6cb5147121a5c9a98a2ba7fa8a5390f2a82f;
-a filed request is not an active reviewer or an approval.
-Joe-visible live-page acceptance is explicit in I122217. Candidate131 incomplete.
+C1 has APPROVED the compact full-trajectory feedback direction; the necessity
+review below is historical, NOT an approval wait. Continue R122210/S122212.
+Add exact producer/impulse epoch mismatch refusal and silent-but-moving capture
+to acceptance before candidate review/build. Direct acoustic geometry remains
+closed at R122141–143. No new mouth or neuron law; no reopened word campaign.
+I122220 adds generated body/vestibular retained-layout arithmetic. Aggregate,
+startup invocation and compact-return integration remain unfinished.
+Joe-visible live-page acceptance is explicit in I122217/218. No deployment.
 
 ## Current resume point — 2026-09-12, measured position-input limit; speech NOT fixed
 
@@ -21126,3 +21126,72 @@ Additional source-read fumble: guessed glew_runtime/lean_physical_loop.py;
 rg --files located dsf_ai_service/lean_physical_loop.py and app imports confirmed
 it. Read-only/no test or organism impact. This failure class is still recurring;
 the existence of a wrapper has not prevented failure to use path discovery.
+
+### S/I-054-122-219 — C1 approves the full compact feedback; continue Candidate131
+
+Previous goal turn PROGRESS:0fb354b8 preserved review packet/source, C1 request
+and exact existing page path. Shared origin now adds C1's explicit approval
+(blob81ac55f3b4ab0ff02bda19542c0e23f982b266a3), received from Joe and read in full.
+No C1 implementation review or speech success is inferred.
+The necessity question is answered: the existing controls need actual position
+feedback; GLBPTR01 is compact representation, not reduced experience.
+Continue the same R122210/S122212 contract, no approval wait.
+
+Add BEFORE build/review to frozen acceptance:
+- Mismatched binding: compact impulse source_tick inconsistent with its bound
+  completed-producer tick refuses with predecessor/state untouched. Preserve
+  distinct impulse epoch and completion epoch; no stale evidence join.
+- Silent-unrendered trajectory: real antagonist/control movement must be
+  captured when pressure is silent and the old quiescence predicate would
+  otherwise skip rendering. Do not manufacture unperformed ms or settle twice.
+These supplement the already scoped same-predecessor32/128 ordinary return,
+warm/cold equality and live audible/page evidence; no repeated closed campaign.
+
+Source-consumer check confirms source_times and every dimensionless coordinate
+go into joint_uf_source_adapter::build_input. Proprioceptive work integrates
+the actual squared-length samples over that same source clock. A final
+position, peak, or total energy alone cannot replace both interfaces unchanged.
+This reinforces existing S122198/205, not a new physical failure.
+No new receptor/learning/body law or DSF reduction. Full goal ACTIVE.
+
+Next authorized implementation: remaining startup-only generated-source layout.
+Body/guide/passive identity-map rationals have u128 component bounds; vestibular
+sample field is exact binary64, with real cyclic yaw phase (NOT zero).
+Vestibular evidence tips derive from i128 times two u64-bounded gains; metadata
+must honor serialized types, not constructor argument widths. Found before
+compile: the previous helper counted seven u64 fields, but local_transfer.parts()
+serializes i128/u128, so that header is5*u64+2*u128,16bytes larger. Correct it.
+The source admission object also retains five rational fields outside its
+episode; count that wrapper separately. All this is startup arithmetic only.
+
+Internal source-only reviewer independently checked a possible future lean
+extraction from the existing passive renderer:4000samples currently call the
+whole body settler249times, each creating a consequence vector reserved for45
+entries which the renderer discards, plus clone/arrays and repeated validation.
+The exact integration could be reused in-place on the candidate-owned body
+without those containers; this changes no coordinate law. Removing allocation
+also removes its allocation-failure path, so do not promise identical resource
+refusals. Current C131 scope explicitly excludes body-law-file edits: retain
+this owned lean follow-up, NOT a new prerequisite or unapproved edit. Owner Sol;
+required proof exact same pressure/body/cold successor, no extra integration,
+and measured allocation/call savings. No speedup measured or deployed.
+
+### I-054-122-220 — generated-source startup layouts added, NOT completed admission
+
+ordinary_physical_input_admission.rs now245 lines (+92): shared identity-map
+layout arithmetic plus body/vestibular producer-specific callers. Body uses
+existing2/4 endings and all45 possible axes for capacity, exactu128 position/
+load components and zero phase. Vestibular uses1port/2frames, full signed
+binary64 rational width, real cyclic phase, encoded mechanical profile and
+the admission wrapper's five retained rational values. No source is generated,
+no sample/neuron scan, no persistent profile or per-interval accounting.
+The prior metadata helper's local-transfer field-width error is corrected
+from7*u64 to5*u64+2*u128. Constructor values bounded byu64 do not change their
+serialized128-bit type. No source/body format or physical law was changed.
+
+Still incomplete: cold raw-source layout, producer/parser construction overlap,
+aggregate native budget comparison/startup caller, capture/expansion integration,
+release closure and new C1 controls. Encoded/retained logical storage is NOT
+construction peak or RSS. No compiled or invoked admission method exists yet.
+No compile/test/restore/harness/browser/cloud or production action this pass.
+git diff --check PASS. Full AE goal ACTIVE; speech NOT fixed.

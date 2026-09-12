@@ -151,3 +151,95 @@ pub(crate) fn primary_source_logical_layout(
         usize::try_from(retained).map_err(|_| "ordinary source retained size exceeds host width")?,
     ))
 }
+
+
+/// Layout of the generated identity-map sources below. All their ports have
+/// one coordinate. Metadata includes text, profiles and the encoded map, but
+/// not sample bodies; rational headers and limbs are separate retained costs.
+fn fixed_source_logical_layout(
+    ports: u32,
+    occurrences: u32,
+    frames: u32,
+    metadata: usize,
+    coordinate_bits: (u32, u32),
+    phase_bits: (u32, u32),
+) -> Result<(usize, usize), String> {
+    use crate::joint_source_episode::{
+        joint_source_storage_header_bytes, JointSourceCoordinate,
+        JointSourceOccurrenceView, JointSourcePortView,
+    };
+    let p = u128::from(ports);
+    let o = u128::from(occurrences);
+    let n = u128::from(frames);
+    let samples = p * n;
+    let clock_frames = o * n;
+    let (cn, cd) = (u128::from(coordinate_bits.0), u128::from(coordinate_bits.1));
+    let (pn, pd) = (u128::from(phase_bits.0), u128::from(phase_bits.1));
+    let time_encoded = rational_encoded_bytes(64, 64);
+    let unit_encoded = rational_encoded_bytes(1, 1);
+    let encoded = metadata as u128
+        + samples * (time_encoded + size_of::<f64>() as u128
+            + rational_encoded_bytes(pn, pd) + unit_encoded
+            + rational_encoded_bytes(cn, cd))
+        + clock_frames * (time_encoded + unit_encoded);
+    let retained = joint_source_storage_header_bytes() as u128
+        + metadata as u128 + encoded
+        + p * (size_of::<JointSourcePortView>() as u128
+            + size_of::<JointSourceCoordinate>() as u128
+            + 4 * rational_limb_bytes(1, 1))
+        + o * size_of::<JointSourceOccurrenceView>() as u128
+        + samples * (5 * size_of::<BigRational>() as u128
+            + rational_limb_bytes(64, 64)
+            + 2 * rational_limb_bytes(cn, cd)
+            + rational_limb_bytes(pn, pd) + rational_limb_bytes(1, 1))
+        + clock_frames * (2 * size_of::<BigRational>() as u128
+            + rational_limb_bytes(64, 64) + rational_limb_bytes(1, 1))
+        + 2 * p * size_of::<usize>() as u128
+        + p * size_of::<Vec<usize>>() as u128;
+    Ok((
+        usize::try_from(encoded).map_err(|_| "ordinary generated source exceeds host width")?,
+        usize::try_from(retained).map_err(|_| "ordinary retained source exceeds host width")?,
+    ))
+}
+
+/// Capacity for the possible fixed body anatomy, never an emitted roster.
+/// Impulse/guide and passive ports use identity maps; their exact position or
+/// reacted-load ratios are bounded by u128 components. v3 has two endings,
+/// v4/passive four; using the existing four-ending metadata bounds both.
+pub(crate) fn body_source_logical_layout(
+    endings_per_axis: u32,
+    frames: u32,
+) -> Result<(usize, usize), String> {
+    if !matches!(endings_per_axis, 2 | 4) || frames < 2 {
+        return Err("ordinary body layout requires its existing ending/clock shape".into());
+    }
+    let axes = crate::virtual_articulated_body::BODY_AXIS_COUNT as u32;
+    fixed_source_logical_layout(
+        axes * endings_per_axis, axes, frames,
+        crate::articulated_body_joint_source_builder::articulated_source_metadata_bytes(),
+        (128, 128), (0, 1),
+    )
+}
+
+/// One native yaw/bundle occurrence has two samples, signed binary64 field,
+/// real cyclic yaw phase, and five retained evidence rationals beside the
+/// source. The empty physical contact array has no dynamic payload.
+pub(crate) fn vestibular_source_logical_layout() -> Result<(usize, usize), String> {
+    use crate::vestibular_joint_source_builder::{
+        vestibular_source_metadata_bytes, VestibularJointSourceAdmission,
+    };
+    // tip = i128 relative velocity * u64 gain * u64-bounded local transfer.
+    // Both exact tip components fit this upper bit width; time/height are
+    // smaller. Serialized local-transfer *fields* still occupy 128 bits each.
+    let evidence_bits = u128::from(i128::BITS) + 2 * u128::from(u64::BITS);
+    let evidence_encoded = u32::try_from(rational_encoded_bytes(evidence_bits, evidence_bits))
+        .map_err(|_| "ordinary vestibular evidence width exceeds its codec")?;
+    let (encoded, retained) = fixed_source_logical_layout(
+        1, 1, 2, vestibular_source_metadata_bytes(evidence_encoded)?,
+        (53, 1075), (64, 64),
+    )?;
+    let retained = retained as u128 + size_of::<VestibularJointSourceAdmission>() as u128
+        + 5 * rational_limb_bytes(evidence_bits, evidence_bits);
+    Ok((encoded, usize::try_from(retained)
+        .map_err(|_| "ordinary vestibular retained size exceeds host width")?))
+}
