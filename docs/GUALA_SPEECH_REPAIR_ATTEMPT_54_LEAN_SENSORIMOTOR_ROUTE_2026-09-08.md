@@ -1,24 +1,30 @@
 # Guala speech repair Attempt 54 — complete design verification and lean sensorimotor route
 
-## Current resume point — 2026-09-12, approved direct acoustic-control implementation
+## Current resume point — 2026-09-12, Candidate126 copied-body path exercised
 
-**Speech is not fixed. Full AE goal ACTIVE.** Joe explicitly approved proceeding
-with the recommended reuse and usual skills/safeguards, and resumed the goal.
-R122141 closes the shared-versus-independent decision: reuse axes18,37-44,
-their existing learned lineages, dynamics, sparse position/load feedback and
-protective glottal coupling. No duplicate anatomy or new response law.
+**Speech is not fixed. Full AE goal ACTIVE.** Joe-approved reuse of the nine
+existing acoustic controls is implemented, source-reviewed and locally exercised.
+Source93724276; R122141 contract, S/H122143-146 receipts. No production deployment.
+No duplicate anatomy/new dynamics/codec. Broad old route completion remains.
 
-Single active item: Candidate126 direct acoustic-control path, including the
-already-preserved C125 endpoint plasticity. Contract in R122141; source review
-before compile/test; no deployment claimed. The source/consumer audit is closed,
-not to be repeated. Preserve broad route completion/continuation authority.
+Saved1457body cue under ordinary126 artifact: output-quiet baseline8, one
+4000-sample cue, MIN act663383 then MAX663384, breath on both,24000 self-heard
+samples, exact local checkpoint publication. Motor/work/breath/return evidence
+matches archived125 sound-only run at all17 intervals. Actual sound differs;
+recognizable speech or quantitative demonstration learning is NOT proved.
+Tail remains sounding at eight intervals, as it also did on the predecessor;
+not a newly discovered regression or proof it never stops. Earlier longer
+live tail S122106 is preserved, not reopened by this short observation.
 
-Last AWS evidence remains06:57:10UTC task1457/image80755ca0,1/1/0;
-runaway alarmsOK, historicalclock-stalledALARM. This is NOT a new health check.
-Browser CLOSED, caretakerSTOP; no new production pause/restart.
-C125 applicability, invalid saturated dose contrast, separate predecessor
-warm/cold discrepancy and all artifacts remain preserved. Recognizable
-speech and full AE completion remain unproved.
+Single next item: correct the ALREADY measured predecessor cognitive warm/cold
+physical-state omission under a frozen source-reviewed contract before another
+full acceptance run. Do not rerun the failed assay to rediscover it, serialize
+the scheduler heap, discard fractional state, or reopen direct-control anatomy.
+Latest AWS08:38:01.996800UTC same1457/task41d3db93/image80755ca0,1/1/0.
+Runaway/storage/refusal alarmsOK; historicalclock-stalledALARM persists.
+Caller/build terminal, no orphan. Browser CLOSED/caretakerSTOP; no live mutation.
+C126 evidence saved9MiB at /mnt/tfebackup/guala-c118-four-posture.XehvEs/c126-physical-cue.wSS9hB/.
+C125 successes/failures and invalid saturated dose comparison remain preserved.
 
 The earlier live-lesson status below is HISTORICAL context, not the resume point.
 
@@ -17657,3 +17663,134 @@ C125 native path and output directory must be explicitly updated for126;
 never point a126 label at125 bytes or overwrite earlier results.
 Known predecessor cognitive restart discrepancy remains separately open.
 Full goal ACTIVE; recognizable speech still NOT fixed.
+
+### S/H-054-122-144 — ordinary Candidate126 artifact and single saved-body caller
+
+2026-09-12. Continues R122141; source93724276862880c72d24322186dd9357342acf54.
+Supporting organ/transport proof S122143 stays closed. No production update.
+Ordinary native release build completed80s,190 existing warnings. No diagnostic
+feature, global installation, cargo-fix or warning-cleanup scope expansion.
+Compiler-reported wheel in /tmp/guala-c126-native.0bzXLS:
+guala_core-0.1.0-cp311-cp311-manylinux_2_35_x86_64.whl
+SHA906e236621a20120fd7b6cf774cbc34f959280165b7b02d70ced891a4d495551.
+Installed ONLY to that directory's installed subdirectory, --no-index --no-deps.
+Native .so SHAb6cace439edca762713511f8e1e2fb681e26ea37d5665f24a254f6a0ff4f7bfa.
+Explicit isolated import resolved there; diagnostic getter absent.
+
+One read-command fumble: rg was given nonexistent repository-root pyproject.toml
+alongside the actual native/guala_core/pyproject.toml. Exit2, no compile/test
+failure. Actual native file read completely before build. Enforce file resolution
+(test -f or rg --files/preflight wrapper) BEFORE naming uncertain paths.
+
+External caller /tmp/guala-c126-physical-cue.py, initial SHA
+33149551a8c7cdad46e7974c3fdc2585fdda831e888195b393d2b6d67a12406b.
+Frozen source-only review requested before run; caller is NOT production code.
+One authenticated saved1457body at tick663372, NOT newest live checkpoint.
+Archive0f824b4c2c8c79db0eb09879dacbfe25a6a2b75c3b118e170bdc81a88777fabd;
+bodycdcf8c47072d2f61b17d90e32522f563de84045a9b1cd6f95f06c91ebb09b29f;
+world99b564458c3c51d27fe1407613979e78d511381f9dc8df069e90fed5e4edaaf7;
+cue85a505e8569b7e4407ded73eab2539565096fad17a71afa67a9e93acddb5c545.
+Exactly4000 real microphone samples, ordinary production door, no guide.
+8 ordinary baseline clocks -> one cue -> 8 ordinary tail clocks; same real
+LeanPhysicalLoop native/body/world/self-hearing path as prior declared caller.
+No manual state edits, neuron reset, dose search, full-contact census or repeated
+known warm/cold falsifier. Controlled local solarUTC0 as previous comparison;
+actual1457task environment has no receptor-roster overrides. Local paired store
+replaces only the production storage location, never touches the live pointer.
+
+Acceptance-evidence map: native per-interval recruitments/work/breath/pressure
+and whole-result body_effector_bindings -> unchanged Python getter -> read-only
+observer retaining exactly one interval -> external JSON rows and exact signed
+16-bit native pressure blocks. Select acoustic membership from actual readiness
+axis18/37-44 names, not a stale fixed motor-lineage list. Self/external-hearing
+and physical-return ticks come from actual LeanPhysicalLoop observations.
+Pre-cue quietness must be measured, not assumed. Whole-work-preparation refusal
+is under explicit source-review for possible nonvocal false rejection.
+Last two tail intervals quiet plus no in-flight pressure is the bounded tail
+observation, NOT an assertion of silence forever. Cue/endogenous sound is not
+called a word. Ordinary exact paired checkpoint publication closes local custody,
+not the separately OPEN full-cognitive warm/cold discrepancy.
+
+Output only /tmp/guala-c126-native.0bzXLS/proof; refuses overwrite. One body in
+memory, no spawned test children, no live network in caller. Record peakRSS and
+interval timing. Read-only AWS health immediately before/after, process census
+after terminal exit. Native build session47313 is terminal0; no orphan build.
+Known restart issue remains release-blocking and is NOT waived by this shorter
+applicability check. Newest authenticated body/lifecycle/real startup/live heard
+recognizable sound remain required before speech delivery.
+
+### H/R-054-122-145 — caller false-refusal corrected before execution
+
+Independent source review of caller33149551 found one localized blocker:
+all learned_motor_work_preparations includes non-acoustic body work. Treating
+any of it as voice activity could falsely refuse the cue. No run took place.
+Corrected only this observer gate: actual acoustic bindings, breath, pressure
+and pending acoustic custody define output quietness; full preparations remain
+recorded. This is explicitly NOT a latent/pre-poised preparation census and
+cannot close that release acceptance row. The existing articulatory-work getter
+joins actual breath events; it is not an unspent-preparation inventory either.
+No organism code, no hidden control or whole-body pause was added.
+Final external caller SHAd4185622cfd446d8983c632f70693c1af32026902e592795bc371242cd8308e2.
+Localized source-only final review requested. No extra compile needed.
+
+AWS immediately before intended run08:36:43.850393UTC: same1457/task41d3db93/
+image80755ca0, service1/1/0; latestCPUmaximum43.3592%,RAMmaximum11.3556%.
+Runaway/storage/refusal alarmsOK, existing clock-stalledALARM unchanged.
+Local process census no prior native build/test/copy child; ordinary unrelated
+TFE/IDE/Claude processes left untouched. No live writes.
+
+### S/F-054-122-146 — C126 saved-body action/self-hearing preserved; NOT speech acceptance
+
+Final caller source PASS at d4185622, SHA verified unchanged; no further edits.
+One execution only, session39753/PID11233, terminal0. The return code means
+caller completed its observation/publication, NOT that full speech passed.
+Actual baseline proved the review prevented a real false fail: left-grip and
+right-hip motor work occurred while acoustic output remained quiet. Ordinary
+nonvocal life was not stopped to obtain the control.
+
+Observed eight output-quiet intervals663373-380; cue4000 samples at663381.
+MIN663383: actual axes37/38/39/44 motor carriers28/69/76/71, breath244,
+3997 nonzero samples, peak855. MAX663384:5/2/6/5, breath18,
+3999 nonzero samples, peak760. No later acoustic motor/breath recruitment
+through663389; pressure persists while the existing organ continues.
+Total27979nonzero samples and24000 returned self-heard samples in declared tail.
+Final two intervals are NOT silent; pending acoustic pressure remains.
+This is not a clean-stop, latent-preparation, full-word or cognitive-restart PASS.
+
+PRIOR-ART COMPARISON WITHOUT ANOTHER ORGANISM RUN:
+Read archived predecessor-0 and candidate-0 logs from preserved C125 evidence.
+All17 C126 motor/work/breath and self/external-hearing/body-return observations
+match C125candidate-0 exactly. Against older predecessor only2work rows differ
+(663379/663383), consistent with retained C125 correction; motor/breath/return
+still match. Direct sound nonzero counts differ under explicitly changed area
+law. Exact final world matches f6762626. C125 also had nonzero pressure through
+663389 and clean_stop_claimed=false, so do NOT call the same short tail a new
+126failure or redo the proven action path. Historical longer live S122106
+reported34blocks/136000self-heard followed by silence; that separate input/run
+is preserved, not proof this shorter copy has already stopped.
+
+Resource:17 measured intervals total18.928s, individual0.716-1.877s; peakRSS
+1784524KiB (~1.70GiB). Archived125 total39.943s was a different runtime load;
+NO controlled speedup or subsecond-production claim from this comparison.
+Build80s/190warnings, test process terminal; census afterward no associated
+child or orphan. No TFE worker stopped, no live writes/caretaker/browser change.
+AWS08:36:43.850393 ->08:38:01.996800UTC same1457/task41d3db93/image80755ca0,
+service1/1/0. Final latestCPUmax54.8176%,RAMmax10.4004%; runaway/storage/refusal
+alarmsOK, historicalclock-stalledALARM persists.
+
+Result /tmp/guala-c126-native.0bzXLS/proof/result.json SHA
+589d6b2010717a0f9846403036879b532acc91d90688c03a2fd6b06b5af0ab48.
+Final body23e8fe6966037c23e5723c45a1cf84750fa1db4a083af8db09e4a19ecb3b05e7;
+worldf676262605ec3b6e5dc9f8daff54b210febb34722a134d33d2bf4a6b55343201;
+tick663389, same identity. Canonical local snapshot seal/validation/publication/
+adoption/reconciliation succeeded, not whole warm/cold successor equivalence.
+Exact pressure bytes, JSON, caller, wheel and AWS brackets saved once under
+/mnt/tfebackup/guala-c118-four-posture.XehvEs/c126-physical-cue.wSS9hB/
+9MiB; recursive proof comparison/caller+wheel cmp verified. Originals retained.
+
+NEXT ONE ITEM: use the already recorded physical-clock/recovery omission map
+to close the predecessor cognitive warm/cold discrepancy. No rerun for diagnosis,
+no heap serialization, no erased phase. Freeze smallest physical-custody
+correction and source-review before another complete acceptance run.
+Direct-control source and these successes stay preserved. Full goal ACTIVE,
+production still1457; speech not fixed; no deployment attempt made here.
