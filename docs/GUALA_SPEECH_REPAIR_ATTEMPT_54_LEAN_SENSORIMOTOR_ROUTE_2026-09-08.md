@@ -22004,3 +22004,19 @@ request. Do not quietly waive the19 remaining native failures, expand into a
 memory investigation, or claim the final newest-body delivery safeguards done.
 First genuine decision-blocked audit for this resumed delivery slice; full
 goal remains active, not complete and not yet status-blocked.
+
+
+### I122239 — third unchanged decision-blocked audit; automatic work blocked
+
+Three consecutive goal continuations found the same missing C1 release-scope
+disposition. Latest shared SHA remains cc6ad8899e580fb2cb1efe78771e176421760fe9;
+source c2511e92 is clean. No active review job is verified. Existing safe
+preparation is complete to this decision boundary; no new tests, alternative
+research scope or silent release-gate waiver is authorized.
+
+Mark the PROJECT GOAL blocked awaiting the explicit release decision, not
+complete. This stops automatic agent continuations, NOT the running Guala
+service. Production/caretaker/browser state is not changed. All local feedback
+successes, release-test debt, candidate artifact and verified677770 backup
+remain available. Resume from R122236 release disposition; do not restart
+the prior lesson campaign. A user resumption starts a fresh blocked audit.
