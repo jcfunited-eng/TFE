@@ -42,6 +42,36 @@ const INPUT_MAP_ID: &str = "vestibular-tip-displacement-bundle-height-invertible
 const PHYSICAL_QUANTITY: &str = "local-hair-bundle-tip-displacement";
 const PHYSICAL_UNIT: &str = "nanometre";
 
+/// Startup-only metadata size. Evidence has five exact rationals (two
+/// times, two tips and height); the caller derives their encoded width from
+/// the existing i128/u64 anatomy. No canal/body transition is performed.
+pub(crate) fn vestibular_source_metadata_bytes(
+    evidence_rational_bytes: u32,
+) -> Result<usize, String> {
+    let evidence = EVIDENCE_PROFILE.len() as u128
+        + 5 * u128::from(evidence_rational_bytes)
+        + 3 * core::mem::size_of::<u32>() as u128
+        + 2 * 4 * core::mem::size_of::<i64>() as u128 // two canal codecs
+        + 7 * core::mem::size_of::<u64>() as u128 // existing anatomy fields
+        + 4 + CYCLIC_BODY_YAW_SOURCE_PHASE_PROFILE.len() as u128
+        + 2 + PORT_RELEVANCE_PROFILE.len() as u128
+        + 4 + JOINT_RELEVANCE_PROFILE.len() as u128;
+    let text_bytes = [
+        "mounted-yaw-canal", "local-hair-bundle-0", "body-yaw-canal",
+        "local-bundle-0", PHYSICAL_QUANTITY, PHYSICAL_UNIT,
+        PORT_RELEVANCE_PROFILE, "", INPUT_MAP_ID,
+    ].into_iter().map(|value| 2 + value.len() as u128).sum::<u128>();
+    let port = 1 + 4 + 2 + text_bytes
+        + 4 * (2 + 2 + 2 + 1) // signed -1/1 upper bound on each map
+        + 4 + evidence + 4;
+    let occurrence = 4 + 4 + 4 + 4
+        + 4 + SAMPLED_VOLUME_AND_RELEVANCE_PIECEWISE_LINEAR_PROFILE.len() as u128
+        + 4 + 4 + 4 + 4 + JOINT_RELEVANCE_PROFILE.len() as u128 + 4;
+    let episode = 8 + 2 + 2 + "vestibular-same-cause-interval".len() as u128 + 6 + 4;
+    usize::try_from(episode + port + occurrence)
+        .map_err(|_| "ordinary vestibular metadata size exceeds host width".into())
+}
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) enum VestibularJointSourceError {
     SourceTickOverflow,

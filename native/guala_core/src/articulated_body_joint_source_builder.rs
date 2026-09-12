@@ -35,6 +35,43 @@ const CONSEQUENCE_MAGIC: &[u8; 8] = b"GLJSRC04";
 const LOAD_PORT_RELEVANCE: &str = "guala.body.effector_load.present.r(t)=1.exact.v1";
 const LOAD_INPUT_MAP: &str = "reacted-over-discharged-effector-carriers-v1";
 
+/// Startup-only maximum encoded metadata, excluding temporal samples.
+/// Uses the existing encoder's fields and fixed body anatomy, not a body
+/// transition or a synthetic source. The four-ending form also bounds v3.
+pub(crate) fn articulated_source_metadata_bytes() -> usize {
+    let longest_axis = BODY_AXES.iter()
+        .map(|axis| axis.anatomical_name().len()).max().expect("fixed body anatomy");
+    let text_lengths = [
+        "articulated-body-effector-load-receptor".len()
+            .max("articulated-body-proprioceptor".len()),
+        longest_axis + 1 + "toward-minimum".len().max("toward-maximum".len()) + "-load".len(),
+        "body-antagonist-proprioceptor-terminal".len().max("body-effector-load-terminal".len()),
+        (BODY_AXES.len() * 2 - 1).to_string().len(),
+        ANTAGONIST_PROPRIOCEPTOR_LENGTH_QUANTITY.len()
+            .max(EFFECTOR_REACTIVE_LOAD_FRACTION_QUANTITY.len()),
+        ARTICULATED_AXIS_SPAN_FRACTION_UNIT.len()
+            .max(DISCHARGED_EFFECTOR_CARRIER_FRACTION_UNIT.len()),
+        PORT_RELEVANCE.len().max(LOAD_PORT_RELEVANCE.len()),
+        0, // no relevance-origin identifier
+        INPUT_MAP.len().max(LOAD_INPUT_MAP.len()),
+    ];
+    // sense/topology/presence/axis/direction; coordinate count; identifiers;
+    // four 0/1 maps; GLBPEV01 profile; sample count. The passive26-byte
+    // profile is smaller than the existing118-byte impulse profile.
+    let evidence_bytes = 8 + 8 + 8 + 1 + 1 + 4 + 4 + 4 + 5 * 16;
+    let port = 1 + 4 + 1 + 1 + 1 + 2
+        + text_lengths.into_iter().map(|length| 2 + length).sum::<usize>()
+        + 4 * (2 + 1 + 2 + 1) + 4 + evidence_bytes + 4;
+    let occurrence = 4 + 4 * 4 + 4
+        + 4 + SAMPLED_VOLUME_AND_RELEVANCE_PIECEWISE_LINEAR_PROFILE.len()
+        + 4 + 4 + 4 * 4 + 4 + JOINT_RELEVANCE.len() + 4;
+    let episode = 8 + 2 + 2
+        + "articulated-body-position-and-load-interval".len()
+            .max("articulated-body-proprioceptive-interval".len())
+        + 6 + 4 + 4;
+    episode + BODY_AXES.len() * (4 * port + occurrence)
+}
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) enum ArticulatedBodyJointSourceError {
     SourceTickOverflow,

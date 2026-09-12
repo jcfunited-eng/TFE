@@ -1,5 +1,16 @@
 # Guala speech repair Attempt 54 — complete design verification and lean sensorimotor route
 
+## Latest decision checkpoint — 2026-09-12 16:37 UTC, I122217
+
+Joe's movement-dependency question is NOT a stop order. R122210/S122212 remains
+the one active repair, now undergoing a bounded necessity review with actual C1
+before further implementation expansion. Direct acoustic geometry was ALREADY
+implemented/proved at the organ boundary in R122141–143; do not repeat it.
+Existing shared actuator dynamics are a separate question. No new live result.
+C1 request published/read-back on origin4d5e6cb5147121a5c9a98a2ba7fa8a5390f2a82f;
+a filed request is not an active reviewer or an approval.
+Joe-visible live-page acceptance is explicit in I122217. Candidate131 incomplete.
+
 ## Current resume point — 2026-09-12, measured position-input limit; speech NOT fixed
 
 Full AE goal ACTIVE. Production baseline1458/71289e2b95be4d79a5c9f74ac2708b7d,
@@ -20983,3 +20994,135 @@ virtual_vestibular_canal.rs) and full_field_bank.rs (lib.rs maps the module to
 full_field_bank_final.rs). Read-only errors; no compilation or organism effect.
 Again not eliminated. Resolve filenames/imports before addressing symbols.
 Current source is partial/uncompiled/unreviewed; production baseline1458 unchanged.
+
+### I-054-122-216 — Candidate131 remaining ordinary-source storage arithmetic
+
+Continues S122212; previous turn was source PROGRESS, not production delivery.
+Next bounded implementation completes source-size arithmetic from the actual
+existing producers: body sources have one coordinate per port, four or two
+endings per fixed axis, identity maps and <=u128 rational components; vestibular
+has one port/two frames, exact binary64 field and a finite typed evidence profile.
+Derive metadata lengths beside those encoders from their actual strings/types;
+do not synthesize a body/source/lesson to measure it, scan neurons, duplicate
+the decoder, or add a live budget profile. The body law and L0-L4 stay unchanged.
+Generated source layout must include encoded plus decoded contents and native
+construction overlap; cold raw-return rational widths derive from the admitted
+encoded length and aggregate frame bound, not an assumed two frames per port.
+Logical owned content remains distinct from allocator/library internals and
+must be paired with the already-scoped measured RSS/cgroup proof.
+
+Current Candidate131 remains incomplete/uncompiled/unreviewed/not deployed.
+The aggregate comparison/startup caller and compact feedback integration are
+not completed by recording this row. Full goal ACTIVE; speech NOT fixed.
+
+### I-054-122-217 — Joe's movement question; direct-control correction and actual C1 review request
+
+Previous conversational turn: NO PROGRESS, explanation only. This continuation
+changes authoritative coordination and corrects the next-action premise, without
+a test or production intervention. Goal ACTIVE; same R122210/S122212 item.
+Joe explicitly objects to biological overengineering and requires audible/visible
+results on the live page. Neither criticism nor the question is a stop command.
+
+Architecture gate:
+requested = learned cause -> bounded direct voice control -> new sound ->
+self-hearing and retained experience, no human-mouth prerequisite;
+current source = direct acoustic geometry already exists, shared actuator law
+remains, passive position feedback is dropped;
+conflict = YES for incomplete feedback, not proof that the direct geometry
+correction is missing or the proposed full-body return is necessary;
+do not extend = legacy shell, body laws, learned/neuron laws, L0-L4;
+single next item = source-grounded necessity review of this feedback boundary;
+full DSF preserved, no reduced field proposed and no field structure discarded
+by this review. No new body/learning mechanism is authorized by this entry.
+
+CORRECTION TO SOL'S LAST ANSWER:
+"Her learned activity controls the voice instrument directly" was recommended
+as though the geometry correction were still pending. R122141–143 already
+authorize/implement/prove the scoped direct-area boundary. Current renderer
+reads vocal_tract_areas_square_millimetres directly after the passive step.
+The known organ test says same controls/excitation despite different jaw/lips
+produce the same pressure; changing actual area changes pressure.
+These successes remain closed; NOT a fresh test or a live speech claim.
+Direct geometry does not prove shared actuator activation/recovery is absent.
+The conceptual argument against obligatory human-mouth biology is valid, but
+does not itself establish which existing feedback law may be deleted.
+
+Current source inspected:
+virtual_articulatory_body.rs:275–284 advances passive mechanics and retains
+only .successor, then reads direct areas. organism_runtime.rs:4050–4115 emits
+initial typed proprioception, renders, retains final body. This confirms the
+same omission recorded in R122139/S122198, not a newly discovered failure.
+S122194/196 below-threshold initial input and S122201 later differing
+positions remain valid and are not rerun. Full later exposure has NOT yet
+proved quantitative learning or a recognizable word.
+
+Actual C1 request, NOT internal reviewer:
+shared collaborative_todo.md on guala-live, commit
+4d5e6cb5147121a5c9a98a2ba7fa8a5390f2a82f, blob
+795e61308b30fafe79985b1f9495f9fb7dfd4d6d; complete note verified by read-back.
+It asks whether full passive return is the least necessary direct-instrument
+implementation, or whether a smaller existing lawful path preserves all
+causative distinctions. It asks C1 to challenge resource scope, not merely
+approve code. No endpoint/peak proxy, invented dose, scalar/semantic controller,
+playback, neuron-law change or lost learned state is permitted.
+45-axis capacity is a possible-anatomy bound, NOT permission to emit all axes.
+No response or active C1 process claimed; no busy polling/watcher is started.
+Source-only work can continue; no silent approval or rollout while unresolved.
+
+LIVE-PAGE ACCEPTANCE, now explicit at Joe's request:
+https://dsf-ai.com/gualaloom.html must deliver actual newly caused sound in
+order, disclose gain, and expose the relevant accepted input/action/returned
+consequence only from serving evidence. No simulated expression, transcript,
+green badge or counter substitutes for Joe hearing recognizable taught sound.
+If this narrow feedback repair improves only backend evidence, label that
+backend-only; it cannot close speech or claim an audible improvement.
+Any missing required observation must cross native -> FFI -> Python -> API ->
+page before packaging, with the smallest truthful read-only projection.
+UI publication and real-browser behavior are separate from backend deployment.
+No UI/code change or fresh live/browser/cloud verification is claimed here.
+
+I122216 actual work before Joe's question:37 body-source metadata helper lines
+and30 vestibular-source metadata helper lines, both startup-only and UNCALLED.
+They add no body laws. Existing153-line capacity module remains partial;
+aggregate/native startup call and passive integration are unfinished.
+No compile/test/harness/restore/lesson/cue/deploy occurred this continuation.
+Closed live S122175 and restart S122158/159/165/169 remain closed.
+Baseline1458 is last recorded, not freshly verified; browser/caretaker untouched.
+Source lookup mistake retained: guessed virtual_acoustic_body.rs did not exist;
+actual file virtual_articulatory_body.rs was already named in the ledger.
+Read-only command exited with missing-file output; no organism/test impact.
+Do not treat that command as a successful full caller search.
+
+Recommendation: keep the proven direct instrument, resolve the necessity and
+minimal representation of its feedback with C1, then implement that one agreed
+boundary. Do not start another word/geometry/restart campaign or continue sizing
+a larger path merely because source has already been written.
+
+### I-054-122-218 — existing page evidence path located; no new observer backend presumed
+
+Source-only visibility check, same repair. No live request, UI edit or deployment.
+lean_physical_loop.py:222–300 emits embodiment from runtime.readiness axes,
+self_heard_sample_count/source_tick, pending/consumed physical_return_tick and
+source count. lean_embodiment_observation.py retains each native axis index,
+name, unit, position, minimum/neutral/maximum in native_body_axes.
+lean_actor.py:407 preserves result.observation in last_occurrence with its
+native_tick; lean_production_app.py:302 serves actor.observation unchanged.
+gualaloom.html render currently displays root motion, sound digest and some
+sensory counts, while retaining the full observation in expandable raw text.
+Thus final control positions/return acknowledgments already have an API path;
+do not add a second backend/endpoint just to expose them. The matching
+last_occurrence.native_tick is their event clock, not a later live_tick.
+These are FINAL positions, not the missing intra-render trajectory. Rested
+final controls cannot prove no preceding action; animating an inferred past
+trajectory from them would be false. Any intra-action visual must have actual
+sampled evidence, not interpolation presented as measured experience.
+Ordered sound delivery already has actor.pressure_feed -> API -> WebAudio;
+do not rebuild it from an old claim that only newest sound is transported.
+No claim current hosted assets match these source files without live verification.
+Next UI integration must reuse this path and distinguish final-state evidence
+from the audible outcome. Display changes alone will not fix speech.
+
+Additional source-read fumble: guessed glew_runtime/lean_physical_loop.py;
+rg --files located dsf_ai_service/lean_physical_loop.py and app imports confirmed
+it. Read-only/no test or organism impact. This failure class is still recurring;
+the existence of a wrapper has not prevented failure to use path discovery.
