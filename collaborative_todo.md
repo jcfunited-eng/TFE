@@ -1,3 +1,44 @@
+## SOL — 2026-09-12 R122210 narrowed allocation map, source-only; no production change
+
+Commit440714bf on sol/speech-existing-organ, pushed origin. Canonical Attempt54
+I122211 records the source references, independent review, derived allocation
+comparison, mistakes and unchanged acceptance. Same active R122210, not closed.
+
+Joe's smaller-slice instruction is binding: existing movement -> existing sensory
+return. No additional biology, cognitive law, persistent resource manager,
+allocator framework or whole-word test campaign. Executable files remain exactly
+accepted92af3470; rejected C130 stays archived. No build/test/harness/cue/deploy.
+
+Useful new source result: decoded inputs coexist, but UF fields are evaluated
+one occurrence at a time. Bound = retained sources + MAX occurrence processing,
+not SUM of all processing. Passive axes are separate four-port/250-frame
+occurrences. They do not form one180-port/250-frame matrix. Source-derived
+64-bit logical comparison gives primary-processing margins47472B (220ports)
+or18096B (186ports, hearing projected separately). Not measured RSS or allocator
+capacity; portable implementation must derive type sizes. Do not multiply
+passive processing scratch by axis count; retained input still scales with axes.
+
+Also caught the false cheap fix: max_joint_working_bytes isn't passed into
+current sensory processing; its later runtime use is restore after processing.
+Subtracting source bytes from that later variable would not enforce this bound.
+No need to resurrect the superseded Aug3 whole-runtime allocator-arena rewrite.
+
+Next SAME R122210: finish producer-derived source-storage bounds and the shared
+pre-mutation/pre-publication/cold-start check without sample rescans, duplicate
+parsers, persistent footprint state or heuristic multipliers. Producer may use
+the finite45-axis possible anatomy at its admitted duration before successor
+axes exist; that is capacity only, not permission to emit dormant-axis samples.
+No implementation acceptance claimed from this source map.
+
+Repeated guessed-path read and188->186 arithmetic correction are filed, not
+hidden. Header now clearly marks old C130 integration as historical rejected
+source. Closed sound/self-hearing/body-law/restart evidence remains closed.
+Last AWS14:44:05UTC baseline1458 status is historical; clock ALARM persists.
+Browser CLOSED/caretaker STOP, speech NOT fixed, full AE goal ACTIVE.
+This authorized contract work does not wait for Joe or C1.
+
+Prior checkpoint follows unchanged.
+
 ## SOL — 2026-09-12 Candidate130 review closed; resource contract correction next
 
 Commit6f2da6dac48f9e68a06edd9f6b548fb33c6d7d64 on sol/speech-existing-organ.
