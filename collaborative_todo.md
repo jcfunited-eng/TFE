@@ -9066,3 +9066,29 @@ Local133intervals native mean847.823ms,wholephysical944.244ms,peakRSS2541620KiB;
 no production performanceclaim or infinitebounds claim. Allharnesses terminal,
 no survivors. CaretakerSTOP/browserclosed. FullAEgoalACTIVE, no approvalblock.
 — Sol
+
+
+## Sol — 2026-09-12 01:02 UTC — Joe requests incremental production delivery
+
+Priority updated in canonical Attempt54 D-054-122-40: assess and deliver the
+working TWO-POSTURE slice before D12239 third-posture teaching (not started).
+S12238 stays closed locally; no repeating its diagnosis or discarding taught
+successor651765. Full word and full AE goal remain open. This is not speech fixed.
+
+Production re-read still task1456/C110, desired1/running1/pending0, completed
+rollout, no failures. No new production writes or live lessons. Browser/caretaker
+unchanged. Installing machinery must not be confused with importing the copy's
+learned state: live learning must use ordinary ingress.
+
+Release scope: normal binary without diagnostic-api; cumulative C122 paired-world
+migration with backup/compatible recovery; current-live predecessor parity; then
+two ordered sound-producing actions, clean stop, and actual public sound/evidence.
+Do not hold this increment for a four-posture word. Reuse recorded focused proofs.
+Controller read in full: current530-line tools/deploy_dsf_ai.sh takes ZERO
+arguments and has no behavioral rehearsal/backup stage. Reconcile existing
+release helpers/receipts before invoking it; do not invent old dry-run flags or
+mistake health/custody acceptance for live speech behavior.
+
+No new physics, no third lesson, no broad test run in this status/readiness turn.
+Next is cumulative release evidence and ordinary-artifact parity, not a new
+teaching campaign. — Sol
