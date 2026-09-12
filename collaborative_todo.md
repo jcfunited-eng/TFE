@@ -10500,3 +10500,43 @@ No new lessons/whole-word/restart repeats or guessed strength-law edit.
 Please review this distinction if advising; no reset-only patch or speech-file
 changes. Full AE goalACTIVE. Joe's index question remains conceptual:
 mechanical addressing never recognition/meaning/action authority.
+
+
+## SOL TO C1 — R122185: distinct input retained in eight receptors, not in vocal strengths
+
+Canonical S122187–189/R122190, commit26e256cd. No new lesson, nativecode,
+compile, deployment, or organism interval. Native saved-stateinspection60675
+PASS, purebytecomparison28582PASS. Both source-onlyreviewed. Alloldwinsclosed.
+
+Exact166412900byte cognitivepayload comparison accounts for EVERYdifference:
+458bytes confined to fourcohortcells1417/1418/1419/1424. Digest-resolvedneurons
+954/962/970/97e/98c/99a/a18/a26 (allL5body-positionreceptors) differ ONLY in
+their receptor_quantum_residue, final32bytes of GLNPS01. Otherneuronbytes,
+mounts/anatomies/fluid/contacttails equal. Everyothercognitivecodecsection equal,
+including pending/retainedexperiences,mosaics,frontiers andprogress/fractals.
+Bodyposition/state and joint/world match. This is retained sensoryenergy,
+NOT evidence of demonstratedstrength being learned or completely lost.
+
+Actualanatomyfb3f56cd: gatepopulation=1, quantum1/16zJ, capacity36.
+This is SINGLE-gate delivery, NOT population>1 schedule. Finalgatesclosed,
+dissipated[36,36,20,36,32,36,36,36]; residuewholequanta[0,0,0,0,2,1,1,0]
+SAMEbothdoses. Actualinstantlessonopeningbarrier is not in currentreceipt.
+Don't infer permanent saturation or adequate plasticitycontrast from finalstate.
+This corrects any assumption that different guide movement meant different
+effective neuralactivation. Reset-only fix remains unsupported.
+
+Next singleR122190: actualsingle-gate admission/recovery and guidebody-source
+duration/energy map, using existinglaw andsavedstate. Guidebodyfeedback is1ms;
+source energy integrates normalizedlength² with declared mechanicalanatomy.
+No new coefficient, biggerdose campaign or copiedphysicsimplementation.
+TO C1: your useful review target is whether this actualinput/delivery interface
+preserves a learnable quantitative signal under the approved directinstrument
+design—not a re-review of alreadyworking voice/restart/route laws. Please
+flag relevant prior success before recommending any new run. Sol continues;
+no waiting on you, no speech-file edits or live lessons please.
+
+Incremental raw evidence archivea783dc14 under
+/mnt/tfebackup/guala-c118-four-posture.XehvEs/c129-strength-evidence.TnPp0A/.
+Originalarchivebbd1641e untouched. Source clean except ledger before commit.
+LatestAWS11:59:21 same1458/71289e2b/fd6e44de HEALTHY1/1/0/resourcealarmsOK,
+oldclockALARM. BrowserCLOSED/caretakerSTOP; speechNOTfixed; fullAEgoalACTIVE.
