@@ -20,33 +20,39 @@ so live speech acceptance remains open. This paragraph records the Candidate110
 deployment, not the current repair state. Any earlier “speech complete” wording
 is historical and retracted.
 
-Current repair status, 2026-09-11 23:52 UTC: speech NOT fixed in production.
-Candidate121 ACTUAL-runtime copied-body root recall remains CLOSED/PASS
-(S12104): quiet baseline, one cue, four coordinated motors, breath/pressure,
-finite quiet, all223 original member/bond topologies retained, exact cold-next.
-C120 growth/body/self-hearing and C118 ordered/repeated-use/cold successes stay
-CLOSED at their recorded LOCAL scopes. Preserve pair651548 unchanged:
+Current repair status, 2026-09-12 00:19 UTC: speech NOT fixed in production.
+Production remains1456/C110/image6aa38d99; no deploy or live lessons this span.
+C121 actual-runtime copied-body root recall remains CLOSED LOCAL (S12104).
+C120 growth/body/self-hearing and C118 ordered/repeated-use/cold successes
+remain CLOSED at their recorded LOCAL scopes. Preserve pair651548 unchanged:
  /tmp/guala-c121-recall.5e8ILP/paired
-Do not reteach the root or rerun its passing proof merely to regain confidence.
+Do not reteach the root or rerun passing proof merely to regain confidence.
 
-F118-32 remains ACTIVE. D12203 is the complete source-mapped implementation
-contract for one ordinary interval carrying pending physical return alongside
-current external input. Independent source review PASS for implementation;
-not executable/production proof. Pending return REPLACES fresh passive-world
-sampling for that interval; three exact sampled frames preserve existing
-world/body return bytes, with source-local typed vestibular co-admission.
-Coupled-world v2->v3 explicit migration, native GLMFAB11 unchanged.
-No new neuron/recognition/speech law. No stale completion permission.
-Candidate122 final independent source review PASSED (R12208); isolated compile
-and focused boundary checks PASSED (S12209). One supporting test had two
-fixture defects, both recorded H12205; no production source altered to pass it.
-ONE actual-runtime mature proof completed: simultaneous handoff PASS (S12214),
-but no new ordered edge after one guide (F12215); two-posture recall NOT run.
-Do not discard the handoff success or label all learning absent. Next is the
-exact predecessor/association join discriminator D12216, no new physics yet.
-Production remains1456/C110/image6aa38d99; read-only23:28-23:40 envelope1/1/0,
-RUNNING/HEALTHY, historicalSep8clockalarm unchanged. CaretakerSTOP/browserclosed.
-No browser or user action required. Full AE goal ACTIVE.
+F118-32 remains ACTIVE. C122 simultaneous ordinary-runtime handoff PASSED
+locally (S12214): external input, guided movement, physical return and own
+sound coexist. First learned edge did not grow (F12215); no two-posture recall.
+D12218/S12219 recovered the exact12-interval prefix without changing physics:
+four vocal terminals AND a genuinely moved hip arrived in one exact source.
+This disproves the assumption that the source contains only the vocal act.
+It does not by itself prove which runtime admission check was reached.
+
+Candidate123 now replaces whole-source equality with complete preparation
+inclusion inside that ONE source. Independent frozen source review PASS
+(R12223), focused test1PASS (S12224), no new state/codec/energy/DSF mechanism.
+Partial/split/opposed/stale/echo/competing acts remain refused. This is a LOCAL
+participant-scope correction, not runtime edge-growth or speech acceptance.
+The ordinary Python wheel is still C122; only the default native test binary
+contains C123 so far. Never present the older wheel as the new candidate.
+Coupled-world C122v3 migration requirement remains; nativeGLMFAB11 unchanged.
+
+Single next item D12225: close exact guided-admission evidence coverage before
+another mature run—retained predecessor provenance plus occurrence-local
+association/sound-owned intersection. Prefer existing read-only diagnostic
+surfaces and saved651560 body; do not invent a new learning law or blindly
+repeat tutoring. No approval block. CaretakerSTOP/browserclosed unchanged.
+00:17-00:18 read-only AWS sole1456/effde9e1 HEALTHY1/1/0; CPU/RAM within observed
+window; historicalSep8clockalarm unchanged. No live speech success claimed.
+Full AE goal ACTIVE. No browser or user action required.
 Worktree: `/tmp/guala-speech-existing-organ`
 Starting HEAD: `735489406577f90edf6c2fb7fb1889f87eae8107`
 Production boundary: task definition 1456 is the live deployed writer. Its
@@ -13413,3 +13419,255 @@ source-reviewedharness anditsC121observerdependency, readonlysavedcensus.
 Archivecontentslistedandhashverified. Original651548/C121archiveunchanged.
 No source mechanism is declaredspeechcomplete ordiscarded becauseedgegrowth
 is stillopen. NextD12216 exactjoinfacts; no approvalblock orreasonstopgoal.
+
+
+## D-054-122-18 — reviewed exact-prefix join diagnostic, before execution
+
+2026-09-12 00:08 UTC. Continues D12216 / F118-32. Prior turn preserved
+source and executable evidence (progress); the intervening planning-only
+continuation did not add organism evidence. No approval block; proceed now.
+
+Single measured question: does the exact root body return contain newly
+moved non-vocal terminals that defeat whole-source equality? Preserve the
+separate sound-ownership prerequisite as unresolved, not assumed satisfied.
+No production code changes, native rebuild, full acceptance rerun, extra
+lesson, disabled unattended clock, or state reset.
+
+Script /tmp/guala-c122-join-diagnostic.py
+SHA56222d380ac2bf5f51c245d2bf2c362c8fce190d1060739d6413d8f6b148c2ad.
+Independent source-only review PASS, hash verified before/after.
+Unchanged compiled C122 ordinary module31fb991b..., source843a4272.
+Exact C121 input651548/b9558017.../3e1db47e..., disposable EMPTY
+/tmp/guala-c122-join.vhRwnZ. Reuses frozen393fe882 C122 harness and b061c218
+C121 observer. Same eight quiet intervals, same4000-sample cue, measured
+root completion, same next guide; closes actor immediately after guide.
+Prefix assertions compare exact motor/work/breath/pressure-count rows,
+NOT full state byte equivalence. Mismatch means no causal interpretation.
+The reused baseline has its preexisting64-clock refusal ceiling; this
+recorded prefix reaches quiet at8 and no new teaching is allowed on mismatch.
+
+Evidence map: native articulated consequences -> existing FFI getters ->
+ResidentPrepareEvidence.articulated_body_consequences (11 exact fields);
+body source bytes/extents -> pending world return -> next guide input hash.
+Exact GLBPEV01 predicate separately excludes passive/opposed/stalled motion.
+Guide output consequences are NOT guide input. Existing route projections
+are not full custody flags. No new sensory/cognitive authority is introduced.
+
+Source review also identifies optional zero-clock saved-state followup:
+guide reassembly receipts plus retained formation structures/layers can
+reconstruct sound-owned members. Empty set refutes ownership. Nonempty set
+does NOT prove intersection with occurrence-local candidate associations;
+those remain backend/test-only C119_GROWTH_INPUT locals, unavailable through
+ordinary wheel. Do not conceal this limitation or assert sole-cause closure.
+
+Pre-run AWS00:05:38: us-east-1/tfe-web-cluster/dsf-ai-service-lb, sole
+1456/effde9e1bf364ec9b4114355fb07eafb, image6aa38d997522301c5e3ddd75bbb053871bdda12b81259cd2f44119292492a106,
+RUNNING/HEALTHY, desired/running/pending1/1/0, no failures. Clock alarm remains
+historical2026-09-08T14:15:41.275; other named Guala alarmsOK.
+23:56-00:04 CPU averages39.37-47.62%, max61.58%; RAM averages10.50-11.22%,
+max12.18%. Local available29020MiB, swap0, no other Guala build/probe child.
+Read-only AWS calls cannot mutate production; diagnostic only disposable
+copied state. Caretaker/browser untouched. Speech NOT fixed in production.
+
+
+## S-054-122-19 — exact simultaneous-body discrepancy measured and preserved
+
+2026-09-12 00:08-00:12 UTC. Reviewed diagnostic57963 exited0 after12 native
+intervals, ending651560; every recorded motor/work/breath/pressure-count prefix
+row matched the earlier C122 run. No64-clock tail or new recall campaign.
+Root651559 output source SHAaf1f009df333f64b04f809f04e0c023acfc1cb6fb670e27776a1e954da5a1bd3
+matches the guide651560 input20-port source byte-for-byte by SHA.
+Its exact consequences (native source_tick651558, output organism tick651559):
+- right_hip_pitch:0->1 millidegree, toward_min0/toward_max6, opposed0,stalled0.
+- vocal section0:125->124, min27/max0,stalled0.
+- vocal section1:145->142, min70/max0,stalled0.
+- vocal section2:165->162, min77/max0,stalled0.
+- vocal section7:265->262, min77/max0,stalled0.
+All five satisfy the existing newly-moved terminal predicate. Hence the ONE
+returned source contains all four required vocal terminals PLUS genuine hip
+motion. Whole-source equality is false; preparation inclusion is true.
+The full source stays sensed; unrelated hip activity must not be silenced.
+
+Interpretation boundary: this proves the exact body-set discrepancy, not yet
+that this was the sole runtime refusal. physical_frontier_routes omits learned
+motor entries that are not generic seed-XOR frontier crossings; it is not the
+retained active-frontier census. Root motor provenance is present, but the
+complete predicate's retained flags and occurrence-local association overlap
+were not exported by this diagnostic. Independent source review is checking
+that distinction before any correction. Guide has75 external reassemblies,
+not proof of overlap with its candidate associations. No claim that one small
+change makes speech complete. Guide OUTPUT consequences are not its input.
+
+Preserved pair /tmp/guala-c122-join.vhRwnZ/paired, tick651560:
+CURRENT4ff67a929a6cab8fe6e2ffdd3fb2f6dcb916280be2ccb303d1bc192197030b78;
+bodyc8031b9d611eaeb712dbdcf6db0653763b11281ad4719fbb3bbbe3b01c6c2619;
+world493896c7b97c9ae31b3fbf640822fd1c1c604e0484518d65c3363c18de812d55.
+Pending physical return651560 retained. PeakRSS1917424KiB.
+Rawlog/tmp/guala-c122-join-diagnostic.log
+SHA886d54bd7aab340a8814811f24909ed5bfd2c6f584dbb2be0712075fb70142cb.
+Verified archive contents:
+ /mnt/tfebackup/guala-c118-four-posture.XehvEs/c122-exact-join-diagnostic.tar.gz
+SHA93e9407c5a2911e657148245f23daa8539756987aafe0a55c717e0c8bdca472f.
+Original651548/651620 and all earlier success evidence remain untouched.
+
+PostAWS00:08-00:09 same sole1456/effde9e1/image6aa38d99 RUNNING/HEALTHY1/1/0,
+no ECSfailures, historical clock alarm unchanged, other named alarmsOK.
+00:05-00:07 CPUavg40.83-43.71%,max51.10%;RAMavg10.59-10.75%,max11.12%.
+No production writes, deployment, caretaker or browser changes.
+Workflow corrections retained: diagnostic display printed an overlarge
+reassembly list (raw log intact); guessed internal_contact* file glob did not
+exist (function is in resident_cognitive_formation.rs); CURRENT is a binary
+GLPAIR02 envelope, not text. Use typed store, never infer from printed bytes.
+
+## D-054-122-20 — preparation participant scope correction contract
+
+Proposed next candidate123, one implementation owner Sol, pending independent
+contract verdict. Scope ONLY exact_preceding_vocal_body_act_for_guided_growth
+in resident_cognitive_formation.rs and its existing focused test in
+resident_cognitive_formation/tests.rs. Do not extend the old private loop,
+add a global vocal filter, split the returned source, change neurons/DSF,
+inject work, or change speech/learning acceptance. No new fields/schema/state.
+
+Requested law: a complete, immediately enacted preparation may be recognized
+within ONE current physical body source even when unrelated terminals also
+moved. Replace whole-source set equality with complete expected-terminal
+inclusion. Still require every exact motor/bond/positive transfer on the
+immediate frontier, external cause for a root, no acoustic echo authority,
+at most one learned predecessor, and at most one completed preparation.
+Partial source, distributed pieces across separate sources, wrong direction,
+stale/absent frontier, or two complete preparations must not qualify.
+This is participant scope, not new energy or act authorship.
+
+Causal path unchanged: ordinary actor -> lean_physical_loop current external
+input plus pending world/body return -> native coexisting admission ->
+GLBPEV01 exact moved terminals per occurrence/source -> reached contact
+settlement -> predecessor preparation resolution -> existing cross-sensory
+association and sound-owned formation admission -> existing route author ->
+native/world paired successor -> next ordinary return -> observer.
+The changed helper is pure read-only resolution, invoked only during guided
+growth; it does not itself mount anatomy, move charge, recruit motors, or
+settle breath. Downstream author/echo exclusion retain their own requirements.
+Mutation/rollback/crash/cold paths are unchanged C122; native codecs unchanged,
+coupled-world v3 remains the C122 package requirement. No migration for this
+participant correction. Existing state is preserved, not normalized/reset.
+
+Work/storage bound: existing one-source moved-terminal sets and exact reached
+preparation terminal sets, no new retained bytes, no new scan, no allocation
+beyond current sets. Inclusion queries existing sets rather than requiring
+equal cardinality. No measured runtime speed claim.
+Focused evidence: extend existing exact_body_source_mounts_one_coordinated_vocal_preparation
+to cover complete posture + unrelated hip, incomplete posture + hip, split
+sources, absent/stale frontier and multiple-complete tie, while keeping existing
+external-root/internal-successor and echo/wrong-terminal guards.
+
+Local helper pass must remain supporting only. No new full mature acceptance
+is authorized until its admission-evidence map covers the remaining exact
+association/sound ownership condition and complete retained predecessor flags.
+Use existing evidence where possible; never repeat a long run merely to discover
+another omitted field. End-to-end and live finish lines remain unchanged:
+taught ordered body-owned sound, repeatable, self-heard, clean stop and exact
+restart; eventual real learned speech and fullAEgoal remain OPEN.
+
+
+## R-054-122-21 — scoped correction contract review PASS
+
+Independent reviewer completed source-only D12220 review, no edits/runs.
+PASS for scoped implementation, no architectural blocker. Explicitly preserves
+partial, split-source, stale, opposed-direction and competing-preparation
+controls. The measured5-vs4 discrepancy is a faulty equality requirement,
+NOT proof that runtime reached it; current exact retained flags remain
+unobserved. Generic physical_frontier_routes excludes some retained vocal
+branches. causal_frontier_advances supplies additional transfer evidence but
+not complete provenance flags. Sound-owned association intersection remains
+unresolved. No full mature rerun on the strength of this helper correction.
+Candidate123 may now implement only D12220; whole frozen source review before
+compile/focused test. All C122 and earlier successes retained.
+
+
+## I-054-122-22 — Candidate123 participant correction implemented, source review next
+
+Production diff is one predicate: exact_terminals.is_subset(moved), plus
+clarifying comment. No other production change. Existing focused test adds
+53 lines for concurrent hip, incomplete terminal/branch, split sources,
+absent frontier, opposite direction and genuine two-complete-preparation tie.
+No new test fixture, physics, state, codec, owner or population scan.
+Source files now25214/10765 lines; file size is not a runtime cost claim.
+Implementation is not compiled/exercised/live yet. Freeze whole worktree;
+independent source review must verify fingerprint before/after.
+
+H12222 tooling refusal: whole core read crossed the command tool's roughly
+1MiB output ceiling and contained an inline "... 82142 bytes omitted ..."
+despite a large token budget. Full-file apply_patch correctly refused before
+any production write. No organism/test ran. Resolved by five <=5000-line
+reads, explicit absence-of-omission and exact25211-line checks, then full-file
+replacement. Future large-file reads must check BOTH byte-omission markers
+and token truncation, plus expected line count; do not repeat giant failed
+patch output. Production diff verified to be only the intended predicate/comment.
+
+
+## R-054-122-23 — Candidate123 frozen source review PASS
+
+Whole fingerprintc048564d123051f667bcbe66339fdd8be356bf81a0ad011a29eeffb2c09b3a0a
+matched before and after independent source review. No architectural or
+localized defect found. Source separation, exact motor/cause/uniqueness guards
+and all added controls approved. No reviewer builds/tests. PASS authorizes
+only declared focused execution, not another mature run or deployment.
+
+Exact focused test name resolved mechanically (dry, no test run):
+resident_cognitive_formation::tests::exact_body_source_mounts_one_coordinated_vocal_preparation.
+Compile default native test binary, then execute this ONE named test;
+predecessor ordinary Python wheel remains in C122 archive; the default test binary is replaced by this build. No broad suite or native wheel
+build authorized at this checkpoint. Production source remains frozen.
+00:17 read-only ECS same1456 desired/running/pending1/1/0. No new live input.
+
+
+## S-054-122-24 — Candidate123 focused participant-scope proof PASS, LOCAL only
+
+Default native test compile79616 exit0,14.93s. Existing99 compiler warnings
+retained in log; no unrelated warning cleanup and no ignored compile failure.
+Binary native/guala_core/target/debug/deps/guala_core-7cd36301111f54ab
+SHA60024d07ff3567ae02693aaa513c8e09694177c0ca4f2c3f2a2924c96eb5fe5e.
+Exact mechanically resolved test:
+resident_cognitive_formation::tests::exact_body_source_mounts_one_coordinated_vocal_preparation
+PASS1,0failed,621filtered,0.04s. New complete-posture-plus-hip succeeds;
+partial terminal/branch, split-source pooling, absent immediate frontier,
+opposite movement and two complete preparations refuse. Existing internal
+successor and acoustic echo controls pass. No broad suite/mature run/wheel
+build/deploy; this does not prove runtime reached the changed predicate.
+
+Build log/tmp/guala-candidate123-build.log
+SHAe7da25e604ada3be054a5f00d6887f6193eb2ab24d98b48bb2dec963d0d0a4ba.
+Testlog/tmp/preflight-20260912T001757Z-62463.log
+SHA13648ec904f8cae10327ffd245051f9f9c0d14aedb2c09cf9ef1f96a733871b5.
+Source unchanged after reviewed fingerprint except ledger receipts.
+Pre/post read-only ECS00:17-00:18 same sole1456/effde9e1/image6aa38d99
+RUNNING/HEALTHY1/1/0. Named alarms unchanged (clock historicalALARM).
+00:13-00:16 metrics CPUavg39.81-43.76%,max50.26%; RAMavg10.25-10.98%,
+max11.70%. No Guala build/probe children remain after terminal handles.
+These metrics are infrastructure observations, not speech or native timing.
+
+## D-054-122-25 — exact remaining admission evidence, one next item
+
+No new candidate physics or repeated full teaching run is authorized by the
+focused pass alone. Obtain the exact predecessor/candidate facts already
+computed by the native guide, preserving the ordinary physical chronology:
+1. Retained L11->L12 transfers and their external/echo flags immediately before
+   the guide. Ordinary interval causal_frontier_advances (already exposed,
+   omitted by the C121-derived observer) contains transfers but not all flags.
+   Existing diagnostic-api observe_active_frontier_custody includes current/
+   preceding/older retained flags. Inspect whether saved651560 suffices at
+   zero clocks before replaying anything.
+2. Existing C119_GROWTH_INPUT locals at the guided admission: source spans,
+   moved regulations, reached associations, sound-owned members, predecessor
+   orderings. These are currently cfg(test) only, not ordinary wheel getters.
+   A nonempty external-reassembly count is not the required intersection.
+   Do not fabricate the missing values by interpreting labels or counts.
+
+The next bounded source decision is the smallest read-only exposure of these
+existing facts, outside production cognition. It must not mutate state, broaden
+frontiers, introduce a permission flag, alter sound/tissue dose, or hide
+unattended intervals. If an existing saved-state/API path suffices, use it.
+Otherwise freeze its observation-only field map and review before one short
+instrumented prefix; no long tail/acceptance until the inputs are covered.
+This is instrument coverage of the same failed join, not a newly invented
+speech bar. All proven C118/C120/C121/C122/C123 scoped successes remain retained.

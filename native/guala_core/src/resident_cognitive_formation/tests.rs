@@ -8590,6 +8590,43 @@ fn exact_body_source_mounts_one_coordinated_vocal_preparation() {
     )
     .unwrap()
     .is_empty());
+    {
+        let mut simultaneous = exact_returned_terminals.clone();
+        simultaneous.push(vec![BodyEffectorTerminal::new(
+            BodyAxis::RightHipPitch,
+            BodyEffectorDirection::TowardMaximum,
+        )]);
+        let resolve = |frontier: &[ActiveElectricalFrontierEntry],
+                       returned: &[Vec<BodyEffectorTerminal>],
+                       spans: &[(usize, usize)]| {
+            exact_preceding_vocal_body_act_for_guided_growth(
+                &cohorts, &topology, frontier, returned, spans,
+            )
+        };
+        assert_eq!(
+            resolve(&immediate_completed_frontier, &simultaneous, &[(0, 3)]).unwrap(),
+            vec![first_preparation.ordering_lineage],
+            "complete vocal action coexists with genuinely moved hip",
+        );
+        let incomplete = vec![simultaneous[0].clone(), simultaneous[2].clone()];
+        assert!(resolve(&immediate_completed_frontier, &incomplete, &[(0, 2)])
+            .unwrap().is_empty(), "hip cannot replace a missing vocal terminal");
+        assert!(resolve(&immediate_completed_frontier, &simultaneous, &[(0, 1), (1, 3)])
+            .unwrap().is_empty(), "separate sources cannot pool partial acts");
+        assert!(resolve(&[], &simultaneous, &[(0, 3)])
+            .unwrap().is_empty(), "returned movement without immediate cause is not completion");
+        assert!(resolve(&immediate_completed_frontier[..1], &simultaneous, &[(0, 3)])
+            .unwrap().is_empty(), "unrelated movement cannot repair a missing branch");
+        let opposed = vec![
+            vec![BodyEffectorTerminal::new(
+                terminals[0].axis(), BodyEffectorDirection::TowardMaximum,
+            )],
+            simultaneous[1].clone(),
+            simultaneous[2].clone(),
+        ];
+        assert!(resolve(&immediate_completed_frontier, &opposed, &[(0, 3)])
+            .unwrap().is_empty(), "opposite movement cannot satisfy the required direction");
+    }
     let complete_recruitments = first_preparation
         .motors
         .iter()
@@ -8946,6 +8983,22 @@ fn exact_body_source_mounts_one_coordinated_vocal_preparation() {
         .unwrap(),
         vec![successor_preparation.ordering_lineage],
     );
+    {
+        let mut competing_frontier = immediate_completed_frontier.clone();
+        competing_frontier.extend(internal_completed_frontier.iter().copied());
+        let mut competing_return = exact_returned_terminals.clone();
+        competing_return.extend(internal_returned_terminals.iter().cloned());
+        competing_return.push(vec![BodyEffectorTerminal::new(
+            BodyAxis::RightHipPitch, BodyEffectorDirection::TowardMaximum,
+        )]);
+        assert!(matches!(
+            exact_preceding_vocal_body_act_for_guided_growth(
+                &cohorts, &topology, &competing_frontier, &competing_return,
+                &[(0, competing_return.len())],
+            ),
+            Err(FormationError::NeuronLineageAuthorityChanged)
+        ), "two complete preparations cannot be selected or merged");
+    }
     let body_echo_frontier = successor_preparation
         .motors
         .iter()

@@ -16392,7 +16392,10 @@ fn mount_reached_cross_sensory_association(
 /// co-recruit breath.  It only carries an already-complete posture into the
 /// developmental route author when (a) every exact learned motor branch is
 /// still present in the immediately preceding causal frontier and (b) one
-/// current occurrence group returns exactly those body terminals. A root
+/// current occurrence group returns every terminal of that preparation.
+/// Other simultaneous body movement remains sensed and cannot veto this act;
+/// a second complete preparation still fails the unique-predecessor check.
+/// A root
 /// posture requires external ingress. A posture with one learned predecessor
 /// may instead carry the organism's exact internal continuation; body-owned
 /// acoustic efference never qualifies. A guide matching some older posture
@@ -16468,7 +16471,7 @@ fn exact_preceding_vocal_body_act_for_guided_growth(
         }
         if !moved_by_source
             .iter()
-            .any(|moved| moved == &exact_terminals)
+            .any(|moved| exact_terminals.is_subset(moved))
         {
             continue;
         }
