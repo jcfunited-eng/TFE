@@ -1,17 +1,21 @@
 # Guala speech repair Attempt 54 — complete design verification and lean sensorimotor route
 
-## Latest decision checkpoint — 2026-09-12, Candidate131 component checks passed
+## Latest decision checkpoint — 2026-09-12, Candidate131 mature MAX32 feedback PASS
 
 Active R122210/S122212. C1 compact-feedback direction APPROVED (S122219).
-Complete candidate494ed1e2 passed full independent source review, one localized
-test correction and final review. Compiled ordinary native wheel, no diagnostic
-feature. Three focused native tests and five Python transport/startup cases PASS.
-This is component evidence, NOT mature-body, deployment, learning or speech proof.
-See I122224 for exact artifact provenance, commands, review and health receipts.
-The earlier “aggregate/startup/capture unfinished” resume paragraphs below are
-HISTORICAL checkpoints, superseded by I122221–224; do not rebuild those pieces.
-Next SINGLE item: SAME669725 copied-body MAX32/128 full-feedback consumption,
-cold-next equality and measured resources using this candidate. No word campaign.
+Candidate source494ed1e2 passed independent source review; ordinary native
+wheel0388cacf loaded. Three focused native and five Python cases PASS.
+MAX32 on authenticated saved669725 now completes real guide -> compact passive
+feedback -> ordinary full consumption. Exact full body/world and sensory inputs
+match after cold restore. Two raw observation transaction-token aliases differ;
+S122227/F122227 preserves that limitation, not a physical failure or speech proof.
+Independent targeted review confirms process-local prepare ordinal explains
+these tokens; no native change or32 rerun. Future newly emitted return identities
+are NOT proved restart-equivalent by this no-new-motion consumption.
+MAX128 warm34549 PASS; cold15772 has the SAME exact physical/input equality
+PASS and the same two raw transaction aliases unequal. Both arms complete.
+Next: offline saved-receptor participation attribution; no guide reruns.
+All earlier partial-source checkpoints below are historical. Do not rebuild.
 Browser CLOSED/caretaker STOP. Production1458 unchanged; speech NOT fixed.
 
 ## Historical prerequisite evidence — measured position-input limit; speech NOT fixed
@@ -21443,3 +21447,220 @@ Speech NOT fixed; this source change is NOT deployed. Full AE goal ACTIVE.
 Post Python health UTC2026-09-12T17:40:42.109249+00:00: task1458 HEALTHY1/1/0,
 CPUmax42.40751940011978%,
 RAMmax12.3382568359375%; same alarms above.
+
+
+### I122225 — C131 saved-body caller frozen and reviewed before execution
+
+Continues SAME R122210/S122212. Candidate code494ed1e2/ordinary native0388cacf
+unchanged; current ledger-only HEAD71db285a. Worktree fingerprint
+2f07cb2722694790859081b8387b59b7545fa89062b524e68c67e648402980c9.
+External caller /tmp/guala-c131-feedback.N72UuO/check_feedback.py,
+SHAc7acd94441cae438e9d5f5c9471a751579019b8953553e0defd0f44a787e645a,
+final source-only review PASS. No new production code or test binary rebuild.
+
+Caller implements the already-declared669725 MAX32/MAX128 check, serially:
+private exact source pair -> real _restore_production_actor startup allowance ->
+unstarted actor's worker closed -> one guided4000sample input -> pending250frame
+compact feedback -> sealed guide669726 -> one ordinary warm consumption669727.
+Separate cold process restores the guide pair and consumes exactly same input;
+compare full final body/world bytes, complete source hashes/extents/admissions,
+and ordinary observed successor. Warm final bytes retained in separate consumed/
+paired store for offline inspection; cold never replays guide. Source paired
+root read-only and unchanged. No production actor/start, network or live lesson.
+MAX axes37/38/39/44, same cueSHA85a505e8..., original quietbody9eed2752... and
+world88579866.... Existing exact solar test input43200 shared across branches;
+never a recovery timer or organism field change. Real GUALA env matches1458
+except private pairedroot; no diagnostic flags. Process resource labels are
+preflight bounds, not misrepresented as actual later startup allowance.
+
+Evidence map: native capture receipts -> wrapper body sources/extents/admissions
+-> motor-world -> pending GLBPTR01 -> existing world codec -> native restore/
+full source expansion -> ordinary advance -> saved successor + translated
+external-perturbed lineages/electrical/contact observations. Input hashes use
+full source bytes, not reduced projections. Observational electrical/channel
+deltas are not by themselves exact receptor work, quantitative learning, or
+speech. Preserve final bytes for exact offline state attribution if needed;
+never rerun the lesson merely because the first observer is incomplete.
+
+Pre-execution false-fail fixes in ONE caller batch:
+- My assertion incorrectly expected ONE passive admission regardless of axes;
+ actual contract has one249ms admission per occurrence/axis. Corrected count.
+ This is a repeated per-occurrence assumption, not an organism failure.
+- Sealed consume bytes would have been discarded after hashing; preserve them
+ through existing paired store, no extra native interval.
+- Earlier process resource observation labeled preflight, not actual native
+ startup allowance. JSON tuple/list comparison normalized in caller preflight.
+- Encoded input bytes read once per source for external hash/size, not twice.
+Read-only resource observers are bounded diagnostic work outside timed settlement;
+the recorded native_settlement_calls count means advances, not all getter calls.
+
+Both source reviews explicitly found no candidate architectural defect. This
+caller remains a feedback/lifecycle proof, not an invented word acceptance bar.
+Next execute32 warm first, only continue cold/128 when its boundary completes.
+No prior closed sound/self-hearing/stop test reopened. Speech NOT fixed.
+
+
+### F122226 — caller quiet-state premise disproved BEFORE any guide; startup PASS
+
+C131 real _restore_production_actor successfully admitted ordinary workspace and
+validated the full saved166454006B body/63675B world at669725. Then external
+caller47136 exited1 on its pressure-is-None assertion BEFORE step(guide).
+This is NOT a failed feedback or speech test and not a source-candidate rejection.
+I122225/earlier20421 mislabeled saved669725 as quiet. Existing C129 result itself
+records3993 nonzeroPCM samples and4000 selfheard at that tick, no newbreath.
+The source pair is authentic but acoustically NON-quiescent. Correct that
+premise; do not erase sound, drain an extra clock, or start a quietness campaign.
+
+Independent narrow review approved localized caller correction: SAME source
+body/world/input doses, preserve pendingpressure+body+sourceTick, ordinary loop
+co-admits selfhearing and externalguide. Record exact original sound hash/bytes/
+epoch, label the condition coupled and non-quiescent, not isolated cue recall.
+No speech-specific pre-cue bar is waived: this is sensory-feedback acceptance,
+NOT an autonomous utterance or speech-recall claim. Quantitative attribution
+must account for the coexisting sound; no changed-neuron total alone is learning.
+
+Corrected outputs32-feedback/128-feedback are new exclusive private directories;
+failed startup-only32/paired remains untouched for inspection. No production,
+sourcepair or actual candidate change. Native/build/review/component successes
+stay recorded; startup now has real copied-body evidence. Remaining response,
+compact return, warm/cold-next and actual workload still not run at this point.
+Read-only prehealth17:49:44UTC task1458HEALTHY1/1/0, posthealth toolreceipt below.
+One separate command fumble: jq shorthand field label parsed askeyword, fixed
+by explicit quotedkeys; no physics effect and no hidden retry of a lesson.
+
+
+### S122227 / F122227 — C131 MAX32 full feedback and cold physical equality PASS
+
+Continues R122210/S122212; no organism-code change/rebuild. External caller
+SHAc7acd944... became5aee544952d76d53f746ba0620050be3ed9fafadbb2d49e3603859ffab9bb30d
+for F122226's reviewed non-quiescent correction. Warm5181exit0, source pair
+still669725/body9eed2752.../world88579866.... No live production action.
+
+Real complete source path PASSED on the declared mature saved body:
+one MAX32 guide on37/38/39/44 -> unchanged initial1ms impulse9553B + compact
+4axis250frame passive source4025B -> existing pending world return -> full
+expansion187483B /16ports /4000samples /4occurrences /1000occurrenceframes ->
+next ordinary interval consumes producer669726 exactly once. Each axis has
+its OWN249/1000 admission; original1ms impulse remains distinct.
+Guide2.265436s (native2.095366); return0.903377s (native0.845461).
+Peak processRSS1804552KiB includes startup/sealing/observations, not hot interval
+alone; ordinary startup10.602437s. No general subsecond or long-run claim.
+Input source/extents/admissions and all changed electrical/contact rows saved in
+/tmp/guala-c131-feedback.N72UuO/32-feedback/warm.json. Physical return caused
+observable activity (19 changed contact rows at consumption), not by itself
+quantitative learning or speech. Full final paired bytes saved in consumed/.
+
+Original existing sound was preserved, not silenced:8000B,
+SHA87fdde69d512941d49423ecab095488c2136d5ba33957dd443a987bc1eead610,
+source_tick669725, acousticbodySHAe6a0ec9e4b6f30dc74c4dad848fb93c6c78c7af47e005ac4483be3d42dfcea23.
+Condition is coupled/non-quiescent, not isolated cue recall.
+
+Cold3350 physically PASSED exact source and final fullbody/world comparisons,
+then FAILED whole raw-observation equality. Caller wrongly persisted its report
+only AFTER that assertion, losing the differing fields. One bounded repeat of
+ONLY the cold consumption (no guide repeated), with report written before that
+assertion, produced cold.json and cold-observation-differences.json. Caller
+SHA0421b507d394c4cec79e74949b886d6bb78b85530f19e981f3a3a171f32bd5f2;
+repeat40667 also exits1 solely on the retained observation comparison.
+This evidence-order defect is a real harness mistake and avoidable repeat,
+NOT a new physical failure. Do not repeat32 again to obtain a green exit.
+
+Both cold runs' source and full physical successors match warm exactly:
+body166452600B SHA85514f7f1e7b555f574d4d3a40eb5c19636aa104a79ce5bf4237b8ccdc1a13cc;
+world63599B SHAcb137de0f443f55b8c0500d0be0f55712ddd26071119c09a1e002dbe0569dca1.
+Recorded cold return1.069002s/native1.013217s, startup10.383707s,
+peakRSS1671040KiB. Exact bytes compared, not selected physical fields.
+ALL observation fields also match EXCEPT causal_transition_sha256 and its
+alias primary_causal_transition_sha256:
+warm78e372fcf62e53dba44069fe44c4bcdd30e907d254641eabc4ef810414e9cacd,
+cold951050ac78af6f5dafc2519379e9f6c13904978ba9e08cd5f7c81610de01da77.
+
+Source classification underway: organism_runtime getter1970 returns self.token;
+prepare_token5250 hashes process-local next_prepare_ordinal; restore initializes
+that ordinal1, while warm guide advances it to2 before compared consumption.
+This mechanism PREEXISTS C131. Do not change/persist a transaction counter or
+weaken physical equality merely to make the test green. No raw-observation
+identity pass is claimed. Independent targeted review requested on token role
+and downstream pending-source usage; future motion-return equality must not be
+inferred from this no-new-motion next interval. Recorded as separate truth,
+not a reason to discard functioning complete feedback.
+
+AWS read-only17:53:54→17:55:03→17:56:48UTC same1458/task/imageHEALTHY1/1/0;
+CPUmax45.0933→40.1461/45.0933→42.1052%, RAMmax13.3667→13.3606→12.8845%.
+Resource/storage/refusal alarmsOK, clock-stalledALARM remains. No cloudwrite.
+Next: declaredMAX128 arm on SAME originalbody, plus saved-byte quantitative
+attribution. No replay32guide, no larger word/quietness campaign. SpeechNOTfixed.
+
+
+### I122228 — independent token classification; same bounded128 arm begins
+
+Previous user-answer turn was explanation, not new progress. Continuing SAME
+R122210/S122212. Independent memory_probe_review (not actual C1) confirms:
+organism_runtime.rs1970 returns self.token, prepare_token5250 includes process-
+local prepare_ordinal, restore3279 initializes1. Warm's preceding guide advances
+its ordinal. Thus two observed SHA aliases are transaction IDs, not canonical
+physical-state hashes. Preserve32 fullbody/world/source equality PASS AND raw
+observation inequality. No native edit, persisted counter, or32 repeat warranted.
+lean_physical_loop.py194/151 carries that token in future pending-return/source
+identity: arbitrary future action/restart equivalence remains explicitly unproved.
+This limitation is not quietly waived or converted into a general restart claim.
+
+MAX128 warm34549 launched with exact same caller0421b507..., ordinary native
+0388cacf..., original669725 pair, env matching1458 except private paired root.
+Output /tmp/guala-c131-feedback.N72UuO/128-feedback; no earlier path overwritten.
+One guide then one ordinary consumption; no quieting, no new speech curriculum.
+Read-only prehealth2026-09-12T18:03:39.840489UTC, observed session50121exit0:
+1458/task71289e2b95be4d79a5c9f74ac2708b7d/imagefd6e44de... HEALTHY1/1/0.
+Latest3 CPUmax57.072654%,RAMmax12.750244%; CPU/RAM/EFS/refusalalarmsOK,
+clock-stalled ALARM remains. No AWS write; sourcepair and live body untouched.
+Do not infer receptor quantity from electrical deltas/externally-perturbed count.
+Saved current-codec neuron bytes will provide exact offline residue inspection,
+not a new diagnostic build, production observer or repeated lesson.
+
+Joe asked why movement exists: these are true instrument-control changes, not
+locomotion or a requirement to recreate human anatomy. C131 corrects their
+sensory return; it does not itself promise audible words or avatar animation.
+Caretaker remains STOP; recommendation is controlled restart with C1 after
+live feedback delivery is verified, not after perfect speech. No restart done.
+
+
+### S122229 — MAX128 complete feedback and cold physical equality PASS
+
+Same reviewed C131 artifact/caller; warm34549exit0, cold15772exit1 solely on
+the already classified two transaction aliases. No repeated guide/consumption.
+Real guide2.160078s/native1.988012; warm consume0.849908s/native0.793332.
+Startup10.479920s; wholeprocess peakRSS1805960KiB.
+Cold startup10.446410s, consume1.114966s/native1.056339; peakRSS1665920KiB.
+Full physical final pair is BYTE-IDENTICAL warm/cold:
+body166412588B SHA2070697d6ce54eb76c8522952138d40c30010df604a63efdccc614c4ae21de1b
+world63599B SHAa49a887e5693d01a089932a4e700aa747679aa3038e9a2f7ffda5e9cda8cf4a2.
+All full source hashes/extents/admissions and other observation fields equal.
+
+MAX128 real initial impulse9564B; compact4axis250frame tail4025B,
+SHA3e104c7cf3b51512671189db01c3b681b89e565ec083d0201f0fac556a498ef7;
+full expansion187892B SHA0ddf8532e1356bf834e6e10a8a2e0d1f362a685acebd581274536912f871264d.
+All16ports/4000samples/4occurrences/1000frames consumed next669727 from
+producer669726 exactly once; each axis admitted249/1000. Returned19contact
+changes,144 externally perturbed lineages; neither count is quantitative learning.
+The two token aliases: warm5790bda6a8a9dbc55fd569c351f90a0a8ecbfe0cf31da0833003d2e73df8bded;
+cold16bf17e951faf8611f342faf733ed01ac5cc16de7fe938b7fd0571e7923c4eca.
+Raw files all retained under128-feedback/{warm,cold,guide,cold-observation-differences}.json
+and both exact paired/consumed stores. No broad raw-observation equality claimed.
+
+Read-only AWS brackets18:03:39.840489→18:04:57.360777→18:06:02.732187UTC
+same1458/task/image, HEALTHY1/1/0. Combined observed CPUmax59.046851%,
+RAMmax12.750244%; runaway/storage/refusalalarmsOK, clock-stalled ALARM persists.
+No live writes; no UI/caretaker/action/lesson or new image. Speech NOT fixed.
+
+Current-codec attribution remains NEXT from the already retained states.
+Old inspector's GLNPS01 trailing residue assumption CANNOT be reused on GLNPS05;
+the wide residue lives in the header. Offline parser must follow exact body
+terminal/quantity to lineage, then digest table, not infer by cohort position.
+No new sourceobserver, nativebuild, diagnosis dose or lesson replay is warranted.
+
+Avoidable tooling errors retained: first source search guessed nonexistent
+neuron_persistent_state.rs (actual complete_neuron.rs); the jq inspection selected
+the entire old neuron map and produced truncated243939token output instead of
+bounded receptor rows. Neither ran physics. Corrected with rg source discovery
+and selected eight saved-cell rows. These are repeat-class preflight/bounding
+failures, not organism defects; do not describe them as eliminated.
