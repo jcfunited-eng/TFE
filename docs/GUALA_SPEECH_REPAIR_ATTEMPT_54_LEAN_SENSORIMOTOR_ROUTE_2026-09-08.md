@@ -1,36 +1,27 @@
 # Guala speech repair Attempt 54 — complete design verification and lean sensorimotor route
 
-## Current resume point — 2026-09-12, C129 ordinary copied-body warm/cold equality PASS
+## Current resume point — 2026-09-12, C129 newest-CURRENT release path PASS
 
-**Speech is not fixed. Full AE goal ACTIVE.** Nine-control C126 acoustic/cue
-successes remain locally proved and archived; no production126/128 delivery.
-Live task1457/41d3db93/image80755ca0, last read-only AWS10:13:13.554653UTC:
-1/1/0; CPU/RAM/storage/refusal alarmsOK, historical clockALARM remains.
-Browser CLOSED/caretakerSTOP; no live mutation.
+**Speech is not fixed. Full AE goal ACTIVE.** Live remains task1457/
+41d3db93/image80755ca0. Latest read-only AWS10:34:22.123652UTC:1/1/0,
+CPU/RAM/EFS/refusal alarmsOK; historicalclock-stalledALARM remains.
+Browser CLOSED/caretakerSTOP; no production mutation in this slice.
 
-Single active item remains physical restart custody, R122147/R122152.
-Candidate128 source checkpoint9ddbe721 retains five127 support passes and two
-new physical PASS proofs: recovery-only first/second future return, and
-fraction/thermal-refusal ordinary continuation, both warm/cold exact.
-Migration/local-contact fixture still fails before commit. Test-only sealing
-diagnostic S122156 locates refusal specifically in physical_progress encoding.
-Independent source review confirms the two incorrect ordering consumers:
-canonical_lineages is anatomical/cohort order, not sorted; membership binary
-search and decoder ordering wrongly assume otherwise. No missing physics,
-no justification to sort anatomy or alter neurons. Candidate129 narrow
-translation correction is implemented and source-reviewed: all SIX planned
-focused checks PASS, including previously failed migration/local-contact and
-runtime abort/restart tests. S122158. Normal artifact then PASSED the exact
-saved1457body warm/cold next event: full body/world and causal evidence equal,
-all17 prior126 displayed physical rows unchanged. S122159. Local discrepancy
-F122130 closed on this path; fresh-current release verification remains next.
-No deployment or broad speech acceptance claimed.
-
-C126 saved1457body proof remains S122143-146: baseline8, 4000sample cue, MIN then
-MAX, breath on both,24000 self-heard samples, all17 motor/work receipts matching
-125. Not recognizable speech; eight-interval sounding tail was unchanged,
-earlier longer live silence preserved. Evidence backup:
- /mnt/tfebackup/guala-c118-four-posture.XehvEs/c126-physical-cue.wSS9hB/.
+Single next item R122166: ONE bounded immutable image build from already verified
+source package bad5eeb907f61e1c59248ed731914de812b1a1d3.
+Do not substitute later ledger-only HEAD for this package's image revision.
+Local release path on newest captured CURRENT669708 PASSED S122165:
+actual startup/migration -> quiet8 -> one4000sample cue -> four-control
+MIN669719/MAX669720, breath/sound each ->24000selfheard -> paired save ->
+cold restore -> exact full body/world/causal next669726.
+No new physics, first-word or live-speech claim. Tail8 residual pressure unchanged.
+Source5c8dcd03/C126+C129, ordinary native06c374fd. Six focused checks S122158,
+older saved-body exact proof S122159 and217-file package S122161 remain CLOSED.
+New capture/pass evidence backed up with hash verification:
+ /mnt/tfebackup/guala-c118-four-posture.XehvEs/c129-current-release.59nFXh/.
+Latest resultSHA19a9daff; source archiveSHA0ab6fccb.
+Exact-image proof, final backup, zero-writer cutover and live verification remain.
+Earlier C126 proof and rejected C127/C128 diagnostics retained, not reopened.
 
 The earlier live-lesson status below is HISTORICAL context, not the resume point.
 
@@ -18705,3 +18696,81 @@ RF063 by guessing lean_checkpoint_worker.py; actual lean_checkpoint.py was
 resolved and read. Both filename misuses are recorded, no false prevention claim.
 AWS pre-run10:32:18.769889UTC same1457/41d3db93/image80755ca0,1/1/0,
 latestCPUmax41.3494%,RAM10.2905%; fourOK/historicalclockALARM.
+
+
+### S-054-122-165 — newest captured production body: real startup, response, exact restart PASS
+
+R164 ran ONCE, session76723 terminalexit0. No native edit/compile/reteaching.
+Verified ordinary artifact06c374fd, source5c8dcd03, packagebad5eeb9 unchanged.
+Actual _restore_production_actor read authenticated669708/body179cffc2,
+published migration at SAMEtick to165951794bytes
+SHA3a9d6bd5355ac8924905813d72a3a489cfdce6ee355323902ef03bcfb0589980;
+world remained exactly8ba366cf. Increase874556bytes is physical progress state.
+Idle checkpoint thread closed/joined before explicit physical-loop chronology.
+Measured external sky/screen second37992 held for exact replay, not claimed
+production wallclock cadence. All nine existing direct acoustic axes mounted.
+
+PASS: baseline669709-716 acousticallyquiet (non-vocal body activity permitted);
+one4000sample cue669717; fourMIN motors669719, breath237,3997nonzero samples;
+fourMAX669720,breath20,4000nonzero samples;24000selfheard across tail8.
+Total27980nonzero pressure samples through669725; no later acoustic motor act
+in that tail. Tail8 still sounding as declared predecessor, not clean-stop proof.
+Real paired publication/adoption669725; warm and cold ordinary next669726:
+body166016926bytes EXACT SHA
+d481aa97f57ebdf0ab84ef379e5d33e49b6f0b3388bdf4ee767220c44c5a47c2;
+world EXACT SHA04d1a964405ed485b46811e3a5e1918872ac15a79c8e64abf0d1ad6e0b36dc3d;
+full causal-evidence dataclasses/bindings EXACT; allphysicalrowfacts EXACT;
+4000selfheard/3922nonzero samples each. Native source unchanged throughout.
+No invented motor, cue replacement, normalized body comparison or discarded
+successor. Explicit per-act nonzero pressure assertion passed.
+
+Resource evidence: first17intervals20.876727s, maxindividual2041.584ms,
+warmnext964.118ms/cold1170.083ms. PeakRSS2706060KiB includes two runtimes and
+full comparison envelopes; NOT one-runtime production memory. Paired store
+holds exactly2body/2world generations. No speedup or long-run cost closure claim.
+AWS10:32:18.769889->10:34:22.123652UTC same1457/41d3db93/image80755ca0,1/1/0,
+latestCPUmax41.3494->39.7611%,RAM10.2905->10.2905%;
+CPU/RAM/EFS/refusal alarmsOK, historicalclockALARM remains.
+Mandatory production preflight also PASS: exacthealthy1457, both livepagesHTTP200.
+Production never paused, steered, taught or migrated; caretakerSTOP/browserCLOSED.
+
+Evidence /tmp/guala-c129-current.Hn94ff/proof/result.json,
+SHA19a9daff661e82b342c4625adfc63963e1a95b5a88dd104192180c32cfd59039.
+Full capture, caller, pressure blocks, rawwarm/cold bodies/worlds, paired store,
+and source releaseZIP backed up105MiB at
+ /mnt/tfebackup/guala-c118-four-posture.XehvEs/c129-current-release.59nFXh/.
+Verified backup hashes: result19a9daff/currentZIP622bade5/releaseZIP0ab6fccb.
+Independent read-only release-readiness review: no additional physiology test
+or architecture change needed before build; use the verified packagecommit.
+Exact-image rehearsal, backup/cutover and live proof remain AFTER build.
+
+### R-054-122-166 — one bounded immutable local build
+
+Build source is verified217-file packagebad5eeb9 in
+ /tmp/guala-c129-release.iWi7gA/context.
+Actual manifest/buildspec points dsf_ai_service/Dockerfile, which copies only
+packager-created runtime/. Retired Dockerfile.lean/its fixed count and runtime
+text manifest are NOT build authority. R12241 already records this distinction;
+reading the retired file does not authorize reviving it. pyproject enables
+ordinarypython-extension and never diagnostic-api.
+
+Use standing D12284 build ceremony: dedicated local docker-container builder,
+4CPU quota,16GiB memory and16GiB memory+swap total, restartpolicy no;
+linux/amd64 --provenance=false --load; GIT_SHA=bad5eeb9 FULLreceiptcommit.
+RuntimeDockerfile/source unchanged. No production EFS mounts or cloud mutation.
+LocalDocker capability/capacity10:36UTC:linux/x86_64,20CPU,33341743104bytes;
+memory/swap/CFS limits supported. Only runningcontainer is existingdevelopment
+jovial_khayyam,8.664GiB; no live build/organismcontainer. Build ceiling plus
+currentdevelopmentusage leaves roughly6GiB observed headroom.
+Buildx has only defaultbuilder; uniqueguala-c129-bad5eeb9 name not present.
+Officialdriver options rechecked at
+https://docs.docker.com/build/builders/drivers/docker-container/.
+Verify actualcontainer limits after bootstrap, before image build. One source
+build only; exact-image proof will load its own nativeSHA (not assume06c374fd).
+Remove only this owned builder after image export/evidence secured; touch no
+unrelated Docker resources.
+
+Tool-only preflight correction: Docker info JSON is valid but the .CpuCfsQuota
+Go-template field is not exported under that spelling. First projection exited1;
+corrected by decoding docker info JSON and selecting exact published keys.
+No builder or image started by that failed observer; no organism/test failure.
