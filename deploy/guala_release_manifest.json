@@ -77,6 +77,8 @@
         "native/guala_core/src/recovery_fluid_contact.rs",
         "native/guala_core/src/resident_cognitive_formation.rs",
         "native/guala_core/src/resident_cognitive_formation/lean_sensorimotor_route.rs",
+        "native/guala_core/src/resident_cognitive_formation/physical_event_finalization.rs",
+        "native/guala_core/src/resident_cognitive_formation/physical_event_progress.rs",
         "native/guala_core/src/resident_cognitive_formation/settled_fractal_custody.rs",
         "native/guala_core/src/resident_cognitive_formation/real_body_migration_probe.rs",
         "native/guala_core/src/resident_cognitive_formation/reservoir_probe.rs",

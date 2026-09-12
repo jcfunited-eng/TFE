@@ -18563,3 +18563,40 @@ new mature success must also be shared so it cannot be rediscovered.
 
 Checkpoint publication: f10c2d61 pushed; shared4ad9e00b records S122159;
 Slack2026-09-12T10:15:54Z verified slack_sent/#general. No active child remains.
+
+
+### R-054-122-160 — C129 release-source closure, no new physiology
+
+2026-09-12. Prior turn PROGRESS: C129 two-consumer correction and six focused
+passes; ordinary artifact reproduces17 C126 rows and closes F122130 with exact
+warm/cold body/world/causal successor. Source5c8dcd03, receipts70f01309 on origin.
+Continue same release slice; no reopening recovery, acoustic or index physics.
+Requested/current conflict is packaging only: two declared native child modules
+physical_event_progress.rs and physical_event_finalization.rs are not listed
+in deploy/guala_release_manifest.json. Compiler-produced libguala_core.d from
+the passed ordinary build names67 local source inputs; EXACT missing set is
+those two. Other tracked-but-unpackaged Rust files are NOT automatic candidates.
+
+Scope: only add those two reviewed source files to native_core category.
+No runtime Python, native source, Dockerfile, build/controller law, tests,
+source roster or physics changes. Full L0-L4/seven-field DSF unchanged.
+Acceptance: manifest covers all67 compiler-reported inputs, then ordinary
+package_release/verify-context/verify-archive hashes the exact committed sources
+without prohibited legacy shell or added runtime imports. No image/cloud build.
+One source-only manifest review before packaging, source/artifact provenance
+carried forward unchanged; no repeat native compile or behavioral suite.
+
+Applicable recurrence: RF001 exact PYTHONPATH; RF003/036 use immutable passed
+wheel06c374fd; RF007 resolve actual controller/script command (current524line
+deploy_dsf_ai is cutover-only, not build); RF010 matched persisted pair already
+proved S159; RF014 old test_guala_release_packaging contains pre-lean static
+publication/full-cargo expectations and a stale native source set—do not run it
+as candidate-failure evidence or resurrect obsolete paths; RF016 same active
+release item; RF017 transitive module census from actual compiler; RF019 no
+obsolete downstream gate; RF024/031/032 exact path/test/manifest preflight;
+RF048 retained world already exact S159; RF059 same-pair migration publication;
+RF061 actual task env before imports, no old roster assumptions;
+RF063 file resolver used; RF064-066 existing current cutover fixes preserved.
+Remaining live gates require newest authenticated CURRENT, startup/migration,
+backup/zero-writer continuity and production resources. Historical protocol
+owner/atlas/genesis clauses must not resurrect the archived Python shell.
