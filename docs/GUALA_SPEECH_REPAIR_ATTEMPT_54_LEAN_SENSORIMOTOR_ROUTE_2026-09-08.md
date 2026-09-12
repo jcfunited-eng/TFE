@@ -1,31 +1,40 @@
 # Guala speech repair Attempt 54 — complete design verification and lean sensorimotor route
 
-## Current resume point — 2026-09-12, C129 live sound and self-hearing verified; recognizable speech NOT fixed
+## Current resume point — 2026-09-12, quantitative strength diagnostic complete; recognizable speech NOT fixed
 
-**Full AE goal ACTIVE. Do not restart closed tests or the cutover.**
-Production1458/71289e2b95be4d79a5c9f74ac2708b7d HEALTHY, image
-fd6e44defbc83a305a52229822c9f77155d0a640c8ffa8a7dc00265d7d1fec77.
-One cutover80467exit0, actual oldfinalCURRENT670250 restored, identity preserved.
-S122175 one live cue670400 -> real pressure670402–435, self-hearing,
-then acoustic silence observed670437–464; saved670442. No guided events.
-All34 raw pressure blocks recovered and hash-verified; full PCM88c1d744.
-NO recognizable-word or public per-motor-order proof. Browser CLOSED/caretaker STOP.
+Full AE goal ACTIVE. Production1458/71289e2b95be4d79a5c9f74ac2708b7d,
+imagefd6e44defbc83a305a52229822c9f77155d0a640c8ffa8a7dc00265d7d1fec77.
+S122175 live sound/self-hearing/observed acoustic stop remain CLOSED.
+S122158/159/165/169 startup/migration/full cold-next equality remain CLOSED.
+DO NOT restart80467, re-cue production, or repeat those tests.
+Browser CLOSED/caretaker STOP. No new physical law or production delivery here.
 
-S122165/S122169 exact startup/migration, two four-control acts, breath/sound,
-self-hearing, paired save/cold restore/FULL next body/world/causal equality
-remain CLOSED locally and inside immutable image. S158/S159 also remain CLOSED.
-Physical persistence correction no longer blocks use of this simpler instrument.
-Full backup/image/proofs/live audio retained under
-/mnt/tfebackup/guala-c118-four-posture.XehvEs/c129-current-release.59nFXh/.
-One-way GLCOG046: no automatic old rollback.
+R122179 diagnostic DONE, S122182: same authenticated669708 body, same artifact,
+quiet8, one4000sample guide, tail8; two serial doses32/128, sessions57619/61636exit0.
+Actual displacement+1 versus+4 on axes37/38/39/44, zero stalls.
+Each8583 logged vocal-contact transitions: ALL identical between doses.
+Sixteen computed fractional phase changes on four new26aa motor contacts were
+discarded for absent action permission. No whole-channel change computed.
+All16385 final contact states AND each interval's contact changes identical.
+Different saved body hashes preserve a distinction somewhere; do not claim
+the whole experience or all quantitative learning vanished.
+Independent result review agrees: reset loss is proven, but retaining the
+identical provisional updates is NOT demonstrated dose learning and may break
+conservation if their paying transfer is cancelled.
 
-Single next item R122177: reconcile the remaining demonstrated-strength
-retention/use boundary with preserved S122109/S122133 and actual source.
-Do NOT repeat saturated750/1500 contrast or redesign learned machinery from
-that invalid comparison. No new test/lesson/code before this bounded review.
-Last AWS11:08:13UTC exacttask HEALTHY, service1/1/0; recent CPUmax46.929%,
-RAMmax11.2824%; resource alarms OK, historical clock alarm ALARM.
-Long-run efficiency, recognizable speech and whole AE capability remain open.
+Both successors, raw logs, diagnostic patch, caller, artifact and arithmetic
+analysis retained under /tmp/guala-c129-strength-check.5Cl6tl and durable
+/mnt/tfebackup/guala-c118-four-posture.XehvEs/c129-strength-evidence.TnPp0A/.
+Native diagnostics REMOVED; accepted source hashes restored exactly.
+Next single item R122185: locate the retained quantitative distinction using
+these SAVED successors and the existing body-source/receptor/contact path.
+Inspect available read-only state access before any further run; no new lesson,
+no guessed strength law, no reset deletion, no reopening C125/C126/C129 wins.
+Full fields preserved; no semantic index/heuristic introduced.
+
+Last AWS11:38:50UTC same1458 HEALTHY/service1-1-0, CPU/RAM/storage/refusal
+alarmsOK, historical clock alarm ALARM. Latest sampled CPUmax59.5534%,
+RAMmax11.8408%; not proof of long-run efficiency. Speech/whole AE remain open.
 
 The earlier live-lesson status below is HISTORICAL context, not the resume point.
 
@@ -19046,3 +19055,218 @@ historical paths. Existing shared preflight file resolver now used directly;
 test mode's newest-mtime artifact selection remains unsuitable for provenance.
 Only file-resolution mode is adopted here, not an unreviewed new harness.
 No second live cue, task, image, oldschema restore or physiology edit.
+
+### R-054-122-179 — frozen diagnostic contract for actual strength retention
+
+Previous goal turn PROGRESS: S175 live sound/self-hearing/finite-output verified
+and archived; commit59b9b692 pushed. Current worktree clean at that commit;
+shared blobc451ca12 unchanged. Source production1458/71289e2b/imagefd6e44de,
+11:14:36UTC HEALTHY/1-1-0, resource alarmsOK/clockALARM. No process resumed or
+test relaunched; all prior release/response/restart wins stay closed.
+
+Architecture gate: requested real demonstration -> retained physical distinction
+-> learned act -> direct instrument -> self-hearing. Current source supplies
+real guided position/load, uniform initial contact anatomy, and later contact
+plasticity. Conflict: NO new violation established; possible action-permission/
+plastic-settlement coupling must be measured. No L0-L4/full DSF change or reduced
+field authority. No guide permission, new strength law, physical work, voice
+schema, timing constant, word table or production observer will be extended.
+
+Completed source map:
+lean_physical_loop.py165 -> wrapper advance_coexisting_admitted_interval_unsealed
+-> organism_runtime.rs3543 guided settle_body_effector_drives at1000us ->
+body_proprioceptive_source/admit_articulated_body_consequence_source GLJSRC04
+-> actual per-axis old/new/signed movement, admitted/stalled carriers retained
+in GLBPEV01 -> complete joint senses/receptors -> reached endpoint pumps and
+scheduled passive returns -> core19735 local_gradient_direction,
+20950/21024 endpoint_gradient_motion ->21502 contact-local plasticity ->
+sparse_electrical_contact.rs365 phase/channel update paid by that contact work
+-> core21583–21608 can restore WHOLE contact predecessor under absent vocal
+action permission -> actual committed electrical fabric/contact codec ->
+ordinary observe_reached_contact_channel_states -> wrapper exact integers.
+Later recall reads actual predecessor effective conductance at21611 and divides
+finite source work accordingly. Observation is not causal authority.
+
+Guided route founding10366 calls lean_sensorimotor_route.rs807. New contacts
+are mounted AFTER current settlement, from associations/actually moved motors/
+exact sound reassembly/preceding act; append_contact_once695 initializes existing
+developmental conductance. It does not consume a desired strength or duration.
+Already-learned participants are not re-created. C125 remains real endpoint-input
+routing, not proof that demonstrated strength survives the later action gate.
+
+Independent source review confirms reset reachability but NOT that a particular
+lesson has nonzero computed plasticity there. Preserving plasticity while
+cancelling its released electrical work would NOT automatically conserve energy.
+No deletion/loosening of that action gate is authorized from this observation.
+
+Single bounded diagnostic (not a new physics candidate):
+- ONLY cfg(feature="diagnostic-api") read-only stderr at the actual guided
+  settlement (axis, old/new/displacement, min/max/stalled carriers) and existing
+  L11/L12 gate (clock, exact endpoints, permission facts, predecessor vs computed
+  channel/phase, transferred charge/released work). No persistent fields,
+  mutation, replacement law, new output in ordinary production, or feedback
+  from logs. Ordinary release source behavior stays unchanged.
+- External caller uses authenticated669708 body/world/cue from S165 and same
+  current code; explicitly diagnostic artifact, never deployed. TWO serial arms
+  MAX32 andMAX128 on37/38/39/44; same saved baseline, same4000sample cue and
+  external world time, eight quiet intervals before and eight ordinary after.
+  Actual native guide output must show zero stalls and distinct displacement,
+  otherwise the comparison is INVALID, not failed learning.
+- Read existing contact-state observer before/after each interval; preserve all
+  exact integer/rational values plus actual output/physical input evidence.
+  This distinguishes whether different guide experience changes retained contact
+  states and whether computed changes are discarded. It does NOT yet prove later
+  recall use, speech or live behavioral parity, and must not be sold as such.
+- Preserve both successors for any required next recall check; never replay
+  the prefix merely to inspect its saved result. No new live cue or lesson.
+  Logs go directly to files, never raw base64 through terminal budgets (H176).
+- Freeze complete source/caller and independent review before compilation or
+  execution. One diagnostic artifact build, two declared arms, AWS brackets.
+  Exact command/binary hashes and resource ceilings must be recorded before run.
+  Release gate still requires ordinary artifact, not diagnostic evidence.
+
+Source hashes before diagnostic: core33adbb8530490dbe5680fe6cc4c4558e3fb4c2bc221ecd7a231934b03393c750;
+runtimeb5a7cab120f2145badfefa07c1983226f290f6f20b7d4432f1db4f4a0698e75b.
+External output root /tmp/guala-c129-strength-check.5Cl6tl.
+Source-only fumbles: guessed sparse_electrical_coupling.rs absent; recursive
+symbol discovery found sparse_electrical_contact.rs. Escaped bracket regex for
+Cargo features malformed; literal -F multi-pattern query resolved it. Initial
+1000-line file-copy read hit output bound; used250-line chunks with exact
+line-count verification before any edit. No test/production effect; no claimed
+complete transcript from a truncated source read.
+
+### H-054-122-180 — diagnostic source review caught three localized errors before compile
+
+Review0814c660/caller39e74c2e unchanged before/after; no architectural finding.
+One correction batch only: (1) contact logger used left/right variables outside
+their former loop scope, now resolves actual flat_locations endpoint lineages;
+(2) externalcaller guessed module-level _verify_restored_authorities, but actual
+verified caller uses actor._verify_restored_authorities(); (3) exact diagnostic
+join now includes existing parallel_ordinal and cognitive_ordinal alongside
+physicalclock/endpoints, never conflating organism tick with inner clock.
+No test compiled/run and no body modified. These are real harness/source
+mistakes caught early; not failures of the accepted production mechanism.
+Review otherwise confirms field/method shapes, sparse feature-gated observation,
+actual guide evidence, isolated startup/worker closure, finite chronology and
+saved successors. Final frozen source review required before build.
+
+### S/R-054-122-181 — final diagnostic source PASS; one build/install; two serial runs next
+
+Final independent review012f08bb8c2f29dd3b9d33cc96723f87bf370878e3a2eaef9935e327fcb38246
+PASS before/after; externalcaller3b6d3e3fdae12737b3c6fe658f46fc61f0dcd4fbbe75d0d413279e27a2496e8a.
+All three localized findings corrected, no architectural finding. Existing
+public per-interval body/contacts shapes and real startup matched source.
+Compiled once AFTER review and owner fingerprint re-verification:
+nice -n15 maturin build --manifest-path native/guala_core/Cargo.toml --release
+--locked --jobs1 --features python-extension,diagnostic-api
+--out /tmp/guala-c129-strength-check.5Cl6tl/wheels.
+Actual invocation used separate --jobs 1 argument. Session61905exit0,
+1m27s compiler report,190 inherited warnings. No auto-fix applied.
+Wheel SHA3c80955d8393024d6c235029a3faef91f9efe6ec8eaccda314e719421a5fec67,
+isolated --no-cache-dir/--force-reinstall/--no-deps --target installed.
+Loaded native SHA95d45c7c58d008133431e063105360f4a1df1e0bf77ea2690ee116b79d2dfc7b,
+module under declared isolatedinstalled/guala_core; diagnostic API present.
+This artifact is NEVER a production release artifact.
+
+Exact current corec994ff4837f6a828a7c194d45811a5770ca60c6c8c3591b3a61db39bd43ec6d2,
+runtimecbd8ec665cd70cdb2d4080d603b2fe24ce61281e066f1b6ee88be8334bf435e9.
+Fingerprint reverified after build; this receipt-only append changes no source.
+Next commands use PYTHONUNBUFFERED=1, PYTHONPATH=<isolatedinstalled>:<exactroot>,
+GUALA_PAIRED_ROOT=<outputroot>/<dose>/paired, GUALA_MAX_WORLD_BYTES=16777216,
+GUALA_DIAGNOSTIC_VOCAL_STRENGTH=1; nice -n15 python3 observe.py
+--dose32 then--dose128 (separate proper CLI tokens), --native-sha95d45c7c...,
+--solar-second41490 SAME measured external skytime for both. No other GUALA env.
+Each complete stdout/stderr goes to separate dose32.log/dose128.log; terminal
+gets only summary/tail. Never launch128 before32 is confirmed terminal.
+No range assay/old750-1500 contrast/newphysics/live lessons.
+AWS11:28:47UTC prebuild exact1458 HEALTHY/1-1-0/resourcealarmsOK/clockALARM;
+read-only health repeated immediately before/after each actual copied-body run.
+All result and pending physical successors saved, no repeated causal prefix.
+
+### S-054-122-182 — two nonsaturating demonstrations measured; all completed states preserved
+
+R122179 advanced, not a reopened speech/restart proof. Dose32session57619exit0;
+dose128session61636exit0, serial. Exact caller3b6d3e3f and isolated diagnostic
+native95d45c7c, source review012f08bb, no source edits between arms. Both actual
+startup on authenticated669708/body179cffc2/world8ba366cf, solar-second41490.
+Quiet baseline8 means no acoustic body act/breath/pressure; ordinary grip/hip
+activity remained allowed and is retained in full rows, not called total silence.
+Each ONE4000sample guide, axes37/38/39/44 MAX, then8ordinary intervals.
+
+Success: dose32 moved125→126/145→146/165→166/265→266; dose128 moved125→129/
+145→149/165→169/265→269. Exact carrier32vs128, stalled0 each. Unlike rejected
+750/1500 assay, this is a real different initial physical demonstration.
+Both actual successor669725 sealed/published/adopted/reconciled:
+dose32body9eed2752a82c1581e97e45c49adf164a2ccfe96a27ab603e65b57a60d59d15f2;
+dose128body37f10a113aa9db5f8d9f8651e6a3f632f6a8a9a64120184226b3575ac0d7876e;
+sameworld885798667ea89dc4cd7b26db48807fdb1d2d30e5c7af4c1662ec040e05174fee.
+Both old learned acts still occurred669719/669720, fourcontrols/breath/pressure;
+tail still sounding at bound as expected. This is not a new recall/silence test.
+17settlements22.156579s/22.399322s, processpeak1880936/1872248KiB respectively.
+Not production latency, not controlled performance improvement.
+
+Every arm8583 vocal-contact log rows. Sixteen provisional phase changes:
+four contacts26aa→c5/e1/fd/509 at719/721/723/725. All prior50channels/phase0,
+all computed50channels/nonzero fractionalphase, all coordinatedtrue but
+ordering_permitted=false and bond_permitted=false. Source reset restores
+the exact predecessor and cancels the provisional current/work.
+Newcontacts8, before16377/after16385, totalchanged133 each.
+All finalchannelarrays byte-identical; all9per-intervalchangefiles byte-identical;
+ALL8583loggedcontactrows identical between doses, not merely aggregate counts.
+The source can discard real computed fractional plasticity: now measured.
+No computed whole-channel change in this bounded path.
+
+### F/C-054-122-183 — reset-only explanation insufficient; do not replace it with a new assumption
+
+Independent read-only reviewer reproduced contrasts and exact joins. Four
+new26aa motorcontacts remain50channels/500conductance/phase0; phase-changing
+nonmotor contacts also remain in saved evidence. It is false to infer that
+simply keeping the16refused fractions would distinguish these lessons: their
+computed values were already IDENTICAL. No reset deletion/permission relaxation.
+Current C125 direction signal is endpoint pump/return classification; contact
+plasticity magnitude derives from local released work and prior phase, not a
+guide-dose argument. Same local work therefore admits same computed update.
+Body-source encoding retains numeric positions; final body hashes differ.
+Where the distinct experience is retained and whether recall can use it are
+UNRESOLVED, not declared impossible. No claim all learning failed or speech fixed.
+No new mandatory acceptance bar; this answers the predeclared strength boundary.
+
+### S/H-054-122-184 — evidence retained; diagnostic code removed; no production mutation
+
+Full review/caller/build/install/two rawlogs/per-interval exactchanges/bothpaired
+successors/analysis/diagnosticpatch preserved in37MiB external directory.
+Analysis1f9f2aa1f93572b54ae713589de191d54147d5e6034f57c827b6e521a61ecfa6.
+Durable evidence.tar.gz SHAbbd1641e209db0db165bd266d698fdad27fb9b07eef436325d9c9abf93e5a3ea
+at /mnt/tfebackup/guala-c118-four-posture.XehvEs/c129-strength-evidence.TnPp0A/.
+Native32temporarydiagnosticlines removed via fullfile replacement; core
+33adbb8530490dbe5680fe6cc4c4558e3fb4c2bc221ecd7a231934b03393c750/runtime
+b5a7cab120f2145badfefa07c1983226f290f6f20b7d4432f1db4f4a0698e75b match accepted
+HEAD. No native diff, no production rebuild/deploy. Diagnostic installed
+artifact remains external evidence only; target build output is not release proof.
+Cleanup first patch asked delete+add samepath; apply_patch refused atomically,
+nothing changed. Correct full UpdateFile old/new form then succeeded.
+Shared fetch output accidentally included whole stored content and exceeded
+display budget; fetched full value remains intact and unchanged blobdf68feea
+was verified. Never print full shared content; only sha and bounded new section.
+Neither tool mistake touched organism or invalidates run evidence.
+
+AWS read-only envelopes11:36:52before32/11:37:42between/11:38:50after128:
+same1458/71289e2b/fd6e44de, HEALTHY, service1/1/0. CPU/RAM/EFS/refusalalarmsOK;
+clock-stalledALARM remains. Raw snapshots in evidence archive. No live writes.
+Both run handles terminal; no retries or surviving harness worker.
+
+### R-054-122-185 — single next item: trace distinct retained body experience to vocal plasticity
+
+Continue R122177's quantitative learning boundary using SAVED32/128 successors.
+No new guide/cue needed to inspect them. Read existing source/readonly
+observations for body position, proprioceptive receptor energy/residue and
+retained neuronal state; identify first point the demonstrated numeric
+distinction does not reach the learning contact. Separate exact source evidence
+from hypothesis and from state not exposed by current observer.
+Ordinary observe_reached_neuron_electrical_by_layer and lineage/layer observer
+exist; verify their returned scope before invoking. Never infer full neuronal
+equality from an electrical projection. If extra observation needed, define its
+bounded evidence map first rather than repeating the lesson prefix.
+No new strength-law candidate, synthetic energy, copied semantic target,
+timer, semantic index, anatomy expansion, or production change authorized by
+this diagnostic. S122175 live output and C125/C126/C129 successes stay closed.
