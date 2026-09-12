@@ -39,13 +39,25 @@ AWS12:40:15.784203/12:40:59.400017UTC same1458/task/image HEALTHY1/1/0.
 Postwindow CPUmax46.2453%,RAMmax12.1429%; resource/storage/refusalalarmsOK;
 historicalclockALARM remains. This is not full resource or clock closure.
 
-Next SINGLE R122197 continues R122193: quantitative instrument-feedback
-contract. Reuse R122139/R122141: initial1ms sparse feedback exists but actual
-intra-render position trajectory is omitted. Map the smallest truthful
-trajectory/source/coupling correction before any edit; do not stretch1ms into
-250ms, change UF, lowerq or fitgain to Mama, reinstate unchanged-body polling,
-or retain plasticity after cancelling its paying current. No new lesson run
-until that contract is complete. C1 review requested; Sol continues.
+S122201 closes R122200: two actual body-law trajectories, no cognition or lesson.
+MAX32/128 preserves initial +1/+4, peak +18/+57; full rest at129/173ms.
+One std-only native run2.23ms; all prior mechanical controls preserved.
+Actual positions and timing differ. Exact derived exposure is NOT gate delivery
+or quantitative learning. Physical source presence, not a favorable cutoff,
+must determine duration. Native core/runtime unchanged; no production change.
+Archive position-trajectory-evidence.tar.gz SHA
+1cadf018383fad4b7e2925eac2da188a242990c880e0326dcf0144b86e677e7d.
+
+AWS13:00:01.160874/13:00:33.709153UTC same1458/task/image HEALTHY1/1/0;
+window CPUmax49.7025%,RAMmax12.2772%; resource/storage/refusalalarmsOK,
+guala-clock-stalled ALARM remains. No all-green or performance closure.
+
+Next SINGLE R122202 continues R122197/R122193: finish the timed position-return
+representation contract, preserving the separate one-ms motor/load impulse.
+S122198 records all native, wrapper, pending-return, restore and action-evidence
+consumers. No new lesson, candidate or fullbrain run until that contract closes.
+Do not stretch1ms into250ms, lowerq, fitgain/cutoff to Mama, add a second owner,
+extend motor authority over passive sensation, or reinstate unchanged-body polling.
 Fullfield/identity/learning preserved. Speech and full AE acceptance OPEN.
 
 The earlier live-lesson status below is HISTORICAL context, not the resume point.
@@ -19739,3 +19751,209 @@ C1 process or permission wait is inferred. No new lessons, compile, candidate,
 livecue or deployment in this handoff. Browserclosed/caretakerSTOP.
 FullAEgoalACTIVE, speechNOTfixed. Immediate next action is the source contract,
 not a repeated wholebody test.
+
+
+### S-054-122-198 — complete return-format audit rejects append-only trajectory patch
+
+2026-09-12. R122197 source/design work, rootb4c72f5f clean. PriorS122196
+remains CLOSED; no nativebrain run, lesson, build or productionmutation.
+Independent source review inspected timing/representation/authority traps.
+
+Exact existing chronological path:
+guided input (runtime3555) settles1ms BEFORE cognition; build_admitted_trajectory
+then settles recruited body work1ms (4052). Renderer275 performs further1ms
+passive settlements at pressure samples16,32,...3984:249 more for4000samples.
+Thus ordinary outputbody law covers250ms; optional guide1ms is earlier and
+distinct. Never insert an extra endpoint settlement, simulate the trajectory
+twice, or relabel guided time as motor-output time. Initial guide/body sources
+currently carry only their respective1ms transitions.
+
+Renderer discards per-ms typedconsequences; this omission is OLD R122139/R122141.
+New complete transport/consumer findings:
+- articulated_body_joint_source_builder285 requires unique ascending axes,
+  twoframes and source_tick/+1 timestamps for every axis. Concatenated repeated
+  axis records cannot represent the actual timeline.
+- virtual_articulated_body1093 omits stationary/no-new-drive records EVEN WHEN
+  antagonistactivation remains. Preserve actual held positions/time; absence
+  of a movement row is not proof elapsed physical exposure is zero.
+- native wrapper glew_runtime/native_resident_organism.py4029-4082 requires
+  GLJSRC03/04,2or4ports/occurrence, samples=2*ports,frames=2*occurrences.
+- guala_motor_world._body_sources126 allows <=1body source and manufactures
+  fixed((1,1000),)*occurrences admissions. PhysicalReturnSource.__post_init__
+  in guala_physical_return.py69-84 independently requires2samples/2frames and
+  the same1ms duration, including after world coldrestore.
+- source decoder joint_source_episode848+ partitions each port into EXACTLY
+  ONE occurrence and requires all referenced port times match. It cannot
+  reuse one position port in separate impulse/tail occurrences as-is.
+- proprioceptive_receptor_work445 load adapter independently requires118byte
+  GLBPEV01, source_tick+1, exactly2samples, first0/last1, fixed1ms carrier work.
+  Appending position samples to allfourports would violate this adapter; paying
+  the same initial reacted carriers across every passive sample is forbidden.
+- exact_moved_effector_terminal(builder53) reads the initial118byte physical
+  drive evidence. Passiveconsequences have0newcarriers and correctly yieldNone.
+  Core8667 collects those terminals perwholeoccurrence BEFORE fieldgates;
+  uses include internal-contact/bodyact10105, predecessorjoin10141,
+  regulationassociation10205, motormount10277. Neither repeating initialdrive
+  evidence asnewpassiveactions nor erasinggenuineinitialdrive is lawful.
+  Whether a longer occurrence changes those consumers' authority must be
+  resolved explicitly; no duplicateact is claimed measured here.
+- NeuronSourceSite::from_source_port(anchor97) identity depends on sense,
+  topology,typedterminal,sensor/substream,coordinates,quantity,unit, NOT
+  sampletimes or input_map_profile. Preserve those site fields exactly; a
+  trajectory does not justify newneurons or orphaning learnedlineages.
+- Native InFlightAcousticConsequence720 has4mechanicalchannels, but constructor
+  returnsNone ifpressureallzero. It CANNOT own silent guided positionexperience.
+  Existing PendingPhysicalReturn is independent of audiblepressure and is the
+  existing custody seam; do not add a second pendingowner or voice-dependent
+  bodyreturn. It persists in coupledworld currentstate and restores through
+  PhysicalReturnSource.from_record (thermally_coupled_embodiment_world1176).
+- LeanPhysicalLoop._requires_physical_return demands body-source presence
+  match articulated_body_consequence presence. A new trajectory producer
+  must preserve that causal evidence map, including passive-only movement.
+  At most one nativecognitiveadvance/ordinaryoccurrence remains mandatory.
+
+These are source facts, not a new organismfail or completed design. Existing
+loadwork, selfhearing, sourceidentity, guideauthorship, pendingreturn and
+one-intervalclock wins are preserved. Do not simply raise size limits, label
+two endpoints a250ms trajectory, or add a parallel per-ms cognition loop.
+
+
+### H-054-122-199 — read-only path mistakes repeated, corrected without runtime impact
+
+Two source searches supplied guessed nonexistent paths:
+dsf_ai_service/substrate/native_resident_organism.py and
+native/guala_core/src/in_flight_acoustic_consequence.rs; actual wrapper is
+dsf_ai_service/glew_runtime/native_resident_organism.py and acousticstruct is
+INSIDE organism_runtime.rs. Another search added nonexistent
+neuron_source_anatomy.rs; actualNeuronSourceSite was already found in
+neuron_source_anchor.rs. All commands failed2 before compilation or mutation.
+This repeats H122192's class, not a new mystery. The existing preflight file
+resolver was reread; uncertain names must be resolved with rg --files or its
+file command BEFORE a source search, not supplied speculatively.
+One combinedtooloutput truncated renderer text;162-295 was then read in full.
+No test outcome, source truth, or productionhealth inferred from those failures.
+
+
+### R-054-122-200 — bounded body-only trajectory input discriminator, not a new lesson
+
+Continues R122197; contract's quantitative check BEFORE choosing a returnformat.
+Use actual existing virtual_articulated_body.rs via a std-only Rust include,
+not copied body equations or a fullnativebrain build. Exactsmallbody input is
+the preserved S122109680byte GLBODY01:
+ /tmp/guala-c123-shape-check.PoSJGL/body.bin
+ SHA6247ab3b74180419d60eb5dc21a94c38e72cbe119ea078efa9f70a8d14ffd59f.
+It is a historical authenticated mechanical body, NOT today's cognitivebody.
+Selected axes37/38/39/44 are neutral and bothactivations0, asserted before use.
+The currentbodylaw SHA451378d105bc51153d9ff26a952fb15ce512164e84253acf40cfbb8727dc669f
+is included directly. No perception, memory, acoustic law, codec or organupdate.
+
+Exactlytwo simultaneous4axis impulses MAX32/MAX128, one1msguide followed by
+250existing1ms body settlements. Save positions/activation at elapsed0..251.
+Time0..1 is guide; time1..251 is ordinary bodyoutput span. This distinguishes
+the real pre-cognitive guide from the later return instead of fabricating250ms
+guidance. It does NOT claim to run the acousticrenderer, cognitive feedback,
+new sensor format or fullproduction chronology.
+
+Caller position-trajectory.rs SHA
+eaaa2a814664a54c52f1938fefe48e59f4998005746283488a223984cc5e3a2d
+under existing /tmp/guala-c129-strength-check.5Cl6tl.
+Runtime checks: actualcanonicalroundtrip; firstdisplacements1/4, peaks18/57 and
+neutral/zeroactivationat250ms matching S122109's preserved8rows; no stalls;
+allpostguideconsequences0newcarriers; originalsmallbody bytes unchanged.
+The output supplies actualpositions for exact source-energy arithmetic and
+representation planning. No claim currentcoupling/quantum is sufficient for
+learning until actualsource+gate behavior is derived. Do not fit an input law
+to one desiredword or assume moreduration automatically fixesquantization.
+
+ONE source-onlyreview of caller/actualincludedlaw/hashes beforeONE rustc build
+andONErun. One smallbody andtwo shorttrajectories only; output2016data rows.
+AWSreadonlyhealth before/after; no liveinput, pause, restart, cloudwrites,
+fullbrainrestore, lesson, nativecognitiveadvance or prodartifactinstall.
+Stop on caller/controlfailure and classify it before interpreting data.
+Preserve fullcaller/rawoutput/review/hashes in existing evidence directory.
+No nativeworktree source edits. FullAEgoalACTIVE; speechNOTfixed.
+
+
+### S-054-122-201 — R122200 completed: native position history measured, not learning
+
+Source/result independent reviews by /root/memory_probe_review PASS. This is an
+internal reviewer, not C1. One std-only rustc build0.478s; one actual body-law
+run exit0, elapsed0.002229773992439732s, reported child peakRSS10400KiB.
+RUSAGE_CHILDREN is process-level evidence, not exact native allocator usage.
+No cognitivebody restore/advance, cue, teaching, acoustic renderer or live call.
+
+Both selected4axis guides satisfy the previously preserved controls:
+dose32 initial+1, peak+18 at18ms; dose128 initial+4, peak+57 at26ms.
+No stalls. Original680byte canonical body unchanged; all passive events have
+zero new dischargedcarriers. NEW measured full rest (neutral and zero both
+activations) is129ms/173ms respectively. CSV2016rows includes times0..251;
+the external guide occupies0..1; ordinary mechanical return occupies1..251.
+This does not assert equivalence with a whole-brain or renderer execution.
+
+Exact Fraction arithmetic applies the existing position law:
+2 * sum((length_i^2 + length_next^2)/2 * dt), in zJ, normalized span980.
+All16 axis/ending/dose exposures independently checked. Example axis38,
+toward-minimum ending: full-return dose32=8198417/960400000zJ,
+dose128=474489/48020000zJ. Opposite ending:
+362991737/960400000 and17785209/48020000zJ.
+The JSON retains all16 exact values for full250ms and first actual rest.
+Those two domains are DESCRIPTIVE, not selected sensor admission rules.
+Stationary neutral position still has nonzero normalized length; rest alone
+does not authorize terminating physical exposure. Never choose a duration
+because floor(energy/q) distinguishes two doses. Such floors omit retained
+residue, physical barrier, timing and capacity; no actual gate delivery,
+plasticity, memory distinction or speech is proved by this arithmetic.
+
+Artifacts under /tmp/guala-c129-strength-check.5Cl6tl:
+caller position-trajectory.rs SHA
+eaaa2a814664a54c52f1938fefe48e59f4998005746283488a223984cc5e3a2d;
+binary SHA9ad1b4eaa0c0b45a00c7d613605593f575ffc6b5c1fd5da45cd850497704af67;
+CSV SHA f3a88a7934d062a36f7ebb9d7194434887d7e44f66173ef3993d81cde92ed293;
+arithmetic script SHA ff26b9f5c003878843ceabaf2e1f4109411d886d8d6d975f1869dcbdcaf7a634;
+JSON SHA8f266459a3f6594c95f1c79149e70f9102e937d8c5015b38f5771e56784022ff.
+Reviews, exact included body source, input, old range controls, raw run,
+arithmetic and before/after AWS evidence archived once at
+/mnt/tfebackup/guala-c118-four-posture.XehvEs/c129-strength-evidence.TnPp0A/position-trajectory-evidence.tar.gz
+SHA1cadf018383fad4b7e2925eac2da188a242990c880e0326dcf0144b86e677e7d.
+Archive existence/hash reverified after context boundary; test not repeated.
+Accepted core33adbb85/runtimeb5a7cab1 unchanged; frozen worktree fingerprint
+d89fd8a0db59a4c0c26df46bf248c7778e890f0ebc912e4288c21e495f51bcf3 verifies.
+
+AWS13:00:01.160874/13:00:33.709153UTC same1458/imagefd6e44de/task71289,
+HEALTHY desired/running/pending1/1/0. Window CPUmax49.7025%,RAMmax12.2772%;
+CPU/RAM/EFS/refusal alarmsOK; clock-stalledALARM persists. No production change.
+S122175 live sound/selfhearing/stop and S122158/159/165/169 restart proofs remain
+closed, not rerun. This result supplies timed input evidence for R122197;
+it does not reopen prior mechanisms or declare speech fixed.
+
+
+### R-054-122-202 — single next item: timed position return without repeated action authority
+
+Continues R122197 quantitative instrument-feedback contract. Predecessor
+R122200/S122201 body trajectory discriminator CLOSED as scoped; S122196 gate
+input limit and S122198 end-to-end source map remain authoritative evidence.
+Acceptance for THIS design item: one explicit producer-to-consumer contract
+preserves actual position samples/time, original neuron site identities,
+separate one-ms loadwork and episode-scoped genuine motor evidence, full joint
+DSF, one ordinary cognitive advance, bounded pending physical return and exact
+cold restore. Name schema/version and crash/rollback consequences before code.
+Do not treat this design acceptance as the speech acceptance.
+
+Resolve the remaining representation question from existing consumers:
+current occurrence ports share one timeline; GLBPEV01/loadwork is a one-ms
+impulse and action evidence is harvested at whole-occurrence scope. Simply
+appending250ms samples to every port repeats or invalidates that authority.
+Splitting source ownership also cannot be assumed lawful: current return has
+one body source, one port occurrence membership, and simultaneous field rules.
+Recommend the smallest single-source representation retaining timed evidence
+and original physical sites, only if that complete contract can be proved.
+If not, record the precise missing mapping for architectural review rather
+than silently adding a scheduler, neuron class, semantic index or second owner.
+
+No parameter tuning, new organ physics, extra cognition steps, whole-population
+work, broad test, new lesson or deployment is authorized by this documentation
+checkpoint. Source inspection/review of the named contract continues.
+Joe's indexing question changes no active code: ordinary exact address access
+may locate physical state, but no label, nearest match, stored answer or index
+may decide recognition, meaning, action or fabricate a distinction.
+Full AE goal ACTIVE; speech NOT fixed.
