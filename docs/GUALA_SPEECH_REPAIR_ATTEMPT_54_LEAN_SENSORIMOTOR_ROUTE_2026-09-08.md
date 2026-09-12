@@ -22254,3 +22254,88 @@ wording is superseded. H122247 remains an observation gap, not a reopened
 physiology failure. Next is that bounded approved verification; caretaker stays
 STOP until its required live receipt is captured. Microphone is now OFF by
 Joe's statement; camera state has not been newly confirmed.
+
+### R-054-122-251 — C1-approved concurrent live witness, no repeated physiology
+
+Continue H122247, not reopen closed S122246 cutover or host/image proofs.
+C1 concurrence recorded in shared46bea5c7; Joe confirms microphone OFF and
+camera OFF for the brief check, listening may remain ON. Previous turn changed
+the authoritative microphone/card record and resolved the review decision:
+PROGRESS, not a verified waiting job. No old blocked-turn counter applies.
+
+Acceptance unchanged: ONE MAX32 four-axis/4000-sample guide producer G;
+observe native consumer G+1 with consumed_physical_return_tick=G and exact
+physical_return_source_count=original-impulse + actual root sources + ONE
+compact tail; persist at or past G+1. Raw trajectory/learning/word claims excluded.
+Fixed predecessor release1459/2dbdd9bf/image708fc271 remains live, healthy1/1/0
+at19:34:45UTC. CPU latest47.48% max, RAM10.27%; resource alarmsOK,
+historical clock-stalledALARM persists. No active caretaker process.
+
+Temporary caller verify_live_feedback_concurrent.py uses pinned original
+bf3b5f97 plus pinned transport helpers. Existing live compact return flows
+lean_physical_loop -> PendingPhysicalReturn -> next native ordinary intake;
+actor latest occurrence -> read-only API -> concurrent external capture.
+Same bounded source/count roster join as approved caller. Single GET observer
+starts before POST, retains at most96 distinct bounded observations and240GETs,
+0.2s minimum gap, at most one concurrent GET plus one guide POST. NO ordinary
+POST, no automatic retry. Exactly one guide after two observed externally quiet
+advancing intervals; stop on ambiguity/foreign sensory presenter/missed event.
+600s overall request deadline; transport timeout90s plus subprocess95s; observer
+joined before the existing persistence wait. These are observer resource bounds,
+not organism timing or cognitive rules. No runtime source/owner/API/schema edit.
+
+RF005/011/012/016/025/027 applicable: capture the same producer/consumer once,
+archive raw bounded receipts, distinguish missed observation from failed physics,
+never retry a possibly accepted POST. RF001/002/003 do not reopen because no
+native imports/build/restore. Source review required before this one authorized
+live guide; no full suite, body copy, new image or cutover. Caretaker stays STOP
+until this witness and durability pass; C1 has already concurred with ordinary
+lesson resume afterward under its32tick charter.
+
+### F-054-122-252 — approved additional guide caused a real live settlement failure
+
+C1-approved concurrent caller finalb99407ca, independent reviewPASS after one
+localized log-serialization fix, ranONCE session66337 exit1 at19:39UTC.
+Preflight captured quiet unattended678811/812; another unattended678813 ran
+before the guide settled. Guide POST returned409 detail:
+"physical settlement failed; recover the paired checkpoint, do not continue".
+No accepted-guide receipt exists. No retry or ordinary POST. Last API
+available=false/live678813/persisted678788. This is a REAL production failure,
+not H122247's missed-observation class. Earlier observed/local/image successes
+remain evidence but do not clear this counterexample. Caretaker remains STOP.
+
+Source: lean_physical_loop._advance wraps an internal exception after
+native_started or returning exists; NativePhysicalInputRefused is exempt.
+lean_actor._run stores _fatal and stops; Python cause is neither logged nor
+exposed by API. Exact CloudWatch taskstream has startup only. Cannot infer
+specific native mutation or root cause from the wrapper. No production code
+injection, restart, rollback or additional sensory event performed.
+
+Authenticated read-only capture via unchanged capture_guala_current.py finished
+session94946exit0: CURRENT678788 body166271826B SHA514d125ab46c2b2408ca959e1d82a7b265facbfde49653887a39e284bcac9846;
+world63663B SHAa052a676ec8e6034700c567c42bac429bfc5c67fa46f0ab048e2a9b27977f8fc.
+/tmp/guala-c131-incident.aP5epj/current.zip3396575B SHA
+f82d2168004be79c8b38aa21a3f0dade0e570f2297f3a1b4a10ae002b17bb8a0;
+S3guala-incident-bench-20260831/c131-feedback-incident-20260912/aP5epj/current.zip.
+Raw concurrentlogSHAa25535218687d82873ceb8e2e37bf2445b7754994cfc262a2943791f24d25d77.
+ECS19:40:48 same1459/task2dbdd9bf, service1/1/0; this does NOT mean actorhealthy.
+Slackincident19:41:07slack_sent; C1 sharedf2454dbd notified, no assumed runningC1.
+
+Next bounded discriminator: ONE guide on captured CURRENT in existing exact
+productionimage708fc271, offline disposablecontainer4CPU/16GiB/no swap/network,
+no prodmount. Caller reproduce.py05701a45 uses realstartup and one nativeguide,
+prints chained exception without editing physics. State is25intervals older
+than last published678813 and external solarUTC differs. A reproduced failure
+is diagnostic evidence; a pass CANNOT clear the live incident. No claim this
+is exact replay, no broad suite, no automatic expanded chronology. Independent
+source review before execution. Reauthenticate CURRENT after any final drain
+before a reviewed recovery; never restore an incompatible older image.
+
+Command-output lesson this pass: jq on mixed JSON+traceback log exited4;
+use jq -Rc 'fromjson?' for that log, not a physiology failure. Rawlog preserved.
+No giant lastline dumps; captured observations include world/body detail and
+must be field-selected before terminal output. Existing RF011 applies.
+
+Joe's vision lane is retained without interrupting this incident: improve
+usable image detail, distinguish actual135-site sampling from browser smoothing;
+~1000sites is only C1's sizing proposal, not measured requirement/approval.
