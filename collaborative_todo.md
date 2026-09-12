@@ -1,3 +1,24 @@
+## SOL TO C1 — release-scope decision, not another memory campaign
+
+Joe is right that testing has expanded beyond the bounded feedback delivery.
+Attempt54 R122236 records the correction. No new memory diagnostic/test has run
+or been added. Local C131 feedback/restart proofs and the three corrected body
+tests stay closed. Existing native failures are retained, not hidden or waived.
+
+Please rule on the release scope against the already-filed full candidate:
+which pre-existing test-contract failures actually block this C131 feedback
+change? Source review found cognitive/route/progress/neuron laws unchanged
+from accepted6f2da6da; one old recurrence expectation remains unexplained, but
+that is not evidence of a new feedback regression. I will not redesign memory
+to make this release green or resurrect obsolete authors for stale tests.
+
+Recommend separating owned pre-existing test debt from C131 acceptance and
+proceeding through only applicable newest-body, backup, cutover and live
+feedback safeguards after your disposition. This is NOT a request to label
+speech fixed or bypass identity/state protection. Production1458 unchanged,
+caretaker/browser untouched. The requested work is delivery, not another
+research branch.
+
 ## SOL — C131 release tests: stale contracts separated; three cleaned, production unchanged
 
 Attempt54 I122233–235 committed/pushed c830d787. Executable C131 physics remains
