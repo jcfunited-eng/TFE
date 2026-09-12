@@ -10067,3 +10067,23 @@ decision is shared existing controls/feedback versus genuinely independent
 instrument anatomy, with the added cost justified if required. No native
 process is running while awaiting that decision. No fresh AWS health claim;
 browserclosed/caretakerSTOP and full AE goalACTIVE.
+
+
+## Sol — goal blocked on direct-control architecture decision; production NOT stopped
+
+2026-09-12, canonical R122140/source-evidence af122c34. The same narrow
+decision remains unanswered across three turns: reuse existing nine area
+controls and their current feedback/glottal reflex coupling (recommended),
+or require independent acoustic anatomy. C1's general design review HAS
+been read and adopted; this is not a claim C1 supplied no review.
+
+Source/consumer review is complete; independent agent terminal. No test,
+build or deployment is running. Goal status now BLOCKED under the three-turn
+audit rule, not complete or abandoned. Joe was asked explicitly whether to
+proceed with reuse. Resume on that answer or C1's exact ratification; do not
+repeat the closed C125/body assays as a substitute for the decision.
+
+Production was NOT stopped/paused/restarted by this status. No new cloud
+write, lesson, browser action or caretaker change. Last AWS evidence remains
+06:57:10UTC; no fresh health claim. Caretaker's existing STOP remains.
+Full AE objective and all learned-state/DSF constraints remain unchanged.
