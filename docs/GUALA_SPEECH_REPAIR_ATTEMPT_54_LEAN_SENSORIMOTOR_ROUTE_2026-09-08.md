@@ -1,28 +1,29 @@
 # Guala speech repair Attempt 54 — complete design verification and lean sensorimotor route
 
-## Current resume point — 2026-09-12, C129 cutover dry run PASS; controlled cutover next
+## Current resume point — 2026-09-12, C129 task1458 continuity healthy; live sound check next
 
-**Speech is not fixed. Full AE goal ACTIVE.** Source production remains
-task1457/41d3db93/image80755ca0 until D122172 records otherwise.
-Browser CLOSED/caretakerSTOP. No sourcework/newphysiology remains for this slice.
-Current local and exact-image gates S122165/S122169 PASSED:
-actual startup/migration,quiet8,cue4000,twofour-controlacts/breath/sound,
-self-hearing,pairedsave,coldrestore,FULLbody/world/causalevidence next exact.
-Six focused checks S158 and older savedbody S159 stay CLOSED.
+**Speech is not fixed. Full AE goal ACTIVE.**
+D122172 cutover session80467 TERMINAL exit0, continuity_health_verified.
+Production task1458/71289e2b95be4d79a5c9f74ac2708b7d, immutable image
+fd6e44defbc83a305a52229822c9f77155d0a640c8ffa8a7dc00265d7d1fec77.
+Old1457/41d3db93 STOPPED exit0 before new writer started.
+Actual final predecessor670250 restored; candidate clock670259 advanced.
+Do NOT restart the controller or deploy another candidate.
 
-Candidateimagefd6e44defbc83a305a52229822c9f77155d0a640c8ffa8a7dc00265d7d1fec77
-(sourcepackagebad5eeb907f61e1c59248ed731914de812b1a1d3) built ONCE,
-image-nativecebdfaca, pushed/pulled exactECR; no diagnosticAPI/oldPython shell.
-Actual controller dryrun37744exit0 PASS S122171, source1457/live670179;
-fullbackup670092/archive db940f29 authenticated. Image and fullproof/backup at
+Browser CLOSED/caretaker STOP. Same native source5c8dcd03/packagebad5eeb9.
+S122165/S122169 remain CLOSED: authentic CURRENT startup/migration,
+quiet8/cue4000/two four-control acts/breath/nonzero sound/self-hearing,
+paired save/cold restore/FULL next body/world/causal evidence exact.
+S158 focused checks and S159 older saved-body proof remain CLOSED.
+Full backup670092 and image/proofs preserved under
 /mnt/tfebackup/guala-c118-four-posture.XehvEs/c129-current-release.59nFXh/.
-Ownedbuilder/inertrehearsal removed; no orphanbuild/runtime left.
+GLCOG046 one-way migration: no automatic old rollback.
 
-Single next item D122172: SAMEcontroller --cutover, sameimage/samebackup,
-one registration, exactsourceSTOPPED/exit0/shutdownreceipt/zero writers,
-then candidate startup from realfinalCURRENT and live verification.
-No automatic old rollback afterGLCOG046 migration. Continuityhealth is not
-speech acceptance; recognizable word, quantitative learning and fullAE remain.
+Single next item R122174: reuse reviewed unchanged ONE sound-only live cue,
+no teaching, then observe existing ordered pressure feed and self-hearing.
+Do not infer motor ordering, speech, or intelligibility from pressure alone.
+11:02:53UTC exact new task HEALTHY, service1/1/0, matching image;
+post-start resource datapoints bounded, resource alarms OK, clock alarm ALARM.
 
 The earlier live-lesson status below is HISTORICAL context, not the resume point.
 
@@ -18894,3 +18895,52 @@ rollback, secondactor, oldschema restore or a new registration. Record all
 attempt/failure/success events including sourcefinaltick and realcandidateARN.
 SpeechNOTfixed; fullAEgoalACTIVE. Livevocalconsequence verification follows
 continuityhealth and must not be inferred from AWS green checks.
+
+### S-054-122-173 — one C129 cutover completed; live continuity and health PASS
+
+D122172 ran ONCE from controller62a99b010c78e8f42a6e92921b5ebcede4d8c806.
+Session80467 terminal exit0; full controller receipts retained in execution
+store c129_cutover_output and archive receipt below. Start10:52:21UTC.
+Old1457/41d3db93 stopping10:52:40.784, actual STOPPED10:54:32.074/exit0.
+New1458/71289e2b95be4d79a5c9f74ac2708b7d started10:56:00.146UTC.
+Exact immutable image fd6e44defbc83a305a52229822c9f77155d0a640c8ffa8a7dc00265d7d1fec77,
+image source bad5eeb907f61e1c59248ed731914de812b1a1d3.
+Controller status continuity_health_verified, behavioral_acceptance pending;
+same identity1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1, advanced live670259.
+Actual final paired predecessor (NOT earlier backup imported):
+tick670250, body165085887bytes
+SHAae371d7e383709466d6908313edf6418f23c0f6dcff18d6bbc1604fc9d028839;
+world63587bytes SHA2f3d16e3fbd9501571d364e6380179590e88151d68208fb829d29c8462f5fc54.
+One build, one task definition, one cutover; no second actor/controller.
+No automatic legacy rollback; old artifact cannot read GLCOG046 successor.
+
+Read-only AWS11:02:53.305824UTC confirms exact newtask/image HEALTHY,
+service1desired/1running/0pending. Metric window explicitly filtered AFTER
+new task start (no old1457 datapoints attributed to1458). Latest maxima:
+10:59 CPU40.6195%/RAM10.1471%;11:00 CPU55.3756%/RAM11.2091%;
+11:01 CPU40.8131%/RAM10.3790%. CPU/RAM/EFS/refusal alarms OK.
+guala-clock-stalled still ALARM; not called all-green or permanent growth proof.
+This is production continuity/health evidence, NOT speech acceptance.
+
+### R-054-122-174 — frozen existing live sound-only verification; no new lesson
+
+Previous goal turn obtained terminal cutover evidence that advances the next
+action: progress, not a missing-process restart. No source edits or new build.
+Existing reviewed /tmp/guala-c123-live-recall.py
+SHA1ac6f019df83f6198609278dc5e6698d7c4f2e132796b58e3e8c7d8660b10a91;
+imports hash-pinned edge d676a141 and transport3512d12a. All three read fully;
+independent reviewer PASS, no teaching mains executed by imports.
+Command: PYTHONUNBUFFERED=1 python3 /tmp/guala-c123-live-recall.py.
+Known cue32000bytes d6835e37, ONLY first8000bytes/4000samples submitted;
+exact phase SHA85a505e8569b7e4407ded73eab2539565096fad17a71afa67a9e93acddb5c545
+equals exact-image accepted cue. No incorrect-dose substitution.
+Eight sampled quiet native clocks before ONE ordinary sensory POST, guided0;
+no retry of refused/uncertain POST. Then64 autonomous clocks, existing pressure
+feed stream/cursor/hash/gap checks, <=256 audio blocks, <=1500HTTPcalls/1200s.
+No native imports or persisted-state mutation except ordinary cue experience.
+Observer does not pause cognition. Browser closed, caretaker STOP.
+A successful process exit alone does not prove sound: inspect raw PCM and
+self-hearing. Public observer lacks per-motor causal joins, so no live exact
+motor-order or intelligibility claim. Sampled pre-cue quiet is not an exhaustive
+native no-preparation census. These are declared existing live evidence limits,
+not a new gate invented after the run. Preserve all raw output and post-health.
