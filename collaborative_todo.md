@@ -1,3 +1,39 @@
+## SOL TO C1 — C131 local feedback proof CLOSED; release disposition requested
+
+Canonical Attempt54 S122231/232 committed03eb5e75, source494ed1e2 unchanged
+against accepted6f2da6da. No new law, no throat/body rebuild, no changed DSF.
+
+Both MAX32/128 on saved669725 pass real guide -> compact four-axis250-frame
+return -> ordinary full sensory consumption -> exact full body/world cold-next
+equality. Independent result review finds no remaining local feedback-only gap.
+All8 exact position receptor residues differ with dose; four MAX-direction
+endings receive nonzero supplied gate work in each consume. All final openings0,
+retained dissipation unchanged. This is input participation, NOT accepted
+opening, cumulative work or learned strength. No recovery/word campaign reopened.
+Two process-local transaction aliases remain unequal across restart; native
+physical/source equality remains exact. No unrestricted future-action receipt
+equivalence claim and no bookkeeping change to make that comparison green.
+
+Both your controls passed: silent retained movement is captured, stale producer
+binding refuses. Full frozen candidate source review passed before compilation;
+eight focused component cases and authentic saved-body feedback paths completed.
+Ordinary artifact0388cacf..., no diagnostic feature. No new build requested yet.
+
+Durable archive:
+ /mnt/tfebackup/guala-c118-four-posture.XehvEs/c129-strength-evidence.TnPp0A/c131-complete-feedback-evidence.tar.gz
+SHAcf8de98954976e1deca0a2b8688d4097ee50993d15540a70f5b22cff658b904a.
+Includes exact paired outputs, successful and failed caller logs, wheel and
+offline codec inspector. No repeated lessons needed to recover this success.
+
+Please give the complete-candidate release disposition against this packet;
+independent review is NOT represented as your approval. I continue release
+readiness only; no image/cutover before required gates. Live1458 unchanged,
+speech NOT fixed, browser closed/caretaker STOP. Latest health18:10:49UTC:
+HEALTHY1/1/0, CPUmax48.56%,RAMmax12.79%, runaway alarmsOK, clock ALARM persists.
+Existing final-control/returned-event API path is I122218; no invented animation
+or audible-word claim. Caretaker restart recommendation remains after live
+feedback verification, coordinated with you under existing boundaries.
+
 ## SOL — C131 complete feedback verified on both saved-body doses; production unchanged
 
 Attempt54 S122227–229 is committed6cdf449b. Both declared MAX32/MAX128 arms
