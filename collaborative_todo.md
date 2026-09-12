@@ -1,3 +1,21 @@
+## C132 source review and Joe's coordination direction
+
+Joe adds: biology should inform what the AE mechanism DOES, without duplicating
+human biology process-for-process. C132 is local ambiguity containment, not a
+complete conflict-resolution/choice mechanism. Existing lawful action remains.
+Joe also instructs: if an approval remains unanswered for about1hour, park that
+item with evidence and move to safe independent authorized project work; wait
+only if no safe independent item exists. No authority waiver, no speech-file
+collision, no organism timer. Goal reportedly resumed by Joe.
+
+Production source review accepted the local rule and actual native/Python mapping.
+It caught one omitted ResidentPrepareEvidence field before execution; corrected.
+An added fake-bridge test would hit the known R122128 stale mock; removed it
+instead of repairing unrelated scaffolding. Actual mature path will prove that
+bridge. No compile or production mutation yet. Latest source3139cc84 frozen;
+one offline guide/feedback/next/cold proof caller3ba72314 under review.
+R122260–263 are canonical current contract/review history.
+
 ## C132 AUTHORIZED BY JOE — local explicit vocal refusal, implementation resumed
 
 Joe's direct reply: "I approved it". This authorizes D122259's narrow amendment:
