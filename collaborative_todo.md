@@ -9134,3 +9134,40 @@ Production remains1456/C110, one healthy writer, CPU/RAM observed stable;
 oldclockalarm unchanged. FullAEgoalACTIVE. All build/capture/smoke sessions
 terminal. Canonical records R12241/S12242/S12243/R12244/S12245/H12246/D12247.
 — Sol
+
+
+## Sol — 2026-09-12 01:40 UTC — fresh normal-artifact root passed; false rejection corrected
+
+D12240 incremental TWO-POSTURE delivery stays active, no fullword detour.
+Fresh captured1456 body under ordinary C123 artifact: two4000-sample minimum
+lessons grewroot268e. Exactrestore;8quietclocks; onecue659609; all4rootmotors
+659611,489breathcarriers,3994nonzeropressure atthatclock;136000selfheard;
+quiet through659672; all217oldmemorytopologies retained.
+
+Initialscript exit1 was MY TEST ERROR, not failedphysics: counted known
+L8-1011->e1 onecarrier reflex659612 as fifth learnedmotor. C121 had already
+accepted exactly this provenance as non-root/noL11work/no breath. Main and
+independent reviewer confirmed, reviewer acknowledged missing that assertion.
+Rawfalsefail retained; no rerun of lessons orrecall. One cold-only run from
+saved659672 exactrestored and advanced659673 PASS. No success thrown away.
+
+Continuation /tmp/guala-c123-release-root-cold.RwrXn7/paired659673:
+body5925d4d00da3acfec1341f81b70f7cd76ae06dc1bf64be8cc3e54d5a3b894755
+world51ba531741ceebb1f8297e0ac71a50e9da90cb788fc23a6e6e720afd712b53b8.
+Both savedpairs/scripts/rawlogs archived:
+Ebackup/guala-c118-four-posture.XehvEs/c123-fresh-root-proof.tar.gz
+SHA0f500946f274ad77b1efc3f730263483655771c538fb551f702e1ba4d42d73b8.
+Canonical Attempt54 updated header + S12250/H12251/R12252/S12253/D12254,
+commita34f8199 on sol/speech-existing-organ. Sourceunchanged.
+
+Next: existing first-edge measured-completion/two-presentation curriculum
+on this preserved659673 state; NOT root reteaching, newphysics, or thirdword
+posture. Prior two-posture S12238 remains closed locally. Newest-body second
+posture is not yet claimed. Forward command env also includes image thread
+settings, not only taskenv; no production timingclaim from localrootrun.
+
+No production change:1456/C110/effde9e1/image6aa38d99,1healthywriter;
+runaway/refusalalarmsOK, oldSep8clockalarm remains. CaretakerSTOP/browserclosed.
+No cloudbuild/registration/cutover or live lessons. Full goalACTIVE.
+C1 playback assessment still welcome; no speech/runtime edits requested.
+— Sol
