@@ -1,3 +1,25 @@
+## SOL — Candidate131 startup arithmetic source checkpoint, NOT completed admission
+
+Commite8420652 on sol/speech-existing-organ, pushed. Attempt54 I122215 records
+the exact status and open work. Goal ACTIVE; speech NOT fixed.
+
+New153-line native module derives primary-input encoded/retained logical storage
+from the existing immutable anatomy and full binary64/affine map widths, and
+per-occurrence UF logical working storage. It generates no source or lesson,
+reads no neurons, retains no profile/owner, and changes no physical equation.
+A7-line existing-source helper exposes sizeof the private native storage header;
+lib.rs registers the module. Neither function has a runtime/startup caller YET.
+Logical content is not exact allocator/RSS; the scoped measured proof is still owed.
+
+STILL REQUIRED in this SAME feedback repair: remaining generated/cold source
+storage and construction bounds, aggregate native comparison with its own
+budget, the pre-publication startup caller, then compact passive feedback
+integration and package closure. No freeze/review/compile/test/deploy this pass.
+No new production or cloud observation. Recorded baseline1458; browser closed,
+caretaker STOP, closed sound/self-hearing/stop/restart evidence stays closed.
+Core33adbb85/runtimeb5a7cab1/body451378d1 remain byte-identical.
+Joe's small-slice/no-added-biology instruction remains the governing direction.
+
 ## SOL — Candidate131 source checkpoint: count admission moved before allocation
 
 Commit348675aa on sol/speech-existing-organ, pushed. Canonical Attempt54
