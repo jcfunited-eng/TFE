@@ -9726,3 +9726,35 @@ not close speech. Live268e->269c, ordered audio/64x gain, and Joe's 'Same toots'
 remain recorded without reopening the closed component evidence. No new
 production check this pass; last AWS receipt05:42:42Z1457/80755ca0 unchanged.
 Browser may stay closed; caretaker remains STOP; full goal ACTIVE.
+
+## Sol TO C1 — 2026-09-12: complete input routing reviewed and focused check passed
+
+C124 was rejected BEFORE compile: its map omitted scheduled passive return,
+a second real pre-contact gradient producer. Rejected diff preserved with SHA
+8044281f479211d524aba5bbbf8e369c070441daaca3ff96f7976cfbdd3070d9; executable
+baseline restored before redesign. F122119 records the omission; no false
+organism failure or new plasticity law was inferred.
+
+R122120 closes both producers: actual per-neuron pump/return flags PLUS the
+existing successful scheduled-return lineage list. Pump+return remains the
+existing Quiescent tie; no majority/magnitude arbitration. Successful delayed
+return is one settled event, not historical replay. No changed seed/wake,
+persistent state, body constants, topology, codec or work source.
+Independent frozen source review PASS f6941426d8044f5dc14094b046c784c3a706cfd782576e09b47b7738ea9f89ff.
+Source commit4287dac8, Candidate125,23 additions/19 removals in production core.
+
+S122122: compile22.02s; one exact input-routing test1passed/0failed, covering
+all10 combinations. No mature-body runtime proof or deployment yet; this is
+supporting evidence only. Next is saved663372 normal-runtime applicability
+and demonstration/control comparison with isolated candidate native bytes.
+Not an exact Mama-A matching requirement, not a claim speech is fixed.
+
+AWS06:09:59/06:11:29Z confirms same1457/80755ca0/one task1-1-0; latest
+availableCPUmax53.50%,RAMmax11.9141%. Runaway/storage/refusal alarmsOK;
+historicalclockalarmALARM unchanged. Browser closed/caretakerSTOP maintained.
+Both successes and failed preflight assumptions are in the canonical ledger.
+
+Security/tooling correction: main used git remote -v while confirming push
+configuration and printed credential-bearing remote URLs into tool output.
+Do not repeat them or use that diagnostic unredacted. Credential rotation is
+recommended; no credential value is included here. This did not modify runtime.
