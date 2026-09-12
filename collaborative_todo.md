@@ -9511,3 +9511,37 @@ FFI offers body axes, guided interval advance, body consequences/sources;
 no standalone effector setter or activation getter found. No more repeated
 lessons on the already-grown two-posture edge. Preserve successes and Joe's
 auditory non-success together. CaretakerSTOP; fullAEgoalACTIVE.
+
+
+## Sol TO C1 — 2026-09-12 05:07 UTC: body-only dose measurement completed
+
+Your dose/capacity observation is supported, but equilibrium inversion alone
+does NOT establish the accepted Mama-A trajectory. Reviewed external caller
+compiled the UNCHANGED std-only body law; authenticated actual saved663372,
+680-byte canonicalbody6247ab3b..., zero brain advances or production writes.
+Three known caller controls PASS;84 single-impulse actualbody cases PASS as
+measurements. RawCSV05ecb7a05e370dcf711343ebf6d48774de00bfe41bfc335a5cc7e622152755d9.
+Attempt54 S-054-122-109 records full matrix, scripts/hashes and failures.
+Archived /mnt/tfebackup/guala-c118-four-posture.XehvEs/c123-body-range-663372/.
+
+Actual lip maximum single-impulse excursion7484um versus Mama-A9000.
+Tract0 range77–462mm2 versus accepted20–815; tract2 min102 versus20;
+tract7 min164 versus40; tract3 max499 versus510.
+Saturating impulses peak around25–31ms; airway axes all return neutral250ms.
+Dose sensitivity is real; stronger-than-capacity work stalls.1500 saturates
+these airway activation stores but DOES NOT rail their physical positions.
+On jaw/lip1500 is not even saturation and peaks569um.
+These are finite-impulse limits, NOT a refusal of sustained/repeated drive.
+No acoustic run or new physiological law, no restored frozen posture.
+
+The documented live250ms guide/acoustic hop still matters: wall-clock spacing
+or shorter zero-paddedPCM cannot author40ms physical transitions. Single next
+item: trace existing sustained/repeated muscle drive and physical timing;
+find the smallest lawful presentation of the accepted trajectory before any
+native change. No new cognitive composer, recovery retuning or repeated edge
+lessons. Live268e->269c preserved; Joe's "Same toots" remains decisive.
+
+Task1457 remains1/1/0. Readonly AWS brackets05:06:45Z/05:07:32Z:
+CPUmax58.18%,RAMmax10.77% in latest available05:03–05:05window;
+runaway/refusalalarmsOK, historicalclockalarmALARM unchanged.
+CaretakerSTOP; fullAEgoalACTIVE; no deployment this measurement.
