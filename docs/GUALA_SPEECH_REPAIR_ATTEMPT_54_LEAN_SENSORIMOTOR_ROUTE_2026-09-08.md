@@ -20,45 +20,47 @@ so live speech acceptance remains open. This paragraph records the Candidate110
 deployment, not the current repair state. Any earlier “speech complete” wording
 is historical and retracted.
 
-Current repair status, 2026-09-12 01:02 UTC: speech NOT fixed in production.
-Read-only AWS service verification this turn still reports task1456/C110,
-one desired/running, zero pending, rollout COMPLETED, no service failures.
-No deployment, live lessons, or third-posture teaching occurred this turn.
+Current repair status, 2026-09-12 01:14 UTC: speech NOT fixed in production.
+Production remains1456/C110/image6aa38d99, sole healthy writer. No new deployment
+or live lessons. Full AE goal ACTIVE; caretakerSTOP/browserclosed unchanged.
 
-CURRENT PRIORITY: D-054-122-40, incremental two-posture release readiness.
-Joe asks to move functioning code into production and make progress observable.
-This advances the delivery assessment before D12239 third-posture teaching;
-it does NOT reset or reopen the closed C120/C121/C122/C123 local successes.
-Full AE goal remains ACTIVE. Caretaker/browser unchanged.
+CURRENT DELIVERY ITEM D-054-122-40: incremental TWO-POSTURE live delivery before
+D12239 third-posture teaching. This turn made concrete release progress:
+ordinary python-extension C123 built;215-file package verified; fresh live
+pair659532 migrated correctly, then exact cold-next659533 and659534 passed.
+No new organism code. These are release checks, NOT speech acceptance.
 
-S12238 is retained LOCAL evidence: one sound cue, root268e four minimum motors
-at651703 with249 breath carriers, successor269c four maximum motors at651704
-with18 breath carriers, body pressure,136000 self-heard samples, quiet stop,
-227 original memory topologies preserved, exact cold restore plus ordinary
-interval651765. No guide during recall; other hip/grip activity coexists.
-This is NOT a full word, intelligible Mama, semantic recognition, or live proof.
+Normal wheel139623166e576bd3b32bdb869f764730ac8dccfb05223798b851673fe309a282,
+.so5fc6b612daffc1fcc862c3b8261b3d913c198888e8b64e84e50505093777210f
+at /tmp/guala-c123-release-wheel.buI3mv/installed. Diagnostic-api ABSENT.
+Cumulative nativeGLCOG044->045 and coupled-worldv2->v3 both exercised by actual
+startup at SAMEidentity/tick. World payload changed onlyschema+emptyreturn.
 
-Preserve /tmp/guala-c123-recall.7m7KBL/paired at651765:
-body fa73dd48dfe7b0c6dafc33c6d8e86002dfd094f2ffe4aa7ce2def17f0466d82c
-world 218e8ff00c7be3ffd3f5265e3f97b9951de3802047bfa55cc2f4c872ac61c8d0
-Archive c123-runtime-two-posture-pass.tar.gz SHA50f6e05c...19d2 on Ebackup.
-First maximum lesson was incomplete, not permanently failed: the second lesson
-made the same four associations sound-owned and grew sole268e->269c.
-Do not repeat that diagnosis or discard either lesson's retained success.
+Fresh release successor /tmp/guala-c123-release-migration.n7OhWB/paired659534:
+body333fe6203199af6431b30494e035ece8e9e8cc68981ca771905b3dcb4b59d3dc
+world10360cad488c8bb58cd707b9d699bca2fac2fd29150b07412b22a7e8a044d809
+No lessons on this pair yet. Preserve matched raw live snapshot659532 too.
 
-Release target proposed for this increment: real live learning and sound-only
-two-posture recall, breath/pressure/self-hearing, clean stop, preserved state
-and truthful public playback/evidence. Four-posture word teaching follows it.
-Installing code DOES NOT import the copy's learned state into the live body.
-The copy remains a proof artifact; live lessons use ordinary sensory/body ingress.
+S12238 stays CLOSED locally: one sound cue, two ordered four-muscle postures,
+breath/pressure/self-hearing, clean stop,227 original memory topologies,
+exact cold-next651765. Preserve /tmp/guala-c123-recall.7m7KBL/paired and its
+Ebackup archive. The first lesson was incomplete; the second made the same
+associations sound-owned. Do not rerun that diagnosis or discard either win.
+This is not fullword/intelligibleMama/semanticrecognition/live speech.
 
-C123 diagnostic wheel704b9054...f325/.so d015e3b9...afb7b stays isolated.
-Ordinary production artifact must exclude diagnostic-api. Native GLMFAB11 is
-unchanged in this slice; cumulative C122 coupled-world v2-to-v3 migration
-requires the documented backup/compatible recovery. Release not yet ready:
-normal artifact, current-live predecessor parity, cumulative release evidence,
-and existing controller's migration/rehearsal closure must be reconciled first.
-These are delivery checks, not permission to reopen closed mechanism proofs.
+Single next D12247: ordinary-artifact behavioral delivery path on the fresh
+production-derived pair, using existing root/edge curriculum and real actor.
+No new physics or four-posture detour. Capture each successful successor.
+A normal artifact migration pass alone does not close changed speech behavior.
+Installing code must not import the copy's learned state into live Guala.
+
+Known delivery work remains: final pre-cutover matched backup/compatible
+recovery (old binary cannot read migrated state), cumulative live behavioral
+proof, and public sound/evidence. The live page still has its already-known
+3second/latest-receipt playback gap and stale cue-to-pressure speech-live banner.
+Neither is newly discovered speech physics; do not mistake dropped playback
+for absent body sound. Existing controller is continuity-only, no rehearsal
+or backup; historical native-root rehearsal is excluded from active image.
 Worktree: `/tmp/guala-speech-existing-organ`
 Starting HEAD: `735489406577f90edf6c2fb7fb1889f87eae8107`
 Production boundary: task definition 1456 is the live deployed writer. Its
@@ -14095,3 +14097,138 @@ D11019 remains a known controller issue, not a new organism failure.
 
 Next delivery work is normal-artifact/current-production parity and release
 evidence mapping. No third lesson or broad historical rerun was launched.
+
+
+## R-054-122-41 — cumulative release source review; ordinary compilation PASS
+
+Independent reviewer verified wholeworktree fingerprint
+b849a2ea43f9acd9bb90a7187232f7bd11b796b5feaa904ac9c4d2229a7f9f77
+before/after on clean662a58c92ee0baf34bf7dae715fada6f6ca4198a.
+No new architectural defect. C117 sole nativeformat migration GLCOG044->045,
+empty initial settled-fractal custody, old body pose/status preserved.
+C122 coupled-worldv2->v3 starts with no pending return; startup validates native
+identity/tick and world before one paired publication. C118-121/C123 no further
+formats. New exception/guide-port interfaces unconditional; ordinary production
+requires neither diagnostic getter nor trace. Active manifest includes both
+new source files. This authorizes ordinary compile, not cutover.
+
+Reviewer first used RETIRED Dockerfile.lean and alleged a missing module.
+Root caught this against H-054-120; reviewer retracted after tracing actual
+buildspec -> Dockerfile -> packager runtime/. Informational runtime txt is not
+the active copy authority. No file changed, no candidate failed, no build retry.
+
+## S-054-122-42 — fresh exact production pair retained, no live-state mutation
+
+Existing /tmp/capture_guala_current.py unchanged SHA
+924983166c26aed42582cda4451b96e71b30ba0db9f52a908f4ad2282ca98284.
+Capture32072 exit0; singleCURRENT read then matched body/world, hashes validated.
+Same1456/effde9e1/image6aa38d99, identity1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1.
+Tick659532, body164318990bytes SHA
+688a4b76443331395603ca78e7c96606d486144ffba62f3b0a7b140dc8bfe934;
+world63527bytes SHA
+e84ad639fa541f17b59920bf75cf218033971bb725f7ff517862c10b62885f3c.
+ZIP3239840bytes SHAe24bedf641bf131ed03d0acbbf036449e7c9fa4d1b7141cbc078fc5feac7a68e
+at /tmp/guala-c123-release-current.KFHZhQ/current.zip;
+S3guala-incident-bench-20260831/guala/candidate123/20260912T010700Z-release-current.zip.
+Exactly body.glorun.gz/world.json/pointer.json. Printed SSM EOF followed completed
+upload/download; no retry (knownS11834). LiveCURRENT never published or locked.
+This complete captured pair is evidence, NOT the eventual final cutover backup.
+
+## S-054-122-43 — ordinary production native artifact and local package
+
+Reviewed source unchanged. maturin build --release --locked from
+native/guala_core, output /tmp/guala-c123-release-wheel.buI3mv,
+session59678 exit0 in1m57s,191 inherited warnings. No diagnostic-api.
+Wheel139623166e576bd3b32bdb869f764730ac8dccfb05223798b851673fe309a282;
+native.so5fc6b612daffc1fcc862c3b8261b3d913c198888e8b64e84e50505093777210f.
+Explicit wheel installed --no-index --no-deps --no-cache-dir --target fresh
+isolated/installed; no global module change. Buildlog
+8d0718b12be2d90ef8323b729c7dd6487f22212ab7326a98d4691b13c888a187.
+Actual import in S12245 verifies exactmodule and diagnostic getter ABSENT.
+
+Existing package_guala_release.py verified cleancommit662a58c9,215sourcefiles,
+exactimportclosure and forbiddenpath rules. Session76943exit0.
+Stage/tmp/guala-c123-release-package.RznilM/stage; archive/release.zip SHA
+f862d9291ea00d5fe287c376960857111ba71bff5dce19e6b9a54e08ec71b4a1;
+receiptSHA7bd95060d5ed3aaa7d3485da804b879c45a4f5b9b224dec294154bc823f79474.
+LOCAL package only, no Dockerimage/CodeBuild/ECR/task registration or cutover.
+
+## R-054-122-44 / S-054-122-45 — newest-pair migration and cold-next PASS
+
+Source-only review PASS script /tmp/guala-c123-release-migration.py SHA
+2539f7c00da21bb48fc552d8acddbe0bddbe54dd505f455d9422fda9a348be5e,
+worktree fingerprint unchanged. Actual APIs/cleanup/emptyroot/fieldmap verified.
+Environment set BEFOREimports: exact task settings exceptdisposablepairedroot,
+NO solar override, NO diagnostic feature. No guide, private state surgery, or
+external live call. Existing startup alone migrates captured659532body/world.
+
+One corrected execution32254 exit0:
+- migration SAME659532 identity; body164318998bytes SHA
+  1f4e980700772ddc0783f04ce96493639c361c246588da4645f133cef7d2c768;
+  world7a51616f17dded2dac059f2c04744982b922c331cb00d0994e79acc801541f9e.
+  Entire decoded coupled-world payload equals predecessor exceptv3schema and
+  new pending_physical_return=None; old world/thermal/other fields unchanged.
+- exactcoldrestore, ordinaryinterval659533, body
+  43285e5bd841f9485ccb9ec8c976ecc4f03651bd0319c397c79bb3558546cdac,
+  worldcca333fc5ce89ffb3c0d0e376eac7ca61db369295c36cba2ae111fa57af32695.
+  It produced pending physical return659533.
+- exactcoldrestore, ordinaryinterval659534, body
+  333fe6203199af6431b30494e035ece8e9e8cc68981ca771905b3dcb4b59d3dc,
+  world10360cad488c8bb58cd707b9d699bca2fac2fd29150b07412b22a7e8a044d809.
+  Successor pair retained at/tmp/guala-c123-release-migration.n7OhWB/paired,
+  CURRENTSHA0d59841843263a0685205c42c087396a26295790ee762cdcbf2108b937eb3e14.
+Actual observed tick deltas1and1, not inferred from command count.
+No externalpressure/guide, no speechbehavior claim, no warm/cold equivalence.
+PeakRSS2266756KiB across restores; not steady-stateproductionmemory.
+Prooflog/tmp/guala-c123-release-migration.log SHA
+bef221d755e35eb18c30670fa323b35f4a9cbace9b8c600e9f9081e58ce15075.
+All processes terminal at01:13:52. Sourcearchive unchanged. No repeated run.
+
+AWSpre/post same solehealthy1456; namedrunaway/refusalloopalarmsOK, historical
+clockalarmSep8 unchanged.01:03/01:08CPUavg42.71/42.37%,max59.30%;
+RAMavg10.91/11.04%,max12.25%. This is cloudhealth, not native timing.
+Backup contains sourceZIP, ordinarywheel/buildlog, package receipt,
+migration script/logs and full successor pair:
+ /mnt/tfebackup/guala-c118-four-posture.XehvEs/c123-ordinary-release-and-migration.tar.gz
+SHAc7e77ccc0e0d1118501155abc7b6a00868bcef4dd3929ef62ff0a950770a4cbd.
+Immediate artifact-waste correction: first generated archive redundantly held
+both215-file staging and86MiB packageZIP plus installedwheel. Replaced that
+same-turn generated182MiB backup with verified7MiB unique evidence; original
+packageZIP/stage remain in/tmp and source commit reconstructs them. No old
+backup, unique proof, live state, or user file deleted. First superseded backup
+hash43a247fc...9005b is NOT the final backup hash.
+
+## H-054-122-46 — release command mistakes, no organism failures
+
+Owner guessed thermally_coupled_embodiment_world.py atservice root; read refused.
+Immediately resolved actualsubstrate path withrg--files. No run or code change.
+First migration invocation put redirected logfile INSIDE the required-empty
+disposable root. Script refused before ANY Guala import/state publication.
+Moved only that275byte failurelog to
+/tmp/guala-c123-release-migration-launch-refusal.log, preserved it; corrected
+invocation writes log OUTSIDE disposable root. Same reviewedscript/native;
+one actual migration run, not a re-probe of failed organism behavior.
+Permanent earliest command guard: resolve paths before invoking; when a harness
+requires emptyroot, stdout/stderr logfile must be outside thatroot. Include this
+in command review, not only script review. Do not weaken the emptyroot check.
+Large observation lines remain archived; tool summaries must whitelist scalars,
+not tail whole JSON observation rows. Output truncation is not evidence failure.
+
+## D-054-122-47 — ordinary-artifact behavior on retained fresh production successor
+
+Next single item under D12240: current659534pair with ordinaryartifact5fc6b612,
+existing root curriculum(two real4000-sample minimum guides with ordinaryclock
+rest from C120), then measured sound-only root/ordered-edge path using C123's
+already-established repeated-presentation curriculum. Source-review only the
+input/artifact/current-state adaptation; do not alter nativephysics or restart
+from pristine fixtures. Preserve each learned successor and inspect incomplete
+first-lesson evidence before repeating. No four-posture teaching beforedelivery.
+Exact live current can keep advancing; use one matched captured predecessor per
+proof, never mix a later body with this captured world.
+
+Known publicdelivery issue verified by GET of livegualaloom.html: samePOLL_MS3000,
+latestreceipt-only playback, stale “Cue-to-pressure speech ... live” banner.
+These are recorded historical playback/truth defects, not new cognition laws.
+Do not claim audible two-posture delivery from backend receipts or webpage200.
+No UIedit/publication in this turn. Coordinate its narrow evidence/playback
+surface as part of D12240, not a broad UI redesign or a new cognition mechanism.
