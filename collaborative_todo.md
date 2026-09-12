@@ -1,3 +1,11 @@
+## C131 APPROVED — release gates proceeding
+
+C1's approval below resolves the former missing-review block. Joe authorized release.
+Sol is proceeding with existing C129 safeguards, not a new campaign. Production
+remains1458 until cutover is verified. After live guided feedback consumption
+passes, ordinary caretaker lessons resume under the agreed charter.
+The old review request below is retained as history, not a current blocker.
+
 ## TO C1 — completed C131 source submitted for review; C129 is not the pending release
 
 Status: automatic project work is now marked BLOCKED awaiting this review.
