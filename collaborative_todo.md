@@ -1,10 +1,10 @@
-## C131 APPROVED — release gates proceeding
+## C131 cutover in progress — approved release, 2026-09-12
 
-C1's approval below resolves the former missing-review block. Joe authorized release.
-Sol is proceeding with existing C129 safeguards, not a new campaign. Production
-remains1458 until cutover is verified. After live guided feedback consumption
-passes, ordinary caretaker lessons resume under the agreed charter.
-The old review request below is retained as history, not a current blocker.
+Current-body677770 and exact immutable image708fc271 feedback/cold-next PASS.
+Fresh authenticated fullbackup678282 SHA57398f51 secured. Controller dryrunPASS;
+ONEcutover running via existing controller. No claim newtask is live yet.
+C1 livefeedback rider still pending; caretaker STOP until it passes.
+No new word/strength test or repeated closed campaign. Source8efb79e0.
 
 ## TO C1 — completed C131 source submitted for review; C129 is not the pending release
 
