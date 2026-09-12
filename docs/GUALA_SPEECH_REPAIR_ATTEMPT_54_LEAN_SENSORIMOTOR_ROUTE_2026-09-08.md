@@ -20,39 +20,34 @@ so live speech acceptance remains open. This paragraph records the Candidate110
 deployment, not the current repair state. Any earlier “speech complete” wording
 is historical and retracted.
 
-Current repair status, 2026-09-12 00:19 UTC: speech NOT fixed in production.
-Production remains1456/C110/image6aa38d99; no deploy or live lessons this span.
-C121 actual-runtime copied-body root recall remains CLOSED LOCAL (S12104).
-C120 growth/body/self-hearing and C118 ordered/repeated-use/cold successes
-remain CLOSED at their recorded LOCAL scopes. Preserve pair651548 unchanged:
- /tmp/guala-c121-recall.5e8ILP/paired
-Do not reteach the root or rerun passing proof merely to regain confidence.
+Current repair status, 2026-09-12 00:49 UTC: speech NOT fixed in production.
+Last verified production1456/C110/image6aa38d99; no deployment or live lessons
+this span. Full AE goal ACTIVE; caretakerSTOP/browserclosed, no user action.
 
-F118-32 remains ACTIVE. C122 simultaneous ordinary-runtime handoff PASSED
-locally (S12214): external input, guided movement, physical return and own
-sound coexist. First learned edge did not grow (F12215); no two-posture recall.
-D12218/S12219 recovered the exact12-interval prefix without changing physics:
-four vocal terminals AND a genuinely moved hip arrived in one exact source.
-This disproves the assumption that the source contains only the vocal act.
-It does not by itself prove which runtime admission check was reached.
+F118-32 remains ACTIVE. C123 now has actual-runtime learned-edge growth:
+C121 root recall and C122 simultaneous sensory/body/self-hearing handoff stay
+CLOSED LOCAL. C123 complete-preparation inclusion fixes unrelated hip movement
+vetoing predecessor recognition. Diagnostic native trace proves predecessor268e.
+The FIRST maximum guide lacked sound-owned associations and grew no edge.
+Do NOT treat that as permanent learning failure: prior C118 successful ordered
+guide already had an earlier maximum lesson; C118 third posture neededtwo.
 
-Candidate123 now replaces whole-source equality with complete preparation
-inclusion inside that ONE source. Independent frozen source review PASS
-(R12223), focused test1PASS (S12224), no new state/codec/energy/DSF mechanism.
-Partial/split/opposed/stale/echo/competing acts remain refused. This is a LOCAL
-participant-scope correction, not runtime edge-growth or speech acceptance.
-The ordinary Python wheel is still C122; only the default native test binary
-contains C123 so far. Never present the older wheel as the new candidate.
-Coupled-world C122v3 migration requirement remains; nativeGLMFAB11 unchanged.
+S12235: ONE secondpresentation on preserved naturallyquiet firstlesson successor
+651620, unchangedC123code, grew sole268e->269c andall4maximummotors.
+All227originalmemorytopologies preserved. Saved651632pair retains pendingbody/
+sound; source651620 unchanged. This is learned anatomy, NOT two-posture recall.
+Archive c123-second-lesson-pair.tar.gz SHA25b6e891...f17c5 on Ebackup.
 
-Single next item D12225: close exact guided-admission evidence coverage before
-another mature run—retained predecessor provenance plus occurrence-local
-association/sound-owned intersection. Prefer existing read-only diagnostic
-surfaces and saved651560 body; do not invent a new learning law or blindly
-repeat tutoring. No approval block. CaretakerSTOP/browserclosed unchanged.
-00:17-00:18 read-only AWS sole1456/effde9e1 HEALTHY1/1/0; CPU/RAM within observed
-window; historicalSep8clockalarm unchanged. No live speech success claimed.
-Full AE goal ACTIVE. No browser or user action required.
+Single next item D12236: ordinaryrest ofTHISexactpairedstate, sound-only
+two-posture recall, finitequiet, originalmemory andexactcold-next.
+Reviewed onecontinuation script, sameartifact, no newguide/physics/build.
+Existing C118 ordered/repeated-use/cold and C120growth/selfhearing remain
+CLOSED at their recorded LOCAL scopes. No passed prerequisite is reopened.
+
+C123 diagnostic wheel704b9054...f325, loaded.so d015e3b9...afb7b, includes
+existinggrowthinputtrace only underdiagnostic-api; NEVER ship that feature.
+Ordinary production packaging must exclude it. Native GLMFAB11 unchanged;
+cumulative C122 coupled-world migration remains required.
 Worktree: `/tmp/guala-speech-existing-organ`
 Starting HEAD: `735489406577f90edf6c2fb7fb1889f87eae8107`
 Production boundary: task definition 1456 is the live deployed writer. Its
@@ -13688,3 +13683,273 @@ target archive succeeded and was listed/hashed. No user/state data changed.
 Fresh post-window CPU00:17 avg41.78%,max42.88%; no production modification.
 D12225 remains the single next item. No process wait, approval block or goal
 completion. Existing shared-ledger coordination continues on guala-live.
+
+
+## D-054-122-27 — reviewed zero-clock saved admission reader
+
+2026-09-12 00:24 UTC. Continues D12225; previous turn made local code/evidence
+progress, not production speech progress. No active process or approval block.
+Use existing archived C120 diagnostic reader only, not its old physics:
+ /tmp/guala-c120-custody-wheel.GCk0xA/installed
+wheel064865a85fc2eeb6ceaf841614a40fe80fbca69a37877bfcfde12f490f3d0e6f;
+.so bdf155fe45d2e96675e63ec75f596007bb4522d6bea9b672d4a07ac7b83198fc.
+Native codec unchanged; no transition/migration/actor/publish/world decode.
+
+Script/tmp/guala-c123-saved-admission.py
+SHA8f654ae1a645b4a1c6d93ceaf95ca8146f16f68aaee53ceb6ae61cbf024380da.
+Independent source review PASS, hash verified before/after. Reads exact
+saved651560 bodyc8031b9d.../world493896c7... and authenticatedCURRENT4ff67a92...
+only. Full native save bytes must equal input before/after; head bytes/tick
+unchanged. Existing diagnostic custody at root268e reads current, preceding,
+older entries. Age1 is actual651559 predecessor (unconditional retained
+frontier shift10459). Contact phase remains CURRENT651560, never historical.
+Formation/layer census uses existing getters; exact matching formation receipts
+use the same canonical encoder. Unmatched receipt is an evidence mismatch,
+not proof of absent ownership. Candidate association locals remain unavailable.
+No recomputed/guessed ownership will be claimed from this read.
+
+PreAWS00:23 sole1456/effde9e1/image6aa38d99 RUNNING/HEALTHY1/1/0, no failures;
+named alarms unchanged, clock historicalSep8ALARM.00:18-00:21CPUavg42.43-48.40%,
+max63.50%;RAMavg10.66-11.14%,max12.10%. No other Guala process. Production,
+caretaker and browser untouched. No build or organism clock needed.
+
+
+## S-054-122-28 — retained predecessor verified at zero clocks
+
+Saved reader7245 exit0; native body save bytes and paired CURRENT unchanged.
+Raw/tmp/guala-c123-saved-admission.jsonl
+SHA22c47e5c3ca8648eaa66ecd36c1a443cc37e8143c77652c57fc074b2fea8fe4b.
+Actual651559 predecessor (age1 in saved651560) contains root268e->b7,d3,ef,4fb,
+carriers27/70/77/77, each external_ingress=true, acoustic_efference=false,
+parallel0. Together with S12219 actual five-terminal return and the retained
+root anatomy, this establishes the inputs to the old whole-source equality
+check—not merely a missing generic projection. Guide's only motor is b7 from
+layer8 1003, with no L11 motor provenance; it supplies no current complete
+vocal-ordering fallback. C123 participant correction addresses this concrete
+predecessor loss. It does not establish the later ownership gate passes.
+
+All75 guide external-reassembly receipts match saved structures. Of those,
+67 include an actual Sound-layer receptor cue; exact member/bond endpoint
+union276 lineages,77 layer7 associations. Native source-site sense encoding
+equals declared sensory layer1 (neuron_source_anchor.rs57). This nonempty set
+does NOT establish the guide's occurrence-local association intersection.
+No new formation/learning claim. Currentphase values in custody are651560,
+not historical651559. Existing stored formations223,neurons2743.
+
+PostAWS00:25 same1456/effde9e1/image6aa38d99 HEALTHY1/1/0; alarms unchanged.
+00:23-00:24CPUavg40.79-42.87%,max47.05%;RAMavg11.02-11.17%,max12.12%.
+No native advance, new body, publication, live input, or production change.
+
+## D-054-122-29 — existing diagnostic-only growth input, frozen contract
+
+Independent source-only contract review PASS: change ONLY C119_GROWTH_INPUT's
+guard from cfg(test) to cfg(any(test, feature="diagnostic-api")).
+Adjacent phase markers remain cfg(test). Reuse existing
+GUALA_PROBE_GUIDED_VOCAL_ROOT_DIAGNOSTIC switch; no new switch, API, getter,
+state, schema, cognitive owner or learning rule. Ordinary builds compile the
+entire diagnostic block out. It must never ship in a production release.
+This is external diagnostic output of existing locals immediately BEFORE the
+route author, not an observer that makes decisions or reruns admission.
+
+Exact field map already present in that block: source_generation -> generation;
+admitted_source_occurrence_spans -> source_spans; moved effectors/regulations;
+externally energized receptors; reached_associations_by_occurrence.lineages ->
+associations; settled L6; exact_sound_reassembled_members -> sound_owned_members;
+external reassemblies; guided_vocal_predecessor_orderings -> predecessor_orderings.
+Wide integers/lineages remain exact raw JSON; no counts substitute for sets.
+Interpret association/motor pairs within each source span and moved occurrence,
+not a global union. Missing trace means unobserved, never zero associations.
+
+Single C123 short prefix uses preserved651548 through exact next guide651560,
+no extra lesson or64-tail. Existing body/source/prefix evidence plus ordinary
+causal_frontier_advances and existing diagnostic custody getter are retained.
+Trace generation must match guide; before-guide physical prefix must match
+C122. The sole C123 predicate is the only intentional production-law difference.
+Stops after guide and closes actual actor normally. This is admission diagnosis,
+not whole speech acceptance. Ordinary C122 wheel stays unchanged.
+
+Disposable paths:
+ /tmp/guala-c123-admission-wheel.Qcx88Y
+ /tmp/guala-c123-admission.Qn6O1K
+One isolated feature wheel after frozen source/script review. No global install,
+no module replacement, no inherited Guala environment beyond declared local
+paired root/world ceiling/solar override and diagnostic switch.
+Process-fixed anatomy remains the same live task1456 roster.
+
+H12229 source-search fumble: top-level Dockerfile* shell glob did not exist.
+No source/test/state changed. Correct paths were resolved by rg --files:
+dsf_ai_service/Dockerfile.lean and dsf_ai_service/Dockerfile. Both normal
+maturin commands omit diagnostic-api. Use rg filename filters, not unresolved
+shell source globs. No repeated build or broad investigation resulted.
+
+
+## R-054-122-30 — diagnostic source and short-prefix review PASS
+
+Wholeworktree5878588cd1172b9af2f075df92760a00244ca2e3df768c8795d2faa9c68e1141
+and script05ea85c221a3b90d2e03ed105bdf134b3025ad39eb943ba005422b7c02fe1697
+matched before/after independent source review. No architectural/localized
+defect found. Authorized one isolated diagnostic build and declared short
+prefix only. Trace generation must match emitted fabric_generation, not an
+assumed organism tick. Added custody/frontier evidence is read-only. Comparison
+scope remains named physical fields, not all successor bytes.
+Script/tmp/guala-c123-admission-prefix.py; normal production build omits trace.
+Additional search lesson: root pyproject.toml did not exist; actual known
+native/guala_core/pyproject.toml sets features=["python-extension"]. No run or
+state change occurred. Resolve filenames before inspection, do not append
+guessed alternative paths to an otherwise valid read.
+
+
+## S-054-122-31 — C123 diagnostic artifact built; one reviewed prefix running
+
+Build22435 terminal exit0, release1m23s,191 inherited warnings.
+Wheel /tmp/guala-c123-admission-wheel.Qcx88Y/guala_core-0.1.0-cp311-cp311-manylinux_2_35_x86_64.whl
+SHA704b905461bc2ce02b529e759d20167b32c1def6301ecf69a2d273ec023ef325.
+Build log /tmp/guala-c123-admission-build.log
+SHA148bb9799846ab858e52035d971f2565432106d5936fcd48e0fde4132c9c2040.
+Isolated pip --no-index --no-deps --target installed exit0. Never globally
+installed; ordinary production packaging remains without diagnostic-api.
+Script hash rechecked05ea85c2...e1697; disposable root empty and output absent
+before launch. One prefix session18362 started00:37; no repeat or64-tail.
+
+Read-only preAWS00:36:39Z: sole task1456/effde9e1/image6aa38d99 RUNNING/HEALTHY,
+desired/running/pending1/1/0, one primary deployment, no failures. Named CPU,
+memory,EFS,refusal alarmsOK; clockALARM unchanged sinceSep8 14:15:41.275.
+00:30-00:35 CPUavg39.20-45.18%,max52.11%; RAMavg10.70-11.10%,max11.74%.
+No production writes, lessons, caretaker change, browser requirement or
+deployment. Current source correction is LOCAL only; no learned-edge claim.
+
+
+## S/F-054-122-32 — exact growth input captured; no changed successor yet
+
+One reviewed prefix18362 terminalexit0.12intervals, all selected physical rows
+match C122. End651560 bodyc8031b9d... world493896c7... EXACT same hashes as
+C122, pendingreturn651560 retained. PeakRSS1,929,552KiB. No process survives.
+Raw /tmp/guala-c123-admission-prefix.log
+SHA4330f456c5410a3292ffd2133eff23e6972275859e527cb50a3ed5fb035e83aa.
+Native loaded .so d015e3b978b8690705c43358e84abfde289948b261442f512d4886cf5aaafb7b.
+
+ExactlyONE C119_GROWTH_INPUT, generation651560 matches guide fabric_generation.
+Predecessor268e IS now present. The source0..4 guided maximum occurrences each
+have one association7ea/7f8/806/814 and moved regulationf23/f3f/f5b/fe7.
+NONE intersects actual sound_owned_members. Returned source7..12 is hip plus
+fourminimum movements. Do not combine source groups to manufacture ownership.
+The existing ownership gate923..932 cannot pass this guide. Independent
+read-only review confirms this, with caution: exact regulation-to-motor
+mapping precedes ownership in execution and must be retained before calling
+ownership the FIRST executed rejection. No additional physics defect inferred.
+Guide carried4000external samples,4000own samples,4guided axes, exactreturnedbody
+651559 inONEordinaryinterval. Handoff/root/predecessor successes remain intact.
+
+PostAWS00:37:50 same1456/effde9e1/image6aa38d99 RUNNING/HEALTHY1/1/0 nofailures.
+Named alarms unchanged, oldSep8clockALARM. Latest available00:35/36 CPUavg
+45.18/41.83%,max52.11%;memoryavg11.00/10.79%,max11.43%. Matching00:37 metric
+not yet published at this read; collect it before closing health envelope.
+H12232: printing rawsingle-line trace exceeded tool outputlimit. Rawfile intact;
+parsed named fields with exact Python integers instead; no organism rerun.
+H12233: guessed runtime.py read failed; actual NativeResidentObservationView
+and readiness both live in already-known native_resident_organism.py.
+No test/compile/state affected. Use symbols in resolved file, no guessed sibling.
+
+## D-054-122-33 — one second lesson, existing prior art, no new organism code
+
+History reconciliation changes diagnosis: S11807 first ORDERED maximum guide
+started from637679, already containing a prior maximum lesson at637646
+(S11715/17). It was NOT a maximum-naive predecessor. S11813 had no third
+posture afterfirstpresentation; S11814 grew it onsecond. C120 root likewise
+grew bysecondguide. Thus firstguide absentedge is incomplete teaching, not
+evidence of permanent failedlearning. Secondguide success here remains unproved.
+
+Single next action: unchangedC123 diagnostic artifact, one second maximum
+lesson from preserved firstlesson's naturallyquiet C122 successor651620:
+ /tmp/guala-c122-edge.ef4kg8/paired
+CURRENT c3a70c4ca495e378967d2a38169a7522b0a6fa58592df2c0488e463eb49199a7
+body2bb78673d72a7d64b8a0de566917859d72c91dedd93953bd9c5104ad50b1796b
+worldf2e199cc204665e86cd2ce7cac38d09f0cf5dc6a7f42a85c8c44cca240921816.
+C122 tail proves8quietclocks/no pendingbody; samefirstguide body/world exactly
+reproduced inC123. Do not repeat64restclocks alreadyrecorded or resetlearning.
+
+Script /tmp/guala-c123-repeat-guide.py; freshroot/tmp/guala-c123-repeat.T706D9.
+Reuses frozenC122 observers, actualactor, measuredcurrentrootcompletion,
+4000phase0cue/4000phase1guide, existing64clockbounds, oneguide ONLY.
+Capture existinggrowthtrace and exactfinalanatomy/regulationmapping; stop and
+publishpendingreturn throughordinaryactor.close. No fullrecall claim, new
+rule, altered recovery, offline anatomy, privilegedbackdate or live input.
+Ifedgeexists, continue its preservedpair towardfull2posturerecall; ifabsent,
+use actualtrace, never blindly batchlessons. Before/afteroriginaltopology must
+be retained. Source/scriptreview and freshAWS envelope required before run.
+
+
+## R-054-122-34 — second-lesson source review PASS
+
+Fingerprint223c896cd7c038a05b69f0ef3bb93514648d3cb03f088be217a356b01c7f6e78
+and scriptSHAa77acc9c3468c39bd5990cc08cc03dc98621e332257b5e4d8341ad4a13e3d6ed
+verified before/after independent source review. No field/API error, extra
+teaching, reset or physics modification. Existing seen-motor union is ONLY
+a teacher timing observation: native guided trace must itself contain exact
+predecessor268e before interpreting secondlesson growth failure as valid.
+No new build. Existing first-prefix evidence archive
+/mnt/tfebackup/guala-c118-four-posture.XehvEs/c123-admission-evidence.tar.gz
+SHA9135808583452d6169a8087ea5bde9bbd5676d272fcbcf3628ce16f017e97a4d.
+Shared C1 coordination918f1e556930f57ead8f0d267b18d446416b829a posted before run.
+
+
+## S-054-122-35 — second presentation GROWS the ordered edge, ordinary runtime
+
+Reviewed secondlesson93897 terminalexit0. No new organism source or build.
+Exact651620 quietfirstlesson successor -> baseline8quiet -> cue651629 ->
+root268e all4minimum motors651631 -> nextguide651632 with exact pendingreturn.
+Native tracegeneration651632 contains268e (not inferred from observer union).
+All four SAMEguideassociations7ea/7f8/806/814 NOW belong to actualsoundreassembly.
+Regulation L12mapping f23->c5,f3f->e1,f5b->fd,fe7->509 eachunique.
+New sole edge268e->269c and269c->all4maximum motors observed; no independentroot.
+All227original memory member/bondtopologies retained, missing0. PeakRSS1933656KiB.
+
+Saved pair /tmp/guala-c123-repeat.T706D9/paired tick651632:
+CURRENT569f5b0d30098eb9c07d8ee23e29797606fefffe106410e5b036d903b44511f4
+body885fb49d9836d0848caf6a28f514b6e1145fc0953737a4bcc8ed66cdde64226c
+world74da84ef674a7e92e2206e10d2d7218c75c04b8dbb472b79f410ee7323952a2f
+pendingphysicalreturn651632 deliberately retained. Do NOT substitute body-only
+quiet fixture or discard pending sound. Original651620head unchanged.
+Log /tmp/guala-c123-repeat-guide.log
+SHAc1dbf0421ca622e09395dcfd716d1f7412d5b8eebed3a6dd8f7b045e5dbbee41.
+No survivingharnessprocess. This is anatomical learning LOCAL, not speech/recall.
+F12215 firstguide absentedge remains an observed outcome, but interpreting it
+as permanent failedlearning is REFUTED. S11813/14 repetition priorart applies.
+No need for another association-growth or sound-ownership repair on this evidence.
+
+AWSpre00:43:41/post00:45:19 same1456/effde9e1/image6aa38d99 HEALTHY1/1/0;
+allnamedalarms unchanged, historicalclockALARM.00:37 (priorprefixwindow)
+CPUavg46.78/max56.92%,RAMavg11.11/max11.76%;00:38-42CPUavg41.40-46.40/max58.98%,
+RAMavg10.58-10.96/max11.60%.00:43CPUavg42.96/max44.99%,RAMavg10.64/max10.64%.
+00:44window notpublishedyet. No live inputs/deploy/browser/caretakerchange.
+
+## D-054-122-36 — retained-pair sound-only two-posture recall, no reteaching
+
+One existingacceptance continuation from EXACT saved651632pairedstate above.
+Isolated copy /tmp/guala-c123-recall.7m7KBL; sourcepairneveroverwritten.
+Script /tmp/guala-c123-runtime-recall.py SHA01a1446bbaa28ccf1984e831debc53dd610cc08e84b47c67b609a5113b812c68.
+SameC123wheel/Pythonrealactor; no new nativephysics/build/guide. Exact initial
+coldbody/world match; pendingreturn651632 must exist and is consumed through
+ordinaryruntime, not cleared. Finish existing64clock lesson tail from cue-before
+651628 (60remainingordinaryintervals), preserving actualsensoryfeedback.
+Then coldrestoreexactquietpair, existing8quietbaseline, phase0sound-onlycue,
+64tail. Require complete268e minimum then269c maximum;8exactvocalmotor events
+(no extra/repeatedutterance), breath/pressureonboth, selfhearing, finalquiet,
+all227oldmemorytopologies, exactcoldrestart and nextordinaryexecution.
+Nextordinary is NOT warm-next byteequivalence; that fullreleaseproof remains.
+Anatomysuccess staysclosed ifrecallfails. No fullword/live-speechclaim.
+Frozen source/scriptreview before this one run; no broad/prerequisite reruns.
+
+
+## R-054-122-37 — two-posture continuation source review PASS
+
+Wholeworktree1d2f2eda5a3ae7047e9608c2e12223372cabb764dc45598d675b615582b60748
+and script01a1446bbaa28ccf1984e831debc53dd610cc08e84b47c67b609a5113b812c68
+verifiedbefore/after independentreview. Pendingreturnrestore,60remainingclocks,
+no newguides, exacttwoorderedpreparations/eightmotorevents/breath/pressure/
+selfhearing/quiet/memory checks validated. Cold-next correctly scoped not
+warm/cold equivalence. No localized/API/architectural defect identified.
+Only ledger update afterfreeze; source/script/artifact unchanged.
+S12235 archive25b6e891...f17c5 and shared e8909665...ed8b preserve success.
+00:44CPUavg40.33/max43.19%,RAMavg10.81/max11.14% nowpublished, closes secondrun
+healthwindow.00:45/46CPUavg45.32/40.61,max51.78%;RAMavg10.86/10.64,max11.29%.

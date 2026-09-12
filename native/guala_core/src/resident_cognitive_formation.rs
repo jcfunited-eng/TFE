@@ -10314,7 +10314,7 @@ impl ResidentCognitiveFormationState {
                 BTreeSet::new()
             };
         if admit_guided_vocal_route_growth {
-            #[cfg(test)]
+            #[cfg(any(test, feature = "diagnostic-api"))]
             if std::env::var_os("GUALA_PROBE_GUIDED_VOCAL_ROOT_DIAGNOSTIC").is_some() {
                 eprintln!("C119_GROWTH_INPUT {}", serde_json::json!({
                     "generation": source_generation,
