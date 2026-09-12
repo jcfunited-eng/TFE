@@ -22083,3 +22083,44 @@ RAMmax12.4908%; resourcealarmsOK, historicalclockALARM persists.
 Next ONE immutable build follows C129bounded localbuilder 4CPU/16GiB/noextraswap;
 no new physiology tests. LocalDocker20CPU/33341743104B, onlydevcontainer9.143GiB,
 no existing builder; roughly5.9GiB headroom outside declaredbuilder ceiling.
+
+### S-054-122-244 — one immutable C131 build and exact-image proof PASS
+
+Package8efb79e027dd9ec0ac74cdb02f456b20b088cffb,219files,
+ZIPd28c06f8cb93023d424d72adbbe25a76d99030c9b2861b05a974b8f95dbb712e.
+One build5212exit0 image708fc271e3be6b1ba020f01dd6eb2e2f859f866971cb6c99bf376171a105833c,
+213263806bytes linux/amd64. OCIrevision exact8efb79e0.
+Builder guala-c131-8efb79e0 actual4CPU/16GiB/noextraswap/restartno, noEFS/binds.
+Actual start/end in command receipts; BUILD_TS label19:11:00 is declared build
+metadata, not an elapsed-time measure. No code/rebuild after this artifact.
+
+Exactimage container54fc7b22/guala-c131-rehearsal networknone,4CPU16GiB,no mounts,
+118runtimefiles matched package; ordinarynativeeca435575a641d625a4d126c866f91c4257b9db92aace8fe6d662cecdb2ed7c0,
+diagnosticAPI absent. Same reviewedcaller fbc7a516928e6720c3186e4616149f7d0826851ec1e5d6bea50a26438ceccbe3.
+Warm53800/cold50986 bothexit0 on677770: realguide677771/consume677772,
+5-axis compactfeedback and fullphysical/input warmcold equality. Bodyc8abe833,
+worlda6b5d459 also match host proof under identical supplied sky. Startup9.93/10.86s;
+peak1729384/1562336KiB. Only inert sleep remains, no organism/backgroundworker.
+Rawproof copied /tmp/guala-c131-release.69erqT/image-proof.
+Hostproof durablearchive bda3dd509cb6d45fb0ba1c1c0cd535f398900db65960022e966138943ed6674f;
+imagearchive38e338c4f01b62eb95f057bc0f83c5f7e246f8238610d8c40a311f3c2984391f.
+Both under /mnt/tfebackup/guala-c118-four-posture.XehvEs/c129-strength-evidence.TnPp0A/c131-release.69erqT.
+
+Fresh finalbackup28036exit0, controller bounded verifier PASS:
+CURRENT678282,body166077514bytes SHA16ddd05e239e05314d644647af49a6ca874b1fd382b078af2ccdf6e72671c9bb;
+world63583bytes SHA6a13135ed4eb7a54f4c10baa32c9b873a1409fe3835121aa3b2d9fb82871cacf.
+Archive3388770bytes SHA57398f516ce2e4f66816474b14baed4762b8d966b9ad7c783ea16faa05d2f8b9,
+ /tmp/guala-c131-final-backup.SnWsAn/current.zip,
+ s3://guala-incident-bench-20260831/c131-feedback-release-20260912/final-SnWsAn/current.zip,
+and durablefinal-backup.zip. ECSsessionEOF follows successfulupload; actualZIP
+authenticated independently, not inferred from terminalexit. No livebrainwrite.
+
+AWS19:13:28UTC exactold1458healthy1/1/0;CPUmax60.9131%,RAMmax12.2894%;
+resourcealarmsOK, historicalclockALARM persists. CaretakerSTOP/browserclosed.
+Next bash tools/deploy_dsf_ai.sh --dry-run SAMEdigest SAMEfinalbackup, after
+ECRdigest/localpull verification. Only after PASS same --cutover ONCE.
+Independent livecallerreview PASS sha bf3b5f97e193ab6d218580bda01f1d162256830f470ef2cf7c151f63c0fb2466:
+ONEguide, <=1ordinaryPOST; exactproducer/sourcecount join proves compactkind,
+not rawtrajectorybytes. Missed latest-event witness is inconclusive, never
+physiologyfailure or permission to repeat guide. Persistedtick>=consumer.
+No new API/schema/native observer or caretaker change.
