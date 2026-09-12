@@ -20,47 +20,46 @@ so live speech acceptance remains open. This paragraph records the Candidate110
 deployment, not the current repair state. Any earlier “speech complete” wording
 is historical and retracted.
 
-Current repair status, 2026-09-12 01:14 UTC: speech NOT fixed in production.
+Current repair status, 2026-09-12 01:40 UTC: speech NOT fixed in production.
 Production remains1456/C110/image6aa38d99, sole healthy writer. No new deployment
 or live lessons. Full AE goal ACTIVE; caretakerSTOP/browserclosed unchanged.
 
 CURRENT DELIVERY ITEM D-054-122-40: incremental TWO-POSTURE live delivery before
-D12239 third-posture teaching. This turn made concrete release progress:
-ordinary python-extension C123 built;215-file package verified; fresh live
-pair659532 migrated correctly, then exact cold-next659533 and659534 passed.
-No new organism code. These are release checks, NOT speech acceptance.
+D12239 third-posture teaching. Ordinary C123 artifact5fc6b612 and migration
+S12245 stay closed. Fresh production-derived root behavior now PASSES:
+two existing minimum lessons grew268e; quiet -> one sound-only cue659609 ->
+four minimum muscles/breath/pressure659611 -> self-hearing -> quiet659672.
+All217 original memory topologies retained. Exact cold-next659673 PASSED.
+This is first-posture LOCAL release evidence, not two-posture or live speech.
 
-Normal wheel139623166e576bd3b32bdb869f764730ac8dccfb05223798b851673fe309a282,
-.so5fc6b612daffc1fcc862c3b8261b3d913c198888e8b64e84e50505093777210f
-at /tmp/guala-c123-release-wheel.buI3mv/installed. Diagnostic-api ABSENT.
-Cumulative nativeGLCOG044->045 and coupled-worldv2->v3 both exercised by actual
-startup at SAMEidentity/tick. World payload changed onlyschema+emptyreturn.
+Initial root script exit1 was a TEST FALSE FAILURE: it counted exact
+L8-1011 -> e1 one-carrier load-relief659612 as a fifth learned motor.
+C121 already documented the same reflex as non-root, no L11 work/breath.
+Independent review confirms the error. Original log/exit1 preserved; no repeated
+teaching or recall. Only missing cold-next was run. See S12250-H12253 below.
 
-Fresh release successor /tmp/guala-c123-release-migration.n7OhWB/paired659534:
-body333fe6203199af6431b30494e035ece8e9e8cc68981ca771905b3dcb4b59d3dc
-world10360cad488c8bb58cd707b9d699bca2fac2fd29150b07412b22a7e8a044d809
-No lessons on this pair yet. Preserve matched raw live snapshot659532 too.
+Latest continuation pair /tmp/guala-c123-release-root-cold.RwrXn7/paired659673:
+body5925d4d00da3acfec1341f81b70f7cd76ae06dc1bf64be8cc3e54d5a3b894755
+world51ba531741ceebb1f8297e0ac71a50e9da90cb788fc23a6e6e720afd712b53b8
+CURRENT622c7ea34159ff2ee6c6a61ddb6a6750fd89b0ec927abb265855df10f7282700.
+Preserve prior659672 pair, raw659532 capture, normal artifact and both backups.
 
-S12238 stays CLOSED locally: one sound cue, two ordered four-muscle postures,
-breath/pressure/self-hearing, clean stop,227 original memory topologies,
-exact cold-next651765. Preserve /tmp/guala-c123-recall.7m7KBL/paired and its
-Ebackup archive. The first lesson was incomplete; the second made the same
-associations sound-owned. Do not rerun that diagnosis or discard either win.
-This is not fullword/intelligibleMama/semanticrecognition/live speech.
+S12238 stays CLOSED locally: older copied body, one cue, two ordered
+four-muscle postures, breath/pressure/self-hearing, stop,227oldtopologies,
+exactcold-next651765. Do not redo its diagnosis or discard the success.
+Next D12254 continues D12247: first ordered-edge teaching on latest659673
+normal-artifact successor, using existing measured-completion/two-presentation
+curriculum. Do not reteach root or add third/fourthpostures. No blind batch
+or new physics. First-lesson incompleteness is not permanent learning failure.
 
-Single next D12247: ordinary-artifact behavioral delivery path on the fresh
-production-derived pair, using existing root/edge curriculum and real actor.
-No new physics or four-posture detour. Capture each successful successor.
-A normal artifact migration pass alone does not close changed speech behavior.
-Installing code must not import the copy's learned state into live Guala.
+Known delivery work: latest-body two-posture path, final matched backup and
+compatible recovery (old binary cannot read migrated state), live proof and
+public playback/evidence. Known3second/latest-receipt gap and stale speech-live
+banner remain; never infer missing body sound from dropped playback.
+Controller is continuity-only; historical native-root rehearsal is excluded.
+Copy learning must NOT be imported into live identity; ordinary live ingress
+must teach her. No image build/registration/cutover started.
 
-Known delivery work remains: final pre-cutover matched backup/compatible
-recovery (old binary cannot read migrated state), cumulative live behavioral
-proof, and public sound/evidence. The live page still has its already-known
-3second/latest-receipt playback gap and stale cue-to-pressure speech-live banner.
-Neither is newly discovered speech physics; do not mistake dropped playback
-for absent body sound. Existing controller is continuity-only, no rehearsal
-or backup; historical native-root rehearsal is excluded from active image.
 Worktree: `/tmp/guala-speech-existing-organ`
 Starting HEAD: `735489406577f90edf6c2fb7fb1889f87eae8107`
 Production boundary: task definition 1456 is the live deployed writer. Its
@@ -14232,3 +14231,127 @@ These are recorded historical playback/truth defects, not new cognition laws.
 Do not claim audible two-posture delivery from backend receipts or webpage200.
 No UIedit/publication in this turn. Coordinate its narrow evidence/playback
 surface as part of D12240, not a broad UI redesign or a new cognition mechanism.
+
+
+## D-054-122-48 / R-054-122-49 — fresh normal-artifact root prefix, reviewed before run
+
+Previous turn PROGRESS: ordinary wheel/package and fresh migration/cold-next
+completed; no prior speech prerequisite reopened. Current branch25abd5a2,
+source fingerprint057ce02ed1f0f942a5c7ec4cd639360d2ab11520079a1d45419fb0c4bc6b4cae.
+
+Frozen tutor/observer /tmp/guala-c123-release-root.py finalSHA
+ce3dca6e2abe2c35b0bcc4fada315f1d07f495321cbacac7714f75fd7a063641.
+Uses exact ordinaryartifact5fc6b612 and saved fresh659534pairedsuccessor.
+Retains pendingbody/selfreturn; no solaroverride/private native edit/production
+request. Same C120 two4000-sample minimumguides (axes37/38/39/44,1500carriers)
+and32 ordinaryinterval rests. C122/C121 observer helpers reused at verifiedhashes.
+Then exactsavedcoldrestore, quietbaseline, ONE sound-onlycue, rootmotors/breath/
+pressure/selfhearing, existing64-clockquiettail, memorytopologyretention,
+coldrestore+one ordinarynext. Saves outcome even on a failed behavioral bar.
+This is the existing root prefix of the requested two-posture release, not
+an additional fullword condition or a new physics experiment.
+
+Independentreview verified before/after. Main corrected one test-only early
+global-uniqueness assumption BEFOREexecution: several structural L11candidates
+are lawful. No pre-cue len(candidates)==1 rejection. Actualmotorprovenance after
+the cue must instead identify the one completefour-muscle act. FinalreviewPASS,
+not a candidate failure or new recognition law. Subsequent breath/pressure/
+selfhearing/finitequiet checks unchanged.
+
+Command reviewed with script: freshdisposable
+/tmp/guala-c123-release-root.xFD5Tr; logOUTSIDEroot
+/tmp/guala-c123-release-root.log; normalinstallednative:exactworktreePYTHONPATH;
+taskenv GUALA_MAX_WORLD_BYTES16777216/PYTHONUNBUFFERED1 plusdisposablepairedroot.
+No otherGUALAenv, no emptyroot/log redirection fumble. Singlecopy, no parallel
+organism/compiler,29GiBavailable,swap0. No cue or lesson during preflight.
+AWSpre same1456/effde9e1/image6aa38d99 HEALTHY1/1/0, nofailures; namedrunaway
+alarmsOK, clockalarmSep8unchanged.01:11/01:16CPUavg41.60/45.08%,max64.40%;
+RAMavg10.91/10.85%,max11.72%. Source/script unchanged by this ledger receipt.
+
+
+## S-054-122-50 — fresh ordinary-artifact root behavior passed; false fail retained
+
+Run44434 on /tmp/guala-c123-release-root.xFD5Tr/paired, scriptce3dca6e...641,
+normalbinary5fc6b612. Input659534:0complete roots/217oldtopologies.
+Two4000-sample minimumguides,4axes,32ordinaryclocks aftereach,no solaroverride.
+Complete sole root268e at659600,missingoriginals0.
+Taughtbody80d9bb964a7ab0b51a5790afca06aa22b2583058f81ace3e04bf5e4e7b284234,
+world5f2c835dcdaeeb3172f7b5fba0d054a24ab2c24d591fa6af3279f6e3db7accd2.
+Intermediate current-only files may be retired; logs retain exact receipt.
+
+Exact coldrestore;8quietintervals to659608; actor-thread quiet_at_cue=true.
+ONE sound-onlycue659609 -> root268e fourMIN motors659611:
+b7=56,d3=137,ef=152,4fb=144carriers; breath008e489carriers;
+3994nonzeropressure samples atthatinterval.136000selfheardsamples aftercue.
+Final659672 last8vocallyquiet/no pendingphysicalreturn, all217originals.
+Body1f0a193b15b0230ce60a8fc88ca923f567283a4779ef408277dddb6c7678d0c1,
+worldbe100120fb0aef363d090cc2375d88aed168f905ef1e6fcb64883e24b063a38f,
+CURRENT25aa2eb59dd2c026c3851cab23e095117125555803a3964fc91ef8cf2dabda6c.
+Rawlog/tmp/guala-c123-release-root.log
+SHAcc57dcdd53e026a11e52726ab0dadef3ff3919ae49d5c7ec25f44e7a4faee2a2.
+Exit1/passed:false remain untouched; corrected classification below.
+
+## H-054-122-51 — repeat false failure: reflex conflated with learned action
+
+At659612 e1 received ONEcarrier from L8reg1011,noL11preparation,
+no learned-work offer,no breath. Script all-vocalmotor-count==4 rejected it.
+C121 success explicitly records same1011->e1 onecarrier at651486, NOT a second
+root/posture. S11807 also distinguishes L8loadrelief from L11.
+Current exact_motor_preparation_transfers/body-preparation law separates
+authors; learnedcompletion excludes L8 from learned breath authority.
+Main and independent reviewer read priorart; reviewer acknowledged missing
+this inherited assertion during review. NOT new physics or failedroot.
+Permanent earlycheck: enumerate provenance, compare learned L11 acts to
+acceptance; report L8reflex separately, reject extraL11/unexplainedacts.
+Never waive because amplitude is small. Review historical successful edge
+cases BEFORE execution. No lessons/recall repeated or nativephysics changed.
+
+Read-only fumble: local collaborative_todo.md was requested although known
+remote-only; noorganism impact. Use GitHub guala-live, not guessed localpath.
+Documentation update initially attempted Delete+Add samepath in one apply_patch;
+tool refused before changes. Correct full-file replacement uses Update+@@.
+Environment distinction: root run carried task vars but not explicitDocker
+threadENV.41localthreads does NOT prove physicsfailure or production timing.
+Forward commands carry OPENBLAS/OMP/MKL/NUMEXPR=1,RAYON=4 beforeimports.
+No rootreteaching or invalidation of exact causal receipts for this difference.
+
+## R-054-122-52 / S-054-122-53 — cold-next only after provenance audit PASS
+
+Script/tmp/guala-c123-release-root-cold.py
+SHAdf3c30ab787959ff56e1f3c382022c5f23be6ee70d0974e53104e6d0d79b689e.
+Independent source-onlyreviewPASS; wholeworktree
+d8fa598b5d66e8171cc84fcaa455f01d8dc80e052f447e5c968fe3443dc98097
+verified before/after. Original loghash, fourrootL11transfers and exactknown
+L8reflex audited read-only; rawresult untouched. Native/helper pinned.
+No arbitrary extra-act exception; no repeated lesson or recall.
+
+Run84706exit0, task/imageENV beforeimports, disposable
+/tmp/guala-c123-release-root-cold.RwrXn7/paired, logOUTSIDEroot.
+Authenticated659672pair coldrestored exactly, oneordinarynext659673:
+body5925d4d00da3acfec1341f81b70f7cd76ae06dc1bf64be8cc3e54d5a3b894755
+world51ba531741ceebb1f8297e0ac71a50e9da90cb788fc23a6e6e720afd712b53b8.
+SourceCURRENT unchanged; peakRSS1611168KiB.
+Loga030545c899da1378e14f67974afdcb0383d98e5a568a1da604e15e855dbbe96.
+
+AWSrootpost/coldpre andcoldpost: same1456/effde9e1/image6aa38d99,
+RUNNING/HEALTHY1/1/0,nofailures. CPU/RAM/EFS/refusalloopalarmsOK;
+clockalarm remainsSep8ALARM.01:20-01:35 five-minuteCPUavg42.14-45.10%,
+max58.96%;RAMavg10.43-10.65%,max11.87%.
+Latest returned minute samples01:35-01:37CPUavg42.09-48.11%,max58.91%;
+RAMavg10.26-10.61%,max11.38%. Later samples not yet published.
+No native timing or comprehensive runawayclosure claim.
+Local scripts never call/write/pause/lock production. All runs terminal.
+
+Evidence archive (both scripts/logs and exact659672/659673pairs):
+/mnt/tfebackup/guala-c118-four-posture.XehvEs/c123-fresh-root-proof.tar.gz
+SHA0f500946f274ad77b1efc3f730263483655771c538fb551f702e1ba4d42d73b8.
+No success discarded.
+
+## D-054-122-54 — fresh first-edge delivery, not root rediscovery
+
+S12250/S12253 root closed locally. Continue from659673 with normalartifact
+and existing C122/C123 measured-completion guide/two-presentation curriculum.
+Source-review exactsavedstate adaptation/provenance; no nativechange,
+rootlessons, global-silence demand, solaroverride or fullword detour.
+Preserve each taughtsuccessor. Live stays1456 until changed two-posture path
+and release continuity proof complete; no additional user action required.
