@@ -16011,3 +16011,57 @@ No camera/mic/browser dependence is introduced. AWS read05:27:37Z confirms
 service1457 desired/running/pending1/1/0; latest05:23–05:25CPUmax55.8031%,
 RAMmax11.9293%; CPU/RAM/EFS/refusal alarmsOK, historicalclockalarmALARM remains.
 No production change. GoalACTIVE; no request to stop or pause inferred.
+
+### C-054-122-113 — C1's 500/50 receipt: confirmed observation, bounded conclusion
+
+Continues D-054-122-40 and R122112; no reopening of S122104's live learned
+MIN268e -> MAX269c anatomy or S122106's actual sound delivery. Joe's "Same
+toots" remains the audible non-success. Requested architecture is learned
+body-owned speech; quantitative demonstrated movement remains unproved, not
+a completed capability. No legacy shell, pose tables, HOLD ingress change,
+coefficient tuning, or new cognition is authorized by this receipt review.
+Full DSF/L0-L4 unchanged; no reduced substitute or lost field structure.
+
+Historical S-063-02 DOES report 22 L11/L12 contacts across ten vocal motors,
+each at effective conductance500 and50 conducting channels, on S06301's
+saved task1447 body. It was a gate saturation/reachability census, not a
+controlled comparison of distinct demonstration strengths/durations. It does
+not establish that all later live vocal contacts remain identical.
+
+Current source at clean2a04f635: lean_sensorimotor_route.rs695
+append_contact_once uses DEVELOPMENTAL_CONTACT_CONDUCTANCE_PICOSIEMENS;
+resident_cognitive_formation.rs350 defines500. Thus this growth step does not
+directly set initial contact strength from demonstrated carrier dose.
+This supports R122112's narrower finding, not universal absence of quantitative
+experience or a proof that no existing curriculum can produce recognizable
+sound.
+
+Important counter-scope: sparse_electrical_contact.rs174 computes effective
+conductance from current conducting-channel population; its365
+settle_contact_local_conductance can change that population from contact-local
+released work and endpoint gradient direction. Resident21400ff uses effective
+conductance to divide finite work, then invokes that local conductance law.
+Existence of this code is NOT proof that vocal contacts acquire the necessary
+demonstration-dependent change; reachability, direction, and resulting
+movement must be distinguished. It does refute an unqualified claim that the
+core can never change contact strength.
+
+C1's proposal to place demonstrated strength in conductance is a proposed
+physical mapping, not an accepted implementation merely because a field
+exists. Likewise accepted work quantity alone does not prove duration or
+repeated discharge: existing S122110/C122111 timing and recall evidence stands.
+Do not add a parallel plasticity law or guide-only HOLD from this inference.
+
+Next item remains the bounded full-vocal-anatomy finite-drive acoustic check
+under unchanged laws named in R122112. No new test, compile, lesson, runtime
+edit, production mutation, or caretaker restart in this receipt review.
+Source evidence only; last production observation is the timestamped prior
+row, not a new cloud check. No new success criterion requiring exact Mama-A
+coordinates or waveform is introduced.
+
+Read-command failure: queried nonexistent directory
+native/guala_core/src/resident_electrical_fabric after reading its actual .rs
+file. rg refused; no organism run or state change. Correct source was already
+explicit in that file's import, sparse_electrical_contact.rs, verified with
+test -f before reading. This repeats the path-preflight failure class:
+resolve the imported real file before searching; never infer a sibling folder.
