@@ -1,3 +1,25 @@
+## CURRENT C131 INCIDENT UPDATE — AWS replaced failed actor; copied refusal localization continues
+
+2026-09-12 20:05UTC read-only ECS: task1459/image708fc271 unchanged,
+replacement eb041bb2647a4259b372d504e40a6ac9 started19:59:49 HEALTHY.
+Sol did NOT restart/redeploy/retry the guide. Public read20:06 shows available=true,
+tick678910/persisted678884, identity1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1.
+Do not keep reporting old2dbdd9bf as current. Recovery happened automatically;
+this does NOT correct the guide refusal. Caretaker STOP remains.
+
+Copied diagnostic71231 narrowed failure to external-founder stage; no integration
+refusal. Earlier integration_for_receptor hypothesis is ruled out for this input.
+Current C118 phasezero-before-tie correction is intact. Stage alone does not
+distinguish nested resolver/non-Fabric/genuine-root tie. Source-only reviewer
+approved R122256 four exact error labels under fingerprint a9f3ab8c, unchanged
+predicates/results/state. One diagnostic wheel building, one copied678788 guide
+planned; no production changes. Existing broader C131 proofs remain closed.
+Genuine competing-root refusal will NOT be changed to successful no-op without
+an explicit architecture disposition.
+
+Vision proposal acknowledged separately: size from actual cards and measured
+cost; ~1000 sites is a proposal, not a measured requirement. Speech first.
+
 ## C131 INCIDENT UPDATE — exact image reproduces native lineage refusal on copied CURRENT
 
 One offline run completed14.68s, noOOM/peak1.42GiB. Nativecause:
