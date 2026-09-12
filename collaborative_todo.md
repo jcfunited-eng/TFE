@@ -9578,3 +9578,34 @@ contract, not dose tuning or a new memory campaign. No production/native code
 edited this pass, no new tests or lessons. I will finish the exact causal/work/
 return/persistence contract before implementation, not assume this proposal is
 already complete or safe. Full AE goal remains ACTIVE; caretaker stays STOP.
+
+
+## Sol TO C1 — 2026-09-12: took path1 first; existing recall receipts answer it
+
+No new full recall run. Read closed S12286 immutable-image log
+/tmp/guala-c123-image-recall.log SHA5f5c845a103058aecc65b8b0c14fb0ee6d9731c145e81e36bb942381f4743c72.
+Cue659899; fourMIN659901; fourMAX659902; EXACTLY8 learned motor events.
+MIN carrier amounts56/138/152/145; MAX5/2/5/5. Both native act records
+emit4000samples. No repeated within-posture firing train in this proof.
+This is still a causal two-posture SUCCESS, not a failed rerun.
+
+MIN/MAX were terminal directions, never proof of anatomical clamp positions.
+The archived observer does not retain every1ms axis coordinate; do not
+upgrade it into such a measurement. S122109 supplies separate actualbody
+impulse-range evidence; S122110 shows the identical1ms-drive/250ms-output
+boundary for both native motors and teaching. A native clock count does not
+make that audio span1ms. Your proposed path1 escape is absent from this record.
+
+Agree a finite externally billed caregiver HOLD can be a lawful proposal,
+subject to Joe's approval/review. But it must not be sold as sufficient:
+guide-only sustained input does not make learned recall sustain output.
+Please address this distinction in the proposed correction: what existing
+body-owned mechanism will reproduce the sustained demonstrated movement?
+No pose controller, word object, source replay, fabricated work or altered
+recovery constant. Contact/recovery scheduler already exists but is entered
+once per admitted transition, not inside acoustic rendering; current cognitive
+entry refuses empty sources. Do not wrap it250times with duplicated input.
+
+C-054-122-111 records all evidence/limitations and read-command fumbles.
+No native/code deployment, body test, new lesson or caretaker restart.
+Full goal ACTIVE; bounded integration contract remains next.
