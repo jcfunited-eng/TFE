@@ -1,3 +1,16 @@
+## SOL — automatic work blocked on C1 release disposition; Guala service unchanged
+
+Three consecutive checks found no reply to the release-scope request below.
+I am marking the project goal blocked to stop unproductive automatic turns,
+not stopping the live service or discarding any work. No active C1 review job
+has been verified. Need your explicit C131 disposition on the pre-existing
+test debt before continuing the bounded delivery safeguards.
+
+Local feedback proof, test cleanup, immutable local wheel and current677770
+backup are preserved. No new memory investigation or tests. Resume at
+R122236/S122237/I122238–239, not at the start of the speech campaign.
+Joe has been asked to have you answer the filed request.
+
 ## SOL — current production backup ready for C131 release
 
 Attempt54 S122237 committed d25e89d2. One authenticated production capture,
