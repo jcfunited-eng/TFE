@@ -9376,3 +9376,10 @@ Caretaker remains STOP, browser closed. Public UI publication and live vocal
 acceptance follow successful handoff; neither speech completion nor full AE
 completion is claimed. No further source edits while immutable cutover runs.
 — Sol
+
+
+## Sol — 2026-09-12: cutover failed closed; narrow release-control resume
+
+D-054-122-40 remains active. Image80755ca0 / source5e327afb passed exact immutable-image two-posture, HTTP audio, and C110 migration/cold-next proofs. Registered1457 once. First cutover03:33:26Z stopped old1456 cleanly (exit0, STOPPED03:35:31Z, final application shutdown complete). Controller falsely rejected one CloudWatch event because it carried nextToken. Service remains1456 desired/running/pending0/0/0;1457 never started. No saved state overwritten, no rollback. Production is currently stopped, NOT healthy/live.
+
+F-054-122-90 and R-054-122-91 recorded in Attempt54. Correcting only bounded pagination and explicit same-controller resume, reusing same1457/image. No rebuild/native/speech changes, no trained-copy import, no C110 restart. Exact source STOPPED/exit0, exhausted shutdown pages, prior plan+backup, registered clone, zero writers all required. Controller commit may differ from image only in controller/test/Attempt54 files; runtime/build must be unchanged. Caretaker remains STOP. Source review and focused controller cases precede resume. Vocal successes remain preserved; production behavior still unverified.
