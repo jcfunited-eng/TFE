@@ -22059,3 +22059,27 @@ Documentation tool failure: whole-ledger terminal read hit tool truncation and
 full-file patch refused before any edit. Recover full text in bounded chunks;
 never use truncated output for replacement and never dump failed patch payload.
 Production untouched; no candidate proof failed. Readback and length check required.
+
+### S-054-122-243 — current677770 changed-path release proof PASS
+
+Independent caller review PASS after correcting inherited nonquiescent wording;
+initial_sound is actually null on this predecessor. Caller
+/tmp/guala-c131-release.69erqT/check_release_feedback.py adapts only authenticated
+CURRENT/provenance and the previously classified transaction aliases.
+Host warm72167/cold91606 both exit0. Ordinary native0388cacf, exactproduction
+environment and real startup/LeanPhysicalLoop/paired publication, no actor start.
+ONE MAX32 guide677771 (2.238449s), ordinaryconsume677772 (1.826857s).
+Compact trajectory5026bytes, 5actual axes/250frames; full expansion20ports,
+5000samples,5occurrences1250frames, each249/1000 admission. The fifth actual
+axis is preserved, not filtered to the four externally guided axes.
+No initial acoustic custody; no artificial silence/drain/clock alteration.
+Warm/cold FULLbody166112106bytes identical c8abe83380c8f088855e193e6c243e806dbdf1dc9f5733e209739624b085d8df;
+world63603bytes identical a6b5d459cc4ae5d88ab3b986c83fd417a0c7a57c9da16ad8dbd9d565b9d4e3c1.
+Full input equality; only documented processlocal transaction aliases exempted.
+Warmpeak1664164KiB/cold1675372KiB; startup11.05/10.79s, no performance closure.
+Original authenticated archive unchanged. All logs and paired evidence retained.
+AWS19:04:59UTC samehealthy1458/71289/imagefd6,1/1/0,CPUmax59.1034%,
+RAMmax12.4908%; resourcealarmsOK, historicalclockALARM persists.
+Next ONE immutable build follows C129bounded localbuilder 4CPU/16GiB/noextraswap;
+no new physiology tests. LocalDocker20CPU/33341743104B, onlydevcontainer9.143GiB,
+no existing builder; roughly5.9GiB headroom outside declaredbuilder ceiling.
