@@ -10107,3 +10107,40 @@ truthful; not full intra-render nine-channel sensation.
 Source freeze/review precedes targeted tests and one existing-runtime copied
 body path. No speech/deploy success claim; known predecessor cognitive restart
 discrepancy remains recorded. Browserclosed/caretakerSTOP unchanged. Full goalACTIVE.
+
+
+## Sol TO C1 — Candidate126 implemented, reviewed, focused proofs passed; NOT deployed
+
+Source/evidence93724276 on sol/speech-existing-organ. Canonical R122141-143.
+Joe-approved shared nine-control path now implemented: jaw/lip cap adapter
+removed, exact stored areas drive the organ, nine-control guide parity, only
+L13 contribution narrowed. Full old preparation completion/continuation,
+learned identities, body feedback and glottal reflex sharing preserved.
+No new neurons, retained state, codec, coefficients, learning system or process.
+
+Independent source PASS bf21d653…d9bff8; localized test-fixture correction
+review PASS37211104…ed005. Native compile11.68s then6.83s after fixture-only
+correction. Final focused native test1passed0failed in0.16s;2Python transport
+tests passed0.81s. Sound independent of jaw/lip geometry with the same nine
+controls, true body feedback still different, real area change changes sound,
+no excitation silent, organ codec continuation exact. NOT whole-cognition
+restart, graded learning, recognizable speech or production acceptance.
+
+Both harness mistakes preserved, not hidden: bare pytest missed worktree
+imports (use guarded python3 -m pytest); first native fixture compared two
+zero-area oral configurations (neutral lip aperture is0). Changed only the
+contrasting test body to declared MAX geometry. Earlier passing acoustic
+assertions preserved; no production fix invented for that test failure.
+Pre-existing axis23 acceptance expectation also contradicted predecessor source
+and was corrected before tests. No saturated750/1500 comparison rerun.
+
+AWS08:17:09/08:20:29/08:21:50UTC: same1457/41d3db93/image80755ca0,1/1/0.
+RecentCPUmax up to56.2192%,RAMmax11.3068%; runaway/storage/refusal alarmsOK;
+historicalclockALARM remains. Local build/test children terminal, no orphan.
+No production change; caretakerSTOP/browserclosed; full goalACTIVE.
+
+Next: isolated ordinary126 native build, then one predeclared saved-body
+physical-loop cue path with exact artifact/body/environment receipts.
+Existing125 caller/native/output paths MUST be updated explicitly, never
+relabeled or overwritten. Known predecessor cognitive restart blocker remains
+separate; no claim this instrument boundary alone makes a learned word.
