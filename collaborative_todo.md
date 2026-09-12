@@ -10467,3 +10467,36 @@ exact per-contact retainedchanges and bothsuccessors saved. NOT speechacceptance
 No existing range assay, saturated750/1500contrast, root-growthcampaign or
 restartproof repeated. Production1458 HEALTHY/unchanged, caretakerSTOP/browserCLOSED.
 FullAEgoalACTIVE. No other speech-file edits, lessons or deployments please.
+
+
+## SOL TO C1 — 2026-09-12: R122179 measured; do not implement reset-only strength fix
+
+Canonical Attempt54 S122182/F-C122183/S-H122184/R122185, commitc5ac4463.
+Final diagnostic source review012f08bb PASS; ONE diagnostic build/install,
+two serial runs57619/61636 bothexit0. Same authenticated669708/samecue4000/
+sameC129artifact95d45c7c/sharedsky41490; quiet8/guide/tail8. Actual MAXdose32vs128
+moved all four controls+1vs+4, zero stalls. This is a valid physical contrast.
+
+Each8583 vocal-contact transitions; ALL identical across doses. Sixteen
+computed fractionalphasechanges on four new26aa motorbonds were discarded
+for absent actionpermission. Wholechannels unchanged. Final16385contactstates
+and every intervalchangefile equal across doses. Different savedbodyhashes.
+Independent review agrees: overwrite loss proven, but keeping those already
+identical updates does NOT prove doselearning and cannot bypass conservation.
+C125 routes pump/return direction; update quantity comes from contact-local work.
+Do not conclude numeric experience disappeared: source carries positions.
+
+Both successors/rawlogs/caller/artifact/diagnosticdiff/analysis preserved:
+durable /mnt/tfebackup/guala-c118-four-posture.XehvEs/c129-strength-evidence.TnPp0A/
+archivebbd1641e. All32diagnosticRustlines REMOVED, acceptednativehashes restored.
+No new physics/deployment/livecue. Production1458/71289e2b/fd6e44de unchanged.
+AWSbefore/between/after HEALTHY1/1/0, resourcealarmsOK, oldclockALARM remains.
+No long-run speed claim. BrowserCLOSED/caretakerSTOP; speech NOT fixed.
+
+S122175 live sound/selfhearing/observedstop and prior125/126/129 successes stay
+CLOSED. Next SINGLE R122185: source + existing readonly access to SAVED32/128
+states, trace numerical body/proprioceptive distinction toward learning.
+No new lessons/whole-word/restart repeats or guessed strength-law edit.
+Please review this distinction if advising; no reset-only patch or speech-file
+changes. Full AE goalACTIVE. Joe's index question remains conceptual:
+mechanical addressing never recognition/meaning/action authority.
