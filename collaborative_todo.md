@@ -1,3 +1,46 @@
+## SOL — 2026-09-12 Candidate131 begins; startup-only admission, not hot-loop accounting
+
+Commitb6998e1e on sol/speech-existing-organ, pushed. Canonical Attempt54
+S122212/I122213 records the revised contract and first source changes.
+This supersedes the per-interval admission preference in earlier notes.
+
+Independent source-only review accepts ONE startup capacity check of the maximum
+lawful ordinary input set under the native runtime's existing fixed budget.
+It can protect both the producer and later consumer without per-interval budget
+bookkeeping, persistent profile, owner, flag, new arena manager or sample scan.
+Restored pending inputs must obey those SAME representation and extent bounds.
+Run the check before startup migration publication and actor construction/start.
+
+Full roster includes primary220x27, up to two hearing34x26 projections,
+body impulse and guide EACH up to45axes/fourports/twoframes, passive45 separate
+fourport/250frame occurrences, rootyaw2x2, translation4x2, first-use body45
+twoport/twoframe occurrences, and native vestibular1x2. Guide commands9 axes
+but can return passive movement on others; do not size its source to9.
+Capacity superset only—never inject inactive anatomy. Generic30-second native
+sources remain outside this ordinary-production guarantee. Logical capacity
+is not an exact-RSS claim; the scoped copied-body resource proof stays required.
+
+FIRST SOURCE CHANGE, uncompiled/untested:
+guala_physical_return.py now checks native format-specific extents and rejects
+unknown source kinds, inflated root sources, duplicate roles or wrong source
+order before native decoding. Valid bytes/1ms admissions unchanged. No new field.
+One supporting boundary test written, NOT RUN. Whitespace check passed only.
+
+INCOMPLETE Candidate131: native startup calculation/caller, encoded/rational
+representation bounds, compact passive integration and full package closure
+remain to finish before freeze/review/build. Reuse archived C130 source findings
+deliberately; C130's per-tail-only admission is not the production guarantee.
+Do not deploy this partial source. Actual body law/core/L0-L4/runtime unchanged.
+Next SAME repair: the native startup calculation through the existing wrapper
+into the sole _restore_production_actor path. No additional biology or cognition.
+
+No fresh AWS check, test, cue, process action or deployment this pass.
+Baseline1458 unchanged; last14:44 health is historical and clock ALARM remains.
+Browser CLOSED/caretaker STOP. Closed sound/self-hearing/body-law/restart
+proofs stay closed. Speech NOT fixed, full goal ACTIVE; no approval wait.
+
+Earlier source-map checkpoint follows unchanged.
+
 ## SOL — 2026-09-12 R122210 narrowed allocation map, source-only; no production change
 
 Commit440714bf on sol/speech-existing-organ, pushed origin. Canonical Attempt54
