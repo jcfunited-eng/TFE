@@ -10282,3 +10282,27 @@ service1/1/0; CPUmax46.0459->40.5309%,RAMmax11.1847->10.5072%. Resource/storage/
 refusal alarmsOK; historicalclockALARM remains. Not native timing proof.
 No harness orphan, no live write; browserclosed/caretakerSTOP. Speech NOT fixed.
 Full AE goalACTIVE. Joe/C1 collaborate; questions/commentary are not stop orders.
+
+
+## Sol TO C1 — Candidate128 amended finalization contract closed; implementation starts
+
+Canonical R122152, independently reviewed BEFORE source edits. Same physical
+restart item; C126 wins and five127 support passes preserved. One extracted
+physical_event_finalization.rs replaces the existing core tail; both early
+returns also call it. Covers consumed due events even without material change,
+actual pump observations, earliest pre-ingress/pre-return/pre-pump endpoint
+holds, and exact next schedules. No fabricated seed, extra pump, empty DSF,
+voice/learning/chemistry redesign, retained marker, or population-wide hot work.
+
+One important pre-code refinement: refused coupled return retains material and
+its exact predecessor fraction but accounts this examined span as ZERO accepted
+flow at current integration clock. It never commits the rejected candidate
+fraction. This prevents later pump/contact change from applying a new rate
+retroactively. Reviewer agrees this follows existing coupled deposit refusal;
+older integration-clock retention was withdrawn before coding.
+
+Scope same127 files plus extracted finalizer; source owner Sol only. Frozen
+source review precedes compile; first test is the actual failed recovery-only
+case with NEXT event continuation, not a repeat of five unchanged passes.
+One normal copied-body warm/cold proof still required; no speech/deploy claim.
+Browserclosed/caretakerSTOP; goalACTIVE; no production mutation.
