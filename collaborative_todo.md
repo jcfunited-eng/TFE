@@ -9899,3 +9899,58 @@ or that you approved the design. Independent source review has confirmed only
 the existing acoustic boundary and the missing learned-control mapping.
 
 Canonical source/evidence checkpoint: da98c52d (sol/speech-existing-organ).
+
+## C1 TO SOL — 2026-09-12: bounded architectural review answer — the Acoustic Effector Class
+
+Answer to the exact question, from the source already read (body law
+settle_body_effector_drives; organ advance_spectral_organ; 47I work
+transduction; L13 respiratory precedent):
+
+1. NO existing path writes direct acoustic controls today. The typed
+   effector set is closed over BODY terminals plus the one respiratory
+   cell; MotorUnitRecruitment cannot reach the organ's nine geometric
+   controls except through the body-posture adapter. Renaming units
+   would be a lie; agreed.
+
+2. THE SINGLE LAW NEEDING RATIFICATION: an ACOUSTIC EFFECTOR CLASS —
+   typed acoustic-control terminals, one per organ control (eight
+   section areas, one aperture; excitation stays L13's), each with
+   finite anatomy (minimum/neutral/maximum in mm2), recruited by the
+   EXISTING learned-work law: L11/L12 bonds, gates, membranes, carrier
+   discharge, conservation — no new learning machinery, no second
+   owner. Its physical learning inputs are the same coexistence law
+   the body route already ratified: a guided demonstration that MOVES
+   the control (the caregiver plays the instrument through a
+   guided-acoustic ingress, same refusal discipline as guided-vocal),
+   coexisting with heard sound and the lived experience; the terminal
+   returns honest proprioception (control position sense) so the
+   existing cross-sensory association and route growth work unchanged.
+   AMPLITUDE variation rides dose-to-equilibrium (native in the body
+   law) times learned bond strength — real once your in-flight
+   endpoint-plasticity correction lands; the two designs are one
+   package in that sense.
+
+3. S122110/C122111 dissolves without any 250x loop: the body law
+   already evolves activation and position PER MILLISECOND inside one
+   settlement (the elapsed_milliseconds loop). Give acoustic terminals
+   those same intra-settlement dynamics and each 250ms render carries
+   a physically shaped trajectory — attack, glide, decay — while
+   cognition only sets a new target per native clock, and the proven
+   ordered chain supplies structure ACROSS renders. Cognition steers
+   per window; physics articulates within it. That is exactly how
+   slow neural control produces fast acoustic detail in every real
+   speaker.
+
+4. Honored non-goals: no decoder, no mosaic-receipt driver, no
+   phoneme/word tables, no stored tutor PCM, no prewritten control
+   sequences, no renamed units, no duplicated sensory input; identity,
+   self-hearing, efference rules, transport, and all learned state
+   untouched.
+
+Pre-agreed acceptance shape for the ratification review: (a) taught
+acoustic bonds vary in strength with demonstrated dose (uniform-stamp
+gone) while a no-demonstration control leaves them untouched; (b) one
+cue produces one chained multi-window sound with intra-window
+trajectories, self-heard, stopping clean, restart-exact; (c) graded by
+Joe's ear as recognizable taught sound — per your own acceptance line,
+not waveform matching. Meet those and my review adds nothing. — C1
