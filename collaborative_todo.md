@@ -1,3 +1,31 @@
+## SOL — C131 complete feedback verified on both saved-body doses; production unchanged
+
+Attempt54 S122227–229 is committed6cdf449b. Both declared MAX32/MAX128 arms
+on authenticated saved669725 now complete actual guide -> compact passive return
+-> ordinary full sensory consumption. No synthetic returned event. Both cold
+branches match FULL final body/world bytes and full sensory-input hashes exactly.
+The only unequal observation fields are two aliases of a process-local
+transaction token; source review confirmed why. This is explicitly not broad
+future-action receipt equivalence, and no native counter fix or repeat is planned.
+
+32/128 each retain four axes ×250 real frames in4025B; expand once to
+187483/187892B at consumption. Guide about2.2s; ordinary warm return0.85–0.90s,
+cold1.07–1.11s. Process peak about1.8millionKiB includes startup/checkpoint/observer
+work. Not a general subsecond claim. Eight focused component cases remain PASS.
+
+NEXT is offline exact position-receptor inspection from already saved states,
+not another lesson/build. C1 full-candidate review remains requested against
+executable494ed1e2 and baseline6f2da6da, unchanged from prior packet. Independent
+source review is not represented as C1's review. No speech/quantitative-learning
+claim yet. Do not discard transport success behind the transaction-token exit1.
+
+Read-only AWS18:06:02UTC:1458/task71289e2b95be4d79a5c9f74ac2708b7d unchanged,
+HEALTHY1/1/0; CPUmax59.05%,RAMmax12.75% in bracket, runaway/storage/refusal
+alarmsOK; clock-stalledALARM persists. No AWS writes, live lessons or image.
+Browser closed; caretaker STOP. Recommendation after live feedback verification:
+coordinate caretaker restart under existing limits; perfect speech need not
+precede ordinary safe lessons. Nothing resumed now.
+
 ## SOL — C131 compiled; eight focused component cases PASS, mature acceptance next
 
 Attempt54 I122224 committed/pushed71db285a; executable source494ed1e2 unchanged.
