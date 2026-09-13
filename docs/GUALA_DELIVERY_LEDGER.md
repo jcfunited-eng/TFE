@@ -1,6 +1,21 @@
 # Guala Single Production Task Ledger
 
-## CURRENT — D122334 ACTIVE, source23fc6030a; C1 live cutover in progress (2026-09-13 23:16 UTC)
+## CURRENT — 2026-09-13 23:18 UTC — D122334 active; live1463 continuity verified
+
+C1 controller completed exit0, statuscontinuity_health_verified, source
+bfe7ec9ee8c87f6238009663dbf5e928e4813f65, task600c9d151f8345069f73252e1669e694,
+digestsha256:59b2000575d079a06b01273388c2f42da6313e36dfb3ca62e0647cf84538b9cf. DirectAWS confirmsRUNNING/HEALTHY.
+Sameidentity1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1, actualpredecessor706913 ->
+verification706919. Controller explicitly leaves behavioral_acceptance pending.
+This closes the cutover status below, NOT the whole-project behavior goal.
+
+Sol camera correction23fc6030a and ledger head457e73c23 are on origin (verified),
+not deployed. Its copied1462 proof remains valid for that predecessor, not
+silently promoted to1463 equivalence. Next integrate only against the actual
+new source/custody, with the explicitly raised need-law authority reconciled.
+No competing cutover, old-binary restore, or claim of250ms/20/20.
+
+## Historical 23:14–23:16 cutover observation
 
 The full project goal remains active and unfulfilled. D122334 still requires
 actual production receptor delivery within250ms with detailed organism-directed

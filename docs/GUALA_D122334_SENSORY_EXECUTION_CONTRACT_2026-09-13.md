@@ -1,6 +1,21 @@
 # D122334 — sensory execution contract and source dependency map
 
-## CURRENT — 2026-09-13 23:14 UTC — dense camera waste cut proved; C1 cutover active
+## CURRENT — 2026-09-13 23:18 UTC — D122334 active; live1463 continuity verified
+
+C1 controller completed exit0, statuscontinuity_health_verified, source
+bfe7ec9ee8c87f6238009663dbf5e928e4813f65, task600c9d151f8345069f73252e1669e694,
+digestsha256:59b2000575d079a06b01273388c2f42da6313e36dfb3ca62e0647cf84538b9cf. DirectAWS confirmsRUNNING/HEALTHY.
+Sameidentity1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1, actualpredecessor706913 ->
+verification706919. Controller explicitly leaves behavioral_acceptance pending.
+This closes the cutover status below, NOT the whole-project behavior goal.
+
+Sol camera correction23fc6030a and ledger head457e73c23 are on origin (verified),
+not deployed. Its copied1462 proof remains valid for that predecessor, not
+silently promoted to1463 equivalence. Next integrate only against the actual
+new source/custody, with the explicitly raised need-law authority reconciled.
+No competing cutover, old-binary restore, or claim of250ms/20/20.
+
+## Historical 23:14–23:16 cutover observation
 
 D122334 remains ACTIVE; full250ms/detailed organism-aimed vision acceptance is
 not met. Previous turn's camera-order961993c50 is closed source evidence.
