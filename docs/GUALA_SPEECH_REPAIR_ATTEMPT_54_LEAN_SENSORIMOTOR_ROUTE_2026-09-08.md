@@ -42,6 +42,13 @@ The exact diagnostic consumptions reproduce FULL archived body/world successors.
 This is not receptor silence, nor proof of different retained vocal strength.
 Other residual/heat/fullDSF/later pathways remain distinct and must not be erased.
 Temporary trace removed, source restored; raw proof archived/hashverified.
+S122290 now maps that later divergence to three actual position-receptor/L9
+retained formations, all in the128 arm; each has11L1 plusoneL5 member contacts.
+This is differentiated retained structure, not proven quantitative vocal use.
+No direct L7/L11/L12 edges on these three L9 cells, but no indirect-path refusal
+or no-learning conclusion follows. Unequal selfhearing remains a causal confound.
+Source identifies actual recurrent/member transfer -> reassembly as next existing
+junction; no memory-amplitude lookup writes vocal conductance. No native run here.
 Next single item: actual retained L11/L12 strength and authorized use, reconciled
 with this measured same-current/different-work handoff. No recovery-only patch,
 quantum/dose tuning, new lesson or repeated gate trace authorized by this result.
@@ -23607,3 +23614,88 @@ C132/H122247 remainclosed, R122177 remainsactive; thenvision, thenlife.
 Observer hygiene: one tool-output tail included an unnecessarily large result
 JSON and was truncated; complete result/logfiles preserved and exacttrace was
 read separately. Truncation was display-only, not dropped runtime evidence.
+
+### S-054-122-290 — delayed position-member retention is real; motor-strength use still unmeasured
+
+Continues R122177; C132/H122247 remain CLOSED. No new speech candidate,
+native build, body step, guide, production write, caretaker change or live claim.
+This is READ-ONLY analysis of already archived S122285 rows and final saved pairs,
+not repeated acceptance. No fresh AWS assertion follows from offline reads.
+
+Exact row/receptor joins identify new contacts at669731 in128 only:
+MAX39 lineage99a -> L9e0c, MAX44a26 -> L9e1a; at669732 MAX3897e -> L9e28.
+Each new L9 also contacts the same11L1 lineages20,21,22,23,24,30,31,32,33,34,36
+(hex suffixes; common prefix474c4e4c494e4531000000000000).
+All36 start50conductingchannels/500conductance, later fractional transition-work
+phases exist. Position-receptor electrical differences first appear669732;
+at669733 MAX38 old-936256both -> -936277(32),-936246(128);
+MAX39 -896843->-896864(32),-896842->-896834(128);
+MAX44 -1156449->-1156492(32),-1156448->-1156457(128).
+These are exact measured saved changes, NOT a monotonic dose law.
+MAX32 selfhears4000samples every tail input while128zero; therefore this is not
+an isolated passive-feedback/dose-only causal falsifier.
+
+One external Python saved-codec inspector, independently source-reviewed before
+execution, decodes ALL local-cohort contacts then globalfabric, matching native
+observer ordering/parallel ordinals. No native import/actor/learning execution.
+Session5816 exit0; exact identity/tick669735, body/rowsSHA and unchanged CURRENT
+checked. All129(32)/165(128) latest changed-contact rows match saved contact state.
+Final contacts16385(32),16421(128).
+Body32 SHA41a2d13bf498f366786e47e5853b2883100209c27a38a3893b1cf1a7d87797e2;
+128 SHA7b955095966f250f11061735814facc95fe948986a2d5e1e955d6810e78d7089.
+Full incident-contact sets for e0c/e1a/e28:0(32),36(128), exactly12per128cell.
+No direct L7/L11/L12 edges in these sets. That does NOT exclude indirect paths,
+subsequent reassembly, later learned use, or prove a disconnected memory island.
+
+Source path, unchanged HEAD9f63f1794bf749b34b8fcc273fde4d2e35474d15:
+- core10450/18779 mount_new_recurrent_retention makes oneL9 and contacts to
+  actual retained mosaic members; it does not read/write demonstrated motor dose.
+- core4016 recurrent_formation_causal_cues requires actual outward transfer from
+  a previously active recurrent cell to its retained member before reassembly.
+  Stored formation alone is not a new motor-work source.
+- core21500..21524 existing strength update uses reached-contact released work
+  plus actual endpoint pumping/return. The known21590+ vocal permission/reset
+  still governs accepted vocal contact settlement.
+- lean_sensorimotor_route::mount_exact_reassembled_vocal_action_routes807+
+  governs exact sound/body association and motor ownership, not amplitude lookup.
+Thus differentiated retention is established, not the required endpoint/contact
+work and later authorized strength use. Do not reconnect by a teacher-dose label,
+memory scalar, automatic permission bypass or authored contact.
+
+Additional source closure: next proprioceptive quantization retains receptor
+residue; sparse retained-neuron structure excludes that transient residue.
+Sensory precomputed cohort caller does not carry ExtendedIntervalSettlement's
+exported heat onward as a retained feedback quantity. An exported quantity is
+not automatically a bug or missing neuronal input. Do not invent a heat-learning
+path or call all existing fullDSF/physical differences erased.
+The old F122183 equal provisional updates arose on older1ms feedback; it is not
+a blanket proof about every later C131 full-trajectory endpoint settlement.
+Its rejected reset-only conservation violation remains rejected.
+
+Independent source/result review memory_probe_review PASS, not actual C1.
+Next SINGLE junction: establish whether these exact recurrent/member paths
+produce reached vocal-endpoint pumping/return and contact work under the existing
+law, before any proposal. No rerun of closed gate/guide prefix and no arbitrary
+deadline reclassified as a physiological failure.
+
+Raw inspector SHA014bf4269ad587ae6fdfb1f3543240a91b08541a6275528cd935ef92ed235281;
+graph JSON60c1977151ab800ee7ceb2878096c59b7dd318d6a59ddc109171f78419763ab3;
+position-join JSON859e358506688e7e8a711998eaa2ce5e84e2a6318300c9101072c08dbc045a00.
+Archive s3://guala-incident-bench-20260831/strength-retained-contact-20260913/6YYiQd/evidence.tar.gz
+SHA14dd456e0552153cf92325bb1a924532ed18f749414a0a1db279ed84c95e74a3.
+Includes raw exact Python JSON, inspector/imports and review/scope receipt.
+Original S122285 pairedbody archive81c6bc9c remains authoritative, not duplicated.
+
+Observer hygiene: first inline parser covered globalfabric only and correctly
+refused crosscheck on localcohort1->2; corrected participant scope was reviewed
+before accepted execution. This was an observer error, not body failure.
+JS display parsed some huge rational integers as doubles; raw Python JSON was
+preserved before conversion and is the ONLY numeric authority. No rounded
+display used in these claims. Guessed script/doc/source paths refused readonly;
+resolved realpaths withrg. A source read output lost at compaction was reread.
+None of these events launched a native candidate or changed organism state.
+
+Actual C1 sharedledger amendment read this pass: distinct physical needs,
+no aggregate deficit; feeding control does not ban unrelated exploration.
+R122177 and recovery-blockage closure acknowledged. Queue remains Joe's:
+focused speech -> approved vision -> queued self-driven life. No life code here.

@@ -13,7 +13,7 @@ is serving in the current image. Do not restart an old attempt from this file.
 
 The current repair and deployment authority is the running record in
 [Guala speech repair Attempt 54](GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md),
-particularly its current checkpoint and R/S-054-122-278 through S-054-122-289.
+particularly its current checkpoint and R/S-054-122-278 through S-054-122-290.
 That record supersedes the older next-item and production-baseline statements
 below; it contains the full failures, preserved successes and release decisions.
 
@@ -47,6 +47,13 @@ open then close, SAME1540 localcarriers, differing heat; full archived successor
 body/worldexact. Recovery did not block opening. Difference in supplied strength
 is not different local charge drive here; other retained state/later learning
 must not be dismissed. Temporary native trace removed; raw proof archived.
+S122290 maps the delayed changes to actual position-receptor/L9 formations:
+three in128 only, each11L1 plusoneL5 member contacts; no direct vocal edges.
+Independent exact saved-contact comparison verified all129/165 changed rows.
+This proves differentiated retention, not quantitative vocal use; unequal
+selfhearing prevents dose-only attribution. Actual recurrent/member transfer
+is the next existing route to inspect, not an amplitude lookup or new law.
+No native run/build or production change in this read-only step.
 Next: existing quantitative-strength signal route, no recovery adjustment.
 No new lesson, physiology, production change or capability claim.
 An observation bound is not a physiological deadline or failure criterion.
