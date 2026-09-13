@@ -4324,11 +4324,21 @@ fn gate_population_free_energy(
             prepared_channel_term.insert(per_open_channel)
         }
     };
-    let open = Exact::from_integer(BigInt::from(open_population));
-    let population = Exact::from_integer(BigInt::from(anatomy.population));
-    Ok(support_energy
-        + &open * per_open_channel
-        + (&open / population) * &gate_work.open_minus_closed_zeptojoules)
+    // S + n*P + (n/N)*W, combined over one positive denominator.
+    // Keep every checked support/own-state operation above; only the final
+    // arbitrary-width arithmetic avoids normalizing intermediate fractions.
+    let open = BigInt::from(open_population);
+    let work = &gate_work.open_minus_closed_zeptojoules;
+    let support_channel_denominator = support_energy.denom() * per_open_channel.denom();
+    let population_work_denominator = BigInt::from(anatomy.population) * work.denom();
+    let numerator = (support_energy.numer() * per_open_channel.denom()
+        + &open * per_open_channel.numer() * support_energy.denom())
+        * &population_work_denominator
+        + &open * work.numer() * &support_channel_denominator;
+    Ok(Exact::new(
+        numerator,
+        support_channel_denominator * population_work_denominator,
+    ))
 }
 
 fn gate_endpoint_free_energies(
@@ -7992,8 +8002,15 @@ mod tests {
             witness_gate.psi_contacts = fixture.anatomy.gate.psi_contacts.clone();
             let witness_membrane = LocalMembraneConductanceState::<1>::genesis(1);
             let mut prepared_channel_term = None;
-            for signed_work in [-16, 0, 16] {
-                let query_work = GateWorkOccurrence::new(q(signed_work, 1));
+            for query_work in [
+                GateWorkOccurrence::new(q(-16, 7)),
+                GateWorkOccurrence::new(q(0, 1)),
+                GateWorkOccurrence::new(q(16, 11)),
+                GateWorkOccurrence::new(Exact::new(
+                    (BigInt::one() << 180) - BigInt::one(),
+                    (BigInt::one() << 127) + BigInt::from(19_u8),
+                )),
+            ] {
                 for open_population in 0..=population {
                     let direct = gate_population_free_energy(
                         &witness_gate,
@@ -8018,6 +8035,41 @@ mod tests {
                         &mut prepared_channel_term,
                     );
                     assert_eq!(reused, direct);
+                    // Independent arithmetic oracle: the former three-term
+                    // rational expression, not the fused numerator above.
+                    let coordinate = fixture
+                        .anatomy
+                        .plastic
+                        .closed_coordinate_nanometres
+                        .checked_mul_unsigned(population - open_population)
+                        .unwrap()
+                        .checked_add(
+                            fixture
+                                .anatomy
+                                .plastic
+                                .open_coordinate_nanometres
+                                .checked_mul_unsigned(open_population)
+                                .unwrap(),
+                        )
+                        .unwrap()
+                        .checked_div_unsigned(population)
+                        .unwrap();
+                    let support = rational_to_exact(
+                        support_energy_at(
+                            &fixture.anatomy.plastic,
+                            coordinate,
+                            fixture.state.plastic.rest_length_nanometres,
+                        )
+                        .unwrap(),
+                    );
+                    let open = Exact::from_integer(BigInt::from(open_population));
+                    let total = Exact::from_integer(BigInt::from(population));
+                    let expected = support
+                        + &open * prepared_channel_term.as_ref().unwrap()
+                        + (&open / total) * &query_work.open_minus_closed_zeptojoules;
+                    let actual = reused.unwrap();
+                    assert_eq!(actual.numer(), expected.numer());
+                    assert_eq!(actual.denom(), expected.denom());
                 }
             }
             assert!(prepared_channel_term.as_ref().is_some_and(|term| !term.is_zero()));

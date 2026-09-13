@@ -1990,3 +1990,14 @@ physical recipient law is allowed WITHOUT reducing full UF/context. No
 replacement law, skip or new candidate is ratified. Attempt54 and execution
 contract hold exact anchors and exclusions. Full goal active, vision first;
 self-life and speech remain parked.
+
+## D122334 — exact gate-energy calculation closed locally,20:39UTC
+
+Retained one final rational reduction in place of intermediate reductions;
+same gate law, no added retained machinery. Frozen review and one existing
+focused test passed; one saved-body/cold-restart sequence preserved all states
+and observations. Four post-growth steps3.047% lower in one comparison, still
+over250ms; peak1.050% higher. Not a deployment or real-time claim.
+Attempt54 contains full receipts and verified remote archive. The explicit
+recipient-law review does not authorize thinning; execution boundary remains
+the single active item, with speech/self-life parked.

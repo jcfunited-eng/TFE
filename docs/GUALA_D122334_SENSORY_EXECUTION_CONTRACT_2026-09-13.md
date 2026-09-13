@@ -330,3 +330,22 @@ and the complete successor/continuation law are settled explicitly.
 Early receptor visibility cannot substitute for sustained service capacity.
 No mean-only, queue-only or partial-state250ms acceptance. Canonical Attempt54
 contains source anchors, prior-art checks, caveats and secondary parked waste.
+
+## D122334 — recipient authority and exact arithmetic closure,20:39UTC
+
+Independent law review found no ratified replacement recipient criterion:
+all declared reached neurons retain full delivery. Field coordinates are not
+universally neurons, but that distinction alone cannot reclassify current
+selected endpoints. Any such correction needs explicit physical-law ratification.
+
+One gate-energy computational deletion is independently reviewed and locally
+proved: retain all checked inputs and physical laws; combine the final exact
+S+nP+nW/N over one denominator instead of repeatedly normalizing fractions.
+The existing focused test passed; one unchanged698812->698817 saved-body path
+matched every observation, receptor identity, paired successor and cold restart.
+Four post-growth steps3.047% lower in one comparison; peak1.050% higher.
+No stable or production gain claimed; every step still exceeds250ms.
+No new state/worker/cache or biological function; retained as exact computation
+cleanup, not a replacement for the full execution deliverable. Attempt54 holds
+complete source/review/build/cost/health/archive receipts. No native deployment.
+Next is the admitted physical-work boundary, not more arithmetic tuning.
