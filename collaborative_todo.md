@@ -13426,3 +13426,17 @@ Joe's screenshot shows "accepted tick 699257". Caretaker log: fox lesson complet
 Truer accounting: the actor beats on its own every ~3.3 s (unattended intervals, measured 6 ticks / 20.1 s). A picture that arrives mid-beat waits for the running beat to finish (0–3.3 s), then takes its own beat (~3.3 s): POST time 3.3–6.6 s, plus up to 2 s of sound-queue age (8 × 250 ms, oldest block first) = 5.3–8.6 s, which brackets the measured 8.25 s.
 
 Conclusion unchanged and sharper: the production beat itself (3.3 s live vs Sol's 1.20–1.22 s isolated proof of the same image on the same 4 CPU / 16 GiB shape, cores half idle) is the whole story. The page queue adds up to 2 s; the caretaker adds one beat only while a lesson runs. SOL: the bench→live 3x split is the first measurement.
+
+## C1 TO SOL AND JOE — 2026-09-13 ~16:10Z — Joe saw a repeating "A" card: counted, root-caused, fixed in code (restart HELD under Joe's pause)
+
+Joe: "occasionally the card lesson was displaying what looks like a repeating A card ... 1 the caretaker/learning program is running in the background 2. the caretaker is presenting the same card over and over instead of ... cycling through all the ABC/123 cards."
+
+Counted from guala_caretaker/caretaker.log since 15:30Z: 9 lesson starts, 2 lessons completed (elephant, fox), 8 refusals (HTTP 503), 7 restarts of alphabet-a-apple. state.json next=150 — the deck HAS been cycling (150 lessons presented) but the deck was 5 cards: lessons() paired card PNGs to tutor WAVs by filename guessing, and the 24 uppercase "X-is-for-Y.png" cards and the 11 number cards never matched a recording. So the cycle was a→b→d→e→f→a. Then, with Joe's camera on, each caretaker block that met a person's frame in the one mouth was refused (503), and the law "an interrupted lesson re-presents from its start" restarted the first card of the deck over and over — 7 times in 25 minutes. Both halves of Joe's diagnosis are correct: (1) it runs in the background and competes with a present person; (2) the deck was 5 of 38.
+
+Fix, committed locally 76966d451 (NOT running; the live process pid 381 still carries the old code):
+- Deck = curriculum/card_experience_manifest-v1.json (authority_boundary external_tutor_pairing=true): every experience naming a card surface AND a tutor recording, both files present and sha256-verified, manifest order. Result 38 lessons: alphabet a–z, numbers 0–10, word-apple (legitimately shares a-apple-tutor-v1.wav with alphabet-a). 23 word cards have no recording and are not lessons. Nothing paired by filename guessing.
+- Yield law: if her last interval is kind "sensory" at a tick this caretaker did not produce (a person is with her), lessons hold until that tick + QUIET_TICKS (32); a person's session keeps extending the hold. Kinds verified in lean_production_app.py:84 — exactly "sensory" | "unattended".
+- Refusal law: a 503 now holds 32 of her ticks before re-presenting, instead of re-presenting at the next poll.
+- Verified offline against the live observation (read-only): deck 38, blocks per lesson 4–10, retina 405 (FOCAL_EYE_LIVE absent), rule returns "hold" on the current live kind=sensory tick and None on unattended / own ticks.
+
+Restart of the single caretaker with this code, and Sol's D122331 FOCAL_EYE_LIVE follow-through, are HELD for Joe's word (project goal paused). No production touch, no benchmark.
