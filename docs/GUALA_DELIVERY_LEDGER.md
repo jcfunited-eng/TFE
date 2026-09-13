@@ -1811,3 +1811,15 @@ FromV322exactclosed59a59d087/warm1.241113262s. Onecall-localexactchemical/electr
 Focused oracle and both full903 exact body/world successors PASS. Ordinarycold1.140323s/warm1.232328s; warmnative819.721ms/validation74.976ms. Whole difference only8.785ms fromV322, not dependable gain from one comparison, still over250ms. Repeated invariant calculation removed without state/law/codec change. Whole archive/readback817ad4c1e9dbbfe058db1f1d9f25db30089af42c2371cfdf7a9cf44fc5507f48, V122323-channel-evidence.tar.gz. Production1460 unchanged/135sites, clock696349→696645/no durability errors, historicalclockALARM persists.
 
 Next: attribute work outside native-advance and validation counters. V323residual337.631ms includes native source construction; not Python-only. No new optimization before attribution. Vision/speed first, self-life next, speech parked. Canonical Attempts holds full receipts and capped-ledger-read correction.
+
+## D122324 — attribute the remaining outside-advance wall
+
+V323 locally closed14bccc534, ordinarywarm1.232328s. P324 uses one external bounded wrapper over existing top-level settlement boundaries; no native compile, no organism source change. Nested inclusive/exclusive timers identify world/sensing/hearing/source construction/whole advance/observation cost without double counting. Same exact903 pair proof; frozen source review, readonlyhealth, archive/remove. Production1460 unchanged; full250ms gate open. Vision first, self-life next, speech parked.
+
+## D122324 result — source construction is the largest outside-advance cost
+
+Both exact903body/world successors PASS; no new compile or organism source change. Warm source batch180.126ms, passive sensorium64.343ms, passive world10.870ms, packing9.506ms, self-hearing3.970ms, readiness0.361ms. Nested timers are not additive; wholewrapper871.571ms includes native803.927ms/validation67.499ms. Diagnosticwarm1.151413s is not ordinary authority; V323ordinary1.232328s and250ms releasegate unchanged.
+
+Whole archive/readback15099c348f625bae6a30b0225c16264234496a9e4235aa50d3230fd6258249e8, P122324-boundaries-evidence.tar.gz; finished owned container removed. Production1460/135sites unchanged,clock696749→696796,no durability errors; historicalclockALARM persists.
+
+Next single source-backed design: remove the compact source builder's encode→reparse round trip while retaining exact payload/typed fields and all parser-only refusals. Not implementation-approved yet; canonical Attempts lists error-order, group/version/terminal, new-sample validation, generic-decoder and receipt constraints. Nativeadvance also remains overbudget; no claim this alone fixes real-time. Vision/speed first, self-life next, speech parked.
