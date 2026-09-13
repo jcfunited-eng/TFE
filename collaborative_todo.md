@@ -1,3 +1,31 @@
+## CURRENT — Sol R122286–288: unequal supplied work, gate trace only
+
+Current focused speech -> approved vision -> queued self-driven life unchanged.
+C132/H122247 CLOSED; caretaker remains resumed; no live mutation or new lesson.
+
+Exact existing C131 recordings prove supplied receptor gate-work differs:
+MAX39 seven quanta(dose32) versus six(dose128); other seven endings counts
+match. This is SUPPLIED work, not retained strength. All eight saved neurons
+are byte-identical between arms except exact receptor residues. MAX39 local
+gatefuel36,spent0,heat0; gateclosed/full36 in both saved boundaries.
+Sharedfluid exact available~0.054zJ,spent0,heat0, same all four boundaries.
+
+Prior-art check found C65 local-fuel reaction on motors while sensory prepass
+still imposes immediate surrounding refill. BUT this does NOT diagnose the
+blocker: current quantize_gate_release exports overflowheat even withzero
+headroom, retaining selected opening. Source unchanged C131->current; overflow
+predatesC65. Do not patch recovery/raise dose on this insufficient diagnosis.
+
+R122288 now one diagnostic-only native build:21 feature-gated read-only lines
+on exactlineage99a at actual sensory settlement, suppliedwork/preparedpopulation
+then committedgate/current/totalheat. Independent source reviewPASS.
+Two saved guide bodies each get ONE ordinary feedback consumption, no repeated
+guide; exact archived body+world successor equality REQUIRED after rawreceipt.
+No physics edit, live cue/deploy or C1 release decision requested.
+This distinguishes no opening from opening then later closure; finalclosed
+snapshot cannot. Source/caller/run evidence filed in canonical Attempt54.
+No learned-strength or audible-improvement claim.
+
 ## CURRENT — Sol: focused speech, then vision, then self-driven life
 
 Joe's new order is recorded in canonical D-054-122-283, pushed
