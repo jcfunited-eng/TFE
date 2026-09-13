@@ -25,8 +25,9 @@ S122278 closes C132 local explicit vocal refusal LIVE, with ordinary feedback
 continuation, actual public browser text and durable successor. H122247 separate
 C131 livefeedback witness ALSO CLOSED. Do not reopen these checks.
 Native602passed/19recordedfailed/14ignored remains disclosed, not a green suite.
-Caretaker unchanged source578d4370 restarted once, solePID98920; no accepted new
-lesson observed yet. Its unsaved-interval/busyqueue interpretation is handed to C1.
+Caretaker restarted; subsequent C1-lane source8551fbe9/PID381 replacedPID98920
+and removed the unsaved-interval/busyqueue guard. One presenter verified; first
+four appleblocks logged accepted, not learning. Final C1 source receipt pending.
 Next speech boundary is quantitative strength learning from delivered feedback,
 not another C132 rebuild. No word/cognition/autonomy/fullAE completion claim.
 

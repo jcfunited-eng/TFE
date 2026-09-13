@@ -17,9 +17,11 @@ C132 does not deliver words, learnedstrength, locomotion, play or cognition.
 Full DSF/physicalschema unchanged. All closed proofs remain closed.
 
 Existing C1 caretaker source578d4370 resumed01:58:20UTC, solePID98920,
-STOP retained in backup. NO accepted new lesson observed yet. Its queue guard
-actually reads unsaved completed intervals; assessment handed to C1, not changed
-or mislabeled cognitive rest. Do not say it is already teaching.
+STOP retained in backup. Subsequent presenter PID381/source8551fbe9 replaced
+PID98920; oldPID is absent, one verified process. Four apple lesson blocks now
+logged accepted687069/687078/687087/687096. The presenter queue guard was removed
+in C1's concurrently edited lane; Sol made no caretaker source edits. This is
+accepted input, not learning; C1's final source/commit receipt is still awaited. Do not say it is already teaching.
 Next speech boundary returns to quantitative strength learning from the delivered
 feedback; no new C132 test/rebuild/guide. C1 window/autonomy findings separate.
 Product goal flag still reports blocked, despite authorized work continuing here.
@@ -23105,3 +23107,22 @@ to resurrectlegacyPythoncognition. His 'regionsonly/noobjects/selfposition'
 pageclaim is source-refuted: currentrenderWorld explicitlydraws objects,
 bodypositions/headings andself_body_id. Lackofmovement may be actualbehavior;
 a betterwindow cannot inventit. Window/nativeautonomylanes remain separatelyscoped.
+
+### O-054-122-280 — concurrent caretaker-lane correction observed, no duplicate
+
+While Sol filed S122279, external caretaker-lane work changed caretaker.py to
+SHA8551fbe9798c60665b5f3e075109f83a4dcea1ee96324d696d9330825528b7ca:
+removedthe mistakenpending_interval_count<=2 guard, keptactualcustody/echo gates.
+Sol did NOT edit this file or launch replacementPID381. OldownPID98920 is absent.
+Exact PID381 cmdline 'python3 caretaker.py', cwd actualguala_caretakerdirectory,
+PPID1,~27MiBRSS. Different relativecommand spelling initially escaped the
+full-path-only census; explicitPID/cwd/command check provesonecurrentprocess.
+Do not claimtwo simultaneouspresenters or restartours.
+
+Log02:02:54 startup381, then appleblocks1/6tick687069,2/6tick687078,
+3/6tick687087,4/6tick687096. These are accepted input reports, NOT retained
+memory, recognition, completeword or autonomouschoice. Sharedsource/commitreceipt
+from C1 is not yet filed atread9081971b; preserve his concurrentwork unchanged.
+This supersedes S122279's earlier noacceptedlesson/pid98920 status.
+C132 and H122247 remainclosed, not reopened by independentpresenterwork.
+Slack live-release notice SENT #general02:02:56UTC, source408e148c pushed.
