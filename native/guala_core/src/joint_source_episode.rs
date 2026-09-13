@@ -249,6 +249,57 @@ fn compact_rational(output: &mut Vec<u8>, value: &BigRational) -> Result<(), Str
     compact_text(output, &value.denom().to_string(), "rational denominator")
 }
 
+fn collect_port_values(
+    values: impl ExactSizeIterator<Item = BigRational>,
+    label: &str,
+) -> Result<Vec<BigRational>, String> {
+    let mut result = Vec::new();
+    result.try_reserve_exact(values.len())
+        .map_err(|_| format!("joint-source {label} allocation failed"))?;
+    result.extend(values);
+    Ok(result)
+}
+
+/// A single generated payload and the values encoded into its port spans.
+/// Private construction only: never accepted from Python or the raw decoder.
+struct EncodedCompactEpisode {
+    payload: Vec<u8>,
+    ports: Vec<JointSourcePortView>,
+    port_start: usize,
+    port_ends: Vec<usize>,
+    sample_count: usize,
+    frame_count: usize,
+}
+
+impl EncodedCompactEpisode {
+    fn into_episode(self) -> Result<NativeJointSourceEpisode, String> {
+        let Self { payload, ports, port_start, port_ends, sample_count, frame_count } = self;
+        if ports.len() != port_ends.len() {
+            return Err("compact typed port spans changed cardinality".into());
+        }
+        let parsed = Parser::new(&payload, ports.len(), sample_count, 1, frame_count)
+            .parse_with_ports(ports, |parser, version, remaining, index, ports| {
+                let start = if index == 0 { port_start } else { port_ends[index - 1] };
+                let end = *port_ends.get(index)
+                    .ok_or("compact typed port span is missing")?;
+                if parser.offset != start || end < start {
+                    return Err("compact typed port span is misaligned".into());
+                }
+                parser.take(end - start)?;
+                let port = ports.get(index).ok_or("compact typed port is missing")?;
+                validate_port_terminals(
+                    version, port.sense, port.body_proprioceptor_terminal,
+                    port.root_yaw_proprioceptor_terminal, port.root_translation_proprioceptor_terminal,
+                )?;
+                validate_port_sample_count(port.source_times.len(), remaining, frame_count)?;
+                crate::proprioceptive_receptor_work::validate_passive_body_source_port(port)
+                    .map_err(|error| format!("invalid passive body source: {error:?}"))?;
+                Ok(())
+            })?;
+        Ok(episode_from_parsed(payload, parsed))
+    }
+}
+
 fn compact_lesson_episode_from_anatomy(
     anatomy: &NativeJointSourceEpisode,
     assembly_id: &str,
@@ -256,6 +307,18 @@ fn compact_lesson_episode_from_anatomy(
     signal_bytes: &[u8],
     selected_senses: Option<&BTreeSet<u8>>,
 ) -> Result<NativeJointSourceEpisode, String> {
+    encode_compact_lesson_from_anatomy(
+        anatomy, assembly_id, clock, signal_bytes, selected_senses,
+    )?.into_episode()
+}
+
+fn encode_compact_lesson_from_anatomy(
+    anatomy: &NativeJointSourceEpisode,
+    assembly_id: &str,
+    clock: &[(i64, i64)],
+    signal_bytes: &[u8],
+    selected_senses: Option<&BTreeSet<u8>>,
+) -> Result<EncodedCompactEpisode, String> {
     let anatomy_ports = anatomy.joint_source_ports();
     let occurrences = anatomy.joint_source_occurrences();
     if anatomy_ports.is_empty() || occurrences.len() != 1 {
@@ -377,6 +440,14 @@ fn compact_lesson_episode_from_anatomy(
     let zero = BigRational::zero();
     let one = BigRational::one();
     let mut signal_offset = 0usize;
+    let port_start = output.len();
+    // Reuse selection scratch; references and projected groups already own
+    // everything that still needs the selected indices.
+    let mut port_ends = selected_indices;
+    port_ends.clear();
+    let mut generated_ports = Vec::new();
+    generated_ports.try_reserve_exact(ports.len())
+        .map_err(|_| "joint-source port allocation failed".to_string())?;
     for port in &ports {
         if port
             .reported_phase_turns
@@ -444,6 +515,12 @@ fn compact_lesson_episode_from_anatomy(
         compact_rational(&mut output, &port.field_scale)?;
         compact_bytes(&mut output, &port.input_map_profile, "input map profile")?;
         compact_u32(&mut output, source_times.len(), "port sample count")?;
+        let mut exact_normalized_sources = Vec::new();
+        let mut dimensionless_fields = Vec::new();
+        exact_normalized_sources.try_reserve_exact(source_times.len())
+            .map_err(|_| "joint-source normalized-source allocation failed".to_string())?;
+        dimensionless_fields.try_reserve_exact(source_times.len())
+            .map_err(|_| "joint-source field allocation failed".to_string())?;
         for timestamp in &source_times {
             compact_rational(&mut output, timestamp)?;
             let end = signal_offset + std::mem::size_of::<f64>();
@@ -463,11 +540,43 @@ fn compact_lesson_episode_from_anatomy(
             output.extend_from_slice(&encoded);
             compact_rational(&mut output, &zero)?;
             compact_rational(&mut output, &one)?;
-            compact_rational(
-                &mut output,
-                &(&port.field_offset + &port.field_scale * exact_signal),
-            )?;
+            let field = &port.field_offset + &port.field_scale * &exact_signal;
+            compact_rational(&mut output, &field)?;
+            exact_normalized_sources.push(exact_signal);
+            dimensionless_fields.push(field);
         }
+        // Copy immutable metadata only, never the template's old samples.
+        generated_ports.push(JointSourcePortView {
+            sense: port.sense,
+            topology_index: port.topology_index,
+            body_proprioceptor_terminal: port.body_proprioceptor_terminal,
+            root_yaw_proprioceptor_terminal: port.root_yaw_proprioceptor_terminal,
+            root_translation_proprioceptor_terminal: port.root_translation_proprioceptor_terminal,
+            sensor_id: port.sensor_id.clone(),
+            substream_id: port.substream_id.clone(),
+            coordinates: port.coordinates.clone(),
+            physical_quantity: port.physical_quantity.clone(),
+            physical_unit: port.physical_unit.clone(),
+            relevance_rule: port.relevance_rule.clone(),
+            relevance_origin: port.relevance_origin.clone(),
+            input_map_id: port.input_map_id.clone(),
+            source_min: port.source_min.clone(),
+            source_max: port.source_max.clone(),
+            field_offset: port.field_offset.clone(),
+            field_scale: port.field_scale.clone(),
+            input_map_profile: port.input_map_profile.clone(),
+            input_map_group_receipt: port.input_map_group_receipt,
+            source_times: collect_port_values(source_times.iter().cloned(), "time")?,
+            exact_normalized_sources,
+            reported_phase_turns: collect_port_values(
+                std::iter::repeat_n(zero.clone(), source_times.len()), "reported-phase",
+            )?,
+            source_relevances: collect_port_values(
+                std::iter::repeat_n(one.clone(), source_times.len()), "relevance",
+            )?,
+            dimensionless_fields,
+        });
+        port_ends.push(output.len());
     }
 
     compact_u32(&mut output, 1, "occurrence count")?;
@@ -508,13 +617,14 @@ fn compact_lesson_episode_from_anatomy(
     for _ in &source_times {
         compact_rational(&mut output, &one)?;
     }
-    decode_native_joint_source_episode_owned(
-        output,
-        ports.len(),
+    Ok(EncodedCompactEpisode {
+        payload: output,
+        ports: generated_ports,
+        port_start,
+        port_ends,
         sample_count,
-        1,
-        source_times.len(),
-    )
+        frame_count: source_times.len(),
+    })
 }
 
 #[pyfunction]
@@ -616,7 +726,11 @@ pub(crate) fn decode_native_joint_source_episode_owned(
         admitted_occurrence_frame_count,
     )
     .parse()?;
-    Ok(NativeJointSourceEpisode {
+    Ok(episode_from_parsed(candidate_payload, parsed))
+}
+
+fn episode_from_parsed(candidate_payload: Vec<u8>, parsed: ParsedEpisode) -> NativeJointSourceEpisode {
+    NativeJointSourceEpisode {
         storage: Arc::new(Storage {
             authority_receipt: sha256(&candidate_payload),
             payload: Arc::from(candidate_payload),
@@ -627,7 +741,7 @@ pub(crate) fn decode_native_joint_source_episode_owned(
             occurrence_frame_count: parsed.occurrence_frame_count,
             version: parsed.version,
         }),
-    })
+    }
 }
 
 pub fn register(module: &Bound<'_, PyModule>) -> PyResult<()> {
@@ -688,7 +802,22 @@ impl<'a> Parser<'a> {
         }
     }
 
-    fn parse(mut self) -> Result<ParsedEpisode, String> {
+    fn parse(self) -> Result<ParsedEpisode, String> {
+        self.parse_with_ports(Vec::new(), |parser, version, remaining, _index, ports| {
+            ports.push(parser.port(version, remaining)?);
+            Ok(())
+        })
+    }
+
+    // One structural validator for raw and generated input. A generated
+    // array becomes the final array; no second port-header allocation.
+    fn parse_with_ports(
+        mut self,
+        mut ports: Vec<JointSourcePortView>,
+        mut read_port: impl FnMut(
+            &mut Self, u16, usize, usize, &mut Vec<JointSourcePortView>,
+        ) -> Result<(), String>,
+    ) -> Result<ParsedEpisode, String> {
         let magic = self.take(MAGIC.len())?;
         let version = self.u16()?;
         if !((magic == MAGIC && version == VERSION)
@@ -713,9 +842,10 @@ impl<'a> Parser<'a> {
         if port_count != self.admitted_port_count {
             return Err("joint-source port count differs from caller-derived admission".into());
         }
-        let mut ports = Vec::new();
+        let additional = port_count.checked_sub(ports.len())
+            .ok_or("compact typed ports exceed admitted extent")?;
         ports
-            .try_reserve_exact(port_count)
+            .try_reserve_exact(additional)
             .map_err(|_| "joint-source port allocation failed".to_string())?;
         let mut keys = BTreeSet::new();
         let mut topology_indices: [Vec<u32>; SENSE_COUNT] = Default::default();
@@ -723,8 +853,10 @@ impl<'a> Parser<'a> {
         let mut root_yaw_proprioceptor_terminals = BTreeSet::new();
         let mut root_translation_proprioceptor_terminals = BTreeSet::new();
         let mut sample_count = 0usize;
-        for _ in 0..port_count {
-            let port = self.port(version, self.admitted_sample_count - sample_count)?;
+        for index in 0..port_count {
+            let remaining = self.admitted_sample_count - sample_count;
+            read_port(&mut self, version, remaining, index, &mut ports)?;
+            let port = ports.get(index).ok_or("compact typed port is missing")?;
             // port() admitted this count against the remaining total
             // before allocation, so this addition cannot overflow.
             sample_count += port.source_times.len();
@@ -795,7 +927,6 @@ impl<'a> Parser<'a> {
                 }
             }
             topology_indices[port.sense as usize].push(port.topology_index);
-            ports.push(port);
         }
         if sample_count != self.admitted_sample_count {
             return Err("joint-source sample count differs from caller-derived admission".into());
@@ -1027,11 +1158,6 @@ impl<'a> Parser<'a> {
                             "joint-source body proprioceptor terminal is outside anatomy"
                                 .to_string()
                         })?;
-                    if sense != 5 {
-                        return Err(
-                            "non-body receptor carries a body proprioceptor terminal".into()
-                        );
-                    }
                     Some(terminal)
                 }
                 _ => return Err("joint-source body effector presence is not canonical".into()),
@@ -1066,21 +1192,10 @@ impl<'a> Parser<'a> {
             } else {
                 None
             };
-        if matches!(version, BODY_VERSION | BODY_LOAD_VERSION)
-            && sense == 5
-            && body_proprioceptor_terminal.is_none()
-        {
-            return Err("body receptor lacks an explicit proprioceptor terminal".into());
-        }
-        if version == ROOT_YAW_VERSION && (sense != 5 || root_yaw_proprioceptor_terminal.is_none())
-        {
-            return Err("root-yaw source lacks one typed body receptor ending".into());
-        }
-        if version == ROOT_TRANSLATION_VERSION
-            && (sense != 5 || root_translation_proprioceptor_terminal.is_none())
-        {
-            return Err("root-translation source lacks one typed body receptor ending".into());
-        }
+        validate_port_terminals(
+            version, sense, body_proprioceptor_terminal,
+            root_yaw_proprioceptor_terminal, root_translation_proprioceptor_terminal,
+        )?;
         let sensor_id = self.identifier("sensor_id")?;
         let substream_id = self.identifier("substream_id")?;
 
@@ -1146,11 +1261,9 @@ impl<'a> Parser<'a> {
         let sample_count = self.u32()? as usize;
         // A port belongs to exactly one admitted occurrence. Check its
         // count BEFORE allocating the five rational vectors, not afterward.
-        if sample_count == 0 || sample_count > remaining_samples
-            || sample_count > self.admitted_occurrence_frame_count
-        {
-            return Err("joint-source samples exceed caller-derived admission".into());
-        }
+        validate_port_sample_count(
+            sample_count, remaining_samples, self.admitted_occurrence_frame_count,
+        )?;
         // Four encoded rationals (two length-prefixed integers each) plus
         // one binary64. Even zero needs one decimal byte per integer.
         let minimum_sample_bytes = 4 * (2 * (std::mem::size_of::<u16>() + 1))
@@ -1336,6 +1449,45 @@ impl<'a> Parser<'a> {
     }
 }
 
+fn validate_port_terminals(
+    version: u16,
+    sense: u8,
+    body_proprioceptor_terminal: Option<BodyProprioceptorTerminal>,
+    root_yaw_proprioceptor_terminal: Option<RootYawProprioceptorTerminal>,
+    root_translation_proprioceptor_terminal: Option<RootTranslationProprioceptorTerminal>,
+) -> Result<(), String> {
+    if matches!(version, BODY_VERSION | BODY_LOAD_VERSION)
+        && body_proprioceptor_terminal.is_some() && sense != 5
+    {
+        return Err("non-body receptor carries a body proprioceptor terminal".into());
+    }
+    if matches!(version, BODY_VERSION | BODY_LOAD_VERSION)
+        && sense == 5
+        && body_proprioceptor_terminal.is_none()
+    {
+        return Err("body receptor lacks an explicit proprioceptor terminal".into());
+    }
+    if version == ROOT_YAW_VERSION && (sense != 5 || root_yaw_proprioceptor_terminal.is_none())
+    {
+        return Err("root-yaw source lacks one typed body receptor ending".into());
+    }
+    if version == ROOT_TRANSLATION_VERSION
+        && (sense != 5 || root_translation_proprioceptor_terminal.is_none())
+    {
+        return Err("root-translation source lacks one typed body receptor ending".into());
+    }
+    Ok(())
+}
+
+fn validate_port_sample_count(
+    sample_count: usize, remaining_samples: usize, occurrence_frames: usize,
+) -> Result<(), String> {
+    if sample_count == 0 || sample_count > remaining_samples || sample_count > occurrence_frames {
+        return Err("joint-source samples exceed caller-derived admission".into());
+    }
+    Ok(())
+}
+
 fn canonical_integer(value: &str, label: &str) -> Result<BigInt, String> {
     let parsed = value
         .parse::<BigInt>()
@@ -1467,12 +1619,16 @@ mod tests {
     }
 
     fn candidate(include_occurrence: bool) -> Vec<u8> {
+        candidate_with_port(include_occurrence, port)
+    }
+
+    fn candidate_with_port(include_occurrence: bool, write_port: fn(&mut Vec<u8>)) -> Vec<u8> {
         let mut output = MAGIC.to_vec();
         push_u16(&mut output, VERSION);
         short_text(&mut output, "assembly");
         output.extend_from_slice(&[0, 1, 1, 1, 1, 1]);
         push_u32(&mut output, 1);
-        port(&mut output);
+        write_port(&mut output);
         push_u32(&mut output, usize::from(include_occurrence) as u32);
         if include_occurrence {
             push_u32(&mut output, 1);
@@ -1493,7 +1649,10 @@ mod tests {
     }
 
     fn typed_body_candidate() -> Vec<u8> {
-        let mut output = candidate(true);
+        typed_body_payload(candidate(true))
+    }
+
+    fn typed_body_payload(mut output: Vec<u8>) -> Vec<u8> {
         output[..8].copy_from_slice(BODY_MAGIC);
         output[8..10].copy_from_slice(&BODY_VERSION.to_le_bytes());
         // Header: magic, version, "assembly", six sense states, port count.
@@ -1679,4 +1838,144 @@ mod tests {
         mismatched[offset..offset + 8].copy_from_slice(&(1.0_f64 / 4096.0).to_bits().to_le_bytes());
         assert!(Parser::new(&mismatched, 1, 2, 1, 2).parse().is_err());
     }
+    fn compact_template_port(output: &mut Vec<u8>) {
+        port_header(output);
+        push_u32(output, 2);
+        for (time, signal, field) in [(0, 0.0_f64, (1, 1)), (1, 1.0_f64, (3, 2))] {
+            rational(output, time, 1);
+            output.extend_from_slice(&signal.to_bits().to_le_bytes());
+            rational(output, 0, 1);
+            rational(output, 1, 1);
+            rational(output, field.0, field.1);
+        }
+    }
+
+    fn passive_template(load: bool) -> Vec<u8> {
+        use crate::proprioceptive_receptor_work::*;
+        let terminal = BodyProprioceptorTerminal::from_ordinals(2, 1).unwrap();
+        let mut output = if load { BODY_LOAD_MAGIC } else { BODY_MAGIC }.to_vec();
+        push_u16(&mut output, if load { BODY_LOAD_VERSION } else { BODY_VERSION });
+        short_text(&mut output, "assembly");
+        output.extend_from_slice(&[1, 1, 1, 1, 1, 0]);
+        push_u32(&mut output, 1);
+        output.push(5);
+        push_u32(&mut output, if load { terminal.load_topology_index() }
+            else { terminal.proprioceptor_topology_index() } as u32);
+        output.extend_from_slice(&[1, 2, 1]);
+        short_text(&mut output, "body");
+        short_text(&mut output, "ending");
+        push_u16(&mut output, 1);
+        short_text(&mut output, "receptor");
+        short_text(&mut output, "0");
+        short_text(&mut output, if load { EFFECTOR_REACTIVE_LOAD_FRACTION_QUANTITY }
+            else { ANTAGONIST_PROPRIOCEPTOR_LENGTH_QUANTITY });
+        short_text(&mut output, if load { DISCHARGED_EFFECTOR_CARRIER_FRACTION_UNIT }
+            else { ARTICULATED_AXIS_SPAN_FRACTION_UNIT });
+        short_text(&mut output, "direct");
+        short_text(&mut output, "");
+        short_text(&mut output, "affine");
+        for (n, d) in [(0, 1), (1, 1), (0, 1), (1, 1)] {
+            rational(&mut output, n, d);
+        }
+        let mut profile = PASSIVE_BODY_EVIDENCE_MAGIC.to_vec();
+        profile.extend_from_slice(&0_u64.to_le_bytes());
+        profile.extend_from_slice(&1_u64.to_le_bytes());
+        profile.extend_from_slice(&[2, 1]);
+        bytes(&mut output, &profile);
+        push_u32(&mut output, 2);
+        for time in [0, 1] {
+            rational(&mut output, time, if time == 0 { 1 } else { 1000 });
+            output.extend_from_slice(&0.0_f64.to_le_bytes());
+            rational(&mut output, 0, 1);
+            rational(&mut output, 1, 1);
+            rational(&mut output, 0, 1);
+        }
+        push_u32(&mut output, 1);
+        push_u32(&mut output, 1);
+        push_u32(&mut output, 0);
+        push_u32(&mut output, 2);
+        rational(&mut output, 0, 1);
+        rational(&mut output, 1, 1000);
+        bytes(&mut output, &[6, 5, 4]);
+        push_u32(&mut output, 1);
+        push_u32(&mut output, 1);
+        push_u32(&mut output, 0);
+        bytes(&mut output, &[9, 8, 7]);
+        push_u32(&mut output, 2);
+        rational(&mut output, 1, 1);
+        rational(&mut output, 1, 1);
+        output
+    }
+
+    fn compare_compact_to_raw(encoded: EncodedCompactEpisode) -> bool {
+        let raw = decode_native_joint_source_episode_owned(
+            encoded.payload.clone(), encoded.ports.len(), encoded.sample_count,
+            1, encoded.frame_count,
+        );
+        let direct = encoded.into_episode();
+        match (raw, direct) {
+            (Ok(raw), Ok(direct)) => {
+                assert_eq!(direct.storage.payload, raw.storage.payload);
+                assert_eq!(direct.storage.authority_receipt, raw.storage.authority_receipt);
+                assert_eq!(direct.storage.ports, raw.storage.ports);
+                assert_eq!(direct.storage.occurrences, raw.storage.occurrences);
+                assert_eq!(direct.storage.sense_states, raw.storage.sense_states);
+                assert_eq!(direct.storage.version, raw.storage.version);
+                assert_eq!(direct.storage.sample_count, raw.storage.sample_count);
+                assert_eq!(direct.storage.occurrence_frame_count, raw.storage.occurrence_frame_count);
+                true
+            }
+            (Err(raw), Err(direct)) => { assert_eq!(direct, raw); false }
+            _ => panic!("compact typed and raw admission disagree"),
+        }
+    }
+
+    #[test]
+    fn compact_typed_ports_preserve_raw_fields_receipts_and_refusals() {
+        let template = candidate_with_port(true, compact_template_port);
+        for payload in [template.clone(), typed_body_payload(template)] {
+            let anatomy = decode_native_joint_source_episode_owned(payload, 1, 2, 1, 2).unwrap();
+            for frames in [2_usize, 3, 26] {
+                let clock = (0..frames).map(|i| (i as i64, 16000)).collect::<Vec<_>>();
+                let values = [-0.0_f64, 1.0, -1.0, f64::from_bits(1), 1.0 / 3.0, 0.25];
+                let signals = (0..frames).flat_map(|i| values[i % values.len()].to_le_bytes())
+                    .collect::<Vec<_>>();
+                let senses = BTreeSet::from([anatomy.joint_source_ports()[0].sense]);
+                for selected in [None, Some(&senses)] {
+                    let encoded = encode_compact_lesson_from_anatomy(
+                        &anatomy, "compact", &clock, &signals, selected,
+                    ).unwrap();
+                    assert!(compare_compact_to_raw(encoded));
+                    let late_refusal = encode_compact_lesson_from_anatomy(
+                        &anatomy, " compact", &clock, &signals, selected,
+                    ).unwrap();
+                    assert!(!compare_compact_to_raw(late_refusal));
+                }
+                for damage in 0..3 {
+                    let mut encoded = encode_compact_lesson_from_anatomy(
+                        &anatomy, "compact", &clock, &signals, None,
+                    ).unwrap();
+                    match damage {
+                        0 => { encoded.port_ends.pop(); }
+                        1 => { encoded.port_ends.push(encoded.payload.len()); }
+                        _ => { encoded.port_start += 1; }
+                    }
+                    assert!(encoded.into_episode().is_err());
+                }
+            }
+        }
+        for load in [false, true] {
+            let anatomy = decode_native_joint_source_episode_owned(
+                passive_template(load), 1, 2, 1, 2,
+            ).unwrap();
+            for end in [1, 2] {
+                let encoded = encode_compact_lesson_from_anatomy(
+                    &anatomy, "passive", &[(0, 1), (end, 1000)], &[0_u8; 16], None,
+                ).unwrap();
+                // Changed passive time refuses; load stays v3-incompatible.
+                assert_eq!(compare_compact_to_raw(encoded), !load && end == 1);
+            }
+        }
+    }
+
 }

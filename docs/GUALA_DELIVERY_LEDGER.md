@@ -1823,3 +1823,14 @@ Both exact903body/world successors PASS; no new compile or organism source chang
 Whole archive/readback15099c348f625bae6a30b0225c16264234496a9e4235aa50d3230fd6258249e8, P122324-boundaries-evidence.tar.gz; finished owned container removed. Production1460/135sites unchanged,clock696749→696796,no durability errors; historicalclockALARM persists.
 
 Next single source-backed design: remove the compact source builder's encode→reparse round trip while retaining exact payload/typed fields and all parser-only refusals. Not implementation-approved yet; canonical Attempts lists error-order, group/version/terminal, new-sample validation, generic-decoder and receipt constraints. Nativeadvance also remains overbudget; no claim this alone fixes real-time. Vision/speed first, self-life next, speech parked.
+
+## D122325 — remove repeated generated port reconstruction
+
+From b772c9ef1/P324 measured source180.126ms. One production file joint_source_episode.rs: retain generated typed ports and exact encoded byte spans; use existing Parser structural orchestration and shared terminal/sample checks, no second validator. Reuse selected-index buffer for port ends and transfer one typed array into final Storage. Exact payload/receipts/fields/semantic refusals unchanged; generic raw nondyadic decoder retained. Full contract/check map in canonical Attempts before code. Frozen review, bounded decoder/compact-byte proof then one ordinary903exact body proof. Production1460 unchanged,250ms gate still open. Vision first,self-life next,speech parked.
+
+
+## D122325 result — source reconstruction waste removed, not deployed
+
+Independent review,9Rustdecoder tests,1existingPythonbyte-equivalence test and both full903 exact body/world successors PASS. Ordinarycold1.040290820s/warm1.071776968s; warmnative856.302ms/validation71.653ms,peak2765076KiB. Warm160.551ms less thanV323 in one comparison, not a stable-speedup claim. Still exceeds250ms; no partial vision release. Exact payload/custody/fields/refusals retained; no law/state/schema change.
+
+Whole archive/readback695cf859c567b420e30426fc6ed7be118d291dcd4d49316d4072954ec06728c6,V122325-source-evidence.tar.gz; finishedownedcontainerremoved. Production1460/135sites unchanged,clock697063→697199,no durability errors; matchedCPU/RAM windows recorded,historicalclockALARM persists. CanonicalAttempts retains full receipts and source-command mistakes. Next: current native-phase attribution with bounded call-local diagnostic timers, no new physics or speculative optimization. Vision/speedfirst,self-lifenext,speechparked.
