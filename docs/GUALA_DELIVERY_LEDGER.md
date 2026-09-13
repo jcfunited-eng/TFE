@@ -1735,3 +1735,8 @@ Full903 exact successors passed but warm1.465897s versus1.468142s baseline shows
 ### D122315 — C1 optical reuse retained, vision still awaiting real time
 
 One focusedall903test and two exactbody/worldsuccessorsPASS. Warm1.437515s vs1.468142s, observed30.627ms gain; nativeunchangedV312. Archivefullreadback8af08b7192ab8e57b326dc107feb724344e3d21637d532a7d9a80e604519fd29. Production1460unchanged,250msunmet. V314parallel removed, V315exactcalllocalopticalreuse retained. Canonical Attempts records finalizationaudit: no safe largepass deletion established, do not strip causalwake/recovery. Next bounded nativecost sourceassessment; selflife afterreal-timevision,speechparked.
+
+
+### D122316 — exact scheduling-work deletion retained; not live yet
+
+V316 preservesfull903exactbody/worldsuccessors669740/669741, cold1.412346s,warm1.359556s vsV3151.437515swarm. Observed77.959mswarmgain; native1.006433s. FocusedexistingtestPASS; archivefullreadbackfc3a8992d794423699b1a9592787aa83b1c2e7d5df78bd9ba2581cc9d921c4ed. Actualsettlementlimit retained; only redundantstandingmaximumremoved. Production1460unchanged,250msstillunmet. Nextboundednativearithmetic sourceassessment; no newcandidatewithoutcausaljustification. Visionfirst,selflifenext,speechparked; no completion ordecisionblocker.

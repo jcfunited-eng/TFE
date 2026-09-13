@@ -702,14 +702,18 @@ pub(crate) fn standing_contact_current(
     if !stored_energy_strictly_decreases(left, right, driven_direction)? {
         return Ok(None);
     }
-    let maximum_descending =
-        maximum_energy_descending_carriers(left, right, driven_direction)?;
+    // One-carrier descent already proves the strict maximum is >= 1:
+    // A - 2*d*D < 0 => 2*|D|/A > 1, with A = 1/Cl + 1/Cr > 0.
+    // For i128 charges that ratio is < 2^128 (twice a positive-weighted
+    // average of d*ql and -d*qr), so its strict integer maximum fits u128.
+    // Computing that maximum again cannot add a refusal here. The actual
+    // settlement still computes it when bounding the amount that may move.
     let sender_reserve = if driven_direction > 0 {
         left.available_carriers
     } else {
         right.available_carriers
     };
-    if maximum_descending.min(sender_reserve) == 0 {
+    if sender_reserve == 0 {
         return Ok(None);
     }
     Ok(Some(current))
@@ -2935,6 +2939,55 @@ mod tests {
                 }
                 stepped = transition.successor;
             }
+        }
+
+        // The removed scheduler calculation cannot reject after strict
+        // one-carrier descent, including the full signed charge range and
+        // unequal positive capacitances. The real settlement keeps its clamp.
+        let charges = [i128::MIN, i128::MIN + 1, -2, -1, 0, 1, 2, i128::MAX - 1, i128::MAX];
+        let caps = [
+            unit_capacitance(),
+            MembraneCapacitance::new(ExactRational::new(3, 2).unwrap()).unwrap(),
+            MembraneCapacitance::new(ExactRational::new(1, u128::MAX).unwrap()).unwrap(),
+        ];
+        for q_left in charges {
+            for q_right in charges {
+                for c_left in caps {
+                    for c_right in caps {
+                        let left = ContactEndpoint {
+                            potential_millivolts: ExactRational::integer(0),
+                            separated_elementary_charges: q_left,
+                            capacitance: c_left,
+                            available_carriers: u128::MAX,
+                        };
+                        let right = ContactEndpoint {
+                            potential_millivolts: ExactRational::integer(0),
+                            separated_elementary_charges: q_right,
+                            capacitance: c_right,
+                            available_carriers: u128::MAX,
+                        };
+                        for direction in [-1, 1] {
+                            if stored_energy_strictly_decreases(left, right, direction).unwrap() {
+                                assert!(maximum_energy_descending_carriers(left, right, direction)
+                                    .unwrap() >= 1);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        // Retained refusal boundaries, using the real standing authority.
+        let (anatomy, state) = standing_fixture_state(100);
+        let c = unit_capacitance();
+        for (left, right, left_available, right_available) in [
+            (1, 0, 100, 100), (0, 1, 100, 100),
+            (10, 0, 0, 100), (0, 10, 100, 0),
+        ] {
+            assert!(standing_contact_current(
+                anatomy, &state,
+                potential_from_membrane(left, c), left, c, left_available,
+                potential_from_membrane(right, c), right, c, right_available,
+            ).unwrap().is_none());
         }
     }
 
