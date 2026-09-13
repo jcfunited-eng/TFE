@@ -1,0 +1,360 @@
+# RETIRED D122334 receptor preparation candidate — 2026-09-13
+# Evidence only; not a production patch or authorization to reapply.
+# Exact physical proof passed. Uneven whole-sequence benefit did not justify
+# extra parallel buffers. See Attempt54 2026-09-13 closure and body-comparison.
+diff --git a/native/guala_core/src/resident_cognitive_formation.rs b/native/guala_core/src/resident_cognitive_formation.rs
+index eae3dffd6..01c5641ab 100644
+--- a/native/guala_core/src/resident_cognitive_formation.rs
++++ b/native/guala_core/src/resident_cognitive_formation.rs
+@@ -9291,11 +9291,6 @@ impl ResidentCognitiveFormationState {
+                     }
+                     if receptor_law.is_some() || vestibular.is_some() {
+                         for field_gate_index in 0..field_gate_count {
+-                            // Only immutable gate/anatomy preparation is shared. These
+-                            // maps expire before another gate or cohort; all keyed
+-                            // anatomies stay alive and unchanged during this loop.
+-                            let mut mathloom_deliveries = BTreeMap::new();
+-                            let mut psi_deliveries = BTreeMap::new();
+                             let catalysts = coordinate_indices
+                                 .iter()
+                                 .map(|coordinate_index| {
+@@ -9359,15 +9354,18 @@ impl ResidentCognitiveFormationState {
+                                 };
+                             let mut receptor_excitation_zeptojoules =
+                                 vec![None; cohort.anatomy.neuron_count()];
+-                            for (reached_input_index, coordinate_index) in
+-                                coordinate_indices.iter().copied().enumerate()
+-                            {
+-                                let perspective = bind_neuron_perspective(
+-                                    &shared,
+-                                    coordinate_index,
+-                                    field_gate_index,
+-                                )
+-                                .map_err(FormationError::JointFieldUnavailable)?;
++                            let rows = prepare_reached_receptor_rows(
++                                &cohort.anatomy,
++                                &catalysts,
++                                |row| bind_neuron_perspective(
++                                    &shared, coordinate_indices[row], field_gate_index,
++                                ),
++                                |reached_input_index, perspective, prepared_plan| {
++                                let coordinate_index = coordinate_indices[reached_input_index];
++                                let mut energized = false;
++                                let mut excitation = None;
++                                let perspective = perspective
++                                    .map_err(FormationError::JointFieldUnavailable)?;
+                                 // The catalyst preparation resolved this coordinate
+                                 // against the same unchanged mounted anatomy.
+                                 let resident_index = catalysts[reached_input_index].0;
+@@ -9564,24 +9562,8 @@ impl ResidentCognitiveFormationState {
+                                                 settlement.transduced_energy_zeptojoules
+                                             }
+                                         };
+-                                        if !transduced_energy_zeptojoules.is_zero() {
+-                                            exogenous_receptor_energy = Some(true);
+-                                            let lineage =
+-                                                cohort.anatomy.neuron_lineages()[resident_index];
+-                                            if !externally_energized_neuron_lineages
+-                                                .contains(&lineage)
+-                                            {
+-                                                externally_energized_neuron_lineages.push(lineage);
+-                                            }
+-                                            if !externally_energized_by_occurrence[occurrence_index]
+-                                                .contains(&lineage)
+-                                            {
+-                                                externally_energized_by_occurrence
+-                                                    [occurrence_index]
+-                                                    .push(lineage);
+-                                            }
+-                                        }
+-                                        receptor_excitation_zeptojoules[resident_index] = Some(
++                                        energized = !transduced_energy_zeptojoules.is_zero();
++                                        excitation = Some(
+                                             big_to_exact_rational(&transduced_energy_zeptojoules)
+                                                 .map_err(|_| FormationError::ArithmeticOverflow)?,
+                                         );
+@@ -9606,10 +9588,11 @@ impl ResidentCognitiveFormationState {
+                                             .energy()
+                                             .clone(),
+                                     };
+-                                        let prepared_psi = prepare_reached_gate_psi(
+-                                            neuron_anatomy, predecessor_neuron, perspective,
+-                                            &mut mathloom_deliveries, &mut psi_deliveries,
+-                                        )
++                                        let prepared_psi = prepared_plan.as_ref().map_err(Clone::clone).and_then(|plan| {
++                                            neuron_anatomy.settle_prepared_psi_delivery(
++                                                predecessor_neuron, plan,
++                                            )
++                                        })
+                                             .map_err(|error| {
+                                                 FormationError::PhysicalSettlementUnavailable(
+                                                     ReachedCohortError::Neuron {
+@@ -9804,12 +9787,12 @@ impl ResidentCognitiveFormationState {
+                                     match receptor_successor_residue {
+                                         Some((residue, psi)) => (Some(residue), Some(psi)),
+                                         None => {
+-                                            let prepared = prepare_reached_gate_psi(
+-                                                &cohort.anatomy.neuron_anatomies()[resident_index],
+-                                                &cohort.state.neurons()[resident_index],
+-                                                perspective,
+-                                                &mut mathloom_deliveries, &mut psi_deliveries,
+-                                            )
++                                            let prepared = prepared_plan.as_ref().map_err(Clone::clone).and_then(|plan| {
++                                                cohort.anatomy.neuron_anatomies()[resident_index]
++                                                    .settle_prepared_psi_delivery(
++                                                        &cohort.state.neurons()[resident_index], plan,
++                                                    )
++                                            })
+                                                 .map_err(|error| {
+                                                     FormationError::PhysicalSettlementUnavailable(
+                                                         ReachedCohortError::Neuron {
+@@ -9821,7 +9804,7 @@ impl ResidentCognitiveFormationState {
+                                             (None, Some(prepared))
+                                         }
+                                     };
+-                                inputs.push(NeuronIntervalInput {
++                                Ok((NeuronIntervalInput {
+                                     perspective,
+                                     gate_work,
+                                     interval_microseconds,
+@@ -9833,7 +9816,29 @@ impl ResidentCognitiveFormationState {
+                                     dna_expression: DnaExpressionContact::new(0),
+                                     receptor_successor_residue,
+                                     prepared_psi,
+-                                });
++                                }, excitation, energized))
++                                },
++                            )?;
++                            // Read every completed row in the original coordinate order.
++                            // A later worker failure cannot precede an earlier refusal.
++                            for (reached_input_index, row) in rows.into_iter().enumerate() {
++                                let (input, excitation, energized) = row?;
++                                let resident_index = catalysts[reached_input_index].0;
++                                if energized {
++                                    exogenous_receptor_energy = Some(true);
++                                    let lineage = cohort.anatomy.neuron_lineages()[resident_index];
++                                    if !externally_energized_neuron_lineages.contains(&lineage) {
++                                        externally_energized_neuron_lineages.push(lineage);
++                                    }
++                                    if !externally_energized_by_occurrence[occurrence_index]
++                                        .contains(&lineage)
++                                    {
++                                        externally_energized_by_occurrence[occurrence_index]
++                                            .push(lineage);
++                                    }
++                                }
++                                receptor_excitation_zeptojoules[resident_index] = excitation;
++                                inputs.push(input);
+                             }
+                             let mut input = ReachedCohortIntervalInput::from_episode(source, inputs)
+                                 .map_err(FormationError::PhysicalSettlementUnavailable)?;
+@@ -13258,23 +13263,20 @@ fn extend_resident_cohort_positional_fabrics(
+     Ok(())
+ }
+ 
+-/// Reuse only immutable preparation within one unchanged cohort and gate.
+-/// The caller keeps all anatomy Arcs alive until these maps are dropped.
+-/// Each neuron still settles its own retained rings and dissipation capacity.
+-fn prepare_reached_gate_psi<'a>(
++/// Prepare one immutable gate/anatomy target, retaining the original first-use
++/// order and per-coordinate field/gate check. Maps never cross a cohort/gate.
++fn prepare_reached_gate_psi_plan<'a, 'p>(
+     anatomy: &NeuronPhysicalAnatomy,
+-    predecessor: &NeuronPhysicalState,
+     perspective: JointNeuronPerspective<'a>,
+     mathloom: &mut BTreeMap<usize, BorrowedMathLoomDelivery<'a>>,
+-    psi: &mut BTreeMap<usize, PreparedPsiKrimelackDelivery>,
+-) -> Result<PsiSettlement, NeuronPhysicalError> {
++    psi: &'p mut BTreeMap<usize, PreparedPsiKrimelackDelivery>,
++) -> Result<&'p PreparedPsiKrimelackDelivery, NeuronPhysicalError> {
+     let delivery = match mathloom.entry(anatomy.mathloom_positions()) {
+         std::collections::btree_map::Entry::Occupied(entry) => entry.into_mut(),
+         std::collections::btree_map::Entry::Vacant(entry) => {
+             entry.insert(anatomy.prepare_mathloom_delivery(perspective)?)
+         }
+     };
+-    // Never let reuse cross the completed field or its gate, even if widths match.
+     let delivery = delivery.for_perspective(perspective)?;
+     let prepared = match psi.entry(anatomy.heavy_anatomy_identity()) {
+         std::collections::btree_map::Entry::Occupied(entry) => entry.into_mut(),
+@@ -13282,7 +13284,73 @@ fn prepare_reached_gate_psi<'a>(
+             entry.insert(anatomy.prepare_shared_psi_delivery(&delivery)?)
+         }
+     };
+-    anatomy.settle_prepared_psi_delivery(predecessor, prepared)
++    Ok(prepared)
++}
++
++/// Only external input preparation is parallel: each row reads its own living
++/// predecessor and these immutable plans. Recovery and cohort commit follow
++/// the ordered result reduction at the caller, unchanged.
++fn prepare_reached_receptor_rows<'a, T: Send>(
++    anatomy: &ReachedCohortAnatomy,
++    catalysts: &[(usize, Box<[u128]>)],
++    perspective_at: impl Fn(usize) -> Result<JointNeuronPerspective<'a>, JointNeuronBoundaryError>,
++    prepare_row: impl Fn(
++        usize,
++        Result<JointNeuronPerspective<'a>, JointNeuronBoundaryError>,
++        Result<&PreparedPsiKrimelackDelivery, NeuronPhysicalError>,
++    ) -> Result<T, FormationError> + Sync,
++) -> Result<Vec<Result<T, FormationError>>, FormationError> {
++    let mut perspectives = Vec::new();
++    let mut results = Vec::new();
++    perspectives.try_reserve_exact(catalysts.len())
++        .map_err(|_| FormationError::ArithmeticOverflow)?;
++    results.try_reserve_exact(catalysts.len())
++        .map_err(|_| FormationError::ArithmeticOverflow)?;
++    let mut mathloom = BTreeMap::new();
++    let mut psi = BTreeMap::new();
++    let mut first_plan_error = None;
++    for (row, (resident_index, _)) in catalysts.iter().enumerate() {
++        let perspective = perspective_at(row);
++        let prepared = perspective.clone().map_err(NeuronPhysicalError::from)
++            .and_then(|perspective| {
++                prepare_reached_gate_psi_plan(
++                    &anatomy.neuron_anatomies()[*resident_index], perspective,
++                    &mut mathloom, &mut psi,
++                ).map(|_| ())
++            });
++        perspectives.push(perspective);
++        if let Err(error) = prepared {
++            first_plan_error = Some((row, error));
++            break;
++        }
++    }
++    let prepare = |(row, perspective): (usize, &Result<JointNeuronPerspective<'a>, JointNeuronBoundaryError>)| {
++        let prepared = match first_plan_error.as_ref() {
++            Some((failed_row, error)) if row == *failed_row => Err(error.clone()),
++            _ => psi.get(&anatomy.neuron_anatomies()[catalysts[row].0].heavy_anatomy_identity())
++                .ok_or(NeuronPhysicalError::AnatomyMismatch),
++        };
++        // The row consumes a plan error only after its original earlier checks.
++        prepare_row(row, perspective.clone(), prepared)
++    };
++    if perspectives.len() <= 1 {
++        results.extend(perspectives.iter().enumerate().map(prepare));
++    } else {
++        perspectives.par_iter().enumerate().map(prepare).collect_into_vec(&mut results);
++    }
++    Ok(results)
++}
++
++#[cfg(test)]
++fn prepare_reached_gate_psi<'a>(
++    anatomy: &NeuronPhysicalAnatomy,
++    predecessor: &NeuronPhysicalState,
++    perspective: JointNeuronPerspective<'a>,
++    mathloom: &mut BTreeMap<usize, BorrowedMathLoomDelivery<'a>>,
++    psi: &mut BTreeMap<usize, PreparedPsiKrimelackDelivery>,
++) -> Result<PsiSettlement, NeuronPhysicalError> {
++    let plan = prepare_reached_gate_psi_plan(anatomy, perspective, mathloom, psi)?;
++    anatomy.settle_prepared_psi_delivery(predecessor, plan)
+ }
+ 
+ /// Extend only the causally selected members.  Ordinary already-provisioned
+diff --git a/native/guala_core/src/resident_cognitive_formation/tests.rs b/native/guala_core/src/resident_cognitive_formation/tests.rs
+index 4e907052a..be47b9555 100644
+--- a/native/guala_core/src/resident_cognitive_formation/tests.rs
++++ b/native/guala_core/src/resident_cognitive_formation/tests.rs
+@@ -11152,6 +11152,101 @@ fn reached_gate_preparation_reuses_only_immutable_field_and_anatomy() {
+             bind_neuron_perspective(&unrelated, 0, gate).unwrap(),
+             &mut mathloom, &mut psi,
+         ).is_err());
++
++        // Exercise the production split with the same immutable plans and
++        // different row ordering. Empty/singleton rows use its serial path.
++        let coordinates = [3, 1, 0, 2];
++        let catalysts = coordinates.iter().map(|&resident| (
++            resident,
++            vec![0; cohort.anatomy.neuron_anatomies()[resident]
++                .recovery_anatomy().psi_lane_count()].into_boxed_slice(),
++        )).collect::<Vec<_>>();
++        let apply = |row: usize,
++                     perspective: Result<JointNeuronPerspective<'_>, JointNeuronBoundaryError>,
++                     plan: Result<&PreparedPsiKrimelackDelivery, NeuronPhysicalError>| {
++            perspective.map_err(FormationError::JointFieldUnavailable)?;
++            let resident = catalysts[row].0;
++            let settled = plan.and_then(|plan| {
++                cohort.anatomy.neuron_anatomies()[resident]
++                    .settle_prepared_psi_delivery(&cohort.state.neurons()[resident], plan)
++            }).map_err(|error| FormationError::PhysicalSettlementUnavailable(
++                ReachedCohortError::Neuron { neuron_index: resident, error },
++            ))?;
++            Ok((resident, settled))
++        };
++        for count in [0, 1, coordinates.len()] {
++            let rows = prepare_reached_receptor_rows(
++                &cohort.anatomy, &catalysts[..count],
++                |row| bind_neuron_perspective(&shared, coordinates[row], gate),
++                apply,
++            ).unwrap().into_iter().collect::<Result<Vec<_>, _>>().unwrap();
++            let direct = coordinates[..count].iter().map(|&resident| (
++                resident,
++                cohort.anatomy.neuron_anatomies()[resident].prepare_psi_settlement(
++                    &cohort.state.neurons()[resident],
++                    bind_neuron_perspective(&shared, resident, gate).unwrap(),
++                ).unwrap(),
++            )).collect::<Vec<_>>();
++            assert_eq!(rows, direct);
++        }
++
++        // An occupied width must still reject a different completed field.
++        // Stop plan preparation at row one, but return its error only after
++        // earlier rows and that row's own pre-plan checks have been resolved.
++        let guards = (0..3).map(|_| (
++            0,
++            vec![0; cohort.anatomy.neuron_anatomies()[0]
++                .recovery_anatomy().psi_lane_count()].into_boxed_slice(),
++        )).collect::<Vec<_>>();
++        let guard_perspective = |row| bind_neuron_perspective(
++            if row == 0 { &shared } else { &unrelated }, 0, gate,
++        );
++        let apply_guard = |_: usize,
++                           perspective: Result<JointNeuronPerspective<'_>, JointNeuronBoundaryError>,
++                           plan: Result<&PreparedPsiKrimelackDelivery, NeuronPhysicalError>| {
++            perspective.map_err(FormationError::JointFieldUnavailable)?;
++            plan.and_then(|plan| cohort.anatomy.neuron_anatomies()[0]
++                .settle_prepared_psi_delivery(&cohort.state.neurons()[0], plan))
++                .map_err(|error| FormationError::PhysicalSettlementUnavailable(
++                    ReachedCohortError::Neuron { neuron_index: 0, error },
++                ))
++        };
++        let refused = prepare_reached_receptor_rows(
++            &cohort.anatomy, &guards, guard_perspective, apply_guard,
++        ).unwrap();
++        assert_eq!(refused.len(), 2);
++        assert!(refused[0].is_ok());
++        assert_eq!(refused[1], Err(FormationError::PhysicalSettlementUnavailable(
++            ReachedCohortError::Neuron {
++                neuron_index: 0,
++                error: NeuronPhysicalError::Boundary(JointNeuronBoundaryError::PerspectiveMismatch),
++            },
++        )));
++        for error_row in [0, 1] {
++            let rows = prepare_reached_receptor_rows(
++                &cohort.anatomy, &guards, guard_perspective,
++                |row, perspective, plan| {
++                    let perspective = perspective.map_err(FormationError::JointFieldUnavailable)?;
++                    if row == error_row {
++                        // Actual optical refusal at its pre-plan boundary, not
++                        // a fabricated worker error or a second physical law.
++                        derive_optical_receptor_sample_range_work(
++                            &source, perspective,
++                            &exact_optical_receptor_anatomy(
++                                cohort.anatomy.neuron_anatomies()[0].gate_population(),
++                            )?,
++                            0, 0,
++                        ).map_err(FormationError::OpticalWorkUnavailable)?;
++                    }
++                    apply_guard(row, Ok(perspective), plan)
++                },
++            ).unwrap();
++            assert_eq!(rows.len(), 2);
++            assert_eq!(rows.into_iter().collect::<Result<Vec<_>, _>>(),
++                Err(FormationError::OpticalWorkUnavailable(
++                    OpticalReceptorWorkError::SourceIntervalAbsent,
++                )));
++        }
+     }
+     assert_eq!(cohort.state, before);
+ }

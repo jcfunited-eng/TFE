@@ -25795,3 +25795,192 @@ Read-command correction: a content search for the word "truncated" falsely
 rejected an intact historical ledger read because the ledger contains that word.
 No file was changed by that failed guard. Three bounded reads were then verified
 against wc:9000+9000+7749=25749 lines. No source or organism test was rerun.
+
+### D122334 — external receptor preparation implementation contract, 2026-09-13 19:24 UTC
+
+Continues active D122334 from closed steady-light source check1a20b7226.
+Full goal/250ms actual production sight-hearing/directed-eye acceptance stays;
+this is a measured-stage execution change, not a smaller replacement goal.
+Requested full-field causal reception; current serial receptor preparation
+conflicts with latency, not physical law. No DSF reduction or lost fields.
+P122333 priority and the exact optical candidate stay closed. V314 remains
+retired: it parallelized POST-recovery consequences, not this preparation.
+P329's historical168.150976ms broad input bucket includes preparation and
+mapping; it does not measure this proposed parallel subset or predict speed.
+V305 already shares immutable gate/anatomy plans; V330 address reuse is kept.
+Cold anatomy sharing is already present, and unused gate-window evaluation has
+distinct refusal guards: neither rejected hypothesis is reopened.
+
+Single source boundary: core9293-9838 constructs all receptor inputs against
+unchanged cohort anatomy/state before settle_resident_physical_interval.
+Main and independent memory_probe_review found no cross-row physical mutation.
+Current shared row writes are output/energy observations and ordered energized
+lists. Immutable plans depend on shared full DSF, width and heavy anatomy;
+own Psi/window/schedule/quantization depends on that row's predecessor.
+This is not cross-frame overlap, split UF, reordered recovery, partial commit,
+another owner, source omission, a change-only eye or a changed physical clock.
+
+Authorized files: resident_cognitive_formation.rs and its existing tests.rs.
+Implementation owner: memory_probe_review under Sol's scope; Sol independently
+reviews the frozen candidate. No other agent edits these files while owned.
+Keep growth, catalyst/address resolution, duration checks and initial checked
+allocation in original order. Prepare shared plans once in coordinate first-use
+order. Preserve one shared field reference and per-row field/gate rebinding.
+Store the first plan failure at its row and stop further plan preparation;
+that failure is returned only at the ORIGINAL per-row plan-consumption point,
+after that row's source binding, transduction, rational narrowing and residue
+checks. Earlier row errors and row-local earlier errors must still win.
+Use existing Rayon pool for immutable row calculation, indexed result storage,
+and ordered result consumption. Never use parallel short-circuit Result
+collection. Populate energized lists, energy slots and input rows in original
+coordinate order. Leave from_episode/member validation and actual cohort
+settlement unchanged, including single-channel/population/vestibular branches.
+
+Complete causal path remains physical source/admission -> shared UF -> this
+input preparation -> original cohort/Psi/material/contact/formation -> body
+and self-sound -> runtime successor/world install -> observation/FFI/API ->
+paired checkpoint/cold restore/next ordinary event. All neuron/identity,
+energy/material/residue/DSF/learning bytes and failure results remain unchanged.
+No new codec, migration, retained fields, source clock, API, module dependency,
+thread pool, session, lock, queue, gate, coefficient, or production diagnostic.
+No physical successor is committed until existing caller succeeds; errors or
+crash discard scratch and retain the original accepted checkpoint.
+
+Resource bound: existing per-gate shared-plan maps retained once, original
+input/catalyst storage plus O(reached rows) ordered results/plan status and
+at most existing-worker-count simultaneous row rational/Psi scratch. This is
+additional peak work memory, not claimed free. No whole-brain scan, persistent
+cache or lifetime growth. Do not copy complete fields or prepare one duplicate
+plan per worker. Empty/single-row handling must be structural, not tuned.
+
+Before compile: whole-candidate freeze and independent source/translation
+review; reject any changed error order, unbounded ownership or omitted input.
+Extend existing gate-preparation test to exercise immutable-plan application,
+ordered parallel equality, same-field refusal and unchanged predecessors;
+supporting tests are not full-runtime acceptance. Then at most one ordinary
+candidate copied-body sequence against existing authenticated698812->698817
+proof, same exact loaded-file/environment/4CPU16GiB bounds, all observations,
+body/world/lineage hashes and fresh-process next-step equality. No speech,
+teaching search or broad regression campaign. AWS pre/post envelope and exact
+artifact/source receipt required before interpreting copied-body evidence.
+Measure whole sequence and peak on the same bounded path; historical timings
+are not a stable speed guarantee. Retain added parallel/buffer complexity only
+with a demonstrated worthwhile benefit; otherwise preserve evidence and retire.
+No production release is authorized by this substep alone; D122334's full
+250ms, workload, surface and live proof remain mandatory.
+
+Read-only command correction: guessed *tests* glob at src root had no matching
+file; rg --files resolved resident_cognitive_formation/tests.rs. No compile,
+test, organism result or source modification came from that failed search.
+
+### D122334 receptor preparation — independent source gate, 2026-09-13 19:39 UTC
+
+Owner stopped before review. Sol independently reviewed frozen fingerprint
+b187207650e73c4d1a09c9084b67307fc93fe2baea48c3a050f55394a83128d3,
+verified identical before and after review. Core/test diff only, plus the
+pre-filed77-line contract. No compile/test has run at this receipt.
+
+SOURCE REVIEW PASS, not an executable or performance pass. The immutable plan
+split retains one full completed field, coordinate first-use preparation and
+occupied-map field/gate rebinding. Plans/maps/anatomy/catalysts remain alive
+and immutable for all indexed rows. Each row retains its own transduction,
+residue, Psi, population/single-gate/vestibular branch and complete input.
+Results are consumed sequentially; earliest-row and same-row pre-plan failures
+still precede a deferred plan refusal. No parallel short-circuit Result fold.
+SourceIndex0,0 in the supporting optical refusal is genuinely invalid by
+settle_port_range's first_sample>=last_sample guard, not an invented test rule.
+No new physical state, codec, FFI fields, observed API, clock, biological organ,
+source roster, semantic authority or recovery/commit branch. Energized lists
+and excitation sidebands reduce in original order before unchanged
+from_episode/settle_resident_physical_interval. Error-side scratch is discarded;
+no physical commit escapes the existing prepared-transition boundary.
+Additional perspectives/results and simultaneous row temporaries remain
+bounded by reached rows and existing pool workers. Their cost must earn them
+retention; source correctness alone does not authorize production.
+
+Frozen supporting name resolved from existing release binary without compile:
+resident_cognitive_formation::tests::reached_gate_preparation_reuses_only_immutable_field_and_anatomy.
+Preflight and authentic earlier698812->698817 input/caller/reference SHA values
+are in /tmp/guala-d122334-receptor.5EIWNZ/preflight.json. Current live snapshot
+19:26-19:28: account418384447921/us-east-1, tfe-web-cluster,
+dsf-ai-service-lb, sole healthy taskaad26742cfc049bda51f811053a73a3d,
+definition1461, immutable imaged293311d9adeaf5d91975718192191ad430d003ca3286b052fa15dd8e58837cf.
+CPU/memory runaway alarms OK; old clock-stalled ALARM remains unresolved.
+No production writes or caretaker changes. Refresh envelope for the bounded
+supporting check and one candidate copied-body sequence. No broad test suite.
+
+Command-only correction during review: guessed optical_receptor.rs filename
+did not exist; scoped rg resolved optical_receptor_work.rs. No candidate run
+or organism finding resulted. This is an agent path mistake, not a test fail.
+
+### D122334 receptor preparation — exact but not retained, 2026-09-13 19:48 UTC
+
+DISPOSITION: bounded candidate retired, not a physics failure. Functional
+necessity includes earning execution complexity, not duplicating biology or
+keeping a correct optimization simply because it was written. No new hard
+performance threshold was invented; this one-shot comparison did not establish
+a worthwhile general benefit for the added parallel/result-buffer path.
+It does NOT close D122334 or authorize a release. Full250ms production sensory
+acceptance, detailed organism-aimed eye and the whole-body barrier remain open;
+speech/self-life remain parked.
+
+After source-only PASS, documentary freeze5a5445c7824d9ab2743900e5f99f00204ebea61afe3aeca3262672198d05617a
+kept the reviewed core/tests unchanged. One focused exact test PASSED:
+1passed/0failed,0.01s after2m46s compilation. Ordinary Python-extension wheel
+(no diagnostic-api) built in1m25s, installed only into private artifact target;
+loaded binaryd86a6a886902eefa002156730d20507cfcf687220600155dd1eabd2ff66721b7
+was asserted by the unchanged caller. Compiler warnings were captured in full;
+moving PsiSettlement's remaining usage to cfg(test) exposed an unused import.
+The entire candidate is now retired, including that import-use change, so no
+warning-only rebuild or broad cleanup was run.
+
+Exactly ONE unchanged saved-body sequence, same authenticated earlier698812
+pair/caller and4CPU16GiB/pids128/no-network/no-mounts container:
+ordinary growth2794.002ms (reference3029.275);
+ordinary1086.382ms (1080.052);
+ordinary1184.582ms (1076.486);
+903-site sensory+4000silent samples1084.427ms (1245.221);
+fresh-process next ordinary1099.657ms (1120.490).
+Sensory step improved160.795ms in this pass, but the four post-growth steps
+total4455.048ms vs4522.249ms: only1.486% lower with uneven ordinary results.
+These are one-shot historical-reference comparisons, not stable production
+speed estimates. Peak3102680KiB vs3147044KiB. Every step remains above250ms.
+No further timing reruns, parameter tuning, fixtures or expanded tests.
+
+All observations compared deeply equal, every original receptor lineage kept,
+new receptor count equal, saved body/world pair at698816 exactly equal and
+cold-restored next pair698817 exactly equal:
+698816 bodyddbb0014ef26f6ed3e524655d24a61921e1ada0a76f80aafa882737aaf23239b
+worldbb43ca30eba351b3285ec89f33e89746d89c5a85c2e9b420ee826864891a5a36;
+698817 body1ccd98218b471c7d18f0c53dd95b9daab4b5fb262953e94d027fdfc4516ecb0c
+worldc17329fc88ced087166b0f840cd48ce5967d1bce2abba15fbe7272b0b3214181.
+The caller's historical release_path_pass is interpreted ONLY as this local
+continuity result; neither current live state nor250ms nor whole vision passed.
+
+AWS read-only envelopes19:37/19:42/19:46 archived with matching metrics:
+same1461 single healthy task/image, desired/running1,pending0; CPU/memory/efs/
+refusal alarmsOK, historical clock-stalledALARM stillopen. Final metric window
+CPUavg41.727-55.440%,max64.996%; memoryavg18.666-19.936%,max23.184%.
+No live input, deploy, service action, teaching, state mutation or caretaker
+change. Proof containerfe38068579eeb5b69589bf12b0383b3ffa2fa89d89932000085cee93a3de4650
+exited0,OOMfalse, allproof files/receipt copied out before removal. Shared
+development container and caretaker untouched.
+
+Artifact root /tmp/guala-d122334-receptor.5EIWNZ contains source.patch,
+focused-test.log,wheel-build.log,preflight,health envelopes,container-receipt,
+body-run.log,complete body-proof and body-comparison.json. Retired source diff
+is also preserved in repo docs/D122334_RECEPTOR_PREPARATION_RETIRED_2026-09-13.patch
+as inert evidence, NOT a runtime/restore/approved reapplication path.
+Both edited native files restored by full-file replacement to exact HEAD
+1a20b7226 bytes; git diff --exit-code on those files PASSED. No changes to the
+accepted V305/V330/constant-span optical code. Fresh builds must use current
+source, never the archived candidate wheel. No new runtime feature flag,
+parallel scratch, test framework or alternate owner remains in active source.
+
+Closed finding to prevent recurrence: this SAME-occurrence receptor parallel
+split is physically exact but this bounded full-body comparison does not earn
+its complexity. V314 POST-recovery parallelism is a separate earlier closed
+finding, not being retested. Next item stays the already-authorized
+dependency-complete sensory advancement/whole-body barrier design, carrying
+the full shared-DSF and steady-exposure constraints already sent to C1. Do not
+replace that unresolved dependency question with another local Rayon wrapper.
