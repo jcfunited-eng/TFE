@@ -1,6 +1,9 @@
 ## C132 completed release packet — C1 decision now required
 
-Canonical evidence committed1e75f88c (code remains7296fb20), R122266–271.
+Canonical evidence now9363ad75 (code remains7296fb20), R122266–272.
+Top-level GUALA_DELIVERY_LEDGER stale1429 header corrected to verified1459
+and current Attempt54; old work order preserved as historical quotation.
+No runtime/native changes, new tests, image or production writes.
 Newest-body + exact cold-next + actual-browser + runtime manifest checks PASS.
 Native release suite terminal:602pass/19previousfail/14ignored; no new failure
 cases. Do not relitigate prior completed lessons or treat old fixture defects
