@@ -1,6 +1,36 @@
 # Guala speech repair Attempt 54 — complete design verification and lean sensorimotor route
 
-## CURRENT ORDER — D122298: speech PARKED; vision ACTIVE; self-driven life NEXT
+## RATIFIED — D122300: REAL-TIME OR NOTHING; SPEED AND VISION TOGETHER
+
+Joe ratifies the quoted real-time-or-nothing proposal. V122299 remains the
+one active deliverable, now explicitly INCLUDING latency correction alongside
+the new32x24 field. A sharper eye on a slower path is not acceptance.
+Focused and bold, not small increments. Speech R122177 remains PARKED;
+self-driven life follows vision, independently of speech.
+
+Release condition: the full903-site eye (135preserved +768new) must settle
+the250ms sensory interval within250ms on the authenticated copied body under
+the declared workload; preserve exact physics, identity and learned sensory
+state. Sampling and display must no longer impose the existing1s/3s waits.
+Measure capture, admission, native settlement, custody and display separately;
+do not substitute UI latency for native cost or claim recognition from delivery.
+State actual maxima and workload, not a mean hiding slow intervals.
+The previously proposed500ms end-to-end number is a recommendation, not a
+separately ratified numerical limit. No invented cognitive timeout, suppression,
+dropped physical state, learned permission, approximate DSF or fake faster clock.
+
+One candidate, one coordinated review, one release: SPEED + EYE, BOTH OR NEITHER.
+Sol owns receptor anatomy/native growth continuity and proven native/runtime
+waste correction. C1 owns page sampler/display and ingress/validation; sensorium
+file ownership/projection mapping is explicitly coordinated before overlapping
+edits. Whole-core redesign is not authorized merely by this performance bar.
+Identify the active cost from existing evidence/current path before selecting
+a correction; historical scan suspicions are not a new measurement.
+Next exact item: establish the current reached-work/transport cost boundary
+for this vision path and eliminate the confirmed unnecessary work, preserving
+the same physical successor. No speech test restart.
+
+## Standing pause order — D122298: speech PARKED; vision ACTIVE; self-driven life NEXT
 
 Joe explicitly ordered speech to take a break regardless of the current
 diagnostic outcome. This supersedes every speech-first dependency and next-run
@@ -24135,3 +24165,40 @@ real feeding consequence reducing that need. No aggregate hunger score,
 scripted "hungry => walk", or prohibition of unrelated exploration. Legacy
 shell remains retired. Skills/authority and exact existing native paths must
 be read before implementation; no new law/deployment claimed by this queue entry.
+
+### D-054-122-300 — Joe ratifies real-time-or-nothing vision release
+
+Ratification received verbatim: "real-time or nothing". It adopts the paired
+speed+eye release shape described in C1's immediately preceding proposal.
+Full objective unchanged; D122298 speech pause remains active.
+Source reality: browser sampling1000ms and observation polling3000ms are
+explicit, not inferred neural timing. Successful sensory POST renders directly;
+do not count the3s poll on every POST result. Native~2s claim in C1's message
+remains a reported measurement until its current receipt is inspected; prior
+94–108ms performance is historical evidence, not this body's present timing.
+
+Source-only compatibility review completed: native source-site identity covers
+sense/topology/sensor/substream/coordinates/quantity/units/terminal; the existing
+27->135 append-only growth precedent91e170441, UI001 S009–S023, preserves
+existing cells via ordinary source admission and allocation. No new native
+growth organ or checkpoint format indicated. Keep135old+85other sensory sites;
+append768spatial sites. Current cognition is achromatic even when RGB is
+transported/displayed. No retired W1 spectral135..944 resurrection.
+
+Actual HTTP byte-count correction sent to C1:
+compact camera-microphone JSON with8000PCMbytes and405RGBvalues is11577..12387B;
+with2709RGBvalues it is16185..21603B. The current13312B limit checks JSON,
+so the new request is refused even all-black. Raw10709B is not HTTP size.
+C1's door change must derive a bounded encoded maximum; never disable bounds.
+
+Shared coordination preserved at commit5c5ab07d1515321d0520fe718e3a2cb9f6a40280
+(blob24de3c8a1301072a571c0140d1ea227f0d50b6ea). Earlier update hit409 while
+C1 wrote; it did not land. The premature Slack "filed" statement was explicitly
+corrected in that successful merged entry. No organism/data loss from conflict.
+No vision/native code changes, no body/cue/lesson run, no deployment or
+caretaker mutation this ratification turn. Source/asset inspection only.
+A prior lookup of nonexistent retinal_receptor.rs was corrected via source
+search to optical_receptor_work.rs; not organism evidence. Local globalPython
+had no playwright; existing isolated /tmp/guala-ui-playwright was located;
+no install or browser/native invocation occurred. Do not misfile tool setup
+as physical failure. Full AE goal ACTIVE; previous diagnostic evidence retained.

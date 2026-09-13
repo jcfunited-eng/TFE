@@ -5,7 +5,37 @@ Item IDs are permanent. A checked box means the stated behavior is deployed and
 observed in live production, not merely coded or tested. `IN PROGRESS` means the
 box remains unchecked until live acceptance passes.
 
-## CURRENT ORDER — D122298: speech PARKED; vision ACTIVE; self-driven life NEXT
+## RATIFIED — D122300: REAL-TIME OR NOTHING; SPEED AND VISION TOGETHER
+
+Joe ratifies the quoted real-time-or-nothing proposal. V122299 remains the
+one active deliverable, now explicitly INCLUDING latency correction alongside
+the new32x24 field. A sharper eye on a slower path is not acceptance.
+Focused and bold, not small increments. Speech R122177 remains PARKED;
+self-driven life follows vision, independently of speech.
+
+Release condition: the full903-site eye (135preserved +768new) must settle
+the250ms sensory interval within250ms on the authenticated copied body under
+the declared workload; preserve exact physics, identity and learned sensory
+state. Sampling and display must no longer impose the existing1s/3s waits.
+Measure capture, admission, native settlement, custody and display separately;
+do not substitute UI latency for native cost or claim recognition from delivery.
+State actual maxima and workload, not a mean hiding slow intervals.
+The previously proposed500ms end-to-end number is a recommendation, not a
+separately ratified numerical limit. No invented cognitive timeout, suppression,
+dropped physical state, learned permission, approximate DSF or fake faster clock.
+
+One candidate, one coordinated review, one release: SPEED + EYE, BOTH OR NEITHER.
+Sol owns receptor anatomy/native growth continuity and proven native/runtime
+waste correction. C1 owns page sampler/display and ingress/validation; sensorium
+file ownership/projection mapping is explicitly coordinated before overlapping
+edits. Whole-core redesign is not authorized merely by this performance bar.
+Identify the active cost from existing evidence/current path before selecting
+a correction; historical scan suspicions are not a new measurement.
+Next exact item: establish the current reached-work/transport cost boundary
+for this vision path and eliminate the confirmed unnecessary work, preserving
+the same physical successor. No speech test restart.
+
+## Standing pause order — D122298: speech PARKED; vision ACTIVE; self-driven life NEXT
 
 Joe explicitly ordered speech to take a break regardless of the current
 diagnostic outcome. This supersedes every speech-first dependency and next-run
