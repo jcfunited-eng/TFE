@@ -1750,3 +1750,13 @@ V316 locally closed: warm1.359556s and exact669740/669741body/world. Production1
 ## D122317 result — exact local saving, not a release
 
 Full903 warm1.286105778s/cold1.253596628s, exactboth669740/669741body/world; ordinarynative19f80bb04. OnefocusedtestPASS after recordedtest-onlyimmutablefixturecompilecorrection. Archive streamedreadback3d81fab94d96b7b3008af156683d696e18df5ed63958387ef8e2a5044fa6f1aa, V122317-passive-evidence.tar.gz. Production1460unchanged,liveclock694814→694917. Next boundedcontract is actual-endpoint returned-work difference, not altered recovery law; no nextcandidatecodeyet. Full903<=250msopen,selflifenext,speechparked.
+
+
+## D122318 — exact released-work arithmetic, vision continues
+
+V317 remains locally closed at1.286105778s warm with exact full903 successors. V318 contract shares the existing membrane/gradient work expression, uses actual endpoint differences for released work and removes redundant normalization of alreadycanonical typed fractions. One native file; same errors, material, heat, state and fullDSF. No new law or physical controls. Source review and same focused proof before acceptance; production1460 unchanged,250ms unmet, self-life next, speech parked.
+
+
+## D122318 result — exact reduction preserved; vision delivery still active
+
+Same full903 body/world successors669740/669741 exact; warm1.265666402s/cold1.198347516s versusV317warm1.286105778s. Observed20.439ms reduction, not250ms or end-to-end pass. Native913.012ms/Python68.647ms; one focused existing testPASS, ordinary native163ca50e8. Archive whole readback a3f283bc8879fceaa115c9b70019011e4a9fef002c507e26c2660082af54be91, V122318-work-evidence.tar.gz. Finished owned container removed after preservation. Production1460unchanged,publicclock695252→695289. Next bounded cost/source assessment; no speculative next candidate. Vision+speed first,self-life next,speech parked; canonicalAttempts retains full receipts.

@@ -4696,8 +4696,10 @@ fn open_minus_closed_support_energy(
 }
 
 fn rational_to_exact(value: ExactRational) -> Exact {
+    // ExactRational's private constructors already guarantee coprime parts,
+    // a positive denominator and canonical zero. Widening preserves them.
     let (numerator, denominator) = value.parts();
-    Exact::new(BigInt::from(numerator), BigInt::from(denominator))
+    Exact::new_raw(BigInt::from(numerator), BigInt::from(denominator))
 }
 
 /// Narrow an exact residue back to the resident fixed-width rational the
@@ -6772,8 +6774,8 @@ pub(crate) fn settle_passive_membrane_return(
             num_rational::BigRational::from_integer(num_bigint::BigInt::from(0)),
         )));
     }
-    let predecessor_work =
-        membrane_and_gradient_work_zeptojoules_wide(anatomy, predecessor)?;
+    let (before_potential, reversal_magnitude, before_uphill) =
+        membrane_and_gradient_work_coordinates(anatomy, predecessor)?;
     let successor = settle_membrane_pump_transport(
         anatomy,
         predecessor,
@@ -6781,9 +6783,16 @@ pub(crate) fn settle_passive_membrane_return(
         None,
         interval_microseconds,
     )?;
-    let successor_work =
-        membrane_and_gradient_work_zeptojoules_wide(anatomy, &successor)?;
-    let released = &predecessor_work - &successor_work;
+    let (after_potential, _after_reversal_magnitude, after_uphill) =
+        membrane_and_gradient_work_coordinates(anatomy, &successor)?;
+    let before_potential = rational_to_exact(before_potential);
+    let after_potential = rational_to_exact(after_potential);
+    let released = membrane_and_gradient_work_expression(
+        anatomy.capacitance,
+        &before_potential * &before_potential - &after_potential * &after_potential,
+        reversal_magnitude,
+        BigInt::from(before_uphill) - BigInt::from(after_uphill),
+    );
     // The return phase resets at the crossing: whatever fraction the span
     // accumulated beyond one whole charge belongs to the NEW displacement's
     // rate law, which the next scheduling computes from zero progress.
@@ -6819,17 +6828,29 @@ pub(crate) fn membrane_and_gradient_work_zeptojoules_wide(
     anatomy: &NeuronPhysicalAnatomy,
     state: &NeuronPhysicalState,
 ) -> Result<BigRational, NeuronPhysicalError> {
+    let (potential, reversal_magnitude, uphill_carriers) =
+        membrane_and_gradient_work_coordinates(anatomy, state)?;
+    let potential = rational_to_exact(potential);
+    Ok(membrane_and_gradient_work_expression(
+        anatomy.capacitance,
+        &potential * &potential,
+        reversal_magnitude,
+        BigInt::from(uphill_carriers),
+    ))
+}
+
+/// Read the actual endpoint with the original potential/absolute-reversal
+/// failure order. No energy total or successor state is constructed here.
+fn membrane_and_gradient_work_coordinates(
+    anatomy: &NeuronPhysicalAnatomy,
+    state: &NeuronPhysicalState,
+) -> Result<(ExactRational, ExactRational, u128), NeuronPhysicalError> {
     let potential = state
         .membrane
         .membrane()
         .potential_millivolts(anatomy.capacitance)
         .map_err(MembraneConductanceError::from)
         .map_err(GateSettlementError::from)?;
-    let potential = rational_to_exact(potential);
-    let capacitor = rational_to_exact(anatomy.capacitance.picofarads())
-        * &potential
-        * potential
-        * BigInt::from(500_u16);
     let reversal = anatomy.gate.reversal_potential_millivolts;
     let uphill_carriers = if reversal.parts().0 < 0 {
         state.carriers.intracellular
@@ -6838,12 +6859,24 @@ pub(crate) fn membrane_and_gradient_work_zeptojoules_wide(
     } else {
         0
     };
+    Ok((potential, reversal.checked_abs()?, uphill_carriers))
+}
+
+/// One work expression for either an endpoint or a difference of endpoints.
+/// Both squared_potential and uphill_carriers may be signed differences.
+fn membrane_and_gradient_work_expression(
+    capacitance: MembraneCapacitance,
+    squared_potential: BigRational,
+    reversal_magnitude: ExactRational,
+    uphill_carriers: BigInt,
+) -> BigRational {
+    let capacitor = rational_to_exact(capacitance.picofarads())
+        * squared_potential * BigInt::from(500_u16);
     let gradient = BigRational::new(
         BigInt::from(801_088_317_u32),
         BigInt::from(5_000_000_000_u64),
-    ) * rational_to_exact(reversal.checked_abs()?)
-        * BigInt::from(uphill_carriers);
-    Ok(capacitor + gradient)
+    ) * rational_to_exact(reversal_magnitude) * uphill_carriers;
+    capacitor + gradient
 }
 
 /// Move an exact whole-carrier pump extent across this neuron's membrane.
@@ -8047,82 +8080,132 @@ mod tests {
     /// to the exact stored-work drop.
     #[test]
     fn passive_membrane_return_approaches_zero_exactly() {
-        let fixture = physical_fixture();
-        let interval = 250_000_u32;
-        for start in [5_i128, -5_i128] {
-            let mut state = fixture.state.clone();
-            state.membrane = LocalMembraneConductanceState::genesis(start);
-            let mut phase = ChargeCarrierPhase::zero();
-            let mut displacement = start;
-            let mut guard = 0;
-            while displacement != 0 {
-                guard += 1;
-                assert!(guard <= 16, "return must terminate");
-                let due = next_passive_membrane_return_crossing_clocks(
-                    &fixture.anatomy,
-                    &state,
-                    phase,
-                    interval,
-                )
-                .unwrap();
-                let Some(clocks_until) = due else {
-                    // Lawful rest floor before zero: energy descent refused.
-                    break;
-                };
-                let carriers_before = state.carriers;
-                let work_before = membrane_and_gradient_work_zeptojoules_wide(
-                    &fixture.anatomy,
-                    &state,
-                )
-                .unwrap();
-                let (successor, successor_phase, released) =
-                    settle_passive_membrane_return(
+        fn reference_rational(value: ExactRational) -> Exact {
+            let (numerator, denominator) = value.parts();
+            Exact::new(BigInt::from(numerator), BigInt::from(denominator))
+        }
+
+        fn reference_total(
+            anatomy: &NeuronPhysicalAnatomy,
+            state: &NeuronPhysicalState,
+        ) -> Result<BigRational, NeuronPhysicalError> {
+            let potential = state
+                .membrane
+                .membrane()
+                .potential_millivolts(anatomy.capacitance)
+                .map_err(MembraneConductanceError::from)
+                .map_err(GateSettlementError::from)?;
+            let potential = reference_rational(potential);
+            let capacitor = reference_rational(anatomy.capacitance.picofarads())
+                * &potential
+                * potential
+                * BigInt::from(500_u16);
+            let reversal = anatomy.gate.reversal_potential_millivolts;
+            let uphill_carriers = if reversal.parts().0 < 0 {
+                state.carriers.intracellular
+            } else if reversal.parts().0 > 0 {
+                state.carriers.extracellular
+            } else {
+                0
+            };
+            let gradient = BigRational::new(
+                BigInt::from(801_088_317_u32),
+                BigInt::from(5_000_000_000_u64),
+            ) * reference_rational(reversal.checked_abs()?)
+                * BigInt::from(uphill_carriers);
+            Ok(capacitor + gradient)
+        }
+
+        for value in [
+            r(0, 1), r(-7, 13), r(1, u128::MAX),
+            ExactRational::integer(i128::MIN),
+            ExactRational::from_ratio(i128::MIN, u128::MAX).unwrap(),
+            r(7, 9).checked_mul(r(9, 7)).unwrap(),
+            r(7, 10).checked_add(r(11, 15)).unwrap(),
+        ] {
+            let actual = rational_to_exact(value);
+            let expected = reference_rational(value);
+            assert_eq!(actual.numer(), expected.numer());
+            assert_eq!(actual.denom(), expected.denom());
+        }
+
+        for (capacitance, reversal) in [
+            (r(1, 1), r(-1, 1)), (r(1, 1), r(0, 1)),
+            (r(2, 3), r(2, 3)), (r(5, 7), r(-2, 3)),
+        ] {
+            let mut fixture = physical_fixture();
+            fixture.anatomy.capacitance = MembraneCapacitance::new(capacitance).unwrap();
+            fixture.anatomy.mutable_shared_for_fixture().gate.reversal_potential_millivolts = reversal;
+            let interval = 250_000_u32;
+            for start in [5_i128, -5_i128] {
+                let mut state = fixture.state.clone();
+                state.membrane = LocalMembraneConductanceState::genesis(start);
+                let mut phase = ChargeCarrierPhase::zero();
+                let mut displacement = start;
+                let mut guard = 0;
+                while displacement != 0 {
+                    guard += 1;
+                    assert!(guard <= 16, "return must terminate");
+                    let due = next_passive_membrane_return_crossing_clocks(
                         &fixture.anatomy,
                         &state,
                         phase,
                         interval,
-                        clocks_until,
                     )
-                    .unwrap()
-                    .expect("scheduled return must settle");
-                let next = successor.membrane.membrane().separated_elementary_charges();
-                assert_eq!(
-                    next,
-                    displacement - displacement.signum(),
-                    "exactly one whole charge toward zero"
-                );
-                assert!(next.abs() < displacement.abs(), "never overshoots");
-                // Exact carrier conservation between the two compartments.
-                let before_total = carriers_before.intracellular + carriers_before.extracellular;
-                let after_total =
-                    successor.carriers.intracellular + successor.carriers.extracellular;
-                assert_eq!(before_total, after_total, "carriers conserved");
-                // Released work equals the exact stored-work drop.
-                let work_after = membrane_and_gradient_work_zeptojoules_wide(
-                    &fixture.anatomy,
-                    &successor,
-                )
-                .unwrap();
-                assert_eq!(
-                    released,
-                    &work_before - &work_after,
-                    "released work must equal the exact stored-work drop"
-                );
-                assert!(released > num_rational::BigRational::from_integer(0.into()));
-                state = successor;
-                phase = successor_phase;
-                displacement = next;
-            }
-            // Zero (or the lawful rest floor): no further event, ever.
-            assert!(next_passive_membrane_return_crossing_clocks(
-                &fixture.anatomy,
-                &state,
-                phase,
-                interval,
-            )
-            .unwrap()
-            .is_none() || displacement != 0);
-            if displacement == 0 {
+                    .unwrap();
+                    let Some(clocks_until) = due else {
+                        // Lawful rest floor before zero: energy descent refused.
+                        break;
+                    };
+                    let carriers_before = state.carriers;
+                    let work_before = reference_total(
+                        &fixture.anatomy,
+                        &state,
+                    )
+                    .unwrap();
+                    assert_eq!(
+                        membrane_and_gradient_work_zeptojoules_wide(&fixture.anatomy, &state).unwrap(),
+                        work_before,
+                    );
+                    let (successor, successor_phase, released) =
+                        settle_passive_membrane_return(
+                            &fixture.anatomy,
+                            &state,
+                            phase,
+                            interval,
+                            clocks_until,
+                        )
+                        .unwrap()
+                        .expect("scheduled return must settle");
+                    let next = successor.membrane.membrane().separated_elementary_charges();
+                    assert_eq!(
+                        next,
+                        displacement - displacement.signum(),
+                        "exactly one whole charge toward zero"
+                    );
+                    assert!(next.abs() < displacement.abs(), "never overshoots");
+                    // Exact carrier conservation between the two compartments.
+                    let before_total = carriers_before.intracellular + carriers_before.extracellular;
+                    let after_total =
+                        successor.carriers.intracellular + successor.carriers.extracellular;
+                    assert_eq!(before_total, after_total, "carriers conserved");
+                    // Released work equals the exact stored-work drop.
+                    let work_after = reference_total(
+                        &fixture.anatomy,
+                        &successor,
+                    )
+                    .unwrap();
+                    assert_eq!(
+                        released,
+                        &work_before - &work_after,
+                        "released work must equal the exact stored-work drop"
+                    );
+                    assert!(released > num_rational::BigRational::from_integer(0.into()));
+                    state = successor;
+                    phase = successor_phase;
+                    displacement = next;
+                }
+                // Zero (or the lawful rest floor): no further event, ever.
                 assert!(next_passive_membrane_return_crossing_clocks(
                     &fixture.anatomy,
                     &state,
@@ -8130,9 +8213,53 @@ mod tests {
                     interval,
                 )
                 .unwrap()
-                .is_none(), "zero displacement schedules no event");
+                .is_none() || displacement != 0);
+                if displacement == 0 {
+                    assert!(next_passive_membrane_return_crossing_clocks(
+                        &fixture.anatomy,
+                        &state,
+                        phase,
+                        interval,
+                    )
+                    .unwrap()
+                    .is_none(), "zero displacement schedules no event");
+                }
             }
         }
+
+        // A sub-carrier interval changes only the return phase, never work.
+        let mut fixture = physical_fixture();
+        fixture.anatomy.capacitance = MembraneCapacitance::new(r(1, 1)).unwrap();
+        fixture.anatomy.mutable_shared_for_fixture().gate.reversal_potential_millivolts = r(0, 1);
+        let mut state = fixture.state.clone();
+        state.membrane = LocalMembraneConductanceState::genesis(1);
+        let due = next_passive_membrane_return_crossing_clocks(
+            &fixture.anatomy, &state, ChargeCarrierPhase::zero(), 1,
+        ).unwrap().unwrap();
+        assert!(due > 1);
+        let (unchanged, phase, released) = settle_passive_membrane_return(
+            &fixture.anatomy, &state, ChargeCarrierPhase::zero(), 1, 1,
+        ).unwrap().unwrap();
+        assert_eq!(unchanged, state);
+        assert_ne!(phase, ChargeCarrierPhase::zero());
+        assert_eq!(released, Exact::zero());
+
+        // The real receiver-overflow refusal remains the pump's refusal.
+        state.carriers = CarrierReservoirs::new(1, u128::MAX);
+        let expected = settle_membrane_pump_transport(
+            &fixture.anatomy, &state, 1, None, 1,
+        ).unwrap_err();
+        assert_eq!(settle_passive_membrane_return(
+            &fixture.anatomy, &state, ChargeCarrierPhase::zero(), 1, due,
+        ).unwrap_err(), expected);
+
+        // Public total observers retain the original endpoint errors too.
+        fixture.anatomy.mutable_shared_for_fixture().gate.reversal_potential_millivolts =
+            ExactRational::integer(i128::MIN);
+        assert_eq!(
+            membrane_and_gradient_work_zeptojoules_wide(&fixture.anatomy, &state),
+            reference_total(&fixture.anatomy, &state),
+        );
     }
 
     #[test]
