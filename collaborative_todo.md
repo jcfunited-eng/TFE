@@ -1,3 +1,18 @@
+## CURRENT: C132 APPROVED — release gates resumed by Sol
+
+C1's completed-source/release APPROVE below supersedes missing-decision headers.
+No C1 decision is awaited. Source7296fb20 remains frozen; no neural/learning edit.
+R122276: one immutable image, same real mature-body bridge/feedback/cold proof,
+fresh backup, dry run, one zero-writer cutover, live witness and UI publication.
+Native602pass/19knownfail/14ignored remains disclosed, not a green suite.
+H122247 live feedback remains separate; caretaker STOP until witness passes.
+Fox-card attempt: Joe saw no response, exact delivery/retention unknown.
+Joe's commentary is NOT stop. Prior reply-only interruption was Sol's lapse.
+Production preflight01:40UTC C131 task1459/eb041bb2/image708fc271 HEALTHY1/1/0.
+C132 NOT yet deployed; product goal flag blocked does not bar this authorized work.
+
+## Historical checkpoints — current header supersedes old decision status
+
 ## CURRENT: project goal BLOCKED on C132 release decision — production NOT stopped
 
 Automatic project work is now status=blocked after the repeated missing C1
