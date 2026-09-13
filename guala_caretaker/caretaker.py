@@ -50,6 +50,13 @@ LOG = os.path.join(HERE, "caretaker.log")
 STATE = os.path.join(HERE, "state.json")
 POLL_S = 20          # polite observation cadence (transport, not recovery)
 FOCAL_EYE_LIVE = os.path.exists(os.path.join(HERE, "FOCAL_EYE_LIVE"))  # touch this file after the 903-site cutover
+# Hand-over-hand lessons (drive organ, 2026-09-13): touch DRIVE_ORGAN_LIVE once
+# production accepts the guided-body-microphone source. Until then no guided
+# block is sent (a pre-release production would refuse it and interrupt).
+DRIVE_ORGAN_LIVE = os.path.exists(os.path.join(HERE, "DRIVE_ORGAN_LIVE"))
+CARRIERS = 1_500  # one caregiver hand's outward elementary carriers per axis, the guided-vocal lesson's unit
+REACH = ((24, 1, CARRIERS), (26, 1, CARRIERS))  # right shoulder pitch + elbow flexion toward maximum: the arm lifted toward the card
+BITE = ((14, 0, CARRIERS),)  # jaw toward closed: the bite, meaningful only with an object in hand
 QUIET_TICKS = 32     # Sol's measured recovery law 2026-09-11: 32 physical settlements between lessons
 MAX_LOG = 1_000_000
 MANIFEST = os.path.join(CUR, "card_experience_manifest-v1.json")
@@ -168,12 +175,18 @@ def lessons() -> list[dict]:
     return out
 
 
-def present_block(retina: tuple, pcm: bytes) -> dict | None:
-    body = json.dumps({"kind": "sensory", "payload": {
-        "source": "card-microphone",
+def present_block(retina: tuple, pcm: bytes, guided: tuple = ()) -> dict | None:
+    payload = {
+        "source": "guided-body-microphone" if guided else "card-microphone",
         "retina_rgb_u8": list(retina),
         "pcm_s16le_base64": base64.b64encode(pcm).decode(),
-    }}).encode()
+    }
+    if guided:
+        payload["guided_vocal_drives"] = [  # wire name; body axes per the shell contract
+            {"axis_ordinal": axis, "direction_ordinal": direction, "outward_elementary_carriers": carriers}
+            for axis, direction, carriers in guided
+        ]
+    body = json.dumps({"kind": "sensory", "payload": payload}).encode()
     req = urllib.request.Request(
         f"{BASE}/occurrence", data=body,
         headers={"Content-Type": "application/json"}, method="POST")
@@ -242,8 +255,20 @@ def main() -> None:
         if o is None:
             break
         ok = True
-        for i, pcm in enumerate(blocks):
-            res = present_block(retina, pcm)
+        # Hand-over-hand: after the spoken blocks, the caregiver lifts her arm
+        # toward the card while saying the word once more; when something is
+        # in her hand, the caregiver closes her jaw on it (the bite). Guided,
+        # labelled guided; the world decides every consequence.
+        guided_blocks = []
+        if DRIVE_ORGAN_LIVE:
+            guided_blocks.append((blocks[0], REACH))
+            if (o.get("last_occurrence") or {}).get("embodiment", {}).get("bodies"):
+                me = next((b for b in o["last_occurrence"]["embodiment"]["bodies"]
+                           if b.get("body_id") == o["last_occurrence"]["embodiment"].get("self_body_id")), {})
+                if me.get("held_object_id"):
+                    guided_blocks.append((blocks[0], BITE))
+        for i, (pcm, guided) in enumerate([(b, ()) for b in blocks] + guided_blocks):
+            res = present_block(retina, pcm, guided)
             if res is None:
                 ok = False
                 break  # never retried; lesson re-presents next window
@@ -252,8 +277,10 @@ def main() -> None:
             MINE.append(tick)
             MINE.append((ob.get("last_occurrence") or {}).get("native_tick"))
             sites = (ob.get("last_occurrence") or {}).get("external_retinal_site_count")
-            log(f"{lesson['name']} block {i+1}/{len(blocks)} accepted tick {tick} retinal sites {sites}")
-            if i + 1 < len(blocks):
+            total = len(blocks) + len(guided_blocks)
+            action = (ob.get("last_occurrence") or {}).get("requested_world_action")
+            log(f"{lesson['name']} block {i+1}/{total}{' guided ' + ('bite' if guided is BITE else 'reach') if guided else ''} accepted tick {tick} retinal sites {sites} world action {action}")
+            if i + 1 < total:
                 if wait_clear(min_tick=tick + 1) is None:
                     ok = False
                     break
