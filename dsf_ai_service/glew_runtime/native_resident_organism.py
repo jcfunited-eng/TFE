@@ -662,8 +662,6 @@ class ResidentPrepareEvidence:
         ...,
     ] = ()
     causal_interval_evidence: tuple[ResidentCausalIntervalEvidence, ...] = ()
-    energy_exhausted: bool = False
-    dissipation_capacity_energy_zeptojoules: tuple[int, int] = (0, 1)
 
 
 def _native_core():
@@ -4286,23 +4284,6 @@ class NativeResidentOrganism:
             raise RuntimeError("resident organism prepare published pending state")
         if not sealed:
             self.__unsealed_tick = organism_tick
-        energy_exhausted = candidate.energy_exhausted
-        if not isinstance(energy_exhausted, bool):
-            raise RuntimeError("resident energy exhaustion changed format")
-        raw_dissipation_capacity = candidate.dissipation_capacity_energy_zeptojoules
-        if (
-            not isinstance(raw_dissipation_capacity, tuple)
-            or len(raw_dissipation_capacity) != 2
-        ):
-            raise RuntimeError("resident dissipation capacity changed format")
-        dissipation_capacity = (
-            _nonnegative_integer(
-                raw_dissipation_capacity[0], "dissipation capacity numerator"
-            ),
-            _positive_integer(
-                raw_dissipation_capacity[1], "dissipation capacity denominator"
-            ),
-        )
         return ResidentPrepareEvidence(
             token=token,
             token_hex=candidate.token_hex,
@@ -4406,8 +4387,6 @@ class NativeResidentOrganism:
             localized_metabolic_strain=localized_metabolic_strain,
             organic_mosaic_relations=tuple(organic_mosaic_relations),
             causal_interval_evidence=causal_interval_evidence,
-            energy_exhausted=energy_exhausted,
-            dissipation_capacity_energy_zeptojoules=dissipation_capacity,
         )
 
     def prepare_authored_contacts(
@@ -4507,6 +4486,11 @@ class NativeResidentOrganism:
             mounted_generation=candidate.mounted_generation,
             authored_contact_count=len(authored),
         )
+
+    def observe_current_energy(self) -> object:
+        """Read exact energy only on request: identity, live tick, named
+        rational totals, separated charge, and exact exhaustion predicate."""
+        return self.__runtime.observe_current_energy()
 
     def observe_cohort_contacts(self) -> tuple[tuple[int, int], ...]:
         """Decoded ``(member_count, contact_count)`` per living cohort."""

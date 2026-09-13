@@ -1783,6 +1783,15 @@ pub(crate) struct ArticulatoryUnitRecruitment {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
+pub(crate) struct CognitiveFormationStructure {
+    pub(crate) cognitive_ordinal: u64,
+    pub(crate) trace_count: usize,
+    pub(crate) mosaic_count: usize,
+    pub(crate) complete_neuron_count: usize,
+    pub(crate) resting_neuron_count: usize,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct CognitiveFormationSummary {
     pub(crate) cognitive_ordinal: u64,
     pub(crate) trace_count: usize,
@@ -8143,8 +8152,8 @@ impl ResidentCognitiveFormationState {
         Ok(state)
     }
 
-    pub(crate) fn summary(&self) -> CognitiveFormationSummary {
-        CognitiveFormationSummary {
+    pub(crate) fn structural_summary(&self) -> CognitiveFormationStructure {
+        CognitiveFormationStructure {
             cognitive_ordinal: self.generation,
             trace_count: 0,
             mosaic_count: self
@@ -8162,6 +8171,18 @@ impl ResidentCognitiveFormationState {
                 .as_ref()
                 .and_then(|population| usize::try_from(population.resting_cell_count()).ok())
                 .unwrap_or(0),
+        }
+    }
+
+    /// An explicit exact energy census; ordinary structural observation does not call it.
+    pub(crate) fn summary(&self) -> CognitiveFormationSummary {
+        let structure = self.structural_summary();
+        CognitiveFormationSummary {
+            cognitive_ordinal: structure.cognitive_ordinal,
+            trace_count: structure.trace_count,
+            mosaic_count: structure.mosaic_count,
+            complete_neuron_count: structure.complete_neuron_count,
+            resting_neuron_count: structure.resting_neuron_count,
             energy: self.energy_state(),
         }
     }

@@ -1700,3 +1700,8 @@ Next exact item P122305: improve caller attribution, notanotherphysicscandidate.
 ### D122306 — full-eye runtime result and C1 transport integration
 
 V305 ordinary full903 cold step2.510757s, next warm2.314095s (V122306); exact669740 reference retained,669741 actual successor archived. Neither meets250ms; cold reconstruction is not the main explanation. Production remains1460, no release claimed. P122305 profiler stopped due its own overhead; partial stacks not an exact successor proof or reliable percentage cost. Both evidence archives recorded in canonical Attempts ledger. C1 reviewed39dd88f00 closes fatal observer wakeup and camera/mic/poll cancellation custody; integrate before the eventual single speed+eye release. Speech parked; self-life remains after vision; no user decision blocker.
+
+
+### D122308 — reporting-cost removal preserved, vision timing still open
+
+V122308 ordinary full903 exact comparison preserved669740/669741 body/world bytes. Warm1.581688s versus V3062.314095s; cold1.770326s. This removes an unused per-interval whole-body energy census, not local energy physics; explicit exact reporting and checkpoint totals remain. One native focused test PASS; source and ordinarywheel archived with fullreadbackSHA978c144bfd3d7c5001785b4257cc67d71f24d8016b6e962e0a3c40090b744813. Canonical Attempts contains full receipts. No live change: task1460 remains baseline. Full903<=250ms remains mandatory; next sole work item is source-backed reduction of the measured internal-contact cost, vision before self-life, speech stays parked.

@@ -46,7 +46,7 @@ use crate::resident_cognitive_formation::{
     AffectiveBalanceTrajectoryObservation, ArticulatoryUnitRecruitment, AuthoredDeclaredContact,
     CausalFrontierTransferObservation, CausalThoughtTransitionObservation,
     ChangedContactChannelStateObservation,
-    CognitiveFormationObservation, CognitiveFormationSummary, DirectedPhysicalTransferObservation,
+    CognitiveFormationObservation, CognitiveFormationSummary, CognitiveFormationStructure, DirectedPhysicalTransferObservation,
     EmittedNeuronFractal, ExternallyReassembledFormationFrontierObservation,
     InternallyReassembledFormationCueObservation,
     LearnedMotorWorkPreparation, LocalizedFluidChemistryObservation,
@@ -114,6 +114,20 @@ const MAX_ADMITTED_ACOUSTIC_INTERVAL_SECONDS: usize = 30;
 const MAX_IN_FLIGHT_ACOUSTIC_SAMPLES: usize =
     ARTICULATORY_SAMPLE_RATE_HZ as usize * MAX_ADMITTED_ACOUSTIC_INTERVAL_SECONDS;
 const IN_FLIGHT_ACOUSTIC_BODY_CHANNELS: usize = 4;
+
+fn observed_energy(observation: &RuntimeObservation) -> PyResult<&ReachedCohortEnergyState> {
+    observation.energy.as_ref().ok_or_else(|| PyValueError::new_err(
+        "energy totals were not observed for this unsealed interval; request observe_current_energy"
+    ))
+}
+
+fn exact_energy_exhausted(energy: &ReachedCohortEnergyState) -> bool {
+    let zero = BigRational::zero();
+    (energy.available_energy_capacity_zeptojoules != zero
+        && energy.available_energy_zeptojoules == zero)
+        || (energy.dissipation_capacity_energy_zeptojoules != zero
+            && energy.dissipated_energy_zeptojoules >= energy.dissipation_capacity_energy_zeptojoules)
+}
 
 fn exact_energy_parts(value: &BigRational) -> (BigInt, BigInt) {
     (value.numer().clone(), value.denom().clone())
@@ -599,11 +613,11 @@ pub(crate) struct RuntimeObservation {
         Vec<ExternallyReassembledFormationFrontierObservation>,
     pub(crate) python_callback_count: u64,
     pub(crate) derived_budget: DerivedRuntimeBudget,
-    /// The body's energy state and this transition's metabolic facts (minimal
-    /// feeding metabolism, 2026-08-05).  Reported on every observation,
-    /// including a plain restore, so an exhausted body can never be observed
-    /// as a healthy one.
-    pub(crate) energy: ReachedCohortEnergyState,
+    /// Exact energy totals when a census was actually performed (cold,
+    /// checkpoint, or sealed observation). Ordinary unsealed intervals do not
+    /// perform that census: None is unobserved, never zero or not exhausted.
+    /// Explicit current-energy observation reads the identified lived state.
+    pub(crate) energy: Option<ReachedCohortEnergyState>,
     pub(crate) rest_recovered_neuron_count: usize,
     /// Exact transition work that cleared occupied dissipation lanes and the
     /// exact demand that could not be accepted. These are transient observer
@@ -1306,7 +1320,7 @@ impl NativeLivedStateSnapshot {
             sealed_cognitive.summary.resting_neuron_count;
         observation.cognitive_mosaic_count = sealed_cognitive.summary.mosaic_count;
         observation.mosaic_of_mosaics_count = sealed_cognitive.mosaic_of_mosaics_count;
-        observation.energy = sealed_cognitive.summary.energy;
+        observation.energy = Some(sealed_cognitive.summary.energy);
         observation.derived_budget = self.budget.derive()?;
         Ok(NativePreparedLivedCheckpoint {
             envelope: Some(envelope),
@@ -1830,71 +1844,43 @@ impl NativeResidentOrganismObservation {
     }
 
     #[getter]
-    fn available_energy_zeptojoules(&self) -> (BigInt, BigInt) {
-        exact_energy_parts(&self.observation.energy.available_energy_zeptojoules)
+    fn available_energy_zeptojoules(&self) -> PyResult<(BigInt, BigInt)> {
+        Ok(exact_energy_parts(&observed_energy(&self.observation)?.available_energy_zeptojoules))
     }
 
     #[getter]
-    fn spent_energy_zeptojoules(&self) -> (BigInt, BigInt) {
-        exact_energy_parts(&self.observation.energy.spent_energy_zeptojoules)
+    fn spent_energy_zeptojoules(&self) -> PyResult<(BigInt, BigInt)> {
+        Ok(exact_energy_parts(&observed_energy(&self.observation)?.spent_energy_zeptojoules))
     }
 
     #[getter]
-    fn thermal_energy_zeptojoules(&self) -> (BigInt, BigInt) {
-        exact_energy_parts(&self.observation.energy.thermal_energy_zeptojoules)
+    fn thermal_energy_zeptojoules(&self) -> PyResult<(BigInt, BigInt)> {
+        Ok(exact_energy_parts(&observed_energy(&self.observation)?.thermal_energy_zeptojoules))
     }
 
     #[getter]
-    fn available_energy_capacity_zeptojoules(&self) -> (BigInt, BigInt) {
-        exact_energy_parts(
-            &self
-                .observation
-                .energy
-                .available_energy_capacity_zeptojoules,
-        )
+    fn available_energy_capacity_zeptojoules(&self) -> PyResult<(BigInt, BigInt)> {
+        Ok(exact_energy_parts(&observed_energy(&self.observation)?.available_energy_capacity_zeptojoules))
     }
 
     #[getter]
-    fn dissipation_capacity_energy_zeptojoules(&self) -> (BigInt, BigInt) {
-        exact_energy_parts(
-            &self
-                .observation
-                .energy
-                .dissipation_capacity_energy_zeptojoules,
-        )
+    fn dissipation_capacity_energy_zeptojoules(&self) -> PyResult<(BigInt, BigInt)> {
+        Ok(exact_energy_parts(&observed_energy(&self.observation)?.dissipation_capacity_energy_zeptojoules))
     }
 
     #[getter]
-    fn dissipated_energy_zeptojoules(&self) -> (BigInt, BigInt) {
-        exact_energy_parts(&self.observation.energy.dissipated_energy_zeptojoules)
+    fn dissipated_energy_zeptojoules(&self) -> PyResult<(BigInt, BigInt)> {
+        Ok(exact_energy_parts(&observed_energy(&self.observation)?.dissipated_energy_zeptojoules))
     }
 
     #[getter]
-    fn separated_elementary_charges(&self) -> i128 {
-        self.observation.energy.separated_elementary_charges
+    fn separated_elementary_charges(&self) -> PyResult<i128> {
+        Ok(observed_energy(&self.observation)?.separated_elementary_charges)
     }
 
     #[getter]
-    fn energy_exhausted(&self) -> bool {
-        // A body with no mounted cohort has no energy system at all; that is
-        // "no body", not exhaustion, and it is never reported as exhaustion.
-        let zero = BigRational::zero();
-        (self
-            .observation
-            .energy
-            .available_energy_capacity_zeptojoules
-            != zero
-            && self.observation.energy.available_energy_zeptojoules == zero)
-            || (self
-                .observation
-                .energy
-                .dissipation_capacity_energy_zeptojoules
-                != zero
-                && self.observation.energy.dissipated_energy_zeptojoules
-                    >= self
-                        .observation
-                        .energy
-                        .dissipation_capacity_energy_zeptojoules)
+    fn energy_exhausted(&self) -> PyResult<bool> {
+        Ok(exact_energy_exhausted(observed_energy(&self.observation)?))
     }
 
     #[getter]
@@ -2527,69 +2513,43 @@ impl NativeResidentOrganismPrepare {
     }
 
     #[getter]
-    fn available_energy_zeptojoules(&self) -> (BigInt, BigInt) {
-        exact_energy_parts(&self.observation.energy.available_energy_zeptojoules)
+    fn available_energy_zeptojoules(&self) -> PyResult<(BigInt, BigInt)> {
+        Ok(exact_energy_parts(&observed_energy(&self.observation)?.available_energy_zeptojoules))
     }
 
     #[getter]
-    fn spent_energy_zeptojoules(&self) -> (BigInt, BigInt) {
-        exact_energy_parts(&self.observation.energy.spent_energy_zeptojoules)
+    fn spent_energy_zeptojoules(&self) -> PyResult<(BigInt, BigInt)> {
+        Ok(exact_energy_parts(&observed_energy(&self.observation)?.spent_energy_zeptojoules))
     }
 
     #[getter]
-    fn thermal_energy_zeptojoules(&self) -> (BigInt, BigInt) {
-        exact_energy_parts(&self.observation.energy.thermal_energy_zeptojoules)
+    fn thermal_energy_zeptojoules(&self) -> PyResult<(BigInt, BigInt)> {
+        Ok(exact_energy_parts(&observed_energy(&self.observation)?.thermal_energy_zeptojoules))
     }
 
     #[getter]
-    fn available_energy_capacity_zeptojoules(&self) -> (BigInt, BigInt) {
-        exact_energy_parts(
-            &self
-                .observation
-                .energy
-                .available_energy_capacity_zeptojoules,
-        )
+    fn available_energy_capacity_zeptojoules(&self) -> PyResult<(BigInt, BigInt)> {
+        Ok(exact_energy_parts(&observed_energy(&self.observation)?.available_energy_capacity_zeptojoules))
     }
 
     #[getter]
-    fn dissipated_energy_zeptojoules(&self) -> (BigInt, BigInt) {
-        exact_energy_parts(&self.observation.energy.dissipated_energy_zeptojoules)
+    fn dissipated_energy_zeptojoules(&self) -> PyResult<(BigInt, BigInt)> {
+        Ok(exact_energy_parts(&observed_energy(&self.observation)?.dissipated_energy_zeptojoules))
     }
 
     #[getter]
-    fn dissipation_capacity_energy_zeptojoules(&self) -> (BigInt, BigInt) {
-        exact_energy_parts(
-            &self
-                .observation
-                .energy
-                .dissipation_capacity_energy_zeptojoules,
-        )
+    fn dissipation_capacity_energy_zeptojoules(&self) -> PyResult<(BigInt, BigInt)> {
+        Ok(exact_energy_parts(&observed_energy(&self.observation)?.dissipation_capacity_energy_zeptojoules))
     }
 
     #[getter]
-    fn energy_exhausted(&self) -> bool {
-        let zero = BigRational::zero();
-        (self
-            .observation
-            .energy
-            .available_energy_capacity_zeptojoules
-            != zero
-            && self.observation.energy.available_energy_zeptojoules == zero)
-            || (self
-                .observation
-                .energy
-                .dissipation_capacity_energy_zeptojoules
-                != zero
-                && self.observation.energy.dissipated_energy_zeptojoules
-                    >= self
-                        .observation
-                        .energy
-                        .dissipation_capacity_energy_zeptojoules)
+    fn energy_exhausted(&self) -> PyResult<bool> {
+        Ok(exact_energy_exhausted(observed_energy(&self.observation)?))
     }
 
     #[getter]
-    fn separated_elementary_charges(&self) -> i128 {
-        self.observation.energy.separated_elementary_charges
+    fn separated_elementary_charges(&self) -> PyResult<i128> {
+        Ok(observed_energy(&self.observation)?.separated_elementary_charges)
     }
 
     #[getter]
@@ -3217,6 +3177,19 @@ fn retain_cognitive_trajectory_observation(
 /// every reached physical consequence; these population totals are read once
 /// from the terminal resident state instead of being rescanned after every
 /// intermediate hop.
+fn retain_terminal_cognitive_structure(
+    observation: &mut CognitiveFormationObservation,
+    structure: CognitiveFormationStructure,
+    mosaic_of_mosaics_count: usize,
+) {
+    observation.cognitive_ordinal = structure.cognitive_ordinal;
+    observation.trace_count = structure.trace_count;
+    observation.mosaic_count = structure.mosaic_count;
+    observation.complete_neuron_count = structure.complete_neuron_count;
+    observation.resting_neuron_count = structure.resting_neuron_count;
+    observation.mosaic_of_mosaics_count = mosaic_of_mosaics_count;
+}
+
 fn retain_terminal_cognitive_observation(
     observation: &mut CognitiveFormationObservation,
     summary: CognitiveFormationSummary,
@@ -3850,7 +3823,7 @@ impl ResidentOrganismRuntime {
             sealed_cognitive.summary.resting_neuron_count;
         observation.cognitive_mosaic_count = sealed_cognitive.summary.mosaic_count;
         observation.mosaic_of_mosaics_count = sealed_cognitive.mosaic_of_mosaics_count;
-        observation.energy = sealed_cognitive.summary.energy;
+        observation.energy = Some(sealed_cognitive.summary.energy);
         observation.derived_budget = derived_budget;
         let token = prepare_token(
             unsealed.predecessor.state_receipt,
@@ -4216,23 +4189,24 @@ impl ResidentOrganismRuntime {
                 "admitted trajectory carried no cognitive interval".into(),
             )
         })?;
-        let (cognitive_state, terminal_summary, terminal_mosaic_count) = if seal_successor {
+        let cognitive_state = if seal_successor {
             let sealed = cognitive
                 .seal_with_terminal_observation(cognitive_budget)
                 .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?;
-            (sealed.encoded, sealed.summary, sealed.mosaic_of_mosaics_count)
+            retain_terminal_cognitive_observation(
+                &mut cognitive_observation, sealed.summary, sealed.mosaic_of_mosaics_count,
+            );
+            sealed.encoded
         } else {
-            let summary = cognitive.summary();
+            let structure = cognitive.structural_summary();
             let mosaic_count = cognitive
                 .mosaic_of_mosaics_count()
                 .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?;
-            (Vec::new(), summary, mosaic_count)
+            retain_terminal_cognitive_structure(
+                &mut cognitive_observation, structure, mosaic_count,
+            );
+            Vec::new()
         };
-        retain_terminal_cognitive_observation(
-            &mut cognitive_observation,
-            terminal_summary,
-            terminal_mosaic_count,
-        );
         let (mounted, _) = restore_resident_mounted_state(
             &joint_state,
             derived_budget.max_joint_state_bytes,
@@ -4284,6 +4258,7 @@ impl ResidentOrganismRuntime {
             derived_budget,
             predecessor.state_receipt,
             &cognitive_observation,
+            seal_successor.then(|| cognitive_observation.energy.clone()),
         );
         let next_prepare_ordinal = self
             .next_prepare_ordinal
@@ -4618,23 +4593,24 @@ impl ResidentOrganismRuntime {
         let mut cognitive_observation = aggregate.ok_or_else(|| {
             RuntimeError::Vestibular("vestibular trajectory carried no interval".into())
         })?;
-        let (cognitive_state, terminal_summary, terminal_mosaic_count) = if seal_successor {
+        let cognitive_state = if seal_successor {
             let sealed = cognitive
                 .seal_with_terminal_observation(cognitive_budget)
                 .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?;
-            (sealed.encoded, sealed.summary, sealed.mosaic_of_mosaics_count)
+            retain_terminal_cognitive_observation(
+                &mut cognitive_observation, sealed.summary, sealed.mosaic_of_mosaics_count,
+            );
+            sealed.encoded
         } else {
-            let summary = cognitive.summary();
+            let structure = cognitive.structural_summary();
             let mosaic_count = cognitive
                 .mosaic_of_mosaics_count()
                 .map_err(|error| RuntimeError::CognitiveFormation(error.to_string()))?;
-            (Vec::new(), summary, mosaic_count)
+            retain_terminal_cognitive_structure(
+                &mut cognitive_observation, structure, mosaic_count,
+            );
+            Vec::new()
         };
-        retain_terminal_cognitive_observation(
-            &mut cognitive_observation,
-            terminal_summary,
-            terminal_mosaic_count,
-        );
         let joint_state =
             encode_empty_mounted_joint_state().map_err(RuntimeError::MountedTransition)?;
         let (mounted, _) = restore_resident_mounted_state(
@@ -4688,6 +4664,7 @@ impl ResidentOrganismRuntime {
             derived_budget,
             predecessor.state_receipt,
             &cognitive_observation,
+            seal_successor.then(|| cognitive_observation.energy.clone()),
         );
         let next_prepare_ordinal = self
             .next_prepare_ordinal
@@ -4898,6 +4875,7 @@ impl ResidentOrganismRuntime {
                 derived_budget,
                 predecessor.state_receipt,
                 &cognitive_observation,
+                Some(cognitive_observation.energy.clone()),
             );
             let next_prepare_ordinal = self
                 .next_prepare_ordinal
@@ -6319,6 +6297,30 @@ impl NativeResidentOrganismRuntime {
         Ok(())
     }
 
+    /// Exact totals only on explicit request, identified by the actual lived tick.
+    /// No cached totals, running bookkeeping, snapshot, or cognitive transition.
+    fn observe_current_energy(&self) -> (
+        String, u64, Vec<(&'static str, (BigInt, BigInt))>, i128, bool,
+    ) {
+        let energy = self.runtime.cognitive_state().energy_state();
+        let values = vec![
+            ("available_energy_zeptojoules", exact_energy_parts(&energy.available_energy_zeptojoules)),
+            ("spent_energy_zeptojoules", exact_energy_parts(&energy.spent_energy_zeptojoules)),
+            ("thermal_energy_zeptojoules", exact_energy_parts(&energy.thermal_energy_zeptojoules)),
+            ("available_energy_capacity_zeptojoules", exact_energy_parts(&energy.available_energy_capacity_zeptojoules)),
+            ("spent_energy_capacity_zeptojoules", exact_energy_parts(&energy.spent_energy_capacity_zeptojoules)),
+            ("thermal_energy_capacity_zeptojoules", exact_energy_parts(&energy.thermal_energy_capacity_zeptojoules)),
+            ("dissipated_energy_zeptojoules", exact_energy_parts(&energy.dissipated_energy_zeptojoules)),
+            ("dissipation_capacity_energy_zeptojoules", exact_energy_parts(&energy.dissipation_capacity_energy_zeptojoules)),
+        ];
+        (
+            std::str::from_utf8(&self.runtime.active.observation.identity)
+                .expect("validated canonical organism identity").to_owned(),
+            self.runtime.live_organism_tick(), values,
+            energy.separated_elementary_charges, exact_energy_exhausted(&energy),
+        )
+    }
+
     fn readiness(&self) -> NativeResidentOrganismObservation {
         native_resident_observation(&self.runtime)
     }
@@ -7451,6 +7453,7 @@ impl OrganismRuntime {
             derived_budget,
             self.observation.state_receipt,
             &cognitive_observation,
+            Some(cognitive_observation.energy.clone()),
         );
         let sealed = SealedRuntimeState {
             receipt: observation.state_receipt,
@@ -7992,7 +7995,7 @@ fn make_restored_observation(
         externally_reassembled_formation_frontiers: Vec::new(),
         python_callback_count: 0,
         derived_budget,
-        energy: cognitive.energy.clone(),
+        energy: Some(cognitive.energy.clone()),
         rest_recovered_neuron_count: 0,
         rest_drained_dissipation_quanta: 0,
         unmet_dissipation_quanta: 0,
@@ -8017,6 +8020,7 @@ fn make_step_observation(
     derived_budget: DerivedRuntimeBudget,
     predecessor_state_receipt: [u8; 32],
     cognitive: &CognitiveFormationObservation,
+    observed_energy: Option<ReachedCohortEnergyState>,
 ) -> RuntimeObservation {
     RuntimeObservation {
         schema: OBSERVATION_SCHEMA,
@@ -8098,7 +8102,7 @@ fn make_step_observation(
             .clone(),
         python_callback_count: 0,
         derived_budget,
-        energy: cognitive.energy.clone(),
+        energy: observed_energy,
         rest_recovered_neuron_count: cognitive.rest_recovered_neuron_count,
         rest_drained_dissipation_quanta: cognitive.rest_drained_dissipation_quanta,
         unmet_dissipation_quanta: cognitive.unmet_dissipation_quanta,
@@ -8178,7 +8182,7 @@ fn make_authored_contact_observation(
         externally_reassembled_formation_frontiers: Vec::new(),
         python_callback_count: 0,
         derived_budget,
-        energy: cognitive.energy.clone(),
+        energy: Some(cognitive.energy.clone()),
         rest_recovered_neuron_count: 0,
         rest_drained_dissipation_quanta: 0,
         unmet_dissipation_quanta: 0,
@@ -10672,6 +10676,39 @@ mod tests {
                 .source_duration_samples_at_articulatory_rate,
             ARTICULATORY_SAMPLE_RATE_HZ as usize * 2,
         );
+    }
+
+    #[test]
+    fn unsealed_energy_is_explicitly_unobserved_until_requested_without_state_change() {
+        let episode = source("unsealed-explicit-energy");
+        let intervals = vec![(5, 1); episode.joint_source_occurrences().len()];
+        let mut native = NativeResidentOrganismRuntime {
+            runtime: create_resident_genesis(IDENTITY, 0, budget()).unwrap(),
+        };
+        assert!(native.runtime.observation().energy.is_some());
+        let prepared = native.runtime
+            .advance_admitted_trajectory_unsealed(&[(episode, intervals)]).unwrap();
+        assert!(prepared.observation.energy.is_none());
+        assert!(observed_energy(&prepared.observation).is_err());
+        let before = native.snapshot_lived_state().build_checkpoint().unwrap();
+        let expected = native.runtime.cognitive_state().energy_state();
+        let (identity, tick, values, separated, exhausted) = native.observe_current_energy();
+        assert_eq!(identity, IDENTITY);
+        assert_eq!(tick, prepared.observation.organism_tick);
+        assert_eq!(values.len(), 8);
+        assert_eq!(values[0], ("available_energy_zeptojoules",
+            exact_energy_parts(&expected.available_energy_zeptojoules)));
+        assert_eq!(values[7], ("dissipation_capacity_energy_zeptojoules",
+            exact_energy_parts(&expected.dissipation_capacity_energy_zeptojoules)));
+        assert_eq!(separated, expected.separated_elementary_charges);
+        assert_eq!(exhausted, exact_energy_exhausted(&expected));
+        let after = native.snapshot_lived_state().build_checkpoint().unwrap();
+        assert_eq!(before.envelope, after.envelope);
+        assert_eq!(after.observation.energy.as_ref(), Some(&expected));
+        assert!(prepared.observation.energy.is_none());
+        let restored = ResidentOrganismRuntime::restore_envelope(
+            after.envelope.unwrap(), budget()).unwrap();
+        assert_eq!(restored.observation().energy.as_ref(), Some(&expected));
     }
 
     #[test]
