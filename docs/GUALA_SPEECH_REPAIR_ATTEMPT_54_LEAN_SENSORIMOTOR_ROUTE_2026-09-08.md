@@ -1,6 +1,22 @@
 # Guala speech repair Attempt 54 — complete design verification and lean sensorimotor route
 
-## Current checkpoint — C132 LIVE; C131 live-feedback witness CLOSED
+## CURRENT ORDER — D122298: speech PARKED; vision ACTIVE; self-driven life NEXT
+
+Joe explicitly ordered speech to take a break regardless of the current
+diagnostic outcome. This supersedes every speech-first dependency and next-run
+instruction below. R122177 is PARKED, not complete or rejected. Do not resume
+speech automatically after context loss or use its acceptance as a gate on
+vision/self-driven life. Full AE goal remains ACTIVE and unchanged.
+
+V122299 is the single active item: the already-approved vision improvement,
+starting from the actual card/camera/world retinal path and the filed sizing
+plan. Self-driven life follows under the amended physical-needs charter;
+it does not wait for another speech result. Current-only identity, learned
+sensory state, full DSF, resource bounds and no scripted cognition remain.
+C132/S122278 and C131/H122247 stay CLOSED. No caretaker pause/restart or live
+lesson was performed in this transition.
+
+## Historical checkpoint — C132 LIVE; C131 live-feedback witness CLOSED
 
 S122295/296 CURRENT CORRECTION: repeated "selfhearing confound" wording below
 is too broad and is WITHDRAWN for total demonstration-effect attribution.
@@ -23985,3 +24001,137 @@ Workflow failures: repeated guessed nested leanroute path and nonexistent
 local_membrane_gradient.rs search were read-only misses; actual source located.
 Combined outputs truncated; actual caller files read fully in bounded calls.
 These are process mistakes, not organism failures or reasons to repeat physics.
+
+### R-054-122-297 — bounded later-use evidence contract; temporary trace only
+
+Continues R122177; prior turn PROGRESS by S122295/296. Root3eadd0e3 clean.
+C132/S122278 and C131/H122247 remain CLOSED; no production update authorized
+by this diagnostic. Requested architecture/fullDSF unchanged; no new physics
+conflict established. No shell/dose labels/motorpermission/learning law extended.
+Single exact item: follow the saved demonstration into a real later vocal use,
+capturing the actual existing strength-writing input and retention.
+
+Preflight source finding: organism_runtime3650..3668 passes
+admit_learned_motor_work=consume_in_flight_acoustic_samples.is_none().
+A sound cue co-admitted with pending selfpressure therefore cannot test fresh
+vocal founding in current source. This is recorded F79C production-parity law,
+NOT a newly discovered defect or permission to force true. Keep selfhearing.
+C131/C132 source remains unchanged; no muted samples or artificial recovery.
+
+Evidence gap caught BEFORE running: ordinary localized_fluid_chemistry report
+retains one selected row (organism_runtime2964), not every vocalendpoint.
+Existing causal getters do expose actual motor/preparation/changed-contact
+evidence, but not this writer's exact pre-update directions/fresh contact work.
+Do not declare failed learning from an incomplete projection.
+
+Authorized diagnostic-only source: resident_cognitive_formation.rs, Sol soleowner.
+Feature diagnostic-api plus explicit diagnostic env gates stderr only:
+1. At21522 immediately AFTER local update but BEFORE caught-up heat addition,
+   exact clock/cognitiveordinal/stablebond+ordinal, endpoint directions, own
+   fresh releasedwork, predecessor/computed channels+phase, quantum/capacity,
+   transferred carriers and existing ordering/bond permissions.
+2. At21590 existing vocal retention junction AFTER possible reset, matching
+   keys, coordinated/permission flags and actual retained successor/transfer.
+No new state/schema, new physiology branch, energy, action permission, imports,
+API/cognition consumer, parameter change or persistent bookkeeping. Existing
+loop enumeration supplies exact contact index; no percontact search/clone.
+Ordinary production compilation contains neither diagnostic block.
+Freeze/source-review before ONE isolated diagnostic wheel build; no test suite.
+Archive diff/artifact and remove these blocks/verify baseline hash before any
+handoff; diagnostic artifact may never be packaged/deployed.
+
+Prospective caller contract (source review required before execution):
+- Same two saved final669735 pairs from S122285, exact body/world hashes;
+  current C132 source plus trace only, same mounted roster/env and solar43200.
+- Serial, one body in memory, no cloud credentials/network/EFS,4CPU16GiB/pids128.
+  Reuse saved prefix; no new guided demonstration and no manual state edit.
+- External observation budget: at most64 ordinary inputs to obtain the existing
+  eight-input quiet vocal baseline, no pending selfpressure, no recorded learned
+  work/preparations or vocal recruitment in that baseline. This is a test budget,
+  not a physiological timeout; if unmet, save current state as PRECONDITION
+  UNMET, not failed learning, and do not send a misleading cue.
+- One existing4000sample sound-only cue85a505e8 (no guideddrive), then at most16
+  ordinary inputs. Preserve all selfhearing and actual coexisting world/body
+  sources; never require proprioception-only attribution.
+- Record actual cue tick (state-paced between arms), all bounded baseline/use
+  evidence and exact raw source hashes. Different quiet durations are disclosed.
+  This is total effect under the same state-paced external protocol, not an
+  isolated receptor-dose estimator or a fresh proof of all cue-causality laws.
+- Before/after contact arrays once; thereafter use existing changed-contact
+  events instead of full-population observer scans on every step. Record actual
+  learned-work preparations, motor transfers/discharges, instrument state,
+  emitted pressure and selfhearing. Preserve ordinary physical successor and
+  exact final paired state even on no-response/inconclusive outcomes.
+- Permission/fresh work/direction/computed vs retained strength must be joined
+  on SAME clock/bond, not inferred from zero sound. Strength retained but not
+  used is partial; no change without opportunity is inconclusive. A difference
+  in sound alone is not proof of learned conductance. No deadline-by16 failure.
+- AWS read-only before/after, artifact/env/mounted roster proof, one source review
+  before run. No new native invocation before caller review passes.
+No new candidate/release/word claim. Full goal ACTIVE; vision and life stay queued.
+
+### D-054-122-298 / S-054-122-298 — speech parked on Joe's order, evidence preserved
+
+User: "speech needs a break and learning needs to happen so get vision and
+self life started next regardless of this outcome - you can come back to
+speech later". This is priority authority, not a finding against the repair.
+Previous scope-only turn NO PROGRESS; this turn completed diagnostic source
+review/build and then obeyed the reprioritization before any body invocation.
+
+R122297 temporary source review PASS, frozen507ae26536aa00098a85dc70f06807909233a60e9be8a02525c4e77c5930a098.
+Native diagnostic SHA1cb2597fa1726a7e76df4f980cda71004585004b3a6231d54621b9947dc09928.
+One release diagnostic wheel build exit0,1m59s,190warnings disclosed.
+WheelSHAcdf8e360ac394df87028dcbfa27322e422b5704a78eaa2b3491ddb8e397d68f5.
+Caller review parked before final verification; no final caller PASS.
+No native saved-body run, cue, new teaching, deployment or caretaker mutation.
+Temporary tracing removed by full-file restoration; native baseline hash
+e0ab6220441f07d86e68e1251c5d3f04f3cdb078d8e32d77bab8fd56dff14921 verified.
+
+Raw patch, wheel, caller, build log, before/after AWS snapshots and PARKED.md:
+s3://guala-incident-bench-20260831/strength-use-parked-20260913/PCJFjk/evidence.tar.gz
+SHA867c7672e9c36fb304e6f324c5a184b26de2b69c3e576b01112f016102b2e93d,
+upload and full stream readback hash verified. No release may use that
+diagnostic wheel/cache artifact; fresh source/artifact proof required if resumed.
+Source preflight wrong clock variable corrected before build; read-only wrong
+path attempts math-authority and python_bindings/organism_runtime recorded in
+archive. Additional vision-path rg fumbles used absent substrate/lean_sensory_ingress
+and substrate/guala_physical_sensorium; real imports resolved directly from
+lean_physical_loop to lean_sensory_occurrence and guala_physical_sensorium.
+These were tool lookup errors, not organism failures, no source changes from them.
+
+AWS04:41:32UTC service1460, task4ffdfe18d4154aa992da37ae5d6bf3cb, sameC132
+imagebb72c2aeeaf9ae05d6a63e3096d7206dc7e20857bd816cf790ece1d09743bc15,
+1desired/1running/0pending, taskHEALTHY. CPUmax52.0102%,RAMmax15.8325%;
+CPU/RAM/storage/refusal alarmsOK, clock-stalledALARM. Not an all-green or
+comprehensive cognition/production capability claim. Postbuild snapshot archived.
+
+### V-054-122-299 — approved vision lane activated; speech no longer prerequisite
+
+Requested architecture: richer actual sensory distinctions through preserved
+receptor identities and unchanged full DSF, not display-only enlargement.
+Current code reality: browser imageRetina (gualaloom.html31) draws the whole
+source into18x6RGB, derives27coarse sites as2x2 averages of108fine sites.
+Same path serves camera, cards, uploaded pictures and text. It cannot retain
+details that this sampling discards. This was already recorded R122273; reuse
+that finding, do not count it as a new discovery. The 8x8 constants found in
+substrate/visual_region_continuity.py are NOT authority for the lean served path.
+Conflict with requested visual-detail capability: YES, insufficient current
+sampling; this does not establish a clinical acuity or recognition result.
+Will not extend retired visual owners, shell, semantic lookup, image-generated
+substitute sight, or the speech mechanism. No kernel/field reduction; nothing lost
+by this source-only inspection. No vision code or anatomy changed yet.
+
+Single next item: size the approved retinal improvement against actual stored
+lesson images, preserving image geometry and stating camera/world field geometry
+separately. Recover the filed C1 lane before choosing count; 32x32/1024 remains
+a sizing proposal, not a measured sufficient anatomy. Then measure bounded cost
+on a copied body before migration/release. User-visible acceptance must distinguish
+actual admitted extra spatial evidence from merely enlarging the eye pane;
+image distinctions and receptor admission do not themselves prove learning.
+
+Queued next, independent of speech: amended self-driven-life charter:
+distinct physical needs -> interoceptive experience -> learned action ->
+real feeding consequence reducing that need. No aggregate hunger score,
+scripted "hungry => walk", or prohibition of unrelated exploration. Legacy
+shell remains retired. Skills/authority and exact existing native paths must
+be read before implementation; no new law/deployment claimed by this queue entry.

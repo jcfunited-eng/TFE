@@ -5,7 +5,23 @@ Item IDs are permanent. A checked box means the stated behavior is deployed and
 observed in live production, not merely coded or tested. `IN PROGRESS` means the
 box remains unchecked until live acceptance passes.
 
-## Current execution checkpoint — 2026-09-13
+## CURRENT ORDER — D122298: speech PARKED; vision ACTIVE; self-driven life NEXT
+
+Joe explicitly ordered speech to take a break regardless of the current
+diagnostic outcome. This supersedes every speech-first dependency and next-run
+instruction below. R122177 is PARKED, not complete or rejected. Do not resume
+speech automatically after context loss or use its acceptance as a gate on
+vision/self-driven life. Full AE goal remains ACTIVE and unchanged.
+
+V122299 is the single active item: the already-approved vision improvement,
+starting from the actual card/camera/world retinal path and the filed sizing
+plan. Self-driven life follows under the amended physical-needs charter;
+it does not wait for another speech result. Current-only identity, learned
+sensory state, full DSF, resource bounds and no scripted cognition remain.
+C132/S122278 and C131/H122247 stay CLOSED. No caretaker pause/restart or live
+lesson was performed in this transition.
+
+## Historical execution checkpoint — 2026-09-13 (superseded by D122298)
 
 S122295/296 corrects the interpretation: C131 dose arms share the SAME
 669725 predecessor/native/cue/sky/initialsound. Later selfhearing differences
