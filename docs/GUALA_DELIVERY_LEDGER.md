@@ -1974,3 +1974,19 @@ skipping settlement. Source-only independent review confirmed this, including
 the retained-energy-in-darkness caveat. Execution contract and canonical
 Attempt54 updated; no new test or deployment. Next remains one complete lawful
 execution design, now explicitly covering steady illumination as well as noise.
+
+## D122334 — exact receptor trial retired; recipient authority review
+
+7f596389b archives the exact but unearned receptor-parallel candidate.
+Four post-growth steps only1.486% lower in one local comparison; every physical
+observation and698816/698817body/world/restart byte remained exact. Both native
+files restored; no production change or250ms claim.
+
+Next source-backed design question is calculation context versus physical
+recipient: current selected contact endpoints feed both one complete UF and
+every local neuronal delivery, even when net transfer iszero. Zero net does
+not prove no cause. C1 review must establish whether a distinct complete
+physical recipient law is allowed WITHOUT reducing full UF/context. No
+replacement law, skip or new candidate is ratified. Attempt54 and execution
+contract hold exact anchors and exclusions. Full goal active, vision first;
+self-life and speech remain parked.

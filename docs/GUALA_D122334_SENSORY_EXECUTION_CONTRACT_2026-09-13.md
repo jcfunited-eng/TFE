@@ -306,3 +306,27 @@ do not yet have a measured tiny CPU cost. C1 review must resolve this constraint
 alongside shared-field/predecessor custody, not assume a pixel-diff scheduler.
 Full source anchors and the executable dark/residue caveat are in Attempt54's
 steady-light execution entry. No native edit, run or production change.
+
+## D122334 context/recipient law review — 2026-09-13 20:02 UTC
+
+Receptor preparation parallelism is retired after exact proof but insufficient
+overall benefit; Attempt54/7f596389b preserves the complete trial. No added
+parallel state remains. Next is a physical recipient-boundary decision.
+
+Source20591/20850/21954/22369 uses one calculation-selected endpoint set both
+for the full joint UF context and for local neuronal delivery. Selection
+occurs before the electrical solution. An endpoint with zero NET transfer is
+not excluded from that delivery, but zero net is NOT absence of a real event.
+C1 must resolve whether calculation-context membership itself constitutes
+physical DSF coupling, or whether a complete receipt-derived recipient set may
+differ while preserving the exact unchanged full UF/context.
+
+This is a prospective PHYSICAL LAW review, not an exact scheduling patch or
+approval to omit coordinates. Seeds, steady exposure, opposing transfers,
+fractional/in-flight work, local pumping/recovery, regulation and contact
+consequences all retain authority. If full-field coupling itself requires
+every context recipient, that dependency stands. No code until the distinction
+and the complete successor/continuation law are settled explicitly.
+Early receptor visibility cannot substitute for sustained service capacity.
+No mean-only, queue-only or partial-state250ms acceptance. Canonical Attempt54
+contains source anchors, prior-art checks, caveats and secondary parked waste.

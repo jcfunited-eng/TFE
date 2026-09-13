@@ -25984,3 +25984,90 @@ finding, not being retested. Next item stays the already-authorized
 dependency-complete sensory advancement/whole-body barrier design, carrying
 the full shared-DSF and steady-exposure constraints already sent to C1. Do not
 replace that unresolved dependency question with another local Rayon wrapper.
+
+### D122334 — calculation context versus physical recipient, 2026-09-13 20:02 UTC
+
+Previous turn classified PROGRESS: exact receptor parallel proof completed,
+added machinery retired, executable source restored and evidence on origin
+7f596389b. Current clean root verified at that HEAD. No active build/probe/job
+is being waited on. This continues D122334, not a reopening of P122333, V314,
+V305/V330 or the exact optical closure. Production baseline remains the last
+directly verified1461 task/image; no fresh production measurement is claimed.
+
+Requested architecture is <=250ms actual, sustained full-field reception with
+organism-aimed detail. Current atomic whole-body path conflicts with latency.
+Full DSF, source bounds, clocks and receiver physics stay intact in this
+SOURCE-ONLY assessment. Do not extend retired Rayon wrappers, invent a second
+owner, split UF by contact component, or publish partial state as completed
+perception. Read existing D122334 contract in full before assessment.
+
+Capacity consequence: the last reference/candidate four post-growth totals
+4522.249/4455.048ms average1.131/1.114s per completed step on that bounded local
+sequence. These are not a production service-rate benchmark. They nevertheless
+do not establish capacity for sustained4 arrivals/s. Early acknowledgement
+alone cannot remove the remaining computational demand or guarantee bounded
+pending work. Production P1223323.406s is a different measured OS/cycle scope,
+not a multiplier to apply to arbitrary native functions.
+
+Concrete source distinction now sent to C1 for LAW REVIEW, not a code fix:
+core20591-20599 builds selected from seeds, BOTH endpoints of scheduled/incident
+contacts and due terminals BEFORE the electrical solver. selected_members_by_cohort
+at20850 is formed from that calculation set. Later21893+ forms pre/post voltage
+coordinates for EVERYselected vertex (even when its net outward count iszero).
+21954-21989 evaluates ONE full UF over those coordinates and their physical
+bounds, then assigns context port indices0..selected.len. 22230-22397 consumes
+EVERYselected member for own Psi, followed by the existing full local neuron
+path. No separate delivery-recipient set is established by a nonzero net
+transfer test. This proves selection and delivery are currently linked in
+source. It DOES NOT prove how many current live recipients lack other causes,
+that any is unnecessary, or that removing any would preserve behavior.
+
+The precise review question: does inclusion only as context for evaluating a
+contact itself mandate a new local DSF/Psi/neuron event, even absent another
+physical cause? Or may one retain the EXACT complete shared field and context
+while derive a smaller, dependency-complete physical recipient set? This is
+NOT permission to filter by zero net charge: opposing real transfers may
+cancel, fractional/in-flight work remains material, seeds/exposure/recovery/
+local pumping/regulation/contact changes may independently require an event.
+No scalar importance score, thresholds, cap, discarded source coordinate,
+field regrouping or omission of a due/material obligation is proposed.
+If joint DSF delivery itself is the ratified physical coupling to every such
+context vertex, the smaller-recipient proposal is unavailable. Say so rather
+than disguising that change as an optimization. If not, a replacement recipient
+law must be explicitly ratified and specified before code, preserving all
+causal/contact/material/learning and restart obligations. It would change
+physical successors and cannot be labeled byte-equivalent performance work.
+No candidate, benchmark or new physiology is authorized by this question.
+
+False shortcut closed by direct source:20864+ pumps ONLY seed_flats (plus the
+isolated L13 law), not every selected contact endpoint. Do not claim that the
+old whole-neighbour pumping defect remains or repair it again.
+Also checked but NOT selected as new latency candidates: ExactRational already
+uses fixed i128/u128 checked arithmetic; earlier wide-conversion/energy-law
+reductions are recorded and closed. PreparedPsi already precomputes immutable
+target plans; no new living-state memoization is warranted by this read.
+
+Secondary source waste observation, NOT principal-delay claim or code scope:
+physical_event_finalization139-165 tests whole NeuronPhysicalState equality
+for transition/selected predecessors before adding changed_flats. The contact
+scheduler below reads membrane, capacitance, carriers and mounted contact
+state; thus a broader physical-state change can cause contact reconsideration.
+However the SAME changed set also drives recovery and terminal-preparation
+scheduling (the latter reads receptor residue), so replacing it with voltage
+alone would be wrong. Catch-up phase/clock bytes may differ if scheduling is
+changed, requiring its own explicit continuity law. P319/P327~56ms finalization
+remains closed timing; no claim it suddenly explains seconds.
+Entry pre_source_membranes also scans all retained neurons for held endpoints;
+a sparse replacement must preserve first-change/held-drive and newly mounted
+lineage chronology across both schedule rebuild and finalization. Not a
+license for another untimed microcandidate.
+
+Command-only mistake: a finalizer search used an assumed top-level path while
+rg --files was still resolving it; actual path is
+resident_cognitive_formation/physical_event_finalization.rs. Correct source
+then read through EOF. No compile, run, physical failure or code edit resulted.
+C1 has not yet replied to the shared execution questions as of the current
+fetch. An existing Claude process is not evidence of a working review/cron.
+Next single item: settle this explicit context/recipient authority distinction
+with C1 before designing a replacement advancement boundary. Full goal active;
+vision first, speech/self-life parked; no new request for Joe's GO.
