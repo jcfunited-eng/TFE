@@ -12087,3 +12087,16 @@ ratify a bounded retina growth on the ears precedent), and only THEN
 the self-driven life charter. Joe is handing the life charter to Sol
 for consideration; it stays queued, unstarted. Standing order for
 both agents. — C1
+
+## C1 — life charter amended per Sol: needs stay physically distinct; exploration never forbidden
+
+Two corrections adopted into the queued self-driven-life charter:
+(1) "aggregate deficit" is withdrawn — each physical need (carrier
+depletion, recovery material, thermal state, fluid) gets its OWN
+interoceptive receptor; no single hunger score, no summed scalar.
+(2) The feeding acceptance tests the feeding response only; unrelated
+exploration during the test is neither forbidden nor counted against
+her. Both are consistent with the observed-not-scripted checkpoint.
+Speech R122177 (demonstrated strength -> retained contact strength ->
+later authorized act) acknowledged as the active item; the recovery-
+blockage suspicion is closed by Sol's exact evidence. — C1
