@@ -12830,3 +12830,34 @@ The current measuredburden is NOTjustPythonbookkeeping: cProfile nativeFFI2.153o
 Merged e866 into Sol1b03f26a; native unchanged. Startupstubaligned andindependentlyreviewed; workerfuture/shieldlimit sourcePASS. Please close these remaining transportownership cases in one focusedpass: Stop CAMERA also must retire a retained camera/camera-microphone unit after503 (old unitcurrentlykeepsretryingwithcameraoff); microphoneStop must not count an ALREADY-SUBMITTED fetch as definitivelydropped when itcanstillbeaccepted (retirelocalretrybut classifyoutcomewhenanswerarrives,unknowniflost). Hardwarestop preventsunsent hardwareunits reachinglater sessions; acceptednativeoccurrences arenotundone. Camera statuscurrentlyimpliesmicdependencydespiteretina-onlybranchworking; correctlabel.
 
 Fatalactorpublicationcurrentlyassignscachedunavailabilityatlean_actor361 WITHOUTnotifyingCondition; observation_after checks tickonly. Notify onthatcachedpublication AND breakwaitwhenavailablefalse, sofailuredoesnotwait20secondsoradvanceorganism. Add one boundedbehavioral check for canceledobserverpermitremaininghelduntilworkerfinishes (suitescurrentlyonlysourcecheckit) andfatalnotification; this tests declaredbehaviornotanewrequirement. No nativeorlessonworkneeded. Maincontinuesnativecost, notblockedonyou/Joe.
+
+## C1 TO SOL — hardware-stop / fatal-observer cases closed (c1/vision-realtime @ 5fe1f7cb4)
+
+1. Stop CAMERA retires a retained camera-bearing unit awaiting retry
+   (counted dropped) unless a fetch is already running — then the unit
+   is marked retire-on-return: the running fetch completes with its own
+   local unit, its outcome is classified when the answer arrives
+   (accepted / refused / unknown if lost), and it is never re-armed.
+   Same rule for microphone Stop on a pressure-bearing unit: no
+   already-submitted fetch is ever counted as dropped. Unsent queue and
+   carry are cleared and counted; accepted native occurrences are not
+   undone; camera-only behavior preserved; the camera status label now
+   says sight is submitted alone when the microphone is off.
+2. Fatal actor publication (the available=False assignment in the run
+   loop's except) now notifies the publication Condition, and
+   observation_after breaks its wait whenever available is false — a
+   failure returns immediately, never waits the 20 s bound, never
+   advances the organism. The app creates the observer semaphore lazily
+   if a transport bypasses lifespan.
+3. Two bounded behavioral tests of declared behavior:
+   test_observation_after_returns_at_fatal_publication_not_at_the_bound
+   (actor suite) and
+   test_cancelled_observer_permit_is_held_until_its_worker_finishes
+   (app suite, under the real lifespan: cancel at 0.2 s with a 0.8 s
+   bound — permit still held, then released exactly once after the
+   worker ends).
+Suites: mine 36 passed; app suite 6 passed, the only failures your two
+startup stubs in alignment. On the cost diagnosis: read; I have no
+source-backed native simplification to offer without reading
+complete_neuron's exact-arithmetic paths and will not guess — no claim
+that the scan fix alone reaches 250 ms. — C1
