@@ -410,3 +410,134 @@ No new state/worker/cache or biological function; retained as exact computation
 cleanup, not a replacement for the full execution deliverable. Attempt54 holds
 complete source/review/build/cost/health/archive receipts. No native deployment.
 Next is the admitted physical-work boundary, not more arithmetic tuning.
+
+## Sparse camera intake — frozen implementation scope, 2026-09-13
+
+This continues D122334 and the reviewed GLJSRC07 boundary; it does not close
+250ms, detailed native gaze, independent sensory timing, or the whole-settlement
+barrier. The existing dense camera/card paths remain byte-identical. Acquisition
+may deliberately sample a subset as Joe authorized; this is not a claim that
+omitted light equals darkness or that sparse and dense physical inputs agree.
+
+Authorized source files: lean_sensory_occurrence.py, lean_production_app.py,
+guala_physical_sensorium.py, lean_physical_loop.py. Native source version7 from
+8cde6ee71 is reused unchanged. C1's drive release stays isolated; overlapping
+Python files require explicit integration after its frozen source, not overwrite.
+
+Input-to-output field map:
+- SensoryBody.retinal_site_indices -> LeanSensoryOccurrence.retinal_site_indices:
+  explicit sorted unique existing sight IDs0..902, with exactly3 RGB u8 values
+  per sampled site; unavailable without a light-bearing source. No new image
+  archive, expiry/session registry, gaze selector, queue, neuron or topology.
+- Existing retinal RGB -> existing achromatic luminance and body-owned eyelid
+  transmission -> one held trajectory per actually sampled site on the same
+  source domain used by the current camera path. Omitted camera sites do not
+  acquire replacement world/zero/old samples in that joint source.
+- settle_projected_physical_sensorium receives optional exact retinal sites and
+  trajectories. It packs old sight first, existing selected nonvisual ports
+  unchanged, then appended focal sight: this is declared anatomy order, not
+  sorted modality order. Native GLJSRC07 projects one genuine occurrence/groups.
+- LeanPhysicalLoop calls the same one native interval, preserving simultaneous
+  external hearing, separately authenticated self-sound/body return, admissions,
+  native settlement and mutation order. No new physical law, energy, fuel,
+  body directive or persistent neuron field; only the declared acquired input
+  domain differs. Unattended and dense paths retain old source bytes.
+- Exact partial retinal_u8/external_rgb_retinal_u8 are returned with matching
+  retinal_site_indices/external_retinal_site_indices. LeanActor already carries
+  arbitrary result.observation fields through its existing last_occurrence and
+  GET projection. UI must use these IDs and disclose holes; no smooth complete
+  frame may be fabricated. C1 page contract is filed before code.
+- Native successor, motor-world preparation/commit, pending physical return,
+  checkpoint, CURRENT and cold restore are unchanged. The raw external request
+  and observation are not a second persistent sensory source. Failed preparation
+  remains before native mutation; existing failure handling retains authority.
+
+Bounds: at most903 source IDs and2709 RGB bytes; at most903 sample trajectories
+plus the existing85 nonvisual ports; one native call per ordinary primary source,
+no per-site call or UF. No selected sample is repeated to complete dense shape.
+The HTTP envelope must be byte-counted with the new ID list; source receipt
+version5 binds IDs as well as values without changing dense v3/v4 receipts.
+
+Focused supporting checks cover malformed/duplicate/out-of-range/mismatched
+coverage, unchanged dense receipts, exact source ordering including sight+
+hearing+body, external/self-hearing coexistence, and sparse observation IDs.
+Before release, the same fresh authenticated mature predecessor must admit
+alternating camera subsets through HTTP-to-native, preserve receptor identities,
+nonvisual/self-return paths, commit and cold-restore its actual successor, and
+advance one further interval. The UI must expose the exact accepted subset.
+This is the existing mature-path gate; helper passes cannot replace it.
+Resource/latency claims require production reception measurement under the
+declared noisy/full-change load, not the codec or a copied body's stopwatch.
+
+Recorded command corrections this continuation: two read-only source searches
+named absent guessed paths (glew_runtime/physical_sensorium.py and native
+virtual_visual_field.rs). rg --files resolved guala_physical_sensorium.py and
+the actual optical/world sources; neither was a build/test/organism failure.
+Use resolved paths only for subsequent commands.
+
+Scope closure before source freeze: also change guala_world_sensorium.py's
+existing passive capture to omit virtual-world ray rendering when this exact
+external sparse occurrence owns sight. Its returned camera samples replace all
+sight in the primary source; rendering903 discarded world rays then overwriting
+them has no consumer. Nonvisual contacts, chemistry, thermal evolution and
+world time still run unchanged. The explicit include_world_sight argument
+defaults True, so all existing calls remain unchanged. Pending body-return
+capture is not modified. No quiescence or unchanged-light shortcut is involved.
+
+The sparse observation is tagged external-rgb-sampled (rather than dense
+external-rgb), preventing an old page from treating an arbitrary135-site subset
+as the complete old retina. C1's UI must support this explicit new tag before
+publication. This is a required truthful observation boundary, not perception.
+The added API metadata costs at most4431 JSON bytes, so the envelope becomes
+31055 bytes (existing26624 plus that exact bound).
+
+
+## Sampled intake supporting proof — 2026-09-13 22:18Z
+
+Source-only independent review PASS, no localized or architectural findings.
+Whole-tree fingerprint verified before/after:
+0c74cd5d0aa94999fe75f49c6cc7f866fc3c3a88ea9520b4de94079b1658c8aa.
+Reviewed diff SHA256:
+1e69e9908b812cae8a75dfd5bd50523174d723faa984fe5ea92ec5a72071b0bd.
+
+Candidate extension built with CARGO_BUILD_JOBS=2, nice15, maturin build
+--manifest-path native/guala_core/Cargo.toml --locked (dev profile, not a timing
+or release artifact). Exit0,20.77s,188 existing library warnings. Installed only
+to private /tmp/guala-d122334-python.XiUDOs, never into the shared interpreter.
+Loaded extension path asserted before pytest; .so SHA256
+96ed617273342c053109afbf3c2df04db3df8ef6d409787b13a9b1e093967f9e.
+
+Focused9 named tests/29 parameter cases:29passed in4.00s,exit0. Covers the new
+sparse occurrence/receipt and malformed coverage, original site packing through
+actual native GLJSRC07, absence of discarded world rays with byte-identical
+nonvisual input, same one native invocation retaining external/self-hearing
+with/without physical return, old dense receipt/source/world paths.
+Loop fixtures prove handoff only; native source test proves codec/packing only.
+No mature-body, production latency, cognition or deployment claim.
+
+The old loop fixture lacked retina_focal, already reported by C1. Added the
+explicit empty field rather than treating that fixture defect as organism
+failure. Draft test receipt length corrected from4 to existing2 bytes before
+running. Exact-edit anchor initially matched multiple function signatures and
+refused before writes; full function context resolved it. An unrelated guessed
+root pyproject read failed; the actual native/guala_core/pyproject.toml was
+resolved and read before build. No organism failures occurred in these checks.
+
+Waste bound: one sparse external primary now performs0 discarded virtual-world
+retinal ray projections rather than903 site projections; only actual acquired
+samples cross the source boundary. Nonvisual/world time remains exact. Runtime
+cost saving is not measured yet; pending-body capture is unchanged. This is not
+the complete-settlement-barrier removal.
+
+Direct AWS at22:16:31Z: task1462/658fa47313e34ede929d1a0b2dcb2462,
+digest f82531c08084c0666f01b0f7ddc17a4a46c850186050d80034a1a5f182e55082,
+1running0pending,HEALTHY,4CPU16GiB. C1's release, not Sol's vision release.
+CPU/memory/storage/refusal alarms OK; clock-stalled remains historical ALARM
+since2026-09-08. Service metrics22:05-22:15 span the1461->1462 cutover and
+cannot be a same-task performance comparison: CPUmax64.58%,RAMmax23.53%.
+Build session53877 and test13059 exited0; post-run process census found no
+maturin/rustc/pytest/private-test descendants. No caretaker/process mutation.
+
+Next: integrate exact C1 production source without overwriting its drive work,
+then execute actual copied-body intake and cold continuation. UI must support
+the explicit sampled tag before publication. Full goal and250ms remain open.

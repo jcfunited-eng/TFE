@@ -13,7 +13,7 @@ from typing import Callable, Literal
 
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.responses import JSONResponse, Response
-from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
+from pydantic import BaseModel, ConfigDict, Field, StrictInt, ValidationError, model_validator
 
 from dsf_ai_service.guala_home_world import home_world_authority
 from dsf_ai_service.lean_actor import LeanOrganismActor, PhysicalOccurrence
@@ -36,7 +36,10 @@ MAILBOX_CAPACITY = 1
 # drives at maximum ints = 22,712 B compact / 25,507 B with default JSON
 # spacing (card/camera-microphone: 21,603 / 24,319). Cap stays, sized to the
 # spaced worst case plus margin; anything larger is still refused.
-MAX_OCCURRENCE_BODY_BYTES = 26_624
+# Explicit sparse coverage adds at most 4,431 JSON bytes: exactly
+# len(json.dumps({"retinal_site_indices": list(range(903))})).
+# Keep the existing envelope plus this bounded acquisition metadata.
+MAX_OCCURRENCE_BODY_BYTES = 31_055
 PUBLIC_API_PREFIX = "/api/v1/guala"
 OBSERVATION_ROUTE = f"{PUBLIC_API_PREFIX}/observation"
 OBSERVATION_LONGPOLL_SECONDS = 20.0  # bounded hold for ?after=<tick>; declared, not tuned
@@ -71,7 +74,8 @@ class SensoryBody(BaseModel):
         "text-light",
         "text-microphone",
     ]
-    retina_rgb_u8: tuple[int, ...] | None = None
+    retina_rgb_u8: tuple[StrictInt, ...] | None = None
+    retinal_site_indices: tuple[StrictInt, ...] | None = None
     pcm_s16le_base64: str | None = None
     guided_vocal_drives: tuple[GuidedVocalDriveBody, ...] | None = None
 
@@ -251,6 +255,7 @@ def _physical_occurrence(body: OccurrenceBody) -> PhysicalOccurrence:
         LeanSensoryOccurrence(
             source=payload.source,
             retina_rgb_u8=payload.retina_rgb_u8,
+            retinal_site_indices=payload.retinal_site_indices,
             pressure_s16le=pressure,
             guided_vocal_drives=(
                 None

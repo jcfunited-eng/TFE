@@ -17,6 +17,7 @@ class Sensorium:
     retina: tuple = ((Fraction(0),) * len(loop.PASSIVE_TIMES),)
     legacy_ears: tuple = ()
     cochleae: tuple = ()
+    retina_focal: tuple = ()
 
 
 @pytest.mark.parametrize("new_consequence", [False, True])
@@ -27,6 +28,7 @@ class Sensorium:
 )
 def test_primary_keeps_tutor_and_authenticated_self_hearing_together(
     monkeypatch, guided, pending, external, physical_return, new_consequence,
+    sampled_sites=None,
 ):
     own_pressure, own_body, tutor = b"own pressure", b"own body", b"tutor pressure"
     calls, passive_calls, bindings = [], [], []
@@ -94,7 +96,12 @@ def test_primary_keeps_tutor_and_authenticated_self_hearing_together(
         return prepared
 
     monkeypatch.setattr(loop, "prepare_passive_world_interval", prepare)
-    monkeypatch.setattr(loop, "passive_sensorium", lambda **_kw: Sensorium())
+    def passive(**kw):
+        assert kw["include_world_sight"] is (sampled_sites is None)
+        return Sensorium()
+
+    monkeypatch.setattr(loop, "passive_sensorium", passive)
+    monkeypatch.setattr(loop, "retinal_carriage", lambda _axes: (0, Fraction(1)))
     monkeypatch.setattr(loop, "_requires_physical_return", lambda _e: new_consequence)
     monkeypatch.setattr(loop, "lean_embodiment_observation", lambda *_a: {})
 
@@ -104,11 +111,22 @@ def test_primary_keeps_tutor_and_authenticated_self_hearing_together(
 
     monkeypatch.setattr(loop, "one_self_hearing_hop", transduce)
     monkeypatch.setattr(loop, "settle_physical_sensorium", lambda **kw: kw["sensorium"])
-    monkeypatch.setattr(loop, "settle_projected_physical_sensorium", lambda **kw: kw["sensorium"])
+    sparse_projections = []
+
+    def project(**kw):
+        if kw.get("retinal_sites") is not None:
+            sparse_projections.append(kw)
+            assert kw["retinal_sites"] == sampled_sites
+            assert kw["retinal_samples"] == ((Fraction(1),) * len(kw["source_times"]),) * len(sampled_sites)
+        return kw["sensorium"]
+
+    monkeypatch.setattr(loop, "settle_projected_physical_sensorium", project)
     drives = ((37, 0, 1500),) if guided else None
     occurrence = (
         PhysicalOccurrence("sensory", LeanSensoryOccurrence(
-            "guided-vocal-microphone" if guided else "microphone", None, tutor, drives,
+            "guided-vocal-microphone" if guided else "camera-microphone" if sampled_sites is not None else "microphone",
+            None if sampled_sites is None else (255,) * (3 * len(sampled_sites)),
+            tutor, drives, retinal_site_indices=sampled_sites,
         ))
         if external else PhysicalOccurrence("unattended", None)
     )
@@ -143,6 +161,16 @@ def test_primary_keeps_tutor_and_authenticated_self_hearing_together(
     assert result.observation["external_guided_vocal_axis_count"] == (1 if guided else 0)
     assert result.observation["consumed_physical_return_tick"] == (10 if physical_return else None)
     assert result.observation["vestibular_return_consumed"] is physical_return
+    if sampled_sites is not None:
+        assert len(sparse_projections) == 1
+        assert result.observation["retinal_site_indices"] == sampled_sites
+        assert result.observation["external_retinal_site_indices"] == sampled_sites
+        assert result.observation["retinal_u8"] == [255] * len(sampled_sites)
+        assert result.observation["external_rgb_retinal_u8"] == (255,) * (3 * len(sampled_sites))
+        assert result.observation["latest_retinal_field_kind"] == "external-rgb-sampled"
+    else:
+        assert not sparse_projections
+        assert "retinal_site_indices" not in result.observation
 
 
 def test_native_explicit_pre_mutation_refusal_keeps_pending_return(monkeypatch):
@@ -169,3 +197,12 @@ def test_native_explicit_pre_mutation_refusal_keeps_pending_return(monkeypatch):
         loop.LeanPhysicalLoop().unattended(runtime, world)
     assert world.pending_physical_return is pending
     assert runtime.live_organism_tick == 10
+
+
+@pytest.mark.parametrize("physical_return", [False, True])
+def test_sampled_camera_keeps_external_and_self_hearing_in_one_native_interval(monkeypatch, physical_return):
+    test_primary_keeps_tutor_and_authenticated_self_hearing_together(
+        monkeypatch, guided=False, pending=True, external=True,
+        physical_return=physical_return, new_consequence=False,
+        sampled_sites=(0, 134, 135, 902),
+    )

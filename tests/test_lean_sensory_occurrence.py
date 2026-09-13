@@ -178,3 +178,77 @@ def test_direct_acoustic_guide_retains_nine_existing_controls_only() -> None:
             "guided-vocal-microphone", None, PRESSURE,
             tuple((axis, 0, 1) for axis in axes) + ((18, 1, 1),),
         )
+
+
+def test_sampled_retinal_input_preserves_ids_values_and_dense_receipts() -> None:
+    import hashlib
+    from fractions import Fraction
+    from dsf_ai_service.lean_sensory_occurrence import (
+        sampled_retina_luminance_u8, transmitted_rgb_retina_u8,
+    )
+
+    sites, rgb = (0, 134, 135, 902), (255, 0, 0) * 4
+    parsed = OccurrenceBody.model_validate({
+        "kind": "sensory", "payload": {
+            "source": "camera-microphone",
+            "retina_rgb_u8": list(rgb), "retinal_site_indices": list(sites),
+            "pcm_s16le_base64": base64.b64encode(PRESSURE).decode("ascii"),
+        },
+    })
+    actual = _physical_occurrence(parsed).payload
+    assert actual == LeanSensoryOccurrence("camera-microphone", rgb, PRESSURE, retinal_site_indices=sites)
+    assert sampled_retina_luminance_u8(rgb, sites) == (76,) * 4
+    assert transmitted_rgb_retina_u8(rgb, Fraction(1, 2), retinal_site_indices=sites) == (128, 0, 0) * 4
+    assert actual.source_receipt_sha256 != LeanSensoryOccurrence(
+        "camera-microphone", rgb, PRESSURE, retinal_site_indices=(1, 134, 135, 902),
+    ).source_receipt_sha256
+
+    for source, retina, pressure, drives, version in (
+        ("camera-microphone", RETINA, PRESSURE, None, 3),
+        ("guided-vocal-microphone", None, PRESSURE, GUIDED, 4),
+    ):
+        dense = LeanSensoryOccurrence(source, retina, pressure, drives)
+        light = b"" if retina is None else bytes(retina)
+        expected = (
+            f"guala.lean_sensory_occurrence.v{version}\0".encode("ascii")
+            + source.encode("ascii") + len(light).to_bytes(2, "little") + light
+            + len(pressure).to_bytes(2, "little") + pressure
+        )
+        if drives is not None:
+            expected += len(drives).to_bytes(1, "little")
+            for axis, direction, carriers in drives:
+                expected += axis.to_bytes(1, "little") + direction.to_bytes(1, "little") + carriers.to_bytes(4, "little")
+        assert dense.source_receipt_sha256 == hashlib.sha256(expected).hexdigest()
+
+
+def test_sampled_retinal_input_refuses_false_coverage_and_fits_envelope() -> None:
+    import json
+    from pydantic import ValidationError
+    from dsf_ai_service.lean_production_app import MAX_OCCURRENCE_BODY_BYTES
+
+    for sites, rgb in (
+        ((), ()), ((0, 0), (0,) * 6), ((2, 1), (0,) * 6),
+        ((-1,), (0,) * 3), ((903,), (0,) * 3), ((True,), (0,) * 3),
+        ((0,), (0,) * 6),
+    ):
+        with pytest.raises(ValueError):
+            LeanSensoryOccurrence("camera", rgb, None, retinal_site_indices=sites)
+    with pytest.raises(ValueError, match="no captured light"):
+        LeanSensoryOccurrence("microphone", None, PRESSURE, retinal_site_indices=(0,))
+    for bad in (True, "0", 0.5):
+        with pytest.raises(ValidationError):
+            OccurrenceBody.model_validate({
+                "kind": "sensory", "payload": {
+                    "source": "camera", "retina_rgb_u8": [0, 0, 0],
+                    "retinal_site_indices": [bad],
+                },
+            })
+    payload = {
+        "kind": "sensory", "payload": {
+            "source": "camera-microphone", "retina_rgb_u8": [255] * 2709,
+            "retinal_site_indices": list(range(903)),
+            "pcm_s16le_base64": base64.b64encode(PRESSURE).decode("ascii"),
+        },
+    }
+    assert len(json.dumps(payload).encode("utf-8")) <= MAX_OCCURRENCE_BODY_BYTES
+    assert _physical_occurrence(OccurrenceBody.model_validate(payload)).payload.retinal_site_indices == tuple(range(903))

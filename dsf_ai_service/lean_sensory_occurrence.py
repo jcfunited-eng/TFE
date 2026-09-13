@@ -33,10 +33,25 @@ CO_SENSORY_SOURCES = frozenset({
 })
 
 
-def _validate_retina_rgb(values: tuple[int, ...]) -> None:
+def _validate_retina_rgb(
+    values: tuple[int, ...], retinal_site_indices: tuple[int, ...] | None = None,
+) -> None:
+    if retinal_site_indices is not None and (
+        not isinstance(retinal_site_indices, tuple)
+        or not retinal_site_indices
+        or len(retinal_site_indices) > EXTERNAL_RGB_FOCAL_VALUE_COUNT // 3
+        or any(type(site) is not int or not 0 <= site < EXTERNAL_RGB_FOCAL_VALUE_COUNT // 3
+               for site in retinal_site_indices)
+        or any(left >= right for left, right in
+               zip(retinal_site_indices, retinal_site_indices[1:]))
+    ):
+        raise ValueError("sampled retinal sites are not bounded canonical anatomy")
     if (
         not isinstance(values, tuple)
-        or len(values) not in (EXTERNAL_RGB_VALUE_COUNT, EXTERNAL_RGB_FOCAL_VALUE_COUNT)
+        or (
+            len(values) not in (EXTERNAL_RGB_VALUE_COUNT, EXTERNAL_RGB_FOCAL_VALUE_COUNT)
+            if retinal_site_indices is None else len(values) != 3 * len(retinal_site_indices)
+        )
         or any(
             isinstance(value, bool)
             or not isinstance(value, int)
@@ -89,14 +104,27 @@ def rgb_retina_luminance_u8(values: tuple[int, ...]) -> tuple[int, ...]:
 
 
 def transmitted_rgb_retina_u8(
-    values: tuple[int, ...], transmission: Fraction
+    values: tuple[int, ...], transmission: Fraction,
+    *, retinal_site_indices: tuple[int, ...] | None = None,
 ) -> tuple[int, ...]:
-    """Expose the exact browser RGB field after body-owned eyelid transmission."""
+    """Expose only supplied RGB sites after body-owned eyelid transmission."""
 
-    _validate_retina_rgb(values)
+    _validate_retina_rgb(values, retinal_site_indices)
     if not isinstance(transmission, Fraction) or not 0 <= transmission <= 1:
         raise ValueError("external retinal transmission left physical bounds")
     return tuple(round(Fraction(value) * transmission) for value in values)
+
+
+def sampled_retina_luminance_u8(
+    values: tuple[int, ...], retinal_site_indices: tuple[int, ...],
+) -> tuple[int, ...]:
+    """The existing achromatic law, once for each explicitly sampled site."""
+
+    _validate_retina_rgb(values, retinal_site_indices)
+    return tuple(
+        (values[i] * 299 + values[i + 1] * 587 + values[i + 2] * 114 + 500) // 1_000
+        for i in range(0, len(values), 3)
+    )
 
 
 @dataclass(frozen=True, slots=True)
@@ -105,6 +133,7 @@ class LeanSensoryOccurrence:
     retina_rgb_u8: tuple[int, ...] | None
     pressure_s16le: bytes | None
     guided_vocal_drives: tuple[tuple[int, int, int], ...] | None = None
+    retinal_site_indices: tuple[int, ...] | None = None
 
     def __post_init__(self) -> None:
         if self.source not in SOURCES:
@@ -113,7 +142,9 @@ class LeanSensoryOccurrence:
         pressure = self.pressure_s16le
         guided = self.guided_vocal_drives
         if retina is not None:
-            _validate_retina_rgb(retina)
+            _validate_retina_rgb(retina, self.retinal_site_indices)
+        elif self.retinal_site_indices is not None:
+            raise ValueError("sampled retinal sites have no captured light")
         if pressure is not None and (
             not isinstance(pressure, bytes)
             or not pressure
@@ -164,9 +195,12 @@ class LeanSensoryOccurrence:
         pressure = b"" if self.pressure_s16le is None else self.pressure_s16le
         body = (
             (
-                b"guala.lean_sensory_occurrence.v3\0"
-                if self.guided_vocal_drives is None
-                else b"guala.lean_sensory_occurrence.v4\0"
+                b"guala.lean_sensory_occurrence.v5\0"
+                if self.retinal_site_indices is not None else (
+                    b"guala.lean_sensory_occurrence.v3\0"
+                    if self.guided_vocal_drives is None
+                    else b"guala.lean_sensory_occurrence.v4\0"
+                )
             )
             + self.source.encode("ascii")
             + len(retina).to_bytes(2, "little")
@@ -182,6 +216,9 @@ class LeanSensoryOccurrence:
                     + direction.to_bytes(1, "little")
                     + carriers.to_bytes(4, "little")
                 )
+        if self.retinal_site_indices is not None:
+            body += len(self.retinal_site_indices).to_bytes(2, "little")
+            body += b"".join(site.to_bytes(2, "little") for site in self.retinal_site_indices)
         return hashlib.sha256(body).hexdigest()
 
 

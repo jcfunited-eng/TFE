@@ -213,3 +213,23 @@ def test_focal_optics_preserve_old_apertures_and_cover_the_whole_field_exactly()
     assert first_column[0][2] + first_column[0][4] == 45_000
     assert first_column[-1][2] - first_column[-1][4] == -45_000
     assert all(upper[2] - upper[4] == lower[2] + lower[4] for upper, lower in zip(first_column, first_column[1:]))
+
+
+def test_external_sampled_sight_omits_discarded_rays_not_world_consequences(monkeypatch) -> None:
+    from dataclasses import replace
+    from dsf_ai_service import guala_world_sensorium as sampling
+
+    world = _world()
+    _prepared, execution = _commit(world)
+    args = dict(world=world, snapshot=execution.after, body_axes=BODY_AXES, frame_count=26)
+    reference = passive_sensorium(**args)
+    before = bytes(world.encoded_snapshot())
+
+    def forbidden_render(*_args, **_kwargs):
+        raise AssertionError("discarded world sight was rendered")
+
+    monkeypatch.setattr(sampling, "retinal_irradiance_field", forbidden_render)
+    actual = passive_sensorium(**args, include_world_sight=False)
+    assert actual.retina == actual.retina_focal == ()
+    assert actual == replace(reference, retina=(), retina_focal=())
+    assert bytes(world.encoded_snapshot()) == before

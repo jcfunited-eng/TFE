@@ -11,6 +11,7 @@ import sys
 from dsf_ai_service.glew_runtime.native_joint_source_episode import (
     settle_native_joint_source_episode_batch_from_anatomy,
     settle_native_joint_source_episode_for_senses_from_anatomy,
+    settle_native_joint_source_episode_for_retinal_sites_from_anatomy,
 )
 from dsf_ai_service.glew_runtime.sensory_full_field_boundary import (
     PhysicalSense,
@@ -164,6 +165,8 @@ def settle_projected_physical_sensorium(
     source_times: tuple[Fraction, ...],
     sensorium: PhysicalSensorium,
     senses: tuple[PhysicalSense, ...],
+    retinal_sites: tuple[int, ...] | None = None,
+    retinal_samples: PortTrajectories | None = None,
 ) -> object:
     """Settle explicit disjoint senses while preserving mounted port anatomy."""
 
@@ -180,7 +183,33 @@ def settle_projected_physical_sensorium(
     # a different exact sample grid for another, independently admitted sense.
     # Native projection filters the declared port roster without regrouping
     # its senses. Focal sight is LAST, even when several senses coexist.
-    selected = _validate(sensorium, len(source_times), senses=senses)
+    if retinal_sites is None:
+        if retinal_samples is not None:
+            raise ValueError("sampled light lacks explicit retinal coverage")
+        selected = _validate(sensorium, len(source_times), senses=senses)
+    else:
+        if (
+            PhysicalSense.SIGHT not in senses
+            or not isinstance(retinal_sites, tuple)
+            or not retinal_sites
+            or any(type(site) is not int or not 0 <= site < RETINAL_PORTS + RETINAL_FOCAL_PORTS
+                   for site in retinal_sites)
+            or any(left >= right for left, right in zip(retinal_sites, retinal_sites[1:]))
+            or not isinstance(retinal_samples, tuple)
+            or len(retinal_samples) != len(retinal_sites)
+            or any(not isinstance(row, tuple) or len(row) != len(source_times)
+                   for row in retinal_samples)
+        ):
+            raise ValueError("sampled light changed retinal coverage or source clock")
+        # Do not validate, copy, or encode omitted world/camera light. Only the
+        # actual acquired sites replace sight; all selected nonvisual ports keep
+        # their existing values and clock. Focal ports are appended in anatomy.
+        nonvisual = _validate(
+            sensorium, len(source_times),
+            senses=tuple(sense for sense in senses if sense is not PhysicalSense.SIGHT),
+        )
+        split = sum(site < RETINAL_PORTS for site in retinal_sites)
+        selected = (*retinal_samples[:split], *nonvisual, *retinal_samples[split:])
     if not selected:
         raise RuntimeError("physical sense projection left mounted anatomy")
     signals = array("d")
@@ -188,6 +217,13 @@ def settle_projected_physical_sensorium(
         signals.extend(float(value) for value in trajectory)
     if sys.byteorder != "little":
         signals.byteswap()
+    if retinal_sites is not None:
+        return settle_native_joint_source_episode_for_retinal_sites_from_anatomy(
+            anatomy=receptor_anatomy(include_focal=retinal_sites[-1] >= RETINAL_PORTS),
+            assembly_id=assembly_id, source_times=source_times,
+            signal_body=signals.tobytes(), selected_senses=senses,
+            selected_retinal_sites=retinal_sites,
+        )
     return settle_native_joint_source_episode_for_senses_from_anatomy(
         anatomy=receptor_anatomy(include_focal=bool(sensorium.retina_focal)),
         assembly_id=assembly_id,

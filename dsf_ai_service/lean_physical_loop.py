@@ -11,7 +11,7 @@ from dsf_ai_service.guala_cochlea import one_self_hearing_hop
 from dsf_ai_service.lean_embodiment_observation import lean_embodiment_observation
 from dsf_ai_service.lean_sensory_occurrence import (
     LeanSensoryOccurrence, focal_retina_luminance_u8, rgb_retina_luminance_u8,
-    transmitted_rgb_retina_u8,
+    sampled_retina_luminance_u8, transmitted_rgb_retina_u8,
 )
 from dsf_ai_service.guala_motor_world import prepare_motor_consequence
 from dsf_ai_service.guala_physical_return import PendingPhysicalReturn, PASSIVE_BODY_MAGIC
@@ -89,6 +89,8 @@ class LeanPhysicalLoop:
         self_hearing_source_tick = pending_source_tick
         external_heard_samples = 0
         external_rgb_retina_u8 = None
+        sampled_retinal_sites = None
+        sampled_retinal_trajectories = None
         try:
             if returning is None:
                 primary_prepared = prepare_passive_world_interval(world)
@@ -98,6 +100,9 @@ class LeanPhysicalLoop:
                     world=world, snapshot=primary_prepared.execution_receipt.after,
                     body_axes=before_axes, frame_count=len(times),
                     pending_execution=primary_prepared.execution_receipt,
+                    include_world_sight=(
+                        sensory is None or sensory.retinal_site_indices is None
+                    ),
                 )
             else:
                 observed = world.observation_snapshot()
@@ -111,20 +116,30 @@ class LeanPhysicalLoop:
 
             if sensory is not None and sensory.retina_rgb_u8 is not None:
                 _heading, transmission = retinal_carriage(before_axes)
-                luminance = rgb_retina_luminance_u8(sensory.retina_rgb_u8)
-                primary_sensorium = replace(primary_sensorium, retina=tuple(
-                    (Fraction(value, 255) * transmission,) * len(times) for value in luminance
-                ))
-                # Vision upgrade: the 32x24 focal field rides beside the established
-                # 135 sites when the upgraded2,709-value shape arrives. A legacy
-                #405 payload replaces only old sites; ordinary focal world input,
-                # if present in this source, remains untouched.
-                focal = focal_retina_luminance_u8(sensory.retina_rgb_u8)
-                if focal:
-                    primary_sensorium = replace(primary_sensorium, retina_focal=tuple(
-                        (Fraction(value, 255) * transmission,) * len(times) for value in focal
+                sampled_retinal_sites = sensory.retinal_site_indices
+                if sampled_retinal_sites is not None:
+                    luminance = sampled_retina_luminance_u8(
+                        sensory.retina_rgb_u8, sampled_retinal_sites,
+                    )
+                    sampled_retinal_trajectories = tuple(
+                        (Fraction(value, 255) * transmission,) * len(times)
+                        for value in luminance
+                    )
+                else:
+                    luminance = rgb_retina_luminance_u8(sensory.retina_rgb_u8)
+                    primary_sensorium = replace(primary_sensorium, retina=tuple(
+                        (Fraction(value, 255) * transmission,) * len(times) for value in luminance
                     ))
-                external_rgb_retina_u8 = transmitted_rgb_retina_u8(sensory.retina_rgb_u8, transmission)
+                    # Dense legacy input retains its established world-focal coverage.
+                    focal = focal_retina_luminance_u8(sensory.retina_rgb_u8)
+                    if focal:
+                        primary_sensorium = replace(primary_sensorium, retina_focal=tuple(
+                            (Fraction(value, 255) * transmission,) * len(times) for value in focal
+                        ))
+                external_rgb_retina_u8 = transmitted_rgb_retina_u8(
+                    sensory.retina_rgb_u8, transmission,
+                    retinal_site_indices=sampled_retinal_sites,
+                )
 
             sources = []
             admissions = []
@@ -160,13 +175,25 @@ class LeanPhysicalLoop:
                 f"guala-lean-unattended-{before_native.identity}-{start_tick + 1}"
                 if returning is None else "guala-lean-native-motor-" + returning.causal_transition_sha256
             )
-            primary_episode = (
-                settle_physical_sensorium(assembly_id=assembly_id, source_times=times, sensorium=primary_sensorium)
-                if returning is None or (not has_external_sound and pending_pressure is None) else settle_projected_physical_sensorium(
+            if sampled_retinal_sites is not None:
+                primary_episode = settle_projected_physical_sensorium(
                     assembly_id=assembly_id, source_times=times, sensorium=primary_sensorium,
-                    senses=tuple(sense for sense in SENSE_ORDER if sense is not PhysicalSense.SOUND),
+                    senses=(
+                        tuple(SENSE_ORDER)
+                        if returning is None or (not has_external_sound and pending_pressure is None)
+                        else tuple(sense for sense in SENSE_ORDER if sense is not PhysicalSense.SOUND)
+                    ),
+                    retinal_sites=sampled_retinal_sites,
+                    retinal_samples=sampled_retinal_trajectories,
                 )
-            )
+            else:
+                primary_episode = (
+                    settle_physical_sensorium(assembly_id=assembly_id, source_times=times, sensorium=primary_sensorium)
+                    if returning is None or (not has_external_sound and pending_pressure is None) else settle_projected_physical_sensorium(
+                        assembly_id=assembly_id, source_times=times, sensorium=primary_sensorium,
+                        senses=tuple(sense for sense in SENSE_ORDER if sense is not PhysicalSense.SOUND),
+                    )
+                )
             sources.insert(0, primary_episode)
             admissions.insert(0, [(250, 1000)])
             if returning is not None:
@@ -227,7 +254,11 @@ class LeanPhysicalLoop:
             body_consequences = tuple(primary.articulated_body_consequences)
             world_snapshot = world.observation_snapshot()
             retinal_u8 = []
-            for trajectory in (*primary_sensorium.retina, *primary_sensorium.retina_focal):
+            retinal_trajectories = (
+                (*primary_sensorium.retina, *primary_sensorium.retina_focal)
+                if sampled_retinal_trajectories is None else sampled_retinal_trajectories
+            )
+            for trajectory in retinal_trajectories:
                 value = Fraction(trajectory[-1]).limit_denominator(1_000_000)
                 if not Fraction(0) <= value <= Fraction(1):
                     raise RuntimeError("retinal observer left its physical range")
@@ -235,6 +266,10 @@ class LeanPhysicalLoop:
             result = SettlementResult(
                 native_interval_count=lived_tick_delta,
                 observation={
+                    **({} if sampled_retinal_sites is None else {
+                        "retinal_site_indices": sampled_retinal_sites,
+                        "external_retinal_site_indices": sampled_retinal_sites,
+                    }),
                     "actual_root_motion": (
                         (0, 0, 0)
                         if motor_plan is None
@@ -286,10 +321,13 @@ class LeanPhysicalLoop:
                     ),
                     "retinal_observer_kind": (
                         "achromatic-u8-projection-of-native-retinal-input"
+                        if sampled_retinal_sites is None
+                        else "achromatic-u8-projection-of-sampled-native-retinal-input"
                     ),
                     "retinal_u8": retinal_u8,
                     "latest_retinal_field_kind": (
-                        "external-rgb"
+                        "external-rgb-sampled"
+                        if sampled_retinal_sites is not None else "external-rgb"
                         if external_rgb_retina_u8 is not None
                         else "achromatic"
                     ),

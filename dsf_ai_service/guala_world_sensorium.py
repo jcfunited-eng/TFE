@@ -154,12 +154,18 @@ def passive_receptor_capture(
     *,
     snapshot: Any,
     body_axes: tuple[Any, ...],
+    include_world_sight: bool = True,
 ) -> tuple[RetinalField, dict[PhysicalSense, tuple[Any, ...]], Fraction]:
-    """Render one immutable snapshot once, retaining all six optical bands."""
+    """Capture current contacts and, when consumed, all six optical bands."""
 
+    if not isinstance(include_world_sight, bool):
+        raise TypeError("world sight selection must be boolean")
     heading, transmission = retinal_carriage(body_axes)
-    pixels = retinal_irradiance_field(
-        snapshot, retinal_heading_offset_millidegrees=heading, include_focal=True,
+    pixels = (
+        retinal_irradiance_field(
+            snapshot, retinal_heading_offset_millidegrees=heading, include_focal=True,
+        )
+        if include_world_sight else ()
     )
     physical = physical_contact_substreams(
         snapshot, snapshot, causal_transition=False,
@@ -256,11 +262,19 @@ def passive_sensorium(
     receptor_capture: tuple[
         RetinalField, dict[PhysicalSense, tuple[Any, ...]], Fraction
     ] | None = None,
+    include_world_sight: bool = True,
 ) -> PhysicalSensorium:
-    """Sample one current world/body state into every mounted receptor."""
+    """Sample current world/body inputs; omit only explicitly replaced sight."""
 
+    if not isinstance(include_world_sight, bool):
+        raise TypeError("world sight selection must be boolean")
+    if not include_world_sight and receptor_capture is not None:
+        raise ValueError("omitted world sight cannot reuse a retinal capture")
     pixels, physical, transmission = (
-        passive_receptor_capture(snapshot=snapshot, body_axes=body_axes)
+        passive_receptor_capture(
+            snapshot=snapshot, body_axes=body_axes,
+            include_world_sight=include_world_sight,
+        )
         if receptor_capture is None
         else receptor_capture
     )
