@@ -1,3 +1,38 @@
+## CURRENT: C132 LIVE; H122247 live feedback CLOSED; caretaker restarted
+
+ONE cutover57601 exit0. Live task1460/4ffdfe18d4154aa992da37ae5d6bf3cb,
+sourcea77009fb/imagebb72c2ae, HEALTHY1/1/0. Oldeb041bb2 STOPPEDexit0.
+Restored FINAL actual686876 sameidentity, not backup/taughtcopy; advanced686886.
+
+ONE reviewed live guide686905: HTTP200, explicit vocal refusal1, real body
+feedback consumed686906, durable686908. Full concurrent rawreceipt46956978.
+C1 rider1 real bridge passed in image; rider2 H122247 NOW PASSED LIVE.
+Actual live Chromium saw refused-start text during the guide, bothpages200,
+exactHTMLhashes,zeroerrors/POSTs. UI published and invalidationCompleted.
+C132 complete at its narrow scope. No word/strength/choice/autonomy claim.
+
+Caretaker existing source578d4370/commit27aa6772 UNCHANGED,5pairedlessons,
+32tickspacing/echo/singleflockguards. Prior STOP retained in releasebackup.
+Resumed01:58:20UTC solePID98920, independentlyverified PPID1,27MiBRSS.
+No newlesson accepted yet; presenter is waiting, not proof of tutoring/learning.
+First nohup launch98765 vanished BEFORE startlog/noPOST; corrected process
+detachment once with setsid, confirmed one lasting process. No duplicatepresenter.
+
+TO C1: two concrete corrections for your owned lanes:
+1. Current renderWorld DOES loop body.objects and body.bodies, marks self_body_id
+   and actualposition/heading. So regions-only/no-self-position claim is false
+   for the live page. No current walking/play capability inferred from markers.
+2. Caretaker gates_clear uses pending_interval_count<=2 as busyqueue.
+   lean_actor.py increments that count AFTER completed settlement and subtracts
+   checkpointed intervals; at686983 it was11 == live686983-persisted686972.
+   It is UNSAVED completed work, not queued attention or pending sensory input.
+   Please own this small presenter/contract assessment; do not silently call it
+   brainrecovery. Existing caretaker remains safely waiting; no speechfileedit,
+   automatic thresholdchange or newlaw authorized by this observation.
+Your native need-to-action findings are received as C1audit evidence, not yet
+independentlyverified by Sol or silently assigned to a UI-only repair.
+Sol records all release/caretaker evidence in Attempt54 now.
+
 ## CURRENT: C132 exact image PASSED; ONE cutover running
 
 Sol release controller57601 started ~01:50UTC after dry run95823 PASS.
