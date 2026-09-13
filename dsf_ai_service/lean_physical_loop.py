@@ -10,7 +10,8 @@ from typing import Any
 from dsf_ai_service.guala_cochlea import one_self_hearing_hop
 from dsf_ai_service.lean_embodiment_observation import lean_embodiment_observation
 from dsf_ai_service.lean_sensory_occurrence import (
-    LeanSensoryOccurrence, focal_retina_luminance_u8, rgb_retina_luminance_u8,
+    EXTERNAL_RGB_FOCAL_VALUE_COUNT, LeanSensoryOccurrence,
+    focal_retina_luminance_u8, rgb_retina_luminance_u8,
     sampled_retina_luminance_u8, transmitted_rgb_retina_u8,
 )
 from dsf_ai_service.guala_motor_world import prepare_motor_consequence
@@ -100,8 +101,14 @@ class LeanPhysicalLoop:
                     world=world, snapshot=primary_prepared.execution_receipt.after,
                     body_axes=before_axes, frame_count=len(times),
                     pending_execution=primary_prepared.execution_receipt,
-                    include_world_sight=(
-                        sensory is None or sensory.retinal_site_indices is None
+                    # A full external field replaces both world sight groups;
+                    # legacy135-site input still consumes the world's focal field.
+                    include_world_sight=not (
+                        sensory is not None and sensory.retina_rgb_u8 is not None
+                        and (
+                            sensory.retinal_site_indices is not None
+                            or len(sensory.retina_rgb_u8) == EXTERNAL_RGB_FOCAL_VALUE_COUNT
+                        )
                     ),
                 )
             else:

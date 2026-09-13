@@ -1,6 +1,136 @@
 # D122334 — sensory execution contract and source dependency map
 
-## CURRENT — 2026-09-13 22:50Z — camera source on origin, not live; anatomical-order correction
+## CURRENT — 2026-09-13 23:14 UTC — dense camera waste cut proved; C1 cutover active
+
+D122334 remains ACTIVE; full250ms/detailed organism-aimed vision acceptance is
+not met. Previous turn's camera-order961993c50 is closed source evidence.
+This turn's existing full-frame camera cut also passes its exact copied-body
+gate; it is NOT deployed. No new L0-L4/DSF/neuron/need law or protocol.
+
+Independent source review PASS at2338bcc19383081beae4da416fa8ee5dd6515c8be35260ff02731c548c5755a6
+(diffc4971133dd260d402969224f964de8cc9dcc2744c000ed962549ec11a0a808a2).
+37scoped cases passed0.90s; existing actual-world no-ray invariant1passed3.10s.
+No native rebuild. Caller24b374f88db539b8940702a38079a807ba5258fceb0f970d7a413945dd4c430b
+source-reviewedPASS; reused prior helper3c871b5970eabc11e8c13adbed5b2526d14469376540071cef5b39ae7682f38e.
+Store-directory/exactcold evidence guards checked before run. No failed run.
+
+Fresh read-only1462 predecessor706713:
+body3e524275c3fdf7e3937ffbe6f4d44599f93b7d403057af266d2d5054654d6847,
+worldad6b02b4519817ec87511d32f4d37f4e81c512566389b3733c23d898867671c6,
+zip257e610c62e901f19b883530e9424a5b433a8dc072cebe03e17f0157aee034bd.
+Copied source input is one frozen903site RGB field from the copied world's
+actual sensorium, plus4000silent microphone samples, through production JSON/
+occurrence/native callers. No human camera, recognition, self-hearing or live
+behavior claim. Same explicit43200solar clock as prior caller makes world
+time common; not a claim of live camera timing. In-flight self-sound was absent.
+
+Baseline961993 and candidate restore that same pair independently. Both camera
+successors706714 match FULL bodya32a0e306656358bef4233b26ee367bcd80260b48e7732e892d1d0aa58ff121c/
+worldb6e9e7a88005e61d6c53a3df4cf93f6f023845104560ec6e6010628b75e543f1.
+Both ordinary706715 successors and fresh-cold continuation match FULL
+body285c0700f4528ce271e6d891c7932e7ec628822b05a05c6ffe450d727d93f480/
+world4bd26e881e4ce5e09935a964339a5e936a441e3f563228b2506f3fb13fa9fddb.
+Every step989DSF deliveries/903sites. Observations equal except the same two
+known process-local token aliases; full physical-pair equality not waived.
+World render calls in the full-camera step: baseline1,candidate0. No fake light.
+
+Single copied container4460b3e81f97778e95a129d380b88178718f82dba46d965d1e453d3d09acbe42:
+4CPU16GiB(no extra swap),128pids,no network,Mounts[];23:07:23->23:11:09,exit0,
+noOOM. Same native ddabd542... as archived1462 integration; all6candidatePython
+files and both helper/baseline files hash-pinned, no installed-extension guess.
+Camera1.251245856s reference/1.142861516s candidate; followingordinary
+0.963936706s reference/1.078676941s candidate/1.058751519s cold. One comparison,
+not sustained speedup. ALL exceed250ms. Lifetime peakRSS3,637,592KiB; exec
+inherits that counter, so per-branch peaks are not independent RSS estimates.
+
+Full evidence archive/readback verified:
+s3://guala-incident-bench-20260831/sensory-latency-20260913/guala-d122334-dense.YXIHYE/evidence.tar.gz
+SHAc284cad56e8835a2d79bc671bd0672dfea736ffef2022847a1abb1cb765dc681.
+Contains full paired states, all source/helper files/native package, input,
+observations/comparison, container/run/review/tests, pre/posthealth and metrics.
+Exact exited proof container removed ONLY after full readback/cmp; copied
+artifacts remain recoverable. No other container/process/caretaker touched.
+
+Production changed externally during post-check: C1 controllerPID8564 is
+confirmed active, deploying digest59b2000575d079a06b01273388c2f42da6313e36dfb3ca62e0647cf84538b9cf,
+sourcebfe7ec9ee8c87f6238009663dbf5e928e4813f65. Old1462 subsequentlySTOPPED;
+service points1463 with0desired/0running/0pending at23:14 check. This is a
+cutover observation, NOT completed live verification or an inference that the
+local proof stopped production. No Sol production mutation. Before native
+release, integrate the exact accepted successor: never mount old native over
+C1's newly encoded state. C1 reports it WITHDREW the appended-sensorium needs,
+using a distinct nativeGLJSRC08 source instead. Previous BODY-after-focal
+integration warnings are historical for that withdrawn design. The aggregate
+need authority conflict raised in the shared ledger remains unanswered by C1.
+
+Cloudwindow available23:07-23:10:CPUmax66.800610%,RAMmax18.942261%.23:11final
+minute not yet returned; do not call it a full matching-window series.
+Resource/refusal alarmsOK; historicalclockALARM stays explicit. Post-check
+taskDefinition query initially used wrong AWS key(null), corrected to the
+actual taskDefinitionArn; independent service query already named1462.
+No health/latency claim is based on that null query.
+
+Single next release work: hand this source-only dense cut to C1's actual
+successor lineage for integration and existing-page delivery; native execution
+and detailed-eye budget remain open, not replaced by this100ms-scale cleanup.
+
+## Historical dense-cut contract — 2026-09-13 22:58:51 UTC — remove discarded world sight for existing full-camera input
+
+D122334 continues, not a new goal or relaxation of250ms. Camera packing961993c50
+is closed source evidence. Existing full903 RGB camera/card input is the next
+release-compatible boundary: it currently requests903 world rays, converts and
+holds them, then overwrites BOTH old135 and focal768 groups with external light.
+This work has no physical or observational consumer. Unlike sparse intake,
+removing it needs no page protocol change. It is NOT the whole-barrier solution.
+
+Requested architecture: one exact full-field sensory occurrence and lean
+acquisition. Current conflictYES: needless world-light computation precedes a
+complete external replacement. Do not extend kernel, neurons, need mechanism,
+camera protocols, body return, lifetime state, or additional loops. One next
+change: extend existing include_world_sight=False to full2709-value external
+RGB input as well as explicit sparse coverage. Full sevenDSF fields remain;
+no input/source/physical distinctions may change.
+
+Owner Sol; authorized lean_physical_loop.py, its existing focused fixtures,
+this ledger. Derive full-width from EXTERNAL_RGB_FOCAL_VALUE_COUNT, not a second
+magic number. For no external light and dense405-value legacy light, continue
+world sight (legacy still consumes all768 world focal samples). Returning
+body sensory data keeps its existing capture/custody path without recomputation.
+Full external light fills both groups before any source validation/admission.
+
+Causal/field map: OccurrenceBody/LeanSensoryOccurrence(retina_rgb_u8, optional
+IDs) -> _advance before passive_sensorium -> existing capture flag omits rays
+only -> unchanged body contacts/chemistry/thermal/world-time preparation ->
+existing external RGB/transmission conversions fill both retinal groups ->
+same compact source/one native full-DSF settlement -> existing body/world
+commit, self-hearing, observation, checkpoint/cold continuation. Exceptions in
+actual required inputs remain; omitted world rays are no longer evaluated
+merely to throw them away. No schema/migration/rollback/owner change.
+
+Bound/anti-resurrection: on a full frame,0 discarded world-ray calls and0
+discarded optical trajectories (formerly903rays,5418band values,23478 held
+binary64 samples at26times =187824 signal bytes before source encoding).
+These are derived construction counts, not a measured runtime gain. Memory for
+actual external light is unchanged. Legacy/no-light still render required world.
+Source review before testing. Supporting fixture crosses full/legacy with fresh
+and retained body returns, external and self-hearing together. Existing
+world-capture omission falsifier supplies the actual no-ray check.
+
+Before a release claim: exact common full-frame input on one authenticated
+production predecessor through baseline and candidate, full body/world equality,
+save/cold restore and next ordinary interval, bounded resource and AWS envelope.
+Reuse existing proof caller; no new cognition/lesson campaign. Prior sparse
+mature proof does not by itself exercise this dense branch. C1's changing stage2
+stays isolated; current live baseline must be reauthenticated before proof.
+
+Tool recurrence recorded: an rg search this turn named nonexistent
+photoreceptor_work.rs before resolving optical_receptor_work.rs via rg --files.
+Read-only failure only, no build/run repeated; subsequent source paths resolved.
+A combined historical-source output truncated; no missing output used as new
+performance evidence. Existing P326/P327 costs were only read as prior art, not
+promoted to current production timing or used to reopen their closed campaigns.
+
+## Historical 22:50Z checkpoint — 2026-09-13 22:50Z — camera source on origin, not live; anatomical-order correction
 
 Active item D122334 continues; acceptance remains actual production receptor
 delivery within250ms with the detailed organism-aimed eye and one full joint

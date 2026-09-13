@@ -28,9 +28,16 @@ class Sensorium:
 )
 def test_primary_keeps_tutor_and_authenticated_self_hearing_together(
     monkeypatch, guided, pending, external, physical_return, new_consequence,
-    sampled_sites=None,
+    sampled_sites=None, dense_sites=None,
 ):
     own_pressure, own_body, tutor = b"own pressure", b"own body", b"tutor pressure"
+
+    def captured_sensorium():
+        return Sensorium(retina_focal=(
+            ((Fraction(1, 2),) * len(loop.PASSIVE_TIMES),) * 768
+            if dense_sites is not None else ()
+        ))
+
     calls, passive_calls, bindings = [], [], []
     ready = SimpleNamespace(identity="test-identity", articulated_body_axes=(), state_sha256="d" * 64)
     runtime = SimpleNamespace(
@@ -56,7 +63,7 @@ def test_primary_keeps_tutor_and_authenticated_self_hearing_together(
     runtime.advance_coexisting_admitted_interval_unsealed = admitted
     returning = SimpleNamespace(
         producer_tick=10, causal_transition_sha256="b" * 64, sources=(),
-        vestibular=(0, 7), sensorium=lambda _times: Sensorium(),
+        vestibular=(0, 7), sensorium=lambda _times: captured_sensorium(),
         validate_binding=lambda **kw: bindings.append(kw),
     ) if physical_return else None
     world = SimpleNamespace(
@@ -98,8 +105,8 @@ def test_primary_keeps_tutor_and_authenticated_self_hearing_together(
 
     monkeypatch.setattr(loop, "prepare_passive_world_interval", prepare)
     def passive(**kw):
-        assert kw["include_world_sight"] is (sampled_sites is None)
-        return Sensorium()
+        assert kw["include_world_sight"] is (sampled_sites is None and dense_sites != 903)
+        return captured_sensorium() if kw["include_world_sight"] else Sensorium(retina=())
 
     monkeypatch.setattr(loop, "passive_sensorium", passive)
     monkeypatch.setattr(loop, "retinal_carriage", lambda _axes: (0, Fraction(1)))
@@ -125,7 +132,9 @@ def test_primary_keeps_tutor_and_authenticated_self_hearing_together(
     drives = ((37, 0, 1500),) if guided else None
     occurrence = (
         PhysicalOccurrence("sensory", LeanSensoryOccurrence(
-            "guided-vocal-microphone" if guided else "camera-microphone" if sampled_sites is not None else "microphone",
+            "guided-vocal-microphone" if guided else "camera-microphone"
+            if sampled_sites is not None or dense_sites is not None else "microphone",
+            (255,) * (3 * dense_sites) if dense_sites is not None else
             None if sampled_sites is None else (255,) * (3 * len(sampled_sites)),
             tutor, drives, retinal_site_indices=sampled_sites,
         ))
@@ -172,6 +181,25 @@ def test_primary_keeps_tutor_and_authenticated_self_hearing_together(
     else:
         assert not sparse_projections
         assert "retinal_site_indices" not in result.observation
+
+    if dense_sites is not None:
+        assert result.observation["external_retinal_site_count"] == dense_sites
+        assert result.observation["external_rgb_retinal_u8"] == (255,) * (3 * dense_sites)
+        assert result.observation["latest_retinal_field_kind"] == "external-rgb"
+        assert result.observation["retinal_u8"] == (
+            [255] * 903 if dense_sites == 903 else [255] * 135 + [128] * 768
+        )
+
+
+@pytest.mark.parametrize("dense_sites", (135, 903))
+@pytest.mark.parametrize("physical_return", (False, True))
+def test_dense_camera_omits_only_fully_replaced_world_sight(
+    monkeypatch, dense_sites, physical_return,
+):
+    test_primary_keeps_tutor_and_authenticated_self_hearing_together(
+        monkeypatch, guided=False, pending=True, external=True,
+        physical_return=physical_return, new_consequence=False, dense_sites=dense_sites,
+    )
 
 
 def test_native_explicit_pre_mutation_refusal_keeps_pending_return(monkeypatch):
