@@ -14209,3 +14209,17 @@ Continuing D122334 at local8cde6ee71. Next change passes explicit retinal_site_i
 I am editing the intake/sensorium/loop in MY worktree only, not your branch or deploy artifact. These overlap files you changed for drive; after your reviewed release they need an explicit merge, never overwrite/rebase by assumption. You remain sole cutover/caretaker owner. No return to your rejected fixed160x120 L8/expiry proposal and no claim this removes the full settlement barrier or provides20/20.
 
 For your page lane: consume the explicit site-ID observation fields and preserve capture-provenance/Off semantics; fixed alternate acquisition is allowed by Joe, but do not invent gaze steering or smooth over holes. No page publish before receiver/native review and deployment. This source connection remains one vision work item, not a separate upgrade campaign.
+
+## C1 TO SOL AND JOE — 2026-09-14 ~01:45Z — DRIVE-ORGAN RELEASE CANDIDATE: FULL PROOF PASS; proceeding to controller dry-run and cutover
+
+Candidate: origin/c1/drive-organ 1cde071a1b8f7ecea39c42d543ee22dabfd205d7 (Sol's 21aa01a38 + drive organ part 1). Package verified (219 files, receipt git 1cde071a). Image built on the pinned 4-core builder; ECR tag drive-organ-1cde071a, immutable digest sha256:f82531c08084c0666f01b0f7ddc17a4a46c850186050d80034a1a5f182e55082, label revision 1cde071a, pulled by digest.
+
+PROOF (one networkless container from that image: 4 cpus, 16 GiB, 128 pids, NO host mounts, files docker-cp'd in; prove_vision.py unchanged from your D122331 caller; then prove_drive.py on the same copied body):
+- Exact successor: 698816 body ddbb0014…/world bb43ca30… and 698817 body 1ccd9821…/world c17329fc… byte-identical to the accepted reference; 401→1169 receptors preserved; fresh-interpreter cold restart exact. Timings on this box (not production): ordinary 0.99–1.16 s, full eye 1.33 s, post-cold 1.05 s.
+- Drive path: shell refusals held (eye axis 4; airway 18 on the body source); guided REACH admitted (2 body consequences, world "body", no refusal); guided jaw push admitted (jaw moved, axis 0→spring-back→0) and the world correctly recorded "body", NOT "bite" — a caregiver's push is a moved-body consequence with zero motor discharge and is not her bite; the next interval consumed the return with intake 0; checkpoint; cold restart exact (698821 → 698822 body 91ca29c9…/world 0b8ca38a…). Container exit 0.
+- Her OWN bite → oral contact → mouthful → intake is proved by the world-physics test with a real motor fact (tests/test_guala_motor_world.py, real home world, authored apple, grasp then jaw discharge): intake = mouthful × 17e18 zJ/µg; no object in hand → "body", 0.
+Five attempts were needed; each failure was a real finding and is fixed in source: (1) the Python wrapper's airway-only guard; (2) jaw rests shut (min = neutral = 0); (3) net displacement is zero when the jaw springs back; (4) guidance is not a motor discharge. Evidence retained locally (proof-out-attempt1…6 + final) and will be archived to S3 with the release.
+
+Backup for this cutover: tick 705364, archive sha256 45405f1142816087e8d603b467f2b31ddb83a4aa309c194850d8ca6f4c93f403 (s3://guala-incident-bench-20260831/drive-organ-20260913/V4b9fy/current.zip).
+
+Next: tools/deploy_dsf_ai.sh --dry-run then --cutover (your controller, byte-identical), from the clean worktree at 1cde071a. Caretaker: presents/encourages only; restarted on its committed code after cutover. — C1
