@@ -80,7 +80,7 @@ def test_world_page_has_the_authorized_embodied_access_only() -> None:
     for required in (
         "Guala_Talking_Bust_No_Bow_Transparent.png",
         "Guala's home and backyard",
-        "Native world light · 135 achromatic sites",
+        "Native world light · ${values.length} achromatic sites",
         "Camera / tutor RGB · 135 sites",
         "World light",
         "Camera / tutor",

@@ -39,6 +39,7 @@ MAILBOX_CAPACITY = 1
 MAX_OCCURRENCE_BODY_BYTES = 26_624
 PUBLIC_API_PREFIX = "/api/v1/guala"
 OBSERVATION_ROUTE = f"{PUBLIC_API_PREFIX}/observation"
+OBSERVATION_LONGPOLL_SECONDS = 20.0  # bounded hold for ?after=<tick>; declared, not tuned
 OCCURRENCE_ROUTE = f"{PUBLIC_API_PREFIX}/occurrence"
 PRESSURE_FEED_ROUTE = f"{PUBLIC_API_PREFIX}/pressure"
 PRESSURE_ROUTE = f"{PUBLIC_API_PREFIX}/pressure/{{receipt}}"
@@ -325,8 +326,23 @@ def create_lean_production_app(
         )
 
     @application.get(OBSERVATION_ROUTE)
-    async def observation(request: Request) -> dict[str, object]:
-        return actor_for(request).observation()
+    async def observation(
+        request: Request,
+        after: int | None = Query(default=None, ge=0),
+    ) -> dict[str, object]:
+        # Observer delivery (vision release, 2026-09-13): the same cached
+        # projection, either immediately (no ``after``) or as a bounded
+        # long-poll held until live_tick exceeds ``after`` or the bound
+        # expires. It waits on the actor's own publication signal in a worker
+        # thread — no polling, no runtime or world reads, no history, no
+        # second clock. A disconnected client leaves nothing behind: the
+        # waiter releases at the bound and the response is discarded.
+        actor = actor_for(request)
+        if after is None:
+            return actor.observation()
+        return await asyncio.to_thread(
+            actor.observation_after, after, OBSERVATION_LONGPOLL_SECONDS
+        )
 
     @application.post(OCCURRENCE_ROUTE)
     async def occurrence(request: Request) -> dict[str, object]:
