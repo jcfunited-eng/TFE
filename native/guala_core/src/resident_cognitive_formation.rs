@@ -1390,6 +1390,8 @@ pub(crate) struct CognitiveFormationObservation {
     pub(crate) root_yaw_unit_recruitments: Vec<RootYawUnitRecruitment>,
     pub(crate) root_translation_unit_recruitments: Vec<RootTranslationUnitRecruitment>,
     pub(crate) articulatory_unit_recruitments: Vec<ArticulatoryUnitRecruitment>,
+    /// Transient observation only: ambiguous new vocal founding refused locally.
+    pub(crate) vocal_founder_refusal_count: usize,
     pub(crate) partial_cue_reassembly_count: usize,
     pub(crate) endogenous_partial_cue_reassembly_count: usize,
     /// Exact cues for formations that physically reassembled from an internal
@@ -5043,7 +5045,7 @@ fn retain_externally_reassembled_vocal_founder_frontier(
     electrical_fabric: &ResidentElectricalFabric,
     exact_sound_reassembled_members: &BTreeSet<[u8; 16]>,
     active_frontier: &mut Vec<ActiveElectricalFrontierEntry>,
-) -> Result<(), FormationError> {
+) -> Result<bool, FormationError> {
     for entry in active_frontier.iter().copied().filter(|entry| {
         entry.carries_external_ingress_cause() && !entry.carries_body_owned_acoustic_efference()
     }) {
@@ -5066,7 +5068,7 @@ fn retain_externally_reassembled_vocal_founder_frontier(
             // its learned motor branches. A concurrent sensory reassembly is
             // still perceived and may teach, but it cannot found a second act
             // through the same one-body action boundary.
-            return Ok(());
+            return Ok(false);
         }
     }
     let mut founders = Vec::new();
@@ -5132,19 +5134,20 @@ fn retain_externally_reassembled_vocal_founder_frontier(
         }
     }
     let Some((root, _)) = founders.first() else {
-        return Ok(());
+        return Ok(false);
     };
     if founders.iter().any(|(ordering, _)| ordering != root) {
-        #[cfg(test)]
-        eprintln!("C118_REFUSAL branch=external-founder-active-root-tie founders={founders:x?}");
-        return Err(FormationError::NeuronLineageAuthorityChanged);
+        // C132: neither root acquires new authority from this attempt. This
+        // ambiguity is not corrupt anatomy and must not abort other experience.
+        // Existing frontier entries and already-settled work remain untouched.
+        return Ok(true);
     }
     // Prepare all exact entries and resolve genuine competition before
     // mutating the frontier. No work, phase, anatomy or history is changed.
     active_frontier.extend(founders.into_iter().map(|(_, entry)| entry));
     active_frontier.sort_unstable();
     active_frontier.dedup();
-    Ok(())
+    Ok(false)
 }
 
 fn retain_reassembled_vocal_preparation_work(
@@ -10384,17 +10387,19 @@ impl ResidentCognitiveFormationState {
             topology_index = Arc::new(ResidentTopologyIndex::build(&cohorts, &electrical_fabric)?);
             physical_progress.admit_topology(&topology_index)?;
         }
-        if admit_learned_motor_work {
+        let vocal_founder_refusal_count = if admit_learned_motor_work {
             #[cfg(test)]
             { phase_trace.stage = "external-founder"; }
-            retain_externally_reassembled_vocal_founder_frontier(
+            usize::from(retain_externally_reassembled_vocal_founder_frontier(
                 &cohorts,
                 &topology_index,
                 &electrical_fabric,
                 &exact_sound_reassembled_members,
                 &mut active_electrical_frontier,
-            )?;
-        }
+            )?)
+        } else {
+            0
+        };
         partial_cue_reassembly_count = partial_cue_reassembly_count
             .checked_add(organism_reassemblies)
             .ok_or(FormationError::ArithmeticOverflow)?;
@@ -10579,6 +10584,7 @@ impl ResidentCognitiveFormationState {
                 root_translation_unit_recruitments: internal_contact
                     .root_translation_unit_recruitments,
                 articulatory_unit_recruitments: internal_contact.articulatory_unit_recruitments,
+                vocal_founder_refusal_count,
                 partial_cue_reassembly_count,
                 endogenous_partial_cue_reassembly_count,
                 internally_reassembled_formation_cues,
@@ -11148,6 +11154,7 @@ impl ResidentCognitiveFormationState {
                 root_yaw_unit_recruitments: Vec::new(),
                 root_translation_unit_recruitments: Vec::new(),
                 articulatory_unit_recruitments: Vec::new(),
+                vocal_founder_refusal_count: 0,
                 partial_cue_reassembly_count: 0,
                 endogenous_partial_cue_reassembly_count: 0,
                 internally_reassembled_formation_cues: Vec::new(),

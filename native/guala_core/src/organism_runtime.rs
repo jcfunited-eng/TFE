@@ -589,6 +589,8 @@ pub(crate) struct RuntimeObservation {
     /// overlap branch) — retained state, present on restored observations.
     pub(crate) mosaic_of_mosaics_count: usize,
     pub(crate) formation_activation_count: usize,
+    /// Number of local ambiguous vocal-start refusals; observation, not state.
+    pub(crate) vocal_founder_refusal_count: usize,
     pub(crate) partial_cue_reassembly_count: usize,
     pub(crate) endogenous_partial_cue_reassembly_count: usize,
     pub(crate) internally_reassembled_formation_cues:
@@ -1783,6 +1785,11 @@ impl NativeResidentOrganismObservation {
     }
 
     #[getter]
+    fn vocal_founder_refusal_count(&self) -> usize {
+        self.observation.vocal_founder_refusal_count
+    }
+
+    #[getter]
     fn partial_cue_reassembly_count(&self) -> usize {
         self.observation.partial_cue_reassembly_count
     }
@@ -2475,6 +2482,11 @@ impl NativeResidentOrganismPrepare {
     }
 
     #[getter]
+    fn vocal_founder_refusal_count(&self) -> usize {
+        self.observation.vocal_founder_refusal_count
+    }
+
+    #[getter]
     fn partial_cue_reassembly_count(&self) -> usize {
         self.observation.partial_cue_reassembly_count
     }
@@ -2814,6 +2826,11 @@ impl NativeOrganismRuntimeTransition {
     }
 
     #[getter]
+    fn vocal_founder_refusal_count(&self) -> usize {
+        self.observation.vocal_founder_refusal_count
+    }
+
+    #[getter]
     fn partial_cue_reassembly_count(&self) -> usize {
         self.observation.partial_cue_reassembly_count
     }
@@ -3141,6 +3158,10 @@ fn retain_cognitive_trajectory_observation(
         &mut total.organic_mosaic_relations,
         &observation.organic_mosaic_relations,
     );
+    total.vocal_founder_refusal_count = total
+        .vocal_founder_refusal_count
+        .checked_add(observation.vocal_founder_refusal_count)
+        .ok_or(RuntimeError::OrganismTickOverflow)?;
     total.partial_cue_reassembly_count = total
         .partial_cue_reassembly_count
         .checked_add(observation.partial_cue_reassembly_count)
@@ -7962,6 +7983,7 @@ fn make_restored_observation(
         cognitive_mosaic_count: cognitive.mosaic_count,
         mosaic_of_mosaics_count,
         formation_activation_count: 0,
+        vocal_founder_refusal_count: 0,
         partial_cue_reassembly_count: 0,
         endogenous_partial_cue_reassembly_count: 0,
         internally_reassembled_formation_cues: Vec::new(),
@@ -8062,6 +8084,7 @@ fn make_step_observation(
         cognitive_mosaic_count: cognitive.mosaic_count,
         mosaic_of_mosaics_count: cognitive.mosaic_of_mosaics_count,
         formation_activation_count: cognitive.activations.len(),
+        vocal_founder_refusal_count: cognitive.vocal_founder_refusal_count,
         partial_cue_reassembly_count: cognitive.partial_cue_reassembly_count(),
         endogenous_partial_cue_reassembly_count: cognitive
             .endogenous_partial_cue_reassembly_count(),
@@ -8146,6 +8169,7 @@ fn make_authored_contact_observation(
         cognitive_mosaic_count: cognitive.mosaic_count,
         mosaic_of_mosaics_count: cognitive.mosaic_of_mosaics_count,
         formation_activation_count: 0,
+        vocal_founder_refusal_count: 0,
         partial_cue_reassembly_count: 0,
         endogenous_partial_cue_reassembly_count: 0,
         internally_reassembled_formation_cues: Vec::new(),

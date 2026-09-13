@@ -22475,3 +22475,166 @@ Archive c131-founder-localization-2vZ696.tar.gz
 SHAa8fe918d958c531912b98beea2ef106ae281c1a4f79d45e8b85a50d87be1aad7
 retains both diagnostic builds, rawlogs, original paired backup and sourcepatch.
 Core restored byte-exactly; only this ledger is dirty. No new tests/cues scheduled.
+
+### R-054-122-260 — C132 ratified local vocal refusal; frozen implementation scope
+
+Joe explicitly replied "I approved it" to D122259. Missing architecture approval
+is resolved. Continue incident repair, not new speech/vision/curriculum work.
+C131 component feedback/image/cold proofs remain closed; live feedback witness
+remains incomplete due this distinct existing founder-refusal failure.
+
+INPUT: exact sound-reassembled L7 members and currently in-flight founder contacts.
+OUTPUT: unique root retains existing entries unchanged; competing roots retain
+NO new entries and return an explicit local refusal. No root chosen, no persistent
+refusal mark. Already-authorized acts/frontiers/settled work are preserved.
+Real missing/corrupt lineage, non-Fabric, malformed phase, and other errors remain
+errors. Only explicit final active-root tie changes outcome.
+No electrical, neuronal, contact, energy, learning, growth, timing or DSF law changes.
+
+Causal/observation map: retain_externally_reassembled_vocal_founder_frontier
+-> prepare_typed_admitted_transition_from_owned -> CognitiveFormationObservation
+-> RuntimeObservation/trajectory merge -> three PyO3 observation surfaces
+-> LeanPhysicalLoop primary evidence -> SettlementResult.observation
+-> LeanActor.last_occurrence -> existing API JSON -> gualaloom status/fact.
+One transient vocal_founder_refusal_count (0 or1 per interval; checked sum for
+multi-interval observations), never persisted or read by cognition. No schema
+migration, new queue/owner/cache/history, or additional native call.
+Core function bool return means explicit refusal, NOT a causal permission flag.
+Current-only body/world schema, cold restore, pending C131 physical return,
+atomic paired publication, crash handling, startup and native producer remain
+unchanged. Observation on restore reports0 because no new refusal occurred.
+
+Review confirms no downstream vocal re-settlement after this founder junction.
+Growth/internal recurrence/successor construction continue; internal recurrence
+cannot invent external-founder provenance. Existing authorized acts are not
+suppressed. Claim is no new authority from THIS refused founding, not silence
+of every motor. Current conflict corrected: whole-interval failure on ambiguity.
+Never extend arbitrary winner selection or replace full DSF with a reduced proxy.
+
+Files: resident_cognitive_formation.rs; organism_runtime.rs;
+resident_cognitive_formation/tests.rs (reuse existing C118 fixture);
+lean_physical_loop.py; tests/test_lean_physical_loop.py; static/gualaloom.html.
+Change-impact bound: same reached-founder iteration/allocation as predecessor;
+constant-size observation scalar, no new retained body bytes or topology scan.
+Refusal branch mutates no frontier before returning; physical settlement already
+performed remains its actual successor. True failure rollback unchanged.
+
+Acceptance: existing focused fixture covers no-root, unique-root, competing-root
+with empty and pre-existing frontier, then later unique root; fabric unchanged.
+Python handoff proves exact native count is surfaced, including nonzero.
+ONE archived incident-body/input path must now complete, expose count1, retain
+actual guide consequence and compact return, consume that return on next ordinary
+interval, persist paired body/world, cold-restore and compare next successor.
+No forced zero sound: unrelated prior action remains lawful.
+Old exactimage refusal already proven twice; do not rerun it.
+Latest authenticated predecessor required before package; no live lesson retry
+or immutable image until mature path passes. Source-only review before compile.
+Relevant prior failures: F122252 wholeactor death; R122254/256 observation
+incompleteness; C118 phasezero eligibility stays intact; C102 reverse semantics
+unchanged; first live C131 missedG+1 requires observer readiness before guide;
+no stale native, no8x cue-dose mismatch, no field dropped at FFI.
+
+### R-054-122-261 — review caught missing Python receipt mapping BEFORE execution
+
+Frozen review904bd260 found one localized bridge omission, no architectural issue:
+primary is ResidentPrepareEvidence, NOT direct PyO3 evidence. Dataclass and
+_validated_prepare_evidence_body omitted vocal_founder_refusal_count; the first
+test's SimpleNamespace supplied it manually and masked that omission. No compile,
+test or live run occurred. Corrected existing protocol/getter validation/receipt
+constructor/observation signature plus actual bridge test in one batch.
+Add glew_runtime/native_resident_organism.py and its existing boundary test to
+R122260 file closure. No fallback default for missing native evidence.
+This is precisely a translation-map preflight miss, not a neuronal failure.
+Attempted full-file construction initially refused nonunique text anchor before
+any edit; corrected to exact observation-constructor context. Artifact discovery
+also named an absent /tmp archive instead of known /mnt durable path; no run.
+Record these fumbles; no evidence invalidated or erased.
+
+### D-054-122-262 — Joe: emulate biological responsibilities; park blocked lane after ~1h
+
+Joe clarified that biology's handling of conflict should inform functional AE
+mechanisms, not require duplication of every biological detail. C132 is bounded
+failure containment, not a completed choice/conflict-resolution mechanism.
+Independent review confirms prior authorized acts continue. No claim of global
+silence or biological decision capability from a local refusal.
+
+New working direction: when an approval is unanswered for approximately1hour,
+preserve the exact evidence/status/decision in this ledger, park only that item,
+and advance another authorized independent project item if it is safe. Do not
+silently waive the missing approval, alter frozen speech files from another lane,
+or invent new authority. If no safe independent work exists, wait for Joe.
+The one-hour condition is project coordination, NEVER an organism recovery timer.
+User also reports resuming the goal. Commentary/questions are not stop commands.
+
+Biology reference checked: Cavanagh et al., Nature Neuroscience2011,
+https://www.nature.com/articles/nn.2925. Conflict-related action slowing provides
+evidence for temporary control of action; it does not validate this software
+refusal as full biological emulation. Longer-term functional responsibility:
+continued evidence/experience, revisable readiness, actual causal resolution;
+no brain-wide exception, permanent spent mark, or arbitrary chosen root.
+
+### R-054-122-263 — keep real bridge proof; do not repair an unrelated stale mock
+
+Final review28345d73 passes production correction. Supporting new bridge-test
+setup reused old _NativeModule missing exact_neutral_articulated_body_state,
+already recorded R122128. No run occurred. Remove this added fake-based test
+and its two fixture-field changes entirely; do not repair the old unrelated mock
+or spoof cached body width. The required actual bridge proof is check.py's REAL
+restored-body LeanPhysicalLoop -> NativeResidentOrganism -> validated receipt:
+observed refusal_count must equal1. Small loop test remains transport-only.
+This reduces tests rather than adding another harness. Protocol/receipt correction
+unchanged. Revised file closure has seven code/test files (not boundary-test).
+Offline check3ba72314 reuses existing restore/seal/adopt/pair persistence shape,
+one guide, one consume, warm/cold next equality; no new neuron snapshots/scans.
+
+### S-054-122-264 — C132 ordinary candidate passes incident-body closure and cold-next
+
+Source3139cc84 final reviewPASS; caller3ba72314 source reviewPASS. Ordinary
+python-extension wheel built, not diagnostic-api; native
+8e06099ea0a4e8dd81448ce0c60e2bc4b85eeb5f30240050a516a8e915bc8a76.
+One exact native case PASSED (1passed/634filtered,0.01s), transport21passed0.57s,
+pagecontract9passed0.85s. These supporting counts are not organism proof.
+
+Actual offline incidentCURRENT678788 guide56934:
+tick678789, 2.4557s, vocal_founder_refusal_count1, heard4000, DSF237,
+changed2230, actualbodyconsequences4, pendingphysicalreturn678789.
+Consume6787900.9436s: count0, consumed678789, DSF253, changed2216.
+Next6787910.9786s completes. Warm proof peak1740052KiB.
+Separate fresh process15009 restores persisted678790 and settles next678791
+in1.2860s. FULL canonical body/world bytes equal warm next, not merelyhashclaim.
+Body166551297B dffca7d63cc1679a4adbcdad18f5514416b2c4a16e9bea4f1060c64f281bd633;
+world63675B 6c63af563b5e94f922014fca6442fa006de53c6d746a40e35663ea2d732d3f5a.
+Cold peak1574616KiB, both offlinecontainers exit0/noOOM.
+Authentic compact GLBPTR01 guidefeedback bound to678788; consumednexttick.
+Selfhearing0 is reported, not failed as an unrelated required vocal-output gate:
+this run intentionally refuses NEW ambiguous founding, not a speech recall test.
+No new authority from competing roots; existing authority/work left untouched.
+
+Warmraw6cc89499abf21a614a05f0b733c9a5dabad7a060e653b3c4f7ec6b522cc4c4d1;
+coldraw e6fc9dacc4e33f12b16ba751b041c5e94546573abb48f3a51f86a73a45f713bc.
+AWS bracket00:04:35/00:06:11 task1459/eb041bb2/image708fc271 HEALTHY1/1/0,
+CPUmax62.867%,RAMmax12.4146%; runaway alarmsOK, historicalclockALARM persists.
+No liveinput/restart/deploy or caretakerresume. Latest-body release check,
+immutable packaging/review/cutover/live witness remain; no release completionclaim.
+
+Harness fumbles retained: initial transport run wrongly used globally installed
+OLD native lacking NativePhysicalInputRefused (21importfailures0.81s, no candidate
+path executed). Reran only after candidate build, explicit installed-first
+PYTHONPATH;21passed. Do not call initial importfailure a candidate failure.
+Native cargo command omitted --lib; compiled unrelated filtered integration
+targets. Only1test executed, but compilecost2m51 includes unnecessarytargets.
+Future exact unit command MUST use cargo test --release --lib ... -- --exact.
+Real-browser discovery found Python playwright absent; static pagechecks passed,
+not actual-browser proof. Do not claim browserverified or download implicitly.
+
+### D-054-122-265 — Joe's green-cat example; physical clock is not chatbot turn-taking
+
+An interval is a physical settlement step, never a user-message/answer transaction.
+Continuous sensing/internal activity is not conditional on a question. Unexpected
+answers, mistakes, imagined cats, jokes, preferences and silliness are not
+automatically machinery failures. Distinguish verified causal integrity from
+a demanded semantic response; no expected-answer table may govern ordinary AE
+expression. Controlled learned-capability witnesses do not prescribe all future
+responses. Determinism does not mean predictable to an observer; neither does
+it alone prove free will, humor, preference, cognition or meaning.
+Full goal remains active (verified with goaltool after Joe's resume).

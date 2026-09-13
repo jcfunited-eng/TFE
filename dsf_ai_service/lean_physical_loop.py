@@ -233,6 +233,7 @@ class LeanPhysicalLoop:
                     "body_consequence_count": len(body_consequences),
                     "causal_transition_sha256": primary.causal_transition_sha256,
                     "dsf_delivery_count": primary.dsf_delivery_count,
+                    "vocal_founder_refusal_count": primary.vocal_founder_refusal_count,
                     "embodiment": lean_embodiment_observation(
                         world_snapshot,
                         tuple(runtime.readiness().articulated_body_axes),

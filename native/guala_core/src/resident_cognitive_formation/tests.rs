@@ -8910,11 +8910,11 @@ fn exact_body_source_mounts_one_coordinated_vocal_preparation() {
             result
         };
         let mut frontier = Vec::new();
-        retain(&local_fabric, &mut frontier).unwrap();
+        assert!(!retain(&local_fabric, &mut frontier).unwrap());
         assert!(frontier.is_empty(), "zero-phase roots author nothing");
         let first_contact = first_preparation.associations[0];
         set_phase(&mut local_fabric, first_contact.bond, first_contact.lineage, 1);
-        retain(&local_fabric, &mut frontier).unwrap();
+        assert!(!retain(&local_fabric, &mut frontier).unwrap());
         assert_eq!(frontier.len(), 1, "one active root ignores its uncharged sibling");
         assert!(frontier[0].is_in_flight());
         assert!(frontier[0].carries_external_ingress_cause());
@@ -8923,11 +8923,16 @@ fn exact_body_source_mounts_one_coordinated_vocal_preparation() {
         let retained = frontier.clone();
         let other_contact = other[0].preparation.associations[0];
         set_phase(&mut local_fabric, other_contact.bond, other_contact.lineage, 1);
-        assert!(matches!(
-            retain(&local_fabric, &mut frontier),
-            Err(FormationError::NeuronLineageAuthorityChanged)
-        ));
-        assert_eq!(frontier, retained, "genuine tie cannot partly publish");
+        assert!(retain(&local_fabric, &mut frontier).unwrap());
+        assert_eq!(frontier, retained, "tie preserves prior authority without new publication");
+        let mut empty = Vec::new();
+        assert!(retain(&local_fabric, &mut empty).unwrap());
+        assert!(empty.is_empty(), "neither competing root is selected");
+        // Refusal is not retained inhibition: when competition ends, the
+        // original law can admit the one remaining root without resetting it.
+        set_phase(&mut local_fabric, other_contact.bond, other_contact.lineage, 0);
+        assert!(!retain(&local_fabric, &mut empty).unwrap());
+        assert_eq!(empty, retained);
     }
 
     let reached_successor = ReachedAssociationsByOccurrence {

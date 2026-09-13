@@ -48,7 +48,7 @@ def test_primary_keeps_tutor_and_authenticated_self_hearing_together(
         return SimpleNamespace(
             articulated_body_consequences=(), causal_transition_sha256="a" * 64,
             dsf_delivery_count=0, physically_transitioned_neuron_count=0,
-            python_callback_count=0,
+            python_callback_count=0, vocal_founder_refusal_count=int(guided),
         )
 
     runtime.advance_coexisting_admitted_interval_unsealed = admitted
@@ -136,6 +136,7 @@ def test_primary_keeps_tutor_and_authenticated_self_hearing_together(
         "consumed_sample_count": 4000 if pending else None,
         "vestibular_motion": (0, 7) if physical_return else None,
     }
+    assert result.observation["vocal_founder_refusal_count"] == int(guided)
     assert result.native_interval_count == 1
     assert result.observation["external_heard_sample_count"] == (4000 if external else 0)
     assert result.observation["self_heard_sample_count"] == (4000 if pending else 0)

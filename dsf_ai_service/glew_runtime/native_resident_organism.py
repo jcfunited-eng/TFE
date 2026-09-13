@@ -363,6 +363,9 @@ class NativeResidentObservationView(Protocol):
     def formation_activation_count(self) -> int: ...
 
     @property
+    def vocal_founder_refusal_count(self) -> int: ...
+
+    @property
     def partial_cue_reassembly_count(self) -> int: ...
 
     @property
@@ -531,6 +534,7 @@ class ResidentPrepareEvidence:
     cognitive_trace_count: int
     cognitive_mosaic_count: int
     formation_activation_count: int
+    vocal_founder_refusal_count: int
     partial_cue_reassembly_count: int
     endogenous_partial_cue_reassembly_count: int
     internally_reassembled_formation_cues: tuple[
@@ -2315,6 +2319,7 @@ def _observation_signature(
                 ordered_path_relations,
             ) in observation.organic_mosaic_relations
         ),
+        observation.vocal_founder_refusal_count,
         observation.partial_cue_reassembly_count,
         observation.endogenous_partial_cue_reassembly_count,
     )
@@ -2475,6 +2480,7 @@ class NativeResidentOrganism:
             candidate.formation_activation_count,
             "formation activation count",
         )
+        _nonnegative_integer(candidate.vocal_founder_refusal_count, "vocal founder refusal count")
         partial_count = _nonnegative_integer(
             candidate.partial_cue_reassembly_count,
             "partial cue reassembly count",
@@ -3813,6 +3819,9 @@ class NativeResidentOrganism:
             candidate.formation_activation_count,
             "formation activation count",
         )
+        vocal_founder_refusal_count = _nonnegative_integer(
+            candidate.vocal_founder_refusal_count, "vocal founder refusal count"
+        )
         partial_cue_reassembly_count = _nonnegative_integer(
             candidate.partial_cue_reassembly_count,
             "partial cue reassembly count",
@@ -4320,6 +4329,7 @@ class NativeResidentOrganism:
             cognitive_trace_count=cognitive_trace_count,
             cognitive_mosaic_count=cognitive_mosaic_count,
             formation_activation_count=formation_activation_count,
+            vocal_founder_refusal_count=vocal_founder_refusal_count,
             partial_cue_reassembly_count=partial_cue_reassembly_count,
             endogenous_partial_cue_reassembly_count=(
                 endogenous_partial_cue_reassembly_count
