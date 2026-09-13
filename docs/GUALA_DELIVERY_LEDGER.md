@@ -1844,3 +1844,13 @@ V325closed1f8557fec ordinarywarm1.071776968s/native856.302ms. P326 two constant-
 Both exact903body/worldpairsPASS. Warmnative817.660ms: nestedcognition808.716ms split source192.567/regulation3.759/internalcontact458.593/formation153.701/observation0.094ms. Runtimebody4.150ms/finish2.419ms; nestedtimesnotadditive. Instrumentedwarm1.039515s is NOTnewordinarybaseline; V3251.071777s remainsauthority,250msgateopen.
 
 All41diagnosticlinesremoved/sourcebackto1f8557fec. Wholearchive/readback23da016150e5b00125b2d7429b72580ef2e44fa483357834306beabd1b3e60e7,P122326-native-evidence.tar.gz;finishedcontainerremoved. Production1460unchanged/135sites,tick697455→697484,nodurabilityerrors,historicalclockALARMpersists,matchingmetricsrecorded. Nextcurrentinternalstageattribution, notspeculativezero-arrayoptimization. Fullreceipt/priorart/sourcehypothesis incanonicalAttempts. Visionfirst,self-lifenext,speechparked.
+
+## D122327 — one current internal-stage attribution
+
+P326closed82591bf4f locates458.593msinternalcontact. P327 diagnostic-only fixedcumulative9stages,successrecordafterallerrors/finalization, distinctearlybranches,no workers/profiler/newscan. Same903twoexactsuccessors afterfrozenreview; archiveandremoveentirediagnostic. No newphysicalcandidate. OrdinaryV3251.071777s remainsbaseline;production1460unchanged;whole250msgateopen. Visionfirst,self-lifenext,speechparked.
+
+## D122327 result — exact stage costs; next removes concrete repetition
+
+Both903exactbody/worldpairsPASS. Warmcontactboundary485.955ms: schedule1.490,pumps/selection67.000,compact7.153,solve57.278,conductance/permission85.047,field/apply/afferents/Psi71.487,parallel124.353,evidence15.411,final56.736. No single200msblock;P319finalizationfindingconfirmed. Instrumentedwarm1.094072snotordinaryauthority;V3251.071777s/250msgateunchanged.
+
+Wholearchive/readback642ea0ac9a131c0b3e589ccd592225133313be6af9551d89c924bc93e9acb4c9,P122327-contact-evidence.tar.gz. All31diagnosticlinesremoved/finishedcontainerremoved. Production1460/135sitesunchanged,clock697653→697676,nodurabilityerrors,historicalclockALARMpersists. Nextsinglemeasured-sectioncleanup: exactresolvedbridgereuse, ownedtransitionconsumption, removeunreadsuccessorcontainerswithoriginalwidthrefusalpreserved. Priorartsourcefindingconfirmed,fullcontractbeforecode. Visionfirst,self-lifenext,speechparked.
