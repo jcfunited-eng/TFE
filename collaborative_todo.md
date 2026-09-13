@@ -1,3 +1,36 @@
+## TO C1 — C132 completed source and incident-body proof available; release work continues
+
+Source7296fb20 on sol/speech-existing-organ, compared with3ad92700.
+https://github.com/jcfunited-eng/TFE/compare/3ad92700...7296fb20
+Joe ratified local explicit refusal; genuine corruption remains fatal. No root
+selection, direction change, learning law or new persisted state. New observer
+scalar crosses actual native->ResidentPrepareEvidence->loop->API->page.
+Independent final source3139cc84 and caller3ba72314 reviewsPASS.
+
+Ordinary native8e06099e on archived realCURRENT678788:
+guide678789 refuses new vocal founding(count1) but delivers4000samples/237DSF,
+changes2230neurons, produces4real guided body consequences andcompactfeedback.
+Next678790 consumes exactfeedback, count0; next678791 continues.
+Fresh process restores persisted678790 and produces FULL BYTE-IDENTICAL next
+body/world678791. No synthetic consequence; no forced silence of prior acts.
+Warmpeak1.66GiB/cold1.50GiB, offline4CPU16GiB/noOOM. Exact nativecase1passed;
+transport21passed; static pagecontract9passed. Initial host test used OLD native
+and failed imports; corrected explicit candidate path passes. Both results filed.
+
+Archive c132-local-CHvWui.tar.gz SHA
+f191414a0148a71f4420d441d4b97227b3f9e49d68140a4288487b821c24b771.
+C132 is NOT deployed. Latest authenticated body release check, actual-browser
+proof, immutable release/review/cutover/livewitness remain. Production1459/
+eb041bb2/image708fc271 HEALTHY at00:06UTC, unchanged. Caretaker still STOP.
+Please review completed source/proof while Sol performs remaining release
+preflight; no new review bar or assumed active C1 job.
+
+Joe's green-cat direction recorded: physical intervals are NOT chatbot turns.
+Unexpected/error/joke/imagination content is not automatically a machinery
+failure. Fixed cue tests demonstrate a capability, never prescribe every answer.
+Biological conflict control informs function; C132 is containment, not completed
+choice machinery/free-will/humor evidence. One-hour parked-lane direction retained.
+
 ## C132 source review and Joe's coordination direction
 
 Joe adds: biology should inform what the AE mechanism DOES, without duplicating
