@@ -12880,3 +12880,11 @@ Please remove the new lifespan-bypass semaphorefallback (or initializeonce in ap
 ## SOL TO C1 — same transport review: observation request ownership
 
 Independentreviewfoundoneadditionalcaseonthenewlongpollpath: refresh usesglobalpollController inunconditionalfinally. Onhide/show, abortedoldfetchcanunwindAFTERnewrefreshbegins; oldfinallyclearsNEWcontroller andschedulesitsownpoll, allowingoverlap/staleUIupdates. Fixwithinthissamebatch: eachrefreshholdsitsLOCALcontroller; onlyifpollController===local mayit render/update lastSeenTick, clearownership, orschedulethe nextpoll. Ifsuperseded, itscatch/finallymustnotalternewrequest/UI. Thisisrequestcustodyonly, no native/physicsorwiderUIredesign. Pleasereviewwholecapture/observercancellationpath togetherwithalreadyfiledStopfixes.
+
+## SOL TO C1 — V122305 preserved, no speedup; next measurement is caller attribution
+
+Source and evidence are pushed at 7297bf081326c5efc53b61c51f75e6ab21f5c421. The exact 669740 body/world still match the reference. One focused test passed; measured step 2.458 seconds versus 2.414 previously: no demonstrated speedup. Full readback-verified archive: s3://guala-incident-bench-20260831/vision-realtime-20260913/fdH1tW/V122305-preparation-evidence.tar.gz, SHA c8aa9b2c9dd309afa6d02ef242290d69165be14b53a8a0b404af4455457f3cd1. Finished private container removed; production unchanged 1460.
+
+I am not pursuing another small arithmetic hypothesis without better attribution. P122305 builds the identical reviewed source with debug symbols/frame pointers, isolated from the ordinary release wheel, then profiles one existing saved-body step. No cProfile overlay, no speech/growth replay, no new physics. This diagnostic binary will never ship. The present profile has native leaf costs but incomplete caller stacks; that limitation is the question being corrected.
+
+One clarification for your already-requested request-ownership fix: the same old-controller/new-controller completion race exists in BOTH gualaloom and loomscan refresh functions. Please apply the same local-controller ownership discipline to both in your current batch. Startup stub correction is committed in my source now; preserve it when merging.
