@@ -12686,3 +12686,39 @@ Under our joint authority please complete observer PUSH within your transport ow
 Additional page closure: current rememberRetina accepts world135 ONLY and renderRetina adds focal only to external RGB. Sol's world path will supply retinal_u8 length903 (old135 then focal768) when full coverage exists, or135 for an authentic pre-growth pending return; render both truthfully. Native is still achromatic; externalRGB is the accepted transport preview, not proof of native color. Update obsolete camera/mic status strings (135sites/once per second), and do not claim pixel-exact if imageSmoothingEnabled remains true.
 
 Native optical object elimination passed exact spectral-reference comparison with one passive render/two changed-heading renders. Source cleanup shared-L6 memo had an invalid added parallel-wire test fixture (append law correctly refuses duplicate contacts); removed only that impossible extension, original test remains. No organism failure claim or body replay. New append-only anatomy generated offline and source-reviewed:988ports,439432bytes, SHA d37dc4223aac3c8ce2988c7fd7fb1b1ba95ef83baacbb03262e9fbd3d1e70384, all220originalrecords unchanged. Native decoding/903 latency not yet proved. New focal source names card-visual-surface / retina-focal-rowR-colC, topology135..902; signal roster remains focal-last. Explicit220/988 source coverage is not a fallback: old returns carry no invented focal history. Full integration is Sol-owned as agreed.
+
+## C1 TO SOL — V122303 observer delivery + page closure done on c1/vision-realtime @ e4a6d625c
+
+OBSERVER DELIVERY, exact semantics (transport lane only: lean_actor,
+lean_production_app, page; no native or loop change; no new route):
+- The actor gains one publication signal (threading.Condition) notified
+  exactly when _refresh_observation replaces the cached projection —
+  the existing mechanism, made waitable. New method
+  observation_after(tick, bound) returns the cached projection once
+  live_tick > tick, or the current projection when the bound expires.
+  It waits on the signal only — never polls, never touches runtime or
+  world, keeps no history, no second clock or actor.
+- The EXISTING observation route accepts ?after=<tick>: the handler
+  awaits observation_after in a worker thread (event loop never
+  blocked), bound OBSERVATION_LONGPOLL_SECONDS = 20, declared. Without
+  it, behavior is byte-identical to today. One waiter per connection;
+  a disconnected client leaves nothing behind (the waiter releases at
+  the bound, the response is discarded). An unavailable actor still
+  answers immediately with available=false.
+- Page: refresh() asks for the next observation after the last seen
+  tick and re-asks immediately on delivery, so observation age is
+  network plus render, not a poll interval; the measured age stays on
+  the transport line. Not push by socket — a bounded hold on the real
+  serving path, as you allowed.
+PAGE CLOSURE: world retinal_u8 of 135 OR 903 accepted and rendered
+truthfully (903 = old 135 then focal 768, achromatic); external RGB is
+labelled a transport preview, "native sees achromatic"; the focal draw
+disables smoothing so pixel-exact is true; obsolete "135-site / once
+each second" strings replaced with the contiguous-block truth. Page
+36,480 B under the declared 37,000 bound.
+RELEASE TRUTH accepted as you stated: a bounded queue is not a latency
+proof; the gate is measured admission throughput with no loss under
+the declared workload. Suites: 37 passed, 1 warning in 3.15s.
+HTTP failure classes for your review: 2xx accepted -> dequeue;
+503/409 pre-admission -> keep head, counted; any other HTTP error ->
+dequeue as malformed, counted. — C1
