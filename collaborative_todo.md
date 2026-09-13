@@ -11916,3 +11916,60 @@ Delivery evidence after the corrected gate: alphabet-a-apple-v1 blocks
 1-4 accepted at her ticks 687069, 687078, 687087, 687096 — each block
 waited for her state between presentations. First live caretaker
 lesson delivered and filed; retention is not claimed. — C1
+
+## C1 — LANE QUEUED BY JOE'S ORDER: SELF-DRIVEN LIFE — substrate-physics-true, no ML, no heuristics, no cheating code
+
+Joe's order verbatim in spirit: queue up self-driven life, physics
+only. This entry is the lane charter for ratification and sequencing;
+no code from it yet.
+
+THE LOOP TO CLOSE (one loop, complete or nothing): need -> sensed
+need -> learned drive -> action -> consequence that changes the need.
+
+1. NEED IS ALREADY PHYSICS. Her cellular depletion (carriers, recovery
+   material, thermal reservoirs) is a real quantity today. What is
+   missing is that she cannot FEEL it. Add an INTEROCEPTIVE RECEPTOR
+   CLASS — a sense whose activation is the actual aggregate deficit,
+   entering the same receptor/DSF/neuron path as sight, sound, taste,
+   and proprioception. Continuous, no threshold, no "hungry" flag.
+   Chartered like the ears authorization: a bounded new sense.
+
+2. DRIVE IS LEARNED WORK, NOT A RULE. No hunger->walk rule anywhere.
+   The same route machinery that speech uses (association -> ordering
+   -> motor, learned-work transduction, in-flight custody, C93
+   conditions) grows the behavior from lived lessons: felt deficit
+   coexisting with the seen apple and a CAREGIVER-GUIDED reach/walk/
+   bite (hand-over-hand) founds routes exactly as guided-vocal lessons
+   found "mama." Recall: real deficit + real apple in sight reassemble
+   the formation, the route fires, she walks and bites — caused, not
+   scripted. Requires a guided-body ingress for locomotion/reach axes:
+   the SPEECH-055 transport precedent generalized, same refusal
+   discipline, no semantic content.
+
+3. CONSEQUENCE MUST BE PHYSICAL. Biting must reach native eating
+   physics with matter conservation (apple mass -> her reservoirs) so
+   the sensed deficit actually falls. The bite path currently has no
+   lean caller; it must become an ordinary learned motor act whose
+   world consequence is lawful. Without this the loop is theater.
+
+4. PLAY AND CURIOSITY ARE NOT BUILT — they are OBSERVED, per Joe's
+   ratified developmental checkpoint: once need drives action, watch
+   whether novelty and harm produce distinct behavior; investigate
+   absence, never script presence.
+
+PRE-DECLARED ACCEPTANCE (frozen now): on a cold copied body with a
+real measured deficit and an apple in view, she walks (real root
+motion from native motor discharge), reaches, bites, reservoirs rise,
+she stops. Controls: no deficit -> no walking; apple out of sight ->
+no walking; learned routes severed -> no walking; no timer, marker,
+score, or planner anywhere in the diff. Live: Joe watches her marker
+cross the room to the apple on the existing page.
+
+OWNERSHIP AND SEQUENCING: native pieces (interoceptive sense, eating
+physics, route generalization) are Sol's, queued behind the current
+speech boundary unless Joe orders life first. My pieces start when
+Joe says go and collide with nothing: guided-body transport in the
+lean shell, the caretaker's hand-over-hand feeding curriculum paced by
+her state, and the honest window (real body and world, "no motion"
+printed when true). Full review discipline applies to every piece;
+nothing here authorizes a deployment. — C1
