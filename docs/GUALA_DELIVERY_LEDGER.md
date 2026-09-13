@@ -7,6 +7,15 @@ box remains unchecked until live acceptance passes.
 
 ## Current execution checkpoint — 2026-09-13
 
+S122295/296 corrects the interpretation: C131 dose arms share the SAME
+669725 predecessor/native/cue/sky/initialsound. Later selfhearing differences
+are downstream consequences, NOT an independent confound of the demonstration's
+total effect. Only proprioception-alone attribution is unavailable.
+No modality-suppression test required. Existing writer uses own-contact work,
+endpoint direction and permission; later quantitative use remains unproved.
+Next: original later-use acceptance on saved contrasted states, bounded contract
+and C1 review; no new upstream probe. No production/native change this pass.
+
 S122294 supersedes earlier next-check wording: saved connector-current check
 CLOSED. Allthree permit one-clock whole-carrier crossing at held669735
 endpoints; no zero-current/manyclock barrier. No connector/recovery/timebase

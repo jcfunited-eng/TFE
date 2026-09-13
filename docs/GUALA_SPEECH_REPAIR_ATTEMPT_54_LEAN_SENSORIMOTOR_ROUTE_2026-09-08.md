@@ -2,6 +2,20 @@
 
 ## Current checkpoint — C132 LIVE; C131 live-feedback witness CLOSED
 
+S122295/296 CURRENT CORRECTION: repeated "selfhearing confound" wording below
+is too broad and is WITHDRAWN for total demonstration-effect attribution.
+C131 BOTH arms start from the SAME original32 body at669725, same cue/native/
+sky/initialsound; only the new guide dose differs. Later selfhearing differences
+are consequences of that controlled change. They prevent proprioception-ONLY
+attribution, not whole multisensory demonstration attribution. No muted-selfhearing
+or modality-isolation test is required for the total effect.
+Source review also closes the writer-map question: ordinary same-bond work,
+endpoint pump/return direction, permission-preserved contact successor, later
+motor use. New26aa had0permitted rows in the OLD C129 trace; post-C131 permission/
+direction/work opportunity remains unobserved. No learning-failure verdict.
+Next is the original later-use acceptance on saved states under one bounded
+contract, not another upstream signal investigation; C1 review requested.
+
 R122177 current step S122294 supersedes the earlier next-check wording below:
 the saved connector-current check is CLOSED, not queued. All three L5/L6
 connectors permit a whole-carrier crossing in one1000us localclock with fixed
@@ -23895,3 +23909,79 @@ candidate created, no capability completion claim. Full goal ACTIVE.
 Joe's scope complaint is accepted: diagnostic relevance does not excuse serial
 scope growth. Next remains one source-design decision, not another dozen probes.
 Order current speech -> approved vision -> queued self-driven life.
+
+### S-054-122-295 — actual strength-writer map and existing permission receipts
+
+Continues R122177; C132/S122278 and C131/H122247 stay CLOSED. Root validation
+clean4662e38b. No native run/build/newlesson/production/caretaker change.
+Source-only main/independent review answers the existing C1 question:
+core21031 ->19742 endpoint pump/return direction ->21522 local contact update
+(sparse_electrical_contact365 own released work/prior phase/finite channels)
+->21590 vocalpermission preserves or restores complete contact ->22713..22764
+actual same-bond carrier preparation and ordinary terminal discharge.
+Directed continuation23207 funds next L11 from completed-act work, NOT a
+separate vocal-contact strength writer. No bypassing updater found in this path.
+Same local strength-law file as59b9b692:
+SHAd5686d72ea94483bfd15d32f69e8a65ce311a2037c744bcf2d7aa0d022c4f9df.
+
+Old S122182 actual logs were re-read, hashes checked against analysis1f9f2aa1:
+32log95dfd4f4e91853e03430243b574bddc06d111e471f3f8ebe3529cd0f7781b25f;
+128log2d401346441147fc043ecd85b8d2a2d9e43abc616ad9d65b9dda980f38dafb66.
+8583rows/arm,8fullypermitted(4at669719 on268e,4at669720 on269c).
+All8 nonzero transfer/positive reportedwork, no computed strength/phase change.
+New26aa:32rows,0permitted. Do not confuse old C129 observations with newC131.
+Endpoint direction is not logged. Moreover currentcore21539 adds caught-up
+conduction heat AFTER localplasticity: pre-reset logged total released work
+must not be assumed identical to the fresh work input at21522. Thus positive
+reportedwork/unchangedphase alone cannot prove a quiescent input or missing
+strength law. Capture the actual input if later opportunity needs measurement.
+S122285 uncued tail0bodyconsequences is not proof of0permissions.
+No post-C131 authorized strength-writing opportunity has been established by
+the available projections. No "quantitative learning failed" conclusion follows.
+
+### C/S-054-122-296 — retract overbroad selfhearing-confound rejection
+
+Main and independent reviewer both retract the repeated claim that differing
+selfhearing invalidates total demonstration-effect attribution.
+This corrects the limitation language in S122282/285/290/292/294 and shared
+summaries; preserved exact physical observations and closed releases unchanged.
+C129 caller3b6d3e3f starts both doses from identical669708/body179cffc2/
+world8ba366cf/native/cue/sky; only guide drive differs.
+Crucially C131 caller0421b507 starts BOTH doses from C12932 SAME669725/
+body9eed2752/world88579866, not respective old dose bodies.
+Its code fixes native0388cacf,cue85a505e8,solar43200; only args.dose varies
+physical guidance on axes37/38/39/44. No independent sensory suppression.
+Both actual warm results have identical initial pressure87fdde69,
+acousticbodye6a0ec9e/source669725. Same4000external samples/fouraxes at669726,
+ordinary consumption669727. Warmreceipt SHA14a4d621/7dd12901 verified against
+the previously archived full hashes. Tailcaller3dd97985 then uses those exact
+consumed successors, sameC132native/sky/ordinary input sequence.
+C131 callerhash and actual execution provenance agree with I122228/S122229.
+
+Different later selfhearing is an endogenous consequence/mediator of that
+controlled physical demonstration, not an independently varied confound.
+The records cannot identify a PROPRIOCEPTION-ONLY pathway; they CAN support
+total retained physical effects of the demonstration. These are different
+claims. Do not require muting Guala's selfhearing or stripping other real
+participating senses merely to make an isolated-amplitude assay.
+Retained total effect remains distinct from L11/L12 strength learning and its
+later use; neither latter claim is silently upgraded by this correction.
+
+Decision: no new upstream/transmission run or novel learning rule. Continue
+the original later-use acceptance on the saved contrasted states under one
+bounded contract, explicitly requiring an actual strength-writing opportunity.
+No silent no-cue tail as a substitute, no new modality-isolation acceptance bar,
+no reset-only removal or teacher-dose table. C1 is asked to review that precise
+scope; source role question itself is answered by S122295.
+No new native test/build/production mutation. CompleteAEgoalACTIVE;
+current speech -> approved vision -> queued self-driven life unchanged.
+
+Evidence /tmp/guala-strength-writing.sG5jGw contains exact permitted rows and
+review/correction receipt. Archived/readbackverified:
+s3://guala-incident-bench-20260831/strength-writing-review-20260913/sG5jGw/evidence.tar.gz
+SHAc5466765b149e3eecf60fd7764f88672799694202d9728c2fcf86eb64fae8786.
+Input archives remain authoritative; no duplicated fullbody, no new harness.
+Workflow failures: repeated guessed nested leanroute path and nonexistent
+local_membrane_gradient.rs search were read-only misses; actual source located.
+Combined outputs truncated; actual caller files read fully in bounded calls.
+These are process mistakes, not organism failures or reasons to repeat physics.
