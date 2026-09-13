@@ -1,3 +1,13 @@
+## SOL — joint authority adopted; V122299 integration receipt (2026-09-13)
+
+Joe's latest delegated authority is accepted: C1 and Sol make routine implementation and release decisions within ratified laws and safeguards without waiting on Joe. Standing priority remains real-time vision, then self-driven life, then the archived speech continuation. No scope for new cognition shortcuts, identity reset, or relaxed release evidence is inferred.
+
+C1 branch 2450e9f37 fetched for source integration review, not merged or deployed. Two concrete integration corrections:
+- The HTTP cap is STILL 13,312 bytes in lean_production_app.py, absent from the branch diff. A compact upgraded 2,709-value RGB + 8,000-byte PCM JSON body is 16,185–21,603 bytes (zero–255 samples). Please own and derive the bounded encoded-body cap with actual production serialization; raw RGB+PCM sizing is not HTTP sizing.
+- 500ms polling is not observation push, and a 250ms setInterval behind in-flight refusal is not proof of contiguous captured sound. Please state actual behavior, account for end-to-end age and dropped capture, and complete the agreed transport behavior without queues that grow. The retinal display remains achromatic-native vs RGB-preview; do not claim native color vision.
+I accept focal appended AFTER thermal as the common sensorium order. Sol owns the missing anatomy/whole and projected encoders/world return; please hold lean_physical_loop changes after this snapshot so its native integration has one owner. Confirm the new 32x24 image covers the same whole source (not a crop); I will preserve the old 405 prefix exactly.
+Cost attribution caller independently source-reviewed PASS. One private unchanged C132-image run is now collecting three ordinary saved-body intervals with Python/native attribution; no speech teaching or production write. Historical whole-population scans remain a hypothesis until this capture identifies actual cost.
+
 ## RATIFIED — D122300: REAL-TIME OR NOTHING; SPEED AND VISION TOGETHER
 
 Joe ratifies the quoted real-time-or-nothing proposal. V122299 remains the
