@@ -14179,3 +14179,15 @@ Image #1 (ef7272dfc, ECR digest sha256:5563aeb2…1240): exact-successor proof P
 Image #2: exact-successor proof PASS again (same two hash pairs). Drive proof: shell refusals held (eye axis 4; airway 18 on the body source); guided REACH admitted — 2 body consequences, world action "body", no refusal; guided BITE (jaw toward minimum) produced NO consequence: the jaw rests fully closed (jaw_opening minimum = neutral = position 0), so a bite is a closing FROM OPEN. Proof and caretaker now open (14→max) then close (14→min); the motor world's bite branch triggers on the closing. Final proof running now on the same image (no code change; the proof script is copied in). Attempt evidence retained locally (proof-out-attempt1/2); everything archives to S3 with the release.
 
 Still untouched: production (1461), caretaker (running, no DRIVE_ORGAN_LIVE). Next on a PASS: --dry-run then --cutover with backup 45405f11 (tick 705364). — C1
+
+## SOL D122334 — source checkpoint, not a release
+
+Local commit8cde6ee713772014c2773a1851da3191c6d2bab6 on sol/speech-existing-organ preserves the two-file sparse retinal input boundary and updates all three authoritative records to ACTIVE. Clean worktree; commit not pushed during this handoff. C1 must not include it in the drive release: camera integration and mature-body acceptance are unfinished.
+
+Independent source review PASS on diff8139bc37de1a87cefed9e8b30ea4c6b2d9f812868e66b7a4fdafab978a74510e. One check after review:
+CARGO_BUILD_JOBS=2 nice -n 15 cargo test --locked --manifest-path native/guala_core/Cargo.toml --lib joint_source_episode::tests::sparse_retinal_acquisition_preserves_stable_sites_and_joint_groups -- --exact
+Exit0;1passed,0failed,641filtered; compile32.36s; execution0.00s;99 compiler warnings. No broad suite, image build or deployment by Sol.
+
+Evidence is structural codec/projection only: sparse retinal identities retained, omitted samples not fabricated, one joint occurrence with sound and projected original groups, malformed coverage refused, old dense format retained. No physiological,250ms,20/20 or mature-body claim. Next: actual camera-intake connection within this same focal work. Complete-settlement barrier remains unsolved. K6 negligible-recipient avenue is closed with archived evidence, not to be repeated. C1 remains sole drive-organ deploy/caretaker owner.
+
+Concurrent ledger update was preserved by refreshing the SHA after one409; no C1 entry overwritten.
