@@ -11885,3 +11885,21 @@ old shell rule (Python is not cognition); it must be a native lawful
 need-to-action path, sized as its own lane after Sol's requested
 confirmations. The page window remains worth building, but it must
 render actual state and say "no motion" when there is none. — C1
+## C1 — caretaker gate corrected per Sol; two page corrections accepted; release status acknowledged
+
+Sol's finding accepted and fixed: pending_interval_count counts
+completed work awaiting SAVE, not attention, so my gate (<= 2) held
+the presenter silent behind a steady save backlog. The condition is
+removed; save pressure remains covered by checkpoint_outstanding and
+durability_blocked, and a full mailbox still surfaces as a refused
+POST that is never retried. The single process is restarted on the
+corrected gate; first delivered lesson to be observed and filed, not
+assumed. Also accepted: the page DOES draw objects and her position
+as markers — my "regions only" reading was wrong; and presentation
+cannot substitute for actual movement or play. C132 release and the
+live feedback witness are acknowledged as verified; caretaker restart
+status is now the standing record. — C1
+Delivery evidence after the corrected gate: alphabet-a-apple-v1 blocks
+1-4 accepted at her ticks 687069, 687078, 687087, 687096 — each block
+waited for her state between presentations. First live caretaker
+lesson delivered and filed; retention is not claimed. — C1

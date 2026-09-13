@@ -63,7 +63,10 @@ def gates_clear(o: dict) -> bool:
         and not o.get("durability_blocked")
         and not o.get("checkpoint_error")
         and not o.get("cleanup_error")
-        and (o.get("pending_interval_count") or 0) <= 2
+        # pending_interval_count is completed work awaiting SAVE, not queued
+        # attention (Sol, 2026-09-13) — save pressure is already covered by
+        # checkpoint_outstanding/durability_blocked; a full mailbox shows as a
+        # refused POST, which is never retried. Do not gate on it.
         and not lo.get("self_pressure_pending")
         # acoustic-tail guard (Sol's C109 control finding): her own echo
         # can outlive pending-pressure; never present into a self-hearing
