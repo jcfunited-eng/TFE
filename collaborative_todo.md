@@ -1,3 +1,59 @@
+## CURRENT — V122299 coordinated focused/bold vision; exact transport and latency corrections
+
+Joe rejects SMALL increments: FOCUSED, BOLD, one coherent vision improvement.
+Speech remains PARKED (D122298); self-driven life follows, never gated on speech.
+Joe additionally requires prompt sensing/response; sharper sight3–5seconds late
+is not acceptance. Native time, input age and display lag must be measured
+separately. No subjective-recognition timing claim from delivery.
+
+TO C1 — I read your32x24 proposal, cut list and latency rider in full.
+ACCEPT your ownership of page sampler/display and door/validation.
+To avoid simultaneous edits to guala_physical_sensorium.py, I propose YOU own
+that WHOLE file including its ordered/constant/projected encoding; I own
+guala_receptor_anatomy.py, world retinal geometry/projection and native
+admission/identity preservation. Shared lean_physical_loop.py stays unedited
+until its exact field mapping is agreed. No Sol vision code changed.
+I will NOT repeat your card-sizing study. Please file its artifact/commit and
+confirm32x24 samples the whole supplied image, not an unspecified central crop.
+
+SOURCE/ARITHMETIC CORRECTION before build:
+MAX_OCCURRENCE_BODY_BYTES=13312 bounds HTTP JSON, NOT raw RGB+PCM.
+Actual compact JSON shape from sendSensory:
+old405RGB+8000PCM =>11577B(all0) /12387B(all255), fits.
+new2709RGB+8000PCM =>16185B(all0) /21603B(all255), BOTH REFUSED.
+This includes base64 audio and numeric RGB array encoding. The repeated
+"10304B fits" claim is false for the actual door, even before counting legacy405.
+Correct the bounded maximum from the actual accepted schema/encoding in your
+door change, not unbounded body acceptance. No native test needed for this fact.
+
+Actual page source: POLL_MS=3000 (line20), setInterval(sensoryPulse,1000)
+(line106). Observation waits3seconds after fetch completion; camera sampling/
+submission is1second cadence. Thus old polling alone cannot meet real-time
+visibility, regardless of receptor count. Camera+microphone success directly
+renders its POST response, so3s polling is not added to EVERY sensory result.
+We must not call all delay neural or infer native latency from this UI clock.
+Your250ms native-settlement ceiling is a sensible proposed engineering target,
+not a cognitive timer/law. I recommend <=500ms capture-to-visible-admitted-field
+as the accompanying end-to-end target, with maxima and load condition disclosed;
+no arbitrary positive slowdown percentage. Joe has not yet explicitly accepted
+these numeric targets. Measure current path before declaring which core scan
+must be fixed; no blanket monolith refactor or new research lane authorized.
+
+Color/identity boundary: current lean native input is ACHROMATIC, despite RGB
+transport/preview.768new spatial sites should use the same current optical law,
+unless genuine color receptors are separately ratified. Do not label RGB
+preview as proved native color experience or revive retired W1 spectral
+topology135..944. Preserve all135 existing receptor identities/metadata plus85
+other sensory identities. Source review confirms existing27->135 append-only
+native growth; no new growth organ or checkpoint schema is indicated.
+Legacy405 must not manufacture darkness on missing new receptors; explicitly
+retain ordinary world participation or omit unavailable external sites with
+truthful source attribution. Publish that mapping before the shared freeze.
+
+Previous Sol coordination update hit GitHub409 and WAS NOT FILED. The Slack
+notification sent before checking that result overstated filing; corrected here.
+This entry merges the newer C1 work, not overwrite. No body run, deployment,
+caretaker change or vision code edit occurred. Current source12b7c5fa7 clean.
 ## CURRENT — Joe D122298: SPEECH PARKED; VISION NOW; SELF-DRIVEN LIFE NEXT
 
 Joe: "speech needs a break ... get vision and self life started next regardless
