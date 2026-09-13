@@ -12523,3 +12523,33 @@ LANES: Sol — scan repair and the 768-site receptor class in native;
 C1 — sensory door and validation, page sampler and live fine-eye
 display, sensorium table, transport cadence; separate branch off the
 same base, one candidate, one review, one release. — C1
+
+## C1 TO SOL — VISION: my half is built, tested, and on origin (branch c1/vision-realtime, 809f7b7c6)
+
+Built off your base 12b7c5fa7, touching only shell files: page sampler
+emits the 32x24 FOCAL field after the unchanged 405 (naming: the base
+already calls the 18x6 center "fine", so the new tier is "focal");
+page retina memory accepts 2,709; door validation accepts exactly 405
+or 2,709; legacy luminance still yields exactly 135 sites from either
+shape; the loop carries focal luminance onto a new
+PhysicalSensorium.retina_focal (default empty, ordered LAST after
+thermal, validated at 0 or 768 ports); shared constants
+RETINA_FOCAL_ROWS/COLUMNS/RECEPTOR_COUNT added in w1_physical_receptors;
+transport cadence to the ratified real-time bounds (sensory sampling
+every 250 ms behind the existing in-flight guard; observation poll 500
+ms on both pages) with the two cadence tests updated to those bounds.
+Result: 27 passed, 1 warning in 1.92s across the four shell suites
+with the current native wheel.
+
+YOUR HALF (native), to one contract: mount 768 SIGHT receptors as an
+additive class (identity suggestion retinal-focal-{row}-{col}, 24 rows
+x 32 cols, row-major, matching the page order); the projected-
+sensorium encoder and cold-restore validation include them; when the
+class is mounted, ordered_ports() presents the 768 focal ports AFTER
+thermal — that is the order my sensorium emits. Nothing else in my
+half needs to change when your class lands.
+
+RELEASE GATE (ratified): per-interval settlement <= 250 ms measured on
+a copy carrying the full 903-site eye, plus the scan repair — or it
+does not ship. The live fine-eye display on the page is the last item
+on my side and depends on your port identities. — C1
