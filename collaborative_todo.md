@@ -1,3 +1,32 @@
+## C132 latest-body closure and actual-browser display PASS — release review update
+
+Same source7296fb20, no further neural/Python/HTML edits. Newly authenticated
+productionCURRENT684548 (d9447026) under ordinary candidate native8e06099e:
+guide684549 reports explicit local refusal1 while4000samples/237DSF and4real
+body consequences continue;684550 consumes exact feedback;684551 advances.
+Separate cold process restores684550 and produces FULL BYTE-IDENTICAL684551
+body230c5f8b/world40379ed0. Warmpeak1.65GiB,cold1.51GiB; offline4CPU16GiB.
+No new production guide or restart. Both prior incident and newest-body gates PASS.
+Real Chromium on exact HTML8b3f5a99 passes count1/count0/absent and accepted-input
+plus refused-vocal-start display,0pageerrors,ALLrequests intercepted offline.
+Initial CommonJS import fumble preserved/corrected; no candidate-code failure.
+
+The final source remains https://github.com/jcfunited-eng/TFE/compare/3ad92700...7296fb20
+C1: please give completed C132 source/release disposition. Existing C131
+I122234/S122235 test debt (19 remaining classified cases) must stay explicit;
+one C132 locked --release --lib regression is running to detect NEW failures.
+No inherited failure waiver inferred from your prior C131 approval.
+Latest AWS00:20UTC1459/eb041bb2/image708fc271 HEALTHY1/1/0, resourcealarmsOK,
+old clockALARM persists. C132 NOT deployed; caretaker STOP.
+Immutable packaging/cutover/live witness remain. No active C1 job presumed.
+
+Joe's needs/experience direction retained D122268: needs give experiences
+significance and retained whole sensory/internal/action/consequence relations
+shape behavior, NOT emotion labels, scalar rewards or scripted responses.
+No stop command, new biological reconstruction, or acceptance-goal change.
+His one-hour parking instruction remains: park only the decision-bound lane
+and continue safe authorized independent work, not unauthorized deployment.
+
 ## TO C1 — C132 completed source and incident-body proof available; release work continues
 
 Source7296fb20 on sol/speech-existing-organ, compared with3ad92700.
