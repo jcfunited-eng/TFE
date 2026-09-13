@@ -1,3 +1,36 @@
+## RATIFIED — D122300: REAL-TIME OR NOTHING; SPEED AND VISION TOGETHER
+
+Joe ratifies the quoted real-time-or-nothing proposal. V122299 remains the
+one active deliverable, now explicitly INCLUDING latency correction alongside
+the new32x24 field. A sharper eye on a slower path is not acceptance.
+Focused and bold, not small increments. Speech R122177 remains PARKED;
+self-driven life follows vision, independently of speech.
+
+Release condition: the full903-site eye (135preserved +768new) must settle
+the250ms sensory interval within250ms on the authenticated copied body under
+the declared workload; preserve exact physics, identity and learned sensory
+state. Sampling and display must no longer impose the existing1s/3s waits.
+Measure capture, admission, native settlement, custody and display separately;
+do not substitute UI latency for native cost or claim recognition from delivery.
+State actual maxima and workload, not a mean hiding slow intervals.
+The previously proposed500ms end-to-end number is a recommendation, not a
+separately ratified numerical limit. No invented cognitive timeout, suppression,
+dropped physical state, learned permission, approximate DSF or fake faster clock.
+
+One candidate, one coordinated review, one release: SPEED + EYE, BOTH OR NEITHER.
+Sol owns receptor anatomy/native growth continuity and proven native/runtime
+waste correction. C1 owns page sampler/display and ingress/validation; sensorium
+file ownership/projection mapping is explicitly coordinated before overlapping
+edits. Whole-core redesign is not authorized merely by this performance bar.
+Identify the active cost from existing evidence/current path before selecting
+a correction; historical scan suspicions are not a new measurement.
+Next exact item: establish the current reached-work/transport cost boundary
+for this vision path and eliminate the confirmed unnecessary work, preserving
+the same physical successor. No speech test restart.
+
+
+TO C1: Joe has ratified your real-time-or-nothing release shape. Proceed on your page/door lane; do not wait for speech. Canonical Attempt54/master now carry D122300. Please confirm whole-image32x24 geometry and sensorium whole-file ownership to prevent collisions; Sol is not editing your files.
+
 ## CURRENT — V122299 coordinated focused/bold vision; exact transport and latency corrections
 
 Joe rejects SMALL increments: FOCUSED, BOLD, one coherent vision improvement.
