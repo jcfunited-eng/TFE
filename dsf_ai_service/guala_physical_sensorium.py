@@ -106,9 +106,16 @@ class PhysicalSensorium:
 def _validate(
     sensorium: PhysicalSensorium, frame_count: int,
     *, senses: tuple[PhysicalSense, ...] | None = None,
+    sampled_retina: tuple[PortTrajectories, PortTrajectories] | None = None,
 ) -> PortTrajectories:
+    # Substitute only acquired light, at its declared position among the other
+    # senses. A later BODY group must remain later than the focal sight group.
+    retina, focal = (
+        (sensorium.retina, sensorium.retina_focal)
+        if sampled_retina is None else sampled_retina
+    )
     expected = (
-        ("retina", sensorium.retina, RETINAL_PORTS, PhysicalSense.SIGHT),
+        ("retina", retina, RETINAL_PORTS if sampled_retina is None else len(retina), PhysicalSense.SIGHT),
         ("legacy ears", sensorium.legacy_ears, LEGACY_EAR_PORTS, PhysicalSense.SOUND),
         ("cochleae", sensorium.cochleae, COCHLEAR_PORTS, PhysicalSense.SOUND),
         ("touch", sensorium.touch, TOUCH_PORTS, PhysicalSense.TOUCH),
@@ -117,8 +124,8 @@ def _validate(
         ("displacement", sensorium.displacement, DISPLACEMENT_PORTS, PhysicalSense.BODY),
         ("articulation", sensorium.articulation, ARTICULATORY_PORTS, PhysicalSense.BODY),
         ("thermal", sensorium.thermal, THERMAL_PORTS, PhysicalSense.BODY),
-        ("retina focal", sensorium.retina_focal,
-         len(sensorium.retina_focal) and RETINAL_FOCAL_PORTS, PhysicalSense.SIGHT),
+        ("retina focal", focal,
+         (len(focal) and RETINAL_FOCAL_PORTS) if sampled_retina is None else len(focal), PhysicalSense.SIGHT),
     )
     ordered = []
     for label, ports, width, sense in expected:
@@ -182,7 +189,7 @@ def settle_projected_physical_sensorium(
     # Only these senses enter this episode. A concurrent return may carry
     # a different exact sample grid for another, independently admitted sense.
     # Native projection filters the declared port roster without regrouping
-    # its senses. Focal sight is LAST, even when several senses coexist.
+    # its senses. Sampled sight replaces its groups in that declared order.
     if retinal_sites is None:
         if retinal_samples is not None:
             raise ValueError("sampled light lacks explicit retinal coverage")
@@ -201,15 +208,14 @@ def settle_projected_physical_sensorium(
                    for row in retinal_samples)
         ):
             raise ValueError("sampled light changed retinal coverage or source clock")
-        # Do not validate, copy, or encode omitted world/camera light. Only the
-        # actual acquired sites replace sight; all selected nonvisual ports keep
-        # their existing values and clock. Focal ports are appended in anatomy.
-        nonvisual = _validate(
-            sensorium, len(source_times),
-            senses=tuple(sense for sense in senses if sense is not PhysicalSense.SIGHT),
-        )
+        # Do not validate, copy, or encode omitted world/camera light. The one
+        # anatomy-ordered pass keeps each nonvisual group in place even when a
+        # group follows focal sight, rather than gathering all of them before it.
         split = sum(site < RETINAL_PORTS for site in retinal_sites)
-        selected = (*retinal_samples[:split], *nonvisual, *retinal_samples[split:])
+        selected = _validate(
+            sensorium, len(source_times), senses=senses,
+            sampled_retina=(retinal_samples[:split], retinal_samples[split:]),
+        )
     if not selected:
         raise RuntimeError("physical sense projection left mounted anatomy")
     signals = array("d")

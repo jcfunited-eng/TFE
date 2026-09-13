@@ -1,6 +1,75 @@
 # D122334 — sensory execution contract and source dependency map
 
-## CURRENT — D122334 ACTIVE; focal acquisition is Sol's one native item (2026-09-13 21:46 UTC)
+## CURRENT — 2026-09-13 22:50Z — camera source on origin, not live; anatomical-order correction
+
+Active item D122334 continues; acceptance remains actual production receptor
+delivery within250ms with the detailed organism-aimed eye and one full joint
+DSF field. Prior K6 recipient-thinning census remains CLOSED (evidence below);
+no new recipient census. Last direct AWS census1462,1running/0pending.
+Source90a1e5d39 already integrates the live stage1, with56 scoped tests and the
+fresh705977 mature-body proof archived below. Those successes are not reopened.
+No image or live camera change is claimed.
+
+Single next change: remove the sparse Python packer's assumption that all
+nonvisual ports precede focal sight. Substitute acquired sight trajectories
+inside the existing anatomy-ordered validation pass, instead of splitting out
+all nonvisual ports and then inserting them before focal sight. This prepares
+the source boundary for C1's appended BODY ports without importing his changing
+need mechanism or changing any neuron/transducer/energy law.
+
+Authorized files: guala_physical_sensorium.py, its existing focused test file,
+this contract. Caller path remains request -> physical occurrence -> loop ->
+settle_projected_physical_sensorium -> one GLJSRC07 native source -> one existing
+native settlement -> paired persistence -> unchanged sampled-site observation.
+No new state/schema, FFI call, loop owner, persistent cache or full-field loss.
+Dense input and sampled input must encode the identical source bytes they did
+before this reordering correction on the accepted1462 anatomy. Omitted light
+must remain absent, not validated, filled, or replayed.
+
+Translation/lean review before tests: the current path makes two tuple copies
+of selected nonvisual rows (_validate then sparse concatenation). The replacement
+does one anatomy-ordered selection pass over the same bounded current source
+ports, with only the supplied retinal rows substituted. One final binary64
+signal body still crosses the same native call. No per-neuron/UF replication.
+The body/world/restore/native code and prior source-lifecycle proof are unchanged.
+Supporting exit check: existing sensorium cases, plus independent encoded-byte
+comparison for legacy-only, focal-only, and mixed sparse acquisitions. This is
+source-packing equivalence, not a renewed mature-behavior or latency claim.
+
+C1 stage2 is not imported: its worktree changed from f0e72 to c3b6973 to9fe42
+during coordination. Integration still also requires include_need anatomy and
+removal of any requirement for acquired focal samples when that mounted anatomy
+exists but no focal light is acquired. That is distinct from remounting/zero fill.
+The neuron skill explicitly forbids a body-wide energy fraction becoming an
+interoceptor; C1's proposed aggregate needs therefore need an explicit authority
+reconciliation before Sol adopts that physics. No claim that a ledger entry or
+successful fixture alone ratifies it. C1 owns his candidate and live release.
+
+### 22:52Z correction result — source only, no production mutation
+
+Frozen independent source review PASS, no localized/architectural finding:
+d6d6b44f575e98a3b277c21097c978b3ddb8b55b095068fb15dd2139ea4f4e77;
+reviewed diff47f6bdae52c0a8cca69570e0fd3ced2655ec40c2dd1a6adb2285499df333a73e.
+Reviewer verified before/after and ran no tests/edits.
+
+Scoped command (one run):
+PYTHONPATH=/tmp/guala-d122334-mature.Slf0yK/python:/tmp/guala-speech-existing-organ
+python -m pytest -q tests/test_guala_physical_sensorium.py
+10passed,0.77seconds,exit0. Existing candidate extension unchanged,
+sha256ddabd542f253c2bcc023f50c37c8e21b193db48357e8fdc5b518f275dc37f92b.
+Candidate Python module location verified in this worktree; private native
+package location verified. git diff --check clean. No build, mutable production
+action, or mature proof rerun. Process census found no pytest/prove_intake/
+maturin children (rg no-match exit1, not a failed organism command).
+
+Shared ledgerb9f471a01937e145dbacb0cd3ceea7a6693b7641 explicitly requests C1
+reconcile the aggregate-need authority and correct the pre1462 backup claim.
+This source change removes the packing assumption but does NOT finish stage2
+integration, ship camera support, or meet250ms. Existing physical/native/
+persistence evidence remains as bounded below. Next release seam remains the
+paired page/receiver publication against an authenticated accepted baseline.
+
+## Historical 21:46 checkpoint — D122334 ACTIVE; focal acquisition is Sol's one native item (2026-09-13 21:46 UTC)
 
 Joe resumed the goal and C1 supplied the physical-participation ruling. The
 20:50 blocked status below is historical, not the current instruction.

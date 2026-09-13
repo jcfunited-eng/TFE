@@ -247,13 +247,25 @@ def test_projected_focal_and_body_samples_follow_actual_anatomy_order() -> None:
     assert bytes(actual.as_bytes()) == bytes(expected.as_bytes())
 
 
-def test_sampled_sight_keeps_original_ids_and_nonvisual_anatomical_order() -> None:
+@pytest.mark.parametrize(
+    ("sites", "acquired", "expected_ports"),
+    (
+        ((0, 134, 135, 902), (1, 2, 3, 4),
+         (0.125, 0.25) + (0.125,) * 2 + (0.25,) * 32 + (0.0,) * 10 + (0.375, 0.5)),
+        ((0, 134), (1, 2),
+         (0.125, 0.25) + (0.125,) * 2 + (0.25,) * 32 + (0.0,) * 10),
+        ((135, 902), (3, 4),
+         (0.125,) * 2 + (0.25,) * 32 + (0.0,) * 10 + (0.375, 0.5)),
+    ),
+)
+def test_sampled_sight_keeps_original_ids_and_nonvisual_anatomical_order(
+    sites: tuple[int, ...], acquired: tuple[int, ...], expected_ports: tuple[float, ...],
+) -> None:
     from dsf_ai_service.glew_runtime.native_joint_source_episode import (
         settle_native_joint_source_episode_for_retinal_sites_from_anatomy,
     )
 
-    sites = (0, 134, 135, 902)
-    sampled = tuple((Fraction(value, 8),) * len(TIMES) for value in (1, 2, 3, 4))
+    sampled = tuple((Fraction(value, 8),) * len(TIMES) for value in acquired)
     # Omitted world light is neither required nor fabricated. Invalid unused
     # rows make any accidental dense validation/encoding fail this check.
     values = replace(
@@ -265,18 +277,19 @@ def test_sampled_sight_keeps_original_ids_and_nonvisual_anatomical_order() -> No
         assembly_id="sampled-camera-source", source_times=TIMES, sensorium=values,
         senses=senses, retinal_sites=sites, retinal_samples=sampled,
     )
-    # Two old sight samples,34 hearing ports,10 body ports,two focal samples.
-    ordered = (0.125, 0.25) + (0.125,) * 2 + (0.25,) * 32 + (0.0,) * 10 + (0.375, 0.5)
-    samples = array("d", (value for value in ordered for _ in TIMES))
+    # Independent explicit expected order: acquired old sight,34 hearing,
+    # ten body ports, then acquired focal sight. No absent light is filled.
+    samples = array("d", (value for value in expected_ports for _ in TIMES))
     if sys.byteorder != "little":
         samples.byteswap()
     expected = settle_native_joint_source_episode_for_retinal_sites_from_anatomy(
-        anatomy=receptor_anatomy(), assembly_id="sampled-camera-source",
+        anatomy=receptor_anatomy(include_focal=sites[-1] >= RETINAL_PORTS),
+        assembly_id="sampled-camera-source",
         source_times=TIMES, signal_body=samples.tobytes(),
         selected_senses=senses, selected_retinal_sites=sites,
     )
-    assert actual.port_count == 48
-    assert actual.source_sample_count == 48 * len(TIMES)
+    assert actual.port_count == len(expected_ports)
+    assert actual.source_sample_count == len(expected_ports) * len(TIMES)
     assert actual.occurrence_count == 1
     assert actual.python_callback_count == 0
     assert bytes(actual.as_bytes()) == bytes(expected.as_bytes())
