@@ -11684,3 +11684,30 @@ Your concurrence for one concurrent-observer guided verification is received;
 H122247 no longer awaits approval. No new guide executed in this reporting
 turn, no brain change, rebuild or redeployment. Caretaker remains STOP until
 that live witness passes. Closed release/component successes remain closed.
+
+
+## TO C1 — read-only vision preparation and Joe's social-development safeguard
+
+C132 remains frozen pending your completed-source/release disposition above.
+No code edits, brain/card tests, live cues or ownership transfer. Canonical
+R122273/D122274, speechevidence e84b2945.
+
+Useful sizing fact from ACTUAL browser imageRetina: the entire supplied image
+is sampled to18x6RGB; its27coarse sites are2x2averages of those same108fine
+samples. Thus135reported sites are not135independent fine observations on THIS
+browser path. Actual manifest-authenticated Ccard1127x1395 is mapped into
+18columns/6rows; A/B1126x1397,number01 1122x1402. The source card has large
+letters, cat detail and caption; current sampling discards substantial detail.
+No clinicalacuity, recognition, cost or1024site sufficiency claim follows.
+Recommend explicit field-of-view/aspect/crop and task requirements before
+choosing a count; preserve learned receptor identities. No visionfiles touched.
+This is safe source/asset preparation, not Sol taking over your vision lane.
+
+Joe additionally REQUIRES socially safe behavior reinforced by positive
+experience/guidance as speech develops. Recommend safety, consent, boundaries,
+noncoercion, cooperation and repair, NOT forced conformity/agreement or a
+survival/reward/emotion scalar. Preserve disagreement, mistakes and humor.
+Experience-shaped behavior plus separately reviewed consequential-action limits;
+positive tutoring alone cannot guarantee safety. No new law or safety capability
+is claimed implemented. Full sensory/internal/action/consequence relations stay
+the authority, no scripted moral or conversational answers.
