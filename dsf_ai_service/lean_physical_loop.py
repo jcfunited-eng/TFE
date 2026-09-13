@@ -33,6 +33,24 @@ PASSIVE_ADMISSION = ([(250, 1000)],)
 MAX_NATIVE_INTERVALS_PER_OCCURRENCE = 1
 
 
+def _metabolic_need(runtime: Any) -> tuple[Fraction, Fraction]:
+    """Her own aggregate reserve state as two exact fractions of declared
+    capacity: reserve deficit (spent / spent capacity) and thermal load
+    (thermal / thermal capacity), summed over every living cohort. No
+    estimate, no smoothing, no threshold: the reserves as they are."""
+    spent = spent_capacity = thermal = thermal_capacity = Fraction(0)
+    for _available, cohort_spent, cohort_thermal, _available_capacity, cohort_spent_capacity, cohort_thermal_capacity in runtime.observe_recovery_fluid():
+        spent += cohort_spent
+        spent_capacity += cohort_spent_capacity
+        thermal += cohort_thermal
+        thermal_capacity += cohort_thermal_capacity
+    deficit = spent / spent_capacity if spent_capacity else Fraction(0)
+    load = thermal / thermal_capacity if thermal_capacity else Fraction(0)
+    if not (0 <= deficit <= 1 and 0 <= load <= 1):
+        raise RuntimeError("native reserves left their declared capacity")
+    return deficit, load
+
+
 def _requires_physical_return(evidence: Any) -> bool:
     body_sources = tuple(evidence.body_proprioceptive_sources)
     body_consequences = tuple(evidence.articulated_body_consequences)
@@ -79,6 +97,7 @@ class LeanPhysicalLoop:
         start_tick = runtime.live_organism_tick
         before_native = runtime.readiness()
         before_axes = tuple(before_native.articulated_body_axes)
+        need = _metabolic_need(runtime)
         returning = world.pending_physical_return
         primary_prepared = None
         uncommitted_prepared = None
@@ -156,6 +175,12 @@ class LeanPhysicalLoop:
                         source_times=PASSIVE_TIMES, sensorium=hearing, senses=(PhysicalSense.SOUND,),
                     ))
                     admissions.append([(250, 1000)])
+            # Stage 2 of the drive organ: the two metabolic-need interoceptors
+            # carry her own reserve deficit and thermal load across the
+            # interval, whichever path composed the rest of the sensorium.
+            primary_sensorium = replace(
+                primary_sensorium, need=tuple((value,) * len(times) for value in need),
+            )
             assembly_id = (
                 f"guala-lean-unattended-{before_native.identity}-{start_tick + 1}"
                 if returning is None else "guala-lean-native-motor-" + returning.causal_transition_sha256
@@ -201,6 +226,7 @@ class LeanPhysicalLoop:
                     world=world, evidence=primary,
                     predecessor_state_sha256=before_native.state_sha256,
                     predecessor_body_axes=before_axes, successor_body_axes=successor_axes,
+                    need=need,
                 )
                 uncommitted_prepared = motor_plan.prepared_world
                 after = motor_plan.prepared_world.execution_receipt.after
@@ -317,6 +343,8 @@ class LeanPhysicalLoop:
                     "real_nutrition_intake_zeptojoules": (
                         0 if returning is None else getattr(returning, "nutrition_intake_zeptojoules", 0)
                     ),
+                    "metabolic_need_reserve_deficit": [need[0].numerator, need[0].denominator],
+                    "metabolic_need_thermal_load": [need[1].numerator, need[1].denominator],
                     "pending_physical_return_tick": None if next_return is None else next_return.producer_tick,
                     "physical_return_source_count": 0 if returning is None else len(returning.sources),
                     "vestibular_return_consumed": returning is not None and returning.vestibular is not None,

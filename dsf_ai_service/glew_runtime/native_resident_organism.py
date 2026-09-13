@@ -4445,6 +4445,21 @@ class NativeResidentOrganism:
             for members, contacts in self.__runtime.observe_cohort_contacts()
         )
 
+    def observe_recovery_fluid(self) -> tuple[tuple[Fraction, ...], ...]:
+        """Exact reservoir state per living cohort: available, spent, thermal
+        zeptojoules, then their declared capacities. Her own reserves, read
+        for the metabolic-need interoceptors; reading advances nothing."""
+
+        cohorts = []
+        for parts in self.__runtime.observe_recovery_fluid():
+            if len(parts) != 6:
+                raise RuntimeError("native reservoir observation changed shape")
+            values = tuple(Fraction(int(numerator), int(denominator)) for numerator, denominator in parts)
+            if any(value < 0 for value in values):
+                raise RuntimeError("native reservoir observation is negative")
+            cohorts.append(values)
+        return tuple(cohorts)
+
     def observe_reached_neuron_count_by_layer(
         self,
     ) -> tuple[tuple[int, int], ...]:

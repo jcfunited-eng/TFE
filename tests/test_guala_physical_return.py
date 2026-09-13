@@ -268,3 +268,45 @@ def test_return_carries_the_bite_intake_and_old_records_decode_as_zero():
             nutrition_intake_zeptojoules=-1,
         )
     world.discard_prepared_action(plan.prepared_world)
+
+
+def test_return_carries_the_metabolic_need_ports_after_the_focal_field():
+    from dsf_ai_service.guala_physical_return import NEED_RETURN_SAMPLE_BYTES, RETURN_SAMPLE_BYTES, RETURN_TIMES
+    from dsf_ai_service.guala_physical_sensorium import NEED_PORTS, compact_signal_body
+
+    world = home_world_authority(identity=IDENTITY)
+    need = (Fraction(3, 7), Fraction(1, 9))
+    plan = prepare_motor_consequence(
+        world=world,
+        evidence=SimpleNamespace(
+            articulated_body_consequences=(), body_proprioceptive_sources=(),
+            body_proprioceptive_source_extents=(), body_proprioceptive_source_admissions=(),
+            root_yaw_unit_recruitments=(("01" * 16, 4, 7, "positive"),),
+            root_translation_unit_recruitments=(),
+            causal_transition_sha256="03" * 32, organism_tick=41,
+        ),
+        predecessor_state_sha256="04" * 32,
+        predecessor_body_axes=AXES, successor_body_axes=AXES, need=need,
+    )
+    assert plan.sensorium.need == ((Fraction(3, 7),) * 3, (Fraction(1, 9),) * 3)
+    assert len(plan.sensorium.ordered_ports()) == 220 + 768 + NEED_PORTS
+    assert len(compact_signal_body(plan.sensorium, frame_count=3)) == NEED_RETURN_SAMPLE_BYTES > RETURN_SAMPLE_BYTES
+    after = plan.prepared_world.execution_receipt.after
+    fed = PendingPhysicalReturn.capture(
+        identity=IDENTITY, producer_tick=41, causal_transition_sha256="03" * 32,
+        world_revision=after.revision,
+        world_observation_receipt_sha256=after.authority_receipt_sha256,
+        sensorium=plan.sensorium, sources=plan.sources, vestibular=plan.vestibular,
+    )
+    assert len(fed.sampled_sensorium) == NEED_RETURN_SAMPLE_BYTES
+    restored = PendingPhysicalReturn.from_record(fed.record())
+    assert restored == fed
+    # A return is sampled as binary64 (compact_signal_body); the exact fractions
+    # come back as their float values, like every other port.
+    assert restored.sensorium(RETURN_TIMES).need == tuple(
+        tuple(float(value) for value in port) for port in plan.sensorium.need
+    )
+    world.discard_prepared_action(plan.prepared_world)
+    # A return sampled before the interoceptors existed still decodes without them.
+    older = _capture(_plan(home_world_authority(identity=IDENTITY)))
+    assert older.sensorium(RETURN_TIMES).need == ()

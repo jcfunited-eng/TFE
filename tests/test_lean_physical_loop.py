@@ -17,6 +17,8 @@ class Sensorium:
     retina: tuple = ((Fraction(0),) * len(loop.PASSIVE_TIMES),)
     legacy_ears: tuple = ()
     cochleae: tuple = ()
+    retina_focal: tuple = ()  # stale fixture: field added with the focal field (2026-09-13)
+    need: tuple = ()  # stale fixture: field added with the metabolic-need interoceptors (2026-09-13)
 
 
 @pytest.mark.parametrize("new_consequence", [False, True])
@@ -36,7 +38,7 @@ def test_primary_keeps_tutor_and_authenticated_self_hearing_together(
         in_flight_acoustic_pressure_s16le=own_pressure if pending else None,
         in_flight_acoustic_body_s16le=own_body if pending else None,
         in_flight_acoustic_source_tick=9 if pending else None,
-        readiness=lambda: ready,
+        readiness=lambda: ready, observe_recovery_fluid=lambda: (),
     )
 
     def admitted(*args, **kwargs):
@@ -153,7 +155,7 @@ def test_native_explicit_pre_mutation_refusal_keeps_pending_return(monkeypatch):
         causal_transition_sha256="a" * 64, sources=(), vestibular=None,
     )
     runtime = SimpleNamespace(
-        live_organism_tick=10, readiness=lambda: ready,
+        live_organism_tick=10, readiness=lambda: ready, observe_recovery_fluid=lambda: (),
         in_flight_acoustic_pressure_s16le=None,
         in_flight_acoustic_body_s16le=None, in_flight_acoustic_source_tick=None,
     )
@@ -169,3 +171,26 @@ def test_native_explicit_pre_mutation_refusal_keeps_pending_return(monkeypatch):
         loop.LeanPhysicalLoop().unattended(runtime, world)
     assert world.pending_physical_return is pending
     assert runtime.live_organism_tick == 10
+
+
+def test_metabolic_need_is_the_exact_aggregate_reserve_deficit():
+    from fractions import Fraction
+    from types import SimpleNamespace
+    from dsf_ai_service.lean_physical_loop import _metabolic_need
+
+    F = Fraction
+    # (available, spent, thermal, available_capacity, spent_capacity, thermal_capacity) per cohort
+    runtime = SimpleNamespace(observe_recovery_fluid=lambda: (
+        (F(7), F(3), F(1), F(10), F(10), F(4)),
+        (F(2), F(8), F(3), F(10), F(10), F(4)),
+    ))
+    assert _metabolic_need(runtime) == (F(11, 20), F(4, 8))
+    empty = SimpleNamespace(observe_recovery_fluid=lambda: ())
+    assert _metabolic_need(empty) == (F(0), F(0))
+    overfull = SimpleNamespace(observe_recovery_fluid=lambda: ((F(0), F(11), F(0), F(10), F(10), F(4)),))
+    try:
+        _metabolic_need(overfull)
+    except RuntimeError:
+        pass
+    else:
+        raise AssertionError("a deficit beyond capacity must be refused")

@@ -10825,6 +10825,25 @@ impl ResidentCognitiveFormationState {
             .collect()
     }
 
+    /// Read-only observation of each living cohort's recovery-fluid reservoir:
+    /// ``(available, spent, thermal, available_capacity, spent_capacity,
+    /// thermal_capacity)`` in exact zeptojoule parts. This is the organism's
+    /// own reserve state — the quantity its metabolic-need interoceptors
+    /// sample. Reading advances nothing.
+    pub(crate) fn observe_recovery_fluid(
+        &self,
+    ) -> Vec<[crate::exact_rational::ExactRational; 6]> {
+        self.cohorts
+            .iter()
+            .map(|cohort| {
+                let (available, spent, thermal) = cohort.state.recovery_fluid().physical_parts();
+                let (available_capacity, spent_capacity, thermal_capacity) =
+                    cohort.anatomy.recovery_fluid_reservoir_anatomy().capacities();
+                [available, spent, thermal, available_capacity, spent_capacity, thermal_capacity]
+            })
+            .collect()
+    }
+
     /// Count the living reached neurons at each exact developmental layer.
     ///
     /// This is a bounded read-only projection of persisted anatomy. It does

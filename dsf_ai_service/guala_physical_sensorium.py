@@ -31,6 +31,7 @@ TASTE_PORTS = 5
 DISPLACEMENT_PORTS = 4
 ARTICULATORY_PORTS = 4
 THERMAL_PORTS = 2
+NEED_PORTS = 2  # () means this source carries no metabolic-need interoception
 
 
 Trajectory = tuple[Fraction | float, ...]
@@ -51,6 +52,9 @@ class PhysicalSensorium:
     articulation: PortTrajectories
     thermal: PortTrajectories
     retina_focal: PortTrajectories = ()
+    # Stage 2 of the drive organ: her own reserve deficit and thermal load,
+    # appended after the focal field, exactly the anatomy's group order.
+    need: PortTrajectories = ()
 
     def ordered_ports(self) -> PortTrajectories:
         return (
@@ -64,6 +68,7 @@ class PhysicalSensorium:
             *self.articulation,
             *self.thermal,
             *self.retina_focal,
+            *self.need,
         )
 
     @classmethod
@@ -81,6 +86,7 @@ class PhysicalSensorium:
         articulation: tuple[Fraction | float, ...],
         thermal: tuple[Fraction | float, ...],
         retina_focal: tuple[Fraction | float, ...] = (),
+        need: tuple[Fraction | float, ...] = (),
     ) -> "PhysicalSensorium":
         if frame_count <= 0:
             raise ValueError("physical sensorium requires a positive frame count")
@@ -99,6 +105,7 @@ class PhysicalSensorium:
             articulation=hold(articulation),
             thermal=hold(thermal),
             retina_focal=hold(retina_focal),
+            need=hold(need),
         )
 
 
@@ -118,7 +125,11 @@ def _validate(
         ("thermal", sensorium.thermal, THERMAL_PORTS, PhysicalSense.BODY),
         ("retina focal", sensorium.retina_focal,
          len(sensorium.retina_focal) and RETINAL_FOCAL_PORTS, PhysicalSense.SIGHT),
+        ("metabolic need", sensorium.need,
+         len(sensorium.need) and NEED_PORTS, PhysicalSense.BODY),
     )
+    if sensorium.need and not sensorium.retina_focal:
+        raise ValueError("metabolic need is mounted after the focal field")
     ordered = []
     for label, ports, width, sense in expected:
         if senses is not None and sense not in senses:
@@ -128,7 +139,7 @@ def _validate(
         if any(len(trajectory) != frame_count for trajectory in ports):
             raise ValueError(f"{label} changed the shared physical clock")
         ordered.extend(ports)
-    if senses is None and len(ordered) != LEGACY_PORT_COUNT + len(sensorium.retina_focal):
+    if senses is None and len(ordered) != LEGACY_PORT_COUNT + len(sensorium.retina_focal) + len(sensorium.need):
         raise RuntimeError("physical sensorium does not cover mounted anatomy")
     for trajectory in ordered:
         for value in trajectory:
@@ -189,7 +200,7 @@ def settle_projected_physical_sensorium(
     if sys.byteorder != "little":
         signals.byteswap()
     return settle_native_joint_source_episode_for_senses_from_anatomy(
-        anatomy=receptor_anatomy(include_focal=bool(sensorium.retina_focal)),
+        anatomy=receptor_anatomy(include_focal=bool(sensorium.retina_focal), include_need=bool(sensorium.need)),
         assembly_id=assembly_id,
         source_times=source_times,
         signal_body=signals.tobytes(),
@@ -212,7 +223,7 @@ def settle_physical_sensorium(
     if any(not isinstance(value, Fraction) for value in source_times):
         raise TypeError("physical sensorium source clock is not exact")
     episodes = settle_native_joint_source_episode_batch_from_anatomy(
-        anatomy=receptor_anatomy(include_focal=bool(sensorium.retina_focal)),
+        anatomy=receptor_anatomy(include_focal=bool(sensorium.retina_focal), include_need=bool(sensorium.need)),
         assembly_ids=(assembly_id,),
         source_times=(source_times,),
         signal_bodies=(

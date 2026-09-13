@@ -6127,6 +6127,27 @@ impl NativeResidentOrganismRuntime {
         self.runtime.cognitive_state().observe_cohort_contacts()
     }
 
+    /// Read-only exact reservoir state per living cohort as six
+    /// ``(numerator, denominator)`` zeptojoule pairs: available, spent,
+    /// thermal, then their declared capacities. The metabolic-need
+    /// interoceptors sample this; reading advances nothing.
+    fn observe_recovery_fluid(&self) -> Vec<Vec<(BigInt, BigInt)>> {
+        self.runtime
+            .cognitive_state()
+            .observe_recovery_fluid()
+            .into_iter()
+            .map(|parts| {
+                parts
+                    .into_iter()
+                    .map(|value| {
+                        let (numerator, denominator) = value.parts();
+                        (BigInt::from(numerator), BigInt::from(denominator))
+                    })
+                    .collect()
+            })
+            .collect()
+    }
+
     /// Read-only bounded distribution of living reached neurons by their
     /// persisted developmental layer. No neuronal state or reserve cells are
     /// projected and reading advances nothing.
