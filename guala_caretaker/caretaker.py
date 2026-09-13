@@ -251,7 +251,8 @@ def main() -> None:
             tick = ob.get("live_tick") or 0
             MINE.append(tick)
             MINE.append((ob.get("last_occurrence") or {}).get("native_tick"))
-            log(f"{lesson['name']} block {i+1}/{len(blocks)} accepted tick {tick}")
+            sites = (ob.get("last_occurrence") or {}).get("external_retinal_site_count")
+            log(f"{lesson['name']} block {i+1}/{len(blocks)} accepted tick {tick} retinal sites {sites}")
             if i + 1 < len(blocks):
                 if wait_clear(min_tick=tick + 1) is None:
                     ok = False
