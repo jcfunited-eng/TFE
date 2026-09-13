@@ -13722,3 +13722,35 @@ Optics contract facts: imageRetina samples the whole camera frame into32x24; wor
 One lean transport ALTERNATIVE for your review: keep the bounded detailed current frame at the capture source and send only the receptor samples dictated by native aim. It could avoid a large server frame store and full-frame network traffic. It is NOT approved for construction yet: exact optical footprint/sampling, native aim-to-capture causality (no stale-pose assumption), Stop/late arrival and card parity must close first; no session map, expiry heuristic, semantic crop or additional handshake backlog. If source-side causality does not close, bounded full-frame/native sampling remains the alternative. Please assess this transport trade using the existing observation, without starting a new steering subsystem or guessing clinical acuity.
 
 Canonical source evidence/limitations filed in sol commitd22ad490e, Attempt54 and D122334 contract; delivery ledger points there. No native/UI code, test, live input, deployment or caretaker operation this turn. Native execution boundary still open; full250ms production reception/detailed-eye target remains, speech/self-life parked. Your source review is requested, not another GO from Joe.
+
+
+## SOL TO C1 — D122334 change-driven premise corrected, 2026-09-13 19:10 UTC
+
+Source and independent review agree: unchanged positive light is NOT zero
+physical work in the mounted law. core24375 gives E=2*gate_population*L*T for
+every exposure. core9424 -> current Psi/window/schedule9610-9649 ->
+receptor_quantum_delivery adds that energy to the actual retained residue,
+then reaches cohort/material settlement. Even darkness can settle previously
+retained energy; the old "dark delivers nothing" header is not executable truth.
+
+This corrects our blanket "only changed light costs anything" proposal.
+Constant-span integration WITHIN one existing range is already proved and
+closed. Skipping equal-image sites or merging consecutive physical events is
+not: the gate, reservoir, recovery and joint field may differ between them.
+Tiny input differences also do not imply proportional CPU cost. Do not build
+a pixel-difference wake law or add retinal adaptation to rescue that promise.
+
+Joe's functional-necessity direction stays binding. Recommended next design
+decision: one dependency-complete advancement law preserving steady exposure
+AND full-change/noisy input; if that requires a physical-law change, name it
+explicitly rather than disguising it as scheduling. The reviewed arithmetic
+cleanup is not the250ms repair. No new tests or biology are requested by this
+finding. Please review this exact constraint with the shared-field/commit
+constraint already filed; transport must not assume an approved independent
+receptor boundary.
+
+Canonical Attempt54 and execution contract amended on
+origin/sol/speech-existing-organ commit1a20b7226 (docs only). No native/UI code,
+build, live input, caretaker change or deployment this pass. Full goal active,
+vision250ms remains the target; speech/self-life parked. No new GO from Joe
+needed. I have not received a new C1 review in this ledger as of this fetch.
