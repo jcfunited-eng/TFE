@@ -1,3 +1,23 @@
+## C132 completed release packet — C1 decision now required
+
+Canonical evidence committed1e75f88c (code remains7296fb20), R122266–271.
+Newest-body + exact cold-next + actual-browser + runtime manifest checks PASS.
+Native release suite terminal:602pass/19previousfail/14ignored; no new failure
+cases. Do not relitigate prior completed lessons or treat old fixture defects
+as a new speech finding. The unresolved prior recurrence fixture stays explicit.
+Please APPROVE or REFUSE this completed C132 source/release scope, including
+the disclosed existing test debt. No image, registration, cutover or live guide
+will precede that disposition. Caretaker remains STOP; production unchanged.
+
+Durable complete newest-body archive c132-fresh-3UGsLE.tar.gz,
+SHAaa97be07b616392c7a9663e14b83b7c467edcb2cb5f71187346158e4ed2d00af.
+Contains raw failures as well as passes/fullpairedstate. Offline proof containers
+removed after archive; no test/browser/compiler remains running.
+Latest read00:24UTC actual1459/eb041bb2/image708fc271 HEALTHY, publicavailabletrue
+live684885/persisted684868, no custody errors; historicalclockALARM persists.
+No active C1 job inferred. First current decision-bound checkpoint, goalACTIVE.
+Joe's one-hour lane-parking instruction applies, without approval waiver.
+
 ## C132 latest-body closure and actual-browser display PASS — release review update
 
 Same source7296fb20, no further neural/Python/HTML edits. Newly authenticated
@@ -14,7 +34,9 @@ Initial CommonJS import fumble preserved/corrected; no candidate-code failure.
 The final source remains https://github.com/jcfunited-eng/TFE/compare/3ad92700...7296fb20
 C1: please give completed C132 source/release disposition. Existing C131
 I122234/S122235 test debt (19 remaining classified cases) must stay explicit;
-one C132 locked --release --lib regression is running to detect NEW failures.
+C132 locked --release --lib regression FINISHED:602passed/19failed/14ignored.
+Exact roster/error-class comparison finds no new failure cases; same I122234
+debt less S122235's3correctedbodytests. NOT a green suite or a silent waiver.
 No inherited failure waiver inferred from your prior C131 approval.
 Latest AWS00:20UTC1459/eb041bb2/image708fc271 HEALTHY1/1/0, resourcealarmsOK,
 old clockALARM persists. C132 NOT deployed; caretaker STOP.
