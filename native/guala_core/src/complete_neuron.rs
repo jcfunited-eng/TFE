@@ -3866,7 +3866,7 @@ fn prepare_gate_interval_settlement(
     if predecessor_gate.open_population > anatomy.population {
         return Err(GateSettlementError::GatePopulationExceeded);
     }
-    let open_minus_closed = gate_open_minus_closed_free_energy(
+    let (closed_energy, open_energy) = gate_endpoint_free_energies(
         anatomy,
         plastic_anatomy,
         plastic_state,
@@ -3875,6 +3875,7 @@ fn prepare_gate_interval_settlement(
         psi,
         gate_work,
     )?;
+    let open_minus_closed = &open_energy - &closed_energy;
     let uncapped_population_settlement = select_gate_population_settlement(
         anatomy,
         plastic_anatomy,
@@ -3885,6 +3886,8 @@ fn prepare_gate_interval_settlement(
         psi,
         gate_work,
         None,
+        (anatomy.population == 1 && gate_work.receptor_target_open_population.is_none())
+            .then_some((&closed_energy, &open_energy)),
     )?;
     Ok(PreparedGateIntervalSettlement {
         predecessor_open_population: predecessor_gate.open_population,
@@ -4055,6 +4058,7 @@ fn select_gate_population_settlement(
     psi: &PsiKrimelackState,
     gate_work: &GateWorkOccurrence,
     maximum_released_quanta: Option<u128>,
+    single_channel_energies: Option<(&Exact, &Exact)>,
 ) -> Result<Option<GatePopulationSettlement>, GateSettlementError> {
     let internal_only_work = GateWorkOccurrence::new(Exact::zero());
     let predecessor_work = if gate_work.receptor_target_open_population.is_some() {
@@ -4062,16 +4066,24 @@ fn select_gate_population_settlement(
     } else {
         gate_work
     };
-    let predecessor_energy = gate_population_free_energy(
-        anatomy,
-        plastic_anatomy,
-        plastic_state,
-        predecessor_membrane,
-        capacitance,
-        psi,
-        predecessor_work,
-        predecessor_gate.open_population,
-    )?;
+    let predecessor_energy = if let Some((closed, open)) = single_channel_energies {
+        if predecessor_gate.open_population == 0 {
+            closed.clone()
+        } else {
+            open.clone()
+        }
+    } else {
+        gate_population_free_energy(
+            anatomy,
+            plastic_anatomy,
+            plastic_state,
+            predecessor_membrane,
+            capacitance,
+            psi,
+            predecessor_work,
+            predecessor_gate.open_population,
+        )?
+    };
     if let Some(target_population) = gate_work.receptor_target_open_population {
         if !anatomy.has_independent_channel_supports()
             || target_population < predecessor_gate.open_population
@@ -4112,16 +4124,24 @@ fn select_gate_population_settlement(
     }
     if anatomy.population == 1 {
         let successor_population = 1 - predecessor_gate.open_population;
-        let successor_energy = gate_population_free_energy(
-            anatomy,
-            plastic_anatomy,
-            plastic_state,
-            predecessor_membrane,
-            capacitance,
-            psi,
-            gate_work,
-            successor_population,
-        )?;
+        let successor_energy = if let Some((closed, open)) = single_channel_energies {
+            if successor_population == 0 {
+                closed.clone()
+            } else {
+                open.clone()
+            }
+        } else {
+            gate_population_free_energy(
+                anatomy,
+                plastic_anatomy,
+                plastic_state,
+                predecessor_membrane,
+                capacitance,
+                psi,
+                gate_work,
+                successor_population,
+            )?
+        };
         if successor_energy >= predecessor_energy {
             return Ok(None);
         }
@@ -4293,7 +4313,7 @@ fn gate_population_free_energy(
         + (&open / population) * &gate_work.open_minus_closed_zeptojoules)
 }
 
-fn gate_open_minus_closed_free_energy(
+fn gate_endpoint_free_energies(
     anatomy: &TwoStateGateAnatomy,
     plastic_anatomy: &PlasticSupportAnatomy,
     plastic_state: &PlasticSupportState,
@@ -4301,7 +4321,7 @@ fn gate_open_minus_closed_free_energy(
     capacitance: MembraneCapacitance,
     psi: &PsiKrimelackState,
     gate_work: &GateWorkOccurrence,
-) -> Result<Exact, GateSettlementError> {
+) -> Result<(Exact, Exact), GateSettlementError> {
     let closed = gate_population_free_energy(
         anatomy,
         plastic_anatomy,
@@ -4321,6 +4341,27 @@ fn gate_open_minus_closed_free_energy(
         psi,
         gate_work,
         anatomy.population,
+    )?;
+    Ok((closed, open))
+}
+
+fn gate_open_minus_closed_free_energy(
+    anatomy: &TwoStateGateAnatomy,
+    plastic_anatomy: &PlasticSupportAnatomy,
+    plastic_state: &PlasticSupportState,
+    predecessor_membrane: LocalMembraneConductanceState<1>,
+    capacitance: MembraneCapacitance,
+    psi: &PsiKrimelackState,
+    gate_work: &GateWorkOccurrence,
+) -> Result<Exact, GateSettlementError> {
+    let (closed, open) = gate_endpoint_free_energies(
+        anatomy,
+        plastic_anatomy,
+        plastic_state,
+        predecessor_membrane,
+        capacitance,
+        psi,
+        gate_work,
     )?;
     Ok(open - closed)
 }
@@ -7648,6 +7689,7 @@ mod tests {
             &fixture.state.psi,
             &work,
             None,
+            None,
         )
         .unwrap()
         .unwrap();
@@ -7663,6 +7705,7 @@ mod tests {
             fixture.anatomy.capacitance,
             &fixture.state.psi,
             &GateWorkOccurrence::new(q(-17, 2)),
+            None,
             None,
         )
         .unwrap()
@@ -7709,6 +7752,7 @@ mod tests {
                 fixture.anatomy.capacitance,
                 &fixture.state.psi,
                 &GateWorkOccurrence::new(q(work, 1)),
+                None,
                 None,
             )
             .unwrap()
@@ -7772,6 +7816,7 @@ mod tests {
             &fixture.state.psi,
             &GateWorkOccurrence::receptor_activation(-delivered.clone(), 2).unwrap(),
             None,
+            None,
         )
         .unwrap()
         .unwrap();
@@ -7800,6 +7845,7 @@ mod tests {
             fixture.anatomy.capacitance,
             &fixture.state.psi,
             &GateWorkOccurrence::new(q(-8, 1)),
+            None,
             None,
         )
         .unwrap();
@@ -7875,6 +7921,7 @@ mod tests {
                         &fixture.state.psi,
                         &work,
                         None,
+                        None,
                     )
                     .unwrap()
                     .map(|settlement| settlement.open_population);
@@ -7890,83 +7937,86 @@ mod tests {
     #[test]
     fn prepared_gate_descent_matches_direct_capacity_bounded_settlement() {
         let fixture = physical_fixture();
-        let gate = TwoStateGateAnatomy::new(
-            8,
-            0,
-            q(0, 1),
-            q(1, 4),
-            3,
-            r(1, 1),
-            r(-1, 1),
-            Vec::new(),
-            fixture.ring_count,
-        )
-        .unwrap();
-        for predecessor_open in 0..=gate.population {
-            for dissipated_quanta in 0..=gate.dissipation_capacity_quanta {
-                for signed_work in -16..=16_i64 {
-                    let mut predecessor_gate = fixture.state.gate.clone();
-                    predecessor_gate.open_population = predecessor_open;
-                    predecessor_gate.dissipated_quanta = dissipated_quanta;
-                    predecessor_gate.dissipation_residue_zeptojoules =
-                        PhysicalEnergyResidue::from_exact(q(1, 8));
-                    let work = GateWorkOccurrence::new(q(signed_work, 1));
-                    let direct = select_gate_population_settlement(
-                        &gate,
-                        &fixture.anatomy.plastic,
-                        &fixture.state.plastic,
-                        &predecessor_gate,
-                        fixture.state.membrane,
-                        fixture.anatomy.capacitance,
-                        &fixture.state.psi,
-                        &work,
-                        Some(gate.dissipation_capacity_quanta - dissipated_quanta),
-                    )
-                    .unwrap();
-                    let prepared = prepare_gate_interval_settlement(
-                        &gate,
-                        &fixture.anatomy.plastic,
-                        &fixture.state.plastic,
-                        &predecessor_gate,
-                        fixture.state.membrane,
-                        fixture.anatomy.capacitance,
-                        &fixture.state.psi,
-                        &work,
-                    )
-                    .unwrap();
-                    let projected = prepared
-                        .uncapped_population_settlement
-                        .as_ref()
-                        .and_then(|uncapped| {
-                            quantize_gate_release(
-                                &predecessor_gate.dissipation_residue_zeptojoules,
-                                &uncapped.released_energy_zeptojoules,
-                                &gate.dissipation_quantum_zeptojoules,
-                                Some(
-                                    gate.dissipation_capacity_quanta - dissipated_quanta,
-                                ),
-                            )
-                            .unwrap()
-                            .map(
-                                |(
-                                    released_quanta,
-                                    dissipation_residue_zeptojoules,
-                                    exported_heat_zeptojoules,
-                                )| GatePopulationSettlement {
-                                    open_population: uncapped.open_population,
-                                    released_energy_zeptojoules: uncapped
-                                        .released_energy_zeptojoules
-                                        .clone(),
-                                    released_quanta,
-                                    dissipation_residue_zeptojoules,
-                                    exported_heat_zeptojoules,
-                                },
-                            )
-                        });
-                    assert_eq!(
-                        projected, direct,
-                        "open={predecessor_open} dissipated={dissipated_quanta} work={signed_work}"
-                    );
+        for population in [1, 8] {
+            let gate = TwoStateGateAnatomy::new(
+                population,
+                0,
+                q(0, 1),
+                q(1, 4),
+                3,
+                r(1, 1),
+                r(-1, 1),
+                Vec::new(),
+                fixture.ring_count,
+            )
+            .unwrap();
+            for predecessor_open in 0..=gate.population {
+                for dissipated_quanta in 0..=gate.dissipation_capacity_quanta {
+                    for signed_work in -16..=16_i64 {
+                        let mut predecessor_gate = fixture.state.gate.clone();
+                        predecessor_gate.open_population = predecessor_open;
+                        predecessor_gate.dissipated_quanta = dissipated_quanta;
+                        predecessor_gate.dissipation_residue_zeptojoules =
+                            PhysicalEnergyResidue::from_exact(q(1, 8));
+                        let work = GateWorkOccurrence::new(q(signed_work, 1));
+                        let direct = select_gate_population_settlement(
+                            &gate,
+                            &fixture.anatomy.plastic,
+                            &fixture.state.plastic,
+                            &predecessor_gate,
+                            fixture.state.membrane,
+                            fixture.anatomy.capacitance,
+                            &fixture.state.psi,
+                            &work,
+                            Some(gate.dissipation_capacity_quanta - dissipated_quanta),
+                            None,
+                        )
+                        .unwrap();
+                        let prepared = prepare_gate_interval_settlement(
+                            &gate,
+                            &fixture.anatomy.plastic,
+                            &fixture.state.plastic,
+                            &predecessor_gate,
+                            fixture.state.membrane,
+                            fixture.anatomy.capacitance,
+                            &fixture.state.psi,
+                            &work,
+                        )
+                        .unwrap();
+                        let projected = prepared
+                            .uncapped_population_settlement
+                            .as_ref()
+                            .and_then(|uncapped| {
+                                quantize_gate_release(
+                                    &predecessor_gate.dissipation_residue_zeptojoules,
+                                    &uncapped.released_energy_zeptojoules,
+                                    &gate.dissipation_quantum_zeptojoules,
+                                    Some(
+                                        gate.dissipation_capacity_quanta - dissipated_quanta,
+                                    ),
+                                )
+                                .unwrap()
+                                .map(
+                                    |(
+                                        released_quanta,
+                                        dissipation_residue_zeptojoules,
+                                        exported_heat_zeptojoules,
+                                    )| GatePopulationSettlement {
+                                        open_population: uncapped.open_population,
+                                        released_energy_zeptojoules: uncapped
+                                            .released_energy_zeptojoules
+                                            .clone(),
+                                        released_quanta,
+                                        dissipation_residue_zeptojoules,
+                                        exported_heat_zeptojoules,
+                                    },
+                                )
+                            });
+                        assert_eq!(
+                            projected, direct,
+                            "open={predecessor_open} dissipated={dissipated_quanta} work={signed_work}"
+                        );
+                    }
                 }
             }
         }
@@ -7986,6 +8036,7 @@ mod tests {
             fixture.anatomy.capacitance,
             &fixture.state.psi,
             &GateWorkOccurrence::new(q(-9, 1)),
+            None,
             None,
         )
         .unwrap();

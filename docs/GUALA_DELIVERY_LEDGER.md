@@ -1789,3 +1789,15 @@ P320count1msclosed. P321 measures preparation/recovery/settlement inside the exi
 Both exact903body/worldpairs PASS. Warm helper worker sums preparation166.852ms/recovery0.563ms/settlement32.206ms; notCPU orparallelwall. Source confirms repeatedE(0),E(1) inside population1 intrinsic preparation; receptor-target energies differ and cannotshare blindly. F021cross-recovery fix remainsclosed. Next focused contract: within-call exact endpointreuse, originalerrors/laws retained.
 
 All diagnostic source reverted, finishedownedcontainerremoved afterwholearchive/readback f74e1f9f08a64615f984227a7c26a9afac1137f7c4f93de4f958fb1f5e6a5656 (P122321-helper-evidence.tar.gz). OrdinaryV3181.265666402s remainsbaseline. Production1460unchanged,clock695898→695964, no checkpoint/cleanuperror, historicalclockalarmstillALARM. CanonicalAttempts has full receipts and harnesscorrections. Vision/speedfirst,self-lifenext,speechparked.
+
+## D122322 — exact single-channel preparation reuse
+
+P321locatespreparation166.852ms. V322 one complete_neuron correction reuses E0/E1 alreadycomputed withinpopulation1intrinsic preparation, no receptor-target interchange. No state/cache/law/schema change. Existing direct/prepared oracle extended topopulations1and8; frozenreview then oneordinary903exactproof. Whole250ms gate unchanged; ordinaryV3181.265666402s baseline, production1460unchanged. Visionfirst,self-lifenext,speechparked.
+
+## D122322 result — exact calculation reuse, real-time gate still open
+
+FocusedexistingoraclePASS and bothfull903body/worldsuccessorsPASS. Ordinarycold1.209170463s/warm1.241113262s/native893.429ms,peak2765520KiB. Versuspriorwarm1.265666402s, small24.553msdifference, not dependablegainfromonecomparison; no250msclosure. Sourcecorrectnesslocallyretained, notdeployed.
+
+Wholearchive/readback8e38752a7b364d9d2a1162eba22e86bb65723a24777d9bcd720c1b631716c0b8 (V122322-energy-evidence.tar.gz),finishedcontainerremoved. Production1460unchanged,clock696074→696202, no checkpoint/cleanuperror,historicalclockALARM. CanonicalAttempt54retainsfullreceipts, allcommandfailures,51,484KiBrecoverablelocalcleanup.
+
+Nextstillgatepreparation: source-reviewed invariantper-openenergyevaluatedrepeatedly; onecall-localreusemustpreservefirstsupportvalidation/errororderandV322supportreuse. Contractbeforecode,no newphysics. Vision/speedfirst,self-lifenext,speechparked.
