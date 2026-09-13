@@ -139,3 +139,73 @@ No additional test campaign is authorized by this document. Exact executable
 checks and workload bounds are frozen with the completed source contract,
 reviewed before compilation, and reused from prior evidence where applicable.
 No runtime or production change is claimed by filing this source map.
+
+## D122334 bounded waste removal: exact constant-span optical integration
+
+This is a dependency-complete arithmetic change inside the authorized latency
+repair, not a replacement deliverable or a claim that the whole event barrier
+is resolved. The wider event/custody contract above stays open. The shared UF,
+source occurrence boundaries, local clocks and commit order are unchanged.
+
+Current source `optical_receptor_work.rs::settle_port_range` repeats rational
+trapezoid addition/multiplication for every sample interval of every retinal
+site. `PhysicalSensorium.constant` supplies held exposures on the normal
+camera/card path, so equal samples represent one exactly constant irradiance
+span. The exact identity is sum(L * dt) = L * (last_time - first_time).
+No floating-point reassociation, approximate equality, threshold or new state
+is involved. Changing segments retain the existing exact trapezoid equation.
+Every original adjacent clock must still be checked; equal outer endpoints or
+positive total duration cannot conceal an invalid interior clock.
+
+Authorized implementation file: native/guala_core/src/optical_receptor_work.rs,
+including focused tests in its existing test module. Replace only the integral
+loop with maximal exactly equal-sample spans plus the unchanged changing
+segments. Same function signatures, six returned physical quantities and error
+precedence; no production counters, caches, buffers, schemas, migration,
+threads, locks, source history, new libraries or kernel edits.
+
+Complete path: lean_physical_loop._advance -> settle_physical_sensorium or
+settle_projected_physical_sensorium -> authenticated native joint episode ->
+organism_runtime.build_admitted_trajectory -> resident cognitive source UF ->
+core9424 derive_optical_receptor_sample_range_work -> unchanged source-anchor
+binding -> settle_port_range -> exact irradiance/incident/absorbed/transduced
+energy and gate work -> existing receptor residue/quantization -> same
+cohort/Psi/contact/formation/body path -> same runtime installation/world
+commit/observer/checkpoint/restore. Pure output equality means downstream
+consumers and lifecycle receive identical data. No source or receptor member
+is omitted. lib.rs58 mounts the module; the other full-range caller is the
+embryonic genesis candidate, not a newly mounted live entry point.
+
+Work bound: original O(samples) rational integrations per site; candidate
+O(samples) exact validity/equality checks plus O(constant spans + changing
+segments) integrations. Scratch remains O(1) and no data outlives the call.
+For an exactly held26-sample exposure,25 integrations become one; this is an
+operation-count fact, not a measured whole-organism speedup. Fully varying
+inputs remain a required cost comparison; a still-scene speedup alone cannot
+meet the latency target.
+
+Focused proof before any broader run: compare every physical return against
+the literal existing trapezoid calculation for constant darkness/full/low
+light, mixed holds and ramps, alternating light, irregular clocks and partial
+gate ranges; reject duplicate/backward interior clocks. Existing residue and
+unit-error tests remain. Then use the already-authorized same mature-input
+successor/cold-continuity path for any production performance claim. Pure-law
+checks are supporting evidence only and cannot authorize deployment.
+
+Source-only frozen review precedes compile/tests. No performance number,
+resource reduction, production delivery or250ms acceptance is asserted here.
+Search of canonical Attempt54 found no prior constant-span optical reduction;
+recent history of this source contains receptor-energy, quantization and body
+mounting changes, not this calculation. Existing successful conservation tests
+are retained rather than rediscovered as new evidence.
+
+## D122334 optical verification checkpoint — 2026-09-13 18:19 UTC
+
+Exact constant-span source passed frozen independent review and all9 focused
+optical tests (9passed/0failed;168 exact range comparisons within one test).
+Fingerprint a77eab01e22fb0f874b31a62d21aa72e75d50ab945ba00856abf9a40c4f83048
+remained unchanged through testing. No new wheel, mature-body or timing proof,
+native deployment or250ms acceptance. Full shared-field/barrier contract remains
+open, not replaced by this arithmetic cleanup. C1 pageb84 served bytes are
+preserved as8e77ad775; no measured page latency benefit claimed. Canonical
+Attempt54 records command, hashes, review, warnings and health envelope.

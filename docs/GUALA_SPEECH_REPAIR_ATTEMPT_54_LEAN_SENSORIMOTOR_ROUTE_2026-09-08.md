@@ -25486,3 +25486,122 @@ corrected by rg --files before source selection. No command compiled or ran
 an organism, and no new harness/helper was created. Existing review agent
 completed source-only checks. Native mechanism remains unchanged. C1's already
 live6ca6842c page/test integration is preserved as804b993a6.
+
+## D122334 continuation — response-paced page preserved; exact optical arithmetic candidate (2026-09-13)
+
+Active goal verified ACTIVE. Vision/latency remains the single item; speech and
+self-life stay parked. P122333's priority finding stays closed: already-waiting
+input is already preferred. No new actor cut or deployment is claimed.
+
+C1 page b84fe2e464cdf0c6641e47d2e90128c9760131ee fetched and inspected, then
+preserved as8e77ad775. The full HTML and UI test files match C1 exactly.
+Direct public GET SHA256 is
+b2be4f6a359d5941ad25d427616274d3784e578ffd211c389614851d5a4b3566,
+also the hash of that commit's HTML. This is served-byte evidence only; no
+browser timing benefit or actual sensory acceptance inferred. In-flight guard
+and non-immediate refusal/unknown retry remain; accepted response schedules
+one immediate sensoryPulse. Beat source/motion/sound fields map to the existing
+producer, not inferred cognition. C1's detailed-surface contract remains
+unapproved as written;9e5307dc retains exact RGB/detail, timing and lifecycle
+reservations. Counting audio gaps is not uninterrupted hearing.
+
+Requested architecture: local exact sensory work, full joint field, one causal
+history, bounded real-time delivery. Current code: whole-occurrence field and
+commit barrier plus repeated exact optical arithmetic. Conflict YES for the
+whole-body latency arrangement; the optical equation itself is correct.
+Not extended: per-component UF, preview as perception, legacy shell, new owner,
+pending cognitive queues, timer leases or population caches. Single next
+source candidate: remove duplicate arithmetic from constant optical spans.
+Full DSF remains full; no field structure or sensory member is removed.
+
+Waste register: optical_receptor_work.rs::settle_port_range integrates every
+adjacent sample even when irradiance is exactly constant. Called through the
+existing full episode or sample-range retinal binding in source settlement;
+normal constant exposures have repeated equal samples. Original work is
+O(samples) rational trapezoids per site, candidate O(samples) validation and
+equality plus O(constant spans + changing segments) integrations; O(1) local
+scratch, no retained state. Held26-sample exposure:25 integrations become one.
+CPU/RAM/allocation improvement is NOT yet measured. This arithmetic is not
+separate physics: exact sum(L*dt)=L*(t_last-t_first), with EVERY adjacent clock
+validated. Nonconstant segments retain the same exact trapezoid.
+
+Frozen implementation scope: native/guala_core/src/optical_receptor_work.rs
+only, plus two supporting tests in the existing module. No API, scalar law,
+coefficient, receptor roster, DSF boundary, schema/codec, FFI, dependency, owner,
+lock, source clock, commit order or deployment setting changes. Same six
+physical outputs feed the unchanged quantization/residue/Psi/body path;
+first-use and mature/cold restored bodies see the same pure function. No
+rollback or migration branch is introduced. Complete symbol path and bounds
+are in GUALA_D122334_SENSORY_EXECUTION_CONTRACT_2026-09-13.md.
+
+Translation review: JointSourcePortView sense, physical quantity/unit,
+source_times and exact_normalized_sources enter the same validation in the
+same order. All existing error variants retained. Output observed_duration,
+integrated irradiance, incident/absorbed/transduced energies and gate_work
+remain exact BigRational/GateWorkOccurrence values, with no intermediate
+Boolean replacing evidence. The newly local constant_start index exists only
+during integration and expires at return; it is not cognitive bookkeeping.
+Body installation, observation and persistence receive unchanged values.
+No backend-only new field requires an observer or API extension.
+
+Supporting falsifiers:6 eight-sample patterns *28 nonempty partial ranges =
+168 exact comparisons to the literal old trapezoid, including every returned
+physical quantity; irregular clocks, darkness, full/low light, alternating,
+ramp and mixed-held spans. Duplicate/backward interior clocks must refuse even
+with positive total duration; irradiance-range refusal keeps earlier priority.
+Existing unit, DSF independence and residue conservation proofs remain intact.
+Source-only frozen review must precede compile/tests. Same authenticated mature
+predecessor successor/cold-continuity and full-change cost proof remain required
+before any production claim; no microbenchmark can close250ms acceptance.
+
+Prior-art search in Attempt54 found no prior constant-span reduction; recent
+source history shows energy/quantization/body mounting, not this arithmetic.
+No claimed reopening of an earlier proved law. The shared-field barrier remains
+a separate unresolved execution dependency WITHIN this same active deliverable.
+
+Read-only command errors this continuation: a guessed articulated_body.rs path
+did not exist; rg --files resolved virtual_articulated_body.rs. A search also
+named nonexistent physical_growth.rs; corrected to search the discovered source
+tree. Neither compiled nor ran the organism. Recorded here rather than erased.
+
+### D122334 optical source gate and focused result — 18:19 UTC
+
+Independent source-only review PASS (memory_probe_review), no localized or
+architectural findings. Whole-tree fingerprint
+a77eab01e22fb0f874b31a62d21aa72e75d50ab945ba00856abf9a40c4f83048
+verified by reviewer before/after and main after the test. Review filed before
+compile in shared ledger commitd1c5278c3bb2e5f63d3e308ec3772cfe2eb09abe.
+Source SHA256 c00988645acc9826ca7a549ae690c3427ace877553a42b9c3b6ffc3afa4c232b.
+
+Focused command: CARGO_BUILD_JOBS=4 RAYON_NUM_THREADS=4 cargo test
+--manifest-path native/guala_core/Cargo.toml --locked --release --lib
+optical_receptor_work::tests:: -- --test-threads=1.
+Actual compiled executable target/release/deps/guala_core-3b4e6ae94e95937d,
+SHA25652d034afd0097a19b39a6ae1b8cd92b92cbeb6e87cbf20ec9ad9b7c8700cfa1d.
+Compile2m47s,99 warnings disclosed. Result9passed/0failed/632filtered,
+reported test duration0.00s. This is nine optical law tests, NOT a full suite.
+New constant-range witness compares168 exact results; no approximation, no
+ignored control, no new warning in the changed optical file.
+
+Source/review/full output and health receipts retained in
+/tmp/guala-d122334-optical.mCZ6K9. Source review and focused correctness are
+closed locally; no Python-extension wheel, copied-body proof, benchmark,
+rehearsal or deployment occurred. Do not claim250ms or a measured speedup.
+Fully changing samples retain integrations and add equality tests; their cost
+remains unmeasured. The complete same-body successor/restore and cost gate
+must precede any release, and the shared-field execution contract remains open.
+
+Read-only AWS envelope: task1461/aad26742cfc049bda51f811053a73a3d stays RUNNING,
+service1desired/1running/0pending, same imaged293311d. Resource/storage/refusal
+alarmsOK; historical clockALARM unchanged sinceSept8. At18:19:34, CloudWatch's
+available following samples cover18:15–18:17, not the entire final test minute:
+CPU averages34.17–54.86%, maximum63.44%; memory averages19.04–21.02%, maximum
+23.38%. Do not relabel delayed metrics as a complete18:19 witness. These are
+cloud service resource samples, not local test resource or cognition evidence.
+
+Tool-envelope correction: one polling orchestration attempted to store an
+undefined exit_code while compilation was still running; serialization refused.
+The original session27384 remained alive and was polled to its actual exit0.
+No second compilation or test run was started. Wide /tmp discovery and one
+long historical search were output-truncated; their truncated output was not
+treated as a complete instruction read or source proof. Use bounded patterns.

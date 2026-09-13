@@ -201,15 +201,31 @@ fn settle_port_range(
     }
 
     let mut integrated = BigRational::zero();
+    let mut constant_start = first_sample;
     for index in first_sample..last_sample {
-        let duration = &port.source_times[index + 1] - &port.source_times[index];
-        if duration <= BigRational::zero() {
+        // Validate every original clock, including those inside a held span.
+        if port.source_times[index + 1] <= port.source_times[index] {
             return Err(OpticalReceptorWorkError::SourceClockDidNotAdvance);
         }
+        if port.exact_normalized_sources[index] == port.exact_normalized_sources[index + 1] {
+            continue;
+        }
+        // Exact constant irradiance integrates once over its entire duration.
+        // Changing segments keep the same trapezoid; no light or time is lost.
+        if constant_start < index {
+            integrated += &port.exact_normalized_sources[index]
+                * (&port.source_times[index] - &port.source_times[constant_start]);
+        }
+        let duration = &port.source_times[index + 1] - &port.source_times[index];
         let mean = (&port.exact_normalized_sources[index]
             + &port.exact_normalized_sources[index + 1])
             / BigInt::from(2);
         integrated += mean * duration;
+        constant_start = index + 1;
+    }
+    if constant_start < last_sample {
+        integrated += &port.exact_normalized_sources[last_sample]
+            * (&port.source_times[last_sample] - &port.source_times[constant_start]);
     }
     let observed_duration_seconds =
         &port.source_times[last_sample] - &port.source_times[first_sample];
@@ -329,6 +345,77 @@ mod tests {
         assert_eq!(settled.absorbed_energy_zeptojoules, exact(2, 1));
         assert_eq!(settled.transduced_energy_zeptojoules, exact(2, 1));
         assert!(!settled.gate_work.is_zero());
+    }
+
+
+    #[test]
+    fn constant_spans_match_trapezoids_for_every_partial_range() {
+        let patterns: [[i64; 8]; 6] = [
+            [0; 8],
+            [255; 8],
+            [1; 8],
+            [0, 0, 128, 128, 128, 255, 255, 255],
+            [0, 255, 0, 255, 0, 255, 0, 255],
+            [0, 1, 31, 64, 128, 191, 254, 255],
+        ];
+        let clocks = [(0, 1), (1, 1000), (1, 64), (1, 13), (1, 8), (1, 4), (7, 11), (1, 1)];
+        for values in patterns {
+            let mut source = port();
+            source.source_times = clocks.iter().map(|&(n, d)| exact(n, d)).collect();
+            source.exact_normalized_sources = values.iter().map(|&n| exact(n, 255)).collect();
+            source.reported_phase_turns = vec![exact(0, 1); values.len()];
+            source.source_relevances = vec![exact(1, 1); values.len()];
+            source.dimensionless_fields = source
+                .exact_normalized_sources
+                .iter()
+                .map(|value| exact(1, 1) + value * exact(1, 2))
+                .collect();
+            for first in 0..values.len() - 1 {
+                for last in first + 1..values.len() {
+                    // Literal predecessor calculation, including every trapezoid.
+                    let mut expected_integral = BigRational::zero();
+                    for index in first..last {
+                        let duration = &source.source_times[index + 1] - &source.source_times[index];
+                        let mean = (&source.exact_normalized_sources[index]
+                            + &source.exact_normalized_sources[index + 1])
+                            / BigInt::from(2);
+                        expected_integral += mean * duration;
+                    }
+                    let expected = OpticalReceptorWorkSettlement {
+                        observed_duration_seconds: &source.source_times[last] - &source.source_times[first],
+                        integrated_irradiance_fraction_seconds: expected_integral.clone(),
+                        incident_energy_zeptojoules: &expected_integral * exact(4, 1),
+                        absorbed_energy_zeptojoules: &expected_integral * exact(2, 1),
+                        transduced_energy_zeptojoules: &expected_integral * exact(2, 1),
+                        gate_work: GateWorkOccurrence::new(-expected_integral * exact(2, 1)),
+                    };
+                    assert_eq!(
+                        settle_port_range(&source, &anatomy(), first, last).unwrap(),
+                        expected,
+                        "values={values:?}, range={first}..={last}"
+                    );
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn held_light_rejects_invalid_interior_clocks_and_preserves_error_order() {
+        for bad_clock in [exact(0, 1), exact(-1, 1)] {
+            let mut source = port();
+            source.exact_normalized_sources = vec![exact(1, 2); 3];
+            source.source_times[1] = bad_clock;
+            // Outer duration is positive; an invalid interior must still refuse.
+            assert_eq!(
+                settle_port(&source, &anatomy()),
+                Err(OpticalReceptorWorkError::SourceClockDidNotAdvance)
+            );
+            source.exact_normalized_sources[2] = exact(2, 1);
+            assert_eq!(
+                settle_port(&source, &anatomy()),
+                Err(OpticalReceptorWorkError::SourceOutsideReferenceInterval)
+            );
+        }
     }
 
     #[test]

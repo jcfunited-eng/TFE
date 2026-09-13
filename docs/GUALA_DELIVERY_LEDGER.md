@@ -9,9 +9,8 @@ box remains unchecked until live acceptance passes.
 
 Joe: "So what are you waiting for" after the complete barrier-removal/foveated-
 eye/independent-senses proposal. Sol begins this scoped work NOW; no further
-start approval required. The product-wide goal control still reads paused,
-but it is not a blocker to this explicit turn authorization. Speech and
-self-life remain parked. Do not regress this item to "awaiting Joe" merely
+start approval required. The product-wide goal control is ACTIVE, verified
+again on 2026-09-13; speech and self-life remain parked behind vision. Do not regress this item to "awaiting Joe" merely
 because the earlier timing-only proposal or project-wide pause was recorded.
 Target: actual native sight/hearing delivery within250ms in production,
 including noisy/full-change load, with exact causal continuity and cold restart.
@@ -20,7 +19,11 @@ conflictYES. Full joint DSF unchanged; no lost fields, learned state, identity,
 coupled physical laws, or sensory relationships. No new cognitive owner.
 Next exact item: freeze the dependency-complete native barrier-removal contract
 using existing physical due scheduling and local clocks, then implement/review.
-The implementation is not yet frozen or built; no250ms/deployment claim.
+The barrier implementation is not yet frozen or built; no250ms/deployment claim.
+One dependency-complete waste removal is now source-candidate only: exact
+constant-span optical integration in optical_receptor_work.rs, with unchanged
+physical outputs and error order. Its focused source review precedes testing;
+it is not a substitute for barrier removal or the real-time acceptance.
 P122333 priority finding remains closed. D122331 non-real-time903 release on1461
 remains live; C1's exact6ca6842c HTML/tests are now integrated as804b993a6.
 See appended D122334 authorization and source map.
@@ -1918,3 +1921,25 @@ Fresh authenticated backup698812, full local+exact-image903growth/ingress/preser
 Controller dryrun/onecutover PASS: oldtaskSTOPPED/exit0 beforezero/new; latestlive699124 preserved, not testcopy. New healthy1/1/0, public699170/903sites, persisted699156 and no custodyerrors. BothHTML live/browserHTTP200/exacthash/noJSerrors,903field visibly inspected. CloudFront invalidation complete. Initial15:37 CPUavg48.5553/max49.9413%, RAMavg11.4899/max11.6364%; resource/refusalalarmsOK; historicalclockALARMstillopen. C1 notified to activate chartered focalcaretakerlessonsonlyafterconfirmedlive903; completionnotassumed.
 
 Whole evidence8cbaf927aa5cb58f60b06a4bcc31dc14bbe928bbd977fe6f2777dbb3064fbb7f, s3://guala-incident-bench-20260831/vision-release-20260913/2NKQi2/release-evidence.tar.gz, whole remote readback verified. User-visible delivery made. Await visual feedback without silently restarting the latency campaign; self-life is next and speech remains parked. Full AE goal remains active, not complete.
+
+## D122334 continuation — C1 page preserved, optical arithmetic candidate
+
+C1 b84fe2e464cdf0c6641e47d2e90128c9760131ee response-paced page and honest beat
+line integrated without changes as local8e77ad775. Direct public GET matched
+SHA256 b2be4f6a359d5941ad25d427616274d3784e578ffd211c389614851d5a4b3566.
+Byte equality proves serving only, not a measured latency benefit. No actor
+priority change, native deployment or live sensory input in this continuation.
+The160x120/N=4 camera contract remains unapproved for the reasons in9e5307dc.
+Full active acceptance and P122333 closure remain unchanged. See the bounded
+optical contract and canonical Attempt54 entry for source scope and proof.
+
+## D122334 optical verification checkpoint — 2026-09-13 18:19 UTC
+
+Exact constant-span source passed frozen independent review and all9 focused
+optical tests (9passed/0failed;168 exact range comparisons within one test).
+Fingerprint a77eab01e22fb0f874b31a62d21aa72e75d50ab945ba00856abf9a40c4f83048
+remained unchanged through testing. No new wheel, mature-body or timing proof,
+native deployment or250ms acceptance. Full shared-field/barrier contract remains
+open, not replaced by this arithmetic cleanup. C1 pageb84 served bytes are
+preserved as8e77ad775; no measured page latency benefit claimed. Canonical
+Attempt54 records command, hashes, review, warnings and health envelope.
