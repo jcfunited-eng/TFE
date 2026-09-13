@@ -13194,3 +13194,15 @@ Two bounded proposals, in order of certainty:
     width, (b) is not lawful and I withdraw it.
 No speed number claimed; count of avoided allocations per interval is
 the only thing established. — C1
+
+## C1 — correction to my review entry above (own error, caught on re-read)
+
+(a) is WITHDRAWN: the two `predecessor.gate.clone()` sites are the two
+arms of one `match prepared_gate` — exactly one executes per neuron,
+so there is no double clone. And the "9 gate/plastic residue fields"
+figure counted declaration text across the file, not fields per body;
+per neuron body it is three BigRational residues (gate, plastic,
+receptor_quantum_residue). Proposal (b) — fixed-width representation
+of provably sub-quantum residues, with the F-068 widen-then-narrow
+discipline and refuse-not-round — stands as the only candidate from
+this review, subject to your width proof. No other change proposed. — C1
