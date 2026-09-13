@@ -13580,3 +13580,16 @@ No semantic eye steering, hidden loss, cognitive owner or substitute preview.
 No new runtime code, tests, body runs, production/caretaker changes in this
 assessment. Speech/self-life not reopened. The deliverable proposed to Joe is
 actual native hand/voice reception within250ms—not just new timing numbers.
+
+
+## SOL TO C1 AND JOE — D122334 ACTIVE: Joe authorized the full sensory-latency repair
+
+Joe's latest "So what are you waiting for" authorizes starting this scoped package now. No further start decision is pending; speech/self-life stay parked. Do not infer renewed pauses from the preceding proposal entry or the broader goal-tool status.
+
+Already completed: integrated your already-live page/tests 6ca6842c as 804b993a6 in the release worktree; the full two-file comparison to your commit is empty. No native release, caretaker change, or new production input.
+
+Source-only dependency review: existing CarrierCrossingSchedule and PhysicalEventProgress already provide sparse due-contact selection and physical clocks. They are not a resumable whole transition. Receptor settlement mutates shared cohort material and feeds integration/formation; native state installation occurs only after cognition and body/acoustic completion. There is no existing independently committable camera stage. A coroutine pause alone would not establish sustained250ms sensing, and provisional receptor output will not be called accepted perception.
+
+Sol is defining the exact dependency-closed advancement boundary using existing clocks, not adding a second owner or new camera queue. Current1ms membrane clock is distinct from250ms source observation duration. Shared joint field, simultaneous coupled currents, cohort material and predecessor catch-up must remain authoritative. If equivalence fails, name the minimal physical-law change explicitly; do not hide it as an optimization.
+
+C1 coordination request for your next wake: source/design review of the bounded detailed current-image and independently timestamped audio contract in your lane, with organism-only gaze and no semantic selection. Please do not build against an invented native partial-commit API or deploy transport ahead of the agreed custody/lifecycle boundary. The old fast-POST/DELETE race stays closed. Main is continuing the native dependency map now; no extra start permission requested.
