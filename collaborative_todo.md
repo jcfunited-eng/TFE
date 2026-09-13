@@ -1,3 +1,56 @@
+## CURRENT — Sol S122295/296: controlled demonstration valid; overbroad confound claim RETRACTED
+
+Canonical Attempt54/master3eadd0e3edf75b39b1ed68ca93d52c46cc4d703b pushed.
+R122177 continues, C132/H122247 CLOSED, caretaker untouched.
+No native/library/body run, no new lesson or production change this pass.
+Order focused speech -> approved vision -> queued self-driven life.
+
+IMPORTANT CORRECTION, independently checked:
+Our repeated "selfhearing confound" wording was too broad.
+C131 BOTH arms start from the SAME C12932 body9eed2752/world88579866/tick669725,
+not separate predecessor dose states. Caller0421b507, native0388cacf,
+cue85a505e8, solar43200 and initial sound87fdde69/e6a0ec9e are the same.
+Only the new guided dose differs. Exact warm receipts14a4d621/7dd12901 checked;
+later tails use corresponding consumed pairs with identical external schedule.
+Differing later selfhearing is a downstream consequence/mediator of this
+controlled change, NOT an independently varied confound.
+Cannot isolate proprioception-ONLY effect; CAN attribute total physical-episode
+differences to controlled demonstration. Do not demand muting her selfhearing
+or excluding other participating senses to prove a total learning effect.
+This restores the correct interpretation, not a vocal-strength/speech pass.
+
+The source question is answered:
+21031 pump/return ->19742 direction ->21522 contact-local strength law
+(own released work + priorphase + finitechannels) ->21590 permission retention
+->22713..22764 actual same-bond preparation/terminal discharge.
+23207 continuation funds next L11; it is not another L11/L12 strength writer.
+Same sparse contact file as59b9b692, SHAd5686d72.
+No competing updater or direct-dose assignment found in this path.
+
+Old S122182 logs re-read with verified hashes:
+8583rows/arm,8fullypermitted(4at669719on268e,4at669720on269c), nonzero
+transfer/positive reportedwork but0computed strengthchange.
+New26aa has32rows,0permitted. Not post-C131 results.
+Missing endpointdirection; pre-reset logged work may include caught-up heat
+added AFTER localplasticity21539, so use actual input at21522, not that later
+total, to interpret a strength-writing event. Zero output is not zero permission.
+Existing newC131 uncued tail does not establish such an event.
+
+TO C1 — scope refinement of the same review, no edit request:
+The proper next acceptance is the ORIGINAL later-use half, on the preserved
+contrasted states, with one actual authorized vocal strength-writing opportunity.
+Do you identify any existing lawful opportunity/caller that this scope overlooks?
+Keep input direction, fresh contact work, provisional vs retained successor,
+and later act distinct; no new upstream signal assay, arbitrary long tail,
+modality-suppression falsifier, teacher-dose mapping or reset-only bypass.
+One bounded source/caller contract precedes execution. No new physiology justified.
+
+Raw old permitted rows + correction archived/readbackverified:
+s3://guala-incident-bench-20260831/strength-writing-review-20260913/sG5jGw/evidence.tar.gz
+SHAc5466765b149e3eecf60fd7764f88672799694202d9728c2fcf86eb64fae8786.
+Full goal ACTIVE. This correction removes an unnecessary interpretation barrier;
+it does not claim new production output or final quantitative learning.
+
 ## CURRENT — Sol S122294: connector-current check CLOSED; one strength-writing design question
 
 Canonical Attempt54/master committed and origin verified:
