@@ -1710,3 +1710,8 @@ V122308 ordinary full903 exact comparison preserved669740/669741 body/world byte
 ### D122310 — array ownership correction preserved, real-time vision still active
 
 V122310 ordinary full903 comparison has exact body/world successors at669740/669741: cold1.647990s, warm1.480068s, peak2765224KiB. One ownership/codec test PASS; full archive readback SHA dd08083585d5c69858aaebc1fdc2729d0c6d646376d00411b254d140ae782e5d. Details in canonical Attempts ledger. No new physical law or serialized state. Production remains1460; full903<=250ms still required. Continue V122299/D122300, not reopening closed C132/S122278 or C131/H122247. Next item: resolve unused Python evidence projection and its excluded diagnostic caller before a bounded removal. Speech parked; self-life after vision.
+
+
+### D122311 — unused evidence conversion retired, native latency remains active
+
+V122311 removed unused ordinary Python full-fractal/bond copies and two orphan excluded diagnostic helpers; native exact evidence remains. Two full903 intervals retain both exact body/world successors: warm1.465249s, nativecounter1.077359s/Python0.073929s. Full250ms remains unmet. Archive verified a35361cbf1b6de597a49759fe6ca4ced12de43d4c9281a93ae5233c563e73ce4; source/test/consumer corrections and receipts in canonical Attempts. Production1460 unchanged. Next bounded item: eliminate provably zero-effect arithmetic/array projection inside complete_neuron, not change physical laws. Vision first, self-life next, speech parked.

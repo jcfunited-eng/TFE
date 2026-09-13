@@ -921,39 +921,14 @@ def test_prepare_carries_exact_external_reassembly_recurrent_frontier(
     )
 
 
-def test_prepare_carries_one_exact_sparse_post_quiescence_fractal(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    organism, runtime, _native = _restore(monkeypatch)
-    genuine = runtime.prepare(_Source())
-    runtime.pending = None
-    runtime.prepare_result_override = replace(
-        genuine,
-        complete_neuron_fractal_count=1,
-        emitted_neuron_fractals=[
-            (
-                "01" * 16,
-                [
-                    ("psi-winding", 2, True, "3", "1"),
-                    ("plastic-rest-length", 0, False, "5", "7"),
-                    ("receptor-quantum-residue", 0, False, "11", "13"),
-                ],
-            )
-        ],
-    )
-
-    prepared = organism.prepare(_Source())
-
-    assert prepared.emitted_neuron_fractals == (
-        (
-            "01" * 16,
-            (
-                ("psi-winding", 2, True, 3, 1),
-                ("plastic-rest-length", 0, False, 5, 7),
-                ("receptor-quantum-residue", 0, False, 11, 13),
-            ),
-        ),
-    )
+def test_ordinary_prepare_has_no_unused_full_evidence_projection() -> None:
+    """Source-only regression guard; real-state evidence is the copied run."""
+    removed = {"emitted_neuron_fractals", "active_physical_bonds"}
+    ordinary = boundary.NativeResidentOrganism._validated_prepare_evidence_body
+    assert removed.isdisjoint(ordinary.__code__.co_names)
+    fields = boundary.ResidentPrepareEvidence.__dataclass_fields__
+    assert removed.isdisjoint(fields)
+    assert "complete_neuron_fractal_count" in fields
 
 
 def test_prepare_carries_exact_layer_eleven_motor_contact_transfer(
@@ -1136,22 +1111,6 @@ def test_motor_boundary_accepts_only_the_exact_palmar_grasp_afferent() -> None:
     recruitment[0] = (*recruitment[0][:4], [tuple(wrong_site)])
     with pytest.raises(RuntimeError, match="body afferent path is not physical"):
         boundary._motor_unit_recruitment_evidence(recruitment)
-
-
-def test_prepare_refuses_fractal_count_without_per_neuron_evidence(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    organism, runtime, _native = _restore(monkeypatch)
-    genuine = runtime.prepare(_Source())
-    runtime.pending = None
-    runtime.prepare_result_override = replace(
-        genuine,
-        complete_neuron_fractal_count=1,
-        emitted_neuron_fractals=[],
-    )
-
-    with pytest.raises(RuntimeError, match="count lost its exact evidence"):
-        organism.prepare(_Source())
 
 
 def test_prepare_carries_exact_bounded_physical_frontier_routes(

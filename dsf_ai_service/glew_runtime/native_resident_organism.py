@@ -598,10 +598,6 @@ class ResidentPrepareEvidence:
         ],
         ...,
     ] = ()
-    emitted_neuron_fractals: tuple[
-        tuple[str, tuple[tuple[str, int, bool, int, int], ...]], ...
-    ] = ()
-    active_physical_bonds: tuple[tuple[str, str, int], ...] = ()
     changed_contact_channel_states: tuple[tuple[object, ...], ...] = ()
     physical_frontier_routes: tuple[
         tuple[str, int, int, str, int, int, int, int], ...
@@ -3515,74 +3511,9 @@ class NativeResidentOrganism:
             candidate.complete_neuron_fractal_count,
             "complete-neuron fractal count",
         )
-        raw_neuron_fractals = candidate.emitted_neuron_fractals
-        if not isinstance(raw_neuron_fractals, list):
-            raise RuntimeError("neuronal fractal evidence changed format")
-        emitted_neuron_fractals: list[
-            tuple[str, tuple[tuple[str, int, bool, int, int], ...]]
-        ] = []
-        emitted_lineages: set[str] = set()
-        retained_coordinates = {
-            "psi-winding",
-            "gate-open-population",
-            "plastic-rest-length",
-            "dna-expressed-product",
-            "receptor-quantum-residue",
-        }
-        for raw_fractal in raw_neuron_fractals:
-            if not isinstance(raw_fractal, tuple) or len(raw_fractal) != 2:
-                raise RuntimeError("neuronal fractal evidence changed format")
-            lineage = _canonical_lineage_hex(raw_fractal[0], "fractal lineage")
-            if lineage in emitted_lineages:
-                raise RuntimeError("neuronal fractal lineage was emitted twice")
-            emitted_lineages.add(lineage)
-            raw_entries = raw_fractal[1]
-            if not isinstance(raw_entries, list) or not raw_entries:
-                raise RuntimeError("neuronal fractal has no sparse retained delta")
-            entries: list[tuple[str, int, bool, int, int]] = []
-            seen_coordinates: set[tuple[str, int]] = set()
-            for raw_entry in raw_entries:
-                if not isinstance(raw_entry, tuple) or len(raw_entry) != 5:
-                    raise RuntimeError("neuronal fractal entry changed format")
-                coordinate = raw_entry[0]
-                if coordinate not in retained_coordinates:
-                    raise RuntimeError("neuronal fractal carried a transient coordinate")
-                index = _nonnegative_integer(raw_entry[1], "fractal coordinate index")
-                if coordinate != "psi-winding" and index != 0:
-                    raise RuntimeError("scalar fractal coordinate carried an index")
-                key = (coordinate, index)
-                if key in seen_coordinates:
-                    raise RuntimeError("neuronal fractal repeated a coordinate")
-                seen_coordinates.add(key)
-                negative = raw_entry[2]
-                if not isinstance(negative, bool):
-                    raise RuntimeError("neuronal fractal sign changed format")
-                magnitude = _positive_decimal_integer(
-                    raw_entry[3], "fractal delta magnitude"
-                )
-                denominator = _positive_decimal_integer(
-                    raw_entry[4], "fractal delta denominator"
-                )
-                entries.append(
-                    (coordinate, index, negative, magnitude, denominator)
-                )
-            emitted_neuron_fractals.append((lineage, tuple(entries)))
-        if len(emitted_neuron_fractals) != complete_neuron_fractal_count:
-            raise RuntimeError("neuronal fractal count lost its exact evidence")
-        raw_active_physical_bonds = candidate.active_physical_bonds
-        if not isinstance(raw_active_physical_bonds, list):
-            raise RuntimeError("active physical-bond evidence changed format")
-        active_physical_bonds: list[tuple[str, str, int]] = []
-        for raw_bond in raw_active_physical_bonds:
-            if not isinstance(raw_bond, tuple) or len(raw_bond) != 3:
-                raise RuntimeError("active physical-bond evidence changed format")
-            active_physical_bonds.append(
-                (
-                    _canonical_lineage_hex(raw_bond[0], "active bond left lineage"),
-                    _canonical_lineage_hex(raw_bond[1], "active bond right lineage"),
-                    _nonnegative_integer(raw_bond[2], "active bond parallel ordinal"),
-                )
-            )
+        # Complete fractals and active bonds stay in the identified native
+        # transition receipt. Ordinary transport does not consume their full
+        # projections; explicit diagnostics read that receipt's native getters.
         changed_contact_channel_states = _changed_contact_channel_state_evidence(
             candidate.changed_contact_channel_states
         )
@@ -4365,8 +4296,6 @@ class NativeResidentOrganism:
             articulatory_unit_recruitments=tuple(
                 articulatory_unit_recruitments
             ),
-            emitted_neuron_fractals=tuple(emitted_neuron_fractals),
-            active_physical_bonds=tuple(active_physical_bonds),
             changed_contact_channel_states=changed_contact_channel_states,
             physical_frontier_routes=physical_frontier_routes,
             preceding_distinct_physical_frontier_routes=(
