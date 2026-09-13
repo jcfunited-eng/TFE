@@ -115,9 +115,14 @@ tail = raw[tail_start:]
 core = ports[219]
 assert core[1:5] == (5, 9, "organism-core-and-cutaneous-thermoreceptors", "temperature-core")
 need = []
+# Body-sense places 0..9 (displacement, articulation, thermal), 10..157 (the
+# 74 legacy antagonist and load endings), 158..163 (root endings) and 164..195
+# (the added tract endings) are occupied fixed anatomy; every mount place must
+# be unique (validate_lineage_state). The interoceptors take the next two
+# places; their layer-6/8 projections follow the generic Cantor fallback.
 for topology, stream, compartment, quantity in (
-    (10, "metabolic-need-reserve-deficit", "whole-organism-recovery-reserves", "reserve-deficit"),
-    (11, "metabolic-need-thermal-load", "whole-organism-thermal-reserves", "thermal-load"),
+    (196, "metabolic-need-reserve-deficit", "whole-organism-recovery-reserves", "reserve-deficit"),
+    (197, "metabolic-need-thermal-load", "whole-organism-thermal-reserves", "thermal-load"),
 ):
     record = bytes([5]) + u32(topology) + encoded_text("organism-metabolic-interoceptors")
     record += encoded_text(stream) + struct.pack("<H", 2)
