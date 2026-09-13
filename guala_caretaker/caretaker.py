@@ -21,10 +21,13 @@ every experience that names a card surface AND a tutor recording, both
 files verified against the manifest's sha256. Nothing is paired by
 filename guessing (Joe, 2026-09-13: the old name-guess deck reached 5 of
 37 recorded lessons and looped on "A").
-YIELD: when her last interval was fed by anyone other than this
-caretaker (a person is with her), or when a presentation is refused,
-lessons hold for QUIET_TICKS of her clock. The caretaker never competes
-with a person for her one mouth.
+YIELD (Sol's recommendation 2026-09-13, explicit coordination first):
+while guala_caretaker/TEACHING exists a person is teaching and lessons
+hold; remove it and lessons resume at the saved place. Safety net only,
+for when nobody set the marker: an interval fed by anyone other than
+this caretaker, or a refused presentation, holds lessons for
+PERSON_HOLD_TICKS of her clock — a politeness constant like POLL_S,
+not a law. The caretaker never competes with a person for her one mouth.
 """
 from __future__ import annotations
 
@@ -50,6 +53,8 @@ FOCAL_EYE_LIVE = os.path.exists(os.path.join(HERE, "FOCAL_EYE_LIVE"))  # touch t
 QUIET_TICKS = 32     # Sol's measured recovery law 2026-09-11: 32 physical settlements between lessons
 MAX_LOG = 1_000_000
 MANIFEST = os.path.join(CUR, "card_experience_manifest-v1.json")
+TEACHING = os.path.join(HERE, "TEACHING")  # explicit teaching-session control: exists while a person teaches (touched/removed on Joe's word)
+PERSON_HOLD_TICKS = 32  # safety-net hold after an unannounced feed or a refusal; politeness, not a recovery law
 MINE = collections.deque(maxlen=256)  # her ticks this caretaker produced; any other fed tick = a person is with her
 
 
@@ -181,20 +186,31 @@ def present_block(retina: tuple, pcm: bytes) -> dict | None:
 
 
 def wait_clear(min_tick: int | None = None) -> dict | None:
-    """Wait on HER state: gates clear, her clock past min_tick, and no
-    one else feeding her. A tick fed by someone else pushes the hold to
-    that tick + QUIET_TICKS (a person's session keeps extending it).
+    """Wait on HER state: gates clear, her clock past min_tick, no
+    TEACHING marker, and no one else feeding her. Explicit control first:
+    the TEACHING marker holds until it is removed. Safety net: a tick fed
+    by someone else pushes the hold to that tick + PERSON_HOLD_TICKS.
     Returns the clear observation, or None on STOP."""
     hold = min_tick
+    teaching_logged = False
     while True:
         if os.path.exists(STOP):
             return None
+        if os.path.exists(TEACHING):
+            if not teaching_logged:
+                log("TEACHING marker present: a person is teaching; lessons hold until it is removed")
+                teaching_logged = True
+            time.sleep(POLL_S)
+            continue
+        if teaching_logged:
+            log("TEACHING marker removed; lessons resume at the saved place")
+            teaching_logged = False
         o = obs()
         if o:
             other = someone_else_present(o)
-            if other is not None and (hold is None or other + QUIET_TICKS > hold):
-                hold = other + QUIET_TICKS
-                log(f"someone else is with her (fed tick {other}); lessons hold until her tick {hold}")
+            if other is not None and (hold is None or other + PERSON_HOLD_TICKS > hold):
+                hold = other + PERSON_HOLD_TICKS
+                log(f"unannounced feed by someone else (tick {other}); safety hold until her tick {hold}")
             if gates_clear(o) and (hold is None or (o.get("live_tick") or 0) >= hold):
                 return o
         time.sleep(POLL_S)
@@ -254,8 +270,8 @@ def main() -> None:
             # hold the recovery window before re-presenting, never fight
             now = obs()
             now_tick = (now or {}).get("live_tick") or 0
-            log(f"lesson {lesson['name']} interrupted; holding until her tick {now_tick + QUIET_TICKS}, then re-present")
-            if wait_clear(min_tick=now_tick + QUIET_TICKS) is None:
+            log(f"lesson {lesson['name']} interrupted; holding until her tick {now_tick + PERSON_HOLD_TICKS}, then re-present")
+            if wait_clear(min_tick=now_tick + PERSON_HOLD_TICKS) is None:
                 break
     log("caretaker stopped (STOP or signal)")
 
