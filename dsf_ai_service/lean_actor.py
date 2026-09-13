@@ -214,7 +214,7 @@ class LeanOrganismActor:
 
         deadline = time.monotonic() + max(0.0, timeout_seconds)
         with self._published:
-            while self._observation.live_tick <= tick:
+            while self._observation.available and self._observation.live_tick <= tick:
                 remaining = deadline - time.monotonic()
                 if remaining <= 0:
                     break
@@ -359,6 +359,8 @@ class LeanOrganismActor:
         except BaseException as error:
             self._fatal = error
             self._observation = replace(self._observation, available=False)
+            with self._published:
+                self._published.notify_all()  # waiting observers learn of failure now
             self._startup_complete.set()
             self._fail_queued_messages(error)
         finally:

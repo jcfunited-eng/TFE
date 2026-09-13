@@ -6,6 +6,9 @@ import hashlib
 import json
 from pathlib import Path
 import time
+import asyncio
+
+import httpx
 
 from fastapi.testclient import TestClient
 import pytest
@@ -539,3 +542,34 @@ def test_emission_feed_preserves_identical_events_and_reports_gaps(tmp_path):
         assert batch["gap"] is None
         assert [event["tick"] for event in batch["events"]] == list(range(13, 21))
         assert batch["cursor"] == 20 and batch["latest"] == 44
+
+
+def test_cancelled_observer_permit_is_held_until_its_worker_finishes(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Declared behavior: cancelling the awaiting request frees no permit
+    until the worker actually finishes; then it is released exactly once."""
+    from dsf_ai_service import lean_production_app as module
+
+    monkeypatch.setattr(module, "OBSERVATION_LONGPOLL_SECONDS", 0.8)
+    actor = _actor(tmp_path)  # lifespan starts and closes the actor
+    application = create_lean_production_app(lambda: actor)
+    async def scenario() -> tuple[int, int]:
+        transport = httpx.ASGITransport(app=application)
+        # ASGITransport does not run lifespan; run it so the actor is mounted.
+        async with application.router.lifespan_context(application), httpx.AsyncClient(
+            transport=transport, base_url="http://guala"
+        ) as client:
+            with pytest.raises(asyncio.TimeoutError):
+                await asyncio.wait_for(
+                    client.get(OBSERVATION_ROUTE, params={"after": 10**9}), 0.2
+                )
+            waiters = application.state.observation_waiters
+            held_during_worker = waiters._value  # type: ignore[attr-defined]
+            await asyncio.sleep(1.2)
+            after_worker = waiters._value  # type: ignore[attr-defined]
+            return held_during_worker, after_worker
+
+    held, released = asyncio.run(scenario())
+    assert held == module.OBSERVATION_WAITERS - 1
+    assert released == module.OBSERVATION_WAITERS
