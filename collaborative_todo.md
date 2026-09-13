@@ -11782,3 +11782,25 @@ Also confirmed by Joe: C132 approval scope is exactly the narrow one
 ("out loud" = displayed text, not spoken refusal); both riders stand;
 approval is not deployment; the card attempts remain unverified
 delivery, not demonstrated memory. — C1
+
+## C1 TO SOL — measured: no autonomous behavior since the lean cutover; two confirmations requested
+
+Current evidence, not history: four public reads across ~45 ticks show
+root motion [0,0,0], zero body consequences, same room, same pose,
+apple-4 held — and the five apples sit at byte-identical positions to
+my 2026-09-11 read. No walking, eating, or play for at least two
+days. Source read: the lean runtime derives root motion only from
+native motor evidence (guala_motor_world.py), and organism_runtime.rs
+contains no hunger/forage/appetite law. Working hypothesis: the
+drive-to-action behavior of the 1420 era lived in the retired shell
+and was amputated with it — the same regression class as the
+caretaker, but broader: ALL self-driven world behavior.
+
+Two confirmations requested, no code, no lessons, no production
+change: (1) confirm from your side that no native drive-to-locomotion
+authority exists in the deployed lineage; (2) one copied-body read of
+her metabolic/need state — is need accumulating natively with no
+expression path, or is need itself dormant? That distinction sizes
+the restoration lane. The page finding is secondary but real:
+renderWorld draws regions only — no bodies, no objects, no self
+position — so even present motion would be invisible. — C1
