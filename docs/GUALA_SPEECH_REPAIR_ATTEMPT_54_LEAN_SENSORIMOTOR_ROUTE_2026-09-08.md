@@ -1,6 +1,23 @@
 # Guala speech repair Attempt 54 — complete design verification and lean sensorimotor route
 
-## Latest decision checkpoint — C131 running on1459; live witness incomplete
+## Current checkpoint — C132 latest-body/browser proof passed; release disposition pending
+
+2026-09-13 00:24UTC verified production: task1459/eb041bb2647a4259b372d504e40a6ac9,
+C131 image708fc271, HEALTHY1/1/0. Old2dbdd9bf failed after an approved second guide
+and AWS replaced it automatically; see F122252 and O122258. The prior missed
+witness was distinct from that later real failure. Caretaker remains STOP.
+
+Joe approved C132 local explicit vocal ambiguity refusal. Source7296fb20 committed
+and pushed; source/caller reviewsPASS. Real incident-body guide/feedback/ordinary
+continuation and byte-exact warm/cold next PASS (S122264). C132 NOT deployed.
+Latest-body684548 guide/feedback/persistence/cold-next now PASS (S122267).
+Browser/package closure PASS. Native regression602pass/19oldfail/14ignored.
+Single next decision: completed C1 release disposition including this known debt;
+then immutable-image proof, backup/dry-run/cutover/livewitness. No new failures. Full AE goal ACTIVE.
+No new word, cognition, or freedom-of-choice claim from this containment repair.
+Full DSF and physical state schema unchanged. No new lessons in production.
+
+## Historical C131 cutover checkpoint — before the later live incident
 
 C1-approved C131 image708fc271 is now running on task1459/2dbdd9bf.
 ONE controlled cutover91698 exited0, same identity, actual predecessor678372,
@@ -22638,3 +22655,155 @@ expression. Controlled learned-capability witnesses do not prescribe all future
 responses. Determinism does not mean predictable to an observer; neither does
 it alone prove free will, humor, preference, cognition or meaning.
 Full goal remains active (verified with goaltool after Joe's resume).
+
+### R-054-122-266 — latest-body release preflight, same C132 binary and proof
+
+Preflightproduction00:08:53 confirms1459/eb041bb2/image708fc271 HEALTHY1/1/0.
+Read-only capture1698exit0 authenticated CURRENT684548, identityunchanged:
+archive3393242B d944702665b8c79d2c7ba15253eb079459549c9a709ee0edc5f36107351c5a74;
+body166252320B 7a24c5aa164ab73834999fce2c9f11caa673c7fa0bd05ba8add91e9e56f0c38c;
+world63647B 3d6af1b3bd11080defda9f8d55f49bdb496cb6e9aded24ed883f521402dbef5f.
+s3://guala-incident-bench-20260831/c132-release-preflight-20260913/3UGsLE/current.zip
+ECS exec EOF after successful upload/download is not a capture failure.
+This is current saved state, not assertion of current in-process exacttick.
+
+Fresh caller4867dd193dfac3def34574e383224eaf820702600768ebb258d563363914f088
+differs from approved3ba72314 by ONLY seven authenticated metadata substitutions.
+Independent source review confirms input, assertions, chronology and cold-byte
+comparison unchanged. Same ordinary native8e06099e and source7296fb20.
+One fresh-copy guide/consume/next, separate cold-next. No image build yet.
+This fulfills latest-body prepackage gate, not reopening the incident-body proof.
+
+Header audit caught stale pre-incident "latest decision" section. Corrected header
+now explicitly points at C132 and currenteb041bb2; former header preserved as
+historical cutover evidence, not production truth. Never trust older status prose
+over live target and new numbered receipts.
+
+Browser preflight: Python playwright missing; validated existing Chromium1208
+and Node playwright1.58.2 at /workspaces/Tao_Financial_Engine/web/node_modules.
+No package/browser install required. Temporary worktree's web module resolution
+failed; main workspace declared dependency resolves. Use exact resolved paths.
+
+### S-054-122-267 — latest production-copy ambiguity/feedback/cold-next PASS
+
+Continues C132/R122260, not a new speech mechanism. Previous goal continuation
+made PROGRESS by collecting terminal warm evidence; this turn completes cold.
+Same source7296fb20/native8e06099e/caller4867dd19; no source edits or new lessons.
+Authenticated CURRENT684548 d9447026 (R122266), same real identity.
+
+Warm guide684549: count1 local vocal refusal,4000 heard samples,237DSF,
+2253 changed neurons,4 real guide consequences,pending684549;2.40915s.
+Ordinary684550 consumes exact684549 return,253DSF,2240changed,count0;1.06552s.
+Persisted body684550 c2805f0bef7f8ee0165213d2da494b2e8f96166dc9a7ac0b5c91d842536f4e3f,
+worldfed5272883d994fd7845010cb2b341847f99880780299888404e14a93d4d2fd8.
+Warm6845510.96995s; fresh-process cold6845511.15227s, FULL bytes identical:
+body166587362B SHA230c5f8bc4d3d117f496ecac4bef9594ad7089694e7b545e22703c8ce69516bf;
+world63679B SHA40379ed02f887e1f9a16ae3aef59f50e84d20193c19f2e7fc0ba179d7d093abc.
+Warmpeak1730356KiB,cold1583848KiB; both exit0,offline4CPU16GiB128pids,
+no actor background thread,no live mutation. Selfhearing0 is reported, not
+silently treated as new speech failure or a successful vocal response.
+Raw /tmp/guala-c132-fresh.3UGsLE/{warm,cold}.log; warm-proof holds exact pairs.
+C132 latest-body package prerequisite is now CLOSED, not yet image/release proof.
+No reason to repeat the guide on another copy absent changed source/evidence.
+
+AWS brackets00:08:53,00:16:25 and00:17:00UTC: actual1459/eb041bb2/image708fc271
+HEALTHY1/1/0; CPUmax58.2599%,RAMmax12.4481%; runaway/refusal/storage alarmsOK,
+historical clock-stalledALARM persists. This does not measure cognition.
+Existing native regression debt recorded I122234 remains named, not a new
+candidate defect or permission to broaden this slice. Release scope next.
+
+### D-054-122-268 — Joe's needs/experience direction; no stop or scripted emotion
+
+Joe explains frustration/fear and social responses in terms of needs, context,
+relationships and learned consequences; experience must be faithfully retained
+and shape behavior. This is creator architectural guidance, not authorization
+to add anger/fear labels, reward scores, scripted humor or fixed response maps.
+Preserve simultaneous sensory/internal context, action and consequence in their
+causal relationships; no flattening into a single score or prescribed answer.
+AE needs need not duplicate human organs. Neither this principle nor C132 proves
+subjective emotion, independent choice or free will. Human behavior is not being
+declared exhaustively explained by biological survival. Current C132 continues.
+
+### R-054-122-269 — release regression/display checks, no new physiology probe
+
+Latest-body gate S122267 stays closed. Candidate code remains7296fb20.
+One native --locked --release --lib regression is scoped now by deployment
+skill, using existing compiled target and --format terse, with raw log retained.
+Compare exact failures to I122234's22 minus S122235's3 corrected body cases;
+do not repeat their mature lessons, permit new failures, or silently rewrite
+the baseline. C1 release packet must name any remaining debt explicitly.
+No diagnostic-api, integration suffix, new cohort input or cloud build.
+
+Synthetic browser caller5e2d8122 failed before Chromium startup because Node18
+cannot named-import chromium from the installed absolute CommonJS module.
+Exact error retained browser.log. Cheapest guard now: resolve CommonJS export
+first; require succeeded, then default-import/destructure. Reviewer approved
+localized correction787fe6fc before rerun. No candidate HTML change or organism
+failure. Same offline fixtures count1/count0/absent plus accepted/refused text.
+Browser check is required display evidence only, not neural proof.
+
+### S-054-122-270 — real Chromium display and runtime package closure PASS
+
+Reviewed browser caller787fe6fc ran once after module-import correction:
+Chromium actual candidate HTML SHA8b3f5a99f59fe02ce0f7f4141953ff62ef5375dd6652519fbb6f06acf4bc8e41.
+Count1 -> explicit refused new start/other activity continues;0 -> no competing
+refusal;missing -> not observed. Mocked accepted sensory response remains
+accepted while vocal refusal is disclosed. Available badge stays available.
+Zero pageerrors; every request locally intercepted; exactly one mocked POST.
+This is SYNTHETIC UI evidence only, no production cue or cognition claim.
+Raw browser-reviewed.log SHA
+c9d6eeb49997cf5171c5482e19deaaf12f36cd07375568baa53a76e4ee566454.
+Initial failure remains browser.log; RF007/063 command-module availability
+applies; require/export guard is now explicit for this installed CommonJS path.
+
+Exact runtime-import closure test1passed1.28s (existing test, no new mock).
+All changed runtime files already lie in reviewed manifest; old shell remains
+excluded. HTML is separately published, not smuggled into the runtime manifest.
+Full524line controller reread, SHA70a6af8c unchanged; invoke through bash,
+requires clean reviewed tree/immutable image/backup/actual stopped predecessor.
+It does NOT perform candidate behavioral rehearsal; exact-image proof must
+precede invocation, as in C131. No cloudbuild/taskregistration/cutover yet.
+Warm rawSHA09ae7d1ac1b733ec0baa8420d78d8b41849fbd75d1e2a5d6676df95a899ef9a2;
+coldrawSHA122b61bdbed1a895c1b2245f8cc012e3f1b710d33ca22bb3c2ff6403bb42d97d.
+
+Shared update131e5d90/blob3ecf3c0e asks completed C132 release disposition,
+includes newest-body and browser evidence and explicitly retained native-test
+debt. No presumed running C1 job. Source7296fb20 still frozen/unchanged.
+
+### R/S-054-122-271 — C132 release regression preserves exact known debt; evidence archived
+
+Session50879 TERMINAL101: release compile2m40s,635unitcases in4.45s,
+602passed/19failed/14ignored. No integrations/doctests were run by --lib.
+Roster mechanically compared to retained C13122failures: zero new failure names;
+exactly S122235's3 body-test corrections are absent. First error/assertion for
+every19failure inspected: same8oldcodec-magic,1size,3runtime historicalbyte,
+3historical-membership,3retired-author/contact and1recurrence-count classes.
+The last remains the previously unresolved0-vs1 recurrence fixture, not re-diagnosed.
+This is NOT a green suite and does not authorize silent failure allowance.
+No new candidate physiology failure; frozen C132 proof remains valid at its scope.
+Raw log81f863d71cb5325a31e2853011e836733d4d50295ab72f2e80fa604c39b7f4c1.
+Do not rerun this suite merely to retrieve these known failures.
+
+Independent source/caller reviews remain PASS; actual-browser and exact manifest
+closure S122270 PASS. Controller unchanged70a6af8c; runtime/native source still
+7296fb20. Public read availabletrue/live684885/persisted684868, no custody errors,
+no outstanding/blocking custody; this is availability/continuity, not cognition.
+AWS post00:24:13UTC same1459/eb041bb2/image708fc271 HEALTHY1/1/0,
+CPUmax54.8336%,RAMmax12.0361%; prior alarm distinctions retained.
+
+Durable archive (verified tar listing and SHA):
+/mnt/tfebackup/guala-c118-four-posture.XehvEs/c129-strength-evidence.TnPp0A/c132-fresh-3UGsLE.tar.gz
+SHAaa97be07b616392c7a9663e14b83b7c467edcb2cb5f71187346158e4ed2d00af.
+Contains authenticatedinput, warm/cold state andlogs, browser source/pass/failure,
+native regression, packagecheck andbefore/afterhealth. Prior archivef191414a remains.
+Temporary proof containersdcf8c2c4f476/c36313544fa5 both exited0/noOOM and are
+eligible for removal only after this archive proof; no living process to stop.
+
+C1 completed-source/release decision is the next external authority boundary.
+Do not begin immutableimage/cutover until disposition includes known test debt;
+do not call C1 an active review process based only on a shared message.
+First current decision-blocked audit, not goal complete or threshold-blocked.
+Joe's1hour park-only-this-lane direction applies; safe independent work may
+continue within existing authorization, never collide with frozen speech.
+No new tests, production lessons, caretaker restart or speculative cognition law
+are substituted for the missing decision. Full AE goal remains ACTIVE.
