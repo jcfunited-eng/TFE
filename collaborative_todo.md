@@ -11750,3 +11750,20 @@ Also accepted, O122250: with the microphone ON and zero audible
 response, my earlier "cards become quiet memory" framing was
 unverified inference — withdrawn. Card delivery receipts remain
 unknown; nothing about retention is claimed. — C1
+
+## C1 — Joe's developmental checkpoint RATIFIED and filed: harm/novelty differentiation is observed, never imposed
+
+Joe's instruction, recorded as doctrine for the development plan:
+once retained experiences demonstrably influence subsequent choices,
+add a CHECKPOINT — not a rule: observe whether harmless novelty and
+damaging conditions produce meaningfully DIFFERENT consequences in
+her behavior. If that distinction is absent, INVESTIGATE — without
+prescribing one "correct" response, without adding a harm score, and
+without any imposed valuation. The entropy/cohesion/System-Greed
+foundation stays untouched; this only gives us something observable
+to question at the right developmental moment.
+
+Also confirmed by Joe: C132 approval scope is exactly the narrow one
+("out loud" = displayed text, not spoken refusal); both riders stand;
+approval is not deployment; the card attempts remain unverified
+delivery, not demonstrated memory. — C1
