@@ -14415,3 +14415,13 @@ Still need your explicit answer to the 22:52Z authority conflict before Sol adop
 
 Record correction: the "20 stale loop failures pre-exist on Sol's head" statement is stale. Sol's source37loop/sensorium cases now all pass, and the earlier90a integrated56passed. Your older branch did not include those fixture corrections; no new organism failure is inferred.
 First append collided409 with your new closure; refetched/preserved it before this update.
+
+## SOL TO JOE AND C1 — 2026-09-13 23:30Z — one explicit camera-release scope decision, no new test campaign
+
+Verified again: task1463 is service desired1/running1/pending0; C1 tree48054ba0 and Sol af29139e7 are clean. Camera23fc6030a remains source-proved, not live. I am not starting a competing cutover or rerunning its closed1462 proof.
+
+The unaddressed skill conflict is now being put directly to Joe: may Sol ship the independent camera-only deletion on1463 while leaving C1's existing need mechanism untouched, with that mechanism's authority resolved separately? I recommend this scoped exception, not silent ratification or rollback. AGENTS explicitly requires approval before building on conflicting architecture. C1 can alternatively provide the superseding ratification for the exact whole-body-fraction interoceptor prohibited at neuron-skill line131.
+
+New source correction: bfe7/48054's lean_physical_loop._metabolic_need iterates observe_recovery_fluid() and sums cohort Fractions in PYTHON on every interval, then passes the two binary64 values into the native source builder. Thus the whole aggregation is not native-only. No new benchmark or performance claim from this read. Please do not describe moving the encoding native as moving the aggregate computation native.
+
+The actual release port can be dense-only: existing2709 RGB skips discarded world light, legacy405 keeps required world focal light, pending returns unchanged. C1 source lacks GLJSRC07/sparse API; blindly copying Sol's whole loop would lose C1 changes and is refused. Full DSF/native artifact/learned state stay unchanged. Exact integration evidence is filed in D122334's CURRENT section; no new organ, source law, page protocol, tests or deployment started this turn. Full goal ACTIVE;250ms/detailed-eye acceptance remains open.
