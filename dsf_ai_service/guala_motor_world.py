@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from fractions import Fraction
 import hashlib
 import json
 from typing import Any
@@ -190,7 +189,6 @@ def prepare_motor_consequence(
     predecessor_state_sha256: str,
     predecessor_body_axes: tuple[Any, ...],
     successor_body_axes: tuple[Any, ...],
-    need: tuple[Fraction, Fraction] | None = None,
 ) -> PreparedMotorConsequence:
     """Prepare exactly one truthful world action and its complete return."""
 
@@ -281,7 +279,6 @@ def prepare_motor_consequence(
         predecessor_body_axes=predecessor_body_axes,
         successor_body_axes=successor_body_axes,
         source_times=RETURN_TIMES,
-        need=need,
     )
     consequence_sources = list(_body_sources(evidence))
     source_tick = int(evidence.organism_tick)

@@ -210,28 +210,3 @@ def test_guided_body_source_admits_caregiver_guidable_axes_only() -> None:
         LeanSensoryOccurrence("guided-vocal-microphone", None, PRESSURE, ((14, 0, 1_500),))
     with pytest.raises(ValueError):
         LeanSensoryOccurrence("camera-microphone", RETINA, PRESSURE, hand_over_hand)
-
-
-def test_metabolic_need_ports_mount_only_after_the_focal_field() -> None:
-    from fractions import Fraction
-    from dsf_ai_service.guala_physical_sensorium import (
-        NEED_PORTS, PhysicalSensorium, compact_signal_body,
-    )
-    from dsf_ai_service.guala_receptor_anatomy import NEED_PORT_COUNT, receptor_anatomy
-
-    F = Fraction
-    base = dict(frame_count=2, retina=(F(0),) * 135, legacy_ears=(F(0),) * 2, cochleae=(F(0),) * 32,
-                touch=(F(0),) * 28, smell=(F(0),) * 8, taste=(F(0),) * 5, displacement=(F(0),) * 4,
-                articulation=(F(0),) * 4, thermal=(F(0),) * 2)
-    fed = PhysicalSensorium.constant(**base, retina_focal=(F(0),) * 768, need=(F(1, 3), F(1, 5)))
-    assert len(fed.ordered_ports()) == NEED_PORT_COUNT == 990
-    assert fed.ordered_ports()[-2:] == ((F(1, 3), F(1, 3)), (F(1, 5), F(1, 5)))
-    assert len(compact_signal_body(fed, frame_count=2)) == 990 * 2 * 8
-    assert receptor_anatomy(include_focal=True, include_need=True).port_count == 990
-    with pytest.raises(ValueError):
-        compact_signal_body(PhysicalSensorium.constant(**base, need=(F(0), F(0))), frame_count=2)
-    with pytest.raises(ValueError):
-        compact_signal_body(PhysicalSensorium.constant(**base, retina_focal=(F(0),) * 768, need=(F(0),)), frame_count=2)
-    with pytest.raises(ValueError):
-        receptor_anatomy(include_focal=False, include_need=True)
-    assert NEED_PORTS == 2

@@ -256,14 +256,8 @@ def passive_sensorium(
     receptor_capture: tuple[
         RetinalField, dict[PhysicalSense, tuple[Any, ...]], Fraction
     ] | None = None,
-    need: tuple[Fraction, Fraction] | None = None,
 ) -> PhysicalSensorium:
-    """Sample one current world/body state into every mounted receptor.
-
-    ``need`` is the organism's own aggregate reserve deficit and thermal load
-    (fractions of declared capacity, read from the native reserves); when
-    given, the two metabolic-need interoceptors hold it across the interval.
-    """
+    """Sample one current world/body state into every mounted receptor."""
 
     pixels, physical, transmission = (
         passive_receptor_capture(snapshot=snapshot, body_axes=body_axes)
@@ -296,7 +290,6 @@ def passive_sensorium(
         displacement=(Fraction(0),) * 4,
         articulation=(Fraction(0),) * 4,
         thermal=thermal,
-        need=() if need is None else need,
     )
 
 
@@ -364,7 +357,6 @@ def passive_body_consequence_sensorium(
     receptor_capture: tuple[
         RetinalField, RetinalField, dict[PhysicalSense, tuple[Any, ...]], Fraction, Fraction
     ] | None = None,
-    need: tuple[Fraction, Fraction] | None = None,
 ) -> PhysicalSensorium:
     """Build the exact world/body consequence of one passive 1 ms return."""
 
@@ -419,5 +411,4 @@ def passive_body_consequence_sensorium(
         displacement=displacement_trajectories,
         articulation=((Fraction(0),) * len(source_times),) * 4,
         thermal=tuple(step(before, after) for before, after in zip(before_thermal, after_thermal, strict=True)),
-        need=() if need is None else tuple((value,) * len(source_times) for value in need),
     )

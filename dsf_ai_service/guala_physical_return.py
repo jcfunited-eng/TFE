@@ -16,7 +16,7 @@ import uuid
 
 from dsf_ai_service.guala_physical_sensorium import (
     ARTICULATORY_PORTS, COCHLEAR_PORTS, DISPLACEMENT_PORTS, LEGACY_EAR_PORTS,
-    NEED_PORTS, RETINAL_PORTS, RETINAL_FOCAL_PORTS, SMELL_PORTS, TASTE_PORTS, THERMAL_PORTS, TOUCH_PORTS,
+    RETINAL_PORTS, RETINAL_FOCAL_PORTS, SMELL_PORTS, TASTE_PORTS, THERMAL_PORTS, TOUCH_PORTS,
     PhysicalSensorium, compact_signal_body,
 )
 
@@ -30,17 +30,8 @@ _LEGACY_PORTS = (
     ("articulation", ARTICULATORY_PORTS), ("thermal", THERMAL_PORTS),
 )
 _PORTS = (*_LEGACY_PORTS, ("retina_focal", RETINAL_FOCAL_PORTS))
-# Stage 2 of the drive organ: returns sampled after the metabolic-need
-# interoceptors mount carry two more ports; older returns decode unchanged.
-_NEED_PORTS = (*_PORTS, ("need", NEED_PORTS))
 LEGACY_RETURN_SAMPLE_BYTES = sum(count for _, count in _LEGACY_PORTS) * 3 * 8
 RETURN_SAMPLE_BYTES = sum(count for _, count in _PORTS) * 3 * 8
-NEED_RETURN_SAMPLE_BYTES = sum(count for _, count in _NEED_PORTS) * 3 * 8
-_PORTS_BY_SAMPLE_BYTES = {
-    LEGACY_RETURN_SAMPLE_BYTES: _LEGACY_PORTS,
-    RETURN_SAMPLE_BYTES: _PORTS,
-    NEED_RETURN_SAMPLE_BYTES: _NEED_PORTS,
-}
 # One native interval: impulse, passive tail, and the two root-motion
 # episodes. This remains one pending owner. Its live physical hop is250ms.
 MAX_RETURN_SOURCES = 4
@@ -201,7 +192,7 @@ class PendingPhysicalReturn:
         _integer(self.nutrition_intake_zeptojoules, (1 << 127) - 1)
         _receipt(self.causal_transition_sha256)
         _receipt(self.world_observation_receipt_sha256)
-        if not isinstance(self.sampled_sensorium, bytes) or len(self.sampled_sensorium) not in _PORTS_BY_SAMPLE_BYTES:
+        if not isinstance(self.sampled_sensorium, bytes) or len(self.sampled_sensorium) not in (LEGACY_RETURN_SAMPLE_BYTES, RETURN_SAMPLE_BYTES):
             raise ValueError("physical return lost its exact three sampled frames")
         if any(not math.isfinite(value[0]) for value in struct.iter_unpack("<d", self.sampled_sensorium)):
             raise ValueError("physical return contains a non-finite boundary value")
@@ -263,7 +254,7 @@ class PendingPhysicalReturn:
         indices = tuple(0 if time < RETURN_TIMES[1] else 1 if time == RETURN_TIMES[1] else 2 for time in source_times)
         # Source coverage is encoded by the authenticated exact payload length.
         # An old return has no focal history; never manufacture dark samples.
-        ports = _PORTS_BY_SAMPLE_BYTES[len(self.sampled_sensorium)]
+        ports = _LEGACY_PORTS if len(self.sampled_sensorium) == LEGACY_RETURN_SAMPLE_BYTES else _PORTS
         frames = struct.iter_unpack("<ddd", self.sampled_sensorium)
         values = {
             name: tuple(tuple(frame[index] for index in indices) for frame in (next(frames) for _ in range(count)))
@@ -300,7 +291,7 @@ class PendingPhysicalReturn:
         return cls(value["identity"], value["producer_tick"],
                    value["causal_transition_sha256"], value["world_revision"],
                    value["world_observation_receipt_sha256"],
-                   _body(value["sampled_sensorium_base64"], NEED_RETURN_SAMPLE_BYTES),
+                   _body(value["sampled_sensorium_base64"], RETURN_SAMPLE_BYTES),
                    tuple(PhysicalReturnSource.from_record(source) for source in sources),
                    None if vestibular is None else tuple(vestibular),
                    intake)
