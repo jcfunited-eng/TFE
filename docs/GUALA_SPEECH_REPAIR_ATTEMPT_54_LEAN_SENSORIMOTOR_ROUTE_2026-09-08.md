@@ -16,15 +16,29 @@ refusaltext, bothpages200, exactHTMLhashes,zeroerrors/nonGETrequests.
 C132 does not deliver words, learnedstrength, locomotion, play or cognition.
 Full DSF/physicalschema unchanged. All closed proofs remain closed.
 
-Existing C1 caretaker source578d4370 resumed01:58:20UTC, solePID98920,
-STOP retained in backup. Subsequent presenter PID381/source8551fbe9 replaced
-PID98920; oldPID is absent, one verified process. Four apple lesson blocks now
-logged accepted687069/687078/687087/687096. The presenter queue guard was removed
-in C1's concurrently edited lane; Sol made no caretaker source edits. This is
-accepted input, not learning; C1's final source/commit receipt is still awaited. Do not say it is already teaching.
-Next speech boundary returns to quantitative strength learning from the delivered
-feedback; no new C132 test/rebuild/guide. C1 window/autonomy findings separate.
-Product goal flag still reports blocked, despite authorized work continuing here.
+Caretaker correction/restart is CLOSED as an input-delivery repair: source
+8551fbe9 replaced the unsaved-count busy guard; C1 acknowledged authorship.
+The six apple blocks completed through687121, followed by bee blocks through
+687234 in the independently read log. This proves accepted presentations,
+not retained learning or outward response. Do not restore the obsolete STOP claim.
+Product goal is ACTIVE following Joe's actual resumption; earlier blocked
+statements below are historical only.
+
+Active item R/S-054-122-282 continues R122177 quantitative vocal learning.
+S122278 C132 and H122247 remain closed; no repeated release/feedback test.
+New exact saved-result comparison: both C131 dose arms have identical recorded
+electrical/contact changes through669727, while receptor residues differ.
+This is not a whole-state equality or a new failed speech candidate.
+R122284/S122285 saved continuation now completed: observed contacts/electrical
+first diverge669731 (fourth step after consumed feedback), on L1/L5 -> L9
+contacts, not demonstrated L11/L12 strength or output. MAX32 continues returning
+4000 self-heard samples per step, MAX128 zero; body consequences zero both.
+This is continuing/inconclusive at the observation bound, not a failed candidate.
+Source/next-evidence boundary and exact archive are recorded in S122285 below.
+Joe's sequence D122283: current focused speech step -> approved vision improvement
+-> self-driven life. The later charter is queued, not a new interoceptor or
+generalized guide implementation authorization. No global deficit score or
+unconditional no-need/no-walking policy is approved.
 
 ## Historical C131 cutover checkpoint — before the later live incident
 
@@ -23139,3 +23153,235 @@ historicallytrue; supersede earlier no-lesson/PID98920 resume status.
 No further Sol caretaker/nativecodechange, no C132rebuildorverificationrepeat.
 Actualproductgoal stillblocked; asynchronousrequest asksJoe to resume automatic
 continuation. This does not pauseproduction or the ordinarycaretaker.
+
+### R/S-054-122-282 — resume quantitative speech boundary; exact saved contrast, no new lesson
+
+2026-09-13. Actual get_goal reports ACTIVE after Joe resumed. Previous turn was
+a handoff/status verification, not a speech implementation advance; no existing
+job or test is claimed running. Root verifier returned e17d4fbf, clean worktree.
+This ADVANCES from closed S122278/H122247 and continues R122177/R122179,
+not reopening C129/C131/C132 acceptance. Full AE objective remains unchanged.
+
+Architecture gate:
+- Requested: real demonstration -> retained quantitative distinction -> learned
+  act on the approved direct instrument -> sound/self-hearing.
+- Current reality: C131 full timed feedback is live; saved receptor residues
+  distinguish MAX32/MAX128. Their effect on retained vocal strength/use is open.
+- Conflict with requested architecture: NO new implementation conflict proven
+  in this bounded inspection; missing capability evidence remains explicit.
+- Not extended: frozen L0-L4, gate quantum/barrier/recovery coefficients, old
+  human-mouth adapter, legacy Python cognition, action-permission reset, semantic
+  targets/indices, guide-dose-to-strength assignments or new observation state.
+- Single next item: establish where the actual differentiated returned input
+  does or does not become retained learned-contact change and subsequent use.
+- Full DSF, not a reduced approximation. No field evaluation changed or omitted;
+  electrical/contact observations below are explicitly limited projections.
+
+REUSED EVIDENCE, NOT NEW PHYSICS EXECUTION:
+C131 original669725 -> guide669726 -> consume669727 in two archived arms.
+warm.json exact SHAs:
+32  14a4d621de437aba6d963448c4dd48708b6e64de32c39975fc6f90b17263bbfe
+128 7dd129018dbd2705cfe4fe5fd43ac980237b0ec25184595f9b77ff386b52ef6e
+under /tmp/guala-c131-feedback.N72UuO/{32,128}-feedback/.
+Python json with arbitrary-precision integers compared ALL recorded contact
+change rows and electrical change maps, not float-rounded numbers:
+guide: 3 contact-change rows, exact equal; electrical changes exact equal.
+consume: 19 contact-change rows, exact equal; electrical changes exact equal.
+Source check of core10801/10825/10896 confirms observer scope: persisted mounted
+neuron lineages, electrical charge/capacitance/carriers, and cohort+fabric
+contact conducting populations/phase/effective conductance. Caller records full
+before/after differences across those observer sets. It does NOT expose every
+neuronal state, transient gate chronology, plastic work, or full cognitive state.
+The shared authenticated baseline plus these equal deltas do not prove absence
+of later learning, equal timing within the interval, or universal inability.
+S122231's eight distinct receptor residues remain true and are NOT renamed
+learned strength. All four source-input hashes differ between arms: no passive-
+only attribution is inferred from the aggregate observation.
+
+SOURCE PATH / INDEPENDENT READ-ONLY REVIEW:
+- core9290-9905 retains source timing, exact per-site transduced work, Psi,
+  quantum-window delivery and receptor successor residue; layer5 supplied-work
+  participation is distinct from accepted gate opening or motor action.
+- settle_resident_physical_interval13251 defers electrical work to the coupled
+  frontier; reached_neuron_cohort4129/4241 performs existing prepared-gate
+  recovery through recovery_fluid_contact786 before neuron settlement.
+  The explicit zero catalyst in an input constructor does NOT prove missing
+  recovery: this actual caller supplies the already-existing recovery reaction.
+- core20957/21031 records real endpoint pump/return motion for reached endpoints;
+  local_gradient_direction19742 includes scheduled passive return. Not L10-only.
+- core21522 invokes sparse_electrical_contact365. Local contact released work,
+  retained work phase, endpoint direction and finite channel population govern
+  change; anatomy's conductance per channel determines effective conductance.
+- core21591-21624 still cancels an unpermitted L11/L12 transfer AND its whole
+  provisional contact successor. This is PRIOR S122182/183, not a newly found
+  C131 regression. Those discarded fractions were already identical across
+  doses. Removing the reset is not a demonstrated quantitative fix and would
+  require its own conservation/action proof.
+- Surviving contact successors commit at core22037 and become next-interval
+  electrical inputs/finite-work branch conductances. Same-interval output does
+  not consume a just-written conductance.
+Independent /root/memory_probe_review (not C1) agrees: missing evidence is an
+exact dose-dependent post-permission retained vocal-bond difference followed by
+use in a later lawful act; no new routing defect or saturation diagnosis proven.
+Reviewer changed no source and ran no test. No runtime edit/build/deploy,
+production lesson, native restore/advance, or additional body copy here.
+
+NEXT BOUNDED EVIDENCE RULE:
+Do not fail a learning candidate on a guide/consume-only observation if its
+lawful continuation has not been followed. Conversely, do not call different
+receptor residues a learned-strength pass. Reconcile delivered gate work and
+later allowed-act timing on the already saved successors before choosing any
+new guided chronology or physics edit. No coefficient sweep, repeat range
+assay, broad suite, fresh C132 check or arbitrary extra recovery law is ordered.
+
+Tooling corrections disclosed: one search again supplied the nonexistent
+src/lean_sensorimotor_route.rs; rg --files resolved the actual nested path.
+Reviewer similarly guessed learned_motor_work.rs before locating core source.
+One jq object used reserved 'label' shorthand and failed before reading data;
+explicit keys fixed it. jq numeric comparison is NOT authoritative for large
+integers; Python's exact integer reader independently confirmed the result.
+Initial combined reference output exceeded the tool display budget; the omitted
+references were subsequently read completely in bounded calls. No truncated
+record was used for an edit or a physical inference. These are repeated workflow
+costs, not organism failures; no new wrapper was added.
+
+### D-054-122-283 — Joe's queued order: focused speech, vision, then self-driven life
+
+Joe's current instruction places the already approved vision improvement AFTER
+the current focused speech step and BEFORE the proposed self-driven-life work.
+C1 filed the same sequence on shared origin5231189a. This is not a stop command
+and does not reopen the completed feedback/refusal releases or pause caretaker.
+
+The later need -> sensation -> learned action -> conserved feeding consequence
+is a proposed full loop, not a claim that it currently exists. Before adding
+sensing, inspect current localized metabolic/body-afference paths and actual
+deployed participation; no absence claim follows from missing hunger names.
+The proposed 'actual aggregate deficit' cannot sum unlike carriers, fuel and
+thermal state into one scalar need authority. Preserve local units, distinct
+physical causes, non-flattened DSF, and the ratified entropy/cohesion/System-Greed
+foundations. Missing physical receptor mapping must be explicit before edits.
+
+Future negative controls must isolate the claimed need-driven food response,
+not forbid every movement without need or sight of an apple. Remembered location,
+exploration and other lawful causes remain possible; cutting the claimed learned
+route tests that route, not whether the whole organism becomes motionless.
+Existing imbalance-versus-consequential-imbalance observational checkpoint stays:
+investigate absent differentiation at the appropriate developmental stage, do not
+install a novelty/harm score or scripted behavior. No new control is imposed on
+the current speech acceptance. C1's guide/feeding/window pieces remain queued
+for their scoped implementation authority and must not collide with speech.
+
+### R-054-122-284 — frozen saved-feedback continuation, no new teaching or physics
+
+Continue R122282, preserving all previous source/feedback/release results.
+External caller /tmp/guala-strength-tail.srNyPs/continue_saved.py
+SHA3dd97985f413802cec3b1166cdb405b90de707f2ab08cbd3b8bfd61b9c9e11a1.
+Independent source-only review requested before execution.
+Single owner Sol. No worktree native/Python change, no build or deployment.
+
+Question: did stopping C131's observation immediately after feedback consumption
+miss later physical use of its distinct state? Do not decide this from the
+already-equal contact snapshots or from a final gate occupancy alone.
+Two serial invocations use existing immutable production1460 imagebb72c2ae,
+native0fbead3c, sourcea77009fb. Inputs are the already-saved consumed669727
+32/128 pairs, exactly S122227/S122229 body/world hashes. Each extends ONLY8
+ordinary unattended physical inputs, same external solar43200, no tutor cue,
+guide, manual recovery, state editing or caretaker. This is a finite observation
+budget, NOT a cognitive timer or a requirement that learning/silence happen by8.
+No repeated original lesson, no C132 acceptance rerun, no second native artifact.
+
+Exact path: PairedCurrentStore restore authenticated saved body/world ->
+publish private copied pair for ordinary _restore_production_actor startup ->
+actor.close WITHOUT start -> LeanPhysicalLoop.settle ordinary8times ->
+existing native/Python observation plus exact contact/electrical differences ->
+checkpoint/validate/final private pair. Input mounts read-only, no EFS/cloud
+credentials/network. Separate containers, one body in memory,4CPU16GiB,
+memory-swap16GiB,pids128,restartno; source/parser/caller hash guards before run.
+No overlapping32/128 run. All raw rows flushed before interval assertions;
+final pairs saved so a later read never needs this prefix replayed.
+
+Evidence dimensions: actual tick/input count, existing body/sound/self-hearing/
+refusal/feedback observations, stable endpoint+parallel-contact integer/rational
+change rows, existing electrical projection, actual final paired hashes, total
+per-step timing and processRSS. Exact Python integers only. These observations
+remain outside cognition and are not full neuronal or within-step gate traces.
+No dose-dependent retained state -> output or word claim without its causal join.
+If activity remains at the bound, record continuing/inconclusive, not failed.
+If no distinction appears, do not remove a lawful gate or tune physiology; name
+the earliest still-unmeasured input/retention boundary before another experiment.
+If a distinction appears, preserve the exact pair and identify which real
+learned contact/state changed and whether an actual later act consumed it.
+
+02:24:57UTC read-only AWS preflight: same1460/4ffdfe18/imagebb72c2ae,HEALTHY1/1/0.
+Task environment confirmed GUALA_MAX_WORLD_BYTES16777216 and paired root
+/app/guala/paired-current-gen2; only root is relocated for isolated copies.
+Image's RAYON4/OMP1/OPENBLAS1 unchanged. Resource/refusal/storagealarmsOK,
+historicalclockALARM remains; no all-green claim. Exact pre/post snapshots
+required around each run; no pause or sensory changes to live Guala.
+
+### S-054-122-285 — delayed copied-state divergence, NOT vocal strength or failure
+
+Independent caller review PASS before execution: existing memory_probe_review
+read source/APIs, no edits/runs; same caller SHA3dd97985. No C1 decision claimed.
+One launch failure was strictly environmental: container guala-strength-tail-32
+exited2 at02:26:23 before Python opened /proof/continue_saved.py. File existed
+locally but daemon bind did not expose it. Zero body restore/interval occurred.
+Corrected delivery ONLY: docker create + docker cp private caller/saved pair,
+no bind mounts, no credentials/network, same reviewed code/image/resources.
+Unlike the originally intended read-only mount, input is a private writable
+container copy whose saved CURRENT pointer is explicitly checked unchanged.
+Original source saved pair remains untouched. No cognitive code changed.
+
+Successful runs serial, no repeated prefix:
+32 container2cbd66a9 / guala-strength-tail-32-copy, session63732,
+02:30:26.717-02:30:57.083UTC exit0, noOOM;
+128 containera9969496 / guala-strength-tail-128-copy, session99130,
+02:31:47.171-02:32:17.149UTC exit0, noOOM.
+Exactly8 ordinary inputs each669728..669735, zero guides/cues/callbacks.
+32 restore12.987s, steps1.169..1.516s, peak1759876KiB.
+128 restore12.270s, steps1.150..1.679s, peak1771184KiB.
+These are copied-body timings, not measured live end-to-end latency.
+
+Exact arbitrary-integer comparison:
+- steps1..3 contact AND observed electrical deltas identical.
+- first difference669731:24 additional observed contacts in128, endpoints
+  L1->L9 (22) and L5->L9 (2), each newly observed50channels,phase0/1,
+  conductance500/1. No new L11/L12 learned-strength difference established.
+- later differing contact rows12,24,36,30; only L1/L2/L5->L9 among these.
+- body consequences0, vocalrefusals0, actualrootmotion[0,0,0] all steps both.
+- MAX32 selfhearing4000samples EACH step; MAX128 zero each. This is returned
+  pressure, not a new motor consequence or automatically a fresh utterance.
+- thus input chronology already differs in selfhearing, in addition to the
+  earlier four guide/feedback source differences. No passive-only causal
+  attribution, saturation diagnosis or whole-state equality is warranted.
+- divergence confirms the immediate-consumption snapshot was too early to
+  characterize ALL later effects, not that existing feedback or learning is
+  globally absent. Does not prove demonstrated strength retained by vocal bonds.
+- activity remains at the bound: CONTINUING/INCONCLUSIVE, never FAIL by8.
+
+Final669735:
+32body41a2d13bf498f366786e47e5853b2883100209c27a38a3893b1cf1a7d87797e2
+128body7b955095966f250f11061735814facc95fe948986a2d5e1e955d6810e78d7089
+bothworldcc596f6f4175a80efcc34f6e8843ecb78bb9306b906c9be67acc2f7ede580b4a
+32rows875e4b6d06bc299928ef55199b0809ea54b20062146377b63256389c7e0693fd
+128rows42a81f89ffa81e4f60fd481a401d711980772fee6f20edbe459886a01fd0c838
+All raw rows/results and original/final private paired generations retained.
+Archive s3://guala-incident-bench-20260831/strength-feedback-continuation-20260913/srNyPs/evidence.tar.gz
+SHA81c6bc9c5731ed40a2489172239edb37aa99f5b108902f7c5839c2edcb68aebd.
+
+Pre/post read-only AWS receipts archived. 32post02:31:17 also pre128;
+early128-post file was captured while run active and is NOT terminal evidence;
+actual128-terminal-post02:32:49 confirms same1460/task/imageHEALTHY1/1/0.
+Resource/refusal/storagealarmsOK, historicalclockALARM remains. No deployment,
+live mutation, caretaker pause, new native build or claim of audible improvement.
+
+Single next speech item: reconcile exact existing L11/L12 endpoint pumping/
+return and conductance permission evidence with demonstrated strength and
+subsequent actual act consumption. The newly observed L9 differences do not
+justify removing/resetting a gate or re-running the original lessons. Preserve
+the old S122182/183 reset/conservation finding; no new defect assigned yet.
+D122283 ordering stands; vision then self-driven life after focused speech.
+
+Tool hygiene: a git remote diagnostic exposed embedded access credentials in
+tool output; user notified, rotation recommended, values never repeated here.
+Use credential-redacted metadata only going forward. No secret placed in archive.

@@ -13,7 +13,7 @@ is serving in the current image. Do not restart an old attempt from this file.
 
 The current repair and deployment authority is the running record in
 [Guala speech repair Attempt 54](GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md),
-particularly its current checkpoint and R/S-054-122-260 through R/S-054-122-271.
+particularly its current checkpoint and R/S-054-122-278 through R-054-122-284.
 That record supersedes the older next-item and production-baseline statements
 below; it contains the full failures, preserved successes and release decisions.
 
@@ -27,9 +27,23 @@ C131 livefeedback witness ALSO CLOSED. Do not reopen these checks.
 Native602passed/19recordedfailed/14ignored remains disclosed, not a green suite.
 Caretaker restarted; subsequent C1-lane source8551fbe9/PID381 replacedPID98920
 and removed the unsaved-interval/busyqueue guard. One presenter verified; first
-four appleblocks logged accepted, not learning. Final C1 source receipt pending.
+six appleblocks logged accepted through687121 (complete02:05:19UTC), and five
+bee blocks through687234 at02:10:29UTC. These are delivery receipts, not learning.
+C1 source8551fbe9 correction and the single presenter were verified.
 Next speech boundary is quantitative strength learning from delivered feedback,
-not another C132 rebuild. No word/cognition/autonomy/fullAE completion claim.
+not another C132 rebuild. R122282 establishes distinct saved feedback residues
+but equal exact observed contact/electrical changes through consumption; R122284
+continued those two saved bodies for eight ordinary inputs, no new teaching.
+S122285 records first later contact/electrical divergence669731 on L1/L5->L9,
+not demonstrated vocal-strength learning. Selfhearing differs throughout;
+zero body consequences both. Saved final pairs and hash-verified S3 archive
+preserve continuation; no prefix replay and no failure verdict at the bound.
+An observation bound is not a physiological deadline or failure criterion.
+The complete project goal is ACTIVE. Joe's next order (D122283) is current focused
+speech fix, then approved vision improvement, then proposed self-driven life.
+The later loop must preserve physical distinctions, not aggregate unlike deficits
+into a scalar or ban unrelated movement in its food-response controls.
+No word/cognition/autonomy/fullAE completion claim.
 
 Joe's current coordination direction supersedes the older absolute serial
 wording: commentary/questions do not stop authorized work. If a required
