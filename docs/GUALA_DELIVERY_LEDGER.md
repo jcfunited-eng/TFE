@@ -5,6 +5,19 @@ Item IDs are permanent. A checked box means the stated behavior is deployed and
 observed in live production, not merely coded or tested. `IN PROGRESS` means the
 box remains unchecked until live acceptance passes.
 
+## CURRENT — P122332: project paused; live-cycle diagnosis only
+
+Joe: "I will lift the pause after you figure out the 3.3 cycle - and only that."
+The prior automatic self-life/vision/speech next-work directions below are
+historical. No implementation, deployment, live teaching or caretaker restart.
+D122331 actual903 release remains on1461; quality and250ms target not accepted.
+P122332 canonical Attempt54 appendix records the read-only live execution
+breakdown and its limits:11 full cycles mean3.406428s; sampled serial phase
+1.927542s, joined worker phase1.328282s, both-waiting0.150604s.
+Exact live native-versus-Python function timing and hardware contribution
+remain unmeasured. No physics or runtime source was changed. Only findings
+and the explicit pause are recorded; report to Joe before any further work.
+
 ## RATIFIED — D122300: REAL-TIME OR NOTHING; SPEED AND VISION TOGETHER
 
 Joe ratifies the quoted real-time-or-nothing proposal. V122299 remains the

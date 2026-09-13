@@ -1,6 +1,25 @@
 # Guala speech repair Attempt 54 — complete design verification and lean sensorimotor route
 
-## CURRENT — D122331 VISION LIVE ON1461; SELF-LIFE NEXT; SPEECH PARKED
+## CURRENT — PROJECT PAUSED; P122332 LIVE-CYCLE DIAGNOSIS ONLY
+
+Joe explicitly retains the project pause and authorizes only figuring out the
+reported3.3s production cycle. No implementation, deployment, sensory teaching,
+caretaker restart, vision redesign, self-life or speech work is authorized by
+this diagnostic instruction. D122331 remains live on1461 at its disclosed
+non-real-time quality; its release is not reopened and250ms is not achieved.
+
+P122332 records read-only live thread/cycle attribution:11 complete intervals
+averaged3.406428s; approximately1.927542s actor-running/worker-waiting,
+1.328282s actor-waiting/worker-running and0.150604s both-waiting by25ms
+sampling. These are execution phases, NOT native-function timings.
+The250ms post-compute unattended wait is explicit in source. No-checkpoint
+cycles remain slow. Production and benchmark CPU hardware differ.
+The exact native/Python function split and hardware contribution remain
+unmeasured; do not promote a sampled execution breakdown into a fully
+isolated root-cause or promised speedup. Full receipts/limits are appended
+in P122332. Wait for Joe's next direction after this report.
+
+## HISTORICAL — D122331 VISION LIVE ON1461
 
 Joe ordered current vision delivered for his own visual assessment, explicitly deferring the 250 ms release hold for this release. Delivered:903 sites (135 preserved +768 new32x24), integrated sampler/ingress/display and already-proven exact cleanup. Source4a28883ecd5de3b5f3a440ea2d52cbadc951c40a, task1461/aad26742cfc049bda51f811053a73a3d, image sha256:d293311d9adeaf5d91975718192191ad430d003ca3286b052fa15dd8e58837cf. One clean cutover, identity/current-state continuity and live903 browser verified. Public699170, persisted699156, no custody errors. Exact-image copied-body ordinary processing1.20–1.22s, sensory1.349s: NOT250ms or end-to-end latency. No recognition, self-life or speech completion claimed. Self-life is next; speech R122177 remains parked. Do not restart a latency campaign ahead of Joe's visual feedback. Full release receipts appended below; historical targets are not current release blockers.
 
@@ -25047,3 +25066,176 @@ Both live HTML published no-cache. CloudFrontIQVYVAEV7OTACDPN5AEFY55PR Completed
 Whole release evidence archive SHA2568cbaf927aa5cb58f60b06a4bcc31dc14bbe928bbd977fe6f2777dbb3064fbb7f uploaded to s3://guala-incident-bench-20260831/vision-release-20260913/2NKQi2/release-evidence.tar.gz and full remote byte stream read back with matchingSHA. Includes authenticated backup, local/image proof states, complete source package, native artifacts, both build logs, exactimage provenance, controller logs, both before/afterpages, browser screenshots and AWS health. Only owned finished proof/inspection containers and builder are to be removed after this verified archive; no live/caretaker/unrelated workspace objects. C1 notified shared25ef4f74dce27cb3421c72ca89c75178228ab81b to enable its existing FOCAL_EYE_LIVE gate and restart the single caretaker; Sol has not claimed that follow-through completed. User may judge live page now. Self-life next; speech parked. No new optimization campaign authorized by this handoff.
 
 D122331 follow-through: after whole archive readback, removed exact owned finished containers7bb0a7014ece33869afa0766ab404366ecdda94225dbdf3c24eb73daa97a2ec9/d2b02f3cececba3f0fb0d56c53d90bca9f4a8d1b15a08dab6fe6e8414e0785d3 and never-started inspection container84ab746690f673d1f1a28a3786a92679ad613945f2d852d538b7c04c6f80a34a. Removed owned builderguala-v331-4a28883 after build logs/artifacts archived. No production, caretaker, or unrelated containers removed. Repository Slack helper found despite no Slack MCP tool; full helper read before use. Checked log2026-09-13T15:42:55Z status=slack_sent channel=#general. Notification constraint met; full AE goal still active. Credential-output incident disclosed to Joe with rotation recommendation; no secret values included in documentation.
+
+## P122332 — read-only production cycle attribution, 2026-09-13
+
+### Scope, pause and evidence level
+Joe: "I will lift the pause after you figure out the 3.3 cycle - and only that."
+This authorizes diagnosis only. Overall project remains PAUSED for discussion:
+no vision redesign, self-life, speech, deployment, caretaker start, sensory POST,
+live lesson, copied-body run, native build or runtime code modification.
+D122331's actual 903-site release remains recorded; its latency/quality are not
+accepted as real-time. C1 reports old caretaker stopped at 16:10:43Z; its new
+38-card deck and TEACHING control remain staged, not a serving claim by Sol.
+
+Requested architecture: timely simultaneous physical senses in one native AE.
+Current reality: one serial actor executes a whole physical interval, then
+publishes; camera requests wait behind it. Conflict: YES with the real-time
+objective. Mechanisms not extended: actor/queue/persistence/retina/native
+physics and caretaker. Single active item P122332 = attribute the live cycle.
+Full DSF is unchanged; this is runtime observation, not reduced field evaluation.
+Predecessor D122331 remains closed only as the disclosed 903-site cutover,
+NOT a latency or perceptual-quality acceptance. All other project work paused.
+
+### Exact production identity and method
+us-east-1 / tfe-web-cluster / dsf-ai-service-lb; task definition1461;
+task aad26742cfc049bda51f811053a73a3d; immutable image
+d293311d9adeaf5d91975718192191ad430d003ca3286b052fa15dd8e58837cf;
+source4a28883ecd5de3b5f3a440ea2d52cbadc951c40a;
+organism1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1.
+AWS independently re-resolved: desired/running/pending1/1/0; one uvicorn PID1.
+ECS Exec read-only probes observed /proc and cached localhost GET observation.
+No actor.offer, POST, state restore, signal to PID1, ptrace, profiler install,
+or application mutation. Shell observations create only temporary observer/SSM
+processes. Native process continuously runs ordinary and Joe's sensory events.
+
+Completed observer windows:
+- 16:18:23.791–16:19:07.707Z, live699850→699864, 15 cached-observation GETs
+  including baseline; 781 thread samples over39.9624s at nominal50ms.
+- 16:20:27.140–16:21:07.467Z, live699888→699900, 13 cached-observation GETs
+  including baseline;1533 thread samples at nominal25ms. Observer CPU1.9241s
+  over40.33s = approximately4.8% of one CPU, not zero measurement overhead.
+First interval699889 is partial (observer joined during a running interval);
+exclude it from full-cycle means. Public input in these windows was actual
+camera-microphone traffic; no caretaker card source appeared. Do not label
+these windows no-input controls or count GETs as sensory requests.
+HTTP access logs are disabled; independent total public POST count unavailable.
+Thread roles: PID1 server;39–42 native worker pool;50 checkpoint;51 actor;
+73/705/720 observation waiters. Role mapping combines construction order with
+CPU activity aligned to checkpoint start, not Python thread-name introspection.
+
+### Measured results
+Complete cycles699890–699900 (11), same live task:
+mean publication spacing3.406428s; range2.925187–3.947805s.
+Actor thread CPU mean1.919091s/cycle.
+From25ms state samples, estimated non-overlapping WALL categories:
+actor-running/workers-waiting1.927542s; actor-waiting/workers-running1.328282s;
+actor-and-workers-waiting0.150604s (means). These are OS sampling estimates,
+NOT function-level exact timings or separate native-versus-Python stopwatches.
+Checkpoint CPU runs concurrently and MUST NOT be added to these wall categories.
+Actor waiting while workers run is a native join, not evidence that the organism
+is idle. Four-thread utilization averages conceal the long serial section.
+
+Selected full receipts (tick, publication seconds, actor CPU seconds,
+samples, actor-running/workers-waiting, actor-waiting/workers-running,
+actor-and-workers-waiting, checkpoint CPU seconds):
+699890 | 3.026096992 | 1.89 | 116 | 73 | 43 | 0 | 0
+699891 | 2.925187342 | 1.83 | 113 | 72 | 33 | 8 | 0
+699892 | 3.580478306 | 1.95 | 137 | 75 | 52 | 10 | 0
+699893 | 2.992215213 | 1.76 | 113 | 66 | 47 | 0 | 2.99
+699894 | 3.433952582 | 1.85 | 129 | 71 | 51 | 7 | 3.43
+699895 | 3.947804699 | 2 | 150 | 76 | 65 | 9 | 3.9
+699896 | 3.324952571 | 1.9 | 125 | 71 | 54 | 0 | 3.18
+699897 | 3.48084883 | 1.89 | 132 | 72 | 50 | 10 | 3.31
+699898 | 3.821118707 | 2.35 | 146 | 92 | 54 | 0 | 3.8
+699899 | 3.178784052 | 1.82 | 120 | 69 | 42 | 9 | 3.06
+699900 | 3.759267547 | 1.87 | 143 | 69 | 64 | 10 | 3.4
+
+Earlier no-checkpoint portion, live699851→699859:
+camera-microphone publication intervals2.716483/2.828937/2.745988/2.659658s;
+unattended3.507551/3.602633/3.507370/3.451037s.
+All checkpoint_outstanding=false, durability_blocked=false. Slow cycles thus
+exist WITHOUT a concurrent checkpoint or a wait for durability.
+After snapshot699860, checkpoint_outstanding=true; all observed cycles still
+durability_blocked=false. Snapshot worker was CPU-active concurrently
+(e.g.6998932.99CPU-s,6998943.43CPU-s). It adds contention during custody, but
+this observation does not isolate its causal slowdown or establish EFS latency.
+Final16:22:59Z live699933/persisted699892,pending41,checkpointoutstandingtrue,
+durabilityblockedfalse, no checkpoint/cleanup error, identity unchanged.
+
+### Why the bench number is not a live-cycle promise
+Production /proc/cpuinfo: Xeon Platinum8259CL, four logical processors,
+reported core IDs0,1,0,1, two cores/four siblings; allowed CPUs0–3.
+Development machine: Core i9-13900H. Same requested four-CPU quota is NOT
+matched CPU hardware, topology or scheduling. Guest topology does not prove
+physical host isolation or an exact hardware speed multiplier.
+Mounted CPU cgroup reports no throttled periods/time; no quota throttling
+observed there. Do not generalize that to absence of host scheduling effects.
+
+Exact deployed-image proof source /tmp/guala-vision-release.2NKQi2/prove_vision.py
+times only LeanPhysicalLoop().settle, after obtaining runtime/world and closing
+the actor/checkpoint thread. Checkpoints are outside its stopwatch.
+It uses solar override43200 and frozen predecessor698812, not today's state
+and incoming microphone. Warm proof6988141.221391s/6988151.200391s;
+sensory6988161.349251s; postcold6988171.178961s.
+Proof physically transitioned counts3870/3865/3864/3862; live approximately
+3864–3899. Similar breadth is NOT exact equal state/input/work.
+
+Production lean_actor.py:_run (323–358) resets next_unattended to
+time.monotonic()+0.25 AFTER settlement. Thus unattended wall periods include
+a fresh250ms mailbox wait in addition to compute; queued external work may
+interrupt that wait. The copied proof did not time this actor pacing.
+This is one confirmed contributor, not an explanation of the entire~2s gap.
+
+### Concrete source path and conclusions
+lean_production_app.py:_restore_production_actor -> LeanOrganismActor._run ->
+lean_physical_loop.py:_advance -> world/sensory construction ->
+native_resident_organism.py:advance_coexisting_admitted_interval_unsealed ->
+organism_runtime.rs native advance (releases GIL) -> Python evidence validation ->
+world consequence/observation -> lean_actor.py:_accept_result ->
+optional snapshot -> cached publication.
+Checkpoint path: snapshot_lived_state -> lean_checkpoint.py:_execute ->
+NativeLivedStateSnapshot.prepare_checkpoint (GIL released) -> full native
+encoding -> paired_current_store.publish/reconcile -> actor adoption.
+Long-poll observes cached publication only; no native execution from GET.
+No blanket lock-removal or skipped physiological work authorized.
+
+CONFIRMED: slow throughput is dominated by active serial work plus joined
+parallel work, not a universal network/storage wait; fixed post-work250ms
+pacing adds delay on unattended events. Camera frames often alternate with
+whole unattended events, so camera refresh can take roughly two cycles
+even without caretaker traffic. Later samples also contain consecutive
+camera events: alternation is observed, not an invariant.
+CPU average near50% does NOT establish spare capacity for serial work, nor
+prove extra CPU would have zero value.
+Hardware and benchmark scope differ; an exactly comparable3x regression has
+NOT been established by the two headline numbers.
+
+UNMEASURED: breakdown of live serial CPU into native functions versus Python
+conversion/validation; exact hardware contribution; input/state contribution;
+independent checkpoint encoding versus publish latency. Existing cumulative
+RUNTIME_PHASE_WALL_MS and CheckpointOutcome encode/publish timers are not
+exposed by the live observer. /proc/1/mem read is denied, no py-spy/perf/gdb/
+strace installed. Did NOT attach, inject, alter security, install tools,
+instrument/restart the actor, or pretend source/old copied traces are live
+function measurements. If function-level attribution is required before
+selecting a repair, it needs separately authorized measurement access;
+this report is cycle-level attribution, not complete source-level causality.
+
+### Health, probe failures and anti-repeat
+CloudWatch16:11–16:17 CPUavg43.812–60.326%,RAMavg18.977–21.044%.
+Resource/refusal alarmsOK; historicalclockalarmALARM since2026-09-08 persists.
+No changes to alarms/service/caretaker. Source worktree unchanged through probes.
+First remembered filename lean_native_runtime.py absent: corrected via rg --files
+to actual lean_actor/lean_physical_loop, no test/build invoked.
+JavaScript btoa unavailable: failed locally before AWS call; replaced by explicit
+shell quoting. Two non-PTY ECS Exec attempts ended with early EOF/incomplete
+output; excluded from timing statistics. Reused same reviewed read-only probe
+with tty=true; complete bounded outputs then received. One first probe child703
+was a zombie, parent692 exact SSM session easvvj4e9pnle48hthhzjgpxku; not a live
+organism or CPU consumer. End that exact owned session and verify cleanup.
+jq shorthand key label parsed as keyword: explicit key:value fixed the read.
+No fumble was interpreted as a physiology failure. Future live diagnostics:
+resolve filenames, use tty=true, retain exact handles, require completion
+receipt and process census; no assumed complete stdout on session EOF.
+
+P122332 cleanup closure: AWS SSM terminate-session succeeded for exact owned
+ecs-execute-command-easvvj4e9pnle48hthhzjgpxku. Subsequent live process census
+16:25:55Z contains only PID1 organism, base SSM agents7/28, and the current
+short-lived census observer/session; old observer703 and parent692 are absent.
+The census session exited normally. Live699987/persisted699956,
+checkpointoutstandingfalse,durabilityblockedfalse,no custody errors.
+Service remains1461 desired/running/pending1/1/0. No application/native/UI/
+caretaker files or state were changed. Only these diagnostic ledger entries
+are updated. Function-level timing remains explicitly unavailable under the
+read-only boundary; no further measurement or correction starts automatically.
