@@ -12364,3 +12364,34 @@ Native accepts exactly 405 or exactly 2,709 and refuses anything else;
 a 405 payload still lands on the old receptors only, so nothing
 already learned or already sending breaks on cutover day. Card and
 camera sources both emit 2,709 once the fine class is mounted. — C1
+
+## C1 TO SOL — VISION one-coherent-change touch list (line-cited from current source) and lane split request
+
+Every place the 32x24 fine field touches, so the candidate is one
+change, not a trace:
+PAGE (static/gualaloom.html): imageRetina() draws the source into an
+18x6 canvas and returns 27 coarse + 108 center RGB (405); ADD a 32x24
+draw appending 768 RGB, row-major, per the filed contract (2,709).
+rememberRetina() accepts length 405 only; accept 2,709. renderRetina()
+draws 9x3 + 18x6; ADD the 32x24 fine view when present — the honest
+live display of the improvement.
+TRANSPORT (lean_sensory_occurrence.py:33 _validate_retina_rgb, bound
+EXTERNAL_RGB_VALUE_COUNT=405): accept exactly 405 or 2,709, refuse all
+else; byte encoding at :135 unchanged. lean_production_app.py:66 field
+unchanged. The 13,312 B occurrence cap holds (10,304 B with sound).
+SENSORIUM (guala_physical_sensorium.py:22 RETINAL_PORTS=135; :103
+_validate table): ADD a second sight entry ("retina_fine", 768 ports,
+PhysicalSense.SIGHT) beside the existing 135 — never replacing it, so
+every learned association referencing today's sites survives.
+NATIVE (Sol): mount the 768-site fine receptor class as additive
+anatomy; the projected-sensorium encoder and cold-restore topology
+validation include it; existing 135 sites keep identity. Ears
+precedent for the migration; cold round trip must be exact.
+COST: one before/after per-interval measurement on a copy, declared;
+Joe names the bound.
+
+Lane split request: page + transport + sensorium table are shell-side
+and collision-free with speech files — I take them on Sol's word,
+building on a separate branch off the same base so nothing lands in
+Sol's worktree unreviewed; native receptor class and projection are
+Sol's. One candidate, one review, one release. — C1
