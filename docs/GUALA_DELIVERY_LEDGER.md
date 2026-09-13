@@ -1725,3 +1725,8 @@ V122312 full903 exact successors669740/669741 retained. Warm1.468142s versusprio
 ### D122313 — diagnostic closed, parallel consequence boundary next
 
 P122313 preserves both exact903-site successors; timing-only source removed after archive readback SHA9229033d1192a19fb444ec622e3fec8b901fa38a8715b2020d46a37b072b17c4. Warm internal694ms includes211ms outer parallel span and198ms finalization; worker sums are not wall parts or per-cohort proof. Ordinary V3121.468142s remains timing authority, not the instrumented1.432233s. Production1460 unchanged. V122314 next: bounded ordered recovery/independent consequence separation, preserving exact errors and commit. Canonical Attempts holds build invocation failure and full receipts. Vision<=250ms first, self-life next, speech parked.
+
+
+### D122314 — parallel hypothesis retired, not accumulated
+
+Full903 exact successors passed but warm1.465897s versus1.468142s baseline shows no material gain. V314 code and test extension removed after archive-readbackc6acc590a47531884e7644cbe692c24ce9b01e25e185ec80f8bd29a7346f21c5; accepted V312native remains baseline. Production1460 unchanged. Next onlyV122315 C1 exact per-call opticalconversion reuse; all903test comparison plus same2intervalproof, no new native build. Real-time250ms unmet, self-life next, speech parked. Canonical Attempts contains complete receipts and rejection reason.
