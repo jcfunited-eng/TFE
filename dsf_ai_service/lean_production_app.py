@@ -30,9 +30,17 @@ from dsf_ai_service.paired_current_store import PairedCurrentStore
 CHECKPOINT_EVERY_INTERVALS = 32
 UNATTENDED_INTERVAL_SECONDS = 0.25
 MAILBOX_CAPACITY = 1
-MAX_OCCURRENCE_BODY_BYTES = 13_312
+# Occurrence envelope (vision upgrade, 2026-09-13). The HTTP contract is JSON,
+# not raw bytes: the worst admissible body is guided-vocal-microphone carrying
+# the upgraded 2,709-value retina (all 255) + 8,000 B PCM as base64 + 13 guide
+# drives at maximum ints = 22,712 B compact / 25,507 B with default JSON
+# spacing (card/camera-microphone: 21,603 / 24,319). Cap stays, sized to the
+# spaced worst case plus margin; anything larger is still refused.
+MAX_OCCURRENCE_BODY_BYTES = 26_624
 PUBLIC_API_PREFIX = "/api/v1/guala"
 OBSERVATION_ROUTE = f"{PUBLIC_API_PREFIX}/observation"
+OBSERVATION_LONGPOLL_SECONDS = 20.0  # bounded hold for ?after=<tick>; declared, not tuned
+OBSERVATION_WAITERS = 8  # bounded concurrent held observers; beyond it, immediate current projection
 OCCURRENCE_ROUTE = f"{PUBLIC_API_PREFIX}/occurrence"
 PRESSURE_FEED_ROUTE = f"{PUBLIC_API_PREFIX}/pressure"
 PRESSURE_ROUTE = f"{PUBLIC_API_PREFIX}/pressure/{{receipt}}"
@@ -272,6 +280,7 @@ def create_lean_production_app(
         actor = factory()
         actor.start()
         application.state.guala_actor = actor
+        application.state.observation_waiters = asyncio.Semaphore(OBSERVATION_WAITERS)
         try:
             yield
         finally:
@@ -320,8 +329,43 @@ def create_lean_production_app(
         )
 
     @application.get(OBSERVATION_ROUTE)
-    async def observation(request: Request) -> dict[str, object]:
-        return actor_for(request).observation()
+    async def observation(
+        request: Request,
+        after: int | None = Query(default=None, ge=0),
+    ) -> dict[str, object]:
+        # Observer delivery (vision release, 2026-09-13): the same cached
+        # projection, either immediately (no ``after``) or as a bounded
+        # long-poll held until live_tick exceeds ``after`` or the bound
+        # expires. It waits on the actor's own publication signal in a worker
+        # thread — no polling, no runtime or world reads, no history, no
+        # second clock. A disconnected client leaves nothing behind: the
+        # waiter releases at the bound and the response is discarded.
+        actor = actor_for(request)
+        if after is None:
+            return actor.observation()
+        # Bounded observer admission: at most OBSERVATION_WAITERS held waits
+        # at once; a caller past the bound receives the current projection
+        # immediately (same shape, no wait) instead of queued worker backlog.
+        # The permit is released when the wait ends — on delivery, at the
+        # bound, or after a disconnected caller's wait expires — never leaked.
+        waiters = request.app.state.observation_waiters
+        if waiters.locked():
+            return actor.observation()
+        # The permit is held until the WORKER finishes, not until the awaiting
+        # coroutine ends: a cancelled or disconnected caller does not free a
+        # permit while its worker still runs, so at most OBSERVATION_WAITERS
+        # real workers ever exist. Released exactly once by the done-callback,
+        # or directly if submission itself fails before a future exists.
+        await waiters.acquire()
+        try:
+            future = asyncio.get_running_loop().run_in_executor(
+                None, actor.observation_after, after, OBSERVATION_LONGPOLL_SECONDS
+            )
+        except Exception:
+            waiters.release()
+            raise
+        future.add_done_callback(lambda _done: waiters.release())
+        return await asyncio.shield(future)
 
     @application.post(OCCURRENCE_ROUTE)
     async def occurrence(request: Request) -> dict[str, object]:

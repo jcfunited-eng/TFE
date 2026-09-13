@@ -156,6 +156,7 @@ class LeanOrganismActor:
         self._cleanup_error: str | None = None
         self._fatal: BaseException | None = None
         self._observation = self._make_observation()
+        self._published = threading.Condition()
         self._startup_complete = threading.Event()
         self._thread = threading.Thread(
             target=self._run,
@@ -202,6 +203,22 @@ class LeanOrganismActor:
     def observation(self) -> dict[str, object]:
         """Return one immutable projection; never call runtime or world."""
 
+        return self._observation.record()
+
+    def observation_after(self, tick: int, timeout_seconds: float) -> dict[str, object]:
+        """Bounded long-poll: the cached projection once live_tick exceeds
+        ``tick``, or the current projection when the bound expires. Waits on
+        the publication signal only — never polls, never touches runtime or
+        world, keeps no history. One waiter per caller, released on notify
+        or timeout; a disconnected caller simply stops waiting."""
+
+        deadline = time.monotonic() + max(0.0, timeout_seconds)
+        with self._published:
+            while self._observation.live_tick <= tick:
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    break
+                self._published.wait(remaining)
         return self._observation.record()
 
     def pressure(self, receipt: str) -> bytes | None:
@@ -490,6 +507,8 @@ class LeanOrganismActor:
 
     def _refresh_observation(self, live_tick: int) -> None:
         self._observation = self._make_observation(live_tick)
+        with self._published:
+            self._published.notify_all()
 
     def _make_observation(self, live_tick: int | None = None) -> ActorObservation:
         current = self._pointer.current
