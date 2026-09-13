@@ -11105,3 +11105,53 @@ fn physical_progress_thermal_refusal_preserves_fraction_and_next_event() {
         assert!(warm.as_ref().unwrap().recovery_schedule.earliest_due().unwrap() > due);
     }
 }
+
+#[test]
+fn reached_gate_preparation_reuses_only_immutable_field_and_anatomy() {
+    let source = exact_four_single_optical_episode(0);
+    let seed = explicit_optical_seed(&source, 500);
+    let mut state =
+        ResidentCognitiveFormationState::from_developmental_electrical_seeds(vec![seed]).unwrap();
+    let prepared = state
+        .prepare_admitted_transition(&admitted_fixture_episode(&source), 16_000_000)
+        .unwrap();
+    state.commit(prepared).unwrap();
+    let shared = prepare_complete_joint_field_admitted_fixture(&source, 0).unwrap();
+    let unrelated = prepare_complete_joint_field_admitted_fixture(&source, 0).unwrap();
+    let cohort = &state.cohorts[0];
+    let before = cohort.state.clone();
+    for gate in 0..shared.result().gates.len() {
+        let mut mathloom = BTreeMap::new();
+        let mut psi = BTreeMap::new();
+        let mut widths = BTreeSet::new();
+        let mut anatomies = BTreeSet::new();
+        for pass in 0..2 {
+            let before_sizes = (mathloom.len(), psi.len());
+            for coordinate in 0..4 {
+                let anatomy = &cohort.anatomy.neuron_anatomies()[coordinate];
+                let predecessor = &cohort.state.neurons()[coordinate];
+                let perspective = bind_neuron_perspective(&shared, coordinate, gate).unwrap();
+                let direct = anatomy.prepare_psi_settlement(predecessor, perspective).unwrap();
+                let reused = prepare_reached_gate_psi(
+                    anatomy, predecessor, perspective, &mut mathloom, &mut psi,
+                ).unwrap();
+                assert_eq!(reused, direct);
+                widths.insert(anatomy.mathloom_positions());
+                anatomies.insert(anatomy.heavy_anatomy_identity());
+            }
+            assert_eq!(mathloom.len(), widths.len());
+            assert_eq!(psi.len(), anatomies.len());
+            if pass == 1 {
+                assert_eq!((mathloom.len(), psi.len()), before_sizes);
+            }
+        }
+        // Equal values do not authorize reuse across different completed fields.
+        assert!(prepare_reached_gate_psi(
+            &cohort.anatomy.neuron_anatomies()[0],
+            &cohort.state.neurons()[0],
+            bind_neuron_perspective(&unrelated, 0, gate).unwrap(),
+            &mut mathloom, &mut psi,
+        ).is_err());
+    }
+    assert_eq!(cohort.state, before);
+}

@@ -48,8 +48,9 @@ use crate::complete_neuron::{
     retained_physical_state_coordinate, sparse_physical_state_delta,
     sparse_retained_physical_state_delta, DnaExpressionContact, ExactPhysicalStateDelta,
     ExactSignedDelta, GateWorkOccurrence, NeuronIntervalInput, NeuronPhysicalAnatomy,
-    NeuronPhysicalState, PhysicalStateCoordinate, PhysicalStateDeltaEntry,
-    PreparedPsiKrimelackDelivery, RecoveryContact, RecoveryLaneAddress, SparsePhysicalStateDelta,
+    NeuronPhysicalError, NeuronPhysicalState, PhysicalStateCoordinate, PhysicalStateDeltaEntry,
+    PreparedPsiKrimelackDelivery, PsiSettlement, RecoveryContact, RecoveryLaneAddress,
+    SparsePhysicalStateDelta,
 };
 use crate::declared_geometric_anatomy::{declared_neuron_territory, DeclaredNeuronPlace};
 use crate::developmental_electrical_anatomy::{
@@ -67,7 +68,7 @@ use crate::joint_uf_neuron_boundary::prepare_complete_joint_field_admitted_fixtu
 use crate::joint_uf_neuron_boundary::{
     bind_neuron_perspective, prepare_complete_joint_field_from_evaluated,
     prepare_complete_joint_field_with_admission, required_mathloom_positions,
-    BorrowedMathLoomDelivery, JointNeuronBoundaryError, MathLoomAnatomy,
+    BorrowedMathLoomDelivery, JointNeuronBoundaryError, JointNeuronPerspective, MathLoomAnatomy,
 };
 #[cfg(test)]
 use crate::joint_uf_source_adapter::admitted_fixture_episode;
@@ -9216,6 +9217,9 @@ impl ResidentCognitiveFormationState {
                         group_receptor_law,
                     ));
                 }
+                // Positional width belongs to a completed gate, not its coordinate.
+                // Populate lazily after the same coordinate/member checks as before.
+                let mut required_positions_by_gate = BTreeMap::<usize, usize>::new();
                 for (cohort_index, mut new_cohort, coordinate_indices, receptor_law) in
                     cohort_targets
                 {
@@ -9244,8 +9248,13 @@ impl ResidentCognitiveFormationState {
                                     .anatomy
                                     .source_site_member(&reached_source_sites[coordinate_index])
                                     .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
-                                let required = required_mathloom_positions(perspective)
-                                    .map_err(FormationError::JointFieldUnavailable)?;
+                                let required = match required_positions_by_gate.entry(field_gate_index) {
+                                    std::collections::btree_map::Entry::Occupied(entry) => *entry.get(),
+                                    std::collections::btree_map::Entry::Vacant(entry) => {
+                                        *entry.insert(required_mathloom_positions(perspective)
+                                            .map_err(FormationError::JointFieldUnavailable)?)
+                                    }
+                                };
                                 required_positions
                                     .entry(resident_index)
                                     .and_modify(|current: &mut usize| {
@@ -9261,6 +9270,11 @@ impl ResidentCognitiveFormationState {
                     }
                     if receptor_law.is_some() || vestibular.is_some() {
                         for field_gate_index in 0..field_gate_count {
+                            // Only immutable gate/anatomy preparation is shared. These
+                            // maps expire before another gate or cohort; all keyed
+                            // anatomies stay alive and unchanged during this loop.
+                            let mut mathloom_deliveries = BTreeMap::new();
+                            let mut psi_deliveries = BTreeMap::new();
                             let catalysts = coordinate_indices
                                 .iter()
                                 .map(|coordinate_index| {
@@ -9569,8 +9583,10 @@ impl ResidentCognitiveFormationState {
                                             .energy()
                                             .clone(),
                                     };
-                                        let prepared_psi = neuron_anatomy
-                                            .prepare_psi_settlement(predecessor_neuron, perspective)
+                                        let prepared_psi = prepare_reached_gate_psi(
+                                            neuron_anatomy, predecessor_neuron, perspective,
+                                            &mut mathloom_deliveries, &mut psi_deliveries,
+                                        )
                                             .map_err(|error| {
                                                 FormationError::PhysicalSettlementUnavailable(
                                                     ReachedCohortError::Neuron {
@@ -9765,12 +9781,12 @@ impl ResidentCognitiveFormationState {
                                     match receptor_successor_residue {
                                         Some((residue, psi)) => (Some(residue), Some(psi)),
                                         None => {
-                                            let prepared = cohort.anatomy.neuron_anatomies()
-                                                [resident_index]
-                                                .prepare_psi_settlement(
-                                                    &cohort.state.neurons()[resident_index],
-                                                    perspective,
-                                                )
+                                            let prepared = prepare_reached_gate_psi(
+                                                &cohort.anatomy.neuron_anatomies()[resident_index],
+                                                &cohort.state.neurons()[resident_index],
+                                                perspective,
+                                                &mut mathloom_deliveries, &mut psi_deliveries,
+                                            )
                                                 .map_err(|error| {
                                                     FormationError::PhysicalSettlementUnavailable(
                                                         ReachedCohortError::Neuron {
@@ -13217,6 +13233,33 @@ fn extend_resident_cohort_positional_fabrics(
     cohort.anatomy = successor_anatomy;
     cohort.state = successor_state.into();
     Ok(())
+}
+
+/// Reuse only immutable preparation within one unchanged cohort and gate.
+/// The caller keeps all anatomy Arcs alive until these maps are dropped.
+/// Each neuron still settles its own retained rings and dissipation capacity.
+fn prepare_reached_gate_psi<'a>(
+    anatomy: &NeuronPhysicalAnatomy,
+    predecessor: &NeuronPhysicalState,
+    perspective: JointNeuronPerspective<'a>,
+    mathloom: &mut BTreeMap<usize, BorrowedMathLoomDelivery<'a>>,
+    psi: &mut BTreeMap<usize, PreparedPsiKrimelackDelivery>,
+) -> Result<PsiSettlement, NeuronPhysicalError> {
+    let delivery = match mathloom.entry(anatomy.mathloom_positions()) {
+        std::collections::btree_map::Entry::Occupied(entry) => entry.into_mut(),
+        std::collections::btree_map::Entry::Vacant(entry) => {
+            entry.insert(anatomy.prepare_mathloom_delivery(perspective)?)
+        }
+    };
+    // Never let reuse cross the completed field or its gate, even if widths match.
+    let delivery = delivery.for_perspective(perspective)?;
+    let prepared = match psi.entry(anatomy.heavy_anatomy_identity()) {
+        std::collections::btree_map::Entry::Occupied(entry) => entry.into_mut(),
+        std::collections::btree_map::Entry::Vacant(entry) => {
+            entry.insert(anatomy.prepare_shared_psi_delivery(&delivery)?)
+        }
+    };
+    anatomy.settle_prepared_psi_delivery(predecessor, prepared)
 }
 
 /// Extend only the causally selected members.  Ordinary already-provisioned
@@ -22223,12 +22266,10 @@ fn settle_internal_contact_interval_with_body_act(
                     .map(|anatomy| anatomy.mathloom_positions())
                     .collect::<Vec<_>>();
                 for (coordinate, neuron_index) in selected_members.iter().copied() {
-                    let perspective = bind_neuron_perspective(&shared, coordinate, 0)
+                    let _perspective = bind_neuron_perspective(&shared, coordinate, 0)
                         .map_err(FormationError::JointFieldUnavailable)?;
-                    required_positions[neuron_index] = required_positions[neuron_index].max(
-                        required_mathloom_positions(perspective)
-                            .map_err(FormationError::JointFieldUnavailable)?,
-                    );
+                    required_positions[neuron_index] =
+                        required_positions[neuron_index].max(shared_required_positions);
                 }
                 let positional_growth = cohort
                     .anatomy

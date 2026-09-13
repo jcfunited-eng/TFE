@@ -401,11 +401,16 @@ def test_startup_validates_both_components_before_migration_publication(
         restore,
     )
     anatomy = object()
-    monkeypatch.setattr(guala_receptor_anatomy, "receptor_anatomy", lambda: anatomy)
+    legacy_anatomy = object()
+    monkeypatch.setattr(
+        guala_receptor_anatomy, "receptor_anatomy",
+        lambda *, include_focal=True: anatomy if include_focal else legacy_anatomy,
+    )
 
     def admit_workspace(runtime, **values):
         assert values == {
-            "anatomy": anatomy, "primary_frames": 27, "hearing_frames": 26,
+            "anatomy": anatomy, "additional_anatomy": legacy_anatomy,
+            "primary_frames": 27, "hearing_frames": 26,
             "hearing_sense": 1, "maximum_pressure_samples": 4000,
             "coupled_encoded_limit": 4 * 1024 * 1024,
         }
