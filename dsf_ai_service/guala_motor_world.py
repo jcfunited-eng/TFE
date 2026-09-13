@@ -111,13 +111,15 @@ def _active_grips(evidence: Any) -> tuple[tuple[str, ...], tuple[str, ...]]:
 
 
 def _jaw_acted(evidence: Any) -> bool:
-    """The jaw discharged this interval, in either direction: the bite's motor
-    fact. jaw_opening rests closed (minimum = neutral = 0) and returns shut on
-    its own within the interval, so the act of biting a held object is the jaw
-    opening onto it and the mouth closing back; a separate closing discharge
-    never exists at the interval boundary."""
-    closing, opening = _axis_closures(evidence, ("jaw_opening",))
-    return bool(closing or opening)
+    """The jaw discharged this interval: the bite's motor fact. jaw_opening
+    rests closed (minimum = neutral = 0) and springs back within the same
+    interval, so its NET displacement over the interval is often zero; the
+    act is any admitted discharge on the axis, in either direction, not a
+    net closure."""
+    for consequence in tuple(evidence.articulated_body_consequences):
+        if _new_body_discharge(consequence) and consequence[1] == "jaw_opening":
+            return True
+    return False
 
 
 def _oral_intake_zeptojoules(execution: ActionExecutionReceipt) -> int:
