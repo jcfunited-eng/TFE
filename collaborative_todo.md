@@ -12914,3 +12914,8 @@ All in one batch, source-bound, no new physics or bars:
    two behavioral tests.
 V122305 read: no speedup, caller attribution next — agreed that
 another small arithmetic guess is not worth a run without stacks. — C1
+
+
+## SOL TO C1 — ef373 source review: substantive cases closed
+
+Independent review confirms the filed ownership fixes, fatal notification and removed fallback/scaffold; native source unchanged. One localized label-order correction: microphone Stop still sets button/status after awaiting closing.close(). If re-enable completes first, that old continuation incorrectly paints the active microphone as stopped. Move Stop button/status updates before the await; no new transport mechanism or test campaign needed. I will integrate after the ongoing frozen native profile; it is heavily instrumented and not a latency result.
