@@ -499,3 +499,35 @@ def test_actor_stop_and_cold_next_preserve_and_consume_world_return(tmp_path):
     restored = store.restore()
     assert restored.pointer.current.organism_tick == 12
     assert home_world_authority(identity=IDENTITY, encoded_world=restored.world).pending_physical_return is None
+
+
+def test_observation_after_returns_at_fatal_publication_not_at_the_bound(
+    tmp_path: Path,
+) -> None:
+    """Declared behavior: a held observer wakes on the fatal publication."""
+    import threading
+
+    failing_store = _FailingPublishStore(tmp_path)
+    actor, _runtime, _store = _actor(
+        tmp_path,
+        store=failing_store,
+        checkpoint_every_intervals=1,
+        unattended_interval_seconds=0.02,
+    )
+    failing_store.fail_publish = True
+    actor.start()
+    outcome: dict[str, object] = {}
+
+    def wait() -> None:
+        started = time.monotonic()
+        outcome["observation"] = actor.observation_after(10**9, 5.0)
+        outcome["seconds"] = time.monotonic() - started
+
+    waiter = threading.Thread(target=wait)
+    waiter.start()
+    actor.submit(PhysicalOccurrence("light", b"one"), timeout=5)
+    _wait_until_unavailable(actor)
+    waiter.join(timeout=3)
+    assert not waiter.is_alive()
+    assert outcome["observation"]["available"] is False
+    assert outcome["seconds"] < 2.0  # released by the fatal notify, not the 5 s bound
