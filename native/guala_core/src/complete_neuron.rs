@@ -29,7 +29,7 @@ use crate::local_membrane_conductance_balance::{
 };
 use num_bigint::BigInt;
 use num_rational::BigRational;
-use num_traits::{One, Signed, ToPrimitive, Zero};
+use num_traits::{Euclid, One, Signed, ToPrimitive, Zero};
 use std::fmt;
 use std::ops::{Deref, DerefMut};
 use std::sync::Arc;
@@ -241,15 +241,7 @@ fn prepare_psi_krimelack_delivery(
         .filter(|first| anatomy.rings.iter().all(|ring| ring == *first));
     let uniform_targets = uniform_ring_anatomy.map(|uniform| {
         std::array::from_fn::<PreparedPsiRingTarget, 3, _>(|target_index| {
-            PreparedPsiRingTarget {
-                by_predecessor_winding: std::array::from_fn(|current_index| {
-                    prepare_one_ring_plan(
-                        uniform,
-                        all_trits()[current_index],
-                        all_trits()[target_index],
-                    )
-                }),
-            }
+            prepare_ring_target(uniform, all_trits()[target_index])
         })
     });
     let mut rings = Vec::new();
@@ -263,15 +255,7 @@ fn prepare_psi_krimelack_delivery(
                 let ring_index = (constraint_index * 2 + part_index) * anatomy.positions + position;
                 let prepared = match uniform_targets {
                     Some(targets) => targets[trit_index(*target)],
-                    None => PreparedPsiRingTarget {
-                        by_predecessor_winding: std::array::from_fn(|current_index| {
-                            prepare_one_ring_plan(
-                                &anatomy.rings[ring_index],
-                                all_trits()[current_index],
-                                *target,
-                            )
-                        }),
-                    },
+                    None => prepare_ring_target(&anatomy.rings[ring_index], *target),
                 };
                 rings.push(prepared);
             }
@@ -318,17 +302,27 @@ fn settle_prepared_psi_krimelack(
     })
 }
 
+fn prepare_ring_target(
+    anatomy: &PsiRingAnatomy,
+    target: BalancedTrit,
+) -> PreparedPsiRingTarget {
+    // Energy depends on anatomy, target and candidate, not on the predecessor.
+    // Keep the three predecessor-specific Results separate: an unused winding's
+    // refusal must not reject the actual winding's lawful settlement.
+    let energies = std::array::from_fn(|index| ring_energy(anatomy, all_trits()[index], target));
+    PreparedPsiRingTarget {
+        by_predecessor_winding: std::array::from_fn(|index| {
+            prepare_one_ring_plan(anatomy, all_trits()[index], &energies)
+        }),
+    }
+}
+
 fn prepare_one_ring_plan(
     anatomy: &PsiRingAnatomy,
     predecessor_winding: BalancedTrit,
-    target: BalancedTrit,
+    energies: &[Exact; 3],
 ) -> Result<PsiRingSettlementPlan, PsiSettlementError> {
     let current_index = trit_index(predecessor_winding);
-    let mut energies = [Exact::zero(), Exact::zero(), Exact::zero()];
-    for candidate in all_trits() {
-        let index = trit_index(candidate);
-        energies[index] = ring_energy(anatomy, candidate, target);
-    }
     let mut minimum: Option<(usize, &Exact)> = None;
     let mut tied = false;
     for candidate in 0..3 {
@@ -3567,6 +3561,17 @@ pub(crate) struct PreparedGateIntervalSettlement {
     uncapped_population_settlement: Option<GatePopulationSettlement>,
 }
 
+// All callers supply a positive physical quantum. Euclidean division by the
+// positive cross-product denominator is exactly signed floor, including negative
+// numerators; no intermediate rational needs constructing or reducing.
+fn floor_positive_quantum_ratio(value: &Exact, quantum: &Exact) -> BigInt {
+    (value.numer() * quantum.denom()).div_euclid(&(value.denom() * quantum.numer()))
+}
+
+fn floor_lattice_scaled(value: &Exact, lattice: &BigInt) -> BigInt {
+    (value.numer() * lattice).div_euclid(value.denom())
+}
+
 fn quantize_gate_release(
     predecessor_residue: &PhysicalEnergyResidue,
     released_energy: &Exact,
@@ -3577,7 +3582,7 @@ fn quantize_gate_release(
         return Ok(None);
     }
     let accumulated = predecessor_residue.energy() + released_energy;
-    let whole = (&accumulated / quantum).floor().to_integer();
+    let whole = floor_positive_quantum_ratio(&accumulated, quantum);
     let released_quanta = whole
         .to_u128()
         .ok_or(GateSettlementError::ArithmeticWidth)?;
@@ -3682,9 +3687,7 @@ pub(crate) fn retain_deferred_receptor_work(
     let lattice = BigInt::from(1_u128 << 96);
     let predecessor_residue = predecessor.receptor_quantum_residue.energy();
     let accumulated = predecessor_residue + &offered_work_zeptojoules;
-    let floored_numerator = (&accumulated * &lattice)
-        .floor()
-        .to_integer();
+    let floored_numerator = floor_lattice_scaled(&accumulated, &lattice);
     let successor_residue = Exact::new(floored_numerator, lattice);
     let retained_source_work = &successor_residue - predecessor_residue;
     let narrowing_heat = &offered_work_zeptojoules - &retained_source_work;
@@ -3760,7 +3763,7 @@ pub(crate) fn prepare_intrinsic_transduced_gate_work(
         accumulated_work
     };
     let lattice = BigInt::from(1_u128 << 96);
-    let floored_numerator = (&retained_residue * &lattice).floor().to_integer();
+    let floored_numerator = floor_lattice_scaled(&retained_residue, &lattice);
     let narrowed_residue = Exact::new(floored_numerator, lattice);
     let residue_narrowing_heat_zeptojoules = &retained_residue - &narrowed_residue;
     if residue_narrowing_heat_zeptojoules.is_negative() {
@@ -4529,9 +4532,7 @@ pub(crate) fn gate_opening_quantum_window_with_psi(
         &GateWorkOccurrence::new(Exact::zero()),
     )?;
     let barrier_quanta = if barrier.is_positive() {
-        (&barrier / &anatomy.gate.dissipation_quantum_zeptojoules)
-            .floor()
-            .to_integer()
+        floor_positive_quantum_ratio(&barrier, &anatomy.gate.dissipation_quantum_zeptojoules)
             .to_u128()
             .ok_or(GateSettlementError::ArithmeticWidth)?
     } else {
@@ -7178,6 +7179,42 @@ mod tests {
             BalancedTrit::Quiescent,
         )
         .unwrap()
+    }
+
+    #[test]
+    fn prepared_ring_targets_and_integer_floors_preserve_exact_arithmetic() {
+        let anatomy = ring_anatomy();
+        for target in all_trits() {
+            let prepared = prepare_ring_target(&anatomy, target);
+            for (index, predecessor) in all_trits().into_iter().enumerate() {
+                let energies = std::array::from_fn(|candidate| {
+                    ring_energy(&anatomy, all_trits()[candidate], target)
+                });
+                assert_eq!(
+                    prepared.by_predecessor_winding[index],
+                    prepare_one_ring_plan(&anatomy, predecessor, &energies),
+                );
+            }
+        }
+        let lattice = BigInt::from(1_u128 << 96);
+        let large: BigInt = BigInt::from(1_u8) << 200_usize;
+        let values = [
+            q(-7, 3), q(-1, 3), q(0, 1), q(1, 3), q(7, 3),
+            Exact::new(&large + 1_u8, BigInt::from(7_u8)),
+            Exact::new(-&large - 1_u8, BigInt::from(7_u8)),
+        ];
+        for value in values {
+            assert_eq!(
+                floor_lattice_scaled(&value, &lattice),
+                (&value * &lattice).floor().to_integer(),
+            );
+            for quantum in [q(1, 1), q(1, 4), q(9, 2)] {
+                assert_eq!(
+                    floor_positive_quantum_ratio(&value, &quantum),
+                    (&value / &quantum).floor().to_integer(),
+                );
+            }
+        }
     }
 
     struct Fixture {
