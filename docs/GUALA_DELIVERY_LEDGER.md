@@ -1801,3 +1801,13 @@ FocusedexistingoraclePASS and bothfull903body/worldsuccessorsPASS. Ordinarycold1
 Wholearchive/readback8e38752a7b364d9d2a1162eba22e86bb65723a24777d9bcd720c1b631716c0b8 (V122322-energy-evidence.tar.gz),finishedcontainerremoved. Production1460unchanged,clock696074→696202, no checkpoint/cleanuperror,historicalclockALARM. CanonicalAttempt54retainsfullreceipts, allcommandfailures,51,484KiBrecoverablelocalcleanup.
 
 Nextstillgatepreparation: source-reviewed invariantper-openenergyevaluatedrepeatedly; onecall-localreusemustpreservefirstsupportvalidation/errororderandV322supportreuse. Contractbeforecode,no newphysics. Vision/speedfirst,self-lifenext,speechparked.
+
+## D122323 — eliminate repeated invariant gate-energy work
+
+FromV322exactclosed59a59d087/warm1.241113262s. Onecall-localexactchemical/electrical/Psiterm reusedonlyafteroriginalsupportchecks, acrosssamegateenergyqueries; preserveV322endpointreuse andallreceptorwork/errorsemantics. No state/cacheacrossclocks/law/schema/DSFchange. Existingfocusedoracleextended, frozenreview thenoneordinary903exactproof. Full250msgateopen,production1460unchanged. Visionfirst,self-lifenext,speechparked.
+
+## D122323 result — exact reuse closed, no release claim
+
+Focused oracle and both full903 exact body/world successors PASS. Ordinarycold1.140323s/warm1.232328s; warmnative819.721ms/validation74.976ms. Whole difference only8.785ms fromV322, not dependable gain from one comparison, still over250ms. Repeated invariant calculation removed without state/law/codec change. Whole archive/readback817ad4c1e9dbbfe058db1f1d9f25db30089af42c2371cfdf7a9cf44fc5507f48, V122323-channel-evidence.tar.gz. Production1460 unchanged/135sites, clock696349→696645/no durability errors, historicalclockALARM persists.
+
+Next: attribute work outside native-advance and validation counters. V323residual337.631ms includes native source construction; not Python-only. No new optimization before attribution. Vision/speed first, self-life next, speech parked. Canonical Attempts holds full receipts and capped-ledger-read correction.

@@ -3866,6 +3866,7 @@ fn prepare_gate_interval_settlement(
     if predecessor_gate.open_population > anatomy.population {
         return Err(GateSettlementError::GatePopulationExceeded);
     }
+    let mut prepared_channel_term = None;
     let (closed_energy, open_energy) = gate_endpoint_free_energies(
         anatomy,
         plastic_anatomy,
@@ -3874,6 +3875,7 @@ fn prepare_gate_interval_settlement(
         capacitance,
         psi,
         gate_work,
+        &mut prepared_channel_term,
     )?;
     let open_minus_closed = &open_energy - &closed_energy;
     let uncapped_population_settlement = select_gate_population_settlement(
@@ -3888,6 +3890,7 @@ fn prepare_gate_interval_settlement(
         None,
         (anatomy.population == 1 && gate_work.receptor_target_open_population.is_none())
             .then_some((&closed_energy, &open_energy)),
+        &mut prepared_channel_term,
     )?;
     Ok(PreparedGateIntervalSettlement {
         predecessor_open_population: predecessor_gate.open_population,
@@ -4059,6 +4062,7 @@ fn select_gate_population_settlement(
     gate_work: &GateWorkOccurrence,
     maximum_released_quanta: Option<u128>,
     single_channel_energies: Option<(&Exact, &Exact)>,
+    prepared_channel_term: &mut Option<Exact>,
 ) -> Result<Option<GatePopulationSettlement>, GateSettlementError> {
     let internal_only_work = GateWorkOccurrence::new(Exact::zero());
     let predecessor_work = if gate_work.receptor_target_open_population.is_some() {
@@ -4082,6 +4086,7 @@ fn select_gate_population_settlement(
             psi,
             predecessor_work,
             predecessor_gate.open_population,
+            prepared_channel_term,
         )?
     };
     if let Some(target_population) = gate_work.receptor_target_open_population {
@@ -4100,6 +4105,7 @@ fn select_gate_population_settlement(
             psi,
             &internal_only_work,
             target_population,
+            prepared_channel_term,
         )?;
         let internal_required = &successor_energy - &predecessor_energy;
         let delivered = -gate_work.open_minus_closed_zeptojoules.clone();
@@ -4140,6 +4146,7 @@ fn select_gate_population_settlement(
                 psi,
                 gate_work,
                 successor_population,
+                prepared_channel_term,
             )?
         };
         if successor_energy >= predecessor_energy {
@@ -4171,7 +4178,7 @@ fn select_gate_population_settlement(
     // reevaluating every possible population. At most two adjacent integers
     // can share the minimum, so the predecessor and tie behavior below is
     // identical to the former exhaustive scan.
-    let energy_at = |open_population| {
+    let mut energy_at = |open_population| {
         gate_population_free_energy(
             anatomy,
             plastic_anatomy,
@@ -4181,6 +4188,7 @@ fn select_gate_population_settlement(
             psi,
             gate_work,
             open_population,
+            prepared_channel_term,
         )
     };
     let mut low = 0_u128;
@@ -4260,6 +4268,7 @@ fn gate_population_free_energy(
     psi: &PsiKrimelackState,
     gate_work: &GateWorkOccurrence,
     open_population: u128,
+    prepared_channel_term: &mut Option<Exact>,
 ) -> Result<Exact, GateSettlementError> {
     if anatomy.population == 0 || open_population > anatomy.population {
         return Err(GateSettlementError::GatePopulationExceeded);
@@ -4285,27 +4294,36 @@ fn gate_population_free_energy(
         plastic_state.rest_length_nanometres,
     )?);
 
-    let potential = predecessor_membrane
-        .membrane()
-        .potential_millivolts(capacitance)
-        .map_err(MembraneConductanceError::from)?;
-    let electrical = rational_to_exact(potential)
-        * Exact::from_integer(BigInt::from(anatomy.gating_charge_elementary))
-        * Exact::new(
-            BigInt::from(801_088_317_u64),
-            BigInt::from(5_000_000_000_u64),
-        );
-    let mut per_open_channel = anatomy.chemical_open_minus_closed_zeptojoules.clone();
-    per_open_channel -= electrical;
-    for contact in &anatomy.psi_contacts {
-        let phase = psi.rings[contact.ring_index].phase_thirds[contact.node_index];
-        let cosine = if phase == contact.preferred_phase_third {
-            Exact::one()
-        } else {
-            Exact::new(BigInt::from(-1_i8), BigInt::from(2_u8))
-        };
-        per_open_channel -= &contact.open_minus_closed_coupling_zeptojoules * cosine;
-    }
+    // This term depends on this call's unchanged anatomy, membrane and Psi,
+    // not the queried population or external work. Populate only after the
+    // original population and support checks above have succeeded.
+    let per_open_channel: &Exact = match prepared_channel_term {
+        Some(value) => value,
+        None => {
+            let potential = predecessor_membrane
+                .membrane()
+                .potential_millivolts(capacitance)
+                .map_err(MembraneConductanceError::from)?;
+            let electrical = rational_to_exact(potential)
+                * Exact::from_integer(BigInt::from(anatomy.gating_charge_elementary))
+                * Exact::new(
+                    BigInt::from(801_088_317_u64),
+                    BigInt::from(5_000_000_000_u64),
+                );
+            let mut per_open_channel = anatomy.chemical_open_minus_closed_zeptojoules.clone();
+            per_open_channel -= electrical;
+            for contact in &anatomy.psi_contacts {
+                let phase = psi.rings[contact.ring_index].phase_thirds[contact.node_index];
+                let cosine = if phase == contact.preferred_phase_third {
+                    Exact::one()
+                } else {
+                    Exact::new(BigInt::from(-1_i8), BigInt::from(2_u8))
+                };
+                per_open_channel -= &contact.open_minus_closed_coupling_zeptojoules * cosine;
+            }
+            prepared_channel_term.insert(per_open_channel)
+        }
+    };
     let open = Exact::from_integer(BigInt::from(open_population));
     let population = Exact::from_integer(BigInt::from(anatomy.population));
     Ok(support_energy
@@ -4321,6 +4339,7 @@ fn gate_endpoint_free_energies(
     capacitance: MembraneCapacitance,
     psi: &PsiKrimelackState,
     gate_work: &GateWorkOccurrence,
+    prepared_channel_term: &mut Option<Exact>,
 ) -> Result<(Exact, Exact), GateSettlementError> {
     let closed = gate_population_free_energy(
         anatomy,
@@ -4331,6 +4350,7 @@ fn gate_endpoint_free_energies(
         psi,
         gate_work,
         0,
+        prepared_channel_term,
     )?;
     let open = gate_population_free_energy(
         anatomy,
@@ -4341,6 +4361,7 @@ fn gate_endpoint_free_energies(
         psi,
         gate_work,
         anatomy.population,
+        prepared_channel_term,
     )?;
     Ok((closed, open))
 }
@@ -4362,6 +4383,7 @@ fn gate_open_minus_closed_free_energy(
         capacitance,
         psi,
         gate_work,
+        &mut None,
     )?;
     Ok(open - closed)
 }
@@ -4495,6 +4517,7 @@ pub(crate) fn gate_population_opening_schedule_with_psi(
         )
         .map_err(NeuronPhysicalError::from);
     }
+    let mut prepared_channel_term = None;
     let zero_work = GateWorkOccurrence::new(Exact::zero());
     let predecessor_energy = gate_population_free_energy(
         &anatomy.gate,
@@ -4505,6 +4528,7 @@ pub(crate) fn gate_population_opening_schedule_with_psi(
         &psi.successor,
         &zero_work,
         predecessor.gate.open_population,
+        &mut prepared_channel_term,
     )?;
     let first_population = predecessor
         .gate
@@ -4520,6 +4544,7 @@ pub(crate) fn gate_population_opening_schedule_with_psi(
         &psi.successor,
         &zero_work,
         first_population,
+        &mut prepared_channel_term,
     )?;
     let first_barrier_quanta =
         (&first_energy - &predecessor_energy) / &anatomy.gate.dissipation_quantum_zeptojoules;
@@ -4536,6 +4561,7 @@ pub(crate) fn gate_population_opening_schedule_with_psi(
             &psi.successor,
             &zero_work,
             second_population,
+            &mut prepared_channel_term,
         )?;
         let second_barrier_quanta =
             (&second_energy - &first_energy) / &anatomy.gate.dissipation_quantum_zeptojoules;
@@ -7690,6 +7716,7 @@ mod tests {
             &work,
             None,
             None,
+            &mut None,
         )
         .unwrap()
         .unwrap();
@@ -7707,6 +7734,7 @@ mod tests {
             &GateWorkOccurrence::new(q(-17, 2)),
             None,
             None,
+            &mut None,
         )
         .unwrap()
         .unwrap();
@@ -7754,6 +7782,7 @@ mod tests {
                 &GateWorkOccurrence::new(q(work, 1)),
                 None,
                 None,
+                &mut None,
             )
             .unwrap()
             .unwrap()
@@ -7772,6 +7801,7 @@ mod tests {
             &fixture.state.psi,
             &GateWorkOccurrence::new(q(0, 1)),
             4,
+            &mut None,
         )
         .unwrap();
         let full_work = gate_population_free_energy(
@@ -7783,6 +7813,7 @@ mod tests {
             &fixture.state.psi,
             &GateWorkOccurrence::new(q(-8, 1)),
             4,
+            &mut None,
         )
         .unwrap();
         assert_eq!(full_work - zero_work, q(-8, 1));
@@ -7817,6 +7848,7 @@ mod tests {
             &GateWorkOccurrence::receptor_activation(-delivered.clone(), 2).unwrap(),
             None,
             None,
+            &mut None,
         )
         .unwrap()
         .unwrap();
@@ -7847,6 +7879,7 @@ mod tests {
             &GateWorkOccurrence::new(q(-8, 1)),
             None,
             None,
+            &mut None,
         )
         .unwrap();
         assert_eq!(settlement, None);
@@ -7871,6 +7904,7 @@ mod tests {
                         &fixture.state.psi,
                         &work,
                         predecessor_open,
+                        &mut None,
                     )
                     .unwrap();
                     let mut exhaustive: Option<(u128, Exact)> = None;
@@ -7888,6 +7922,7 @@ mod tests {
                             &fixture.state.psi,
                             &work,
                             candidate,
+                            &mut None,
                         )
                         .unwrap();
                         if energy >= predecessor_energy {
@@ -7922,6 +7957,7 @@ mod tests {
                         &work,
                         None,
                         None,
+                        &mut None,
                     )
                     .unwrap()
                     .map(|settlement| settlement.open_population);
@@ -7950,6 +7986,57 @@ mod tests {
                 fixture.ring_count,
             )
             .unwrap();
+            let mut witness_gate = gate.clone();
+            witness_gate.gating_charge_elementary = 1;
+            witness_gate.chemical_open_minus_closed_zeptojoules = q(1, 3);
+            witness_gate.psi_contacts = fixture.anatomy.gate.psi_contacts.clone();
+            let witness_membrane = LocalMembraneConductanceState::<1>::genesis(1);
+            let mut prepared_channel_term = None;
+            for signed_work in [-16, 0, 16] {
+                let query_work = GateWorkOccurrence::new(q(signed_work, 1));
+                for open_population in 0..=population {
+                    let direct = gate_population_free_energy(
+                        &witness_gate,
+                        &fixture.anatomy.plastic,
+                        &fixture.state.plastic,
+                        witness_membrane,
+                        fixture.anatomy.capacitance,
+                        &fixture.state.psi,
+                        &query_work,
+                        open_population,
+                        &mut None,
+                    );
+                    let reused = gate_population_free_energy(
+                        &witness_gate,
+                        &fixture.anatomy.plastic,
+                        &fixture.state.plastic,
+                        witness_membrane,
+                        fixture.anatomy.capacitance,
+                        &fixture.state.psi,
+                        &query_work,
+                        open_population,
+                        &mut prepared_channel_term,
+                    );
+                    assert_eq!(reused, direct);
+                }
+            }
+            assert!(prepared_channel_term.as_ref().is_some_and(|term| !term.is_zero()));
+            let mut refused_term = None;
+            assert_eq!(
+                gate_population_free_energy(
+                    &gate,
+                    &fixture.anatomy.plastic,
+                    &fixture.state.plastic,
+                    fixture.state.membrane,
+                    fixture.anatomy.capacitance,
+                    &fixture.state.psi,
+                    &GateWorkOccurrence::new(q(0, 1)),
+                    population + 1,
+                    &mut refused_term,
+                ),
+                Err(GateSettlementError::GatePopulationExceeded)
+            );
+            assert!(refused_term.is_none());
             for predecessor_open in 0..=gate.population {
                 for dissipated_quanta in 0..=gate.dissipation_capacity_quanta {
                     for signed_work in -16..=16_i64 {
@@ -7970,6 +8057,7 @@ mod tests {
                             &work,
                             Some(gate.dissipation_capacity_quanta - dissipated_quanta),
                             None,
+                            &mut None,
                         )
                         .unwrap();
                         let prepared = prepare_gate_interval_settlement(
@@ -8038,6 +8126,7 @@ mod tests {
             &GateWorkOccurrence::new(q(-9, 1)),
             None,
             None,
+            &mut None,
         )
         .unwrap();
         assert!(settled
