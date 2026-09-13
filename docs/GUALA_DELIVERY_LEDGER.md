@@ -1730,3 +1730,8 @@ P122313 preserves both exact903-site successors; timing-only source removed afte
 ### D122314 — parallel hypothesis retired, not accumulated
 
 Full903 exact successors passed but warm1.465897s versus1.468142s baseline shows no material gain. V314 code and test extension removed after archive-readbackc6acc590a47531884e7644cbe692c24ce9b01e25e185ec80f8bd29a7346f21c5; accepted V312native remains baseline. Production1460 unchanged. Next onlyV122315 C1 exact per-call opticalconversion reuse; all903test comparison plus same2intervalproof, no new native build. Real-time250ms unmet, self-life next, speech parked. Canonical Attempts contains complete receipts and rejection reason.
+
+
+### D122315 — C1 optical reuse retained, vision still awaiting real time
+
+One focusedall903test and two exactbody/worldsuccessorsPASS. Warm1.437515s vs1.468142s, observed30.627ms gain; nativeunchangedV312. Archivefullreadback8af08b7192ab8e57b326dc107feb724344e3d21637d532a7d9a80e604519fd29. Production1460unchanged,250msunmet. V314parallel removed, V315exactcalllocalopticalreuse retained. Canonical Attempts records finalizationaudit: no safe largepass deletion established, do not strip causalwake/recovery. Next bounded nativecost sourceassessment; selflife afterreal-timevision,speechparked.

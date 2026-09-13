@@ -132,13 +132,20 @@ RetinalField = tuple[tuple[Fraction, ...], ...]
 
 
 def _retinal_luminance(pixels: RetinalField) -> tuple[Fraction, ...]:
-    """Preserve the existing achromatic boundary's exact conversion order."""
+    """Preserve exact conversion order, reusing identical bands only this call."""
+
+    converted: dict[float, Fraction] = {}
+
+    def rational(band: Fraction) -> Fraction:
+        value = float(band)
+        retained = converted.get(value)
+        if retained is None:
+            retained = Fraction(value).limit_denominator(1_000_000)
+            converted[value] = retained
+        return retained
 
     return tuple(
-        sum(
-            (Fraction(float(band)).limit_denominator(1_000_000) for band in pixel),
-            Fraction(0),
-        ) / OPTICAL_BANDS
+        sum((rational(band) for band in pixel), Fraction(0)) / OPTICAL_BANDS
         for pixel in pixels
     )
 

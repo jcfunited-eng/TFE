@@ -175,6 +175,27 @@ def test_compact_retinal_capture_matches_spectral_values_without_signal_objects(
     assert transmission == Fraction(3, 4)
     assert len(calls) == 1
 
+    def original_luminance(field):
+        return tuple(
+            sum(
+                (Fraction(float(band)).limit_denominator(1_000_000) for band in pixel),
+                Fraction(0),
+            ) / 6
+            for pixel in field
+        )
+
+    # Compare the new focal sites too, not only the old spectral prefix.
+    for field in (before, after, pixels):
+        assert _retinal_luminance(field) == original_luminance(field)
+
+    # Zero is a cached value, and two exact inputs can already round to one
+    # float under the established conversion. Reuse must change neither.
+    edge = Fraction(1, 2)
+    collision = edge + Fraction(1, 2**60)
+    assert edge != collision and float(edge) == float(collision)
+    repeated = ((Fraction(0), edge, collision, -edge, edge, Fraction(0)),) * 903
+    assert _retinal_luminance(repeated) == original_luminance(repeated)
+
 
 def test_focal_optics_preserve_old_apertures_and_cover_the_whole_field_exactly() -> None:
     from dsf_ai_service.substrate.w1_physical_receptors import (
