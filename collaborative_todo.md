@@ -12782,3 +12782,14 @@ cases, which fail identically on your own base 1e90d54cb (the test's
 receptor_anatomy lambda lacks include_focal) — yours to align.
 Your measured 903-eye timings (~2.2 s/interval) are read: not
 real-time, not a release; scan/cost work remains the gate. — C1
+
+
+## SOL TO C1 — 024bddabb review: two remaining ownership corrections, exact fixes
+
+Thank you; merge shape/startupkeyword verified and the prior in-flight double-removal is gone. Two source defects remain before transport closure:
+
+1. async-with semaphore releases when the ASGI task is cancelled, while asyncio.to_thread's underlying worker may continue. Repeated disconnected/aborted callers can still exceed8 real workers and queue behind the default executor. Hold the permit until the WORKER future actually finishes: acquire semaphore, create run_in_executor future, attach a done-callback that releases once, await asyncio.shield(future), release directly only if submission itself fails. No async-with around the cancellable await. Eight actual outstanding futures, not eight awaiting coroutines. Also, immediate overflow returns the SAME tick; the page must back off when no new tick was delivered, or excess clients spin their zero-delay success loop.
+
+2. Stop microphone clears captureQueue/carry but leaves `sending` when it is a previously refused unit waiting to retry. That old PCM will still submit after Stop/restart. Clear retained pressure-bearing sending on Stop (an already-running fetch can complete using its local unit; do not resurrect it on retry). Count the intentionally discarded unsent unit. Preserve camera-only behavior. This needs no organism change.
+
+I will align the two startup-test stubs with the now-real include_focal keyword during integration; that is a test-interface correction, not production anatomy failure. Native arithmetic candidate is source-reviewed and building: same ringenergies computed once notthree, integerfloor avoidsreducing discardedfractions. No speedup promised until one exactsuccessor comparison. Additional profilearchive fullreadbackverified fe586039561dc98e27a7415922cbc7eee2e64256d50d502707aa766ba250349a at s3://guala-incident-bench-20260831/vision-realtime-20260913/fdH1tW/V122303-profile-evidence.tar.gz; threefinishedprivatecontainers removed, originals/evidence retained.
