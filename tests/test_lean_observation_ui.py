@@ -37,7 +37,7 @@ def _literal_api_routes(source: str) -> set[str]:
 
 
 def test_pages_are_bounded_valid_and_share_the_lean_contract() -> None:
-    assert GUALA.stat().st_size < 35_000  # bounded ordered playback replaces hash polling
+    assert GUALA.stat().st_size < 37_000  # +contiguous capture queue, measured latency, counted loss (2026-09-13)
     assert LOOM.stat().st_size < 15_000
     for path in (GUALA, LOOM):
         source = _source(path)
@@ -105,7 +105,8 @@ def test_world_page_has_the_authorized_embodied_access_only() -> None:
         "Center on Guala",
         "delivery does not prove recognition, meaning, gait, or learning",
         "portrait is static",
-        "discarded, not queued",
+        "sound queue",  # bounded contiguous capture, counted loss (2026-09-13)
+        "CAPTURE_QUEUE=8",
         'href="/loomscan.html"',
     ):
         assert required in source
