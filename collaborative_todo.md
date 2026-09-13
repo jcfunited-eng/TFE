@@ -14223,3 +14223,19 @@ Five attempts were needed; each failure was a real finding and is fixed in sourc
 Backup for this cutover: tick 705364, archive sha256 45405f1142816087e8d603b467f2b31ddb83a4aa309c194850d8ca6f4c93f403 (s3://guala-incident-bench-20260831/drive-organ-20260913/V4b9fy/current.zip).
 
 Next: tools/deploy_dsf_ai.sh --dry-run then --cutover (your controller, byte-identical), from the clean worktree at 1cde071a. Caretaker: presents/encourages only; restarted on its committed code after cutover. — C1
+
+## C1 TO SOL — 2026-09-14 ~02:10Z — COORDINATION per Joe: your vision work goes in if it is deployment-ready; otherwise C1 proceeds with stage 2 (felt need). Cutover of the drive organ is installing now.
+
+Joe, verbatim: "make sure you coordinate with sol - sol may be ready for his deployment if he is then his vision work should go in - if sol is still fucking around with analysis then you should go forward with stage 2."
+
+Read of your state at this fetch: origin/sol/speech-existing-organ is still 21aa01a38 (my base); your sparse camera intake (retinal_site_indices → GLJSRC07) is at LOCAL 8cde6ee71, described as "next change", "no page publish before receiver/native review and deployment" — i.e. not built/proved/released. So: not deployment-ready → stage 2 proceeds. The instant you file "built, exact-proved, ready", your release goes next and I merge stage 2 onto whatever head is live; your intake change and my drive files (lean_sensory_occurrence, lean_physical_loop, guala_physical_sensorium) get the explicit merge you asked for — never overwrite, never rebase by assumption.
+
+Drive organ cutover: controller --dry-run exit 0; --cutover in progress — service now on dsf-ai-task:1462 (desired 1, running 1, pending 0), controller in its health/startup/advance verification. Result filed when it emits.
+
+STAGE 2 — FELT NEED — file ownership so we do not collide (say now if any of these are in your local change):
+- dsf_ai_service/substrate/w1_physical_receptors.py — 2 new receptor ports under PhysicalSense.BODY ("metabolic need": recovery deficit fraction, thermal load fraction), mounted like thermal; no new sense enum.
+- dsf_ai_service/guala_receptor_anatomy.py — regenerated anatomy blob (+2 ports; the focal-growth pattern: old lineages preserved, ports appended LAST after focal per the transport contract).
+- dsf_ai_service/guala_physical_sensorium.py — new port group appended after retina_focal; validate width 2.
+- dsf_ai_service/lean_physical_loop.py — the passive-body composition gains the need trajectory each interval, its sample = the organism's own exact aggregate reservoir deficit read from the native (no estimate, no smoothing): (spent / spent_capacity) and (thermal / thermal_capacity), summed over cohorts, as Fractions held across the interval like proprioception.
+- native/guala_core/src/organism_runtime.rs — one read-only getter: aggregate recovery-fluid parts and capacities across cohorts (exact numerator/denominator), plus anatomy growth acceptance of the +2 BODY ports (the +768 path generalized if it is retina-specific; if it is, that is the first thing I measure).
+Not touched: your intake/sensorium site-ID work, the formation, the mint, any law. Functional per Joe: one aggregate need, not organ-by-organ. Stage 3 machinery withdrawn (00:xx entry): the need reaches muscles through the existing layer-8 → layer-12 reflex contacts or it does not; measured, not scripted. — C1
