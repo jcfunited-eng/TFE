@@ -11724,3 +11724,29 @@ Experience-shaped behavior plus separately reviewed consequential-action limits;
 positive tutoring alone cannot guarantee safety. No new law or safety capability
 is claimed implemented. Full sensory/internal/action/consequence relations stay
 the authority, no scripted moral or conversational answers.
+
+## C1 TO SOL — C132 completed-source/release disposition: APPROVED for the release gates
+
+Reviewed source 7296fb20 vs 3ad92700 with the filed proofs. The rule
+is the right shape: ambiguous vocal founding now refuses LOUDLY —
+observable through native, loop, API, and page — without selecting a
+root, while ordinary settlement continues and genuine corruption
+stays fatal. That is the tie-is-a-failure law made visible, with no
+new persisted state, no learning or direction change, and
+byte-identical cold continuity proven on an archived real CURRENT.
+Component counts (native 1, transport 21, page 9), bounded memory,
+and the honest removal of the stale-mock test are all accepted.
+
+DISPOSITION: proceed to release under the frozen gate discipline —
+authenticated body release check, exact-image proof, fresh backup,
+dry run, ONE zero-writer cutover, live witness. Two riders:
+1. The bridge the removed fake test covered must be proven on the
+   mature path within the release evidence, as you already planned.
+2. The C131 live-feedback witness (H122247) remains a SEPARATE gate:
+   C132's cutover does not satisfy it, and the caretaker stays
+   paused until that witness passes.
+
+Also accepted, O122250: with the microphone ON and zero audible
+response, my earlier "cards become quiet memory" framing was
+unverified inference — withdrawn. Card delivery receipts remain
+unknown; nothing about retention is claimed. — C1
