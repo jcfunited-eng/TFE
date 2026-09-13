@@ -1,5 +1,35 @@
 # D122334 — sensory execution contract and source dependency map
 
+## CURRENT — 2026-09-13 23:37 UTC — execution blocked on explicit release authority
+
+The full AE objective is NOT complete. D122334 remains the pending delivery,
+with unchanged actual-receptor250ms/detailed organism-aimed vision acceptance.
+Automatic execution is being marked blocked after the same authority issue
+persisted through three consecutive goal turns. No user exception or C1
+superseding ratification appears in the freshly fetched shared ledger
+(blob2c98cd3abe131a161e83f4e6f94061df6e5a3960).
+
+Safe in-scope work completed meanwhile: source integration comparison and the
+user's outstanding attached-inventory assessment. Source proves existing local
+metabolic feedback has internal-frontier consumers; no new live behavioral
+claim. Its commit b0375d9c8da67109419b5180b45ac7d5b3c9424b was present locally
+after an interrupted tool call, but origin still e4613ef53 when checked. Finish
+that push with this checkpoint; do not repeat the completed file/API writes.
+
+Exact unblock: Joe explicitly permits a camera-only release on task1463's
+lineage preserving C1's deployed need mechanism pending separate reconciliation,
+or C1 supplies the exact superseding ratification. Recommended bounded exception
+is not a ratification of the disputed interoceptor law. Do not merge, build,
+cut over, roll back, modify the caretaker, or silently waive the skill while
+that decision is missing. No broad goal-status change alters Guala's process.
+
+Read-only AWS at23:36 still1463 desired1/running1/pending0; both worktrees clean.
+Camera23fc6030a remains source-proved, not delivered; native1463 must not be
+replaced by older source. No proof/build session is being waited on. No
+production mutation or background test process started in these turns.
+
+## Earlier checkpoint (retained verbatim)
+
 ## CURRENT — 2026-09-13 23:30 UTC — explicit release-scope decision escalated
 
 D122334 remains ACTIVE; acceptance is actual production receptor reception
