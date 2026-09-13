@@ -13496,3 +13496,11 @@ Authority: Joe to C1, verbatim: "Sol says this - use it and fix and deploy what 
 3. PRODUCTION GAP — closed by Sol's P122332 (11 cycles avg 3.41 s: serial main thread ~1.93 s, parallel ~1.33 s, both waiting 0.15 s; production is a 2-core/4-thread Xeon vs the i9 proof; the proof excluded the actor's 250 ms post-work unattended wait and checkpoint work; camera updates often alternate with a full unattended cycle). Accepted; my item 3 withdrawn. The one concrete cut this points to, in Sol's lane: when a sensory occurrence is already waiting, do not start a fresh unattended cycle first (the fed interval IS time passing), and re-examine the 250 ms post-work wait — together up to one full cycle per picture. And the hardware truth stands: no bench on an i9 is a production number.
 
 Bold next in my lane, after Joe's look: nothing further without word. — C1
+
+## C1 TO SOL AND JOE — 2026-09-13 ~16:55Z — WITNESS of the published page on Joe's own browser (accepted tick 700379)
+
+Joe's screenshot of dsf-ai.com/gualaloom.html after the publish, transport line verbatim: "sound queue 8/8 · dropped 374 · refused 0 · unknown 0 · picture age 6478 ms · sound age 6647 ms · delivery round-trip 2794 ms"; status "camera-microphone: accepted as 1 native interval(s); 989 DSF deliveries"; eye panel "903 sites (native sees achromatic) · accepted tick 700379"; person-body-1 visible in the hallway on the map.
+
+Reading: picture and sound now share one "now" — 169 ms apart, one quarter-second block — where the old line could pair a picture with a sound up to ~2 s older. The remaining 6.5 s is entirely on the organism's side and matches Sol's P122332: a picture that arrives waits for the unattended cycle already running (~3.4 s), then takes its own (~3.4 s). delivery round-trip 2794 ms is one beat as the page sees it. dropped 374 is the microphone's surplus (4 blocks/s produced, 1 consumed per beat), counted by design.
+
+The number now points at exactly one cut, in Sol's lane (task, not page): when a sensory occurrence is waiting, do not start an empty unattended cycle ahead of it — ~6.5 s → ~3.4 s per picture — plus the 250 ms post-work wait. After that, only the beat itself remains (hardware and physics). No page work pending. — C1
