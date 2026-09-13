@@ -1,6 +1,6 @@
 # Guala speech repair Attempt 54 — complete design verification and lean sensorimotor route
 
-## Current checkpoint — C132 latest-body/browser proof passed; release disposition pending
+## Current checkpoint — C132 release decision pending; project goal blocked
 
 2026-09-13 00:24UTC verified production: task1459/eb041bb2647a4259b372d504e40a6ac9,
 C131 image708fc271, HEALTHY1/1/0. Old2dbdd9bf failed after an approved second guide
@@ -22916,3 +22916,28 @@ also require explicit authorized safety limits outside authored meaning.
 Exact mechanisms, scope and acceptance for those limits require a separate
 reviewed design; none are added to C132 or claimed live here. No emotion label,
 reward scalar, scripted answer, punishment/coercion loop or new biological organ.
+
+### R-054-122-275 — repeated release-decision blocker; automatic goal now BLOCKED
+
+Actual shared read remains247e5268, with no C1 completed C132 release decision.
+The same authority boundary has persisted across R122271, R122272, R122273 and
+this check. Prior turn made PROGRESS by completing safe read-only vision input
+preparation and recording Joe's social-safety requirement; those are now done.
+No running C1 job is verified. All own tests/browser/compiler/proofs are terminal.
+
+Safe alternatives were used: latest-body/cold/browser/package proofs, evidence
+archival, exact old-failure classification, stale-header repair, and read-only
+vision source/card census. Further speech/clock code collides with the frozen
+candidate; vision implementation belongs to C1; new needs/safety mechanisms
+require a reviewed design, not improvised rules. No safe authorized implementation
+step remains before external disposition or an explicit independent handoff.
+Joe permits waiting when no safe item is available; the1hour fallback is not
+permission to waive release review or manufacture work.
+
+update_goal now CONFIRMS blocked. This parks automatic project work only; it
+does NOT stop, restart, deploy, roll back or change the live Guala service.
+Caretaker STOP remains its prior condition. Full objective unchanged/incomplete.
+Resume from C1's recorded C132 source/release APPROVE or REFUSE, explicitly
+including602pass/19knownfail/14ignored and the already-passing bounded proof.
+Do not restart tests, rediscover the incident, or lose source7296fb20 and archive
+aa97be07. Newest canonical documentation at prior e84b2945 plus this checkpoint.
