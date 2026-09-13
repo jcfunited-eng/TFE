@@ -144,7 +144,8 @@ impl PsiRingState {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct PsiKrimelackState {
-    rings: Box<[PsiRingState]>,
+    // Complete physical values shared only until a real ring changes.
+    rings: Arc<[PsiRingState]>,
 }
 
 impl PsiKrimelackState {
@@ -160,7 +161,7 @@ impl PsiKrimelackState {
             })
             .collect::<Vec<_>>()
             .into_boxed_slice();
-        Self { rings }
+        Self { rings: rings.into() }
     }
 
     pub(crate) fn rings(&self) -> &[PsiRingState] {
@@ -293,7 +294,9 @@ fn settle_prepared_psi_krimelack(
                 .checked_add(used)
                 .ok_or(PsiSettlementError::ArithmeticWidth)?;
         }
-        successor.rings[ring_index] = settled;
+        if settled != prior {
+            Arc::make_mut(&mut successor.rings)[ring_index] = settled;
+        }
     }
     Ok(PsiSettlement {
         successor,
@@ -825,7 +828,8 @@ impl RecoveryAnatomy {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct RecoveryState {
-    psi_lanes: Box<[RecoveryLaneState]>,
+    // Membrane/gate changes do not duplicate unchanged recovery material.
+    psi_lanes: Arc<[RecoveryLaneState]>,
     gate_lane: RecoveryLaneState,
     plastic_lane: RecoveryLaneState,
 }
@@ -844,7 +848,7 @@ impl RecoveryState {
         plastic_lane: RecoveryLaneState,
     ) -> Self {
         Self {
-            psi_lanes: psi_lanes.into_boxed_slice(),
+            psi_lanes: psi_lanes.into(),
             gate_lane,
             plastic_lane,
         }
@@ -865,10 +869,11 @@ impl RecoveryState {
     ) -> Result<(), RecoveryError> {
         match address {
             RecoveryLaneAddress::Psi(index) => {
-                *self
-                    .psi_lanes
-                    .get_mut(index)
-                    .ok_or(RecoveryError::AnatomyWidth)? = successor;
+                let predecessor = self.psi_lanes.get(index)
+                    .ok_or(RecoveryError::AnatomyWidth)?;
+                if *predecessor != successor {
+                    Arc::make_mut(&mut self.psi_lanes)[index] = successor;
+                }
             }
             RecoveryLaneAddress::Gate => self.gate_lane = successor,
             RecoveryLaneAddress::Plastic => self.plastic_lane = successor,
@@ -1906,10 +1911,10 @@ pub(crate) fn extend_neuron_positional_fabric(
     )?;
     let mut successor_state = state.clone();
     successor_state.psi = PsiKrimelackState {
-        rings: ring_states.into_boxed_slice(),
+        rings: ring_states.into(),
     };
     successor_state.recovery = RecoveryState {
-        psi_lanes: recovery_states.into_boxed_slice(),
+        psi_lanes: recovery_states.into(),
         gate_lane: state.recovery.gate_lane,
         plastic_lane: state.recovery.plastic_lane,
     };
@@ -3085,7 +3090,7 @@ pub(crate) fn decode_neuron_physical_state(
         psi_lanes.push(decode_recovery_lane(&mut reader, *lane_anatomy)?);
     }
     let recovery = RecoveryState {
-        psi_lanes: psi_lanes.into_boxed_slice(),
+        psi_lanes: psi_lanes.into(),
         gate_lane: decode_recovery_lane(&mut reader, anatomy.recovery.gate_lane)?,
         plastic_lane: decode_recovery_lane(&mut reader, anatomy.recovery.plastic_lane)?,
     };
@@ -3142,7 +3147,7 @@ pub(crate) fn decode_neuron_physical_state(
     }
     Ok(NeuronPhysicalState(Arc::new(NeuronPhysicalStateBody {
         psi: PsiKrimelackState {
-            rings: rings.into_boxed_slice(),
+            rings: rings.into(),
         },
         gate,
         membrane,
@@ -4791,12 +4796,26 @@ fn settle_recovery(
     let state = Arc::make_mut(&mut state.0);
     let mut total_extent = 0_u128;
     for lane_index in 0..anatomy.psi_lanes.len() {
+        let previous_dissipation = state.psi.rings[lane_index].dissipated_quanta;
+        let previous_lane = state.recovery.psi_lanes[lane_index];
+        let mut dissipation = previous_dissipation;
+        let mut lane = previous_lane;
+        // Evaluate every original check/reaction, even with zero catalyst.
+        // Publish the same local effects before propagating a lane error or
+        // checking aggregate extent; unchanged material needs no copied array.
         let extent = settle_recovery_lane(
             anatomy.psi_lanes[lane_index],
-            &mut state.psi.rings[lane_index].dissipated_quanta,
-            &mut state.recovery.psi_lanes[lane_index],
+            &mut dissipation,
+            &mut lane,
             contact.psi_catalyst_quanta[lane_index],
-        )?;
+        );
+        if dissipation != previous_dissipation {
+            Arc::make_mut(&mut state.psi.rings)[lane_index].dissipated_quanta = dissipation;
+        }
+        if lane != previous_lane {
+            Arc::make_mut(&mut state.recovery.psi_lanes)[lane_index] = lane;
+        }
+        let extent = extent?;
         total_extent = total_extent
             .checked_add(extent)
             .ok_or(RecoveryError::ArithmeticWidth)?;
@@ -6198,9 +6217,7 @@ pub(crate) fn apply_sparse_physical_state_delta(
     for entry in delta.entries() {
         match entry.coordinate() {
             PhysicalStateCoordinate::PsiWinding(index) => {
-                let ring = applied
-                    .psi
-                    .rings
+                let ring = Arc::make_mut(&mut applied.psi.rings)
                     .get_mut(index)
                     .ok_or(NeuronStateCodecError::InvalidEncoding)?;
                 let winding = apply_signed_member_delta(
@@ -6214,9 +6231,7 @@ pub(crate) fn apply_sparse_physical_state_delta(
                 ring.phase_thirds = canonical_phase_thirds(winding);
             }
             PhysicalStateCoordinate::PsiDissipatedEnergy(index) => {
-                let ring = applied
-                    .psi
-                    .rings
+                let ring = Arc::make_mut(&mut applied.psi.rings)
                     .get_mut(index)
                     .ok_or(NeuronStateCodecError::InvalidEncoding)?;
                 ring.dissipated_quanta = apply_unsigned_member_delta(
@@ -6274,9 +6289,7 @@ pub(crate) fn apply_sparse_physical_state_delta(
                 )?;
             }
             PhysicalStateCoordinate::RecoveryPsiFuel(index) => {
-                let lane = applied
-                    .recovery
-                    .psi_lanes
+                let lane = Arc::make_mut(&mut applied.recovery.psi_lanes)
                     .get_mut(index)
                     .ok_or(NeuronStateCodecError::InvalidEncoding)?;
                 lane.fuel_quanta = apply_unsigned_member_delta(
@@ -6285,9 +6298,7 @@ pub(crate) fn apply_sparse_physical_state_delta(
                 )?;
             }
             PhysicalStateCoordinate::RecoveryPsiSpent(index) => {
-                let lane = applied
-                    .recovery
-                    .psi_lanes
+                let lane = Arc::make_mut(&mut applied.recovery.psi_lanes)
                     .get_mut(index)
                     .ok_or(NeuronStateCodecError::InvalidEncoding)?;
                 lane.spent_quanta = apply_unsigned_member_delta(
@@ -6296,9 +6307,7 @@ pub(crate) fn apply_sparse_physical_state_delta(
                 )?;
             }
             PhysicalStateCoordinate::RecoveryPsiExportedHeat(index) => {
-                let lane = applied
-                    .recovery
-                    .psi_lanes
+                let lane = Arc::make_mut(&mut applied.recovery.psi_lanes)
                     .get_mut(index)
                     .ok_or(NeuronStateCodecError::InvalidEncoding)?;
                 lane.exported_heat_quanta = apply_unsigned_member_delta(
@@ -8291,6 +8300,82 @@ mod tests {
             decode_neuron_physical_state(&fixture.anatomy, &original_bytes).unwrap(),
             fixture.state
         );
+        // Outer-body changes retain the complete, unchanged physical arrays.
+        assert!(Arc::ptr_eq(&fixture.state.psi.rings, &successor.psi.rings));
+        assert!(Arc::ptr_eq(&fixture.state.recovery.psi_lanes, &successor.recovery.psi_lanes));
+        let held = with_held_membrane_and_carriers(
+            &fixture.state, ElementaryChargeMembraneState::genesis(1),
+            999_999, 1_000_001,
+        );
+        assert!(!fixture.state.shares_physical_body_with(&held));
+        assert!(Arc::ptr_eq(&fixture.state.psi.rings, &held.psi.rings));
+        assert!(Arc::ptr_eq(&fixture.state.recovery.psi_lanes, &held.recovery.psi_lanes));
+        assert_eq!(settle_recovery(
+            &fixture.anatomy.recovery, &mut successor,
+            RecoveryContact::new(&fixture.zero_catalysts, 0, 0),
+        ).unwrap().extent, 0);
+        assert!(Arc::ptr_eq(&fixture.state.psi.rings, &successor.psi.rings));
+        assert!(Arc::ptr_eq(&fixture.state.recovery.psi_lanes, &successor.recovery.psi_lanes));
+
+        let retaining = prepare_ring_target(&fixture.anatomy.psi.rings[0], BalancedTrit::Quiescent);
+        let mut targets = vec![retaining; fixture.ring_count];
+        let quiet = settle_prepared_psi_krimelack(
+            &fixture.anatomy.psi, &fixture.state.psi,
+            &PreparedPsiKrimelackDelivery { rings: targets.clone().into_boxed_slice() },
+        ).unwrap();
+        assert_eq!(quiet.changed_rings, 0);
+        assert!(Arc::ptr_eq(&fixture.state.psi.rings, &quiet.successor.rings));
+        targets[0] = prepare_ring_target(&fixture.anatomy.psi.rings[0], BalancedTrit::Positive);
+        let moved = settle_prepared_psi_krimelack(
+            &fixture.anatomy.psi, &fixture.state.psi,
+            &PreparedPsiKrimelackDelivery { rings: targets.into_boxed_slice() },
+        ).unwrap();
+        assert_eq!(moved.changed_rings, 1);
+        assert!(!Arc::ptr_eq(&fixture.state.psi.rings, &moved.successor.rings));
+        let mut recovering = fixture.state.clone();
+        recovering.psi = moved.successor;
+        let before_recovery = recovering.clone();
+        let lane_anatomy = fixture.anatomy.recovery.psi_lanes[0];
+        let previous_dissipation = recovering.psi.rings[0].dissipated_quanta;
+        assert!(previous_dissipation >= lane_anatomy.exported_heat_per_extent);
+        let previous_lane = recovering.recovery.psi_lanes[0];
+        let mut catalysts = fixture.zero_catalysts.clone();
+        catalysts[0] = lane_anatomy.catalyst_per_extent;
+        assert_eq!(settle_recovery(
+            &fixture.anatomy.recovery, &mut recovering,
+            RecoveryContact::new(&catalysts, 0, 0),
+        ).unwrap().extent, 1);
+        assert!(!Arc::ptr_eq(&before_recovery.psi.rings, &recovering.psi.rings));
+        assert!(!Arc::ptr_eq(&before_recovery.recovery.psi_lanes, &recovering.recovery.psi_lanes));
+        assert_eq!(recovering.psi.rings[0].dissipated_quanta,
+            previous_dissipation - lane_anatomy.exported_heat_per_extent);
+        assert_eq!(recovering.recovery.psi_lanes[0].physical_parts(), (
+            previous_lane.fuel_quanta - lane_anatomy.fuel_per_extent,
+            previous_lane.spent_quanta + lane_anatomy.spent_per_extent,
+            previous_lane.exported_heat_quanta + lane_anatomy.exported_heat_per_extent,
+        ));
+        assert_eq!(before_recovery.psi.rings[0].dissipated_quanta, previous_dissipation);
+        assert_eq!(before_recovery.recovery.psi_lanes[0], previous_lane);
+        let delta = sparse_physical_state_delta(&fixture.state, &recovering).unwrap().unwrap();
+        let rebuilt = apply_sparse_physical_state_delta(&fixture.anatomy, &fixture.state, &delta).unwrap();
+        assert_eq!(rebuilt, recovering);
+        let recovered_bytes = encode_neuron_physical_state(&fixture.anatomy, &recovering).unwrap();
+        assert_eq!(encode_neuron_physical_state(&fixture.anatomy, &rebuilt).unwrap(), recovered_bytes);
+        assert_eq!(decode_neuron_physical_state(&fixture.anatomy, &recovered_bytes).unwrap(), recovering);
+        assert_eq!(encode_neuron_physical_state(&fixture.anatomy, &fixture.state).unwrap(), original_bytes);
+
+        let mut invalid = fixture.state.clone();
+        Arc::make_mut(&mut invalid.recovery.psi_lanes)[0].spent_quanta =
+            lane_anatomy.spent_capacity + 1;
+        let invalid_before = invalid.clone();
+        assert_eq!(settle_recovery(
+            &fixture.anatomy.recovery, &mut invalid,
+            RecoveryContact::new(&fixture.zero_catalysts, 0, 0),
+        ), Err(RecoveryError::InvalidAnatomy));
+        assert_eq!(invalid, invalid_before);
+        assert!(Arc::ptr_eq(&invalid.psi.rings, &invalid_before.psi.rings));
+        assert!(Arc::ptr_eq(&invalid.recovery.psi_lanes, &invalid_before.recovery.psi_lanes));
+
     }
 
     #[test]
@@ -8329,7 +8414,7 @@ mod tests {
         );
 
         let mut overfilled_recovery = fixture.state.clone();
-        overfilled_recovery.recovery.psi_lanes[0].fuel_quanta = 100_001;
+        Arc::make_mut(&mut overfilled_recovery.recovery.psi_lanes)[0].fuel_quanta = 100_001;
         assert_eq!(
             encode_neuron_physical_state(&fixture.anatomy, &overfilled_recovery),
             Err(NeuronStateCodecError::AnatomyMismatch)
@@ -9532,13 +9617,13 @@ mod tests {
         target.plastic.rest_length_nanometres = r(3, 2);
         target.dna_expression.expressed_product_quanta = 7;
         target.dna_expression.waste_quanta = 7;
-        target.recovery.psi_lanes[3] = RecoveryLaneState {
+        Arc::make_mut(&mut target.recovery.psi_lanes)[3] = RecoveryLaneState {
             fuel_quanta: 99_998,
             spent_quanta: 1,
             exported_heat_quanta: 1,
         };
-        target.psi.rings[0].winding = BalancedTrit::Positive;
-        target.psi.rings[0].phase_thirds = canonical_phase_thirds(BalancedTrit::Positive);
+        Arc::make_mut(&mut target.psi.rings)[0].winding = BalancedTrit::Positive;
+        Arc::make_mut(&mut target.psi.rings)[0].phase_thirds = canonical_phase_thirds(BalancedTrit::Positive);
         target.membrane = LocalMembraneConductanceState::from_physical_parts(
             ElementaryChargeMembraneState::from_physical_parts(
                 5,

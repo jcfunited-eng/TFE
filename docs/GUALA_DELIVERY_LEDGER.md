@@ -1705,3 +1705,8 @@ V305 ordinary full903 cold step2.510757s, next warm2.314095s (V122306); exact669
 ### D122308 — reporting-cost removal preserved, vision timing still open
 
 V122308 ordinary full903 exact comparison preserved669740/669741 body/world bytes. Warm1.581688s versus V3062.314095s; cold1.770326s. This removes an unused per-interval whole-body energy census, not local energy physics; explicit exact reporting and checkpoint totals remain. One native focused test PASS; source and ordinarywheel archived with fullreadbackSHA978c144bfd3d7c5001785b4257cc67d71f24d8016b6e962e0a3c40090b744813. Canonical Attempts contains full receipts. No live change: task1460 remains baseline. Full903<=250ms remains mandatory; next sole work item is source-backed reduction of the measured internal-contact cost, vision before self-life, speech stays parked.
+
+
+### D122310 — array ownership correction preserved, real-time vision still active
+
+V122310 ordinary full903 comparison has exact body/world successors at669740/669741: cold1.647990s, warm1.480068s, peak2765224KiB. One ownership/codec test PASS; full archive readback SHA dd08083585d5c69858aaebc1fdc2729d0c6d646376d00411b254d140ae782e5d. Details in canonical Attempts ledger. No new physical law or serialized state. Production remains1460; full903<=250ms still required. Continue V122299/D122300, not reopening closed C132/S122278 or C131/H122247. Next item: resolve unused Python evidence projection and its excluded diagnostic caller before a bounded removal. Speech parked; self-life after vision.
