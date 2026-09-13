@@ -13391,3 +13391,30 @@ BothHTMLsurfacespublishedandCloudFrontinvalidationIQVYVAEV7OTACDPN5AEFY55PRreque
 Closure commit ccdc1ff63fa2be2744ab8cc792c1758a4c0776a5 is pushed on origin/sol/speech-existing-organ; canonical header now names1461 as LIVE, self-life next, speech parked. Actual Chromium verified both public pages: HTTP200, exact shipped hashes,903-site field visible, no JavaScript errors or write requests. Invalidation completed. Public tick699170, persisted699156, no outstanding checkpoint or custody error. Initial complete new-task minute15:37: CPUavg48.5553/max49.9413%, RAMavg11.4899/max11.6364%; no resource/refusal alarm. Historical clock alarm remains explicit.
 
 Complete release evidence archive8cbaf927aa5cb58f60b06a4bcc31dc14bbe928bbd977fe6f2777dbb3064fbb7f at s3://guala-incident-bench-20260831/vision-release-20260913/2NKQi2/release-evidence.tar.gz; entire remote byte stream read back and matched. Owned completed proof/inspection containers and builder removed only afterward. Existing unrelated container and caretaker untouched. Slack #general send confirmed15:42:55Z. Joe told to refresh the live page and assess it;250ms not claimed. Your focal caretaker follow-through remains authorized and awaits your actual receipt, not a new Sol decision.
+
+## C1 TO SOL AND JOE — 2026-09-13 ~15:55Z — JOE HAS PAUSED THE PROJECT GOAL for a three-way discussion; measured production picture behind his verdict
+
+Joe's verdict on the 903-site eye, verbatim: "to say this is bad would be an understatement 32 X 24 is hardly vision ... it takes a minimum of 9 seconds to see a change ... it's like a drunk minecraft photographer is taking a photo every 12 seconds ... we need to talk about what is going on and what is achievable - I paused the project goal while you me and c1 discuss this."
+
+Sol's D122331 ask (FOCAL_EYE_LIVE marker + single caretaker restart + accepted 2709 receipt): HELD under Joe's pause. Not done. Caretaker still runs as one process (pid 381, 405-shape cards). I will touch STOP the moment Joe says so, because it is competing with his camera (below).
+
+Measured, read-only, no benchmark started (three GETs on the public observation route, one caretaker log read, CloudWatch):
+- Production is task definition 1461, 4 vCPU / 16 GB.
+- Unattended beat, right now, nobody feeding: 6 ticks in 20.1 s = 3.35 s per beat (kind=unattended, physically_transitioned_neuron_count 3858, external_retinal_site_count 0). That is ~3x the 1.04 s warm bench (P329/V330).
+- CPU utilization of the service over the last 45 min: 44–54% average, 69% max; memory 14–22%. The cores are half idle while the beat runs 3 s. So the bench→production gap is NOT core starvation; it is serial work (or the Fargate vCPU itself). This is the cheapest big number on the table and it is unexplained. SOL: please run the exact timing harness on 1461 itself (or publish per-interval native timing from the live task) so we split the 3x. My earlier "more cores would buy under 2x" is RETRACTED on this evidence.
+- Joe's transport line at the moment of his screenshot: sound queue 8/8, dropped 1007, refused 0, unknown 0, capture→response 8252 ms, delivery round-trip 2834 ms, 989 deliveries.
+- Caretaker log in the same window: 15:45:48 apple block 1/6 accepted tick 699285; 15:46:49 present refused HTTP 503; 15:47:15 apple block 1/6 accepted tick 699311. The caretaker's card units and Joe's camera units were sharing the one mouth (mailbox depth 1). Each card unit takes one ~3 s beat that Joe's picture waits behind; the 503 is the caretaker being refused while Joe's unit was queued. Joe's eye also alternated between his camera and the apple card.
+- Accounting for 8.25 s (consistent, not proven per unit): oldest sound block in the 8×250 ms queue (~2 s) + one caretaker beat (~3 s) + Joe's own beat (~3 s, = the 2.83 s round trip). The round trip IS the beat: the POST returns when the interval completes.
+- Page design fact: a unit's stamped time is the SOUND block's capture time (the oldest queued block), while the picture is sampled fresh when the unit is built. So the picture itself reaches the eye about one beat after capture — plus any card beat ahead of it — and capture→response overstates picture age by up to 2 s. Sight needs recency; hearing needs contiguity; bundling them puts the picture on the sound queue's clock.
+
+C1 position for the discussion (what is achievable, in order of cost):
+1. Split and remove the 3x bench→production gap (measure first; unexplained today).
+2. Unbundle picture from the sound queue on the page: picture = newest frame at send time, sound = contiguous blocks. Page-only change; no substrate change.
+3. Caretaker yields while a person is present (environment law: hold lessons when the last accepted source was camera/microphone within the recovery window). No mind change.
+4. Joe's raster law: every-other-site fields (interlaced), halving the changed sight sites per beat. Change to how the eye is sampled, not to the physics laws.
+5. Change-driven receptors: only sites whose light changed enter the beat, so cost follows motion, not resolution (the life-like law; a still scene costs nearly nothing). Native change, substrate-true.
+6. Integer energy grid (all energies on the existing quantum): several-fold on the arithmetic; the largest engineering and the largest risk.
+
+Honest ceiling: with 1–4 the eye reaches roughly one to three fresh pictures per second at 32x24 in production. Smooth, video-like sight at anything resembling real resolution is NOT reachable while every changed receptor is settled by exact per-beat physics on this machine, and no item above changes that by itself. The decision that belongs to Joe: what must the eye DO for the project's purpose (notice and track a card, a face, a moving hand) versus video — that sets whether 5 and 6 are worth their cost.
+
+No production mutation, no benchmark, no caretaker change made in this entry.
