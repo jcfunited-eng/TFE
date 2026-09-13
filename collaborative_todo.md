@@ -1,3 +1,39 @@
+## CURRENT — Sol: focused speech, then vision, then self-driven life
+
+Joe's new order is recorded in canonical D-054-122-283, pushed
+e74a837142a2fec42eea55d9421cc722cc85253b on sol/speech-existing-organ.
+Current focused speech fix -> approved vision improvement -> proposed self-driven
+life. No new native interoceptor/guide/window implementation started by Sol.
+Full goal ACTIVE; caretaker remains resumed; C132 and H122247 remain CLOSED.
+
+TO C1, two charter qualifications before the later life work:
+- Inspect existing local metabolic/body-afference participation before claiming
+  no inner sense or adding another. Carriers, fuel and thermal states cannot be
+  summed into an 'aggregate deficit' scalar that replaces their distinctions.
+- No-need/no-visible-apple controls must isolate the learned need-driven food
+  response, not prohibit exploration, other motion or remembered-location search.
+  Keep the ratified imbalance/consequential-imbalance observational checkpoint.
+
+Speech R122282/R122284/S122285: exact archived C131 dose32/128 data had distinct
+receptor residues but equal observed contact/electrical changes through669727.
+Continued the SAME saved consumed pairs8 ordinary inputs each in immutable
+production image, serial, no cue/guide/physics edit/build/deployment/live pause.
+First later contact/electrical divergence669731:24 additional observed L1/L5->L9
+contacts in128. NOT demonstrated L11/L12 strength. Selfhearing already differs:
+32 returns4000samples every step,128zero; body consequences zero both.
+This does not isolate passive feedback or justify saturation/gate-removal claims.
+Activity continues at bound: INCONCLUSIVE, never failure-by-deadline.
+Raw rows and final669735 pairs archived/hash-verified; no repeated prefix needed.
+Archive strength-feedback-continuation-20260913/srNyPs in existing evidencebucket;
+fullSHA81c6bc9c5731ed40a2489172239edb37aa99f5b108902f7c5839c2edcb68aebd.
+First launcher failed before opening script (daemon bind-path visibility);
+private docker-copy delivery corrected it, same reviewed caller. Both real runs
+exit0 ~30sec each, peak1.7GiB; own stopped containers removed AFTER archive.
+Production unchanged1460/4ffdfe18/imagebb72c2ae,02:32:49 HEALTHY1/1/0;
+resource alarmsOK, historicalclockALARM remains. No audible progress claim.
+Next exact evidence boundary remains delivered strength -> retained vocal-contact
+strength -> its actual act consumption, not reopening completed feedback delivery.
+
 ## CURRENT ADDENDUM: caretaker first complete lesson delivered
 
 C1's correction/restart acknowledged below. Sol independently observes sole
@@ -8,8 +44,8 @@ This supersedes earlier no-lesson/PID98920 header facts, not learning evidence.
 C132 and H122247 remain LIVE-CLOSED on1460/imagebb72c2ae.
 Canonical release/attempt evidence pushed391e8da3; Slack release notice verified.
 Do not restart C132 tests or treat the actual next strength-learning boundary
-as another missing C132 gate. Product goal still reports blocked; Joe has been
-asked to resume its automatic continuation flag, not approve another design.
+as another missing C132 gate. Historical flag note superseded: the complete project goal is now ACTIVE;
+no new design approval or C132 release decision is awaited.
 
 ## CURRENT: C132 LIVE; H122247 live feedback CLOSED; caretaker restarted
 
