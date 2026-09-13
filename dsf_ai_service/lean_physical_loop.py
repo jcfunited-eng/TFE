@@ -10,7 +10,8 @@ from typing import Any
 from dsf_ai_service.guala_cochlea import one_self_hearing_hop
 from dsf_ai_service.lean_embodiment_observation import lean_embodiment_observation
 from dsf_ai_service.lean_sensory_occurrence import (
-    LeanSensoryOccurrence, rgb_retina_luminance_u8, transmitted_rgb_retina_u8,
+    LeanSensoryOccurrence, focal_retina_luminance_u8, rgb_retina_luminance_u8,
+    transmitted_rgb_retina_u8,
 )
 from dsf_ai_service.guala_motor_world import prepare_motor_consequence
 from dsf_ai_service.guala_physical_return import PendingPhysicalReturn, PASSIVE_BODY_MAGIC
@@ -114,6 +115,14 @@ class LeanPhysicalLoop:
                 primary_sensorium = replace(primary_sensorium, retina=tuple(
                     (Fraction(value, 255) * transmission,) * len(times) for value in luminance
                 ))
+                # Vision upgrade: the 32x24 focal field rides beside the established
+                # 135 sites when the upgraded 2,709-value shape arrives; a legacy
+                # 405 payload leaves retina_focal empty and nothing else changes.
+                focal = focal_retina_luminance_u8(sensory.retina_rgb_u8)
+                if focal:
+                    primary_sensorium = replace(primary_sensorium, retina_focal=tuple(
+                        (Fraction(value, 255) * transmission,) * len(times) for value in focal
+                    ))
                 external_rgb_retina_u8 = transmitted_rgb_retina_u8(sensory.retina_rgb_u8, transmission)
 
             sources = []

@@ -20,6 +20,7 @@ from dsf_ai_service.guala_receptor_anatomy import PORT_COUNT, receptor_anatomy
 
 
 RETINAL_PORTS = 135
+RETINAL_FOCAL_PORTS = 768  # 32x24 focal field; () until the focal class is mounted
 LEGACY_EAR_PORTS = 2
 COCHLEAR_PORTS = 32
 TOUCH_PORTS = 28
@@ -47,6 +48,7 @@ class PhysicalSensorium:
     displacement: PortTrajectories
     articulation: PortTrajectories
     thermal: PortTrajectories
+    retina_focal: PortTrajectories = ()
 
     def ordered_ports(self) -> PortTrajectories:
         return (
@@ -59,6 +61,7 @@ class PhysicalSensorium:
             *self.displacement,
             *self.articulation,
             *self.thermal,
+            *self.retina_focal,
         )
 
     @classmethod
@@ -75,6 +78,7 @@ class PhysicalSensorium:
         displacement: tuple[Fraction | float, ...],
         articulation: tuple[Fraction | float, ...],
         thermal: tuple[Fraction | float, ...],
+        retina_focal: tuple[Fraction | float, ...] = (),
     ) -> "PhysicalSensorium":
         if frame_count <= 0:
             raise ValueError("physical sensorium requires a positive frame count")
@@ -92,6 +96,7 @@ class PhysicalSensorium:
             displacement=hold(displacement),
             articulation=hold(articulation),
             thermal=hold(thermal),
+            retina_focal=hold(retina_focal),
         )
 
 
@@ -109,6 +114,8 @@ def _validate(
         ("displacement", sensorium.displacement, DISPLACEMENT_PORTS, PhysicalSense.BODY),
         ("articulation", sensorium.articulation, ARTICULATORY_PORTS, PhysicalSense.BODY),
         ("thermal", sensorium.thermal, THERMAL_PORTS, PhysicalSense.BODY),
+        ("retina focal", sensorium.retina_focal,
+         len(sensorium.retina_focal) and RETINAL_FOCAL_PORTS, PhysicalSense.SIGHT),
     )
     ordered = []
     for label, ports, width, sense in expected:

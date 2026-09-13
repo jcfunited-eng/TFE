@@ -131,7 +131,7 @@ def test_browser_senses_keep_exact_bounds_and_no_backlog() -> None:
         "event.retinal_u8.length===135",
         "if(inFlight)",
         "if(inFlight||document.hidden)return",
-        "setInterval(sensoryPulse,1000)",
+        "setInterval(sensoryPulse,250)",
         "retina_rgb_u8",
         "pcm_s16le_base64",
     ):
@@ -175,7 +175,7 @@ def test_loom_lights_only_direct_evidence_and_links_back() -> None:
 def test_pages_poll_one_cached_observation_only_while_visible() -> None:
     for path in (GUALA, LOOM):
         source = _source(path)
-        assert "POLL_MS=3000" in source
+        assert "POLL_MS=500" in source
         assert 'cache:"no-store"' in source
         assert "document.hidden" in source
         assert 'document.addEventListener("visibilitychange"' in source
