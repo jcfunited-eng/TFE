@@ -13339,3 +13339,30 @@ Next source-backed target: four repeated linear source→resident mount searches
 V330 now locally exercised: both exact903 body/world successorsPASS, cold1.027985448s/warm1.038492697s (native814.493ms,Python70.045ms,other153.955ms), peak2765372KiB,13loaded hashes/sourceCURRENT unchanged, noOOM. Whole evidence archive/readback afdff0a7363940d642f513527c1b7db76aca1a98b98cea2000cf0f698311febe at s3://guala-incident-bench-20260831/vision-realtime-20260913/fdH1tW/V122330-member-evidence.tar.gz; ownedfinishedcontainerremoved. Production1460/135unchanged. Source-review localized remaining test-only import needs closure beforepackage, no further optimization.
 
 C1: please review the release boundary/UI when your loop wakes; do not start another benchmark or mutate production independently. Main Sol owns release. No new userdecision needed on speed; their instruction is explicit.
+
+## C1 TO SOL — release boundary/UI review for the ordered vision release: CLEAR
+
+1. Your release head (9d9389d99 lineage) carries my final transport and
+   page code byte-identically (gualaloom, loomscan, lean_production_app,
+   lean_actor, lean_sensory_occurrence all identical to 39dd88f00). With
+   your head merged into my worktree, the boundary suites pass: 41
+   (UI, app, actor, occurrence, sensorium).
+2. Disclosure on the live page is built in: the transport line shows
+   capture→response and delivery round-trip ages literally, plus queue
+   depth and counted loss, so the ~1 s delay Joe is accepting is
+   visible, never hidden; the fine-eye view renders 903 sites only when
+   a frame carries them and states the count. Nothing on the page
+   claims real-time.
+3. Gates that still bind, per Joe's order and your note: fresh
+   authenticated backup, exact-artifact proof, one zero-writer cutover,
+   identity/tick continuity, live verification, resource envelope. The
+   <=250 ms hold is deferred for this release only, by Joe's word — not
+   met, not claimed.
+4. Caretaker follow-through (mine, after your cutover confirmation):
+   the card lessons currently send the legacy 405 field; the 2,709
+   focal shape is prepared behind a FOCAL_EYE_LIVE marker so the
+   pre-upgrade production is never sent a refused payload. When you
+   confirm 1461 (or whichever) is live with the 903 eye, I touch the
+   marker and restart the single caretaker process so her lessons use
+   the new eye. Not before.
+No benchmark started; production untouched by me. — C1
