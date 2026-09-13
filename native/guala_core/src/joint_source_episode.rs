@@ -39,6 +39,9 @@ const ROOT_YAW_MAGIC: &[u8; 8] = b"GLJSRC05";
 const ROOT_YAW_VERSION: u16 = 5;
 const ROOT_TRANSLATION_MAGIC: &[u8; 8] = b"GLJSRC06";
 const ROOT_TRANSLATION_VERSION: u16 = 6;
+// Explicitly sparse retinal acquisition. Old source versions remain dense.
+const RETINAL_SUBSET_MAGIC: &[u8; 8] = b"GLJSRC07";
+const RETINAL_SUBSET_VERSION: u16 = 7;
 const SENSE_COUNT: usize = 6;
 
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
@@ -126,6 +129,7 @@ impl NativeJointSourceEpisode {
     #[getter]
     fn schema(&self) -> &'static str {
         match self.storage.version {
+            RETINAL_SUBSET_VERSION => "guala.native.exact_joint_source_episode.v7",
             ROOT_TRANSLATION_VERSION => "guala.native.exact_joint_source_episode.v6",
             ROOT_YAW_VERSION => "guala.native.exact_joint_source_episode.v5",
             BODY_LOAD_VERSION => "guala.native.exact_joint_source_episode.v4",
@@ -308,7 +312,7 @@ fn compact_lesson_episode_from_anatomy(
     selected_senses: Option<&BTreeSet<u8>>,
 ) -> Result<NativeJointSourceEpisode, String> {
     encode_compact_lesson_from_anatomy(
-        anatomy, assembly_id, clock, signal_bytes, selected_senses,
+        anatomy, assembly_id, clock, signal_bytes, selected_senses, None,
     )?.into_episode()
 }
 
@@ -318,6 +322,7 @@ fn encode_compact_lesson_from_anatomy(
     clock: &[(i64, i64)],
     signal_bytes: &[u8],
     selected_senses: Option<&BTreeSet<u8>>,
+    selected_retinal_sites: Option<&BTreeSet<u32>>,
 ) -> Result<EncodedCompactEpisode, String> {
     let anatomy_ports = anatomy.joint_source_ports();
     let occurrences = anatomy.joint_source_occurrences();
@@ -328,12 +333,28 @@ fn encode_compact_lesson_from_anatomy(
     if occurrence.port_indices.iter().copied().ne(0..anatomy_ports.len()) {
         return Err("compact lesson anatomy occurrence does not cover every port once".into());
     }
+    if let Some(sites) = selected_retinal_sites {
+        // This source extension projects ordinary sensory anatomy only.
+        // Typed motor/body consequence carriers retain their existing formats.
+        if anatomy.storage.version != VERSION
+            || sites.is_empty()
+            || selected_senses.is_some_and(|senses| !senses.contains(&0))
+        {
+            return Err("retinal coverage requires ordinary anatomy and observed sight".into());
+        }
+        let available = anatomy_ports.iter().filter(|port| port.sense == 0)
+            .map(|port| port.topology_index).collect::<BTreeSet<_>>();
+        if !sites.is_subset(&available) {
+            return Err("retinal coverage names an unmounted source site".into());
+        }
+    }
     let selected_indices = anatomy_ports
         .iter()
         .enumerate()
         .filter_map(|(index, port)| {
-            selected_senses
-                .is_none_or(|senses| senses.contains(&port.sense))
+            (selected_senses.is_none_or(|senses| senses.contains(&port.sense))
+                && (port.sense != 0 || selected_retinal_sites
+                    .is_none_or(|sites| sites.contains(&port.topology_index))))
                 .then_some(index)
         })
         .collect::<Vec<_>>();
@@ -404,7 +425,9 @@ fn encode_compact_lesson_from_anatomy(
     {
         return Err("compact lesson anatomy mixes local and root proprioceptors".into());
     }
-    let mut output = if root_translation_version {
+    let mut output = if selected_retinal_sites.is_some() {
+        RETINAL_SUBSET_MAGIC.to_vec()
+    } else if root_translation_version {
         ROOT_TRANSLATION_MAGIC.to_vec()
     } else if root_yaw_version {
         ROOT_YAW_MAGIC.to_vec()
@@ -414,7 +437,9 @@ fn encode_compact_lesson_from_anatomy(
         MAGIC.to_vec()
     };
     output.extend_from_slice(
-        &(if root_translation_version {
+        &(if selected_retinal_sites.is_some() {
+            RETINAL_SUBSET_VERSION
+        } else if root_translation_version {
             ROOT_TRANSLATION_VERSION
         } else if root_yaw_version {
             ROOT_YAW_VERSION
@@ -695,6 +720,36 @@ fn settle_native_joint_source_episode_for_senses_from_anatomy(
     .map_err(PyValueError::new_err)
 }
 
+/// Sparse acquisition retains the original retinal IDs. Omitted sites receive
+/// no invented sample; every supplied sense remains in one authored joint field.
+#[pyfunction]
+fn settle_native_joint_source_episode_for_retinal_sites_from_anatomy(
+    py: Python<'_>,
+    anatomy: PyRef<'_, NativeJointSourceEpisode>,
+    assembly_id: String,
+    clock: Vec<(i64, i64)>,
+    signal_body: Vec<u8>,
+    selected_senses: Vec<u8>,
+    selected_retinal_sites: Vec<u32>,
+) -> PyResult<NativeJointSourceEpisode> {
+    if selected_senses.is_empty()
+        || selected_senses.iter().any(|sense| usize::from(*sense) >= SENSE_COUNT)
+        || selected_senses.windows(2).any(|pair| pair[0] >= pair[1])
+        || selected_retinal_sites.is_empty()
+        || selected_retinal_sites.windows(2).any(|pair| pair[0] >= pair[1])
+    {
+        return Err(PyValueError::new_err("retinal coverage is empty or noncanonical"));
+    }
+    let senses = selected_senses.into_iter().collect::<BTreeSet<_>>();
+    let sites = selected_retinal_sites.into_iter().collect::<BTreeSet<_>>();
+    let anatomy = anatomy.clone();
+    py.allow_threads(move || {
+        encode_compact_lesson_from_anatomy(
+            &anatomy, &assembly_id, &clock, &signal_body, Some(&senses), Some(&sites),
+        )?.into_episode()
+    }).map_err(PyValueError::new_err)
+}
+
 pub fn decode_native_joint_source_episode(
     candidate_payload: &[u8],
     admitted_port_count: usize,
@@ -756,6 +811,10 @@ pub fn register(module: &Bound<'_, PyModule>) -> PyResult<()> {
     )?)?;
     module.add_function(wrap_pyfunction!(
         settle_native_joint_source_episode_for_senses_from_anatomy,
+        module
+    )?)?;
+    module.add_function(wrap_pyfunction!(
+        settle_native_joint_source_episode_for_retinal_sites_from_anatomy,
         module
     )?)?;
     Ok(())
@@ -825,7 +884,8 @@ impl<'a> Parser<'a> {
             || (magic == BODY_LOAD_MAGIC && version == BODY_LOAD_VERSION)
             || (magic == ROOT_YAW_MAGIC && version == ROOT_YAW_VERSION)
             || (magic == ROOT_TRANSLATION_MAGIC
-                && version == ROOT_TRANSLATION_VERSION))
+                && version == ROOT_TRANSLATION_VERSION)
+            || (magic == RETINAL_SUBSET_MAGIC && version == RETINAL_SUBSET_VERSION))
         {
             return Err("unsupported joint-source episode version".into());
         }
@@ -932,6 +992,16 @@ impl<'a> Parser<'a> {
             return Err("joint-source sample count differs from caller-derived admission".into());
         }
         for sense in 0..SENSE_COUNT {
+            if version == RETINAL_SUBSET_VERSION && sense == 0 {
+                // The explicit list is the observed retinal coverage. Preserve
+                // mounted IDs; holes are absence, not black or stale light.
+                if sense_states[sense] != 0 || topology_indices[sense].is_empty()
+                    || topology_indices[sense].windows(2).any(|pair| pair[0] >= pair[1])
+                {
+                    return Err("sparse retinal coverage is empty or noncanonical".into());
+                }
+                continue;
+            }
             topology_indices[sense].sort_unstable();
             if sense_states[sense] == 0 && topology_indices[sense].is_empty() {
                 return Err("observed sense has no physical receptor".into());
@@ -1552,10 +1622,14 @@ mod tests {
     }
 
     fn port_header(output: &mut Vec<u8>) {
-        output.push(0);
-        push_u32(output, 0);
-        short_text(output, "retina");
-        short_text(output, "pixel-0");
+        acquisition_port_header(output, 0, 0);
+    }
+
+    fn acquisition_port_header(output: &mut Vec<u8>, sense: u8, site: u32) {
+        output.push(sense);
+        push_u32(output, site);
+        short_text(output, if sense == 0 { "retina" } else { "ear" });
+        short_text(output, &format!("pixel-{site}"));
         push_u16(output, 1);
         short_text(output, "receptor");
         short_text(output, "0");
@@ -1839,7 +1913,11 @@ mod tests {
         assert!(Parser::new(&mismatched, 1, 2, 1, 2).parse().is_err());
     }
     fn compact_template_port(output: &mut Vec<u8>) {
-        port_header(output);
+        acquisition_template_port(output, 0, 0);
+    }
+
+    fn acquisition_template_port(output: &mut Vec<u8>, sense: u8, site: u32) {
+        acquisition_port_header(output, sense, site);
         push_u32(output, 2);
         for (time, signal, field) in [(0, 0.0_f64, (1, 1)), (1, 1.0_f64, (3, 2))] {
             rational(output, time, 1);
@@ -1943,17 +2021,17 @@ mod tests {
                 let senses = BTreeSet::from([anatomy.joint_source_ports()[0].sense]);
                 for selected in [None, Some(&senses)] {
                     let encoded = encode_compact_lesson_from_anatomy(
-                        &anatomy, "compact", &clock, &signals, selected,
+                        &anatomy, "compact", &clock, &signals, selected, None,
                     ).unwrap();
                     assert!(compare_compact_to_raw(encoded));
                     let late_refusal = encode_compact_lesson_from_anatomy(
-                        &anatomy, " compact", &clock, &signals, selected,
+                        &anatomy, " compact", &clock, &signals, selected, None,
                     ).unwrap();
                     assert!(!compare_compact_to_raw(late_refusal));
                 }
                 for damage in 0..3 {
                     let mut encoded = encode_compact_lesson_from_anatomy(
-                        &anatomy, "compact", &clock, &signals, None,
+                        &anatomy, "compact", &clock, &signals, None, None,
                     ).unwrap();
                     match damage {
                         0 => { encoded.port_ends.pop(); }
@@ -1970,12 +2048,95 @@ mod tests {
             ).unwrap();
             for end in [1, 2] {
                 let encoded = encode_compact_lesson_from_anatomy(
-                    &anatomy, "passive", &[(0, 1), (end, 1000)], &[0_u8; 16], None,
+                    &anatomy, "passive", &[(0, 1), (end, 1000)], &[0_u8; 16], None, None,
                 ).unwrap();
                 // Changed passive time refuses; load stays v3-incompatible.
                 assert_eq!(compare_compact_to_raw(encoded), !load && end == 1);
             }
         }
+    }
+
+    #[test]
+    fn sparse_retinal_acquisition_preserves_stable_sites_and_joint_groups() {
+        // Four sight sites plus a simultaneous sound site in ONE occurrence.
+        let mut payload = MAGIC.to_vec();
+        push_u16(&mut payload, VERSION);
+        short_text(&mut payload, "acquisition");
+        payload.extend_from_slice(&[0, 0, 1, 1, 1, 1]);
+        push_u32(&mut payload, 5);
+        for site in 0..4 { acquisition_template_port(&mut payload, 0, site); }
+        acquisition_template_port(&mut payload, 1, 0);
+        push_u32(&mut payload, 1);
+        push_u32(&mut payload, 5);
+        for index in 0..5 { push_u32(&mut payload, index); }
+        push_u32(&mut payload, 2);
+        rational(&mut payload, 0, 1);
+        rational(&mut payload, 1, 1);
+        bytes(&mut payload, &[6, 5, 4]);
+        push_u32(&mut payload, 2);
+        push_u32(&mut payload, 4);
+        for index in 0..4 { push_u32(&mut payload, index); }
+        push_u32(&mut payload, 1);
+        push_u32(&mut payload, 4);
+        bytes(&mut payload, &[9, 8, 7]);
+        push_u32(&mut payload, 2);
+        rational(&mut payload, 1, 1);
+        rational(&mut payload, 1, 1);
+        let anatomy = decode_native_joint_source_episode_owned(payload, 5, 10, 1, 2).unwrap();
+        let senses = BTreeSet::from([0, 1]);
+        let clock = [(0, 1), (1, 1)];
+        let signals = [0.0_f64, 0.25, 0.5, 0.75, 1.0, -0.5]
+            .into_iter().flat_map(f64::to_le_bytes).collect::<Vec<_>>();
+        for sites in [BTreeSet::from([0, 2]), BTreeSet::from([1, 3])] {
+            let encoded = encode_compact_lesson_from_anatomy(
+                &anatomy, "partial", &clock, &signals, Some(&senses), Some(&sites),
+            ).unwrap();
+            let raw = encoded.payload.clone();
+            let second_port_start = encoded.port_ends[0];
+            assert!(compare_compact_to_raw(encoded));
+            let admitted = decode_native_joint_source_episode_owned(raw.clone(), 3, 6, 1, 2).unwrap();
+            assert_eq!(admitted.storage.version, RETINAL_SUBSET_VERSION);
+            assert_eq!(admitted.storage.sense_states, anatomy.storage.sense_states);
+            assert_eq!(admitted.storage.occurrences.len(), 1);
+            assert_eq!(admitted.storage.occurrences[0].port_indices, vec![0, 1, 2]);
+            assert_eq!(admitted.storage.occurrences[0].groups, vec![vec![0, 1], vec![2]]);
+            for (port, original) in admitted.storage.ports.iter().zip(
+                anatomy.storage.ports.iter()
+                    .filter(|port| port.sense != 0 || sites.contains(&port.topology_index))
+            ) {
+                assert_eq!(port.sense, original.sense);
+                assert_eq!(port.topology_index, original.topology_index);
+                assert_eq!(port.sensor_id, original.sensor_id);
+                assert_eq!(port.substream_id, original.substream_id);
+                assert_eq!(port.coordinates, original.coordinates);
+                assert_eq!(port.source_times, original.source_times);
+                assert_eq!(port.input_map_profile, original.input_map_profile);
+            }
+            let mut duplicate = raw.clone();
+            duplicate[second_port_start + 1..second_port_start + 5]
+                .copy_from_slice(&sites.first().unwrap().to_le_bytes());
+            assert!(decode_native_joint_source_episode_owned(duplicate, 3, 6, 1, 2).is_err());
+            let mut old_version = raw;
+            old_version[..8].copy_from_slice(MAGIC);
+            old_version[8..10].copy_from_slice(&VERSION.to_le_bytes());
+            assert!(decode_native_joint_source_episode_owned(old_version, 3, 6, 1, 2).is_err());
+        }
+        for sites in [BTreeSet::new(), BTreeSet::from([99])] {
+            assert!(encode_compact_lesson_from_anatomy(
+                &anatomy, "partial", &clock, &signals, Some(&senses), Some(&sites),
+            ).is_err());
+        }
+        assert!(encode_compact_lesson_from_anatomy(
+            &anatomy, "partial", &clock, &signals[..signals.len() - 8],
+            Some(&senses), Some(&BTreeSet::from([0, 2])),
+        ).is_err());
+        // Absence of the new option retains the old source version and dense shape.
+        let dense_signals = vec![0_u8; 5 * 2 * 8];
+        let legacy = compact_lesson_episode_from_anatomy(
+            &anatomy, "dense", &clock, &dense_signals, Some(&senses),
+        ).unwrap();
+        assert_eq!(legacy.storage.version, VERSION);
+        assert_eq!(legacy.storage.ports.len(), 5);
     }
 
 }

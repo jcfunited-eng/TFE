@@ -493,6 +493,53 @@ def settle_native_joint_source_episode_for_senses_from_anatomy(
     return result
 
 
+def settle_native_joint_source_episode_for_retinal_sites_from_anatomy(
+    *,
+    anatomy: object,
+    assembly_id: str,
+    source_times: tuple[Fraction, ...],
+    signal_body: bytes,
+    selected_senses: tuple[PhysicalSense, ...],
+    selected_retinal_sites: tuple[int, ...],
+) -> ImmutableJointSourceEpisode:
+    """Admit actual sparse retinal samples; never renumber or fill omitted sites."""
+
+    if (
+        not isinstance(assembly_id, str)
+        or not assembly_id
+        or assembly_id.strip() != assembly_id
+        or not isinstance(signal_body, bytes)
+        or not signal_body
+        or not isinstance(selected_senses, tuple)
+        or not selected_senses
+        or any(not isinstance(sense, PhysicalSense) for sense in selected_senses)
+        or tuple(sense for sense in SENSE_ORDER if sense in selected_senses) != selected_senses
+        or PhysicalSense.SIGHT not in selected_senses
+        or not isinstance(selected_retinal_sites, tuple)
+        or not selected_retinal_sites
+        or any(type(site) is not int or not 0 <= site < (1 << 32)
+               for site in selected_retinal_sites)
+        or any(left >= right for left, right in
+               zip(selected_retinal_sites, selected_retinal_sites[1:]))
+    ):
+        raise ValueError("sparse retinal source coverage is empty or noncanonical")
+    result = _native_core().settle_native_joint_source_episode_for_retinal_sites_from_anatomy(
+        anatomy,
+        assembly_id,
+        _native_clock(source_times),
+        signal_body,
+        [tuple(SENSE_ORDER).index(sense) for sense in selected_senses],
+        list(selected_retinal_sites),
+    )
+    if (
+        not isinstance(result, ImmutableJointSourceEpisode)
+        or result.schema != "guala.native.exact_joint_source_episode.v7"
+        or result.python_callback_count != 0
+    ):
+        raise RuntimeError("native sparse retinal source lost authority")
+    return result
+
+
 def settle_native_joint_source_episode_batch_from_anatomy(
     *,
     anatomy: object,
@@ -539,4 +586,5 @@ __all__ = (
     "settle_native_joint_source_episode",
     "settle_native_joint_source_episode_batch_from_anatomy",
     "settle_native_joint_source_episode_for_senses_from_anatomy",
+    "settle_native_joint_source_episode_for_retinal_sites_from_anatomy",
 )

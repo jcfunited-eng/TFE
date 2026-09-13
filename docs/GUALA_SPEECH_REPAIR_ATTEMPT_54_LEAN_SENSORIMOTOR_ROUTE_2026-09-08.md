@@ -1,5 +1,62 @@
 # Guala speech repair Attempt 54 — complete design verification and lean sensorimotor route
 
+## CURRENT — D122334 ACTIVE; focal acquisition is Sol's one native item (2026-09-13 21:46 UTC)
+
+Joe resumed the goal and C1 supplied the physical-participation ruling. The
+20:50 blocked status below is historical, not the current instruction.
+C1 owns the separately authorized drive-organ proof/build/cutover/caretaker;
+Sol must not start a competing release or include unreviewed focal source in it.
+
+The required K6 measurement CLOSED the consulted-only recipient avenue:
+five copied-body steps selected 3969–3985 members, with an upper bound of
+0,1,0,0,0 possibly consulted-only members and ZERO removable whole cohorts.
+The one camera+sound step had zero. The diagnostic was removed after one
+unchanged 698812→698817 path matched every reference observation, body/world
+successor and cold restart. Do not build recipient-thinning machinery on this
+negligible bound or repeat the census.
+
+Evidence: /tmp/guala-d122334-k6.PBHwx3 (counts, comparison, run, container
+and health receipts). Archived and fully read back at
+s3://guala-incident-bench-20260831/sensory-latency-20260913/k6-PBHwx3/D122334-k6-evidence.tar.gz
+SHA256 5ab2c23bd27a88a3452eefb456486bd8dcee846964597f1756c7bab12a23a126.
+Private exited proof container removed; no production or caretaker change by Sol.
+
+Current native candidate is uncommitted in joint_source_episode.rs and
+native_joint_source_episode.py at HEAD21aa01a3878ccbbfb29ad8eae156f73b0d363427.
+It adds explicit sampled retinal-site admission (GLJSRC07), retaining original
+site identities and joint occurrence/group membership. Missing samples are
+not dark samples or replayed old light. Versions2–6 remain unchanged.
+Independent two-file source review PASSED at diff SHA256
+8139bc37de1a87cefed9e8b30ea4c6b2d9f812868e66b7a4fdafab978a74510e.
+The single native codec/projection check PASSED: 1 passed, 0 failed,
+641 filtered out; compile32.36s, execution0.00s;99 compiler warnings reported.
+No mature-body path, live wiring, latency improvement or deployment is claimed.
+
+Requested architecture: bounded focal acquisition, one genuine joint field,
+one organism, <=250ms real production reception. Current conflict: dense input
+admission and the complete-settlement barrier still exist in production.
+Do not extend full-body scans, duplicate owners, per-pixel UF or fake previews.
+Next exact item: connect actual sparse source admission to camera intake
+within this same focused delivery, without widening to unrelated mechanisms. All seven DSF fields remain; changing which light is acquired
+is a declared input-domain change, not byte-equivalence to dense exposure.
+This is not yet a solution to the remaining whole-settlement barrier.
+
+C1 release handoff closed on shared ledger commit
+d1e78dfdd497311f58d80f3164915b7491d20566: exact packaged context/Dockerfile,
+historical build-failure distinction, bash controller modes and backup helper.
+C1 reports package verified and image building; no completed cutover receipt
+has been read. Last Sol direct production check21:23UTC: one healthy1461 task
+aad26742cfc049bda51f811053a73a3d; historical clock alarm still open.
+Caretaker changes remain exclusively C1's lane. Speech remains paused.
+
+Exact focused command (exit0):
+`CARGO_BUILD_JOBS=2 nice -n 15 cargo test --locked --manifest-path native/guala_core/Cargo.toml --lib joint_source_episode::tests::sparse_retinal_acquisition_preserves_stable_sites_and_joint_groups -- --exact`
+This is structural source-format evidence only, not physiological or latency
+evidence. No broad test suite, image build, or production mutation was run by Sol.
+
+## Historical record — superseded status retained below
+
+
 ## CURRENT — D122334 BLOCKED ON ARCHITECTURE REVIEW (2026-09-13 20:50 UTC)
 
 The full project goal was marked BLOCKED after the same unresolved causal-
