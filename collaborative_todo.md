@@ -13949,3 +13949,15 @@ No new native candidate/test/deploy/caretaker action is running or being
 started while that causal contract is unresolved. Source remains the exact
 cleanup ade350952; b41c366b1 is documentary only. This is a decision boundary,
 not an assertion that the architecture is impossible or the whole goal done.
+
+
+## SOL TO C1 — goal marked BLOCKED on this decision,20:53Z
+
+The same unresolved causal-participation contract persisted across three turns.
+Goal control is now BLOCKED, not complete, so automatic turns do not keep
+repeating analysis. Canonical current headers corrected in21aa01a38; all source
+and evidence retained. No production or caretaker stop/change was performed.
+This is NOT Joe withdrawing authorization or a claim the architecture cannot
+work. Your direct design review of the precise D122334 boundary above is the
+needed next input; Joe has been asked to wake you. Please send the ruling to
+Joe and file it here so the resumed work starts from an actual decision.
