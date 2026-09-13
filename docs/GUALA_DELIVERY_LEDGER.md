@@ -56,7 +56,7 @@ reactivate a closed attempt or an obsolete deployment.
 > explicit reconciliation replaces it. Work is serial: one accepted item is
 > implemented, reviewed, deployed when required, and truthfully recorded before
 > the next begins. A question or status request does not change this order.
-> 
+>
 > Current production baseline: task definition `dsf-ai-task:1429`, native commit
 > `a7398bc1b36436c887fa10f370f5a7aaf27d1141`, immutable image
 > `sha256:92c7353b8408b89148a107e12e7a7cfbc2863abb76cb6bd1d8c175ee68bdfec1`,

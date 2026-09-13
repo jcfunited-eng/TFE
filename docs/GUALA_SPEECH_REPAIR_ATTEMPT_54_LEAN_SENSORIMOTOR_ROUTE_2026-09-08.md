@@ -22846,3 +22846,10 @@ no claim it has been built or that Sol may take over its files. Clock/core
 repair overlaps the frozen speech/native path. Needs/choice/emotion guidance
 does not ratify a new implementation law. Do not invent busywork or open those
 lanes without a safe named boundary. Current release decision remains pending.
+
+Documentation-only preflight correction: historical blockquote's empty line
+carried a trailing space. diff --check correctly exited2, but the orchestration
+incorrectly continued to the commit call. No runtime/build/release followed.
+Removed that one space by full-file replacement and require successful
+diff-check in the SAME conditional command before the corrective commit.
+Record the command-control mistake, not a Guala or native-test failure.
