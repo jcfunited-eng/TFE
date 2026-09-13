@@ -185,7 +185,7 @@ def test_metabolic_need_is_the_exact_aggregate_reserve_deficit():
         (F(2), F(8), F(3), F(10), F(10), F(4)),
     ))
     # available 9, spent 11 -> deficit 11/20; thermal 4 of material 24 -> load 1/6
-    assert _metabolic_need(runtime) == (F(11, 20), F(4, 24))
+    assert _metabolic_need(runtime) == (F(float(F(11, 20))), F(float(F(4, 24))))  # exact binary64 of the exact aggregate
     empty = SimpleNamespace(observe_recovery_fluid=lambda: ())
     assert _metabolic_need(empty) == (F(0), F(0))
     full = SimpleNamespace(observe_recovery_fluid=lambda: ((F(10), F(0), F(0), F(10), F(10), F(4)),))

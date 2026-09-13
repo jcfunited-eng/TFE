@@ -53,7 +53,12 @@ def _metabolic_need(runtime: Any) -> tuple[Fraction, Fraction]:
     load = thermal / material if material else Fraction(0)
     if not (0 <= deficit <= 1 and 0 <= load <= 1):
         raise RuntimeError("native reserves left their physical bounds")
-    return deficit, load
+    # Every receptor port is transported as binary64 (compact_signal_body), light
+    # included; the exact aggregate is narrowed ONCE to the value the receptor
+    # actually receives, and that exact binary64 value is what is published.
+    # (The unnarrowed sum over thousands of cohorts carries a denominator of
+    # thousands of digits — unpublishable and physically unreachable.)
+    return Fraction(float(deficit)), Fraction(float(load))
 
 
 def _requires_physical_return(evidence: Any) -> bool:
