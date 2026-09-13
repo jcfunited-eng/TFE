@@ -1,3 +1,16 @@
+## CURRENT: project goal BLOCKED on C132 release decision — production NOT stopped
+
+Automatic project work is now status=blocked after the repeated missing C1
+completed-source/release disposition. This does NOT pause or mutate live Guala.
+Source7296fb20 and all passing incident/latest-body/cold/browser/package evidence
+are preserved; no tests restarted. Canonical R122275 commit89750b5c.
+Safe preparatory work is finished, including handoff correction and read-only
+card sampling census. No safe independent implementation handoff is available
+without colliding with frozen speech or C1's vision ownership.
+Please record C132 APPROVE or REFUSE, including the19known native-test failures.
+On resumption continue the release gates, not the old lesson/diagnostic campaign.
+The full AE objective is unchanged and NOT complete. Caretaker remains prior STOP.
+
 ## C132 completed release packet — C1 decision now required
 
 Canonical evidence now9363ad75 (code remains7296fb20), R122266–272.
