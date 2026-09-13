@@ -1,21 +1,28 @@
 # Guala speech repair Attempt 54 — complete design verification and lean sensorimotor route
 
-## Current checkpoint — C132 APPROVED; release resumed
+## Current checkpoint — C132 LIVE; C131 live-feedback witness CLOSED
 
-C1 completed-source/release APPROVE verified on shared origin guala-live
-blob668d27c60dfe9e096499b5efed3f4ee3c86dddf6, 2026-09-13. Missing-decision
-blocker RESOLVED; do not ask again. Product goal flag remains blocked but Joe's
-standing authorization continues this turn; commentary is not a stop instruction.
-01:40UTC preflight: C131 task1459/eb041bb2647a4259b372d504e40a6ac9,
-image708fc271, HEALTHY1/1/0, both public pages HTTP200. C132 NOT deployed.
-Approved source7296fb20 unchanged. Incident/latest-body684548 real bridge,
-guide/feedback/persistence/cold-next PASS, browser/package PASS.
-Native602pass/19knownfail/14ignored remains disclosed, NOT green.
-Single next R122276: immutable image and same real mature-path proof, fresh
-backup, bash controller dry run, ONE zero-writer cutover, live witness/UI.
-C1 rider1: actual removed-mock bridge must pass in mature release evidence.
-Rider2: C131 H122247 live feedback is separate; caretaker STOP until it passes.
-No new learning/physics/DSF/schema/selection or word claim.
+2026-09-13 ONE cutover57601 exit0: task1460/4ffdfe18d4154aa992da37ae5d6bf3cb,
+sourcea77009fb55049964c17b2965054eabae245d6eba, immutable image
+bb72c2aeeaf9ae05d6a63e3096d7206dc7e20857bd816cf790ece1d09743bc15.
+Same identity1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1 restored FINAL686876,
+not the backup or a taught copy. Oldeb041bb2 STOPPEDexit0. Healthy1/1/0.
+
+C132/R122260 acceptance CLOSED LIVE: guide686905 explicitrefusal1 while physical
+settlement continues; feedback consumed686906, durably saved686908.
+Both C1 riders PASSED: real bridge in immutable mature proof and separate
+H122247 actual live compact-feedback witness. Actual live Chromium displayed
+refusaltext, bothpages200, exactHTMLhashes,zeroerrors/nonGETrequests.
+C132 does not deliver words, learnedstrength, locomotion, play or cognition.
+Full DSF/physicalschema unchanged. All closed proofs remain closed.
+
+Existing C1 caretaker source578d4370 resumed01:58:20UTC, solePID98920,
+STOP retained in backup. NO accepted new lesson observed yet. Its queue guard
+actually reads unsaved completed intervals; assessment handed to C1, not changed
+or mislabeled cognitive rest. Do not say it is already teaching.
+Next speech boundary returns to quantitative strength learning from the delivered
+feedback; no new C132 test/rebuild/guide. C1 window/autonomy findings separate.
+Product goal flag still reports blocked, despite authorized work continuing here.
 
 ## Historical C131 cutover checkpoint — before the later live incident
 
@@ -23028,3 +23035,73 @@ Firstarchive raced newly-createdpushlog and tarrefused changingdirectory; kept
 that incompletearchive, then archived once with allwritersfinished (SHAabove).
 Neither was an organism/candidate failure or reason for new tests.
 Next bash tools/deploy_dsf_ai.sh --dry-run SAMEdigest SAMEbackup, then ONEcutover.
+
+### S-054-122-278 — C132 LIVE acceptance; independent H122247 witness CLOSED
+
+Controller dryrun95823 PASS, onecutover57601 exit0. Source796c386e controller
+differs from imagea77009fb ONLY by allowed Attempt54 receipts, not runtimecode.
+Old1459/eb041bb2 STOPPEDexit0 at01:52:03.661UTC; exactshutdown checked before
+newwriter. New1460/4ffdfe18d4154aa992da37ae5d6bf3cb imagebb72c2ae healthy1/1/0.
+Restored actual finalCURRENT686876:
+body166278072B 796d6f0e0e1af7e780619c2fc3eb114f85c5df184a6c8206ead6ea11b82b0dd5,
+world63651B 45218c7c73142ba70a80e16a5dfe0853189d1baf2c486ea68dbcf3eed50deda9.
+Sameidentity, nativeadvanced686886. Never importedbackup/practicebody.
+ControllerlogSHAb672a92c1e3b5af4ad58c615f8d80240bb51269e4fdc00d2f34c4c6f2e09d1ed.
+Production-current tag readback exact. No rebuild, second registration or retry.
+
+UIgualaloom published to verifieddsf-ai-site, no-cache, correctsourcea77009fb;
+CloudFrontE17JT9XGBFU493 invalidationI627E33CKZ0RE45RKWARORAN1K Completed.
+PredecessorHTML retained. Browser caller56a4157e source-reviewPASS,41328exit0:
+real publicGualaHTML8b3f5a99f59fe02ce0f7f4141953ff62ef5375dd6652519fbb6f06acf4bc8e41;
+LoomScan6d33dc09502012e05d24d95e85b3616c9915828b06263a86eabe27374559ef57.
+BOTH200/available, zeroJSerrors, allnonGETHEADrequestsblocked, no browserlesson.
+Live page actually displayed 'Refused: competing starts; other activity continues'
+duringoneguide, not mockeddata. Screenshots retained.
+BrowserlogSHA0178b119ef96702d8eddffce1e6b8d987fe91fb474cd7ad0e354e9fe29363ec3.
+
+Reviewed unchanged concurrentobserverb99407ca and pinnedimportchain PASS beforeuse.
+37418exit0: twoactualquietadvancingpreflightobservations, ONE MAX32guide,
+HTTP200/oneinterval686905/external4000/fourguidedaxes/refusal1/pending686905.
+Exactconsumer686906/refusal0 has compactsource-count join; saved686908 atlive686912.
+52HTTPcalls, ONEguide, ZEROordinaryPOSTs, no retry; no camera/micco-presenter
+observed duringtheboundedcheck. H122247 livecompactconsumptionanddurability PASS.
+Rawlog469569789bf519eb32e859edd12fdea1ef2fba782cb1032feff7f6c84c2520b7.
+No learnedstrength, word, phoneme, recognition or selfdrivenbehavior inferred.
+
+AWSpost01:55:50 samecandidatehealthy1/1/0; resource/refusal/storagealarmsOK,
+historicalclock-stalledALARM persists. Closed C132 not fullperformanceclosure.
+Both inertproofcontainers9dfa337c/1462fcda and ownBuildKit removed AFTER
+completearchive. No copiedbody/backgroundtest remains. Image/evidence retained.
+Live-onlyreceiptarchive (does not duplicatebulkycontext/proof):
+c132-release-vHW5lk-live-receipts.tar.gz
+SHA47132bfd2f13c7049ae0d654d2393e2478bf646c4f2e12b763b30f498c2a7e99,
+under existing /mnt/tfebackup/guala-c118-four-posture.XehvEs/c129-strength-evidence.TnPp0A/.
+
+### S/O-054-122-279 — caretaker resumed under prior concurrence; no learning claim
+
+C1's priorC131approval explicitly permits restart AFTER livefeedbackwitness.
+S122278 satisfies that condition; no new permission or physiologytest.
+Read unchanged actualcaretaker.py completely, clean sourcecommit27aa6772,
+SHA578d437014dfacf7e1e2ee0a7a4c51ee40ad1966634644b71281dffcff0301d0.
+Existing5pairedlessons/A,B,D,E,F,32tickspacing,echo guard,flock,boundedlog.
+No guide/vocalanatomy/stateimport; ordinary card-microphone ingressonly.
+VerifiedZERO caretakerprocesses beforelaunch; moved exact priorSTOP into
+releasebackup (not erased). InitialnohupPID98765 vanished beforestartlog/no
+presentation. Corrected detachment once using setsid/nohup; solePID98920,
+PPID1,started01:58:20UTC,27MiBRSS. No duplicate process, no sourceedit.
+Afterseveralminutes no newacceptedlesson yet: presenter WAITING, not teaching.
+
+Confirmedexternalpresenter boundary issue, handed to C1 (sharedcommit9c2c4bf6):
+gates_clear requirespending_interval_count<=2; lean_actor increments that member
+AFTER completedphysicalsettlement and subtractscapturedcheckpointintervals.
+Atlive686983/persisted686972 count11 is UNSAVEDcompletedwork, not a sensoryqueue
+or attention/rest measure. Do not describe this as cognitionbusy or silently
+change threshold. C1 owns bounded presenter/charterreconciliation; no native
+speechfiles touched or new C132gate.
+
+C1's laterautonomy audit reports oldshell paths formerly supplied walking/eating.
+This is received C1audit evidence, not independentlyclosed bySol or permission
+to resurrectlegacyPythoncognition. His 'regionsonly/noobjects/selfposition'
+pageclaim is source-refuted: currentrenderWorld explicitlydraws objects,
+bodypositions/headings andself_body_id. Lackofmovement may be actualbehavior;
+a betterwindow cannot inventit. Window/nativeautonomylanes remain separatelyscoped.

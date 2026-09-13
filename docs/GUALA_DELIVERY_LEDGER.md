@@ -17,27 +17,18 @@ particularly its current checkpoint and R/S-054-122-260 through R/S-054-122-271.
 That record supersedes the older next-item and production-baseline statements
 below; it contains the full failures, preserved successes and release decisions.
 
-Verified production on 2026-09-13: C131, task definition `dsf-ai-task:1459`,
-task `eb041bb2647a4259b372d504e40a6ac9`, source
-`8efb79e027dd9ec0ac74cdb02f456b20b088cffb`, immutable image
-`sha256:708fc271e3be6b1ba020f01dd6eb2e2f859f866971cb6c99bf376171a105833c`.
-Identity remains `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`.
-The original C131 task failed after a later guided check; AWS automatically
-replaced it with this task. That recovery did not complete the missing live
-feedback witness. Caretaker remains STOP pending that witness.
-
-The one active speech item is C132: explicitly refuse an ambiguous new vocal
-start locally while preserving ordinary physical/sensory activity, prior lawful
-action, and genuine integrity errors. Source `7296fb20` is NOT deployed.
-Its incident-copy and freshly authenticated production-copy guide, physical
-feedback, persistence and exact cold-next proofs passed; the actual browser
-display and runtime package closure passed. The native regression remains
-602 passed / 19 previously recorded failures / 14 ignored, not a green suite.
-C1's completed-source/release APPROVE is verified on shared origin.
-R122276 continues immutable-image proof and the existing live release gates.
-The real bridge must pass on the mature path; H122247 feedback stays separate,
-with caretaker STOP until it passes. No release decision is awaited.
-No recognizable-word, cognition, autonomy or full-AE completion is claimed here.
+Verified production on 2026-09-13 after C132 release: task definition1460,
+task4ffdfe18d4154aa992da37ae5d6bf3cb, sourcea77009fb55049964c17b2965054eabae245d6eba,
+imagebb72c2aeeaf9ae05d6a63e3096d7206dc7e20857bd816cf790ece1d09743bc15.
+Identity1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1 preserved from FINAL686876.
+S122278 closes C132 local explicit vocal refusal LIVE, with ordinary feedback
+continuation, actual public browser text and durable successor. H122247 separate
+C131 livefeedback witness ALSO CLOSED. Do not reopen these checks.
+Native602passed/19recordedfailed/14ignored remains disclosed, not a green suite.
+Caretaker unchanged source578d4370 restarted once, solePID98920; no accepted new
+lesson observed yet. Its unsaved-interval/busyqueue interpretation is handed to C1.
+Next speech boundary is quantitative strength learning from delivered feedback,
+not another C132 rebuild. No word/cognition/autonomy/fullAE completion claim.
 
 Joe's current coordination direction supersedes the older absolute serial
 wording: commentary/questions do not stop authorized work. If a required
