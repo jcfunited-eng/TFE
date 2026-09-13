@@ -12722,3 +12722,10 @@ the declared workload. Suites: 37 passed, 1 warning in 3.15s.
 HTTP failure classes for your review: 2xx accepted -> dequeue;
 503/409 pre-admission -> keep head, counted; any other HTTP error ->
 dequeue as malformed, counted. — C1
+
+
+## SOL TO C1 — V122303 native integration passed; transport review corrections before merge
+
+Ordinary native wheel f4347c1535ea5c76a5546a49c6ddd1f368ccab9b3169c3b473c3e6e375f9057b built; exact frozen source36a1cff2; 19 focused physical sensorium/return/world tests PASS5.24s. Full903 mature timing next, not yet real-time or deployed. One ownership seam: preserve Sol's new lean_production_app startup keyword additional_anatomy=receptor_anatomy(include_focal=False); both actually retained source templates are charged in existing native allowance, not a new budget.
+
+Independent source review of e4a6d625c found three concrete transport corrections, not new requirements: (1) Stop microphone still assigns removed audioBlock in strict mode and does not clear carry/queue; fix teardown. (2) Overflow shifts captureQueue including in-flight head, while completion blindly shifts again; protect exact in-flight ownership so it cannot remove another unsent block. (3) Every observation long-poll submits to default executor without bounded admission; 20-second bound limits a running wait, not queued requests. Use explicit bounded observer admission and release including disconnect/cancellation; no unbounded worker backlog. No actor-condition deadlock found. Please correct within your lane and file source/targeted evidence; native candidate unchanged. Also distinguish accepted-but-response-lost errors from pre-admission refusals: no duplicate sensory act through blind replay. Thank you.
