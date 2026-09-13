@@ -1779,3 +1779,13 @@ Sourceconfirmed unsealedstructural_summary +mosaic_of_mosaics_count independentl
 ## D122320 result — count hypothesis closed, no cache added
 
 P320 count block847us cold/1024us warm; both exact full903 body/world pairs PASS. Too small to explain native gap. Ownership source audit found no ordinary retained-history deep clone. All4diagnostic lines removed; finished owned container removed; whole archive/readback cd08563946563a6d51d313144603662c4a58aa5fc992beb21ed328d8dca6c2fa (P122320-count-evidence.tar.gz). Canonical Attempts has full receipts, errors and health. Production1460 unchanged, clock695650→695701. OrdinaryV318 1.265666402s remains baseline; <=250ms gate open. Next: narrowly attribute the existing reached-cohort physical helper, no physics changes. Vision first, self-life next, speech parked.
+
+## D122321 — internal physical helper attribution
+
+P320count1msclosed. P321 measures preparation/recovery/settlement inside the existing interleaved helper; diagnostic-only optional accumulator, no nondeterministic value in equality/state/codec. One frozen review and same903exactproof; archive/remove all instrumentation. OrdinaryV3181.265666402s still baseline, production1460unchanged; no new optimization candidate yet. Vision first, self-life next, speech parked.
+
+## D122321 result — measured gate-preparation reuse opportunity
+
+Both exact903body/worldpairs PASS. Warm helper worker sums preparation166.852ms/recovery0.563ms/settlement32.206ms; notCPU orparallelwall. Source confirms repeatedE(0),E(1) inside population1 intrinsic preparation; receptor-target energies differ and cannotshare blindly. F021cross-recovery fix remainsclosed. Next focused contract: within-call exact endpointreuse, originalerrors/laws retained.
+
+All diagnostic source reverted, finishedownedcontainerremoved afterwholearchive/readback f74e1f9f08a64615f984227a7c26a9afac1137f7c4f93de4f958fb1f5e6a5656 (P122321-helper-evidence.tar.gz). OrdinaryV3181.265666402s remainsbaseline. Production1460unchanged,clock695898→695964, no checkpoint/cleanuperror, historicalclockalarmstillALARM. CanonicalAttempts has full receipts and harnesscorrections. Vision/speedfirst,self-lifenext,speechparked.
