@@ -351,10 +351,21 @@ def create_lean_production_app(
         waiters = request.app.state.observation_waiters
         if waiters.locked():
             return actor.observation()
-        async with waiters:
-            return await asyncio.to_thread(
-                actor.observation_after, after, OBSERVATION_LONGPOLL_SECONDS
+        # The permit is held until the WORKER finishes, not until the awaiting
+        # coroutine ends: a cancelled or disconnected caller does not free a
+        # permit while its worker still runs, so at most OBSERVATION_WAITERS
+        # real workers ever exist. Released exactly once by the done-callback,
+        # or directly if submission itself fails before a future exists.
+        await waiters.acquire()
+        try:
+            future = asyncio.get_running_loop().run_in_executor(
+                None, actor.observation_after, after, OBSERVATION_LONGPOLL_SECONDS
             )
+        except Exception:
+            waiters.release()
+            raise
+        future.add_done_callback(lambda _done: waiters.release())
+        return await asyncio.shield(future)
 
     @application.post(OCCURRENCE_ROUTE)
     async def occurrence(request: Request) -> dict[str, object]:
