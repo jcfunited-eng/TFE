@@ -17,10 +17,12 @@ use crate::complete_neuron::{
     encode_neuron_physical_state_with_energy, encode_sparse_physical_state_delta,
     expand_legacy_receptor_channel_population, extend_neuron_positional_fabric,
     settle_extended_interval_with_contact_and_prepared_gate, sparse_physical_state_delta,
-    sparse_retained_physical_state_delta, NeuronAnatomyCodecError, NeuronIntervalInput,
+    NeuronAnatomyCodecError, NeuronIntervalInput,
     NeuronPhysicalAnatomy, NeuronPhysicalError, NeuronPhysicalState, NeuronStateCodecError,
     PlasticSupportState, RecoveryLaneAddress, SparsePhysicalStateDelta,
 };
+#[cfg(test)]
+use crate::complete_neuron::sparse_retained_physical_state_delta;
 use crate::declared_geometric_anatomy::{declared_geometric_territory, DeclaredNeuronPlace};
 use crate::elementary_charge_membrane::MembraneCapacitance;
 use crate::elementary_charge_transfer::ChargeCarrierPhase;
@@ -3101,6 +3103,7 @@ impl<'a> ReachedCohortIntervalInput<'a> {
         Ok(indices)
     }
 
+    #[cfg(test)]
     fn resident_gate_work_perturbations(
         &self,
         anatomy: &ReachedCohortAnatomy,
@@ -3112,14 +3115,18 @@ impl<'a> ReachedCohortIntervalInput<'a> {
             .collect())
     }
 
+    /// Resolve source membership once for this input's unchanged anatomy.
+    /// Later consumers retain the same indices, never a replacement anatomy.
     pub(crate) fn resident_gate_work_bits(
-        &self,
+        &mut self,
         anatomy: &ReachedCohortAnatomy,
     ) -> Result<Vec<bool>, ReachedCohortError> {
         let mut bits = vec![false; anatomy.neuron_count()];
-        for (resident_index, perturbed) in self.resident_gate_work_perturbations(anatomy)? {
-            bits[resident_index] |= perturbed;
+        let indices = self.resident_indices(anatomy)?;
+        for (resident_index, input) in indices.iter().copied().zip(self.neurons.iter()) {
+            bits[resident_index] |= !input.gate_work.is_zero();
         }
+        self.resident_indices = Some(indices.into_boxed_slice());
         Ok(bits)
     }
 }
@@ -4402,6 +4409,7 @@ pub(crate) fn settle_reached_cohort_to_quiescence(
     Err(ReachedCohortError::SequenceEndedBeforeQuiescence)
 }
 
+#[cfg(test)]
 pub(crate) fn settle_reached_cohort_experience_to_quiescence(
     anatomy: &ReachedCohortAnatomy,
     predecessor: &RestReachedCohortState,
@@ -4462,6 +4470,7 @@ pub(crate) fn settle_reached_cohort_experience_to_quiescence(
 /// as a new post-quiescence memory. The sequence length is supplied by the
 /// causal occurrence; this function adds no timeout, threshold, or iteration
 /// cap and retains no interval history.
+#[cfg(test)]
 pub(crate) fn settle_reached_cohort_recurrence(
     anatomy: &ReachedCohortAnatomy,
     predecessor: &ReachedCohortState,

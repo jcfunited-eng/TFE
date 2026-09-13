@@ -9457,8 +9457,44 @@ mod tests {
             cohort_cell
         );
         assert!(decode_reached_cohort_cell(&cohort_cell[..cohort_cell.len() - 1]).is_err());
-        let input = ReachedCohortIntervalInput::from_episode(&episode, inputs).unwrap();
-        let settled = settle_reached_cohort_interval(&anatomy, &predecessor, input).unwrap();
+        let foreign_episode = exact_episode();
+        assert!(matches!(
+            ReachedCohortIntervalInput::from_episode(&foreign_episode, inputs.clone()),
+            Err(crate::reached_neuron_cohort::ReachedCohortError::Source(
+                crate::neuron_source_anchor::NeuronSourceAnchorError::EpisodeDoesNotOwnSharedOccurrence
+            ))
+        ));
+        let mut duplicate = ReachedCohortIntervalInput::from_episode(
+            &episode,
+            vec![inputs[0].clone(), inputs[0].clone()],
+        ).unwrap();
+        assert_eq!(
+            duplicate.resident_gate_work_bits(&anatomy).unwrap_err(),
+            crate::reached_neuron_cohort::ReachedCohortError::SourceAnatomyMismatch
+        );
+        assert_eq!(
+            duplicate.resident_indices(&anatomy).unwrap_err(),
+            crate::reached_neuron_cohort::ReachedCohortError::SourceAnatomyMismatch
+        );
+        let mut reordered = inputs.clone();
+        reordered[0].gate_work = GateWorkOccurrence::new(q(-1, 1));
+        reordered.swap(0, 3);
+        let mut reordered =
+            ReachedCohortIntervalInput::from_episode(&episode, reordered).unwrap();
+        assert_eq!(reordered.resident_indices(&anatomy).unwrap(), [3, 1, 2, 0]);
+        assert_eq!(reordered.resident_gate_work_bits(&anatomy).unwrap(), [true, false, false, false]);
+        assert_eq!(reordered.resident_indices(&anatomy).unwrap(), [3, 1, 2, 0]);
+
+        let mut input = ReachedCohortIntervalInput::from_episode(&episode, inputs).unwrap();
+        let unresolved =
+            settle_reached_cohort_interval(&anatomy, &predecessor, input.clone()).unwrap();
+        let indices = input.resident_indices(&restored_anatomy).unwrap();
+        assert_eq!(input.resident_gate_work_bits(&restored_anatomy).unwrap(), [false; 4]);
+        assert_eq!(input.resident_indices(&restored_anatomy).unwrap(), indices);
+        assert_eq!(input.resident_gate_work_bits(&restored_anatomy).unwrap(), [false; 4]);
+        let settled =
+            settle_reached_cohort_interval(&restored_anatomy, &restored_predecessor, input).unwrap();
+        assert_eq!(settled, unresolved);
         assert_eq!(settled.successor.neurons().len(), 4);
         assert_eq!(anatomy.source_sites().count(), 4);
     }

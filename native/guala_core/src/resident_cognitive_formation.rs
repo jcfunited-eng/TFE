@@ -9305,15 +9305,18 @@ impl ResidentCognitiveFormationState {
                                             &reached_source_sites[*coordinate_index],
                                         )
                                         .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
-                                    Ok(vec![
-                                        0;
-                                        cohort.anatomy.neuron_anatomies()[resident_index]
-                                            .recovery_anatomy()
-                                            .psi_lane_count()
-                                    ]
-                                    .into_boxed_slice())
+                                    Ok((
+                                        resident_index,
+                                        vec![
+                                            0;
+                                            cohort.anatomy.neuron_anatomies()[resident_index]
+                                                .recovery_anatomy()
+                                                .psi_lane_count()
+                                        ]
+                                        .into_boxed_slice(),
+                                    ))
                                 })
-                                .collect::<Result<Vec<Box<[u128]>>, FormationError>>()?;
+                                .collect::<Result<Vec<(usize, Box<[u128]>)>, FormationError>>()?;
                             let field_gate_interval = shared
                                 .result()
                                 .gates
@@ -9365,10 +9368,9 @@ impl ResidentCognitiveFormationState {
                                     field_gate_index,
                                 )
                                 .map_err(FormationError::JointFieldUnavailable)?;
-                                let resident_index = cohort
-                                    .anatomy
-                                    .source_site_member(&reached_source_sites[coordinate_index])
-                                    .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
+                                // The catalyst preparation resolved this coordinate
+                                // against the same unchanged mounted anatomy.
+                                let resident_index = catalysts[reached_input_index].0;
                                 let (gate_work, interval_microseconds, receptor_successor_residue) =
                                     if let Some(ingress) = vestibular {
                                         if coordinate_index != 0 {
@@ -9824,7 +9826,7 @@ impl ResidentCognitiveFormationState {
                                     gate_work,
                                     interval_microseconds,
                                     recovery: RecoveryContact::new(
-                                        &catalysts[reached_input_index],
+                                        &catalysts[reached_input_index].1,
                                         0,
                                         0,
                                     ),
@@ -9833,7 +9835,7 @@ impl ResidentCognitiveFormationState {
                                     prepared_psi,
                                 });
                             }
-                            let input = ReachedCohortIntervalInput::from_episode(source, inputs)
+                            let mut input = ReachedCohortIntervalInput::from_episode(source, inputs)
                                 .map_err(FormationError::PhysicalSettlementUnavailable)?;
                             let gate_work_perturbed_neurons = input
                                 .resident_gate_work_bits(&cohort.anatomy)
