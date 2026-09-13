@@ -1854,3 +1854,13 @@ P326closed82591bf4f locates458.593msinternalcontact. P327 diagnostic-only fixedc
 Both903exactbody/worldpairsPASS. Warmcontactboundary485.955ms: schedule1.490,pumps/selection67.000,compact7.153,solve57.278,conductance/permission85.047,field/apply/afferents/Psi71.487,parallel124.353,evidence15.411,final56.736. No single200msblock;P319finalizationfindingconfirmed. Instrumentedwarm1.094072snotordinaryauthority;V3251.071777s/250msgateunchanged.
 
 Wholearchive/readback642ea0ac9a131c0b3e589ccd592225133313be6af9551d89c924bc93e9acb4c9,P122327-contact-evidence.tar.gz. All31diagnosticlinesremoved/finishedcontainerremoved. Production1460/135sitesunchanged,clock697653→697676,nodurabilityerrors,historicalclockALARMpersists. Nextsinglemeasured-sectioncleanup: exactresolvedbridgereuse, ownedtransitionconsumption, removeunreadsuccessorcontainerswithoriginalwidthrefusalpreserved. Priorartsourcefindingconfirmed,fullcontractbeforecode. Visionfirst,self-lifenext,speechparked.
+
+## D122328 — remove repeated contact representation
+
+P327closed0cb4bddf9. One resident_cognitive_formation correction: usealreadyresolvedexactbridge membership, consumeownedtransitions insteadofcloning, remove2unreadsuccessorcontainermaterializationswithfirstoriginalwidthrefusalpreserved. No law/state/schema/permission/DSFchange. Fullcanonicalcontractbeforecode; independentfrozenreview,1existingroutefixture,1ordinary903exactpairproof. No claimall85msremovable. Production1460unchanged,whole250msgateopen. Visionfirst,self-lifenext,speechparked.
+
+## D122328 result — cleanup retained, latency gate still open
+
+One existing route test PASS, ordinary wheel, both exact903 body/world successors PASS. Cold0.980073166s; warm1.068305423s versusV325warm1.071776968s: only3.471545ms (~0.324%) observed difference, NOT meaningful speed evidence. Peak2765440KiB; noOOM. Code removes duplicate route resolution, transition clones and two unread containers, with original refusal and authority preserved. No new tests/diagnostics/state/laws.
+
+Complete archive/readback b586fac0968acd18cdcba9669cf070c9ef3d9232f01455cb8b00830c8e000f36, V122328-contact-evidence.tar.gz; finished container removed. Production1460/135sites unchanged; public697991→698015; no durability errors; matching CPU/RAM recorded, historical clock ALARM persists. Next source-only assessment of measured source/receptor stage192.567ms; not a new unmeasured candidate. Vision+speed first, self-life next, speech parked. Whole250ms release bar remains unmet.

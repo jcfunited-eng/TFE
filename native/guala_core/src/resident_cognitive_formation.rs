@@ -21529,13 +21529,12 @@ fn settle_internal_contact_interval_with_body_act(
             }
         }
     }
-    let mut contact_successors = Vec::with_capacity(settled.transitions.len());
     let mut contact_transitions = Vec::with_capacity(settled.transitions.len());
     for ((contact, transition), (left_flat, right_flat)) in compact_anatomy
         .contact_anatomies()
         .iter()
         .copied()
-        .zip(settled.transitions.iter().cloned())
+        .zip(settled.transitions.into_vec().into_iter())
         .zip(compact_edge_flat_endpoints.iter().copied())
     {
         let left_lineage = flat_locations[left_flat].2;
@@ -21555,12 +21554,15 @@ fn settle_internal_contact_interval_with_body_act(
         let transition =
             settle_contact_local_conductance(contact, transition, left_direction, right_direction)
                 .map_err(FormationError::ResidentElectricalUnavailable)?;
-        contact_successors.push(transition.successor.clone());
         contact_transitions.push(transition);
     }
-    settled.successor_contacts =
-        SparseElectricalState::from_contact_states(&compact_anatomy, contact_successors)
-            .map_err(FormationError::ResidentElectricalUnavailable)?;
+    // The transition stream is the downstream authority. Preserve the
+    // discarded container's width refusal without materializing its unread copy.
+    if contact_transitions.len() != compact_anatomy.contact_anatomies().len() {
+        return Err(FormationError::ResidentElectricalUnavailable(
+            crate::sparse_electrical_contact::SparseElectricalError::AnatomyStateWidth,
+        ));
+    }
     settled.transitions = contact_transitions.into_boxed_slice();
     // Conservation across sleeping spans: the caught-up conduction heat of
     // each span joins this clock's settled transition for that contact —
@@ -21596,31 +21598,21 @@ fn settle_internal_contact_interval_with_body_act(
             } else {
                 (right_flat, left_flat)
             };
-            let (motor_cohort, motor_neuron, motor_lineage) = flat_locations[motor_flat];
+            let (motor_cohort, motor_neuron, _) = flat_locations[motor_flat];
             let ordering_lineage = flat_locations[ordering_flat].2;
             let motor_is_vocal = cohorts[motor_cohort].anatomy.mounts()[motor_neuron]
                 .body_effector_terminal()
                 .is_some_and(|terminal| terminal.axis().is_vocal_articulator());
-            let coordinated_vocal_bridge = if motor_is_vocal {
-                let motor_bond = compact_bonds[position];
-                let mut matching_routes =
-                    vocal_cognitive_action_route_for_motor(cohorts, topology_index, motor_lineage)?
-                        .into_iter()
-                        .filter(|route| {
-                            route.preparation.ordering_lineage == ordering_lineage
-                                && route.learned_bond == motor_bond
-                        })
-                        .collect::<Vec<_>>();
-                matching_routes.sort_unstable();
-                matching_routes.dedup();
-                match matching_routes.as_slice() {
-                    [_] => true,
-                    [] => false,
-                    _ => return Err(FormationError::NeuronLineageAuthorityChanged),
-                }
-            } else {
-                false
-            };
+            // Mounted anatomy has not changed since the first resolver.
+            // Its sorted exact bridge already carries the ambiguity check.
+            let coordinated_vocal_bridge = motor_is_vocal
+                && coordinated_vocal_bridges
+                    .binary_search_by(|bridge| {
+                        bridge.0.cmp(&ordering_flat)
+                            .then(bridge.1.cmp(&motor_flat))
+                            .then(bridge.2.cmp(&compact_bonds[position]))
+                    })
+                    .is_ok();
             if !coordinated_vocal_bridge
                 || !permitted_vocal_ordering_work.contains(&ordering_lineage)
                 || !permitted_vocal_motor_bonds.contains(&compact_bonds[position])
@@ -21659,15 +21651,6 @@ fn settle_internal_contact_interval_with_body_act(
                 learned_conductance,
             ));
         }
-        settled.successor_contacts = SparseElectricalState::from_contact_states(
-            &compact_anatomy,
-            settled
-                .transitions
-                .iter()
-                .map(|transition| transition.successor.clone())
-                .collect::<Vec<_>>(),
-        )
-        .map_err(FormationError::ResidentElectricalUnavailable)?;
         ordering_motor_bridges.sort_by(|left, right| {
             left.0
                 .cmp(&right.0)
