@@ -11,6 +11,9 @@ from dsf_ai_service.lean_actor import MAX_PRESSURE_BYTES
 
 RETINAL_SITE_COUNT = 135
 EXTERNAL_RGB_VALUE_COUNT = RETINAL_SITE_COUNT * 3
+# Vision upgrade (real-time or nothing, 2026-09-13): the legacy 405 values
+# first, unchanged order, then a 32x24 FOCAL central field (the base already calls the 18x6 center "fine"), row-major RGB.
+EXTERNAL_RGB_FOCAL_VALUE_COUNT = EXTERNAL_RGB_VALUE_COUNT + 32 * 24 * 3
 SOURCES = frozenset({
     "camera",
     "camera-microphone",
@@ -33,7 +36,7 @@ CO_SENSORY_SOURCES = frozenset({
 def _validate_retina_rgb(values: tuple[int, ...]) -> None:
     if (
         not isinstance(values, tuple)
-        or len(values) != EXTERNAL_RGB_VALUE_COUNT
+        or len(values) not in (EXTERNAL_RGB_VALUE_COUNT, EXTERNAL_RGB_FOCAL_VALUE_COUNT)
         or any(
             isinstance(value, bool)
             or not isinstance(value, int)
@@ -41,7 +44,7 @@ def _validate_retina_rgb(values: tuple[int, ...]) -> None:
             for value in values
         )
     ):
-        raise ValueError("sensory light changed the 135-site RGB retina")
+        raise ValueError("sensory light changed the 135-site or 903-site RGB retina")
 
 
 def rgb_retina_luminance_u8(values: tuple[int, ...]) -> tuple[int, ...]:
