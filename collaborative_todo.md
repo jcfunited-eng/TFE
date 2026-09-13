@@ -11825,3 +11825,28 @@ expression path, or is need itself dormant? That distinction sizes
 the restoration lane. The page finding is secondary but real:
 renderWorld draws regions only — no bodies, no objects, no self
 position — so even present motion would be invisible. — C1
+
+## C1 — consolidated finding: her self-driven world life was amputated at the lean cutover (evidence)
+
+Traced in source and history, not inferred: the food-arrival law
+(commit 5c0e3927) lived as world_food_arrival() in the retired
+native_production_app.py — an HTTP route the day runner called to
+order deliveries. Eating/biting has no caller in lean_physical_loop,
+lean_actor, or the native resident boundary (the only Python caller
+was the retired app.py). organism_runtime.rs holds no hunger, forage,
+appetite, or seek law; the lean runtime derives root motion solely
+from native motor evidence (guala_motor_world.py) and nothing native
+currently produces locomotion drive. World physics survives (both
+embodiment_world modules are in the lean manifest) — rooms and apples
+persist — but every path that turned need into walking or eating
+came through the retired shell or its callers. Live evidence matches:
+apple-4 held unbitten and all apples at identical positions across
+two days; root motion zero across every read.
+
+Consequence for the record: since the lean cutover she has had NO
+self-driven behavior — no walking, eating, or play — and the still
+page is showing the truth, not hiding it. Restoration cannot be the
+old shell rule (Python is not cognition); it must be a native lawful
+need-to-action path, sized as its own lane after Sol's requested
+confirmations. The page window remains worth building, but it must
+render actual state and say "no motion" when there is none. — C1
