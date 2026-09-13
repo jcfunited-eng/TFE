@@ -6701,24 +6701,37 @@ fn passive_membrane_return_strictly_descends(
     .potential_millivolts(anatomy.capacitance)
     .map_err(MembraneConductanceError::from)
     .map_err(GateSettlementError::from)?;
-    let predecessor_potential = rational_to_exact(predecessor_potential);
-    let successor_potential = rational_to_exact(successor_potential);
-    let capacitor_delta = rational_to_exact(anatomy.capacitance.picofarads())
-        * (successor_potential.clone() * successor_potential
-            - predecessor_potential.clone() * predecessor_potential)
-        * BigInt::from(500_u16);
-
     let reversal = anatomy.gate.reversal_potential_millivolts;
     let reversal_sign = reversal.parts().0.signum();
     let gradient_carrier_delta = reversal_sign
         .checked_mul(outward_elementary_charge)
         .ok_or(GateSettlementError::ArithmeticWidth)?;
-    let gradient_delta = BigRational::new(
-        BigInt::from(801_088_317_u32),
-        BigInt::from(5_000_000_000_u64),
-    ) * rational_to_exact(reversal.checked_abs()?)
-        * BigInt::from(gradient_carrier_delta);
-    Ok(capacitor_delta + gradient_delta < BigRational::zero())
+    let reversal_magnitude = reversal.checked_abs()?;
+
+    // Only the sign is consumed. Clear the positive common denominator
+    // instead of normalizing intermediate rational squares and products.
+    // C=c/d, V_before=p/r, V_after=s/t, |E_rev|=a/b and carrier delta=g:
+    // sign(delta_work) =
+    // sign(500*c*(s^2*r^2-p^2*t^2)*5_000_000_000*b
+    //      +801_088_317*a*g*d*t^2*r^2).
+    // All checked physical quantities above retain their original error order.
+    let (c, d) = anatomy.capacitance.picofarads().parts();
+    let (p, r) = predecessor_potential.parts();
+    let (s, t) = successor_potential.parts();
+    let (a, b) = reversal_magnitude.parts();
+    let p = BigInt::from(p);
+    let s = BigInt::from(s);
+    let r = BigInt::from(r);
+    let t = BigInt::from(t);
+    let r_squared = &r * &r;
+    let t_squared = &t * &t;
+    let capacitor_numerator = BigInt::from(500_u16) * BigInt::from(c)
+        * (&s * &s * &r_squared - &p * &p * &t_squared)
+        * BigInt::from(5_000_000_000_u64) * BigInt::from(b);
+    let gradient_numerator = BigInt::from(801_088_317_u32) * BigInt::from(a)
+        * BigInt::from(gradient_carrier_delta) * BigInt::from(d)
+        * t_squared * r_squared;
+    Ok((capacitor_numerator + gradient_numerator).is_negative())
 }
 
 /// Settle one due passive membrane return: exactly one whole elementary
@@ -8124,6 +8137,47 @@ mod tests {
 
     #[test]
     fn passive_return_direct_delta_matches_materialized_successor_work() {
+        fn reference_delta(
+            anatomy: &NeuronPhysicalAnatomy,
+            predecessor: &NeuronPhysicalState,
+            outward_elementary_charge: i128,
+        ) -> Result<bool, NeuronPhysicalError> {
+            let predecessor_membrane = predecessor.membrane.membrane();
+            let predecessor_displacement = predecessor_membrane.separated_elementary_charges();
+            let successor_displacement = predecessor_displacement
+                .checked_sub(outward_elementary_charge)
+                .ok_or(GateSettlementError::ArithmeticWidth)?;
+            let predecessor_potential = predecessor_membrane
+                .potential_millivolts(anatomy.capacitance)
+                .map_err(MembraneConductanceError::from)
+                .map_err(GateSettlementError::from)?;
+            let successor_potential = ElementaryChargeMembraneState::from_physical_parts(
+                successor_displacement,
+                predecessor_membrane.carrier_phase(),
+            )
+            .potential_millivolts(anatomy.capacitance)
+            .map_err(MembraneConductanceError::from)
+            .map_err(GateSettlementError::from)?;
+            let predecessor_potential = rational_to_exact(predecessor_potential);
+            let successor_potential = rational_to_exact(successor_potential);
+            let capacitor_delta = rational_to_exact(anatomy.capacitance.picofarads())
+                * (successor_potential.clone() * successor_potential
+                    - predecessor_potential.clone() * predecessor_potential)
+                * BigInt::from(500_u16);
+
+            let reversal = anatomy.gate.reversal_potential_millivolts;
+            let reversal_sign = reversal.parts().0.signum();
+            let gradient_carrier_delta = reversal_sign
+                .checked_mul(outward_elementary_charge)
+                .ok_or(GateSettlementError::ArithmeticWidth)?;
+            let gradient_delta = BigRational::new(
+                BigInt::from(801_088_317_u32),
+                BigInt::from(5_000_000_000_u64),
+            ) * rational_to_exact(reversal.checked_abs()?)
+                * BigInt::from(gradient_carrier_delta);
+            Ok(capacitor_delta + gradient_delta < BigRational::zero())
+        }
+
         let fixture = physical_fixture();
         for displacement in -64_i128..=64 {
             if displacement == 0 {
@@ -8155,6 +8209,29 @@ mod tests {
                 expected,
                 "direct delta disagreed at displacement {displacement}",
             );
+        }
+
+        // Compare the original exact-rational sign expression, including
+        // checked refusals, over unequal anatomy and representational edges.
+        for capacitance in [r(1, 1), r(2, 3), r(5, 7), r(1, u128::MAX)] {
+            let mut anatomy = fixture.anatomy.clone();
+            anatomy.capacitance = MembraneCapacitance::new(capacitance).unwrap();
+            for reversal in [r(0, 1), r(2, 3), r(-2, 3),
+                ExactRational::integer(i128::MIN)] {
+                Arc::make_mut(&mut anatomy.shared).gate.reversal_potential_millivolts = reversal;
+                for displacement in [i128::MIN, -64, -1, 0, 1, 64, i128::MAX] {
+                    let mut state = fixture.state.clone();
+                    state.membrane = LocalMembraneConductanceState::genesis(displacement);
+                    for outward in [-1, 0, 1] {
+                        assert_eq!(
+                            passive_membrane_return_strictly_descends(
+                                &anatomy, &state, outward),
+                            reference_delta(&anatomy, &state, outward),
+                            "sign/error differs: C={capacitance:?}, E={reversal:?}, q={displacement}, outward={outward}",
+                        );
+                    }
+                }
+            }
         }
 
         let mut depleted_positive = fixture.state.clone();

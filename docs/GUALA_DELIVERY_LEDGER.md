@@ -1740,3 +1740,13 @@ One focusedall903test and two exactbody/worldsuccessorsPASS. Warm1.437515s vs1.4
 ### D122316 — exact scheduling-work deletion retained; not live yet
 
 V316 preservesfull903exactbody/worldsuccessors669740/669741, cold1.412346s,warm1.359556s vsV3151.437515swarm. Observed77.959mswarmgain; native1.006433s. FocusedexistingtestPASS; archivefullreadbackfc3a8992d794423699b1a9592787aa83b1c2e7d5df78bd9ba2581cc9d921c4ed. Actualsettlementlimit retained; only redundantstandingmaximumremoved. Production1460unchanged,250msstillunmet. Nextboundednativearithmetic sourceassessment; no newcandidatewithoutcausaljustification. Visionfirst,selflifenext,speechparked; no completion ordecisionblocker.
+
+
+## D122317 — exact passive-return sign arithmetic, vision continues
+
+V316 locally closed: warm1.359556s and exact669740/669741body/world. Production1460unchanged. Next single native cut removes transient rational normalization from a sign-only passive-return comparison, same checked failures and strict energy law. Independent source assessment supports algebra; speed unmeasured. Contract in canonicalAttempt54 before code, one existing test and same2interval903 proof. No speech, selflife or other mechanism mixed in; <=250ms unchanged.
+
+
+## D122317 result — exact local saving, not a release
+
+Full903 warm1.286105778s/cold1.253596628s, exactboth669740/669741body/world; ordinarynative19f80bb04. OnefocusedtestPASS after recordedtest-onlyimmutablefixturecompilecorrection. Archive streamedreadback3d81fab94d96b7b3008af156683d696e18df5ed63958387ef8e2a5044fa6f1aa, V122317-passive-evidence.tar.gz. Production1460unchanged,liveclock694814→694917. Next boundedcontract is actual-endpoint returned-work difference, not altered recovery law; no nextcandidatecodeyet. Full903<=250msopen,selflifenext,speechparked.
