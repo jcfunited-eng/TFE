@@ -21,8 +21,8 @@ from dsf_ai_service.substrate.w1_coupled_material_sensory_physics import (
 )
 from dsf_ai_service.substrate.w1_physical_receptors import (
     OPTICAL_BANDS,
-    RETINA_TOTAL_RECEPTOR_COUNT,
-    physical_receptor_substreams,
+    physical_contact_substreams,
+    retinal_irradiance_field,
 )
 
 
@@ -128,30 +128,18 @@ def prepare_passive_body_interval(
     )
 
 
-def _retinal_endpoints(
-    streams: tuple[Any, ...],
-) -> tuple[tuple[Fraction, ...], tuple[Fraction, ...]]:
-    totals = (
-        [Fraction(0)] * RETINA_TOTAL_RECEPTOR_COUNT,
-        [Fraction(0)] * RETINA_TOTAL_RECEPTOR_COUNT,
-    )
-    counts = [0] * RETINA_TOTAL_RECEPTOR_COUNT
-    for stream in streams:
-        cell = stream.topology_index // OPTICAL_BANDS
-        if 0 <= cell < RETINA_TOTAL_RECEPTOR_COUNT:
-            if len(stream.normalized_signal) != 2:
-                raise RuntimeError("world retinal endpoint count changed")
-            for endpoint, value in zip(totals, stream.normalized_signal, strict=True):
-                endpoint[cell] += Fraction(value).limit_denominator(1_000_000)
-            counts[cell] += 1
-    if any(count != OPTICAL_BANDS for count in counts):
-        raise RuntimeError("world lost the six-band retinal field")
+RetinalField = tuple[tuple[Fraction, ...], ...]
+
+
+def _retinal_luminance(pixels: RetinalField) -> tuple[Fraction, ...]:
+    """Preserve the existing achromatic boundary's exact conversion order."""
+
     return tuple(
-        tuple(
-            total[index] / counts[index]
-            for index in range(RETINA_TOTAL_RECEPTOR_COUNT)
-        )
-        for total in totals
+        sum(
+            (Fraction(float(band)).limit_denominator(1_000_000) for band in pixel),
+            Fraction(0),
+        ) / OPTICAL_BANDS
+        for pixel in pixels
     )
 
 
@@ -159,22 +147,18 @@ def passive_receptor_capture(
     *,
     snapshot: Any,
     body_axes: tuple[Any, ...],
-) -> tuple[dict[PhysicalSense, tuple[Any, ...]], Fraction]:
-    """Render W1 physical receptors once for one passive world snapshot."""
+) -> tuple[RetinalField, dict[PhysicalSense, tuple[Any, ...]], Fraction]:
+    """Render one immutable snapshot once, retaining all six optical bands."""
 
     heading, transmission = retinal_carriage(body_axes)
-    return (
-        physical_receptor_substreams(
-            snapshot,
-            snapshot,
-            causal_transition=False,
-            before_retinal_heading_offset_millidegrees=heading,
-            after_retinal_heading_offset_millidegrees=heading,
-            source_time_start=Fraction(0),
-            source_time_end=Fraction(1, 4),
-        ),
-        transmission,
+    pixels = retinal_irradiance_field(
+        snapshot, retinal_heading_offset_millidegrees=heading,
     )
+    physical = physical_contact_substreams(
+        snapshot, snapshot, causal_transition=False,
+        source_time_start=Fraction(0), source_time_end=Fraction(1, 4),
+    )
+    return pixels, physical, transmission
 
 
 def _palmar_endpoints(streams: tuple[Any, ...]) -> tuple[Fraction, Fraction]:
@@ -263,17 +247,17 @@ def passive_sensorium(
     frame_count: int,
     pending_execution: ActionExecutionReceipt | None = None,
     receptor_capture: tuple[
-        dict[PhysicalSense, tuple[Any, ...]], Fraction
+        RetinalField, dict[PhysicalSense, tuple[Any, ...]], Fraction
     ] | None = None,
 ) -> PhysicalSensorium:
     """Sample one current world/body state into every mounted receptor."""
 
-    physical, transmission = (
+    pixels, physical, transmission = (
         passive_receptor_capture(snapshot=snapshot, body_axes=body_axes)
         if receptor_capture is None
         else receptor_capture
     )
-    retina = tuple(value * transmission for value in _retinal_endpoints(physical[PhysicalSense.SIGHT])[1])
+    retina = tuple(value * transmission for value in _retinal_luminance(pixels))
     palmar = _palmar_endpoints(physical[PhysicalSense.TOUCH])[1]
     chemicals = material_receptor_substreams(
         world_authority=world,
@@ -335,25 +319,24 @@ def body_consequence_receptor_capture(
     predecessor_body_axes: tuple[Any, ...],
     successor_body_axes: tuple[Any, ...],
 ) -> tuple[
-    dict[PhysicalSense, tuple[Any, ...]], Fraction, Fraction
+    RetinalField, RetinalField, dict[PhysicalSense, tuple[Any, ...]], Fraction, Fraction
 ]:
-    """Render W1 receptors once across one exact body/world consequence."""
+    """Render the exact before/after fields across one body/world consequence."""
 
     action_end = Fraction(BODY_INTERVAL_MICROSECONDS, 1_000_000)
-    before_heading, before_transmission = retinal_carriage(
-        predecessor_body_axes
-    )
+    before_heading, before_transmission = retinal_carriage(predecessor_body_axes)
     after_heading, after_transmission = retinal_carriage(successor_body_axes)
-    physical = physical_receptor_substreams(
-        execution.before,
-        execution.after,
-        causal_transition=True,
-        before_retinal_heading_offset_millidegrees=before_heading,
-        after_retinal_heading_offset_millidegrees=after_heading,
-        source_time_start=Fraction(0),
-        source_time_end=action_end,
+    before_pixels = retinal_irradiance_field(
+        execution.before, retinal_heading_offset_millidegrees=before_heading,
     )
-    return physical, before_transmission, after_transmission
+    after_pixels = retinal_irradiance_field(
+        execution.after, retinal_heading_offset_millidegrees=after_heading,
+    )
+    physical = physical_contact_substreams(
+        execution.before, execution.after, causal_transition=True,
+        source_time_start=Fraction(0), source_time_end=action_end,
+    )
+    return before_pixels, after_pixels, physical, before_transmission, after_transmission
 
 
 def passive_body_consequence_sensorium(
@@ -364,13 +347,13 @@ def passive_body_consequence_sensorium(
     successor_body_axes: tuple[Any, ...],
     source_times: tuple[Fraction, ...],
     receptor_capture: tuple[
-        dict[PhysicalSense, tuple[Any, ...]], Fraction, Fraction
+        RetinalField, RetinalField, dict[PhysicalSense, tuple[Any, ...]], Fraction, Fraction
     ] | None = None,
 ) -> PhysicalSensorium:
     """Build the exact world/body consequence of one passive 1 ms return."""
 
     action_end = Fraction(BODY_INTERVAL_MICROSECONDS, 1_000_000)
-    physical, before_transmission, after_transmission = (
+    before_pixels, after_pixels, physical, before_transmission, after_transmission = (
         body_consequence_receptor_capture(
             execution=execution,
             predecessor_body_axes=predecessor_body_axes,
@@ -379,7 +362,8 @@ def passive_body_consequence_sensorium(
         if receptor_capture is None
         else receptor_capture
     )
-    before_retina, after_retina = _retinal_endpoints(physical[PhysicalSense.SIGHT])
+    before_retina = _retinal_luminance(before_pixels)
+    after_retina = _retinal_luminance(after_pixels)
     before_palmar, after_palmar = _palmar_endpoints(physical[PhysicalSense.TOUCH])
     chemicals = material_receptor_substreams(
         world_authority=world,

@@ -16156,6 +16156,9 @@ fn exact_reached_cross_sensory_original_bonds(
             }
         }
     }
+    // One immutable call-local source walk per reached integration. Shared hubs
+    // retain their own bonds; only repeated reading of the same anatomy is removed.
+    let mut source_bonds_by_integration = BTreeMap::<usize, Vec<StablePhysicalBondReference>>::new();
     let mut components = Vec::new();
     for association in candidate_associations {
         if topology.layer_of(association) != Some(7) {
@@ -16182,31 +16185,39 @@ fn exact_reached_cross_sensory_original_bonds(
             }
             if !causal.contains(&contact.stable_bond) { continue; }
             bonds.insert(contact.stable_bond);
-            for source_contact_index in topology.incident_contacts_by_flat[integration_flat]
-                .iter()
-                .copied()
-            {
-                let source_contact = topology.contacts[source_contact_index];
-                if !matches!(source_contact.origin, ResidentContactOrigin::Fabric { .. })
-                    || !causal.contains(&source_contact.stable_bond)
-                {
-                    continue;
+            let source_bonds = match source_bonds_by_integration.entry(integration_flat) {
+                std::collections::btree_map::Entry::Occupied(entry) => entry.into_mut(),
+                std::collections::btree_map::Entry::Vacant(entry) => {
+                    let mut source_bonds = Vec::new();
+                    for source_contact_index in topology.incident_contacts_by_flat[integration_flat]
+                        .iter()
+                        .copied()
+                    {
+                        let source_contact = topology.contacts[source_contact_index];
+                        if !matches!(source_contact.origin, ResidentContactOrigin::Fabric { .. })
+                            || !causal.contains(&source_contact.stable_bond)
+                        {
+                            continue;
+                        }
+                        let source_flat = if source_contact.left == integration_flat {
+                            source_contact.right
+                        } else {
+                            source_contact.left
+                        };
+                        let (cohort_index, neuron_index, source) = topology.flat_locations[source_flat];
+                        let mount = cohorts
+                            .get(cohort_index)
+                            .and_then(|cohort| cohort.anatomy.mounts().get(neuron_index))
+                            .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
+                        if mount.source_site().is_some() && matches!(topology.layer_of(source), Some(0..=5))
+                        {
+                            source_bonds.push(source_contact.stable_bond);
+                        }
+                    }
+                    entry.insert(source_bonds)
                 }
-                let source_flat = if source_contact.left == integration_flat {
-                    source_contact.right
-                } else {
-                    source_contact.left
-                };
-                let (cohort_index, neuron_index, source) = topology.flat_locations[source_flat];
-                let mount = cohorts
-                    .get(cohort_index)
-                    .and_then(|cohort| cohort.anatomy.mounts().get(neuron_index))
-                    .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
-                if mount.source_site().is_some() && matches!(topology.layer_of(source), Some(0..=5))
-                {
-                    bonds.insert(source_contact.stable_bond);
-                }
-            }
+            };
+            bonds.extend(source_bonds.iter().copied());
         }
         if !bonds.is_empty() {
             let bonds = bonds.into_iter().collect::<Vec<_>>();

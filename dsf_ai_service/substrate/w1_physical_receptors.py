@@ -851,6 +851,27 @@ def _retinal_projection(
     return tuple(pixels)
 
 
+def retinal_irradiance_field(
+    observation: ObservationSnapshot,
+    *,
+    retinal_heading_offset_millidegrees: int = 0,
+) -> tuple[tuple[Fraction, ...], ...]:
+    """The bounded six-band optical field, without temporary signal objects."""
+
+    pixels = _retinal_projection(
+        observation,
+        retinal_heading_offset_millidegrees=retinal_heading_offset_millidegrees,
+    )
+    if len(pixels) != RETINA_TOTAL_RECEPTOR_COUNT:
+        raise RuntimeError("world retinal field changed mounted site count")
+    for pixel in pixels:
+        if len(pixel) != OPTICAL_BANDS:
+            raise RuntimeError("world lost the six-band retinal field")
+        for value in pixel:
+            _bounded_fraction(value, "physical receptor signal")
+    return pixels
+
+
 def _retinal_substreams(
     before: ObservationSnapshot,
     after: ObservationSnapshot,
@@ -860,13 +881,13 @@ def _retinal_substreams(
     source_time_start: Fraction = Fraction(0),
     source_time_end: Fraction = Fraction(1),
 ) -> tuple[NativeSensorySubstreamInput, ...]:
-    before_pixels = _retinal_projection(
+    before_pixels = retinal_irradiance_field(
         before,
         retinal_heading_offset_millidegrees=(
             before_retinal_heading_offset_millidegrees
         ),
     )
-    after_pixels = _retinal_projection(
+    after_pixels = retinal_irradiance_field(
         after,
         retinal_heading_offset_millidegrees=(
             after_retinal_heading_offset_millidegrees
@@ -1046,6 +1067,36 @@ def _physical_substreams(
     return observed
 
 
+
+def physical_contact_substreams(
+    before: ObservationSnapshot,
+    after: ObservationSnapshot,
+    *,
+    causal_transition: bool,
+    source_time_start: Fraction,
+    source_time_end: Fraction,
+) -> dict[PhysicalSense, tuple[NativeSensorySubstreamInput, ...]]:
+    """Shared touch/body construction; the caller owns world authentication."""
+
+    if not isinstance(causal_transition, bool):
+        raise ValueError("physical receptor causal-transition flag must be boolean")
+    if source_time_end <= source_time_start:
+        raise ValueError("physical receptor interval must be positive")
+    observed = {
+        PhysicalSense.TOUCH: _touch_substreams(
+            before, after,
+            source_time_start=source_time_start,
+            source_time_end=source_time_end,
+        ),
+    }
+    if causal_transition:
+        observed[PhysicalSense.BODY] = _body_substreams_for_snapshots(
+            before, after,
+            source_time_start=source_time_start,
+            source_time_end=source_time_end,
+        )
+    return observed
+
 def physical_receptor_substreams(
     before: ObservationSnapshot,
     after: ObservationSnapshot,
@@ -1066,31 +1117,17 @@ def physical_receptor_substreams(
         raise ValueError("physical receptor causal-transition flag must be boolean")
     observed = {
         PhysicalSense.SIGHT: _retinal_substreams(
-            before,
-            after,
-            before_retinal_heading_offset_millidegrees=(
-                before_retinal_heading_offset_millidegrees
-            ),
-            after_retinal_heading_offset_millidegrees=(
-                after_retinal_heading_offset_millidegrees
-            ),
-            source_time_start=source_time_start,
-            source_time_end=source_time_end,
-        ),
-        PhysicalSense.TOUCH: _touch_substreams(
-            before,
-            after,
+            before, after,
+            before_retinal_heading_offset_millidegrees=before_retinal_heading_offset_millidegrees,
+            after_retinal_heading_offset_millidegrees=after_retinal_heading_offset_millidegrees,
             source_time_start=source_time_start,
             source_time_end=source_time_end,
         ),
     }
-    if causal_transition:
-        observed[PhysicalSense.BODY] = _body_substreams_for_snapshots(
-            before,
-            after,
-            source_time_start=source_time_start,
-            source_time_end=source_time_end,
-        )
+    observed.update(physical_contact_substreams(
+        before, after, causal_transition=causal_transition,
+        source_time_start=source_time_start, source_time_end=source_time_end,
+    ))
     return observed
 
 
