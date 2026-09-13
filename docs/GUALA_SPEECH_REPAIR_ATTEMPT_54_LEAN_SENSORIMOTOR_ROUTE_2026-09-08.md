@@ -1,23 +1,20 @@
 # Guala speech repair Attempt 54 — complete design verification and lean sensorimotor route
 
-## CURRENT — PROJECT PAUSED; P122332 LIVE-CYCLE DIAGNOSIS ONLY
+## CURRENT — P122333: PRIORITY HYPOTHESIS REFUTED; NO LATENCY FIX RELEASED
 
-Joe explicitly retains the project pause and authorizes only figuring out the
-reported3.3s production cycle. No implementation, deployment, sensory teaching,
-caretaker restart, vision redesign, self-life or speech work is authorized by
-this diagnostic instruction. D122331 remains live on1461 at its disclosed
-non-real-time quality; its release is not reopened and250ms is not achieved.
+The 903-site native release remains task1461. C1's later page timing update is
+live at commit6ca6842c; his caretaker restart is recorded in the shared ledger.
+The broad product goal is still paused. This pass performed source assessment
+only. No runtime/UI code, native physics, production state, or caretaker change.
 
-P122332 records read-only live thread/cycle attribution:11 complete intervals
-averaged3.406428s; approximately1.927542s actor-running/worker-waiting,
-1.328282s actor-waiting/worker-running and0.150604s both-waiting by25ms
-sampling. These are execution phases, NOT native-function timings.
-The250ms post-compute unattended wait is explicit in source. No-checkpoint
-cycles remain slow. Production and benchmark CPU hardware differ.
-The exact native/Python function split and hardware contribution remain
-unmeasured; do not promote a sampled execution breakdown into a fully
-isolated root-cause or promised speedup. Full receipts/limits are appended
-in P122332. Wait for Joe's next direction after this report.
+The suggested queued-input-before-unattended rule already exists in _run;
+adding it again cannot remove a cycle. The new latest-camera-slot proposal was
+parked unimplemented: it leaves cycle cost intact and its Stop/disconnect
+lifecycle is unresolved. P122332's live mean3.406428s remains the measured
+baseline, with native-versus-Python function attribution still unavailable.
+P122333 records the exact source findings, reviewer agreement, limits, and one
+recommended next item: seek approval for exposing existing live phase counters.
+No 250ms claim, scheduler rewrite, new queue, speech or self-life resumption.
 
 ## HISTORICAL — D122331 VISION LIVE ON1461
 
@@ -25239,3 +25236,91 @@ Service remains1461 desired/running/pending1/1/0. No application/native/UI/
 caretaker files or state were changed. Only these diagnostic ledger entries
 are updated. Function-level timing remains explicitly unavailable under the
 read-only boundary; no further measurement or correction starts automatically.
+
+## P122333 — proposed priority fix refuted; camera-slot alternative not selected
+
+2026-09-13. Joe's latest message: "So now it is your turn to wow me", with
+C1's 16:50/16:55 page/caretaker receipts. Root initially treated this as
+authority for a focused latency repair, not broad speech/self-life resumption.
+The product goal remains paused. No runtime/UI source, production state,
+caretaker, task, or configuration was changed in this pass.
+
+Requested architecture: simultaneous exact senses with actual receptor response
+within the ratified 250ms production budget. Current code: one actor executes
+and publishes complete physical intervals. Conflict: YES, measured latency.
+Not extended: native physics, cognition, whole-body scheduler, source codecs,
+ordered lessons, legacy shell, caretaker, and new camera-ownership machinery.
+Full joint DSF remains untouched; no reduced field or lost field structure.
+This advances source assessment only, not a latency acceptance or deployment.
+P122332's cycle measurements remain valid at their stated evidence level;
+D122331 remains the disclosed non-real-time 903-site production release.
+
+### Decisive source correction
+lean_actor.py::_run calls Queue.get(timeout=wait) before choosing unattended
+settlement. Even timeout=0 retrieves an already waiting message. Only Empty
+permits unattended work. Therefore C1's proposed "when a sensory occurrence
+is waiting, do not start an unattended cycle first" is ALREADY IMPLEMENTED.
+Adding that priority check again cannot supply the claimed one-cycle saving.
+A frame arriving after unattended settlement begins must wait; that is a
+non-preemptible interval boundary, not an inverted mailbox priority.
+
+Independent source reviewer /root/memory_probe_review confirmed this without
+edits, tests or body runs. No priority candidate was built or deployed.
+
+### Alternative considered and parked before coding
+One replaceable, unadmitted current camera-plus-sound unit could reduce frame
+age at the next boundary. Existing ordered lesson/media/guide events would
+remain ordered and every admitted camera unit would use the same full physical
+settlement. This is a DIFFERENT freshness mechanism, not a reduction of the
+measured 3.406428s cycle and not proof of 250ms receptor latency.
+
+Main and reviewer rejected beginning implementation in this pass:
+a fast POST acknowledgement plus DELETE-on-Stop does not establish cancellation
+after an ambiguous network result. DELETE can precede a delayed POST, allowing
+unadmitted camera input to appear after Stop. A browser awaiting fetch does not
+supply bounded remote cancellation. Do not add leases, registries, hidden retry,
+or cognitive queues to conceal this unresolved lifecycle. No code exists from
+this proposal. It is parked, not ratified, deployed, or a solved mechanism.
+The normal ordered mailbox and whole physical interval remain unchanged.
+
+### Current page and cloud verification
+Read-only public GET matched C1's committed gualaloom.html at
+6ca6842c14a153c08bf275796f6c613c1ad7d6e4 byte-for-byte as decoded UTF-8.
+C1 changed only that page and tests/test_lean_observation_ui.py in that commit;
+root did not cherry-pick or republish it in this pass. Preserve it in the next
+release lineage; do not restore the image's older page over the live bucket.
+ECS describe-services still reports dsf-ai-task:1461, desired/running/pending
+1/1/0. This is service state, not a fresh CPU/memory soak or a latency result.
+
+Additional source correction to C1's screenshot reading:
+gualaloom.html::refresh sets transport.display = Date.now()-t0 around the GET
+observation long-poll. Its displayed "delivery round-trip" measures waiting for
+the next observation plus request/response overhead; it is NOT a stopwatch
+around the sensory POST or native settlement. The picture/sound age fields use
+their capture-to-POST-response times. Do not infer an exact server phase split
+or claim all 6478ms is native computation from that one screenshot.
+No live label change by root; C1 informed via this shared receipt.
+
+### Single next recommendation and limits
+Do not start a whole-body scheduler/physics redesign under the banner of a
+missing priority check. Do not claim the 3x hardware/software split is closed:
+P122332 explicitly leaves native versus Python live phase attribution unknown.
+The narrow next recommended item is a separately scoped live timing exposure
+using the ALREADY EXISTING RUNTIME_PHASE_WALL_MS native-advance and Python-
+validation counters. It would distinguish those costs on the actual task,
+without a new profiler, replay campaign, sensory stimulus or physics change.
+An implementation/release contract and approval are still needed before that
+production change. The counters alone do not name every native function or
+prove a speed fix. No release, speedup, 250ms closure or broader goal resumption
+is claimed. Report this limitation and request the one scoped timing release.
+
+### Process corrections
+A canonical-routes reference was initially sought under guala-project-truth;
+rg --files resolved its actual develop-guala-organism path and it was read.
+Several combined tool outputs exceeded the direct response budget; selected
+missing source spans were reread rather than treated as inspected. A commit
+metadata response was accidentally printed with its full diff; subsequent
+checks use bounded git show --stat. No failed build/test/body run occurred.
+No probe process, new test harness, diagnostic binary or temporary source was
+created. Preserve the source-only refusal instead of rediscovering this false
+priority diagnosis in another candidate.

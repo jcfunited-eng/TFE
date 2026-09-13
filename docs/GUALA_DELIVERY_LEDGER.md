@@ -5,18 +5,21 @@ Item IDs are permanent. A checked box means the stated behavior is deployed and
 observed in live production, not merely coded or tested. `IN PROGRESS` means the
 box remains unchecked until live acceptance passes.
 
-## CURRENT — P122332: project paused; live-cycle diagnosis only
+## CURRENT — P122333: PRIORITY HYPOTHESIS REFUTED; NO LATENCY FIX RELEASED
 
-Joe: "I will lift the pause after you figure out the 3.3 cycle - and only that."
-The prior automatic self-life/vision/speech next-work directions below are
-historical. No implementation, deployment, live teaching or caretaker restart.
-D122331 actual903 release remains on1461; quality and250ms target not accepted.
-P122332 canonical Attempt54 appendix records the read-only live execution
-breakdown and its limits:11 full cycles mean3.406428s; sampled serial phase
-1.927542s, joined worker phase1.328282s, both-waiting0.150604s.
-Exact live native-versus-Python function timing and hardware contribution
-remain unmeasured. No physics or runtime source was changed. Only findings
-and the explicit pause are recorded; report to Joe before any further work.
+The 903-site native release remains task1461. C1's later page timing update is
+live at commit6ca6842c; his caretaker restart is recorded in the shared ledger.
+The broad product goal is still paused. This pass performed source assessment
+only. No runtime/UI code, native physics, production state, or caretaker change.
+
+The suggested queued-input-before-unattended rule already exists in _run;
+adding it again cannot remove a cycle. The new latest-camera-slot proposal was
+parked unimplemented: it leaves cycle cost intact and its Stop/disconnect
+lifecycle is unresolved. P122332's live mean3.406428s remains the measured
+baseline, with native-versus-Python function attribution still unavailable.
+P122333 records the exact source findings, reviewer agreement, limits, and one
+recommended next item: seek approval for exposing existing live phase counters.
+No 250ms claim, scheduler rewrite, new queue, speech or self-life resumption.
 
 ## RATIFIED — D122300: REAL-TIME OR NOTHING; SPEED AND VISION TOGETHER
 
