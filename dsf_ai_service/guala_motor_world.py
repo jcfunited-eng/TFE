@@ -110,10 +110,14 @@ def _active_grips(evidence: Any) -> tuple[tuple[str, ...], tuple[str, ...]]:
     return _axis_closures(evidence, ("left_grip_aperture", "right_grip_aperture"))
 
 
-def _jaw_closing(evidence: Any) -> bool:
-    """The jaw discharged toward closed this interval: the bite's motor fact."""
-    closing, _opening = _axis_closures(evidence, ("jaw_opening",))
-    return bool(closing)
+def _jaw_acted(evidence: Any) -> bool:
+    """The jaw discharged this interval, in either direction: the bite's motor
+    fact. jaw_opening rests closed (minimum = neutral = 0) and returns shut on
+    its own within the interval, so the act of biting a held object is the jaw
+    opening onto it and the mouth closing back; a separate closing discharge
+    never exists at the interval boundary."""
+    closing, opening = _axis_closures(evidence, ("jaw_opening",))
+    return bool(closing or opening)
 
 
 def _oral_intake_zeptojoules(execution: ActionExecutionReceipt) -> int:
@@ -209,8 +213,8 @@ def prepare_motor_consequence(
         )
         port_id = PORT_ID
         requested_action = "move"
-    elif _jaw_closing(evidence) and before_body.held_object_id is not None:
-        # THE BITE: the jaw closed on the object in hand. The world decides
+    elif _jaw_acted(evidence) and before_body.held_object_id is not None:
+        # THE BITE: the jaw acted on the object in hand. The world decides
         # whether a mouthful comes off (oral contact physics), what the tongue
         # tastes, and how much matter left the apple; nothing here decides.
         command = OralContactCommand(before_body.held_object_id, BODY_INTERVAL_MICROSECONDS)
