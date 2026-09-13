@@ -554,23 +554,22 @@ def test_cancelled_observer_permit_is_held_until_its_worker_finishes(
     monkeypatch.setattr(module, "OBSERVATION_LONGPOLL_SECONDS", 0.8)
     actor = _actor(tmp_path)  # lifespan starts and closes the actor
     application = create_lean_production_app(lambda: actor)
-    if True:
-        async def scenario() -> tuple[int, int]:
-            transport = httpx.ASGITransport(app=application)
-            # ASGITransport does not run lifespan; run it so the actor is mounted.
-            async with application.router.lifespan_context(application), httpx.AsyncClient(
-                transport=transport, base_url="http://guala"
-            ) as client:
-                with pytest.raises(asyncio.TimeoutError):
-                    await asyncio.wait_for(
-                        client.get(OBSERVATION_ROUTE, params={"after": 10**9}), 0.2
-                    )
-                waiters = application.state.observation_waiters
-                held_during_worker = waiters._value  # type: ignore[attr-defined]
-                await asyncio.sleep(1.2)
-                after_worker = waiters._value  # type: ignore[attr-defined]
-                return held_during_worker, after_worker
+    async def scenario() -> tuple[int, int]:
+        transport = httpx.ASGITransport(app=application)
+        # ASGITransport does not run lifespan; run it so the actor is mounted.
+        async with application.router.lifespan_context(application), httpx.AsyncClient(
+            transport=transport, base_url="http://guala"
+        ) as client:
+            with pytest.raises(asyncio.TimeoutError):
+                await asyncio.wait_for(
+                    client.get(OBSERVATION_ROUTE, params={"after": 10**9}), 0.2
+                )
+            waiters = application.state.observation_waiters
+            held_during_worker = waiters._value  # type: ignore[attr-defined]
+            await asyncio.sleep(1.2)
+            after_worker = waiters._value  # type: ignore[attr-defined]
+            return held_during_worker, after_worker
 
-        held, released = asyncio.run(scenario())
-        assert held == module.OBSERVATION_WAITERS - 1
-        assert released == module.OBSERVATION_WAITERS
+    held, released = asyncio.run(scenario())
+    assert held == module.OBSERVATION_WAITERS - 1
+    assert released == module.OBSERVATION_WAITERS

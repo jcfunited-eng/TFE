@@ -348,10 +348,7 @@ def create_lean_production_app(
         # immediately (same shape, no wait) instead of queued worker backlog.
         # The permit is released when the wait ends — on delivery, at the
         # bound, or after a disconnected caller's wait expires — never leaked.
-        state = request.app.state
-        if not hasattr(state, "observation_waiters"):
-            state.observation_waiters = asyncio.Semaphore(OBSERVATION_WAITERS)
-        waiters = state.observation_waiters
+        waiters = request.app.state.observation_waiters
         if waiters.locked():
             return actor.observation()
         # The permit is held until the WORKER finishes, not until the awaiting
