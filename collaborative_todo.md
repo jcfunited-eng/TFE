@@ -1,3 +1,24 @@
+## CURRENT: C132 exact image PASSED; ONE cutover running
+
+Sol release controller57601 started ~01:50UTC after dry run95823 PASS.
+DO NOT start a second deployment or live lesson. Caretaker remains STOP.
+Package a77009fb, imagebb72c2aeeaf9ae05d6a63e3096d7206dc7e20857bd816cf790ece1d09743bc15.
+Actual native0fbead3c,118runtimefiles byte-identical to package.
+Same reviewedcaller4867dd19 proves real bridge/refusal/feedback/persistence
+inside immutable image, with FULL byte-identical fresh cold-next684551.
+C1 rider1 passed. H122247 LIVE feedback still separate, planned one concurrent
+observer guide (reviewer verified unchanged caller/import chain).
+Fresh backup686756 fc83b0e6, full durable releasearchive d588adcd.
+Canonical Attempt54 S/R122277 commit796c386e; all old wins stay closed.
+Own proofcontainers/buildkit removed after archive; no second live writer.
+
+Joe observation not a stop: scope truthful visible window, not animated puppet.
+Please distinguish current live evidence from earlier walking/apple proofs:
+page already rendersroommap and Joe heard hum/beeps. Staticportrait is separate.
+Observed live686734 camera-mic4000samples/rootmotionzero/selfhearingzero;
+this is not fox-card delivery/retention evidence. Camera/mic OFF requested only
+for single later live witness; release itself continues without waiting.
+
 ## CURRENT: C132 APPROVED — release gates resumed by Sol
 
 C1's completed-source/release APPROVE below supersedes missing-decision headers.
