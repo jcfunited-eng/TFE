@@ -1,19 +1,24 @@
 # Guala speech repair Attempt 54 — complete design verification and lean sensorimotor route
 
-## CURRENT — D122334: FULL SENSORY-LATENCY REPAIR RECOMMENDED
+## CURRENT — D122334 IN PROGRESS: FULL SENSORY-LATENCY REPAIR AUTHORIZED
 
-Joe explicitly challenges the timing-only recommendation and brings back the
-full agreed direction: local causally due sensory work, preserved detailed
-current camera surface, organism-aimed sharp center/coarse surround, and
-independently timed sight/hearing. Sol recommends that complete work package;
-measurements belong inside it, not as a substitute deliverable.
-This turn is architecture discussion/proposal, NOT a completed implementation
-contract, production change, physics ratification or broader goal resumption.
-The product goal remains paused; speech/self-life stay parked.
-P122333's queued-priority correction stays closed as already present.
-Current native baseline remains the disclosed non-real-time903 release on1461;
-C1's6ca6842c page stays the latest independently checked live HTML.
-No250ms or cognition/recognition claim. See D122334 appended assessment.
+Joe: "So what are you waiting for" after the complete barrier-removal/foveated-
+eye/independent-senses proposal. Sol begins this scoped work NOW; no further
+start approval required. The product-wide goal control still reads paused,
+but it is not a blocker to this explicit turn authorization. Speech and
+self-life remain parked. Do not regress this item to "awaiting Joe" merely
+because the earlier timing-only proposal or project-wide pause was recorded.
+Target: actual native sight/hearing delivery within250ms in production,
+including noisy/full-change load, with exact causal continuity and cold restart.
+Requested complete local work, current whole-interval delivery barrier:
+conflictYES. Full joint DSF unchanged; no lost fields, learned state, identity,
+coupled physical laws, or sensory relationships. No new cognitive owner.
+Next exact item: freeze the dependency-complete native barrier-removal contract
+using existing physical due scheduling and local clocks, then implement/review.
+The implementation is not yet frozen or built; no250ms/deployment claim.
+P122333 priority finding remains closed. D122331 non-real-time903 release on1461
+remains live; C1's exact6ca6842c HTML/tests are now integrated as804b993a6.
+See appended D122334 authorization and source map.
 
 ## HISTORICAL — D122331 VISION LIVE ON1461
 
@@ -25384,3 +25389,100 @@ Skills influenced this recommendation by preserving joint DSF and distinguishing
 local physical work, shared causal history, source clocks, current environment
 bytes, and irreversible learned state. No new profiler, test run, body copy,
 helper process, API change, deployment, or caretaker action in this assessment.
+
+### D122334 authorization and first source map — 2026-09-13
+
+Joe's "So what are you waiting for" explicitly authorizes beginning the full
+focused repair. No extra start decision is pending. The goal tool's broad
+paused status does not cancel this user instruction or authorize reopening
+speech/self-life. OwnerSol for native; C1 coordinates external surface/transport.
+No tuning-only release substituted for the package.
+
+Fresh AWS describe-services:1461,desired/running/pending1/1/0. No writes.
+Current source54282b28c before integration. C1's live6ca6842c page/tests merged
+as804b993a6; full two-file diff versusC1 is empty. Initial cherry-pick found
+context conflict in page because Sol had already carried the disclosure text.
+Read complete HEAD-vsC1 diff; resolved via full-file replacement to the exact
+already-serving C1 page, not a guessed line merge. No unrelated edits existed.
+No native build, test, live input, deployment, or caretaker restart occurred.
+
+Main source map:
+lean_actor._run -> LeanPhysicalLoop._advance -> passive world or pending body
+return -> full or sense-projected PhysicalSensorium -> native source with
+original clock/roster/full joint UF -> runtime.advance_coexisting... ->
+ResidentCognitiveFormationState.prepare_typed_admitted_transition_from_owned ->
+local receptor settlement -> internal contact/formation settlement -> articulated
+body/acoustic consequence -> native unsealed-state installation -> Python world
+commit/return -> actor publication/checkpoint. The present API accepts and
+publishes only after that entire chain, not after receptor work.
+
+Independent source-only map (no edits/tests):
+CarrierCrossingSchedule already has earliest_due/drain_due_at/reschedule.
+PhysicalEventProgress already retains settled-event clock, bond integration
+clock, neuron recovery phase/clock. Schedule heap is derived on cold restore.
+Current internal schedule already selects a sparse due/incident frontier.
+It is NOT a resumable whole transition. The physical step is1000us and is
+distinct from250ms external source duration and organism generation.
+
+Dependencies the new contract must preserve:
+shared-endpoint electrical currents use one predecessor and a joint finite-
+carrier/component-energy solve; cohort recovery consumes one evolving shared
+reservoir in existing order; sleeping-contact catch-up uses held pre-change
+endpoints through the current clock, new drive applies nextclock. Existing
+finalization refuses missed whole-carrier crossings. Arbitrary neuron-order
+execution is not equivalent, even if deterministic.
+Runtime installs the new living state only after cognition/body/acoustic
+completion; existing local clocks do not encode unfinished source delivery,
+fluid recovery, or body consequence construction. Do not publish a provisional
+receptor candidate as a committed sensory successor.
+
+Source anchors:
+causal_event_scheduler.rs38–280; physical_event_progress.rs150–160,295–390;
+resident_cognitive_formation.rs19465–19667,20360–20517,10753;
+sparse_electrical_contact.rs1045,1201,2441;
+reached_neuron_cohort.rs4214–4325;
+physical_event_finalization.rs239–244,299,407;
+organism_runtime.rs3583–3697,3895–4185.
+Main must finish the exact dependency/frontier/commit map before native edits.
+This is active implementation preparation, not a new request to stop or a
+claim that existing scheduling by itself closes latency.
+
+### D122334 dependency review and C1 coordination — 2026-09-13
+
+Source contract/map filed in GUALA_D122334_SENSORY_EXECUTION_CONTRACT_2026-09-13.md.
+No scheduler candidate, native compilation, new test or deployment yet.
+Existing cohorts provide independent CALCULATION after immutable inputs exist;
+they do not provide an independently committable sensory transaction. In-cohort
+fluid is shared; different cohorts own separate reservoirs. Correct the initial
+broad mosaic implication: source Reinforces validates an index; recurrence
+creates no new organism mosaic. Later growth/formation still follows ingress.
+
+The active internal UF adds a dependency beyond electrical connectivity:
+core21954 evaluates one joint_uf_v1_4 over all selected pre/post membrane
+coordinates BEFORE contact_components; boundary248–253 returns the same gate's
+DSF to each perspective; core22160+ shares its exact MathLoom/Psi preparation.
+Different electrical components can therefore influence the same shared field.
+Per-component UF would change the occurrence domain, joint bounds and geometry,
+not merely parallelize it. No such change is ratified or implemented. The older
+joint_field_l0_l4.rs was inspected as a search result but is NOT the active path
+used for this finding; active v1_4 and actual callers/consumers were read.
+
+Independent source review and main reads agree: a resumable pause can retain
+pending work but cannot itself admit a new source against unfinished predecessor
+or report provisional receptors as accepted. No existing-fields partial-source
+cold boundary is established. A valid design must address sustained arrivals,
+not an early first frame followed by backlog. This narrows the exact contract;
+it does not reopen the source-proven absence of a queue-priority bug.
+
+Joe relayed C1's three-item parallel proposal. Sent immediate correction in
+shared ledger commitf6bdc3b93648ff0b5d39cbc12ea152ae98240967: DROP item1 before
+code/tests because priority already exists at lean_actor322–358. C1's surface
+contract and truthful page are useful; no guessed native API, source identity,
+new cognitive owner or premature transport deployment. Earlier active-scope
+notice is shared commitdaa23f9411302844b5b0b53fedf473cd01f02efa.
+
+One read-only search used unmatched probe globs and returned exit2/no output;
+corrected by rg --files before source selection. No command compiled or ran
+an organism, and no new harness/helper was created. Existing review agent
+completed source-only checks. Native mechanism remains unchanged. C1's already
+live6ca6842c page/test integration is preserved as804b993a6.

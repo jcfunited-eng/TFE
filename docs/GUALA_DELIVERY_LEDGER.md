@@ -5,20 +5,25 @@ Item IDs are permanent. A checked box means the stated behavior is deployed and
 observed in live production, not merely coded or tested. `IN PROGRESS` means the
 box remains unchecked until live acceptance passes.
 
-## CURRENT — D122334: FULL SENSORY-LATENCY REPAIR RECOMMENDED
+## CURRENT — D122334 IN PROGRESS: FULL SENSORY-LATENCY REPAIR AUTHORIZED
 
-Joe explicitly challenges the timing-only recommendation and brings back the
-full agreed direction: local causally due sensory work, preserved detailed
-current camera surface, organism-aimed sharp center/coarse surround, and
-independently timed sight/hearing. Sol recommends that complete work package;
-measurements belong inside it, not as a substitute deliverable.
-This turn is architecture discussion/proposal, NOT a completed implementation
-contract, production change, physics ratification or broader goal resumption.
-The product goal remains paused; speech/self-life stay parked.
-P122333's queued-priority correction stays closed as already present.
-Current native baseline remains the disclosed non-real-time903 release on1461;
-C1's6ca6842c page stays the latest independently checked live HTML.
-No250ms or cognition/recognition claim. See D122334 appended assessment.
+Joe: "So what are you waiting for" after the complete barrier-removal/foveated-
+eye/independent-senses proposal. Sol begins this scoped work NOW; no further
+start approval required. The product-wide goal control still reads paused,
+but it is not a blocker to this explicit turn authorization. Speech and
+self-life remain parked. Do not regress this item to "awaiting Joe" merely
+because the earlier timing-only proposal or project-wide pause was recorded.
+Target: actual native sight/hearing delivery within250ms in production,
+including noisy/full-change load, with exact causal continuity and cold restart.
+Requested complete local work, current whole-interval delivery barrier:
+conflictYES. Full joint DSF unchanged; no lost fields, learned state, identity,
+coupled physical laws, or sensory relationships. No new cognitive owner.
+Next exact item: freeze the dependency-complete native barrier-removal contract
+using existing physical due scheduling and local clocks, then implement/review.
+The implementation is not yet frozen or built; no250ms/deployment claim.
+P122333 priority finding remains closed. D122331 non-real-time903 release on1461
+remains live; C1's exact6ca6842c HTML/tests are now integrated as804b993a6.
+See appended D122334 authorization and source map.
 
 ## RATIFIED — D122300: REAL-TIME OR NOTHING; SPEED AND VISION TOGETHER
 
