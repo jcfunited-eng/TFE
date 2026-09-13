@@ -39,6 +39,11 @@ const ROOT_YAW_MAGIC: &[u8; 8] = b"GLJSRC05";
 const ROOT_YAW_VERSION: u16 = 5;
 const ROOT_TRANSLATION_MAGIC: &[u8; 8] = b"GLJSRC06";
 const ROOT_TRANSLATION_VERSION: u16 = 6;
+/// Metabolic-need interoception (drive organ stage 2): a distinct body-sense
+/// organ at its own declared places, like the root endings, carrying the
+/// organism's own reserve deficit and thermal load each interval.
+pub(crate) const INTEROCEPTIVE_MAGIC: &[u8; 8] = b"GLJSRC08";
+pub(crate) const INTEROCEPTIVE_VERSION: u16 = 8;
 const SENSE_COUNT: usize = 6;
 
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
@@ -126,6 +131,7 @@ impl NativeJointSourceEpisode {
     #[getter]
     fn schema(&self) -> &'static str {
         match self.storage.version {
+            INTEROCEPTIVE_VERSION => "guala.native.exact_joint_source_episode.v8",
             ROOT_TRANSLATION_VERSION => "guala.native.exact_joint_source_episode.v6",
             ROOT_YAW_VERSION => "guala.native.exact_joint_source_episode.v5",
             BODY_LOAD_VERSION => "guala.native.exact_joint_source_episode.v4",
@@ -825,7 +831,8 @@ impl<'a> Parser<'a> {
             || (magic == BODY_LOAD_MAGIC && version == BODY_LOAD_VERSION)
             || (magic == ROOT_YAW_MAGIC && version == ROOT_YAW_VERSION)
             || (magic == ROOT_TRANSLATION_MAGIC
-                && version == ROOT_TRANSLATION_VERSION))
+                && version == ROOT_TRANSLATION_VERSION)
+            || (magic == INTEROCEPTIVE_MAGIC && version == INTEROCEPTIVE_VERSION))
         {
             return Err("unsupported joint-source episode version".into());
         }
@@ -952,6 +959,7 @@ impl<'a> Parser<'a> {
                     | BODY_LOAD_VERSION
                     | ROOT_YAW_VERSION
                     | ROOT_TRANSLATION_VERSION
+                    | INTEROCEPTIVE_VERSION
             )
                 && sense == 5)
                 && topology_indices[sense]

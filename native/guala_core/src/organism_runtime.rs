@@ -40,6 +40,7 @@ use crate::physical_mosaic::StablePhysicalBondReference;
 use crate::reached_neuron_cohort::ReachedCohortEnergyState;
 use crate::reached_vestibular_bundle_path::settle_reached_vestibular_bundle_tick;
 use crate::root_yaw_joint_source_builder::admit_root_yaw_proprioceptive_source;
+use crate::interoceptive_joint_source_builder::admit_interoceptive_source;
 use crate::root_translation_joint_source_builder::admit_root_translation_proprioceptive_source;
 use crate::resident_cognitive_formation::{
     coalesce_emitted_neuron_fractals, has_reached_and_foregone_frontier_routes,
@@ -6527,6 +6528,25 @@ fn exact_root_yaw_proprioceptive_source(
 }
 
 #[pyfunction]
+fn exact_interoceptive_source(
+    source_tick: u64,
+    reserve_deficit_numerator: BigInt,
+    reserve_deficit_denominator: BigInt,
+    thermal_load_numerator: BigInt,
+    thermal_load_denominator: BigInt,
+) -> PyResult<NativeJointSourceEpisode> {
+    if reserve_deficit_denominator <= BigInt::from(0) || thermal_load_denominator <= BigInt::from(0) {
+        return Err(PyValueError::new_err("interoceptive fraction denominator must be positive"));
+    }
+    admit_interoceptive_source(
+        source_tick,
+        BigRational::new(reserve_deficit_numerator, reserve_deficit_denominator),
+        BigRational::new(thermal_load_numerator, thermal_load_denominator),
+    )
+    .map_err(|error| PyValueError::new_err(format!("{error:?}")))
+}
+
+#[pyfunction]
 fn exact_root_translation_proprioceptive_source(
     source_tick: u64,
     signed_x_millimetres: i32,
@@ -7287,6 +7307,7 @@ pub(crate) fn register(module: &Bound<'_, PyModule>) -> PyResult<()> {
         exact_root_yaw_proprioceptive_source,
         module
     )?)?;
+    module.add_function(wrap_pyfunction!(exact_interoceptive_source, module)?)?;
     module.add_function(wrap_pyfunction!(
         exact_root_translation_proprioceptive_source,
         module

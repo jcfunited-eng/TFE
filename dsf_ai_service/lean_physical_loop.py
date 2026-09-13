@@ -13,6 +13,7 @@ from dsf_ai_service.lean_sensory_occurrence import (
     LeanSensoryOccurrence, focal_retina_luminance_u8, rgb_retina_luminance_u8,
     transmitted_rgb_retina_u8,
 )
+from dsf_ai_service.glew_runtime.native_resident_organism import exact_native_interoceptive_source
 from dsf_ai_service.guala_motor_world import prepare_motor_consequence
 from dsf_ai_service.guala_physical_return import PendingPhysicalReturn, PASSIVE_BODY_MAGIC
 from dsf_ai_service.guala_physical_sensorium import (
@@ -185,12 +186,6 @@ class LeanPhysicalLoop:
                         source_times=PASSIVE_TIMES, sensorium=hearing, senses=(PhysicalSense.SOUND,),
                     ))
                     admissions.append([(250, 1000)])
-            # Stage 2 of the drive organ: the two metabolic-need interoceptors
-            # carry her own reserve deficit and thermal load across the
-            # interval, whichever path composed the rest of the sensorium.
-            primary_sensorium = replace(
-                primary_sensorium, need=tuple((value,) * len(times) for value in need),
-            )
             assembly_id = (
                 f"guala-lean-unattended-{before_native.identity}-{start_tick + 1}"
                 if returning is None else "guala-lean-native-motor-" + returning.causal_transition_sha256
@@ -204,6 +199,13 @@ class LeanPhysicalLoop:
             )
             sources.insert(0, primary_episode)
             admissions.insert(0, [(250, 1000)])
+            # Stage 2 of the drive organ: her own reserve deficit and thermal
+            # load enter as a distinct body-sense source every interval — the
+            # metabolic-need interoceptors at their own declared places.
+            sources.append(exact_native_interoceptive_source(
+                source_tick=start_tick, reserve_deficit=need[0], thermal_load=need[1],
+            ))
+            admissions.append([(250, 1000)])
             if returning is not None:
                 for source in returning.sources:
                     sources.append(source.restore(runtime=runtime))
@@ -236,7 +238,6 @@ class LeanPhysicalLoop:
                     world=world, evidence=primary,
                     predecessor_state_sha256=before_native.state_sha256,
                     predecessor_body_axes=before_axes, successor_body_axes=successor_axes,
-                    need=need,
                 )
                 uncommitted_prepared = motor_plan.prepared_world
                 after = motor_plan.prepared_world.execution_receipt.after

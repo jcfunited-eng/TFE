@@ -4720,6 +4720,28 @@ def exact_native_root_yaw_proprioceptive_source(
     return builder(source_tick, signed_displacement_millidegrees)
 
 
+def exact_native_interoceptive_source(
+    *,
+    source_tick: int,
+    reserve_deficit: Fraction,
+    thermal_load: Fraction,
+) -> NativeJointSourceView:
+    """Build the two metabolic-need interoceptor ports for one interval from
+    the organism's own exact reserve fractions (already the binary64 the
+    receptor receives). A distinct body-sense organ at its own places."""
+    builder = getattr(_native_core(), "exact_interoceptive_source", None)
+    if not callable(builder):
+        raise RuntimeError("guala_core does not expose exact interoception")
+    for value in (reserve_deficit, thermal_load):
+        if not isinstance(value, Fraction) or not 0 <= value <= 1:
+            raise ValueError("interoceptive fraction left the unit interval")
+    return builder(
+        _nonnegative_integer(source_tick, "interoceptive source tick"),
+        reserve_deficit.numerator, reserve_deficit.denominator,
+        thermal_load.numerator, thermal_load.denominator,
+    )
+
+
 def exact_native_root_translation_proprioceptive_source(
     *,
     source_tick: int,
