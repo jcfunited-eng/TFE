@@ -184,13 +184,9 @@ def test_metabolic_need_is_the_exact_aggregate_reserve_deficit():
         (F(7), F(3), F(1), F(10), F(10), F(4)),
         (F(2), F(8), F(3), F(10), F(10), F(4)),
     ))
-    assert _metabolic_need(runtime) == (F(11, 20), F(4, 8))
+    # available 9, spent 11 -> deficit 11/20; thermal 4 of material 24 -> load 1/6
+    assert _metabolic_need(runtime) == (F(11, 20), F(4, 24))
     empty = SimpleNamespace(observe_recovery_fluid=lambda: ())
     assert _metabolic_need(empty) == (F(0), F(0))
-    overfull = SimpleNamespace(observe_recovery_fluid=lambda: ((F(0), F(11), F(0), F(10), F(10), F(4)),))
-    try:
-        _metabolic_need(overfull)
-    except RuntimeError:
-        pass
-    else:
-        raise AssertionError("a deficit beyond capacity must be refused")
+    full = SimpleNamespace(observe_recovery_fluid=lambda: ((F(10), F(0), F(0), F(10), F(10), F(4)),))
+    assert _metabolic_need(full) == (F(0), F(0))

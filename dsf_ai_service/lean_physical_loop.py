@@ -34,20 +34,25 @@ MAX_NATIVE_INTERVALS_PER_OCCURRENCE = 1
 
 
 def _metabolic_need(runtime: Any) -> tuple[Fraction, Fraction]:
-    """Her own aggregate reserve state as two exact fractions of declared
-    capacity: reserve deficit (spent / spent capacity) and thermal load
-    (thermal / thermal capacity), summed over every living cohort. No
-    estimate, no smoothing, no threshold: the reserves as they are."""
-    spent = spent_capacity = thermal = thermal_capacity = Fraction(0)
-    for _available, cohort_spent, cohort_thermal, _available_capacity, cohort_spent_capacity, cohort_thermal_capacity in runtime.observe_recovery_fluid():
+    """Her own aggregate reserve state as two exact fractions of the MATERIAL
+    she actually holds (capacity is anatomy, a ceiling, not what she has):
+    reserve deficit = spent / (available + spent), the share of her usable
+    material that is spent and awaiting recovery; thermal load = thermal /
+    (available + spent + thermal), the share of her material sitting as heat.
+    Summed over every living cohort. No estimate, no smoothing, no threshold."""
+    available = spent = thermal = Fraction(0)
+    for cohort_available, cohort_spent, cohort_thermal, _capacities in (
+        (parts[0], parts[1], parts[2], parts[3:]) for parts in runtime.observe_recovery_fluid()
+    ):
+        available += cohort_available
         spent += cohort_spent
-        spent_capacity += cohort_spent_capacity
         thermal += cohort_thermal
-        thermal_capacity += cohort_thermal_capacity
-    deficit = spent / spent_capacity if spent_capacity else Fraction(0)
-    load = thermal / thermal_capacity if thermal_capacity else Fraction(0)
+    usable = available + spent
+    material = usable + thermal
+    deficit = spent / usable if usable else Fraction(0)
+    load = thermal / material if material else Fraction(0)
     if not (0 <= deficit <= 1 and 0 <= load <= 1):
-        raise RuntimeError("native reserves left their declared capacity")
+        raise RuntimeError("native reserves left their physical bounds")
     return deficit, load
 
 
