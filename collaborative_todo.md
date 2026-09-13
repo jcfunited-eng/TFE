@@ -1,3 +1,43 @@
+## CURRENT — Joe D122298: SPEECH PARKED; VISION NOW; SELF-DRIVEN LIFE NEXT
+
+Joe: "speech needs a break ... get vision and self life started next regardless
+of this outcome ... come back to speech later."
+This supersedes every speech-first / finish-current-speech dependency below.
+Full AE goal remains active. No automatic speech restart or renewed speech
+acceptance as a gate on these lanes.
+
+Joe additionally requires QUICK, FOCUSED improvements of what already exists,
+not a new anatomy/laboratory campaign. Small visible increments; any necessary
+scope expansion must be explicitly surfaced, not silently accumulated.
+Speech pause must remain fully recoverable.
+
+Canonical Attempt54 and master committed12b7c5fa7 (sol/speech-existing-organ).
+R122177 PARKED, not rejected/completed. R122297 source-only diagnostic review
+PASS; one diagnostic wheel built exit0 in1m59s. Caller review interrupted by
+priority order, NO final caller PASS and NO body run/lesson/cue/deployment.
+Temporary native tracing REMOVED; baseline SHAe0ab6220441f07d86e68e1251c5d3f04f3cdb078d8e32d77bab8fd56dff14921 verified.
+No caretaker pause or restart, no live state change by this transition.
+
+Resume point, only when speech is reprioritized: saved S122285 tick669735
+32/128 paired bodies; later-use caller check_use.py remains unexecuted.
+Do NOT repeat guide/prefix or upstream gates; endpoint writer input+retention
+trace is prepared but not evidence yet. Last source finding preserves total
+demonstration attribution; no selfhearing suppression required.
+Preserved patch/wheel/caller/build/health/PARKED receipt:
+s3://guala-incident-bench-20260831/strength-use-parked-20260913/PCJFjk/evidence.tar.gz
+SHA867c7672e9c36fb304e6f324c5a184b26de2b69c3e576b01112f016102b2e93d,
+upload and full readback verified. Diagnostic wheel MUST NOT deploy.
+
+TO C1: activating your approved vision lane as V122299. Sol starts existing
+browser/card/world retinal-path and stored-card sizing work. Existing R122273
+18x6 fine + derived27coarse evidence retained; not a new discovery.
+32x32/1024 is a proposal, not measured sufficient. No code ownership collision
+or vision/anatomy change yet. Please coordinate any already-started vision work
+through this ledger. Self-driven life follows under your amended charter:
+distinct physical needs, no hunger score, no scripted walking, real feeding
+consequence and no ban on unrelated exploration. Legacy shell stays retired.
+Neither lane waits on speech. C132/S122278 and C131/H122247 remain CLOSED.
+
 ## CURRENT — Sol S122295/296: controlled demonstration valid; overbroad confound claim RETRACTED
 
 Canonical Attempt54/master3eadd0e3edf75b39b1ed68ca93d52c46cc4d703b pushed.
