@@ -10,12 +10,13 @@ from dsf_ai_service.guala_spectral_retina import (
     spectral_retina_admissions,
     spectral_retina_u8_observation,
 )
-from dsf_ai_service.guala_world_sensorium import passive_receptor_capture
+from dsf_ai_service.guala_world_sensorium import retinal_carriage
 from dsf_ai_service.substrate.w1_physical_receptors import (
     RETINAL_SITE_GEOMETRY,
     RETINA_COLUMNS,
     RETINA_FINE_COLUMNS,
     RETINA_FINE_RECEPTOR_COUNT,
+    physical_receptor_substreams,
     RETINA_RECEPTOR_COUNT,
 )
 
@@ -33,15 +34,19 @@ SOURCE_TIMES = tuple(
 
 def test_world_retina_retains_every_spectral_band_as_an_independent_port() -> None:
     world = home_world_authority(identity=IDENTITY)
-    capture = passive_receptor_capture(
-        snapshot=world.observation_snapshot(),
-        body_axes=BODY_AXES,
+    snapshot = world.observation_snapshot()
+    heading, transmission = retinal_carriage(BODY_AXES)
+    streams = physical_receptor_substreams(
+        snapshot, snapshot, causal_transition=False,
+        before_retinal_heading_offset_millidegrees=heading,
+        after_retinal_heading_offset_millidegrees=heading,
+        source_time_start=Fraction(0), source_time_end=Fraction(1, 4),
     )
     episode = settle_spectral_retina(
         assembly_id="test-lean-six-band-retina",
-        streams=capture[0][PhysicalSense.SIGHT],
+        streams=streams[PhysicalSense.SIGHT],
         source_times=SOURCE_TIMES,
-        before_transmission=capture[1],
+        before_transmission=transmission,
     )
 
     assert episode.port_count == SPECTRAL_RETINAL_PORTS == 810
@@ -51,8 +56,8 @@ def test_world_retina_retains_every_spectral_band_as_an_independent_port() -> No
     assert episode.python_callback_count == 0
     assert len(spectral_retina_admissions(Fraction(1, 4))) == 135
     observation = spectral_retina_u8_observation(
-        streams=capture[0][PhysicalSense.SIGHT],
-        transmission=capture[1],
+        streams=streams[PhysicalSense.SIGHT],
+        transmission=transmission,
     )
     assert len(observation) == 810
     assert all(0 <= value <= 255 for value in observation)

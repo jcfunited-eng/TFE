@@ -3466,10 +3466,9 @@ fn observe_organic_mosaic_relations(
     incidence.dedup();
 
     let participants_for_lineage = |lineage: &[u8; 16]| -> Vec<usize> {
-        incidence
-            .iter()
-            .filter_map(|(candidate, participant)| (candidate == lineage).then_some(*participant))
-            .collect()
+        let begin = incidence.partition_point(|(candidate, _)| candidate < lineage);
+        let end = incidence.partition_point(|(candidate, _)| candidate <= lineage);
+        incidence[begin..end].iter().map(|(_, participant)| *participant).collect()
     };
 
     let mut component_roots = (0..frontier_indices.len()).collect::<Vec<_>>();
@@ -10426,13 +10425,26 @@ impl ResidentCognitiveFormationState {
         // resident ordering graph.
         #[cfg(test)]
         { phase_trace.stage = "ordering-growth"; }
-        mount_reached_ordering_reach(
-            &mut cohorts,
-            &mut resting_population,
-            &mut next_lineage_ordinal,
-            &mut electrical_fabric,
-            &internal_contact.causal_active_bonds,
-        )?;
+        {
+            // Affective growth above may have appended anatomy. Reuse only
+            // a shape-current index; keep physical progress admission at its
+            // existing later boundary.
+            let refreshed_ordering_topology;
+            let ordering_topology = if topology_index.matches_shape(&cohorts, &electrical_fabric) {
+                topology_index.as_ref()
+            } else {
+                refreshed_ordering_topology = ResidentTopologyIndex::build(&cohorts, &electrical_fabric)?;
+                &refreshed_ordering_topology
+            };
+            mount_reached_ordering_reach(
+                ordering_topology,
+                &mut cohorts,
+                &mut resting_population,
+                &mut next_lineage_ordinal,
+                &mut electrical_fabric,
+                &internal_contact.causal_active_bonds,
+            )?;
+        }
         #[cfg(test)]
         { phase_trace.stage = "recurrent-frontier"; }
         retain_internally_reassembled_recurrent_frontier(
@@ -16144,6 +16156,9 @@ fn exact_reached_cross_sensory_original_bonds(
             }
         }
     }
+    // One immutable call-local source walk per reached integration. Shared hubs
+    // retain their own bonds; only repeated reading of the same anatomy is removed.
+    let mut source_bonds_by_integration = BTreeMap::<usize, Vec<StablePhysicalBondReference>>::new();
     let mut components = Vec::new();
     for association in candidate_associations {
         if topology.layer_of(association) != Some(7) {
@@ -16170,31 +16185,39 @@ fn exact_reached_cross_sensory_original_bonds(
             }
             if !causal.contains(&contact.stable_bond) { continue; }
             bonds.insert(contact.stable_bond);
-            for source_contact_index in topology.incident_contacts_by_flat[integration_flat]
-                .iter()
-                .copied()
-            {
-                let source_contact = topology.contacts[source_contact_index];
-                if !matches!(source_contact.origin, ResidentContactOrigin::Fabric { .. })
-                    || !causal.contains(&source_contact.stable_bond)
-                {
-                    continue;
+            let source_bonds = match source_bonds_by_integration.entry(integration_flat) {
+                std::collections::btree_map::Entry::Occupied(entry) => entry.into_mut(),
+                std::collections::btree_map::Entry::Vacant(entry) => {
+                    let mut source_bonds = Vec::new();
+                    for source_contact_index in topology.incident_contacts_by_flat[integration_flat]
+                        .iter()
+                        .copied()
+                    {
+                        let source_contact = topology.contacts[source_contact_index];
+                        if !matches!(source_contact.origin, ResidentContactOrigin::Fabric { .. })
+                            || !causal.contains(&source_contact.stable_bond)
+                        {
+                            continue;
+                        }
+                        let source_flat = if source_contact.left == integration_flat {
+                            source_contact.right
+                        } else {
+                            source_contact.left
+                        };
+                        let (cohort_index, neuron_index, source) = topology.flat_locations[source_flat];
+                        let mount = cohorts
+                            .get(cohort_index)
+                            .and_then(|cohort| cohort.anatomy.mounts().get(neuron_index))
+                            .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
+                        if mount.source_site().is_some() && matches!(topology.layer_of(source), Some(0..=5))
+                        {
+                            source_bonds.push(source_contact.stable_bond);
+                        }
+                    }
+                    entry.insert(source_bonds)
                 }
-                let source_flat = if source_contact.left == integration_flat {
-                    source_contact.right
-                } else {
-                    source_contact.left
-                };
-                let (cohort_index, neuron_index, source) = topology.flat_locations[source_flat];
-                let mount = cohorts
-                    .get(cohort_index)
-                    .and_then(|cohort| cohort.anatomy.mounts().get(neuron_index))
-                    .ok_or(FormationError::NeuronLineageAuthorityAbsent)?;
-                if mount.source_site().is_some() && matches!(topology.layer_of(source), Some(0..=5))
-                {
-                    bonds.insert(source_contact.stable_bond);
-                }
-            }
+            };
+            bonds.extend(source_bonds.iter().copied());
         }
         if !bonds.is_empty() {
             let bonds = bonds.into_iter().collect::<Vec<_>>();
@@ -17402,306 +17425,253 @@ fn canonical_lineage_pair(left: [u8; 16], right: [u8; 16]) -> ([u8; 16], [u8; 16
 /// authored prediction or transaction-spanning history is stored here.
 /// Reaching the same exact active bond reuses the same sparse route.
 fn mount_reached_ordering_reach(
+    topology_index: &ResidentTopologyIndex,
     cohorts: &mut Vec<ResidentReachedCohort>,
     resting_population: &mut Option<DevelopmentalRestingPopulation>,
     next_lineage_ordinal: &mut u64,
     electrical_fabric: &mut ResidentElectricalFabric,
     active_bonds: &[StablePhysicalBondReference],
 ) -> Result<(), FormationError> {
-    let mounted = cohorts
-        .iter()
-        .flat_map(|cohort| {
-            cohort
-                .anatomy
-                .mounts()
+    // All queries below borrow the already-authenticated topology. Planning
+    // ends before mounts mutate, so no cloned whole-population anatomy is needed.
+    let plans = {
+        let layer_of = |lineage: [u8; 16]| topology_index.layer_of(lineage);
+        let mount_for = |lineage: [u8; 16]| {
+            let flat = topology_index.flat_for_lineage(lineage)?;
+            let (cohort_index, neuron_index, _) = topology_index.flat_locations[flat];
+            cohorts.get(cohort_index)
+                .and_then(|cohort| cohort.anatomy.mounts().get(neuron_index))
+                .ok_or(FormationError::NeuronLineageAuthorityAbsent)
+        };
+        // A newly carried association/affective bond may retain one motor route
+        // only through the affective cell's founding persisted pair: its first
+        // fabric association contact followed by its first fabric body-regulation
+        // contact. Later proved body experience may lawfully widen the cell but
+        // cannot rewrite that founding route. The founding regulation must itself
+        // resolve through one load-ending source to one fixed layer-12 terminal.
+        // This does not require the same joint to cross its receptor threshold a
+        // second time after the ordering cell exists, and malformed or reversed
+        // founding anatomy authors no motor contact.
+        let exact_motor_for_affective = |association: [u8; 16],
+                                         affective: [u8; 16]|
+         -> Result<Option<[u8; 16]>, FormationError> {
+            let affective_flat = topology_index.flat_for_lineage(affective)?;
+            let founding = topology_index.incident_contacts_by_flat[affective_flat]
                 .iter()
-                .zip(cohort.anatomy.neuron_lineages())
-        })
-        .map(|(mount, lineage)| (*lineage, mount.clone()))
-        .collect::<Vec<_>>();
-    let topology_index = ResidentTopologyIndex::build(cohorts, electrical_fabric)?;
-    let layer_by_lineage = mounted
-        .iter()
-        .map(|(lineage, mount)| (*lineage, mount.place().layer()))
-        .collect::<std::collections::BTreeMap<_, _>>();
-    let layer_of = |lineage: [u8; 16]| layer_by_lineage.get(&lineage).copied();
-    let mount_for = |lineage: [u8; 16]| {
-        mounted
-            .iter()
-            .find(|(candidate, _)| *candidate == lineage)
-            .map(|(_, mount)| mount)
-            .ok_or(FormationError::NeuronLineageAuthorityAbsent)
-    };
-    // A newly carried association/affective bond may retain one motor route
-    // only through the affective cell's founding persisted pair: its first
-    // fabric association contact followed by its first fabric body-regulation
-    // contact. Later proved body experience may lawfully widen the cell but
-    // cannot rewrite that founding route. The founding regulation must itself
-    // resolve through one load-ending source to one fixed layer-12 terminal.
-    // This does not require the same joint to cross its receptor threshold a
-    // second time after the ordering cell exists, and malformed or reversed
-    // founding anatomy authors no motor contact.
-    let exact_motor_for_affective = |association: [u8; 16],
-                                     affective: [u8; 16]|
-     -> Result<Option<[u8; 16]>, FormationError> {
-        let affective_flat = topology_index.flat_for_lineage(affective)?;
-        let founding = topology_index.incident_contacts_by_flat[affective_flat]
-            .iter()
-            .filter_map(|contact_index| {
-                let contact = topology_index.contacts.get(*contact_index)?;
-                if !matches!(contact.origin, ResidentContactOrigin::Fabric { .. }) {
-                    return None;
-                }
-                let neighbour_flat = if contact.left == affective_flat {
-                    contact.right
-                } else if contact.right == affective_flat {
-                    contact.left
-                } else {
-                    return None;
-                };
-                let lineage = topology_index.flat_locations.get(neighbour_flat)?.2;
-                matches!(topology_index.layer_of(lineage), Some(7) | Some(8)).then_some(lineage)
-            })
-            .collect::<Vec<_>>();
-        // REPAIR A+C (bench, MINE-on-trial). A: the founding pair is a SET,
-        // not an order — the birth law appends association and regulation in
-        // whichever order the lived interval delivered them (reproduced:
-        // newborn ...12b3 founded [L8, L7], unmintable under the ordered
-        // rule). C: the affective's identity stays its FIRST layer-7 contact,
-        // but the motor path may ride ANY of its LIVED layer-8 regulation
-        // contacts, in contact order — not only the founding one. Every such
-        // contact is persisted anatomy grown by the pairing law from real
-        // proved-body evidence; restricting the walk to the birth regulation
-        // made motor-capable lived regulations invisible (reproduced: four
-        // affectives carry real contacts to the motor-coupled palmar
-        // regulation ...19a3, none as their founding).
-        let first_association = founding
-            .iter()
-            .copied()
-            .find(|lineage| topology_index.layer_of(*lineage) == Some(7));
-        if first_association != Some(association) {
-            return Ok(None);
-        }
-        let candidate_regulations = founding
-            .iter()
-            .copied()
-            .filter(|lineage| topology_index.layer_of(*lineage) == Some(8))
-            .collect::<Vec<_>>();
-        if candidate_regulations.is_empty() {
-            return Ok(None);
-        }
-        let walk_regulation = |regulation: [u8; 16]| -> Result<Option<[u8; 16]>, FormationError> {
-            let regulation_flat = topology_index.flat_for_lineage(regulation)?;
-            let integrations = topology_index.neighbours_by_flat[regulation_flat]
-                .iter()
-                .map(|flat| topology_index.flat_locations[*flat].2)
-                .filter(|lineage| {
-                    topology_index.layer_of(*lineage) == Some(6)
-                        && mount_for(*lineage).is_ok_and(|mount| mount.source_site().is_none())
+                .filter_map(|contact_index| {
+                    let contact = topology_index.contacts.get(*contact_index)?;
+                    if !matches!(contact.origin, ResidentContactOrigin::Fabric { .. }) {
+                        return None;
+                    }
+                    let neighbour_flat = if contact.left == affective_flat {
+                        contact.right
+                    } else if contact.right == affective_flat {
+                        contact.left
+                    } else {
+                        return None;
+                    };
+                    let lineage = topology_index.flat_locations.get(neighbour_flat)?.2;
+                    matches!(topology_index.layer_of(lineage), Some(7) | Some(8)).then_some(lineage)
                 })
                 .collect::<Vec<_>>();
-            let [integration] = integrations.as_slice() else {
-                return Ok(None);
-            };
-            let integration_flat = topology_index.flat_for_lineage(*integration)?;
-            let terminals = topology_index.neighbours_by_flat[integration_flat]
-                .iter()
-                .filter_map(|flat| {
-                    let lineage = topology_index.flat_locations[*flat].2;
-                    let source_site = mount_for(lineage).ok()?.source_site()?;
-                    let terminal = source_site.body_proprioceptor_terminal()?;
-                    (source_site.physical_quantity() == EFFECTOR_REACTIVE_LOAD_FRACTION_QUANTITY)
-                        .then_some(terminal.opposing_effector())
-                })
-                .collect::<BTreeSet<_>>();
-            let terminals = terminals.into_iter().collect::<Vec<_>>();
-            let [terminal] = terminals.as_slice() else {
-                return Ok(None);
-            };
-            let motors = mounted
-                .iter()
-                .filter_map(|(lineage, mount)| {
-                    (mount.source_site().is_none()
-                        && mount.place().layer() == 12
-                        && mount.body_effector_terminal() == Some(*terminal))
-                    .then_some(*lineage)
-                })
-                .collect::<Vec<_>>();
-            let [motor] = motors.as_slice() else {
-                return Ok(None);
-            };
-            // A reached body regulation owns its fixed local motor contact through
-            // ordinary body development. This topology walk may reuse that lived
-            // anatomy but may never mint the contact itself.
-            if !electrical_fabric.contains_contact(regulation, *motor) {
-                return Ok(None);
-            }
-            Ok(Some(*motor))
-        };
-        for regulation in candidate_regulations {
-            if let Some(motor) = walk_regulation(regulation)? {
-                return Ok(Some(motor));
-            }
-        }
-        Ok(None)
-    };
-    let mut active_routes = Vec::<[[u8; 16]; 2]>::new();
-    for bond in active_bonds {
-        let (left, right) = bond.endpoints();
-        let route = match (layer_of(left), layer_of(right)) {
-            (Some(7), Some(9 | 10)) => Some([left, right]),
-            (Some(9 | 10), Some(7)) => Some([right, left]),
-            _ => None,
-        };
-        if let Some(mut route) = route {
-            route.sort_unstable();
-            if !active_routes.contains(&route) {
-                active_routes.push(route);
-            }
-        }
-    }
-    active_routes.sort_unstable();
-
-    // Index the founding physical bond of every already-mounted ordering cell
-    // once. Its first two relevant contacts were appended together when the
-    // cell was born; later recurrence/motor/articulatory contacts may widen
-    // its neighbourhood but cannot change that founding bond or make the cell
-    // appear unmounted. Contact order is canonical persisted anatomy, not a
-    // heuristic or an observer label.
-    let ordering_candidates = mounted
-        .iter()
-        .filter_map(|(lineage, mount)| {
-            (mount.source_site().is_none() && mount.place().layer() == 11).then_some(*lineage)
-        })
-        .collect::<std::collections::BTreeSet<_>>();
-    let mut neighbours_by_ordering = ordering_candidates
-        .iter()
-        .copied()
-        .map(|lineage| (lineage, Vec::<[u8; 16]>::new()))
-        .collect::<std::collections::BTreeMap<_, _>>();
-    for (left, right) in electrical_fabric.contact_endpoints() {
-        let left_lineage = electrical_fabric.lineages()[left];
-        let right_lineage = electrical_fabric.lineages()[right];
-        if ordering_candidates.contains(&left_lineage)
-            && matches!(layer_of(right_lineage), Some(7) | Some(9) | Some(10))
-        {
-            neighbours_by_ordering
-                .get_mut(&left_lineage)
-                .ok_or(FormationError::NeuronLineageAuthorityAbsent)?
-                .push(right_lineage);
-        }
-        if ordering_candidates.contains(&right_lineage)
-            && matches!(layer_of(left_lineage), Some(7) | Some(9) | Some(10))
-        {
-            neighbours_by_ordering
-                .get_mut(&right_lineage)
-                .ok_or(FormationError::NeuronLineageAuthorityAbsent)?
-                .push(left_lineage);
-        }
-    }
-    let mut matching_by_participants =
-        std::collections::BTreeMap::<[[u8; 16]; 2], Vec<[u8; 16]>>::new();
-    let mut motor_neighbours_by_ordering = ordering_candidates
-        .iter()
-        .copied()
-        .map(|lineage| (lineage, Vec::<[u8; 16]>::new()))
-        .collect::<std::collections::BTreeMap<_, _>>();
-    for (left, right) in electrical_fabric.contact_endpoints() {
-        let left_lineage = electrical_fabric.lineages()[left];
-        let right_lineage = electrical_fabric.lineages()[right];
-        if ordering_candidates.contains(&left_lineage) && layer_of(right_lineage) == Some(12) {
-            motor_neighbours_by_ordering
-                .get_mut(&left_lineage)
-                .ok_or(FormationError::NeuronLineageAuthorityAbsent)?
-                .push(right_lineage);
-        }
-        if ordering_candidates.contains(&right_lineage) && layer_of(left_lineage) == Some(12) {
-            motor_neighbours_by_ordering
-                .get_mut(&right_lineage)
-                .ok_or(FormationError::NeuronLineageAuthorityAbsent)?
-                .push(left_lineage);
-        }
-    }
-    for motors in motor_neighbours_by_ordering.values_mut() {
-        motors.sort_unstable();
-        motors.dedup();
-    }
-    for (candidate, neighbours) in neighbours_by_ordering {
-        let mut founding = neighbours.into_iter().take(2).collect::<Vec<_>>();
-        founding.sort_unstable();
-        founding.dedup();
-        if let [left, right] = founding.as_slice() {
-            matching_by_participants
-                .entry([*left, *right])
-                .or_default()
-                .push(candidate);
-        }
-    }
-    let mut existing_contacts = electrical_fabric
-        .contact_endpoints()
-        .map(|(left, right)| {
-            canonical_lineage_pair(
-                electrical_fabric.lineages()[left],
-                electrical_fabric.lineages()[right],
-            )
-        })
-        .collect::<BTreeSet<_>>();
-
-    let mut new_contacts = Vec::<([u8; 16], [u8; 16], ExactRational)>::new();
-    for participants in active_routes {
-        let mut matching = matching_by_participants
-            .get(&participants)
-            .cloned()
-            .unwrap_or_default();
-        matching.sort_unstable();
-        let association = participants
-            .iter()
-            .copied()
-            .find(|participant| layer_of(*participant) == Some(7));
-        let affective = participants
-            .iter()
-            .copied()
-            .find(|participant| layer_of(*participant) == Some(10));
-        let motor = association
-            .zip(affective)
-            .map(|(association, affective)| exact_motor_for_affective(association, affective))
-            .transpose()?
-            .flatten()
-            .filter(|lineage| {
-                !mount_for(*lineage).is_ok_and(|mount| {
-                    mount
-                        .body_effector_terminal()
-                        .is_some_and(|terminal| terminal.axis().is_vocal_articulator())
-                })
-            });
-        // One ordering cell is one independently powered premotor source.
-        // Reusing it for several L12 terminals divides the same finite source
-        // work among those terminals and collapses a distributed motor act
-        // into one cell. Reuse the resident cell already bound to this motor,
-        // otherwise use one still-unbound sibling, otherwise grow one sibling
-        // from the same exact founding bond. Population width is therefore
-        // caused only by distinct lived motor consequences and is bounded by
-        // the body's fixed terminal anatomy; no authored population count or
-        // speech-specific fan-out exists.
-        let reusable_ordering = if let Some(motor) = motor {
-            matching
+            // REPAIR A+C (bench, MINE-on-trial). A: the founding pair is a SET,
+            // not an order — the birth law appends association and regulation in
+            // whichever order the lived interval delivered them (reproduced:
+            // newborn ...12b3 founded [L8, L7], unmintable under the ordered
+            // rule). C: the affective's identity stays its FIRST layer-7 contact,
+            // but the motor path may ride ANY of its LIVED layer-8 regulation
+            // contacts, in contact order — not only the founding one. Every such
+            // contact is persisted anatomy grown by the pairing law from real
+            // proved-body evidence; restricting the walk to the birth regulation
+            // made motor-capable lived regulations invisible (reproduced: four
+            // affectives carry real contacts to the motor-coupled palmar
+            // regulation ...19a3, none as their founding).
+            let first_association = founding
                 .iter()
                 .copied()
-                .find(|ordering| {
-                    motor_neighbours_by_ordering
-                        .get(ordering)
-                        .is_some_and(|motors| motors.as_slice() == [motor])
-                })
-                .or_else(|| {
-                    matching.iter().copied().find(|ordering| {
+                .find(|lineage| topology_index.layer_of(*lineage) == Some(7));
+            if first_association != Some(association) {
+                return Ok(None);
+            }
+            let candidate_regulations = founding
+                .iter()
+                .copied()
+                .filter(|lineage| topology_index.layer_of(*lineage) == Some(8))
+                .collect::<Vec<_>>();
+            if candidate_regulations.is_empty() {
+                return Ok(None);
+            }
+            let walk_regulation = |regulation: [u8; 16]| -> Result<Option<[u8; 16]>, FormationError> {
+                let regulation_flat = topology_index.flat_for_lineage(regulation)?;
+                let integrations = topology_index.neighbours_by_flat[regulation_flat]
+                    .iter()
+                    .map(|flat| topology_index.flat_locations[*flat].2)
+                    .filter(|lineage| {
+                        topology_index.layer_of(*lineage) == Some(6)
+                            && mount_for(*lineage).is_ok_and(|mount| mount.source_site().is_none())
+                    })
+                    .collect::<Vec<_>>();
+                let [integration] = integrations.as_slice() else {
+                    return Ok(None);
+                };
+                let integration_flat = topology_index.flat_for_lineage(*integration)?;
+                let terminals = topology_index.neighbours_by_flat[integration_flat]
+                    .iter()
+                    .filter_map(|flat| {
+                        let lineage = topology_index.flat_locations[*flat].2;
+                        let source_site = mount_for(lineage).ok()?.source_site()?;
+                        let terminal = source_site.body_proprioceptor_terminal()?;
+                        (source_site.physical_quantity() == EFFECTOR_REACTIVE_LOAD_FRACTION_QUANTITY)
+                            .then_some(terminal.opposing_effector())
+                    })
+                    .collect::<BTreeSet<_>>();
+                let terminals = terminals.into_iter().collect::<Vec<_>>();
+                let [terminal] = terminals.as_slice() else {
+                    return Ok(None);
+                };
+                let begin = topology_index.intrinsic_locations
+                    .partition_point(|((layer, _), _)| *layer < 12);
+                let end = topology_index.intrinsic_locations
+                    .partition_point(|((layer, _), _)| *layer <= 12);
+                let motors = topology_index.intrinsic_locations[begin..end]
+                    .iter()
+                    .filter_map(|(_, flat)| {
+                        let lineage = topology_index.flat_locations[*flat].2;
+                        let mount = mount_for(lineage).ok()?;
+                        (mount.body_effector_terminal() == Some(*terminal)).then_some(lineage)
+                    })
+                    .collect::<Vec<_>>();
+                let [motor] = motors.as_slice() else {
+                    return Ok(None);
+                };
+                // A reached body regulation owns its fixed local motor contact through
+                // ordinary body development. This topology walk may reuse that lived
+                // anatomy but may never mint the contact itself.
+                if topology_index.contains_fabric_contact(regulation, *motor) != Some(true) {
+                    return Ok(None);
+                }
+                Ok(Some(*motor))
+            };
+            for regulation in candidate_regulations {
+                if let Some(motor) = walk_regulation(regulation)? {
+                    return Ok(Some(motor));
+                }
+            }
+            Ok(None)
+        };
+        let mut active_routes = Vec::<[[u8; 16]; 2]>::new();
+        for bond in active_bonds {
+            let (left, right) = bond.endpoints();
+            let route = match (layer_of(left), layer_of(right)) {
+                (Some(7), Some(9 | 10)) => Some([left, right]),
+                (Some(9 | 10), Some(7)) => Some([right, left]),
+                _ => None,
+            };
+            if let Some(mut route) = route {
+                route.sort_unstable();
+                if !active_routes.contains(&route) {
+                    active_routes.push(route);
+                }
+            }
+        }
+        active_routes.sort_unstable();
+
+
+        let mut plans = Vec::new();
+        for participants in active_routes {
+            // Any matching founding pair must touch its first participant.
+            // Keep Fabric incident order: the first two contacts are not a set
+            // of all later neighbours, and parallel contacts still count.
+            let participant_flat = topology_index.flat_for_lineage(participants[0])?;
+            let mut matching = Vec::new();
+            let mut motor_neighbours_by_ordering = BTreeMap::new();
+            for flat in topology_index.neighbours_by_flat[participant_flat].iter().copied() {
+                let lineage = topology_index.flat_locations[flat].2;
+                let mount = mount_for(lineage)?;
+                if layer_of(lineage) != Some(11) || mount.source_site().is_some() {
+                    continue;
+                }
+                let mut founding = Vec::new();
+                let mut motors = Vec::new();
+                for contact_index in topology_index.incident_contacts_by_flat[flat].iter().copied() {
+                    let contact = topology_index.contacts[contact_index];
+                    if !matches!(contact.origin, ResidentContactOrigin::Fabric { .. }) {
+                        continue;
+                    }
+                    let other = if contact.left == flat { contact.right } else { contact.left };
+                    let neighbour = topology_index.flat_locations[other].2;
+                    match layer_of(neighbour) {
+                        Some(7 | 9 | 10) if founding.len() < 2 => founding.push(neighbour),
+                        Some(12) => motors.push(neighbour),
+                        _ => {}
+                    }
+                }
+                founding.sort_unstable();
+                founding.dedup();
+                if founding.as_slice() != participants.as_slice() {
+                    continue;
+                }
+                motors.sort_unstable();
+                motors.dedup();
+                matching.push(lineage);
+                motor_neighbours_by_ordering.insert(lineage, motors);
+            }
+            matching.sort_unstable();
+            let association = participants
+                .iter()
+                .copied()
+                .find(|participant| layer_of(*participant) == Some(7));
+            let affective = participants
+                .iter()
+                .copied()
+                .find(|participant| layer_of(*participant) == Some(10));
+            let motor = association
+                .zip(affective)
+                .map(|(association, affective)| exact_motor_for_affective(association, affective))
+                .transpose()?
+                .flatten()
+                .filter(|lineage| {
+                    !mount_for(*lineage).is_ok_and(|mount| {
+                        mount
+                            .body_effector_terminal()
+                            .is_some_and(|terminal| terminal.axis().is_vocal_articulator())
+                    })
+                });
+            // One ordering cell is one independently powered premotor source.
+            // Reusing it for several L12 terminals divides the same finite source
+            // work among those terminals and collapses a distributed motor act
+            // into one cell. Reuse the resident cell already bound to this motor,
+            // otherwise use one still-unbound sibling, otherwise grow one sibling
+            // from the same exact founding bond. Population width is therefore
+            // caused only by distinct lived motor consequences and is bounded by
+            // the body's fixed terminal anatomy; no authored population count or
+            // speech-specific fan-out exists.
+            let reusable_ordering = if let Some(motor) = motor {
+                matching
+                    .iter()
+                    .copied()
+                    .find(|ordering| {
                         motor_neighbours_by_ordering
                             .get(ordering)
-                            .is_some_and(Vec::is_empty)
+                            .is_some_and(|motors| motors.as_slice() == [motor])
                     })
-                })
-        } else {
-            matching.first().copied()
-        };
+                    .or_else(|| {
+                        matching.iter().copied().find(|ordering| {
+                            motor_neighbours_by_ordering
+                                .get(ordering)
+                                .is_some_and(Vec::is_empty)
+                        })
+                    })
+            } else {
+                matching.first().copied()
+            };
+            plans.push((participants, motor, reusable_ordering));
+        }
+        plans
+    };
+    let mut new_contacts = Vec::<([u8; 16], [u8; 16], ExactRational)>::new();
+    let mut new_contact_pairs = BTreeSet::new();
+    for (participants, motor, reusable_ordering) in plans {
         let ordering_lineage = match reusable_ordering {
             Some(ordering) => ordering,
             None => mount_next_intrinsic_in_layer(
@@ -17713,13 +17683,13 @@ fn mount_reached_ordering_reach(
         };
         for participant in participants {
             let pair = canonical_lineage_pair(participant, ordering_lineage);
-            if !existing_contacts.contains(&pair) {
+            if topology_index.contains_fabric_contact(pair.0, pair.1) != Some(true)
+                && new_contact_pairs.insert(pair) {
                 new_contacts.push((
                     participant,
                     ordering_lineage,
                     ExactRational::integer(DEVELOPMENTAL_CONTACT_CONDUCTANCE_PICOSIEMENS),
                 ));
-                existing_contacts.insert(pair);
             }
         }
         // The exact founding route is equally authoritative when this bond
@@ -17730,13 +17700,13 @@ fn mount_reached_ordering_reach(
         // this branch.
         if let Some(motor) = motor {
             let pair = canonical_lineage_pair(ordering_lineage, motor);
-            if !existing_contacts.contains(&pair) {
+            if topology_index.contains_fabric_contact(pair.0, pair.1) != Some(true)
+                && new_contact_pairs.insert(pair) {
                 new_contacts.push((
                     ordering_lineage,
                     motor,
                     ExactRational::integer(DEVELOPMENTAL_CONTACT_CONDUCTANCE_PICOSIEMENS),
                 ));
-                existing_contacts.insert(pair);
             }
         }
     }

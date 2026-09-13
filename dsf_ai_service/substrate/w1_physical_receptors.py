@@ -73,9 +73,6 @@ RETINA_FINE_ROWS = 6
 RETINA_FINE_COLUMNS = 18
 RETINA_FINE_RECEPTOR_COUNT = RETINA_FINE_ROWS * RETINA_FINE_COLUMNS
 RETINA_TOTAL_RECEPTOR_COUNT = RETINA_RECEPTOR_COUNT + RETINA_FINE_RECEPTOR_COUNT
-# Vision upgrade (Joe: "real-time or nothing", 2026-09-13): a 32x24 FOCAL
-# central field ADDED beside the coarse 9x3 and fine 18x6 fields. Growth,
-# never replacement — every existing site keeps its identity.
 RETINA_FOCAL_ROWS = 24
 RETINA_FOCAL_COLUMNS = 32
 RETINA_FOCAL_RECEPTOR_COUNT = RETINA_FOCAL_ROWS * RETINA_FOCAL_COLUMNS
@@ -148,6 +145,23 @@ def _retinal_site_geometry() -> tuple[tuple[int, int, int, int, int], ...]:
 
 
 RETINAL_SITE_GEOMETRY = _retinal_site_geometry()
+# Existing apertures remain exactly unchanged. The new horizontal half-width
+# is5625/2 millidegrees: rounding it to2812 would introduce gaps between sites.
+FOCAL_RETINAL_SITE_GEOMETRY = tuple(
+    (
+        RETINA_TOTAL_RECEPTOR_COUNT + row * RETINA_FOCAL_COLUMNS + column,
+        -RETINA_HORIZONTAL_FOV_MILLIDEGREES // 2
+        + Fraction((2 * column + 1) * RETINA_HORIZONTAL_FOV_MILLIDEGREES, 2 * RETINA_FOCAL_COLUMNS),
+        RETINA_VERTICAL_FOV_MILLIDEGREES // 2
+        - Fraction((2 * row + 1) * RETINA_VERTICAL_FOV_MILLIDEGREES, 2 * RETINA_FOCAL_ROWS),
+        Fraction(RETINA_HORIZONTAL_FOV_MILLIDEGREES, 2 * RETINA_FOCAL_COLUMNS),
+        Fraction(RETINA_VERTICAL_FOV_MILLIDEGREES, 2 * RETINA_FOCAL_ROWS),
+    )
+    for row in range(RETINA_FOCAL_ROWS)
+    for column in range(RETINA_FOCAL_COLUMNS)
+)
+UPGRADED_RETINAL_SITE_GEOMETRY = RETINAL_SITE_GEOMETRY + FOCAL_RETINAL_SITE_GEOMETRY
+RetinalSiteGeometry = tuple[tuple[int, int | Fraction, int | Fraction, int | Fraction, int | Fraction], ...]
 
 
 def _canonical(value: object) -> bytes:
@@ -532,6 +546,7 @@ def _portal_aperture_background(
     body_heading_millidegrees: int,
     current_region: PhysicalRegion,
     pixels: list[tuple[Fraction, ...]],
+    site_geometry: RetinalSiteGeometry,
 ) -> None:
     """Expose adjacent-room radiance only through authored doorway geometry."""
 
@@ -594,7 +609,7 @@ def _portal_aperture_background(
             vertical_center,
             horizontal_half,
             vertical_half,
-        ) in RETINAL_SITE_GEOMETRY:
+        ) in site_geometry:
             horizontal_overlap = max(
                 0,
                 min(horizontal_center + horizontal_half, horizontal_max)
@@ -623,6 +638,7 @@ def _retinal_projection(
     observation: ObservationSnapshot,
     *,
     retinal_heading_offset_millidegrees: int = 0,
+    site_geometry: RetinalSiteGeometry = RETINAL_SITE_GEOMETRY,
 ) -> tuple[tuple[Fraction, ...], ...]:
     if (
         isinstance(retinal_heading_offset_millidegrees, bool)
@@ -645,7 +661,7 @@ def _retinal_projection(
     )
     background = _region_radiance(current_region)
     pixels: list[tuple[Fraction, ...]] = [
-        background for _ in range(RETINA_TOTAL_RECEPTOR_COUNT)
+        background for _ in site_geometry
     ]
     _portal_aperture_background(
         observation,
@@ -656,6 +672,7 @@ def _retinal_projection(
         ) % 360_000,
         current_region=current_region,
         pixels=pixels,
+        site_geometry=site_geometry,
     )
     surfaces: list[_OpticalSurface] = []
     body_by_id = {candidate.body_id: candidate for candidate in observation.bodies}
@@ -763,7 +780,7 @@ def _retinal_projection(
             vertical_center,
             half_horizontal_receptor,
             half_vertical_receptor,
-        ) in RETINAL_SITE_GEOMETRY:
+        ) in site_geometry:
             if abs(vertical_center - relative_vertical) > (
                 angular_radius + half_vertical_receptor
             ):
@@ -858,6 +875,32 @@ def _retinal_projection(
     return tuple(pixels)
 
 
+def retinal_irradiance_field(
+    observation: ObservationSnapshot,
+    *,
+    retinal_heading_offset_millidegrees: int = 0,
+    include_focal: bool = False,
+) -> tuple[tuple[Fraction, ...], ...]:
+    """The bounded six-band optical field, without temporary signal objects."""
+
+    if not isinstance(include_focal, bool):
+        raise TypeError("retinal spatial coverage must be explicit")
+    geometry = UPGRADED_RETINAL_SITE_GEOMETRY if include_focal else RETINAL_SITE_GEOMETRY
+    pixels = _retinal_projection(
+        observation,
+        retinal_heading_offset_millidegrees=retinal_heading_offset_millidegrees,
+        site_geometry=geometry,
+    )
+    if len(pixels) != len(geometry):
+        raise RuntimeError("world retinal field changed mounted site count")
+    for pixel in pixels:
+        if len(pixel) != OPTICAL_BANDS:
+            raise RuntimeError("world lost the six-band retinal field")
+        for value in pixel:
+            _bounded_fraction(value, "physical receptor signal")
+    return pixels
+
+
 def _retinal_substreams(
     before: ObservationSnapshot,
     after: ObservationSnapshot,
@@ -867,13 +910,13 @@ def _retinal_substreams(
     source_time_start: Fraction = Fraction(0),
     source_time_end: Fraction = Fraction(1),
 ) -> tuple[NativeSensorySubstreamInput, ...]:
-    before_pixels = _retinal_projection(
+    before_pixels = retinal_irradiance_field(
         before,
         retinal_heading_offset_millidegrees=(
             before_retinal_heading_offset_millidegrees
         ),
     )
-    after_pixels = _retinal_projection(
+    after_pixels = retinal_irradiance_field(
         after,
         retinal_heading_offset_millidegrees=(
             after_retinal_heading_offset_millidegrees
@@ -1053,6 +1096,36 @@ def _physical_substreams(
     return observed
 
 
+
+def physical_contact_substreams(
+    before: ObservationSnapshot,
+    after: ObservationSnapshot,
+    *,
+    causal_transition: bool,
+    source_time_start: Fraction,
+    source_time_end: Fraction,
+) -> dict[PhysicalSense, tuple[NativeSensorySubstreamInput, ...]]:
+    """Shared touch/body construction; the caller owns world authentication."""
+
+    if not isinstance(causal_transition, bool):
+        raise ValueError("physical receptor causal-transition flag must be boolean")
+    if source_time_end <= source_time_start:
+        raise ValueError("physical receptor interval must be positive")
+    observed = {
+        PhysicalSense.TOUCH: _touch_substreams(
+            before, after,
+            source_time_start=source_time_start,
+            source_time_end=source_time_end,
+        ),
+    }
+    if causal_transition:
+        observed[PhysicalSense.BODY] = _body_substreams_for_snapshots(
+            before, after,
+            source_time_start=source_time_start,
+            source_time_end=source_time_end,
+        )
+    return observed
+
 def physical_receptor_substreams(
     before: ObservationSnapshot,
     after: ObservationSnapshot,
@@ -1073,31 +1146,17 @@ def physical_receptor_substreams(
         raise ValueError("physical receptor causal-transition flag must be boolean")
     observed = {
         PhysicalSense.SIGHT: _retinal_substreams(
-            before,
-            after,
-            before_retinal_heading_offset_millidegrees=(
-                before_retinal_heading_offset_millidegrees
-            ),
-            after_retinal_heading_offset_millidegrees=(
-                after_retinal_heading_offset_millidegrees
-            ),
-            source_time_start=source_time_start,
-            source_time_end=source_time_end,
-        ),
-        PhysicalSense.TOUCH: _touch_substreams(
-            before,
-            after,
+            before, after,
+            before_retinal_heading_offset_millidegrees=before_retinal_heading_offset_millidegrees,
+            after_retinal_heading_offset_millidegrees=after_retinal_heading_offset_millidegrees,
             source_time_start=source_time_start,
             source_time_end=source_time_end,
         ),
     }
-    if causal_transition:
-        observed[PhysicalSense.BODY] = _body_substreams_for_snapshots(
-            before,
-            after,
-            source_time_start=source_time_start,
-            source_time_end=source_time_end,
-        )
+    observed.update(physical_contact_substreams(
+        before, after, causal_transition=causal_transition,
+        source_time_start=source_time_start, source_time_end=source_time_end,
+    ))
     return observed
 
 

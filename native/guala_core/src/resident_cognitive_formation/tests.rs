@@ -5060,6 +5060,7 @@ fn active_association_affective_bond_mounts_one_delayed_ordering_route() {
     let mut fabric = ResidentElectricalFabric::default();
 
     mount_reached_ordering_reach(
+        &ResidentTopologyIndex::build(&cohorts, &fabric).unwrap(),
         &mut cohorts,
         &mut population,
         &mut next_lineage,
@@ -5074,6 +5075,7 @@ fn active_association_affective_bond_mounts_one_delayed_ordering_route() {
 
     let active_bond = StablePhysicalBondReference::new(association, affective, 0).unwrap();
     mount_reached_ordering_reach(
+        &ResidentTopologyIndex::build(&cohorts, &fabric).unwrap(),
         &mut cohorts,
         &mut population,
         &mut next_lineage,
@@ -5118,6 +5120,7 @@ fn active_association_affective_bond_mounts_one_delayed_ordering_route() {
     let contact_count = fabric.contact_count();
 
     mount_reached_ordering_reach(
+        &ResidentTopologyIndex::build(&cohorts, &fabric).unwrap(),
         &mut cohorts,
         &mut population,
         &mut next_lineage,
@@ -5241,6 +5244,7 @@ fn new_ordering_route_follows_one_exact_retained_body_motor() {
     let active_bond = StablePhysicalBondReference::new(association, affective, 0).unwrap();
 
     mount_reached_ordering_reach(
+        &ResidentTopologyIndex::build(&cohorts, &fabric).unwrap(),
         &mut cohorts,
         &mut population,
         &mut next_lineage,
@@ -5285,6 +5289,7 @@ fn new_ordering_route_follows_one_exact_retained_body_motor() {
         .unwrap();
     assert!(!fabric.contains_contact(ordering, motor));
     mount_reached_ordering_reach(
+        &ResidentTopologyIndex::build(&cohorts, &fabric).unwrap(),
         &mut cohorts,
         &mut population,
         &mut next_lineage,
@@ -5297,6 +5302,7 @@ fn new_ordering_route_follows_one_exact_retained_body_motor() {
     assert!(fabric.contains_contact(ordering, motor));
 
     mount_reached_ordering_reach(
+        &ResidentTopologyIndex::build(&cohorts, &fabric).unwrap(),
         &mut cohorts,
         &mut population,
         &mut next_lineage,

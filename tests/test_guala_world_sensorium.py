@@ -113,3 +113,82 @@ def test_committed_world_interval_can_roll_back_after_native_refusal() -> None:
     ) as rollback:
         rollback()
     assert bytes(world.encoded_snapshot()) == before
+
+
+def test_compact_retinal_capture_matches_spectral_values_without_signal_objects(monkeypatch) -> None:
+    from dsf_ai_service.glew_runtime.sensory_full_field_boundary import PhysicalSense
+    from dsf_ai_service.guala_world_sensorium import (
+        _retinal_luminance, body_consequence_receptor_capture, passive_receptor_capture,
+    )
+    from dsf_ai_service.substrate import w1_physical_receptors as optics
+
+    world = _world()
+    _prepared, execution = _commit(world)
+    # The existing spectral interface is the reference, not a second optical law.
+    heading = 12_000
+    changed_axes = ((0, "neck_yaw", "millidegree", heading, -180_000, 0, 180_000), *BODY_AXES[1:])
+    spectral = optics.physical_receptor_substreams(
+        execution.before, execution.after, causal_transition=True,
+        before_retinal_heading_offset_millidegrees=0,
+        after_retinal_heading_offset_millidegrees=heading,
+        source_time_start=Fraction(0), source_time_end=Fraction(1, 1000),
+    )
+    expected = tuple(
+        tuple(
+            sum((
+                Fraction(stream.normalized_signal[endpoint]).limit_denominator(1_000_000)
+                for stream in spectral[PhysicalSense.SIGHT][site * 6:(site + 1) * 6]
+            ), Fraction(0)) / 6
+            for site in range(135)
+        )
+        for endpoint in range(2)
+    )
+    original_projection = optics._retinal_projection
+    original_signal = optics._native_signal
+    calls = []
+
+    def counted_projection(*args, **kwargs):
+        calls.append((args[0], kwargs["retinal_heading_offset_millidegrees"]))
+        return original_projection(*args, **kwargs)
+
+    def nonoptical_signal(**kwargs):
+        assert kwargs["sense"] is not PhysicalSense.SIGHT
+        return original_signal(**kwargs)
+
+    monkeypatch.setattr(optics, "_retinal_projection", counted_projection)
+    monkeypatch.setattr(optics, "_native_signal", nonoptical_signal)
+    before, after, contacts, before_transmission, after_transmission = body_consequence_receptor_capture(
+        execution=execution, predecessor_body_axes=BODY_AXES,
+        successor_body_axes=changed_axes,
+    )
+    assert len(before) == len(after) == 903
+    assert (_retinal_luminance(before)[:135], _retinal_luminance(after)[:135]) == expected
+    assert contacts == {sense: streams for sense, streams in spectral.items() if sense is not PhysicalSense.SIGHT}
+    assert before_transmission == after_transmission == Fraction(3, 4)
+    assert len(calls) == 2
+    calls.clear()
+    pixels, _contacts, transmission = passive_receptor_capture(
+        snapshot=execution.after, body_axes=changed_axes,
+    )
+    assert len(pixels) == 903
+    assert _retinal_luminance(pixels)[:135] == expected[1]
+    assert transmission == Fraction(3, 4)
+    assert len(calls) == 1
+
+
+def test_focal_optics_preserve_old_apertures_and_cover_the_whole_field_exactly() -> None:
+    from dsf_ai_service.substrate.w1_physical_receptors import (
+        FOCAL_RETINAL_SITE_GEOMETRY, RETINAL_SITE_GEOMETRY, UPGRADED_RETINAL_SITE_GEOMETRY,
+    )
+
+    assert UPGRADED_RETINAL_SITE_GEOMETRY[:135] == RETINAL_SITE_GEOMETRY
+    assert len(FOCAL_RETINAL_SITE_GEOMETRY) == 768
+    assert tuple(site[0] for site in FOCAL_RETINAL_SITE_GEOMETRY) == tuple(range(135, 903))
+    first_row = FOCAL_RETINAL_SITE_GEOMETRY[:32]
+    assert first_row[0][1] - first_row[0][3] == -90_000
+    assert first_row[-1][1] + first_row[-1][3] == 90_000
+    assert all(left[1] + left[3] == right[1] - right[3] for left, right in zip(first_row, first_row[1:]))
+    first_column = FOCAL_RETINAL_SITE_GEOMETRY[::32]
+    assert first_column[0][2] + first_column[0][4] == 45_000
+    assert first_column[-1][2] - first_column[-1][4] == -45_000
+    assert all(upper[2] - upper[4] == lower[2] + lower[4] for upper, lower in zip(first_column, first_column[1:]))

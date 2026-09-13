@@ -11,6 +11,7 @@ import pytest
 from dsf_ai_service.guala_physical_sensorium import (
     PhysicalSensorium,
     RETINAL_PORTS,
+    RETINAL_FOCAL_PORTS,
     compact_signal_body,
     settle_physical_sensorium,
     settle_projected_physical_sensorium,
@@ -37,6 +38,7 @@ def _constant(**changes) -> PhysicalSensorium:
     values = {
         "frame_count": len(TIMES),
         "retina": _values(RETINAL_PORTS),
+        "retina_focal": _values(RETINAL_FOCAL_PORTS),
         "legacy_ears": _values(2),
         "cochleae": _values(32),
         "touch": _values(28),
@@ -52,6 +54,10 @@ def _constant(**changes) -> PhysicalSensorium:
 
 def test_cached_anatomy_is_exact_and_zero_replacement_is_byte_identical() -> None:
     anatomy = receptor_anatomy()
+    assert receptor_anatomy() is anatomy
+    assert receptor_anatomy(include_focal=True) is anatomy
+    legacy = receptor_anatomy(include_focal=False)
+    assert receptor_anatomy(include_focal=False) is legacy
     assert receptor_anatomy() is anatomy
     assert anatomy.python_callback_count == 0
     assert anatomy.port_count == PORT_COUNT
@@ -77,6 +83,7 @@ def test_compact_body_has_explicit_anatomical_order() -> None:
         displacement=_values(4, 7),
         articulation=_values(4, 8),
         thermal=_values(2, 9),
+        retina_focal=_values(RETINAL_FOCAL_PORTS, 10),
     )
     decoded = array("d")
     decoded.frombytes(compact_signal_body(sensorium, frame_count=4))
@@ -93,6 +100,7 @@ def test_compact_body_has_explicit_anatomical_order() -> None:
         + (7.0,) * 4
         + (8.0,) * 4
         + (9.0,) * 2
+        + (10.0,) * RETINAL_FOCAL_PORTS
     )
 
 
@@ -164,7 +172,7 @@ def test_projected_hearing_and_body_keep_their_distinct_exact_sample_clocks() ->
     hearing_times = tuple(Fraction(index, 100) for index in range(26))
     body_times = tuple(sorted((*hearing_times, Fraction(1, 1000))))
     body = PhysicalSensorium.constant(
-        frame_count=27, retina=_values(RETINAL_PORTS), legacy_ears=_values(2),
+        frame_count=27, retina=_values(RETINAL_PORTS), retina_focal=_values(RETINAL_FOCAL_PORTS), legacy_ears=_values(2),
         cochleae=_values(32), touch=_values(28), smell=_values(8), taste=_values(5),
         displacement=_values(4), articulation=_values(4), thermal=_values(2),
     )
@@ -189,3 +197,51 @@ def test_projected_hearing_and_body_keep_their_distinct_exact_sample_clocks() ->
             assembly_id="mixed-clock-whole-packet-refused",
             source_times=body_times, sensorium=together,
         )
+
+
+def test_legacy_coverage_remains_exact_without_focal_samples() -> None:
+    from dsf_ai_service.guala_receptor_anatomy import LEGACY_ANATOMY_SHA256, LEGACY_PORT_COUNT
+
+    legacy = _constant(retina_focal=())
+    anatomy = receptor_anatomy(include_focal=False)
+    episode = settle_physical_sensorium(
+        assembly_id="guala-production-declared-anatomy", source_times=TIMES,
+        sensorium=legacy,
+    )
+    assert episode.port_count == anatomy.port_count == LEGACY_PORT_COUNT == 220
+    assert bytes(episode.as_bytes()) == bytes(anatomy.as_bytes())
+    assert hashlib.sha256(bytes(episode.as_bytes())).hexdigest() == LEGACY_ANATOMY_SHA256
+    for width in (1, RETINAL_FOCAL_PORTS - 1, RETINAL_FOCAL_PORTS + 1):
+        with pytest.raises(ValueError, match="focal.*count"):
+            compact_signal_body(_constant(retina_focal=_values(width)), frame_count=len(TIMES))
+
+
+def test_projected_focal_and_body_samples_follow_actual_anatomy_order() -> None:
+    from dsf_ai_service.glew_runtime.native_joint_source_episode import (
+        settle_native_joint_source_episode_for_senses_from_anatomy,
+    )
+
+    values = _constant(
+        retina=_values(135, Fraction(1, 8)),
+        displacement=_values(4, Fraction(1, 4)),
+        articulation=_values(4, Fraction(3, 8)),
+        thermal=_values(2, Fraction(1, 2)),
+        retina_focal=_values(768, Fraction(3, 4)),
+    )
+    senses = (PhysicalSense.SIGHT, PhysicalSense.BODY)
+    actual = settle_projected_physical_sensorium(
+        assembly_id="focal-body-order", source_times=TIMES, sensorium=values, senses=senses,
+    )
+    # Construct the declared order independently of the Python projection:
+    #135 old sight, ten body ports, then768 new sight, each with four samples.
+    ordered = (0.125,) * 135 + (0.25,) * 4 + (0.375,) * 4 + (0.5,) * 2 + (0.75,) * 768
+    expected_samples = array("d", (value for value in ordered for _ in TIMES))
+    if sys.byteorder != "little":
+        expected_samples.byteswap()
+    expected = settle_native_joint_source_episode_for_senses_from_anatomy(
+        anatomy=receptor_anatomy(), assembly_id="focal-body-order", source_times=TIMES,
+        signal_body=expected_samples.tobytes(), selected_senses=senses,
+    )
+    assert actual.port_count == 913
+    assert actual.source_sample_count == 913 * len(TIMES)
+    assert bytes(actual.as_bytes()) == bytes(expected.as_bytes())

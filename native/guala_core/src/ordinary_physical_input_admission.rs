@@ -407,6 +407,7 @@ pub(crate) fn ordinary_physical_workspace_bytes(
     hearing_sense: u8,
     passive_frames: u32,
     coupled_encoded_limit: u32,
+    additional_anatomy: Option<&crate::joint_source_episode::NativeJointSourceEpisode>,
 ) -> Result<usize, String> {
     use crate::virtual_articulated_body::{
         BodyAxis, BodyProprioceptiveConsequence, BODY_AXIS_COUNT,
@@ -432,29 +433,32 @@ pub(crate) fn ordinary_physical_workspace_bytes(
         cold_ports, 2 * cold_occurrences, cold_time_bits,
     )? as u128);
 
-    // The cached anatomy is another immutable Arc held by the caller. Its
-    // actual extents/bytes are metadata reads, not a scan of sample values.
-    let anatomy_ports = u32::try_from(anatomy.joint_source_ports().len())
-        .map_err(|_| "ordinary anatomy port count exceeds codec width")?;
-    let anatomy_occurrences = anatomy.joint_source_occurrences();
-    let anatomy_frames = anatomy_occurrences.iter().try_fold(0_u32, |sum, occurrence| {
-        let count = u32::try_from(occurrence.source_times.len())
-            .map_err(|_| "ordinary anatomy clock count exceeds codec width")?;
-        sum.checked_add(count).ok_or("ordinary anatomy clock count overflows")
-    })?;
-    let anatomy_samples = anatomy.joint_source_ports().iter().try_fold(0_u32, |sum, port| {
-        let count = u32::try_from(port.source_times.len())
-            .map_err(|_| "ordinary anatomy sample count exceeds codec width")?;
-        sum.checked_add(count).ok_or("ordinary anatomy sample count overflows")
-    })?;
-    retained += cold_source_logical_layout(
-        u32::try_from(anatomy.joint_source_body().len())
-            .map_err(|_| "ordinary anatomy payload exceeds codec width")?,
-        anatomy_ports, anatomy_samples,
-        u32::try_from(anatomy_occurrences.len())
-            .map_err(|_| "ordinary anatomy occurrence count exceeds codec width")?,
-        anatomy_frames, 1,
-    )?.0 as u128;
+    // Charge each simultaneously cached immutable source template, including
+    // explicit pre-growth coverage. Read extents, never historical sample values.
+    for cached in std::iter::once(anatomy).chain(additional_anatomy) {
+        let anatomy_ports = u32::try_from(cached.joint_source_ports().len())
+            .map_err(|_| "ordinary anatomy port count exceeds codec width")?;
+        let anatomy_occurrences = cached.joint_source_occurrences();
+        let anatomy_frames = anatomy_occurrences.iter().try_fold(0_u32, |sum, occurrence| {
+            let count = u32::try_from(occurrence.source_times.len())
+                .map_err(|_| "ordinary anatomy clock count exceeds codec width")?;
+            sum.checked_add(count).ok_or("ordinary anatomy clock count overflows")
+        })?;
+        let anatomy_samples = cached.joint_source_ports().iter().try_fold(0_u32, |sum, port| {
+            let count = u32::try_from(port.source_times.len())
+                .map_err(|_| "ordinary anatomy sample count exceeds codec width")?;
+            sum.checked_add(count).ok_or("ordinary anatomy sample count overflows")
+        })?;
+        retained += cold_source_logical_layout(
+            u32::try_from(cached.joint_source_body().len())
+                .map_err(|_| "ordinary anatomy payload exceeds codec width")?,
+            anatomy_ports, anatomy_samples,
+            u32::try_from(anatomy_occurrences.len())
+                .map_err(|_| "ordinary anatomy occurrence count exceeds codec width")?,
+            anatomy_frames, 1,
+        )?.0 as u128;
+
+    }
 
     for (frames, sense, copies) in [
         (primary_frames, None, 1_u128),

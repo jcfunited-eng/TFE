@@ -2552,12 +2552,13 @@ class NativeResidentOrganism:
     def admit_ordinary_physical_workspace(
         self, *, anatomy: object, primary_frames: int, hearing_frames: int,
         hearing_sense: int, maximum_pressure_samples: int, coupled_encoded_limit: int,
+        additional_anatomy: object = None,
     ) -> None:
         """Startup-only check against this native runtime's own fixed budget."""
 
         self.__runtime.admit_ordinary_physical_workspace(
             anatomy, primary_frames, hearing_frames, hearing_sense,
-            maximum_pressure_samples, coupled_encoded_limit,
+            maximum_pressure_samples, coupled_encoded_limit, additional_anatomy,
         )
 
     def readiness(self) -> NativeResidentObservationView:

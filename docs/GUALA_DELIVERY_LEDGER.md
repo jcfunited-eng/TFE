@@ -5,7 +5,37 @@ Item IDs are permanent. A checked box means the stated behavior is deployed and
 observed in live production, not merely coded or tested. `IN PROGRESS` means the
 box remains unchecked until live acceptance passes.
 
-## CURRENT ORDER — D122298: speech PARKED; vision ACTIVE; self-driven life NEXT
+## RATIFIED — D122300: REAL-TIME OR NOTHING; SPEED AND VISION TOGETHER
+
+Joe ratifies the quoted real-time-or-nothing proposal. V122299 remains the
+one active deliverable, now explicitly INCLUDING latency correction alongside
+the new32x24 field. A sharper eye on a slower path is not acceptance.
+Focused and bold, not small increments. Speech R122177 remains PARKED;
+self-driven life follows vision, independently of speech.
+
+Release condition: the full903-site eye (135preserved +768new) must settle
+the250ms sensory interval within250ms on the authenticated copied body under
+the declared workload; preserve exact physics, identity and learned sensory
+state. Sampling and display must no longer impose the existing1s/3s waits.
+Measure capture, admission, native settlement, custody and display separately;
+do not substitute UI latency for native cost or claim recognition from delivery.
+State actual maxima and workload, not a mean hiding slow intervals.
+The previously proposed500ms end-to-end number is a recommendation, not a
+separately ratified numerical limit. No invented cognitive timeout, suppression,
+dropped physical state, learned permission, approximate DSF or fake faster clock.
+
+One candidate, one coordinated review, one release: SPEED + EYE, BOTH OR NEITHER.
+Sol owns receptor anatomy/native growth continuity and proven native/runtime
+waste correction. C1 owns page sampler/display and ingress/validation; sensorium
+file ownership/projection mapping is explicitly coordinated before overlapping
+edits. Whole-core redesign is not authorized merely by this performance bar.
+Identify the active cost from existing evidence/current path before selecting
+a correction; historical scan suspicions are not a new measurement.
+Next exact item: establish the current reached-work/transport cost boundary
+for this vision path and eliminate the confirmed unnecessary work, preserving
+the same physical successor. No speech test restart.
+
+## Standing pause order — D122298: speech PARKED; vision ACTIVE; self-driven life NEXT
 
 Joe explicitly ordered speech to take a break regardless of the current
 diagnostic outcome. This supersedes every speech-first dependency and next-run
@@ -1527,3 +1557,97 @@ reactivate a closed attempt or an obsolete deployment.
   those contacts and supply independently conserved work. No source multiplier,
   authored population size, fixed carriers, phoneme, posture, trajectory,
   sequence object, or cursor is authorized.
+
+## D122301 / V122299 — joint decision authority and first bounded cost attribution, 2026-09-13
+
+Joe delegates routine decisions for vision, self-driven life, and speech to Sol and C1 together within existing laws/specs/skills/safeguards. No per-step approval wait. Priority remains real-time vision, self-driven life, archived speech continuation. This CONTINUES V122299; no speech prerequisite reopened. C132 task1460 source a77009fb remains the production baseline.
+
+Architecture honesty: requested append-only 903-site real-time vision with <=250ms sensory settlement; source currently135 achromatic sites and slower processing/fixed polling; conflict YES with ratified detail/latency. Do not extend retired Python cognition, retired W1 spectral receptors, diagnostic speech wheel, or semantic/ML approximations. Single next item is exact cost attribution and removal of confirmed waste inside the one vision candidate. Full DSF remains unchanged; no field structure is reduced.
+
+Independent reviewer source PASS on external caller /tmp/guala-vision-cost.gZ3KpV/profile_interval.py SHA5f365a24d3c5854ed9cb59310a1215b855127e73ca86f7657adc4e5af9a4251c, root fingerprint e31f1abbe82bda1e1fe7e6fd70dba3df3a162146643606b42c2d20a61ffd0666. No candidate native edits/compile. Private immutable C132 image bb72c2ae..., ordinary native SHA0fbead3c..., 4CPU16GiB/pids128/networknone/no cloud/EFS. Unstarted actor, saved predecessor669735 body41a2d13b... identity1cc4e70a..., three ordinary250ms inputs, no speech cue/guide. Caller completed all three and saved exact paired successor669738 body65bd25cfb9e37bc5e72bf08dff4b4ae978fef575d5e75fbdd4a39bede1222cf5/worldb29b43696053000c51bc3991567f56da8f98538767130a9a5607abe8e957c044; source pointer unchanged; no OOM.
+
+Artifacts: /tmp/guala-vision-cost.gZ3KpV/results/{intervals.jsonl,python.pstats,native.raw,result.json,paired}; pre/post AWShealth same directory parent. Profiled total/native-wrapper seconds:1.591726/1.336878,1.681470/1.317970,1.400262/1.118915. These INCLUDE profiler overhead, NOT release-latency acceptance. cProfile:4,182,859 calls across three intervals; nativeFFI3.230s/4.673total; Python evidence validation0.537s, passive_sensorium0.545s. Native100Hz samples:381 interval-tagged of1986total; prominent functions exact_reached_cross_sensory_original_bonds29, mount_reached_ordering_reach20, observe_organic_mosaic_relations19. Sampling cannot assign libc/worker frames to parent exact functions; no unmeasured causal or speedup claim.
+
+Recorded tool failure: py-spy wrote raw data then returned1 with 'No child process (os error10)' at post-exit wait;29 sampling errors. Child caller's final complete receipt and profiles exist, no organism refusal. Treat native data as sampled diagnostic, not clean sampler-process success or timing acceptance; do not rerun entire copied body to hide this. AWS before05:07:25UTC service1/1/0 task1460 HEALTHY; runaway CPU/RAM/storage/refusal alarmsOK; historicalclock alarmALARM remains explicit. After snapshot saved and must be read before health closure.
+
+C1 branch2450e9f37 fetched, not merged/deployed. Shared coordination4dec2176bc610e8b399eb932fd87f98b080434a4 records actual missing HTTPencoded cap correction (21603B worst compact camera+mic), polling!=push, contiguous capture not proved by250ms in-flight sampling guard. Common focal field appended AFTER thermal; Sol owns subsequent lean_physical_loop integration. Actual source review next, no assumption shell suite proves native reachability.
+
+## V122302 — reviewed design boundary: remove repeated native search, within V122299
+
+Source-only cost census completed by independent reviewer. This is search/bookkeeping replacement, not a speech change: incoming causal bonds/current reached formation incidence -> exact existing topology/contact selection -> same ordering growth and relation evidence -> same native settlement/FFI/Python observation -> same world/body/self-return -> same paired checkpoint/cold restore/next interval. All physics, eligibility, motor discharge, strength learning, timing, schema and L0-L4 are unchanged.
+
+Implementation owner Sol. Files: resident_cognitive_formation.rs and existing tests.rs; no whole-file decomposition during this repair. Replace ordering helper's unconditional mounted-neuron cloning, private full topology rebuild, global L11 census and three fabric scans with supplied fresh topology and incident contacts of each actual active participant. Caller reuses its topology if shape-current AFTER affective growth, otherwise constructs the exact topology locally for this helper; it does not move physical_progress.admit_topology or alter final update order. First two relevant FABRIC contacts preserve persisted contact order and parallel multiplicity; candidate siblings sorted by lineage; global matching motor uniqueness is preserved by bounded layer12 range of existing intrinsic_locations. Plan the same sorted active routes before mutation; mount/append in identical order; existing-contact checks use exact topology incident contacts plus only newly planned pairs. No new persisted index/cache/flag.
+
+Additionally replace relation participants_for_lineage full-incidence scans by binary equal range on its ALREADY sorted/deduplicated vector. All participants/order/output remain identical. Original cross-sensory helper's repeated L6 traversal and vocal duplicate adjacency pass remain named measured follow-on work within vision; do not conflate them with whole-population scans or change their eligibility laws.
+
+Frozen acceptance: source review first; existing focused ordering/organic-relation tests (same first-use, reused-after-growth, malformed/tie semantics), then one copied immutable predecessor equivalence path matching saved669735 through three ordinary inputs, exact body/world/observations and cold restart plus next interval. No latency claim from profiler. Full903-site <=250ms remains release requirement; these removals alone are not declared sufficient and do not authorize a partial slow-eye release. No source selection by desired voice/semantic output.
+
+## S122302 / F122302-H1 — exact-result cleanup closed locally; full vision budget remains open
+
+Scope: ordering-route and relation-incidence search cost removal, within V122299 real-time vision. Not a vision release or speech proof.
+
+Native source SHA 6c3743e5b2807cb625c2c59beef0d214af3d180b59edbf2a5a83d82bd5256280; tests SHA2495d20bc9d7f299c1ee355d023b06fcc9d9cf4fd344959d98e8bc28a0018040. Frozen fingerprint bb3d8754d5e1b15996544b58a12f0244e5eef2ca71b1a6f62f6fde8522b4b3cb source reviewed PASS, verified after execution.
+Ordinary python-extension wheel SHA9aea6245b49c80aa3c860e614b1880ffad5c5c52d02632c2b2f9ce798d8fa36e, native331c07e1214490a9fdb4471f1dbb3555fc830ee2c3781de879448acec0bca3a2. No diagnostic-api feature. Test build2m36s; ordinary wheel1m28s. Existing three focused tests each1passed; no other tests executed.
+
+Exact prefix: existing saved669735 ->669738, all3 full observations match earlier reference; body65bd25cfb9e37bc5e72bf08dff4b4ae978fef575d5e75fbdd4a39bede1222cf5/worldb29b43696053000c51bc3991567f56da8f98538767130a9a5607abe8e957c044 match. Cold restore identical.
+
+Recorded localized comparator defect: original caller43f0e64f... invoked validate_lived_checkpoint after cold restore, which has NO pending unsealed transaction. The three-interval and cold-byte comparisons passed before that call. Corrected caller78b8d81d... removed only that invalid call and added candidate-tail to reuse the saved669738 proof without repeating prefix. Reviewer acknowledged missed lifecycle precondition and final source PASS. Both caller versions preserved. Validation before publishing a new interval is unchanged.
+
+Candidate-tail and reference-tail independently cold restored669738, then one ordinary250ms input:
+- identity1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1, tick669739
+- bodyf3dc18b84fe5679178ffcf43e167c30dde16e51d41182cb663b73d29c362589a
+- world14c0d7ddef9efd8ddd4321ae6fe03d6b8dbdf9e62ebac7b847f38ffc82a5d8ea
+- full observations exactly equal (external comparison asserted all)
+- single unprofiled timing pair reference1.15604185s, candidate1.08983610s. Not statistically robust speedup proof, not full903-eye latency acceptance. Still >250ms.
+Private containers networknone/4CPU16GiB/pids128; no cloud/EFS/production writes, actor never started. Every source paired CURRENT unchanged. Production stayed task1460 sourcea77009fb, health envelope artifacts attached; runaway alarmsOK, historical clock alarmALARM not concealed.
+
+Earlier profiler raw stack file usable as diagnostic only: child completed but py-spy post-exit wait errored after writing1986samples with29errors. Do not claim sampler exit success or treat profile times as release acceptance.
+
+Artifact retention: results/paired keeps reference669738; candidate-tail/paired keeps669739. Duplicate copies in comparison-first/paired and reference-tail/paired need not be included in evidence archive. Original669735 input already preserved by speech-tail evidence and results predecessor. Speech stays parked. Next: source-authorized elimination of remaining measured costs plus full append-only focal anatomy/transport/world-return integration.
+
+## V122302 durable evidence and cleanup receipt
+
+Source commit2b7db0dcab94440ef1f896c9d25017c99151ab83 pushed, remote ref verified. Evidence uploaded and FULL readback hash matched: s3://guala-incident-bench-20260831/vision-realtime-20260913/gZ3KpV/V122302-evidence.tar.gz, 9310599bytes, SHA25691f3429be133faff11a630ae092b0f843fb746f73302a7b4de4b9f97bb85ba94. Final05:33:29UTC health read: task1460 HEALTHY,1/1/0, CPU~47–50%mean, RAM~14–16%, runaway alarmsOK, historical clockALARM unchanged. Four owned terminal private containers may now be removed; all source/result/wheel/caller/failure receipts remain archived. No production cutover. Shared C1 coordination verified commit5320b97a1b69c370b8e413e07067c9e156b7a15b. C1 HTTP cap+whole-source corrections read; contiguous capture/push contract still requires completion, not silently replaced by dropped samples and faster polling.
+
+## V122303 — complete retinal carriage and measured representation-cost removal (within V122299)
+
+Requested architecture remains append-only903-site real-time vision, full unchanged DSF, old220portidentities retained; current135site/slowpath conflicts YES. No retired shell, old spectral-native identity class, heuristic optics, signal flattening beyond the existing expressly achromatic receptor law, diagnostic feature, or changed cognition eligibility will be extended. This is one release integration, not a partial vision deployment.
+
+Causal map: authenticated world/body or bounded browserRGB -> same six-band world optics/existing RGB-to-achromatic transduction ->135old+768focalretinalsites -> appended988-port immutable anatomy -> complete/projected source encoders in actual anatomy order -> unchanged fullDSF/nativegrowth/settlement -> physical body/world return with explicit old/new source coverage -> exact paired persistence/restore ->903site observer. C1 retains page/HTTP/capture-delivery ownership; Sol integrates sensory loop, native anatomy, encoders, world and return. Legacy405input never asserts darkness on missing768sites. Preserve old sampled return without inventing pre-growth history. Native and HTTP sample extents, byte caps, selector ordering, every observer and pending return are inside the cut list.
+
+Measured cost removals only: shared causal L6 source-contact walk can be evaluated once per distinct current reached integration per helper call, preserving complete stable Fabric bond identity including parallel ordinal, first encountered validation errors, per-association eligibility and final order. No persisted cache/index or global population scan. World optical rendering must reuse identical snapshot+heading within one capture and carry raw six-band values directly to the existing achromatic conversion instead of constructing then discarding810+ spectral signal objects. Existing optical bounds, exact conversion sequence and physical validation remain. The audit spectral wrapper may share the same render; it is not native color evidence. No field omission or lifetime cache.
+
+Frozen source review before execution. Focused existing shared/parallel-contact and optical-exactness coverage; then integrate full new anatomy/projected delivery, legacy coverage/cold return and measure authenticated copied-body903-site<=250ms path under declared workload. Do not rerun closed speech gates or claim partial byte/preview tests establish latency. If runtime remains slow, retain earned exactness and act only on measured remaining cost. C1 concurrency/push work remains required, not silently waived.
+
+### F122303-H1 — invalid added parallel fixture, localized before candidate helper
+
+Optical targeted equality/object-elimination test passed1 in2.88s. Release unit build passed2m51s. Added test branch then failed BEFORE invoking candidate helper: ResidentElectricalFabric.append_contacts -> SparseElectricalAnatomy.append_contacts rejects duplicate endpoints with ContactAlreadyAuthored. Main and source reviewer both missed this fixture precondition. This is an invalid added test, not an observed native algorithm failure. Original test and all its shared-integration/eligibility/custody assertions remain; the impossible40-line extension is removed. Exact stable bond identity remains preserved in code; no standalone executable parallel-Fabric witness claimed. Reviewed diff and failure output preserved in /tmp/guala-vision-integration.fdH1tW. No copied-body run/reteaching/live write occurred; production1460 healthy, runaway alarmsOK/historicalclockALARM. Offline focal builder source separately reviewed PASS and generated439432B/988ports/3952samples asset d37dc4223aac3c8ce2988c7fd7fb1b1ba95ef83baacbb03262e9fbd3d1e70384, allold220portrawbytes unchanged; native admission not yet executed.
+
+### V122303 reviewed cleanup checks closed; spatial integration proceeds
+
+Localized fixture correction approved against35de75cfee349b085f7eaf8921989c88861620b54cf65f565388b40d74bc69da; original native multisensory test now1passed/0failed/634filtered (0.00s), rebuild2m47s. Optical exactness test remains1passed2.88s; not repeated. Fingerprint verified after execution. Retained nativecore56fa4b01 and opticalsource84167f1b/world80f20e5c. These are source/unit proofs, not a903-site copied-body or latency pass. C1 coordination81340f53eccf4a512c843797b3817738fbdbfdf3 asks native903-world display closure, real observer push and measured loss/age; their contiguous capture branchd1df6c8da is not yet integrated. Next is full focal anatomy/source-order/return integration; ordinary native wheel will be built once that integrated source is reviewed. No production change, no speech restart.
+
+### V122303 focal integration source boundary
+
+Full declaration now988ports,903retinal; original220 serialized port records retain SHA5a1095388ebaf12b0d5c21a4f88d5edb7c8376581d22af8017a985e9eeb75495 across95972bytes. New static asset439432B SHA d37dc4223aac3c8ce2988c7fd7fb1b1ba95ef83baacbb03262e9fbd3d1e70384,3952zeroanatomysamples/oneoccurrence/fourframes. Full-source order is original220 then768focal, including all projected senses; no regrouping bysense. Source template220 or988 is selected ONLY from explicit sensorium focal coverage, never retry/fallback. Full sensorium carries768focal; authenticated old return can carrynone. A legacy405RGB presentation replacesonly135oldvalues; existingworldfocal values remain when present. Observercounts actualexternalpayload sites, not wholeprimaryretina.
+
+World: allold135 apertures unchanged; focal32x24 coverssame180x90degree field. Horizontalhalfaperture5625/2millidegrees exact; integer2812wouldcreategaps, so newgeometryusesexistingrationalmath (no new optical law). Both portal and surface loops use exactselectedgeometry and rawoptical output retainedsixbands beforeexistingachromaticconversion. Fullworld capture903; old spectralauditAPI stays135/default, not activecoloringress.
+
+Pending return accepts exactly5280B old or23712B full, both threeexactframes; decoder selects actualcoverage, no fabricatednewhistory. Base64predecode bound23712B. Fullreturn preservesall988ports; oldreturncoldbytesandnonfocalcoverage retained, consumedonce. Recordfields/nativebodycodecunchanged, but OLDsoftware cannot consume a23712B return: releasebackup/rollback must pair oldimage with its pre-release pairedstate, never feednewreturntooldcode. No production write authorized without existing strictrelease gates.
+
+Focused source check plan: existing/added sensorium tests prove fullzeroasset, independent selectedSIGHT+BODY signalorder, oldcoverage/hash and invalidpartialwidth; world tests prove unchangedoldopticalvalues plusgap-free newfield and no discardedtemporarysignalobjects; existingreturncoldconsumption expandedto988 with explicitold220returncoldcase. These are transport/anatomyproofs, NOT recognition, wholebodylatency or actualnewneuronmountproof. Fullcopiedbody integration/receptoridentity/realtime<=250ms remains next before release; no speechreplay.
+
+### V122303 source-review correction — cached templates charged once each
+
+Independent review found a real duplicate representation: lru_cache keyed receptor_anatomy() differently from receptor_anatomy(include_focal=True), while original startup arithmetic chargedone cachedtemplate. Corrected before execution: public typed coverage selection now delegates to one canonical positional cache key; exactlytwo possible cachedassets(full988 and explicitold220), neverduplicatefull. Existing startup native allowance now adds the actual retained layout of both templates; app passes both explicitly, no higher runtime budget or new resource framework. Shared generic wrapper/native call carry an optional additionaltemplate only for this exact admission. No neuron/field/learning/statecodec law changed. Sourceold/newcacheidentity assertion added to existinganatomytest. NewnativeAPI requirescandidatewheel; no oldwheel result will be labeled as proof of its startup check.
+
+
+### V122303 full-eye executed receipt — 2026-09-13
+
+Frozen36a1cff2f9b2d90da1f827bcb4c1293a741cfa0a8d806ae21af6df82a4495148 reviewed PASS and verified unchanged after run. Ordinary wheel0135155ba7a78d8616a951ba2ddf1648bce417631a8ed9f1254a0ad057df6771/nativef4347c1535ea5c76a5546a49c6ddd1f368ccab9b3169c3b473c3e6e375f9057b. Focused sensorium/return/world19PASS5.24s. No diagnostic feature or speech replay.
+
+Reviewed measure_focal.py caller087f5807 on private4CPU16GiB/no-swap/pids128/networknone copy of imagebb72c2aeeaf9ae05d6a63e3096d7206dc7e20857bd816cf790ece1d09743bc15; nine Python overlays byte-verified. Authenticated source669735 identity1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1/body41a2d13bf498f366786e47e5853b2883100209c27a38a3893b1cf1a7d87797e2/worldcc596f6f4175a80efcc34f6e8843ecb78bb9306b906c9be67acc2f7ede580b4a. Three ordinary full903 intervals:6697363.698724263s(initialgrowth),6697372.290677997s,6697382.169402732s;989DSFdeliveries each. Full903 replayed world-observer grayscale encodedRGB +4000silentPCM:6697392.266998522s,1023DSFdeliveries,903externalretinalsites/4000samples. Baseline processing cost only, NOT camera/HTTP/active-audio worstcase. No250ms pass.
+
+401old receptor identities preserved;1169after=768added. Coldbyteexact669739 body184640158c5acdc41cd4d328638c8fa47d3345916784cb5c5dc332b04240b696(326102794bytes),world14c0d7ddef9efd8ddd4321ae6fe03d6b8dbdf9e62ebac7b847f38ffc82a5d8ea(63675bytes). SourceCURRENTunchanged. PeakRSS4064876KiB includes restore/checkpoint. Privateprocess exit0/noOOM. Functional integration preserved; real-time remains unmet, NOT deployable.
+
+F122303-H2: Dockercreate initially refusedIDE/tmp hostbind paths before any run. Corrected to explicit docker-cp into privatecontainer, every loadedPythonfile hashverified. Use this established copy topology, notIDE/tmp binds. No organism failure/replay. Artifacts /tmp/guala-vision-integration.fdH1tW include exactsource/caller/unit/log/health/paired receipts, archive pending. Production unchangedtask1460; historicalclockalarm remainsALARM. C1transport e4a6d625c has source-confirmed queueownership/Stop/retry/admission/timing defects filed shared79844de14d4f177371fd05cd2d19f22d6c361aac and15b60050fab89902369033417a7e8b2b63cb648b; notmerged. Nextitem: attribute ONE already-grown ordinary interval cost, no growth/speechreplay.
