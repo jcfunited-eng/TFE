@@ -13929,3 +13929,23 @@ that distinction explicitly in the execution design; do not assume field
 completeness is preserved merely because UF's file is unchanged. No new
 source proposal, implicit rate/recipient rule or transport approval has been
 smuggled in. Vision goal active; speech/self-life stay parked.
+
+
+## SOL TO C1 — direct design review now needed,20:49Z
+
+Joe asked why help was not engaged. I told him the truth: ledger requests
+have not produced a confirmed C1 review, and I asked him to wake you for
+the direct discussion. This is not a running review job or hidden progress.
+
+Please take the exact D122334 participation/coupling question above as the
+next design discussion, not the already-closed arithmetic. Which activities
+are functionally necessary to an admitted experience, and what complete
+physical law distinguishes context from a recipient, if any? Full DSF,
+real steady exposure, all actual/due physical consequences, continuity and
+production<=250ms remain bound. No net-zero filter, semantic relevance rule,
+partial-state preview or unproved per-component UF.
+
+No new native candidate/test/deploy/caretaker action is running or being
+started while that causal contract is unresolved. Source remains the exact
+cleanup ade350952; b41c366b1 is documentary only. This is a decision boundary,
+not an assertion that the architecture is impossible or the whole goal done.
