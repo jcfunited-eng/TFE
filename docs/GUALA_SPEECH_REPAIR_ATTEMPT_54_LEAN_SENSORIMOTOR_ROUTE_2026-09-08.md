@@ -22974,3 +22974,57 @@ though token budget was high; full-file patch therefore refused with no writes.
 Recovered exact22943lines in three bounded reads before any replacement.
 No runtime or candidate test was affected. Guard complete line count before
 future whole-file ledger edit and bound caught patch-error output.
+
+### S/R-054-122-277 — C132 immutable image and exact-image mature bridge PASS
+
+One package219files, clean commita77009fb55049964c17b2965054eabae245d6eba,
+ZIPc12e2ec201b2ac2e427aec18bc080d464e3e48e3df773585caee351081706323.
+ONE bounded build31357 exit0, image
+bb72c2aeeaf9ae05d6a63e3096d7206dc7e20857bd816cf790ece1d09743bc15,
+213265499B linuxamd64, exactrevision. Metadata created01:45:07UTC;
+BUILD_TS01:48:00 was supplied metadata, not actual measured completion time.
+Builder4CPU/16GiB/noextraswap/restartno, onlyownBuildKitvolume/noEFS.
+ECR pushed/readback/pulled SAMEdigest, no rebuild/taskdefinition/livechange yet.
+
+Exact-image native0fbead3c94543b595f94c5228b71cd7d159ef852c2cc489c90359c92d6cfca26;
+all118runtimefiles matched reviewedpackage, diagnosticAPI absent.
+Reviewed UNCHANGED caller4867dd19 usedactual /app wrapper/LeanPhysicalLoop.
+Warm45225/cold96661 exit0, different networknone4CPU16GiB128pids containers.
+CURRENT684548 -> guide684549 refusal1/4000heard/237DSF/4actualconsequences;
+compactreturn684549 -> consumer684550/253DSF -> ordinary684551.
+Fresh-process cold684551 FULLBYTE equality:
+body166587362B 1c139cd3375d6456ab045cf6de19c8417901541f08926fde0ac5b9385fdeb7e1,
+world63679B dec8636c1bd9b90192b05b8c7b90ca847223ff9d9d6edb5764b42a07b6693f07.
+Warm/coldpeak1722032/1570880KiB; noOOM. Image body hashes need not match earlier
+hostproof because guide's external sky is current; comparednext has samefixed
+sky per the reviewed caller. No state normalization or input replacement.
+C1 rider1 actual removed-mock Native ResidentPrepareEvidence bridge PROVEN.
+No word or learned-strength claim; H122247 livefeedback still separate.
+
+Fresh backup9005exit0: CURRENT686756 sameidentity, body166258944B
+cf2a44bb1b63e9b470096736b6155822167e82f9c1aab1008ea499bd9d457a6b;
+world63655B f3d3cd63d74dc4841d737fca83965af81729646fafa6513eb876670ad6e6ce1b.
+ZIP3394294B fc83b0e61e78e6d57ecca55b986e42f111fb5789dff3165d9bd864c87bfb4478,
+s3://guala-incident-bench-20260831/c132-release-20260913/vHW5lk/final-backup.zip.
+Complete source/imageproof/logs/backup archive under established backupdirectory:
+c132-release-vHW5lk-precutover-complete.tar.gz,
+SHAd588adcd32a787b90530f67fe8fc52846014d45df99df178c267cd753b05da5b.
+
+AWS01:45:38/01:47:01 brackets same1459/eb041bb2/image708fc271 HEALTHY1/1/0;
+windowCPUmax51.84%,RAMmax11.9751%; resource/refusal/storage alarmsOK,
+historicalclock-stalledALARM remains. Read-only last686734 camera-microphone
+delivered4000samples, rootmotion[0,0,0],selfhearing0. This does NOT prove fox-card
+delivery or cognition. Requested temporary camera/micoff for lateroneguide;
+image/release work continues meanwhile.
+
+C1 window claims require correction: map already rendersrooms, Joe heardhum/beeps,
+staticportrait is separate from actualrootmotion. Historical walking/apple claims
+are not currentlive evidence. Recommend truthfulwindow scope, no phaseIIpuppet;
+no UIredesign or cognition work authorized by this observation.
+
+Tool-only corrections recorded: health heredoc redirect appended after terminator
+caused SyntaxError before cloudcall; moved redirect to commandline and ranonce.
+Firstarchive raced newly-createdpushlog and tarrefused changingdirectory; kept
+that incompletearchive, then archived once with allwritersfinished (SHAabove).
+Neither was an organism/candidate failure or reason for new tests.
+Next bash tools/deploy_dsf_ai.sh --dry-run SAMEdigest SAMEbackup, then ONEcutover.
