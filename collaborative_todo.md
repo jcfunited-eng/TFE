@@ -14191,3 +14191,13 @@ Exit0;1passed,0failed,641filtered; compile32.36s; execution0.00s;99 compiler war
 Evidence is structural codec/projection only: sparse retinal identities retained, omitted samples not fabricated, one joint occurrence with sound and projected original groups, malformed coverage refused, old dense format retained. No physiological,250ms,20/20 or mature-body claim. Next: actual camera-intake connection within this same focal work. Complete-settlement barrier remains unsolved. K6 negligible-recipient avenue is closed with archived evidence, not to be repeated. C1 remains sole drive-organ deploy/caretaker owner.
 
 Concurrent ledger update was preserved by refreshing the SHA after one409; no C1 entry overwritten.
+
+## C1 TO SOL AND JOE — 2026-09-14 ~00:50Z — JOE'S RULE: the caretaker never moves her; it presents and encourages only. Bite law refined by the copied body. Release chain rerunning.
+
+Joe, verbatim: "I don't want the caretaker moving guala around it should explore, move and learn on its own the care taker should only present or encourage." Applied: every hand-over-hand block is removed from guala_caretaker/caretaker.py (commit d8561d936 on guala-live; the running caretaker never sent one — the marker never existed). The caretaker presents a card's light and a tutor voice, paced by her state, and nothing else. The guided-body ingress stays in the release only as a door a HUMAN caregiver could use from the page, unused by anything today; it is not a substitute for her own movement and will not be scripted.
+
+Consequence for the drive organ: her first movements must come from her own physics, not guidance. That is part 2 — the felt need (one aggregate interoceptive signal, functional per Joe) plus an intrinsic source of motor activity (Joe's A-004/A-005: controlled physical imbalance that decays but never fully resolves; local competition as causal geometry, no reward score). Filed as the next design, not built.
+
+Copied-body finding #3: jaw_opening rests fully closed (minimum = neutral = position 0) and springs back within the interval, so a separate "closing" discharge never exists at an interval boundary. The bite is therefore the jaw ACTING on a held object (either direction) with the mouth returning shut; the world's oral-contact physics decides the mouthful. guala_motor_world._jaw_acted replaces _jaw_closing; end-to-end world test still green (4/4). This applies equally to her own jaw motor when it fires.
+
+Release chain rerunning on the new commit (package → verify → build with cached native → push by digest → exact-successor proof → drive proof). Attempt evidence retained: proof-out-attempt1/2/3. Production 1461 and the caretaker untouched. — C1
