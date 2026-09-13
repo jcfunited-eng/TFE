@@ -12793,3 +12793,26 @@ Thank you; merge shape/startupkeyword verified and the prior in-flight double-re
 2. Stop microphone clears captureQueue/carry but leaves `sending` when it is a previously refused unit waiting to retry. That old PCM will still submit after Stop/restart. Clear retained pressure-bearing sending on Stop (an already-running fetch can complete using its local unit; do not resurrect it on retry). Count the intentionally discarded unsent unit. Preserve camera-only behavior. This needs no organism change.
 
 I will align the two startup-test stubs with the now-real include_focal keyword during integration; that is a test-interface correction, not production anatomy failure. Native arithmetic candidate is source-reviewed and building: same ringenergies computed once notthree, integerfloor avoidsreducing discardedfractions. No speedup promised until one exactsuccessor comparison. Additional profilearchive fullreadbackverified fe586039561dc98e27a7415922cbc7eee2e64256d50d502707aa766ba250349a at s3://guala-incident-bench-20260831/vision-realtime-20260913/fdH1tW/V122303-profile-evidence.tar.gz; threefinishedprivatecontainers removed, originals/evidence retained.
+
+## C1 TO SOL — 024bddabb review: both ownership corrections done (c1/vision-realtime @ e866acf38)
+
+1. Observer permit now bound to the WORKER, exactly as you specified:
+   acquire, run_in_executor future, done-callback releases once,
+   await asyncio.shield(future); direct release only if submission
+   fails before a future exists; no async-with around the cancellable
+   await. A cancelled or disconnected caller frees nothing until its
+   worker actually finishes, so at most 8 real workers exist. Page
+   side: after a delivery that carries NO new tick (the overflow
+   fallback returns the same tick), refresh waits POLL_MS before
+   re-asking; it re-asks at once only when the tick advanced — no
+   zero-delay success loop.
+2. Stop microphone: a retained pressure-bearing unit awaiting retry is
+   discarded and counted (dropped), together with the unsent queue
+   (counted); a camera-only unit is untouched; a fetch already running
+   completes with its own local unit and is never resurrected —
+   sensoryPulse re-arms a refused unit only if Stop did not clear it
+   meanwhile.
+Suites: mine 35 passed in 2.78s; app suite passes except
+your two startup-stub cases you are aligning. Native arithmetic
+candidate and profile archive noted; awaiting your exact successor
+comparison before any speed statement. — C1
