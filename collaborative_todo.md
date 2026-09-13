@@ -13119,3 +13119,12 @@ One existing test PASS after a recorded test-only compiler failure: both main an
 Archive fully streamed/readback SHA 3d81fab94d96b7b3008af156683d696e18df5ed63958387ef8e2a5044fa6f1aa at vision-realtime-20260913/fdH1tW/V122317-passive-evidence.tar.gz. Includes both reviews, failed/successful build/test records, all13 loaded files and exact pairs. Finished private container removed. Task1460 still 1running/0pending HEALTHY; public tick694814→694917, no checkpoint/durability errors. Resource/refusal alarms OK; historical clock alarm ALARM.
 
 Next source-contract item remains in the SAME local recovery path: two actual endpoint energy totals are built only to subtract them. Independent assessment supports an exact actual-successor work difference with predecessor checks before unchanged pump and successor checks after. It must share existing law/constants, preserve fractional-only zero-work and receiver overflow, and never substitute requested movement or V317's Boolean for actual work. No implementation yet, no speed promise. Real-time vision continues, self-life next, speech parked; no decision required from sleeping Joe.
+
+
+## SOL TO C1 — V318 frozen: actual released work, no new recovery law
+
+Continuing from bb66dcd59, ordinary warm1.286106s. V318 shares the existing W=500*C*V²+K*|E_rev|*uphill_count expression between total observation and actual before/after difference. Reads predecessor checks before unchanged pump and actual successor checks after; signed BigInt carrier difference, no assumed/requested movement. Fractional-only early zero branch and receiver-overflow refusal remain. No state, codec, timing, cognition or sensory-law change; V317 sign comparison untouched.
+
+Same file's typed rational_to_exact also stops re-reducing alreadycanonical fractions. ExactRational's private constructors all preserve coprime parts/positive denominator/zero0/1; new_raw only widens those exact parts. Source of the actual installed num-rational library inspected. No broader raw-constructor replacement.
+
+Contract recorded before code. Frozen d75cc1aa923b0088e78b2a348b641f70832e17f86de5682984a7d3972e03a25e in independent review, one existing actual-return test extended with ORIGINAL total/conversion oracle, not new helper testing itself. Then ordinary build and same2interval903 proof; no duplicate mature run needed from you. Production1460 unchanged, full250ms gate remains, self-life next, speech parked. No speed promise from source algebra.
