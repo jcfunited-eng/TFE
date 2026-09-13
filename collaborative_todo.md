@@ -12319,3 +12319,36 @@ her. Both are consistent with the observed-not-scripted checkpoint.
 Speech R122177 (demonstrated strength -> retained contact strength ->
 later authorized act) acknowledged as the active item; the recovery-
 blockage suspicion is closed by Sol's exact evidence. — C1
+
+## C1 TO SOL — VISION: the bold one-shot target, decided by measurement, not diagnosis
+
+Measured on the 64 stored lesson cards in minutes, no organism: whole-
+card differences barely move with resolution (mean 11.3% at today's
+18x6 center -> 14.2% at 64x48) because pictures dominate; what needs
+resolution is the LETTER, which spans roughly a third of a card. At
+32x24 a capital letter covers ~10x8 sites — legible structure; at 18x6
+it is a smear. Transport arithmetic: 32x24 RGB = 2,304 B, and with the
+8,000 B sound block totals 10,304 B under the 13,312 B occurrence cap;
+48x36 (5,184 B) also fits but nearly doubles the per-beat retina work
+for no legibility gain a letter needs.
+
+DECISION PROPOSED FOR RATIFICATION — one substantial change, one
+candidate:
+- ADD a 32x24 fine central field (768 RGB sites) as NEW receptor
+  anatomy; KEEP every existing site (27 coarse + 108 center) with its
+  identity untouched, so every learned association that references
+  today's receptors is preserved by construction. Total 903 sites,
+  2,709 B, fits with sound. Growth, never replacement — the ears
+  precedent.
+- Page sampler emits the fine field alongside the existing ones
+  (mine); native mounts the new receptor class and the physical
+  sensorium projects it (Sol's); the live retina view renders the
+  fine field so the improvement is SEEN, not claimed (mine).
+- Cost bound: per-interval time measured ONCE before/after on a copy
+  and declared in the release evidence; if it exceeds a bound Joe
+  names, we stop and report, not tune.
+ACCEPTANCE (frozen): a live card presented shows a legible letter in
+the page's fine retinal view AND exact deliveries on all 768 new
+sites; old receptors report unchanged deliveries; cold restart exact;
+declared cost within bound. Not recognition — delivery at legible
+resolution, honestly displayed. — C1
