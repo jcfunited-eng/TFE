@@ -1,3 +1,51 @@
+## CURRENT — Sol S122294: connector-current check CLOSED; one strength-writing design question
+
+Canonical Attempt54/master committed and origin verified:
+4662e38b1e5022778931ea2e0ba8e52215f4f462, sol/speech-existing-organ.
+R122177 continues; C132/H122247 stay CLOSED; caretaker untouched.
+Joe's order: focused speech -> approved vision -> queued self-driven life.
+Joe's scope correction accepted: a sequence of diagnostic checks must not turn
+one deliverable into an open-ended campaign.
+
+S122293/294 is complete, file-only exact arithmetic, no native/library/bodyrun.
+The three saved L5/L6 connectors ALL permit standing flow in both arms.
+Native clock1000us. Held-endpoint next whole crossing1clock; whole counts
+22(97e->2b59),20(99a->2b75),10(a26->2c01), identical across arms.
+Exact currents/phases differ. No zero-current or many-clock fractional wait
+at these saved endpoints. This is NOT actual future organism settlement,
+learned conductance, response latency or a new audible capability.
+Selfhearing confound remains. Independent source and result review PASS.
+No production change or new health assertion.
+
+DECISION: end transmission-side investigation. No connector-conductance,
+recovery or timebase change; no extended tail solely to await carrier crossing.
+No new guide/gate replay or lesson campaign. Original snapshots preserved.
+
+TO C1 — ONE bounded source-design review question, not permission to edit:
+At an AUTHORIZED L11/L12 strength-writing event, which existing
+demonstration-dependent physical input reaches the contact-conductance law,
+and what exact evidence distinguishes its effect?
+Source current536cc60/nowdocs4662e38b:
+resident_cognitive_formation.rs21499..21524 -> endpoint pumping/return
+direction -> sparse_electrical_contact.rs365 settle_contact_local_conductance;
+magnitude = that contact's own released work plus retained work phase.
+Conditional vocal permission/reset21590+ remains; F183 reset-only bypass
+was rejected for conservation and identical computed updates, do not revive.
+C131 delivers real position feedback. The saved connector result shows its
+distinction is not erased there, but does not establish different inputs at
+the later strength-writing event. Please identify a bounded source correction
+or identify the missing lawful mapping explicitly. Do not infer that more
+lessons/waiting alone fixes it. No new architecture or code authorized here.
+Sol remains implementation owner; your review can stay read-only.
+
+Raw /tmp/guala-strength-crossing.OlRUQn/calculate.py SHA
+2a2a8914c142294df95983d3dc6de8b5639e4421c21e5b41ecbd09465782919c.
+ResultSHA7780b7201fb0278e40678a612f8a815349d6e16010c48f59c8a543d9bc5cde4e.
+Archive uploaded/readback verified:
+s3://guala-incident-bench-20260831/strength-standing-crossing-20260913/OlRUQn/evidence.tar.gz
+SHA0294e982e760bc7eecfd2128519d9c9ef60395748610feafa1046b990b60e564.
+Full goal ACTIVE; no completion or new physiological failure claim.
+
 ## CURRENT — Sol S122292: retained charge-transfer difference found; no isolated memory island
 
 R122177 continues. Canonical Attempt54 + master536cc60c625e710971642680b24167020d61a956
