@@ -209,3 +209,48 @@ native deployment or250ms acceptance. Full shared-field/barrier contract remains
 open, not replaced by this arithmetic cleanup. C1 pageb84 served bytes are
 preserved as8e77ad775; no measured page latency benefit claimed. Canonical
 Attempt54 records command, hashes, review, warnings and health envelope.
+
+## D122334 exact saved-body closure — 2026-09-13 continuation
+
+Previous turn: progress, not wait. Source615b237be remains clean; only native
+difference from deployed4a28883 is the reviewed optical file (source SHA
+c00988645acc9826ca7a549ae690c3427ace877553a42b9c3b6ffc3afa4c232b).
+No new native edit or test filter is planned. Finish the existing arithmetic
+candidate's copied-body proof while the main execution decision remains open.
+
+Reuse UNCHANGED /tmp/guala-vision-release.2NKQi2/prove_vision.py
+SHA12e9f139b1f1d6f0fecde962f97c3bc820244cb65e5b9ccbbb1e335d88b7f618.
+Its saved698812 predecessor is AUTHENTICATED EARLIER production, not latest live:
+current.zip SHA5c67f36a7ceab5c45e25e527216f1e83937c55f36322968bfe7113fa002076ef.
+Existing deployed-image result SHA
+c5d18b948df430ec01b62ab5fde7c32f9e18826bca68dabe6e81c163d3b1c645
+is the exact common-input comparator; no predecessor rerun or teaching search.
+
+One ordinary python-extension wheel from this source, no diagnostic-api,
+installed by explicit artifact into one networkless4CPU/16GiB/pids128 container
+based on the exact existing1461 image, no mounts/live credentials. Only the
+native extension is overlaid. Python/runtime files stay deployed bytes;
+current.zip and caller copied as bounded test artifacts, never live CURRENT.
+Set GUALA_PAIRED_ROOT=/proof/paired (disposable relocation only),
+GUALA_MAX_WORLD_BYTES=16777216, RAYON_NUM_THREADS=4 and
+OMP/OPENBLAS/MKL/NUMEXPR_NUM_THREADS=1. Exact image GIT_SHA remains4a28883;
+candidate native hash separately required by the caller, not misrepresented
+as an immutable deployment. Real task definition and image env re-read first.
+
+Caller restores698812, performs three ordinary intervals, then ordinary
+903-site camera plus4000 silent samples, persists698816, starts a fresh
+interpreter, compares exact paired restore, then ordinary698817/persistence.
+Compare every row's observation and all saved/final body/world hashes against
+the existing image result. Require preservation of all original receptor
+lineages and903 visual sites. Record every individual time and peak; timing is
+local compute, not production capture latency. Silent audio and this unchanged
+scene do NOT prove noisy/full-change real-time acceptance.
+
+RF001/002/003/006/010/015/019/021/027/032/035/036/040/044/045/048/060/063
+apply: exact loaded image/native paths and hashes, env before imports, bounded
+private store, actual causal prefix retained, fresh-process poststep, source
+and predecessor fingerprints, no old speech helper and no unsafe broad rebuild.
+Nine already-passing pure tests are NOT rerun. No image publication, task
+registration, live input, caretaker action or deployment is part of this proof.
+AWS read-only envelope before/after; exact container retained to collect proof,
+then only that finished owned container removed after evidence preservation.

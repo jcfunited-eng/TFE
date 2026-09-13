@@ -20,10 +20,10 @@ coupled physical laws, or sensory relationships. No new cognitive owner.
 Next exact item: freeze the dependency-complete native barrier-removal contract
 using existing physical due scheduling and local clocks, then implement/review.
 The barrier implementation is not yet frozen or built; no250ms/deployment claim.
-One dependency-complete waste removal is now source-candidate only: exact
-constant-span optical integration in optical_receptor_work.rs, with unchanged
-physical outputs and error order. Its focused source review precedes testing;
-it is not a substitute for barrier removal or the real-time acceptance.
+Exact constant-span optical integration is now LOCALLY CLOSED: reviewed source,
+9 focused tests, complete same-input698812→698817 body/world/observation equality
+and fresh-process restart. Warm1.076–1.080s; sensory1.245s, still OVER250ms.
+No production/native release; this does not replace the full barrier/eye repair.
 P122333 priority finding remains closed. D122331 non-real-time903 release on1461
 remains live; C1's exact6ca6842c HTML/tests are now integrated as804b993a6.
 See appended D122334 authorization and source map.
@@ -1943,3 +1943,14 @@ native deployment or250ms acceptance. Full shared-field/barrier contract remains
 open, not replaced by this arithmetic cleanup. C1 pageb84 served bytes are
 preserved as8e77ad775; no measured page latency benefit claimed. Canonical
 Attempt54 records command, hashes, review, warnings and health envelope.
+
+## D122334 saved-body arithmetic closure — 2026-09-13 18:35 UTC
+
+Same complete observations and paired698816/698817 hashes as the deployed-image
+proof; all receptor identities retained. One candidate wheel, one bounded
+networkless copied-body proof, no repeated unit suite or production input.
+Archive66cfbbfae6e79acc49d0a1017e871b3d0458e3fca9be469cdee1aab5478c017c
+fully read back from S3; exact finished test container removed. Canonical
+Attempt54 contains the complete timings, identities, scopes and command fixes.
+Full D122334 is still active and not delivered; C1's shared-field execution
+review remains outstanding. No claim of a verified running C1 job or wait.

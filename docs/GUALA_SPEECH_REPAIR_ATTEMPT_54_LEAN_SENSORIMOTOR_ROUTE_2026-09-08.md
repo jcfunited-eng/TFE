@@ -25605,3 +25605,82 @@ The original session27384 remained alive and was polled to its actual exit0.
 No second compilation or test run was started. Wide /tmp discovery and one
 long historical search were output-truncated; their truncated output was not
 treated as a complete instruction read or source proof. Use bounded patterns.
+
+### D122334 optical complete saved-body comparison — locally closed, not deployed
+
+Previous goal turn classified PROGRESS: source/full-field preserving optical
+arithmetic and C1 page continuity were changed and proved at their stated scope.
+This turn continues D122334; P122333 remains closed, speech/self-life parked.
+No new source candidate or repeated pure-test run was opened.
+
+Source615b237be, unchanged opticalSHAc00988645acc9826ca7a549ae690c3427ace877553a42b9c3b6ffc3afa4c232b.
+Whole-tree9b996ebede1e7a35459e7e8cca3e28664d85a0644ae9d28b78056c417838db21
+passed independent continuity/caller review before build and remained exact
+after the completed proof. The only native diff from deployed4a28883 is this
+optical file. Contract's exact698812 saved-body closure was frozen first.
+
+One ordinary python-extension wheel (no diagnostic-api) compiled1m31s,
+188 inherited/remaining warnings. WheelSHA
+67d7a897de25a0835499c50f5ee2f4f737a4e1df125130cf1b0cfd89b7ef0fec;
+loaded nativeSHAc689f798aa7ae7dda627dce1f1979e9fd8d853d14544ed7a60f42cd5bcb6d070.
+Installed explicit wheel in private local target; native-only overlay on
+actual1461image d293311d9adeaf5d91975718192191ad430d003ca3286b052fa15dd8e58837cf.
+No Python runtime overlay. Exact task env re-read:4CPU/16GiB, root relocation
+only to/proof/paired, world limit16777216; imageRAYON4 and numerical libraries1.
+No live environment change, image build/publication, task registration or input.
+
+Reused unchanged prove_vision.py SHA12e9f139b1f1d6f0fecde962f97c3bc820244cb65e5b9ccbbb1e335d88b7f618,
+current.zip SHA5c67f36a7ceab5c45e25e527216f1e83937c55f36322968bfe7113fa002076ef.
+Earlier authenticated production698812, NOT latest-live body. Existing
+deployed-image resultc5d18b948df430ec01b62ab5fde7c32f9e18826bca68dabe6e81c163d3b1c645
+was the common-input comparator. No old-body rerun or lesson search.
+
+All exact comparison assertions PASSED: initial predecessor; allfour
+ordinary/sensory observations; saved698816body/world; fresh-interpreter exact
+restore; following698817body/world and observation; all original401receptor
+lineages retained,1169aftergrowth,903visualsites. Last sensory event physically
+delivered903sites plus4000 silent samples. Its silence is explicit, not a
+nonzero-audio/noisy-camera workload.
+698816body ddbb0014ef26f6ed3e524655d24a61921e1ada0a76f80aafa882737aaf23239b,
+world bb43ca30eba351b3285ec89f33e89746d89c5a85c2e9b420ee826864891a5a36.
+698817body1ccd98218b471c7d18f0c53dd95b9daab4b5fb262953e94d027fdfc4516ecb0c,
+worldc17329fc88ced087166b0f840cd48ce5967d1bce2abba15fbe7272b0b3214181.
+
+Every interval time (seconds), candidate versus prior image proof:
+growth3.029275384/3.472582354;
+ordinary1.080051509/1.221391006 and1.076485773/1.200390872;
+camera+silent-sound1.245221300/1.349251268;
+postcold1.120490401/1.178961376.
+Observed warm reductions141.34/123.91ms; sensory104.03ms. This is ONE historical
+same-input local comparison, not a stable statistical speed estimate or
+production prediction. Peak3147044KiB versus3179048KiB in prior image result.
+All times remain OVER250ms. Exact arithmetic removal retained; the full
+sensory barrier/foveation/contiguous audio target remains incomplete.
+
+Owned containerc9916264461dd9509dd67d8e8df900ee6d387e47090480e0183ef5e0968c1fd6:
+4CPU,16GiB,noextra swap,pids128,no network,no mounts,no auto-restart.
+Ran18:29:26.280306129–18:31:08.290219420UTC, exit0/noOOM. No production access.
+Proof states, source/reviews, ordinary wheel, full logs and AWS envelopes
+archived to s3://guala-incident-bench-20260831/sensory-latency-20260913/mCZ6K9/D122334-optical-evidence.tar.gz.
+Whole archiveSHA66cfbbfae6e79acc49d0a1017e871b3d0458e3fca9be469cdee1aab5478c017c
+verified by full streamed S3 readback before that exact finished container was
+removed. No unrelated old containers removed. Installed local Python duplicate
+excluded from archive; exact wheel/native identity retained. Evidence recoverable.
+
+Read-only AWS before/after: unchanged1461/aad26742, same image,service1/1/0.
+Matched18:29/18:30/18:31 samples CPUavg47.265/41.305/56.871%,max64.942%;
+RAMavg19.624/18.283/19.639%,max22.372%. Resource/storage/refusal alarmsOK,
+historicalclockALARM stillopen. No claim these counters prove cognition or
+long-term growth. No caretaker restart/change.
+
+Source follow-up rejects another speculative overhead claim:
+joint_uf_neuron_boundary::bind_neuron_perspective is two bounded lookups;
+neuron_source_anchor::bind_neuron_source_anchor borrows the Arc/port and checks
+stored authority bytes, not a full-field rehash or recursive state validation.
+Do not reopen that as a whole-field hashing fix. SharedUF itself remains once
+per actual occurrence; component splitting is still not equivalent.
+
+Command correction: Docker image formatting requested absent Config.Entrypoint.
+Read-only template failed; full structured image inspection confirmed absent
+key, existing default command and exact image env. No container had started.
+Reviewer corrected one read-only jq projection syntax; no physical run repeated.
