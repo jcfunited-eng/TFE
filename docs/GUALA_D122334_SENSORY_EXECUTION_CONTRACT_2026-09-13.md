@@ -254,3 +254,35 @@ Nine already-passing pure tests are NOT rerun. No image publication, task
 registration, live input, caretaker action or deployment is part of this proof.
 AWS read-only envelope before/after; exact container retained to collect proof,
 then only that finished owned container removed after evidence preservation.
+
+
+## D122334 functional necessity and verified preparation limit — 2026-09-13
+
+Joe reaffirms functional necessity, not duplication of human biological
+functions. Timely truthful reception, organism-aimed fine sampling, coarse
+context and action feedback are required. Extra microscopic eye machinery is
+not. Existing eye-axis types are an available interface, not an obligation to
+reconstruct biology. Full DSF and learned state remain unchanged requirements.
+
+Independent source review closes one design question: full UF preprocessing
+of an already-complete immutable source can overlap; general next-receptor
+settlement cannot yet do so. Current topology, residue, Psi/gates, fluid,
+prior body return and self-sound are predecessor-dependent. A speculative
+earlier-state preparation is not equivalent. No physical pipeline is frozen.
+
+The current32x24 field samples the whole view. World geometry declares180x90
+degrees; camera lens FOV is not measured. Camera sampling ignores native pose;
+world carriage uses neck yaw/eyelids. Native eye axes reach observation but do
+not thereby steer optics. These are the actual mapping gaps to close.
+
+C1 review proposal: retain bounded full-detail capture at its source and send
+only organism-aimed receptor samples, avoiding full-frame transport/storage.
+Not approved until optical footprint, exact sampling, native aim/capture
+causality, Stop/late arrival and card parity close. No stale-pose assumption,
+semantic selection, expiry heuristic or second controller. Compare with
+bounded full-frame/native sampling if source-side causality adds a handshake.
+
+Canonical Attempt54 records source anchors, prior-art exclusions and command
+corrections. No native code, tests or production changes this continuation.
+D122334 remains active;250ms actual production reception and full detailed-eye
+acceptance are not replaced by a preview. Speech/self-life remain parked.

@@ -4,9 +4,8 @@
 
 Joe: "So what are you waiting for" after the complete barrier-removal/foveated-
 eye/independent-senses proposal. Sol begins this scoped work NOW; no further
-start approval required. The product-wide goal control still reads paused,
-but it is not a blocker to this explicit turn authorization. Speech and
-self-life remain parked. Do not regress this item to "awaiting Joe" merely
+start approval required. The product-wide goal control is ACTIVE, verified
+on 2026-09-13. Speech and self-life remain parked. Do not regress this item to "awaiting Joe" merely
 because the earlier timing-only proposal or project-wide pause was recorded.
 Target: actual native sight/hearing delivery within250ms in production,
 including noisy/full-change load, with exact causal continuity and cold restart.
@@ -25684,3 +25683,67 @@ Command correction: Docker image formatting requested absent Config.Entrypoint.
 Read-only template failed; full structured image inspection confirmed absent
 key, existing default command and exact image env. No container had started.
 Reviewer corrected one read-only jq projection syntax; no physical run repeated.
+
+
+### D122334 — functional necessity and source-overlap decision, 2026-09-13 18:55 UTC
+
+Joe: "Remember the rules of functional necessity - not duplication of every
+human bio function." Required functions: timely actual reception, an
+organism-aimed sharp sampling region, coarse context and causal feedback.
+Do not add eye muscles, biological retina layers or microscopic mechanisms
+merely by analogy. Existing axis names do not require their use or extension.
+Full DSF, learned state and one causal identity remain mandatory.
+
+Previous turn preserved completed evidence and coordinated it; it did not
+advance native latency. This continuation verified clean root286802745.
+Source-only independent review answered the NEXT-source overlap question:
+prepare_complete_joint_field_with_admission / evaluate_occurrence_with_admission
+may calculate full UF of an already-complete immutable source independently.
+But next receptor work reads current topology (core8875), residue/Psi/gates
+(core9589-9653), predecessor neuron (prepare_reached_gate_psi:13264), and shared
+cohort reservoir/retained experience (core13329+, reached_cohort4214-4325).
+LeanPhysicalLoop._advance:74-140 reads prior self-sound/body axes/physical return
+and eyelid transmission before composing the primary sensorium. Runtime4029-4157
+produces that body/sound return after predecessor cognition. Main verified
+these actual callers. General physical overlap is NOT established; using
+earlier state would be speculative. Maximal proven overlap stops at immutable
+preprocessing before current-body/topology/receptor binding. Errors must stay
+at the original admission boundary, not abort the preceding event.
+
+Prior-art avoided further untimed candidates: P329 full sourceUF4.365ms cannot
+justify a seconds-scale preprocessing promise. Its entire setup/topology/
+mapping/growth remainder5.445ms is not mapping alone. V330 address reuse stays
+closed; V314 parallel consequence-buffer rewrite stays retired. No run repeated.
+
+Optics source facts now explicit for the contract:
+imageRetina (HTML31) samples the WHOLE image into32x24 without native pose.
+FOCAL_RETINAL_SITE_GEOMETRY (substrate/w1_physical_receptors.py150-163) covers
+the full declared world180x90 degrees, not a narrow fovea or measured webcam
+FOV. retinal_carriage (guala_world_sensorium.py48-77) reads neck yaw/eyelids,
+not eye yaw/pitch; world projection640+ changes horizontal heading only.
+Native eye yaw/pitch axes already exist at virtual_articulated_body.rs667-694
+and lean_embodiment_observation exports native_body_axes. Their presence is
+not proof of optical steering or reason to add more human machinery.
+
+Recommended design alternative for C1 REVIEW, not implementation approval:
+keep bounded full-detail current capture at its source and send actual
+organism-aimed receptor samples, avoiding entire-frame network/server expansion.
+Requires exact optical footprint/sampling, native action-to-aim evidence,
+capture/pose causality, Stop/late-arrival and card parity. No stale-pose
+substitution, semantic crop, source expiry heuristic, session registry or
+extra handshake backlog approved. Full-frame native sampling remains the
+alternative if source-side causality cannot close. Dimensions are not guessed.
+Changed optics is changed physical input, not same-successor arithmetic proof.
+
+No native/UI code, compile, test, live input, deploy or caretaker operation.
+D122334 retains actual production reception<=250ms plus detailed directed eye
+and full-field/cold continuity; speech/self-life remain parked. The execution
+contract is still open, not replaced by a preview or this source review.
+
+Tool corrections: wrong math-authority filename and guessed observation/
+receptor paths were corrected from skill text and rg --files. A one-shot
+large-ledger read hit the tool's byte output ceiling despite its token budget;
+a whole-file patch therefore refused without changing any file. Re-read in
+three bounded ranges and verified all25686 lines before replacement. Catch
+large patch errors without dumping the attempted ledger. No physical work
+was repeated. Header's stale product-goal-paused statement corrected to ACTIVE.

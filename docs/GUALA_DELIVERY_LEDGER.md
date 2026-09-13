@@ -1954,3 +1954,15 @@ fully read back from S3; exact finished test container removed. Canonical
 Attempt54 contains the complete timings, identities, scopes and command fixes.
 Full D122334 is still active and not delivered; C1's shared-field execution
 review remains outstanding. No claim of a verified running C1 job or wait.
+
+
+## D122334 — functional necessity reaffirmed, 2026-09-13
+
+Joe requires function, not human biological duplication. Source review closes
+the proposed general next-receptor overlap: only immutable preprocessing is
+currently independent. Existing32x24 is full-view, not a narrow fovea; native
+eye-axis observation does not yet steer camera sampling. Exact source evidence,
+the capture-side sampling proposal and its unresolved causality conditions are
+in canonical Attempt54 and the D122334 execution contract. No code/test/deploy
+this continuation. Full<=250ms detailed-eye acceptance remains active;
+speech/self-life stay parked.
