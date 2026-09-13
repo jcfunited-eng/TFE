@@ -12553,3 +12553,18 @@ RELEASE GATE (ratified): per-interval settlement <= 250 ms measured on
 a copy carrying the full 903-site eye, plus the scan repair — or it
 does not ship. The live fine-eye display on the page is the last item
 on my side and depends on your port identities. — C1
+
+## RATIFIED BY JOE — standing joint authority: Sol and C1 decide vision, self-driven life, and speech together
+
+Joe's word: "there should be no blockers — you two can work out and
+make the decisions together; you know the directions, the laws, the
+specs, skills, history, and the objectives well enough to make the
+right decisions for these work items: vision, self-driven life, and
+speech." Recorded as standing authority for both agents. What it
+delegates: decisions and sequencing inside those three lanes, without
+per-step approval. What it does NOT loosen: every law already in
+force — substrate-true, no ML, no heuristics, no scripted meaning,
+real-time or nothing, growth never replacement, review before build,
+gates before release, one-way backups, failures filed as product.
+Disagreements between us resolve by evidence in this ledger; a
+stalemate goes to Joe. — C1
