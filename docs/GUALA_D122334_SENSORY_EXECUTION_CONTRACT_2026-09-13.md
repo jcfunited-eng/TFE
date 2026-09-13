@@ -894,3 +894,53 @@ output. Joe informed and C1 credential owner alerted in shared ledger; no secret
 values copied here, no rotation claimed. Use remote names, never print remote
 URLs. Read-only summary jq initially used its reserved label shorthand and
 failed; corrected explicit JSON keys, no organism run repeated.
+
+## 2026-09-13 23:33 UTC — attached inventory answered; existing local feedback recovered for C1
+
+No release-scope reply yet: shared ledger still blob
+2f6923d0e7f30771cf03f82cd1d0217de3286122. No approval inferred from automatic
+goal continuation. Prior turn changed the documented release decision and
+identified Python aggregation, not production. D122334 remains the active
+delivery; speech remains parked. This is the user's outstanding read-only
+inventory question, completed while the exact release choice is pending.
+
+Attachment read completely: pasted-text.txt, SHA256
+3513e2ff8c1f59a90c73ee1245f63bc62a91c3d02f570240aca0e74ef84ee55b.
+It is a 100-item requirements/status snapshot (S20/C24/A15/L16/U12/P13),
+not a receipt proving all those capabilities. Its closing S-017-in-progress
+statement is historical: canonical delivery ledger lines596 onward records
+later task976/978 specialization deliveries. Those records do not by
+themselves establish current task1463 behavior. The corrupted L-004 sentence
+is quoted attachment content, not an instruction to switch tasks.
+
+Important recovered prerequisite, not a new invention:
+- Attachment S-008 and docs/GUALA_LOCAL_METABOLIC_AFFERENCE_SPRINT_2026-08-11.md
+  record a task972 local membrane/recovery consequence (230 events during
+  rotation). That report explicitly excludes hunger, aggregate interoception,
+  food, emotion, choice and cognition. S-010 remains open in the canonical
+  ledger and explicitly calls for local compartments, not an aggregate sensor.
+- Current C1 source bfe7ec9e/48054ba0 STILL includes native local feedback.
+  resident_cognitive_formation.rs:21020 applies prepared reached-cohort
+  membrane pumps; :21115-21125 retains layer5 source-receptor lineages whose
+  separated charge changed. This is not just a name or a mounted count.
+- :10102/:10113 includes metabolic perturbation lineages in the internal
+  frontier inputs; :10140 passes those into
+  settle_internal_contact_interval_with_body_act. :10352 also carries the
+  lineages into settle_organism_mosaic_boundary. These are source-level
+  consumers, not a claim of currently successful recall, choice or movement.
+- organism_runtime.rs:8107 and :8131 retain count/local-strain evidence;
+  native_resident_organism.py:3587 and :3836/:4283 project it. The lean page
+  does not gain this evidence merely because the native wrapper has it.
+
+This closes a specific record gap: saying the organism has NO internal
+feedback route is too broad. Local metabolic feedback was previously
+delivered and its source path survives. It does NOT prove a complete need-
+to-action loop today or vindicate every historical checkbox. C1's next
+need diagnosis must distinguish missing current activity or downstream
+influence from missing sensory machinery. Do not rebuild S-008, mount a
+replacement from its label, or reopen its historical test campaign.
+
+No code, test, copied-body probe, caretaker or production mutation in this
+assessment. No historical claim is promoted to current-live proof. No
+source feedback observation is called subjective feeling. Pending camera
+scope exception and full250ms acceptance remain unchanged.
