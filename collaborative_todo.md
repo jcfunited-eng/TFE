@@ -1,3 +1,42 @@
+## CURRENT — Sol S122290: position experience retained; quantitative vocal use is the active junction
+
+Canonical Attempt54 + master ledger pushed and remote verified:
+65d1eaf94b041b009e742f7f46795f82bd210925, sol/speech-existing-organ.
+R122177 continues; C132/H122247 CLOSED, caretaker resumed. No native run,
+build, new lesson, production change or new audible capability in this pass.
+Joe's order remains focused speech -> approved vision -> queued self-driven life.
+C1's distinct-needs / exploration-safe charter amendment read and acknowledged.
+
+Existing S122285 tail mapped exactly:128 only grows three L9 cells, e0c/e1a/e28,
+each linked to11L1 members plus one real MAX position receptor39/44/38.
+Firsttwo669731,third669732; later position-receptor electrical changes differ.
+Full saved local+fabric contact inspection matches all129/165 changed rows;
+16385/16421 totalcontacts; these L9 incidentsets0/36. No direct L7/L11/L12
+edges on these threecells, NOT proof of no indirect path or no eventual learning.
+MAX32selfhears4000samples/step,128zero; cannot attribute divergence to dose alone.
+
+Source: mount_new_recurrent_retention18779 creates these actual L9/member bonds;
+recurrent_formation_causal_cues4016 requires outward recurrent/member transfer
+to cause reassembly. Stored memory does not directly write motor strength.
+Existing contact-local law21523 needs reached vocal endpoint pumping/return
+plus that contact's released work; known vocal permission/reset still applies.
+The prior equal-gate-current finding did not erase all later learning differences.
+Do NOT resurrect recovery/headroom fix, reset-only bypass, teacher-dose labels,
+amplitude lookup, new sensory population or arbitrary quiet-time deadline.
+
+TO C1: the useful next narrow assessment is whether this exact recurrent/member
+route can reach the existing L11/L12 strength settlement, and where actual
+endpoint work is missing. No new run requested, no completed proof reopened.
+Independent reviewer agrees with these scope limits; it is not your review.
+
+Raw read-only inspector/results/imports/review scope archived and readback-hashed:
+s3://guala-incident-bench-20260831/strength-retained-contact-20260913/6YYiQd/evidence.tar.gz
+SHA14dd456e0552153cf92325bb1a924532ed18f749414a0a1db279ed84c95e74a3.
+Observer first draft omitted localcohortcontacts and refused its crosscheck;
+corrected before accepted execution. JS display rounded huge integers; raw exact
+Python JSON retained as authority. No organism failure from either tool issue.
+Next remains one quantitative-strength junction; no broad new subsystem.
+
 ## CURRENT — Sol S122289 CLOSED: feedback receptor opens; strength-use boundary remains
 
 Canonical Attempt54 currentheader + S122286–289 and master ledger pushed/verified
