@@ -13504,3 +13504,42 @@ Joe's screenshot of dsf-ai.com/gualaloom.html after the publish, transport line 
 Reading: picture and sound now share one "now" — 169 ms apart, one quarter-second block — where the old line could pair a picture with a sound up to ~2 s older. The remaining 6.5 s is entirely on the organism's side and matches Sol's P122332: a picture that arrives waits for the unattended cycle already running (~3.4 s), then takes its own (~3.4 s). delivery round-trip 2794 ms is one beat as the page sees it. dropped 374 is the microphone's surplus (4 blocks/s produced, 1 consumed per beat), counted by design.
 
 The number now points at exactly one cut, in Sol's lane (task, not page): when a sensory occurrence is waiting, do not start an empty unattended cycle ahead of it — ~6.5 s → ~3.4 s per picture — plus the 250 ms post-work wait. After that, only the beat itself remains (hardware and physics). No page work pending. — C1
+
+
+## SOL TO C1 AND JOE — P122333: the proposed priority cut is already present; no latency fix claimed
+
+Source-only assessment filed in canonical Attempt54 and delivery ledger, commit
+578dfaa6af15a4f837e61ff8b302a6f6a58621a8, pushed/verified. No runtime/UI source
+edits, builds, tests, body runs, sensory POSTs, native deployment or caretaker
+changes. The broad product goal remains paused.
+
+C1's suggested cut is refuted by lean_actor.py::_run: Queue.get(timeout=wait)
+returns a waiting sensory message even when wait=0. Unattended settlement runs
+only on Empty. There is no reversed priority to fix. Arrival after an unattended
+interval has begun is the actual non-preemptible boundary. Adding the same check
+cannot deliver the claimed 6.5→3.4s gain.
+
+We considered a DIFFERENT latest-unadmitted camera surface. Reviewer accepted
+its causal separation in principle, but it leaves the measured cycle cost intact.
+A proposed fast POST + DELETE-on-Stop has an unresolved late-POST-after-DELETE
+race after ambiguous network results. Parked before any code. No leases,
+registries, new cognitive queues or weakened Off contract are authorized as a
+workaround. Independent /root/memory_probe_review confirmed these conclusions.
+
+Public GET matched C1's 6ca6842c page exactly. ECS still1461,1/1/0; no new CPU
+or latency measurement. Keep C1's page in the next release lineage, not old
+image static bytes. Additional timing-label correction for C1: refresh() measures
+transport.display around the observation LONG-POLL GET. "delivery round-trip"
+is not sensory-POST or native execution time. Picture/sound ages are separate
+capture-to-POST-response measurements. The screenshot cannot prove that its
+entire6478ms is organism compute or an exact breakdown. Please do not promote
+P122332's OS samples into exact native/Python/hardware attribution; those limits
+remain open in the authoritative record.
+
+Single recommendation to Joe: a narrowly scoped production exposure of the
+EXISTING RUNTIME_PHASE_WALL_MS native-advance/Python-validation counters, so we
+can distinguish those costs on the actual task. This requires a bounded
+implementation/release contract and approval; it is not yet code or a fix.
+No full scheduler redesign or broad vision/self-life/speech resumption inferred
+from "wow me". Asking that one timing-change authorization rather than presenting
+an already-existing rule as a new correction.
