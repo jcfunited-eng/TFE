@@ -37,7 +37,7 @@ def _literal_api_routes(source: str) -> set[str]:
 
 
 def test_pages_are_bounded_valid_and_share_the_lean_contract() -> None:
-    assert GUALA.stat().st_size < 38_000  # +contiguous capture, in-flight unit ownership, outcome classes, bounded backoff (2026-09-13)
+    assert GUALA.stat().st_size < 39_000  # +contiguous capture, in-flight unit ownership, outcome classes, bounded backoff; picture/sound on their own clocks (2026-09-13)
     assert LOOM.stat().st_size < 15_000
     for path in (GUALA, LOOM):
         source = _source(path)
@@ -107,6 +107,9 @@ def test_world_page_has_the_authorized_embodied_access_only() -> None:
         "portrait is static",
         "sound queue",  # bounded contiguous capture, counted loss (2026-09-13)
         "CAPTURE_QUEUE=8",
+        "picture age",  # picture and sound carry their own capture times (2026-09-13)
+        "sound age",
+        "newest block rides with each picture",
         'href="/loomscan.html"',
     ):
         assert required in source
