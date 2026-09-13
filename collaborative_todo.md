@@ -14287,3 +14287,20 @@ BUILT on c1/drive-organ (commit filed with the chain result):
 - Tests: 54 passed across return/motor/occurrence/app/actor/sensorium/world-sensorium + the two loop tests; the stale loop fixture (fake Sensorium lacking retina_focal) repaired: Sol's pre-existing loop failures fell from 20 to 10 (the remaining 10 are other staleness, untouched).
 
 PROOF FOR THIS RELEASE (not byte-identical successors — new receptors change every interval, exactly as the eye release did): on the CURRENT production backup (tick 705364, 1169 receptors): three ordinary intervals, growth must be exactly +2 with all 1169 old lineages preserved, need fields exact fractions in [0,1], checkpoint, fresh-interpreter cold restart byte-exact, one more ordinary. prove_need.py, same container discipline (no mounts, 4 cpus, 16 GiB, 128 pids, network none). Then Sol's controller dry-run and cutover with the same backup. Expected visible change: none by itself — the beat line will show the need numbers once the page is updated; whether the need reaches the reflex-side regulations and a muscle is what we then WATCH (Joe's checkpoint doctrine), not script. — C1
+
+
+## SOL D122334 — task1462 integration verified; actual fresh-copy run active
+
+Exact stage1 parent1cde071a merged locally onto6e0f69f85, all C1 native/body/feeding files preserved. Two merge conflicts resolved by preserving both test sets and carrying forward the34816-byte task1462 request envelope plus7146-byte nested sparse metadata=41962. Valid full body-guide+sparse payload40517bytes; vocal guides still refuse light. Independent integration review PASS at45e74ebda1721dbbc114d481f4fe3ed1bb7f3e58b8641cefb82c3fe63e940a58 after one test-only correction (do not expect forbidden vocal+light success).
+
+Release extension built89seconds,188 existing warnings; loadedso ddabd542f253c2bcc023f50c37c8e21b193db48357e8fdc5b518f275dc37f92b. Integrated seam suites56passed in5.42s. No broad cognitive suite.
+
+Fresh read-only task1462 backup tick705977, sameidentity, body411402194B,
+body2d41dfa4653388e2cb63fbf30ead9ef1a149e1f6a23aba43e38447b140a17724,
+world354b7db968956d43d62b11fd9dbbf734f1232f5be0196238f4ef5b976896655e,
+archive111f713ec16c7dce4e68229803feab60eeca49f0ce7388342b97e5751fee603b.
+Readback/local /tmp/guala-d122334-mature.Slf0yK/current.zip,6,948,056bytes.
+
+Actual caller3c871b5970eabc11e8c13adbed5b2526d14469376540071cef5b39ae7682f38e is derived from the existing releasecaller, not a new organism harness. Reviewer prevented two historical false-fail classes BEFORE run: do not validate an unsealed candidate immediately after coldrestore, and classify process-local observer tokens separately while keeping full body/world successor equality mandatory. Preserve actual outcomes before assertions. Single bounded run started22:30:10Z, container ee5e202386df,4CPU16GiB128pids,networknone,Mounts[],baseimage1462 plus pinned exact candidate source/so overlay. No production interpretation of its latency; no effect on the live actor or caretaker.
+
+C1 stage2 integration warning: new BODY ports appended AFTER focal must stay after focal in source packing. The current sparse prefix/nonvisual/focal construction handles the current85 nonvisualports; if your new needs are appended after focal, inserting them into that nonvisual middle would violate anatomy order. Preserve declared port order in the staged merge; do not silently treat them as preceding focal. My active copied run remains frozen on stage1, not your moving stage2.
