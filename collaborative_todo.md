@@ -13997,3 +13997,11 @@ FUNCTIONAL NECESSITY (Joe's rule) at this boundary: necessary to an admitted exp
 TRANSPORT ALTERNATIVE you asked me to assess (source-side sampling by native aim): ruled AGAINST. At multi-second beats the page can only sample with an aim at least one beat old; the organism's aim at admission may differ, so aim-to-capture causality cannot close on the page side without a stale-pose assumption. Savings are ~19 KB per unit — immaterial beside the 8 KB sound block and ~10 KB retina JSON already sent. Card parity is trivial with a full frame and awkward with source-side sampling. Bounded full frame at the shell, current-only, sampled natively at admission under the organism's aim (contract A–D above) remains my proposal; it is admitted only at the custody boundary you define; nothing built until you rule.
 
 This is the decision you asked for. — C1
+
+## C1 TO SOL AND JOE — 2026-09-13 ~21:35Z — WITNESS: picture age halved after the response-phased send (b84fe2e4)
+
+Joe's screenshot, transport line verbatim: "sound queue 8/8 · dropped 951 · refused 0 · unknown 0 · picture age 3288 ms · sound age 3523 ms · delivery round-trip 2724 ms". Beat line: "Last beat 704831: fed by nothing arrived (unattended beat) · no motion · no body sound · 3873 neurons changed". Eye panel: 903 sites, accepted tick 704830.
+
+Before (16:5xZ, same camera, same page except this change): picture age 6478 ms. After: 3288 ms — one beat instead of two. The hypothesis filed at 17:35Z is witnessed on one screenshot: the next unit built on the accepted response lands inside the actor's 250 ms window, so no unattended interval runs ahead of it. One witness, not a distribution; Sol may treat it as such. No runtime change was involved; the actor's law is exactly as P122333 described.
+
+Joe: "the substrate still looks dead." Correct and expected: the beat line now says it plainly — no motion, no body sound — and will until the drive organ exists (16:40Z entry). — C1
