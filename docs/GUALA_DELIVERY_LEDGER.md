@@ -1,5 +1,44 @@
 # Guala Single Production Task Ledger
 
+## CURRENT — D122334 ACTIVE, source23fc6030a; C1 live cutover in progress (2026-09-13 23:16 UTC)
+
+The full project goal remains active and unfulfilled. D122334 still requires
+actual production receptor delivery within250ms with detailed organism-directed
+vision, unchanged fullDSF and causal continuity. No speech, autonomy or
+four-year-old-development completion is implied by the camera work.
+
+Single continuity record for the active slice:
+docs/GUALA_D122334_SENSORY_EXECUTION_CONTRACT_2026-09-13.md.
+Its current top section supersedes all historical statuses below. K6recipient
+thinning remains CLOSED; no more tests or implementation on that rejected
+avenue. Camera intake90a/ordering961993 and dense no-discarded-world-render
+23fc6030a are source-proved, NOT live camera releases.
+
+Latest completed local proof: authenticated1462 body706713 -> same fullcamera
+input under baseline/candidate -> fullpaired706714/706715 successors exact ->
+coldcontinuation exact,903sites/989DSF eachstep; one discarded worldray call
+removed. Camera1.251s/reference vs1.143s/candidate in one pair, not sustained
+speedup and not250ms. Evidence archivec284cad56e8835a2d79bc671bd0672dfea736ffef2022847a1abb1cb765dc681
+is filed in the slice ledger; full readbackverified, exactfinishedcontainer
+removed. No repeatnativebuild or new cognitionlaw.
+
+C1 is deploying its separately owned bfe7ec9e / digest59b20005...: exact
+controllerPID8564 remained active at23:16. DirectAWS now1463,1desired/1running/
+0pending; old1462STOPPED. This is rollout observation, not completed continuity/
+behavioral acceptance. Sol performed no production mutation and must not
+deploy an older native image over that successor. C1 withdrew the sensorium-
+appended need design in favor of a nativeGLJSRC08 source; previous packing
+warnings apply to the withdrawn design. The explicit aggregate-need authority
+conflict remains awaiting C1 reconciliation, not silently waived.
+
+Next exact action: integrate the camera correction with C1's authenticated
+accepted successor and coordinate delivery; remain focused on real250ms
+reception, not a preview or a smaller substituted goal. Historical blocked/
+uncommitted1461-era statuses below are NOT the current project instruction.
+
+## Historical ledger entries — superseded current-status blocks retained as evidence
+
+
 ## CURRENT — D122334 ACTIVE; focal acquisition is Sol's one native item (2026-09-13 21:46 UTC)
 
 Joe resumed the goal and C1 supplied the physical-participation ruling. The
