@@ -1834,3 +1834,13 @@ From b772c9ef1/P324 measured source180.126ms. One production file joint_source_e
 Independent review,9Rustdecoder tests,1existingPythonbyte-equivalence test and both full903 exact body/world successors PASS. Ordinarycold1.040290820s/warm1.071776968s; warmnative856.302ms/validation71.653ms,peak2765076KiB. Warm160.551ms less thanV323 in one comparison, not a stable-speedup claim. Still exceeds250ms; no partial vision release. Exact payload/custody/fields/refusals retained; no law/state/schema change.
 
 Whole archive/readback695cf859c567b420e30426fc6ed7be118d291dcd4d49316d4072954ec06728c6,V122325-source-evidence.tar.gz; finishedownedcontainerremoved. Production1460/135sites unchanged,clock697063→697199,no durability errors; matchedCPU/RAM windows recorded,historicalclockALARM persists. CanonicalAttempts retains full receipts and source-command mistakes. Next: current native-phase attribution with bounded call-local diagnostic timers, no new physics or speculative optimization. Vision/speedfirst,self-lifenext,speechparked.
+
+## D122326 — current native phase attribution
+
+V325closed1f8557fec ordinarywarm1.071776968s/native856.302ms. P326 two constant-stack diagnostic-only phase records over runtime and cognition; success-only, single-coexisting runtime partition, nestedtimingsnotadditive. Same903exacttwo-pair proof after frozenreview; no physicschange,newtestcampaign or profiler. Wholearchive thenremovealldiagnostics. Production1460unchanged,250msgateopen. Visionfirst,self-lifenext,speechparked.
+
+## D122326 result — current contact cost located, diagnostics retired
+
+Both exact903body/worldpairsPASS. Warmnative817.660ms: nestedcognition808.716ms split source192.567/regulation3.759/internalcontact458.593/formation153.701/observation0.094ms. Runtimebody4.150ms/finish2.419ms; nestedtimesnotadditive. Instrumentedwarm1.039515s is NOTnewordinarybaseline; V3251.071777s remainsauthority,250msgateopen.
+
+All41diagnosticlinesremoved/sourcebackto1f8557fec. Wholearchive/readback23da016150e5b00125b2d7429b72580ef2e44fa483357834306beabd1b3e60e7,P122326-native-evidence.tar.gz;finishedcontainerremoved. Production1460unchanged/135sites,tick697455→697484,nodurabilityerrors,historicalclockALARMpersists,matchingmetricsrecorded. Nextcurrentinternalstageattribution, notspeculativezero-arrayoptimization. Fullreceipt/priorart/sourcehypothesis incanonicalAttempts. Visionfirst,self-lifenext,speechparked.
