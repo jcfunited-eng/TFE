@@ -533,6 +533,41 @@ impl BodyAxis {
         )
     }
 
+    /// Axes a caregiver can physically move from outside — hand-over-hand
+    /// teaching of the trunk, head, jaw and limbs — plus the acoustic
+    /// controls the guided-vocal lesson already drives. Eyes, eyelids,
+    /// brows, cheeks and lips are excluded: nobody moves those by hand.
+    /// Anatomical identity only; no target, gesture, meaning or reward.
+    pub(crate) fn is_caregiver_guidable(self) -> bool {
+        self.is_acoustic_control()
+            || matches!(
+                self,
+                Self::TorsoPitch
+                    | Self::TorsoRoll
+                    | Self::NeckYaw
+                    | Self::NeckPitch
+                    | Self::JawOpening
+                    | Self::LeftShoulderPitch
+                    | Self::LeftShoulderRoll
+                    | Self::LeftElbowFlexion
+                    | Self::LeftWristYaw
+                    | Self::LeftGripAperture
+                    | Self::RightShoulderPitch
+                    | Self::RightShoulderRoll
+                    | Self::RightElbowFlexion
+                    | Self::RightWristYaw
+                    | Self::RightGripAperture
+                    | Self::LeftHipPitch
+                    | Self::LeftHipRoll
+                    | Self::LeftKneeFlexion
+                    | Self::LeftAnklePitch
+                    | Self::RightHipPitch
+                    | Self::RightHipRoll
+                    | Self::RightKneeFlexion
+                    | Self::RightAnklePitch
+            )
+    }
+
     /// The direct acoustic instrument uses these existing area coordinates.
     /// This is a same-unit view, not new anatomy. Keep is_vocal_articulator
     /// broad: historical route membership and completion also use that law.

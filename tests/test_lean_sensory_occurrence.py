@@ -178,3 +178,35 @@ def test_direct_acoustic_guide_retains_nine_existing_controls_only() -> None:
             "guided-vocal-microphone", None, PRESSURE,
             tuple((axis, 0, 1) for axis in axes) + ((18, 1, 1),),
         )
+
+
+def test_guided_body_source_admits_caregiver_guidable_axes_only() -> None:
+    from dsf_ai_service.lean_sensory_occurrence import (
+        CAREGIVER_GUIDABLE_BODY_AXES,
+        MAX_GUIDED_BODY_DRIVES,
+    )
+
+    assert CAREGIVER_GUIDABLE_BODY_AXES == frozenset({0, 1, 2, 3, 14, *range(19, 37)})
+    hand_over_hand = ((14, 0, 1_500), (24, 1, 1_500), (26, 1, 1_500))
+    with_card = LeanSensoryOccurrence("guided-body-microphone", RETINA, PRESSURE, hand_over_hand)
+    without_light = LeanSensoryOccurrence("guided-body-microphone", None, PRESSURE, hand_over_hand)
+    assert with_card.source_receipt_sha256 != without_light.source_receipt_sha256
+    for invalid in (
+        ((4, 1, 1_500),),  # an eye: nobody moves it by hand
+        ((18, 0, 1_500),),  # the airway belongs to the guided-vocal source
+        ((37, 0, 1_500),),
+        ((14, 0, 0),),  # no work
+        ((14, 2, 1_500),),  # no such direction
+        ((14, 0, 1_500), (14, 1, 1_500)),  # one axis twice
+        tuple((19 + index, 0, 1) for index in range(MAX_GUIDED_BODY_DRIVES + 1)),
+    ):
+        with pytest.raises(ValueError):
+            LeanSensoryOccurrence("guided-body-microphone", None, PRESSURE, invalid)
+    with pytest.raises(ValueError):
+        LeanSensoryOccurrence("guided-body-microphone", RETINA, None, hand_over_hand)
+    with pytest.raises(ValueError):
+        LeanSensoryOccurrence("guided-body-microphone", RETINA, PRESSURE, None)
+    with pytest.raises(ValueError):
+        LeanSensoryOccurrence("guided-vocal-microphone", None, PRESSURE, ((14, 0, 1_500),))
+    with pytest.raises(ValueError):
+        LeanSensoryOccurrence("camera-microphone", RETINA, PRESSURE, hand_over_hand)

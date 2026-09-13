@@ -18,12 +18,20 @@ SOURCES = frozenset({
     "camera",
     "camera-microphone",
     "card-microphone",
+    "guided-body-microphone",
     "guided-vocal-microphone",
     "media",
     "microphone",
     "text-light",
     "text-microphone",
 })
+# Hand-over-hand teaching (drive organ, 2026-09-13): the axes a caregiver can
+# physically move — trunk 0-1, head 2-3, jaw 14, limbs 19-36 — by the body's
+# own axis ordinals. Eyes, eyelids, brows, cheeks, lips and the airway are not
+# hand-guidable (the airway has its own guided-vocal source). Native refuses
+# the same set (BodyAxis::is_caregiver_guidable).
+CAREGIVER_GUIDABLE_BODY_AXES = frozenset({0, 1, 2, 3, 14, *range(19, 37)})
+MAX_GUIDED_BODY_DRIVES = 8  # two hands on at most eight axes in one quarter second
 LIGHT_ONLY_SOURCES = frozenset({"camera", "media", "text-light"})
 PRESSURE_ONLY_SOURCES = frozenset({"microphone"})
 CO_SENSORY_SOURCES = frozenset({
@@ -154,6 +162,32 @@ class LeanSensoryOccurrence:
                     or axis in axes
                 ):
                     raise ValueError("guided vocal drive left bounded unique anatomy")
+                axes.add(axis)
+        elif self.source == "guided-body-microphone":
+            # Hand-over-hand teaching: a caregiver moves her trunk, head, jaw or
+            # limbs while speaking; the drive is the caregiver's hand on the
+            # exact axis, the same body-effector work the guided-vocal lesson
+            # applies to the airway. Light (a card, the room) may accompany it.
+            if pressure is None or not guided:
+                raise ValueError("guided body source lost pressure or body work")
+            if len(guided) > MAX_GUIDED_BODY_DRIVES:
+                raise ValueError("guided body source exceeded one caregiver's hands")
+            axes = set()
+            for drive in guided:
+                if (
+                    not isinstance(drive, tuple)
+                    or len(drive) != 3
+                    or any(isinstance(value, bool) or not isinstance(value, int) for value in drive)
+                ):
+                    raise ValueError("guided body drive changed exact shape")
+                axis, direction, carriers = drive
+                if (
+                    axis not in CAREGIVER_GUIDABLE_BODY_AXES
+                    or direction not in (0, 1)
+                    or not 1 <= carriers <= (1 << 32) - 1
+                    or axis in axes
+                ):
+                    raise ValueError("guided body drive left caregiver-guidable unique anatomy")
                 axes.add(axis)
         elif guided is not None:
             raise ValueError("ordinary sensory source carried vocal body work")

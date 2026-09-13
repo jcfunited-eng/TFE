@@ -175,6 +175,7 @@ class LeanPhysicalLoop:
                     admissions.append(list(source.admissions))
 
             native_started = True
+            intake = 0 if returning is None else int(getattr(returning, "nutrition_intake_zeptojoules", 0))
             primary = runtime.advance_coexisting_admitted_interval_unsealed(
                 tuple(sources), tuple(admissions),
                 guided_vocal_drives=None if sensory is None else sensory.guided_vocal_drives,
@@ -182,6 +183,10 @@ class LeanPhysicalLoop:
                 body_s16le=None if pending_pressure is None else body,
                 consumed_sample_count=None if pending_pressure is None else self_heard_samples,
                 vestibular_motion=None if returning is None else returning.vestibular,
+                # A bite's real intake rides the physical return it produced and
+                # is absorbed in the interval that consumes that return. Every
+                # other interval makes exactly today's call.
+                **({"real_nutrition_intake_zeptojoules": intake} if intake else {}),
             )
             lived_tick_delta = runtime.live_organism_tick - start_tick
             if lived_tick_delta != 1:
@@ -206,6 +211,7 @@ class LeanPhysicalLoop:
                     world_observation_receipt_sha256=after.authority_receipt_sha256,
                     sensorium=motor_plan.sensorium, sources=motor_plan.sources,
                     vestibular=motor_plan.vestibular,
+                    nutrition_intake_zeptojoules=motor_plan.nutrition_intake_zeptojoules,
                 )
                 with world.prepared_action_visibility_transaction(motor_plan.prepared_world):
                     world.commit_prepared_action(
@@ -308,6 +314,9 @@ class LeanPhysicalLoop:
                     "self_heard_sample_count": self_heard_samples,
                     "self_pressure_pending": self_pressure_pending,
                     "consumed_physical_return_tick": None if returning is None else returning.producer_tick,
+                    "real_nutrition_intake_zeptojoules": (
+                        0 if returning is None else getattr(returning, "nutrition_intake_zeptojoules", 0)
+                    ),
                     "pending_physical_return_tick": None if next_return is None else next_return.producer_tick,
                     "physical_return_source_count": 0 if returning is None else len(returning.sources),
                     "vestibular_return_consumed": returning is not None and returning.vestibular is not None,

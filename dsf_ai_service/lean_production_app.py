@@ -30,13 +30,14 @@ from dsf_ai_service.paired_current_store import PairedCurrentStore
 CHECKPOINT_EVERY_INTERVALS = 32
 UNATTENDED_INTERVAL_SECONDS = 0.25
 MAILBOX_CAPACITY = 1
-# Occurrence envelope (vision upgrade, 2026-09-13). The HTTP contract is JSON,
-# not raw bytes: the worst admissible body is guided-vocal-microphone carrying
-# the upgraded 2,709-value retina (all 255) + 8,000 B PCM as base64 + 13 guide
-# drives at maximum ints = 22,712 B compact / 25,507 B with default JSON
-# spacing (card/camera-microphone: 21,603 / 24,319). Cap stays, sized to the
-# spaced worst case plus margin; anything larger is still refused.
-MAX_OCCURRENCE_BODY_BYTES = 26_624
+# Occurrence envelope (vision upgrade, 2026-09-13; drive organ, 2026-09-13).
+# The HTTP contract is JSON, not raw bytes: the worst admissible body is now
+# guided-body-microphone carrying the 2,709-value retina (all 255) + 8,000 B
+# PCM as base64 + 8 caregiver drives at maximum ints = 22,296 B compact /
+# 33,371 B with indent=1 JSON spacing (guided-vocal-microphone: 22,712 /
+# 25,507; card/camera-microphone: 21,603 / 24,319). Cap sized to the spaced
+# worst case plus margin; anything larger is still refused.
+MAX_OCCURRENCE_BODY_BYTES = 34_816
 PUBLIC_API_PREFIX = "/api/v1/guala"
 OBSERVATION_ROUTE = f"{PUBLIC_API_PREFIX}/observation"
 OBSERVATION_LONGPOLL_SECONDS = 20.0  # bounded hold for ?after=<tick>; declared, not tuned
@@ -65,6 +66,7 @@ class SensoryBody(BaseModel):
         "camera",
         "camera-microphone",
         "card-microphone",
+        "guided-body-microphone",
         "guided-vocal-microphone",
         "media",
         "microphone",

@@ -3068,10 +3068,19 @@ class NativeResidentOrganism:
         body_s16le: bytes | None = None,
         consumed_sample_count: int | None = None,
         vestibular_motion: tuple[int, int] | None = None,
+        real_nutrition_intake_zeptojoules: int = 0,
     ) -> ResidentPrepareEvidence:
         """One native interval for current input and exact physical returns."""
 
         from guala_core import NativePhysicalInputRefused
+
+        if (
+            isinstance(real_nutrition_intake_zeptojoules, bool)
+            or not isinstance(real_nutrition_intake_zeptojoules, int)
+            or real_nutrition_intake_zeptojoules < 0
+            or real_nutrition_intake_zeptojoules >= 1 << 127
+        ):
+            raise ValueError("real nutrition intake is not a bounded non-negative integer")
 
         native_entered = False
         candidate: object | None = None
@@ -3118,6 +3127,7 @@ class NativeResidentOrganism:
             candidate = self.__runtime.advance_coexisting_admitted_interval_unsealed(
                 list(sources), [list(value) for value in intervals], drives,
                 pressure_s16le, body_s16le, consumed_sample_count, vestibular_motion,
+                real_nutrition_intake_zeptojoules=real_nutrition_intake_zeptojoules,
             )
             _record_runtime_phase("rust_advance", _rust_started)
             _validation_started = time.perf_counter()

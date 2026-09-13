@@ -24,6 +24,8 @@ from dsf_ai_service.substrate.embodiment_world import (
     ENVIRONMENT_PORT_ID,
     GraspContactCommand,
     MoveCommand,
+    NUTRITION_EXTRACTION_DENSITY_ZEPTOJOULES_PER_MICROGRAM,
+    OralContactCommand,
     PORT_ID,
     PositionMM,
     PoseMM,
@@ -43,6 +45,7 @@ class PreparedMotorConsequence:
     refusal_reason: str | None
     requested_root_motion: tuple[int, int, int]
     actual_root_motion: tuple[int, int, int]
+    nutrition_intake_zeptojoules: int = 0  # real matter the bite took, as energy; 0 unless the action was a bite
 
 
 def _receipt(value: object) -> str:
@@ -104,7 +107,29 @@ def _new_body_discharge(consequence: object) -> bool:
 
 
 def _active_grips(evidence: Any) -> tuple[tuple[str, ...], tuple[str, ...]]:
-    displacement = {"left_grip_aperture": 0, "right_grip_aperture": 0}
+    return _axis_closures(evidence, ("left_grip_aperture", "right_grip_aperture"))
+
+
+def _jaw_closing(evidence: Any) -> bool:
+    """The jaw discharged toward closed this interval: the bite's motor fact."""
+    closing, _opening = _axis_closures(evidence, ("jaw_opening",))
+    return bool(closing)
+
+
+def _oral_intake_zeptojoules(execution: ActionExecutionReceipt) -> int:
+    """Real nutrition carried by this exact bite: the mouthful the world
+    dissolved (tastant micrograms per channel) at the declared 17 kJ/g
+    extraction density. Zero for every non-oral action."""
+    after = _self_body(execution.after)
+    contact = getattr(after, "active_contact", None)
+    if contact is None or contact.kind != "oral":
+        return 0
+    dissolved = sum(int(value) for value in contact.dissolved_tastant_micrograms)
+    return dissolved * NUTRITION_EXTRACTION_DENSITY_ZEPTOJOULES_PER_MICROGRAM
+
+
+def _axis_closures(evidence: Any, axes: tuple[str, ...]) -> tuple[tuple[str, ...], tuple[str, ...]]:
+    displacement = {axis: 0 for axis in axes}
     for consequence in tuple(evidence.articulated_body_consequences):
         if _new_body_discharge(consequence) and consequence[1] in displacement:
             signed = int(consequence[5])
@@ -184,6 +209,13 @@ def prepare_motor_consequence(
         )
         port_id = PORT_ID
         requested_action = "move"
+    elif _jaw_closing(evidence) and before_body.held_object_id is not None:
+        # THE BITE: the jaw closed on the object in hand. The world decides
+        # whether a mouthful comes off (oral contact physics), what the tongue
+        # tastes, and how much matter left the apple; nothing here decides.
+        command = OralContactCommand(before_body.held_object_id, BODY_INTERVAL_MICROSECONDS)
+        port_id = PORT_ID
+        requested_action = "bite"
     elif closing and not opening:
         command = GraspContactCommand(BODY_INTERVAL_MICROSECONDS)
         port_id = PORT_ID
@@ -296,4 +328,7 @@ def prepare_motor_consequence(
         refusal_reason=refusal_reason,
         requested_root_motion=(requested_yaw, requested_x, requested_y),
         actual_root_motion=(actual_yaw, actual_x, actual_y),
+        nutrition_intake_zeptojoules=(
+            _oral_intake_zeptojoules(execution) if requested_action == "bite" else 0
+        ),
     )
