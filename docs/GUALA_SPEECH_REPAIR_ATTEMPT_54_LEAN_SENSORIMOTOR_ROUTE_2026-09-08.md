@@ -1,20 +1,19 @@
 # Guala speech repair Attempt 54 — complete design verification and lean sensorimotor route
 
-## CURRENT — P122333: PRIORITY HYPOTHESIS REFUTED; NO LATENCY FIX RELEASED
+## CURRENT — D122334: FULL SENSORY-LATENCY REPAIR RECOMMENDED
 
-The 903-site native release remains task1461. C1's later page timing update is
-live at commit6ca6842c; his caretaker restart is recorded in the shared ledger.
-The broad product goal is still paused. This pass performed source assessment
-only. No runtime/UI code, native physics, production state, or caretaker change.
-
-The suggested queued-input-before-unattended rule already exists in _run;
-adding it again cannot remove a cycle. The new latest-camera-slot proposal was
-parked unimplemented: it leaves cycle cost intact and its Stop/disconnect
-lifecycle is unresolved. P122332's live mean3.406428s remains the measured
-baseline, with native-versus-Python function attribution still unavailable.
-P122333 records the exact source findings, reviewer agreement, limits, and one
-recommended next item: seek approval for exposing existing live phase counters.
-No 250ms claim, scheduler rewrite, new queue, speech or self-life resumption.
+Joe explicitly challenges the timing-only recommendation and brings back the
+full agreed direction: local causally due sensory work, preserved detailed
+current camera surface, organism-aimed sharp center/coarse surround, and
+independently timed sight/hearing. Sol recommends that complete work package;
+measurements belong inside it, not as a substitute deliverable.
+This turn is architecture discussion/proposal, NOT a completed implementation
+contract, production change, physics ratification or broader goal resumption.
+The product goal remains paused; speech/self-life stay parked.
+P122333's queued-priority correction stays closed as already present.
+Current native baseline remains the disclosed non-real-time903 release on1461;
+C1's6ca6842c page stays the latest independently checked live HTML.
+No250ms or cognition/recognition claim. See D122334 appended assessment.
 
 ## HISTORICAL — D122331 VISION LIVE ON1461
 
@@ -25324,3 +25323,64 @@ checks use bounded git show --stat. No failed build/test/body run occurred.
 No probe process, new test harness, diagnostic binary or temporary source was
 created. Preserve the source-only refusal instead of rediscovering this false
 priority diagnosis in another candidate.
+
+## D122334 — recommend the complete sensory-latency architecture, not timing-only work
+
+Joe: "what about doing all this", quoting the local-work / detailed current
+surface / movable fovea proposal and C1's conditions. Sol agrees. The previous
+timing-only recommendation was too narrow for this requested direction.
+One recommended work package: real-time sensory processing plus foveated vision.
+Sequence within that package: remove the global delivery barrier, integrate
+the detailed source and organism-aimed sampling, demonstrate the complete path
+on production. Timing attribution and limited decisive proofs belong inside
+the package; they are not stand-alone milestones replacing useful delivery.
+No execution/deployment claimed from this discussion; no new runtime code.
+
+Architecture gate: requested=one deterministic AE with timely simultaneous
+senses; current=lean_actor._run -> LeanPhysicalLoop._advance builds coexisting
+sources and calls one whole native interval before publication; conflict=YES.
+Not extended=legacy shell, semantic selectors, extra cognitive owners, camera
+queue workaround, uniform mega-retina, discarded full-field authority.
+Single next recommended item=complete this bounded architecture contract.
+Full joint DSF retained unchanged; no reduced field or lost structure allowed.
+The neuron skill specifically requires one full joint UF evaluation, not an
+independent kernel per changed pixel. Local scheduling must preserve that
+shared field authority and its true downstream consequences.
+
+Corrections that bind the scope:
+- P122333 source/referee finding stands: queued input already precedes unattended
+  work. Remove C1's proposed cheap-priority-cut prerequisite; do not repeat it.
+- Smaller light amplitude does NOT imply proportionally fewer CPU instructions.
+  Physical work/energy and computational work are different quantities. Real
+  camera noise may reach all receptors. The declared noisy/full-change workload
+  must meet the budget; still-image sparsity alone cannot establish feasibility.
+- Source times must remain independent without destroying simultaneous sensory
+  relationships. C1's6ca6842c sensoryPulse still forms camera-microphone units
+  and discards older waiting microphone blocks when choosing the newest. Its
+  separate timestamps improve evidence, but independent contiguous ingress is
+  NOT already complete. That remaining transport work belongs in this package.
+- Deterministic ordering alone does not prove equivalent physics. Simultaneous
+  interacting contacts must retain their coupled settlement; a stable-ID sort
+  cannot silently turn a simultaneous solve into serial physical updates.
+  Every physically due recovery, adaptation, propagation and body consequence
+  remains active. Quiet structures may be skipped only with exact lawful
+  elapsed-time evolution. New scheduling state, if required for restart, must
+  have a complete bounded custody contract, not a hidden queue or second mind.
+- Existing retinal neuron identities and learned connections stay intact.
+  Higher-detail current camera bytes are environmental input, not retained
+  cognitive memory or a recording archive. The organism alone aims its view.
+  View quality does not install curiosity, needs, recognition or comprehension.
+
+Frozen outcome direction remains Joe's actual moving hand and spoken lesson
+reaching native receptors within250ms on production, including source age and
+delivery—not smooth local preview, mean-only timing, or i9 copied-body speed.
+Include noisy/full-change input and all-due exact successor/restart checks;
+declare any non-equivalent physical law for ratification instead of calling
+it optimization. No guarantee that the proposed architecture meets250ms yet.
+Current byte-exact successor proofs remain regression evidence, not proof that
+every future asynchronous intermediate state is already authorized.
+
+Skills influenced this recommendation by preserving joint DSF and distinguishing
+local physical work, shared causal history, source clocks, current environment
+bytes, and irreversible learned state. No new profiler, test run, body copy,
+helper process, API change, deployment, or caretaker action in this assessment.

@@ -5,21 +5,20 @@ Item IDs are permanent. A checked box means the stated behavior is deployed and
 observed in live production, not merely coded or tested. `IN PROGRESS` means the
 box remains unchecked until live acceptance passes.
 
-## CURRENT — P122333: PRIORITY HYPOTHESIS REFUTED; NO LATENCY FIX RELEASED
+## CURRENT — D122334: FULL SENSORY-LATENCY REPAIR RECOMMENDED
 
-The 903-site native release remains task1461. C1's later page timing update is
-live at commit6ca6842c; his caretaker restart is recorded in the shared ledger.
-The broad product goal is still paused. This pass performed source assessment
-only. No runtime/UI code, native physics, production state, or caretaker change.
-
-The suggested queued-input-before-unattended rule already exists in _run;
-adding it again cannot remove a cycle. The new latest-camera-slot proposal was
-parked unimplemented: it leaves cycle cost intact and its Stop/disconnect
-lifecycle is unresolved. P122332's live mean3.406428s remains the measured
-baseline, with native-versus-Python function attribution still unavailable.
-P122333 records the exact source findings, reviewer agreement, limits, and one
-recommended next item: seek approval for exposing existing live phase counters.
-No 250ms claim, scheduler rewrite, new queue, speech or self-life resumption.
+Joe explicitly challenges the timing-only recommendation and brings back the
+full agreed direction: local causally due sensory work, preserved detailed
+current camera surface, organism-aimed sharp center/coarse surround, and
+independently timed sight/hearing. Sol recommends that complete work package;
+measurements belong inside it, not as a substitute deliverable.
+This turn is architecture discussion/proposal, NOT a completed implementation
+contract, production change, physics ratification or broader goal resumption.
+The product goal remains paused; speech/self-life stay parked.
+P122333's queued-priority correction stays closed as already present.
+Current native baseline remains the disclosed non-real-time903 release on1461;
+C1's6ca6842c page stays the latest independently checked live HTML.
+No250ms or cognition/recognition claim. See D122334 appended assessment.
 
 ## RATIFIED — D122300: REAL-TIME OR NOTHING; SPEED AND VISION TOGETHER
 
