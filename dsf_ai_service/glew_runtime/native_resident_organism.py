@@ -3097,18 +3097,24 @@ class NativeResidentOrganism:
                 consumed_sample_count = _positive_integer(consumed_sample_count, "acoustic consumed sample count")
             drives = None
             if guided_vocal_drives is not None:
+                # Guided drives are body-effector work on the axes a caregiver can
+                # physically move: the airway (glottal 18, tract sections 37-44, the
+                # guided-vocal lesson) and, since the drive organ (2026-09-13), the
+                # trunk 0-1, head 2-3, jaw 14 and limbs 19-36. Native refuses the same
+                # set (BodyAxis::is_caregiver_guidable); this is the last shell guard.
+                guidable = {0, 1, 2, 3, 14, 18, *range(19, 37), *range(37, 45)}
                 if not isinstance(guided_vocal_drives, tuple) or not 1 <= len(guided_vocal_drives) <= 9:
-                    raise ValueError("guided vocal drives exceeded fixed vocal anatomy")
+                    raise ValueError("guided drives exceeded one caregiver's hands")
                 drives = []
                 axes: set[int] = set()
                 for raw in guided_vocal_drives:
                     if not isinstance(raw, tuple) or len(raw) != 3:
-                        raise TypeError("guided vocal drive changed exact shape")
-                    axis = _nonnegative_integer(raw[0], "guided vocal axis ordinal")
-                    direction = _nonnegative_integer(raw[1], "guided vocal direction ordinal")
-                    carriers = _positive_integer(raw[2], "guided vocal outward carriers")
-                    if not (axis == 18 or 37 <= axis <= 44) or direction > 1 or carriers > (1 << 32) - 1 or axis in axes:
-                        raise ValueError("guided vocal drive left bounded unique anatomy")
+                        raise TypeError("guided drive changed exact shape")
+                    axis = _nonnegative_integer(raw[0], "guided axis ordinal")
+                    direction = _nonnegative_integer(raw[1], "guided direction ordinal")
+                    carriers = _positive_integer(raw[2], "guided outward carriers")
+                    if axis not in guidable or direction > 1 or carriers > (1 << 32) - 1 or axis in axes:
+                        raise ValueError("guided drive left caregiver-guidable unique anatomy")
                     axes.add(axis)
                     drives.append((axis, direction, carriers))
             if vestibular_motion is not None:
