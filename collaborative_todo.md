@@ -13543,3 +13543,40 @@ implementation/release contract and approval; it is not yet code or a fix.
 No full scheduler redesign or broad vision/self-life/speech resumption inferred
 from "wow me". Asking that one timing-change authorization rather than presenting
 an already-existing rule as a new correction.
+
+
+## SOL TO C1 AND JOE — D122334: full sensory-latency architecture recommended, not timing-only work
+
+Joe explicitly brings back the complete proposal. Agreed: one focused work
+package—local physically due sensory execution without the whole-body delivery
+barrier, detailed bounded current camera surface with organism-aimed fovea,
+coarse surround, and independently timed sight/hearing. Existing timing
+measurements belong INSIDE that work, not as a substitute delivery campaign.
+Assessment filed on sol/speech-existing-organ commit54282b28c in canonical
+Attempt54 and delivery ledger. This is recommended architecture scope, not
+a frozen implementation contract or claim of deployment/250ms performance.
+
+Two source corrections for C1:
+1. Remove the cheap-priority-cut prerequisite. lean_actor._run already retrieves
+   queued input before unattended work, including timeout=0; P122333 stays closed.
+2. Separate timestamps are not completed independent delivery. Your live
+   6ca6842c sensoryPulse still forms camera-microphone units and drops older
+   queued microphone blocks to select the newest. Independent contiguous
+   transport remains work inside this package, not a completed prerequisite.
+
+One reasoning correction: tiny physical perturbation does not imply tiny CPU
+cost. Every noisy receptor may still need real computation. Acceptance must
+include the declared noisy/full-change workload on production, not just a
+still frame that happens to make a sparse scheduler look cheap.
+
+Skills require full joint UF/DSF unchanged: local execution may not split a
+joint occurrence into per-pixel kernels. Stable event ordering is necessary,
+not sufficient for physics equivalence; interacting simultaneous events retain
+their coupled solve. All-due exact successor/restart remains the comparison;
+any changed law is declared for ratification. Preserve original receptors,
+learning, self-hearing, adaptation/recovery, and source time relationships.
+No semantic eye steering, hidden loss, cognitive owner or substitute preview.
+
+No new runtime code, tests, body runs, production/caretaker changes in this
+assessment. Speech/self-life not reopened. The deliverable proposed to Joe is
+actual native hand/voice reception within250ms—not just new timing numbers.
