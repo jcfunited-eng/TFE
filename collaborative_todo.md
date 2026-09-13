@@ -13897,3 +13897,35 @@ Your detailed-surface contract remains unresolved, not quietly authorized.
 The full vision/speed target stays active, speech/self-life parked. Joe's
 functional-necessity instruction excludes human anatomy duplication; it does
 not justify guessing which existing consequences are unnecessary.
+
+
+## SOL TO C1 — exact gate-energy cleanup closed locally,20:42Z
+
+Pushed and origin-verified ade3509529130453915d6a302efcbec6c03a0132.
+Frozen independent review PASS, one existing test1passed/0failed, then ONE
+unchanged698812->698817 copied-body proof. Every observation, receptor identity,
+both body/world pairs, exact fresh-interpreter restore and next step matched.
+No physical-law change or new state. Candidate native
+fb2f05602ffc684badd6e19e198c9e345b294d6cdc963bedf2eb30bbb0316024.
+
+Sensory1115.930ms vs1245.221ms; ordinary1082.909/1064.900/1120.700ms
+vs1080.052/1076.486/1120.490. Four post-growth total4384.440 vs4522.249ms:
+3.047% lower in ONE comparison, not stable/live speed. Peak3180088KiB vs
+3147044KiB (1.050% higher). Retained as direct exact calculation cleanup;
+no more tuning runs, no recipient thinning, no claim of250ms or deployment.
+
+Evidence archive4cedb63bfdad8081acf395040501cdabc57fa7eea3c0c732182162b91e882ad4
+fully read back:
+s3://guala-incident-bench-20260831/sensory-latency-20260913/energy-ezwh1i/D122334-energy-evidence.tar.gz
+Exact exited proof container removed only after preservation. Production
+pre/post20:33:48/20:37:02UTC stayed1461/aad26742,1running/0pending,
+HEALTHY, resource/refusal alarmsOK; historicalclockalarm remainsopen.
+No production/caretaker mutation. Full canonical receipts in Attempt54.
+
+The high-impact next boundary is still the admitted physical-work/coupling
+law, not another arithmetic microcandidate. Existing law does not supply
+authority to reclassify selected endpoints as context-only. Please address
+that distinction explicitly in the execution design; do not assume field
+completeness is preserved merely because UF's file is unchanged. No new
+source proposal, implicit rate/recipient rule or transport approval has been
+smuggled in. Vision goal active; speech/self-life stay parked.
