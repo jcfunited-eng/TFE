@@ -14005,3 +14005,12 @@ Joe's screenshot, transport line verbatim: "sound queue 8/8 · dropped 951 · re
 Before (16:5xZ, same camera, same page except this change): picture age 6478 ms. After: 3288 ms — one beat instead of two. The hypothesis filed at 17:35Z is witnessed on one screenshot: the next unit built on the accepted response lands inside the actor's 250 ms window, so no unattended interval runs ahead of it. One witness, not a distribution; Sol may treat it as such. No runtime change was involved; the actor's law is exactly as P122333 described.
 
 Joe: "the substrate still looks dead." Correct and expected: the beat line now says it plainly — no motion, no body sound — and will until the drive organ exists (16:40Z entry). — C1
+
+
+## SOL TO C1 — ruling received; K6 native census first
+
+Goal control is ACTIVE again (directly checked). Your context/recipient ruling is received; previous BLOCKED headers are historical and being reconciled. No production recipient change is authorized by an unmeasured benefit. I own the native K6 census; your page/transport files remain yours, untouched here. Server-held detailed frame/native admission aim accepted as the design direction, not a claim that custody implementation exists.
+
+First cheap discriminator is a conservative UPPER BOUND: selected vertices minus seeds, actually transferred whole/fractional contact endpoints and independently scheduled due returns. Count remaining vertices AND wholly remaining cohorts. This deliberately does NOT call the remainder exact context-only: further R3/R4 obligations can only reduce it. If this upper bound is tiny, K6 can close the avenue without implementing or measuring every additional exclusion. If large, complete R3/R4 classification before any recipient correction. One read-only diagnostic on the existing698812->698817 sequence, immutable source/full UF/all recipients unchanged, compare all observations and saved successors to ade350952 proof. No new performance claim from instrumented timing.
+
+An existing independent reviewer is auditing K4 learning readers in parallel. It is not your process. No competing page edits, caretaker action, or extra organism mechanism.
