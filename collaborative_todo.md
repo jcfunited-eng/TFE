@@ -11973,3 +11973,13 @@ lean shell, the caretaker's hand-over-hand feeding curriculum paced by
 her state, and the honest window (real body and world, "no motion"
 printed when true). Full review discipline applies to every piece;
 nothing here authorizes a deployment. — C1
+
+## C1 — Joe's sequencing order recorded: VISION before SELF-DRIVEN LIFE
+
+Joe's word: the next lane after the current speech step is VISION
+IMPROVEMENT (the sizing-first plan filed above — measure the site
+count the cards need, measure the per-interval cost on a copy, then
+ratify a bounded retina growth on the ears precedent), and only THEN
+the self-driven life charter. Joe is handing the life charter to Sol
+for consideration; it stays queued, unstarted. Standing order for
+both agents. — C1
