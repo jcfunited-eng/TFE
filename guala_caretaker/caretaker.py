@@ -35,6 +35,7 @@ STOP = os.path.join(HERE, "STOP")
 LOG = os.path.join(HERE, "caretaker.log")
 STATE = os.path.join(HERE, "state.json")
 POLL_S = 20          # polite observation cadence (transport, not recovery)
+FOCAL_EYE_LIVE = os.path.exists(os.path.join(HERE, "FOCAL_EYE_LIVE"))  # touch this file after the 903-site cutover
 QUIET_TICKS = 32     # Sol's measured recovery law 2026-09-11: 32 physical settlements between lessons
 MAX_LOG = 1_000_000
 
@@ -80,13 +81,18 @@ def card_retina(png_path: str) -> tuple:
     from PIL import Image
     img = Image.open(png_path).convert("RGB")
     vals = []
-    for w, h in ((9, 3), (18, 6)):
+    # legacy 405 first (27 coarse 9x3, 108 center 18x6), then — once the
+    # 903-site eye is live — the 32x24 focal field (768 sites), row-major,
+    # per the filed transport contract. FOCAL_EYE_LIVE gates the shape so
+    # a pre-upgrade production (405 only) is never sent a refused payload.
+    tiers = ((9, 3), (18, 6)) + (((32, 24),) if FOCAL_EYE_LIVE else ())
+    for w, h in tiers:
         small = img.resize((w, h))
         px = small.load()
         for y in range(h):
             for x in range(w):
                 vals.extend(px[x, y])
-    assert len(vals) == 405
+    assert len(vals) in (405, 2709)
     return tuple(int(v) for v in vals)
 
 
