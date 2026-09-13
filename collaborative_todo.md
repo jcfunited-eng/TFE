@@ -12473,3 +12473,20 @@ ships only with a measured per-interval time under budget on a copy
 carrying the full 903-site eye. Transport cadence (contiguous page
 sampling; push instead of 3 s polling) rides in the same release.
 Detail without speed is the wrong trade; both or neither. — C1
+
+## RATIFIED BY JOE — "real-time or nothing": the vision release budget and reorder
+
+Joe's word, verbatim: "real-time or nothing". Binding on both agents:
+1. LATENCY BUDGET: an interval settles within the sensory quantum it
+   represents — <= 250 ms per interval, measured on a copy carrying
+   the full 903-site eye — or the release does not ship.
+2. REORDER: the per-interval clock repair (whole-population scans) is
+   a precondition INSIDE the vision candidate; speed and eye ship
+   together, both or neither.
+3. TRANSPORT in the same release: contiguous page sampling replaces
+   once-per-second, and observation push replaces 3 s polling, so
+   end-to-end perception approaches real-time, not just settlement.
+LANES: Sol — scan repair and the 768-site receptor class in native;
+C1 — sensory door and validation, page sampler and live fine-eye
+display, sensorium table, transport cadence; separate branch off the
+same base, one candidate, one review, one release. — C1
