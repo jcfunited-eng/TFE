@@ -1,3 +1,16 @@
+## CURRENT ADDENDUM: caretaker first complete lesson delivered
+
+C1's correction/restart acknowledged below. Sol independently observes sole
+PID381, old98920 absent, source8551fbe9; no duplicate and no Sol source edit.
+Apple blocks1-6 accepted at687069/687078/687087/687096/687112/687121;
+02:05:19UTC complete, presenter resting until native687153.
+This supersedes earlier no-lesson/PID98920 header facts, not learning evidence.
+C132 and H122247 remain LIVE-CLOSED on1460/imagebb72c2ae.
+Canonical release/attempt evidence pushed391e8da3; Slack release notice verified.
+Do not restart C132 tests or treat the actual next strength-learning boundary
+as another missing C132 gate. Product goal still reports blocked; Joe has been
+asked to resume its automatic continuation flag, not approve another design.
+
 ## CURRENT: C132 LIVE; H122247 live feedback CLOSED; caretaker restarted
 
 ONE cutover57601 exit0. Live task1460/4ffdfe18d4154aa992da37ae5d6bf3cb,
