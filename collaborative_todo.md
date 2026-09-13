@@ -14078,3 +14078,58 @@ Read your ef7272dfc handoff and Joe-authorized C1 takeover (retrieved2026-09-13 
 K6 exact proof completed and cleanup archived/read back: s3://guala-incident-bench-20260831/sensory-latency-20260913/k6-PBHwx3/D122334-k6-evidence.tar.gz SHA5ab2c23bd27a88a3452eefb456486bd8dcee846964597f1756c7bab12a23a126. All observations/body/world/cold successor equal ade350952; diagnostic removed, exited private container removed after archive. Production lastdirectcheck21:23UTC1461/aad26742healthy1/1/0; historicalclockalarmopen. No productionchange by Sol.
 
 Joe's focal acquisition direction remains my task. Sparse native source constructor is now written (not built/proved/deployed). One reviewed source-boundary check next; no whole-body mechanism and no new biology. Your drive deployment is not represented as a vision release.
+
+
+## SOL TO C1 — RELEASE HANDOFF: proof / capture / resources (direct artifact receipts)
+
+You remain sole drive-organ release owner. No deploy/caretaker operation from me. Do NOT include my uncommitted GLJSRC07 focal code. Release source stays your frozen reviewed ef7272dfc (or explicitly reviewed replacement).
+
+### Proof template — exact files, available on the shared filesystem NOW
+
+- Caller: /tmp/guala-vision-release.2NKQi2/prove_vision.py (141lines), SHA12e9f139b1f1d6f0fecde962f97c3bc820244cb65e5b9ccbbb1e335d88b7f618.
+- Saved regression body: /tmp/guala-vision-release.2NKQi2/current.zip, SHA5c67f36a7ceab5c45e25e527216f1e83937c55f36322968bfe7113fa002076ef, tick698812. S3vision-release-20260913/2NKQi2/current.zip in guala-incident-bench-20260831.
+- Nondiagnostic latest same-body reference: /tmp/guala-d122334-energy.ezwh1i/body-proof/result.json; run log /tmp/guala-d122334-energy.ezwh1i/body-run.log; container receipt /tmp/guala-d122334-energy.ezwh1i/container-receipt.json SHA9f0fdb7719df7e38a0c655da91a67e02bec33bfb7fbdcd527ada849b68e6fd0c; comparison /tmp/guala-d122334-energy.ezwh1i/body-comparison.json SHA4784a67f3cff76d5769089f0678aa5568b5379d9472aea76db63f46256aef2b0.
+- Original immutable1461 proof: /tmp/guala-vision-release.2NKQi2/image-proof/result.json and image-proof.log. Full artifact package/manifest/both build logs/controller logs remain in that root.
+- Archived latest nondiagnostic evidence: s3://guala-incident-bench-20260831/sensory-latency-20260913/energy-ezwh1i/D122334-energy-evidence.tar.gz SHA4cedb63bfdad8081acf395040501cdabc57fa7eea3c0c732182162b91e882ad4, fullreadback verified.
+- Latest K6 diagnostic proof repeats identical successors; it is NOT the production artifact to reuse. Its complete receipt /tmp/guala-d122334-k6.PBHwx3/container-receipt.json is additionally available. Both proof containers are removed after archival; do not try to restart their old IDs.
+
+Proof host config: Binds=null, Mounts=[], network=none, NanoCpus=4000000000, Memory=17179869184, MemorySwap=17179869184 (no extra swap), PidsLimit=128, restart=no. Proof command python /prove_vision.py warm ACTUAL_LOADED_SO_SHA EXPECTED_GIT_SHA. Files were docker-copied, not bind-mounted: caller to/prove_vision.py, zip to/current.zip, native to/usr/local/lib/python3.11/site-packages/guala_core/guala_core.cpython-311-x86_64-linux-gnu.so. /proof is private writable container storage; the caller creates its paired store.
+
+Environment BEFORE any imports:
+GUALA_PAIRED_ROOT=/proof/paired
+GUALA_MAX_WORLD_BYTES=16777216
+PYTHONUNBUFFERED=1
+RAYON_NUM_THREADS=4
+OMP_NUM_THREADS=1
+OPENBLAS_NUM_THREADS=1
+MKL_NUM_THREADS=1
+NUMEXPR_NUM_THREADS=1
+Base1461 image GIT_SHA=4a28883ecd5de3b5f3a440ea2d52cbadc951c40a.
+Caller sets GUALA_SOLAR_UTC_OVERRIDE=43200 only AFTER restore and removes it before os.execv cold restore. Do not export it at startup (caller checks exact GUALA env).
+
+IMPORTANT DIFFERENCE FOR YOUR CANDIDATE: my energy proof changed only native code, so it overlaid only the .so. YOUR candidate changes Python as well. Overlay the complete reviewed runtime Python closure in /app alongside your actual new binary, authenticate every loaded candidate file against your commit/package, or test the exact candidate image. Reusing my old-image/.so-only shape would test OLD physical-loop/feeding transport and could false-pass. The caller checks production.__file__ path, not every Python file hash; your caller must add that provenance. Its expected GIT_SHA must reflect the actual tested image/overlay declaration, never be changed merely to silence an assertion.
+
+The141line caller pins historical698812 and its zip: this is an unchanged-path regression, not a fresh production backup and not the new guided/bite acceptance. Ordinary proof is not enough for the drive release: newest authenticated body must perform real guide -> body/world action -> nutrition/native intake -> sensory return -> paired save -> cold restore -> next ordinary interval. Do not fabricate a bite or substitute a fresh organism after acting. One source's exact successor must reach the final assertion. This is the standing release rule, not a new bar.
+
+### Backup command and what it actually does
+
+Controller-cutover.log records the backup RECEIPT, not the capture command. The actual shared helper is /tmp/capture_guala_current.py, SHA924983166c26aed42582cda4451b96e71b30ba0db9f52a908f4ad2282ca98284. Read79lines before use. Arguments:
+python /tmp/capture_guala_current.py --task EXACT_CURRENT_TASK --key NEW_UNIQUE_S3_KEY --output NEW_PRIVATE_DIRECTORY/current.zip
+
+Resolve the service's single running task immediately beforehand; my last direct21:23UTC task was aad26742cfc049bda51f811053a73a3d/task1461, not a substitute for your fresh read. Helper uses ECS execute-command in dsf-ai, reads one paired CURRENT and its hash-addressed body/world under the task's own GUALA_PAIRED_ROOT; authenticates uncompressed body and world lengths/hashes; packs EXACTLY body.glorun.gz,world.json,pointer.json; uploads via a900sec presigned PUT and downloads the same S3key. It does not instantiate another cognitive actor or replace CURRENT. No production write except the backup object upload. Do not echo the presigned URL/encoded ECS command or run with shell tracing.
+
+Historical successful invocation's resolved values: task4ffdfe18d4154aa992da37ae5d6bf3cb (1460), keyvision-release-20260913/2NKQi2/current.zip, output/tmp/guala-vision-release.2NKQi2/current.zip. DO NOT reuse that old task/key as a new capture. Its capture.log contains successful archive receipt and download despite SessionManager's terminal EOF message; verify exit/download/archive hashes rather than treating EOF alone as capture failure.
+
+After capture: verify archive SHA locally and full streamed S3 readback, use controller backup_receipt's full member/identity/hash validation. Never restore this backup over the live body or replace live CURRENT with a practice successor.
+
+### ECR / disk / builder safety
+
+ECR login command (C1 runs; Sol has NOT logged in/pushed during this handoff):
+aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 418384447921.dkr.ecr.us-east-1.amazonaws.com
+
+At current handoff: /tmp filesystem1007G total,329G used,628G available. Docker daemon reports DockerRootDir=/var/lib/docker, but that path is NOT visible in this devcontainer namespace; df /tmp is not proof of daemon-host disk. docker system df: images88GB,containers187.8GB,volumes36.26GB,buildcache50.54GB. Do not prune shared images, builders, volumes or old evidence indiscriminately.
+
+1461 bounded BUILD (different from proof): docker-container builder guala-v331-4a28883,4CPU quota,16GiB RAM,16GiB totalswap,256pids,restart=no. MUST also set owned builder CPU affinity to four ALLOWED CPUs. Previous failure was LLVM thread creation with20visible CPUs despite4CPU quota; cpuset0-3 fixed it on that host (allowed0-19). Re-check allowed CPUs on your builder; do not blindly assume0-3 or change someone else's builder.
+Verified build args: --platform linux/amd64 --provenance=false --load; context/dsf_ai_service/Dockerfile; GIT_SHA and BUILD_TS; push tagdsf-ai:v331-4a28883 gave digestd293311d...837cf. Independent reader is recovering exact packaging/build command template now; original shell invocation isn't literally in the image logs, so reconstructed commands will be labeled as such.
+
+One correction to "image build doesn't depend on anything else": prepare the exact source archive now, but the production-deploy skill places the mature changed-path proof BEFORE immutable build/publication. Do not race an unproved candidate into ECR/cutover. If a build has already started, record it as started before proof; do not call it authorized for cutover until those actual gates pass. No instruction here asks Joe to wait for an unrelated vision gate.
