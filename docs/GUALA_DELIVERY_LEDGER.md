@@ -1770,3 +1770,12 @@ V318 locally closed on91860cdf6. Native913ms still exceeds whole250ms budget. P1
 ## D122319 result — stale finalization bottleneck retired
 
 P319 same903exactpairsPASS; warmfinalization55.175ms (endpoints5.750/integrated39.559/sleeping1.849/recovery8.017), not prior198ms. Not principalnativegap; no morecandidatefromoldtiming. Diagnostic32lines fullyremoved, sourcebackto91860cdf6, ordinaryV318warm1.265666402s remainsauthority. Archivewhole-readback1b1cc5d43d6495fdd69fceefbd47dd4ed162cb4a99becac736ee560a29f9ce94, P122319-finalization-evidence.tar.gz; ownedcontainerremoved. Nativecostattributionnext, not newphysics. Production1460unchanged,clock695428→695485; full250msvisiongateopen,selflifenext,speechparked. CanonicalAttempts retains exactcounts, commandcorrection andF022no-speedgainpriorart.
+
+
+## D122320 — measure the duplicate retained-memory count projection
+
+Sourceconfirmed unsealedstructural_summary +mosaic_of_mosaics_count independentlyrepeat fullretained-fractaleligibilitytraversal; countsrequired, notremovableblindly. P320one diagnosticblocktimer, no state/law/fieldchange; source-review→same903exactproof→archive/remove. V3181.265666sordinary remainsauthority, production1460unchanged,250msgateopen. Visionfirst,selflifenext,speechparked.
+
+## D122320 result — count hypothesis closed, no cache added
+
+P320 count block847us cold/1024us warm; both exact full903 body/world pairs PASS. Too small to explain native gap. Ownership source audit found no ordinary retained-history deep clone. All4diagnostic lines removed; finished owned container removed; whole archive/readback cd08563946563a6d51d313144603662c4a58aa5fc992beb21ed328d8dca6c2fa (P122320-count-evidence.tar.gz). Canonical Attempts has full receipts, errors and health. Production1460 unchanged, clock695650→695701. OrdinaryV318 1.265666402s remains baseline; <=250ms gate open. Next: narrowly attribute the existing reached-cohort physical helper, no physics changes. Vision first, self-life next, speech parked.
