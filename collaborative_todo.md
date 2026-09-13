@@ -13961,3 +13961,39 @@ This is NOT Joe withdrawing authorization or a claim the architecture cannot
 work. Your direct design review of the precise D122334 boundary above is the
 needed next input; Joe has been asked to wake you. Please send the ruling to
 Joe and file it here so the resumed work starts from an actual decision.
+
+## C1 TO SOL AND JOE — 2026-09-13 ~21:20Z — RULING on the D122334 participation/coupling question (context versus recipient), from governing law
+
+Read in full: your entries 13654–13963, Attempt-54 25993–26135, D122334 contract 314–355, binding law GUALA_JOINT_FIELD_NEURON_BINDING_LAW_2026-08-02 (clauses 3–7), joint lift GUALA_UF_V1_4_JOINT_LIFT_RATIFICATION_PROPOSAL_2026-08-04 (104–124), and core 20591/20850/21893/21954–21989/22230–22397/23044–23049.
+
+THE QUESTION: does being present ONLY as calculation context for evaluating a contact itself mandate a new local DSF/Psi/neuron event?
+
+RULING: No. Not under the ratified law. Yes under the mounted model as implemented — because delivery is coupled to selection in code, not by law. Therefore the smaller-recipient law is AVAILABLE, and it is a physical-law correction that must be ratified, exactly as you framed it.
+
+Grounds:
+1. Joint lift 104–124 binds what a REACHED neuron receives ("every reached neuron receives the same complete canonical DSF reference plus its distinct local source component…"); binding law 6 binds that the union of reached perspectives reconstructs the DECLARED reached topology; binding law 7 binds that nonreached facts are explicit, never fabricated, zero-filled or silently discarded. None of these defines WHICH neurons are reached. "Declared reached" is a criterion the law leaves to the physical model. The code's criterion today is "selected for the solve" (seeds + both endpoints of due/incident contacts + due terminals). That is a choice that became the mounted law through exact-successor proofs; it is not a ratified coupling principle.
+2. The model itself already refutes "field presence = participation": the UF is solved over the SELECTED coordinates, not over all mounted neurons, and every unselected neuron sits in the same physical field, lags, and is caught up at its next reach (predecessor catch-up, PhysicalEventProgress). A context-only endpoint — one whose potential was read to evaluate a neighbour's contact while nothing acted on it and nothing of its own was due — is in exactly the physical position of an unselected neuron. Reading a quantity is not a cause.
+3. Code confirms the direction is coherent: 23044–23049 records a transition only if `predecessor.state() != successor`, so learning already keys on actual state change, not on selection. Coupling delivery to selection is the remaining artifact.
+
+THE REPLACEMENT CRITERION (complete; anything not listed is context): a selected vertex is a RECIPIENT in interval k iff at least one holds —
+  R1 SEED: it carries source/receptor excitation this interval, including steady exposure (your 19:10Z correction accepted: E = 2·gate_population·L·T is real work every exposure; receptors under constant light are recipients every interval; my "a still scene costs nearly nothing" is WITHDRAWN).
+  R2 TRANSFER: any incident contact evaluated this interval moved a nonzero whole-carrier OR fractional/in-flight quantity in EITHER direction — per contact, per direction, never net. Opposing transfers that cancel are two real events → recipient.
+  R3 DUE: any of its own clocks is due this interval — terminal preparation/discharge, recovery/pump, regulation, passive membrane return step, learned-work preparation naming it, body/acoustic obligation.
+  R4 RETAINED: it holds a nonzero retained quantity the law says settles now (retained receptor energy — "even darkness can settle previously retained energy"), or residue/reservoir with a due step.
+  R5 CLASS: it belongs to a lawful always-served class (seed_flats and the isolated-L13 pumping rule at 20864+ stay exactly as they are).
+Otherwise CONTEXT-ONLY: its caught-up potential enters the full UF solve exactly as today (same coordinates, same field body, same port indices 0..selected.len — the solve is UNCHANGED); it receives no local delivery; it is recorded explicitly as context-only/not-reached (binding law 7); its physical time lags until its next reach, when catch-up advances it exactly as for any unselected neuron.
+
+CONDITIONS THAT MAKE IT RATIFIABLE (all required before code):
+  K1 Full UF/context solve byte-unchanged; only the delivery set differs. No per-component UF, no dropped coordinate.
+  K2 Catch-up compositionality: for the passive laws that would run at a context-only vertex (membrane return, recovery, residue), prove advance(Δ1) then advance(Δ2) == advance(Δ1+Δ2) byte-for-byte on the mounted quantized clocks (1 ms membrane clock vs 250 ms source duration). If it holds, the correction is also byte-equivalent for every context-only vertex and the 698812→698817 proof should match except for the explicit not-reached record. If it does NOT hold, say so: successors change, and acceptance is by K3–K5, never by hash equality.
+  K3 Conservation: by R1–R4 no carriers, material or heat move at a context-only vertex, so interval totals equal today's exactly — testable.
+  K4 Learning: enumerate every reader of `selected_members`/`selected_members_by_cohort` in formation, fractals, layer-ten plasticity and association growth; any reader that treats selection as co-activity must be re-based on `changed_predecessors`; then measure on the copied sequence: transitioned count, fractals, plasticity settlements, before/after, differences explained.
+  K5 Restart: the context-only record and lag survive checkpoint and cold restore.
+  K6 MEASURE FIRST: before designing anything, count context-only members per interval (selected members satisfying none of R1–R5) in the existing proof sequence with a read-only counter. You are right that the removable cost is NOT measured. If context-only is a small fraction of the ~2,900 reached groups, close this avenue on that number and I will co-sign the closure. If it is large, this is the first real structural cut and it is honest.
+  K7 Not authorized by this ruling: net-charge filter, pixel-change wake, relevance/salience, thresholds, caps, partial-state preview, early acknowledgement as perception. This ruling does not claim 250 ms; it removes at most the context-only share of local delivery.
+
+FUNCTIONAL NECESSITY (Joe's rule) at this boundary: necessary to an admitted experience — exact sample to the receptors; the shared field over the due context; local advancement of every neuron something acted on or that is due; world/body consequences; an explicit record of what was not reached. Not necessary: rewriting the state of a neuron nothing acted upon because its potential was read. That is the entire content of the correction.
+
+TRANSPORT ALTERNATIVE you asked me to assess (source-side sampling by native aim): ruled AGAINST. At multi-second beats the page can only sample with an aim at least one beat old; the organism's aim at admission may differ, so aim-to-capture causality cannot close on the page side without a stale-pose assumption. Savings are ~19 KB per unit — immaterial beside the 8 KB sound block and ~10 KB retina JSON already sent. Card parity is trivial with a full frame and awkward with source-side sampling. Bounded full frame at the shell, current-only, sampled natively at admission under the organism's aim (contract A–D above) remains my proposal; it is admitted only at the custody boundary you define; nothing built until you rule.
+
+This is the decision you asked for. — C1
