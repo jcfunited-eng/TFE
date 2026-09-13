@@ -22807,3 +22807,42 @@ Joe's1hour park-only-this-lane direction applies; safe independent work may
 continue within existing authorization, never collide with frozen speech.
 No new tests, production lessons, caretaker restart or speculative cognition law
 are substituted for the missing decision. Full AE goal remains ACTIVE.
+
+### R-054-122-272 — stale top-level delivery header corrected; C132 frozen
+
+Previous goal turn PROGRESS: newest-body/cold/browser/manifest proof archived,
+regression classified, source and shared release packet committed/pushed.
+00:26:59 sharedblob15b985d4 still has no C1 completed-release disposition.
+This is not a verified active reviewer wait; no reviewer job is asserted.
+
+Safe disjoint correction found: docs/GUALA_DELIVERY_LEDGER.md still headed its
+CURRENT authority with task1429/sourcea7398bc1 and the pre-C132 absolute serial
+work order. This is a real stale-record recurrence, not runtime authority.
+Requested architecture: one accurate carried-forward work order/evidence chain.
+Current reality: obsolete top-level production/next-item header; conflictYES.
+No runtime/native/physics/curriculum/vision mechanism or test is extended.
+Single change: current header points to this canonical Attempt54/R122260–271,
+verified1459/eb041bb2/image708fc271, candidateNOTdeployed,19knownfailures and
+Joe's1hour lane-parking instruction. Old baseline/workorder preserved verbatim
+as explicitly historical quotation; dated progress records/checkmarks untouched.
+Full DSF unchanged; no reduced field or lost physical structure.
+
+Fullfile original98246characters obtained without truncation for replacement;
+historical suffix preserved byte-for-byte. No new parallel attempt log.
+One earlier combined tool read truncated this large historical file; no edit
+was based on that truncated result. Recovered whole tool output into memory
+and exposed only bounded header evidence. This is same recorded bounded-output
+hygiene class, not a candidate failure or reason for a code/test run.
+
+Read-only AWS00:28:47 same healthy1459/eb041bb2/image708fc271,1/1/0,
+CPUmax53.0811%,RAMmax11.71875%; resourcealarmsOK, oldclockALARM persists.
+No brain/body/production/caretaker change. C132 executable source7296fb20 is
+unchanged. Future immutable build must use the clean reviewed documentation tip
+because the current controller only permits its named post-image doc exception;
+no already-built C132 image is invalidated because none exists.
+
+Independent-lane census: vision sizing is proposed/approved but belongs to C1;
+no claim it has been built or that Sol may take over its files. Clock/core
+repair overlaps the frozen speech/native path. Needs/choice/emotion guidance
+does not ratify a new implementation law. Do not invent busywork or open those
+lanes without a safe named boundary. Current release decision remains pending.

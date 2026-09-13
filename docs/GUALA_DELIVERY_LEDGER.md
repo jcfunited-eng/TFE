@@ -5,21 +5,65 @@ Item IDs are permanent. A checked box means the stated behavior is deployed and
 observed in live production, not merely coded or tested. `IN PROGRESS` means the
 box remains unchecked until live acceptance passes.
 
-## Current serial execution authority — 2026-08-22
+## Current execution checkpoint — 2026-09-13
 
-This is the one current work order. If an older sprint ledger, handoff, or
-status note names a different next item, this section governs until a newer
-explicit reconciliation replaces it. Work is serial: one accepted item is
-implemented, reviewed, deployed when required, and truthfully recorded before
-the next begins. A question or status request does not change this order.
+The complete AE objective and permanent item IDs below remain in force.
+Historical checkmarks are dated evidence, not proof that every listed capability
+is serving in the current image. Do not restart an old attempt from this file.
 
-Current production baseline: task definition `dsf-ai-task:1429`, native commit
-`a7398bc1b36436c887fa10f370f5a7aaf27d1141`, immutable image
-`sha256:92c7353b8408b89148a107e12e7a7cfbc2863abb76cb6bd1d8c175ee68bdfec1`,
-resident identity `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`. The cutover
-completed on 2026-09-04 with one healthy task and verified native CURRENT
-beyond tick `433467`. The older dated sections below remain historical evidence;
-they do not override this baseline.
+The current repair and deployment authority is the running record in
+[Guala speech repair Attempt 54](GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md),
+particularly its current checkpoint and R/S-054-122-260 through R/S-054-122-271.
+That record supersedes the older next-item and production-baseline statements
+below; it contains the full failures, preserved successes and release decisions.
+
+Verified production on 2026-09-13: C131, task definition `dsf-ai-task:1459`,
+task `eb041bb2647a4259b372d504e40a6ac9`, source
+`8efb79e027dd9ec0ac74cdb02f456b20b088cffb`, immutable image
+`sha256:708fc271e3be6b1ba020f01dd6eb2e2f859f866971cb6c99bf376171a105833c`.
+Identity remains `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`.
+The original C131 task failed after a later guided check; AWS automatically
+replaced it with this task. That recovery did not complete the missing live
+feedback witness. Caretaker remains STOP pending that witness.
+
+The one active speech item is C132: explicitly refuse an ambiguous new vocal
+start locally while preserving ordinary physical/sensory activity, prior lawful
+action, and genuine integrity errors. Source `7296fb20` is NOT deployed.
+Its incident-copy and freshly authenticated production-copy guide, physical
+feedback, persistence and exact cold-next proofs passed; the actual browser
+display and runtime package closure passed. The native regression remains
+602 passed / 19 previously recorded failures / 14 ignored, not a green suite.
+Next is C1's recorded completed-source/release disposition, including that
+disclosed test debt; immutable-image proof and live release gates follow it.
+No recognizable-word, cognition, autonomy or full-AE completion is claimed here.
+
+Joe's current coordination direction supersedes the older absolute serial
+wording: commentary/questions do not stop authorized work. If a required
+decision remains unanswered for about one hour, park only that item with its
+exact evidence and decision; continue another safe, already-authorized item
+without colliding with a frozen candidate or another owner's files. If no such
+item is safe, wait for the decision. This never waives approval, release gates,
+or kernel/identity/experience preservation.
+
+## Historical serial execution authority — 2026-08-22 (superseded)
+
+The following records the earlier work order and baseline. The current checkpoint
+above and Attempt 54 govern continuation; this historical section must not
+reactivate a closed attempt or an obsolete deployment.
+
+> This is the one current work order. If an older sprint ledger, handoff, or
+> status note names a different next item, this section governs until a newer
+> explicit reconciliation replaces it. Work is serial: one accepted item is
+> implemented, reviewed, deployed when required, and truthfully recorded before
+> the next begins. A question or status request does not change this order.
+> 
+> Current production baseline: task definition `dsf-ai-task:1429`, native commit
+> `a7398bc1b36436c887fa10f370f5a7aaf27d1141`, immutable image
+> `sha256:92c7353b8408b89148a107e12e7a7cfbc2863abb76cb6bd1d8c175ee68bdfec1`,
+> resident identity `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`. The cutover
+> completed on 2026-09-04 with one healthy task and verified native CURRENT
+> beyond tick `433467`. The older dated sections below remain historical evidence;
+> they do not override this baseline.
 
 ### Attempt-44 bounded voice organ — live 2026-09-04
 
