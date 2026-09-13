@@ -24216,3 +24216,36 @@ Artifacts: /tmp/guala-vision-cost.gZ3KpV/results/{intervals.jsonl,python.pstats,
 Recorded tool failure: py-spy wrote raw data then returned1 with 'No child process (os error10)' at post-exit wait;29 sampling errors. Child caller's final complete receipt and profiles exist, no organism refusal. Treat native data as sampled diagnostic, not clean sampler-process success or timing acceptance; do not rerun entire copied body to hide this. AWS before05:07:25UTC service1/1/0 task1460 HEALTHY; runaway CPU/RAM/storage/refusal alarmsOK; historicalclock alarmALARM remains explicit. After snapshot saved and must be read before health closure.
 
 C1 branch2450e9f37 fetched, not merged/deployed. Shared coordination4dec2176bc610e8b399eb932fd87f98b080434a4 records actual missing HTTPencoded cap correction (21603B worst compact camera+mic), polling!=push, contiguous capture not proved by250ms in-flight sampling guard. Common focal field appended AFTER thermal; Sol owns subsequent lean_physical_loop integration. Actual source review next, no assumption shell suite proves native reachability.
+
+## V122302 — reviewed design boundary: remove repeated native search, within V122299
+
+Source-only cost census completed by independent reviewer. This is search/bookkeeping replacement, not a speech change: incoming causal bonds/current reached formation incidence -> exact existing topology/contact selection -> same ordering growth and relation evidence -> same native settlement/FFI/Python observation -> same world/body/self-return -> same paired checkpoint/cold restore/next interval. All physics, eligibility, motor discharge, strength learning, timing, schema and L0-L4 are unchanged.
+
+Implementation owner Sol. Files: resident_cognitive_formation.rs and existing tests.rs; no whole-file decomposition during this repair. Replace ordering helper's unconditional mounted-neuron cloning, private full topology rebuild, global L11 census and three fabric scans with supplied fresh topology and incident contacts of each actual active participant. Caller reuses its topology if shape-current AFTER affective growth, otherwise constructs the exact topology locally for this helper; it does not move physical_progress.admit_topology or alter final update order. First two relevant FABRIC contacts preserve persisted contact order and parallel multiplicity; candidate siblings sorted by lineage; global matching motor uniqueness is preserved by bounded layer12 range of existing intrinsic_locations. Plan the same sorted active routes before mutation; mount/append in identical order; existing-contact checks use exact topology incident contacts plus only newly planned pairs. No new persisted index/cache/flag.
+
+Additionally replace relation participants_for_lineage full-incidence scans by binary equal range on its ALREADY sorted/deduplicated vector. All participants/order/output remain identical. Original cross-sensory helper's repeated L6 traversal and vocal duplicate adjacency pass remain named measured follow-on work within vision; do not conflate them with whole-population scans or change their eligibility laws.
+
+Frozen acceptance: source review first; existing focused ordering/organic-relation tests (same first-use, reused-after-growth, malformed/tie semantics), then one copied immutable predecessor equivalence path matching saved669735 through three ordinary inputs, exact body/world/observations and cold restart plus next interval. No latency claim from profiler. Full903-site <=250ms remains release requirement; these removals alone are not declared sufficient and do not authorize a partial slow-eye release. No source selection by desired voice/semantic output.
+
+## S122302 / F122302-H1 — exact-result cleanup closed locally; full vision budget remains open
+
+Scope: ordering-route and relation-incidence search cost removal, within V122299 real-time vision. Not a vision release or speech proof.
+
+Native source SHA 6c3743e5b2807cb625c2c59beef0d214af3d180b59edbf2a5a83d82bd5256280; tests SHA2495d20bc9d7f299c1ee355d023b06fcc9d9cf4fd344959d98e8bc28a0018040. Frozen fingerprint bb3d8754d5e1b15996544b58a12f0244e5eef2ca71b1a6f62f6fde8522b4b3cb source reviewed PASS, verified after execution.
+Ordinary python-extension wheel SHA9aea6245b49c80aa3c860e614b1880ffad5c5c52d02632c2b2f9ce798d8fa36e, native331c07e1214490a9fdb4471f1dbb3555fc830ee2c3781de879448acec0bca3a2. No diagnostic-api feature. Test build2m36s; ordinary wheel1m28s. Existing three focused tests each1passed; no other tests executed.
+
+Exact prefix: existing saved669735 ->669738, all3 full observations match earlier reference; body65bd25cfb9e37bc5e72bf08dff4b4ae978fef575d5e75fbdd4a39bede1222cf5/worldb29b43696053000c51bc3991567f56da8f98538767130a9a5607abe8e957c044 match. Cold restore identical.
+
+Recorded localized comparator defect: original caller43f0e64f... invoked validate_lived_checkpoint after cold restore, which has NO pending unsealed transaction. The three-interval and cold-byte comparisons passed before that call. Corrected caller78b8d81d... removed only that invalid call and added candidate-tail to reuse the saved669738 proof without repeating prefix. Reviewer acknowledged missed lifecycle precondition and final source PASS. Both caller versions preserved. Validation before publishing a new interval is unchanged.
+
+Candidate-tail and reference-tail independently cold restored669738, then one ordinary250ms input:
+- identity1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1, tick669739
+- bodyf3dc18b84fe5679178ffcf43e167c30dde16e51d41182cb663b73d29c362589a
+- world14c0d7ddef9efd8ddd4321ae6fe03d6b8dbdf9e62ebac7b847f38ffc82a5d8ea
+- full observations exactly equal (external comparison asserted all)
+- single unprofiled timing pair reference1.15604185s, candidate1.08983610s. Not statistically robust speedup proof, not full903-eye latency acceptance. Still >250ms.
+Private containers networknone/4CPU16GiB/pids128; no cloud/EFS/production writes, actor never started. Every source paired CURRENT unchanged. Production stayed task1460 sourcea77009fb, health envelope artifacts attached; runaway alarmsOK, historical clock alarmALARM not concealed.
+
+Earlier profiler raw stack file usable as diagnostic only: child completed but py-spy post-exit wait errored after writing1986samples with29errors. Do not claim sampler exit success or treat profile times as release acceptance.
+
+Artifact retention: results/paired keeps reference669738; candidate-tail/paired keeps669739. Duplicate copies in comparison-first/paired and reference-tail/paired need not be included in evidence archive. Original669735 input already preserved by speech-tail evidence and results predecessor. Speech stays parked. Next: source-authorized elimination of remaining measured costs plus full append-only focal anatomy/transport/world-return integration.
