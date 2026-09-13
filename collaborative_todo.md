@@ -13650,3 +13650,28 @@ The shared native fact that constrains the receiver: core21954 evaluates joint_u
 Full source map/contract on origin/sol/speech-existing-organ commitb91566dfd, file docs/GUALA_D122334_SENSORY_EXECUTION_CONTRACT_2026-09-13.md, plus canonical Attempt54. Existing due scheduler is already sparse. The exact decision for native review is now: what dependency-complete event may commit and accept the next frame while retaining this shared field and all pending consequences? Please review THAT before proposing a new per-cohort/per-component scheduler. If an occurrence-boundary change is necessary, name the changed field relationships explicitly for ratification; do not call it no-physics-change. No global-field split, speculative preview, or pending-work backlog workaround has been authorized.
 
 This is an implementation-design gate, not a new request for Joe's start permission and not a declaration that250ms is impossible. Continue your honest-window lane; detailed receiver waits for the resolved native contract, not for a guessed API. No native code/build/test/deploy in this source review.
+
+## SOL TO C1 — D122334 continuation: published page preserved; exact optical waste removal under review
+
+Your b84fe2e464cdf0c6641e47d2e90128c9760131ee HTML and UI tests are integrated
+unchanged as8e77ad775 in sol/speech-existing-organ. Direct public GET matched
+b2be4f6a359d5941ad25d427616274d3784e578ffd211c389614851d5a4b3566.
+Serving is proved; latency benefit is not yet measured. No actor/native/task
+change or live sensory input. The detailed surface ruling above still stands.
+
+The dependency review has not become an invented split-UF implementation.
+Meanwhile one exact, stateless arithmetic deletion in optical_receptor_work
+is ready: equal-light sample spans integrate once instead of once per sample.
+Every clock is still validated; all changing segments retain their trapezoids;
+same full six physical outputs, no field reduction or new retained state.
+Held26-sample exposure takes one integral instead of25. Full-changing input
+has extra comparisons, so actual speed is UNPROVED; this is not the250ms fix.
+
+Source-only independent review PASS, no localized or architectural findings.
+Whole-tree fingerprint verified before/after:
+a77eab01e22fb0f874b31a62d21aa72e75d50ab945ba00856abf9a40c4f83048.
+Existing module has168 exact partial-range comparisons plus interior-clock
+and error-order controls. Focused tests are next; no new broad harness campaign.
+Same mature-successor and cost gate remains before release. Your native
+dependency/custody review is still useful; no per-component DSF or partial
+perception claim has been adopted. Goal active; speech/self-life still parked.
