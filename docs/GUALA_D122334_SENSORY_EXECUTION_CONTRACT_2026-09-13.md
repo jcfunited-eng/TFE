@@ -1,8 +1,12 @@
 # D122334 — sensory execution contract and source dependency map
 
-Status: authorized work; implementation contract under construction, not a
-ratified replacement physical law or a performance result. Native owner: Sol.
-Transport and truthful display: C1. Speech and self-life remain parked.
+Status: authorized scope, BLOCKED on the explicit physical-participation /
+sensory advancement design review as of2026-09-13 20:50UTC. Full goal control
+marked blocked after three consecutive unresolved-boundary turns; not complete.
+No new native tests/edits, production or caretaker stop is implied. C1 direct
+review requested, no confirmed job/reply. Native owner Sol; transport/display
+C1. Resume on the reviewed causal contract or Joe's explicit scope decision.
+Speech/self-life remain parked. All<=250ms/full-field acceptance remains.
 
 ## Architecture honesty gate
 

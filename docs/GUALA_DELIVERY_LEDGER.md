@@ -5,28 +5,29 @@ Item IDs are permanent. A checked box means the stated behavior is deployed and
 observed in live production, not merely coded or tested. `IN PROGRESS` means the
 box remains unchecked until live acceptance passes.
 
-## CURRENT — D122334 IN PROGRESS: FULL SENSORY-LATENCY REPAIR AUTHORIZED
+## CURRENT — D122334 BLOCKED ON ARCHITECTURE REVIEW (2026-09-13 20:50 UTC)
 
-Joe: "So what are you waiting for" after the complete barrier-removal/foveated-
-eye/independent-senses proposal. Sol begins this scoped work NOW; no further
-start approval required. The product-wide goal control is ACTIVE, verified
-again on 2026-09-13; speech and self-life remain parked behind vision. Do not regress this item to "awaiting Joe" merely
-because the earlier timing-only proposal or project-wide pause was recorded.
-Target: actual native sight/hearing delivery within250ms in production,
-including noisy/full-change load, with exact causal continuity and cold restart.
-Requested complete local work, current whole-interval delivery barrier:
-conflictYES. Full joint DSF unchanged; no lost fields, learned state, identity,
-coupled physical laws, or sensory relationships. No new cognitive owner.
-Next exact item: freeze the dependency-complete native barrier-removal contract
-using existing physical due scheduling and local clocks, then implement/review.
-The barrier implementation is not yet frozen or built; no250ms/deployment claim.
-Exact constant-span optical integration is now LOCALLY CLOSED: reviewed source,
-9 focused tests, complete same-input698812→698817 body/world/observation equality
-and fresh-process restart. Warm1.076–1.080s; sensory1.245s, still OVER250ms.
-No production/native release; this does not replace the full barrier/eye repair.
-P122333 priority finding remains closed. D122331 non-real-time903 release on1461
-remains live; C1's exact6ca6842c HTML/tests are now integrated as804b993a6.
-See appended D122334 authorization and source map.
+The full project goal was marked BLOCKED after the same unresolved causal-
+participation decision persisted across three consecutive turns. This is not
+completion, a claim of architectural impossibility, or a withdrawal of Joe's
+authorization. No production or caretaker stop/restart/change was performed.
+
+Required decision: a reviewed dependency-complete sensory advancement contract.
+Current law requires full delivery to every declared reached neuron; no ratified
+criterion permits reclassifying selected endpoints as context-only. Do not use
+a net-zero filter, partial-state perception, per-component UF or another small
+optimization as a substitute. C1's direct design assessment is requested in the
+shared ledger; no C1 review job or response is confirmed as of this check.
+Resume on that decision, or Joe's explicit change of scope—not a generic GO.
+
+Target remains actual production reception<=250ms under noisy/full-change
+sight and contiguous sound, full DSF, causal continuity and cold restart.
+Speech/self-life remain parked behind vision. Last local code ade350952:
+exact gate-energy cleanup proved with the existing698812->698817 sequence;
+sensory1115.930ms and ordinary1064.900–1120.700ms, NOT250ms or a deployment.
+Last directly verified production20:37UTC: same healthy single1461/aad26742
+task/image, resource alarmsOK; historicalclockalarm stillopen. Full receipts
+and prior closed work remain below. No new test/build/proof is running.
 
 ## RATIFIED — D122300: REAL-TIME OR NOTHING; SPEED AND VISION TOGETHER
 
