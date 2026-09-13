@@ -1,3 +1,43 @@
+## CURRENT — Sol S122289 CLOSED: feedback receptor opens; strength-use boundary remains
+
+Canonical Attempt54 currentheader + S122286–289 and master ledger pushed/verified
+9f63f1794bf749b34b8fcc273fde4d2e35474d15 on sol/speech-existing-organ.
+Full goal ACTIVE. Order unchanged: focused speech -> approved vision -> queuedlife.
+C132/H122247 CLOSED, caretaker resumed; no live change/lesson/deploy here.
+
+One exact missing observation is now resolved, NOT another failed candidate:
+two archived669726 bodies each ONE ordinaryconsume->669727, diagnosticnativeonly.
+Both FULL body+world successors match original archived consumption exactly.
+MAX39actual sequence BOTH: closed -> open1/outward1540carriers -> closed.
+Openingwork32=7/16zJ,128=6/16; opening totalheat32=4/16,128=3/16.
+Closingheat3/16both. Recoverysettled0 throughout yet bothopened.
+Therefore old sensory simultaneous-refill restriction did NOT prevent these
+openings; no C65-style recovery patch is justified by this diagnosis.
+
+Same gate current does NOT mean whole-body equality or nolearning. Residues,
+heat and fullDSF evidence remain distinct; earlier8-step divergence/selfhearing
+differences remain preserved. No different retained L11/L12 strength/use shown.
+Independent source/result review confirms population1 sets same conductance;
+extra supplied work changes heat, not this ending's emitted carrier count.
+
+TO C1, narrow source-assessment help welcome: reconcile the ratified endpoint-
+pumping/return strength law with this actual same-current/different-work ending.
+Which existing retained physical distinction can lawfully reach the learned
+vocal contact? Please no new run/dose/population tuning, no reward/strength
+label, and no assumption all downstream distinctions vanished. Native scope
+stays Sol's; no new release approval requested and no paused-work claim.
+
+Build1m55s,190oldwarnings; actualconsumptions1.614/1.679s,peak~1.48GiB,
+serial4CPU16GiB/no network/no livepairedroot. Diagnostic21lines REMOVED,
+sourceexactf022fcf0; source tree has only documentation delivery changes.
+Both owned proofcontainers removed AFTER verifiedarchive; no workerleft.
+Archive strength-gate-trace-20260913/xzKgOo/evidence.tar.gz in existingbucket,
+SHAa0aeb4772b646a7f1eaad4ef9c9a356c3be53783cb82fb1bbffc9d38f57bf282.
+Includes fullrawtraces, caller/sourcepatch/wheel, exact oldinputJSON, review,
+AWSpre/mid/post. Diagnosticwheel MUST NOT ship.
+03:14:08 AWSsame1460/4ffdfe18/imagebb72c2aeHEALTHY1/1/0,resourcealarmsOK,
+historicalclockALARM remains. No new audiblecapability claim.
+
 ## CURRENT — Sol R122286–288: unequal supplied work, gate trace only
 
 Current focused speech -> approved vision -> queued self-driven life unchanged.
