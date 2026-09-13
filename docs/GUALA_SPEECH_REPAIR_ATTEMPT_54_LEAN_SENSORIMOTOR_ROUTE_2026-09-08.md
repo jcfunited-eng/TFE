@@ -35,6 +35,16 @@ contacts, not demonstrated L11/L12 strength or output. MAX32 continues returning
 4000 self-heard samples per step, MAX128 zero; body consequences zero both.
 This is continuing/inconclusive at the observation bound, not a failed candidate.
 Source/next-evidence boundary and exact archive are recorded in S122285 below.
+S122286–289 now resolve the immediate receptor question on these same records:
+MAX39 receives7vs6workquanta; BOTH gates actually open, emit1540carriers, then
+close. Their opening heat differs by1/16zJ; recovery0 does not prevent opening.
+The exact diagnostic consumptions reproduce FULL archived body/world successors.
+This is not receptor silence, nor proof of different retained vocal strength.
+Other residual/heat/fullDSF/later pathways remain distinct and must not be erased.
+Temporary trace removed, source restored; raw proof archived/hashverified.
+Next single item: actual retained L11/L12 strength and authorized use, reconciled
+with this measured same-current/different-work handoff. No recovery-only patch,
+quantum/dose tuning, new lesson or repeated gate trace authorized by this result.
 Joe's sequence D122283: current focused speech step -> approved vision improvement
 -> self-driven life. The later charter is queued, not a new interoceptor or
 generalized guide implementation authorization. No global deficit score or
@@ -23385,3 +23395,215 @@ D122283 ordering stands; vision then self-driven life after focused speech.
 Tool hygiene: a git remote diagnostic exposed embedded access credentials in
 tool output; user notified, rotation recommended, values never repeated here.
 Use credential-redacted metadata only going forward. No secret placed in archive.
+
+### S-054-122-286 — existing feedback supplied unequal gate work; exact saved-state limit
+
+Source-only continuation of R122177, not another lesson or runtime run.
+Reused authenticated C131 guide669726/consumed669727 data from
+/tmp/guala-c131-feedback.N72UuO and saved neuron anatomy fb3f56cd
+(fb3f56cd4b23d4f7c0de4254b42e4c7155b063221f85c43d67e394d336743ffa).
+Population1, gate quantum1/16zJ, capacity36,490Psi rings.
+Source GLBPTR01 records250 exact frames on axes37/38/39/44:
+virtual_articulated_body area20..1000; position-source builder MIN=(p-20)/980,
+MAX=1-MIN; proprioceptive_receptor_work exact squared-endpoint trapezoid;
+physical power4*area1*transmission1/2*coupling1=2. Full passive249ms plus
+one existing sparse1ms ending contribution bounded0..1/500zJ, not an invented dose.
+Quantizer conservation Rguide+Epassive+Esparse=q*Nsupplied+Rconsume yields a
+unique integer count at every ending. MIN(all4)0vs0; MAX37 6vs6; MAX38 6vs6;
+MAX39 **7vs6**; MAX44 5vs5 (dose32vs128). This is SUPPLIED gate-work, not
+accepted opening, contact plasticity, released heat or learned strength.
+For MAX39 passive E32=86190403/240100000 and E128=33766409/96040000zJ.
+The inverse dose ordering is lawful opposing muscle-length evidence.
+Independent memory_probe_review reproduced exact arithmetic and audited alternate
+writers/source cardinality; no native runtime executed. C1 review not inferred.
+Old S122191's one-ms input equality must NOT be applied to this full C131 feedback.
+
+Pure saved-neuron parse: all8 corresponding GLNPS01 records are byte-identical
+EXCEPT their final32-byte exact receptor residue, both guide and consumed stages.
+This includes Psi/gate/membrane/material/recovery/plastic/DNA, not surrounding
+cohort/body equality. Guide->consume DOES change membrane charge.
+MAX39 stable lineage474c4e4c494e4531000000000000099a:
+non-receptor guideSHA132ed44c0d79e34ce9c9a47b2e098e7b7462fa8c57dbc6bb24bce9adbbddcfe1;
+consumedSHAfd9716561ff2f4842bd469d546d182f3dd1f8f877ceb29c19380dd897e1c0320.
+All4 stages/doses local gate fuel36/spent0/heat0, gateclosed0/dissipated36;
+charge -895260 -> -896810. These are boundary values, not an intervening trace.
+
+Source receipts:
+saved-position-receptors.json SHA4d0237ef01127a86de463aee64fd1e7d62f4ac69a4b8bf5c78d0f6ebf3a63814;
+32guide.json SHAba738bba46cf306ddf1a2861d7dfd8a6aa983a9e8c01396224f0fe1811b5dbc7;
+128guide.json SHA5329b279a6c3bf198b7b91c4139696f78bdf09fa4f541adc0b003e24457e0012;
+saved-gate-anatomy.json SHAbdbb03ec136f86424801edebd4c48aaa0f1563d7f1db998943b7b57698a488b8.
+
+### S-054-122-287 — recovery suspicion checked against prior art; NOT a diagnosed fix
+
+C65 commit36ed512602587e0ae1598e026099070cd42a55dd fixed MOTOR local gate
+recovery: consume resident lane fuel without simultaneous surrounding refill/
+product export, preserving independent bounded fluid exchange. Current
+reached_neuron_cohort::settle_reached_gate_recovery_demand_in_place still has it.
+Sensory settle_reached_cohort_interval_in_place4241 still calls older
+recovery_fluid_contact::settle_resident_gate_recovery_before_interval: it requires
+both local fuel/headroom AND immediate surrounding refill/product-export
+capacity. Source fork exists; not a regression of C65's motor caller.
+
+Read-only exact-codec inspector /tmp/guala-local-recovery.xzKgOo/inspect_fluid.py
+independently reviewed before execution. It authenticates the four existing pairs,
+stablelineage99a, explicit length-delimited GLRCC09..11/GLNPS01/GLRFS02 fields,
+pointerunchanged. No native import/runtime, state edit, lesson, compile or live POST.
+Session19436 exit0: shared recovery fluid identical at ALL4 boundaries:
+available126855602978016088563829087837/2343119000000000000000000000000zJ
+(less than1/16zJ), spent0,thermal0; local gatefuel36/spent0/heat0.
+FluidSHAea7afba79029723adc9f13d63e8cd0302378972890e7b9485f2d3c8c7f0c536b.
+Raw saved-fluid.json retained beside parser. Does NOT prove intermediate reservoir
+values, demand, headroom or recovery settlement.
+
+Important falsification BEFORE editing: complete_neuron::quantize_gate_release
+exports excess downhill energy as heat and RETURNS Some even at freecapacity0.
+settle_gate_membrane_with_contact_from_prepared retains/applies uncapped selected
+population. Therefore no recovered headroom is NOT sufficient to block opening.
+Independent source/history review confirms complete_neuron unchanged C131->current,
+overflow law predatesC65 (7a874e5754,Aug11). No recovery repair is justified by
+this evidence. Do not enlarge power/anatomy/quantum/dose, remove action permissions,
+inject guide work into motors, or resurrect the earlier reset-only patch.
+
+Single remaining measured boundary: ACTUAL per-step supplied work -> prepared
+gate population selection -> committed opening/exportedheat, including later
+closure. Finalclosed/full snapshot cannot discriminate noopening from laterclosure.
+One exact copied consumption trace, if required, must be diagnostic-only, same
+physics, no repeated lesson, and checked against the known full saved successor.
+Current C131 delivery/C132 release and caretaker status stay CLOSED/resumed.
+Production untouched; no fresh AWS claim from these offline file reads.
+
+Tool hygiene this pass: truncated combined reads were completed separately;
+two guessed inspector/body filenames refused read-only and were resolved withrg;
+a large shared-ledger read was accidentally printed instead of stored. None
+launched organism work or mutated source/state. Use rg--files FIRST and store
+large tool results without dumping them. No compilation or harness worker active.
+
+### R-054-122-288 — frozen exact-consumption gate trace, diagnostic only
+
+Question from S122286/287: did supplied MAX39 work select/commit opening and
+then close, or never select opening? Saved final states cannot answer.
+No new physiology candidate is authorized by this observation contract.
+
+One diagnostic native build from current C132 physics (base e74a8371);
+ONLY21 feature-gated observation lines in reached_neuron_cohort's actual
+settle_reached_cohort_interval_precomputed_in_place. Exactlineage99a:
+before supplied GateWorkOccurrence/prepared population/free-energy/gate,
+required+settled recovery/shared reservoir; after committed gate/newchannels/
+localcurrent/TOTAL neuron exportedheat. Totalheat is NOT labelled gate-only.
+No new state, mutation, recurrence rule, recovery, scheduling or quantum change.
+Compile diagnostic-api only in an isolated diagnostic artifact, NEVER production.
+Remove these temporary source lines after archive; default-feature source/runtime
+remain unchanged. Stablelineage is an observation selector, never action authority.
+FileSHAe40ee3430890ec5a214b79d10f1dc4a31780f1c1583e0159da976df993a7b043.
+
+Externalcaller /tmp/guala-local-recovery.xzKgOo/one_consumption.py
+SHA4981eec4c1d5230a026e5a42de5c726a92b64c56efff3c5a8ac02e81cf052f68.
+Two serial arms32then128, each restore EXISTING guide669726 and exactly ONE
+ordinary consumption to669727, no original guide repeated and no new teaching.
+Same immutableC132imagebb72c2ae/Python; explicit isolated diagnostic nativeSHA/
+modulepath, private pairedroot, solar43200 only for exact old external chronology.
+Actor restored/verified/closed WITHOUT start.4CPU16GiB/swap16GiB/pids128,
+networknone,no credentials,no live pairedroot. Caller/result/fullsuccessorpair/
+native stderr archived. Raw trace chronological; no suppressed zero-work entries.
+Full saved body+world must match archived C131 consumed successor; if not,
+record mismatch and do not silently treat trace as the old execution.
+This is a missing internal observation, not reopened C131/C132 acceptance or
+a demand that learning occur within a new deadline.
+
+Decision: no preparedopening -> inspect actual gate-energy terms from this
+trace; openingthenclosure -> finalstate was insufficient evidence, follow
+actual emitted work rather than diagnose blocked receptor; missing trace or
+successor mismatch -> instrument/equivalence gap, not substrate failure.
+No gate-removal/dose/power/threshold change follows automatically.
+Independent source+caller review before compile; read-only AWS pre/post around
+runtime. No livecue/deploy/caretaker change and no new whole-suite testing.
+
+One patch-preparation guard refused a nonunique text anchor BEFORE any edit;
+actual named precomputed function was resolved, full-file replacement used.
+No zero-test or erroneous-file command counted as organism failure.
+
+### S-054-122-289 — actual gate opens then closes; dose difference becomes heat, not different local current
+
+R122288 COMPLETED at its exact observational scope, not a new speech candidate.
+Independent source reviewPASS; localized caller correction adds explicit full
+archived-successor equality assertion AFTER writing/printing rawreceipt.
+FinalcallerSHA51e62857802324af679a2feae010862642e6d6c5711a692682812b2165b7d54f.
+One nice15/release/locked/jobs1 diagnostic build2776 exit0, compiler1m55s,
+190 inheritedwarnings; no cargo fix. Isolatedwheel4a3dbe3ad82ce85e889725749f0c68b2e249919abe1d0264144350a658bf1d0a;
+nativeb8d0ece539a3890ad21ed18a54f53f1772ae07c1c36373b38fd8742b780f04fc.
+This diagnostic artifact MUST NOT be deployed; ordinary source restored below.
+
+Actual runs serial, same imagebb72c2ae/Python, no actorstart/newguide/livewrites:
+32 f19d243980fb3332ff6ef748bb030a3bc115a3da53d64cb4385275afca67a90b,
+03:11:53.31977825Z..03:12:14.229803811Z, session20631 exit0,noOOM,
+restore13.024s, ONEconsume1.614s, peak1548872KiB;
+128 71c4ca18805060fe107d39eb0d0ff898f18777159787492e69a05290f2dc6a79,
+03:13:13.910572461Z..03:13:36.187952909Z, session15576 exit0,noOOM,
+restore13.770s, ONEconsume1.679s, peak1548848KiB.
+These are instrumented copied-body times, not live latency.
+
+Both FULL body and world successors MATCH archived C131669727, not merely
+observer counters. Known source+target hashes in R122288caller/rawresults.
+This validates attribution of the new trace to the earlier execution.
+
+MAX39 exact3 sequential settlements in BOTH arms:
+1. Work0, closed0, energy(open-minus-closed)3/16, no selection,
+   no newopening/current/heat, recoveryrequired0/settled0.
+2. Dose32 work-7/16: energy-1/4, select+COMMITopen1,
+   recoveryrequired4/settled0; localoutward1540carriers,totalexportedheat1/4.
+   Dose128 work-6/16: energy-3/16, select+COMMITopen1,
+   recoveryrequired3/settled0; localoutward1540carriers,totalexportedheat3/16.
+3. Work0, energy3/16, select+COMMITclosed0, recoveryrequired3/settled0,
+   localoutward0,totalexportedheat3/16.
+Thus recovery restriction actually bound0 but DID NOT block opening.
+The neuron responded and laterclosed; finalclosedstate was not response absence.
+Do not resurrect a gate-recovery fix from this hypothesis.
+
+The supplied-work difference is EXACTLY1/16zJ and the opening-event total
+heat difference is EXACTLY1/16zJ; netlocalcurrent and selectedopening are equal.
+Together with S122286's savedneuron equality exceptreceptorresidue, this proves
+a local transduction distinction: these demonstrated strengths do not create
+different charge drive at THIS single-population ending in THIS consumption.
+Do NOT flatten that into wholebody equality, nolearning, total sensory blindness,
+all8samechronology, or proof that heat/residue/fullDSF cannot affect later life.
+The eight-input S122285 already records subsequent non-vocal differences and
+unequal selfhearing. No new model/threshold/population/feedbackscore is authorized.
+
+Raw32traceSHA baf0fa167d9a1a91f98a1485cf1075914201c66c3e654ae27ecbe898cfa48612;
+128traceSHA6aa5dee555f6ea3d44568af24a478879a4f8b13b38a09da56af78931f846d161.
+32resultSHA33c62fbc2a88e053b461e911ae23401eac1554c10a12bc9987d448ee943ba0e0;
+128resultSHAd7adc69f7f4388e0f24e6a146055d782d1bd643db2050a931405c9ceca63e9f9.
+SavedfluidSHAec4bad248fe20397bbd80e5fd9e09de035920648875e8694cd40dca78d10f4d1.
+
+Durable evidence:
+s3://guala-incident-bench-20260831/strength-gate-trace-20260913/xzKgOo/evidence.tar.gz
+SHAa0aeb4772b646a7f1eaad4ef9c9a356c3be53783cb82fb1bbffc9d38f57bf282
+uploaded/readback-hashverified. Includes fullrawtraces/results, exact old input
+JSON/anatomy, parser/caller, sourcepatch, diagnosticwheel/buildlog, reviewer scope,
+AWSpre/mid/post. Byte-identical old paired bodies are referenced, not redundantly
+archived again; newly produced local copies retained underxzKgOo/32,128.
+No data withheld and no further replay needed for this question.
+
+Cleanup:21temporarynative observation lines REMOVED after preserving patch/wheel;
+source restored EXACT f022fcf0d33af5026ab47fc77fc8969f1d54a06471eb379ff29309bc8b257192,
+git reports no native diff. Both owned stopped proofcontainers removed only
+after verifiedarchive; original inputs/resultcopies remain. No compiler/harness
+worker active; sole existing caretakerPID381 left untouched.
+
+AWS actualpre03:10:30,32post/128pre03:12:33,terminalpost03:14:08:
+same1460/4ffdfe18/imagebb72c2aeHEALTHY1/1/0. CPU43..52%means,
+RAM14..15%; resource/refusal/storagealarmsOK; historicalclockALARM remains.
+No deployment, live sensory change, caretakerpause or audiblegainclaim.
+
+Next SINGLE speech item: reconcile the existing quantitative-strength law's
+actual signal route with this measured same-current/different-work boundary,
+including already-retained local physical distinctions; inspect before
+proposing a narrow lawful routing or sensory-resolution correction. No
+new anatomy/controller or biological reconstruction is implied. C1 asked
+for source assessment of this evidence, not to re-run completed components.
+C132/H122247 remainclosed, R122177 remainsactive; thenvision, thenlife.
+
+Observer hygiene: one tool-output tail included an unnecessarily large result
+JSON and was truncated; complete result/logfiles preserved and exacttrace was
+read separately. Truncation was display-only, not dropped runtime evidence.

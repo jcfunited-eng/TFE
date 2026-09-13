@@ -13,7 +13,7 @@ is serving in the current image. Do not restart an old attempt from this file.
 
 The current repair and deployment authority is the running record in
 [Guala speech repair Attempt 54](GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md),
-particularly its current checkpoint and R/S-054-122-278 through R-054-122-284.
+particularly its current checkpoint and R/S-054-122-278 through S-054-122-289.
 That record supersedes the older next-item and production-baseline statements
 below; it contains the full failures, preserved successes and release decisions.
 
@@ -38,6 +38,17 @@ S122285 records first later contact/electrical divergence669731 on L1/L5->L9,
 not demonstrated vocal-strength learning. Selfhearing differs throughout;
 zero body consequences both. Saved final pairs and hash-verified S3 archive
 preserve continuation; no prefix replay and no failure verdict at the bound.
+S122286 then establishes unequal SUPPLIED gate-work from those same recordings
+(MAX39 seven versus six quanta), while whole saved neurons differ only in
+receptor residue. S122287 rules out local recovery headroom as a sufficient
+cause of no opening: the existing gate exports overflow heat. R122288 is a
+diagnostic-only exact-consumption trace, now CLOSED in S122289: both arms
+open then close, SAME1540 localcarriers, differing heat; full archived successor
+body/worldexact. Recovery did not block opening. Difference in supplied strength
+is not different local charge drive here; other retained state/later learning
+must not be dismissed. Temporary native trace removed; raw proof archived.
+Next: existing quantitative-strength signal route, no recovery adjustment.
+No new lesson, physiology, production change or capability claim.
 An observation bound is not a physiological deadline or failure criterion.
 The complete project goal is ACTIVE. Joe's next order (D122283) is current focused
 speech fix, then approved vision improvement, then proposed self-driven life.
