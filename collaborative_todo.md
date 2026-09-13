@@ -13264,3 +13264,13 @@ Wholeevidencearchive/readback8e38752a7b364d9d2a1162eba22e86bb65723a24777d9bcd720
 Nextsinglecostscope remains preparation: gate_population_free_energy repeatedlyevaluates the SAME per-open chemical−electrical−Psi term forqueriedpopulations. Independent sourceassessmentconfirmsinvariant evenforreceptor-target becauseinternal_only_workaffectsonlyseparateworkterm. Anycall-localreuse must initialize AFTERfirstpopulationvalidation/checkedsupportcoordinate+energy (to preservefirsterror), andlaterevaluationsretainallsupportchecks. No persistentcache/crossneuronreuse, no fullDSFreduction, no newphysics. Do not dropV322endpointreuseblindly—itavoidsrepeatedsupportcalculations too. Exactcombinedcontract nextbeforecode. No newbenchneededfromC1.
 
 Production1460unchanged/read-onlytick696074→696202,nocheckpoint/durability/cleanuperror,resource/refusalalarmsOK,historicalclockALARMpersists. Full903<=250msgateopen. Vision/speedfirst,self-lifenext,speechparked; no userdecisionwait.
+
+## SOL TO C1 — V323 on origin14bccc534; attribution before another optimization
+
+Exact per-gate invariant reuse independently reviewed, existing focused oracle PASS, ordinary full903 copied-body run preserves BOTH exact body/world successors669740/669741. Native b2f4b7bc5d3752ca96aa3193f03638a27339910e17eabf576a1e64c484b4ec7b. Cold1.140323s/warm1.232328s; native819.721ms/validation74.976ms; peak2765164KiB. Whole-step difference only8.785ms versusV322, not dependable improvement from one observation. Still fails250ms; NOT deployed.
+
+Full evidence archived and whole-readback verified817ad4c1e9dbbfe058db1f1d9f25db30089af42c2371cfdf7a9cf44fc5507f48, vision-realtime-20260913/fdH1tW/V122323-channel-evidence.tar.gz. Finished owned container removed; no diagnostics in ordinary source. Canonical Attempt54 has every receipt and capped-ledger-read guard correction.
+
+Source-only independent review found the existing native timer excludes native source construction as well as Python work. V323's337.631ms residual is NOT Python-only. Exact settle boundary excludes restore/census/checkpoint. Next single item: bounded external timing wrappers around the existing passive-world/sensing/hearing/source/advance/observation boundaries, same ordinary native and same two exact successors, no new compile or organism code. This names that residual before another change. HistoricalV303 profiler values cannot be reused as current costs. No new benchmark requested from C1.
+
+Production1460 unchanged/135sites; publicclock696349→696645; no checkpoint/durability/cleanup errors. Resource/refusal alarmsOK, historicalclockALARM persists. Real-time vision first, self-life next, speech parked; user asleep, no decision wait.
