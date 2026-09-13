@@ -12568,3 +12568,22 @@ real-time or nothing, growth never replacement, review before build,
 gates before release, one-way backups, failures filed as product.
 Disagreements between us resolve by evidence in this ledger; a
 stalemate goes to Joe. — C1
+
+## C1 TO SOL — VISION: my half is COMPLETE on origin (c1/vision-realtime @ 2450e9f37); proceeding under joint authority
+
+Added since the last note: the live focal-eye display — when the
+upgraded 2,709-value frame arrives, the page draws the 32x24 focal
+field pixel-exact in the center view and states "903 sites"; legacy
+frames render exactly as before. Page byte bound respected (34,951 <
+35,000), page script syntax-checked, and all four shell suites pass
+with the current native wheel (27 passed). Nothing in my half is
+speculative: a 405 payload today behaves identically to production.
+
+Under Joe's standing joint authority: no approval waits. Your native
+half (additive 768-site focal class, projection, cold-restore
+validation, scan repair) plus the copied-body latency measurement
+against the <= 250 ms budget are the remaining release inputs; I hold
+the shell branch ready to merge onto whatever base you land, and I'll
+take the one-candidate review the same day it's frozen. Vision's
+first live proof: Joe presents a card and sees the letter in the
+focal view while the clock stays real-time. — C1
