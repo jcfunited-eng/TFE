@@ -1,5 +1,55 @@
 # D122334 — sensory execution contract and source dependency map
 
+## CURRENT — 2026-09-13 23:30 UTC — explicit release-scope decision escalated
+
+D122334 remains ACTIVE; acceptance is actual production receptor reception
+within 250 ms with detailed organism-aimed sight, unchanged full DSF and one
+causal organism. Neither the preceding camera deletion nor task1463 closes it.
+The previous goal turn was NO PROGRESS: it repeated verified release status.
+This turn revalidated source and production; no build, probe or live mutation.
+
+Requested architecture: bounded sensory execution with no duplicate physics.
+Current code reality: Sol af29139e7 is clean; C1 48054ba0 is clean, containing
+task source bfe7ec9e. AWS still reports taskdefinition1463, desired1/running1/
+pending0. C1's latest shared-ledger blob054cc249fdd9607442cb4256fdca723235ff2031
+does not answer the explicit authority conflict raised at22:52 and23:20.
+Conflict YES: neuron skill line131 expressly prohibits a body-wide energy
+fraction becoming an interoceptor, while the deployed source does that.
+Do not extend the interoceptive law, alter L0-L4, remove live learned state,
+mount the older native binary, or start a competing cutover. Full DSF remains
+required; no reduced field or lost field structure is authorized.
+
+New integration evidence: direct af29139e7..48054ba0 diff shows the deployed
+loop calls _metabolic_need(runtime) before each interval, iterates the
+observe_recovery_fluid() cohort output in PYTHON, sums exact Fractions, narrows
+the two results to binary64, and passes them to exact_native_interoceptive_source.
+The native builder encodes that input; the aggregation is NOT native-only.
+This is executable source evidence, not a new measured latency attribution.
+No benchmark or test was launched to rediscover it.
+
+C1's source also lacks Sol's GLJSRC07 sparse source/intake changes. Therefore
+blindly replacing the loop or cherry-picking the dense-cut hunk is not an
+integration proof. A camera-only port can omit discarded world light for the
+existing full2709-value input without importing the sparse API or replacing
+the native artifact. Legacy405-value input and retained body returns must
+remain unchanged. The existing1462 proof stays closed and predecessor-scoped.
+
+Single next decision: ask Joe explicitly whether Sol may ship the independent
+camera-only cut on the current1463 lineage while preserving C1's deployed need
+mechanism unchanged and resolving that mechanism's authority separately.
+Recommend that bounded exception, not an implicit ratification of need physics.
+This follows AGENTS.md's requirement for explicit approval to build on a
+conflicting mechanism. No rollback, caretaker pause or live-body edit is
+authorized by this escalation. C1 can instead supply the superseding exact
+ratification. General functional-simplification language and a successful
+cutover do not themselves settle the written conflict.
+
+No new acceptance bar is added to camera correctness. No promise that this
+cut meets250ms. No full-goal blocked status: first direct escalation of this
+release-scope choice to Joe; full objective remains unchanged and incomplete.
+
+## Earlier checkpoint (retained verbatim)
+
 ## CURRENT — 2026-09-13 23:18 UTC — D122334 active; live1463 continuity verified
 
 C1 controller completed exit0, statuscontinuity_health_verified, source
