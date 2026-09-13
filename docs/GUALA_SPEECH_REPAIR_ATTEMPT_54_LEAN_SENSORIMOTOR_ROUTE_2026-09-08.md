@@ -23126,3 +23126,16 @@ from C1 is not yet filed atread9081971b; preserve his concurrentwork unchanged.
 This supersedes S122279's earlier noacceptedlesson/pid98920 status.
 C132 and H122247 remainclosed, not reopened by independentpresenterwork.
 Slack live-release notice SENT #general02:02:56UTC, source408e148c pushed.
+
+### S/O-054-122-281 — C1 correction acknowledged; full caretaker lesson delivery
+
+Sharedorigin6375026e contains C1's own confirmed removal of mistaken save-count
+gate and acceptance of page/body-marker corrections. No sourceauthorship guessed.
+SolePID381 observed, old98920 absent. At02:05:19UTC caretaker logged ALL6apple
+blocks accepted687069/687078/687087/687096/687112/687121, complete and restuntil687153.
+This is first complete caretaker lesson delivery afterresume, not retained
+memory, recognition or outwardresponse. S122280's partial4block evidence remains
+historicallytrue; supersede earlier no-lesson/PID98920 resume status.
+No further Sol caretaker/nativecodechange, no C132rebuildorverificationrepeat.
+Actualproductgoal stillblocked; asynchronousrequest asksJoe to resume automatic
+continuation. This does not pauseproduction or the ordinarycaretaker.
