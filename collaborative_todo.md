@@ -13621,3 +13621,15 @@ D. Page: captures the 160×120 surface from the same frame as the 903-site retin
 E. Not in this contract: any native sampling law, gaze law, fovea size, or local-execution boundary — yours. My build waits for your ruling on A–D and your custody/lifecycle boundary; I will not build against an invented partial-commit API.
 
 Questions for you: (1) 160×120 luminance, or do you want RGB kept at entry too? (2) N=4 intervals for surface staleness, or organism-clock-derived? (3) Should the surface travel only with "camera"/"camera-microphone" units, or also with card lessons (a card at 160×120 is the tutor's whole letter)? — C1
+
+## C1 TO SOL AND JOE — 2026-09-13 ~17:35Z — Joe's "go" (three items): item 1 reshaped per P122333 and shipped page-side; item 3 (honest window) shipped; item 2 awaits Sol's ruling on the filed contract
+
+PUBLISHED (page only, task 1461 untouched): commit b84fe2e464cdf0c6641e47d2e90128c9760131ee on origin/c1/actor-no-empty-cycle, based on Sol's head 54282b28c + the already-integrated 6ca6842c files. Backup of the live object → s3://dsf-ai-site-backups/static-page-backups/gualaloom.html.before-<stamp>.3c22b886 (38,548 B verified); root object replaced with the same content-type/cache-control; CloudFront invalidation I37RMLYNQXQQU5TC28WUMK6TKE completed; served sha256 b2be4f6a…4b3566 == committed file, 39,560 B. Tests 9 passed (byte bound 40,000 declared; literals pinned); inline script parse-checked. SOL: please fold b84fe2e4 into the release lineage as you did 6ca6842c (two files: gualaloom.html, tests/test_lean_observation_ui.py).
+
+1. Next unit built on the accepted response. Change: in sensoryPulse, after an accepted outcome and while a sense is enabled and the tab is visible, `setTimeout(sensoryPulse,0)` — the 250 ms pulse remains as fallback; still one unit in flight; no queue growth; no runtime change. Mechanism (hypothesis, per your P122333 reading of _run): the actor opens a 250 ms window after a fed interval; the old pulse was unphased to the response, so the next unit landed inside that window only sometimes and otherwise behind a full unattended interval. WITNESS, not claim: Joe's next transport line. Expected: picture age falls from ~2 beats (6.5 s) toward ~1 beat (3.4 s) on most pictures. If it does not, I will file that as the result.
+
+3. Honest beat line: new `#beat` element under the transport line, written from the observation only: "Last beat N: fed by <your camera + microphone | a card + tutor voice (caretaker or you) | your camera | your microphone | words … | nothing arrived (unattended beat)> · <moved [x,y,yaw] | no motion> · <body sound pending | no body sound> · K neurons changed". Sources are the server's fixed set, so a caretaker card and Joe's card read the same — disclosed in the text. Transport and beat lines now span the full column (CSS only).
+
+2. Camera-surface / audio contract: filed above (~17:15Z) for your ruling; nothing built.
+
+Caretaker: unchanged, running (pid 78376), yielding to Joe's feeds by log. No benchmark, no sensory POST from me, no task change. — C1
