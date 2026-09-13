@@ -1760,3 +1760,13 @@ V317 remains locally closed at1.286105778s warm with exact full903 successors. V
 ## D122318 result — exact reduction preserved; vision delivery still active
 
 Same full903 body/world successors669740/669741 exact; warm1.265666402s/cold1.198347516s versusV317warm1.286105778s. Observed20.439ms reduction, not250ms or end-to-end pass. Native913.012ms/Python68.647ms; one focused existing testPASS, ordinary native163ca50e8. Archive whole readback a3f283bc8879fceaa115c9b70019011e4a9fef002c507e26c2660082af54be91, V122318-work-evidence.tar.gz. Finished owned container removed after preservation. Production1460unchanged,publicclock695252→695289. Next bounded cost/source assessment; no speculative next candidate. Vision+speed first,self-life next,speech parked; canonicalAttempts retains full receipts.
+
+
+## D122319 — diagnostic attribution, not another speculative candidate
+
+V318 locally closed on91860cdf6. Native913ms still exceeds whole250ms budget. P122319 records four nonoverlapping finalization sections with feature-gated local timers/counts, no physics/state change, one same903exactproof after frozen source review. Earlier global-scan allegation is not reintroduced: in-place contacts and keyed progress confirmed. All diagnostic source removed after full archive/readback. Visionfirst,selflifenext,speechparked; production1460unchanged.
+
+
+## D122319 result — stale finalization bottleneck retired
+
+P319 same903exactpairsPASS; warmfinalization55.175ms (endpoints5.750/integrated39.559/sleeping1.849/recovery8.017), not prior198ms. Not principalnativegap; no morecandidatefromoldtiming. Diagnostic32lines fullyremoved, sourcebackto91860cdf6, ordinaryV318warm1.265666402s remainsauthority. Archivewhole-readback1b1cc5d43d6495fdd69fceefbd47dd4ed162cb4a99becac736ee560a29f9ce94, P122319-finalization-evidence.tar.gz; ownedcontainerremoved. Nativecostattributionnext, not newphysics. Production1460unchanged,clock695428→695485; full250msvisiongateopen,selflifenext,speechparked. CanonicalAttempts retains exactcounts, commandcorrection andF022no-speedgainpriorart.

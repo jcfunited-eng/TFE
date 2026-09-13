@@ -24627,3 +24627,38 @@ AWS read-only11:16:29→11:18:51: production1460/task4ffdfe18 unchanged,1desired
 Whole artifact archive, source patch/review, exact test/build records, ordinary wheel/native, all13 loaded files, both paired checkpoints, caller/helper, hash/resource proof and pre/post health: `s3://guala-incident-bench-20260831/vision-realtime-20260913/fdH1tW/V122318-work-evidence.tar.gz`. Local SHA and WHOLE streamed S3 readback both `a3f283bc8879fceaa115c9b70019011e4a9fef002c507e26c2660082af54be91`. Only finished owned container `guala-vision-work318` removed after readback; evidence is recoverable from S3. No diagnostic source added or left behind. No failed build/test/organism run this candidate. Handoff lost the test session handle; actual completed log was recovered, and the test was NOT run again.
 
 Next single item: bounded source/cost assessment of the remaining native work, not another unmeasured arithmetic candidate. Prior finalization inspection found required wake/recovery, not a removable full-population census; do not reopen that as a claimed scan. Native913ms alone still exceeds the whole250ms budget. Need an attributed causal-vs-representation cost before choosing the next implementation. V318 is locally closed, D122300/V122299 delivery remains active, production1460 unchanged. Vision/speed first; self-life next; speech parked at its recorded point. No user-decision blocker.
+
+
+## P122319 CONTRACT — remaining finalization cost, diagnostic only
+
+Continues real-time vision from accepted91860cdf6/V318warm1.265666402s/native913.012ms; full250ms unmet, production1460 unchanged. PriorP313 measured caller-level finalization198ms, not current per-loop cost. Main confirmed actual contact replacements mutate only named contacts and PhysicalEventProgress path-copies keyed branches; no whole-fabric clone/removable global scan established. Do not present necessary wake/recovery as wasted physics.
+
+One diagnostic file: resident_cognitive_formation/physical_event_finalization.rs. Its three callers cover empty-selected, empty-compact and normal contact paths; all use the same finalizer and unchanged errors. One call-local Instant, four cumulative elapsed reads: entry→endpoint/changed-set done; integrated-contact scheduling done; sleeping-wake gather/dedup/catchup/reschedule done; recovery-union/catchup/reschedule done. Scalar lengths plus processed-wake counter after existing integrated-contact skip, no extra scan/atomic/per-contact timer. One stderr record only after successful finalization, clock/needs_rebuild included. Early error/assertion gives absent diagnostic, NOT zero cost. Final timestamp excludes logging and local-container destruction; bins not equated to prior caller198ms.
+
+All diagnostic variables/output cfg(diagnostic-api), no data into organism decisions, parameters, state, DSF, scheduling, schema, persistence or UI. Underlying authority remains unchanged complete physics; no new mechanism or release candidate. Independent SOURCE-only partition assessment PASS on91860cdf6; frozen source review must pass before build.
+
+One isolated diagnostic wheel (features python-extension,diagnostic-api together), all13 loaded hashes, same authenticated earlier productioncopy+903 two-interval caller and BOTH expected successor pairs. Same4CPU/16GiB/pids128/no-network/no-mounts, fresh read-onlyAWS before/after. No broad tests or heavy sampler. Diagnostic whole timing not ordinary speed proof; V318 remains baseline. Archive full evidence/readback, then remove ALL diagnostic source before accepting next production change. Speech and selflife untouched; production1460 remains until complete real-time vision gate.
+
+
+## P122319 RESULT — finalization is now small; do not keep optimizing stale198ms
+
+Independent frozen source review PASS84b4840d6f6859ffb688434c38abff27b0c2f9ed2467b7726aa56f8e9e5e6747 before/after; one diagnostic-only build1m28s, featurespython-extension,diagnostic-api,190inheritedwarnings. Nativec9726a2b8e87b86e0867a7ecaec2a8395cf164aa0cb9b20483cadbde271ab7f5; wheel53f94c541e9dfb1b2552480ae0c976e21437c1c604a1f206a7dab98528bdb171. All13loadedfilesmatched. Same earliergrown903copy retainedidentity/sourceCURRENT and BOTH exactbody/world669740/669741; privatecontainerexit0/noOOM/peak2764228KiB.
+
+| Successful finalization section | Cold microseconds | Warm microseconds |
+| --- | ---: | ---: |
+| Endpoint/changed-set construction | 5904 | 5750 |
+| Integrated-contact rescheduling | 42409 | 39559 |
+| Sleeping-wake gather/catchup/reschedule | 1430 | 1849 |
+| Recovery union/catchup/reschedule | 7569 | 8017 |
+
+Warm sum55175us; selected3926,changed3796,integrated16881,wakecandidates16960,actuallyprocessedwakes93,recoveryunion3796. These are reached participants; the separate26-contact cohort census is not totalfabric. Coldselected3922/changed3511/integrated16899/wakecandidates16704/processed65/recovery3511. EarlierP313caller198ms is stale after intervening cuts; this55ms is not the principal remainingnativecost. Timedbins exclude final logging and local-container destruction; they are not asserted equal to callerwalltime. Necessary wake/recovery remains intact, no newglobal-scan claim.
+
+Diagnostic fullcold1.201401303s/warm1.226664052s/native885.439ms/Python70.514ms; NOT ordinary-performance authority. V318ordinarywarm1.265666402s remains baseline, whole250ms gate open. Do not select another finalization micro-candidate from the old198ms figure.
+
+AWSreadonly11:27:23→11:31:20 same1460/task4ffdfe18HEALTHY1running/0pending;CPUavg43.79–52.25%,max68.67%,RAM13.99–15.27%;resource/refusalalarmsOK,historicalclockALARM. Publictick695428→695485,checkpointoutstandingfalse→true,no checkpoint/durability/cleanup errors. Liveunchanged.
+
+Whole archive `s3://guala-incident-bench-20260831/vision-realtime-20260913/fdH1tW/P122319-finalization-evidence.tar.gz`; local and WHOLEstreamreadback SHA`1b1cc5d43d6495fdd69fceefbd47dd4ed162cb4a99becac736ee560a29f9ce94`. Contains diagnosticdiff/review/build/native/wheel, all13loadedfiles,caller/helper/fullpairedresults, health and commandcorrection. ALL32diagnosticlines REMOVED after readback; finalizer exactbackto91860cdf6. Onlyfinishedownedcontainer guala-vision-final319 removed. No diagnostic source/cognitive state retained. No failed build/bodyrun. One source-only wrongpath membrane_conductance.rs corrected by resolving actual local_membrane_conductance_balance.rs; recorded, not organism evidence. Receipt draft linecount34 corrected to measured32 before final archive; no test/run repeated.
+
+Independent source consolidation hypothesis retained, NOT performancecandidate: totaldurationu128=(u32interval*u64elapsed)<2^96 could reuse existing fixed-width carrierintegrator and one wide fallback, preserveoriginalreportedinterval/errors/canonicalremainder, delete duplicatewidebody. Main verified permanentregister F-022/44a38700: this fixed-width law was alreadyclosedforphysics on2026-08-30/task1376, NOdemonstratedspeedgain, ordinary0.56–0.89s persisted. That priorart forbids relabeling it new. P319sleeping/recoverycosts are small; no authority to implement it for hoped-for speed.
+
+Next single item remains identifying the larger native cost on current source, not more finalization surgery, no new physiological law, no speech investigation. Preserve all accepted318work. D122300/V122299real-timevision delivery active; selflife next,speech parked; production1460unchanged,no userdecisionblocker.
