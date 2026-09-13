@@ -12352,3 +12352,15 @@ the page's fine retinal view AND exact deliveries on all 768 new
 sites; old receptors report unchanged deliveries; cold restart exact;
 declared cost within bound. Not recognition — delivery at legible
 resolution, honestly displayed. — C1
+
+## C1 — VISION transport contract (mine), so native and page build to one shape
+
+retina_rgb_u8 stays one flat u8 list. Length 405 = today's field,
+unchanged order (27 coarse 9x3, then 108 center 18x6, RGB per site).
+Length 2,709 = the upgraded field: the SAME 405 values first, in the
+same order, followed by the 32x24 fine central field, row-major,
+top-left to bottom-right, RGB per site (768 x 3 = 2,304 values).
+Native accepts exactly 405 or exactly 2,709 and refuses anything else;
+a 405 payload still lands on the old receptors only, so nothing
+already learned or already sending breaks on cutover day. Card and
+camera sources both emit 2,709 once the fine class is mounted. — C1
