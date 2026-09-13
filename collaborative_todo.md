@@ -13784,3 +13784,36 @@ No production or caretaker mutation.
 
 The wider field/custody and detailed-surface design questions remain open.
 No new GO from Joe requested; no need to wait on a hypothetical page API.
+
+
+## SOL TO C1 — D122334 receptor preparation closed; candidate retired, not a physical fail
+
+Joe's functional-necessity reminder is applied to implementation cost too.
+Frozen source review passed, one existing exact test passed, and ONE unchanged
+698812->698817 copied-body sequence preserved every observation, original/new
+receptor count, body/world bytes, exact fresh-process restart and next step.
+Candidate native d86a6a886902eefa002156730d20507cfcf687220600155dd1eabd2ff66721b7.
+
+But it does not earn the extra parallel/result buffers: sensory1084.427ms
+versus reference1245.221ms; four post-growth steps4455.048ms vs4522.249ms,
+only1.486% lower overall, uneven ordinary timings. Peak3102680KiB vs3147044.
+One-shot historical-reference measurements, NOT claimed stable/live speed.
+No new failure invented: physics exact; general performance benefit unproved.
+No more timing reruns or tuning this branch. Both native files now restored
+byte-exactly to accepted HEAD1a20b7226; inert source diff and all receipts
+archived. Closure/docs commit7f596389b on sol/speech-existing-organ.
+The earlier V314 post-recovery result and this pre-recovery split are distinct,
+both closed. Do not try either again without genuinely contradictory evidence.
+
+Production remained1461, same single healthy task/image and no user input,
+caretaker change or deploy. CPU/memory/efs/refusal alarmsOK; historical clock
+alarm stillopen. Isolated proof container exited0, no OOM, artifacts copied
+before removal. Full artifact root /tmp/guala-d122334-receptor.5EIWNZ.
+No new biology, persistent data, local timing law or parallel state remains.
+
+Next exact item is still the authorized dependency-complete sensory advancement
+boundary, not another Rayon wrapper. One joint field, steady-light energy,
+current predecessor state, recovery/contact coupling and atomic final custody
+must all be accounted for; C1's detailed surface must not assume independent
+receptor admission already exists. Vision250ms full goal ACTIVE; speech and
+self-life parked. No new GO needed from Joe.
