@@ -40,6 +40,7 @@ MAX_OCCURRENCE_BODY_BYTES = 26_624
 PUBLIC_API_PREFIX = "/api/v1/guala"
 OBSERVATION_ROUTE = f"{PUBLIC_API_PREFIX}/observation"
 OBSERVATION_LONGPOLL_SECONDS = 20.0  # bounded hold for ?after=<tick>; declared, not tuned
+OBSERVATION_WAITERS = 8  # bounded concurrent held observers; beyond it, immediate current projection
 OCCURRENCE_ROUTE = f"{PUBLIC_API_PREFIX}/occurrence"
 PRESSURE_FEED_ROUTE = f"{PUBLIC_API_PREFIX}/pressure"
 PRESSURE_ROUTE = f"{PUBLIC_API_PREFIX}/pressure/{{receipt}}"
@@ -279,6 +280,7 @@ def create_lean_production_app(
         actor = factory()
         actor.start()
         application.state.guala_actor = actor
+        application.state.observation_waiters = asyncio.Semaphore(OBSERVATION_WAITERS)
         try:
             yield
         finally:
@@ -341,9 +343,18 @@ def create_lean_production_app(
         actor = actor_for(request)
         if after is None:
             return actor.observation()
-        return await asyncio.to_thread(
-            actor.observation_after, after, OBSERVATION_LONGPOLL_SECONDS
-        )
+        # Bounded observer admission: at most OBSERVATION_WAITERS held waits
+        # at once; a caller past the bound receives the current projection
+        # immediately (same shape, no wait) instead of queued worker backlog.
+        # The permit is released when the wait ends — on delivery, at the
+        # bound, or after a disconnected caller's wait expires — never leaked.
+        waiters = request.app.state.observation_waiters
+        if waiters.locked():
+            return actor.observation()
+        async with waiters:
+            return await asyncio.to_thread(
+                actor.observation_after, after, OBSERVATION_LONGPOLL_SECONDS
+            )
 
     @application.post(OCCURRENCE_ROUTE)
     async def occurrence(request: Request) -> dict[str, object]:
