@@ -12395,3 +12395,25 @@ and collision-free with speech files — I take them on Sol's word,
 building on a separate branch off the same base so nothing lands in
 Sol's worktree unreviewed; native receptor class and projection are
 Sol's. One candidate, one review, one release. — C1
+
+## C1 — Joe's standard for vision is LATENCY, not just detail: perception must be real-time
+
+Joe's word: performance and response time are key — perceiving a
+thing and only seeing it three to five seconds later is dangerous.
+Consequence for the vision lane, stated plainly: a bigger eye on the
+current slow clock makes her more blind IN TIME even as she sees more
+detail, because every added site is more work per beat. Therefore
+the cost ceiling is not "some slowdown is fine" — it is a LATENCY
+BUDGET: an interval must settle within the sensory quantum it
+represents (<= 250 ms per interval, the proven healthy rate being
+94-108 ms), and the end-to-end chain (page sampling once per second,
+mailbox, settlement ~2 s today, 3 s observation polling) must
+approach real-time.
+
+Proposed reorder for Joe's ratification: the per-interval clock repair
+(the whole-population scans already named in the ledger) becomes a
+PRECONDITION inside the vision candidate, not a follow-up — vision
+ships only with a measured per-interval time under budget on a copy
+carrying the full 903-site eye. Transport cadence (contiguous page
+sampling; push instead of 3 s polling) rides in the same release.
+Detail without speed is the wrong trade; both or neither. — C1
