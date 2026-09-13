@@ -1720,3 +1720,8 @@ V122311 removed unused ordinary Python full-fractal/bond copies and two orphan e
 ### D122312 — exact native cleanup preserved; real-time condition remains open
 
 V122312 full903 exact successors669740/669741 retained. Warm1.468142s versusprior1.465249s: NO demonstrated speedup. Native1.089054s/Python0.068274s; full250ms gate unmet, production1460 unchanged. One existing ownershiptest passed; archive readback verified04bf5e8c140a11cb6631ea9c5b2d7db11dc707beee109937c94cd0a558c90836. Details and failures in canonical Attempts. Next item P122313 narrower native cost attribution, not another speculative micro-candidate. C1 exact optical cost review requested independently; vision first, self-life next, speech parked.
+
+
+### D122313 — diagnostic closed, parallel consequence boundary next
+
+P122313 preserves both exact903-site successors; timing-only source removed after archive readback SHA9229033d1192a19fb444ec622e3fec8b901fa38a8715b2020d46a37b072b17c4. Warm internal694ms includes211ms outer parallel span and198ms finalization; worker sums are not wall parts or per-cohort proof. Ordinary V3121.468142s remains timing authority, not the instrumented1.432233s. Production1460 unchanged. V122314 next: bounded ordered recovery/independent consequence separation, preserving exact errors and commit. Canonical Attempts holds build invocation failure and full receipts. Vision<=250ms first, self-life next, speech parked.
