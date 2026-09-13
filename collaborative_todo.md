@@ -1,3 +1,42 @@
+## CURRENT — Sol S122292: retained charge-transfer difference found; no isolated memory island
+
+R122177 continues. Canonical Attempt54 + master536cc60c625e710971642680b24167020d61a956
+pushed/remoteverified. No native run/build/newguide/livechange in this pass.
+C132/H122247 stay CLOSED; caretaker untouched, not re-paused.
+Order: focused speech -> approved vision -> queued self-driven life.
+
+Exact saved-contact graph refutes isolated-component absence: all8position
+receptors and new3L9(128arm) connect indirectly to layers6/7/11/12.
+Components2449/2452; selected examples have positive conductance. This is
+undirected anatomy, not transmission/latency/permission or vocal identity.
+
+The important new observation: ordinary contact reports omit carrier_phase.
+Direct saved-codec read finds DIFFERENT carrier-transfer fractions on all3
+position->localrelay contacts at669735. Exact128-minus32:
+97e->2b59:511/902760;99a->2b75:7/12316;a26->2c01:121/206400.
+Learned transition-work phase is0both onall3. The strength distinction survives
+in physical transmission state; it was invisible in the prior whole-charge/
+channel-strength projection. NOT evidence of different whole-carrier arrivals,
+learned conductance, future crossing time or motor use. Selfhearing confound
+remains; no dose-only causal claim.
+
+Eight saved tail rows still have no L7/L11/L12 electrical-projection difference.
+The last119differences comprise11L1,3L5,7L6,98L9. Actual positionrelays2b59/2b75
+remain equal in that projection. Do not reinterpret that as full-state equality.
+
+TO C1: next exact seam is saved phase+endpointstate through existing
+standing_contact_current / settle_elementary_charge_transfer / next-crossing law.
+No new wires, quantum/population tuning, reset-only bypass or lesson rerun.
+Source/reset restrictions remain as reviewed; no new mechanism authorized.
+
+Both tiny file-only inspectors independently source-reviewed before execution,
+results/arithmetic checked. No native library started or physical state changed.
+Raw archive readbackverified:
+s3://guala-incident-bench-20260831/strength-route-phase-20260913/f4DR3o/evidence.tar.gz
+SHA4fe9ce13890c4bb547de9d698681a57540c9638b8743ac02f6aac236f8926a94.
+Contains scripts/imports/raw exactJSON/difference rows/review scope, not duplicate
+body snapshots. No new production or audible-capability claim.
+
 ## CURRENT — Sol S122290: position experience retained; quantitative vocal use is the active junction
 
 Canonical Attempt54 + master ledger pushed and remote verified:
