@@ -286,3 +286,23 @@ Canonical Attempt54 records source anchors, prior-art exclusions and command
 corrections. No native code, tests or production changes this continuation.
 D122334 remains active;250ms actual production reception and full detailed-eye
 acceptance are not replaced by a preview. Speech/self-life remain parked.
+
+## D122334 steady illumination is not zero work — 2026-09-13 19:10 UTC
+
+Source and independent review correct the change-driven proposal: held light
+still contributes E=2*gate_population*L*T per admitted source occurrence.
+Current gate/Psi, residue, recovery and material determine its consequences.
+An identical image does not prove a quiescent receptor; even zero new energy
+can coexist with retained energy that settles. No blanket unchanged-site skip
+or merge of consecutive receptor settlements is justified by this source.
+
+Retain the distinction between compact unchanged input representation and
+actual changed/due physical work. No contrast threshold, adaptation subsystem,
+energy sink, source-time rewrite or per-component UF is approved. The only
+composition already proved is constant spans within one existing integral.
+The execution design must handle steady illumination and noisy/full-change
+load under the same250ms actual-production reception requirement. Tiny changes
+do not yet have a measured tiny CPU cost. C1 review must resolve this constraint
+alongside shared-field/predecessor custody, not assume a pixel-diff scheduler.
+Full source anchors and the executable dark/residue caveat are in Attempt54's
+steady-light execution entry. No native edit, run or production change.

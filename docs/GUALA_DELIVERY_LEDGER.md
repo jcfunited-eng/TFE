@@ -1966,3 +1966,11 @@ the capture-side sampling proposal and its unresolved causality conditions are
 in canonical Attempt54 and the D122334 execution contract. No code/test/deploy
 this continuation. Full<=250ms detailed-eye acceptance remains active;
 speech/self-life stay parked.
+
+### D122334 source constraint — 2026-09-13 19:10 UTC
+
+Steady light still supplies receptor energy; pixel equality does not authorize
+skipping settlement. Source-only independent review confirmed this, including
+the retained-energy-in-darkness caveat. Execution contract and canonical
+Attempt54 updated; no new test or deployment. Next remains one complete lawful
+execution design, now explicitly covering steady illumination as well as noise.

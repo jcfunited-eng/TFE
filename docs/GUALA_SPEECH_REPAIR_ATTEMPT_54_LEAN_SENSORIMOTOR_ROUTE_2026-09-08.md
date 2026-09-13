@@ -25747,3 +25747,51 @@ a whole-file patch therefore refused without changing any file. Re-read in
 three bounded ranges and verified all25686 lines before replacement. Catch
 large patch errors without dumping the attempted ledger. No physical work
 was repeated. Header's stale product-goal-paused statement corrected to ACTIVE.
+
+### D122334 — steady-light execution constraint, 2026-09-13 19:10 UTC
+
+Previous goal turn: no implementation progress (direction acknowledgment).
+This turn: source evidence changes the proposed execution contract, not a
+latency improvement. Root d22ad490e601aca4be6d0ec3359edf289b11d5a5 clean;
+P122333 priority finding and locally closed optical proof remain closed.
+Production baseline remains last-verified1461; no fresh live check, input,
+test, build, deployment or caretaker change in this source-only pass.
+
+The blanket proposal "only changed light costs anything" is NOT true of the
+mounted law. core24375 exact_optical_receptor_anatomy has coefficient
+4 * gate_population * 1/2 * 1. Thus held luminance L over source duration T
+adds E=2*population*L*T each occurrence, including identical images.
+core9424 derives that integral,9610-9649 prepares current Psi/window/schedule,
+then receptor_quantum_delivery adds energy to the retained site residue.
+The population path consumes available whole quanta whenever activation is
+affordable OR a population is already open; residue retains the remainder.
+Neither identical light nor zero delivered quanta proves an unchanged neuron.
+
+Important comment/source distinction: receptor_quantum_delivery's header says
+darkness delivers nothing. Its executable single-gate law99-140 can deliver
+previously retained energy in darkness; population157-207 can settle retained
+energy or nonpositive activation barriers. No new light energy is created.
+Do not use that historical comment as a zero-work proof. The reviewed caller
+still proceeds through current gate, cohort/material and downstream settlement.
+
+Independent source-only reviewer memory_probe_review confirmed the complete
+finding on d22ad490e; no edits/runs. Largest exact composition currently proved:
+constant spans WITHIN one existing integration range (the closed optical
+candidate), not removal/merging of consecutive physical receptor settlements.
+The quantized-optical ratification and parsimony law were read in full.
+
+Contract consequence: separate unchanged input representation from actual
+unchanged/due physical state. Preserve steady exposure, current gate/material
+dependencies and one complete joint field. Do not add adaptation, contrast
+thresholds, an energy sink, changed source time or new biology to justify
+skipping. Tiny optical change has no established tiny CPU-cost guarantee.
+Recommended next decision with C1: close a dependency-complete execution law
+that accounts for steady light AND full-change/noisy input; otherwise explicitly
+name the physical-law change required. Do not implement the invalid pixel-diff
+scheduler or treat a still-scene preview as250ms reception. No claim that the
+overall target is impossible; its implementation remains unresolved.
+
+Read-command correction: a content search for the word "truncated" falsely
+rejected an intact historical ledger read because the ledger contains that word.
+No file was changed by that failed guard. Three bounded reads were then verified
+against wc:9000+9000+7749=25749 lines. No source or organism test was rerun.
