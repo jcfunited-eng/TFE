@@ -7,6 +7,14 @@ box remains unchecked until live acceptance passes.
 
 ## Current execution checkpoint — 2026-09-13
 
+S122294 supersedes earlier next-check wording: saved connector-current check
+CLOSED. Allthree permit one-clock whole-carrier crossing at held669735
+endpoints; no zero-current/manyclock barrier. No connector/recovery/timebase
+change, no longer tail solely for crossing. Transmission-side branch ends.
+Single next item is C1 source-design review of the actual demonstration-dependent
+input at authorized L11/L12 strength writing. No new native/bodyrun or deployment.
+Full evidence R122293/S122294 in canonical Attempt54, archiveSHA0294e982e760bc7eecfd2128519d9c9ef60395748610feafa1046b990b60e564.
+
 The complete AE objective and permanent item IDs below remain in force.
 Historical checkmarks are dated evidence, not proof that every listed capability
 is serving in the current image. Do not restart an old attempt from this file.

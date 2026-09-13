@@ -2,6 +2,17 @@
 
 ## Current checkpoint — C132 LIVE; C131 live-feedback witness CLOSED
 
+R122177 current step S122294 supersedes the earlier next-check wording below:
+the saved connector-current check is CLOSED, not queued. All three L5/L6
+connectors permit a whole-carrier crossing in one1000us localclock with fixed
+saved endpoints; botharms yield22/20/10carriers. This is exact local arithmetic,
+not an executed future organism interval or learned-strength proof.
+Do not change these connectors or lengthen a tail solely to await crossing.
+The transmission-side branch ends here. Single next item: source-design review
+with C1 of the demonstration-dependent physical input actually reaching an
+authorized L11/L12 strength-writing event. No new lesson/physics candidate.
+Details, exact evidence and scope are R122293/S122294 at the end of this ledger.
+
 2026-09-13 ONE cutover57601 exit0: task1460/4ffdfe18d4154aa992da37ae5d6bf3cb,
 sourcea77009fb55049964c17b2965054eabae245d6eba, immutable image
 bb72c2aeeaf9ae05d6a63e3096d7206dc7e20857bd816cf790ece1d09743bc15.
@@ -23821,3 +23832,66 @@ the actual graph uses mounted layers, and vocalidentity needs terminal anatomy.
 Combined skill/reference output was truncated; required omitted portions read
 separately to EOF. All arithmetic evidence uses raw Python integers/rationals.
 No source/capability result is inferred from output truncation or a label.
+
+### R-054-122-293 — frozen saved-endpoint current calculation, not another body run
+
+Continues R122177, acceptance unchanged: different physical demonstration ->
+retained vocal L11/L12 strength difference -> actual later authorized use.
+C132/S122278 and C131/H122247 remain CLOSED. Last recorded production
+1460/4ffdfe18d4154aa992da37ae5d6bf3cb/sourcea77009fb; no new live-health claim.
+Root validator and clean HEAD536cc60 verified. Read-only law review;
+no code/schema/physiology/lesson/production change. FullDSF unchanged.
+
+The seven-item gate: physical experience must drive retained strength/use;
+current distinct transmission state but no proven quantitative vocal use;
+no newly proven architecture conflict; no retiredshell/doselabel/permission
+bypass; single existing current/crossing check; fullDSF unchanged; no reduction.
+Independent source review PASSED frozen calculatorSHA2a2a8914c142294df95983d3dc6de8b5639e4421c21e5b41ecbd09465782919c.
+Required inputs: exact S122292 phase and connected-contact outputs plus
+SHA-verified S122285 rows. All six endpoint states explicitly at669735.
+Native localclock is1000us, not the250ms sensoryblock; intracellular sender
+reserve and exact energy descent match physical_event_finalization and
+standing_contact_current. The check is file-only rational arithmetic.
+No native library, new copied-body transition, or harness-health interpretation.
+
+### S-054-122-294 — crossing barrier not present; end transmission-side branch
+
+ONE calculation exit0,0.033s; independent result review PASS.
+At saved final endpoints, BOTHarms permit standingcurrent and next crossing1clock:
+97e->2b59 nextwhole22;99a->2b75 nextwhole20;a26->2c01 nextwhole10.
+Exact currents differ; phase differences remain. This proves no zero-current
+or many-clock fractional-crossing barrier at these particular saved connectors.
+FIXED-ENDPOINT condition is mandatory: this is NOT actual next-interval
+settlement, future latency, permission, retained vocalstrength or audible change.
+The rest of the organism may change endpoints. Selfhearing remains confounded.
+
+DECISION: no conductance/recovery/timebase adjustment; no tail extension solely
+to await these crossings; no replay of lesson/gate proofs. The transmission
+investigation ends here instead of expanding to another diagnostic branch.
+C1 is asked one bounded source-design question: at an authorized L11/L12
+strength-writing event, what demonstration-dependent physical input actually
+reaches settle_contact_local_conductance, and what exact evidence distinguishes
+its effect? Existing law uses endpoint pumping/return direction and contact's
+own released work. C131 position feedback is real, but its quantitative
+effect at that later junction is still unproved. No direct teacher-dose field,
+new rule or rejected reset-only removal is authorized. Require one bounded
+correction/contract, not an unexplained longer lesson run.
+
+Raw resultSHA7780b7201fb0278e40678a612f8a815349d6e16010c48f59c8a543d9bc5cde4e.
+Artifact /tmp/guala-strength-crossing.OlRUQn includes frozen source/result/receipt.
+Archive s3://guala-incident-bench-20260831/strength-standing-crossing-20260913/OlRUQn/evidence.tar.gz
+SHA0294e982e760bc7eecfd2128519d9c9ef60395748610feafa1046b990b60e564,
+upload/readback checked separately before handoff. ExistingS122292 andS122285
+archives remain input authority; no duplicate body archives.
+Source units: elementary_charge_membrane167,sparse_electrical_contact520/608/669,
+elementary_charge_transfer140,virtual_vestibular_canal15,
+resident_cognitive_formation20873,physical_event_finalization80..207.
+
+Observer mistakes only: nonexistent guessed membrane_capacitance.rs corrected
+with rg to elementary_charge_membrane.rs; overlarge saved-row/source prints
+truncated, replaced with bounded target extraction and exact file calculation.
+No organism failure inferred. No production or caretaker mutation, no native
+candidate created, no capability completion claim. Full goal ACTIVE.
+Joe's scope complaint is accepted: diagnostic relevance does not excuse serial
+scope growth. Next remains one source-design decision, not another dozen probes.
+Order current speech -> approved vision -> queued self-driven life.
