@@ -56,7 +56,8 @@ FOCAL_EYE_LIVE = os.path.exists(os.path.join(HERE, "FOCAL_EYE_LIVE"))  # touch t
 DRIVE_ORGAN_LIVE = os.path.exists(os.path.join(HERE, "DRIVE_ORGAN_LIVE"))
 CARRIERS = 1_500  # one caregiver hand's outward elementary carriers per axis, the guided-vocal lesson's unit
 REACH = ((24, 1, CARRIERS), (26, 1, CARRIERS))  # right shoulder pitch + elbow flexion toward maximum: the arm lifted toward the card
-BITE = ((14, 0, CARRIERS),)  # jaw toward closed: the bite, meaningful only with an object in hand
+OPEN = ((14, 1, CARRIERS),)  # jaw toward open: the caregiver opens her mouth first
+BITE = ((14, 0, CARRIERS),)  # jaw toward closed: the bite, a closing from open, meaningful only with an object in hand
 QUIET_TICKS = 32     # Sol's measured recovery law 2026-09-11: 32 physical settlements between lessons
 MAX_LOG = 1_000_000
 MANIFEST = os.path.join(CUR, "card_experience_manifest-v1.json")
@@ -266,6 +267,7 @@ def main() -> None:
                 me = next((b for b in o["last_occurrence"]["embodiment"]["bodies"]
                            if b.get("body_id") == o["last_occurrence"]["embodiment"].get("self_body_id")), {})
                 if me.get("held_object_id"):
+                    guided_blocks.append((blocks[0], OPEN))
                     guided_blocks.append((blocks[0], BITE))
         for i, (pcm, guided) in enumerate([(b, ()) for b in blocks] + guided_blocks):
             res = present_block(retina, pcm, guided)
@@ -279,7 +281,8 @@ def main() -> None:
             sites = (ob.get("last_occurrence") or {}).get("external_retinal_site_count")
             total = len(blocks) + len(guided_blocks)
             action = (ob.get("last_occurrence") or {}).get("requested_world_action")
-            log(f"{lesson['name']} block {i+1}/{total}{' guided ' + ('bite' if guided is BITE else 'reach') if guided else ''} accepted tick {tick} retinal sites {sites} world action {action}")
+            kind = "" if not guided else " guided " + ("bite" if guided is BITE else "open" if guided is OPEN else "reach")
+            log(f"{lesson['name']} block {i+1}/{total}{kind} accepted tick {tick} retinal sites {sites} world action {action}")
             if i + 1 < total:
                 if wait_clear(min_tick=tick + 1) is None:
                     ok = False
