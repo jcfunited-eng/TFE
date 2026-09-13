@@ -33,8 +33,10 @@ Its incident-copy and freshly authenticated production-copy guide, physical
 feedback, persistence and exact cold-next proofs passed; the actual browser
 display and runtime package closure passed. The native regression remains
 602 passed / 19 previously recorded failures / 14 ignored, not a green suite.
-Next is C1's recorded completed-source/release disposition, including that
-disclosed test debt; immutable-image proof and live release gates follow it.
+C1's completed-source/release APPROVE is verified on shared origin.
+R122276 continues immutable-image proof and the existing live release gates.
+The real bridge must pass on the mature path; H122247 feedback stays separate,
+with caretaker STOP until it passes. No release decision is awaited.
 No recognizable-word, cognition, autonomy or full-AE completion is claimed here.
 
 Joe's current coordination direction supersedes the older absolute serial

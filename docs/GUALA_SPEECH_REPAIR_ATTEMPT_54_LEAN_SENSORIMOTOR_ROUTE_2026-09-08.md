@@ -1,21 +1,21 @@
 # Guala speech repair Attempt 54 — complete design verification and lean sensorimotor route
 
-## Current checkpoint — C132 release decision pending; project goal blocked
+## Current checkpoint — C132 APPROVED; release resumed
 
-2026-09-13 00:24UTC verified production: task1459/eb041bb2647a4259b372d504e40a6ac9,
-C131 image708fc271, HEALTHY1/1/0. Old2dbdd9bf failed after an approved second guide
-and AWS replaced it automatically; see F122252 and O122258. The prior missed
-witness was distinct from that later real failure. Caretaker remains STOP.
-
-Joe approved C132 local explicit vocal ambiguity refusal. Source7296fb20 committed
-and pushed; source/caller reviewsPASS. Real incident-body guide/feedback/ordinary
-continuation and byte-exact warm/cold next PASS (S122264). C132 NOT deployed.
-Latest-body684548 guide/feedback/persistence/cold-next now PASS (S122267).
-Browser/package closure PASS. Native regression602pass/19oldfail/14ignored.
-Single next decision: completed C1 release disposition including this known debt;
-then immutable-image proof, backup/dry-run/cutover/livewitness. No new failures. Full AE goal ACTIVE.
-No new word, cognition, or freedom-of-choice claim from this containment repair.
-Full DSF and physical state schema unchanged. No new lessons in production.
+C1 completed-source/release APPROVE verified on shared origin guala-live
+blob668d27c60dfe9e096499b5efed3f4ee3c86dddf6, 2026-09-13. Missing-decision
+blocker RESOLVED; do not ask again. Product goal flag remains blocked but Joe's
+standing authorization continues this turn; commentary is not a stop instruction.
+01:40UTC preflight: C131 task1459/eb041bb2647a4259b372d504e40a6ac9,
+image708fc271, HEALTHY1/1/0, both public pages HTTP200. C132 NOT deployed.
+Approved source7296fb20 unchanged. Incident/latest-body684548 real bridge,
+guide/feedback/persistence/cold-next PASS, browser/package PASS.
+Native602pass/19knownfail/14ignored remains disclosed, NOT green.
+Single next R122276: immutable image and same real mature-path proof, fresh
+backup, bash controller dry run, ONE zero-writer cutover, live witness/UI.
+C1 rider1: actual removed-mock bridge must pass in mature release evidence.
+Rider2: C131 H122247 live feedback is separate; caretaker STOP until it passes.
+No new learning/physics/DSF/schema/selection or word claim.
 
 ## Historical C131 cutover checkpoint — before the later live incident
 
@@ -22941,3 +22941,36 @@ Resume from C1's recorded C132 source/release APPROVE or REFUSE, explicitly
 including602pass/19knownfail/14ignored and the already-passing bounded proof.
 Do not restart tests, rediscover the incident, or lose source7296fb20 and archive
 aa97be07. Newest canonical documentation at prior e84b2945 plus this checkpoint.
+
+### D/R-054-122-276 — C1 approval received; existing release resumed
+
+Shared origin668d27c6 contains completed C132 APPROVE of source7296fb20 vs3ad92700
+and the filed packet. No third review bar or re-litigation of known19failures.
+Rider1 uses the ALREADY reviewed real caller4867dd19, CURRENT684548, ordinary
+Native ResidentPrepareEvidence -> LeanPhysicalLoop -> refusal/guide consequence/
+compact feedback/persistence/full cold-next. Carry it unchanged into immutable
+image with actual native digest; no substituted wheel, mocks or physiology run.
+H122247 separate live witness remains required before caretaker restart.
+
+Joe's fox-card report: no visible response. Exact delivery/retention UNKNOWN.
+Sol's preceding reply-only turn wrongly interrupted approved release work.
+This was an execution lapse, not a missing decision or Joe stop command.
+Correct shared/local headers so no agent repeats the missing-approval wait.
+
+Developmental checkpoint ratified by Joe/C1: once retained experiences influence
+choices, observe harmless novelty versus damaging conditions producing meaningful
+different consequences; investigate absence. No imposed harm score or response,
+entropy/cohesion/System-Greed unchanged. Not a new C132 gate.
+
+Architecture: requested bounded causal AE with explicit local vocal refusal.
+Current live predecessor fails that requested boundary; approved source addresses
+it. Conflict YES in predecessor; no broad compliance claim. Do not extend legacy
+shell, root selection, learning laws or persistent state. Single next immutable
+release; full DSF unchanged, no reduced field or lost structure. Existing
+recurrence/impact/review tables and closed proofs remain authoritative.
+
+Documentation-only failed command: whole-file read hit tool character cap even
+though token budget was high; full-file patch therefore refused with no writes.
+Recovered exact22943lines in three bounded reads before any replacement.
+No runtime or candidate test was affected. Guard complete line count before
+future whole-file ledger edit and bound caught patch-error output.
