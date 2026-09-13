@@ -16,10 +16,13 @@ from dsf_ai_service.glew_runtime.sensory_full_field_boundary import (
     PhysicalSense,
     SENSE_ORDER,
 )
-from dsf_ai_service.guala_receptor_anatomy import PORT_COUNT, receptor_anatomy
+from dsf_ai_service.guala_receptor_anatomy import (
+    LEGACY_PORT_COUNT, PORT_COUNT, receptor_anatomy,
+)
 
 
 RETINAL_PORTS = 135
+RETINAL_FOCAL_PORTS = 768  # () means this source supplies no focal coverage
 LEGACY_EAR_PORTS = 2
 COCHLEAR_PORTS = 32
 TOUCH_PORTS = 28
@@ -47,6 +50,7 @@ class PhysicalSensorium:
     displacement: PortTrajectories
     articulation: PortTrajectories
     thermal: PortTrajectories
+    retina_focal: PortTrajectories = ()
 
     def ordered_ports(self) -> PortTrajectories:
         return (
@@ -59,6 +63,7 @@ class PhysicalSensorium:
             *self.displacement,
             *self.articulation,
             *self.thermal,
+            *self.retina_focal,
         )
 
     @classmethod
@@ -75,6 +80,7 @@ class PhysicalSensorium:
         displacement: tuple[Fraction | float, ...],
         articulation: tuple[Fraction | float, ...],
         thermal: tuple[Fraction | float, ...],
+        retina_focal: tuple[Fraction | float, ...] = (),
     ) -> "PhysicalSensorium":
         if frame_count <= 0:
             raise ValueError("physical sensorium requires a positive frame count")
@@ -92,6 +98,7 @@ class PhysicalSensorium:
             displacement=hold(displacement),
             articulation=hold(articulation),
             thermal=hold(thermal),
+            retina_focal=hold(retina_focal),
         )
 
 
@@ -109,6 +116,8 @@ def _validate(
         ("displacement", sensorium.displacement, DISPLACEMENT_PORTS, PhysicalSense.BODY),
         ("articulation", sensorium.articulation, ARTICULATORY_PORTS, PhysicalSense.BODY),
         ("thermal", sensorium.thermal, THERMAL_PORTS, PhysicalSense.BODY),
+        ("retina focal", sensorium.retina_focal,
+         len(sensorium.retina_focal) and RETINAL_FOCAL_PORTS, PhysicalSense.SIGHT),
     )
     ordered = []
     for label, ports, width, sense in expected:
@@ -119,7 +128,7 @@ def _validate(
         if any(len(trajectory) != frame_count for trajectory in ports):
             raise ValueError(f"{label} changed the shared physical clock")
         ordered.extend(ports)
-    if senses is None and len(ordered) != PORT_COUNT:
+    if senses is None and len(ordered) != LEGACY_PORT_COUNT + len(sensorium.retina_focal):
         raise RuntimeError("physical sensorium does not cover mounted anatomy")
     for trajectory in ordered:
         for value in trajectory:
@@ -142,28 +151,11 @@ def compact_signal_body(
     signals = array("d")
     for trajectory in ordered:
         signals.extend(float(value) for value in trajectory)
-    if len(signals) != PORT_COUNT * frame_count:
+    if len(signals) != len(ordered) * frame_count:
         raise RuntimeError("physical sensorium signal count changed")
     if sys.byteorder != "little":
         signals.byteswap()
     return signals.tobytes()
-
-
-def _sense_trajectories(
-    sensorium: PhysicalSensorium,
-) -> dict[PhysicalSense, PortTrajectories]:
-    return {
-        PhysicalSense.SIGHT: sensorium.retina,
-        PhysicalSense.SOUND: (*sensorium.legacy_ears, *sensorium.cochleae),
-        PhysicalSense.TOUCH: sensorium.touch,
-        PhysicalSense.SMELL: sensorium.smell,
-        PhysicalSense.TASTE: sensorium.taste,
-        PhysicalSense.BODY: (
-            *sensorium.displacement,
-            *sensorium.articulation,
-            *sensorium.thermal,
-        ),
-    }
 
 
 def settle_projected_physical_sensorium(
@@ -186,13 +178,9 @@ def settle_projected_physical_sensorium(
         raise ValueError("physical sense projection repeats a sense")
     # Only these senses enter this episode. A concurrent return may carry
     # a different exact sample grid for another, independently admitted sense.
-    _validate(sensorium, len(source_times), senses=senses)
-    by_sense = _sense_trajectories(sensorium)
-    selected = tuple(
-        trajectory
-        for sense in senses
-        for trajectory in by_sense[sense]
-    )
+    # Native projection filters the declared port roster without regrouping
+    # its senses. Focal sight is LAST, even when several senses coexist.
+    selected = _validate(sensorium, len(source_times), senses=senses)
     if not selected:
         raise RuntimeError("physical sense projection left mounted anatomy")
     signals = array("d")
@@ -201,7 +189,7 @@ def settle_projected_physical_sensorium(
     if sys.byteorder != "little":
         signals.byteswap()
     return settle_native_joint_source_episode_for_senses_from_anatomy(
-        anatomy=receptor_anatomy(),
+        anatomy=receptor_anatomy(include_focal=bool(sensorium.retina_focal)),
         assembly_id=assembly_id,
         source_times=source_times,
         signal_body=signals.tobytes(),
@@ -224,7 +212,7 @@ def settle_physical_sensorium(
     if any(not isinstance(value, Fraction) for value in source_times):
         raise TypeError("physical sensorium source clock is not exact")
     episodes = settle_native_joint_source_episode_batch_from_anatomy(
-        anatomy=receptor_anatomy(),
+        anatomy=receptor_anatomy(include_focal=bool(sensorium.retina_focal)),
         assembly_ids=(assembly_id,),
         source_times=(source_times,),
         signal_bodies=(

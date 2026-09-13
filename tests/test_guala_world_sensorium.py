@@ -161,7 +161,8 @@ def test_compact_retinal_capture_matches_spectral_values_without_signal_objects(
         execution=execution, predecessor_body_axes=BODY_AXES,
         successor_body_axes=changed_axes,
     )
-    assert (_retinal_luminance(before), _retinal_luminance(after)) == expected
+    assert len(before) == len(after) == 903
+    assert (_retinal_luminance(before)[:135], _retinal_luminance(after)[:135]) == expected
     assert contacts == {sense: streams for sense, streams in spectral.items() if sense is not PhysicalSense.SIGHT}
     assert before_transmission == after_transmission == Fraction(3, 4)
     assert len(calls) == 2
@@ -169,6 +170,25 @@ def test_compact_retinal_capture_matches_spectral_values_without_signal_objects(
     pixels, _contacts, transmission = passive_receptor_capture(
         snapshot=execution.after, body_axes=changed_axes,
     )
-    assert _retinal_luminance(pixels) == expected[1]
+    assert len(pixels) == 903
+    assert _retinal_luminance(pixels)[:135] == expected[1]
     assert transmission == Fraction(3, 4)
     assert len(calls) == 1
+
+
+def test_focal_optics_preserve_old_apertures_and_cover_the_whole_field_exactly() -> None:
+    from dsf_ai_service.substrate.w1_physical_receptors import (
+        FOCAL_RETINAL_SITE_GEOMETRY, RETINAL_SITE_GEOMETRY, UPGRADED_RETINAL_SITE_GEOMETRY,
+    )
+
+    assert UPGRADED_RETINAL_SITE_GEOMETRY[:135] == RETINAL_SITE_GEOMETRY
+    assert len(FOCAL_RETINAL_SITE_GEOMETRY) == 768
+    assert tuple(site[0] for site in FOCAL_RETINAL_SITE_GEOMETRY) == tuple(range(135, 903))
+    first_row = FOCAL_RETINAL_SITE_GEOMETRY[:32]
+    assert first_row[0][1] - first_row[0][3] == -90_000
+    assert first_row[-1][1] + first_row[-1][3] == 90_000
+    assert all(left[1] + left[3] == right[1] - right[3] for left, right in zip(first_row, first_row[1:]))
+    first_column = FOCAL_RETINAL_SITE_GEOMETRY[::32]
+    assert first_column[0][2] + first_column[0][4] == 45_000
+    assert first_column[-1][2] - first_column[-1][4] == -45_000
+    assert all(upper[2] - upper[4] == lower[2] + lower[4] for upper, lower in zip(first_column, first_column[1:]))

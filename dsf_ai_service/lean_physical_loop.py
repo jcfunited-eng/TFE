@@ -10,7 +10,8 @@ from typing import Any
 from dsf_ai_service.guala_cochlea import one_self_hearing_hop
 from dsf_ai_service.lean_embodiment_observation import lean_embodiment_observation
 from dsf_ai_service.lean_sensory_occurrence import (
-    LeanSensoryOccurrence, rgb_retina_luminance_u8, transmitted_rgb_retina_u8,
+    LeanSensoryOccurrence, focal_retina_luminance_u8, rgb_retina_luminance_u8,
+    transmitted_rgb_retina_u8,
 )
 from dsf_ai_service.guala_motor_world import prepare_motor_consequence
 from dsf_ai_service.guala_physical_return import PendingPhysicalReturn, PASSIVE_BODY_MAGIC
@@ -114,6 +115,15 @@ class LeanPhysicalLoop:
                 primary_sensorium = replace(primary_sensorium, retina=tuple(
                     (Fraction(value, 255) * transmission,) * len(times) for value in luminance
                 ))
+                # Vision upgrade: the 32x24 focal field rides beside the established
+                # 135 sites when the upgraded2,709-value shape arrives. A legacy
+                #405 payload replaces only old sites; ordinary focal world input,
+                # if present in this source, remains untouched.
+                focal = focal_retina_luminance_u8(sensory.retina_rgb_u8)
+                if focal:
+                    primary_sensorium = replace(primary_sensorium, retina_focal=tuple(
+                        (Fraction(value, 255) * transmission,) * len(times) for value in focal
+                    ))
                 external_rgb_retina_u8 = transmitted_rgb_retina_u8(sensory.retina_rgb_u8, transmission)
 
             sources = []
@@ -217,7 +227,7 @@ class LeanPhysicalLoop:
             body_consequences = tuple(primary.articulated_body_consequences)
             world_snapshot = world.observation_snapshot()
             retinal_u8 = []
-            for trajectory in primary_sensorium.retina:
+            for trajectory in (*primary_sensorium.retina, *primary_sensorium.retina_focal):
                 value = Fraction(trajectory[-1]).limit_denominator(1_000_000)
                 if not Fraction(0) <= value <= Fraction(1):
                     raise RuntimeError("retinal observer left its physical range")
@@ -253,7 +263,7 @@ class LeanPhysicalLoop:
                     "external_retinal_port_count": (
                         0
                         if sensory is None or sensory.retina_rgb_u8 is None
-                        else len(primary_sensorium.retina)
+                        else len(sensory.retina_rgb_u8) // 3
                     ),
                     "external_rgb_retinal_u8": external_rgb_retina_u8,
                     "external_sensory_source": (

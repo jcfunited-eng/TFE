@@ -169,6 +169,7 @@ def _restore_production_actor() -> LeanOrganismActor:
 
     runtime.admit_ordinary_physical_workspace(
         anatomy=receptor_anatomy(),
+        additional_anatomy=receptor_anatomy(include_focal=False),
         primary_frames=len(consequence_source_times(PASSIVE_TIMES)),
         hearing_frames=len(PASSIVE_TIMES),
         hearing_sense=SENSE_ORDER.index(PhysicalSense.SOUND),

@@ -73,6 +73,10 @@ RETINA_FINE_ROWS = 6
 RETINA_FINE_COLUMNS = 18
 RETINA_FINE_RECEPTOR_COUNT = RETINA_FINE_ROWS * RETINA_FINE_COLUMNS
 RETINA_TOTAL_RECEPTOR_COUNT = RETINA_RECEPTOR_COUNT + RETINA_FINE_RECEPTOR_COUNT
+RETINA_FOCAL_ROWS = 24
+RETINA_FOCAL_COLUMNS = 32
+RETINA_FOCAL_RECEPTOR_COUNT = RETINA_FOCAL_ROWS * RETINA_FOCAL_COLUMNS
+RETINA_UPGRADED_RECEPTOR_COUNT = RETINA_TOTAL_RECEPTOR_COUNT + RETINA_FOCAL_RECEPTOR_COUNT
 RETINA_SUBSTREAM_COUNT = RETINA_TOTAL_RECEPTOR_COUNT * OPTICAL_BANDS
 BODY_RECEPTOR_COUNT = 4
 TOUCH_RECEPTOR_COUNT = 3
@@ -141,6 +145,23 @@ def _retinal_site_geometry() -> tuple[tuple[int, int, int, int, int], ...]:
 
 
 RETINAL_SITE_GEOMETRY = _retinal_site_geometry()
+# Existing apertures remain exactly unchanged. The new horizontal half-width
+# is5625/2 millidegrees: rounding it to2812 would introduce gaps between sites.
+FOCAL_RETINAL_SITE_GEOMETRY = tuple(
+    (
+        RETINA_TOTAL_RECEPTOR_COUNT + row * RETINA_FOCAL_COLUMNS + column,
+        -RETINA_HORIZONTAL_FOV_MILLIDEGREES // 2
+        + Fraction((2 * column + 1) * RETINA_HORIZONTAL_FOV_MILLIDEGREES, 2 * RETINA_FOCAL_COLUMNS),
+        RETINA_VERTICAL_FOV_MILLIDEGREES // 2
+        - Fraction((2 * row + 1) * RETINA_VERTICAL_FOV_MILLIDEGREES, 2 * RETINA_FOCAL_ROWS),
+        Fraction(RETINA_HORIZONTAL_FOV_MILLIDEGREES, 2 * RETINA_FOCAL_COLUMNS),
+        Fraction(RETINA_VERTICAL_FOV_MILLIDEGREES, 2 * RETINA_FOCAL_ROWS),
+    )
+    for row in range(RETINA_FOCAL_ROWS)
+    for column in range(RETINA_FOCAL_COLUMNS)
+)
+UPGRADED_RETINAL_SITE_GEOMETRY = RETINAL_SITE_GEOMETRY + FOCAL_RETINAL_SITE_GEOMETRY
+RetinalSiteGeometry = tuple[tuple[int, int | Fraction, int | Fraction, int | Fraction, int | Fraction], ...]
 
 
 def _canonical(value: object) -> bytes:
@@ -525,6 +546,7 @@ def _portal_aperture_background(
     body_heading_millidegrees: int,
     current_region: PhysicalRegion,
     pixels: list[tuple[Fraction, ...]],
+    site_geometry: RetinalSiteGeometry,
 ) -> None:
     """Expose adjacent-room radiance only through authored doorway geometry."""
 
@@ -587,7 +609,7 @@ def _portal_aperture_background(
             vertical_center,
             horizontal_half,
             vertical_half,
-        ) in RETINAL_SITE_GEOMETRY:
+        ) in site_geometry:
             horizontal_overlap = max(
                 0,
                 min(horizontal_center + horizontal_half, horizontal_max)
@@ -616,6 +638,7 @@ def _retinal_projection(
     observation: ObservationSnapshot,
     *,
     retinal_heading_offset_millidegrees: int = 0,
+    site_geometry: RetinalSiteGeometry = RETINAL_SITE_GEOMETRY,
 ) -> tuple[tuple[Fraction, ...], ...]:
     if (
         isinstance(retinal_heading_offset_millidegrees, bool)
@@ -638,7 +661,7 @@ def _retinal_projection(
     )
     background = _region_radiance(current_region)
     pixels: list[tuple[Fraction, ...]] = [
-        background for _ in range(RETINA_TOTAL_RECEPTOR_COUNT)
+        background for _ in site_geometry
     ]
     _portal_aperture_background(
         observation,
@@ -649,6 +672,7 @@ def _retinal_projection(
         ) % 360_000,
         current_region=current_region,
         pixels=pixels,
+        site_geometry=site_geometry,
     )
     surfaces: list[_OpticalSurface] = []
     body_by_id = {candidate.body_id: candidate for candidate in observation.bodies}
@@ -756,7 +780,7 @@ def _retinal_projection(
             vertical_center,
             half_horizontal_receptor,
             half_vertical_receptor,
-        ) in RETINAL_SITE_GEOMETRY:
+        ) in site_geometry:
             if abs(vertical_center - relative_vertical) > (
                 angular_radius + half_vertical_receptor
             ):
@@ -855,14 +879,19 @@ def retinal_irradiance_field(
     observation: ObservationSnapshot,
     *,
     retinal_heading_offset_millidegrees: int = 0,
+    include_focal: bool = False,
 ) -> tuple[tuple[Fraction, ...], ...]:
     """The bounded six-band optical field, without temporary signal objects."""
 
+    if not isinstance(include_focal, bool):
+        raise TypeError("retinal spatial coverage must be explicit")
+    geometry = UPGRADED_RETINAL_SITE_GEOMETRY if include_focal else RETINAL_SITE_GEOMETRY
     pixels = _retinal_projection(
         observation,
         retinal_heading_offset_millidegrees=retinal_heading_offset_millidegrees,
+        site_geometry=geometry,
     )
-    if len(pixels) != RETINA_TOTAL_RECEPTOR_COUNT:
+    if len(pixels) != len(geometry):
         raise RuntimeError("world retinal field changed mounted site count")
     for pixel in pixels:
         if len(pixel) != OPTICAL_BANDS:

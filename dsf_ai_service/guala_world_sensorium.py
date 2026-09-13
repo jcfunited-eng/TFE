@@ -8,7 +8,7 @@ import json
 from typing import Any
 
 from dsf_ai_service.glew_runtime.sensory_full_field_boundary import PhysicalSense
-from dsf_ai_service.guala_physical_sensorium import PhysicalSensorium
+from dsf_ai_service.guala_physical_sensorium import PhysicalSensorium, RETINAL_PORTS
 from dsf_ai_service.substrate.embodiment_world import (
     ActionExecutionReceipt,
     AdvancePhysicalTimeCommand,
@@ -152,7 +152,7 @@ def passive_receptor_capture(
 
     heading, transmission = retinal_carriage(body_axes)
     pixels = retinal_irradiance_field(
-        snapshot, retinal_heading_offset_millidegrees=heading,
+        snapshot, retinal_heading_offset_millidegrees=heading, include_focal=True,
     )
     physical = physical_contact_substreams(
         snapshot, snapshot, causal_transition=False,
@@ -273,7 +273,8 @@ def passive_sensorium(
     )
     return PhysicalSensorium.constant(
         frame_count=frame_count,
-        retina=retina,
+        retina=retina[:RETINAL_PORTS],
+        retina_focal=retina[RETINAL_PORTS:],
         legacy_ears=(Fraction(0),) * 2,
         cochleae=(Fraction(0),) * 32,
         touch=(Fraction(0),) * 27 + (palmar,),
@@ -327,10 +328,10 @@ def body_consequence_receptor_capture(
     before_heading, before_transmission = retinal_carriage(predecessor_body_axes)
     after_heading, after_transmission = retinal_carriage(successor_body_axes)
     before_pixels = retinal_irradiance_field(
-        execution.before, retinal_heading_offset_millidegrees=before_heading,
+        execution.before, retinal_heading_offset_millidegrees=before_heading, include_focal=True,
     )
     after_pixels = retinal_irradiance_field(
-        execution.after, retinal_heading_offset_millidegrees=after_heading,
+        execution.after, retinal_heading_offset_millidegrees=after_heading, include_focal=True,
     )
     physical = physical_contact_substreams(
         execution.before, execution.after, causal_transition=True,
@@ -393,7 +394,8 @@ def passive_body_consequence_sensorium(
         for value in displacement
     )
     return PhysicalSensorium(
-        retina=retina,
+        retina=retina[:RETINAL_PORTS],
+        retina_focal=retina[RETINAL_PORTS:],
         legacy_ears=((Fraction(0),) * len(source_times),) * 2,
         cochleae=((Fraction(0),) * len(source_times),) * 32,
         touch=touch,

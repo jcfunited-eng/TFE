@@ -63,7 +63,7 @@ def test_actual_return_three_samples_preserve_all_frames_and_cold_consumption():
         predecessor_body_axes=AXES, successor_body_axes=AXES, source_times=times,
     )
     rebuilt = pending.sensorium(times)
-    assert len(pending.sampled_sensorium) == RETURN_SAMPLE_BYTES == 5280
+    assert len(pending.sampled_sensorium) == RETURN_SAMPLE_BYTES == 23_712
     assert compact_signal_body(rebuilt, frame_count=27) == compact_signal_body(full, frame_count=27)
     middle = times.index(Fraction(1, 1000))
     assert rebuilt.displacement[3][middle] != 0
@@ -214,3 +214,28 @@ def test_native_return_kind_bounds_refuse_oversize_or_duplicate_before_decode():
     assert world.observation_snapshot() == before
     assert pending.sources == (yaw,)
     world.discard_prepared_action(plan.prepared_world)
+
+
+def test_pre_growth_return_keeps_absent_focal_coverage_across_cold_restore():
+    from dsf_ai_service.guala_physical_return import LEGACY_RETURN_SAMPLE_BYTES
+
+    world = home_world_authority(identity=IDENTITY)
+    plan = _plan(world)
+    full = _capture(plan)
+    # This explicit old-coverage fixture carries exactly the old220 port bytes;
+    # it neither zeros nor reconstructs experiences for the new eye.
+    legacy = replace(full, sampled_sensorium=full.sampled_sensorium[:LEGACY_RETURN_SAMPLE_BYTES])
+    times = consequence_source_times(PASSIVE_TIMES)
+    rebuilt = legacy.sensorium(times)
+    assert len(legacy.sampled_sensorium) == 5280
+    assert rebuilt.retina_focal == ()
+    assert len(rebuilt.ordered_ports()) == 220
+    world.commit_prepared_action(plan.prepared_world, physical_return=legacy)
+    encoded = bytes(world.encoded_snapshot())
+    cold = home_world_authority(identity=IDENTITY, encoded_world=encoded)
+    assert bytes(cold.encoded_snapshot()) == encoded
+    restored = cold.pending_physical_return
+    assert restored == legacy
+    assert restored.sensorium(times).retina_focal == ()
+    cold.consume_physical_return(restored)
+    assert cold.pending_physical_return is None

@@ -6284,6 +6284,7 @@ impl NativeResidentOrganismRuntime {
     /// Startup-only admission of the bounded ordinary input set. This reads
     /// immutable source anatomy and this runtime's own fixed budget; it does
     /// not prepare an interval, read neurons, or retain an admission token.
+    #[pyo3(signature = (anatomy, primary_frames, hearing_frames, hearing_sense, maximum_pressure_samples, coupled_encoded_limit, additional_anatomy=None))]
     fn admit_ordinary_physical_workspace(
         &self,
         anatomy: PyRef<'_, NativeJointSourceEpisode>,
@@ -6292,6 +6293,7 @@ impl NativeResidentOrganismRuntime {
         hearing_sense: u8,
         maximum_pressure_samples: u32,
         coupled_encoded_limit: u32,
+        additional_anatomy: Option<PyRef<'_, NativeJointSourceEpisode>>,
     ) -> PyResult<()> {
         let samples_per_step = u64::from(ARTICULATORY_SAMPLE_RATE_HZ)
             * crate::virtual_articulated_body::BODY_SETTLEMENT_CLOCK_MICROSECONDS
@@ -6304,7 +6306,7 @@ impl NativeResidentOrganismRuntime {
             .ok_or_else(|| PyValueError::new_err("ordinary pressure clock is invalid"))?;
         let required = crate::ordinary_physical_input_admission::ordinary_physical_workspace_bytes(
             &anatomy, primary_frames, hearing_frames, hearing_sense,
-            passive_frames, coupled_encoded_limit,
+            passive_frames, coupled_encoded_limit, additional_anatomy.as_deref(),
         ).map_err(PyValueError::new_err)?;
         let admitted = self.runtime.budget.derive()
             .map_err(|error| PyValueError::new_err(error.to_string()))?
