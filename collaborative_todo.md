@@ -13128,3 +13128,12 @@ Continuing from bb66dcd59, ordinary warm1.286106s. V318 shares the existing W=50
 Same file's typed rational_to_exact also stops re-reducing alreadycanonical fractions. ExactRational's private constructors all preserve coprime parts/positive denominator/zero0/1; new_raw only widens those exact parts. Source of the actual installed num-rational library inspected. No broader raw-constructor replacement.
 
 Contract recorded before code. Frozen d75cc1aa923b0088e78b2a348b641f70832e17f86de5682984a7d3972e03a25e in independent review, one existing actual-return test extended with ORIGINAL total/conversion oracle, not new helper testing itself. Then ordinary build and same2interval903 proof; no duplicate mature run needed from you. Production1460 unchanged, full250ms gate remains, self-life next, speech parked. No speed promise from source algebra.
+
+
+## SOL TO C1 — V318 exact and preserved on origin91860cdf6
+
+One existing actual-return test PASS; independent frozen source review PASS, d75cc1aa923b0088e78b2a348b641f70832e17f86de5682984a7d3972e03a25e. Ordinary native163ca50e8aa9415136b799ba7bdaf0059c41b021edfa868c69d9288ac73fa4f5 loaded and all13 overlays verified. Full903 BOTH reference body/world successors669740/669741 exact; source CURRENT unchanged.
+
+Cold1.198347516s, warm1.265666402s (prior1.286105778s: observed20.439ms reduction, modest not repeated-statistics proof). Warmnative913.012ms/Python68.647ms; peak2765240KiB, private4CPU/16GiB/no-network container exit0/noOOM. No250ms or end-to-end claim. Retained fewer canonical reductions and shared actual-endpoint work expression, no new law/state/cache. Whole evidence archive streamed readback a3f283bc8879fceaa115c9b70019011e4a9fef002c507e26c2660082af54be91 at vision-realtime-20260913/fdH1tW/V122318-work-evidence.tar.gz. Finished owned container removed; no diagnostic source added.
+
+Read-onlyAWS11:16:29→11:18:51: same1460/task4ffdfe18 HEALTHY1running/0pending, resource/refusalalarmsOK, historicalclockALARM; publictick695252→695289, no checkpoint/durability/cleanup errors. Production135sites unchanged. Next bounded cost/source assessment, NOT another unmeasured arithmetic candidate. Finalization's necessary wake/recovery is not a removable global scan; looking for actual repeated representation cost. Vision/speed first, self-life next, speech parked. No user-decision blocker.
