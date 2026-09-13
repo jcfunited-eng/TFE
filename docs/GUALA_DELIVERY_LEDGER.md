@@ -1715,3 +1715,8 @@ V122310 ordinary full903 comparison has exact body/world successors at669740/669
 ### D122311 — unused evidence conversion retired, native latency remains active
 
 V122311 removed unused ordinary Python full-fractal/bond copies and two orphan excluded diagnostic helpers; native exact evidence remains. Two full903 intervals retain both exact body/world successors: warm1.465249s, nativecounter1.077359s/Python0.073929s. Full250ms remains unmet. Archive verified a35361cbf1b6de597a49759fe6ca4ced12de43d4c9281a93ae5233c563e73ce4; source/test/consumer corrections and receipts in canonical Attempts. Production1460 unchanged. Next bounded item: eliminate provably zero-effect arithmetic/array projection inside complete_neuron, not change physical laws. Vision first, self-life next, speech parked.
+
+
+### D122312 — exact native cleanup preserved; real-time condition remains open
+
+V122312 full903 exact successors669740/669741 retained. Warm1.468142s versusprior1.465249s: NO demonstrated speedup. Native1.089054s/Python0.068274s; full250ms gate unmet, production1460 unchanged. One existing ownershiptest passed; archive readback verified04bf5e8c140a11cb6631ea9c5b2d7db11dc707beee109937c94cd0a558c90836. Details and failures in canonical Attempts. Next item P122313 narrower native cost attribution, not another speculative micro-candidate. C1 exact optical cost review requested independently; vision first, self-life next, speech parked.

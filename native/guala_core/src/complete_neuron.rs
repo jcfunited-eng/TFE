@@ -4857,7 +4857,13 @@ fn settle_recovery_lane(
         .exported_heat_capacity
         .checked_sub(state.exported_heat_quanta)
         .ok_or(RecoveryError::InvalidAnatomy)?;
-    let extent = (catalyst_quanta / anatomy.catalyst_per_extent)
+    let catalyst_extent = catalyst_quanta / anatomy.catalyst_per_extent;
+    // Capacities above must remain valid even when no reaction is possible.
+    // Positive stoichiometry makes min(0, remaining quotients) exactly zero.
+    if catalyst_extent == 0 {
+        return Ok(0);
+    }
+    let extent = catalyst_extent
         .min(state.fuel_quanta / anatomy.fuel_per_extent)
         .min(spent_free / anatomy.spent_per_extent)
         .min(*dissipated_quanta / anatomy.exported_heat_per_extent)
@@ -5526,50 +5532,62 @@ pub(crate) fn sparse_physical_state_delta(
     {
         return Err(NeuronPhysicalError::AnatomyMismatch);
     }
+    let psi_distinct = !Arc::ptr_eq(&predecessor.psi.rings, &successor.psi.rings);
+    let recovery_distinct = !Arc::ptr_eq(
+        &predecessor.recovery.psi_lanes, &successor.recovery.psi_lanes,
+    );
+    let coordinates_per_ring = usize::from(psi_distinct) * 2
+        + usize::from(recovery_distinct) * 3;
     let capacity = predecessor
         .psi
         .rings
         .len()
-        .checked_mul(5)
+        .checked_mul(coordinates_per_ring)
         .and_then(|count| count.checked_add(23))
         .ok_or(NeuronPhysicalError::AnatomyMismatch)?;
     let mut entries = Vec::new();
     entries
         .try_reserve_exact(capacity)
         .map_err(|_| NeuronPhysicalError::AnatomyMismatch)?;
-    for index in 0..predecessor.psi.rings.len() {
-        push_i128_delta(
-            &mut entries,
-            PhysicalStateCoordinate::PsiWinding(index),
-            predecessor.psi.rings[index].winding as i8 as i128,
-            successor.psi.rings[index].winding as i8 as i128,
-        );
-        push_u128_delta(
-            &mut entries,
-            PhysicalStateCoordinate::PsiDissipatedEnergy(index),
-            predecessor.psi.rings[index].dissipated_quanta,
-            successor.psi.rings[index].dissipated_quanta,
-        );
-        let prior_recovery = predecessor.recovery.psi_lanes[index];
-        let next_recovery = successor.recovery.psi_lanes[index];
-        push_u128_delta(
-            &mut entries,
-            PhysicalStateCoordinate::RecoveryPsiFuel(index),
-            prior_recovery.fuel_quanta,
-            next_recovery.fuel_quanta,
-        );
-        push_u128_delta(
-            &mut entries,
-            PhysicalStateCoordinate::RecoveryPsiSpent(index),
-            prior_recovery.spent_quanta,
-            next_recovery.spent_quanta,
-        );
-        push_u128_delta(
-            &mut entries,
-            PhysicalStateCoordinate::RecoveryPsiExportedHeat(index),
-            prior_recovery.exported_heat_quanta,
-            next_recovery.exported_heat_quanta,
-        );
+    if psi_distinct {
+        for index in 0..predecessor.psi.rings.len() {
+            push_i128_delta(
+                &mut entries,
+                PhysicalStateCoordinate::PsiWinding(index),
+                predecessor.psi.rings[index].winding as i8 as i128,
+                successor.psi.rings[index].winding as i8 as i128,
+            );
+            push_u128_delta(
+                &mut entries,
+                PhysicalStateCoordinate::PsiDissipatedEnergy(index),
+                predecessor.psi.rings[index].dissipated_quanta,
+                successor.psi.rings[index].dissipated_quanta,
+            );
+        }
+    }
+    if recovery_distinct {
+        for index in 0..predecessor.psi.rings.len() {
+            let prior_recovery = predecessor.recovery.psi_lanes[index];
+            let next_recovery = successor.recovery.psi_lanes[index];
+            push_u128_delta(
+                &mut entries,
+                PhysicalStateCoordinate::RecoveryPsiFuel(index),
+                prior_recovery.fuel_quanta,
+                next_recovery.fuel_quanta,
+            );
+            push_u128_delta(
+                &mut entries,
+                PhysicalStateCoordinate::RecoveryPsiSpent(index),
+                prior_recovery.spent_quanta,
+                next_recovery.spent_quanta,
+            );
+            push_u128_delta(
+                &mut entries,
+                PhysicalStateCoordinate::RecoveryPsiExportedHeat(index),
+                prior_recovery.exported_heat_quanta,
+                next_recovery.exported_heat_quanta,
+            );
+        }
     }
     push_u128_delta(
         &mut entries,
@@ -5707,23 +5725,23 @@ pub(crate) fn sparse_retained_physical_state_delta(
     // delta (membrane phases, carrier pools, recovery lanes, and dissipation)
     // only to discard it: those values remain in the resident neuron but are
     // not learned structure.
-    let capacity = predecessor
-        .psi
-        .rings
-        .len()
+    let psi_distinct = !Arc::ptr_eq(&predecessor.psi.rings, &successor.psi.rings);
+    let capacity = if psi_distinct { predecessor.psi.rings.len() } else { 0 }
         .checked_add(4)
         .ok_or(NeuronPhysicalError::AnatomyMismatch)?;
     let mut retained = Vec::new();
     retained
         .try_reserve_exact(capacity)
         .map_err(|_| NeuronPhysicalError::AnatomyMismatch)?;
-    for index in 0..predecessor.psi.rings.len() {
-        push_i128_delta(
-            &mut retained,
-            PhysicalStateCoordinate::PsiWinding(index),
-            predecessor.psi.rings[index].winding as i8 as i128,
-            successor.psi.rings[index].winding as i8 as i128,
-        );
+    if psi_distinct {
+        for index in 0..predecessor.psi.rings.len() {
+            push_i128_delta(
+                &mut retained,
+                PhysicalStateCoordinate::PsiWinding(index),
+                predecessor.psi.rings[index].winding as i8 as i128,
+                successor.psi.rings[index].winding as i8 as i128,
+            );
+        }
     }
     push_u128_delta(
         &mut retained,
@@ -8376,6 +8394,52 @@ mod tests {
         assert!(Arc::ptr_eq(&invalid.psi.rings, &invalid_before.psi.rings));
         assert!(Arc::ptr_eq(&invalid.recovery.psi_lanes, &invalid_before.recovery.psi_lanes));
 
+        // Force independent arrays as the full-comparison reference. This
+        // covers shared, equal-but-distinct, scalar-only and changed arrays.
+        let mut scalar_change = fixture.state.clone();
+        scalar_change.gate.open_population += 1;
+        let mut recovery_change = fixture.state.clone();
+        Arc::make_mut(&mut recovery_change.recovery.psi_lanes)[0].fuel_quanta -= 1;
+        for target in [
+            &fixture.state, &successor, &held, &before_recovery,
+            &recovering, &scalar_change, &recovery_change,
+        ] {
+            let mut independent = target.clone();
+            Arc::make_mut(&mut independent.psi.rings);
+            Arc::make_mut(&mut independent.recovery.psi_lanes);
+            assert!(!Arc::ptr_eq(&fixture.state.psi.rings, &independent.psi.rings));
+            assert!(!Arc::ptr_eq(
+                &fixture.state.recovery.psi_lanes, &independent.recovery.psi_lanes,
+            ));
+            assert_eq!(
+                sparse_physical_state_delta(&fixture.state, target).unwrap(),
+                sparse_physical_state_delta(&fixture.state, &independent).unwrap(),
+            );
+            assert_eq!(
+                sparse_retained_physical_state_delta(&fixture.state, target).unwrap(),
+                sparse_retained_physical_state_delta(&fixture.state, &independent).unwrap(),
+            );
+        }
+        assert!(sparse_retained_physical_state_delta(
+            &fixture.state, &scalar_change,
+        ).unwrap().is_some());
+
+        let reaction = RecoveryLaneAnatomy::new(2, 1, 1, 1, 4, 4, 4).unwrap();
+        let mut lane = RecoveryLaneState::new(4);
+        let mut heat = 1;
+        let unchanged = lane;
+        assert_eq!(settle_recovery_lane(reaction, &mut heat, &mut lane, 1), Ok(0));
+        assert_eq!(lane, unchanged);
+        assert_eq!(heat, 1);
+        assert_eq!(settle_recovery_lane(reaction, &mut heat, &mut lane, 2), Ok(1));
+        assert_eq!(lane.physical_parts(), (3, 1, 1));
+        assert_eq!(heat, 0);
+        lane.exported_heat_quanta = 5;
+        let invalid_heat = lane;
+        assert_eq!(settle_recovery_lane(reaction, &mut heat, &mut lane, 0),
+            Err(RecoveryError::InvalidAnatomy));
+        assert_eq!(lane, invalid_heat);
+        assert_eq!(heat, 0);
     }
 
     #[test]
