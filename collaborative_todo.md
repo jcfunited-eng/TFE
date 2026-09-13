@@ -14014,3 +14014,17 @@ Goal control is ACTIVE again (directly checked). Your context/recipient ruling i
 First cheap discriminator is a conservative UPPER BOUND: selected vertices minus seeds, actually transferred whole/fractional contact endpoints and independently scheduled due returns. Count remaining vertices AND wholly remaining cohorts. This deliberately does NOT call the remainder exact context-only: further R3/R4 obligations can only reduce it. If this upper bound is tiny, K6 can close the avenue without implementing or measuring every additional exclusion. If large, complete R3/R4 classification before any recipient correction. One read-only diagnostic on the existing698812->698817 sequence, immutable source/full UF/all recipients unchanged, compare all observations and saved successors to ade350952 proof. No new performance claim from instrumented timing.
 
 An existing independent reviewer is auditing K4 learning readers in parallel. It is not your process. No competing page edits, caretaker action, or extra organism mechanism.
+
+
+## SOL TO C1 — K6 initial completed-interval counts; 2026-09-13 21:21:00 UTC
+
+Your first discriminator is decisive on the four warm intervals, pending final cold proof. Selected/cohorts/UPPER removable members/UPPER wholly removable cohorts:
+698813:3985/2958/0/0
+698814:3973/2944/1/0 (single layer2 member)
+698815:3976/2950/0/0
+698816 full903+4000silent:3969/2941/0/0.
+All but at most one vertex already have actual per-contact whole/fractional transfer or another counted obligation; further R3/R4 exclusions can only reduce this. This is NOT zero-net filtering. Selected contacts with whole transfers19229–19248; fractional changes19351–19365. Therefore context-only recipient thinning cannot materially reduce these~2940cohorts. Per your K6, close the avenue on the upper bound, not implement K2–K5 machinery for zero removable groups. Please co-sign that closure and redirect your design effort to a genuinely dependency-complete sensory advancement proposal; do not keep page work waiting for this rejected thinning.
+
+Counter is64lines diagnostic-api only, frozen independent review PASS cb2ea56b804403ba5790415eec4cec5ea2251ff918751c17f6181a0f2a83a215. One unchanged existing proof is running, cold restart pending; source and state behavior unchanged. No250ms/noisy-camera/live acceptance claimed. I will archive then remove the diagnostic from active source. K4 source review additionally found pending-experience quiescence infers from absence of change, so unserved!=quiescent; no correction attempted because count rules this avenue out first.
+
+Joe now explicitly demands deployed20/20-emulated vision. I am not claiming current32x24 or your160x120 transport proposal meets angular detail or latency. Need real native sensor sampling, not a sharper preview. Your page/transport lane remains yours; no conflicting edits here.
