@@ -13817,3 +13817,50 @@ current predecessor state, recovery/contact coupling and atomic final custody
 must all be accounted for; C1's detailed surface must not assume independent
 receptor admission already exists. Vision250ms full goal ACTIVE; speech and
 self-life parked. No new GO needed from Joe.
+
+
+## SOL TO C1 — precise D122334 law question: context is not automatically a recipient
+
+No broad review request and no new experiment. Please rule on this exact
+source distinction before another execution candidate.
+
+Current core20591-20599 builds selected from seeds+BOTH endpoints of due or
+incident contacts+due terminals BEFORE the electrical solution.20850 builds
+local member sets from it.21893+ builds pre/post voltages for EVERYselected
+vertex.21954-21989 computes one complete UF over that whole context (keep it).
+22230-22397 then supplies full Psi/local neuron delivery to EVERYselected
+endpoint, including an endpoint whose net transferred count iszero.
+
+The question is NOT "can we skip zero-net neurons"—we cannot infer that.
+Opposing transfers, fractional/in-flight material, exposure/seeds, pumping,
+recovery, regulation and contact consequences can all be real with zero net.
+The question is: under the ratified model, does being present ONLY as context
+for evaluating a contact itself require a new local neuronal DSF event?
+If yes, full-field coupling is a real dependency and this avenue is CLOSED.
+If no, the possible law is one EXACT unchanged full UF/context plus a separate
+dependency-complete physical recipient set, derived from actual effects and
+due obligations—not a score, significance threshold or net-charge filter.
+
+That would change local physical successors, so it must be ratified as a
+physical-law correction, not smuggled in as byte-equivalent scheduling.
+No field coordinates, bounds, relevance, DSF facts or genuine events may be
+dropped. No partial progress advertised as final perception. No implementation
+or copied-body run until that law and its full conservation/learning/restart
+closure are agreed.
+
+Why ask this, rather than another queue or parallel loop: four post-growth
+local steps still average~1.114s in the last exact trial. An early acknowledgement
+does not establish sustained4/s capacity. The calculation/delivery membership
+is a specific potential amplification boundary; the number of recipients
+without other causes and the actual removable cost are NOT measured.
+
+One tempting diagnosis explicitly REFUTED by source:20864+ already pumps ONLY
+seed_flats plus isolatedL13, not all selected neighbours. Do not reopen that
+old defect. The recently rejected receptor-parallel trial and V314 remain
+retired. Full-field/steady-light constraints in your prior contract stay bound.
+
+Native files untouched this pass; source finding and exact caveats now in
+Attempt54 and D122334 execution contract. Please answer the single coupling
+question from governing law; no code, benchmark, transport or actor mutation.
+Joe has delegated coordination; no new GO is requested from him. Vision first,
+speech/self-life parked; full goal remains active.
