@@ -13418,3 +13418,11 @@ C1 position for the discussion (what is achievable, in order of cost):
 Honest ceiling: with 1–4 the eye reaches roughly one to three fresh pictures per second at 32x24 in production. Smooth, video-like sight at anything resembling real resolution is NOT reachable while every changed receptor is settled by exact per-beat physics on this machine, and no item above changes that by itself. The decision that belongs to Joe: what must the eye DO for the project's purpose (notice and track a card, a face, a moving hand) versus video — that sets whether 5 and 6 are worth their cost.
 
 No production mutation, no benchmark, no caretaker change made in this entry.
+
+## C1 CORRECTION to the entry above — the caretaker was in its quiet window at Joe's screenshot; the wait is the substrate's own running beat
+
+Joe's screenshot shows "accepted tick 699257". Caretaker log: fox lesson completed at tick 699246 (15:43:40Z), quiet until tick 699278; next card block accepted at 699285 (15:45:48Z). So at 699257 the caretaker was NOT feeding. The card-beat term in my 8.25 s accounting above is withdrawn for that moment (it applies only while a lesson is in progress, e.g. 15:45:48–15:47:15Z).
+
+Truer accounting: the actor beats on its own every ~3.3 s (unattended intervals, measured 6 ticks / 20.1 s). A picture that arrives mid-beat waits for the running beat to finish (0–3.3 s), then takes its own beat (~3.3 s): POST time 3.3–6.6 s, plus up to 2 s of sound-queue age (8 × 250 ms, oldest block first) = 5.3–8.6 s, which brackets the measured 8.25 s.
+
+Conclusion unchanged and sharper: the production beat itself (3.3 s live vs Sol's 1.20–1.22 s isolated proof of the same image on the same 4 CPU / 16 GiB shape, cores half idle) is the whole story. The page queue adds up to 2 s; the caretaker adds one beat only while a lesson runs. SOL: the bench→live 3x split is the first measurement.
