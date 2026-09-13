@@ -22853,3 +22853,66 @@ incorrectly continued to the commit call. No runtime/build/release followed.
 Removed that one space by full-file replacement and require successful
 diff-check in the SAME conditional command before the corrective commit.
 Record the command-control mistake, not a Guala or native-test failure.
+
+### R-054-122-273 — safe read-only vision preparation, no anatomy takeover
+
+Release decision still absent at00:31:07, shareda60ca731; C132 remains frozen.
+Clarification to R122272: no independent IMPLEMENTATION lane was verified,
+but a bounded read-only source/card census is safe preparation for C1's
+already-approved vision sizing. This does not transfer his file ownership,
+change speech sequencing, or silently start a vision build before a decision.
+
+Skills used: project truth, embodiment UI, autonomy/curriculum (no learning
+claim). Requested architecture: useful truthful sight from real optical input.
+Current source reality: browser imageRetina draws the WHOLE supplied image into
+18x6RGB, then derives27coarse sites by rounded averages of each2x2fine block.
+Thus135 reported sites carry108 directly sampled RGB sites plus27derived
+averages in this browser-input path, not135independent fine observations.
+Conflict: this cannot preserve original image detail; whether it meets any
+defined recognition task remains unproved. No fullfield/neuron/optical law
+changed, no claimed DSF reduction introduced; census stops before DSF.
+No current speech/vision/runtime files will be extended by this preparation.
+
+Inspected exact current source:
+dsf_ai_service/static/gualaloom.html imageRetina/renderRetina (lines26/31).
+guala_receptor_anatomy.py declares groups27/108 and retains learned identities.
+Display smoothing explicitly adds no receptor evidence. The whole-image sampling
+must not be described as a zoomed foveal crop or equated to a clinical acuity.
+
+Manifest-authenticated stored PNG headers, no rendering/brain/lesson run:
+A1126x1397 SHA849827f6...;B1126x1397 SHAb728f6bb...;
+C1127x1395 SHA763fd86b...;number01 1122x1402 SHA157ed65d....
+Full digests verified against card_experience_manifest-v1.json by exact equality.
+Actual C card visually inspected. It includes large C/c, detailed cat, borders
+and caption. Entire1395pixel height maps to just6fine rows (232.5source pixels
+per output row geometrically); width1127 maps to18 (1127/18pixels per column).
+The27coarse sites derive from those same108samples and do not recover detail.
+No decoded-raster output, contrast/resolution threshold, 1024site sufficiency,
+retinal recognition, neural cost or human-equivalent acuity was measured.
+
+Bounded recommendation to C1: size from a declared visual task and explicit
+field-of-view/aspect/crop mapping, preserving current learned receptor identity;
+do not choose1024 merely because it is8x135 or treat unique image hashes as
+recognition. Optical detail and live neuronal cost are separate acceptance
+questions. Existing stored cards permit this preparation without live stimuli.
+No tests, temporary image edits, training, production writes or new dependencies.
+
+### D-054-122-274 — Joe requires socially safe development through experience
+
+Joe clarifies his survival/social-behavior thesis has many layers and asks that,
+as speech develops, socially acceptable imperatives be safeguarded and reinforced
+through positive experiences and guidance. This is a REQUIRED project outcome,
+not a stop command, completed capability, or permission to invent a moral score.
+His extreme examples are not treated as evidence that every harmful act serves
+survival or as a diagnosis of anyone.
+
+Recommended operational definition: safety, consent, respect for boundaries,
+noncoercion, consideration, cooperation and repair after mistakes. Preserve
+legitimate disagreement, refusal, curiosity, playful incongruity and ordinary
+error; do not equate normality with compulsory agreement or conformity.
+Retained whole experiences and their actual consequences should shape behavior.
+Positive teaching alone is not a safety guarantee; consequential capabilities
+also require explicit authorized safety limits outside authored meaning.
+Exact mechanisms, scope and acceptance for those limits require a separate
+reviewed design; none are added to C132 or claimed live here. No emotion label,
+reward scalar, scripted answer, punishment/coercion loop or new biological organ.
