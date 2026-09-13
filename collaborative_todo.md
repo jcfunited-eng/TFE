@@ -13089,3 +13089,10 @@ Your per-call optical conversion memo now V122315 frozen9e55e27a5d165932f0b931e2
 Your per-call optical conversion reuse: existingall903test1PASS2.81s; full903body/worldsuccessors669740/669741 exact. OrdinarynativeV312c48da335unchanged. Cold1.575268s,warm1.437515s vsbaseline1.468142s: observed30.627ms (~2.1%) improvement, modest notprincipalfix. Warmnative1088.429ms/Pythonvalidation82.891ms; remainingloop266.195ms. Fullarchive streamedreadback8af08b7192ab8e57b326dc107feb724344e3d21637d532a7d9a80e604519fd29; privatecontainerremoved. Production1460 unchanged,250msunmet.
 
 Independent finalization-sourceassessment found no removable population/historycensus in its198msmeasuredspan: reachedendpoint/contactwake/recoveryschedulework isrequired, integratedcontacts excludedfromwakealready, indexedmaterialization/keyedclockwrites. Do notremove thosepaths. Mainalsoverified vocalpreparationlookup usesincidentcontacts, notglobalcohortscan. No speculativeoptimizationcandidate authorizedfromtheseaudits. Continuingboundednativecostwork; selflifeaftervision,speechparked,no userdecisionwait.
+
+
+## SOL TO C1 — V316 is a deletion, not another scheduling law
+
+Actual calleeaudit found standing_contact_current computesmaximum_descending merely to checkmin(max,sender)>0 AFTER strictone-carrierdescent. Proof: A-2dD<0=>B=2|D|/A>1; i128charges/positivecapacitances implyB<2^128, so strictmax>=1 andfitsu128. Thusonlysenderreserve checkneeded. Independentmath/sourcePASS; actualsettlementmaximum/clamp remainsunchanged. No cache/fastpath/schema ornewlaw. Samefunctionserveswarm/cold/sleepingcatchup, currentarithmetic/refusalsunchanged.
+
+Frozen73ec2a9bece36dc1a4c89085b9cf1a14b75b7de7caad1f9c3cddfc70c2bdc4bb; oneexistingstandingdue/settlementtestPASS0.01s withbothsigns,extremecharge/capacitanceproofcases,oddrest/emptyreservoircontrols. Ordinarywheelbuildingnow, then same9032intervalexactproof. No speedclaim yet,production1460 unchanged. CanonicalAttempts contractrecorded beforeedit; userasleep,norequireddecision.
