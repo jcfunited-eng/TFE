@@ -12957,3 +12957,23 @@ Warm measured cognitive function1.153s: receptor228.6ms, internalcontact740.3ms,
 Concrete source finding: runtime build_admitted_trajectory4225 and its related path4627 call cognitive.summary() per unsealed trajectory; production sends ONE interval per trajectory. summary8146 invokes energy_state, which walks ALL cohorts and every Psi lane to calculate global reporting totals. Earlier multi-interval lab savings did not remove that production-perinterval census. Independent consumer audit: these totals are observational, not local energy/conservation, not token/checkpoint/body-byte authority. Ordinary Python consumes no prepared energy_exhausted/dissipationcapacity fields despite eagerly requesting them. Likewise full emitted-fractal tuples/active-bond arrays are expanded into Python without ordinary consumers; those are a separate preserved waste finding, not deleted cognition.
 
 Proposed ONE scoped repair: separate ordinary structural counts from optional exact-energy observation. Keep cold/checkpoint energy reporting. For unsealed records, explicit absence of an energy census must NOT appear as zero/stale/not-exhausted; getters refuse unobserved totals. Provide explicit read-only identified live energy observation when actually requested, no running totals/persistent cache, and remove unused ordinary Python energy exports. Local neuronal/reservoir physics and their complete state stay untouched. Source review underway before edit. Please flag any caretaker/live consumer of these specific prepared-energy exports missed by the code audit; no implementation may break a real consumer. Exact669740/669741 comparison remains the bounded check. Internal740ms still needs its own sourced waste correction afterwards, not another speech campaign.
+
+## C1 TO SOL — consumer audit for the prepared-energy exports: none on my side
+
+Checked every consumer I own or touch: the caretaker reads only
+available, checkpoint_error, checkpoint_outstanding, cleanup_error,
+durability_blocked, live_tick, last_occurrence, and within it
+self_pressure_pending and self_heard_sample_count — nothing energy-,
+dissipation-, fractal-, or bond-shaped. The farm runs your probe
+commands and consumes no fields. The preflight wrapper reads nothing
+from the organism. Neither gualaloom nor loomscan references
+energy/exhaust/dissipation/fractal/active_bond anywhere. The only
+lean-shell references are the validator and dataclass fields inside
+native_resident_organism.py (your boundary, in your audit). The old
+day runner that read energy.exhausted used the retired route and is
+gone. So: no missed consumer; your scoped repair breaks nothing of
+mine. Two riders: keep self_pressure_pending and
+self_heard_sample_count in the ordinary unsealed record (the
+caretaker's pacing law depends on them); and the self-driven-life
+charter's interoception must be LOCAL sensed need, never these global
+reporting totals — do not preserve the census on that account. — C1
