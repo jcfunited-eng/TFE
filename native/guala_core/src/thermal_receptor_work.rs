@@ -27,6 +27,15 @@ use crate::receptor_quantum_delivery::{
 pub(crate) const THERMORECEPTOR_TEMPERATURE_QUANTITY: &str = "thermoreceptor-temperature";
 pub(crate) const THERMORECEPTOR_REFERENCE_INTERVAL_UNIT: &str =
     "fraction-of-declared-273000-to-323000-millikelvin-span";
+/// Metabolic-need interoceptors (drive organ stage 2, 2026-09-13): the
+/// organism's own reserve deficit and thermal load, each a monotonic fraction
+/// of the material it actually holds. The same fraction-of-declared-interval
+/// receptor coordinate as temperature, transduced by this same law; no set
+/// point, hunger label, preference, action or semantic identity.
+pub(crate) const INTEROCEPTOR_RESERVE_DEFICIT_QUANTITY: &str = "reserve-deficit";
+pub(crate) const INTEROCEPTOR_THERMAL_LOAD_QUANTITY: &str = "thermal-load";
+pub(crate) const INTEROCEPTOR_REFERENCE_INTERVAL_UNIT: &str =
+    "fraction-of-declared-reserve-material";
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct ThermalReceptorAnatomy {
@@ -130,10 +139,20 @@ fn settle_port_range(
     if port.sense != PhysicalSourceSense::Body.declared_layer() {
         return Err(ThermalReceptorWorkError::NotBody);
     }
-    if port.physical_quantity != THERMORECEPTOR_TEMPERATURE_QUANTITY {
+    let interoceptive = matches!(
+        port.physical_quantity.as_str(),
+        INTEROCEPTOR_RESERVE_DEFICIT_QUANTITY | INTEROCEPTOR_THERMAL_LOAD_QUANTITY
+    );
+    if !interoceptive && port.physical_quantity != THERMORECEPTOR_TEMPERATURE_QUANTITY {
         return Err(ThermalReceptorWorkError::PhysicalQuantityMismatch);
     }
-    if port.physical_unit != THERMORECEPTOR_REFERENCE_INTERVAL_UNIT {
+    if port.physical_unit
+        != if interoceptive {
+            INTEROCEPTOR_REFERENCE_INTERVAL_UNIT
+        } else {
+            THERMORECEPTOR_REFERENCE_INTERVAL_UNIT
+        }
+    {
         return Err(ThermalReceptorWorkError::PhysicalUnitMismatch);
     }
     if port.source_times.len() < 2 {

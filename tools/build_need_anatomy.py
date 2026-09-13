@@ -123,7 +123,7 @@ for topology, stream, compartment, quantity in (
     record += encoded_text(stream) + struct.pack("<H", 2)
     record += encoded_text("body-compartment") + encoded_text(compartment)
     record += encoded_text("reference-interval") + encoded_text("0-to-1-fraction-of-declared-capacity")
-    record += encoded_text(quantity) + encoded_text("fraction-of-declared-reserve-capacity")
+    record += encoded_text(quantity) + encoded_text("fraction-of-declared-reserve-material")
     record += core[8]
     need.append(record)
 count = 990

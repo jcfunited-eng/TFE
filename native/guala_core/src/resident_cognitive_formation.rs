@@ -154,8 +154,9 @@ use crate::tactile_receptor_work::{
 };
 use crate::thermal_receptor_work::{
     derive_thermal_receptor_sample_range_work, quantize_thermal_delivery, ThermalReceptorAnatomy,
-    ThermalReceptorWorkError, THERMORECEPTOR_REFERENCE_INTERVAL_UNIT,
-    THERMORECEPTOR_TEMPERATURE_QUANTITY,
+    ThermalReceptorWorkError, INTEROCEPTOR_REFERENCE_INTERVAL_UNIT,
+    INTEROCEPTOR_RESERVE_DEFICIT_QUANTITY, INTEROCEPTOR_THERMAL_LOAD_QUANTITY,
+    THERMORECEPTOR_REFERENCE_INTERVAL_UNIT, THERMORECEPTOR_TEMPERATURE_QUANTITY,
 };
 use crate::vestibular_neuron_path::{
     create_single_vertex_vestibular_reached_cohort,
@@ -24641,6 +24642,20 @@ fn receptor_law_for_ports(
         port.sense == PhysicalSourceSense::Body.declared_layer()
             && port.physical_quantity == THERMORECEPTOR_TEMPERATURE_QUANTITY
             && port.physical_unit == THERMORECEPTOR_REFERENCE_INTERVAL_UNIT
+    }) {
+        return Some(ReceptorLaw::ThermalBody);
+    }
+    // Metabolic-need interoceptors (drive organ stage 2): the organism's own
+    // reserve deficit and thermal load as fractions of the material it holds.
+    // The same monotonic fraction-of-declared-interval transducer as the
+    // thermoreceptors; no set point, label, preference or action.
+    if all_ports(|port| {
+        port.sense == PhysicalSourceSense::Body.declared_layer()
+            && matches!(
+                port.physical_quantity.as_str(),
+                INTEROCEPTOR_RESERVE_DEFICIT_QUANTITY | INTEROCEPTOR_THERMAL_LOAD_QUANTITY
+            )
+            && port.physical_unit == INTEROCEPTOR_REFERENCE_INTERVAL_UNIT
     }) {
         return Some(ReceptorLaw::ThermalBody);
     }
