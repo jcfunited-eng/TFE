@@ -16,11 +16,22 @@ process — nothing persists in her. Single instance via flock. Log is
 bounded. An accepted occurrence is NEVER retried; a refused one is
 never re-sent — the lesson re-presents from its start at the next
 clear window.
+DECK: the approved manifest (curriculum/card_experience_manifest-v1.json):
+every experience that names a card surface AND a tutor recording, both
+files verified against the manifest's sha256. Nothing is paired by
+filename guessing (Joe, 2026-09-13: the old name-guess deck reached 5 of
+37 recorded lessons and looped on "A").
+YIELD: when her last interval was fed by anyone other than this
+caretaker (a person is with her), or when a presentation is refused,
+lessons hold for QUIET_TICKS of her clock. The caretaker never competes
+with a person for her one mouth.
 """
 from __future__ import annotations
 
 import base64
+import collections
 import fcntl
+import hashlib
 import json
 import os
 import sys
@@ -38,6 +49,8 @@ POLL_S = 20          # polite observation cadence (transport, not recovery)
 FOCAL_EYE_LIVE = os.path.exists(os.path.join(HERE, "FOCAL_EYE_LIVE"))  # touch this file after the 903-site cutover
 QUIET_TICKS = 32     # Sol's measured recovery law 2026-09-11: 32 physical settlements between lessons
 MAX_LOG = 1_000_000
+MANIFEST = os.path.join(CUR, "card_experience_manifest-v1.json")
+MINE = collections.deque(maxlen=256)  # her ticks this caretaker produced; any other fed tick = a person is with her
 
 
 def log(msg: str) -> None:
@@ -75,6 +88,16 @@ def gates_clear(o: dict) -> bool:
     )
 
 
+def someone_else_present(o: dict) -> int | None:
+    """Her last interval was fed (not unattended) at a tick this caretaker
+    did not produce: a person is with her. Returns that tick, else None."""
+    lo = o.get("last_occurrence") or {}
+    if lo.get("kind") == "unattended":
+        return None
+    tick = lo.get("native_tick")
+    return None if tick is None or tick in MINE else tick
+
+
 def card_retina(png_path: str) -> tuple:
     """135-site RGB retina (405 u8): sites 0-26 coarse 9x3, 27-134
     central 18x6 — the page's own layout, sampled from the card."""
@@ -107,19 +130,36 @@ def wav_blocks(path: str) -> list[bytes]:
     return blocks or [raw.ljust(8000, b"\0")]
 
 
+def _sha256(path: str) -> str:
+    h = hashlib.sha256()
+    with open(path, "rb") as fh:
+        for chunk in iter(lambda: fh.read(1 << 20), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
 def lessons() -> list[dict]:
-    """Pair each card PNG with its letter/number tutor WAV by name."""
-    cards = sorted(f for f in os.listdir(os.path.join(CUR, "cards"))
-                   if f.endswith(".png") and "preview" not in f)
-    auds = {f.split("-")[0]: f for f in os.listdir(os.path.join(CUR, "audio"))
-            if f.endswith(".wav")}
-    out = []
-    for c in cards:
-        key = c.split("-")[1] if c.startswith(("alphabet-", "number-")) else c.split("-")[0]
-        if key in auds:
-            out.append({"name": c[:-4],
-                        "card": os.path.join(CUR, "cards", c),
-                        "wav": os.path.join(CUR, "audio", auds[key])})
+    """The deck is the approved manifest, in manifest order: every
+    experience naming a card surface AND a tutor recording, both files
+    present and matching the manifest's sha256. A card without a tutor
+    voice is not a lesson. Nothing is paired by filename guessing."""
+    manifest = json.load(open(MANIFEST))
+    out, skipped = [], []
+    for e in manifest.get("experiences", []):
+        surface = e.get("surface") or {}
+        audio = e.get("tutor_audio") or {}
+        if not surface.get("path") or not audio.get("path"):
+            continue
+        card = os.path.join(CUR, "cards", os.path.basename(surface["path"]))
+        wav = os.path.join(CUR, "audio", os.path.basename(audio["path"]))
+        if not (os.path.exists(card) and os.path.exists(wav)) \
+                or _sha256(card) != surface.get("sha256") \
+                or _sha256(wav) != audio.get("sha256"):
+            skipped.append(e.get("experience_id"))
+            continue
+        out.append({"name": e.get("experience_id"), "card": card, "wav": wav})
+    if skipped:
+        log(f"manifest experiences skipped (file missing or sha256 mismatch): {skipped}")
     return out
 
 
@@ -141,15 +181,22 @@ def present_block(retina: tuple, pcm: bytes) -> dict | None:
 
 
 def wait_clear(min_tick: int | None = None) -> dict | None:
-    """Wait on HER state: gates clear and (optionally) her clock past
-    min_tick. Returns the clear observation, or None on STOP."""
+    """Wait on HER state: gates clear, her clock past min_tick, and no
+    one else feeding her. A tick fed by someone else pushes the hold to
+    that tick + QUIET_TICKS (a person's session keeps extending it).
+    Returns the clear observation, or None on STOP."""
+    hold = min_tick
     while True:
         if os.path.exists(STOP):
             return None
         o = obs()
-        if o and gates_clear(o) and (min_tick is None
-                                     or (o.get("live_tick") or 0) >= min_tick):
-            return o
+        if o:
+            other = someone_else_present(o)
+            if other is not None and (hold is None or other + QUIET_TICKS > hold):
+                hold = other + QUIET_TICKS
+                log(f"someone else is with her (fed tick {other}); lessons hold until her tick {hold}")
+            if gates_clear(o) and (hold is None or (o.get("live_tick") or 0) >= hold):
+                return o
         time.sleep(POLL_S)
 
 
@@ -184,7 +231,10 @@ def main() -> None:
             if res is None:
                 ok = False
                 break  # never retried; lesson re-presents next window
-            tick = (res.get("observation") or {}).get("live_tick") or 0
+            ob = res.get("observation") or {}
+            tick = ob.get("live_tick") or 0
+            MINE.append(tick)
+            MINE.append((ob.get("last_occurrence") or {}).get("native_tick"))
             log(f"{lesson['name']} block {i+1}/{len(blocks)} accepted tick {tick}")
             if i + 1 < len(blocks):
                 if wait_clear(min_tick=tick + 1) is None:
@@ -200,8 +250,13 @@ def main() -> None:
             if wait_clear(min_tick=end_tick + QUIET_TICKS) is None:
                 break
         else:
-            log(f"lesson {lesson['name']} interrupted; will re-present")
-            time.sleep(POLL_S)
+            # a refusal means her one mouth is in someone else's use:
+            # hold the recovery window before re-presenting, never fight
+            now = obs()
+            now_tick = (now or {}).get("live_tick") or 0
+            log(f"lesson {lesson['name']} interrupted; holding until her tick {now_tick + QUIET_TICKS}, then re-present")
+            if wait_clear(min_tick=now_tick + QUIET_TICKS) is None:
+                break
     log("caretaker stopped (STOP or signal)")
 
 
