@@ -114,3 +114,73 @@ def test_exact_world_snapshot_restores_across_two_committed_intervals() -> None:
 
     world.restore_encoded(predecessor)
     assert bytes(world.encoded_snapshot()) == predecessor
+
+
+def _closure(axis: str, carriers: int) -> tuple:
+    """One native body consequence: the axis discharged toward its minimum."""
+    return ("00" * 16, axis, 0, 0, 0, -carriers, carriers, 0, 0, 0, 0)
+
+
+def test_jaw_closing_on_a_held_apple_is_a_bite_with_real_intake() -> None:
+    from dsf_ai_service.substrate.embodiment_world import EmbodiedObject, PositionMM
+
+    world = home_world_authority(identity=IDENTITY)
+    before = world.observation_snapshot()
+    body = next(item for item in before.bodies if item.body_id == before.self_body_id)
+    apple = next(item for item in before.objects if item.object_id == "apple")
+    # A grocery arrival within reach (the world's own boundary for authored matter).
+    world.admit_authored_arrival(EmbodiedObject(
+        "apple-9", apple.radius_mm, apple.mass_grams,
+        PositionMM(body.pose.position.x + 500, body.pose.position.y, 0),
+        reflectance_ppm=apple.reflectance_ppm, material=apple.material,
+    ))
+
+    grasp = prepare_motor_consequence(
+        world=world,
+        evidence=_with_consequences(_closure("right_grip_aperture", 40)),
+        predecessor_state_sha256="04" * 32,
+        predecessor_body_axes=BODY_AXES, successor_body_axes=BODY_AXES,
+    )
+    assert grasp.requested_action == "grasp"
+    assert grasp.refusal_reason is None, grasp.refusal_reason
+    assert grasp.nutrition_intake_zeptojoules == 0
+    with world.prepared_action_visibility_transaction(grasp.prepared_world):
+        world.commit_prepared_action(grasp.prepared_world)
+    held = next(item for item in world.observation_snapshot().bodies if item.body_id == before.self_body_id)
+    assert held.held_object_id == "apple-9"
+
+    bite = prepare_motor_consequence(
+        world=world,
+        evidence=_with_consequences(_closure("jaw_opening", 40)),
+        predecessor_state_sha256="05" * 32,
+        predecessor_body_axes=BODY_AXES, successor_body_axes=BODY_AXES,
+    )
+    assert bite.requested_action == "bite"
+    assert bite.refusal_reason is None, bite.refusal_reason
+    after_body = next(
+        item for item in bite.prepared_world.execution_receipt.after.bodies
+        if item.body_id == before.self_body_id
+    )
+    assert after_body.active_contact is not None and after_body.active_contact.kind == "oral"
+    mouthful = sum(after_body.active_contact.dissolved_tastant_micrograms)
+    assert mouthful > 0
+    assert bite.nutrition_intake_zeptojoules == mouthful * 17_000_000_000_000_000_000
+    world.discard_prepared_action(bite.prepared_world)
+
+    # No object in hand: a closing jaw is just the body, never a bite.
+    empty = home_world_authority(identity=IDENTITY)
+    plain = prepare_motor_consequence(
+        world=empty,
+        evidence=_with_consequences(_closure("jaw_opening", 40)),
+        predecessor_state_sha256="04" * 32,
+        predecessor_body_axes=BODY_AXES, successor_body_axes=BODY_AXES,
+    )
+    assert plain.requested_action == "body"
+    assert plain.nutrition_intake_zeptojoules == 0
+    empty.discard_prepared_action(plain.prepared_world)
+
+
+def _with_consequences(*consequences: tuple) -> SimpleNamespace:
+    evidence = _evidence()
+    evidence.articulated_body_consequences = consequences
+    return evidence

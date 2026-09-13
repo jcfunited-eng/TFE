@@ -30,16 +30,12 @@ from dsf_ai_service.paired_current_store import PairedCurrentStore
 CHECKPOINT_EVERY_INTERVALS = 32
 UNATTENDED_INTERVAL_SECONDS = 0.25
 MAILBOX_CAPACITY = 1
-# Occurrence envelope (vision upgrade, 2026-09-13). The HTTP contract is JSON,
-# not raw bytes: the worst admissible body is guided-vocal-microphone carrying
-# the upgraded 2,709-value retina (all 255) + 8,000 B PCM as base64 + 13 guide
-# drives at maximum ints = 22,712 B compact / 25,507 B with default JSON
-# spacing (card/camera-microphone: 21,603 / 24,319). Cap stays, sized to the
-# spaced worst case plus margin; anything larger is still refused.
-# Explicit sparse coverage adds at most 4,431 JSON bytes: exactly
-# len(json.dumps({"retinal_site_indices": list(range(903))})).
-# Keep the existing envelope plus this bounded acquisition metadata.
-MAX_OCCURRENCE_BODY_BYTES = 31_055
+# Bounded JSON occurrence envelope, preserving the task1462 drive contract.
+# Its34,816-byte allowance admits dense camera/guide sources. Explicit sparse
+# coverage adds at most7,146 bytes in that same nested indent=1 representation
+# (4,431 with default spacing). Full eight-axis body guide plus903 sight
+# IDs and4,000 PCM samples is40,517 bytes; vocal guides still refuse light.
+MAX_OCCURRENCE_BODY_BYTES = 41_962
 PUBLIC_API_PREFIX = "/api/v1/guala"
 OBSERVATION_ROUTE = f"{PUBLIC_API_PREFIX}/observation"
 OBSERVATION_LONGPOLL_SECONDS = 20.0  # bounded hold for ?after=<tick>; declared, not tuned
@@ -68,6 +64,7 @@ class SensoryBody(BaseModel):
         "camera",
         "camera-microphone",
         "card-microphone",
+        "guided-body-microphone",
         "guided-vocal-microphone",
         "media",
         "microphone",

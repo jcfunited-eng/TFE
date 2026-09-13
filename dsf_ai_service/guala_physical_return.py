@@ -178,12 +178,18 @@ class PendingPhysicalReturn:
     sampled_sensorium: bytes
     sources: tuple[PhysicalReturnSource, ...]
     vestibular: tuple[int, int] | None
+    # Real nutrition the producing action took from the world (a bite's
+    # mouthful at the declared extraction density), absorbed by the body's
+    # own conversion law in the interval that consumes this return. Zero for
+    # every other action; bounded to the native i128 the intake law accepts.
+    nutrition_intake_zeptojoules: int = 0
 
     def __post_init__(self) -> None:
         if not isinstance(self.identity, str) or str(uuid.UUID(self.identity)) != self.identity:
             raise ValueError("physical return identity is not canonical")
         _integer(self.producer_tick, (1 << 64) - 1)
         _integer(self.world_revision, (1 << 64) - 1)
+        _integer(self.nutrition_intake_zeptojoules, (1 << 127) - 1)
         _receipt(self.causal_transition_sha256)
         _receipt(self.world_observation_receipt_sha256)
         if not isinstance(self.sampled_sensorium, bytes) or len(self.sampled_sensorium) not in (LEGACY_RETURN_SAMPLE_BYTES, RETURN_SAMPLE_BYTES):
@@ -225,10 +231,12 @@ class PendingPhysicalReturn:
                 world_observation_receipt_sha256: str,
                 sensorium: PhysicalSensorium,
                 sources: tuple[PhysicalReturnSource, ...],
-                vestibular: tuple[int, int] | None) -> PendingPhysicalReturn:
+                vestibular: tuple[int, int] | None,
+                nutrition_intake_zeptojoules: int = 0) -> PendingPhysicalReturn:
         return cls(identity, producer_tick, causal_transition_sha256,
                    world_revision, world_observation_receipt_sha256,
-                   compact_signal_body(sensorium, frame_count=3), sources, vestibular)
+                   compact_signal_body(sensorium, frame_count=3), sources, vestibular,
+                   nutrition_intake_zeptojoules)
 
     def validate_binding(self, *, identity: str, producer_tick: int,
                          world_revision: int, world_receipt: str) -> None:
@@ -263,13 +271,18 @@ class PendingPhysicalReturn:
             "sampled_sensorium_base64": base64.b64encode(self.sampled_sensorium).decode("ascii"),
             "sources": [source.record() for source in self.sources],
             "vestibular": None if self.vestibular is None else list(self.vestibular),
+            "nutrition_intake_zeptojoules": self.nutrition_intake_zeptojoules,
         }
 
     @classmethod
     def from_record(cls, value: object) -> PendingPhysicalReturn:
         expected = {"identity", "producer_tick", "causal_transition_sha256", "world_revision", "world_observation_receipt_sha256", "sampled_sensorium_base64", "sources", "vestibular"}
-        if not isinstance(value, dict) or set(value) != expected:
+        # A return saved before the bite existed carries no intake: exactly zero.
+        if not isinstance(value, dict) or set(value) not in (expected, expected | {"nutrition_intake_zeptojoules"}):
             raise ValueError("pending physical return fields changed")
+        intake = value.get("nutrition_intake_zeptojoules", 0)
+        if isinstance(intake, bool) or not isinstance(intake, int):
+            raise ValueError("pending physical return intake is not an integer")
         sources, vestibular = value["sources"], value["vestibular"]
         if not isinstance(sources, list) or len(sources) > MAX_RETURN_SOURCES:
             raise ValueError("pending physical return source count changed")
@@ -280,4 +293,5 @@ class PendingPhysicalReturn:
                    value["world_observation_receipt_sha256"],
                    _body(value["sampled_sensorium_base64"], RETURN_SAMPLE_BYTES),
                    tuple(PhysicalReturnSource.from_record(source) for source in sources),
-                   None if vestibular is None else tuple(vestibular))
+                   None if vestibular is None else tuple(vestibular),
+                   intake)

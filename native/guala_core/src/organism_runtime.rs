@@ -3477,6 +3477,7 @@ impl ResidentOrganismRuntime {
         drives: Option<&[BodyEffectorDrive]>,
         in_flight_acoustic: Option<(&[u8], &[u8], usize)>,
         vestibular_motion: Option<(u32, i32)>,
+        real_nutrition_intake_zeptojoules: crate::exact_rational::ExactRational,
         mutation_started: &mut bool,
     ) -> Result<ResidentPrepareReceipt, RuntimeError> {
         *mutation_started = false;
@@ -3489,11 +3490,11 @@ impl ResidentOrganismRuntime {
             }
             let mut axes = std::collections::BTreeSet::new();
             for drive in drives {
-                if !drive.terminal.axis().is_acoustic_control()
+                if !drive.terminal.axis().is_caregiver_guidable()
                     || !axes.insert(drive.terminal.axis())
                 {
                     return Err(RuntimeError::ArticulatedBody(
-                        "guided acoustic work left unique area controls".into(),
+                        "guided body work left unique caregiver-guidable axes".into(),
                     ));
                 }
             }
@@ -3507,7 +3508,7 @@ impl ResidentOrganismRuntime {
         };
         self.advance_admitted_intervals_unsealed(
             episodes, true, consumed_samples,
-            crate::exact_rational::ExactRational::integer(0),
+            real_nutrition_intake_zeptojoules,
             drives, vestibular_motion, Some(mutation_started),
         )
     }
@@ -3518,8 +3519,19 @@ impl ResidentOrganismRuntime {
         drives: &[BodyEffectorDrive],
         in_flight_acoustic: Option<(&[u8], &[u8], usize)>,
     ) -> Result<ResidentPrepareReceipt, RuntimeError> {
+        // The vocal entry stays vocal: it moves airway tissue only. Body
+        // guidance (jaw, trunk, limbs) enters through the coexisting entry.
+        if drives
+            .iter()
+            .any(|drive| !drive.terminal.axis().is_acoustic_control())
+        {
+            return Err(RuntimeError::ArticulatedBody(
+                "guided acoustic work left unique area controls".into(),
+            ));
+        }
         self.advance_coexisting_admitted_interval_unsealed(
-            episodes, Some(drives), in_flight_acoustic, None, &mut false,
+            episodes, Some(drives), in_flight_acoustic, None,
+            crate::exact_rational::ExactRational::integer(0), &mut false,
         )
     }
 
@@ -5835,7 +5847,7 @@ impl NativeResidentOrganismRuntime {
     /// whose source list is deliberately temporal.
     #[pyo3(signature = (sources, maximum_causal_intervals, guided_vocal_drives=None,
         pressure_s16le=None, body_s16le=None, consumed_sample_count=None,
-        vestibular_motion=None))]
+        vestibular_motion=None, real_nutrition_intake_zeptojoules=0))]
     fn advance_coexisting_admitted_interval_unsealed(
         &mut self,
         py: Python<'_>,
@@ -5846,7 +5858,13 @@ impl NativeResidentOrganismRuntime {
         body_s16le: Option<Vec<u8>>,
         consumed_sample_count: Option<usize>,
         vestibular_motion: Option<(u32, i32)>,
+        real_nutrition_intake_zeptojoules: i128,
     ) -> PyResult<NativeResidentOrganismPrepare> {
+        if real_nutrition_intake_zeptojoules < 0 {
+            return Err(NativePhysicalInputRefused::new_err(
+                "real nutrition intake cannot be negative",
+            ));
+        }
         if sources.len() != maximum_causal_intervals.len() {
             return Err(NativePhysicalInputRefused::new_err(
                 "coexisting admitted source and interval counts differ",
@@ -5884,6 +5902,7 @@ impl NativeResidentOrganismRuntime {
                 self.runtime
                     .advance_coexisting_admitted_interval_unsealed(
                         &episodes, drives.as_deref(), in_flight_acoustic, vestibular_motion,
+                        crate::exact_rational::ExactRational::integer(real_nutrition_intake_zeptojoules),
                         &mut mutation_started,
                     )
             })
@@ -10349,6 +10368,71 @@ mod tests {
     }
 
     #[test]
+    fn caregiver_guided_body_interval_moves_the_limb_and_refuses_eyes() {
+        let tutor = source("guided-vocal-native-tutor");
+        let episode = vec![(
+            tutor.clone(),
+            vec![(5, 1); tutor.joint_source_occurrences().len()],
+        )];
+        let mut runtime = create_resident_genesis(IDENTITY, 0, budget()).unwrap();
+        runtime.active.articulated_body.initialize_proprioception();
+        let predecessor_envelope = runtime.active_envelope().to_vec();
+        let predecessor_observation = runtime.observation();
+        let grip = BodyAxis::LeftGripAperture;
+        let predecessor_position = runtime.active.articulated_body.axis(grip);
+        let hand_over_hand = [BodyEffectorDrive {
+            terminal: BodyEffectorTerminal::new(grip, BodyEffectorDirection::TowardMinimum),
+            outward_elementary_carriers: 1_500,
+        }];
+        let guided_body = settle_body_effector_drives(
+            runtime.live_articulated_body(),
+            &AdmittedBodyEffectorDrives::admit(hand_over_hand.to_vec()).unwrap(),
+            BODY_SETTLEMENT_CLOCK_MICROSECONDS,
+        )
+        .unwrap();
+        assert!(
+            guided_body.successor.axis(grip) < predecessor_position,
+            "a caregiver's hand did not move the exact limb at the guide boundary",
+        );
+
+        // The coexisting entry admits caregiver-guidable axes.
+        let prepared = runtime
+            .advance_coexisting_admitted_interval_unsealed(
+                &episode, Some(&hand_over_hand), None, None,
+                crate::exact_rational::ExactRational::integer(0), &mut false,
+            )
+            .unwrap();
+        assert!(!prepared.sealed);
+        assert_eq!(prepared.causal_interval_evidence.len(), 1);
+        runtime.abort_unsealed_trajectory().unwrap();
+        assert_eq!(runtime.active_envelope(), predecessor_envelope);
+        assert_eq!(runtime.observation(), predecessor_observation);
+
+        // Nobody moves an eye by hand: refused before any mutation.
+        let eye = [BodyEffectorDrive {
+            terminal: BodyEffectorTerminal::new(
+                BodyAxis::LeftEyeYaw,
+                BodyEffectorDirection::TowardMaximum,
+            ),
+            outward_elementary_carriers: 1_500,
+        }];
+        assert!(runtime
+            .advance_coexisting_admitted_interval_unsealed(
+                &episode, Some(&eye), None, None,
+                crate::exact_rational::ExactRational::integer(0), &mut false,
+            )
+            .is_err());
+        assert_eq!(runtime.active_envelope(), predecessor_envelope);
+        assert!(runtime.unsealed.is_none());
+
+        // The vocal entry stays vocal.
+        assert!(runtime
+            .advance_guided_vocal_interval_unsealed(&episode, &hand_over_hand, None)
+            .is_err());
+        assert_eq!(runtime.active_envelope(), predecessor_envelope);
+    }
+
+    #[test]
     fn guided_vocal_interval_moves_only_vocal_body_and_rolls_back_exactly() {
         let tutor = source("guided-vocal-native-tutor");
         let episode = vec![(
@@ -10604,7 +10688,7 @@ mod tests {
         coexisting.active.articulated_body.initialize_proprioception();
         let predecessor_tick = coexisting.observation().organism_tick;
         let admitted = coexisting
-            .advance_coexisting_admitted_interval_unsealed(&episodes, None, None, None, &mut false)
+            .advance_coexisting_admitted_interval_unsealed(&episodes, None, None, None, crate::exact_rational::ExactRational::integer(0), &mut false)
             .unwrap();
 
         assert_eq!(admitted.observation.organism_tick, predecessor_tick + 1);
@@ -10643,7 +10727,7 @@ mod tests {
         let expected_canal = expected.transduction().reached_tick.successor_canal;
 
         let admitted = runtime
-            .advance_coexisting_admitted_interval_unsealed(&episodes, None, None, Some((0, 7)), &mut false)
+            .advance_coexisting_admitted_interval_unsealed(&episodes, None, None, Some((0, 7)), crate::exact_rational::ExactRational::integer(0), &mut false)
             .unwrap();
         assert_eq!(admitted.observation.organism_tick, predecessor_tick + 1);
         assert_eq!(admitted.causal_interval_evidence.len(), 1);
@@ -10666,7 +10750,7 @@ mod tests {
         runtime.active.articulated_body.initialize_proprioception();
         let predecessor_tick = runtime.observation().organism_tick;
         let admitted = runtime
-            .advance_coexisting_admitted_interval_unsealed(&episodes, None, None, None, &mut false)
+            .advance_coexisting_admitted_interval_unsealed(&episodes, None, None, None, crate::exact_rational::ExactRational::integer(0), &mut false)
             .unwrap();
 
         assert_eq!(admitted.observation.organism_tick, predecessor_tick + 1);

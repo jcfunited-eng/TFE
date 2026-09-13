@@ -79,6 +79,7 @@ def test_primary_keeps_tutor_and_authenticated_self_hearing_together(
         prepared_world=prepared, sensorium=Sensorium(), sources=(), vestibular=None,
         actual_root_motion=(0, 0, 0), requested_root_motion=(0, 0, 0),
         requested_action="fixture-action", refusal_reason=None,
+        nutrition_intake_zeptojoules=0,
     )
 
     def commit(_prepared, **values):

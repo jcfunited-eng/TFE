@@ -252,3 +252,64 @@ def test_sampled_retinal_input_refuses_false_coverage_and_fits_envelope() -> Non
     }
     assert len(json.dumps(payload).encode("utf-8")) <= MAX_OCCURRENCE_BODY_BYTES
     assert _physical_occurrence(OccurrenceBody.model_validate(payload)).payload.retinal_site_indices == tuple(range(903))
+
+
+def test_guided_body_source_admits_caregiver_guidable_axes_only() -> None:
+    from dsf_ai_service.lean_sensory_occurrence import (
+        CAREGIVER_GUIDABLE_BODY_AXES,
+        MAX_GUIDED_BODY_DRIVES,
+    )
+
+    assert CAREGIVER_GUIDABLE_BODY_AXES == frozenset({0, 1, 2, 3, 14, *range(19, 37)})
+    hand_over_hand = ((14, 0, 1_500), (24, 1, 1_500), (26, 1, 1_500))
+    with_card = LeanSensoryOccurrence("guided-body-microphone", RETINA, PRESSURE, hand_over_hand)
+    without_light = LeanSensoryOccurrence("guided-body-microphone", None, PRESSURE, hand_over_hand)
+    assert with_card.source_receipt_sha256 != without_light.source_receipt_sha256
+    for invalid in (
+        ((4, 1, 1_500),),  # an eye: nobody moves it by hand
+        ((18, 0, 1_500),),  # the airway belongs to the guided-vocal source
+        ((37, 0, 1_500),),
+        ((14, 0, 0),),  # no work
+        ((14, 2, 1_500),),  # no such direction
+        ((14, 0, 1_500), (14, 1, 1_500)),  # one axis twice
+        tuple((19 + index, 0, 1) for index in range(MAX_GUIDED_BODY_DRIVES + 1)),
+    ):
+        with pytest.raises(ValueError):
+            LeanSensoryOccurrence("guided-body-microphone", None, PRESSURE, invalid)
+    with pytest.raises(ValueError):
+        LeanSensoryOccurrence("guided-body-microphone", RETINA, None, hand_over_hand)
+    with pytest.raises(ValueError):
+        LeanSensoryOccurrence("guided-body-microphone", RETINA, PRESSURE, None)
+    with pytest.raises(ValueError):
+        LeanSensoryOccurrence("guided-vocal-microphone", None, PRESSURE, ((14, 0, 1_500),))
+    with pytest.raises(ValueError):
+        LeanSensoryOccurrence("camera-microphone", RETINA, PRESSURE, hand_over_hand)
+
+
+def test_combined_drive_and_sampled_sight_fits_preserved_production_envelope() -> None:
+    import json
+    from dsf_ai_service.lean_production_app import MAX_OCCURRENCE_BODY_BYTES
+
+    for source, axes in (
+        ("guided-body-microphone", tuple(range(19, 27))),
+        ("guided-vocal-microphone", (18, 37, 38, 39, 40, 41, 42, 43, 44)),
+    ):
+        payload = {"kind": "sensory", "payload": {
+            "source": source, "retina_rgb_u8": [255] * 2709,
+            "retinal_site_indices": list(range(903)),
+            "pcm_s16le_base64": base64.b64encode(PRESSURE).decode("ascii"),
+            "guided_vocal_drives": [
+                {"axis_ordinal": axis, "direction_ordinal": 1,
+                 "outward_elementary_carriers": (1 << 32) - 1}
+                for axis in axes
+            ],
+        }}
+        encoded = json.dumps(payload, indent=1)
+        assert len(encoded.encode("utf-8")) <= MAX_OCCURRENCE_BODY_BYTES
+        if source == "guided-vocal-microphone":
+            with pytest.raises(ValueError, match="guided vocal source"):
+                _physical_occurrence(OccurrenceBody.model_validate_json(encoded))
+            continue
+        actual = _physical_occurrence(OccurrenceBody.model_validate_json(encoded)).payload
+        assert actual.retinal_site_indices == tuple(range(903))
+        assert actual.guided_vocal_drives == tuple((axis, 1, (1 << 32) - 1) for axis in axes)

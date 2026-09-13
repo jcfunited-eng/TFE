@@ -239,3 +239,32 @@ def test_pre_growth_return_keeps_absent_focal_coverage_across_cold_restore():
     assert restored.sensorium(times).retina_focal == ()
     cold.consume_physical_return(restored)
     assert cold.pending_physical_return is None
+
+
+def test_return_carries_the_bite_intake_and_old_records_decode_as_zero():
+    world = home_world_authority(identity=IDENTITY)
+    plan = _plan(world)
+    after = plan.prepared_world.execution_receipt.after
+    fed = PendingPhysicalReturn.capture(
+        identity=IDENTITY, producer_tick=41, causal_transition_sha256="03" * 32,
+        world_revision=after.revision,
+        world_observation_receipt_sha256=after.authority_receipt_sha256,
+        sensorium=plan.sensorium, sources=plan.sources, vestibular=plan.vestibular,
+        nutrition_intake_zeptojoules=17_000_000_000_000_000_000 * 250,
+    )
+    assert fed.nutrition_intake_zeptojoules == 17_000_000_000_000_000_000 * 250
+    assert PendingPhysicalReturn.from_record(fed.record()) == fed
+    unfed = _capture(plan)
+    assert unfed.nutrition_intake_zeptojoules == 0
+    old = unfed.record()
+    del old["nutrition_intake_zeptojoules"]
+    assert PendingPhysicalReturn.from_record(old) == unfed
+    with pytest.raises(ValueError):
+        PendingPhysicalReturn.capture(
+            identity=IDENTITY, producer_tick=41, causal_transition_sha256="03" * 32,
+            world_revision=after.revision,
+            world_observation_receipt_sha256=after.authority_receipt_sha256,
+            sensorium=plan.sensorium, sources=plan.sources, vestibular=plan.vestibular,
+            nutrition_intake_zeptojoules=-1,
+        )
+    world.discard_prepared_action(plan.prepared_world)

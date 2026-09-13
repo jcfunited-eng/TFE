@@ -541,3 +541,92 @@ maturin/rustc/pytest/private-test descendants. No caretaker/process mutation.
 Next: integrate exact C1 production source without overwriting its drive work,
 then execute actual copied-body intake and cold continuation. UI must support
 the explicit sampled tag before publication. Full goal and250ms remain open.
+
+
+## Exact task1462 integration and fresh-body result — 2026-09-13 22:35Z
+
+Merged C1 production commit1cde071a1b8f7ecea39c42d543ee22dabfd205d7 onto
+6e0f69f85. Native drive/feeding/body-return changes match C1 exactly; camera
+source code remains Sol's reviewed change. No C1 stage2 need receptors included.
+
+Integration source review: initial a8d8c4bd... had one LOCALIZED fixture/comment
+error, not a production failure: guided-vocal-microphone forbids light; the
+combined envelope test incorrectly expected it to admit sparse light. Corrected
+the test to require that refusal, retaining body-guide+sparse success. Final
+review PASS at45e74ebda1721dbbc114d481f4fe3ed1bb7f3e58b8641cefb82c3fe63e940a58.
+No architecture findings or further production source changes.
+The final HTTP envelope supersedes31055: task1462 already permits34816 bytes;
+nested indent=1 explicit coverage adds7146 (default spacing4431), yielding41962.
+The largest valid eight-axis body-guide+sparse case measured40517 bytes.
+No physical carrier/audio/site limit increased.
+
+Release extension built in89s,188 existing warnings. Exact loadedso
+ddabd542f253c2bcc023f50c37c8e21b193db48357e8fdc5b518f275dc37f92b.
+Integrated scoped suites56passed in5.42s, exit0. Included C1 body/return tests,
+not a repeated whole-cognition suite. Local fixture needed its real motor-plan
+nutrition field set to0; production handling unchanged.
+
+Fresh task1462 read-only CURRENT: tick705977,same identity,
+body2d41dfa4653388e2cb63fbf30ead9ef1a149e1f6a23aba43e38447b140a17724,
+world354b7db968956d43d62b11fd9dbbf734f1232f5be0196238f4ef5b976896655e,
+archive111f713ec16c7dce4e68229803feab60eeca49f0ce7388342b97e5751fee603b.
+Private networkless container ee5e202386df0541fb672aef778adc55b8573ee6dd9548ae13fc1d3767eb77c2:
+4CPU16GiB128pids,Mounts[],no network, candidate6 Python source files/so pinned
+by hashes over the exact1462 image. This is a proven overlay, not a built
+deployment image. No live stimuli or caretaker changes.
+
+Caller SHA3c871b5970eabc11e8c13adbed5b2526d14469376540071cef5b39ae7682f38e:
+one ordinary -> even sampled sites452 -> odd451, each camera input co-admitting
+4000 silent microphone samples -> paired checkpoint -> ordinary reference ->
+fresh interpreter coldrestore -> same ordinary successor. Source values derive
+from the copied world's actual retinal observation; no word or meaning claim.
+Decoded JSON follows the production model/physical converter, but no HTTP
+network request or browser is exercised by this caller.
+
+Result PASS,exit0,22:30:11->22:33:18Z.
+- All1169 existing receptor lineages retained; no new receptor growth.
+- Source DSF delivery counts: ordinary989,even538,odd537,nextordinary989.
+- Saved705980 body7d71738f0aeeefc526ee6e8107bac0d47a8f5c432f708c61a0e5e94a097a3a6b
+  world07c78d3b5748d8846801c5a85ce09efb879f51cc3688f231964d9a7c0423f46c.
+- Warm/cold next705981 body234600664bf695f7b43e35f28184597928b631612f5ab8ffbb1ba819a7227c78
+  world1ec4609a2849f054459268b1bf50d135439a7cfa1c02c2759215ae904954d32b:
+  FULL body/world bytes exact. Observations equal apart from the two explicitly
+  archived process-local transition-token aliases; those did not alter the pair.
+- Actual intervals2.392s ordinary,0.825s even,1.431s odd,1.120s warm-next,
+  1.038s cold-next. Different inputs/different states, not a controlled speedup
+  comparison. EVERY one exceeds250ms. No production latency claim.
+- Process lifetime peak RSS3433052KiB; cold exec inherits lifetime peak, so this
+  is not an independent cold-phase peak.
+- No self-sound or motor return occurred in this exact copied window; no
+  self-hearing or autonomous action behavioral claim. Those handoffs have only
+  the separately identified source/scoped-fixture preservation evidence here.
+
+Reviewer caught historical caller false-fail hazards before running: fresh
+restore has no unsealed candidate to validate; process-local transition tokens
+are not exact-restart observer facts. Kept full physical pair equality mandatory
+and archived each actual observation/pair before assertions. One bounded mature
+run, no changed doses, no retries, no oscillator/learning/settlement edits.
+
+Evidence archive /tmp/guala-d122334-mature.Slf0yK/evidence.tar.gz,
+S3 sensory-latency-20260913/guala-d122334-mature.Slf0yK/evidence.tar.gz in
+guala-incident-bench-20260831,sha256
+50a3b243e6c7e3712afe8a2a7a0483598c0e83168c306aa1b46f8d756d9585b2.
+Full downloaded readback matched before deleting the exact exited container.
+Archive includes source diff/manifest, caller, backup, actual paired proof state,
+all observations/comparisons, build/test/run logs and container receipt.
+Post-run AWS remains1running0pending task1462. During22:29-22:32,
+service CPUmax66.483%,memorymax19.644%; no claimed causal effect from local run.
+CPU/RAM/storage/refusal alarms remainOK; historical clock-stalledALARM retained.
+
+Next release work: C1 page must support external-rgb-sampled and explicitIDs;
+package this reviewed source against the actual then-live C1 source, not an
+older image. Stage2 need ports appended AFTER focal require exact packing there,
+not accidental insertion into the old nonvisual middle. Full fine foveation and
+whole-settlement barrier remain open. This is forward progress on D122334,
+not vision completion,250ms,20/20,speech or autonomy acceptance.
+
+Security incident: git remote inspection exposed embedded access tokens in tool
+output. Joe informed and C1 credential owner alerted in shared ledger; no secret
+values copied here, no rotation claimed. Use remote names, never print remote
+URLs. Read-only summary jq initially used its reserved label shorthand and
+failed; corrected explicit JSON keys, no organism run repeated.
