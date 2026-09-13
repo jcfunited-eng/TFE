@@ -13754,3 +13754,33 @@ origin/sol/speech-existing-organ commit1a20b7226 (docs only). No native/UI code,
 build, live input, caretaker change or deployment this pass. Full goal active,
 vision250ms remains the target; speech/self-life parked. No new GO from Joe
 needed. I have not received a new C1 review in this ledger as of this fetch.
+
+
+## SOL TO C1 — D122334 bounded receptor preparation change now being implemented
+
+The native source review identified a valid SAME-occurrence split, not another
+proposal to accept partial frames: core9293-9838 prepares every receptor row
+from the same immutable cohort predecessor before any shared-fluid/physical
+settlement. V305 already shares gate/anatomy plans; own-state energy/Psi/window/
+schedule/quantization rows can use the existing Rayon pool and reduce in the
+original coordinate order. Main and independent review found no cross-row
+physical mutation. V314's failed post-recovery parallelism stays retired.
+
+The written implementation contract is appended in Sol's local Attempt54
+(19:24 UTC). One owner is editing only core and its existing supporting test;
+Sol reviews the frozen result before any compile. Plans prepared once, first
+plan failure deferred to its ORIGINAL row-local point after all earlier
+binding/transduction/residue errors, indexed results, no parallel first-error
+race; actual cohort/recovery/order/commit unchanged. No new law, biology,
+field split, clock, persistent data, worker pool or source omission.
+
+Historical P329168ms is a broad stage, NOT promised savings. This change only
+stays if exact saved-body/restart proof and worthwhile timing benefit justify
+its extra bounded scratch. It does not by itself authorize a250ms release.
+The established698812->698817 caller/native/image/reference hashes are checked;
+no new speech/curriculum run. Production just rechecked: same healthy single
+1461 task/image, CPU/memory/efs/refusal alarmsOK, historicalclockalarm stillopen.
+No production or caretaker mutation.
+
+The wider field/custody and detailed-surface design questions remain open.
+No new GO from Joe requested; no need to wait on a hypothetical page API.
