@@ -13,7 +13,7 @@ is serving in the current image. Do not restart an old attempt from this file.
 
 The current repair and deployment authority is the running record in
 [Guala speech repair Attempt 54](GUALA_SPEECH_REPAIR_ATTEMPT_54_LEAN_SENSORIMOTOR_ROUTE_2026-09-08.md),
-particularly its current checkpoint and R/S-054-122-278 through S-054-122-290.
+particularly its current checkpoint and R/S-054-122-278 through S-054-122-292.
 That record supersedes the older next-item and production-baseline statements
 below; it contains the full failures, preserved successes and release decisions.
 
@@ -54,7 +54,13 @@ This proves differentiated retention, not quantitative vocal use; unequal
 selfhearing prevents dose-only attribution. Actual recurrent/member transfer
 is the next existing route to inspect, not an amplitude lookup or new law.
 No native run/build or production change in this read-only step.
-Next: existing quantitative-strength signal route, no recovery adjustment.
+S122291/292 now prove those endpoints are in connected contact components;
+three exact L5/L6 contacts have differing retained carrier-transfer fractions,
+previously absent from the ordinary observer. Learned work phases remainzero.
+Thus the distinction is not lost at that connector; actual later strength use
+remains unproved. No native run, build or production mutation.
+Next: saved connector phase + exact endpoint current/crossing law, no guide
+replay, recovery adjustment or motor-permission bypass.
 No new lesson, physiology, production change or capability claim.
 An observation bound is not a physiological deadline or failure criterion.
 The complete project goal is ACTIVE. Joe's next order (D122283) is current focused

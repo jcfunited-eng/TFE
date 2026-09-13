@@ -49,6 +49,11 @@ No direct L7/L11/L12 edges on these three L9 cells, but no indirect-path refusal
 or no-learning conclusion follows. Unequal selfhearing remains a causal confound.
 Source identifies actual recurrent/member transfer -> reassembly as next existing
 junction; no memory-amplitude lookup writes vocal conductance. No native run here.
+S122291/292 exclude an isolated contact component and expose a missing observer
+field: all three checked L5/L6 contacts retain DIFFERENT carrier-transfer phases.
+Learned transition-work phases remain0. The difference survives that connector,
+but different whole-carrier arrivals/learned strength/use are not yet measured.
+No new body run/build/production change; saved-codec observation only.
 Next single item: actual retained L11/L12 strength and authorized use, reconciled
 with this measured same-current/different-work handoff. No recovery-only patch,
 quantum/dose tuning, new lesson or repeated gate trace authorized by this result.
@@ -23699,3 +23704,120 @@ Actual C1 sharedledger amendment read this pass: distinct physical needs,
 no aggregate deficit; feeding control does not ban unrelated exploration.
 R122177 and recovery-blockage closure acknowledged. Queue remains Joe's:
 focused speech -> approved vision -> queued self-driven life. No life code here.
+
+### R-054-122-291 — exact saved indirect-contact audit; no native execution
+
+Continues R122177, predecessor C132/H122247 CLOSED. Source HEAD65d1eaf94.
+Previous S122290 made evidence progress; no missing running job or wait.
+Current sharedledger fetched blob949ef66d; no new C1 strength assessment yet.
+No production assumption beyond the dated recorded task1460 baseline.
+
+Question: do the eight actual position receptors and the three new L9 cells
+have mounted indirect contacts to L6/L7/L11/L12 on saved669735, or are their
+components disconnected? This inspects both saved S122285 arms, not a new lesson.
+Independent external parser review before execution; full saved contact decoding
+and changed-row crosschecks reused unchanged from S122290.
+External script /tmp/guala-strength-route.f4DR3o/inspect_route.py
+SHA5fa93ea7182dcc0d72b9c83405586171e231ebea17277d77f1568eb81c63ba2a.
+It builds ONLY an offline observer's undirected contact graph, reports component
+size, reachable layer counts, and canonical shortest example paths with every
+edge's exact saved physical state. It never selects cognition, chooses a motor,
+enters production, calls native, changes state, or infers a current from an edge.
+One Python file inspection, same authenticated tick/body/rows, source CURRENT
+unchanged. No copied-body runtime/health envelope claimed by this pure file read.
+
+Decision: no path establishes structural separation at this saved state;
+path present refutes that absence but does not prove directed propagation,
+arrival time, reassembly, learning, or permissions. Physical settlement may
+still be unequal/delayed/blocked; topology alone cannot decide which.
+No graph-based actor/controller/semantic selection or new wire authorized.
+Exact integers/rationals remain raw Python JSON; print only bounded summaries.
+
+Source follow-through: local_integration_place15690 and cross-sensory author16223
+permit L5->L6->L7 anatomy; vocal endpoint strength update21523 and conditional
+permission/reset21590 remain distinct. During genuine permitted vocal activity,
+the existing local update can survive; guidance alone does not grant permission.
+Do not remove reset or declare learning impossible from its existence.
+
+R122291 observation extension BEFORE execution: topology paths exist, but the
+ordinary contact observer omits carrier_phase. Read that exact already-saved
+field for the three L5/L6 fabric edges97e-2b59,99a-2b75,a26-2c01, without native
+execution. GLSEC03 stores carrierphase at112..144 and transitionworkphase160..192
+within each192-bytecontact. Preserve stored orientation; assert exactly one
+matching contact per named pair. Existing full-body hash and CURRENT checks.
+External inspect_carrier_phase.py SHAeae1bdd2740797ba8c019a5680a88dfa9f45eedd4c8a6eb85ef5869a602a482f,
+independent source review before execution. A differing carrier fraction proves
+a retained contact distinction, NOT different learned strength, future firing,
+permission, or a deadline. Equal fractions likewise do not prove no learning.
+No observation projection is silently upgraded to whole-state equality.
+
+### S-054-122-292 — connected topology and retained transfer fractions; not a lost-all-signal boundary
+
+R122291 observation COMPLETED, R122177 remains active. No native build/run,
+new lesson, production update, caretaker mutation or live-health claim.
+One graph file inspection10556 exit0; one carrier-phase inspection exit0.
+Independent source review before each and result review PASS; no native edits.
+
+Connectedness: all eight exact position receptors share one mounted contact
+component2449neurons(32),2452(128). All three new128L9 join that component.
+Every present target has paths to layers6/7/11/12. Chosen example paths contain
+no zero-conductance edge. 32's newL9 targets have no incident contacts; this
+alone is not an absent-neuron assertion. Layer12 is not by itself vocal identity.
+Actual examples MAX3897e->2b59(L6)->796(L7)->85e(L11),
+MAX3999a->2b75(L6)->7b2(L7)->86c(L11). Another actual MAX39 path reaches
+fd through2b75->f5b(L8), consistent with the previously measured vocal terminal.
+Source permits indirect transmission; no disconnected memory-island claim.
+An undirected graph is NOT directional transfer, permission, transit latency,
+or retained strength. No shortest-path method enters cognition.
+
+Exact existing cross-arm electrical-change comparison through669728..669735:
+difference counts0,0,0,2,16,38,74,119. Last119 comprise11L1,3L5,7L6,98L9;
+no recorded L7/L11/L12 projection differences. Actual MAX38/39 position relays
+2b59/2b75 remain equal in that projection; the differing L6 cells are elsewhere.
+This is not complete physical equality: the ordinary electrical/channel
+observer intentionally omits contact carrier_phase and other physical fields.
+
+That omission is now resolved from exact saved GLSEC03, no organism execution.
+For the three proven L5->L6 fabric bonds, same stored orientation:
+128-minus32 retained carrier_phase difference =
+- 97e->2b59:511/902760;
+- 99a->2b75:7/12316;
+- a26->2c01:121/206400.
+ALL three transition_work_phase values remain0 in BOTH arms.
+The numeric distinction therefore survives in the physical transfer fractions.
+Do not describe it as discarded before L6, different learned conductance,
+different whole-carrier arrival, dose-isolated causal proof, or a future act.
+Unequal selfhearing in the original arms remains explicitly acknowledged.
+
+Physical producer/consumer: sparse_electrical_contact::standing_contact_current669
+uses actual endpoint potentials, conductance, finite carrier availability and
+energy descent. settle_contact_at_current974 and elementary_charge_transfer236
+combine actual integrated current with this persisted fraction. The existing
+physical_event_finalization177..207 schedules the next whole-carrier crossing;
+changed endpoints wake/catch-up/reschedule incident contacts210+. No new timer,
+threshold, quantum, anatomy or work label is warranted by this observation.
+C131/C132 release and the actual gate-opening proof remain closed.
+
+The next SINGLE evidence item is these saved connector phases together with
+their exact endpoint state and existing current/crossing calculation, keeping
+a frozen-endpoint calculation distinct from actual future organism chronology.
+Do not replay guidance or gate settlement. Do not use another arbitrary tail
+bound as a physiological failure. No new physics implementation contract exists
+yet; conditional vocal permission/reset remains governed by its conservation law.
+
+Raw artifacts /tmp/guala-strength-route.f4DR3o:
+graphSHAfb6610cc15b1fcb4c8d17d797f185fa2d9a939edc9f60fc765458fd5b8677297;
+carrierSHA3f1ba131d5d6daf2f39accdc93f5d5411b5044593d91e5ba5d1bc6ef71fae2d1.
+Independent arithmetic review reproduced all three exact differences.
+Archive s3://guala-incident-bench-20260831/strength-route-phase-20260913/f4DR3o/evidence.tar.gz
+SHA4fe9ce13890c4bb547de9d698681a57540c9638b8743ac02f6aac236f8926a94;
+includes scripts/imports/rawJSON/exact saved row projections/review scope.
+Original saved pair archive81c6bc9c remains authoritative; no duplicate body copy.
+
+Observer hygiene: initial all-changes display was unnecessarily large and
+truncated; replaced by bounded cross-arm comparison, no native rerun. A printed
+ad-hoc 'vocal' label on an unverified Boolean was not used as anatomy evidence;
+the actual graph uses mounted layers, and vocalidentity needs terminal anatomy.
+Combined skill/reference output was truncated; required omitted portions read
+separately to EOF. All arithmetic evidence uses raw Python integers/rationals.
+No source/capability result is inferred from output truncation or a label.
