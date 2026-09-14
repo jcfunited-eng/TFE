@@ -56,6 +56,13 @@ MANIFEST = os.path.join(CUR, "card_experience_manifest-v1.json")
 TEACHING = os.path.join(HERE, "TEACHING")  # explicit teaching-session control: exists while a person teaches (touched/removed on Joe's word)
 PERSON_HOLD_TICKS = 32  # safety-net hold after an unannounced feed or a refusal; politeness, not a recovery law
 MINE = collections.deque(maxlen=256)  # her ticks this caretaker produced; any other fed tick = a person is with her
+# MEALS (2026-09-14): the caretaker presents food — the person body in her
+# world fetches a fresh apple and holds it out within her reach. Whether she
+# bites is her own reflex; the caretaker never moves her. A meal is offered
+# when nothing is at her mouth that a bite can still take from, and not more
+# often than MEAL_TICKS of her clock — politeness, not a hunger rule.
+MEAL_TICKS = 400
+FOOD_PREFIX = "apple"
 
 
 def log(msg: str) -> None:
@@ -188,6 +195,86 @@ def present_block(retina: tuple, pcm: bytes) -> dict | None:
         return None
 
 
+def present_food(object_id: str) -> dict | None:
+    body = json.dumps({"kind": "sensory", "payload": {
+        "source": "caretaker-food",
+        "present_food": object_id,
+    }}).encode()
+    req = urllib.request.Request(
+        f"{BASE}/occurrence", data=body,
+        headers={"Content-Type": "application/json"}, method="POST")
+    try:
+        with urllib.request.urlopen(req, timeout=180) as r:
+            return json.load(r)
+    except Exception as err:  # noqa: BLE001
+        log(f"food presentation refused: {err}")
+        return None
+
+
+def food_state(o: dict, skip: set[str]) -> tuple[bool, list[str]]:
+    """(something edible is already at her mouth, the apples on the floor
+    fullest first) from her published world: the apple in her own hand or in
+    the caregiver's hand counts as at her mouth while it still has matter.
+    Apples the caregiver could not reach last time come last."""
+    emb = ((o.get("last_occurrence") or {}).get("embodiment") or {})
+    bodies = emb.get("bodies") or []
+    objects = emb.get("objects") or []
+    remaining = {ob.get("object_id"): ob.get("tastant_remaining_micrograms") for ob in objects}
+    held_ids = {b.get("held_object_id") for b in bodies if b.get("held_object_id")}
+    at_mouth = any((remaining.get(i) or 0) > 2 for i in held_ids)
+    floor = [
+        ob for ob in objects
+        if str(ob.get("object_id", "")).startswith(FOOD_PREFIX)
+        and ob.get("held_by_body_id") is None and ob.get("position") is not None
+        and (ob.get("tastant_remaining_micrograms") or 0) > 2
+    ]
+    floor.sort(key=lambda ob: (ob["object_id"] in skip, -int(ob.get("tastant_remaining_micrograms") or 0)))
+    return at_mouth, [ob["object_id"] for ob in floor]
+
+
+def maybe_feed(o: dict, st: dict) -> None:
+    """Present a meal when due. Reads her world; decides nothing about her.
+    A presentation the world did not allow (a thing boxed in by furniture)
+    is remembered so the next candidate is tried at the next clear window."""
+    if "tastant_remaining_micrograms" not in json.dumps(o)[:200000]:
+        return  # the feeding route is not live yet; nothing to present
+    tick = o.get("live_tick") or 0
+    if tick < (st.get("meal_tick") or 0) + MEAL_TICKS and not st.get("meal_retry"):
+        return
+    skip = set(st.get("unreachable") or [])
+    at_mouth, foods = food_state(o, skip)
+    if at_mouth:
+        st["meal_retry"] = False
+        return
+    foods = [f for f in foods if f not in skip] or foods
+    if not foods:
+        if st.get("no_food_logged") != tick // 1000:
+            log("no apple with matter left on the floor; nothing to present")
+            st["no_food_logged"] = tick // 1000
+        st["meal_retry"] = False
+        return
+    food = foods[0]
+    res = present_food(food)
+    st["meal_tick"] = tick
+    st["meal_retry"] = False
+    if res is None:
+        json.dump(st, open(STATE, "w"))
+        return
+    ob = res.get("observation") or {}
+    MINE.append(ob.get("live_tick") or 0)
+    MINE.append((ob.get("last_occurrence") or {}).get("native_tick"))
+    pres = (ob.get("last_occurrence") or {}).get("caregiver_presentation") or {}
+    steps = pres.get("steps") or []
+    log(f"meal: presented {food} — presented={pres.get('presented')} took_away={pres.get('took_away')} "
+        f"steps={len(steps)} last={steps[-1] if steps else None}")
+    if not pres.get("presented"):
+        st["unreachable"] = sorted(skip | {food})
+        st["meal_retry"] = len(foods) > 1
+    else:
+        st["unreachable"] = []
+    json.dump(st, open(STATE, "w"))
+
+
 def wait_clear(min_tick: int | None = None) -> dict | None:
     """Wait on HER state: gates clear, her clock past min_tick, no
     TEACHING marker, and no one else feeding her. Explicit control first:
@@ -244,6 +331,7 @@ def main() -> None:
         o = wait_clear()
         if o is None:
             break
+        maybe_feed(o, st)
         ok = True
         for i, pcm in enumerate(blocks):
             res = present_block(retina, pcm)
