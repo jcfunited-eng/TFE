@@ -274,7 +274,7 @@ def test_her_gaze_follows_structure_not_brightness() -> None:
     flat_bright_top = tuple(240 if index // FOCAL_COLUMNS < FOCAL_ROWS // 2 else 200 for index in range(FOCAL_COLUMNS * FOCAL_ROWS))
     x, y = structure_centre(flat_bright_top)
     assert abs(x - 0.5) < 0.02 and abs(y - 0.5) < 0.06, (x, y)  # one horizontal edge at mid height; brightness above it holds nothing
-    edge_on_the_right = tuple(30 if (index % FOCAL_COLUMNS) < 26 else (250 if (index % FOCAL_COLUMNS) % 2 else 20) for index in range(FOCAL_COLUMNS * FOCAL_ROWS))
+    edge_on_the_right = tuple(30 if (index % FOCAL_COLUMNS) < int(FOCAL_COLUMNS * 0.8125) else (250 if (index % FOCAL_COLUMNS) % 2 else 20) for index in range(FOCAL_COLUMNS * FOCAL_ROWS))
     x, y = structure_centre(edge_on_the_right)
     assert x > 0.75 and abs(y - 0.5) < 0.05, (x, y)
     assert structure_centre(tuple([128] * (FOCAL_COLUMNS * FOCAL_ROWS))) == (0.5, 0.5)

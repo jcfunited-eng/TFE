@@ -63,9 +63,9 @@ SATED_ABOVE = Fraction(17, 20)  # feeding ends at 85 percent (one apple from hun
 # range, on the floor of her own room.
 FIELD_OF_VIEW_MILLIDEGREES = 60_000
 SIGHT_RANGE_MM = 4_000
-FOCAL_COLUMNS = 32
-FOCAL_ROWS = 24
-STRUCTURE_FLOOR = 768 * 4   # total edge energy below this (about four levels per site) is a flat field
+FOCAL_COLUMNS = 80
+FOCAL_ROWS = 60
+STRUCTURE_FLOOR = 4800 * 4   # total edge energy below this (about four levels per site) is a flat field
 # Her head: the wide field (18 x 6 sites over 180 x 90 degrees, carried by the
 # head) aims the focal cone. Each beat the head pitches a bounded step toward
 # the height of structure in the wide field, so what lies on the floor around

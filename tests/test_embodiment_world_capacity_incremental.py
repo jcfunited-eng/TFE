@@ -127,3 +127,4 @@ def test_encoded_snapshot_unchanged_and_restorable() -> None:
     encoded_before = world.encoded_snapshot()
     cold = home_world_authority(identity=IDENTITY, encoded_world=encoded_before)
     assert cold.encoded_snapshot() == encoded_before
+

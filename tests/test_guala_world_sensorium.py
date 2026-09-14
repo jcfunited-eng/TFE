@@ -162,7 +162,7 @@ def test_compact_retinal_capture_matches_spectral_values_without_signal_objects(
         execution=execution, predecessor_body_axes=BODY_AXES,
         successor_body_axes=changed_axes,
     )
-    assert len(before) == len(after) == 903
+    assert len(before) == len(after) == 4935
     assert (_retinal_luminance(before)[:135], _retinal_luminance(after)[:135]) == expected
     assert contacts == {sense: streams for sense, streams in spectral.items() if sense is not PhysicalSense.SIGHT}
     assert before_transmission == after_transmission == Fraction(3, 4)
@@ -171,7 +171,7 @@ def test_compact_retinal_capture_matches_spectral_values_without_signal_objects(
     pixels, _contacts, transmission = passive_receptor_capture(
         snapshot=execution.after, body_axes=changed_axes,
     )
-    assert len(pixels) == 903
+    assert len(pixels) == 4935
     assert _retinal_luminance(pixels)[:135] == expected[1]
     assert transmission == Fraction(3, 4)
     assert len(calls) == 1
@@ -194,7 +194,7 @@ def test_compact_retinal_capture_matches_spectral_values_without_signal_objects(
     edge = Fraction(1, 2)
     collision = edge + Fraction(1, 2**60)
     assert edge != collision and float(edge) == float(collision)
-    repeated = ((Fraction(0), edge, collision, -edge, edge, Fraction(0)),) * 903
+    repeated = ((Fraction(0), edge, collision, -edge, edge, Fraction(0)),) * 4935
     assert _retinal_luminance(repeated) == original_luminance(repeated)
 
 
@@ -208,14 +208,14 @@ def test_focal_optics_preserve_old_apertures_and_tile_the_sixty_degree_center() 
     )
 
     assert UPGRADED_RETINAL_SITE_GEOMETRY[:135] == RETINAL_SITE_GEOMETRY
-    assert len(FOCAL_RETINAL_SITE_GEOMETRY) == 768
-    assert tuple(site[0] for site in FOCAL_RETINAL_SITE_GEOMETRY) == tuple(range(135, 903))
-    assert all(site[3:] == (Fraction(1875, 2), Fraction(1875, 2)) for site in FOCAL_RETINAL_SITE_GEOMETRY)
-    first_row = FOCAL_RETINAL_SITE_GEOMETRY[:32]
+    assert len(FOCAL_RETINAL_SITE_GEOMETRY) == 4800
+    assert tuple(site[0] for site in FOCAL_RETINAL_SITE_GEOMETRY) == tuple(range(135, 4935))
+    assert all(site[3:] == (Fraction(375), Fraction(375)) for site in FOCAL_RETINAL_SITE_GEOMETRY)
+    first_row = FOCAL_RETINAL_SITE_GEOMETRY[:80]
     assert first_row[0][1] - first_row[0][3] == -30_000
     assert first_row[-1][1] + first_row[-1][3] == 30_000
     assert all(left[1] + left[3] == right[1] - right[3] for left, right in zip(first_row, first_row[1:]))
-    first_column = FOCAL_RETINAL_SITE_GEOMETRY[::32]
+    first_column = FOCAL_RETINAL_SITE_GEOMETRY[::80]
     assert first_column[0][2] + first_column[0][4] == 22_500
     assert first_column[-1][2] - first_column[-1][4] == -22_500
     assert all(upper[2] - upper[4] == lower[2] + lower[4] for upper, lower in zip(first_column, first_column[1:]))

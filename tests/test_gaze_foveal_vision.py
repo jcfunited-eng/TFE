@@ -27,7 +27,7 @@ from dsf_ai_service.lean_sensory_occurrence import LeanSensoryOccurrence
 
 def test_exact_rational_box_filter_preserves_uniform_color() -> None:
     """Every output site must receive the exact uniform value under area weighting."""
-    for (w, h) in ((80, 60), (64, 48), (32, 24)):
+    for (w, h) in ((160, 120), (120, 90), (80, 60)):
         data = bytes([177, 88, 42] * (w * h))
         res = resample_focal_crop_rgb(data, w, h)
         assert len(res) == FOCAL_RGB_COUNT

@@ -1,7 +1,7 @@
 """Deterministic foveal vision geometry and rational optical resampling.
 
-Maps native camera foveal crops (e.g. 80x60 or 64x48) onto Guala's canonical
-768 focal sites (32x24) via exact integer area-weighted box filtering.
+Maps native camera foveal crops onto Guala's canonical
+4800 focal sites (80x60) via exact integer area-weighted box filtering.
 Calculates bounded saccadic gaze tracking in camera frame coordinates.
 """
 
@@ -10,11 +10,10 @@ from __future__ import annotations
 import math
 from typing import Sequence
 
-FOCAL_COLUMNS: int = 32
-FOCAL_ROWS: int = 24
-FOCAL_SITE_COUNT: int = FOCAL_COLUMNS * FOCAL_ROWS  # 768 sites
-FOCAL_RGB_COUNT: int = FOCAL_SITE_COUNT * 3          # 2304 values
-WORLD_FOCAL_PITCH_MILLIDEGREES: float = 25.0 / 3.0  # 0.5 arcmin per site (~8.333 mdeg)
+FOCAL_COLUMNS: int = 80
+FOCAL_ROWS: int = 60
+FOCAL_SITE_COUNT: int = FOCAL_COLUMNS * FOCAL_ROWS  # 4800 sites
+FOCAL_RGB_COUNT: int = FOCAL_SITE_COUNT * 3          # 14400 values
 DEFAULT_MAX_SACCADE: float = 0.08                   # max frame fraction shift per beat
 
 
@@ -33,6 +32,9 @@ def resample_focal_crop_rgb(
     expected_bytes = in_w * in_h * 3
     if len(crop_rgb) != expected_bytes:
         raise ValueError(f"expected {expected_bytes} RGB bytes for {in_w}x{in_h}, got {len(crop_rgb)}")
+
+    if in_w == out_w and in_h == out_h:
+        return tuple(crop_rgb)
 
     out: list[int] = []
     total_area = in_w * in_h
@@ -67,7 +69,7 @@ def resample_focal_crop_rgb(
 
 
 def focal_rgb_to_luminance(focal_rgb: Sequence[int]) -> tuple[int, ...]:
-    """Convert 768 RGB focal sites (2304 values) to 768 achromatic luminance values."""
+    """Convert 4800 RGB focal sites (14400 values) to 4800 achromatic luminance values."""
     if len(focal_rgb) != FOCAL_RGB_COUNT:
         raise ValueError(f"expected {FOCAL_RGB_COUNT} RGB values, got {len(focal_rgb)}")
     return tuple(
@@ -116,4 +118,3 @@ __all__ = (
     "focal_rgb_to_luminance",
     "resample_focal_crop_rgb",
 )
-

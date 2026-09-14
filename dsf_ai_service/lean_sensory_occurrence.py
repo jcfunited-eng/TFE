@@ -11,9 +11,9 @@ from dsf_ai_service.lean_actor import MAX_PRESSURE_BYTES
 
 RETINAL_SITE_COUNT = 135
 EXTERNAL_RGB_VALUE_COUNT = RETINAL_SITE_COUNT * 3
-# Vision upgrade (real-time or nothing, 2026-09-13): the legacy 405 values
-# first, unchanged order, then a 32x24 FOCAL central field (the base already calls the 18x6 center "fine"), row-major RGB.
-EXTERNAL_RGB_FOCAL_VALUE_COUNT = EXTERNAL_RGB_VALUE_COUNT + 32 * 24 * 3
+# Vision upgrade (real-time or nothing, 2026-09-14): the legacy 405 values
+# first, unchanged order, then an 80x60 FOCAL central field, row-major RGB.
+EXTERNAL_RGB_FOCAL_VALUE_COUNT = EXTERNAL_RGB_VALUE_COUNT + 80 * 60 * 3
 SOURCES = frozenset({
     "camera",
     "camera-microphone",
@@ -53,7 +53,7 @@ def _validate_retina_rgb(values: tuple[int, ...]) -> None:
             for value in values
         )
     ):
-        raise ValueError("sensory light changed the 135-site or 903-site RGB retina")
+        raise ValueError("sensory light changed the 135-site or 4935-site RGB retina")
 
 
 def legacy_retina_rgb_u8(values: tuple[int, ...]) -> tuple[int, ...]:
@@ -64,14 +64,14 @@ def legacy_retina_rgb_u8(values: tuple[int, ...]) -> tuple[int, ...]:
 
 
 def focal_retina_rgb_u8(values: tuple[int, ...]) -> tuple[int, ...]:
-    """The 32x24 focal field (768 sites RGB), or () when the legacy shape arrived."""
+    """The 80x60 focal field (4800 sites RGB), or () when the legacy shape arrived."""
 
     _validate_retina_rgb(values)
     return tuple(values[EXTERNAL_RGB_VALUE_COUNT:])
 
 
 def focal_retina_luminance_u8(values: tuple[int, ...]) -> tuple[int, ...]:
-    """Project the focal RGB sites onto 768 achromatic receptors, () if absent."""
+    """Project the focal RGB sites onto 4800 achromatic receptors, () if absent."""
 
     focal = focal_retina_rgb_u8(values)
     return tuple(

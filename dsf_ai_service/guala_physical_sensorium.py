@@ -17,12 +17,13 @@ from dsf_ai_service.glew_runtime.sensory_full_field_boundary import (
     SENSE_ORDER,
 )
 from dsf_ai_service.guala_receptor_anatomy import (
-    LEGACY_PORT_COUNT, PORT_COUNT, receptor_anatomy,
+    LEGACY_PORT_COUNT, receptor_anatomy,
 )
 
 
 RETINAL_PORTS = 135
-RETINAL_FOCAL_PORTS = 768  # () means this source supplies no focal coverage
+RETINAL_FOCAL_PORTS = 4800  # () means this source supplies no focal coverage
+PORT_COUNT = LEGACY_PORT_COUNT + RETINAL_FOCAL_PORTS
 LEGACY_EAR_PORTS = 2
 COCHLEAR_PORTS = 32
 TOUCH_PORTS = 28
