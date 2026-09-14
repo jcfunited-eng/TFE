@@ -177,6 +177,23 @@ HEARD_ABOVE_AMBIENT = 2.0       # a sound worth answering is at least twice the 
 AMBIENT_MEMORY = Fraction(15, 16)
 COCHLEAR_CHANNELS = 32
 VOICE_VERSION = 2
+SPEECH_RECORD_CAPACITY = 64
+ANSWER_WINDOW_BEATS = 4
+PHRASE_WINDOW_BEATS = 8
+
+# Syllables: 8 onsets x 5 vowels through her airway.
+# Syllables are chosen from her own record of which sounds got answered,
+# keyed by situation and prior syllable so speech can grow into syntax.
+# Untried syllables are explored in order of lifetime tries (zero clock arithmetic).
+# Acoustic structural likeness is evaluated by the DSF L0-L4 kernel discrete signature.
+SYLLABLES = tuple(f"{onset}{v[0]}" for onset in ONSETS for v in VOWELS)
+SYLLABLE_DRIVES = {
+    f"{onset}{v[0]}": (PITCHES_DECIHERTZ[0], v_idx, o_idx)
+    for o_idx, onset in enumerate(ONSETS)
+    for v_idx, v in enumerate(VOWELS)
+}
+DEFAULT_SYLLABLE = SYLLABLES[0]
+DEFAULT_DRIVE = SYLLABLE_DRIVES[DEFAULT_SYLLABLE]
 
 # Her body's axes, declared once (index, name, unit, position, minimum,
 # neutral, maximum).
@@ -506,6 +523,7 @@ def candidates(
     seen: tuple[SeenThing, ...],
     tick: int,
     say_drive: tuple[int, int, int] | None = None,
+    say_detail: str = "a syllable of her own",
 ) -> list[tuple[str, str, tuple[Any, ...], str | None, tuple[int, int, int] | None]]:
     """What her body can do this beat, across every sensed target: each entry is
     (act, detail, world commands tried in order, target, voice drive).
@@ -569,22 +587,15 @@ def candidates(
     out.append(("step", "one stride ahead", (MoveCommand(PoseMM(ahead, heading), BEAT_MICROSECONDS),), None, None))
     for name, sign in (("turn_left", 1), ("turn_right", -1)):
         out.append((name, "", (MoveCommand(PoseMM(position, (heading + sign * TURN_MILLIDEGREES) % 360_000), BEAT_MICROSECONDS),), None, None))
-    drive = say_drive if say_drive is not None else _new_drive(tick)
-    out.append(("say", "a syllable of her own", (), None, drive))
+    drive = say_drive if say_drive is not None else DEFAULT_DRIVE
+    out.append(("say", say_detail, (), None, drive))
     out.append(("rest", "", (), None, None))
 
     assert len(out) <= MAX_CANDIDATES
     return out
 
 
-def _new_drive(tick: int) -> tuple[int, int, int]:
-    """A sound of her own she has not tried lately: vowel, onset and pitch
-    walked in turn from her tick."""
 
-    vowel = tick % len(VOWELS)
-    onset = (tick // len(VOWELS)) % len(ONSETS)
-    pitch = PITCHES_DECIHERTZ[(tick // (len(VOWELS) * len(ONSETS))) % len(PITCHES_DECIHERTZ)]
-    return pitch, vowel, onset
 
 
 class FunctionalOrganism:
@@ -610,6 +621,7 @@ class FunctionalOrganism:
             "head": [0, 0], "acts": {}, "pending_act": None, "last_chosen": None,
             "sleep_pressure": 0, "asleep": False, "learned": {}, "nights": 0, "act_totals": {},
             "target_totals": {}, "taste_residue": 0.0,
+            "speech": {}, "syllable_totals": {}, "prior_syllable": None, "pending_syllable": None,
         })
 
     @classmethod
@@ -657,6 +669,18 @@ class FunctionalOrganism:
             changed = True
         if "target_totals" not in state:
             state["target_totals"] = {}
+            changed = True
+        if "speech" not in state:
+            state["speech"] = {}
+            changed = True
+        if "syllable_totals" not in state:
+            state["syllable_totals"] = {}
+            changed = True
+        if "prior_syllable" not in state:
+            state["prior_syllable"] = None
+            changed = True
+        if "pending_syllable" not in state:
+            state["pending_syllable"] = None
             changed = True
         for key in RETIRED_KEYS:
             if key in state:
@@ -932,8 +956,33 @@ class FunctionalOrganism:
                     state["last_chosen"] = None
                 return decision("sleep", "falling asleep on her bed; pressure at its ceiling" if at_bed else "exhausted; asleep where she dropped")
 
+        # Check if previous pending syllable got answered by environmental sound
+        pending_syl = state.get("pending_syllable")
+        if pending_syl is not None:
+            if sound_now > 0 and tick - int(pending_syl.get("tick", 0)) <= ANSWER_WINDOW_BEATS:
+                s_key = pending_syl["key"]
+                s_name = pending_syl["syllable"]
+                s_entry = state.setdefault("speech", {}).get(s_key)
+                if s_entry is not None and s_name in s_entry.get("syllables", {}):
+                    s_entry["syllables"][s_name][1] = int(s_entry["syllables"][s_name][1]) + 1
+                state["pending_syllable"] = None
+            elif tick - int(pending_syl.get("tick", 0)) > ANSWER_WINDOW_BEATS:
+                state["pending_syllable"] = None
+
+        # Voice: choose syllable drive from speech record
+        last_spoke = int(state.get("last_spoke_tick", -999))
+        prior_syl = state.get("prior_syllable") if (tick - last_spoke) <= PHRASE_WINDOW_BEATS else None
+        acoustic_target = None
+        if sound_now > 0 and len(tokens) >= 5:
+            heard_sig = f"{tokens[3]}_{tokens[4]}"
+            for v_entry in reversed(state.get("voice", [])):
+                if v_entry.get("acoustic_sig") == heard_sig:
+                    acoustic_target = v_entry.get("syllable")
+                    break
+        say_drive, say_reason = self._choose_syllable(situation, prior_syl, acoustic_target=acoustic_target)
+
         uncertain = any(len(t) >= 5 and t[4] == "+" for t in tokens)
-        options = candidates(snapshot, body, held, offered, seen, tick)
+        options = candidates(snapshot, body, held, offered, seen, tick, say_drive=say_drive, say_detail=say_reason)
         candidate_acts = list(dict.fromkeys(option[0] for option in options))
         act, why = self._choose(key, situation, candidate_acts, uncertain=uncertain)
         matching = [option for option in options if option[0] == act]
@@ -1027,6 +1076,46 @@ class FunctionalOrganism:
         while len(learned) > CONSOLIDATED_CAPACITY:
             del learned[min(learned, key=lambda k: (int(learned[k]["tick"]), k))]
         return key[:6] + " into situation " + situation
+
+    def _choose_syllable(
+        self,
+        situation: str,
+        prior_syllable: str | None,
+        acoustic_target: str | None = None,
+    ) -> tuple[tuple[int, int, int], str]:
+        """Choose an airway syllable drive from her speech record:
+        - If an external sound matches a recorded self-heard syllable by kernel acoustic structure, answer it.
+        - Under (situation, prior_syllable): untried syllables come first ordered by her lifetime tries (never a clock formula or random hash).
+        - When syllables have been tried, the one with the highest answer rate is chosen.
+        - Speech transitions (prior_syllable -> next_syllable) grow syntax from reinforced answers."""
+
+        if acoustic_target is not None and acoustic_target in SYLLABLE_DRIVES:
+            return SYLLABLE_DRIVES[acoustic_target], f"answering acoustic structure with {acoustic_target}"
+
+        context = f"{situation}:{prior_syllable if prior_syllable else 'start'}"
+        speech = self._state.setdefault("speech", {})
+        totals = self._state.setdefault("syllable_totals", {})
+        entry = speech.get(context)
+
+        if entry is None or not entry.get("syllables"):
+            syl = min(SYLLABLES, key=lambda s: (int(totals.get(s, 0)), SYLLABLES.index(s)))
+            return SYLLABLE_DRIVES[syl], f"first try of {syl} under {context} (tried {int(totals.get(syl, 0))} in her life)"
+
+        tried = entry["syllables"]
+        answered = [s for s, data in tried.items() if int(data[1]) > 0]
+        if answered:
+            syl = max(answered, key=lambda s: (float(tried[s][1]) / int(tried[s][0]), int(tried[s][1]), -int(totals.get(s, 0))))
+            rate = float(tried[syl][1]) / int(tried[syl][0])
+            return SYLLABLE_DRIVES[syl], f"best answered under {context}: {syl} ({rate:.2f} answered)"
+
+        untried = [s for s in SYLLABLES if s not in tried]
+        if untried:
+            untried.sort(key=lambda s: (int(totals.get(s, 0)), SYLLABLES.index(s)))
+            syl = untried[0]
+            return SYLLABLE_DRIVES[syl], f"first try of {syl} under {context} (tried {int(totals.get(syl, 0))} in her life)"
+
+        syl = min(SYLLABLES, key=lambda s: (int(tried[s][0]), SYLLABLES.index(s)))
+        return SYLLABLE_DRIVES[syl], f"least tried under {context}: {syl}"
 
     def _choose(self, key: str, situation: str, acts: list[str], uncertain: bool | None = None) -> tuple[str, str]:
         """The act for this structure: from the day's record (untried first,
@@ -1146,18 +1235,45 @@ class FunctionalOrganism:
         else:
             state["ambient_sound"] = round(ambient * float(AMBIENT_MEMORY), 6)
         if self_profile is not None and state.get("pending_drive") is not None:
-            state["voice"].append({"drive": list(state["pending_drive"]), "heard": list(self_profile), "tick": tick_now})
+            tokens_commit = decision.signature.split(" ")
+            acoustic_sig = f"{tokens_commit[3]}_{tokens_commit[4]}" if len(tokens_commit) >= 5 else ""
+            p_drive = tuple(state["pending_drive"])
+            s_name = next((name for name, d in SYLLABLE_DRIVES.items() if d == p_drive), None)
+            state["voice"].append({
+                "drive": list(p_drive),
+                "heard": list(self_profile),
+                "syllable": s_name,
+                "acoustic_sig": acoustic_sig,
+                "tick": tick_now,
+            })
             del state["voice"][:-VOICE_CAPACITY]
         state["pending_voice"] = None if spoke is None else base64.b64encode(spoke).decode("ascii")
         state["pending_drive"] = None if spoke is None else list(decision.drive)
         if spoke is not None:
             state["last_spoke_tick"] = tick_now
             state["syllables"] += 1
+            spoke_drive = tuple(decision.drive) if decision.drive is not None else DEFAULT_DRIVE
+            syl_name = next((name for name, d in SYLLABLE_DRIVES.items() if d == spoke_drive), DEFAULT_SYLLABLE)
+            state["syllable_totals"][syl_name] = int(state["syllable_totals"].get(syl_name, 0)) + 1
+            tokens_commit = decision.signature.split(" ")
+            sit_commit = coarse_key("".join(t[0] for t in tokens_commit))
+            last_prior = state.get("prior_syllable")
+            ctx_key = f"{sit_commit}:{last_prior if last_prior else 'start'}"
+            speech_rec = state.setdefault("speech", {})
+            ctx_entry = speech_rec.setdefault(ctx_key, {"syllables": {}, "tick": tick_now})
+            ctx_entry["tick"] = tick_now
+            syl_data = ctx_entry["syllables"].setdefault(syl_name, [0, 0])
+            syl_data[0] = int(syl_data[0]) + 1
+            state["pending_syllable"] = {"key": ctx_key, "syllable": syl_name, "tick": tick_now}
+            state["prior_syllable"] = syl_name
+            while len(speech_rec) > SPEECH_RECORD_CAPACITY:
+                del speech_rec[min(speech_rec, key=lambda k: (int(speech_rec[k].get("tick", 0)), k))]
         state["last_act"] = decision.act
         state["tick"] = tick_now + 1
 
 
 __all__ = (
     "BODY_AXES", "CAPACITY_MICROGRAMS", "Decision", "FunctionalOrganism", "MAGIC", "SCHEMA", "Sensed",
-    "SeenThing", "cochlear_profile", "in_hand_reach", "move_commands_toward", "syllable_pcm", "things_in_sight",
+    "SeenThing", "SYLLABLES", "SYLLABLE_DRIVES", "cochlear_profile", "in_hand_reach", "move_commands_toward",
+    "syllable_pcm", "things_in_sight",
 )

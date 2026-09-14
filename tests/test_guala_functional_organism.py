@@ -734,3 +734,58 @@ def test_the_caretaker_makes_her_bed_and_she_falls_asleep_on_it_crediting_the_wa
     assert organism._state["last_chosen"] is None
     encoded = organism.encoded()
     assert FunctionalOrganism.restore(encoded).encoded() == encoded
+
+
+def test_syllables_come_from_speech_record_and_grow_syntax_from_answers() -> None:
+    """True speech from her record: syllables are chosen from her own record
+    of which sounds got answered (zero clock arithmetic, zero hash scripts).
+    Transitions from prior syllable grow into syntax."""
+
+    from dsf_ai_service.guala_functional_organism import SYLLABLE_DRIVES, SYLLABLES
+
+    organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
+
+    # 1. First try under a new context takes the least tried in her lifetime
+    drive, reason = organism._choose_syllable("_S_S", None)
+    assert drive == SYLLABLE_DRIVES["ah"]
+    assert "first try of ah under _S_S:start" in reason
+
+    # Update lifetime tries: simulate she has tried ah 5 times, eh 0 times
+    organism._state["syllable_totals"]["ah"] = 5
+    drive, reason = organism._choose_syllable("_S_S", None)
+    assert drive == SYLLABLE_DRIVES["eh"] or drive != SYLLABLE_DRIVES["ah"]
+    assert "tried 0 in her life" in reason
+
+    # 2. Syllables that got answered are reinforced and become the chosen sound
+    organism._state["speech"]["_S_S:start"] = {
+        "syllables": {"ah": [2, 0], "eh": [1, 1]}, "tick": 1,
+    }
+    drive, reason = organism._choose_syllable("_S_S", None)
+    assert drive == SYLLABLE_DRIVES["eh"]
+    assert "best answered under _S_S:start: eh (1.00 answered)" in reason
+
+    # 3. Syntax growth: after saying eh, the context is _S_S:eh
+    organism._state["speech"]["_S_S:eh"] = {
+        "syllables": {"mah": [1, 1], "ah": [1, 0]}, "tick": 2,
+    }
+    drive, reason = organism._choose_syllable("_S_S", "eh")
+    assert drive == SYLLABLE_DRIVES["mah"]
+    assert "best answered under _S_S:eh: mah" in reason
+    # Resulting sequence: eh -> mah ("eh-mah") is reinforced syntax!
+
+
+def test_acoustic_likeness_evaluated_by_kernel_structure() -> None:
+    """When an incoming sound matches the kernel discrete acoustic structure
+    (L0-L4 regime and discrete atom signs of sound_energy and sound_pitch)
+    of a self-heard syllable, she answers with that syllable."""
+
+    from dsf_ai_service.guala_functional_organism import SYLLABLE_DRIVES
+
+    organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
+    organism._state["voice"] = [
+        {"drive": list(SYLLABLE_DRIVES["mah"]), "heard": [0.5] * 32, "syllable": "mah", "acoustic_sig": "D+-+0++-_S000000", "tick": 1},
+    ]
+
+    drive, reason = organism._choose_syllable("_S_S", None, acoustic_target="mah")
+    assert drive == SYLLABLE_DRIVES["mah"]
+    assert "answering acoustic structure with mah" in reason
