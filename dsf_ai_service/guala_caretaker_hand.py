@@ -30,7 +30,6 @@ from dsf_ai_service.substrate.embodiment_world import (
     _receptor_position,
     encode_command,
 )
-from dsf_ai_service.substrate.exact_lattice_rotation import rotate_lattice_offset
 
 
 # A caregiver walks about a metre a second; one world command per leg, at
@@ -44,7 +43,14 @@ HANDLING_MICROSECONDS = 250_000
 APPROACH_DISTANCE_MM = 500
 OFFER_DISTANCE_MM = 600
 PORTAL_MARGIN_MM = 600
-MAX_STEPS = 24
+MAX_STEPS = 64
+# A straight leg the world refuses for a thing in the way is retried around it:
+# a sidestep of these widths at the leg's midpoint, then on to the target.
+DETOUR_MM = (800, -800, 1600, -1600)
+CROSSING_OFFSETS_MM = (0, 300, -300, 600, -600)
+CROSSING_MARGINS_MM = (600, 350)
+STAND_ANGLES_MILLIDEGREES = (0, 45_000, -45_000, 90_000, -90_000, 135_000, -135_000, 180_000)
+MAX_REFUSALS = 160
 
 
 def _receipt(value: object) -> str:
@@ -82,22 +88,24 @@ def _portal_route(snapshot: Any, start: str, goal: str) -> list[Any] | None:
     return None
 
 
-def _portal_waypoints(portal: Any, from_region: str, snapshot: Any) -> tuple[PositionMM, PositionMM]:
-    """Two floor points: just before the doorway inside ``from_region`` and
-    just past it inside the other region, both on the doorway's centre."""
+def _portal_points(
+    portal: Any, from_region: str, snapshot: Any, offset_mm: int, margin_mm: int,
+) -> tuple[PositionMM, PositionMM]:
+    """Two floor points: ``margin_mm`` before the doorway inside ``from_region``
+    and ``margin_mm`` past it, both ``offset_mm`` from the doorway's centre."""
 
-    centre = (portal.aperture_min_mm + portal.aperture_max_mm) // 2
+    centre = (portal.aperture_min_mm + portal.aperture_max_mm) // 2 + offset_mm
     region = next(item for item in snapshot.regions if item.region_id == from_region)
     if portal.axis == "x":
         before_side = -1 if region.bounds.maximum.x <= portal.plane_mm else 1
         return (
-            PositionMM(portal.plane_mm + before_side * PORTAL_MARGIN_MM, centre, 0),
-            PositionMM(portal.plane_mm - before_side * PORTAL_MARGIN_MM, centre, 0),
+            PositionMM(portal.plane_mm + before_side * margin_mm, centre, 0),
+            PositionMM(portal.plane_mm - before_side * margin_mm, centre, 0),
         )
     before_side = -1 if region.bounds.maximum.y <= portal.plane_mm else 1
     return (
-        PositionMM(centre, portal.plane_mm + before_side * PORTAL_MARGIN_MM, 0),
-        PositionMM(centre, portal.plane_mm - before_side * PORTAL_MARGIN_MM, 0),
+        PositionMM(centre, portal.plane_mm + before_side * margin_mm, 0),
+        PositionMM(centre, portal.plane_mm - before_side * margin_mm, 0),
     )
 
 
@@ -154,6 +162,10 @@ def nothing_left_to_bite(body: Any, item: Any) -> bool:
     )
 
 
+class _Bounded(Exception):
+    """The presentation used up its bounded steps; it ends where it stands."""
+
+
 class _Hand:
     def __init__(self, world: Any, object_id: str) -> None:
         self.world = world
@@ -171,8 +183,9 @@ class _Hand:
         return her, others[0]
 
     def execute(self, operation: str, command: Any) -> ActionExecutionReceipt:
-        if len(self.steps) >= MAX_STEPS:
-            raise RuntimeError("caregiver presentation exceeded its bounded steps")
+        applied = sum(1 for step in self.steps if step["reason"] == "applied")
+        if applied >= MAX_STEPS or len(self.steps) - applied >= MAX_REFUSALS:
+            raise _Bounded()
         before = self.snapshot()
         intent = _receipt({
             "object_id": self.object_id,
@@ -187,8 +200,10 @@ class _Hand:
             causal_intent_receipt_sha256=intent,
             expected_revision=before.revision,
         )
+        target = getattr(getattr(command, "target_pose", None), "position", None)
+        where = None if target is None else [target.x, target.y]
         if isinstance(prepared, ActionExecutionReceipt):
-            self.steps.append({"operation": operation, "reason": prepared.reason})
+            self.steps.append({"operation": operation, "reason": prepared.reason, "to": where})
             return prepared
         # Her last interval's physical return, if one is waiting, stays hers:
         # its content is untouched and only its binding follows the world the
@@ -215,23 +230,58 @@ class _Hand:
             except BaseException:
                 pass
             raise
-        self.steps.append({"operation": operation, "reason": receipt.reason})
+        self.steps.append({"operation": operation, "reason": receipt.reason, "to": where})
         return receipt
 
     def applied(self, operation: str, command: Any) -> bool:
         return self.execute(operation, command).reason == "applied"
 
-    def move(self, target: PositionMM, heading: int | None = None) -> bool:
+    def leg(self, target: PositionMM, heading: int | None = None) -> str:
         snapshot = self.snapshot()
         _her, person = self.bodies(snapshot)
         origin = person.pose.position
         if (origin.x, origin.y) == (target.x, target.y) and heading is None:
-            return True
+            return "applied"
         micro = int(min(MAX_STEP_MICROSECONDS, max(
             MIN_STEP_MICROSECONDS, _distance_mm(origin, target) * 1_000_000 / MILLIMETRES_PER_SECOND,
         )))
         pose = PoseMM(target, _heading_toward(origin, target) if heading is None else heading)
-        return self.applied("move", MoveCommand(pose, micro))
+        return self.execute("move", MoveCommand(pose, micro)).reason
+
+    def move(self, target: PositionMM, heading: int | None = None, detour: bool = True) -> bool:
+        """One leg to ``target``; when the world refuses it for a thing or a
+        body in the way, sidestep around at the midpoint and try again."""
+
+        snapshot = self.snapshot()
+        _her, person = self.bodies(snapshot)
+        origin = person.pose.position
+        reason = self.leg(target, heading)
+        if reason == "applied":
+            return True
+        if not detour or reason not in ("move_path_intersects_object", "move_path_intersects_body"):
+            return False
+        dx, dy = target.x - origin.x, target.y - origin.y
+        span = (dx * dx + dy * dy) ** 0.5
+        if span == 0:
+            return False
+        for width in DETOUR_MM:
+            side = PositionMM(
+                round(origin.x + dx / 2 - dy / span * width),
+                round(origin.y + dy / 2 + dx / span * width),
+                0,
+            )
+            side_region = _region_of(snapshot, side, person.radius_mm)
+            origin_region = _region_of(snapshot, origin, person.radius_mm)
+            if side_region is None or origin_region is None or side_region.region_id != origin_region.region_id:
+                continue
+            if self.leg(side) != "applied":
+                continue
+            if self.leg(target, heading) == "applied":
+                return True
+            # The second half is blocked too: come back and try the next width.
+            if self.leg(origin) != "applied":
+                return False
+        return False
 
     def walk_to_region(self, goal: str) -> bool:
         snapshot = self.snapshot()
@@ -250,18 +300,113 @@ class _Hand:
             return False
         current = here.region_id
         for portal in route:
-            before_door, past_door = _portal_waypoints(portal, current, snapshot)
-            if not self.move(before_door) or not self.move(past_door):
+            if not self.cross(portal, current, snapshot):
                 return False
             current = portal.region_ids[0] if portal.region_ids[1] == current else portal.region_ids[1]
         return True
 
-    def stand_before(self, target: PositionMM, distance_mm: int, face: PositionMM | None = None) -> bool:
+    def reach_her(self, her: Any) -> bool:
+        """Come within her reach: room to room through the doorways, then a
+        clear spot in front of her face or beside her. When she sits in the
+        doorway itself, the last leg steps through it straight to her side."""
+
+        snapshot = self.snapshot()
+        her_region = _region_of(snapshot, her.pose.position, her.radius_mm)
+        if her_region is None:
+            self.steps.append({"operation": "route", "reason": "her_region_unresolved", "to": None})
+            return False
+        self.walk_to_region(her_region.region_id)
+        spots = (OFFER_DISTANCE_MM, 520, 700, 780)
+        return self.stand_before(
+            her.pose.position, OFFER_DISTANCE_MM,
+            front_heading_millidegrees=her.pose.heading_millidegrees, distances_mm=spots,
+            region_id=her_region.region_id,
+        )
+
+    def set_down(self, object_id: str) -> bool:
+        """Put what the caregiver carries on the floor beside it: the first
+        spot around it, near first, that the world's place law accepts."""
+
+        import math
+
         snapshot = self.snapshot()
         _her, person = self.bodies(snapshot)
-        spot = _approach_point(person.pose.position, target, distance_mm)
-        heading = _heading_toward(spot, face if face is not None else target)
-        return self.move(spot, heading)
+        origin = person.pose.position
+        for radius in (450, 600, 750):
+            for turn in (-90_000, 90_000, 0, 180_000, -45_000, 45_000, -135_000, 135_000):
+                angle = math.radians(((person.pose.heading_millidegrees + turn) % 360_000) / 1_000)
+                spot = PositionMM(round(origin.x + radius * math.cos(angle)), round(origin.y + radius * math.sin(angle)), 0)
+                if self.applied("place", PlaceCommand(object_id, spot, HANDLING_MICROSECONDS)):
+                    return True
+        return False
+
+    def cross(self, portal: Any, from_region: str, snapshot: Any) -> bool:
+        """Through one doorway: the centre first, then other clear crossings
+        across its width, shorter steps past it when the far side is crowded."""
+
+        for before_margin in CROSSING_MARGINS_MM:
+            for before_offset in CROSSING_OFFSETS_MM:
+                before_door, _ = _portal_points(portal, from_region, snapshot, before_offset, before_margin)
+                if not self.move(before_door):
+                    continue
+                # From this side of the doorway, any clear point past it will
+                # do — straight through or on the diagonal — in one leg.
+                for past_margin in CROSSING_MARGINS_MM:
+                    for past_offset in CROSSING_OFFSETS_MM:
+                        _, past_door = _portal_points(portal, from_region, snapshot, past_offset, past_margin)
+                        if self.leg(past_door) == "applied":
+                            return True
+        return False
+
+    def stand_before(
+        self, target: PositionMM, distance_mm: int, face: PositionMM | None = None,
+        front_heading_millidegrees: int | None = None,
+        distances_mm: tuple[int, ...] | None = None,
+        region_id: str | None = None,
+    ) -> bool:
+        """Stand near ``target``: in front of its face when a heading is
+        given, else on the line of approach; then any clear spot around it at
+        the given distances, nearest first. A single leg may pass a doorway.
+        The world refuses what is not clear or not in reach of a lawful step."""
+
+        import math
+
+        snapshot = self.snapshot()
+        _her, person = self.bodies(snapshot)
+        origin = person.pose.position
+        radii = distances_mm if distances_mm is not None else (distance_mm,)
+        candidates = []
+        if front_heading_millidegrees is not None:
+            angle = math.radians(front_heading_millidegrees / 1_000)
+            candidates.append(PositionMM(
+                round(target.x + distance_mm * math.cos(angle)),
+                round(target.y + distance_mm * math.sin(angle)), 0,
+            ))
+        candidates.append(_approach_point(origin, target, distance_mm))
+        ring = []
+        base = front_heading_millidegrees if front_heading_millidegrees is not None else _heading_toward(target, origin)
+        for radius in radii:
+            for turn in STAND_ANGLES_MILLIDEGREES + (22_500, -22_500, 67_500, -67_500, 112_500, -112_500, 157_500, -157_500):
+                angle = math.radians(((base + turn) % 360_000) / 1_000)
+                ring.append(PositionMM(
+                    round(target.x + radius * math.cos(angle)),
+                    round(target.y + radius * math.sin(angle)), 0,
+                ))
+        ring.sort(key=lambda spot: _distance_mm(origin, spot))
+        seen = set()
+        for index, spot in enumerate(candidates + ring):
+            key = (spot.x, spot.y)
+            if key in seen or _distance_mm(spot, target) < min(radii) * 0.9:
+                continue
+            seen.add(key)
+            region = _region_of(snapshot, spot, person.radius_mm)
+            if region is None or (region_id is not None and region.region_id != region_id):
+                continue
+            heading = _heading_toward(spot, face if face is not None else target)
+            # The first spots are worth a sidestep; the rest are tried straight.
+            if self.move(spot, heading, detour=index < len(candidates) + 2):
+                return True
+        return False
 
     def present(self) -> dict[str, object]:
         snapshot = self.snapshot()
@@ -288,27 +433,19 @@ class _Hand:
 
         # Hands free first: whatever the caregiver carries goes down here.
         if person.held_object_id is not None and person.held_object_id != self.object_id:
-            dx, dy = rotate_lattice_offset(person.radius_mm + 200, 0, person.pose.heading_millidegrees)
-            down = PositionMM(person.pose.position.x + dx, person.pose.position.y + dy, 0)
-            if not self.applied("place", PlaceCommand(person.held_object_id, down, HANDLING_MICROSECONDS)):
+            if not self.set_down(person.held_object_id):
                 return outcome
 
         # An eaten core in her hand comes away before fresh food is offered.
         held = by_id.get(her.held_object_id) if her.held_object_id is not None else None
         if held is not None and nothing_left_to_bite(her, held):
-            if not self.walk_to_region(her_region.region_id):
-                return outcome
-            if not self.stand_before(her.pose.position, OFFER_DISTANCE_MM):
+            if not self.reach_her(her):
                 return outcome
             if not self.applied("take", TakeContactHeldObjectCommand(HANDLING_MICROSECONDS)):
                 return outcome
-            snapshot = self.snapshot()
-            _her, person = self.bodies(snapshot)
-            dx, dy = rotate_lattice_offset(0, -(person.radius_mm + 200), person.pose.heading_millidegrees)
-            down = PositionMM(person.pose.position.x + dx, person.pose.position.y + dy, 0)
-            if not self.applied("place", PlaceCommand(held.object_id, down, HANDLING_MICROSECONDS)):
-                return outcome
             outcome["took_away"] = held.object_id
+            if not self.set_down(held.object_id):
+                return outcome
 
         # Fetch the food.
         snapshot = self.snapshot()
@@ -323,17 +460,18 @@ class _Hand:
                 return outcome
             if not self.walk_to_region(food_region.region_id):
                 return outcome
-            if not self.stand_before(food.position, APPROACH_DISTANCE_MM):
+            if not self.stand_before(
+                food.position, APPROACH_DISTANCE_MM, distances_mm=(APPROACH_DISTANCE_MM, 420, 650, 780),
+                region_id=food_region.region_id,
+            ):
                 return outcome
             if not self.applied("pick", PickCommand(self.object_id, HANDLING_MICROSECONDS)):
                 return outcome
 
         # Bring it to her and hold it out, facing her.
-        if not self.walk_to_region(her_region.region_id):
-            return outcome
         snapshot = self.snapshot()
         her, _person = self.bodies(snapshot)
-        if not self.stand_before(her.pose.position, OFFER_DISTANCE_MM):
+        if not self.reach_her(her):
             return outcome
         snapshot = self.snapshot()
         her, person = self.bodies(snapshot)
@@ -350,7 +488,15 @@ def present_food(world: Any, object_id: str) -> dict[str, object]:
 
     if not isinstance(object_id, str) or not object_id:
         raise ValueError("presented food needs an object identity")
-    return _Hand(world, object_id).present()
+    hand = _Hand(world, object_id)
+    try:
+        return hand.present()
+    except _Bounded:
+        hand.steps.append({"operation": "bound", "reason": "presentation_steps_exhausted", "to": None})
+        return {
+            "object_id": object_id, "presented": False, "took_away": None,
+            "schema": "guala.caregiver_presentation.v1", "steps": hand.steps,
+        }
 
 
 __all__ = ("nothing_left_to_bite", "offered_within_reach", "present_food")
