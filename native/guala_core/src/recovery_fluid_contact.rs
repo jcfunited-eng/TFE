@@ -125,6 +125,35 @@ pub(crate) fn settle_powered_environment_exchange(
     predecessor: RecoveryFluidReservoirState,
     maximum_interval_energy_zeptojoules: ExactRational,
 ) -> Result<PoweredEnvironmentExchange, RecoveryFluidError> {
+    settle_environment_exchange(anatomy, predecessor, maximum_interval_energy_zeptojoules, true)
+}
+
+/// Phase two of the organism's life (Joe, 2026-09-14: "that incubator is
+/// supposed to be gone"): the always-available phase-one incubator no longer
+/// converts spent material back to available for free; spent is recovered
+/// only through real intake (metabolic_feeding). The body's own heat export
+/// through the same contact keeps its bound — that is her cooling, not the
+/// incubator's gift. Phase two is the DEFAULT; GUALA_PHASE_ONE=1 restores the
+/// incubator only for historical comparison proofs. Declared, never inferred.
+pub(crate) fn settle_phase_two_environment_exchange(
+    anatomy: RecoveryFluidReservoirAnatomy,
+    predecessor: RecoveryFluidReservoirState,
+    maximum_interval_energy_zeptojoules: ExactRational,
+) -> Result<PoweredEnvironmentExchange, RecoveryFluidError> {
+    settle_environment_exchange(anatomy, predecessor, maximum_interval_energy_zeptojoules, false)
+}
+
+pub(crate) fn phase_one_incubator_declared() -> bool {
+    static PHASE_ONE: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
+    *PHASE_ONE.get_or_init(|| std::env::var_os("GUALA_PHASE_ONE").is_some_and(|value| value == "1"))
+}
+
+fn settle_environment_exchange(
+    anatomy: RecoveryFluidReservoirAnatomy,
+    predecessor: RecoveryFluidReservoirState,
+    maximum_interval_energy_zeptojoules: ExactRational,
+    recycling: bool,
+) -> Result<PoweredEnvironmentExchange, RecoveryFluidError> {
     let zero = ExactRational::integer(0);
     if wide_rational(maximum_interval_energy_zeptojoules) < wide_rational(zero) {
         return Err(RecoveryFluidError::StateOutsideAnatomy);
@@ -140,10 +169,13 @@ pub(crate) fn settle_powered_environment_exchange(
     // exists to tune. Consequence: her usable total genuinely falls under
     // sustained activity, at a slope her own anatomy sets — the physical
     // precondition for hunger, need, and eating meaning anything.
-    let delivered_wide = (wide_rational(maximum_interval_energy_zeptojoules)
-        / num_bigint::BigInt::from(2))
-    .min(wide_rational(spent) / num_bigint::BigInt::from(2))
-    .min(wide_rational(available_capacity) - wide_rational(available));
+    let delivered_wide = if recycling {
+        (wide_rational(maximum_interval_energy_zeptojoules) / num_bigint::BigInt::from(2))
+            .min(wide_rational(spent) / num_bigint::BigInt::from(2))
+            .min(wide_rational(available_capacity) - wide_rational(available))
+    } else {
+        wide_rational(zero)
+    };
     let candidate_delivered = match narrow_rational(delivered_wide) {
         Ok(value) => value,
         Err(RecoveryFluidError::ArithmeticWidth) => zero,

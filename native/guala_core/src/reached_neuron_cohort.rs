@@ -43,8 +43,7 @@ use crate::recovery_fluid_contact::{
     is_legacy_recovery_fluid_state, recovery_exchange_extent_is_representable,
     settle_powered_environment_exchange, settle_resident_gate_recovery_before_interval,
     whole_extents_carried, whole_extents_carried_difference, ReachedRecoveryFluidAnatomy,
-    RecoveryFluidError, RecoveryFluidReservoirState,
-};
+    RecoveryFluidError, RecoveryFluidReservoirState, phase_one_incubator_declared, settle_phase_two_environment_exchange};
 #[cfg(test)]
 use crate::recovery_fluid_contact::RecoveryFluidReservoirAnatomy;
 use crate::sha256::sha256;
@@ -3348,11 +3347,19 @@ pub(crate) fn prepare_reached_cohort_membrane_pumps(
         .map_err(|_| {
             ReachedCohortError::MaterialArithmetic("reached pump interval energy overflow")
         })?;
-    let environment = settle_powered_environment_exchange(
-        anatomy.recovery_fluid.reservoir_anatomy(),
-        state.recovery_fluid,
-        maximum_interval_energy,
-    )?;
+    let environment = if phase_one_incubator_declared() {
+        settle_powered_environment_exchange(
+            anatomy.recovery_fluid.reservoir_anatomy(),
+            state.recovery_fluid,
+            maximum_interval_energy,
+        )?
+    } else {
+        settle_phase_two_environment_exchange(
+            anatomy.recovery_fluid.reservoir_anatomy(),
+            state.recovery_fluid,
+            maximum_interval_energy,
+        )?
+    };
 
     let mut reservoir = environment.successor;
     // THE DOORWAY (R1 eating): energy from genuinely transferred world
@@ -3710,11 +3717,19 @@ pub(crate) fn settle_reached_cohort_dark_rest(
         .map_err(|_| {
             ReachedCohortError::MaterialArithmetic("dark-rest interval energy overflow")
         })?;
-    let environment = settle_powered_environment_exchange(
-        anatomy.recovery_fluid.reservoir_anatomy(),
-        predecessor.recovery_fluid,
-        maximum_interval_energy,
-    )?;
+    let environment = if phase_one_incubator_declared() {
+        settle_powered_environment_exchange(
+            anatomy.recovery_fluid.reservoir_anatomy(),
+            predecessor.recovery_fluid,
+            maximum_interval_energy,
+        )?
+    } else {
+        settle_phase_two_environment_exchange(
+            anatomy.recovery_fluid.reservoir_anatomy(),
+            predecessor.recovery_fluid,
+            maximum_interval_energy,
+        )?
+    };
     let mut reservoir = environment.successor;
     observation.environment_energy_delivered_zeptojoules = environment.delivered_energy_zeptojoules;
     observation.environment_heat_exported_zeptojoules = environment.exported_heat_zeptojoules;

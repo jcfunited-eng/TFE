@@ -36,7 +36,9 @@ const INTERVAL_TICKS: u64 = 250;
 const PORT_RELEVANCE: &str = "exact-unit-source-relevance.v1";
 const JOINT_RELEVANCE: &[u8] = b"guala.metabolic_need.interoceptors.present.r(t)=1.exact.v1";
 const INPUT_MAP: &str = "signed-unit-affine-v1";
-const SENSOR_ID: &str = "organism-metabolic-interoceptors";
+/// The one declared sensor id of both interoceptive ports; the formation's
+/// rooting reflex identifies the reserve-deficit receptor site by it.
+pub(crate) const INTEROCEPTOR_SENSOR_ID: &str = "organism-metabolic-interoceptors";
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) enum InteroceptiveSourceError {
@@ -97,7 +99,7 @@ pub(crate) fn admit_interoceptive_source(
                 .checked_add(ordinal)
                 .ok_or(InteroceptiveSourceError::ArithmeticWidth)?,
         )?;
-        text(&mut output, SENSOR_ID)?;
+        text(&mut output, INTEROCEPTOR_SENSOR_ID)?;
         text(&mut output, stream)?;
         output.extend_from_slice(&2_u16.to_le_bytes());
         text(&mut output, "body-compartment")?;

@@ -152,6 +152,9 @@ use crate::tactile_receptor_work::{
     derive_tactile_receptor_sample_range_work, quantize_tactile_delivery, TactileReceptorAnatomy,
     TactileReceptorWorkError, CONTACT_REFERENCE_OCCUPANCY_UNIT, CONTACT_SITE_OCCUPANCY_QUANTITY,
 };
+use crate::interoceptive_joint_source_builder::{
+    INTEROCEPTOR_PORT_COUNT, INTEROCEPTOR_SENSOR_ID, INTEROCEPTOR_TOPOLOGY_OFFSET,
+};
 use crate::thermal_receptor_work::{
     derive_thermal_receptor_sample_range_work, quantize_thermal_delivery, ThermalReceptorAnatomy,
     ThermalReceptorWorkError, INTEROCEPTOR_REFERENCE_INTERVAL_UNIT,
@@ -384,6 +387,15 @@ const ADDED_BODY_PROPRIOCEPTOR_LAYER6_TOPOLOGY_OFFSET: u32 =
 const ADDED_BODY_EFFECTOR_LOAD_LAYER6_TOPOLOGY_OFFSET: u32 =
     ADDED_BODY_PROPRIOCEPTOR_LAYER6_TOPOLOGY_OFFSET
         + (BODY_EFFECTOR_TERMINAL_COUNT - LEGACY_BODY_EFFECTOR_TERMINAL_COUNT) as u32;
+/// The two metabolic-need interoceptors (drive organ stage 2) are body
+/// afference like every tract ending and take the next compact layer-6
+/// interval after the added load endings. Their Cantor projection would sit
+/// at territory ~2.1e8 unit patches, a membrane so wide that the receptor's
+/// whole delivered charge raises it by microvolts and the chain dies there —
+/// the same electrical dead end the fixed antagonist terminals were moved off
+/// (see the layer-8 note below). Compact anatomy, declared, not tuned.
+const INTEROCEPTOR_LAYER6_TOPOLOGY_OFFSET: u32 = ADDED_BODY_EFFECTOR_LOAD_LAYER6_TOPOLOGY_OFFSET
+    + (BODY_EFFECTOR_TERMINAL_COUNT - LEGACY_BODY_EFFECTOR_TERMINAL_COUNT) as u32;
 /// Body regulation is its own layer-8 geography. Before proprioception, its
 /// widest body receptor is layer 5, topology 9, whose local projection is 114.
 /// The fixed antagonist terminals therefore occupy the next disjoint layer-8
@@ -406,6 +418,11 @@ const ADDED_BODY_PROPRIOCEPTOR_LAYER8_TOPOLOGY_OFFSET: u32 =
 const ADDED_BODY_EFFECTOR_LOAD_LAYER8_TOPOLOGY_OFFSET: u32 =
     ADDED_BODY_PROPRIOCEPTOR_LAYER8_TOPOLOGY_OFFSET
         + (BODY_EFFECTOR_TERMINAL_COUNT - LEGACY_BODY_EFFECTOR_TERMINAL_COUNT) as u32;
+/// Layer-8 regulation of the two interoceptors: the next compact interval
+/// after the added load regulations, paired one-to-one with the layer-6
+/// interval above.
+const INTEROCEPTOR_LAYER8_TOPOLOGY_OFFSET: u32 = ADDED_BODY_EFFECTOR_LOAD_LAYER8_TOPOLOGY_OFFSET
+    + (BODY_EFFECTOR_TERMINAL_COUNT - LEGACY_BODY_EFFECTOR_TERMINAL_COUNT) as u32;
 /// A fixed translation motor shares its terminal ordinal with the compact
 /// layer-8 regulator that prepares it. Layer 12 at the same ordinal has a
 /// strictly larger declared membrane territory, so one carrier leaving the
@@ -10845,6 +10862,213 @@ impl ResidentCognitiveFormationState {
             .collect()
     }
 
+    /// Read-only observation of the rooting reflex arc: ``(receptor, regulation,
+    /// jaw motor)`` presence and whether the regulation-to-jaw developmental
+    /// contact exists. The receptor is the reserve-deficit interoceptor, the
+    /// regulation its layer-8 cell, the motor the jaw-opening layer-12
+    /// terminal. Reading advances nothing and settles no physics.
+    pub(crate) fn observe_rooting_reflex_arc(&self) -> (bool, bool, bool, bool) {
+        let mounted = self
+            .cohorts
+            .iter()
+            .flat_map(|cohort| {
+                cohort
+                    .anatomy
+                    .mounts()
+                    .iter()
+                    .zip(cohort.anatomy.neuron_lineages())
+            })
+            .collect::<Vec<_>>();
+        let receptor = mounted
+            .iter()
+            .find(|(mount, _)| {
+                mount
+                    .source_site()
+                    .is_some_and(is_reserve_deficit_interoceptor_site)
+            })
+            .map(|(_, lineage)| **lineage);
+        // Follow the retained developmental chain by contact, never by a
+        // guessed place: receptor -> layer 6 -> layer 8.
+        let integration = receptor.and_then(|receptor| {
+            mounted
+                .iter()
+                .find(|(mount, lineage)| {
+                    mount.place().layer() == 6
+                        && mount.source_site().is_none()
+                        && self.electrical_fabric.contains_contact(receptor, **lineage)
+                })
+                .map(|(_, lineage)| **lineage)
+        });
+        let regulation = integration.and_then(|integration| {
+            mounted
+                .iter()
+                .find(|(mount, lineage)| {
+                    mount.place().layer() == 8
+                        && mount.source_site().is_none()
+                        && self.electrical_fabric.contains_contact(integration, **lineage)
+                })
+                .map(|(_, lineage)| **lineage)
+        });
+        let motor = mounted
+            .iter()
+            .find(|(mount, _)| {
+                mount.place().layer() == 12
+                    && mount
+                        .body_effector_terminal()
+                        .is_some_and(is_opening_jaw_terminal)
+            })
+            .map(|(_, lineage)| **lineage);
+        let contact = match (regulation, motor) {
+            (Some(regulation), Some(motor)) => {
+                self.electrical_fabric.contains_contact(regulation, motor)
+            }
+            _ => false,
+        };
+        (receptor.is_some(), regulation.is_some(), motor.is_some(), contact)
+    }
+
+    /// Read-only detail of the rooting reflex arc for measurement: for each
+    /// of receptor, integration, regulation and jaw motor that exists,
+    /// ``(role, layer, topology_index, declared_territory, separated
+    /// elementary charges)``. The territory is the membrane capacitance in
+    /// unit patches — the quantity that, with the charges, decides whether a
+    /// carrier may lawfully cross each contact. Reading advances nothing.
+    pub(crate) fn observe_rooting_reflex_arc_detail(
+        &self,
+    ) -> Vec<(&'static str, u32, u32, u128, i128, f64, u128, u128)> {
+        let mut rows = Vec::new();
+        let mounted = self
+            .cohorts
+            .iter()
+            .flat_map(|cohort| {
+                cohort
+                    .anatomy
+                    .mounts()
+                    .iter()
+                    .zip(cohort.anatomy.neuron_lineages())
+                    .zip(cohort.state.neurons().iter().zip(cohort.anatomy.neuron_anatomies()))
+                    .map(|((mount, lineage), (state, anatomy))| {
+                        let potential = state
+                            .membrane_state()
+                            .potential_millivolts(anatomy.capacitance())
+                            .map(|value| {
+                                let (numerator, denominator) = value.parts();
+                                numerator as f64 / denominator as f64
+                            })
+                            .unwrap_or(f64::NAN);
+                        (
+                            mount,
+                            *lineage,
+                            state.separated_elementary_charges(),
+                            potential,
+                            state.carrier_reservoirs().intracellular(),
+                        )
+                    })
+            })
+            .collect::<Vec<_>>();
+        // Conducting channel population of the contact joining two lineages.
+        let channels = |left: [u8; 16], right: [u8; 16]| -> u128 {
+            let lineages = self.electrical_fabric.lineages();
+            let states = self.electrical_fabric.state().contact_states();
+            self.electrical_fabric
+                .contact_endpoints()
+                .enumerate()
+                .find(|(_, (a, b))| {
+                    (lineages[*a] == left && lineages[*b] == right)
+                        || (lineages[*a] == right && lineages[*b] == left)
+                })
+                .map(|(index, _)| states[index].conducting_channel_population())
+                .unwrap_or(0)
+        };
+        let row = |role: &'static str,
+                   mount: &ReachedNeuronMount,
+                   charges: i128,
+                   potential: f64,
+                   intracellular: u128,
+                   inbound_channels: u128| {
+            let place = mount.place();
+            (
+                role,
+                place.layer(),
+                place.topology_index(),
+                declared_neuron_territory(place).unwrap_or(0),
+                charges,
+                potential,
+                intracellular,
+                inbound_channels,
+            )
+        };
+        let receptor = mounted.iter().find(|(mount, _, _, _, _)| {
+            mount
+                .source_site()
+                .is_some_and(is_reserve_deficit_interoceptor_site)
+        });
+        let Some((receptor_mount, receptor_lineage, receptor_charges, receptor_potential, receptor_reserve)) =
+            receptor
+        else {
+            return rows;
+        };
+        rows.push(row("receptor", receptor_mount, *receptor_charges, *receptor_potential, *receptor_reserve, 0));
+        let integration = mounted.iter().find(|(mount, lineage, _, _, _)| {
+            mount.place().layer() == 6
+                && mount.source_site().is_none()
+                && self.electrical_fabric.contains_contact(*receptor_lineage, *lineage)
+        });
+        let regulation = integration.and_then(|(_, integration_lineage, _, _, _)| {
+            mounted.iter().find(|(mount, lineage, _, _, _)| {
+                mount.place().layer() == 8
+                    && mount.source_site().is_none()
+                    && self.electrical_fabric.contains_contact(*integration_lineage, *lineage)
+            })
+        });
+        if let Some((mount, lineage, charges, potential, reserve)) = integration {
+            rows.push(row("integration", mount, *charges, *potential, *reserve, channels(*receptor_lineage, *lineage)));
+        }
+        if let (Some((_, integration_lineage, _, _, _)), Some((mount, lineage, charges, potential, reserve))) =
+            (integration, regulation)
+        {
+            rows.push(row("regulation", mount, *charges, *potential, *reserve, channels(*integration_lineage, *lineage)));
+        }
+        for (mount, lineage, charges, potential, reserve) in mounted.iter().filter(|(mount, _, _, _, _)| {
+            mount.place().layer() == 12
+                && mount
+                    .body_effector_terminal()
+                    .is_some_and(is_opening_jaw_terminal)
+        }) {
+            let inbound = regulation
+                .map(|(_, regulation_lineage, _, _, _)| channels(*regulation_lineage, *lineage))
+                .unwrap_or(0);
+            rows.push(row("jaw_motor", mount, *charges, *potential, *reserve, inbound));
+        }
+        rows
+    }
+
+    /// Read-only projection of every living mount's declared place:
+    /// ``(layer, topology_index, has_source, declared_territory, separated
+    /// elementary charges)``. Measurement only; reading advances nothing.
+    pub(crate) fn observe_mount_places(&self) -> Vec<(u32, u32, bool, u128, i128)> {
+        self.cohorts
+            .iter()
+            .flat_map(|cohort| {
+                cohort
+                    .anatomy
+                    .mounts()
+                    .iter()
+                    .zip(cohort.state.neurons())
+                    .map(|(mount, state)| {
+                        let place = mount.place();
+                        (
+                            place.layer(),
+                            place.topology_index(),
+                            mount.source_site().is_some(),
+                            declared_neuron_territory(place).unwrap_or(0),
+                            state.separated_elementary_charges(),
+                        )
+                    })
+            })
+            .collect()
+    }
+
     /// Count the living reached neurons at each exact developmental layer.
     ///
     /// This is a bounded read-only projection of persisted anatomy. It does
@@ -15916,6 +16140,28 @@ fn local_integration_place(
                 .ok_or(FormationError::ArithmeticOverflow)?,
         ));
     }
+    let interoceptor_start = u32::try_from(INTEROCEPTOR_TOPOLOGY_OFFSET)
+        .map_err(|_| FormationError::ArithmeticOverflow)?;
+    let interoceptor_end = interoceptor_start
+        .checked_add(
+            u32::try_from(INTEROCEPTOR_PORT_COUNT)
+                .map_err(|_| FormationError::ArithmeticOverflow)?,
+        )
+        .ok_or(FormationError::ArithmeticOverflow)?;
+    if receptor_place.layer() == u32::from(PhysicalSourceSense::Body.declared_layer())
+        && (interoceptor_start..interoceptor_end).contains(&receptor_place.topology_index())
+    {
+        let relative = receptor_place
+            .topology_index()
+            .checked_sub(interoceptor_start)
+            .ok_or(FormationError::ArithmeticOverflow)?;
+        return Ok(DeclaredNeuronPlace::new(
+            6,
+            INTEROCEPTOR_LAYER6_TOPOLOGY_OFFSET
+                .checked_add(relative)
+                .ok_or(FormationError::ArithmeticOverflow)?,
+        ));
+    }
     let paired = declared_neuron_territory(receptor_place)
         .map_err(|_| FormationError::ArithmeticOverflow)?
         .checked_sub(1)
@@ -16058,6 +16304,28 @@ fn body_regulation_place(
                 .ok_or(FormationError::ArithmeticOverflow)?,
         ));
     }
+    let interoceptor_start = u32::try_from(INTEROCEPTOR_TOPOLOGY_OFFSET)
+        .map_err(|_| FormationError::ArithmeticOverflow)?;
+    let interoceptor_end = interoceptor_start
+        .checked_add(
+            u32::try_from(INTEROCEPTOR_PORT_COUNT)
+                .map_err(|_| FormationError::ArithmeticOverflow)?,
+        )
+        .ok_or(FormationError::ArithmeticOverflow)?;
+    if receptor_place.layer() == u32::from(PhysicalSourceSense::Body.declared_layer())
+        && (interoceptor_start..interoceptor_end).contains(&receptor_place.topology_index())
+    {
+        let relative = receptor_place
+            .topology_index()
+            .checked_sub(interoceptor_start)
+            .ok_or(FormationError::ArithmeticOverflow)?;
+        return Ok(DeclaredNeuronPlace::new(
+            8,
+            INTEROCEPTOR_LAYER8_TOPOLOGY_OFFSET
+                .checked_add(relative)
+                .ok_or(FormationError::ArithmeticOverflow)?,
+        ));
+    }
     Ok(DeclaredNeuronPlace::new(
         8,
         integration_place.topology_index(),
@@ -16123,6 +16391,29 @@ fn carries_gustatory_contact_onset(
 fn is_closing_glottal_terminal(terminal: BodyEffectorTerminal) -> bool {
     terminal.axis() == BodyAxis::GlottalAperture
         && terminal.direction() == BodyEffectorDirection::TowardMinimum
+}
+
+/// The organism's own reserve-deficit interoceptor (drive organ stage 2): the
+/// declared body-sense port at the first interoceptive place, carrying the
+/// exact share of usable material that is spent and awaiting recovery.
+fn is_reserve_deficit_interoceptor_site(source_site: &NeuronSourceSite) -> bool {
+    source_site.sense() == PhysicalSourceSense::Body
+        && u32::try_from(INTEROCEPTOR_TOPOLOGY_OFFSET)
+            .is_ok_and(|place| source_site.topology_index() == place)
+        && source_site.sensor_id() == INTEROCEPTOR_SENSOR_ID
+        && source_site.physical_quantity() == INTEROCEPTOR_RESERVE_DEFICIT_QUANTITY
+}
+
+/// The rooting/feeding reflex terminal: the jaw opening toward whatever is at
+/// the mouth. Like the palmar grasp and the glottal closer, this is born
+/// developmental anatomy from one declared receptor to one declared motor;
+/// whether the reflex fires is decided only by how much of the receptor's
+/// delivered energy reaches the motor's gate. The deficit is a tonic
+/// afference like reacted joint load, so no onset law applies: continued
+/// need continues to prepare the jaw until real intake lowers the deficit.
+fn is_opening_jaw_terminal(terminal: BodyEffectorTerminal) -> bool {
+    terminal.axis() == BodyAxis::JawOpening
+        && terminal.direction() == BodyEffectorDirection::TowardMaximum
 }
 
 /// Mount one new source-independent neuron at the first quiescent place in a
@@ -16744,6 +17035,18 @@ fn mount_reached_body_regulation(
                                 BodyEffectorTerminal::new(
                                     BodyAxis::GlottalAperture,
                                     BodyEffectorDirection::TowardMinimum,
+                                ),
+                            )];
+                        }
+                        if is_reserve_deficit_interoceptor_site(source_site) {
+                            // The reserve-deficit interoceptor's born pairing
+                            // is the single jaw-opening terminal: the rooting
+                            // reflex. Need reaches the mouth and nothing else;
+                            // the thermal-load interoceptor pairs with no motor.
+                            return vec![DevelopedMotorTerminal::Articulated(
+                                BodyEffectorTerminal::new(
+                                    BodyAxis::JawOpening,
+                                    BodyEffectorDirection::TowardMaximum,
                                 ),
                             )];
                         }
@@ -19863,9 +20166,13 @@ fn exact_motor_preparation_transfers(
 /// The gustatory intake surface prepares only the single closing glottal
 /// terminal, and only when a gustatory receptor carries an exact material
 /// onset — the born airway-protection reflex; continued tasting remains
-/// taste and is not a new swallow. Tonic antagonist-length receptors and
-/// every other receptor site remain excluded: unchanged pose, unrelated
-/// touch, or lingering material cannot become motor drive.
+/// taste and is not a new swallow. The reserve-deficit interoceptor prepares
+/// only the single jaw-opening terminal — the rooting reflex — and, being a
+/// tonic afference like reacted load, needs no onset: continued need keeps
+/// preparing the jaw until real intake lowers the deficit. Tonic
+/// antagonist-length receptors, the thermal-load interoceptor and every other
+/// receptor site remain excluded: unchanged pose, unrelated touch, heat, or
+/// lingering material cannot become motor drive.
 fn exact_articulated_body_preparation_regulations(
     motor_terminal: BodyEffectorTerminal,
     paths: &[MotorBodyAfferentPath],
@@ -19889,6 +20196,11 @@ fn exact_articulated_body_preparation_regulations(
                 && gustatory_contact_onset_receptor_lineages
                     .binary_search(&path.receptor_lineage)
                     .is_ok()
+            {
+                return Some(path.body_regulation_lineage);
+            }
+            if is_reserve_deficit_interoceptor_site(receptor_site)
+                && is_opening_jaw_terminal(motor_terminal)
             {
                 return Some(path.body_regulation_lineage);
             }

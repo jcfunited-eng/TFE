@@ -6149,6 +6149,53 @@ impl NativeResidentOrganismRuntime {
             .collect()
     }
 
+    /// Read-only observation of the rooting reflex arc (drive organ stage 3):
+    /// ``(receptor_present, regulation_present, jaw_motor_present,
+    /// regulation_to_jaw_contact_present)``. Reading advances nothing.
+    fn observe_rooting_reflex_arc(&self) -> (bool, bool, bool, bool) {
+        self.runtime.cognitive_state().observe_rooting_reflex_arc()
+    }
+
+    /// Read-only projection of every living mount's declared place for
+    /// measurement: ``(layer, topology_index, has_source, territory,
+    /// separated_elementary_charges)``. Reading advances nothing.
+    fn observe_mount_places(&self) -> Vec<(u32, u32, bool, BigInt, BigInt)> {
+        self.runtime
+            .cognitive_state()
+            .observe_mount_places()
+            .into_iter()
+            .map(|(layer, topology, has_source, territory, charges)| {
+                (layer, topology, has_source, BigInt::from(territory), BigInt::from(charges))
+            })
+            .collect()
+    }
+
+    /// Read-only measurement rows of the rooting reflex arc: ``(role, layer,
+    /// topology_index, declared_territory, separated_elementary_charges)`` for
+    /// the receptor, its integration, its regulation and every jaw-opening
+    /// motor. Reading advances nothing.
+    fn observe_rooting_reflex_arc_detail(
+        &self,
+    ) -> Vec<(String, u32, u32, BigInt, BigInt, f64, BigInt, BigInt)> {
+        self.runtime
+            .cognitive_state()
+            .observe_rooting_reflex_arc_detail()
+            .into_iter()
+            .map(|(role, layer, topology, territory, charges, potential, reserve, channels)| {
+                (
+                    role.to_string(),
+                    layer,
+                    topology,
+                    BigInt::from(territory),
+                    BigInt::from(charges),
+                    potential,
+                    BigInt::from(reserve),
+                    BigInt::from(channels),
+                )
+            })
+            .collect()
+    }
+
     /// Read-only bounded distribution of living reached neurons by their
     /// persisted developmental layer. No neuronal state or reserve cells are
     /// projected and reading advances nothing.
@@ -10472,6 +10519,92 @@ mod tests {
             .advance_guided_vocal_interval_unsealed(&episode, &hand_over_hand, None)
             .is_err());
         assert_eq!(runtime.active_envelope(), predecessor_envelope);
+    }
+
+    #[test]
+    fn felt_need_authors_the_rooting_reflex_arc_to_the_jaw_and_physics_decides_the_bite() {
+        use crate::interoceptive_joint_source_builder::admit_interoceptive_source;
+        use num_bigint::BigInt;
+        use num_rational::BigRational;
+
+        let mut runtime = create_resident_genesis(IDENTITY, 0, budget()).unwrap();
+        runtime.active.articulated_body.initialize_proprioception();
+        assert_eq!(
+            runtime.cognitive_state().observe_rooting_reflex_arc(),
+            (false, false, false, false),
+            "genesis carries no interoceptor, regulation, jaw motor or arc",
+        );
+        // Three-quarters of the usable material spent: a felt need, exact and
+        // dyadic so the binary64 the receptor receives is the same value.
+        let deficit = BigRational::new(BigInt::from(3), BigInt::from(4));
+        let heat = BigRational::new(BigInt::from(1), BigInt::from(64));
+        let source = admit_interoceptive_source(
+            runtime.active.observation.organism_tick,
+            deficit,
+            heat,
+        )
+        .unwrap();
+        let receipt = runtime
+            .commit_admitted_trajectory_direct(&[(source, vec![(250, 1_000)])])
+            .unwrap();
+        runtime.acknowledge_direct_commit(receipt.token).unwrap();
+        // The arc is born developmental anatomy: receptor -> its layer-6
+        // integrator -> its layer-8 regulation -> the jaw-opening layer-12
+        // motor, contacted at the developmental conductance like the palmar
+        // grasp. Whether the jaw discharges is physics, never asserted here.
+        assert_eq!(
+            runtime.cognitive_state().observe_rooting_reflex_arc(),
+            (true, true, true, true),
+            "the felt need did not author the rooting reflex arc",
+        );
+        eprintln!(
+            "ROOTING_REFLEX genesis: jaw recruitments={} body_consequences={} transitioned={}",
+            receipt.motor_unit_recruitments.len(),
+            receipt.articulated_body_consequences.len(),
+            receipt.observation.physically_transitioned_neuron_count,
+        );
+        for recruitment in &receipt.motor_unit_recruitments {
+            assert_eq!(
+                recruitment.body_effector_terminal,
+                BodyEffectorTerminal::new(BodyAxis::JawOpening, BodyEffectorDirection::TowardMaximum),
+                "only the jaw-opening terminal may be recruited by felt need",
+            );
+        }
+        // Sustained need across further intervals: the arc now exists, so
+        // whatever the physics does with the receptor's delivered energy is
+        // reported, not asserted.
+        for beat in 1..=24u32 {
+            let source = admit_interoceptive_source(
+                runtime.active.observation.organism_tick,
+                BigRational::new(BigInt::from(3), BigInt::from(4)),
+                BigRational::new(BigInt::from(1), BigInt::from(64)),
+            )
+            .unwrap();
+            let receipt = runtime
+                .commit_admitted_trajectory_direct(&[(source, vec![(250, 1_000)])])
+                .unwrap();
+            runtime.acknowledge_direct_commit(receipt.token).unwrap();
+            if beat == 1 || beat == 4 || beat == 12 || beat == 24 {
+                eprintln!(
+                    "ROOTING_REFLEX detail {:?}",
+                    runtime.cognitive_state().observe_rooting_reflex_arc_detail()
+                );
+            }
+            eprintln!(
+                "ROOTING_REFLEX beat={beat} jaw recruitments={} body_consequences={} transitioned={} jaw={}",
+                receipt.motor_unit_recruitments.len(),
+                receipt.articulated_body_consequences.len(),
+                receipt.observation.physically_transitioned_neuron_count,
+                runtime.active.articulated_body.axis(BodyAxis::JawOpening),
+            );
+        }
+        // The arc is retained across a cold restore.
+        let body = runtime.active_envelope().to_vec();
+        let restored = ResidentOrganismRuntime::restore_envelope(body, budget()).unwrap();
+        assert_eq!(
+            restored.cognitive_state().observe_rooting_reflex_arc(),
+            (true, true, true, true)
+        );
     }
 
     #[test]
