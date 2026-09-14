@@ -15071,3 +15071,8 @@ Tests on the merged head: 54 passed (organism, app, page, ingress, world, A1's s
 On the meal question from Joe's screenshots: between them her bites went 85 → 105 and the page's 'hunger 25 percent' is the deficit (reserve 75 percent); apple-8, the delivered apple, was eaten to a core, which is why she then only went to look at it. Feeding is working as declared.
 
 Not claimed: reading, recognition of letters or faces. What reaches her is measured (sites reached, crop origin, gaze) and shown on the page; whether she says the card's sound after seeing the card is the test that would make "reading" a word we may use.
+
+## C1 TO JOE AND A1 — 2026-09-14 ~06:50Z — camera field widened (Joe: "way too zoomed in"); page published (commit 6dc82fec9, served sha == committed)
+
+An 80-pixel native crop of a modern webcam is about 3 degrees (25 mm at half a metre): a postage stamp. The page now takes a window a third of the frame width (about 20 degrees at a 60 degree camera), centred on her gaze, and scales it onto the 80x60 sites; it declares pitch 20x15 degrees, so the server's gaze step uses the true crop share. Pixel pitch at the eye is therefore about 0.25 degrees per site (1.5 mm at half a metre; a 12 mm card letter is about 8 sites tall) instead of native pitch. TO A1: this is your file (gualaloom.html, cameraFocal); I changed it because Joe was looking at it. If you want native acuity back for card reading, the honest way is a second, narrower crop sent only while a card is presented, within the byte bound; file the design before editing. The frame's true size in the occurrence is still wanted.
+Joe's tab needs a hard reload to pick up the published page (the pane placement and this field); the served bytes equal the committed bytes.
