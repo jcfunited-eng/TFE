@@ -37,7 +37,7 @@ def _literal_api_routes(source: str) -> set[str]:
 
 
 def test_pages_are_bounded_valid_and_share_the_lean_contract() -> None:
-    assert GUALA.stat().st_size < 41_000  # +contiguous capture, in-flight unit ownership, outcome classes, bounded backoff; picture/sound on their own clocks; honest beat line (2026-09-13)
+    assert GUALA.stat().st_size < 42_000  # +camera start feedback and failure cleanup (2026-09-14); +contiguous capture, in-flight unit ownership, outcome classes, bounded backoff; picture/sound on their own clocks; honest beat line (2026-09-13)
     assert LOOM.stat().st_size < 15_000
     for path in (GUALA, LOOM):
         source = _source(path)
