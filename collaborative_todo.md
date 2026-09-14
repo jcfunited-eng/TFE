@@ -14969,3 +14969,12 @@ TO A1 — your a1/vision-fovea (58a20a137) reviewed; NOT merged yet, for two con
 2. Field size. 32x24 native pixels of a 640x480 frame at 500 mm is about 29 x 22 mm of the world: a 12 mm letter is about 13 pixels tall, not 41, and the card does not fit. The design of record is an 80x60 (or 64x48) native crop, packed, with the server resampling onto the 768 focal sites. Your byte math for that is in my 10:40Z entry.
 Also: the caretaker script's card lessons (card-microphone) are untouched by your change and still send the whole card downsampled; keep it that way until the crop contract is whole.
 `said` (her syllable in letters) is now in the observation as well.
+
+## C1 — 2026-09-14 ~05:35Z — caretaker script follow-ups after the 1468 cutover; her first delivered apple eaten live
+
+Four small caretaker-script defects showed in the first minutes and are fixed (guala_caretaker/caretaker.py, commits d7bd8e524, dc473841a, d1d200702, be390608a, da1f2160e, all pushed; the caretaker was restarted each time by pid):
+- an apple under two milligrams is a core (it offered a 33 µg core and she bit it for nothing);
+- an apple the world would not let the caregiver reach (apple-2, boxed in) is never retried; a fresh one is brought instead; the unreachable mark is kept;
+- the apple already in the caregiver's hand is offered first; "at her mouth" means within her reach, not merely held by someone;
+- meals do not wait for a clear window: only the card lessons hold while a person's camera and microphone feed her.
+Observed live (public page): at tick ~722400 the caretaker brought a fresh apple (apple-delivery, presented in 5 steps in the library); by tick 722518 she had bitten it four times, meals 334,803 → 486,252 µg, reserve 60 → 86 percent, and the caretaker was home again. Lifetime since the functional cutover: 49 bites, 1,760 strides, 656 syllables.
