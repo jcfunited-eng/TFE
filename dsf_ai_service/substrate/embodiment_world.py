@@ -3587,6 +3587,15 @@ class EmbodimentWorldAuthority:
             PreparedActionExecution | None
         ) = None
         self._lock = threading.RLock()
+        self._receipt_compact_bytes_cache: dict[str, int] = {}
+        self._receipt_cache_catalog_shas: tuple[str, ...] = ()
+        self._empty_envelope_byte_count: int = _canonical_byte_count(
+            {
+                "authority_hmac_sha256": "0" * 64,
+                "payload_base64": "",
+                "schema": ENVELOPE_SCHEMA,
+            }
+        )
         self._encoded_state_for(self._state)
 
     def _validate_contact_optical_surface_sequences(
@@ -6740,8 +6749,11 @@ class EmbodimentWorldAuthority:
         record["after"] = self._compact_observation_record(receipt.after, catalog)
         return record
 
-    def _state_payload_for(self, state: _AuthorityState) -> dict[str, object]:
-        catalog = self._optical_surface_catalog_for(state)
+    def _state_payload_without_receipts_for(
+        self,
+        state: _AuthorityState,
+        catalog: Mapping[str, ObjectOpticalSurface],
+    ) -> dict[str, object]:
         return {
             "actor_ports": [item.as_record() for item in self._actor_ports],
             "limits": {
@@ -6763,14 +6775,19 @@ class EmbodimentWorldAuthority:
                  "surface": surface._canonical_fragment()}
                 for content_sha, surface in catalog.items()
             ],
-
-            "recent_applied_receipts": [
-                self._compact_execution_record(item, catalog)
-                for item in state.recent_applied_receipts
-            ],
+            "recent_applied_receipts": [],
             "schema": STATE_SCHEMA,
             "world": self._compact_world_record(state.world, catalog),
         }
+
+    def _state_payload_for(self, state: _AuthorityState) -> dict[str, object]:
+        catalog = self._optical_surface_catalog_for(state)
+        payload = self._state_payload_without_receipts_for(state, catalog)
+        payload["recent_applied_receipts"] = [
+            self._compact_execution_record(item, catalog)
+            for item in state.recent_applied_receipts
+        ]
+        return payload
 
     def _v6_state_payload_for(self, state: _AuthorityState) -> dict[str, object]:
         return {
@@ -6812,12 +6829,49 @@ class EmbodimentWorldAuthority:
             raise ValueError("encoded embodiment state exceeds its exact byte capacity")
         return encoded
 
+    def _exact_state_payload_byte_count(self, state: _AuthorityState) -> int:
+        catalog = self._optical_surface_catalog_for(state)
+        catalog_shas = tuple(sorted(catalog.keys()))
+        if catalog_shas != self._receipt_cache_catalog_shas:
+            self._receipt_compact_bytes_cache.clear()
+            self._receipt_cache_catalog_shas = catalog_shas
+
+        receipts = state.recent_applied_receipts
+        n = len(receipts)
+        if n == 0:
+            empty_payload = self._state_payload_without_receipts_for(
+                state, catalog
+            )
+            return _canonical_byte_count(empty_payload)
+
+        current_shas = {r.authority_receipt_sha256 for r in receipts}
+        if len(self._receipt_compact_bytes_cache) > len(current_shas):
+            self._receipt_compact_bytes_cache = {
+                k: v
+                for k, v in self._receipt_compact_bytes_cache.items()
+                if k in current_shas
+            }
+
+        receipt_bytes_sum = 0
+        for receipt in receipts:
+            sha = receipt.authority_receipt_sha256
+            count = self._receipt_compact_bytes_cache.get(sha)
+            if count is None:
+                compact = self._compact_execution_record(receipt, catalog)
+                count = _canonical_byte_count(compact)
+                self._receipt_compact_bytes_cache[sha] = count
+            receipt_bytes_sum += count
+
+        empty_payload = self._state_payload_without_receipts_for(
+            state, catalog
+        )
+        base_byte_count = _canonical_byte_count(empty_payload)
+        return base_byte_count + receipt_bytes_sum + (n - 1)
+
     def _verify_state_capacity_for(self, state: _AuthorityState) -> None:
         """Prove persistence extent without constructing a persistence image."""
 
-        payload_byte_count = _canonical_byte_count(
-            self._state_payload_for(state)
-        )
+        payload_byte_count = self._exact_state_payload_byte_count(state)
         if payload_byte_count > self._max_encoded_state_bytes:
             raise ValueError(
                 "embodiment state exceeds its exact byte capacity"
@@ -6825,13 +6879,7 @@ class EmbodimentWorldAuthority:
         payload_base64_byte_count = 4 * (
             (payload_byte_count + 2) // 3
         )
-        empty_envelope_byte_count = _canonical_byte_count(
-            {
-                "authority_hmac_sha256": "0" * 64,
-                "payload_base64": "",
-                "schema": ENVELOPE_SCHEMA,
-            }
-        )
+        empty_envelope_byte_count = self._empty_envelope_byte_count
         encoded_byte_count = (
             empty_envelope_byte_count + payload_base64_byte_count
         )
@@ -8360,6 +8408,8 @@ class EmbodimentWorldAuthority:
         allow_authenticated_physical_manifest_migration: bool = False,
     ) -> None:
         """Atomically restore one exact authenticated authority snapshot."""
+        self._receipt_compact_bytes_cache.clear()
+        self._receipt_cache_catalog_shas = ()
         if not isinstance(encoded, bytes) or not encoded or len(encoded) > LEGACY_MAX_ENCODED_STATE_BYTES:
             raise ValueError("encoded embodiment state exceeds its exact byte capacity")
         try:
