@@ -56,9 +56,9 @@ CAPACITY_MICROGRAMS = 500_000
 BASAL_BURN_MICROGRAMS = 3
 ACT_BURN_MULTIPLE = {
     "rest": 0, "sleep": 0, "bite": 2, "grasp": 2, "take": 2, "release": 1, "touch": 1, "turn_left": 1, "turn_right": 1,
-    "step": 4, "toward_food": 4, "toward_thing": 4, "toward_door": 4, "say": 2,
+    "step": 4, "toward_food": 4, "toward_bed": 4, "toward_thing": 4, "toward_door": 4, "say": 2,
 }
-MOVES = ("step", "toward_food", "toward_thing", "toward_door")
+MOVES = ("step", "toward_food", "toward_bed", "toward_thing", "toward_door")
 HUNGRY_BELOW = Fraction(3, 5)   # feeding starts below 60 percent of capacity
 SATED_ABOVE = Fraction(17, 20)  # feeding ends at 85 percent (one apple from hungry)
 
@@ -94,7 +94,7 @@ HEAD_PITCH_BOUND_MILLIDEGREES = 45_000
 # structure, an act she has not tried is tried first (in the declared order);
 # every eighth visit takes the least-tried act; otherwise the act whose record
 # is best. The only reflex is the jaw: food at her mouth while feeding is bitten.
-ACTS = ("take", "grasp", "touch", "release", "toward_food", "toward_thing", "toward_door", "step", "turn_left", "turn_right", "say", "rest")
+ACTS = ("take", "grasp", "touch", "release", "toward_food", "toward_bed", "toward_thing", "toward_door", "step", "turn_left", "turn_right", "say", "rest")
 ACT_RECORD_CAPACITY = 256   # structures remembered with their acts; the least recently met falls out
 EXPLORE_EVERY = 8
 NEED_FOOD = 1.0
@@ -109,6 +109,16 @@ REFUSAL_COST = 0.5
 # no act, and she burns at basal. She wakes when the pressure is gone.
 SLEEP_PRESSURE_CEILING = 113_600
 SLEEP_RECOVERY_PER_BEAT = 2
+# The bed (Joe: on the bed, with her pillow and blanket): she falls asleep
+# only on her bed (the world's one thing a body may lie on), so when her
+# pressure is at its ceiling the bed is where sleep is. The bed is a candidate
+# like food is when it is in sight; falling asleep on it is credited to the
+# act that brought her there, valued by the pressure it releases, so her
+# record can learn the way home. Past the ceiling by an eighth she sleeps
+# where she drops, credited to nothing. The caretaker sets her pillow and
+# blanket on the bed at bedtime and sings once she sleeps (its own laws).
+BED_ID = "bed"
+EXHAUSTION_MARGIN = Fraction(1, 8)
 EYELID_OPEN_MICROMETRES = 10_000
 # Dreaming: each sleeping beat moves one structure of the day's record into her
 # consolidated memory, keyed by her situation only (what she hears, her hunger,
@@ -403,13 +413,15 @@ def drop_spot_clear(snapshot: Any, body: Any, item: Any) -> bool:
     """The world sets a released thing down a clearance ahead of the body;
     that spot must not touch another thing or body, or the world refuses."""
 
-    from dsf_ai_service.substrate.embodiment_world import RELEASE_CLEARANCE_MM, rotate_lattice_offset
+    from dsf_ai_service.substrate.embodiment_world import RELEASE_CLEARANCE_MM, _is_bed, rotate_lattice_offset
 
     dx, dy = rotate_lattice_offset(max(body.radius_mm, item.radius_mm) + item.radius_mm + RELEASE_CLEARANCE_MM, 0, body.pose.heading_millidegrees)
     spot = PositionMM(body.pose.position.x + dx, body.pose.position.y + dy, 0)
     if _region_of(snapshot, spot, item.radius_mm) is None:
         return False
     for other in snapshot.objects:
+        if _is_bed(other):
+            continue  # a thing may lie on a bed
         if other.object_id != item.object_id and other.position is not None and _distance_mm(spot, other.position) <= item.radius_mm + other.radius_mm + DROP_MARGIN_MM:
             return False
     for other in snapshot.bodies:
@@ -510,6 +522,9 @@ def candidates(snapshot: Any, body: Any, held: Any, offered: Any, seen: tuple[Se
             stop = body.radius_mm + nearest.radius_mm + STOP_MARGIN_MM
             if nearest.distance_mm > stop + ARRIVAL_MM:
                 out.append(("toward_food", nearest.object_id, move_commands_toward(snapshot, nearest.position, stop), nearest.object_id, None))
+    bed = next((thing for thing in seen if thing.object_id == BED_ID), None)
+    if bed is not None and bed.distance_mm > ARRIVAL_MM + STEP_MM // 2:
+        out.append(("toward_bed", "her bed", move_commands_toward(snapshot, bed.position, 0), bed.object_id, None))
     things = [thing for thing in seen if not thing.is_food]
     if things:
         nearest = things[0]
@@ -815,9 +830,19 @@ class FunctionalOrganism:
                 dreamt = self._dream(tick)
                 return decision("sleep", "asleep" + ("; dreaming " + dreamt if dreamt else "") + f"; pressure {100 * pressure // SLEEP_PRESSURE_CEILING}%")
         elif pressure >= SLEEP_PRESSURE_CEILING:
-            state["asleep"] = True
-            state["nights"] = int(state.get("nights", 0)) + 1
-            return decision("sleep", "falling asleep; pressure at its ceiling")
+            bed = _object(snapshot, BED_ID)
+            at_bed = bed is not None and bed.position is not None and _distance_mm(body.pose.position, bed.position) <= bed.radius_mm
+            exhausted = pressure >= SLEEP_PRESSURE_CEILING * (1 + EXHAUSTION_MARGIN)
+            if at_bed or exhausted:
+                state["asleep"] = True
+                state["nights"] = int(state.get("nights", 0)) + 1
+                if at_bed and state.get("last_chosen"):
+                    # The act that brought her to the bed keeps the credit, valued
+                    # by the pressure the night will release (its fraction of the ceiling).
+                    last = state["last_chosen"]
+                    self._credit(str(last["key"]), str(last["act"]), round(pressure / SLEEP_PRESSURE_CEILING, 6), tick, str(last.get("regimes", "")))
+                    state["last_chosen"] = None
+                return decision("sleep", "falling asleep on her bed; pressure at its ceiling" if at_bed else "exhausted; asleep where she dropped")
         options = candidates(snapshot, body, held, offered, seen, tick)
         act, why = self._choose(key, situation, [option[0] for option in options])
         _name, detail, commands, target, drive = next(option for option in options if option[0] == act)

@@ -2280,6 +2280,14 @@ PUSH_MASS_GRAMS = 2_000
 PUSH_CLEARANCE_MM = 40
 
 
+def _is_bed(item: EmbodiedObject) -> bool:
+    """A bed (authored with the ``bed`` prefix): the one thing the self body may
+    lie on, and the one thing other things (her pillow, her blanket) may lie
+    on. Nothing else in the world admits overlap."""
+
+    return item.object_id.startswith("bed")
+
+
 def _push_aside(
     item: EmbodiedObject,
     start: PositionMM,
@@ -4926,6 +4934,8 @@ class EmbodimentWorldAuthority:
                     raise ValueError("body geometries intersect")
         for body, carried_radius in occupied:
             for item in placed:
+                if _is_bed(item) and body.body_id == world.self_body_id:
+                    continue  # she lies on her bed
                 if (
                     self._region_containing(
                         world.regions, body.pose.position, carried_radius
@@ -4943,6 +4953,8 @@ class EmbodimentWorldAuthority:
                     raise ValueError("body or held object intersects placed object geometry")
         for index, left in enumerate(placed):
             for right in placed[index + 1 :]:
+                if _is_bed(left) or _is_bed(right):
+                    continue  # her pillow and blanket lie on her bed
                 if (
                     self._region_containing(
                         world.regions, left.position, left.radius_mm
@@ -5534,6 +5546,8 @@ class EmbodimentWorldAuthority:
                     carried_radius + item.radius_mm,
                     )
                 ):
+                    if _is_bed(item) and body.body_id == world.self_body_id:
+                        continue  # her bed: she may step onto it and lie on it
                     if int(item.mass_grams) > PUSH_MASS_GRAMS or item_region is None:
                         return None, "move_path_intersects_object"
                     # A thing a body is touching or holding is not pushed: its
@@ -5929,6 +5943,7 @@ class EmbodimentWorldAuthority:
                 if (
                     other.object_id != item.object_id
                     and other.position is not None
+                    and not _is_bed(other)  # things may be set down on a bed
                     and self._region_containing(
                         world.regions, other.position, other.radius_mm
                     ) == target_region
@@ -5965,6 +5980,7 @@ class EmbodimentWorldAuthority:
                         other.position,
                         other.radius_mm,
                     ) == target_region
+                    and not _is_bed(other)  # a thing carried onto a bed crosses it
                     and _straight_path_intersects_disc(
                         body.pose.position,
                         command.target_position,

@@ -525,13 +525,17 @@ def test_she_sleeps_when_the_pressure_reaches_its_ceiling_her_eyes_close_and_she
     organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
     organism._state["reserve_micrograms"] = CAPACITY_MICROGRAMS * 9 // 10
     organism._state["feeding"] = False
-    organism._state["sleep_pressure"] = SLEEP_PRESSURE_CEILING - 3
+    # Away from the bed, the ceiling alone does not put her to sleep; past it
+    # by an eighth she sleeps where she drops.
+    from dsf_ai_service.guala_functional_organism import EXHAUSTION_MARGIN
+    exhausted_at = int(SLEEP_PRESSURE_CEILING * (1 + EXHAUSTION_MARGIN))
+    organism._state["sleep_pressure"] = exhausted_at - 3
     loop = FunctionalPhysicalLoop()
     awake = [loop.settle(organism, world, UNATTENDED).observation for _ in range(3)]
     assert all(o["her_act"] != "sleep" for o in awake) and not organism.asleep
     assert all(o["her_sleep"]["asleep"] is False for o in awake)
     first = loop.settle(organism, world, UNATTENDED).observation
-    assert first["her_act"] == "sleep" and "falling asleep" in first["act_reason"] and organism.asleep
+    assert first["her_act"] == "sleep" and "exhausted" in first["act_reason"] and organism.asleep
     assert organism.counts["nights"] == 1
     axes = {axis[1]: axis[3] for axis in organism.body_axes}
     assert axes["left_eyelid_aperture"] == 0 and axes["right_eyelid_aperture"] == 0
@@ -639,3 +643,62 @@ def test_a_thing_under_her_hand_is_not_pushed_by_the_caregivers_step() -> None:
     still = next(item for item in after.objects if item.object_id == "cup-under-hand")
     assert still.position == ahead, "the cup moved from under her hand"
     assert _her(world).active_contact is not None
+
+
+def test_the_caretaker_makes_her_bed_and_she_falls_asleep_on_it_crediting_the_way_there() -> None:
+    """The bed law: at the ceiling she sleeps only on her bed (the world's one
+    thing a body may lie on); the bed is a candidate when in sight; falling
+    asleep on it credits the act that brought her there with the pressure the
+    night releases. The caretaker's bedtime job sets her pillow and blanket
+    on the bed first (things may lie on a bed too)."""
+
+    from dsf_ai_service.guala_caretaker_hand import BEDTIME_ID
+    from dsf_ai_service.guala_functional_loop import _apply
+    from dsf_ai_service.guala_functional_organism import (
+        BED_ID, Decision, SLEEP_PRESSURE_CEILING, candidates, move_commands_toward, things_in_sight,
+    )
+
+    world = home_world_authority(identity=IDENTITY)
+    organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
+    organism._state["reserve_micrograms"] = CAPACITY_MICROGRAMS * 9 // 10
+    organism._state["feeding"] = False
+    organism._state["sleep_pressure"] = SLEEP_PRESSURE_CEILING
+    loop = FunctionalPhysicalLoop()
+    # Bedtime, as the caretaker script sends it (a caretaker-food occurrence
+    # naming "bedtime"): her pillow and blanket go on the bed.
+    made = loop.settle(organism, world, _present(BEDTIME_ID)).observation["caregiver_presentation"]
+    assert sorted(made["made"]) == ["blanket", "pillow"] and made["presented"] is True, made["steps"][-3:]
+    snapshot = world.observation_snapshot()
+    bed = next(item for item in snapshot.objects if item.object_id == BED_ID)
+    for item_id in ("pillow", "blanket"):
+        item = next(i for i in snapshot.objects if i.object_id == item_id)
+        assert item.position is not None and math.dist((item.position.x, item.position.y), (bed.position.x, bed.position.y)) <= bed.radius_mm, item_id
+    her = _her(world)
+    assert math.dist((her.pose.position.x, her.pose.position.y), (bed.position.x, bed.position.y)) > bed.radius_mm, "genesis places her on the bed; the test needs her off it"
+    # At the ceiling but off the bed: awake; the bed is a candidate whenever it is in sight.
+    for _ in range(6):
+        snapshot = world.observation_snapshot(); her = _her(world)
+        if any(t.object_id == BED_ID for t in things_in_sight(snapshot)):
+            assert any(c[0] == "toward_bed" for c in candidates(snapshot, her, None, None, things_in_sight(snapshot), organism.live_organism_tick))
+        o = loop.settle(organism, world, UNATTENDED).observation
+        assert o["her_act"] != "sleep" and not organism.asleep, o["act_reason"]
+    # Walk her onto the bed by the world's own move law (the test's hand, not hers): she may lie on it.
+    for _ in range(80):
+        snapshot = world.observation_snapshot(); her = _her(world)
+        if math.dist((her.pose.position.x, her.pose.position.y), (bed.position.x, bed.position.y)) <= bed.radius_mm - her.radius_mm:
+            break
+        decision = Decision("toward_bed", "test", move_commands_toward(snapshot, bed.position, 0), BED_ID, None, "", False, 0, ())
+        prepared, _applied, _refusal, _refused = _apply(world, decision, snapshot)
+        with world.prepared_action_visibility_transaction(prepared):
+            world.commit_prepared_action(prepared)
+    her = _her(world)
+    assert math.dist((her.pose.position.x, her.pose.position.y), (bed.position.x, bed.position.y)) <= bed.radius_mm, "could not walk her onto the bed"
+    organism._state["last_chosen"] = {"key": "f" * 16, "regimes": "SSSSSSSSS", "act": "toward_bed", "deficit": 0.1}
+    o = loop.settle(organism, world, UNATTENDED).observation
+    assert o["her_act"] == "sleep" and "on her bed" in o["act_reason"], o["act_reason"]
+    assert organism.asleep and organism.counts["nights"] == 1
+    tries, total = organism._state["acts"]["f" * 16]["acts"]["toward_bed"]
+    assert tries == 1 and total >= 1.0, (tries, total)
+    assert organism._state["last_chosen"] is None
+    encoded = organism.encoded()
+    assert FunctionalOrganism.restore(encoded).encoded() == encoded

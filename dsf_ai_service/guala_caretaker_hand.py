@@ -18,6 +18,7 @@ import json
 from typing import Any
 
 from dsf_ai_service.substrate.embodiment_world import (
+    _straight_path_intersects_disc,
     ActionExecutionReceipt,
     MoveCommand,
     PickCommand,
@@ -41,6 +42,7 @@ HANDLING_MICROSECONDS = 250_000
 # Where the caregiver stands: in front of the thing being reached, and in
 # front of her face, inside every reach involved and outside every body.
 APPROACH_DISTANCE_MM = 500
+APPROACHED_THING_RADIUS_MM = 350   # the widest thing the caregiver fetches (the blanket, 300 mm), with a margin
 OFFER_DISTANCE_MM = 600
 PORTAL_MARGIN_MM = 600
 DELIVERY_ID = "apple-delivery"  # the caretaker brings a fresh apple from outside
@@ -515,6 +517,11 @@ class _Hand:
             if key in seen or _distance_mm(spot, target) < min(radii) * 0.9:
                 continue
             seen.add(key)
+            # Never reach a spot by walking through what is approached: the
+            # step law would shove a light thing (an apple, the blanket) ahead
+            # of the caregiver instead of it arriving beside it.
+            if _passes_through(origin, spot, target, person.radius_mm + APPROACHED_THING_RADIUS_MM):
+                continue
             region = _region_of(snapshot, spot, person.radius_mm)
             if region is None or (region_id is not None and region.region_id != region_id):
                 continue
@@ -644,6 +651,105 @@ def deliver_apple(world: Any) -> str | None:
     return None
 
 
+BEDTIME_ID = "bedtime"
+BED_ID = "bed"
+BEDDING_MM = (("pillow", (-400, -600)), ("blanket", (400, -600)))  # where each lies on the bed, from its centre: side by side at the head, near the edge the room side reaches (the bed stands against the far wall; a hand reaches 800 mm)
+
+
+def _passes_through(origin: PositionMM, spot: PositionMM, target: PositionMM, clearance_mm: int) -> bool:
+    """True when walking straight from ``origin`` to ``spot`` would carry a body
+    through ``target``: the target lies between the two (not beyond the spot)
+    and closer to the line than the clearance."""
+
+    import math
+
+    vx, vy = spot.x - origin.x, spot.y - origin.y
+    length_sq = vx * vx + vy * vy
+    if length_sq == 0:
+        return False
+    t = ((target.x - origin.x) * vx + (target.y - origin.y) * vy) / length_sq
+    if not 0.0 < t < 1.0:
+        return False
+    px, py = origin.x + t * vx, origin.y + t * vy
+    return math.hypot(target.x - px, target.y - py) < clearance_mm
+
+
+def make_bed(world: Any) -> dict[str, object]:
+    """The caretaker's bedtime job: her pillow and her blanket set on her bed
+    (fetched from wherever they lie, never taken from her hand), then home.
+    One bounded hand per item; when the way to an item is blocked (the bed
+    itself, once something is on it) the caregiver goes out to the hallway
+    and comes back in once. A record in the presentation's shape."""
+
+    record: dict[str, object] = {"object_id": BEDTIME_ID, "presented": False, "took_away": None, "delivered": None,
+                                 "made": [], "schema": "guala.caregiver_presentation.v1", "steps": []}
+    snapshot = world.observation_snapshot()
+    bed = next((item for item in snapshot.objects if item.object_id == BED_ID and item.position is not None), None)
+    if bed is None:
+        return record
+    bed_region = _region_of(snapshot, bed.position, bed.radius_mm)
+    if bed_region is None:
+        return record
+    # Nearest first from where the caregiver stands (it comes in from the
+    # hallway door): the far item is fetched last, when the room is known.
+    _her0, person0 = next(b for b in snapshot.bodies if b.body_id == snapshot.self_body_id), next(b for b in snapshot.bodies if b.body_id != snapshot.self_body_id)
+    positions = {item.object_id: item.position for item in snapshot.objects}
+    order = sorted(BEDDING_MM, key=lambda entry: (_distance_mm(person0.pose.position, positions[entry[0]]) if positions.get(entry[0]) is not None else 1 << 30, entry[0]))
+    for item_id, (dx, dy) in order:
+        hand = _Hand(world, item_id)
+        try:
+            snapshot = hand.snapshot()
+            her, person = hand.bodies(snapshot)
+            item = next((candidate for candidate in snapshot.objects if candidate.object_id == item_id), None)
+            if item is None or item.held_by_body_id == her.body_id:
+                continue
+            spot = PositionMM(bed.position.x + dx, bed.position.y + dy, 0)
+            if item.position is not None and _distance_mm(item.position, bed.position) <= bed.radius_mm:
+                record["made"].append(item_id)  # already on the bed
+                continue
+            if item.held_by_body_id != person.body_id:
+                if item.position is None:
+                    continue
+                region = _region_of(snapshot, item.position, item.radius_mm)
+                if region is None:
+                    continue
+                reached = False
+                for attempt in range(2):
+                    if attempt == 1 and not (hand.walk_to_region("hallway") and hand.walk_to_region(region.region_id)):
+                        break
+                    if hand.walk_to_region(region.region_id) and hand.stand_before(
+                        item.position, APPROACH_DISTANCE_MM, distances_mm=(APPROACH_DISTANCE_MM, 420, 650, 780), region_id=region.region_id,
+                    ):
+                        reached = True
+                        break
+                if not reached or not hand.applied("pick", PickCommand(item_id, HANDLING_MICROSECONDS)):
+                    continue
+            if not hand.walk_to_region(bed_region.region_id):
+                continue
+            # Stand outside the bed within a hand's reach of the spot: the world
+            # refuses the spots inside the bed, so the outward ones are taken.
+            reach = int(person.reach_mm)
+            if not hand.stand_before(spot, reach - 20, distances_mm=(reach - 20, reach - 60, reach - 120), region_id=bed_region.region_id):
+                continue
+            if hand.applied("place", PlaceCommand(item_id, spot, HANDLING_MICROSECONDS)):
+                record["made"].append(item_id)
+        except _Bounded:
+            hand.steps.append({"operation": "bound", "reason": "presentation_steps_exhausted", "to": None})
+        finally:
+            record["steps"].extend(hand.steps)
+    home = _Hand(world, BEDTIME_ID)
+    try:
+        snapshot = home.snapshot()
+        her, _person = home.bodies(snapshot)
+        home.walk_to_region("hallway")
+        home.move(CAREGIVER_HOME_MM, _heading_toward(CAREGIVER_HOME_MM, her.pose.position))
+    except _Bounded:
+        home.steps.append({"operation": "bound", "reason": "presentation_steps_exhausted", "to": None})
+    record["steps"].extend(home.steps)
+    record["presented"] = len(record["made"]) == len(BEDDING_MM)
+    return record
+
+
 def present_food(world: Any, object_id: str) -> dict[str, object]:
     """Have the caregiver present ``object_id`` at her mouth's reach. Returns
     the bounded, honest record of what the world allowed. ``DELIVERY_ID``
@@ -651,6 +757,8 @@ def present_food(world: Any, object_id: str) -> dict[str, object]:
 
     if not isinstance(object_id, str) or not object_id:
         raise ValueError("presented food needs an object identity")
+    if object_id == BEDTIME_ID:
+        return make_bed(world)
     delivered = None
     if object_id == DELIVERY_ID:
         delivered = deliver_apple(world)
@@ -671,7 +779,7 @@ def present_food(world: Any, object_id: str) -> dict[str, object]:
     return outcome
 
 
-__all__ = ("DELIVERY_ID", "core_in_a_doorway", "deliver_apple", "in_doorway", "nothing_left_to_bite", "offered_within_reach", "present_food", "stray_core", "withdraw")
+__all__ = ("BEDTIME_ID", "DELIVERY_ID", "make_bed", "core_in_a_doorway", "deliver_apple", "in_doorway", "nothing_left_to_bite", "offered_within_reach", "present_food", "stray_core", "withdraw")
 
 
 def offered_within_reach(snapshot: Any) -> str | None:
