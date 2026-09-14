@@ -291,7 +291,7 @@ def test_an_older_functional_body_is_migrated_on_restore_and_forgets_sounds_of_t
     state["voice_version"] = 1
     state["voice"] = [{"drive": [44, 31, 0], "heard": [0.1] * 32, "tick": 3}]
     state["heard"] = [{"tick": 4, "profile": [0.2] * 32}]
-    for key in ("visited", "door_goal", "bout_syllables", "quiet_until_tick", "blocked_doors", "attended_tick", "unreachable_food", "food_goal", "food_refusals", "food_best_mm", "food_stall_beats"):
+    for key in ("visited", "door_goal", "bout_syllables", "quiet_until_tick", "blocked_doors", "attended_tick", "unreachable_food", "food_goal", "food_refusals", "food_best_mm", "food_stall_beats", "ambient_sound", "answered_profile"):
         state.pop(key, None)
     older = MAGIC + json.dumps(state, allow_nan=False, ensure_ascii=False, separators=(",", ":"), sort_keys=True).encode("utf-8")
     restored = FunctionalOrganism.restore(older)
@@ -365,3 +365,20 @@ def test_boxed_in_food_does_not_hold_her_in_place() -> None:
     assert "apple-walled" in organism._state["unreachable_food"]
     later = acts[-20:]
     assert "approach" not in later or organism.counts["bites"] > 0, later
+
+
+def test_an_open_microphone_does_not_make_her_repeat_one_syllable() -> None:
+    """The same room sound every beat is answered once, then treated as the
+    room; a new, louder sound is answered again; answers obey the bout."""
+
+    world = home_world_authority(identity=IDENTITY)
+    organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
+    organism._state["reserve_micrograms"] = CAPACITY_MICROGRAMS * 9 // 10
+    organism._state["feeding"] = False
+    _run(organism, world, [UNATTENDED] * 24)  # she babbles and hears herself
+    assert organism._state["voice"]
+    results = _run(organism, world, [_heard(_tone(370))] * 40)
+    answers = [r for r in results if "answering a sound she heard" in (r.observation["act_reason"] or "")]
+    assert 1 <= len(answers) <= 3, len(answers)
+    spoken = [r for r in results if r.pressure is not None]
+    assert len(spoken) <= 12, len(spoken)  # bouts of five with quiet spells, not one every four beats forever

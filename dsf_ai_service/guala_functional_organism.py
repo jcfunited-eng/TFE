@@ -111,6 +111,10 @@ HEARD_RECENT_BEATS = 8
 # every four beats, then a quiet spell. A heard sound is answered once.
 BOUT_SYLLABLES = 5
 QUIET_BEATS = 48
+HEARD_ENERGY_FLOOR = 0.004      # below this mean cochlear envelope, a sound is room noise
+HEARD_ABOVE_AMBIENT = 2.0       # a sound worth answering is at least twice the running ambient level
+SAME_SOUND_DISTANCE = 0.08      # closer than this to the last answered profile is the same sound
+AMBIENT_MEMORY = Fraction(15, 16)
 COCHLEAR_CHANNELS = 32
 # Her airway is the accepted voice (guala_voice); a drive is (pitch in tenths
 # of a hertz, vowel, onset). Sound memory made with an older airway is
@@ -373,7 +377,7 @@ class FunctionalOrganism:
             "familiarity": {}, "episodes": [], "heard": [], "voice": [], "approached": {},
             "refusals": {}, "idle_beats": 0, "last_act": "rest", "last_spoke_tick": -BABBLE_EVERY_BEATS, "goal": None, "goal_beats": 0, "goal_refusals": 0,
             "pending_voice": None, "pending_drive": None, "meals_micrograms": 0, "bites": 0, "strides": 0, "syllables": 0,
-            "voice_version": VOICE_VERSION, "visited": {}, "door_goal": None, "bout_syllables": 0, "quiet_until_tick": 0, "blocked_doors": {}, "attended_tick": -ATTEND_REFRACTORY_BEATS - 1, "unreachable_food": {}, "food_goal": None, "food_refusals": 0, "food_best_mm": 0, "food_stall_beats": 0,
+            "voice_version": VOICE_VERSION, "visited": {}, "door_goal": None, "bout_syllables": 0, "quiet_until_tick": 0, "blocked_doors": {}, "attended_tick": -ATTEND_REFRACTORY_BEATS - 1, "unreachable_food": {}, "food_goal": None, "food_refusals": 0, "food_best_mm": 0, "food_stall_beats": 0, "ambient_sound": 0.0, "answered_profile": None,
         })
 
     @classmethod
@@ -399,7 +403,7 @@ class FunctionalOrganism:
             state["voice"], state["heard"], state["pending_voice"], state["pending_drive"] = [], [], None, None
             state["voice_version"] = VOICE_VERSION
             changed = True
-        for key, empty in (("visited", {}), ("door_goal", None), ("bout_syllables", 0), ("quiet_until_tick", 0), ("blocked_doors", {}), ("attended_tick", -ATTEND_REFRACTORY_BEATS - 1), ("unreachable_food", {}), ("food_goal", None), ("food_refusals", 0), ("food_best_mm", 0), ("food_stall_beats", 0)):
+        for key, empty in (("visited", {}), ("door_goal", None), ("bout_syllables", 0), ("quiet_until_tick", 0), ("blocked_doors", {}), ("attended_tick", -ATTEND_REFRACTORY_BEATS - 1), ("unreachable_food", {}), ("food_goal", None), ("food_refusals", 0), ("food_best_mm", 0), ("food_stall_beats", 0), ("ambient_sound", 0.0), ("answered_profile", None)):
             if key not in state:
                 state[key] = empty
                 changed = True
@@ -555,14 +559,35 @@ class FunctionalOrganism:
         voice_drive = None
         voice_reason = ""
         spoke_recently = tick - int(state["last_spoke_tick"]) < BABBLE_EVERY_BEATS
-        unanswered = [entry for entry in state["heard"] if tick - int(entry["tick"]) <= HEARD_RECENT_BEATS and not entry.get("answered")]
+        in_quiet_spell = tick < int(state.get("quiet_until_tick", 0))
+        # A sound worth answering stands out from the room (louder than the
+        # running ambient level) and is not the sound she just answered; a
+        # microphone left open does not make her repeat one syllable forever.
+        ambient = float(state.get("ambient_sound", 0.0))
+        answered_profile = state.get("answered_profile")
+        unanswered = []
+        for entry in state["heard"]:
+            if tick - int(entry["tick"]) > HEARD_RECENT_BEATS or entry.get("answered"):
+                continue
+            energy = sum(entry["profile"]) / len(entry["profile"])
+            if energy < HEARD_ENERGY_FLOOR or energy < ambient * HEARD_ABOVE_AMBIENT:
+                entry["answered"] = True  # part of the room, not a call to her
+                continue
+            if answered_profile is not None and _profile_distance(tuple(entry["profile"]), tuple(answered_profile)) < SAME_SOUND_DISTANCE:
+                entry["answered"] = True  # the same sound again
+                continue
+            unanswered.append(entry)
+        # An answer does not wait for her babble's quiet spell; a constant
+        # sound stops being answered once it has become the room's level.
         if unanswered and not spoke_recently and state["voice"]:
             target_profile = tuple(unanswered[-1]["profile"])
             best = min(state["voice"], key=lambda entry: _profile_distance(tuple(entry["heard"]), target_profile))
             voice_drive, voice_reason = tuple(best["drive"]), "answering a sound she heard with the nearest sound of her own"
             unanswered[-1]["answered"] = True
-        elif not spoke_recently and tick >= int(state.get("quiet_until_tick", 0)):
+            state["answered_profile"] = list(target_profile)
+        elif not spoke_recently and not in_quiet_spell:
             voice_drive, voice_reason = _new_drive(tick), "trying a sound of her own"
+        if voice_drive is not None:
             state["bout_syllables"] = int(state.get("bout_syllables", 0)) + 1
             if int(state["bout_syllables"]) >= BOUT_SYLLABLES:
                 state["bout_syllables"], state["quiet_until_tick"] = 0, tick + QUIET_BEATS
@@ -746,6 +771,9 @@ class FunctionalOrganism:
         if heard_profile is not None and sum(heard_profile) > 0:
             state["heard"].append({"tick": tick_now, "profile": list(heard_profile)})
             del state["heard"][:-HEARD_CAPACITY]
+            energy = sum(heard_profile) / len(heard_profile)
+            ambient = float(state.get("ambient_sound", 0.0))
+            state["ambient_sound"] = round(ambient * float(AMBIENT_MEMORY) + energy * (1.0 - float(AMBIENT_MEMORY)), 6)
         if self_profile is not None and state.get("pending_drive") is not None:
             state["voice"].append({"drive": list(state["pending_drive"]), "heard": list(self_profile), "tick": tick_now})
             del state["voice"][:-VOICE_CAPACITY]
