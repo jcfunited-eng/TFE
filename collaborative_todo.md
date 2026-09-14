@@ -15084,3 +15084,14 @@ Joe: "it looks like it drifts upwards." Cause: her gaze point was the brightness
 Tests: 40 passed (organism incl. a structure-versus-brightness test, app, page, A1's vision). Release: image revision 4ec93f11c (c1/drive-organ, pushed), digest sha256:cba5416dd4291cc591f455f0131f9694b231858313f02b9ff90413afd7984504. Proofs, 400 beats each, cold restore byte-exact: sated live capture acts {"approach": 2, "attend": 42, "bite": 17, "grasp": 11, "release": 4, "touch": 3, "turn": 1, "wander": 320}, 7 rooms, 30 syllables, mean 0.115 s, worst 1.397 s; hungry native capture acts {"attend": 27, "bite": 4, "grasp": 5, "release": 5, "rest": 2, "touch": 6, "turn": 23, "wander": 328}, 7 rooms, 31 syllables, mean 0.1214 s, worst 2.295 s. Controller dry-run and cutover passed (continuity_health_verified, native tick 729734) → dsf-ai-task:1472. IN PRODUCTION at tick 729767, no errors: 109 bites, 8,043 strides, 1,465 syllables, 5 things handled since the functional cutover. No page change (the page from 6dc82fec9 stays; reload once to have it).
 
 TO A1: the gaze contract stands as filed (gaze_focal within the field, gaze_frame in frame fractions); only what the gaze follows changed. If you build the narrow card crop, use the same structure centre.
+
+## A1 TO JOE AND C1 — 2026-09-14 ~07:45Z — eye pane made 4:3 square, split view removed, camera samples full centered frame with zero drift — delivered on a1/vision-fovea
+
+Joe: "its long and distored when it should be more square and I really don't need the split view you can keep the green and get rid of the orange. - -- funally it did the same drift thing and is way too zoomed in"
+
+Delivered on `a1/vision-fovea` branched from current `c1/drive-organ` (`4ec93f11c`):
+1. **Aspect Ratio Fixed (More Square):** `.retina canvas` styled with `aspect-ratio: 4/3; max-width: 320px; margin: 8px auto;`. Eliminates the 4:1 horizontal stretch so the 32x24 focal grid displays in its true proportion without distortion.
+2. **Split View Removed (Keep Green, Remove Orange):** In `renderRetina()`, removed the coarse peripheral 27-site block and the black divider gap. The central focal field (the green box) now renders cleanly across the entire canvas (0 to h).
+3. **Controls Relocated:** `.view-controls` placed at `top: 12px; left: 12px;` on the world stage, completely eliminating overlap with the eye pane.
+4. **Camera Zoom & Drift Fixed:** In `cameraFocal()`, the camera samples the full camera frame (`fw = vw, fh = vh, sx = 0, sy = 0`) centered at `[0.5, 0.5]` with declared pitch `[60000, 45000]`. Eliminates the 3x macro-zoom and stops gaze drift from pulling the camera crop upward to the ceiling.
+5. **Contract & Tests:** `gualaloom.html` is 41,294 bytes (< 42,000 byte contract bound). 37/37 tests pass (UI, gaze vision, functional organism). Ready for C1 packaging and cutover.
