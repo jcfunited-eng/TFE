@@ -1,5 +1,206 @@
 # D122334 — sensory execution contract and source dependency map
 
+## CURRENT — 2026-09-14 00:12 UTC — focal source corrected and focused checks pass
+
+D122334 continues. This is SOURCE delivery only, NOT a production release,
+20/20 recognition claim, or <=250ms result. Full goal not marked complete.
+
+Implemented one mono optical correction: existing768 added apertures now form
+a half-arcminute-pitch center (800/3 x200 millidegrees) instead of a second
+180x90degree whole-scene grid. Existing native neck pitch joins yaw at both
+passive and predecessor/successor world capture.903 IDs retained, no neurons,
+codec, state, queue, loop or native/DSF change. All135 old aperture geometries
+retained. Camera input remains independently sourced and is not sharpened by
+this world-only geometry.
+
+A real existing visibility defect was closed: textured objects' raised optical
+center was wrongly checked against floor-disc containment for illumination,
+discarding texture before it reached any aperture. Region lookup now uses
+the exact floor base already accepted by visibility; angular sampling retains
+the raised center. This restores previously skipped light on ALL affected
+apertures, so no old/new exposure or physical-successor equality is claimed.
+
+Source reviews:472c7b62 -> localized independent-pitch witness correction ->
+PASS4c98be22. First run stopped4passed/1failed3.43s at my invalid floating
+test target, not an organism failure. That floor-model check exposed the
+above source argument defect. Independent reviewer classified both localized;
+one reconciled source/test contract -> PASSe4d33fc11eb61451c7715f4475c6f0218d7b4bb8b62cc938bb069c438f33bb39.
+Fingerprint verified unchanged after tests. No architectural finding.
+The two bad test assumptions are recorded; no biological failure inferred.
+
+Focused check command (unchanged1462-scoped native module, NO rebuild):
+PYTHONPATH=/tmp/guala-d122334-mature.Slf0yK/python:/tmp/guala-speech-existing-organ
+OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 nice -n10 python -m pytest -q
+tests/test_retinal_receptor_physical_work_source.py
+tests/test_guala_world_sensorium.py tests/test_guala_spectral_retina.py
+tests/test_guala_motor_world.py tests/test_lean_physical_loop.py --maxfail=1
+Result:46passed5.49s,exit0. Private .so SHA
+ddabd542f253c2bcc023f50c37c8e21b193db48357e8fdc5b518f275dc37f92b.
+This proves Python optical/transport source under the existing dependency,
+NOT1463-native integration or a fresh mature behavioral run.
+
+Fine-detail witness is an actual signed world with a2mm-wide,5x5 contrast
+target at1.5m horizontal distance. Actual eye/raised-center vector determines
+pitch and full3D angular radius; critical stroke/gap <=onearcminute. Both
+orientations give black AND white central receptor values and distinct fields.
+No semantic classification, autonomous aiming, camera resolution or enlarged
+preview is substituted. Independent object-only and portal-only pitch
+witnesses and both body-return endpoints pass. Rollback and retained-return
+loop checks stay covered; no speech suite or timing benchmark was restarted.
+
+Pre/post read-only AWS: task1463/600c9d151f8345069f73252e1669e694, same digest
+59b2000575d079a06b01273388c2f42da6313e36dfb3ca62e0647cf84538b9cf,
+sole desired/running1,pending0,HEALTHY4CPU16GiB.00:12 public observer identity
+1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1,live707984,persisted707969,
+no durability block/checkpoint/cleanup error. This public snapshot is not
+a full cognitive-health proof. CloudWatch23:55–00:02 CPUmax67.19%,RAMmax20.24%;
+CPU/RAM/storage/refusal alarmsOK; clock alarm still datedSept8, not concealed.
+No surviving pytest/build/proof descendants; no caretaker/production mutation.
+One read-only skill reference used a wrong path, then rg resolved the actual
+production-organism-health-check.md. No run was attempted from that bad path.
+
+Immediate delivery dependency: C1's actual detailed camera-source/aim contract
+and honest WORLD angular-span label, plus remaining complete-settlement
+latency. C1 was asked in the shared ledger;160x120fullscene cannot supply this
+angular detail. The unrelated aggregate-need skill/release conflict still
+needs explicit reconciliation before adopting1463 for a Sol cutover.
+Do not repeat CLOSED K6, dense-camera or prior speech proofs.
+
+## Prior source contract and receipts (retained)
+
+
+## CURRENT — 2026-09-13 23:50 UTC — Joe directs continued20/20 acquisition work
+
+Joe: "don't talk to me until the substrate has20/20 vision." Manual vision
+work continues under that instruction; no release exception for the unrelated
+need mechanism is inferred. No goal-complete or live-vision claim. D122334's
+full receptor timing and source-quality target remains unchanged. Native
+settlement/barrier findings and K6 rejection remain closed prior evidence.
+
+Independent source geometry review completed on1aa0652ec by
+vision_geometry_review, no edits/tests: the additional32x24 field is currently
+spread over the SAME180x90degree world field as the old135 receptors.
+Each added aperture is5.625x3.75degrees, not a narrow sharp center.
+retinal_carriage reads only neck yaw and eyelids; native neck pitch exists
+but does not reach the world's optical projection. Page imageRetina likewise
+resizes the whole source to32x24; a larger preview cannot restore its detail.
+
+Requested architecture: real sharp organism-aimed central acquisition plus
+the unchanged wide surround, complete fullDSF and bounded causal life.
+Current conflictYES: "focal" names a second wide grid; vertical head direction
+is absent from that world optical input. Do not extend the whole-body scheduler,
+aggregate-need source, simulated binocular biology, image archives, semantic
+saliency, inferred attention, or the old word/speech campaign.
+Next exact item: complete a narrow world-optical field and two-axis carriage
+contract against existing receptor IDs and native neck axes. No new neuron,
+reservoir, source codec, learned label, or DSF reduction is required.
+
+Quantitative acquisition proposal: one arcminute is the critical-detail
+reference for20/20 acuity (National Research Council, Tests of Visual Functions,
+https://www.ncbi.nlm.nih.gov/books/NBK207559/). Sample at one HALF arcminute,
+25/3 millidegrees per aperture, giving the existing32x24 central field spans
+800/3 by200millidegrees. Half-apertures25/6millidegrees tile exactly.
+This is a derived engineering sampling target, NOT measured clinical acuity,
+recognition, current receipt, camera capability or250ms timing.
+
+Use the existing MONO world retinal point and its already authoritative neck
+yaw; connect its persisted neck pitch for vertical aim. Do not choose or
+average left/right eye angles, add a binocular model, or infer where to look.
+Root heading plus neck yaw remains existing horizontal authority. Positive
+pitch raises the viewing center; every portal/object vertical angle is then
+relative to that center. Eyelid transmission remains unchanged. Old135
+aperture geometry remains unchanged; all apertures follow actual head aim.
+Camera source mapping remains C1's contract and cannot claim20/20 from160x120
+or unknown camera FoV. Source detail must exist before retinal reduction.
+
+Before code: reconcile complete optics-to-sensorium-to-native input map,
+source anatomy metadata, returned-body branch, public view provenance and
+camera/world separation. Record a target image with declared angular detail
+and sufficient source texture; no golden semantic answer or injected motor.
+One physical source must give distinguishable fine central receptor input,
+old wide apertures unchanged at zero pitch, and pitch/heading must move
+source exposure without changing receptor IDs. Genuine native/mature/cold
+proof and production latency remain required before a delivery claim.
+
+Read-only command mistakes this turn: guessed nonexistent articulated_body.rs
+and test_w1_physical_receptors.py; rg resolved actual virtual_articulated_body.rs
+and test_retinal_receptor_physical_work_source.py. No compile/test failed.
+A later guessed generator-file search was unproductive; no generator exists
+under those names. Subsequent sources resolved by rg --files. These are tool
+path mistakes, not biological failures. Do not repeat those guesses.
+
+
+### Focal implementation contract — completed before source changes
+
+Sol alone owns w1_physical_receptors.py, guala_world_sensorium.py and the
+retinal_carriage unpack in lean_physical_loop.py for this change. Independent
+geometry reviewer approved the mono mapping; source review follows the freeze.
+
+Input: the authenticated world snapshot, existing native neck yaw/pitch and
+eyelid axes. Output: the existing 903 x six-band irradiance field, with legacy
+135 geometry untouched and a narrow added768 field. No new state or port,
+no DSF projection reduction. Complete joint-field settlement remains native;
+this change changes light exposure, not the settlement or conservation laws.
+
+Optical authority: exact Fraction aperture pitch 25/3 millidegrees; existing
+integer-CORDIC world geometry and texture reflectance law. Both object elevation
+and portal bounds subtract actual neck pitch. Passive capture and both sides
+of body-return capture carry their own angles. Existing spectral callers
+keep zero-pitch defaults. Camera branch only reads transmission: independent
+camera samples must not be represented as head-aimed world light.
+
+No mutation during capture. Existing prepare/commit/rollback order is
+unchanged. Failed capture publishes no successor; retained pending returns
+keep their captured sensorium bytes, never reprojected. Cold restore keeps
+the same world/body codecs and all receptor identities; subsequent NEW
+world exposures use the declared new optics. No snapshot migration or merge
+of learned state. World geometry change is not old/new successor equivalence.
+
+Work bound remains O((objects + bodies + portals) * 903 * 6), bounded by the
+existing world and receptor limits; no population scan, new task, queue,
+archive, per-site state, independent kernel or repeated ray pass. Retire only
+the added768 wide-field geometry and the yaw-only carriage. Legacy135 optics,
+full-camera discarded-ray omission and actual pending-body-return work stay.
+
+Focused source checks: exact aperture tiling and retained IDs; a physical
+5x5 contrast target with <= one-arcminute critical detail, opposite
+orientations distinguished at the receptor field (NOT recognition); pitch
+affects object and portal paths; passive and predecessor/successor carriage
+agree with the same projection; existing rollback and pending-return controls.
+Pre-existing spectral/loop fixtures gain real typed neck-pitch axes. No native
+build or broad speech suite. Honest public world-span labeling belongs to C1
+with the camera/page integration and is a release requirement, not preview proof.
+
+No native/mature/live 20/20 or latency claim until the actual source,
+complete DSF admission and production <=250ms path are verified together.
+
+
+### Source check correction — first run stopped; textured-surface reachability
+
+Source review472c7b62 found one insensitive object-pitch witness; localized
+correction gave final source PASS4c98be22. First focused run then stopped at
+4pass/1fail in3.43s because my fixture placed an ordinary object above the
+world floor. This is a fixture failure, not failed biological behavior.
+
+Reading contains_floor_disc exposed an existing production-path wrong argument:
+patterned optical centers are raised by radius, but illumination ownership
+was looked up with that center against a FLOOR-disc predicate, silently
+skipping such surfaces. Independent reviewer confirmed localized correction:
+use the already visibility-accepted floor_position for region ownership,
+retaining raised optical center for all angles. Do not weaken containment.
+Both the earlier review and my pre-code analysis missed this argument mismatch.
+
+Legacy135 APERTURE GEOMETRY remains unchanged. Received light from formerly
+skipped textures necessarily changes on those apertures too; any previous
+"unchanged old exposure" implication is withdrawn. No body/state/DSF law changes.
+Fine target now belongs to a real signed world at floor z0. Pitch and angular
+radius derive from the actual eye-to-raised-center vector, including vertical
+distance. Object-only pitch witness uses a valid floor target and -8degree
+aim; portal-only witness remains isolated. No new renderer or test campaign.
+One re-reviewed source closure, then resume the stopped focused checks.
+
+## Earlier checkpoint (retained verbatim)
+
 ## CURRENT — 2026-09-13 23:37 UTC — execution blocked on explicit release authority
 
 The full AE objective is NOT complete. D122334 remains the pending delivery,

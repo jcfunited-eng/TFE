@@ -109,7 +109,7 @@ def test_primary_keeps_tutor_and_authenticated_self_hearing_together(
         return captured_sensorium() if kw["include_world_sight"] else Sensorium(retina=())
 
     monkeypatch.setattr(loop, "passive_sensorium", passive)
-    monkeypatch.setattr(loop, "retinal_carriage", lambda _axes: (0, Fraction(1)))
+    monkeypatch.setattr(loop, "retinal_carriage", lambda _axes: (0, 0, Fraction(1)))
     monkeypatch.setattr(loop, "_requires_physical_return", lambda _e: new_consequence)
     monkeypatch.setattr(loop, "lean_embodiment_observation", lambda *_a: {})
 

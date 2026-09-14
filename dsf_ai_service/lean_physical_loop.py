@@ -122,7 +122,7 @@ class LeanPhysicalLoop:
                 primary_sensorium = returning.sensorium(times)
 
             if sensory is not None and sensory.retina_rgb_u8 is not None:
-                _heading, transmission = retinal_carriage(before_axes)
+                _heading, _pitch, transmission = retinal_carriage(before_axes)
                 sampled_retinal_sites = sensory.retinal_site_indices
                 if sampled_retinal_sites is not None:
                     luminance = sampled_retina_luminance_u8(
