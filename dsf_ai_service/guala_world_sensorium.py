@@ -150,10 +150,23 @@ def _retinal_luminance(pixels: RetinalField) -> tuple[Fraction, ...]:
             converted[value] = retained
         return retained
 
-    return tuple(
-        sum((rational(band) for band in pixel), Fraction(0)) / OPTICAL_BANDS
-        for pixel in pixels
-    )
+    out: list[Fraction] = []
+    for p in pixels:
+        if p[0] == p[1] == p[2] == p[3] == p[4] == p[5]:
+            out.append(rational(p[0]))
+        else:
+            out.append(
+                (
+                    rational(p[0])
+                    + rational(p[1])
+                    + rational(p[2])
+                    + rational(p[3])
+                    + rational(p[4])
+                    + rational(p[5])
+                )
+                / OPTICAL_BANDS
+            )
+    return tuple(out)
 
 
 def passive_receptor_capture(

@@ -415,7 +415,8 @@ def _verify_execution(
 
 
 def _bounded_fraction(value: Fraction, name: str) -> Fraction:
-    if not -1 <= value <= 1:
+    den = value._denominator
+    if not -den <= value._numerator <= den:
         raise ValueError(f"{name} left the physical receptor boundary")
     return value
 
@@ -682,14 +683,17 @@ def _portal_aperture_background(
                         )
                         if not h_overlap:
                             continue
-                        cov = Fraction(h_overlap * v_overlap, cell_area)
                         s_idx = row_offset + c
-                        pixels[s_idx] = tuple(
-                            prior * (1 - cov) + observed * cov
-                            for prior, observed in zip(
-                                pixels[s_idx], radiance, strict=True
+                        if h_overlap * v_overlap == cell_area:
+                            pixels[s_idx] = radiance
+                        else:
+                            cov = Fraction(h_overlap * v_overlap, cell_area)
+                            pixels[s_idx] = tuple(
+                                prior * (1 - cov) + observed * cov
+                                for prior, observed in zip(
+                                    pixels[s_idx], radiance, strict=True
+                                )
                             )
-                        )
 
 
 def _retinal_projection(
@@ -1006,9 +1010,6 @@ def _retinal_projection(
                         )
                         if not h_overlap:
                             continue
-                        coverage = Fraction(h_overlap * v_overlap, cell_area)
-                        if coverage <= 0:
-                            continue
                         if pattern is not None and angular_radius > 0:
                             p_col = min(
                                 pattern.columns - 1,
@@ -1060,12 +1061,16 @@ def _retinal_projection(
                         else:
                             surface_light = base_surface_light
                         s_idx = row_offset + c
-                        pixels[s_idx] = tuple(
-                            prior * (1 - coverage) + observed * coverage
-                            for prior, observed in zip(
-                                pixels[s_idx], surface_light, strict=True
+                        if h_overlap * v_overlap == cell_area:
+                            pixels[s_idx] = surface_light
+                        else:
+                            coverage = Fraction(h_overlap * v_overlap, cell_area)
+                            pixels[s_idx] = tuple(
+                                prior * (1 - coverage) + observed * coverage
+                                for prior, observed in zip(
+                                    pixels[s_idx], surface_light, strict=True
+                                )
                             )
-                        )
     return tuple(pixels)
 
 
@@ -1093,7 +1098,9 @@ def retinal_irradiance_field(
         if len(pixel) != OPTICAL_BANDS:
             raise RuntimeError("world lost the six-band retinal field")
         for value in pixel:
-            _bounded_fraction(value, "physical receptor signal")
+            den = value._denominator
+            if not -den <= value._numerator <= den:
+                raise ValueError("physical receptor signal left the physical receptor boundary")
     return pixels
 
 

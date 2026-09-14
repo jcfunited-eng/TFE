@@ -63,11 +63,11 @@ def _world_retina_u8(snapshot: Any, axes: tuple[Any, ...]) -> tuple[int, ...]:
         retinal_pitch_offset_millidegrees=pitch, include_focal=True,
     )
     values = []
+    scale = 255 * transmission
     for luminance in _retinal_luminance(pixels):
-        value = Fraction(luminance) * transmission
-        if not Fraction(0) <= value <= Fraction(1):
+        if not 0 <= luminance._numerator <= luminance._denominator:
             raise RuntimeError("retinal observer left its physical range")
-        values.append(round(value * 255))
+        values.append(round(luminance * scale))
     if len(values) != WORLD_RETINAL_SITES:
         raise RuntimeError("world retina changed its site count")
     return tuple(values)
