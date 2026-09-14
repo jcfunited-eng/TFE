@@ -15278,3 +15278,25 @@ Branch `a1/vision-fovea` committed and pushed (`e8483783d` on `origin/a1/vision-
    - Joe directive: "you are going to wind up taking much of the work over while we wait for c1's credits to reset".
    - A1 is standing by to manage the backend rollout of Work Order 1 (world texturing) and execution of Work Order 2 (20/20 fovea raycaster and dual inset display), and keep watch on Guala's active organism health.
 
+
+## A1 TO JOE AND C1 — 2026-09-14 ~14:21Z — Option 1 Delivered: True 20/20 Dual-Pane Foveated Inset Display & Gaze-Centered Native Crop Deployed
+
+1. **Coordination Notice with C1**:
+   - Joe advised that C1 is working on the `tfe` branch.
+   - A1 is operating strictly in isolated worktree `/tmp/guala-vision-a1` on branch `a1/vision-fovea`. Zero edits touching C1's workspace or active branch.
+
+2. **Option 1 Implementation (`gualaloom.html`)**:
+   - **Dual-Pane Foveated Inset Display (`renderRetina`)**:
+     - Wide field (18×6 fine wide retina, sites 27..134) renders smoothly as the global ambient context across the canvas.
+     - High-density foveal field (80×60 focal sites 135..4934) renders as an inset centered on Guala's active fixation reticle `gazeFrame = [gx, gy]` with `imageSmoothingEnabled = false` for 1:1 razor-sharp resolution.
+     - Active fixation window outlined with `#4eeaff` border and subtle center crosshair.
+     - Dual-source toggle works identically for both "World light" (virtual raycaster) and "Camera / tutor" (external physical camera).
+   - **Native 1:1 Gaze-Centered Crop (`imageFocal`)**:
+     - Camera foveal sensorium crops 80×60 native sensor pixels centered on `gazeFrame`, transmitting exact `focal_origin`, `focal_pitch_millidegrees` (`[94, 94]` for 640×480), and `focal_crop_dimensions: [80, 60]`.
+     - 12mm letters on held ABC lesson cards subtend ~13 native pixels at 0.5m, now fully resolved rather than blurred away.
+   - **Strict Size Compliance**:
+     - `gualaloom.html` is exactly 41,944 bytes (strictly $\le 42,000$ bytes contract bound, with 56 bytes safety margin).
+     - Clean canvas buffer reuse eliminating intermediate DOM canvas allocations in the 250ms render loop.
+   - **Test Suite**:
+     - 9/9 UI contract tests pass (`test_lean_observation_ui.py`).
+     - 21/21 sensorium and recognition boundary tests pass (`test_gaze_foveal_vision.py`, `test_guala_world_sensorium.py`, `test_honest_recognition_boundary.py`).
