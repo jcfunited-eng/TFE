@@ -62,6 +62,8 @@ MINE = collections.deque(maxlen=256)  # her ticks this caretaker produced; any o
 # when nothing is at her mouth that a bite can still take from, and not more
 # often than MEAL_TICKS of her clock — politeness, not a hunger rule.
 MEAL_TICKS = 400
+HUNGRY_DEFICIT = 0.40  # her feeding law starts below 60 percent of capacity
+DELIVERY_ID = "apple-delivery"  # asks the caregiver to bring a fresh apple from outside
 FOOD_PREFIX = "apple"
 CORE_MICROGRAMS = 10  # five tastant channels of 2 µg: nothing a bite can take
 
@@ -245,6 +247,19 @@ def maybe_feed(o: dict, st: dict) -> None:
     tick = o.get("live_tick") or 0
     if tick < (st.get("meal_tick") or 0) + MEAL_TICKS and not st.get("meal_retry"):
         return
+    # Food is offered when she is hungry (her own published reserve deficit
+    # above HUNGRY_DEFICIT); otherwise the caregiver stays home. Presenting
+    # only, never deciding for her.
+    deficit = ((o.get("last_occurrence") or {}).get("metabolic_need_reserve_deficit") or [0, 1])
+    try:
+        hungry = (deficit[0] / deficit[1]) > HUNGRY_DEFICIT if deficit[1] else False
+    except (TypeError, ZeroDivisionError, IndexError):
+        hungry = False
+    if not hungry:
+        if st.get("not_hungry_logged") != tick // 2000:
+            log(f"not hungry (deficit {deficit[0]}/{deficit[1]}); no meal offered")
+            st["not_hungry_logged"] = tick // 2000
+        return
     skip = set(st.get("unreachable") or [])
     at_mouth, foods = food_state(o, skip)
     if at_mouth:
@@ -252,11 +267,10 @@ def maybe_feed(o: dict, st: dict) -> None:
         return
     foods = [f for f in foods if f not in skip] or foods
     if not foods:
-        if st.get("no_food_logged") != tick // 1000:
-            log("no apple with matter left on the floor; nothing to present")
-            st["no_food_logged"] = tick // 1000
-        st["meal_retry"] = False
-        return
+        # Nothing edible within reach: the caregiver brings a fresh apple
+        # from outside (the world's grocery boundary) and presents it.
+        log("no apple with matter left within reach; bringing a fresh one")
+        foods = [DELIVERY_ID]
     food = foods[0]
     res = present_food(food)
     st["meal_tick"] = tick
@@ -271,7 +285,7 @@ def maybe_feed(o: dict, st: dict) -> None:
     steps = pres.get("steps") or []
     log(f"meal: presented {food} — presented={pres.get('presented')} took_away={pres.get('took_away')} "
         f"steps={len(steps)} last={steps[-1] if steps else None}")
-    if not pres.get("presented"):
+    if not pres.get("presented") and food != DELIVERY_ID:
         st["unreachable"] = sorted(skip | {food})
         st["meal_retry"] = len(foods) > 1
     else:
