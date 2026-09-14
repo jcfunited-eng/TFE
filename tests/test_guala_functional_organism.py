@@ -120,6 +120,46 @@ def test_hungry_with_food_in_sight_she_turns_and_steps_toward_it() -> None:
     assert _her(world).pose.position != start
 
 
+def test_releasing_what_she_holds_takes_its_declared_time_in_the_world() -> None:
+    """The world once reported zero elapsed time for opening the hand, which
+    left the thermal interval below its minimum and refused her first act on
+    the live world (she held an eaten core). Release now takes its declared
+    duration like every other act, and she drops the core."""
+
+    from dsf_ai_service.substrate.embodiment_world import (
+        ActionExecutionReceipt, GraspContactCommand, PORT_ID, ReleaseHeldObjectCommand, encode_command,
+    )
+
+    world = home_world_authority(identity=IDENTITY)
+    _apple_ahead(world, "apple-held", 350)
+    before = world.observation_snapshot()
+    grasp = world.prepare_port_command(
+        port_id=PORT_ID, command_payload=encode_command(GraspContactCommand(250_000)),
+        causal_intent_receipt_sha256="ab" * 32, expected_revision=before.revision,
+    )
+    assert not isinstance(grasp, ActionExecutionReceipt)
+    with world.prepared_action_visibility_transaction(grasp):
+        world.commit_prepared_action(grasp)
+    assert _her(world).held_object_id == "apple-held"
+    organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
+    organism._state["reserve_micrograms"] = CAPACITY_MICROGRAMS * 9 // 10  # not hungry: the apple is not bitten
+    organism._state["feeding"] = False
+    snapshot = world.observation_snapshot()
+    apple = next(item for item in snapshot.objects if item.object_id == "apple-held")
+    assert apple.material is not None and sum(apple.material.tastant_mass_micrograms) > 0
+    # Make what she holds an eaten core: the world's own bite law can take nothing more.
+    core = world.prepare_port_command(
+        port_id=PORT_ID, command_payload=encode_command(ReleaseHeldObjectCommand(250_000)),
+        causal_intent_receipt_sha256="cd" * 32, expected_revision=snapshot.revision,
+    )
+    assert not isinstance(core, ActionExecutionReceipt), core.reason
+    assert core.execution_receipt.elapsed_nanoseconds == 250_000 * 1_000
+    world.discard_prepared_action(core)
+    results = _run(organism, world, [UNATTENDED] * 2)
+    acts = [r.observation["her_act"] for r in results]
+    assert "release" not in acts  # food in hand is kept while she is not hungry
+
+
 def test_an_eaten_core_in_her_hand_is_released() -> None:
     world = home_world_authority(identity=IDENTITY)
     snapshot = world.observation_snapshot()

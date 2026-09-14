@@ -1755,6 +1755,10 @@ def _command_elapsed_nanoseconds(
             MoveCommand,
             PickCommand,
             GraspContactCommand,
+            # Opening the hand takes its declared time like every other act;
+            # a zero elapsed release left the thermal interval below its
+            # minimum and refused her first act on the live world (2026-09-14).
+            ReleaseHeldObjectCommand,
             TakeContactHeldObjectCommand,
             AdvanceContactOpticalSurfaceCommand,
             PlaceCommand,
