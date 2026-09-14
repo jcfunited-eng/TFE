@@ -531,9 +531,10 @@ def candidates(
     if held is not None and drop_spot_clear(snapshot, body, held):
         out.append(("release", held.object_id, (ReleaseHeldObjectCommand(BEAT_MICROSECONDS),), held.object_id, None))
 
-    # 4. Toward every sensed food target
+    # 4. Toward every sensed food target, nearest first (the least strides to reach)
     if held is None:
-        food = [thing for thing in seen if thing.is_food and not nothing_left_to_bite(body, _object(snapshot, thing.object_id))]
+        food = sorted((thing for thing in seen if thing.is_food and not nothing_left_to_bite(body, _object(snapshot, thing.object_id))),
+                      key=lambda thing: (thing.distance_mm, thing.object_id))
         for item in food:
             stop = body.radius_mm + item.radius_mm + STOP_MARGIN_MM
             if item.distance_mm > stop + ARRIVAL_MM:
@@ -544,8 +545,8 @@ def candidates(
     if bed is not None and bed.distance_mm > ARRIVAL_MM + STEP_MM // 2:
         out.append(("toward_bed", "her bed", move_commands_toward(snapshot, bed.position, 0), bed.object_id, None))
 
-    # 6. Toward every sensed thing
-    things = [thing for thing in seen if not thing.is_food]
+    # 6. Toward every sensed thing, nearest first (the least strides to reach)
+    things = sorted((thing for thing in seen if not thing.is_food), key=lambda thing: (thing.distance_mm, thing.object_id))
     for item in things:
         stop = body.radius_mm + item.radius_mm + (HANDLE_STOP_MM if held is None and handleable(_object(snapshot, item.object_id)) else WANDER_STOP_MM)
         if item.distance_mm > stop + ARRIVAL_MM:
@@ -937,8 +938,11 @@ class FunctionalOrganism:
         act, why = self._choose(key, situation, candidate_acts, uncertain=uncertain)
         matching = [option for option in options if option[0] == act]
         target_totals = state.setdefault("target_totals", {})
-        untried_targets = [opt for opt in matching if opt[3] not in target_totals]
-        chosen_option = untried_targets[0] if untried_targets else min(matching, key=lambda opt: (int(target_totals.get(opt[3], 0)), matching.index(opt)))
+        # Of the targets of the chosen kind, the one that costs the least to reach:
+        # candidates of a kind are listed nearest first, and a move's burn is per
+        # stride. (Spreading her over the targets by her counts sent each door move
+        # toward a different door, and she never crossed one.) The counts stay as record.
+        chosen_option = matching[0]
         if chosen_option[3] is not None:
             target_totals[chosen_option[3]] = int(target_totals.get(chosen_option[3], 0)) + 1
         _name, detail, commands, target, drive = chosen_option
