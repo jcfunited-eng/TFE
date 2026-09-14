@@ -85,6 +85,13 @@ HANDLE_RADIUS_MM = 300
 HANDLE_STOP_MM = 150       # how far short of a thing she stops to reach it with her hand
 CARRY_STRIDES = 12
 DROP_MARGIN_MM = 60
+# Her keeping place: the room she has spent the most beats in over her life.
+# A thing she picks up is carried there and set down beside the last thing
+# she kept; if the walk takes too long she sets it down where she is.
+STUCK_BEATS = 8            # two seconds of every step refused: she is walled in
+ROOM_BEATS_CAPACITY = 16
+KEEP_WALK_PATIENCE_BEATS = 160
+KEEP_BESIDE_MM = 450
 TOUCHED_MEMORY_BEATS = 1_200
 TOUCHED_CAPACITY = 64
 PROGRESS_MM = 40           # a stride that brings her at least this much closer counts as progress
@@ -485,6 +492,7 @@ class FunctionalOrganism:
             "pending_voice": None, "pending_drive": None, "meals_micrograms": 0, "bites": 0, "strides": 0, "syllables": 0,
             "voice_version": VOICE_VERSION, "visited": {}, "door_goal": None, "bout_syllables": 0, "quiet_until_tick": 0, "blocked_doors": {}, "attended_tick": -ATTEND_REFRACTORY_BEATS - 1, "unreachable_food": {}, "food_goal": None, "food_refusals": 0, "food_best_mm": 0, "food_stall_beats": 0, "ambient_sound": 0.0, "answered_profile": None, "touched": {}, "strides_since_pickup": 0, "handled": 0, "release_refusals": 0, "touching": None,
             "listening_since": None, "call_profile": None, "answer_bout": 0, "answer_target": None, "answer_pending": None, "answer_map": {}, "food_rooms": {}, "food_room_goal": None, "room_now": None,
+            "room_beats": {}, "keeping_room": None, "keep_walk_beats": 0, "last_kept": None, "kept": 0, "stuck_beats": 0,
         })
 
     @classmethod
@@ -511,7 +519,8 @@ class FunctionalOrganism:
             state["voice_version"] = VOICE_VERSION
             changed = True
         for key, empty in (("visited", {}), ("door_goal", None), ("bout_syllables", 0), ("quiet_until_tick", 0), ("blocked_doors", {}), ("attended_tick", -ATTEND_REFRACTORY_BEATS - 1), ("unreachable_food", {}), ("food_goal", None), ("food_refusals", 0), ("food_best_mm", 0), ("food_stall_beats", 0), ("ambient_sound", 0.0), ("answered_profile", None), ("touched", {}), ("strides_since_pickup", 0), ("handled", 0), ("release_refusals", 0), ("touching", None),
-                           ("listening_since", None), ("call_profile", None), ("answer_bout", 0), ("answer_target", None), ("answer_pending", None), ("answer_map", {}), ("food_rooms", {}), ("food_room_goal", None), ("room_now", None)):
+                           ("listening_since", None), ("call_profile", None), ("answer_bout", 0), ("answer_target", None), ("answer_pending", None), ("answer_map", {}), ("food_rooms", {}), ("food_room_goal", None), ("room_now", None),
+                           ("room_beats", {}), ("keeping_room", None), ("keep_walk_beats", 0), ("last_kept", None), ("kept", 0), ("stuck_beats", 0)):
             if key not in state:
                 state[key] = empty
                 changed = True
@@ -585,6 +594,7 @@ class FunctionalOrganism:
     def counts(self) -> dict[str, int]:
         counts = {key: int(self._state.get(key, 0)) for key in ("bites", "strides", "syllables", "meals_micrograms", "handled")}
         counts["answers_known"] = len(self._state.get("answer_map", {}))
+        counts["kept"] = int(self._state.get("kept", 0))
         return counts
 
     # ----- the kernel over her measured streams --------------------------------------
@@ -643,6 +653,17 @@ class FunctionalOrganism:
         snapshot = sensed.snapshot
         body = _self_body(snapshot)
         seen = things_in_sight(snapshot)
+        # Where she is: the room she stands in; the room she has spent the most
+        # beats in over her life is her keeping place.
+        here = _region_of(snapshot, body.pose.position, body.radius_mm)
+        state["room_now"] = None if here is None else here.region_id
+        room_beats = state.setdefault("room_beats", {})
+        if here is not None:
+            room_beats[here.region_id] = int(room_beats.get(here.region_id, 0)) + 1
+            while len(room_beats) > ROOM_BEATS_CAPACITY:
+                del room_beats[min(room_beats, key=lambda k: int(room_beats[k]))]
+        keeping_room = max(room_beats, key=lambda k: int(room_beats[k])) if room_beats else None
+        state["keeping_room"] = keeping_room
         measures = self._measure(sensed, seen, body)
         for name in STREAMS:
             window = state["streams"][name]
@@ -775,14 +796,53 @@ class FunctionalOrganism:
         # not handled lately.
         touched = state.setdefault("touched", {})
         if held is not None and not _is_food(held):
-            if int(state.get("strides_since_pickup", 0)) >= CARRY_STRIDES:
+            carried = int(state.get("strides_since_pickup", 0))
+            keep_beats = int(state.get("keep_walk_beats", 0))
+            state["keep_walk_beats"] = keep_beats + 1
+            at_keeping_room = here is not None and keeping_room is not None and here.region_id == keeping_room
+            last_kept = state.get("last_kept")
+            beside = (
+                last_kept is not None and last_kept.get("room") == keeping_room
+                and _object(snapshot, last_kept["object_id"]) is not None and _object(snapshot, last_kept["object_id"]).position is not None
+            )
+            settle_here = keep_beats >= KEEP_WALK_PATIENCE_BEATS or keeping_room is None
+            if not settle_here and not at_keeping_room and here is not None:
+                # Carry it to her keeping place: through the doorway on the way there.
+                route = _portal_route(snapshot, here.region_id, keeping_room)
+                blocked = state.get("blocked_doors", {})
+                if route and tick - int(blocked.get(route[0].portal_id, -BLOCKED_DOOR_BEATS - 1)) > BLOCKED_DOOR_BEATS:
+                    portal = route[0]
+                    before_door, past_door = door_crossing(snapshot, portal, here.region_id)
+                    why = "carrying " + held.object_id + " to " + keeping_room + ", where she keeps things; going through " + portal.portal_id
+                    if _distance_mm(body.pose.position, before_door) <= ARRIVAL_MM + STEP_MM // 2:
+                        return decision("wander", why, door_crossing_commands(snapshot, portal, here.region_id), held.object_id)
+                    return decision("wander", why, move_commands_toward(snapshot, before_door, 0), held.object_id)
+                settle_here = True
+            if not settle_here and at_keeping_room and beside:
+                kept = _object(snapshot, last_kept["object_id"])
+                if _distance_mm(body.pose.position, kept.position) > body.radius_mm + kept.radius_mm + KEEP_BESIDE_MM + ARRIVAL_MM:
+                    return decision("wander", "carrying " + held.object_id + " to where she keeps things, beside " + kept.object_id, move_commands_toward(snapshot, kept.position, body.radius_mm + kept.radius_mm + KEEP_BESIDE_MM), held.object_id)
+            if settle_here or at_keeping_room or carried >= CARRY_STRIDES:
                 # Set it down where the floor ahead is clear; otherwise turn
                 # a little and look again next beat.
+                why = ("keeping " + held.object_id + " in " + keeping_room) if (at_keeping_room and keeping_room) else ("setting down " + held.object_id + " after carrying it")
                 if drop_spot_clear(snapshot, body, held) and int(state.get("release_refusals", 0)) == 0:
-                    return decision("release", "setting down " + held.object_id + " after carrying it", (ReleaseHeldObjectCommand(BEAT_MICROSECONDS),), held.object_id)
+                    return decision("release", why, (ReleaseHeldObjectCommand(BEAT_MICROSECONDS),), held.object_id)
                 state["release_refusals"] = 0
                 heading = (body.pose.heading_millidegrees + TURN_MILLIDEGREES) % 360_000
                 return decision("turn", "looking for a clear place to set down " + held.object_id, (MoveCommand(PoseMM(body.pose.position, heading), BEAT_MICROSECONDS),), held.object_id)
+        elif held is None and int(state.get("stuck_beats", 0)) >= STUCK_BEATS:
+            # Walled in by things on the floor: pick up the nearest light
+            # thing within reach to open a way, and carry it on.
+            blockers = [item for item in snapshot.objects if handleable(item) and in_hand_reach(snapshot, item)]
+            if blockers:
+                reachable = [thing for thing in snapshot.objects if thing.position is not None and in_hand_reach(snapshot, thing)]
+                item = min(blockers, key=lambda thing: _distance_mm(body.pose.position, thing.position))
+                if len(reachable) == 1:
+                    state["stuck_beats"] = 0
+                    return decision("grasp", "clearing a way: picking up " + item.object_id, (GraspContactCommand(BEAT_MICROSECONDS),), item.object_id)
+                heading = (body.pose.heading_millidegrees + TURN_MILLIDEGREES) % 360_000
+                return decision("turn", "walled in; turning to find one thing to pick up", (MoveCommand(PoseMM(body.pose.position, heading), BEAT_MICROSECONDS),))
         elif held is None and not feeding:
             # Something held out to her that is not food: she takes it from
             # the caregiver's hand (the world's hand-to-hand law).
@@ -807,8 +867,6 @@ class FunctionalOrganism:
             state["attended_tick"] = tick
             return decision("attend", "a structure she has not met before")
         # Where she is: the room she stands in, remembered as visited now.
-        here = _region_of(snapshot, body.pose.position, body.radius_mm)
-        state["room_now"] = None if here is None else here.region_id
         visited = state["visited"]
         if here is not None:
             visited[here.region_id] = tick
@@ -934,10 +992,18 @@ class FunctionalOrganism:
                 del touched[min(touched, key=lambda k: int(touched[k]))]
             if applied_action in ("grasp", "take"):
                 state["strides_since_pickup"] = 0
+                state["keep_walk_beats"] = 0
                 state["handled"] = int(state.get("handled", 0)) + 1
+            if applied_action == "release" and state.get("room_now") and state.get("keeping_room") == state.get("room_now"):
+                state["last_kept"] = {"object_id": decision.target_object_id, "room": state["room_now"], "tick": tick_now}
+                state["kept"] = int(state.get("kept", 0)) + 1
         if decision.act == "release" and refusal is not None:
             state["release_refusals"] = int(state.get("release_refusals", 0)) + 1
         state["touching"] = decision.target_object_id if (applied_action == "touch" and refusal is None) else None
+        if refusal is not None and decision.act in ("wander", "approach"):
+            state["stuck_beats"] = int(state.get("stuck_beats", 0)) + 1
+        elif applied_action in ("wander", "approach") and refusal is None:
+            state["stuck_beats"] = 0
         if refusal is not None:
             if decision.act == "wander":
                 state["goal_refusals"] = int(state.get("goal_refusals", 0)) + 1

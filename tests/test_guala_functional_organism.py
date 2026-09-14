@@ -292,7 +292,7 @@ def test_an_older_functional_body_is_migrated_on_restore_and_forgets_sounds_of_t
     state["voice_version"] = 1
     state["voice"] = [{"drive": [44, 31, 0], "heard": [0.1] * 32, "tick": 3}]
     state["heard"] = [{"tick": 4, "profile": [0.2] * 32}]
-    for key in ("visited", "door_goal", "bout_syllables", "quiet_until_tick", "blocked_doors", "attended_tick", "unreachable_food", "food_goal", "food_refusals", "food_best_mm", "food_stall_beats", "ambient_sound", "answered_profile", "touched", "strides_since_pickup", "handled", "release_refusals", "touching", "listening_since", "call_profile", "answer_bout", "answer_target", "answer_pending", "answer_map", "food_rooms", "food_room_goal", "room_now"):
+    for key in ("visited", "door_goal", "bout_syllables", "quiet_until_tick", "blocked_doors", "attended_tick", "unreachable_food", "food_goal", "food_refusals", "food_best_mm", "food_stall_beats", "ambient_sound", "answered_profile", "touched", "strides_since_pickup", "handled", "release_refusals", "touching", "listening_since", "call_profile", "answer_bout", "answer_target", "answer_pending", "answer_map", "food_rooms", "food_room_goal", "room_now", "room_beats", "keeping_room", "keep_walk_beats", "last_kept", "kept", "stuck_beats"):
         state.pop(key, None)
     older = MAGIC + json.dumps(state, allow_nan=False, ensure_ascii=False, separators=(",", ":"), sort_keys=True).encode("utf-8")
     restored = FunctionalOrganism.restore(older)
@@ -541,3 +541,54 @@ def test_the_caretaker_offers_a_toy_and_she_takes_it_carries_it_and_sets_it_down
     after = next(item for item in world.observation_snapshot().objects if item.object_id == "toy-bear")
     assert after.position is not None and after.position != before
     assert organism.counts["handled"] >= 1
+
+
+def test_she_keeps_things_in_the_room_she_lives_in_most() -> None:
+    """Her keeping place is the room she has spent the most beats in; a thing
+    she picks up elsewhere is carried there and set down beside the last
+    thing she kept."""
+
+    world = home_world_authority(identity=IDENTITY)
+    organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
+    organism._state["reserve_micrograms"] = CAPACITY_MICROGRAMS * 9 // 10
+    organism._state["feeding"] = False
+    loop = FunctionalPhysicalLoop()
+    kept_rooms = []
+    for _ in range(1_400):
+        o = loop.settle(organism, world, UNATTENDED).observation
+        if o["her_act"] == "release" and o["world_action_refusal"] is None and "keeping" in (o["act_reason"] or ""):
+            kept_rooms.append(o["embodiment"]["room_id"])
+        if len(kept_rooms) >= 2:
+            break
+    assert kept_rooms, "she never kept anything"
+    keeping_room = organism._state["keeping_room"]
+    assert keeping_room is not None
+    assert all(room == keeping_room for room in kept_rooms), (kept_rooms, keeping_room)
+    room_beats = organism._state["room_beats"]
+    assert max(room_beats, key=lambda k: room_beats[k]) == keeping_room
+    assert organism.counts["kept"] >= 1
+    assert organism._state["last_kept"]["room"] == keeping_room
+
+
+def test_walled_in_by_light_things_she_picks_one_up_to_clear_a_way() -> None:
+    world = home_world_authority(identity=IDENTITY)
+    snapshot = world.observation_snapshot()
+    body = _her(world)
+    cup = next(item for item in snapshot.objects if item.object_id == "cup")
+    # A ring of cups around her at 400 mm: every stride is refused, each is within her hand's reach.
+    for index, degrees in enumerate(range(0, 360, 40)):
+        a = math.radians(degrees)
+        world.admit_authored_arrival(EmbodiedObject(f"cup-{index}", cup.radius_mm, cup.mass_grams, PositionMM(body.pose.position.x + round(430 * math.cos(a)), body.pose.position.y + round(430 * math.sin(a)), 0), reflectance_ppm=cup.reflectance_ppm, material=cup.material))
+    organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
+    organism._state["reserve_micrograms"] = CAPACITY_MICROGRAMS * 9 // 10
+    organism._state["feeding"] = False
+    results = _run(organism, world, [UNATTENDED] * 40)
+    moved = [r.observation for r in results if r.observation["her_act"] in ("wander", "approach") and r.observation["world_action_refusal"] is None and any(r.observation["actual_root_motion"][1:])]
+    assert moved, [r.observation["her_act"] + ":" + str(r.observation["world_action_refusal"]) for r in results][:20]
+    assert _her(world).pose.position != body.pose.position
+    # The cups in her way were pushed aside, not walked through: none overlaps her or each other.
+    snapshot = world.observation_snapshot()
+    cups = [item for item in snapshot.objects if item.object_id.startswith("cup-")]
+    assert len(cups) == 9 and all(item.position is not None for item in cups)
+    before = {f"cup-{index}": PositionMM(body.pose.position.x + round(430 * math.cos(math.radians(d))), body.pose.position.y + round(430 * math.sin(math.radians(d))), 0) for index, d in enumerate(range(0, 360, 40))}
+    assert any(item.position != before[item.object_id] for item in cups), "nothing was pushed"

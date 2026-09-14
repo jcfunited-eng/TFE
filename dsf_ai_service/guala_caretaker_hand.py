@@ -172,13 +172,18 @@ def core_in_a_doorway(snapshot: Any, her: Any) -> Any | None:
     return None
 
 
-def stray_core(snapshot: Any, her: Any) -> Any | None:
-    """Any eaten core lying on the floor (doorway approaches first), if any."""
+def stray_core(snapshot: Any, her: Any, near: PositionMM | None = None) -> Any | None:
+    """Any eaten core lying on the floor: within reach of ``near`` first, then
+    doorway approaches, then the rest."""
 
+    cores = [item for item in snapshot.objects if item.position is not None and item.object_id.startswith("apple") and _is_core(her, item)]
+    if near is not None:
+        close = [item for item in cores if _distance_mm(near, item.position) <= 800]
+        if close:
+            return min(close, key=lambda item: _distance_mm(near, item.position))
     in_door = core_in_a_doorway(snapshot, her)
     if in_door is not None:
         return in_door
-    cores = [item for item in snapshot.objects if item.position is not None and item.object_id.startswith("apple") and _is_core(her, item)]
     return min(cores, key=lambda item: item.object_id) if cores else None
 
 
@@ -197,13 +202,20 @@ def withdraw(world: Any) -> dict[str, object] | None:
         return None
     person = others[0]
     at_home = _distance_mm(person.pose.position, CAREGIVER_HOME_MM) <= ARRIVED_HOME_MM
-    stray = stray_core(snapshot, her) if (at_home and person.held_object_id is None) else None
+    stray = stray_core(snapshot, her, near=person.pose.position) if (at_home and person.held_object_id is None) else None
     if person.held_object_id is None and at_home and stray is None:
         return None
     hand = _Hand(world, person.held_object_id or (stray.object_id if stray is not None else "nothing"))
     record: dict[str, object] = {"schema": "guala.caregiver_withdrawal.v1", "set_down": None, "home": False, "fetched": None, "binned": None, "steps": hand.steps}
     try:
         if stray is not None:
+            # A core within reach is picked up where the caregiver stands (a
+            # ring of cores around it must not wall it in); a farther one is
+            # walked to.
+            if _distance_mm(person.pose.position, stray.position) <= person.reach_mm:
+                if hand.applied("pick", PickCommand(stray.object_id, HANDLING_MICROSECONDS)):
+                    record["fetched"] = stray.object_id
+                return record
             region = _region_of(snapshot, stray.position, stray.radius_mm)
             if region is not None and hand.walk_to_region(region.region_id) and hand.stand_before(
                 stray.position, APPROACH_DISTANCE_MM, distances_mm=(APPROACH_DISTANCE_MM, 420, 650, 780), region_id=region.region_id,

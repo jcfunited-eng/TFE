@@ -17,6 +17,8 @@ semantic-environment mechanisms here.
 
 from __future__ import annotations
 
+import math
+
 import base64
 import hashlib
 import hmac
@@ -2272,6 +2274,63 @@ class WorldMigrationReceipt:
 
 def _distance_squared(left: PositionMM, right: PositionMM) -> int:
     return (left.x - right.x) ** 2 + (left.y - right.y) ** 2 + (left.z - right.z) ** 2
+
+
+PUSH_MASS_GRAMS = 2_000
+PUSH_CLEARANCE_MM = 40
+
+
+def _push_aside(
+    item: EmbodiedObject,
+    start: PositionMM,
+    target: PositionMM,
+    carried_radius_mm: int,
+    region: PhysicalRegion,
+    objects: list[EmbodiedObject],
+    bodies: list[EmbodiedBody],
+    mover_id: str,
+) -> EmbodiedObject | None:
+    """Slide ``item`` off the straight path from ``start`` to ``target`` to the
+    nearest clear spot beside it, in its own region, touching nothing; None
+    when no such spot exists."""
+
+    dx, dy = target.x - start.x, target.y - start.y
+    length = math.hypot(dx, dy)
+    if length == 0:
+        return None
+    ux, uy = dx / length, dy / length
+    px, py = -uy, ux  # the perpendicular
+    rel_x, rel_y = item.position.x - start.x, item.position.y - start.y
+    along = rel_x * ux + rel_y * uy
+    across = rel_x * px + rel_y * py
+    clearance = carried_radius_mm + item.radius_mm + PUSH_CLEARANCE_MM
+    sides = (1, -1) if across >= 0 else (-1, 1)
+    for side in sides:
+        for extra in (0, 60, 120, 200):
+            offset = side * (clearance + extra)
+            candidate = PositionMM(
+                round(start.x + along * ux + offset * px),
+                round(start.y + along * uy + offset * py),
+                item.position.z,
+            )
+            if not region.bounds.contains_floor_disc(candidate, item.radius_mm):
+                continue
+            if _straight_path_intersects_disc(start, target, candidate, carried_radius_mm + item.radius_mm):
+                continue
+            if any(
+                other.object_id != item.object_id and other.position is not None
+                and _floor_discs_overlap(candidate, item.radius_mm + PUSH_CLEARANCE_MM // 2, other.position, other.radius_mm)
+                for other in objects
+            ):
+                continue
+            if any(
+                other.body_id != mover_id
+                and _floor_discs_overlap(candidate, item.radius_mm + PUSH_CLEARANCE_MM // 2, other.pose.position, other.radius_mm)
+                for other in bodies
+            ):
+                continue
+            return replace(item, position=candidate)
+    return None
 
 
 def _receptor_position(
@@ -5446,7 +5505,11 @@ class EmbodimentWorldAuthority:
                     )
                 ):
                     return None, "move_path_intersects_body"
-            for item in objects:
+            # A step pushes light things in its path aside (a foot against a
+            # cup); heavy things block it. A thing that cannot be pushed to a
+            # clear spot blocks the step too.
+            pushed_objects = list(objects)
+            for index, item in enumerate(objects):
                 item_region = (
                     self._region_containing(
                         world.regions, item.position, item.radius_mm
@@ -5462,9 +5525,17 @@ class EmbodimentWorldAuthority:
                     carried_radius + item.radius_mm,
                     )
                 ):
-                    return None, "move_path_intersects_object"
+                    if int(item.mass_grams) > PUSH_MASS_GRAMS or item_region is None:
+                        return None, "move_path_intersects_object"
+                    moved = _push_aside(
+                        item, body.pose.position, target.position, carried_radius,
+                        item_region, pushed_objects, bodies, body.body_id,
+                    )
+                    if moved is None:
+                        return None, "move_path_intersects_object"
+                    pushed_objects[index] = moved
             bodies[body_index] = replace(body, pose=target)
-            changed = replace(world, bodies=tuple(bodies))
+            changed = replace(world, bodies=tuple(bodies), objects=tuple(pushed_objects))
             if body.body_id == world.self_body_id:
                 changed = replace(
                     changed,
