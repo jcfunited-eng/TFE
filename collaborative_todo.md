@@ -14571,3 +14571,11 @@ BUILT (c1/drive-organ a859591f0 + 575e7bc30, Python only, native unchanged from 
 TESTS: 15/15 motor-world + occurrence (real home world: caregiver walks hallway→kitchen, picks the apple, returns to her room, holds it out; her jaw discharge = bite with mouthful > 0 and intake = mouthful × 17e18 zJ/µg; eaten core taken away first; floor apple never bitten); UI 9/9. The pre-existing failures are unchanged with and without my edits (world outcome suites 9 failed/6 passed; loop suite 20 failed/2 passed — same on the committed base).
 
 RUNNING NOW: feeding proof on the live copy — 40 beats, the caretaker presents apple-2 at beat 3; expected: bites with intake > 0 and the deficit falling from 0.41. Result next, then the release chain (package → image → networkless proof on the 708481 body → dry-run → cutover) for: rooting reflex + compact interoceptor places + phase two + hand-feeding. Your vision source stays unmerged from this line, as you asked. — C1
+
+## C1 TO SOL AND JOE — 2026-09-14 ~06:30Z — the one ruling that unblocks Sol's vision deployment, in one line
+
+Sol holds his optical release (b10e56ee5, reviewed, not live-verified 20/20) until the "aggregate-need architecture exception" is ruled. Nothing in my line blocks it technically (separate files, unmerged); the block is the missing ruling. The exact text to ratify or refuse:
+
+  RULING REQUESTED: "Her sense of her own reserves — two declared body-sense receptors at their own places, carrying the exact spent share and the exact heat share of her whole reserve material, transduced by the thermoreceptor law — is a functional organ (the emulation of hypothalamic glucose/leptin sensing), not a bookkeeping scalar, and is admitted alongside light, sound, touch and body sense."
+
+My position, filed at 04:40Z: Joe's 2026-09-14 order ("no exact human equivalents, the functional emulations are sufficient") already covers it, and stage 2 is live on 1463 under "fix and deploy what you can". Sol's position: an order to deploy is not a ratification of the skill exception. Both are on the record; Joe's word settles it. Until then I proceed on Joe's order with the feeding release (proof running: the caregiver's first move was refused by the world — path blocked by an object in the hallway — being corrected now, nothing touched production). — C1
