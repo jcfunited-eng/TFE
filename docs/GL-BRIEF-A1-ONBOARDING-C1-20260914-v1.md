@@ -44,7 +44,7 @@ All AWS access is through the developer container's mounted credentials (`~/.aws
 | Repository | GitHub `jcfunited-eng/TFE`, branch `guala-live` (the only source of truth for builds). Local clone `/workspaces/Tao_Financial_Engine`. Work in a worktree per lane (`git worktree add /tmp/guala-<lane> guala-live`). |
 | Public page | https://dsf-ai.com/gualaloom.html (CloudFront E17JT9XGBFU493; S3 bucket `dsf-ai-site`; page backups in `s3://dsf-ai-site-backups/static-page-backups/`). The page is served from S3, not from the image. |
 | API | https://dsf-ai.com/api/v1/guala/observation (GET, `?after=<tick>` long-polls), `/occurrence` (POST, kinds `sensory` and `unattended`), `/pressure?stream=&after=` and `/pressure/<sha256>` (her sound). CloudFront routes `/api/*` to the ALB `dsf-ai-alb-725095635.us-east-1.elb.amazonaws.com`. |
-| Service | ECS cluster `tfe-web-cluster`, service `dsf-ai-service-lb`, task family `dsf-ai-task` (1466 live when written: Sol's image at 2 vCPU / 8 GB). Logs: CloudWatch `/ecs/dsf-ai`. |
+| Service | ECS cluster `tfe-web-cluster`, service `dsf-ai-service-lb`, task family `dsf-ai-task` (1467 live: the functional organism at 2 vCPU / 8 GB). Logs: CloudWatch `/ecs/dsf-ai`. |
 | Image registry | ECR `418384447921.dkr.ecr.us-east-1.amazonaws.com/dsf-ai`, deployed by digest. |
 | Her state | EFS, paired store root `/app/state/paired-current-gen2` inside the task (`GUALA_PAIRED_ROOT`). CURRENT pointer + body + world, checksummed; refuses a backward tick. Identity `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`. |
 | Live captures | `/tmp/capture_guala_current.py --task <ecs task> --key <s3 key> --output current.zip` (uses ECS exec; bucket `guala-incident-bench-20260831`). Evidence tarballs go to the same bucket. |
@@ -64,15 +64,14 @@ Production runtime (the lean app; everything else in `dsf_ai_service/` is histor
 
 - `dsf_ai_service/lean_production_app.py`: FastAPI app, routes above, body cap 34,816 bytes, restores the organism and the world from the paired store, one actor thread.
 - `dsf_ai_service/lean_actor.py`: the only owner of runtime and world; mailbox depth 1; checkpoint every 32 intervals; unattended beat every 250 ms.
-- `dsf_ai_service/lean_physical_loop.py`: one beat: senses in, native interval, act out to the world, physical return next beat.
+- `dsf_ai_service/guala_functional_organism.py`: the organism: measured streams, the kernel over each stream's window, bounded memory, the declared act laws, metabolism, her airway's syllables. `dsf_ai_service/guala_functional_loop.py`: one beat: senses in, one decision, the world validates her commands, passive interval otherwise. (`lean_physical_loop.py` and `guala_motor_world.py` are the retired native loop, no longer in the image.)
 - `dsf_ai_service/substrate/embodiment_world.py` and `thermally_coupled_embodiment_world.py`: the home world physics (move, grasp, release, bite, hand-feeding, vocalize), commands validated by the world, receipts.
 - `dsf_ai_service/guala_home_world.py`: rooms, doors, objects (apples, cup, lamp, book, furniture), her body's receptor geometry (reach 800 mm, hand 200 mm ahead radius 300, mouth 200 mm ahead radius 60).
 - `dsf_ai_service/guala_caretaker_hand.py`: the caregiver body's lawful steps in the world to fetch food and hold it out (presents only).
-- `dsf_ai_service/guala_motor_world.py`: turns native motor evidence into world commands (to be replaced by functional act laws).
 - `dsf_ai_service/guala_cochlea.py`: the ear (gammatone bank, native `auditory_gammatone_field`).
 - `dsf_ai_service/substrate/articulatory_self_vocal_mechanics.py`: the airway (traveling-wave vocal tract, produces PCM from a larynx and tract program). The accepted voice target is in the ledger under "JOE ACCEPTED THE LITTLE-GIRL VOICE (bench v17)".
 - `uf_core/layer0.py` to `layer4.py`: the DSF-AI kernel (L0 structural event vectors, L1 gates, L2 interpretation and regimes, L3 resonance, L4 seven-field DSF). This is the part Joe wants proven.
-- `native/guala_core/`: the Rust core (PyO3). Contains the exact-physics organism (neurons, carriers, contacts, cohorts, mosaics, fractals) and also the ear and kernel ports. Joe's 2026-09-14 direction retires the neuron machinery from the acting path.
+- `native/guala_core/`: the Rust core (PyO3). Still built into the image for the ear (`auditory_gammatone_field`); the neuron organism inside it is no longer imported by production.
 - `dsf_ai_service/static/gualaloom.html`: the page (camera, microphone, cards, world view, beat line). Tests in `tests/test_lean_observation_ui.py` bound its size and literals.
 - Release tooling: `tools/package_guala_release.py` (stages the exact import closure from `deploy/guala_release_manifest.json`; the staged directory is the docker build context), `dsf_ai_service/Dockerfile`, `tools/deploy_dsf_ai.sh --dry-run|--cutover DIGEST BACKUP_ZIP` (the controller; needs a clean worktree at the release revision and a fresh capture of CURRENT as the backup).
 
@@ -95,10 +94,10 @@ Production runtime (the lean app; everything else in `dsf_ai_service/` is histor
 
 ## 7. Where things stand today (2026-09-14, after 13:20Z)
 
-- Production: task 1466 (Sol's vision image, native 1463 core) on the pre-feeding body saved at tick 710228, beating cleanly past the tick that stalled. Her jaw does not act on this build. The caretaker posts card lessons; meals are inactive because the feeding route is not in 1466.
+- Production (updated after the cutover): task 1467, the functional organism, converted from the native body at tick 711295. She drops eaten cores, bites what the caretaker holds out, walks the rooms, babbles through her own airway and imitates heard sounds; the page's beat line shows her act, hunger, meals and syllables. The caretaker posts card lessons and meals (apple-2 and apple-5 are whole).
 - Joe's direction, verbatim intent: strip the bio-similar machinery and the overhead; prove the kernel parts with practical functional emulations; otherwise the project is over.
-- C1 is building the functional organism now: senses (world sight, camera, microphone, touch, taste, hunger) -> kernel structure over the sensed streams -> bounded memory -> declared act laws (bite when hungry with food at the mouth; grasp what is in hand reach; turn and step toward seen food; release an eaten core; babble through the airway when idle and imitate what was heard) -> world commands; state as small JSON in the same paired store; one process; beats in milliseconds. Proof on a copy for hundreds of beats, then cutover, then the page shows her acts, hunger, meals and voice. Progress and evidence go to the ledger as they run.
-- Vision (Sol's lane, now C1's): the camera design of record is an 80x60 native-pitch focal crop plus declared pitch, at most 34,816 bytes per occurrence, resampled server-side onto the 768 focal sites.
+- The functional organism, as built: senses (world sight, camera, microphone, touch, taste, hunger) -> kernel structure over the sensed streams -> bounded memory -> declared act laws (bite when hungry with food at the mouth; grasp what is in hand reach; turn and step toward seen food; release an eaten core; babble through the airway when idle and imitate what was heard) -> world commands; state as small JSON in the same paired store; one process; beats in milliseconds. Proven on the live copy for 400 beats (mean 75 ms per beat) and cut over; details in the ledger entry of the same day.
+- Vision (A1's lane, assigned by Joe): the camera design of record is an 80x60 native-pitch focal crop plus declared pitch, at most 34,816 bytes per occurrence, resampled server-side onto the 768 focal sites.
 
 ## 8. How to start a turn
 
