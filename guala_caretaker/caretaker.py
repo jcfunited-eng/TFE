@@ -65,7 +65,7 @@ MEAL_TICKS = 400
 HUNGRY_DEFICIT = 0.40  # her feeding law starts below 60 percent of capacity
 DELIVERY_ID = "apple-delivery"  # asks the caregiver to bring a fresh apple from outside
 FOOD_PREFIX = "apple"
-CORE_MICROGRAMS = 10  # five tastant channels of 2 µg: nothing a bite can take
+CORE_MICROGRAMS = 2_000  # below this an apple is a core: a bite takes a geometric share of what is left, and under two milligrams that is nothing worth a walk
 
 
 def log(msg: str) -> None:
