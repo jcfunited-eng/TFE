@@ -474,18 +474,24 @@ def test_the_record_chooses_untried_first_then_the_best_and_every_eighth_visit_t
 
 
 def test_what_followed_is_valued_by_her_state_when_she_chose_and_a_refusal_costs() -> None:
-    from dsf_ai_service.guala_functional_organism import NEED_FOOD, NEED_NEW, NEED_SOUND, REFUSAL_COST
+    from dsf_ai_service.guala_functional_organism import (
+        ACT_BURN_MULTIPLE, BASAL_BURN_MICROGRAMS, CAPACITY_MICROGRAMS, SATED_ABOVE,
+    )
 
     organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
     key = "0123456789abcdef"
-    organism._state["pending_act"] = {"key": key, "act": "step", "deficit": 0.25, "intake": 0, "refused": True}
+    organism._state["pending_act"] = {"key": key, "act": "step", "deficit": 0.25, "sleep_ratio": 0.0, "intake": 0, "refused": True}
     organism._settle("other", True, 0.0, 2)
     tries, total = organism._state["acts"][key]["acts"]["step"]
-    assert tries == 1 and abs(total - (NEED_NEW * 0.75 - REFUSAL_COST)) < 1e-6
-    organism._state["pending_act"] = {"key": key, "act": "step", "deficit": 0.6, "intake": 1000, "refused": False}
+    burn_cost_refused = 2.0 * (BASAL_BURN_MICROGRAMS * (1 + ACT_BURN_MULTIPLE["step"])) / (CAPACITY_MICROGRAMS * (1.0 - float(SATED_ABOVE)))
+    expected_1 = (1.0 - 0.25) * (1.0 - 0.0) * 1.0 - burn_cost_refused
+    assert tries == 1 and abs(total - expected_1) < 1e-6
+    organism._state["pending_act"] = {"key": key, "act": "step", "deficit": 0.6, "sleep_ratio": 0.1, "intake": 1000, "refused": False}
     organism._settle("other", False, 0.5, 3)
     tries, total = organism._state["acts"][key]["acts"]["step"]
-    assert tries == 2 and abs(total - ((NEED_NEW * 0.75 - REFUSAL_COST) + NEED_FOOD * 0.6 + NEED_SOUND * 0.5)) < 1e-6
+    burn_cost_normal = (BASAL_BURN_MICROGRAMS * (1 + ACT_BURN_MULTIPLE["step"])) / (CAPACITY_MICROGRAMS * (1.0 - float(SATED_ABOVE)))
+    expected_2 = 0.6 * 1.0 + 0.0 + (1.0 - 0.1) * 0.5 - burn_cost_normal
+    assert tries == 2 and abs(total - (expected_1 + expected_2)) < 1e-6
     assert organism._state["pending_act"] is None
 
 
@@ -493,7 +499,6 @@ def test_the_jaw_reflex_credits_the_act_that_brought_food_to_her_mouth() -> None
     """Hungry, the caretaker holds an apple to her mouth: she bites by reflex
     (not from the record); the intake is credited to the act she last chose."""
 
-    from dsf_ai_service.guala_functional_organism import NEED_FOOD
 
     world = home_world_authority(identity=IDENTITY)
     organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
@@ -503,7 +508,8 @@ def test_the_jaw_reflex_credits_the_act_that_brought_food_to_her_mouth() -> None
     assert first_bite["real_nutrition_intake_zeptojoules"] > 0
     last = organism._state["last_chosen"]  # the act she chose the beat before the apple reached her mouth
     tries, total = organism._state["acts"][last["key"]]["acts"][last["act"]]
-    assert total >= NEED_FOOD * float(last["deficit"]) - 1e-6, (last, tries, total)
+    # The chosen act burned metabolic energy before intake arrived, then was credited with deficit.
+    assert total >= float(last["deficit"]) - 0.001, (last, tries, total)
     more = _run(organism, world, [UNATTENDED] * 8)
     bites = [r.observation for r in more if r.observation["her_act"] == "bite"]
     assert bites and all("reflex" in o["act_reason"] for o in bites)

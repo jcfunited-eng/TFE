@@ -96,10 +96,7 @@ HEAD_PITCH_BOUND_MILLIDEGREES = 45_000
 ACTS = ("take", "grasp", "touch", "release", "toward_food", "toward_bed", "toward_thing", "toward_door", "step", "turn_left", "turn_right", "say", "rest")
 ACT_RECORD_CAPACITY = 256   # structures remembered with their acts; recurrent structures persist
 EXPLORE_EVERY = 8
-NEED_FOOD = 1.0
-NEED_NEW = 1.0
-NEED_SOUND = 1.0
-REFUSAL_COST = 0.5
+MAX_CANDIDATES = 32
 
 # Sleep: a pressure like her reserve. Every awake beat adds one; past its
 # ceiling she sleeps, and each sleeping beat drains two, so sixteen hours
@@ -510,50 +507,62 @@ def candidates(
     tick: int,
     say_drive: tuple[int, int, int] | None = None,
 ) -> list[tuple[str, str, tuple[Any, ...], str | None, tuple[int, int, int] | None]]:
-    """What her body can do this beat, in the declared order: each entry is
-    (act, detail, world commands tried in order, target, voice drive). A
-    targeted move goes toward the nearest of its kind; a thing is grasped only
-    when it is the one thing in her hand's reach (the world's grasp law)."""
+    """What her body can do this beat, across every sensed target: each entry is
+    (act, detail, world commands tried in order, target, voice drive).
+    Candidate count is strictly bounded by what she sees plus her room's doors."""
 
     out: list[tuple[str, str, tuple[Any, ...], str | None, tuple[int, int, int] | None]] = []
     position, heading = body.pose.position, body.pose.heading_millidegrees
     reachable = [item for item in snapshot.objects if item.position is not None and in_hand_reach(snapshot, item)]
+
+    # 1. Take from hand
     if held is None and offered is not None and handleable_held(offered):
         out.append(("take", offered.object_id + " from a hand", (TakeContactHeldObjectCommand(BEAT_MICROSECONDS),), offered.object_id, None))
+
+    # 2. Grasp (one reachable object per world grasp law) and touch reachable things
     if held is None and len(reachable) == 1 and (handleable(reachable[0]) or _is_food(reachable[0])):
         out.append(("grasp", reachable[0].object_id, (GraspContactCommand(BEAT_MICROSECONDS),), reachable[0].object_id, None))
-    touchable = [item for item in reachable if item.material is not None]
-    if held is None and touchable:
-        item = min(touchable, key=lambda thing: (_distance_mm(position, thing.position), thing.object_id))
-        out.append(("touch", item.object_id, (TouchContactCommand(item.object_id, BEAT_MICROSECONDS),), item.object_id, None))
+    if held is None:
+        for item in reachable:
+            if item.material is not None:
+                out.append(("touch", item.object_id, (TouchContactCommand(item.object_id, BEAT_MICROSECONDS),), item.object_id, None))
+
+    # 3. Release held item
     if held is not None and drop_spot_clear(snapshot, body, held):
         out.append(("release", held.object_id, (ReleaseHeldObjectCommand(BEAT_MICROSECONDS),), held.object_id, None))
+
+    # 4. Toward every sensed food target
     if held is None:
         food = [thing for thing in seen if thing.is_food and not nothing_left_to_bite(body, _object(snapshot, thing.object_id))]
-        if food:
-            nearest = food[0]
-            stop = body.radius_mm + nearest.radius_mm + STOP_MARGIN_MM
-            if nearest.distance_mm > stop + ARRIVAL_MM:
-                out.append(("toward_food", nearest.object_id, move_commands_toward(snapshot, nearest.position, stop), nearest.object_id, None))
+        for item in food:
+            stop = body.radius_mm + item.radius_mm + STOP_MARGIN_MM
+            if item.distance_mm > stop + ARRIVAL_MM:
+                out.append(("toward_food", item.object_id, move_commands_toward(snapshot, item.position, stop), item.object_id, None))
+
+    # 5. Toward bed
     bed = next((thing for thing in seen if thing.object_id == BED_ID), None)
     if bed is not None and bed.distance_mm > ARRIVAL_MM + STEP_MM // 2:
         out.append(("toward_bed", "her bed", move_commands_toward(snapshot, bed.position, 0), bed.object_id, None))
+
+    # 6. Toward every sensed thing
     things = [thing for thing in seen if not thing.is_food]
-    if things:
-        nearest = things[0]
-        stop = body.radius_mm + nearest.radius_mm + (HANDLE_STOP_MM if held is None and handleable(_object(snapshot, nearest.object_id)) else WANDER_STOP_MM)
-        if nearest.distance_mm > stop + ARRIVAL_MM:
-            out.append(("toward_thing", nearest.object_id, move_commands_toward(snapshot, nearest.position, stop), nearest.object_id, None))
+    for item in things:
+        stop = body.radius_mm + item.radius_mm + (HANDLE_STOP_MM if held is None and handleable(_object(snapshot, item.object_id)) else WANDER_STOP_MM)
+        if item.distance_mm > stop + ARRIVAL_MM:
+            out.append(("toward_thing", item.object_id, move_commands_toward(snapshot, item.position, stop), item.object_id, None))
+
+    # 7. Toward every door of her room
     here = _region_of(snapshot, position, body.radius_mm)
     if here is not None:
         doors = [item for item in snapshot.portals if here.region_id in item.region_ids]
-        if doors:
-            portal = min(doors, key=lambda item: (_distance_mm(position, door_crossing(snapshot, item, here.region_id)[0]), item.portal_id))
+        for portal in sorted(doors, key=lambda item: (_distance_mm(position, door_crossing(snapshot, item, here.region_id)[0]), item.portal_id)):
             before_door, _past = door_crossing(snapshot, portal, here.region_id)
             if _distance_mm(position, before_door) <= ARRIVAL_MM + STEP_MM // 2:
                 out.append(("toward_door", "through " + portal.portal_id, door_crossing_commands(snapshot, portal, here.region_id), portal.portal_id, None))
             else:
                 out.append(("toward_door", portal.portal_id, move_commands_toward(snapshot, before_door, 0), portal.portal_id, None))
+
+    # 8. Elementary motions, airway, rest
     dx, dy = rotate_lattice_offset(STEP_MM, 0, heading)
     ahead = PositionMM(position.x + dx, position.y + dy, position.z)
     out.append(("step", "one stride ahead", (MoveCommand(PoseMM(ahead, heading), BEAT_MICROSECONDS),), None, None))
@@ -562,7 +571,8 @@ def candidates(
     drive = say_drive if say_drive is not None else _new_drive(tick)
     out.append(("say", "a syllable of her own", (), None, drive))
     out.append(("rest", "", (), None, None))
-    assert tuple(act for act, *_ in out) == tuple(act for act in ACTS if act in {act for act, *_ in out})
+
+    assert len(out) <= MAX_CANDIDATES
     return out
 
 
@@ -598,7 +608,7 @@ class FunctionalOrganism:
             "voice_version": VOICE_VERSION, "ambient_sound": 0.0, "handled": 0, "room_now": None,
             "head": [0, 0], "acts": {}, "pending_act": None, "last_chosen": None,
             "sleep_pressure": 0, "asleep": False, "learned": {}, "nights": 0, "act_totals": {},
-            "taste_residue": 0.0,
+            "target_totals": {}, "taste_residue": 0.0,
         })
 
     @classmethod
@@ -643,6 +653,9 @@ class FunctionalOrganism:
                 for act, (tries, _total) in entry.get("acts", {}).items():
                     totals[act] = totals.get(act, 0) + int(tries)
             state["act_totals"] = totals
+            changed = True
+        if "target_totals" not in state:
+            state["target_totals"] = {}
             changed = True
         for key in RETIRED_KEYS:
             if key in state:
@@ -912,17 +925,28 @@ class FunctionalOrganism:
                 state["nights"] = int(state.get("nights", 0)) + 1
                 if at_bed and state.get("last_chosen"):
                     last = state["last_chosen"]
-                    self._credit(str(last["key"]), str(last["act"]), round(pressure / SLEEP_PRESSURE_CEILING, 6), tick, str(last.get("regimes", "")))
+                    sleep_ratio = float(last.get("sleep_ratio", 1.0))
+                    recovery_ratio = float(pressure) / SLEEP_PRESSURE_CEILING
+                    self._credit(str(last["key"]), str(last["act"]), round(sleep_ratio * recovery_ratio, 6), tick, str(last.get("regimes", "")))
                     state["last_chosen"] = None
                 return decision("sleep", "falling asleep on her bed; pressure at its ceiling" if at_bed else "exhausted; asleep where she dropped")
 
         uncertain = any(len(t) >= 5 and t[4] == "+" for t in tokens)
         options = candidates(snapshot, body, held, offered, seen, tick)
-        act, why = self._choose(key, situation, [option[0] for option in options], uncertain=uncertain)
-        _name, detail, commands, target, drive = next(option for option in options if option[0] == act)
+        candidate_acts = list(dict.fromkeys(option[0] for option in options))
+        act, why = self._choose(key, situation, candidate_acts, uncertain=uncertain)
+        matching = [option for option in options if option[0] == act]
+        target_totals = state.setdefault("target_totals", {})
+        untried_targets = [opt for opt in matching if opt[3] not in target_totals]
+        chosen_option = untried_targets[0] if untried_targets else min(matching, key=lambda opt: (int(target_totals.get(opt[3], 0)), matching.index(opt)))
+        if chosen_option[3] is not None:
+            target_totals[chosen_option[3]] = int(target_totals.get(chosen_option[3], 0)) + 1
+        _name, detail, commands, target, drive = chosen_option
+
         deficit = round(float(self.deficit), 6)
-        state["pending_act"] = {"key": key, "regimes": regimes, "act": act, "deficit": deficit, "intake": 0, "refused": False}
-        state["last_chosen"] = {"key": key, "regimes": regimes, "act": act, "deficit": deficit}
+        sleep_ratio = round(float(state.get("sleep_pressure", 0)) / SLEEP_PRESSURE_CEILING, 6)
+        state["pending_act"] = {"key": key, "regimes": regimes, "act": act, "deficit": deficit, "sleep_ratio": sleep_ratio, "intake": 0, "refused": False}
+        state["last_chosen"] = {"key": key, "regimes": regimes, "act": act, "deficit": deficit, "sleep_ratio": sleep_ratio}
         return decision(act, why + (("; " + detail) if detail else ""), commands, target, drive)
 
     # ----- her record of acts -----------------------------------------------------------
@@ -947,18 +971,33 @@ class FunctionalOrganism:
             del record[min(record, key=lambda k: (int(record[k].get("visits", 1)), int(record[k]["tick"]), k))]
 
     def _settle(self, key_now: str, novel_now: bool, sound_now: float, tick: int) -> None:
-        """Value what followed her last act, by her state when she chose it."""
+        """Value what followed her last act, purely by measured bodily need drops
+        weighted by her measured need at the moment she chose (zero constants)."""
 
         pending = self._state.get("pending_act")
         self._state["pending_act"] = None
         if not pending:
             return
         deficit = float(pending["deficit"])
-        value = (NEED_FOOD * deficit * (1.0 if int(pending.get("intake", 0)) > 0 else 0.0)
-                 + NEED_NEW * (1.0 - deficit) * (1.0 if novel_now else 0.0)
-                 + NEED_SOUND * float(sound_now)
-                 - REFUSAL_COST * (1.0 if pending.get("refused") else 0.0))
-        self._credit(str(pending["key"]), str(pending["act"]), value, tick, str(pending.get("regimes", "")), successor_key=key_now)
+        sleep_ratio = float(pending.get("sleep_ratio", 0.0))
+        intake = int(pending.get("intake", 0))
+        refused = bool(pending.get("refused"))
+        act = str(pending["act"])
+
+        # 1. Intake by her deficit:
+        intake_value = deficit * (1.0 if intake > 0 else 0.0)
+        # 2. New structure by how fed and rested she was:
+        new_structure_value = (1.0 - deficit) * (1.0 - sleep_ratio) * (1.0 if novel_now else 0.0)
+        # 3. Sound heard standing out above ambient:
+        sound_value = (1.0 - sleep_ratio) * float(sound_now)
+        # 4. Metabolic burn cost (refusal expends burn without effect):
+        burn_multiple = 1 + ACT_BURN_MULTIPLE.get(act, 1)
+        burn_cost = (BASAL_BURN_MICROGRAMS * burn_multiple) / (CAPACITY_MICROGRAMS * (1.0 - float(SATED_ABOVE)))
+        if refused:
+            burn_cost *= 2.0
+
+        value = intake_value + new_structure_value + sound_value - burn_cost
+        self._credit(str(pending["key"]), act, round(value, 6), tick, str(pending.get("regimes", "")), successor_key=key_now)
 
     def _dream(self, tick: int) -> str | None:
         """One sleeping beat of consolidation: the most recurrent structure of
@@ -1073,7 +1112,7 @@ class FunctionalOrganism:
             pending["refused"] = bool(pending.get("refused")) or refusal is not None
         elif decision.act == "bite" and intake and state.get("last_chosen"):
             last = state["last_chosen"]
-            self._credit(str(last["key"]), str(last["act"]), NEED_FOOD * float(last["deficit"]), tick_now, str(last.get("regimes", "")))
+            self._credit(str(last["key"]), str(last["act"]), round(float(last["deficit"]), 6), tick_now, str(last.get("regimes", "")))
         if not state.get("asleep"):
             state["sleep_pressure"] = int(state.get("sleep_pressure", 0)) + 1
         if applied_action in MOVES and refusal is None:
