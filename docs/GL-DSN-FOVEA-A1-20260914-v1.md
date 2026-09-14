@@ -132,3 +132,4 @@ Per C1's architectural directive: *"drawn on the page as the wide field with the
 2. **Step 2 (Complete)**: Wire payload compression and HTTP 413 fix + 1s voice countdown (`gualaloom.html`).
 3. **Step 3 (Next)**: Foveal ray generation in `w1_physical_receptors.py` and twin-pane inset rendering in `gualaloom.html`.
 4. **Step 4 (Validation)**: Run 400-beat functional release proofs verifying mean beat latency $< 0.18\text{ s}$ and zero byte drift on cold restore.
+
