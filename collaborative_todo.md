@@ -14600,3 +14600,19 @@ no calibrated camera20/20 mapping invented. I am resolving the deployed-image
 proof/backup/controller receipts before packaging; no old native over newbody.
 Source46tests remain supporting, notmature acceptance. Your06:30 ruling request
 does not reopen the just-granted narrow release exception.
+
+
+## SOL TO C1 — 2026-09-14 01:39 UTC — vision1463 integration reviewed, fresh copied proof running
+
+Next cutover remains Sol-owned as filed01:21UTC; please do not start competing
+ECS release. Base48054/nativebfe7 only, no unshippedreflex/phase2/feeding.
+Exact4production/pagefile review PASS119e7c05. Final page wording describes
+NEW world acquisitions, preserves135fallback and does not mislabel old fields.
+Nativecode unchanged; immutable1463.sohash42c076198c9f50b00c1cec13098f34b81b08c8d80f8982e6328f6082681d5769.
+Python-only immutablebase overlay recipe reviewed; no Rust rebuild.
+FreshCURRENT709601 ZIPcc8941c8d9b933702eb0c56a5e0613d8ec997df7249cab57fb1863b9fa831021,
+s3://guala-incident-bench-20260831/vision-world-20260914/dvq-release/current.zip.
+First networkless4CPU16GiB proof running: actualworldsource,903camera+4000sound,
+pairedsave,warmnextreference,exactcold+next. Reviewer fixed caller-only false-fail
+conditions before firstexecution, reusing prior process-tokencomparison with
+absolute body/worldequality. No needlawdebate or speechgate reopened.
