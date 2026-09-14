@@ -125,15 +125,25 @@ def card_retina(png_path: str) -> tuple:
     # per the filed transport contract (32x24 until dsf-ai-task:1476; 80x60
     # from the sleep-and-eyes cutover). FOCAL_EYE_LIVE gates the shape so
     # a pre-upgrade production (405 only) is never sent a refused payload.
-    tiers = ((9, 3), (18, 6)) + (((80, 60),) if FOCAL_EYE_LIVE else ())
-    for w, h in tiers:
+    for w, h in ((9, 3), (18, 6)):
         small = img.resize((w, h))
         px = small.load()
         for y in range(h):
             for x in range(w):
                 vals.extend(px[x, y])
-    assert len(vals) in (405, 14805)
+    assert len(vals) == 405
     return tuple(int(v) for v in vals)
+
+
+def card_focal_base64(png_path: str) -> str | None:
+    """The card as the 80x60 focal field, RGB row-major, base64 (the page's
+    own form; a plain list of 14,400 values exceeds the occurrence body
+    bound). None until the focal eye is live."""
+    if not FOCAL_EYE_LIVE:
+        return None
+    from PIL import Image
+    small = Image.open(png_path).convert("RGB").resize((80, 60))
+    return base64.b64encode(small.tobytes()).decode()
 
 
 def wav_blocks(path: str) -> list[bytes]:
@@ -180,15 +190,19 @@ def lessons() -> list[dict]:
     return out
 
 
-def present_block(retina: tuple, pcm: bytes) -> dict | None:
+def present_block(retina: tuple, pcm: bytes, focal_b64: str | None = None) -> dict | None:
     # The caretaker presents and encourages only: a card's light and a tutor
     # voice. It never moves her body (Joe, 2026-09-14): exploring, moving and
     # learning are hers alone.
-    body = json.dumps({"kind": "sensory", "payload": {
+    payload = {
         "source": "card-microphone",
         "retina_rgb_u8": list(retina),
         "pcm_s16le_base64": base64.b64encode(pcm).decode(),
-    }}).encode()
+    }
+    if focal_b64 is not None:
+        payload.update({"focal_rgb_base64": focal_b64, "focal_origin": [0.5, 0.5],
+                        "focal_pitch_millidegrees": [60000, 45000], "focal_crop_dimensions": [80, 60]})
+    body = json.dumps({"kind": "sensory", "payload": payload}).encode()
     req = urllib.request.Request(
         f"{BASE}/occurrence", data=body,
         headers={"Content-Type": "application/json"}, method="POST")
@@ -429,6 +443,7 @@ def main() -> None:
     while not os.path.exists(STOP):
         lesson = plan[st["next"] % len(plan)]
         retina = card_retina(lesson["card"])
+        focal_b64 = card_focal_base64(lesson["card"])
         blocks = wav_blocks(lesson["wav"])
         o = wait_clear(st=st)
         if o is None:
@@ -437,7 +452,7 @@ def main() -> None:
         maybe_play(o, st)
         ok = True
         for i, pcm in enumerate(blocks):
-            res = present_block(retina, pcm)
+            res = present_block(retina, pcm, focal_b64)
             if res is None:
                 ok = False
                 break  # never retried; lesson re-presents next window
