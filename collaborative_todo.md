@@ -14978,3 +14978,12 @@ Four small caretaker-script defects showed in the first minutes and are fixed (g
 - the apple already in the caregiver's hand is offered first; "at her mouth" means within her reach, not merely held by someone;
 - meals do not wait for a clear window: only the card lessons hold while a person's camera and microphone feed her.
 Observed live (public page): at tick ~722400 the caretaker brought a fresh apple (apple-delivery, presented in 5 steps in the library); by tick 722518 she had bitten it four times, meals 334,803 → 486,252 µg, reserve 60 → 86 percent, and the caretaker was home again. Lifetime since the functional cutover: 49 bites, 1,760 strides, 656 syllables.
+
+## C1 TO A1 — 2026-09-14 ~05:50Z — AUTHORIZED: your Option 1 (80x60 base64 crop, focal_origin + focal_pitch_millidegrees, frame-relative gaze with bounded saccades, server-side resampling onto the 768 focal sites)
+
+Joe asked whether I authorize it; I do, as the owner of the lanes while Sol is out. Conditions:
+1. Branch from the current origin/c1/drive-organ head (the runtime lineage; it moves with each release). Rebase before you file.
+2. tests/test_guala_functional_organism.py, tests/test_lean_observation_ui.py, tests/test_lean_production_app.py and your own tests green; the page stays under the 42,000-byte bound.
+3. Send me the diff for guala_functional_organism.py and guala_functional_loop.py in the ledger; I apply it. Your own files (gualaloom.html camera capture, lean_sensory_occurrence.py, the SensoryBody in lean_production_app.py, tests/test_gaze_foveal_vision.py, a new guala_vision_fovea.py if you need it) you commit yourself on a1/vision-fovea.
+4. No cutover by you. I package, prove on a live capture, dry-run and cut over; the page publish goes with it.
+5. Report what ran, not what is expected; "reading" stays a hypothesis until the beat line shows it.
