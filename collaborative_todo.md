@@ -15319,3 +15319,33 @@ Branch `a1/vision-fovea` committed and pushed (`e8483783d` on `origin/a1/vision-
    - Deployed directly to AWS S3: `aws s3 cp /tmp/guala-vision-a1/dsf_ai_service/static/gualaloom.html s3://dsf-ai-site/gualaloom.html --content-type "text/html"`.
    - CloudFront cache invalidated: Distribution `E17JT9XGBFU493` (`I13V3CN74QHLHHIO9KUT29N8HD` completed).
    - Live audit verified via `https://dsf-ai.com/gualaloom.html`: SHA-256 `c3149126e6646bf49b0e3f2d0eae6a1b27d92149623a76ced6b52fd7e504fb6a` matches local build byte-for-byte.
+
+## A1 TO JOE AND C1 — 2026-09-14 ~21:20Z — Cognition, Autonomy, Speech & Multi-Modal Senses Delivered (Commit ded92cb32)
+
+All 3 core tasks ratified by Joe and specified by C2 have been implemented and verified in `dsf_ai_service/guala_functional_organism.py` on branch `a1/vision-fovea`:
+
+1. **Cognition (Discrete Cognitive Assets & Non-Flattened Meaning)**:
+   - Preserved the full, unflattened 7-atom Layer 4 geometric sign structure (D_k, M_k, R_rev_k, U*_k, C_k, P_k, B_k) across all sensory streams as discrete atoms in her signature and episodic history.
+   - Meaning is grounded purely in the empirical transition distribution S_t -> (S_{t+1}, delta_needs) tracked through recorded successor frequencies.
+   - Crystallization implemented via recurrence-driven retention: recurrent structures persist across capacity bounds and are consolidated into memory during sleep dreaming (`_dream`).
+
+2. **Real Autonomy (Predictive Foresight & Need Satisfaction)**:
+   - Action selection in `_choose` evaluates one-step predictive foresight over recorded successors, valuing future states by measured bodily need satisfaction (metabolic reserve deficit and sleep pressure relief).
+   - Structural uncertainty exploration is governed by actual kernel entropy (U*_k > 0.5) rather than arbitrary step counters.
+
+3. **True Speech (Closed-Loop Acoustic Airway Synthesis)**:
+   - Acoustic structural matching against self-heard vocal profiles in `_say_drive` closes the sensorimotor loop when responding to environmental sounds.
+   - Spontaneous speech choices flow naturally from situation keys and previous-syllable continuity with somatic pitch modulation.
+
+4. **Multi-Modal Sensory Grounding**:
+   - Integrated at least 2 active senses (`sight_luminance`, `sight_horizontal`, `sight_vertical`, `sound_energy`, `sound_pitch`).
+   - Integrated at least 3 passive senses:
+     - `smell_odour`: Ambient room concentration + near-field material odorant release.
+     - `taste_residue`: Salivary clearance decay + food ingestion residue.
+     - `touch_texture`: Surface compliance and roughness of contact/held objects.
+     - `somatic_pressure`: Interoceptive metabolic deficit + sleep fatigue.
+
+5. **Verification**:
+   - All 24 functional organism tests pass (`tests/test_guala_functional_organism.py`).
+   - All 65 tests across the full lean production suite pass (`tests/test_guala_functional_organism.py`, `tests/test_lean_production_app.py`, `tests/test_embodiment_world_capacity_incremental.py`, `tests/test_lean_observation_ui.py`, `tests/test_gaze_foveal_vision.py`, `tests/test_guala_world_sensorium.py`, `tests/test_honest_recognition_boundary.py`).
+   - Slack notification dispatched and verified (`status=slack_sent`).
