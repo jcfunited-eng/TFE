@@ -64,6 +64,21 @@ SIGHT_RANGE_MM = 4_000
 FOCAL_COLUMNS = 32
 FOCAL_ROWS = 24
 STRUCTURE_FLOOR = 768 * 4   # total edge energy below this (about four levels per site) is a flat field
+# Her head: the wide field (18 x 6 sites over 180 x 90 degrees, carried by the
+# head) aims the focal cone. Each beat the head pitches a bounded step toward
+# the height of structure in the wide field, so what lies on the floor around
+# her comes into the focal cone instead of the blank wall at head height; with
+# no structure anywhere it eases back toward level. The head does not yaw: the
+# body turns toward what she goes to, and a head chasing the mean of everything
+# in a half circle swung to its stop and stayed there.
+WIDE_COLUMNS = 18
+WIDE_ROWS = 6
+WIDE_FLOOR = WIDE_COLUMNS * WIDE_ROWS * 4
+WIDE_FIELD_MILLIDEGREES = (180_000, 90_000)
+HEAD_STEP_MILLIDEGREES = 5_000         # at most five degrees of pitch per beat
+HEAD_SETTLE_MILLIDEGREES = 3_000       # closer than this to the structure height the head holds still
+HEAD_YAW_BOUND_MILLIDEGREES = 75_000
+HEAD_PITCH_BOUND_MILLIDEGREES = 45_000
 
 # Steps: one stride per beat; she stops a hand's margin short of a thing.
 STEP_MM = 300
@@ -242,6 +257,9 @@ class Sensed:
     luminance_source: str
     heard_profile: tuple[float, ...] | None
     self_profile: tuple[float, ...] | None
+    # The world eye's wide field (18 x 6 sites, carried by her head), which aims
+    # her head; empty when the loop has none.
+    wide_luminance_u8: tuple[int, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -308,28 +326,54 @@ def in_hand_reach(snapshot: Any, item: Any) -> bool:
     ) is not None
 
 
+def edge_centre(field: tuple[int, ...], columns: int, rows: int, floor: int) -> tuple[float, float] | None:
+    """The energy-weighted centre of luminance edges in a rectangular field
+    (fractions of the field), or None when the field is flat (below floor)."""
+
+    if len(field) != columns * rows:
+        return None
+    total = 0
+    weighted_x = 0
+    weighted_y = 0
+    for index, value in enumerate(field):
+        column, row = index % columns, index // columns
+        energy = 0
+        if column + 1 < columns:
+            energy += abs(value - field[index + 1])
+        if row + 1 < rows:
+            energy += abs(value - field[index + columns])
+        total += energy
+        weighted_x += energy * column
+        weighted_y += energy * row
+    if total < floor:
+        return None
+    return weighted_x / (total * (columns - 1)), weighted_y / (total * (rows - 1))
+
+
 def structure_centre(focal: tuple[int, ...]) -> tuple[float, float]:
     """The energy-weighted centre of luminance edges in a focal field
     (fractions of the field), or the centre when the field is flat."""
 
-    if len(focal) != FOCAL_COLUMNS * FOCAL_ROWS:
-        return 0.5, 0.5
-    total = 0
-    weighted_x = 0
-    weighted_y = 0
-    for index, value in enumerate(focal):
-        column, row = index % FOCAL_COLUMNS, index // FOCAL_COLUMNS
-        energy = 0
-        if column + 1 < FOCAL_COLUMNS:
-            energy += abs(value - focal[index + 1])
-        if row + 1 < FOCAL_ROWS:
-            energy += abs(value - focal[index + FOCAL_COLUMNS])
-        total += energy
-        weighted_x += energy * column
-        weighted_y += energy * row
-    if total < STRUCTURE_FLOOR:
-        return 0.5, 0.5
-    return weighted_x / (total * (FOCAL_COLUMNS - 1)), weighted_y / (total * (FOCAL_ROWS - 1))
+    centre = edge_centre(focal, FOCAL_COLUMNS, FOCAL_ROWS, STRUCTURE_FLOOR)
+    return (0.5, 0.5) if centre is None else centre
+
+
+def head_step(head: tuple[int, int], wide: tuple[int, ...]) -> tuple[int, int]:
+    """The head's next (yaw, pitch) in millidegrees: yaw stays where it is;
+    pitch takes a bounded step toward the height of structure in the wide
+    field the head carries (so the step is relative to where the head points
+    now), holds still within the settle margin, and eases back toward level
+    when the field is flat."""
+
+    yaw, pitch = int(head[0]), int(head[1])
+    centre = edge_centre(wide, WIDE_COLUMNS, WIDE_ROWS, WIDE_FLOOR)
+    wanted = -pitch if centre is None else (0.5 - centre[1]) * WIDE_FIELD_MILLIDEGREES[1]
+    if abs(wanted) < HEAD_SETTLE_MILLIDEGREES:
+        return yaw, pitch
+    # Half the way each beat (the wide field's coarse sites shift the measured
+    # height as the head moves; a full step overshot and rocked five degrees).
+    step = int(_clamp(wanted / 2, -HEAD_STEP_MILLIDEGREES, HEAD_STEP_MILLIDEGREES))
+    return yaw, int(_clamp(pitch + step, -HEAD_PITCH_BOUND_MILLIDEGREES, HEAD_PITCH_BOUND_MILLIDEGREES))
 
 
 def handleable_held(item: Any) -> bool:
@@ -493,6 +537,7 @@ class FunctionalOrganism:
             "voice_version": VOICE_VERSION, "visited": {}, "door_goal": None, "bout_syllables": 0, "quiet_until_tick": 0, "blocked_doors": {}, "attended_tick": -ATTEND_REFRACTORY_BEATS - 1, "unreachable_food": {}, "food_goal": None, "food_refusals": 0, "food_best_mm": 0, "food_stall_beats": 0, "ambient_sound": 0.0, "answered_profile": None, "touched": {}, "strides_since_pickup": 0, "handled": 0, "release_refusals": 0, "touching": None,
             "listening_since": None, "call_profile": None, "answer_bout": 0, "answer_target": None, "answer_pending": None, "answer_map": {}, "food_rooms": {}, "food_room_goal": None, "room_now": None,
             "room_beats": {}, "keeping_room": None, "keep_walk_beats": 0, "last_kept": None, "kept": 0, "stuck_beats": 0,
+            "head": [0, 0],
         })
 
     @classmethod
@@ -520,7 +565,8 @@ class FunctionalOrganism:
             changed = True
         for key, empty in (("visited", {}), ("door_goal", None), ("bout_syllables", 0), ("quiet_until_tick", 0), ("blocked_doors", {}), ("attended_tick", -ATTEND_REFRACTORY_BEATS - 1), ("unreachable_food", {}), ("food_goal", None), ("food_refusals", 0), ("food_best_mm", 0), ("food_stall_beats", 0), ("ambient_sound", 0.0), ("answered_profile", None), ("touched", {}), ("strides_since_pickup", 0), ("handled", 0), ("release_refusals", 0), ("touching", None),
                            ("listening_since", None), ("call_profile", None), ("answer_bout", 0), ("answer_target", None), ("answer_pending", None), ("answer_map", {}), ("food_rooms", {}), ("food_room_goal", None), ("room_now", None),
-                           ("room_beats", {}), ("keeping_room", None), ("keep_walk_beats", 0), ("last_kept", None), ("kept", 0), ("stuck_beats", 0)):
+                           ("room_beats", {}), ("keeping_room", None), ("keep_walk_beats", 0), ("last_kept", None), ("kept", 0), ("stuck_beats", 0),
+                           ("head", [0, 0])):
             if key not in state:
                 state[key] = empty
                 changed = True
@@ -540,12 +586,26 @@ class FunctionalOrganism:
         return str(self._state["identity"])
 
     @property
+    def head(self) -> tuple[int, int]:
+        """Her head's (yaw, pitch) in millidegrees, from her own record."""
+
+        head = self._state.get("head") or [0, 0]
+        return int(head[0]), int(head[1])
+
+    @property
     def body_axes(self) -> tuple[tuple[object, ...], ...]:
-        return BODY_AXES
+        """The declared axes, with the neck where her head law has turned it."""
+
+        yaw, pitch = self.head
+        return tuple(
+            (axis[0], axis[1], axis[2], yaw if axis[1] == "neck_yaw" else pitch, *axis[4:])
+            if axis[1] in ("neck_yaw", "neck_pitch") else axis
+            for axis in BODY_AXES
+        )
 
     def readiness(self) -> Readiness:
         encoded = self.encoded()
-        return Readiness(self.identity, self.live_organism_tick, _sha256(encoded), len(encoded), 0, BODY_AXES)
+        return Readiness(self.identity, self.live_organism_tick, _sha256(encoded), len(encoded), 0, self.body_axes)
 
     def snapshot_lived_state(self) -> LivedState:
         return LivedState(self.live_organism_tick, self.encoded())
@@ -664,6 +724,10 @@ class FunctionalOrganism:
                 del room_beats[min(room_beats, key=lambda k: int(room_beats[k]))]
         keeping_room = max(room_beats, key=lambda k: int(room_beats[k])) if room_beats else None
         state["keeping_room"] = keeping_room
+        # Her head turns toward structure in the wide field it carries; the
+        # world computes the next beat's eye from these axes.
+        if sensed.wide_luminance_u8:
+            state["head"] = list(head_step(self.head, tuple(sensed.wide_luminance_u8)))
         measures = self._measure(sensed, seen, body)
         for name in STREAMS:
             window = state["streams"][name]

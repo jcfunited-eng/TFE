@@ -84,7 +84,7 @@ def test_world_page_has_the_authorized_embodied_access_only() -> None:
         "Camera / tutor RGB · 135 sites",
         "World light",
         "Camera / tutor",
-        "20° × 15° for both the world eye and the camera",  # the focal field label (2026-09-14)
+        "60° × 45° for both the world eye and the camera",  # the focal field label (2026-09-14)
         "Enable camera",
         "Enable microphone",
         "Listen to Guala",

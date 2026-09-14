@@ -198,10 +198,11 @@ def test_compact_retinal_capture_matches_spectral_values_without_signal_objects(
     assert _retinal_luminance(repeated) == original_luminance(repeated)
 
 
-def test_focal_optics_preserve_old_apertures_and_tile_the_twenty_degree_center() -> None:
-    # The focal field is 20 x 15 degrees across 32 x 24 sites (625 millidegrees
-    # per site) since 2026-09-14; the earlier half-arc-minute pitch saw a 9 mm
-    # patch of wall. The 135 old apertures are unchanged.
+def test_focal_optics_preserve_old_apertures_and_tile_the_sixty_degree_center() -> None:
+    # The focal field is 60 x 45 degrees across 32 x 24 sites (1875 millidegrees
+    # per site) since 2026-09-14, the whole camera frame; the earlier half-arc-minute
+    # pitch saw a 9 mm patch of wall, the 20-degree cone only wall above the floor.
+    # The 135 old apertures are unchanged.
     from dsf_ai_service.substrate.w1_physical_receptors import (
         FOCAL_RETINAL_SITE_GEOMETRY, RETINAL_SITE_GEOMETRY, UPGRADED_RETINAL_SITE_GEOMETRY,
     )
@@ -209,14 +210,14 @@ def test_focal_optics_preserve_old_apertures_and_tile_the_twenty_degree_center()
     assert UPGRADED_RETINAL_SITE_GEOMETRY[:135] == RETINAL_SITE_GEOMETRY
     assert len(FOCAL_RETINAL_SITE_GEOMETRY) == 768
     assert tuple(site[0] for site in FOCAL_RETINAL_SITE_GEOMETRY) == tuple(range(135, 903))
-    assert all(site[3:] == (Fraction(625, 2), Fraction(625, 2)) for site in FOCAL_RETINAL_SITE_GEOMETRY)
+    assert all(site[3:] == (Fraction(1875, 2), Fraction(1875, 2)) for site in FOCAL_RETINAL_SITE_GEOMETRY)
     first_row = FOCAL_RETINAL_SITE_GEOMETRY[:32]
-    assert first_row[0][1] - first_row[0][3] == -10_000
-    assert first_row[-1][1] + first_row[-1][3] == 10_000
+    assert first_row[0][1] - first_row[0][3] == -30_000
+    assert first_row[-1][1] + first_row[-1][3] == 30_000
     assert all(left[1] + left[3] == right[1] - right[3] for left, right in zip(first_row, first_row[1:]))
     first_column = FOCAL_RETINAL_SITE_GEOMETRY[::32]
-    assert first_column[0][2] + first_column[0][4] == 7_500
-    assert first_column[-1][2] - first_column[-1][4] == -7_500
+    assert first_column[0][2] + first_column[0][4] == 22_500
+    assert first_column[-1][2] - first_column[-1][4] == -22_500
     assert all(upper[2] - upper[4] == lower[2] + lower[4] for upper, lower in zip(first_column, first_column[1:]))
 
 

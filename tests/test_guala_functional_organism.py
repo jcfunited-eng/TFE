@@ -592,3 +592,33 @@ def test_walled_in_by_light_things_she_picks_one_up_to_clear_a_way() -> None:
     assert len(cups) == 9 and all(item.position is not None for item in cups)
     before = {f"cup-{index}": PositionMM(body.pose.position.x + round(430 * math.cos(math.radians(d))), body.pose.position.y + round(430 * math.sin(math.radians(d))), 0) for index, d in enumerate(range(0, 360, 40))}
     assert any(item.position != before[item.object_id] for item in cups), "nothing was pushed"
+
+
+def test_her_head_turns_toward_structure_so_the_floor_comes_into_her_focal_field() -> None:
+    """Her head law: the wide field the head carries aims the focal cone. On a
+    fresh world every object lies on the floor below head height; within a few
+    beats her head has pitched down toward them (it never yaws), the focal field
+    shows structure, and the head stays inside its declared bounds and is
+    restored byte-exact with the body."""
+
+    from dsf_ai_service.guala_functional_organism import HEAD_PITCH_BOUND_MILLIDEGREES, HEAD_YAW_BOUND_MILLIDEGREES
+
+    world = home_world_authority(identity=IDENTITY)
+    organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
+    assert organism.head == (0, 0)
+    loop = FunctionalPhysicalLoop()
+    loop.settle(organism, world, UNATTENDED)
+    spread = 0
+    for _ in range(40):
+        observation = loop.settle(organism, world, UNATTENDED).observation
+        yaw, pitch = organism.head
+        assert -HEAD_YAW_BOUND_MILLIDEGREES <= yaw <= HEAD_YAW_BOUND_MILLIDEGREES
+        assert -HEAD_PITCH_BOUND_MILLIDEGREES <= pitch <= HEAD_PITCH_BOUND_MILLIDEGREES
+        focal = observation["retinal_u8"][135:]
+        spread = max(spread, max(focal) - min(focal))
+    assert organism.head[0] == 0 and organism.head[1] < 0, organism.head
+    assert spread > 20, spread
+    axes = {axis[1]: axis[3] for axis in organism.body_axes}
+    assert (axes["neck_yaw"], axes["neck_pitch"]) == organism.head
+    restored = FunctionalOrganism.restore(organism.encoded())
+    assert restored.head == organism.head and restored.body_axes == organism.body_axes

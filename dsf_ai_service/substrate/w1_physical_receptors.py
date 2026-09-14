@@ -77,11 +77,12 @@ RETINA_FOCAL_ROWS = 24
 RETINA_FOCAL_COLUMNS = 32
 # Two samples per one-arcminute critical detail: acquisition calibration,
 # not a claim of recognition, camera resolution or end-to-end acuity.
-# The focal field spans 20 x 15 degrees across its 32 x 24 sites (625
-# millidegrees per site), the same field as the camera crop; the earlier
-# half-arc-minute pitch made a quarter-degree cone that saw a 9 mm patch of
-# wall and nothing else (Joe, 2026-09-14).
-RETINA_FOCAL_PITCH_MILLIDEGREES = Fraction(625)
+# The focal field spans 60 x 45 degrees across its 32 x 24 sites (1875
+# millidegrees per site), the same field as the whole camera frame held
+# still; the earlier half-arc-minute pitch made a quarter-degree cone that saw
+# a 9 mm patch of wall, and the 20-degree cone at head height saw only wall
+# above the floor where every object lies (Joe, 2026-09-14).
+RETINA_FOCAL_PITCH_MILLIDEGREES = Fraction(1875)
 RETINA_FOCAL_HORIZONTAL_FOV_MILLIDEGREES = RETINA_FOCAL_COLUMNS * RETINA_FOCAL_PITCH_MILLIDEGREES
 RETINA_FOCAL_VERTICAL_FOV_MILLIDEGREES = RETINA_FOCAL_ROWS * RETINA_FOCAL_PITCH_MILLIDEGREES
 RETINA_FOCAL_RECEPTOR_COUNT = RETINA_FOCAL_ROWS * RETINA_FOCAL_COLUMNS

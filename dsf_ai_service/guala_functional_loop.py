@@ -43,6 +43,8 @@ CAMERA_FIELD_MILLIDEGREES = (60_000, 45_000)  # the declared camera field the pa
 GAZE_RECENTRE = 0.05  # each beat the gaze gives back a twentieth of its offset from the frame's centre
 WORLD_RETINAL_SITES = 903
 WORLD_FOCAL_SITES = 768
+WORLD_LEGACY_SITES = 27   # the 9 x 3 coarse field that precedes the wide field
+WORLD_WIDE_SITES = 108    # the 18 x 6 wide field over 180 x 90 degrees
 
 
 def _receipt(value: object) -> str:
@@ -85,15 +87,19 @@ def _oral_intake_micrograms(execution: ActionExecutionReceipt) -> int:
 
 
 def _gaze_frame(sensory: Any, gaze: tuple[float, float]) -> list[float]:
-    """The next crop's centre in the frame: a bounded step from the crop's
-    origin toward the structure she saw, then a small pull back toward the
-    frame's centre, so only continuing structure holds an off-centre gaze."""
+    """Her gaze in the camera frame. The page sends the whole frame held still
+    (its field is the declared camera field), so her gaze within the field is
+    her gaze in the frame. A page that still sends a narrower crop gets the
+    older law: a bounded step from the crop's origin toward the structure she
+    saw, then a small pull back toward the frame's centre."""
 
     crop_fraction = (
         (sensory.focal_pitch_millidegrees[0] / CAMERA_FIELD_MILLIDEGREES[0],
          sensory.focal_pitch_millidegrees[1] / CAMERA_FIELD_MILLIDEGREES[1])
         if sensory.focal_pitch_millidegrees else (80 / 640.0, 60 / 480.0)
     )
+    if crop_fraction[0] >= 1.0 and crop_fraction[1] >= 1.0:
+        return [round(value, 4) for value in gaze]
     stepped = compute_saccadic_gaze(tuple(sensory.focal_origin), gaze, crop_fraction=crop_fraction)
     return [round(value + (0.5 - value) * GAZE_RECENTRE, 4) for value in stepped]
 
@@ -233,7 +239,10 @@ class FunctionalPhysicalLoop:
             own_voice = organism.pending_voice
             if own_voice is not None:
                 self_profile, self_heard = _profile(own_voice)
-            sensed = Sensed(before, focal, source, heard_profile, self_profile)
+            # The wide field (18 x 6 sites carried by her head) aims her head;
+            # it is the world eye's, whichever source fills the focal field.
+            wide = tuple(world_retina[WORLD_LEGACY_SITES:WORLD_LEGACY_SITES + WORLD_WIDE_SITES])
+            sensed = Sensed(before, focal, source, heard_profile, self_profile, wide)
             decision = organism.decide(sensed)
             prepared, applied, refusal, refused = _apply(world, decision, before)
             execution = prepared.execution_receipt
