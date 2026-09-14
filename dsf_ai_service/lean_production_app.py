@@ -247,7 +247,6 @@ def _physical_occurrence(body: OccurrenceBody) -> PhysicalOccurrence:
         "sensory",
         LeanSensoryOccurrence(
             source=payload.source,
-            retina_rgb_u8=payload.retina_rgb_u8,
             retina_rgb_u8=retina_u8,
             pressure_s16le=pressure,
             guided_vocal_drives=(
