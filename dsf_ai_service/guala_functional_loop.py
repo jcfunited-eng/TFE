@@ -11,7 +11,7 @@ import hashlib
 import json
 from typing import Any
 
-from dsf_ai_service.guala_caretaker_hand import present_food
+from dsf_ai_service.guala_caretaker_hand import nothing_left_to_bite, present_food, withdraw
 from dsf_ai_service.guala_cochlea import one_self_hearing_hop
 from dsf_ai_service.guala_functional_organism import (
     BEAT_MICROSECONDS, CAPACITY_MICROGRAMS, Decision, FunctionalOrganism, Sensed,
@@ -36,6 +36,7 @@ from dsf_ai_service.substrate.w1_physical_receptors import retinal_irradiance_fi
 
 
 MAX_NATIVE_INTERVALS_PER_OCCURRENCE = 1
+CAREGIVER_RETRY_BEATS = 16
 WORLD_RETINAL_SITES = 903
 WORLD_FOCAL_SITES = 768
 
@@ -77,6 +78,45 @@ def _oral_intake_micrograms(execution: ActionExecutionReceipt) -> int:
     if contact is None or contact.kind != "oral":
         return 0
     return sum(int(value) for value in contact.dissolved_tastant_micrograms)
+
+
+def _said(drive: tuple[int, int, int]) -> str:
+    """The syllable as letters (onset + vowel) and its pitch, for the page."""
+
+    from dsf_ai_service.guala_voice import ONSETS, VOWELS
+
+    pitch, vowel, onset = drive
+    return f"{ONSETS[onset]}{VOWELS[vowel][0]} at {pitch / 10:.0f} Hz"
+
+
+def _caregiver_withdrawal(organism: FunctionalOrganism, world: Any) -> dict[str, object] | None:
+    """The caregiver's law after a meal: when she is not feeding, or what is
+    held out has nothing left to bite, the caregiver carries it home to the
+    hallway, out of every doorway, and tidies eaten cores out of doorway
+    approaches. One bounded stretch per beat; after a stretch that did not
+    finish, it waits a few beats before the next. Never moves her."""
+
+    tick = organism.live_organism_tick
+    if tick < int(organism._state.get("caregiver_retry_tick", 0)):
+        return None
+    snapshot = world.observation_snapshot()
+    her = next(body for body in snapshot.bodies if body.body_id == snapshot.self_body_id)
+    others = tuple(body for body in snapshot.bodies if body.body_id != snapshot.self_body_id)
+    if len(others) != 1:
+        return None
+    person = others[0]
+    if person.held_object_id is not None:
+        held = next((item for item in snapshot.objects if item.object_id == person.held_object_id), None)
+        meal_over = not organism.feeding or held is None or held.material is None or nothing_left_to_bite(her, held)
+        if not meal_over:
+            return None
+        contact = getattr(her, "active_contact", None)
+        if contact is not None and contact.object_id == person.held_object_id:
+            return None  # her mouth is still on it; her next own act clears the contact, then the caregiver steps back
+    record = withdraw(world)
+    if record is not None and not (record["home"] or record["fetched"]):
+        organism._state["caregiver_retry_tick"] = tick + CAREGIVER_RETRY_BEATS
+    return record
 
 
 def _apply(world: Any, decision: Decision, before: Any) -> tuple[PreparedActionExecution, str, str | None, list[str]]:
@@ -129,9 +169,13 @@ class FunctionalPhysicalLoop:
         returning = world.pending_physical_return
         prepared = None
         presentation = None
+        withdrawal = None
         try:
             if sensory is not None and sensory.present_food is not None:
                 presentation = present_food(world, sensory.present_food)
+                returning = world.pending_physical_return
+            withdrawal = _caregiver_withdrawal(organism, world)
+            if withdrawal is not None:
                 returning = world.pending_physical_return
             before = world.observation_snapshot()
             axes = organism.body_axes
@@ -167,7 +211,7 @@ class FunctionalPhysicalLoop:
             with world.prepared_action_visibility_transaction(prepared):
                 world.commit_prepared_action(prepared, expected_physical_return=returning, physical_return=None)
             prepared = None
-            spoke = syllable_pcm(decision.drive) if decision.drive is not None else None
+            spoke = syllable_pcm(decision.drive, start_tick) if decision.drive is not None else None
             if spoke is not None and (len(spoke) > MAX_PRESSURE_BYTES or len(spoke) % 2):
                 raise RuntimeError("her voice exceeded its transport bound")
             organism.commit(
@@ -189,6 +233,7 @@ class FunctionalPhysicalLoop:
                 "act_reason": decision.reason,
                 "body_consequence_count": 0,
                 "caregiver_presentation": presentation,
+                "caregiver_withdrawal": withdrawal,
                 "causal_transition_sha256": execution.authority_receipt_sha256,
                 "dsf_delivery_count": decision.gate_count,
                 "embodiment": lean_embodiment_observation(after, axes),
@@ -222,6 +267,7 @@ class FunctionalPhysicalLoop:
                 "reserve_capacity_micrograms": CAPACITY_MICROGRAMS,
                 "retinal_observer_kind": "achromatic-u8-projection-of-world-light",
                 "retinal_u8": list(world_retina),
+                "said": None if decision.drive is None else _said(decision.drive),
                 "said_drive": None if decision.drive is None else list(decision.drive),
                 "seen": [thing.object_id for thing in decision.seen],
                 "self_heard_sample_count": self_heard,

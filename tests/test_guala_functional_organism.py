@@ -193,20 +193,68 @@ def test_idle_she_babbles_through_her_airway_hears_herself_and_imitates_a_heard_
     assert spoken, "she never babbled"
     receipt, pcm = spoken[0].pressure
     assert len(pcm) <= MAX_PRESSURE_BYTES and len(pcm) % 2 == 0 and receipt == __import__("hashlib").sha256(pcm).hexdigest()
-    assert spoken[0].observation["her_act"] in {"babble", "imitate"} and spoken[0].observation["said_drive"] is not None
+    assert spoken[0].observation["said_drive"] is not None and spoken[0].observation["said"]
     assert organism._state["voice"], "she did not hear her own syllable"
     assert all(len(entry["heard"]) == 32 for entry in organism._state["voice"])
     # A sound from outside: within eight beats she answers with her nearest own sound.
     results = _run(organism, world, [_heard(_tone(370)), *([UNATTENDED] * 6)])
     assert results[0].observation["external_heard_sample_count"] == 4_000
-    assert any(r.observation["her_act"] == "imitate" for r in results), [r.observation["her_act"] for r in results]
+    answers = [r.observation for r in results if "answering a sound she heard" in (r.observation["act_reason"] or "")]
+    assert answers and answers[0]["said_drive"] is not None, [r.observation["act_reason"] for r in results]
+    assert len(answers) == 1, "a heard sound is answered once"
 
 
-def test_syllables_are_deterministic_and_bounded() -> None:
-    first = syllable_pcm((44, 31, 0))
-    assert first == syllable_pcm((44, 31, 0)) and first != syllable_pcm((44, 31, 1))
+def test_syllables_are_deterministic_bounded_and_vary_by_vowel_onset_and_utterance() -> None:
+    first = syllable_pcm((3_600, 0, 0), 7)
+    assert first == syllable_pcm((3_600, 0, 0), 7)
+    assert first != syllable_pcm((3_600, 1, 0), 7) and first != syllable_pcm((3_600, 0, 1), 7) and first != syllable_pcm((3_600, 0, 0), 8)
     assert 0 < len(first) <= MAX_PRESSURE_BYTES and len(first) % 2 == 0
-    assert max(abs(v) for v in struct.unpack(f"<{len(first) // 2}h", first)) >= 8_000
+    samples = struct.unpack(f"<{len(first) // 2}h", first)
+    assert max(abs(v) for v in samples) >= 8_000
+    # A voiced syllable near her pitch: zero crossings of the waveform sit in the hundreds per quarter second.
+    crossings = sum(1 for a, b in zip(samples, samples[1:]) if (a < 0) != (b < 0))
+    assert 200 <= crossings <= 4_000, crossings
+
+
+def test_the_caregiver_never_stands_in_a_doorway_and_withdraws_home_after_the_meal() -> None:
+    from dsf_ai_service.guala_caretaker_hand import CAREGIVER_HOME_MM, DOORWAY_CLEARANCE_MM, in_doorway
+
+    world = home_world_authority(identity=IDENTITY)
+    organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
+    results = _run(organism, world, [_present("apple"), *([UNATTENDED] * 60)])
+    assert results[0].observation["caregiver_presentation"]["presented"] is True
+    snapshot_after_offer = None
+    withdrawals = [r.observation["caregiver_withdrawal"] for r in results if r.observation["caregiver_withdrawal"] is not None]
+    assert withdrawals, "the caregiver never withdrew after the meal"
+    assert withdrawals[0]["set_down"] == "apple" and withdrawals[0]["home"] is True, withdrawals[0]
+    snapshot = world.observation_snapshot()
+    person = next(body for body in snapshot.bodies if body.body_id != snapshot.self_body_id)
+    assert person.held_object_id is None
+    assert abs(person.pose.position.x - CAREGIVER_HOME_MM.x) <= 150 and abs(person.pose.position.y - CAREGIVER_HOME_MM.y) <= 150
+    # No step of the presentation ever stood in a doorway.
+    for step in results[0].observation["caregiver_presentation"]["steps"]:
+        if step.get("operation") == "move" and step.get("reason") == "applied" and step.get("to"):
+            x, y = step["to"]
+            region = next((r for r in snapshot.regions if r.bounds.minimum.x <= x <= r.bounds.maximum.x and r.bounds.minimum.y <= y <= r.bounds.maximum.y), None)
+            if region is not None and step is results[0].observation["caregiver_presentation"]["steps"][-1]:
+                assert not in_doorway(snapshot, PositionMM(x, y, 0), region.region_id, DOORWAY_CLEARANCE_MM)
+
+
+def test_with_nothing_new_in_her_room_she_leaves_through_a_doorway() -> None:
+    world = home_world_authority(identity=IDENTITY)
+    organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
+    organism._state["reserve_micrograms"] = CAPACITY_MICROGRAMS * 9 // 10
+    organism._state["feeding"] = False
+    start_room = world.observation_snapshot().room_id
+    rooms = {start_room}
+    loop = FunctionalPhysicalLoop()
+    for _ in range(900):
+        result = loop.settle(organism, world, UNATTENDED)
+        rooms.add(result.observation["embodiment"]["room_id"])
+        if len(rooms) >= 2:
+            break
+    assert len(rooms) >= 2, rooms
+    assert organism._state["visited"]
 
 
 def test_the_kernel_reads_her_streams_and_her_memory_stays_bounded_over_three_hundred_beats() -> None:
@@ -229,3 +277,27 @@ def test_the_kernel_reads_her_streams_and_her_memory_stays_bounded_over_three_hu
     encoded = organism.encoded()
     assert FunctionalOrganism.restore(encoded).encoded() == encoded
     assert organism.counts["bites"] > 0 and organism.counts["strides"] > 0 and organism.counts["syllables"] > 0
+    # Bouts, not a constant stream: fewer than one syllable in four beats over the run.
+    assert organism.counts["syllables"] < 300 // 4
+
+
+def test_an_older_functional_body_is_migrated_on_restore_and_forgets_sounds_of_the_old_airway() -> None:
+    import json
+
+    from dsf_ai_service.guala_functional_organism import VOICE_VERSION
+
+    organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=5)
+    state = json.loads(organism.encoded()[len(MAGIC):])
+    state["voice_version"] = 1
+    state["voice"] = [{"drive": [44, 31, 0], "heard": [0.1] * 32, "tick": 3}]
+    state["heard"] = [{"tick": 4, "profile": [0.2] * 32}]
+    for key in ("visited", "door_goal", "bout_syllables", "quiet_until_tick", "blocked_doors"):
+        state.pop(key, None)
+    older = MAGIC + json.dumps(state, allow_nan=False, ensure_ascii=False, separators=(",", ":"), sort_keys=True).encode("utf-8")
+    restored = FunctionalOrganism.restore(older)
+    assert restored.live_organism_tick == 5 and restored.encoded() != older
+    assert restored._state["voice_version"] == VOICE_VERSION and restored._state["voice"] == [] and restored._state["heard"] == []
+    assert restored._state["visited"] == {} and restored._state["door_goal"] is None
+    # Migrated once: restoring the migrated body changes nothing.
+    again = FunctionalOrganism.restore(restored.encoded())
+    assert again.encoded() == restored.encoded()

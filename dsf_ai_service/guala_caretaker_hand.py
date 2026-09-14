@@ -43,6 +43,11 @@ HANDLING_MICROSECONDS = 250_000
 APPROACH_DISTANCE_MM = 500
 OFFER_DISTANCE_MM = 600
 PORTAL_MARGIN_MM = 600
+DOORWAY_CLEARANCE_MM = 700
+SET_DOWN_DOOR_CLEARANCE_MM = 1_200  # nothing is put down within this of a doorway
+CAREGIVER_HOME_REGION = "hallway"
+CAREGIVER_HOME_MM = PositionMM(7_300, 7_500, 0)  # where the caregiver body was declared
+ARRIVED_HOME_MM = 150
 MAX_STEPS = 64
 # A straight leg the world refuses for a thing in the way is retried around it:
 # a sidestep of these widths at the leg's midpoint, then on to the target.
@@ -135,6 +140,72 @@ def _approach_point(origin: PositionMM, target: PositionMM, distance_mm: int) ->
 
 def _distance_mm(left: PositionMM, right: PositionMM) -> float:
     return ((left.x - right.x) ** 2 + (left.y - right.y) ** 2) ** 0.5
+
+
+def in_doorway(snapshot: Any, spot: PositionMM, region_id: str, clearance_mm: int) -> bool:
+    """True when ``spot`` sits within ``clearance_mm`` of a doorway of
+    ``region_id`` and across its opening: standing there blocks the door."""
+
+    for portal in snapshot.portals:
+        if region_id not in portal.region_ids:
+            continue
+        along, across = (spot.x, spot.y) if portal.axis == "x" else (spot.y, spot.x)
+        if abs(along - portal.plane_mm) <= clearance_mm and portal.aperture_min_mm - clearance_mm <= across <= portal.aperture_max_mm + clearance_mm:
+            return True
+    return False
+
+
+def _is_core(her: Any, item: Any) -> bool:
+    return item.material is None or nothing_left_to_bite(her, item)
+
+
+def core_in_a_doorway(snapshot: Any, her: Any) -> Any | None:
+    """A thing with nothing left to bite lying in a doorway's approach, if any."""
+
+    for item in snapshot.objects:
+        if item.position is None or not item.object_id.startswith("apple") or not _is_core(her, item):
+            continue
+        region = _region_of(snapshot, item.position, item.radius_mm)
+        if region is not None and in_doorway(snapshot, item.position, region.region_id, SET_DOWN_DOOR_CLEARANCE_MM):
+            return item
+    return None
+
+
+def withdraw(world: Any) -> dict[str, object] | None:
+    """The caregiver's steps after a meal, one bounded stretch per call:
+    carry what it holds home to the hallway and set it down there; walk
+    home when away; and, at home with empty hands, fetch an eaten core that
+    lies in a doorway's approach (it would block a walking body) to bring
+    it home next time. Returns the record of the world's steps, or None when
+    there is nothing to do. Presents, withdraws and tidies; never moves her."""
+
+    snapshot = world.observation_snapshot()
+    her = next(body for body in snapshot.bodies if body.body_id == snapshot.self_body_id)
+    others = tuple(body for body in snapshot.bodies if body.body_id != snapshot.self_body_id)
+    if len(others) != 1:
+        return None
+    person = others[0]
+    at_home = _distance_mm(person.pose.position, CAREGIVER_HOME_MM) <= ARRIVED_HOME_MM
+    stray = core_in_a_doorway(snapshot, her) if (at_home and person.held_object_id is None) else None
+    if person.held_object_id is None and at_home and stray is None:
+        return None
+    hand = _Hand(world, person.held_object_id or (stray.object_id if stray is not None else "nothing"))
+    record: dict[str, object] = {"schema": "guala.caregiver_withdrawal.v1", "set_down": None, "home": False, "fetched": None, "steps": hand.steps}
+    try:
+        if stray is not None:
+            region = _region_of(snapshot, stray.position, stray.radius_mm)
+            if region is not None and hand.walk_to_region(region.region_id) and hand.stand_before(
+                stray.position, APPROACH_DISTANCE_MM, distances_mm=(APPROACH_DISTANCE_MM, 420, 650, 780), region_id=region.region_id,
+            ) and hand.applied("pick", PickCommand(stray.object_id, HANDLING_MICROSECONDS)):
+                record["fetched"] = stray.object_id
+            return record
+        hand.walk_to_region(CAREGIVER_HOME_REGION)
+        record["home"] = hand.move(CAREGIVER_HOME_MM, _heading_toward(CAREGIVER_HOME_MM, her.pose.position))
+        if record["home"] and person.held_object_id is not None and hand.set_down(person.held_object_id):
+            record["set_down"] = person.held_object_id
+    except _Bounded:
+        hand.steps.append({"operation": "bound", "reason": "withdrawal_steps_exhausted", "to": None})
+    return record
 
 
 def nothing_left_to_bite(body: Any, item: Any) -> bool:
@@ -330,14 +401,23 @@ class _Hand:
         import math
 
         snapshot = self.snapshot()
-        _her, person = self.bodies(snapshot)
+        her, person = self.bodies(snapshot)
         origin = person.pose.position
+        region = _region_of(snapshot, origin, person.radius_mm)
+        spots = []
         for radius in (450, 600, 750):
             for turn in (-90_000, 90_000, 0, 180_000, -45_000, 45_000, -135_000, 135_000):
                 angle = math.radians(((person.pose.heading_millidegrees + turn) % 360_000) / 1_000)
                 spot = PositionMM(round(origin.x + radius * math.cos(angle)), round(origin.y + radius * math.sin(angle)), 0)
-                if self.applied("place", PlaceCommand(object_id, spot, HANDLING_MICROSECONDS)):
-                    return True
+                # Never in a doorway's approach (a thing on the floor blocks a
+                # walking body), and away from her rather than at her feet.
+                if region is not None and in_doorway(snapshot, spot, region.region_id, SET_DOWN_DOOR_CLEARANCE_MM):
+                    continue
+                spots.append((radius, -_distance_mm(spot, her.pose.position), spot))
+        spots.sort(key=lambda item: (item[0], item[1]))
+        for _radius, _away, spot in spots:
+            if self.applied("place", PlaceCommand(object_id, spot, HANDLING_MICROSECONDS)):
+                return True
         return False
 
     def cross(self, portal: Any, from_region: str, snapshot: Any) -> bool:
@@ -402,6 +482,8 @@ class _Hand:
             region = _region_of(snapshot, spot, person.radius_mm)
             if region is None or (region_id is not None and region.region_id != region_id):
                 continue
+            if in_doorway(snapshot, spot, region.region_id, DOORWAY_CLEARANCE_MM):
+                continue  # the caregiver never stands in a doorway
             heading = _heading_toward(spot, face if face is not None else target)
             # The first spots are worth a sidestep; the rest are tried straight.
             if self.move(spot, heading, detour=index < len(candidates) + 2):
@@ -436,20 +518,24 @@ class _Hand:
             if not self.set_down(person.held_object_id):
                 return outcome
 
-        # An eaten core in her hand comes away before fresh food is offered.
+        # An eaten core in her hand comes away before fresh food is offered;
+        # it is carried off and set down where the food lies, never at her
+        # feet or in a doorway she will walk through.
         held = by_id.get(her.held_object_id) if her.held_object_id is not None else None
+        carried_core = None
         if held is not None and nothing_left_to_bite(her, held):
             if not self.reach_her(her):
                 return outcome
             if not self.applied("take", TakeContactHeldObjectCommand(HANDLING_MICROSECONDS)):
                 return outcome
             outcome["took_away"] = held.object_id
-            if not self.set_down(held.object_id):
-                return outcome
+            carried_core = held.object_id
 
         # Fetch the food.
         snapshot = self.snapshot()
         food = next(item for item in snapshot.objects if item.object_id == self.object_id)
+        if carried_core is not None and food.held_by_body_id == person.body_id:
+            raise RuntimeError("the caregiver cannot hold a core and the food at once")
         if food.held_by_body_id != person.body_id:
             if food.position is None:
                 self.steps.append({"operation": "resolve", "reason": "food_in_another_hand"})
@@ -464,6 +550,8 @@ class _Hand:
                 food.position, APPROACH_DISTANCE_MM, distances_mm=(APPROACH_DISTANCE_MM, 420, 650, 780),
                 region_id=food_region.region_id,
             ):
+                return outcome
+            if carried_core is not None and not self.set_down(carried_core):
                 return outcome
             if not self.applied("pick", PickCommand(self.object_id, HANDLING_MICROSECONDS)):
                 return outcome
@@ -499,7 +587,7 @@ def present_food(world: Any, object_id: str) -> dict[str, object]:
         }
 
 
-__all__ = ("nothing_left_to_bite", "offered_within_reach", "present_food")
+__all__ = ("core_in_a_doorway", "in_doorway", "nothing_left_to_bite", "offered_within_reach", "present_food", "withdraw")
 
 
 def offered_within_reach(snapshot: Any) -> str | None:

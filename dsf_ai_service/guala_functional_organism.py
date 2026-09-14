@@ -30,13 +30,10 @@ from uf_core.layer3 import compute_resonance
 from uf_core.layer4 import compute_directional_signal, compute_dsf
 
 from dsf_ai_service.guala_caretaker_hand import (
-    _approach_point, _distance_mm, _heading_toward, _region_of,
+    _approach_point, _distance_mm, _heading_toward, _portal_points, _region_of,
     nothing_left_to_bite, offered_within_reach,
 )
-from dsf_ai_service.substrate.articulatory_self_vocal_mechanics import (
-    ArticulatoryProgram, LaryngealExcitationConfiguration, VocalTractConfiguration,
-    generate_articulatory_pressure_with_quiescence,
-)
+from dsf_ai_service.guala_voice import ONSETS, PITCHES_DECIHERTZ, VOWELS, syllable_pcm as airway_syllable_pcm
 from dsf_ai_service.substrate.embodiment_world import (
     GraspContactCommand, MoveCommand, OralContactCommand, PoseMM, PositionMM,
     ReleaseHeldObjectCommand, _derived_contact_patch_square_mm, _receptor_position,
@@ -76,6 +73,14 @@ GOAL_PATIENCE_BEATS = 40
 SIDESTEP_MILLIDEGREES = (45_000, -45_000, 90_000, -90_000, 135_000, -135_000, 180_000)
 GOAL_REFUSAL_LIMIT = 6
 TURN_MILLIDEGREES = 60_000
+# Roaming: once everything in sight was looked at within this many beats, she
+# leaves through the doorway to the room she visited least recently; the
+# doorway is crossed in one step from a margin before it to a margin past it.
+LOOKED_RECENTLY_BEATS = 240
+DOOR_MARGIN_MM = 600
+DOOR_CROSSING_OFFSETS_MM = (0, 300, -300, 500, -500)
+VISITED_CAPACITY = 16
+BLOCKED_DOOR_BEATS = 400   # a doorway she could not pass is left alone for this long
 
 # The kernel reads a trailing window of each measured stream.
 STREAMS = (
@@ -99,22 +104,15 @@ REFUSAL_CAPACITY = 32
 BABBLE_EVERY_BEATS = 4
 IDLE_BEFORE_BABBLE = 2
 HEARD_RECENT_BEATS = 8
-SYLLABLE_SAMPLES = 3_200
-VOICE_SAMPLE_RATE_HZ = 16_000
-VOICE_PEAK = 12_000
-MAX_VOICE_SAMPLES = 4_000
+# Babble comes in bouts, walking or still: up to this many syllables one
+# every four beats, then a quiet spell. A heard sound is answered once.
+BOUT_SYLLABLES = 5
+QUIET_BEATS = 48
 COCHLEAR_CHANNELS = 32
-NEUTRAL_TRACT_MM2 = (90, 110, 150, 210, 280, 360, 470, 620)
-TRACT_SHAPES_MM2 = (
-    (420, 90, 520, 120, 680, 160, 760, 240),
-    (120, 160, 260, 420, 560, 640, 700, 760),
-    (700, 520, 300, 160, 120, 180, 320, 520),
-    (160, 120, 100, 140, 300, 520, 700, 800),
-    (300, 460, 620, 700, 620, 460, 300, 200),
-    (90, 90, 120, 200, 360, 560, 720, 900),
-)
-CYCLE_SAMPLES = (40, 44, 48, 52)  # 400, 364, 333 and 308 Hz at 16 kHz
-OPEN_QUOTIENT = Fraction(71, 100)
+# Her airway is the accepted voice (guala_voice); a drive is (pitch in tenths
+# of a hertz, vowel, onset). Sound memory made with an older airway is
+# forgotten on restore, because it no longer sounds like her.
+VOICE_VERSION = 2
 
 # Her body's axes, declared once (index, name, unit, position, minimum,
 # neutral, maximum). The eyelids sit where they sat; the head faces forward.
@@ -302,24 +300,31 @@ def move_commands_toward(snapshot: Any, target: PositionMM, stop_mm: int) -> tup
     return tuple(commands)
 
 
-def syllable_pcm(drive: tuple[int, int, int]) -> bytes:
-    """Her airway: one held articulation, radiated pressure as signed 16-bit
-    samples at 16 kHz, amplified to a declared peak. Deterministic."""
+def door_crossing(snapshot: Any, portal: Any, from_region: str) -> tuple[PositionMM, PositionMM]:
+    """The two floor points of a doorway crossing: a margin before it inside
+    ``from_region`` and a margin past it, on the doorway's centre line."""
 
-    cycle, opening, shape = drive
-    program = ArticulatoryProgram.create(
-        sample_count=SYLLABLE_SAMPLES,
-        larynx=LaryngealExcitationConfiguration(cycle_samples=cycle, open_samples=opening, peak_volume_velocity_pcm=14_000),
-        tract=VocalTractConfiguration(
-            initial_section_area_mm2=NEUTRAL_TRACT_MM2, apex_section_area_mm2=TRACT_SHAPES_MM2[shape],
-            final_section_area_mm2=NEUTRAL_TRACT_MM2, radiation_load_area_mm2=900, wall_retention_ppm=990_000,
-        ),
-    )
-    pressure = generate_articulatory_pressure_with_quiescence(program=program, neutral_section_area_mm2=NEUTRAL_TRACT_MM2)
-    samples = [*pressure.active_radiated_pressure_pcm, *pressure.relaxation_radiated_pressure_pcm][:MAX_VOICE_SAMPLES]
-    peak = max(1, max(abs(value) for value in samples))
-    scaled = [max(-32768, min(32767, (value * VOICE_PEAK) // peak)) for value in samples]
-    return struct.pack(f"<{len(scaled)}h", *scaled)
+    return _portal_points(portal, from_region, snapshot, 0, DOOR_MARGIN_MM)
+
+
+def door_crossing_commands(snapshot: Any, portal: Any, from_region: str) -> tuple[MoveCommand, ...]:
+    """Steps through a doorway, centre first, then across its width and with
+    shorter margins past it, so a thing standing near the far side of the
+    door does not close it."""
+
+    commands = []
+    for margin in (DOOR_MARGIN_MM, 450, 350):
+        for offset in DOOR_CROSSING_OFFSETS_MM:
+            before_door, past_door = _portal_points(portal, from_region, snapshot, offset, margin)
+            commands.append(MoveCommand(PoseMM(past_door, _heading_toward(before_door, past_door)), BEAT_MICROSECONDS))
+    return tuple(commands)
+
+
+def syllable_pcm(drive: tuple[int, int, int], seed: int = 0) -> bytes:
+    """One syllable through her airway (see guala_voice); per-utterance
+    variation comes from ``seed``, her tick."""
+
+    return airway_syllable_pcm(tuple(int(value) for value in drive), int(seed))
 
 
 def cochlear_profile(cochleae: tuple[tuple[float, ...], ...]) -> tuple[float, ...]:
@@ -337,9 +342,13 @@ def _profile_distance(left: tuple[float, ...], right: tuple[float, ...]) -> floa
 
 
 def _new_drive(tick: int) -> tuple[int, int, int]:
-    cycle = CYCLE_SAMPLES[(tick // len(TRACT_SHAPES_MM2)) % len(CYCLE_SAMPLES)]
-    opening = int(cycle * OPEN_QUOTIENT)
-    return cycle, opening, tick % len(TRACT_SHAPES_MM2)
+    """A sound of her own she has not tried lately: vowel, onset and pitch
+    walked in turn from her tick."""
+
+    vowel = tick % len(VOWELS)
+    onset = (tick // len(VOWELS)) % len(ONSETS)
+    pitch = PITCHES_DECIHERTZ[(tick // (len(VOWELS) * len(ONSETS))) % len(PITCHES_DECIHERTZ)]
+    return pitch, vowel, onset
 
 
 class FunctionalOrganism:
@@ -361,6 +370,7 @@ class FunctionalOrganism:
             "familiarity": {}, "episodes": [], "heard": [], "voice": [], "approached": {},
             "refusals": {}, "idle_beats": 0, "last_act": "rest", "last_spoke_tick": -BABBLE_EVERY_BEATS, "goal": None, "goal_beats": 0, "goal_refusals": 0,
             "pending_voice": None, "pending_drive": None, "meals_micrograms": 0, "bites": 0, "strides": 0, "syllables": 0,
+            "voice_version": VOICE_VERSION, "visited": {}, "door_goal": None, "bout_syllables": 0, "quiet_until_tick": 0, "blocked_doors": {},
         })
 
     @classmethod
@@ -373,7 +383,24 @@ class FunctionalOrganism:
         organism = cls(state)
         if organism.encoded() != encoded:
             raise ValueError("functional organism body does not re-encode exactly")
+        organism.migrate()
         return organism
+
+    def migrate(self) -> bool:
+        """Bring an older functional body to this build's laws; True when
+        anything changed (the caller republishes)."""
+
+        state = self._state
+        changed = False
+        if state.get("voice_version") != VOICE_VERSION:
+            state["voice"], state["heard"], state["pending_voice"], state["pending_drive"] = [], [], None, None
+            state["voice_version"] = VOICE_VERSION
+            changed = True
+        for key, empty in (("visited", {}), ("door_goal", None), ("bout_syllables", 0), ("quiet_until_tick", 0), ("blocked_doors", {})):
+            if key not in state:
+                state[key] = empty
+                changed = True
+        return changed
 
     def encoded(self) -> bytes:
         return MAGIC + json.dumps(self._state, allow_nan=False, ensure_ascii=False, separators=(",", ":"), sort_keys=True).encode("utf-8")
@@ -409,6 +436,10 @@ class FunctionalOrganism:
         self.validate_lived_checkpoint(checkpoint)
 
     # ----- measured state -----------------------------------------------------------
+
+    @property
+    def feeding(self) -> bool:
+        return bool(self._state["feeding"]) or self.reserve_micrograms < CAPACITY_MICROGRAMS * HUNGRY_BELOW
 
     @property
     def reserve_micrograms(self) -> int:
@@ -512,7 +543,32 @@ class FunctionalOrganism:
         offered_id = offered_within_reach(snapshot)
         offered = None if offered_id is None else _object(snapshot, offered_id)
 
+        # Her voice, decided on its own and carried by whatever her body does
+        # this beat (not while her mouth is busy eating): a heard sound is
+        # answered once with her nearest own syllable; otherwise she babbles
+        # in bouts, walking or still.
+        voice_drive = None
+        voice_reason = ""
+        spoke_recently = tick - int(state["last_spoke_tick"]) < BABBLE_EVERY_BEATS
+        unanswered = [entry for entry in state["heard"] if tick - int(entry["tick"]) <= HEARD_RECENT_BEATS and not entry.get("answered")]
+        if unanswered and not spoke_recently and state["voice"]:
+            target_profile = tuple(unanswered[-1]["profile"])
+            best = min(state["voice"], key=lambda entry: _profile_distance(tuple(entry["heard"]), target_profile))
+            voice_drive, voice_reason = tuple(best["drive"]), "answering a sound she heard with the nearest sound of her own"
+            unanswered[-1]["answered"] = True
+        elif not spoke_recently and tick >= int(state.get("quiet_until_tick", 0)):
+            voice_drive, voice_reason = _new_drive(tick), "trying a sound of her own"
+            state["bout_syllables"] = int(state.get("bout_syllables", 0)) + 1
+            if int(state["bout_syllables"]) >= BOUT_SYLLABLES:
+                state["bout_syllables"], state["quiet_until_tick"] = 0, tick + QUIET_BEATS
+
         def decision(act: str, reason: str, commands: tuple[Any, ...] = (), target: str | None = None, drive: tuple[int, int, int] | None = None) -> Decision:
+            if drive is None and voice_drive is not None and act in ("rest", "attend", "turn", "wander"):
+                if act == "rest":
+                    act, reason = ("imitate" if unanswered else "babble"), voice_reason
+                else:
+                    reason = reason + "; " + voice_reason
+                drive = voice_drive
             return Decision(act, reason, commands, target, drive, signature, novel, gate_count, seen)
 
         # An eaten core in her hand is dropped whether or not she is hungry.
@@ -534,15 +590,34 @@ class FunctionalOrganism:
                     return decision("approach", "hungry, food in sight", move_commands_toward(snapshot, nearest.position, stop), nearest.object_id)
         if novel and gate_count:
             return decision("attend", "a structure she has not met before")
-        # Voice: imitate what she heard lately; otherwise babble when idle.
-        spoke_recently = tick - int(state["last_spoke_tick"]) < BABBLE_EVERY_BEATS
-        recent_heard = [entry for entry in state["heard"] if tick - int(entry["tick"]) <= HEARD_RECENT_BEATS]
-        if recent_heard and not spoke_recently and state["voice"]:
-            target_profile = tuple(recent_heard[-1]["profile"])
-            best = min(state["voice"], key=lambda entry: _profile_distance(tuple(entry["heard"]), target_profile))
-            return decision("imitate", "answering a sound she heard with the nearest sound of her own", drive=tuple(best["drive"]))
-        if not spoke_recently and int(state["idle_beats"]) >= IDLE_BEFORE_BABBLE:
-            return decision("babble", "idle; trying a sound of her own", drive=_new_drive(tick))
+        # Where she is: the room she stands in, remembered as visited now.
+        here = _region_of(snapshot, body.pose.position, body.radius_mm)
+        visited = state["visited"]
+        if here is not None:
+            visited[here.region_id] = tick
+            while len(visited) > VISITED_CAPACITY:
+                del visited[min(visited, key=lambda k: int(visited[k]))]
+        # A doorway she is on her way through: first the margin before it,
+        # then one step past it into the next room.
+        door_goal = state.get("door_goal")
+        if door_goal is not None and here is not None:
+            portal = next((item for item in snapshot.portals if item.portal_id == door_goal["portal_id"]), None)
+            if portal is None or here.region_id not in portal.region_ids or int(state.get("goal_beats", 0)) > GOAL_PATIENCE_BEATS or int(state.get("goal_refusals", 0)) >= GOAL_REFUSAL_LIMIT:
+                if portal is not None:
+                    blocked = state.setdefault("blocked_doors", {})
+                    blocked[portal.portal_id] = tick
+                    while len(blocked) > VISITED_CAPACITY:
+                        del blocked[min(blocked, key=lambda k: int(blocked[k]))]
+                state["door_goal"] = None
+            elif here.region_id != door_goal["from_region"]:
+                state["door_goal"] = None  # she is through
+            else:
+                state["goal_beats"] = int(state.get("goal_beats", 0)) + 1
+                before_door, past_door = door_crossing(snapshot, portal, here.region_id)
+                why = ("hungry, searching the next room; " if feeding else "nothing here she has not seen; ") + "going through " + portal.portal_id
+                if _distance_mm(body.pose.position, before_door) <= ARRIVAL_MM + STEP_MM // 2:
+                    return decision("wander", why, door_crossing_commands(snapshot, portal, here.region_id), portal.portal_id)
+                return decision("wander", why, move_commands_toward(snapshot, before_door, 0), portal.portal_id)
         # Moving about: she keeps one goal until she arrives at it (or gives
         # up), then takes the thing in sight she has looked at least recently.
         # Hungry with no food in sight, the same walk is her search.
@@ -568,11 +643,25 @@ class FunctionalOrganism:
                 if thing.distance_mm <= body.radius_mm + thing.radius_mm + WANDER_STOP_MM + ARRIVAL_MM:
                     approached[thing.object_id] = tick
                     continue
+                if tick - int(approached.get(thing.object_id, -LOOKED_RECENTLY_BEATS - 1)) <= LOOKED_RECENTLY_BEATS:
+                    continue  # looked at lately; the room may be exhausted
                 state["goal"], state["goal_beats"], state["goal_refusals"] = thing.object_id, 0, 0
                 goal = _object(snapshot, thing.object_id)
                 break
             while len(approached) > APPROACHED_CAPACITY:
                 del approached[min(approached, key=lambda k: int(approached[k]))]
+        if goal is None and here is not None:
+            # Nothing new to look at here: leave for the room visited least recently.
+            blocked = state.get("blocked_doors", {})
+            doors = [item for item in snapshot.portals if here.region_id in item.region_ids and tick - int(blocked.get(item.portal_id, -BLOCKED_DOOR_BEATS - 1)) > BLOCKED_DOOR_BEATS]
+            if doors:
+                def far_room(item: Any) -> str:
+                    return item.region_ids[0] if item.region_ids[1] == here.region_id else item.region_ids[1]
+                portal = min(doors, key=lambda item: (int(visited.get(far_room(item), -1)), item.portal_id))
+                state["door_goal"], state["goal_beats"], state["goal_refusals"] = {"portal_id": portal.portal_id, "from_region": here.region_id}, 0, 0
+                before_door, _past = door_crossing(snapshot, portal, here.region_id)
+                why = ("hungry, searching the next room; " if feeding else "nothing here she has not seen; ") + "going through " + portal.portal_id
+                return decision("wander", why, move_commands_toward(snapshot, before_door, 0), portal.portal_id)
         if goal is not None:
             why = "hungry, searching for food; going to look at " if feeding else "nothing pressing; going to look at "
             stop = body.radius_mm + goal.radius_mm + WANDER_STOP_MM
@@ -580,7 +669,7 @@ class FunctionalOrganism:
         if not seen or feeding or int(state["idle_beats"]) >= IDLE_BEFORE_BABBLE:
             heading = (body.pose.heading_millidegrees + TURN_MILLIDEGREES) % 360_000
             return decision("turn", "hungry, looking around for food" if feeding else "looking around", (MoveCommand(PoseMM(body.pose.position, heading), BEAT_MICROSECONDS),))
-        return decision("rest", "nothing to do this beat")
+        return decision("rest", "resting")
 
     # ----- commit: what the world allowed, what she took in, what she said ------------
 
@@ -631,6 +720,7 @@ class FunctionalOrganism:
             state["last_spoke_tick"] = tick_now
             state["syllables"] += 1
         state["idle_beats"] = int(state["idle_beats"]) + 1 if decision.act in ("rest", "attend", "turn", "babble", "imitate") else 0
+        # A heard sound answered this beat stays answered; older entries fall out of the ring.
         state["last_act"] = decision.act
         state["tick"] = tick_now + 1
 
