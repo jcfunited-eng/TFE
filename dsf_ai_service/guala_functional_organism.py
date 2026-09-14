@@ -76,6 +76,7 @@ TURN_MILLIDEGREES = 60_000
 # Roaming: once everything in sight was looked at within this many beats, she
 # leaves through the doorway to the room she visited least recently; the
 # doorway is crossed in one step from a margin before it to a margin past it.
+ATTEND_REFRACTORY_BEATS = 8   # after pausing on something new, she does not pause again for two seconds
 LOOKED_RECENTLY_BEATS = 240
 DOOR_MARGIN_MM = 600
 DOOR_CROSSING_OFFSETS_MM = (0, 300, -300, 500, -500)
@@ -370,7 +371,7 @@ class FunctionalOrganism:
             "familiarity": {}, "episodes": [], "heard": [], "voice": [], "approached": {},
             "refusals": {}, "idle_beats": 0, "last_act": "rest", "last_spoke_tick": -BABBLE_EVERY_BEATS, "goal": None, "goal_beats": 0, "goal_refusals": 0,
             "pending_voice": None, "pending_drive": None, "meals_micrograms": 0, "bites": 0, "strides": 0, "syllables": 0,
-            "voice_version": VOICE_VERSION, "visited": {}, "door_goal": None, "bout_syllables": 0, "quiet_until_tick": 0, "blocked_doors": {},
+            "voice_version": VOICE_VERSION, "visited": {}, "door_goal": None, "bout_syllables": 0, "quiet_until_tick": 0, "blocked_doors": {}, "attended_tick": -ATTEND_REFRACTORY_BEATS - 1,
         })
 
     @classmethod
@@ -396,7 +397,7 @@ class FunctionalOrganism:
             state["voice"], state["heard"], state["pending_voice"], state["pending_drive"] = [], [], None, None
             state["voice_version"] = VOICE_VERSION
             changed = True
-        for key, empty in (("visited", {}), ("door_goal", None), ("bout_syllables", 0), ("quiet_until_tick", 0), ("blocked_doors", {})):
+        for key, empty in (("visited", {}), ("door_goal", None), ("bout_syllables", 0), ("quiet_until_tick", 0), ("blocked_doors", {}), ("attended_tick", -ATTEND_REFRACTORY_BEATS - 1)):
             if key not in state:
                 state[key] = empty
                 changed = True
@@ -532,9 +533,11 @@ class FunctionalOrganism:
             window.append(round(measures[name], 6))
             del window[:-KERNEL_WINDOW]
         signature, gate_count = self._kernel()
-        key = _sha256(signature.encode("utf-8"))[:16]
-        novel = key not in state["familiarity"]
+        # Familiarity is kept over the coarse structure (each stream's regime);
+        # the full signature with its field signs goes into the episode record.
+        key = _sha256(" ".join(token[0] for token in signature.split(" ")).encode("utf-8"))[:16]
         tick = self.live_organism_tick
+        novel = key not in state["familiarity"] and tick - int(state.get("attended_tick", -ATTEND_REFRACTORY_BEATS - 1)) > ATTEND_REFRACTORY_BEATS
 
         feeding = state["feeding"] or self.reserve_micrograms < CAPACITY_MICROGRAMS * HUNGRY_BELOW
         if self.reserve_micrograms >= CAPACITY_MICROGRAMS * SATED_ABOVE:
@@ -589,6 +592,7 @@ class FunctionalOrganism:
                     stop = body.radius_mm + nearest.radius_mm + STOP_MARGIN_MM
                     return decision("approach", "hungry, food in sight", move_commands_toward(snapshot, nearest.position, stop), nearest.object_id)
         if novel and gate_count:
+            state["attended_tick"] = tick
             return decision("attend", "a structure she has not met before")
         # Where she is: the room she stands in, remembered as visited now.
         here = _region_of(snapshot, body.pose.position, body.radius_mm)
@@ -697,15 +701,16 @@ class FunctionalOrganism:
             refusals[refusal] = int(refusals.get(refusal, 0)) + 1
             while len(refusals) > REFUSAL_CAPACITY:
                 del refusals[min(refusals, key=lambda k: int(refusals[k]))]
-        # Memory of structure: the kernel signature she met this beat.
-        key = _sha256(decision.signature.encode("utf-8"))[:16]
+        # Memory of structure: the coarse kernel structure she met this beat
+        # (the full signature is kept in the episode).
+        key = _sha256(" ".join(token[0] for token in decision.signature.split(" ")).encode("utf-8"))[:16]
         familiarity = state["familiarity"]
         entry = familiarity.get(key)
         familiarity[key] = [1, tick_now] if entry is None else [int(entry[0]) + 1, tick_now]
         while len(familiarity) > FAMILIARITY_CAPACITY:
             del familiarity[min(familiarity, key=lambda k: (int(familiarity[k][0]), int(familiarity[k][1])))]
         episodes = state["episodes"]
-        episodes.append([tick_now, key, decision.act, applied_action, state["reserve_micrograms"] - before])
+        episodes.append([tick_now, key, decision.act, applied_action, state["reserve_micrograms"] - before, decision.signature])
         del episodes[:-EPISODE_CAPACITY]
         # Memory of sound: what she heard, and what her own last syllable sounded like.
         if heard_profile is not None and sum(heard_profile) > 0:

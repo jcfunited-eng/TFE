@@ -43,6 +43,7 @@ HANDLING_MICROSECONDS = 250_000
 APPROACH_DISTANCE_MM = 500
 OFFER_DISTANCE_MM = 600
 PORTAL_MARGIN_MM = 600
+DELIVERY_ID = "apple-delivery"  # the caretaker brings a fresh apple from outside
 DOORWAY_CLEARANCE_MM = 700
 SET_DOWN_DOOR_CLEARANCE_MM = 1_200  # nothing is put down within this of a doorway
 CAREGIVER_HOME_REGION = "hallway"
@@ -455,6 +456,12 @@ class _Hand:
         _her, person = self.bodies(snapshot)
         origin = person.pose.position
         radii = distances_mm if distances_mm is not None else (distance_mm,)
+        # The caregiver keeps out of doorways, except that it must be able to
+        # reach her wherever she stands: when the target itself is in a
+        # doorway's approach, the spots around it are allowed (it steps back
+        # out afterwards).
+        target_region = _region_of(snapshot, target, person.radius_mm)
+        target_in_doorway = target_region is not None and in_doorway(snapshot, target, target_region.region_id, DOORWAY_CLEARANCE_MM)
         candidates = []
         if front_heading_millidegrees is not None:
             angle = math.radians(front_heading_millidegrees / 1_000)
@@ -482,8 +489,8 @@ class _Hand:
             region = _region_of(snapshot, spot, person.radius_mm)
             if region is None or (region_id is not None and region.region_id != region_id):
                 continue
-            if in_doorway(snapshot, spot, region.region_id, DOORWAY_CLEARANCE_MM):
-                continue  # the caregiver never stands in a doorway
+            if not target_in_doorway and in_doorway(snapshot, spot, region.region_id, DOORWAY_CLEARANCE_MM):
+                continue  # the caregiver never lingers in a doorway
             heading = _heading_toward(spot, face if face is not None else target)
             # The first spots are worth a sidestep; the rest are tried straight.
             if self.move(spot, heading, detour=index < len(candidates) + 2):
@@ -570,24 +577,72 @@ class _Hand:
         return outcome
 
 
+def deliver_apple(world: Any) -> str | None:
+    """Groceries: one fresh apple, as the home declares an apple, enters the
+    world at its boundary beside the caregiver's home spot (never in a
+    doorway approach). Matter inside the world is conserved; this is the
+    lawful way new matter arrives. Returns the new apple's identity, or None
+    when the world refused the arrival."""
+
+    import math
+
+    from dsf_ai_service.guala_home_world import _home_rooms_and_things
+    from dsf_ai_service.substrate.embodiment_world import EmbodiedObject
+
+    _regions, _portals, declared = _home_rooms_and_things()
+    template = next(item for item in declared if item.object_id == "apple")
+    snapshot = world.observation_snapshot()
+    taken = {item.object_id for item in snapshot.objects}
+    index = 1
+    while f"apple-{index}" in taken:
+        index += 1
+    object_id = f"apple-{index}"
+    for radius in (450, 600, 750):
+        for degrees in (0, 45, -45, 90, -90, 135, -135, 180):
+            angle = math.radians(degrees)
+            spot = PositionMM(round(CAREGIVER_HOME_MM.x + radius * math.cos(angle)), round(CAREGIVER_HOME_MM.y + radius * math.sin(angle)), 0)
+            region = _region_of(snapshot, spot, template.radius_mm)
+            if region is None or in_doorway(snapshot, spot, region.region_id, SET_DOWN_DOOR_CLEARANCE_MM):
+                continue
+            try:
+                world.admit_authored_arrival(EmbodiedObject(
+                    object_id, template.radius_mm, template.mass_grams, spot,
+                    reflectance_ppm=template.reflectance_ppm, material=template.material,
+                ))
+            except ValueError:
+                continue
+            return object_id
+    return None
+
+
 def present_food(world: Any, object_id: str) -> dict[str, object]:
     """Have the caregiver present ``object_id`` at her mouth's reach. Returns
-    the bounded, honest record of what the world allowed."""
+    the bounded, honest record of what the world allowed. ``DELIVERY_ID``
+    asks the caregiver to bring a fresh apple from outside first."""
 
     if not isinstance(object_id, str) or not object_id:
         raise ValueError("presented food needs an object identity")
+    delivered = None
+    if object_id == DELIVERY_ID:
+        delivered = deliver_apple(world)
+        if delivered is None:
+            return {"object_id": object_id, "presented": False, "took_away": None, "delivered": None,
+                    "schema": "guala.caregiver_presentation.v1", "steps": [{"operation": "deliver", "reason": "arrival_refused", "to": None}]}
+        object_id = delivered
     hand = _Hand(world, object_id)
     try:
-        return hand.present()
+        outcome = hand.present()
     except _Bounded:
         hand.steps.append({"operation": "bound", "reason": "presentation_steps_exhausted", "to": None})
-        return {
+        outcome = {
             "object_id": object_id, "presented": False, "took_away": None,
             "schema": "guala.caregiver_presentation.v1", "steps": hand.steps,
         }
+    outcome["delivered"] = delivered
+    return outcome
 
 
-__all__ = ("core_in_a_doorway", "in_doorway", "nothing_left_to_bite", "offered_within_reach", "present_food", "withdraw")
+__all__ = ("DELIVERY_ID", "core_in_a_doorway", "deliver_apple", "in_doorway", "nothing_left_to_bite", "offered_within_reach", "present_food", "withdraw")
 
 
 def offered_within_reach(snapshot: Any) -> str | None:

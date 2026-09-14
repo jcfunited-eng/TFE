@@ -291,7 +291,7 @@ def test_an_older_functional_body_is_migrated_on_restore_and_forgets_sounds_of_t
     state["voice_version"] = 1
     state["voice"] = [{"drive": [44, 31, 0], "heard": [0.1] * 32, "tick": 3}]
     state["heard"] = [{"tick": 4, "profile": [0.2] * 32}]
-    for key in ("visited", "door_goal", "bout_syllables", "quiet_until_tick", "blocked_doors"):
+    for key in ("visited", "door_goal", "bout_syllables", "quiet_until_tick", "blocked_doors", "attended_tick"):
         state.pop(key, None)
     older = MAGIC + json.dumps(state, allow_nan=False, ensure_ascii=False, separators=(",", ":"), sort_keys=True).encode("utf-8")
     restored = FunctionalOrganism.restore(older)
@@ -301,3 +301,20 @@ def test_an_older_functional_body_is_migrated_on_restore_and_forgets_sounds_of_t
     # Migrated once: restoring the migrated body changes nothing.
     again = FunctionalOrganism.restore(restored.encoded())
     assert again.encoded() == restored.encoded()
+
+
+def test_when_no_food_is_left_the_caretaker_brings_a_fresh_apple_and_she_eats_it() -> None:
+    from dsf_ai_service.guala_caretaker_hand import DELIVERY_ID
+
+    world = home_world_authority(identity=IDENTITY)
+    organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
+    before_ids = {item.object_id for item in world.observation_snapshot().objects}
+    results = _run(organism, world, [UNATTENDED, _present(DELIVERY_ID), *([UNATTENDED] * 6)])
+    presentation = results[1].observation["caregiver_presentation"]
+    assert presentation["delivered"] is not None and presentation["delivered"] not in before_ids
+    assert presentation["presented"] is True, presentation
+    assert presentation["object_id"] == presentation["delivered"]
+    bites = [r.observation for r in results if r.observation["her_act"] == "bite"]
+    assert bites and sum(o["real_nutrition_intake_zeptojoules"] for o in bites) > 0
+    snapshot = world.observation_snapshot()
+    assert len([item for item in snapshot.objects if item.object_id.startswith("apple")]) == 2
