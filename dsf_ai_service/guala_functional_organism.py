@@ -168,9 +168,9 @@ HEARD_CAPACITY = 8
 VOICE_CAPACITY = 16
 REFUSAL_CAPACITY = 32
 
-# Voice: one syllable through her airway, at most one every four beats;
-# closed-loop acoustic structural matching against self-heard profiles, or
-# situational/previous-syllable prosodic flow.
+# Voice: one syllable through her airway, chosen from her speech record under
+# (situation, prior syllable); a room sound standing out within the answer
+# window after it is what pays. Nothing scripted answers a heard sound.
 BABBLE_EVERY_BEATS = 4
 HEARD_ENERGY_FLOOR = 0.004      # below this mean cochlear envelope, a sound is room noise
 HEARD_ABOVE_AMBIENT = 2.0       # a sound worth answering is at least twice the running ambient level
@@ -181,11 +181,11 @@ SPEECH_RECORD_CAPACITY = 64
 ANSWER_WINDOW_BEATS = 4
 PHRASE_WINDOW_BEATS = 8
 
-# Syllables: 8 onsets x 5 vowels through her airway.
+# Syllables: her airway's onsets x vowels (2 x 5 = 10), at its first pitch (the
+# other three pitches are not in the record yet: a reduction, stated here).
 # Syllables are chosen from her own record of which sounds got answered,
 # keyed by situation and prior syllable so speech can grow into syntax.
 # Untried syllables are explored in order of lifetime tries (zero clock arithmetic).
-# Acoustic structural likeness is evaluated by the DSF L0-L4 kernel discrete signature.
 SYLLABLES = tuple(f"{onset}{v[0]}" for onset in ONSETS for v in VOWELS)
 SYLLABLE_DRIVES = {
     f"{onset}{v[0]}": (PITCHES_DECIHERTZ[0], v_idx, o_idx)
@@ -969,17 +969,10 @@ class FunctionalOrganism:
             elif tick - int(pending_syl.get("tick", 0)) > ANSWER_WINDOW_BEATS:
                 state["pending_syllable"] = None
 
-        # Voice: choose syllable drive from speech record
+        # Voice: the syllable comes from her speech record (situation, prior syllable).
         last_spoke = int(state.get("last_spoke_tick", -999))
         prior_syl = state.get("prior_syllable") if (tick - last_spoke) <= PHRASE_WINDOW_BEATS else None
-        acoustic_target = None
-        if sound_now > 0 and len(tokens) >= 5:
-            heard_sig = f"{tokens[3]}_{tokens[4]}"
-            for v_entry in reversed(state.get("voice", [])):
-                if v_entry.get("acoustic_sig") == heard_sig:
-                    acoustic_target = v_entry.get("syllable")
-                    break
-        say_drive, say_reason = self._choose_syllable(situation, prior_syl, acoustic_target=acoustic_target)
+        say_drive, say_reason = self._choose_syllable(situation, prior_syl)
 
         uncertain = any(len(t) >= 5 and t[4] == "+" for t in tokens)
         options = candidates(snapshot, body, held, offered, seen, tick, say_drive=say_drive, say_detail=say_reason)
@@ -1081,16 +1074,11 @@ class FunctionalOrganism:
         self,
         situation: str,
         prior_syllable: str | None,
-        acoustic_target: str | None = None,
     ) -> tuple[tuple[int, int, int], str]:
         """Choose an airway syllable drive from her speech record:
-        - If an external sound matches a recorded self-heard syllable by kernel acoustic structure, answer it.
         - Under (situation, prior_syllable): untried syllables come first ordered by her lifetime tries (never a clock formula or random hash).
         - When syllables have been tried, the one with the highest answer rate is chosen.
         - Speech transitions (prior_syllable -> next_syllable) grow syntax from reinforced answers."""
-
-        if acoustic_target is not None and acoustic_target in SYLLABLE_DRIVES:
-            return SYLLABLE_DRIVES[acoustic_target], f"answering acoustic structure with {acoustic_target}"
 
         context = f"{situation}:{prior_syllable if prior_syllable else 'start'}"
         speech = self._state.setdefault("speech", {})
@@ -1235,15 +1223,12 @@ class FunctionalOrganism:
         else:
             state["ambient_sound"] = round(ambient * float(AMBIENT_MEMORY), 6)
         if self_profile is not None and state.get("pending_drive") is not None:
-            tokens_commit = decision.signature.split(" ")
-            acoustic_sig = f"{tokens_commit[3]}_{tokens_commit[4]}" if len(tokens_commit) >= 5 else ""
             p_drive = tuple(state["pending_drive"])
             s_name = next((name for name, d in SYLLABLE_DRIVES.items() if d == p_drive), None)
             state["voice"].append({
                 "drive": list(p_drive),
                 "heard": list(self_profile),
                 "syllable": s_name,
-                "acoustic_sig": acoustic_sig,
                 "tick": tick_now,
             })
             del state["voice"][:-VOICE_CAPACITY]

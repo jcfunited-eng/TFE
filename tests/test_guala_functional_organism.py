@@ -774,18 +774,35 @@ def test_syllables_come_from_speech_record_and_grow_syntax_from_answers() -> Non
     # Resulting sequence: eh -> mah ("eh-mah") is reinforced syntax!
 
 
-def test_acoustic_likeness_evaluated_by_kernel_structure() -> None:
-    """When an incoming sound matches the kernel discrete acoustic structure
-    (L0-L4 regime and discrete atom signs of sound_energy and sound_pitch)
-    of a self-heard syllable, she answers with that syllable."""
+def test_a_room_sound_after_her_syllable_is_what_pays_and_silence_does_not() -> None:
+    """The record counts a syllable answered when a room sound stands out within
+    the answer window after it (through the loop, a microphone card); in silence
+    nothing is answered; the answered syllable is then the one she chooses."""
 
+    import base64
+    import dsf_ai_service.lean_production_app as production
     from dsf_ai_service.guala_functional_organism import SYLLABLE_DRIVES
 
+    world = home_world_authority(identity=IDENTITY)
     organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
-    organism._state["voice"] = [
-        {"drive": list(SYLLABLE_DRIVES["mah"]), "heard": [0.5] * 32, "syllable": "mah", "acoustic_sig": "D+-+0++-_S000000", "tick": 1},
-    ]
+    loop = FunctionalPhysicalLoop()
+    loop.settle(organism, world, UNATTENDED)
+    tick = organism.live_organism_tick
+    context = "abcd:start"
+    organism._state["speech"][context] = {"syllables": {"ah": [1, 0]}, "tick": tick}
+    # Silence after the syllable: nothing answered.
+    organism._state["pending_syllable"] = {"key": context, "syllable": "ah", "tick": tick}
+    loop.settle(organism, world, UNATTENDED)
+    assert organism._state["speech"][context]["syllables"]["ah"] == [1, 0]
+    # A room sound standing out within the window: answered.
+    organism._state["pending_syllable"] = {"key": context, "syllable": "ah", "tick": organism.live_organism_tick}
+    pcm = struct.pack("<4000h", *(int(9000 * math.sin(2 * math.pi * 370 * i / 16000)) for i in range(4000)))
+    hear = production._physical_occurrence(production.OccurrenceBody(
+        kind="sensory", payload=production.SensoryBody(source="microphone", pcm_s16le_base64=base64.b64encode(pcm).decode("ascii"))))
+    loop.settle(organism, world, hear)
+    assert organism._state["speech"][context]["syllables"]["ah"] == [1, 1]
+    assert organism._state["pending_syllable"] is None
+    drive, reason = organism._choose_syllable("abcd", None)
+    assert drive == SYLLABLE_DRIVES["ah"] and "best answered" in reason
 
-    drive, reason = organism._choose_syllable("_S_S", None, acoustic_target="mah")
-    assert drive == SYLLABLE_DRIVES["mah"]
-    assert "answering acoustic structure with mah" in reason
+
