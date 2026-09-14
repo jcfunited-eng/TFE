@@ -212,7 +212,10 @@ def candidate_definition(source, image):
     )
     target = copy.deepcopy({key: source[key] for key in allowed if key in source})
     require(target.get("family") == "dsf-ai-task", "unexpected task family")
-    require((target.get("cpu"), target.get("memory")) == ("4096", "16384"),
+    # The functional organism (2026-09-14): beats in milliseconds, a body of
+    # tens of kilobytes; the approved envelope is 2 vCPU / 8 GB (the native
+    # neuron organism needed 4 vCPU / 16 GB).
+    require((target.get("cpu"), target.get("memory")) == ("2048", "8192"),
             "approved CPU/RAM envelope changed")
     containers = target.get("containerDefinitions", [])
     require(len(containers) == 1 and containers[0].get("name") == "dsf-ai",

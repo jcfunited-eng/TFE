@@ -54,7 +54,7 @@ definition = new_definition if new else old_definition
 desired = state.get("desired", 1)
 scenario = state.get("scenario", "")
 base = {
-    "family": "dsf-ai-task", "cpu": "4096", "memory": "16384",
+    "family": "dsf-ai-task", "cpu": "2048", "memory": "8192",
     "networkMode": "awsvpc", "requiresCompatibilities": ["FARGATE"],
     "containerDefinitions": [{
         "name": "dsf-ai", "image": "old@sha256:" + "a" * 64,
@@ -296,7 +296,7 @@ def test_cutover_orders_exact_stop_final_receipt_zero_then_one_candidate(release
     assert receipt["native_tick"] > receipt["predecessor"]["organism_tick"]
     register = next(c for c in writes if c[:3] == ["aws", "ecs", "register-task-definition"])
     target = json.loads(register[register.index("--cli-input-json") + 1])
-    assert target["cpu"] == "4096" and target["memory"] == "16384"
+    assert target["cpu"] == "2048" and target["memory"] == "8192"
     assert "command" not in target["containerDefinitions"][0]
 
 
