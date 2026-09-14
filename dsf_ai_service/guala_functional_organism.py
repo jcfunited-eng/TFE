@@ -990,11 +990,10 @@ class FunctionalOrganism:
         new_structure_value = (1.0 - deficit) * (1.0 - sleep_ratio) * (1.0 if novel_now else 0.0)
         # 3. Sound heard standing out above ambient:
         sound_value = (1.0 - sleep_ratio) * float(sound_now)
-        # 4. Metabolic burn cost (refusal expends burn without effect):
-        burn_multiple = 1 + ACT_BURN_MULTIPLE.get(act, 1)
-        burn_cost = (BASAL_BURN_MICROGRAMS * burn_multiple) / (CAPACITY_MICROGRAMS * (1.0 - float(SATED_ABOVE)))
-        if refused:
-            burn_cost *= 2.0
+        # 4. Metabolic cost: what the act actually burned (the commit's own
+        # number), as a fraction of her capacity; a refused act burned what it
+        # burned and moved nothing, no doubling by hand.
+        burn_cost = int(pending.get("burn", 0)) / CAPACITY_MICROGRAMS
 
         value = intake_value + new_structure_value + sound_value - burn_cost
         self._credit(str(pending["key"]), act, round(value, 6), tick, str(pending.get("regimes", "")), successor_key=key_now)
@@ -1110,6 +1109,7 @@ class FunctionalOrganism:
         if pending is not None:
             pending["intake"] = int(pending.get("intake", 0)) + intake
             pending["refused"] = bool(pending.get("refused")) or refusal is not None
+            pending["burn"] = int(pending.get("burn", 0)) + int(burn)  # what this act actually cost her, measured
         elif decision.act == "bite" and intake and state.get("last_chosen"):
             last = state["last_chosen"]
             self._credit(str(last["key"]), str(last["act"]), round(float(last["deficit"]), 6), tick_now, str(last.get("regimes", "")))

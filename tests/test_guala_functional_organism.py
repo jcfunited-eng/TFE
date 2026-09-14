@@ -474,23 +474,34 @@ def test_the_record_chooses_untried_first_then_the_best_and_every_eighth_visit_t
 
 
 def test_what_followed_is_valued_by_her_state_when_she_chose_and_a_refusal_costs() -> None:
-    from dsf_ai_service.guala_functional_organism import (
-        ACT_BURN_MULTIPLE, BASAL_BURN_MICROGRAMS, CAPACITY_MICROGRAMS, SATED_ABOVE,
-    )
+    """The value of what followed an act is her measured need at the moment she
+    chose times the measured drops that followed, minus the burn the commit
+    actually charged (carried in the pending record); no written constants."""
+    from dsf_ai_service.guala_functional_organism import ACT_BURN_MULTIPLE, BASAL_BURN_MICROGRAMS, Decision
 
     organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
     key = "0123456789abcdef"
-    organism._state["pending_act"] = {"key": key, "act": "step", "deficit": 0.25, "sleep_ratio": 0.0, "intake": 0, "refused": True}
+    # A refused step: the commit charges basal burn only, and carries it into the pending record.
+    organism._state["pending_act"] = {"key": key, "act": "step", "deficit": 0.25, "sleep_ratio": 0.0, "intake": 0, "refused": False}
+    decision = Decision("step", "test", (), None, None, " ".join("q0000000" for _ in range(13)), False, 0, ())
+    organism.commit(decision, applied_action="refused", refusal="blocked", intake_micrograms=0, spoke=None,
+                    heard_profile=None, self_profile=None, tick_now=organism.live_organism_tick)
+    pending = organism._state["pending_act"]
+    assert pending["refused"] is True and pending["burn"] == BASAL_BURN_MICROGRAMS
     organism._settle("other", True, 0.0, 2)
     tries, total = organism._state["acts"][key]["acts"]["step"]
-    burn_cost_refused = 2.0 * (BASAL_BURN_MICROGRAMS * (1 + ACT_BURN_MULTIPLE["step"])) / (CAPACITY_MICROGRAMS * (1.0 - float(SATED_ABOVE)))
-    expected_1 = (1.0 - 0.25) * (1.0 - 0.0) * 1.0 - burn_cost_refused
+    expected_1 = (1.0 - 0.25) * (1.0 - 0.0) * 1.0 - BASAL_BURN_MICROGRAMS / CAPACITY_MICROGRAMS
     assert tries == 1 and abs(total - expected_1) < 1e-6
-    organism._state["pending_act"] = {"key": key, "act": "step", "deficit": 0.6, "sleep_ratio": 0.1, "intake": 1000, "refused": False}
+    # A step that moved her: the commit charges the step's burn; intake by her deficit, a sound by how rested.
+    organism._state["pending_act"] = {"key": key, "act": "step", "deficit": 0.6, "sleep_ratio": 0.1, "intake": 0, "refused": False}
+    organism.commit(decision, applied_action="step", refusal=None, intake_micrograms=1000, spoke=None,
+                    heard_profile=None, self_profile=None, tick_now=organism.live_organism_tick)
+    pending = organism._state["pending_act"]
+    step_burn = BASAL_BURN_MICROGRAMS * (1 + ACT_BURN_MULTIPLE["step"])
+    assert pending["intake"] == 1000 and pending["refused"] is False and pending["burn"] == step_burn
     organism._settle("other", False, 0.5, 3)
     tries, total = organism._state["acts"][key]["acts"]["step"]
-    burn_cost_normal = (BASAL_BURN_MICROGRAMS * (1 + ACT_BURN_MULTIPLE["step"])) / (CAPACITY_MICROGRAMS * (1.0 - float(SATED_ABOVE)))
-    expected_2 = 0.6 * 1.0 + 0.0 + (1.0 - 0.1) * 0.5 - burn_cost_normal
+    expected_2 = 0.6 * 1.0 + 0.0 + (1.0 - 0.1) * 0.5 - step_burn / CAPACITY_MICROGRAMS
     assert tries == 2 and abs(total - (expected_1 + expected_2)) < 1e-6
     assert organism._state["pending_act"] is None
 
