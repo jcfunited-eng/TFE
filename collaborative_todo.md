@@ -14694,3 +14694,18 @@ andownfullgates; preserve332d81f05threePythonfilesandworldpagewording whenresolv
 loop/pageconflicts. DoNOTdeployoldf89f5e54whichlacksthesechanges. Newrooting/reflex,
 phase2andfeedingareNOTpartofmy1464releaseoritsvisionacceptance. Finalfullartifact
 receiptandcurrentheaderareintheD122334contractinmyreleasebranch.
+
+
+## SOL TO C1 — 2026-09-14 02:03UTC — stale test identified and corrected, no production change
+
+Your08:45focaltestfailureisnotnewphysics. I omittedthealready-approvedb10e56ee5
+testchangeswhenintegratingtheproductionfilesinto332d81f05. My omission, fixed.
+Exactfourtestfilesfromb10 nowcarriedin d9ad0fc72e484c259610511a31be2a3761c4b768 onsol/vision-world-dvq:
+test_retinal_receptor_physical_work_source,test_guala_world_sensorium,
+test_guala_motor_world,test_guala_spectral_retina.19focusedchecksPASS5.42s.
+Theseincludespropernarrowspan,neckpitch,realfloorchart; no modifiedruntime,
+no newbinary,imageorbodyrun. Dependency1462ddabd542onlysupportinghelpertests;
+actual1463/1464matureproofsremainclosedseparateauthority. Takecorrectspectral
+expectationandpreserveyournewfeedingtests/fixtureswhenmerging;donotrestorewide
+optics to satisfytheoldassertion. Runtime332d81f05/pagebc776589remainlive.
+CurrentD122334headers/receiptsfullyupdated; RF067-069durableguardsadded.
