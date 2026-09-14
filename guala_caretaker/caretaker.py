@@ -121,17 +121,18 @@ def card_retina(png_path: str) -> tuple:
     img = Image.open(png_path).convert("RGB")
     vals = []
     # legacy 405 first (27 coarse 9x3, 108 center 18x6), then — once the
-    # 903-site eye is live — the 32x24 focal field (768 sites), row-major,
-    # per the filed transport contract. FOCAL_EYE_LIVE gates the shape so
+    # focal eye is live — the 80x60 focal field (4,800 sites), row-major,
+    # per the filed transport contract (32x24 until dsf-ai-task:1476; 80x60
+    # from the sleep-and-eyes cutover). FOCAL_EYE_LIVE gates the shape so
     # a pre-upgrade production (405 only) is never sent a refused payload.
-    tiers = ((9, 3), (18, 6)) + (((32, 24),) if FOCAL_EYE_LIVE else ())
+    tiers = ((9, 3), (18, 6)) + (((80, 60),) if FOCAL_EYE_LIVE else ())
     for w, h in tiers:
         small = img.resize((w, h))
         px = small.load()
         for y in range(h):
             for x in range(w):
                 vals.extend(px[x, y])
-    assert len(vals) in (405, 2709)
+    assert len(vals) in (405, 14805)
     return tuple(int(v) for v in vals)
 
 
@@ -261,6 +262,13 @@ PLAY_TICKS = 240  # about a minute of her clock between offers of a toy
 TOYS = ("toy-bear", "glow-stars", "book", "cup")
 
 
+def asleep(o: dict) -> bool:
+    """Her published sleep (her_sleep.asleep, or the act 'sleep')."""
+    lo = o.get("last_occurrence") or {}
+    sleep = lo.get("her_sleep") or {}
+    return bool(sleep.get("asleep")) or lo.get("her_act") == "sleep"
+
+
 def maybe_play(o: dict, st: dict) -> None:
     """When she is not hungry and her hands are empty, the caregiver fetches a
     toy that lies on the floor and holds it out to her; she takes it, carries
@@ -378,6 +386,17 @@ def wait_clear(min_tick: int | None = None, st: dict | None = None) -> dict | No
             if other is not None and (hold is None or other + PERSON_HOLD_TICKS > hold):
                 hold = other + PERSON_HOLD_TICKS
                 log(f"unannounced feed by someone else (tick {other}); safety hold until her tick {hold}")
+            # Asleep (her own sleep law; eyes closed, no acts), nothing is
+            # presented: no meal, no toy, no card. The caretaker waits.
+            if asleep(o):
+                if st is not None and not st.get("asleep_logged"):
+                    log(f"she is asleep (tick {o.get('live_tick')}); the caretaker waits")
+                    st["asleep_logged"] = True
+                time.sleep(POLL_S)
+                continue
+            if st is not None and st.get("asleep_logged"):
+                log(f"she is awake (tick {o.get('live_tick')}); the caretaker resumes")
+                st["asleep_logged"] = False
             # Meals do not wait for a clear window: a hungry organism is fed
             # while a person's camera and microphone are on. Only the card
             # lessons hold.
