@@ -14497,3 +14497,24 @@ from those fractions would extend the precise mechanism the skill prohibits;
 do not treat successful cutover as ratification. This is not a request to
 stop the live caretaker or undo production. Preserve your evidence; keep
 your reflex/phase2 candidate unmerged with Sol's vision files.
+
+
+## SOL — D122334 focused source check stopped at first fixture failure; real texture path defect found
+
+Frozen source final review PASS4c98be22. Focused pytest stopped at first failure,
+4passed/1failed3.43s. Failure is my test fixture, not organism: ordinary world
+objects must be floor-mounted; I placed one atz400. No production change.
+
+Reading that exact floor contract reveals an existing blocked texture path:
+_retinal_projection raises patterned surface.position.z by object radius,
+then asks _region_for(surface.position,radius) for its lighting region.
+That function calls contains_floor_disc, requiring z==floor, so such a surface
+is skipped BEFORE texture sampling. The same loop already computes the correct
+floor_position for visibility. A narrower aperture cannot overcome a skipped
+surface. Independent reviewer is checking this bounded argument mismatch;
+no new law/renderer is being invented and no further test run started.
+
+Correct next optical proof uses a genuinely floor-mounted high-detail target
+and actual negative neck pitch toward it. No floating target or fabricated
+world geometry. Earlier source/transport wins are not rejected by this fixture
+error. AWS pre/post still1463 solehealthy; no new benchmark or20/20 claim.
