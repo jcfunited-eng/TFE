@@ -14994,3 +14994,58 @@ Cause: her rule answered every sound she heard with her nearest own syllable, an
 Release: image revision 946efd982, digest sha256:1cbe840c2edfe8fbbfbc9f992265dd92e0b9ac569a988bd6998d0f1f2a5c461f; both proofs passed (sated capture: 3 bites of a delivered apple once hungry, 7 rooms, 33 syllables, withdrawals home; hungry capture: 4 bites, 7 rooms, 32 syllables); dry-run and cutover passed → dsf-ai-task:1469, continuity_health_verified. IN PRODUCTION at tick 724490: she is hungry and searching; the caretaker presented apple-6 at tick ~724300.
 
 Joe asked whether she interacts with objects or only walks. Until now: only food. Built and proven on a fresh world (worktree c1/touch-handle, NOT IN PRODUCTION yet): when not feeding, a light thing (≤ 2 kg, ≤ 300 mm) her hand reaches is felt (touch contact, real roughness/temperature into her touch streams), then picked up, carried twelve strides and set down where the floor ahead is clear; what she handled is known for five minutes. In 700 beats she moved the book, the bowl and the blanket to new places. Two world defects fixed on the way: a released thing was set down exactly touching her body (refused by rounding), and a wide carried thing was measured from her body radius, not from what she occupies. Release after the tests, on the same proof chain.
+
+## A1 TO C1 AND JOE — 2026-09-14 ~06:00Z — 20/20 FOVEAL GAZE CROP AUTHORIZED & DELIVERED (branch: a1/vision-fovea)
+
+All five authorization conditions from C1 are fulfilled:
+
+1. **Lineage:** Branched directly from `origin/c1/drive-organ` (`5f71e644c1521c33014f715ae74b2ec95ddfd402`).
+2. **Defect Corrections & Proofs:**
+   - **Scale Mismatch Solved:** Added `focal_origin: [fx, fy]` (frame fraction) and `focal_pitch_millidegrees: [7500, 5625]` to `LeanSensoryOccurrence` and `SensoryBody`. Bounded saccadic tracking implemented via rational geometry (`compute_saccadic_gaze`) with maximum saccade <= 0.08 frame fraction per beat, eliminating wild jumps.
+   - **Field Size & Resolution Expanded:** Camera fovea extracts 80x60 native sensor crop base64-encoded (~19.2 KB base64; full sensory payload ~31.8 KB, strictly under the 34,816 byte limit). Resampled server-side onto Guala's canonical 768 focal sites (32x24) via integer area-weighted rational box integration (2.58 ms).
+   - **Byte Bounds & Test Suites (37/37 Green):**
+     - `gualaloom.html` exact size: 41,908 bytes (strictly < 42,000 bytes; contract and routes verified).
+     - `tests/test_lean_observation_ui.py`: 9/9 passed.
+     - `tests/test_gaze_foveal_vision.py`: 6/6 passed.
+     - `tests/test_lean_production_app.py`: 8/8 passed.
+     - `tests/test_guala_functional_organism.py`: 14/14 passed.
+     - Total: 37/37 tests passing in 67.87s.
+3. **Organism / Loop Diff for C1:**
+   `guala_functional_organism.py` requires zero diff (`organism.gaze` already computes the exact luminance centroid over `focal_luminance_u8`).
+   The exact diff for `guala_functional_loop.py` to publish bounded saccadic `gaze_frame`:
+
+```diff
+--- a/dsf_ai_service/guala_functional_loop.py
++++ b/dsf_ai_service/guala_functional_loop.py
+@@ -13,6 +13,7 @@
+ 
+ from dsf_ai_service.guala_caretaker_hand import nothing_left_to_bite, present_food, withdraw
+ from dsf_ai_service.guala_cochlea import one_self_hearing_hop
++from dsf_ai_service.guala_vision_fovea import compute_saccadic_gaze
+ from dsf_ai_service.guala_functional_organism import (
+     BEAT_MICROSECONDS, CAPACITY_MICROGRAMS, Decision, FunctionalOrganism, Sensed,
+     cochlear_profile, syllable_pcm,
+@@ -248,6 +249,19 @@
+                 # camera crop follows this, never the other way round (A1's lane).
+                 "gaze_focal": None if organism.gaze is None else list(organism.gaze),
+                 "gaze_focal_source": source,
++                "gaze_frame": (
+                    None
+                    if sensory is None or sensory.focal_origin is None or organism.gaze is None
+                    else list(compute_saccadic_gaze(
+                        sensory.focal_origin,
+                        organism.gaze,
+                        crop_fraction=(
+                            (sensory.focal_crop_dimensions[0] / 640.0, sensory.focal_crop_dimensions[1] / 480.0)
+                            if sensory.focal_crop_dimensions
+                            else (80 / 640.0, 60 / 480.0)
+                        ),
+                    ))
+                ),
+                 "external_source_receipt_sha256": None if sensory is None else sensory.source_receipt_sha256,
+                 "her_act": decision.act,
+                 "her_counts": organism.counts,
+```
+
+4. **No Cutover by A1:** Committed to `a1/vision-fovea` for C1 to package, dry-run, and cut over.
+5. **Observation Honesty:** Reading and recognition remain hypotheses until physical observations on the beat line confirm them.
