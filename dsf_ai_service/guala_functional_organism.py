@@ -76,6 +76,8 @@ TURN_MILLIDEGREES = 60_000
 # Roaming: once everything in sight was looked at within this many beats, she
 # leaves through the doorway to the room she visited least recently; the
 # doorway is crossed in one step from a margin before it to a margin past it.
+PROGRESS_MM = 40           # a stride that brings her at least this much closer counts as progress
+FOOD_STALL_BEATS = 12      # three seconds without progress toward food, and she leaves it for a while
 ATTEND_REFRACTORY_BEATS = 8   # after pausing on something new, she does not pause again for two seconds
 LOOKED_RECENTLY_BEATS = 240
 DOOR_MARGIN_MM = 600
@@ -371,7 +373,7 @@ class FunctionalOrganism:
             "familiarity": {}, "episodes": [], "heard": [], "voice": [], "approached": {},
             "refusals": {}, "idle_beats": 0, "last_act": "rest", "last_spoke_tick": -BABBLE_EVERY_BEATS, "goal": None, "goal_beats": 0, "goal_refusals": 0,
             "pending_voice": None, "pending_drive": None, "meals_micrograms": 0, "bites": 0, "strides": 0, "syllables": 0,
-            "voice_version": VOICE_VERSION, "visited": {}, "door_goal": None, "bout_syllables": 0, "quiet_until_tick": 0, "blocked_doors": {}, "attended_tick": -ATTEND_REFRACTORY_BEATS - 1,
+            "voice_version": VOICE_VERSION, "visited": {}, "door_goal": None, "bout_syllables": 0, "quiet_until_tick": 0, "blocked_doors": {}, "attended_tick": -ATTEND_REFRACTORY_BEATS - 1, "unreachable_food": {}, "food_goal": None, "food_refusals": 0, "food_best_mm": 0, "food_stall_beats": 0,
         })
 
     @classmethod
@@ -397,7 +399,7 @@ class FunctionalOrganism:
             state["voice"], state["heard"], state["pending_voice"], state["pending_drive"] = [], [], None, None
             state["voice_version"] = VOICE_VERSION
             changed = True
-        for key, empty in (("visited", {}), ("door_goal", None), ("bout_syllables", 0), ("quiet_until_tick", 0), ("blocked_doors", {}), ("attended_tick", -ATTEND_REFRACTORY_BEATS - 1)):
+        for key, empty in (("visited", {}), ("door_goal", None), ("bout_syllables", 0), ("quiet_until_tick", 0), ("blocked_doors", {}), ("attended_tick", -ATTEND_REFRACTORY_BEATS - 1), ("unreachable_food", {}), ("food_goal", None), ("food_refusals", 0), ("food_best_mm", 0), ("food_stall_beats", 0)):
             if key not in state:
                 state[key] = empty
                 changed = True
@@ -586,11 +588,31 @@ class FunctionalOrganism:
                 reachable = [item for item in snapshot.objects if _is_food(item) and item.position is not None and not nothing_left_to_bite(body, item) and in_hand_reach(snapshot, item)]
                 if len(reachable) == 1:
                     return decision("grasp", "hungry, food within her hand's reach", (GraspContactCommand(BEAT_MICROSECONDS),), reachable[0].object_id)
-                food = [thing for thing in seen if thing.is_food and not nothing_left_to_bite(body, _object(snapshot, thing.object_id))]
+                # Food she could not get to (every stride refused) is left alone
+                # for a while, so a boxed-in apple does not hold her in place.
+                unreachable = state.setdefault("unreachable_food", {})
+                food = [thing for thing in seen if thing.is_food and not nothing_left_to_bite(body, _object(snapshot, thing.object_id))
+                        and tick - int(unreachable.get(thing.object_id, -BLOCKED_DOOR_BEATS - 1)) > BLOCKED_DOOR_BEATS]
                 if food:
                     nearest = food[0]
                     stop = body.radius_mm + nearest.radius_mm + STOP_MARGIN_MM
-                    return decision("approach", "hungry, food in sight", move_commands_toward(snapshot, nearest.position, stop), nearest.object_id)
+                    # Progress toward the food is measured; sidesteps that only
+                    # circle it are not progress. No progress for a while, or
+                    # every stride refused, and the food is left alone.
+                    if state.get("food_goal") != nearest.object_id:
+                        state["food_goal"], state["food_refusals"] = nearest.object_id, 0
+                        state["food_best_mm"], state["food_stall_beats"] = int(nearest.distance_mm), 0
+                    elif nearest.distance_mm < int(state.get("food_best_mm", 1 << 30)) - PROGRESS_MM:
+                        state["food_best_mm"], state["food_stall_beats"] = int(nearest.distance_mm), 0
+                    else:
+                        state["food_stall_beats"] = int(state.get("food_stall_beats", 0)) + 1
+                    if int(state["food_stall_beats"]) >= FOOD_STALL_BEATS:
+                        unreachable[nearest.object_id] = tick
+                        while len(unreachable) > VISITED_CAPACITY:
+                            del unreachable[min(unreachable, key=lambda k: int(unreachable[k]))]
+                        state["food_goal"], state["food_stall_beats"] = None, 0
+                    else:
+                        return decision("approach", "hungry, food in sight", move_commands_toward(snapshot, nearest.position, stop), nearest.object_id)
         if novel and gate_count:
             state["attended_tick"] = tick
             return decision("attend", "a structure she has not met before")
@@ -697,6 +719,14 @@ class FunctionalOrganism:
         if refusal is not None:
             if decision.act == "wander":
                 state["goal_refusals"] = int(state.get("goal_refusals", 0)) + 1
+            if decision.act == "approach" and decision.target_object_id is not None:
+                state["food_refusals"] = int(state.get("food_refusals", 0)) + 1
+                if int(state["food_refusals"]) >= GOAL_REFUSAL_LIMIT:
+                    unreachable = state.setdefault("unreachable_food", {})
+                    unreachable[decision.target_object_id] = tick_now
+                    while len(unreachable) > VISITED_CAPACITY:
+                        del unreachable[min(unreachable, key=lambda k: int(unreachable[k]))]
+                    state["food_goal"], state["food_refusals"] = None, 0
             refusals = state["refusals"]
             refusals[refusal] = int(refusals.get(refusal, 0)) + 1
             while len(refusals) > REFUSAL_CAPACITY:

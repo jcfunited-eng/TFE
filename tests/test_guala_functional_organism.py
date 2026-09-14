@@ -291,7 +291,7 @@ def test_an_older_functional_body_is_migrated_on_restore_and_forgets_sounds_of_t
     state["voice_version"] = 1
     state["voice"] = [{"drive": [44, 31, 0], "heard": [0.1] * 32, "tick": 3}]
     state["heard"] = [{"tick": 4, "profile": [0.2] * 32}]
-    for key in ("visited", "door_goal", "bout_syllables", "quiet_until_tick", "blocked_doors", "attended_tick"):
+    for key in ("visited", "door_goal", "bout_syllables", "quiet_until_tick", "blocked_doors", "attended_tick", "unreachable_food", "food_goal", "food_refusals", "food_best_mm", "food_stall_beats"):
         state.pop(key, None)
     older = MAGIC + json.dumps(state, allow_nan=False, ensure_ascii=False, separators=(",", ":"), sort_keys=True).encode("utf-8")
     restored = FunctionalOrganism.restore(older)
@@ -318,3 +318,50 @@ def test_when_no_food_is_left_the_caretaker_brings_a_fresh_apple_and_she_eats_it
     assert bites and sum(o["real_nutrition_intake_zeptojoules"] for o in bites) > 0
     snapshot = world.observation_snapshot()
     assert len([item for item in snapshot.objects if item.object_id.startswith("apple")]) == 2
+
+
+def test_boxed_in_food_does_not_hold_her_in_place() -> None:
+    """Hungry, with an apple in sight that every stride toward is refused
+    (walled by furniture), she gives up on it for a while and searches on."""
+
+    from dsf_ai_service.guala_functional_organism import GOAL_REFUSAL_LIMIT
+
+    world = home_world_authority(identity=IDENTITY)
+    snapshot = world.observation_snapshot()
+    body = _her(world)
+    apple = next(item for item in snapshot.objects if item.object_id == "apple")
+    room = next(region for region in snapshot.regions if region.region_id == snapshot.room_id)
+    floor = [(item.position, item.radius_mm) for item in snapshot.objects if item.position is not None]
+    floor.append((body.pose.position, body.radius_mm))
+    ring_mm, crate_mm = 650, 200
+
+    def clear(position: PositionMM, radius_mm: int) -> bool:
+        inside = (room.bounds.minimum.x + radius_mm <= position.x <= room.bounds.maximum.x - radius_mm
+                  and room.bounds.minimum.y + radius_mm <= position.y <= room.bounds.maximum.y - radius_mm)
+        return inside and all(math.hypot(position.x - p.x, position.y - p.y) > radius_mm + r + 60 for p, r in floor)
+
+    # A clear place in her sight: ahead of her, where an apple and a ring of
+    # eight crates around it fit without touching the furniture.
+    centre = None
+    for ahead in range(1_500, 3_400, 100):
+        for turn in (0, 20_000, -20_000, 40_000, -40_000):
+            radians = math.radians(((body.pose.heading_millidegrees + turn) % 360_000) / 1000)
+            candidate = PositionMM(body.pose.position.x + round(ahead * math.cos(radians)), body.pose.position.y + round(ahead * math.sin(radians)), 0)
+            crates = [PositionMM(candidate.x + round(ring_mm * math.cos(math.radians(d))), candidate.y + round(ring_mm * math.sin(math.radians(d))), 0) for d in range(0, 360, 45)]
+            if clear(candidate, apple.radius_mm) and all(clear(c, crate_mm) for c in crates):
+                centre = candidate
+                break
+        if centre is not None:
+            break
+    assert centre is not None, "no clear place for the walled apple in her room"
+    world.admit_authored_arrival(EmbodiedObject("apple-walled", apple.radius_mm, apple.mass_grams, centre, reflectance_ppm=apple.reflectance_ppm, material=apple.material))
+    for index, degrees in enumerate(range(0, 360, 45)):
+        a = math.radians(degrees)
+        world.admit_authored_arrival(EmbodiedObject(f"crate-{index}", crate_mm, 20_000, PositionMM(centre.x + round(ring_mm * math.cos(a)), centre.y + round(ring_mm * math.sin(a)), 0)))
+    organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
+    results = _run(organism, world, [UNATTENDED] * (GOAL_REFUSAL_LIMIT + 30))
+    acts = [r.observation["her_act"] for r in results]
+    assert acts[0] == "approach"
+    assert "apple-walled" in organism._state["unreachable_food"]
+    later = acts[-20:]
+    assert "approach" not in later or organism.counts["bites"] > 0, later
