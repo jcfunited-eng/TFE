@@ -10,7 +10,8 @@ from typing import Any
 from dsf_ai_service.guala_cochlea import one_self_hearing_hop
 from dsf_ai_service.lean_embodiment_observation import lean_embodiment_observation
 from dsf_ai_service.lean_sensory_occurrence import (
-    LeanSensoryOccurrence, focal_retina_luminance_u8, rgb_retina_luminance_u8,
+    EXTERNAL_RGB_FOCAL_VALUE_COUNT, LeanSensoryOccurrence,
+    focal_retina_luminance_u8, rgb_retina_luminance_u8,
     transmitted_rgb_retina_u8,
 )
 from dsf_ai_service.glew_runtime.native_resident_organism import exact_native_interoceptive_source
@@ -128,6 +129,10 @@ class LeanPhysicalLoop:
                     world=world, snapshot=primary_prepared.execution_receipt.after,
                     body_axes=before_axes, frame_count=len(times),
                     pending_execution=primary_prepared.execution_receipt,
+                    include_world_sight=not (
+                        sensory is not None and sensory.retina_rgb_u8 is not None
+                        and len(sensory.retina_rgb_u8) == EXTERNAL_RGB_FOCAL_VALUE_COUNT
+                    ),
                 )
             else:
                 observed = world.observation_snapshot()
@@ -140,7 +145,7 @@ class LeanPhysicalLoop:
                 primary_sensorium = returning.sensorium(times)
 
             if sensory is not None and sensory.retina_rgb_u8 is not None:
-                _heading, transmission = retinal_carriage(before_axes)
+                _heading, _pitch, transmission = retinal_carriage(before_axes)
                 luminance = rgb_retina_luminance_u8(sensory.retina_rgb_u8)
                 primary_sensorium = replace(primary_sensorium, retina=tuple(
                     (Fraction(value, 255) * transmission,) * len(times) for value in luminance

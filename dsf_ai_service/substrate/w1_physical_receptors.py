@@ -75,6 +75,11 @@ RETINA_FINE_RECEPTOR_COUNT = RETINA_FINE_ROWS * RETINA_FINE_COLUMNS
 RETINA_TOTAL_RECEPTOR_COUNT = RETINA_RECEPTOR_COUNT + RETINA_FINE_RECEPTOR_COUNT
 RETINA_FOCAL_ROWS = 24
 RETINA_FOCAL_COLUMNS = 32
+# Two samples per one-arcminute critical detail: acquisition calibration,
+# not a claim of recognition, camera resolution or end-to-end acuity.
+RETINA_FOCAL_PITCH_MILLIDEGREES = Fraction(1_000, 60 * 2)
+RETINA_FOCAL_HORIZONTAL_FOV_MILLIDEGREES = RETINA_FOCAL_COLUMNS * RETINA_FOCAL_PITCH_MILLIDEGREES
+RETINA_FOCAL_VERTICAL_FOV_MILLIDEGREES = RETINA_FOCAL_ROWS * RETINA_FOCAL_PITCH_MILLIDEGREES
 RETINA_FOCAL_RECEPTOR_COUNT = RETINA_FOCAL_ROWS * RETINA_FOCAL_COLUMNS
 RETINA_UPGRADED_RECEPTOR_COUNT = RETINA_TOTAL_RECEPTOR_COUNT + RETINA_FOCAL_RECEPTOR_COUNT
 RETINA_SUBSTREAM_COUNT = RETINA_TOTAL_RECEPTOR_COUNT * OPTICAL_BANDS
@@ -145,17 +150,17 @@ def _retinal_site_geometry() -> tuple[tuple[int, int, int, int, int], ...]:
 
 
 RETINAL_SITE_GEOMETRY = _retinal_site_geometry()
-# Existing apertures remain exactly unchanged. The new horizontal half-width
-# is5625/2 millidegrees: rounding it to2812 would introduce gaps between sites.
+# Preserve all legacy apertures; only the added field samples a narrow center.
+# Exact rational half-apertures tile without gaps or angular rounding.
 FOCAL_RETINAL_SITE_GEOMETRY = tuple(
     (
         RETINA_TOTAL_RECEPTOR_COUNT + row * RETINA_FOCAL_COLUMNS + column,
-        -RETINA_HORIZONTAL_FOV_MILLIDEGREES // 2
-        + Fraction((2 * column + 1) * RETINA_HORIZONTAL_FOV_MILLIDEGREES, 2 * RETINA_FOCAL_COLUMNS),
-        RETINA_VERTICAL_FOV_MILLIDEGREES // 2
-        - Fraction((2 * row + 1) * RETINA_VERTICAL_FOV_MILLIDEGREES, 2 * RETINA_FOCAL_ROWS),
-        Fraction(RETINA_HORIZONTAL_FOV_MILLIDEGREES, 2 * RETINA_FOCAL_COLUMNS),
-        Fraction(RETINA_VERTICAL_FOV_MILLIDEGREES, 2 * RETINA_FOCAL_ROWS),
+        -RETINA_FOCAL_HORIZONTAL_FOV_MILLIDEGREES / 2
+        + (2 * column + 1) * RETINA_FOCAL_PITCH_MILLIDEGREES / 2,
+        RETINA_FOCAL_VERTICAL_FOV_MILLIDEGREES / 2
+        - (2 * row + 1) * RETINA_FOCAL_PITCH_MILLIDEGREES / 2,
+        RETINA_FOCAL_PITCH_MILLIDEGREES / 2,
+        RETINA_FOCAL_PITCH_MILLIDEGREES / 2,
     )
     for row in range(RETINA_FOCAL_ROWS)
     for column in range(RETINA_FOCAL_COLUMNS)
@@ -544,6 +549,7 @@ def _portal_aperture_background(
     *,
     eye: PositionMM,
     body_heading_millidegrees: int,
+    retinal_pitch_offset_millidegrees: int,
     current_region: PhysicalRegion,
     pixels: list[tuple[Fraction, ...]],
     site_geometry: RetinalSiteGeometry,
@@ -597,11 +603,11 @@ def _portal_aperture_background(
             isqrt(centre_dx * centre_dx + centre_dy * centre_dy),
             1,
         )
-        vertical_min = _atan2_millidegrees(-eye.z, planar_distance)
+        vertical_min = _atan2_millidegrees(-eye.z, planar_distance) - retinal_pitch_offset_millidegrees
         vertical_max = _atan2_millidegrees(
             portal.height_mm - eye.z,
             planar_distance,
-        )
+        ) - retinal_pitch_offset_millidegrees
         radiance = _region_radiance(neighbour)
         for (
             site_index,
@@ -638,6 +644,7 @@ def _retinal_projection(
     observation: ObservationSnapshot,
     *,
     retinal_heading_offset_millidegrees: int = 0,
+    retinal_pitch_offset_millidegrees: int = 0,
     site_geometry: RetinalSiteGeometry = RETINAL_SITE_GEOMETRY,
 ) -> tuple[tuple[Fraction, ...], ...]:
     if (
@@ -646,6 +653,12 @@ def _retinal_projection(
         or not -180_000 <= retinal_heading_offset_millidegrees <= 180_000
     ):
         raise ValueError("retinal heading offset is outside physical geometry")
+    if (
+        isinstance(retinal_pitch_offset_millidegrees, bool)
+        or not isinstance(retinal_pitch_offset_millidegrees, int)
+        or not -90_000 <= retinal_pitch_offset_millidegrees <= 90_000
+    ):
+        raise ValueError("retinal pitch offset is outside physical geometry")
     body = _self_body(observation)
     eye = (
         _body_fixed_receptor_position(
@@ -670,6 +683,7 @@ def _retinal_projection(
             body.pose.heading_millidegrees
             + retinal_heading_offset_millidegrees
         ) % 360_000,
+        retinal_pitch_offset_millidegrees=retinal_pitch_offset_millidegrees,
         current_region=current_region,
         pixels=pixels,
         site_geometry=site_geometry,
@@ -756,7 +770,7 @@ def _retinal_projection(
             _atan2_millidegrees(surface.radius_mm, max(distance, 1))
         )
         planar_distance = max(isqrt(planar_distance_squared), 1)
-        relative_vertical = _atan2_millidegrees(dz, planar_distance)
+        relative_vertical = _atan2_millidegrees(dz, planar_distance) - retinal_pitch_offset_millidegrees
         if (
             relative_horizontal + angular_radius < -half_horizontal
             or relative_horizontal - angular_radius > half_horizontal
@@ -764,9 +778,11 @@ def _retinal_projection(
             or relative_vertical - angular_radius > half_vertical
         ):
             continue
+        # Region ownership belongs to the floor-mounted object, not its
+        # raised optical center. Visibility already validated this same base.
         surface_region = _region_for(
             observation.regions,
-            surface.position,
+            floor_position,
             surface.radius_mm,
         )
         if surface_region is None:
@@ -879,6 +895,7 @@ def retinal_irradiance_field(
     observation: ObservationSnapshot,
     *,
     retinal_heading_offset_millidegrees: int = 0,
+    retinal_pitch_offset_millidegrees: int = 0,
     include_focal: bool = False,
 ) -> tuple[tuple[Fraction, ...], ...]:
     """The bounded six-band optical field, without temporary signal objects."""
@@ -889,6 +906,7 @@ def retinal_irradiance_field(
     pixels = _retinal_projection(
         observation,
         retinal_heading_offset_millidegrees=retinal_heading_offset_millidegrees,
+        retinal_pitch_offset_millidegrees=retinal_pitch_offset_millidegrees,
         site_geometry=geometry,
     )
     if len(pixels) != len(geometry):

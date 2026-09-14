@@ -45,19 +45,25 @@ def _receipt(value: object) -> str:
     return hashlib.sha256(body).hexdigest()
 
 
-def retinal_carriage(body_axes: tuple[Any, ...]) -> tuple[int, Fraction]:
-    """Read exact neck heading and eyelid transmission from native anatomy."""
+def retinal_carriage(body_axes: tuple[Any, ...]) -> tuple[int, int, Fraction]:
+    """Read actual mono head aim and eyelid transmission from native anatomy."""
 
-    neck = tuple(axis for axis in body_axes if axis[1] == "neck_yaw")
-    if len(neck) != 1:
-        raise RuntimeError("native body has no unique neck-yaw axis")
-    heading = neck[0][3]
-    if (
-        isinstance(heading, bool)
-        or not isinstance(heading, int)
-        or not -180_000 <= heading <= 180_000
-    ):
-        raise RuntimeError("native neck yaw left retinal geometry")
+    angles: list[int] = []
+    for name, bound in (("neck_yaw", 180_000), ("neck_pitch", 90_000)):
+        matches = tuple(axis for axis in body_axes if axis[1] == name)
+        if len(matches) != 1 or matches[0][2] != "millidegree":
+            raise RuntimeError(f"native body has no unique typed {name}")
+        position, minimum, maximum = matches[0][3], matches[0][4], matches[0][6]
+        if (
+            any(
+                isinstance(value, bool) or not isinstance(value, int)
+                for value in (position, minimum, maximum)
+            )
+            or not -bound <= minimum < maximum <= bound
+            or not minimum <= position <= maximum
+        ):
+            raise RuntimeError(f"native {name} left retinal geometry")
+        angles.append(position)
     apertures: list[tuple[int, int, int]] = []
     for name in ("left_eyelid_aperture", "right_eyelid_aperture"):
         matches = tuple(axis for axis in body_axes if axis[1] == name)
@@ -76,7 +82,7 @@ def retinal_carriage(body_axes: tuple[Any, ...]) -> tuple[int, Fraction]:
         apertures.append((position, minimum, maximum))
     admitted = sum(position - minimum for position, minimum, _ in apertures)
     possible = sum(maximum - minimum for _, minimum, maximum in apertures)
-    return heading, Fraction(admitted, possible)
+    return angles[0], angles[1], Fraction(admitted, possible)
 
 
 def _prepare_world_interval(
@@ -154,12 +160,19 @@ def passive_receptor_capture(
     *,
     snapshot: Any,
     body_axes: tuple[Any, ...],
+    include_world_sight: bool = True,
 ) -> tuple[RetinalField, dict[PhysicalSense, tuple[Any, ...]], Fraction]:
-    """Render one immutable snapshot once, retaining all six optical bands."""
+    """Capture current contacts and, when consumed, all six optical bands."""
 
-    heading, transmission = retinal_carriage(body_axes)
-    pixels = retinal_irradiance_field(
-        snapshot, retinal_heading_offset_millidegrees=heading, include_focal=True,
+    if not isinstance(include_world_sight, bool):
+        raise TypeError("world sight selection must be boolean")
+    heading, pitch, transmission = retinal_carriage(body_axes)
+    pixels = (
+        retinal_irradiance_field(
+            snapshot, retinal_heading_offset_millidegrees=heading,
+            retinal_pitch_offset_millidegrees=pitch, include_focal=True,
+        )
+        if include_world_sight else ()
     )
     physical = physical_contact_substreams(
         snapshot, snapshot, causal_transition=False,
@@ -256,11 +269,19 @@ def passive_sensorium(
     receptor_capture: tuple[
         RetinalField, dict[PhysicalSense, tuple[Any, ...]], Fraction
     ] | None = None,
+    include_world_sight: bool = True,
 ) -> PhysicalSensorium:
-    """Sample one current world/body state into every mounted receptor."""
+    """Sample current world/body inputs; omit only explicitly replaced sight."""
 
+    if not isinstance(include_world_sight, bool):
+        raise TypeError("world sight selection must be boolean")
+    if not include_world_sight and receptor_capture is not None:
+        raise ValueError("omitted world sight cannot reuse a retinal capture")
     pixels, physical, transmission = (
-        passive_receptor_capture(snapshot=snapshot, body_axes=body_axes)
+        passive_receptor_capture(
+            snapshot=snapshot, body_axes=body_axes,
+            include_world_sight=include_world_sight,
+        )
         if receptor_capture is None
         else receptor_capture
     )
@@ -332,13 +353,15 @@ def body_consequence_receptor_capture(
     """Render the exact before/after fields across one body/world consequence."""
 
     action_end = Fraction(BODY_INTERVAL_MICROSECONDS, 1_000_000)
-    before_heading, before_transmission = retinal_carriage(predecessor_body_axes)
-    after_heading, after_transmission = retinal_carriage(successor_body_axes)
+    before_heading, before_pitch, before_transmission = retinal_carriage(predecessor_body_axes)
+    after_heading, after_pitch, after_transmission = retinal_carriage(successor_body_axes)
     before_pixels = retinal_irradiance_field(
-        execution.before, retinal_heading_offset_millidegrees=before_heading, include_focal=True,
+        execution.before, retinal_heading_offset_millidegrees=before_heading,
+        retinal_pitch_offset_millidegrees=before_pitch, include_focal=True,
     )
     after_pixels = retinal_irradiance_field(
-        execution.after, retinal_heading_offset_millidegrees=after_heading, include_focal=True,
+        execution.after, retinal_heading_offset_millidegrees=after_heading,
+        retinal_pitch_offset_millidegrees=after_pitch, include_focal=True,
     )
     physical = physical_contact_substreams(
         execution.before, execution.after, causal_transition=True,

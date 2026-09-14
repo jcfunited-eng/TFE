@@ -1,3 +1,12 @@
+# CURRENT — D122334 VISION-ONLY CUTOVER AUTHORIZED (2026-09-14)
+
+Joe explicitly authorizes deployment for live inspection. Exact scope, fresh1463
+predecessor, preserved need-lineage exception, source review and proof are in
+[GUALA_D122334_SENSORY_EXECUTION_CONTRACT_2026-09-13.md](GUALA_D122334_SENSORY_EXECUTION_CONTRACT_2026-09-13.md).
+This supersedes the release blocker below, not the full250ms/20/20 objectives.
+No speech or unshipped feeding/reflex work enters this release. Cutover not yet
+performed; full goal not complete. Historical records follow.
+
 # Guala Single Production Task Ledger
 
 This is the one carried-forward checklist for the complete Guala objective.

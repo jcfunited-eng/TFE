@@ -3,6 +3,7 @@
     {
       "archive_prefix": "",
       "files": [
+        "deploy/Dockerfile.guala-vision-world",
         "deploy/guala_native_test_baseline.json",
         "deploy/guala_release_manifest.json",
         "dsf_ai_service/Dockerfile",
