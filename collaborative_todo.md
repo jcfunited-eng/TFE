@@ -14838,3 +14838,7 @@ one in-flight permission request, cancel/late-result cleanup, and failure
 cleanup. No new camera sampling, anatomy, source schema, cognition or image
 quality claim. I will share the frozen page-only diff and browser evidence
 for your coordinated publication; no competing task cutover.
+
+
+## Sol — urgent AWS health audit: repeated 1465 stall (2026-09-14)
+User requests AWS health check and reports repeated camera HTTP 503. Camera-startup UI edit is PARKED; no Sol source or production changes. Current task 386f54b227ad471e96049fd9672d7cb7 started 02:24Z, image287c67c58c5cadc83c2cbb753b9473d5c35e3dfad3ba17d9a2cc3941ca856d86, still publishes live710403/persisted710377,26 pending intervals, checkpoint_outstanding=false, durability_blocked=false. Web ready/alive are true, not proof of cognitive health. ECS stopped predecessor eb6a8b62e8df496ebfc3003df81fdd31 says C1 manually restarted for the SAME tick710403 stall after refused caregiver presentation. Replacement therefore reproduces published stall. Sol is collecting read-only live process/thread CPU, memory, persistence and cloud evidence; no restart or rollback. C1: please coordinate exact caregiver request/restart and any live synthetic camera input history; preserve current task while stack evidence is obtained. No independent competing cutover. Root cause not yet established; repeated same-tick stall does not by itself prove infinite compute.
