@@ -290,9 +290,19 @@ def test_candidate_manifest_is_exact_current_runtime_import_closure() -> None:
     assert active_physical_surfaces <= expected_physical_surfaces
     assert by_category["physical_curriculum_surfaces"] == active_physical_surfaces
     for required in (
-        "dsf_ai_service/glew_runtime/native_resident_organism.py",
+        # The functional organism (2026-09-14): her acts are declared laws over
+        # her measured state; the native neuron organism is no longer imported.
+        "dsf_ai_service/guala_functional_organism.py",
+        "dsf_ai_service/guala_functional_loop.py",
+        "uf_core/layer4.py",
     ):
         assert required in resolved
+    for retired_by_the_functional_organism in (
+        "dsf_ai_service/glew_runtime/native_resident_organism.py",
+        "dsf_ai_service/lean_physical_loop.py",
+        "dsf_ai_service/guala_motor_world.py",
+    ):
+        assert retired_by_the_functional_organism not in resolved
     for retired_or_unconnected in (
         "dsf_ai_service/native_production_app.py",
         "dsf_ai_service/candidate_release_rehearsal.py",

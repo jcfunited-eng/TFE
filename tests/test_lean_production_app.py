@@ -335,113 +335,57 @@ def test_health_fails_when_the_organism_owner_fails(tmp_path: Path) -> None:
             }
 
 
-@pytest.mark.parametrize(("wrong_tick", "capacity_refused"), [
-    (False, False), (True, False), (False, True),
-])
-def test_startup_validates_both_components_before_migration_publication(
+@pytest.mark.parametrize("current_kind", ["native", "functional", "functional_wrong_tick"])
+def test_startup_restores_or_converts_the_current_body_before_any_publication(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
-    wrong_tick: bool,
-    capacity_refused: bool,
+    current_kind: str,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    from dsf_ai_service import lean_production_app, guala_receptor_anatomy
-    from dsf_ai_service.glew_runtime import native_resident_organism
+    """The functional organism (2026-09-14): a native CURRENT body is
+    succeeded once by a functional body at the same identity and tick (the
+    native envelope stays as the retained predecessor); a functional CURRENT
+    body restores byte-exact with no publication; a functional body whose tick
+    disagrees with CURRENT is refused before anything is written."""
+
+    from dsf_ai_service import lean_production_app
+    from dsf_ai_service.guala_functional_organism import FunctionalOrganism
     from dsf_ai_service.substrate import native_resident_resource_admission
 
-    predecessor_body = b"body-10-v41"
-    migrated_body = b"body-10-v42"
     world_body = b"world-10"
-    store = PairedCurrentStore(
-        tmp_path,
-        max_body_bytes=4096,
-        max_world_bytes=4096,
-    )
+    if current_kind == "native":
+        predecessor_body = b"GLORUN-native-envelope-10"
+    else:
+        organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=10)
+        if current_kind == "functional_wrong_tick":
+            organism._state["tick"] = 11
+        predecessor_body = organism.encoded()
+    store = PairedCurrentStore(tmp_path, max_body_bytes=1 << 20, max_world_bytes=4096)
     predecessor = store.publish(
-        identity=IDENTITY,
-        organism_tick=10,
-        body=predecessor_body,
-        world=world_body,
+        identity=IDENTITY, organism_tick=10, body=predecessor_body, world=world_body,
         expected_current_body_sha256=None,
     )
     calls: list[tuple[str, bytes]] = []
 
-    def migrate(**values: object) -> bytes:
-        assert values["current_envelope"] == predecessor_body
-        assert values["expected_predecessor_sha256"] == (
-            predecessor.current.body_sha256
-        )
-        calls.append(("migrate", predecessor_body))
-        return migrated_body
-
-    def restore(**values: object) -> _Runtime:
-        body = values["current_envelope"]
-        assert isinstance(body, bytes)
-        calls.append(("restore", body))
-        runtime = _Runtime(body)
-        if wrong_tick:
-            runtime.tick = runtime.persisted_tick = 11
-        return runtime
+    def restore_world(*, identity, encoded_world, migrate_physical_return):
+        assert identity == IDENTITY and migrate_physical_return
+        calls.append(("world", encoded_world))
+        return _World(encoded_world)
 
     monkeypatch.setenv("GUALA_PAIRED_ROOT", str(tmp_path))
     monkeypatch.setenv("GUALA_MAX_WORLD_BYTES", "4096")
     monkeypatch.setattr(
-        native_resident_resource_admission,
-        "derive_native_resident_resource_admission",
-        lambda _root: _Admission(),
+        native_resident_resource_admission, "derive_native_resident_resource_admission",
+        lambda _root: _Admission(max_envelope_bytes=1 << 20),
     )
-    monkeypatch.setattr(
-        native_resident_organism,
-        "migrate_native_resident_organism_exact_energy",
-        migrate,
-    )
-    monkeypatch.setattr(
-        native_resident_organism,
-        "restore_native_resident_organism",
-        restore,
-    )
-    anatomy = object()
-    legacy_anatomy = object()
-    monkeypatch.setattr(
-        guala_receptor_anatomy, "receptor_anatomy",
-        lambda *, include_focal=True: anatomy if include_focal else legacy_anatomy,
-    )
-
-    def admit_workspace(runtime, **values):
-        assert values == {
-            "anatomy": anatomy, "additional_anatomy": legacy_anatomy,
-            "primary_frames": 27, "hearing_frames": 26,
-            "hearing_sense": 1, "maximum_pressure_samples": 4000,
-            "coupled_encoded_limit": 4 * 1024 * 1024,
-        }
-        calls.append(("admit", runtime.persisted))
-        if capacity_refused:
-            raise ValueError("ordinary physical input needs more logical working bytes")
-
-    def restore_world(*, identity, encoded_world, migrate_physical_return):
-        assert identity == IDENTITY and migrate_physical_return
-        assert calls[-1] == ("admit", migrated_body)
-        calls.append(("world", encoded_world))
-        return _World(encoded_world)
-
-    monkeypatch.setattr(_Runtime, "admit_ordinary_physical_workspace", admit_workspace, raising=False)
     monkeypatch.setattr(lean_production_app, "home_world_authority", restore_world)
 
-    if wrong_tick:
-        with pytest.raises(RuntimeError, match="native identity/tick"):
+    if current_kind == "functional_wrong_tick":
+        with pytest.raises(RuntimeError, match="identity/tick"):
             _restore_production_actor()
         assert store.read_pointer() == predecessor
         assert capsys.readouterr().out == ""
-        return
-
-    if capacity_refused:
-        with pytest.raises(ValueError, match="logical working bytes"):
-            _restore_production_actor()
-        assert calls == [("migrate", predecessor_body), ("restore", migrated_body),
-                         ("admit", migrated_body)]
-        assert store.read_pointer() == predecessor
-        assert store.restore().body == predecessor_body
-        assert capsys.readouterr().out == ""
+        assert calls == []
         return
 
     receipt = {
@@ -452,6 +396,7 @@ def test_startup_validates_both_components_before_migration_publication(
         "body_bytes": len(predecessor_body),
         "world_sha256": hashlib.sha256(world_body).hexdigest(),
         "world_bytes": len(world_body),
+        "functional_conversion": current_kind == "native",
     }
     publish = PairedCurrentStore.publish
     receipts = []
@@ -466,22 +411,29 @@ def test_startup_validates_both_components_before_migration_publication(
 
     monkeypatch.setattr(PairedCurrentStore, "publish", checked_publish)
     actor = _restore_production_actor()
-    assert receipts == [receipt]
-    assert capsys.readouterr().out == ""
+    if current_kind == "native":
+        assert receipts == [receipt]
+        assert capsys.readouterr().out == ""
+    else:
+        assert receipts == []
+        assert json.loads(capsys.readouterr().out) == receipt
     monkeypatch.setattr(PairedCurrentStore, "publish", publish)
     actor.start()
     actor.close()
 
     current = store.restore()
-    assert calls == [
-        ("migrate", predecessor_body), ("restore", migrated_body),
-        ("admit", migrated_body), ("world", world_body),
-    ]
-    assert current.body == migrated_body
+    assert calls == [("world", world_body)]
     assert current.world == world_body
     assert current.pointer.current.identity == IDENTITY
     assert current.pointer.current.organism_tick == 10
-    assert current.pointer.predecessor == predecessor.current
+    restored = FunctionalOrganism.restore(current.body)
+    assert restored.live_organism_tick == 10 and restored.identity == IDENTITY
+    if current_kind == "native":
+        assert current.body != predecessor_body
+        assert current.pointer.predecessor == predecessor.current
+    else:
+        assert current.body == predecessor_body
+        assert current.pointer == predecessor
 
 
 class _RepeatedPressurePhysical(_Physical):

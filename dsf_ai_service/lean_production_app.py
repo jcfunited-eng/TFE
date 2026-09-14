@@ -15,9 +15,10 @@ from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
 
+from dsf_ai_service.guala_functional_loop import FunctionalPhysicalLoop
+from dsf_ai_service.guala_functional_organism import FunctionalOrganism, MAGIC as FUNCTIONAL_MAGIC
 from dsf_ai_service.guala_home_world import home_world_authority
 from dsf_ai_service.lean_actor import LeanOrganismActor, PhysicalOccurrence
-from dsf_ai_service.lean_physical_loop import LeanPhysicalLoop
 from dsf_ai_service.lean_sensory_occurrence import LeanSensoryOccurrence
 from dsf_ai_service.paired_current_store import PairedCurrentStore
 
@@ -132,10 +133,6 @@ def _restore_production_actor() -> LeanOrganismActor:
         raise RuntimeError("GUALA_PAIRED_ROOT is required")
     root = Path(root_text)
 
-    from dsf_ai_service.glew_runtime.native_resident_organism import (
-        migrate_native_resident_organism_exact_energy,
-        restore_native_resident_organism,
-    )
     from dsf_ai_service.substrate.native_resident_resource_admission import (
         derive_native_resident_resource_admission,
     )
@@ -150,58 +147,24 @@ def _restore_production_actor() -> LeanOrganismActor:
     )
     restored = store.restore()
     current = restored.pointer.current
-    current_body = migrate_native_resident_organism_exact_energy(
-        current_envelope=restored.body,
-        expected_predecessor_sha256=current.body_sha256,
-        max_envelope_bytes=admission.max_envelope_bytes,
-        max_fabric_bytes=admission.max_fabric_bytes,
-        max_logical_peak_bytes=admission.max_logical_peak_bytes,
+    # The functional organism (Joe, 2026-09-14). A CURRENT body that is still a
+    # native neuron envelope is succeeded here, once, by a functional body at
+    # the same identity and tick; the native envelope stays as the retained
+    # predecessor generation and is never read for cognition again.
+    converted = not restored.body.startswith(FUNCTIONAL_MAGIC)
+    runtime = (
+        FunctionalOrganism.genesis(identity=current.identity, organism_tick=current.organism_tick)
+        if converted else FunctionalOrganism.restore(restored.body)
     )
-    runtime = restore_native_resident_organism(
-        current_envelope=current_body,
-        max_envelope_bytes=admission.max_envelope_bytes,
-        max_fabric_bytes=admission.max_fabric_bytes,
-        max_logical_peak_bytes=admission.max_logical_peak_bytes,
-    )
-    native = runtime.readiness()
-    if (
-        native.identity != current.identity
-        or native.organism_tick != current.organism_tick
-        or runtime.live_organism_tick != current.organism_tick
-    ):
-        raise RuntimeError("restored native identity/tick differs from paired CURRENT")
-    # Before pending-source expansion, migration publication or actor start.
-    # These are existing producer limits, not a second resource allowance.
-    from dsf_ai_service.guala_receptor_anatomy import receptor_anatomy
-    from dsf_ai_service.guala_world_sensorium import consequence_source_times
-    from dsf_ai_service.glew_runtime.sensory_full_field_boundary import PhysicalSense, SENSE_ORDER
-    from dsf_ai_service.lean_actor import MAX_PRESSURE_BYTES
-    from dsf_ai_service.lean_physical_loop import PASSIVE_TIMES
-    from dsf_ai_service.substrate.thermally_coupled_embodiment_world import MAX_COUPLED_STATE_BYTES
-
-    runtime.admit_ordinary_physical_workspace(
-        anatomy=receptor_anatomy(),
-        additional_anatomy=receptor_anatomy(include_focal=False),
-        primary_frames=len(consequence_source_times(PASSIVE_TIMES)),
-        hearing_frames=len(PASSIVE_TIMES),
-        hearing_sense=SENSE_ORDER.index(PhysicalSense.SOUND),
-        maximum_pressure_samples=MAX_PRESSURE_BYTES // 2,
-        coupled_encoded_limit=MAX_COUPLED_STATE_BYTES,
-    )
+    if runtime.identity != current.identity or runtime.live_organism_tick != current.organism_tick:
+        raise RuntimeError("restored organism identity/tick differs from paired CURRENT")
+    current_body = runtime.encoded()
     world = home_world_authority(
         identity=current.identity,
         encoded_world=restored.world,
         migrate_physical_return=True,
     )
     current_world = bytes(world.encoded_snapshot())
-    pending = world.pending_physical_return
-    if pending is not None:
-        observed = world.observation_snapshot()
-        pending.validate_binding(
-            identity=current.identity, producer_tick=runtime.live_organism_tick,
-            world_revision=observed.revision,
-            world_receipt=observed.authority_receipt_sha256,
-        )
     # One startup-only receipt of the validated bytes actually read. It precedes
     # any migration publication and never participates in cognition or identity.
     print(json.dumps({
@@ -212,6 +175,7 @@ def _restore_production_actor() -> LeanOrganismActor:
         "body_bytes": current.body_bytes,
         "world_sha256": current.world_sha256,
         "world_bytes": current.world_bytes,
+        "functional_conversion": converted,
     }, sort_keys=True, separators=(",", ":")), flush=True)
     pointer = restored.pointer
     if current_body != restored.body or current_world != restored.world:
@@ -228,7 +192,7 @@ def _restore_production_actor() -> LeanOrganismActor:
         world=world,
         pointer=pointer,
         store=store,
-        physical=LeanPhysicalLoop(),
+        physical=FunctionalPhysicalLoop(),
         mailbox_capacity=MAILBOX_CAPACITY,
         checkpoint_every_intervals=CHECKPOINT_EVERY_INTERVALS,
         unattended_interval_seconds=UNATTENDED_INTERVAL_SECONDS,

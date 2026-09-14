@@ -113,8 +113,9 @@ def test_world_page_has_the_authorized_embodied_access_only() -> None:
         'id="beat"',  # honest beat line: who fed it, motion or none, body sound or none (2026-09-13)
         '"no motion"',
         "nothing arrived (unattended beat)",
-        "reserve deficit",  # stage 2: her own reserve state on the beat line (2026-09-13)
-        "thermal load",
+        '"hunger"',  # her own reserve state on the beat line, in plain words (2026-09-14)
+        "kernel: ",  # the kernel's reading of her streams: new or known structure, gates read (2026-09-14)
+        "she said a syllable",  # her own airway's sound on the beat line (2026-09-14)
         "her act: ",  # her own world act on the beat line: bite, grasp, move (2026-09-14)
         "caregiver holds out ",  # the caretaker's presentation, as the world allowed it (2026-09-14)
         "the caretaker presenting food",
