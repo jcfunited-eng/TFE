@@ -307,8 +307,9 @@ def maybe_feed(o: dict, st: dict) -> None:
     if not pres.get("presented") and food != DELIVERY_ID:
         st["unreachable"] = sorted(skip | {food})
         st["meal_retry"] = len(foods) > 1
-    else:
-        st["unreachable"] = []
+    # An apple the world would not let the caregiver reach stays unreachable
+    # (the furniture around it does not move); it is not retried after a
+    # successful meal elsewhere.
     json.dump(st, open(STATE, "w"))
 
 
