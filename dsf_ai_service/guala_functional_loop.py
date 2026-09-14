@@ -300,6 +300,7 @@ class FunctionalPhysicalLoop:
                 "external_source_receipt_sha256": None if sensory is None else sensory.source_receipt_sha256,
                 "her_act": decision.act,
                 "her_counts": organism.counts,
+                "her_sleep": organism.sleep,
                 "kernel_novel": decision.novel,
                 "kernel_signature": decision.signature,
                 "latest_retinal_field_kind": "external-rgb" if external_rgb is not None else "achromatic",

@@ -47,12 +47,15 @@ BEAT_MICROSECONDS = 250_000
 
 # Metabolism: her reserve is matter she has eaten, in micrograms at the world's
 # declared tastant masses (one apple is 167,400 micrograms). A full reserve is
-# three apples; the basal burn empties it in 28,800 beats (two hours at four
-# beats a second); acts cost multiples of the basal burn.
+# three apples; the basal burn alone empties it in about 166,000 beats, a day
+# at the live rate of two beats a second, so a night's sleep at basal does not
+# wake her hungry (Joe: awake twelve hours, asleep eight, resting and eating
+# the rest); acts cost multiples of the basal burn, so a day of striding needs
+# meals.
 CAPACITY_MICROGRAMS = 500_000
-BASAL_BURN_MICROGRAMS = 17
+BASAL_BURN_MICROGRAMS = 3
 ACT_BURN_MULTIPLE = {
-    "rest": 0, "bite": 2, "grasp": 2, "take": 2, "release": 1, "touch": 1, "turn_left": 1, "turn_right": 1,
+    "rest": 0, "sleep": 0, "bite": 2, "grasp": 2, "take": 2, "release": 1, "touch": 1, "turn_left": 1, "turn_right": 1,
     "step": 4, "toward_food": 4, "toward_thing": 4, "toward_door": 4, "say": 2,
 }
 MOVES = ("step", "toward_food", "toward_thing", "toward_door")
@@ -98,6 +101,23 @@ NEED_FOOD = 1.0
 NEED_NEW = 1.0
 NEED_SOUND = 1.0
 REFUSAL_COST = 0.5
+# Sleep: a pressure like her reserve. Every awake beat adds one; past its
+# ceiling she sleeps, and each sleeping beat drains two, so sixteen hours
+# awake give eight hours asleep at today's live rate of about 7,100 beats an
+# hour (her world runs a quarter second a beat; the hours here are the wall's).
+# Asleep her eyelids close (the world's optics then pass no light), she issues
+# no act, and she burns at basal. She wakes when the pressure is gone.
+SLEEP_PRESSURE_CEILING = 113_600
+SLEEP_RECOVERY_PER_BEAT = 2
+EYELID_OPEN_MICROMETRES = 10_000
+# Dreaming: each sleeping beat moves one structure of the day's record into her
+# consolidated memory, keyed by her situation only (what she hears, her hunger,
+# food near, her hand), so what paid in a situation carries across days and
+# across scenes; the day's record is emptied by the night. Awake, the day's
+# record is consulted first, the consolidated memory when the day has nothing
+# for the present structure.
+CONSOLIDATED_STREAMS = ("sound_energy", "hunger", "food_distance", "hand")
+CONSOLIDATED_CAPACITY = 64
 RETIRED_KEYS = ("visited", "door_goal", "bout_syllables", "quiet_until_tick", "blocked_doors", "attended_tick", "unreachable_food", "food_goal",
                 "food_refusals", "food_best_mm", "food_stall_beats", "answered_profile", "touched", "strides_since_pickup", "release_refusals",
                 "touching", "listening_since", "call_profile", "answer_bout", "answer_target", "answer_pending", "answer_map", "food_rooms",
@@ -458,6 +478,12 @@ def cochlear_profile(cochleae: tuple[tuple[float, ...], ...]) -> tuple[float, ..
     return tuple(round(max(channel), 6) for channel in cochleae)
 
 
+def coarse_key(regimes: str) -> str:
+    """Her situation: the regime letters of the consolidated streams only."""
+
+    return "".join(regimes[STREAMS.index(name)] if len(regimes) == len(STREAMS) else "_" for name in CONSOLIDATED_STREAMS)
+
+
 def candidates(snapshot: Any, body: Any, held: Any, offered: Any, seen: tuple[SeenThing, ...], tick: int) -> list[tuple[str, str, tuple[Any, ...], str | None, tuple[int, int, int] | None]]:
     """What her body can do this beat, in the declared order: each entry is
     (act, detail, world commands tried in order, target, voice drive). A
@@ -542,6 +568,7 @@ class FunctionalOrganism:
             "pending_voice": None, "pending_drive": None, "meals_micrograms": 0, "bites": 0, "strides": 0, "syllables": 0,
             "voice_version": VOICE_VERSION, "ambient_sound": 0.0, "handled": 0, "room_now": None,
             "head": [0, 0], "acts": {}, "pending_act": None, "last_chosen": None,
+            "sleep_pressure": 0, "asleep": False, "learned": {}, "dream_cursor": 0, "nights": 0,
         })
 
     @classmethod
@@ -567,7 +594,8 @@ class FunctionalOrganism:
             state["voice"], state["heard"], state["pending_voice"], state["pending_drive"] = [], [], None, None
             state["voice_version"] = VOICE_VERSION
             changed = True
-        for key, empty in (("ambient_sound", 0.0), ("handled", 0), ("room_now", None), ("head", [0, 0]), ("acts", {}), ("pending_act", None), ("last_chosen", None)):
+        for key, empty in (("ambient_sound", 0.0), ("handled", 0), ("room_now", None), ("head", [0, 0]), ("acts", {}), ("pending_act", None), ("last_chosen", None),
+                           ("sleep_pressure", 0), ("asleep", False), ("learned", {}), ("dream_cursor", 0), ("nights", 0)):
             if key not in state:
                 state[key] = empty
                 changed = True
@@ -603,11 +631,22 @@ class FunctionalOrganism:
         """The declared axes, with the neck where her head law has turned it."""
 
         yaw, pitch = self.head
+        aperture = 0 if self.asleep else EYELID_OPEN_MICROMETRES
+        positions = {"neck_yaw": yaw, "neck_pitch": pitch, "left_eyelid_aperture": aperture, "right_eyelid_aperture": aperture}
         return tuple(
-            (axis[0], axis[1], axis[2], yaw if axis[1] == "neck_yaw" else pitch, *axis[4:])
-            if axis[1] in ("neck_yaw", "neck_pitch") else axis
+            (axis[0], axis[1], axis[2], positions[axis[1]], *axis[4:]) if axis[1] in positions else axis
             for axis in BODY_AXES
         )
+
+    @property
+    def asleep(self) -> bool:
+        return bool(self._state.get("asleep"))
+
+    @property
+    def sleep(self) -> dict[str, object]:
+        """Her sleep as the page sees it: asleep or not, and the pressure over its ceiling."""
+
+        return {"asleep": self.asleep, "pressure": [int(self._state.get("sleep_pressure", 0)), SLEEP_PRESSURE_CEILING], "nights": int(self._state.get("nights", 0))}
 
     def readiness(self) -> Readiness:
         encoded = self.encoded()
@@ -660,6 +699,8 @@ class FunctionalOrganism:
     def counts(self) -> dict[str, int]:
         counts = {key: int(self._state.get(key, 0)) for key in ("bites", "strides", "syllables", "meals_micrograms", "handled")}
         counts["structures"] = len(self._state.get("acts", {}))
+        counts["learned"] = len(self._state.get("learned", {}))
+        counts["nights"] = int(self._state.get("nights", 0))
         return counts
 
     # ----- the kernel over her measured streams --------------------------------------
@@ -732,7 +773,9 @@ class FunctionalOrganism:
         signature, gate_count = self._kernel()
         # Familiarity is kept over the coarse structure (each stream's regime);
         # the full signature with its field signs goes into the episode record.
-        key = _sha256(" ".join(token[0] for token in signature.split(" ")).encode("utf-8"))[:16]
+        regimes = "".join(token[0] for token in signature.split(" "))
+        key = _sha256(" ".join(regimes).encode("utf-8"))[:16]
+        situation = coarse_key(regimes)
         tick = self.live_organism_tick
         novel = key not in state["familiarity"]
 
@@ -762,19 +805,32 @@ class FunctionalOrganism:
             for item in (held, offered):
                 if item is not None and _is_food(item) and not nothing_left_to_bite(body, item):
                     return decision("bite", "food at her mouth while feeding (the jaw's reflex)", (OralContactCommand(item.object_id, BEAT_MICROSECONDS),), item.object_id)
+        # Sleep: by pressure alone (her home has no night in its light yet).
+        pressure = int(state.get("sleep_pressure", 0))
+        if state.get("asleep"):
+            if pressure <= 0:
+                state["asleep"], state["sleep_pressure"] = False, 0
+            else:
+                state["sleep_pressure"] = pressure - SLEEP_RECOVERY_PER_BEAT
+                dreamt = self._dream(tick)
+                return decision("sleep", "asleep" + ("; dreaming " + dreamt if dreamt else "") + f"; pressure {100 * pressure // SLEEP_PRESSURE_CEILING}%")
+        elif pressure >= SLEEP_PRESSURE_CEILING:
+            state["asleep"] = True
+            state["nights"] = int(state.get("nights", 0)) + 1
+            return decision("sleep", "falling asleep; pressure at its ceiling")
         options = candidates(snapshot, body, held, offered, seen, tick)
-        act, why = self._choose(key, [option[0] for option in options])
+        act, why = self._choose(key, situation, [option[0] for option in options])
         _name, detail, commands, target, drive = next(option for option in options if option[0] == act)
         deficit = round(float(self.deficit), 6)
-        state["pending_act"] = {"key": key, "act": act, "deficit": deficit, "intake": 0, "refused": False}
-        state["last_chosen"] = {"key": key, "act": act, "deficit": deficit}
+        state["pending_act"] = {"key": key, "regimes": regimes, "act": act, "deficit": deficit, "intake": 0, "refused": False}
+        state["last_chosen"] = {"key": key, "regimes": regimes, "act": act, "deficit": deficit}
         return decision(act, why + (("; " + detail) if detail else ""), commands, target, drive)
 
     # ----- her record of acts -----------------------------------------------------------
 
-    def _credit(self, key: str, act: str, value: float, tick: int) -> None:
+    def _credit(self, key: str, act: str, value: float, tick: int, regimes: str = "") -> None:
         record = self._state.setdefault("acts", {})
-        entry = record.setdefault(key, {"acts": {}, "tick": tick})
+        entry = record.setdefault(key, {"acts": {}, "tick": tick, "regimes": regimes})
         tried = entry["acts"].setdefault(act, [0, 0.0])
         tried[0] = int(tried[0]) + 1
         tried[1] = round(float(tried[1]) + value, 6)
@@ -794,15 +850,55 @@ class FunctionalOrganism:
                  + NEED_NEW * (1.0 - deficit) * (1.0 if novel_now else 0.0)
                  + NEED_SOUND * float(sound_now)
                  - REFUSAL_COST * (1.0 if pending.get("refused") else 0.0))
-        self._credit(str(pending["key"]), str(pending["act"]), value, tick)
+        self._credit(str(pending["key"]), str(pending["act"]), value, tick, str(pending.get("regimes", "")))
 
-    def _choose(self, key: str, acts: list[str]) -> tuple[str, str]:
-        """The act for this structure from her record: untried first, the
-        least tried every eighth visit, otherwise the best so far."""
+    def _dream(self, tick: int) -> str | None:
+        """One sleeping beat of consolidation: the next structure of the day's
+        record moves into her consolidated memory under its situation key;
+        None when the day's record is empty."""
 
-        entry = self._state.setdefault("acts", {}).get(key, {"acts": {}})
-        tried = entry["acts"]
+        state = self._state
+        record = state.setdefault("acts", {})
+        if not record:
+            return None
+        keys = sorted(record)
+        cursor = int(state.get("dream_cursor", 0)) % len(keys)
+        state["dream_cursor"] = cursor + 1
+        key = keys[cursor]
+        entry = record.pop(key)
+        regimes = str(entry.get("regimes") or "")
+        if not regimes:
+            return None  # a structure met before dreaming was built carries no situation
+        situation = coarse_key(regimes)
+        learned = state.setdefault("learned", {})
+        target = learned.setdefault(situation, {"acts": {}, "tick": tick})
+        for act, (tries, total) in entry["acts"].items():
+            kept = target["acts"].setdefault(act, [0, 0.0])
+            kept[0] = int(kept[0]) + int(tries)
+            kept[1] = round(float(kept[1]) + float(total), 6)
+        target["tick"] = tick
+        while len(learned) > CONSOLIDATED_CAPACITY:
+            del learned[min(learned, key=lambda k: (int(learned[k]["tick"]), k))]
+        return key[:6] + " into situation " + situation
+
+    def _choose(self, key: str, situation: str, acts: list[str]) -> tuple[str, str]:
+        """The act for this structure: from the day's record (untried first,
+        the least tried every eighth visit, otherwise the best so far); when
+        the day's record has nothing for this structure, from what her sleep
+        kept for this situation; else the first act in the declared order."""
+
+        entry = self._state.setdefault("acts", {}).get(key)
         label = "structure " + key[:6]
+        if entry is None:
+            learned = self._state.setdefault("learned", {}).get(situation)
+            known = [act for act in acts if learned is not None and act in learned["acts"]]
+            if known:
+                tried = learned["acts"]
+                act = max(known, key=lambda a: (float(tried[a][1]) / int(tried[a][0]), -acts.index(a)))
+                mean = float(tried[act][1]) / int(tried[act][0])
+                return act, label + ", new today; from her sleep, situation " + situation + ": " + act + f" ({mean:+.2f} over {int(tried[act][0])})"
+            return acts[0], label + ": first try of " + acts[0]
+        tried = entry["acts"]
         untried = [act for act in acts if act not in tried]
         if untried:
             return untried[0], label + ": first try of " + untried[0]
@@ -838,7 +934,9 @@ class FunctionalOrganism:
         elif decision.act == "bite" and intake and state.get("last_chosen"):
             # The jaw bit; the act that brought the food to her mouth keeps the credit.
             last = state["last_chosen"]
-            self._credit(str(last["key"]), str(last["act"]), NEED_FOOD * float(last["deficit"]), tick_now)
+            self._credit(str(last["key"]), str(last["act"]), NEED_FOOD * float(last["deficit"]), tick_now, str(last.get("regimes", "")))
+        if not state.get("asleep"):
+            state["sleep_pressure"] = int(state.get("sleep_pressure", 0)) + 1
         if applied_action in MOVES and refusal is None:
             state["strides"] += 1
         if applied_action in ("grasp", "take") and refusal is None:

@@ -445,16 +445,16 @@ def test_the_record_chooses_untried_first_then_the_best_and_every_eighth_visit_t
     organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
     acts = ["step", "turn_left", "say", "rest"]
     key = "abcdef0123456789"
-    act, why = organism._choose(key, acts)
+    act, why = organism._choose(key, "SSSS", acts)
     assert act == "step" and "first try of step" in why
     organism._state["acts"][key] = {"acts": {"step": [3, -0.6], "turn_left": [2, 0.5], "say": [1, 0.1]}, "tick": 1}
-    act, why = organism._choose(key, acts)
+    act, why = organism._choose(key, "SSSS", acts)
     assert act == "rest" and "first try of rest" in why  # still untried
     organism._state["acts"][key]["acts"]["rest"] = [1, 0.0]
-    act, why = organism._choose(key, acts)
+    act, why = organism._choose(key, "SSSS", acts)
     assert act == "turn_left" and "best so far" in why, why  # mean +0.25 beats +0.10, 0.0 and -0.2
     organism._state["acts"][key]["acts"]["step"] = [EXPLORE_EVERY - 4, -0.6]  # visits total = 8
-    act, why = organism._choose(key, acts)
+    act, why = organism._choose(key, "SSSS", acts)
     assert act == "say" and "least tried" in why, why  # say and rest tied at 1 try; say first in order
 
 
@@ -513,3 +513,73 @@ def test_the_record_is_bounded_and_an_older_body_drops_the_retired_rule_records(
     assert restored._state["acts"] == {} and restored._state["pending_act"] is None
     assert not any(key in restored._state for key in RETIRED_KEYS)
     assert FunctionalOrganism.restore(restored.encoded()).encoded() == restored.encoded()
+
+
+# ----- sleep and dreaming -----------------------------------------------------------
+
+
+def test_she_sleeps_when_the_pressure_reaches_its_ceiling_her_eyes_close_and_she_wakes_when_it_is_gone() -> None:
+    from dsf_ai_service.guala_functional_organism import SLEEP_PRESSURE_CEILING, SLEEP_RECOVERY_PER_BEAT
+
+    world = home_world_authority(identity=IDENTITY)
+    organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
+    organism._state["reserve_micrograms"] = CAPACITY_MICROGRAMS * 9 // 10
+    organism._state["feeding"] = False
+    organism._state["sleep_pressure"] = SLEEP_PRESSURE_CEILING - 3
+    loop = FunctionalPhysicalLoop()
+    awake = [loop.settle(organism, world, UNATTENDED).observation for _ in range(3)]
+    assert all(o["her_act"] != "sleep" for o in awake) and not organism.asleep
+    assert all(o["her_sleep"]["asleep"] is False for o in awake)
+    first = loop.settle(organism, world, UNATTENDED).observation
+    assert first["her_act"] == "sleep" and "falling asleep" in first["act_reason"] and organism.asleep
+    assert organism.counts["nights"] == 1
+    axes = {axis[1]: axis[3] for axis in organism.body_axes}
+    assert axes["left_eyelid_aperture"] == 0 and axes["right_eyelid_aperture"] == 0
+    asleep = loop.settle(organism, world, UNATTENDED).observation
+    assert asleep["her_act"] == "sleep" and asleep["her_sleep"]["asleep"] is True
+    assert max(asleep["retinal_u8"]) == 0, "closed eyelids still passed light"
+    assert asleep["actual_root_motion"] == [0, 0, 0] or not any(asleep["actual_root_motion"])
+    reserve_before = organism.reserve_micrograms
+    loop.settle(organism, world, UNATTENDED)
+    assert reserve_before - organism.reserve_micrograms == 3, "asleep she burns at basal only"
+    # The pressure drains at twice the rate it rose; she wakes when it is gone.
+    organism._state["sleep_pressure"] = SLEEP_RECOVERY_PER_BEAT * 2
+    two = [loop.settle(organism, world, UNATTENDED).observation for _ in range(2)]
+    assert all(o["her_act"] == "sleep" for o in two)
+    woke = loop.settle(organism, world, UNATTENDED).observation
+    assert woke["her_act"] != "sleep" and not organism.asleep
+    axes = {axis[1]: axis[3] for axis in organism.body_axes}
+    assert axes["left_eyelid_aperture"] == 10_000
+    encoded = organism.encoded()
+    assert FunctionalOrganism.restore(encoded).encoded() == encoded
+
+
+def test_asleep_she_dreams_the_days_record_into_her_situation_memory_and_uses_it_awake() -> None:
+    from dsf_ai_service.guala_functional_organism import ACTS, CONSOLIDATED_CAPACITY, coarse_key
+
+    organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
+    regimes_a, regimes_b = "DSS_SS_TS", "TSD_SS_VS"   # same situation (_S_S), different scenes
+    assert coarse_key(regimes_a) == coarse_key(regimes_b) == "_S_S"
+    organism._credit("a" * 16, "step", 0.9, 1, regimes_a)
+    organism._credit("a" * 16, "rest", 0.0, 1, regimes_a)
+    organism._credit("b" * 16, "step", 0.3, 2, regimes_b)
+    organism._credit("b" * 16, "say", 0.6, 2, regimes_b)
+    organism._credit("c" * 16, "turn_left", 0.2, 3, "")        # met before dreaming existed: no situation
+    dreamt = [organism._dream(10 + i) for i in range(4)]
+    assert dreamt[0] and "into situation _S_S" in dreamt[0]
+    assert dreamt[2] is None and dreamt[3] is None            # the day's record is empty after the night
+    assert organism._state["acts"] == {}
+    learned = organism._state["learned"]["_S_S"]["acts"]
+    assert learned["step"] == [2, 1.2] and learned["rest"] == [1, 0.0] and learned["say"] == [1, 0.6]
+    # Awake under a structure the day has not met, in a situation her sleep kept: its best act.
+    act, why = organism._choose("d" * 16, "_S_S", list(ACTS))
+    assert act == "step" and "from her sleep" in why, why
+    # In a situation her sleep never kept: the first act in the declared order.
+    act, why = organism._choose("d" * 16, "SSSS", list(ACTS))
+    assert act == ACTS[0] and "first try" in why
+    for index in range(CONSOLIDATED_CAPACITY + 10):
+        organism._credit(f"{index:016x}", "rest", 0.0, 100 + index, f"{'DSTV'[index % 4]}SS_SS_T{'DSTV'[(index // 4) % 4]}")
+        organism._dream(200 + index)
+    assert len(organism._state["learned"]) <= CONSOLIDATED_CAPACITY
+    encoded = organism.encoded()
+    assert FunctionalOrganism.restore(encoded).encoded() == encoded
