@@ -118,6 +118,11 @@ class LeanSensoryOccurrence:
     # person body presents at her mouth's reach this interval. Present only;
     # nothing moves her.
     present_food: str | None = None
+    # Camera foveal crop parameters: frame-relative origin (horizontal, vertical
+    # fractions in [0, 1]), angular pitch in millidegrees, and crop pixel dimensions.
+    focal_origin: tuple[float, float] | None = None
+    focal_pitch_millidegrees: tuple[int, int] | None = None
+    focal_crop_dimensions: tuple[int, int] | None = None
 
     def __post_init__(self) -> None:
         if self.source not in SOURCES:
@@ -206,6 +211,24 @@ class LeanSensoryOccurrence:
                 axes.add(axis)
         elif guided is not None:
             raise ValueError("ordinary sensory source carried vocal body work")
+        if self.focal_origin is not None and (
+            not isinstance(self.focal_origin, tuple)
+            or len(self.focal_origin) != 2
+            or not all(isinstance(v, (int, float)) and 0.0 <= float(v) <= 1.0 for v in self.focal_origin)
+        ):
+            raise ValueError("focal origin left frame bounds")
+        if self.focal_pitch_millidegrees is not None and (
+            not isinstance(self.focal_pitch_millidegrees, tuple)
+            or len(self.focal_pitch_millidegrees) != 2
+            or not all(isinstance(v, int) and 1 <= v <= 180_000 for v in self.focal_pitch_millidegrees)
+        ):
+            raise ValueError("focal pitch left physical bounds")
+        if self.focal_crop_dimensions is not None and (
+            not isinstance(self.focal_crop_dimensions, tuple)
+            or len(self.focal_crop_dimensions) != 2
+            or not all(isinstance(v, int) and v >= 24 for v in self.focal_crop_dimensions)
+        ):
+            raise ValueError("focal crop dimensions left bounded size")
 
     @property
     def source_receipt_sha256(self) -> str:
@@ -233,14 +256,24 @@ class LeanSensoryOccurrence:
                 )
         if self.present_food is not None:
             body += b"\0present:" + self.present_food.encode("ascii")
+        if self.focal_origin is not None:
+            body += f"\0focal_origin:{self.focal_origin[0]:.4f},{self.focal_origin[1]:.4f}".encode("ascii")
+        if self.focal_pitch_millidegrees is not None:
+            body += f"\0focal_pitch:{self.focal_pitch_millidegrees[0]},{self.focal_pitch_millidegrees[1]}".encode("ascii")
+        if self.focal_crop_dimensions is not None:
+            body += f"\0focal_dims:{self.focal_crop_dimensions[0]},{self.focal_crop_dimensions[1]}".encode("ascii")
         return hashlib.sha256(body).hexdigest()
 
 
 __all__ = (
     "EXTERNAL_RGB_VALUE_COUNT",
+    "EXTERNAL_RGB_FOCAL_VALUE_COUNT",
     "LeanSensoryOccurrence",
     "RETINAL_SITE_COUNT",
     "SOURCES",
+    "focal_retina_luminance_u8",
+    "focal_retina_rgb_u8",
+    "legacy_retina_rgb_u8",
     "rgb_retina_luminance_u8",
     "transmitted_rgb_retina_u8",
 )

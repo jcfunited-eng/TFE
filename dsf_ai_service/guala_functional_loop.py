@@ -13,6 +13,7 @@ from typing import Any
 
 from dsf_ai_service.guala_caretaker_hand import nothing_left_to_bite, present_food, withdraw
 from dsf_ai_service.guala_cochlea import one_self_hearing_hop
+from dsf_ai_service.guala_vision_fovea import compute_saccadic_gaze
 from dsf_ai_service.guala_functional_organism import (
     BEAT_MICROSECONDS, CAPACITY_MICROGRAMS, Decision, FunctionalOrganism, Sensed,
     cochlear_profile, syllable_pcm,
@@ -37,6 +38,7 @@ from dsf_ai_service.substrate.w1_physical_receptors import retinal_irradiance_fi
 
 MAX_NATIVE_INTERVALS_PER_OCCURRENCE = 1
 CAREGIVER_RETRY_BEATS = 16
+CAMERA_FIELD_MILLIDEGREES = (60_000, 45_000)  # the declared camera field the page's pitch is measured against
 WORLD_RETINAL_SITES = 903
 WORLD_FOCAL_SITES = 768
 
@@ -248,6 +250,23 @@ class FunctionalPhysicalLoop:
                 # camera crop follows this, never the other way round (A1's lane).
                 "gaze_focal": None if organism.gaze is None else list(organism.gaze),
                 "gaze_focal_source": source,
+                # Frame-relative gaze (A1's vision lane): the page says where its
+                # crop came from (focal_origin, a frame fraction) and how wide it
+                # is in angle (focal_pitch_millidegrees); her gaze within the crop
+                # moves the next crop by a bounded step, never a jump. The crop's
+                # share of the frame is its pitch over the declared camera field.
+                "gaze_frame": (
+                    None
+                    if sensory is None or sensory.focal_origin is None or organism.gaze is None
+                    else list(compute_saccadic_gaze(
+                        tuple(sensory.focal_origin), organism.gaze,
+                        crop_fraction=(
+                            (sensory.focal_pitch_millidegrees[0] / CAMERA_FIELD_MILLIDEGREES[0],
+                             sensory.focal_pitch_millidegrees[1] / CAMERA_FIELD_MILLIDEGREES[1])
+                            if sensory.focal_pitch_millidegrees else (80 / 640.0, 60 / 480.0)
+                        ),
+                    ))
+                ),
                 "external_source_receipt_sha256": None if sensory is None else sensory.source_receipt_sha256,
                 "her_act": decision.act,
                 "her_counts": organism.counts,
