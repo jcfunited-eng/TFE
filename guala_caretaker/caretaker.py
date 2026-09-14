@@ -276,6 +276,75 @@ PLAY_TICKS = 240  # about a minute of her clock between offers of a toy
 TOYS = ("toy-bear", "glow-stars", "book", "cup")
 
 
+BEDTIME_FRACTION = 0.9   # of her sleep-pressure ceiling: the caretaker makes her bed
+LULLABY_HZ = (330, 330, 392, 330, 330, 392, 330, 392, 523, 494, 440, 440, 392, 294, 330, 349, 294, 294, 330, 349, 294, 349, 494, 440, 392, 494, 523)
+LULLABY_BEATS = (1, 1, 2, 1, 1, 2, 1, 1, 2, 2, 1, 1, 2, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 3)  # quarter-second blocks per note
+
+
+def lullaby_blocks() -> list[bytes]:
+    """A soft lullaby as 8,000-byte blocks (0.25 s at 16 kHz): a sine with a
+    warm second harmonic and a gentle rise and fall on every note."""
+    import math, struct
+    blocks = []
+    for hz, beats in zip(LULLABY_HZ, LULLABY_BEATS):
+        n = 4000 * beats
+        samples = []
+        for i in range(n):
+            t = i / 16000.0
+            env = min(1.0, i / 800.0, (n - i) / 1600.0)
+            v = 4500 * env * (math.sin(2 * math.pi * hz * t) + 0.35 * math.sin(4 * math.pi * hz * t))
+            samples.append(int(max(-32767, min(32767, v))))
+        pcm = struct.pack(f"<{n}h", *samples)
+        blocks.extend(pcm[k:k + 8000] for k in range(0, len(pcm), 8000))
+    return blocks
+
+
+def sing_block(pcm: bytes) -> dict | None:
+    """One block of the caretaker's voice at her ears, nothing shown."""
+    body = json.dumps({"kind": "sensory", "payload": {"source": "microphone", "pcm_s16le_base64": base64.b64encode(pcm).decode()}}).encode()
+    req = urllib.request.Request(f"{BASE}/occurrence", data=body, headers={"Content-Type": "application/json"}, method="POST")
+    try:
+        with urllib.request.urlopen(req, timeout=60) as r:
+            return json.load(r)
+    except Exception as err:  # noqa: BLE001
+        log(f"lullaby block refused: {err}")
+        return None
+
+
+def her_sleep(o: dict) -> dict:
+    return ((o.get("last_occurrence") or {}).get("her_sleep")) or {}
+
+
+def maybe_bedtime(o: dict, st: dict) -> None:
+    """Her pressure near its ceiling and she is awake: the caretaker sets her
+    pillow and blanket on her bed, once per night. Presenting only."""
+    sleep = her_sleep(o)
+    pressure = sleep.get("pressure") or [0, 0]
+    nights = int(sleep.get("nights") or 0)
+    if sleep.get("asleep") or not pressure[1] or pressure[0] / pressure[1] < BEDTIME_FRACTION:
+        return
+    if st.get("bed_made_for_night") == nights + 1:
+        return
+    st["bed_made_for_night"] = nights + 1
+    res = present_food("bedtime")
+    made = (((res or {}).get("observation") or {}).get("last_occurrence") or {}).get("caregiver_presentation") or {}
+    log(f"bedtime: pillow and blanket to her bed — made={made.get('made')} steps={len(made.get('steps') or [])} last={(made.get('steps') or [None])[-1]}")
+
+
+def maybe_lullaby(o: dict, st: dict) -> None:
+    """She has fallen asleep: the caretaker sings once, at her ears."""
+    sleep = her_sleep(o)
+    if not sleep.get("asleep"):
+        return
+    nights = int(sleep.get("nights") or 0)
+    if st.get("lullaby_for_night") == nights:
+        return
+    st["lullaby_for_night"] = nights
+    blocks = lullaby_blocks()
+    sung = sum(1 for pcm in blocks if sing_block(pcm) is not None)
+    log(f"lullaby: {sung} of {len(blocks)} blocks reached her (night {nights})")
+
+
 def asleep(o: dict) -> bool:
     """Her published sleep (her_sleep.asleep, or the act 'sleep')."""
     lo = o.get("last_occurrence") or {}
@@ -400,7 +469,9 @@ def wait_clear(min_tick: int | None = None, st: dict | None = None) -> dict | No
             if other is not None and (hold is None or other + PERSON_HOLD_TICKS > hold):
                 hold = other + PERSON_HOLD_TICKS
                 log(f"unannounced feed by someone else (tick {other}); safety hold until her tick {hold}")
-            # Asleep (her own sleep law; eyes closed, no acts), nothing is
+            if st is not None:
+                maybe_lullaby(o, st)  # once, as she falls asleep
+            # Asleep (her own sleep law; eyes closed, no acts), nothing else is
             # presented: no meal, no toy, no card. The caretaker waits.
             if asleep(o):
                 if st is not None and not st.get("asleep_logged"):
@@ -416,6 +487,7 @@ def wait_clear(min_tick: int | None = None, st: dict | None = None) -> dict | No
             # lessons hold.
             if st is not None:
                 maybe_feed(o, st)
+                maybe_bedtime(o, st)
                 maybe_play(o, st)
             if gates_clear(o) and (hold is None or (o.get("live_tick") or 0) >= hold):
                 return o
