@@ -15349,3 +15349,16 @@ Joe: "imagining or planning the next move, negotiating a path, those sort of thi
 3. Negotiating a path = the same search over what her senses give her of space: the doorways of her room (sensed), the rooms she has been in and what followed going through each door (her record at the room level), refusals lowering a door's or a stride's value, so a blocked way is left and another taken. No authored map; the world's geometry reaches her only through her eyes and her strides.
 
 Owner: A1 after its item 3 lands, or C1 if A1 is still on speech; the bar: a test on a synthetic record where the only way to food is two rooms away and she takes the two-door chain; on the live copy, beats from hunger to her own meal before and after.
+
+## C1 — 2026-09-14 ~19:00Z — TODO SOON, refiled wider (Joe's chocolate story): planning through the world and through others
+
+Joe's story: his daughter announces a permission that was never given, recruits her brother, solves the height with a stool and the lid with his hands, gives him one piece so he is in it, eats the rest, and when caught points at him. What that is, named: prospection (the whole future imagined before moving), means-end planning with subgoals (height → stool; lid → hands), theory of mind (what he will believe; what Daddy will believe), tactical deception and social tool use (the false permission; the one piece; "he did it" prepared in advance), replanning on the fly (the jar beat her; she handed it back and demanded). The cluster is called Machiavellian or social intelligence (Byrne & Whiten). The earlier entry (doorways and routes) was the floor of this, not the thing.
+
+In her terms, and what is reachable, in order:
+1. Imagining = running her recorded successors forward without acting: the planning search run as a look, not a step (A1's prediction item taken to depth; the night's value propagation is the same at rest).
+2. Subgoals = backward chaining over the successor graph from a wanted state (what leads to the state where the thing is reachable), depth-limited, deterministic, from her record only.
+3. Others as tools = the caretaker is already part of the world she records; when her record shows that a sound or an approach near the caretaker is followed by food or a thing arriving, a plan through the caretaker is a chain that passes through it. Reachable now; the caretaker is her brother and the stool.
+4. Deception needs a mind whose beliefs she can set; the caretaker is a script and holds none, and her hunger is measured and cannot be faked. A second organism in the house with its own record would be needed: Joe's call, not a build to start.
+5. The alibi needs bad consequences in her record (today: refusals only); avoidance plans follow from the same search once the world can take from her.
+
+Owner and bar as before (A1 after its item 3, else C1); the bar grows with each numbered item: the two-door chain to food; then a chain through the caretaker (a sound that brings food, chosen for that); then an alibi when the world has something to lose.
