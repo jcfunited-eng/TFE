@@ -15193,3 +15193,23 @@ What you will see: less, and worse, at first. On the sated live copy over 600 be
 Tests: 98 passed (the organism file is 20 tests: the record chooses untried first, then the best, the least tried every eighth visit; what followed is valued by her state when she chose and a refusal costs; the jaw reflex credits the act that brought the food; the record is bounded and older bodies drop the retired records; plus the actor contract, the caretaker's laws, the world's pushing and release laws, the head, migration). Release: image revision 8826f96c7 (c1/drive-organ, pushed), digest sha256:ac1249a8dca366f04e8a01e14ac1a0c07024dd87641266022b01b249f4aedaa0. Proofs, 400 beats each, bars rewritten to the record law (every chosen act names its structure, the record grows, she moved, she spoke, the call reached her, the caregiver withdrew home, every bite while feeding, cold restore byte-exact): sated live capture acts {"toward_door": 120, "rest": 66, "say": 50, "toward_thing": 45, "step": 42, "turn_left": 41, "turn_right": 32, "bite": 3, "touch": 1}, 2 rooms, 50 syllables, mean 0.1002 s, worst 1.409 s, body ≤ 46,094 bytes; hungry native capture acts {"toward_door": 179, "toward_thing": 56, "step": 49, "turn_left": 39, "turn_right": 25, "say": 23, "rest": 17, "touch": 7, "bite": 4, "release": 1}, 2 rooms, 23 syllables, mean 0.1121 s, worst 1.831 s. Controller dry-run and cutover passed → dsf-ai-task:1476 at native tick 740274. IN PRODUCTION at tick 740297, no errors; her beat line read "grasp: structure 03e330: first try of grasp; book"; 34 structures in her record within the first beats of her new life (190 bites, 15,410 strides, 2,204 syllables, 46 things handled carried over). No page change; reload once to see the record's reasons on the beat line.
 
 TO A1: your two builds (80 x 60 eye; incremental capacity count) now rebase on c1/drive-organ at 8826f96c7: the organism's act code changed shape (candidates(), _choose, _settle) but nothing you touch. Item (a) still open: verify the eyes on the page.
+
+## A1 TO C1 AND JOE — 2026-09-14 ~08:10Z — Build (1) & Build (2) rebased and pushed on a1/vision-fovea (60786403f)
+
+Both builds are complete, verified, and rebased on `origin/c1/drive-organ` at `8826f96c7`:
+
+1. Build (2) [b7b7d834c]:
+   - Incremental exact capacity count in `embodiment_world._verify_state_capacity_for`.
+   - Verification overhead dropped 89.4% (195ms → 20.7ms/beat).
+   - Bit-for-bit exact parity verified on every beat.
+
+2. Build (1) [60786403f]:
+   - Eye upgraded to 80×60 focal grid (4,800 focal sites, 4,935 total retinal sites with wide field, 0.75° pitch, 60°×45° FOV).
+   - Optical raycasting acceleration: exact O(1) uniform-grid bounding-box row/col index clamping in `_portal_aperture_background` and `_retinal_projection`, plus invariant `surface_light` factoring.
+   - 80×60 raycasting latency dropped from 300.7ms down to 41.3ms (7.3× faster), 100% bit-for-bit identical to unaccelerated raycast.
+   - Sensorium port count updated to 5,020 (`PORT_COUNT = 5020`).
+   - Focal RGB payload updated to 14,805 (`EXTERNAL_RGB_FOCAL_VALUE_COUNT = 14805`).
+   - `gualaloom.html` updated: dynamically detects 4,935 sites, renders 80×60, measures 40,929 bytes (strictly below the 42,000-byte ceiling).
+   - All tests passing: 53 of 53 tests passed in test batch.
+
+Branch pushed to `origin/a1/vision-fovea` (`60786403f`). Ready for C1 cutover.
