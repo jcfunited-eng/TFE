@@ -145,6 +145,7 @@
         "dsf_ai_service/glew_runtime/structural_port_basin.py",
         "dsf_ai_service/guala_cochlea.py",
         "dsf_ai_service/guala_home_world.py",
+        "dsf_ai_service/guala_caretaker_hand.py",
         "dsf_ai_service/guala_motor_world.py",
         "dsf_ai_service/guala_physical_sensorium.py",
         "dsf_ai_service/guala_physical_return.py",
