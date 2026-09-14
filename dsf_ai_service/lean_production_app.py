@@ -18,6 +18,7 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_valida
 from dsf_ai_service.guala_functional_loop import FunctionalPhysicalLoop
 from dsf_ai_service.guala_functional_organism import FunctionalOrganism, MAGIC as FUNCTIONAL_MAGIC
 from dsf_ai_service.guala_home_world import home_world_authority
+from dsf_ai_service.guala_vision_fovea import resample_focal_crop_rgb
 from dsf_ai_service.lean_actor import LeanOrganismActor, PhysicalOccurrence
 from dsf_ai_service.lean_sensory_occurrence import LeanSensoryOccurrence
 from dsf_ai_service.paired_current_store import PairedCurrentStore
@@ -79,6 +80,10 @@ class SensoryBody(BaseModel):
     pcm_s16le_base64: str | None = None
     guided_vocal_drives: tuple[GuidedVocalDriveBody, ...] | None = None
     present_food: str | None = Field(default=None, min_length=1, max_length=64, pattern=r"^[A-Za-z0-9-]+$")
+    focal_origin: tuple[float, float] | None = None
+    focal_pitch_millidegrees: tuple[int, int] | None = None
+    focal_rgb_base64: str | None = None
+    focal_crop_dimensions: tuple[int, int] | None = None
 
 
 class OccurrenceBody(BaseModel):
@@ -214,11 +219,36 @@ def _physical_occurrence(body: OccurrenceBody) -> PhysicalOccurrence:
             )
         except (binascii.Error, ValueError) as error:
             raise ValueError("sensory pressure is not canonical base64") from error
+    retina_u8 = payload.retina_rgb_u8
+    crop_dims = payload.focal_crop_dimensions
+    if payload.focal_rgb_base64 is not None:
+        try:
+            raw_focal = base64.b64decode(
+                payload.focal_rgb_base64,
+                validate=True,
+            )
+        except (binascii.Error, ValueError) as error:
+            raise ValueError("focal rgb is not canonical base64") from error
+        if crop_dims is None:
+            if len(raw_focal) == 80 * 60 * 3:
+                crop_dims = (80, 60)
+            elif len(raw_focal) == 64 * 48 * 3:
+                crop_dims = (64, 48)
+            elif len(raw_focal) == 32 * 24 * 3:
+                crop_dims = (32, 24)
+            else:
+                raise ValueError("focal rgb bytes does not match standard crop dimensions")
+        resampled_focal = resample_focal_crop_rgb(raw_focal, crop_dims[0], crop_dims[1])
+        if retina_u8 is not None and len(retina_u8) >= 405:
+            retina_u8 = tuple(retina_u8[:405]) + resampled_focal
+        else:
+            retina_u8 = (0,) * 405 + resampled_focal
     return PhysicalOccurrence(
         "sensory",
         LeanSensoryOccurrence(
             source=payload.source,
             retina_rgb_u8=payload.retina_rgb_u8,
+            retina_rgb_u8=retina_u8,
             pressure_s16le=pressure,
             guided_vocal_drives=(
                 None
@@ -233,6 +263,9 @@ def _physical_occurrence(body: OccurrenceBody) -> PhysicalOccurrence:
                 )
             ),
             present_food=payload.present_food,
+            focal_origin=payload.focal_origin,
+            focal_pitch_millidegrees=payload.focal_pitch_millidegrees,
+            focal_crop_dimensions=crop_dims,
         ),
     )
 
