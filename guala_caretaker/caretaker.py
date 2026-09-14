@@ -312,7 +312,7 @@ def maybe_feed(o: dict, st: dict) -> None:
     json.dump(st, open(STATE, "w"))
 
 
-def wait_clear(min_tick: int | None = None) -> dict | None:
+def wait_clear(min_tick: int | None = None, st: dict | None = None) -> dict | None:
     """Wait on HER state: gates clear, her clock past min_tick, no
     TEACHING marker, and no one else feeding her. Explicit control first:
     the TEACHING marker holds until it is removed. Safety net: a tick fed
@@ -338,6 +338,11 @@ def wait_clear(min_tick: int | None = None) -> dict | None:
             if other is not None and (hold is None or other + PERSON_HOLD_TICKS > hold):
                 hold = other + PERSON_HOLD_TICKS
                 log(f"unannounced feed by someone else (tick {other}); safety hold until her tick {hold}")
+            # Meals do not wait for a clear window: a hungry organism is fed
+            # while a person's camera and microphone are on. Only the card
+            # lessons hold.
+            if st is not None:
+                maybe_feed(o, st)
             if gates_clear(o) and (hold is None or (o.get("live_tick") or 0) >= hold):
                 return o
         time.sleep(POLL_S)
@@ -365,7 +370,7 @@ def main() -> None:
         lesson = plan[st["next"] % len(plan)]
         retina = card_retina(lesson["card"])
         blocks = wav_blocks(lesson["wav"])
-        o = wait_clear()
+        o = wait_clear(st=st)
         if o is None:
             break
         maybe_feed(o, st)
