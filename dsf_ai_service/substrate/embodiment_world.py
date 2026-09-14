@@ -3717,6 +3717,60 @@ class EmbodimentWorldAuthority:
             self._commit_authority_state(candidate)
             return True
 
+    def admit_authored_departure(self, object_id: str) -> str:
+        """Let one thing leave the world at its boundary — the bin.
+
+        The mirror of an arrival: matter inside the world is conserved, and
+        this is where an eaten core lawfully goes out. The thing must be on
+        the floor or in the caregiver's hand; nothing held by the organism
+        body, and nothing its mouth or hand is on, can be taken away.
+        Committed with a revision like any real change. Returns the world
+        state sha after the departure.
+        """
+
+        with self._lock:
+            self._require_public_visibility_locked()
+            if self._prepared_action_execution is not None:
+                raise RuntimeError("a departure cannot happen during an action")
+            prior = self._state
+            world = prior.world
+            item = next((entry for entry in world.objects if entry.object_id == object_id), None)
+            if item is None:
+                raise ValueError("a departure requires an existing thing")
+            if item.held_by_body_id == world.self_body_id:
+                raise ValueError("the organism's own held thing cannot leave the world")
+            for body in world.bodies:
+                contact = body.active_contact
+                if body.body_id == world.self_body_id and contact is not None and contact.object_id == object_id:
+                    raise ValueError("a thing under the organism's contact cannot leave the world")
+            bodies = tuple(
+                replace(
+                    body,
+                    held_object_id=None if body.held_object_id == object_id else body.held_object_id,
+                    active_contact=None if (body.active_contact is not None and body.active_contact.object_id == object_id) else body.active_contact,
+                )
+                for body in world.bodies
+            )
+            if world.revision >= MAX_REVISION:
+                raise ValueError("departure exhausted world revision")
+            candidate_world = replace(
+                world,
+                revision=world.revision + 1,
+                bodies=bodies,
+                objects=tuple(entry for entry in world.objects if entry.object_id != object_id),
+            )
+            self._validate_world(candidate_world)
+            observation = self._observation_for(candidate_world)
+            candidate = _AuthorityState(
+                world=candidate_world,
+                observation=observation,
+                recent_applied_receipts=prior.recent_applied_receipts,
+                migration_receipt=prior.migration_receipt,
+            )
+            self._encoded_state_for(candidate)
+            self._commit_authority_state(candidate)
+            return observation.state_sha256
+
     def admit_authored_arrival(self, item: EmbodiedObject) -> str:
         """Admit one authored thing at the world's boundary — groceries.
 

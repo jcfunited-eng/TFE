@@ -30,13 +30,13 @@ from uf_core.layer3 import compute_resonance
 from uf_core.layer4 import compute_directional_signal, compute_dsf
 
 from dsf_ai_service.guala_caretaker_hand import (
-    _approach_point, _distance_mm, _heading_toward, _portal_points, _region_of,
+    _approach_point, _distance_mm, _heading_toward, _portal_points, _portal_route, _region_of,
     nothing_left_to_bite, offered_within_reach,
 )
 from dsf_ai_service.guala_voice import ONSETS, PITCHES_DECIHERTZ, VOWELS, syllable_pcm as airway_syllable_pcm
 from dsf_ai_service.substrate.embodiment_world import (
     GraspContactCommand, MoveCommand, OralContactCommand, PoseMM, PositionMM,
-    ReleaseHeldObjectCommand, TouchContactCommand, _derived_contact_patch_square_mm, _receptor_position,
+    ReleaseHeldObjectCommand, TakeContactHeldObjectCommand, TouchContactCommand, _derived_contact_patch_square_mm, _receptor_position,
 )
 
 
@@ -51,7 +51,7 @@ BEAT_MICROSECONDS = 250_000
 CAPACITY_MICROGRAMS = 500_000
 BASAL_BURN_MICROGRAMS = 17
 ACT_BURN_MULTIPLE = {
-    "rest": 0, "attend": 0, "bite": 2, "grasp": 2, "release": 1, "turn": 1, "touch": 1,
+    "rest": 0, "attend": 0, "listen": 0, "bite": 2, "grasp": 2, "take": 2, "release": 1, "turn": 1, "touch": 1,
     "approach": 4, "wander": 4, "babble": 2, "imitate": 2,
 }
 HUNGRY_BELOW = Fraction(3, 5)   # feeding starts below 60 percent of capacity
@@ -122,6 +122,14 @@ HEARD_RECENT_BEATS = 8
 # every four beats, then a quiet spell. A heard sound is answered once.
 BOUT_SYLLABLES = 5
 QUIET_BEATS = 48
+# Turn-taking: while a sound stands out she listens (stands still); when it
+# ends she answers with a short bout. For each kind of sound she keeps the
+# answer whose self-heard result landed nearest to it, trying a neighbouring
+# sound every other time and keeping whichever did better.
+LISTEN_CAP_BEATS = 24
+ANSWER_BOUT_SYLLABLES = 3
+ANSWER_MAP_CAPACITY = 32
+FOOD_ROOMS_CAPACITY = 8
 HEARD_ENERGY_FLOOR = 0.004      # below this mean cochlear envelope, a sound is room noise
 HEARD_ABOVE_AMBIENT = 2.0       # a sound worth answering is at least twice the running ambient level
 SAME_SOUND_DISTANCE = 0.08      # closer than this to the last answered profile is the same sound
@@ -317,6 +325,12 @@ def structure_centre(focal: tuple[int, ...]) -> tuple[float, float]:
     return weighted_x / (total * (FOCAL_COLUMNS - 1)), weighted_y / (total * (FOCAL_ROWS - 1))
 
 
+def handleable_held(item: Any) -> bool:
+    """A thing in another hand she can take: light, small, not food."""
+
+    return item is not None and not _is_food(item) and int(item.mass_grams) <= HANDLE_MASS_GRAMS and int(item.radius_mm) <= HANDLE_RADIUS_MM
+
+
 def handleable(item: Any) -> bool:
     """A thing she can pick up: light, small, on the floor, and not food."""
 
@@ -409,6 +423,37 @@ def _profile_distance(left: tuple[float, ...], right: tuple[float, ...]) -> floa
     return sum((a / left_peak - b / right_peak) ** 2 for a, b in zip(left, right, strict=True))
 
 
+def heard_key(profile: tuple[float, ...]) -> str:
+    """A coarse name for a kind of sound: its loudest ear channel (in
+    groups of four) and its loudness band."""
+
+    peak = max(range(len(profile)), key=lambda index: profile[index])
+    energy = sum(profile) / len(profile)
+    band = 0
+    level = HEARD_ENERGY_FLOOR
+    while energy > level * 2 and band < 4:
+        level *= 2
+        band += 1
+    return f"c{peak // 4}b{band}"
+
+
+def neighbour_drive(drive: tuple[int, int, int], tries: int) -> tuple[int, int, int]:
+    """A sound one step away from ``drive``: the pitch or the vowel moved
+    by one, chosen by how many times this sound was tried."""
+
+    pitch, vowel, onset = drive
+    which = tries % 4
+    if which == 0:
+        index = PITCHES_DECIHERTZ.index(pitch)
+        return PITCHES_DECIHERTZ[min(len(PITCHES_DECIHERTZ) - 1, index + 1)], vowel, onset
+    if which == 1:
+        return pitch, (vowel + 1) % len(VOWELS), onset
+    if which == 2:
+        index = PITCHES_DECIHERTZ.index(pitch)
+        return PITCHES_DECIHERTZ[max(0, index - 1)], vowel, onset
+    return pitch, (vowel - 1) % len(VOWELS), (onset + 1) % len(ONSETS)
+
+
 def _new_drive(tick: int) -> tuple[int, int, int]:
     """A sound of her own she has not tried lately: vowel, onset and pitch
     walked in turn from her tick."""
@@ -439,6 +484,7 @@ class FunctionalOrganism:
             "refusals": {}, "idle_beats": 0, "last_act": "rest", "last_spoke_tick": -BABBLE_EVERY_BEATS, "goal": None, "goal_beats": 0, "goal_refusals": 0,
             "pending_voice": None, "pending_drive": None, "meals_micrograms": 0, "bites": 0, "strides": 0, "syllables": 0,
             "voice_version": VOICE_VERSION, "visited": {}, "door_goal": None, "bout_syllables": 0, "quiet_until_tick": 0, "blocked_doors": {}, "attended_tick": -ATTEND_REFRACTORY_BEATS - 1, "unreachable_food": {}, "food_goal": None, "food_refusals": 0, "food_best_mm": 0, "food_stall_beats": 0, "ambient_sound": 0.0, "answered_profile": None, "touched": {}, "strides_since_pickup": 0, "handled": 0, "release_refusals": 0, "touching": None,
+            "listening_since": None, "call_profile": None, "answer_bout": 0, "answer_target": None, "answer_pending": None, "answer_map": {}, "food_rooms": {}, "food_room_goal": None, "room_now": None,
         })
 
     @classmethod
@@ -464,7 +510,8 @@ class FunctionalOrganism:
             state["voice"], state["heard"], state["pending_voice"], state["pending_drive"] = [], [], None, None
             state["voice_version"] = VOICE_VERSION
             changed = True
-        for key, empty in (("visited", {}), ("door_goal", None), ("bout_syllables", 0), ("quiet_until_tick", 0), ("blocked_doors", {}), ("attended_tick", -ATTEND_REFRACTORY_BEATS - 1), ("unreachable_food", {}), ("food_goal", None), ("food_refusals", 0), ("food_best_mm", 0), ("food_stall_beats", 0), ("ambient_sound", 0.0), ("answered_profile", None), ("touched", {}), ("strides_since_pickup", 0), ("handled", 0), ("release_refusals", 0), ("touching", None)):
+        for key, empty in (("visited", {}), ("door_goal", None), ("bout_syllables", 0), ("quiet_until_tick", 0), ("blocked_doors", {}), ("attended_tick", -ATTEND_REFRACTORY_BEATS - 1), ("unreachable_food", {}), ("food_goal", None), ("food_refusals", 0), ("food_best_mm", 0), ("food_stall_beats", 0), ("ambient_sound", 0.0), ("answered_profile", None), ("touched", {}), ("strides_since_pickup", 0), ("handled", 0), ("release_refusals", 0), ("touching", None),
+                           ("listening_since", None), ("call_profile", None), ("answer_bout", 0), ("answer_target", None), ("answer_pending", None), ("answer_map", {}), ("food_rooms", {}), ("food_room_goal", None), ("room_now", None)):
             if key not in state:
                 state[key] = empty
                 changed = True
@@ -536,7 +583,9 @@ class FunctionalOrganism:
 
     @property
     def counts(self) -> dict[str, int]:
-        return {key: int(self._state.get(key, 0)) for key in ("bites", "strides", "syllables", "meals_micrograms", "handled")}
+        counts = {key: int(self._state.get(key, 0)) for key in ("bites", "strides", "syllables", "meals_micrograms", "handled")}
+        counts["answers_known"] = len(self._state.get("answer_map", {}))
+        return counts
 
     # ----- the kernel over her measured streams --------------------------------------
 
@@ -614,53 +663,75 @@ class FunctionalOrganism:
         offered = None if offered_id is None else _object(snapshot, offered_id)
 
         # Her voice, decided on its own and carried by whatever her body does
-        # this beat (not while her mouth is busy eating): a heard sound is
-        # answered once with her nearest own syllable; otherwise she babbles
-        # in bouts, walking or still.
+        # this beat (not while her mouth is busy eating). A sound that stands
+        # out from the room is listened to (she stands still); when it ends
+        # she answers with a short bout, using for that kind of sound the
+        # answer that has landed nearest so far, trying a neighbour every
+        # other time. Otherwise she babbles in bouts, walking or still.
         voice_drive = None
         voice_reason = ""
         spoke_recently = tick - int(state["last_spoke_tick"]) < BABBLE_EVERY_BEATS
         in_quiet_spell = tick < int(state.get("quiet_until_tick", 0))
-        # A sound worth answering stands out from the room (louder than the
-        # running ambient level) and is not the sound she just answered; a
-        # microphone left open does not make her repeat one syllable forever.
         ambient = float(state.get("ambient_sound", 0.0))
-        answered_profile = state.get("answered_profile")
-        unanswered = []
-        for entry in state["heard"]:
-            if tick - int(entry["tick"]) > HEARD_RECENT_BEATS or entry.get("answered"):
-                continue
-            energy = sum(entry["profile"]) / len(entry["profile"])
-            if energy < HEARD_ENERGY_FLOOR or energy < ambient * HEARD_ABOVE_AMBIENT:
-                entry["answered"] = True  # part of the room, not a call to her
-                continue
-            if answered_profile is not None and _profile_distance(tuple(entry["profile"]), tuple(answered_profile)) < SAME_SOUND_DISTANCE:
-                entry["answered"] = True  # the same sound again
-                continue
-            unanswered.append(entry)
-        # An answer does not wait for her babble's quiet spell; a constant
-        # sound stops being answered once it has become the room's level.
-        if unanswered and not spoke_recently and state["voice"]:
-            target_profile = tuple(unanswered[-1]["profile"])
-            best = min(state["voice"], key=lambda entry: _profile_distance(tuple(entry["heard"]), target_profile))
-            voice_drive, voice_reason = tuple(best["drive"]), "answering a sound she heard with the nearest sound of her own"
-            unanswered[-1]["answered"] = True
-            state["answered_profile"] = list(target_profile)
-        elif not spoke_recently and not in_quiet_spell:
+        heard_now = sensed.heard_profile
+        call_now = False
+        if heard_now is not None:
+            energy = sum(heard_now) / len(heard_now)
+            call_now = energy >= HEARD_ENERGY_FLOOR and energy >= ambient * HEARD_ABOVE_AMBIENT
+        listening_since = state.get("listening_since")
+        answer_map = state.setdefault("answer_map", {})
+        if call_now and (listening_since is None or tick - int(listening_since) < LISTEN_CAP_BEATS):
+            if listening_since is None:
+                state["listening_since"] = tick
+            state["call_profile"] = list(heard_now)
+            listening = True
+        else:
+            listening = False
+            if listening_since is not None and state.get("call_profile") is not None:
+                # The call ended: answer it.
+                state["answer_bout"] = ANSWER_BOUT_SYLLABLES
+                state["answer_target"] = state["call_profile"]
+            state["listening_since"] = None
+            state["call_profile"] = None
+        if not listening and int(state.get("answer_bout", 0)) > 0 and not spoke_recently and state["voice"]:
+            target_profile = tuple(state["answer_target"])
+            key = heard_key(target_profile)
+            known = answer_map.get(key)
+            if known is None:
+                best = min(state["voice"], key=lambda entry: _profile_distance(tuple(entry["heard"]), target_profile))
+                voice_drive = tuple(best["drive"])
+                voice_reason = "answering a sound she heard with the nearest sound of her own"
+            elif int(known["tries"]) % 2 == 1:
+                voice_drive = neighbour_drive(tuple(known["drive"]), int(known["tries"]))
+                voice_reason = "answering a sound she heard; trying a sound one step away from her usual answer"
+            else:
+                voice_drive = tuple(known["drive"])
+                voice_reason = "answering a sound she heard with her best answer so far"
+            state["answer_bout"] = int(state["answer_bout"]) - 1
+            state["answer_pending"] = {"key": key, "drive": list(voice_drive), "target": list(target_profile)}
+        elif not listening and not spoke_recently and not in_quiet_spell and int(state.get("answer_bout", 0)) == 0:
             voice_drive, voice_reason = _new_drive(tick), "trying a sound of her own"
         if voice_drive is not None:
             state["bout_syllables"] = int(state.get("bout_syllables", 0)) + 1
             if int(state["bout_syllables"]) >= BOUT_SYLLABLES:
                 state["bout_syllables"], state["quiet_until_tick"] = 0, tick + QUIET_BEATS
+        for entry in state["heard"]:
+            entry["answered"] = True  # the call itself is what she answers now; nothing else is imitated
+        unanswered = []
 
         def decision(act: str, reason: str, commands: tuple[Any, ...] = (), target: str | None = None, drive: tuple[int, int, int] | None = None) -> Decision:
             if drive is None and voice_drive is not None and act in ("rest", "attend", "turn", "wander"):
                 if act == "rest":
-                    act, reason = ("imitate" if unanswered else "babble"), voice_reason
+                    act, reason = ("imitate" if "answering" in voice_reason else "babble"), voice_reason
                 else:
                     reason = reason + "; " + voice_reason
                 drive = voice_drive
             return Decision(act, reason, commands, target, drive, signature, novel, gate_count, seen)
+
+        # Listening: a sound that stands out holds her still while it lasts
+        # (unless she is eating); it is answered when it ends.
+        if listening and not (feeding and (held is not None or offered is not None)):
+            return Decision("listen", "listening to a sound", (), None, None, signature, novel, gate_count, seen)
 
         # An eaten core in her hand is dropped whether or not she is hungry.
         if held is not None and (held.material is None or nothing_left_to_bite(body, held)):
@@ -713,6 +784,10 @@ class FunctionalOrganism:
                 heading = (body.pose.heading_millidegrees + TURN_MILLIDEGREES) % 360_000
                 return decision("turn", "looking for a clear place to set down " + held.object_id, (MoveCommand(PoseMM(body.pose.position, heading), BEAT_MICROSECONDS),), held.object_id)
         elif held is None and not feeding:
+            # Something held out to her that is not food: she takes it from
+            # the caregiver's hand (the world's hand-to-hand law).
+            if offered is not None and not _is_food(offered) and handleable_held(offered):
+                return decision("take", "taking " + offered.object_id + " from the caregiver's hand", (TakeContactHeldObjectCommand(BEAT_MICROSECONDS),), offered.object_id)
             # What she felt with her own touch last beat (a set-down also
             # leaves a hand contact in the world; that is not a feel).
             under_hand = state.get("touching")
@@ -733,6 +808,7 @@ class FunctionalOrganism:
             return decision("attend", "a structure she has not met before")
         # Where she is: the room she stands in, remembered as visited now.
         here = _region_of(snapshot, body.pose.position, body.radius_mm)
+        state["room_now"] = None if here is None else here.region_id
         visited = state["visited"]
         if here is not None:
             visited[here.region_id] = tick
@@ -799,10 +875,23 @@ class FunctionalOrganism:
             if doors:
                 def far_room(item: Any) -> str:
                     return item.region_ids[0] if item.region_ids[1] == here.region_id else item.region_ids[1]
-                portal = min(doors, key=lambda item: (int(visited.get(far_room(item), -1)), item.portal_id))
+                portal = None
+                food_rooms = state.get("food_rooms", {})
+                if feeding and food_rooms:
+                    # Hungry: toward the room where she ate most recently, by
+                    # the doorways that lead there (her own recorded episodes).
+                    for room in sorted(food_rooms, key=lambda r: -int(food_rooms[r])):
+                        if room == here.region_id:
+                            continue
+                        route = _portal_route(snapshot, here.region_id, room)
+                        if route and route[0] in doors:
+                            portal, state["food_room_goal"] = route[0], room
+                            break
+                if portal is None:
+                    portal = min(doors, key=lambda item: (int(visited.get(far_room(item), -1)), item.portal_id))
                 state["door_goal"], state["goal_beats"], state["goal_refusals"] = {"portal_id": portal.portal_id, "from_region": here.region_id}, 0, 0
                 before_door, _past = door_crossing(snapshot, portal, here.region_id)
-                why = ("hungry, searching the next room; " if feeding else "nothing here she has not seen; ") + "going through " + portal.portal_id
+                why = ("hungry, going toward " + state["food_room_goal"] + " where food was; " if (feeding and state.get("food_room_goal")) else "hungry, searching the next room; " if feeding else "nothing here she has not seen; ") + "going through " + portal.portal_id
                 return decision("wander", why, move_commands_toward(snapshot, before_door, 0), portal.portal_id)
         if goal is not None:
             why = "hungry, searching for food; going to look at " if feeding else "nothing pressing; going to look at "
@@ -830,15 +919,20 @@ class FunctionalOrganism:
         if intake:
             state["meals_micrograms"] += intake
             state["bites"] += 1
+            if state.get("room_now"):
+                food_rooms = state.setdefault("food_rooms", {})
+                food_rooms[state["room_now"]] = tick_now
+                while len(food_rooms) > FOOD_ROOMS_CAPACITY:
+                    del food_rooms[min(food_rooms, key=lambda k: int(food_rooms[k]))]
         if applied_action in ("approach", "wander") and refusal is None:
             state["strides"] += 1
             state["strides_since_pickup"] = int(state.get("strides_since_pickup", 0)) + 1
-        if applied_action in ("touch", "grasp", "release") and refusal is None and decision.target_object_id is not None:
+        if applied_action in ("touch", "grasp", "take", "release") and refusal is None and decision.target_object_id is not None:
             touched = state.setdefault("touched", {})
             touched[decision.target_object_id] = tick_now
             while len(touched) > TOUCHED_CAPACITY:
                 del touched[min(touched, key=lambda k: int(touched[k]))]
-            if applied_action == "grasp":
+            if applied_action in ("grasp", "take"):
                 state["strides_since_pickup"] = 0
                 state["handled"] = int(state.get("handled", 0)) + 1
         if decision.act == "release" and refusal is not None:
@@ -871,21 +965,38 @@ class FunctionalOrganism:
         episodes.append([tick_now, key, decision.act, applied_action, state["reserve_micrograms"] - before, decision.signature])
         del episodes[:-EPISODE_CAPACITY]
         # Memory of sound: what she heard, and what her own last syllable sounded like.
+        ambient = float(state.get("ambient_sound", 0.0))
         if heard_profile is not None and sum(heard_profile) > 0:
             state["heard"].append({"tick": tick_now, "profile": list(heard_profile)})
             del state["heard"][:-HEARD_CAPACITY]
             energy = sum(heard_profile) / len(heard_profile)
-            ambient = float(state.get("ambient_sound", 0.0))
             state["ambient_sound"] = round(ambient * float(AMBIENT_MEMORY) + energy * (1.0 - float(AMBIENT_MEMORY)), 6)
+        else:
+            # Silence lowers the room's level, so a call after a pause stands out again.
+            state["ambient_sound"] = round(ambient * float(AMBIENT_MEMORY), 6)
         if self_profile is not None and state.get("pending_drive") is not None:
             state["voice"].append({"drive": list(state["pending_drive"]), "heard": list(self_profile), "tick": tick_now})
             del state["voice"][:-VOICE_CAPACITY]
+            pending = state.get("answer_pending")
+            if pending is not None and list(pending["drive"]) == list(state["pending_drive"]):
+                # How near did her answer land to the sound she answered? Keep
+                # the better of what she knew and what she just tried.
+                distance = _profile_distance(tuple(self_profile), tuple(pending["target"]))
+                answer_map = state.setdefault("answer_map", {})
+                known = answer_map.get(pending["key"])
+                if known is None or distance < float(known["distance"]):
+                    answer_map[pending["key"]] = {"drive": list(pending["drive"]), "distance": round(distance, 6), "tries": (int(known["tries"]) + 1) if known else 1}
+                else:
+                    known["tries"] = int(known["tries"]) + 1
+                while len(answer_map) > ANSWER_MAP_CAPACITY:
+                    del answer_map[min(answer_map, key=lambda k: int(answer_map[k]["tries"]))]
+                state["answer_pending"] = None
         state["pending_voice"] = None if spoke is None else base64.b64encode(spoke).decode("ascii")
         state["pending_drive"] = None if spoke is None else list(decision.drive)
         if spoke is not None:
             state["last_spoke_tick"] = tick_now
             state["syllables"] += 1
-        state["idle_beats"] = int(state["idle_beats"]) + 1 if decision.act in ("rest", "attend", "turn", "babble", "imitate") else 0
+        state["idle_beats"] = int(state["idle_beats"]) + 1 if decision.act in ("rest", "attend", "turn", "babble", "imitate", "listen") else 0
         # A heard sound answered this beat stays answered; older entries fall out of the ring.
         state["last_act"] = decision.act
         state["tick"] = tick_now + 1

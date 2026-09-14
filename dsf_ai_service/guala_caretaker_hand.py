@@ -172,6 +172,16 @@ def core_in_a_doorway(snapshot: Any, her: Any) -> Any | None:
     return None
 
 
+def stray_core(snapshot: Any, her: Any) -> Any | None:
+    """Any eaten core lying on the floor (doorway approaches first), if any."""
+
+    in_door = core_in_a_doorway(snapshot, her)
+    if in_door is not None:
+        return in_door
+    cores = [item for item in snapshot.objects if item.position is not None and item.object_id.startswith("apple") and _is_core(her, item)]
+    return min(cores, key=lambda item: item.object_id) if cores else None
+
+
 def withdraw(world: Any) -> dict[str, object] | None:
     """The caregiver's steps after a meal, one bounded stretch per call:
     carry what it holds home to the hallway and set it down there; walk
@@ -187,11 +197,11 @@ def withdraw(world: Any) -> dict[str, object] | None:
         return None
     person = others[0]
     at_home = _distance_mm(person.pose.position, CAREGIVER_HOME_MM) <= ARRIVED_HOME_MM
-    stray = core_in_a_doorway(snapshot, her) if (at_home and person.held_object_id is None) else None
+    stray = stray_core(snapshot, her) if (at_home and person.held_object_id is None) else None
     if person.held_object_id is None and at_home and stray is None:
         return None
     hand = _Hand(world, person.held_object_id or (stray.object_id if stray is not None else "nothing"))
-    record: dict[str, object] = {"schema": "guala.caregiver_withdrawal.v1", "set_down": None, "home": False, "fetched": None, "steps": hand.steps}
+    record: dict[str, object] = {"schema": "guala.caregiver_withdrawal.v1", "set_down": None, "home": False, "fetched": None, "binned": None, "steps": hand.steps}
     try:
         if stray is not None:
             region = _region_of(snapshot, stray.position, stray.radius_mm)
@@ -202,8 +212,15 @@ def withdraw(world: Any) -> dict[str, object] | None:
             return record
         hand.walk_to_region(CAREGIVER_HOME_REGION)
         record["home"] = hand.move(CAREGIVER_HOME_MM, _heading_toward(CAREGIVER_HOME_MM, her.pose.position))
-        if record["home"] and person.held_object_id is not None and hand.set_down(person.held_object_id):
-            record["set_down"] = person.held_object_id
+        held_id = person.held_object_id
+        if record["home"] and held_id is not None:
+            held = next((item for item in world.observation_snapshot().objects if item.object_id == held_id), None)
+            if held is not None and held_id.startswith("apple") and _is_core(her, held):
+                # An eaten core goes out at the world's boundary: the bin.
+                world.admit_authored_departure(held_id)
+                record["binned"] = held_id
+            elif hand.set_down(held_id):
+                record["set_down"] = held_id
     except _Bounded:
         hand.steps.append({"operation": "bound", "reason": "withdrawal_steps_exhausted", "to": None})
     return record
@@ -642,7 +659,7 @@ def present_food(world: Any, object_id: str) -> dict[str, object]:
     return outcome
 
 
-__all__ = ("DELIVERY_ID", "core_in_a_doorway", "deliver_apple", "in_doorway", "nothing_left_to_bite", "offered_within_reach", "present_food", "withdraw")
+__all__ = ("DELIVERY_ID", "core_in_a_doorway", "deliver_apple", "in_doorway", "nothing_left_to_bite", "offered_within_reach", "present_food", "stray_core", "withdraw")
 
 
 def offered_within_reach(snapshot: Any) -> str | None:

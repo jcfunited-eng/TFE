@@ -38,6 +38,7 @@ from dsf_ai_service.substrate.w1_physical_receptors import retinal_irradiance_fi
 
 MAX_NATIVE_INTERVALS_PER_OCCURRENCE = 1
 CAREGIVER_RETRY_BEATS = 16
+OFFER_PATIENCE_BEATS = 40  # a toy is held out to her for ten seconds before it is carried home
 CAMERA_FIELD_MILLIDEGREES = (60_000, 45_000)  # the declared camera field the page's pitch is measured against
 GAZE_RECENTRE = 0.05  # each beat the gaze gives back a twentieth of its offset from the frame's centre
 WORLD_RETINAL_SITES = 903
@@ -124,12 +125,24 @@ def _caregiver_withdrawal(organism: FunctionalOrganism, world: Any) -> dict[str,
     person = others[0]
     if person.held_object_id is not None:
         held = next((item for item in snapshot.objects if item.object_id == person.held_object_id), None)
-        meal_over = not organism.feeding or held is None or held.material is None or nothing_left_to_bite(her, held)
-        if not meal_over:
-            return None
+        if held is not None and not held.object_id.startswith("apple"):
+            # A toy held out to her: the caregiver keeps offering it for a
+            # while; if she does not take it, it is carried home and set down.
+            since = organism._state.get("offer_since_tick")
+            if since is None:
+                organism._state["offer_since_tick"] = tick
+                return None
+            if tick - int(since) < OFFER_PATIENCE_BEATS:
+                return None
+        else:
+            meal_over = not organism.feeding or held is None or held.material is None or nothing_left_to_bite(her, held)
+            if not meal_over:
+                return None
         contact = getattr(her, "active_contact", None)
         if contact is not None and contact.object_id == person.held_object_id:
-            return None  # her mouth is still on it; her next own act clears the contact, then the caregiver steps back
+            return None  # her mouth or hand is still on it; her next own act clears the contact, then the caregiver steps back
+    else:
+        organism._state["offer_since_tick"] = None
     record = withdraw(world)
     if record is not None and not (record["home"] or record["fetched"]):
         organism._state["caregiver_retry_tick"] = tick + CAREGIVER_RETRY_BEATS
