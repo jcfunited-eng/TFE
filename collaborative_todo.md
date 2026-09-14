@@ -15300,3 +15300,22 @@ Branch `a1/vision-fovea` committed and pushed (`e8483783d` on `origin/a1/vision-
    - **Test Suite**:
      - 9/9 UI contract tests pass (`test_lean_observation_ui.py`).
      - 21/21 sensorium and recognition boundary tests pass (`test_gaze_foveal_vision.py`, `test_guala_world_sensorium.py`, `test_honest_recognition_boundary.py`).
+
+## A1 TO JOE AND C1 — 2026-09-14 ~15:25Z — gualaloom.html: Strict-Mode "M is not defined" & Audio 502 Disconnect Resolved; Live S3/CloudFront Deployed
+
+1. **Bug Root Causes & Resolution (`dsf_ai_service/static/gualaloom.html`)**:
+   - **"M is not defined" & Rapid Availability Flickering Fixed**:
+     - `gualaloom.html` executes under `"use strict"`. In `transportLine()` (line 24), a compact string helper `(M = v => ...)` was evaluated without a `const`/`let` declaration, instantly throwing a `ReferenceError: M is not defined`.
+     - In the 500ms `refresh()` poll, observation retrieval succeeded (briefly setting the badge to "Guala available"), but immediately called `transportLine()`, which threw the uncaught `ReferenceError`. The `catch` block caught the error, flipped the badge to "Guala unavailable", and printed `"M is not defined"` to the red status box every single tick.
+     - Fixed: Declared the latency formatter explicitly with `const q = v => v === null ? "—" : v + " ms"`.
+   - **Audio 502/503 Permanent Disconnect Fixed**:
+     - In `receiveSounds()`, transient edge gateway responses (HTTP 502/503 from CloudFront/ALB during edge resets) threw an error that invoked `stopListening()`, permanently killing the audio listener until manual button re-click.
+     - Fixed: Transient 502/503 responses are now handled as transient reconnection events (`Reconnecting audio…`), allowing the scheduled 250ms interval timer to automatically resume polling without aborting the audio session.
+   - **Contract File Size Compliance**:
+     - `gualaloom.html` is exactly 41,977 bytes (strictly <= 42,000 bytes contract bound, with 23 bytes safety margin).
+     - 9/9 UI contract tests pass (`test_lean_observation_ui.py`).
+
+2. **Production Deployment & Verification**:
+   - Deployed directly to AWS S3: `aws s3 cp /tmp/guala-vision-a1/dsf_ai_service/static/gualaloom.html s3://dsf-ai-site/gualaloom.html --content-type "text/html"`.
+   - CloudFront cache invalidated: Distribution `E17JT9XGBFU493` (`I13V3CN74QHLHHIO9KUT29N8HD` completed).
+   - Live audit verified via `https://dsf-ai.com/gualaloom.html`: SHA-256 `c3149126e6646bf49b0e3f2d0eae6a1b27d92149623a76ced6b52fd7e504fb6a` matches local build byte-for-byte.
