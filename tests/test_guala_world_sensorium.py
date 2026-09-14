@@ -67,9 +67,9 @@ def _world() -> ThermallyCoupledEmbodimentWorldAuthority:
 
 BODY_AXES = (
     (0, "neck_yaw", "millidegree", 0, -180_000, 0, 180_000),
-    (1, "neck_pitch", "millidegree", 0, -45_000, 0, 45_000),
-    (2, "left_eyelid_aperture", "micrometre", 160, 0, 0, 320),
-    (3, "right_eyelid_aperture", "micrometre", 320, 0, 0, 320),
+    (1, "left_eyelid_aperture", "micrometre", 160, 0, 0, 320),
+    (2, "right_eyelid_aperture", "micrometre", 320, 0, 0, 320),
+    (3, "neck_pitch", "millidegree", 0, -35_000, 0, 45_000),
 )
 
 
@@ -198,7 +198,7 @@ def test_compact_retinal_capture_matches_spectral_values_without_signal_objects(
     assert _retinal_luminance(repeated) == original_luminance(repeated)
 
 
-def test_focal_optics_preserve_old_apertures_and_cover_the_whole_field_exactly() -> None:
+def test_focal_optics_preserve_old_apertures_and_tile_half_arcminute_center() -> None:
     from dsf_ai_service.substrate.w1_physical_receptors import (
         FOCAL_RETINAL_SITE_GEOMETRY, RETINAL_SITE_GEOMETRY, UPGRADED_RETINAL_SITE_GEOMETRY,
     )
@@ -206,11 +206,74 @@ def test_focal_optics_preserve_old_apertures_and_cover_the_whole_field_exactly()
     assert UPGRADED_RETINAL_SITE_GEOMETRY[:135] == RETINAL_SITE_GEOMETRY
     assert len(FOCAL_RETINAL_SITE_GEOMETRY) == 768
     assert tuple(site[0] for site in FOCAL_RETINAL_SITE_GEOMETRY) == tuple(range(135, 903))
+    assert all(site[3:] == (Fraction(25, 6), Fraction(25, 6)) for site in FOCAL_RETINAL_SITE_GEOMETRY)
     first_row = FOCAL_RETINAL_SITE_GEOMETRY[:32]
-    assert first_row[0][1] - first_row[0][3] == -90_000
-    assert first_row[-1][1] + first_row[-1][3] == 90_000
+    assert first_row[0][1] - first_row[0][3] == -Fraction(400, 3)
+    assert first_row[-1][1] + first_row[-1][3] == Fraction(400, 3)
     assert all(left[1] + left[3] == right[1] - right[3] for left, right in zip(first_row, first_row[1:]))
     first_column = FOCAL_RETINAL_SITE_GEOMETRY[::32]
-    assert first_column[0][2] + first_column[0][4] == 45_000
-    assert first_column[-1][2] - first_column[-1][4] == -45_000
+    assert first_column[0][2] + first_column[0][4] == 100
+    assert first_column[-1][2] - first_column[-1][4] == -100
     assert all(upper[2] - upper[4] == lower[2] + lower[4] for upper, lower in zip(first_column, first_column[1:]))
+
+
+def test_external_sampled_sight_omits_discarded_rays_not_world_consequences(monkeypatch) -> None:
+    from dataclasses import replace
+    from dsf_ai_service import guala_world_sensorium as sampling
+
+    world = _world()
+    _prepared, execution = _commit(world)
+    args = dict(world=world, snapshot=execution.after, body_axes=BODY_AXES, frame_count=26)
+    reference = passive_sensorium(**args)
+    before = bytes(world.encoded_snapshot())
+
+    def forbidden_render(*_args, **_kwargs):
+        raise AssertionError("discarded world sight was rendered")
+
+    monkeypatch.setattr(sampling, "retinal_irradiance_field", forbidden_render)
+    actual = passive_sensorium(**args, include_world_sight=False)
+    assert actual.retina == actual.retina_focal == ()
+    assert actual == replace(reference, retina=(), retina_focal=())
+    assert bytes(world.encoded_snapshot()) == before
+
+
+def test_actual_pitch_reaches_passive_and_both_body_return_fields() -> None:
+    from dsf_ai_service.guala_world_sensorium import (
+        body_consequence_receptor_capture, passive_receptor_capture,
+    )
+    from dsf_ai_service.substrate.w1_physical_receptors import retinal_irradiance_field
+
+    world = _world()
+    _prepared, execution = _commit(world)
+    raised = tuple(
+        (*axis[:3], 30_000, *axis[4:]) if axis[1] == "neck_pitch" else axis
+        for axis in BODY_AXES
+    )
+    before, after, _contacts, _before_lid, _after_lid = body_consequence_receptor_capture(
+        execution=execution, predecessor_body_axes=BODY_AXES,
+        successor_body_axes=raised,
+    )
+    assert before == retinal_irradiance_field(execution.before, include_focal=True)
+    assert after == retinal_irradiance_field(
+        execution.after, retinal_pitch_offset_millidegrees=30_000, include_focal=True,
+    )
+    passive, _contacts, _lid = passive_receptor_capture(
+        snapshot=execution.after, body_axes=raised,
+    )
+    assert passive == after
+    assert after != before
+
+
+def test_retinal_carriage_refuses_missing_or_untyped_pitch() -> None:
+    import pytest
+    from dsf_ai_service.guala_world_sensorium import retinal_carriage
+
+    with pytest.raises(RuntimeError, match="neck_pitch"):
+        retinal_carriage(tuple(axis for axis in BODY_AXES if axis[1] != "neck_pitch"))
+    for position in (True, 45_001):
+        invalid = tuple(
+            (*axis[:3], position, *axis[4:]) if axis[1] == "neck_pitch" else axis
+            for axis in BODY_AXES
+        )
+        with pytest.raises(RuntimeError, match="neck_pitch"):
+            retinal_carriage(invalid)

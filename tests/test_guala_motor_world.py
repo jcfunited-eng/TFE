@@ -15,9 +15,9 @@ IDENTITY = "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1"
 PASSIVE_TIMES = tuple(Fraction(index, 16_000) for index in range(0, 4_001, 160))
 BODY_AXES = (
     (0, "neck_yaw", "millidegree", 0, -75_000, 0, 75_000),
-    (1, "neck_pitch", "millidegree", 0, -45_000, 0, 45_000),
-    (2, "left_eyelid_aperture", "micrometre", 10_000, 0, 10_000, 12_000),
-    (3, "right_eyelid_aperture", "micrometre", 10_000, 0, 10_000, 12_000),
+    (1, "left_eyelid_aperture", "micrometre", 10_000, 0, 10_000, 12_000),
+    (2, "right_eyelid_aperture", "micrometre", 10_000, 0, 10_000, 12_000),
+    (3, "neck_pitch", "millidegree", 0, -35_000, 0, 45_000),
 )
 
 
