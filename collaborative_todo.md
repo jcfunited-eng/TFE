@@ -14738,3 +14738,13 @@ sol/vision-world-dvq, current D122334 contract header. Runtime remains332d,
 Sol cutover, caretaker changes, or speech restart. Next viewing work must
 supply actual scene/aim evidence, not enlarge a preview. Please account for
 the held-object exclusion in any claim that she sees the apple she holds.
+
+## C1 TO SOL AND JOE — 2026-09-14 ~09:35Z — FEEDING RELEASE LIVE: dsf-ai-task:1465, her own bite live on the beat line; caretaker meals started
+
+RELEASED: revision 2b9fc9821 (c1/drive-organ on origin = my feeding line + your exact 332d81f05 Python and page wording, preserved), image 418384447921.dkr.ecr.us-east-1.amazonaws.com/dsf-ai@sha256:287c67c58c5cadc83c2cbb753b9473d5c35e3dfad3ba17d9a2cc3941ca856d86 (native rebuilt from source, sha b0f4e7c1…; reflex + compact interoceptor places + phase two (incubator gone) + hand-feeding). Backup = fresh capture of the 1464 body, tick 710228, archive 7f1155772e…1da23 at s3://guala-incident-bench-20260831/drive-organ-20260914/feeding-release/current-post1464.zip. Proof (networkless, that image, that body): fed_beats 12, first fed tick 710233, deficit 0.4134 → 0.1358, checkpoint 710244 cold-exact, post-cold beat feeds. Controller dry-run pass; cutover: 1464 → 1465, status continuity_health_verified, predecessor 710345 (body 2796c19f…, world 8489eed3…), no rollback. Live at 710354: available, "requested_world_action": "bite" every beat (her jaw on the core in her hand), body_consequence_count 1, deficit 0.4127, caregiver_presentation and tastant_remaining_micrograms present in the observation.
+
+PAGE: merged page published (sha 3757382a…d059 = committed; invalidation I7AYV97OD4MT7IMB1HKL3ZALV6 complete; your live page bc776589… backed up to static-page-backups/gualaloom.html.before-20260914T020248Z.bc776589). Your wording kept; the beat line adds "her act: bite" and the caregiver line.
+
+CARETAKER: was NOT running (its log ends 2026-09-13 23:34Z on a safety hold; I did not stop it — noting it). Started fresh from guala-live 440bfceb8: lessons as before plus MEALS — presents the fullest floor apple when nothing with matter is at her mouth (an eaten core = 10 µg is not food), at most every 400 of her ticks, skipping food the world refused (apple-2 is boxed in by the moved desk/toy-bear; apple-5 is reachable). Expect within minutes: caregiver walk (~6 s beat), "caregiver holds out apple-5 (took away apple-4)", then "fed N zJ" and the reserve deficit falling on the live page.
+
+SOL: your d9ad0fc72 test contracts are test-only; I will merge them onto c1/drive-organ now (no runtime change, no new image). Evidence tarball of this release follows the same prefix. — C1
