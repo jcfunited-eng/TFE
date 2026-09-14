@@ -73,16 +73,16 @@ RETINA_FINE_ROWS = 6
 RETINA_FINE_COLUMNS = 18
 RETINA_FINE_RECEPTOR_COUNT = RETINA_FINE_ROWS * RETINA_FINE_COLUMNS
 RETINA_TOTAL_RECEPTOR_COUNT = RETINA_RECEPTOR_COUNT + RETINA_FINE_RECEPTOR_COUNT
-RETINA_FOCAL_ROWS = 24
-RETINA_FOCAL_COLUMNS = 32
+RETINA_FOCAL_ROWS = 60
+RETINA_FOCAL_COLUMNS = 80
 # Two samples per one-arcminute critical detail: acquisition calibration,
 # not a claim of recognition, camera resolution or end-to-end acuity.
-# The focal field spans 60 x 45 degrees across its 32 x 24 sites (1875
+# The focal field spans 60 x 45 degrees across its 80 x 60 sites (750
 # millidegrees per site), the same field as the whole camera frame held
 # still; the earlier half-arc-minute pitch made a quarter-degree cone that saw
 # a 9 mm patch of wall, and the 20-degree cone at head height saw only wall
 # above the floor where every object lies (Joe, 2026-09-14).
-RETINA_FOCAL_PITCH_MILLIDEGREES = Fraction(1875)
+RETINA_FOCAL_PITCH_MILLIDEGREES = Fraction(750)
 RETINA_FOCAL_HORIZONTAL_FOV_MILLIDEGREES = RETINA_FOCAL_COLUMNS * RETINA_FOCAL_PITCH_MILLIDEGREES
 RETINA_FOCAL_VERTICAL_FOV_MILLIDEGREES = RETINA_FOCAL_ROWS * RETINA_FOCAL_PITCH_MILLIDEGREES
 RETINA_FOCAL_RECEPTOR_COUNT = RETINA_FOCAL_ROWS * RETINA_FOCAL_COLUMNS
@@ -562,6 +562,16 @@ def _portal_aperture_background(
     """Expose adjacent-room radiance only through authored doorway geometry."""
 
     regions = {region.region_id: region for region in observation.regions}
+    focal_count = len(site_geometry) - RETINA_TOTAL_RECEPTOR_COUNT
+    has_focal = focal_count > 0
+    ambient_sites = site_geometry[:RETINA_TOTAL_RECEPTOR_COUNT]
+
+    pitch = int(RETINA_FOCAL_PITCH_MILLIDEGREES)
+    half_pitch = pitch // 2
+    cell_area = 4 * half_pitch * half_pitch
+    focal_left = -int(RETINA_FOCAL_HORIZONTAL_FOV_MILLIDEGREES) // 2
+    focal_top = int(RETINA_FOCAL_VERTICAL_FOV_MILLIDEGREES) // 2
+
     for portal in observation.portals:
         if current_region.region_id not in portal.region_ids:
             continue
@@ -614,13 +624,15 @@ def _portal_aperture_background(
             planar_distance,
         ) - retinal_pitch_offset_millidegrees
         radiance = _region_radiance(neighbour)
+
+        # Ambient apertures (135 sites)
         for (
             site_index,
             horizontal_center,
             vertical_center,
             horizontal_half,
             vertical_half,
-        ) in site_geometry:
+        ) in ambient_sites:
             horizontal_overlap = max(
                 0,
                 min(horizontal_center + horizontal_half, horizontal_max)
@@ -643,6 +655,41 @@ def _portal_aperture_background(
                     pixels[site_index], radiance, strict=True
                 )
             )
+
+        # Accelerated focal grid projection
+        if has_focal:
+            col_min = max(0, (horizontal_min - focal_left) // pitch)
+            col_max = min(RETINA_FOCAL_COLUMNS - 1, (horizontal_max - focal_left) // pitch)
+            row_min = max(0, (focal_top - vertical_max) // pitch)
+            row_max = min(RETINA_FOCAL_ROWS - 1, (focal_top - vertical_min) // pitch)
+            if col_min <= col_max and row_min <= row_max:
+                for r in range(row_min, row_max + 1):
+                    v_center = focal_top - (2 * r + 1) * half_pitch
+                    v_overlap = max(
+                        0,
+                        min(v_center + half_pitch, vertical_max)
+                        - max(v_center - half_pitch, vertical_min),
+                    )
+                    if not v_overlap:
+                        continue
+                    row_offset = RETINA_TOTAL_RECEPTOR_COUNT + r * RETINA_FOCAL_COLUMNS
+                    for c in range(col_min, col_max + 1):
+                        h_center = focal_left + (2 * c + 1) * half_pitch
+                        h_overlap = max(
+                            0,
+                            min(h_center + half_pitch, horizontal_max)
+                            - max(h_center - half_pitch, horizontal_min),
+                        )
+                        if not h_overlap:
+                            continue
+                        cov = Fraction(h_overlap * v_overlap, cell_area)
+                        s_idx = row_offset + c
+                        pixels[s_idx] = tuple(
+                            prior * (1 - cov) + observed * cov
+                            for prior, observed in zip(
+                                pixels[s_idx], radiance, strict=True
+                            )
+                        )
 
 
 def _retinal_projection(
@@ -681,6 +728,16 @@ def _retinal_projection(
     pixels: list[tuple[Fraction, ...]] = [
         background for _ in site_geometry
     ]
+    focal_count = len(site_geometry) - RETINA_TOTAL_RECEPTOR_COUNT
+    has_focal = focal_count > 0
+    ambient_sites = site_geometry[:RETINA_TOTAL_RECEPTOR_COUNT]
+
+    pitch = int(RETINA_FOCAL_PITCH_MILLIDEGREES)
+    half_pitch = pitch // 2
+    cell_area = 4 * half_pitch * half_pitch
+    focal_left = -int(RETINA_FOCAL_HORIZONTAL_FOV_MILLIDEGREES) // 2
+    focal_top = int(RETINA_FOCAL_VERTICAL_FOV_MILLIDEGREES) // 2
+
     _portal_aperture_background(
         observation,
         eye=eye,
@@ -795,13 +852,33 @@ def _retinal_projection(
         pattern = surface.optical_surface
         if pattern is not None:
             pattern.verify()
+
+        if pattern is None:
+            reflectance = surface.reflectance_ppm
+            emission = surface.emission_ppm or ((0,) * len(reflectance))
+            base_surface_light = tuple(
+                min(
+                    Fraction(1),
+                    Fraction(value * illumination, 1_000_000_000_000)
+                    + Fraction(emitted, 1_000_000),
+                )
+                for value, illumination, emitted in zip(
+                    reflectance,
+                    surface_region.illumination_ppm,
+                    emission,
+                )
+            )
+        else:
+            base_surface_light = None
+
+        # Ambient sites loop (135)
         for (
             site_index,
             horizontal_center,
             vertical_center,
             half_horizontal_receptor,
             half_vertical_receptor,
-        ) in site_geometry:
+        ) in ambient_sites:
             if abs(vertical_center - relative_vertical) > (
                 angular_radius + half_vertical_receptor
             ):
@@ -838,7 +915,6 @@ def _retinal_projection(
             )
             if coverage <= 0:
                 continue
-            reflectance = surface.reflectance_ppm
             if pattern is not None and angular_radius > 0:
                 pattern_column = min(
                     pattern.columns - 1,
@@ -874,25 +950,122 @@ def _retinal_projection(
                     row=pattern_row,
                     column=pattern_column,
                 )
-            emission = surface.emission_ppm or ((0,) * len(reflectance))
-            surface_light = tuple(
-                min(
-                    Fraction(1),
-                    Fraction(value * illumination, 1_000_000_000_000)
-                    + Fraction(emitted, 1_000_000),
+                emission = surface.emission_ppm or ((0,) * len(reflectance))
+                surface_light = tuple(
+                    min(
+                        Fraction(1),
+                        Fraction(value * illumination, 1_000_000_000_000)
+                        + Fraction(emitted, 1_000_000),
+                    )
+                    for value, illumination, emitted in zip(
+                        reflectance,
+                        surface_region.illumination_ppm,
+                        emission,
+                    )
                 )
-                for value, illumination, emitted in zip(
-                    reflectance,
-                    surface_region.illumination_ppm,
-                    emission,
-                )
-            )
+            else:
+                surface_light = base_surface_light
             pixels[site_index] = tuple(
                 prior * (1 - coverage) + observed * coverage
                 for prior, observed in zip(
                     pixels[site_index], surface_light, strict=True
                 )
             )
+
+        # Accelerated focal grid projection
+        if has_focal:
+            H_min = relative_horizontal - angular_radius
+            H_max = relative_horizontal + angular_radius
+            V_min = relative_vertical - angular_radius
+            V_max = relative_vertical + angular_radius
+            col_min = max(0, (H_min - focal_left) // pitch)
+            col_max = min(RETINA_FOCAL_COLUMNS - 1, (H_max - focal_left) // pitch)
+            row_min = max(0, (focal_top - V_max) // pitch)
+            row_max = min(RETINA_FOCAL_ROWS - 1, (focal_top - V_min) // pitch)
+            if col_min <= col_max and row_min <= row_max:
+                for r in range(row_min, row_max + 1):
+                    v_center = focal_top - (2 * r + 1) * half_pitch
+                    if abs(v_center - relative_vertical) > (angular_radius + half_pitch):
+                        continue
+                    v_overlap = max(
+                        0,
+                        min(v_center + half_pitch, V_max)
+                        - max(v_center - half_pitch, V_min),
+                    )
+                    if not v_overlap:
+                        continue
+                    row_offset = RETINA_TOTAL_RECEPTOR_COUNT + r * RETINA_FOCAL_COLUMNS
+                    for c in range(col_min, col_max + 1):
+                        h_center = focal_left + (2 * c + 1) * half_pitch
+                        if abs(h_center - relative_horizontal) > (angular_radius + half_pitch):
+                            continue
+                        h_overlap = max(
+                            0,
+                            min(h_center + half_pitch, H_max)
+                            - max(h_center - half_pitch, H_min),
+                        )
+                        if not h_overlap:
+                            continue
+                        coverage = Fraction(h_overlap * v_overlap, cell_area)
+                        if coverage <= 0:
+                            continue
+                        if pattern is not None and angular_radius > 0:
+                            p_col = min(
+                                pattern.columns - 1,
+                                max(
+                                    0,
+                                    (
+                                        (
+                                            h_center
+                                            - relative_horizontal
+                                            + angular_radius
+                                        )
+                                        * pattern.columns
+                                    )
+                                    // (2 * angular_radius),
+                                ),
+                            )
+                            p_row = min(
+                                pattern.rows - 1,
+                                max(
+                                    0,
+                                    (
+                                        (
+                                            relative_vertical
+                                            + angular_radius
+                                            - v_center
+                                        )
+                                        * pattern.rows
+                                    )
+                                    // (2 * angular_radius),
+                                ),
+                            )
+                            refl = pattern.reflectance_at_verified_ppm(
+                                row=p_row,
+                                column=p_col,
+                            )
+                            em = surface.emission_ppm or ((0,) * len(refl))
+                            surface_light = tuple(
+                                min(
+                                    Fraction(1),
+                                    Fraction(val * ill, 1_000_000_000_000)
+                                    + Fraction(e, 1_000_000),
+                                )
+                                for val, ill, e in zip(
+                                    refl,
+                                    surface_region.illumination_ppm,
+                                    em,
+                                )
+                            )
+                        else:
+                            surface_light = base_surface_light
+                        s_idx = row_offset + c
+                        pixels[s_idx] = tuple(
+                            prior * (1 - coverage) + observed * coverage
+                            for prior, observed in zip(
+                                pixels[s_idx], surface_light, strict=True
+                            )
+                        )
     return tuple(pixels)
 
 

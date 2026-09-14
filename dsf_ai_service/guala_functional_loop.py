@@ -41,8 +41,8 @@ CAREGIVER_RETRY_BEATS = 16
 OFFER_PATIENCE_BEATS = 40  # a toy is held out to her for ten seconds before it is carried home
 CAMERA_FIELD_MILLIDEGREES = (60_000, 45_000)  # the declared camera field the page's pitch is measured against
 GAZE_RECENTRE = 0.05  # each beat the gaze gives back a twentieth of its offset from the frame's centre
-WORLD_RETINAL_SITES = 903
-WORLD_FOCAL_SITES = 768
+WORLD_RETINAL_SITES = 4935
+WORLD_FOCAL_SITES = 4800
 WORLD_LEGACY_SITES = 27   # the 9 x 3 coarse field that precedes the wide field
 WORLD_WIDE_SITES = 108    # the 18 x 6 wide field over 180 x 90 degrees
 
