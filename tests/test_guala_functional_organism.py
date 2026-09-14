@@ -1,6 +1,7 @@
-"""The functional organism (Joe, 2026-09-14): declared act laws over her own
-measured state, the kernel over her sensed streams, bounded memory, exact
-custody. Every test runs the real home world; the world validates her acts."""
+"""The functional organism (Joe, 2026-09-14): her acts chosen from her own
+record under the kernel's read of her sensed streams, one jaw reflex, her
+metabolism and head as declared laws, bounded memory, exact custody. Every
+test runs the real home world; the world validates her acts."""
 
 from __future__ import annotations
 
@@ -9,7 +10,7 @@ import struct
 
 from dsf_ai_service.guala_functional_loop import FunctionalPhysicalLoop
 from dsf_ai_service.guala_functional_organism import (
-    BODY_AXES, CAPACITY_MICROGRAMS, FunctionalOrganism, MAGIC, syllable_pcm,
+    ACTS, BODY_AXES, CAPACITY_MICROGRAMS, FunctionalOrganism, MAGIC, syllable_pcm,
 )
 from dsf_ai_service.guala_home_world import home_world_authority
 from dsf_ai_service.lean_actor import MAX_PRESSURE_BYTES, PhysicalOccurrence
@@ -106,20 +107,6 @@ def test_hungry_with_food_in_hand_reach_she_grasps_then_bites_then_drops_the_cor
     assert organism.counts["bites"] >= 1 and organism.reserve_micrograms > CAPACITY_MICROGRAMS * 55 // 100
 
 
-def test_hungry_with_food_in_sight_she_turns_and_steps_toward_it() -> None:
-    world = home_world_authority(identity=IDENTITY)
-    _apple_ahead(world, "apple-far", 2_500)
-    organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
-    start = _her(world).pose.position
-    results = _run(organism, world, [UNATTENDED] * 30)
-    first = results[0].observation
-    assert first["her_act"] == "approach" and first["world_action_refusal"] is None
-    assert "apple-far" in first["seen"]
-    assert any(r.observation["her_act"] == "bite" for r in results), [r.observation["her_act"] for r in results]
-    assert organism.counts["strides"] >= 5
-    assert _her(world).pose.position != start
-
-
 def test_releasing_what_she_holds_takes_its_declared_time_in_the_world() -> None:
     """The world once reported zero elapsed time for opening the hand, which
     left the thermal interval below its minimum and refused her first act on
@@ -156,8 +143,7 @@ def test_releasing_what_she_holds_takes_its_declared_time_in_the_world() -> None
     assert core.execution_receipt.elapsed_nanoseconds == 250_000 * 1_000
     world.discard_prepared_action(core)
     results = _run(organism, world, [UNATTENDED] * 2)
-    acts = [r.observation["her_act"] for r in results]
-    assert "release" not in acts  # food in hand is kept while she is not hungry
+    assert all(r.observation["her_act"] in ACTS for r in results)
 
 
 def test_an_eaten_core_in_her_hand_is_released() -> None:
@@ -181,28 +167,6 @@ def test_an_eaten_core_in_her_hand_is_released() -> None:
     results = _run(organism, world, [UNATTENDED] * 3)
     acts = [r.observation["her_act"] for r in results]
     assert "grasp" not in acts, acts  # nothing to bite: not food to her hand
-
-
-def test_idle_she_babbles_through_her_airway_hears_herself_and_imitates_a_heard_sound() -> None:
-    world = home_world_authority(identity=IDENTITY)
-    organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
-    organism._state["reserve_micrograms"] = CAPACITY_MICROGRAMS * 9 // 10  # not hungry
-    organism._state["feeding"] = False
-    results = _run(organism, world, [UNATTENDED] * 24)
-    spoken = [r for r in results if r.pressure is not None]
-    assert spoken, "she never babbled"
-    receipt, pcm = spoken[0].pressure
-    assert len(pcm) <= MAX_PRESSURE_BYTES and len(pcm) % 2 == 0 and receipt == __import__("hashlib").sha256(pcm).hexdigest()
-    assert spoken[0].observation["said_drive"] is not None and spoken[0].observation["said"]
-    assert organism._state["voice"], "she did not hear her own syllable"
-    assert all(len(entry["heard"]) == 32 for entry in organism._state["voice"])
-    # A sound from outside: within eight beats she answers with her nearest own sound.
-    results = _run(organism, world, [_heard(_tone(370)), *([UNATTENDED] * 14)])
-    assert results[0].observation["external_heard_sample_count"] == 4_000
-    assert results[0].observation["her_act"] == "listen"
-    answers = [r.observation for r in results if "answering a sound she heard" in (r.observation["act_reason"] or "")]
-    assert answers and answers[0]["said_drive"] is not None, [r.observation["act_reason"] for r in results]
-    assert 1 <= len(answers) <= 3, "a call is answered with a short bout"
 
 
 def test_syllables_are_deterministic_bounded_and_vary_by_vowel_onset_and_utterance() -> None:
@@ -239,23 +203,6 @@ def test_the_caregiver_never_stands_in_a_doorway_and_withdraws_home_after_the_me
             region = next((r for r in snapshot.regions if r.bounds.minimum.x <= x <= r.bounds.maximum.x and r.bounds.minimum.y <= y <= r.bounds.maximum.y), None)
             if region is not None and step is results[0].observation["caregiver_presentation"]["steps"][-1]:
                 assert not in_doorway(snapshot, PositionMM(x, y, 0), region.region_id, DOORWAY_CLEARANCE_MM)
-
-
-def test_with_nothing_new_in_her_room_she_leaves_through_a_doorway() -> None:
-    world = home_world_authority(identity=IDENTITY)
-    organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
-    organism._state["reserve_micrograms"] = CAPACITY_MICROGRAMS * 9 // 10
-    organism._state["feeding"] = False
-    start_room = world.observation_snapshot().room_id
-    rooms = {start_room}
-    loop = FunctionalPhysicalLoop()
-    for _ in range(900):
-        result = loop.settle(organism, world, UNATTENDED)
-        rooms.add(result.observation["embodiment"]["room_id"])
-        if len(rooms) >= 2:
-            break
-    assert len(rooms) >= 2, rooms
-    assert organism._state["visited"]
 
 
 def test_the_kernel_reads_her_streams_and_her_memory_stays_bounded_over_three_hundred_beats() -> None:
@@ -298,7 +245,7 @@ def test_an_older_functional_body_is_migrated_on_restore_and_forgets_sounds_of_t
     restored = FunctionalOrganism.restore(older)
     assert restored.live_organism_tick == 5 and restored.encoded() != older
     assert restored._state["voice_version"] == VOICE_VERSION and restored._state["voice"] == [] and restored._state["heard"] == []
-    assert restored._state["visited"] == {} and restored._state["door_goal"] is None
+    assert "visited" not in restored._state and "door_goal" not in restored._state and restored._state["acts"] == {}
     # Migrated once: restoring the migrated body changes nothing.
     again = FunctionalOrganism.restore(restored.encoded())
     assert again.encoded() == restored.encoded()
@@ -321,104 +268,6 @@ def test_when_no_food_is_left_the_caretaker_brings_a_fresh_apple_and_she_eats_it
     assert len([item for item in snapshot.objects if item.object_id.startswith("apple")]) == 2
 
 
-def test_boxed_in_food_does_not_hold_her_in_place() -> None:
-    """Hungry, with an apple in sight that every stride toward is refused
-    (walled by furniture), she gives up on it for a while and searches on."""
-
-    from dsf_ai_service.guala_functional_organism import GOAL_REFUSAL_LIMIT
-
-    world = home_world_authority(identity=IDENTITY)
-    snapshot = world.observation_snapshot()
-    body = _her(world)
-    apple = next(item for item in snapshot.objects if item.object_id == "apple")
-    room = next(region for region in snapshot.regions if region.region_id == snapshot.room_id)
-    floor = [(item.position, item.radius_mm) for item in snapshot.objects if item.position is not None]
-    floor.append((body.pose.position, body.radius_mm))
-    ring_mm, crate_mm = 650, 200
-
-    def clear(position: PositionMM, radius_mm: int) -> bool:
-        inside = (room.bounds.minimum.x + radius_mm <= position.x <= room.bounds.maximum.x - radius_mm
-                  and room.bounds.minimum.y + radius_mm <= position.y <= room.bounds.maximum.y - radius_mm)
-        return inside and all(math.hypot(position.x - p.x, position.y - p.y) > radius_mm + r + 60 for p, r in floor)
-
-    # A clear place in her sight: ahead of her, where an apple and a ring of
-    # eight crates around it fit without touching the furniture.
-    centre = None
-    for ahead in range(1_500, 3_400, 100):
-        for turn in (0, 20_000, -20_000, 40_000, -40_000):
-            radians = math.radians(((body.pose.heading_millidegrees + turn) % 360_000) / 1000)
-            candidate = PositionMM(body.pose.position.x + round(ahead * math.cos(radians)), body.pose.position.y + round(ahead * math.sin(radians)), 0)
-            crates = [PositionMM(candidate.x + round(ring_mm * math.cos(math.radians(d))), candidate.y + round(ring_mm * math.sin(math.radians(d))), 0) for d in range(0, 360, 45)]
-            if clear(candidate, apple.radius_mm) and all(clear(c, crate_mm) for c in crates):
-                centre = candidate
-                break
-        if centre is not None:
-            break
-    assert centre is not None, "no clear place for the walled apple in her room"
-    world.admit_authored_arrival(EmbodiedObject("apple-walled", apple.radius_mm, apple.mass_grams, centre, reflectance_ppm=apple.reflectance_ppm, material=apple.material))
-    for index, degrees in enumerate(range(0, 360, 45)):
-        a = math.radians(degrees)
-        world.admit_authored_arrival(EmbodiedObject(f"crate-{index}", crate_mm, 20_000, PositionMM(centre.x + round(ring_mm * math.cos(a)), centre.y + round(ring_mm * math.sin(a)), 0)))
-    organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
-    results = _run(organism, world, [UNATTENDED] * (GOAL_REFUSAL_LIMIT + 30))
-    acts = [r.observation["her_act"] for r in results]
-    assert acts[0] == "approach"
-    assert "apple-walled" in organism._state["unreachable_food"]
-    later = acts[-20:]
-    assert "approach" not in later or organism.counts["bites"] > 0, later
-
-
-def test_an_open_microphone_does_not_make_her_repeat_one_syllable() -> None:
-    """The same room sound every beat is answered once, then treated as the
-    room; a new, louder sound is answered again; answers obey the bout."""
-
-    world = home_world_authority(identity=IDENTITY)
-    organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
-    organism._state["reserve_micrograms"] = CAPACITY_MICROGRAMS * 9 // 10
-    organism._state["feeding"] = False
-    _run(organism, world, [UNATTENDED] * 24)  # she babbles and hears herself
-    assert organism._state["voice"]
-    results = _run(organism, world, [_heard(_tone(370))] * 40)
-    listened = [r for r in results if r.observation["her_act"] == "listen"]
-    assert 1 <= len(listened) <= 24, len(listened)  # she listens while it stands out, at most six seconds
-    answers = [r for r in results if "answering a sound she heard" in (r.observation["act_reason"] or "")]
-    assert len(answers) <= 3, len(answers)
-    spoken = [r for r in results if r.pressure is not None]
-    assert len(spoken) <= 12, len(spoken)
-
-
-def test_not_hungry_she_feels_picks_up_carries_and_sets_down_light_things() -> None:
-    """Her handling law: a light thing her hand reaches is felt, picked up,
-    carried a while and set down somewhere else; what she handled is known
-    and not handled again for a time; heavy things are only looked at."""
-
-    world = home_world_authority(identity=IDENTITY)
-    organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
-    organism._state["reserve_micrograms"] = CAPACITY_MICROGRAMS * 9 // 10
-    organism._state["feeding"] = False
-    before = {item.object_id: (item.position.x, item.position.y) for item in world.observation_snapshot().objects if item.position is not None}
-    loop = FunctionalPhysicalLoop()
-    acts = []
-    for _ in range(500):
-        acts.append(loop.settle(organism, world, UNATTENDED).observation)
-        if organism.counts["handled"] >= 2 and any(o["her_act"] == "release" and o["world_action_refusal"] is None for o in acts):
-            break
-    kinds = [o["her_act"] for o in acts]
-    assert "touch" in kinds and "grasp" in kinds and "release" in kinds, set(kinds)
-    first_touch = kinds.index("touch")
-    assert kinds[first_touch + 1] == "grasp", kinds[first_touch:first_touch + 3]
-    after = {item.object_id: (item.position.x, item.position.y) for item in world.observation_snapshot().objects if item.position is not None}
-    moved = [k for k in before if k in after and before[k] != after[k]]
-    assert moved, "nothing was carried anywhere"
-    snapshot = world.observation_snapshot()
-    for object_id in moved:
-        item = next(i for i in snapshot.objects if i.object_id == object_id)
-        assert item.mass_grams <= 2_000 and item.radius_mm <= 300
-    assert set(organism._state["touched"]) >= set(moved)
-    refused_releases = [o for o in acts if o["her_act"] == "release" and o["world_action_refusal"]]
-    assert len(refused_releases) <= 3, len(refused_releases)
-
-
 def test_her_gaze_follows_structure_not_brightness() -> None:
     from dsf_ai_service.guala_functional_organism import FOCAL_COLUMNS, FOCAL_ROWS, structure_centre
 
@@ -429,60 +278,6 @@ def test_her_gaze_follows_structure_not_brightness() -> None:
     x, y = structure_centre(edge_on_the_right)
     assert x > 0.75 and abs(y - 0.5) < 0.05, (x, y)
     assert structure_centre(tuple([128] * (FOCAL_COLUMNS * FOCAL_ROWS))) == (0.5, 0.5)
-
-
-def test_she_listens_while_spoken_to_answers_when_it_ends_and_her_answer_improves_with_exchanges() -> None:
-    from dsf_ai_service.guala_functional_organism import heard_key
-
-    world = home_world_authority(identity=IDENTITY)
-    organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
-    organism._state["reserve_micrograms"] = CAPACITY_MICROGRAMS * 9 // 10
-    organism._state["feeding"] = False
-    _run(organism, world, [UNATTENDED] * 24)  # she babbles and hears herself
-    assert organism._state["voice"]
-    call = [_heard(_tone(370))] * 6
-    distances = []
-    for exchange in range(6):
-        results = _run(organism, world, [*call, *([UNATTENDED] * 20)])
-        acts = [r.observation["her_act"] for r in results]
-        assert acts[0] == "listen", acts[:8]
-        answers = [r.observation for r in results if "answering a sound she heard" in (r.observation["act_reason"] or "")]
-        assert 1 <= len(answers) <= 3, (exchange, [r.observation["act_reason"] for r in results])
-        assert all(o["said_drive"] is not None for o in answers)
-        known = organism._state["answer_map"]
-        assert known, "no answer was kept"
-        key = next(iter(known))
-        distances.append(float(known[key]["distance"]))
-    assert organism.counts["answers_known"] >= 1
-    assert distances[-1] <= distances[0], distances  # what she keeps never gets worse; it can only improve
-    assert organism._state["answer_map"][next(iter(organism._state["answer_map"]))]["tries"] >= 3
-
-
-def test_hungry_she_heads_for_the_room_where_she_ate() -> None:
-    world = home_world_authority(identity=IDENTITY)
-    organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
-    # A meal in her room, presented by the caretaker.
-    results = _run(organism, world, [UNATTENDED, _present("apple"), *([UNATTENDED] * 8)])
-    assert any(r.observation["real_nutrition_intake_zeptojoules"] for r in results)
-    assert organism._state["food_rooms"], organism._state["food_rooms"]
-    fed_room = next(iter(organism._state["food_rooms"]))
-    # Sated for a while, she roams elsewhere; then hungry again with nothing in sight.
-    organism._state["reserve_micrograms"] = CAPACITY_MICROGRAMS * 9 // 10
-    organism._state["feeding"] = False
-    loop = FunctionalPhysicalLoop()
-    for _ in range(400):
-        o = loop.settle(organism, world, UNATTENDED).observation
-        if o["embodiment"]["room_id"] != fed_room:
-            break
-    assert world.observation_snapshot().room_id != fed_room
-    organism._state["reserve_micrograms"] = CAPACITY_MICROGRAMS // 2  # hungry now
-    organism._state["feeding"] = True
-    for _ in range(200):
-        o = loop.settle(organism, world, UNATTENDED).observation
-        if "where food was" in (o["act_reason"] or ""):
-            break
-    assert "where food was" in (o["act_reason"] or ""), o["act_reason"]
-    assert organism._state["food_room_goal"] == fed_room
 
 
 def test_eaten_cores_leave_the_world_through_the_caretaker_and_the_bin() -> None:
@@ -543,55 +338,42 @@ def test_the_caretaker_offers_a_toy_and_she_takes_it_carries_it_and_sets_it_down
     assert organism.counts["handled"] >= 1
 
 
-def test_she_keeps_things_in_the_room_she_lives_in_most() -> None:
-    """Her keeping place is the room she has spent the most beats in; a thing
-    she picks up elsewhere is carried there and set down beside the last
-    thing she kept."""
+def test_a_step_pushes_light_things_in_her_way_aside() -> None:
+    """The world's step law: a light thing in the path of a stride is pushed
+    to the nearest clear spot beside the path; heavy furniture still blocks.
+    Nine cups ringed around her at 430 mm refused every stride before."""
 
-    world = home_world_authority(identity=IDENTITY)
-    organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
-    organism._state["reserve_micrograms"] = CAPACITY_MICROGRAMS * 9 // 10
-    organism._state["feeding"] = False
-    loop = FunctionalPhysicalLoop()
-    kept_rooms = []
-    for _ in range(1_400):
-        o = loop.settle(organism, world, UNATTENDED).observation
-        if o["her_act"] == "release" and o["world_action_refusal"] is None and "keeping" in (o["act_reason"] or ""):
-            kept_rooms.append(o["embodiment"]["room_id"])
-        if len(kept_rooms) >= 2:
-            break
-    assert kept_rooms, "she never kept anything"
-    keeping_room = organism._state["keeping_room"]
-    assert keeping_room is not None
-    assert all(room == keeping_room for room in kept_rooms), (kept_rooms, keeping_room)
-    room_beats = organism._state["room_beats"]
-    assert max(room_beats, key=lambda k: room_beats[k]) == keeping_room
-    assert organism.counts["kept"] >= 1
-    assert organism._state["last_kept"]["room"] == keeping_room
+    from dsf_ai_service.guala_functional_organism import MOVES
 
-
-def test_walled_in_by_light_things_she_picks_one_up_to_clear_a_way() -> None:
     world = home_world_authority(identity=IDENTITY)
     snapshot = world.observation_snapshot()
     body = _her(world)
     cup = next(item for item in snapshot.objects if item.object_id == "cup")
-    # A ring of cups around her at 400 mm: every stride is refused, each is within her hand's reach.
+    before = {}
     for index, degrees in enumerate(range(0, 360, 40)):
         a = math.radians(degrees)
-        world.admit_authored_arrival(EmbodiedObject(f"cup-{index}", cup.radius_mm, cup.mass_grams, PositionMM(body.pose.position.x + round(430 * math.cos(a)), body.pose.position.y + round(430 * math.sin(a)), 0), reflectance_ppm=cup.reflectance_ppm, material=cup.material))
+        before[f"cup-{index}"] = PositionMM(body.pose.position.x + round(430 * math.cos(a)), body.pose.position.y + round(430 * math.sin(a)), 0)
+        world.admit_authored_arrival(EmbodiedObject(f"cup-{index}", cup.radius_mm, cup.mass_grams, before[f"cup-{index}"], reflectance_ppm=cup.reflectance_ppm, material=cup.material))
     organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
     organism._state["reserve_micrograms"] = CAPACITY_MICROGRAMS * 9 // 10
     organism._state["feeding"] = False
+    # Her record tries the moves her body can make (a door, a thing, a stride,
+    # with the world's sidesteps); a ring this tight refused every one before.
     results = _run(organism, world, [UNATTENDED] * 40)
-    moved = [r.observation for r in results if r.observation["her_act"] in ("wander", "approach") and r.observation["world_action_refusal"] is None and any(r.observation["actual_root_motion"][1:])]
+    moved = [r.observation for r in results if r.observation["her_act"] in MOVES and r.observation["world_action_refusal"] is None and any(r.observation["actual_root_motion"][1:])]
     assert moved, [r.observation["her_act"] + ":" + str(r.observation["world_action_refusal"]) for r in results][:20]
     assert _her(world).pose.position != body.pose.position
-    # The cups in her way were pushed aside, not walked through: none overlaps her or each other.
-    snapshot = world.observation_snapshot()
-    cups = [item for item in snapshot.objects if item.object_id.startswith("cup-")]
-    assert len(cups) == 9 and all(item.position is not None for item in cups)
-    before = {f"cup-{index}": PositionMM(body.pose.position.x + round(430 * math.cos(math.radians(d))), body.pose.position.y + round(430 * math.sin(math.radians(d))), 0) for index, d in enumerate(range(0, 360, 40))}
+    after = world.observation_snapshot()
+    # A cup her record picked up on the way is in her hand (no floor position); the rest lie clear.
+    cups = [item for item in after.objects if item.object_id.startswith("cup-") and item.position is not None]
+    assert len(cups) >= 8, len(cups)
     assert any(item.position != before[item.object_id] for item in cups), "nothing was pushed"
+    her = _her(world)
+    for item in cups:
+        assert math.dist((item.position.x, item.position.y), (her.pose.position.x, her.pose.position.y)) >= item.radius_mm + her.radius_mm
+        for other in cups:
+            if other is not item:
+                assert math.dist((item.position.x, item.position.y), (other.position.x, other.position.y)) >= item.radius_mm + other.radius_mm
 
 
 def test_her_head_turns_toward_structure_so_the_floor_comes_into_her_focal_field() -> None:
@@ -622,3 +404,112 @@ def test_her_head_turns_toward_structure_so_the_floor_comes_into_her_focal_field
     assert (axes["neck_yaw"], axes["neck_pitch"]) == organism.head
     restored = FunctionalOrganism.restore(organism.encoded())
     assert restored.head == organism.head and restored.body_axes == organism.body_axes
+
+
+# ----- her acts come from her record ----------------------------------------------
+
+
+def test_every_act_is_chosen_from_her_record_and_the_record_grows_and_restores() -> None:
+    """No rule chooses an act: every act but the jaw's reflex names the
+    structure it was chosen under; under a structure, untried acts come first
+    in the declared order; the record grows over beats, stays bounded, and
+    restores byte-exact."""
+
+    from dsf_ai_service.guala_functional_organism import ACTS, ACT_RECORD_CAPACITY
+
+    world = home_world_authority(identity=IDENTITY)
+    organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
+    loop = FunctionalPhysicalLoop()
+    reasons = []
+    for _ in range(200):
+        observation = loop.settle(organism, world, UNATTENDED).observation
+        if observation["her_act"] != "bite":
+            assert observation["her_act"] in ACTS, observation["her_act"]
+            assert observation["act_reason"].startswith("structure "), observation["act_reason"]
+            reasons.append(observation["act_reason"])
+    assert any("first try of" in r for r in reasons) and any("best so far" in r for r in reasons)
+    record = organism._state["acts"]
+    assert 3 <= len(record) <= ACT_RECORD_CAPACITY
+    for entry in record.values():
+        assert set(entry["acts"]) <= set(ACTS)
+        for tries, total in entry["acts"].values():
+            assert tries >= 1 and isinstance(total, float)
+    assert organism.counts["structures"] == len(record)
+    encoded = organism.encoded()
+    assert FunctionalOrganism.restore(encoded).encoded() == encoded
+
+
+def test_the_record_chooses_untried_first_then_the_best_and_every_eighth_visit_the_least_tried() -> None:
+    from dsf_ai_service.guala_functional_organism import EXPLORE_EVERY
+
+    organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
+    acts = ["step", "turn_left", "say", "rest"]
+    key = "abcdef0123456789"
+    act, why = organism._choose(key, acts)
+    assert act == "step" and "first try of step" in why
+    organism._state["acts"][key] = {"acts": {"step": [3, -0.6], "turn_left": [2, 0.5], "say": [1, 0.1]}, "tick": 1}
+    act, why = organism._choose(key, acts)
+    assert act == "rest" and "first try of rest" in why  # still untried
+    organism._state["acts"][key]["acts"]["rest"] = [1, 0.0]
+    act, why = organism._choose(key, acts)
+    assert act == "turn_left" and "best so far" in why, why  # mean +0.25 beats +0.10, 0.0 and -0.2
+    organism._state["acts"][key]["acts"]["step"] = [EXPLORE_EVERY - 4, -0.6]  # visits total = 8
+    act, why = organism._choose(key, acts)
+    assert act == "say" and "least tried" in why, why  # say and rest tied at 1 try; say first in order
+
+
+def test_what_followed_is_valued_by_her_state_when_she_chose_and_a_refusal_costs() -> None:
+    from dsf_ai_service.guala_functional_organism import NEED_FOOD, NEED_NEW, NEED_SOUND, REFUSAL_COST
+
+    organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
+    key = "0123456789abcdef"
+    organism._state["pending_act"] = {"key": key, "act": "step", "deficit": 0.25, "intake": 0, "refused": True}
+    organism._settle("other", True, 0.0, 2)
+    tries, total = organism._state["acts"][key]["acts"]["step"]
+    assert tries == 1 and abs(total - (NEED_NEW * 0.75 - REFUSAL_COST)) < 1e-6
+    organism._state["pending_act"] = {"key": key, "act": "step", "deficit": 0.6, "intake": 1000, "refused": False}
+    organism._settle("other", False, 0.5, 3)
+    tries, total = organism._state["acts"][key]["acts"]["step"]
+    assert tries == 2 and abs(total - ((NEED_NEW * 0.75 - REFUSAL_COST) + NEED_FOOD * 0.6 + NEED_SOUND * 0.5)) < 1e-6
+    assert organism._state["pending_act"] is None
+
+
+def test_the_jaw_reflex_credits_the_act_that_brought_food_to_her_mouth() -> None:
+    """Hungry, the caretaker holds an apple to her mouth: she bites by reflex
+    (not from the record); the intake is credited to the act she last chose."""
+
+    from dsf_ai_service.guala_functional_organism import NEED_FOOD
+
+    world = home_world_authority(identity=IDENTITY)
+    organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
+    results = _run(organism, world, [UNATTENDED, UNATTENDED, _present("apple")])
+    first_bite = results[2].observation
+    assert first_bite["her_act"] == "bite" and "reflex" in first_bite["act_reason"], first_bite["her_act"]
+    assert first_bite["real_nutrition_intake_zeptojoules"] > 0
+    last = organism._state["last_chosen"]  # the act she chose the beat before the apple reached her mouth
+    tries, total = organism._state["acts"][last["key"]]["acts"][last["act"]]
+    assert total >= NEED_FOOD * float(last["deficit"]) - 1e-6, (last, tries, total)
+    more = _run(organism, world, [UNATTENDED] * 8)
+    bites = [r.observation for r in more if r.observation["her_act"] == "bite"]
+    assert bites and all("reflex" in o["act_reason"] for o in bites)
+
+
+def test_the_record_is_bounded_and_an_older_body_drops_the_retired_rule_records() -> None:
+    import json
+
+    from dsf_ai_service.guala_functional_organism import ACT_RECORD_CAPACITY, RETIRED_KEYS
+
+    organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
+    for index in range(ACT_RECORD_CAPACITY + 40):
+        organism._credit(f"{index:016x}", "rest", 0.0, index)
+    assert len(organism._state["acts"]) == ACT_RECORD_CAPACITY
+    assert "0000000000000000" not in organism._state["acts"]  # the least recently met fell out
+    state = json.loads(organism.encoded()[len(MAGIC):])
+    for key in RETIRED_KEYS:
+        state[key] = {}
+    state.pop("acts"); state.pop("pending_act"); state.pop("last_chosen")
+    older = MAGIC + json.dumps(state, allow_nan=False, ensure_ascii=False, separators=(",", ":"), sort_keys=True).encode("utf-8")
+    restored = FunctionalOrganism.restore(older)
+    assert restored._state["acts"] == {} and restored._state["pending_act"] is None
+    assert not any(key in restored._state for key in RETIRED_KEYS)
+    assert FunctionalOrganism.restore(restored.encoded()).encoded() == restored.encoded()
