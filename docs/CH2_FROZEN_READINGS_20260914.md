@@ -126,3 +126,32 @@ complete, "Published immutable generation …", no "TFE container starting"
 during the window, and the following entry pass shows a run_id other than
 `5d9d722c…`. Trade switch after the deploy: `TFE_ENTRIES_HALTED=0`,
 `CH3_ENTRIES_HALTED=1`.
+
+## Addendum — deployed 2026-09-14
+
+- Deployed as `tfe-web-task:626`, image `tfe-web:manual-20260914T150337Z`,
+  commit `a6e69c74c` (fix in `0a78bbdc1`), rollout COMPLETED, task HEALTHY.
+  Trade switch verified after the deploy: `TFE_ENTRIES_HALTED=0`,
+  `CH3_ENTRIES_HALTED=1`. `/api/health` now answers with
+  `"generation_hold": false` on the restored generation
+  `snapshot_pub_v2_76d4edfbb3c9460cab59b8a1`.
+- The image build printed `botocore 1.43.93` from
+  `/usr/local/lib/python3.11/dist-packages` — the pip copy shadows the apt
+  copy (1.29.27) as intended.
+- The new container logged "Entry pass already ran: 2026-09-14" — no repeat
+  entry pass from the restart.
+- Deploy wrapper notes: (1) its local `web_build` gate needs Node ≥ 20.9 and
+  this workspace has 18.20; the first attempt failed there and the second ran
+  with a Node 22 runtime on PATH. (2) On the second attempt the wrapper's
+  validation state marked `web_build` "unchanged_since_last_validated" and
+  skipped it, although the unit had failed on the first attempt — the
+  contract keys validation on inputs shared with the `typescript` unit,
+  which had passed. The production image build (same `npm run build`, Node
+  22) succeeded, which is the build proof for this deploy; the contract
+  flaw is left as a follow-up, not touched here.
+- The nightly reading runner (`tools/ch4_spring_daily_runner.sh`) was
+  restarted in this workspace (pid 91240 at 14:36 UTC); the verdict sheet
+  from 09-11 would otherwise have gone stale after 09-15.
+- Proof still pending: the 2026-09-15 00:17 UTC run (all six phases,
+  "Published immutable generation", no container replacement) and the
+  13:45 UTC entry pass showing a run_id other than `5d9d722c…`.
