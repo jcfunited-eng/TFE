@@ -4711,11 +4711,22 @@ class EmbodimentWorldAuthority:
                     raise ValueError(
                         "body contact lacks signed material/receptor state"
                     )
-                if (
-                    contact.kind == "oral"
-                    and (
-                        body.held_object_id != item.object_id
-                        or item.held_by_body_id != body.body_id
+                if contact.kind == "oral" and not (
+                    (
+                        body.held_object_id == item.object_id
+                        and item.held_by_body_id == body.body_id
+                    )
+                    or (
+                        # Hand-fed: the thing at her mouth is held out by
+                        # another body (the caregiver), in that body's hand.
+                        item.position is None
+                        and item.held_by_body_id is not None
+                        and item.held_by_body_id != body.body_id
+                        and any(
+                            other.body_id == item.held_by_body_id
+                            and other.held_object_id == item.object_id
+                            for other in world.bodies
+                        )
                     )
                 ):
                     raise ValueError(
@@ -5182,14 +5193,52 @@ class EmbodimentWorldAuthority:
             geometry = body.receptor_geometry
             if item.material is None or geometry is None:
                 return None, "material_receptors_unavailable"
-            if isinstance(command, OralContactCommand) and (
-                body.held_object_id != item.object_id
-                or item.held_by_body_id != body.body_id
+            # THE HAND-FEEDING LAW (drive organ, 2026-09-14): an oral contact
+            # takes matter from what is IN her mouth's reach — the object she
+            # holds herself, or the object another body holds out to her:
+            # that holder standing in her region within her reach, exactly
+            # the geometry by which a held thing can be taken hand to hand.
+            # Nothing else is biteable: no floor object, no distant hand.
+            # Every feeding animal is first fed by another's hand; the
+            # caregiver presents, the mouth acts.
+            hand_fed = False
+            if isinstance(command, OralContactCommand) and not (
+                body.held_object_id == item.object_id
+                and item.held_by_body_id == body.body_id
             ):
-                return None, "oral_contact_requires_held_object"
+                holder = next(
+                    (
+                        other for other in bodies
+                        if other.body_id != body.body_id
+                        and other.held_object_id == item.object_id
+                    ),
+                    None,
+                )
+                if (
+                    holder is None
+                    or item.held_by_body_id != holder.body_id
+                    or item.position is not None
+                ):
+                    return None, "oral_contact_requires_held_object"
+                body_region = self._region_containing(
+                    world.regions, body.pose.position, body.radius_mm,
+                )
+                holder_region = self._region_containing(
+                    world.regions, holder.pose.position, occupied_radius(holder),
+                )
+                if (
+                    body_region is None
+                    or holder_region is None
+                    or holder_region.region_id != body_region.region_id
+                    or _distance_squared(body.pose.position, holder.pose.position)
+                    > body.reach_mm**2
+                ):
+                    return None, "oral_contact_offer_out_of_reach"
+                hand_fed = True
             if (
                 item.position is None
                 and item.held_by_body_id != body.body_id
+                and not hand_fed
             ):
                 return None, "contact_object_unavailable"
             offset = (

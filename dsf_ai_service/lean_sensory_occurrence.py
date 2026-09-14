@@ -18,6 +18,7 @@ SOURCES = frozenset({
     "camera",
     "camera-microphone",
     "card-microphone",
+    "caretaker-food",
     "guided-body-microphone",
     "guided-vocal-microphone",
     "media",
@@ -113,6 +114,10 @@ class LeanSensoryOccurrence:
     retina_rgb_u8: tuple[int, ...] | None
     pressure_s16le: bytes | None
     guided_vocal_drives: tuple[tuple[int, int, int], ...] | None = None
+    # The caregiver's hand (drive organ, 2026-09-14): the one thing the
+    # person body presents at her mouth's reach this interval. Present only;
+    # nothing moves her.
+    present_food: str | None = None
 
     def __post_init__(self) -> None:
         if self.source not in SOURCES:
@@ -120,6 +125,16 @@ class LeanSensoryOccurrence:
         retina = self.retina_rgb_u8
         pressure = self.pressure_s16le
         guided = self.guided_vocal_drives
+        if (self.source == "caretaker-food") != (self.present_food is not None):
+            raise ValueError("caretaker food source and presented object disagree")
+        if self.present_food is not None and (
+            not isinstance(self.present_food, str)
+            or not 1 <= len(self.present_food) <= 64
+            or not self.present_food.replace("-", "").isalnum()
+        ):
+            raise ValueError("presented food identity left its bounded form")
+        if self.source == "caretaker-food" and (retina is not None or pressure is not None or guided is not None):
+            raise ValueError("caretaker food source carries no light, pressure or body work")
         if retina is not None:
             _validate_retina_rgb(retina)
         if pressure is not None and (
@@ -216,6 +231,8 @@ class LeanSensoryOccurrence:
                     + direction.to_bytes(1, "little")
                     + carriers.to_bytes(4, "little")
                 )
+        if self.present_food is not None:
+            body += b"\0present:" + self.present_food.encode("ascii")
         return hashlib.sha256(body).hexdigest()
 
 

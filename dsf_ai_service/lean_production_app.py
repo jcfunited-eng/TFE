@@ -66,6 +66,7 @@ class SensoryBody(BaseModel):
         "camera",
         "camera-microphone",
         "card-microphone",
+        "caretaker-food",
         "guided-body-microphone",
         "guided-vocal-microphone",
         "media",
@@ -76,6 +77,7 @@ class SensoryBody(BaseModel):
     retina_rgb_u8: tuple[int, ...] | None = None
     pcm_s16le_base64: str | None = None
     guided_vocal_drives: tuple[GuidedVocalDriveBody, ...] | None = None
+    present_food: str | None = Field(default=None, min_length=1, max_length=64, pattern=r"^[A-Za-z0-9-]+$")
 
 
 class OccurrenceBody(BaseModel):
@@ -266,6 +268,7 @@ def _physical_occurrence(body: OccurrenceBody) -> PhysicalOccurrence:
                     for drive in payload.guided_vocal_drives
                 )
             ),
+            present_food=payload.present_food,
         ),
     )
 

@@ -210,3 +210,19 @@ def test_guided_body_source_admits_caregiver_guidable_axes_only() -> None:
         LeanSensoryOccurrence("guided-vocal-microphone", None, PRESSURE, ((14, 0, 1_500),))
     with pytest.raises(ValueError):
         LeanSensoryOccurrence("camera-microphone", RETINA, PRESSURE, hand_over_hand)
+
+
+def test_caretaker_food_source_presents_one_bounded_object_and_nothing_else() -> None:
+    presented = LeanSensoryOccurrence("caretaker-food", None, None, None, "apple-2")
+    assert presented.present_food == "apple-2"
+    assert presented.source_receipt_sha256 != LeanSensoryOccurrence("caretaker-food", None, None, None, "apple-5").source_receipt_sha256
+    for invalid in (
+        ("caretaker-food", None, None, None, None),  # nothing presented
+        ("caretaker-food", RETINA, None, None, "apple-2"),  # no light with the hand
+        ("caretaker-food", None, PRESSURE, None, "apple-2"),  # no voice with the hand
+        ("caretaker-food", None, None, None, "apple 2"),  # not an identity
+        ("caretaker-food", None, None, None, "x" * 65),
+        ("camera", RETINA, None, None, "apple-2"),  # only the caretaker's hand presents
+    ):
+        with pytest.raises(ValueError):
+            LeanSensoryOccurrence(*invalid)

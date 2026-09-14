@@ -184,3 +184,135 @@ def _with_consequences(*consequences: tuple) -> SimpleNamespace:
     evidence = _evidence()
     evidence.articulated_body_consequences = consequences
     return evidence
+
+
+def _held_by(world, body_id: str) -> str | None:
+    snapshot = world.observation_snapshot()
+    return next(item for item in snapshot.bodies if item.body_id == body_id).held_object_id
+
+
+def test_caregiver_presents_food_and_her_bite_takes_a_real_mouthful_from_the_offered_apple() -> None:
+    """Hand-feeding (2026-09-14): the caregiver's body fetches the apple and
+    holds it out within her reach; her own jaw discharge is a bite on the
+    offered apple with real intake. Nothing moves her."""
+    from dsf_ai_service.guala_caretaker_hand import present_food
+
+    world = home_world_authority(identity=IDENTITY)
+    before = world.observation_snapshot()
+    person = next(item for item in before.bodies if item.body_id != before.self_body_id)
+    presentation = present_food(world, "apple")
+    assert presentation["presented"] is True, presentation
+    assert presentation["took_away"] is None
+    assert all(step["reason"] == "applied" for step in presentation["steps"]), presentation["steps"]
+    after = world.observation_snapshot()
+    her = next(item for item in after.bodies if item.body_id == after.self_body_id)
+    caregiver = next(item for item in after.bodies if item.body_id == person.body_id)
+    assert caregiver.held_object_id == "apple"
+    assert her.held_object_id is None
+    assert her.pose == next(item for item in before.bodies if item.body_id == her.body_id).pose
+    distance = ((her.pose.position.x - caregiver.pose.position.x) ** 2
+                + (her.pose.position.y - caregiver.pose.position.y) ** 2) ** 0.5
+    assert distance <= her.reach_mm
+
+    bite = prepare_motor_consequence(
+        world=world,
+        evidence=_with_consequences(_closure("jaw_opening", 40)),
+        predecessor_state_sha256="06" * 32,
+        predecessor_body_axes=BODY_AXES, successor_body_axes=BODY_AXES,
+    )
+    assert bite.requested_action == "bite"
+    assert bite.refusal_reason is None, bite.refusal_reason
+    after_body = next(
+        item for item in bite.prepared_world.execution_receipt.after.bodies
+        if item.body_id == before.self_body_id
+    )
+    assert after_body.active_contact is not None and after_body.active_contact.kind == "oral"
+    mouthful = sum(after_body.active_contact.dissolved_tastant_micrograms)
+    assert mouthful > 0
+    assert bite.nutrition_intake_zeptojoules == mouthful * 17_000_000_000_000_000_000
+    offered_after = next(
+        item for item in bite.prepared_world.execution_receipt.after.objects if item.object_id == "apple"
+    )
+    assert sum(offered_after.material.tastant_mass_micrograms) < 140_000 + 200 + 26_000 + 900 + 300
+    world.discard_prepared_action(bite.prepared_world)
+
+
+def test_caregiver_takes_an_eaten_core_from_her_hand_before_offering_fresh_food() -> None:
+    from dsf_ai_service.guala_caretaker_hand import nothing_left_to_bite, present_food
+    from dsf_ai_service.substrate.embodiment_world import EmbodiedObject, PositionMM
+    from dataclasses import replace
+
+    world = home_world_authority(identity=IDENTITY)
+    before = world.observation_snapshot()
+    body = next(item for item in before.bodies if item.body_id == before.self_body_id)
+    apple = next(item for item in before.objects if item.object_id == "apple")
+    core = EmbodiedObject(
+        "apple-core", apple.radius_mm, apple.mass_grams,
+        PositionMM(body.pose.position.x + 500, body.pose.position.y, 0),
+        reflectance_ppm=apple.reflectance_ppm,
+        material=replace(apple.material, tastant_mass_micrograms=(2, 2, 2, 2, 2)),
+    )
+    world.admit_authored_arrival(core)
+    grasp = prepare_motor_consequence(
+        world=world,
+        evidence=_with_consequences(_closure("right_grip_aperture", 40)),
+        predecessor_state_sha256="04" * 32,
+        predecessor_body_axes=BODY_AXES, successor_body_axes=BODY_AXES,
+    )
+    assert grasp.requested_action == "grasp" and grasp.refusal_reason is None
+    with world.prepared_action_visibility_transaction(grasp.prepared_world):
+        world.commit_prepared_action(grasp.prepared_world)
+    assert _held_by(world, before.self_body_id) == "apple-core"
+    held = next(item for item in world.observation_snapshot().objects if item.object_id == "apple-core")
+    assert nothing_left_to_bite(body, held)
+    assert not nothing_left_to_bite(body, apple)
+
+    # Biting the core takes nothing: the world's own bite law, not a rule here.
+    core_bite = prepare_motor_consequence(
+        world=world,
+        evidence=_with_consequences(_closure("jaw_opening", 40)),
+        predecessor_state_sha256="05" * 32,
+        predecessor_body_axes=BODY_AXES, successor_body_axes=BODY_AXES,
+    )
+    assert core_bite.requested_action == "bite" and core_bite.nutrition_intake_zeptojoules == 0
+    world.discard_prepared_action(core_bite.prepared_world)
+
+    presentation = present_food(world, "apple")
+    assert presentation["presented"] is True, presentation
+    assert presentation["took_away"] == "apple-core"
+    assert _held_by(world, before.self_body_id) is None
+    after = world.observation_snapshot()
+    core_after = next(item for item in after.objects if item.object_id == "apple-core")
+    assert core_after.position is not None and core_after.held_by_body_id is None
+    fed = prepare_motor_consequence(
+        world=world,
+        evidence=_with_consequences(_closure("jaw_opening", 40)),
+        predecessor_state_sha256="07" * 32,
+        predecessor_body_axes=BODY_AXES, successor_body_axes=BODY_AXES,
+    )
+    assert fed.requested_action == "bite" and fed.refusal_reason is None, fed.refusal_reason
+    assert fed.nutrition_intake_zeptojoules > 0
+    world.discard_prepared_action(fed.prepared_world)
+
+
+def test_a_bite_needs_the_offer_within_reach_and_never_a_floor_apple() -> None:
+    from dsf_ai_service.substrate.embodiment_world import EmbodiedObject, PositionMM
+
+    world = home_world_authority(identity=IDENTITY)
+    before = world.observation_snapshot()
+    body = next(item for item in before.bodies if item.body_id == before.self_body_id)
+    apple = next(item for item in before.objects if item.object_id == "apple")
+    world.admit_authored_arrival(EmbodiedObject(
+        "apple-near", apple.radius_mm, apple.mass_grams,
+        PositionMM(body.pose.position.x + 500, body.pose.position.y, 0),
+        reflectance_ppm=apple.reflectance_ppm, material=apple.material,
+    ))
+    plain = prepare_motor_consequence(
+        world=world,
+        evidence=_with_consequences(_closure("jaw_opening", 40)),
+        predecessor_state_sha256="08" * 32,
+        predecessor_body_axes=BODY_AXES, successor_body_axes=BODY_AXES,
+    )
+    assert plain.requested_action == "body"
+    assert plain.nutrition_intake_zeptojoules == 0
+    world.discard_prepared_action(plain.prepared_world)

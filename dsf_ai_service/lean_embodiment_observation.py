@@ -110,6 +110,15 @@ def lean_embodiment_observation(
                 "position": None if item.position is None else _position(item.position),
                 "radius_mm": item.radius_mm,
                 "reflectance_ppm": list(item.reflectance_ppm),
+                # What a mouth could still take from it: the sum of its tastant
+                # channels in micrograms, exactly as the world holds them; None
+                # for things with no edible material. The caregiver reads this
+                # to present food that is food (2026-09-14).
+                "tastant_remaining_micrograms": (
+                    None
+                    if item.material is None
+                    else sum(int(mass) for mass in item.material.tastant_mass_micrograms)
+                ),
             }
             for item in objects
         ],

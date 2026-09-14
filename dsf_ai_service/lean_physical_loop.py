@@ -15,6 +15,7 @@ from dsf_ai_service.lean_sensory_occurrence import (
 )
 from dsf_ai_service.glew_runtime.native_resident_organism import exact_native_interoceptive_source
 from dsf_ai_service.guala_motor_world import prepare_motor_consequence
+from dsf_ai_service.guala_caretaker_hand import present_food
 from dsf_ai_service.guala_physical_return import PendingPhysicalReturn, PASSIVE_BODY_MAGIC
 from dsf_ai_service.guala_physical_sensorium import (
     settle_physical_sensorium, settle_projected_physical_sensorium,
@@ -119,7 +120,27 @@ class LeanPhysicalLoop:
         self_hearing_source_tick = pending_source_tick
         external_heard_samples = 0
         external_rgb_retina_u8 = None
+        presentation = None
         try:
+            if returning is not None:
+                observed = world.observation_snapshot()
+                returning.validate_binding(
+                    identity=before_native.identity, producer_tick=start_tick,
+                    world_revision=observed.revision,
+                    world_receipt=observed.authority_receipt_sha256,
+                )
+            # The caregiver's hand acts in her world before this interval's
+            # own world step: the person body fetches and holds out the
+            # presented thing (or is refused by the world's laws). Her body
+            # is never moved; what she does about it is her own reflex.
+            if sensory is not None and sensory.present_food is not None:
+                presentation = present_food(world, sensory.present_food)
+                if returning is not None:
+                    # The caregiver's world steps re-bound her waiting return
+                    # to the world they left; it is the same return.
+                    returning = world.pending_physical_return
+                    if returning is None:
+                        raise RuntimeError("caregiver presentation lost her pending physical return")
             if returning is None:
                 primary_prepared = prepare_passive_world_interval(world)
                 uncommitted_prepared = primary_prepared
@@ -130,12 +151,6 @@ class LeanPhysicalLoop:
                     pending_execution=primary_prepared.execution_receipt,
                 )
             else:
-                observed = world.observation_snapshot()
-                returning.validate_binding(
-                    identity=before_native.identity, producer_tick=start_tick,
-                    world_revision=observed.revision,
-                    world_receipt=observed.authority_receipt_sha256,
-                )
                 times = consequence_source_times(PASSIVE_TIMES)
                 primary_sensorium = returning.sensorium(times)
 
@@ -284,6 +299,7 @@ class LeanPhysicalLoop:
                         else motor_plan.actual_root_motion
                     ),
                     "body_consequence_count": len(body_consequences),
+                    "caregiver_presentation": presentation,
                     "causal_transition_sha256": primary.causal_transition_sha256,
                     "dsf_delivery_count": primary.dsf_delivery_count,
                     "vocal_founder_refusal_count": primary.vocal_founder_refusal_count,

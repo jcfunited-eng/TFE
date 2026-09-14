@@ -122,6 +122,33 @@ def _jaw_acted(evidence: Any) -> bool:
     return False
 
 
+def offered_object_id(snapshot: Any, body: Any) -> str | None:
+    """The one object another body holds out within this body's reach, else
+    None. Reach is the world's own hand-to-hand geometry (holder centre within
+    reach_mm); the world's oral law re-checks region and reach when the bite
+    is prepared, so this resolves a target, never a permission."""
+
+    offers = []
+    for other in snapshot.bodies:
+        if other.body_id == body.body_id or other.held_object_id is None:
+            continue
+        dx = other.pose.position.x - body.pose.position.x
+        dy = other.pose.position.y - body.pose.position.y
+        dz = other.pose.position.z - body.pose.position.z
+        if dx * dx + dy * dy + dz * dz <= body.reach_mm ** 2:
+            offers.append(other.held_object_id)
+    return offers[0] if len(offers) == 1 else None
+
+
+def _mouth_target(snapshot: Any, body: Any) -> str | None:
+    """What her mouth can act on: the object in her own hand first, else the
+    single object held out to her."""
+
+    if body.held_object_id is not None:
+        return body.held_object_id
+    return offered_object_id(snapshot, body)
+
+
 def _oral_intake_zeptojoules(execution: ActionExecutionReceipt) -> int:
     """Real nutrition carried by this exact bite: the mouthful the world
     dissolved (tastant micrograms per channel) at the declared 17 kJ/g
@@ -215,11 +242,13 @@ def prepare_motor_consequence(
         )
         port_id = PORT_ID
         requested_action = "move"
-    elif _jaw_acted(evidence) and before_body.held_object_id is not None:
-        # THE BITE: the jaw acted on the object in hand. The world decides
-        # whether a mouthful comes off (oral contact physics), what the tongue
-        # tastes, and how much matter left the apple; nothing here decides.
-        command = OralContactCommand(before_body.held_object_id, BODY_INTERVAL_MICROSECONDS)
+    elif _jaw_acted(evidence) and _mouth_target(before, before_body) is not None:
+        # THE BITE: the jaw acted on what is at her mouth — the object in her
+        # own hand, or the one another body holds out to her within reach
+        # (hand-feeding). The world decides whether a mouthful comes off
+        # (oral contact physics), what the tongue tastes, and how much matter
+        # left the apple; nothing here decides.
+        command = OralContactCommand(_mouth_target(before, before_body), BODY_INTERVAL_MICROSECONDS)
         port_id = PORT_ID
         requested_action = "bite"
     elif closing and not opening:
