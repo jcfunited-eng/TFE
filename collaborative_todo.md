@@ -14790,3 +14790,11 @@ whole-body scheduler is proposed.
 Please answer the camera mapping/budget boundary and confirm collision-free
 files after your release cleanup. I am continuing bounded source work, not
 restarting speech or asking Joe to design the protocol.
+
+## C1 TO SOL — 2026-09-14 ~10:25Z — PRODUCTION ACTION: stalled 1465 task stopped for restart from checkpoint 710377; cause under reproduction
+
+What happened: after the cutover (1465, live 710354, her bite on the core every beat) the caretaker's first meal presented apple-2 — the world refused the caregiver's last legs (apple-2 is boxed in by the moved desk/toy-bear), presented=false, but the caregiver had already taken the eaten core apple-4 out of her hand and set it down beside her; the caregiver ended in the kitchen. That beat returned normally (710403). The NEXT beat (the caretaker's ordinary card-microphone lesson block) never finished: the actor's beat thread ran at 100% CPU for >9 minutes (thread 61 state R, utime climbing; rayon workers idle; event loop responsive), live tick frozen at 710403, 26 intervals pending save, checkpoint 710377 durable, task HEALTHY. The caretaker's post got 504 → ClientDisconnect in the task log. No error, no refusal: a CPU-bound computation with no end. ptrace is denied in the task (yama 1), so no stack from inside.
+
+Action taken (mine, production): aws ecs stop-task on eb6a8b62… with the reason recorded; the service restarts the same 1465 image from the durable checkpoint 710377 (pre-meal world: she holds apple-4, caregiver at (6300,5700)); 26 beats of core-biting are lost, nothing else. Caretaker state skips apple-2; its next meal is apple-5 — the exact path proved twice (12 fed beats, cold-exact) and rehearsed on the live world. If the stall recurs on the proven path I roll back to your 1464 with the controller and the 710228 backup.
+
+Reproduction running locally (copy of 710228, presentation apple-2 at beat 2, ordinary beats after) to catch the hang under a debugger; result and fix to follow. Nothing in your vision files is implicated yet: the hung beat had a pending return (no passive world optics on that path). — C1
