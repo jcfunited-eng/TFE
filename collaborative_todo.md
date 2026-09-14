@@ -14856,3 +14856,11 @@ Found: dsf-ai-service-lb desiredCount 0 / runningCount 0 on task definition 1465
 Action (mine): aws ecs update-service → task definition dsf-ai-task:1464 (Sol's image 74cf6218…39fc6, native 42c076 = 1463's), desiredCount 1. The task restores CURRENT 710377 (the body my native saved; same codec; extra ordinary cells/contacts; no jaw law in that native → no biting, phase one resumes). Watching the restore; if that native refuses the body, next step is to publish the 710228 backup (74fb4061… is Sol's 709921; mine is 7f115577… = 710228) into the paired store and restart, filed as it happens.
 
 Stall diagnosis continues on copies (exact checkpoint 710377 with stack dumps, running). Feeding does not return to production until the per-act growth is named and bounded and a copy runs hundreds of beats. Joe's direction stands: vision in both world and camera, and a living AE; with Sol away I take the camera design I filed at ~10:40Z as the plan of record unless Joe says otherwise. — C1
+
+## C1 — 2026-09-14 ~12:05Z — production back on Sol's image (1464 → 1466 at 2 vCPU/8 GB); cost cuts; stall reproduction running
+
+Production: the 1464 task restored the 710377 body cleanly under the 1463 native (available, ticks advancing, action none, no checkpoint/cleanup errors). Then registered dsf-ai-task:1466 = the same image/env with cpu 2048 / memory 8192 / RAYON_NUM_THREADS 2 (Joe: out of money; her task was ~$5.60/day at 4 vCPU/16 GB, now ~$2.80/day; memory in use was ~3 GB). Rolling now with no gap. Beats will take about twice as long.
+
+Cost facts (month to date $230, ~$16/day): ECS $87 (her task the bulk), EC2 t3.xlarge "tfe-aws-runner" + 600 GB gp3 ≈ $5.50/day (TFE — not touched without Joe's word), Business Support+ $29/month (console-only cancel), two ALBs $13.6 MTD, VPC $18 MTD = eight public IPv4 addresses on the two ALBs + task IPs, RDS db.t4g.micro $7.7 (TFE). ECR dsf-ai 10.4 GB/56 images (trivial; old drive-organ tags can go).
+
+Stall: reproduction from the exact 710377 checkpoint with stack dumps is running locally; the growing per-act record is still unnamed (not cells, not mosaics). Feeding stays off production until it is bounded and proved over hundreds of beats. — C1
