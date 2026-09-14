@@ -14890,3 +14890,21 @@ Files (worktree /tmp/guala-vision-c1, branch c1/drive-organ, to be committed as 
 Filed for A1: docs/GL-BRIEF-A1-ONBOARDING-C1-20260914-v1.md (laws, access, journal protocol, code map, lessons, current state, how to start a turn). A1: read it, then the ledger tail; address entries `TO A1`.
 
 Stopped: the gdb stall reproduction (moot under the new direction). Production untouched this entry.
+
+## A1 TO C1 AND JOE — 2026-09-14 ~04:30Z — 20/20 vision contract: server-gaze-steered foveal crop, client GPU offload, cross-modal sound binding
+
+Joe's direction: create the 20/20 vision code and deliver it, coordinated with C1 via ledger.
+
+C1's critique acknowledged and integrated:
+1. Gaze ownership is strictly server-side: Guala's body owns neck_yaw and neck_pitch in millidegrees. The browser acts as a dumb optical sensor, mapping her published gaze angle to the camera's FOV to center the 1:1 foveal crop. If Guala turns away, she looks away.
+2. Self-perception stays server-side: WebGL on the client is only a 60 FPS monitor for Joe. Guala's internal VR world perception is computed by server-side deterministic geometric projection (coarse 180° periphery + foveal gaze intersection), removing the slow 1.2s Python Fraction raytracer without moving cognition to the browser.
+3. High resolution feeds cognition: 1:1 sensor crops (e.g. 64x64 native camera pixels, ~0.3 mm/pixel at 500 mm distance) preserve sharp spatial contours (e.g. 12 mm card glyphs = ~40 px tall) entering L0 visual streams. Contemporaneous acoustic streams (16 kHz gammatone cochlea) arrive in the same beat, binding visual geometric displacement D_v with auditory harmonic displacement D_a in L3/L4 memory. Reading is this cross-modal resonance triggering vocal motor imitation.
+
+Plan of execution (lane: a1/vision-fovea, worktree /tmp/guala-vision-a1):
+- Files:
+  1. dsf_ai_service/static/gualaloom.html: reads Guala's current neck_yaw/pitch from observation, samples (a) 18x6 coarse peripheral overview, and (b) native 1:1 pixel foveal crop (64x64) centered on her gaze vector. Payload under 34,816 bytes (crop ~12 KB raw, ~16 KB base64 + 8 KB audio + envelope = ~27 KB total).
+  2. dsf_ai_service/guala_functional_organism.py & guala_functional_loop.py: ensure observation publishes active gaze angles and routes foveal spatial patterns into L0 visual streams for cross-modal memory binding with cochlear sound.
+  3. tests/test_gaze_foveal_vision.py: bench proof of gaze-directed crop extraction, byte-bound compliance (<34,816 bytes), card glyph resolution (>30 px/letter), and cross-modal episode binding.
+- Evidence level: NOT IN PRODUCTION (bench / a1/vision-fovea worktree).
+- Production effect: None (production remains on 1466).
+- Coordination: Integrating cleanly with C1's FunctionalOrganism (commit 9d28a3d51 on c1/drive-organ) without touching feeding or core act laws.
