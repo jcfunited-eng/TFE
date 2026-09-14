@@ -39,6 +39,7 @@ from dsf_ai_service.substrate.w1_physical_receptors import retinal_irradiance_fi
 MAX_NATIVE_INTERVALS_PER_OCCURRENCE = 1
 CAREGIVER_RETRY_BEATS = 16
 CAMERA_FIELD_MILLIDEGREES = (60_000, 45_000)  # the declared camera field the page's pitch is measured against
+GAZE_RECENTRE = 0.05  # each beat the gaze gives back a twentieth of its offset from the frame's centre
 WORLD_RETINAL_SITES = 903
 WORLD_FOCAL_SITES = 768
 
@@ -80,6 +81,20 @@ def _oral_intake_micrograms(execution: ActionExecutionReceipt) -> int:
     if contact is None or contact.kind != "oral":
         return 0
     return sum(int(value) for value in contact.dissolved_tastant_micrograms)
+
+
+def _gaze_frame(sensory: Any, gaze: tuple[float, float]) -> list[float]:
+    """The next crop's centre in the frame: a bounded step from the crop's
+    origin toward the structure she saw, then a small pull back toward the
+    frame's centre, so only continuing structure holds an off-centre gaze."""
+
+    crop_fraction = (
+        (sensory.focal_pitch_millidegrees[0] / CAMERA_FIELD_MILLIDEGREES[0],
+         sensory.focal_pitch_millidegrees[1] / CAMERA_FIELD_MILLIDEGREES[1])
+        if sensory.focal_pitch_millidegrees else (80 / 640.0, 60 / 480.0)
+    )
+    stepped = compute_saccadic_gaze(tuple(sensory.focal_origin), gaze, crop_fraction=crop_fraction)
+    return [round(value + (0.5 - value) * GAZE_RECENTRE, 4) for value in stepped]
 
 
 def _said(drive: tuple[int, int, int]) -> str:
@@ -258,14 +273,7 @@ class FunctionalPhysicalLoop:
                 "gaze_frame": (
                     None
                     if sensory is None or sensory.focal_origin is None or organism.gaze is None
-                    else list(compute_saccadic_gaze(
-                        tuple(sensory.focal_origin), organism.gaze,
-                        crop_fraction=(
-                            (sensory.focal_pitch_millidegrees[0] / CAMERA_FIELD_MILLIDEGREES[0],
-                             sensory.focal_pitch_millidegrees[1] / CAMERA_FIELD_MILLIDEGREES[1])
-                            if sensory.focal_pitch_millidegrees else (80 / 640.0, 60 / 480.0)
-                        ),
-                    ))
+                    else _gaze_frame(sensory, organism.gaze)
                 ),
                 "external_source_receipt_sha256": None if sensory is None else sensory.source_receipt_sha256,
                 "her_act": decision.act,

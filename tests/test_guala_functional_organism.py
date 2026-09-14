@@ -414,3 +414,15 @@ def test_not_hungry_she_feels_picks_up_carries_and_sets_down_light_things() -> N
     assert set(organism._state["touched"]) >= set(moved)
     refused_releases = [o for o in acts if o["her_act"] == "release" and o["world_action_refusal"]]
     assert len(refused_releases) <= 3, len(refused_releases)
+
+
+def test_her_gaze_follows_structure_not_brightness() -> None:
+    from dsf_ai_service.guala_functional_organism import FOCAL_COLUMNS, FOCAL_ROWS, structure_centre
+
+    flat_bright_top = tuple(240 if index // FOCAL_COLUMNS < FOCAL_ROWS // 2 else 200 for index in range(FOCAL_COLUMNS * FOCAL_ROWS))
+    x, y = structure_centre(flat_bright_top)
+    assert abs(x - 0.5) < 0.02 and abs(y - 0.5) < 0.06, (x, y)  # one horizontal edge at mid height; brightness above it holds nothing
+    edge_on_the_right = tuple(30 if (index % FOCAL_COLUMNS) < 26 else (250 if (index % FOCAL_COLUMNS) % 2 else 20) for index in range(FOCAL_COLUMNS * FOCAL_ROWS))
+    x, y = structure_centre(edge_on_the_right)
+    assert x > 0.75 and abs(y - 0.5) < 0.05, (x, y)
+    assert structure_centre(tuple([128] * (FOCAL_COLUMNS * FOCAL_ROWS))) == (0.5, 0.5)

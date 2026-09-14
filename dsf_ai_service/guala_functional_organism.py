@@ -63,6 +63,7 @@ FIELD_OF_VIEW_MILLIDEGREES = 60_000
 SIGHT_RANGE_MM = 4_000
 FOCAL_COLUMNS = 32
 FOCAL_ROWS = 24
+STRUCTURE_FLOOR = 768 * 4   # total edge energy below this (about four levels per site) is a flat field
 
 # Steps: one stride per beat; she stops a hand's margin short of a thing.
 STEP_MM = 300
@@ -292,6 +293,30 @@ def in_hand_reach(snapshot: Any, item: Any) -> bool:
     ) is not None
 
 
+def structure_centre(focal: tuple[int, ...]) -> tuple[float, float]:
+    """The energy-weighted centre of luminance edges in a focal field
+    (fractions of the field), or the centre when the field is flat."""
+
+    if len(focal) != FOCAL_COLUMNS * FOCAL_ROWS:
+        return 0.5, 0.5
+    total = 0
+    weighted_x = 0
+    weighted_y = 0
+    for index, value in enumerate(focal):
+        column, row = index % FOCAL_COLUMNS, index // FOCAL_COLUMNS
+        energy = 0
+        if column + 1 < FOCAL_COLUMNS:
+            energy += abs(value - focal[index + 1])
+        if row + 1 < FOCAL_ROWS:
+            energy += abs(value - focal[index + FOCAL_COLUMNS])
+        total += energy
+        weighted_x += energy * column
+        weighted_y += energy * row
+    if total < STRUCTURE_FLOOR:
+        return 0.5, 0.5
+    return weighted_x / (total * (FOCAL_COLUMNS - 1)), weighted_y / (total * (FOCAL_ROWS - 1))
+
+
 def handleable(item: Any) -> bool:
     """A thing she can pick up: light, small, on the floor, and not food."""
 
@@ -518,11 +543,11 @@ class FunctionalOrganism:
     def _measure(self, sensed: Sensed, seen: tuple[SeenThing, ...], body: Any) -> dict[str, float]:
         focal = sensed.focal_luminance_u8
         total = sum(focal)
-        if len(focal) == FOCAL_COLUMNS * FOCAL_ROWS and total:
-            horizontal = sum(value * (index % FOCAL_COLUMNS) for index, value in enumerate(focal)) / (total * (FOCAL_COLUMNS - 1))
-            vertical = sum(value * (index // FOCAL_COLUMNS) for index, value in enumerate(focal)) / (total * (FOCAL_ROWS - 1))
-        else:
-            horizontal = vertical = 0.5
+        # Where her gaze goes: the centre of STRUCTURE in the field (where
+        # luminance changes between neighbouring sites), not of brightness.
+        # A flat bright ceiling has no edges and holds no gaze; with too
+        # little structure anywhere the gaze rests at the centre.
+        horizontal, vertical = structure_centre(focal)
         heard = sensed.heard_profile
         if heard is not None and sum(heard) > 0:
             energy = sum(heard) / len(heard)
