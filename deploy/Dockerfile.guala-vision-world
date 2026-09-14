@@ -1,0 +1,13 @@
+# Python-only vision release: preserve the exact task1463 native binary and dependencies.
+FROM 418384447921.dkr.ecr.us-east-1.amazonaws.com/dsf-ai@sha256:59b2000575d079a06b01273388c2f42da6313e36dfb3ca62e0647cf84538b9cf
+ARG GIT_SHA
+ARG BUILD_TS
+LABEL org.opencontainers.image.revision="${GIT_SHA}" \
+      com.gualaloom.build_ts="${BUILD_TS}" \
+      com.gualaloom.runtime="lean-native"
+ENV GIT_SHA=${GIT_SHA} BUILD_TS=${BUILD_TS}
+COPY runtime/dsf_ai_service/guala_world_sensorium.py /app/dsf_ai_service/guala_world_sensorium.py
+COPY runtime/dsf_ai_service/lean_physical_loop.py /app/dsf_ai_service/lean_physical_loop.py
+COPY runtime/dsf_ai_service/substrate/w1_physical_receptors.py /app/dsf_ai_service/substrate/w1_physical_receptors.py
+RUN printf 'git_sha=%s built=%s runtime=lean-native\n' "${GIT_SHA}" "${BUILD_TS}" > /BUILD_INFO \
+    && test "$(sha256sum /usr/local/lib/python3.11/site-packages/guala_core/guala_core.cpython-311-x86_64-linux-gnu.so | cut -d ' ' -f1)" = "42c076198c9f50b00c1cec13098f34b81b08c8d80f8982e6328f6082681d5769"

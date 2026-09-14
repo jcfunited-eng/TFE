@@ -84,7 +84,7 @@ def test_world_page_has_the_authorized_embodied_access_only() -> None:
         "Camera / tutor RGB · 135 sites",
         "World light",
         "Camera / tutor",
-        "Smoothing adds no receptor sites",
+        "0.2667° × 0.2° focal center",  # Sol's world focal span label (2026-09-14)
         "Enable camera",
         "Enable microphone",
         "Listen to Guala",

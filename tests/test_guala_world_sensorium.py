@@ -67,8 +67,9 @@ def _world() -> ThermallyCoupledEmbodimentWorldAuthority:
 
 BODY_AXES = (
     (0, "neck_yaw", "millidegree", 0, -180_000, 0, 180_000),
-    (1, "left_eyelid_aperture", "micrometre", 160, 0, 0, 320),
-    (2, "right_eyelid_aperture", "micrometre", 320, 0, 0, 320),
+    (1, "neck_pitch", "millidegree", 0, -45_000, 0, 45_000),
+    (2, "left_eyelid_aperture", "micrometre", 160, 0, 0, 320),
+    (3, "right_eyelid_aperture", "micrometre", 320, 0, 0, 320),
 )
 
 
