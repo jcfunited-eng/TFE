@@ -568,7 +568,7 @@ class FunctionalOrganism:
             "pending_voice": None, "pending_drive": None, "meals_micrograms": 0, "bites": 0, "strides": 0, "syllables": 0,
             "voice_version": VOICE_VERSION, "ambient_sound": 0.0, "handled": 0, "room_now": None,
             "head": [0, 0], "acts": {}, "pending_act": None, "last_chosen": None,
-            "sleep_pressure": 0, "asleep": False, "learned": {}, "dream_cursor": 0, "nights": 0,
+            "sleep_pressure": 0, "asleep": False, "learned": {}, "nights": 0,
         })
 
     @classmethod
@@ -595,7 +595,7 @@ class FunctionalOrganism:
             state["voice_version"] = VOICE_VERSION
             changed = True
         for key, empty in (("ambient_sound", 0.0), ("handled", 0), ("room_now", None), ("head", [0, 0]), ("acts", {}), ("pending_act", None), ("last_chosen", None),
-                           ("sleep_pressure", 0), ("asleep", False), ("learned", {}), ("dream_cursor", 0), ("nights", 0)):
+                           ("sleep_pressure", 0), ("asleep", False), ("learned", {}), ("nights", 0)):
             if key not in state:
                 state[key] = empty
                 changed = True
@@ -861,10 +861,7 @@ class FunctionalOrganism:
         record = state.setdefault("acts", {})
         if not record:
             return None
-        keys = sorted(record)
-        cursor = int(state.get("dream_cursor", 0)) % len(keys)
-        state["dream_cursor"] = cursor + 1
-        key = keys[cursor]
+        key = min(record)
         entry = record.pop(key)
         regimes = str(entry.get("regimes") or "")
         if not regimes:
