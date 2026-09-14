@@ -1,3 +1,52 @@
+# Current-view finding — 2026-09-14 02:12 UTC
+
+D122334 inspection release remains closed on task 1464. This is a read-only
+explanation of its grey world view, not a new candidate or deployment.
+
+**Measured cause:** no world object intersects the narrow focal field at the
+recorded live pose. Source arithmetic accounts for the displayed value exactly.
+The pre-cutover saved world's object positions, radii, held relations and self
+pose were compared with the actual post-release observation at tick 710159;
+they match. The saved receptor offset puts the eye at (14700, 7600, 1100) mm.
+Body heading, neck yaw and neck pitch are all zero. The focal half-width is
+400/3 millidegrees and half-height is 100 millidegrees.
+
+Using the deployed source's integer _atan2_millidegrees on those coordinates:
+- Sofa: bearing -19178, elevation -24310, angular radius 19572 millidegrees.
+  Its upper edge is -4738 millidegrees, below the focal field.
+- Television: bearing 34824, elevation -21442, angular radius 13096
+  millidegrees. It also misses the focal field.
+- No unheld world object intersects the focal field even before occlusion.
+  The other body and the TV-room doorway are behind the current aim.
+  apple-4 is held by Guala and the existing renderer excludes self-held objects;
+  it therefore cannot supply focal content under the current implementation.
+
+The current room's six equal bands are reflectance 620000 ppm multiplied by
+illumination 740000 ppm: radiance 1147/2500. Both eyelids are at 10000 of 12000,
+so transmission is 5/6. The existing observer conversion rounds
+(1147/2500) * (5/6) * 255 = 19499/200 = 97.495 to 97.
+The actual 768 focal values are all 97. This observation therefore does not
+establish a frozen display or lost retinal delivery; it establishes a uniformly
+lit, unoccupied current focal direction under the existing world renderer.
+
+Evidence: /tmp/guala-vision-cutover.DvqUhF/post-health.json, pre-cutover.zip
+(world envelope, already archived and authenticated by the completed release),
+and the deployed source functions in w1_physical_receptors.py
+(_retinal_projection, _atan2_millidegrees, _region_radiance),
+guala_world_sensorium.py (retinal_carriage), and lean_physical_loop.py
+(retinal_u8 conversion). Read-only arithmetic took 0.38 s, ran no native
+transition, changed no live or copied body, and started no benchmark, lesson,
+image build or cutover.
+
+**Consequence for the next item:** narrowing the world center did not by itself
+provide useful visible sight. Camera detail remains unchanged. Actual aim and
+the physical scene must supply detail; neither a preview enlargement nor
+observer-selected targeting can stand in for organism sight. Current mono
+aim reads the neck axes, not the separate left/right eye axes. Those source
+facts are shared with C1 before any next viewing/teaching design; his feeding
+release is untouched. No claim of 20/20, 250 ms, recognition or autonomous
+attention follows from this finding. Speech remains paused.
+
 # Handoff test reconciliation — 2026-09-14 02:01UTC
 
 C1caughtastale WHOLE-fieldfocaltestin332d81f05: I integratedtheproductionfiles
