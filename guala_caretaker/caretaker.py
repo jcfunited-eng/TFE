@@ -265,7 +265,7 @@ def maybe_feed(o: dict, st: dict) -> None:
     if at_mouth:
         st["meal_retry"] = False
         return
-    foods = [f for f in foods if f not in skip] or foods
+    foods = [f for f in foods if f not in skip]  # an unreachable apple is not retried; a fresh one is brought instead
     if not foods:
         # Nothing edible within reach: the caregiver brings a fresh apple
         # from outside (the world's grocery boundary) and presents it.
