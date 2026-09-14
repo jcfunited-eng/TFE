@@ -5536,6 +5536,16 @@ class EmbodimentWorldAuthority:
                 ):
                     if int(item.mass_grams) > PUSH_MASS_GRAMS or item_region is None:
                         return None, "move_path_intersects_object"
+                    # A thing a body is touching or holding is not pushed: its
+                    # contact is signed to where it lies, and moving it from
+                    # under a hand would make the world's own geometry a lie
+                    # (it raised in validation and stopped the actor, 2026-09-14).
+                    if any(
+                        other.active_contact is not None
+                        and other.active_contact.object_id == item.object_id
+                        for other in bodies
+                    ):
+                        return None, "move_path_intersects_object"
                     moved = _push_aside(
                         item, body.pose.position, target.position, carried_radius,
                         item_region, pushed_objects, bodies, body.body_id,

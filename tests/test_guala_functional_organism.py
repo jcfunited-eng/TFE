@@ -583,3 +583,59 @@ def test_asleep_she_dreams_the_days_record_into_her_situation_memory_and_uses_it
     assert len(organism._state["learned"]) <= CONSOLIDATED_CAPACITY
     encoded = organism.encoded()
     assert FunctionalOrganism.restore(encoded).encoded() == encoded
+
+
+def test_a_thing_under_her_hand_is_not_pushed_by_the_caregivers_step() -> None:
+    """The death of 2026-09-14: her hand on the curtains, the caregiver walking
+    in to present a meal, and the step law pushing the curtains from under her
+    hand; the world's validation then raised ("body contact differs from
+    signed geometry") and the actor stopped. A thing under a body's contact is
+    not pushed: the step is refused, which the caregiver's hand detours."""
+
+    from dsf_ai_service.guala_caretaker_hand import SECOND_BODY_PORT_ID
+    from dsf_ai_service.substrate.embodiment_world import (
+        ActionExecutionReceipt, MoveCommand, PORT_ID, PoseMM, TouchContactCommand, encode_command,
+    )
+
+    world = home_world_authority(identity=IDENTITY)
+    snapshot = world.observation_snapshot()
+    her = _her(world)
+    cup = next(item for item in snapshot.objects if item.object_id == "cup")
+    # A light cup within her hand's reach, straight ahead of her.
+    radians = math.radians(her.pose.heading_millidegrees / 1000)
+    ahead = PositionMM(her.pose.position.x + round(450 * math.cos(radians)), her.pose.position.y + round(450 * math.sin(radians)), 0)
+    world.admit_authored_arrival(EmbodiedObject("cup-under-hand", cup.radius_mm, cup.mass_grams, ahead, reflectance_ppm=cup.reflectance_ppm, material=cup.material))
+    snapshot = world.observation_snapshot()
+    touch = world.prepare_port_command(port_id=PORT_ID, command_payload=encode_command(TouchContactCommand("cup-under-hand", 250_000)),
+                                       causal_intent_receipt_sha256="ab" * 32, expected_revision=snapshot.revision)
+    assert not isinstance(touch, ActionExecutionReceipt), touch.reason
+    with world.prepared_action_visibility_transaction(touch):
+        world.commit_prepared_action(touch)
+    snapshot = world.observation_snapshot()
+    her = _her(world)
+    assert her.active_contact is not None and her.active_contact.object_id == "cup-under-hand"
+    person = next(body for body in snapshot.bodies if body.body_id != snapshot.self_body_id)
+    # The caregiver's stride passes through the cup: refused, never raised.
+    beyond = PositionMM(ahead.x + round(300 * math.cos(radians)), ahead.y + round(300 * math.sin(radians)), 0)
+    # Put the caregiver a stride short of the cup, facing it, by the world's own move law.
+    approach = PositionMM(ahead.x - round(700 * math.cos(radians)), ahead.y - round(700 * math.sin(radians)), 0)
+    world_before = world.observation_snapshot()
+    placed = world.prepare_port_command(port_id=SECOND_BODY_PORT_ID, command_payload=encode_command(MoveCommand(PoseMM(approach, her.pose.heading_millidegrees), 250_000)),
+                                        causal_intent_receipt_sha256="cd" * 32, expected_revision=world_before.revision)
+    if isinstance(placed, ActionExecutionReceipt):
+        # The caregiver cannot be placed there from where it stands (far away): the law is still exercised below with a direct path check.
+        placed = None
+    else:
+        with world.prepared_action_visibility_transaction(placed):
+            world.commit_prepared_action(placed)
+    snapshot = world.observation_snapshot()
+    person = next(body for body in snapshot.bodies if body.body_id != snapshot.self_body_id)
+    target = PositionMM(person.pose.position.x + round(1200 * math.cos(radians)), person.pose.position.y + round(1200 * math.sin(radians)), 0) if placed is not None else beyond
+    result = world.prepare_port_command(port_id=SECOND_BODY_PORT_ID, command_payload=encode_command(MoveCommand(PoseMM(target, her.pose.heading_millidegrees), 250_000)),
+                                        causal_intent_receipt_sha256="ef" * 32, expected_revision=snapshot.revision)
+    assert isinstance(result, ActionExecutionReceipt), "a step through a thing under her hand must be refused"
+    assert result.reason in ("move_path_intersects_object", "move_path_intersects_body", "move_outside_room", "move_too_far"), result.reason
+    after = world.observation_snapshot()
+    still = next(item for item in after.objects if item.object_id == "cup-under-hand")
+    assert still.position == ahead, "the cup moved from under her hand"
+    assert _her(world).active_contact is not None
