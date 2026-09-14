@@ -597,7 +597,7 @@ class FunctionalOrganism:
             "pending_voice": None, "pending_drive": None, "meals_micrograms": 0, "bites": 0, "strides": 0, "syllables": 0,
             "voice_version": VOICE_VERSION, "ambient_sound": 0.0, "handled": 0, "room_now": None,
             "head": [0, 0], "acts": {}, "pending_act": None, "last_chosen": None,
-            "sleep_pressure": 0, "asleep": False, "learned": {}, "nights": 0,
+            "sleep_pressure": 0, "asleep": False, "learned": {}, "nights": 0, "act_totals": {},
             "taste_residue": 0.0,
         })
 
@@ -635,6 +635,14 @@ class FunctionalOrganism:
                 changed = True
         for name in [name for name in state["streams"] if name not in STREAMS]:
             del state["streams"][name]  # a stream this build does not read (e.g. a blend of two others)
+            changed = True
+        if "act_totals" not in state:
+            # Her lifetime tries per act, summed from the record she already has.
+            totals: dict[str, int] = {}
+            for entry in state.get("acts", {}).values():
+                for act, (tries, _total) in entry.get("acts", {}).items():
+                    totals[act] = totals.get(act, 0) + int(tries)
+            state["act_totals"] = totals
             changed = True
         for key in RETIRED_KEYS:
             if key in state:
@@ -928,6 +936,8 @@ class FunctionalOrganism:
             entry["regimes"] = regimes
         tried = entry["acts"].setdefault(act, [0, 0.0])
         tried[0] = int(tried[0]) + 1
+        totals = self._state.setdefault("act_totals", {})
+        totals[act] = int(totals.get(act, 0)) + 1
         tried[1] = round(float(tried[1]) + value, 6)
         if successor_key:
             successors = entry.setdefault("successors", {})
@@ -993,12 +1003,22 @@ class FunctionalOrganism:
                 act = max(known, key=lambda a: (float(tried[a][1]) / int(tried[a][0]), -acts.index(a)))
                 mean = float(tried[act][1]) / int(tried[act][0])
                 return act, label + ", new today; from her sleep, situation " + situation + ": " + act + f" ({mean:+.2f} over {int(tried[act][0])})"
-            return acts[0], label + ": first try of " + acts[0]
+            # Nothing known here or in her sleep: the act she has tried least in
+            # her whole life (her own counts, never a written order).
+            totals = self._state.get("act_totals", {})
+            act = min(acts, key=lambda a: (int(totals.get(a, 0)), acts.index(a)))
+            return act, label + ": first try of " + act + f" (tried {int(totals.get(act, 0))} times in her life)"
 
         tried = entry["acts"]
         untried = [act for act in acts if act not in tried]
         if untried:
-            return untried[0], label + ": first try of " + untried[0]
+            # Among the acts not yet tried under this structure, the one she has
+            # tried least in her whole life comes first (her own counts, not a
+            # written order): a fixed order sent her round grasp and release
+            # forever, each flipping what her eye saw into a "new" structure.
+            totals = self._state.get("act_totals", {})
+            untried.sort(key=lambda a: (int(totals.get(a, 0)), acts.index(a)))
+            return untried[0], label + ": first try of " + untried[0] + f" (tried {int(totals.get(untried[0], 0))} times in her life)"
 
         visits = sum(int(tried[act][0]) for act in acts)
         if uncertain is True:
