@@ -198,6 +198,11 @@ class FunctionalPhysicalLoop:
                 "external_retinal_site_count": external_sites,
                 "external_rgb_retinal_u8": None if external_rgb is None else list(external_rgb),
                 "external_sensory_source": None if sensory is None else sensory.source,
+                # Her gaze within the focal field (horizontal, vertical fractions),
+                # the luminance-weighted centre of what she last saw; the page's
+                # camera crop follows this, never the other way round (A1's lane).
+                "gaze_focal": None if organism.gaze is None else list(organism.gaze),
+                "gaze_focal_source": source,
                 "external_source_receipt_sha256": None if sensory is None else sensory.source_receipt_sha256,
                 "her_act": decision.act,
                 "her_counts": organism.counts,

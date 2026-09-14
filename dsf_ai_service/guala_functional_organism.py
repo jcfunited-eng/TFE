@@ -424,6 +424,18 @@ class FunctionalOrganism:
         return None if raw is None else base64.b64decode(raw)
 
     @property
+    def gaze(self) -> tuple[float, float] | None:
+        """Where she is looking within her focal field, as a declared law: the
+        luminance-weighted centre of the last focal field she sensed, in
+        (horizontal, vertical) fractions of the field; None before the first beat."""
+
+        horizontal = self._state["streams"]["sight_horizontal"]
+        vertical = self._state["streams"]["sight_vertical"]
+        if not horizontal or not vertical:
+            return None
+        return float(horizontal[-1]), float(vertical[-1])
+
+    @property
     def counts(self) -> dict[str, int]:
         return {key: int(self._state[key]) for key in ("bites", "strides", "syllables", "meals_micrograms")}
 
