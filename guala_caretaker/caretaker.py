@@ -64,6 +64,7 @@ MINE = collections.deque(maxlen=256)  # her ticks this caretaker produced; any o
 MEAL_TICKS = 400
 HUNGRY_DEFICIT = 0.40  # her feeding law starts below 60 percent of capacity
 DELIVERY_ID = "apple-delivery"  # asks the caregiver to bring a fresh apple from outside
+REACH_MM = 800  # her declared reach (guala_home_world)
 FOOD_PREFIX = "apple"
 CORE_MICROGRAMS = 2_000  # below this an apple is a core: a bite takes a geometric share of what is left, and under two milligrams that is nothing worth a walk
 
@@ -223,11 +224,29 @@ def food_state(o: dict, skip: set[str]) -> tuple[bool, list[str]]:
     bodies = emb.get("bodies") or []
     objects = emb.get("objects") or []
     remaining = {ob.get("object_id"): ob.get("tastant_remaining_micrograms") for ob in objects}
-    held_ids = {b.get("held_object_id") for b in bodies if b.get("held_object_id")}
-    # The world's bite takes floor(mass × 3600 / 8100) per channel: a channel of
-    # 2 µg or less can never come off, so an eaten core (five channels of 2,
-    # 10 µg in all) is not food; anything above that still has a mouthful.
-    at_mouth = any((remaining.get(i) or 0) > CORE_MICROGRAMS for i in held_ids)
+    self_id = emb.get("self_body_id")
+    her = next((b for b in bodies if b.get("body_id") == self_id), None)
+    others = [b for b in bodies if b.get("body_id") != self_id]
+
+    def within_reach(b: dict) -> bool:
+        if her is None:
+            return False
+        p, q = her["pose"]["position"], b["pose"]["position"]
+        return ((p["x_mm"] - q["x_mm"]) ** 2 + (p["y_mm"] - q["y_mm"]) ** 2) <= REACH_MM ** 2
+
+    # At her mouth: the apple in her own hand, or one the caregiver holds out
+    # within her reach, while it still has matter. An apple the caregiver
+    # holds out of her reach is the first thing to present (no new delivery).
+    at_mouth = False
+    carried = []
+    for b in bodies:
+        held = b.get("held_object_id")
+        if not held or (remaining.get(held) or 0) <= CORE_MICROGRAMS:
+            continue
+        if b.get("body_id") == self_id or within_reach(b):
+            at_mouth = True
+        else:
+            carried.append(held)
     floor = [
         ob for ob in objects
         if str(ob.get("object_id", "")).startswith(FOOD_PREFIX)
@@ -235,7 +254,7 @@ def food_state(o: dict, skip: set[str]) -> tuple[bool, list[str]]:
         and (ob.get("tastant_remaining_micrograms") or 0) > CORE_MICROGRAMS
     ]
     floor.sort(key=lambda ob: (ob["object_id"] in skip, -int(ob.get("tastant_remaining_micrograms") or 0)))
-    return at_mouth, [ob["object_id"] for ob in floor]
+    return at_mouth, carried + [ob["object_id"] for ob in floor]
 
 
 def maybe_feed(o: dict, st: dict) -> None:
