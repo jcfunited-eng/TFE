@@ -136,6 +136,7 @@ MAX_BODY_SURFACE_SITES = 32
 MAX_BODY_SURFACE_CONTACTS_PER_ACTION = 4
 ODORANT_CHANNELS = 8
 TASTANT_CHANNELS = 5
+RELEASE_CLEARANCE_MM = 40
 MIN_MATERIAL_ACTION_DURATION_US = 1_000
 MAX_MATERIAL_ACTION_DURATION_US = 5_000_000
 MAX_MATERIAL_MASS = (1 << 63) - 1
@@ -5545,7 +5546,12 @@ class EmbodimentWorldAuthority:
                 or item.held_by_body_id != body.body_id
             ):
                 raise RuntimeError("held release custody changed")
-            separation_mm = body.radius_mm + item.radius_mm
+            # Set down a hand's margin ahead, clear of the body's own disc:
+            # at exactly touching distance the lattice rounding overlapped
+            # the discs and the world refused every release (2026-09-14).
+            # The carried thing may be wider than the body: measure from the
+            # occupied radius, so a wide thing is not set down inside itself.
+            separation_mm = occupied_radius(body) + item.radius_mm + RELEASE_CLEARANCE_MM
             dx, dy = rotate_lattice_offset(
                 separation_mm,
                 0,

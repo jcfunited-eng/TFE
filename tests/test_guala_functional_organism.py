@@ -291,7 +291,7 @@ def test_an_older_functional_body_is_migrated_on_restore_and_forgets_sounds_of_t
     state["voice_version"] = 1
     state["voice"] = [{"drive": [44, 31, 0], "heard": [0.1] * 32, "tick": 3}]
     state["heard"] = [{"tick": 4, "profile": [0.2] * 32}]
-    for key in ("visited", "door_goal", "bout_syllables", "quiet_until_tick", "blocked_doors", "attended_tick", "unreachable_food", "food_goal", "food_refusals", "food_best_mm", "food_stall_beats", "ambient_sound", "answered_profile"):
+    for key in ("visited", "door_goal", "bout_syllables", "quiet_until_tick", "blocked_doors", "attended_tick", "unreachable_food", "food_goal", "food_refusals", "food_best_mm", "food_stall_beats", "ambient_sound", "answered_profile", "touched", "strides_since_pickup", "handled", "release_refusals", "touching"):
         state.pop(key, None)
     older = MAGIC + json.dumps(state, allow_nan=False, ensure_ascii=False, separators=(",", ":"), sort_keys=True).encode("utf-8")
     restored = FunctionalOrganism.restore(older)
@@ -382,3 +382,35 @@ def test_an_open_microphone_does_not_make_her_repeat_one_syllable() -> None:
     assert 1 <= len(answers) <= 3, len(answers)
     spoken = [r for r in results if r.pressure is not None]
     assert len(spoken) <= 12, len(spoken)  # bouts of five with quiet spells, not one every four beats forever
+
+
+def test_not_hungry_she_feels_picks_up_carries_and_sets_down_light_things() -> None:
+    """Her handling law: a light thing her hand reaches is felt, picked up,
+    carried a while and set down somewhere else; what she handled is known
+    and not handled again for a time; heavy things are only looked at."""
+
+    world = home_world_authority(identity=IDENTITY)
+    organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
+    organism._state["reserve_micrograms"] = CAPACITY_MICROGRAMS * 9 // 10
+    organism._state["feeding"] = False
+    before = {item.object_id: (item.position.x, item.position.y) for item in world.observation_snapshot().objects if item.position is not None}
+    loop = FunctionalPhysicalLoop()
+    acts = []
+    for _ in range(500):
+        acts.append(loop.settle(organism, world, UNATTENDED).observation)
+        if organism.counts["handled"] >= 2 and any(o["her_act"] == "release" and o["world_action_refusal"] is None for o in acts):
+            break
+    kinds = [o["her_act"] for o in acts]
+    assert "touch" in kinds and "grasp" in kinds and "release" in kinds, set(kinds)
+    first_touch = kinds.index("touch")
+    assert kinds[first_touch + 1] == "grasp", kinds[first_touch:first_touch + 3]
+    after = {item.object_id: (item.position.x, item.position.y) for item in world.observation_snapshot().objects if item.position is not None}
+    moved = [k for k in before if k in after and before[k] != after[k]]
+    assert moved, "nothing was carried anywhere"
+    snapshot = world.observation_snapshot()
+    for object_id in moved:
+        item = next(i for i in snapshot.objects if i.object_id == object_id)
+        assert item.mass_grams <= 2_000 and item.radius_mm <= 300
+    assert set(organism._state["touched"]) >= set(moved)
+    refused_releases = [o for o in acts if o["her_act"] == "release" and o["world_action_refusal"]]
+    assert len(refused_releases) <= 3, len(refused_releases)

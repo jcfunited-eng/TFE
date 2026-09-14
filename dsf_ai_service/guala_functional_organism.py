@@ -36,7 +36,7 @@ from dsf_ai_service.guala_caretaker_hand import (
 from dsf_ai_service.guala_voice import ONSETS, PITCHES_DECIHERTZ, VOWELS, syllable_pcm as airway_syllable_pcm
 from dsf_ai_service.substrate.embodiment_world import (
     GraspContactCommand, MoveCommand, OralContactCommand, PoseMM, PositionMM,
-    ReleaseHeldObjectCommand, _derived_contact_patch_square_mm, _receptor_position,
+    ReleaseHeldObjectCommand, TouchContactCommand, _derived_contact_patch_square_mm, _receptor_position,
 )
 
 
@@ -51,7 +51,7 @@ BEAT_MICROSECONDS = 250_000
 CAPACITY_MICROGRAMS = 500_000
 BASAL_BURN_MICROGRAMS = 17
 ACT_BURN_MULTIPLE = {
-    "rest": 0, "attend": 0, "bite": 2, "grasp": 2, "release": 1, "turn": 1,
+    "rest": 0, "attend": 0, "bite": 2, "grasp": 2, "release": 1, "turn": 1, "touch": 1,
     "approach": 4, "wander": 4, "babble": 2, "imitate": 2,
 }
 HUNGRY_BELOW = Fraction(3, 5)   # feeding starts below 60 percent of capacity
@@ -76,6 +76,16 @@ TURN_MILLIDEGREES = 60_000
 # Roaming: once everything in sight was looked at within this many beats, she
 # leaves through the doorway to the room she visited least recently; the
 # doorway is crossed in one step from a margin before it to a margin past it.
+# Handling: a thing light enough and small enough to pick up is touched when
+# her hand reaches it, then picked up, carried a while and set down somewhere
+# else; what she has handled is known for a time and not handled again.
+HANDLE_MASS_GRAMS = 2_000
+HANDLE_RADIUS_MM = 300
+HANDLE_STOP_MM = 150       # how far short of a thing she stops to reach it with her hand
+CARRY_STRIDES = 12
+DROP_MARGIN_MM = 60
+TOUCHED_MEMORY_BEATS = 1_200
+TOUCHED_CAPACITY = 64
 PROGRESS_MM = 40           # a stride that brings her at least this much closer counts as progress
 FOOD_STALL_BEATS = 12      # three seconds without progress toward food, and she leaves it for a while
 ATTEND_REFRACTORY_BEATS = 8   # after pausing on something new, she does not pause again for two seconds
@@ -282,6 +292,32 @@ def in_hand_reach(snapshot: Any, item: Any) -> bool:
     ) is not None
 
 
+def handleable(item: Any) -> bool:
+    """A thing she can pick up: light, small, on the floor, and not food."""
+
+    return (item is not None and item.position is not None and not _is_food(item)
+            and int(item.mass_grams) <= HANDLE_MASS_GRAMS and int(item.radius_mm) <= HANDLE_RADIUS_MM)
+
+
+def drop_spot_clear(snapshot: Any, body: Any, item: Any) -> bool:
+    """The world sets a released thing down a clearance ahead of the body;
+    that spot must not touch another thing or body, or the world refuses."""
+
+    from dsf_ai_service.substrate.embodiment_world import RELEASE_CLEARANCE_MM, rotate_lattice_offset
+
+    dx, dy = rotate_lattice_offset(max(body.radius_mm, item.radius_mm) + item.radius_mm + RELEASE_CLEARANCE_MM, 0, body.pose.heading_millidegrees)
+    spot = PositionMM(body.pose.position.x + dx, body.pose.position.y + dy, 0)
+    if _region_of(snapshot, spot, item.radius_mm) is None:
+        return False
+    for other in snapshot.objects:
+        if other.object_id != item.object_id and other.position is not None and _distance_mm(spot, other.position) <= item.radius_mm + other.radius_mm + DROP_MARGIN_MM:
+            return False
+    for other in snapshot.bodies:
+        if other.body_id != body.body_id and _distance_mm(spot, other.pose.position) <= item.radius_mm + other.radius_mm + DROP_MARGIN_MM:
+            return False
+    return True
+
+
 def _object(snapshot: Any, object_id: str) -> Any | None:
     return next((item for item in snapshot.objects if item.object_id == object_id), None)
 
@@ -377,7 +413,7 @@ class FunctionalOrganism:
             "familiarity": {}, "episodes": [], "heard": [], "voice": [], "approached": {},
             "refusals": {}, "idle_beats": 0, "last_act": "rest", "last_spoke_tick": -BABBLE_EVERY_BEATS, "goal": None, "goal_beats": 0, "goal_refusals": 0,
             "pending_voice": None, "pending_drive": None, "meals_micrograms": 0, "bites": 0, "strides": 0, "syllables": 0,
-            "voice_version": VOICE_VERSION, "visited": {}, "door_goal": None, "bout_syllables": 0, "quiet_until_tick": 0, "blocked_doors": {}, "attended_tick": -ATTEND_REFRACTORY_BEATS - 1, "unreachable_food": {}, "food_goal": None, "food_refusals": 0, "food_best_mm": 0, "food_stall_beats": 0, "ambient_sound": 0.0, "answered_profile": None,
+            "voice_version": VOICE_VERSION, "visited": {}, "door_goal": None, "bout_syllables": 0, "quiet_until_tick": 0, "blocked_doors": {}, "attended_tick": -ATTEND_REFRACTORY_BEATS - 1, "unreachable_food": {}, "food_goal": None, "food_refusals": 0, "food_best_mm": 0, "food_stall_beats": 0, "ambient_sound": 0.0, "answered_profile": None, "touched": {}, "strides_since_pickup": 0, "handled": 0, "release_refusals": 0, "touching": None,
         })
 
     @classmethod
@@ -403,7 +439,7 @@ class FunctionalOrganism:
             state["voice"], state["heard"], state["pending_voice"], state["pending_drive"] = [], [], None, None
             state["voice_version"] = VOICE_VERSION
             changed = True
-        for key, empty in (("visited", {}), ("door_goal", None), ("bout_syllables", 0), ("quiet_until_tick", 0), ("blocked_doors", {}), ("attended_tick", -ATTEND_REFRACTORY_BEATS - 1), ("unreachable_food", {}), ("food_goal", None), ("food_refusals", 0), ("food_best_mm", 0), ("food_stall_beats", 0), ("ambient_sound", 0.0), ("answered_profile", None)):
+        for key, empty in (("visited", {}), ("door_goal", None), ("bout_syllables", 0), ("quiet_until_tick", 0), ("blocked_doors", {}), ("attended_tick", -ATTEND_REFRACTORY_BEATS - 1), ("unreachable_food", {}), ("food_goal", None), ("food_refusals", 0), ("food_best_mm", 0), ("food_stall_beats", 0), ("ambient_sound", 0.0), ("answered_profile", None), ("touched", {}), ("strides_since_pickup", 0), ("handled", 0), ("release_refusals", 0), ("touching", None)):
             if key not in state:
                 state[key] = empty
                 changed = True
@@ -475,7 +511,7 @@ class FunctionalOrganism:
 
     @property
     def counts(self) -> dict[str, int]:
-        return {key: int(self._state[key]) for key in ("bites", "strides", "syllables", "meals_micrograms")}
+        return {key: int(self._state.get(key, 0)) for key in ("bites", "strides", "syllables", "meals_micrograms", "handled")}
 
     # ----- the kernel over her measured streams --------------------------------------
 
@@ -638,6 +674,35 @@ class FunctionalOrganism:
                         state["food_goal"], state["food_stall_beats"] = None, 0
                     else:
                         return decision("approach", "hungry, food in sight", move_commands_toward(snapshot, nearest.position, stop), nearest.object_id)
+        # Handling: carry what she picked up for a while, then set it down;
+        # touch, then pick up, a light thing her hand reaches that she has
+        # not handled lately.
+        touched = state.setdefault("touched", {})
+        if held is not None and not _is_food(held):
+            if int(state.get("strides_since_pickup", 0)) >= CARRY_STRIDES:
+                # Set it down where the floor ahead is clear; otherwise turn
+                # a little and look again next beat.
+                if drop_spot_clear(snapshot, body, held) and int(state.get("release_refusals", 0)) == 0:
+                    return decision("release", "setting down " + held.object_id + " after carrying it", (ReleaseHeldObjectCommand(BEAT_MICROSECONDS),), held.object_id)
+                state["release_refusals"] = 0
+                heading = (body.pose.heading_millidegrees + TURN_MILLIDEGREES) % 360_000
+                return decision("turn", "looking for a clear place to set down " + held.object_id, (MoveCommand(PoseMM(body.pose.position, heading), BEAT_MICROSECONDS),), held.object_id)
+        elif held is None and not feeding:
+            # What she felt with her own touch last beat (a set-down also
+            # leaves a hand contact in the world; that is not a feel).
+            under_hand = state.get("touching")
+            fresh = [item for item in snapshot.objects if handleable(item) and in_hand_reach(snapshot, item)
+                     and (item.object_id == under_hand
+                          or tick - int(touched.get(item.object_id, -TOUCHED_MEMORY_BEATS - 1)) > TOUCHED_MEMORY_BEATS)]
+            if fresh:
+                item = min(fresh, key=lambda thing: (thing.object_id != under_hand, _distance_mm(body.pose.position, thing.position)))
+                touched_now = item.object_id == under_hand
+                if item.material is not None and not touched_now:
+                    return decision("touch", "feeling " + item.object_id, (TouchContactCommand(item.object_id, BEAT_MICROSECONDS),), item.object_id)
+                reachable = [thing for thing in snapshot.objects if thing.position is not None and in_hand_reach(snapshot, thing)]
+                if len(reachable) == 1:
+                    return decision("grasp", "picking up " + item.object_id, (GraspContactCommand(BEAT_MICROSECONDS),), item.object_id)
+                touched[item.object_id] = tick  # too crowded to grasp it cleanly; known by touch
         if novel and gate_count:
             state["attended_tick"] = tick
             return decision("attend", "a structure she has not met before")
@@ -676,7 +741,7 @@ class FunctionalOrganism:
         goal_id = state.get("goal")
         goal = None if goal_id is None else _object(snapshot, goal_id)
         if goal is not None and goal.position is not None and _region_of(snapshot, goal.position, goal.radius_mm) is _region_of(snapshot, body.pose.position, body.radius_mm):
-            stop = body.radius_mm + goal.radius_mm + WANDER_STOP_MM
+            stop = body.radius_mm + goal.radius_mm + (HANDLE_STOP_MM if handleable(goal) and held is None else WANDER_STOP_MM)
             state["goal_beats"] = int(state.get("goal_beats", 0)) + 1
             if (
                 _distance_mm(body.pose.position, goal.position) <= stop + ARRIVAL_MM
@@ -691,7 +756,8 @@ class FunctionalOrganism:
             goal = None
         if goal is None and seen:
             for thing in sorted(seen, key=lambda thing: (int(approached.get(thing.object_id, -1)), thing.distance_mm)):
-                if thing.distance_mm <= body.radius_mm + thing.radius_mm + WANDER_STOP_MM + ARRIVAL_MM:
+                near_stop = HANDLE_STOP_MM if (held is None and handleable(_object(snapshot, thing.object_id))) else WANDER_STOP_MM
+                if thing.distance_mm <= body.radius_mm + thing.radius_mm + near_stop + ARRIVAL_MM:
                     approached[thing.object_id] = tick
                     continue
                 if tick - int(approached.get(thing.object_id, -LOOKED_RECENTLY_BEATS - 1)) <= LOOKED_RECENTLY_BEATS:
@@ -715,7 +781,7 @@ class FunctionalOrganism:
                 return decision("wander", why, move_commands_toward(snapshot, before_door, 0), portal.portal_id)
         if goal is not None:
             why = "hungry, searching for food; going to look at " if feeding else "nothing pressing; going to look at "
-            stop = body.radius_mm + goal.radius_mm + WANDER_STOP_MM
+            stop = body.radius_mm + goal.radius_mm + (HANDLE_STOP_MM if handleable(goal) and held is None else WANDER_STOP_MM)
             return decision("wander", why + goal.object_id, move_commands_toward(snapshot, goal.position, stop), goal.object_id)
         if not seen or feeding or int(state["idle_beats"]) >= IDLE_BEFORE_BABBLE:
             heading = (body.pose.heading_millidegrees + TURN_MILLIDEGREES) % 360_000
@@ -741,6 +807,18 @@ class FunctionalOrganism:
             state["bites"] += 1
         if applied_action in ("approach", "wander") and refusal is None:
             state["strides"] += 1
+            state["strides_since_pickup"] = int(state.get("strides_since_pickup", 0)) + 1
+        if applied_action in ("touch", "grasp", "release") and refusal is None and decision.target_object_id is not None:
+            touched = state.setdefault("touched", {})
+            touched[decision.target_object_id] = tick_now
+            while len(touched) > TOUCHED_CAPACITY:
+                del touched[min(touched, key=lambda k: int(touched[k]))]
+            if applied_action == "grasp":
+                state["strides_since_pickup"] = 0
+                state["handled"] = int(state.get("handled", 0)) + 1
+        if decision.act == "release" and refusal is not None:
+            state["release_refusals"] = int(state.get("release_refusals", 0)) + 1
+        state["touching"] = decision.target_object_id if (applied_action == "touch" and refusal is None) else None
         if refusal is not None:
             if decision.act == "wander":
                 state["goal_refusals"] = int(state.get("goal_refusals", 0)) + 1
