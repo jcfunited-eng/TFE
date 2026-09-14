@@ -1,3 +1,13 @@
+# CURRENT — D122334 VISION INSPECTION RELEASE LIVE1464 (2026-09-14)
+
+332d81f05 / image74cf6218 / taskd12bafde, identitypreserved fromliveshutdown710068.
+Worldfocalgeometry+pitch+texturelookup anddiscardedcamera-raycleanup live.
+Pagebc776589; Chromium710106passed, butactualfocalcenteruniformgrey. CAMERA
+sharpnessunchanged; NOT20/20or250msorrecognition. Joe'svisualjudgmentpending.
+Fullproof/backup/onecutover/failedreadonly502retry/resource/cleanupreceipts are
+in the D122334 executioncontract. C1mustmerge332d81f05beforehisownfeedingrelease.
+No speechresume, no fullAEcompletion. Priorblockedheadersbelowaresuperseded.
+
 # CURRENT — D122334 VISION-ONLY CUTOVER AUTHORIZED (2026-09-14)
 
 Joe explicitly authorizes deployment for live inspection. Exact scope, fresh1463

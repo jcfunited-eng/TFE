@@ -1,3 +1,87 @@
+# Final receipt — 2026-09-14 01:59UTC
+
+Live710159/persisted710132,1464healthy1/1/0,nocustodyerrors. Initial01:53-56
+CPUmax63.6254%,RAMmax18.6798%;noresource/refusalalarm,oldclockALARMunchanged.
+Post-releasearchivebb8d0ee85587b833270159ba6fa57f5afb29badf8978ac21008fe78fbc9fdc0d,
+wholeS3readbackverified, post-release-evidence.tar.gz underthereleaseprefix.
+Containsallcutover/dryrunlogs,includingsinglepre-write502,liveartifact/public
+observations,actualgrey screenshotandbrowserreceipt,matchedresourcewindow.
+C1alreadymerged332d81f05into2b9fc9821;exactreleasedrevision/pagehashandhonest
+visiblelimitshared. Hisseparatefeedingreleaseworkmaycontinueunderitsowngates.
+
+# CURRENT — D122334 VISION-ONLY RELEASE LIVE ON1464 (2026-09-14)
+
+Joe's requested inspection release is delivered, not20/20or250ms acceptance.
+Source332d81f05aefe38bea8137095ca8f3c923efcba1, image
+sha256:74cf6218bdfe67cb85f0fa5e18d0bd3f1c5aa38016bc38013187c200dba39fc6,
+task1464/d12bafde923a4d5e900795145360b778. Sameidentity1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1.
+
+WHAT IS LIVE: existing768world apertures now form25/3millidegree-pitch narrow
+center;135legacyapertures andall903IDskept. Existingneckpitch reachesworld
+object/portal andbody-return optics; patternedfloorilluminationlookupfixed.
+Full2709RGBcamera no longer computes a discarded903-ray world pass. Existing
+C1need mechanism/nativebinary unchanged. No reflex/phase2/feeding/Speechmerge.
+CAMERAsharpness unchanged. FullDSF andcodecunchanged; latencytargetstillopen.
+
+ACTUAL BROWSER RESULT: liveChromium710106 renders903worldfield withuniformgrey
+focalcenter andcoarseperiphery. No recognizabledetail shown atthiscurrentview.
+Do NOT relabel this screenshot as20/20, semanticrecognition, autonomousaiming,
+or a demonstrated useful visual scene. Joe is to judge the visible result.
+The newgeometry's localcontrast proof remainsseparatefromcurrentlivecontent.
+PageHTTP200,zeroJSerrors,zero inputwrites; actualservedSHA
+bc77658951d34f0f37c452d78b30f3631634655ed3886df51f536fe8e60cfb64.
+CloudFrontICFS0V5HXFXZY7J75F7MVJ3778COMPLETED; LoomScanHTTP200unchanged.
+OldpageSHAaa5383fabf78ab17a5a0d461eb49af1b2cae9fde622e99bdb2c0592d37256d66
+backedupas gualaloom-before.html inthereleaseS3prefix.
+
+COMPLETE RELEASE EVIDENCE: package221files,e2ee35408dd54eaf685760cd66c6af4aa517aec49ab7acc26d2cc4bbb5ed3c5f,
+receipt72fd8f289b7233e739c1dbc2c298a4ea902521df9192dde0b8c2d361a17aff55.
+OnePython-onlybuild, unchangedRust/dependencies, exactpinned1463base. Dockerindex
+f15e9228notusedasECSdigest; theactualamd64manifest74cf6218ispinnedandverified.
+All118runtime/curriculumfilehashesandnative42c076verifiedintheimage.
+Source/page review119e7c05andrecipef80550c3PASS. Existing46focusedsourcechecks
+preserved; one local matureproof andoneexact-imageproof bothPASS, no new
+speech/nativecampaigntests. Exact-image01:42:23.477->01:44:39.121UTC,exit0/noOOM,
+warmpeak3436588KiB,cold3436760KiB.709601->709604fullbody/worldmatcheslocal,
+includingcheckpointcold+next; physicalobservationssame. Exact-imageintervals
+world1.379495s,camera1.225788s,warmnext1.140423s,coldnext1.149088s,NOTproductionlatency.
+TwofinishedownedproofcontainersremovedONLYafterwholeevidencearchive+readback.
+
+Pre-releasearchive SHA5c1c2720f703415e61902bfa5ce921e3c3d47598ba6e377d7bae534595798779
+at s3://guala-incident-bench-20260831/vision-world-20260914/dvq-release/pre-release-evidence.tar.gz,
+fullremote readback identical. Includes complete caller/input/body/world pairs,
+comparison/runlogs/containerreceipts/package/browserproof. No copiedbodymerged.
+Freshfinalbackup709921 ZIP74fb4061e7c9617fd4c26d2c34a6285fdef20dbe6336334930a34569d3e9f748,
+pre-cutover.zip sameprefix, fullbodyaf8cb450...064a/worldf0f5e656...518b.
+
+CUTOVER: clockstarted01:46:04UTC inclonefailed nonmutatingfinaldryrunHTTP502.
+No register/drain/start occurred inthatfailure. Verifiedsame1463/1writer,
+operatorhealth/ready200andadvancingerrorfreeobservation; oneunchangedretryPASS.
+No controller/image/codechange,no acceptance bypass. Original709601dryrunPASS;
+final709921dryrunretryPASS. ONEactualcutover, one1464registration. Controller
+waitedactual1463STOPPED/exit0+successfulApplicationshutdown+zero before1464.
+OldApplicationshutdown01:49:32.189->01:50:12.871UTC. Candidate restoredLATEST
+liveshutdown710068 body24ae79d14835e5b507eb270e440254c399eeaad3786b5e880d04d3da58ea3948,
+world7980f494b77adfeb93de355ffaf635e394b90e2b71ea1062e3f3fa2bbfe8020e,
+not709601or709921backups. Controllercontinuityhealthy710072,sole1/1/0.
+Read-onlyECSartifactreceiptverified3changedPythonhashes,nativebinary42c076,
+actualpitch25/3,hspan800/3,vspan200millidegrees,no newruntimeinstance.
+Liveunattended710087:991DSFdeliveries,903actualretinalvalues,hash
+11eaf7e79e7d3ef2b20de5c380b43461fd0c8c164beb75501a023e6fc6ac739f.
+Later710118/persisted710100,nocheckpoint/cleanuperror.01:53/54CPUmax43.833%,
+RAMmax17.096%;CPU/RAM/storage/refusalalarmsOK,historicalclockalarmALARMunchanged.
+
+C1HOLDack08:05readbeforecutover. Hisfeedingimagef89f5e54mustNOTdeployover1464
+unchanged: itwouldregresstheseoptics. Handoffmustinclude332d81f05andpageSHA,
+thenC1mergesre-proveshisownnewscopeaschartered. No C1caretakerstop/restartbySol.
+User-requestedfullAEgoalnotcomplete; thisinspectionreleaseclosesonlythiscutover.
+
+NewrecurrenceRF067:GitHubContents>1MiBreturnsblankcontent;usefullimmutableblob
+andfreshSHA;neverreplacefromempty/truncatedtext. RF068:distinguishread-only502
+frommutatingcutoverfailure, verifyexactsourcebeforeboundedretry, useoperator
+originfor/health/ready(PUBLIC/readywasonewrong-originS3404,notruntimefailure).
+Bothdurablyaddedtodeployrecurrenceregister. Existingclosedproofsretainedbelow.
+
 ## 2026-09-14 01:39UTC — local mature integration CLOSED; immutable build next
 
 Frozen backend/page119e7c051a4adac68fc8561de370d01e8a2ecf8217a455ca30292abac24c49c6 PASS.
