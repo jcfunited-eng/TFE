@@ -115,6 +115,9 @@ def test_world_page_has_the_authorized_embodied_access_only() -> None:
         "nothing arrived (unattended beat)",
         "reserve deficit",  # stage 2: her own reserve state on the beat line (2026-09-13)
         "thermal load",
+        "her act: ",  # her own world act on the beat line: bite, grasp, move (2026-09-14)
+        "caregiver holds out ",  # the caretaker's presentation, as the world allowed it (2026-09-14)
+        "the caretaker presenting food",
         'href="/loomscan.html"',
     ):
         assert required in source
@@ -122,6 +125,7 @@ def test_world_page_has_the_authorized_embodied_access_only() -> None:
         '"camera"',
         '"camera-microphone"',
         '"card-microphone"',
+        '"caretaker-food"',
         '"media"',
         '"microphone"',
         '"text-light"',
