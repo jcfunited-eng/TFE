@@ -23,6 +23,170 @@ HOME_CEILING_MM = 2_600
 BACKYARD_SKY_MM = 8_000
 
 
+
+def _home_optical_surface_for(
+    name: str,
+    base_ref: tuple[int, int, int, int, int, int],
+) -> Any:
+    """Generate a deterministic, content-addressed optical surface for an object.
+
+    Each surface is a 32x32 grid with 4 reflectance spectrum shades derived from
+    the object's base spectral reflectance, giving the world-eye raycaster
+    fine structural contrast.
+    """
+    from dsf_ai_service.substrate.embodiment_world import ObjectOpticalSurface
+
+    def scale_spec(scale: float) -> tuple[int, int, int, int, int, int]:
+        return tuple(
+            max(10_000, min(1_000_000, int(round(c * scale))))
+            for c in base_ref
+        )
+
+    palette = (
+        scale_spec(0.65),
+        scale_spec(0.85),
+        scale_spec(1.10),
+        scale_spec(1.35),
+    )
+    cols, rows = 32, 32
+    cells = [0] * (cols * rows)
+    num_p = 4
+
+    for r in range(rows):
+        for c in range(cols):
+            idx = r * cols + c
+            if any(k in name for k in ("table", "chair", "desk", "shelf", "chest")):
+                val = (
+                    1
+                    if (r in (0, rows - 1) or c in (0, cols - 1) or r == 16 or c == 16)
+                    else (0 if ((r // 4) + (c // 4)) % 2 == 0 else 2)
+                )
+            elif any(k in name for k in ("blanket", "curtains")):
+                if "curtains" in name:
+                    val = (c % 4) % num_p
+                else:
+                    val = (((r // 4) % 2) ^ ((c // 4) % 2) + ((r + c) % 3)) % num_p
+            elif "rug" in name:
+                if r < 3 or r >= rows - 3 or c < 3 or c >= cols - 3:
+                    val = 0
+                elif r in (4, rows - 5) or c in (4, cols - 5):
+                    val = 3
+                elif abs(r - 16) + abs(c - 16) <= 8:
+                    val = 2
+                else:
+                    val = 1
+            elif "book" in name:
+                if c < 6:
+                    val = 0
+                elif (c in (8, cols - 3) and 3 <= r <= rows - 4) or (
+                    r in (3, rows - 4) and 8 <= c <= cols - 3
+                ):
+                    val = 3
+                elif 12 <= r <= 20 and 14 <= c <= 22:
+                    val = 2
+                else:
+                    val = 1
+            elif "television" in name:
+                if r < 3 or r >= rows - 3 or c < 3 or c >= cols - 3:
+                    val = 0 if not (r >= rows - 2 and c >= cols - 4) else 3
+                else:
+                    val = 1 if r % 2 == 0 else 2
+            elif any(k in name for k in ("bowl", "cup", "apple")):
+                d2 = (r - 16) ** 2 + (c - 16) ** 2
+                if "apple" in name:
+                    if r < 6 and 14 <= c <= 17:
+                        val = 0
+                    elif d2 > 200:
+                        val = 1
+                    elif (r * 11 + c * 7) % 5 == 0:
+                        val = 3
+                    else:
+                        val = 2
+                else:
+                    if d2 <= 36:
+                        val = 3
+                    elif d2 <= 144:
+                        val = 1
+                    elif d2 <= 225:
+                        val = 2
+                    else:
+                        val = 0
+            elif "toy-bear" in name:
+                d_ear1 = (r - 7) ** 2 + (c - 8) ** 2
+                d_ear2 = (r - 7) ** 2 + (c - 23) ** 2
+                d_head = (r - 16) ** 2 + (c - 16) ** 2
+                d_muzzle = (r - 18) ** 2 + (c - 16) ** 2
+                if d_ear1 <= 16 or d_ear2 <= 16:
+                    val = 0
+                elif (r in (13, 14) and c in (11, 20)) or (r == 17 and c == 16):
+                    val = 0
+                elif d_muzzle <= 20:
+                    val = 2
+                elif d_head <= 144:
+                    val = 1
+                else:
+                    val = 3
+            elif "glow-stars" in name:
+                d = abs(r - 16) + abs(c - 16)
+                if d <= 3:
+                    val = 3
+                elif (r == 16 and abs(c - 16) <= 12) or (c == 16 and abs(r - 16) <= 12):
+                    val = 2
+                elif d <= 10:
+                    val = 1
+                else:
+                    val = 0
+            elif "lamp" in name:
+                if r < 18:
+                    val = 2 if c % 4 < 2 else 3
+                elif 18 <= r <= 25 and 14 <= c <= 17:
+                    val = 0
+                else:
+                    val = 1
+            elif "art" in name:
+                if r < 16 and c < 16:
+                    val = 0 if (r - 8) ** 2 + (c - 8) ** 2 <= 25 else 1
+                elif r < 16:
+                    val = 2 if (r + c) % 4 < 2 else 3
+                elif c < 16:
+                    val = 3 if ((r // 4) + (c // 4)) % 2 == 0 else 0
+                else:
+                    val = 1 if (r == 24 or c == 24) else 2
+            elif any(k in name for k in ("slide", "swing", "sandbox", "garden")):
+                if "slide" in name:
+                    val = (
+                        0
+                        if c in (0, 1, cols - 2, cols - 1)
+                        else (1 if (r - c) % 6 < 3 else 2)
+                    )
+                elif "swing" in name:
+                    val = (
+                        0
+                        if c in (6, 25)
+                        else (1 if 12 <= r <= 19 else (2 if r % 4 == 0 else 3))
+                    )
+                elif "sandbox" in name:
+                    val = (
+                        0
+                        if (r < 3 or r >= rows - 3 or c < 3 or c >= cols - 3)
+                        else (((r * 17 + c * 31) % 3) + 1)
+                    )
+                else:
+                    val = 0 if (r // 4) % 2 == 0 else (((c // 4) % 3) + 1)
+            else:
+                val = ((r // 4) + (c // 4)) % num_p
+            cells[idx] = val % num_p
+
+    used = set(cells)
+    for p_i in range(num_p):
+        if p_i not in used:
+            cells[p_i] = p_i
+
+    surf = ObjectOpticalSurface(cols, rows, palette, tuple(cells))
+    surf.verify()
+    return surf
+
+
 def _home_rooms_and_things() -> tuple[list[Any], list[Any], list[Any]]:
     """Her home, delivered from Eve's map (docs/GUALA_WORLD_EXPANSION_
     BLUEPRINT_20260831.md): a 20m x 16m lot — nine places including a
@@ -185,6 +349,7 @@ def _home_rooms_and_things() -> tuple[list[Any], list[Any], list[Any]]:
             PositionMM(x, y, 0),
             emission_ppm=emission_of.get(name, ()),
             reflectance_ppm=reflectance,
+            optical_surface=_home_optical_surface_for(name, reflectance),
             material=ObjectMaterialState(
                 odorant_reservoir_nanograms=tuple(
                     rate * reservoir_seconds for rate in material_of[name][0]
