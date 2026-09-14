@@ -147,7 +147,7 @@ DOOR_CROSSING_OFFSETS_MM = (0, 300, -300, 500, -500)
 STREAMS = (
     "sight_luminance", "sight_horizontal", "sight_vertical", "sound_energy",
     "sound_pitch", "smell_odour", "taste_residue", "touch_texture",
-    "somatic_pressure", "hunger", "food_distance", "heading", "hand",
+    "sleep_pressure", "hunger", "food_distance", "heading", "hand",
 )
 LEGACY_STREAMS = (
     "sight_luminance", "sight_horizontal", "sight_vertical", "sound_energy",
@@ -617,6 +617,9 @@ class FunctionalOrganism:
             if name not in state["streams"]:
                 state["streams"][name] = []
                 changed = True
+        for name in [name for name in state["streams"] if name not in STREAMS]:
+            del state["streams"][name]  # a stream this build does not read (e.g. a blend of two others)
+            changed = True
         for key in RETIRED_KEYS:
             if key in state:
                 del state[key]
@@ -737,51 +740,44 @@ class FunctionalOrganism:
         snapshot = sensed.snapshot
         here = _region_of(snapshot, body.pose.position, body.radius_mm)
 
-        # Passive 1: Smell (room air odorant concentration + near-field source release)
-        room_conc = 0.0
-        if here is not None and getattr(here, "air", None) is not None:
-            air = here.air
+        # Smell: the room's air as the world keeps it (odorant mass over the
+        # room's volume), over her nose's declared saturation (the world's
+        # receptor geometry); both are the world's own numbers. Nearby things
+        # reach her nose only through the air the world already diffuses into.
+        smell_val = 0.0
+        air = getattr(here, "air", None) if here is not None else None
+        nose = getattr(getattr(body, "receptor_geometry", None), "odorant_saturation_nanograms_per_cubic_meter", None)
+        if air is not None and nose:
             masses = getattr(air, "odorant_mass_nanograms", ())
-            vol = getattr(air, "volume_cubic_mm", 1)
-            if masses and vol > 0:
-                room_conc = (sum(masses) * 1_000_000_000) / (vol * 1_000_000)
-        near_release = 0.0
-        for item in snapshot.objects:
-            if item.material is not None and item.position is not None:
-                dist = _distance_mm(body.pose.position, item.position)
-                if dist <= 2_000:
-                    rates = getattr(item.material, "odorant_release_nanograms_per_second", ())
-                    if rates:
-                        near_release += sum(rates) / (1.0 + (dist / 500.0) ** 2)
-        smell_val = _clamp(room_conc * 0.2 + near_release / 5_000.0, 0.0, 1.0)
+            volume_mm3 = getattr(air, "volume_cubic_mm", 0)
+            if masses and volume_mm3 > 0:
+                per_cubic_metre = [mass * 1_000_000_000 / volume_mm3 for mass in masses]
+                smell_val = _clamp(sum(c / s for c, s in zip(per_cubic_metre, nose) if s > 0) / max(1, len(nose)), 0.0, 1.0)
 
         # Passive 2: Taste residue (salivary residue from eating + food held at mouth)
-        taste_val = float(self._state.get("taste_residue", 0.0))
-        if body.held_object_id is not None:
-            held_obj = _object(snapshot, body.held_object_id)
-            if held_obj is not None and _is_food(held_obj):
-                taste_val = max(taste_val, 0.25)
-        taste_val = _clamp(taste_val, 0.0, 1.0)
+        # Taste is the residue of what she has taken in, decaying each beat
+        # (a body law like her metabolism); holding food is not tasting.
+        taste_val = _clamp(float(self._state.get("taste_residue", 0.0)), 0.0, 1.0)
 
         # Passive 3: Touch / Texture (surface compliance and roughness of held or contact object)
-        touch_val = 0.05
+        # Touch is what her hand or mouth is actually on (the world's signed
+        # contact) or what she holds; a thing merely within reach is not felt.
+        touch_val = 0.0
         contact_obj = None
+        contact = getattr(body, "active_contact", None)
         if body.held_object_id is not None:
             contact_obj = _object(snapshot, body.held_object_id)
-        else:
-            reachable = [item for item in snapshot.objects if item.position is not None and in_hand_reach(snapshot, item) and item.material is not None]
-            if reachable:
-                contact_obj = reachable[0]
+        elif contact is not None and getattr(contact, "object_id", None) is not None:
+            contact_obj = _object(snapshot, contact.object_id)
         if contact_obj is not None and contact_obj.material is not None:
             comp = getattr(contact_obj.material, "compliance_ppm", 0) / 1_000_000.0
             rough = getattr(contact_obj.material, "roughness_micrometers", 0) / 1_000.0
             touch_val = (comp + rough) / 2.0
         touch_val = _clamp(touch_val, 0.0, 1.0)
 
-        # Passive 4: Interoceptive Somatic Pressure (deficit + fatigue / sleep pressure)
+        # Her sleep pressure as a stream of its own (hunger is already one).
         deficit = float(self.deficit)
-        sleep_ratio = float(self._state.get("sleep_pressure", 0)) / SLEEP_PRESSURE_CEILING
-        somatic_pressure = _clamp((deficit + min(1.0, sleep_ratio)) / 2.0, 0.0, 1.0)
+        sleep_ratio = _clamp(float(self._state.get("sleep_pressure", 0)) / SLEEP_PRESSURE_CEILING, 0.0, 1.0)
 
         return {
             "sight_luminance": (total / len(focal) / 255) if focal else 0.0,
@@ -792,7 +788,7 @@ class FunctionalOrganism:
             "smell_odour": smell_val,
             "taste_residue": taste_val,
             "touch_texture": touch_val,
-            "somatic_pressure": somatic_pressure,
+            "sleep_pressure": sleep_ratio,
             "hunger": deficit,
             "food_distance": (food[0].distance_mm / SIGHT_RANGE_MM) if food else 1.0,
             "heading": body.pose.heading_millidegrees / 360_000,
@@ -830,67 +826,6 @@ class FunctionalOrganism:
             )
             tokens.append(token)
         return " ".join(tokens), gates_total
-
-    def _say_drive(self, tick: int, situation: str) -> tuple[int, int, int]:
-        """Acoustic structural matching against self-heard voice records when
-        responding to external sounds, closing the sensorimotor loop; or
-        prosodic situational and previous-syllable transitions when speaking
-        spontaneously."""
-
-        state = self._state
-        heard_history = state.get("heard", [])
-        voice_history = state.get("voice", [])
-
-        # 1. Closed-loop acoustic structural matching:
-        recent_heard = [h for h in heard_history if tick - int(h.get("tick", 0)) <= 8]
-        if recent_heard and voice_history:
-            target_profile = recent_heard[-1]["profile"]
-            best_entry = min(
-                voice_history,
-                key=lambda v: sum(abs(a - b) for a, b in zip(target_profile, v["heard"])),
-            )
-            best_pitch, best_vowel, best_onset = best_entry["drive"]
-            if tick % 2 == 0:
-                return int(best_pitch), int(best_vowel), int(best_onset)
-            else:
-                explore_vowel = (int(best_vowel) + (1 if tick % 4 == 1 else -1)) % len(VOWELS)
-                return int(best_pitch), explore_vowel, int(best_onset)
-        elif recent_heard and not voice_history:
-            target_profile = recent_heard[-1]["profile"]
-            tot = sum(target_profile)
-            if tot > 0:
-                centroid = sum(v * i for i, v in enumerate(target_profile)) / (tot * (len(target_profile) - 1))
-                pitch_idx = int(_clamp(round(centroid * (len(PITCHES_DECIHERTZ) - 1)), 0, len(PITCHES_DECIHERTZ) - 1))
-            else:
-                pitch_idx = len(PITCHES_DECIHERTZ) // 2
-            return PITCHES_DECIHERTZ[pitch_idx], tick % len(VOWELS), (tick // len(VOWELS)) % len(ONSETS)
-
-        # 2. Spontaneous speech: situational and prosodic previous-syllable continuity
-        prev_drive = state.get("pending_drive") or (voice_history[-1]["drive"] if voice_history else None)
-
-        deficit = float(self.deficit)
-        sleep_ratio = float(state.get("sleep_pressure", 0)) / SLEEP_PRESSURE_CEILING
-        somatic_pressure = (deficit + min(1.0, sleep_ratio)) / 2.0
-        if somatic_pressure > 0.6:
-            pitch = PITCHES_DECIHERTZ[-2]
-        elif somatic_pressure < 0.3:
-            pitch = PITCHES_DECIHERTZ[1]
-        else:
-            pitch = PITCHES_DECIHERTZ[3]
-
-        if prev_drive is not None:
-            _prev_p, prev_v, prev_o = prev_drive
-            vowel = (int(prev_v) + (1 if tick % 3 != 0 else 0)) % len(VOWELS)
-            sit_hash = sum(ord(c) for c in situation) if situation else 0
-            onset = (int(prev_o) + (sit_hash % 3)) % len(ONSETS)
-            return pitch, vowel, onset
-
-        sit_hash = sum(ord(c) for c in situation) if situation else 0
-        vowel = (sit_hash + tick) % len(VOWELS)
-        onset = ((sit_hash >> 2) + tick // len(VOWELS)) % len(ONSETS)
-        return pitch, vowel, onset
-
-    # ----- decide ---------------------------------------------------------------------
 
     def decide(self, sensed: Sensed) -> Decision:
         state = self._state
@@ -958,8 +893,7 @@ class FunctionalOrganism:
                 return decision("sleep", "falling asleep on her bed; pressure at its ceiling" if at_bed else "exhausted; asleep where she dropped")
 
         uncertain = any(len(t) >= 5 and t[4] == "+" for t in tokens)
-        say_drive = self._say_drive(tick, situation)
-        options = candidates(snapshot, body, held, offered, seen, tick, say_drive=say_drive)
+        options = candidates(snapshot, body, held, offered, seen, tick)
         act, why = self._choose(key, situation, [option[0] for option in options], uncertain=uncertain)
         _name, detail, commands, target, drive = next(option for option in options if option[0] == act)
         deficit = round(float(self.deficit), 6)

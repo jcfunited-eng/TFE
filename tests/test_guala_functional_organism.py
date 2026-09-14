@@ -42,15 +42,23 @@ def _her(world):
 
 
 def _apple_ahead(world, object_id: str, ahead_mm: int) -> None:
+    """An apple set down ahead of her by the test's hand: the first clear spot
+    at the asked distance, then a little to either side or further, since
+    what stands around her depends on what she did before."""
+
     snapshot = world.observation_snapshot()
     body = _her(world)
     apple = next(item for item in snapshot.objects if item.object_id == "apple")
-    radians = math.radians(body.pose.heading_millidegrees / 1000)
-    world.admit_authored_arrival(EmbodiedObject(
-        object_id, apple.radius_mm, apple.mass_grams,
-        PositionMM(body.pose.position.x + round(ahead_mm * math.cos(radians)), body.pose.position.y + round(ahead_mm * math.sin(radians)), 0),
-        reflectance_ppm=apple.reflectance_ppm, material=apple.material,
-    ))
+    last_error = None
+    for extra_mm, turn in ((0, 0), (0, 25), (0, -25), (120, 0), (120, 40), (120, -40), (260, 0), (260, 60), (260, -60)):
+        radians = math.radians((body.pose.heading_millidegrees / 1000) + turn)
+        spot = PositionMM(body.pose.position.x + round((ahead_mm + extra_mm) * math.cos(radians)), body.pose.position.y + round((ahead_mm + extra_mm) * math.sin(radians)), 0)
+        try:
+            world.admit_authored_arrival(EmbodiedObject(object_id, apple.radius_mm, apple.mass_grams, spot, reflectance_ppm=apple.reflectance_ppm, material=apple.material))
+            return
+        except ValueError as error:  # the world's authoring guard: the spot is not clear
+            last_error = error
+    raise AssertionError(f"no clear spot ahead of her for {object_id}: {last_error}")
 
 
 def _run(organism, world, occurrences):
