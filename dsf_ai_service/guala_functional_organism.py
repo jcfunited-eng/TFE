@@ -153,6 +153,13 @@ LEGACY_STREAMS = (
     "sight_luminance", "sight_horizontal", "sight_vertical", "sound_energy",
     "sound_pitch", "hunger", "food_distance", "heading", "hand",
 )
+# The structure she chooses under leaves out the streams her own hand flips
+# within a beat (her hand, what it touches, what she tastes): with them in the
+# key every grasp and release made a "new" structure, and under a new
+# structure her untried-first rule picked grasp and release before any move
+# or sound, forever (live, 2026-09-14). Those streams stay in the signature,
+# the episodes and the kernel; they do not name the structure.
+CHOICE_STREAMS = tuple(name for name in STREAMS if name not in ("hand", "touch_texture", "taste_residue"))
 KERNEL_WINDOW = 64
 KERNEL_MINIMUM = 24
 STREAM_FLOOR = 0.05
@@ -476,6 +483,15 @@ def cochlear_profile(cochleae: tuple[tuple[float, ...], ...]) -> tuple[float, ..
     if len(cochleae) != COCHLEAR_CHANNELS:
         raise ValueError("cochlear profile needs the ear's 32 channels")
     return tuple(round(max(channel), 6) for channel in cochleae)
+
+
+def choice_key(regimes: str) -> str:
+    """The key of the structure she chooses under and remembers as met: the
+    regime letters of the choice streams, hashed."""
+
+    streams = LEGACY_STREAMS if len(regimes) == len(LEGACY_STREAMS) else STREAMS
+    letters = "".join(regimes[streams.index(name)] for name in CHOICE_STREAMS if name in streams) if len(regimes) == len(streams) else regimes
+    return _sha256(" ".join(letters).encode("utf-8"))[:16]
 
 
 def coarse_key(regimes: str) -> str:
@@ -844,7 +860,7 @@ class FunctionalOrganism:
         signature, gate_count = self._kernel()
         tokens = signature.split(" ")
         regimes = "".join(token[0] for token in tokens)
-        key = _sha256(" ".join(regimes).encode("utf-8"))[:16]
+        key = choice_key(regimes)
         situation = coarse_key(regimes)
         tick = self.live_organism_tick
         novel = key not in state["familiarity"]
@@ -1049,7 +1065,7 @@ class FunctionalOrganism:
             refusals[refusal] = int(refusals.get(refusal, 0)) + 1
             while len(refusals) > REFUSAL_CAPACITY:
                 del refusals[min(refusals, key=lambda k: int(refusals[k]))]
-        key = _sha256(" ".join(token[0] for token in decision.signature.split(" ")).encode("utf-8"))[:16]
+        key = choice_key("".join(token[0] for token in decision.signature.split(" ")))
         familiarity = state["familiarity"]
         entry = familiarity.get(key)
         familiarity[key] = [1, tick_now] if entry is None else [int(entry[0]) + 1, tick_now]
