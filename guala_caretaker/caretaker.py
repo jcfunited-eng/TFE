@@ -257,6 +257,45 @@ def food_state(o: dict, skip: set[str]) -> tuple[bool, list[str]]:
     return at_mouth, carried + [ob["object_id"] for ob in floor]
 
 
+PLAY_TICKS = 240  # about a minute of her clock between offers of a toy
+TOYS = ("toy-bear", "glow-stars", "book", "cup")
+
+
+def maybe_play(o: dict, st: dict) -> None:
+    """When she is not hungry and her hands are empty, the caregiver fetches a
+    toy that lies on the floor and holds it out to her; she takes it, carries
+    it, sets it down; next time the caregiver fetches it again. Presents only;
+    never moves her."""
+    tick = o.get("live_tick") or 0
+    if tick < (st.get("play_tick") or 0) + PLAY_TICKS:
+        return
+    lo = o.get("last_occurrence") or {}
+    deficit = lo.get("metabolic_need_reserve_deficit") or [0, 1]
+    try:
+        hungry = (deficit[0] / deficit[1]) > HUNGRY_DEFICIT if deficit[1] else False
+    except (TypeError, ZeroDivisionError, IndexError):
+        hungry = False
+    if hungry:
+        return
+    emb = lo.get("embodiment") or {}
+    bodies = emb.get("bodies") or []
+    if any(b.get("held_object_id") for b in bodies):
+        return  # a hand is busy; no toy now
+    on_floor = {ob.get("object_id") for ob in emb.get("objects") or [] if ob.get("position") is not None}
+    choices = [t for t in TOYS if t in on_floor]
+    if not choices:
+        return
+    toy = choices[(st.get("play_index") or 0) % len(choices)]
+    st["play_index"] = (st.get("play_index") or 0) + 1
+    st["play_tick"] = tick
+    res = present_food(toy)
+    json.dump(st, open(STATE, "w"))
+    if res is None:
+        return
+    pres = ((res.get("observation") or {}).get("last_occurrence") or {}).get("caregiver_presentation") or {}
+    log(f"play: offered {toy} — presented={pres.get('presented')} steps={len(pres.get('steps') or [])}")
+
+
 def maybe_feed(o: dict, st: dict) -> None:
     """Present a meal when due. Reads her world; decides nothing about her.
     A presentation the world did not allow (a thing boxed in by furniture)
@@ -344,6 +383,7 @@ def wait_clear(min_tick: int | None = None, st: dict | None = None) -> dict | No
             # lessons hold.
             if st is not None:
                 maybe_feed(o, st)
+                maybe_play(o, st)
             if gates_clear(o) and (hold is None or (o.get("live_tick") or 0) >= hold):
                 return o
         time.sleep(POLL_S)
@@ -375,6 +415,7 @@ def main() -> None:
         if o is None:
             break
         maybe_feed(o, st)
+        maybe_play(o, st)
         ok = True
         for i, pcm in enumerate(blocks):
             res = present_block(retina, pcm)
