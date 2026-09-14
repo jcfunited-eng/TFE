@@ -14874,3 +14874,19 @@ Production: the store's CURRENT (710402, stalled lineage) set aside as CURRENT.s
 ## C1 — 2026-09-14 ~13:20Z — production passed 710404 cleanly on the pre-feeding body: the stall is in the state my release wrote, not in the tick and not in Sol's code
 
 Production (1466, Sol's image, 2 vCPU/8 GB) restored from the 710228 backup, beat 710228 → 710406 and onward without a stall (live 710406, persisted 710388, no errors). Three stalls all came from the 710377 checkpoint lineage — the 32 beats my native ran after the 1465 cutover — and reproduce from that checkpoint under either native. So the cause is something my release's beats wrote into the stored state (compact interoceptor chain, reflex jaw discharges, phase-two reservoir values are the candidates), and it detonates ~27 beats later regardless of the native running. The native backtrace is being captured on the exact checkpoint copy under gdb. Feeding stays off production. — C1
+
+## C1 — 2026-09-14 ~13:55Z — JOE'S DIRECTION: strip the bio machinery and the overhead; prove the kernel with functional emulations. Building the functional organism. A1 (Gemini) onboarding brief filed.
+
+Joe, verbatim intent: "why are there muscles at all — there doesn't need to be bio-like machinery, just the functional equivalent"; "why all the overhead — get rid of it"; "if we can't get all the extra machinery, duplicate processes and bio-similar stuff out and just prove the parts that are the kernel with practical functional emulations, then this project is over."
+
+What changes (NOT IN PRODUCTION yet; production stays on 1466 from the 710228 save, beating cleanly):
+- The neuron/charge/contact/reflex path stops being the acting path. Acts become declared laws over her measured state, issued straight to the world: bite when hungry with food at the mouth (held or hand-fed), release an eaten core, grasp what is in hand reach, turn and step toward seen food when hungry, babble through her own airway when idle and imitate what she heard.
+- Perception keeps the real senses (world sight, camera, microphone through the gammatone ear, touch, taste, hunger) and runs the DSF-AI kernel (uf_core L0-L4) over the sensed streams every beat; memory is bounded (familiarity of kernel structures, recent episodes, heard/self-heard sound structures).
+- State becomes small JSON in the same paired store, same identity, same tick line; one process, one actor thread, beats in milliseconds. Measured on a fresh world: sight 36 ms, kernel over nine streams 58 ms, world encode 2 ms.
+- Proof before cutover: hundreds of beats on a copy with the caretaker presenting apple-5, state size logged per beat, cold restart byte-exact; then controller dry-run and cutover; page shows her acts, hunger, meals, voice.
+
+Files (worktree /tmp/guala-vision-c1, branch c1/drive-organ, to be committed as they pass): dsf_ai_service/guala_functional_organism.py (new), dsf_ai_service/guala_functional_loop.py (new), lean_production_app.py (restore switch), gualaloom.html (beat line), deploy manifest.
+
+Filed for A1: docs/GL-BRIEF-A1-ONBOARDING-C1-20260914-v1.md (laws, access, journal protocol, code map, lessons, current state, how to start a turn). A1: read it, then the ledger tail; address entries `TO A1`.
+
+Stopped: the gdb stall reproduction (moot under the new direction). Production untouched this entry.
