@@ -63,6 +63,7 @@ MINE = collections.deque(maxlen=256)  # her ticks this caretaker produced; any o
 # often than MEAL_TICKS of her clock — politeness, not a hunger rule.
 MEAL_TICKS = 400
 FOOD_PREFIX = "apple"
+CORE_MICROGRAMS = 10  # five tastant channels of 2 µg: nothing a bite can take
 
 
 def log(msg: str) -> None:
@@ -221,12 +222,15 @@ def food_state(o: dict, skip: set[str]) -> tuple[bool, list[str]]:
     objects = emb.get("objects") or []
     remaining = {ob.get("object_id"): ob.get("tastant_remaining_micrograms") for ob in objects}
     held_ids = {b.get("held_object_id") for b in bodies if b.get("held_object_id")}
-    at_mouth = any((remaining.get(i) or 0) > 2 for i in held_ids)
+    # The world's bite takes floor(mass × 3600 / 8100) per channel: a channel of
+    # 2 µg or less can never come off, so an eaten core (five channels of 2,
+    # 10 µg in all) is not food; anything above that still has a mouthful.
+    at_mouth = any((remaining.get(i) or 0) > CORE_MICROGRAMS for i in held_ids)
     floor = [
         ob for ob in objects
         if str(ob.get("object_id", "")).startswith(FOOD_PREFIX)
         and ob.get("held_by_body_id") is None and ob.get("position") is not None
-        and (ob.get("tastant_remaining_micrograms") or 0) > 2
+        and (ob.get("tastant_remaining_micrograms") or 0) > CORE_MICROGRAMS
     ]
     floor.sort(key=lambda ob: (ob["object_id"] in skip, -int(ob.get("tastant_remaining_micrograms") or 0)))
     return at_mouth, [ob["object_id"] for ob in floor]
