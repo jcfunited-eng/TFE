@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import replace
 from fractions import Fraction
+from math import isqrt
 
 from dsf_ai_service.glew_runtime.sensory_full_field_boundary import PhysicalSense
 from dsf_ai_service.substrate.embodiment_sensory_outcome import (
@@ -10,12 +11,17 @@ from dsf_ai_service.substrate.embodiment_sensory_outcome import (
 from dsf_ai_service.substrate.embodiment_world import (
     EmbodiedObject,
     EmbodimentWorldAuthority,
+    ObjectOpticalSurface,
     PoseMM,
     PositionMM,
 )
 from dsf_ai_service.substrate.w1_physical_receptors import (
     RETINA_COLUMNS,
+    RETINAL_SITE_GEOMETRY,
+    UPGRADED_RETINAL_SITE_GEOMETRY,
     RETINAL_REFERENCE_IRRADIANCE_UNIT,
+    _atan2_millidegrees,
+    _body_fixed_receptor_position,
     _retinal_projection,
 )
 
@@ -170,3 +176,88 @@ def test_authored_doorway_exposes_only_adjacent_room_radiance() -> None:
             pixel, current, adjacent, strict=True
         )
     )
+
+
+def test_pitch_uses_the_same_origin_for_portals_and_objects() -> None:
+    world = EmbodimentWorldAuthority(
+        authority_key=b"retinal-pitch-source-test-key",
+        initial_objects=(
+            EmbodiedObject("pitch-target", 50, 100, PositionMM(2_500, 1_000, 0)),
+        ),
+    )
+    observation = world.observation_snapshot()
+    body = next(item for item in observation.bodies if item.body_id == observation.self_body_id)
+    # Each optical branch must independently witness pitch. The object crosses
+    # the narrow center at minus eight degrees; the portal moves without any object.
+    cases = (
+        (replace(observation, portals=(), bodies=(body,)), -8_000),
+        (replace(observation, objects=(), bodies=(body,)), 1_000),
+    )
+    for shown, pitch in cases:
+        raised_apertures = tuple(
+            (index, x, y + pitch, hx, hy)
+            for index, x, y, hx, hy in UPGRADED_RETINAL_SITE_GEOMETRY
+        )
+        actual = _retinal_projection(
+            shown, retinal_pitch_offset_millidegrees=pitch,
+            site_geometry=UPGRADED_RETINAL_SITE_GEOMETRY,
+        )
+        assert actual == _retinal_projection(shown, site_geometry=raised_apertures)
+        assert actual != _retinal_projection(
+            shown, site_geometry=UPGRADED_RETINAL_SITE_GEOMETRY,
+        )
+
+
+def test_fovea_receives_one_arcminute_contrast_detail_not_a_larger_preview() -> None:
+    # A floor-mounted 2 mm-wide 5x5 reflectance target at 1.5 m horizontal
+    # distance. Its source is an authenticated world snapshot, not fake pixels.
+    upright = (
+        1, 1, 1, 1, 1,
+        1, 0, 0, 0, 0,
+        1, 1, 1, 1, 0,
+        1, 0, 0, 0, 0,
+        1, 1, 1, 1, 1,
+    )
+    rotated = tuple(upright[(4 - column) * 5 + row] for row in range(5) for column in range(5))
+    fields = []
+    for cells in (upright, rotated):
+        target = EmbodiedObject(
+            "contrast-target", 1, 1, PositionMM(2_500, 1_000, 0),
+            optical_surface=ObjectOpticalSurface(
+                columns=5, rows=5,
+                palette_reflectance_ppm=((1_000_000,) * 6, (0,) * 6),
+                cell_palette_indices=cells,
+            ),
+        )
+        world = EmbodimentWorldAuthority(
+            authority_key=b"retinal-fine-target-test-key", initial_objects=(target,),
+        )
+        shown = world.observation_snapshot()
+        body = next(item for item in shown.bodies if item.body_id == shown.self_body_id)
+        eye = _body_fixed_receptor_position(body, body.receptor_geometry.retinal_offset_mm)
+        dx = target.position.x - eye.x
+        dy = target.position.y - eye.y
+        dz = target.position.z + target.radius_mm - eye.z
+        planar_distance = isqrt(dx * dx + dy * dy)
+        distance = isqrt(dx * dx + dy * dy + dz * dz)
+        angular_radius = abs(_atan2_millidegrees(target.radius_mm, distance))
+        critical_detail = Fraction(2 * angular_radius, 5)
+        assert Fraction(25, 3) < critical_detail <= Fraction(1_000, 60)
+        # This is a source acquisition check at the physically declared aim,
+        # not a demonstration that the organism chose to aim at the target.
+        pitch = _atan2_millidegrees(dz, planar_distance)
+        field = _retinal_projection(
+            shown, retinal_pitch_offset_millidegrees=pitch,
+            site_geometry=UPGRADED_RETINAL_SITE_GEOMETRY,
+        )
+        assert field[:135] == _retinal_projection(
+            shown, retinal_pitch_offset_millidegrees=pitch,
+            site_geometry=RETINAL_SITE_GEOMETRY,
+        )
+        region = next(item for item in shown.regions if item.region_id == shown.room_id)
+        white = tuple(Fraction(value, 1_000_000) for value in region.illumination_ppm)
+        assert (Fraction(0),) * 6 in field[135:]
+        assert white in field[135:]
+        fields.append(field[135:])
+    assert fields[0] != fields[1]
+    # Optical differentiation is not recognition, native/live acuity or latency.

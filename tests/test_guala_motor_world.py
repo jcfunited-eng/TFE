@@ -17,6 +17,7 @@ BODY_AXES = (
     (0, "neck_yaw", "millidegree", 0, -75_000, 0, 75_000),
     (1, "left_eyelid_aperture", "micrometre", 10_000, 0, 10_000, 12_000),
     (2, "right_eyelid_aperture", "micrometre", 10_000, 0, 10_000, 12_000),
+    (3, "neck_pitch", "millidegree", 0, -35_000, 0, 45_000),
 )
 
 

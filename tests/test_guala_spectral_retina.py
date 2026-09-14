@@ -26,6 +26,7 @@ BODY_AXES = (
     (0, "neck_yaw", "millidegree", 0, -75_000, 0, 75_000),
     (1, "left_eyelid_aperture", "micrometre", 10_000, 0, 10_000, 12_000),
     (2, "right_eyelid_aperture", "micrometre", 10_000, 0, 10_000, 12_000),
+    (3, "neck_pitch", "millidegree", 0, -35_000, 0, 45_000),
 )
 SOURCE_TIMES = tuple(
     Fraction(index, 16_000) for index in range(0, 4_001, 160)
@@ -35,7 +36,7 @@ SOURCE_TIMES = tuple(
 def test_world_retina_retains_every_spectral_band_as_an_independent_port() -> None:
     world = home_world_authority(identity=IDENTITY)
     snapshot = world.observation_snapshot()
-    heading, transmission = retinal_carriage(BODY_AXES)
+    heading, _pitch, transmission = retinal_carriage(BODY_AXES)
     streams = physical_receptor_substreams(
         snapshot, snapshot, causal_transition=False,
         before_retinal_heading_offset_millidegrees=heading,
