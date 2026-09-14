@@ -358,6 +358,11 @@ class LeanOrganismActor:
                 next_unattended = time.monotonic() + self._unattended_seconds
         except BaseException as error:
             self._fatal = error
+            # The cause of an actor's death is written where it can be read
+            # (the container log); a silent death cost a live diagnosis.
+            import traceback
+            print("FATAL: physical actor stopped at tick", self._observation.live_tick, "-", repr(error), flush=True)
+            traceback.print_exc()
             self._observation = replace(self._observation, available=False)
             with self._published:
                 self._published.notify_all()  # waiting observers learn of failure now
