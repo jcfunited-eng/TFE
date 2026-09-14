@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import os
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -20,24 +21,57 @@ REFRESH_MODE_TARGETED = _legacy.REFRESH_MODE_TARGETED
 ACCUMULATE_MIN_BARS = _legacy.ACCUMULATE_MIN_BARS
 REPORT_PATH = Path("uf_snapshot_rebuild_report.json")
 
+# While this process rewrites, hides and republishes the bound artifacts, the
+# serving container's health check (web/src/lib/runtime-health.ts) cannot see
+# artifacts that match the active manifest. The hold names this process so the
+# check can verify that a live rebuild owns them; it is removed on every exit
+# path of rebuild_snapshot, success or failure.
+GENERATION_HOLD_PATH = Path("uf_snapshot_generation.hold.json")
+GENERATION_HOLD_SCHEMA = "tfe.snapshot-generation-hold.v1"
+
 _legacy_rebuild_snapshot = _legacy.rebuild_snapshot
 _legacy_upload = _legacy._upload_snapshot_to_s3
 
 
-def _write_report_atomic(report: dict[str, Any]) -> None:
-    temporary = REPORT_PATH.with_name(f".{REPORT_PATH.name}.{os.getpid()}.tmp")
-    body = (json.dumps(report, indent=2, sort_keys=True, ensure_ascii=False, allow_nan=False) + "\n").encode("utf-8")
+def _write_private_json_atomic(path: Path, payload: dict[str, Any]) -> None:
+    temporary = path.with_name(f".{path.name}.{os.getpid()}.tmp")
+    body = (json.dumps(payload, indent=2, sort_keys=True, ensure_ascii=False, allow_nan=False) + "\n").encode("utf-8")
     descriptor = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
     try:
         with os.fdopen(descriptor, "wb") as handle:
             handle.write(body)
             handle.flush()
             os.fsync(handle.fileno())
-        os.replace(temporary, REPORT_PATH)
-        os.chmod(REPORT_PATH, 0o600)
+        os.replace(temporary, path)
+        os.chmod(path, 0o600)
     finally:
         if temporary.exists():
             temporary.unlink()
+
+
+def _write_report_atomic(report: dict[str, Any]) -> None:
+    _write_private_json_atomic(REPORT_PATH, report)
+
+
+def write_generation_hold(refresh_mode: str) -> dict[str, Any]:
+    hold = {
+        "schema": GENERATION_HOLD_SCHEMA,
+        "pid": os.getpid(),
+        "started_at_utc": datetime.now(timezone.utc).isoformat(),
+        "refresh_mode": refresh_mode,
+        "run_id": str(os.environ.get("TFE_REFRESH_RUN_ID", "")).strip() or None,
+    }
+    _write_private_json_atomic(GENERATION_HOLD_PATH, hold)
+    print(f"[UF-SNAPSHOT] Generation hold recorded: pid={hold['pid']} mode={refresh_mode}", flush=True)
+    return hold
+
+
+def clear_generation_hold() -> None:
+    try:
+        GENERATION_HOLD_PATH.unlink()
+    except FileNotFoundError:
+        return
+    print("[UF-SNAPSHOT] Generation hold released.", flush=True)
 
 
 def _write_normalized_envelope(rows: list[dict[str, Any]], generated_at_utc: str) -> None:
@@ -79,6 +113,7 @@ def rebuild_snapshot(
             _record_publication_failure(error)
             raise
 
+    write_generation_hold(refresh_mode)
     previous_upload = _legacy._upload_snapshot_to_s3
     _legacy._upload_snapshot_to_s3 = publish_generation
     try:
@@ -87,23 +122,23 @@ def rebuild_snapshot(
             force_refresh_universe=force_refresh_universe,
             years_history=years_history,
         )
+        if report.get("status") == "ok":
+            if not publication:
+                error = RuntimeError("snapshot generation completed without an immutable publication receipt")
+                _record_publication_failure(error)
+                raise error
+            report.update(
+                snapshot_publication_id=publication["publication_id"],
+                snapshot_generation_id=publication["generation_id"],
+                snapshot_payload_digest_sha256=publication["snapshot_payload_digest_sha256"],
+                publication_schema="tfe.snapshot-generation.v1",
+                transport_normalization=transport_normalization,
+            )
+        _write_report_atomic(report)
+        return report
     finally:
         _legacy._upload_snapshot_to_s3 = previous_upload
-
-    if report.get("status") == "ok":
-        if not publication:
-            error = RuntimeError("snapshot generation completed without an immutable publication receipt")
-            _record_publication_failure(error)
-            raise error
-        report.update(
-            snapshot_publication_id=publication["publication_id"],
-            snapshot_generation_id=publication["generation_id"],
-            snapshot_payload_digest_sha256=publication["snapshot_payload_digest_sha256"],
-            publication_schema="tfe.snapshot-generation.v1",
-            transport_normalization=transport_normalization,
-        )
-    _write_report_atomic(report)
-    return report
+        clear_generation_hold()
 
 
 def main() -> int:

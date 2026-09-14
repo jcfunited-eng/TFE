@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { readFile } from "node:fs/promises";
+import { access, readFile } from "node:fs/promises";
 import path from "node:path";
 import { Pool } from "pg";
 import {
@@ -12,6 +12,18 @@ import {
 const PROCESS_HEARTBEAT_PATH = "/tmp/tfe_process_health.json";
 const MAX_HEARTBEAT_AGE_MS = 45_000;
 const REQUIRED_ARTIFACTS = ["snapshot", "envelope", "report"] as const;
+
+// The nightly rebuild (rebuild_uf_snapshot.py) rewrites, hides and republishes
+// the bound artifacts in place before the next manifest exists. While it holds
+// them it records a generation hold beside the manifest; the receipts check
+// honors that hold only while the recorded process is alive and the hold is
+// younger than the bound below. The bound derives from the longest rebuild
+// phase observed in production (2,926 s, the Sunday full-universe run) with
+// room for retries; a rebuild older than this is treated as hung and the
+// receipts fail closed again.
+const GENERATION_HOLD_FILENAME = "uf_snapshot_generation.hold.json";
+const GENERATION_HOLD_SCHEMA = "tfe.snapshot-generation-hold.v1";
+const MAX_GENERATION_HOLD_MS = 3 * 60 * 60 * 1000;
 
 type ProcessReceipt = { pid?: unknown; alive?: unknown };
 type ArtifactReceipt = {
@@ -33,10 +45,23 @@ type SnapshotManifest = {
   artifacts?: Record<string, ArtifactReceipt>;
 };
 
+type GenerationHold = {
+  schema?: unknown;
+  pid?: unknown;
+  started_at_utc?: unknown;
+};
+
+export type SnapshotReceiptsResult = {
+  ok: boolean;
+  generationId: string | null;
+  generationHold: boolean;
+};
+
 export type RuntimeHealthResult = {
   healthy: boolean;
   checkedAtUtc: string;
   generationId: string | null;
+  generationHold: boolean;
   checks: {
     processHeartbeat: boolean;
     database: boolean;
@@ -116,9 +141,61 @@ export async function checkDatabase(): Promise<boolean> {
   }
 }
 
-export async function checkSnapshotReceipts(): Promise<{ ok: boolean; generationId: string | null }> {
+async function processAlive(pid: number): Promise<boolean> {
   try {
-    const root = appRoot();
+    await access(`/proc/${pid}`);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * True only while a live rebuild process holds the bound artifacts: the hold
+ * file carries this schema, names a running process, and is younger than the
+ * bound. Anything else (no file, unparseable, dead process, too old) is false.
+ */
+export async function checkGenerationHold(root = appRoot(), nowMs = Date.now()): Promise<boolean> {
+  try {
+    const raw = await readFile(path.join(root, GENERATION_HOLD_FILENAME));
+    const hold = parseJsonObject(raw) as GenerationHold | null;
+    if (!hold || hold.schema !== GENERATION_HOLD_SCHEMA) return false;
+    const pid = Number(hold.pid);
+    if (!Number.isInteger(pid) || pid <= 0) return false;
+    const startedAtMs = Date.parse(String(hold.started_at_utc ?? ""));
+    if (!Number.isFinite(startedAtMs)) return false;
+    const age = nowMs - startedAtMs;
+    if (age < 0 || age > MAX_GENERATION_HOLD_MS) return false;
+    return processAlive(pid);
+  } catch {
+    return false;
+  }
+}
+
+async function artifactsMatchManifest(root: string, artifacts: Record<string, ArtifactReceipt>): Promise<boolean> {
+  for (const name of REQUIRED_ARTIFACTS) {
+    const receipt = objectValue(artifacts[name]) as ArtifactReceipt | null;
+    const filename = String(receipt?.filename ?? "").trim();
+    const expectedDigest = String(receipt?.sha256 ?? "").trim();
+    const expectedBytes = Number(receipt?.bytes);
+    if (!filename || path.basename(filename) !== filename || !expectedDigest || !Number.isInteger(expectedBytes)) {
+      return false;
+    }
+    let artifact: Buffer;
+    try {
+      artifact = await readFile(path.join(root, filename));
+    } catch {
+      return false;
+    }
+    if (artifact.byteLength !== expectedBytes || sha256(artifact) !== expectedDigest) {
+      return false;
+    }
+  }
+  return true;
+}
+
+export async function checkSnapshotReceipts(root = appRoot(), nowMs = Date.now()): Promise<SnapshotReceiptsResult> {
+  try {
     const manifestRaw = await readFile(path.join(root, "uf_snapshot_generation_manifest.json"));
     const manifest = parseJsonObject(manifestRaw) as SnapshotManifest | null;
     const generationId = String(manifest?.generation_id ?? "").trim();
@@ -132,25 +209,18 @@ export async function checkSnapshotReceipts(): Promise<{ ok: boolean; generation
       || !artifacts
       || Object.keys(artifacts).sort().join(",") !== [...REQUIRED_ARTIFACTS].sort().join(",")
     ) {
-      return { ok: false, generationId: generationId || null };
+      return { ok: false, generationId: generationId || null, generationHold: false };
     }
 
-    for (const name of REQUIRED_ARTIFACTS) {
-      const receipt = objectValue(artifacts[name]) as ArtifactReceipt | null;
-      const filename = String(receipt?.filename ?? "").trim();
-      const expectedDigest = String(receipt?.sha256 ?? "").trim();
-      const expectedBytes = Number(receipt?.bytes);
-      if (!filename || path.basename(filename) !== filename || !expectedDigest || !Number.isInteger(expectedBytes)) {
-        return { ok: false, generationId };
-      }
-      const artifact = await readFile(path.join(root, filename));
-      if (artifact.byteLength !== expectedBytes || sha256(artifact) !== expectedDigest) {
-        return { ok: false, generationId };
-      }
+    if (await artifactsMatchManifest(root, artifacts)) {
+      return { ok: true, generationId, generationHold: false };
     }
-    return { ok: true, generationId };
+    // The manifest is intact but the artifacts on disk are not the ones it
+    // binds. That is the verified state only while a live rebuild holds them.
+    const generationHold = await checkGenerationHold(root, nowMs);
+    return { ok: generationHold, generationId, generationHold };
   } catch {
-    return { ok: false, generationId: null };
+    return { ok: false, generationId: null, generationHold: false };
   }
 }
 
@@ -170,6 +240,7 @@ export async function evaluateRuntimeHealth(): Promise<RuntimeHealthResult> {
     healthy: Object.values(checks).every(Boolean),
     checkedAtUtc,
     generationId: snapshot.generationId,
+    generationHold: snapshot.generationHold,
     checks,
   };
 }

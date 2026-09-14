@@ -43,6 +43,12 @@ ENV NODE_EXTRA_CA_CERTS=/app/certs/rds-global-bundle.pem
 ENV PYTHONPATH=/app:/app/web
 ENV TFE_IMAGE_GIT_COMMIT_SHA="${TFE_GIT_COMMIT_SHA}"
 
+# The immutable snapshot publication (snapshot_generation.py) writes each
+# generation object with S3 conditional writes (IfNoneMatch="*"), which
+# botocore accepts from 1.35.0 onward. Debian bookworm's python3-boto3 is
+# older and rejects the parameter, so a current boto3 is installed with pip
+# (it shadows the apt copy on sys.path) and the build asserts the version
+# actually imported before the image can ship.
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         ca-certificates \
@@ -57,7 +63,8 @@ RUN apt-get update \
         python3-dotenv \
         python3-psycopg2 \
         python3-pip \
-    && python3 -m pip install --no-cache-dir --break-system-packages yfinance \
+    && python3 -m pip install --no-cache-dir --break-system-packages yfinance "boto3==1.43.93" \
+    && python3 -c "import botocore, sys; parts = tuple(int(x) for x in botocore.__version__.split('.')[:2]); print('botocore', botocore.__version__, botocore.__file__); sys.exit(0 if parts >= (1, 35) else 1)" \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app/web

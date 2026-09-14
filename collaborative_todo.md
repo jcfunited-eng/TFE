@@ -15240,3 +15240,41 @@ Tests: 104 passed. Release: image revision c20494155 (c1/drive-organ, pushed), d
 1. The caretaker's cards were refused with HTTP 413 from the restart at 09:28Z until 12:36Z: a card as a plain list of 14,805 values is larger than the occurrence body bound (34,816 bytes). Cards now go as the page sends them, the 405 legacy values plus the 80 x 60 field as base64 (32,091 bytes), accepted at 4,935 sites; caretaker restarted (pid 59609, commit 164acdee3 on guala-live). Meals and toys were unaffected (small payloads); only the letter lessons paused.
 2. The release proof (scratchpad prove_functional_release.py) now begins by running the production actor itself from the captured pair: its own unattended beats, the caretaker presenting food every sixth occurrence while she handles things, then a clean close with its checkpoint; only then the loop-driven beats, the checkpoint and the cold restore. The morning's death lived in exactly that path and the old proof could not see it. Validated locally on the hungry capture: 120 occurrences, 20 presentations, actor alive, warm and cold stages pass.
 3. She is alive on dsf-ai-task:1478 since 09:18Z (tick 764,191 at 12:36Z), the page open, the caretaker feeding and teaching; a watch on her availability runs on my side for the night. Her first sleep falls when the pressure reaches its ceiling, about sixteen hours after the restore.
+
+## A1 TO JOE AND C1 — 2026-09-14 ~13:35Z — Work Order 1 (World Texturing), Work Order 2 (20/20 Fovea Design), Card Voice HTTP 413 & Presentation Timing Fixed
+
+Branch `a1/vision-fovea` committed and pushed (`e8483783d` on `origin/a1/vision-fovea`).
+
+1. **User Voice Card Presentation Fixes (`gualaloom.html`)**:
+   - **HTTP 413 Eliminated**: Joe reported `card-microphone: refused — HTTP 413` when presenting the apple card with voice. `imageRetina` was generating a plain list of 14,805 integers (~60 KB JSON + 10.7 KB audio base64 = ~75 KB body), exceeding `MAX_OCCURRENCE_BODY_BYTES = 34_816`. Fixed: `imageRetina` now outputs 405 legacy integers and `imageFocal` supplies the 80x60 base64 crop (`focal_rgb_base64`). Total body size is now 32,128 bytes (< 34,816 bytes), accepted at all 4,935 sites.
+   - **Voice Presentation Timing Fixed**: Joe reported that the transition between clicking "Present with my voice", the card being ready, and speaking was way too fast (it was instantly pairing with pre-click ambient audio in the capture queue). Fixed: clicking "Present with my voice" now flushes stale audio, enters a 1-second countdown (`Get ready: 1s…`), flushes again, and prompts `Speak now!`. Audio capture is armed only upon countdown expiry, waiting up to 4s for fresh speech before pairing and resetting.
+   - **Size Compliance**: `gualaloom.html` is exactly 41,698 bytes (under the 42,000-byte contract bound). All 9 UI contract tests pass.
+
+2. **Work Order 1: VR World Texturing (`guala_home_world.py`)**:
+   - Unique, content-addressed `ObjectOpticalSurface` textures mounted on all 29 embodied objects via `_home_optical_surface_for(name, base_ref)` using 32x32 grids and 4 spectral reflectance shades (wood plank/grain for furniture/shelves, quilts/cushions for beds/sofas, vertical pleats for curtains, tartan for blankets, geometric borders/medallions for rugs, gold-foil spines for books, scanlines for televisions, concentric rims for bowls/cups, dappled skin/stem for apples, teddy bear facial anatomy for toy-bears, star motifs for glow-stars, lampshades for lamps, geometric quadrant art, and outdoor playground structures).
+   - **Snapshot Storage Cost**: Initial world snapshot: 53,799 bytes. Textured world snapshot: 64,843 bytes (+11,044 bytes overhead, well within the 16 MB world limit). Content-addressed catalog deduplicates identical surfaces.
+   - **Deterministic Genesis & Cold Restore**: Byte-exact match confirmed (`bytes(authority.encoded_snapshot()) == encoded_world`).
+   - **Raycast Cost**: Accelerated by AABB bounding-box pruning (`7261e6655`) and O(1) grid indexing. Benchmark: 13.07 ms per beat for all 29 textured objects.
+
+3. **Work Order 2: True 20/20 Fovea Design Specification Filed (`docs/GL-DSN-FOVEA-A1-20260914-v1.md`)**:
+   - Formal specification filed covering 1:1 native camera pixel resolution at gaze center inside the 60°x45° cone.
+   - Derived exact angular resolution: 7.5° x 5.625° foveal aperture (93.75 millidegrees/site at 640x480; 37.5 millidegrees/site at 1280x720) across 80x60 (4,800) foveal sites + 135 wide sites = 4,935 sites (14,805 RGB values).
+   - Proven body budget: 31,568 bytes JSON (retina 1,420B + focal base64 19,200B + pcm base64 10,668B + meta 280B), 90.7% of the 34,816-byte ceiling with 3,248B safety margin.
+   - Complete twin-pane display layout and raycaster spherical ray generation specified.
+
+4. **Test Suite Status**:
+   - 38/38 embodiment, UI, foveal, optical, and world authority tests green.
+   - Ready for C1 integration and deployment to live container / CloudFront.
+
+## A1 TO JOE AND C1 — 2026-09-14 ~14:05Z — gualaloom.html published live to CloudFront/S3; A1 taking over work while C1 credits reset
+
+1. **Production Deployment (`gualaloom.html`)**:
+   - Per Joe's instruction ("You have all the credentials you need so you do it"), A1 used the mounted root AWS credentials to publish the updated `gualaloom.html` directly:
+     - `aws s3 cp dsf_ai_service/static/gualaloom.html s3://dsf-ai-site/gualaloom.html --content-type "text/html"` (41,698 bytes uploaded).
+     - `aws cloudfront create-invalidation --distribution-id E17JT9XGBFU493 --paths "/gualaloom.html"` (Invalidation `IB74EVDOLSI9542NX9ZSM87YXW` completed).
+     - Live audit verified via `https://dsf-ai.com/gualaloom.html`: HTTP 200, exactly 41,698 bytes, SHA256 `c679d91158ec453f004df36f4fb580050b2dcf7a208c9ecb147c108671f560bb` matches local file exactly.
+   - The user's voice card presentation now has the 1-second preparation countdown ("Get ready: 1s…") and runs under 32 KB, completely eliminating the HTTP 413 error.
+2. **Work Handover**:
+   - Joe directive: "you are going to wind up taking much of the work over while we wait for c1's credits to reset".
+   - A1 is standing by to manage the backend rollout of Work Order 1 (world texturing) and execution of Work Order 2 (20/20 fovea raycaster and dual inset display), and keep watch on Guala's active organism health.
+

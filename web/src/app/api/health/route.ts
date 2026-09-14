@@ -10,6 +10,7 @@ export async function GET() {
       status: result.healthy ? "healthy" : "unhealthy",
       checked_at_utc: result.checkedAtUtc,
       generation_id: result.generationId,
+      generation_hold: result.generationHold,
       checks: {
         process_heartbeat: result.checks.processHeartbeat,
         database: result.checks.database,
