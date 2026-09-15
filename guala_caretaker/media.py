@@ -172,4 +172,43 @@ def fetch_track(archive: str, name: str, licence: str) -> str:
     return pcm_path
 
 
-__all__ = ("LIBRARY", "BLOCK_BYTES", "MUSIC_ITEMS", "blocks", "chapters", "fetch_chapter", "fetch_track", "librivox_book", "tracks")
+# Spoken words: single English words said by people, from Wikimedia Commons
+# (each file openly licensed; the licence read from the file's own record and
+# kept beside the sound). The caretaker names a thing with one as it hands it.
+COMMONS_API = "https://commons.wikimedia.org/w/api.php"
+
+
+def commons_word(word: str, accent: str = "en-us") -> str | None:
+    """One spoken word converted to her grain of sound and kept; the path, or
+    None when Commons has no recording under the usual name."""
+
+    import glob
+    kept = glob.glob(os.path.join(LIBRARY, "words", f"{accent}-{word}.pcm"))
+    if kept:
+        return kept[0]
+    title = f"File:{accent.capitalize()}-{word}.ogg"
+    query = urllib.parse.urlencode({"action": "query", "titles": title, "prop": "imageinfo", "iiprop": "url|extmetadata", "format": "json"})
+    pages = json.loads(_get(f"{COMMONS_API}?{query}"))["query"]["pages"]
+    page = next(iter(pages.values()))
+    info = (page.get("imageinfo") or [None])[0]
+    if info is None:
+        return None
+    meta = info.get("extmetadata") or {}
+    licence = (meta.get("LicenseShortName") or {}).get("value") or (meta.get("License") or {}).get("value") or "unknown"
+    author = (meta.get("Artist") or {}).get("value") or "unknown"
+    folder = os.path.join(LIBRARY, "words")
+    os.makedirs(folder, exist_ok=True)
+    source = os.path.join(folder, f"{accent}-{word}.ogg")
+    with open(source, "wb") as out:
+        out.write(_get(info["url"], timeout=300))
+    pcm_path = os.path.join(folder, f"{accent}-{word}.pcm")
+    _convert(source, pcm_path)
+    os.remove(source)
+    record_path = os.path.join(folder, "LICENCES.json")
+    records = json.load(open(record_path)) if os.path.exists(record_path) else {}
+    records[f"{accent}-{word}"] = {"title": title, "url": info["url"], "licence": licence, "author": re.sub(r"<[^>]+>", "", author)}
+    json.dump(records, open(record_path, "w"), indent=1)
+    return pcm_path
+
+
+__all__ = ("LIBRARY", "BLOCK_BYTES", "MUSIC_ITEMS", "blocks", "chapters", "commons_word", "fetch_chapter", "fetch_track", "librivox_book", "tracks")
