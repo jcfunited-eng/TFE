@@ -324,10 +324,24 @@ function buildCheck(name, pass, details) {
   return binaryValidationCheck(name, pass, details);
 }
 
+// A moving-average field is consistent when it is not computed — NULL, or the
+// producer's 0 placeholder carrying no anchor at all (2,076 sma200 rows,
+// 363 sma50, 48 sma20 on 2026-09-15: listings without enough history) — or
+// when a positive price anchor backs it. A computed value without a positive
+// anchor, or a non-positive anchor, remains the inconsistency this check
+// exists to catch. Before this the placeholder rows were counted as invalid
+// and, once enforcement became blocking on 2026-08-18, the gate could not
+// pass on any real universe.
 function buildTaAnchorValidExpression(columnName, anchorName) {
   return `${columnName} IS NULL OR (
     jsonb_typeof(metrics_json->'${anchorName}') = 'number'
     AND (metrics_json->>'${anchorName}')::double precision > 0
+  ) OR (
+    ${columnName} = 0
+    AND (
+      metrics_json->'${anchorName}' IS NULL
+      OR jsonb_typeof(metrics_json->'${anchorName}') = 'null'
+    )
   )`;
 }
 
