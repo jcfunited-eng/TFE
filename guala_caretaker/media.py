@@ -94,6 +94,29 @@ def _convert(source: str, pcm_path: str) -> None:
                     "-ac", "1", "-ar", str(SAMPLE_RATE_HZ), "-f", "s16le", pcm_path], check=True)
 
 
+# A single spoken word is too short for the integrated loudness pass (it needs
+# seconds of sound and leaves a half-second word near silence); a word is kept at
+# a peak level instead, the same for every word: its loudest sample at half of full
+# scale, which is where a reader's own words peak at the listening level.
+WORD_PEAK = 0.5
+
+
+def _convert_word(source: str, pcm_path: str) -> None:
+    import struct
+    raw_path = pcm_path + ".raw"
+    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", source, "-ac", "1", "-ar", str(SAMPLE_RATE_HZ), "-f", "s16le", raw_path], check=True)
+    raw = open(raw_path, "rb").read(); os.remove(raw_path)
+    n = len(raw) // 2
+    values = struct.unpack(f"<{n}h", raw[: n * 2])
+    peak = max(1, max(abs(v) for v in values))
+    gain = (WORD_PEAK * 32767) / peak
+    scaled = struct.pack(f"<{n}h", *(max(-32768, min(32767, int(round(v * gain)))) for v in values))
+    # whole beats only: the tail is padded with silence to the beat boundary
+    pad = (-len(scaled)) % BLOCK_BYTES
+    with open(pcm_path, "wb") as out:
+        out.write(scaled + b"\0" * pad)
+
+
 def blocks(pcm_path: str) -> list[bytes]:
     """The chapter as beats of sound, whole blocks only."""
 
@@ -202,7 +225,7 @@ def commons_word(word: str, accent: str = "en-us") -> str | None:
     with open(source, "wb") as out:
         out.write(_get(info["url"], timeout=300))
     pcm_path = os.path.join(folder, f"{accent}-{word}.pcm")
-    _convert(source, pcm_path)
+    _convert_word(source, pcm_path)
     os.remove(source)
     record_path = os.path.join(folder, "LICENCES.json")
     records = json.load(open(record_path)) if os.path.exists(record_path) else {}
