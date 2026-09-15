@@ -21,6 +21,11 @@ LIBRARY = os.path.join(HERE, "media")
 USER_AGENT = "guala-caretaker/1.0 (+https://dsf-ai.com; public-domain recordings for an artificial organism's home)"
 SAMPLE_RATE_HZ = 16_000
 BLOCK_BYTES = 8_000          # 4,000 samples of 16-bit sound: one beat at her ears
+# The listening level: every recording is brought to one integrated loudness
+# (EBU R128, -16 LUFS) when it is kept, as a radio's volume is set once and a
+# reader speaks at one level; a quiet piano piece and a reader then sit alike at
+# one metre, and the room's geometry does the rest at her ears.
+LISTENING_LUFS = -16
 LIBRIVOX_API = "https://librivox.org/api/feed/audiobooks/"
 ARCHIVE_METADATA = "https://archive.org/metadata/"
 ARCHIVE_DOWNLOAD = "https://archive.org/download/"
@@ -75,11 +80,18 @@ def fetch_chapter(archive: str, name: str) -> str:
     mp3_path = os.path.join(os.path.dirname(pcm_path), name)
     with open(mp3_path, "wb") as out:
         out.write(_get(f"{ARCHIVE_DOWNLOAD}{archive}/{urllib.parse.quote(name)}", timeout=600))
-    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", mp3_path, "-ac", "1", "-ar", str(SAMPLE_RATE_HZ), "-f", "s16le", pcm_path], check=True)
+    _convert(mp3_path, pcm_path)
     os.remove(mp3_path)
     with open(os.path.join(os.path.dirname(pcm_path), "LICENCE.json"), "w") as out:
         json.dump({"archive": archive, "source": f"{ARCHIVE_DOWNLOAD}{archive}", "licence": LIBRIVOX_LICENCE}, out, indent=1)
     return pcm_path
+
+
+def _convert(source: str, pcm_path: str) -> None:
+    """One channel, her sample rate, her grain, at the listening level."""
+
+    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", source, "-af", f"loudnorm=I={LISTENING_LUFS}:TP=-1.5:LRA=11",
+                    "-ac", "1", "-ar", str(SAMPLE_RATE_HZ), "-f", "s16le", pcm_path], check=True)
 
 
 def blocks(pcm_path: str) -> list[bytes]:
@@ -152,7 +164,7 @@ def fetch_track(archive: str, name: str, licence: str) -> str:
                 out.write(member.read())
     else:
         source = _fetch_file(archive, base[0])
-    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", source, "-ac", "1", "-ar", str(SAMPLE_RATE_HZ), "-f", "s16le", pcm_path], check=True)
+    _convert(source, pcm_path)
     if len(base) == 2 or source.lower().endswith((".mp3", ".ogg", ".flac")):
         os.remove(source)
     with open(os.path.join(os.path.dirname(pcm_path), "LICENCE.json"), "w") as out:
