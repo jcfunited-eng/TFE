@@ -342,7 +342,10 @@ class LeanOrganismActor:
                     return
                 if message is None:
                     self._settle_unattended()
-                    next_unattended = time.monotonic() + self._unattended_seconds
+                    now = time.monotonic()
+                    next_unattended += self._unattended_seconds
+                    if next_unattended < now:
+                        next_unattended = now + self._unattended_seconds
                     continue
                 assert isinstance(message, _ActorMessage)
                 if not message.result.set_running_or_notify_cancel():
