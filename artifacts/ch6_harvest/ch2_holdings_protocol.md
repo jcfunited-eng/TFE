@@ -27,9 +27,16 @@ that carried this stock up is still alive, judged on the LONG VIEW.
    stopped is DEAD. The measured floor (healing_table.json,
    53,890 damage events, both halves of a decade identical):
    living bodies heal within 5 sessions typically and within 16
-   sessions in 99 cases of 100. A body more than 16 sessions past
-   its last damage with no healing anywhere in the lanes is outside
-   anything living bodies do — call it DEAD.
+   sessions in 99 cases of 100. Count from the FIRST damage of the
+   current episode, not the latest: a body that keeps taking new
+   damage without ever healing the first is not "recently damaged",
+   it is not healing. A body more than 16 sessions past the first
+   damage of its episode with no healing anywhere in the lanes is
+   outside anything living bodies do — call it DEAD. (Joseph
+   2026-09-15. The engine also runs a deterministic clock on closes:
+   more than 16 closed sessions more than 5% below entry with no
+   close back above that line sells the position regardless of this
+   reading; your reading may call DEAD earlier on structural grounds.)
 5. Write STRICT JSON (all five fields) to
    /workspaces/Tao_Financial_Engine/artifacts/ch6_harvest/ch2_readings/SYM.json
    using the Write tool:

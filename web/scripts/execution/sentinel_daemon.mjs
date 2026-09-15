@@ -201,12 +201,15 @@ async function submitEntry(signal, executeFn, channelTag, budget, sameDayExitTic
     // cooling-off: a stock that stopped us out at a loss is not
     // re-entered on the same class of signal for 14 calendar days
     // (~10 sessions) — no more averaging down into our own rejects
+    // A book reset ordered by Joseph (exit_reason manual_reset_*) is not a
+    // reject of the stock; those exits do not cool anything off.
     const cooled = await pool.query(
       `SELECT id FROM personal_trade_ledger
        WHERE UPPER(TRIM(ticker)) = $1 AND signal_class = 'CH2'
          AND exit_filled_at >= NOW() - INTERVAL '14 days'
          AND exit_filled_price IS NOT NULL AND entry_filled_price IS NOT NULL
-         AND exit_filled_price < entry_filled_price LIMIT 1`, [ticker]);
+         AND exit_filled_price < entry_filled_price
+         AND COALESCE(exit_reason, '') NOT LIKE 'manual_reset%' LIMIT 1`, [ticker]);
     if (cooled.rows.length > 0) {
       console.log(`[DAILY-ENTRY] ${ticker} excluded: cooling off after a losing exit (14 days)`);
       return { ok: false, reason: "cooling_off" };

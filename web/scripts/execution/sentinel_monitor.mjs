@@ -25,6 +25,8 @@ import {
 // justified the entry, re-measured while holding. Same module, same frozen
 // constants as the entry gate — no separate exit formula to drift.
 import { computeV3Basin } from "./v3_basin.mjs";
+// THE DEAD CLOCK (Joseph 2026-09-15): the loss side of the exit law, able to run out.
+import { ch2DeadClock, CH2_DEAD_SESSIONS, CH2_DAMAGE_PCT } from "./ch2_dead_clock.mjs";
 // assessExit import removed — EXIT-S removed (arbitrary thresholds, no backtest)
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 
@@ -1270,6 +1272,51 @@ export async function runSentinel() {
                                     : "ch2_reading_dead_exit",
           ALPACA_BASE);
         continue;
+      }
+
+      // ── THE DEAD CLOCK (Joseph 2026-09-15) ────────────────────────────
+      // The reading's DEAD test ("16 sessions past its LAST damage") cannot
+      // fire on a stock that keeps sliding — every new low is new damage and
+      // the clock restarts — so losers rode to the -20% brake (VRTS -16%,
+      // DEI -13%, AZZ -12% all read RECOVERY_ALIVE on 2026-09-11). This
+      // clock starts at the FIRST closed session more than 5% below entry
+      // and only a close back above that line ends the episode; more than
+      // 16 closed sessions below it with no heal (the measured healing
+      // floor) is DEAD and the position is sold. Closed sessions only,
+      // from the runtime bars; a missing history never sells.
+      try {
+        const clockEntry = livePosEntry ?? parseFloat(pos.entry_filled_price ?? "0");
+        if (posEntryDate && clockEntry > 0) {
+          const barsRes = await pool.query(
+            `SELECT bar_date::text AS date, close
+               FROM runtime_bars_daily
+              WHERE ticker = $1
+                AND bar_date >= $2::date
+                AND bar_date < (NOW() AT TIME ZONE 'America/New_York')::date
+              ORDER BY bar_date ASC`,
+            [pos.ticker, posEntryDate.toISOString().slice(0, 10)],
+          );
+          const clock = ch2DeadClock(
+            barsRes.rows.map((r) => ({ date: r.date, close: parseFloat(r.close) })),
+            clockEntry,
+          );
+          if (clock.damaged) {
+            console.log(
+              `[SENTINEL] CH2 ${pos.ticker} dead clock | below ${(CH2_DAMAGE_PCT * 100).toFixed(0)}% line since ${clock.onsetDate} | ` +
+              `sessions=${clock.sessionsBelow}/${CH2_DEAD_SESSIONS}${clock.dead ? " — DEAD" : ""}`
+            );
+          }
+          if (clock.dead && isMarketHoursForExitF()) {
+            console.log(
+              `[SENTINEL] CH2 ${pos.ticker} DEAD CLOCK | P&L=${currentPnlPct?.toFixed(1) ?? "n/a"}% ` +
+              `age=${posAge}d — repair never came in ${clock.sessionsBelow} sessions; selling`
+            );
+            await killPosition(pos, "ch2_dead_clock_exit", ALPACA_BASE);
+            continue;
+          }
+        }
+      } catch (clockErr) {
+        console.log(`[SENTINEL] CH2 ${pos.ticker} dead clock error: ${clockErr.message} — holding`);
       }
 
       // ── THE 90-DAY WALL (Joseph 2026-08-25): dead money time-box ─────

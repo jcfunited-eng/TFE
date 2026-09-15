@@ -705,8 +705,12 @@ const CH2_RISK_PCT         = 2.5;
 // basin can release. 3×ATR gives the position room to breathe through intraday
 // volatility while still catching real structural failures.
 // TP bracket removed — sentinel EXIT-B handles upside when the wave releases.
-const CH2_STOP_LOSS_MULT   = 3.0;   // 3×ATR — backstop only, not primary exit
-const CH2_MIN_SL_PCT       = 0.05;  // minimum 5% stop regardless of ATR
+// Joseph's exit law (2026-08-25): the only standing stop is the far-out
+// emergency brake, 20% below entry. Until 2026-09-15 the buy order still
+// carried the old 3×ATR / min-5% leg for its first session (AEBI's stop sat
+// 5.6% under its fill) — the -6% loser-seller the law retired. The first-day
+// leg now sits where the overnight re-arm puts it.
+const CH2_BRAKE_PCT        = 0.20;
 
 /**
  * Validate a Ch2 signal. Binary — every check must pass or the trade fails.
@@ -804,10 +808,9 @@ export async function executeCh2BracketOrder(signal) {
   // 0.99x discount tested May 19 — killed 4/12 fills. Reverted.
   const KINETIC_BUFFER = 1.001;
   const entryPrice     = parseFloat((currentPrice * KINETIC_BUFFER).toFixed(2));
-  // SL: 3×ATR below entry, minimum 5% — backstop only. Primary exit is EXIT-B (D_k collapse).
-  const atrSlDistance  = CH2_STOP_LOSS_MULT * atr;
-  const minSlDistance  = entryPrice * CH2_MIN_SL_PCT;
-  const stopLossPrice  = parseFloat((entryPrice - Math.max(atrSlDistance, minSlDistance)).toFixed(2));
+  // SL: the -20% emergency brake (Joseph's exit law) from the first session.
+  // Selling is the readings' and the dead clock's job, not a percentage's.
+  const stopLossPrice  = parseFloat((entryPrice * (1 - CH2_BRAKE_PCT)).toFixed(2));
   // No TP bracket — let winners ride to EXIT-B.
   const takeProfitPrice = null;
 
@@ -815,7 +818,7 @@ export async function executeCh2BracketOrder(signal) {
     return rejectSignal(signal, `stop_loss_price_invalid: ${stopLossPrice} (ATR=${atr.toFixed(4)})`);
   }
 
-  console.log(`[CH2-BRIDGE] ${ticker} | shares=${shares} | entry=${entryPrice} | SL=${stopLossPrice} (3xATR=${(atrSlDistance).toFixed(2)} min5%=${(minSlDistance).toFixed(2)}) | no TP`);
+  console.log(`[CH2-BRIDGE] ${ticker} | shares=${shares} | entry=${entryPrice} | SL=${stopLossPrice} (brake ${(CH2_BRAKE_PCT * 100).toFixed(0)}% below entry; ATR=${atr.toFixed(4)}) | no TP`);
 
   let ledgerId;
   try {
