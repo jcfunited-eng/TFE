@@ -411,6 +411,7 @@ def maybe_read(o: dict, st: dict) -> None:
                 log("reading: the caregiver could not keep the book beside her; the book closes")
                 break
     st["read_chapter"] = index + 1 if heard >= len(blocks) else index
+    json.dump(st, open(STATE, "w"))   # where the book is open survives a restart
     log(f"reading: {heard} of {len(blocks)} beats reached her ears; next chapter index {st['read_chapter']}")
 
 
@@ -488,6 +489,7 @@ def maybe_music(o: dict, st: dict) -> None:
         st["music_track"] = 0
     else:
         st["music_track"] = track_index + 1
+    json.dump(st, open(STATE, "w"))   # which piece comes next survives a restart
     log(f"radio: {heard} of {len(blocks)} beats sounded; next {st.get('music_index', index)}/{st.get('music_track', 0)}")
 
 
