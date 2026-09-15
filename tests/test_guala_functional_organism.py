@@ -1581,7 +1581,8 @@ def test_a_moment_forms_only_when_a_sound_closes_and_binds_the_word_to_what_her_
     empty = [row for row in apple_moments if row[1] is None]
     assert held and empty, apple_moments
     held_keys = {row[0] for row in held}
-    assert not (held_keys & {row[0] for row in empty}), apple_moments    # the apple in hand is never the same moment as an empty hand
+    assert len(held_keys) == 1, held                                   # the apple in hand is one moment however her head is turning
+    assert not (held_keys & {row[0] for row in empty}), apple_moments    # and never the same moment as an empty hand
     assert max(row[2] for row in held) >= 2, held                      # the same word with the apple in hand: met again
     assert organism.counts["moments"] == len(organism._state["moments"]) <= 256
     assert all(len(entry["context"]) == 3 for entry in organism._state["moments"].values())

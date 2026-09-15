@@ -1462,7 +1462,10 @@ class FunctionalOrganism:
             return
         eighth = lambda value: int(_clamp(round(float(value) * 8), 0, 8))
         held = "none" if body.held_object_id is None else f"{eighth(measures['touch_texture'])}/{eighth(measures['touch_warmth'])}"
-        figure = state.get("sight_figure") or "none"
+        # A thing in her hand is named by the hand alone (the figure would change as her head
+        # turns to it and back: a transit, not a thing); the figure names what she looks at
+        # only when her hand is empty.
+        figure = "held" if held != "none" else (state.get("sight_figure") or "none")
         context = [eighth(measures["hunger"]), eighth(measures["taste_residue"]), eighth(measures["skin_contact"])]
         moments = state.setdefault("moments", {})
         for event in closed:
