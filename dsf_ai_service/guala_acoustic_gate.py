@@ -33,11 +33,11 @@ GRAIN = 6                           # decimals kept per frame value (her streams
 SOUNDING_FRACTION_OF_PEAK = 8       # a frame sounds when it reaches one eighth of the event's own running peak
 PAUSE_FRAMES = 12                   # 120 ms of quiet closes an event (the gap between spoken words)
 MAX_EVENT_FRAMES = FRAMES_PER_HOP * 12   # twelve beats: a long sound becomes a sequence of events
-HEARD_ENERGY_FLOOR = 0.004          # her hearing floor on the hop's peak profile (the organism's own)
+HEARD_ENERGY_FLOOR = 0.004          # her hearing floor: below this mean cochlear envelope a sound is room noise (the organism imports it)
 # The event's own structure (spec §4):
-KERNEL_MINIMUM = 24                 # frames the kernel needs; shorter events keep their quantized shapes
+KERNEL_MINIMUM = 24                 # samples the kernel needs (frames here, beats in the organism's windows); shorter events keep their quantized shapes
 SHAPE_EIGHTHS = 8                   # a short event's band fractions are kept in eighths (declared once)
-STREAM_FLOOR = 0.05                 # the organism's own floor under every kernel series
+STREAM_FLOOR = 0.05                 # the floor under every kernel series, hers and the event's (the organism imports it)
 
 # A frame: (energy, band_0 .. band_5); energy = the mean envelope over the 16 channels,
 # each band the fraction of the frame's energy in it (all zero in silence).

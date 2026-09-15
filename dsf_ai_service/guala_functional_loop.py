@@ -83,17 +83,19 @@ def _world_retina_u8(snapshot: Any, axes: tuple[Any, ...]) -> tuple[int, ...]:
     return tuple(values)
 
 
-def _profile(pressure: bytes) -> tuple[tuple[float, ...], int]:
-    _times, _legacy, cochleae, consumed = one_self_hearing_hop(pressure)
-    return cochlear_profile(cochleae), consumed
-
-
 def _hearing(pressure: bytes) -> tuple[tuple[float, ...], tuple[tuple[float, ...], ...], int]:
-    """One transduction of the room's sound: the hop's peak profile (her streams)
+    """One transduction of a sound at her ear: the hop's peak profile (her streams)
     and its 25 frames (her acoustic gate, Level 1)."""
 
     _times, _legacy, cochleae, consumed = one_self_hearing_hop(pressure)
     return cochlear_profile(cochleae), frames_of_cochleae(cochleae), consumed
+
+
+def _profile(pressure: bytes) -> tuple[tuple[float, ...], int]:
+    """Her own voice heard back: the profile alone (its frames open no event)."""
+
+    profile, _frames, consumed = _hearing(pressure)
+    return profile, consumed
 
 
 def _oral_intake_micrograms(execution: ActionExecutionReceipt) -> int:

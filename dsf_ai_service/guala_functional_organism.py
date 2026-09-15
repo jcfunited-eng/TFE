@@ -33,8 +33,10 @@ from uf_core.layer2 import interpret_gates
 from uf_core.layer3 import compute_resonance
 from uf_core.layer4 import compute_directional_signal, compute_dsf
 
-from dsf_ai_service.guala_acoustic_gate import FRAMES_PER_HOP, PAUSE_FRAMES, SILENT_FRAME, gate_step
-from dsf_ai_service.guala_eye_figure import Figure, figure_under_gaze
+from dsf_ai_service.guala_acoustic_gate import (   # her ear's declared numbers live with the gate, once
+    EAR_BAND_CHANNELS, EAR_BANDS, FRAMES_PER_HOP, HEARD_ENERGY_FLOOR, KERNEL_MINIMUM, PAUSE_FRAMES, SILENT_FRAME, STREAM_FLOOR, gate_step,
+)
+from dsf_ai_service.guala_eye_figure import FOCAL_COLUMNS, FOCAL_ROWS, Figure, figure_under_gaze   # her focal field's size lives with the eye, once
 from dsf_ai_service.substrate.exact_lattice_rotation import rotate_lattice_offset
 from dsf_ai_service.guala_caretaker_hand import (
     _approach_point, _distance_mm, _heading_toward, _portal_points, _portal_route, _region_of,
@@ -74,8 +76,6 @@ SATED_ABOVE = Fraction(17, 20)  # feeding ends at 85 percent (one apple from hun
 # range, on the floor of her own room.
 FIELD_OF_VIEW_MILLIDEGREES = 60_000
 SIGHT_RANGE_MM = 4_000
-FOCAL_COLUMNS = 80
-FOCAL_ROWS = 60
 STRUCTURE_FLOOR = 4800 * 4   # total edge energy below this (about four levels per site) is a flat field
 # Her head: the wide field (18 x 6 sites over 180 x 90 degrees, carried by the
 # head) aims the focal cone. Each beat the head pitches a bounded step toward
@@ -181,8 +181,6 @@ STREAMS_V16 = STREAMS_V15 + ("touch_warmth",)   # her skin pressed by another bo
 # per ear spaced by ERB from 80 to 7,500 Hz; the two ears averaged, the channels
 # grouped into six bands, each band the fraction of the sound's energy in it, so a
 # shape is the same loud or soft (loudness stays in sound_energy); silence has none.
-EAR_BANDS = 6
-EAR_BAND_CHANNELS = ((0, 1, 2), (3, 4, 5), (6, 7, 8), (9, 10, 11), (12, 13), (14, 15))
 STREAMS = STREAMS_V16 + tuple(f"ear_band_{index}" for index in range(EAR_BANDS))
 LEGACY_STREAMS = (
     "sight_luminance", "sight_horizontal", "sight_vertical", "sound_energy",
@@ -196,8 +194,6 @@ LEGACY_STREAMS = (
 # the episodes and the kernel; they do not name the structure.
 CHOICE_STREAMS = tuple(name for name in STREAMS if name not in ("hand", "touch_texture", "taste_residue"))
 KERNEL_WINDOW = 64
-KERNEL_MINIMUM = 24
-STREAM_FLOOR = 0.05
 
 # Memory bounds.
 FAMILIARITY_CAPACITY = 512
@@ -210,7 +206,6 @@ REFUSAL_CAPACITY = 32
 # (situation, prior syllable); a room sound standing out within the answer
 # window after it is what pays. Nothing scripted answers a heard sound.
 BABBLE_EVERY_BEATS = 4
-HEARD_ENERGY_FLOOR = 0.004      # below this mean cochlear envelope, a sound is room noise
 HEARD_ABOVE_AMBIENT = 2.0       # a sound worth answering is at least twice the running ambient level
 AMBIENT_MEMORY = Fraction(15, 16)
 COCHLEAR_CHANNELS = 32
