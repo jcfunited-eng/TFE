@@ -253,14 +253,28 @@ class FunctionalPhysicalLoop:
         withdrawal = None
         try:
             if sensory is not None and sensory.present_food is not None:
-                presentation = present_food(world, sensory.present_food)
+                # The caregiver's act is not her beat: whatever goes wrong in it is a
+                # refused presentation on the record, never the end of her.
+                try:
+                    presentation = present_food(world, sensory.present_food)
+                except Exception as error:  # noqa: BLE001
+                    presentation = {"object_id": sensory.present_food, "presented": False, "took_away": None, "delivered": None,
+                                    "schema": "guala.caregiver_presentation.v1",
+                                    "steps": [{"operation": "presentation", "reason": f"failed: {type(error).__name__}: {error}"[:200], "to": None}]}
                 returning = world.pending_physical_return
             # The caregiver does not walk home on the beat it touched her; whether it
             # stays (holding on, beat after beat) or leaves is the caretaker's to give.
             if (presentation or {}).get("reading"):
                 # Read to: the caregiver keeps the book beside her while the reading lasts.
                 organism._state["reading_until_tick"] = start_tick + READING_PATIENCE_BEATS
-            withdrawal = None if (presentation or {}).get("touched") else _caregiver_withdrawal(organism, world)
+            withdrawal = None
+            if not (presentation or {}).get("touched"):
+                try:
+                    withdrawal = _caregiver_withdrawal(organism, world)
+                except Exception as error:  # noqa: BLE001
+                    withdrawal = {"schema": "guala.caregiver_withdrawal.v1", "set_down": None, "home": False, "fetched": None, "binned": None,
+                                  "steps": [{"operation": "withdrawal", "reason": f"failed: {type(error).__name__}: {error}"[:200], "to": None}]}
+                returning = world.pending_physical_return
             if withdrawal is not None:
                 returning = world.pending_physical_return
             before = world.observation_snapshot()

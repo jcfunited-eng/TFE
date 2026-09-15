@@ -571,6 +571,11 @@ class _Hand:
         held = by_id.get(her.held_object_id) if her.held_object_id is not None else None
         carried_core = None
         if held is not None and nothing_left_to_bite(her, held):
+            if held.object_id == self.object_id:
+                # What she holds is the very thing asked for, and there is nothing
+                # left on it to bite: nothing to present. A refusal, never an error.
+                self.steps.append({"operation": "resolve", "reason": "food_is_an_eaten_core_in_her_hand"})
+                return outcome
             if not self.reach_her(her):
                 return outcome
             if not self.applied("take", TakeContactHeldObjectCommand(HANDLING_MICROSECONDS)):
@@ -582,7 +587,8 @@ class _Hand:
         snapshot = self.snapshot()
         food = next(item for item in snapshot.objects if item.object_id == self.object_id)
         if carried_core is not None and food.held_by_body_id == person.body_id:
-            raise RuntimeError("the caregiver cannot hold a core and the food at once")
+            self.steps.append({"operation": "resolve", "reason": "core_and_food_in_one_hand"})
+            return outcome
         if food.held_by_body_id != person.body_id:
             if food.position is None:
                 self.steps.append({"operation": "resolve", "reason": "food_in_another_hand"})

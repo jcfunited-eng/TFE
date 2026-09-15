@@ -1219,3 +1219,58 @@ def test_her_ear_gives_the_shape_of_a_sound_and_tells_two_sounds_apart_but_not_o
     assert shape_low != shape_high and shape_quiet == (0.0,) * EAR_BANDS
     encoded = organism.encoded()
     assert FunctionalOrganism.restore(encoded).encoded() == encoded
+
+
+def test_a_caregiver_presentation_can_never_end_her_beat() -> None:
+    """The outage of 2026-09-15: the apple she held was a core to the hand's law and
+    the food to present to the caretaker's, and the hand raised; the actor died.
+    Now the hand refuses (a step on the record) and the loop records any failure
+    in a presentation or a withdrawal as a refused act and settles the beat."""
+
+    import dsf_ai_service.guala_functional_loop as loop_module
+    from dsf_ai_service.substrate.embodiment_world import GraspContactCommand
+    from dsf_ai_service.guala_functional_organism import BEAT_MICROSECONDS, Decision, STREAMS
+    from dsf_ai_service.guala_functional_loop import _apply
+
+    world = home_world_authority(identity=IDENTITY)
+    organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
+    loop = FunctionalPhysicalLoop()
+    loop.settle(organism, world, UNATTENDED)
+    # An eaten core in her hand, asked for by its own name.
+    snapshot = world.observation_snapshot()
+    apple = next(item for item in snapshot.objects if item.object_id == "apple")
+    from dataclasses import replace as _replace
+    core_material = _replace(apple.material, tastant_mass_micrograms=tuple(0 for _ in apple.material.tastant_mass_micrograms))
+    her = _her(world)
+    placed = False
+    for ahead_mm, turn in ((330, 0), (330, 20), (330, -20), (380, 0), (380, 30), (380, -30)):
+        radians = math.radians((her.pose.heading_millidegrees / 1000) + turn)
+        spot = PositionMM(her.pose.position.x + round(ahead_mm * math.cos(radians)), her.pose.position.y + round(ahead_mm * math.sin(radians)), 0)
+        try:
+            world.admit_authored_arrival(EmbodiedObject("apple-core-9", apple.radius_mm, 5, spot, reflectance_ppm=apple.reflectance_ppm, material=core_material))
+            placed = True
+            break
+        except ValueError:
+            continue
+    assert placed
+    snapshot = world.observation_snapshot()
+    decision = Decision("grasp", "test", (GraspContactCommand(BEAT_MICROSECONDS),), "apple-core-9", None, " ".join("S0000000" for _ in STREAMS), False, 0, ())
+    prepared, applied, refusal, refused = _apply(world, decision, snapshot)
+    assert applied == "grasp", refused
+    with world.prepared_action_visibility_transaction(prepared):
+        world.commit_prepared_action(prepared)
+    organism.commit(decision, applied_action="grasp", refusal=None, intake_micrograms=0, spoke=None, heard_profile=None, self_profile=None, tick_now=organism.live_organism_tick)
+    assert _her(world).held_object_id == "apple-core-9"
+    o = loop.settle(organism, world, _touch_occurrence("apple-core-9")).observation
+    presentation = o["caregiver_presentation"]
+    assert presentation["presented"] is False and any("eaten_core" in str(step.get("reason")) for step in presentation["steps"]), presentation["steps"]
+    # Any failure inside a presentation is a refused act on the record; the beat settles.
+    original = loop_module.present_food
+    loop_module.present_food = lambda world_, object_id: (_ for _ in ()).throw(RuntimeError("a fault in the caregiver's hand"))
+    try:
+        before = organism.live_organism_tick
+        o = loop.settle(organism, world, _touch_occurrence("apple")).observation
+    finally:
+        loop_module.present_food = original
+    assert organism.live_organism_tick == before + 1
+    assert o["caregiver_presentation"]["presented"] is False and "failed: RuntimeError" in o["caregiver_presentation"]["steps"][0]["reason"]
