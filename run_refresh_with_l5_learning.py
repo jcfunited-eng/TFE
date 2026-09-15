@@ -738,8 +738,47 @@ def _quote_cache_refresh_detail_payload(payload: dict[str, Any]) -> dict[str, An
     }
 
 
+# The quote cache feeds the validation gate's technical-field anchors
+# (ta_semantics_integrity). Deferring its refresh to the post-publication
+# follow-up is sound only while the cache on disk is recent: a fresh container
+# starts from the image's fallback file (60 rows from March), the gate then
+# fails on ~11,400 unanchored rows, and the follow-up that would have refilled
+# the cache never launches (receipt: the 2026-09-15 00:17 UTC run — the first
+# run to reach the gate since 2026-08-18). Four days covers a weekend plus a
+# holiday between runs; anything older is refreshed inline before the sync so
+# the gate validates against real quotes.
+QUOTE_CACHE_ARTIFACT_PATH = Path("web/data/screener-quote-cache.json")
+QUOTE_CACHE_DEFERRAL_MAX_AGE_SECONDS = 4 * 24 * 60 * 60
+
+
+def _quote_cache_age_seconds(path: Path = QUOTE_CACHE_ARTIFACT_PATH, now: datetime | None = None) -> float | None:
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except Exception:
+        return None
+    if not isinstance(payload, dict):
+        return None
+    generated_at = _parse_iso_utc(str(payload.get("generated_at_utc") or ""))
+    if generated_at is None:
+        return None
+    current = now or datetime.now(timezone.utc)
+    return (current - generated_at).total_seconds()
+
+
 def _should_defer_quote_cache_refresh(mode: str) -> bool:
-    return mode in {REFRESH_MODE_FULL, REFRESH_MODE_TARGETED}
+    if mode not in {REFRESH_MODE_FULL, REFRESH_MODE_TARGETED}:
+        return False
+    age_seconds = _quote_cache_age_seconds()
+    if age_seconds is None or age_seconds < 0 or age_seconds > QUOTE_CACHE_DEFERRAL_MAX_AGE_SECONDS:
+        age_text = "n/a" if age_seconds is None else f"{age_seconds:.0f}"
+        print(
+            "[REFRESH+CP2] Quote cache on disk is missing or stale "
+            f"(age_seconds={age_text}; max_for_deferral={QUOTE_CACHE_DEFERRAL_MAX_AGE_SECONDS}); "
+            "refreshing it inline before the runtime sync so the validation gate sees real quotes.",
+            flush=True,
+        )
+        return False
+    return True
 
 
 def _deferred_quote_cache_refresh_report(mode: str) -> dict[str, Any]:
