@@ -262,3 +262,40 @@ during the window, and the following entry pass shows a run_id other than
   the hotfix lane. Options: (1) create a site login for the checker and add
   the three variables to the task definition; (2) make `not_run` non-blocking
   (reverses the 08-18 design). Not changed without his word.
+
+## Addendum 5 — Joseph's order: fix the loss side and reset the book (2026-09-15)
+
+- What the record showed: since the current rules began, 16 closed CH2
+  positions netted a gain (one +90 %, one +14 %, eleven at +2.3 % avg, one
+  −12.6 %) while the 21 open ones sat at −$1,982. Broker equity: funded
+  $100,000, peak $100,926 (2026-05-07, +0.9 %), $95,194 at the morning
+  check. The reading's DEAD test ("16 sessions past its LAST damage") cannot
+  fire on a sliding stock — every new low restarts the clock — so losers
+  rode toward the −20 % brake (VRTS −16 %, DEI −13 %, AZZ −12 % all
+  RECOVERY_ALIVE on 09-11). The entry reads only the stock's structure; the
+  buys after the freeze were on stale physics, three re-buying names the
+  reading had just sold as winners.
+- The reset (script `_c1_flatten_ch2.mjs`, run as `node` inside the serving
+  container, sell first then ledger close exactly as `ledgerClose` does,
+  `exit_reason=manual_reset_joseph_20260915`, kill-cooldown keys set so the
+  sentinel would not re-adopt): 21 CH2 positions sold at market, 45 fills,
+  realized −$1,962.03 (3 winners, 18 losers, avg −4.38 %). Broker after:
+  equity $98,300.52, cash $94,943.37, no open orders. Two holdings from
+  before the ledger remain because the broker reports both assets inactive
+  and refuses orders: CWAN (100 sh, cost $2,435) and HTBK (67 sh, cost
+  $901). They are outside CH2 and its ledger; only a paper-account reset in
+  the Alpaca dashboard removes them.
+- The law change (commit with `ch2_dead_clock.mjs`): the dead clock starts
+  at the FIRST closed session more than 5 % below entry; only a close back
+  above that line ends the episode; more than 16 closed sessions below it
+  with no heal sells (`ch2_dead_clock_exit`). 16 is Joseph's measured
+  healing floor; 5 % is the old minimum stop distance. The buy order's
+  first-day stop leg is now the 20 % brake (was 3×ATR / min-5 %). Exits
+  with `manual_reset_*` do not trigger the 14-day cooling-off. The reading
+  protocol counts from the first damage too. 13 clock assertions pass.
+- Evaluation baseline (grade before spending): the fresh book starts from
+  the first entry pass after this deploy, with equity $98,300.52 and no
+  CH2 positions. Grading point: 20 closed positions under the new law, or
+  the first 90-day wall, whichever comes first. Control: the 21 reset
+  positions' exit prices above, held as the "old law would have kept
+  holding" set for comparison at grading.
