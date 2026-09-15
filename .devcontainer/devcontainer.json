@@ -18,6 +18,7 @@
     "source=C:\\Users\\joeta\\.aws,target=/root/.aws,type=bind,consistency=cached,readonly"
   ],
   "postCreateCommand": "bash /workspaces/Tao_Financial_Engine/.devcontainer/post-create.sh",
+  "postStartCommand": "bash -lc 'cd /workspaces/Tao_Financial_Engine && (nohup bash tools/ch4_spring_daily_runner.sh >> artifacts/vtvr_observer/ch4_spring_runner.log 2>&1 &) ; sleep 2; tail -n 1 artifacts/vtvr_observer/ch4_spring_runner.log'",
   "customizations": {
     "vscode": {
       "extensions": [
