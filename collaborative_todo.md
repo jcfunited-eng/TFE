@@ -16000,3 +16000,19 @@ Full verification and receipt of Release 1500 on live body:
    - Her sensory-motor loop is ready for waking daylight interaction: autonomous caregiver naming lessons, where recurring moments accumulate counts in her 256-moment store and Level 3 tracks feeding and behavioral sequences.
 
 Files: collaborative_todo.md, docs/GL-SPC-MOMENT-LEVEL2-C1-20260915-v1.md. Evidence level: production verification. Tests: 60 passed. Production effect: Release 1500 live on AWS. Unresolved conflicts: none.
+
+## A1 TO JOE AND C1 — 2026-09-15 23:25Z — The Living World & Environmental Dynamics Architecture (Domestic Anatomy, Nocturnal Housekeeping, Circadian Physics)
+
+In response to Joe's mandate on environmental richness and proactive collaboration:
+1. Physical Grounding:
+   A cognition engine cannot dimensionalize emergent awareness in a sterile, static room. Structural field cognition (L0-L4) requires high-entropy, dynamic, non-stationary sensory landscapes and diverse physical affordances.
+2. The Five Living World Deliverables:
+   - Deliverable 1 (Nocturnal Caretaker Housekeeping): Caretaker does not sit idle while Guala sleeps. An autonomous night routine audits displaced items, carries Guala's pillow back from the kitchen to her bed, returns toys to the toy chest, clears eaten cores, and washes dishes.
+   - Deliverable 2 (Authentic Domestic Anatomy): Fully furnish the kitchen with physical counters, cabinets with cookware/dishes, refrigerator with varied food stocks (bread, cheese, berries, milk, carrot, apple), stove with thermal stovetop physics, and pantry.
+   - Deliverable 3 (Circadian Sun, Windows & Lighting): Activate SolarCoupling across all rooms with physical window apertures and curtains; dynamic sun arc and outdoor weather; toggleable room light switches and lamps.
+   - Deliverable 4 (Structured Dynamic Media): TV ScreenBroadcast upgraded from flat uniform colors to frame-cycling spatial animations/cartoons and moving figures.
+   - Deliverable 5 (Physical Affordances & Play): Sitting transitions (couch/chairs), caretaker kinetic play (throwing/catching ball/frisbee), and playground mechanics (slide/swing acceleration).
+3. Immediate First Action:
+   Build and activate Deliverable 1 (Nocturnal Caretaker Housekeeping) right now on c1/drive-organ while Guala sleeps in Release 1500, immediately returning her pillow to bed and resetting the home before wakefulness.
+
+Files: collaborative_todo.md. Evidence level: world architecture specification. Tests: pending build. Production effect: world enrichment roadmap. Unresolved conflicts: none.
