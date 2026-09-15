@@ -65,13 +65,23 @@ try:
     r = json.loads((p / "functional-result.json").read_text())
     for key in ("cold_restart_exact", "first_fed_tick", "fed_beats", "total_intake_ug", "deficit_first", "deficit_min", "deficit_last",
                 "acts", "worst_seconds", "mean_seconds", "body_bytes_max", "world_bytes_max", "novel_structures", "gates_total",
-                "restore_seconds", "cold_restore_seconds", "world_after", "world_post_cold", "saved", "successor"):
+                "restore_seconds", "cold_restore_seconds", "world_after", "world_post_cold", "saved", "successor", "rooms", "syllables", "withdrawals"):
         verdict[key] = r[key]
     verdict["peak_kib"] = {"warm": r["warm_peak_rss_kib"], "cold": r["cold_peak_rss_kib"]}
     verdict["events_closed"] = r.get("events_closed"); verdict["events_store"] = r.get("events_store")   # Level 1: the acoustic gate closed events in the container
     verdict["ear_pass"] = bool((r.get("events_closed") or 0) >= 1)
     verdict["post_cold_acts"] = [row["act"] for row in r["post_cold"]]
-    verdict["feed_pass"] = bool(r["cold_restart_exact"] and r["fed_beats"] >= 1 and r["deficit_min"] < r["deficit_first"] and r["acts"].get("bite", 0) >= 1 and any(row["spoke"] for row in r["rows"]))
+    verdict["hungry_at_start"] = r["hungry_at_start"]
+    # Her feeding law: every bite while feeding; an offer made while feeding is eaten;
+    # food she picked up herself may be eaten too (no offer needed).
+    fed_ok = all(row["feeding"] for row in r["rows"] if row["intake_ug"] > 0) and (r["fed_beats"] >= 1 or not any(row["presentation"] and row["feeding"] for row in r["rows"]))
+    # The caregiver goes home after a meal presented in the loop stage; the actor stage may have fed her first (then no meal here, no walk home to demand).
+    home_ok = any(w[1] for w in r["withdrawals"]) if any(row["presentation"] for row in r["rows"]) else True
+    # Acting across her home: she crossed into another room, or reached a doorway more than once.
+    doors_reached = sum(1 for row in r["rows"] if row["act"] == "toward_door" and "through" in str(row.get("reason") or ""))
+    verdict["doors_reached"] = doors_reached
+    verdict["fed_ok"] = bool(fed_ok); verdict["home_ok"] = bool(home_ok)
+    verdict["feed_pass"] = bool(r["cold_restart_exact"] and fed_ok and any(row["spoke"] for row in r["rows"]) and (len(r["rooms"]) >= 2 or doors_reached >= 2) and home_ok and verdict["ear_pass"])
 except Exception as error:
     verdict["feed_proof_error"] = str(error)
 (out / "verdict.json").write_text(json.dumps(verdict, indent=1, sort_keys=True, default=str))
