@@ -233,6 +233,10 @@ EVENT_RECORD_CAPACITY = 256
 MOMENT_RECORD_CAPACITY = 256
 FOLLOW_WINDOW_BEATS = 16
 FOLLOW_CAPACITY = 8
+# The night for moments, as for acts: each sleeping beat moves the most recurrent moment
+# of the day into her consolidated store of meanings (kept by count; the least counted
+# leaves) and drops a moment met only once; by morning the day's moments are empty.
+MEANING_CAPACITY = 64
 QUIET_RUN_BINS = PAUSE_FRAMES - 1
 GAP_BINS_FRAMES = (FRAMES_PER_HOP, FRAMES_PER_HOP * 2, FRAMES_PER_HOP * 8, FRAMES_PER_HOP * 64)
 
@@ -847,7 +851,7 @@ class FunctionalOrganism:
             "ear_event": None, "events": {}, "sound_event": None, "ear_quiet": _empty_ear_quiet(),
             "gaze": None, "gaze_target": None, "sight_figure": None, "figures": {}, "eyes": [0, 0], "gaze_radius": 0.0,
             "moments": {}, "last_moment": None,
-            "voice_event": None, "own_events": {}, "own_event": None,
+            "voice_event": None, "own_events": {}, "own_event": None, "meanings": {},
         })
 
     @classmethod
@@ -875,7 +879,7 @@ class FunctionalOrganism:
             state["speech"], state["syllable_totals"], state["prior_syllable"] = {}, {}, None
             state["voice_version"] = VOICE_VERSION
             changed = True
-        for key, empty in (("voice_event", None), ("own_events", {}), ("own_event", None)):
+        for key, empty in (("voice_event", None), ("own_events", {}), ("own_event", None), ("meanings", {})):
             if key not in state:
                 state[key] = {} if isinstance(empty, dict) else empty
                 changed = True
@@ -1129,6 +1133,7 @@ class FunctionalOrganism:
         counts["figures"] = len(self._state.get("figures") or {})
         counts["moments"] = len(self._state.get("moments") or {})
         counts["own_events"] = len(self._state.get("own_events") or {})
+        counts["meanings"] = len(self._state.get("meanings") or {})
         return counts
 
     @property
@@ -1447,7 +1452,7 @@ class FunctionalOrganism:
             entry = figures.get(key)
             figures[key] = [1, tick] if entry is None else [int(entry[0]) + 1, tick]
             while len(figures) > FIGURE_RECORD_CAPACITY:
-                del figures[min(figures, key=lambda k: (int(figures[k][1]), k))]   # the least recently met leaves
+                del figures[min(figures, key=lambda k: (int(figures[k][0]), int(figures[k][1]), k))]   # the least met, then the least recently met, leaves
         state["sight_figure"] = key
 
     def _hear_own(self, frames: tuple[tuple[float, ...], ...], tick: int) -> None:
@@ -1465,7 +1470,7 @@ class FunctionalOrganism:
             entry = own.get(event.key)
             own[event.key] = [1, tick, event.beats] if entry is None else [int(entry[0]) + 1, tick, int(entry[2])]
             while len(own) > OWN_EVENT_RECORD_CAPACITY:
-                del own[min(own, key=lambda k: (int(own[k][1]), k))]   # the least recently made leaves
+                del own[min(own, key=lambda k: (int(own[k][0]), int(own[k][1]), k))]   # the least made, then the least recently made, leaves
             state["own_event"] = [event.key, tick, event.end_frame]
             self._own_closed.append(event.key)
 
@@ -1510,7 +1515,7 @@ class FunctionalOrganism:
             state["last_moment"] = [key, tick]
             self._moment_formed = key
         while len(moments) > MOMENT_RECORD_CAPACITY:
-            del moments[min(moments, key=lambda k: (int(moments[k]["tick"]), k))]   # the least recently met leaves
+            del moments[min(moments, key=lambda k: (int(moments[k]["count"]), int(moments[k]["tick"]), k))]   # the least met, then the least recently met, leaves
 
     # ----- Level 1: the acoustic gate over her beat ------------------------------------
 
@@ -1538,7 +1543,7 @@ class FunctionalOrganism:
             entry = events.get(event.key)
             events[event.key] = [1, tick, event.beats] if entry is None else [int(entry[0]) + 1, tick, int(entry[2])]
             while len(events) > EVENT_RECORD_CAPACITY:
-                del events[min(events, key=lambda k: (int(events[k][1]), k))]   # the least recently met leaves
+                del events[min(events, key=lambda k: (int(events[k][0]), int(events[k][1]), k))]   # the least met, then the least recently met, leaves
             state["sound_event"] = [event.key, tick, event.end_frame]
             self._ear_closed.append(event.key)
 
@@ -1614,6 +1619,7 @@ class FunctionalOrganism:
         None when the day's record is empty."""
 
         state = self._state
+        self._dream_moment(tick)
         record = state.setdefault("acts", {})
         if not record:
             return None
@@ -1633,6 +1639,37 @@ class FunctionalOrganism:
         while len(learned) > CONSOLIDATED_CAPACITY:
             del learned[min(learned, key=lambda k: (int(learned[k]["tick"]), k))]
         return key[:6] + " into situation " + situation
+
+    def _dream_moment(self, tick: int) -> None:
+        """One sleeping beat of consolidation for moments: the most recurrent moment of
+        the day moves into her meanings (counts, what followed and the bites merged by
+        addition; the least counted meaning leaves past the bound); a moment met only
+        once is dropped. By morning the day's moments are empty."""
+
+        state = self._state
+        moments = state.get("moments") or {}
+        if not moments:
+            return
+        key = max(moments, key=lambda k: (int(moments[k]["count"]), int(moments[k]["tick"]), k))
+        entry = moments.pop(key)
+        if int(entry["count"]) < 2:
+            return
+        meanings = state.setdefault("meanings", {})
+        kept = meanings.get(key)
+        if kept is None:
+            meanings[key] = {"count": int(entry["count"]), "tick": tick, "held": entry.get("held", "none"), "source": entry.get("source", "heard"),
+                             "context": list(entry.get("context", [])), "next": dict(entry.get("next", {})), "fed": int(entry.get("fed", 0))}
+        else:
+            kept["count"] = int(kept["count"]) + int(entry["count"])
+            kept["tick"] = tick
+            kept["fed"] = int(kept.get("fed", 0)) + int(entry.get("fed", 0))
+            following = kept.setdefault("next", {})
+            for other, count in entry.get("next", {}).items():
+                following[other] = int(following.get(other, 0)) + int(count)
+            while len(following) > FOLLOW_CAPACITY:
+                del following[min(following, key=lambda k: (int(following[k]), k))]
+        while len(meanings) > MEANING_CAPACITY:
+            del meanings[min(meanings, key=lambda k: (int(meanings[k]["count"]), int(meanings[k]["tick"]), k))]   # the least counted leaves
 
     def _choose_syllable(self, situation: str, prior_syllable: str | None) -> tuple[tuple[int, int, int], str, str, str]:
         """The syllable for this beat from her speech record, by the law her acts use:

@@ -1613,3 +1613,58 @@ def test_her_own_syllable_closes_as_an_event_of_her_own_and_what_followed_it_is_
     assert any(entry.get("next") for entry in moments.values()), "nothing followed her own syllable's moment within the window"
     encoded = organism.encoded()
     assert FunctionalOrganism.restore(encoded).encoded() == encoded
+
+
+def test_the_days_stores_keep_what_recurred_and_the_night_moves_recurring_moments_into_meanings() -> None:
+    """The memory wall, measured live on her first hour (a piece of music fills the moments
+    store with events that never recur): the day's stores evict the least met first, then
+    the least recently met, so a recurring moment survives a flood of new ones; each
+    sleeping beat moves the most recurrent moment into her meanings by count (merging what
+    followed and the bites) and drops a moment met once; by morning the day's moments are
+    empty and the meanings stay bounded."""
+
+    from dsf_ai_service.guala_functional_organism import MEANING_CAPACITY, MOMENT_RECORD_CAPACITY
+
+    organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
+    moments = organism._state["moments"]
+    moments["recurring"] = {"count": 3, "tick": 10, "held": "1/2", "source": "heard", "context": [1, 0, 0], "next": {"after": 2}, "fed": 1}
+    for index in range(MOMENT_RECORD_CAPACITY + 40):
+        moments[f"single{index:04d}"] = {"count": 1, "tick": 100 + index, "held": "none", "source": "heard", "context": [0, 0, 0], "next": {}, "fed": 0}
+        while len(moments) > MOMENT_RECORD_CAPACITY:
+            del moments[min(moments, key=lambda k: (int(moments[k]["count"]), int(moments[k]["tick"]), k))]
+    assert "recurring" in moments and len(moments) == MOMENT_RECORD_CAPACITY and "single0000" not in moments
+    # The night: recurring moments move into meanings, singles are dropped, the day empties.
+    for beat in range(MOMENT_RECORD_CAPACITY + 1):
+        organism._dream_moment(1_000 + beat)
+    assert organism._state["moments"] == {}
+    meanings = organism._state["meanings"]
+    assert list(meanings) == ["recurring"] and meanings["recurring"]["count"] == 3 and meanings["recurring"]["next"] == {"after": 2} and meanings["recurring"]["fed"] == 1
+    # Met again another day: counts, what followed and the bites merge by addition.
+    organism._state["moments"]["recurring"] = {"count": 2, "tick": 20, "held": "1/2", "source": "heard", "context": [2, 0, 0], "next": {"after": 1, "other": 1}, "fed": 0}
+    organism._dream_moment(2_000)
+    assert meanings["recurring"]["count"] == 5 and meanings["recurring"]["next"] == {"after": 3, "other": 1}
+    # Bounded: the least counted meaning leaves.
+    for index in range(MEANING_CAPACITY + 10):
+        organism._state["moments"][f"m{index:03d}"] = {"count": 2 + (index % 3), "tick": 30 + index, "held": "none", "source": "own", "context": [0, 0, 0], "next": {}, "fed": 0}
+        organism._dream_moment(3_000 + index)
+    assert len(meanings) <= MEANING_CAPACITY and "recurring" in meanings
+    assert organism.counts["meanings"] == len(meanings)
+    encoded = organism.encoded()
+    assert FunctionalOrganism.restore(encoded).encoded() == encoded
+
+
+def test_a_persons_voice_reaches_her_by_the_rooms_geometry_like_a_things_sound() -> None:
+    """The caregiver's voice as a thing-sound from its body: in her room the gain is one
+    metre over the distance, capped at one; an unknown source is silence."""
+
+    from dsf_ai_service.guala_functional_loop import _thing_sound_gain
+
+    world = home_world_authority(identity=IDENTITY)
+    snapshot = world.observation_snapshot()
+    person = next(body for body in snapshot.bodies if body.body_id != snapshot.self_body_id)
+    gain, distance, path = _thing_sound_gain(snapshot, person.body_id)
+    assert distance is not None and distance >= 1 and path in ("room", "door") and 0 <= gain <= 1
+    if path == "room":
+        assert gain == min(1, 1_000 / distance) or abs(float(gain) - min(1.0, 1_000 / distance)) < 1e-6
+    assert _thing_sound_gain(snapshot, "nobody-here") == (0, None, "absent")
+    assert _thing_sound_gain(snapshot, snapshot.self_body_id)[2] == "absent"   # her own body is not a room sound

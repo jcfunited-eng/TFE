@@ -142,15 +142,20 @@ def _thing_sound_gain(snapshot: Any, object_id: str) -> tuple[Fraction, int | No
     her = _self_body(snapshot)
     thing = next((item for item in snapshot.objects if item.object_id == object_id), None)
     if thing is None:
-        return Fraction(0), None, "absent"
-    position = thing.position
-    if position is None:
-        holder = next((body for body in snapshot.bodies if body.body_id == thing.held_by_body_id), None)
-        if holder is None:
+        # A body's voice (the caregiver's) sounds from where the body stands, by the same geometry.
+        speaker = next((body for body in snapshot.bodies if body.body_id == object_id and body.body_id != snapshot.self_body_id), None)
+        if speaker is None:
             return Fraction(0), None, "absent"
-        position = holder.pose.position
+        position, radius_mm = speaker.pose.position, speaker.radius_mm
+    else:
+        position, radius_mm = thing.position, thing.radius_mm
+        if position is None:
+            holder = next((body for body in snapshot.bodies if body.body_id == thing.held_by_body_id), None)
+            if holder is None:
+                return Fraction(0), None, "absent"
+            position = holder.pose.position
     her_region = _region_of(snapshot, her.pose.position, her.radius_mm)
-    thing_region = _region_of(snapshot, position, thing.radius_mm)
+    thing_region = _region_of(snapshot, position, radius_mm)
     if her_region is None or thing_region is None or her_region.region_id == thing_region.region_id:
         distance = max(1, int(round(_distance_mm(her.pose.position, position))))
         return min(Fraction(1), Fraction(SOUND_REFERENCE_MM, distance)), distance, "room"
