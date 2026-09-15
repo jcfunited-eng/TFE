@@ -22,7 +22,7 @@ Frame energy = mean of the 16 channel envelopes at that frame. Measured on the w
 
 Definitions, all from quantities she already measures:
 
-- **hearing**: a hop is heard when its peak-profile energy is at least her hearing floor (HEARD_ENERGY_FLOOR = 0.004) and at least twice the room's ambient (AMBIENT_MEMORY law), as today. Frames of unheard hops are silence to the gate law.
+- **hearing**: a hop is heard when its peak-profile energy is at least her hearing floor (HEARD_ENERGY_FLOOR = 0.004), the law her ear-shape streams already use. Frames of unheard hops are silence to the gate law. (Amended after measurement on her live body, 2026-09-15: with the running ambient in the gate's hearing, as first drafted, a word two beats after music was not heard at all and music was chopped by its own level; the ambient law stays where it was, on what is worth answering, which is what pays.)
 - **a frame is sounding** when its frame energy is at least one eighth of the event's running peak frame energy (the event's own loudness sets its own edges, as a speaker's onset and offset are heard relative to the word, not to an absolute). One eighth (18 dB) is declared once.
 - **an event opens** at the first sounding frame of a heard hop while no event is open.
 - **an event holds** across frames and across hops while sounding frames keep coming; it may span beats (a word is two to four beats; a sentence is many).
@@ -38,7 +38,8 @@ Because only the event's own frames enter, the same recording gives the same key
 ## 5. What is stored
 
 - `events`: key → [count, last tick, beats]; capacity 256, the least recently met leaves (her day law); the night selects by count into a consolidated store (Level 2/3 spec).
-- the open event is visible to the moment (Level 2) as a stream token of its own: `sound_event` = the key of the event that closed on this beat or of the one open (so the moment's tuple can carry "this sound is happening / just happened"), else silence.
+- the open event is visible to the moment (Level 2) as a token of its own: an event that closed on this beat carries its key; an open event has no key yet by construction (its structure is inside its boundaries, known at the close), so the moment sees only "a sound is happening"; else silence. As built: `sound_event` = [key, tick, last frame] of the last event closed; `ear_event` = the open event (its frames, start, running peak, quiet count, last sounding frame), carried in her body so a restart in the middle of a word keeps the word.
+- her record of quiet (the datum for reading the pause from her own record, §8): counts of quiet runs inside events that a sounding frame ended (one to eleven frames), and of the silence between events binned at a beat, two, eight, sixty-four, and beyond. Sixteen integers.
 - Nothing else. No text, no similarity, no threshold beyond the three declared above.
 
 ## 6. Bars (measured before release, reported as measured)
