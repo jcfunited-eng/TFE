@@ -96,3 +96,6 @@ ch4_inverted_store.parquet
 ch3_m15_watchlist.parquet
 ch4_live_store.parquet
 .guala_release_work/guala-production-15a7dca9.bundle
+
+# her library of fetched recordings (large; fetched on demand)
+guala_caretaker/media/

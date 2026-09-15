@@ -278,6 +278,9 @@ TOYS = ("toy-bear", "glow-stars", "book", "cup")
 
 BEDTIME_FRACTION = 0.9   # of her sleep-pressure ceiling: the caretaker makes her bed
 BEDDING = frozenset({"pillow", "blanket"})
+READ_EVERY_TICKS = 12_000     # about an hour of her beats between readings
+READ_KEEP_EVERY_BLOCKS = 96   # the book is shown beside her again this often, so the caregiver stays through the chapter
+READ_BOOK = "Alice's Adventures in Wonderland"   # the first book; the next titles follow when this one is read through
 BEDTIME_RETRY_BEATS = 10_000   # about an hour of her beats between tries until both are on the bed
 LULLABY_HZ = (330, 330, 392, 330, 330, 392, 330, 392, 523, 494, 440, 440, 392, 294, 330, 349, 294, 294, 330, 349, 294, 349, 494, 440, 392, 494, 523)
 LULLABY_BEATS = (1, 1, 2, 1, 1, 2, 1, 1, 2, 2, 1, 1, 2, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 3)  # quarter-second blocks per note
@@ -342,6 +345,59 @@ def maybe_bedtime(o: dict, st: dict) -> None:
     made = (((res or {}).get("observation") or {}).get("last_occurrence") or {}).get("caregiver_presentation") or {}
     st["bed_made"] = sorted(set(st.get("bed_made") or []) | set(made.get("made") or []))
     log(f"bedtime: pillow and blanket to her bed — made={made.get('made')} so far={st['bed_made']} steps={len(made.get('steps') or [])} last={(made.get('steps') or [None])[-1]}")
+
+
+def maybe_read(o: dict, st: dict) -> None:
+    """Read to her: once in READ_EVERY_TICKS of her beats while she is awake, the
+    caregiver fetches the book and holds it beside her, and a real human voice
+    (a LibriVox chapter, public domain) comes to her ears block by block at her
+    beat, the book shown again every so often so the caregiver stays. Stops when
+    she falls asleep or the chapter ends; the next chapter follows next time."""
+    import media
+    sleep = her_sleep(o)
+    if sleep.get("asleep"):
+        return
+    tick = int(o.get("live_tick") or 0)
+    if st.get("read_next_tick") is not None and tick < int(st["read_next_tick"]):
+        return
+    st["read_next_tick"] = tick + READ_EVERY_TICKS
+    try:
+        book = st.get("read_book") or media.librivox_book(READ_BOOK)
+        st["read_book"] = book
+        chapters = media.chapters(book["archive"])
+        index = int(st.get("read_chapter") or 0) % max(1, len(chapters))
+        chapter = chapters[index]
+        pcm_path = media.fetch_chapter(book["archive"], chapter["name"])
+        blocks = media.blocks(pcm_path)
+    except Exception as err:  # noqa: BLE001
+        log(f"reading: the library could not give the chapter: {err}")
+        return
+    res = present_food("read-book")
+    made = (((res or {}).get("observation") or {}).get("last_occurrence") or {}).get("caregiver_presentation") or {}
+    if not made.get("reading"):
+        log(f"reading: the caregiver could not bring the book beside her — steps={len(made.get('steps') or [])} last={(made.get('steps') or [None])[-1]}")
+        return
+    log(f"reading: {book['title']}, chapter file {chapter['name']} ({len(blocks)} beats of sound) begins at tick {tick}")
+    heard = 0
+    for i, pcm in enumerate(blocks):
+        r = sing_block(pcm)
+        if r is None:
+            break
+        heard += 1
+        ob = r.get("observation") or {}
+        MINE.append(ob.get("live_tick") or 0)
+        MINE.append((ob.get("last_occurrence") or {}).get("native_tick"))
+        if (i + 1) % READ_KEEP_EVERY_BLOCKS == 0:
+            if asleep(ob):
+                log("reading: she fell asleep; the book closes")
+                break
+            keep = present_food("read-book")
+            kept = (((keep or {}).get("observation") or {}).get("last_occurrence") or {}).get("caregiver_presentation") or {}
+            if not kept.get("reading"):
+                log("reading: the caregiver could not keep the book beside her; the book closes")
+                break
+    st["read_chapter"] = index + 1 if heard >= len(blocks) else index
+    log(f"reading: {heard} of {len(blocks)} beats reached her ears; next chapter index {st['read_chapter']}")
 
 
 def maybe_lullaby(o: dict, st: dict) -> None:
@@ -535,6 +591,7 @@ def main() -> None:
             break
         maybe_feed(o, st)
         maybe_play(o, st)
+        maybe_read(o, st)
         ok = True
         for i, pcm in enumerate(blocks):
             res = present_block(retina, pcm, focal_b64)
