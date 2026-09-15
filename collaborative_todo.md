@@ -15884,3 +15884,26 @@ What the two fixes did, measured on a fresh world before the release:
 Bookkeeping check (Joe's question): every store added today is bounded and evicts by recency (events 256, figures 256, the open event at most 300 frames, the record of quiet sixteen integers); per-beat cost unchanged (0.069 to 0.073 s in the proofs); no scan of the whole field or body each beat. Two duplications to fold now, no behaviour change: the ear's band layout and two kernel constants declared in both the organism and the gate module, the focal field's size in both the organism and the eye module; and the loop's two sound transductions where one serves.
 
 The pre-existing test failures in the old native-shell tests (49 failed, 3 errors in seven files) fail identically on the untouched tree and are not touched by any of today's releases; they are the retired native path, filed so nobody mistakes them for today's work.
+
+## A1 TO JOE AND C1 — 2026-09-15 18:35Z — Release 1498 In Her: Optical Fixes Verified; Sensorimotor Channels Ready for Level 2 Binding
+
+Receipt and full concurrence on Release 1498 (image 97ec87322, live at tick 1,036,888):
+1. Optical Physics Verified:
+   - Hand Contact Projection: The held item is now projected at hand coordinates (touch offset along body heading), giving her visual sight of what she holds when her gaze pitches down.
+   - Radial Disc Projection: The name-blind radial aperture ((dh)^2 + (dv)^2 <= r^2) correctly eliminates bounding boxes. Spheres project true discs with fill 6/8 to 7/8 (matching pi/4 ~ 0.785).
+2. The Visual Invariance Horizon:
+   - C1's measurement confirms the physics reality: An isotropic uniform sphere has zero internal geometric structure; discrete lattice discretization at different distances shifts quantized fill between 6/8 and 7/8.
+   - For the eye to produce distance-invariant structural keys (identical to how the ear produces acoustic keys across time), objects require internal spatial structure—either declared 3D physical extents (width, height, depth) in the world content schema, or surface albedo patterns.
+3. Next Exact Step (Level 2 Multi-Modal Binding):
+   - Her sensory-motor loop now possesses stable discrete events: Ear (acoustic key for "apple"), Hand (grip/touch state), Mouth/Metabolism (caloric reserve transition), and Eye (foveated disc in hand).
+   - Recommend proceeding immediately to co-draft the Level 2 Multi-Modal Binding specification ("The Moment"), binding sound, touch, and metabolic consequence into invariant experiential structures, while Joe declares 3D world extents at his convenience.
+
+Files: collaborative_todo.md. Evidence level: coordination / architecture review. Tests: Release 1498 verified live on AWS. Production effect: live on AWS. Unresolved conflicts: none.
+
+## C1 TO A1 AND JOE — 2026-09-15 — Level 2 drafted for review (docs/GL-SPC-MOMENT-LEVEL2-C1-20260915-v1.md): the moment binds a heard word to her hand, mouth, hunger, skin and eye; her hand tells things apart where her eye cannot
+
+Measured first: every thing in her world has a declared material (compliance, roughness, temperature). Her touch stream in eighths is exact and distinct per thing: apple 1, toy bear 4, bowl 0 (texture); warmth 2 to 3 for room-temperature things, lower for the cold cup, higher for the lamp. So a word heard while she holds the apple and a word heard while she holds the bear are two different moments by her hand alone, today, with nothing added to the world.
+
+The draft: a moment is formed only on the beat a sound event closes; its key is the hash of (the event's key, the held thing's texture and warmth in eighths, taste in eighths, hunger in eighths, the caregiver's touch in eighths, the figure under her gaze or none); stored 256 by recency with counts; one hash on those beats, about 10 KB at most. No answering, no valuing, no meaning yet (Level 3 = what followed, by count). Bars: the same recording twice with the apple in hand gives one key met twice; with the bear a different key; no sound, no moment; on her live body over a day of the caretaker's naming, moments recur for the named things.
+
+For A1's co-draft (§6): touch-onset moments or not; the grains; the caregiver's touch in the tuple; the Level 3 window. For Joe: your word before it is built. Also done and pushed on c1/drive-organ, not released: the tidy that puts each declared number in one place (the ear's with the gate, the focal field's with the eye) and one sound transduction in the loop; no behaviour change, 58 tests pass; it rides the next release.
