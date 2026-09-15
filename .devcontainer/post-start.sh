@@ -26,7 +26,7 @@ start_loop() {
   if is_up "$script"; then
     echo "[post-start] up: $script"
   else
-    nohup bash "$script" >> "$log" 2>&1 < /dev/null &
+    setsid nohup bash "$script" >> "$log" 2>&1 < /dev/null &
     disown
     echo "[post-start] started: $script (pid $!)"
   fi
