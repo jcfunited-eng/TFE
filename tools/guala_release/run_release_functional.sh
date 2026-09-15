@@ -70,6 +70,8 @@ try:
     verdict["peak_kib"] = {"warm": r["warm_peak_rss_kib"], "cold": r["cold_peak_rss_kib"]}
     verdict["events_closed"] = r.get("events_closed"); verdict["events_store"] = r.get("events_store")   # Level 1: the acoustic gate closed events in the container
     verdict["ear_pass"] = bool((r.get("events_closed") or 0) >= 1)
+    verdict["own_events_closed"] = r.get("own_events_closed"); verdict["moments_store"] = r.get("moments_store")   # her own voice as events; the moments formed
+    verdict["voice_pass"] = bool((r.get("own_events_closed") or 0) >= 1)
     verdict["post_cold_acts"] = [row["act"] for row in r["post_cold"]]
     verdict["hungry_at_start"] = r["hungry_at_start"]
     # Her feeding law: every bite while feeding; an offer made while feeding is eaten;

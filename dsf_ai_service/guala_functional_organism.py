@@ -146,7 +146,7 @@ EYELID_OPEN_MICROMETRES = 10_000
 # consolidated memory when the day has nothing for the present structure.
 CONSOLIDATED_STREAMS = ("sound_energy", "hunger", "food_distance", "hand")
 CONSOLIDATED_CAPACITY = 64
-RETIRED_KEYS = ("visited", "door_goal", "bout_syllables", "quiet_until_tick", "blocked_doors", "attended_tick", "unreachable_food", "food_goal",
+RETIRED_KEYS = ("pending_syllable", "visited", "door_goal", "bout_syllables", "quiet_until_tick", "blocked_doors", "attended_tick", "unreachable_food", "food_goal",
                 "food_refusals", "food_best_mm", "food_stall_beats", "answered_profile", "touched", "strides_since_pickup", "release_refusals",
                 "touching", "listening_since", "call_profile", "answer_bout", "answer_target", "answer_pending", "answer_map", "food_rooms",
                 "food_room_goal", "room_beats", "keeping_room", "keep_walk_beats", "last_kept", "kept", "stuck_beats", "approached", "goal",
@@ -206,12 +206,15 @@ REFUSAL_CAPACITY = 32
 # (situation, prior syllable); a room sound standing out within the answer
 # window after it is what pays. Nothing scripted answers a heard sound.
 BABBLE_EVERY_BEATS = 4
+# Her own voice heard back enters her ear's gate as events of its own (Level 1 on her
+# own sound), kept in a store of their own; a moment forms when her own event closes
+# as when a heard one does, so "what she said, then what followed" is counted.
+OWN_EVENT_RECORD_CAPACITY = 64
 HEARD_ABOVE_AMBIENT = 2.0       # a sound worth answering is at least twice the running ambient level
 AMBIENT_MEMORY = Fraction(15, 16)
 COCHLEAR_CHANNELS = 32
-VOICE_VERSION = 2
+VOICE_VERSION = 3               # 3: syllables valued by what followed them, as acts are; the answer-count law retired
 SPEECH_RECORD_CAPACITY = 64
-ANSWER_WINDOW_BEATS = 4
 PHRASE_WINDOW_BEATS = 8
 
 # Level 1 (docs/GL-SPC-ACOUSTIC-GATE-C1-20260915-v1.md): a spoken sound as one event
@@ -237,14 +240,15 @@ GAP_BINS_FRAMES = (FRAMES_PER_HOP, FRAMES_PER_HOP * 2, FRAMES_PER_HOP * 8, FRAME
 def _empty_ear_quiet() -> dict[str, list[int]]:
     return {"inside": [0] * QUIET_RUN_BINS, "between": [0] * (len(GAP_BINS_FRAMES) + 1)}
 
-# Syllables: her airway's onsets x vowels (2 x 5 = 10), at its first pitch (the
-# other three pitches are not in the record yet: a reduction, stated here).
-# Syllables are chosen from her own record of which sounds got answered,
-# keyed by situation and prior syllable so speech can grow into syntax.
+# Syllables: everything her airway declares: its onsets x vowels x pitches (2 x 5 x 4 = 40).
+# A syllable is valued exactly as her acts are, by what followed it (her measured needs:
+# a sound standing out, a touch, intake, new structure), under the situation and the
+# syllable before it, so speech grows into sequences by the same law as every act.
 # Untried syllables are explored in order of lifetime tries (zero clock arithmetic).
-SYLLABLES = tuple(f"{onset}{v[0]}" for onset in ONSETS for v in VOWELS)
+SYLLABLES = tuple(f"{onset}{v[0]}{p_idx}" for p_idx in range(len(PITCHES_DECIHERTZ)) for onset in ONSETS for v in VOWELS)
 SYLLABLE_DRIVES = {
-    f"{onset}{v[0]}": (PITCHES_DECIHERTZ[0], v_idx, o_idx)
+    f"{onset}{v[0]}{p_idx}": (pitch, v_idx, o_idx)
+    for p_idx, pitch in enumerate(PITCHES_DECIHERTZ)
     for o_idx, onset in enumerate(ONSETS)
     for v_idx, v in enumerate(VOWELS)
 }
@@ -352,6 +356,7 @@ class Sensed:
     skin_temperature_millikelvin: int | None = None  # her cutaneous node now (None: no thermal body)
     touch_surface_millikelvin: int | None = None     # the temperature of the skin that pressed hers this beat
     heard_frames: tuple[tuple[float, ...], ...] = ()  # the room sound's 25 frames at her ear (energy, six band fractions); () = no sound
+    own_frames: tuple[tuple[float, ...], ...] = ()    # her own voice heard back, the same 25 frames; () = she made no sound
 
 
 @dataclass(frozen=True, slots=True)
@@ -838,10 +843,11 @@ class FunctionalOrganism:
             "head": [0, 0], "acts": {}, "pending_act": None, "last_chosen": None,
             "sleep_pressure": 0, "asleep": False, "learned": {}, "nights": 0, "act_totals": {}, "contact_pressure": 0, "pending_contact": 0.0, "pending_contact_millikelvin": None, "reading_until_tick": 0,
             "target_totals": {}, "taste_residue": 0.0,
-            "speech": {}, "syllable_totals": {}, "prior_syllable": None, "pending_syllable": None,
+            "speech": {}, "syllable_totals": {}, "prior_syllable": None,
             "ear_event": None, "events": {}, "sound_event": None, "ear_quiet": _empty_ear_quiet(),
             "gaze": None, "gaze_target": None, "sight_figure": None, "figures": {}, "eyes": [0, 0], "gaze_radius": 0.0,
             "moments": {}, "last_moment": None,
+            "voice_event": None, "own_events": {}, "own_event": None,
         })
 
     @classmethod
@@ -865,8 +871,14 @@ class FunctionalOrganism:
         changed = False
         if state.get("voice_version") != VOICE_VERSION:
             state["voice"], state["heard"], state["pending_voice"], state["pending_drive"] = [], [], None, None
+            # The speech record's meaning changed (answers counted -> value by what followed): it starts again.
+            state["speech"], state["syllable_totals"], state["prior_syllable"] = {}, {}, None
             state["voice_version"] = VOICE_VERSION
             changed = True
+        for key, empty in (("voice_event", None), ("own_events", {}), ("own_event", None)):
+            if key not in state:
+                state[key] = {} if isinstance(empty, dict) else empty
+                changed = True
         for key, empty in (("ambient_sound", 0.0), ("handled", 0), ("room_now", None), ("head", [0, 0]), ("acts", {}), ("pending_act", None), ("last_chosen", None),
                            ("sleep_pressure", 0), ("asleep", False), ("learned", {}), ("nights", 0), ("taste_residue", 0.0)):
             if key not in state:
@@ -916,9 +928,6 @@ class FunctionalOrganism:
             changed = True
         if "prior_syllable" not in state:
             state["prior_syllable"] = None
-            changed = True
-        if "pending_syllable" not in state:
-            state["pending_syllable"] = None
             changed = True
         if "ear_event" not in state:
             state["ear_event"] = None
@@ -1036,10 +1045,12 @@ class FunctionalOrganism:
         events = state.get("events") or {}
         open_event = state.get("ear_event")
         last = state.get("sound_event")
+        own_closed = [str(key) for key in getattr(self, "_own_closed", [])]
         return {
             "closed": closed, "met": [int(events[key][0]) for key in closed if key in events],
             "open": open_event is not None, "open_frames": 0 if open_event is None else len(open_event["frames"]),
             "last": None if last is None else [str(last[0]), int(last[1])], "events": len(events),
+            "own_closed": own_closed, "own_events": len(state.get("own_events") or {}),
         }
 
     def readiness(self) -> Readiness:
@@ -1117,6 +1128,7 @@ class FunctionalOrganism:
         counts["events"] = len(self._state.get("events") or {})
         counts["figures"] = len(self._state.get("figures") or {})
         counts["moments"] = len(self._state.get("moments") or {})
+        counts["own_events"] = len(self._state.get("own_events") or {})
         return counts
 
     @property
@@ -1132,7 +1144,8 @@ class FunctionalOrganism:
         if entry is None:
             return None
         following = sorted(entry.get("next", {}).items(), key=lambda kv: (-int(kv[1]), kv[0]))[:3]
-        return {"key": formed, "count": int(entry["count"]), "held": entry.get("held", "none"), "context": list(entry.get("context", [])), "next": following, "fed": int(entry.get("fed", 0))}
+        return {"key": formed, "count": int(entry["count"]), "source": entry.get("source", "heard"), "held": entry.get("held", "none"),
+                "context": list(entry.get("context", [])), "next": following, "fed": int(entry.get("fed", 0))}
 
     # ----- the kernel over her measured streams --------------------------------------
 
@@ -1343,6 +1356,7 @@ class FunctionalOrganism:
             if hop_heard and energy >= ambient * HEARD_ABOVE_AMBIENT:
                 sound_now = _clamp(energy * 4, 0.0, 1.0)
         self._hear_events(sensed.heard_frames, hop_heard, tick)
+        self._hear_own(sensed.own_frames, tick)
         self._form_moments(body, measures, tick)
         self._settle(key, novel, sound_now, skin_now, tick, warmth_likeness=float(getattr(self, "_warmth_likeness", 0.0)), pain=float(getattr(self, "_pain", 0.0)))
 
@@ -1379,23 +1393,11 @@ class FunctionalOrganism:
                     state["last_chosen"] = None
                 return decision("sleep", "falling asleep on her bed; pressure at its ceiling" if at_bed else "exhausted; asleep where she dropped")
 
-        # Check if previous pending syllable got answered by environmental sound
-        pending_syl = state.get("pending_syllable")
-        if pending_syl is not None:
-            if (sound_now > 0 or skin_now > 0) and tick - int(pending_syl.get("tick", 0)) <= ANSWER_WINDOW_BEATS:
-                s_key = pending_syl["key"]
-                s_name = pending_syl["syllable"]
-                s_entry = state.setdefault("speech", {}).get(s_key)
-                if s_entry is not None and s_name in s_entry.get("syllables", {}):
-                    s_entry["syllables"][s_name][1] = int(s_entry["syllables"][s_name][1]) + 1
-                state["pending_syllable"] = None
-            elif tick - int(pending_syl.get("tick", 0)) > ANSWER_WINDOW_BEATS:
-                state["pending_syllable"] = None
-
-        # Voice: the syllable comes from her speech record (situation, prior syllable).
+        # Voice: the syllable comes from her speech record (situation, prior syllable),
+        # valued by what followed each syllable exactly as her acts are.
         last_spoke = int(state.get("last_spoke_tick", -999))
         prior_syl = state.get("prior_syllable") if (tick - last_spoke) <= PHRASE_WINDOW_BEATS else None
-        say_drive, say_reason = self._choose_syllable(situation, prior_syl)
+        say_drive, say_name, say_context, say_reason = self._choose_syllable(situation, prior_syl)
 
         if float(getattr(self, "_pain", 0.0)) > 0 and held is not None and held.material is not None \
                 and int(held.material.surface_temperature_millikelvin) >= NOCICEPTION_MILLIKELVIN:
@@ -1421,6 +1423,8 @@ class FunctionalOrganism:
         sleep_ratio = round(float(state.get("sleep_pressure", 0)) / SLEEP_PRESSURE_CEILING, 6)
         contact_ratio = round(float(state.get("contact_pressure", 0)) / CONTACT_PRESSURE_CEILING, 6)
         state["pending_act"] = {"key": key, "regimes": regimes, "act": act, "deficit": deficit, "sleep_ratio": sleep_ratio, "contact_ratio": contact_ratio, "intake": 0, "refused": False}
+        if act == "say":
+            state["pending_act"]["syllable"], state["pending_act"]["context"] = say_name, say_context   # valued by what follows, under its context
         state["last_chosen"] = {"key": key, "regimes": regimes, "act": act, "deficit": deficit, "sleep_ratio": sleep_ratio}
         return decision(act, why + (("; " + detail) if detail else ""), commands, target, drive)
 
@@ -1446,6 +1450,25 @@ class FunctionalOrganism:
                 del figures[min(figures, key=lambda k: (int(figures[k][1]), k))]   # the least recently met leaves
         state["sight_figure"] = key
 
+    def _hear_own(self, frames: tuple[tuple[float, ...], ...], tick: int) -> None:
+        """Her own voice heard back through the same gate, in a gate of its own: her
+        syllable closes as an event with a key, kept in her store of her own sounds."""
+
+        state = self._state
+        hop = tuple(frames) if frames else (SILENT_FRAME,) * FRAMES_PER_HOP
+        heard = bool(frames) and any(float(frame[0]) >= HEARD_ENERGY_FLOOR for frame in hop)
+        open_event, closed, _runs = gate_step(state.get("voice_event"), hop, heard, tick * FRAMES_PER_HOP)
+        state["voice_event"] = open_event
+        own = state.setdefault("own_events", {})
+        self._own_closed = []
+        for event in closed:
+            entry = own.get(event.key)
+            own[event.key] = [1, tick, event.beats] if entry is None else [int(entry[0]) + 1, tick, int(entry[2])]
+            while len(own) > OWN_EVENT_RECORD_CAPACITY:
+                del own[min(own, key=lambda k: (int(own[k][1]), k))]   # the least recently made leaves
+            state["own_event"] = [event.key, tick, event.end_frame]
+            self._own_closed.append(event.key)
+
     # ----- Level 2 and 3: the moment, and what followed it ------------------------------
 
     def _form_moments(self, body: Any, measures: dict[str, float], tick: int) -> None:
@@ -1457,7 +1480,7 @@ class FunctionalOrganism:
 
         state = self._state
         self._moment_formed = None
-        closed = list(getattr(self, "_ear_closed", []))
+        closed = list(getattr(self, "_ear_closed", [])) + ["own:" + key for key in getattr(self, "_own_closed", [])]
         if not closed:
             return
         eighth = lambda value: int(_clamp(round(float(value) * 8), 0, 8))
@@ -1472,7 +1495,8 @@ class FunctionalOrganism:
             key = hashlib.sha256(f"{event}|{held}|{figure}".encode("ascii")).hexdigest()[:16]
             entry = moments.get(key)
             if entry is None:
-                moments[key] = {"count": 1, "tick": tick, "held": held, "context": context, "next": {}, "fed": 0}
+                moments[key] = {"count": 1, "tick": tick, "held": held, "context": context, "next": {}, "fed": 0,
+                                "source": "own" if event.startswith("own:") else "heard"}
             else:
                 entry["count"] = int(entry["count"]) + 1
                 entry["tick"] = tick
@@ -1578,6 +1602,11 @@ class FunctionalOrganism:
 
         value = intake_value + new_structure_value + sound_value + contact_value - burn_cost - pain_cost
         self._credit(str(pending["key"]), act, round(value, 6), tick, str(pending.get("regimes", "")), successor_key=key_now)
+        if act == "say" and pending.get("syllable"):
+            # The syllable she said is valued by the same measured worth, under its context.
+            entry = self._state.setdefault("speech", {}).setdefault(str(pending["context"]), {"syllables": {}, "tick": tick})
+            tried = entry["syllables"].setdefault(str(pending["syllable"]), [0, 0.0])
+            tried[1] = round(float(tried[1]) + value, 6)
 
     def _dream(self, tick: int) -> str | None:
         """One sleeping beat of consolidation: the most recurrent structure of
@@ -1605,40 +1634,22 @@ class FunctionalOrganism:
             del learned[min(learned, key=lambda k: (int(learned[k]["tick"]), k))]
         return key[:6] + " into situation " + situation
 
-    def _choose_syllable(
-        self,
-        situation: str,
-        prior_syllable: str | None,
-    ) -> tuple[tuple[int, int, int], str]:
-        """Choose an airway syllable drive from her speech record:
-        - Under (situation, prior_syllable): untried syllables come first ordered by her lifetime tries (never a clock formula or random hash).
-        - When syllables have been tried, the one with the highest answer rate is chosen.
-        - Speech transitions (prior_syllable -> next_syllable) grow syntax from reinforced answers."""
+    def _choose_syllable(self, situation: str, prior_syllable: str | None) -> tuple[tuple[int, int, int], str, str, str]:
+        """The syllable for this beat from her speech record, by the law her acts use:
+        under (situation, prior syllable) untried syllables come first in order of her
+        lifetime tries; among tried ones the best mean measured worth of what followed.
+        Returns (drive, name, context, reason)."""
 
         context = f"{situation}:{prior_syllable if prior_syllable else 'start'}"
-        speech = self._state.setdefault("speech", {})
         totals = self._state.setdefault("syllable_totals", {})
-        entry = speech.get(context)
-
-        if entry is None or not entry.get("syllables"):
-            syl = min(SYLLABLES, key=lambda s: (int(totals.get(s, 0)), SYLLABLES.index(s)))
-            return SYLLABLE_DRIVES[syl], f"first try of {syl} under {context} (tried {int(totals.get(syl, 0))} in her life)"
-
-        tried = entry["syllables"]
-        answered = [s for s, data in tried.items() if int(data[1]) > 0]
-        if answered:
-            syl = max(answered, key=lambda s: (float(tried[s][1]) / int(tried[s][0]), int(tried[s][1]), -int(totals.get(s, 0))))
-            rate = float(tried[syl][1]) / int(tried[syl][0])
-            return SYLLABLE_DRIVES[syl], f"best answered under {context}: {syl} ({rate:.2f} answered)"
-
+        tried = (self._state.setdefault("speech", {}).get(context) or {}).get("syllables") or {}
         untried = [s for s in SYLLABLES if s not in tried]
         if untried:
-            untried.sort(key=lambda s: (int(totals.get(s, 0)), SYLLABLES.index(s)))
-            syl = untried[0]
-            return SYLLABLE_DRIVES[syl], f"first try of {syl} under {context} (tried {int(totals.get(syl, 0))} in her life)"
-
-        syl = min(SYLLABLES, key=lambda s: (int(tried[s][0]), SYLLABLES.index(s)))
-        return SYLLABLE_DRIVES[syl], f"least tried under {context}: {syl}"
+            syl = min(untried, key=lambda s: (int(totals.get(s, 0)), SYLLABLES.index(s)))
+            return SYLLABLE_DRIVES[syl], syl, context, f"first try of {syl} under {context} (tried {int(totals.get(syl, 0))} in her life)"
+        syl = max(tried, key=lambda s: (float(tried[s][1]) / max(1, int(tried[s][0])), -int(tried[s][0]), -SYLLABLES.index(s)))
+        mean = float(tried[syl][1]) / max(1, int(tried[syl][0]))
+        return SYLLABLE_DRIVES[syl], syl, context, f"best worth under {context}: {syl} ({mean:.2f} over {int(tried[syl][0])})"
 
     def _choose(self, key: str, situation: str, acts: list[str], uncertain: bool | None = None) -> tuple[str, str]:
         """The act for this structure: from the day's record (untried first,
@@ -1790,9 +1801,8 @@ class FunctionalOrganism:
             speech_rec = state.setdefault("speech", {})
             ctx_entry = speech_rec.setdefault(ctx_key, {"syllables": {}, "tick": tick_now})
             ctx_entry["tick"] = tick_now
-            syl_data = ctx_entry["syllables"].setdefault(syl_name, [0, 0])
+            syl_data = ctx_entry["syllables"].setdefault(syl_name, [0, 0.0])
             syl_data[0] = int(syl_data[0]) + 1
-            state["pending_syllable"] = {"key": ctx_key, "syllable": syl_name, "tick": tick_now}
             state["prior_syllable"] = syl_name
             while len(speech_rec) > SPEECH_RECORD_CAPACITY:
                 del speech_rec[min(speech_rec, key=lambda k: (int(speech_rec[k].get("tick", 0)), k))]

@@ -110,7 +110,8 @@ def step(runtime, world, occurrence, label):
            "said": o["said_drive"], "heard": o["external_heard_sample_count"], "camera_sites": o["external_retinal_site_count"],
            "presentation": None if o["caregiver_presentation"] is None else o["caregiver_presentation"]["presented"],
            "body_bytes": len(runtime.encoded()), "world_bytes": len(world.encoded_snapshot()), "spoke": result.pressure is not None,
-           "ear": (o.get("her_ear") or {}).get("closed", []), "events": (o.get("her_counts") or {}).get("events")}
+           "ear": (o.get("her_ear") or {}).get("closed", []), "events": (o.get("her_counts") or {}).get("events"),
+           "own": (o.get("her_ear") or {}).get("own_closed", []), "moments": (o.get("her_counts") or {}).get("moments")}
     return row
 
 
@@ -209,6 +210,7 @@ def main():
                    "novel_structures": sum(1 for r in rows if r["novel"]), "gates_total": sum(r["gates"] for r in rows),
                    "rooms": sorted({r["room"] for r in rows}), "syllables": sum(1 for r in rows if r["spoke"]),
                    "events_closed": sum(len(r["ear"]) for r in rows), "events_store": rows[-1]["events"],
+                   "own_events_closed": sum(len(r["own"]) for r in rows), "moments_store": rows[-1]["moments"],
                    "withdrawals": [r["withdrawal"] for r in rows if r["withdrawal"] is not None],
                    "restore_seconds": round(restore_seconds, 3), "world_after": world_food(world), "captured_functional": captured_functional,
                    "warm_peak_rss_kib": resource.getrusage(resource.RUSAGE_SELF).ru_maxrss}

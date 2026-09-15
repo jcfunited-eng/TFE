@@ -737,77 +737,56 @@ def test_the_caretaker_makes_her_bed_and_she_falls_asleep_on_it_crediting_the_wa
     assert FunctionalOrganism.restore(encoded).encoded() == encoded
 
 
-def test_syllables_come_from_speech_record_and_grow_syntax_from_answers() -> None:
-    """True speech from her record: syllables are chosen from her own record
-    of which sounds got answered (zero clock arithmetic, zero hash scripts).
-    Transitions from prior syllable grow into syntax."""
+def test_syllables_come_from_speech_record_and_grow_sequences_by_measured_worth() -> None:
+    """Her syllables are chosen by the law her acts use: under a context (situation and
+    the syllable before) untried syllables first, in order of lifetime tries; then the
+    best mean measured worth of what followed. Transitions from the prior syllable grow
+    into sequences. Every pitch and onset her airway declares is in her record."""
+
+    from dsf_ai_service.guala_functional_organism import SYLLABLE_DRIVES, SYLLABLES, syllable_pcm
+
+    assert len(SYLLABLES) == 40 and len(set(SYLLABLE_DRIVES.values())) == 40
+    for name in SYLLABLES[::7]:
+        assert len(syllable_pcm(SYLLABLE_DRIVES[name], 1)) > 0     # every declared syllable is producible
+    organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
+    drive, name, context, reason = organism._choose_syllable("_S_S", None)
+    assert name == SYLLABLES[0] and drive == SYLLABLE_DRIVES[name] and context == "_S_S:start" and "first try" in reason
+    organism._state["syllable_totals"][SYLLABLES[0]] = 5
+    drive, name, _context, reason = organism._choose_syllable("_S_S", None)
+    assert name != SYLLABLES[0] and "tried 0 in her life" in reason
+    # Every syllable tried under the context: the best mean worth is chosen.
+    organism._state["speech"]["_S_S:start"] = {"syllables": {s: [2, 0.0] for s in SYLLABLES}, "tick": 1}
+    organism._state["speech"]["_S_S:start"]["syllables"]["eh0"] = [2, 1.2]
+    drive, name, _context, reason = organism._choose_syllable("_S_S", None)
+    assert name == "eh0" and "best worth under _S_S:start: eh0 (0.60 over 2)" in reason
+    # Sequence: after saying eh0, the context is _S_S:eh0 and its own record chooses.
+    organism._state["speech"]["_S_S:eh0"] = {"syllables": {s: [1, 0.0] for s in SYLLABLES}, "tick": 2}
+    organism._state["speech"]["_S_S:eh0"]["syllables"]["mah1"] = [1, 0.9]
+    drive, name, _context, reason = organism._choose_syllable("_S_S", "eh0")
+    assert name == "mah1" and drive == SYLLABLE_DRIVES["mah1"]
+
+
+def test_what_follows_her_syllable_is_its_worth_a_room_sound_pays_and_silence_does_not() -> None:
+    """A syllable is valued by what followed it, by the same measured law as her acts: a
+    room sound standing out on the next beat pays it, silence pays nothing (and costs its
+    burn); the best-paid syllable under a context is then the one she chooses."""
 
     from dsf_ai_service.guala_functional_organism import SYLLABLE_DRIVES, SYLLABLES
 
     organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
-
-    # 1. First try under a new context takes the least tried in her lifetime
-    drive, reason = organism._choose_syllable("_S_S", None)
-    assert drive == SYLLABLE_DRIVES["ah"]
-    assert "first try of ah under _S_S:start" in reason
-
-    # Update lifetime tries: simulate she has tried ah 5 times, eh 0 times
-    organism._state["syllable_totals"]["ah"] = 5
-    drive, reason = organism._choose_syllable("_S_S", None)
-    assert drive == SYLLABLE_DRIVES["eh"] or drive != SYLLABLE_DRIVES["ah"]
-    assert "tried 0 in her life" in reason
-
-    # 2. Syllables that got answered are reinforced and become the chosen sound
-    organism._state["speech"]["_S_S:start"] = {
-        "syllables": {"ah": [2, 0], "eh": [1, 1]}, "tick": 1,
-    }
-    drive, reason = organism._choose_syllable("_S_S", None)
-    assert drive == SYLLABLE_DRIVES["eh"]
-    assert "best answered under _S_S:start: eh (1.00 answered)" in reason
-
-    # 3. Syntax growth: after saying eh, the context is _S_S:eh
-    organism._state["speech"]["_S_S:eh"] = {
-        "syllables": {"mah": [1, 1], "ah": [1, 0]}, "tick": 2,
-    }
-    drive, reason = organism._choose_syllable("_S_S", "eh")
-    assert drive == SYLLABLE_DRIVES["mah"]
-    assert "best answered under _S_S:eh: mah" in reason
-    # Resulting sequence: eh -> mah ("eh-mah") is reinforced syntax!
-
-
-def test_a_room_sound_after_her_syllable_is_what_pays_and_silence_does_not() -> None:
-    """The record counts a syllable answered when a room sound stands out within
-    the answer window after it (through the loop, a microphone card); in silence
-    nothing is answered; the answered syllable is then the one she chooses."""
-
-    import base64
-    import dsf_ai_service.lean_production_app as production
-    from dsf_ai_service.guala_functional_organism import SYLLABLE_DRIVES
-
-    world = home_world_authority(identity=IDENTITY)
-    organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
-    loop = FunctionalPhysicalLoop()
-    loop.settle(organism, world, UNATTENDED)
-    tick = organism.live_organism_tick
     context = "abcd:start"
-    organism._state["speech"][context] = {"syllables": {"ah": [1, 0]}, "tick": tick}
-    # Silence after the syllable: nothing answered.
-    organism._state["pending_syllable"] = {"key": context, "syllable": "ah", "tick": tick}
-    loop.settle(organism, world, UNATTENDED)
-    assert organism._state["speech"][context]["syllables"]["ah"] == [1, 0]
-    # A room sound standing out within the window: answered.
-    organism._state["pending_syllable"] = {"key": context, "syllable": "ah", "tick": organism.live_organism_tick}
-    pcm = struct.pack("<4000h", *(int(9000 * math.sin(2 * math.pi * 370 * i / 16000)) for i in range(4000)))
-    hear = production._physical_occurrence(production.OccurrenceBody(
-        kind="sensory", payload=production.SensoryBody(source="microphone", pcm_s16le_base64=base64.b64encode(pcm).decode("ascii"))))
-    loop.settle(organism, world, hear)
-    assert organism._state["speech"][context]["syllables"]["ah"] == [1, 1]
-    assert organism._state["pending_syllable"] is None
-    drive, reason = organism._choose_syllable("abcd", None)
-    assert drive == SYLLABLE_DRIVES["ah"] and "best answered" in reason
-
-
-
+    key = "0123456789abcdef"
+    for syllable, sound_now in (("ah0", 0.0), ("eh0", 0.5)):
+        organism._state["speech"].setdefault(context, {"syllables": {}, "tick": 1})["syllables"][syllable] = [1, 0.0]
+        organism._state["pending_act"] = {"key": key, "act": "say", "syllable": syllable, "context": context, "deficit": 0.0, "sleep_ratio": 0.0, "contact_ratio": 0.0, "intake": 0, "refused": False, "burn": 0}
+        organism._settle("other", False, sound_now, 0.0, 2)
+    record = organism._state["speech"][context]["syllables"]
+    assert record["ah0"] == [1, 0.0] and abs(record["eh0"][1] - 0.5) < 1e-6, record
+    # Everything else untried comes first; once all are tried, the best worth is chosen.
+    for s in SYLLABLES:
+        record.setdefault(s, [1, 0.0])
+    drive, name, _context, reason = organism._choose_syllable("abcd", None)
+    assert name == "eh0" and drive == SYLLABLE_DRIVES["eh0"] and "best worth" in reason
 
 
 def test_a_full_record_still_admits_the_structure_she_meets_now_and_retired_keys_leave_on_restore() -> None:
@@ -899,18 +878,11 @@ def test_a_touch_pays_by_the_skin_it_reached_plus_her_need_and_answers_her_sylla
     organism._settle("other", False, 0.0, 0.0, 3)
     tries, total = organism._state["acts"][key]["acts"]["say"]
     assert tries == 2 and abs(total - 0.75) < 1e-6
-    # A touch after her syllable is an answer, through the loop.
-    world = home_world_authority(identity=IDENTITY)
-    organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
-    loop = FunctionalPhysicalLoop()
-    loop.settle(organism, world, UNATTENDED)
-    context = "abcd:start"
-    organism._state["speech"][context] = {"syllables": {"ah": [1, 0]}, "tick": organism.live_organism_tick}
-    organism._state["pending_syllable"] = {"key": context, "syllable": "ah", "tick": organism.live_organism_tick}
-    loop.settle(organism, world, _touch_occurrence("touch-pat"))
-    assert organism._state["speech"][context]["syllables"]["ah"] == [1, 1]
-    drive, reason = organism._choose_syllable("abcd", None)
-    assert drive == SYLLABLE_DRIVES["ah"] and "best answered" in reason
+    # A touch after her syllable pays the syllable too, by the same law.
+    organism._state["speech"]["abcd:start"] = {"syllables": {"ah0": [1, 0.0]}, "tick": 3}
+    organism._state["pending_act"] = {"key": key, "act": "say", "syllable": "ah0", "context": "abcd:start", "deficit": 0.0, "sleep_ratio": 0.0, "contact_ratio": 0.5, "intake": 0, "refused": False, "burn": 0}
+    organism._settle("other", False, 0.0, 0.25, 4)
+    assert abs(organism._state["speech"]["abcd:start"]["syllables"]["ah0"][1] - 0.75) < 1e-6
 
 
 def test_she_can_walk_to_the_caregiver_and_put_her_palm_to_its_hand_and_feels_it_next_beat() -> None:
@@ -1566,7 +1538,7 @@ def _moments_while_handling(source: str, object_id: str, hops, beats: int, reser
         occurrence = _heard(hops[(index // 2) % len(hops)]) if index % 2 == 0 else UNATTENDED
         result = loop.settle(organism, world, occurrence)
         moment = result.observation["her_moment"]
-        if moment is not None:
+        if moment is not None and moment["source"] == "heard":   # the room's sounds; her own voice's moments are counted apart
             out.append((moment["key"], None if moment["held"] == "none" else object_id, moment["count"], moment["next"], moment["fed"]))
     return organism, out
 
@@ -1614,3 +1586,30 @@ def test_what_followed_a_moment_is_counted_within_the_window_the_next_moment_and
     assert FOLLOW_WINDOW_BEATS == 16
     assert organism.counts["bites"] >= 1, organism.counts
     assert any(int(entry.get("fed", 0)) >= 1 for entry in store.values()), store   # a bite within the window followed a moment
+
+
+def test_her_own_syllable_closes_as_an_event_of_her_own_and_what_followed_it_is_counted() -> None:
+    """Her own voice heard back enters her ear's gate in a gate of its own: her syllable
+    closes as an own event with a key, a moment forms on it, and a room sound closing
+    within the window afterwards is counted as what followed it."""
+
+    world = home_world_authority(identity=IDENTITY)
+    organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
+    organism._state["reserve_micrograms"] = CAPACITY_MICROGRAMS * 9 // 10
+    loop = FunctionalPhysicalLoop()
+    own_closed = []
+    spoke_at = None
+    for index in range(80):
+        # The room answers two beats after each syllable of hers with a short sound.
+        occurrence = _heard(_tone(440)) if (spoke_at is not None and index == spoke_at + 2) else UNATTENDED
+        result = loop.settle(organism, world, occurrence)
+        if result.pressure is not None:
+            spoke_at = index
+        own_closed.extend(result.observation["her_ear"]["own_closed"])
+    assert own_closed, "she never closed an event of her own voice"
+    assert organism.counts["own_events"] >= 1 and organism._state["own_event"] is not None
+    moments = organism._state["moments"]
+    assert moments, "no moment formed on her own syllable"
+    assert any(entry.get("next") for entry in moments.values()), "nothing followed her own syllable's moment within the window"
+    encoded = organism.encoded()
+    assert FunctionalOrganism.restore(encoded).encoded() == encoded

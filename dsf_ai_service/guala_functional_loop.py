@@ -318,10 +318,11 @@ class FunctionalPhysicalLoop:
                 if pressure is not None:
                     heard_profile, heard_frames, external_heard = _hearing(pressure)
             self_profile = None
+            own_frames: tuple[tuple[float, ...], ...] = ()
             self_heard = 0
             own_voice = organism.pending_voice
             if own_voice is not None:
-                self_profile, self_heard = _profile(own_voice)
+                self_profile, own_frames, self_heard = _hearing(own_voice)
             # The wide field (18 x 6 sites carried by her head) aims her head;
             # it is the world eye's, whichever source fills the focal field.
             wide = tuple(world_retina[WORLD_LEGACY_SITES:WORLD_LEGACY_SITES + WORLD_WIDE_SITES])
@@ -337,7 +338,7 @@ class FunctionalPhysicalLoop:
             read_skin = getattr(world, "self_skin_temperature_millikelvin", None)
             skin_mk = None if read_skin is None else int(read_skin())
             touch_mk = max((int(c["surface_millikelvin"]) for c in contacts if c.get("surface_millikelvin") is not None), default=None)
-            sensed = Sensed(before, focal, source, heard_profile, self_profile, wide, skin_contact, skin_mk, touch_mk, heard_frames=heard_frames)
+            sensed = Sensed(before, focal, source, heard_profile, self_profile, wide, skin_contact, skin_mk, touch_mk, heard_frames=heard_frames, own_frames=own_frames)
             decision = organism.decide(sensed)
             prepared, applied, refusal, refused = _apply(world, decision, before)
             execution = prepared.execution_receipt
