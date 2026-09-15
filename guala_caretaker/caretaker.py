@@ -277,6 +277,8 @@ TOYS = ("toy-bear", "glow-stars", "book", "cup")
 
 
 BEDTIME_FRACTION = 0.9   # of her sleep-pressure ceiling: the caretaker makes her bed
+BEDDING = frozenset({"pillow", "blanket"})
+BEDTIME_RETRY_BEATS = 10_000   # about an hour of her beats between tries until both are on the bed
 LULLABY_HZ = (330, 330, 392, 330, 330, 392, 330, 392, 523, 494, 440, 440, 392, 294, 330, 349, 294, 294, 330, 349, 294, 349, 494, 440, 392, 494, 523)
 LULLABY_BEATS = (1, 1, 2, 1, 1, 2, 1, 1, 2, 2, 1, 1, 2, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 3)  # quarter-second blocks per note
 
@@ -317,18 +319,29 @@ def her_sleep(o: dict) -> dict:
 
 def maybe_bedtime(o: dict, st: dict) -> None:
     """Her pressure near its ceiling and she is awake: the caretaker sets her
-    pillow and blanket on her bed, once per night. Presenting only."""
+    pillow and blanket on her bed. Tried again every BEDTIME_RETRY_BEATS of her
+    beats until both are on it (she carries them about by day); the hand skips
+    what is already on the bed. Presenting only."""
     sleep = her_sleep(o)
     pressure = sleep.get("pressure") or [0, 0]
     nights = int(sleep.get("nights") or 0)
     if sleep.get("asleep") or not pressure[1] or pressure[0] / pressure[1] < BEDTIME_FRACTION:
         return
-    if st.get("bed_made_for_night") == nights + 1:
+    night = nights + 1
+    tick = int(o.get("live_tick") or 0)
+    if st.get("bed_made_for_night") != night:
+        st["bed_made_for_night"] = night
+        st["bed_made"] = []
+        st["bedtime_tick"] = None
+    if set(st.get("bed_made") or []) >= BEDDING:
         return
-    st["bed_made_for_night"] = nights + 1
+    if st.get("bedtime_tick") is not None and tick - int(st["bedtime_tick"]) < BEDTIME_RETRY_BEATS:
+        return
+    st["bedtime_tick"] = tick
     res = present_food("bedtime")
     made = (((res or {}).get("observation") or {}).get("last_occurrence") or {}).get("caregiver_presentation") or {}
-    log(f"bedtime: pillow and blanket to her bed — made={made.get('made')} steps={len(made.get('steps') or [])} last={(made.get('steps') or [None])[-1]}")
+    st["bed_made"] = sorted(set(st.get("bed_made") or []) | set(made.get("made") or []))
+    log(f"bedtime: pillow and blanket to her bed — made={made.get('made')} so far={st['bed_made']} steps={len(made.get('steps') or [])} last={(made.get('steps') or [None])[-1]}")
 
 
 def maybe_lullaby(o: dict, st: dict) -> None:
