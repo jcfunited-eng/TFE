@@ -49,7 +49,7 @@ case "$STAGE" in
       -e GUALA_PAIRED_ROOT=/proof/paired -e GUALA_MAX_WORLD_BYTES=16777216 \
       -e PROOF_FOOD="${PROOF_FOOD:-apple-5}" -e PROOF_WARM_BEATS="${PROOF_WARM_BEATS:-400}" "$IMG" python /prove_functional_release.py warm "$REV")
     echo "container: $C" | tee "$OUT/container-id.txt"
-    docker cp "$S/live-capture-0914/current.zip" "$C:/current.zip"
+    docker cp "${CAPTURE:-$S/live-capture-0914/current.zip}" "$C:/current.zip"
     docker cp "$S/prove_functional_release.py" "$C:/prove_functional_release.py"
     set +e; docker start -a "$C" > "$OUT/proof.log" 2>&1; EXIT=$?; set -e
     echo "container exit: $EXIT" | tee -a "$OUT/proof.log"
@@ -66,6 +66,8 @@ try:
                 "restore_seconds", "cold_restore_seconds", "world_after", "world_post_cold", "saved", "successor"):
         verdict[key] = r[key]
     verdict["peak_kib"] = {"warm": r["warm_peak_rss_kib"], "cold": r["cold_peak_rss_kib"]}
+    verdict["events_closed"] = r.get("events_closed"); verdict["events_store"] = r.get("events_store")   # Level 1: the acoustic gate closed events in the container
+    verdict["ear_pass"] = bool((r.get("events_closed") or 0) >= 1)
     verdict["post_cold_acts"] = [row["act"] for row in r["post_cold"]]
     verdict["feed_pass"] = bool(r["cold_restart_exact"] and r["fed_beats"] >= 1 and r["deficit_min"] < r["deficit_first"] and r["acts"].get("bite", 0) >= 1 and any(row["spoke"] for row in r["rows"]))
 except Exception as error:

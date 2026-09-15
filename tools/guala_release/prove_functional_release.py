@@ -109,7 +109,8 @@ def step(runtime, world, occurrence, label):
            "novel": o["kernel_novel"], "gates": o["dsf_delivery_count"], "motion": o["actual_root_motion"],
            "said": o["said_drive"], "heard": o["external_heard_sample_count"], "camera_sites": o["external_retinal_site_count"],
            "presentation": None if o["caregiver_presentation"] is None else o["caregiver_presentation"]["presented"],
-           "body_bytes": len(runtime.encoded()), "world_bytes": len(world.encoded_snapshot()), "spoke": result.pressure is not None}
+           "body_bytes": len(runtime.encoded()), "world_bytes": len(world.encoded_snapshot()), "spoke": result.pressure is not None,
+           "ear": (o.get("her_ear") or {}).get("closed", []), "events": (o.get("her_counts") or {}).get("events")}
     return row
 
 
@@ -207,6 +208,7 @@ def main():
                    "body_bytes_max": max(r["body_bytes"] for r in rows), "world_bytes_max": max(r["world_bytes"] for r in rows),
                    "novel_structures": sum(1 for r in rows if r["novel"]), "gates_total": sum(r["gates"] for r in rows),
                    "rooms": sorted({r["room"] for r in rows}), "syllables": sum(1 for r in rows if r["spoke"]),
+                   "events_closed": sum(len(r["ear"]) for r in rows), "events_store": rows[-1]["events"],
                    "withdrawals": [r["withdrawal"] for r in rows if r["withdrawal"] is not None],
                    "restore_seconds": round(restore_seconds, 3), "world_after": world_food(world), "captured_functional": captured_functional,
                    "warm_peak_rss_kib": resource.getrusage(resource.RUSAGE_SELF).ru_maxrss}
