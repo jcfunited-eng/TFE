@@ -1,0 +1,110 @@
+{
+ "APOG": {
+  "symbol": "APOG",
+  "verdict": "HOLD",
+  "rule": "no law in force refuses",
+  "facts": {
+   "life_years": 10.7,
+   "price": 37.17,
+   "store_peak": 87.22,
+   "crush": 2.3,
+   "as_of_close": "2026-09-14"
+  }
+ },
+ "AQN": {
+  "symbol": "AQN",
+  "verdict": "HOLD",
+  "rule": "no law in force refuses",
+  "facts": {
+   "life_years": 9.8,
+   "price": 5.35,
+   "store_peak": 17.74,
+   "crush": 3.3,
+   "as_of_close": "2026-09-14"
+  }
+ },
+ "BEKE": {
+  "symbol": "BEKE",
+  "verdict": "HOLD",
+  "rule": "no law in force refuses",
+  "facts": {
+   "life_years": 6.1,
+   "price": 16.7,
+   "store_peak": 76.69,
+   "crush": 4.6,
+   "as_of_close": "2026-09-14"
+  }
+ },
+ "BFS": {
+  "symbol": "BFS",
+  "verdict": "HOLD",
+  "rule": "no law in force refuses",
+  "facts": {
+   "life_years": 10.7,
+   "price": 31.14,
+   "store_peak": 68.58,
+   "crush": 2.2,
+   "as_of_close": "2026-09-14"
+  }
+ },
+ "BHFAO": {
+  "symbol": "BHFAO",
+  "verdict": "HOLD",
+  "rule": "no law in force refuses",
+  "facts": {
+   "life_years": 6.3,
+   "price": 13.8,
+   "store_peak": 29.16,
+   "crush": 2.1,
+   "as_of_close": "2026-09-14"
+  }
+ },
+ "BNTC": {
+  "symbol": "BNTC",
+  "verdict": "HOLD",
+  "rule": "no law in force refuses",
+  "facts": {
+   "life_years": 10.7,
+   "price": 12.08,
+   "store_peak": 240.89,
+   "crush": 19.9,
+   "as_of_close": "2026-09-14"
+  }
+ },
+ "CHPT": {
+  "symbol": "CHPT",
+  "verdict": "HOLD",
+  "rule": "no law in force refuses",
+  "facts": {
+   "life_years": 5.5,
+   "price": 8.84,
+   "store_peak": 713.8,
+   "crush": 80.7,
+   "as_of_close": "2026-09-14"
+  }
+ },
+ "CLBK": {
+  "symbol": "CLBK",
+  "verdict": "HOLD",
+  "rule": "no law in force refuses",
+  "facts": {
+   "life_years": 8.4,
+   "price": 11.4,
+   "store_peak": 24.5,
+   "crush": 2.1,
+   "as_of_close": "2026-09-14"
+  }
+ },
+ "DNLI": {
+  "symbol": "DNLI",
+  "verdict": "HOLD",
+  "rule": "no law in force refuses",
+  "facts": {
+   "life_years": 8.8,
+   "price": 21.22,
+   "store_peak": 93.56,
+   "crush": 4.4,
+   "as_of_close": "2026-09-14"
+  }
+ }
+}

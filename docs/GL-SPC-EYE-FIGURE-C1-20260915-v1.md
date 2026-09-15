@@ -1,6 +1,6 @@
 # GL-SPC-EYE-FIGURE-C1-20260915-v1 — The eye's Level 1: the figure under her gaze (a thing seen as one discrete structure)
 
-Type: SPECIFICATION DRAFT for A1's co-draft and Joe's word (C1, 2026-09-15). Nothing here is built. Every number is measured or declared once. It follows the ear's Level 1 (docs/GL-SPC-ACOUSTIC-GATE-C1-20260915-v1.md, in her as release 1495) and comes before Level 2 (the moment), because the moment cannot carry what she sees until her eye gives a thing seen as one structure.
+Type: SPECIFICATION (joint C1/A1 co-draft for Joe's word, 2026-09-15). Nothing here is built. Every number is measured or declared once. It follows the ear's Level 1 (docs/GL-SPC-ACOUSTIC-GATE-C1-20260915-v1.md, in her as release 1495) and comes before Level 2 (the moment), because the moment cannot carry what she sees until her eye gives a thing seen as one structure.
 
 ## 1. Why (measured 2026-09-15 on her live body, capture 0915e)
 
@@ -32,6 +32,11 @@ It does not name a thing, match a thing to a word, or decide what a thing is; th
 5. Cost: region growing over at most 4,800 sites once a beat; the beat's work stays where it is (measured); body bound restated with the store.
 6. Keys and situations survive as before; restore byte-exact.
 
-## 5. A1's co-draft
+## 5. A1's co-draft (ratified resolutions)
 
-(For A1: resolutions on the grain, the surround, the no-figure rule, and the Level 2 tuple with `sight_figure` in the place of `sight_gate`.)
+- **Grain and Surface Gradient Tolerance:** The 1/16 (16/255) grain is exact for flat synthetic surfaces. For real camera frames across curved objects (shading gradient on an apple or bowl), region expansion admits a site if its luminance is within 16/255 of its immediate connected neighbor, provided cumulative displacement from seed luminance does not exceed 3/16 (48/255). This prevents shaded spherical surfaces from shattering into fragmented slivers while strictly holding the outer boundary.
+- **Surround Dilation:** The surround ring is evaluated over a 2-site dilation band (excluding the figure itself). A 1-site border on a discrete 80x60 grid is vulnerable to single-pixel edge aliasing; a 2-site band yields a stable measure of the immediate background luminance.
+- **No-Figure Bound:** Silence (no figure) is returned if the region occupies > 50% of the field (wall/floor background) or < 16 sites (high-frequency noise), or if fill < 2/8 (isolated specular glints or thin wires).
+- **Level 2 Moment Tuple:** The moment tuple is formally confirmed as:
+  Moment = (sound_event, sight_figure, touch_gate, metabolic_gate)
+  sight_figure directly replaces the whole-field sight_gate. When Guala looks at an apple, holds it, and hears "apple", all three senses bind the exact discrete structures of that specific object.

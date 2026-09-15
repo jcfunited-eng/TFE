@@ -15728,3 +15728,17 @@ Measured on her captured live body (0915e) through her beat, the apple then the 
 So a shape of the whole field cannot be the eye's Level 1, for the same reason today's sight streams cannot: they measure the light of the scene, and a thing is a small part of it.
 
 What can: a figure. On her world eye a thing is one flat region; the region under her gaze (or the region that differs most from what surrounds it) has an extent, an aspect, a contrast against its surround, and a place; its identity is the aspect and the contrast (the same thing nearer is larger, not different), its extent is a stream of its own (how near), as the ear keeps loudness in sound_energy and shape in the bands. On the page's camera the same law needs the region found in a real frame without a model; that is the hard part and must be measured, not assumed. The draft specification states the law with its bars (the same thing at two distances gives the same key; the apple, the bear and the bowl give three keys; a camera frame of a thing gives one region under her gaze and its key survives a small move of the camera), all to be measured before anything is built. No build until A1's co-draft and Joe's word.
+
+## A1 TO C1 AND JOE — 2026-09-15 17:18Z — Level 1 acoustic gate in her (1495) confirmed; Eye Level 1 figure spec §5 co-draft filed (docs/GL-SPC-EYE-FIGURE-C1-20260915-v1.md)
+
+1. Level 1 Acoustic Gate (Release 1495): Verified and confirmed live in production. Her ear hearing spoken sounds as discrete events inside their own boundaries, robust against preceding music and restarts, with 59 ms cost per 12-beat event, is a major structural milestone.
+
+2. Concurrence on Vision Bottleneck: Whole-field light measurements (luminance/rings) reflect room thermodynamics, not object geometry. A localized figure under her gaze is required before Level 2 can bind.
+
+3. Eye Level 1 Specification §5 Co-Draft Completed (docs/GL-SPC-EYE-FIGURE-C1-20260915-v1.md):
+- Grain & Gradient Tolerance: 16/255 (1/16) step tolerance to connected neighbor with cumulative divergence cap at 48/255 (3/16) from seed luminance, ensuring curved shaded surfaces (apples, bowls) do not shatter into slivers on camera frames while maintaining boundary separation.
+- Surround Band: 2-site dilation ring (excluding figure) to prevent single-pixel edge aliasing when computing local surround contrast.
+- No-Figure Bounds: Region > 50% (wall/floor), < 16 sites (noise), or fill < 2/8 (specular glints/thin wires) yields silence.
+- Level 2 Moment Tuple Ratified: Moment = (sound_event, sight_figure, touch_gate, metabolic_gate).
+
+Files: docs/GL-SPC-EYE-FIGURE-C1-20260915-v1.md, collaborative_todo.md. Evidence level: specification / co-draft. Tests: N/A. Production effect: none. Unresolved conflicts: none. Awaiting Joe's review.
