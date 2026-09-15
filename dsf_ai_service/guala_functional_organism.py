@@ -113,6 +113,11 @@ SLEEP_RECOVERY_PER_BEAT = 2
 # moment she chose, as food pays by hunger.
 CONTACT_PRESSURE_CEILING = 14_200
 CONTACT_RECOVERY_PER_BEAT = CONTACT_PRESSURE_CEILING // 64
+# Thermal contrast at the point of contact: what her skin meets minus her own
+# temperature, over her receptors' declared span; and nature's pain threshold
+# (heat nociceptors fire from about 43 degrees C). A contact above it costs by the
+# excess and pulls her hand back by reflex, as her jaw bites by reflex.
+NOCICEPTION_MILLIKELVIN = 316_150
 BED_ID = "bed"
 EXHAUSTION_MARGIN = Fraction(1, 8)
 EYELID_OPEN_MICROMETRES = 10_000
@@ -153,7 +158,8 @@ STREAMS_V13 = (
     "sound_pitch", "smell_odour", "taste_residue", "touch_texture",
     "sleep_pressure", "hunger", "food_distance", "heading", "hand",
 )
-STREAMS = STREAMS_V13 + ("skin_contact", "contact_pressure")   # her skin pressed by another body; her need for contact
+STREAMS_V15 = STREAMS_V13 + ("skin_contact", "contact_pressure")
+STREAMS = STREAMS_V15 + ("touch_warmth",)   # her skin pressed by another body; her need for contact; the warmth of what her skin meets
 LEGACY_STREAMS = (
     "sight_luminance", "sight_horizontal", "sight_vertical", "sound_energy",
     "sound_pitch", "hunger", "food_distance", "heading", "hand",
@@ -300,6 +306,8 @@ class Sensed:
     self_profile: tuple[float, ...] | None
     wide_luminance_u8: tuple[int, ...] = ()
     skin_contact: float = 0.0                       # fraction of her skin another body pressed this beat
+    skin_temperature_millikelvin: int | None = None  # her cutaneous node now (None: no thermal body)
+    touch_surface_millikelvin: int | None = None     # the temperature of the skin that pressed hers this beat
 
 
 @dataclass(frozen=True, slots=True)
@@ -537,7 +545,7 @@ def _streams_for(regimes: str) -> tuple[str, ...] | None:
     """Which stream tuple wrote a regimes string: told by its length, so a key or a
     situation written under an earlier stream count still names the same streams."""
 
-    for streams in (STREAMS, STREAMS_V13, LEGACY_STREAMS):
+    for streams in (STREAMS, STREAMS_V15, STREAMS_V13, LEGACY_STREAMS):
         if len(regimes) == len(streams):
             return streams
     return None
@@ -676,7 +684,7 @@ class FunctionalOrganism:
             "pending_voice": None, "pending_drive": None, "meals_micrograms": 0, "bites": 0, "strides": 0, "syllables": 0,
             "voice_version": VOICE_VERSION, "ambient_sound": 0.0, "handled": 0, "room_now": None,
             "head": [0, 0], "acts": {}, "pending_act": None, "last_chosen": None,
-            "sleep_pressure": 0, "asleep": False, "learned": {}, "nights": 0, "act_totals": {}, "contact_pressure": 0, "pending_contact": 0.0,
+            "sleep_pressure": 0, "asleep": False, "learned": {}, "nights": 0, "act_totals": {}, "contact_pressure": 0, "pending_contact": 0.0, "pending_contact_millikelvin": None,
             "target_totals": {}, "taste_residue": 0.0,
             "speech": {}, "syllable_totals": {}, "prior_syllable": None, "pending_syllable": None,
         })
@@ -735,6 +743,9 @@ class FunctionalOrganism:
             changed = True
         if "pending_contact" not in state:
             state["pending_contact"] = 0.0
+            changed = True
+        if "pending_contact_millikelvin" not in state:
+            state["pending_contact_millikelvin"] = None
             changed = True
         if "target_totals" not in state:
             state["target_totals"] = {}
@@ -915,6 +926,28 @@ class FunctionalOrganism:
             touch_val = (comp + rough) / 2.0
         touch_val = _clamp(touch_val, 0.0, 1.0)
 
+        # Thermal contrast at contact: the surface her skin meets (a thing in her hand
+        # or under it, food at her mouth, the caregiver's skin on hers or under her palm)
+        # minus her own skin temperature, over her receptors' declared span; 0.5 = no
+        # contrast or no contact. Pain is the excess above nature's threshold.
+        geometry = getattr(body, "receptor_geometry", None)
+        span_mk = (int(geometry.touch_temperature_max_millikelvin) - int(geometry.touch_temperature_min_millikelvin)) if geometry is not None else 50_000
+        half_span = max(1, span_mk // 2)
+        skin_mk = sensed.skin_temperature_millikelvin
+        met_mk = None
+        if contact_obj is not None and contact_obj.material is not None:
+            met_mk = int(contact_obj.material.surface_temperature_millikelvin)
+        if sensed.touch_surface_millikelvin is not None:
+            met_mk = int(sensed.touch_surface_millikelvin) if met_mk is None else max(met_mk, int(sensed.touch_surface_millikelvin))
+        pending_mk = self._state.get("pending_contact_millikelvin")
+        if float(self._state.get("pending_contact", 0.0)) > 0 and pending_mk is not None:
+            met_mk = int(pending_mk) if met_mk is None else max(met_mk, int(pending_mk))
+        contrast_mk = (met_mk - int(skin_mk)) if (met_mk is not None and skin_mk is not None) else 0
+        touch_warmth = _clamp(0.5 + contrast_mk / (2.0 * half_span), 0.0, 1.0)
+        self._met_mk = met_mk
+        self._warmth_likeness = _clamp(1.0 - abs(contrast_mk) / float(half_span), 0.0, 1.0) if met_mk is not None else 0.0
+        self._pain = _clamp((met_mk - NOCICEPTION_MILLIKELVIN) / float(max(1, int(geometry.touch_temperature_max_millikelvin) - NOCICEPTION_MILLIKELVIN)) if (met_mk is not None and geometry is not None) else 0.0, 0.0, 1.0)
+
         # Her sleep pressure as a stream of its own (hunger is already one).
         deficit = float(self.deficit)
         sleep_ratio = _clamp(float(self._state.get("sleep_pressure", 0)) / SLEEP_PRESSURE_CEILING, 0.0, 1.0)
@@ -932,6 +965,7 @@ class FunctionalOrganism:
             "sleep_pressure": sleep_ratio,
             "skin_contact": _clamp(max(float(sensed.skin_contact), float(self._state.get("pending_contact", 0.0))), 0.0, 1.0),
             "contact_pressure": contact_ratio,
+            "touch_warmth": touch_warmth,
             "hunger": deficit,
             "food_distance": (food[0].distance_mm / SIGHT_RANGE_MM) if food else 1.0,
             "heading": body.pose.heading_millidegrees / 360_000,
@@ -1014,7 +1048,7 @@ class FunctionalOrganism:
             energy = sum(heard_now) / len(heard_now)
             if energy >= HEARD_ENERGY_FLOOR and energy >= ambient * HEARD_ABOVE_AMBIENT:
                 sound_now = _clamp(energy * 4, 0.0, 1.0)
-        self._settle(key, novel, sound_now, skin_now, tick)
+        self._settle(key, novel, sound_now, skin_now, tick, warmth_likeness=float(getattr(self, "_warmth_likeness", 0.0)), pain=float(getattr(self, "_pain", 0.0)))
 
         def decision(act: str, reason: str, commands: tuple[Any, ...] = (), target: str | None = None, drive: tuple[int, int, int] | None = None) -> Decision:
             return Decision(act, reason, commands, target, drive, signature, novel, gate_count, seen)
@@ -1022,6 +1056,8 @@ class FunctionalOrganism:
         if feeding:
             for item in (held, offered):
                 if item is not None and _is_food(item) and not nothing_left_to_bite(body, item):
+                    if item.material is not None and int(item.material.surface_temperature_millikelvin) >= NOCICEPTION_MILLIKELVIN:
+                        continue   # too hot to bite: the jaw waits for it to cool (the mouth's reflex)
                     return decision("bite", "food at her mouth while feeding (the jaw's reflex)", (OralContactCommand(item.object_id, BEAT_MICROSECONDS),), item.object_id)
         pressure = int(state.get("sleep_pressure", 0))
         if state.get("asleep"):
@@ -1063,6 +1099,11 @@ class FunctionalOrganism:
         last_spoke = int(state.get("last_spoke_tick", -999))
         prior_syl = state.get("prior_syllable") if (tick - last_spoke) <= PHRASE_WINDOW_BEATS else None
         say_drive, say_reason = self._choose_syllable(situation, prior_syl)
+
+        if float(getattr(self, "_pain", 0.0)) > 0 and held is not None and held.material is not None \
+                and int(held.material.surface_temperature_millikelvin) >= NOCICEPTION_MILLIKELVIN:
+            state["pending_act"] = None
+            return decision("release", "it burns; let go (the hand's reflex)", (ReleaseHeldObjectCommand(BEAT_MICROSECONDS),), held.object_id)
 
         uncertain = any(len(t) >= 5 and t[4] == "+" for t in tokens)
         options = candidates(snapshot, body, held, offered, seen, tick, say_drive=say_drive, say_detail=say_reason)
@@ -1110,7 +1151,7 @@ class FunctionalOrganism:
             # every newcomer once the old entries all had two visits.)
             del record[min(record, key=lambda k: (int(record[k]["tick"]), k))]
 
-    def _settle(self, key_now: str, novel_now: bool, sound_now: float, skin_now: float, tick: int) -> None:
+    def _settle(self, key_now: str, novel_now: bool, sound_now: float, skin_now: float, tick: int, *, warmth_likeness: float = 1.0, pain: float = 0.0) -> None:
         """Value what followed her last act, purely by measured bodily need drops
         weighted by her measured need at the moment she chose (zero constants)."""
 
@@ -1138,9 +1179,13 @@ class FunctionalOrganism:
         # 5. Another body's touch on her skin: contact comfort pays in its own right by
         # how much of her skin it reached, and her deprivation at the moment she chose
         # makes the same touch pay more (both measured; nothing declared here).
-        contact_value = float(skin_now) + float(pending.get("contact_ratio", 0.0)) * (1.0 if skin_now > 0 else 0.0)
+        # Contact comfort is tuned to warmth like her own (a caress at skin temperature
+        # pays fully, a contact 25 K away nothing); her deprivation is relieved by any touch.
+        contact_value = float(skin_now) * float(warmth_likeness) + float(pending.get("contact_ratio", 0.0)) * (1.0 if skin_now > 0 else 0.0)
+        # 6. Pain: what her skin met above nature's threshold costs by the excess.
+        pain_cost = float(pain)
 
-        value = intake_value + new_structure_value + sound_value + contact_value - burn_cost
+        value = intake_value + new_structure_value + sound_value + contact_value - burn_cost - pain_cost
         self._credit(str(pending["key"]), act, round(value, 6), tick, str(pending.get("regimes", "")), successor_key=key_now)
 
     def _dream(self, tick: int) -> str | None:
@@ -1269,12 +1314,15 @@ class FunctionalOrganism:
 
     def commit(self, decision: Decision, *, applied_action: str, refusal: str | None,
                intake_micrograms: int, spoke: bytes | None, heard_profile: tuple[float, ...] | None,
-               self_profile: tuple[float, ...] | None, tick_now: int, contact_fraction: float = 0.0) -> None:
+               self_profile: tuple[float, ...] | None, tick_now: int, contact_fraction: float = 0.0,
+               contact_millikelvin: int | None = None) -> None:
         state = self._state
         if tick_now != self.live_organism_tick:
             raise RuntimeError("functional organism tick left its line")
-        # Skin on skin by her own act (her palm on the caregiver's hand) is felt on the next beat.
-        state["pending_contact"] = round(float(contact_fraction), 6) if applied_action == "reach_hand" and refusal is None else 0.0
+        # Skin on skin by her own act (her palm on the caregiver's hand) is felt on the next beat, at its temperature.
+        reached = applied_action == "reach_hand" and refusal is None
+        state["pending_contact"] = round(float(contact_fraction), 6) if reached else 0.0
+        state["pending_contact_millikelvin"] = int(contact_millikelvin) if (reached and contact_millikelvin is not None) else None
         before = self.reserve_micrograms
         burn = BASAL_BURN_MICROGRAMS * (1 + ACT_BURN_MULTIPLE.get(decision.act, 1)) if applied_action != "refused" else BASAL_BURN_MICROGRAMS
         intake = max(0, min(int(intake_micrograms), CAPACITY_MICROGRAMS - before))

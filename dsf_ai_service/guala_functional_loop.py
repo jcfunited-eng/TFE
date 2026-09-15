@@ -254,13 +254,15 @@ class FunctionalPhysicalLoop:
                 if skin_area > 0:
                     skin_contact = min(1.0, sum(int(c.get("area_um2", 0)) for c in contacts) / float(skin_area))
             read_skin = getattr(world, "self_skin_temperature_millikelvin", None)
-            skin_mk = None if read_skin is None else int(read_skin())   # for the page; the touch's heat is real but far below what she could feel
-            sensed = Sensed(before, focal, source, heard_profile, self_profile, wide, skin_contact)
+            skin_mk = None if read_skin is None else int(read_skin())
+            touch_mk = max((int(c["surface_millikelvin"]) for c in contacts if c.get("surface_millikelvin") is not None), default=None)
+            sensed = Sensed(before, focal, source, heard_profile, self_profile, wide, skin_contact, skin_mk, touch_mk)
             decision = organism.decide(sensed)
             prepared, applied, refusal, refused = _apply(world, decision, before)
             execution = prepared.execution_receipt
             intake = _oral_intake_micrograms(execution) if applied == "bite" else 0
             own_contact = 0.0
+            own_contact_mk = None
             if applied == "reach_hand":
                 # Her palm on the caregiver's hand: the skin of hers that met skin, as a fraction of her skin.
                 sites = {site.site_id: site for site in world.body_surface_sites_for(before.self_body_id)}
@@ -272,6 +274,16 @@ class FunctionalPhysicalLoop:
                         if body_id == before.self_body_id and site_id in sites:
                             touched += 4 * sites[site_id].half_extent_u_micrometres * sites[site_id].half_extent_v_micrometres
                 own_contact = min(1.0, touched / float(skin_area)) if skin_area > 0 else 0.0
+                # The caregiver's skin at its declared temperature (the site she reached).
+                other_sites = {site.site_id: site for body_id in (b.body_id for b in before.bodies if b.body_id != before.self_body_id) for site in world.body_surface_sites_for(body_id)}
+                for command in decision.commands:
+                    for actuation in getattr(command, "actuations", ()):
+                        site = other_sites.get(actuation.recipient_site_id)
+                        if site is not None:
+                            own_contact_mk = int(site.reference_temperature_millikelvin)
+                            break
+                    if own_contact_mk is not None:
+                        break
             with world.prepared_action_visibility_transaction(prepared):
                 world.commit_prepared_action(prepared, expected_physical_return=returning, physical_return=None)
             prepared = None
@@ -281,6 +293,7 @@ class FunctionalPhysicalLoop:
             organism.commit(
                 decision, applied_action=applied, refusal=refusal, intake_micrograms=intake, spoke=spoke,
                 heard_profile=heard_profile, self_profile=self_profile, tick_now=start_tick, contact_fraction=own_contact,
+                contact_millikelvin=own_contact_mk,
             )
             if organism.live_organism_tick != start_tick + 1:
                 raise RuntimeError("functional beat did not advance exactly one tick")
@@ -326,7 +339,7 @@ class FunctionalPhysicalLoop:
                 "her_act": decision.act,
                 "her_counts": organism.counts,
                 "her_sleep": organism.sleep,
-                "her_skin": {"contact": organism.contact["felt"], "temperature_millikelvin": skin_mk,
+                "her_skin": {"contact": organism.contact["felt"], "temperature_millikelvin": skin_mk, "met_millikelvin": getattr(organism, "_met_mk", None),
                              "touched": (presentation or {}).get("touched"), "need": organism.contact["pressure"]},
                 "kernel_novel": decision.novel,
                 "kernel_signature": decision.signature,

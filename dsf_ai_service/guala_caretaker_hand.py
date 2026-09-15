@@ -805,8 +805,10 @@ def touch_her(world: Any, touch_id: str) -> dict[str, object]:
                 for actuation, prepared in zip(actuations, hand.last_contacts or ()):
                     physical = prepared.physical
                     heat = physical.conductive_heat_to_a_nanojoules if physical.body_a_id == her.body_id else physical.conductive_heat_to_b_nanojoules
+                    mine = next((site for site in world.body_surface_sites_for(_person.body_id) if site.site_id == actuation.actor_site_id), None)
                     contacts.append({"site": actuation.recipient_site_id, "area_um2": int(prepared.recipient_site_area_square_micrometres),
-                                     "compression_um": int(actuation.compression_micrometres), "heat_nj": int(heat)})
+                                     "compression_um": int(actuation.compression_micrometres), "heat_nj": int(heat),
+                                     "surface_millikelvin": None if mine is None else int(mine.reference_temperature_millikelvin)})
                 record["contacts"] = contacts
     except _Bounded:
         pass

@@ -958,3 +958,97 @@ def test_she_can_walk_to_the_caregiver_and_put_her_palm_to_its_hand_and_feels_it
     o = loop.settle(organism, world, UNATTENDED).observation
     assert abs(o["her_skin"]["contact"] - 0.02) < 1e-6 and organism.contact["pressure"][0] == 1_000 - CONTACT_RECOVERY_PER_BEAT
     assert organism._state["pending_contact"] == 0.0 or o["her_act"] == "reach_hand"
+
+
+def _hot_apple_in_reach(world, object_id: str, temperature_millikelvin: int) -> None:
+    """An apple at the asked surface temperature set down inside her hand's reach."""
+
+    from dataclasses import replace as _replace
+    snapshot = world.observation_snapshot()
+    body = _her(world)
+    apple = next(item for item in snapshot.objects if item.object_id == "apple")
+    hot = _replace(apple.material, surface_temperature_millikelvin=temperature_millikelvin)
+    last_error = None
+    for ahead_mm, turn in ((330, 0), (330, 20), (330, -20), (380, 0), (380, 30), (380, -30)):
+        radians = math.radians((body.pose.heading_millidegrees / 1000) + turn)
+        spot = PositionMM(body.pose.position.x + round(ahead_mm * math.cos(radians)), body.pose.position.y + round(ahead_mm * math.sin(radians)), 0)
+        try:
+            world.admit_authored_arrival(EmbodiedObject(object_id, apple.radius_mm, apple.mass_grams, spot, reflectance_ppm=apple.reflectance_ppm, material=hot))
+            return
+        except ValueError as error:
+            last_error = error
+    raise AssertionError(f"no clear spot within her reach for {object_id}: {last_error}")
+
+
+def test_what_her_skin_meets_is_felt_as_warmth_against_her_own_and_the_caregiver_is_warm() -> None:
+    """The thermal contrast at contact: a thing colder than her skin reads below
+    the middle, the caregiver's skin (warmer than hers) above it, and nothing in
+    contact reads the middle."""
+
+    world = home_world_authority(identity=IDENTITY)
+    organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
+    loop = FunctionalPhysicalLoop()
+    o = loop.settle(organism, world, UNATTENDED).observation
+    skin = o["her_skin"]["temperature_millikelvin"]
+    assert skin is not None and 296_000 < skin < 310_150
+    o = loop.settle(organism, world, _touch_occurrence("touch-hug")).observation
+    assert o["her_skin"]["met_millikelvin"] == 310_150 and organism._state["streams"]["touch_warmth"][-1] > 0.5
+    o = loop.settle(organism, world, UNATTENDED).observation
+    if o["her_skin"]["met_millikelvin"] is None:
+        assert organism._state["streams"]["touch_warmth"][-1] == 0.5
+    # A cold apple in her hand reads below the middle.
+    from dsf_ai_service.guala_functional_loop import _apply
+    from dsf_ai_service.guala_functional_organism import BEAT_MICROSECONDS, Decision, STREAMS
+    from dsf_ai_service.substrate.embodiment_world import GraspContactCommand
+    _hot_apple_in_reach(world, "cold-apple", 280_000)
+    snapshot = world.observation_snapshot()
+    decision = Decision("grasp", "test", (GraspContactCommand(BEAT_MICROSECONDS),), "cold-apple", None, " ".join("S0000000" for _ in STREAMS), False, 0, ())
+    prepared, applied, refusal, refused = _apply(world, decision, snapshot)
+    assert applied == "grasp", refused
+    with world.prepared_action_visibility_transaction(prepared):
+        world.commit_prepared_action(prepared)
+    organism.commit(decision, applied_action="grasp", refusal=None, intake_micrograms=0, spoke=None, heard_profile=None, self_profile=None, tick_now=organism.live_organism_tick)
+    o = loop.settle(organism, world, UNATTENDED).observation
+    assert _her(world).held_object_id in ("cold-apple", None)
+    assert o["her_skin"]["met_millikelvin"] == 280_000 and organism._state["streams"]["touch_warmth"][-1] < 0.5
+
+
+def test_a_hot_thing_in_her_hand_is_let_go_by_reflex_costs_in_her_record_and_the_jaw_will_not_bite_it() -> None:
+    """Above nature's pain threshold a held thing burns: she lets it go by reflex,
+    the act that put it in her hand is valued with the pain taken off, and food
+    that hot is not bitten until it cools."""
+
+    from dsf_ai_service.guala_functional_loop import _apply
+    from dsf_ai_service.guala_functional_organism import BEAT_MICROSECONDS, Decision, NOCICEPTION_MILLIKELVIN, STREAMS
+    from dsf_ai_service.substrate.embodiment_world import GraspContactCommand
+
+    world = home_world_authority(identity=IDENTITY)
+    organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
+    loop = FunctionalPhysicalLoop()
+    loop.settle(organism, world, UNATTENDED)
+    _hot_apple_in_reach(world, "hot-apple", NOCICEPTION_MILLIKELVIN + 20_000)
+    snapshot = world.observation_snapshot()
+    decision = Decision("grasp", "test", (GraspContactCommand(BEAT_MICROSECONDS),), "hot-apple", None, " ".join("S0000000" for _ in STREAMS), False, 0, ())
+    prepared, applied, refusal, refused = _apply(world, decision, snapshot)
+    assert applied == "grasp", refused
+    with world.prepared_action_visibility_transaction(prepared):
+        world.commit_prepared_action(prepared)
+    key = "0123456789abcdef"
+    organism._state["pending_act"] = {"key": key, "regimes": "", "act": "grasp", "deficit": 0.0, "sleep_ratio": 0.0, "contact_ratio": 0.0, "intake": 0, "refused": False, "burn": 0}
+    organism.commit(decision, applied_action="grasp", refusal=None, intake_micrograms=0, spoke=None, heard_profile=None, self_profile=None, tick_now=organism.live_organism_tick)
+    assert _her(world).held_object_id == "hot-apple"
+    o = loop.settle(organism, world, UNATTENDED).observation
+    assert o["her_act"] == "release" and "burns" in o["act_reason"], o["act_reason"]
+    assert _her(world).held_object_id is None
+    tries, total = organism._state["acts"][key]["acts"]["grasp"]
+    assert tries == 1 and total < 0, total   # the grasp of a hot thing paid less than nothing
+    # Hot food at her mouth while hungry: the jaw does not bite it.
+    organism._state["reserve_micrograms"] = 100_000
+    organism._state["feeding"] = True
+    snapshot = world.observation_snapshot()
+    prepared, applied, refusal, refused = _apply(world, Decision("grasp", "test", (GraspContactCommand(BEAT_MICROSECONDS),), "hot-apple", None, " ".join("S0000000" for _ in STREAMS), False, 0, ()), snapshot)
+    if applied == "grasp":
+        with world.prepared_action_visibility_transaction(prepared):
+            world.commit_prepared_action(prepared)
+        o = loop.settle(organism, world, UNATTENDED).observation
+        assert o["her_act"] != "bite", o["act_reason"]
