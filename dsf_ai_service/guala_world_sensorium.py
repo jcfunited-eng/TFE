@@ -46,11 +46,16 @@ def _receipt(value: object) -> str:
 
 
 def retinal_carriage(body_axes: tuple[Any, ...]) -> tuple[int, int, Fraction]:
-    """Read actual mono head aim and eyelid transmission from native anatomy."""
+    """Read actual mono retinal aim (neck and eyes together; the eyes turn in the
+    head within their declared range, and the carriage never pitches past straight
+    down or up) and eyelid transmission from native anatomy."""
 
     angles: list[int] = []
-    for name, bound in (("neck_yaw", 180_000), ("neck_pitch", 90_000)):
+    for name, bound in (("neck_yaw", 180_000), ("neck_pitch", 90_000), ("left_eye_yaw", 90_000), ("left_eye_pitch", 90_000)):
         matches = tuple(axis for axis in body_axes if axis[1] == name)
+        if not matches and name.startswith("left_eye_"):
+            angles.append(0)   # a body without eye axes carries its retina on the neck alone
+            continue
         if len(matches) != 1 or matches[0][2] != "millidegree":
             raise RuntimeError(f"native body has no unique typed {name}")
         position, minimum, maximum = matches[0][3], matches[0][4], matches[0][6]
@@ -82,7 +87,9 @@ def retinal_carriage(body_axes: tuple[Any, ...]) -> tuple[int, int, Fraction]:
         apertures.append((position, minimum, maximum))
     admitted = sum(position - minimum for position, minimum, _ in apertures)
     possible = sum(maximum - minimum for _, minimum, maximum in apertures)
-    return angles[0], angles[1], Fraction(admitted, possible)
+    heading = angles[0] + angles[2]
+    pitch = max(-90_000, min(90_000, angles[1] + angles[3]))
+    return heading, pitch, Fraction(admitted, possible)
 
 
 def _prepare_world_interval(

@@ -34,6 +34,8 @@ from uf_core.layer3 import compute_resonance
 from uf_core.layer4 import compute_directional_signal, compute_dsf
 
 from dsf_ai_service.guala_acoustic_gate import FRAMES_PER_HOP, PAUSE_FRAMES, SILENT_FRAME, gate_step
+from dsf_ai_service.guala_eye_figure import Figure, figure_under_gaze
+from dsf_ai_service.substrate.exact_lattice_rotation import rotate_lattice_offset
 from dsf_ai_service.guala_caretaker_hand import (
     _approach_point, _distance_mm, _heading_toward, _portal_points, _portal_route, _region_of,
     nothing_left_to_bite, offered_within_reach,
@@ -89,7 +91,21 @@ WIDE_FIELD_MILLIDEGREES = (180_000, 90_000)
 HEAD_STEP_MILLIDEGREES = 5_000         # at most five degrees of pitch per beat
 HEAD_SETTLE_MILLIDEGREES = 3_000       # closer than this to the structure height the head holds still
 HEAD_YAW_BOUND_MILLIDEGREES = 75_000
-HEAD_PITCH_BOUND_MILLIDEGREES = 45_000
+# Her neck pitches seventy degrees (Joe's word, 2026-09-15): at forty-five she was blind to
+# her own hand, which lies sixty-seven degrees below her eye line at her grip's reach.
+HEAD_PITCH_BOUND_MILLIDEGREES = 70_000
+# Her head follows what she acts on (a body law, declared once, like the head's step toward
+# structure): the thing she moves toward, reaches for, touches, holds or bites; her gaze in
+# the focal field is that thing's place by the world's own site geometry (three quarters of a
+# degree a site, sixty by forty-five degrees), and the figure under her gaze is the thing.
+FOCAL_SITE_MILLIDEGREES = 750
+FOCAL_FIELD_MILLIDEGREES = (FOCAL_COLUMNS * FOCAL_SITE_MILLIDEGREES, FOCAL_ROWS * FOCAL_SITE_MILLIDEGREES)
+FIGURE_RECORD_CAPACITY = 256
+# Her eyes turn in her head within their declared range in one beat (a saccade is far
+# quicker than a beat), taking up what the neck's step has not yet reached; the retina
+# rides the neck and the eyes together, never further down or up than straight.
+EYE_BOUND_MILLIDEGREES = 45_000
+CARRIAGE_PITCH_BOUND_MILLIDEGREES = 90_000
 
 # Her acts are chosen from her own record, not by rules. The kernel names the
 # discrete multi-modal structure in front of her each beat; the record keeps,
@@ -236,6 +252,7 @@ DEFAULT_DRIVE = SYLLABLE_DRIVES[DEFAULT_SYLLABLE]
 # neutral, maximum).
 _ANGLE = ("millidegree", 0, -75_000, 0, 75_000)
 _SMALL_ANGLE = ("millidegree", 0, -45_000, 0, 45_000)
+_NECK_PITCH = ("millidegree", 0, -HEAD_PITCH_BOUND_MILLIDEGREES, 0, HEAD_PITCH_BOUND_MILLIDEGREES)
 _APERTURE = ("micrometre", 10_000, 0, 10_000, 12_000)
 _MOUTH = ("micrometre", 0, 0, 0, 40_000)
 _GRIP = ("micrometre", 0, 0, 0, 90_000)
@@ -244,7 +261,7 @@ BODY_AXES = tuple(
     (index, name, *spec)
     for index, (name, spec) in enumerate((
         ("torso_pitch", _SMALL_ANGLE), ("torso_roll", _SMALL_ANGLE),
-        ("neck_yaw", _ANGLE), ("neck_pitch", _SMALL_ANGLE),
+        ("neck_yaw", _ANGLE), ("neck_pitch", _NECK_PITCH),
         ("left_eye_yaw", _SMALL_ANGLE), ("left_eye_pitch", _SMALL_ANGLE),
         ("right_eye_yaw", _SMALL_ANGLE), ("right_eye_pitch", _SMALL_ANGLE),
         ("left_eyelid_aperture", _APERTURE), ("right_eyelid_aperture", _APERTURE),
@@ -469,6 +486,84 @@ def head_step(head: tuple[int, int], wide: tuple[int, ...]) -> tuple[int, int]:
         return yaw, pitch
     step = int(_clamp(wanted / 2, -HEAD_STEP_MILLIDEGREES, HEAD_STEP_MILLIDEGREES))
     return yaw, int(_clamp(pitch + step, -HEAD_PITCH_BOUND_MILLIDEGREES, HEAD_PITCH_BOUND_MILLIDEGREES))
+
+
+def head_toward(head: tuple[int, int], yaw_wanted: int, pitch_wanted: int) -> tuple[int, int]:
+    """The head's next (yaw, pitch) toward where the thing she acts on lies, in her
+    body's frame: each axis steps at most the head's step per beat, holds still
+    within the settle margin, and stays inside the neck's declared bounds."""
+
+    out = []
+    for now, wanted, bound in ((int(head[0]), int(yaw_wanted), HEAD_YAW_BOUND_MILLIDEGREES), (int(head[1]), int(pitch_wanted), HEAD_PITCH_BOUND_MILLIDEGREES)):
+        wanted = int(_clamp(wanted, -bound, bound))
+        if abs(wanted - now) < HEAD_SETTLE_MILLIDEGREES:
+            out.append(now)
+            continue
+        step = int(_clamp(wanted - now, -HEAD_STEP_MILLIDEGREES, HEAD_STEP_MILLIDEGREES))
+        out.append(int(_clamp(now + step, -bound, bound)))
+    return out[0], out[1]
+
+
+def _eye_position(body: Any) -> tuple[int, int, int]:
+    """Where her eye is: her body's retinal port, carried by her heading (the world's own law)."""
+
+    geometry = body.receptor_geometry
+    if geometry is None:
+        return body.pose.position.x, body.pose.position.y, body.pose.position.z
+    offset = geometry.retinal_offset_mm
+    dx, dy = rotate_lattice_offset(offset.x, offset.y, body.pose.heading_millidegrees)
+    return body.pose.position.x + dx, body.pose.position.y + dy, body.pose.position.z + offset.z
+
+
+def _target_point(snapshot: Any, body: Any, target_id: str | None) -> tuple[int, int, int] | None:
+    """The point she looks at for the thing she acts on: a thing's rendered centre (its
+    position raised by its radius, as the world eye draws it); a thing in her own hand at
+    her hand's contact point; another body at its position at her eye's height; else None."""
+
+    if not target_id:
+        return None
+    if body.held_object_id == target_id:
+        geometry = body.receptor_geometry
+        if geometry is None:
+            return None
+        offset = geometry.touch_offset_mm
+        dx, dy = rotate_lattice_offset(offset.x, offset.y, body.pose.heading_millidegrees)
+        return body.pose.position.x + dx, body.pose.position.y + dy, body.pose.position.z + offset.z
+    for item in snapshot.objects:
+        if item.object_id == target_id:
+            if item.position is None:
+                return None
+            return item.position.x, item.position.y, item.position.z + int(item.radius_mm)
+    for other in snapshot.bodies:
+        if other.body_id == target_id:
+            eye_z = _eye_position(body)[2]
+            return other.pose.position.x, other.pose.position.y, eye_z
+    return None
+
+
+def _aim(body: Any, point: tuple[int, int, int]) -> tuple[int, int]:
+    """(yaw, pitch) in millidegrees from her eye to a point, in her body's frame."""
+
+    ex, ey, ez = _eye_position(body)
+    planar = max(1.0, math.hypot(point[0] - ex, point[1] - ey))
+    bearing = int(round(math.degrees(math.atan2(point[1] - ey, point[0] - ex)) * 1000)) % 360_000
+    yaw = _bearing_offset(body.pose.heading_millidegrees, bearing)
+    pitch = int(round(math.degrees(math.atan2(point[2] - ez, planar)) * 1000))
+    return yaw, pitch
+
+
+def _gaze_in_field(head: tuple[int, int], aim: tuple[int, int]) -> tuple[float, float] | None:
+    """Where the aimed point falls in her focal field (fractions), given where her head
+    points now; None when it lies outside the field."""
+
+    dx = aim[0] - int(head[0])
+    dy = aim[1] - int(head[1])
+    half_w, half_h = FOCAL_FIELD_MILLIDEGREES[0] // 2, FOCAL_FIELD_MILLIDEGREES[1] // 2
+    if not (-half_w <= dx <= half_w and -half_h <= dy <= half_h):
+        return None
+    column = (dx + half_w) / FOCAL_SITE_MILLIDEGREES
+    row = (half_h - dy) / FOCAL_SITE_MILLIDEGREES
+    return (round(_clamp(column / (FOCAL_COLUMNS - 1), 0.0, 1.0), 6), round(_clamp(row / (FOCAL_ROWS - 1), 0.0, 1.0), 6))
 
 
 def handleable_held(item: Any) -> bool:
@@ -726,6 +821,7 @@ class FunctionalOrganism:
             "target_totals": {}, "taste_residue": 0.0,
             "speech": {}, "syllable_totals": {}, "prior_syllable": None, "pending_syllable": None,
             "ear_event": None, "events": {}, "sound_event": None, "ear_quiet": _empty_ear_quiet(),
+            "gaze": None, "gaze_target": None, "sight_figure": None, "figures": {}, "eyes": [0, 0],
         })
 
     @classmethod
@@ -816,6 +912,16 @@ class FunctionalOrganism:
         if "ear_quiet" not in state:
             state["ear_quiet"] = _empty_ear_quiet()
             changed = True
+        for key, empty in (("gaze", None), ("gaze_target", None), ("sight_figure", None)):
+            if key not in state:
+                state[key] = empty
+                changed = True
+        if "figures" not in state:
+            state["figures"] = {}
+            changed = True
+        if "eyes" not in state:
+            state["eyes"] = [0, 0]
+            changed = True
         for key in RETIRED_KEYS:
             if key in state:
                 del state[key]
@@ -843,12 +949,28 @@ class FunctionalOrganism:
         return int(head[0]), int(head[1])
 
     @property
+    def eyes(self) -> tuple[int, int]:
+        """Her eyes' (yaw, pitch) in her head, in millidegrees (both eyes together)."""
+
+        eyes = self._state.get("eyes") or [0, 0]
+        return int(eyes[0]), int(eyes[1])
+
+    @property
+    def carriage(self) -> tuple[int, int]:
+        """Where her retina points in her body's frame: neck and eyes together."""
+
+        head, eyes = self.head, self.eyes
+        return head[0] + eyes[0], int(_clamp(head[1] + eyes[1], -CARRIAGE_PITCH_BOUND_MILLIDEGREES, CARRIAGE_PITCH_BOUND_MILLIDEGREES))
+
+    @property
     def body_axes(self) -> tuple[tuple[object, ...], ...]:
         """The declared axes, with the neck where her head law has turned it."""
 
         yaw, pitch = self.head
+        eye_yaw, eye_pitch = self.eyes
         aperture = 0 if self.asleep else EYELID_OPEN_MICROMETRES
-        positions = {"neck_yaw": yaw, "neck_pitch": pitch, "left_eyelid_aperture": aperture, "right_eyelid_aperture": aperture}
+        positions = {"neck_yaw": yaw, "neck_pitch": pitch, "left_eyelid_aperture": aperture, "right_eyelid_aperture": aperture,
+                     "left_eye_yaw": eye_yaw, "left_eye_pitch": eye_pitch, "right_eye_yaw": eye_yaw, "right_eye_pitch": eye_pitch}
         return tuple(
             (axis[0], axis[1], axis[2], positions[axis[1]], *axis[4:]) if axis[1] in positions else axis
             for axis in BODY_AXES
@@ -932,11 +1054,30 @@ class FunctionalOrganism:
         luminance-weighted centre of the last focal field she sensed, in
         (horizontal, vertical) fractions of the field; None before the first beat."""
 
+        gaze = self._state.get("gaze")
+        if gaze is not None:
+            return float(gaze[0]), float(gaze[1])   # on the thing she acts on, by the world's own geometry
         horizontal = self._state["streams"]["sight_horizontal"]
         vertical = self._state["streams"]["sight_vertical"]
         if not horizontal or not vertical:
             return None
         return float(horizontal[-1]), float(vertical[-1])
+
+    @property
+    def eye(self) -> dict[str, object]:
+        """Her eye as the page sees it: the figure under her gaze this beat (its key,
+        its shape in eighths, its extent, how many times met), the store's size, her
+        gaze, her head, and what she is looking at."""
+
+        state = self._state
+        figure: Figure | None = getattr(self, "_figure", None)
+        figures = state.get("figures") or {}
+        key = state.get("sight_figure")
+        return {
+            "figure": key, "shape": None if figure is None else [figure.aspect_eighths, figure.fill_eighths, figure.contrast_eighths],
+            "extent": 0.0 if figure is None else round(figure.extent, 4), "met": int(figures[key][0]) if key in figures else 0,
+            "figures": len(figures), "gaze": state.get("gaze"), "head": list(self.head), "eyes": list(self.eyes), "target": state.get("gaze_target"),
+        }
 
     @property
     def counts(self) -> dict[str, int]:
@@ -945,6 +1086,7 @@ class FunctionalOrganism:
         counts["learned"] = len(self._state.get("learned", {}))
         counts["nights"] = int(self._state.get("nights", 0))
         counts["events"] = len(self._state.get("events") or {})
+        counts["figures"] = len(self._state.get("figures") or {})
         return counts
 
     # ----- the kernel over her measured streams --------------------------------------
@@ -1088,9 +1230,27 @@ class FunctionalOrganism:
         seen = things_in_sight(snapshot)
         here = _region_of(snapshot, body.pose.position, body.radius_mm)
         state["room_now"] = None if here is None else here.region_id
-        if sensed.wide_luminance_u8:
-            state["head"] = list(head_step(self.head, tuple(sensed.wide_luminance_u8)))
+        # Her head follows what she acts on; her gaze is that thing's place in the field
+        # she sensed this beat (rendered with her head as it was), else the field's structure.
+        target_id = body.held_object_id or state.get("gaze_target")
+        point = _target_point(snapshot, body, target_id)
+        state["gaze"] = None
+        if point is not None:
+            aim = _aim(body, point)
+            gaze = _gaze_in_field(self.carriage, aim)
+            state["gaze"] = None if gaze is None else [gaze[0], gaze[1]]
+            state["head"] = list(head_toward(self.head, aim[0], aim[1]))
+            # The eyes take up the rest at once, within their range and never past straight down or up.
+            eye_yaw = int(_clamp(aim[0] - state["head"][0], -EYE_BOUND_MILLIDEGREES, EYE_BOUND_MILLIDEGREES))
+            eye_pitch = int(_clamp(aim[1] - state["head"][1], -EYE_BOUND_MILLIDEGREES, EYE_BOUND_MILLIDEGREES))
+            eye_pitch = int(_clamp(eye_pitch, -CARRIAGE_PITCH_BOUND_MILLIDEGREES - state["head"][1], CARRIAGE_PITCH_BOUND_MILLIDEGREES - state["head"][1]))
+            state["eyes"] = [eye_yaw, eye_pitch]
+        else:
+            if sensed.wide_luminance_u8:
+                state["head"] = list(head_step(self.head, tuple(sensed.wide_luminance_u8)))
+            state["eyes"] = [0, 0]   # nothing to look at: the eyes rest straight in the head
         measures = self._measure(sensed, seen, body)
+        self._see_figure(sensed, self.live_organism_tick)
         skin_now = float(measures["skin_contact"])
         # Her need for contact: another body's touch on her skin relieves it; an
         # awake beat without one raises it.
@@ -1135,6 +1295,7 @@ class FunctionalOrganism:
         self._settle(key, novel, sound_now, skin_now, tick, warmth_likeness=float(getattr(self, "_warmth_likeness", 0.0)), pain=float(getattr(self, "_pain", 0.0)))
 
         def decision(act: str, reason: str, commands: tuple[Any, ...] = (), target: str | None = None, drive: tuple[int, int, int] | None = None) -> Decision:
+            state["gaze_target"] = target   # what she acts on is what her head turns to next beat
             return Decision(act, reason, commands, target, drive, signature, novel, gate_count, seen)
 
         if feeding:
@@ -1210,6 +1371,28 @@ class FunctionalOrganism:
         state["pending_act"] = {"key": key, "regimes": regimes, "act": act, "deficit": deficit, "sleep_ratio": sleep_ratio, "contact_ratio": contact_ratio, "intake": 0, "refused": False}
         state["last_chosen"] = {"key": key, "regimes": regimes, "act": act, "deficit": deficit, "sleep_ratio": sleep_ratio}
         return decision(act, why + (("; " + detail) if detail else ""), commands, target, drive)
+
+    # ----- the eye's Level 1: the figure under her gaze --------------------------------
+
+    def _see_figure(self, sensed: Sensed, tick: int) -> None:
+        """The figure under her gaze on her world eye's field (the law's measured domain;
+        a camera frame gives none until a law is measured stable on real frames). A
+        figure is met when it comes under her gaze (its key differs from the last beat's);
+        the day's store keeps the most recently met."""
+
+        state = self._state
+        figure = None
+        if sensed.luminance_source == "world" and state.get("gaze") is not None:
+            figure = figure_under_gaze(tuple(sensed.focal_luminance_u8), (float(state["gaze"][0]), float(state["gaze"][1])))
+        self._figure = figure
+        key = None if figure is None else figure.key
+        if key is not None and key != state.get("sight_figure"):
+            figures = state.setdefault("figures", {})
+            entry = figures.get(key)
+            figures[key] = [1, tick] if entry is None else [int(entry[0]) + 1, tick]
+            while len(figures) > FIGURE_RECORD_CAPACITY:
+                del figures[min(figures, key=lambda k: (int(figures[k][1]), k))]   # the least recently met leaves
+        state["sight_figure"] = key
 
     # ----- Level 1: the acoustic gate over her beat ------------------------------------
 

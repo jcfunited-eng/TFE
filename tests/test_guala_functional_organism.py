@@ -392,11 +392,11 @@ def test_a_step_pushes_light_things_in_her_way_aside() -> None:
 
 
 def test_her_head_turns_toward_structure_so_the_floor_comes_into_her_focal_field() -> None:
-    """Her head law: the wide field the head carries aims the focal cone. On a
-    fresh world every object lies on the floor below head height; within a few
-    beats her head has pitched down toward them (it never yaws), the focal field
-    shows structure, and the head stays inside its declared bounds and is
-    restored byte-exact with the body."""
+    """Her head law: the wide field the head carries aims the focal cone, and her
+    head follows what she acts on (Joe's word, 2026-09-15). On a fresh world every
+    object lies on the floor below head height; within a few beats her head has
+    pitched down toward them, the focal field shows structure, and the head stays
+    inside its declared bounds and is restored byte-exact with the body."""
 
     from dsf_ai_service.guala_functional_organism import HEAD_PITCH_BOUND_MILLIDEGREES, HEAD_YAW_BOUND_MILLIDEGREES
 
@@ -413,7 +413,7 @@ def test_her_head_turns_toward_structure_so_the_floor_comes_into_her_focal_field
         assert -HEAD_PITCH_BOUND_MILLIDEGREES <= pitch <= HEAD_PITCH_BOUND_MILLIDEGREES
         focal = observation["retinal_u8"][135:]
         spread = max(spread, max(focal) - min(focal))
-    assert organism.head[0] == 0 and organism.head[1] < 0, organism.head
+    assert organism.head[1] < 0, organism.head
     assert spread > 20, spread
     axes = {axis[1]: axis[3] for axis in organism.body_axes}
     assert (axes["neck_yaw"], axes["neck_pitch"]) == organism.head
@@ -1369,3 +1369,92 @@ def test_a_beat_without_sound_closes_an_open_event_and_the_record_of_quiet_is_bo
     assert ears[1]["open"] and ears[2]["open"] and not ears[4]["open"]
     quiet = organism._state["ear_quiet"]
     assert len(quiet["inside"]) == 11 and len(quiet["between"]) == 5 and sum(quiet["between"]) == 1
+
+
+# ----- the eye's Level 1: her head follows what she acts on; the figure under her gaze (docs/GL-SPC-EYE-FIGURE-C1-20260915-v1.md) -----
+
+
+def _thing_ahead(world, source_id: str, object_id: str, ahead_mm: int) -> None:
+    """A copy of a thing of the world set down ahead of her by the test's hand."""
+
+    snapshot = world.observation_snapshot()
+    body = _her(world)
+    source = next(item for item in snapshot.objects if item.object_id == source_id)
+    last_error = None
+    for extra_mm, turn in ((0, 0), (0, 12), (0, -12), (150, 0), (150, 20), (150, -20), (300, 0), (300, 30), (300, -30)):
+        radians = math.radians((body.pose.heading_millidegrees / 1000) + turn)
+        spot = PositionMM(body.pose.position.x + round((ahead_mm + extra_mm) * math.cos(radians)), body.pose.position.y + round((ahead_mm + extra_mm) * math.sin(radians)), 0)
+        try:
+            world.admit_authored_arrival(EmbodiedObject(object_id, source.radius_mm, source.mass_grams, spot, reflectance_ppm=source.reflectance_ppm, material=source.material))
+            return
+        except ValueError as error:
+            last_error = error
+    raise AssertionError(f"no clear spot ahead of her for {object_id}: {last_error}")
+
+
+def _look_at(organism, world, object_id: str, beats: int):
+    """Her head follows what she acts on: the test names the thing as her act's target
+    each beat (the loop would, from her own decision) and lets her head turn to it."""
+
+    loop = FunctionalPhysicalLoop()
+    out = []
+    for _ in range(beats):
+        organism._state["gaze_target"] = object_id
+        result = loop.settle(organism, world, UNATTENDED)
+        organism._state["gaze_target"] = object_id
+        out.append(result.observation["her_eye"])
+    return out
+
+
+def test_her_head_follows_what_she_acts_on_and_the_thing_comes_under_her_gaze() -> None:
+    from dsf_ai_service.guala_functional_organism import HEAD_PITCH_BOUND_MILLIDEGREES, HEAD_STEP_MILLIDEGREES
+
+    world = home_world_authority(identity=IDENTITY)
+    organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
+    organism._state["reserve_micrograms"] = CAPACITY_MICROGRAMS * 9 // 10   # not hungry: no reflex takes her gaze
+    _thing_ahead(world, "apple", "apple-far", 1_200)
+    eyes = _look_at(organism, world, "apple-far", 14)
+    pitches = [eye["head"][1] for eye in eyes]
+    assert all(abs(pitches[i + 1] - pitches[i]) <= HEAD_STEP_MILLIDEGREES for i in range(len(pitches) - 1)), pitches   # the neck steps, five degrees a beat at most
+    assert all(-HEAD_PITCH_BOUND_MILLIDEGREES <= p <= HEAD_PITCH_BOUND_MILLIDEGREES for p in pitches)
+    assert min(pitches) < -25_000, pitches                                                   # an apple 1.2 m ahead lies about forty degrees below her eye: the neck goes down to it
+    # Her eyes take up the rest at once: the thing is under her gaze from the second beat on, whenever her body's
+    # turning leaves it within reach of neck and eyes together.
+    gazes = [eye["gaze"] for eye in eyes[1:]]
+    assert gazes[0] is not None and 0.3 < gazes[0][0] < 0.7, gazes[0]                        # on the second beat it is in the middle of her field
+    # Her body turns sixty degrees at a stride while the neck steps five a beat: on the beats between, the thing
+    # is beyond neck and eyes together and her gaze is honestly none; it returns as the neck catches up.
+    assert sum(1 for g in gazes if g is not None) >= 3, gazes
+    assert all(0.0 <= g[0] <= 1.0 and 0.0 <= g[1] <= 1.0 for g in gazes if g is not None)
+    assert abs(eyes[1]["eyes"][1]) > 0, eyes[1]                                            # the eyes moved in the head on the first beat
+    assert eyes[-1]["figure"] is not None or any(eye["figure"] for eye in eyes), eyes[-1]  # and a figure was found under her gaze
+
+
+def test_the_figure_under_her_gaze_is_found_for_a_thing_and_absent_for_the_wall() -> None:
+    """The eye's Level 1 on her world eye, as measured (2026-09-15): a thing she acts on
+    comes under her gaze and a figure is found there on most of those beats, the store
+    counts it, the body restores byte-exact; with nothing to act on and her head level,
+    the wall gives no figure. What the world eye does NOT give (filed on the ledger, not
+    asserted here): every thing is drawn as a flat square, so the apple and the bear share
+    a key and the bowl's contrast in eighths drifts with distance."""
+
+    for source, object_id in (("apple", "apple-far"), ("toy-bear", "bear-far"), ("bowl", "bowl-far")):
+        world = home_world_authority(identity=IDENTITY)
+        organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
+        organism._state["reserve_micrograms"] = CAPACITY_MICROGRAMS * 9 // 10
+        _thing_ahead(world, source, object_id, 1_200)
+        eyes = _look_at(organism, world, object_id, 24)
+        gazed = [eye for eye in eyes if eye["gaze"] is not None]
+        found = [eye["figure"] for eye in gazed if eye["figure"]]
+        assert len(gazed) >= 6 and len(found) * 10 >= len(gazed) * 7, (object_id, [(eye["gaze"], eye["figure"], eye["head"]) for eye in eyes])
+        common = max(set(found), key=found.count)
+        assert organism._state["figures"][common][0] >= 1 and organism.counts["figures"] >= 1
+        assert all(eye["shape"] is not None and eye["extent"] > 0 for eye in gazed if eye["figure"])
+        encoded = organism.encoded()
+        assert FunctionalOrganism.restore(encoded).encoded() == encoded
+    # Nothing to act on, head level: the wall, no figure.
+    world = home_world_authority(identity=IDENTITY)
+    organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
+    organism._state["reserve_micrograms"] = CAPACITY_MICROGRAMS * 9 // 10
+    eye = FunctionalPhysicalLoop().settle(organism, world, UNATTENDED).observation["her_eye"]
+    assert eye["figure"] is None and eye["gaze"] is None

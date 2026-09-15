@@ -422,6 +422,7 @@ class FunctionalPhysicalLoop:
                 "her_skin": {"contact": organism.contact["felt"], "temperature_millikelvin": skin_mk, "met_millikelvin": getattr(organism, "_met_mk", None),
                              "touched": (presentation or {}).get("touched"), "need": organism.contact["pressure"]},
                 "her_ear": organism.ear,
+                "her_eye": organism.eye,
                 "kernel_novel": decision.novel,
                 "kernel_signature": decision.signature,
                 "latest_retinal_field_kind": "external-rgb" if external_rgb is not None else "achromatic",

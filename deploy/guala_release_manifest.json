@@ -146,6 +146,7 @@
         "dsf_ai_service/guala_acoustic_gate.py",
         "dsf_ai_service/guala_caretaker_hand.py",
         "dsf_ai_service/guala_cochlea.py",
+        "dsf_ai_service/guala_eye_figure.py",
         "dsf_ai_service/guala_functional_loop.py",
         "dsf_ai_service/guala_functional_organism.py",
         "dsf_ai_service/guala_home_world.py",
