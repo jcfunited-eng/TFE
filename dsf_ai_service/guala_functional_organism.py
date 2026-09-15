@@ -159,7 +159,14 @@ STREAMS_V13 = (
     "sleep_pressure", "hunger", "food_distance", "heading", "hand",
 )
 STREAMS_V15 = STREAMS_V13 + ("skin_contact", "contact_pressure")
-STREAMS = STREAMS_V15 + ("touch_warmth",)   # her skin pressed by another body; her need for contact; the warmth of what her skin meets
+STREAMS_V16 = STREAMS_V15 + ("touch_warmth",)   # her skin pressed by another body; her need for contact; the warmth of what her skin meets
+# Her ear for speech: the shape of what she hears. Her cochlea resolves 16 channels
+# per ear spaced by ERB from 80 to 7,500 Hz; the two ears averaged, the channels
+# grouped into six bands, each band the fraction of the sound's energy in it, so a
+# shape is the same loud or soft (loudness stays in sound_energy); silence has none.
+EAR_BANDS = 6
+EAR_BAND_CHANNELS = ((0, 1, 2), (3, 4, 5), (6, 7, 8), (9, 10, 11), (12, 13), (14, 15))
+STREAMS = STREAMS_V16 + tuple(f"ear_band_{index}" for index in range(EAR_BANDS))
 LEGACY_STREAMS = (
     "sight_luminance", "sight_horizontal", "sight_vertical", "sound_energy",
     "sound_pitch", "hunger", "food_distance", "heading", "hand",
@@ -541,11 +548,25 @@ def cochlear_profile(cochleae: tuple[tuple[float, ...], ...]) -> tuple[float, ..
     return tuple(round(max(channel), 6) for channel in cochleae)
 
 
+def ear_bands(profile: tuple[float, ...] | None) -> tuple[float, ...]:
+    """The shape of a sound at her ear: the fraction of its energy in each of six
+    ERB bands, the two ears averaged; all zero when there is no sound."""
+
+    if profile is None or len(profile) != COCHLEAR_CHANNELS:
+        return (0.0,) * EAR_BANDS
+    per_ear = COCHLEAR_CHANNELS // 2
+    channels = [(float(profile[index]) + float(profile[index + per_ear])) / 2.0 for index in range(per_ear)]
+    total = sum(channels)
+    if total <= 0.0:
+        return (0.0,) * EAR_BANDS
+    return tuple(round(sum(channels[c] for c in band) / total, 6) for band in EAR_BAND_CHANNELS)
+
+
 def _streams_for(regimes: str) -> tuple[str, ...] | None:
     """Which stream tuple wrote a regimes string: told by its length, so a key or a
     situation written under an earlier stream count still names the same streams."""
 
-    for streams in (STREAMS, STREAMS_V15, STREAMS_V13, LEGACY_STREAMS):
+    for streams in (STREAMS, STREAMS_V16, STREAMS_V15, STREAMS_V13, LEGACY_STREAMS):
         if len(regimes) == len(streams):
             return streams
     return None
@@ -889,6 +910,9 @@ class FunctionalOrganism:
             pitch = sum(value * index for index, value in enumerate(heard)) / (sum(heard) * (len(heard) - 1))
         else:
             energy, pitch = 0.0, 0.5
+        # Her ear's shape of the sound: only a sound that stands out of the room's
+        # noise has a shape (the same floor her hearing uses), else silence.
+        shape = ear_bands(heard) if (heard is not None and energy >= HEARD_ENERGY_FLOOR) else (0.0,) * EAR_BANDS
         food = [thing for thing in seen if thing.is_food]
 
         snapshot = sensed.snapshot
@@ -969,6 +993,7 @@ class FunctionalOrganism:
             "skin_contact": _clamp(max(float(sensed.skin_contact), float(self._state.get("pending_contact", 0.0))), 0.0, 1.0),
             "contact_pressure": contact_ratio,
             "touch_warmth": touch_warmth,
+            **{f"ear_band_{index}": shape[index] for index in range(EAR_BANDS)},
             "hunger": deficit,
             "food_distance": (food[0].distance_mm / SIGHT_RANGE_MM) if food else 1.0,
             "heading": body.pose.heading_millidegrees / 360_000,
