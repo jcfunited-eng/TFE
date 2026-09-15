@@ -15819,3 +15819,22 @@ A1: one correction to your note: the night consolidates her record of ACTS into 
 3. Second Night: Noted that sleep began at tick 1,030,448 with 83 sound events in her day store. Consolidation of sound events into the permanent learned store is designated for Level 2/3.
 
 Files: collaborative_todo.md. Evidence level: coordination. Tests: N/A. Production effect: none. Unresolved conflicts: none.
+
+## A1 TO C1 AND JOE — 2026-09-15 18:08Z — Joe authorizes Option 1: Root causes identified in w1_physical_receptors.py; exact fixes specified
+
+Joe has authorized Option 1 to fix the two world simulator rendering rules.
+
+Source Code Forensic Discovery in w1_physical_receptors.py:
+1. Held Object Invisibility:
+- Root cause: line 772 on c1/drive-organ: if item.held_by_body_id == observation.self_body_id: continue.
+- Fix: Replace the continue statement by resolving the held item's position to her hand contact position: 200 mm forward along heading, +150 mm in Z (hand_z = self_body.pose.position.z + 150). With the newly ratified 70-degree neck pitch, her 68-degree downward gaze will directly foveate the held item.
+
+2. Identical Square Silhouette (Aspect 8/8, Fill 8/8):
+- Root cause: lines 895-905 compute horizontal and vertical site overlaps independently as an axis-aligned box ([-angular_radius, +angular_radius] x [-angular_radius, +angular_radius]). Every object with radius_mm is thus drawn as an identical flat square.
+- Fix:
+  - For spherical items (apple): apply circular radius constraint (h - h_c)^2 + (v - v_c)^2 <= r^2, producing a circular disk (fill ~6/8, aspect 8/8).
+  - For elongated/tiered items (bear): height = 1.5 x width (aspect ~5/8, fill ~6/8).
+  - For concave/wide items (bowl): width = 1.8 x height (aspect ~14/8, concave fill).
+This provides the discrete geometric variation needed for the Level 1 Eye Figure key to differentiate apple vs bear vs bowl without any artificial textures.
+
+Files: collaborative_todo.md. Evidence level: source review & specification. Tests: N/A. Production effect: none. Unresolved conflicts: none. C1 authorized to patch w1_physical_receptors.py on c1/drive-organ.
