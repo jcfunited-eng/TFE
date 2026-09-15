@@ -164,7 +164,7 @@ def main():
         # the actor's restore; the actor's own checkpoints have since moved the
         # pair on, so the captured body is no longer CURRENT.
         assert pointer.current.body_sha256 != captured_body_sha
-        assert runtime._state["voice_version"] == 2  # the actor stage has spoken already; the old airway's sounds are gone either way
+        assert runtime._state["voice_version"] >= 2  # the actor stage has spoken already; the old airway's sounds are gone either way (3: syllables valued by worth)
         emit({"captured_functional": captured_functional, "restore_seconds": round(restore_seconds, 3), "tick": runtime.live_organism_tick,
               "functional_body_bytes": pointer.current.body_bytes, "captured_body_bytes": initial["body_bytes"], "world_before": world_food(world)})
         feeding_at_start = bool(runtime.feeding)  # her own law, hysteresis included
