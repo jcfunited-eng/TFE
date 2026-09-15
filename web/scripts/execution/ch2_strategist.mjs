@@ -52,13 +52,27 @@ function toInt(v) {
   return isFinite(n) ? n : null;
 }
 
-async function resolveLatestRunId() {
+// Readings older than this are not a basis for a buy. The nightly rebuild
+// runs every weekday close; four days covers a weekend plus a holiday.
+// Receipt: from 2026-08-18 to 2026-09-15 the table never advanced and the
+// entry door kept buying the same frozen list (Aug 27, Aug 31), re-buying
+// three names the reading had just sold. Joseph's restart 2026-09-15: a stale
+// table means no entries, said out loud in the log.
+const CH2_READINGS_MAX_AGE_MS = 4 * 24 * 60 * 60 * 1000;
+
+async function resolveLatestRun() {
   const res = await pool.query(
-    `SELECT run_id FROM runtime_decisions_latest
+    `SELECT run_id, generated_at_utc FROM runtime_decisions_latest
      ORDER BY generated_at_utc DESC LIMIT 1`
   );
   if (!res.rows.length) throw new Error("[CH2-STRATEGIST] runtime_decisions_latest is empty");
-  return res.rows[0].run_id;
+  const generatedAt = res.rows[0].generated_at_utc ? new Date(res.rows[0].generated_at_utc) : null;
+  const ageMs = generatedAt && Number.isFinite(generatedAt.getTime()) ? Date.now() - generatedAt.getTime() : null;
+  return { runId: res.rows[0].run_id, generatedAt, ageMs };
+}
+
+export function readingsAreStale(ageMs, maxAgeMs = CH2_READINGS_MAX_AGE_MS) {
+  return !Number.isFinite(ageMs) || ageMs < 0 || ageMs > maxAgeMs;
 }
 
 /**
@@ -170,8 +184,12 @@ async function fetchOpenPositionTickers() {
 }
 
 export async function getCh2Signals() {
-  const runId = await resolveLatestRunId();
-  console.log(`[CH2-STRATEGIST] run_id=${runId}`);
+  const { runId, generatedAt, ageMs } = await resolveLatestRun();
+  console.log(`[CH2-STRATEGIST] run_id=${runId} | readings generated ${generatedAt?.toISOString() ?? "unknown"} | age_h=${Number.isFinite(ageMs) ? (ageMs / 3.6e6).toFixed(1) : "n/a"}`);
+  if (readingsAreStale(ageMs)) {
+    console.log(`[CH2-STRATEGIST] READINGS STALE — table not rebuilt within ${CH2_READINGS_MAX_AGE_MS / 864e5} days; no entries on old physics`);
+    return [];
+  }
 
   // Diagnostic: candidate pool before V3 basin filter
   try {
