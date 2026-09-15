@@ -60,7 +60,7 @@ BEAT_MICROSECONDS = 250_000
 CAPACITY_MICROGRAMS = 500_000
 BASAL_BURN_MICROGRAMS = 3
 ACT_BURN_MULTIPLE = {
-    "rest": 0, "sleep": 0, "bite": 2, "grasp": 2, "take": 2, "release": 1, "touch": 1, "turn_left": 1, "turn_right": 1,
+    "rest": 0, "sleep": 0, "bite": 2, "mouth": 2, "grasp": 2, "take": 2, "release": 1, "touch": 1, "turn_left": 1, "turn_right": 1,
     "step": 4, "toward_food": 4, "toward_bed": 4, "toward_thing": 4, "toward_door": 4, "toward_person": 4, "reach_hand": 1, "say": 2,
 }
 MOVES = ("step", "toward_food", "toward_bed", "toward_thing", "toward_door", "toward_person")
@@ -94,7 +94,7 @@ HEAD_PITCH_BOUND_MILLIDEGREES = 45_000
 # discrete multi-modal structure in front of her each beat; the record keeps,
 # for each structure she has met, each act she tried there, the successor
 # distribution that followed, and the measured value to her bodily needs.
-ACTS = ("take", "grasp", "touch", "release", "toward_food", "toward_bed", "toward_thing", "toward_door", "toward_person", "reach_hand", "step", "turn_left", "turn_right", "say", "rest")
+ACTS = ("take", "grasp", "touch", "release", "mouth", "toward_food", "toward_bed", "toward_thing", "toward_door", "toward_person", "reach_hand", "step", "turn_left", "turn_right", "say", "rest")
 ACT_RECORD_CAPACITY = 256   # structures remembered with their acts; recurrent structures persist
 EXPLORE_EVERY = 8
 MAX_CANDIDATES = 32
@@ -621,6 +621,14 @@ def candidates(
     # 3. Release held item
     if held is not None and drop_spot_clear(snapshot, body, held):
         out.append(("release", held.object_id, (ReleaseHeldObjectCommand(BEAT_MICROSECONDS),), held.object_id, None))
+
+    # 3b. Oral exploration: mouth the held or offered object (infantile mouthing reflex & exploration)
+    if held is not None and held.material is not None:
+        if int(held.material.surface_temperature_millikelvin) < NOCICEPTION_MILLIKELVIN:
+            out.append(("mouth", held.object_id, (OralContactCommand(held.object_id, BEAT_MICROSECONDS),), held.object_id, None))
+    if held is None and offered is not None and offered.material is not None and not _is_food(offered):
+        if int(offered.material.surface_temperature_millikelvin) < NOCICEPTION_MILLIKELVIN:
+            out.append(("mouth", offered.object_id, (OralContactCommand(offered.object_id, BEAT_MICROSECONDS),), offered.object_id, None))
 
     # 4. Toward every sensed food target, nearest first (the least strides to reach)
     if held is None:
@@ -1195,6 +1203,9 @@ class FunctionalOrganism:
 
         # 1. Intake by her deficit:
         intake_value = deficit * (1.0 if intake > 0 else 0.0)
+        # 1b. Oral chemical exploration: experiencing the material's tastants pays by sensory discovery
+        oral_tastants = int(pending.get("oral_tastants", 0)) if act == "mouth" else 0
+        oral_value = (1.0 - deficit) * (1.0 - sleep_ratio) * min(1.0, oral_tastants / 1_000.0)
         # 2. New structure by how fed and rested she was:
         new_structure_value = (1.0 - deficit) * (1.0 - sleep_ratio) * (1.0 if novel_now else 0.0)
         # 3. Sound heard standing out above ambient:
@@ -1213,7 +1224,7 @@ class FunctionalOrganism:
         # 6. Pain: what her skin met above nature's threshold costs by the excess.
         pain_cost = float(pain)
 
-        value = intake_value + new_structure_value + sound_value + contact_value - burn_cost - pain_cost
+        value = intake_value + oral_value + new_structure_value + sound_value + contact_value - burn_cost - pain_cost
         self._credit(str(pending["key"]), act, round(value, 6), tick, str(pending.get("regimes", "")), successor_key=key_now)
 
     def _dream(self, tick: int) -> str | None:
@@ -1343,7 +1354,7 @@ class FunctionalOrganism:
     def commit(self, decision: Decision, *, applied_action: str, refusal: str | None,
                intake_micrograms: int, spoke: bytes | None, heard_profile: tuple[float, ...] | None,
                self_profile: tuple[float, ...] | None, tick_now: int, contact_fraction: float = 0.0,
-               contact_millikelvin: int | None = None) -> None:
+               contact_millikelvin: int | None = None, oral_tastant_micrograms: int = 0) -> None:
         state = self._state
         if tick_now != self.live_organism_tick:
             raise RuntimeError("functional organism tick left its line")
@@ -1360,12 +1371,15 @@ class FunctionalOrganism:
         if intake:
             state["meals_micrograms"] += intake
             state["bites"] += 1
-            state["taste_residue"] = min(1.0, float(state.get("taste_residue", 0.0)) + intake / 100_000.0)
+        tastants = oral_tastant_micrograms if oral_tastant_micrograms > 0 else intake
+        if tastants:
+            state["taste_residue"] = min(1.0, float(state.get("taste_residue", 0.0)) + min(1.0, tastants / 1_000.0))
         state["taste_residue"] = round(float(state.get("taste_residue", 0.0)) * 0.95, 6)
 
         pending = state.get("pending_act")
         if pending is not None:
             pending["intake"] = int(pending.get("intake", 0)) + intake
+            pending["oral_tastants"] = int(pending.get("oral_tastants", 0)) + tastants
             pending["refused"] = bool(pending.get("refused")) or refusal is not None
             pending["burn"] = int(pending.get("burn", 0)) + int(burn)  # what this act actually cost her, measured
         elif decision.act == "bite" and intake and state.get("last_chosen"):

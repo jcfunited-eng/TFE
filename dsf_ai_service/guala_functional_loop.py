@@ -334,7 +334,8 @@ class FunctionalPhysicalLoop:
             decision = organism.decide(sensed)
             prepared, applied, refusal, refused = _apply(world, decision, before)
             execution = prepared.execution_receipt
-            intake = _oral_intake_micrograms(execution) if applied == "bite" else 0
+            dissolved_tastants = _oral_intake_micrograms(execution) if applied in ("bite", "mouth") else 0
+            intake = dissolved_tastants if applied == "bite" else 0
             own_contact = 0.0
             own_contact_mk = None
             if applied == "reach_hand":
@@ -367,7 +368,7 @@ class FunctionalPhysicalLoop:
             organism.commit(
                 decision, applied_action=applied, refusal=refusal, intake_micrograms=intake, spoke=spoke,
                 heard_profile=heard_profile, self_profile=self_profile, tick_now=start_tick, contact_fraction=own_contact,
-                contact_millikelvin=own_contact_mk,
+                contact_millikelvin=own_contact_mk, oral_tastant_micrograms=dissolved_tastants,
             )
             if organism.live_organism_tick != start_tick + 1:
                 raise RuntimeError("functional beat did not advance exactly one tick")

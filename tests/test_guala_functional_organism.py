@@ -1054,6 +1054,68 @@ def test_a_hot_thing_in_her_hand_is_let_go_by_reflex_costs_in_her_record_and_the
         assert o["her_act"] != "bite", o["act_reason"]
 
 
+def test_held_non_food_object_can_be_mouthed_transducing_material_tastants_without_caloric_intake() -> None:
+    """Non-food objects in hand (toys, books) can be mouthed: her oral receptors
+    transduce the physical material tastants (fabric, cellulose) into her taste stream,
+    giving sensory cognitive discovery without adding metabolic calories."""
+
+    from dsf_ai_service.guala_functional_loop import _apply, _oral_intake_micrograms
+    from dsf_ai_service.guala_functional_organism import (
+        BEAT_MICROSECONDS, Decision, STREAMS, candidates, things_in_sight,
+    )
+    from dsf_ai_service.substrate.embodiment_world import EmbodiedObject, GraspContactCommand, OralContactCommand, PositionMM
+
+    world = home_world_authority(identity=IDENTITY)
+    organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
+    loop = FunctionalPhysicalLoop()
+
+    snapshot = world.observation_snapshot()
+    toy = next(item for item in snapshot.objects if item.object_id == "toy-bear")
+    body = _her(world)
+
+    # Place a handleable toy ahead of her
+    spot = PositionMM(body.pose.position.x + 460, body.pose.position.y, 0)
+    world.admit_authored_arrival(EmbodiedObject("toy-near", toy.radius_mm, toy.mass_grams, spot, reflectance_ppm=toy.reflectance_ppm, material=toy.material))
+
+    snapshot = world.observation_snapshot()
+    decision_grasp = Decision("grasp", "test", (GraspContactCommand(BEAT_MICROSECONDS),), "toy-near", None, " ".join("S0000000" for _ in STREAMS), False, 0, ())
+    prepared, applied, refusal, refused = _apply(world, decision_grasp, snapshot)
+    assert applied == "grasp", refused
+    with world.prepared_action_visibility_transaction(prepared):
+        world.commit_prepared_action(prepared)
+    organism.commit(decision_grasp, applied_action="grasp", refusal=None, intake_micrograms=0, spoke=None, heard_profile=None, self_profile=None, tick_now=1)
+
+    snapshot = world.observation_snapshot()
+    body = _her(world)
+    assert body.held_object_id == "toy-near"
+    held = next(item for item in snapshot.objects if item.object_id == "toy-near")
+
+    # Verify "mouth" is among candidates when holding the toy
+    options = candidates(snapshot, body, held, None, things_in_sight(snapshot), organism.live_organism_tick)
+    kinds = [opt[0] for opt in options]
+    assert "mouth" in kinds
+
+    # Execute mouth act
+    reserve_before = organism.reserve_micrograms
+    mouth_option = next(opt for opt in options if opt[0] == "mouth")
+    decision_mouth = Decision("mouth", mouth_option[1], mouth_option[2], mouth_option[3], None, " ".join("S0000000" for _ in STREAMS), False, 0, ())
+    prepared_m, applied_m, refusal_m, refused_m = _apply(world, decision_mouth, snapshot)
+    assert applied_m == "mouth" and refusal_m is None
+    with world.prepared_action_visibility_transaction(prepared_m):
+        world.commit_prepared_action(prepared_m)
+
+    dissolved = _oral_intake_micrograms(prepared_m.execution_receipt)
+    assert dissolved > 0
+
+    organism.commit(decision_mouth, applied_action="mouth", refusal=None, intake_micrograms=0, spoke=None, heard_profile=None, self_profile=None, tick_now=2, oral_tastant_micrograms=dissolved)
+    assert organism._state["taste_residue"] > 0.05
+    assert organism.reserve_micrograms <= reserve_before  # non-food does not add caloric nutrition
+
+    # Advance a beat through loop: taste stream carries the transduced chemical residue
+    o = loop.settle(organism, world, UNATTENDED).observation
+    assert organism._state["streams"]["taste_residue"][-1] > 0.05
+
+
 def test_read_to_the_caregiver_holds_the_book_beside_her_and_stays_while_the_reading_lasts() -> None:
     """A reading: the caregiver fetches the book and holds it beside her; it does
     not walk home while the reading window lasts, and goes home after."""
