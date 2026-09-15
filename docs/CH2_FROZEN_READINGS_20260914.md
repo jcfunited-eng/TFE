@@ -191,3 +191,33 @@ during the window, and the following entry pass shows a run_id other than
 - Resume checkpoint: written after `l5_baseline_filter`; ignored after 6 h
   (`DEFAULT_RESUME_MAX_AGE_SECONDS`), so the next nightly run rebuilds from
   scratch — no re-freeze risk.
+
+## Addendum 3 — the by-hand follow-up killed the task; liveness redesigned
+
+- The 02:42 UTC follow-up fetched all 11,475 quotes (10 failures), then at
+  02:52 UTC the task was replaced: "Task failed ELB health checks", 503 from
+  the health report, container health UNHEALTHY too. RDS was idle (3–5 %
+  CPU, 1–3 connections), no request timeouts; the server CPU was pinned at
+  100 % by the follow-up's own re-sync. A 20 s three-process CPU burn in the
+  live container flipped no check (responses ≤ 2.9 s), so load alone is not
+  it; which check returned false could not be seen from outside. The
+  decision table survived intact (11,483 rows, run_id `1294a76d…`); the
+  provenance table carried 12,060 rows (a partial follow-up insert; the next
+  full sync replaces it). The quote cache reset to the 60-row fallback with
+  the new container.
+- Decision (commit f12856fc3, deployed as `tfe-web-task:627`, image
+  `manual-20260915T035854Z`, switches verified 0/1): `/api/health` answers
+  200 while the supervisor's essential processes are alive; database
+  reachability and snapshot receipts are still measured, returned in the
+  body (`verified`, `database_error`) and logged with the failing check
+  names, but no longer decide replacement. Reason: replacing a task never
+  repairs a database outage (the 09-04/09-08 password failure would have
+  looped it) and the refresh pipeline legitimately rewrites the bound files
+  during its own work. Four liveness cases and the ten receipts/hold cases
+  pass; tsc and eslint clean; this deploy's local gates ran and passed.
+- Deploy sequencing: the wrapper's `runtime_validation` unit blocks on
+  `ta_semantics_integrity_failed`, so the refill-ordering fix (db02a1713)
+  was reverted (017b250b4) for this web-only deploy and is re-applied once
+  the live gate passes.
+- Follow-up relaunched inside the 627 container as `node` (pid 220, file
+  log `/tmp/c1_followup.log`) at 04:15 UTC.
