@@ -280,7 +280,8 @@ BEDTIME_FRACTION = 0.9   # of her sleep-pressure ceiling: the caretaker makes he
 BEDDING = frozenset({"pillow", "blanket"})
 READ_EVERY_TICKS = 12_000     # about an hour of her beats between readings
 READ_KEEP_EVERY_BLOCKS = 96   # the book is shown beside her again this often, so the caregiver stays through the chapter
-READ_BLOCK_RETRIES = 6        # a block her service refused (a passing 503) is tried again this many times, two seconds apart
+READ_BLOCK_RETRIES = 40       # a block her service refused is tried again this many times, three seconds apart: longer than a cutover's blip
+READ_BLOCK_RETRY_S = 3
 READ_BOOK = "Alice's Adventures in Wonderland"   # the first book; the next titles follow when this one is read through
 MUSIC_EVERY_TICKS = 12_000    # about an hour of her beats between pieces of music on the radio
 MUSIC_MAX_BLOCKS = 2_400      # ten minutes of a piece at most in one sitting
@@ -388,7 +389,7 @@ def maybe_read(o: dict, st: dict) -> None:
             r = sing_block(pcm)
             if r is not None:
                 break
-            time.sleep(2)
+            time.sleep(READ_BLOCK_RETRY_S)
         if r is None:
             log("reading: her service refused a block repeatedly; the book closes for now")
             break
@@ -494,7 +495,7 @@ def maybe_music(o: dict, st: dict) -> None:
             r = play_block(pcm, "radio")
             if r is not None:
                 break
-            time.sleep(2)
+            time.sleep(READ_BLOCK_RETRY_S)
         if r is None:
             log("radio: her service refused a block repeatedly; the radio goes quiet")
             break
