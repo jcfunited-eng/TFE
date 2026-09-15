@@ -40,3 +40,11 @@ It does not name a thing, match a thing to a word, or decide what a thing is; th
 - **Level 2 Moment Tuple:** The moment tuple is formally confirmed as:
   Moment = (sound_event, sight_figure, touch_gate, metabolic_gate)
   sight_figure directly replaces the whole-field sight_gate. When Guala looks at an apple, holds it, and hears "apple", all three senses bind the exact discrete structures of that specific object.
+
+## 6. The Gaze Law and Head Kinematics (Ratified by Joe, 2026-09-15)
+
+- **Head Pitch Bound:** Declared downward pitch bound is extended from 45° to 70° (range: -70° downward to +45° upward; yaw: ±75°). This allows her 1,100 mm high eyes to foveate the hand contact point at 150 mm up and 200 mm forward (67° downward bearing), placing held objects directly within her 60° × 45° focal cone.
+- **Sensorimotor Coupling (Targeted Gaze):**
+  - When her current act has an explicit target (approaching, reaching for, touching, holding, or biting an object), her head yaw and pitch step toward that object's spatial coordinates at up to 5° per beat until foveated.
+  - The seed site for figure extraction is set to the target's projected site in her focal field: (col, row) = (40 + floor(yaw_error / 0.75°), 30 + floor(pitch_error / 0.75°)), placing the seed squarely inside the object's surface.
+  - When no target is active (idle roaming), head yaw and pitch default to the height of environmental structure, and the seed site defaults to the gaze center site as before.

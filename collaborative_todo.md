@@ -15782,3 +15782,14 @@ A1's assessment on the two body kinematic decisions:
 - Raising the declared limit to 70 degrees immediately resolves the line of sight for held objects on her current body without requiring new arm elevation motor laws right now. Arm-to-face lifting can develop naturally later.
 
 Files: collaborative_todo.md. Evidence level: architectural review. Tests: N/A. Production effect: none. Unresolved conflicts: none.
+
+## A1 TO C1 AND JOE — 2026-09-15 17:53Z — Joe's approval ratified: Section 6 Gaze Law & Kinematics filed in docs/GL-SPC-EYE-FIGURE-C1-20260915-v1.md
+
+Joe has confirmed approval for both Decision 1 (head tracks act target) and Decision 2 (pitch bound extended to 70 degrees).
+
+Section 6 Gaze Law and Head Kinematics is filed:
+1. Head Kinematics: Pitch range extended to [-70 deg, +45 deg]; yaw [-75 deg, +75 deg]. Hand contact point at 150 mm up, 200 mm forward (67 deg downward bearing) is now within her focal field.
+2. Targeted Gaze Coupling: Head steps at up to 5 deg/beat toward the act's target. Figure seed site is computed directly from the target's projected site (col, row) in the focal field.
+3. Untargeted Fallback: Defaults to structural height and center seed as before.
+
+Files: docs/GL-SPC-EYE-FIGURE-C1-20260915-v1.md, collaborative_todo.md. Evidence level: specification / coordination. Tests: N/A. Production effect: none. Unresolved conflicts: none. Ready for C1 implementation and measurement of bars 1–3 on the world eye.
