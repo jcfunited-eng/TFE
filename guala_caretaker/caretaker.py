@@ -409,8 +409,15 @@ def maybe_read(o: dict, st: dict) -> None:
                     break
                 time.sleep(2)
             if not kept.get("reading"):
-                log("reading: the caregiver could not keep the book beside her; the book closes")
-                break
+                misses = int(st.get("_read_misses", 0)) + 1
+                st["_read_misses"] = misses
+                tail = (kept.get("steps") or [])[-3:]
+                log(f"reading: the caregiver could not bring the book beside her this time (miss {misses}; steps={len(kept.get('steps') or [])} last={tail}); the voice goes on")
+                if misses >= 3:
+                    log("reading: the book could not be brought to her three times running; the book closes")
+                    break
+            else:
+                st["_read_misses"] = 0
     st["read_chapter"] = index + 1 if heard >= len(blocks) else index
     json.dump(st, open(STATE, "w"))   # where the book is open survives a restart
     log(f"reading: {heard} of {len(blocks)} beats reached her ears; next chapter index {st['read_chapter']}")
