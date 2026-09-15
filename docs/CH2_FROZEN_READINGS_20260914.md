@@ -155,3 +155,39 @@ during the window, and the following entry pass shows a run_id other than
 - Proof still pending: the 2026-09-15 00:17 UTC run (all six phases,
   "Published immutable generation", no container replacement) and the
   13:45 UTC entry pass showing a run_id other than `5d9d722c…`.
+
+## Addendum 2 — the first completed run (2026-09-15 00:17 UTC) and a third defect
+
+- Proof of the two repairs: generation hold recorded at 00:17:21, no
+  container replacement during the run, "Published immutable generation
+  snapshot_pub_v2_86ef86a38c4beadfa88941a1" at 00:54:16, hold released,
+  `snapshot_rebuild` complete (2,216 s), `l5_baseline_filter` complete,
+  `runtime_postgres_sync` complete (472 s; 11,483 rows into
+  `runtime_decisions_latest` under run_id `1294a76d-7a81-4f25-8484-3b5f552ecf58`).
+  `/api/health` green on the new generation. CH2's next entry pass reads
+  this run.
+- Then `validation_gate` failed on `ta_semantics_integrity`: 55 of 11,483
+  rows with a valid SMA anchor (11,285 on 2026-08-18). The anchors come from
+  `web/data/screener-quote-cache.json`; the live container carried the
+  image's March fallback (60 rows) because every container since 08-18 was
+  fresh and no run had reached the post-publication quote-cache follow-up.
+  In targeted/full modes the refill is deferred to a detached follow-up
+  launched after the pipeline; a failed gate raises before the launch, so
+  the cache could never refill and the gate could never pass. CH2 does not
+  read the quote cache or the gate (verified by grep across the execution
+  scripts); the website's publication resolution does (`candidateValid`),
+  so the screener stays on its last validated run until the gate passes.
+- Repair (commit db02a1713): `_should_defer_quote_cache_refresh` defers only
+  when the cache on disk is younger than four days; otherwise the refresh
+  runs inline before the runtime sync, as the pre-deferral pipeline did.
+  Eleven local cases pass. Deploy follows once the live gate is green.
+- Live repair of today's state: the designed follow-up
+  (`--quote-cache-followup-only`) was launched by hand inside the serving
+  container as the `node` user with the run's env (`TFE_REFRESH_RUN_ID` of
+  the 00:17 run), logging to `/tmp/c1_followup.log`. First launch (output to
+  `/proc/1/fd/1`) died silently; second launch with file logging runs:
+  `build_screener_quote_cache.py` fetching 11,475 pending symbols, then the
+  follow-up runtime sync and validation.
+- Resume checkpoint: written after `l5_baseline_filter`; ignored after 6 h
+  (`DEFAULT_RESUME_MAX_AGE_SECONDS`), so the next nightly run rebuilds from
+  scratch — no re-freeze risk.
