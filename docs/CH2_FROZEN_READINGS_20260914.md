@@ -330,3 +330,17 @@ changes on ch2 after this reset."
 - CH2 CODE FROZEN from here. Evaluation: fresh book from the next entry
   pass; grade at 20 closed positions under these rules or the first 90-day
   wall; control = the 21 reset positions' exit prices (addendum 5).
+
+## Addendum 7 — the reading runner's fragility, workspace layer fixed (2026-09-15)
+
+Joseph: "Can you fix that fragility". The 2026-08-31 keepalive lived in
+`.devcontainer/post-create.sh`, which runs only when the container is
+created; every restart killed the nightly reading runner (and the CH6 loop,
+the CH3 page loop, the book publisher and the DB rotation guard).
+`.devcontainer/post-start.sh` now runs on every container start
+(`postStartCommand`), /proc-guarded so it is idempotent; first run revived
+three loops that were down. Commits 3c740bfde, 234bfa6f2.
+What this does not cover: the reading still runs from Joseph's machine; if
+it is off at the nightly time there is no reading that night. The server
+layer (dossiers + the reading on ECS, with a model key in production and
+the store synced through S3) is the complete fix and needs his word.
