@@ -48,3 +48,14 @@ It does not name a thing, match a thing to a word, or decide what a thing is; th
   - When her current act has an explicit target (approaching, reaching for, touching, holding, or biting an object), her head yaw and pitch step toward that object's spatial coordinates at up to 5° per beat until foveated.
   - The seed site for figure extraction is set to the target's projected site in her focal field: (col, row) = (40 + floor(yaw_error / 0.75°), 30 + floor(pitch_error / 0.75°)), placing the seed squarely inside the object's surface.
   - When no target is active (idle roaming), head yaw and pitch default to the height of environmental structure, and the seed site defaults to the gaze center site as before.
+
+## 6. Where she looks (built and measured 2026-09-15, Joe's word on both decisions)
+
+- **The neck's pitch bound is seventy degrees** (neck_pitch declared so): at forty-five she was blind to her own hand, sixty-seven degrees below her eye line at her grip's reach.
+- **Her head follows what she acts on**: the target of her act (the thing she moves toward, reaches for, touches, holds or bites; a held thing at her hand's contact point; another body at her eye's height). The neck steps at most five degrees a beat in yaw and pitch toward it, holds within three, stays inside its bounds; her eyes (the declared eye axes, both together) take up the remainder in one beat within forty-five degrees, never past straight down or up; the retina rides neck and eyes together (the carriage law reads both). With nothing to act on, the neck keeps its step toward structure and the eyes rest straight.
+- **Her gaze** is the target's place in the field she sensed this beat (rendered with the carriage as it was), by the world's own site geometry (three quarters of a degree a site, sixty by forty-five degrees); none when the target lies outside the field; else the field's structure centre as before.
+- Measured: the thing is under her gaze on the second beat and at the field's centre once the neck has caught up; after her body turns sixty degrees at a stride the gaze is honestly none for the beats the neck needs to catch up.
+
+## 7. What the world eye shows, as measured (the open part)
+
+Every thing is drawn as a flat square of one luminance (a sphere filled as a box of sites: aspect eight, fill eight); the only property a thing has to her eye is its contrast against the floor, in eighths, which drifts with distance. The apple and the bear give the same key. Her own held thing is not drawn (the optics skip what she holds). So bar 2 fails for the world, not the law: things need looks (the world carries an optical surface per thing, all None today; a held thing must be drawn at her hand), and then the figure's identity is the kernel over the figure's own rows, as the ear's is over the event's frames, not aspect and fill. Awaiting Joe's word on the world's content; A1's textures item.
