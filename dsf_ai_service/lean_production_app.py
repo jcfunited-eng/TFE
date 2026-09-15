@@ -75,11 +75,15 @@ class SensoryBody(BaseModel):
         "microphone",
         "text-light",
         "text-microphone",
+        "thing-sound",
     ]
     retina_rgb_u8: tuple[int, ...] | None = None
     pcm_s16le_base64: str | None = None
     guided_vocal_drives: tuple[GuidedVocalDriveBody, ...] | None = None
     present_food: str | None = Field(default=None, min_length=1, max_length=64, pattern=r"^[A-Za-z0-9-]+$")
+    # Sound from a thing in her world (source "thing-sound"): the thing it comes
+    # from, so her ears hear it by the room's geometry.
+    from_object: str | None = Field(default=None, min_length=1, max_length=64, pattern=r"^[A-Za-z0-9-]+$")
     focal_origin: tuple[float, float] | None = None
     focal_pitch_millidegrees: tuple[int, int] | None = None
     focal_rgb_base64: str | None = None
@@ -262,6 +266,7 @@ def _physical_occurrence(body: OccurrenceBody) -> PhysicalOccurrence:
                 )
             ),
             present_food=payload.present_food,
+            from_object=payload.from_object,
             focal_origin=payload.focal_origin,
             focal_pitch_millidegrees=payload.focal_pitch_millidegrees,
             focal_crop_dimensions=crop_dims,

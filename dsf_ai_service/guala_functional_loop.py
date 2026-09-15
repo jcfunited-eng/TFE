@@ -16,7 +16,7 @@ from dsf_ai_service.guala_cochlea import one_self_hearing_hop
 from dsf_ai_service.guala_vision_fovea import compute_saccadic_gaze
 from dsf_ai_service.guala_functional_organism import (
     BEAT_MICROSECONDS, CAPACITY_MICROGRAMS, Decision, FunctionalOrganism, Sensed,
-    cochlear_profile, syllable_pcm,
+    _distance_mm, _region_of, cochlear_profile, door_crossing, syllable_pcm,
 )
 from dsf_ai_service.guala_world_sensorium import (
     _retinal_luminance, prepare_passive_world_interval, retinal_carriage,
@@ -34,12 +34,20 @@ from dsf_ai_service.substrate.embodiment_world import (
     PORT_ID, PreparedActionExecution, encode_command,
 )
 from dsf_ai_service.substrate.w1_physical_receptors import retinal_irradiance_field
+import audioop
+from fractions import Fraction
 
 
 MAX_NATIVE_INTERVALS_PER_OCCURRENCE = 1
 CAREGIVER_RETRY_BEATS = 16
 OFFER_PATIENCE_BEATS = 40  # a toy is held out to her for ten seconds before it is carried home
 READING_PATIENCE_BEATS = 128  # read to, the caregiver stays beside her this long after the reader's last word
+# Sound from a thing in her world reaches her ears by the room's geometry: at one
+# metre it is what the recording is; farther, it falls as one over the distance
+# (sound pressure in the open); from another room it comes by the doorway, the
+# path bent through the door, and a quarter of it (twelve decibels) gets through.
+SOUND_REFERENCE_MM = 1_000
+SOUND_THROUGH_DOOR = Fraction(1, 4)
 CAMERA_FIELD_MILLIDEGREES = (60_000, 45_000)  # the declared camera field the page's pitch is measured against
 GAZE_RECENTRE = 0.05  # each beat the gaze gives back a twentieth of its offset from the frame's centre
 WORLD_RETINAL_SITES = 4935
@@ -112,6 +120,40 @@ def _said(drive: tuple[int, int, int]) -> str:
 
     pitch, vowel, onset = drive
     return f"{ONSETS[onset]}{VOWELS[vowel][0]} at {pitch / 10:.0f} Hz"
+
+
+def _thing_sound_gain(snapshot: Any, object_id: str) -> tuple[Fraction, int | None, str]:
+    """How much of a thing's sound reaches her ears: (gain, distance in mm, path).
+    The thing must be in her world; in her room the gain is one metre over the
+    distance, capped at one; from another room the path goes through the doorway
+    between them and a quarter of the sound gets through; no thing, no sound."""
+
+    her = _self_body(snapshot)
+    thing = next((item for item in snapshot.objects if item.object_id == object_id), None)
+    if thing is None:
+        return Fraction(0), None, "absent"
+    position = thing.position
+    if position is None:
+        holder = next((body for body in snapshot.bodies if body.body_id == thing.held_by_body_id), None)
+        if holder is None:
+            return Fraction(0), None, "absent"
+        position = holder.pose.position
+    her_region = _region_of(snapshot, her.pose.position, her.radius_mm)
+    thing_region = _region_of(snapshot, position, thing.radius_mm)
+    if her_region is None or thing_region is None or her_region.region_id == thing_region.region_id:
+        distance = max(1, int(round(_distance_mm(her.pose.position, position))))
+        return min(Fraction(1), Fraction(SOUND_REFERENCE_MM, distance)), distance, "room"
+    doors = [portal for portal in snapshot.portals if her_region.region_id in portal.region_ids and thing_region.region_id in portal.region_ids]
+    if not doors:
+        return Fraction(0), None, "no-door"
+    best = None
+    for portal in doors:
+        before_door, past_door = door_crossing(snapshot, portal, her_region.region_id)
+        path = _distance_mm(her.pose.position, before_door) + _distance_mm(before_door, past_door) + _distance_mm(past_door, position)
+        if best is None or path < best:
+            best = path
+    distance = max(1, int(round(best)))
+    return min(Fraction(1), Fraction(SOUND_REFERENCE_MM, distance)) * SOUND_THROUGH_DOOR, distance, "door"
 
 
 def _caregiver_withdrawal(organism: FunctionalOrganism, world: Any) -> dict[str, object] | None:
@@ -240,8 +282,15 @@ class FunctionalPhysicalLoop:
                 source = "camera"
             heard_profile = None
             external_heard = 0
+            room_sound = None
             if sensory is not None and sensory.pressure_s16le is not None:
-                heard_profile, external_heard = _profile(sensory.pressure_s16le)
+                pressure = sensory.pressure_s16le
+                if sensory.from_object is not None:
+                    gain, distance_mm, path = _thing_sound_gain(before, sensory.from_object)
+                    room_sound = {"from": sensory.from_object, "gain": round(float(gain), 6), "distance_mm": distance_mm, "path": path}
+                    pressure = audioop.mul(pressure, 2, float(gain)) if gain > 0 else None
+                if pressure is not None:
+                    heard_profile, external_heard = _profile(pressure)
             self_profile = None
             self_heard = 0
             own_voice = organism.pending_voice
@@ -345,6 +394,7 @@ class FunctionalPhysicalLoop:
                 "her_act": decision.act,
                 "her_counts": organism.counts,
                 "her_sleep": organism.sleep,
+                "room_sound": room_sound,
                 "her_skin": {"contact": organism.contact["felt"], "temperature_millikelvin": skin_mk, "met_millikelvin": getattr(organism, "_met_mk", None),
                              "touched": (presentation or {}).get("touched"), "need": organism.contact["pressure"]},
                 "kernel_novel": decision.novel,
