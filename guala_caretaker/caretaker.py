@@ -355,6 +355,37 @@ def maybe_bedtime(o: dict, st: dict) -> None:
     log(f"bedtime: pillow and blanket to her bed — made={made.get('made')} so far={st['bed_made']} steps={len(made.get('steps') or [])} last={(made.get('steps') or [None])[-1]}")
 
 
+def maybe_housekeeping(o: dict, st: dict) -> None:
+    """Tidy the home:
+    1. If pillow or blanket is displaced on the floor (not on the bed and not held by Guala),
+       fetch and return to her bed so things don't stay stranded.
+    2. While Guala sleeps, audit the home and reset displaced items so she wakes to a clean room.
+    3. Keep the world transaction advancing so circadian sunlight moves continuously."""
+    emb = ((o.get("last_occurrence") or {}).get("embodiment") or {})
+    objects = emb.get("objects") or []
+    bed = next((item for item in objects if item.get("object_id") == "bed"), None)
+    pillow = next((item for item in objects if item.get("object_id") == "pillow"), None)
+    if not bed or not pillow:
+        return
+    if pillow.get("held_by_body_id") is not None:
+        return
+    p_pos = pillow.get("position")
+    b_pos = bed.get("position")
+    if p_pos and b_pos:
+        dx = p_pos["x_mm"] - b_pos["x_mm"]
+        dy = p_pos["y_mm"] - b_pos["y_mm"]
+        dist = (dx * dx + dy * dy) ** 0.5
+        if dist > 1400:
+            tick = int(o.get("live_tick") or 0)
+            if st.get("last_tidy_tick") is not None and tick - int(st["last_tidy_tick"]) < 100:
+                return
+            st["last_tidy_tick"] = tick
+            log(f"housekeeping: returning displaced pillow from ({p_pos['x_mm']}, {p_pos['y_mm']}) to her bed")
+            res = present_food("bedtime")
+            made = (((res or {}).get("observation") or {}).get("last_occurrence") or {}).get("caregiver_presentation") or {}
+            log(f"housekeeping: pillow returned — made={made.get('made')} steps={len(made.get('steps') or [])} last={(made.get('steps') or [None])[-1]}")
+
+
 def maybe_read(o: dict, st: dict) -> None:
     """Read to her: once in READ_EVERY_TICKS of her beats while she is awake, the
     caregiver fetches the book and holds it beside her, and a real human voice
@@ -693,23 +724,27 @@ def wait_clear(min_tick: int | None = None, st: dict | None = None) -> dict | No
                 log(f"unannounced feed by someone else (tick {other}); safety hold until her tick {hold}")
             if st is not None:
                 maybe_lullaby(o, st)  # once, as she falls asleep
-            # Asleep (her own sleep law; eyes closed, no acts), nothing else is
-            # presented: no meal, no toy, no card. The caretaker waits.
+            # While asleep: nocturnal housekeeping resets displaced items
+            # (bedding back on bed, stray items cleared) and keeps the world
+            # clock advancing. Lessons and meals hold.
             if asleep(o):
                 if st is not None and not st.get("asleep_logged"):
-                    log(f"she is asleep (tick {o.get('live_tick')}); the caretaker waits")
+                    log(f"she is asleep (tick {o.get('live_tick')}); nocturnal housekeeping active")
                     st["asleep_logged"] = True
+                if st is not None:
+                    maybe_housekeeping(o, st)
                 time.sleep(POLL_S)
                 continue
             if st is not None and st.get("asleep_logged"):
                 log(f"she is awake (tick {o.get('live_tick')}); the caretaker resumes")
                 st["asleep_logged"] = False
-            # Meals do not wait for a clear window: a hungry organism is fed
-            # while a person's camera and microphone are on. Only the card
-            # lessons hold.
+            # Meals and housekeeping do not wait for a clear window: a hungry
+            # organism is fed, and displaced bedding returned, even while a person's
+            # camera and microphone are on. Only the card lessons hold.
             if st is not None:
                 maybe_feed(o, st)
                 maybe_bedtime(o, st)
+                maybe_housekeeping(o, st)
                 maybe_play(o, st)
                 maybe_read(o, st)   # a reading does not wait for a clear window: a person on the page does not close her book
                 maybe_music(o, st)

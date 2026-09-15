@@ -42,27 +42,52 @@ def librivox_book(title: str, language: str = "English") -> dict:
     """The first LibriVox recording of a title in a language: its Internet
     Archive identifier and the whole recording's length."""
 
-    query = urllib.parse.quote(title)
-    fields = "%7Bid,title,language,totaltimesecs,url_zip_file,url_librivox%7D"
-    books = json.loads(_get(f"{LIBRIVOX_API}?format=json&limit=10&title={query}&fields={fields}"))["books"]
-    book = next((b for b in books if b.get("language") == language), None) or books[0]
-    match = re.search(r"compress/([^/]+)/", book["url_zip_file"])
-    if match is None:
-        raise ValueError("LibriVox book has no Internet Archive identifier")
-    return {"id": book["id"], "title": book["title"], "language": book["language"], "seconds": int(book["totaltimesecs"]),
-            "archive": match.group(1), "url": book["url_librivox"]}
+    archive_fallback = "alice_in_wonderland_librivox"
+    archive_dir = os.path.join(LIBRARY, archive_fallback)
+    try:
+        query = urllib.parse.quote(title)
+        fields = "%7Bid,title,language,totaltimesecs,url_zip_file,url_librivox%7D"
+        books = json.loads(_get(f"{LIBRIVOX_API}?format=json&limit=10&title={query}&fields={fields}"))["books"]
+        book = next((b for b in books if b.get("language") == language), None) or books[0]
+        match = re.search(r"compress/([^/]+)/", book["url_zip_file"])
+        if match is not None:
+            return {"id": book["id"], "title": book["title"], "language": book["language"], "seconds": int(book["totaltimesecs"]),
+                    "archive": match.group(1), "url": book["url_librivox"]}
+    except Exception:
+        pass
+    if os.path.isdir(archive_dir):
+        return {"id": "local", "title": title, "language": language, "seconds": 3600,
+                "archive": archive_fallback, "url": "https://archive.org/details/" + archive_fallback}
+    raise ValueError("LibriVox book has no Internet Archive identifier and no local cache")
 
 
 def chapters(archive: str) -> list[dict]:
     """The chapter recordings of one Internet Archive item, in order (the 64 kb/s
-    files when the item has them)."""
+    files when the item has them). Reads kept sound locally first to avoid network
+    rate-limits or offline failures."""
 
-    meta = json.loads(_get(f"{ARCHIVE_METADATA}{archive}"))
-    files = [f for f in meta["files"] if f["name"].lower().endswith(".mp3")]
-    small = [f for f in files if "64kb" in f["name"].lower()]
-    files = small or files
-    files.sort(key=lambda f: f["name"])
-    return [{"name": f["name"], "length": f.get("length"), "size": int(f.get("size") or 0)} for f in files]
+    archive_dir = os.path.join(LIBRARY, archive)
+    if os.path.isdir(archive_dir):
+        pcm_files = sorted([f for f in os.listdir(archive_dir) if f.lower().endswith(".pcm")])
+        if pcm_files:
+            return [{"name": re.sub(r"\.pcm$", ".mp3", f, flags=re.IGNORECASE), "length": None, "size": os.path.getsize(os.path.join(archive_dir, f))} for f in pcm_files]
+
+    try:
+        meta = json.loads(_get(f"{ARCHIVE_METADATA}{archive}"))
+        files = [f for f in meta.get("files", []) if isinstance(f, dict) and str(f.get("name", "")).lower().endswith(".mp3")]
+        small = [f for f in files if "64kb" in str(f.get("name", "")).lower()]
+        files = small or files
+        files.sort(key=lambda f: str(f.get("name", "")))
+        if files:
+            return [{"name": f["name"], "length": f.get("length"), "size": int(f.get("size") or 0)} for f in files]
+    except Exception:
+        pass
+
+    if os.path.isdir(archive_dir):
+        files = sorted([f for f in os.listdir(archive_dir) if f.lower().endswith((".mp3", ".pcm"))])
+        if files:
+            return [{"name": re.sub(r"\.pcm$", ".mp3", f, flags=re.IGNORECASE), "length": None, "size": os.path.getsize(os.path.join(archive_dir, f))} for f in files]
+    raise RuntimeError(f"no chapters found for archive item {archive}")
 
 
 def chapter_pcm_path(archive: str, name: str) -> str:
@@ -141,24 +166,37 @@ def tracks(archive: str) -> list[dict]:
     """The sound files of one Archive item, in order: plain mp3/ogg/flac files, or,
     when the item holds one zip, the sound files inside it (named zip!member)."""
 
-    meta = json.loads(_get(f"{ARCHIVE_METADATA}{archive}"))
-    sound = [f for f in meta["files"] if f["name"].lower().endswith((".mp3", ".ogg", ".flac"))]
-    if sound:
-        # One file per piece: an item often holds the same piece as mp3 and ogg.
-        preferred = {".mp3": 0, ".ogg": 1, ".flac": 2}
-        by_stem: dict[str, dict] = {}
-        for f in sorted(sound, key=lambda f: (f["name"].rsplit(".", 1)[0], preferred.get("." + f["name"].rsplit(".", 1)[-1].lower(), 9))):
-            by_stem.setdefault(f["name"].rsplit(".", 1)[0], f)
-        return [{"name": f["name"], "length": f.get("length"), "size": int(f.get("size") or 0)} for f in by_stem.values()]
-    zips = [f for f in meta["files"] if f["name"].lower().endswith(".zip")]
-    if not zips:
-        return []
-    zip_name = sorted(zips, key=lambda f: f["name"])[0]["name"]
-    zip_path = _fetch_file(archive, zip_name)
-    import zipfile
-    with zipfile.ZipFile(zip_path) as z:
-        members = sorted(n for n in z.namelist() if n.lower().endswith((".mp3", ".ogg", ".flac")))
-    return [{"name": f"{zip_name}!{member}", "length": None, "size": 0} for member in members]
+    archive_dir = os.path.join(LIBRARY, archive)
+    if os.path.isdir(archive_dir):
+        pcm_files = sorted([f for f in os.listdir(archive_dir) if f.lower().endswith(".pcm")])
+        if pcm_files:
+            return [{"name": re.sub(r"\.pcm$", ".mp3", f, flags=re.IGNORECASE), "length": None, "size": os.path.getsize(os.path.join(archive_dir, f))} for f in pcm_files]
+
+    try:
+        meta = json.loads(_get(f"{ARCHIVE_METADATA}{archive}"))
+        sound = [f for f in meta.get("files", []) if isinstance(f, dict) and str(f.get("name", "")).lower().endswith((".mp3", ".ogg", ".flac"))]
+        if sound:
+            preferred = {".mp3": 0, ".ogg": 1, ".flac": 2}
+            by_stem: dict[str, dict] = {}
+            for f in sorted(sound, key=lambda f: (str(f.get("name", "")).rsplit(".", 1)[0], preferred.get("." + str(f.get("name", "")).rsplit(".", 1)[-1].lower(), 9))):
+                by_stem.setdefault(str(f.get("name", "")).rsplit(".", 1)[0], f)
+            return [{"name": f["name"], "length": f.get("length"), "size": int(f.get("size") or 0)} for f in by_stem.values()]
+        zips = [f for f in meta.get("files", []) if isinstance(f, dict) and str(f.get("name", "")).lower().endswith(".zip")]
+        if zips:
+            zip_name = sorted(zips, key=lambda f: str(f.get("name", "")))[0]["name"]
+            zip_path = _fetch_file(archive, zip_name)
+            import zipfile
+            with zipfile.ZipFile(zip_path) as z:
+                members = sorted(n for n in z.namelist() if n.lower().endswith((".mp3", ".ogg", ".flac")))
+            return [{"name": f"{zip_name}!{member}", "length": None, "size": 0} for member in members]
+    except Exception:
+        pass
+
+    if os.path.isdir(archive_dir):
+        files = sorted([f for f in os.listdir(archive_dir) if f.lower().endswith((".mp3", ".pcm", ".ogg", ".flac"))])
+        if files:
+            return [{"name": re.sub(r"\.pcm$", ".mp3", f, flags=re.IGNORECASE), "length": None, "size": os.path.getsize(os.path.join(archive_dir, f))} for f in files]
+    return []
 
 
 def _fetch_file(archive: str, name: str) -> str:
@@ -211,27 +249,30 @@ def commons_word(word: str, accent: str = "en-us") -> str | None:
         return kept[0]
     title = f"File:{accent.capitalize()}-{word}.ogg"
     query = urllib.parse.urlencode({"action": "query", "titles": title, "prop": "imageinfo", "iiprop": "url|extmetadata", "format": "json"})
-    pages = json.loads(_get(f"{COMMONS_API}?{query}"))["query"]["pages"]
-    page = next(iter(pages.values()))
-    info = (page.get("imageinfo") or [None])[0]
-    if info is None:
+    try:
+        pages = json.loads(_get(f"{COMMONS_API}?{query}"))["query"]["pages"]
+        page = next(iter(pages.values()))
+        info = (page.get("imageinfo") or [None])[0]
+        if info is None:
+            return None
+        meta = info.get("extmetadata") or {}
+        licence = (meta.get("LicenseShortName") or {}).get("value") or (meta.get("License") or {}).get("value") or "unknown"
+        author = (meta.get("Artist") or {}).get("value") or "unknown"
+        folder = os.path.join(LIBRARY, "words")
+        os.makedirs(folder, exist_ok=True)
+        source = os.path.join(folder, f"{accent}-{word}.ogg")
+        with open(source, "wb") as out:
+            out.write(_get(info["url"], timeout=300))
+        pcm_path = os.path.join(folder, f"{accent}-{word}.pcm")
+        _convert_word(source, pcm_path)
+        os.remove(source)
+        record_path = os.path.join(folder, "LICENCES.json")
+        records = json.load(open(record_path)) if os.path.exists(record_path) else {}
+        records[f"{accent}-{word}"] = {"title": title, "url": info["url"], "licence": licence, "author": re.sub(r"<[^>]+>", "", author)}
+        json.dump(records, open(record_path, "w"), indent=1)
+        return pcm_path
+    except Exception:
         return None
-    meta = info.get("extmetadata") or {}
-    licence = (meta.get("LicenseShortName") or {}).get("value") or (meta.get("License") or {}).get("value") or "unknown"
-    author = (meta.get("Artist") or {}).get("value") or "unknown"
-    folder = os.path.join(LIBRARY, "words")
-    os.makedirs(folder, exist_ok=True)
-    source = os.path.join(folder, f"{accent}-{word}.ogg")
-    with open(source, "wb") as out:
-        out.write(_get(info["url"], timeout=300))
-    pcm_path = os.path.join(folder, f"{accent}-{word}.pcm")
-    _convert_word(source, pcm_path)
-    os.remove(source)
-    record_path = os.path.join(folder, "LICENCES.json")
-    records = json.load(open(record_path)) if os.path.exists(record_path) else {}
-    records[f"{accent}-{word}"] = {"title": title, "url": info["url"], "licence": licence, "author": re.sub(r"<[^>]+>", "", author)}
-    json.dump(records, open(record_path, "w"), indent=1)
-    return pcm_path
 
 
 __all__ = ("LIBRARY", "BLOCK_BYTES", "MUSIC_ITEMS", "blocks", "chapters", "commons_word", "fetch_chapter", "fetch_track", "librivox_book", "tracks")
