@@ -415,6 +415,18 @@ def maybe_read(o: dict, st: dict) -> None:
     log(f"reading: {heard} of {len(blocks)} beats reached her ears; next chapter index {st['read_chapter']}")
 
 
+def room_of_point(o: dict, position: dict) -> str | None:
+    """Which of her rooms a point lies in, from the regions the observation carries."""
+    emb = (o.get("last_occurrence") or {}).get("embodiment") or {}
+    x, y = position.get("x_mm"), position.get("y_mm")
+    for region in emb.get("regions") or []:
+        b = region.get("bounds") or {}
+        lo, hi = b.get("minimum") or {}, b.get("maximum") or {}
+        if lo and hi and lo["x_mm"] <= x <= hi["x_mm"] and lo["y_mm"] <= y <= hi["y_mm"]:
+            return region.get("region_id")
+    return None
+
+
 def play_block(pcm: bytes, from_object: str) -> dict | None:
     """One beat of a thing's sound in her world (the radio): her ears get it by
     the room's geometry between her and the thing."""
@@ -450,6 +462,15 @@ def maybe_music(o: dict, st: dict) -> None:
             return
         st["radio_in_world"] = True
         log(f"radio: brought into her world as {made.get('delivered')}")
+    # The radio comes to where she is when it stands in another room, so the
+    # music is at hand rather than through a doorway.
+    emb = (o.get("last_occurrence") or {}).get("embodiment") or {}
+    radio = next((ob for ob in (emb.get("objects") or []) if ob.get("object_id") == "radio"), None)
+    her_room = emb.get("room_id")
+    if radio is not None and radio.get("position") is not None and her_room and room_of_point(o, radio["position"]) != her_room:
+        res = present_food("radio-to-her")
+        made = (((res or {}).get("observation") or {}).get("last_occurrence") or {}).get("caregiver_presentation") or {}
+        log(f"radio: carried to her — presented={made.get('presented')} set_down={made.get('set_down')} steps={len(made.get('steps') or [])}")
     try:
         index = int(st.get("music_index") or 0)
         archive, licence = media.MUSIC_ITEMS[index % len(media.MUSIC_ITEMS)]
