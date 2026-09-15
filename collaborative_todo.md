@@ -15487,3 +15487,19 @@ What the night left in her (capture 0915a, tick 916,131, body 72,137 bytes): day
 The first 60 beats awake: 42 choices were first tries, 13 least tried under a structure with a record, 5 from her sleep; acts across eleven kinds; 4 syllables; kitchen and dining alternating. Speech: 140 syllable tries in the record, 4 answered (during the caretaker's lessons); her ten syllables are tried evenly (27 or 28 each), nothing preferred yet. Beats to her own first meal: not yet measurable; she was fed at waking. I will read it from the next capture.
 
 Still open from the sleep plan: N1 (down-selection by evidence) now has its baseline; N5 (coarser keys) is argued for by the numbers above: 33 situations of four letters carry almost nothing to choose by yet, and the day record refills at 256 structures. No build without Joe's word; the clock stays.
+
+## JOE'S ORDER (filed by C1) — 2026-09-15 — physical touch and taste: the next build after the open items
+
+Joe: "where are all the give haptic feedback, i.e. hugs, kisses, holding, hand holding" — measured answer: nowhere; her only touch is her own hand on things, the caretaker's hand never touches her body, and no need in her changes with contact. Joe: "Yes do that; physical touch and taste are hugely important to learning speech." Filed as the next build, to start once the open items are closed (A1's item 3 pacing under the gate; the bedtime retry; the own-first-meal reading).
+
+C1 builds, in her terms:
+1. Contact between bodies in the world: the caregiver's hand on her body by region (hand, arm, back, head, face) and by kind (press, stroke, hold as a sustained contact, enclose as a hug, a brief face contact with its sound as a kiss); the world's contact law extended so body-to-body contact is signed geometry like everything else; the caregiver still never moves her.
+2. Her skin: the contact she receives as measured streams (where it lands and how much), bounded and stated, through the same kernel as her other senses.
+3. The need it drops: a contact pressure that rises without touch and falls with it, like her sleep pressure, declared once; a touch after her act pays under her existing value law as her measured need at the moment of choice times the drop, no new constants; a touch after her syllable counts as an answer in her speech record exactly as a room sound does.
+4. Her side: reaching for the caregiver's hand and leaning toward the caregiver as candidates when the caregiver is within reach; whether she does them comes from her record.
+
+A1 builds, under the honesty gate, filed on guala-live, measured only:
+5. The caretaker's acts in the script and the hand: stroke her hand, hold her hand while she stands, hug, kiss her head, given as answers after what she does (the law the lullaby and the lessons follow: presented, never moving her), on the world commands C1 lands in item 1.
+6. Taste from mouthing: oral contact with a thing she holds gives the taste of its material (not only intake), so her mouth explores as infants' do; the taste stream carries it; the jaw reflex stays for food only.
+
+Gates for both: tests from zero, a replay of her live state, proofs with the actor stage, no scripted meaning, no rule that decides for her. The clock stays.
