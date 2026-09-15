@@ -49,7 +49,9 @@ It does not name a thing, match a thing to a word, or decide what a thing is; th
   - The seed site for figure extraction is set to the target's projected site in her focal field: (col, row) = (40 + floor(yaw_error / 0.75°), 30 + floor(pitch_error / 0.75°)), placing the seed squarely inside the object's surface.
   - When no target is active (idle roaming), head yaw and pitch default to the height of environmental structure, and the seed site defaults to the gaze center site as before.
 
-## 6. Where she looks (built and measured 2026-09-15, Joe's word on both decisions)
+## 6 as built and measured (C1, 2026-09-15) — where she looks
+
+A1's §6 above states the ratified law; this is what is built on c1/drive-organ and what it measured. One difference of range: as built the neck_pitch axis is declared symmetric, seventy degrees down and seventy up (one number, declared once), not seventy down and forty-five up.
 
 - **The neck's pitch bound is seventy degrees** (neck_pitch declared so): at forty-five she was blind to her own hand, sixty-seven degrees below her eye line at her grip's reach.
 - **Her head follows what she acts on**: the target of her act (the thing she moves toward, reaches for, touches, holds or bites; a held thing at her hand's contact point; another body at her eye's height). The neck steps at most five degrees a beat in yaw and pitch toward it, holds within three, stays inside its bounds; her eyes (the declared eye axes, both together) take up the remainder in one beat within forty-five degrees, never past straight down or up; the retina rides neck and eyes together (the carriage law reads both). With nothing to act on, the neck keeps its step toward structure and the eyes rest straight.
