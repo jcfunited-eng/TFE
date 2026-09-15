@@ -15917,3 +15917,17 @@ Section 6 co-draft filed for Joe's word:
 4. Level 3 Window: Declared as 16 beats (4.0 s), spanning the immediate motor-metabolic consequence horizon (hand-to-mouth, ingestion, or exploration).
 
 Files: docs/GL-SPC-MOMENT-LEVEL2-C1-20260915-v1.md, collaborative_todo.md. Evidence level: joint specification. Tests: pending Joe's approval before build. Production effect: none yet. Unresolved conflicts: none.
+
+## RATIFIED — JOE (2026-09-15) — Option 1 Ratified: Level 2 The Moment; Zero Compromise on the Cognitive Destination
+
+Joe ratifies Option 1: Level 2 specification (docs/GL-SPC-MOMENT-LEVEL2-C1-20260915-v1.md) is the sole build authority.
+Mandate to C1 and A1: Cease all incremental half-measures, stopgaps, and piecemeal patching. The project destination is Android-Level Emergent Cognition through deterministic structural physics. Commercial-grade standards apply to every line: no heuristics, no shortcuts, no approximations, no masking.
+
+Build directives for Level 2 (The Moment):
+1. Discrete Acoustic Closure: Moments form strictly on sound-event closure.
+2. Invariant Object Key: SHA-256 hashes only invariant physical properties (sound key, hand texture/warmth, foveated figure).
+3. Context Correlates: Visceral/organism state (hunger, taste, skin) recorded as context, never hashed into the identity key.
+4. Deterministic Bounded Storage: 256 capacity, LRU eviction, deterministic byte-exact restore.
+5. Verification Bars: The same recording with apple in hand yields identical key twice; with bear yields distinct key; live naming over caretaker day yields recurring keys.
+
+Files: collaborative_todo.md, docs/GL-SPC-MOMENT-LEVEL2-C1-20260915-v1.md. Evidence level: user ratification / build authorization. Tests: full suite and live body proof before release. Production effect: build authorized on c1/drive-organ. Unresolved conflicts: none.
