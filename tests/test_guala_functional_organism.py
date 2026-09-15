@@ -1078,6 +1078,10 @@ def test_read_to_the_caregiver_holds_the_book_beside_her_and_stays_while_the_rea
     for _ in range(12):
         o = loop.settle(organism, world, UNATTENDED).observation
         assert o["caregiver_withdrawal"] is None, "the caregiver walked away during the reading"
+    # The book in her own hands (or within her reach) keeps the reading: shown again, it still reads.
+    from dsf_ai_service.guala_caretaker_hand import present_food as _present
+    again = _present(world, "read-book")
+    assert again["reading"] is True, again["steps"][-3:]
     organism._state["reading_until_tick"] = organism.live_organism_tick   # the reader's last word was long ago
     organism._state["offer_since_tick"] = organism.live_organism_tick - 1_000
     went_home = False

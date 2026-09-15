@@ -833,9 +833,22 @@ def present_food(world: Any, object_id: str) -> dict[str, object]:
     if object_id in READ_IDS:
         # Read to her: the caregiver fetches the book and holds it beside her; the
         # reader's voice comes to her ears by the microphone channel, block by block.
-        outcome = present_food(world, READ_IDS[object_id])
+        # Once she has taken the book into her own hands, or it lies within her
+        # reach, the book is beside her already and the reading goes on.
+        book_id = READ_IDS[object_id]
+        outcome = present_food(world, book_id)
         outcome["object_id"] = object_id
-        outcome["reading"] = bool(outcome.get("presented"))
+        reading = bool(outcome.get("presented"))
+        if not reading:
+            snapshot = world.observation_snapshot()
+            her = next(body for body in snapshot.bodies if body.body_id == snapshot.self_body_id)
+            book = next((item for item in snapshot.objects if item.object_id == book_id), None)
+            if book is not None:
+                if book.held_by_body_id == her.body_id:
+                    reading = True
+                elif book.position is not None and _distance_mm(her.pose.position, book.position) <= her.reach_mm:
+                    reading = True
+        outcome["reading"] = reading
         return outcome
     delivered = None
     if object_id == DELIVERY_ID:
