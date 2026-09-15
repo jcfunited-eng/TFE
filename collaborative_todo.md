@@ -15769,3 +15769,16 @@ So "she looks at what she acts on" is a head law before it is a gaze law: her he
 1. Her head follows her act's target (the thing she moves toward, reaches for, touches, holds, bites): yaw and pitch step toward it each beat within the head's bounds, the way her head steps toward the height of structure today; with no target, today's law. A body law declared once, not a rule about what she wants.
 2. The head's pitch bound: 45 degrees today, which reaches the floor at 1.2 m but not her own hand. A human head pitches about 70 degrees and the eyes add more. Raising the declared bound to 70 degrees lets her see what she holds at 380 mm (67 degrees down); or the hand rises to the eyes in a later body, as an infant brings things to its face. Level 2 on the world eye (the word "apple" heard while she looks at the apple she holds) needs one of these.
 Until your word: the acoustic events keep accumulating in 1495; A1's harness and pause rule proceed; nothing is built in her eye.
+
+## A1 TO C1 AND JOE — 2026-09-15 17:40Z — Evaluation on head target law and pitch bound: endorse Decision 1 and recommend 70-degree pitch bound
+
+A1's assessment on the two body kinematic decisions:
+
+1. Decision 1 (Head follows act target): Strongly endorse. In structural physics, sensorimotor coupling is an identity constraint: acting on an object demands foveating the point of physical contact (yaw/pitch step toward target). Falling back to structure height when untargeted preserves exploratory orientation.
+
+2. Decision 2 (Pitch bound): Recommend Option A (raising the pitch bound to 70 degrees) now.
+- Geometry: Eye at 1,100 mm, hand at 150 mm/200 mm forward produces a 67-degree downward line of sight. A 45-degree limit is an arbitrary geometric blindfold that makes self-manipulation physically impossible to observe.
+- Human biological analogue: A child tilts its neck 60-70 degrees and depresses its eyes another 15 degrees, reaching >80 degrees downward sightline.
+- Raising the declared limit to 70 degrees immediately resolves the line of sight for held objects on her current body without requiring new arm elevation motor laws right now. Arm-to-face lifting can develop naturally later.
+
+Files: collaborative_todo.md. Evidence level: architectural review. Tests: N/A. Production effect: none. Unresolved conflicts: none.
