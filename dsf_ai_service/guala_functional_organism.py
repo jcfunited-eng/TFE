@@ -1124,9 +1124,13 @@ class FunctionalOrganism:
         hop_heard = False
         if heard_now is not None:
             energy = sum(heard_now) / len(heard_now)
-            if energy >= HEARD_ENERGY_FLOOR and energy >= ambient * HEARD_ABOVE_AMBIENT:
+            # Her ear's perception law is the floor alone (the ear streams' own); the
+            # running ambient decides only what is worth answering (what pays). Measured
+            # on her live body: with the ambient in the gate's hearing, a word two beats
+            # after music was not heard at all, and music was chopped by its own level.
+            hop_heard = energy >= HEARD_ENERGY_FLOOR
+            if hop_heard and energy >= ambient * HEARD_ABOVE_AMBIENT:
                 sound_now = _clamp(energy * 4, 0.0, 1.0)
-                hop_heard = True
         self._hear_events(sensed.heard_frames, hop_heard, tick)
         self._settle(key, novel, sound_now, skin_now, tick, warmth_likeness=float(getattr(self, "_warmth_likeness", 0.0)), pain=float(getattr(self, "_pain", 0.0)))
 
