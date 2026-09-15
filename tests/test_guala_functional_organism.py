@@ -1052,3 +1052,111 @@ def test_a_hot_thing_in_her_hand_is_let_go_by_reflex_costs_in_her_record_and_the
             world.commit_prepared_action(prepared)
         o = loop.settle(organism, world, UNATTENDED).observation
         assert o["her_act"] != "bite", o["act_reason"]
+
+
+def test_read_to_the_caregiver_holds_the_book_beside_her_and_stays_while_the_reading_lasts() -> None:
+    """A reading: the caregiver fetches the book and holds it beside her; it does
+    not walk home while the reading window lasts, and goes home after."""
+
+    from dsf_ai_service.guala_functional_loop import READING_PATIENCE_BEATS
+
+    world = home_world_authority(identity=IDENTITY)
+    organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
+    loop = FunctionalPhysicalLoop()
+    loop.settle(organism, world, UNATTENDED)
+    o = loop.settle(organism, world, _touch_occurrence("read-book")).observation
+    presentation = o["caregiver_presentation"]
+    assert presentation["object_id"] == "read-book" and presentation["reading"] is True, presentation["steps"][-3:]
+    snapshot = world.observation_snapshot()
+    her = _her(world)
+    person = next(b for b in snapshot.bodies if b.body_id != snapshot.self_body_id)
+    # The book is beside her: in the caregiver's hand or, if she took it on that beat, in hers.
+    assert "book" in (person.held_object_id, her.held_object_id)
+    assert math.dist((her.pose.position.x, her.pose.position.y), (person.pose.position.x, person.pose.position.y)) <= her.reach_mm + person.radius_mm + 300
+    started = organism.live_organism_tick
+    assert organism._state["reading_until_tick"] == started - 1 + READING_PATIENCE_BEATS
+    for _ in range(12):
+        o = loop.settle(organism, world, UNATTENDED).observation
+        assert o["caregiver_withdrawal"] is None, "the caregiver walked away during the reading"
+    # The book in her own hands (or within her reach) keeps the reading: shown again, it still reads.
+    from dsf_ai_service.guala_caretaker_hand import present_food as _present
+    again = _present(world, "read-book")
+    assert again["reading"] is True, again["steps"][-3:]
+    organism._state["reading_until_tick"] = organism.live_organism_tick   # the reader's last word was long ago
+    organism._state["offer_since_tick"] = organism.live_organism_tick - 1_000
+    went_home = False
+    for _ in range(6):
+        o = loop.settle(organism, world, UNATTENDED).observation
+        if o["caregiver_withdrawal"] is not None:
+            went_home = True
+            break
+    assert went_home
+
+
+def _thing_sound_occurrence(object_id: str, pcm: bytes):
+    import base64
+    import dsf_ai_service.lean_production_app as production
+    return production._physical_occurrence(production.OccurrenceBody(
+        kind="sensory", payload=production.SensoryBody(source="thing-sound", from_object=object_id, pcm_s16le_base64=base64.b64encode(pcm).decode("ascii"))))
+
+
+def test_a_things_sound_reaches_her_by_the_rooms_geometry_and_a_missing_thing_is_silent() -> None:
+    """Sound from the radio: at hand it is what the recording is; farther it falls
+    as one over the distance; from another room it comes through the doorway at a
+    quarter; a thing not in her world makes no sound at her ears."""
+
+    from dsf_ai_service.guala_functional_loop import SOUND_REFERENCE_MM, _thing_sound_gain
+    from dsf_ai_service.substrate.embodiment_world import EmbodiedObject
+
+    world = home_world_authority(identity=IDENTITY)
+    organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
+    loop = FunctionalPhysicalLoop()
+    loop.settle(organism, world, UNATTENDED)
+    snapshot = world.observation_snapshot()
+    radio = next(item for item in snapshot.objects if item.object_id == "radio")
+    her = _her(world)
+    # She is in her room; the radio stands in the tv-room: the sound comes by a doorway or not at all.
+    gain, distance, path = _thing_sound_gain(snapshot, "radio")
+    assert path in ("door", "no-door") and (path == "no-door" or (0 < gain <= 0.25 and distance > SOUND_REFERENCE_MM)), (gain, distance, path)
+    # A radio set down beside her in her own room sounds at (nearly) full strength; at four metres at a quarter.
+    snapshot = world.observation_snapshot()
+    apple = next(item for item in snapshot.objects if item.object_id == "apple")
+    placed = None
+    for dx, dy in ((700, 0), (0, 700), (-700, 0), (0, -700), (900, 300), (300, 900)):
+        spot = PositionMM(her.pose.position.x + dx, her.pose.position.y + dy, 0)
+        try:
+            world.admit_authored_arrival(EmbodiedObject("radio-near", radio.radius_mm, radio.mass_grams, spot, reflectance_ppm=radio.reflectance_ppm, material=radio.material))
+            placed = spot
+            break
+        except ValueError:
+            continue
+    assert placed is not None
+    snapshot = world.observation_snapshot()
+    gain, distance, path = _thing_sound_gain(snapshot, "radio-near")
+    assert path == "room" and abs(distance - 700) <= 5 and gain == 1, (gain, distance, path)
+    tone = struct.pack("<4000h", *(int(9000 * math.sin(2 * math.pi * 370 * i / 16000)) for i in range(4000)))
+    o = loop.settle(organism, world, _thing_sound_occurrence("radio-near", tone)).observation
+    assert o["room_sound"]["from"] == "radio-near" and o["room_sound"]["gain"] == 1.0 and o["external_heard_sample_count"] == 4000
+    heard_near = organism._state["streams"]["sound_energy"][-1]
+    assert heard_near > 0
+    # The same tone from a thing that is not in her world: silence at her ears.
+    o = loop.settle(organism, world, _thing_sound_occurrence("radio-nowhere", tone)).observation
+    assert o["room_sound"]["gain"] == 0.0 and o["room_sound"]["path"] == "absent"
+    assert organism._state["streams"]["sound_energy"][-1] < heard_near
+    # A radio brought in by the caregiver: the world already holds the declared radio, so the delivery names it.
+    o = loop.settle(organism, world, _touch_occurrence("radio-delivery")).observation
+    assert o["caregiver_presentation"]["delivered"] == "radio" and o["caregiver_presentation"]["presented"] is True
+
+
+def test_a_things_sound_must_name_the_thing_and_only_that_source_does() -> None:
+    import base64
+    import pytest
+    import dsf_ai_service.lean_production_app as production
+
+    pcm = base64.b64encode(b"\x00\x01" * 4000).decode("ascii")
+    with pytest.raises(ValueError):
+        production._physical_occurrence(production.OccurrenceBody(kind="sensory", payload=production.SensoryBody(source="thing-sound", pcm_s16le_base64=pcm)))
+    with pytest.raises(ValueError):
+        production._physical_occurrence(production.OccurrenceBody(kind="sensory", payload=production.SensoryBody(source="microphone", from_object="radio", pcm_s16le_base64=pcm)))
+    ok = production._physical_occurrence(production.OccurrenceBody(kind="sensory", payload=production.SensoryBody(source="thing-sound", from_object="radio", pcm_s16le_base64=pcm)))
+    assert ok.payload.from_object == "radio"

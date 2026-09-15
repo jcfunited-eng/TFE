@@ -25,6 +25,7 @@ SOURCES = frozenset({
     "microphone",
     "text-light",
     "text-microphone",
+    "thing-sound",
 })
 # Hand-over-hand teaching (drive organ, 2026-09-13): the axes a caregiver can
 # physically move — trunk 0-1, head 2-3, jaw 14, limbs 19-36 — by the body's
@@ -34,7 +35,7 @@ SOURCES = frozenset({
 CAREGIVER_GUIDABLE_BODY_AXES = frozenset({0, 1, 2, 3, 14, *range(19, 37)})
 MAX_GUIDED_BODY_DRIVES = 8  # two hands on at most eight axes in one quarter second
 LIGHT_ONLY_SOURCES = frozenset({"camera", "media", "text-light"})
-PRESSURE_ONLY_SOURCES = frozenset({"microphone"})
+PRESSURE_ONLY_SOURCES = frozenset({"microphone", "thing-sound"})
 CO_SENSORY_SOURCES = frozenset({
     "camera-microphone",
     "card-microphone",
@@ -118,6 +119,9 @@ class LeanSensoryOccurrence:
     # person body presents at her mouth's reach this interval. Present only;
     # nothing moves her.
     present_food: str | None = None
+    # Sound from a thing in her world (source "thing-sound" only): which thing,
+    # so the loop scales it by the room's geometry between her and it.
+    from_object: str | None = None
     # Camera foveal crop parameters: frame-relative origin (horizontal, vertical
     # fractions in [0, 1]), angular pitch in millidegrees, and crop pixel dimensions.
     focal_origin: tuple[float, float] | None = None
@@ -140,6 +144,14 @@ class LeanSensoryOccurrence:
             raise ValueError("presented food identity left its bounded form")
         if self.source == "caretaker-food" and (retina is not None or pressure is not None or guided is not None):
             raise ValueError("caretaker food source carries no light, pressure or body work")
+        if (self.source == "thing-sound") != (self.from_object is not None):
+            raise ValueError("a thing's sound names the thing it comes from, and only that source does")
+        if self.from_object is not None and (
+            not isinstance(self.from_object, str)
+            or not 1 <= len(self.from_object) <= 64
+            or not self.from_object.replace("-", "").isalnum()
+        ):
+            raise ValueError("the sounding thing's identity left its bounded form")
         if retina is not None:
             _validate_retina_rgb(retina)
         if pressure is not None and (
@@ -256,6 +268,8 @@ class LeanSensoryOccurrence:
                 )
         if self.present_food is not None:
             body += b"\0present:" + self.present_food.encode("ascii")
+        if self.from_object is not None:
+            body += b"\0from:" + self.from_object.encode("ascii")
         if self.focal_origin is not None:
             body += f"\0focal_origin:{self.focal_origin[0]:.4f},{self.focal_origin[1]:.4f}".encode("ascii")
         if self.focal_pitch_millidegrees is not None:

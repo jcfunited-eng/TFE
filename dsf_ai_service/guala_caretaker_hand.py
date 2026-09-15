@@ -617,6 +617,42 @@ class _Hand:
         return outcome
 
 
+def deliver_thing(world: Any, template_id: str) -> str | None:
+    """A thing the home declares but this world does not yet hold (the radio,
+    for a world that predates it) enters at the world's boundary beside the
+    caregiver's home spot, as groceries do. Returns its identity, the one it
+    already has when the world holds it, or None when the world refused."""
+
+    import math
+
+    from dsf_ai_service.guala_home_world import _home_rooms_and_things
+    from dsf_ai_service.substrate.embodiment_world import EmbodiedObject
+
+    snapshot = world.observation_snapshot()
+    if any(item.object_id == template_id for item in snapshot.objects):
+        return template_id
+    _regions, _portals, declared = _home_rooms_and_things()
+    template = next((item for item in declared if item.object_id == template_id), None)
+    if template is None:
+        return None
+    for radius in (450, 600, 750, 900):
+        for degrees in (0, 45, -45, 90, -90, 135, -135, 180):
+            angle = math.radians(degrees)
+            spot = PositionMM(round(CAREGIVER_HOME_MM.x + radius * math.cos(angle)), round(CAREGIVER_HOME_MM.y + radius * math.sin(angle)), 0)
+            region = _region_of(snapshot, spot, template.radius_mm)
+            if region is None or in_doorway(snapshot, spot, region.region_id, SET_DOWN_DOOR_CLEARANCE_MM):
+                continue
+            try:
+                world.admit_authored_arrival(EmbodiedObject(
+                    template_id, template.radius_mm, template.mass_grams, spot,
+                    reflectance_ppm=template.reflectance_ppm, material=template.material,
+                ))
+            except ValueError:
+                continue
+            return template_id
+    return None
+
+
 def deliver_apple(world: Any) -> str | None:
     """Groceries: one fresh apple, as the home declares an apple, enters the
     world at its boundary beside the caregiver's home spot (never in a
@@ -754,6 +790,9 @@ def make_bed(world: Any) -> dict[str, object]:
     return record
 
 
+READ_IDS = {"read-book": "book"}
+DELIVER_IDS = {"radio-delivery": "radio"}   # a declared thing brought into a world that predates it   # a reading: the book the caregiver holds beside her while a real voice reads
+
 TOUCH_IDS = {
     "touch-hold-hand": "hold_hand", "touch-hug": "hug", "touch-kiss": "forehead_kiss",
     "touch-pat": "head_pat", "touch-shoulder": "shoulder_touch",
@@ -828,6 +867,30 @@ def present_food(world: Any, object_id: str) -> dict[str, object]:
         return touch_her(world, object_id)
     if object_id == BEDTIME_ID:
         return make_bed(world)
+    if object_id in DELIVER_IDS:
+        brought = deliver_thing(world, DELIVER_IDS[object_id])
+        return {"object_id": object_id, "presented": brought is not None, "took_away": None, "delivered": brought,
+                "schema": "guala.caregiver_presentation.v1", "steps": [{"operation": "deliver", "reason": "applied" if brought else "arrival_refused", "to": None}]}
+    if object_id in READ_IDS:
+        # Read to her: the caregiver fetches the book and holds it beside her; the
+        # reader's voice comes to her ears by the microphone channel, block by block.
+        # Once she has taken the book into her own hands, or it lies within her
+        # reach, the book is beside her already and the reading goes on.
+        book_id = READ_IDS[object_id]
+        outcome = present_food(world, book_id)
+        outcome["object_id"] = object_id
+        reading = bool(outcome.get("presented"))
+        if not reading:
+            snapshot = world.observation_snapshot()
+            her = next(body for body in snapshot.bodies if body.body_id == snapshot.self_body_id)
+            book = next((item for item in snapshot.objects if item.object_id == book_id), None)
+            if book is not None:
+                if book.held_by_body_id == her.body_id:
+                    reading = True
+                elif book.position is not None and _distance_mm(her.pose.position, book.position) <= her.reach_mm:
+                    reading = True
+        outcome["reading"] = reading
+        return outcome
     delivered = None
     if object_id == DELIVERY_ID:
         delivered = deliver_apple(world)
