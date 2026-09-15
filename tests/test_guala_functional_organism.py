@@ -1274,3 +1274,98 @@ def test_a_caregiver_presentation_can_never_end_her_beat() -> None:
         loop_module.present_food = original
     assert organism.live_organism_tick == before + 1
     assert o["caregiver_presentation"]["presented"] is False and "failed: RuntimeError" in o["caregiver_presentation"]["steps"][0]["reason"]
+
+
+# ----- Level 1: the acoustic gate in her beat (docs/GL-SPC-ACOUSTIC-GATE-C1-20260915-v1.md) -----
+
+LIBRARY = "/workspaces/Tao_Financial_Engine/guala_caretaker/media"
+SILENT_HOP = b"\0" * 8_000
+
+
+def _hops(path: str, start: int = 0, count: int | None = None) -> list[bytes]:
+    raw = open(path, "rb").read()
+    hops = [raw[i:i + 8_000] for i in range(0, len(raw) - 7_999, 8_000)]
+    return hops[start:start + count] if count else hops
+
+
+def _word_hops(word: str) -> list[bytes]:
+    return _hops(f"{LIBRARY}/words/en-us-{word}.pcm")
+
+
+def _hear_beats(organism, world, hops, silence_after: int = 2):
+    """The room sounds each beat (a hop of silence is a beat without an occurrence)."""
+
+    return _run(organism, world, [(_heard(hop) if hop is not None else UNATTENDED) for hop in hops] + [UNATTENDED] * silence_after)
+
+
+def test_a_spoken_word_in_her_beat_is_one_event_with_the_pure_functions_key_and_a_restart_mid_word_keeps_it() -> None:
+    import os
+    import pytest
+    from dsf_ai_service.guala_acoustic_gate import events_of
+    if not os.path.exists(f"{LIBRARY}/words/en-us-apple.pcm"):
+        pytest.skip("her library's spoken words are not on this machine")
+    apple = _word_hops("apple")
+    offline = events_of([SILENT_HOP] * 2 + apple + [SILENT_HOP] * 2)
+    assert len(offline) == 1
+    world = home_world_authority(identity=IDENTITY)
+    organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
+    results = _hear_beats(organism, world, [None, None] + apple)
+    ears = [r.observation["her_ear"] for r in results]
+    closed = [key for ear in ears for key in ear["closed"]]
+    assert closed == [offline[0].key], (closed, offline[0].key)
+    assert organism._state["events"][offline[0].key][0] == 1 and organism.counts["events"] == 1
+    assert organism._state["sound_event"][0] == offline[0].key and organism.ear["last"][0] == offline[0].key
+    assert any(ear["open"] for ear in ears) and not organism.ear["open"]
+    # The same word again: met twice, still one event in the store.
+    _hear_beats(organism, world, apple)
+    assert organism._state["events"][offline[0].key][0] == 2 and organism.counts["events"] == 1
+    # A restart in the middle of the word: the open event travels in her body, the key is the same.
+    world2 = home_world_authority(identity=IDENTITY)
+    organism2 = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
+    _hear_beats(organism2, world2, [None, None] + apple[:1], silence_after=0)
+    assert organism2.ear["open"] and organism2.ear["open_frames"] > 0
+    encoded = organism2.encoded()
+    organism3 = FunctionalOrganism.restore(encoded)
+    assert organism3.encoded() == encoded
+    results3 = _hear_beats(organism3, world2, apple[1:])
+    closed3 = [key for r in results3 for key in r.observation["her_ear"]["closed"]]
+    assert closed3 == [offline[0].key], (closed3, offline[0].key)
+
+
+def test_music_becomes_bounded_events_in_her_beat_and_her_body_stays_within_its_bound() -> None:
+    import os
+    import pytest
+    from dsf_ai_service.guala_acoustic_gate import MAX_EVENT_FRAMES
+    music_path = f"{LIBRARY}/musopen-chopin/Allegro de Concert Op. 46 in A Major.pcm"
+    if not os.path.exists(music_path):
+        pytest.skip("her library's music is not on this machine")
+    world = home_world_authority(identity=IDENTITY)
+    organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
+    loop = FunctionalPhysicalLoop()
+    sizes = []
+    open_frames = []
+    closed = []
+    for hop in [None, None] + _hops(music_path, 200, 60) + [None] * 3:
+        result = loop.settle(organism, world, _heard(hop) if hop is not None else UNATTENDED)
+        ear = result.observation["her_ear"]
+        sizes.append(len(organism.encoded()))
+        open_frames.append(ear["open_frames"])
+        closed.extend(ear["closed"])
+    assert closed and max(open_frames) <= MAX_EVENT_FRAMES and not organism.ear["open"]
+    assert all(organism._state["events"][key][2] <= MAX_EVENT_FRAMES // 25 for key in closed)
+    assert len(organism._state["events"]) <= 256
+    assert max(sizes) < 112_000, max(sizes)   # her bound with the open event's frames (at most 300 of seven values) and the events store
+    encoded = organism.encoded()
+    assert FunctionalOrganism.restore(encoded).encoded() == encoded
+
+
+def test_a_beat_without_sound_closes_an_open_event_and_the_record_of_quiet_is_bounded() -> None:
+    world = home_world_authority(identity=IDENTITY)
+    organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
+    results = _hear_beats(organism, world, [None, _tone(440), _tone(440), None, None, _tone(900), None, None], silence_after=0)
+    ears = [r.observation["her_ear"] for r in results]
+    closed = [key for ear in ears for key in ear["closed"]]
+    assert len(closed) == 2 and closed[0] != closed[1]
+    assert ears[1]["open"] and ears[2]["open"] and not ears[4]["open"]
+    quiet = organism._state["ear_quiet"]
+    assert len(quiet["inside"]) == 11 and len(quiet["between"]) == 5 and sum(quiet["between"]) == 1

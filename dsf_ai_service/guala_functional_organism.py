@@ -33,6 +33,7 @@ from uf_core.layer2 import interpret_gates
 from uf_core.layer3 import compute_resonance
 from uf_core.layer4 import compute_directional_signal, compute_dsf
 
+from dsf_ai_service.guala_acoustic_gate import FRAMES_PER_HOP, PAUSE_FRAMES, SILENT_FRAME, gate_step
 from dsf_ai_service.guala_caretaker_hand import (
     _approach_point, _distance_mm, _heading_toward, _portal_points, _portal_route, _region_of,
     nothing_left_to_bite, offered_within_reach,
@@ -202,6 +203,21 @@ SPEECH_RECORD_CAPACITY = 64
 ANSWER_WINDOW_BEATS = 4
 PHRASE_WINDOW_BEATS = 8
 
+# Level 1 (docs/GL-SPC-ACOUSTIC-GATE-C1-20260915-v1.md): a spoken sound as one event
+# with its own boundaries, kept by the key of its own structure. The day's store of
+# events keeps the most recently met (her day law); nothing here names a sound or
+# answers one. Her record of quiet is the datum for a pause law read from nature
+# instead of the declared twelve frames: the runs of quiet inside events that a
+# sounding frame ended (1..11 frames), and the silence between events in frames,
+# binned at a beat, two, eight, sixty-four, and beyond.
+EVENT_RECORD_CAPACITY = 256
+QUIET_RUN_BINS = PAUSE_FRAMES - 1
+GAP_BINS_FRAMES = (FRAMES_PER_HOP, FRAMES_PER_HOP * 2, FRAMES_PER_HOP * 8, FRAMES_PER_HOP * 64)
+
+
+def _empty_ear_quiet() -> dict[str, list[int]]:
+    return {"inside": [0] * QUIET_RUN_BINS, "between": [0] * (len(GAP_BINS_FRAMES) + 1)}
+
 # Syllables: her airway's onsets x vowels (2 x 5 = 10), at its first pitch (the
 # other three pitches are not in the record yet: a reduction, stated here).
 # Syllables are chosen from her own record of which sounds got answered,
@@ -315,6 +331,7 @@ class Sensed:
     skin_contact: float = 0.0                       # fraction of her skin another body pressed this beat
     skin_temperature_millikelvin: int | None = None  # her cutaneous node now (None: no thermal body)
     touch_surface_millikelvin: int | None = None     # the temperature of the skin that pressed hers this beat
+    heard_frames: tuple[tuple[float, ...], ...] = ()  # the room sound's 25 frames at her ear (energy, six band fractions); () = no sound
 
 
 @dataclass(frozen=True, slots=True)
@@ -708,6 +725,7 @@ class FunctionalOrganism:
             "sleep_pressure": 0, "asleep": False, "learned": {}, "nights": 0, "act_totals": {}, "contact_pressure": 0, "pending_contact": 0.0, "pending_contact_millikelvin": None, "reading_until_tick": 0,
             "target_totals": {}, "taste_residue": 0.0,
             "speech": {}, "syllable_totals": {}, "prior_syllable": None, "pending_syllable": None,
+            "ear_event": None, "events": {}, "sound_event": None, "ear_quiet": _empty_ear_quiet(),
         })
 
     @classmethod
@@ -786,6 +804,18 @@ class FunctionalOrganism:
         if "pending_syllable" not in state:
             state["pending_syllable"] = None
             changed = True
+        if "ear_event" not in state:
+            state["ear_event"] = None
+            changed = True
+        if "events" not in state:
+            state["events"] = {}
+            changed = True
+        if "sound_event" not in state:
+            state["sound_event"] = None
+            changed = True
+        if "ear_quiet" not in state:
+            state["ear_quiet"] = _empty_ear_quiet()
+            changed = True
         for key in RETIRED_KEYS:
             if key in state:
                 del state[key]
@@ -843,6 +873,24 @@ class FunctionalOrganism:
 
         return {"asleep": self.asleep, "pressure": [int(self._state.get("sleep_pressure", 0)), SLEEP_PRESSURE_CEILING], "nights": int(self._state.get("nights", 0))}
 
+    @property
+    def ear(self) -> dict[str, object]:
+        """Her acoustic gate as the page sees it: the events that closed on her last
+        beat (their keys and how many times she has met each), whether one is open
+        and for how many frames, the last event closed (key, tick), and how many
+        events her day's store holds."""
+
+        state = self._state
+        closed = [str(key) for key in getattr(self, "_ear_closed", [])]
+        events = state.get("events") or {}
+        open_event = state.get("ear_event")
+        last = state.get("sound_event")
+        return {
+            "closed": closed, "met": [int(events[key][0]) for key in closed if key in events],
+            "open": open_event is not None, "open_frames": 0 if open_event is None else len(open_event["frames"]),
+            "last": None if last is None else [str(last[0]), int(last[1])], "events": len(events),
+        }
+
     def readiness(self) -> Readiness:
         encoded = self.encoded()
         return Readiness(self.identity, self.live_organism_tick, _sha256(encoded), len(encoded), 0, self.body_axes)
@@ -896,6 +944,7 @@ class FunctionalOrganism:
         counts["structures"] = len(self._state.get("acts", {}))
         counts["learned"] = len(self._state.get("learned", {}))
         counts["nights"] = int(self._state.get("nights", 0))
+        counts["events"] = len(self._state.get("events") or {})
         return counts
 
     # ----- the kernel over her measured streams --------------------------------------
@@ -1072,10 +1121,13 @@ class FunctionalOrganism:
         heard_now = sensed.heard_profile
         ambient = float(state.get("ambient_sound", 0.0))
         sound_now = 0.0
+        hop_heard = False
         if heard_now is not None:
             energy = sum(heard_now) / len(heard_now)
             if energy >= HEARD_ENERGY_FLOOR and energy >= ambient * HEARD_ABOVE_AMBIENT:
                 sound_now = _clamp(energy * 4, 0.0, 1.0)
+                hop_heard = True
+        self._hear_events(sensed.heard_frames, hop_heard, tick)
         self._settle(key, novel, sound_now, skin_now, tick, warmth_likeness=float(getattr(self, "_warmth_likeness", 0.0)), pain=float(getattr(self, "_pain", 0.0)))
 
         def decision(act: str, reason: str, commands: tuple[Any, ...] = (), target: str | None = None, drive: tuple[int, int, int] | None = None) -> Decision:
@@ -1154,6 +1206,36 @@ class FunctionalOrganism:
         state["pending_act"] = {"key": key, "regimes": regimes, "act": act, "deficit": deficit, "sleep_ratio": sleep_ratio, "contact_ratio": contact_ratio, "intake": 0, "refused": False}
         state["last_chosen"] = {"key": key, "regimes": regimes, "act": act, "deficit": deficit, "sleep_ratio": sleep_ratio}
         return decision(act, why + (("; " + detail) if detail else ""), commands, target, drive)
+
+    # ----- Level 1: the acoustic gate over her beat ------------------------------------
+
+    def _hear_events(self, frames: tuple[tuple[float, ...], ...], heard: bool, tick: int) -> None:
+        """The boundary law over this beat's frames at her ear; a beat without a room
+        sound is a hop of silence to it (an open event closes within it). Each event
+        closed is kept in her day's store by the key of its own structure; the gaps
+        of quiet go to her record of quiet."""
+
+        state = self._state
+        hop = tuple(frames) if frames else (SILENT_FRAME,) * FRAMES_PER_HOP
+        open_event, closed, quiet_runs = gate_step(state.get("ear_event"), hop, heard, tick * FRAMES_PER_HOP)
+        state["ear_event"] = open_event
+        quiet = state.setdefault("ear_quiet", _empty_ear_quiet())
+        for run in quiet_runs:
+            if 1 <= run <= QUIET_RUN_BINS:
+                quiet["inside"][run - 1] += 1
+        events = state.setdefault("events", {})
+        self._ear_closed = []
+        for event in closed:
+            previous = state.get("sound_event")
+            if previous is not None:
+                gap = event.start_frame - int(previous[2]) - 1
+                quiet["between"][sum(1 for bound in GAP_BINS_FRAMES if gap > bound)] += 1
+            entry = events.get(event.key)
+            events[event.key] = [1, tick, event.beats] if entry is None else [int(entry[0]) + 1, tick, int(entry[2])]
+            while len(events) > EVENT_RECORD_CAPACITY:
+                del events[min(events, key=lambda k: (int(events[k][1]), k))]   # the least recently met leaves
+            state["sound_event"] = [event.key, tick, event.end_frame]
+            self._ear_closed.append(event.key)
 
     # ----- her record of acts -----------------------------------------------------------
 

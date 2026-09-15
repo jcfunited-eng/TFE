@@ -11,6 +11,7 @@ import hashlib
 import json
 from typing import Any
 
+from dsf_ai_service.guala_acoustic_gate import frames_of_cochleae
 from dsf_ai_service.guala_caretaker_hand import nothing_left_to_bite, present_food, withdraw
 from dsf_ai_service.guala_cochlea import one_self_hearing_hop
 from dsf_ai_service.guala_vision_fovea import compute_saccadic_gaze
@@ -85,6 +86,14 @@ def _world_retina_u8(snapshot: Any, axes: tuple[Any, ...]) -> tuple[int, ...]:
 def _profile(pressure: bytes) -> tuple[tuple[float, ...], int]:
     _times, _legacy, cochleae, consumed = one_self_hearing_hop(pressure)
     return cochlear_profile(cochleae), consumed
+
+
+def _hearing(pressure: bytes) -> tuple[tuple[float, ...], tuple[tuple[float, ...], ...], int]:
+    """One transduction of the room's sound: the hop's peak profile (her streams)
+    and its 25 frames (her acoustic gate, Level 1)."""
+
+    _times, _legacy, cochleae, consumed = one_self_hearing_hop(pressure)
+    return cochlear_profile(cochleae), frames_of_cochleae(cochleae), consumed
 
 
 def _oral_intake_micrograms(execution: ActionExecutionReceipt) -> int:
@@ -295,6 +304,7 @@ class FunctionalPhysicalLoop:
                     focal = tuple(rgb_retina_luminance_u8(external_rgb))
                 source = "camera"
             heard_profile = None
+            heard_frames: tuple[tuple[float, ...], ...] = ()
             external_heard = 0
             room_sound = None
             if sensory is not None and sensory.pressure_s16le is not None:
@@ -304,7 +314,7 @@ class FunctionalPhysicalLoop:
                     room_sound = {"from": sensory.from_object, "gain": round(float(gain), 6), "distance_mm": distance_mm, "path": path}
                     pressure = audioop.mul(pressure, 2, float(gain)) if gain > 0 else None
                 if pressure is not None:
-                    heard_profile, external_heard = _profile(pressure)
+                    heard_profile, heard_frames, external_heard = _hearing(pressure)
             self_profile = None
             self_heard = 0
             own_voice = organism.pending_voice
@@ -325,7 +335,7 @@ class FunctionalPhysicalLoop:
             read_skin = getattr(world, "self_skin_temperature_millikelvin", None)
             skin_mk = None if read_skin is None else int(read_skin())
             touch_mk = max((int(c["surface_millikelvin"]) for c in contacts if c.get("surface_millikelvin") is not None), default=None)
-            sensed = Sensed(before, focal, source, heard_profile, self_profile, wide, skin_contact, skin_mk, touch_mk)
+            sensed = Sensed(before, focal, source, heard_profile, self_profile, wide, skin_contact, skin_mk, touch_mk, heard_frames=heard_frames)
             decision = organism.decide(sensed)
             prepared, applied, refusal, refused = _apply(world, decision, before)
             execution = prepared.execution_receipt
@@ -411,6 +421,7 @@ class FunctionalPhysicalLoop:
                 "room_sound": room_sound,
                 "her_skin": {"contact": organism.contact["felt"], "temperature_millikelvin": skin_mk, "met_millikelvin": getattr(organism, "_met_mk", None),
                              "touched": (presentation or {}).get("touched"), "need": organism.contact["pressure"]},
+                "her_ear": organism.ear,
                 "kernel_novel": decision.novel,
                 "kernel_signature": decision.signature,
                 "latest_retinal_field_kind": "external-rgb" if external_rgb is not None else "achromatic",

@@ -32,7 +32,7 @@ def _hops(path: str, start: int = 0, count: int | None = None) -> list[bytes]:
 def test_silence_has_no_event_and_a_tone_is_one_event_with_its_own_structure() -> None:
     assert events_of([SILENCE] * 6) == []
     frames, heard = hop_frames(SILENCE)
-    assert len(frames) == FRAMES_PER_HOP and heard is False and all(f.energy == 0.0 for f in frames)
+    assert len(frames) == FRAMES_PER_HOP and heard is False and all(f[0] == 0.0 for f in frames)
     low = events_of([SILENCE] * 2 + _tone(200) + [SILENCE] * 2)
     high = events_of([SILENCE] * 2 + _tone(3000) + [SILENCE] * 2)
     assert len(low) == 1 and len(high) == 1
