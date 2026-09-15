@@ -30,6 +30,8 @@ from dsf_ai_service.substrate.embodiment_world import (
     _derived_contact_patch_square_mm,
     _receptor_position,
     encode_command,
+    BodySurfaceActuation,
+    BodySurfaceContactCommand,
 )
 
 
@@ -274,6 +276,7 @@ class _Hand:
         self.world = world
         self.object_id = object_id
         self.steps: list[dict[str, object]] = []
+        self.last_contacts: tuple[Any, ...] = ()
 
     def snapshot(self) -> Any:
         return self.world.observation_snapshot()
@@ -308,6 +311,7 @@ class _Hand:
         if isinstance(prepared, ActionExecutionReceipt):
             self.steps.append({"operation": operation, "reason": prepared.reason, "to": where})
             return prepared
+        self.last_contacts = self.world.body_surface_contacts_for_prepared_action(prepared) if isinstance(command, BodySurfaceContactCommand) else ()
         # Her last interval's physical return, if one is waiting, stays hers:
         # its content is untouched and only its binding follows the world the
         # caregiver just changed, so her next interval still consumes it.
@@ -750,6 +754,67 @@ def make_bed(world: Any) -> dict[str, object]:
     return record
 
 
+TOUCH_IDS = {
+    "touch-hold-hand": "hold_hand", "touch-hug": "hug", "touch-kiss": "forehead_kiss",
+    "touch-pat": "head_pat", "touch-shoulder": "shoulder_touch",
+}
+TOUCH_DURATION_US = 250_000   # one beat of her world: a longer hold is the same contact given beat after beat
+
+
+def _contact_profile(kind: str, her_body_id: str) -> tuple[tuple[Any, ...], int]:
+    """One touch as surfaces: which of the caregiver's skin sites presses which
+    of hers, how deep, and how it slides. Geometry only; no meaning, no reward,
+    no expected response (those are hers to settle)."""
+
+    def contact(actor_site: str, recipient_site: str, compression_um: int, tu_um: int = 0, tv_um: int = 0) -> Any:
+        return BodySurfaceActuation(actor_site_id=actor_site, recipient_body_id=her_body_id, recipient_site_id=recipient_site,
+                                    compression_micrometres=compression_um, tangential_u_micrometres=tu_um, tangential_v_micrometres=tv_um)
+
+    profiles = {
+        "hold_hand": (contact("right-palm", "left-palm", 1_000),),
+        "hug": (contact("front-torso", "front-torso", 2_000), contact("left-palm", "right-shoulder", 1_000), contact("right-palm", "left-shoulder", 1_000)),
+        "forehead_kiss": (contact("perioral", "forehead", 500),),
+        "head_pat": (contact("downward-palm", "crown", 750, 12_000, 0),),
+        "shoulder_touch": (contact("right-palm", "left-shoulder", 1_000),),
+    }
+    actuations = profiles[kind]
+    for actuation in actuations:
+        actuation.verify()
+    return actuations, TOUCH_DURATION_US
+
+
+def touch_her(world: Any, touch_id: str) -> dict[str, object]:
+    """The caregiver's touch: come within her reach, then one beat of skin on
+    skin through the world's own contact law (press, dwell, release; the heat
+    it conducts lands on her skin). Never moves her. A record in the
+    presentation's shape, with what touched her and how much of her it covered."""
+
+    kind = TOUCH_IDS[touch_id]
+    record: dict[str, object] = {"object_id": touch_id, "presented": False, "took_away": None, "delivered": None,
+                                 "touched": None, "contacts": [], "schema": "guala.caregiver_presentation.v1", "steps": []}
+    hand = _Hand(world, touch_id)
+    try:
+        snapshot = hand.snapshot()
+        her, _person = hand.bodies(snapshot)
+        if hand.reach_her(her):
+            actuations, duration = _contact_profile(kind, her.body_id)
+            receipt = hand.execute("touch", BodySurfaceContactCommand(actuations, duration))
+            if receipt.reason == "applied":
+                record["touched"] = kind
+                contacts = []
+                for actuation, prepared in zip(actuations, hand.last_contacts or ()):
+                    physical = prepared.physical
+                    heat = physical.conductive_heat_to_a_nanojoules if physical.body_a_id == her.body_id else physical.conductive_heat_to_b_nanojoules
+                    contacts.append({"site": actuation.recipient_site_id, "area_um2": int(prepared.recipient_site_area_square_micrometres),
+                                     "compression_um": int(actuation.compression_micrometres), "heat_nj": int(heat)})
+                record["contacts"] = contacts
+    except _Bounded:
+        pass
+    record["presented"] = record["touched"] is not None
+    record["steps"] = hand.steps
+    return record
+
+
 def present_food(world: Any, object_id: str) -> dict[str, object]:
     """Have the caregiver present ``object_id`` at her mouth's reach. Returns
     the bounded, honest record of what the world allowed. ``DELIVERY_ID``
@@ -757,6 +822,8 @@ def present_food(world: Any, object_id: str) -> dict[str, object]:
 
     if not isinstance(object_id, str) or not object_id:
         raise ValueError("presented food needs an object identity")
+    if object_id in TOUCH_IDS:
+        return touch_her(world, object_id)
     if object_id == BEDTIME_ID:
         return make_bed(world)
     delivered = None

@@ -564,6 +564,12 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
             self._thermal_anatomy.skin_node_index
         ].temperature_millikelvin
 
+    def self_skin_temperature_millikelvin(self) -> Fraction:
+        """Her cutaneous node's temperature now: what her skin is at, read-only."""
+
+        with self._lock:
+            return self._thermal_state.nodes[self._thermal_anatomy.skin_node_index].temperature_millikelvin
+
     def _apply_prepared_body_surface_heat(
         self,
         prepared: PreparedActionExecution,

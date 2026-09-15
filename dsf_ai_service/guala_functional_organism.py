@@ -39,6 +39,7 @@ from dsf_ai_service.guala_caretaker_hand import (
 )
 from dsf_ai_service.guala_voice import ONSETS, PITCHES_DECIHERTZ, VOWELS, syllable_pcm as airway_syllable_pcm
 from dsf_ai_service.substrate.embodiment_world import (
+    BodySurfaceActuation, BodySurfaceContactCommand,
     GraspContactCommand, MoveCommand, OralContactCommand, PoseMM, PositionMM,
     ReleaseHeldObjectCommand, TakeContactHeldObjectCommand, TouchContactCommand, _derived_contact_patch_square_mm, _receptor_position,
     rotate_lattice_offset,
@@ -60,9 +61,9 @@ CAPACITY_MICROGRAMS = 500_000
 BASAL_BURN_MICROGRAMS = 3
 ACT_BURN_MULTIPLE = {
     "rest": 0, "sleep": 0, "bite": 2, "grasp": 2, "take": 2, "release": 1, "touch": 1, "turn_left": 1, "turn_right": 1,
-    "step": 4, "toward_food": 4, "toward_bed": 4, "toward_thing": 4, "toward_door": 4, "say": 2,
+    "step": 4, "toward_food": 4, "toward_bed": 4, "toward_thing": 4, "toward_door": 4, "toward_person": 4, "reach_hand": 1, "say": 2,
 }
-MOVES = ("step", "toward_food", "toward_bed", "toward_thing", "toward_door")
+MOVES = ("step", "toward_food", "toward_bed", "toward_thing", "toward_door", "toward_person")
 HUNGRY_BELOW = Fraction(3, 5)   # feeding starts below 60 percent of capacity
 SATED_ABOVE = Fraction(17, 20)  # feeding ends at 85 percent (one apple from hungry)
 
@@ -93,7 +94,7 @@ HEAD_PITCH_BOUND_MILLIDEGREES = 45_000
 # discrete multi-modal structure in front of her each beat; the record keeps,
 # for each structure she has met, each act she tried there, the successor
 # distribution that followed, and the measured value to her bodily needs.
-ACTS = ("take", "grasp", "touch", "release", "toward_food", "toward_bed", "toward_thing", "toward_door", "step", "turn_left", "turn_right", "say", "rest")
+ACTS = ("take", "grasp", "touch", "release", "toward_food", "toward_bed", "toward_thing", "toward_door", "toward_person", "reach_hand", "step", "turn_left", "turn_right", "say", "rest")
 ACT_RECORD_CAPACITY = 256   # structures remembered with their acts; recurrent structures persist
 EXPLORE_EVERY = 8
 MAX_CANDIDATES = 32
@@ -106,6 +107,12 @@ MAX_CANDIDATES = 32
 # no act, and she burns at basal. She wakes when the pressure is gone.
 SLEEP_PRESSURE_CEILING = 113_600
 SLEEP_RECOVERY_PER_BEAT = 2
+# Her need for contact: rises one per awake beat without another body's touch on her
+# skin, and a beat of touch relieves one sixty-fourth of the ceiling (two hours of her
+# beats, the sleep ceiling's unit). Declared once; a touch pays by this need at the
+# moment she chose, as food pays by hunger.
+CONTACT_PRESSURE_CEILING = 14_200
+CONTACT_RECOVERY_PER_BEAT = CONTACT_PRESSURE_CEILING // 64
 BED_ID = "bed"
 EXHAUSTION_MARGIN = Fraction(1, 8)
 EYELID_OPEN_MICROMETRES = 10_000
@@ -141,11 +148,12 @@ DOOR_CROSSING_OFFSETS_MM = (0, 300, -300, 500, -500)
 # Active: sight (luminance, horizontal, vertical), sound (energy, pitch)
 # Passive: smell (odour release/concentration), taste (oral residue), touch (texture/roughness/compliance), interoceptive somatic pressure
 # Relational / Proprioceptive: hunger, food_distance, heading, hand
-STREAMS = (
+STREAMS_V13 = (
     "sight_luminance", "sight_horizontal", "sight_vertical", "sound_energy",
     "sound_pitch", "smell_odour", "taste_residue", "touch_texture",
     "sleep_pressure", "hunger", "food_distance", "heading", "hand",
 )
+STREAMS = STREAMS_V13 + ("skin_contact", "contact_pressure")   # her skin pressed by another body; her need for contact
 LEGACY_STREAMS = (
     "sight_luminance", "sight_horizontal", "sight_vertical", "sound_energy",
     "sound_pitch", "hunger", "food_distance", "heading", "hand",
@@ -291,6 +299,7 @@ class Sensed:
     heard_profile: tuple[float, ...] | None
     self_profile: tuple[float, ...] | None
     wide_luminance_u8: tuple[int, ...] = ()
+    skin_contact: float = 0.0                       # fraction of her skin another body pressed this beat
 
 
 @dataclass(frozen=True, slots=True)
@@ -341,6 +350,31 @@ def things_in_sight(snapshot: Any) -> tuple[SeenThing, ...]:
             continue
         seen.append(SeenThing(item.object_id, item.position, item.radius_mm, distance, bearing, _is_food(item)))
     return tuple(sorted(seen, key=lambda thing: (thing.distance_mm, thing.object_id)))
+
+
+PERSON_STOP_MM = 600            # centre to centre, where her palm can meet the caregiver's palm (the caregiver offers from here too)
+REACH_SITES = (("right-palm", "left-palm"), ("left-palm", "right-palm"))   # her palm to the caregiver's facing palm, tried in order
+
+
+def caregiver_in_sight(snapshot: Any) -> SeenThing | None:
+    """The caregiver's body when it stands in her room, within her range and field
+    of view: seen the way a thing is seen (the same geometry), never assumed."""
+
+    body = _self_body(snapshot)
+    region = _region_of(snapshot, body.pose.position, body.radius_mm)
+    for other in snapshot.bodies:
+        if other.body_id == snapshot.self_body_id or region is None:
+            continue
+        if _region_of(snapshot, other.pose.position, other.radius_mm) is not region:
+            continue
+        distance = _distance_mm(body.pose.position, other.pose.position)
+        if distance > SIGHT_RANGE_MM:
+            continue
+        bearing = _heading_toward(body.pose.position, other.pose.position)
+        if abs(_bearing_offset(body.pose.heading_millidegrees, bearing)) > FIELD_OF_VIEW_MILLIDEGREES:
+            continue
+        return SeenThing(other.body_id, other.pose.position, other.radius_mm, distance, bearing, False)
+    return None
 
 
 def in_hand_reach(snapshot: Any, item: Any) -> bool:
@@ -499,19 +533,29 @@ def cochlear_profile(cochleae: tuple[tuple[float, ...], ...]) -> tuple[float, ..
     return tuple(round(max(channel), 6) for channel in cochleae)
 
 
+def _streams_for(regimes: str) -> tuple[str, ...] | None:
+    """Which stream tuple wrote a regimes string: told by its length, so a key or a
+    situation written under an earlier stream count still names the same streams."""
+
+    for streams in (STREAMS, STREAMS_V13, LEGACY_STREAMS):
+        if len(regimes) == len(streams):
+            return streams
+    return None
+
+
 def choice_key(regimes: str) -> str:
     """The key of the structure she chooses under and remembers as met: the
     regime letters of the choice streams, hashed."""
 
-    streams = LEGACY_STREAMS if len(regimes) == len(LEGACY_STREAMS) else STREAMS
-    letters = "".join(regimes[streams.index(name)] for name in CHOICE_STREAMS if name in streams) if len(regimes) == len(streams) else regimes
+    streams = _streams_for(regimes)
+    letters = "".join(regimes[streams.index(name)] for name in CHOICE_STREAMS if name in streams) if streams is not None else regimes
     return _sha256(" ".join(letters).encode("utf-8"))[:16]
 
 
 def coarse_key(regimes: str) -> str:
     """Her situation: the regime letters of the consolidated streams only."""
 
-    streams = LEGACY_STREAMS if len(regimes) == len(LEGACY_STREAMS) else STREAMS
+    streams = _streams_for(regimes) or STREAMS
     return "".join(regimes[streams.index(name)] if len(regimes) == len(streams) and name in streams else "_" for name in CONSOLIDATED_STREAMS)
 
 
@@ -570,6 +614,19 @@ def candidates(
         if item.distance_mm > stop + ARRIVAL_MM:
             out.append(("toward_thing", item.object_id, move_commands_toward(snapshot, item.position, stop), item.object_id, None))
 
+    # 6b. Toward the caregiver when seen; her palm to the caregiver's palm when near
+    # enough for her reach (the world settles the geometry and refuses what it cannot).
+    person = caregiver_in_sight(snapshot)
+    if person is not None:
+        if person.distance_mm > PERSON_STOP_MM + ARRIVAL_MM:
+            out.append(("toward_person", person.object_id, move_commands_toward(snapshot, person.position, PERSON_STOP_MM), person.object_id, None))
+        if held is None and person.distance_mm <= body.reach_mm + person.radius_mm:
+            commands = tuple(
+                BodySurfaceContactCommand((BodySurfaceActuation(actor_site_id=mine, recipient_body_id=person.object_id, recipient_site_id=theirs,
+                                                                compression_micrometres=1_000, tangential_u_micrometres=0, tangential_v_micrometres=0),), BEAT_MICROSECONDS)
+                for mine, theirs in REACH_SITES)
+            out.append(("reach_hand", "her palm to the caregiver's hand", commands, person.object_id, None))
+
     # 7. Toward every door of her room
     here = _region_of(snapshot, position, body.radius_mm)
     if here is not None:
@@ -619,7 +676,7 @@ class FunctionalOrganism:
             "pending_voice": None, "pending_drive": None, "meals_micrograms": 0, "bites": 0, "strides": 0, "syllables": 0,
             "voice_version": VOICE_VERSION, "ambient_sound": 0.0, "handled": 0, "room_now": None,
             "head": [0, 0], "acts": {}, "pending_act": None, "last_chosen": None,
-            "sleep_pressure": 0, "asleep": False, "learned": {}, "nights": 0, "act_totals": {},
+            "sleep_pressure": 0, "asleep": False, "learned": {}, "nights": 0, "act_totals": {}, "contact_pressure": 0, "pending_contact": 0.0,
             "target_totals": {}, "taste_residue": 0.0,
             "speech": {}, "syllable_totals": {}, "prior_syllable": None, "pending_syllable": None,
         })
@@ -672,6 +729,12 @@ class FunctionalOrganism:
                 for act, (tries, _total) in entry.get("acts", {}).items():
                     totals[act] = totals.get(act, 0) + int(tries)
             state["act_totals"] = totals
+            changed = True
+        if "contact_pressure" not in state:
+            state["contact_pressure"] = 0
+            changed = True
+        if "pending_contact" not in state:
+            state["pending_contact"] = 0.0
             changed = True
         if "target_totals" not in state:
             state["target_totals"] = {}
@@ -729,6 +792,15 @@ class FunctionalOrganism:
     @property
     def asleep(self) -> bool:
         return bool(self._state.get("asleep"))
+
+    @property
+    def contact(self) -> dict[str, object]:
+        """Her need for contact as the page sees it: the pressure over its ceiling,
+        and the fraction of her skin that met another body's on her last beat
+        (the caregiver's touch, or her own palm on the caregiver's hand)."""
+
+        window = self._state.get("streams", {}).get("skin_contact") or []
+        return {"pressure": [int(self._state.get("contact_pressure", 0)), CONTACT_PRESSURE_CEILING], "felt": float(window[-1]) if window else 0.0}
 
     @property
     def sleep(self) -> dict[str, object]:
@@ -846,6 +918,7 @@ class FunctionalOrganism:
         # Her sleep pressure as a stream of its own (hunger is already one).
         deficit = float(self.deficit)
         sleep_ratio = _clamp(float(self._state.get("sleep_pressure", 0)) / SLEEP_PRESSURE_CEILING, 0.0, 1.0)
+        contact_ratio = _clamp(float(self._state.get("contact_pressure", 0)) / CONTACT_PRESSURE_CEILING, 0.0, 1.0)
 
         return {
             "sight_luminance": (total / len(focal) / 255) if focal else 0.0,
@@ -857,6 +930,8 @@ class FunctionalOrganism:
             "taste_residue": taste_val,
             "touch_texture": touch_val,
             "sleep_pressure": sleep_ratio,
+            "skin_contact": _clamp(max(float(sensed.skin_contact), float(self._state.get("pending_contact", 0.0))), 0.0, 1.0),
+            "contact_pressure": contact_ratio,
             "hunger": deficit,
             "food_distance": (food[0].distance_mm / SIGHT_RANGE_MM) if food else 1.0,
             "heading": body.pose.heading_millidegrees / 360_000,
@@ -905,6 +980,15 @@ class FunctionalOrganism:
         if sensed.wide_luminance_u8:
             state["head"] = list(head_step(self.head, tuple(sensed.wide_luminance_u8)))
         measures = self._measure(sensed, seen, body)
+        skin_now = float(measures["skin_contact"])
+        # Her need for contact: another body's touch on her skin relieves it; an
+        # awake beat without one raises it.
+        contact_pressure = int(state.get("contact_pressure", 0))
+        if skin_now > 0:
+            contact_pressure = max(0, contact_pressure - CONTACT_RECOVERY_PER_BEAT)
+        elif not state.get("asleep"):
+            contact_pressure = min(CONTACT_PRESSURE_CEILING, contact_pressure + 1)
+        state["contact_pressure"] = contact_pressure
         for name in STREAMS:
             window = state["streams"][name]
             window.append(round(measures[name], 6))
@@ -930,7 +1014,7 @@ class FunctionalOrganism:
             energy = sum(heard_now) / len(heard_now)
             if energy >= HEARD_ENERGY_FLOOR and energy >= ambient * HEARD_ABOVE_AMBIENT:
                 sound_now = _clamp(energy * 4, 0.0, 1.0)
-        self._settle(key, novel, sound_now, tick)
+        self._settle(key, novel, sound_now, skin_now, tick)
 
         def decision(act: str, reason: str, commands: tuple[Any, ...] = (), target: str | None = None, drive: tuple[int, int, int] | None = None) -> Decision:
             return Decision(act, reason, commands, target, drive, signature, novel, gate_count, seen)
@@ -965,7 +1049,7 @@ class FunctionalOrganism:
         # Check if previous pending syllable got answered by environmental sound
         pending_syl = state.get("pending_syllable")
         if pending_syl is not None:
-            if sound_now > 0 and tick - int(pending_syl.get("tick", 0)) <= ANSWER_WINDOW_BEATS:
+            if (sound_now > 0 or skin_now > 0) and tick - int(pending_syl.get("tick", 0)) <= ANSWER_WINDOW_BEATS:
                 s_key = pending_syl["key"]
                 s_name = pending_syl["syllable"]
                 s_entry = state.setdefault("speech", {}).get(s_key)
@@ -997,7 +1081,8 @@ class FunctionalOrganism:
 
         deficit = round(float(self.deficit), 6)
         sleep_ratio = round(float(state.get("sleep_pressure", 0)) / SLEEP_PRESSURE_CEILING, 6)
-        state["pending_act"] = {"key": key, "regimes": regimes, "act": act, "deficit": deficit, "sleep_ratio": sleep_ratio, "intake": 0, "refused": False}
+        contact_ratio = round(float(state.get("contact_pressure", 0)) / CONTACT_PRESSURE_CEILING, 6)
+        state["pending_act"] = {"key": key, "regimes": regimes, "act": act, "deficit": deficit, "sleep_ratio": sleep_ratio, "contact_ratio": contact_ratio, "intake": 0, "refused": False}
         state["last_chosen"] = {"key": key, "regimes": regimes, "act": act, "deficit": deficit, "sleep_ratio": sleep_ratio}
         return decision(act, why + (("; " + detail) if detail else ""), commands, target, drive)
 
@@ -1025,7 +1110,7 @@ class FunctionalOrganism:
             # every newcomer once the old entries all had two visits.)
             del record[min(record, key=lambda k: (int(record[k]["tick"]), k))]
 
-    def _settle(self, key_now: str, novel_now: bool, sound_now: float, tick: int) -> None:
+    def _settle(self, key_now: str, novel_now: bool, sound_now: float, skin_now: float, tick: int) -> None:
         """Value what followed her last act, purely by measured bodily need drops
         weighted by her measured need at the moment she chose (zero constants)."""
 
@@ -1050,7 +1135,12 @@ class FunctionalOrganism:
         # burned and moved nothing, no doubling by hand.
         burn_cost = int(pending.get("burn", 0)) / CAPACITY_MICROGRAMS
 
-        value = intake_value + new_structure_value + sound_value - burn_cost
+        # 5. Another body's touch on her skin: contact comfort pays in its own right by
+        # how much of her skin it reached, and her deprivation at the moment she chose
+        # makes the same touch pay more (both measured; nothing declared here).
+        contact_value = float(skin_now) + float(pending.get("contact_ratio", 0.0)) * (1.0 if skin_now > 0 else 0.0)
+
+        value = intake_value + new_structure_value + sound_value + contact_value - burn_cost
         self._credit(str(pending["key"]), act, round(value, 6), tick, str(pending.get("regimes", "")), successor_key=key_now)
 
     def _dream(self, tick: int) -> str | None:
@@ -1179,10 +1269,12 @@ class FunctionalOrganism:
 
     def commit(self, decision: Decision, *, applied_action: str, refusal: str | None,
                intake_micrograms: int, spoke: bytes | None, heard_profile: tuple[float, ...] | None,
-               self_profile: tuple[float, ...] | None, tick_now: int) -> None:
+               self_profile: tuple[float, ...] | None, tick_now: int, contact_fraction: float = 0.0) -> None:
         state = self._state
         if tick_now != self.live_organism_tick:
             raise RuntimeError("functional organism tick left its line")
+        # Skin on skin by her own act (her palm on the caregiver's hand) is felt on the next beat.
+        state["pending_contact"] = round(float(contact_fraction), 6) if applied_action == "reach_hand" and refusal is None else 0.0
         before = self.reserve_micrograms
         burn = BASAL_BURN_MICROGRAMS * (1 + ACT_BURN_MULTIPLE.get(decision.act, 1)) if applied_action != "refused" else BASAL_BURN_MICROGRAMS
         intake = max(0, min(int(intake_micrograms), CAPACITY_MICROGRAMS - before))

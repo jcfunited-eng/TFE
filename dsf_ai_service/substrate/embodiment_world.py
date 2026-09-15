@@ -1099,7 +1099,7 @@ class PreparedBodySurfaceContact:
     """One admitted reciprocal contact retained only with its prepared action."""
 
     physical_phases: tuple[ReciprocalBodySurfaceContact, ...]
-    recipient_cutaneous_topology_index: int
+    recipient_cutaneous_topology_index: int | None   # None: the recipient is not her (no receptor sheet)
     recipient_site_area_square_micrometres: Fraction
 
     @property
@@ -5157,7 +5157,10 @@ class EmbodimentWorldAuthority:
             )
             if actor_site is None or recipient_site is None:
                 raise ValueError("body-surface actuation references unmounted morphology")
-            if recipient_site.cutaneous_topology_index is None:
+            # Her receptor sheet is addressed by the cutaneous index: a contact that
+            # lands on her must name one. Another body has no sheet here; her own
+            # touch on the caregiver's skin is settled by the same physics without it.
+            if recipient_site.cutaneous_topology_index is None and recipient.body_id == self._state.world.self_body_id:
                 raise ValueError("body-surface recipient has no cutaneous receptor")
             if (
                 actuation.actor_site_id in actor_sites_seen
@@ -6381,6 +6384,12 @@ class EmbodimentWorldAuthority:
         with self._lock:
             current = self._require_prepared_action_execution_locked(prepared)
             return current.body_surface_contacts
+
+    def body_surface_sites_for(self, body_id: str) -> tuple[MountedBodySurfaceSite, ...]:
+        """The skin sites mounted on one body, in site-id order: morphology, read-only."""
+
+        with self._lock:
+            return tuple(site for (owner, _site_id), site in sorted(self._body_surface_sites.items()) if owner == body_id)
 
     @contextmanager
     def prepared_action_visibility_transaction(

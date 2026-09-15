@@ -210,7 +210,9 @@ class FunctionalPhysicalLoop:
             if sensory is not None and sensory.present_food is not None:
                 presentation = present_food(world, sensory.present_food)
                 returning = world.pending_physical_return
-            withdrawal = _caregiver_withdrawal(organism, world)
+            # The caregiver does not walk home on the beat it touched her; whether it
+            # stays (holding on, beat after beat) or leaves is the caretaker's to give.
+            withdrawal = None if (presentation or {}).get("touched") else _caregiver_withdrawal(organism, world)
             if withdrawal is not None:
                 returning = world.pending_physical_return
             before = world.observation_snapshot()
@@ -242,11 +244,34 @@ class FunctionalPhysicalLoop:
             # The wide field (18 x 6 sites carried by her head) aims her head;
             # it is the world eye's, whichever source fills the focal field.
             wide = tuple(world_retina[WORLD_LEGACY_SITES:WORLD_LEGACY_SITES + WORLD_WIDE_SITES])
-            sensed = Sensed(before, focal, source, heard_profile, self_profile, wide)
+            # Her skin this beat: the fraction of her mounted skin another body pressed
+            # (from the caregiver's touch settled above) and her cutaneous temperature.
+            skin_contact = 0.0
+            contacts = (presentation or {}).get("contacts") or []
+            if contacts:
+                sites = world.body_surface_sites_for(before.self_body_id)
+                skin_area = sum(4 * site.half_extent_u_micrometres * site.half_extent_v_micrometres for site in sites)
+                if skin_area > 0:
+                    skin_contact = min(1.0, sum(int(c.get("area_um2", 0)) for c in contacts) / float(skin_area))
+            read_skin = getattr(world, "self_skin_temperature_millikelvin", None)
+            skin_mk = None if read_skin is None else int(read_skin())   # for the page; the touch's heat is real but far below what she could feel
+            sensed = Sensed(before, focal, source, heard_profile, self_profile, wide, skin_contact)
             decision = organism.decide(sensed)
             prepared, applied, refusal, refused = _apply(world, decision, before)
             execution = prepared.execution_receipt
             intake = _oral_intake_micrograms(execution) if applied == "bite" else 0
+            own_contact = 0.0
+            if applied == "reach_hand":
+                # Her palm on the caregiver's hand: the skin of hers that met skin, as a fraction of her skin.
+                sites = {site.site_id: site for site in world.body_surface_sites_for(before.self_body_id)}
+                skin_area = sum(4 * site.half_extent_u_micrometres * site.half_extent_v_micrometres for site in sites.values())
+                touched = 0
+                for contact in world.body_surface_contacts_for_prepared_action(prepared):
+                    physical = contact.physical
+                    for body_id, site_id in ((physical.body_a_id, physical.site_a_id), (physical.body_b_id, physical.site_b_id)):
+                        if body_id == before.self_body_id and site_id in sites:
+                            touched += 4 * sites[site_id].half_extent_u_micrometres * sites[site_id].half_extent_v_micrometres
+                own_contact = min(1.0, touched / float(skin_area)) if skin_area > 0 else 0.0
             with world.prepared_action_visibility_transaction(prepared):
                 world.commit_prepared_action(prepared, expected_physical_return=returning, physical_return=None)
             prepared = None
@@ -255,7 +280,7 @@ class FunctionalPhysicalLoop:
                 raise RuntimeError("her voice exceeded its transport bound")
             organism.commit(
                 decision, applied_action=applied, refusal=refusal, intake_micrograms=intake, spoke=spoke,
-                heard_profile=heard_profile, self_profile=self_profile, tick_now=start_tick,
+                heard_profile=heard_profile, self_profile=self_profile, tick_now=start_tick, contact_fraction=own_contact,
             )
             if organism.live_organism_tick != start_tick + 1:
                 raise RuntimeError("functional beat did not advance exactly one tick")
@@ -301,6 +326,8 @@ class FunctionalPhysicalLoop:
                 "her_act": decision.act,
                 "her_counts": organism.counts,
                 "her_sleep": organism.sleep,
+                "her_skin": {"contact": organism.contact["felt"], "temperature_millikelvin": skin_mk,
+                             "touched": (presentation or {}).get("touched"), "need": organism.contact["pressure"]},
                 "kernel_novel": decision.novel,
                 "kernel_signature": decision.signature,
                 "latest_retinal_field_kind": "external-rgb" if external_rgb is not None else "achromatic",
