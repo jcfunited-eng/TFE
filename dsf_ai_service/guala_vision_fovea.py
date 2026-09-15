@@ -83,9 +83,10 @@ def compute_saccadic_gaze(
     gaze_focal: tuple[float, float],
     crop_fraction: tuple[float, float],
     max_saccade: float = DEFAULT_MAX_SACCADE,
+    wide_target: tuple[float, float] | None = None,
 ) -> tuple[float, float]:
-    """Compute frame-relative gaze target from crop origin and focal field centroid,
-    bounded by a maximum saccadic displacement to prevent jumps across the frame."""
+    """Compute frame-relative gaze target from crop origin, focal field centroid,
+    and optional wide-field salience target, bounded by a maximum saccadic displacement."""
 
     fx, fy = focal_origin
     gx, gy = gaze_focal
@@ -95,9 +96,14 @@ def compute_saccadic_gaze(
     dx = (gx - 0.5) * cw
     dy = (gy - 0.5) * ch
 
-    # Target frame coordinate
-    tx = max(0.0, min(1.0, fx + dx))
-    ty = max(0.0, min(1.0, fy + dy))
+    if wide_target is not None:
+        # Step toward wide field salience target across camera frame, biased by focal offset
+        tx = max(0.0, min(1.0, wide_target[0] + dx))
+        ty = max(0.0, min(1.0, wide_target[1] + dy))
+    else:
+        # Target frame coordinate within current crop neighborhood
+        tx = max(0.0, min(1.0, fx + dx))
+        ty = max(0.0, min(1.0, fy + dy))
 
     # Bound by maximum saccade from current origin
     step_x = max(-max_saccade, min(max_saccade, tx - fx))
@@ -110,6 +116,7 @@ def compute_saccadic_gaze(
 
 
 __all__ = (
+    "DEFAULT_MAX_SACCADE",
     "FOCAL_COLUMNS",
     "FOCAL_ROWS",
     "FOCAL_SITE_COUNT",

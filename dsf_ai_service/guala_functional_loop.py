@@ -16,7 +16,7 @@ from dsf_ai_service.guala_cochlea import one_self_hearing_hop
 from dsf_ai_service.guala_vision_fovea import compute_saccadic_gaze
 from dsf_ai_service.guala_functional_organism import (
     BEAT_MICROSECONDS, CAPACITY_MICROGRAMS, Decision, FunctionalOrganism, Sensed,
-    _distance_mm, _region_of, cochlear_profile, door_crossing, syllable_pcm,
+    _distance_mm, _region_of, cochlear_profile, door_crossing, edge_centre, syllable_pcm,
 )
 from dsf_ai_service.guala_world_sensorium import (
     _retinal_luminance, prepare_passive_world_interval, retinal_carriage,
@@ -35,7 +35,6 @@ from dsf_ai_service.substrate.embodiment_world import (
 )
 from dsf_ai_service.substrate.w1_physical_receptors import retinal_irradiance_field
 import audioop
-from fractions import Fraction
 
 
 MAX_NATIVE_INTERVALS_PER_OCCURRENCE = 1
@@ -95,7 +94,11 @@ def _oral_intake_micrograms(execution: ActionExecutionReceipt) -> int:
     return sum(int(value) for value in contact.dissolved_tastant_micrograms)
 
 
-def _gaze_frame(sensory: Any, gaze: tuple[float, float]) -> list[float]:
+def _gaze_frame(
+    sensory: Any,
+    gaze: tuple[float, float],
+    wide_target: tuple[float, float] | None = None,
+) -> list[float]:
     """Her gaze in the camera frame. The page sends the whole frame held still
     (its field is the declared camera field), so her gaze within the field is
     her gaze in the frame. A page that still sends a narrower crop gets the
@@ -109,7 +112,12 @@ def _gaze_frame(sensory: Any, gaze: tuple[float, float]) -> list[float]:
     )
     if crop_fraction[0] >= 1.0 and crop_fraction[1] >= 1.0:
         return [round(value, 4) for value in gaze]
-    stepped = compute_saccadic_gaze(tuple(sensory.focal_origin), gaze, crop_fraction=crop_fraction)
+    stepped = compute_saccadic_gaze(
+        tuple(sensory.focal_origin),
+        gaze,
+        crop_fraction=crop_fraction,
+        wide_target=wide_target,
+    )
     return [round(value + (0.5 - value) * GAZE_RECENTRE, 4) for value in stepped]
 
 
@@ -270,6 +278,8 @@ class FunctionalPhysicalLoop:
             focal = world_retina[-WORLD_FOCAL_SITES:]
             source = "world"
             external_sites = 0
+            wide_target = None
+            wide_lum = None
             if sensory is not None and sensory.retina_rgb_u8 is not None:
                 _heading, _pitch, transmission = retinal_carriage(axes)
                 external_rgb = transmitted_rgb_retina_u8(sensory.retina_rgb_u8, transmission)
@@ -280,6 +290,13 @@ class FunctionalPhysicalLoop:
                 else:
                     focal = tuple(rgb_retina_luminance_u8(external_rgb))
                 source = "camera"
+                if len(external_rgb) >= 405:
+                    wide_rgb = external_rgb[81:405]
+                    wide_lum = tuple(
+                        (wide_rgb[i] * 299 + wide_rgb[i + 1] * 587 + wide_rgb[i + 2] * 114 + 500) // 1000
+                        for i in range(0, len(wide_rgb), 3)
+                    )
+                    wide_target = edge_centre(wide_lum, 18, 6, floor=108 * 4)
             heard_profile = None
             external_heard = 0
             room_sound = None
@@ -299,6 +316,8 @@ class FunctionalPhysicalLoop:
             # The wide field (18 x 6 sites carried by her head) aims her head;
             # it is the world eye's, whichever source fills the focal field.
             wide = tuple(world_retina[WORLD_LEGACY_SITES:WORLD_LEGACY_SITES + WORLD_WIDE_SITES])
+            if source == "camera" and wide_lum is not None:
+                wide = wide_lum
             # Her skin this beat: the fraction of her mounted skin another body pressed
             # (from the caregiver's touch settled above) and her cutaneous temperature.
             skin_contact = 0.0
@@ -388,7 +407,7 @@ class FunctionalPhysicalLoop:
                 "gaze_frame": (
                     None
                     if sensory is None or sensory.focal_origin is None or organism.gaze is None
-                    else _gaze_frame(sensory, organism.gaze)
+                    else _gaze_frame(sensory, organism.gaze, wide_target=wide_target)
                 ),
                 "external_source_receipt_sha256": None if sensory is None else sensory.source_receipt_sha256,
                 "her_act": decision.act,

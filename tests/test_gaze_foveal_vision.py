@@ -50,7 +50,7 @@ def test_box_filter_channel_isolation() -> None:
 
 
 def test_focal_luminance_projection() -> None:
-    """768 RGB sites project onto 768 achromatic luminance receptors."""
+    """4800 RGB sites project onto 4800 achromatic luminance receptors."""
     rgb = tuple([255, 255, 255] * FOCAL_SITE_COUNT)
     lum = focal_rgb_to_luminance(rgb)
     assert len(lum) == FOCAL_SITE_COUNT
@@ -71,6 +71,39 @@ def test_saccadic_gaze_smooth_tracking() -> None:
     assert next_gaze[1] == 0.5  # no vertical displacement
     # Exact shift: (0.95 - 0.5) * 0.125 = 0.05625
     assert math.isclose(next_gaze[0], 0.5562, abs_tol=1e-3)
+
+
+def test_saccadic_gaze_tracks_wide_field_salience() -> None:
+    """When wide-field salience target is present, gaze steps boundedly toward it."""
+    origin = (0.5, 0.5)
+    gaze_focal = (0.5, 0.5)
+    crop_fraction = (0.35, 0.35)
+    wide_target = (0.85, 0.3)
+
+    next_gaze = compute_saccadic_gaze(
+        origin, gaze_focal, crop_fraction, max_saccade=0.08, wide_target=wide_target,
+    )
+    # Steps by exactly max_saccade = 0.08 toward (0.85, 0.3)
+    assert next_gaze[0] == 0.58
+    assert next_gaze[1] == 0.42
+
+    # Second step
+    step2 = compute_saccadic_gaze(
+        next_gaze, gaze_focal, crop_fraction, max_saccade=0.08, wide_target=wide_target,
+    )
+    assert step2[0] == 0.66
+    assert step2[1] == 0.34
+
+
+def test_macular_framing_resampling() -> None:
+    """Macular 35% crop (e.g. 448x336 from 1280x720) downsamples cleanly to 80x60."""
+    in_w, in_h = 448, 336
+    data = bytes([200, 100, 50] * (in_w * in_h))
+    resampled = resample_focal_crop_rgb(data, in_w, in_h)
+    assert len(resampled) == FOCAL_RGB_COUNT
+    assert resampled[0] == 200
+    assert resampled[1] == 100
+    assert resampled[2] == 50
 
 
 def test_occurrence_payload_with_focal_base64_crop_fits_byte_bound() -> None:
@@ -122,4 +155,3 @@ def test_optical_resolution_covers_card_and_letters() -> None:
     letter_height_mm = 12.0
     letter_pixels = letter_height_mm / mm_per_pixel
     assert 12.0 < letter_pixels < 15.0
-

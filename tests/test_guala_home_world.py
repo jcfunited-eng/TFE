@@ -76,7 +76,7 @@ def test_home_world_vertical_affordances_and_clear_traversal_corridors() -> None
     assert art_shapes.position is not None and art_shapes.position.z == 800
     assert art_weather.position is not None and art_weather.position.z == 800
 
-    # 3. Picture book: shelved on shelf-a at elevated shelf height
+    # 3. Picture book: placed accessible in reading nook
     book = by_id["book"]
     assert book.position is not None and book.position.x == 12_000
 
