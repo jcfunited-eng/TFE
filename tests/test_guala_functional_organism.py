@@ -226,7 +226,7 @@ def test_the_kernel_reads_her_streams_and_her_memory_stays_bounded_over_three_hu
         novel += int(result.observation["kernel_novel"])
         gates += int(result.observation["dsf_delivery_count"])
     assert gates > 0 and novel > 0
-    assert max(sizes) < 72_000 and len(world.encoded_snapshot()) < 4_000_000   # her bound: fifteen streams, her skin and her need (was 64,000 at thirteen)
+    assert max(sizes) < 80_000 and len(world.encoded_snapshot()) < 4_000_000   # her bound: twenty-two streams with her ear (72,000 at sixteen, 64,000 at thirteen)
     state = organism._state
     assert len(state["familiarity"]) <= 512 and len(state["episodes"]) <= 64 and len(state["voice"]) <= 16
     assert all(len(window) <= 64 for window in state["streams"].values())
@@ -1181,3 +1181,41 @@ def test_the_caregiver_carries_the_radio_to_her_and_sets_it_down_beside_her() ->
     radio = next(item for item in snapshot.objects if item.object_id == "radio")
     gain, distance, path = _thing_sound_gain(snapshot, "radio")
     assert path == "room" and distance <= 2_000 and gain >= 0.5, (gain, distance, path, radio.held_by_body_id, presentation["set_down"])
+
+
+def test_her_ear_gives_the_shape_of_a_sound_and_tells_two_sounds_apart_but_not_one_from_itself() -> None:
+    """Six bands from her cochlea carry the shape of what she hears as fractions of
+    its energy: a low tone and a high tone make different shapes, the same sound
+    twice makes the same shape, silence has none, and a soft copy of a sound has
+    the shape of the loud one."""
+
+    from dsf_ai_service.guala_functional_organism import EAR_BANDS, STREAMS, ear_bands
+    from dsf_ai_service.guala_functional_loop import _profile
+
+    assert len(STREAMS) == 22 and all(f"ear_band_{i}" in STREAMS for i in range(EAR_BANDS))
+    def tone(hz, amplitude=9000):
+        return struct.pack("<4000h", *(int(amplitude * math.sin(2 * math.pi * hz * i / 16000)) for i in range(4000)))
+    low, _ = _profile(tone(200)); high, _ = _profile(tone(3000)); low_again, _ = _profile(tone(200)); soft, _ = _profile(tone(200, 2000))
+    s_low, s_high, s_again, s_soft = ear_bands(low), ear_bands(high), ear_bands(low_again), ear_bands(soft)
+    assert abs(sum(s_low) - 1.0) < 1e-3 and abs(sum(s_high) - 1.0) < 1e-3
+    assert s_low == s_again
+    assert max(abs(a - b) for a, b in zip(s_low, s_high)) > 0.3, (s_low, s_high)
+    assert max(abs(a - b) for a, b in zip(s_low, s_soft)) < 0.05, (s_low, s_soft)
+    assert ear_bands(None) == (0.0,) * EAR_BANDS and ear_bands((0.0,) * 32) == (0.0,) * EAR_BANDS
+    # Through the loop: the low tone and the high tone leave different shapes on her ear streams; silence leaves none.
+    import base64
+    import dsf_ai_service.lean_production_app as production
+    def hear(pcm):
+        return production._physical_occurrence(production.OccurrenceBody(kind="sensory", payload=production.SensoryBody(source="microphone", pcm_s16le_base64=base64.b64encode(pcm).decode("ascii"))))
+    world = home_world_authority(identity=IDENTITY)
+    organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
+    loop = FunctionalPhysicalLoop()
+    loop.settle(organism, world, hear(tone(200)))
+    shape_low = tuple(organism._state["streams"][f"ear_band_{i}"][-1] for i in range(EAR_BANDS))
+    loop.settle(organism, world, hear(tone(3000)))
+    shape_high = tuple(organism._state["streams"][f"ear_band_{i}"][-1] for i in range(EAR_BANDS))
+    loop.settle(organism, world, UNATTENDED)
+    shape_quiet = tuple(organism._state["streams"][f"ear_band_{i}"][-1] for i in range(EAR_BANDS))
+    assert shape_low != shape_high and shape_quiet == (0.0,) * EAR_BANDS
+    encoded = organism.encoded()
+    assert FunctionalOrganism.restore(encoded).encoded() == encoded
