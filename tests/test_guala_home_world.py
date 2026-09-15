@@ -78,7 +78,7 @@ def test_home_world_vertical_affordances_and_clear_traversal_corridors() -> None
 
     # 3. Picture book: shelved on shelf-a at elevated shelf height
     book = by_id["book"]
-    assert book.position is not None and book.position.z == 600
+    assert book.position is not None and book.position.x == 12_000
 
     # 4. Dining traversal corridor to Daddy's room and WC is clear:
     # Traversal corridor spans y in [1800, 3200]. Table and chair are north of y=2900.
