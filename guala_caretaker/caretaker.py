@@ -274,6 +274,10 @@ def food_state(o: dict, skip: set[str]) -> tuple[bool, list[str]]:
 
 PLAY_TICKS = 240  # about a minute of her clock between offers of a toy
 TOYS = ("toy-bear", "glow-stars", "book", "cup")
+# Naming while doing: the word for the thing the caregiver hands her, said at that
+# moment in a real human voice (Wikimedia Commons, openly licensed); nothing else
+# is said about it, and what the word comes to mean is hers to settle.
+WORD_FOR = {"apple": "apple", "toy-bear": "bear", "glow-stars": "star", "book": "book", "cup": "cup"}
 
 
 BEDTIME_FRACTION = 0.9   # of her sleep-pressure ceiling: the caretaker makes her bed
@@ -435,6 +439,31 @@ def room_of_point(o: dict, position: dict) -> str | None:
     return None
 
 
+def say_word(thing: str) -> int:
+    """The word for a thing, at her ears, block by block; the beats that reached her."""
+    import media
+    word = WORD_FOR.get(thing.split("-")[0] if thing.startswith("apple") else thing)
+    if word is None:
+        return 0
+    try:
+        pcm_path = media.commons_word(word)
+    except Exception as err:  # noqa: BLE001
+        log(f"word: the library could not give '{word}': {err}")
+        return 0
+    if pcm_path is None:
+        return 0
+    heard = 0
+    for pcm in media.blocks(pcm_path):
+        r = sing_block(pcm)
+        if r is None:
+            break
+        heard += 1
+        ob = r.get("observation") or {}
+        MINE.append(ob.get("live_tick") or 0)
+        MINE.append((ob.get("last_occurrence") or {}).get("native_tick"))
+    return heard
+
+
 def play_block(pcm: bytes, from_object: str) -> dict | None:
     """One beat of a thing's sound in her world (the radio): her ears get it by
     the room's geometry between her and the thing."""
@@ -575,7 +604,8 @@ def maybe_play(o: dict, st: dict) -> None:
     if res is None:
         return
     pres = ((res.get("observation") or {}).get("last_occurrence") or {}).get("caregiver_presentation") or {}
-    log(f"play: offered {toy} — presented={pres.get('presented')} steps={len(pres.get('steps') or [])}")
+    named = say_word(toy) if pres.get("presented") else 0
+    log(f"play: offered {toy} — presented={pres.get('presented')} steps={len(pres.get('steps') or [])} named={named}")
 
 
 def maybe_feed(o: dict, st: dict) -> None:
@@ -623,7 +653,8 @@ def maybe_feed(o: dict, st: dict) -> None:
     MINE.append((ob.get("last_occurrence") or {}).get("native_tick"))
     pres = (ob.get("last_occurrence") or {}).get("caregiver_presentation") or {}
     steps = pres.get("steps") or []
-    log(f"meal: presented {food} — presented={pres.get('presented')} took_away={pres.get('took_away')} "
+    named = say_word(food) if pres.get("presented") else 0
+    log(f"meal: named={named} presented {food} — presented={pres.get('presented')} took_away={pres.get('took_away')} "
         f"steps={len(steps)} last={steps[-1] if steps else None}")
     if not pres.get("presented") and food != DELIVERY_ID:
         st["unreachable"] = sorted(skip | {food})
