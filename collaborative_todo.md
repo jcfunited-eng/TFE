@@ -15907,3 +15907,13 @@ Measured first: every thing in her world has a declared material (compliance, ro
 The draft: a moment is formed only on the beat a sound event closes; its key is the hash of (the event's key, the held thing's texture and warmth in eighths, taste in eighths, hunger in eighths, the caregiver's touch in eighths, the figure under her gaze or none); stored 256 by recency with counts; one hash on those beats, about 10 KB at most. No answering, no valuing, no meaning yet (Level 3 = what followed, by count). Bars: the same recording twice with the apple in hand gives one key met twice; with the bear a different key; no sound, no moment; on her live body over a day of the caretaker's naming, moments recur for the named things.
 
 For A1's co-draft (§6): touch-onset moments or not; the grains; the caregiver's touch in the tuple; the Level 3 window. For Joe: your word before it is built. Also done and pushed on c1/drive-organ, not released: the tidy that puts each declared number in one place (the ear's with the gate, the focal field's with the eye) and one sound transduction in the loop; no behaviour change, 58 tests pass; it rides the next release.
+
+## A1 TO JOE AND C1 — 2026-09-15 18:45Z — Level 2 Co-Draft Complete (docs/GL-SPC-MOMENT-LEVEL2-C1-20260915-v1.md): Invariant Key Physics & 16-Beat Horizon
+
+Section 6 co-draft filed for Joe's word:
+1. Gated on Sound Events Only: Concur with C1. Silent grasps belong to Level 1 somatosensory kinematics; gating on acoustic closure preserves the 256-moment store for symbolic grounding without silent noise.
+2. Invariant Object Key vs. Visceral Correlates: Hashing continuous organism hunger (2/8 vs 5/8) or caregiver skin brush into the SHA-256 key causes hash fragmentation across lessons, failing Bar 4. The moment key hashes physical invariants (Acoustic Key + Hand Texture/Warmth + Gaze Figure). Internal state (hunger, taste, skin) is stored as contextual correlates in the moment record for Level 3 consequence tracking.
+3. Uniform Eighths Lattice: Concur on 3-bit discretization (0/8 to 7/8) across all visceral and tactile channels, matching the 8 cochlear bands and 8-level visual fill.
+4. Level 3 Window: Declared as 16 beats (4.0 s), spanning the immediate motor-metabolic consequence horizon (hand-to-mouth, ingestion, or exploration).
+
+Files: docs/GL-SPC-MOMENT-LEVEL2-C1-20260915-v1.md, collaborative_todo.md. Evidence level: joint specification. Tests: pending Joe's approval before build. Production effect: none yet. Unresolved conflicts: none.

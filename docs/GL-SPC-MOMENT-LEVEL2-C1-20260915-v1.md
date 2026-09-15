@@ -1,6 +1,6 @@
 # GL-SPC-MOMENT-LEVEL2-C1-20260915-v1 — Level 2: the moment (a heard sound bound to what her senses held at that beat)
 
-Type: SPECIFICATION DRAFT for A1's co-draft and Joe's word (C1, 2026-09-15). Nothing here is built. Every number is measured or declared once. It follows Level 1 (the ear's gate, in her as 1495; the eye's gaze law and figure, in her as 1496 to 1498) and precedes Level 3 (what followed a moment, by count).
+Type: SPECIFICATION JOINT DRAFT (C1 & A1, 2026-09-15) for Joe's word. Nothing here is built. Every number is measured or declared once. It follows Level 1 (the ear's gate, in her as 1495; the eye's gaze law and figure, in her as 1496 to 1498) and precedes Level 3 (what followed a moment, by count).
 
 ## 1. What a moment is
 
@@ -17,21 +17,38 @@ The tuple of what her senses hold at the beat a sound event closes: the event's 
 
 ## 3. The law (declared once)
 
-- A **moment** is formed only on a beat on which a sound event closes (the beat the word ends). Its key is the SHA-256 (16 hex) of the tuple: (sound_event key, held thing's touch: texture eighths and warmth eighths or "none", taste eighths, hunger eighths, skin eighths, sight figure key or "none").
-- **Stored**: `moments`: key → [count, last tick]; capacity 256, the least recently met leaves (her day law, as events and figures). Nothing else: no text, no similarity, no window over beats (that is Level 3).
-- **Cost**: one hash on the beats a sound event closes; nothing on other beats. **Size**: at most 256 entries of a key and two integers, about 10 KB, declared.
+- A **moment** is formed only on a beat on which a sound event closes (the beat the word ends).
+- **Moment Key Invariance**: To prevent internal bodily drift (hunger, metabolic decay) and incidental caregiver contact from shattering symbol identity, the key hashes the physical invariant properties of the co-occurring event:
+  `key = SHA-256(sound_event_key, held_texture_eighths, held_warmth_eighths, sight_figure_key or "none")[:16]`
+- **Correlates**: Physiological and social state at that beat (`hunger_eighths`, `taste_eighths`, `skin_eighths`) are retained in the moment record as state context, not hashed into the invariant key.
+- **Stored**: `moments`: key → `{"count": int, "last_tick": int, "context": (hunger, taste, skin)}`; capacity 256, least recently met leaves (her day law, as events and figures). Nothing else: no text, no similarity, no window over beats (that is Level 3).
+- **Cost**: one hash on the beats a sound event closes; nothing on other beats. **Size**: at most 256 entries of a key and small context tuple, about 12 KB, declared.
 
 ## 4. What it does not do
 
-It does not answer, choose, or value; her acts stay chosen from her record as today. It does not say what a word means: meaning is what followed a moment, by count, which is Level 3. It does not bind on beats with no sound: a thing held in silence is her hand's business, not a moment (a declared choice; A1 may argue for touch-onset moments too, measured).
+It does not answer, choose, or value; her acts stay chosen from her record as today. It does not say what a word means: meaning is what followed a moment, by count, which is Level 3. It does not bind on beats with no sound: a thing held in silence is her hand's business, not a moment.
 
 ## 5. Bars (measured before release)
 
-1. The same recording of "apple" heard twice while she holds the apple (its taste residue and hunger the same in eighths) gives one moment key, met twice.
+1. The same recording of "apple" heard twice while she holds the apple gives one moment key, met twice.
 2. The same recording heard while she holds the bear gives a different key.
 3. A beat with no sound event closing forms no moment; the store is bounded at 256 with recency; restore byte-exact; cost nothing measurable.
 4. On her live body, over a day of the caretaker's naming while handing things ("apple" with the apple presented, "bear" with the bear): moments recur (count 2 or more) for the named things, reported as measured.
 
-## 6. A1's co-draft
+## 6. A1 Co-Draft Specifications
 
-(For A1: touch-onset moments yes or no; the eighths grain for taste, hunger and skin; whether the caregiver's touch belongs in the tuple; the Level 3 window.)
+1. **Triggering (Sound-Event Gated Only)**:
+   - Concur with C1: Moments are formed strictly on the beat an acoustic event closes.
+   - Grasping or releasing in silence is an internal motor-state change (Level 1 kinesthetic loop), not a communicative/symbolic moment. Gating strictly on acoustic closure prevents the 256-moment store from being swamped with silent somatic noise.
+
+2. **The Key Composition (Invariance vs. Visceral Correlates)**:
+   - Hashing `hunger` or `caregiver_touch` directly into the moment SHA-256 key would break Bar 4: a child presented with an apple at hunger 2/8 in the morning and at hunger 5/8 in the afternoon would register two disjoint, non-recurring keys.
+   - The physical identity of the object (Sound + Hand Material + Visual Figure) must be separated from the internal state of the organism (Hunger + Skin + Taste).
+   - Therefore: Physical invariants form the `moment_key`. Organism visceral state is kept in the associated record `[count, last_tick, hunger, taste, skin]` for Level 3 trajectory evaluation.
+
+3. **Uniform Eighths Lattice (3-bit basins)**:
+   - Discretization into eighths ($0/8$ to $7/8$) across texture, warmth, hunger, taste, and skin is verified optimal. It matches the 8 frequency bands of her cochlear gate and the 8-level foveal fill lattice, establishing a uniform 3-bit basin across all dimensional fields.
+
+4. **Level 3 Window**:
+   - The post-moment sequence horizon for Level 3 consequence tracking is declared as **16 beats** (4.0 seconds at her 250 ms clock).
+   - 16 beats captures the direct motor and metabolic consequences of a naming moment (e.g. transfer to mouth, ingestion, caloric absorption onset) without drifting into unrelated behavioral regimes.
