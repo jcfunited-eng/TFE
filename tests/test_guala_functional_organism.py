@@ -226,7 +226,7 @@ def test_the_kernel_reads_her_streams_and_her_memory_stays_bounded_over_three_hu
         novel += int(result.observation["kernel_novel"])
         gates += int(result.observation["dsf_delivery_count"])
     assert gates > 0 and novel > 0
-    assert max(sizes) < 64_000 and len(world.encoded_snapshot()) < 4_000_000
+    assert max(sizes) < 72_000 and len(world.encoded_snapshot()) < 4_000_000   # her bound: fifteen streams, her skin and her need (was 64,000 at thirteen)
     state = organism._state
     assert len(state["familiarity"]) <= 512 and len(state["episodes"]) <= 64 and len(state["voice"]) <= 16
     assert all(len(window) <= 64 for window in state["streams"].values())
@@ -483,12 +483,13 @@ def test_what_followed_is_valued_by_her_state_when_she_chose_and_a_refusal_costs
     key = "0123456789abcdef"
     # A refused step: the commit charges basal burn only, and carries it into the pending record.
     organism._state["pending_act"] = {"key": key, "act": "step", "deficit": 0.25, "sleep_ratio": 0.0, "intake": 0, "refused": False}
-    decision = Decision("step", "test", (), None, None, " ".join("q0000000" for _ in range(13)), False, 0, ())
+    from dsf_ai_service.guala_functional_organism import STREAMS
+    decision = Decision("step", "test", (), None, None, " ".join("q0000000" for _ in STREAMS), False, 0, ())
     organism.commit(decision, applied_action="refused", refusal="blocked", intake_micrograms=0, spoke=None,
                     heard_profile=None, self_profile=None, tick_now=organism.live_organism_tick)
     pending = organism._state["pending_act"]
     assert pending["refused"] is True and pending["burn"] == BASAL_BURN_MICROGRAMS
-    organism._settle("other", True, 0.0, 2)
+    organism._settle("other", True, 0.0, 0.0, 2)
     tries, total = organism._state["acts"][key]["acts"]["step"]
     expected_1 = (1.0 - 0.25) * (1.0 - 0.0) * 1.0 - BASAL_BURN_MICROGRAMS / CAPACITY_MICROGRAMS
     assert tries == 1 and abs(total - expected_1) < 1e-6
@@ -499,7 +500,7 @@ def test_what_followed_is_valued_by_her_state_when_she_chose_and_a_refusal_costs
     pending = organism._state["pending_act"]
     step_burn = BASAL_BURN_MICROGRAMS * (1 + ACT_BURN_MULTIPLE["step"])
     assert pending["intake"] == 1000 and pending["refused"] is False and pending["burn"] == step_burn
-    organism._settle("other", False, 0.5, 3)
+    organism._settle("other", False, 0.5, 0.0, 3)
     tries, total = organism._state["acts"][key]["acts"]["step"]
     expected_2 = 0.6 * 1.0 + 0.0 + (1.0 - 0.1) * 0.5 - step_burn / CAPACITY_MICROGRAMS
     assert tries == 2 and abs(total - (expected_1 + expected_2)) < 1e-6
@@ -817,9 +818,10 @@ def test_a_full_record_still_admits_the_structure_she_meets_now_and_retired_keys
 
     from dsf_ai_service.guala_functional_organism import ACT_RECORD_CAPACITY, FAMILIARITY_CAPACITY, choice_key
 
+    from dsf_ai_service.guala_functional_organism import STREAMS
     organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=10_000)
     state = organism._state
-    regimes = "S" * 13
+    regimes = "S" * len(STREAMS)
     live_key = choice_key(regimes)
     # A full record of stale, well-visited entries (keys that no regimes produce).
     for i in range(ACT_RECORD_CAPACITY):
@@ -831,7 +833,8 @@ def test_a_full_record_still_admits_the_structure_she_meets_now_and_retired_keys
     assert len(state["acts"]) == ACT_RECORD_CAPACITY and "stale0000" not in state["acts"]
     # Familiarity through commit: the newcomer stays, the least recently met leaves.
     from dsf_ai_service.guala_functional_organism import Decision
-    signature = " ".join("S0000000" for _ in range(13))
+    from dsf_ai_service.guala_functional_organism import STREAMS
+    signature = " ".join("S0000000" for _ in STREAMS)
     decision = Decision("rest", "test", (), None, None, signature, False, 0, ())
     organism.commit(decision, applied_action="rest", refusal=None, intake_micrograms=0, spoke=None,
                     heard_profile=None, self_profile=None, tick_now=organism.live_organism_tick)
@@ -840,3 +843,212 @@ def test_a_full_record_still_admits_the_structure_she_meets_now_and_retired_keys
     restored = FunctionalOrganism.restore(organism.encoded())   # restore runs the migration
     assert list(restored._state["acts"]) == [live_key]
     assert restored.migrate() is False and restored.encoded() == FunctionalOrganism.restore(restored.encoded()).encoded()
+
+
+def _touch_occurrence(touch_id: str):
+    import dsf_ai_service.lean_production_app as production
+    return production._physical_occurrence(production.OccurrenceBody(
+        kind="sensory", payload=production.SensoryBody(source="caretaker-food", present_food=touch_id)))
+
+
+def test_the_caregivers_touch_lands_on_her_skin_and_relieves_her_need_for_contact() -> None:
+    """The caregiver's hand-hold and hug go through the world's own body-surface
+    contact: she feels the fraction of her skin pressed on that beat (a palm is
+    little, a hug is most of her), her contact need falls by its declared relief,
+    and an awake beat without touch raises it by one."""
+
+    from dsf_ai_service.guala_functional_organism import CONTACT_RECOVERY_PER_BEAT
+
+    world = home_world_authority(identity=IDENTITY)
+    organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
+    loop = FunctionalPhysicalLoop()
+    for _ in range(5):
+        loop.settle(organism, world, UNATTENDED)
+    need_before = organism.contact["pressure"][0]
+    assert need_before == 5
+    o = loop.settle(organism, world, _touch_occurrence("touch-hold-hand")).observation
+    presentation = o["caregiver_presentation"]
+    assert presentation["touched"] == "hold_hand" and [c["site"] for c in presentation["contacts"]] == ["left-palm"], presentation["steps"][-3:]
+    assert 0.0 < o["her_skin"]["contact"] < 0.05
+    assert organism.contact["pressure"][0] == max(0, need_before - CONTACT_RECOVERY_PER_BEAT)
+    o = loop.settle(organism, world, _touch_occurrence("touch-hug")).observation
+    assert o["caregiver_presentation"]["touched"] == "hug" and o["her_skin"]["contact"] > 0.5
+    o = loop.settle(organism, world, UNATTENDED).observation
+    assert o["her_skin"]["contact"] == 0.0 and organism.contact["pressure"][0] == 1
+    assert o["her_skin"]["temperature_millikelvin"] is not None
+    encoded = organism.encoded()
+    assert FunctionalOrganism.restore(encoded).encoded() == encoded
+
+
+def test_a_touch_pays_by_the_skin_it_reached_plus_her_need_and_answers_her_syllable() -> None:
+    """The value of what followed her act carries the touch: the fraction of her
+    skin it pressed plus her contact need at the moment she chose; and a touch
+    within the answer window counts as an answer to her syllable."""
+
+    from dsf_ai_service.guala_functional_organism import CONTACT_PRESSURE_CEILING, Decision, SYLLABLE_DRIVES
+
+    organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
+    key = "0123456789abcdef"
+    organism._state["contact_pressure"] = CONTACT_PRESSURE_CEILING // 2
+    organism._state["pending_act"] = {"key": key, "act": "say", "deficit": 0.0, "sleep_ratio": 0.0, "contact_ratio": 0.5, "intake": 0, "refused": False, "burn": 0}
+    organism._settle("other", False, 0.0, 0.25, 2)
+    tries, total = organism._state["acts"][key]["acts"]["say"]
+    assert tries == 1 and abs(total - (0.25 + 0.5)) < 1e-6
+    # No touch: nothing from contact.
+    organism._state["pending_act"] = {"key": key, "act": "say", "deficit": 0.0, "sleep_ratio": 0.0, "contact_ratio": 0.5, "intake": 0, "refused": False, "burn": 0}
+    organism._settle("other", False, 0.0, 0.0, 3)
+    tries, total = organism._state["acts"][key]["acts"]["say"]
+    assert tries == 2 and abs(total - 0.75) < 1e-6
+    # A touch after her syllable is an answer, through the loop.
+    world = home_world_authority(identity=IDENTITY)
+    organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
+    loop = FunctionalPhysicalLoop()
+    loop.settle(organism, world, UNATTENDED)
+    context = "abcd:start"
+    organism._state["speech"][context] = {"syllables": {"ah": [1, 0]}, "tick": organism.live_organism_tick}
+    organism._state["pending_syllable"] = {"key": context, "syllable": "ah", "tick": organism.live_organism_tick}
+    loop.settle(organism, world, _touch_occurrence("touch-pat"))
+    assert organism._state["speech"][context]["syllables"]["ah"] == [1, 1]
+    drive, reason = organism._choose_syllable("abcd", None)
+    assert drive == SYLLABLE_DRIVES["ah"] and "best answered" in reason
+
+
+def test_she_can_walk_to_the_caregiver_and_put_her_palm_to_its_hand_and_feels_it_next_beat() -> None:
+    """Her side of touch: with the caregiver in sight, walking to it and reaching
+    for its hand are among her candidates; her own palm on the caregiver's palm
+    goes through the same contact law and is felt on the next beat."""
+
+    from dsf_ai_service.guala_functional_loop import _apply
+    from dsf_ai_service.guala_functional_organism import (
+        BEAT_MICROSECONDS, Decision, STREAMS, _heading_toward, caregiver_in_sight, candidates, things_in_sight,
+    )
+    from dsf_ai_service.substrate.embodiment_world import MoveCommand, PoseMM
+
+    world = home_world_authority(identity=IDENTITY)
+    organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
+    loop = FunctionalPhysicalLoop()
+    loop.settle(organism, world, _touch_occurrence("touch-shoulder"))   # the caregiver comes to her and stays near
+    snapshot = world.observation_snapshot()
+    her = _her(world)
+    person = caregiver_in_sight(snapshot)
+    if person is None:   # she may face away after the touch: turn her toward the caregiver by the world's own move law
+        other = next(b for b in snapshot.bodies if b.body_id != snapshot.self_body_id)
+        decision = Decision("turn_left", "test", (MoveCommand(PoseMM(her.pose.position, _heading_toward(her.pose.position, other.pose.position)), BEAT_MICROSECONDS),), None, None, "", False, 0, ())
+        prepared, _applied, _refusal, _refused = _apply(world, decision, snapshot)
+        with world.prepared_action_visibility_transaction(prepared):
+            world.commit_prepared_action(prepared)
+        snapshot = world.observation_snapshot(); her = _her(world); person = caregiver_in_sight(snapshot)
+    assert person is not None, "the caregiver should be in her sight after touching her"
+    options = candidates(snapshot, her, None, None, things_in_sight(snapshot), organism.live_organism_tick)
+    kinds = {option[0] for option in options}
+    assert "reach_hand" in kinds, kinds
+    reach = next(option for option in options if option[0] == "reach_hand")
+    decision = Decision("reach_hand", "test", reach[2], reach[3], None, " ".join("S0000000" for _ in STREAMS), False, 0, ())
+    prepared, applied, refusal, refused = _apply(world, decision, snapshot)
+    assert applied == "reach_hand" and refusal is None, refused
+    contacts = world.body_surface_contacts_for_prepared_action(prepared)
+    assert len(contacts) == 1 and contacts[0].recipient_cutaneous_topology_index is None
+    with world.prepared_action_visibility_transaction(prepared):
+        world.commit_prepared_action(prepared)
+    organism.commit(decision, applied_action="reach_hand", refusal=None, intake_micrograms=0, spoke=None, heard_profile=None,
+                    self_profile=None, tick_now=organism.live_organism_tick, contact_fraction=0.02)
+    assert organism._state["pending_contact"] == 0.02
+    from dsf_ai_service.guala_functional_organism import CONTACT_RECOVERY_PER_BEAT
+    organism._state["contact_pressure"] = 1_000
+    o = loop.settle(organism, world, UNATTENDED).observation
+    assert abs(o["her_skin"]["contact"] - 0.02) < 1e-6 and organism.contact["pressure"][0] == 1_000 - CONTACT_RECOVERY_PER_BEAT
+    assert organism._state["pending_contact"] == 0.0 or o["her_act"] == "reach_hand"
+
+
+def _hot_apple_in_reach(world, object_id: str, temperature_millikelvin: int) -> None:
+    """An apple at the asked surface temperature set down inside her hand's reach."""
+
+    from dataclasses import replace as _replace
+    snapshot = world.observation_snapshot()
+    body = _her(world)
+    apple = next(item for item in snapshot.objects if item.object_id == "apple")
+    hot = _replace(apple.material, surface_temperature_millikelvin=temperature_millikelvin)
+    last_error = None
+    for ahead_mm, turn in ((330, 0), (330, 20), (330, -20), (380, 0), (380, 30), (380, -30)):
+        radians = math.radians((body.pose.heading_millidegrees / 1000) + turn)
+        spot = PositionMM(body.pose.position.x + round(ahead_mm * math.cos(radians)), body.pose.position.y + round(ahead_mm * math.sin(radians)), 0)
+        try:
+            world.admit_authored_arrival(EmbodiedObject(object_id, apple.radius_mm, apple.mass_grams, spot, reflectance_ppm=apple.reflectance_ppm, material=hot))
+            return
+        except ValueError as error:
+            last_error = error
+    raise AssertionError(f"no clear spot within her reach for {object_id}: {last_error}")
+
+
+def test_what_her_skin_meets_is_felt_as_warmth_against_her_own_and_the_caregiver_is_warm() -> None:
+    """The thermal contrast at contact: a thing colder than her skin reads below
+    the middle, the caregiver's skin (warmer than hers) above it, and nothing in
+    contact reads the middle."""
+
+    world = home_world_authority(identity=IDENTITY)
+    organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
+    loop = FunctionalPhysicalLoop()
+    o = loop.settle(organism, world, UNATTENDED).observation
+    skin = o["her_skin"]["temperature_millikelvin"]
+    assert skin is not None and 296_000 < skin < 310_150
+    o = loop.settle(organism, world, _touch_occurrence("touch-hug")).observation
+    assert o["her_skin"]["met_millikelvin"] == 310_150 and organism._state["streams"]["touch_warmth"][-1] > 0.5
+    o = loop.settle(organism, world, UNATTENDED).observation
+    if o["her_skin"]["met_millikelvin"] is None:
+        assert organism._state["streams"]["touch_warmth"][-1] == 0.5
+    # A cold apple in her hand reads below the middle.
+    from dsf_ai_service.guala_functional_loop import _apply
+    from dsf_ai_service.guala_functional_organism import BEAT_MICROSECONDS, Decision, STREAMS
+    from dsf_ai_service.substrate.embodiment_world import GraspContactCommand
+    _hot_apple_in_reach(world, "cold-apple", 280_000)
+    snapshot = world.observation_snapshot()
+    decision = Decision("grasp", "test", (GraspContactCommand(BEAT_MICROSECONDS),), "cold-apple", None, " ".join("S0000000" for _ in STREAMS), False, 0, ())
+    prepared, applied, refusal, refused = _apply(world, decision, snapshot)
+    assert applied == "grasp", refused
+    with world.prepared_action_visibility_transaction(prepared):
+        world.commit_prepared_action(prepared)
+    organism.commit(decision, applied_action="grasp", refusal=None, intake_micrograms=0, spoke=None, heard_profile=None, self_profile=None, tick_now=organism.live_organism_tick)
+    o = loop.settle(organism, world, UNATTENDED).observation
+    assert _her(world).held_object_id in ("cold-apple", None)
+    assert o["her_skin"]["met_millikelvin"] == 280_000 and organism._state["streams"]["touch_warmth"][-1] < 0.5
+
+
+def test_a_hot_thing_in_her_hand_is_let_go_by_reflex_costs_in_her_record_and_the_jaw_will_not_bite_it() -> None:
+    """Above nature's pain threshold a held thing burns: she lets it go by reflex,
+    the act that put it in her hand is valued with the pain taken off, and food
+    that hot is not bitten until it cools."""
+
+    from dsf_ai_service.guala_functional_loop import _apply
+    from dsf_ai_service.guala_functional_organism import BEAT_MICROSECONDS, Decision, NOCICEPTION_MILLIKELVIN, STREAMS
+    from dsf_ai_service.substrate.embodiment_world import GraspContactCommand
+
+    world = home_world_authority(identity=IDENTITY)
+    organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
+    loop = FunctionalPhysicalLoop()
+    loop.settle(organism, world, UNATTENDED)
+    _hot_apple_in_reach(world, "hot-apple", NOCICEPTION_MILLIKELVIN + 20_000)
+    snapshot = world.observation_snapshot()
+    decision = Decision("grasp", "test", (GraspContactCommand(BEAT_MICROSECONDS),), "hot-apple", None, " ".join("S0000000" for _ in STREAMS), False, 0, ())
+    prepared, applied, refusal, refused = _apply(world, decision, snapshot)
+    assert applied == "grasp", refused
+    with world.prepared_action_visibility_transaction(prepared):
+        world.commit_prepared_action(prepared)
+    key = "0123456789abcdef"
+    organism._state["pending_act"] = {"key": key, "regimes": "", "act": "grasp", "deficit": 0.0, "sleep_ratio": 0.0, "contact_ratio": 0.0, "intake": 0, "refused": False, "burn": 0}
+    organism.commit(decision, applied_action="grasp", refusal=None, intake_micrograms=0, spoke=None, heard_profile=None, self_profile=None, tick_now=organism.live_organism_tick)
+    assert _her(world).held_object_id == "hot-apple"
+    o = loop.settle(organism, world, UNATTENDED).observation
+    assert o["her_act"] == "release" and "burns" in o["act_reason"], o["act_reason"]
+    assert _her(world).held_object_id is None
+    tries, total = organism._state["acts"][key]["acts"]["grasp"]
+    assert tries == 1 and total < 0, total   # the grasp of a hot thing paid less than nothing
+    # Hot food at her mouth while hungry: the jaw does not bite it.
+    organism._state["reserve_micrograms"] = 100_000
+    organism._state["feeding"] = True
+    snapshot = world.observation_snapshot()
+    prepared, applied, refusal, refused = _apply(world, Decision("grasp", "test", (GraspContactCommand(BEAT_MICROSECONDS),), "hot-apple", None, " ".join("S0000000" for _ in STREAMS), False, 0, ()), snapshot)
+    if applied == "grasp":
+        with world.prepared_action_visibility_transaction(prepared):
+            world.commit_prepared_action(prepared)
+        o = loop.settle(organism, world, UNATTENDED).observation
+        assert o["her_act"] != "bite", o["act_reason"]
