@@ -299,3 +299,34 @@ during the window, and the following entry pass shows a run_id other than
   the first 90-day wall, whichever comes first. Control: the 21 reset
   positions' exit prices above, held as the "old law would have kept
   holding" set for comparison at grading.
+
+## Addendum 6 — the restart is complete; CH2 code frozen (2026-09-15)
+
+Joseph: "this is a restart for ch2 with all entry and harvest rules in
+place as well as all the trade mechanics working — we start with $100,000
+and fresh trades ... if you see anything that will make this a money making
+machine now is the time to implement it — I want to really freeze all code
+changes on ch2 after this reset."
+
+- Deployed `tfe-web-task:630` (commits 810b8628b, 35c5c4584): dead clock,
+  first-day 20 % brake, reset exits do not cool off. Deployed
+  `tfe-web-task:631` (commit 4b0a61709): no entries when the decision table
+  is older than four days (`readingsAreStale`, logged "READINGS STALE");
+  14-day cooling-off after every exit the law makes (readings, dead clock,
+  brake, ratchet). Both verified live: switches `TFE_ENTRIES_HALTED=0`,
+  `CH3_ENTRIES_HALTED=1`; all four changed scripts present in the container.
+- Not implemented (unmeasured, and Joseph's standing rule is no unmeasured
+  entry rule): a market-regime gate on entries. Measurable during the
+  evaluation without touching code.
+- The $100,000 start requires Joseph's Alpaca paper-account reset (the API
+  has no reset; it also clears the two inactive holdings CWAN and HTBK).
+  If the reset rotates the paper keys, `tfe/market-data/prod`
+  (APCA_API_KEY_ID / APCA_API_SECRET_KEY) must be updated.
+- Known fragility, left in place and stated to Joseph: the nightly reading
+  that banks winners (`tools/ch4_spring_daily_runner.sh` →
+  `ch6_nightly_door.sh` → `ch2_holdings_read.py`) runs from this workspace
+  and dies with it; the sheet is ignored after four days, after which only
+  the dead clock, the 90-day wall and the −20 % brake sell.
+- CH2 CODE FROZEN from here. Evaluation: fresh book from the next entry
+  pass; grade at 20 closed positions under these rules or the first 90-day
+  wall; control = the 21 reset positions' exit prices (addendum 5).
