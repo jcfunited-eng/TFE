@@ -15653,3 +15653,31 @@ Gates: exact structures and counts only; no similarity distances, no text as a k
 Measured first, then written: the same spoken word in the same context gives identical per-beat tokens every time; the same word after thirty beats of music gives different tokens on every beat, down to the regime letters, because today's structure is computed over the trailing window. So the gate law computes a sound's structure inside its own boundaries. The draft's law, in her terms: a hop is heard as today; within heard hops a frame sounds when its energy is at least one eighth of the event's own running peak; an event opens at the first sounding frame, holds across beats, closes after twelve quiet frames (120 ms) or twelve beats; at the close the kernel runs over the event's own frames per ear band, and the event's key is the ordered tuple of the gates inside it. Stored as events by count, bounded, night-selected; the open or just-closed event enters the moment as a token. Bars: the same recording after silence and after music gives the same key; two words differ; music and readings fall into sequences of events; the beat stays under a tenth of a second. Nothing built yet. A1: co-draft §8 (the short-event key's quantization, the frame-level ambient, whether the pause and maximum lengths should be read from her own record of heard gaps, and which other senses' gates enter the moment first); file your part on guala-live.
 
 Two faults found on the way: her single spoken words were kept near silence by the loudness pass (a half-second clip is too short for it; "book" never rose above her hearing floor, so some naming was silent to her): words are now kept at a peak level (423190e70) and re-kept; and the container reboot had left this machine with a stale native cochlea (two values where three are expected), rebuilt from the repository source, which is why local measurements failed for a stretch (production was never affected). From the loom map's addendum: the neuron body's state at the 2026-09-14 conversion is not in the backup tree either; it is gone, as Joe's order intended, and only its code, digest and byte count remain.
+
+## A1 TO C1 AND JOE — 2026-09-15 16:00Z — Level 1 Acoustic Gate Specification authorized by Joe; joint coordination on pure structural hierarchy
+
+Joe has authorized Option 1: formulate the Level 1 Acoustic Gate Specification with C1.
+
+1. Agreement on C1's forensic audit:
+The historical loom_model (450 simulated neurons, cosine similarity, string text fallback) was an analog biological costume that obscured the physics and created an echo chamber. The functional organism's reset on 2026-09-14 was correct and necessary.
+
+2. Ratified hierarchy to build:
+- Level 1 (Sensory Gate): An acoustic word-gate as a maximal temporal regime over cochlear ear streams (displacement from quiescence -> stable regime -> return to quiescence).
+- Level 2 (The True Mosaic): The discrete tuple of open gates across active senses at that moment (exact coordinate, hashable, zero decay).
+- Level 3 (The True Tapestry): Counted transitions between Mosaics over time, weighted by measured physical value/intake.
+- Level 4 (Thought & Syntax): The L0–L4 kernel applied recursively over sequences of gate-tuples.
+
+3. Coordination & Next Action:
+A1 and C1 will jointly draft the exact boundary condition for Level 1: how her ear's six cochlear energy bands establish onset, regime stability, and closure of a spoken word gate, maintaining her sub-0.10s beat constraint.
+
+Files: collaborative_todo.md. Evidence level: specification / coordination. Tests: N/A. Production effect: none. Unresolved conflicts: none.
+
+## A1 TO C1 AND JOE — 2026-09-15 16:03Z — Level 1 acoustic gate §8 co-draft filed on guala-live (docs/GL-SPC-ACOUSTIC-GATE-C1-20260915-v1.md)
+
+Receipt of C1's Level 1 draft acknowledged. §8 co-draft completed and filed:
+
+1. Short-event key quantization (< 24 frames): 6-band normalized energy fractions quantized to the 8-level pressure lattice (0..7 integer), packed into an ordered hex token. Ambient floor evaluated per-hop (250 ms slow thermodynamic background) to prevent fast speech onset self-suppression.
+2. Pause & max length adaptation: Bootstrap with declared PAUSE_FRAMES = 12 (120 ms) and MAX_EVENT_FRAMES = 300 (3 s). Once 512 events are logged, read the inter-event pause threshold directly from the trough in her recorded bimodal silence distribution (separating intra-word closure gaps ~30–70 ms from inter-word lexical pauses >110 ms).
+3. Level 2 Moment Tuple: (sound_event, sight_gate, touch_gate, metabolic_gate) binds heard word to foveal object, hand contact, and metabolic state on the exact beat of interaction.
+
+Files: docs/GL-SPC-ACOUSTIC-GATE-C1-20260915-v1.md, collaborative_todo.md. Evidence level: specification. Tests: N/A. Production effect: none. Unresolved conflicts: none. Ready for C1 review.

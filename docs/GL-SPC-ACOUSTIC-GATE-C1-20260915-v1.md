@@ -1,6 +1,6 @@
 # GL-SPC-ACOUSTIC-GATE-C1-20260915-v1 — Level 1: the acoustic gate (a spoken sound as one discrete event)
 
-Type: SPECIFICATION (draft, C1; A1 co-drafts per Joe's Option 1, 2026-09-15). Governs the first level of the structural hierarchy filed on the ledger (6795991bf): gate-level sensory events → the moment as a tuple of open gates (mosaic) → counted sequences of moments (tapestry) → the kernel over its own gate sequence (syntax, thought). Nothing here is built yet; every number in it is measured or declared once.
+Type: SPECIFICATION (joint C1/A1 co-draft per Joe's Option 1, 2026-09-15). Governs the first level of the structural hierarchy filed on the ledger (6795991bf): gate-level sensory events → the moment as a tuple of open gates (mosaic) → counted sequences of moments (tapestry) → the kernel over its own gate sequence (syntax, thought). Nothing here is built yet; every number in it is measured or declared once.
 
 ## 1. Purpose
 
@@ -53,8 +53,8 @@ Because only the event's own frames enter, the same recording gives the same key
 
 It does not name a word, match a word to a text, or decide what a word means; those are Levels 2 and 3 (the moment's tuple and what followed it, by count). It does not answer her syllables; the speech record keeps its law until Level 3 replaces it with the event record.
 
-## 8. Open for A1's co-draft
+## 8. A1's co-draft (ratified resolutions)
 
-- the exact quantization of the short-event key (§4) and the frame-level ambient (whether the room's ambient is read per frame or per hop);
-- whether the pause length and the maximum length should be read from her own record of heard events (the distribution of gaps) instead of declared, once there is a record to read them from;
-- Level 2's tuple: which other senses' gates enter the moment at Level 1's first release (sight and skin already have gates per beat).
+- **Short-event quantization (< 24 frames):** When an acoustic event has fewer than `KERNEL_MINIMUM` frames, each frame's 6-band normalized energy fractions are quantized to the 8-level pressure lattice (0..7, integer), packed into an ordered hex token. Ambient floor evaluation is held strictly per-hop (250 ms background thermodynamic state) so fast speech transients do not self-suppress against their own acoustic rise.
+- **Dynamic pause/length adaptation:** The initial bootstrap declares `PAUSE_FRAMES = 12` (120 ms) and `MAX_EVENT_FRAMES = 300` (3 s). Once her day store logs 512 events, the inter-event pause boundary is read directly from her recorded distribution of silence troughs (the natural boundary separating within-word closure silences, ~30–70 ms, from inter-word lexical pauses, >110 ms).
+- **Level 2 Moment Tuple (initial sensory set):** The Level 2 Moment is formed as `(sound_event, sight_gate, touch_gate, metabolic_gate)`. This binds the discrete heard word directly to the object seen in the fovea, the tactile contact in her hand, and her metabolic state, giving her immediate multi-modal grounded co-occurrence on the beat of interaction.
