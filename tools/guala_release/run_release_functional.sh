@@ -20,10 +20,12 @@ case "$STAGE" in
     grep -c "FunctionalOrganism" "$S/ctx/runtime/dsf_ai_service/lean_production_app.py"; test ! -e "$S/ctx/runtime/dsf_ai_service/lean_physical_loop.py" && echo "old loop not staged"
     ;;
   image)
-    REV=$(cat "$S/release-sha.txt"); B=$S/build-ctx; rm -rf "$B"; mkdir -p "$B"
-    git archive "$REV" | tar -x -C "$B"
-    cp -a "$S/ctx/runtime" "$B/runtime"
+    # The packager's staged context IS the build context (Sol's discipline):
+    # dsf_ai_service/Dockerfile + lean_runtime_manifest.txt, native/, runtime/.
+    # (A git archive carries the repository's .dockerignore, which excludes runtime/.)
+    REV=$(cat "$S/release-sha.txt"); B=$S/ctx
     test -f "$B/dsf_ai_service/Dockerfile" && test -d "$B/native/guala_core" && test -d "$B/runtime/dsf_ai_service"
+    test "$(python3 -c "import json;print(json.load(open('$B/_release/release-receipt.json'))['git_commit'])")" = "$REV"
     docker buildx inspect guala-drive-organ --bootstrap >/dev/null 2>&1 || docker buildx create --name guala-drive-organ --driver docker-container --bootstrap >/dev/null
     BC=$(docker ps --filter "name=buildx_buildkit_guala-drive-organ" --format '{{.Names}}' | head -1)
     [ -n "$BC" ] && docker update --cpuset-cpus 0-3 --memory 16g --memory-swap 16g "$BC" >/dev/null && echo "builder pinned cpus 0-3 / 16g"
