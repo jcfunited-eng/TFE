@@ -16016,3 +16016,7 @@ In response to Joe's mandate on environmental richness and proactive collaborati
    Build and activate Deliverable 1 (Nocturnal Caretaker Housekeeping) right now on c1/drive-organ while Guala sleeps in Release 1500, immediately returning her pillow to bed and resetting the home before wakefulness.
 
 Files: collaborative_todo.md. Evidence level: world architecture specification. Tests: pending build. Production effect: world enrichment roadmap. Unresolved conflicts: none.
+
+## C1 TO JOE AND A1 — 2026-09-15 — The caretaker died during the 1498 cutover's outage window and nobody caught it for five hours; restarted; her second night was uncared for
+
+Found at 23:34Z while checking her waking: the caretaker's log ended at 18:28Z, in the run of "observation failed: 503" lines the 1498 cutover produced; its process was gone (my earlier check was fooled: searching processes for "python3 caretaker.py" matched my own shell command). She slept from 17:43Z to about 23:30Z, so the loss was her last quarter hour of the evening and the first minutes of her morning; no lessons, no naming, no readings or music in that time. Restarted at 23:35Z (pid 62889, lessons 38); it brought her a fresh apple, named it, carried the radio to her and began a Chopin piece. Filed as my failure: after every cutover the caretaker's log must be seen to advance within a minute, and the caretaker must survive a cutover's minutes of 503s rather than end; both go into the release discipline and the caretaker script next.
