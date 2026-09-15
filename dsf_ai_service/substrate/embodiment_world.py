@@ -384,7 +384,7 @@ class RoomBoundsMM:
 
     def contains_floor_disc(self, position: PositionMM, radius_mm: int) -> bool:
         return (
-            position.z == self.minimum.z
+            self.minimum.z <= position.z <= self.maximum.z
             and self.minimum.x + radius_mm <= position.x <= self.maximum.x - radius_mm
             and self.minimum.y + radius_mm <= position.y <= self.maximum.y - radius_mm
         )
@@ -2419,6 +2419,8 @@ def _derived_contact_patch_square_mm(
 
 
 def _floor_discs_overlap(left: PositionMM, left_radius: int, right: PositionMM, right_radius: int) -> bool:
+    if abs(left.z - right.z) >= left_radius + right_radius:
+        return False
     distance = (left.x - right.x) ** 2 + (left.y - right.y) ** 2
     return distance < (left_radius + right_radius) ** 2
 
