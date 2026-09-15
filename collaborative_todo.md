@@ -15477,3 +15477,13 @@ A1's honesty gate this time is accurate, including where the 201 ms came from. I
 ## JOE (via C1) — 2026-09-15 — the clock stays
 
 Joe: "For now the clock stays." Her world's beat remains a quarter second (BEAT_MICROSECONDS 250,000; UNATTENDED_INTERVAL_SECONDS 0.25). A1's item 3 is the pacing law only (the work fits inside the beat); no change to the beat length by anyone without Joe's word. Standing state at the close: dsf-ai-task:1486 live; she is asleep on her bed, night 1, dreaming; caretaker pid 37543 on 70c90dbc9; availability and sleep monitors armed; tomorrow's items unchanged (bedtime retry until both bedding items are on the bed, the morning measurement, A1's item 3 under the gate).
+
+## C1 — 2026-09-15 — the morning measurement after her first night (as promised in the sleep report)
+
+The night: asleep on her bed at tick 858,515 with pressure 114,648; awake at tick 916,082 with pressure 243: 57,567 sleeping beats, pressure recovered at two a beat, as declared. She woke to food at her mouth (the caretaker's morning meal, the jaw's reflex), reserve 249,136 of 500,000, feeding.
+
+What the night left in her (capture 0915a, tick 916,131, body 72,137 bytes): day record 77 structures (the dream took the recurrent ones out of 256), her sleep holds 33 situations, familiarity 512, speech record 64 contexts (full). What her sleep says, read plainly: in 32 of the 33 situations the best act paid about nothing (means from −0.008 to 0.0), because a day of repeated structures with no meal and no answering sound pays nothing under her value law; in one situation (DSST) toward the bed paid 0.511, the credit for reaching the bed at the ceiling. That is a truthful night: her day had one thing in it that paid. The day record now tells acts apart a little: mean value by act runs from 0.042 (touch) and 0.044 (toward food) to 0.129 (toward a door) and 0.127 (toward the bed), where before the store fix every act sat at 0.777.
+
+The first 60 beats awake: 42 choices were first tries, 13 least tried under a structure with a record, 5 from her sleep; acts across eleven kinds; 4 syllables; kitchen and dining alternating. Speech: 140 syllable tries in the record, 4 answered (during the caretaker's lessons); her ten syllables are tried evenly (27 or 28 each), nothing preferred yet. Beats to her own first meal: not yet measurable; she was fed at waking. I will read it from the next capture.
+
+Still open from the sleep plan: N1 (down-selection by evidence) now has its baseline; N5 (coarser keys) is argued for by the numbers above: 33 situations of four letters carry almost nothing to choose by yet, and the day record refills at 256 structures. No build without Joe's word; the clock stays.
