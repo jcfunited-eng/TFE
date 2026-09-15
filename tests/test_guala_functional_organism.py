@@ -1493,3 +1493,37 @@ def test_looking_at_her_own_hand_keeps_her_head_straight_and_asleep_her_eyes_res
         eye = loop.settle(organism, world, UNATTENDED).observation["her_eye"]
     assert eye["eyes"] == [0, 0] and eye["gaze"] is None, eye
     assert eye["head"][0] == before[0], (eye["head"], before)
+
+
+def test_her_world_eye_draws_what_she_holds_at_her_hand_and_a_round_thing_as_a_disc() -> None:
+    """Two truths of her world eye (A1's fixes under Joe's Option 1, 2026-09-15): a thing
+    she holds is drawn at her hand's contact point, so looking down she sees it; and a
+    sphere lights the sites within its angular radius, a disc, not the box around it."""
+
+    from dsf_ai_service.guala_eye_figure import figure_under_gaze
+    from dsf_ai_service.guala_functional_organism import FOCAL_COLUMNS, FOCAL_ROWS
+
+    world = home_world_authority(identity=IDENTITY)
+    organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
+    organism._state["reserve_micrograms"] = CAPACITY_MICROGRAMS * 9 // 10
+    _thing_ahead(world, "toy-bear", "bear-far", 1_200)
+    eyes = _look_at(organism, world, "bear-far", 24)
+    discs = [eye for eye in eyes if eye["gaze"] is not None and eye["figure"]]
+    assert discs, [(eye["gaze"], eye["figure"]) for eye in eyes]
+    fills = [eye["shape"][1] for eye in discs]
+    assert all(fill < 8 for fill in fills), fills          # a disc never fills its box; the box drawing gave eight eighths on every beat
+    assert max(fills) >= 6, fills                          # and it is most of the box (a circle is about six eighths of its square)
+    # What she holds is in her sight when she looks down at her hand.
+    world = home_world_authority(identity=IDENTITY)
+    organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
+    organism._state["reserve_micrograms"] = CAPACITY_MICROGRAMS * 9 // 10
+    _apple_ahead(world, "apple-held", 350)
+    loop = FunctionalPhysicalLoop()
+    seen_in_hand = []
+    for _ in range(80):
+        result = loop.settle(organism, world, UNATTENDED)
+        her = _her(world)
+        eye = result.observation["her_eye"]
+        if her.held_object_id is not None and eye["gaze"] is not None:
+            seen_in_hand.append(eye["figure"])
+    assert seen_in_hand and any(seen_in_hand), seen_in_hand   # before this change the world skipped her held thing: never a figure in hand

@@ -770,12 +770,17 @@ def _retinal_projection(
             )
     for item in observation.objects:
         if item.held_by_body_id == observation.self_body_id:
-            continue
-        position = (
-            item.position
-            if item.position is not None
-            else body_by_id[item.held_by_body_id].pose.position
-        )
+            # What she holds is in her hand, at her hand's contact point (her touch
+            # offset carried by her heading), where her eye can see it when she looks down.
+            if body.receptor_geometry is None:
+                continue
+            position = _body_fixed_receptor_position(body, body.receptor_geometry.touch_offset_mm)
+        else:
+            position = (
+                item.position
+                if item.position is not None
+                else body_by_id[item.held_by_body_id].pose.position
+            )
         position = (
             PositionMM(
                 position.x,
@@ -913,6 +918,13 @@ def _retinal_projection(
                     relative_vertical - angular_radius,
                 ),
             )
+            # A round thing lights the sites whose centres lie within its angular
+            # radius: its silhouette is a disc, not the box around it.
+            if (
+                (horizontal_center - relative_horizontal) ** 2
+                + (vertical_center - relative_vertical) ** 2
+            ) > angular_radius * angular_radius:
+                continue
             coverage = Fraction(
                 horizontal_overlap * vertical_overlap,
                 4 * half_horizontal_receptor * half_vertical_receptor,
@@ -1009,6 +1021,13 @@ def _retinal_projection(
                             - max(h_center - half_pitch, H_min),
                         )
                         if not h_overlap:
+                            continue
+                        # A round thing lights the sites whose centres lie within its
+                        # angular radius: its silhouette is a disc, not the box around it.
+                        if (
+                            (h_center - relative_horizontal) ** 2
+                            + (v_center - relative_vertical) ** 2
+                        ) > angular_radius * angular_radius:
                             continue
                         if pattern is not None and angular_radius > 0:
                             p_col = min(
