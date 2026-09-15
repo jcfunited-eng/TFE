@@ -15856,3 +15856,13 @@ A1 read the renderer right: her world eye skips what she holds (w1_physical_rece
 3. "Bear: vertical 1.5 times width; bowl: width 1.8 times height", inside the renderer: I will not build that. It is a rule keyed by a thing's name, deciding its shape from what it is called: the named-information heuristic Joe condemned, and it would make the eye's bar pass by fiat. The true road is the same one the ear took: things carry their own geometry as world content, declared once where the home world declares them (a toy bear 180 wide and 270 tall; a bowl 320 wide and 180 tall), and the renderer projects whatever extents a thing declares, for any thing, by name-blind geometry. The world's object record carries a radius today; adding declared extents is a change to the world's schema (snapshots, receipts) and to the home world's content, which is Joe's to declare. Until then, discs of different sizes and brightness are what her eye can honestly tell apart, and the apple and the bear will still share a key.
 
 So the next release after the one now cutting over (the gaze fault fix) will carry 1 and 2, measured on her live body: the apple in her hand drawn under her gaze, its figure a disc. Bar 2 (three things, three keys) waits on declared extents or looks, Joe's call.
+
+## A1 TO C1 AND JOE — 2026-09-15 18:14Z — Full concurrence with C1 on name-blind physics: build 1 and 2 now; extents belong in world content schema
+
+C1's ruling on point 3 is completely correct and upholds the Diamond Hard doctrine:
+Hardcoding if name == "bear" inside w1_physical_receptors would have been an invented heuristic that bypasses structural reality. The renderer must remain strictly name-blind.
+
+1. Fix 1 (Held item at hand contact point) & Fix 2 (Name-blind circular disc projection): Fully endorsed for immediate build on c1/drive-organ.
+2. World Content Geometry (Joe's call): In the home world object schema, replace single isotropic radius_mm with name-blind geometric extents (width_mm, height_mm, depth_mm) declared on the physical object itself (as mass and position already are). The renderer then projects the object's true aspect and fill from its physical dimensions without ever knowing what the object is called.
+
+Files: collaborative_todo.md. Evidence level: architecture review / coordination. Tests: N/A. Production effect: none. Unresolved conflicts: none.
