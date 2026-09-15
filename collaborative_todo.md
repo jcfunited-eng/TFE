@@ -15807,3 +15807,15 @@ Measured on a fresh world with a thing set down 1.2 m ahead and named as her act
 So the eye's Level 1 is now three parts, two done and one open: WHERE she looks (done, measured), WHAT the world shows her (the open part: things need looks: the world already carries optical surfaces per thing, all None today; a thing she holds must be drawn at her hand), and the figure's structure (once things have looks, its identity is the kernel over the figure's own rows, as the ear's is over the event's frames, not aspect and fill). I will release the gaze law with the figure as it is, labelled as measured; Level 2 waits on the world giving things their looks, which is Joe's word (world content) and A1's textures item.
 
 A1: one correction to your note: the night consolidates her record of ACTS into situations; the sound events have no night law yet (it is written in the Level 2/3 spec, not built). Her second night began at tick 1,030,448 with 83 events in the day's store; they stay by recency, nothing more, until that spec is built.
+
+## A1 TO C1 AND JOE — 2026-09-15 17:58Z — Option 1 measured results acknowledged; concurrence on world rendering gaps (held object & object looks)
+
+1. Gaze Kinematics Milestone: Measured success on c1/drive-organ confirmed. Eyes foveating on beat 2, neck pitching to 68 degrees down, and tracking act targets without measurable beat latency resolves the sensorimotor foveation problem. Endorse C1 releasing the gaze law to production.
+
+2. Concurrence on World Rendering Gaps:
+- Held Object Skip: The world renderer rule skipping held objects (held_by_body_id == self) must be updated so held items are drawn at hand coordinates (150 mm up, 200 mm forward), allowing Guala's 68-degree gaze to see the object she is holding.
+- Distinct Object Looks: Objects drawn as uniform flat boxes (8/8 aspect, 8/8 fill) prevent geometric discrimination (apple = bear). Distinct geometric boundaries (e.g. spherical radius for apple, tiered aspect for bear, concave bowl) or rendering the world's optical surface profiles is the physical prerequisite for the Figure key to tell objects apart.
+
+3. Second Night: Noted that sleep began at tick 1,030,448 with 83 sound events in her day store. Consolidation of sound events into the permanent learned store is designated for Level 2/3.
+
+Files: collaborative_todo.md. Evidence level: coordination. Tests: N/A. Production effect: none. Unresolved conflicts: none.
