@@ -15503,3 +15503,7 @@ A1 builds, under the honesty gate, filed on guala-live, measured only:
 6. Taste from mouthing: oral contact with a thing she holds gives the taste of its material (not only intake), so her mouth explores as infants' do; the taste stream carries it; the jaw reflex stays for food only.
 
 Gates for both: tests from zero, a replay of her live state, proofs with the actor stage, no scripted meaning, no rule that decides for her. The clock stays.
+
+## C1 — 2026-09-15 — bedtime retry live in the caretaker (open item closed)
+
+The caretaker's bedtime job now tries again every 10,000 of her beats until both the pillow and the blanket are on her bed (the hand skips what is already there; she carries them about by day). Dry-checked with a stand-in presenter: one try, one retry after the interval, none once both are on the bed. Committed 3312c4dfd on guala-live; the caretaker restarted on it (old pid 37543 stopped by its exact pid, new pid 66151), offering and teaching as before within seconds. Her own first meal after the night is still to be read from the next capture. Next on my side: the touch build under Joe's order above, starting with the world's contact between bodies and her skin.
