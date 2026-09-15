@@ -280,6 +280,7 @@ BEDTIME_FRACTION = 0.9   # of her sleep-pressure ceiling: the caretaker makes he
 BEDDING = frozenset({"pillow", "blanket"})
 READ_EVERY_TICKS = 12_000     # about an hour of her beats between readings
 READ_KEEP_EVERY_BLOCKS = 96   # the book is shown beside her again this often, so the caregiver stays through the chapter
+READ_BLOCK_RETRIES = 6        # a block her service refused (a passing 503) is tried again this many times, two seconds apart
 READ_BOOK = "Alice's Adventures in Wonderland"   # the first book; the next titles follow when this one is read through
 BEDTIME_RETRY_BEATS = 10_000   # about an hour of her beats between tries until both are on the bed
 LULLABY_HZ = (330, 330, 392, 330, 330, 392, 330, 392, 523, 494, 440, 440, 392, 294, 330, 349, 294, 294, 330, 349, 294, 349, 494, 440, 392, 494, 523)
@@ -380,8 +381,14 @@ def maybe_read(o: dict, st: dict) -> None:
     log(f"reading: {book['title']}, chapter file {chapter['name']} ({len(blocks)} beats of sound) begins at tick {tick}")
     heard = 0
     for i, pcm in enumerate(blocks):
-        r = sing_block(pcm)
+        r = None
+        for attempt in range(READ_BLOCK_RETRIES + 1):
+            r = sing_block(pcm)
+            if r is not None:
+                break
+            time.sleep(2)
         if r is None:
+            log("reading: her service refused a block repeatedly; the book closes for now")
             break
         heard += 1
         ob = r.get("observation") or {}
@@ -391,8 +398,13 @@ def maybe_read(o: dict, st: dict) -> None:
             if asleep(ob):
                 log("reading: she fell asleep; the book closes")
                 break
-            keep = present_food("read-book")
-            kept = (((keep or {}).get("observation") or {}).get("last_occurrence") or {}).get("caregiver_presentation") or {}
+            kept = {}
+            for attempt in range(3):
+                keep = present_food("read-book")
+                kept = (((keep or {}).get("observation") or {}).get("last_occurrence") or {}).get("caregiver_presentation") or {}
+                if kept.get("reading"):
+                    break
+                time.sleep(2)
             if not kept.get("reading"):
                 log("reading: the caregiver could not keep the book beside her; the book closes")
                 break
