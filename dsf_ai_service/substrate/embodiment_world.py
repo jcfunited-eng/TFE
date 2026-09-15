@@ -4259,6 +4259,10 @@ class EmbodimentWorldAuthority:
                 item.object_id: item.emission_ppm
                 for item in self._declared_genesis_world.objects
             }
+            declared_look = {
+                item.object_id: item.optical_surface
+                for item in self._declared_genesis_world.objects
+            }
             objects: list[EmbodiedObject] = []
             for item in prior.world.objects:
                 if item.object_id not in declared_material:
@@ -4272,6 +4276,12 @@ class EmbodimentWorldAuthority:
                 authored_emission = declared_emission.get(item.object_id, ())
                 if not item.emission_ppm and any(authored_emission):
                     item = replace(item, emission_ppm=authored_emission)
+                    changed = True
+                # A thing's look is authored anatomy too: a lived thing that predates
+                # its declared look takes it; a lived look is preserved.
+                authored_look = declared_look.get(item.object_id)
+                if item.optical_surface is None and authored_look is not None:
+                    item = replace(item, optical_surface=authored_look)
                     changed = True
                 if item.material is None:
                     if mounted is not None:

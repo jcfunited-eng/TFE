@@ -36,7 +36,7 @@ from uf_core.layer4 import compute_directional_signal, compute_dsf
 from dsf_ai_service.guala_acoustic_gate import (   # her ear's declared numbers live with the gate, once
     EAR_BAND_CHANNELS, EAR_BANDS, FRAMES_PER_HOP, HEARD_ENERGY_FLOOR, KERNEL_MINIMUM, PAUSE_FRAMES, SILENT_FRAME, STREAM_FLOOR, gate_step,
 )
-from dsf_ai_service.guala_eye_figure import FOCAL_COLUMNS, FOCAL_ROWS, Figure, figure_under_gaze   # her focal field's size lives with the eye, once
+from dsf_ai_service.guala_eye_figure import FOCAL_COLUMNS, FOCAL_ROWS, Figure, figure_of_disc   # her focal field's size lives with the eye, once
 from dsf_ai_service.substrate.exact_lattice_rotation import rotate_lattice_offset
 from dsf_ai_service.guala_caretaker_hand import (
     _approach_point, _distance_mm, _heading_toward, _portal_points, _portal_route, _region_of,
@@ -222,6 +222,14 @@ PHRASE_WINDOW_BEATS = 8
 # sounding frame ended (1..11 frames), and the silence between events in frames,
 # binned at a beat, two, eight, sixty-four, and beyond.
 EVENT_RECORD_CAPACITY = 256
+# Level 2 (docs/GL-SPC-MOMENT-LEVEL2-C1-20260915-v1.md): a moment forms on the beat a
+# sound event closes; its key is the event's key with the held thing's texture and warmth
+# in eighths and the figure under her gaze (the physical invariants, A1's §6); her hunger,
+# taste and the caregiver's touch at that beat ride in the record as context, not the key.
+# Level 3: what followed a moment within the window, by count: the next moment, and a bite.
+MOMENT_RECORD_CAPACITY = 256
+FOLLOW_WINDOW_BEATS = 16
+FOLLOW_CAPACITY = 8
 QUIET_RUN_BINS = PAUSE_FRAMES - 1
 GAP_BINS_FRAMES = (FRAMES_PER_HOP, FRAMES_PER_HOP * 2, FRAMES_PER_HOP * 8, FRAMES_PER_HOP * 64)
 
@@ -536,6 +544,18 @@ def _target_point(snapshot: Any, body: Any, target_id: str | None) -> tuple[int,
     return None
 
 
+def _target_radius_mm(snapshot: Any, body: Any, target_id: str | None) -> int:
+    """The radius of the thing she acts on (a thing's or a body's), zero when unknown."""
+
+    for item in snapshot.objects:
+        if item.object_id == target_id:
+            return int(item.radius_mm)
+    for other in snapshot.bodies:
+        if other.body_id == target_id:
+            return int(other.radius_mm)
+    return 0
+
+
 def _aim(body: Any, point: tuple[int, int, int]) -> tuple[int, int]:
     """(yaw, pitch) in millidegrees from her eye to a point, in her body's frame."""
 
@@ -820,7 +840,8 @@ class FunctionalOrganism:
             "target_totals": {}, "taste_residue": 0.0,
             "speech": {}, "syllable_totals": {}, "prior_syllable": None, "pending_syllable": None,
             "ear_event": None, "events": {}, "sound_event": None, "ear_quiet": _empty_ear_quiet(),
-            "gaze": None, "gaze_target": None, "sight_figure": None, "figures": {}, "eyes": [0, 0],
+            "gaze": None, "gaze_target": None, "sight_figure": None, "figures": {}, "eyes": [0, 0], "gaze_radius": 0.0,
+            "moments": {}, "last_moment": None,
         })
 
     @classmethod
@@ -920,6 +941,15 @@ class FunctionalOrganism:
             changed = True
         if "eyes" not in state:
             state["eyes"] = [0, 0]
+            changed = True
+        if "gaze_radius" not in state:
+            state["gaze_radius"] = 0.0
+            changed = True
+        if "moments" not in state:
+            state["moments"] = {}
+            changed = True
+        if "last_moment" not in state:
+            state["last_moment"] = None
             changed = True
         for key in RETIRED_KEYS:
             if key in state:
@@ -1073,7 +1103,7 @@ class FunctionalOrganism:
         figures = state.get("figures") or {}
         key = state.get("sight_figure")
         return {
-            "figure": key, "shape": None if figure is None else [figure.aspect_eighths, figure.fill_eighths, figure.contrast_eighths],
+            "figure": key, "look": None if figure is None else list(figure.look), "radius_sites": 0.0 if figure is None else figure.radius_sites,
             "extent": 0.0 if figure is None else round(figure.extent, 4), "met": int(figures[key][0]) if key in figures else 0,
             "figures": len(figures), "gaze": state.get("gaze"), "head": list(self.head), "eyes": list(self.eyes), "target": state.get("gaze_target"),
         }
@@ -1086,7 +1116,23 @@ class FunctionalOrganism:
         counts["nights"] = int(self._state.get("nights", 0))
         counts["events"] = len(self._state.get("events") or {})
         counts["figures"] = len(self._state.get("figures") or {})
+        counts["moments"] = len(self._state.get("moments") or {})
         return counts
+
+    @property
+    def moment(self) -> dict[str, object] | None:
+        """The moment that formed on her last beat, as the page sees it: its key, how many
+        times met, the context it carried, what has followed it by count, and the bites
+        that followed it; None on a beat without one."""
+
+        formed = getattr(self, "_moment_formed", None)
+        if formed is None:
+            return None
+        entry = (self._state.get("moments") or {}).get(formed)
+        if entry is None:
+            return None
+        following = sorted(entry.get("next", {}).items(), key=lambda kv: (-int(kv[1]), kv[0]))[:3]
+        return {"key": formed, "count": int(entry["count"]), "held": entry.get("held", "none"), "context": list(entry.get("context", [])), "next": following, "fed": int(entry.get("fed", 0))}
 
     # ----- the kernel over her measured streams --------------------------------------
 
@@ -1234,10 +1280,16 @@ class FunctionalOrganism:
         target_id = body.held_object_id or state.get("gaze_target")
         point = None if state.get("asleep") else _target_point(snapshot, body, target_id)   # asleep, eyes closed, the head rests
         state["gaze"] = None
+        state["gaze_radius"] = 0.0
         if point is not None:
             aim = _aim(body, point)
             gaze = _gaze_in_field(self.carriage, aim)
             state["gaze"] = None if gaze is None else [gaze[0], gaze[1]]
+            # The thing's silhouette in her field: its angular radius in sites, from the world's own geometry.
+            radius_mm = _target_radius_mm(snapshot, body, target_id)
+            ex, ey, ez = _eye_position(body)
+            distance = max(1.0, math.dist((ex, ey, ez), (point[0], point[1], point[2])))
+            state["gaze_radius"] = round(math.degrees(math.atan2(radius_mm, distance)) * 1000 / FOCAL_SITE_MILLIDEGREES, 3)
             state["head"] = list(head_toward(self.head, aim[0], aim[1]))
             # The eyes take up the rest at once, within their range and never past straight down or up.
             eye_yaw = int(_clamp(aim[0] - state["head"][0], -EYE_BOUND_MILLIDEGREES, EYE_BOUND_MILLIDEGREES))
@@ -1291,6 +1343,7 @@ class FunctionalOrganism:
             if hop_heard and energy >= ambient * HEARD_ABOVE_AMBIENT:
                 sound_now = _clamp(energy * 4, 0.0, 1.0)
         self._hear_events(sensed.heard_frames, hop_heard, tick)
+        self._form_moments(body, measures, tick)
         self._settle(key, novel, sound_now, skin_now, tick, warmth_likeness=float(getattr(self, "_warmth_likeness", 0.0)), pain=float(getattr(self, "_pain", 0.0)))
 
         def decision(act: str, reason: str, commands: tuple[Any, ...] = (), target: str | None = None, drive: tuple[int, int, int] | None = None) -> Decision:
@@ -1382,7 +1435,7 @@ class FunctionalOrganism:
         state = self._state
         figure = None
         if sensed.luminance_source == "world" and state.get("gaze") is not None:
-            figure = figure_under_gaze(tuple(sensed.focal_luminance_u8), (float(state["gaze"][0]), float(state["gaze"][1])))
+            figure = figure_of_disc(tuple(sensed.focal_luminance_u8), (float(state["gaze"][0]), float(state["gaze"][1])), float(state.get("gaze_radius", 0.0)))
         self._figure = figure
         key = None if figure is None else figure.key
         if key is not None and key != state.get("sight_figure"):
@@ -1392,6 +1445,45 @@ class FunctionalOrganism:
             while len(figures) > FIGURE_RECORD_CAPACITY:
                 del figures[min(figures, key=lambda k: (int(figures[k][1]), k))]   # the least recently met leaves
         state["sight_figure"] = key
+
+    # ----- Level 2 and 3: the moment, and what followed it ------------------------------
+
+    def _form_moments(self, body: Any, measures: dict[str, float], tick: int) -> None:
+        """On a beat a sound event closed: the moment's key from the physical invariants
+        (the event, the held thing's texture and warmth in eighths, the figure under her
+        gaze), its context (hunger, taste, the caregiver's touch, in eighths), counted in
+        the day's store; and, when the last moment is within the window, this one counted
+        as what followed it."""
+
+        state = self._state
+        self._moment_formed = None
+        closed = list(getattr(self, "_ear_closed", []))
+        if not closed:
+            return
+        eighth = lambda value: int(_clamp(round(float(value) * 8), 0, 8))
+        held = "none" if body.held_object_id is None else f"{eighth(measures['touch_texture'])}/{eighth(measures['touch_warmth'])}"
+        figure = state.get("sight_figure") or "none"
+        context = [eighth(measures["hunger"]), eighth(measures["taste_residue"]), eighth(measures["skin_contact"])]
+        moments = state.setdefault("moments", {})
+        for event in closed:
+            key = hashlib.sha256(f"{event}|{held}|{figure}".encode("ascii")).hexdigest()[:16]
+            entry = moments.get(key)
+            if entry is None:
+                moments[key] = {"count": 1, "tick": tick, "held": held, "context": context, "next": {}, "fed": 0}
+            else:
+                entry["count"] = int(entry["count"]) + 1
+                entry["tick"] = tick
+                entry["context"] = context
+            last = state.get("last_moment")
+            if last is not None and last[0] != key and tick - int(last[1]) <= FOLLOW_WINDOW_BEATS and last[0] in moments:
+                following = moments[last[0]].setdefault("next", {})
+                following[key] = int(following.get(key, 0)) + 1
+                while len(following) > FOLLOW_CAPACITY:
+                    del following[min(following, key=lambda k: (int(following[k]), k))]   # the least counted leaves
+            state["last_moment"] = [key, tick]
+            self._moment_formed = key
+        while len(moments) > MOMENT_RECORD_CAPACITY:
+            del moments[min(moments, key=lambda k: (int(moments[k]["tick"]), k))]   # the least recently met leaves
 
     # ----- Level 1: the acoustic gate over her beat ------------------------------------
 
@@ -1629,6 +1721,9 @@ class FunctionalOrganism:
             state["meals_micrograms"] += intake
             state["bites"] += 1
             state["taste_residue"] = min(1.0, float(state.get("taste_residue", 0.0)) + intake / 100_000.0)
+            last = state.get("last_moment")   # Level 3: a bite within the window is what followed the moment
+            if last is not None and tick_now - int(last[1]) <= FOLLOW_WINDOW_BEATS and last[0] in (state.get("moments") or {}):
+                state["moments"][last[0]]["fed"] = int(state["moments"][last[0]].get("fed", 0)) + 1
         state["taste_residue"] = round(float(state.get("taste_residue", 0.0)) * 0.95, 6)
 
         pending = state.get("pending_act")

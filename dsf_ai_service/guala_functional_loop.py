@@ -425,6 +425,7 @@ class FunctionalPhysicalLoop:
                              "touched": (presentation or {}).get("touched"), "need": organism.contact["pressure"]},
                 "her_ear": organism.ear,
                 "her_eye": organism.eye,
+                "her_moment": organism.moment,
                 "kernel_novel": decision.novel,
                 "kernel_signature": decision.signature,
                 "latest_retinal_field_kind": "external-rgb" if external_rgb is not None else "achromatic",

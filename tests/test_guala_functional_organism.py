@@ -54,7 +54,7 @@ def _apple_ahead(world, object_id: str, ahead_mm: int) -> None:
         radians = math.radians((body.pose.heading_millidegrees / 1000) + turn)
         spot = PositionMM(body.pose.position.x + round((ahead_mm + extra_mm) * math.cos(radians)), body.pose.position.y + round((ahead_mm + extra_mm) * math.sin(radians)), 0)
         try:
-            world.admit_authored_arrival(EmbodiedObject(object_id, apple.radius_mm, apple.mass_grams, spot, reflectance_ppm=apple.reflectance_ppm, material=apple.material))
+            world.admit_authored_arrival(EmbodiedObject(object_id, apple.radius_mm, apple.mass_grams, spot, reflectance_ppm=apple.reflectance_ppm, material=apple.material, optical_surface=apple.optical_surface))
             return
         except ValueError as error:  # the world's authoring guard: the spot is not clear
             last_error = error
@@ -1385,7 +1385,7 @@ def _thing_ahead(world, source_id: str, object_id: str, ahead_mm: int) -> None:
         radians = math.radians((body.pose.heading_millidegrees / 1000) + turn)
         spot = PositionMM(body.pose.position.x + round((ahead_mm + extra_mm) * math.cos(radians)), body.pose.position.y + round((ahead_mm + extra_mm) * math.sin(radians)), 0)
         try:
-            world.admit_authored_arrival(EmbodiedObject(object_id, source.radius_mm, source.mass_grams, spot, reflectance_ppm=source.reflectance_ppm, material=source.material))
+            world.admit_authored_arrival(EmbodiedObject(object_id, source.radius_mm, source.mass_grams, spot, reflectance_ppm=source.reflectance_ppm, material=source.material, optical_surface=source.optical_surface))
             return
         except ValueError as error:
             last_error = error
@@ -1430,28 +1430,46 @@ def test_her_head_follows_what_she_acts_on_and_the_thing_comes_under_her_gaze() 
     assert eyes[-1]["figure"] is not None or any(eye["figure"] for eye in eyes), eyes[-1]  # and a figure was found under her gaze
 
 
-def test_the_figure_under_her_gaze_is_found_for_a_thing_and_absent_for_the_wall() -> None:
-    """The eye's Level 1 on her world eye, as measured (2026-09-15): a thing she acts on
-    comes under her gaze and a figure is found there on most of those beats, the store
-    counts it, the body restores byte-exact; with nothing to act on and her head level,
-    the wall gives no figure. What the world eye does NOT give (filed on the ledger, not
-    asserted here): every thing is drawn as a flat square, so the apple and the bear share
-    a key and the bowl's contrast in eighths drifts with distance."""
+def test_the_figure_under_her_gaze_is_the_things_look_the_same_near_and_far_and_different_things_differ() -> None:
+    """Bars 1 to 3 of the eye's Level 1 on her world eye, as measured (2026-09-15): the same
+    thing at two distances gives one dominant key; that key holds on at least half the beats
+    the thing is under her gaze and the top two keys on nine in ten (measured: the room's
+    light follows the real sun through the windows, and a ring whose light sits on a
+    quarter's boundary alternates between two keys; Level 3 counts both to the same word);
+    the apple, the bear and the bowl give three keys (the cup shares the bowl's declared look); the store counts
+    them; the body restores byte-exact; with nothing to act on and her head level, the wall
+    gives no figure."""
 
-    for source, object_id in (("apple", "apple-far"), ("toy-bear", "bear-far"), ("bowl", "bowl-far")):
-        world = home_world_authority(identity=IDENTITY)
-        organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
-        organism._state["reserve_micrograms"] = CAPACITY_MICROGRAMS * 9 // 10
-        _thing_ahead(world, source, object_id, 1_200)
-        eyes = _look_at(organism, world, object_id, 24)
-        gazed = [eye for eye in eyes if eye["gaze"] is not None]
-        found = [eye["figure"] for eye in gazed if eye["figure"]]
-        assert len(gazed) >= 6 and len(found) * 10 >= len(gazed) * 7, (object_id, [(eye["gaze"], eye["figure"], eye["head"]) for eye in eyes])
-        common = max(set(found), key=found.count)
-        assert organism._state["figures"][common][0] >= 1 and organism.counts["figures"] >= 1
-        assert all(eye["shape"] is not None and eye["extent"] > 0 for eye in gazed if eye["figure"])
-        encoded = organism.encoded()
-        assert FunctionalOrganism.restore(encoded).encoded() == encoded
+    keys = {}
+    for source in ("apple", "toy-bear", "bowl", "cup"):
+        for distance in (1_200, 700):
+            object_id = f"{source}-{distance}"
+            world = home_world_authority(identity=IDENTITY)
+            organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
+            organism._state["reserve_micrograms"] = CAPACITY_MICROGRAMS * 9 // 10
+            _thing_ahead(world, source, object_id, distance)
+            eyes = _look_at(organism, world, object_id, 24)
+            gazed = [eye for eye in eyes if eye["gaze"] is not None]
+            found = [eye["figure"] for eye in gazed if eye["figure"]]
+            assert len(gazed) >= 6 and len(found) * 2 >= len(gazed), (object_id, [(eye["gaze"], eye["figure"], eye["head"]) for eye in eyes])   # a disc cut by the field's edge has no look
+            common = max(set(found), key=found.count)
+            # A ring whose light sits on a quarter's boundary alternates between two keys as the hour's
+            # light and her stride move it; Level 3 counts both. So: the top key on at least half the
+            # beats, and the top two keys on at least nine in ten.
+            ranked = sorted(set(found), key=lambda key: (-found.count(key), key))
+            assert found.count(common) * 2 >= len(found), (object_id, found)
+            assert sum(found.count(key) for key in ranked[:2]) * 10 >= len(found) * 9, (object_id, found)
+            keys[object_id] = common
+            keys[object_id + ":top2"] = set(ranked[:2])
+            assert organism._state["figures"][common][0] >= 1 and organism.counts["figures"] >= 1
+            assert all(len(eye["look"]) == 3 and eye["extent"] > 0 for eye in gazed if eye["figure"])
+            encoded = organism.encoded()
+            assert FunctionalOrganism.restore(encoded).encoded() == encoded
+        # The same thing near and far: one key, or, for a look on a quarter's boundary, the same pair.
+        assert keys[f"{source}-1200"] in keys[f"{source}-700:top2"] or keys[f"{source}-700"] in keys[f"{source}-1200:top2"], (source, keys)
+    # Three declared looks, three keys (the home world declares the cup with the bowl's look, so the two
+    # share keys by content, not by law; the cup stays in the run for the near-and-far bar).
+    assert len({keys[f"{source}-1200"] for source in ("apple", "toy-bear", "bowl")}) == 3, keys
     # Nothing to act on, head level: the wall, no figure.
     world = home_world_authority(identity=IDENTITY)
     organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
@@ -1500,8 +1518,7 @@ def test_her_world_eye_draws_what_she_holds_at_her_hand_and_a_round_thing_as_a_d
     she holds is drawn at her hand's contact point, so looking down she sees it; and a
     sphere lights the sites within its angular radius, a disc, not the box around it."""
 
-    from dsf_ai_service.guala_eye_figure import figure_under_gaze
-    from dsf_ai_service.guala_functional_organism import FOCAL_COLUMNS, FOCAL_ROWS
+    from dsf_ai_service.guala_eye_figure import FOCAL_COLUMNS, FOCAL_ROWS, figure_of_disc
 
     world = home_world_authority(identity=IDENTITY)
     organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
@@ -1510,9 +1527,11 @@ def test_her_world_eye_draws_what_she_holds_at_her_hand_and_a_round_thing_as_a_d
     eyes = _look_at(organism, world, "bear-far", 24)
     discs = [eye for eye in eyes if eye["gaze"] is not None and eye["figure"]]
     assert discs, [(eye["gaze"], eye["figure"]) for eye in eyes]
-    fills = [eye["shape"][1] for eye in discs]
-    assert all(fill < 8 for fill in fills), fills          # a disc never fills its box; the box drawing gave eight eighths on every beat
-    assert max(fills) >= 6, fills                          # and it is most of the box (a circle is about six eighths of its square)
+    # A disc, not a box: the sites the figure holds are fewer than its box (about pi over four of it).
+    for eye in discs[-3:]:
+        sites = eye["extent"] * FOCAL_COLUMNS * FOCAL_ROWS
+        box = (2 * eye["radius_sites"]) ** 2
+        assert 0.55 * box <= sites <= 0.95 * box, (sites, box)
     # What she holds is in her sight when she looks down at her hand.
     world = home_world_authority(identity=IDENTITY)
     organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
@@ -1527,3 +1546,70 @@ def test_her_world_eye_draws_what_she_holds_at_her_hand_and_a_round_thing_as_a_d
         if her.held_object_id is not None and eye["gaze"] is not None:
             seen_in_hand.append(eye["figure"])
     assert seen_in_hand and any(seen_in_hand), seen_in_hand   # before this change the world skipped her held thing: never a figure in hand
+
+
+# ----- Level 2 and 3: the moment, and what followed it (docs/GL-SPC-MOMENT-LEVEL2-C1-20260915-v1.md) -----
+
+
+def _moments_while_handling(source: str, object_id: str, hops, beats: int, reserve_share: int = 9):
+    """A thing set down at her hand's reach; the room sounds `hops` in turn, silence between,
+    so events close while she grasps and releases it; every moment formed is returned with
+    what she held at that beat."""
+
+    world = home_world_authority(identity=IDENTITY)
+    organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
+    organism._state["reserve_micrograms"] = CAPACITY_MICROGRAMS * reserve_share // 10
+    _thing_ahead(world, source, object_id, 350)
+    loop = FunctionalPhysicalLoop()
+    out = []
+    for index in range(beats):
+        occurrence = _heard(hops[(index // 2) % len(hops)]) if index % 2 == 0 else UNATTENDED
+        result = loop.settle(organism, world, occurrence)
+        moment = result.observation["her_moment"]
+        if moment is not None:
+            out.append((moment["key"], None if moment["held"] == "none" else object_id, moment["count"], moment["next"], moment["fed"]))
+    return organism, out
+
+
+def test_a_moment_forms_only_when_a_sound_closes_and_binds_the_word_to_what_her_hand_holds() -> None:
+    """Bars 1 to 3 of Level 2: a sound closing while she holds the apple gives one moment key
+    met again each time; the same sound with the bear in hand gives another key; a beat with
+    no sound closing forms no moment; the store is bounded and restores byte-exact."""
+
+    organism, apple_moments = _moments_while_handling("apple", "apple-h", [_tone(440)], 160)
+    held = [row for row in apple_moments if row[1] == "apple-h"]
+    empty = [row for row in apple_moments if row[1] is None]
+    assert held and empty, apple_moments
+    held_keys = {row[0] for row in held}
+    assert not (held_keys & {row[0] for row in empty}), apple_moments    # the apple in hand is never the same moment as an empty hand
+    assert max(row[2] for row in held) >= 2, held                      # the same word with the apple in hand: met again
+    assert organism.counts["moments"] == len(organism._state["moments"]) <= 256
+    assert all(len(entry["context"]) == 3 for entry in organism._state["moments"].values())
+    encoded = organism.encoded()
+    assert FunctionalOrganism.restore(encoded).encoded() == encoded
+    _organism, bear_moments = _moments_while_handling("toy-bear", "bear-h", [_tone(440)], 160)
+    bear_held = [row for row in bear_moments if row[1] == "bear-h"]
+    assert bear_held and bear_held[0][0] != held[0][0], (bear_held[:2], held[:2])   # the same sound, the bear in hand: another moment
+    # No sound closing, no moment.
+    world = home_world_authority(identity=IDENTITY)
+    organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
+    results = _run(organism, world, [UNATTENDED] * 6)
+    assert all(r.observation["her_moment"] is None for r in results) and organism.counts["moments"] == 0
+
+
+def test_what_followed_a_moment_is_counted_within_the_window_the_next_moment_and_a_bite() -> None:
+    """Level 3: two sounds in turn, each closing within sixteen beats of the last, count each
+    other as what followed; while she is hungry with the apple in hand, the bite that follows
+    a moment is counted to it."""
+
+    from dsf_ai_service.guala_functional_organism import FOLLOW_WINDOW_BEATS
+
+    organism, moments = _moments_while_handling("apple", "apple-h", [_tone(440), _tone(900)], 160, reserve_share=5)
+    assert len(moments) >= 4, moments
+    store = organism._state["moments"]
+    followed = [(key, entry["next"]) for key, entry in store.items() if entry.get("next")]
+    assert followed, store                                             # something followed something within the window
+    assert all(int(count) >= 1 and len(following) <= 8 for _key, following in followed for count in following.values())
+    assert FOLLOW_WINDOW_BEATS == 16
+    assert organism.counts["bites"] >= 1, organism.counts
+    assert any(int(entry.get("fed", 0)) >= 1 for entry in store.values()), store   # a bite within the window followed a moment

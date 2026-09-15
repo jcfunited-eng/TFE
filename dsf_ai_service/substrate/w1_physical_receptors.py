@@ -1030,40 +1030,24 @@ def _retinal_projection(
                         ) > angular_radius * angular_radius:
                             continue
                         if pattern is not None and angular_radius > 0:
-                            p_col = min(
-                                pattern.columns - 1,
-                                max(
-                                    0,
-                                    (
-                                        (
-                                            h_center
-                                            - relative_horizontal
-                                            + angular_radius
-                                        )
-                                        * pattern.columns
-                                    )
-                                    // (2 * angular_radius),
-                                ),
-                            )
-                            p_row = min(
-                                pattern.rows - 1,
-                                max(
-                                    0,
-                                    (
-                                        (
-                                            relative_vertical
-                                            + angular_radius
-                                            - v_center
-                                        )
-                                        * pattern.rows
-                                    )
-                                    // (2 * angular_radius),
-                                ),
-                            )
-                            refl = pattern.reflectance_at_verified_ppm(
-                                row=p_row,
-                                column=p_col,
-                            )
+                            # A focal site integrates the light over its whole aperture:
+                            # every pattern cell the aperture covers, averaged (a point
+                            # sample flickered with sub-site shifts as she moved).
+                            span = 2 * angular_radius
+                            c_lo = max(0, ((h_center - half_pitch - relative_horizontal + angular_radius) * pattern.columns) // span)
+                            c_hi = min(pattern.columns - 1, ((h_center + half_pitch - relative_horizontal + angular_radius) * pattern.columns) // span)
+                            r_lo = max(0, ((relative_vertical + angular_radius - (v_center + half_pitch)) * pattern.rows) // span)
+                            r_hi = min(pattern.rows - 1, ((relative_vertical + angular_radius - (v_center - half_pitch)) * pattern.rows) // span)
+                            c_lo, c_hi = int(c_lo), max(int(c_lo), int(c_hi))
+                            r_lo, r_hi = int(r_lo), max(int(r_lo), int(r_hi))
+                            cells = 0
+                            summed = None
+                            for p_row in range(r_lo, r_hi + 1):
+                                for p_col in range(c_lo, c_hi + 1):
+                                    cell = pattern.reflectance_at_verified_ppm(row=p_row, column=p_col)
+                                    summed = list(cell) if summed is None else [a + b for a, b in zip(summed, cell)]
+                                    cells += 1
+                            refl = tuple(Fraction(v, cells) for v in summed)
                             em = surface.emission_ppm or ((0,) * len(refl))
                             surface_light = tuple(
                                 min(

@@ -652,6 +652,7 @@ def deliver_thing(world: Any, template_id: str) -> str | None:
                 world.admit_authored_arrival(EmbodiedObject(
                     template_id, template.radius_mm, template.mass_grams, spot,
                     reflectance_ppm=template.reflectance_ppm, material=template.material,
+                    optical_surface=template.optical_surface,   # a fresh thing carries its family's declared look
                 ))
             except ValueError:
                 continue
@@ -690,6 +691,7 @@ def deliver_apple(world: Any) -> str | None:
                 world.admit_authored_arrival(EmbodiedObject(
                     object_id, template.radius_mm, template.mass_grams, spot,
                     reflectance_ppm=template.reflectance_ppm, material=template.material,
+                    optical_surface=template.optical_surface,   # a fresh thing carries its family's declared look
                 ))
             except ValueError:
                 continue

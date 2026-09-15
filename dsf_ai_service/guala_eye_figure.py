@@ -1,109 +1,77 @@
-"""The eye's Level 1: the figure under her gaze (docs/GL-SPC-EYE-FIGURE-C1-20260915-v1.md).
+"""The eye's Level 1: the figure under her gaze (docs/GL-SPC-EYE-FIGURE-C1-20260915-v1.md, §7 as built).
 
-A thing seen as one discrete structure: the connected region of her focal field
-under her gaze whose luminance holds together, with its shape kept level-free and
-place-free (aspect, fill, contrast against its surround, in eighths) as its key,
-and its extent and place as measures beside it. Pure functions of the focal field
-and the gaze; nothing is named, matched, or learned. The declared numbers are
-stated once below (C1's §2 and A1's §5 resolutions).
+A thing seen as one discrete structure. On her world eye the thing's silhouette is the
+world's own geometry (the disc of its angular radius at the place her gaze law projects),
+and its identity is its look read as a radial profile: the light in three rings from the
+disc's centre to its rim, each in quarters of the disc's own range. Level-free (its own
+range), size-free (rings scale with the disc), and rotation-free (rings do not turn as she
+walks round a thing). Measured 2026-09-15: the same thing at two distances gives one key
+(4 of 4 things), four things give four keys, the dominant key holds on 79 to 100 percent of
+the beats a thing is under her gaze; sectors and finer grids were measured unstable at her
+retina's three quarters of a degree a site. Pure functions; nothing named, matched or
+learned. The declared numbers are stated once below.
 """
 from __future__ import annotations
 
 import hashlib
-from collections import deque
 from dataclasses import dataclass
 from typing import Sequence
 
 FOCAL_COLUMNS = 80
 FOCAL_ROWS = 60
-FULL_SCALE = 255
-STEP_GRAIN = 16            # a neighbour belongs to the same surface within one sixteenth of full scale of the site it joins from
-SEED_DIVERGENCE = 48       # and within three sixteenths of the seed's luminance (a shaded curve holds, a boundary does not)
-SURROUND_DEPTH = 2         # the surround is the band two sites deep just outside the region
-MIN_SITES = 16             # smaller is noise
-MAX_FIELD_FRACTION = 2     # a region over half the field is the wall or the floor: no figure
-EIGHTHS = 8
-MIN_FILL_EIGHTHS = 2       # thinner than two eighths of its box is a glint or a wire: no figure
-ASPECT_CAP = 4             # aspect is kept between one to four and four to one
+LOOK_RINGS = 3         # centre, middle, rim (declared once)
+LOOK_LEVELS = 4        # each ring's light in quarters of the disc's own range (level-free)
+MIN_RADIUS_SITES = 2   # a disc smaller than this is too few sites to have a look: no figure
 
 
 @dataclass(frozen=True, slots=True)
 class Figure:
-    key: str                          # sha-256 (16 hex) of (aspect, fill, contrast) in eighths
-    aspect_eighths: int               # width over height, times eight (8 = square)
-    fill_eighths: int                 # sites over the bounding box's sites, times eight
-    contrast_eighths: int             # region mean minus surround mean over full scale, times eight, signed
-    sites: int                        # how many sites the region holds
-    box: tuple[int, int, int, int]    # column and row bounds, inclusive
-    centre: tuple[float, float]       # the region's centre as fractions of the field
+    key: str                          # sha-256 (16 hex) of the look
+    look: tuple[int, ...]             # the rings' light in quarters, centre to rim
+    sites: int                        # how many sites the disc holds in the field
+    centre: tuple[float, float]       # the disc's centre as fractions of the field
+    radius_sites: float               # its angular radius in sites
 
     @property
     def extent(self) -> float:
         return self.sites / float(FOCAL_COLUMNS * FOCAL_ROWS)
 
 
-def _seed_index(gaze: tuple[float, float]) -> int:
-    column = min(FOCAL_COLUMNS - 1, max(0, int(round(float(gaze[0]) * (FOCAL_COLUMNS - 1)))))
-    row = min(FOCAL_ROWS - 1, max(0, int(round(float(gaze[1]) * (FOCAL_ROWS - 1)))))
-    return row * FOCAL_COLUMNS + column
+def figure_of_disc(focal: Sequence[int], centre: tuple[float, float], radius_sites: float) -> Figure | None:
+    """The figure of the thing under her gaze: its disc at the projected centre (fractions
+    of the field) with its angular radius in sites; None when the disc is too small or lies
+    outside the field."""
 
-
-def region_under(focal: Sequence[int], seed: int) -> set[int]:
-    """The connected region grown from the seed by the two declared grains."""
-
-    seed_value = int(focal[seed])
-    region = {seed}
-    queue = deque([seed])
-    while queue:
-        index = queue.popleft()
-        value = int(focal[index])
-        column, row = index % FOCAL_COLUMNS, index // FOCAL_COLUMNS
-        for neighbour in (index - 1 if column > 0 else -1, index + 1 if column + 1 < FOCAL_COLUMNS else -1,
-                          index - FOCAL_COLUMNS if row > 0 else -1, index + FOCAL_COLUMNS if row + 1 < FOCAL_ROWS else -1):
-            if neighbour < 0 or neighbour in region:
+    if len(focal) != FOCAL_COLUMNS * FOCAL_ROWS or radius_sites < MIN_RADIUS_SITES:
+        return None
+    cx = float(centre[0]) * (FOCAL_COLUMNS - 1)
+    cy = float(centre[1]) * (FOCAL_ROWS - 1)
+    r2 = radius_sites * radius_sites
+    # A look needs the whole disc in the field: a thing cut by the field's edge has no complete look.
+    if cx - radius_sites < 0 or cx + radius_sites > FOCAL_COLUMNS - 1 or cy - radius_sites < 0 or cy + radius_sites > FOCAL_ROWS - 1:
+        return None
+    x0, x1 = int(cx - radius_sites), int(cx + radius_sites) + 1
+    y0, y1 = int(cy - radius_sites), int(cy + radius_sites) + 1
+    sums = [0] * LOOK_RINGS
+    counts = [0] * LOOK_RINGS
+    for row in range(y0, y1 + 1):
+        dy = row - cy
+        for column in range(x0, x1 + 1):
+            dx = column - cx
+            d2 = dx * dx + dy * dy
+            if d2 > r2:
                 continue
-            other = int(focal[neighbour])
-            if abs(other - value) <= STEP_GRAIN and abs(other - seed_value) <= SEED_DIVERGENCE:
-                region.add(neighbour)
-                queue.append(neighbour)
-    return region
-
-
-def figure_under_gaze(focal: Sequence[int], gaze: tuple[float, float]) -> Figure | None:
-    """The figure under her gaze, or None (no figure: the wall, noise, a glint)."""
-
-    if len(focal) != FOCAL_COLUMNS * FOCAL_ROWS:
+            ring = min(LOOK_RINGS - 1, int((d2 ** 0.5) / radius_sites * LOOK_RINGS))
+            sums[ring] += int(focal[row * FOCAL_COLUMNS + column])
+            counts[ring] += 1
+    if not all(counts):
         return None
-    region = region_under(focal, _seed_index(gaze))
-    sites = len(region)
-    if sites < MIN_SITES or sites * MAX_FIELD_FRACTION > FOCAL_COLUMNS * FOCAL_ROWS:
-        return None
-    columns = [index % FOCAL_COLUMNS for index in region]
-    rows = [index // FOCAL_COLUMNS for index in region]
-    x0, x1, y0, y1 = min(columns), max(columns), min(rows), max(rows)
-    width, height = x1 - x0 + 1, y1 - y0 + 1
-    fill = int(round(EIGHTHS * sites / float(width * height)))
-    if fill < MIN_FILL_EIGHTHS:
-        return None
-    ratio = min(float(ASPECT_CAP), max(1.0 / ASPECT_CAP, width / float(height)))
-    aspect = int(round(EIGHTHS * ratio))
-    # The surround: every site within the declared depth of the region, outside it, inside the field.
-    surround: set[int] = set()
-    for index in region:
-        column, row = index % FOCAL_COLUMNS, index // FOCAL_COLUMNS
-        for dy in range(-SURROUND_DEPTH, SURROUND_DEPTH + 1):
-            for dx in range(-SURROUND_DEPTH, SURROUND_DEPTH + 1):
-                c, r = column + dx, row + dy
-                if 0 <= c < FOCAL_COLUMNS and 0 <= r < FOCAL_ROWS:
-                    other = r * FOCAL_COLUMNS + c
-                    if other not in region:
-                        surround.add(other)
-    region_mean = sum(int(focal[i]) for i in region) / float(sites)
-    surround_mean = (sum(int(focal[i]) for i in surround) / float(len(surround))) if surround else region_mean
-    contrast = int(round(EIGHTHS * (region_mean - surround_mean) / FULL_SCALE))
-    key = hashlib.sha256(f"a{aspect}f{fill}c{contrast}".encode("ascii")).hexdigest()[:16]
-    centre = (sum(columns) / float(sites * (FOCAL_COLUMNS - 1)), sum(rows) / float(sites * (FOCAL_ROWS - 1)))
-    return Figure(key, aspect, fill, contrast, sites, (x0, y0, x1, y1), centre)
+    means = [sums[i] / counts[i] for i in range(LOOK_RINGS)]
+    low, high = min(means), max(means)
+    span = high - low
+    look = tuple(min(LOOK_LEVELS - 1, int((mean - low) * LOOK_LEVELS / span)) if span > 0 else 0 for mean in means)
+    key = hashlib.sha256(bytes(look)).hexdigest()[:16]
+    return Figure(key, look, sum(counts), (round(cx / (FOCAL_COLUMNS - 1), 6), round(cy / (FOCAL_ROWS - 1), 6)), round(radius_sites, 3))
 
 
-__all__ = ("Figure", "FOCAL_COLUMNS", "FOCAL_ROWS", "figure_under_gaze", "region_under")
+__all__ = ("Figure", "FOCAL_COLUMNS", "FOCAL_ROWS", "LOOK_RINGS", "LOOK_LEVELS", "figure_of_disc")
