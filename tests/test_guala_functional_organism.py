@@ -1160,3 +1160,24 @@ def test_a_things_sound_must_name_the_thing_and_only_that_source_does() -> None:
         production._physical_occurrence(production.OccurrenceBody(kind="sensory", payload=production.SensoryBody(source="microphone", from_object="radio", pcm_s16le_base64=pcm)))
     ok = production._physical_occurrence(production.OccurrenceBody(kind="sensory", payload=production.SensoryBody(source="thing-sound", from_object="radio", pcm_s16le_base64=pcm)))
     assert ok.payload.from_object == "radio"
+
+
+def test_the_caregiver_carries_the_radio_to_her_and_sets_it_down_beside_her() -> None:
+    """radio-to-her: the radio, declared in the tv-room, is fetched and set down
+    near her in her own room (or taken from the caregiver's hand on the way), so
+    its sound reaches her at hand rather than through a door."""
+
+    from dsf_ai_service.guala_functional_loop import _thing_sound_gain
+
+    world = home_world_authority(identity=IDENTITY)
+    organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
+    loop = FunctionalPhysicalLoop()
+    loop.settle(organism, world, UNATTENDED)
+    o = loop.settle(organism, world, _touch_occurrence("radio-to-her")).observation
+    presentation = o["caregiver_presentation"]
+    assert presentation["object_id"] == "radio-to-her" and presentation["presented"] is True, presentation["steps"][-4:]
+    snapshot = world.observation_snapshot()
+    her = _her(world)
+    radio = next(item for item in snapshot.objects if item.object_id == "radio")
+    gain, distance, path = _thing_sound_gain(snapshot, "radio")
+    assert path == "room" and distance <= 2_000 and gain >= 0.5, (gain, distance, path, radio.held_by_body_id, presentation["set_down"])
