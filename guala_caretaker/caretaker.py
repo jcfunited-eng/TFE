@@ -282,6 +282,8 @@ READ_EVERY_TICKS = 12_000     # about an hour of her beats between readings
 READ_KEEP_EVERY_BLOCKS = 96   # the book is shown beside her again this often, so the caregiver stays through the chapter
 READ_BLOCK_RETRIES = 6        # a block her service refused (a passing 503) is tried again this many times, two seconds apart
 READ_BOOK = "Alice's Adventures in Wonderland"   # the first book; the next titles follow when this one is read through
+MUSIC_EVERY_TICKS = 12_000    # about an hour of her beats between pieces of music on the radio
+MUSIC_MAX_BLOCKS = 2_400      # ten minutes of a piece at most in one sitting
 BEDTIME_RETRY_BEATS = 10_000   # about an hour of her beats between tries until both are on the bed
 LULLABY_HZ = (330, 330, 392, 330, 330, 392, 330, 392, 523, 494, 440, 440, 392, 294, 330, 349, 294, 294, 330, 349, 294, 349, 494, 440, 392, 494, 523)
 LULLABY_BEATS = (1, 1, 2, 1, 1, 2, 1, 1, 2, 2, 1, 1, 2, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 3)  # quarter-second blocks per note
@@ -410,6 +412,83 @@ def maybe_read(o: dict, st: dict) -> None:
                 break
     st["read_chapter"] = index + 1 if heard >= len(blocks) else index
     log(f"reading: {heard} of {len(blocks)} beats reached her ears; next chapter index {st['read_chapter']}")
+
+
+def play_block(pcm: bytes, from_object: str) -> dict | None:
+    """One beat of a thing's sound in her world (the radio): her ears get it by
+    the room's geometry between her and the thing."""
+    body = json.dumps({"kind": "sensory", "payload": {"source": "thing-sound", "from_object": from_object, "pcm_s16le_base64": base64.b64encode(pcm).decode()}}).encode()
+    req = urllib.request.Request(f"{BASE}/occurrence", data=body, headers={"Content-Type": "application/json"}, method="POST")
+    try:
+        with urllib.request.urlopen(req, timeout=60) as r:
+            return json.load(r)
+    except Exception as err:  # noqa: BLE001
+        log(f"radio block refused: {err}")
+        return None
+
+
+def maybe_music(o: dict, st: dict) -> None:
+    """Music on the radio: once in MUSIC_EVERY_TICKS of her beats while she is
+    awake, one public-domain piece (Musopen, from the Internet Archive) sounds
+    from the radio in her world, block by block at her beat; her ears hear it by
+    the room's geometry, so walking toward it or away changes what she hears.
+    The radio is brought into a world that predates it, once."""
+    import media
+    sleep = her_sleep(o)
+    if sleep.get("asleep"):
+        return
+    tick = int(o.get("live_tick") or 0)
+    if st.get("music_next_tick") is not None and tick < int(st["music_next_tick"]):
+        return
+    st["music_next_tick"] = tick + MUSIC_EVERY_TICKS
+    if not st.get("radio_in_world"):
+        res = present_food("radio-delivery")
+        made = (((res or {}).get("observation") or {}).get("last_occurrence") or {}).get("caregiver_presentation") or {}
+        if not made.get("delivered"):
+            log(f"radio: the world refused its arrival — {made.get('steps')}")
+            return
+        st["radio_in_world"] = True
+        log(f"radio: brought into her world as {made.get('delivered')}")
+    try:
+        index = int(st.get("music_index") or 0)
+        archive, licence = media.MUSIC_ITEMS[index % len(media.MUSIC_ITEMS)]
+        tracks = media.tracks(archive)
+        if not tracks:
+            log(f"radio: {archive} has no sound files; skipping")
+            st["music_index"] = index + 1
+            return
+        track_index = int(st.get("music_track") or 0) % len(tracks)
+        track = tracks[track_index]
+        pcm_path = media.fetch_track(archive, track["name"], licence)
+        blocks = media.blocks(pcm_path)[:MUSIC_MAX_BLOCKS]
+    except Exception as err:  # noqa: BLE001
+        log(f"radio: the library could not give the piece: {err}")
+        return
+    log(f"radio: {archive} — {track['name']} ({len(blocks)} beats of sound) begins at tick {tick}")
+    heard = 0
+    for i, pcm in enumerate(blocks):
+        r = None
+        for attempt in range(READ_BLOCK_RETRIES + 1):
+            r = play_block(pcm, "radio")
+            if r is not None:
+                break
+            time.sleep(2)
+        if r is None:
+            log("radio: her service refused a block repeatedly; the radio goes quiet")
+            break
+        heard += 1
+        ob = r.get("observation") or {}
+        MINE.append(ob.get("live_tick") or 0)
+        MINE.append((ob.get("last_occurrence") or {}).get("native_tick"))
+        if (i + 1) % READ_KEEP_EVERY_BLOCKS == 0 and asleep(ob):
+            log("radio: she fell asleep; the radio goes quiet")
+            break
+    if track_index + 1 >= len(tracks):
+        st["music_index"] = index + 1
+        st["music_track"] = 0
+    else:
+        st["music_track"] = track_index + 1
+    log(f"radio: {heard} of {len(blocks)} beats sounded; next {st.get('music_index', index)}/{st.get('music_track', 0)}")
 
 
 def maybe_lullaby(o: dict, st: dict) -> None:
@@ -571,6 +650,7 @@ def wait_clear(min_tick: int | None = None, st: dict | None = None) -> dict | No
                 maybe_bedtime(o, st)
                 maybe_play(o, st)
                 maybe_read(o, st)   # a reading does not wait for a clear window: a person on the page does not close her book
+                maybe_music(o, st)
             if gates_clear(o) and (hold is None or (o.get("live_tick") or 0) >= hold):
                 return o
         time.sleep(POLL_S)

@@ -90,4 +90,74 @@ def blocks(pcm_path: str) -> list[bytes]:
     return [raw[i:i + BLOCK_BYTES] for i in range(0, len(raw) - BLOCK_BYTES + 1, BLOCK_BYTES)]
 
 
-__all__ = ("LIBRARY", "BLOCK_BYTES", "blocks", "chapters", "fetch_chapter", "librivox_book")
+# Music: public-domain recordings kept by the Internet Archive (Musopen's
+# releases: orchestral and chamber works recorded and released into the public
+# domain). Some items hold their tracks as plain files, some inside one zip.
+MUSIC_ITEMS = (
+    ("musopen-chopin", "public domain (Musopen)"),
+    ("musopen-brahms-symphony-premix", "public domain (Musopen)"),
+    ("musopen-mozart-quartet-in-d-minor-k421", "public domain (Musopen)"),
+    ("musopen-dvorak-quartet-in-f-major-op-51", "public domain (Musopen)"),
+    ("musopen-beethoven-symphony-no-3-eroica-compressed", "public domain (Musopen)"),
+)
+
+
+def tracks(archive: str) -> list[dict]:
+    """The sound files of one Archive item, in order: plain mp3/ogg/flac files, or,
+    when the item holds one zip, the sound files inside it (named zip!member)."""
+
+    meta = json.loads(_get(f"{ARCHIVE_METADATA}{archive}"))
+    sound = [f for f in meta["files"] if f["name"].lower().endswith((".mp3", ".ogg", ".flac"))]
+    if sound:
+        # One file per piece: an item often holds the same piece as mp3 and ogg.
+        preferred = {".mp3": 0, ".ogg": 1, ".flac": 2}
+        by_stem: dict[str, dict] = {}
+        for f in sorted(sound, key=lambda f: (f["name"].rsplit(".", 1)[0], preferred.get("." + f["name"].rsplit(".", 1)[-1].lower(), 9))):
+            by_stem.setdefault(f["name"].rsplit(".", 1)[0], f)
+        return [{"name": f["name"], "length": f.get("length"), "size": int(f.get("size") or 0)} for f in by_stem.values()]
+    zips = [f for f in meta["files"] if f["name"].lower().endswith(".zip")]
+    if not zips:
+        return []
+    zip_name = sorted(zips, key=lambda f: f["name"])[0]["name"]
+    zip_path = _fetch_file(archive, zip_name)
+    import zipfile
+    with zipfile.ZipFile(zip_path) as z:
+        members = sorted(n for n in z.namelist() if n.lower().endswith((".mp3", ".ogg", ".flac")))
+    return [{"name": f"{zip_name}!{member}", "length": None, "size": 0} for member in members]
+
+
+def _fetch_file(archive: str, name: str) -> str:
+    path = os.path.join(LIBRARY, archive, name)
+    if not os.path.exists(path):
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "wb") as out:
+            out.write(_get(f"{ARCHIVE_DOWNLOAD}{archive}/{urllib.parse.quote(name)}", timeout=900))
+    return path
+
+
+def fetch_track(archive: str, name: str, licence: str) -> str:
+    """One track converted to her grain of sound and kept; the path of the kept sound."""
+
+    base = name.split("!", 1)
+    pcm_path = os.path.join(LIBRARY, archive, re.sub(r"\.(mp3|ogg|flac)$", ".pcm", base[-1].replace("/", "_"), flags=re.IGNORECASE))
+    if os.path.exists(pcm_path) and os.path.getsize(pcm_path) >= BLOCK_BYTES:
+        return pcm_path
+    os.makedirs(os.path.dirname(pcm_path), exist_ok=True)
+    if len(base) == 2:
+        import zipfile
+        zip_path = _fetch_file(archive, base[0])
+        with zipfile.ZipFile(zip_path) as z:
+            source = os.path.join(LIBRARY, archive, "_member" + os.path.splitext(base[1])[1])
+            with z.open(base[1]) as member, open(source, "wb") as out:
+                out.write(member.read())
+    else:
+        source = _fetch_file(archive, base[0])
+    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", source, "-ac", "1", "-ar", str(SAMPLE_RATE_HZ), "-f", "s16le", pcm_path], check=True)
+    if len(base) == 2 or source.lower().endswith((".mp3", ".ogg", ".flac")):
+        os.remove(source)
+    with open(os.path.join(os.path.dirname(pcm_path), "LICENCE.json"), "w") as out:
+        json.dump({"archive": archive, "source": f"{ARCHIVE_DOWNLOAD}{archive}", "licence": licence}, out, indent=1)
+    return pcm_path
+
+
+__all__ = ("LIBRARY", "BLOCK_BYTES", "MUSIC_ITEMS", "blocks", "chapters", "fetch_chapter", "fetch_track", "librivox_book", "tracks")
