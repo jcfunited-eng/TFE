@@ -344,3 +344,15 @@ What this does not cover: the reading still runs from Joseph's machine; if
 it is off at the nightly time there is no reading that night. The server
 layer (dossiers + the reading on ECS, with a model key in production and
 the store synced through S3) is the complete fix and needs his word.
+
+## Addendum 8 — evaluation baseline settled (Joseph, 2026-09-15)
+
+Joseph chose not to open a new paper account. Baseline for the CH2
+evaluation: broker equity $98,300.52 at the reset, cash $94,943.37, zero
+CH2 positions, no open orders. CH2's score = realized P&L of ledger rows
+entered after the reset (`entry_filled_at` later than the reset's last
+exit) plus unrealized P&L on open CH2 rows; account equity minus
+$98,300.52 is the cross-check. CWAN (100 sh) and HTBK (67 sh), both
+inactive at the broker with no ledger rows, are outside CH2 and excluded.
+Grading point unchanged: 20 closed positions under the frozen rules, or the
+first 90-day wall.
