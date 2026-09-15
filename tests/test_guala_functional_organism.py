@@ -1458,3 +1458,38 @@ def test_the_figure_under_her_gaze_is_found_for_a_thing_and_absent_for_the_wall(
     organism._state["reserve_micrograms"] = CAPACITY_MICROGRAMS * 9 // 10
     eye = FunctionalPhysicalLoop().settle(organism, world, UNATTENDED).observation["her_eye"]
     assert eye["figure"] is None and eye["gaze"] is None
+
+
+def test_looking_at_her_own_hand_keeps_her_head_straight_and_asleep_her_eyes_rest() -> None:
+    """Found live right after release 1496: her hand's contact point sits exactly under her
+    retinal port, so the bearing to a held thing had no direction and her head swung to its
+    yaw bound while she slept holding the radio. Now a thing straight below her eye is looked
+    at straight ahead and down, and asleep her eyes rest and her head follows nothing."""
+
+    from dsf_ai_service.guala_functional_organism import HEAD_PITCH_BOUND_MILLIDEGREES, _aim, _target_point
+
+    world = home_world_authority(identity=IDENTITY)
+    organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
+    organism._state["reserve_micrograms"] = CAPACITY_MICROGRAMS * 9 // 10
+    _apple_ahead(world, "apple-held", 350)
+    loop = FunctionalPhysicalLoop()
+    held_beats = []
+    for _ in range(40):
+        result = loop.settle(organism, world, UNATTENDED)
+        her = _her(world)
+        if her.held_object_id is not None:
+            point = _target_point(world.observation_snapshot(), her, her.held_object_id)
+            assert point is not None
+            yaw, pitch = _aim(her, point)
+            assert yaw == 0 and pitch < -HEAD_PITCH_BOUND_MILLIDEGREES, (yaw, pitch)
+            held_beats.append(result.observation["her_eye"])
+    assert held_beats, "she never held the apple"
+    assert all(abs(eye["head"][0]) <= 5_000 or eye["target"] is not None for eye in held_beats), [eye["head"] for eye in held_beats]
+    # Asleep with a thing in her hand: her eyes rest and her head does not turn to it.
+    organism._state["asleep"] = True
+    organism._state["sleep_pressure"] = 10_000
+    before = organism.head
+    for _ in range(3):
+        eye = loop.settle(organism, world, UNATTENDED).observation["her_eye"]
+    assert eye["eyes"] == [0, 0] and eye["gaze"] is None, eye
+    assert eye["head"][0] == before[0], (eye["head"], before)

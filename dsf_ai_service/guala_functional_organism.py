@@ -545,7 +545,11 @@ def _aim(body: Any, point: tuple[int, int, int]) -> tuple[int, int]:
     """(yaw, pitch) in millidegrees from her eye to a point, in her body's frame."""
 
     ex, ey, ez = _eye_position(body)
-    planar = max(1.0, math.hypot(point[0] - ex, point[1] - ey))
+    planar = math.hypot(point[0] - ex, point[1] - ey)
+    if planar < 1.0:
+        # Straight below or above her eye (her own hand sits under her retinal port): no
+        # bearing exists; she looks straight ahead and down (or up), not at a phantom side.
+        return 0, (-CARRIAGE_PITCH_BOUND_MILLIDEGREES if point[2] < ez else CARRIAGE_PITCH_BOUND_MILLIDEGREES)
     bearing = int(round(math.degrees(math.atan2(point[1] - ey, point[0] - ex)) * 1000)) % 360_000
     yaw = _bearing_offset(body.pose.heading_millidegrees, bearing)
     pitch = int(round(math.degrees(math.atan2(point[2] - ez, planar)) * 1000))
@@ -1233,7 +1237,7 @@ class FunctionalOrganism:
         # Her head follows what she acts on; her gaze is that thing's place in the field
         # she sensed this beat (rendered with her head as it was), else the field's structure.
         target_id = body.held_object_id or state.get("gaze_target")
-        point = _target_point(snapshot, body, target_id)
+        point = None if state.get("asleep") else _target_point(snapshot, body, target_id)   # asleep, eyes closed, the head rests
         state["gaze"] = None
         if point is not None:
             aim = _aim(body, point)
