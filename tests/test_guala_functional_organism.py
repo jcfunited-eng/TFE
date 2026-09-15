@@ -687,7 +687,7 @@ def test_the_caretaker_makes_her_bed_and_she_falls_asleep_on_it_crediting_the_wa
     from dsf_ai_service.guala_caretaker_hand import BEDTIME_ID
     from dsf_ai_service.guala_functional_loop import _apply
     from dsf_ai_service.guala_functional_organism import (
-        BED_ID, Decision, SLEEP_PRESSURE_CEILING, candidates, move_commands_toward, things_in_sight,
+        BED_ID, Decision, SLEEP_PRESSURE_CEILING, candidates, choice_key, move_commands_toward, things_in_sight,
     )
 
     world = home_world_authority(identity=IDENTITY)
@@ -725,11 +725,11 @@ def test_the_caretaker_makes_her_bed_and_she_falls_asleep_on_it_crediting_the_wa
             world.commit_prepared_action(prepared)
     her = _her(world)
     assert math.dist((her.pose.position.x, her.pose.position.y), (bed.position.x, bed.position.y)) <= bed.radius_mm, "could not walk her onto the bed"
-    organism._state["last_chosen"] = {"key": "f" * 16, "regimes": "SSSSSSSSS", "act": "toward_bed", "deficit": 0.1}
+    organism._state["last_chosen"] = {"key": choice_key("SSSSSSSSS"), "regimes": "SSSSSSSSS", "act": "toward_bed", "deficit": 0.1}
     o = loop.settle(organism, world, UNATTENDED).observation
     assert o["her_act"] == "sleep" and "on her bed" in o["act_reason"], o["act_reason"]
     assert organism.asleep and organism.counts["nights"] == 1
-    tries, total = organism._state["acts"]["f" * 16]["acts"]["toward_bed"]
+    tries, total = organism._state["acts"][choice_key("SSSSSSSSS")]["acts"]["toward_bed"]
     assert tries == 1 and total >= 1.0, (tries, total)
     assert organism._state["last_chosen"] is None
     encoded = organism.encoded()
@@ -806,3 +806,37 @@ def test_a_room_sound_after_her_syllable_is_what_pays_and_silence_does_not() -> 
     assert drive == SYLLABLE_DRIVES["ah"] and "best answered" in reason
 
 
+
+
+
+def test_a_full_record_still_admits_the_structure_she_meets_now_and_retired_keys_leave_on_restore() -> None:
+    """Her day's record keeps the structures met most recently: a record full of
+    entries each visited twice must still admit a new structure (the least-visited
+    eviction threw every newcomer out at once). Entries keyed under a retired key
+    law can never be met again and leave on restore."""
+
+    from dsf_ai_service.guala_functional_organism import ACT_RECORD_CAPACITY, FAMILIARITY_CAPACITY, choice_key
+
+    organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=10_000)
+    state = organism._state
+    regimes = "S" * 13
+    live_key = choice_key(regimes)
+    # A full record of stale, well-visited entries (keys that no regimes produce).
+    for i in range(ACT_RECORD_CAPACITY):
+        state["acts"][f"stale{i:04d}"] = {"acts": {"rest": [2, 1.0]}, "tick": 1000 + i, "regimes": regimes, "visits": 2, "successors": {}}
+    for i in range(FAMILIARITY_CAPACITY):
+        state["familiarity"][f"fam{i:04d}"] = [2, 1000 + i]
+    organism._credit(live_key, "step", 0.5, 5000, regimes)
+    assert live_key in state["acts"], "the structure she met now was evicted from a full record"
+    assert len(state["acts"]) == ACT_RECORD_CAPACITY and "stale0000" not in state["acts"]
+    # Familiarity through commit: the newcomer stays, the least recently met leaves.
+    from dsf_ai_service.guala_functional_organism import Decision
+    signature = " ".join("S0000000" for _ in range(13))
+    decision = Decision("rest", "test", (), None, None, signature, False, 0, ())
+    organism.commit(decision, applied_action="rest", refusal=None, intake_micrograms=0, spoke=None,
+                    heard_profile=None, self_profile=None, tick_now=organism.live_organism_tick)
+    assert live_key in state["familiarity"] and "fam0000" not in state["familiarity"]
+    # Restore: the stale entries (key != choice_key(regimes)) leave; the live one stays.
+    restored = FunctionalOrganism.restore(organism.encoded())   # restore runs the migration
+    assert list(restored._state["acts"]) == [live_key]
+    assert restored.migrate() is False and restored.encoded() == FunctionalOrganism.restore(restored.encoded()).encoded()

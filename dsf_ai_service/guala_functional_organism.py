@@ -659,6 +659,12 @@ class FunctionalOrganism:
         for name in [name for name in state["streams"] if name not in STREAMS]:
             del state["streams"][name]  # a stream this build does not read (e.g. a blend of two others)
             changed = True
+        # A record entry keyed under a retired key law can never be met again:
+        # it is not her day's record. Drop it (idempotent: live entries match).
+        stale = [k for k, entry in state.get("acts", {}).items() if entry.get("regimes") and choice_key(str(entry["regimes"])) != k]
+        for k in stale:
+            del state["acts"][k]
+        changed = changed or bool(stale)
         if "act_totals" not in state:
             # Her lifetime tries per act, summed from the record she already has.
             totals: dict[str, int] = {}
@@ -1014,7 +1020,10 @@ class FunctionalOrganism:
             act_succ = successors.setdefault(act, {})
             act_succ[successor_key] = int(act_succ.get(successor_key, 0)) + 1
         while len(record) > ACT_RECORD_CAPACITY:
-            del record[min(record, key=lambda k: (int(record[k].get("visits", 1)), int(record[k]["tick"]), k))]
+            # The day's record keeps the structures she met most recently; the
+            # night selects by recurrence. (Evicting the least visited kept out
+            # every newcomer once the old entries all had two visits.)
+            del record[min(record, key=lambda k: (int(record[k]["tick"]), k))]
 
     def _settle(self, key_now: str, novel_now: bool, sound_now: float, tick: int) -> None:
         """Value what followed her last act, purely by measured bodily need drops
@@ -1210,7 +1219,7 @@ class FunctionalOrganism:
         entry = familiarity.get(key)
         familiarity[key] = [1, tick_now] if entry is None else [int(entry[0]) + 1, tick_now]
         while len(familiarity) > FAMILIARITY_CAPACITY:
-            del familiarity[min(familiarity, key=lambda k: (int(familiarity[k][0]), int(familiarity[k][1])))]
+            del familiarity[min(familiarity, key=lambda k: (int(familiarity[k][1]), k))]  # the least recently met leaves
         episodes = state["episodes"]
         episodes.append([tick_now, key, decision.act, applied_action, state["reserve_micrograms"] - before, decision.signature])
         del episodes[:-EPISODE_CAPACITY]
