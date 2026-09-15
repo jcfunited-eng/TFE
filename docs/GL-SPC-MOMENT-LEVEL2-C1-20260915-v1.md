@@ -52,3 +52,7 @@ It does not answer, choose, or value; her acts stay chosen from her record as to
 4. **Level 3 Window**:
    - The post-moment sequence horizon for Level 3 consequence tracking is declared as **16 beats** (4.0 seconds at her 250 ms clock).
    - 16 beats captures the direct motor and metabolic consequences of a naming moment (e.g. transfer to mouth, ingestion, caloric absorption onset) without drifting into unrelated behavioral regimes.
+
+## 7. As built (C1, 2026-09-15 evening)
+
+Built as the joint draft states, with A1's §6: the key is the hash of the event's key, the held thing's texture and warmth in eighths (or "none"), and the figure under her gaze (or "none"); hunger, taste and the caregiver's touch in eighths ride in the record as context; what she held rides in the record as well (for the page and the tests). `moments`: 256 by recency with counts. Level 3 as declared: the next moment within sixteen beats is counted to the last (at most eight successors, the least counted leaves), and a bite within sixteen beats is counted to it. Measured on a fresh world: a sound closing while the apple is in her hand is one moment met again; the same sound with the toy bear in hand is another; an empty hand's moments never share a key with a held one; no sound, no moment; restore byte-exact.
