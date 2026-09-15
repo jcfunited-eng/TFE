@@ -221,3 +221,44 @@ during the window, and the following entry pass shows a run_id other than
   the live gate passes.
 - Follow-up relaunched inside the 627 container as `node` (pid 220, file
   log `/tmp/c1_followup.log`) at 04:15 UTC.
+
+## Addendum 4 — deploys 628/629, the gate's remaining blockers, one decision for Joseph
+
+- The second by-hand follow-up (inside the 627 container, 04:15–04:49 UTC)
+  completed without a task replacement — the liveness change held. It refilled
+  the quote cache (11,465 of 11,475 fetched), re-synced, and re-ran the gate:
+  anchors 11,435 / 11,120 / 9,407 of 11,483, rsi 11,483 — better than the last
+  passing run — yet `ta_semantics_integrity` still failed: 2,077 rows carry
+  the producer's 0 placeholder with no anchor (listings without enough
+  history), and "make validation reports fail closed" (7376e1392, 2026-08-18)
+  had switched the check from flag-only to blocking. Read-only count on the
+  live table: sma200 zero/absent 2,076, sma50 363, sma20 48; no other
+  value/anchor combination exists.
+- Deploy 628 (commit 1643ae0b2): `buildTaAnchorValidExpression` accepts
+  NULL, a positive numeric anchor, or (value = 0 AND anchor absent); a
+  computed value without a positive anchor stays invalid. Live count under
+  the new rule: 0 / 0 / 0 invalid. Gate re-run in the 628 container:
+  `ta_semantics_integrity` pass. Follow-up: the producer
+  (`sync_runtime_postgres_impl.mjs`) writes 0 rather than NULL for an
+  uncomputed average on some path.
+- Deploy 629 (commit cad87acda, the refill-ordering fix re-applied): the
+  wrapper's `runtime_validation` unit took the `ecs_runtime_repair_hotfix`
+  path (ECS gate non-pass with `pipeline_terminal_integrity_failed`, sole
+  changed input `run_refresh_with_l5_learning.py`). Switches verified 0/1.
+  The new container carries both fixes and the 60-row fallback cache, so the
+  next run refreshes the cache inline before the sync.
+- Still failing on the 1294a76d run: `pipeline_terminal_integrity`
+  (`report_status` ok but `epoch_library_status` empty — the main run died at
+  the gate before the epoch step; my manual follow-up reused the run id and
+  overwrote `started_at`/`trigger_source` on its row). A clean nightly run
+  clears this.
+- Structural blocker left for Joseph: `ui_filter_behavior_integrity` is
+  `not_run` because no task definition has ever carried
+  `TFE_VALIDATION_BASE_URL` / `TFE_VALIDATION_USERNAME` /
+  `TFE_VALIDATION_PASSWORD`, and both `validationReportPassed()` and
+  `validation-report-truth.ts` treat `not_run` as failing by design (the
+  08-18 tests assert it). Consequence: no run can pass the gate, the website's
+  publication stays on the 08-18 run, and refresh-pipeline deploys depend on
+  the hotfix lane. Options: (1) create a site login for the checker and add
+  the three variables to the task definition; (2) make `not_run` non-blocking
+  (reverses the 08-18 design). Not changed without his word.
