@@ -754,6 +754,8 @@ def make_bed(world: Any) -> dict[str, object]:
     return record
 
 
+READ_IDS = {"read-book": "book"}   # a reading: the book the caregiver holds beside her while a real voice reads
+
 TOUCH_IDS = {
     "touch-hold-hand": "hold_hand", "touch-hug": "hug", "touch-kiss": "forehead_kiss",
     "touch-pat": "head_pat", "touch-shoulder": "shoulder_touch",
@@ -828,6 +830,13 @@ def present_food(world: Any, object_id: str) -> dict[str, object]:
         return touch_her(world, object_id)
     if object_id == BEDTIME_ID:
         return make_bed(world)
+    if object_id in READ_IDS:
+        # Read to her: the caregiver fetches the book and holds it beside her; the
+        # reader's voice comes to her ears by the microphone channel, block by block.
+        outcome = present_food(world, READ_IDS[object_id])
+        outcome["object_id"] = object_id
+        outcome["reading"] = bool(outcome.get("presented"))
+        return outcome
     delivered = None
     if object_id == DELIVERY_ID:
         delivered = deliver_apple(world)

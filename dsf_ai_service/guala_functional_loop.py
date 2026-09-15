@@ -39,6 +39,7 @@ from dsf_ai_service.substrate.w1_physical_receptors import retinal_irradiance_fi
 MAX_NATIVE_INTERVALS_PER_OCCURRENCE = 1
 CAREGIVER_RETRY_BEATS = 16
 OFFER_PATIENCE_BEATS = 40  # a toy is held out to her for ten seconds before it is carried home
+READING_PATIENCE_BEATS = 128  # read to, the caregiver stays beside her this long after the reader's last word
 CAMERA_FIELD_MILLIDEGREES = (60_000, 45_000)  # the declared camera field the page's pitch is measured against
 GAZE_RECENTRE = 0.05  # each beat the gaze gives back a twentieth of its offset from the frame's centre
 WORLD_RETINAL_SITES = 4935
@@ -123,6 +124,8 @@ def _caregiver_withdrawal(organism: FunctionalOrganism, world: Any) -> dict[str,
     tick = organism.live_organism_tick
     if tick < int(organism._state.get("caregiver_retry_tick", 0)):
         return None
+    if tick < int(organism._state.get("reading_until_tick", 0)):
+        return None   # being read to: the caregiver stays with the book beside her
     snapshot = world.observation_snapshot()
     her = next(body for body in snapshot.bodies if body.body_id == snapshot.self_body_id)
     others = tuple(body for body in snapshot.bodies if body.body_id != snapshot.self_body_id)
@@ -212,6 +215,9 @@ class FunctionalPhysicalLoop:
                 returning = world.pending_physical_return
             # The caregiver does not walk home on the beat it touched her; whether it
             # stays (holding on, beat after beat) or leaves is the caretaker's to give.
+            if (presentation or {}).get("reading"):
+                # Read to: the caregiver keeps the book beside her while the reading lasts.
+                organism._state["reading_until_tick"] = start_tick + READING_PATIENCE_BEATS
             withdrawal = None if (presentation or {}).get("touched") else _caregiver_withdrawal(organism, world)
             if withdrawal is not None:
                 returning = world.pending_physical_return

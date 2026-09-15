@@ -1052,3 +1052,38 @@ def test_a_hot_thing_in_her_hand_is_let_go_by_reflex_costs_in_her_record_and_the
             world.commit_prepared_action(prepared)
         o = loop.settle(organism, world, UNATTENDED).observation
         assert o["her_act"] != "bite", o["act_reason"]
+
+
+def test_read_to_the_caregiver_holds_the_book_beside_her_and_stays_while_the_reading_lasts() -> None:
+    """A reading: the caregiver fetches the book and holds it beside her; it does
+    not walk home while the reading window lasts, and goes home after."""
+
+    from dsf_ai_service.guala_functional_loop import READING_PATIENCE_BEATS
+
+    world = home_world_authority(identity=IDENTITY)
+    organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
+    loop = FunctionalPhysicalLoop()
+    loop.settle(organism, world, UNATTENDED)
+    o = loop.settle(organism, world, _touch_occurrence("read-book")).observation
+    presentation = o["caregiver_presentation"]
+    assert presentation["object_id"] == "read-book" and presentation["reading"] is True, presentation["steps"][-3:]
+    snapshot = world.observation_snapshot()
+    her = _her(world)
+    person = next(b for b in snapshot.bodies if b.body_id != snapshot.self_body_id)
+    # The book is beside her: in the caregiver's hand or, if she took it on that beat, in hers.
+    assert "book" in (person.held_object_id, her.held_object_id)
+    assert math.dist((her.pose.position.x, her.pose.position.y), (person.pose.position.x, person.pose.position.y)) <= her.reach_mm + person.radius_mm + 300
+    started = organism.live_organism_tick
+    assert organism._state["reading_until_tick"] == started - 1 + READING_PATIENCE_BEATS
+    for _ in range(12):
+        o = loop.settle(organism, world, UNATTENDED).observation
+        assert o["caregiver_withdrawal"] is None, "the caregiver walked away during the reading"
+    organism._state["reading_until_tick"] = organism.live_organism_tick   # the reader's last word was long ago
+    organism._state["offer_since_tick"] = organism.live_organism_tick - 1_000
+    went_home = False
+    for _ in range(6):
+        o = loop.settle(organism, world, UNATTENDED).observation
+        if o["caregiver_withdrawal"] is not None:
+            went_home = True
+            break
+    assert went_home
