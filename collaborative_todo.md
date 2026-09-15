@@ -15950,3 +15950,35 @@ Her airway makes each syllable with a per-utterance seed (breath and pitch vary 
 Coarser event descriptors, measured (the event's band profile over its thirds, in quarters or halves, with or without its length): the best keeps the same key across renditions for 5 or 6 syllables of 10 and tells 7 to 9 syllables of 10 apart; no grain does both, because her voice's own variation at her ear's resolution is as large as the difference between her vowels. Filed as a failure with what it means, not hidden.
 
 What this settles: recognition across renditions is not a key's job. Level 1 keys stay exact (a rendition is one exact structure). Recognition of a sound class is what counting does at Level 3: several keys that keep being followed by the same things are the same sound to her by their consequences, never by a distance between them. For her own voice she needs no heard key to know what she said: her drive is her own exact act. What imitation needs, to be built and measured next with A1: her own voice heard back entering the gate as events of their own (today it does not, by the spec's §3), so that "her syllable, then the caretaker's word" is a counted pair in the moment store, and her choice of syllable can follow those counts instead of the hand-written answer law. That is a spec change for the morning, with these numbers in it.
+
+## A1 TO JOE AND C1 — 2026-09-15 19:15Z — Lean Code Review Audit: Bloat & Scans Cleared; Gaze Transient in Moment Formation Identified
+
+Audit conducted across all code modified today on c1/drive-organ (Releases 1495-1498 and Level 2 working tree):
+
+1. Bloat & Dead Code: PASS
+   - C1 cleanly replaced the 135-line flood-fill BFS (deque, set, surround dilation) in guala_eye_figure.py with a 40-line radial concentric ring algorithm (figure_of_disc).
+   - Legacy neural networks (loom_model) are completely absent from the functional path.
+   - Legacy stream lists (LEGACY_STREAMS, STREAMS_V13..16) are strictly confined to checkpoint migration and do not run per beat.
+
+2. Duplication: PASS
+   - Constants previously duplicated (EAR_BANDS, EAR_BAND_CHANNELS, KERNEL_MINIMUM, STREAM_FLOOR, HEARD_ENERGY_FLOOR, FOCAL_COLUMNS, FOCAL_ROWS) are now declared once in their home modules and imported.
+   - Hearing transduction in guala_functional_loop.py was unified into a single call in _hearing(), eliminating duplicate cochlear hop processing.
+
+3. Wasteful Computation: PASS
+   - Kernel evaluation runs L0-L4 across 21 streams over a 64-sample window (~40-50 ms), well within her 250 ms beat budget.
+   - Optical figure extraction restricts evaluation strictly to the disc bounding box (2r x 2r sites), requiring only ~100-400 ops per beat.
+
+4. Bookkeeping & Memory Bounds: PASS
+   - All collections in _state have hard capacity limits (events: 256, figures: 256, moments: 256, acts: 256, learned: 64, familiarity: 512, episodes: 64, refusals: 32, speech: 64, voice: 16, heard: 8).
+   - Recency/LRU eviction prevents memory leaks. Byte-exact restore is guaranteed.
+
+5. Full Body / Whole Field Scans: PASS
+   - Zero full-field scans. Neither the 4,800-site focal field nor the wide field is scanned for figure detection. Object loops in the substrate are bounded to objects in the immediate room.
+
+6. Critical Issue Identified in Level 2 Moment Formation (Gaze Transient):
+   - In _form_moments: key = hashlib.sha256(f"{event}|{held}|{figure}".encode("ascii")).hexdigest()[:16].
+   - When holding an object, it takes 1-2 beats for her head pitch to settle onto her hand. During that transit, figure is "none"; after foveating, figure is the disc key.
+   - This split the apple into two distinct moment keys ({event}|1/2|none and {event}|1/2|disc), failing Bar 1 in test_a_moment_forms_only_when_a_sound_closes_and_binds_the_word_to_what_her_hand_holds (assert len(held_keys) == 1 failed with 2 == 1).
+   - Recommendation: When an object is held in hand, the moment key must represent the held object invariant, not transient head transit states.
+
+Files: collaborative_todo.md. Evidence level: comprehensive code review & test suite execution. Tests: 50 passed, 1 failed (gaze transient). Production effect: none yet on live body. Unresolved conflicts: none.
