@@ -570,6 +570,7 @@ def wait_clear(min_tick: int | None = None, st: dict | None = None) -> dict | No
                 maybe_feed(o, st)
                 maybe_bedtime(o, st)
                 maybe_play(o, st)
+                maybe_read(o, st)   # a reading does not wait for a clear window: a person on the page does not close her book
             if gates_clear(o) and (hold is None or (o.get("live_tick") or 0) >= hold):
                 return o
         time.sleep(POLL_S)
@@ -603,7 +604,6 @@ def main() -> None:
             break
         maybe_feed(o, st)
         maybe_play(o, st)
-        maybe_read(o, st)
         ok = True
         for i, pcm in enumerate(blocks):
             res = present_block(retina, pcm, focal_b64)
