@@ -57,8 +57,26 @@ export type SnapshotReceiptsResult = {
   generationHold: boolean;
 };
 
+export type DatabaseCheckResult = {
+  ok: boolean;
+  error: string | null;
+};
+
 export type RuntimeHealthResult = {
+  /**
+   * Liveness verdict — what /api/health answers 200/503 with, and therefore
+   * what the load balancer and ECS use to decide whether to replace the task.
+   * It is true while the supervisor's essential processes (Next.js, sentinel,
+   * fundamentals loop) are alive. Database reachability and snapshot receipts
+   * are measured and reported below but do not drive replacement: replacing
+   * a task never repairs a database outage (it loops), and the refresh
+   * pipeline legitimately rewrites the bound files during its own work
+   * (receipt: the task was replaced mid-run every night from 2026-08-19 and
+   * again during the 2026-09-15 02:52 UTC quote-cache follow-up).
+   */
   healthy: boolean;
+  /** True only when every check passed — the verified-runtime state. */
+  verified: boolean;
   checkedAtUtc: string;
   generationId: string | null;
   generationHold: boolean;
@@ -67,6 +85,7 @@ export type RuntimeHealthResult = {
     database: boolean;
     snapshotReceipts: boolean;
   };
+  databaseError: string | null;
 };
 
 let healthPool: Pool | null = null;
@@ -93,9 +112,9 @@ function parseJsonObject(data: Buffer): Record<string, unknown> | null {
   }
 }
 
-export async function checkProcessHeartbeat(nowMs = Date.now()): Promise<boolean> {
+export async function checkProcessHeartbeat(nowMs = Date.now(), heartbeatPath = PROCESS_HEARTBEAT_PATH): Promise<boolean> {
   try {
-    const raw = await readFile(PROCESS_HEARTBEAT_PATH);
+    const raw = await readFile(heartbeatPath);
     const heartbeat = parseJsonObject(raw) as ProcessHeartbeat | null;
     if (!heartbeat || heartbeat.schema !== "tfe.process-health.v1") return false;
     const generatedAtMs = Date.parse(String(heartbeat.generated_at_utc ?? ""));
@@ -131,13 +150,15 @@ function resolveHealthPool(): Pool {
   return healthPool;
 }
 
-export async function checkDatabase(): Promise<boolean> {
-  if (!readOptionalEnv("PGHOST", "TFE_DB_HOST")) return false;
+export async function checkDatabase(): Promise<DatabaseCheckResult> {
+  if (!readOptionalEnv("PGHOST", "TFE_DB_HOST")) return { ok: false, error: "database host is not configured" };
   try {
     const result = await resolveHealthPool().query("SELECT 1 AS reachable");
-    return result.rows[0]?.reachable === 1;
-  } catch {
-    return false;
+    return result.rows[0]?.reachable === 1
+      ? { ok: true, error: null }
+      : { ok: false, error: "health query returned no row" };
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : String(error) };
   }
 }
 
@@ -224,23 +245,38 @@ export async function checkSnapshotReceipts(root = appRoot(), nowMs = Date.now()
   }
 }
 
-export async function evaluateRuntimeHealth(): Promise<RuntimeHealthResult> {
-  const checkedAtUtc = new Date().toISOString();
+export async function evaluateRuntimeHealth(
+  options: { root?: string; heartbeatPath?: string; nowMs?: number } = {},
+): Promise<RuntimeHealthResult> {
+  const nowMs = options.nowMs ?? Date.now();
+  const checkedAtUtc = new Date(nowMs).toISOString();
   const [processHeartbeat, database, snapshot] = await Promise.all([
-    checkProcessHeartbeat(),
+    checkProcessHeartbeat(nowMs, options.heartbeatPath ?? PROCESS_HEARTBEAT_PATH),
     checkDatabase(),
-    checkSnapshotReceipts(),
+    checkSnapshotReceipts(options.root ?? appRoot(), nowMs),
   ]);
   const checks = {
     processHeartbeat,
-    database,
+    database: database.ok,
     snapshotReceipts: snapshot.ok,
   };
+  const verified = Object.values(checks).every(Boolean);
+  if (!verified) {
+    const failed = Object.entries(checks).filter(([, ok]) => !ok).map(([name]) => name).join(",");
+    console.warn(
+      `[RUNTIME-HEALTH] checks failed: ${failed}` +
+      ` | liveness=${processHeartbeat ? "alive" : "DOWN"}` +
+      ` | generation=${snapshot.generationId ?? "none"} hold=${snapshot.generationHold}` +
+      (database.error ? ` | database: ${database.error}` : ""),
+    );
+  }
   return {
-    healthy: Object.values(checks).every(Boolean),
+    healthy: processHeartbeat,
+    verified,
     checkedAtUtc,
     generationId: snapshot.generationId,
     generationHold: snapshot.generationHold,
     checks,
+    databaseError: database.error,
   };
 }

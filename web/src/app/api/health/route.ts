@@ -8,6 +8,7 @@ export async function GET() {
   return NextResponse.json(
     {
       status: result.healthy ? "healthy" : "unhealthy",
+      verified: result.verified,
       checked_at_utc: result.checkedAtUtc,
       generation_id: result.generationId,
       generation_hold: result.generationHold,
@@ -16,6 +17,7 @@ export async function GET() {
         database: result.checks.database,
         snapshot_receipts: result.checks.snapshotReceipts,
       },
+      database_error: result.databaseError,
     },
     {
       status: result.healthy ? 200 : 503,
