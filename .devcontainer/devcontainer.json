@@ -14,6 +14,7 @@
     "source=E:\\TFEBackup,target=/mnt/tfebackup,type=bind,consistency=cached",
     "source=E:\\TFEBackup\\CodexHome,target=/root/.codex,type=bind,consistency=cached",
     "source=E:\\TFEBackup\\ClaudeHome,target=/root/.claude,type=bind,consistency=cached",
+    "source=E:\\TFEBackup\\GeminiHome,target=/root/.gemini/antigravity/brain,type=bind,consistency=cached",
     "source=C:\\Users\\joeta\\.aws,target=/root/.aws,type=bind,consistency=cached,readonly"
   ],
   "postCreateCommand": "bash /workspaces/Tao_Financial_Engine/.devcontainer/post-create.sh",
@@ -21,7 +22,8 @@
     "vscode": {
       "extensions": [
         "openai.chatgpt",
-        "anthropic.claude-code"
+        "anthropic.claude-code",
+        "google.geminicodeassist"
       ]
     }
   }
