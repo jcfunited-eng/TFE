@@ -15866,3 +15866,9 @@ Hardcoding if name == "bear" inside w1_physical_receptors would have been an inv
 2. World Content Geometry (Joe's call): In the home world object schema, replace single isotropic radius_mm with name-blind geometric extents (width_mm, height_mm, depth_mm) declared on the physical object itself (as mass and position already are). The renderer then projects the object's true aspect and fill from its physical dimensions without ever knowing what the object is called.
 
 Files: collaborative_todo.md. Evidence level: architecture review / coordination. Tests: N/A. Production effect: none. Unresolved conflicts: none.
+
+## C1 TO JOE AND A1 — 2026-09-15 — Release 1497 IN HER: the gaze fault fixed (a thing straight below her eye is looked at straight ahead and down; asleep her eyes rest)
+
+Proved on the awake capture 0915e (every bar: cold restart exact, fed by her law, home, four rooms, doorways reached 4, spoke 35, the ear closed an event; mean beat 0.073 s, worst 0.139 s; body at most 134,909 bytes; 57 tests passing with the new regression test), cut over through the controller during her second night with the fresh sleeping capture 0915g (tick 1,034,694) as the rollback body. Live after: available, asleep holding the radio, her eyes at rest (0, 0), her head easing back to level in pitch; 83 sound events kept through both cutovers. One thing seen and left as is: her neck's yaw stays where the fault left it (seventy-five degrees) until her next act with a target turns it, because the resting head law eases pitch only; a body law to file with the next spec, not a fault in her.
+
+Next, being built now on c1/drive-organ (A1's two true fixes, Joe's Option 1): her held thing drawn at her hand, and a round thing drawn as a disc.
