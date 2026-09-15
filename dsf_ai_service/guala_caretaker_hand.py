@@ -791,7 +791,8 @@ def make_bed(world: Any) -> dict[str, object]:
 
 
 READ_IDS = {"read-book": "book"}
-DELIVER_IDS = {"radio-delivery": "radio"}   # a declared thing brought into a world that predates it   # a reading: the book the caregiver holds beside her while a real voice reads
+DELIVER_IDS = {"radio-delivery": "radio"}   # a declared thing brought into a world that predates it
+CARRY_IDS = {"radio-to-her": "radio"}       # a thing carried to where she is and set down beside her   # a reading: the book the caregiver holds beside her while a real voice reads
 
 TOUCH_IDS = {
     "touch-hold-hand": "hold_hand", "touch-hug": "hug", "touch-kiss": "forehead_kiss",
@@ -867,6 +868,27 @@ def present_food(world: Any, object_id: str) -> dict[str, object]:
         return touch_her(world, object_id)
     if object_id == BEDTIME_ID:
         return make_bed(world)
+    if object_id in CARRY_IDS:
+        # Carry a thing to her: fetched and brought within her reach as a thing is
+        # offered, then set down on the floor beside the caregiver (never at her
+        # feet, never in a doorway); she may take it from the hand on the way.
+        thing_id = CARRY_IDS[object_id]
+        outcome = present_food(world, thing_id)
+        outcome["object_id"] = object_id
+        outcome["set_down"] = None
+        if outcome.get("presented"):
+            hand = _Hand(world, thing_id)
+            try:
+                snapshot = hand.snapshot()
+                _her, person = hand.bodies(snapshot)
+                if person.held_object_id == thing_id:
+                    outcome["set_down"] = bool(hand.set_down(thing_id))
+                else:
+                    outcome["set_down"] = False   # already out of the caregiver's hand (hers, or the floor)
+            except _Bounded:
+                outcome["set_down"] = False
+            outcome["steps"] = list(outcome.get("steps") or []) + hand.steps
+        return outcome
     if object_id in DELIVER_IDS:
         brought = deliver_thing(world, DELIVER_IDS[object_id])
         return {"object_id": object_id, "presented": brought is not None, "took_away": None, "delivered": brought,
