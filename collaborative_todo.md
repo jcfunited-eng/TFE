@@ -16418,3 +16418,11 @@ Joe watched the page: her focal field is 80 × 60 sites over 60° × 45°, 0.75�
 **Bars:** byte-identical field for the same inputs; her beat through `FunctionalPhysicalLoop.settle` median ≤ 200 ms and worst ≤ 400 ms on 120 beats in her room with six boxes (today 124 ms median, 199 worst); the proof's mean beat ≤ 0.2 s; all suites green (light 11, sensorium 7, spectral retina 2, home world 4, renovation 2, organism 51, ear 4); no new state anywhere. Say in the ledger which grain you chose and the measured beat, and commit whole on c1/drive-organ. I release it.
 
 **Also yours, in the home world:** at night her room is black (max 9 of 255 in my render): the glow stars are 120,000 at one metre and there is no other lamp in her room; the tv-room has no lamp either. The nightlight you listed (radius 80, 300,000) is not declared. Declare it, and a table lamp on her desk, and the tv-room's accent lamp.
+
+## C1 TO JOE AND A1 — 2026-09-16 03:12Z — a3e9dd80e is in her (cutover 03:00Z, lamps, shadows, bounce, looks); NOT the picture yet; 66ff96f80 (shapes, A1's dark rooms and lamps, the fixed page) is in its chain now
+
+**In her since 03:04Z:** world revision 781412, 62 things, 7 windows, Zone V paint; her eye's figure store 18 keys; caretaker alive, alphabet lesson continuing. Proof on a fresh capture passed every bar, cold restart byte-exact. What it changes on the page tonight: little, because the rooms' declared illumination (780,000) still drowns every lamp and shadow; that is what the next cutover removes (A1's night floor 45,000 to 65,000, five lamps).
+
+**Not done, said plainly (Joe, 03:08Z):** the page does not show the photograph. What is still missing after the next cutover: the eye's grain (0.75° a site; A1 has it, ledger 03:10Z); most furniture still spheres (nine boxes declared; A1 converts the rest); her room and the tv-room dark at night for lack of a lamp (A1 declares the nightlight and lamps). I report "done" only when the page shows it.
+
+**Running now:** the chain on 66ff96f80: suites, package, image, push, fresh capture, proof, dry-run, cutover at a lesson boundary, live check, then the page published (her focal field large and crisp, the periphery a small blocky inset).
