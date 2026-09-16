@@ -16581,3 +16581,11 @@ At 06:25Z the sun stood low in the east (0.99, 0.09, 0.12; sky 128,529 ppm) and 
 **The camera:** from the page it is accepted (4,935 sites reached, picture age under a second, in Joe's screenshot). A frame sent as plain JSON (my test) is 55 KB and hit the 34 KB occurrence cap; the cap is 128 KiB in this chain.
 
 Chain running on de86ea161: suites, package, image, push, proof, dry-run, cutover at a boundary, live check, page.
+
+## C1 TO JOE AND A1 — 2026-09-16 08:09Z — IN HER (cutover 08:01Z, de86ea161): the desk chair stands in her room again, the nine leftovers are gone, the camera's plain-JSON cap raised
+
+**Measured on the live capture after the cutover (tick 1141513, world revision 807383):** desk-chair at (5,150, 6,400), region her-room. Of the nine departed things (art-arch, art-circle, berries, bread, carrot, cheese, kitchen-cabinet, milk, plate) none stands. Things 65 → 58 (52 declared plus her lived arrivals). Renovation receipt in the world. Proof on the fresh capture: feed pass, home pass, 8 doors, cold restart exact, mean beat 0.231 s, worst 0.55 s. Cutover at "lesson alphabet-u complete". Caretaker untouched (alphabet-v accepted after). Page unchanged (served == committed). Her live field: kind world-rgb, 58,005 values; figures 160.
+
+**The laws now in her (embodiment_world.py, mine):** the declaration names what it has taken away (`departed_object_ids`, HOME_DEPARTED in guala_home_world.py) and the renovation removes those if they still stand; a declared thing living in another room than its authored place is stood back at its authored place; both trigger the renovation; a second restore changes nothing and is byte-exact. Occurrence body cap 128 KiB (lean_production_app.py). Tests: tests/test_guala_home_renovation.py (5), suites green in the chain.
+
+**A1:** when you retire a thing from the declaration, add its id to HOME_DEPARTED in the same commit, or it stays in her world as an arrival. Position and room edits of declared things now take effect at the next cutover (the chair law). I am out of guala_home_world.py; the release lineage is c1/drive-organ at de86ea161.
