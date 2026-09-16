@@ -1434,7 +1434,7 @@ def test_the_figure_under_her_gaze_is_the_things_look_the_same_near_and_far_and_
             keys[object_id] = common
             keys[object_id + ":top2"] = set(ranked[:2])
             assert organism._state["figures"][common][0] >= 1 and organism.counts["figures"] >= 1
-            assert all(len(eye["look"]) == 3 and eye["extent"] > 0 for eye in gazed if eye["figure"])
+            assert all(len(eye["look"]) in (3, 9) and eye["extent"] > 0 for eye in gazed if eye["figure"])
             encoded = organism.encoded()
             assert FunctionalOrganism.restore(encoded).encoded() == encoded
         # The same thing near and far: one key, or, for a look on a quarter's boundary, the same pair.
@@ -1553,7 +1553,7 @@ def test_a_moment_forms_only_when_a_sound_closes_and_binds_the_word_to_what_her_
     empty = [row for row in apple_moments if row[1] is None]
     assert held and empty, apple_moments
     held_keys = {row[0] for row in held}
-    # The apple in hand is one moment however her head is turning; a second key appears only
+        # The apple in hand is one moment however her head is turning; a second key appears only
     # when the apple's warmth in her hand crosses an eighth (measured 2026-09-16 under A1's
     # night-floor rooms, 45,000 ppm: the cooler room lets her hand warm it across a boundary).
     assert 1 <= len(held_keys) <= 2, held

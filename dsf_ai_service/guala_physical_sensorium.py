@@ -22,7 +22,7 @@ from dsf_ai_service.guala_receptor_anatomy import (
 
 
 RETINAL_PORTS = 135
-RETINAL_FOCAL_PORTS = 4800  # () means this source supplies no focal coverage
+RETINAL_FOCAL_PORTS = 19200  # () means this source supplies no focal coverage
 PORT_COUNT = LEGACY_PORT_COUNT + RETINAL_FOCAL_PORTS
 LEGACY_EAR_PORTS = 2
 COCHLEAR_PORTS = 32

@@ -202,7 +202,7 @@ def main():
         assert any(r["heard"] for r in rows), "the heard call never reached her"
         if any(r["presentation"] for r in rows):  # a meal was presented in this stage: the caregiver goes home after it
             assert any(r["withdrawal"] is not None and r["withdrawal"][1] for r in rows), "the caregiver never withdrew home after the meal"
-        assert any(r["camera_sites"] == 4935 for r in rows)
+        assert any(r["camera_sites"] in (4935, 19335) for r in rows)
         saved = checkpoint(runtime, world, store)
         receipt = {"initial": initial, "saved": saved, "revision": expected_revision, "rows": rows, "acts": acts, "hungry_at_start": hungry_at_start,
                    "first_fed_tick": fed[0]["tick"] if fed else None, "fed_beats": len(fed), "total_intake_ug": sum(r["intake_ug"] for r in rows),

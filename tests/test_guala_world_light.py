@@ -202,7 +202,7 @@ def test_a_look_on_the_floor_is_read_where_the_rays_meet_it_and_survives_the_rec
 
 def _eye_view(snapshot, x, y, heading, pitch, sun=None):
     """Her focal field from a stance in her room, through the path her beat uses."""
-    from dsf_ai_service.guala_functional_loop import WORLD_FOCAL_SITES, _world_retina_u8
+    from dsf_ai_service.guala_functional_loop import WORLD_FOCAL_SITES, WORLD_FOCAL_VALUES, _world_retina_u8
     from dsf_ai_service.guala_functional_organism import FunctionalOrganism
     organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
     placed = replace(snapshot, room_id="her-room", bodies=tuple(
@@ -210,8 +210,13 @@ def _eye_view(snapshot, x, y, heading, pitch, sun=None):
         for b in snapshot.bodies))
     axes = tuple((a[0], a[1], a[2], pitch if a[1] == "neck_pitch" else 0 if a[1] in ("neck_yaw", "left_eye_yaw", "right_eye_yaw", "left_eye_pitch", "right_eye_pitch") else a[3], *a[4:])
                  for a in organism.body_axes)
-    field = _world_retina_u8(placed, axes, sun)[-WORLD_FOCAL_SITES:]
-    return [field[r * 80:(r + 1) * 80] for r in range(60)]
+    field = _world_retina_u8(placed, axes, sun)
+    if len(field) >= WORLD_FOCAL_VALUES:
+        focal = field[-WORLD_FOCAL_VALUES:]
+        lum = tuple((focal[i * 3] + focal[i * 3 + 1] + focal[i * 3 + 2]) // 3 for i in range(160 * 120))
+    else:
+        lum = field[-WORLD_FOCAL_SITES:]
+    return [lum[r * 160:(r + 1) * 160] for r in range(120)]
 
 
 SHAPES = {   # the test's own furniture shapes for her room: (extents, heading, elevation)
@@ -261,17 +266,17 @@ def test_a_box_shows_faces_and_straight_edges_where_a_sphere_showed_an_orb() -> 
     dark = replace(snapshot, objects=snapshot.objects + (lamp,), regions=night)
     rows = _eye_view(dark, 2_600, 8_000, 180_000, -8_000)
     # A framed picture at 1.3 to 2.06 m on the wall 2.6 m away, seen from an eye at 1.1 m: above the horizon, not on the floor.
-    upper = [v for row in rows[:25] for v in row]
-    lower = [v for row in rows[45:] for v in row]
+    upper = [v for row in rows[:50] for v in row]
+    lower = [v for row in rows[90:] for v in row]
     assert len(set(upper)) >= 4, len(set(upper))                    # the pictures and the wall, not one grey
-    # Straight vertical edges: some column carries the same brightness step across at least 12 consecutive rows.
+    # Straight vertical edges: some column carries the same brightness step across at least 24 consecutive rows.
     steps = 0
-    for c in range(1, 80):
+    for c in range(1, 160):
         run = 0
-        for r in range(60):
+        for r in range(120):
             if abs(rows[r][c] - rows[r][c - 1]) >= 6:
                 run += 1
-                if run >= 12:
+                if run >= 24:
                     steps += 1
                     break
             else:

@@ -76,7 +76,7 @@ SATED_ABOVE = Fraction(17, 20)  # feeding ends at 85 percent (one apple from hun
 # range, on the floor of her own room.
 FIELD_OF_VIEW_MILLIDEGREES = 60_000
 SIGHT_RANGE_MM = 4_000
-STRUCTURE_FLOOR = 4800 * 4   # total edge energy below this (about four levels per site) is a flat field
+STRUCTURE_FLOOR = FOCAL_COLUMNS * FOCAL_ROWS * 4   # total edge energy below this (about four levels per site) is a flat field
 # Her head: the wide field (18 x 6 sites over 180 x 90 degrees, carried by the
 # head) aims the focal cone. Each beat the head pitches a bounded step toward
 # the height of structure in the wide field, so what lies on the floor around
@@ -98,7 +98,7 @@ HEAD_PITCH_BOUND_MILLIDEGREES = 70_000
 # structure): the thing she moves toward, reaches for, touches, holds or bites; her gaze in
 # the focal field is that thing's place by the world's own site geometry (three quarters of a
 # degree a site, sixty by forty-five degrees), and the figure under her gaze is the thing.
-FOCAL_SITE_MILLIDEGREES = 750
+FOCAL_SITE_MILLIDEGREES = 375
 FOCAL_FIELD_MILLIDEGREES = (FOCAL_COLUMNS * FOCAL_SITE_MILLIDEGREES, FOCAL_ROWS * FOCAL_SITE_MILLIDEGREES)
 FIGURE_RECORD_CAPACITY = 256
 # Her eyes turn in her head within their declared range in one beat (a saccade is far
@@ -478,9 +478,14 @@ def edge_centre(field: tuple[int, ...], columns: int, rows: int, floor: int) -> 
 
 def structure_centre(focal: tuple[int, ...]) -> tuple[float, float]:
     """The energy-weighted centre of luminance edges in a focal field
-    (fractions of the field), or the centre when the field is flat."""
+    (fractions of the field), or the centre when the field is flat.
+    Supports both 3-channel RGB (57,600 values) and single-channel focal fields."""
 
-    centre = edge_centre(focal, FOCAL_COLUMNS, FOCAL_ROWS, STRUCTURE_FLOOR)
+    if len(focal) == FOCAL_COLUMNS * FOCAL_ROWS * 3:
+        lum = tuple((focal[i * 3] + focal[i * 3 + 1] + focal[i * 3 + 2]) // 3 for i in range(FOCAL_COLUMNS * FOCAL_ROWS))
+        centre = edge_centre(lum, FOCAL_COLUMNS, FOCAL_ROWS, STRUCTURE_FLOOR)
+    else:
+        centre = edge_centre(focal, FOCAL_COLUMNS, FOCAL_ROWS, STRUCTURE_FLOOR)
     return (0.5, 0.5) if centre is None else centre
 
 

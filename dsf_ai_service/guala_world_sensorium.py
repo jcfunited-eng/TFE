@@ -143,6 +143,9 @@ def prepare_passive_body_interval(
 
 RetinalField = tuple[tuple[Fraction, ...], ...]
 
+_LUM_DENOMINATOR = 1530  # 255 * OPTICAL_BANDS
+_LUM_LOOKUP = tuple(Fraction(s, _LUM_DENOMINATOR) for s in range(256 * OPTICAL_BANDS))
+
 
 def _retinal_luminance(pixels: RetinalField) -> tuple[Fraction, ...]:
     """Preserve exact conversion order, reusing identical bands only this call."""
@@ -159,6 +162,29 @@ def _retinal_luminance(pixels: RetinalField) -> tuple[Fraction, ...]:
 
     out: list[Fraction] = []
     for p in pixels:
+        # Fast path for eight-bit fractions (denominator == 255):
+        if (
+            p[0]._denominator == 255
+            and p[1]._denominator == 255
+            and p[2]._denominator == 255
+            and p[3]._denominator == 255
+            and p[4]._denominator == 255
+            and p[5]._denominator == 255
+        ):
+            if p[0] == p[1] == p[2] == p[3] == p[4] == p[5]:
+                out.append(p[0])
+            else:
+                num_sum = (
+                    p[0]._numerator
+                    + p[1]._numerator
+                    + p[2]._numerator
+                    + p[3]._numerator
+                    + p[4]._numerator
+                    + p[5]._numerator
+                )
+                out.append(_LUM_LOOKUP[num_sum])
+            continue
+
         if p[0] == p[1] == p[2] == p[3] == p[4] == p[5]:
             out.append(rational(p[0]))
         else:
@@ -173,6 +199,21 @@ def _retinal_luminance(pixels: RetinalField) -> tuple[Fraction, ...]:
                 )
                 / OPTICAL_BANDS
             )
+    return tuple(out)
+
+
+def _retinal_rgb(pixels: RetinalField) -> tuple[tuple[Fraction, Fraction, Fraction], ...]:
+    """The eye's colour sensation: 3 channels (RGB) per site.
+    Red = mean of bands 0 and 1
+    Green = mean of bands 2 and 3
+    Blue = mean of bands 4 and 5
+    """
+    out: list[tuple[Fraction, Fraction, Fraction]] = []
+    for p in pixels:
+        r = p[0] if p[0] == p[1] else (p[0] + p[1]) / 2
+        g = p[2] if p[2] == p[3] else (p[2] + p[3]) / 2
+        b = p[4] if p[4] == p[5] else (p[4] + p[5]) / 2
+        out.append((r, g, b))
     return tuple(out)
 
 
@@ -467,3 +508,21 @@ def passive_body_consequence_sensorium(
         articulation=((Fraction(0),) * len(source_times),) * 4,
         thermal=tuple(step(before, after) for before, after in zip(before_thermal, after_thermal, strict=True)),
     )
+
+
+__all__ = (
+    "BODY_INTERVAL_MICROSECONDS",
+    "PASSIVE_INTERVAL_MICROSECONDS",
+    "RetinalField",
+    "body_consequence_receptor_capture",
+    "consequence_source_times",
+    "passive_body_consequence_sensorium",
+    "passive_receptor_capture",
+    "passive_sensorium",
+    "prepare_passive_body_interval",
+    "prepare_passive_world_interval",
+    "retinal_carriage",
+    "_retinal_luminance",
+    "_retinal_rgb",
+    "_sun_of",
+)

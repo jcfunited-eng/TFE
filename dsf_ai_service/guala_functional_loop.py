@@ -51,10 +51,12 @@ SOUND_REFERENCE_MM = 1_000
 SOUND_THROUGH_DOOR = Fraction(1, 4)
 CAMERA_FIELD_MILLIDEGREES = (60_000, 45_000)  # the declared camera field the page's pitch is measured against
 GAZE_RECENTRE = 0.05  # each beat the gaze gives back a twentieth of its offset from the frame's centre
-WORLD_RETINAL_SITES = 4935
-WORLD_FOCAL_SITES = 4800
+WORLD_RETINAL_SITES = 19335
+WORLD_FOCAL_SITES = 19200
 WORLD_LEGACY_SITES = 27   # the 9 x 3 coarse field that precedes the wide field
 WORLD_WIDE_SITES = 108    # the 18 x 6 wide field over 180 x 90 degrees
+WORLD_FOCAL_VALUES = WORLD_FOCAL_SITES * 3
+WORLD_RETINAL_VALUES = WORLD_RETINAL_SITES * 3
 
 
 def _receipt(value: object) -> str:
@@ -67,8 +69,9 @@ def _self_body(snapshot: Any) -> Any:
 
 
 def _world_retina_u8(snapshot: Any, axes: tuple[Any, ...], sun: tuple[float, float, float, int] | None = None) -> tuple[int, ...]:
-    """Her world retina at this beat: the room's light and, by day, the sun's direct
-    light through the windows (a shaft, cut by shadows), from the real clock."""
+    """Her world retina at this beat in full RGB colour: 3 channels per site across all
+    19,335 sites (58,005 values). Red = mean(bands 0, 1), Green = mean(bands 2, 3),
+    Blue = mean(bands 4, 5)."""
 
     heading, pitch, transmission = retinal_carriage(axes)
     pixels = retinal_irradiance_field(
@@ -77,11 +80,14 @@ def _world_retina_u8(snapshot: Any, axes: tuple[Any, ...], sun: tuple[float, flo
     )
     values = []
     scale = 255 * transmission
-    for luminance in _retinal_luminance(pixels):
-        if not 0 <= luminance._numerator <= luminance._denominator:
-            raise RuntimeError("retinal observer left its physical range")
-        values.append(round(luminance * scale))
-    if len(values) != WORLD_RETINAL_SITES:
+    for p in pixels:
+        r = p[0] if p[0] == p[1] else (p[0] + p[1]) / 2
+        g = p[2] if p[2] == p[3] else (p[2] + p[3]) / 2
+        b = p[4] if p[4] == p[5] else (p[4] + p[5]) / 2
+        values.append(round(r * scale))
+        values.append(round(g * scale))
+        values.append(round(b * scale))
+    if len(values) != WORLD_RETINAL_VALUES:
         raise RuntimeError("world retina changed its site count")
     return tuple(values)
 
@@ -300,18 +306,22 @@ class FunctionalPhysicalLoop:
             axes = organism.body_axes
             world_retina = _world_retina_u8(before, axes, _sun_of(world))
             external_rgb = None
-            focal = world_retina[-WORLD_FOCAL_SITES:]
+            focal = world_retina[-WORLD_FOCAL_VALUES:]
             source = "world"
             external_sites = 0
             if sensory is not None and sensory.retina_rgb_u8 is not None:
                 _heading, _pitch, transmission = retinal_carriage(axes)
                 external_rgb = transmitted_rgb_retina_u8(sensory.retina_rgb_u8, transmission)
                 external_sites = len(sensory.retina_rgb_u8) // 3
-                camera_focal = focal_retina_luminance_u8(external_rgb)
-                if len(sensory.retina_rgb_u8) == EXTERNAL_RGB_FOCAL_VALUE_COUNT and camera_focal:
-                    focal = tuple(camera_focal)
+                if len(sensory.retina_rgb_u8) == EXTERNAL_RGB_FOCAL_VALUE_COUNT:
+                    # Scale 80x60x3 (14,400 values) to 160x120x3 (57,600 values) by 2x2 site tiling
+                    arr = np.array(external_rgb, dtype=np.uint8).reshape(60, 80, 3)
+                    scaled = np.repeat(np.repeat(arr, 2, axis=0), 2, axis=1).ravel()
+                    focal = tuple(int(v) for v in scaled)
+                elif len(external_rgb) == WORLD_FOCAL_VALUES:
+                    focal = tuple(external_rgb)
                 else:
-                    focal = tuple(rgb_retina_luminance_u8(external_rgb))
+                    focal = tuple(external_rgb)
                 source = "camera"
             heard_profile = None
             heard_frames: tuple[tuple[float, ...], ...] = ()
@@ -333,7 +343,8 @@ class FunctionalPhysicalLoop:
                 self_profile, own_frames, self_heard = _hearing(own_voice)
             # The wide field (18 x 6 sites carried by her head) aims her head;
             # it is the world eye's, whichever source fills the focal field.
-            wide = tuple(world_retina[WORLD_LEGACY_SITES:WORLD_LEGACY_SITES + WORLD_WIDE_SITES])
+            wide_raw = world_retina[WORLD_LEGACY_SITES * 3:(WORLD_LEGACY_SITES + WORLD_WIDE_SITES) * 3]
+            wide = tuple((wide_raw[i * 3] + wide_raw[i * 3 + 1] + wide_raw[i * 3 + 2]) // 3 for i in range(WORLD_WIDE_SITES))
             # Her skin this beat: the fraction of her mounted skin another body pressed
             # (from the caregiver's touch settled above) and her cutaneous temperature.
             skin_contact = 0.0
@@ -437,7 +448,7 @@ class FunctionalPhysicalLoop:
                 "her_moment": organism.moment,
                 "kernel_novel": decision.novel,
                 "kernel_signature": decision.signature,
-                "latest_retinal_field_kind": "external-rgb" if external_rgb is not None else "achromatic",
+                "latest_retinal_field_kind": "external-rgb" if external_rgb is not None else "world-rgb",
                 "metabolic_need_reserve_deficit": [deficit.numerator, deficit.denominator],
                 "metabolic_need_thermal_load": [0, 1],
                 "organism_kind": "functional",

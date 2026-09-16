@@ -76,16 +76,14 @@ RETINA_FINE_ROWS = 6
 RETINA_FINE_COLUMNS = 18
 RETINA_FINE_RECEPTOR_COUNT = RETINA_FINE_ROWS * RETINA_FINE_COLUMNS
 RETINA_TOTAL_RECEPTOR_COUNT = RETINA_RECEPTOR_COUNT + RETINA_FINE_RECEPTOR_COUNT
-RETINA_FOCAL_ROWS = 60
-RETINA_FOCAL_COLUMNS = 80
+RETINA_FOCAL_ROWS = 120
+RETINA_FOCAL_COLUMNS = 160
 # Two samples per one-arcminute critical detail: acquisition calibration,
 # not a claim of recognition, camera resolution or end-to-end acuity.
-# The focal field spans 60 x 45 degrees across its 80 x 60 sites (750
+# The focal field spans 60 x 45 degrees across its 160 x 120 sites (375
 # millidegrees per site), the same field as the whole camera frame held
-# still; the earlier half-arc-minute pitch made a quarter-degree cone that saw
-# a 9 mm patch of wall, and the 20-degree cone at head height saw only wall
-# above the floor where every object lies (Joe, 2026-09-14).
-RETINA_FOCAL_PITCH_MILLIDEGREES = Fraction(750)
+# still (0.375° a site, 19,200 focal sites, 4x visual density).
+RETINA_FOCAL_PITCH_MILLIDEGREES = Fraction(375)
 RETINA_FOCAL_HORIZONTAL_FOV_MILLIDEGREES = RETINA_FOCAL_COLUMNS * RETINA_FOCAL_PITCH_MILLIDEGREES
 RETINA_FOCAL_VERTICAL_FOV_MILLIDEGREES = RETINA_FOCAL_ROWS * RETINA_FOCAL_PITCH_MILLIDEGREES
 RETINA_FOCAL_RECEPTOR_COUNT = RETINA_FOCAL_ROWS * RETINA_FOCAL_COLUMNS
@@ -1220,6 +1218,7 @@ def _retinal_projection(
         pixels=pixels,
         site_geometry=site_geometry,
     )
+    bands = len(lit_illumination)
     surfaces: list[_OpticalSurface] = []
     body_by_id = {candidate.body_id: candidate for candidate in observation.bodies}
     for other in observation.bodies:
@@ -1474,8 +1473,8 @@ def _retinal_projection(
                 )
             )
 
-        # Accelerated focal grid projection (a box was drawn face by face in the ray pass)
-        if has_focal and not surface.box:
+        # Vectorized focal grid projection for spheres (boxes drawn face by face in ray pass)
+        if has_focal and not surface.box and angular_radius > 0:
             H_min = relative_horizontal - angular_radius
             H_max = relative_horizontal + angular_radius
             V_min = relative_vertical - angular_radius
@@ -1485,83 +1484,41 @@ def _retinal_projection(
             row_min = max(0, (focal_top - V_max) // pitch)
             row_max = min(RETINA_FOCAL_ROWS - 1, (focal_top - V_min) // pitch)
             if col_min <= col_max and row_min <= row_max:
-                for r in range(row_min, row_max + 1):
-                    v_center = focal_top - (2 * r + 1) * half_pitch
-                    if abs(v_center - relative_vertical) > (angular_radius + half_pitch):
-                        continue
-                    v_overlap = max(
-                        0,
-                        min(v_center + half_pitch, V_max)
-                        - max(v_center - half_pitch, V_min),
-                    )
-                    if not v_overlap:
-                        continue
-                    row_offset = RETINA_TOTAL_RECEPTOR_COUNT + r * RETINA_FOCAL_COLUMNS
-                    for c in range(col_min, col_max + 1):
-                        h_center = focal_left + (2 * c + 1) * half_pitch
-                        if abs(h_center - relative_horizontal) > (angular_radius + half_pitch):
-                            continue
-                        h_overlap = max(
-                            0,
-                            min(h_center + half_pitch, H_max)
-                            - max(h_center - half_pitch, H_min),
-                        )
-                        if not h_overlap:
-                            continue
-                        # A round thing lights the sites whose centres lie within its
-                        # angular radius: its silhouette is a disc, not the box around it.
-                        if (
-                            (h_center - relative_horizontal) ** 2
-                            + (v_center - relative_vertical) ** 2
-                        ) > angular_radius * angular_radius:
-                            continue
-                        if pattern is not None and angular_radius > 0:
-                            # A focal site integrates the light over its whole aperture:
-                            # every pattern cell the aperture covers, averaged (a point
-                            # sample flickered with sub-site shifts as she moved).
+                r_arr = np.arange(row_min, row_max + 1, dtype=np.int64)
+                c_arr = np.arange(col_min, col_max + 1, dtype=np.int64)
+                v_centers = focal_top - (2 * r_arr + 1) * half_pitch
+                h_centers = focal_left + (2 * c_arr + 1) * half_pitch
+                dh = h_centers[None, :] - relative_horizontal
+                dv = v_centers[:, None] - relative_vertical
+                disc_mask = (dh * dh + dv * dv) <= (angular_radius * angular_radius)
+                if disc_mask.any():
+                    site_indices = RETINA_TOTAL_RECEPTOR_COUNT + r_arr[:, None] * RETINA_FOCAL_COLUMNS + c_arr[None, :]
+                    hit_mask = disc_mask
+                    if box_depth is not None:
+                        hit_mask = disc_mask & (box_depth[site_indices] >= surface_distance)
+                    if hit_mask.any():
+                        if pattern is None:
+                            hit_sites = site_indices[hit_mask]
+                            for s_idx in hit_sites:
+                                pixels[s_idx] = base_surface_light
+                        else:
+                            # Vectorized optical surface sampling on sphere
                             span = 2 * angular_radius
-                            c_lo = max(0, ((h_center - half_pitch - relative_horizontal + angular_radius) * pattern.columns) // span)
-                            c_hi = min(pattern.columns - 1, ((h_center + half_pitch - relative_horizontal + angular_radius) * pattern.columns) // span)
-                            r_lo = max(0, ((relative_vertical + angular_radius - (v_center + half_pitch)) * pattern.rows) // span)
-                            r_hi = min(pattern.rows - 1, ((relative_vertical + angular_radius - (v_center - half_pitch)) * pattern.rows) // span)
-                            c_lo, c_hi = int(c_lo), max(int(c_lo), int(c_hi))
-                            r_lo, r_hi = int(r_lo), max(int(r_lo), int(r_hi))
-                            cells = 0
-                            summed = None
-                            for p_row in range(r_lo, r_hi + 1):
-                                for p_col in range(c_lo, c_hi + 1):
-                                    cell = pattern.reflectance_at_verified_ppm(row=p_row, column=p_col)
-                                    summed = list(cell) if summed is None else [a + b for a, b in zip(summed, cell)]
-                                    cells += 1
-                            refl = tuple(Fraction(v, cells) for v in summed)
-                            em = surface.emission_ppm or ((0,) * len(refl))
-                            surface_light = tuple(
-                                min(
-                                    Fraction(1),
-                                    Fraction(val * ill, 1_000_000_000_000)
-                                    + Fraction(e, 1_000_000),
-                                )
-                                for val, ill, e in zip(
-                                    refl,
-                                    surface_illumination,
-                                    em,
-                                )
-                            )
-                        else:
-                            surface_light = base_surface_light
-                        s_idx = row_offset + c
-                        if box_depth is not None and box_depth[s_idx] < surface_distance:
-                            continue                      # a box stands in front of this thing here
-                        if h_overlap * v_overlap == cell_area:
-                            pixels[s_idx] = surface_light
-                        else:
-                            coverage = Fraction(h_overlap * v_overlap, cell_area)
-                            pixels[s_idx] = tuple(
-                                prior * (1 - coverage) + observed * coverage
-                                for prior, observed in zip(
-                                    pixels[s_idx], surface_light, strict=True
-                                )
-                            )
+                            sub_r, sub_c = np.where(hit_mask)
+                            target_sites = site_indices[sub_r, sub_c]
+                            sub_dh = dh[0, sub_c]
+                            sub_dv = dv[sub_r, 0]
+                            p_cols = np.clip(((sub_dh + angular_radius) * pattern.columns / span).astype(np.int64), 0, pattern.columns - 1)
+                            p_rows = np.clip(((angular_radius - sub_dv) * pattern.rows / span).astype(np.int64), 0, pattern.rows - 1)
+                            cells = np.array(pattern.cell_palette_indices, dtype=np.int64).reshape(pattern.rows, pattern.columns)
+                            palette = np.array(pattern.palette_reflectance_ppm, dtype=np.float64)
+                            refl_ppm = palette[cells[p_rows, p_cols]]
+                            em_ppm = np.array(surface.emission_ppm or ((0,) * bands), dtype=np.float64)
+                            ill_ppm = np.array(surface_illumination, dtype=np.float64)
+                            vals = np.clip(refl_ppm * ill_ppm / 1e12 + em_ppm / 1e6, 0.0, 1.0)
+                            eight_bit = np.rint(vals * 255).astype(np.int64)
+                            for i, s_idx in enumerate(target_sites):
+                                pixels[s_idx] = tuple(_EIGHT_BIT[eight_bit[i, b]] for b in range(bands))
     return tuple(pixels)
 
 
