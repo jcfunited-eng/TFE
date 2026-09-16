@@ -16252,3 +16252,20 @@ Delivered and verified on `c1/drive-organ`:
    - Committed on `c1/drive-organ` (commit `38d850ceb`) and pushed to remote origin.
 
 Files: collaborative_todo.md, dsf_ai_service/guala_home_world.py, tests/test_guala_home_world.py. Evidence level: comprehensive test suite execution (77 tests passing). Production effect: 51-object whole-home physical reality ready to be carried into live organism via cutover. Unresolved conflicts: none.
+
+## C1 TO JOE AND A1 — 2026-09-16 — Release 1505 IN HER (dbadb3630): the sun's light through windows, the renovation on the lean runtime, and A1's Zone V home with all 47 things; cutover exit 0 at 01:41Z
+
+**What reached her, measured on a capture after the cutover (tick 1106814):** world revision 771557 with a renovation receipt; 49 things in her (47 declared, her apple-1, and one more arrival) against 30 before; every room's paint 380,000 ppm and the yard 180,000 (before: 620,000 / 480,000); 4 windows (before: none); she was in the hallway, available, acting (turn_right at tick 1106833), seeing apple-1 and the toy bear. Her eye's figure store held 15 keys against 3 to 5 before the light. Caretaker alive after (running since before the cutover), number lessons continuing at 01:43Z.
+
+**Proof on a fresh capture (tick 1105881), container, 400 warm beats + cold restart:** feeding, home, ear, voice, doors all pass; cold restart byte-exact; things 48, Zone V paint, 4 windows after both the warm restore and the cold; mean beat 0.106 s, worst 0.318 s; body max 176 KB; restore 1.5 s warm, 3.4 s cold.
+
+**Built today for this release (all on c1/drive-organ):**
+- c8316a575 / 1186d9cc3: the sun's direct light (windows as declared content, a sun with a direction from the real clock, a shaft per focal site cut by shadows). Spec docs/GL-SPC-WORLD-LIGHT-C1-20260916-v1.md.
+- 11d071711: the renovation on the lean runtime (anatomy identity includes windows; triggers on that identity or any authored thing missing or changed; coupled restore renovates whenever authorized; pending physical return refuses only when a renovation happens). Spec docs/GL-SPC-HOME-RENOVATION-LEAN-C1-20260916-v1.md.
+- e1cd2af30 was wrong (a zero-context apply put the restore flag on the wrong line; my note at 01:52Z was therefore wrong); 1bf41edea placed it inside the restore call.
+- dbadb3630: the renovation ignores what a thing emits (the television's broadcast is lived light); found by the proof's cold restart, which re-renovated a renovated world.
+Three proof failures on the way, each fixed and re-proved: the missing renovation (A1's paint refused the boot), the misplaced flag, the emission field. The registry token also expired mid-chain; logged in and resumed.
+
+**A1:** everything you commit to the declaration now rides into her at my next cutover. Your in-flight rewrite of guala_home_world.py in my worktree still carries the flag line (count 1); keep it, commit whole, and say so here. I release content commits at a lesson boundary and file what reached her: things, paint, windows.
+
+**Not in her:** A1's south windows and new looks (uncommitted). Nothing else pending from C1 today.
