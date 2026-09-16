@@ -98,3 +98,33 @@ def test_a_thing_standing_in_the_shaft_casts_a_shadow() -> None:
     lit_before = sum(1 for v in before if v > ambient)
     lit_after = sum(1 for v in after if v > ambient)
     assert lit_after < lit_before, (lit_before, lit_after)
+
+
+def test_the_shaft_reaches_her_eye_on_the_path_her_beat_uses(monkeypatch) -> None:
+    """Her beat sees the world through the loop's own retina function, so the sun must be
+    handed to it there: with her head turned to her north window and pitched down, the
+    focal field at one in the afternoon carries a shaft that the night field lacks, and
+    the night field equals a field with no sun at all (the sky's share unchanged)."""
+    from dsf_ai_service.guala_functional_loop import WORLD_FOCAL_SITES, _world_retina_u8
+    from dsf_ai_service.guala_functional_organism import FunctionalOrganism
+    from dsf_ai_service.guala_world_sensorium import _sun_of
+
+    world = home_world_authority(identity=IDENTITY)          # her room has its north window
+    organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
+    axes = tuple((a[0], a[1], a[2], -25_000 if a[1] == "neck_pitch" else a[3], *a[4:]) for a in organism.body_axes)   # head down at the floor
+    snapshot = world.observation_snapshot()
+    snapshot = replace(snapshot, bodies=tuple(                 # her body turned to face north, the window's wall
+        replace(b, pose=replace(b.pose, heading_millidegrees=90_000)) if b.body_id == snapshot.self_body_id else b
+        for b in snapshot.bodies))
+    midnight = int(time.time()) - int(time.time()) % 86_400
+    monkeypatch.setenv("GUALA_SOLAR_UTC_OVERRIDE", str(midnight + 13 * 3_600))
+    sun = _sun_of(world)
+    assert sun is not None and sun[2] > 0.8                    # one in the afternoon: high in the north
+    noon = _world_retina_u8(snapshot, axes, sun)
+    monkeypatch.setenv("GUALA_SOLAR_UTC_OVERRIDE", str(midnight + 2 * 3_600))
+    assert _sun_of(world) is None
+    night = _world_retina_u8(snapshot, axes, _sun_of(world))
+    assert night == _world_retina_u8(snapshot, axes, None)
+    lit = sum(1 for a, b in zip(noon[-WORLD_FOCAL_SITES:], night[-WORLD_FOCAL_SITES:]) if a > b)
+    assert lit > 200, lit                                       # measured by hand: 934 of 4,800 at this aim
+    assert noon[:-WORLD_FOCAL_SITES] == night[:-WORLD_FOCAL_SITES]   # the sun is a focal law; the wide field is the room's

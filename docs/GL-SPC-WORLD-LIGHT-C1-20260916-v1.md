@@ -25,6 +25,10 @@ First four (C1, from the blueprint's curtains and the kitchen's west wall): her 
 
 The whole field is one pass over the focal sites; nothing is stored, nothing is learned. The same room at the same second gives the same field, byte for byte.
 
+## 3a. Where her beat sees it
+
+Her beat's sight is the loop's own retina function (`_world_retina_u8` in `guala_functional_loop.py`), not the sensorium's capture; the sun is handed to it there from the same clock (`_sun_of(world)`). Until that line existed the law lived in the world and never reached her eye (found 2026-09-16 01:47Z, after release 1505; fixed in the release that followed). Test: the shaft reaches her eye on the path her beat uses (light suite, fifth test).
+
 ## 4. Measured
 
 Her room, north window, her body at genesis looking north and down:

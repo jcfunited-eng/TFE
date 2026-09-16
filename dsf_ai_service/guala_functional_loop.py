@@ -20,7 +20,7 @@ from dsf_ai_service.guala_functional_organism import (
     _distance_mm, _region_of, cochlear_profile, door_crossing, syllable_pcm,
 )
 from dsf_ai_service.guala_world_sensorium import (
-    _retinal_luminance, prepare_passive_world_interval, retinal_carriage,
+    _retinal_luminance, _sun_of, prepare_passive_world_interval, retinal_carriage,
 )
 from dsf_ai_service.lean_actor import (
     MAX_PRESSURE_BYTES, PhysicalOccurrence, PhysicalSettlementFailure, SettlementResult,
@@ -66,11 +66,14 @@ def _self_body(snapshot: Any) -> Any:
     return next(body for body in snapshot.bodies if body.body_id == snapshot.self_body_id)
 
 
-def _world_retina_u8(snapshot: Any, axes: tuple[Any, ...]) -> tuple[int, ...]:
+def _world_retina_u8(snapshot: Any, axes: tuple[Any, ...], sun: tuple[float, float, float, int] | None = None) -> tuple[int, ...]:
+    """Her world retina at this beat: the room's light and, by day, the sun's direct
+    light through the windows (a shaft, cut by shadows), from the real clock."""
+
     heading, pitch, transmission = retinal_carriage(axes)
     pixels = retinal_irradiance_field(
         snapshot, retinal_heading_offset_millidegrees=heading,
-        retinal_pitch_offset_millidegrees=pitch, include_focal=True,
+        retinal_pitch_offset_millidegrees=pitch, include_focal=True, sun=sun,
     )
     values = []
     scale = 255 * transmission
@@ -295,7 +298,7 @@ class FunctionalPhysicalLoop:
                 returning = world.pending_physical_return
             before = world.observation_snapshot()
             axes = organism.body_axes
-            world_retina = _world_retina_u8(before, axes)
+            world_retina = _world_retina_u8(before, axes, _sun_of(world))
             external_rgb = None
             focal = world_retina[-WORLD_FOCAL_SITES:]
             source = "world"
