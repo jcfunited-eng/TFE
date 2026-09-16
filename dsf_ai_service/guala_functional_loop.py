@@ -30,7 +30,7 @@ from dsf_ai_service.lean_actor import (
 )
 from dsf_ai_service.lean_embodiment_observation import lean_embodiment_observation
 from dsf_ai_service.lean_sensory_occurrence import (
-    EXTERNAL_RGB_FOCAL_VALUE_COUNT, LeanSensoryOccurrence, focal_retina_luminance_u8,
+    EXTERNAL_RGB_FOCAL_VALUE_COUNT, EXTERNAL_RGB_FULL_VALUE_COUNT, LeanSensoryOccurrence, focal_retina_luminance_u8,
     rgb_retina_luminance_u8, transmitted_rgb_retina_u8,
 )
 from dsf_ai_service.substrate.embodiment_world import (
@@ -137,9 +137,13 @@ def _gaze_frame(sensory: Any, gaze: tuple[float, float]) -> list[float]:
     older law: a bounded step from the crop's origin toward the structure she
     saw, then a small pull back toward the frame's centre."""
 
+    # The crop's share of the frame is its per-site pitch times its site count over the
+    # declared field: an 80 x 60 crop at 94 mdeg of a 640 x 480 frame is an eighth; the
+    # whole frame at her grain (375 mdeg x 160 sites) is the field itself.
+    dims = sensory.focal_crop_dimensions or (80, 60)
     crop_fraction = (
-        (sensory.focal_pitch_millidegrees[0] / CAMERA_FIELD_MILLIDEGREES[0],
-         sensory.focal_pitch_millidegrees[1] / CAMERA_FIELD_MILLIDEGREES[1])
+        (sensory.focal_pitch_millidegrees[0] * dims[0] / CAMERA_FIELD_MILLIDEGREES[0],
+         sensory.focal_pitch_millidegrees[1] * dims[1] / CAMERA_FIELD_MILLIDEGREES[1])
         if sensory.focal_pitch_millidegrees else (80 / 640.0, 60 / 480.0)
     )
     if crop_fraction[0] >= 1.0 and crop_fraction[1] >= 1.0:
@@ -334,8 +338,10 @@ class FunctionalPhysicalLoop:
                     arr = np.array(external_rgb[-80 * 60 * 3:], dtype=np.uint8).reshape(60, 80, 3)
                     scaled = np.repeat(np.repeat(arr, 2, axis=0), 2, axis=1).ravel()
                     focal = tuple(int(v) for v in scaled)
-                elif len(external_rgb) == WORLD_FOCAL_VALUES:
-                    focal = tuple(external_rgb)
+                elif len(sensory.retina_rgb_u8) == EXTERNAL_RGB_FULL_VALUE_COUNT:
+                    # The camera at her eye's grain: the 135 ambient sites, then the whole
+                    # frame as her 160 x 120 field; it is her focal field as sent.
+                    focal = tuple(external_rgb[-WORLD_FOCAL_VALUES:])
                 else:
                     focal = tuple(external_rgb)
                 source = "camera"

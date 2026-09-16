@@ -14,6 +14,9 @@ EXTERNAL_RGB_VALUE_COUNT = RETINAL_SITE_COUNT * 3
 # Vision upgrade (real-time or nothing, 2026-09-14): the legacy 405 values
 # first, unchanged order, then an 80x60 FOCAL central field, row-major RGB.
 EXTERNAL_RGB_FOCAL_VALUE_COUNT = EXTERNAL_RGB_VALUE_COUNT + 80 * 60 * 3
+# The camera at her eye's grain (2026-09-16): the 135 ambient sites first, then the
+# camera's whole frame as her 160 x 120 field, row-major RGB (58,005 values).
+EXTERNAL_RGB_FULL_VALUE_COUNT = EXTERNAL_RGB_VALUE_COUNT + 160 * 120 * 3
 SOURCES = frozenset({
     "camera",
     "camera-microphone",
@@ -46,7 +49,7 @@ CO_SENSORY_SOURCES = frozenset({
 def _validate_retina_rgb(values: tuple[int, ...]) -> None:
     if (
         not isinstance(values, tuple)
-        or len(values) not in (EXTERNAL_RGB_VALUE_COUNT, EXTERNAL_RGB_FOCAL_VALUE_COUNT)
+        or len(values) not in (EXTERNAL_RGB_VALUE_COUNT, EXTERNAL_RGB_FOCAL_VALUE_COUNT, EXTERNAL_RGB_FULL_VALUE_COUNT)
         or any(
             isinstance(value, bool)
             or not isinstance(value, int)
@@ -54,7 +57,7 @@ def _validate_retina_rgb(values: tuple[int, ...]) -> None:
             for value in values
         )
     ):
-        raise ValueError("sensory light changed the 135-site or 4935-site RGB retina")
+        raise ValueError("sensory light changed the 135-site, 4,935-site or 19,335-site RGB retina")
 
 
 def legacy_retina_rgb_u8(values: tuple[int, ...]) -> tuple[int, ...]:
@@ -65,14 +68,14 @@ def legacy_retina_rgb_u8(values: tuple[int, ...]) -> tuple[int, ...]:
 
 
 def focal_retina_rgb_u8(values: tuple[int, ...]) -> tuple[int, ...]:
-    """The 80x60 focal field (4800 sites RGB), or () when the legacy shape arrived."""
+    """The focal field (80 x 60 or 160 x 120 sites RGB), or () when the legacy shape arrived."""
 
     _validate_retina_rgb(values)
     return tuple(values[EXTERNAL_RGB_VALUE_COUNT:])
 
 
 def focal_retina_luminance_u8(values: tuple[int, ...]) -> tuple[int, ...]:
-    """Project the focal RGB sites onto 4800 achromatic receptors, () if absent."""
+    """Project the focal RGB sites onto achromatic receptors (4,800 or 19,200), () if absent."""
 
     focal = focal_retina_rgb_u8(values)
     return tuple(

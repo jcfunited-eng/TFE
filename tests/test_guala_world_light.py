@@ -409,3 +409,39 @@ def test_her_pupil_opens_in_a_dark_room_and_closes_by_day_from_the_field_alone()
     assert _world_retina_u8(snapshot, axes, None) == night                               # the same field twice, the same values
     assert min(night) == 0 or min(night) < 8                                             # what no light reaches stays dark
     assert PUPIL_GAIN_MAX == 16.0
+
+
+def test_the_cameras_whole_frame_at_her_eyes_grain_is_her_focal_field_as_sent() -> None:
+    """The page sends the camera's whole frame resampled to her 160 x 120 field (57,600 RGB
+    bytes, base64) with the 135 ambient sites: the server keeps it at her grain (58,005 values),
+    her beat takes it as her focal field as sent, the frame counts 19,335 sites, her gaze in the
+    frame is her gaze in the field (the whole-frame law), and her world field still goes to the
+    page beside it. An 80 x 60 crop from an older page still lands on the tiled 80 x 60 field."""
+    import base64
+    from dsf_ai_service import lean_production_app as production
+    from dsf_ai_service.guala_functional_loop import FunctionalPhysicalLoop
+    from dsf_ai_service.guala_functional_organism import FunctionalOrganism
+    from dsf_ai_service.lean_sensory_occurrence import EXTERNAL_RGB_FOCAL_VALUE_COUNT, EXTERNAL_RGB_FULL_VALUE_COUNT
+    world = home_world_authority(identity=IDENTITY)
+    organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
+    ambient = tuple(index % 256 for index in range(405))
+    frame = bytes((index * 7) % 256 for index in range(160 * 120 * 3))
+    see = production._physical_occurrence(production.OccurrenceBody(kind="sensory", payload=production.SensoryBody(
+        source="camera", retina_rgb_u8=ambient, focal_rgb_base64=base64.b64encode(frame).decode("ascii"),
+        focal_origin=(0.5, 0.5), focal_pitch_millidegrees=(375, 375), focal_crop_dimensions=(160, 120))))
+    assert len(see.payload.retina_rgb_u8) == EXTERNAL_RGB_FULL_VALUE_COUNT == 58_005
+    assert see.payload.retina_rgb_u8[405:] == tuple(frame)
+    result = FunctionalPhysicalLoop().settle(organism, world, see)
+    seen = result.observation
+    assert seen["external_retinal_site_count"] == 19_335
+    assert seen["latest_retinal_field_kind"] == "external-rgb"
+    assert len(seen["external_rgb_retinal_u8"]) == 58_005
+    assert len(seen["retinal_u8"]) == 58_005
+    assert seen["gaze_focal"] is not None
+    assert all(abs(a - b) < 1e-3 for a, b in zip(seen["gaze_frame"], seen["gaze_focal"]))
+    older = production._physical_occurrence(production.OccurrenceBody(kind="sensory", payload=production.SensoryBody(
+        source="camera", retina_rgb_u8=ambient, focal_rgb_base64=base64.b64encode(frame[:80 * 60 * 3]).decode("ascii"),
+        focal_origin=(0.5, 0.5), focal_pitch_millidegrees=(94, 94), focal_crop_dimensions=(80, 60))))
+    assert len(older.payload.retina_rgb_u8) == EXTERNAL_RGB_FOCAL_VALUE_COUNT == 14_805
+    again = FunctionalPhysicalLoop().settle(FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1), home_world_authority(identity=IDENTITY), older)
+    assert again.observation["external_retinal_site_count"] == 4_935

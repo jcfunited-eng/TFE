@@ -39,7 +39,7 @@ MAILBOX_CAPACITY = 1
 # 33,371 B with indent=1 JSON spacing (guided-vocal-microphone: 22,712 /
 # 25,507; card/camera-microphone: 21,603 / 24,319). Cap sized to the spaced
 # worst case plus margin; anything larger is still refused.
-MAX_OCCURRENCE_BODY_BYTES = 131_072   # a camera frame of 4,935 sites in red, green and blue as plain JSON is about 55 KB
+MAX_OCCURRENCE_BODY_BYTES = 131_072   # the camera's whole frame at her eye's grain (160 x 120 RGB, base64) is about 77 KB; a 4,935-site frame as plain JSON about 55 KB
 PUBLIC_API_PREFIX = "/api/v1/guala"
 OBSERVATION_ROUTE = f"{PUBLIC_API_PREFIX}/observation"
 OBSERVATION_LONGPOLL_SECONDS = 20.0  # bounded hold for ?after=<tick>; declared, not tuned
@@ -234,7 +234,9 @@ def _physical_occurrence(body: OccurrenceBody) -> PhysicalOccurrence:
         except (binascii.Error, ValueError) as error:
             raise ValueError("focal rgb is not canonical base64") from error
         if crop_dims is None:
-            if len(raw_focal) == 80 * 60 * 3:
+            if len(raw_focal) == 160 * 120 * 3:
+                crop_dims = (160, 120)
+            elif len(raw_focal) == 80 * 60 * 3:
                 crop_dims = (80, 60)
             elif len(raw_focal) == 64 * 48 * 3:
                 crop_dims = (64, 48)
@@ -242,7 +244,10 @@ def _physical_occurrence(body: OccurrenceBody) -> PhysicalOccurrence:
                 crop_dims = (32, 24)
             else:
                 raise ValueError("focal rgb bytes does not match standard crop dimensions")
-        resampled_focal = resample_focal_crop_rgb(raw_focal, crop_dims[0], crop_dims[1])
+        # A frame at least her eye's size lands on her 160 x 120 field at its own grain;
+        # a smaller crop (an older page, the caretaker's cards) on the 80 x 60 field the beat tiles.
+        out_w, out_h = (160, 120) if crop_dims[0] >= 160 and crop_dims[1] >= 120 else (80, 60)
+        resampled_focal = resample_focal_crop_rgb(raw_focal, crop_dims[0], crop_dims[1], out_w, out_h)
         if retina_u8 is not None and len(retina_u8) >= 405:
             retina_u8 = tuple(retina_u8[:405]) + resampled_focal
         else:
