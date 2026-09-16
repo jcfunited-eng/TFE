@@ -17,7 +17,7 @@ def test_home_world_is_one_bounded_physical_declaration() -> None:
 
     assert snapshot.revision == 0
     assert len(snapshot.regions) == 9
-    assert len(snapshot.objects) == 51   # 9 rooms fully furnished & contrasted: kitchen(11), dining(5), daddys(5), wcs(5), her-room(11), library(4), tv-room(4), backyard(6), hallway(0 clearance)
+    assert len(snapshot.objects) == 52   # A1's 51 plus her nightlight (C1); 9 rooms fully furnished & contrasted: kitchen(11), dining(5), daddys(5), wcs(5), her-room(11), library(4), tv-room(4), backyard(6), hallway(0 clearance)
     assert {item.body_id for item in snapshot.bodies} == {
         "guala-body-1",
         "person-body-1",

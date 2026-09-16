@@ -300,16 +300,71 @@ HOME_LOOKS = {
 # her room's bed, chest, desk and chair, the two framed pictures on the west wall,
 # the library's shelves and the dining table. A1 extends as the home's content owner.
 HOME_SHAPES = {
+    # her room
     "bed":              ((1_500,   950,   500),      0,     0),
+    "pillow":           ((  350,   250,   120),      0,     0),
+    "blanket":          ((  380,   380,   150),      0,     0),
+    "curtains":         ((  480,    40, 2_000),      0,   300),   # a hanging panel by the north window
     "toy-chest":        ((  800,   450,   450),      0,     0),
     "desk":             ((1_200,   600,   750),      0,     0),
     "desk-chair":       ((  400,   400,   850),      0,     0),
-    "wall-art-shapes":  ((   40,   560,   760),      0, 1_300),   # a framed picture flat on the west wall
+    "wall-art-shapes":  ((   40,   560,   760),      0, 1_300),   # framed pictures flat on the west wall
     "wall-art-weather": ((   40,   560,   760),      0, 1_300),
+    # kitchen
+    "kitchen-counter":  ((  700,   700,   900),      0,     0),
+    "pantry":           ((  490,   490, 1_800),      0,     0),
+    "refrigerator":     ((  630,   630, 1_800),      0,     0),
+    "stove":            ((  560,   560,   900),      0,     0),
+    "table":            ((  840,   840,   750),      0,     0),
+    # dining
+    "dining-table":     ((1_200,   700,   750),      0,     0),
+    "dining-chair":     ((  360,   360,   850),      0,     0),
+    "dining-chair-south": ((360,   360,   850),      0,     0),
+    "sideboard":        ((  800,   400,   850),      0,     0),
+    # daddy's room
+    "daddys-armchair":  ((  630,   630,   800),      0,     0),
+    "daddys-desk":      ((  560,   560,   750),      0,     0),
+    "daddys-chair":     ((  360,   360,   850),      0,     0),
+    "daddys-book":      ((  160,   120,    40),      0,     0),
+    # library
     "shelf-a":          ((  700,   300, 1_800),      0,     0),
     "shelf-b":          ((  700,   300, 1_800),      0,     0),
-    "dining-table":     ((1_200,   700,   750),      0,     0),
+    "book":             ((  190,   140,    40),      0,     0),
+    # tv room
+    "sofa":             ((1_700,   800,   800),      0,     0),
+    "television":       ((1_000,   400,   700),      0,     0),
+    "rug":              ((  840,   840,    20),      0,     0),
+    "radio":            ((  200,   120,   150),      0,     0),
+    # the wc's room
+    "bath-tub":         ((1_000,   600,   550),      0,     0),
+    "wash-basin":       ((  420,   420,   850),      0,     0),
+    "bath-mat":         ((  490,   490,    20),      0,     0),
+    "bath-towel":       ((  280,   280,    40),      0,     0),
+    # backyard
+    "sandbox":          ((1_550, 1_550,   200),      0,     0),
+    "slide":            ((1_200,   600, 1_500),      0,     0),
+    "swing":            ((  980,   400, 2_000),      0,     0),
+    "garden-patch":     ((1_690, 1_690,   150),      0,     0),
 }
+
+# Boxes wear their paint flat (a sofa, a table, a tub: one material, its faces told
+# apart by the light) except the things whose declared pattern is the point of them.
+PATTERNED_BOXES = ("wall-art-shapes", "wall-art-weather", "television", "book", "daddys-book")
+
+# Lamps at their heights: a shade on a stand, a pendant over a table, a light on a
+# vanity. The thing keeps its footprint disc on the floor; its shade (and so its
+# light) sits this far above the floor. First heights (C1); A1 corrects as content owner.
+HOME_LAMP_HEIGHTS = {
+    "kitchen-lamp": 1_500,     # a pendant over the counter
+    "dining-lamp":  1_600,     # a pendant by the table
+    "daddys-lamp":    750,     # the reading lamp on the desk
+    "bath-lamp":    1_400,     # the vanity light
+    "lamp":         1_300,     # the library's floor lamp
+    "glow-stars":   2_300,     # on the ceiling above her bed
+}
+
+# Her room's nightlight (A1 listed it; declared here so her nights are not black).
+NIGHT_LIGHT = ("night-light", 4_600, 8_600, 80, 300, 250, (900_000,) * 6, (300_000,) * 6)
 
 
 def _shaped(things: list[Any]) -> list[Any]:
@@ -328,7 +383,13 @@ def _shaped(things: list[Any]) -> list[Any]:
         size, heading, elevation = declared
         needed = math.ceil(math.hypot(size[0], size[1]) / 2) if elevation < WALKING_LAYER_MM else 0
         shaped.append(replace(item, shape="box", size_mm=tuple(size), heading_millidegrees=heading, elevation_mm=elevation,
-                              radius_mm=max(item.radius_mm, needed)))
+                              radius_mm=max(item.radius_mm, needed),
+                              optical_surface=item.optical_surface if item.object_id in PATTERNED_BOXES else None))
+    shaped = [replace(item, elevation_mm=HOME_LAMP_HEIGHTS[item.object_id]) if item.object_id in HOME_LAMP_HEIGHTS else item for item in shaped]
+    from dsf_ai_service.substrate.embodiment_world import EmbodiedObject, PositionMM
+    name, x, y, radius, mass, height, reflectance, emission = NIGHT_LIGHT
+    if all(item.object_id != name for item in shaped):
+        shaped.append(EmbodiedObject(name, radius, mass, PositionMM(x, y, 0), reflectance_ppm=reflectance, emission_ppm=emission, elevation_mm=height))
     return shaped
 
 

@@ -542,6 +542,7 @@ class _OpticalSurface:
     emission_ppm: tuple[int, ...] = ()
     source_id: str | None = None
     box: bool = False
+    elevation_mm: int = 0
 
 
 def _region_radiance(region: PhysicalRegion) -> tuple[Fraction, ...]:
@@ -741,7 +742,8 @@ def _room_lights(
         occluders.append(_occluder_of(item))
         emission = getattr(item, "emission_ppm", ()) or ()
         if len(emission) == bands and any(emission):
-            lights.append(_Light("lamp", item.position.x, item.position.y, item.position.z + item.radius_mm, item.radius_mm, tuple(emission), item.object_id))
+            centre_z = item.position.z + getattr(item, "elevation_mm", 0) + (item.size_mm[2] / 2.0 if getattr(item, "shape", "sphere") == "box" else item.radius_mm)
+            lights.append(_Light("lamp", item.position.x, item.position.y, centre_z, item.radius_mm, tuple(emission), item.object_id))
     for other in observation.bodies:
         occluders.append((other.pose.position.x, other.pose.position.y, other.pose.position.z + other.radius_mm, other.radius_mm, other.body_id, None))
     return lights, occluders
@@ -756,12 +758,13 @@ def _occluder_of(item: EmbodiedObject) -> tuple:
         bounding = math.sqrt(sx * sx + sy * sy + sz * sz) / 2.0
         return (item.position.x, item.position.y, centre_z, bounding, item.object_id,
                 (sx / 2.0, sy / 2.0, sz / 2.0, math.cos(angle), math.sin(angle)))
-    return (item.position.x, item.position.y, item.position.z + item.radius_mm, item.radius_mm, item.object_id, None)
+    return (item.position.x, item.position.y, item.position.z + getattr(item, "elevation_mm", 0) + item.radius_mm, item.radius_mm, item.object_id, None)
 
 
 def _box_entry(ox, oy, oz, half, dx, dy, dz):
     """Slab test in a box's own frame: the entry and exit distances along a ray whose origin is
     (ox, oy, oz) relative to the box centre, already rotated into the box frame; scalars or arrays."""
+    ox, oy, oz, dx, dy, dz = (np.asarray(value, dtype=np.float64) for value in (ox, oy, oz, dx, dy, dz))
     near, far = -np.inf, np.inf
     for o, d, h in ((ox, dx, half[0]), (oy, dy, half[1]), (oz, dz, half[2])):
         with np.errstate(divide="ignore", invalid="ignore"):
@@ -1245,13 +1248,14 @@ def _retinal_projection(
                 if item.position is not None
                 else body_by_id[item.held_by_body_id].pose.position
             )
+        elevation = getattr(item, "elevation_mm", 0) if item.held_by_body_id is None else 0
         position = (
             PositionMM(
                 position.x,
                 position.y,
-                position.z + item.radius_mm,
+                position.z + elevation + item.radius_mm,
             )
-            if item.optical_surface is not None
+            if item.optical_surface is not None or elevation
             else position
         )
         surfaces.append(
@@ -1263,6 +1267,7 @@ def _retinal_projection(
                 emission_ppm=getattr(item, "emission_ppm", ()) or (),
                 source_id=item.object_id,
                 box=getattr(item, "shape", "sphere") == "box" and item.held_by_body_id is None,
+                elevation_mm=elevation,
             )
         )
 
@@ -1332,7 +1337,7 @@ def _retinal_projection(
             surface_illumination = lit_illumination
             if lights:
                 # The direct light on a round thing: the share of its lit half the eye sees.
-                tx, ty, tz = surface.position.x, surface.position.y, current_region.bounds.minimum.z + surface.radius_mm
+                tx, ty, tz = surface.position.x, surface.position.y, current_region.bounds.minimum.z + surface.elevation_mm + surface.radius_mm
                 ex, ey, ez = eye.x - tx, eye.y - ty, eye.z - tz
                 span = math.sqrt(ex * ex + ey * ey + ez * ez) or 1.0
                 direct = _direct_light(tx, ty, tz, normal=None, toward_eye=(ex / span, ey / span, ez / span), lights=lights,

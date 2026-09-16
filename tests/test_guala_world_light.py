@@ -285,7 +285,9 @@ def test_a_box_shows_faces_and_straight_edges_where_a_sphere_showed_an_orb() -> 
 def test_a_box_stands_in_front_of_a_sphere_behind_it() -> None:
     world = home_world_authority(identity=IDENTITY)
     snapshot = world.observation_snapshot()
-    keep = tuple(o for o in snapshot.objects if o.object_id not in ("bed", "pillow", "blanket", "toy-chest", "desk", "desk-chair"))
+    lit_room = tuple(replace(r, illumination_ppm=(780_000,) * 6) if r.region_id == "her-room" else r for r in snapshot.regions)
+    snapshot = replace(snapshot, regions=lit_room)                    # a lit room, so bright means bright
+    keep = tuple(o for o in snapshot.objects if o.shape != "box" and not (o.emission_ppm and any(o.emission_ppm)))   # only the round, unlit things stay
     ball = EmbodiedObject("ball-test", 200, 500, PositionMM(2_600, 9_400, 0), reflectance_ppm=(950_000,) * 6)
     wall = EmbodiedObject("crate-test", 500, 5_000, PositionMM(2_600, 8_800, 0), reflectance_ppm=(120_000,) * 6,
                           shape="box", size_mm=(800, 300, 600), heading_millidegrees=0, elevation_mm=0)

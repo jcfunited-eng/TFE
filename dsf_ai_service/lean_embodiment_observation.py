@@ -8,7 +8,7 @@ from typing import Any
 SCHEMA = "guala.lean_embodiment_observation.v1"
 MAX_REGIONS = 16
 MAX_PORTALS = 24
-MAX_OBJECTS = 64
+MAX_OBJECTS = 128
 MAX_BODIES = 4
 MAX_BODY_AXES = 64
 

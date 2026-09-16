@@ -120,7 +120,7 @@ LEGACY_STATE_DOMAIN = b"guala-embodiment-state-v1\0"
 
 DEFAULT_MAX_REGIONS = 4
 DEFAULT_MAX_PORTALS = 6
-DEFAULT_MAX_OBJECTS = 64
+DEFAULT_MAX_OBJECTS = 128
 DEFAULT_MAX_BODIES = 4
 DEFAULT_RECEIPT_CAPACITY = 16
 DEFAULT_MAX_COMMAND_BYTES = 4096
@@ -1473,9 +1473,10 @@ class EmbodiedObject:
     # persisted worlds decode unchanged.
     emission_ppm: tuple[int, ...] = ()
     # THE SHAPE LAW: what the eye meets. A sphere (the footprint disc of the
-    # radius, as before) or a box: its extents in its own frame, its heading
-    # about the vertical, and the height of its bottom above the floor (a
-    # framed picture on a wall, a thing on a shelf). Every planar law (reach,
+    # radius, as before; it may sit at a height: a lamp's shade on its stand, a
+    # pendant) or a box: its extents in its own frame, its heading about the
+    # vertical, and the height of its bottom above the floor (a framed picture
+    # on a wall, a thing on a shelf). Every planar law (reach,
     # grasp, clearance, collision) keeps the footprint disc, which must cover
     # the box's plan. Old persisted worlds decode unchanged as spheres.
     shape: str = "sphere"
@@ -1487,8 +1488,9 @@ class EmbodiedObject:
         _identifier(self.object_id, "object id")
         _bounded_integer(self.radius_mm, "object radius", minimum=1, maximum=1_000_000)
         if self.shape == "sphere":
-            if self.size_mm or self.heading_millidegrees or self.elevation_mm:
-                raise ValueError("a sphere has no box extents, heading or elevation")
+            if self.size_mm or self.heading_millidegrees:
+                raise ValueError("a sphere has no box extents or heading")
+            _bounded_integer(self.elevation_mm, "sphere elevation", minimum=0, maximum=1_000_000)   # a shade on a stand, a pendant
         elif self.shape == "box":
             if not isinstance(self.size_mm, tuple) or len(self.size_mm) != 3:
                 raise ValueError("a box has three extents")
@@ -1546,7 +1548,7 @@ class EmbodiedObject:
         }
 
     def _shape_record(self) -> dict[str, object]:
-        if self.shape == "sphere":
+        if self.shape == "sphere" and not self.elevation_mm:
             return {}
         return {"shape": {"kind": self.shape, "size_mm": list(self.size_mm),
                           "heading_millidegrees": self.heading_millidegrees, "elevation_mm": self.elevation_mm}}
