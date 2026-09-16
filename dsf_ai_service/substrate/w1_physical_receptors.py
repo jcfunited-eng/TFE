@@ -25,7 +25,15 @@ import math
 
 import numpy as np
 
-from dsf_ai_service.substrate.w1_parts import bounding_radius, part_blocks, part_hits
+from dsf_ai_service.substrate.w1_parts import (
+    BODY_PARTS,
+    CARETAKER_PARTS,
+    _BodyAssembledItem,
+    _CLOTHING_TORSO,
+    bounding_radius,
+    part_blocks,
+    part_hits,
+)
 from math import isqrt
 from typing import Mapping
 
@@ -745,7 +753,12 @@ def _room_lights(
             centre_z = item.position.z + getattr(item, "elevation_mm", 0) + (item.size_mm[2] / 2.0 if getattr(item, "shape", "sphere") == "box" else item.radius_mm)
             lights.append(_Light("lamp", item.position.x, item.position.y, centre_z, item.radius_mm, tuple(emission), item.object_id))
     for other in observation.bodies:
-        occluders.append((other.pose.position.x, other.pose.position.y, other.pose.position.z + other.radius_mm, other.radius_mm, other.body_id, None))
+        if other.body_id in BODY_PARTS:
+            body_item = _BodyAssembledItem(other, BODY_PARTS[other.body_id])
+            reach = bounding_radius(body_item)
+            occluders.append((other.pose.position.x, other.pose.position.y, other.pose.position.z + 750, reach, other.body_id, ("parts", body_item)))
+        else:
+            occluders.append((other.pose.position.x, other.pose.position.y, other.pose.position.z + other.radius_mm, other.radius_mm, other.body_id, None))
     return lights, occluders
 
 
@@ -968,6 +981,10 @@ def _lit_surfaces_focal(
         if getattr(item, "shape", "sphere") == "parts" and item.position is not None
         and current_region.bounds.contains_floor_disc(item.position, 0)
     ]
+    for other in observation.bodies:
+        if other.body_id != observation.self_body_id and other.body_id in BODY_PARTS:
+            if other.pose.position is not None and current_region.bounds.contains_floor_disc(other.pose.position, 0):
+                assembled.append(_BodyAssembledItem(other, BODY_PARTS[other.body_id]))
     if not lights and not current_region.looks and not boxes and not assembled:
         return None
     indices, h_offsets, v_offsets = _focal_rays(site_geometry)
@@ -1269,17 +1286,30 @@ def _retinal_projection(
     body_by_id = {candidate.body_id: candidate for candidate in observation.bodies}
     for other in observation.bodies:
         if other.body_id != observation.self_body_id:
-            surfaces.append(
-                _OpticalSurface(
-                    position=other.pose.position,
-                    radius_mm=other.radius_mm,
-                    # The world has not specified a body material reflectance.
-                    # A body can therefore only be a conservative silhouette.
-                    reflectance_ppm=(0,) * OPTICAL_BANDS,
-                    optical_surface=None,
-                    source_id=other.body_id,
+            if other.body_id in BODY_PARTS:
+                surfaces.append(
+                    _OpticalSurface(
+                        position=PositionMM(other.pose.position.x, other.pose.position.y, other.pose.position.z + 750),
+                        radius_mm=max(other.radius_mm, 450),
+                        reflectance_ppm=_CLOTHING_TORSO,
+                        optical_surface=None,
+                        source_id=other.body_id,
+                        box=True,
+                        elevation_mm=0,
+                    )
                 )
-            )
+            else:
+                surfaces.append(
+                    _OpticalSurface(
+                        position=other.pose.position,
+                        radius_mm=other.radius_mm,
+                        # The world has not specified a body material reflectance.
+                        # A body can therefore only be a conservative silhouette.
+                        reflectance_ppm=(0,) * OPTICAL_BANDS,
+                        optical_surface=None,
+                        source_id=other.body_id,
+                    )
+                )
     for item in observation.objects:
         if item.held_by_body_id == observation.self_body_id:
             # What she holds is in her hand, at her hand's contact point (her touch

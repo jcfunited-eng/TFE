@@ -218,3 +218,59 @@ def bounding_radius(item: Any) -> float:
             extent = math.hypot(part.size_mm[0] / 2.0, part.size_mm[2] / 2.0)
         reach = max(reach, math.sqrt(part.offset_mm[0] ** 2 + part.offset_mm[1] ** 2 + (part.offset_mm[2] - middle) ** 2) + extent)
     return reach
+
+
+from dsf_ai_service.substrate.embodiment_world import ObjectPart
+
+_SKIN_PPM = (300_000, 420_000, 520_000, 680_000, 780_000, 820_000)
+_CLOTHING_TORSO = (180_000, 260_000, 320_000, 280_000, 220_000, 200_000)
+_CLOTHING_PANTS = (120_000, 150_000, 200_000, 180_000, 150_000, 140_000)
+_HAIR_COLOR = (70_000, 60_000, 50_000, 50_000, 50_000, 50_000)
+_SHOES_COLOR = (60_000, 50_000, 50_000, 50_000, 50_000, 50_000)
+
+CARETAKER_PARTS: tuple[ObjectPart, ...] = (
+    # Torso: box 360 x 220 x 500 mm, center at z = 950 mm
+    ObjectPart("box", (0, 0, 950), (360, 220, 500), _CLOTHING_TORSO),
+    # Neck: cylinder diameter 100 mm, height 80 mm, center at z = 1240 mm
+    ObjectPart("cylinder", (0, 0, 1240), (100, 100, 80), _SKIN_PPM),
+    # Head: sphere diameter 200 mm, center at z = 1380 mm (encompasses perioral site at z = 1450 mm)
+    ObjectPart("sphere", (0, 0, 1380), (200, 200, 200), _SKIN_PPM),
+    # Hair: sphere diameter 210 mm, offset back/up at (0, -20, 1420) mm
+    ObjectPart("sphere", (0, -20, 1420), (210, 210, 190), _HAIR_COLOR),
+    # Left & Right Thighs: cylinder diameter 130 mm, height 360 mm, center at z = 520 mm
+    ObjectPart("cylinder", (-90, 0, 520), (130, 130, 360), _CLOTHING_PANTS),
+    ObjectPart("cylinder", (90, 0, 520), (130, 130, 360), _CLOTHING_PANTS),
+    # Left & Right Calves: cylinder diameter 110 mm, height 340 mm, center at z = 170 mm
+    ObjectPart("cylinder", (-90, 0, 170), (110, 110, 340), _CLOTHING_PANTS),
+    ObjectPart("cylinder", (90, 0, 170), (110, 110, 340), _CLOTHING_PANTS),
+    # Left & Right Shoes: box 120 x 220 x 70 mm, forward along y, center at z = 35 mm
+    ObjectPart("box", (-90, 30, 35), (120, 220, 70), _SHOES_COLOR),
+    ObjectPart("box", (90, 30, 35), (120, 220, 70), _SHOES_COLOR),
+    # Left & Right Upper Arms: cylinder diameter 90 mm, height 280 mm, center at z = 1020 mm
+    ObjectPart("cylinder", (-225, 0, 1020), (90, 90, 280), _CLOTHING_TORSO),
+    ObjectPart("cylinder", (225, 0, 1020), (90, 90, 280), _CLOTHING_TORSO),
+    # Left & Right Forearms: cylinder diameter 80 mm, height 260 mm, center at z = 770 mm
+    ObjectPart("cylinder", (-225, 30, 770), (80, 80, 260), _SKIN_PPM),
+    ObjectPart("cylinder", (225, 30, 770), (80, 80, 260), _SKIN_PPM),
+    # Left & Right Hands (palms): sphere diameter 80 mm, center at z = 630 mm (aligns with palm sites at z = 800 mm)
+    ObjectPart("sphere", (-225, 50, 630), (80, 80, 80), _SKIN_PPM),
+    ObjectPart("sphere", (225, 50, 630), (80, 80, 80), _SKIN_PPM),
+)
+
+BODY_PARTS: dict[str, tuple[ObjectPart, ...]] = {
+    "person-body-1": CARETAKER_PARTS,
+}
+
+
+class _BodyAssembledItem:
+    """Adapter exposing an EmbodiedBody with parts to the part_hits / part_blocks ray tracers."""
+
+    def __init__(self, body: Any, parts: tuple[ObjectPart, ...]) -> None:
+        self.position = body.pose.position
+        self.heading_millidegrees = body.pose.heading_millidegrees
+        self.elevation_mm = 0
+        self.parts = parts
+        self.reflectance_ppm = _CLOTHING_TORSO
+        self.object_id = body.body_id
+        self.shape = "parts"
+        self.radius_mm = getattr(body, "radius_mm", 250)

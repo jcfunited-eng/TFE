@@ -22,6 +22,7 @@ from dsf_ai_service.substrate.embodiment_world import (  # noqa: E402
     SurfaceLookMM,
     WindowMM,
 )
+from dsf_ai_service.substrate.w1_parts import BODY_PARTS, CARETAKER_PARTS  # noqa: E402
 
 HOME_WINDOWS = {
     "her-room":    (WindowMM("y-max", 1_800, 3_800, 900, 2_100),),    # the north wall, where the curtains hang
