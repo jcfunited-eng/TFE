@@ -428,6 +428,10 @@ HOME_LAMP_HEIGHTS = {
     "glow-stars":   2_300,     # on the ceiling above her bed
 }
 
+# Things the declaration has taken away (the nine A1 dropped on 2026-09-16 that the
+# renovation carried on as arrivals): the builders take them out at the next renovation.
+HOME_DEPARTED = ("art-arch", "art-circle", "berries", "bread", "carrot", "cheese", "kitchen-cabinet", "milk", "plate")
+
 # Her room's nightlight (A1 listed it; declared here so her nights are not black).
 NIGHT_LIGHT = ("night-light", 4_600, 8_600, 80, 300, 250, (900_000,) * 6, (300_000,) * 6)
 
@@ -1306,6 +1310,7 @@ def home_world_authority(
                 ),
             ),
         ),
+        departed_object_ids=HOME_DEPARTED,
     )
     if encoded_world is None:
         return authority

@@ -39,7 +39,7 @@ MAILBOX_CAPACITY = 1
 # 33,371 B with indent=1 JSON spacing (guided-vocal-microphone: 22,712 /
 # 25,507; card/camera-microphone: 21,603 / 24,319). Cap sized to the spaced
 # worst case plus margin; anything larger is still refused.
-MAX_OCCURRENCE_BODY_BYTES = 34_816
+MAX_OCCURRENCE_BODY_BYTES = 131_072   # a camera frame of 4,935 sites in red, green and blue as plain JSON is about 55 KB
 PUBLIC_API_PREFIX = "/api/v1/guala"
 OBSERVATION_ROUTE = f"{PUBLIC_API_PREFIX}/observation"
 OBSERVATION_LONGPOLL_SECONDS = 20.0  # bounded hold for ?after=<tick>; declared, not tuned

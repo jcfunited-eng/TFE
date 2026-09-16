@@ -3650,6 +3650,7 @@ class EmbodimentWorldAuthority:
         ] = (),
         body_surface_sites: Sequence[MountedBodySurfaceSite] = (),
         solar_coupling: SolarCoupling | None = None,
+        departed_object_ids: tuple[str, ...] = (),
         screen_broadcasts: Sequence[ScreenBroadcast] = (),
     ) -> None:
         self._key = _authority_key(authority_key)
@@ -3889,6 +3890,10 @@ class EmbodimentWorldAuthority:
         # The exact declared home, retained for the one authenticated
         # topology migration a renovation release may perform.
         self._declared_genesis_world = world
+        # Things the declaration has taken away: a renovation removes them if they still
+        # stand in the lived world (a thing arrives by a declaration or a hand, and leaves
+        # the same way; the renovation is the builders' hand).
+        self._departed_object_ids = tuple(sorted(set(departed_object_ids)))
         if solar_coupling is not None:
             region_ids = {region.region_id for region in physical_regions}
             for region_id in solar_coupling.outdoor_region_ids:
@@ -4307,7 +4312,25 @@ class EmbodimentWorldAuthority:
                     )
                 }
 
-            if prior_topology == self._declared_topology_sha256 and all(
+            departed_present = [object_id for object_id in self._departed_object_ids if object_id in prior_objects and object_id not in declared_objects]
+
+            def region_of(position: PositionMM | None):
+                if position is None:
+                    return None
+                for region in declared.regions:
+                    if (region.bounds.minimum.x <= position.x <= region.bounds.maximum.x
+                            and region.bounds.minimum.y <= position.y <= region.bounds.maximum.y):
+                        return region.region_id
+                return None
+
+            # A declared thing that lives in another room than its authored place (a chair
+            # shoved through a door) is stood back at its authored place by the builders.
+            strayed = [
+                object_id for object_id, item in declared_objects.items()
+                if object_id in prior_objects and prior_objects[object_id].position is not None and item.position is not None
+                and region_of(prior_objects[object_id].position) != region_of(item.position)
+            ]
+            if prior_topology == self._declared_topology_sha256 and not departed_present and not strayed and all(
                 object_id in prior_objects
                 and authored(prior_objects[object_id]) == authored(item)
                 for object_id, item in declared_objects.items()
@@ -4318,6 +4341,7 @@ class EmbodimentWorldAuthority:
             arrivals = {
                 object_id: prior_objects[object_id]
                 for object_id in set(prior_objects) - set(declared_objects)
+                if object_id not in self._departed_object_ids
             }
 
             def region_containing(
@@ -4404,6 +4428,8 @@ class EmbodimentWorldAuthority:
                 if lived.position is None:
                     # Held things stay in the hand that holds them.
                     position = None
+                elif object_id in strayed:
+                    position = authored.position         # back in its own room, at its authored place
                 elif region_containing(
                     lived.position.x, lived.position.y, authored.radius_mm
                 ) is not None:

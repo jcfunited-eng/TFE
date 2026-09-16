@@ -141,3 +141,49 @@ def test_an_arrival_standing_where_a_declared_thing_now_goes_is_set_one_step_asi
     assert stray.position != oak.position
     dx, dy = stray.position.x - oak.position.x, stray.position.y - oak.position.y
     assert 250 <= (dx * dx + dy * dy) ** 0.5 <= 1_600
+
+
+def test_the_builders_take_away_departed_things_and_stand_strayed_furniture_back_in_its_room(monkeypatch) -> None:
+    """Joe, 2026-09-16 morning: the desk chair stood in the kitchen (she had pushed it through
+    a door; the renovation keeps lived positions) and nine things A1 dropped from the
+    declaration still stood in her world as arrivals. Now a declared thing that lives in
+    another room than its authored place is stood back at its authored place, and a thing the
+    declaration has taken away (HOME_DEPARTED) leaves at the renovation."""
+    from dataclasses import replace as _replace
+    from dsf_ai_service.substrate.embodiment_world import EmbodiedObject, PositionMM
+
+    world = home_world_authority(identity=IDENTITY)
+    encoded = bytes(world.encoded_snapshot())
+    lived = home_world_authority(identity=IDENTITY, encoded_world=encoded)   # a plain restore, to be edited as lived state
+    chair = next(o for o in lived.observation_snapshot().objects if o.object_id == "desk-chair")
+    assert chair.position.y > 5_000, "the desk chair is declared in her room"
+    # Stand the chair in the kitchen (as she left it) and let a departed thing be present, by editing the record.
+    import base64, json
+    envelope = json.loads(encoded); payload = json.loads(base64.b64decode(envelope["payload_base64"]))
+    inner = json.loads(base64.b64decode(payload["world_state_base64"])); state = json.loads(base64.b64decode(inner["payload_base64"]))
+    assert all(o["object_id"] != "milk" for o in state["world"]["objects"])
+    # Rather than forge signed bytes, use the world's own hands: move the chair through the door with a place command is
+    # not available here, so we test the law directly on the authority's renovation with a lived world built in memory.
+    from dsf_ai_service import guala_home_world
+    older = guala_home_world._home_rooms_and_things
+    def with_chair_in_kitchen_and_milk():
+        regions, portals, objects = older()
+        moved = []
+        for o in objects:
+            if o.object_id == "desk-chair":
+                o = _replace(o, position=PositionMM(5_600, 2_600, 0))       # the kitchen, as on the live map
+            moved.append(o)
+        moved.append(EmbodiedObject("milk", 120, 1_000, PositionMM(600, 2_800, 0)))   # a thing later taken away
+        return regions, portals, moved
+    monkeypatch.setattr(guala_home_world, "_home_rooms_and_things", with_chair_in_kitchen_and_milk)
+    monkeypatch.setattr(guala_home_world, "HOME_DEPARTED", ())
+    as_lived = home_world_authority(identity=IDENTITY)
+    monkeypatch.undo()
+    lived_bytes = bytes(as_lived.encoded_snapshot())
+    world = home_world_authority(identity=IDENTITY, encoded_world=lived_bytes, migrate_physical_return=True)
+    assert world.home_renovation_performed
+    after = {o.object_id: o for o in world.observation_snapshot().objects}
+    assert "milk" not in after                                            # taken away by the declaration
+    assert after["desk-chair"].position == chair.position                 # back in her room, at its authored place
+    again = home_world_authority(identity=IDENTITY, encoded_world=bytes(world.encoded_snapshot()), migrate_physical_return=True)
+    assert not again.home_renovation_performed
