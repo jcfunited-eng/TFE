@@ -19,5 +19,6 @@ SCRIPT_B64=$(base64 -w0 "$HERE/capture_pair_remote.py")
 TASK=$(aws ecs list-tasks --cluster tfe-web-cluster --service-name dsf-ai-service-lb --region $R --query 'taskArns[0]' --output text | awk -F/ '{print $NF}')
 timeout 400 aws ecs execute-command --region $R --cluster tfe-web-cluster --task "$TASK" --container dsf-ai --interactive \
   --command "sh -c 'echo $SCRIPT_B64 | base64 -d > /tmp/capture_pair.py && cd /app && python3 /tmp/capture_pair.py $PUT_B64 2>&1 | tail -2'" 2>&1 \
-  | grep -v "^$\|Starting session\|Exiting session\|Cannot perform\|Session Manager" | head -3 | tee "$S/live-capture-$NAME/capture.log"
-aws s3 cp "s3://guala-incident-bench-20260831/$KEY" "$S/live-capture-$NAME/current.zip" --only-show-errors && unzip -l "$S/live-capture-$NAME/current.zip" | tail -2
+  | grep -v "^$\|Starting session\|Exiting session\|Cannot perform\|Session Manager" | head -3 | tee "$S/live-capture-$NAME/capture.log" || true
+aws s3 cp "s3://guala-incident-bench-20260831/$KEY" "$S/live-capture-$NAME/current.zip" --only-show-errors
+unzip -l "$S/live-capture-$NAME/current.zip" | tail -2

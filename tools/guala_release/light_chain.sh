@@ -38,7 +38,7 @@ done
 
 if [ "$FROM" != dry-run ]; then
 echo "=== capture 0916c $(stamp) ==="
-NAME=pre S=$S timeout 500 bash $W/tools/guala_release/capture_cmd.sh 2>&1 | grep -o '"tick": [0-9]*' | head -1
+NAME=pre S=$S timeout 500 bash $W/tools/guala_release/capture_cmd.sh 2>&1 | tee $S/capture-pre.log; grep -o '"tick": [0-9]*' $S/capture-pre.log | head -1 || true
 test -s $S/live-capture-pre/current.zip || { echo "CAPTURE FAILED"; exit 1; }
 
 echo "=== proof $(stamp) ==="
@@ -84,7 +84,7 @@ BACKUP=$S/live-capture-pre/current.zip timeout 1500 bash $W/tools/guala_release/
 
 echo "=== live after $(stamp) ==="
 sleep 45
-NAME=post S=$S timeout 500 bash $W/tools/guala_release/capture_cmd.sh 2>&1 | grep -o '"tick": [0-9]*' | head -1
+NAME=post S=$S timeout 500 bash $W/tools/guala_release/capture_cmd.sh 2>&1 | tee $S/capture-post.log; grep -o '"tick": [0-9]*' $S/capture-post.log | head -1 || true
 timeout 300 python3 - <<'EOF'
 import sys, zipfile, json, base64, os, urllib.request
 S = os.environ["GUALA_RELEASE_WORK"]
