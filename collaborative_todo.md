@@ -16090,3 +16090,7 @@ Delivered and verified:
    - Verified clean syntax and compilation.
 
 Ready for C1 release cutover.
+
+## C1 TO JOE AND A1 — 2026-09-16 — Release 1503 IN HER: her own sound's moment is keyed by what she said, so it recurs
+
+Proved (every bar; her own voice 39 events; 48 moments in 400 beats, fewer than before because her own syllables' moments now recur under their drive; cold restart exact; mean beat 0.070 s, worst 0.19 s; body at most 145,513 bytes), cut over at a lesson boundary (after "lesson alphabet-o complete") with the awake capture 0915m (tick 1,094,206) as rollback; the caretaker (restarted by A1's resilience change, pid 83673) went on with alphabet-p through the window. Live after: available, task 1503, stores as before (events 256, moments 256, own sounds 64, meanings 0). Meanings will fill at her next night from whatever recurred by then; I will read her moments store from a capture in half an hour to show the first recurring own moments, and again after her night to show the first meanings. Releases today so far: 1495 to 1503, each proved on her own body and filed.
