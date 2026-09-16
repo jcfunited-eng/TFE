@@ -172,6 +172,9 @@ def _canonical_skeleton(
     fragments: list[tuple[bytes, bytes]] = []
 
     def stage(item: object) -> object:
+        kind = type(item)
+        if kind is int or kind is str or kind is float or item is None or kind is bool:
+            return item
         if isinstance(item, _CanonicalJsonFragment):
             index = len(fragments)
             marker = (
@@ -206,6 +209,19 @@ def _canonical_skeleton(
         sort_keys=True,
     ).encode("utf-8")
     return encoded, tuple(fragments)
+
+
+def _canonical_plain(value: object) -> bytes:
+    """Canonical JSON of a subtree that carries no fragments (compact records reference
+    surfaces by content identity): the same bytes the full canonicalization would splice
+    in, without the walk."""
+    return json.dumps(
+        value,
+        allow_nan=False,
+        ensure_ascii=False,
+        separators=(",", ":"),
+        sort_keys=True,
+    ).encode("utf-8")
 
 
 def _canonical_fragment_spans(
@@ -3921,6 +3937,7 @@ class EmbodimentWorldAuthority:
         ) = None
         self._lock = threading.RLock()
         self._receipt_compact_bytes_cache: dict[str, int] = {}
+        self._receipt_fragment_cache: dict[str, _CanonicalJsonFragment] = {}
         self._receipt_cache_catalog_shas: tuple[str, ...] = ()
         self._empty_envelope_byte_count: int = _canonical_byte_count(
             {
@@ -7254,16 +7271,35 @@ class EmbodimentWorldAuthority:
             ],
             "recent_applied_receipts": [],
             "schema": STATE_SCHEMA,
-            "world": self._compact_world_record(state.world, catalog),
+            # The compact world record carries no fragments: encoded once here, spliced
+            # verbatim, so the canonical walk touches the catalog and the top level only.
+            "world": _CanonicalJsonFragment(_canonical_plain(self._compact_world_record(state.world, catalog))),
         }
+
+    def _receipt_fragment(self, receipt: ActionExecutionReceipt, catalog: Mapping[str, ObjectOpticalSurface], catalog_shas: tuple[str, ...]) -> _CanonicalJsonFragment:
+        """A retained receipt's compact record, canonical once and kept by its identity for as
+        long as the catalog it references is the same."""
+        if catalog_shas != self._receipt_cache_catalog_shas:
+            self._receipt_compact_bytes_cache.clear()
+            self._receipt_fragment_cache.clear()
+            self._receipt_cache_catalog_shas = catalog_shas
+        fragment = self._receipt_fragment_cache.get(receipt.authority_receipt_sha256)
+        if fragment is None:
+            fragment = _CanonicalJsonFragment(_canonical_plain(self._compact_execution_record(receipt, catalog)))
+            self._receipt_fragment_cache[receipt.authority_receipt_sha256] = fragment
+        return fragment
 
     def _state_payload_for(self, state: _AuthorityState) -> dict[str, object]:
         catalog = self._optical_surface_catalog_for(state)
         payload = self._state_payload_without_receipts_for(state, catalog)
+        catalog_shas = tuple(sorted(catalog.keys()))
         payload["recent_applied_receipts"] = [
-            self._compact_execution_record(item, catalog)
+            self._receipt_fragment(item, catalog, catalog_shas)
             for item in state.recent_applied_receipts
         ]
+        current = {item.authority_receipt_sha256 for item in state.recent_applied_receipts}
+        if len(self._receipt_fragment_cache) > len(current) + self._receipt_capacity:
+            self._receipt_fragment_cache = {sha: kept for sha, kept in self._receipt_fragment_cache.items() if sha in current}
         return payload
 
     def _v6_state_payload_for(self, state: _AuthorityState) -> dict[str, object]:
@@ -7307,43 +7343,9 @@ class EmbodimentWorldAuthority:
         return encoded
 
     def _exact_state_payload_byte_count(self, state: _AuthorityState) -> int:
-        catalog = self._optical_surface_catalog_for(state)
-        catalog_shas = tuple(sorted(catalog.keys()))
-        if catalog_shas != self._receipt_cache_catalog_shas:
-            self._receipt_compact_bytes_cache.clear()
-            self._receipt_cache_catalog_shas = catalog_shas
-
-        receipts = state.recent_applied_receipts
-        n = len(receipts)
-        if n == 0:
-            empty_payload = self._state_payload_without_receipts_for(
-                state, catalog
-            )
-            return _canonical_byte_count(empty_payload)
-
-        current_shas = {r.authority_receipt_sha256 for r in receipts}
-        if len(self._receipt_compact_bytes_cache) > len(current_shas):
-            self._receipt_compact_bytes_cache = {
-                k: v
-                for k, v in self._receipt_compact_bytes_cache.items()
-                if k in current_shas
-            }
-
-        receipt_bytes_sum = 0
-        for receipt in receipts:
-            sha = receipt.authority_receipt_sha256
-            count = self._receipt_compact_bytes_cache.get(sha)
-            if count is None:
-                compact = self._compact_execution_record(receipt, catalog)
-                count = _canonical_byte_count(compact)
-                self._receipt_compact_bytes_cache[sha] = count
-            receipt_bytes_sum += count
-
-        empty_payload = self._state_payload_without_receipts_for(
-            state, catalog
-        )
-        base_byte_count = _canonical_byte_count(empty_payload)
-        return base_byte_count + receipt_bytes_sum + (n - 1)
+        """The exact length of the state's canonical payload: the world and the retained
+        receipts are pre-encoded fragments, so this costs their splice, not a walk."""
+        return len(_canonical(self._state_payload_for(state)))
 
     def _verify_state_capacity_for(self, state: _AuthorityState) -> None:
         """Prove persistence extent without constructing a persistence image."""
