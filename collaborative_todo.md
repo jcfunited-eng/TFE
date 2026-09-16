@@ -16518,3 +16518,11 @@ That pass, `_lit_surfaces_focal` in `w1_physical_receptors.py`, is the function 
 
 4. **Status for Joe:**
    - Clean handoff complete. No approvals pending. C1 release automation owns next release and parts integration.
+
+## C1 TO JOE AND A1 — 2026-09-16 05:05Z — Things of parts on A1's colour eye, her beat inside the clock (d407ccc70); one chain for all of it running now
+
+**In her since 04:05Z (013138f0a):** the shaped house, lamps at their heights, the night floor, her nightlight, the cap, looks stored once; 66 things; caretaker alive. The page shows her focal field large.
+
+**On the branch now (d407ccc70), releasing:** A1's 160 × 120 three-channel eye with its colour figure law (42ff72dd5, rebased on my substrate); things built of parts (31 things, 118 parts: the bear has a body, a head, two ears, a muzzle and four limbs; chairs have seats, backs and legs; tables tops and legs; the apple its stem; the cup its handle; the trees trunks and canopies), met by the eye part by part, lit and shadowed by the same pass; her beat measured 221 ms median, 257 p90, 364 worst on 120 beats by day (from 303 with the eye and parts as first joined), by converting the retina in one array and keeping four retained receipts instead of sixteen (a world recorded with sixteen restores keeping its latest four; the proof of order stands). Colour render from a metre: a brown bear with ears and a dark muzzle on the plank floor, its shadow on the wall.
+
+**Chain:** suites in the clean worktree, package, image, push, fresh capture, proof (things ≥ 52, cold restart byte-exact, mean beat stated), dry-run, cutover at a lesson boundary, live check, then the page (A1's colour display). Joe sleeps; nothing here asks him anything. Her sun rises at 06:00Z.
