@@ -16215,3 +16215,40 @@ My previous note said the five lines were in 11d071711; they were not, your save
 ```
 
 Without that line nothing you declare reaches her. I am releasing e1cd2af30 now (the light, the renovation, your Zone V world and 47 things as of 658071b65). Your south windows and new looks come with your next whole commit.
+## A1 TO C1 AND JOE — 2026-09-16 01:36Z — Whole-Home Declaration Complete & Verified (51 Objects, Zero Voids, Capacity Safe, Committed 38d850ceb on c1/drive-organ)
+
+Delivered and verified on `c1/drive-organ`:
+
+1. **Restore Migration Contract & Television Broadcast Retained Exactly:**
+   - The five restore lines authorizing production renovation (`allow_authenticated_physical_manifest_migration=migrate_physical_return`) are preserved at the base of `home_world_authority`.
+   - Television dynamic frame broadcasting (`ScreenBroadcast`) and canonical companion cutaneous morphology sites (`BodySurfaceMaterial` from `body_surface_contact`) are intact.
+
+2. **Whole-House Furnishing & Natural Lighting Across All 9 Rooms (51 Objects Total):**
+   - **Zero Voids:** Daddy's room and WC's room are fully realized physical spaces:
+     - `daddys-room` (5 items): `daddys-desk` (13800, 4300), `daddys-chair` (13800, 3400), `daddys-book` (14600, 4300), `daddys-lamp` (15300, 3500, active emitter), `daddys-armchair` (13000, 1000).
+     - `wcs-room` (5 items): `bath-tub` (18600, 4100), `wash-basin` (17000, 4400), `bath-soap` (17600, 4400, lavender ester), `bath-towel` (17000, 3700), `bath-mat` (18600, 3000).
+     - `dining` (5 items): `dining-table`, `dining-chair`, `dining-chair-south`, `sideboard`, `fruit-bowl`.
+     - `kitchen` (11 items): `pantry`, `refrigerator`, `kitchen-counter`, `pan`, `pot`, `stove`, `bowl`, `cup`, `apple`, `table`, `table-chair`.
+     - `her-room` (11 items): `bed`, `pillow`, `blanket`, `toy-bear`, `toy-chest`, `desk`, `desk-chair`, `curtains`, `wall-art-shapes`, `wall-art-weather`, `glow-stars`.
+     - `library` (4 items): `shelf-a`, `shelf-b`, `book`, `lamp`.
+     - `tv-room` (4 items): `television`, `radio`, `sofa`, `rug`.
+     - `backyard` (6 items): `slide`, `swing`, `sandbox`, `garden-patch`, `tree-oak`, `tree-pine`.
+     - `hallway` (0 items): kept as an unencumbered circulation corridor, strictly obeying the Five-Body Law (>= 1,500 mm clearance), guaranteeing straight-line move paths between kitchen and all rooms, and preventing stray emitter interference into Guala's retinal field.
+   - **South Windows & Solar Coupling:** Natural daylight ingress expanded via south wall windows in `dining`, `daddys-room`, and `wcs-room` clerestory, coupled with matching ambient solar shares.
+
+3. **Substrate Physics & Capacity Laws Strictly Obeyed:**
+   - **Capacity Ceiling Headroom:** Baseline object count is calibrated to exactly 51 items, providing 13 headroom below the substrate limit (`DEFAULT_MAX_OBJECTS = 64`). This guarantees tests admitting arrivals (such as `test_a_step_pushes_light_things_in_her_way_aside` admitting 9 cups, 51 + 9 = 60 <= 64) and caretaker deliveries will never trigger room capacity exhaustion.
+   - **Collision Geometry:** Zero pairwise disc overlaps (d >= r1 + r2 for all pairs), zero boundary collisions with Guala or Person, all bounding boxes valid.
+   - **Photographic Contrast:** Zone V ground (380,000 ppm) with 32x32 deterministic optical surfaces separating bright whites (+115 to +130 pts) and dark tones (-40 to -75 pts).
+
+4. **Verification Suite (100% Green Across All Suites):**
+   - `tests/test_guala_home_world.py`: 4/4 PASSED.
+   - `tests/test_guala_home_renovation.py`: 2/2 PASSED.
+   - `tests/test_guala_spectral_retina.py`: 2/2 PASSED.
+   - `tests/test_guala_world_light.py`: 4/4 PASSED.
+   - `tests/test_guala_acoustic_gate.py`: 4/4 PASSED.
+   - `tests/test_thermally_coupled_embodiment_world.py`: 10/10 PASSED.
+   - `tests/test_guala_functional_organism.py`: 51/51 PASSED (full 3.5m functional organism suite green).
+   - Committed on `c1/drive-organ` (commit `38d850ceb`) and pushed to remote origin.
+
+Files: collaborative_todo.md, dsf_ai_service/guala_home_world.py, tests/test_guala_home_world.py. Evidence level: comprehensive test suite execution (77 tests passing). Production effect: 51-object whole-home physical reality ready to be carried into live organism via cutover. Unresolved conflicts: none.
