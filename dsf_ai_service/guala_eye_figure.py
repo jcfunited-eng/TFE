@@ -22,6 +22,7 @@ FOCAL_COLUMNS = 160
 FOCAL_ROWS = 120
 LOOK_RINGS = 3         # centre, middle, rim (declared once)
 LOOK_LEVELS = 4        # each ring's light in quarters of the disc's own range (level-free)
+CHROMA_LEVELS = 8      # each ring's red and green shares of its light in eighths (brown 3/8 red, grey 2/8, an apple 4/8)
 MIN_RADIUS_SITES = 4   # scaled with 2x finer pitch (375 mdeg, was 2 at 750 mdeg)
 
 
@@ -76,12 +77,22 @@ def figure_of_disc(focal: Sequence[int], centre: tuple[float, float], radius_sit
                 counts[ring] += 1
         if not all(counts):
             return None
-        look_vals: list[float] = []
-        for r_s, g_s, b_s, c in zip(sums_r, sums_g, sums_b, counts):
-            look_vals.extend([r_s / c, g_s / c, b_s / c])
-        low, high = min(look_vals), max(look_vals)
+        # Each ring: its brightness in quarters of the disc's own range (level-free, as the
+        # grey law) and its colour as the red and green shares of its light (level-free too:
+        # a share survives any light level), in quarters. A red apple and a brown bear at the
+        # same distance are one pattern of brightness and two of colour (2026-09-16).
+        brightness = [(r_s + g_s + b_s) / c for r_s, g_s, b_s, c in zip(sums_r, sums_g, sums_b, counts)]
+        low, high = min(brightness), max(brightness)
         span = high - low
-        look = tuple(min(LOOK_LEVELS - 1, int((m - low) * LOOK_LEVELS / span)) if span > 0 else 0 for m in look_vals)
+        look_vals: list[int] = []
+        for r_s, g_s, b_s, c, bright in zip(sums_r, sums_g, sums_b, counts, brightness):
+            total = r_s + g_s + b_s
+            red_share = r_s / total if total > 0 else 1 / 3
+            green_share = g_s / total if total > 0 else 1 / 3
+            look_vals.append(min(LOOK_LEVELS - 1, int((bright - low) * LOOK_LEVELS / span)) if span > 0 else 0)
+            look_vals.append(min(CHROMA_LEVELS - 1, int(red_share * CHROMA_LEVELS)))
+            look_vals.append(min(CHROMA_LEVELS - 1, int(green_share * CHROMA_LEVELS)))
+        look = tuple(look_vals)
     else:
         sums = [0] * LOOK_RINGS
         counts = [0] * LOOK_RINGS
@@ -105,4 +116,4 @@ def figure_of_disc(focal: Sequence[int], centre: tuple[float, float], radius_sit
     return Figure(key, look, sum(counts), (round(cx / (FOCAL_COLUMNS - 1), 6), round(cy / (FOCAL_ROWS - 1), 6)), round(radius_sites, 3))
 
 
-__all__ = ("Figure", "FOCAL_COLUMNS", "FOCAL_ROWS", "LOOK_RINGS", "LOOK_LEVELS", "figure_of_disc")
+__all__ = ("Figure", "FOCAL_COLUMNS", "FOCAL_ROWS", "LOOK_RINGS", "LOOK_LEVELS", "CHROMA_LEVELS", "figure_of_disc")
