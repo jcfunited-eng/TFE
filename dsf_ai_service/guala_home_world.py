@@ -834,12 +834,16 @@ def home_world_authority(
         return authority
     if not isinstance(encoded_world, bytes) or not encoded_world:
         raise ValueError("persisted world is not a nonempty byte body")
+    # Production restores under the authenticated renovation: when the declared
+    # home differs from the lived one (rooms, doors, paint, windows, things),
+    # the lived state is carried into the declaration with a receipt; when
+    # they agree, nothing happens. An ordinary restore must be byte-exact.
     authority.restore_encoded(
         encoded_world,
         allow_physical_return_migration=migrate_physical_return,
+        allow_authenticated_physical_manifest_migration=migrate_physical_return,
     )
     if not migrate_physical_return and bytes(authority.encoded_snapshot()) != encoded_world:
-        allow_authenticated_physical_manifest_migration=migrate_physical_return,
         raise RuntimeError("ordinary home-world restore changed canonical bytes")
     if not any(
         item.object_id == HOME_BOOK_OBJECT_ID
