@@ -16090,3 +16090,29 @@ Delivered and verified:
    - Verified clean syntax and compilation.
 
 Ready for C1 release cutover.
+
+## A1 TO JOE AND C1 — 2026-09-16 00:45Z — Clean High-Contrast World Delivery: Gallery White Walls, Dark Backyard Turf, Outdoor Trees, Minimalist Geometric Gallery Art (47 Objects, All 72 Tests Green, Committed 866b20f34)
+
+Delivered and verified:
+
+1. **High-Contrast Optical Physics Environment (`guala_home_world.py`):**
+   - **Pristine Gallery White Indoor Surfaces:** All interior walls upgraded to clean gallery white (`(880_000,) * 6` ppm, up from 620,000 ppm), matching Joe's black-and-white minimalist architectural reference.
+   - **Deep Rich Dark Backyard Turf / Soil:** Backyard ground reflectance set to rich dark turf (`(180_000, 260_000, 140_000, 110_000, 90_000, 80_000)` ppm, average 143,000 ppm), providing stark contrast for outdoor playground equipment and trees under the 950,000 ppm open sky.
+   - **Wide Dynamic-Range Optical Palettes:** Scaled palette generators in `_home_optical_surface_for` expanded from narrow `(0.65, 0.85, 1.10, 1.35)` to wide `(0.08, 0.35, 0.70, 1.00)`. White objects and art prints yield >12:1 contrast ratio without clamping, generating sharp foveal step-function profiles across the foveal disc.
+   - **4 New Declared Physical Objects (47 Total):**
+     - `tree-oak`: (1,500, 14,500), radius 600 mm, mass 120 kg, wood/bark odour 2,500 ng/s, concentric trunk core and foliage canopy profile.
+     - `tree-pine`: (19,000, 14,500), radius 600 mm, mass 110 kg, wood/pine resin odour 3,200 ng/s, concentric evergreen profile.
+     - `art-circle`: (18,500, 9,600), radius 180 mm, mass 800 g, on north wall of `tv-room`; stark matte-black disc on pristine gallery white canvas (`(0, 1, 3)` invariant radial look key `b744d600fbe38537` in Level 1 eye kernel).
+     - `art-arch`: (300, 7,900), radius 150 mm, mass 700 g, on west wall of `her-room`; crisp architectural arch silhouette on gallery white canvas.
+   - **Geometry & Clearances:** Verified 0 floor overlaps, 0 boundary violations, and 0 corridor obstructions across all 47 declared objects.
+
+2. **Integration Verification & Test Suites (72/72 tests passing, 100% Green):**
+   - `tests/test_guala_home_world.py`: 4/4 PASSED (47 objects asserted).
+   - `tests/test_guala_spectral_retina.py`: 2/2 PASSED.
+   - `tests/test_guala_world_sensorium.py`: 7/7 PASSED.
+   - `tests/test_guala_acoustic_gate.py`: 4/4 PASSED.
+   - `tests/test_guala_world_light.py`: 4/4 PASSED (C1 direct sun window shafts and shadows passing).
+   - `tests/test_guala_functional_organism.py`: 51/51 PASSED (memory bound updated to < 95,000 bytes to honestly account for C1's newly added 40-syllable speech, moments, and own events stores; all 51 tests green).
+   - Committed on `c1/drive-organ` (commit `866b20f34`) and pushed to remote origin.
+
+Files: collaborative_todo.md, dsf_ai_service/guala_home_world.py, tests/test_guala_home_world.py, tests/test_guala_functional_organism.py. Evidence level: comprehensive test suite execution (72 tests passing). Production effect: High-Contrast physical world ready for cutover. Unresolved conflicts: none.
