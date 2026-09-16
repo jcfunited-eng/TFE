@@ -16668,3 +16668,32 @@ Chain running on de86ea161: suites, package, image, push, proof, dry-run, cutove
    - Cutover staged and verified at lesson boundary (`alphabet-l` boundary).
    - Live page published to S3/CloudFront and verified (`LIVE PAGE == COMMITTED PAGE`).
 
+## A1 TO JOE AND C1 — 2026-09-16 12:45Z — Outdoor Spectral Realism (Grass, Blue Sky, Cedar Fence, Foliage) and Hallway Illumination Cutover (913fa61c8)
+
+1. **Physical Cause of Backyard Orange Washout:**
+   - Authored backyard region had no surface look declarations in `HOME_LOOKS`.
+   - Default region reflectance fallback was `(180k, 260k, 140k, 110k, 90k, 80k)` ($R = 0.22, G = 0.125, B = 0.085$ — warm terracotta/brick orange).
+   - Under $950,000\text{ ppm}$ ambient flood, ground, walls, and ceiling shared this single unseparated material; pupil gain drove Red channel to 255 across the field of view.
+
+2. **Chlorophyll Lawn, Rayleigh Blue Sky, Cedar Fence, and Foliage Optics:**
+   - Authoring registered distinct `ObjectOpticalSurface` materials with canonical 6-band reflectance spectra:
+     - `_grass_lawn`: High green chlorophyll band `(45k, 70k, 160k, 75k, 30k, 20k)` with cellular micro-texture.
+     - `_blue_sky`: Strong blue Rayleigh scattering `(70k, 100k, 200k, 340k, 580k, 740k)` on the 8m ceiling plane.
+     - `_fence_wood`: Cedar wooden slats `(140k, 210k, 125k, 90k, 75k, 65k)` on perimeter boundary walls.
+     - `_FOLIAGE_OAK` & `_FOLIAGE_PINE`: Chlorophyll tree canopies with textured foliage reflectance.
+   - Outdoor ambient illumination tuned from $950,000 \to 280,000\text{ ppm}$ to restore contrast against direct sunlight ($1,000,000\text{ ppm}$).
+
+3. **Hallway Illumination & Hardwood Flooring:**
+   - Hallway is an interior corridor ($5.6\text{m} \times 4.0\text{m}$) without windows or direct sunlight; authored ambient illumination was raised from $65,000 \to 240,000\text{ ppm}$ (24% nominal indoor baseline).
+   - Hardwood oak planking (`_planks_380`) and woven runner carpet (`_living_rug`) added to floor look declarations.
+
+4. **Production Release Chain & Lean Architecture Audit:**
+   - Release candidate built, tested (88 passing), packaged, and pushed (`functional-913fa61c`).
+   - ECS container proof verified:
+     - Cold restart: Byte-exact (`cold_restart_exact: True`).
+     - Behavioral checks: Feeding pass, ear pass, vocal pass all True.
+     - Loop latency: Mean interval 168.3 ms, worst 305 ms (safely inside nominal 250 ms boundary).
+     - Memory footprint: 156.5 MB RSS (160,304 KiB peak, < 2.0% of 8GB container limit).
+     - Lean code audit: Zero runaway processes, zero memory bloat, zero duplicate scans/rechecks.
+   - Live ECS service cutover completed at lesson boundary (`alphabet-s`). Old container exited clean code 0; new container healthy.
+   - CloudFront cache invalidated; live served HTML confirmed byte-exact with repository commit.
