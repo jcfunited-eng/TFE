@@ -1494,8 +1494,15 @@ class ObjectPart:
     offset_mm: tuple[int, int, int]
     size_mm: tuple[int, int, int]
     reflectance_ppm: tuple[int, ...] = ()
+    _verified: bool = field(default=False, init=False, compare=False, repr=False)   # a frozen part verifies once
 
     def verify(self) -> None:
+        if self._verified:
+            return
+        self._verify()
+        object.__setattr__(self, "_verified", True)
+
+    def _verify(self) -> None:
         if self.kind not in PART_KINDS:
             raise ValueError("a part is a box, a sphere or a cylinder")
         if not isinstance(self.offset_mm, tuple) or len(self.offset_mm) != 3 or not isinstance(self.size_mm, tuple) or len(self.size_mm) != 3:
@@ -1567,8 +1574,17 @@ class EmbodiedObject:
     heading_millidegrees: int = 0
     elevation_mm: int = 0
     parts: tuple[ObjectPart, ...] = ()    # shape "parts": the thing built of parts in its own frame
+    _verified: bool = field(default=False, init=False, compare=False, repr=False)   # a frozen thing verifies once
 
     def verify(self) -> None:
+        """A thing is frozen: once its record has been verified it stays verified (a
+        replaced copy starts unverified). Every record, canonical or compact, calls this."""
+        if self._verified:
+            return
+        self._verify()
+        object.__setattr__(self, "_verified", True)
+
+    def _verify(self) -> None:
         _identifier(self.object_id, "object id")
         _bounded_integer(self.radius_mm, "object radius", minimum=1, maximum=1_000_000)
         if self.shape == "sphere":
