@@ -124,9 +124,10 @@ DEFAULT_MAX_OBJECTS = 128
 DEFAULT_MAX_BODIES = 4
 # Retained action receipts: a bounded proof of the order of her last acts, each a before
 # and an after of every thing. Sixteen of a 52-thing home cost two megabytes re-encoded on
-# every action; four keep the proof and a fifth of the cost (2026-09-16). A world recorded
+# every action; two keep the proof of order (the pair) at an eighth of the cost (2026-09-16,
+# her live pace fell from 1.5 to 1.05 ticks a second under the colour eye and parts). A world recorded
 # with a longer tail restores keeping its latest receipts.
-DEFAULT_RECEIPT_CAPACITY = 4
+DEFAULT_RECEIPT_CAPACITY = 2
 DEFAULT_MAX_COMMAND_BYTES = 4096
 # The world's exact byte capacity: the world, its surface catalog and sixteen
 # retained action receipts (each a before and an after of every thing). Raised

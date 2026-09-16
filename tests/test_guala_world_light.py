@@ -123,11 +123,11 @@ def test_the_shaft_reaches_her_eye_on_the_path_her_beat_uses(monkeypatch) -> Non
     monkeypatch.setenv("GUALA_SOLAR_UTC_OVERRIDE", str(midnight + 13 * 3_600))
     sun = _sun_of(world)
     assert sun is not None and sun[2] > 0.8                    # one in the afternoon: high in the north
-    noon = _world_retina_u8(snapshot, axes, sun)
+    noon = _world_retina_u8(snapshot, axes, sun, pupil=False)             # the raw field: the pupil is measured in its own test
     monkeypatch.setenv("GUALA_SOLAR_UTC_OVERRIDE", str(midnight + 2 * 3_600))
     assert _sun_of(world) is None
-    night = _world_retina_u8(snapshot, axes, _sun_of(world))
-    assert night == _world_retina_u8(snapshot, axes, None)
+    night = _world_retina_u8(snapshot, axes, _sun_of(world), pupil=False)
+    assert night == _world_retina_u8(snapshot, axes, None, pupil=False)
     lit = sum(1 for a, b in zip(noon[-WORLD_FOCAL_SITES:], night[-WORLD_FOCAL_SITES:]) if a > b)
     assert lit > 200, lit                                       # measured by hand: 934 of 4,800 at this aim
     wide = [a - b for a, b in zip(noon[:-WORLD_FOCAL_SITES], night[:-WORLD_FOCAL_SITES])]
@@ -378,3 +378,28 @@ def test_the_tutors_camera_frame_of_14805_values_reaches_her_focal_field_tiled()
     result = FunctionalPhysicalLoop().settle(organism, world, see)
     assert result.observation["external_retinal_site_count"] == 4_935
     assert result.observation["latest_retinal_field_kind"] == "external-rgb"
+
+
+def test_her_pupil_opens_in_a_dark_room_and_closes_by_day_from_the_field_alone() -> None:
+    """Her live field at night read 3 to 16 of 255: the rooms' light is tiny in linear terms.
+    A pupil opens up to sixteen times so the field's middle sits at mid-range, closes to one
+    by day, decides from the field alone (the same field twice gives the same values), and
+    never lifts what no light reaches."""
+    from dsf_ai_service.guala_functional_loop import PUPIL_GAIN_MAX, WORLD_FOCAL_SITES, _world_retina_u8
+    from dsf_ai_service.guala_functional_organism import FunctionalOrganism
+    world = home_world_authority(identity=IDENTITY)
+    organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
+    snapshot = world.observation_snapshot()
+    axes = organism.body_axes
+    night = _world_retina_u8(snapshot, axes, None)                    # the night floor, 45,000 ppm
+    day_rooms = tuple(replace(r, illumination_ppm=(600_000,) * 6) if r.region_id == "her-room" else r for r in snapshot.regions)
+    day = _world_retina_u8(replace(snapshot, regions=day_rooms), axes, None)
+    import statistics
+    channels = 3 if len(night) == (WORLD_FOCAL_SITES + 135) * 3 else 1
+    focal_night = night[-WORLD_FOCAL_SITES * channels:]
+    focal_day = day[-WORLD_FOCAL_SITES * channels:]
+    assert 60 <= statistics.median(focal_night) <= 200, statistics.median(focal_night)   # the pupil opened: mid-range, not black
+    assert statistics.median(focal_day) >= statistics.median(focal_night) * 0.5           # by day it closes; the field is not dimmer than night's
+    assert _world_retina_u8(snapshot, axes, None) == night                               # the same field twice, the same values
+    assert min(night) == 0 or min(night) < 8                                             # what no light reaches stays dark
+    assert PUPIL_GAIN_MAX == 16.0

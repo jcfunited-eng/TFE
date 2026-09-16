@@ -54,6 +54,8 @@ SOUND_THROUGH_DOOR = Fraction(1, 4)
 CAMERA_FIELD_MILLIDEGREES = (60_000, 45_000)  # the declared camera field the page's pitch is measured against
 GAZE_RECENTRE = 0.05  # each beat the gaze gives back a twentieth of its offset from the frame's centre
 WORLD_RETINAL_SITES = 19335
+PUPIL_GAIN_MAX = 16.0   # a pupil's range in area, about sixteen to one
+PUPIL_MID_RANGE = 0.5   # the field's median light the pupil aims at, as a fraction of full
 WORLD_FOCAL_SITES = 19200
 WORLD_LEGACY_SITES = 27   # the 9 x 3 coarse field that precedes the wide field
 WORLD_WIDE_SITES = 108    # the 18 x 6 wide field over 180 x 90 degrees
@@ -70,7 +72,7 @@ def _self_body(snapshot: Any) -> Any:
     return next(body for body in snapshot.bodies if body.body_id == snapshot.self_body_id)
 
 
-def _world_retina_u8(snapshot: Any, axes: tuple[Any, ...], sun: tuple[float, float, float, int] | None = None) -> tuple[int, ...]:
+def _world_retina_u8(snapshot: Any, axes: tuple[Any, ...], sun: tuple[float, float, float, int] | None = None, pupil: bool = True) -> tuple[int, ...]:
     """Her world retina at this beat in full RGB colour: 3 channels per site across all
     19,335 sites (58,005 values). Red = mean(bands 0, 1), Green = mean(bands 2, 3),
     Blue = mean(bands 4, 5)."""
@@ -86,7 +88,13 @@ def _world_retina_u8(snapshot: Any, axes: tuple[Any, ...], sun: tuple[float, flo
     rgb = np.stack(((bands[:, 0] + bands[:, 1]) / 2.0, (bands[:, 2] + bands[:, 3]) / 2.0, (bands[:, 4] + bands[:, 5]) / 2.0), axis=1)
     if rgb.min() < 0.0 or rgb.max() > 1.0:
         raise RuntimeError("retinal observer left its physical range")
-    values = np.rint(rgb * (255.0 * float(transmission))).astype(np.int64).reshape(-1).tolist()
+    # THE PUPIL LAW: in a dark room the pupil opens, up to sixteen times, so that the
+    # field's middle light sits at mid-range; in a bright one it closes to one. Declared
+    # once, decided by this beat's field alone (no state), the same field twice gives the
+    # same gain; what the light does not reach stays dark, what is bright clips at full.
+    middle = float(np.median(rgb))
+    gain = 1.0 if (not pupil or middle <= 0.0) else min(PUPIL_GAIN_MAX, max(1.0, PUPIL_MID_RANGE / middle))
+    values = np.rint(np.minimum(1.0, rgb * gain) * (255.0 * float(transmission))).astype(np.int64).reshape(-1).tolist()
     if len(values) != WORLD_RETINAL_VALUES:
         raise RuntimeError("world retina changed its site count")
     return tuple(values)
