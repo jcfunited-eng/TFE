@@ -17,7 +17,7 @@ def test_home_world_is_one_bounded_physical_declaration() -> None:
 
     assert snapshot.revision == 0
     assert len(snapshot.regions) == 9
-    assert len(snapshot.objects) == 30   # the radio joined the declaration (a thing that sounds)
+    assert len(snapshot.objects) == 43   # 30 base things + 13 authentic kitchen & cookware objects
     assert {item.body_id for item in snapshot.bodies} == {
         "guala-body-1",
         "person-body-1",
