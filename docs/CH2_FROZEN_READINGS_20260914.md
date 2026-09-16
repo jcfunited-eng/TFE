@@ -381,3 +381,27 @@ first 90-day wall.
   quote binding only needs the derived values — while an unpublished legacy
   snapshot is still stamped; seven cases pass. The health warning now logs
   on a change of state and at most every ten minutes, with a recovery line.
+
+## Addendum 10 — first fresh entry pass (2026-09-16) and the late-fill custody defect
+
+- Readings fresh (run `9711c67a…`, 13.5 h old). 1,366 screened, 20 passed
+  the basin, 20 entries placed (~$2,459 each): 18 of the 21 names sold in
+  the reset plus AEBI and AZZ. The reset's `manual_reset_*` exemption from
+  the 14-day cooling-off made the re-buys possible (Joseph informed; a
+  one-line change to bar them if he wants). Buy orders are limit at
+  price × 1.001 with a 20 % stop leg (DAY). 17 filled within minutes; AZZ
+  never filled and was cancelled by hand; MSBI filled 92 min after
+  submission, AEBI 4 h 48 min after.
+- Mark at 18:36 UTC: 18 CH2 positions, −$303 (−0.7 %) on $42.8k, 17 red;
+  SPY +0.05 %, IWM +0.01 %, KRE −1.27 % on the day (bank-heavy book).
+- Custody defect: the sentinel's phantom cleanup marked the MSBI and AEBI
+  rows `cancelled` at the end of the 30-min grace while the broker orders
+  stayed open; the late fills created positions with no ledger row, and
+  the orphan sync refused them because the tickers had an older `closed`
+  row (the reset sale) — "closed in ledger, skipping re-adoption".
+  Remedy by hand: rows 888 (MSBI 73 @ 33.66) and 884 (AEBI 204 @ 12.03)
+  re-activated with their fills and stop-leg ids. Code fix (this commit):
+  `settlePhantomEntryAtBroker` cancels the broker order before giving up
+  and records a fill that arrived meanwhile (`recordLateFill`); the orphan
+  sync re-activates a cancelled row whose order filled, and skips only
+  exit-blocked assets or positions closed within two days.

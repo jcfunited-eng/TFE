@@ -299,6 +299,50 @@ async function cancelOrder(orderId, base) {
 }
 
 // ── Market sell ───────────────────────────────────────────────────────────
+// ── Late fills (Joseph 2026-09-16: mechanics must work) ─────────────────
+// Record a broker fill onto the ledger row that submitted the order, so the
+// position is watched by every rule from that moment (stop re-arm, readings,
+// dead clock, wall). Used when an entry fills after the phantom grace period.
+async function recordLateFill(rowId, order) {
+  const qty = parseFloat(order?.filled_qty ?? "0");
+  const price = parseFloat(order?.filled_avg_price ?? "0");
+  const filledAt = order?.filled_at ?? new Date().toISOString();
+  const stopLeg = (order?.legs ?? []).find((l) => l?.type === "stop" || l?.type === "stop_limit") ?? null;
+  await pool.query(
+    `UPDATE personal_trade_ledger
+        SET status = 'filled',
+            shares = $2,
+            entry_filled_price = $3,
+            entry_filled_at = $4,
+            alpaca_stop_loss_order_id = COALESCE($5, alpaca_stop_loss_order_id),
+            rationale_json = COALESCE(rationale_json, '{}'::jsonb) || $6::jsonb
+      WHERE id = $1`,
+    [rowId, qty, price, filledAt, stopLeg?.id ?? null,
+     JSON.stringify({ late_fill_recorded_at: new Date().toISOString(), late_fill_order_status: order?.status ?? null })],
+  );
+  return { qty, price, filledAt };
+}
+
+// Give up on a phantom entry at the broker as well as in the ledger: cancel
+// the open order, then look again — a fill (whole or partial) that arrived
+// in the meantime is ours and gets recorded, never abandoned.
+async function settlePhantomEntryAtBroker(pos, base) {
+  const orderId = pos.alpaca_order_id ?? pos.rationale_json?.fallback_alpaca_order_id ?? null;
+  if (!orderId) return { filled: false, orderStatus: "no_order_id" };
+  let order = await alpacaGet(`/v2/orders/${orderId}?nested=true`, base).catch(() => null);
+  const filledQty = (o) => parseFloat(o?.filled_qty ?? "0");
+  if (order && order.status !== "filled" && filledQty(order) <= 0) {
+    await cancelOrder(orderId, base);
+    await new Promise((r) => setTimeout(r, 1500));
+    order = await alpacaGet(`/v2/orders/${orderId}?nested=true`, base).catch(() => order);
+  }
+  if (order && (order.status === "filled" || filledQty(order) > 0)) {
+    const recorded = await recordLateFill(pos.id, order);
+    return { filled: true, qty: recorded.qty, price: recorded.price, orderStatus: order.status };
+  }
+  return { filled: false, orderStatus: order?.status ?? "unknown" };
+}
+
 async function marketSell(ticker, qty, base) {
   return alpacaPost("/v2/orders", {
     symbol:        ticker,
@@ -785,17 +829,42 @@ export async function runSentinel() {
                  LIMIT 1`, [ticker]
               );
               if (existing.rows.length > 0) continue;
-              // Skip re-adoption if we deliberately closed this position.
-              // Handles delisted/acquired assets (e.g. CWAN, HTBK) that Alpaca
-              // still holds pending corporate-action settlement — we can't sell
-              // them, and adopting them creates a failed-kill loop.
-              const wasClosed = await pool.query(
+              // A cancelled entry row whose broker order actually filled is
+              // this very position — re-activate that row (it carries the
+              // signal) instead of inserting a bare orphan. Receipt 2026-09-16:
+              // MSBI, filled late, refused below because the ticker had an
+              // older closed row from the book reset.
+              const lateFill = await pool.query(
+                `SELECT id, alpaca_order_id FROM personal_trade_ledger
+                 WHERE UPPER(TRIM(ticker)) = $1 AND signal_class = 'CH2'
+                   AND status = 'cancelled' AND alpaca_order_id IS NOT NULL
+                   AND entry_filled_at IS NULL
+                 ORDER BY created_at DESC LIMIT 1`, [ticker]
+              );
+              if (lateFill.rows.length > 0) {
+                const row = lateFill.rows[0];
+                const order = await alpacaGet(`/v2/orders/${row.alpaca_order_id}?nested=true`, ALPACA_BASE).catch(() => null);
+                if (order && order.status === "filled") {
+                  const recorded = await recordLateFill(row.id, order);
+                  console.log(`[SENTINEL] Adopted late fill: ${ticker} row=${row.id} qty=${recorded.qty} entry=$${recorded.price} filledAt=${recorded.filledAt}`);
+                  continue;
+                }
+              }
+              // Skip re-adoption only for a position the engine could not
+              // sell (exit_blocked: delisted/acquired assets such as CWAN,
+              // HTBK — adopting them creates a failed-kill loop) or one it
+              // closed within the last two days (a sale still settling at
+              // the broker). Any older closed row is history, not a reason:
+              // a stock sold before and bought again is a new position.
+              const blocked = await pool.query(
                 `SELECT id FROM personal_trade_ledger
-                 WHERE UPPER(TRIM(ticker)) = $1 AND status = 'closed'
+                 WHERE UPPER(TRIM(ticker)) = $1
+                   AND (rationale_json->>'exit_blocked' = 'true'
+                        OR (status = 'closed' AND exit_filled_at >= NOW() - INTERVAL '2 days'))
                  LIMIT 1`, [ticker]
               );
-              if (wasClosed.rows.length > 0) {
-                console.log(`[SENTINEL] Orphan skip: ${ticker} — closed in ledger, skipping re-adoption (corporate action pending?)`);
+              if (blocked.rows.length > 0) {
+                console.log(`[SENTINEL] Orphan skip: ${ticker} — exit blocked or closed within two days, skipping re-adoption`);
                 continue;
               }
               // Recover real entry date: check for the most recent closed row
@@ -1023,11 +1092,24 @@ export async function runSentinel() {
           console.log(`[SENTINEL] Phantom grace: ${pos.ticker} — ${pos.status}, Alpaca 404, but within 30min grace period. Waiting.`);
           continue;
         }
+        // Giving up on the entry means giving up at the broker too. Receipt
+        // 2026-09-16: MSBI's limit buy was marked cancelled here at the end
+        // of the grace period, the broker order stayed open, filled 92 minutes
+        // after submission, and the position sat unwatched (no ledger row, no
+        // overnight stop, orphan sync refused it). Cancel the broker order
+        // first; if it turns out to be filled, the position is ours — record
+        // the fill instead of abandoning it.
+        const settled = await settlePhantomEntryAtBroker(pos, ALPACA_BASE);
+        if (settled.filled) {
+          console.log(`[SENTINEL] Phantom cleanup: ${pos.ticker} — broker order had FILLED (${settled.qty} @ $${settled.price}); ledger row recorded as filled, not cancelled.`);
+          pos.status = "filled";
+          continue;
+        }
         await pool.query(
           `UPDATE personal_trade_ledger SET status='cancelled' WHERE id=$1`,
           [pos.id]
         );
-        console.log(`[SENTINEL] Phantom cleanup: ${pos.ticker} — ${pos.status} but never existed on Alpaca after 30min. Marked cancelled.`);
+        console.log(`[SENTINEL] Phantom cleanup: ${pos.ticker} — ${pos.status} but never existed on Alpaca after 30min. Broker order ${settled.orderStatus ?? "unknown"}; marked cancelled.`);
         pos.status = "cancelled";
         continue;
       }
