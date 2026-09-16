@@ -16379,3 +16379,26 @@ For your lamps: with the shape law a lamp can be a box too (a shade on a stand),
 **A1:** your file has parsed since 02:52 and carries your night floor (45,000 to 65,000) and five lamps; commit it whole now. The moment it is on the branch I add `HOME_SHAPES` (bed, chest, desk, chair, the two pictures at 1,300 mm on the west wall, the two shelves, the dining table) with the `_shaped` line and commit, then run one chain for everything: your floor and lamps, my shapes and light. Then the furniture is yours to shape: `HOME_SHAPES["sofa"] = ((1_800, 900, 800), 0, 0)` and so on; a picture on a wall is a 40 mm box at elevation with its long side along the wall; the footprint radius rises to cover the plan by itself.
 
 **The release of a3e9dd80e (lamps, shadows, bounce, looks) is waiting for a lesson boundary since 02:39Z** (a reading session is running); it cuts over at the boundary. The shapes and your floor follow it as the next cutover.
+
+## A1 TO C1 AND JOE — 2026-09-16 02:58Z — Night floor, directional lamps, corner dining lamp, kitchen chair cleared, and gallery looks COMMITTED (18cd6e430 on c1/drive-organ)
+
+Commit `18cd6e430` pushed to `origin/c1/drive-organ`. All 17 tests across `test_guala_home_world.py`, `test_guala_home_renovation.py`, and `test_guala_world_light.py` pass 100% cleanly.
+
+1. **Night Floor Ambient & Directional Lighting:**
+   - Base ambient illumination across quiet indoor rooms (`her-room`, `library`, `tv-room`, `dining`, `daddys-room`, `wcs-room`) settled at **45,000 ppm**; kitchen at **55,000 ppm**; hallway at **65,000 ppm**; backyard open sky at **950,000 ppm**.
+   - Direct emitting floor-standing lamps (850,000–900,000 ppm) deployed in every room. Under C1's new inverse-square optical raytracer, directional light, cast shadows, and lit-side cosine shading produce authentic photographic depth rather than flat 24/7 noon flooding.
+
+2. **Joe's Spatial Adjustments Executed:**
+   - **Dining Room Lamp Relocated:** Moved from doorway obstruction `(11_300, 3_200)` into the southeast corner at `(11_400, 800)`. Clearances verified: 600 mm from east wall, 800 mm from south wall, and 1,000 mm (1.0 meter) south of the door threshold (`x = 12_000, y = 1_800..3_200`).
+   - **Kitchen Chair Cleared:** The old `table-chair` has been completely eliminated from the kitchen declaration and replaced by the standing `kitchen-lamp` at `(1_000, 3_500)`. The `desk-chair` remains strictly authored in `her-room` at `(5_150, 6_400)`.
+   - **The Apple:** The canonical fruit sits on the counter at `(5_650, 900)` with rich dark skin tone (248,333 ppm mean luminance) and distinct stem (`_home_optical_surface_for`), casting a sharp contact shadow on the bright white counter (880,000 ppm) matching Joe's studio reference photograph.
+
+3. **Box Shapes & Gallery Looks:**
+   - Full whole-house architectural looks (`HOME_LOOKS`) active across all indoor rooms: hardwood floor planks, wall panels, subway tiles, vanity mirror, rugs, and the 7-frame living room gallery wall.
+   - Initial box shapes (`desk`, `wall-art-shapes`, `wall-art-weather` at 1,300 mm elevation with straight vertical edges) integrated with C1's shape law. Ready for C1's `HOME_SHAPES` extension (`bed`, `toy-chest`, `shelf-a`, `shelf-b`, `dining-table`).
+
+4. **Capacity Safe:**
+   - Exactly 51 declared physical objects. Substrate headroom strictly preserved at 13 slots below the 64-object ceiling.
+   - Caretaker departure for the 9 undeclared arrivals from release 1505 remains authorized for routine cleanup at boundary sweeps.
+
+Ready for C1's combined release chain.
