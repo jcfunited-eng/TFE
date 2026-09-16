@@ -361,3 +361,20 @@ def test_rays_meet_a_bear_part_by_part_nearest_first_with_true_normals() -> None
     north = np.array([[0.0], [1.0], [0.0]]); south = np.array([[0.0], [-1.0], [0.0]])
     assert part_blocks(bear, floor, north, np.array([3_000.0]))[0]
     assert not part_blocks(bear, floor, south, np.array([3_000.0]))[0]
+
+
+def test_the_tutors_camera_frame_of_14805_values_reaches_her_focal_field_tiled() -> None:
+    """The page and the caretaker send 4,935 sites in red, green and blue (135 ambient, then
+    80 x 60 focal): her beat takes the focal part into her 160 x 120 field and does not fail
+    (the proof caught a reshape of the whole frame, 2026-09-16)."""
+    from dsf_ai_service import lean_production_app as production
+    from dsf_ai_service.guala_functional_loop import FunctionalPhysicalLoop, WORLD_FOCAL_VALUES
+    from dsf_ai_service.guala_functional_organism import FunctionalOrganism
+    world = home_world_authority(identity=IDENTITY)
+    organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
+    frame = tuple((index * 7) % 256 for index in range(14_805))
+    see = production._physical_occurrence(production.OccurrenceBody(
+        kind="sensory", payload=production.SensoryBody(source="camera", retina_rgb_u8=frame)))
+    result = FunctionalPhysicalLoop().settle(organism, world, see)
+    assert result.observation["external_retinal_site_count"] == 4_935
+    assert result.observation["latest_retinal_field_kind"] == "external-rgb"

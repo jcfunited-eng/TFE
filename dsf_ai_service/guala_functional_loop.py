@@ -314,8 +314,9 @@ class FunctionalPhysicalLoop:
                 external_rgb = transmitted_rgb_retina_u8(sensory.retina_rgb_u8, transmission)
                 external_sites = len(sensory.retina_rgb_u8) // 3
                 if len(sensory.retina_rgb_u8) == EXTERNAL_RGB_FOCAL_VALUE_COUNT:
-                    # Scale 80x60x3 (14,400 values) to 160x120x3 (57,600 values) by 2x2 site tiling
-                    arr = np.array(external_rgb, dtype=np.uint8).reshape(60, 80, 3)
+                    # The camera frame carries the 135 ambient sites first, then the 80 x 60 focal
+                    # field (14,805 values); the focal part is tiled 2 x 2 into her 160 x 120 field.
+                    arr = np.array(external_rgb[-80 * 60 * 3:], dtype=np.uint8).reshape(60, 80, 3)
                     scaled = np.repeat(np.repeat(arr, 2, axis=0), 2, axis=1).ravel()
                     focal = tuple(int(v) for v in scaled)
                 elif len(external_rgb) == WORLD_FOCAL_VALUES:
