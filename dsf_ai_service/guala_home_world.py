@@ -351,6 +351,71 @@ HOME_SHAPES = {
 # apart by the light) except the things whose declared pattern is the point of them.
 PATTERNED_BOXES = ("wall-art-shapes", "wall-art-weather", "television", "book", "daddys-book")
 
+# Things built of parts (C1, 2026-09-16, Joe: "a ball with a pattern is not a bear"):
+# each part in the thing's own frame, (kind, (x, y, z) centre offset from the floor
+# point, (a, b, c) size, optional own paint). Sizes stay inside the footprint disc the
+# thing already has, so no clearance moves. A1 extends as content owner.
+def _P(kind, x, y, z, a, b=None, c=None, paint=None):
+    from dsf_ai_service.substrate.embodiment_world import ObjectPart
+    b = a if b is None else b
+    c = (a if kind == "sphere" else b) if c is None else c
+    return ObjectPart(kind, (x, y, z), (a, b, c), tuple(paint) if paint else ())
+
+
+_DARK = (80_000,) * 6
+_WOOD = (320_000, 260_000, 180_000, 120_000, 90_000, 80_000)
+_STEM = (140_000, 160_000, 90_000, 60_000, 50_000, 40_000)
+
+
+def _chair(seat=360, height=850, leg=40):
+    half = seat // 2 - leg
+    return (_P("box", 0, 0, 430, seat, seat, 40), _P("box", 0, -(seat // 2 - 20), 640, seat, 40, 420),
+            *(_P("cylinder", sx, sy, 205, leg, leg, 410) for sx in (-half, half) for sy in (-half, half)))
+
+
+def _table(width, depth, height=750, leg=50):
+    hx, hy = width // 2 - leg, depth // 2 - leg
+    return (_P("box", 0, 0, height - 20, width, depth, 40),
+            *(_P("cylinder", sx, sy, (height - 40) // 2, leg, leg, height - 40, _WOOD) for sx in (-hx, hx) for sy in (-hy, hy)))
+
+
+HOME_PARTS = {
+    "toy-bear": (_P("sphere", 0, 0, 150, 300), _P("sphere", 0, 0, 380, 220), _P("sphere", -80, 0, 470, 90), _P("sphere", 80, 0, 470, 90),
+                 _P("sphere", 0, -95, 390, 60, paint=_DARK),                                                    # the muzzle
+                 *(_P("cylinder", sx, sy, 75, 70, 70, 150) for sx in (-110, 110) for sy in (-60, 60))),
+    "apple":    (_P("sphere", 0, 0, 90, 180), _P("cylinder", 0, 0, 195, 12, 12, 30, _STEM)),
+    "cup":      (_P("cylinder", 0, 0, 55, 100, 100, 110), _P("box", 65, 0, 60, 20, 30, 60)),                    # a handle
+    "bowl":     (_P("cylinder", 0, 0, 45, 280, 280, 90),),
+    "pot":      (_P("cylinder", 0, 0, 80, 240, 240, 160), _P("box", 110, 0, 120, 40, 30, 20, _DARK), _P("box", -110, 0, 120, 40, 30, 20, _DARK)),
+    "pan":      (_P("cylinder", 0, 0, 25, 200, 200, 50), _P("box", 105, 0, 30, 30, 24, 20, _DARK)),
+    "desk-chair": _chair(), "dining-chair": _chair(), "dining-chair-south": _chair(), "daddys-chair": _chair(),
+    "desk": _table(1_200, 600), "dining-table": _table(1_200, 700), "table": _table(840, 840), "daddys-desk": _table(560, 560),
+    "bed":      (_P("box", 0, 0, 350, 1_500, 950, 300), _P("box", -730, 0, 500, 40, 950, 600, _WOOD),           # mattress, headboard
+                 *(_P("cylinder", sx, sy, 100, 60, 60, 200, _WOOD) for sx in (-700, 700) for sy in (-420, 420))),
+    "sofa":     (_P("box", 0, 0, 250, 1_700, 800, 500), _P("box", 0, -300, 650, 1_700, 200, 300),
+                 _P("box", -800, 0, 350, 100, 800, 700), _P("box", 800, 0, 350, 100, 800, 700)),
+    "daddys-armchair": (_P("box", 0, 0, 250, 630, 630, 500), _P("box", 0, -240, 600, 630, 150, 300),
+                        _P("box", -270, 0, 350, 90, 630, 700), _P("box", 270, 0, 350, 90, 630, 700)),
+    "television": (_P("box", 0, 0, 550, 1_000, 60, 600, _DARK), _P("box", 0, 0, 125, 400, 400, 250, _WOOD)),   # screen on a stand
+    "shelf-a":  (_P("box", -330, 0, 900, 40, 300, 1_800), _P("box", 330, 0, 900, 40, 300, 1_800),
+                 *(_P("box", 0, 0, z, 700, 300, 30) for z in (300, 750, 1_200, 1_650))),
+    "shelf-b":  (_P("box", -330, 0, 900, 40, 300, 1_800), _P("box", 330, 0, 900, 40, 300, 1_800),
+                 *(_P("box", 0, 0, z, 700, 300, 30) for z in (300, 750, 1_200, 1_650))),
+    "refrigerator": (_P("box", 0, 0, 900, 630, 630, 1_800), _P("box", 0, -330, 1_000, 30, 30, 500, _DARK)),   # a handle
+    "stove":    (_P("box", 0, 0, 450, 560, 560, 900), *(_P("cylinder", sx, sy, 905, 160, 160, 10, _DARK) for sx in (-140, 140) for sy in (-140, 140))),
+    "kitchen-counter": (_P("box", 0, 0, 450, 700, 700, 900),),
+    "pantry":   (_P("box", 0, 0, 900, 490, 490, 1_800), _P("box", 0, -250, 1_000, 20, 20, 300, _DARK)),
+    "bath-tub": (_P("box", 0, 0, 275, 1_000, 600, 550), _P("box", 0, 0, 560, 800, 400, 20, _DARK)),          # the water's dark top
+    "wash-basin": (_P("cylinder", 0, 0, 350, 120, 120, 700), _P("cylinder", 0, 0, 800, 420, 420, 100)),
+    "tree-oak": (_P("cylinder", 0, 0, 900, 240, 240, 1_800, _WOOD), _P("sphere", 0, 0, 2_400, 1_200)),
+    "tree-pine": (_P("cylinder", 0, 0, 800, 200, 200, 1_600, _WOOD), _P("sphere", 0, 0, 2_000, 900), _P("sphere", 0, 0, 2_700, 600)),
+    "swing":    (_P("cylinder", -450, 0, 1_000, 80, 80, 2_000, _WOOD), _P("cylinder", 450, 0, 1_000, 80, 80, 2_000, _WOOD),
+                 _P("box", 0, 0, 1_990, 980, 80, 60, _WOOD), _P("box", 0, 0, 450, 400, 200, 40)),
+    "slide":    (_P("box", 0, 0, 750, 1_200, 600, 1_500), _P("box", -700, 0, 700, 200, 400, 1_400, _WOOD)),
+    "radio":    (_P("box", 0, 0, 75, 200, 120, 150), _P("cylinder", 60, 0, 170, 8, 8, 40, _DARK)),         # an aerial
+    "lamp":     (_P("cylinder", 0, 0, 10, 180, 180, 20, _DARK), _P("cylinder", 0, 0, 650, 30, 30, 1_260, _DARK)),   # the floor lamp's base and stand; its shade is the sphere
+}
+
 # Lamps at their heights: a shade on a stand, a pendant over a table, a light on a
 # vanity. The thing keeps its footprint disc on the floor; its shade (and so its
 # light) sits this far above the floor. First heights (C1); A1 corrects as content owner.
@@ -386,6 +451,12 @@ def _shaped(things: list[Any]) -> list[Any]:
                               radius_mm=max(item.radius_mm, needed),
                               optical_surface=item.optical_surface if item.object_id in PATTERNED_BOXES else None))
     shaped = [replace(item, elevation_mm=HOME_LAMP_HEIGHTS[item.object_id]) if item.object_id in HOME_LAMP_HEIGHTS else item for item in shaped]
+    # Parts replace a box shape where declared (a lamp's shade stays the emitting sphere; its stand is A1's to add as a thing).
+    shaped = [
+        replace(item, shape="parts", size_mm=(), parts=tuple(HOME_PARTS[item.object_id]), optical_surface=None)
+        if item.object_id in HOME_PARTS and item.object_id not in HOME_LAMP_HEIGHTS else item
+        for item in shaped
+    ]
     from dsf_ai_service.substrate.embodiment_world import EmbodiedObject, PositionMM
     name, x, y, radius, mass, height, reflectance, emission = NIGHT_LIGHT
     if all(item.object_id != name for item in shaped):

@@ -27,7 +27,7 @@ def _her_room_with_window():
     region = next(r for r in snapshot.regions if r.region_id == "her-room")
     lit = replace(region, windows=(NORTH_WINDOW,), looks=())      # paint only, and no lamp (her glow stars emit): the sun alone is measured
     quiet = replace(snapshot, regions=tuple(lit if r.region_id == "her-room" else r for r in snapshot.regions),
-                    objects=tuple(o for o in snapshot.objects if not (o.emission_ppm and any(o.emission_ppm)) and o.shape != "box"))
+                    objects=tuple(o for o in snapshot.objects if not (o.emission_ppm and any(o.emission_ppm)) and o.shape == "sphere"))
     return world, quiet, lit
 
 
@@ -148,7 +148,7 @@ def test_a_lamp_lights_the_floor_around_it_at_night_and_a_thing_beside_it_casts_
     region = next(r for r in snapshot.regions if r.region_id == "her-room")
     plain = replace(region, looks=())                                 # paint only, so light alone is measured
     quiet = replace(snapshot, regions=tuple(plain if r.region_id == "her-room" else r for r in snapshot.regions),
-                    objects=tuple(o for o in snapshot.objects if not (o.emission_ppm and any(o.emission_ppm)) and o.shape != "box"))
+                    objects=tuple(o for o in snapshot.objects if not (o.emission_ppm and any(o.emission_ppm)) and o.shape == "sphere"))
     ambient = int(round(255 * float(_retinal_luminance((_region_radiance(plain),))[0])))
     dark, _ = _field(quiet, plain, None)
     assert all(v == ambient for v in dark)
@@ -231,7 +231,7 @@ def _with_boxes(snapshot):
     for o in snapshot.objects:
         if o.object_id in SHAPES and o.position is not None:
             size, heading, elevation = SHAPES[o.object_id]
-            o = replace(o, shape="box", size_mm=size, heading_millidegrees=heading, elevation_mm=elevation,
+            o = replace(o, shape="box", size_mm=size, heading_millidegrees=heading, elevation_mm=elevation, parts=(),
                         radius_mm=max(o.radius_mm, math.ceil(math.hypot(size[0], size[1]) / 2)))
         shaped.append(o)
     return replace(snapshot, objects=tuple(shaped))
@@ -245,7 +245,7 @@ def test_a_box_is_a_shape_in_the_records_and_a_sphere_still_decodes_without_one(
     record = desk.as_record()
     assert record["shape"] == {"kind": "box", "size_mm": [1_200, 600, 750], "heading_millidegrees": 0, "elevation_mm": 0}
     assert _object_from(record) == desk
-    ball = next(o for o in world.observation_snapshot().objects if o.object_id == "bowl")
+    ball = EmbodiedObject("ball-test", 100, 100, PositionMM(2_600, 7_000, 0))      # a plain sphere on the floor: no shape key at all
     assert ball.shape == "sphere" and "shape" not in ball.as_record() and _object_from(ball.as_record()) == ball
     try:
         replace(desk, radius_mm=100).verify()
@@ -282,7 +282,7 @@ def test_a_box_shows_faces_and_straight_edges_where_a_sphere_showed_an_orb() -> 
             else:
                 run = 0
     assert steps >= 2, steps
-    spheres_only = replace(dark, objects=tuple(replace(o, shape="sphere", size_mm=(), elevation_mm=0) if o.shape == "box" else o for o in dark.objects))
+    spheres_only = replace(dark, objects=tuple(replace(o, shape="sphere", size_mm=(), elevation_mm=0, parts=()) if o.shape in ("box", "parts") else o for o in dark.objects))
     orb_rows = _eye_view(spheres_only, 2_600, 8_000, 180_000, -8_000)
     assert orb_rows != rows                                          # the shape law changes what she sees
 
@@ -292,7 +292,7 @@ def test_a_box_stands_in_front_of_a_sphere_behind_it() -> None:
     snapshot = world.observation_snapshot()
     lit_room = tuple(replace(r, illumination_ppm=(780_000,) * 6) if r.region_id == "her-room" else r for r in snapshot.regions)
     snapshot = replace(snapshot, regions=lit_room)                    # a lit room, so bright means bright
-    keep = tuple(o for o in snapshot.objects if o.shape != "box" and not (o.emission_ppm and any(o.emission_ppm)))   # only the round, unlit things stay
+    keep = tuple(o for o in snapshot.objects if o.shape == "sphere" and not (o.emission_ppm and any(o.emission_ppm)))   # only the round, unlit things stay
     ball = EmbodiedObject("ball-test", 200, 500, PositionMM(2_600, 9_400, 0), reflectance_ppm=(950_000,) * 6)
     wall = EmbodiedObject("crate-test", 500, 5_000, PositionMM(2_600, 8_800, 0), reflectance_ppm=(120_000,) * 6,
                           shape="box", size_mm=(800, 300, 600), heading_millidegrees=0, elevation_mm=0)
@@ -304,3 +304,60 @@ def test_a_box_stands_in_front_of_a_sphere_behind_it() -> None:
     bright_seen = sum(1 for row in seen for v in row if v >= 120)
     bright_hidden = sum(1 for row in hidden for v in row if v >= 120)
     assert bright_seen > 40 and bright_hidden < bright_seen // 4, (bright_seen, bright_hidden)   # the crate hides the bright ball
+
+
+def test_a_thing_of_parts_is_declared_verified_and_kept_in_the_records() -> None:
+    from dsf_ai_service.substrate.embodiment_world import ObjectPart, _object_from
+    bear = EmbodiedObject("bear-test", 180, 400, PositionMM(4_800, 9_200, 0), shape="parts", parts=(
+        ObjectPart("sphere", (0, 0, 150), (300, 300, 300)), ObjectPart("sphere", (0, 0, 380), (220, 220, 220)),
+        ObjectPart("cylinder", (-110, -60, 75), (70, 70, 150)), ObjectPart("box", (0, -95, 390), (60, 40, 40), (80_000,) * 6)))
+    record = bear.as_record()
+    assert record["shape"]["kind"] == "parts" and len(record["shape"]["parts"]) == 4 and "reflectance_ppm" in record["shape"]["parts"][3]
+    assert _object_from(record) == bear
+    try:
+        replace(bear, parts=(ObjectPart("sphere", (0, 0, 150), (300, 300, 300)),) + (ObjectPart("box", (400, 0, 100), (200, 200, 200)),)).verify()
+    except ValueError as error:
+        assert "footprint disc must cover every part" in str(error)
+    else:
+        raise AssertionError("a part reaching outside the footprint was accepted")
+    try:
+        ObjectPart("sphere", (0, 0, 0), (100, 120, 100)).verify()
+    except ValueError as error:
+        assert "one diameter" in str(error)
+    else:
+        raise AssertionError("a sphere with two diameters was accepted")
+
+
+def test_rays_meet_a_bear_part_by_part_nearest_first_with_true_normals() -> None:
+    """Straight at the bear from the south: the head (a sphere) is met before the body where
+    they overlap in view; its normal points back at the eye; a ray past the ears meets nothing;
+    a ray at a limb meets the cylinder's side with a horizontal normal; from above, the head's
+    top with an upward normal."""
+    import numpy as np
+    from dsf_ai_service.substrate.embodiment_world import ObjectPart
+    from dsf_ai_service.substrate.w1_parts import part_hits, part_blocks, bounding_radius
+    bear = EmbodiedObject("bear-test", 180, 400, PositionMM(0, 0, 0), shape="parts", parts=(
+        ObjectPart("sphere", (0, 0, 150), (300, 300, 300)), ObjectPart("sphere", (0, 0, 380), (220, 220, 220)),
+        ObjectPart("sphere", (-80, 0, 470), (90, 90, 90)), ObjectPart("sphere", (80, 0, 470), (90, 90, 90)),
+        ObjectPart("cylinder", (-110, -60, 75), (70, 70, 150)), ObjectPart("cylinder", (110, -60, 75), (70, 70, 150))))
+    eye = np.array([0.0, -2_000.0, 380.0])
+    rays = np.array([[0.0, 1.0, 0.0], [0.0, 1.0, 0.0], [0.0, 1.0, 0.0], [0.0, 1.0, 0.0]]).T   # placeholders, set below
+    rays = np.stack((np.array([0.0, 0.0, 0.0, 0.0]), np.array([1.0, 1.0, 1.0, 1.0]), np.array([0.0, 0.0, 0.0, 0.0])))
+    origins = eye
+    # ray 0: at the head's centre height; ray 1: at the body's height; ray 2: far above the ears; ray 3: at a limb
+    d = np.array([[0.0, 1.0, 0.0], [0.0, 1.0, -0.115], [0.0, 1.0, 0.2], [0.0, 1.0, 0.0]]).T
+    d = d / np.sqrt(np.sum(d * d, axis=0))[None, :]
+    origin = np.array([[0.0, -2_000.0, 380.0], [0.0, -2_000.0, 380.0], [0.0, -2_000.0, 380.0], [-110.0, -2_000.0, 75.0]]).T
+    # part_hits takes one origin; cast each ray separately
+    results = [part_hits(bear, origin[:, i], d[:, i:i + 1]) for i in range(4)]
+    (t0, n0, _p0, w0), (t1, n1, _p1, w1), (t2, _n2, _p2, w2), (t3, n3, _p3, w3) = results
+    assert w0[0] == 1 and abs(t0[0] - (2_000 - 110)) < 1.0 and n0[1, 0] < -0.99                # the head, its front face toward the eye
+    assert w1[0] == 0 and t1[0] < 2_000                                                          # the body below it
+    assert w2[0] == -1 and not np.isfinite(t2[0])                                                # above the ears: nothing
+    assert w3[0] == 4 and abs(n3[2, 0]) < 1e-6 and n3[1, 0] < -0.99                              # a limb's side, horizontal normal
+    assert 500 < bounding_radius(bear) < 700
+    # A point on the floor south of the bear, lit from the north through it: blocked; lit from the south: not.
+    floor = np.array([[0.0], [-600.0], [0.0]])
+    north = np.array([[0.0], [1.0], [0.0]]); south = np.array([[0.0], [-1.0], [0.0]])
+    assert part_blocks(bear, floor, north, np.array([3_000.0]))[0]
+    assert not part_blocks(bear, floor, south, np.array([3_000.0]))[0]

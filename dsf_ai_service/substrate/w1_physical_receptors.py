@@ -24,6 +24,8 @@ from fractions import Fraction
 import math
 
 import numpy as np
+
+from dsf_ai_service.substrate.w1_parts import bounding_radius, part_blocks, part_hits
 from math import isqrt
 from typing import Mapping
 
@@ -748,7 +750,11 @@ def _room_lights(
 
 
 def _occluder_of(item: EmbodiedObject) -> tuple:
-    """What a thing blocks light with: its sphere, or its box (centre, half extents, rotation)."""
+    """What a thing blocks light with: its sphere, its box (centre, half extents, rotation), or
+    its parts (a bounding sphere for the quick reject, then part by part)."""
+    if getattr(item, "shape", "sphere") == "parts":
+        reach = bounding_radius(item)
+        return (item.position.x, item.position.y, item.position.z + item.elevation_mm, reach, item.object_id, ("parts", item))
     if getattr(item, "shape", "sphere") == "box":
         sx, sy, sz = item.size_mm
         angle = math.radians(item.heading_millidegrees / 1000.0)
@@ -822,6 +828,10 @@ def _blocked(
             continue                                   # outside the bounding sphere: cannot block
         if box is None:
             if u < reach:
+                return True
+            continue
+        if box[0] == "parts":
+            if part_blocks(box[1], np.array([[px], [py], [pz]]), np.array([[lx], [ly], [lz]]), np.array([reach]))[0]:
                 return True
             continue
         hx, hy, hz, ca, sa = box
@@ -953,7 +963,12 @@ def _lit_surfaces_focal(
         if getattr(item, "shape", "sphere") == "box" and item.position is not None
         and current_region.bounds.contains_floor_disc(item.position, 0)
     ]
-    if not lights and not current_region.looks and not boxes:
+    assembled = [
+        item for item in observation.objects
+        if getattr(item, "shape", "sphere") == "parts" and item.position is not None
+        and current_region.bounds.contains_floor_disc(item.position, 0)
+    ]
+    if not lights and not current_region.looks and not boxes and not assembled:
         return None
     indices, h_offsets, v_offsets = _focal_rays(site_geometry)
     count = len(indices)
@@ -1065,6 +1080,26 @@ def _lit_surfaces_focal(
         if len(glow) == bands and any(glow):
             emission = np.where(struck[None, :], np.array(glow, dtype=np.float64)[:, None], emission)
 
+    # Things built of parts: the nearest part along every ray, its face's normal, its paint.
+    source_part = np.full(count, -1, dtype=np.int64)
+    for item in assembled:
+        entry, n_world, own, which = part_hits(item, origin, d)
+        struck = entry < best
+        if not struck.any():
+            continue
+        best = np.where(struck, entry, best)
+        normal = np.where(struck[None, :], n_world, normal)
+        point = np.where(struck[None, :], origin[:, None] + d * np.where(struck, entry, 0.0)[None, :], point)
+        hit |= struck
+        box_depth = np.where(struck, entry, box_depth)
+        source = np.where(struck, occluder_index.get(item.object_id, -1), source)
+        source_part = np.where(struck, which, source_part)
+        has_look = np.where(struck, False, has_look)
+        paint = np.where(struck[None, :], own, paint)
+        glow = getattr(item, "emission_ppm", ()) or ()
+        if len(glow) == bands and any(glow):
+            emission = np.where(struck[None, :], np.array(glow, dtype=np.float64)[:, None], emission)
+
     direct = np.zeros((bands, count))
     for light in lights:
         if light.kind == "sun":
@@ -1105,6 +1140,17 @@ def _lit_surfaces_focal(
             vx, vy, vz = ox - point[0], oy - point[1], oz - point[2]
             u = vx * lx + vy * ly + vz * lz
             cx, cy, cz = vx - u * lx, vy - u * ly, vz - u * lz
+            if box is not None and box[0] == "parts":
+                # A thing of parts shadows part by part; a ray's own part never shadows it, its other parts may.
+                candidate = (u > 0.0) & (u < reach + r) & (cx * cx + cy * cy + cz * cz <= r * r)
+                if not candidate.any():
+                    continue
+                skip_part = np.where(source == k, source_part, -1)
+                shadow = candidate & part_blocks(box[1], point, np.stack((lx, ly, lz)), reach, skip_part)
+                lit &= ~shadow
+                if not lit.any():
+                    break
+                continue
             candidate = (u > 0.0) & (u < reach + r) & (cx * cx + cy * cy + cz * cz <= r * r) & (source != k)   # inside the bounding sphere, not the thing's own faces
             if box is None:
                 shadow = candidate & (u < reach)
@@ -1130,7 +1176,7 @@ def _lit_surfaces_focal(
         eight_bit = np.rint(values * 255).astype(np.int64)
         for column in np.nonzero(changed)[0]:
             pixels[indices[column]] = tuple(_EIGHT_BIT[eight_bit[band, column]] for band in range(bands))
-    if not boxes:
+    if not boxes and not assembled:
         return None
     depth_by_site = np.full(len(site_geometry), np.inf)
     depth_by_site[np.array(indices)] = box_depth
@@ -1265,7 +1311,7 @@ def _retinal_projection(
                 optical_surface=item.optical_surface,
                 emission_ppm=getattr(item, "emission_ppm", ()) or (),
                 source_id=item.object_id,
-                box=getattr(item, "shape", "sphere") == "box" and item.held_by_body_id is None,
+                box=getattr(item, "shape", "sphere") in ("box", "parts") and item.held_by_body_id is None,
                 elevation_mm=elevation,
             )
         )

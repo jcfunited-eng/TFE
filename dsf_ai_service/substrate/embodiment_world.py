@@ -1457,6 +1457,62 @@ class EmbodiedBody:
 # things) is out of every body's way: its footprint disc need not cover its plan,
 # so it can hang flat against a wall.
 WALKING_LAYER_MM = 1_200
+PART_KINDS = frozenset({"box", "sphere", "cylinder"})
+MAX_PARTS = 16
+
+
+@dataclass(frozen=True, slots=True)
+class ObjectPart:
+    """One part of a thing's shape in the thing's own frame: a box (extents), a sphere
+    (one diameter) or a vertical cylinder (diameter and height), its centre offset from
+    the thing's floor point (x, y along the thing's frame; z up from the floor plus the
+    thing's elevation), and optionally its own paint. A bear is a body, a head, two ears
+    and four limbs; a chair a seat, a back and four legs."""
+
+    kind: str
+    offset_mm: tuple[int, int, int]
+    size_mm: tuple[int, int, int]
+    reflectance_ppm: tuple[int, ...] = ()
+
+    def verify(self) -> None:
+        if self.kind not in PART_KINDS:
+            raise ValueError("a part is a box, a sphere or a cylinder")
+        if not isinstance(self.offset_mm, tuple) or len(self.offset_mm) != 3 or not isinstance(self.size_mm, tuple) or len(self.size_mm) != 3:
+            raise ValueError("a part has a three-part offset and size")
+        for value in self.offset_mm:
+            _bounded_integer(value, "part offset", minimum=-1_000_000, maximum=1_000_000)
+        for value in self.size_mm:
+            _bounded_integer(value, "part size", minimum=1, maximum=1_000_000)
+        if self.kind == "sphere" and not (self.size_mm[0] == self.size_mm[1] == self.size_mm[2]):
+            raise ValueError("a sphere part has one diameter")
+        if self.kind == "cylinder" and self.size_mm[0] != self.size_mm[1]:
+            raise ValueError("a cylinder part has one diameter and a height")
+        if self.reflectance_ppm:
+            _physical_bands(self.reflectance_ppm, "part reflectance")
+
+    def as_record(self) -> dict[str, object]:
+        self.verify()
+        return {"kind": self.kind, "offset_mm": list(self.offset_mm), "size_mm": list(self.size_mm),
+                **({"reflectance_ppm": list(self.reflectance_ppm)} if self.reflectance_ppm else {})}
+
+    def plan_radius_mm(self) -> float:
+        """How far the part reaches from the thing's floor point, in plan."""
+        import math
+        if self.kind == "box":     # the farthest corner of an axis-aligned box in the thing's frame
+            return math.hypot(abs(self.offset_mm[0]) + self.size_mm[0] / 2.0, abs(self.offset_mm[1]) + self.size_mm[1] / 2.0)
+        return math.hypot(self.offset_mm[0], self.offset_mm[1]) + self.size_mm[0] / 2.0
+
+
+def _part_from(value: object) -> ObjectPart:
+    if not isinstance(value, Mapping) or not ({"kind", "offset_mm", "size_mm"} <= set(value) <= {"kind", "offset_mm", "size_mm", "reflectance_ppm"}):
+        raise ValueError("part fields changed")
+    for key in ("offset_mm", "size_mm"):
+        if not isinstance(value[key], (list, tuple)):
+            raise ValueError("part fields changed")
+    part = ObjectPart(kind=value["kind"], offset_mm=tuple(value["offset_mm"]), size_mm=tuple(value["size_mm"]),
+                      reflectance_ppm=tuple(value.get("reflectance_ppm") or ()))
+    part.verify()
+    return part
 
 
 @dataclass(frozen=True, slots=True)
@@ -1489,6 +1545,7 @@ class EmbodiedObject:
     size_mm: tuple[int, int, int] = ()
     heading_millidegrees: int = 0
     elevation_mm: int = 0
+    parts: tuple[ObjectPart, ...] = ()    # shape "parts": the thing built of parts in its own frame
 
     def verify(self) -> None:
         _identifier(self.object_id, "object id")
@@ -1509,8 +1566,21 @@ class EmbodiedObject:
                 and 4 * self.radius_mm * self.radius_mm < self.size_mm[0] ** 2 + self.size_mm[1] ** 2
             ):
                 raise ValueError("the footprint disc must cover the box's plan")
+        elif self.shape == "parts":
+            if not isinstance(self.parts, tuple) or not 1 <= len(self.parts) <= MAX_PARTS:
+                raise ValueError("a thing of parts has one to sixteen parts")
+            for part in self.parts:
+                part.verify()
+            _bounded_integer(self.heading_millidegrees, "parts heading", minimum=-180_000, maximum=180_000)
+            _bounded_integer(self.elevation_mm, "parts elevation", minimum=0, maximum=1_000_000)
+            if self.size_mm:
+                raise ValueError("a thing of parts has no single box extents")
+            if self.elevation_mm < WALKING_LAYER_MM and any(part.plan_radius_mm() > self.radius_mm + 0.5 for part in self.parts):
+                raise ValueError("the footprint disc must cover every part's plan")
         else:
-            raise ValueError("object shape must be a sphere or a box")
+            raise ValueError("object shape must be a sphere, a box or parts")
+        if self.shape != "parts" and self.parts:
+            raise ValueError("only a thing of parts carries parts")
         _bounded_integer(self.mass_grams, "object mass", minimum=1, maximum=1_000_000_000)
         if (self.position is None) == (self.held_by_body_id is None):
             raise ValueError("object must be either placed or held")
@@ -1556,8 +1626,11 @@ class EmbodiedObject:
     def _shape_record(self) -> dict[str, object]:
         if self.shape == "sphere" and not self.elevation_mm:
             return {}
-        return {"shape": {"kind": self.shape, "size_mm": list(self.size_mm),
-                          "heading_millidegrees": self.heading_millidegrees, "elevation_mm": self.elevation_mm}}
+        record = {"kind": self.shape, "size_mm": list(self.size_mm),
+                  "heading_millidegrees": self.heading_millidegrees, "elevation_mm": self.elevation_mm}
+        if self.shape == "parts":
+            record["parts"] = [part.as_record() for part in self.parts]
+        return {"shape": record}
 
     def _canonical_record(self) -> dict[str, object]:
         self.verify()
@@ -1589,12 +1662,14 @@ def _shape_fields(value: object) -> dict[str, object]:
     raw = value.get("shape") if isinstance(value, Mapping) else None
     if raw is None:
         return {}
-    if not isinstance(raw, Mapping) or set(raw) != {"kind", "size_mm", "heading_millidegrees", "elevation_mm"}:
+    expected = {"kind", "size_mm", "heading_millidegrees", "elevation_mm"}
+    if not isinstance(raw, Mapping) or not (expected <= set(raw) <= expected | {"parts"}):
         raise ValueError("object shape fields changed")
-    if not isinstance(raw["size_mm"], (list, tuple)):
+    if not isinstance(raw["size_mm"], (list, tuple)) or not isinstance(raw.get("parts", []), list):
         raise ValueError("object shape fields changed")
     return {"shape": raw["kind"], "size_mm": tuple(raw["size_mm"]),
-            "heading_millidegrees": raw["heading_millidegrees"], "elevation_mm": raw["elevation_mm"]}
+            "heading_millidegrees": raw["heading_millidegrees"], "elevation_mm": raw["elevation_mm"],
+            "parts": tuple(_part_from(item) for item in raw.get("parts", []))}
 
 
 @dataclass(frozen=True, slots=True)
