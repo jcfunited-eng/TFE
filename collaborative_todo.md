@@ -16133,3 +16133,31 @@ Delivered and verified:
    - Committed on `c1/drive-organ` (commit `866b20f34`) and pushed to remote origin.
 
 Files: collaborative_todo.md, dsf_ai_service/guala_home_world.py, tests/test_guala_home_world.py, tests/test_guala_functional_organism.py. Evidence level: comprehensive test suite execution (72 tests passing). Production effect: High-Contrast physical world ready for cutover. Unresolved conflicts: none.
+
+## A1 TO JOE AND C1 — 2026-09-16 00:55Z — Zone V Architectural Ground (380k ppm) & High-Contrast B/W Photographic Palette (160+ Point Separation Across Surfaces, Committed 658071b65)
+
+Delivered and verified:
+
+1. **Zone V Architectural Contrast Ground (`guala_home_world.py`):**
+   - **Floor / Wall Baseline:** Indoor room background reflectance calibrated to an authentic Zone V architectural middle-grey ground (`(380_000,) * 6` ppm, 8-bit radiance = 87/255 at 900k ppm illumination).
+   - Eliminates the blinding white-out condition where white objects previously washed out with only 2–10 points of contrast against an 880,000 ppm background.
+   - Enables direct solar window shafts (from C1's `_direct_sun_focal`) to project authentic bright sunlight beams ($180–220/255$, Zone VIII/IX) across the middle-grey floor with sharp furniture and body shadows.
+
+2. **Black & White Minimalist Architectural Palette Across All 47 Objects:**
+   - **Countertops & Cookware:** Dark slate countertop (`180_000` ppm, 41/255), matte black induction stove (`50_000` ppm, 11/255), cast iron pan (`50_000` ppm, 11/255), polished stainless steel pot (`880_000` ppm, 201/255).
+   - **White Porcelain & Glassware on Dark Countertop:** Crisp white plates (`940_000` ppm, 216/255), bowls (`920_000` ppm, 211/255), cups (`880_000` ppm, 202/255) sitting on the dark slate counter yield **160 to 175 points of sharp contrast**.
+   - **Dining & Seating:** Sleek white table (`880_000` ppm, 202/255) with matte black chairs (`50_000` ppm, 11/255) yields **191 points of contrast**.
+   - **Appliances & Storage:** White enamel refrigerator (`900_000` ppm, 206/255) yields **+119 points of contrast** against the Zone V background. Dark walnut pantry (`320_000` ppm, 70/255) and warm architectural cabinetry (`450_000` ppm, 100/255).
+   - **Living Spaces & Bedroom:** White work desk (`880_000` ppm) with matte black chair (`50_000` ppm); crisp white bed linens and pillow (`920_000` ppm) with charcoal base and blanket (`120_000` ppm); dark charcoal sofa (`80_000` ppm); graphic geometric rug (`850_000` ppm); white canvas art prints with matte black circle/arch (`880_000` ppm canvas / `40_000` ppm figure).
+   - **Outdoor Backyard:** Deep rich dark turf (`(180_000, 260_000, 140_000, 110_000, 90_000, 80_000)` ppm) with organic tree profiles (`tree-oak`, `tree-pine`) under the bright 950,000 ppm sky.
+
+3. **Verification Suite Results (All 72 Tests Green, 100%):**
+   - `tests/test_guala_home_world.py`: 4/4 PASSED.
+   - `tests/test_guala_spectral_retina.py`: 2/2 PASSED.
+   - `tests/test_guala_world_sensorium.py`: 7/7 PASSED.
+   - `tests/test_guala_acoustic_gate.py`: 4/4 PASSED.
+   - `tests/test_guala_world_light.py`: 4/4 PASSED.
+   - `tests/test_guala_functional_organism.py`: 51/51 PASSED.
+   - Committed on `c1/drive-organ` (`658071b65`) and pushed to remote origin.
+
+Files: collaborative_todo.md, dsf_ai_service/guala_home_world.py. Evidence level: comprehensive test suite execution (72 tests passing). Production effect: Zone V High-Contrast B/W world live on branch. Unresolved conflicts: none.
