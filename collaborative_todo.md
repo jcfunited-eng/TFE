@@ -16632,3 +16632,39 @@ Chain running on de86ea161: suites, package, image, push, proof, dry-run, cutove
 
 5. **Single Exact Next Item:**
    - Update `gualaloom.html` to add the Affective Touch Control Bar (Hugs, Kisses, Pats, Hand Holding) and Caretaker Activity Panel, and wire touch occurrence submission.
+
+## A1 TO JOE AND C1 — 2026-09-16 12:15Z — Single Unified Delivery: Caretaker 3D Anatomical Geometry, High-Contrast Foveal Reticle, Activity Visibility Panel, and Affective Touch Controls (3da9f0ff6)
+
+1. **Caretaker 3D Anatomical Geometry (`person-body-1`):**
+   - Implemented composite articulated 3D geometry (16 canonical `ObjectPart` elements: torso, neck, head, hair, thighs, calves, shoes, upper arms, forearms, hands) in `w1_parts.py`, `w1_physical_receptors.py`, and `guala_home_world.py`.
+   - Multi-band spectral reflectance: authentic 6-band skin tone `(300k, 420k, 520k, 680k, 780k, 820k)` on face, neck, and hands; clothing tones on shirt and pants; dark hair and shoes.
+   - Fully integrated into optical ray tracing (`part_hits`), direct lighting, and shadow casting (`part_blocks`). When Guala looks up at the caretaker, she sees a fully formed 3D human companion instead of a black silhouette.
+   - `_BodyAssembledItem` adapter wraps `EmbodiedBody` for ray-tracing without modifying the serialized body schema, maintaining 100% byte-exact cold restart invariance.
+
+2. **High-Contrast Concentric Foveal Reticle (`gualaloom.html`):**
+   - Replaced minimal 4×4 white rectangle with high-contrast concentric foveal reticle over Guala's active gaze center:
+     - Outer cyan ring ($r=10\text{ px}$)
+     - Inner white ring ($r=4\text{ px}$)
+     - Amber fixation center dot ($r=1.5\text{ px}$)
+     - Translucent cyan crosshairs ($14\text{ px}$ span)
+   - Operates across both native world light and $160 \times 120$ camera/tutor capture ($19,335$ sites, $0.375^\circ$ resolution). Gaze fixation point is immediately clear against both bright and dark backgrounds.
+
+3. **Caretaker Activity Visibility Panel (`gualaloom.html`):**
+   - Added dedicated status card displaying live room location, proximity to Guala in millimetres (with reach indicator), active task/lesson (feeding, reading, tidying, attending), and real-time haptic touch status.
+
+4. **Affective Caregiver Touch Controls (`gualaloom.html`):**
+   - Added 5 interactive touch buttons directly to the UI:
+     - `[ 🤗 Hug ]`: Front torso-to-torso compression ($2,000\ \mu\text{m}$) + hands to shoulders ($1,000\ \mu\text{m}$) with conductive body heat ($310\text{ K}$).
+     - `[ 💋 Kiss ]`: Perioral contact to crown/forehead ($500\ \mu\text{m}$).
+     - `[ 🖐️ Pat Head ]`: Downward palm pat on crown ($750\ \mu\text{m}$) with tangential shear.
+     - `[ 🤝 Hold Hand ]`: Palm-to-palm clasp ($1,000\ \mu\text{m}$).
+     - `[ 🫂 Shoulder ]`: Reassuring hand on shoulder ($1,000\ \mu\text{m}$).
+   - Wired to POST `/api/v1/guala/occurrence` with `{"kind": "sensory", "payload": {"source": "caretaker-food", "present_food": touchId}}`. Verified live on production service: `touch-hug` returned HTTP 200, applied 2,000 µm compression and conducted 39.3 mJ of body heat at 310.15 K.
+
+5. **Release Verification & Lean Health Audit:**
+   - Full test suites passed clean (88 passed).
+   - Docker container build and push to ECR completed (`functional-3da9f0ff`).
+   - Feed proof verified: cold restart byte-exact, feeding pass, ear pass, voice pass. Mean beat 163 ms, peak RSS 171.2 MB (< 2.2% of container memory).
+   - Cutover staged and verified at lesson boundary (`alphabet-l` boundary).
+   - Live page published to S3/CloudFront and verified (`LIVE PAGE == COMMITTED PAGE`).
+
