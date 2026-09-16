@@ -124,7 +124,12 @@ DEFAULT_MAX_OBJECTS = 128
 DEFAULT_MAX_BODIES = 4
 DEFAULT_RECEIPT_CAPACITY = 16
 DEFAULT_MAX_COMMAND_BYTES = 4096
-DEFAULT_MAX_ENCODED_STATE_BYTES = 2 * 1024 * 1024
+# The world's exact byte capacity: the world, its surface catalog and sixteen
+# retained action receipts (each a before and an after of every thing). Raised
+# from two to eight mebibytes on 2026-09-16 when the furnished home (52 things,
+# 24 looks) put sixteen receipts near two; a persisted world recorded under the
+# smaller bound restores into this one by the authenticated migration.
+DEFAULT_MAX_ENCODED_STATE_BYTES = 8 * 1024 * 1024
 LEGACY_MAX_ENCODED_STATE_BYTES = 8 * 1024 * 1024
 MAX_IDENTIFIER_BYTES = 256
 MAX_REVISION = (1 << 63) - 1
@@ -1226,6 +1231,7 @@ def _window_from(value: object) -> WindowMM:
 
 
 LOOK_FACES = frozenset(WINDOW_WALLS) | {"floor", "ceiling"}
+LOOK_CATALOG_CAPACITY = 192   # distinct look patterns the world's surface catalog may hold beyond one per thing
 
 
 @dataclass(frozen=True, slots=True)
@@ -3017,6 +3023,56 @@ def _legacy_object_from(value: object) -> EmbodiedObject:
     return result
 
 
+def _looks_expanded(payload: Mapping[str, object]) -> dict[str, object]:
+    """A state payload compared as physics: every look's pattern inline (whether the
+    record carried it by content identity or, in older records, inline), the limits
+    and the surface catalog set aside. Two records that differ only in how a look
+    is stored are the same state."""
+    catalog: dict[str, object] = {}
+    for entry in payload.get("optical_surface_catalog") or []:
+        if isinstance(entry, Mapping) and "content_sha256" in entry:
+            catalog[entry["content_sha256"]] = entry.get("surface")
+
+    def regions(items: object) -> object:
+        if not isinstance(items, list):
+            return items
+        out = []
+        for region in items:
+            if isinstance(region, Mapping) and isinstance(region.get("looks"), list):
+                region = dict(region)
+                looks = []
+                for look in region["looks"]:
+                    surface = look.get("surface") if isinstance(look, Mapping) else None
+                    if isinstance(surface, Mapping) and set(surface) == {"content_sha256"}:
+                        look = dict(look)
+                        look["surface"] = catalog.get(surface["content_sha256"], surface)
+                    looks.append(look)
+                region["looks"] = looks
+            out.append(region)
+        return out
+
+    def observation(value: object) -> object:
+        if isinstance(value, Mapping) and "regions" in value:
+            value = dict(value)
+            value["regions"] = regions(value["regions"])
+        return value
+
+    expanded: dict[str, object] = {}
+    for key, value in payload.items():
+        if key in ("limits", "optical_surface_catalog"):
+            continue
+        if key == "world":
+            value = observation(value)
+        elif key == "recent_applied_receipts" and isinstance(value, list):
+            value = [
+                {**item, "before": observation(item.get("before")), "after": observation(item.get("after"))}
+                if isinstance(item, Mapping) else item
+                for item in value
+            ]
+        expanded[key] = value
+    return expanded
+
+
 def _region_from(value: object) -> PhysicalRegion:
     expected = {
         "air", "bounds", "ceiling_height_mm", "illumination_ppm",
@@ -4273,18 +4329,62 @@ class EmbodimentWorldAuthority:
                         left, right = settled[left_id], settled[right_id]
                         if not collides(left, right):
                             continue
-                        authored_right = declared_objects[right_id]
-                        if right.position != authored_right.position:
+                        # A thing that arrived after genesis has no authored place: it
+                        # keeps where it lived, and the declared thing it meets goes to
+                        # its own authored place; two arrivals are left as they lived.
+                        authored_right = declared_objects.get(right_id)
+                        if authored_right is not None and right.position != authored_right.position:
                             settled[right_id] = replace(
                                 right, position=authored_right.position
                             )
                             moved = True
                             continue
-                        authored_left = declared_objects[left_id]
-                        if left.position != authored_left.position:
+                        authored_left = declared_objects.get(left_id)
+                        if authored_left is not None and left.position != authored_left.position:
                             settled[left_id] = replace(
                                 left, position=authored_left.position
                             )
+                            moved = True
+                            continue
+                        if authored_left is None or authored_right is None:
+                            # An arrival standing where a declared thing now goes is set
+                            # one step aside: the nearest free spot around where it lived,
+                            # inside its room and clear of everything settled.
+                            arrival_id = right_id if authored_right is None else left_id
+                            arrival = settled[arrival_id]
+                            spot = None
+                            for ring in (300, 600, 900, 1_200, 1_500):
+                                for eighth in range(8):
+                                    angle = math.pi * eighth / 4.0
+                                    candidate = PositionMM(
+                                        int(round(arrival.position.x + ring * math.cos(angle))),
+                                        int(round(arrival.position.y + ring * math.sin(angle))),
+                                        arrival.position.z,
+                                    )
+                                    if region_containing(candidate.x, candidate.y, arrival.radius_mm) is None:
+                                        continue
+                                    trial = replace(arrival, position=candidate)
+                                    if any(
+                                        other_id != arrival_id and collides(trial, other)
+                                        for other_id, other in settled.items()
+                                    ) or any(
+                                        collides(trial, body_as_thing)
+                                        for body_as_thing in (
+                                            replace(arrival, object_id=body.body_id, position=body.pose.position, radius_mm=body.radius_mm)
+                                            for body in restood_bodies
+                                        )
+                                    ):
+                                        continue
+                                    spot = candidate
+                                    break
+                                if spot is not None:
+                                    break
+                            if spot is None:
+                                raise ValueError(
+                                    f"an arrival ({arrival_id}) has no free spot beside where it lived; "
+                                    "the renovation refuses"
+                                )
+                            settled[arrival_id] = replace(arrival, position=spot)
                             moved = True
                             continue
                         raise ValueError(
@@ -6908,12 +7008,15 @@ class EmbodimentWorldAuthority:
         state: _AuthorityState,
     ) -> dict[str, ObjectOpticalSurface]:
         objects: list[EmbodiedObject] = list(state.world.objects)
+        regions: list[PhysicalRegion] = list(state.world.regions)
         for receipt in state.recent_applied_receipts:
             objects.extend(receipt.before.objects)
             objects.extend(receipt.after.objects)
+            regions.extend(receipt.before.regions)
+            regions.extend(receipt.after.regions)
         catalog: dict[str, ObjectOpticalSurface] = {}
-        for item in objects:
-            surface = item.optical_surface
+        surfaces = [item.optical_surface for item in objects] + [look.surface for region in regions for look in region.looks]
+        for surface in surfaces:
             if surface is None:
                 continue
             content_sha = self._optical_surface_content_sha(surface)
@@ -6939,6 +7042,69 @@ class EmbodimentWorldAuthority:
         record["optical_surface"] = {"content_sha256": content_sha}
         return record
 
+    def _compact_region_record(
+        self,
+        region: PhysicalRegion,
+        catalog: Mapping[str, ObjectOpticalSurface],
+    ) -> dict[str, object]:
+        """A region's record with each look's pattern replaced by its content identity:
+        the pattern lives once in the catalog, not in every receipt's before and after."""
+        record = region.as_record()
+        if not region.looks:
+            return record
+        looks = []
+        for look in region.looks:
+            content_sha = self._optical_surface_content_sha(look.surface)
+            if catalog.get(content_sha) != look.surface:
+                raise ValueError("look surface is absent from exact catalog")
+            entry = look.as_record()
+            entry["surface"] = {"content_sha256": content_sha}
+            looks.append(entry)
+        record["looks"] = looks
+        return record
+
+    def _region_from_compact_record(
+        self,
+        value: object,
+        catalog: Mapping[str, ObjectOpticalSurface],
+    ) -> PhysicalRegion:
+        """A region from its compact record; a look's pattern is resolved from the
+        catalog by content identity, or read inline as older records carried it."""
+        if isinstance(value, Mapping) and isinstance(value.get("looks"), list):
+            expanded = dict(value)
+            looks = []
+            for entry in value["looks"]:
+                if isinstance(entry, Mapping) and isinstance(entry.get("surface"), Mapping) and set(entry["surface"]) == {"content_sha256"}:
+                    content_sha = _sha256_identity(entry["surface"].get("content_sha256"), "look surface reference")
+                    surface = catalog.get(content_sha)
+                    if surface is None:
+                        raise ValueError("look surface reference is unresolved")
+                    entry = dict(entry)
+                    entry["surface"] = surface.as_record()
+                looks.append(entry)
+            expanded["looks"] = looks
+            value = expanded
+        return _region_from(value)
+
+    def _catalog_with_looks(
+        self,
+        catalog: Mapping[str, ObjectOpticalSurface],
+        regions: tuple[PhysicalRegion, ...],
+    ) -> dict[str, ObjectOpticalSurface]:
+        """The catalog plus the looks a record carried inline (older records)."""
+        full = dict(catalog)
+        for region in regions:
+            for look in region.looks:
+                full.setdefault(self._optical_surface_content_sha(look.surface), look.surface)
+        return full
+
+    @staticmethod
+    def _regions_match(raw_regions: object, regions: tuple[PhysicalRegion, ...], compact: list[dict[str, object]]) -> bool:
+        """The stored regions equal their canonical compact form, or their older inline form."""
+        if raw_regions == compact:
+            return True
+        return raw_regions == [item.as_record() for item in regions]
+
     def _compact_world_record(
         self,
         world: _WorldState,
@@ -6953,7 +7119,7 @@ class EmbodimentWorldAuthority:
             "revision": world.revision,
             "room_bounds": world.room_bounds.as_record(),
             "room_id": world.room_id,
-            "regions": [item.as_record() for item in world.regions],
+            "regions": [self._compact_region_record(item, catalog) for item in world.regions],
             "portals": [item.as_record() for item in world.portals],
             "self_body_id": world.self_body_id,
         }
@@ -6968,6 +7134,7 @@ class EmbodimentWorldAuthority:
             self._compact_object_record(item, catalog)
             for item in observation.objects
         ]
+        record["regions"] = [self._compact_region_record(item, catalog) for item in observation.regions]
         return record
     def _compact_execution_record(
         self,
@@ -7229,7 +7396,7 @@ class EmbodimentWorldAuthority:
     ) -> dict[str, ObjectOpticalSurface]:
         if (
             not isinstance(value, list)
-            or len(value) > self._max_objects
+            or len(value) > self._max_objects + LOOK_CATALOG_CAPACITY
         ):
             raise ValueError("optical surface catalog exceeds capacity")
         catalog: dict[str, ObjectOpticalSurface] = {}
@@ -7338,7 +7505,7 @@ class EmbodimentWorldAuthority:
             revision=_bounded_integer(value.get("revision"), "observation revision", minimum=0, maximum=MAX_REVISION),
             room_id=_identifier(value.get("room_id"), "observation room id"),
             room_bounds=_room_from(value.get("room_bounds")),
-            regions=tuple(_region_from(item) for item in raw_regions)
+            regions=tuple(self._region_from_compact_record(item, catalog) for item in raw_regions)
             if isinstance(raw_regions, list) else (),
             portals=tuple(_portal_from(item) for item in raw_portals)
             if isinstance(raw_portals, list) else (),
@@ -7350,7 +7517,12 @@ class EmbodimentWorldAuthority:
             authority_receipt_sha256=_sha256_identity(value.get("authority_receipt_sha256"), "observation receipt"),
         )
         self._verify_observation(result)
-        if self._compact_observation_record(result, catalog) != dict(value):
+        canonical = self._compact_observation_record(result, self._catalog_with_looks(catalog, result.regions))
+        stored = dict(value)
+        if canonical != stored and not (
+            {k: v for k, v in canonical.items() if k != "regions"} == {k: v for k, v in stored.items() if k != "regions"}
+            and self._regions_match(stored.get("regions"), result.regions, canonical["regions"])
+        ):
             raise ValueError("compact observation is not canonical")
         return result
 
@@ -7398,7 +7570,19 @@ class EmbodimentWorldAuthority:
             authority_receipt_sha256=_sha256_identity(value.get("authority_receipt_sha256"), "execution receipt"),
         )
         self._verify_execution(result)
-        if self._compact_execution_record(result, catalog) != dict(value):
+        canonical = self._compact_execution_record(result, self._catalog_with_looks(catalog, result.before.regions + result.after.regions))
+        stored = dict(value)
+        def same(side: str) -> bool:
+            a, b = canonical.get(side), stored.get(side)
+            if not isinstance(a, Mapping) or not isinstance(b, Mapping):
+                return a == b
+            regions = result.before.regions if side == "before" else result.after.regions
+            return ({k: v for k, v in a.items() if k != "regions"} == {k: v for k, v in b.items() if k != "regions"}
+                    and self._regions_match(b.get("regions"), regions, a["regions"]))
+        if not (
+            {k: v for k, v in canonical.items() if k not in ("before", "after")} == {k: v for k, v in stored.items() if k not in ("before", "after")}
+            and same("before") and same("after")
+        ):
             raise ValueError("compact execution is not canonical")
         return result
 
@@ -7429,7 +7613,7 @@ class EmbodimentWorldAuthority:
             revision=_bounded_integer(value.get("revision"), "world revision", minimum=0, maximum=MAX_REVISION),
             room_id=_identifier(value.get("room_id"), "room id"),
             room_bounds=_room_from(value.get("room_bounds")),
-            regions=tuple(_region_from(item) for item in raw_regions)
+            regions=tuple(self._region_from_compact_record(item, catalog) for item in raw_regions)
             if isinstance(raw_regions, list) else (),
             portals=tuple(_portal_from(item) for item in raw_portals)
             if isinstance(raw_portals, list) else (),
@@ -7438,7 +7622,12 @@ class EmbodimentWorldAuthority:
             objects=objects,
         )
         self._validate_world(world)
-        if self._compact_world_record(world, catalog) != dict(value):
+        canonical = self._compact_world_record(world, self._catalog_with_looks(catalog, world.regions))
+        stored = dict(value)
+        if canonical != stored and not (
+            {k: v for k, v in canonical.items() if k != "regions"} == {k: v for k, v in stored.items() if k != "regions"}
+            and self._regions_match(stored.get("regions"), world.regions, canonical["regions"])
+        ):
             raise ValueError("compact world state is not canonical")
         return world
 
@@ -8786,15 +8975,7 @@ class EmbodimentWorldAuthority:
                 domain=STATE_DOMAIN,
                 limit=self._max_encoded_state_bytes,
             )
-            if {
-                key: value
-                for key, value in candidate_payload.items()
-                if key != "limits"
-            } != {
-                key: value
-                for key, value in decoded.items()
-                if key != "limits"
-            }:
+            if _looks_expanded(candidate_payload) != _looks_expanded(decoded):
                 raise ValueError("embodiment state is not canonical")
         if (
             allow_authenticated_physical_manifest_migration

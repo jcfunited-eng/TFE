@@ -84,3 +84,60 @@ def test_the_declared_home_restored_in_production_needs_no_renovation() -> None:
     again = home_world_authority(identity=IDENTITY, encoded_world=encoded, migrate_physical_return=True)
     assert not again.home_renovation_performed
     assert bytes(again.encoded_snapshot()) == encoded
+
+
+def test_looks_are_stored_once_and_a_receipt_stays_small_with_the_whole_home_declared() -> None:
+    """A1's 24 looks put every action receipt at 250 KB (each look's pattern inline in
+    the before and the after) and the world past its byte cap after seven actions, so
+    the caregiver could not walk to her. Looks live once in the surface catalog and are
+    referenced from regions and receipts; a receipt with the whole home declared stays
+    under 120 KB and sixteen of them fit the cap with room."""
+    import base64, json
+    from dsf_ai_service.guala_caretaker_hand import _Hand
+    from dsf_ai_service.substrate.embodiment_world import DEFAULT_MAX_ENCODED_STATE_BYTES
+
+    world = home_world_authority(identity=IDENTITY)
+    looks = sum(len(r.looks) for r in world.observation_snapshot().regions)
+    assert looks >= 20, looks
+    hand = _Hand(world, "nothing")
+    assert hand.walk_to_region("her-room")
+    encoded = bytes(world.encoded_snapshot())
+    envelope = json.loads(encoded)
+    payload = json.loads(base64.b64decode(envelope["payload_base64"]))
+    inner = json.loads(base64.b64decode(payload["world_state_base64"]))
+    state = json.loads(base64.b64decode(inner["payload_base64"]))
+    receipts = state["recent_applied_receipts"]
+    assert receipts, "the walk left receipts"
+    canonical = lambda value: len(json.dumps(value, separators=(",", ":"), sort_keys=True))
+    largest = max(canonical(receipt) for receipt in receipts)
+    assert largest < 120_000, largest
+    assert all(
+        set(look["surface"]) == {"content_sha256"}
+        for receipt in receipts for side in ("before", "after") for region in receipt[side]["regions"] for look in region.get("looks", [])
+    )
+    assert 16 * largest + canonical(state["world"]) + canonical(state["optical_surface_catalog"]) < DEFAULT_MAX_ENCODED_STATE_BYTES // 2
+    again = home_world_authority(identity=IDENTITY, encoded_world=encoded)
+    assert bytes(again.encoded_snapshot()) == encoded
+
+
+def test_an_arrival_standing_where_a_declared_thing_now_goes_is_set_one_step_aside(monkeypatch) -> None:
+    """Her live world carried a thing that arrived after genesis (art-arch) exactly where
+    A1's moved picture now hangs; the renovation used to fail looking up an authored
+    place for it. Now the arrival is set at the nearest free spot beside where it lived."""
+    from dsf_ai_service.substrate.embodiment_world import EmbodiedObject, PositionMM
+
+    encoded, lived = _persisted_under_the_older_declaration(monkeypatch)
+    older = home_world_authority(identity=IDENTITY, encoded_world=encoded)
+    # The older home has no oak; a stray thing lives exactly where the oak is later declared.
+    oak = next(o for o in DECLARED_HOME()[2] if o.object_id == "tree-oak")
+    assert all(o.object_id != "tree-oak" for o in older.observation_snapshot().objects)
+    older.admit_authored_arrival(EmbodiedObject("stray-ball", 200, 500, oak.position, reflectance_ppm=(500_000,) * 6))
+    with_stray = bytes(older.encoded_snapshot())
+    world = home_world_authority(identity=IDENTITY, encoded_world=with_stray, migrate_physical_return=True)
+    assert world.home_renovation_performed
+    after = {o.object_id: o for o in world.observation_snapshot().objects}
+    assert after["tree-oak"].position == oak.position
+    stray = after["stray-ball"]
+    assert stray.position != oak.position
+    dx, dy = stray.position.x - oak.position.x, stray.position.y - oak.position.y
+    assert 250 <= (dx * dx + dy * dy) ** 0.5 <= 1_600

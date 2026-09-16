@@ -53,7 +53,9 @@ LEGACY_TRANSITION_SCHEMA = "guala.thermally_coupled_embodiment.transition.v1"
 TRANSITION_SCHEMA = "guala.thermally_coupled_embodiment.transition.v2"
 LEGACY_TRANSITION_DOMAIN = b"guala-thermally-coupled-embodiment-transition-v1\0"
 TRANSITION_DOMAIN = b"guala-thermally-coupled-embodiment-transition-v2\0"
-MAX_COUPLED_STATE_BYTES = 4 * 1024 * 1024
+# The coupled envelope reserves the base world's full capacity twice base64-expanded
+# (8 MiB -> 10.7 MiB) plus the thermal state; the paired store admits 16 MiB.
+MAX_COUPLED_STATE_BYTES = 16 * 1024 * 1024
 MAX_IDENTIFIER_BYTES = 256
 
 
