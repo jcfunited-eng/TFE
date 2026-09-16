@@ -273,12 +273,13 @@ def food_state(o: dict, skip: set[str]) -> tuple[bool, list[str]]:
 
 
 PLAY_TICKS = 240  # about a minute of her clock between offers of a toy
-TOYS = ("toy-bear", "glow-stars", "book", "cup")
+TOYS = ("toy-bear", "stacking-rings", "play-ball", "book", "cup", "glow-stars")
 # Naming while doing: the word for the thing the caregiver hands her, said at that
 # moment in a real human voice (Wikimedia Commons, openly licensed); nothing else
 # is said about it, and what the word comes to mean is hers to settle.
 WORD_FOR = {
     "apple": "apple", "toy-bear": "bear", "glow-stars": "star", "book": "book", "cup": "cup",
+    "stacking-rings": "ring", "play-ball": "ball", "high-chair": "chair", "playpen": "playpen",
     "bread": "bread", "milk": "milk", "cheese": "cheese", "berries": "berries", "carrot": "carrot",
     "bowl": "bowl", "plate": "plate", "pot": "pot", "pan": "pan", "table": "table", "table-chair": "chair",
     "bed": "bed", "pillow": "pillow", "blanket": "blanket", "lamp": "lamp", "radio": "radio",
@@ -810,10 +811,34 @@ def wait_clear(min_tick: int | None = None, st: dict | None = None) -> dict | No
             if st is not None and st.get("asleep_logged"):
                 log(f"she is awake (tick {o.get('live_tick')}); the caretaker resumes")
                 st["asleep_logged"] = False
-            # Meals and housekeeping do not wait for a clear window: a hungry
-            # organism is fed, and displaced bedding returned, even while a person's
-            # camera and microphone are on. Only the card lessons hold.
+            # Developmental epochs and rituals: mealtime, playpen novelty, yard exploration,
+            # story & song, and bedtime. Structured routines transform diffuse wandering into
+            # goal-directed intentional planning and cognitive scaffolding.
             if st is not None:
+                lo = o.get("last_occurrence") or {}
+                deficit = lo.get("metabolic_need_reserve_deficit") or [0, 1]
+                hungry = (deficit[0] / deficit[1]) > HUNGRY_DEFICIT if (deficit and len(deficit) == 2 and deficit[1]) else False
+                emb = lo.get("embodiment") or {}
+                her_b = next((b for b in (emb.get("bodies") or []) if b.get("body_id") == emb.get("self_body_id")), None)
+                her_pos = (her_b.get("pose") or {}).get("position") or {}
+                her_room = room_of_point(o, her_pos) if her_pos.get("x_mm") is not None else None
+
+                if asleep(o) or (her_b and (her_b.get("pose") or {}).get("posture") == "lying") or ((her_sleep(o).get("sleep_pressure") or 0) > 0.85):
+                    ritual = "BEDTIME"
+                elif hungry:
+                    ritual = "MEALTIME"
+                elif her_room == "backyard":
+                    ritual = "YARD_EXPLORATION"
+                elif st.get("read_next_tick") is not None and (o.get("live_tick") or 0) < int(st.get("read_next_tick")) and int(st.get("read_chapter") or 0) > 0:
+                    ritual = "STORY_AND_SONG"
+                else:
+                    ritual = "PLAYPEN_NOVELTY"
+
+                if st.get("active_ritual") != ritual:
+                    log(f"developmental ritual transition: {ritual} (room={her_room}, hungry={hungry})")
+                    st["active_ritual"] = ritual
+                    json.dump(st, open(STATE, "w"))
+
                 maybe_feed(o, st)
                 maybe_bedtime(o, st)
                 maybe_housekeeping(o, st)
