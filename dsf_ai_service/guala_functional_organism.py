@@ -851,7 +851,7 @@ class FunctionalOrganism:
             "ear_event": None, "events": {}, "sound_event": None, "ear_quiet": _empty_ear_quiet(),
             "gaze": None, "gaze_target": None, "sight_figure": None, "figures": {}, "eyes": [0, 0], "gaze_radius": 0.0,
             "moments": {}, "last_moment": None,
-            "voice_event": None, "own_events": {}, "own_event": None, "meanings": {},
+            "voice_event": None, "own_events": {}, "own_event": None, "meanings": {}, "last_said": None,
         })
 
     @classmethod
@@ -879,7 +879,7 @@ class FunctionalOrganism:
             state["speech"], state["syllable_totals"], state["prior_syllable"] = {}, {}, None
             state["voice_version"] = VOICE_VERSION
             changed = True
-        for key, empty in (("voice_event", None), ("own_events", {}), ("own_event", None), ("meanings", {})):
+        for key, empty in (("voice_event", None), ("own_events", {}), ("own_event", None), ("meanings", {}), ("last_said", None)):
             if key not in state:
                 state[key] = {} if isinstance(empty, dict) else empty
                 changed = True
@@ -1485,7 +1485,11 @@ class FunctionalOrganism:
 
         state = self._state
         self._moment_formed = None
-        closed = list(getattr(self, "_ear_closed", [])) + ["own:" + key for key in getattr(self, "_own_closed", [])]
+        # Her own sound's moment is keyed by what she said (her drive, her own exact act),
+        # not by how it sounded back: a rendition's key differs every time (measured), her
+        # drive does not, so "I said mah, then what followed" recurs and can be counted.
+        said = state.get("last_said")
+        closed = list(getattr(self, "_ear_closed", [])) + [f"own:{said}" for _key in getattr(self, "_own_closed", []) if said]
         if not closed:
             return
         eighth = lambda value: int(_clamp(round(float(value) * 8), 0, 8))
@@ -1841,6 +1845,7 @@ class FunctionalOrganism:
             syl_data = ctx_entry["syllables"].setdefault(syl_name, [0, 0.0])
             syl_data[0] = int(syl_data[0]) + 1
             state["prior_syllable"] = syl_name
+            state["last_said"] = syl_name   # what her own sound's moment is keyed by when it closes
             while len(speech_rec) > SPEECH_RECORD_CAPACITY:
                 del speech_rec[min(speech_rec, key=lambda k: (int(speech_rec[k].get("tick", 0)), k))]
         state["last_act"] = decision.act

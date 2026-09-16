@@ -1668,3 +1668,28 @@ def test_a_persons_voice_reaches_her_by_the_rooms_geometry_like_a_things_sound()
         assert gain == min(1, 1_000 / distance) or abs(float(gain) - min(1.0, 1_000 / distance)) < 1e-6
     assert _thing_sound_gain(snapshot, "nobody-here") == (0, None, "absent")
     assert _thing_sound_gain(snapshot, snapshot.self_body_id)[2] == "absent"   # her own body is not a room sound
+
+
+def test_her_own_sounds_moment_is_keyed_by_what_she_said_so_it_recurs() -> None:
+    """Measured on her first hour live: no moment recurred, because every rendition of her
+    own syllable sounds back with a new key. Her own sound's moment is keyed by her drive,
+    what she said, which is her own exact act: saying the same syllable twice with an empty
+    hand is one moment met twice; a different syllable is another."""
+
+    organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
+    world = home_world_authority(identity=IDENTITY)
+    body = next(b for b in world.observation_snapshot().bodies if b.body_id == world.observation_snapshot().self_body_id)
+    measures = {"touch_texture": 0.0, "touch_warmth": 0.5, "hunger": 0.45, "taste_residue": 0.0, "skin_contact": 0.0}
+    organism._state["last_said"] = "mah1"
+    for tick in (10, 20):
+        organism._own_closed = [f"rendition{tick}"]   # a different heard key each time, as measured
+        organism._ear_closed = []
+        organism._form_moments(body, measures, tick)
+    moments = organism._state["moments"]
+    assert len(moments) == 1 and next(iter(moments.values()))["count"] == 2 and next(iter(moments.values()))["source"] == "own"
+    organism._state["last_said"] = "oo3"
+    organism._own_closed = ["rendition30"]
+    organism._form_moments(body, measures, 30)
+    assert len(moments) == 2
+    encoded = organism.encoded()
+    assert FunctionalOrganism.restore(encoded).encoded() == encoded
