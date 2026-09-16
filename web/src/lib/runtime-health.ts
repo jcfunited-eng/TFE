@@ -89,6 +89,9 @@ export type RuntimeHealthResult = {
 };
 
 let healthPool: Pool | null = null;
+let lastFailedChecks = "";
+let lastFailedLogMs = 0;
+const HEALTH_LOG_INTERVAL_MS = 10 * 60 * 1000;
 
 function appRoot(): string {
   return String(process.env.TFE_APP_ROOT ?? "/app").trim() || "/app";
@@ -261,14 +264,24 @@ export async function evaluateRuntimeHealth(
     snapshotReceipts: snapshot.ok,
   };
   const verified = Object.values(checks).every(Boolean);
-  if (!verified) {
-    const failed = Object.entries(checks).filter(([, ok]) => !ok).map(([name]) => name).join(",");
-    console.warn(
-      `[RUNTIME-HEALTH] checks failed: ${failed}` +
-      ` | liveness=${processHeartbeat ? "alive" : "DOWN"}` +
-      ` | generation=${snapshot.generationId ?? "none"} hold=${snapshot.generationHold}` +
-      (database.error ? ` | database: ${database.error}` : ""),
-    );
+  const failed = Object.entries(checks).filter(([, ok]) => !ok).map(([name]) => name).join(",");
+  // The probes arrive several times a minute from the load balancer and the
+  // container check; a failing check would repeat the same line thousands of
+  // times a day (receipt: 2026-09-16 01:10 UTC onward). Log on a change of
+  // state, and at most once per interval while the state persists.
+  if (failed !== lastFailedChecks || (failed && nowMs - lastFailedLogMs >= HEALTH_LOG_INTERVAL_MS)) {
+    if (failed) {
+      console.warn(
+        `[RUNTIME-HEALTH] checks failed: ${failed}` +
+        ` | liveness=${processHeartbeat ? "alive" : "DOWN"}` +
+        ` | generation=${snapshot.generationId ?? "none"} hold=${snapshot.generationHold}` +
+        (database.error ? ` | database: ${database.error}` : ""),
+      );
+      lastFailedLogMs = nowMs;
+    } else if (lastFailedChecks) {
+      console.log(`[RUNTIME-HEALTH] checks recovered (was: ${lastFailedChecks}) | generation=${snapshot.generationId ?? "none"}`);
+    }
+    lastFailedChecks = failed;
   }
   return {
     healthy: processHeartbeat,

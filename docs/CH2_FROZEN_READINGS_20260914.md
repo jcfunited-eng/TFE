@@ -356,3 +356,28 @@ $98,300.52 is the cross-check. CWAN (100 sh) and HTBK (67 sh), both
 inactive at the broker with no ledger rows, are outside CH2 and excluded.
 Grading point unchanged: 20 closed positions under the frozen rules, or the
 first 90-day wall.
+
+## Addendum 9 — second nightly run (2026-09-16 00:17 UTC): rebuild proven twice; stamp defect found
+
+- Hold recorded 00:17:20, generation `snapshot_pub_v2_e63ac9944bb8515f0b09602c`
+  published 00:59:27, hold released; the quote cache was refreshed INLINE
+  ("Quote cache on disk is missing or stale (age_seconds=16225303) …
+  refreshing it inline", 654 s); `l5_baseline_filter` and
+  `runtime_postgres_sync` complete (run_id `9711c67a-de32-4d07-a234-a24a8101c338`,
+  11,483 rows, quote binding aligned); no container replacement; no
+  ParamValidation. CH2's next entry pass reads this run.
+- `validation_gate` failed only on `ui_filter_behavior_integrity_not_run`
+  (Joseph's pending decision); `ta_semantics_integrity` passed after the
+  placeholder rule.
+- New defect surfaced by the first run to get this far with liveness
+  intact: `build_screener_quote_cache.py` ends with
+  `stamp_active_snapshot_and_quote_artifacts`, whose
+  `stamp_snapshot_artifact` rewrote the published `uf_snapshot.json`
+  (13,760,510 → 18,786,399 bytes, pretty-printed) at 01:10:19, so the
+  runtime's snapshot receipts failed from then on (`/api/health` "verified":
+  false, liveness unaffected) and `[RUNTIME-HEALTH] checks failed` logged
+  on every probe. Fix: the stamp derives the snapshot metadata in memory
+  and leaves a published (publication_id-bearing) snapshot untouched — the
+  quote binding only needs the derived values — while an unpublished legacy
+  snapshot is still stamped; seven cases pass. The health warning now logs
+  on a change of state and at most every ten minutes, with a recovery line.

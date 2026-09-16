@@ -213,7 +213,18 @@ def stamp_active_snapshot_and_quote_artifacts(
     require_aligned: bool = False,
 ) -> Dict[str, Any]:
     resolved_snapshot = snapshot_path or Path(__file__).resolve().parents[2] / "uf_snapshot.json"
-    snapshot_meta = stamp_snapshot_artifact(resolved_snapshot)
+    # A snapshot that already carries a publication id is a published,
+    # receipt-bound generation (snapshot_generation.prepare_local_generation);
+    # rewriting it here changed its bytes after publication and broke the
+    # runtime's snapshot receipts on every run (receipt: 2026-09-16 01:10 UTC,
+    # 13,760,510 -> 18,786,399 bytes). The quote binding needs only the
+    # derived metadata, so derive it in memory and leave the artifact alone.
+    # Only an unpublished legacy snapshot (no publication id) is still stamped.
+    snapshot_payload = _read_json(resolved_snapshot)
+    if str(snapshot_payload.get("publication_id") or "").strip():
+        snapshot_meta = _derive_snapshot_metadata(snapshot_payload)
+    else:
+        snapshot_meta = stamp_snapshot_artifact(resolved_snapshot)
     quote_meta = stamp_quote_artifact(
         snapshot_path=resolved_snapshot,
         quote_path=output_path,
