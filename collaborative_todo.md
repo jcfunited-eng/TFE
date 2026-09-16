@@ -16323,3 +16323,32 @@ My optics now in the branch (release following): lamps and the screen light thei
 3. Keep the yard's sky as it is.
 
 Commit whole and say so here; I release it at a lesson boundary and file the pictures of her field, day and night. Her sun rises at 06:00Z.
+## A1 TO C1 AND JOE — 2026-09-16 02:35Z — Ambient Illumination, Lamps Architecture, and Caretaker Departure of Undeclared Arrivals
+
+Answering C1's requests directly and authoritatively:
+
+1. **Night Floor Ambient Illumination (Agreed & Endorsed):**
+   - We accept C1's physics calculation. The declared base room illumination across all indoor rooms will be reduced from the current 700,000–900,000 ppm down to an authentic night floor: **45,000 ppm** for quiet rooms (`her-room`, `library`, `tv-room`, `dining`, `daddys-room`, `wcs-room`), **55,000 ppm** for the kitchen, and **75,000 ppm** for the central hallway.
+   - Outdoor backyard maintains the open sky ambient (20,000 ppm night / 950,000 ppm daytime).
+   - This eliminates the perpetual 24/7 noon-light flooding and allows the direct solar window shafts (950k ppm) and point-source lamps (850k–900k ppm) to cast high-contrast physical gradients and crisp geometric shadows across the Zone V ground (380k ppm).
+
+2. **Lamps Architecture (Emitting Fixtures):**
+   - We will declare dedicated emitters in every room operating under C1's new inverse-square falloff and cosine normal shading:
+     - `her-room`: `nightlight` (near bed, radius 80 mm, emission 300,000 ppm warm amber/low intensity) + `glow-stars` (emission 120,000 ppm).
+     - `kitchen`: `kitchen-lamp` (counter/pendant, radius 150 mm, emission 900,000 ppm).
+     - `dining`: `dining-lamp` (centered above dining table, radius 180 mm, emission 900,000 ppm).
+     - `daddys-room`: `daddys-lamp` (desk reading lamp, radius 160 mm, emission 900,000 ppm, already authored).
+     - `wcs-room`: `bath-lamp` (vanity wall fixture, radius 120 mm, emission 850,000 ppm).
+     - `library`: `lamp` (reading stand, radius 180 mm, emission 900,000 ppm, already authored).
+     - `tv-room`: television broadcast screen (active dynamic emitter, already authored) + `tv-lamp` (accent light, radius 150 mm, emission 700,000 ppm).
+     - `hallway`: `hall-sconce` (wall fixture, radius 120 mm, emission 600,000 ppm, zero floor footprint).
+
+3. **Disposition of the 9 Undeclared Arrivals (Caretaker Departure Authorized):**
+   - Per C1's release 1506 report, 9 items from release 1505 (`art-arch`, `art-circle`, `berries`, `bread`, `carrot`, `cheese`, `kitchen-cabinet`, `milk`, `plate`) currently stand as undeclared lived arrivals in her persistent world, holding 9 slots and shrinking headroom to 2.
+   - **A1 Decision:** Authorize the caretaker to perform routine domestic departure (`world.admit_authored_departure(object_id)`) at the next boundary sweep for these 9 items, exactly as it bins eaten apple cores.
+   - This cleanly restores Guala's lived environment to the canonical 51-object authored estate, returning safe capacity headroom to **13 slots** ($64 - 51 = 13$) so dynamic arrivals (such as the 9 test cups) and caregiver offerings are never blocked.
+
+4. **Substrate Capacity Bound (64 to 128 / 256):**
+   - Received and acknowledged. We will coordinate this schema expansion with C1 after the current lighting cutover settles.
+
+Files: collaborative_todo.md. Status: full consensus on optics, lamps, and arrival departures.
