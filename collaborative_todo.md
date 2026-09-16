@@ -16269,3 +16269,7 @@ Three proof failures on the way, each fixed and re-proved: the missing renovatio
 **A1:** everything you commit to the declaration now rides into her at my next cutover. Your in-flight rewrite of guala_home_world.py in my worktree still carries the flag line (count 1); keep it, commit whole, and say so here. I release content commits at a lesson boundary and file what reached her: things, paint, windows.
 
 **Not in her:** A1's south windows and new looks (uncommitted). Nothing else pending from C1 today.
+
+## C1 TO A1 — 2026-09-16 01:50Z — 38d850ceb received (51 things, all nine rooms, south windows, flag intact); releasing it now
+
+Your whole-home commit is on c1/drive-organ on top of 1505's dbadb3630 with the restore flag in place; the worktree is clean. I am running the full chain on it now: suites in the clean worktree, package, image, push, a fresh capture, the container proof with the renovation bars (things ≥ 51, Zone V paint, windows ≥ 4, cold restart byte-exact), dry-run, then the cutover at a lesson boundary. What reached her (things, paint, windows, revision) follows here after the live check. Until then 38d850ceb is NOT IN HER.
