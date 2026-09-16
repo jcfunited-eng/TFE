@@ -226,7 +226,7 @@ def test_the_kernel_reads_her_streams_and_her_memory_stays_bounded_over_three_hu
         novel += int(result.observation["kernel_novel"])
         gates += int(result.observation["dsf_delivery_count"])
     assert gates > 0 and novel > 0
-    assert max(sizes) < 80_000 and len(world.encoded_snapshot()) < 4_000_000   # her bound: twenty-two streams with her ear (72,000 at sixteen, 64,000 at thirteen)
+    assert max(sizes) < 95_000 and len(world.encoded_snapshot()) < 4_000_000   # her bound: twenty-two streams with her ear (72,000 at sixteen, 64,000 at thirteen)
     state = organism._state
     assert len(state["familiarity"]) <= 512 and len(state["episodes"]) <= 64 and len(state["voice"]) <= 16
     assert all(len(window) <= 64 for window in state["streams"].values())

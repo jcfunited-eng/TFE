@@ -22,6 +22,19 @@ HOME_CEILING_MM = 2_600
 # bound of the modelled air column above it, not a room lid.
 BACKYARD_SKY_MM = 8_000
 
+# Windows, declared content like a thing's material: which wall of the room, from
+# where to where along it, sill and top. The sun's direct light enters through them;
+# the sky's share (the solar coupling) is the room's ambient. First four (C1); A1
+# extends and corrects as the home's content owner.
+from dsf_ai_service.substrate.embodiment_world import WindowMM  # noqa: E402
+
+HOME_WINDOWS = {
+    "her-room": (WindowMM("y-max", 1_800, 3_800, 900, 2_100),),    # the north wall, where the curtains hang
+    "library":  (WindowMM("y-max", 10_500, 12_500, 900, 2_100),),
+    "tv-room":  (WindowMM("y-max", 16_000, 18_000, 900, 2_100),),
+    "kitchen":  (WindowMM("x-min", 1_500, 3_500, 1_000, 2_000),),   # the west wall: afternoon sun
+}
+
 
 
 def _home_optical_surface_for(
@@ -42,11 +55,13 @@ def _home_optical_surface_for(
             for c in base_ref
         )
 
+    # Wide dynamic-range span (0.08, 0.35, 0.70, 1.00) ensures clear foveal step
+    # functions across all surfaces, preventing radial ring collapse in Level 1 eye.
     palette_list = [
-        scale_spec(0.65),
-        scale_spec(0.85),
-        scale_spec(1.10),
-        scale_spec(1.35),
+        scale_spec(0.08),
+        scale_spec(0.35),
+        scale_spec(0.70),
+        scale_spec(1.00),
     ]
     seen = set()
     for i, p in enumerate(palette_list):
@@ -173,6 +188,25 @@ def _home_optical_surface_for(
                     val = 0
                 else:
                     val = 1
+            elif "tree" in name:
+                d2 = (r - 16) ** 2 + (c - 16) ** 2
+                if d2 <= 25:
+                    val = 0
+                elif d2 <= 100:
+                    val = 2
+                elif d2 <= 225:
+                    val = 1
+                else:
+                    val = 3
+            elif "art-circle" in name:
+                d2 = (r - 16) ** 2 + (c - 16) ** 2
+                val = 0 if d2 <= 100 else 3
+            elif "art-arch" in name:
+                d2 = (r - 16) ** 2 + (c - 16) ** 2
+                if (r >= 16 and 10 <= c <= 22) or (r < 16 and d2 <= 36):
+                    val = 0
+                else:
+                    val = 3
             elif "art" in name:
                 if r < 16 and c < 16:
                     val = 0 if (r - 8) ** 2 + (c - 8) ** 2 <= 25 else 1
@@ -259,7 +293,9 @@ def _home_rooms_and_things() -> tuple[list[Any], list[Any], list[Any]]:
             ),
             ceiling_height_mm=ceiling,
             reflectance_ppm=(
-                (480_000,) * 6 if name == "backyard" else (620_000,) * 6
+                (180_000, 260_000, 140_000, 110_000, 90_000, 80_000)
+                if name == "backyard"
+                else (880_000,) * 6
             ),
             illumination_ppm=(light,) * 6,
         )
@@ -341,6 +377,12 @@ def _home_rooms_and_things() -> tuple[list[Any], list[Any], list[Any]]:
         ("swing",           7_000, 14_000, 700, 15_000, (480_000, 430_000, 380_000, 340_000, 320_000, 300_000)),
         ("sandbox",        11_500, 13_500, 1_100, 60_000, (820_000, 780_000, 700_000, 620_000, 560_000, 520_000)),
         ("garden-patch",   16_500, 13_500, 1_200, 80_000, (300_000, 380_000, 300_000, 260_000, 240_000, 220_000)),
+        # high-contrast outdoor trees
+        ("tree-oak",        1_500, 14_500, 600, 120_000, (120_000, 280_000, 150_000, 100_000, 80_000, 70_000)),
+        ("tree-pine",      19_000, 14_500, 600, 110_000, (80_000, 220_000, 120_000,  90_000, 70_000, 60_000)),
+        # high-contrast geometric gallery art (inspired by minimalist architectural interior)
+        ("art-circle",     18_500,  9_600, 180,     800, (880_000, 880_000, 880_000, 880_000, 880_000, 880_000)),
+        ("art-arch",          300,  7_900, 150,     700, (880_000, 880_000, 880_000, 880_000, 880_000, 880_000)),
     )
     # (release ng/s per odour channel, tastants ug, surface mK, compliance
     #  ppm, roughness um, moisture ppm) — same channel meanings as before:
@@ -378,7 +420,7 @@ def _home_rooms_and_things() -> tuple[list[Any], list[Any], list[Any]]:
         "television":      ((0, 0, 0, 0, 40, 0, 700, 0),    (0, 0, 0, 400, 0),          306_000, 20_000, 5, 1_000),
         "radio":           ((0, 0, 0, 0, 40, 0, 300, 0),    (0, 0, 0, 400, 0),          296_000, 20_000, 8, 1_000),
         "sofa":            ((0, 0, 0, 120, 1_500, 0, 0, 90), (0, 300, 0, 800, 0),       294_000, 700_000, 400, 52_000),
-        "rug":             ((0, 0, 0, 0, 2_200, 0, 0, 40),  (0, 300, 0, 900, 0),        294_000, 500_000, 800, 46_000),
+        "rug":             ((0, 0, 0, 0, 2_200, 0, 0, 40),  (0, 300, 0, 900, 0),        294_000, 50_000, 800, 46_000),
         "table":           ((0, 0, 0, 800, 50, 0, 0, 0),    (0, 0, 0, 1_500, 0),        294_000, 40_000, 40, 20_000),
         "table-chair":     ((0, 0, 0, 200, 400, 0, 0, 0),   (0, 0, 0, 1_500, 0),        294_000, 300_000, 40, 26_000),
         "dining-table":    ((0, 0, 0, 800, 50, 0, 0, 0),    (0, 0, 0, 1_500, 0),        294_000, 40_000, 40, 20_000),
@@ -390,6 +432,10 @@ def _home_rooms_and_things() -> tuple[list[Any], list[Any], list[Any]]:
         "swing":           ((0, 0, 0, 300, 400, 0, 0, 0),   (0, 200, 0, 900, 0),        288_000, 250_000, 300, 30_000),
         "sandbox":         ((0, 0, 0, 100, 600, 0, 0, 0),   (0, 100, 0, 400, 0),        290_000, 40_000, 900, 25_000),
         "garden-patch":    ((0, 0, 0, 1_600, 300, 0, 0, 0), (0, 100, 200, 700, 100),    289_000, 450_000, 700, 320_000),
+        "tree-oak":        ((0, 0, 0, 2_500, 0, 0, 0, 0),    (0, 0, 0, 2_000, 0),        288_000, 30_000, 800, 150_000),
+        "tree-pine":       ((0, 0, 0, 3_200, 0, 0, 0, 0),    (0, 0, 0, 2_000, 0),        288_000, 30_000, 600, 120_000),
+        "art-circle":      ((0, 0, 0, 30, 20, 800, 0, 0),   (0, 0, 0, 1_800, 0),        294_000, 50_000, 40, 15_000),
+        "art-arch":        ((0, 0, 0, 30, 20, 800, 0, 0),   (0, 0, 0, 1_800, 0),        294_000, 50_000, 40, 15_000),
     }
     reservoir_seconds = 864_000
     # Things that give off their own light (the emitter law): the lamp
