@@ -292,6 +292,46 @@ HOME_LOOKS = {
 }
 
 
+# Shapes: what her eye meets. A thing is a sphere unless declared here as a box:
+# (extents x, y, z in its own frame, heading about the vertical, height of its bottom
+# above the floor). Below the walking layer the footprint disc every planar law uses
+# must cover the box's plan, so such a box's radius is raised to that when needed; a
+# framed picture above it keeps its own footprint and hangs flat. First ones (C1):
+# her room's bed, chest, desk and chair, the two framed pictures on the west wall,
+# the library's shelves and the dining table. A1 extends as the home's content owner.
+HOME_SHAPES = {
+    "bed":              ((1_500,   950,   500),      0,     0),
+    "toy-chest":        ((  800,   450,   450),      0,     0),
+    "desk":             ((1_200,   600,   750),      0,     0),
+    "desk-chair":       ((  400,   400,   850),      0,     0),
+    "wall-art-shapes":  ((   40,   560,   760),      0, 1_300),   # a framed picture flat on the west wall
+    "wall-art-weather": ((   40,   560,   760),      0, 1_300),
+    "shelf-a":          ((  700,   300, 1_800),      0,     0),
+    "shelf-b":          ((  700,   300, 1_800),      0,     0),
+    "dining-table":     ((1_200,   700,   750),      0,     0),
+}
+
+
+def _shaped(things: list[Any]) -> list[Any]:
+    """Apply the declared shapes to the things that have one."""
+    import math
+    from dataclasses import replace
+
+    from dsf_ai_service.substrate.embodiment_world import WALKING_LAYER_MM
+
+    shaped = []
+    for item in things:
+        declared = HOME_SHAPES.get(item.object_id)
+        if declared is None:
+            shaped.append(item)
+            continue
+        size, heading, elevation = declared
+        needed = math.ceil(math.hypot(size[0], size[1]) / 2) if elevation < WALKING_LAYER_MM else 0
+        shaped.append(replace(item, shape="box", size_mm=tuple(size), heading_millidegrees=heading, elevation_mm=elevation,
+                              radius_mm=max(item.radius_mm, needed)))
+    return shaped
+
+
 def _home_optical_surface_for(
     name: str,
     base_ref: tuple[int, int, int, int, int, int],
@@ -810,7 +850,7 @@ def _home_rooms_and_things() -> tuple[list[Any], list[Any], list[Any]]:
         replace(portal, air_flow_cubic_mm_per_second=2_000_000)
         for portal in portals
     ]
-    return regions, portals, objects
+    return regions, portals, _shaped(objects)
 
 
 def _home_thermal_anatomy(
