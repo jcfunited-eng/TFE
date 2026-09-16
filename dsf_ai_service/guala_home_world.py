@@ -249,6 +249,71 @@ _subway_920 = _subway_tiles((920_000,) * 6)
 _mirror = _vanity_mirror((900_000,) * 6)
 
 
+def _grass_surface(columns: int = 32, rows: int = 32) -> ObjectOpticalSurface:
+    """Lawn grass: rich chlorophyll green palette with texture variations."""
+    palette = (
+        (60_000, 110_000, 360_000, 300_000, 70_000, 50_000),
+        (80_000, 140_000, 440_000, 380_000, 90_000, 70_000),
+        (100_000, 170_000, 500_000, 420_000, 100_000, 80_000),
+        (50_000, 90_000, 280_000, 240_000, 60_000, 40_000),
+    )
+    cells = []
+    for r in range(rows):
+        for c in range(columns):
+            h = (r * 5 + c * 3 + (r * c)) % 4
+            cells.append(h)
+    surface = ObjectOpticalSurface(columns, rows, palette, tuple(cells))
+    surface.verify()
+    return surface
+
+
+def _sky_surface(columns: int = 32, rows: int = 32) -> ObjectOpticalSurface:
+    """Atmospheric sky ceiling: Rayleigh scattering blue gradient."""
+    palette = (
+        (60_000, 90_000, 180_000, 320_000, 560_000, 720_000),
+        (70_000, 100_000, 200_000, 340_000, 580_000, 740_000),
+        (80_000, 120_000, 230_000, 380_000, 620_000, 760_000),
+        (90_000, 130_000, 250_000, 400_000, 640_000, 780_000),
+    )
+    cells = []
+    for r in range(rows):
+        for c in range(columns):
+            idx = min(3, r // 8)
+            cells.append(idx)
+    surface = ObjectOpticalSurface(columns, rows, palette, tuple(cells))
+    surface.verify()
+    return surface
+
+
+def _fence_surface(columns: int = 32, rows: int = 32) -> ObjectOpticalSurface:
+    """Cedar perimeter fence: vertical wooden slats."""
+    palette = (
+        (260_000, 210_000, 140_000, 100_000, 70_000, 60_000),
+        (220_000, 170_000, 110_000, 80_000, 60_000, 50_000),
+        (160_000, 120_000, 80_000, 60_000, 40_000, 30_000),
+        (280_000, 230_000, 160_000, 110_000, 80_000, 70_000),
+    )
+    cells = []
+    for r in range(rows):
+        for c in range(columns):
+            if c % 4 == 3:
+                cells.append(2)
+            elif r % 16 in (2, 14):
+                cells.append(3)
+            elif (c // 4) % 2 == 0:
+                cells.append(0)
+            else:
+                cells.append(1)
+    surface = ObjectOpticalSurface(columns, rows, palette, tuple(cells))
+    surface.verify()
+    return surface
+
+
+_grass_lawn = _grass_surface()
+_blue_sky = _sky_surface()
+_fence_wood = _fence_surface()
+
+
 HOME_LOOKS = {
     "her-room": (
         SurfaceLookMM("floor", 0, 5_600, 5_000, 10_000, _planks_380),
@@ -289,6 +354,17 @@ HOME_LOOKS = {
     "library": (
         SurfaceLookMM("floor", 10_500, 13_500, 5_500, 8_500, _living_rug),
         SurfaceLookMM("floor", 9_000, 14_000, 5_000, 10_000, _planks_380),
+    ),
+    "hallway": (
+        SurfaceLookMM("floor", 5_600, 9_000, 5_000, 10_000, _planks_380),
+        SurfaceLookMM("floor", 6_800, 7_800, 5_500, 9_500, _living_rug),
+    ),
+    "backyard": (
+        SurfaceLookMM("floor", 0, 20_000, 10_000, 16_000, _grass_lawn),
+        SurfaceLookMM("ceiling", 0, 20_000, 10_000, 16_000, _blue_sky),
+        SurfaceLookMM("y-max", 0, 20_000, 0, 2_400, _fence_wood),
+        SurfaceLookMM("x-min", 10_000, 16_000, 0, 2_400, _fence_wood),
+        SurfaceLookMM("x-max", 10_000, 16_000, 0, 2_400, _fence_wood),
     ),
 }
 
@@ -366,6 +442,8 @@ def _P(kind, x, y, z, a, b=None, c=None, paint=None):
 _DARK = (80_000,) * 6
 _WOOD = (320_000, 260_000, 180_000, 120_000, 90_000, 80_000)
 _STEM = (140_000, 160_000, 90_000, 60_000, 50_000, 40_000)
+_FOLIAGE_OAK = (80_000, 130_000, 420_000, 360_000, 90_000, 70_000)
+_FOLIAGE_PINE = (60_000, 100_000, 320_000, 260_000, 70_000, 50_000)
 
 
 def _chair(seat=360, height=850, leg=40):
@@ -408,8 +486,8 @@ HOME_PARTS = {
     "pantry":   (_P("box", 0, 0, 900, 490, 490, 1_800), _P("box", 0, -250, 1_000, 20, 20, 300, _DARK)),
     "bath-tub": (_P("box", 0, 0, 275, 1_000, 600, 550), _P("box", 0, 0, 560, 800, 400, 20, _DARK)),          # the water's dark top
     "wash-basin": (_P("cylinder", 0, 0, 350, 120, 120, 700), _P("cylinder", 0, 0, 800, 420, 420, 100)),
-    "tree-oak": (_P("cylinder", 0, 0, 900, 240, 240, 1_800, _WOOD), _P("sphere", 0, 0, 2_400, 1_200)),
-    "tree-pine": (_P("cylinder", 0, 0, 800, 200, 200, 1_600, _WOOD), _P("sphere", 0, 0, 2_000, 900), _P("sphere", 0, 0, 2_700, 600)),
+    "tree-oak": (_P("cylinder", 0, 0, 900, 240, 240, 1_800, _WOOD), _P("sphere", 0, 0, 2_400, 1_200, paint=_FOLIAGE_OAK)),
+    "tree-pine": (_P("cylinder", 0, 0, 800, 200, 200, 1_600, _WOOD), _P("sphere", 0, 0, 2_000, 900, paint=_FOLIAGE_PINE), _P("sphere", 0, 0, 2_700, 600, paint=_FOLIAGE_PINE)),
     "swing":    (_P("cylinder", -450, 0, 1_000, 80, 80, 2_000, _WOOD), _P("cylinder", 450, 0, 1_000, 80, 80, 2_000, _WOOD),
                  _P("box", 0, 0, 1_990, 980, 80, 60, _WOOD), _P("box", 0, 0, 450, 400, 200, 40)),
     "slide":    (_P("box", 0, 0, 750, 1_200, 600, 1_500), _P("box", -700, 0, 700, 200, 400, 1_400, _WOOD)),
@@ -715,11 +793,11 @@ def _home_rooms_and_things() -> tuple[list[Any], list[Any], list[Any]]:
         ("daddys-room",  12_000,  0, 16_000,  5_000, HOME_CEILING_MM, 45_000),
         ("wcs-room",     16_000,  0, 20_000,  5_000, HOME_CEILING_MM, 45_000),
         ("her-room",      0,  5_000,  5_600, 10_000, HOME_CEILING_MM, 45_000),
-        ("hallway",       5_600, 5_000, 9_000, 10_000, HOME_CEILING_MM, 65_000),
+        ("hallway",       5_600, 5_000, 9_000, 10_000, HOME_CEILING_MM, 240_000),
         ("library",       9_000, 5_000, 14_000, 10_000, HOME_CEILING_MM, 45_000),
         ("tv-room",      14_000, 5_000, 20_000, 10_000, HOME_CEILING_MM, 45_000),
         # The backyard's ceiling is the sky: tall, bright, outdoors.
-        ("backyard",      0, 10_000, 20_000, 16_000, BACKYARD_SKY_MM, 950_000),
+        ("backyard",      0, 10_000, 20_000, 16_000, BACKYARD_SKY_MM, 280_000),
     )
     # Architectural Zone V floor/wall baseline (380,000 ppm) provides high contrast
     # in both directions: bright whites pop (+115 to +130 pts), matte blacks sink (-40 to -75 pts).
@@ -732,7 +810,7 @@ def _home_rooms_and_things() -> tuple[list[Any], list[Any], list[Any]]:
             ),
             ceiling_height_mm=ceiling,
             reflectance_ppm=(
-                (180_000, 260_000, 140_000, 110_000, 90_000, 80_000)
+                (70_000, 100_000, 200_000, 340_000, 580_000, 740_000)
                 if name == "backyard"
                 else (380_000,) * 6
             ),
@@ -835,8 +913,8 @@ def _home_rooms_and_things() -> tuple[list[Any], list[Any], list[Any]]:
         ("swing",              7_000, 14_000, 700, 15_000, (480_000, 430_000, 380_000, 340_000, 320_000, 300_000)),
         ("sandbox",           11_500, 13_500, 1_100, 60_000, (820_000, 780_000, 700_000, 620_000, 560_000, 520_000)),
         ("garden-patch",      16_500, 13_500, 1_200, 80_000, (300_000, 380_000, 300_000, 260_000, 240_000, 220_000)),
-        ("tree-oak",           1_500, 14_500, 600, 120_000, (120_000, 280_000, 150_000, 100_000,  80_000,  70_000)),
-        ("tree-pine",         19_000, 14_500, 600, 110_000, (80_000,  220_000, 120_000,  90_000,  70_000,  60_000)),
+        ("tree-oak",           1_500, 14_500, 600, 120_000, (80_000,  130_000, 420_000, 360_000,  90_000,  70_000)),
+        ("tree-pine",         19_000, 14_500, 600, 110_000, (60_000,  100_000, 320_000, 260_000,  70_000,  50_000)),
     )
     # (release ng/s per odour channel, tastants ug, surface mK, compliance
     #  ppm, roughness um, moisture ppm) — same channel meanings as before:
