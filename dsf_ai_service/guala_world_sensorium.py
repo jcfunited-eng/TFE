@@ -176,11 +176,20 @@ def _retinal_luminance(pixels: RetinalField) -> tuple[Fraction, ...]:
     return tuple(out)
 
 
+def _sun_of(world: Any) -> tuple[float, float, float, int] | None:
+    """The sun as the world authority knows it now (its direction and the sky's light),
+    for the world eye's direct light; None for a world without a sun, or at night."""
+
+    read = getattr(world, "solar_sun", None)
+    return None if read is None else read()
+
+
 def passive_receptor_capture(
     *,
     snapshot: Any,
     body_axes: tuple[Any, ...],
     include_world_sight: bool = True,
+    sun: tuple[float, float, float, int] | None = None,
 ) -> tuple[RetinalField, dict[PhysicalSense, tuple[Any, ...]], Fraction]:
     """Capture current contacts and, when consumed, all six optical bands."""
 
@@ -191,6 +200,7 @@ def passive_receptor_capture(
         retinal_irradiance_field(
             snapshot, retinal_heading_offset_millidegrees=heading,
             retinal_pitch_offset_millidegrees=pitch, include_focal=True,
+            sun=sun,
         )
         if include_world_sight else ()
     )
@@ -300,7 +310,7 @@ def passive_sensorium(
     pixels, physical, transmission = (
         passive_receptor_capture(
             snapshot=snapshot, body_axes=body_axes,
-            include_world_sight=include_world_sight,
+            include_world_sight=include_world_sight, sun=_sun_of(world),
         )
         if receptor_capture is None
         else receptor_capture
@@ -367,6 +377,7 @@ def body_consequence_receptor_capture(
     execution: ActionExecutionReceipt,
     predecessor_body_axes: tuple[Any, ...],
     successor_body_axes: tuple[Any, ...],
+    sun: tuple[float, float, float, int] | None = None,
 ) -> tuple[
     RetinalField, RetinalField, dict[PhysicalSense, tuple[Any, ...]], Fraction, Fraction
 ]:
@@ -377,11 +388,11 @@ def body_consequence_receptor_capture(
     after_heading, after_pitch, after_transmission = retinal_carriage(successor_body_axes)
     before_pixels = retinal_irradiance_field(
         execution.before, retinal_heading_offset_millidegrees=before_heading,
-        retinal_pitch_offset_millidegrees=before_pitch, include_focal=True,
+        retinal_pitch_offset_millidegrees=before_pitch, include_focal=True, sun=sun,
     )
     after_pixels = retinal_irradiance_field(
         execution.after, retinal_heading_offset_millidegrees=after_heading,
-        retinal_pitch_offset_millidegrees=after_pitch, include_focal=True,
+        retinal_pitch_offset_millidegrees=after_pitch, include_focal=True, sun=sun,
     )
     physical = physical_contact_substreams(
         execution.before, execution.after, causal_transition=True,
@@ -409,6 +420,7 @@ def passive_body_consequence_sensorium(
             execution=execution,
             predecessor_body_axes=predecessor_body_axes,
             successor_body_axes=successor_body_axes,
+            sun=_sun_of(world),
         )
         if receptor_capture is None
         else receptor_capture

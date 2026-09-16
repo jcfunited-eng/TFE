@@ -21,6 +21,7 @@ import hmac
 import json
 from dataclasses import dataclass
 from fractions import Fraction
+import math
 from math import isqrt
 from typing import Mapping
 
@@ -696,12 +697,113 @@ def _portal_aperture_background(
                             )
 
 
+def _direct_sun_focal(
+    observation: ObservationSnapshot,
+    *,
+    eye: PositionMM,
+    body_heading_millidegrees: int,
+    retinal_pitch_offset_millidegrees: int,
+    current_region: PhysicalRegion,
+    pixels: list[tuple[Fraction, ...]],
+    site_geometry: RetinalSiteGeometry,
+    sun: tuple[float, float, float, int],
+) -> None:
+    """The sun's direct light on the room's own surfaces, seen through the focal sites:
+    each site's ray meets the floor, a wall or the ceiling of the room; that point is in
+    direct sun when the line from it toward the sun passes through one of the room's
+    windows and no thing or body stands in the way; then the surface's light is its
+    ambient plus the sky's light times the sun's incidence on that surface. A shaft
+    through a window, its shadow behind a thing, and the falloff of the sun's angle are
+    geometry, nothing else."""
+
+    focal_count = len(site_geometry) - RETINA_TOTAL_RECEPTOR_COUNT
+    if focal_count <= 0 or not current_region.windows:
+        return
+    sx, sy, sz, sky_ppm = sun
+    if sz <= 0.0:
+        return
+    bounds = current_region.bounds
+    ceiling = bounds.maximum.z
+    heading = math.radians(body_heading_millidegrees / 1000.0)
+    pitch_offset = math.radians(retinal_pitch_offset_millidegrees / 1000.0)
+    occluders = [
+        (item.position.x, item.position.y, item.position.z + item.radius_mm, item.radius_mm)
+        for item in observation.objects if item.position is not None
+    ] + [
+        (other.pose.position.x, other.pose.position.y, other.pose.position.z + other.radius_mm, other.radius_mm)
+        for other in observation.bodies
+    ]
+    walls = {
+        "x-min": (bounds.minimum.x, "x"), "x-max": (bounds.maximum.x, "x"),
+        "y-min": (bounds.minimum.y, "y"), "y-max": (bounds.maximum.y, "y"),
+    }
+    for site_index, h_center, v_center, _half_h, _half_v in site_geometry[RETINA_TOTAL_RECEPTOR_COUNT:]:
+        h = heading + math.radians(float(h_center) / 1000.0)
+        v = pitch_offset + math.radians(float(v_center) / 1000.0)
+        dx, dy, dz = math.cos(v) * math.cos(h), math.cos(v) * math.sin(h), math.sin(v)
+        # The ray's first meeting with the room's floor, ceiling or walls.
+        best_t, normal = None, None
+        for plane, axis, n in (
+            (bounds.minimum.z, "z", (0.0, 0.0, 1.0)), (ceiling, "z", (0.0, 0.0, -1.0)),
+            (bounds.minimum.x, "x", (1.0, 0.0, 0.0)), (bounds.maximum.x, "x", (-1.0, 0.0, 0.0)),
+            (bounds.minimum.y, "y", (0.0, 1.0, 0.0)), (bounds.maximum.y, "y", (0.0, -1.0, 0.0)),
+        ):
+            d = {"x": dx, "y": dy, "z": dz}[axis]
+            origin = {"x": eye.x, "y": eye.y, "z": eye.z}[axis]
+            if abs(d) < 1e-9:
+                continue
+            t = (plane - origin) / d
+            if t > 1e-6 and (best_t is None or t < best_t):
+                best_t, normal = t, n
+        if best_t is None:
+            continue
+        px, py, pz = eye.x + dx * best_t, eye.y + dy * best_t, eye.z + dz * best_t
+        incidence = normal[0] * sx + normal[1] * sy + normal[2] * sz     # cosine between the surface's normal and the sun
+        if incidence <= 0.0:
+            continue
+        # Toward the sun from the point: through which wall, and through a window in it?
+        through = False
+        for window in current_region.windows:
+            plane, axis = walls[window.wall]
+            s_axis = {"x": sx, "y": sy}[axis]
+            origin = {"x": px, "y": py}[axis]
+            if abs(s_axis) < 1e-9:
+                continue
+            u = (plane - origin) / s_axis
+            if u <= 1e-6:
+                continue
+            along = (py + sy * u) if axis == "x" else (px + sx * u)
+            height = pz + sz * u
+            if window.from_mm <= along <= window.to_mm and window.sill_mm <= height <= window.top_mm:
+                through, reach = True, u
+                break
+        if not through:
+            continue
+        shadowed = False
+        for ox, oy, oz, r in occluders:
+            vx, vy, vz = ox - px, oy - py, oz - pz
+            u = vx * sx + vy * sy + vz * sz
+            if 0.0 < u < reach:
+                cx, cy, cz = vx - u * sx, vy - u * sy, vz - u * sz
+                if cx * cx + cy * cy + cz * cz <= r * r:
+                    shadowed = True
+                    break
+        if shadowed:
+            continue
+        direct = int(sky_ppm * incidence)
+        pixels[site_index] = tuple(
+            min(Fraction(1), Fraction(reflectance * (illumination + direct), 1_000_000_000_000))
+            for reflectance, illumination in zip(current_region.reflectance_ppm, current_region.illumination_ppm, strict=True)
+        )
+
+
 def _retinal_projection(
     observation: ObservationSnapshot,
     *,
     retinal_heading_offset_millidegrees: int = 0,
     retinal_pitch_offset_millidegrees: int = 0,
     site_geometry: RetinalSiteGeometry = RETINAL_SITE_GEOMETRY,
+    sun: tuple[float, float, float, int] | None = None,
 ) -> tuple[tuple[Fraction, ...], ...]:
     if (
         isinstance(retinal_heading_offset_millidegrees, bool)
@@ -742,6 +844,20 @@ def _retinal_projection(
     focal_left = -int(RETINA_FOCAL_HORIZONTAL_FOV_MILLIDEGREES) // 2
     focal_top = int(RETINA_FOCAL_VERTICAL_FOV_MILLIDEGREES) // 2
 
+    if sun is not None:
+        _direct_sun_focal(
+            observation,
+            eye=eye,
+            body_heading_millidegrees=(
+                body.pose.heading_millidegrees
+                + retinal_heading_offset_millidegrees
+            ) % 360_000,
+            retinal_pitch_offset_millidegrees=retinal_pitch_offset_millidegrees,
+            current_region=current_region,
+            pixels=pixels,
+            site_geometry=site_geometry,
+            sun=sun,
+        )
     _portal_aperture_background(
         observation,
         eye=eye,
@@ -1083,8 +1199,11 @@ def retinal_irradiance_field(
     retinal_heading_offset_millidegrees: int = 0,
     retinal_pitch_offset_millidegrees: int = 0,
     include_focal: bool = False,
+    sun: tuple[float, float, float, int] | None = None,
 ) -> tuple[tuple[Fraction, ...], ...]:
-    """The bounded six-band optical field, without temporary signal objects."""
+    """The bounded six-band optical field, without temporary signal objects. With the
+    sun given (its direction and the sky's light), the room's surfaces carry its direct
+    light through the room's windows on the focal sites."""
 
     if not isinstance(include_focal, bool):
         raise TypeError("retinal spatial coverage must be explicit")
@@ -1094,6 +1213,7 @@ def retinal_irradiance_field(
         retinal_heading_offset_millidegrees=retinal_heading_offset_millidegrees,
         retinal_pitch_offset_millidegrees=retinal_pitch_offset_millidegrees,
         site_geometry=geometry,
+        sun=sun,
     )
     if len(pixels) != len(geometry):
         raise RuntimeError("world retinal field changed mounted site count")

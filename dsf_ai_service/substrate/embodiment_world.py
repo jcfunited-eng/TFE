@@ -464,6 +464,25 @@ class SolarCoupling:
     night_ppm: int = 20_000
     sunrise_second_of_day: int = 6 * 3_600
     sunset_second_of_day: int = 20 * 3_600
+    # The sun's path over her home, declared once: it rises in the east (+x), passes over
+    # the backyard's side (+y) at midday and sets in the west (-x); its height above the
+    # horizon follows the same arc as the sky's light, peaking at sixty degrees.
+    peak_elevation_millidegrees: int = 60_000
+
+    def sun_vector(self, second_of_day: int) -> tuple[float, float, float, int] | None:
+        """Where the sun is: a unit vector toward it (east, north, up) and the sky's light
+        in ppm; None at night."""
+
+        span = self.sunset_second_of_day - self.sunrise_second_of_day
+        if span <= 0:
+            raise ValueError("the declared day has no daylight span")
+        position = second_of_day - self.sunrise_second_of_day
+        if position < 0 or position > span:
+            return None
+        fraction = position / span
+        azimuth = math.pi * fraction                                  # 0 = east (+x), pi/2 = north (+y), pi = west (-x)
+        elevation = math.radians(self.peak_elevation_millidegrees / 1000.0) * 4 * fraction * (1.0 - fraction)
+        return (math.cos(azimuth) * math.cos(elevation), math.sin(azimuth) * math.cos(elevation), math.sin(elevation), self.sky_ppm(second_of_day))
 
     def sky_ppm(self, second_of_day: int) -> int:
         span = self.sunset_second_of_day - self.sunrise_second_of_day
@@ -1168,6 +1187,44 @@ class BodyContactState:
         return record
 
 
+WINDOW_WALLS = ("x-min", "x-max", "y-min", "y-max")
+
+
+@dataclass(frozen=True, slots=True)
+class WindowMM:
+    """A window: an opening in one of a region's four walls, from one point along the
+    wall to another, from its sill to its top. The sun's direct light enters a region
+    through its windows only; the sky's share enters as the region's ambient (the
+    solar coupling). Declared content, like a thing's material."""
+
+    wall: str                 # which wall: x-min, x-max, y-min or y-max
+    from_mm: int              # along the wall (y for an x wall, x for a y wall)
+    to_mm: int
+    sill_mm: int              # height of the sill above the floor
+    top_mm: int
+
+    def verify(self) -> None:
+        if self.wall not in WINDOW_WALLS:
+            raise ValueError("window wall must be one of the region's four walls")
+        for value, label in ((self.from_mm, "window from"), (self.to_mm, "window to"), (self.sill_mm, "window sill"), (self.top_mm, "window top")):
+            _bounded_integer(value, label, minimum=0, maximum=(1 << 31) - 1)
+        if not (self.from_mm < self.to_mm and self.sill_mm < self.top_mm):
+            raise ValueError("a window must have width and height")
+
+    def as_record(self) -> dict[str, object]:
+        self.verify()
+        return {"wall": self.wall, "from_mm": self.from_mm, "to_mm": self.to_mm, "sill_mm": self.sill_mm, "top_mm": self.top_mm}
+
+
+def _window_from(value: object) -> WindowMM:
+    expected = {"wall", "from_mm", "to_mm", "sill_mm", "top_mm"}
+    if not isinstance(value, Mapping) or set(value) != expected:
+        raise ValueError("window fields changed")
+    window = WindowMM(wall=value["wall"], from_mm=value["from_mm"], to_mm=value["to_mm"], sill_mm=value["sill_mm"], top_mm=value["top_mm"])
+    window.verify()
+    return window
+
+
 @dataclass(frozen=True, slots=True)
 class PhysicalRegion:
     region_id: str
@@ -1176,10 +1233,16 @@ class PhysicalRegion:
     reflectance_ppm: tuple[int, ...]
     illumination_ppm: tuple[int, ...]
     air: AirVolumeState | None = None
+    windows: tuple[WindowMM, ...] = ()   # declared openings the sun's direct light enters through; old records decode without
 
     def verify(self) -> None:
         _identifier(self.region_id, "physical region id")
         self.bounds.verify()
+        for window in self.windows:
+            window.verify()
+            along = (self.bounds.minimum.y, self.bounds.maximum.y) if window.wall.startswith("x") else (self.bounds.minimum.x, self.bounds.maximum.x)
+            if not (along[0] <= window.from_mm and window.to_mm <= along[1]):
+                raise ValueError("window lies outside its wall")
         if self.ceiling_height_mm is not None:
             _bounded_integer(
                 self.ceiling_height_mm,
@@ -1212,6 +1275,7 @@ class PhysicalRegion:
             "reflectance_ppm": list(self.reflectance_ppm),
             "region_id": self.region_id,
             "air": self.air.as_record() if self.air is not None else None,
+            **({"windows": [window.as_record() for window in self.windows]} if self.windows else {}),
         }
 
 
@@ -2839,12 +2903,16 @@ def _region_from(value: object) -> PhysicalRegion:
         "air", "bounds", "ceiling_height_mm", "illumination_ppm",
         "reflectance_ppm", "region_id"
     }
-    if not isinstance(value, Mapping) or set(value) != expected:
+    if not isinstance(value, Mapping) or not (set(value) == expected or set(value) == expected | {"windows"}):
         raise ValueError("physical region fields changed")
+    raw_windows = value.get("windows", [])
+    if not isinstance(raw_windows, list):
+        raise ValueError("region windows must be a list")
     result = PhysicalRegion(
         region_id=value.get("region_id"),
         bounds=_room_from(value.get("bounds")),
         ceiling_height_mm=value.get("ceiling_height_mm"),
+        windows=tuple(_window_from(item) for item in raw_windows),
         reflectance_ppm=_physical_bands(
             tuple(value.get("reflectance_ppm"))
             if isinstance(value.get("reflectance_ppm"), list)
@@ -4715,6 +4783,18 @@ class EmbodimentWorldAuthority:
             )
         result = self._settle_solar_illumination(result)
         return result
+
+    def solar_sun(self) -> tuple[float, float, float, int] | None:
+        """Where the sun is now for her world eye (the same clock and law that write
+        the sky's light into her rooms): a unit vector toward it and the sky's light in
+        ppm; None at night or in a home without a sun."""
+
+        coupling = self._solar_coupling
+        if coupling is None:
+            return None
+        override = os.environ.get("GUALA_SOLAR_UTC_OVERRIDE", "").strip()
+        second_of_day = (int(override) if override else int(time.time())) % 86_400
+        return coupling.sun_vector(second_of_day)
 
     def _settle_solar_illumination(self, world: _WorldState) -> _WorldState:
         """Write the real sun's current light into the declared places.
