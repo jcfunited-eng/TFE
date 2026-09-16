@@ -122,7 +122,11 @@ DEFAULT_MAX_REGIONS = 4
 DEFAULT_MAX_PORTALS = 6
 DEFAULT_MAX_OBJECTS = 128
 DEFAULT_MAX_BODIES = 4
-DEFAULT_RECEIPT_CAPACITY = 16
+# Retained action receipts: a bounded proof of the order of her last acts, each a before
+# and an after of every thing. Sixteen of a 52-thing home cost two megabytes re-encoded on
+# every action; four keep the proof and a fifth of the cost (2026-09-16). A world recorded
+# with a longer tail restores keeping its latest receipts.
+DEFAULT_RECEIPT_CAPACITY = 4
 DEFAULT_MAX_COMMAND_BYTES = 4096
 # The world's exact byte capacity: the world, its surface catalog and sixteen
 # retained action receipts (each a before and an after of every thing). Raised
@@ -9001,7 +9005,8 @@ class EmbodimentWorldAuthority:
                 and all(
                     isinstance(recorded_limits[name], int)
                     and not isinstance(recorded_limits[name], bool)
-                    and 0 < recorded_limits[name] <= expected_limits[name]
+                    and 0 < recorded_limits[name]
+                    and (name == "receipt_capacity" or recorded_limits[name] <= expected_limits[name])
                     for name in expected_limits
                 )
             ):
@@ -9011,8 +9016,15 @@ class EmbodimentWorldAuthority:
         catalog = self._optical_surface_catalog_from_record(decoded.get("optical_surface_catalog"))
         world = self._world_from_compact_record(decoded.get("world"), catalog)
         raw_receipts = decoded.get("recent_applied_receipts")
-        if not isinstance(raw_receipts, list) or len(raw_receipts) > self._receipt_capacity:
+        if not isinstance(raw_receipts, list):
             raise ValueError("retained execution receipts exceed capacity")
+        if len(raw_receipts) > self._receipt_capacity:
+            if not allow_authenticated_physical_manifest_migration:
+                raise ValueError("retained execution receipts exceed capacity")
+            # A world recorded with a longer tail of receipts keeps its latest ones: the
+            # tail is a bounded proof of the order of her acts, not lived state.
+            raw_receipts = raw_receipts[-self._receipt_capacity:]
+            decoded = {**decoded, "recent_applied_receipts": raw_receipts}
         receipts = tuple(self._execution_from_compact_record(item, catalog) for item in raw_receipts)
         current_observation = self._observation_for(world)
         self._verify_retained_execution_order(

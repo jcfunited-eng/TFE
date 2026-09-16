@@ -355,7 +355,7 @@ def test_rays_meet_a_bear_part_by_part_nearest_first_with_true_normals() -> None
     assert w1[0] == 0 and t1[0] < 2_000                                                          # the body below it
     assert w2[0] == -1 and not np.isfinite(t2[0])                                                # above the ears: nothing
     assert w3[0] == 4 and abs(n3[2, 0]) < 1e-6 and n3[1, 0] < -0.99                              # a limb's side, horizontal normal
-    assert 500 < bounding_radius(bear) < 700
+    assert 250 < bounding_radius(bear) < 500      # around the middle of its parts
     # A point on the floor south of the bear, lit from the north through it: blocked; lit from the south: not.
     floor = np.array([[0.0], [-600.0], [0.0]])
     north = np.array([[0.0], [1.0], [0.0]]); south = np.array([[0.0], [-1.0], [0.0]])

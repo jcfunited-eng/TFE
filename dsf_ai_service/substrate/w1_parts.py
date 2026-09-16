@@ -109,66 +109,112 @@ def part_hits(item: Any, origin: np.ndarray, d: np.ndarray) -> tuple[np.ndarray,
     """For every ray from `origin` along `d` (3 x N, unit): the distance to the nearest part
     of the thing (+inf where none), the entering normal in the world frame (3 x N), the paint
     of the part struck (bands x N; the thing's own where the part declares none), and the index
-    of the part struck (-1 where none)."""
+    of the part struck (-1 where none). Only the rays that enter the thing's bounding sphere are
+    cast against its parts."""
     base, ca, sa = _frame(item)
-    o_local = _to_local((origin - base)[:, None], ca, sa)
-    d_local = _to_local(d, ca, sa)
     count = d.shape[1]
     best = np.full(count, np.inf)
     normal = np.zeros((3, count))
     paint = np.array(item.reflectance_ppm, dtype=np.float64)[:, None].repeat(count, axis=1)
     which = np.full(count, -1, dtype=np.int64)
+    # The quick reject: a sphere around the thing's floor point that holds every part.
+    reach = bounding_radius(item)
+    centre = base.copy(); centre[2] += _centre_height(item)
+    rel = (origin - centre)[:, None]
+    b = np.sum(rel * d, axis=0)
+    c = float(np.sum(rel * rel)) - reach * reach
+    disc = b * b - c
+    near_enough = (disc >= 0.0) & ((-b + np.sqrt(np.where(disc >= 0.0, disc, 0.0))) > 1e-6)
+    subset = np.nonzero(near_enough)[0]
+    if subset.size == 0:
+        return best, normal, paint, which
+    d_sub = d[:, subset]
+    o_local = _to_local((origin - base)[:, None], ca, sa)
+    d_local = _to_local(d_sub, ca, sa)
+    best_sub = np.full(subset.size, np.inf)
+    normal_sub = np.zeros((3, subset.size))
+    paint_sub = paint[:, subset].copy()
+    which_sub = np.full(subset.size, -1, dtype=np.int64)
     for index, part in enumerate(item.parts):
-        centre = np.array([float(v) for v in part.offset_mm])[:, None]
-        o = o_local - centre
+        part_centre = np.array([float(v) for v in part.offset_mm])[:, None]
+        o = o_local - part_centre
         if part.kind == "box":
             entry, _far, n_local = _box_hits(o, d_local, tuple(v / 2.0 for v in part.size_mm))
         elif part.kind == "sphere":
             entry, _far, n_local = _sphere_hits(o, d_local, part.size_mm[0] / 2.0)
         else:
             entry, _far, n_local = _cylinder_hits(o, d_local, part.size_mm[0] / 2.0, part.size_mm[2] / 2.0)
-        closer = entry < best
+        closer = entry < best_sub
         if not closer.any():
             continue
-        best = np.where(closer, entry, best)
-        normal = np.where(closer[None, :], _to_world(n_local, ca, sa), normal)
+        best_sub = np.where(closer, entry, best_sub)
+        normal_sub = np.where(closer[None, :], _to_world(n_local, ca, sa), normal_sub)
         if part.reflectance_ppm:
             own = np.array(part.reflectance_ppm, dtype=np.float64)[:, None]
-            paint = np.where(closer[None, :], own, paint)
-        which = np.where(closer, index, which)
+            paint_sub = np.where(closer[None, :], own, paint_sub)
+        which_sub = np.where(closer, index, which_sub)
+    best[subset] = best_sub
+    normal[:, subset] = normal_sub
+    paint[:, subset] = paint_sub
+    which[subset] = which_sub
     return best, normal, paint, which
 
 
 def part_blocks(item: Any, points: np.ndarray, toward: np.ndarray, reach: np.ndarray, skip_part: np.ndarray | None = None) -> np.ndarray:
     """Whether the segment from each point toward the light (unit direction `toward`, length
-    `reach`) enters any part of the thing; a ray's own part (skip_part index) never blocks it."""
+    `reach`) enters any part of the thing; a ray's own part (skip_part index) never blocks it.
+    Only the segments that pass the thing's bounding sphere are tested part by part."""
     base, ca, sa = _frame(item)
-    o_local = _to_local(points - base[:, None], ca, sa)
-    d_local = _to_local(toward, ca, sa)
-    blocked = np.zeros(points.shape[1], dtype=bool)
+    count = points.shape[1]
+    blocked = np.zeros(count, dtype=bool)
+    radius = bounding_radius(item)
+    centre = base.copy(); centre[2] += _centre_height(item)
+    rel = centre[:, None] - points
+    u = np.sum(rel * toward, axis=0)
+    perp = rel - toward * u[None, :]
+    candidate = (u > 0.0) & (u < reach + radius) & (np.sum(perp * perp, axis=0) <= radius * radius)
+    subset = np.nonzero(candidate)[0]
+    if subset.size == 0:
+        return blocked
+    o_local = _to_local(points[:, subset] - base[:, None], ca, sa)
+    d_local = _to_local(toward[:, subset], ca, sa)
+    reach_sub = reach[subset] if np.ndim(reach) else np.full(subset.size, float(reach))
+    skip_sub = skip_part[subset] if skip_part is not None else None
+    hit_any = np.zeros(subset.size, dtype=bool)
     for index, part in enumerate(item.parts):
-        centre = np.array([float(v) for v in part.offset_mm])[:, None]
-        o = o_local - centre
+        part_centre = np.array([float(v) for v in part.offset_mm])[:, None]
+        o = o_local - part_centre
         if part.kind == "box":
             entry, _far, _n = _box_hits(o, d_local, tuple(v / 2.0 for v in part.size_mm))
         elif part.kind == "sphere":
             entry, _far, _n = _sphere_hits(o, d_local, part.size_mm[0] / 2.0)
         else:
             entry, _far, _n = _cylinder_hits(o, d_local, part.size_mm[0] / 2.0, part.size_mm[2] / 2.0)
-        hit = np.isfinite(entry) & (entry < reach)
-        if skip_part is not None:
-            hit &= skip_part != index
-        blocked |= hit
+        hit = np.isfinite(entry) & (entry < reach_sub)
+        if skip_sub is not None:
+            hit &= skip_sub != index
+        hit_any |= hit
+    blocked[subset] = hit_any
     return blocked
 
 
+def _centre_height(item: Any) -> float:
+    """The height above the thing's floor point of the middle of its parts."""
+    if not item.parts:
+        return 0.0
+    tops = [part.offset_mm[2] + (part.size_mm[2] / 2.0 if part.kind != "sphere" else part.size_mm[0] / 2.0) for part in item.parts]
+    bottoms = [part.offset_mm[2] - (part.size_mm[2] / 2.0 if part.kind != "sphere" else part.size_mm[0] / 2.0) for part in item.parts]
+    return (max(tops) + min(bottoms)) / 2.0
+
+
 def bounding_radius(item: Any) -> float:
-    """A sphere around the thing's floor point that contains every part (for a quick reject)."""
+    """A sphere around the middle of the thing's parts that contains every part (for a quick reject)."""
+    middle = _centre_height(item)
     reach = 0.0
     for part in item.parts:
         if part.kind == "box":
             extent = math.sqrt(sum(v * v for v in part.size_mm)) / 2.0
         else:
             extent = math.hypot(part.size_mm[0] / 2.0, part.size_mm[2] / 2.0)
-        reach = max(reach, math.sqrt(sum(v * v for v in part.offset_mm)) + extent)
+        reach = max(reach, math.sqrt(part.offset_mm[0] ** 2 + part.offset_mm[1] ** 2 + (part.offset_mm[2] - middle) ** 2) + extent)
     return reach

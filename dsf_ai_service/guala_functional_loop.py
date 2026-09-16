@@ -8,6 +8,8 @@ from __future__ import annotations
 
 from fractions import Fraction
 import hashlib
+
+import numpy as np
 import json
 from typing import Any
 
@@ -78,15 +80,13 @@ def _world_retina_u8(snapshot: Any, axes: tuple[Any, ...], sun: tuple[float, flo
         snapshot, retinal_heading_offset_millidegrees=heading,
         retinal_pitch_offset_millidegrees=pitch, include_focal=True, sun=sun,
     )
-    values = []
-    scale = 255 * transmission
-    for p in pixels:
-        r = p[0] if p[0] == p[1] else (p[0] + p[1]) / 2
-        g = p[2] if p[2] == p[3] else (p[2] + p[3]) / 2
-        b = p[4] if p[4] == p[5] else (p[4] + p[5]) / 2
-        values.append(round(r * scale))
-        values.append(round(g * scale))
-        values.append(round(b * scale))
+    # Every site's six bands at once: red is the mean of bands 0 and 1, green of 2 and 3,
+    # blue of 4 and 5, at the retina's eight-bit grain through the eyelid's transmission.
+    bands = np.array(pixels, dtype=np.float64)                         # sites x 6 (exact fractions become floats here, once)
+    rgb = np.stack(((bands[:, 0] + bands[:, 1]) / 2.0, (bands[:, 2] + bands[:, 3]) / 2.0, (bands[:, 4] + bands[:, 5]) / 2.0), axis=1)
+    if rgb.min() < 0.0 or rgb.max() > 1.0:
+        raise RuntimeError("retinal observer left its physical range")
+    values = np.rint(rgb * (255.0 * float(transmission))).astype(np.int64).reshape(-1).tolist()
     if len(values) != WORLD_RETINAL_VALUES:
         raise RuntimeError("world retina changed its site count")
     return tuple(values)
