@@ -541,6 +541,7 @@ class _OpticalSurface:
     # dark with it.
     emission_ppm: tuple[int, ...] = ()
     source_id: str | None = None
+    box: bool = False
 
 
 def _region_radiance(region: PhysicalRegion) -> tuple[Fraction, ...]:
@@ -700,6 +701,13 @@ def _portal_aperture_background(
                             )
 
 
+# THE LAMP LAW: a thing's emission is the light it puts on a surface one metre from
+# its centre (the shade itself looks that bright); nearer, it rises with the inverse
+# square up to four times; farther, it falls with the inverse square.
+LAMP_REFERENCE_MM = 1_000.0
+LAMP_NEAR_GAIN = 4.0
+
+
 @dataclass(frozen=True, slots=True)
 class _Light:
     """One source of direct light in a room: the sun (a direction toward it, and the
@@ -726,17 +734,46 @@ def _room_lights(
     lights: list[_Light] = []
     if sun is not None and sun[2] > 0.0 and current_region.windows:
         lights.append(_Light("sun", sun[0], sun[1], sun[2], 0, (sun[3],) * bands, None))
-    occluders: list[tuple[float, float, float, float, str | None]] = []
+    occluders: list[tuple] = []
     for item in observation.objects:
         if item.position is None or not current_region.bounds.contains_floor_disc(item.position, 0):
             continue
-        occluders.append((item.position.x, item.position.y, item.position.z + item.radius_mm, item.radius_mm, item.object_id))
+        occluders.append(_occluder_of(item))
         emission = getattr(item, "emission_ppm", ()) or ()
         if len(emission) == bands and any(emission):
             lights.append(_Light("lamp", item.position.x, item.position.y, item.position.z + item.radius_mm, item.radius_mm, tuple(emission), item.object_id))
     for other in observation.bodies:
-        occluders.append((other.pose.position.x, other.pose.position.y, other.pose.position.z + other.radius_mm, other.radius_mm, other.body_id))
+        occluders.append((other.pose.position.x, other.pose.position.y, other.pose.position.z + other.radius_mm, other.radius_mm, other.body_id, None))
     return lights, occluders
+
+
+def _occluder_of(item: EmbodiedObject) -> tuple:
+    """What a thing blocks light with: its sphere, or its box (centre, half extents, rotation)."""
+    if getattr(item, "shape", "sphere") == "box":
+        sx, sy, sz = item.size_mm
+        angle = math.radians(item.heading_millidegrees / 1000.0)
+        centre_z = item.position.z + item.elevation_mm + sz / 2.0
+        bounding = math.sqrt(sx * sx + sy * sy + sz * sz) / 2.0
+        return (item.position.x, item.position.y, centre_z, bounding, item.object_id,
+                (sx / 2.0, sy / 2.0, sz / 2.0, math.cos(angle), math.sin(angle)))
+    return (item.position.x, item.position.y, item.position.z + item.radius_mm, item.radius_mm, item.object_id, None)
+
+
+def _box_entry(ox, oy, oz, half, dx, dy, dz):
+    """Slab test in a box's own frame: the entry and exit distances along a ray whose origin is
+    (ox, oy, oz) relative to the box centre, already rotated into the box frame; scalars or arrays."""
+    near, far = -np.inf, np.inf
+    for o, d, h in ((ox, dx, half[0]), (oy, dy, half[1]), (oz, dz, half[2])):
+        with np.errstate(divide="ignore", invalid="ignore"):
+            t1 = (-h - o) / d
+            t2 = (h - o) / d
+        parallel = np.abs(d) < 1e-12
+        inside = np.abs(o) <= h
+        lo = np.where(parallel, np.where(inside, -np.inf, np.inf), np.minimum(t1, t2))
+        hi = np.where(parallel, np.where(inside, np.inf, -np.inf), np.maximum(t1, t2))
+        near = np.maximum(near, lo)
+        far = np.minimum(far, hi)
+    return near, far
 
 
 def _through_window(
@@ -772,15 +809,26 @@ def _blocked(
 ) -> bool:
     """Whether a thing or a body stands on the line from a point toward a light."""
 
-    for ox, oy, oz, r, oid in occluders:
+    for ox, oy, oz, r, oid, box in occluders:
         if oid is not None and oid == skip:
             continue
         vx, vy, vz = ox - px, oy - py, oz - pz
         u = vx * lx + vy * ly + vz * lz
-        if 0.0 < u < reach:
-            cx, cy, cz = vx - u * lx, vy - u * ly, vz - u * lz
-            if cx * cx + cy * cy + cz * cz <= r * r:
+        if not 0.0 < u < reach + r:
+            continue
+        cx, cy, cz = vx - u * lx, vy - u * ly, vz - u * lz
+        if cx * cx + cy * cy + cz * cz > r * r:
+            continue                                   # outside the bounding sphere: cannot block
+        if box is None:
+            if u < reach:
                 return True
+            continue
+        hx, hy, hz, ca, sa = box
+        rx, ry, rz = -vx, -vy, -vz                     # the point, relative to the box centre
+        near, far = _box_entry(ca * rx + sa * ry, -sa * rx + ca * ry, rz, (hx, hy, hz),
+                               ca * lx + sa * ly, -sa * lx + ca * ly, lz)
+        if far >= near and 1e-6 < near < reach:
+            return True
     return False
 
 
@@ -809,7 +857,7 @@ def _direct_light(
                 continue
             lx, ly, lz = vx / d, vy / d, vz / d
             reach = d - light.radius_mm
-            falloff = (light.radius_mm / d) ** 2
+            falloff = min(LAMP_NEAR_GAIN, (LAMP_REFERENCE_MM / d) ** 2)
         if normal is not None:
             factor = normal[0] * lx + normal[1] * ly + normal[2] * lz
         else:
@@ -848,9 +896,9 @@ def _bounce_ppm(current_region: PhysicalRegion, lights: list[_Light]) -> tuple[i
                 for band in range(len(flux)):
                     flux[band] += light.ppm[band] * window_area * entering
         else:
-            surface = 4.0 * math.pi * light.radius_mm * light.radius_mm
+            sphere = 4.0 * math.pi * LAMP_REFERENCE_MM * LAMP_REFERENCE_MM     # what it puts on a sphere one metre around it
             for band in range(len(flux)):
-                flux[band] += light.ppm[band] * surface
+                flux[band] += light.ppm[band] * sphere
     return tuple(int(f * r / 1_000_000 / area) for f, r in zip(flux, current_region.reflectance_ppm))
 
 
@@ -886,17 +934,28 @@ def _lit_surfaces_focal(
     site_geometry: RetinalSiteGeometry,
     lights: list[_Light],
     occluders: list[tuple[float, float, float, float, str | None]],
-) -> None:
-    """The room's own surfaces through the focal sites: each site's ray meets the floor,
-    a wall or the ceiling; that point carries the region's paint or a declared look's
-    cell there, lit by the room's light (ambient and bounce) plus the direct light that
-    reaches it: the sun through a window, a lamp; a shadow behind whatever stands in the
-    way; the falloff of the angle. Geometry over every site at once; the result is
-    written at the retina's own eight-bit grain."""
+) -> "np.ndarray | None":
+    """The room's surfaces and its box-shaped things through the focal sites, all rays
+    at once: each ray meets the floor, a wall, the ceiling or the nearest face of a box
+    (a bed, a desk, a framed picture on the wall); that face carries the region's paint,
+    a declared look's cell, or the thing's own reflectance or pattern; it is lit by the
+    room's light (ambient and bounce) plus the direct light that reaches it by its
+    normal: the sun through a window, a lamp; a shadow behind whatever stands in the
+    way; a thing's own emission. Written at the retina's eight-bit grain. Returns, by
+    site, the distance to the box hit there (infinite elsewhere) so nearer things drawn
+    after this pass can stand in front and farther ones behind."""
 
-    if len(site_geometry) <= RETINA_TOTAL_RECEPTOR_COUNT or (not lights and not current_region.looks):
-        return
+    if len(site_geometry) <= RETINA_TOTAL_RECEPTOR_COUNT:
+        return None
+    boxes = [
+        item for item in observation.objects
+        if getattr(item, "shape", "sphere") == "box" and item.position is not None
+        and current_region.bounds.contains_floor_disc(item.position, 0)
+    ]
+    if not lights and not current_region.looks and not boxes:
+        return None
     indices, h_offsets, v_offsets = _focal_rays(site_geometry)
+    count = len(indices)
     bounds = current_region.bounds
     bands = len(current_region.reflectance_ppm)
     h = math.radians(body_heading_millidegrees / 1000.0) + h_offsets
@@ -909,8 +968,8 @@ def _lit_surfaces_focal(
         (bounds.minimum.x, 0, (1.0, 0.0, 0.0), "x-min"), (bounds.maximum.x, 0, (-1.0, 0.0, 0.0), "x-max"),
         (bounds.minimum.y, 1, (0.0, 1.0, 0.0), "y-min"), (bounds.maximum.y, 1, (0.0, -1.0, 0.0), "y-max"),
     )
-    best = np.full(d.shape[1], np.inf)
-    face = np.full(d.shape[1], -1, dtype=np.int64)
+    best = np.full(count, np.inf)
+    face = np.full(count, -1, dtype=np.int64)
     for index, (plane, axis, _normal, _name) in enumerate(planes):
         with np.errstate(divide="ignore", invalid="ignore"):
             t = np.where(np.abs(d[axis]) < 1e-9, np.inf, (plane - origin[axis]) / d[axis])
@@ -919,16 +978,15 @@ def _lit_surfaces_focal(
         best = np.where(closer, t, best)
         face = np.where(closer, index, face)
     hit = face >= 0
-    if not hit.any():
-        return
-    best = np.where(hit, best, 0.0)
-    point = origin[:, None] + d * best[None, :]                                   # 3 x N hit points
-    normals = np.array([plane[2] for plane in planes] + [(0.0, 0.0, 0.0)])        # face -> normal (last: none)
+    normals = np.array([plane[2] for plane in planes] + [(0.0, 0.0, 0.0)])
     normal = normals[np.where(hit, face, len(planes))].T                          # 3 x N
     face_names = [plane[3] for plane in planes]
+    point = origin[:, None] + d * np.where(hit, best, 0.0)[None, :]
 
-    paint = np.array(current_region.reflectance_ppm, dtype=np.float64)[:, None].repeat(d.shape[1], axis=1)   # bands x N
-    has_look = np.zeros(d.shape[1], dtype=bool)
+    paint = np.array(current_region.reflectance_ppm, dtype=np.float64)[:, None].repeat(count, axis=1)   # bands x N
+    emission = np.zeros((bands, count))
+    source = np.full(count, -1, dtype=np.int64)                                   # index into occluders of the box hit, or -1
+    has_look = np.zeros(count, dtype=bool)
     for look in current_region.looks:
         face_index = face_names.index(look.face)
         if look.face in ("floor", "ceiling"):
@@ -941,20 +999,77 @@ def _lit_surfaces_focal(
         if not inside.any():
             continue
         surface = look.surface
-        column = np.minimum(surface.columns - 1, ((along - look.from_mm) * surface.columns / (look.to_mm - look.from_mm)).astype(np.int64))
-        row = np.minimum(surface.rows - 1, ((look.high_mm - up) * surface.rows / (look.high_mm - look.low_mm)).astype(np.int64))
+        column = np.clip(((along - look.from_mm) * surface.columns / (look.to_mm - look.from_mm)).astype(np.int64), 0, surface.columns - 1)
+        row = np.clip(((look.high_mm - up) * surface.rows / (look.high_mm - look.low_mm)).astype(np.int64), 0, surface.rows - 1)
         cells = np.array(surface.cell_palette_indices, dtype=np.int64).reshape(surface.rows, surface.columns)
-        palette = np.array(surface.palette_reflectance_ppm, dtype=np.float64)     # entries x bands
-        chosen = palette[cells[np.clip(row, 0, surface.rows - 1), np.clip(column, 0, surface.columns - 1)]].T   # bands x N
-        paint = np.where(inside[None, :], chosen, paint)
+        palette = np.array(surface.palette_reflectance_ppm, dtype=np.float64)
+        paint = np.where(inside[None, :], palette[cells[row, column]].T, paint)
         has_look |= inside
 
-    direct = np.zeros((bands, d.shape[1]))
+    # Box-shaped things: the nearest face of each box along every ray (a slab test in
+    # the box's own frame), nearer than the room's surface it would otherwise meet.
+    occluder_index = {entry[4]: k for k, entry in enumerate(occluders) if entry[4] is not None}
+    box_depth = np.full(count, np.inf)
+    for item in boxes:
+        sx, sy, sz = item.size_mm
+        hx, hy, hz = sx / 2.0, sy / 2.0, sz / 2.0
+        centre = np.array([float(item.position.x), float(item.position.y), float(item.position.z + item.elevation_mm) + hz])
+        angle = math.radians(item.heading_millidegrees / 1000.0)
+        ca, sa = math.cos(angle), math.sin(angle)
+        o = origin - centre
+        o_local = np.array([ca * o[0] + sa * o[1], -sa * o[0] + ca * o[1], o[2]])
+        d_local = np.stack((ca * d[0] + sa * d[1], -sa * d[0] + ca * d[1], d[2]))
+        near = np.full(count, -np.inf); far = np.full(count, np.inf)
+        entry_axis = np.zeros(count, dtype=np.int64)
+        for axis, half in enumerate((hx, hy, hz)):
+            with np.errstate(divide="ignore", invalid="ignore"):
+                t1 = (-half - o_local[axis]) / d_local[axis]
+                t2 = (half - o_local[axis]) / d_local[axis]
+            parallel = np.abs(d_local[axis]) < 1e-12
+            inside = np.abs(o_local[axis]) <= half
+            lo = np.where(parallel, np.where(inside, -np.inf, np.inf), np.minimum(t1, t2))
+            hi = np.where(parallel, np.where(inside, np.inf, -np.inf), np.maximum(t1, t2))
+            entry_axis = np.where(lo > near, axis, entry_axis)
+            near = np.maximum(near, lo); far = np.minimum(far, hi)
+        struck = (far >= near) & (near > 1e-6) & (near < best)
+        if not struck.any():
+            continue
+        p_local = o_local[:, None] + d_local * near[None, :]
+        # The entering face's normal, in the box frame then the world.
+        sign = np.sign(np.take_along_axis(p_local, entry_axis[None, :], axis=0)[0])
+        sign = np.where(sign == 0, 1.0, sign)
+        n_local = np.zeros((3, count))
+        np.put_along_axis(n_local, entry_axis[None, :], sign[None, :], axis=0)
+        n_world = np.stack((ca * n_local[0] - sa * n_local[1], sa * n_local[0] + ca * n_local[1], n_local[2]))
+        best = np.where(struck, near, best)
+        normal = np.where(struck[None, :], n_world, normal)
+        point = np.where(struck[None, :], origin[:, None] + d * near[None, :], point)
+        hit |= struck
+        box_depth = np.where(struck, near, box_depth)
+        source = np.where(struck, occluder_index.get(item.object_id, -1), source)
+        has_look = np.where(struck, False, has_look)
+        pattern = item.optical_surface
+        if pattern is not None:
+            u = np.where(entry_axis == 0, (p_local[1] + hy) / sy, (p_local[0] + hx) / sx)
+            vv = np.where(entry_axis == 2, (p_local[1] + hy) / sy, (p_local[2] + hz) / sz)
+            column = np.clip((u * pattern.columns).astype(np.int64), 0, pattern.columns - 1)
+            row = np.clip(((1.0 - vv) * pattern.rows).astype(np.int64), 0, pattern.rows - 1)
+            cells = np.array(pattern.cell_palette_indices, dtype=np.int64).reshape(pattern.rows, pattern.columns)
+            palette = np.array(pattern.palette_reflectance_ppm, dtype=np.float64)
+            own = palette[cells[row, column]].T
+        else:
+            own = np.array(item.reflectance_ppm, dtype=np.float64)[:, None].repeat(count, axis=1)
+        paint = np.where(struck[None, :], own, paint)
+        glow = getattr(item, "emission_ppm", ()) or ()
+        if len(glow) == bands and any(glow):
+            emission = np.where(struck[None, :], np.array(glow, dtype=np.float64)[:, None], emission)
+
+    direct = np.zeros((bands, count))
     for light in lights:
         if light.kind == "sun":
-            lx = np.full(d.shape[1], light.x); ly = np.full(d.shape[1], light.y); lz = np.full(d.shape[1], light.z)
-            reach = np.full(d.shape[1], np.inf)
-            through = np.zeros(d.shape[1], dtype=bool)
+            lx = np.full(count, light.x); ly = np.full(count, light.y); lz = np.full(count, light.z)
+            reach = np.full(count, np.inf)
+            through = np.zeros(count, dtype=bool)
             for window in current_region.windows:
                 axis = 0 if window.wall.startswith("x") else 1
                 plane = {"x-min": bounds.minimum.x, "x-max": bounds.maximum.x, "y-min": bounds.minimum.y, "y-max": bounds.maximum.y}[window.wall]
@@ -968,7 +1083,7 @@ def _lit_surfaces_focal(
                 reach = np.where(passes, u, reach)
                 through |= passes
             lit = hit & through
-            falloff = np.ones(d.shape[1])
+            falloff = np.ones(count)
             skip = None
         else:
             vx, vy, vz = light.x - point[0], light.y - point[1], light.z - point[2]
@@ -977,19 +1092,27 @@ def _lit_surfaces_focal(
             safe = np.where(dist > 0, dist, 1.0)
             lx, ly, lz = vx / safe, vy / safe, vz / safe
             reach = dist - light.radius_mm
-            falloff = (light.radius_mm / safe) ** 2
+            falloff = np.minimum(LAMP_NEAR_GAIN, (LAMP_REFERENCE_MM / safe) ** 2)
             skip = light.source_id
         factor = normal[0] * lx + normal[1] * ly + normal[2] * lz
         lit &= factor > 0.0
         if not lit.any():
             continue
-        for ox, oy, oz, r, oid in occluders:
+        for k, (ox, oy, oz, r, oid, box) in enumerate(occluders):
             if oid is not None and oid == skip:
                 continue
             vx, vy, vz = ox - point[0], oy - point[1], oz - point[2]
             u = vx * lx + vy * ly + vz * lz
             cx, cy, cz = vx - u * lx, vy - u * ly, vz - u * lz
-            shadow = (u > 0.0) & (u < reach) & (cx * cx + cy * cy + cz * cz <= r * r)
+            candidate = (u > 0.0) & (u < reach + r) & (cx * cx + cy * cy + cz * cz <= r * r) & (source != k)   # inside the bounding sphere, not the thing's own faces
+            if box is None:
+                shadow = candidate & (u < reach)
+            else:
+                hx, hy, hz, ca, sa = box
+                rx, ry, rz = -vx, -vy, -vz
+                near, far = _box_entry(ca * rx + sa * ry, -sa * rx + ca * ry, rz, (hx, hy, hz),
+                                       ca * lx + sa * ly, -sa * lx + ca * ly, lz)
+                shadow = candidate & (far >= near) & (near > 1e-6) & (near < reach)
             lit &= ~shadow
             if not lit.any():
                 break
@@ -999,14 +1122,18 @@ def _lit_surfaces_focal(
         for band in range(bands):
             direct[band] += light.ppm[band] * gain
 
-    changed = hit & (has_look | (direct > 0.0).any(axis=0))
-    if not changed.any():
-        return
-    illumination = np.array(illumination_ppm, dtype=np.float64)[:, None]
-    values = np.clip(paint * (illumination + direct) / 1e12, 0.0, 1.0)
-    eight_bit = np.rint(values * 255).astype(np.int64)
-    for column in np.nonzero(changed)[0]:
-        pixels[indices[column]] = tuple(_EIGHT_BIT[eight_bit[band, column]] for band in range(bands))
+    changed = hit & (has_look | (source >= 0) | (direct > 0.0).any(axis=0))
+    if changed.any():
+        illumination = np.array(illumination_ppm, dtype=np.float64)[:, None]
+        values = np.clip(paint * (illumination + direct) / 1e12 + emission / 1e6, 0.0, 1.0)
+        eight_bit = np.rint(values * 255).astype(np.int64)
+        for column in np.nonzero(changed)[0]:
+            pixels[indices[column]] = tuple(_EIGHT_BIT[eight_bit[band, column]] for band in range(bands))
+    if not boxes:
+        return None
+    depth_by_site = np.full(len(site_geometry), np.inf)
+    depth_by_site[np.array(indices)] = box_depth
+    return depth_by_site
 
 def _retinal_projection(
     observation: ObservationSnapshot,
@@ -1063,7 +1190,7 @@ def _retinal_projection(
     focal_left = -int(RETINA_FOCAL_HORIZONTAL_FOV_MILLIDEGREES) // 2
     focal_top = int(RETINA_FOCAL_VERTICAL_FOV_MILLIDEGREES) // 2
 
-    _lit_surfaces_focal(
+    box_depth = _lit_surfaces_focal(
         observation,
         eye=eye,
         body_heading_millidegrees=(
@@ -1135,6 +1262,7 @@ def _retinal_projection(
                 optical_surface=item.optical_surface,
                 emission_ppm=getattr(item, "emission_ppm", ()) or (),
                 source_id=item.object_id,
+                box=getattr(item, "shape", "sphere") == "box" and item.held_by_body_id is None,
             )
         )
 
@@ -1199,6 +1327,7 @@ def _retinal_projection(
         pattern = surface.optical_surface
         if pattern is not None:
             pattern.verify()
+        surface_distance = math.sqrt(_position_distance_squared(eye, surface.position))
         if surface_region.region_id == current_region.region_id:
             surface_illumination = lit_illumination
             if lights:
@@ -1340,8 +1469,8 @@ def _retinal_projection(
                 )
             )
 
-        # Accelerated focal grid projection
-        if has_focal:
+        # Accelerated focal grid projection (a box was drawn face by face in the ray pass)
+        if has_focal and not surface.box:
             H_min = relative_horizontal - angular_radius
             H_max = relative_horizontal + angular_radius
             V_min = relative_vertical - angular_radius
@@ -1416,6 +1545,8 @@ def _retinal_projection(
                         else:
                             surface_light = base_surface_light
                         s_idx = row_offset + c
+                        if box_depth is not None and box_depth[s_idx] < surface_distance:
+                            continue                      # a box stands in front of this thing here
                         if h_overlap * v_overlap == cell_area:
                             pixels[s_idx] = surface_light
                         else:

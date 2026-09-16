@@ -27,7 +27,7 @@ def _her_room_with_window():
     region = next(r for r in snapshot.regions if r.region_id == "her-room")
     lit = replace(region, windows=(NORTH_WINDOW,), looks=())      # paint only, and no lamp (her glow stars emit): the sun alone is measured
     quiet = replace(snapshot, regions=tuple(lit if r.region_id == "her-room" else r for r in snapshot.regions),
-                    objects=tuple(o for o in snapshot.objects if not (o.emission_ppm and any(o.emission_ppm))))
+                    objects=tuple(o for o in snapshot.objects if not (o.emission_ppm and any(o.emission_ppm)) and o.shape != "box"))
     return world, quiet, lit
 
 
@@ -148,7 +148,7 @@ def test_a_lamp_lights_the_floor_around_it_at_night_and_a_thing_beside_it_casts_
     region = next(r for r in snapshot.regions if r.region_id == "her-room")
     plain = replace(region, looks=())                                 # paint only, so light alone is measured
     quiet = replace(snapshot, regions=tuple(plain if r.region_id == "her-room" else r for r in snapshot.regions),
-                    objects=tuple(o for o in snapshot.objects if not (o.emission_ppm and any(o.emission_ppm))))
+                    objects=tuple(o for o in snapshot.objects if not (o.emission_ppm and any(o.emission_ppm)) and o.shape != "box"))
     ambient = int(round(255 * float(_retinal_luminance((_region_radiance(plain),))[0])))
     dark, _ = _field(quiet, plain, None)
     assert all(v == ambient for v in dark)
@@ -198,3 +198,102 @@ def test_a_look_on_the_floor_is_read_where_the_rays_meet_it_and_survives_the_rec
         assert "outside its face" in str(error)
     else:
         raise AssertionError("a look wider than its face was accepted")
+
+
+def _eye_view(snapshot, x, y, heading, pitch, sun=None):
+    """Her focal field from a stance in her room, through the path her beat uses."""
+    from dsf_ai_service.guala_functional_loop import WORLD_FOCAL_SITES, _world_retina_u8
+    from dsf_ai_service.guala_functional_organism import FunctionalOrganism
+    organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
+    placed = replace(snapshot, room_id="her-room", bodies=tuple(
+        replace(b, pose=replace(b.pose, position=replace(b.pose.position, x=x, y=y), heading_millidegrees=heading)) if b.body_id == snapshot.self_body_id else b
+        for b in snapshot.bodies))
+    axes = tuple((a[0], a[1], a[2], pitch if a[1] == "neck_pitch" else 0 if a[1] in ("neck_yaw", "left_eye_yaw", "right_eye_yaw", "left_eye_pitch", "right_eye_pitch") else a[3], *a[4:])
+                 for a in organism.body_axes)
+    field = _world_retina_u8(placed, axes, sun)[-WORLD_FOCAL_SITES:]
+    return [field[r * 80:(r + 1) * 80] for r in range(60)]
+
+
+SHAPES = {   # the test's own furniture shapes for her room: (extents, heading, elevation)
+    "bed": ((1_500, 950, 500), 0, 0), "toy-chest": ((800, 450, 450), 0, 0), "desk": ((1_200, 600, 750), 0, 0),
+    "desk-chair": ((400, 400, 850), 0, 0), "wall-art-shapes": ((40, 560, 760), 0, 1_300), "wall-art-weather": ((40, 560, 760), 0, 1_300),
+}
+
+
+def _with_boxes(snapshot):
+    import math
+    shaped = []
+    for o in snapshot.objects:
+        if o.object_id in SHAPES and o.position is not None:
+            size, heading, elevation = SHAPES[o.object_id]
+            o = replace(o, shape="box", size_mm=size, heading_millidegrees=heading, elevation_mm=elevation,
+                        radius_mm=max(o.radius_mm, math.ceil(math.hypot(size[0], size[1]) / 2)))
+        shaped.append(o)
+    return replace(snapshot, objects=tuple(shaped))
+
+
+def test_a_box_is_a_shape_in_the_records_and_a_sphere_still_decodes_without_one() -> None:
+    from dsf_ai_service.substrate.embodiment_world import _object_from
+    world = home_world_authority(identity=IDENTITY)
+    desk = next(o for o in _with_boxes(world.observation_snapshot()).objects if o.object_id == "desk")
+    assert desk.shape == "box" and desk.size_mm == (1_200, 600, 750)
+    record = desk.as_record()
+    assert record["shape"] == {"kind": "box", "size_mm": [1_200, 600, 750], "heading_millidegrees": 0, "elevation_mm": 0}
+    assert _object_from(record) == desk
+    ball = next(o for o in world.observation_snapshot().objects if o.object_id == "bowl")
+    assert ball.shape == "sphere" and "shape" not in ball.as_record() and _object_from(ball.as_record()) == ball
+    try:
+        replace(desk, radius_mm=100).verify()
+    except ValueError as error:
+        assert "cover the box" in str(error)
+    else:
+        raise AssertionError("a box wider than its footprint disc was accepted")
+
+
+def test_a_box_shows_faces_and_straight_edges_where_a_sphere_showed_an_orb() -> None:
+    """From mid-room facing the west wall by lamplight: the two framed pictures hang at
+    picture height with straight vertical edges (a column of the field changes at the
+    same row for many rows), and the desk shows more than one face brightness."""
+    world = home_world_authority(identity=IDENTITY)
+    snapshot = _with_boxes(world.observation_snapshot())
+    lamp = EmbodiedObject("lamp-test", 200, 800, PositionMM(3_000, 7_200, 0), emission_ppm=(900_000,) * 6)
+    night = tuple(replace(r, illumination_ppm=(50_000,) * 6) if r.region_id == "her-room" else r for r in snapshot.regions)
+    dark = replace(snapshot, objects=snapshot.objects + (lamp,), regions=night)
+    rows = _eye_view(dark, 2_600, 8_000, 180_000, -8_000)
+    # A framed picture at 1.3 to 2.06 m on the wall 2.6 m away, seen from an eye at 1.1 m: above the horizon, not on the floor.
+    upper = [v for row in rows[:25] for v in row]
+    lower = [v for row in rows[45:] for v in row]
+    assert len(set(upper)) >= 4, len(set(upper))                    # the pictures and the wall, not one grey
+    # Straight vertical edges: some column carries the same brightness step across at least 12 consecutive rows.
+    steps = 0
+    for c in range(1, 80):
+        run = 0
+        for r in range(60):
+            if abs(rows[r][c] - rows[r][c - 1]) >= 6:
+                run += 1
+                if run >= 12:
+                    steps += 1
+                    break
+            else:
+                run = 0
+    assert steps >= 2, steps
+    spheres_only = replace(dark, objects=tuple(replace(o, shape="sphere", size_mm=(), elevation_mm=0) if o.shape == "box" else o for o in dark.objects))
+    orb_rows = _eye_view(spheres_only, 2_600, 8_000, 180_000, -8_000)
+    assert orb_rows != rows                                          # the shape law changes what she sees
+
+
+def test_a_box_stands_in_front_of_a_sphere_behind_it() -> None:
+    world = home_world_authority(identity=IDENTITY)
+    snapshot = world.observation_snapshot()
+    keep = tuple(o for o in snapshot.objects if o.object_id not in ("bed", "pillow", "blanket", "toy-chest", "desk", "desk-chair"))
+    ball = EmbodiedObject("ball-test", 200, 500, PositionMM(2_600, 9_400, 0), reflectance_ppm=(950_000,) * 6)
+    wall = EmbodiedObject("crate-test", 500, 5_000, PositionMM(2_600, 8_800, 0), reflectance_ppm=(120_000,) * 6,
+                          shape="box", size_mm=(800, 300, 600), heading_millidegrees=0, elevation_mm=0)
+    day = tuple(replace(r, illumination_ppm=(785_000,) * 6) if r.region_id == "her-room" else r for r in snapshot.regions)
+    with_ball = replace(snapshot, objects=keep + (ball,), regions=day)
+    with_both = replace(snapshot, objects=keep + (ball, wall), regions=day)
+    seen = _eye_view(with_ball, 2_600, 7_600, 90_000, -20_000)
+    hidden = _eye_view(with_both, 2_600, 7_600, 90_000, -20_000)
+    bright_seen = sum(1 for row in seen for v in row if v >= 120)
+    bright_hidden = sum(1 for row in hidden for v in row if v >= 120)
+    assert bright_seen > 40 and bright_hidden < bright_seen // 4, (bright_seen, bright_hidden)   # the crate hides the bright ball

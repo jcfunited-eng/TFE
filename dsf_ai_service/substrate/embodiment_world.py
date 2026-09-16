@@ -1466,10 +1466,34 @@ class EmbodiedObject:
     # reflection fades with the light while emission does not. Old
     # persisted worlds decode unchanged.
     emission_ppm: tuple[int, ...] = ()
+    # THE SHAPE LAW: what the eye meets. A sphere (the footprint disc of the
+    # radius, as before) or a box: its extents in its own frame, its heading
+    # about the vertical, and the height of its bottom above the floor (a
+    # framed picture on a wall, a thing on a shelf). Every planar law (reach,
+    # grasp, clearance, collision) keeps the footprint disc, which must cover
+    # the box's plan. Old persisted worlds decode unchanged as spheres.
+    shape: str = "sphere"
+    size_mm: tuple[int, int, int] = ()
+    heading_millidegrees: int = 0
+    elevation_mm: int = 0
 
     def verify(self) -> None:
         _identifier(self.object_id, "object id")
         _bounded_integer(self.radius_mm, "object radius", minimum=1, maximum=1_000_000)
+        if self.shape == "sphere":
+            if self.size_mm or self.heading_millidegrees or self.elevation_mm:
+                raise ValueError("a sphere has no box extents, heading or elevation")
+        elif self.shape == "box":
+            if not isinstance(self.size_mm, tuple) or len(self.size_mm) != 3:
+                raise ValueError("a box has three extents")
+            for extent in self.size_mm:
+                _bounded_integer(extent, "box extent", minimum=1, maximum=1_000_000)
+            _bounded_integer(self.heading_millidegrees, "box heading", minimum=-180_000, maximum=180_000)
+            _bounded_integer(self.elevation_mm, "box elevation", minimum=0, maximum=1_000_000)
+            if 4 * self.radius_mm * self.radius_mm < self.size_mm[0] ** 2 + self.size_mm[1] ** 2:
+                raise ValueError("the footprint disc must cover the box's plan")
+        else:
+            raise ValueError("object shape must be a sphere or a box")
         _bounded_integer(self.mass_grams, "object mass", minimum=1, maximum=1_000_000_000)
         if (self.position is None) == (self.held_by_body_id is None):
             raise ValueError("object must be either placed or held")
@@ -1509,7 +1533,14 @@ class EmbodiedObject:
                 if any(self.emission_ppm)
                 else {}
             ),
+            **self._shape_record(),
         }
+
+    def _shape_record(self) -> dict[str, object]:
+        if self.shape == "sphere":
+            return {}
+        return {"shape": {"kind": self.shape, "size_mm": list(self.size_mm),
+                          "heading_millidegrees": self.heading_millidegrees, "elevation_mm": self.elevation_mm}}
 
     def _canonical_record(self) -> dict[str, object]:
         self.verify()
@@ -1532,7 +1563,21 @@ class EmbodiedObject:
                 if any(self.emission_ppm)
                 else {}
             ),
+            **self._shape_record(),
         }
+
+
+def _shape_fields(value: object) -> dict[str, object]:
+    """The shape fields of an object record: absent means a sphere."""
+    raw = value.get("shape") if isinstance(value, Mapping) else None
+    if raw is None:
+        return {}
+    if not isinstance(raw, Mapping) or set(raw) != {"kind", "size_mm", "heading_millidegrees", "elevation_mm"}:
+        raise ValueError("object shape fields changed")
+    if not isinstance(raw["size_mm"], (list, tuple)):
+        raise ValueError("object shape fields changed")
+    return {"shape": raw["kind"], "size_mm": tuple(raw["size_mm"]),
+            "heading_millidegrees": raw["heading_millidegrees"], "elevation_mm": raw["elevation_mm"]}
 
 
 @dataclass(frozen=True, slots=True)
@@ -2850,8 +2895,7 @@ def _object_from(value: object) -> EmbodiedObject:
         "radius_mm", "reflectance_ppm", "optical_surface"
     }
     if not isinstance(value, Mapping) or not (
-        set(value) == expected
-        or set(value) == expected | {"emission_ppm"}
+        expected <= set(value) <= expected | {"emission_ppm", "shape"}
     ):
         raise ValueError("object fields changed")
     raw_position = value.get("position")
@@ -2883,6 +2927,7 @@ def _object_from(value: object) -> EmbodiedObject:
             else None
         ),
         emission_ppm=tuple(raw_emission),
+        **_shape_fields(value),
     )
     result.verify()
     if result.as_record() != dict(value):
@@ -7204,8 +7249,7 @@ class EmbodimentWorldAuthority:
             "position", "radius_mm", "reflectance_ppm", "optical_surface",
         }
         if not isinstance(value, Mapping) or not (
-            set(value) == expected
-            or set(value) == expected | {"emission_ppm"}
+            expected <= set(value) <= expected | {"emission_ppm", "shape"}
         ):
             raise ValueError("compact physical object record changed")
         raw_position = value.get("position")
@@ -7244,6 +7288,7 @@ class EmbodimentWorldAuthority:
             ),
             optical_surface=surface,
             emission_ppm=tuple(raw_emission),
+            **_shape_fields(value),
         )
         result.verify()
         if self._compact_object_record(result, catalog) != dict(value):
