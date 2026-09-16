@@ -839,6 +839,7 @@ def home_world_authority(
         allow_physical_return_migration=migrate_physical_return,
     )
     if not migrate_physical_return and bytes(authority.encoded_snapshot()) != encoded_world:
+        allow_authenticated_physical_manifest_migration=migrate_physical_return,
         raise RuntimeError("ordinary home-world restore changed canonical bytes")
     if not any(
         item.object_id == HOME_BOOK_OBJECT_ID
