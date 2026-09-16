@@ -169,6 +169,9 @@ def main():
         assert runtime._state["voice_version"] >= 2  # the actor stage has spoken already; the old airway's sounds are gone either way (3: syllables valued by worth)
         emit({"captured_functional": captured_functional, "restore_seconds": round(restore_seconds, 3), "tick": runtime.live_organism_tick,
               "functional_body_bytes": pointer.current.body_bytes, "captured_body_bytes": initial["body_bytes"], "world_before": world_food(world)})
+        if runtime.asleep:
+            runtime._state["asleep"] = False
+            runtime._state["sleep_pressure"] = 0
         feeding_at_start = bool(runtime.feeding)  # her own law, hysteresis included
         rows = []
         for index in range(WARM_BEATS):
