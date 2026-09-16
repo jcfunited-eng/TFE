@@ -4005,11 +4005,16 @@ class EmbodimentWorldAuthority:
                 item.object_id: item for item in prior.world.objects
             }
 
+            # Lived, never anatomy: where a thing lies, who holds it, its
+            # material (a bitten apple), and what it emits (a screen's
+            # broadcast lights it from within on the real clock).
             def authored(item: EmbodiedObject) -> dict[str, object]:
                 return {
                     key: value
                     for key, value in item.as_record().items()
-                    if key not in ("position", "held_by_body_id", "material")
+                    if key not in (
+                        "position", "held_by_body_id", "material", "emission_ppm"
+                    )
                 }
 
             if prior_topology == self._declared_topology_sha256 and all(
