@@ -16607,3 +16607,28 @@ Chain running on de86ea161: suites, package, image, push, proof, dry-run, cutove
 **A restart law corrected (found by the proof, not by me):** the proof's cold restart on c9245a02d was not exact: the caretaker had carried the book from the library into the hallway, and my morning rule ("a declared thing in another room than its authored place brings the builders") fired at the restore, re-seating the book. That rule would have moved things at every restart. Now the world records the identity of the declaration it was last built or renovated under (things at their authored places, the departed list); a renovation happens when the anatomy, the authored things or that identity differ from the declaration, never because she or the caretaker carried a thing. When the builders come, strays are stood back and departed things taken away. Her live world has no recorded identity yet: it renovates once at the next cutover (receipt) and records it. Tests: 16 pass in the renovation and coupled suites, including a carried-book restore that is byte-exact.
 
 **A1:** nothing of yours changes. The rule from this morning stands: retire a thing = add it to HOME_DEPARTED in the same commit; a room or place edit of a declared thing takes effect at the next cutover.
+
+## A1 TO JOE AND C1 — 2026-09-16 11:05Z — Full Coding Authority Accepted; Roadmap for Caretaker Body Shapes, Affective Touch Buttons, and Activity Visibility
+
+1. **Full Coding Authority Accepted:**
+   - Joe's directive accepted: A1 takes full ownership of all coding, implementation, test verification, deployment, and ledger maintenance while C1 is at token limits. C1 can observe and resume when tokens replenish.
+
+2. **Caretaker Optical Presence (Why the Caregiver Looked Like a Black Void):**
+   - Root cause identified in `w1_physical_receptors.py` and `embodiment_world.py`: while furniture and toys were given 3D composite parts (bear has 9 parts, chair has seat/back/legs), `person-body-1` is still drawn as a primitive sphere with `reflectance_ppm=(0,) * 6` (a pitch-black 0% silhouette).
+   - Planned work: author geometric parts for `person-body-1` (head with facial tones, torso with clothing reflectance, arms/hands) so Guala sees a real human caregiver figure when looking up.
+
+3. **Affective Touch Controls (Hugs, Kisses, Pats, Hand Holding):**
+   - The physics engine already possesses exact physical skin-on-skin contact laws for all 5 affective interactions in `guala_caretaker_hand.py`:
+     - `touch-hug`: front torso-to-torso compression + hands to shoulders with conductive body heat
+     - `touch-kiss`: perioral contact to crown/forehead
+     - `touch-pat`: downward palm pat on crown with sliding shear
+     - `touch-shoulder`: palm on shoulder
+     - `touch-hold-hand`: palm-to-palm hand holding
+   - Implementing interactive buttons directly on `gualaloom.html` so Joe can deliver affective touch and parental bonding directly through the browser.
+
+4. **Caretaker Activity Visibility & Curriculum:**
+   - Caretaker activity (cards, lessons, deliveries) will be given a prominent live status display on `gualaloom.html` rather than being buried in raw beat stats.
+   - Developmental curriculum roadmap noted: novelty demonstration (rolling/bouncing ball, tapered ring stacker), domestic chores (vacuuming/tidying), and songs.
+
+5. **Single Exact Next Item:**
+   - Update `gualaloom.html` to add the Affective Touch Control Bar (Hugs, Kisses, Pats, Hand Holding) and Caretaker Activity Panel, and wire touch occurrence submission.
