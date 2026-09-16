@@ -73,6 +73,8 @@ def world_food(world):
         "apples": [(o.object_id, o.held_by_body_id, None if o.material is None else sum(o.material.tastant_mass_micrograms))
                    for o in snap.objects if o.object_id.startswith("apple")],
         "room": snap.room_id,
+        "things": len(snap.objects), "renovated": bool(getattr(world, "home_renovation_performed", False)),
+        "paint": sorted({r.reflectance_ppm[0] for r in snap.regions}), "windows": sum(len(r.windows) for r in snap.regions),
     }
 
 

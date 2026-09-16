@@ -1200,8 +1200,6 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
             raise ValueError("coupled thermal schemas disagree")
         raw_return = payload.get("pending_physical_return")
         physical_return = None if raw_return is None else PendingPhysicalReturn.from_record(raw_return)
-        if physical_return is not None and allow_authenticated_physical_manifest_migration:
-            raise ValueError("world migration cannot discard pending physical experience")
         renovation = (
             payload.get("anatomy_receipt_sha256")
             != self._thermal_anatomy.receipt_sha256
@@ -1250,16 +1248,25 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
                     allow_authenticated_physical_manifest_migration
                 ),
             )
-            if renovation:
+            renovated = False
+            if allow_authenticated_physical_manifest_migration:
                 prior_region_ids = tuple(
                     item.region_id
                     for item in super().observation_snapshot().regions
                 )
-                if not super().migrate_declared_home_topology():
-                    raise ValueError(
-                        "coupled thermal anatomy changed without a declared "
-                        "home renovation"
-                    )
+                # The declared home may differ from the lived one in any
+                # part of its anatomy (walls, doors, ceilings, paint,
+                # windows): the renovation carries the lived state into
+                # it with a receipt, or does nothing when they agree.
+                renovated = super().migrate_declared_home_topology()
+            if renovation and not renovated:
+                raise ValueError(
+                    "coupled thermal anatomy changed without a declared "
+                    "home renovation"
+                )
+            if renovated and physical_return is not None:
+                raise ValueError("world migration cannot discard pending physical experience")
+            if renovated:
                 observation = super().observation_snapshot()
                 self._thermal_anatomy.verify(
                     tuple(item.region_id for item in observation.regions)

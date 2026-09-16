@@ -3991,45 +3991,10 @@ class EmbodimentWorldAuthority:
             prior = self._state
             declared = self._declared_genesis_world
 
-            def structural_fingerprint(regions, portals):
-                return (
-                    tuple(
-                        (
-                            region.region_id,
-                            region.bounds.minimum.x,
-                            region.bounds.minimum.y,
-                            region.bounds.maximum.x,
-                            region.bounds.maximum.y,
-                            region.ceiling_height_mm,
-                        )
-                        for region in sorted(
-                            regions, key=lambda item: item.region_id
-                        )
-                    ),
-                    tuple(
-                        (
-                            portal.portal_id,
-                            portal.region_ids,
-                            portal.axis,
-                            portal.plane_mm,
-                            portal.aperture_min_mm,
-                            portal.aperture_max_mm,
-                            portal.height_mm,
-                        )
-                        for portal in sorted(
-                            portals, key=lambda item: item.portal_id
-                        )
-                    ),
-                )
-
-            # The renovation reads STRUCTURE only — walls and doors. Lived
-            # light and air move lawfully all day and are not a topology.
-            if structural_fingerprint(
-                prior.world.regions, prior.world.portals
-            ) == structural_fingerprint(
-                declared.regions, declared.portals
-            ):
-                return False
+            # The renovation reads the declared anatomy: walls, doors,
+            # ceilings, paint and windows (the same identity the boot
+            # checks) and the authored things. Lived light, air and each
+            # thing's lived position, holder and material are not anatomy.
             prior_topology = self._topology_sha256(
                 prior.world.regions, prior.world.portals
             )
@@ -4039,6 +4004,20 @@ class EmbodimentWorldAuthority:
             prior_objects = {
                 item.object_id: item for item in prior.world.objects
             }
+
+            def authored(item: EmbodiedObject) -> dict[str, object]:
+                return {
+                    key: value
+                    for key, value in item.as_record().items()
+                    if key not in ("position", "held_by_body_id", "material")
+                }
+
+            if prior_topology == self._declared_topology_sha256 and all(
+                object_id in prior_objects
+                and authored(prior_objects[object_id]) == authored(item)
+                for object_id, item in declared_objects.items()
+            ):
+                return False
             # Things that ARRIVED after genesis are not in the declaration;
             # a renovation carries them exactly as they lived.
             arrivals = {
@@ -7579,8 +7558,9 @@ class EmbodimentWorldAuthority:
 
         Illumination left this identity when the sun entered the world:
         light is lived state that flows on the real clock, exactly as
-        air contents already were. Walls, bounds, ceilings and paint
-        remain anatomy."""
+        air contents already were. Walls, bounds, ceilings, paint and
+        windows (holes in the walls) remain anatomy; a room without
+        windows keeps the identity it had before windows existed."""
 
         return _digest(
             {
@@ -7596,6 +7576,11 @@ class EmbodimentWorldAuthority:
                         "ceiling_height_mm": item.ceiling_height_mm,
                         "reflectance_ppm": list(item.reflectance_ppm),
                         "region_id": item.region_id,
+                        **(
+                            {"windows": [w.as_record() for w in item.windows]}
+                            if item.windows
+                            else {}
+                        ),
                     }
                     for item in regions
                 ],
