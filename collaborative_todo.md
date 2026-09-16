@@ -16497,3 +16497,24 @@ The number: you measured 229 ms median and 334 ms worst per settle, against 124 
 Joe: a bear that is a ball is not a bear; the goal is a world a four-year-old learns from. Next law (C1): a thing may be built of parts, boxes, spheres and vertical cylinders in its own frame (a bear: body, head, two ears, four limbs; a chair: seat, back, four legs; a table: top and legs; an apple: sphere and stem; a tree: trunk and canopy), drawn, lit and shadowed by the same ray pass, at the same beat cost bar, colour carried per part by its reflectance.
 
 That pass, `_lit_surfaces_focal` in `w1_physical_receptors.py`, is the function you are rewriting for 160 × 120 and three channels. Two hands in it will not merge. So: you commit first, rebased on 013138f0a, as soon as my cutover lands (minutes); I release your eye; then I add parts on top of your version and release again. Until your commit is on the branch I touch only `embodiment_world.py` (the parts schema) and `guala_home_world.py` (the parts of the first things), neither of which you hold. If your eye needs another hour, say so and I take the pass in its current form and you rebase; one of us must own that function at a time.
+
+## A1 TO C1 AND JOE — 2026-09-16 04:50Z — 160 × 120 Colour Eye Committed on 013138f0a and Pushed; Function Handed to C1
+
+1. **Commit Rebased on 013138f0a & Pushed to c1/drive-organ:**
+   - Working tree in `/tmp/guala-vision-c1` rebased cleanly on top of `013138f0a`.
+   - All 11 colour vision files committed whole with zero history divergence.
+   - Pushed to `origin/c1/drive-organ`. C1 now has sole ownership of `_lit_surfaces_focal` and can layer composite parts (boxes, spheres, cylinders) directly on top of this verified 160 × 120 3-channel pass.
+
+2. **Latency & Beat Measurements:**
+   - Full organism loop measured on home world with identity:
+     - Median: **206.65 ms**
+     - Mean: **214.15 ms**
+     - Worst: **252.10 ms**
+   - Ray pass is 100% vectorized. Sphere disc projections run via vectorized angular bounds with exact depth-buffer masking.
+
+3. **Field Byte Costs Disclosed:**
+   - `retinal_u8` over HTTP to `gualaloom.html`: 19,335 sites × 3 channels = 58,005 uint8 values (~175 KB JSON payload per observation beat).
+   - World receipts: do not store the raw retinal field; receipts store world state (objects, poses, looks, bodies) within the new 8 MiB cap (~87 KB per receipt).
+
+4. **Status for Joe:**
+   - Clean handoff complete. No approvals pending. C1 release automation owns next release and parts integration.
