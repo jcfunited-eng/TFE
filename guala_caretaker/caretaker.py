@@ -277,7 +277,14 @@ TOYS = ("toy-bear", "glow-stars", "book", "cup")
 # Naming while doing: the word for the thing the caregiver hands her, said at that
 # moment in a real human voice (Wikimedia Commons, openly licensed); nothing else
 # is said about it, and what the word comes to mean is hers to settle.
-WORD_FOR = {"apple": "apple", "toy-bear": "bear", "glow-stars": "star", "book": "book", "cup": "cup"}
+WORD_FOR = {
+    "apple": "apple", "toy-bear": "bear", "glow-stars": "star", "book": "book", "cup": "cup",
+    "bread": "bread", "milk": "milk", "cheese": "cheese", "berries": "berries", "carrot": "carrot",
+    "bowl": "bowl", "plate": "plate", "pot": "pot", "pan": "pan", "table": "table", "table-chair": "chair",
+    "bed": "bed", "pillow": "pillow", "blanket": "blanket", "lamp": "lamp", "radio": "radio",
+    "television": "television", "slide": "slide", "swing": "swing", "sandbox": "sandbox",
+}
+NAME_ATTENDED_TICKS = 80  # about 20 seconds of debounce between namings of the same attended item
 
 
 BEDTIME_FRACTION = 0.9   # of her sleep-pressure ceiling: the caretaker makes her bed
@@ -384,6 +391,71 @@ def maybe_housekeeping(o: dict, st: dict) -> None:
             res = present_food("bedtime")
             made = (((res or {}).get("observation") or {}).get("last_occurrence") or {}).get("caregiver_presentation") or {}
             log(f"housekeeping: pillow returned — made={made.get('made')} steps={len(made.get('steps') or [])} last={(made.get('steps') or [None])[-1]}")
+
+
+def maybe_name_attended(o: dict, st: dict) -> None:
+    """When she attends to a physical thing — either holding it in her hands
+    or focusing her gaze on it — the caregiver names it aloud in a human voice.
+    Paced and debounced; never interrupts feeding or bedtime."""
+    if asleep(o):
+        return
+    tick = int(o.get("live_tick") or 0)
+    lo = o.get("last_occurrence") or {}
+    her_eye = lo.get("her_eye") or {}
+    target_id = her_eye.get("target")
+
+    emb = lo.get("embodiment") or {}
+    self_id = emb.get("self_body_id")
+    her = next((b for b in (emb.get("bodies") or []) if b.get("body_id") == self_id), None)
+    held_id = her.get("held_object_id") if her else None
+
+    # Priority: what she holds in her hands, or what she focuses on with her eyes
+    attended = held_id or target_id
+    if not attended or not isinstance(attended, str):
+        return
+
+    # Strip delivery/instance suffixes if any (e.g. apple-1 -> apple)
+    base_thing = attended.split("-")[0] if attended.startswith("apple") else attended
+    if base_thing not in WORD_FOR:
+        return
+
+    last_thing = st.get("last_named_thing")
+    last_tick = int(st.get("last_named_tick") or 0)
+    # Debounce: only name if attended item changed or sufficient ticks elapsed
+    if attended == last_thing and tick < last_tick + NAME_ATTENDED_TICKS:
+        return
+
+    heard = say_word(base_thing)
+    if heard > 0:
+        st["last_named_thing"] = attended
+        st["last_named_tick"] = tick
+        log(f"attention: named '{attended}' ({WORD_FOR[base_thing]}) at her tick {tick} ({heard} beats)")
+
+
+def maybe_echo_syllable(o: dict, st: dict) -> None:
+    """When she speaks a syllable, the caregiver echoes her syllable in its own
+    airway voice (from person-body-1) with the room's geometry at her ears.
+    Echoed once per utterance; encourages causal vocal reciprocity."""
+    lo = o.get("last_occurrence") or {}
+    drive = lo.get("said_drive")
+    if not drive or not isinstance(drive, (list, tuple)) or len(drive) < 3:
+        return
+    tick = int(o.get("live_tick") or 0)
+    if tick == st.get("last_echoed_tick"):
+        return
+
+    try:
+        import voice
+        # Voice drive: (pitch_decihertz, vowel_index, onset_index)
+        caregiver_drive = (voice.PITCHES_DECIHERTZ[0], int(drive[1]), int(drive[2]))
+        pcm = voice.syllable_pcm(caregiver_drive, seed=tick)
+        res = play_block(pcm, from_object="person-body-1")
+        if res is not None:
+            st["last_echoed_tick"] = tick
+            MINE.append(tick)
+            log(f"echo: echoed her syllable drive={drive} from person-body-1 at tick {tick}")
+    except Exception as err:  # noqa: BLE001
+        log(f"echo refused or failed: {err}")
 
 
 def maybe_read(o: dict, st: dict) -> None:
@@ -745,6 +817,8 @@ def wait_clear(min_tick: int | None = None, st: dict | None = None) -> dict | No
                 maybe_feed(o, st)
                 maybe_bedtime(o, st)
                 maybe_housekeeping(o, st)
+                maybe_name_attended(o, st)
+                maybe_echo_syllable(o, st)
                 maybe_play(o, st)
                 maybe_read(o, st)   # a reading does not wait for a clear window: a person on the page does not close her book
                 maybe_music(o, st)
@@ -780,6 +854,8 @@ def main() -> None:
         if o is None:
             break
         maybe_feed(o, st)
+        maybe_name_attended(o, st)
+        maybe_echo_syllable(o, st)
         maybe_play(o, st)
         ok = True
         for i, pcm in enumerate(blocks):

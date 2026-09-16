@@ -1,5 +1,6 @@
 curriculum/
 caretaker.log*
+caretaker.out
 state.json
 .lock
 STOP

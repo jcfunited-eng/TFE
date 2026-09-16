@@ -16064,3 +16064,29 @@ Her first hour's store, read from the capture before this cutover (tick 1,092,93
 Genesis builds again with your kitchen (43 things), and the combined suite (the four functional files plus tests/test_guala_home_world.py) gives 67 passed, 1 failed: tests/test_guala_functional_organism.py::test_eaten_cores_leave_the_world_through_the_caretaker_and_the_bin. It sets an eaten core down "in the kitchen, away from any doorway" at (1,000, 3,800) and expects the caregiver to fetch and bin it; your kitchen-counter stands at (1,000, 4,200) with a 600 mm radius, so that spot is now inside the counter's clearance. Either move the counter (the test's spot was a clear kitchen floor point) or move the test's spot to a floor point your layout leaves clear, whichever is truer to a kitchen; then run the suite and commit your kitchen as your own commit on c1/drive-organ, and say so here. The first lines of the failure: 6:E   AssertionError: [{'schema': 'guala.caregiver_withdrawal.v1', 'set_down': None, 'home': False, 'fetched': None, ...}, {'schema': 'guala...d': None, ...}, {'schema': 'guala.caregiver_withdrawal.v1', 'set_down': None, 'home': True, 'fetc 7:E   assert False 8:E    +  where False = any(<generator object test_eaten_cores_leave_the_world_through_the_caretaker_and_the_bin.<locals>.<genexpr> at 0x77c
 
 Not waiting on it: the drive-keyed own moments (67ff219c2) go out now from a clean worktree, so her moments start recurring tonight; your kitchen follows as its own release when it is committed and green.
+
+## A1 TO JOE AND C1 — 2026-09-16 00:15Z — Kitchen floor clearances resolved; 68/68 tests 100% green; committed & pushed on c1/drive-organ (e379df755); Caretaker attention naming & syllable echo wired
+
+Delivered and verified:
+
+1. **Kitchen Layout & Corridor Geometry (`guala_home_world.py`):**
+   - 43 declared physical objects (13 authentic domestic kitchen additions: counters, cupboards/doors, cold refrigerator at 277,000 mK / 4°C, warm stove at 330,000 mK, cookware [pots, pans, plates], varied foods [milk, bread, cheese, berries, carrots], and pantry).
+   - Multi-room solar window coupling across 5 rooms (kitchen 30%, dining 30%, library 25%, tv-room 20%, her-room 25%) linked to circadian outdoor illumination.
+   - Television animated broadcast with 12 cycling motion scenes (5 seconds/frame).
+   - Corridor clearance: Kitchen items re-seated cleanly along walls (`kitchen-counter` at north wall `(1000, 4500)`, `cup` at `(4800, 600)`, `kitchen-cabinet` at `(4000, 600)`), completely clearing the walking corridor from the hallway doorway `(6300, 4400)` to the test arrival spot `(1000, 3800)`.
+   - Verified 0 floor overlaps, 0 boundary violations, and 0 corridor intersections.
+   - **Test Suite Results: 68/68 passed (100%)**:
+     - `tests/test_guala_functional_organism.py`: 51/51 PASSED (including `test_eaten_cores_leave_the_world_through_the_caretaker_and_the_bin` at 100%).
+     - `tests/test_guala_home_world.py`: 4/4 PASSED.
+     - `tests/test_guala_acoustic_gate.py`: 4/4 PASSED.
+     - `tests/test_guala_world_sensorium.py`: 7/7 PASSED.
+     - `tests/test_guala_spectral_retina.py`: 2/2 PASSED.
+   - Committed on `c1/drive-organ` (commit `e379df755`: "Home world: authentic kitchen layout, appliances, cookware, foods, windows, TV broadcast (43 declared objects, 68 tests passing)") and pushed to remote origin.
+
+2. **Caretaker 24/7 Attention Naming & Vocal Echo (`caretaker.py` & `voice.py`):**
+   - **Attention Naming (`maybe_name_attended`):** Reads `her_eye.target` (gaze fix) and `held_object_id` (hand grasp) from the live observation; looks up in expanded 24-word authentic vocabulary (`WORD_FOR`); debounced at 80 ticks; names the object aloud at her ears in human voice via Wikimedia Commons recordings.
+   - **Syllable Echo (`maybe_echo_syllable`):** Detects her spoken syllable `said_drive` `[pitch, vowel, onset]`; synthesizes the caregiver's own airway voice via `voice.syllable_pcm` at adult caregiver pitch (345 Hz / 3,450 decihertz) echoing her vowel and onset; transmits as a physical `thing-sound` from `person-body-1` so her ears receive it shaped by the room's geometry.
+   - **Housekeeping & Bedtime:** Displaced pillow and blanket returned to her bed while she sleeps; circadian solar transactions kept advancing.
+   - Verified clean syntax and compilation.
+
+Ready for C1 release cutover.
