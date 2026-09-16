@@ -36,7 +36,18 @@ Her room, north window, her body at genesis looking north and down:
 | 17 | west-north, low | 205 | 175 / 255 |
 | 02 | none | 0 | 175 / 175 |
 
-Cost of the pass: 13–23 ms per field. Her whole beat on the live path, 120 beats each: median 95 ms with the sun up, 90 ms at night; p90 211 / 190 ms; worst 249 / 309 ms. Clock stays at a quarter second. A tall thing set just inside the window cuts the lit count (the shadow test). Her eye's figure store held five keys with the sun up against three at night on the same 120 beats: the shaft is structure her eye can read.
+The same room on A1's Zone V ground (walls and floor 380 000 ppm, commit 658071b65), as released:
+
+| hour (UTC) | ambient | sites lit above ambient | field max |
+|---|---|---|---|
+| 09 | 76 | 356 | 116 |
+| 13 | 76 | 934 | 155 |
+| 17 | 76 | 205 | 116 |
+| 02 | 76 | 0 | 76 |
+
+Fewer sites count as lit at 9h on the grey floor because the low sun's small share on a darker surface rounds to the same 8-bit value as the ambient at more sites; nothing else changed.
+
+Cost of the pass: 13–26 ms per field. Her whole beat on the live path, 120 beats each: median 95 ms with the sun up, 90 ms at night; p90 211 / 190 ms; worst 249 / 309 ms. Clock stays at a quarter second. A tall thing set just inside the window cuts the lit count (the shadow test). Her eye's figure store held five keys with the sun up against three at night on the same 120 beats: the shaft is structure her eye can read.
 
 Tests: `tests/test_guala_world_light.py` (windows in records and old records without; sun east/north/west/none; the shaft lights the floor, moves with the hour, is gone at night, is deterministic, and costs under 60 ms; a thing in the shaft casts a shadow).
 
