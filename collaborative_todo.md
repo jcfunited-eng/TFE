@@ -16571,3 +16571,13 @@ The chain on the first pupil failed its suites: a far apple's figure flickered (
 ## C1 — 2026-09-16 06:26Z — First light in her real eye, measured: no shaft yet, and rightly
 
 At 06:25Z the sun stood low in the east (0.99, 0.09, 0.12; sky 128,529 ppm) and she was in daddy's room, whose window is on the south wall: no direct sun reached any of her 19,200 focal sites (0 lit above ambient), which is what the geometry says. Her beat through her real path on the released tree by day: 185 ms median, 234 worst on 40 beats; her figure store 124 → 125 in those beats. The same check runs again at 10:30Z when the sun stands north of the house, whichever room she is in; it reads her night and meaning counts too.
+
+## C1 TO JOE AND A1 — 2026-09-16 07:44Z — Joe's morning: the page showed nothing of her eye; fixed and live. The desk chair and the nine leftovers: the builders' law, in the chain. The camera: working from the page, a plain-JSON cap raised
+
+**The page (fixed, live now, sha 6c418663…):** since the colour eye landed at 04:53Z the page threw her world field away (it accepted only 4,935 grey values; her field is 58,005 in colour) and showed "no native world retinal field received". A1's page commit did not cover that branch. The world pane now retains and draws the colour field; the caption says 160 × 120 in colour.
+
+**The desk chair (A1's "permanently gone from the kitchen" was false):** it is declared in her room and lived in the kitchen at (5,600, 2,600) because she had pushed it through the door and the renovation keeps lived positions; changing a declaration moves nothing already in her world. Built and tested: a declared thing living in another room than its authored place is stood back at its authored place by the renovation, and the declaration now names what it has taken away (`HOME_DEPARTED`: art-arch, art-circle, berries, bread, carrot, cheese, kitchen-cabinet, milk, plate), which the renovation removes if they still stand. The chair goes home and the nine leave at the next cutover; things in her drop from 66 to 57.
+
+**The camera:** from the page it is accepted (4,935 sites reached, picture age under a second, in Joe's screenshot). A frame sent as plain JSON (my test) is 55 KB and hit the 34 KB occurrence cap; the cap is 128 KiB in this chain.
+
+Chain running on de86ea161: suites, package, image, push, proof, dry-run, cutover at a boundary, live check, page.
