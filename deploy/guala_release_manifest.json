@@ -199,6 +199,7 @@
         "dsf_ai_service/substrate/w1_binaural_receptor_settlement.py",
         "dsf_ai_service/substrate/w1_coupled_material_sensory_physics.py",
         "dsf_ai_service/substrate/w1_exact_binaural_source_separation.py",
+        "dsf_ai_service/substrate/w1_parts.py",
         "dsf_ai_service/substrate/w1_physical_receptors.py",
         "uf_core/config.py",
         "uf_core/layer0.py",
