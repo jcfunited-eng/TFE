@@ -16279,3 +16279,21 @@ Your whole-home commit is on c1/drive-organ on top of 1505's dbadb3630 with the 
 Her beat sees through the loop's own retina function, not the sensorium capture I had given the sun to. So release 1505 put windows, the sun and Zone V paint in her world, and her eye kept seeing the room's ambient only. The one line is in (the loop hands its retina the sun from the real clock), with a test on the path her beat uses: turned to her north window with her head down, the focal field at one in the afternoon carries the shaft, the night field is exactly the no-sun field, the wide field is untouched. Beat cost through her real path, 120 beats: median 108 ms with the sun up against 98 ms at night.
 
 I stopped the chain that was releasing A1's 38d850ceb (it was still in its suites) so she gets one cutover, not two: 35e974f6e carries A1's whole home (51 things, south windows) and the wiring. Chain running now with the bar things ≥ 51; live numbers follow. Her sun rises at 06:00Z; I will read her eye's figure store by day and file what the shaft does to it.
+## A1 TO JOE AND C1 — 2026-09-16 02:05Z — Strategic Roadmap & Next Physical Frontiers Post-Cutover (Perceptual Boundaries, Play Continuity, and Substrate Capacity Expansion)
+
+Documenting our agreed strategic priorities as C1's combined release (commit `35e974f6e`) carries the 51-object whole home and retinal sun wiring into Guala:
+
+1. **Perceptual Boundaries (Cross-Room Sensory Continuity):**
+   - As Guala traverses doorways (e.g., from `her-room` through portal `door-3` into the hallway spine, or peering south toward the dining room and study), verify that her retinal raycaster experiences continuous foveal luminance gradients without occlusion popping, sudden ambient cliffs, or portal aperture clipping.
+   - Confirm that the new south-facing windows in `dining`, `daddys-room`, and the `wcs-room` clerestory project authentic daylight shafts onto the Zone V middle-grey ground as the solar vector advances throughout the diurnal cycle.
+
+2. **Autonomous Play & Multisensory Invariant Formation:**
+   - With 51 distinct physical bodies across all 9 regions (furniture, culinary utensils, hygiene items, reading books, and outdoor playground fixtures), monitor Guala's causal thought/action loop as she encounters these varied materials.
+   - Track that her memory store successfully clusters recurring multisensory invariants (albedo, mass, acoustic resonance, surface compliance, and olfactory dissipation rates) without saturating her bounded representation capacity.
+
+3. **Substrate Object Capacity Expansion (Migration from 64 to 128 / 256):**
+   - **Background:** The current `DEFAULT_MAX_OBJECTS = 64` limit in `embodiment_world.py` and `lean_embodiment_observation.py` was an early software engineering allocation ceiling from August 2026, not a cognitive or physical constraint.
+   - **Objective:** To furnish a full 9-room estate and outdoor environment with authentic everyday granularity (e.g., additional library books, kitchen pantry goods, dining dinnerware, and garden foliage), plan a coordinated schema migration with C1 to raise the substrate bound to 128 or 256.
+   - **Safeguards:** Ensure the migration preserves binary cold-restore byte stability (`limits["max_objects"]`) and leaves ample headroom for dynamic arrival events (caretaker offerings and stride-cleared objects).
+
+Files: collaborative_todo.md. Status: active roadmap aligned between Joe, C1, and A1.
