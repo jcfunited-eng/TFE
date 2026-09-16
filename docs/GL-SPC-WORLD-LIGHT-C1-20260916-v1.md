@@ -55,6 +55,20 @@ Cost of the pass: 13–26 ms per field. Her whole beat on the live path, 120 bea
 
 Tests: `tests/test_guala_world_light.py` (windows in records and old records without; sun east/north/west/none; the shaft lights the floor, moves with the hour, is gone at night, is deterministic, and costs under 60 ms; a thing in the shaft casts a shadow).
 
-## 5. Not done, by design
+## 5. Not done, by design (as of the first build; see 6 for what the second build closed)
 
-No texture on surfaces (a wall is one reflectance per band; looks on wall segments are A1's content, drawn by the existing look law). No indirect light (a lit floor does not light the ceiling). No sun through a door. Each is a further geometry law if her eye's measurements ask for it, not a picture.
+After the second build: no sun through a door; one bounce only (a lit floor lights the room evenly, not the ceiling more than the far wall); a thing's shadow is that of its sphere. Each is a further geometry law if her eye's measurements ask for it, not a picture.
+
+## 6. Second build, 2026-09-16 02:30Z to 03:00Z: lamps, shadows, one bounce, light on things, looks (Joe: "what is this half ass bullshit")
+
+Joe read her live field after 1506: a flat grey with one dim shape. Right: the sun through windows by day was all there was, and at night nothing. Built as one item, in the same pass:
+
+- **Lights.** A room's lights are the sun (through its windows) and every thing in it that emits (a lamp, the screen while it broadcasts, her glow stars): the thing's centre, its radius and what it gives off per band. A lamp's light on a surface falls off with the square of the distance from the lamp's surface, times the incidence; anything standing between blocks it: a shadow on the floor behind a chair, day or night.
+- **Light on things.** A round thing in the room is lit by the same lights: the share of its lit half that the eye sees, `(1 + L·V)/2`, blocked by whatever stands between. A thing standing in the shaft is brighter than one beside it.
+- **One bounce.** The direct light that enters a room (the sun through each window by its area and the sun's angle on it; each lamp by its surface and emission) lands on the room's surfaces and comes back once, spread over them: flux × the paint's reflectance / the room's surface area, added to the room's ambient for its surfaces and its things. A lamp lights its room at night; a sunlit room glows.
+- **Looks on surfaces.** `SurfaceLookMM(face, from, to, low, high, surface)` on a region: a rectangle of a wall, the floor or the ceiling carrying a palette-indexed pattern (the same surface type things use). The focal ray's hit point on that face reads the pattern's cell there. Anatomy, like paint: in the record only when present, in the anatomy identity, carried by the renovation. First two in her room: floor planks, the south wall's panels (C1); A1 extends.
+- **One pass, vectorized.** All 4,800 focal rays at once (numpy, in the image): plane hits, faces, looks, each light's incidence, window test, shadows per occluder, then the pixel written at the retina's own eight-bit grain (a declared quantization; things keep their exact fractions). Cost measured in her room: looks only 3 ms, sun only 2 ms, sun + glow stars + looks + 13 occluders 6 ms (the scalar pass was 27 to 60 ms and put her beat at 286 ms median).
+
+Measured through her real path (120 beats, genesis in her room with the apple): median 120 ms with the sun, 127 ms at night; p90 239 / 247 ms; worst 279 / 308 ms. Her focal field now carries 23 to 26 distinct values, 7 to 81, where before it was one grey with a shape.
+
+Tests: the light suite (8): windows in records; the sun's path; the shaft, moving with the hour, gone at night, deterministic, under 60 ms; a thing's shadow in the shaft; the shaft on the path her beat uses (wide field rises only by the bounce and where a thing stands in the sun); a lamp lights the floor at night and a post beyond it casts a shadow; the bounce for lamp, sun, none; a floor look read where the rays meet it, in the records, refused outside its face.

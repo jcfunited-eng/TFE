@@ -30,6 +30,50 @@ HOME_WINDOWS = {
 }
 
 
+# Looks on the rooms' own surfaces (the floor's planks, a wall's panels): declared
+# patterns the eye reads where its focal rays meet the face, lit by the same light
+# as the paint. First two (C1, her room); A1 extends as the home's content owner.
+from dsf_ai_service.substrate.embodiment_world import ObjectOpticalSurface, SurfaceLookMM  # noqa: E402
+
+
+def _planks(base: tuple[int, ...], columns: int = 32, rows: int = 32) -> ObjectOpticalSurface:
+    """Floor planks running along the face: each row of planks a shade of the base paint,
+    a dark joint between planks and a staggered dark end joint."""
+    palette = tuple(tuple(max(10_000, min(1_000_000, int(c * s))) for c in base) for s in (1.00, 0.86, 0.72, 0.40))
+    cells = []
+    for r in range(rows):
+        for c in range(columns):
+            plank = r // 4
+            if r % 4 == 3 or (c + 5 * plank) % 16 == 15:
+                cells.append(3)                       # the joint
+            else:
+                cells.append((plank * 7 + (c + 5 * plank) // 16) % 3)   # this plank's shade
+    surface = ObjectOpticalSurface(columns, rows, palette, tuple(cells))
+    surface.verify()
+    return surface
+
+
+def _panels(base: tuple[int, ...], columns: int = 32, rows: int = 32) -> ObjectOpticalSurface:
+    """Wall panels: a lighter field framed by a darker rail and stile, a dado line."""
+    palette = tuple(tuple(max(10_000, min(1_000_000, int(c * s))) for c in base) for s in (1.00, 0.80, 0.55))
+    cells = []
+    for r in range(rows):
+        for c in range(columns):
+            frame = r % 11 in (0, 10) or c % 8 in (0, 7)
+            cells.append(2 if r == 20 else 1 if frame else 0)
+    surface = ObjectOpticalSurface(columns, rows, palette, tuple(cells))
+    surface.verify()
+    return surface
+
+
+HOME_LOOKS = {
+    "her-room": (
+        SurfaceLookMM("floor", 0, 5_000, 5_600, 10_000, _planks((380_000,) * 6)),
+        SurfaceLookMM("y-min", 0, 5_000, 0, 2_600, _panels((380_000,) * 6)),      # the south wall she faces from her bed
+    ),
+}
+
+
 def _home_optical_surface_for(
     name: str,
     base_ref: tuple[int, int, int, int, int, int],
@@ -300,6 +344,7 @@ def _home_rooms_and_things() -> tuple[list[Any], list[Any], list[Any]]:
             ),
             illumination_ppm=(light,) * 6,
             windows=HOME_WINDOWS.get(name, ()),
+            looks=HOME_LOOKS.get(name, ()),
         )
         for name, min_x, min_y, max_x, max_y, ceiling, light in plan
     ]

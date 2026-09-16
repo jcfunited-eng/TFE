@@ -1225,6 +1225,58 @@ def _window_from(value: object) -> WindowMM:
     return window
 
 
+LOOK_FACES = frozenset(WINDOW_WALLS) | {"floor", "ceiling"}
+
+
+@dataclass(frozen=True, slots=True)
+class SurfaceLookMM:
+    """A look on one face of a region: a bounded rectangle of a wall, the floor or
+    the ceiling that carries a palette-indexed reflectance pattern (tiles, planks,
+    panels, stains) instead of the region's one paint. On a wall, from/to run along
+    the wall and low/high are heights; on the floor or ceiling, from/to run along x
+    and low/high along y. Declared content; anatomy, like paint."""
+
+    face: str
+    from_mm: int
+    to_mm: int
+    low_mm: int
+    high_mm: int
+    surface: ObjectOpticalSurface
+
+    def verify(self) -> None:
+        if self.face not in LOOK_FACES:
+            raise ValueError("look face must be a wall, the floor or the ceiling")
+        for value, label in ((self.from_mm, "look from"), (self.to_mm, "look to"), (self.low_mm, "look low"), (self.high_mm, "look high")):
+            _bounded_integer(value, label, minimum=0, maximum=(1 << 31) - 1)
+        if not (self.from_mm < self.to_mm and self.low_mm < self.high_mm):
+            raise ValueError("a look must have width and height")
+        if not isinstance(self.surface, ObjectOpticalSurface):
+            raise ValueError("a look carries an optical surface")
+
+    def as_record(self) -> dict[str, object]:
+        self.verify()
+        return {"face": self.face, "from_mm": self.from_mm, "to_mm": self.to_mm, "low_mm": self.low_mm, "high_mm": self.high_mm,
+                "surface": self.surface.as_record()}
+
+    def cell_at(self, along_mm: float, up_mm: float) -> tuple[int, ...] | None:
+        """The pattern's reflectance where a point on the face falls, or None outside."""
+        if not (self.from_mm <= along_mm <= self.to_mm and self.low_mm <= up_mm <= self.high_mm):
+            return None
+        column = min(self.surface.columns - 1, int((along_mm - self.from_mm) * self.surface.columns / (self.to_mm - self.from_mm)))
+        row = min(self.surface.rows - 1, int((self.high_mm - up_mm) * self.surface.rows / (self.high_mm - self.low_mm)))
+        return self.surface.reflectance_at_verified_ppm(row=row, column=column)
+
+
+def _look_from(value: object) -> SurfaceLookMM:
+    expected = {"face", "from_mm", "to_mm", "low_mm", "high_mm", "surface"}
+    if not isinstance(value, Mapping) or set(value) != expected:
+        raise ValueError("look fields changed")
+    look = SurfaceLookMM(face=value["face"], from_mm=value["from_mm"], to_mm=value["to_mm"], low_mm=value["low_mm"], high_mm=value["high_mm"],
+                         surface=_optical_surface_from(value["surface"]))
+    look.verify()
+    return look
+
+
 @dataclass(frozen=True, slots=True)
 class PhysicalRegion:
     region_id: str
@@ -1234,6 +1286,7 @@ class PhysicalRegion:
     illumination_ppm: tuple[int, ...]
     air: AirVolumeState | None = None
     windows: tuple[WindowMM, ...] = ()   # declared openings the sun's direct light enters through; old records decode without
+    looks: tuple[SurfaceLookMM, ...] = ()   # declared patterns on walls, floor or ceiling; old records decode without
 
     def verify(self) -> None:
         _identifier(self.region_id, "physical region id")
@@ -1243,6 +1296,15 @@ class PhysicalRegion:
             along = (self.bounds.minimum.y, self.bounds.maximum.y) if window.wall.startswith("x") else (self.bounds.minimum.x, self.bounds.maximum.x)
             if not (along[0] <= window.from_mm and window.to_mm <= along[1]):
                 raise ValueError("window lies outside its wall")
+        for look in self.looks:
+            look.verify()
+            if look.face in ("floor", "ceiling"):
+                along, up = (self.bounds.minimum.x, self.bounds.maximum.x), (self.bounds.minimum.y, self.bounds.maximum.y)
+            else:
+                along = (self.bounds.minimum.y, self.bounds.maximum.y) if look.face.startswith("x") else (self.bounds.minimum.x, self.bounds.maximum.x)
+                up = (self.bounds.minimum.z, self.bounds.maximum.z)
+            if not (along[0] <= look.from_mm and look.to_mm <= along[1] and up[0] <= look.low_mm and look.high_mm <= up[1]):
+                raise ValueError("look lies outside its face")
         if self.ceiling_height_mm is not None:
             _bounded_integer(
                 self.ceiling_height_mm,
@@ -1276,6 +1338,7 @@ class PhysicalRegion:
             "region_id": self.region_id,
             "air": self.air.as_record() if self.air is not None else None,
             **({"windows": [window.as_record() for window in self.windows]} if self.windows else {}),
+            **({"looks": [look.as_record() for look in self.looks]} if self.looks else {}),
         }
 
 
@@ -2903,16 +2966,18 @@ def _region_from(value: object) -> PhysicalRegion:
         "air", "bounds", "ceiling_height_mm", "illumination_ppm",
         "reflectance_ppm", "region_id"
     }
-    if not isinstance(value, Mapping) or not (set(value) == expected or set(value) == expected | {"windows"}):
+    if not isinstance(value, Mapping) or not (expected <= set(value) <= expected | {"windows", "looks"}):
         raise ValueError("physical region fields changed")
     raw_windows = value.get("windows", [])
-    if not isinstance(raw_windows, list):
-        raise ValueError("region windows must be a list")
+    raw_looks = value.get("looks", [])
+    if not isinstance(raw_windows, list) or not isinstance(raw_looks, list):
+        raise ValueError("region windows and looks must be lists")
     result = PhysicalRegion(
         region_id=value.get("region_id"),
         bounds=_room_from(value.get("bounds")),
         ceiling_height_mm=value.get("ceiling_height_mm"),
         windows=tuple(_window_from(item) for item in raw_windows),
+        looks=tuple(_look_from(item) for item in raw_looks),
         reflectance_ppm=_physical_bands(
             tuple(value.get("reflectance_ppm"))
             if isinstance(value.get("reflectance_ppm"), list)
@@ -7584,6 +7649,11 @@ class EmbodimentWorldAuthority:
                         **(
                             {"windows": [w.as_record() for w in item.windows]}
                             if item.windows
+                            else {}
+                        ),
+                        **(
+                            {"looks": [w.as_record() for w in item.looks]}
+                            if item.looks
                             else {}
                         ),
                     }

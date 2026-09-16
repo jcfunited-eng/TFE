@@ -22,6 +22,8 @@ import json
 from dataclasses import dataclass
 from fractions import Fraction
 import math
+
+import numpy as np
 from math import isqrt
 from typing import Mapping
 
@@ -538,6 +540,7 @@ class _OpticalSurface:
     # visible when the room's light fades while ordinary matter goes
     # dark with it.
     emission_ppm: tuple[int, ...] = ()
+    source_id: str | None = None
 
 
 def _region_radiance(region: PhysicalRegion) -> tuple[Fraction, ...]:
@@ -697,105 +700,313 @@ def _portal_aperture_background(
                             )
 
 
-def _direct_sun_focal(
+@dataclass(frozen=True, slots=True)
+class _Light:
+    """One source of direct light in a room: the sun (a direction toward it, and the
+    sky's light) or a thing that emits (a lamp, a working screen: its centre, its radius
+    and what it gives off per band)."""
+
+    kind: str
+    x: float
+    y: float
+    z: float
+    radius_mm: int
+    ppm: tuple[int, ...]
+    source_id: str | None
+
+
+def _room_lights(
+    observation: ObservationSnapshot,
+    current_region: PhysicalRegion,
+    sun: tuple[float, float, float, int] | None,
+) -> tuple[list[_Light], list[tuple[float, float, float, float, str | None]]]:
+    """The room's lights and the bodies in it that can stand in their way."""
+
+    bands = len(current_region.reflectance_ppm)
+    lights: list[_Light] = []
+    if sun is not None and sun[2] > 0.0 and current_region.windows:
+        lights.append(_Light("sun", sun[0], sun[1], sun[2], 0, (sun[3],) * bands, None))
+    occluders: list[tuple[float, float, float, float, str | None]] = []
+    for item in observation.objects:
+        if item.position is None or not current_region.bounds.contains_floor_disc(item.position, 0):
+            continue
+        occluders.append((item.position.x, item.position.y, item.position.z + item.radius_mm, item.radius_mm, item.object_id))
+        emission = getattr(item, "emission_ppm", ()) or ()
+        if len(emission) == bands and any(emission):
+            lights.append(_Light("lamp", item.position.x, item.position.y, item.position.z + item.radius_mm, item.radius_mm, tuple(emission), item.object_id))
+    for other in observation.bodies:
+        occluders.append((other.pose.position.x, other.pose.position.y, other.pose.position.z + other.radius_mm, other.radius_mm, other.body_id))
+    return lights, occluders
+
+
+def _through_window(
+    current_region: PhysicalRegion, px: float, py: float, pz: float, sx: float, sy: float, sz: float,
+) -> float | None:
+    """From a point, toward the sun: the distance to the wall if the line passes through
+    one of the room's windows, else None."""
+
+    bounds = current_region.bounds
+    walls = {
+        "x-min": (bounds.minimum.x, "x"), "x-max": (bounds.maximum.x, "x"),
+        "y-min": (bounds.minimum.y, "y"), "y-max": (bounds.maximum.y, "y"),
+    }
+    for window in current_region.windows:
+        plane, axis = walls[window.wall]
+        s_axis = sx if axis == "x" else sy
+        origin = px if axis == "x" else py
+        if abs(s_axis) < 1e-9:
+            continue
+        u = (plane - origin) / s_axis
+        if u <= 1e-6:
+            continue
+        along = (py + sy * u) if axis == "x" else (px + sx * u)
+        height = pz + sz * u
+        if window.from_mm <= along <= window.to_mm and window.sill_mm <= height <= window.top_mm:
+            return u
+    return None
+
+
+def _blocked(
+    px: float, py: float, pz: float, lx: float, ly: float, lz: float, reach: float,
+    occluders: list[tuple[float, float, float, float, str | None]], skip: str | None,
+) -> bool:
+    """Whether a thing or a body stands on the line from a point toward a light."""
+
+    for ox, oy, oz, r, oid in occluders:
+        if oid is not None and oid == skip:
+            continue
+        vx, vy, vz = ox - px, oy - py, oz - pz
+        u = vx * lx + vy * ly + vz * lz
+        if 0.0 < u < reach:
+            cx, cy, cz = vx - u * lx, vy - u * ly, vz - u * lz
+            if cx * cx + cy * cy + cz * cz <= r * r:
+                return True
+    return False
+
+
+def _direct_light(
+    px: float, py: float, pz: float, *, normal: tuple[float, float, float] | None, toward_eye: tuple[float, float, float] | None,
+    lights: list[_Light], current_region: PhysicalRegion,
+    occluders: list[tuple[float, float, float, float, str | None]], skip: str | None, bands: int,
+) -> list[float]:
+    """Direct light per band at a point: for a surface, each light's incidence on its
+    normal; for a round thing, the share of its lit half the eye can see. The sun comes
+    only through a window; a lamp's light falls off with the square of the distance from
+    its surface; anything standing between blocks it (a shadow)."""
+
+    direct = [0.0] * bands
+    for light in lights:
+        if light.kind == "sun":
+            lx, ly, lz = light.x, light.y, light.z
+            reach = _through_window(current_region, px, py, pz, lx, ly, lz)
+            if reach is None:
+                continue
+            falloff = 1.0
+        else:
+            vx, vy, vz = light.x - px, light.y - py, light.z - pz
+            d = math.sqrt(vx * vx + vy * vy + vz * vz)
+            if d <= light.radius_mm:
+                continue
+            lx, ly, lz = vx / d, vy / d, vz / d
+            reach = d - light.radius_mm
+            falloff = (light.radius_mm / d) ** 2
+        if normal is not None:
+            factor = normal[0] * lx + normal[1] * ly + normal[2] * lz
+        else:
+            factor = (1.0 + (toward_eye[0] * lx + toward_eye[1] * ly + toward_eye[2] * lz)) / 2.0
+        if factor <= 0.0:
+            continue
+        if _blocked(px, py, pz, lx, ly, lz, reach, occluders, light.source_id if light.kind == "lamp" else skip):
+            continue
+        if skip is not None and light.kind == "lamp" and _blocked(px, py, pz, lx, ly, lz, reach, occluders, skip):
+            continue
+        for band in range(bands):
+            direct[band] += light.ppm[band] * falloff * factor
+    return direct
+
+
+def _bounce_ppm(current_region: PhysicalRegion, lights: list[_Light]) -> tuple[int, ...]:
+    """One bounce: the direct light that enters the room (the sun through its windows,
+    what its lamps give off) lands on the room's surfaces and comes back once, spread
+    over them: flux times the paint's reflectance over the room's surface area."""
+
+    bounds = current_region.bounds
+    lx, ly, lz = bounds.maximum.x - bounds.minimum.x, bounds.maximum.y - bounds.minimum.y, bounds.maximum.z - bounds.minimum.z
+    area = 2.0 * (lx * ly + lx * lz + ly * lz)
+    if area <= 0.0:
+        return (0,) * len(current_region.reflectance_ppm)
+    outward = {"x-min": (-1.0, 0.0), "x-max": (1.0, 0.0), "y-min": (0.0, -1.0), "y-max": (0.0, 1.0)}
+    flux = [0.0] * len(current_region.reflectance_ppm)
+    for light in lights:
+        if light.kind == "sun":
+            for window in current_region.windows:
+                nx, ny = outward[window.wall]
+                entering = nx * light.x + ny * light.y
+                if entering <= 0.0:
+                    continue
+                window_area = (window.to_mm - window.from_mm) * (window.top_mm - window.sill_mm)
+                for band in range(len(flux)):
+                    flux[band] += light.ppm[band] * window_area * entering
+        else:
+            surface = 4.0 * math.pi * light.radius_mm * light.radius_mm
+            for band in range(len(flux)):
+                flux[band] += light.ppm[band] * surface
+    return tuple(int(f * r / 1_000_000 / area) for f, r in zip(flux, current_region.reflectance_ppm))
+
+
+_FOCAL_RAYS: dict[int, tuple[list[int], "np.ndarray", "np.ndarray"]] = {}
+_EIGHT_BIT = tuple(Fraction(k, 255) for k in range(256))
+
+
+def _focal_rays(site_geometry: RetinalSiteGeometry) -> tuple[list[int], "np.ndarray", "np.ndarray"]:
+    """The focal sites' indices and their angular offsets (radians), once per geometry."""
+
+    key = id(site_geometry)
+    cached = _FOCAL_RAYS.get(key)
+    if cached is None:
+        focal = site_geometry[RETINA_TOTAL_RECEPTOR_COUNT:]
+        indices = [site[0] for site in focal]
+        h = np.radians(np.array([float(site[1]) for site in focal]) / 1000.0)
+        v = np.radians(np.array([float(site[2]) for site in focal]) / 1000.0)
+        cached = (indices, h, v)
+        _FOCAL_RAYS.clear()
+        _FOCAL_RAYS[key] = cached
+    return cached
+
+
+def _lit_surfaces_focal(
     observation: ObservationSnapshot,
     *,
     eye: PositionMM,
     body_heading_millidegrees: int,
     retinal_pitch_offset_millidegrees: int,
     current_region: PhysicalRegion,
+    illumination_ppm: tuple[int, ...],
     pixels: list[tuple[Fraction, ...]],
     site_geometry: RetinalSiteGeometry,
-    sun: tuple[float, float, float, int],
+    lights: list[_Light],
+    occluders: list[tuple[float, float, float, float, str | None]],
 ) -> None:
-    """The sun's direct light on the room's own surfaces, seen through the focal sites:
-    each site's ray meets the floor, a wall or the ceiling of the room; that point is in
-    direct sun when the line from it toward the sun passes through one of the room's
-    windows and no thing or body stands in the way; then the surface's light is its
-    ambient plus the sky's light times the sun's incidence on that surface. A shaft
-    through a window, its shadow behind a thing, and the falloff of the sun's angle are
-    geometry, nothing else."""
+    """The room's own surfaces through the focal sites: each site's ray meets the floor,
+    a wall or the ceiling; that point carries the region's paint or a declared look's
+    cell there, lit by the room's light (ambient and bounce) plus the direct light that
+    reaches it: the sun through a window, a lamp; a shadow behind whatever stands in the
+    way; the falloff of the angle. Geometry over every site at once; the result is
+    written at the retina's own eight-bit grain."""
 
-    focal_count = len(site_geometry) - RETINA_TOTAL_RECEPTOR_COUNT
-    if focal_count <= 0 or not current_region.windows:
+    if len(site_geometry) <= RETINA_TOTAL_RECEPTOR_COUNT or (not lights and not current_region.looks):
         return
-    sx, sy, sz, sky_ppm = sun
-    if sz <= 0.0:
-        return
+    indices, h_offsets, v_offsets = _focal_rays(site_geometry)
     bounds = current_region.bounds
-    ceiling = bounds.maximum.z
-    heading = math.radians(body_heading_millidegrees / 1000.0)
-    pitch_offset = math.radians(retinal_pitch_offset_millidegrees / 1000.0)
-    occluders = [
-        (item.position.x, item.position.y, item.position.z + item.radius_mm, item.radius_mm)
-        for item in observation.objects if item.position is not None
-    ] + [
-        (other.pose.position.x, other.pose.position.y, other.pose.position.z + other.radius_mm, other.radius_mm)
-        for other in observation.bodies
-    ]
-    walls = {
-        "x-min": (bounds.minimum.x, "x"), "x-max": (bounds.maximum.x, "x"),
-        "y-min": (bounds.minimum.y, "y"), "y-max": (bounds.maximum.y, "y"),
-    }
-    for site_index, h_center, v_center, _half_h, _half_v in site_geometry[RETINA_TOTAL_RECEPTOR_COUNT:]:
-        h = heading + math.radians(float(h_center) / 1000.0)
-        v = pitch_offset + math.radians(float(v_center) / 1000.0)
-        dx, dy, dz = math.cos(v) * math.cos(h), math.cos(v) * math.sin(h), math.sin(v)
-        # The ray's first meeting with the room's floor, ceiling or walls.
-        best_t, normal = None, None
-        for plane, axis, n in (
-            (bounds.minimum.z, "z", (0.0, 0.0, 1.0)), (ceiling, "z", (0.0, 0.0, -1.0)),
-            (bounds.minimum.x, "x", (1.0, 0.0, 0.0)), (bounds.maximum.x, "x", (-1.0, 0.0, 0.0)),
-            (bounds.minimum.y, "y", (0.0, 1.0, 0.0)), (bounds.maximum.y, "y", (0.0, -1.0, 0.0)),
-        ):
-            d = {"x": dx, "y": dy, "z": dz}[axis]
-            origin = {"x": eye.x, "y": eye.y, "z": eye.z}[axis]
-            if abs(d) < 1e-9:
-                continue
-            t = (plane - origin) / d
-            if t > 1e-6 and (best_t is None or t < best_t):
-                best_t, normal = t, n
-        if best_t is None:
-            continue
-        px, py, pz = eye.x + dx * best_t, eye.y + dy * best_t, eye.z + dz * best_t
-        incidence = normal[0] * sx + normal[1] * sy + normal[2] * sz     # cosine between the surface's normal and the sun
-        if incidence <= 0.0:
-            continue
-        # Toward the sun from the point: through which wall, and through a window in it?
-        through = False
-        for window in current_region.windows:
-            plane, axis = walls[window.wall]
-            s_axis = {"x": sx, "y": sy}[axis]
-            origin = {"x": px, "y": py}[axis]
-            if abs(s_axis) < 1e-9:
-                continue
-            u = (plane - origin) / s_axis
-            if u <= 1e-6:
-                continue
-            along = (py + sy * u) if axis == "x" else (px + sx * u)
-            height = pz + sz * u
-            if window.from_mm <= along <= window.to_mm and window.sill_mm <= height <= window.top_mm:
-                through, reach = True, u
-                break
-        if not through:
-            continue
-        shadowed = False
-        for ox, oy, oz, r in occluders:
-            vx, vy, vz = ox - px, oy - py, oz - pz
-            u = vx * sx + vy * sy + vz * sz
-            if 0.0 < u < reach:
-                cx, cy, cz = vx - u * sx, vy - u * sy, vz - u * sz
-                if cx * cx + cy * cy + cz * cz <= r * r:
-                    shadowed = True
-                    break
-        if shadowed:
-            continue
-        direct = int(sky_ppm * incidence)
-        pixels[site_index] = tuple(
-            min(Fraction(1), Fraction(reflectance * (illumination + direct), 1_000_000_000_000))
-            for reflectance, illumination in zip(current_region.reflectance_ppm, current_region.illumination_ppm, strict=True)
-        )
+    bands = len(current_region.reflectance_ppm)
+    h = math.radians(body_heading_millidegrees / 1000.0) + h_offsets
+    v = math.radians(retinal_pitch_offset_millidegrees / 1000.0) + v_offsets
+    cos_v = np.cos(v)
+    d = np.stack((cos_v * np.cos(h), cos_v * np.sin(h), np.sin(v)))            # 3 x N ray directions
+    origin = np.array([float(eye.x), float(eye.y), float(eye.z)])
+    planes = (
+        (bounds.minimum.z, 2, (0.0, 0.0, 1.0), "floor"), (bounds.maximum.z, 2, (0.0, 0.0, -1.0), "ceiling"),
+        (bounds.minimum.x, 0, (1.0, 0.0, 0.0), "x-min"), (bounds.maximum.x, 0, (-1.0, 0.0, 0.0), "x-max"),
+        (bounds.minimum.y, 1, (0.0, 1.0, 0.0), "y-min"), (bounds.maximum.y, 1, (0.0, -1.0, 0.0), "y-max"),
+    )
+    best = np.full(d.shape[1], np.inf)
+    face = np.full(d.shape[1], -1, dtype=np.int64)
+    for index, (plane, axis, _normal, _name) in enumerate(planes):
+        with np.errstate(divide="ignore", invalid="ignore"):
+            t = np.where(np.abs(d[axis]) < 1e-9, np.inf, (plane - origin[axis]) / d[axis])
+        t = np.where(t > 1e-6, t, np.inf)
+        closer = t < best
+        best = np.where(closer, t, best)
+        face = np.where(closer, index, face)
+    hit = face >= 0
+    if not hit.any():
+        return
+    best = np.where(hit, best, 0.0)
+    point = origin[:, None] + d * best[None, :]                                   # 3 x N hit points
+    normals = np.array([plane[2] for plane in planes] + [(0.0, 0.0, 0.0)])        # face -> normal (last: none)
+    normal = normals[np.where(hit, face, len(planes))].T                          # 3 x N
+    face_names = [plane[3] for plane in planes]
 
+    paint = np.array(current_region.reflectance_ppm, dtype=np.float64)[:, None].repeat(d.shape[1], axis=1)   # bands x N
+    has_look = np.zeros(d.shape[1], dtype=bool)
+    for look in current_region.looks:
+        face_index = face_names.index(look.face)
+        if look.face in ("floor", "ceiling"):
+            along, up = point[0], point[1]
+        elif look.face.startswith("x"):
+            along, up = point[1], point[2]
+        else:
+            along, up = point[0], point[2]
+        inside = hit & (face == face_index) & ~has_look & (along >= look.from_mm) & (along <= look.to_mm) & (up >= look.low_mm) & (up <= look.high_mm)
+        if not inside.any():
+            continue
+        surface = look.surface
+        column = np.minimum(surface.columns - 1, ((along - look.from_mm) * surface.columns / (look.to_mm - look.from_mm)).astype(np.int64))
+        row = np.minimum(surface.rows - 1, ((look.high_mm - up) * surface.rows / (look.high_mm - look.low_mm)).astype(np.int64))
+        cells = np.array(surface.cell_palette_indices, dtype=np.int64).reshape(surface.rows, surface.columns)
+        palette = np.array(surface.palette_reflectance_ppm, dtype=np.float64)     # entries x bands
+        chosen = palette[cells[np.clip(row, 0, surface.rows - 1), np.clip(column, 0, surface.columns - 1)]].T   # bands x N
+        paint = np.where(inside[None, :], chosen, paint)
+        has_look |= inside
+
+    direct = np.zeros((bands, d.shape[1]))
+    for light in lights:
+        if light.kind == "sun":
+            lx = np.full(d.shape[1], light.x); ly = np.full(d.shape[1], light.y); lz = np.full(d.shape[1], light.z)
+            reach = np.full(d.shape[1], np.inf)
+            through = np.zeros(d.shape[1], dtype=bool)
+            for window in current_region.windows:
+                axis = 0 if window.wall.startswith("x") else 1
+                plane = {"x-min": bounds.minimum.x, "x-max": bounds.maximum.x, "y-min": bounds.minimum.y, "y-max": bounds.maximum.y}[window.wall]
+                s_axis = light.x if axis == 0 else light.y
+                if abs(s_axis) < 1e-9:
+                    continue
+                u = (plane - point[axis]) / s_axis
+                along = point[1] + light.y * u if axis == 0 else point[0] + light.x * u
+                height = point[2] + light.z * u
+                passes = (u > 1e-6) & (along >= window.from_mm) & (along <= window.to_mm) & (height >= window.sill_mm) & (height <= window.top_mm) & ~through
+                reach = np.where(passes, u, reach)
+                through |= passes
+            lit = hit & through
+            falloff = np.ones(d.shape[1])
+            skip = None
+        else:
+            vx, vy, vz = light.x - point[0], light.y - point[1], light.z - point[2]
+            dist = np.sqrt(vx * vx + vy * vy + vz * vz)
+            lit = hit & (dist > light.radius_mm)
+            safe = np.where(dist > 0, dist, 1.0)
+            lx, ly, lz = vx / safe, vy / safe, vz / safe
+            reach = dist - light.radius_mm
+            falloff = (light.radius_mm / safe) ** 2
+            skip = light.source_id
+        factor = normal[0] * lx + normal[1] * ly + normal[2] * lz
+        lit &= factor > 0.0
+        if not lit.any():
+            continue
+        for ox, oy, oz, r, oid in occluders:
+            if oid is not None and oid == skip:
+                continue
+            vx, vy, vz = ox - point[0], oy - point[1], oz - point[2]
+            u = vx * lx + vy * ly + vz * lz
+            cx, cy, cz = vx - u * lx, vy - u * ly, vz - u * lz
+            shadow = (u > 0.0) & (u < reach) & (cx * cx + cy * cy + cz * cz <= r * r)
+            lit &= ~shadow
+            if not lit.any():
+                break
+        if not lit.any():
+            continue
+        gain = np.where(lit, falloff * factor, 0.0)
+        for band in range(bands):
+            direct[band] += light.ppm[band] * gain
+
+    changed = hit & (has_look | (direct > 0.0).any(axis=0))
+    if not changed.any():
+        return
+    illumination = np.array(illumination_ppm, dtype=np.float64)[:, None]
+    values = np.clip(paint * (illumination + direct) / 1e12, 0.0, 1.0)
+    eight_bit = np.rint(values * 255).astype(np.int64)
+    for column in np.nonzero(changed)[0]:
+        pixels[indices[column]] = tuple(_EIGHT_BIT[eight_bit[band, column]] for band in range(bands))
 
 def _retinal_projection(
     observation: ObservationSnapshot,
@@ -830,7 +1041,15 @@ def _retinal_projection(
         region for region in observation.regions
         if region.region_id == observation.room_id
     )
-    background = _region_radiance(current_region)
+    lights, occluders = _room_lights(observation, current_region, sun)
+    bounce = _bounce_ppm(current_region, lights)
+    lit_illumination = tuple(
+        i + b for i, b in zip(current_region.illumination_ppm, bounce, strict=True)
+    )
+    background = tuple(
+        Fraction(reflectance * illumination, 1_000_000_000_000)
+        for reflectance, illumination in zip(current_region.reflectance_ppm, lit_illumination, strict=True)
+    )
     pixels: list[tuple[Fraction, ...]] = [
         background for _ in site_geometry
     ]
@@ -844,20 +1063,21 @@ def _retinal_projection(
     focal_left = -int(RETINA_FOCAL_HORIZONTAL_FOV_MILLIDEGREES) // 2
     focal_top = int(RETINA_FOCAL_VERTICAL_FOV_MILLIDEGREES) // 2
 
-    if sun is not None:
-        _direct_sun_focal(
-            observation,
-            eye=eye,
-            body_heading_millidegrees=(
-                body.pose.heading_millidegrees
-                + retinal_heading_offset_millidegrees
-            ) % 360_000,
-            retinal_pitch_offset_millidegrees=retinal_pitch_offset_millidegrees,
-            current_region=current_region,
-            pixels=pixels,
-            site_geometry=site_geometry,
-            sun=sun,
-        )
+    _lit_surfaces_focal(
+        observation,
+        eye=eye,
+        body_heading_millidegrees=(
+            body.pose.heading_millidegrees
+            + retinal_heading_offset_millidegrees
+        ) % 360_000,
+        retinal_pitch_offset_millidegrees=retinal_pitch_offset_millidegrees,
+        current_region=current_region,
+        illumination_ppm=lit_illumination,
+        pixels=pixels,
+        site_geometry=site_geometry,
+        lights=lights,
+        occluders=occluders,
+    )
     _portal_aperture_background(
         observation,
         eye=eye,
@@ -882,6 +1102,7 @@ def _retinal_projection(
                     # A body can therefore only be a conservative silhouette.
                     reflectance_ppm=(0,) * OPTICAL_BANDS,
                     optical_surface=None,
+                    source_id=other.body_id,
                 )
             )
     for item in observation.objects:
@@ -913,6 +1134,7 @@ def _retinal_projection(
                 reflectance_ppm=item.reflectance_ppm,
                 optical_surface=item.optical_surface,
                 emission_ppm=getattr(item, "emission_ppm", ()) or (),
+                source_id=item.object_id,
             )
         )
 
@@ -977,6 +1199,20 @@ def _retinal_projection(
         pattern = surface.optical_surface
         if pattern is not None:
             pattern.verify()
+        if surface_region.region_id == current_region.region_id:
+            surface_illumination = lit_illumination
+            if lights:
+                # The direct light on a round thing: the share of its lit half the eye sees.
+                tx, ty, tz = surface.position.x, surface.position.y, current_region.bounds.minimum.z + surface.radius_mm
+                ex, ey, ez = eye.x - tx, eye.y - ty, eye.z - tz
+                span = math.sqrt(ex * ex + ey * ey + ez * ez) or 1.0
+                direct = _direct_light(tx, ty, tz, normal=None, toward_eye=(ex / span, ey / span, ez / span), lights=lights,
+                                       current_region=current_region, occluders=occluders, skip=surface.source_id,
+                                       bands=len(lit_illumination))
+                if any(direct):
+                    surface_illumination = tuple(int(i + d) for i, d in zip(lit_illumination, direct, strict=True))
+        else:
+            surface_illumination = surface_region.illumination_ppm
 
         if pattern is None:
             reflectance = surface.reflectance_ppm
@@ -989,7 +1225,7 @@ def _retinal_projection(
                 )
                 for value, illumination, emitted in zip(
                     reflectance,
-                    surface_region.illumination_ppm,
+                    surface_illumination,
                     emission,
                 )
             )
@@ -1091,7 +1327,7 @@ def _retinal_projection(
                     )
                     for value, illumination, emitted in zip(
                         reflectance,
-                        surface_region.illumination_ppm,
+                        surface_illumination,
                         emission,
                     )
                 )
@@ -1173,7 +1409,7 @@ def _retinal_projection(
                                 )
                                 for val, ill, e in zip(
                                     refl,
-                                    surface_region.illumination_ppm,
+                                    surface_illumination,
                                     em,
                                 )
                             )

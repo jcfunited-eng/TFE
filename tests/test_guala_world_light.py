@@ -13,7 +13,7 @@ from dsf_ai_service.substrate.embodiment_world import (
     EmbodiedObject, PhysicalRegion, PositionMM, SolarCoupling, WindowMM, _region_from,
 )
 from dsf_ai_service.substrate.w1_physical_receptors import (
-    RETINA_TOTAL_RECEPTOR_COUNT, UPGRADED_RETINAL_SITE_GEOMETRY, _direct_sun_focal, _region_radiance,
+    RETINA_TOTAL_RECEPTOR_COUNT, UPGRADED_RETINAL_SITE_GEOMETRY, _bounce_ppm, _lit_surfaces_focal, _region_radiance, _room_lights,
 )
 
 IDENTITY = "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1"
@@ -25,8 +25,10 @@ def _her_room_with_window():
     world = home_world_authority(identity=IDENTITY)
     snapshot = world.observation_snapshot()
     region = next(r for r in snapshot.regions if r.region_id == "her-room")
-    lit = replace(region, windows=(NORTH_WINDOW,))
-    return world, replace(snapshot, regions=tuple(lit if r.region_id == "her-room" else r for r in snapshot.regions)), lit
+    lit = replace(region, windows=(NORTH_WINDOW,), looks=())      # paint only, and no lamp (her glow stars emit): the sun alone is measured
+    quiet = replace(snapshot, regions=tuple(lit if r.region_id == "her-room" else r for r in snapshot.regions),
+                    objects=tuple(o for o in snapshot.objects if not (o.emission_ppm and any(o.emission_ppm))))
+    return world, quiet, lit
 
 
 def _field(snapshot, region, sun, heading=90_000, pitch=-25_000):
@@ -34,9 +36,10 @@ def _field(snapshot, region, sun, heading=90_000, pitch=-25_000):
     her = next(b for b in snapshot.bodies if b.body_id == snapshot.self_body_id)
     eye = PositionMM(her.pose.position.x + 200, her.pose.position.y, 1_100)
     started = time.perf_counter()
-    if sun is not None:
-        _direct_sun_focal(snapshot, eye=eye, body_heading_millidegrees=heading, retinal_pitch_offset_millidegrees=pitch,
-                          current_region=region, pixels=pixels, site_geometry=UPGRADED_RETINAL_SITE_GEOMETRY, sun=sun)
+    lights, occluders = _room_lights(snapshot, region, sun)
+    _lit_surfaces_focal(snapshot, eye=eye, body_heading_millidegrees=heading, retinal_pitch_offset_millidegrees=pitch,
+                        current_region=region, illumination_ppm=region.illumination_ppm, pixels=pixels,
+                        site_geometry=UPGRADED_RETINAL_SITE_GEOMETRY, lights=lights, occluders=occluders)
     elapsed = time.perf_counter() - started
     luminance = [int(round(255 * float(v))) for v in _retinal_luminance(tuple(pixels))][RETINA_TOTAL_RECEPTOR_COUNT:]
     return luminance, elapsed
@@ -127,4 +130,71 @@ def test_the_shaft_reaches_her_eye_on_the_path_her_beat_uses(monkeypatch) -> Non
     assert night == _world_retina_u8(snapshot, axes, None)
     lit = sum(1 for a, b in zip(noon[-WORLD_FOCAL_SITES:], night[-WORLD_FOCAL_SITES:]) if a > b)
     assert lit > 200, lit                                       # measured by hand: 934 of 4,800 at this aim
-    assert noon[:-WORLD_FOCAL_SITES] == night[:-WORLD_FOCAL_SITES]   # the sun is a focal law; the wide field is the room's
+    wide = [a - b for a, b in zip(noon[:-WORLD_FOCAL_SITES], night[:-WORLD_FOCAL_SITES])]
+    assert min(wide) >= 0, min(wide)                               # by day nothing in the wide field is darker
+    assert sum(1 for w in wide if w > 2) < len(wide) // 10          # it rises evenly by the sun's one bounce, more only where a thing stands in the sun
+
+
+def _lamp(object_id: str, x: int, y: int, radius: int, emission: int) -> EmbodiedObject:
+    return EmbodiedObject(object_id, radius, 800, PositionMM(x, y, 0), emission_ppm=(emission,) * 6)
+
+
+def test_a_lamp_lights_the_floor_around_it_at_night_and_a_thing_beside_it_casts_a_shadow() -> None:
+    """No sun (night): a lamp in her room lights the floor near it, falling off with distance;
+    a thing standing between the lamp and the floor leaves a shadow; without the lamp the
+    field is the room's ambient only."""
+    world = home_world_authority(identity=IDENTITY)
+    snapshot = world.observation_snapshot()
+    region = next(r for r in snapshot.regions if r.region_id == "her-room")
+    plain = replace(region, looks=())                                 # paint only, so light alone is measured
+    quiet = replace(snapshot, regions=tuple(plain if r.region_id == "her-room" else r for r in snapshot.regions),
+                    objects=tuple(o for o in snapshot.objects if not (o.emission_ppm and any(o.emission_ppm))))
+    ambient = int(round(255 * float(_retinal_luminance((_region_radiance(plain),))[0])))
+    dark, _ = _field(quiet, plain, None)
+    assert all(v == ambient for v in dark)
+    lit_world = replace(quiet, objects=quiet.objects + (_lamp("lamp-test", 2_600, 8_800, 150, 900_000),))   # ahead of her, north
+    lamp, cost = _field(lit_world, plain, None)
+    lit = [i for i, v in enumerate(lamp) if v > ambient]
+    assert len(lit) > 200 and max(lamp) > ambient + 20, (len(lit), max(lamp))
+    assert cost < 0.25, cost
+    shaded_world = replace(lit_world, objects=lit_world.objects + (EmbodiedObject("post-test", 120, 2_000, PositionMM(2_600, 9_300, 0)),))   # beyond the lamp: its shadow falls on the floor she sees
+    shaded, _ = _field(shaded_world, plain, None)
+    assert sum(1 for v in shaded if v > ambient) < len(lit)          # the post's shadow
+
+
+def test_one_bounce_lets_a_lamp_or_the_sun_light_the_whole_room() -> None:
+    world = home_world_authority(identity=IDENTITY)
+    snapshot = world.observation_snapshot()
+    region = next(r for r in snapshot.regions if r.region_id == "her-room")
+    none, _ = _room_lights(replace(snapshot, objects=()), region, None)
+    assert _bounce_ppm(region, none) == (0,) * 6
+    lamp_only, _ = _room_lights(replace(snapshot, objects=(_lamp("lamp-test", 2_600, 9_000, 150, 900_000),)), region, None)
+    assert all(b > 0 for b in _bounce_ppm(region, lamp_only))
+    sun_only, _ = _room_lights(replace(snapshot, objects=()), region, COUPLING.sun_vector(13 * 3_600))
+    noon = _bounce_ppm(region, sun_only)
+    assert all(b > 0 for b in noon)
+    assert all(b == 0 for b in _bounce_ppm(region, _room_lights(replace(snapshot, objects=()), region, COUPLING.sun_vector(2 * 3_600))[0]))
+    assert _bounce_ppm(region, sun_only) == noon                     # deterministic
+
+
+def test_a_look_on_the_floor_is_read_where_the_rays_meet_it_and_survives_the_records() -> None:
+    world = home_world_authority(identity=IDENTITY)
+    snapshot = world.observation_snapshot()
+    region = next(r for r in snapshot.regions if r.region_id == "her-room")
+    assert region.looks, "her room declares its floor planks and wall panels"
+    record = region.as_record()
+    assert "looks" in record and _region_from(record) == region
+    plain = replace(region, looks=())
+    quiet = replace(snapshot, objects=())
+    textured, cost = _field(quiet, region, None)
+    flat, _ = _field(quiet, plain, None)
+    assert len(set(textured)) >= 3 and len(set(flat)) == 1, (len(set(textured)), len(set(flat)))   # planks and joints, not one grey
+    assert cost < 0.25, cost
+    again, _ = _field(quiet, region, None)
+    assert again == textured
+    try:
+        replace(region, looks=(replace(region.looks[0], to_mm=9_000),)).verify()
+    except ValueError as error:
+        assert "outside its face" in str(error)
+    else:
+        raise AssertionError("a look wider than its face was accepted")
