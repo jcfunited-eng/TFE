@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from fractions import Fraction
 import hashlib
+import math
 
 import numpy as np
 import json
@@ -56,6 +57,7 @@ GAZE_RECENTRE = 0.05  # each beat the gaze gives back a twentieth of its offset 
 WORLD_RETINAL_SITES = 19335
 PUPIL_GAIN_MAX = 16.0   # a pupil's range in area, about sixteen to one
 PUPIL_MID_RANGE = 0.5   # the field's median light the pupil aims at, as a fraction of full
+PUPIL_HIGHLIGHT_PERCENTILE = 98.0   # the light the pupil lets reach full: all but the brightest fiftieth of sites
 WORLD_FOCAL_SITES = 19200
 WORLD_LEGACY_SITES = 27   # the 9 x 3 coarse field that precedes the wide field
 WORLD_WIDE_SITES = 108    # the 18 x 6 wide field over 180 x 90 degrees
@@ -88,12 +90,17 @@ def _world_retina_u8(snapshot: Any, axes: tuple[Any, ...], sun: tuple[float, flo
     rgb = np.stack(((bands[:, 0] + bands[:, 1]) / 2.0, (bands[:, 2] + bands[:, 3]) / 2.0, (bands[:, 4] + bands[:, 5]) / 2.0), axis=1)
     if rgb.min() < 0.0 or rgb.max() > 1.0:
         raise RuntimeError("retinal observer left its physical range")
-    # THE PUPIL LAW: in a dark room the pupil opens, up to sixteen times, so that the
-    # field's middle light sits at mid-range; in a bright one it closes to one. Declared
-    # once, decided by this beat's field alone (no state), the same field twice gives the
-    # same gain; what the light does not reach stays dark, what is bright clips at full.
+    # THE PUPIL LAW: in a dark room the pupil opens, up to sixteen times, until the field's
+    # middle light reaches mid-range or all but its brightest fiftieth (a lamp's shade,
+    # the glow stars) reaches full, whichever comes first; in a bright room it stays at one. Declared once, decided by this beat's field
+    # alone (no state), the same field twice gives the same gain; only that fiftieth clips,
+    # so what her figure law reads is the raw field scaled, and what no light reaches stays dark.
     middle = float(np.median(rgb))
-    gain = 1.0 if (not pupil or middle <= 0.0) else min(PUPIL_GAIN_MAX, max(1.0, PUPIL_MID_RANGE / middle))
+    bright = float(np.percentile(rgb, PUPIL_HIGHLIGHT_PERCENTILE))
+    gain = 1.0
+    if pupil and middle > 0.0 and bright > 0.0:
+        wanted = min(PUPIL_GAIN_MAX, max(1.0, PUPIL_MID_RANGE / middle), max(1.0, 1.0 / bright))
+        gain = float(2 ** int(math.log2(wanted)))     # in doublings, so a small shift of the field's middle does not move the gain
     values = np.rint(np.minimum(1.0, rgb * gain) * (255.0 * float(transmission))).astype(np.int64).reshape(-1).tolist()
     if len(values) != WORLD_RETINAL_VALUES:
         raise RuntimeError("world retina changed its site count")

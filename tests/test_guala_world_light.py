@@ -4,6 +4,7 @@ shaft through a window onto the floor and walls, cut by shadows of things and bo
 falling off with the sun's angle; all geometry, nothing else. Measured, not designed."""
 from __future__ import annotations
 
+import math
 import time
 from dataclasses import replace
 
@@ -398,8 +399,13 @@ def test_her_pupil_opens_in_a_dark_room_and_closes_by_day_from_the_field_alone()
     channels = 3 if len(night) == (WORLD_FOCAL_SITES + 135) * 3 else 1
     focal_night = night[-WORLD_FOCAL_SITES * channels:]
     focal_day = day[-WORLD_FOCAL_SITES * channels:]
-    assert 60 <= statistics.median(focal_night) <= 200, statistics.median(focal_night)   # the pupil opened: mid-range, not black
-    assert statistics.median(focal_day) >= statistics.median(focal_night) * 0.5           # by day it closes; the field is not dimmer than night's
+    raw_night = _world_retina_u8(snapshot, axes, None, pupil=False)[-WORLD_FOCAL_SITES * channels:]
+    opened = statistics.median(focal_night) / max(1, statistics.median(raw_night))
+    # The pupil opened, in doublings, as far as the field's middle or its brightest fiftieth allows
+    # (her nightlight in view holds it at two to four from her bed); by day it stays at one.
+    assert 2 <= opened <= PUPIL_GAIN_MAX and abs(math.log2(opened) - round(math.log2(opened))) < 0.2, opened
+    assert statistics.median(focal_night) <= 200 and max(focal_night) <= 255
+    assert statistics.median(focal_day) >= statistics.median(raw_night)                    # by day the field is brighter than the raw night
     assert _world_retina_u8(snapshot, axes, None) == night                               # the same field twice, the same values
     assert min(night) == 0 or min(night) < 8                                             # what no light reaches stays dark
     assert PUPIL_GAIN_MAX == 16.0
