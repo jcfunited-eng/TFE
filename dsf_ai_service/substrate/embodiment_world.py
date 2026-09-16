@@ -1447,6 +1447,12 @@ class EmbodiedBody:
         }
 
 
+# A box whose bottom is above the walking layer (a framed picture, a high shelf's
+# things) is out of every body's way: its footprint disc need not cover its plan,
+# so it can hang flat against a wall.
+WALKING_LAYER_MM = 1_200
+
+
 @dataclass(frozen=True, slots=True)
 class EmbodiedObject:
     object_id: str
@@ -1490,7 +1496,10 @@ class EmbodiedObject:
                 _bounded_integer(extent, "box extent", minimum=1, maximum=1_000_000)
             _bounded_integer(self.heading_millidegrees, "box heading", minimum=-180_000, maximum=180_000)
             _bounded_integer(self.elevation_mm, "box elevation", minimum=0, maximum=1_000_000)
-            if 4 * self.radius_mm * self.radius_mm < self.size_mm[0] ** 2 + self.size_mm[1] ** 2:
+            if (
+                self.elevation_mm < WALKING_LAYER_MM
+                and 4 * self.radius_mm * self.radius_mm < self.size_mm[0] ** 2 + self.size_mm[1] ** 2
+            ):
                 raise ValueError("the footprint disc must cover the box's plan")
         else:
             raise ValueError("object shape must be a sphere or a box")
