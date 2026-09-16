@@ -187,3 +187,36 @@ def test_the_builders_take_away_departed_things_and_stand_strayed_furniture_back
     assert after["desk-chair"].position == chair.position                 # back in her room, at its authored place
     again = home_world_authority(identity=IDENTITY, encoded_world=bytes(world.encoded_snapshot()), migrate_physical_return=True)
     assert not again.home_renovation_performed
+
+
+def test_a_thing_carried_into_another_room_stays_there_across_a_restore_until_the_builders_come(monkeypatch) -> None:
+    """The release proof's cold restart failed (2026-09-16): the caretaker had carried the
+    book from the library into the hallway, the restore counted it as strayed, renovated,
+    and re-encoded the world differently. A world records the declaration it was built or
+    renovated under; a restore under the same declaration changes nothing, byte-exact,
+    however she or the caretaker moved things; the builders stand a strayed thing back
+    only when the declaration changes."""
+    from dsf_ai_service.guala_caretaker_hand import _Hand, present_food
+
+    world = home_world_authority(identity=IDENTITY)
+    assert present_food(world, "book")["presented"]
+    assert _Hand(world, "book").set_down("book")
+    carried = next(o for o in world.observation_snapshot().objects if o.object_id == "book")
+    library = next(o for o in DECLARED_HOME()[2] if o.object_id == "book").position
+    assert carried.position is not None and carried.position != library
+    encoded = bytes(world.encoded_snapshot())
+    again = home_world_authority(identity=IDENTITY, encoded_world=encoded, migrate_physical_return=True)
+    assert not again.home_renovation_performed
+    assert bytes(again.encoded_snapshot()) == encoded
+    assert next(o for o in again.observation_snapshot().objects if o.object_id == "book").position == carried.position
+
+    # The builders come for a repaint: the book is stood back on the library's shelf.
+    def repainted():
+        regions, portals, objects = DECLARED_HOME()
+        return tuple(replace(r, reflectance_ppm=(500_000,) * 6) for r in regions), portals, objects
+
+    monkeypatch.setattr(guala_home_world, "_home_rooms_and_things", repainted)
+    third = home_world_authority(identity=IDENTITY, encoded_world=encoded, migrate_physical_return=True)
+    monkeypatch.undo()
+    assert third.home_renovation_performed
+    assert next(o for o in third.observation_snapshot().objects if o.object_id == "book").position == library

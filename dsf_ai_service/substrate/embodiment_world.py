@@ -3894,6 +3894,12 @@ class EmbodimentWorldAuthority:
         # stand in the lived world (a thing arrives by a declaration or a hand, and leaves
         # the same way; the renovation is the builders' hand).
         self._departed_object_ids = tuple(sorted(set(departed_object_ids)))
+        # The declaration this world is built under: its things at their authored
+        # places and what it has taken away. A renovation happens when the declaration
+        # a world was last built or renovated under differs from this one, never merely
+        # because she carried a thing into another room (a restore then changes nothing).
+        self._declaration_sha256 = self._declaration_sha256_for(objects)
+        self._recorded_declaration_sha256: str | None = self._declaration_sha256
         if solar_coupling is not None:
             region_ids = {region.region_id for region in physical_regions}
             for region_id in solar_coupling.outdoor_region_ids:
@@ -4312,8 +4318,6 @@ class EmbodimentWorldAuthority:
                     )
                 }
 
-            departed_present = [object_id for object_id in self._departed_object_ids if object_id in prior_objects and object_id not in declared_objects]
-
             def region_of(position: PositionMM | None):
                 if position is None:
                     return None
@@ -4324,13 +4328,14 @@ class EmbodimentWorldAuthority:
                 return None
 
             # A declared thing that lives in another room than its authored place (a chair
-            # shoved through a door) is stood back at its authored place by the builders.
+            # shoved through a door, a book carried out) is stood back at its authored place
+            # by the builders when they come; it never brings them by itself.
             strayed = [
                 object_id for object_id, item in declared_objects.items()
                 if object_id in prior_objects and prior_objects[object_id].position is not None and item.position is not None
                 and region_of(prior_objects[object_id].position) != region_of(item.position)
             ]
-            if prior_topology == self._declared_topology_sha256 and not departed_present and not strayed and all(
+            if prior_topology == self._declared_topology_sha256 and self._recorded_declaration_sha256 == self._declaration_sha256 and all(
                 object_id in prior_objects
                 and authored(prior_objects[object_id]) == authored(item)
                 for object_id, item in declared_objects.items()
@@ -4589,6 +4594,8 @@ class EmbodimentWorldAuthority:
                 recent_applied_receipts=(),
                 migration_receipt=migration,
             )
+            # The renovated world records the declaration it now stands under.
+            self._recorded_declaration_sha256 = self._declaration_sha256
             self._encoded_state_for(candidate)
             self._commit_authority_state(candidate)
             self._home_renovation_performed = True
@@ -7290,7 +7297,7 @@ class EmbodimentWorldAuthority:
         state: _AuthorityState,
         catalog: Mapping[str, ObjectOpticalSurface],
     ) -> dict[str, object]:
-        return {
+        payload: dict[str, object] = {
             "actor_ports": [item.as_record() for item in self._actor_ports],
             "limits": {
                 "max_regions": self._max_regions,
@@ -7317,6 +7324,11 @@ class EmbodimentWorldAuthority:
             # verbatim, so the canonical walk touches the catalog and the top level only.
             "world": _CanonicalJsonFragment(_canonical_plain(self._compact_world_record(state.world, catalog))),
         }
+        if self._recorded_declaration_sha256 is not None:
+            # A world built or renovated since the declaration identity exists records
+            # it; an older world records none until its next renovation.
+            payload["declaration_sha256"] = self._recorded_declaration_sha256
+        return payload
 
     def _receipt_fragment(self, receipt: ActionExecutionReceipt, catalog: Mapping[str, ObjectOpticalSurface], catalog_shas: tuple[str, ...]) -> _CanonicalJsonFragment:
         """A retained receipt's compact record, canonical once and kept by its identity for as
@@ -7987,6 +7999,22 @@ class EmbodimentWorldAuthority:
             require_current_manifest=require_current_manifest,
         )
         return result
+
+    def _declaration_sha256_for(self, objects: Sequence[EmbodiedObject]) -> str:
+        """Identify the declaration of things: each authored thing at its authored
+        place (its lived holder, material and emission are not the declaration) and
+        what the declaration has taken away."""
+
+        return _digest({
+            "departed": list(self._departed_object_ids),
+            "things": [
+                {
+                    key: value for key, value in item.as_record().items()
+                    if key not in ("held_by_body_id", "material", "emission_ppm")
+                }
+                for item in sorted(objects, key=lambda item: item.object_id)
+            ],
+        })
 
     def _topology_sha256(
         self,
@@ -9026,8 +9054,13 @@ class EmbodimentWorldAuthority:
             "actor_ports", "limits", "migration_receipt", "optical_surface_catalog",
             "recent_applied_receipts", "schema", "world"
         }
-        if not isinstance(decoded, Mapping) or set(decoded) != expected_state or decoded.get("schema") != STATE_SCHEMA:
+        if not isinstance(decoded, Mapping) or set(decoded) - {"declaration_sha256"} != expected_state or decoded.get("schema") != STATE_SCHEMA:
             raise ValueError("embodiment state fields changed")
+        # The declaration the world was last built or renovated under, if it recorded one.
+        self._recorded_declaration_sha256 = (
+            None if "declaration_sha256" not in decoded
+            else _sha256_identity(decoded["declaration_sha256"], "declaration identity")
+        )
         expected_limits = {
             "max_regions": self._max_regions,
             "max_portals": self._max_portals,
