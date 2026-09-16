@@ -85,3 +85,13 @@ Joe looked at the page: every thing an orb with a pattern. Right: the world's th
 First shapes (C1, so the picture exists tonight): her bed 1 500 × 950 × 500, toy chest, desk, desk chair, the two framed pictures on the west wall as 40 mm boxes 560 wide and 760 tall at 1 300 mm, the library's shelves 700 × 300 × 1 800, the dining table. A1 converts the rest of the furniture (`HOME_SHAPES["thing"] = ((x, y, z), heading, elevation)`).
 
 Measured (her room, genesis, the sky's share on the night floor by day; a floor lamp by night): fields of 27 to 187 distinct values, 0 to 202, where the first build had one grey. Pass cost with boxes 30 to 70 ms per field including the things loop. Tests: a box in the records and a sphere without one; a box wider than its footprint refused; from mid-room by lamplight the pictures show straight vertical edges and the desk more than one face; a crate in front hides a bright ball behind it.
+
+## 8. Fourth build, 2026-09-16 03:15Z to 03:35Z: the whole house in shape, lamps at their heights, the nightlight, the cap
+
+- 37 of 52 things are boxes (sofa, television, counters, tub, chairs, shelves, rug, mat, slide, sandbox, curtains, pillow …), each sized inside the footprint disc it already had, so no clearance or collision law moved; furniture wears its paint flat (a sofa is one grey whose faces the light tells apart); pictures, the television and the books keep their patterns.
+- A sphere may carry `elevation_mm`: a shade on a stand, a pendant, the glow stars on the ceiling. Lights, shadows and the drawn disc use the true centre. Heights declared: kitchen pendant 1,500; dining pendant 1,600; desk lamp 750; vanity light 1,400; library floor lamp 1,300; glow stars 2,300.
+- Her room's nightlight (radius 80, 300,000 at one metre, 250 mm up by the bear) so her nights are not black.
+- The thing cap 64 → 128 (`DEFAULT_MAX_OBJECTS`), carried into a lived world by the production restore's authenticated migration.
+- Colour and the eye's grain are A1's (ledger 03:10Z and 03:30Z): the six bands become three channels per site in the same rewrite that makes the field finer.
+
+Renders (genesis stances, night floor): kitchen under the pendant 111 distinct values, 0 to 154; dining under its pendant 139, 2 to 157; her room by the nightlight 81, 2 to 87.
