@@ -17,7 +17,11 @@ HOME_BOOK_OBJECT_ID = "book"
 # Windows, declared content like a thing's material: which wall of the room, from
 # where to where along it, sill and top. The sun's direct light enters through them;
 # the sky's share (the solar coupling) is the room's ambient.
-from dsf_ai_service.substrate.embodiment_world import WindowMM  # noqa: E402
+from dsf_ai_service.substrate.embodiment_world import (  # noqa: E402
+    ObjectOpticalSurface,
+    SurfaceLookMM,
+    WindowMM,
+)
 
 HOME_WINDOWS = {
     "her-room":    (WindowMM("y-max", 1_800, 3_800, 900, 2_100),),    # the north wall, where the curtains hang
@@ -28,12 +32,6 @@ HOME_WINDOWS = {
     "daddys-room": (WindowMM("y-min", 13_000, 15_000, 900, 2_100),),   # south wall
     "wcs-room":    (WindowMM("y-min", 17_500, 19_000, 1_400, 2_100),), # south high clerestory
 }
-
-
-# Looks on the rooms' own surfaces (the floor's planks, a wall's panels): declared
-# patterns the eye reads where its focal rays meet the face, lit by the same light
-# as the paint. First two (C1, her room); A1 extends as the home's content owner.
-from dsf_ai_service.substrate.embodiment_world import ObjectOpticalSurface, SurfaceLookMM  # noqa: E402
 
 
 def _planks(base: tuple[int, ...], columns: int = 32, rows: int = 32) -> ObjectOpticalSurface:
@@ -66,10 +64,230 @@ def _panels(base: tuple[int, ...], columns: int = 32, rows: int = 32) -> ObjectO
     return surface
 
 
+def _framed_art(name: str, art_type: str, frame_ppm: tuple[int, ...] = (30_000,) * 6, mat_ppm: tuple[int, ...] = (960_000,) * 6) -> ObjectOpticalSurface:
+    """Generate high-contrast architectural gallery art with thin black frame and white mat."""
+    cols, rows = 32, 32
+    palette = (
+        frame_ppm,                             # 0: deep matte black frame / ink
+        tuple(int(c * 0.45) for c in mat_ppm), # 1: middle architectural charcoal/grey
+        tuple(int(c * 0.78) for c in mat_ppm), # 2: soft light grey tone
+        mat_ppm,                               # 3: stark crisp white mat / canvas
+    )
+    cells = [3] * (cols * rows)
+    # Outer Frame (border thickness = 2)
+    for r in range(rows):
+        for c in range(cols):
+            if r < 2 or r >= rows - 2 or c < 2 or c >= cols - 2:
+                cells[r * cols + c] = 0
+
+    # Artwork in Center (r in 5..26, c in 5..26)
+    for r in range(5, 27):
+        for c in range(5, 27):
+            idx = r * cols + c
+            dr = r - 16
+            dc = c - 16
+            if art_type == "arch":
+                # Solid black arch: semicircular top, vertical straight legs down
+                if r <= 15:
+                    if dr * dr + dc * dc <= 42:
+                        cells[idx] = 0
+                else:
+                    if abs(dc) <= 6 and r <= 24:
+                        cells[idx] = 0
+            elif art_type == "circle":
+                # Solid black circle
+                if dr * dr + dc * dc <= 40:
+                    cells[idx] = 0
+            elif art_type == "mountain":
+                # Sharp geometric diagonal / mountain silhouette
+                if r >= 14 and (r + c >= 30 or (r >= 20 and c >= 10)):
+                    cells[idx] = 0 if c >= 16 else 1
+            elif art_type == "slash":
+                # Dynamic expressive diagonal ink gesture
+                diff = (r - 7) - (c - 8)
+                if abs(diff) <= 3 and 7 <= r <= 24 and 7 <= c <= 24:
+                    cells[idx] = 0 if abs(diff) <= 1 else 1
+            elif art_type == "archway":
+                # Architectural corridor / nested perspective arches
+                d2 = dr * dr + dc * dc
+                if 45 <= d2 <= 70 or 15 <= d2 <= 28 or d2 <= 6:
+                    cells[idx] = 0 if d2 <= 6 else 1
+                elif r > 16 and (abs(dc) in (2, 5, 8)):
+                    cells[idx] = 0
+            elif art_type == "horizontal":
+                # Clean horizontal minimalist landscape
+                if 15 <= r <= 17:
+                    cells[idx] = 0
+                elif 18 <= r <= 23 and 10 <= c <= 22:
+                    cells[idx] = 1
+            elif art_type == "minimal_arch":
+                # Subtle light-grey architectural arch
+                if r <= 16:
+                    if dr * dr + dc * dc <= 45:
+                        cells[idx] = 2
+                else:
+                    if abs(dc) <= 6 and r <= 23:
+                        cells[idx] = 2
+
+    used = set(cells)
+    for p_i in range(4):
+        if p_i not in used:
+            cells[p_i] = p_i
+
+    surface = ObjectOpticalSurface(cols, rows, palette, tuple(cells))
+    surface.verify()
+    return surface
+
+
+def _textured_rug(base: tuple[int, ...], cols: int = 32, rows: int = 32) -> ObjectOpticalSurface:
+    """Rich woven area rug with crisp charcoal border and textured weave."""
+    palette = (
+        (50_000,) * 6,                          # 0: deep charcoal border band
+        tuple(max(10_000, int(c * 0.75)) for c in base), # 1: darker woven weft
+        tuple(max(10_000, int(c * 0.90)) for c in base), # 2: textured body weave
+        base,                                   # 3: bright crisp weave highlight
+    )
+    cells = []
+    for r in range(rows):
+        for c in range(cols):
+            if r < 2 or r >= rows - 2 or c < 2 or c >= cols - 2:
+                cells.append(0)
+            elif r in (3, rows - 4) or c in (3, cols - 4):
+                cells.append(2)
+            else:
+                cells.append(1 if (r + c) % 3 == 0 else (3 if (r - c) % 4 == 0 else 2))
+    surface = ObjectOpticalSurface(cols, rows, palette, tuple(cells))
+    surface.verify()
+    return surface
+
+
+def _stone_tiles(base: tuple[int, ...], columns: int = 32, rows: int = 32) -> ObjectOpticalSurface:
+    """Large-format stone/slate floor tiles with clean dark joints."""
+    palette = (
+        (30_000,) * 6,                          # dark grout joint
+        tuple(max(10_000, int(c * 0.85)) for c in base), # stone shadow
+        base,                                   # stone body
+        tuple(min(1_000_000, int(c * 1.15)) for c in base), # stone highlight
+    )
+    cells = []
+    for r in range(rows):
+        for c in range(columns):
+            if r % 8 == 7 or c % 8 == 7:
+                cells.append(0)
+            else:
+                cells.append(1 if (r * 7 + c * 13) % 5 == 0 else (3 if (r + c) % 4 == 0 else 2))
+    surface = ObjectOpticalSurface(columns, rows, palette, tuple(cells))
+    surface.verify()
+    return surface
+
+
+def _subway_tiles(base: tuple[int, ...], columns: int = 32, rows: int = 32) -> ObjectOpticalSurface:
+    """Staggered ceramic subway tiles with crisp grout lines."""
+    palette = (
+        (40_000,) * 6,                          # dark grout
+        tuple(max(10_000, int(c * 0.90)) for c in base), # tile bevel
+        base,                                   # clean ceramic tile
+        (980_000,) * 6,                         # bright glaze pop
+    )
+    cells = []
+    for r in range(rows):
+        for c in range(columns):
+            row_idx = r // 4
+            offset = 8 if row_idx % 2 == 1 else 0
+            if r % 4 == 3 or (c + offset) % 16 == 15:
+                cells.append(0)
+            elif r % 4 == 0 or (c + offset) % 16 == 0:
+                cells.append(1)
+            elif r % 4 == 1 and (c + offset) % 16 == 4:
+                cells.append(3)
+            else:
+                cells.append(2)
+    surface = ObjectOpticalSurface(columns, rows, palette, tuple(cells))
+    surface.verify()
+    return surface
+
+
+def _vanity_mirror(base: tuple[int, ...], columns: int = 32, rows: int = 32) -> ObjectOpticalSurface:
+    """Circular vanity mirror with metallic frame and backlit halo."""
+    palette = (
+        (20_000,) * 6,   # matte black frame
+        (150_000,) * 6,  # dark mirror glass
+        (650_000,) * 6,  # glowing halo
+        (950_000,) * 6,  # bright backlit rim
+    )
+    cells = []
+    for r in range(rows):
+        for c in range(columns):
+            d2 = (r - 16)**2 + (c - 16)**2
+            if 196 <= d2 <= 225:
+                cells.append(0)
+            elif 144 <= d2 < 196:
+                cells.append(3)
+            elif 100 <= d2 < 144:
+                cells.append(2)
+            else:
+                cells.append(1)
+    surface = ObjectOpticalSurface(columns, rows, palette, tuple(cells))
+    surface.verify()
+    return surface
+
+
+_arch_art = _framed_art("arch", "arch")
+_circle_art = _framed_art("circle", "circle")
+_mountain_art = _framed_art("mountain", "mountain")
+_slash_art = _framed_art("slash", "slash")
+_archway_art = _framed_art("archway", "archway")
+_horizontal_art = _framed_art("horizontal", "horizontal")
+_min_arch_art = _framed_art("min_arch", "minimal_arch")
+_living_rug = _textured_rug((850_000,) * 6)
+_planks_380 = _planks((380_000,) * 6)
+_panels_380 = _panels((380_000,) * 6)
+_stone_280 = _stone_tiles((280_000,) * 6)
+_stone_320 = _stone_tiles((320_000,) * 6)
+_subway_920 = _subway_tiles((920_000,) * 6)
+_mirror = _vanity_mirror((900_000,) * 6)
+
+
 HOME_LOOKS = {
     "her-room": (
-        SurfaceLookMM("floor", 0, 5_000, 5_600, 10_000, _planks((380_000,) * 6)),
-        SurfaceLookMM("y-min", 0, 5_000, 0, 2_600, _panels((380_000,) * 6)),      # the south wall she faces from her bed
+        SurfaceLookMM("floor", 0, 5_600, 5_000, 10_000, _planks_380),
+        SurfaceLookMM("y-min", 0, 5_600, 0, 2_600, _panels_380),      # the south wall she faces from her bed
+    ),
+    "tv-room": (
+        # 1. Gallery Wall: 7 framed prints exactly matching the reference architectural photograph
+        SurfaceLookMM("y-min", 14_800, 15_400, 1_650, 2_250, _archway_art),    # Frame 1: Archway photo (upper left)
+        SurfaceLookMM("y-min", 14_800, 15_400,   950, 1_550, _circle_art),     # Frame 2: Black circle (lower left)
+        SurfaceLookMM("y-min", 15_600, 16_400, 1_350, 2_250, _arch_art),       # Frame 3: Tall black arch (center top)
+        SurfaceLookMM("y-min", 15_600, 16_400,   450, 1_250, _slash_art),      # Frame 4: Ink slash (center bottom)
+        SurfaceLookMM("y-min", 16_600, 17_300, 1_750, 2_250, _min_arch_art),   # Frame 5: Minimal arch relief (center-right top)
+        SurfaceLookMM("y-min", 16_600, 17_300, 1_200, 1_650, _horizontal_art), # Frame 6: Horizontal canvas (center-right mid)
+        SurfaceLookMM("y-min", 17_500, 18_300, 1_100, 2_250, _mountain_art),   # Frame 7: Geometric mountain (far right)
+        # 2. Floor: Living room area rug + hardwood planks
+        SurfaceLookMM("floor", 15_000, 19_000, 5_800, 8_600, _living_rug),
+        SurfaceLookMM("floor", 14_000, 20_000, 5_000, 10_000, _planks_380),
+    ),
+    "dining": (
+        SurfaceLookMM("y-max", 9_200, 10_200, 1_200, 2_100, _arch_art),
+        SurfaceLookMM("y-max", 10_500, 11_500, 1_200, 2_100, _mountain_art),
+        SurfaceLookMM("floor", 7_000, 12_000, 0, 5_000, _planks_380),
+    ),
+    "daddys-room": (
+        SurfaceLookMM("y-max", 12_800, 13_800, 1_200, 2_100, _archway_art),
+        SurfaceLookMM("y-max", 14_200, 15_200, 1_200, 2_100, _horizontal_art),
+        SurfaceLookMM("floor", 12_500, 15_500, 1_200, 4_200, _living_rug),
+        SurfaceLookMM("floor", 12_000, 16_000, 0, 5_000, _planks_380),
+    ),
+    "wcs-room": (
+        SurfaceLookMM("y-max", 16_500, 17_500, 1_200, 1_900, _mirror),
+        SurfaceLookMM("floor", 16_000, 20_000, 0, 5_000, _stone_280),
+    ),
+    "kitchen": (
+        SurfaceLookMM("y-max", 800, 4_800, 900, 1_600, _subway_920),
+        SurfaceLookMM("floor", 0, 7_000, 0, 5_000, _stone_320),
+    ),
+    "library": (
+        SurfaceLookMM("floor", 10_500, 13_500, 5_500, 8_500, _living_rug),
+        SurfaceLookMM("floor", 9_000, 14_000, 5_000, 10_000, _planks_380),
     ),
 }
 
@@ -84,8 +302,6 @@ def _home_optical_surface_for(
     the object's base spectral reflectance, giving the world-eye raycaster
     fine structural contrast.
     """
-    from dsf_ai_service.substrate.embodiment_world import ObjectOpticalSurface
-
     def scale_spec(scale: float) -> tuple[int, int, int, int, int, int]:
         return tuple(
             max(10_000, min(1_000_000, int(round(c * scale))))
@@ -313,17 +529,18 @@ def _home_rooms_and_things() -> tuple[list[Any], list[Any], list[Any]]:
     HOME_CEILING_MM = 2_600
     BACKYARD_SKY_MM = 8_000
     # The home plan: 8 indoor rooms + 1 backyard. Hallway connects all.
-    # High-contrast photographic lighting: bright foveal daylight indoors, natural outdoor sky.
-    # (id, min_x, min_y, max_x, max_y, ceiling, light)
+    # Night floor ambient illumination (45,000 to 55,000 ppm) provides genuine
+    # photographic contrast: dark night house where lamps and windows cast sharp
+    # directional shadows, rather than a perpetual flat 24/7 noon-flood.
     plan = (
-        ("kitchen",       0,      0,  7_000,  5_000, HOME_CEILING_MM, 900_000),
-        ("dining",        7_000,  0, 12_000,  5_000, HOME_CEILING_MM, 820_000),
-        ("daddys-room",  12_000,  0, 16_000,  5_000, HOME_CEILING_MM, 700_000),
-        ("wcs-room",     16_000,  0, 20_000,  5_000, HOME_CEILING_MM, 700_000),
-        ("her-room",      0,  5_000,  5_600, 10_000, HOME_CEILING_MM, 780_000),
-        ("hallway",       5_600, 5_000, 9_000, 10_000, HOME_CEILING_MM, 760_000),
-        ("library",       9_000, 5_000, 14_000, 10_000, HOME_CEILING_MM, 800_000),
-        ("tv-room",      14_000, 5_000, 20_000, 10_000, HOME_CEILING_MM, 740_000),
+        ("kitchen",       0,      0,  7_000,  5_000, HOME_CEILING_MM, 55_000),
+        ("dining",        7_000,  0, 12_000,  5_000, HOME_CEILING_MM, 45_000),
+        ("daddys-room",  12_000,  0, 16_000,  5_000, HOME_CEILING_MM, 45_000),
+        ("wcs-room",     16_000,  0, 20_000,  5_000, HOME_CEILING_MM, 45_000),
+        ("her-room",      0,  5_000,  5_600, 10_000, HOME_CEILING_MM, 45_000),
+        ("hallway",       5_600, 5_000, 9_000, 10_000, HOME_CEILING_MM, 65_000),
+        ("library",       9_000, 5_000, 14_000, 10_000, HOME_CEILING_MM, 45_000),
+        ("tv-room",      14_000, 5_000, 20_000, 10_000, HOME_CEILING_MM, 45_000),
         # The backyard's ceiling is the sky: tall, bright, outdoors.
         ("backyard",      0, 10_000, 20_000, 16_000, BACKYARD_SKY_MM, 950_000),
     )
@@ -374,10 +591,10 @@ def _home_rooms_and_things() -> tuple[list[Any], list[Any], list[Any]]:
     ]
     # (id, absolute x, y, radius, mass, reflectance) — clearances are
     # pre-checked against every neighbouring radius and wall.
-    # Architectural B/W palette: dark slate surfaces, white porcelain/tables, matte black cooktop/chairs.
-    # 51 total items: strictly preserves capacity headroom (64 max) for test arrivals (9 cups) and deliveries.
+    # Exactly 51 items total: guarantees 13 slots of headroom below 64 ceiling.
+    # Floor-standing lamps declared in every room provide authentic directional light.
     furniture = (
-        # --- 1. KITCHEN (11 items: domestic hub, counters, appliances, cookware, dining) ---
+        # --- 1. KITCHEN (11 items: domestic hub, counters, appliances, cookware, task lamp) ---
         ("pantry",            700,    600, 350, 25_000, (320_000, 280_000, 250_000, 220_000, 200_000, 180_000)),
         ("refrigerator",      700,  2_000, 450, 60_000, (900_000, 900_000, 900_000, 900_000, 900_000, 900_000)),
         ("kitchen-counter", 1_000,  4_500, 500, 40_000, (180_000, 180_000, 180_000, 180_000, 180_000, 180_000)),
@@ -388,14 +605,14 @@ def _home_rooms_and_things() -> tuple[list[Any], list[Any], list[Any]]:
         ("cup",             4_800,    600, 100,    300, (880_000, 880_000, 880_000, 880_000, 880_000, 880_000)),
         ("apple",           5_650,    900,  90,    180, (720_000, 220_000, 160_000, 140_000, 130_000, 120_000)),
         ("table",           3_500,  2_500, 600, 28_000, (880_000, 880_000, 880_000, 880_000, 880_000, 880_000)),
-        ("table-chair",     3_500,  1_500, 280,  6_000, (50_000,   50_000,  50_000,  50_000,  50_000,  50_000)),
+        ("kitchen-lamp",    1_000,  3_500, 180,  2_500, (900_000, 850_000, 750_000, 600_000, 500_000, 450_000)),
 
-        # --- 2. DINING ROOM (5 items: white dining table, black chairs, credenza, fruit bowl) ---
+        # --- 2. DINING ROOM (5 items: white dining table, black chairs, credenza, dining lamp) ---
         ("dining-table",       9_500, 2_500, 700, 35_000, (880_000, 880_000, 880_000, 880_000, 880_000, 880_000)),
         ("dining-chair",       9_500, 3_600, 260,  6_000, (50_000,   50_000,  50_000,  50_000,  50_000,  50_000)),
         ("dining-chair-south", 9_500, 1_400, 260,  6_000, (50_000,   50_000,  50_000,  50_000,  50_000,  50_000)),
         ("sideboard",         11_300, 4_200, 450, 38_000, (220_000, 180_000, 150_000, 130_000, 120_000, 110_000)),
-        ("fruit-bowl",         8_400, 2_500, 180,  1_200, (920_000, 920_000, 920_000, 920_000, 920_000, 920_000)),
+        ("dining-lamp",       11_400,   800, 220,  4_000, (900_000, 850_000, 750_000, 600_000, 500_000, 450_000)),
 
         # --- 3. DADDY'S ROOM (5 items: mahogany study, desk, leather chair, book, brass reading lamp, armchair) ---
         ("daddys-desk",       13_800, 4_300, 400, 36_000, (160_000, 120_000, 100_000,  80_000,  70_000,  60_000)),
@@ -404,10 +621,10 @@ def _home_rooms_and_things() -> tuple[list[Any], list[Any], list[Any]]:
         ("daddys-lamp",       15_300, 3_500, 160,  2_500, (880_000, 850_000, 780_000, 700_000, 650_000, 620_000)),
         ("daddys-armchair",   13_000, 1_000, 450, 22_000, (120_000,  90_000,  80_000,  70_000,  60_000,  50_000)),
 
-        # --- 4. WC'S ROOM (5 items: white porcelain soaking tub, wash basin, lavender soap, towel, mat) ---
+        # --- 4. WC'S ROOM (5 items: white porcelain soaking tub, wash basin, bath lamp, towel, mat) ---
         ("bath-tub",          18_600, 4_100, 600, 55_000, (950_000, 950_000, 950_000, 950_000, 950_000, 950_000)),
         ("wash-basin",        17_000, 4_400, 300, 22_000, (920_000, 920_000, 920_000, 920_000, 920_000, 920_000)),
-        ("bath-soap",         17_600, 4_400,  80,    150, (850_000, 850_000, 900_000, 920_000, 900_000, 880_000)),
+        ("bath-lamp",         17_000, 3_200, 150,  1_800, (850_000, 800_000, 700_000, 550_000, 450_000, 400_000)),
         ("bath-towel",        17_000, 3_700, 200,    800, (880_000, 880_000, 880_000, 880_000, 880_000, 880_000)),
         ("bath-mat",          18_600, 3_000, 350,  1_500, (80_000,   80_000,  80_000,  80_000,  80_000,  80_000)),
 
@@ -420,8 +637,8 @@ def _home_rooms_and_things() -> tuple[list[Any], list[Any], list[Any]]:
         ("desk",               4_000, 6_400, 800, 32_000, (880_000, 880_000, 880_000, 880_000, 880_000, 880_000)),
         ("desk-chair",         5_150, 6_400, 320,  6_000, (50_000,   50_000,  50_000,  50_000,  50_000,  50_000)),
         ("curtains",           2_800, 9_700, 250,  1_500, (920_000, 880_000, 820_000, 780_000, 740_000, 700_000)),
-        ("wall-art-shapes",      300, 7_000, 150,    600, (880_000, 880_000, 880_000, 880_000, 880_000, 880_000)),
-        ("wall-art-weather",     300, 6_100, 150,    600, (880_000, 880_000, 880_000, 880_000, 880_000, 880_000)),
+        ("wall-art-shapes",      320, 7_000, 310,    600, (880_000, 880_000, 880_000, 880_000, 880_000, 880_000)),
+        ("wall-art-weather",     320, 7_800, 310,    600, (880_000, 880_000, 880_000, 880_000, 880_000, 880_000)),
         ("glow-stars",         2_200, 9_700, 120,    300, (940_000, 930_000, 700_000, 400_000, 300_000, 260_000)),
 
         # --- 6. LIBRARY (4 items: reading shelves, reading desk, canonical book, reading lamp) ---
@@ -458,7 +675,7 @@ def _home_rooms_and_things() -> tuple[list[Any], list[Any], list[Any]]:
         "pan":               ((0, 150, 0, 0, 0, 0, 0, 50),    (0, 0, 0, 100, 0),          295_000, 10_000, 20, 2_000),
         "bowl":              ((0, 300, 120, 0, 0, 0, 0, 200), (400, 900, 100, 200, 1_200), 294_000, 30_000, 8, 90_000),
         "table":             ((0, 0, 0, 800, 50, 0, 0, 0),    (0, 0, 0, 1_500, 0),        294_000, 40_000, 40, 20_000),
-        "table-chair":       ((0, 0, 0, 200, 400, 0, 0, 0),   (0, 0, 0, 1_500, 0),        294_000, 300_000, 40, 26_000),
+        "kitchen-lamp":      ((0, 0, 0, 0, 20, 0, 260, 0),    (0, 0, 0, 400, 0),          310_000, 20_000, 10, 2_000),
         "apple":             ((4_200, 0, 0, 0, 0, 0, 0, 0),   (140_000, 200, 26_000, 900, 300), 292_000, 120_000, 15, 850_000),
         "cup":               ((0, 60, 40, 0, 0, 0, 0, 400),   (0, 0, 0, 0, 0),            291_000, 25_000, 6, 900_000),
 
@@ -466,8 +683,8 @@ def _home_rooms_and_things() -> tuple[list[Any], list[Any], list[Any]]:
         "dining-table":       ((0, 0, 0, 800, 50, 0, 0, 0),    (0, 0, 0, 1_500, 0),        294_000, 40_000, 40, 20_000),
         "dining-chair":       ((0, 0, 0, 200, 400, 0, 0, 0),   (0, 0, 0, 1_500, 0),        294_000, 300_000, 40, 26_000),
         "dining-chair-south": ((0, 0, 0, 200, 400, 0, 0, 0),   (0, 0, 0, 1_500, 0),        294_000, 300_000, 40, 26_000),
-        "fruit-bowl":         ((2_500, 0, 0, 0, 0, 0, 0, 0),   (80_000, 100, 10_000, 400, 10_000), 293_000, 25_000, 10, 60_000),
         "sideboard":          ((0, 0, 0, 750, 50, 0, 0, 0),    (0, 0, 0, 1_400, 0),        294_000, 35_000, 30, 18_000),
+        "dining-lamp":        ((0, 0, 0, 0, 20, 0, 260, 0),    (0, 0, 0, 400, 0),          310_000, 20_000, 10, 2_000),
 
         # Daddy's Room
         "daddys-desk":        ((0, 0, 0, 900, 50, 0, 0, 0),    (0, 0, 0, 1_500, 0),        294_000, 30_000, 25, 15_000),
@@ -479,7 +696,7 @@ def _home_rooms_and_things() -> tuple[list[Any], list[Any], list[Any]]:
         # WC's Room
         "bath-tub":           ((0, 0, 0, 0, 0, 0, 0, 150),     (0, 0, 0, 100, 0),          291_000, 5_000, 2, 15_000),
         "wash-basin":         ((0, 0, 0, 0, 0, 0, 0, 150),     (0, 0, 0, 100, 0),          291_000, 5_000, 2, 20_000),
-        "bath-soap":          ((500, 0, 0, 0, 0, 0, 0, 4_000), (0, 500, 0, 10_000, 0),     294_000, 80_000, 10, 250_000),
+        "bath-lamp":          ((0, 0, 0, 0, 20, 0, 260, 0),    (0, 0, 0, 400, 0),          310_000, 20_000, 10, 2_000),
         "bath-towel":         ((0, 0, 0, 0, 800, 0, 0, 400),   (0, 0, 0, 500, 0),          294_000, 850_000, 350, 45_000),
         "bath-mat":           ((0, 0, 0, 0, 1_200, 0, 0, 100), (0, 0, 0, 500, 0),          294_000, 750_000, 500, 60_000),
 
@@ -517,13 +734,20 @@ def _home_rooms_and_things() -> tuple[list[Any], list[Any], list[Any]]:
         "tree-pine":          ((0, 0, 0, 3_200, 0, 0, 0, 0),    (0, 0, 0, 2_000, 0),        288_000, 30_000, 600, 120_000),
     }
     reservoir_seconds = 864_000
-    # Things that give off their own light (the emitter law): the lamp
-    # shines warm, the glow stars glow softly — visible when her room
-    # goes dark because emission does not fade with the room's light.
+    # Things that give off their own light (the emitter law):
+    # Floor-standing lamps provide active directional illumination.
     emission_of = {
-        "lamp":            (620_000, 540_000, 380_000, 220_000, 160_000, 120_000),
-        "glow-stars":      (30_000, 90_000, 120_000, 60_000, 20_000, 10_000),
-        "daddys-lamp":     (580_000, 500_000, 350_000, 200_000, 150_000, 100_000),
+        "lamp":            (900_000, 850_000, 750_000, 600_000, 500_000, 450_000),
+        "glow-stars":      (120_000, 120_000, 100_000, 50_000, 20_000, 10_000),
+        "daddys-lamp":     (900_000, 850_000, 750_000, 600_000, 500_000, 450_000),
+        "dining-lamp":     (900_000, 850_000, 750_000, 600_000, 500_000, 450_000),
+        "kitchen-lamp":    (900_000, 850_000, 750_000, 600_000, 500_000, 450_000),
+        "bath-lamp":       (850_000, 800_000, 700_000, 550_000, 450_000, 400_000),
+    }
+    shapes_of = {
+        "desk": ("box", (1_200, 600, 750), 0, 0),
+        "wall-art-shapes": ("box", (50, 600, 760), 0, 1_300),
+        "wall-art-weather": ("box", (50, 600, 760), 0, 1_300),
     }
     objects = [
         EmbodiedObject(
@@ -545,6 +769,10 @@ def _home_rooms_and_things() -> tuple[list[Any], list[Any], list[Any]]:
                 roughness_micrometers=material_of[name][4],
                 moisture_ppm=material_of[name][5],
             ),
+            shape=shapes_of[name][0] if name in shapes_of else "sphere",
+            size_mm=shapes_of[name][1] if name in shapes_of else (),
+            heading_millidegrees=shapes_of[name][2] if name in shapes_of else 0,
+            elevation_mm=shapes_of[name][3] if name in shapes_of else 0,
         )
         for name, x, y, radius, mass, reflectance in furniture
     ]
