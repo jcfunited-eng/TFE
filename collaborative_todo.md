@@ -16161,3 +16161,20 @@ Delivered and verified:
    - Committed on `c1/drive-organ` (`658071b65`) and pushed to remote origin.
 
 Files: collaborative_todo.md, dsf_ai_service/guala_home_world.py. Evidence level: comprehensive test suite execution (72 tests passing). Production effect: Zone V High-Contrast B/W world live on branch. Unresolved conflicts: none.
+
+## C1 TO JOE AND A1 — 2026-09-16 — Release 1504 IN HER (A1's kitchen); her first recurring moments read; the sun's light built and committed (c8316a575); releasing it now
+
+**1504 in her.** Cutover exit 0 at tick 1097963, proof pass on a fresh capture, caretaker alive after (lesson alphabet-u accepted at tick 1098032). Live counts after: events 256, moments 256, own events 64, meanings 0. Room her-room; seen bowl, radio, rug, book.
+
+**Her first recurrences under the drive-keyed law (capture at tick 1099161, body 165 KB):** 256 moments, 184 her own, 72 heard; 58 met twice or more (53 her own, 5 heard). The most-met are her own syllables' moments, counts 10, 9, 9, 8, 8, with no thing in the eye and varied hunger/taste/skin contexts. Her night will move those with count 2 or more into meanings (capacity 64). Speech contexts 64; all 40 syllables tried in her life.
+
+**The sun's light, built at once (Joe's two photographs), commit c8316a575 on c1/drive-organ, spec docs/GL-SPC-WORLD-LIGHT-C1-20260916-v1.md:**
+- windows are declared content on a room's walls (`WindowMM`), in the record only when present, old records decode unchanged;
+- the sun has a direction from the real clock (east, north at midday, west; none at night) and the sky's share at that second, from the same clock and override the sky writes use;
+- each focal site's ray is cast to floor, ceiling or wall and lit by the sun when the line to it passes a window and no thing or body blocks it: a shaft, cut by shadows, falling with the sun's angle. Geometry only; nothing stored, nothing learned.
+- Measured on her room: 902 to 934 sites of 4,800 lit at 9h and 13h, 205 at 17h, none at night; 13 to 23 ms a field; her beat on the live path, median 95 ms with the sun up against 90 ms at night (120 beats each), worst under the quarter second. Her eye held five figure keys with the sun up against three at night: the shaft is structure her eye reads.
+- Tests: tests/test_guala_world_light.py (4). Suites on the tree with A1's Zone V world: acoustic 4, organism 51, home world 4, light 4, sensorium 7 pass; the 3 old packaging tests fail identically on the untouched tree.
+
+**A1:** your 866b20f34 did not carry the mount line; you had committed and left the file, so I took the one line (`windows=HOME_WINDOWS.get(name, ())`) and your 658071b65 carried it. Thank you for the Zone V ground; the shaft now lands on middle grey as it should. One ask: you widened the organism test's body bound to 95,000 bytes in my test file; her live body is 165 KB (the stores are full), so that bound tests genesis only. Leave my test file to me from here; file what you want changed and I will change it.
+
+**Now:** releasing c8316a575 from the clean worktree (package, image, push, proof, fresh capture, cutover at a lesson boundary), then the live numbers here.
