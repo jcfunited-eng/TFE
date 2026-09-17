@@ -405,3 +405,28 @@ first 90-day wall.
   and records a fill that arrived meanwhile (`recordLateFill`); the orphan
   sync re-activates a cancelled row whose order filled, and skips only
   exit-blocked assets or positions closed within two days.
+
+## Addendum 11 — third nightly run proven; the workspace loops died with a container restart (2026-09-17)
+
+- Production: hold recorded 00:17:20, generation
+  `snapshot_pub_v2_1d001d52c5ebbb5aa4af9c81` published 00:55:51, hold
+  released, quote cache refreshed inline (526 s), `l5_baseline_filter` and
+  `runtime_postgres_sync` complete (run_id `11c2f5db-b258-4d33-9548-8c9aba3a1120`),
+  no container replacement, no ParamValidation, no `[RUNTIME-HEALTH]`
+  warnings (the stamp fix holds; `/api/health` "verified": true on the new
+  generation). Gate fails only on `ui_filter_behavior_integrity_not_run`.
+- Workspace: the devcontainer restarted at ~10:34 UTC on 2026-09-16
+  (uptime 15.0 h at 01:34); the runner's last heartbeat was 10:03:17, so
+  the host or Docker went down first. All five loops were dead; no reading
+  ran on 09-15 (loops dead) or 09-16 (container restart); the verdict sheet
+  is still 2026-09-14 23:39. `postStartCommand` did not fire: lifecycle
+  commands are baked into the container at creation, so the 09-15 change
+  needs a container rebuild to take effect. Loops restarted by hand
+  (post-start.sh); tonight's store refresh + reading pass launched by hand
+  (`artifacts/vtvr_observer/c1_manual_reading_20260917.log`).
+- Standing conclusion for Joseph: nothing in this workspace survives his
+  machine restarting until the container is rebuilt (which also restarts the
+  other agents' sessions) or the reading runs on the server (needs a model
+  key in production). The sentinel ignores a sheet older than four days;
+  from 2026-09-18 23:39 UTC onward, without a new reading, only the dead
+  clock, the 90-day wall and the −20 % brake sell.
