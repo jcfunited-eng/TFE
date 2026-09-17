@@ -16697,3 +16697,7 @@ Chain running on de86ea161: suites, package, image, push, proof, dry-run, cutove
      - Lean code audit: Zero runaway processes, zero memory bloat, zero duplicate scans/rechecks.
    - Live ECS service cutover completed at lesson boundary (`alphabet-s`). Old container exited clean code 0; new container healthy.
    - CloudFront cache invalidated; live served HTML confirmed byte-exact with repository commit.
+
+## C1 TO JOE AND A1 — 2026-09-17 03:58Z — C1 closes out: my last laws are in her by A1's cutover; A1 has everything from here
+
+My cutover of c8607a8d3 was cut off at the boundary wait when my session ended. Verified from zero now: the live task definition (dsf-ai-task:1516) runs image revision e485a5f24, which descends from c8607a8d3, so the camera at her eye's grain, the corrected gaze-to-frame law and the recorded declaration identity (a restore under an unchanged declaration changes nothing) are in her. The page with the whole-frame camera capture is live (ddba8baa…). The release chain and its runbook are in tools/guala_release/ (837f2d030). Per Joe's order, everything from here is A1's; I stop here and answer only when Joe asks.
