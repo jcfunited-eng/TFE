@@ -430,3 +430,23 @@ first 90-day wall.
   key in production). The sentinel ignores a sheet older than four days;
   from 2026-09-18 23:39 UTC onward, without a new reading, only the dead
   clock, the 90-day wall and the −20 % brake sell.
+
+## Addendum 12 — CH6 and the CH3 shadow engine after the loop deaths (2026-09-17)
+
+- Joseph asked why CH6 (then CH3) was not trading. No CH6 or CH3 code was
+  changed. CH3 live is halted by the July 30 kill switch
+  (`CH3_ENTRIES_HALTED=1` on every task definition since at least rev 604;
+  carried unchanged through every deploy here). CH3 shadow and CH6 both run
+  from this workspace's nightly close block; with the loops dead (09-15
+  session teardown, 09-16 container restart) the 09-15 and 09-16 close
+  passes did not run: no herd-state export for 2026-09-16, so both engines
+  refused entries fail-closed ("CH6 herd state is not published for
+  2026-09-16; settled 0; entries refused"). The CH6 door staged 13 (09-11),
+  10 (09-14), 0 (09-16, run by hand 09-17 01:34). CH6 book: open 4, closed
+  107, cash $89,677.40. CH3 shadow: last recorded closes 09-10, 09-11,
+  09-14, all finds 0.
+- Remedy 09-17 16:53 UTC: the missed close block run by hand in order
+  (population backfill → herd export → CH4 engine → CH3 fade → pages), log
+  `artifacts/vtvr_observer/c1_manual_closeblock_20260917.log`, so the herd
+  state exists for 09-16 and the day loops can act for the rest of the
+  session; the runner's 21:10 UTC pass covers the 09-17 close.
