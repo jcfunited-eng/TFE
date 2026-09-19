@@ -1,0 +1,136 @@
+{
+  "declaration": "docs/CH2_ONE_AT_A_TIME_DECLARATION_20260919.md",
+  "generated_at_utc": "2026-09-19T11:51:49.826679+00:00",
+  "port_check": {
+    "checked": 2000,
+    "decision_mismatches": 0,
+    "worst_accumulate_diff": 0.0,
+    "worst_break_diff": 0.0
+  },
+  "horizons": {
+    "30": {
+      "all_signals": {
+        "all": {
+          "positions": 8766,
+          "mean_pct": 1.430614057614241,
+          "median_pct": 0.959491272510804,
+          "win_rate_pct": 53.78736025553273,
+          "total_pct": 12540.762829046438
+        },
+        "first_half": {
+          "positions": 3070,
+          "mean_pct": 0.5047974376619327,
+          "median_pct": 0.1597118489898408,
+          "win_rate_pct": 50.42345276872964,
+          "total_pct": 1549.7281336221336
+        },
+        "second_half": {
+          "positions": 5696,
+          "mean_pct": 1.9296058102921878,
+          "median_pct": 1.2477847035471834,
+          "win_rate_pct": 55.60042134831461,
+          "total_pct": 10991.034695424301
+        }
+      },
+      "first_of_cluster": {
+        "all": {
+          "positions": 1844,
+          "mean_pct": 1.113589068071976,
+          "median_pct": 1.4021680408432768,
+          "win_rate_pct": 56.61605206073753,
+          "total_pct": 2053.4582415247237
+        },
+        "first_half": {
+          "positions": 644,
+          "mean_pct": -0.4364022819365985,
+          "median_pct": -0.24665663312991581,
+          "win_rate_pct": 48.60248447204969,
+          "total_pct": -281.0430695671695
+        },
+        "second_half": {
+          "positions": 1200,
+          "mean_pct": 1.9454177592432442,
+          "median_pct": 1.7353169259721857,
+          "win_rate_pct": 60.916666666666664,
+          "total_pct": 2334.501311091893
+        }
+      },
+      "random_of_cluster": {
+        "seeds": 200,
+        "mean_positions": 1666.905,
+        "mean_pct": 1.0738843774015934,
+        "p05": 0.8760549780921008,
+        "p95": 1.2957431073791577,
+        "h1_mean_pct": -0.3545894465878625,
+        "h1_p05": -0.8422497977297828,
+        "h2_mean_pct": 1.7757699227333996,
+        "h2_p05": 1.551525487825347
+      },
+      "first_is_worse_than_random_within_cluster": false,
+      "fewer_positions_explains_gap": true
+    },
+    "60": {
+      "all_signals": {
+        "all": {
+          "positions": 7013,
+          "mean_pct": 2.019967818617082,
+          "median_pct": 1.2518565669424886,
+          "win_rate_pct": 53.272493939826035,
+          "total_pct": 14166.034311961595
+        },
+        "first_half": {
+          "positions": 3070,
+          "mean_pct": 0.5689027757301459,
+          "median_pct": 0.17733882370289944,
+          "win_rate_pct": 50.358306188925084,
+          "total_pct": 1746.5315214915477
+        },
+        "second_half": {
+          "positions": 3943,
+          "mean_pct": 3.1497597744027517,
+          "median_pct": 2.083333333333326,
+          "win_rate_pct": 55.54146588891706,
+          "total_pct": 12419.502790470047
+        }
+      },
+      "first_of_cluster": {
+        "all": {
+          "positions": 793,
+          "mean_pct": -0.0474261696102345,
+          "median_pct": -1.1106039860033556,
+          "win_rate_pct": 48.17150063051702,
+          "total_pct": -37.60895250091596
+        },
+        "first_half": {
+          "positions": 452,
+          "mean_pct": -1.6809439060734725,
+          "median_pct": -2.7817711089424213,
+          "win_rate_pct": 45.57522123893805,
+          "total_pct": -759.7866455452096
+        },
+        "second_half": {
+          "positions": 341,
+          "mean_pct": 2.117823146757459,
+          "median_pct": 0.4366812227074357,
+          "win_rate_pct": 51.61290322580645,
+          "total_pct": 722.1776930442936
+        }
+      },
+      "random_of_cluster": {
+        "seeds": 200,
+        "mean_positions": 694.955,
+        "mean_pct": -0.20210689038537372,
+        "p05": -0.7327970125591104,
+        "p95": 0.2623999386165319,
+        "h1_mean_pct": -1.9485588289359947,
+        "h1_p05": -2.6192568638623213,
+        "h2_mean_pct": 2.1545508928038974,
+        "h2_p05": 1.526953390724833
+      },
+      "first_is_worse_than_random_within_cluster": false,
+      "fewer_positions_explains_gap": true
+    }
+  },
+  "costs_modeled": false,
+  "prices": "closes only"
+}
