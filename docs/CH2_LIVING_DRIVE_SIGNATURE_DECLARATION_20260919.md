@@ -120,3 +120,54 @@ The declaration warned this is the shape of the condemned spring triad. It
 passed rather than failed, on one window, with conditions declared in advance
 and never swept. That is not vindication of checklists in general; it is one
 measured pass that now has to survive the book and a second rung.
+
+## Book result (2026-09-19) — a large improvement, short of the strict bar
+
+Same $100,000 book that killed the flattened gate: $2,500 slices, whole
+shares, cash-limited, the live exit law, day by day. Only the entry rule
+changed. 772 signal days, 27,530 signals, a median of 52 eligible names a day.
+
+| window | cost | signature book | random-entry book (50 seeds) | SPY held |
+|---|---|---|---|---|
+| full | 0 bp | **+51.1 %** (dd −21.4 %, 955 trades, 52.6 % wins) | mean +24.0 %, p95 +49.9 % → **clears** | +68.5 % (dd −25.3 %) |
+| full | 10 bp | +32.4 % (dd −22.0 %) | mean +18.1 %, p95 +43.5 % → does not clear | +68.5 % |
+| first half | 0 bp | **+13.7 %** (dd −14.3 %) | mean −1.5 %, p95 +11.8 % → **clears** | +12.8 % (dd −25.3 %) |
+| first half | 10 bp | +6.8 % | mean −3.4 %, p95 +8.3 % → does not clear | +12.8 % |
+| second half | 0 bp | +20.1 % (dd −24.9 %) | mean +21.4 %, p95 +39.3 % → does not clear | +49.4 % (dd −19.0 %) |
+| second half | 10 bp | +19.6 % | mean +18.7 % → does not clear | +49.4 % |
+
+### Against the flattened gate, same book, same exits, same capital
+
+| | gate book | signature book |
+|---|---:|---:|
+| full, no cost | +3.7 % | **+51.1 %** |
+| full, 10 bp | −0.3 % | **+32.4 %** |
+| first half, no cost | −5.1 % | **+13.7 %** |
+| second half, no cost | +6.3 % | +20.1 % |
+
+Changing only the entry reading — from the single basin number to Joseph's
+five conditions — moved the five-year book from +3.7 % to +51.1 %, and from
+−0.3 % to +32.4 % once costs are charged. That is the measurement's clearest
+result.
+
+### Where it still falls short
+
+- **Costs bite.** At 10 bp round trip the book keeps roughly two thirds of its
+  gain and drops inside the random distribution at every window.
+- **The recent half is not distinguished.** +20.1 % against a random mean of
+  +21.4 %: in that window the signature added nothing.
+- **It trails the index over five years** (+51.1 % against +68.5 %), though at
+  a smaller drawdown (−21.4 % against −25.3 %).
+- **It beat the index in the falling half** (+13.7 % against +12.8 %) at
+  little more than half the drawdown (−14.3 % against −25.3 %). That is the
+  one window where the reading earned its keep outright.
+
+### Standing verdict
+
+The signature is a genuine, large improvement on the live entry rule and the
+first construction in this chain to clear a null anywhere. It is not yet a
+money machine: with costs it sits inside the random band, and it does not beat
+buying the index over the window as a whole. Nothing is proposed for the live
+door on this alone. Still owed: an independent stream (honest-timing rule 6),
+a real slippage measurement rather than a 10 bp stand-in, and the epoch and
+capitalisation rules the live door applies but this population does not.
