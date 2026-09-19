@@ -213,3 +213,21 @@ almost nothing. But:
    reading cannot authorize the one structure known to work.
 
 None of these is fixable by me without changing kernel code, which is Joseph's.
+
+### Who else is on the low-resolution path
+
+Every Python caller in this repository uses the close-only adapter — the one
+that yields 6 gates in SPY's decade — not the daily governed-state pipeline:
+
+```
+l5_policy_learning_pipeline.py:920                compute_uf_structural_state(hist_close)
+cached_policy_schema_search.py:170                compute_uf_structural_state(hist_close)
+cached_irf_feature_test.py:138                    compute_uf_structural_state(hist)
+real_world_cleaned_universe_l5_primitive_only_
+  row_trace_export.py:137                         compute_uf_structural_state(close_series)
+```
+
+So this is not a CH2-only defect. The L5 policy learning pipeline, the schema
+search and the IRF feature test are all learning from a field that changes a
+handful of times per decade on large names. `quarantine_historical_kernel.py`
+is the only thing in the repo producing daily states, and nothing consumes it.
