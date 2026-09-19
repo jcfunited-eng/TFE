@@ -1,0 +1,93 @@
+{
+  "declaration": "docs/CH2_LIVING_DRIVE_SIGNATURE_DECLARATION_20260919.md",
+  "generated_at_utc": "2026-09-19T12:37:08.035161+00:00",
+  "port_check": {
+    "checked": 2000,
+    "decision_mismatches": 0,
+    "worst_accumulate_diff": 0.0,
+    "worst_break_diff": 0.0
+  },
+  "signature_rate_pct": 2.196072518940108,
+  "days": 1097,
+  "holds": {
+    "30": {
+      "signature": {
+        "positions": 24630,
+        "mean_pct": 2.602601784741862,
+        "median_pct": 1.7501344329030388,
+        "win_rate_pct": 55.72472594397077
+      },
+      "signature_first_half": {
+        "positions": 3623,
+        "mean_pct": 1.6352063229835172,
+        "median_pct": 1.2794612794612803,
+        "win_rate_pct": 53.491581562241244
+      },
+      "signature_second_half": {
+        "positions": 21007,
+        "mean_pct": 2.76944492074179,
+        "median_pct": 1.7967490596453528,
+        "win_rate_pct": 56.1098681391917
+      },
+      "all_eligible": {
+        "positions": 760532,
+        "mean_pct": 2.0584579647381447,
+        "median_pct": 1.0957152972130624,
+        "win_rate_pct": 54.61676826221645
+      },
+      "random_same_count": {
+        "seeds": 200,
+        "mean_pct": 2.2251509788523043,
+        "p05": 2.0955742393882386,
+        "p95": 2.3749270354765244,
+        "h1_mean_pct": 1.2181933068595852,
+        "h1_p95": 1.6346041890999352,
+        "h2_mean_pct": 2.3988172636921017,
+        "h2_p95": 2.550312824543712
+      },
+      "beats_random": true,
+      "beats_random_h1": true,
+      "beats_random_h2": true
+    },
+    "60": {
+      "signature": {
+        "positions": 20164,
+        "mean_pct": 4.865217756927145,
+        "median_pct": 3.5806804380340562,
+        "win_rate_pct": 58.42590755802421
+      },
+      "signature_first_half": {
+        "positions": 3617,
+        "mean_pct": 3.692428745158924,
+        "median_pct": 2.402957486136792,
+        "win_rate_pct": 56.1791539950235
+      },
+      "signature_second_half": {
+        "positions": 16547,
+        "mean_pct": 5.121577088260054,
+        "median_pct": 3.794402583423051,
+        "win_rate_pct": 58.917024234000124
+      },
+      "all_eligible": {
+        "positions": 648921,
+        "mean_pct": 3.867032472067816,
+        "median_pct": 2.1545168812734383,
+        "win_rate_pct": 56.02885405157176
+      },
+      "random_same_count": {
+        "seeds": 200,
+        "mean_pct": 4.342070574219045,
+        "p05": 4.1192850574487325,
+        "p95": 4.580465243550499,
+        "h1_mean_pct": 1.9927125722008785,
+        "h1_p95": 2.5212926463549596,
+        "h2_mean_pct": 4.8556155003869135,
+        "h2_p95": 5.100940811968031
+      },
+      "beats_random": true,
+      "beats_random_h1": true,
+      "beats_random_h2": true
+    }
+  },
+  "passes_declared_bar": true
+}

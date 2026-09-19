@@ -79,3 +79,44 @@ that family has failed before, and the failure is filed as such.
 
 `artifacts/ch4_uf/ch2_living_drive_signature_20260919.json` plus a result
 section here, committed. Either answer is filed the same way.
+
+---
+
+## Result (2026-09-19) — **passes the declared bar**
+
+Conditions fire at these rates across 2,653,100 sessions: support 74.3 %,
+resonance 56.4 %, fuel 70.2 %, healed 46.3 %, ignitions 16.6 %. **All five
+together: 2.20 %** of sessions — about 25 names a day out of the eligible
+pool. 1,097 days, 816,699 eligible rows, 27,530 signature rows.
+
+| hold | signature | first half | second half | all eligible that day | random same-count (200 seeds) | clears p95 |
+|---|---:|---:|---:|---:|---:|:--:|
+| 30 sessions | **+2.60 %** (n 24,630) | +1.64 % | +2.77 % | +2.06 % | mean +2.23 %, p95 +2.37 % | **yes** |
+| 60 sessions | **+4.87 %** (n 20,164) | +3.69 % | +5.12 % | +3.87 % | mean +4.34 %, p95 +4.58 % | **yes** |
+
+Both holds, both halves, above the 95th percentile of random same-count
+selection from the same day's eligible names. **The declared bar is met.**
+
+### What this means, and what it does not
+
+It means the whole-lane reading picks better than chance **cross-sectionally**
+— the exact test the flattened basin gate failed. Joseph's five conditions,
+transcribed rather than fitted, carry information the single basin number does
+not: the gate's score had a rank correlation of −0.008 with outcomes; this set
+clears its null at both holds in both halves.
+
+It does not mean money. The edge is 0.37 points per position at 30 sessions
+and 0.53 at 60 — real against its null, and small. The V3 gate also looked
+positive per position and died at book level, where capital rationing,
+concentration and costs decide. Until the same signature survives a
+capacity-bounded book, this is a physics result, not a trading one.
+
+Owed before any claim beyond this: a book test (running now), an independent
+stream, and costs.
+
+### Filed against the checklist risk
+
+The declaration warned this is the shape of the condemned spring triad. It
+passed rather than failed, on one window, with conditions declared in advance
+and never swept. That is not vindication of checklists in general; it is one
+measured pass that now has to survive the book and a second rung.
