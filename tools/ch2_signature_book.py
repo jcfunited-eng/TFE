@@ -18,6 +18,7 @@ Usage:
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import sys
 from collections import defaultdict
@@ -96,7 +97,10 @@ def main() -> int:
                 if sigs[k]:
                     day_signals[d[jj]].append((ticker, 0.0))
     for day, lst in day_signals.items():
-        rng = np.random.default_rng(abs(hash(str(day))) % (2**32))
+        # blake2b, never the builtin hash(): that is salted per process, so a
+        # shuffle seeded by it would not reproduce (capacity-probe lesson).
+        seed = int.from_bytes(hashlib.blake2b(str(day).encode(), digest_size=4).digest(), "big")
+        rng = np.random.default_rng(seed)
         idx = rng.permutation(len(lst))
         day_signals[day] = [lst[i] for i in idx]
     calendar = np.array(sorted(day_signals.keys()))
