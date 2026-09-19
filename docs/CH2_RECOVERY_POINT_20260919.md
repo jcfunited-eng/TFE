@@ -445,3 +445,60 @@ STABLE 1`.
 
 Every item above is a code change and therefore Joseph's. Nothing has been
 modified. CH2 is still trading.
+
+---
+
+## 13. CORRECTION TO §10 — the VOLATILE claim was wrong
+
+§10 stated that VOLATILE "almost never fires" (0.59 %) and that a Close-only
+kernel "sees no structure". **Both are wrong.** Retracted here rather than left
+standing.
+
+**The error.** The 0.59 % was measured **per daily reading** from the prefix
+export, not **per gate**. A gate that stays open 1,000 days contributes 1,000
+rows, so that statistic is weighted by gate duration, and the long-lived gates
+are DEGENERATE. The kernel's unit is the gate. The "DEGENERATE 2 of 2" figure
+was **SPY alone**, which has two gates in that window; generalising it to the
+kernel was unjustified.
+
+**Measured properly, per gate, 304 bodies (SPY/QQQ/DIA/IWM/AAPL forced in):**
+
+| input form | points | gates | gates/1k pts | VOLATILE | DEGENERATE |
+|---|---:|---:|---:|---:|---:|
+| A close only (production) | 262,145 | 11,854 | 45.22 | **50.89 %** | 2.49 % |
+| B one stream O,H,L,C | 1,048,580 | 62,173 | **59.29** | **55.05 %** | **0.57 %** |
+| C core: Open | 262,145 | 13,610 | 51.92 | 52.99 % | 2.34 % |
+| C core: High | 262,145 | 11,376 | 43.40 | 53.91 % | 2.53 % |
+| C core: Low | 262,145 | 10,479 | 39.97 | 50.92 % | 2.72 % |
+| C core: Close | 262,145 | 11,854 | 45.22 | 50.89 % | 2.49 % |
+
+VOLATILE is the **most common regime** even on Close alone. The precursor band
+the spec is built around does fire, routinely.
+
+**What survives from §10:** nothing about VOLATILE. The gate *rate* on large
+smooth series is still low in absolute terms (SPY: 5–6 gates per decade), and
+the downstream fields are still frozen for long stretches because the gates are
+long, not because VOLATILE is missing.
+
+**What this changes about the diagnosis.** The failures measured all session
+are NOT explained by "the kernel is blind". They remain unexplained, and the
+live-bar `kappa = 0` asymmetry (§9.1), the lifetime means for S_UF/R_UF (§1),
+the dropped `C_k` (§11) and the L5 bucketing (§11) all still stand as real.
+
+## 14. Input form, tested both ways (Joseph: "try both ways and see which wins")
+
+Per `TFE_Specification_v2_5.tex`:
+- line 507: *"The adapter shall pass only the closing-price series"* — so
+  Close-only is **spec-conformant**, not a defect. My earlier claim that it was
+  a defect was made without reading the spec.
+- line 525: the canonical import rule *"permits multiple cores ... parallel
+  canonical perceptions of the same world under different admissible
+  scalarizations or views, **not arbitrary heuristic feature branches**"*.
+
+By that rule the interleaved O,H,L,C stream (form B) is a manufactured
+scalarization and is **not** admissible as canonical evidence, even though it
+scores best. Multi-core (form C) is the spec-conformant way to give the kernel
+more than Close — and no single core beats the blended stream.
+
+Result, stated plainly: form B wins on every structural measure, and form B is
+the one the spec disallows. That tension is Joseph's to resolve, not mine.
