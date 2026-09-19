@@ -1,0 +1,252 @@
+{
+  "declaration": "docs/CH2_WINNER_EXIT_MEASUREMENT_DECLARATION_20260919.md",
+  "generated_at_utc": "2026-09-19T11:23:03.231004+00:00",
+  "lanes": {
+    "rows": 2653100,
+    "tickers": 12059,
+    "first_day": "2021-09-01",
+    "last_day": "2026-09-19"
+  },
+  "port_check": {
+    "checked": 2000,
+    "decision_mismatches": 0,
+    "worst_accumulate_diff": 0.0,
+    "worst_break_diff": 0.0
+  },
+  "control_positions": 2798,
+  "runs": {
+    "control": {
+      "label": "control",
+      "all": {
+        "positions": 2798,
+        "total_return_pct": -825.7611463474809,
+        "dollars": -20305.466588684558,
+        "mean_pct": -0.29512549905199464,
+        "median_pct": -0.6574834857506373,
+        "win_rate_pct": 47.53395282344532,
+        "mean_hold_sessions": 47.82558970693352
+      },
+      "first_half": {
+        "positions": 834,
+        "total_return_pct": -891.0176940723833,
+        "dollars": -21910.125097239907,
+        "mean_pct": -1.0683665396551358,
+        "median_pct": -4.65732311558682,
+        "win_rate_pct": 44.00479616306954,
+        "mean_hold_sessions": 42.12589928057554
+      },
+      "second_half": {
+        "positions": 1964,
+        "total_return_pct": 65.2565477249027,
+        "dollars": 1604.6585085553575,
+        "mean_pct": 0.03322634812876919,
+        "median_pct": -0.23983762273037668,
+        "win_rate_pct": 49.032586558044805,
+        "mean_hold_sessions": 50.2459266802444
+      },
+      "exit_reasons": {
+        "window_end": 1333,
+        "wall": 584,
+        "dead_clock": 351,
+        "brake": 269,
+        "ratchet": 261
+      }
+    },
+    "A_support_sag": {
+      "label": "A_support_sag",
+      "all": {
+        "positions": 3207,
+        "total_return_pct": -501.8062206700219,
+        "dollars": -12339.41496627584,
+        "mean_pct": -0.15647216110696038,
+        "median_pct": 0.38107078940474715,
+        "win_rate_pct": 52.47895229186156,
+        "mean_hold_sessions": 39.54692859370128
+      },
+      "first_half": {
+        "positions": 1085,
+        "total_return_pct": -605.6599855620052,
+        "dollars": -14893.179044969707,
+        "mean_pct": -0.5582119682599126,
+        "median_pct": 0.6947890818858493,
+        "win_rate_pct": 53.73271889400921,
+        "mean_hold_sessions": 29.26175115207373
+      },
+      "second_half": {
+        "positions": 2122,
+        "total_return_pct": 103.85376489198346,
+        "dollars": 2553.764078693873,
+        "mean_pct": 0.048941453766250455,
+        "median_pct": 0.31399489967782745,
+        "win_rate_pct": 51.837888784165884,
+        "mean_hold_sessions": 44.805843543826576
+      },
+      "exit_reasons": {
+        "window_end": 1303,
+        "wall": 413,
+        "dead_clock": 362,
+        "brake": 259,
+        "candidate": 682,
+        "ratchet": 188
+      }
+    },
+    "B_fuel_drain": {
+      "label": "B_fuel_drain",
+      "all": {
+        "positions": 4277,
+        "total_return_pct": -113.41375355244807,
+        "dollars": -2788.844199854698,
+        "mean_pct": -0.02651712732112417,
+        "median_pct": 0.5417118093174356,
+        "win_rate_pct": 60.06546644844517,
+        "mean_hold_sessions": 16.846387654898294
+      },
+      "first_half": {
+        "positions": 1552,
+        "total_return_pct": -627.5106480558794,
+        "dollars": -15430.486835694073,
+        "mean_pct": -0.4043238711700254,
+        "median_pct": 1.0702611237219495,
+        "win_rate_pct": 60.76030927835051,
+        "mean_hold_sessions": 16.701030927835053
+      },
+      "second_half": {
+        "positions": 2725,
+        "total_return_pct": 514.0968945034313,
+        "dollars": 12641.642635839376,
+        "mean_pct": 0.18865941082694726,
+        "median_pct": 0.4015895953757287,
+        "win_rate_pct": 59.669724770642205,
+        "mean_hold_sessions": 16.929174311926605
+      },
+      "exit_reasons": {
+        "candidate": 2964,
+        "wall": 213,
+        "window_end": 429,
+        "dead_clock": 333,
+        "brake": 228,
+        "ratchet": 110
+      }
+    },
+    "C_direction_loss": {
+      "label": "C_direction_loss",
+      "all": {
+        "positions": 2828,
+        "total_return_pct": 505.5516928484497,
+        "dollars": 12431.516127143379,
+        "mean_pct": 0.17876651090822127,
+        "median_pct": 0.44629643535433194,
+        "win_rate_pct": 58.62800565770863,
+        "mean_hold_sessions": 27.794200848656295
+      },
+      "first_half": {
+        "positions": 834,
+        "total_return_pct": -586.8959560748257,
+        "dollars": -14431.771559879964,
+        "mean_pct": -0.7037121775477526,
+        "median_pct": -2.6901349328385225,
+        "win_rate_pct": 46.642685851318944,
+        "mean_hold_sessions": 40.41846522781775
+      },
+      "second_half": {
+        "positions": 1994,
+        "total_return_pct": 1092.4476489232752,
+        "dollars": 26863.287687023338,
+        "mean_pct": 0.5478674267418632,
+        "median_pct": 0.5152535609898368,
+        "win_rate_pct": 63.64092276830492,
+        "mean_hold_sessions": 22.514042126379138
+      },
+      "exit_reasons": {
+        "candidate": 1378,
+        "wall": 472,
+        "window_end": 204,
+        "dead_clock": 310,
+        "brake": 253,
+        "ratchet": 211
+      }
+    },
+    "D_basin_break": {
+      "label": "D_basin_break",
+      "all": {
+        "positions": 2886,
+        "total_return_pct": -329.59863161925034,
+        "dollars": -8104.830351517366,
+        "mean_pct": -0.1142060400621103,
+        "median_pct": 0.2603669067615,
+        "win_rate_pct": 54.123354123354126,
+        "mean_hold_sessions": 29.138253638253637
+      },
+      "first_half": {
+        "positions": 838,
+        "total_return_pct": -581.2879695235447,
+        "dollars": -14293.871170583963,
+        "mean_pct": -0.6936610614839435,
+        "median_pct": -1.2711717072659834,
+        "win_rate_pct": 47.7326968973747,
+        "mean_hold_sessions": 37.45465393794749
+      },
+      "second_half": {
+        "positions": 2048,
+        "total_return_pct": 251.68933790429438,
+        "dollars": 6189.0408190665985,
+        "mean_pct": 0.12289518452358124,
+        "median_pct": 0.3188237180044906,
+        "win_rate_pct": 56.73828125,
+        "mean_hold_sessions": 25.7353515625
+      },
+      "exit_reasons": {
+        "candidate": 1233,
+        "wall": 457,
+        "window_end": 490,
+        "dead_clock": 301,
+        "brake": 239,
+        "ratchet": 166
+      }
+    }
+  },
+  "nulls": {
+    "A_support_sag": {
+      "seeds": 20,
+      "mean_total_return_pct": 506.2717792360546,
+      "p05": 25.811589912185397,
+      "p95": 979.0564078935147,
+      "duration_pool": 682,
+      "candidate_total_pct": -501.8062206700219,
+      "control_total_pct": -825.7611463474809,
+      "beats_null": false
+    },
+    "B_fuel_drain": {
+      "seeds": 20,
+      "mean_total_return_pct": 230.1119386039806,
+      "p05": -81.66765881977906,
+      "p95": 568.8832805430859,
+      "duration_pool": 2964,
+      "candidate_total_pct": -113.41375355244807,
+      "control_total_pct": -825.7611463474809,
+      "beats_null": false
+    },
+    "C_direction_loss": {
+      "seeds": 20,
+      "mean_total_return_pct": 414.5304770190078,
+      "p05": 100.0263910662217,
+      "p95": 727.2944552752366,
+      "duration_pool": 1378,
+      "candidate_total_pct": 505.5516928484497,
+      "control_total_pct": -825.7611463474809,
+      "beats_null": false
+    },
+    "D_basin_break": {
+      "seeds": 20,
+      "mean_total_return_pct": 172.2128990785361,
+      "p05": -152.88282214144323,
+      "p95": 552.3025217833417,
+      "duration_pool": 1233,
+      "candidate_total_pct": -329.59863161925034,
+      "control_total_pct": -825.7611463474809,
+      "beats_null": false
+    }
+  },
+  "costs_modeled": false,
+  "prices": "closes only (no intraday range in the store)"
+}

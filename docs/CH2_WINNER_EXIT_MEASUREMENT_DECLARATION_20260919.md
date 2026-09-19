@@ -95,3 +95,55 @@ failure is filed, with what would drain it.
 
 `artifacts/ch4_uf/ch2_winner_exit_measurement_20260919.json` plus an addendum
 here, committed. Failures are filed exactly as wins are.
+
+---
+
+## Result (2026-09-19) — nothing ships
+
+Run: `tools/ch2_winner_exit_measure.py` over the exported production lanes
+(2,653,100 sessions, 12,059 tickers, 2021-09-01 → 2026-09-19) against
+`ch4_live_store.parquet`. Port check inside the run: 2,000 tuples, 0 decision
+mismatches, 0.0 worst difference against the ported module. 23,417 entry
+signals → 2,798 control positions across 10,512 tickers.
+
+| run | n | total | mean | median | win | mean hold |
+|---|---:|---:|---:|---:|---:|---:|
+| control (today's law) | 2,798 | −825.8 % | −0.30 % | −0.66 % | 47.5 % | 47.8 |
+| A support sag | 3,207 | −501.8 % | −0.16 % | +0.38 % | 52.5 % | 39.5 |
+| B fuel drain | 4,277 | −113.4 % | −0.03 % | +0.54 % | 60.1 % | 16.8 |
+| C direction loss | 2,828 | **+505.6 %** | +0.18 % | +0.45 % | 58.6 % | 27.8 |
+| D basin break | 2,886 | −329.6 % | −0.11 % | +0.26 % | 54.1 % | 29.1 |
+
+Duration-matched random nulls (20 seeds each): A mean +506.3 % (p95 +979.1),
+B +230.1 % (p95 +568.9), C +414.5 % (p95 +727.3), D +172.2 % (p95 +552.3).
+
+**Verdict against the declared bar: all four fail.** A, B and D lose to the
+control outright. C beats the control by a wide margin but sits below the
+95th percentile of its own random null (505.6 % vs 727.3 %), so its advantage
+is not distinguishable from exiting at an arbitrary time of similar length.
+Every candidate also fails the both-halves requirement: the first half is
+deeply negative for all five runs (control −891 %, candidates −581 % to
+−628 %) and the second half positive.
+
+**Nothing replaces the reading's winner verdict.** The book keeps the dead
+clock, the 90-day wall, the −20 % brake and the +20 % ratchet floor.
+
+### What the failure exposed, and what would drain it
+
+The random nulls beat the current law in every case (+172 % to +506 % against
+−826 %) while holding far shorter than the control's 47.8 sessions. On this
+population the damage is not in *which* structural signal ends a position but
+in *how long* the law holds. That is a bigger claim than the one measured
+here, and it is not a result yet: it was produced as a null, not as a declared
+rule, and the halves show a strong regime split.
+
+It also cannot be read as the live channel's expectancy. Stated in the
+declaration and repeated here: this population omits the $500 M market-cap
+floor and the epoch-pressure block, so it contains small, illiquid names the
+live door never buys. The control-versus-candidate comparison is like-for-like;
+the absolute numbers are not the live book's.
+
+Draining it requires a second declaration, run the same way: a **holding-length
+family** (fixed session caps) as declared candidates, on a population filtered
+by a liquidity floor standing in for the missing capitalisation series, with
+the same null and both-halves bars. Not started; not assumed.
