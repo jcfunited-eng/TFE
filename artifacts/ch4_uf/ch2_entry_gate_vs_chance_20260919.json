@@ -1,0 +1,199 @@
+{
+  "declaration": "docs/CH2_ENTRY_GATE_VS_CHANCE_DECLARATION_20260919.md",
+  "generated_at_utc": "2026-09-19T11:36:29.617095+00:00",
+  "signals": 22687,
+  "positions_after_floors": 10612,
+  "port_check": {
+    "checked": 2000,
+    "decision_mismatches": 0,
+    "worst_accumulate_diff": 0.0,
+    "worst_break_diff": 0.0
+  },
+  "holds": {
+    "hold_5": {
+      "gate": {
+        "positions": 10512,
+        "mean_pct": 0.3301844235477468,
+        "median_pct": 0.1391439335749034,
+        "win_rate_pct": 51.67427701674278,
+        "total_pct": 3470.898660333914
+      },
+      "gate_first_half": {
+        "positions": 3070,
+        "mean_pct": 0.03173986605343494,
+        "median_pct": 0.04584836101813039,
+        "win_rate_pct": 50.1628664495114,
+        "total_pct": 97.44138878404527
+      },
+      "gate_second_half": {
+        "positions": 7442,
+        "mean_pct": 0.45329982149286063,
+        "median_pct": 0.16064257028114426,
+        "win_rate_pct": 52.297769416823435,
+        "total_pct": 3373.4572715498684
+      },
+      "null": {
+        "seeds": 200,
+        "mean_pct": 0.1195152277879419,
+        "p05": 0.03970657137867791,
+        "p95": 0.19841952897134282,
+        "h1_mean_pct": 0.051664775872310574,
+        "h1_p95": 0.17701744293999516,
+        "h2_mean_pct": 0.1789485274649895,
+        "h2_p95": 0.2807679434528177
+      },
+      "beats_null": true,
+      "beats_null_first_half": false,
+      "beats_null_second_half": true
+    },
+    "hold_10": {
+      "gate": {
+        "positions": 10479,
+        "mean_pct": 0.632245682793324,
+        "median_pct": 0.2810304449648582,
+        "win_rate_pct": 51.98969367306041,
+        "total_pct": 6625.302509991244
+      },
+      "gate_first_half": {
+        "positions": 3070,
+        "mean_pct": 0.14971475452357064,
+        "median_pct": 0.2771633333054191,
+        "win_rate_pct": 51.59609120521173,
+        "total_pct": 459.6242963873618
+      },
+      "gate_second_half": {
+        "positions": 7409,
+        "mean_pct": 0.8321876384942479,
+        "median_pct": 0.2844184795141924,
+        "win_rate_pct": 52.15278715076258,
+        "total_pct": 6165.678213603883
+      },
+      "null": {
+        "seeds": 200,
+        "mean_pct": 0.2454318556848565,
+        "p05": 0.13450277650564568,
+        "p95": 0.3583053793908824,
+        "h1_mean_pct": 0.12201602898500759,
+        "h1_p95": 0.28495581238786205,
+        "h2_mean_pct": 0.3543638136340661,
+        "h2_p95": 0.5085272212957431
+      },
+      "beats_null": true,
+      "beats_null_first_half": false,
+      "beats_null_second_half": true
+    },
+    "hold_20": {
+      "gate": {
+        "positions": 10468,
+        "mean_pct": 1.092289614907402,
+        "median_pct": 0.6729205942888838,
+        "win_rate_pct": 53.419946503630115,
+        "total_pct": 11434.087688850683
+      },
+      "gate_first_half": {
+        "positions": 3070,
+        "mean_pct": 0.24419222407961802,
+        "median_pct": 0.2736597783767669,
+        "win_rate_pct": 51.237785016286644,
+        "total_pct": 749.6701279244273
+      },
+      "gate_second_half": {
+        "positions": 7398,
+        "mean_pct": 1.4442305435153087,
+        "median_pct": 0.7410482864006696,
+        "win_rate_pct": 54.32549337658826,
+        "total_pct": 10684.417560926253
+      },
+      "null": {
+        "seeds": 200,
+        "mean_pct": 0.5054028013959373,
+        "p05": 0.3529894266999243,
+        "p95": 0.6404063843596738,
+        "h1_mean_pct": 0.212458203286358,
+        "h1_p95": 0.4149657015072802,
+        "h2_mean_pct": 0.767292619212038,
+        "h2_p95": 0.9701457513256383
+      },
+      "beats_null": true,
+      "beats_null_first_half": false,
+      "beats_null_second_half": true
+    },
+    "hold_30": {
+      "gate": {
+        "positions": 10197,
+        "mean_pct": 1.69977833061063,
+        "median_pct": 1.1456065986940045,
+        "win_rate_pct": 54.712170246150826,
+        "total_pct": 17332.639637236593
+      },
+      "gate_first_half": {
+        "positions": 3070,
+        "mean_pct": 0.5047974376619327,
+        "median_pct": 0.1597118489898408,
+        "win_rate_pct": 50.42345276872964,
+        "total_pct": 1549.7281336221336
+      },
+      "gate_second_half": {
+        "positions": 7127,
+        "mean_pct": 2.2145238534607077,
+        "median_pct": 1.391437308868504,
+        "win_rate_pct": 56.55956222814649,
+        "total_pct": 15782.911503614463
+      },
+      "null": {
+        "seeds": 200,
+        "mean_pct": 0.8239279755786677,
+        "p05": 0.651012584002102,
+        "p95": 1.0114902180787664,
+        "h1_mean_pct": 0.3007529392974641,
+        "h1_p95": 0.6300323795667316,
+        "h2_mean_pct": 1.300539223861832,
+        "h2_p95": 1.5499194198135502
+      },
+      "beats_null": true,
+      "beats_null_first_half": false,
+      "beats_null_second_half": true
+    },
+    "hold_60": {
+      "gate": {
+        "positions": 7726,
+        "mean_pct": 2.5083232575190224,
+        "median_pct": 1.7344439666674205,
+        "win_rate_pct": 54.530157908361375,
+        "total_pct": 19379.305487591966
+      },
+      "gate_first_half": {
+        "positions": 3070,
+        "mean_pct": 0.5689027757301459,
+        "median_pct": 0.17733882370289944,
+        "win_rate_pct": 50.358306188925084,
+        "total_pct": 1746.5315214915477
+      },
+      "gate_second_half": {
+        "positions": 4656,
+        "mean_pct": 3.7871078105885783,
+        "median_pct": 2.4179620034542326,
+        "win_rate_pct": 57.28092783505154,
+        "total_pct": 17632.77396610042
+      },
+      "null": {
+        "seeds": 200,
+        "mean_pct": 1.5134961616396458,
+        "p05": 1.2435823632563268,
+        "p95": 1.7654232003470847,
+        "h1_mean_pct": 0.33918501696341935,
+        "h1_p95": 0.7237170277468208,
+        "h2_mean_pct": 2.6459912564457486,
+        "h2_p95": 3.067285528311791
+      },
+      "beats_null": true,
+      "beats_null_first_half": false,
+      "beats_null_second_half": true
+    }
+  },
+  "holds_beating_null": 5,
+  "holds_beating_null_in_both_halves": 0,
+  "verdict": "the gate did NOT beat chance on this test",
+  "costs_modeled": false,
+  "prices": "closes only"
+}
