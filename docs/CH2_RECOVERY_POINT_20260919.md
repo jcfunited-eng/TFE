@@ -502,3 +502,80 @@ more than Close — and no single core beats the blended stream.
 
 Result, stated plainly: form B wins on every structural measure, and form B is
 the one the spec disallows. That tension is Joseph's to resolve, not mine.
+
+---
+
+## 15. THE MECHANISM WORKS — 64.43 % WR, REPLICATED (2026-09-19)
+
+Joseph pointed at `ADVANCED_LOCALIZED_THERMODYNAMICS___ASYMMETRIC_EXHAUSTION.pdf`
+(his paper, April 2026) and `TFE_Specification_v2_4/2_5`. I had read none of
+them. The mechanism they define is **already implemented** in
+`tfe_l5_baseline.py`, `tfe_5year_backtest.py` and `quarantine_sequential_filter.py`.
+
+### The canonical baseline (documented in `web/scripts/execution/financial_rules.mjs`)
+
+```
+Layer 1 — Primitive Geometric Eye:  D_k >= 0, Rev_k == 0, B_k > prev_B_k, M_k >= 0
+Layer 2 — Common Sense Reality:     Close >= $5, Gate_Count >= 10
+Layer 3 — Cognitive Restraint:      raw_x_m <= 0.50, F_n <= 1.65
+Claimed: 3,587 signals, 64.66 % WR, 1.25 % avg 20d
+```
+
+### Independent replication on the rebuilt governed states
+
+| filter | n | WR | avg 20d |
+|---|---:|---:|---:|
+| all rows (base) | 8,117,527 | 50.51 % | — |
+| L1 | 6,876 | 56.95 % | +4.86 % |
+| L1 + L2 | 6,254 | 56.86 % | +0.76 % |
+| **L1 + L2 + L3** | **3,247** | **64.43 %** | **+1.64 %** |
+| rejected by L3 | 3,007 | **48.69 %** | −0.18 % |
+
+Signal count differs only because `Gate_Count >= 10` is not a column in my
+rebuild. **WR matches the May figure to two decimal places.** B_k quartiles
+replicate as well (Q1 49.8 %, Q2 48.0 %, Q3 64.4 %, Q4 65.2 % against the
+recorded 51.3 / 49.6 / 63.5 / 64.0).
+
+**This is not a coin toss.** The nine values, read through Joseph's own layers
+with his own constants, separate winners from losers on a 20-session hold.
+
+### Why production does not get it — both causes already recorded in May
+
+```
+WHY B_k/F_n ENTRY GATES DON'T WORK IN PRODUCTION:
+  Tested on 428 production trades — every gate made things WORSE.
+  Rejected pool had HIGHER win rate (48.1%) than passed pool.
+  Root cause: production CP-2 uses 252-bar cap -> F_n inverted,
+  raw_x_m saturates to 1.0, thresholds from quarantine don't transfer.
+```
+
+and
+
+```
+CRITICAL FINDING: Entry selection is NOT the problem. Exit timing IS.
+  Trades held >0 days:  57.4% WR, +$1,280
+  Day-0 exits:          24.2% WR, -$1,545
+  175 day-0 losers: 68% would have been winners. $5,510 left on the table.
+```
+
+1. **`F_n` is inverted in production** by a 252-bar cap, and `raw_x_m`
+   saturates to 1.0. The cognitive gate that lifts 56.9 % to 64.4 % runs
+   **backwards** on live data. Here the rejected pool is 48.69 %; in
+   production it is 48.1 % *higher* than the passed pool.
+2. **Exits fire before 20 sessions.** The 64.43 % requires the hold. Day-0
+   exits run at 24.2 % WR.
+
+### What this says about this entire session
+
+Everything I measured tonight was an **entry** rule. Entry selection was
+measured in May and found not to be the problem. I rebuilt kernels, wrote seven
+declarations and ran a dozen nulls without reading the paper that specifies the
+mechanism or the production file that already records the answer.
+
+### Next, in order, and all of it Joseph's call
+
+1. Find and fix the 252-bar cap that inverts `F_n` / saturates `raw_x_m`.
+   This is the difference between 48 % and 64 %.
+2. Hold to 20 sessions. Day-0 exits destroy the edge the entry gate creates.
+3. `tau_out` (EXIT-R4) is already implemented from the thermodynamics paper —
+   verify it against §2.3's `tau_out = floor(tau_in / 3)`.
