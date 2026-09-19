@@ -376,3 +376,72 @@ to find.
   classification; it does not by itself prove the gate rate is right.
 - The L0 lookahead (§9.1) and the L0 means (§9.2) are untouched and still
   stand.
+
+---
+
+## 11. THE FLATTENING IS IN PRODUCTION, NOT JUST IN MY ANALYSIS
+
+`L5_CURRENT_SYSTEM_FULL_SPEC.md` states it is *"derived directly from the
+current code, not design intent."* Its §3.2 gives the L5 cell key:
+
+```
+regime + D + M_sign + R_rev + U_bucket + C + P_bucket + B_sign
+       + S_bucket3 + R_bucket3 + CD_bucket_opt + PH_opt + SE_opt
+```
+
+Verified in `l5_policy_learning_pipeline.py:348`:
+
+```python
+d_k   = int(round(dv_val(0)))          # D_k
+m_sgn = _sign3(dv_val(1))              # M_k      -> SIGN only
+r_rev = 1 if dv_val(2) > 0.5 else 0
+u_b   = _u_bucket(dv_val(3))           # U_star_k -> bucket
+p_b   = _p_bucket(dv_val(4))           # P_k      -> bucket
+b_sgn = _sign3(dv_val(5))              # B_k      -> SIGN only
+cd    = s_uf - r_uf                    # difference of two lifetime means
+```
+
+**`C_k` never arrives.** `decision_vector` in `uf_structural_engine` holds six
+entries — `D_k, M_k, R_rev_k, U_star_k, P_k, B_k`. `C_k` is dropped at the
+adapter, which is also why it measured as a constant 3 in every analysis.
+
+So the entire structural input to every production decision is:
+
+```
+regime string   (DEGENERATE or STABLE in practice -- VOLATILE cannot fire)
+D_k             integer
+sign(M_k)       one of three
+R_rev_k         one bit
+bucket(U*)
+bucket(P_k)
+sign(B_k)       one of three
+bucket3(S_UF), bucket3(R_UF)   -- two LIFETIME MEANS, in thirds
+```
+
+Roughly a dozen bits, concatenated into a string, looked up in a table.
+
+**This matters for blame and for the fix.** The flattening I was caught doing
+tonight is not a habit I brought to the problem — it is the shipped design,
+in place since before 2026-03-09. Reproducing it was still my error; inventing
+it was not.
+
+## 12. THE COMPLETE CHAIN
+
+```
+1. kernel fed Close only            -> DEGENERATE everywhere; sees no structure
+2. S_UF/R_UF replaced by lifetime means -> per-day support/resonance discarded
+3. L0 kappa reads bar t+1           -> backtests use unavailable data;
+                                       kappa is ALWAYS 0 on the live bar
+4. VOLATILE cannot fire             -> the spec's precursor band never appears
+5. C_k dropped at the adapter       -> eight of nine at best
+6. L5 signs and buckets the rest    -> ~12 bits into a string key
+7. table lookup                     -> coin toss
+```
+
+Proven by demonstration: same `uf_core`, nothing modified, only the input
+changed from Close to the O,H,L,C path already in the file —
+`DEGENERATE 2/2 gates` becomes `VOLATILE 3, TRANSITIONAL 1, DEGENERATE 1,
+STABLE 1`.
+
+Every item above is a code change and therefore Joseph's. Nothing has been
+modified. CH2 is still trading.
