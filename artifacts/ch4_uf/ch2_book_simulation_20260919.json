@@ -1,0 +1,261 @@
+{
+  "declaration": "docs/CH2_BOOK_SIMULATION_DECLARATION_20260919.md",
+  "generated_at_utc": "2026-09-19T12:05:05.006550+00:00",
+  "port_check": {
+    "checked": 2000,
+    "decision_mismatches": 0,
+    "worst_accumulate_diff": 0.0,
+    "worst_break_diff": 0.0
+  },
+  "capital": 100000.0,
+  "slice": 2500.0,
+  "windows": {
+    "full": {
+      "cost_0bp": {
+        "one_per_stock": {
+          "final_equity": 103652.22390000003,
+          "return_pct": 3.652223900000018,
+          "max_drawdown_pct": -40.16964490119258,
+          "positions_taken": 775,
+          "positions_closed": 736,
+          "still_open": 39,
+          "win_rate_pct": 48.641304347826086,
+          "mean_trade_pct": 0.3728307051338209,
+          "exit_reasons": {
+            "brake": 157,
+            "ratchet": 90,
+            "wall": 437,
+            "dead_clock": 52
+          }
+        },
+        "repeats_3": {
+          "final_equity": 104806.83840000001,
+          "return_pct": 4.806838400000002,
+          "max_drawdown_pct": -37.64471023057442,
+          "positions_taken": 877,
+          "positions_closed": 833,
+          "still_open": 44,
+          "win_rate_pct": 50.18007202881153,
+          "mean_trade_pct": 0.27979498563329974,
+          "exit_reasons": {
+            "brake": 170,
+            "ratchet": 119,
+            "wall": 467,
+            "dead_clock": 77
+          }
+        },
+        "random_entry_null": {
+          "seeds": 50,
+          "mean_return_pct": 13.859069172000002,
+          "p05": -5.299319430000008,
+          "p95": 33.87491596499996
+        }
+      },
+      "cost_10bp": {
+        "one_per_stock": {
+          "final_equity": 99686.58491450021,
+          "return_pct": -0.3134150854997908,
+          "max_drawdown_pct": -40.137216428805274,
+          "positions_taken": 771,
+          "positions_closed": 733,
+          "still_open": 38,
+          "win_rate_pct": 48.294679399727144,
+          "mean_trade_pct": 0.3761913241746468,
+          "exit_reasons": {
+            "brake": 151,
+            "ratchet": 89,
+            "wall": 441,
+            "dead_clock": 52
+          }
+        },
+        "repeats_3": {
+          "final_equity": 103856.52632400022,
+          "return_pct": 3.85652632400022,
+          "max_drawdown_pct": -39.09865400591413,
+          "positions_taken": 867,
+          "positions_closed": 823,
+          "still_open": 44,
+          "win_rate_pct": 50.911300121506684,
+          "mean_trade_pct": 0.44112013635854647,
+          "exit_reasons": {
+            "brake": 168,
+            "ratchet": 112,
+            "wall": 475,
+            "dead_clock": 68
+          }
+        },
+        "random_entry_null": {
+          "seeds": 50,
+          "mean_return_pct": 8.187940448844206,
+          "p05": -12.529984180994768,
+          "p95": 30.82473264299525
+        }
+      }
+    },
+    "first_half": {
+      "cost_0bp": {
+        "one_per_stock": {
+          "final_equity": 94924.66390000001,
+          "return_pct": -5.0753360999999835,
+          "max_drawdown_pct": -40.16964490119258,
+          "positions_taken": 407,
+          "positions_closed": 370,
+          "still_open": 37,
+          "win_rate_pct": 45.67567567567568,
+          "mean_trade_pct": -0.8241495747667638,
+          "exit_reasons": {
+            "brake": 114,
+            "ratchet": 55,
+            "wall": 181,
+            "dead_clock": 20
+          }
+        },
+        "repeats_3": {
+          "final_equity": 95215.27339999996,
+          "return_pct": -4.784726600000033,
+          "max_drawdown_pct": -37.64471023057442,
+          "positions_taken": 436,
+          "positions_closed": 397,
+          "still_open": 39,
+          "win_rate_pct": 45.5919395465995,
+          "mean_trade_pct": -0.43387364512346216,
+          "exit_reasons": {
+            "brake": 118,
+            "ratchet": 64,
+            "wall": 184,
+            "dead_clock": 31
+          }
+        },
+        "random_entry_null": {
+          "seeds": 50,
+          "mean_return_pct": -7.637024485999997,
+          "p05": -18.03081469999998,
+          "p95": 7.0480197949999726
+        }
+      },
+      "cost_10bp": {
+        "one_per_stock": {
+          "final_equity": 94189.5185753001,
+          "return_pct": -5.810481424699898,
+          "max_drawdown_pct": -40.137216428805274,
+          "positions_taken": 406,
+          "positions_closed": 369,
+          "still_open": 37,
+          "win_rate_pct": 46.34146341463415,
+          "mean_trade_pct": -0.610896100509544,
+          "exit_reasons": {
+            "brake": 114,
+            "ratchet": 56,
+            "wall": 180,
+            "dead_clock": 19
+          }
+        },
+        "repeats_3": {
+          "final_equity": 95161.6590240001,
+          "return_pct": -4.8383409759999,
+          "max_drawdown_pct": -39.09865400591413,
+          "positions_taken": 432,
+          "positions_closed": 393,
+          "still_open": 39,
+          "win_rate_pct": 47.32824427480916,
+          "mean_trade_pct": -0.24123027863016017,
+          "exit_reasons": {
+            "brake": 117,
+            "ratchet": 65,
+            "wall": 183,
+            "dead_clock": 28
+          }
+        },
+        "random_entry_null": {
+          "seeds": 50,
+          "mean_return_pct": -9.956934044557903,
+          "p05": -22.10919479385993,
+          "p95": 2.3653008177251076
+        }
+      }
+    },
+    "second_half": {
+      "cost_0bp": {
+        "one_per_stock": {
+          "final_equity": 106272.50940000002,
+          "return_pct": 6.272509400000015,
+          "max_drawdown_pct": -21.712572257985048,
+          "positions_taken": 397,
+          "positions_closed": 357,
+          "still_open": 40,
+          "win_rate_pct": 49.299719887955185,
+          "mean_trade_pct": 1.0589048630252738,
+          "exit_reasons": {
+            "brake": 46,
+            "dead_clock": 35,
+            "wall": 238,
+            "ratchet": 38
+          }
+        },
+        "repeats_3": {
+          "final_equity": 107581.47500000003,
+          "return_pct": 7.5814750000000375,
+          "max_drawdown_pct": -23.51312321396537,
+          "positions_taken": 465,
+          "positions_closed": 420,
+          "still_open": 45,
+          "win_rate_pct": 52.142857142857146,
+          "mean_trade_pct": 0.7677177054437317,
+          "exit_reasons": {
+            "brake": 46,
+            "dead_clock": 42,
+            "wall": 285,
+            "ratchet": 47
+          }
+        },
+        "random_entry_null": {
+          "seeds": 50,
+          "mean_return_pct": 22.08298908800001,
+          "p05": 5.850515409999984,
+          "p95": 43.212312900000036
+        }
+      },
+      "cost_10bp": {
+        "one_per_stock": {
+          "final_equity": 105267.58656940017,
+          "return_pct": 5.267586569400162,
+          "max_drawdown_pct": -21.906922534362533,
+          "positions_taken": 392,
+          "positions_closed": 352,
+          "still_open": 40,
+          "win_rate_pct": 50.0,
+          "mean_trade_pct": 1.0815466347138905,
+          "exit_reasons": {
+            "brake": 45,
+            "dead_clock": 34,
+            "wall": 236,
+            "ratchet": 37
+          }
+        },
+        "repeats_3": {
+          "final_equity": 100394.85205000013,
+          "return_pct": 0.39485205000013845,
+          "max_drawdown_pct": -24.777630606288195,
+          "positions_taken": 457,
+          "positions_closed": 415,
+          "still_open": 42,
+          "win_rate_pct": 52.04819277108433,
+          "mean_trade_pct": 0.2508547770290442,
+          "exit_reasons": {
+            "brake": 48,
+            "dead_clock": 43,
+            "wall": 276,
+            "ratchet": 48
+          }
+        },
+        "random_entry_null": {
+          "seeds": 50,
+          "mean_return_pct": 19.45650986966912,
+          "p05": 4.484765968290139,
+          "p95": 37.98301266719512
+        }
+      }
+    }
+  },
+  "repeats_3_passes_declared_bar": false
+}

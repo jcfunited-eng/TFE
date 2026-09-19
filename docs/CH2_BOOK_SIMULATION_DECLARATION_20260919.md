@@ -77,3 +77,60 @@ Joseph's word.
 
 `artifacts/ch4_uf/ch2_book_simulation_20260919.json` plus a result section
 here, committed. Either answer is filed the same way.
+
+---
+
+## Result (2026-09-19) — both books lose to a random-entry book of the same shape
+
+601 signal days, 10,612 signals, 1,065 tickers. Null pool: a median of 2,830
+liquid names a day. Port check: 2,000 tuples, 0 decision mismatches.
+
+| window | cost | one per stock | repeats ≤3 | random-entry book (50 seeds) |
+|---|---|---|---|---|
+| full | 0 bp | +3.7 % (dd −40.2 %, 775 trades, 48.6 % wins) | +4.8 % (dd −37.6 %, 877) | mean **+13.9 %** (p05…p95 → +33.9 %) |
+| full | 10 bp | −0.3 % | +3.9 % | mean +8.2 % (p95 +30.8 %) |
+| first half | 0 bp | −5.1 % | −4.8 % | mean −7.6 % (p95 +7.0 %) |
+| first half | 10 bp | −5.8 % | −4.8 % | mean −10.0 % (p95 +2.4 %) |
+| second half | 0 bp | +6.3 % (dd −21.7 %) | +7.6 % | mean **+22.1 %** (p95 +43.2 %) |
+| second half | 10 bp | +5.3 % | +0.4 % | mean +19.5 % (p95 +38.0 %) |
+
+### Verdict against the declared bar: **repeats_3 does not pass, and neither book clears the null**
+
+`repeats_3` beat `one_per_stock` in every window and at both cost settings —
+the one part of the bar it met. But both books sit far below the random-entry
+book over the full window and in the second half. The bar required clearing
+the null. It is not met. Nothing is proposed.
+
+### The finding, stated exactly
+
+A book of the same shape that picks liquid stocks **at random** made roughly
+three times what the gate's book made over five years (+13.9 % against
++3.7 %), and roughly three times again in the second half (+22.1 % against
++6.3 %). In the first half both real books beat the random mean slightly
+(−5.1 % and −4.8 % against −7.6 %), which is the only window where the gate
+helped.
+
+### How this sits with the per-position result — a hypothesis, not a conclusion
+
+The entry-gate measurement found the gate beating a null **drawn from the same
+tickers it had already chosen**: it timed those names better than chance. This
+book draws its null from every liquid name on the day. Both can be true at
+once if the gate **times its own names well but chooses a family of names that
+underperforms the broad liquid universe**. That is a hypothesis this run
+cannot settle, because the two nulls differ in universe, not only in timing.
+
+### The decisive follow-up, running now
+
+The same book against two further nulls, declared before running: entries
+drawn at random **from the gate's own 1,065 signal tickers** (timing removed,
+universe held), and a plain **SPY buy-and-hold** with the same capital. If the
+gate's book matches the first and both trail SPY, the deficit is in the
+universe the gate favours, not in its picking. Filed as
+`CH2_BOOK_NULL_UNIVERSE_DECLARATION_20260919.md`.
+
+### Limits
+
+Closes only; no dividends; the 10 bp allowance is a stand-in for real
+slippage, not a measurement of it. The null book has no drawdown comparison
+recorded. The gate's universe is narrower than the null's by construction,
+which is exactly what the follow-up isolates.
