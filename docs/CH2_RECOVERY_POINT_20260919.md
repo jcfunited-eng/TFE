@@ -579,3 +579,75 @@ mechanism or the production file that already records the answer.
 2. Hold to 20 sessions. Day-0 exits destroy the edge the entry gate creates.
 3. `tau_out` (EXIT-R4) is already implemented from the thermodynamics paper —
    verify it against §2.3's `tau_out = floor(tau_in / 3)`.
+
+---
+
+## 16. RETRACTION OF §15 — the 64.43 % is a warm-up artifact
+
+§15 claimed the mechanism works at 64.43 % WR, replicating a 64.66 % figure
+recorded in May. **Retracted.** Both numbers are real computations of the same
+artifact.
+
+### The evidence
+
+Position of each L1+L2+L3 signal **within its own symbol's history**:
+
+```
+all signals        p05 = 1    p50 = 1    p95 = 18
+excluding 2021     p05 = 1    p50 = 1    p95 = 21
+```
+
+**The median signal fires on bar 1.** L1 (`D_k >= 0, Rev_k == 0,
+B_k > prev_B_k, M_k >= 0`) is satisfied by the kernel's initialization state,
+which every symbol passes through when it first enters the data. Essentially no
+signals occur after a symbol's first ~250 bars.
+
+Because `quarantine_12k_universe.parquet` begins 2021-03-26 for every symbol,
+those initialisations coincide, and they coincide with a bull market:
+
+| year | signals | signal WR | all-rows WR | lift |
+|---|---:|---:|---:|---:|
+| 2021 | 1,602 (49.3 %) | 73.78 % | 48.36 % | **+25.42 pp** |
+| 2022 | 207 | 32.85 % | 43.63 % | **−10.78 pp** |
+| 2023 | 261 | 57.47 % | 50.18 % | +7.30 pp |
+| 2024 | 426 | 61.27 % | 53.90 % | +7.37 pp |
+| 2025 | 653 | 60.95 % | 55.70 % | +5.25 pp |
+| 2026 | 98 | 33.67 % | 42.15 % | **−8.47 pp** |
+
+Half the signals sit in the one window with a +25 pp lift, and the rule **loses**
+in 2022 and 2026.
+
+### Excluding 2021
+
+| | n | WR | avg 20d |
+|---|---:|---:|---:|
+| L1+L2 pool | 4,338 | 51.43 % | +0.18 % |
+| L1+L2+L3 passed | 1,645 | **55.32 %** | +0.50 % |
+| L1+L2 rejected | 2,693 | 49.05 % | −0.01 % |
+
+64.43 % becomes 55.32 %, and those signals are **still at position 1** — newly
+listed or newly tracked symbols, with their own selection effects.
+
+### What this means about the replication
+
+Matching a previously recorded number is not evidence the number is right. The
+May figure and mine agree because both were computed the same way on the same
+artifact. Independent replication of a biased method reproduces the bias.
+
+### What survives
+
+The **428 real Alpaca trades**: 57.4 % WR for positions held past day 0 against
+24.2 % for day-0 exits, with 68 % of day-0 losers recoverable over 20 days.
+That is live money, real entries, no kernel warm-up involved, and it is the
+strongest evidence in this repository. It says nothing about the entry gate and
+everything about the exits.
+
+### Consequence for the fix
+
+**Do not change the 252-bar cap on this evidence.** The capped-vs-uncapped test
+(production 52.06 % pass / 48.75 % reject, uncapped 52.62 % / 48.68 %) showed a
+difference of 0.6 pp on a subset that was itself warm-up biased. There is no
+demonstrated inversion. `financial_rules.mjs`'s claim that the cap inverts
+`F_n` may still be true, but it is not established here.
+
+**The exits remain the one supported target**, on live-trade evidence alone.
