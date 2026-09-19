@@ -303,3 +303,76 @@ makes every historical number unreliable and the live/backtest asymmetry makes
 production behave differently from every test), then 9.3 (input), then 9.2 is
 Joseph's call on whether `sigma` should exist in that form at all. All three
 are kernel changes and therefore his.
+
+---
+
+## 10. ROOT CAUSE, PROVEN (2026-09-19, final)
+
+Joseph: *"if it wasn't getting data then of course it wouldn't work"*. Correct,
+and it is now demonstrated rather than argued.
+
+### The spec
+
+`docs/DSF_AI_Phase_Transition_Service_Spec.tex` defines four regimes — STABLE,
+VOLATILE, TRANSITIONAL, DEGENERATE — and states plainly:
+
+> "Phase transitions always occur within VOLATILE regions."
+
+Every worked example in the spec uses VOLATILE as the **precursor band**:
+*"VOLATILE regime extends to 57 K, 18 K above Tc"*, *"VOLATILE regime begins at
+320 K ... Precursors"*. DEGENERATE is the spec's term for **structurally
+featureless**.
+
+### What the implementations do
+
+- `quarantine_historical_kernel.py:99` — `phi_reg` returns only
+  `"TRANSITIONAL" if C > 1 else "STABLE"`. **VOLATILE does not exist.** This is
+  the kernel that produced all 8,343,139 daily governed states.
+- `uf_core/layer2.py:160` — VOLATILE exists, and fires on **0.59 %** of
+  537,687 readings (STABLE 55.5 %, DEGENERATE 24.6 %, TRANSITIONAL 19.3 %).
+
+### The demonstration
+
+Same `uf_core`, nothing modified, same thresholds, same `tau_D`. Only the input
+changed — from the Close column to the four prices already present in the file,
+in recorded order:
+
+| input | points | gates | regimes |
+|---|---:|---:|---|
+| **Close only** (production) | 1,254 | 2 | **DEGENERATE 2** — 100 % featureless |
+| **O,H,L,C path** | 5,016 | 6 | **VOLATILE 3**, TRANSITIONAL 1, DEGENERATE 1, STABLE 1 |
+
+VOLATILE appears immediately. The precursor regime the entire spec is built
+around switches on the moment Open, High and Low stop being discarded at the
+door.
+
+### The whole chain, one cause
+
+```
+kernel fed Close only
+  -> sigma (structural change rate) computed close-to-close, tiny
+  -> chi_k never exceeds chi_max
+  -> VOLATILE almost never fires
+  -> the precursor band the spec is built on never appears
+  -> D(t) = a1|dF| + a2*sigma + a3*kappa rarely clears tau_D = 0.20
+  -> 5 gates in SPY's decade
+  -> every downstream value frozen for months
+  -> every reading lands on a coin toss
+```
+
+Every symptom chased in this session is this one defect. The kernel was
+correctly reporting that it saw nothing structural, because it was shown one
+number per day.
+
+**This does not vindicate any reading I built.** They were flattened and they
+failed on their own terms. It means the input they ran on carried no structure
+to find.
+
+### What is NOT yet established
+
+- Whether the O,H,L,C path is the intended construction. It uses all four
+  recorded prices and invents nothing, but Joseph has not ratified it.
+- 6 gates over 5,016 points is still sparse. Feeding the path fixes the regime
+  classification; it does not by itself prove the gate rate is right.
+- The L0 lookahead (§9.1) and the L0 means (§9.2) are untouched and still
+  stand.
