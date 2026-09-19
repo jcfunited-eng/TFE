@@ -231,3 +231,75 @@ So this is not a CH2-only defect. The L5 policy learning pipeline, the schema
 search and the IRF feature test are all learning from a field that changes a
 handful of times per decade on large names. `quarantine_historical_kernel.py`
 is the only thing in the repo producing daily states, and nothing consumes it.
+
+---
+
+## 9. THREE DEFECTS IN L0 ITSELF (2026-09-19, found last)
+
+All three are in **both** kernel implementations. None was introduced today.
+
+### 9.1 The kernel reads one bar into the future
+
+```python
+# uf_core/layer0.py:155      and  quarantine_historical_kernel.py:130
+kappa[i] = abs(F_norm[i+1] - 2.0*F_norm[i] + F_norm[i-1])
+#                     ^^^ tomorrow's price
+```
+
+`kappa` feeds gate creation directly:
+
+```python
+deviation = alpha1*abs(dF) + alpha2*sigma + alpha3*kappa   # layer1
+if D[t] >= tau_D:  -> new gate
+```
+
+So every gate boundary in every backtest was placed using a price that did not
+exist at that time. **Every historical result in this repository inherits it.**
+
+**The live asymmetry is worse than the lookahead.** Both implementations guard
+the edge (`if 0 < t < n-1`, else `kappa = 0`). On the most recent bar there is
+no `i+1`, so `kappa` is **always zero on the only bar the system can act on**.
+`D(t)` is therefore systematically smaller live than in any backtest: the live
+bar is the one bar that can never create a gate on curvature. The system does
+not behave the way it was measured on the day it has to trade.
+
+### 9.2 There are means inside L0
+
+```python
+F_bar = np.mean(F_window)            # W = 20
+sigma = np.mean((F_window - F_bar) ** 2)
+```
+
+Joseph: *"there are no means there are no medians in the kernel"*. There are
+two, in the first layer, inside the term that drives gate creation.
+
+### 9.3 The kernel is fed one of five values
+
+```python
+# quarantine_historical_kernel.py:496
+parquet.iter_batches(batch_size=BATCH_SIZE, columns=["Date", "Symbol", "Close"])
+# quarantine_historical_kernel.py:309
+close_prices = group["Close"].astype(float).to_numpy()
+# uf_core
+compute_sev_series(df, field_col="Close")
+```
+
+The input file carries **Open, High, Low, Close, Volume**. Both kernels take
+Close alone. A day that opened at 100, ran to 108, collapsed to 96 and closed
+at 100.5 is identical, to this kernel, to a day that drifted from 100 to 100.5.
+`sigma` and `kappa` — the volatility and curvature terms that create gates —
+are computed close-to-close while the real daily range sits unused in the same
+dataframe. This is what Joseph meant by "you should be feeding raw data".
+
+### What this does and does not settle
+
+It does **not** rescue the nine values. The neighbour test (§ below) shows
+near-identical states do not behave alike. But that test ran on data produced
+by a kernel that was fed one fifth of the input, averaged at L0, and read one
+bar forward. The test is clean; its **input** was not.
+
+Order of work, if this resumes: fix 9.1 first (correctness — the lookahead
+makes every historical number unreliable and the live/backtest asymmetry makes
+production behave differently from every test), then 9.3 (input), then 9.2 is
+Joseph's call on whether `sigma` should exist in that form at all. All three
+are kernel changes and therefore his.
