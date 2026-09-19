@@ -153,3 +153,63 @@ full-series run would read the future). ~30 quantities per row. `S_UF` and
 
 This document exists so that the last clause cannot happen. Local commits do
 **not** survive a container rebuild; only `origin` does.
+
+---
+
+## 8. Correction — I was feeding the wrong pipeline (2026-09-19, later)
+
+Joseph: *"you should be feeding raw data"*, *"you are screwing it up for sure"*,
+with a screenshot of raw OHLCV. He was right.
+
+There are **two kernel implementations** in this repository:
+
+| | gates for SPY | D_k changes | granularity |
+|---|---|---|---|
+| `uf_core/` (what CH2 uses, what I used all day) | 6 per decade | 4 in 10 years | none |
+| `quarantine_historical_kernel.py` (`W=20` rolling) | daily | 88 in 5 years | daily |
+
+The second one's output is **already on disk**:
+`quarantine_12k_governed_states.parquet` — 8,343,139 rows, 11,882 symbols,
+2021-03-29 .. 2026-03-24, one governed state **per day**. For SPY: `R_k`
+changes every day, `U_star_k` on 50.6 %, `M_k` 9.9 %, `P_k` 9.4 %, `D_k` 7.0 %,
+`Rev_k` 4.6 %. That is the granularity Joseph said had to be there.
+
+### What that file does and does not contain
+
+- **Eight** of the nine: `D_k M_k R_k Rev_k U_star_k C_k P_k B_k` (+ `prev_B_k`,
+  so carry needs no invented lookback).
+- **`S_UF` is absent.** `psi_s` computes S inside that script and never writes
+  it — the same discard pattern as `uf_structural_engine`, one layer over.
+  I initially mapped `S_UF := s_n`; **`s_n` is "surprise", not support.** That
+  was my error and it is why the first run entered nothing.
+- Its own `Decision` column is `HOLD/AVOID` on **all 8,343,139 rows**: the
+  `ACCUMULATE` condition (`q20 > theta_plus AND F_n <= F_max AND
+  chi_n >= chi_min`) never fires once in five years across 11,882 symbols.
+
+### Result on the eight that are present
+
+`tools/ch2_governed_nine.py`. The reading fires — 386,116 positions across
+7,872 bodies, a median of 5.8 % of days — where the `uf_core` path fired on
+almost nothing. But:
+
+- **+0.09 % per position against a matched-timing null p95 of +0.21 %.** Fails.
+- **Mean hold: 1 session.** First cause was mine — I had made the exit the
+  negation of the entry, which forces one-day holds by construction. Corrected
+  to Joseph's semantics (`R_rev_k` as the first-class state change) and the
+  hold stayed at 1, because **`R_rev_k = 1` on ~60 % of days in the median
+  body**. A "major geometry break" is the ordinary state there, so it cannot
+  serve as an exit.
+- **SPY, QQQ, DIA and IWM take zero positions**: `R_k > U_star_k` is never true
+  for them (0.0 % of SPY's and AAPL's five years), though it holds on 48.3 % of
+  all rows universe-wide.
+
+### The open blockers, stated rather than worked around
+
+1. `S_UF` is not exported by either pipeline. Half of "read `U_star_k` against
+   support and resonance" cannot be done until it is.
+2. `R_rev_k` fires on ~60 % of days in the median body, which contradicts
+   "marks a major geometry break".
+3. The benchmarks never satisfy the resonance-vs-uncertainty comparison, so the
+   reading cannot authorize the one structure known to work.
+
+None of these is fixable by me without changing kernel code, which is Joseph's.
