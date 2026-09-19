@@ -49,3 +49,51 @@ made on evidence rather than on a preference.
 
 `artifacts/ch4_uf/ch2_book_null_universe_20260919.json` plus a result section
 here, committed.
+
+---
+
+## Result (2026-09-19) — the universe is fine; the picking is what loses
+
+Gate universe: 1,065 tickers, a median of 879 eligible a day against 2,830 in
+the broad pool. Port check: 2,000 tuples, 0 decision mismatches.
+
+| window | cost | gate book | random **within the gate's own universe** | random over all liquid names | SPY held |
+|---|---|---:|---:|---:|---:|
+| full | 0 bp | **+3.7 %** | +17.1 % (p95 +38.3) | +13.2 % | **+68.5 %** |
+| full | 10 bp | −0.3 % | +11.8 % (p95 +30.6) | +9.8 % | +68.5 % |
+| first half | 0 bp | −5.1 % | −3.6 % (p95 +11.1) | −7.0 % | +12.8 % |
+| first half | 10 bp | −5.8 % | −5.8 % (p95 +9.2) | −8.7 % | +12.8 % |
+| second half | 0 bp | +6.3 % | +21.1 % (p95 +36.0) | +20.9 % | +49.4 % |
+| second half | 10 bp | +5.3 % | +18.7 % (p95 +35.9) | +19.0 % | +49.4 % |
+
+### What this settles
+
+1. **The gate's universe is not the problem.** Picking at random *inside the
+   gate's own 1,065 names* returned +17.1 %, slightly **better** than random
+   over every liquid name (+13.2 %). The family the gate looks at is fine.
+2. **The picking inside that family is the problem.** The gate's book made
+   +3.7 % where random choices from its own names, on the same days and in the
+   same numbers, made +17.1 %. Same universe, same cadence, same capital, same
+   exits — only the choice of names differs.
+3. **Every version of this book trails simply holding SPY** (+68.5 % over the
+   window; +49.4 % in the second half alone). A book that deploys on signal
+   days into $2,500 slices and runs these exits is far behind the index even
+   when it picks at random.
+
+### Against the per-position result, honestly
+
+The per-position measurement found the gate beating random timing inside its
+own names (+1.70 % against +0.82 % at a 30-session hold). At book level the
+sign reverses. The exits are not the cause — they cost 0.11–0.35 points per
+position. What the book adds beyond the per-position test is **capital
+rationing**: on a day with more signals than cash, the book takes the highest
+`accumulate_basin` names first, while the null takes the same number at
+random. If the gate's own strength ranking is inverted — high basin scoring
+worse — that alone flips a positive per-position edge into a losing book.
+
+### The next measurement, declared and running
+
+Forward returns by `accumulate_basin` decile, and the taken-versus-skipped
+split on days when cash rationed the book. If the top decile underperforms the
+bottom, the door is choosing the worst of its own candidates and the ranking
+is the defect — not the physics, not the exits.

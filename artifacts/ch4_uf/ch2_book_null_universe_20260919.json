@@ -1,0 +1,238 @@
+{
+  "declaration": "docs/CH2_BOOK_NULL_UNIVERSE_DECLARATION_20260919.md",
+  "generated_at_utc": "2026-09-19T12:09:38.873354+00:00",
+  "port_check": {
+    "checked": 2000,
+    "decision_mismatches": 0,
+    "worst_accumulate_diff": 0.0,
+    "worst_break_diff": 0.0
+  },
+  "gate_universe_tickers": 1065,
+  "windows": {
+    "full": {
+      "spy_hold": {
+        "return_pct": 68.48569,
+        "max_drawdown_pct": -25.324066117631677,
+        "positions_taken": 1
+      },
+      "cost_0bp": {
+        "gate": {
+          "final_equity": 103652.22390000003,
+          "return_pct": 3.652223900000018,
+          "max_drawdown_pct": -40.16964490119258,
+          "positions_taken": 775,
+          "positions_closed": 736,
+          "still_open": 39,
+          "win_rate_pct": 48.641304347826086,
+          "mean_trade_pct": 0.3728307051338209,
+          "exit_reasons": {
+            "brake": 157,
+            "ratchet": 90,
+            "wall": 437,
+            "dead_clock": 52
+          }
+        },
+        "null_own_universe": {
+          "seeds": 50,
+          "mean_return_pct": 17.079229484000017,
+          "p05": -1.4626952449999875,
+          "p95": 38.29800127999994,
+          "mean_max_drawdown_pct": -25.10414292033881
+        },
+        "null_broad_universe": {
+          "seeds": 50,
+          "mean_return_pct": 13.200229376000014,
+          "p05": -14.439502784999997,
+          "p95": 47.82044023999998,
+          "mean_max_drawdown_pct": -29.679333434310376
+        },
+        "gate_beats_own_universe_null": false,
+        "own_universe_worse_than_broad": false
+      },
+      "cost_10bp": {
+        "gate": {
+          "final_equity": 99686.58491450021,
+          "return_pct": -0.3134150854997908,
+          "max_drawdown_pct": -40.137216428805274,
+          "positions_taken": 771,
+          "positions_closed": 733,
+          "still_open": 38,
+          "win_rate_pct": 48.294679399727144,
+          "mean_trade_pct": 0.3761913241746468,
+          "exit_reasons": {
+            "brake": 151,
+            "ratchet": 89,
+            "wall": 441,
+            "dead_clock": 52
+          }
+        },
+        "null_own_universe": {
+          "seeds": 50,
+          "mean_return_pct": 11.80196123668021,
+          "p05": -1.5321727144497492,
+          "p95": 30.619523133650215,
+          "mean_max_drawdown_pct": -26.125451129291054
+        },
+        "null_broad_universe": {
+          "seeds": 50,
+          "mean_return_pct": 9.826783441970216,
+          "p05": -17.52625539997981,
+          "p95": 41.87796844988518,
+          "mean_max_drawdown_pct": -30.490273651213432
+        },
+        "gate_beats_own_universe_null": false,
+        "own_universe_worse_than_broad": false
+      }
+    },
+    "first_half": {
+      "spy_hold": {
+        "return_pct": 12.824629999999981,
+        "max_drawdown_pct": -25.324066117631677,
+        "positions_taken": 1
+      },
+      "cost_0bp": {
+        "gate": {
+          "final_equity": 94924.66390000001,
+          "return_pct": -5.0753360999999835,
+          "max_drawdown_pct": -40.16964490119258,
+          "positions_taken": 407,
+          "positions_closed": 370,
+          "still_open": 37,
+          "win_rate_pct": 45.67567567567568,
+          "mean_trade_pct": -0.8241495747667638,
+          "exit_reasons": {
+            "brake": 114,
+            "ratchet": 55,
+            "wall": 181,
+            "dead_clock": 20
+          }
+        },
+        "null_own_universe": {
+          "seeds": 50,
+          "mean_return_pct": -3.63512732599999,
+          "p05": -14.099487339999964,
+          "p95": 11.127325144999986,
+          "mean_max_drawdown_pct": -25.102551811104707
+        },
+        "null_broad_universe": {
+          "seeds": 50,
+          "mean_return_pct": -7.0223554599999956,
+          "p05": -20.34559749000001,
+          "p95": 12.903632220000016,
+          "mean_max_drawdown_pct": -29.579449961462938
+        },
+        "gate_beats_own_universe_null": false,
+        "own_universe_worse_than_broad": false
+      },
+      "cost_10bp": {
+        "gate": {
+          "final_equity": 94189.5185753001,
+          "return_pct": -5.810481424699898,
+          "max_drawdown_pct": -40.137216428805274,
+          "positions_taken": 406,
+          "positions_closed": 369,
+          "still_open": 37,
+          "win_rate_pct": 46.34146341463415,
+          "mean_trade_pct": -0.610896100509544,
+          "exit_reasons": {
+            "brake": 114,
+            "ratchet": 56,
+            "wall": 180,
+            "dead_clock": 19
+          }
+        },
+        "null_own_universe": {
+          "seeds": 50,
+          "mean_return_pct": -5.830466782549904,
+          "p05": -15.493500155479877,
+          "p95": 9.23447174966011,
+          "mean_max_drawdown_pct": -26.125451129291054
+        },
+        "null_broad_universe": {
+          "seeds": 50,
+          "mean_return_pct": -8.654750855779897,
+          "p05": -21.727614035084905,
+          "p95": 9.798114339490127,
+          "mean_max_drawdown_pct": -30.38445646489153
+        },
+        "gate_beats_own_universe_null": false,
+        "own_universe_worse_than_broad": false
+      }
+    },
+    "second_half": {
+      "spy_hold": {
+        "return_pct": 49.364560000000026,
+        "max_drawdown_pct": -18.987318605479174,
+        "positions_taken": 1
+      },
+      "cost_0bp": {
+        "gate": {
+          "final_equity": 106272.50940000002,
+          "return_pct": 6.272509400000015,
+          "max_drawdown_pct": -21.712572257985048,
+          "positions_taken": 397,
+          "positions_closed": 357,
+          "still_open": 40,
+          "win_rate_pct": 49.299719887955185,
+          "mean_trade_pct": 1.0589048630252738,
+          "exit_reasons": {
+            "brake": 46,
+            "dead_clock": 35,
+            "wall": 238,
+            "ratchet": 38
+          }
+        },
+        "null_own_universe": {
+          "seeds": 50,
+          "mean_return_pct": 21.125594492000005,
+          "p05": 10.451263999999966,
+          "p95": 36.04538493500001,
+          "mean_max_drawdown_pct": -14.667423110547782
+        },
+        "null_broad_universe": {
+          "seeds": 50,
+          "mean_return_pct": 20.888533798000008,
+          "p05": 2.325630185000014,
+          "p95": 46.25554348999997,
+          "mean_max_drawdown_pct": -17.226595240984995
+        },
+        "gate_beats_own_universe_null": false,
+        "own_universe_worse_than_broad": false
+      },
+      "cost_10bp": {
+        "gate": {
+          "final_equity": 105267.58656940017,
+          "return_pct": 5.267586569400162,
+          "max_drawdown_pct": -21.906922534362533,
+          "positions_taken": 392,
+          "positions_closed": 352,
+          "still_open": 40,
+          "win_rate_pct": 50.0,
+          "mean_trade_pct": 1.0815466347138905,
+          "exit_reasons": {
+            "brake": 45,
+            "dead_clock": 34,
+            "wall": 236,
+            "ratchet": 37
+          }
+        },
+        "null_own_universe": {
+          "seeds": 50,
+          "mean_return_pct": 18.73819498085013,
+          "p05": 6.139464507660141,
+          "p95": 35.935027446525154,
+          "mean_max_drawdown_pct": -15.004432473995767
+        },
+        "null_broad_universe": {
+          "seeds": 50,
+          "mean_return_pct": 18.999673249402125,
+          "p05": -0.4557893295149155,
+          "p95": 42.665623304340116,
+          "mean_max_drawdown_pct": -17.673239800751492
+        },
+        "gate_beats_own_universe_null": false,
+        "own_universe_worse_than_broad": false
+      }
+    }
+  }
+}
