@@ -450,3 +450,21 @@ first 90-day wall.
   `artifacts/vtvr_observer/c1_manual_closeblock_20260917.log`, so the herd
   state exists for 09-16 and the day loops can act for the rest of the
   session; the runner's 21:10 UTC pass covers the 09-17 close.
+
+## Addendum 13 — the nightly per-ticker reading pass is OFF (Joseph, 2026-09-19)
+
+Joseph, seeing hundreds of per-symbol assessment sessions in his history:
+"they need to stop — I think they are the reason I am seeing so much token
+burn". `tools/ch2_holdings_read.py` spawned one model session per held stock
+every night (six in parallel, ~20 a night, plus re-runs); it is now commented
+out of `tools/ch6_nightly_door.sh`. No other live script spawns model
+sessions (`ch6_read_pool.py` has been dormant since the CH6 reading pass was
+switched off 2026-09-01; `ch6_perception_nightly.py` makes no model calls).
+
+Consequence, stated to Joseph: the DRIVE_DYING / DEAD verdicts of the
+2026-08-25 exit law stop being produced. The engine ignores a sheet older
+than four days and holds on a missing one, so from four days after the last
+sheet (read_at 2026-09-18 23:09 UTC) the sellers are the dead clock, the
+90-day wall, the −20 % brake and the +20 % ratchet floor. The last sheet
+called CRVL DEAD, so that sale stands at the next open while the sheet is
+still fresh. Turning the pass back on is one line.

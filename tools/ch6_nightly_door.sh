@@ -34,10 +34,19 @@ python tools/ch3_recovery_engine.py >> "$LOG" 2>&1 \
 
 python tools/publish_channel_books.py >> "$LOG" 2>&1
 
-# CH2 holdings get their nightly long-view readings after the CH6 door
-# (Joseph's exit law 2026-08-25). Failure holds every position — the
-# production engine ignores a missing or stale verdict sheet.
-python tools/ch2_holdings_read.py >> "$LOG" 2>&1 \
-  || echo "[ch6-door] CH2 READING PASS FAILED — holdings keep current protections" >> "$LOG"
+# CH2 HOLDINGS READING PASS OFF (Joseph 2026-09-19): "hundreds of these
+# individual ticker assessments — they need to stop". The pass spawned one
+# model session per held stock every night (six at a time, ~20 a night) and
+# was the visible token burn in his history.
+#
+# What this removes: the DRIVE_DYING / DEAD verdicts of Joseph's exit law
+# 2026-08-25. The production engine ignores a sheet older than four days and
+# holds on a missing one, so after four days the sellers are the dead clock
+# (>16 closed sessions more than 5% below entry with no heal), the 90-day
+# wall, the -20% brake and the +20% ratchet floor. Turning it back on is
+# this one line.
+# python tools/ch2_holdings_read.py >> "$LOG" 2>&1 \
+#   || echo "[ch6-door] CH2 READING PASS FAILED — holdings keep current protections" >> "$LOG"
+echo "[ch6-door] CH2 reading pass OFF (Joseph 2026-09-19) — no per-ticker model sessions" >> "$LOG"
 
 echo "[ch6-door] done $(date -u +%FT%TZ)" >> "$LOG"
