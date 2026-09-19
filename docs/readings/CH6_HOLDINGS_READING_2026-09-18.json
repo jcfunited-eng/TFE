@@ -1,0 +1,242 @@
+{
+ "ALHC": {
+  "symbol": "ALHC",
+  "verdict": "HOLD",
+  "rule": "no law in force refuses",
+  "facts": {
+   "life_years": 5.5,
+   "price": 8.7,
+   "store_peak": 27.27,
+   "crush": 3.1,
+   "as_of_close": "2026-09-17"
+  }
+ },
+ "BHFAO": {
+  "symbol": "BHFAO",
+  "verdict": "HOLD",
+  "rule": "no law in force refuses",
+  "facts": {
+   "life_years": 6.3,
+   "price": 13.915,
+   "store_peak": 29.16,
+   "crush": 2.1,
+   "as_of_close": "2026-09-17"
+  }
+ },
+ "BUSE": {
+  "symbol": "BUSE",
+  "verdict": "CUT",
+  "rule": "RULES-CUT sound-structure",
+  "facts": {
+   "life_years": 10.7,
+   "price": 30.15,
+   "store_peak": 33.18,
+   "crush": 1.1,
+   "as_of_close": "2026-09-17"
+  }
+ },
+ "CLB": {
+  "symbol": "CLB",
+  "verdict": "HOLD",
+  "rule": "no law in force refuses",
+  "facts": {
+   "life_years": 10.7,
+   "price": 11.4,
+   "store_peak": 133.97,
+   "crush": 11.8,
+   "as_of_close": "2026-09-17"
+  }
+ },
+ "CNXC": {
+  "symbol": "CNXC",
+  "verdict": "HOLD",
+  "rule": "no law in force refuses",
+  "facts": {
+   "life_years": 10.7,
+   "price": 28.34,
+   "store_peak": 205.79,
+   "crush": 7.3,
+   "as_of_close": "2026-09-17"
+  }
+ },
+ "CRBP": {
+  "symbol": "CRBP",
+  "verdict": "HOLD",
+  "rule": "no law in force refuses",
+  "facts": {
+   "life_years": 10.7,
+   "price": 7.26,
+   "store_peak": 310.5,
+   "crush": 42.8,
+   "as_of_close": "2026-09-17"
+  }
+ },
+ "DEO": {
+  "symbol": "DEO",
+  "verdict": "HOLD",
+  "rule": "no law in force refuses",
+  "facts": {
+   "life_years": 10.7,
+   "price": 86.72,
+   "store_peak": 222.11,
+   "crush": 2.6,
+   "as_of_close": "2026-09-17"
+  }
+ },
+ "DXC": {
+  "symbol": "DXC",
+  "verdict": "HOLD",
+  "rule": "no law in force refuses",
+  "facts": {
+   "life_years": 9.5,
+   "price": 11.44,
+   "store_peak": 107.31,
+   "crush": 9.4,
+   "as_of_close": "2026-09-17"
+  }
+ },
+ "EEFT": {
+  "symbol": "EEFT",
+  "verdict": "HOLD",
+  "rule": "no law in force refuses",
+  "facts": {
+   "life_years": 10.7,
+   "price": 67.86,
+   "store_peak": 170.21,
+   "crush": 2.5,
+   "as_of_close": "2026-09-17"
+  }
+ },
+ "FLYW": {
+  "symbol": "FLYW",
+  "verdict": "HOLD",
+  "rule": "no law in force refuses",
+  "facts": {
+   "life_years": 5.3,
+   "price": 17.73,
+   "store_peak": 53.96,
+   "crush": 3.0,
+   "as_of_close": "2026-09-17"
+  }
+ },
+ "FUBO": {
+  "symbol": "FUBO",
+  "verdict": "HOLD",
+  "rule": "no law in force refuses",
+  "facts": {
+   "life_years": 5.9,
+   "price": 9.9,
+   "store_peak": 744.0,
+   "crush": 75.2,
+   "as_of_close": "2026-09-17"
+  }
+ },
+ "FVRR": {
+  "symbol": "FVRR",
+  "verdict": "HOLD",
+  "rule": "no law in force refuses",
+  "facts": {
+   "life_years": 7.3,
+   "price": 8.74,
+   "store_peak": 323.1,
+   "crush": 37.0,
+   "as_of_close": "2026-09-17"
+  }
+ },
+ "FWRD": {
+  "symbol": "FWRD",
+  "verdict": "HOLD",
+  "rule": "no law in force refuses",
+  "facts": {
+   "life_years": 10.7,
+   "price": 15.41,
+   "store_peak": 124.61,
+   "crush": 8.1,
+   "as_of_close": "2026-09-17"
+  }
+ },
+ "GTE": {
+  "symbol": "GTE",
+  "verdict": "HOLD",
+  "rule": "no law in force refuses",
+  "facts": {
+   "life_years": 10.7,
+   "price": 10.24,
+   "store_peak": 39.1,
+   "crush": 3.8,
+   "as_of_close": "2026-09-17"
+  }
+ },
+ "HLF": {
+  "symbol": "HLF",
+  "verdict": "HOLD",
+  "rule": "no law in force refuses",
+  "facts": {
+   "life_years": 10.7,
+   "price": 11.69,
+   "store_peak": 61.47,
+   "crush": 5.3,
+   "as_of_close": "2026-09-17"
+  }
+ },
+ "HUN": {
+  "symbol": "HUN",
+  "verdict": "HOLD",
+  "rule": "no law in force refuses",
+  "facts": {
+   "life_years": 10.7,
+   "price": 9.12,
+   "store_peak": 41.2,
+   "crush": 4.5,
+   "as_of_close": "2026-09-17"
+  }
+ },
+ "INMD": {
+  "symbol": "INMD",
+  "verdict": "HOLD",
+  "rule": "no law in force refuses",
+  "facts": {
+   "life_years": 7.1,
+   "price": 14.54,
+   "store_peak": 97.86,
+   "crush": 6.7,
+   "as_of_close": "2026-09-17"
+  }
+ },
+ "INNV": {
+  "symbol": "INNV",
+  "verdict": "HOLD",
+  "rule": "no law in force refuses",
+  "facts": {
+   "life_years": 5.5,
+   "price": 10.7,
+   "store_peak": 26.04,
+   "crush": 2.4,
+   "as_of_close": "2026-09-17"
+  }
+ },
+ "MGM": {
+  "symbol": "MGM",
+  "verdict": "CUT",
+  "rule": "RULES-CUT sound-structure",
+  "facts": {
+   "life_years": 10.7,
+   "price": 38.31,
+   "store_peak": 50.9,
+   "crush": 1.3,
+   "as_of_close": "2026-09-17"
+  }
+ },
+ "NE": {
+  "symbol": "NE",
+  "verdict": "CUT",
+  "rule": "RULES-CUT sound-structure",
+  "facts": {
+   "life_years": 5.3,
+   "price": 44.18,
+   "store_peak": 54.37,
+   "crush": 1.2,
+   "as_of_close": "2026-09-17"
+  }
+ }
+}

@@ -1,0 +1,50 @@
+{
+ "APOG": {
+  "symbol": "APOG",
+  "verdict": "HOLD",
+  "rule": "no law in force refuses",
+  "facts": {
+   "life_years": 10.7,
+   "price": 37.69,
+   "store_peak": 87.22,
+   "crush": 2.3,
+   "as_of_close": "2026-09-16"
+  }
+ },
+ "AQN": {
+  "symbol": "AQN",
+  "verdict": "HOLD",
+  "rule": "no law in force refuses",
+  "facts": {
+   "life_years": 9.8,
+   "price": 5.32,
+   "store_peak": 17.74,
+   "crush": 3.3,
+   "as_of_close": "2026-09-16"
+  }
+ },
+ "BHFAO": {
+  "symbol": "BHFAO",
+  "verdict": "HOLD",
+  "rule": "no law in force refuses",
+  "facts": {
+   "life_years": 6.3,
+   "price": 13.955,
+   "store_peak": 29.16,
+   "crush": 2.1,
+   "as_of_close": "2026-09-16"
+  }
+ },
+ "CHPT": {
+  "symbol": "CHPT",
+  "verdict": "HOLD",
+  "rule": "no law in force refuses",
+  "facts": {
+   "life_years": 5.5,
+   "price": 8.91,
+   "store_peak": 713.8,
+   "crush": 80.1,
+   "as_of_close": "2026-09-16"
+  }
+ }
+}
