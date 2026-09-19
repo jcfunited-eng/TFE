@@ -78,3 +78,66 @@ would drain it.
 
 `artifacts/ch4_uf/ch2_holding_length_measurement_20260919.json` plus a result
 section here, committed. Failures are filed exactly as wins are.
+
+---
+
+## Result (2026-09-19) — nothing ships, and the finding is about the entries
+
+Run: `tools/ch2_holding_length_measure.py`. Port check inside the run: 2,000
+tuples, 0 decision mismatches. 23,417 raw entry signals → 10,612 survive the
+liquidity and price floors (12,075 dropped) → 1,588 control positions.
+
+| run | n | total | mean | win | hold | first half | second half |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| control (today's law) | 1,588 | −700.4 % | −0.44 % | 45.5 % | 48.0 | −409.2 % | −291.2 % |
+| H10 | 3,004 | +570.6 % | +0.19 % | 49.7 % | 9.9 | −71.9 % | +642.5 % |
+| H20 | 2,226 | +1,010.8 % | +0.45 % | 51.2 % | 19.4 | −84.3 % | +1,095.1 % |
+| H30 | 1,908 | **+1,913.1 %** | +1.00 % | 56.0 % | 28.2 | −232.0 % | +2,145.1 % |
+| H45 | 1,690 | +862.8 % | +0.51 % | 51.2 % | 39.9 | −397.7 % | +1,260.5 % |
+
+Random-entry nulls, count-matched per ticker and drawn from the same window
+(20 seeds): H10 mean +658.9 % (p95 +1,606.6), H20 +953.3 % (p95 +1,677.0),
+H30 +1,085.8 % (p95 +1,918.0), H45 +774.0 % (p95 +1,418.9).
+
+**Verdict against the declared bar: none ships.** Every cap beats the current
+law by a wide margin and H30 beats it in both halves — but no cap clears the
+95th percentile of random entries held the same length. H30 misses by 4.9
+points of return (1,913.1 against 1,918.0); it is not rounded up.
+
+### What this measured, stated exactly
+
+1. The current law loses on this population in **both** halves (−409 %,
+   −291 %; −0.44 % per position, 45.5 % wins, 48-session average hold).
+2. Capping the hold is worth hundreds of points against it, consistently
+   across all four caps.
+3. Random entries in the same stocks, same window, same count, held the same
+   length, do as well or better. **The gain is in holding less time, not in
+   which stocks the V3 basin gate chose.** On this test the entry gate did not
+   beat chance.
+
+### Corrected before reporting
+
+The first pass of this measurement drew null entries from the whole bar store
+(2016 onward) and did not match position counts, producing nulls six times
+larger than the candidates. Those numbers were never reported as a result;
+the null was rebuilt to the same window with matched counts, and that is the
+table above. Implementation sensitivity is exactly what honest-timing rule 6
+warns about.
+
+### Limits of this result
+
+Closes only, no costs and no slippage modeled — and the caps trade roughly
+twice as often as the control, so costs would bite them hardest. The
+population uses a $5 M median dollar-volume and $5 price floor as proxies for
+the $500 M capitalisation rule, and omits the epoch-pressure block. One
+window, five years, one stream.
+
+### What would drain it
+
+The question this exposed is not an exit question. It is: **does the V3 basin
+entry gate beat chance at all, on tradable names?** That deserves its own
+declaration — CH2 entries against count-matched random entries at several
+fixed holds, judged on per-position mean with an interval rather than a sum,
+replicated on an independent stream (hourly or m15 lanes exist), with costs
+modeled. Not started; not assumed. Until it is answered, no exit rule changes
+on the strength of these numbers.
