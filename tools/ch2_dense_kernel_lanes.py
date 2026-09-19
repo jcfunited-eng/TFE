@@ -32,11 +32,13 @@ import numpy as np
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))  # workers inherit this; without it uf_core is not importable
 OUTDIR = ROOT / "artifacts" / "ch4_uf" / "dense_lanes_20260919"
-SAMPLE_N = 3000
+SAMPLE_N = 300
+ALWAYS = ["SPY", "QQQ", "DIA", "IWM"]  # the benchmarks: the to-be-compared structures
 WARMUP_BARS = 250          # agreed with Joseph; the kernel needs history first
 MIN_BARS = 750             # so a sampled body has at least 500 usable readings
-WORKERS = 19
+WORKERS = 14
 
 def _load(path: str) -> dict[str, tuple]:
     df = pd.read_parquet(path, columns=["Date", "Symbol", "Close", "Volume"]).dropna()
@@ -81,11 +83,13 @@ def main() -> int:
     store_path = sys.argv[1]
     store = _load(store_path)
     universe = sorted(s for s, (d, c, v) in store.items() if len(c) >= MIN_BARS)
+    _uni_set = set(universe)
     print(f"[dense] bodies with >= {MIN_BARS} bars: {len(universe)}", flush=True)
 
     seed = int.from_bytes(hashlib.blake2b(b"ch2-dense-lanes-20260919", digest_size=8).digest(), "big")
     rng = np.random.default_rng(seed % (2**63))
-    sample = sorted(rng.choice(universe, size=min(SAMPLE_N, len(universe)), replace=False).tolist())
+    sample = sorted(set(rng.choice(universe, size=min(SAMPLE_N, len(universe)), replace=False).tolist())
+                    | {a for a in ALWAYS if a in _uni_set})
     print(f"[dense] sample={len(sample)} seed={seed % (2**63)}", flush=True)
     (OUTDIR.parent / "dense_lanes_sample_20260919.txt").write_text("\n".join(sample))
 

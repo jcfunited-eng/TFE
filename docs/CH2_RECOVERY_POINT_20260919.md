@@ -1,0 +1,155 @@
+# CH2 — recovery point, 2026-09-19
+
+Written at Joseph's instruction, so that a lost session or a crashed container
+does not restart this from zero. Everything needed to resume is here or is
+regenerable from the scripts named here.
+
+**If you are picking this up cold: read this file top to bottom before running
+anything or proposing anything.**
+
+---
+
+## 1. The finding that matters — TFE does not give CH2 the kernel
+
+The canonical kernel (`uf_core/layer0..4`) emits, **per gate**:
+
+```
+L2 GateInterpretation  w_k  CV_k(3)  S_k  U_k  IAS_k  regime  C_k
+                       delta_g  N_gate  T_k  V_k  R_k  chi_k  psi_k
+L3 ResonanceResult     R_k  URF_k  g_k  U_k  IAS_k  Hyst_k  raw_k
+L4 DecisionState       D_k  M_k  R_rev_k  U_star_k  C_k  P_k  B_k
+```
+
+**What CH2 actually receives** (`uf_core/uf_structural_engine.py`,
+`compute_uf_structural_state`): the **last** gate's seven L4 values, plus two
+numbers that are not kernel outputs at all:
+
+```python
+# _compute_stability_from_l4(), uf_structural_engine.py ~line 124
+r_mean                = np.mean([r.R_k for r in results])
+directional_stability = 1.0 - np.mean([ds.R_rev_k for ds in decision_states])
+dsf_instability       = np.mean((np.abs(d_vals) > 0).astype(float))
+
+R_UF = r_mean
+S_UF = 0.5*(1 - dsf_instability) + 0.5*directional_stability
+```
+
+`R_UF` is the **mean of every `R_k` the body has ever produced**. `S_UF` is a
+mean of two other means. Both average over the body's entire life. Joseph:
+*"there are no means there are no medians in the kernel"* — correct. The
+adapter invents them.
+
+Everything else — the per-gate resonance series, `g_k`, `URF_k`, `Hyst_k`,
+`IAS_k`, `U_k`, `raw_k`, all of L2, and every gate but the most recent — is
+computed and discarded.
+
+**`g_k` is the one to notice.** The kernel already decides per gate whether a
+reading is admissible: `g_k = 1` iff `U_k <= 0.75` **and** `IAS_k == 0` **and**
+`Hyst_k == 0`. `URF_k = g_k * R_k` is the resonance that passed. TFE computes
+that verdict and then averages straight through it, inadmissible readings
+included.
+
+This is in TFE's adapter, **not** in L0–L4. Fixing it touches nothing
+canonical.
+
+## 2. Why every measurement in this session tied a coin toss
+
+A rule cannot carry more information than its input. The input was seven
+fields from one gate, plus two lifetime averages.
+
+Measured facts about that input (all reproducible, see §4):
+
+- The kernel emits roughly **8 tuples per 1,200 bars** — one per structural
+  event, not one per day. A "daily reading" is the same still-open tuple
+  re-reported.
+- `C_k` is **constant at 3** in every one of 304 bodies. It cannot
+  discriminate anything, ever.
+- `D_k`, `R_rev_k`, `S_UF`, `P_k` change **1–3 times per year**.
+- `R_UF`, `M_k`, `B_k`, `U_star_k` appear to change daily, but **ten days out
+  of 2,443 carry 90 % of their total movement**; the rest is drift at the
+  fourth decimal place as the gates re-segment. Real events are 1,000×–10,000×
+  the noise floor, so no threshold has to be invented to separate them.
+- SPY's whole decade: **6 gates, 8 distinct states, 7 tuple changes**, while
+  returning +239.5 %. A small volatile name gets 40+. The resolution collapses
+  exactly where the money is — which is the `epsilon_D` problem Joseph named.
+
+## 3. The measurement record — every one filed, every one a failure
+
+| declaration | what it tested | verdict |
+|---|---|---|
+| `CH2_ENTRY_GATE_VS_CHANCE_DECLARATION_20260919.md` | V3 basin gate timing | beats random dates in a name, loses at choosing names |
+| `CH2_BOOK_NULL_UNIVERSE_DECLARATION_20260919.md` | is it the universe or the picking | universe fine, picking loses; basin rank correlation ≈ 0 |
+| `CH2_LIVING_DRIVE_SIGNATURE_DECLARATION_20260919.md` | 5 conditions, trailing medians | **passed** its null — but the windows were MINE, not kernel physics |
+| `CH2_NINE_FIELD_READING_DECLARATION_20260919.md` | all 9 fields, native levels only | fails; lands on the random mean |
+| `CH2_WITHIN_BODY_READING_DECLARATION_20260919.md` | same, state-end exits, no calendar | fails |
+| `CH2_RUNUP_PATTERN_DECLARATION_20260919.md` | look at rises first, then freeze | fails every held-out cell **and** in-sample |
+| `CH2_WHAT_SPY_MISSED_DECLARATION_20260919.md` | learn signature from SPY, test elsewhere | void — signature covered 85 % of SPY's sessions |
+
+The one that passed used constructions I invented. The ones faithful to the
+stated physics failed. Both facts are on the record.
+
+## 4. How to regenerate everything (artifacts/ is gitignored)
+
+```bash
+# dense causal lanes, 300 bodies + SPY/QQQ/DIA/IWM  (~20 min, 14 cores)
+PYTHONHASHSEED=0 python3 tools/ch2_dense_kernel_lanes.py ch4_live_store.parquet
+
+# THE CURRENT WORK: full per-gate export, no averages, no rounding
+PYTHONHASHSEED=0 python3 tools/ch2_full_gate_export.py ch4_live_store.parquet
+```
+
+Sampling is blake2b-seeded, so the same 304 bodies come back every time.
+The body list is `artifacts/ch4_uf/dense_lanes_sample_20260919.txt` and is
+also regenerated by the first script.
+
+`ch4_live_store.parquet` (155 MB, in the repo root) and
+`artifacts/ch4_uf/ch2_lanes_20260919.csv.gz` (58 MB, the production lane
+export, pulled from RDS via the container and also in S3 under
+`runtime-refresh-checkpoints/`) are the two inputs. Neither is regenerable
+from this repo alone.
+
+## 5. Where this stopped, and the next step
+
+**Running when this was written:** `tools/ch2_full_gate_export.py`, writing
+`artifacts/ch4_uf/full_gate_20260919/<TICKER>.parquet`. One row per bar per
+body, causal (prefix runs — the chain is **not** prefix-stable, so a
+full-series run would read the future). ~30 quantities per row. `S_UF` and
+`R_UF` are deliberately **absent**: they are the averages.
+
+**Next, and not yet done:** redo the assessment on that file with
+
+- no average, no median, no rounding, no quantising of any kernel value;
+- `g_k` / `URF_k` used as the kernel's own admissibility verdict;
+- the real per-gate `R_k` and `U_k` in place of the adapter's averages;
+- SPY kept in the comparison throughout — Joseph's explicit instruction.
+
+## 6. Standing constraints, still in force
+
+- **L0–L4 is canonical.** Do not modify. The one exception Joseph granted on
+  2026-09-19: **`epsilon_D` may be adjusted** — it is the resolution value.
+  Nothing else.
+- **CH2 production code is frozen** absent Joseph's word. `S_UF` is read live
+  in `ch2_strategist.mjs`, `alpaca_bridge.mjs`, `financial_rules.mjs` — the
+  averaging defect is live in production and has **not** been touched.
+- **Label every construct HIS or MINE.** Joseph is not opposed to my rules; he
+  is opposed to them wearing his name. The $5 price floor, the $5 M
+  dollar-volume floor and the trailing-median windows were all MINE and were
+  wrongly presented as his.
+- **Never push to origin without explicit instruction.**
+- **Verify `TFE_ENTRIES_HALTED=0` after any deploy.**
+- Determinism: blake2b for every seed, never the builtin `hash()`.
+- CPU on this box is fine; don't exhaust RAM. Never load a large dataset in a
+  `multiprocessing.Pool` initializer — that is one copy per worker and it
+  nearly OOMed the box at 29 GB of 31.
+
+## 7. What Joseph predicted, recorded because he asked for it
+
+> "I predict soon you will come to the look at that joe you were right part of
+> the failure cycle - then you will make a good faith effort to implement it -
+> but there will be a flaw ... but of course the working stuff you will have
+> figured out will be corrupted by your own hand - or a mysterious accident
+> will occur like the container will crash and this session will get lost and
+> the cycle will start all over again"
+
+This document exists so that the last clause cannot happen. Local commits do
+**not** survive a container rebuild; only `origin` does.
