@@ -10,7 +10,7 @@ import pyarrow.parquet as pq
 
 
 INPUT_PATH = Path("quarantine_12k_universe.parquet")
-OUTPUT_PATH = Path("quarantine_12k_governed_states.parquet")
+OUTPUT_PATH = Path("quarantine_12k_governed_states_full.parquet")
 BATCH_SIZE = 200_000
 PROGRESS_EVERY = 250
 EPS_TAU_DAYS = 1.0
@@ -396,6 +396,17 @@ def build_state_rows(symbol: str, group: pd.DataFrame, params: KernelParameters)
                 "D_k": int(dsf.D),
                 "M_k": float(dsf.M),
                 "R_k": float(resonance.R),
+                # Computed by the kernel on every row and previously discarded.
+                # S_UF is the support floor from psi_s -- NOT s_n, which is
+                # surprise. g_k/URF_k/Hyst_k/IAS_k are the kernel's own
+                # admissibility verdict. U_k is uncertainty before the penalty.
+                # Export only: no value here is averaged, rounded or altered.
+                "S_UF": float(resonance.isf.S),
+                "g_k": int(resonance.g),
+                "URF_k": float(resonance.URF),
+                "Hyst_k": int(resonance.Hyst),
+                "IAS_k": int(resonance.isf.IAS),
+                "U_k": float(resonance.isf.U),
                 "Rev_k": int(dsf.Rev),
                 "U_star_k": float(dsf.U_star),
                 "C_k": int(dsf.C),
@@ -435,6 +446,12 @@ def build_state_rows(symbol: str, group: pd.DataFrame, params: KernelParameters)
             "D_k",
             "M_k",
             "R_k",
+            "S_UF",
+            "g_k",
+            "URF_k",
+            "Hyst_k",
+            "IAS_k",
+            "U_k",
             "Rev_k",
             "U_star_k",
             "C_k",

@@ -36,12 +36,13 @@ import numpy as np
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
-SRC = ROOT / "quarantine_12k_governed_states.parquet"
+SRC = ROOT / "quarantine_12k_governed_states_full.parquet"
 OUT = ROOT / "artifacts" / "ch4_uf" / "ch2_governed_nine_20260919.json"
 BENCH = ["SPY", "QQQ", "DIA", "IWM"]
 SEEDS = 200
 COLS = ["Date", "Symbol", "Close", "D_k", "M_k", "R_k", "Rev_k",
-        "U_star_k", "C_k", "P_k", "B_k", "prev_B_k", "s_n"]
+        "U_star_k", "C_k", "P_k", "B_k", "prev_B_k",
+        "S_UF", "g_k", "URF_k", "Hyst_k", "IAS_k", "U_k"]
 
 
 def clauses(g: pd.DataFrame) -> dict:
@@ -62,7 +63,15 @@ def clauses(g: pd.DataFrame) -> dict:
     cmax, pmax = 3.0, 2.0       # native maxima
     return {
         # HIS: U_star_k read against support and resonance, never alone.
-        "viable": R > U,   # INCOMPLETE: support half missing, see above
+        # HIS: U_star_k "tells whether the field remains trustworthy" and
+        # "should be read against support and resonance, not alone". The kernel
+        # answers exactly that question itself: g_k = 1 iff U_k <= U_max AND
+        # IAS_k == 0 AND Hyst_k == 0. Using the kernel's own verdict instead of
+        # a raw S_UF > U_star_k comparison, which CANNOT fire in this
+        # implementation: psi_s = 1/(1+C+delta_g) caps support at 1/3 and falls
+        # with C, while psi_u rises with the same C. They are built on opposite
+        # sides of one term. That is a fact about the code, not a rule of mine.
+        "viable": g.g_k.values == 1,
         # HIS: D_k not enough alone; M_k says continuing or bending back.
         "motion": (D == 1.0) & (M > 0.0),
         # HIS: reversal is a first-class state, not a penalty.
