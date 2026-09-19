@@ -63,3 +63,63 @@ would need its own declaration, its own null, and Joseph's word.
 `artifacts/ch4_uf/ch2_exit_rule_cost_20260919.json` plus a result section
 here, committed. A result that vindicates the current law is filed exactly as
 one that condemns it.
+
+---
+
+## Result (2026-09-19) — the exit rules are close to neutral, and my earlier reading was wrong
+
+10,612 positions from the same gate and floors. Port check inside the run:
+2,000 tuples, 0 decision mismatches.
+
+**Horizon 30 sessions — blind hold +1.70 % per position**
+
+| rule | run mean | delta vs blind | fired | median session | realised on fired | if held on fired | timing null | worse than arbitrary exit |
+|---|---:|---:|---:|---:|---:|---:|---:|:--:|
+| brake | +1.65 % | −0.05 | 583 | 18 | −22.33 % | −21.42 % | +1.59 % | no |
+| dead clock | +1.67 % | −0.03 | 1,008 | 24 | −15.25 % | −14.93 % | +1.65 % | no |
+| ratchet | +1.64 % | −0.06 | 253 | 23 | +15.33 % | +17.88 % | +1.63 % | no |
+| wall | +1.70 % | +0.00 | 0 | — | — | — | +1.70 % | no |
+| **full law** | **+1.59 %** | **−0.11** | 1,424 | 22 | −10.62 % | −9.80 % | +1.50 % | no |
+
+**Horizon 60 sessions — blind hold +2.51 % per position**
+
+| rule | run mean | delta vs blind | fired | median session | realised on fired | if held on fired | timing null | worse than arbitrary exit |
+|---|---:|---:|---:|---:|---:|---:|---:|:--:|
+| brake | +2.44 % | −0.06 | 1,171 | 31 | −22.27 % | −21.85 % | +2.08 % | no |
+| dead clock | +2.42 % | −0.09 | 2,347 | 34 | −14.80 % | −14.52 % | +1.80 % | no |
+| ratchet | +2.29 % | −0.22 | 1,043 | 41 | +16.25 % | +17.88 % | +2.18 % | no |
+| wall | +2.52 % | +0.01 | 304 | 60 | −4.47 % | −4.67 % | +2.52 % | no |
+| **full law** | **+2.16 %** | **−0.35** | 3,575 | 36 | −5.27 % | −4.51 % | +0.91 % | no |
+
+### What this says
+
+1. **No rule is a destroyer.** The whole law costs 0.11 points per position at
+   a 30-session horizon and 0.35 at 60. The wall is free, the brake and the
+   dead clock sell losers within a point of what holding them would have
+   returned, and the ratchet gives up about 2.5 points on the winners it sells
+   (+15.33 % against +17.88 % held) but touches few positions.
+2. **None is worse than arbitrary exiting** at the same count and timing.
+3. The dead clock does what it was built to do: it ends 1,008 positions
+   averaging −15.25 %, at almost exactly what holding them would have paid.
+
+### Correction to what I told Joseph
+
+After the entry-gate measurement I said the exit law converts the gate's
+positive expectancy into a negative one. **That was wrong, and this
+measurement is the reason I know.** The −0.44 % figure came from the
+holding-length run's control, which is a different population: a *book* that
+holds one position per ticker at a time (1,588 positions). This run measures
+every signal (10,197). On one population, with the exits isolated, they cost
+almost nothing. The gap between +1.70 % and −0.44 % is therefore not the exit
+rules — it is the difference between the signal population and the book that
+takes one position per stock at a time, and possibly the longer holds that
+book runs.
+
+### What would drain it
+
+Run the de-overlapped book — the live "one position per stock at a time" door
+— against the all-signals population **at the same fixed horizons**. If the
+gap survives at equal holding length, the cost is in the one-at-a-time rule
+(live since 2026-09-02) and not in holding length; if it closes, the earlier
+control's 48-session holds explain it. Declared and measured the same way,
+before any claim. Nothing about CH2 changes on this result.

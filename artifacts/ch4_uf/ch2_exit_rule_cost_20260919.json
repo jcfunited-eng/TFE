@@ -1,0 +1,395 @@
+{
+  "declaration": "docs/CH2_EXIT_RULE_COST_DECLARATION_20260919.md",
+  "generated_at_utc": "2026-09-19T11:40:19.470949+00:00",
+  "positions": 10612,
+  "port_check": {
+    "checked": 2000,
+    "decision_mismatches": 0,
+    "worst_accumulate_diff": 0.0,
+    "worst_break_diff": 0.0
+  },
+  "horizons": {
+    "30": {
+      "baseline_hold_blind": {
+        "positions": 10197,
+        "mean_pct": 1.69977833061063,
+        "median_pct": 1.1456065986940045,
+        "win_rate_pct": 54.712170246150826,
+        "total_pct": 17332.639637236593
+      },
+      "baseline_first_half": {
+        "positions": 3070,
+        "mean_pct": 0.5047974376619327,
+        "median_pct": 0.1597118489898408,
+        "win_rate_pct": 50.42345276872964,
+        "total_pct": 1549.7281336221336
+      },
+      "baseline_second_half": {
+        "positions": 7127,
+        "mean_pct": 2.2145238534607077,
+        "median_pct": 1.391437308868504,
+        "win_rate_pct": 56.55956222814649,
+        "total_pct": 15782.911503614463
+      },
+      "rules": {
+        "brake": {
+          "run": {
+            "positions": 10197,
+            "mean_pct": 1.6474887265243714,
+            "median_pct": 1.1107946454001816,
+            "win_rate_pct": 54.56506815730117,
+            "total_pct": 16799.442544369016
+          },
+          "first_half": {
+            "positions": 3070,
+            "mean_pct": 0.44008912171924885,
+            "median_pct": 0.07951170518130102,
+            "win_rate_pct": 50.097719869706836,
+            "total_pct": 1351.073603678094
+          },
+          "second_half": {
+            "positions": 7127,
+            "mean_pct": 2.1675836874829413,
+            "median_pct": 1.3892672296377029,
+            "win_rate_pct": 56.489406482390905,
+            "total_pct": 15448.368940690922
+          },
+          "delta_vs_blind_pct_points": -0.0522896040862586,
+          "fired_positions": 583,
+          "fired_median_session": 18,
+          "fired_realised_mean_pct": -22.332326285756807,
+          "fired_if_held_mean_pct": -21.417751512399036,
+          "fired_total_cost_pct_points": -533.1970928675796,
+          "timing_null_mean_pct": 1.589837928637788,
+          "timing_null_p05": 1.5585070210047858,
+          "timing_null_p95": 1.62235482014948,
+          "worse_than_arbitrary_exit": false
+        },
+        "dead_clock": {
+          "run": {
+            "positions": 10197,
+            "mean_pct": 1.6682119814446634,
+            "median_pct": 1.0826998387468478,
+            "win_rate_pct": 54.4081592625282,
+            "total_pct": 17010.757574791234
+          },
+          "first_half": {
+            "positions": 3070,
+            "mean_pct": 0.40732599422651783,
+            "median_pct": 0.01562377939223758,
+            "win_rate_pct": 50.0,
+            "total_pct": 1250.4908022754098
+          },
+          "second_half": {
+            "positions": 7127,
+            "mean_pct": 2.2113465374653885,
+            "median_pct": 1.37566943323435,
+            "win_rate_pct": 56.3070015434264,
+            "total_pct": 15760.266772515823
+          },
+          "delta_vs_blind_pct_points": -0.03156634916596651,
+          "fired_positions": 1008,
+          "fired_median_session": 24,
+          "fired_realised_mean_pct": -15.252042429290652,
+          "fired_if_held_mean_pct": -14.93271498638851,
+          "fired_total_cost_pct_points": -321.88206244535957,
+          "timing_null_mean_pct": 1.6455176284292639,
+          "timing_null_p05": 1.6172418930666572,
+          "timing_null_p95": 1.6714888479303895,
+          "worse_than_arbitrary_exit": false
+        },
+        "ratchet": {
+          "run": {
+            "positions": 10197,
+            "mean_pct": 1.6365632320597456,
+            "median_pct": 1.2115563839701693,
+            "win_rate_pct": 54.898499558693736,
+            "total_pct": 16688.03527731323
+          },
+          "first_half": {
+            "positions": 3070,
+            "mean_pct": 0.4943223017967394,
+            "median_pct": 0.36189559999083576,
+            "win_rate_pct": 50.94462540716612,
+            "total_pct": 1517.56946651599
+          },
+          "second_half": {
+            "positions": 7127,
+            "mean_pct": 2.1285906848319405,
+            "median_pct": 1.4038951207762551,
+            "win_rate_pct": 56.60165567559983,
+            "total_pct": 15170.46581079724
+          },
+          "delta_vs_blind_pct_points": -0.06321509855088427,
+          "fired_positions": 253,
+          "fired_median_session": 23,
+          "fired_realised_mean_pct": 15.329590240976776,
+          "fired_if_held_mean_pct": 17.877433560831967,
+          "fired_total_cost_pct_points": -644.6043599233643,
+          "timing_null_mean_pct": 1.6272094334214828,
+          "timing_null_p05": 1.6118406309246298,
+          "timing_null_p95": 1.6412052909263364,
+          "worse_than_arbitrary_exit": false
+        },
+        "wall": {
+          "run": {
+            "positions": 10197,
+            "mean_pct": 1.69977833061063,
+            "median_pct": 1.1456065986940045,
+            "win_rate_pct": 54.712170246150826,
+            "total_pct": 17332.639637236593
+          },
+          "first_half": {
+            "positions": 3070,
+            "mean_pct": 0.5047974376619327,
+            "median_pct": 0.1597118489898408,
+            "win_rate_pct": 50.42345276872964,
+            "total_pct": 1549.7281336221336
+          },
+          "second_half": {
+            "positions": 7127,
+            "mean_pct": 2.2145238534607077,
+            "median_pct": 1.391437308868504,
+            "win_rate_pct": 56.55956222814649,
+            "total_pct": 15782.911503614463
+          },
+          "delta_vs_blind_pct_points": 0.0,
+          "fired_positions": 0,
+          "fired_median_session": 0,
+          "fired_realised_mean_pct": null,
+          "fired_if_held_mean_pct": null,
+          "fired_total_cost_pct_points": 0.0,
+          "timing_null_mean_pct": 1.69977833061063,
+          "timing_null_p05": 1.69977833061063,
+          "timing_null_p95": 1.69977833061063,
+          "worse_than_arbitrary_exit": false
+        },
+        "full_law": {
+          "run": {
+            "positions": 10197,
+            "mean_pct": 1.5853081078818025,
+            "median_pct": 1.1138613861386037,
+            "win_rate_pct": 54.51603412768461,
+            "total_pct": 16165.386776070742
+          },
+          "first_half": {
+            "positions": 3070,
+            "mean_pct": 0.3995020079343936,
+            "median_pct": 0.13620715118779492,
+            "win_rate_pct": 50.29315960912052,
+            "total_pct": 1226.4711643585883
+          },
+          "second_half": {
+            "positions": 7127,
+            "mean_pct": 2.096101531038607,
+            "median_pct": 1.3879408418657535,
+            "win_rate_pct": 56.33506384172864,
+            "total_pct": 14938.915611712153
+          },
+          "delta_vs_blind_pct_points": -0.11447022272882725,
+          "fired_positions": 1424,
+          "fired_median_session": 22,
+          "fired_realised_mean_pct": -10.618892751983012,
+          "fired_if_held_mean_pct": -9.79919270902946,
+          "fired_total_cost_pct_points": -1167.252861165853,
+          "timing_null_mean_pct": 1.5004382357808965,
+          "timing_null_p05": 1.4622168571072616,
+          "timing_null_p95": 1.536320369588817,
+          "worse_than_arbitrary_exit": false
+        }
+      }
+    },
+    "60": {
+      "baseline_hold_blind": {
+        "positions": 7726,
+        "mean_pct": 2.5083232575190224,
+        "median_pct": 1.7344439666674205,
+        "win_rate_pct": 54.530157908361375,
+        "total_pct": 19379.305487591966
+      },
+      "baseline_first_half": {
+        "positions": 3070,
+        "mean_pct": 0.5689027757301459,
+        "median_pct": 0.17733882370289944,
+        "win_rate_pct": 50.358306188925084,
+        "total_pct": 1746.5315214915477
+      },
+      "baseline_second_half": {
+        "positions": 4656,
+        "mean_pct": 3.7871078105885783,
+        "median_pct": 2.4179620034542326,
+        "win_rate_pct": 57.28092783505154,
+        "total_pct": 17632.77396610042
+      },
+      "rules": {
+        "brake": {
+          "run": {
+            "positions": 7726,
+            "mean_pct": 2.444312821146443,
+            "median_pct": 1.5222143117409992,
+            "win_rate_pct": 53.89593580119079,
+            "total_pct": 18884.760856177418
+          },
+          "first_half": {
+            "positions": 3070,
+            "mean_pct": 0.8197162706128123,
+            "median_pct": -0.4636102843845469,
+            "win_rate_pct": 49.25081433224756,
+            "total_pct": 2516.5289507813336
+          },
+          "second_half": {
+            "positions": 4656,
+            "mean_pct": 3.515513725385757,
+            "median_pct": 2.378130171861992,
+            "win_rate_pct": 56.95876288659794,
+            "total_pct": 16368.231905396084
+          },
+          "delta_vs_blind_pct_points": -0.0640104363725795,
+          "fired_positions": 1171,
+          "fired_median_session": 31,
+          "fired_realised_mean_pct": -22.269984978626304,
+          "fired_if_held_mean_pct": -21.847658222507988,
+          "fired_total_cost_pct_points": -494.54463141454835,
+          "timing_null_mean_pct": 2.084534813268164,
+          "timing_null_p05": 1.9862898546137184,
+          "timing_null_p95": 2.18096834498306,
+          "worse_than_arbitrary_exit": false
+        },
+        "dead_clock": {
+          "run": {
+            "positions": 7726,
+            "mean_pct": 2.4215398761963924,
+            "median_pct": 0.7148625878304227,
+            "win_rate_pct": 51.669686771938906,
+            "total_pct": 18708.81708349333
+          },
+          "first_half": {
+            "positions": 3070,
+            "mean_pct": 0.6273949609471949,
+            "median_pct": -2.3003429691327737,
+            "win_rate_pct": 46.44951140065147,
+            "total_pct": 1926.1025301078885
+          },
+          "second_half": {
+            "positions": 4656,
+            "mean_pct": 3.6045349126686945,
+            "median_pct": 1.96379970591124,
+            "win_rate_pct": 55.111683848797256,
+            "total_pct": 16782.714553385442
+          },
+          "delta_vs_blind_pct_points": -0.08678338132262972,
+          "fired_positions": 2347,
+          "fired_median_session": 34,
+          "fired_realised_mean_pct": -14.801766863878132,
+          "fired_if_held_mean_pct": -14.516087952885954,
+          "fired_total_cost_pct_points": -670.4884040986373,
+          "timing_null_mean_pct": 1.7995839426426345,
+          "timing_null_p05": 1.7049888565121034,
+          "timing_null_p95": 1.9061266250067863,
+          "worse_than_arbitrary_exit": false
+        },
+        "ratchet": {
+          "run": {
+            "positions": 7726,
+            "mean_pct": 2.2892403290912458,
+            "median_pct": 2.2787121660037823,
+            "win_rate_pct": 55.850375355940976,
+            "total_pct": 17686.670782558966
+          },
+          "first_half": {
+            "positions": 3070,
+            "mean_pct": 0.7730917383796805,
+            "median_pct": 1.516811117425565,
+            "win_rate_pct": 53.06188925081433,
+            "total_pct": 2373.3916368256187
+          },
+          "second_half": {
+            "positions": 4656,
+            "mean_pct": 3.288934524427265,
+            "median_pct": 2.564485153054341,
+            "win_rate_pct": 57.68900343642611,
+            "total_pct": 15313.279145733346
+          },
+          "delta_vs_blind_pct_points": -0.21908292842777627,
+          "fired_positions": 1043,
+          "fired_median_session": 41,
+          "fired_realised_mean_pct": 16.25416677888079,
+          "fired_if_held_mean_pct": 17.877018845067752,
+          "fired_total_cost_pct_points": -1692.634705033,
+          "timing_null_mean_pct": 2.184402672135395,
+          "timing_null_p05": 2.1058844862365436,
+          "timing_null_p95": 2.2516418522083708,
+          "worse_than_arbitrary_exit": false
+        },
+        "wall": {
+          "run": {
+            "positions": 7726,
+            "mean_pct": 2.516495119144523,
+            "median_pct": 1.7470300489168311,
+            "win_rate_pct": 54.54310121667098,
+            "total_pct": 19442.441290510586
+          },
+          "first_half": {
+            "positions": 3070,
+            "mean_pct": 0.5689027757301459,
+            "median_pct": 0.17733882370289944,
+            "win_rate_pct": 50.358306188925084,
+            "total_pct": 1746.5315214915477
+          },
+          "second_half": {
+            "positions": 4656,
+            "mean_pct": 3.8006679057171477,
+            "median_pct": 2.4191020138283337,
+            "win_rate_pct": 57.302405498281786,
+            "total_pct": 17695.90976901904
+          },
+          "delta_vs_blind_pct_points": 0.008171861625500682,
+          "fired_positions": 304,
+          "fired_median_session": 60,
+          "fired_realised_mean_pct": -4.465846637208963,
+          "fired_if_held_mean_pct": -4.673530199441263,
+          "fired_total_cost_pct_points": 63.13580291861918,
+          "timing_null_mean_pct": 2.516495119144523,
+          "timing_null_p05": 2.516495119144523,
+          "timing_null_p95": 2.516495119144523,
+          "worse_than_arbitrary_exit": false
+        },
+        "full_law": {
+          "run": {
+            "positions": 7726,
+            "mean_pct": 2.1583591948952456,
+            "median_pct": 1.3345863108974454,
+            "win_rate_pct": 52.88635775304168,
+            "total_pct": 16675.48313976067
+          },
+          "first_half": {
+            "positions": 3070,
+            "mean_pct": 0.8054226083670237,
+            "median_pct": -0.8434681965031943,
+            "win_rate_pct": 48.925081433224754,
+            "total_pct": 2472.6474076867626
+          },
+          "second_half": {
+            "positions": 4656,
+            "mean_pct": 3.050437227679104,
+            "median_pct": 2.1958824956111678,
+            "win_rate_pct": 55.49828178694158,
+            "total_pct": 14202.835732073907
+          },
+          "delta_vs_blind_pct_points": -0.3499640626237765,
+          "fired_positions": 3575,
+          "fired_median_session": 36,
+          "fired_realised_mean_pct": -5.26812181029658,
+          "fired_if_held_mean_pct": -4.511807866847266,
+          "fired_total_cost_pct_points": -2703.822347831298,
+          "timing_null_mean_pct": 0.9112279480849205,
+          "timing_null_p05": 0.8642470235257652,
+          "timing_null_p95": 0.9613406279775494,
+          "worse_than_arbitrary_exit": false
+        }
+      }
+    }
+  },
+  "costs_modeled": false,
+  "prices": "closes only"
+}
