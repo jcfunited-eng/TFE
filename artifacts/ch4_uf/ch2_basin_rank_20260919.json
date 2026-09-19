@@ -1,0 +1,284 @@
+{
+  "generated_at_utc": "2026-09-19T12:13:34.968415+00:00",
+  "port_check": {
+    "checked": 2000,
+    "decision_mismatches": 0,
+    "worst_accumulate_diff": 0.0,
+    "worst_break_diff": 0.0
+  },
+  "signals": 10612,
+  "holds": {
+    "30": {
+      "deciles": [
+        {
+          "decile": 1,
+          "positions": 990,
+          "basin_range": [
+            0.1500013212564531,
+            0.1616350254460861
+          ],
+          "mean_pct": 2.1922081818015604,
+          "median_pct": 2.059694129255063,
+          "win_rate_pct": 56.868686868686865,
+          "first_half_mean_pct": -0.16294879756358555,
+          "second_half_mean_pct": 3.017958991756325
+        },
+        {
+          "decile": 2,
+          "positions": 1014,
+          "basin_range": [
+            0.1616350254460861,
+            0.17600435324682007
+          ],
+          "mean_pct": 1.0463865986607215,
+          "median_pct": -0.5537429095097413,
+          "win_rate_pct": 48.42209072978304,
+          "first_half_mean_pct": 0.1103357054807299,
+          "second_half_mean_pct": 1.531227330756945
+        },
+        {
+          "decile": 3,
+          "positions": 1031,
+          "basin_range": [
+            0.17600435324682007,
+            0.18943751332498565
+          ],
+          "mean_pct": 4.26569497194204,
+          "median_pct": 1.2645914396887337,
+          "win_rate_pct": 53.83123181377304,
+          "first_half_mean_pct": -0.036901492802933734,
+          "second_half_mean_pct": 6.124177611574937
+        },
+        {
+          "decile": 4,
+          "positions": 1014,
+          "basin_range": [
+            0.18943751332498565,
+            0.20181652492529625
+          ],
+          "mean_pct": 0.5079001705377056,
+          "median_pct": -0.6801740372751552,
+          "win_rate_pct": 47.633136094674555,
+          "first_half_mean_pct": 2.3236479073735965,
+          "second_half_mean_pct": -0.33316046946852973
+        },
+        {
+          "decile": 5,
+          "positions": 1032,
+          "basin_range": [
+            0.20181652492529625,
+            0.21485436099424082
+          ],
+          "mean_pct": 1.5919295843215369,
+          "median_pct": 1.7529076767042406,
+          "win_rate_pct": 56.68604651162791,
+          "first_half_mean_pct": 1.3969662426161198,
+          "second_half_mean_pct": 1.7178628433178598
+        },
+        {
+          "decile": 6,
+          "positions": 999,
+          "basin_range": [
+            0.21485436099424082,
+            0.22496768269110376
+          ],
+          "mean_pct": 2.4533536040697177,
+          "median_pct": 2.345511953089763,
+          "win_rate_pct": 65.36536536536536,
+          "first_half_mean_pct": 1.1963977784295405,
+          "second_half_mean_pct": 3.353955973987164
+        },
+        {
+          "decile": 7,
+          "positions": 1004,
+          "basin_range": [
+            0.22496768269110376,
+            0.23367692020859476
+          ],
+          "mean_pct": 1.7934444643436,
+          "median_pct": 1.238788339942276,
+          "win_rate_pct": 56.67330677290837,
+          "first_half_mean_pct": 0.13730753701033233,
+          "second_half_mean_pct": 2.5933806168369213
+        },
+        {
+          "decile": 8,
+          "positions": 1042,
+          "basin_range": [
+            0.23367692020859476,
+            0.24776241823370762
+          ],
+          "mean_pct": 1.8208798353017364,
+          "median_pct": 1.6147635524798032,
+          "win_rate_pct": 57.10172744721689,
+          "first_half_mean_pct": 0.1601236578810071,
+          "second_half_mean_pct": 2.642918402317736
+        },
+        {
+          "decile": 9,
+          "positions": 1013,
+          "basin_range": [
+            0.24776241823370762,
+            0.28508300819416454
+          ],
+          "mean_pct": 0.1601781562082716,
+          "median_pct": -0.47999999999999154,
+          "win_rate_pct": 47.581441263573545,
+          "first_half_mean_pct": -0.5788472299530415,
+          "second_half_mean_pct": 0.49677448869840996
+        },
+        {
+          "decile": 10,
+          "positions": 1058,
+          "basin_range": [
+            0.28508300819416454,
+            0.48568305313623994
+          ],
+          "mean_pct": 1.1666995774137647,
+          "median_pct": 0.879678323388311,
+          "win_rate_pct": 56.99432892249527,
+          "first_half_mean_pct": -6.7625687519345075,
+          "second_half_mean_pct": 1.3507444902806491
+        }
+      ],
+      "top_minus_bottom_pct_points": -1.0255086043877957,
+      "rank_correlation": -0.007866342830818971
+    },
+    "60": {
+      "deciles": [
+        {
+          "decile": 1,
+          "positions": 812,
+          "basin_range": [
+            0.1500013212564531,
+            0.1616350254460861
+          ],
+          "mean_pct": 4.04301500789617,
+          "median_pct": 3.0700835369748103,
+          "win_rate_pct": 59.72906403940886,
+          "first_half_mean_pct": 0.7484757714353506,
+          "second_half_mean_pct": 5.568594438113161
+        },
+        {
+          "decile": 2,
+          "positions": 888,
+          "basin_range": [
+            0.1616350254460861,
+            0.17600435324682007
+          ],
+          "mean_pct": 2.4997861707776856,
+          "median_pct": -1.298816987934226,
+          "win_rate_pct": 47.52252252252252,
+          "first_half_mean_pct": -1.4212046629368016,
+          "second_half_mean_pct": 5.0028541199754955
+        },
+        {
+          "decile": 3,
+          "positions": 915,
+          "basin_range": [
+            0.17600435324682007,
+            0.18943751332498565
+          ],
+          "mean_pct": 6.038949434449739,
+          "median_pct": 1.1357857263943005,
+          "win_rate_pct": 52.02185792349727,
+          "first_half_mean_pct": 2.0251445401331907,
+          "second_half_mean_pct": 8.105660232682267
+        },
+        {
+          "decile": 4,
+          "positions": 885,
+          "basin_range": [
+            0.18943751332498565,
+            0.20181652492529625
+          ],
+          "mean_pct": 0.3577663750207141,
+          "median_pct": -0.7529580494801014,
+          "win_rate_pct": 48.0225988700565,
+          "first_half_mean_pct": 2.749201688992558,
+          "second_half_mean_pct": -1.0033164898462383
+        },
+        {
+          "decile": 5,
+          "positions": 936,
+          "basin_range": [
+            0.20181652492529625,
+            0.21485436099424082
+          ],
+          "mean_pct": 2.488164480278356,
+          "median_pct": 3.123345685547907,
+          "win_rate_pct": 58.440170940170944,
+          "first_half_mean_pct": 1.082475447794231,
+          "second_half_mean_pct": 3.5603001830204857
+        },
+        {
+          "decile": 6,
+          "positions": 860,
+          "basin_range": [
+            0.21485436099424082,
+            0.22496768269110376
+          ],
+          "mean_pct": 3.306740176589202,
+          "median_pct": 4.578941800250336,
+          "win_rate_pct": 66.3953488372093,
+          "first_half_mean_pct": 0.356124856859092,
+          "second_half_mean_pct": 6.084181685229058
+        },
+        {
+          "decile": 7,
+          "positions": 809,
+          "basin_range": [
+            0.22496768269110376,
+            0.23367692020859476
+          ],
+          "mean_pct": 2.751860135121876,
+          "median_pct": 2.66847580280416,
+          "win_rate_pct": 58.96168108776267,
+          "first_half_mean_pct": -0.9789911476717114,
+          "second_half_mean_pct": 5.282956337349062
+        },
+        {
+          "decile": 8,
+          "positions": 880,
+          "basin_range": [
+            0.23367692020859476,
+            0.24776241823370762
+          ],
+          "mean_pct": 1.3041339489732322,
+          "median_pct": 1.2338031131956528,
+          "win_rate_pct": 53.86363636363637,
+          "first_half_mean_pct": 0.4803051125794552,
+          "second_half_mean_pct": 1.835388058423425
+        },
+        {
+          "decile": 9,
+          "positions": 712,
+          "basin_range": [
+            0.24776241823370762,
+            0.28508300819416454
+          ],
+          "mean_pct": -0.1567746934918749,
+          "median_pct": -0.9817800437117219,
+          "win_rate_pct": 46.62921348314607,
+          "first_half_mean_pct": 1.5192516989343234,
+          "second_half_mean_pct": -1.501838912223785
+        },
+        {
+          "decile": 10,
+          "positions": 29,
+          "basin_range": [
+            0.28508300819416454,
+            0.48568305313623994
+          ],
+          "mean_pct": -13.816635894352954,
+          "median_pct": -15.837104072398189,
+          "win_rate_pct": 13.793103448275861,
+          "first_half_mean_pct": -15.853675054982688,
+          "second_half_mean_pct": -4.038847923330251
+        }
+      ],
+      "top_minus_bottom_pct_points": -17.859650902249125,
+      "rank_correlation": -0.03709043157807064
+    }
+  }
+}

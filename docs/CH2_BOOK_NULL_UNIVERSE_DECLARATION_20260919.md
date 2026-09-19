@@ -97,3 +97,59 @@ Forward returns by `accumulate_basin` decile, and the taken-versus-skipped
 split on days when cash rationed the book. If the top decile underperforms the
 bottom, the door is choosing the worst of its own candidates and the ranking
 is the defect — not the physics, not the exits.
+
+## Addendum — the basin ranking carries no information, and a precision correction
+
+**The strength score is uninformative, not inverted.** Forward returns of all
+10,612 signals bucketed by the gate's own `accumulate_basin` decile
+(`tools/ch2_basin_rank_test.py`, `artifacts/ch4_uf/ch2_basin_rank_20260919.json`):
+
+| hold | bottom decile | top decile | top − bottom | rank correlation |
+|---|---:|---:|---:|---:|
+| 30 sessions | +2.19 % | +1.17 % | −1.03 | **−0.008** |
+| 60 sessions | +4.04 % | −13.82 % (n=29 only) | −17.86 | **−0.037** |
+
+The deciles do not order: D3 is the best at both holds (+4.27 %, +6.04 %), D9
+among the worst, and the rank correlation between the gate's own score and the
+outcome is effectively zero. The 60-session top decile holds just 29 positions
+— the highest-scoring signals cluster at the end of the window where 60
+forward sessions do not exist — so no weight is put on its −13.82 %.
+
+Consequence: ranking candidates by `accumulate_basin` when cash is short is
+**equivalent to picking arbitrarily**. It is not the mechanism behind the
+book's shortfall, and my hypothesis that the ranking was inverted is not
+supported.
+
+**Precision correction to what I told Joseph.** I said the gate's picks "lose
+to random". Against the full spread of the own-universe null:
+
+| window | cost | gate | null p05 | null mean | null p95 |
+|---|---|---:|---:|---:|---:|
+| full | 0 bp | +3.7 % | −1.5 % | +17.1 % | +38.3 % |
+| full | 10 bp | −0.3 % | −1.5 % | +11.8 % | +30.6 % |
+| first half | 0 bp | −5.1 % | −14.1 % | −3.6 % | +11.1 % |
+| second half | 0 bp | +6.3 % | **+10.5 %** | +21.1 % | +36.0 % |
+| second half | 10 bp | +5.3 % | **+6.1 %** | +18.7 % | +35.9 % |
+
+Over the full window the gate's book sits in the **bottom tail of the random
+distribution but inside it** — below the middle, above the 5th percentile. In
+the **second half it falls below the 5th percentile**, which is the only
+window where it is genuinely worse than chance. In the first half it is about
+at the random mean. "Below the middle of random everywhere, outside the bottom
+edge of random in the recent half" is the accurate statement; "loses to
+random" overstated the full-window case.
+
+### The coherent picture across all measurements
+
+1. **Timing inside a name**: the gate beats random dates in the same stocks
+   (+1.70 % against +0.82 % per position at 30 sessions).
+2. **Choosing among the day's names**: it does worse than other eligible names
+   from its own universe, decisively so in the recent half.
+3. **Its strength score** adds nothing to that choice (rank correlation ≈ 0).
+4. **The exits** cost 0.11–0.35 points per position — near neutral.
+5. **The universe** is fine; random inside it beats random outside it.
+6. **Everything** trails SPY held (+68.5 %) by a wide margin.
+
+Nulls 1 and 2 are different questions — random *dates* in the same stock
+versus random *stocks* on the same date — and the gate answers them
+differently. That is the finding, and it is not contradictory.
