@@ -173,6 +173,32 @@ const PHANTOM_GRACE_MS = 30 * 60 * 1000; // 30 minutes
 // Winning exits (EXIT-A, EXIT-H) always fire. -10% catastrophic always fires.
 // Only LOSING exits (EXIT-B D_k collapse, EXIT-C tau, SPY flip) are held.
 export const MIN_HOLD_DAYS = 7;
+
+/**
+ * EXIT-R9 enforcement. Declared 2026-05-20, computed but NEVER APPLIED until
+ * 2026-09-20: `isYoung` was assigned and then never read, and the test suite
+ * recomputed its own copy, so the suite passed while the guard did nothing.
+ *
+ * Blocks a LOSING structural exit inside the minimum hold. Winning exits are
+ * never blocked, and the -10% catastrophic floor is applied before this and is
+ * unaffected. Unknown P&L does not block: absence of evidence never changes an
+ * exit decision, matching the readings law.
+ *
+ * Evidence (201 matched positions, Polygon forward-verified):
+ *   45 positions killed within 1 hour ran 4.4% WR
+ *   73% of early losers (0-3d hold) were winners at 20 days
+ *
+ * @param {number|null} posAgeDays  days since entry fill
+ * @param {number|null} pnlPct      current P&L in percent, null if unknown
+ * @param {number} minHoldDays      defaults to MIN_HOLD_DAYS
+ * @returns {boolean} true when the exit must be held back
+ */
+export function minimumHoldBlocks(posAgeDays, pnlPct, minHoldDays = MIN_HOLD_DAYS) {
+  if (!Number.isFinite(posAgeDays)) return false;
+  if (!Number.isFinite(pnlPct)) return false;
+  if (pnlPct >= 0) return false;
+  return posAgeDays < minHoldDays;
+}
 // EXIT-BASIN-BREAK threshold — TFE-CMD-V3-BASIN-DETERMINISTIC-WC-20260707-v1
 // §0/§3: break_agreement >= 0.20 is the deterministic peak marker, the SAME
 // declared number the entry gate already uses ("already in exit territory").
@@ -1269,7 +1295,9 @@ export async function runSentinel() {
     const posAge = posEntryDate
       ? Math.floor((Date.now() - posEntryDate.getTime()) / (1000 * 60 * 60 * 24))
       : 999;
-    const isYoung = posAge < MIN_HOLD_DAYS;
+    // EXIT-R9 is enforced via minimumHoldBlocks() at each losing structural
+    // exit. It was previously assigned to an unused `isYoung` local here,
+    // which meant the rule never fired in production.
 
     // Pre-check current P&L (used by minimum hold guard AND structural exit assessment)
     let currentPnlPct = null;
@@ -1341,7 +1369,8 @@ export async function runSentinel() {
       // absence of evidence never liquidates a position.
       const verdict = ch2Verdicts?.verdicts?.[pos.ticker] ?? null;
       if ((verdict === "DRIVE_DYING" || verdict === "DEAD")
-          && isMarketHoursForExitF()) {
+          && isMarketHoursForExitF()
+          && !minimumHoldBlocks(posAge, currentPnlPct)) {
         console.log(
           `[SENTINEL] CH2 ${pos.ticker} READING ${verdict} | ` +
           `P&L=${currentPnlPct?.toFixed(1) ?? "n/a"}% age=${posAge}d — ` +
@@ -1354,6 +1383,15 @@ export async function runSentinel() {
                                     : "ch2_reading_dead_exit",
           ALPACA_BASE);
         continue;
+      }
+      if ((verdict === "DRIVE_DYING" || verdict === "DEAD")
+          && minimumHoldBlocks(posAge, currentPnlPct)) {
+        console.log(
+          `[SENTINEL] CH2 ${pos.ticker} READING ${verdict} HELD | ` +
+          `age=${posAge}d < ${MIN_HOLD_DAYS}d minimum hold, ` +
+          `P&L=${currentPnlPct?.toFixed(1) ?? "n/a"}% — EXIT-R9: 73% of losers ` +
+          `sold at 0-3d were winners at 20d; holding`
+        );
       }
 
       // ── THE DEAD CLOCK (Joseph 2026-09-15) ────────────────────────────

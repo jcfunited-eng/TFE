@@ -15,6 +15,7 @@ import {
   isMarketHoursForExitF,
   shouldPhantomCleanup,
   MIN_HOLD_DAYS,
+  minimumHoldBlocks,
 } from "../sentinel_monitor.mjs";
 
 let passed = 0;
@@ -141,55 +142,20 @@ console.log("\n=== EXIT-R9: 7-Day Minimum Hold ===");
 
 assert(MIN_HOLD_DAYS === 7, "MIN_HOLD_DAYS is 7");
 
-// Simulate the guard logic: young + losing = blocked
-{
-  const posAge = 3; // 3 days old
-  const isYoung = posAge < MIN_HOLD_DAYS;
-  const pnlPct = -2.5; // losing
-  const shouldBlock = isYoung && pnlPct < 0;
-  assert(shouldBlock === true, "3-day-old losing position → EXIT-B BLOCKED");
-}
-
-// Young + winning = allowed
-{
-  const posAge = 2;
-  const isYoung = posAge < MIN_HOLD_DAYS;
-  const pnlPct = 3.0; // winning
-  const shouldBlock = isYoung && pnlPct < 0;
-  assert(shouldBlock === false, "2-day-old winning position → EXIT-B ALLOWED");
-}
-
-// Mature + losing = allowed (past 7 days, structural thesis resolved)
-{
-  const posAge = 10;
-  const isYoung = posAge < MIN_HOLD_DAYS;
-  const pnlPct = -4.0;
-  const shouldBlock = isYoung && pnlPct < 0;
-  assert(shouldBlock === false, "10-day-old losing position → EXIT-B ALLOWED");
-}
-
-// Exactly day 7 = NOT young (>= 7 is mature)
-{
-  const posAge = 7;
-  const isYoung = posAge < MIN_HOLD_DAYS;
-  assert(isYoung === false, "Day 7 is NOT young — exits allowed");
-}
-
-// Day 6 = still young
-{
-  const posAge = 6;
-  const isYoung = posAge < MIN_HOLD_DAYS;
-  assert(isYoung === true, "Day 6 IS young — losing exits blocked");
-}
-
-// Day 0 losing = blocked (superset of old EXIT-R7)
-{
-  const posAge = 0;
-  const isYoung = posAge < MIN_HOLD_DAYS;
-  const pnlPct = -1.0;
-  const shouldBlock = isYoung && pnlPct < 0;
-  assert(shouldBlock === true, "Day 0 losing position → BLOCKED (supersedes old EXIT-R7)");
-}
+// These call the PRODUCTION guard, minimumHoldBlocks(). The previous version
+// of this block recomputed `isYoung` locally and asserted on its own copy, so
+// it passed for four months while the real guard was dead code in
+// sentinel_monitor.mjs (assigned to an unused local, never read).
+assert(minimumHoldBlocks(3, -2.5) === true,  "3-day-old losing position -> exit BLOCKED");
+assert(minimumHoldBlocks(2,  3.0) === false, "2-day-old WINNING position -> exit allowed");
+assert(minimumHoldBlocks(10, -4.0) === false, "10-day-old losing position -> exit allowed");
+assert(minimumHoldBlocks(7, -1.0) === false, "day 7 is mature -> exit allowed");
+assert(minimumHoldBlocks(6, -1.0) === true,  "day 6 is young -> losing exit blocked");
+assert(minimumHoldBlocks(0, -1.0) === true,  "day 0 losing -> BLOCKED (supersedes EXIT-R7)");
+assert(minimumHoldBlocks(0,  0.0) === false, "flat is not losing -> not blocked");
+assert(minimumHoldBlocks(3, null) === false, "unknown P&L does not block the exit");
+assert(minimumHoldBlocks(null, -5.0) === false, "unknown age does not block the exit");
+assert(minimumHoldBlocks(3, -2.5, 0) === false, "minHoldDays=0 disables the guard");
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Summary
