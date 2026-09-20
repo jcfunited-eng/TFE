@@ -841,3 +841,70 @@ scale. That was wrong and is corrected here.
 
 Combine by union or by score rather than by AND, and measure. Then exits —
 still untouched, and still the only thing with live-money evidence behind it.
+
+---
+
+## 20. THE V3 BASIN IGNORES B_k ENTIRELY (2026-09-20)
+
+Ran the coupled V3 basin (`tfe_l5_baseline.py`, frozen rational constants, all
+nine, no signs or buckets) on inputs it has never had: per-gate `S_UF` from
+`psi_s`, per-gate `R_UF` from `R_k`, and both carry variants.
+
+**The as-is and leak runs came out byte-identical** — 67,179 signals, 51.36 %
+WR, same mean and median. The carry fix changed nothing. The reason is
+structural:
+
+```python
+carry_break      = (-B_k) * R_rev_k * (1-balance)**4 * (1-adverse_break)
+accumulate_basin = live * motion * (1 - R_rev_k) * (1-adverse_break) * (1-burden)
+```
+
+`B_k` enters only through `carry_break`, which is multiplied by `R_rev_k`.
+`accumulate_basin` is multiplied by `(1 - R_rev_k)`. So on every row where the
+basin can select Accumulate, `R_rev_k = 0`, `carry_break = 0`, and **`B_k`
+drops out of the decision completely.**
+
+**The production entry gate does not use the carry field.** `B_k` influences
+only Hold and Avoid. Joseph's "accumulated structural carry — stable potential
+or exhausting it" has no bearing on any buy.
+
+### And the basin is not robust across time
+
+| | n | WR | mean | median |
+|---|---:|---:|---:|---:|
+| pool | 752,608 | 50.26 % | −0.08 % | +0.05 % |
+| basin ACCUMULATE | 67,179 | 51.36 % | +0.17 % | +0.18 % |
+
+| year | lift |
+|---|---:|
+| 2021 | −0.32 pp |
+| 2022 | −1.49 pp |
+| 2023 | −0.06 pp |
+| 2024 | **+3.31 pp** |
+| 2025 | **+2.56 pp** |
+| 2026 | −2.23 pp |
+
+Negative in **four of six years**. The +1.10 pp headline is 2024–2025 carrying
+the whole thing — the same shape as the retracted §15 result, less extreme.
+
+### Where this leaves the entry side
+
+| construction | lift | robust across years? |
+|---|---:|---|
+| L1 with carry fixed | +1.75 pp / +0.82 pp | **yes** — positive every year |
+| L3 cognitive gate alone | dataset-dependent | no — tail-driven on the fixed-carry set |
+| L1 AND L3 | none | no |
+| count of 6 conditions | varies | no — +3.2 to −4.5 |
+| **V3 basin (coupled)** | +1.10 pp | **no** — negative in 4 of 6 years |
+
+Only **L1 on a working carry field** is positive in every year, and it is small.
+
+### Consequence
+
+The carry fix (§18) is still correct engineering — `B_k` cannot express its
+stated meaning while pinned at its floor 95.9 % of the time — but it cannot
+improve the production entry gate, because that gate never reads `B_k`.
+
+That is a design question for Joseph: either the basin should weigh carry on
+the accumulate side, or `B_k` is not meant to inform entries at all. Nothing
+modified.
