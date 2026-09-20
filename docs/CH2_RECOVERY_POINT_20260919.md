@@ -651,3 +651,79 @@ demonstrated inversion. `financial_rules.mjs`'s claim that the cap inverts
 `F_n` may still be true, but it is not established here.
 
 **The exits remain the one supported target**, on live-trade evidence alone.
+
+---
+
+## 17. ROOT CAUSE: B_k saturates at its floor by construction
+
+`quarantine_historical_kernel.py:280`:
+
+```python
+B_k_raw = last_B + xi * (1 - U_star_k) * delta_R  -  chi * U_star_k
+B_k     = clip(B_k_raw, B_min, B_max)
+```
+
+with `xi = chi = 0.10`, `B_min = -1.0`, `B_max = +1.0`.
+
+The term `- chi * U_star_k` is **unconditional** and always negative
+(`U_star_k >= 0`). Measured mean `U_star_k = 0.4278`, so per gate:
+
+```
+decay = -0.10 * 0.4278            = -0.0428     every gate, regardless of structure
+gain  = +0.10 * 0.5722 * delta_R  = +0.0572 * delta_R
+
+break-even requires delta_R = 0.748 EVERY gate. delta_R is a change in gated
+resonance, roughly bounded in [0,1]. Sustaining 0.75 per gate is impossible.
+```
+
+So `B_k` loses ~0.043 per gate, reaches `B_min = -1.0` in about **23 gates**,
+and is clipped there for the remaining ~825 gates of a symbol's life.
+
+**Measured, 8,343,139 rows:**
+
+| | |
+|---|---:|
+| `B_k` at the floor (−1.0000) | **95.90 %** of all rows |
+| rows where `B_k == prev_B_k` | 95.64 % |
+| of those, fraction pinned at the floor | **100.00 %** |
+| `B_k` ever reaching the ceiling | 0.00 % (max observed −0.0254) |
+
+### What this explains
+
+- **`B_k > prev_B_k` is L1's binding clause** (fires on 0.14 % of post-warm-up
+  rows, against 62 %, 51 % and 57 % for the other three). It can only fire
+  before saturation.
+- **95 % of signals at `pos <= 18`** is not initialization noise. It is the
+  only window in which the carry field is alive. §16 called it a warm-up
+  artifact; the observation was right, the explanation was wrong.
+- Joseph's semantics — `B_k` "tells whether the field is carrying stable
+  potential or exhausting it" — cannot be expressed by a field that reads
+  *fully exhausted* on 96 % of all rows.
+
+### What was ruled out on the way, with evidence
+
+- **"Starved by the input"** — MINE, and **refuted**. Feeding the full bar made
+  everything worse: `B_k` moved on 3.43 % of days against 9.28 % for
+  close-only, signals fell from 37 to 9, and the edge inverted from +19.6 pp to
+  −26.4 pp (2,500 symbols, `tools/ch2_ohlc_gate_starvation.py`).
+- **"Gates are too rare"** — wrong for this kernel. It produces ~848 gates per
+  symbol. I had carried over `uf_core`'s 5–6 gates per decade, which is a
+  different implementation.
+- **The 252-bar cap** — no inversion demonstrated (0.6 pp on a biased subset).
+  Still unproven either way.
+
+### The rule's actual performance, post-saturation-window
+
+| sample | signals | pass WR | rejected | rej WR | lift |
+|---|---:|---:|---:|---:|---:|
+| 11,882 symbols, `pos > 18` | 161 | 54.66 % | 3,004 | 48.67 % | +6.0 pp |
+| 2,500 symbols, `pos > 18` | 37 | 64.86 % | 696 | 45.26 % | +19.6 pp |
+
+Positive in both, on tiny counts. At n = 37 the binomial error is about ±8 pp.
+
+### The fix, and why it is Joseph's
+
+`B_k`'s decay must not be unconditional, or `B_min` must not be reachable in 23
+gates, or the gain term must scale so that ordinary structure can hold carry
+steady. Each is a change to L4 carry dynamics — kernel physics, his call.
+Nothing has been modified.
