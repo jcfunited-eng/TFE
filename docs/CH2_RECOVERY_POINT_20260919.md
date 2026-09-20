@@ -790,3 +790,54 @@ artifact**, which is exactly what the retracted §15 result was.
 The fix belongs in L4 carry dynamics, which is Joseph's physics. It is
 demonstrated, not deployed. Nothing in `uf_core` or `quarantine_historical_kernel.py`
 has been modified; the variant lives only in the measurement script.
+
+---
+
+## 19. THE COGNITIVE GATE WORKS — BUT NOT ANDed WITH L1 (2026-09-20)
+
+### Tested on the fixed carry (leak variant, 1,200 symbols, pos > 18, Close >= $5)
+
+| set | n | WR | avg 20d |
+|---|---:|---:|---:|
+| everything (pool) | 728,370 | 51.13 % | +0.06 % |
+| L1 only | 69,199 | **51.90 %** | +0.23 % |
+| L1 + L3 | 1,503 | 51.03 % | +0.86 % |
+| L1 **rejected by** L3 | 67,696 | **51.92 %** | +0.22 % |
+
+ANDed, the gate discards a 51.92 % pool to keep a 51.03 % one, and swings
+between +7.8 pp and −11.9 pp year to year. **The composition fails.**
+
+### But standalone, on the full stored data, it works
+
+| set | n | mean | **median** | WR |
+|---|---:|---:|---:|---:|
+| pool | 7,642,603 | −0.04 % | +0.12 % | 50.63 % |
+| **L3 passes** | **334,528** | **+0.58 %** | **+0.38 %** | **52.50 %** |
+| L3 rejects | 7,308,075 | −0.07 % | +0.10 % | 50.55 % |
+
+**+1.95 pp of win rate and ~4x the median return.** Not outlier-driven:
+deleting the 50 best returns moves the mean only from +0.58 % to +0.40 %, and
+the **median** shifts, so the whole distribution moves.
+
+### The finding
+
+Two filters, each with a real edge, that **do not compose**:
+
+```
+L1 with the carry fixed      +1.75 pp    n =  73,540
+L3 cognitive gate alone      +1.95 pp    n = 334,528
+L1 AND L3                    no lift     n =   1,503
+```
+
+The canonical baseline ANDs its layers. That throws away the 67,696 signals L1
+found and L3 rejected — a pool running 51.92 %. They select different
+situations; their intersection is a small corner, not the best of both.
+
+**Correction to my own reporting:** I first stated "the cognitive gate does not
+add" on the basis of the ANDed test alone, before testing it standalone at
+scale. That was wrong and is corrected here.
+
+### Next
+
+Combine by union or by score rather than by AND, and measure. Then exits —
+still untouched, and still the only thing with live-money evidence behind it.

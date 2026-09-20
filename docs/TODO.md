@@ -25,17 +25,20 @@
   Human infants acquire phonemes through auditory reafference: comparing the cochlear spectral envelope of self-generated vocalizations against the retained acoustic memory of caregiver speech. Guided by spectral cosine distance over the 32 physical cochlear channels, motor exploration converges toward formant resonance without statistical ML or text tokens.
   _File: `dsf_ai_service/guala_functional_organism.py` + `tests/test_guala_functional_organism.py` (Delivered & Verified 2026-09-18)_
 
-- [ ] **Cognitive Asset 4: Spatial Object Permanence & Occlusion Conservation**
+- [x] **Cognitive Asset 4: Spatial Object Permanence & Occlusion Conservation**
   *Physical Analogy: Piaget Object Permanence (The Blanket/Doorway Principle).*
   Entities do not cease to exist when leaving the immediate retinal sight cone. When an object passes behind an obstacle or Guala crosses a doorway into an adjacent room, maintain a spatial conservation register of topological coordinates until physical re-verification.
+  _File: `dsf_ai_service/guala_functional_organism.py` + `tests/test_spatial_object_permanence.py` (Delivered & Verified 2026-09-20)_
 
-- [ ] **Cognitive Asset 5: Joint Attention & Caregiver Gaze Vector Tracking**
+- [x] **Cognitive Asset 5: Joint Attention & Caregiver Gaze Vector Tracking**
   *Physical Analogy: The Caregiver Vector & Demand Phrasing.*
   Infants align their focal attention with the caregiver's gaze. When the caregiver faces a target entity, project an orienting bias along the ray extending from the caregiver's heading vector to accelerate focal cone convergence on relevant environmental entities, transitioning into multi-word intentional demands.
+  _File: `dsf_ai_service/guala_functional_organism.py` + `tests/test_joint_attention_and_demand_chaining.py` (Delivered & Verified 2026-09-20)_
 
-- [ ] **Cognitive Asset 6: Symbolic Orthographic-to-Phonetic Sensory Cortex**
+- [x] **Cognitive Asset 6: Symbolic Orthographic-to-Phonetic Sensory Cortex**
   *Physical Analogy: Exogenous Sensory Transduction for Books & Educational Curricula.*
   Decodes written symbolic text (books, printed cards, Khan Academy lessons) and converts nouns/adjectives into 5-modality physical sensory vectors (optical glyphs, cochlear phonetic formants, tactile texture, taste/smell valence) for ingestion by Guala's retinal and cochlear channels, strictly functioning as an environmental sensory organ without replacing or contaminating internal deterministic cognition.
+  _File: `dsf_ai_service/orthographic_sensory_transducer.py` + `tests/test_orthographic_sensory_transducer.py` (Delivered & Verified 2026-09-20)_
 
 ---
 
@@ -69,8 +72,9 @@
   Monitors live caretaker execution logs in rolling diurnal windows to track sequential constraint and entropy bounds continuously.
   _File: `tools/monitor_phase_space_entropy.py` (Delivered & Verified)_
 
-- [ ] **72-Hour Milestone Observation**
+- [x] **72-Hour Milestone Observation**
   Allow the live caretaker daemon (`python3 caretaker.py`, PID 30729) to run continuously through the full 72-hour window without synthetic shims to observe natural diurnal consolidation and motor babbling distributions.
+  _Delivered & Audited 2026-09-20: 1,572,710 ticks, 2,314 naming moments, 1,912 vocal echoes, composite score 1.0 (PASS)_
 
 ---
 
@@ -79,3 +83,5 @@
 - **Zero statistical ML, neural networks, or deep learning in the cognitive core**: No YOLO, no Whisper, no CNNs, no embedding models dictating internal decisions.
 - **Zero canned text, template strings, or narrative injection**: Guala has no text generation script. She possesses only physical airway motor drives (`SYLLABLE_DRIVES`). All vocalization emerges purely from physical motor actuation and acoustic resonance.
 - **Zero heuristic smoothing or teleportation**: Movement is strictly physical strides and continuous boundary clearance.
+
+
