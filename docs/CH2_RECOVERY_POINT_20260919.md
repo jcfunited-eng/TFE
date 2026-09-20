@@ -727,3 +727,66 @@ Positive in both, on tiny counts. At n = 37 the binomial error is about ±8 pp.
 gates, or the gain term must scale so that ordinary structure can hold carry
 steady. Each is a change to L4 carry dynamics — kernel physics, his call.
 Nothing has been modified.
+
+---
+
+## 18. THE CARRY FIX, TESTED (2026-09-20)
+
+Not shipped. Tested in a variant, canonical kernel untouched.
+
+**The change — one term. MINE, on trial.**
+
+```python
+# as-is: constant subtraction, marches to the floor in ~23 gates
+B_k = clip(last_B + xi*(1-U*)*delta_R  -  chi*U* ,        B_min, B_max)
+
+# leak proportional to what remains: relaxes toward a structure-set level
+B_k = clip(last_B*(1 - chi*U*) + xi*(1-U*)*delta_R ,      B_min, B_max)
+```
+
+**Mechanical effect** (1,200 symbols, blake2b-seeded):
+
+| | as-is | leak |
+|---|---:|---:|
+| `B_k` sitting at the floor | 91.15 % | **0.00 %** |
+| `B_k` moves between gates | 9.19 % | **95.88 %** |
+| L1 signals (`pos > 18`) | 346 | **73,540** |
+| lift over rejected pool | +3.63 pp | +1.75 pp |
+
+The as-is +3.63 pp is ~1.35 sigma on 346 signals — noise. The leak's +1.75 pp
+on 73,540 is ~9.5 sigma — real. The earlier 64.43 % and 54.66 % were the same
+small-sample noise.
+
+**Robustness — the test §15 failed:**
+
+| year | signals | pass WR | pass avg 20d | rej WR | lift |
+|---|---:|---:|---:|---:|---:|
+| 2021 | 8,222 | 47.66 % | −0.63 % | 46.37 % | +1.30 pp |
+| 2022 | 14,235 | 42.60 % | −1.29 % | 42.18 % | +0.42 pp |
+| 2023 | 14,697 | 51.09 % | +0.51 % | 49.50 % | +1.59 pp |
+| 2024 | 16,245 | 55.63 % | +0.83 % | 53.75 % | +1.88 pp |
+| 2025 | 17,680 | 57.80 % | +1.22 % | 55.20 % | +2.60 pp |
+| 2026 | 2,461 | 43.28 % | −1.36 % | 43.13 % | +0.15 pp |
+| **ALL** | **73,540** | **51.42 %** | **+0.21 %** | 49.67 % | **+1.75 pp** |
+| **ex-2021** | 65,318 | 51.89 % | +0.32 % | 50.13 % | **+1.76 pp** |
+
+Positive every year. ex-2021 identical to the full period — **not a bull-market
+artifact**, which is exactly what the retracted §15 result was.
+
+### What it is, and is not
+
+- **Is**: proof the carry field was welded shut and that unjamming it turns 346
+  noise-level firings into a consistent directional signal.
+- **Is not**: a money machine. +0.21 % average per 20-session hold is mostly
+  consumed by 10 bp round-trip cost.
+- **Tracks the market**: +1.22 % in 2025, −1.29 % in 2022. The *lift* is
+  positive every year; the *absolute* return is not.
+- **Layer 1 only**: `D_k >= 0, Rev_k == 0, B_k > prev_B_k, M_k >= 0` plus the
+  price floor. No cognitive gate, no exits, flat 20-day hold. Both sit on top
+  of this, and the live-trade evidence says the exits carry the money.
+
+### Standing position
+
+The fix belongs in L4 carry dynamics, which is Joseph's physics. It is
+demonstrated, not deployed. Nothing in `uf_core` or `quarantine_historical_kernel.py`
+has been modified; the variant lives only in the measurement script.
