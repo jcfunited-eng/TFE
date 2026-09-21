@@ -19,6 +19,22 @@ import * as _marketCalendar from "./market_calendar.mjs";
  * Data: quarantine_12k_l5_trades.csv (7,658 Accumulate signals)
  * Universe: 11,884 symbols, 10,162,966 OHLCV rows, 2021-2026
  *
+ * !! CORRECTED 2026-09-21 — THE LADDER BELOW IS LOOKAHEAD-CONTAMINATED.
+ * !! "Rising 5d" is Return_5d > 0, and Return_5d is the FORWARD five-day
+ * !! return (verified 400/400 against raw bars). It is worth +17.6pp and
+ * !! every rung above it inherits it. The note further down saying "the
+ * !! quarantine 81% is real but requires 20-day hold" is WRONG.
+ * !!
+ * !! HONEST LADDER (no forward-looking filter):
+ * !!   Accumulate only              57.1% WR | 7,290 signals
+ * !!   + B_k > -0.50  (ENTRY-R10)   62.9% WR | 3,359 signals   LIVE
+ * !!   + weekend block (ENTRY-R2)   64.9% WR | 2,815 signals   already live
+ * !!
+ * !! Production ran 57.4% on 428 live trades vs a 57.1% baseline. It was
+ * !! right. Verify any signals file with
+ * !!   python3 tools/check_entry_filters_are_causal.py <file.csv>
+ * !! See docs/CH2_STATE_20260921.md.
+ *
  * Quarantine backtest (20-day forward hold, no exit logic):
  *   Baseline (Accumulate only):     57.1% WR | 7,290 signals
  *   + Close >= $5:                  57.7% WR | 6,556 signals

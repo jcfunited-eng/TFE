@@ -62,3 +62,4 @@ Teleological Demand    Affective Valuation    Joint Affordance       Deontic The
 • Inquisitive query    • Spatial preference   • Give-and-take play   • Prescriptive social grammar
 • Single-object focus  • High-cohesion basin  • Shared gaze invite   • Multi-agent rule modeling
 ```
+

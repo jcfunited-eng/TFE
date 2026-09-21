@@ -1,3 +1,42 @@
+> # ⚠ CORRECTED 2026-09-21 — THE HEADLINE NUMBER IS LOOKAHEAD
+>
+> The 64.66 % below, and the 81.4 % ladder quoted from this document in
+> `web/scripts/execution/financial_rules.mjs`, are **not achievable**.
+>
+> **Two independent contaminations:**
+>
+> 1. **Forward-return filter.** The ladder's "Rising 5d (not falling)" rung is
+>    `Return_5d > 0`, and `Return_5d` in `quarantine_12k_l5_trades.csv` is the
+>    **forward** five-day return — verified **400/400** against the raw bars.
+>    It selects rows whose price rose *after* entry, then scores what happened
+>    after that. Worth **+17.6 pp**. Every rung above it inherits it.
+>
+> 2. **Warm-up artefact.** The 64.66 % Layer-1+2+3 figure fires on the kernel's
+>    initialisation state: median signal position is **bar 1** of a symbol's
+>    history, 95 % of signals sit at position ≤ 18, and `prev_B_k = -0.050000`
+>    exactly (the init constant) at those rows. Half the signals land in 2021.
+>    The rule **loses** in 2022 (−10.8 pp) and 2026 (−8.5 pp).
+>
+> **The honest ladder, no forward-looking filter anywhere:**
+>
+> ```
+> Accumulate only                       57.1 %   7,290 signals
+> + B_k > -0.50      (ENTRY-R10)        62.9 %   3,359 signals   LIVE
+> + weekend/holiday  (ENTRY-R2)         64.9 %   2,815 signals   already live
+> ```
+>
+> Production ran **57.4 %** on 428 live Alpaca trades against a 57.1 %
+> baseline — it was reproducing the honest number all along. The gap that sent
+> months of work hunting an exit bug did not exist.
+>
+> Check any signals file before believing it:
+> `python3 tools/check_entry_filters_are_causal.py <file.csv>`
+>
+> Current state: `docs/CH2_STATE_20260921.md`. Detail:
+> `docs/CH2_RECOVERY_POINT_20260919.md` §22.
+>
+> Kept below as the historical record. **Do not use these numbers.**
+
 # L5 Canonical Baseline
 
 Date locked: 2026-03-25 UTC

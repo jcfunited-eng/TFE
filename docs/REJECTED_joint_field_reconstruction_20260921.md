@@ -71,3 +71,48 @@ Live in `.claude/skills/uf-joint-field-spec/SKILL.md`. Current state in
 `collaborative_todo.md` still references the removed material. It is the
 Guala coordination ledger and is out of scope for TFE work; left
 untouched deliberately.
+
+---
+
+## Addendum 2026-09-21 — provenance correction and the rest of the cluster
+
+### The VERBATIM file did not originate with Codex
+
+`docs/TFE_COMPREHENSIVE_SYSTEM_AUDIT_20260818.md` line 119 records:
+
+> "The **user-supplied attachment** matches
+> `docs/UF_Spec_v1_3_JointField_Reconstruction_VERBATIM.tex` apart from
+> final-newline handling. Its correct status is Joseph's current decision:
+> **strong working document requiring additional proofs; non-canonical**."
+
+So the content was supplied in-session, and the audit labelled it correctly:
+**non-canonical, needs proofs**. The failure was not fabricating the document.
+
+**The skill fabricated its authority.** It promoted a non-canonical working
+document to "THE SPEC … ratified as THE standard by Joe 2026-08-18" and loaded
+it into every kernel session as law. That is the defect, and it is the reason
+a whole session went into distance geometry and a modified L4 carry.
+
+Recoverable if wanted:
+`git show fbdb9b485^:docs/UF_Spec_v1_3_JointField_Reconstruction_VERBATIM.tex`
+
+### Also removed — the implementation and the math built on it
+
+```
+tools/ch3_joint_field_full.py           469 lines, Codex 2026-08-18,
+                                        referenced by nothing
+docs/CH3_TUPLE_TIME_MATH_20260817.md    "Evaluation discipline from the
+                                        Joint-Field Reconstruction constitution"
+docs/CH3_PRECEDENT_MATH_20260818.md     built on CH3_JOINT_FIELD_MATH
+```
+
+### Kept deliberately
+
+- `docs/TFE_COMPREHENSIVE_SYSTEM_AUDIT_20260818.md` and
+  `docs/TFE_SOL_HANDOFF_20260818.md` — historical records that describe the
+  material's status **correctly** as non-canonical. They are the evidence for
+  this correction, not a cause of it.
+- `L5_CANONICAL_BASELINE.md` and `web/scripts/execution/financial_rules.mjs` —
+  corrected in place rather than removed. Both carry real receipts alongside
+  the contaminated ladder, and both are read by people looking for the
+  numbers, so the correction has to sit where the number is.
