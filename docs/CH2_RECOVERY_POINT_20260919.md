@@ -908,3 +908,62 @@ improve the production entry gate, because that gate never reads `B_k`.
 That is a design question for Joseph: either the basin should weigh carry on
 the accumulate side, or `B_k` is not meant to inform entries at all. Nothing
 modified.
+
+---
+
+## 21. WHOLE-TUPLE SELECTION, FINAL (2026-09-21)
+
+Three independent runs of the same question — where has this nine-field state
+been before, and what did those structures do next — each removing one possible
+excuse.
+
+| run | what was removed as an excuse | neighbour majority predicts | constant guess |
+|---|---|---:|---:|
+| §(neighbours, stored data) | — | 48.13 % | 55.09 % |
+| fixed carry, unweighted | dead `B_k` (was pinned 95.9 %) | 47.79 % | 55.85 % |
+| **fixed carry, bounds-scaled** | **unequal field weighting** | **48.24 %** | **56.01 %** |
+
+Final run: 200,000 queries against a 729,446-tuple library, split at
+2023-10-01 so every neighbour predates every query. All nine at full precision,
+each divided by its own **kernel-defined** span (`D_k`/2, `M_k`/2, `R_k`/1,
+`Rev_k`/1, `U*`/1.2, `C_k`/3, `P_k`/2, `B_k`/2, `S_UF`/1) — kernel constants,
+not statistics of the data.
+
+```
+                        NEAREST 25    RANDOM 25
+mean count that rose      11.274        11.292     (base rate 45.18%)
+std                        2.645         2.488
+>= 20 of 25 rose           0.064%        0.042%
+median distance to 25th neighbour: 0.00468
+
+>=17/25: n=4,537 WR 56.60% | pool 56.01%  -> +0.59pp
+>=18/25: n=1,652 WR 55.69% | BELOW pool
+```
+
+**States matching to within 0.005 across nine unit-scaled dimensions go on to
+do uncorrelated things.** Nearest neighbours rise 11.274 of 25; random tuples
+rise 11.292. Both are the base rate. Asking the field directly scores worse
+than guessing the same answer every time.
+
+### Why this one counts
+
+No threshold, no boolean, no score, no average, no rounding, no bucketing. Every
+field live and equally weighted. Every neighbour strictly earlier in time. The
+first two runs could be blamed on my flattening and on a saturated `B_k`. This
+one cannot.
+
+There is a faint real clustering — std 2.645 against 2.488 — so the state is
+not pure noise. It just does not carry direction at this horizon.
+
+### The one remaining choice that is MINE
+
+The **20-session horizon**. Every run used it. If the field speaks at a
+different timescale, this test would not see it. That is the only untested
+lever left on the selection side.
+
+### Standing conclusion on selection
+
+Selection is not solved and is not solvable from the nine-field state as this
+kernel currently produces it. The best surviving construction remains L1 on a
+fixed carry (+1.75 pp, positive every year, n = 73,540) — and that is a boolean
+chain, i.e. flattened, which is why it is reported as a floor and not a finding.
