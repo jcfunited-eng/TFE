@@ -59,3 +59,28 @@ engine acted only on "today"-dated events — structurally mute since
 launch, caught by Joe's nose, not by the determinism/parity tests.
 Boundary conditions at the live edge need their own test: inject a
 synthetic entry-yesterday case and assert the engine takes it.
+
+## The lookahead detector (added 2026-09-21)
+
+Rule 1 ("state knowability for every fill") is now mechanical:
+
+```bash
+python3 tools/check_entry_filters_are_causal.py <signals.csv>
+```
+
+It tests every numeric column against forward and trailing price
+transforms of the raw bars and FAILS on any column reproducing a
+forward return. Run it before believing any number from a signals file.
+
+Why it exists: `L5_CANONICAL_BASELINE.md` advertised 81.4% WR for six
+months. Its "Rising 5d" rung is `Return_5d > 0`, and `Return_5d` is the
+FORWARD five-day return — verified 400/400. Worth +17.6pp of pure
+lookahead. Stripped out, the same ladder gives 62.9%.
+
+That number shaped the production diagnosis ("entries are fine, exits
+are broken") and sent months of work chasing an exit bug to explain a
+gap that did not exist. Production was delivering 57.4% against a 57.1%
+honest baseline — production was right and the backtest was wrong.
+
+This skill already contained the rule that catches it. It was not
+loaded. Load it BEFORE the first measurement, not after the claim.

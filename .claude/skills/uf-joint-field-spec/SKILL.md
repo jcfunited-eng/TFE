@@ -1,74 +1,92 @@
 ---
 name: uf-joint-field-spec
-description: THE SPEC (Joe, 2026-08-18) — the UF v1.3 Joint-Field Reconstruction constitution governing all unflattened/structural analysis in TFE, especially CH3 kernel work. Load before ANY analysis claiming to use the DSF/kernel, before comparing trade classes structurally, or when Joe says "unflattened", "not smooth", "the full physics", or "the spec".
+description: How Joe wants the kernel assessment done — load data, run kernel, filter with L5 financial governance, assess L4 output on the survivors. Load before ANY analysis using the DSF/kernel. Replaces the "joint-field reconstruction" content that Joe rejected outright.
 ---
 
-# The UF v1.3 Joint-Field Reconstruction — the spec
+# The kernel assessment — Joe's method
 
-Ratified as THE standard by Joe 2026-08-18 ("that is the spec"),
-after three successive undershoots: (1) L0-only scalars sold as "the
-kernel read the trades" — Joe called it a lie, correctly; (2) the
-canonical v2 chain (L0-L4) — itself FLATTENED by this standard
-(weighted w/S/U/R_res, fitted anomaly thresholds); (3) only the
-joint-field reconstruction meets the bar. Source document: pasted by
-Joe in-session (full LaTeX in transcript); constitution filed at
-docs/UF_Spec_v1_3_JointField_Reconstruction_NONCANONICAL.tex.
-Historical root: UF_Spec_v1.3.0_Final_Structure.docx, SHA-256
-4e90a21c45bf668a323f87177a92936d47eea8ebf03ff3c18693dccf06255b2b.
+Corrected 2026-09-21. The previous contents of this file described a
+"UF v1.3 Joint-Field Reconstruction constitution" — thresholdless gates,
+full TVR tensors, contradiction atoms, atom-wise sign-fact recursions,
+comparisons as frequencies never distances, shadow discipline. Joe read
+it back and rejected all of it: *"that is wrong literally everything —
+I have no idea where you got all that shit."* It was written by Codex on
+2026-08-17 and labelled as his ratified constitution. It was not.
 
-## The constitution (operative laws — all mandatory)
+Acting on it wasted a full session: it sent the work into
+nearest-neighbour distance tests, tuple-space geometry, and a modified
+carry recurrence — none of which Joe asked for, and the kernel
+modification directly violated his standing rule that the kernel is a
+black box.
 
-1. **The full explicit field is authoritative.** A score, bucket,
-   cell key, compatibility vector, or selected pivot is NEVER a
-   substitute for the field.
-2. **No scalar authority.** A weighted sum cannot authorize a field
-   relation or a decision. A displayed scalar is a reduced
-   diagnostic and MUST disclose the atoms it lost.
-3. **Deterministic only.** No ML, no fitted parameter, no
-   stochastic surrogate, no learned state. Same input + same
-   constitution = byte-identical result.
-4. **Causal support.** Every output is supported by a finite,
-   recorded input interval; all windows trail.
-5. **Missing ≠ zero.** observed / quiescent / unavailable / invalid
-   are four different states. Absence of data is never coerced to a
-   value, and structural quiet is never inferred from missing input.
-6. **Thresholdless gates.** A gate is a maximal contiguous interval
-   of unchanged exact sign/zero structural signature
-   (sgn Δ, sgn κ, sgn δσ per scale, N). No τ, no fitted boundary.
-7. **Full TVR tensors.** (T, {V_v}, {R_v}, {Q_v^(s)}, {K_v}) — every
-   coordinate retained; never a three-scalar fingerprint.
-8. **Contradiction atoms retained.** Cross-scale / cross-perspective
-   sign disagreements are explicit set members, never averaged away
-   and never resolved by majority.
-9. **L4 = seven typed fields** (D, M, R_rev, U*, C, P, B) as exact
-   atom-wise sign-fact recursions over the typed atom set
-   (scale × vertex/edge × descriptor); vertex and edge atoms never
-   flattened together.
-10. **Comparisons are frequencies over exact discrete structures** —
-    which structure occurred, how often each class follows it —
-    never distances between scalars.
-11. **Label-blind validation.** Build all relations before revealing
-    labels; held-out must be source-disjoint (in TFE: time-disjoint
-    — derive pre-2022, confirm frozen post-2022); exact claims need
-    100%, empirical floor 85%, and a lower rate is never relabelled
-    exact.
-12. **Shadow discipline.** The reconstruction runs BESIDE the
-    canonical kernel, both results filed, no automatic winner, and
-    it never routes into production without Joe's word.
+## The method — four steps, nothing more
 
-## TFE projection (single-vertex financial field)
+```
+1.  LOAD DATA          raw OHLCV. Date, Open, High, Low, Close, Volume.
+2.  RUN KERNEL         as shipped. Do not modify it. Do not read inside it.
+                       It is a black box: data in, L4 output out.
+3.  L5 GOVERNANCE      financial rules filter out bad tickers BEFORE any
+                       assessment. Filter first, then look.
+4.  ASSESS L4 OUTPUT   structure evaluation is on L4 output only, for the
+                       tickers that survived the filter. That is it.
+```
 
-Per stock: one vertex; F = price (log field per canonical L0),
-relevance r = volume attention. Dyadic causal scales
-S_T = {1,2,4,...}. The signature, gates, TVR tensors, and L4
-sign-fact fields follow the constitution above. The herd frame /
-event filters are DOMAIN law (L5), not kernel — keep the boundary
-explicit in every write-up.
+Joe, verbatim: *"It's infinitely simpler — load data, run kernel, use L5
+Financial Governance rule to filter out bad tickers, and assess only
+those that meet filter criteria… structure evaluation is only on L4
+output — that's it."*
+
+## Hard rules
+
+- **The kernel is a black box.** No reading inside L0–L4, no modifying
+  it, no variant carry, no adjusted constants. If a field looks broken,
+  report it to Joe with the measurement; do not fix it yourself.
+- **Filter before assessing.** Assessing the whole universe and then
+  filtering is not the same thing and gives a different answer. The L5
+  governance step is not optional decoration — on the 2026-09-21 run it
+  moved the base rate from 50.6 % to 52.93 % on its own.
+- **No shadow anything.** One production path. No variant running
+  beside it, no parallel copy, no dual-write.
+- **Every filter must be knowable at entry.** Run
+  `tools/check_entry_filters_are_causal.py` against any signals file
+  before believing a number from it. See `tfe-honest-timing`.
+- **Label provenance.** Every constant and condition is HIS or MINE.
+  Joe welcomes rules of your own; he objects to them wearing his name.
+
+## What the kernel actually emits
+
+L4 output, per reading: `D_k, M_k, R_rev_k, U_star_k, C_k, P_k, B_k`,
+plus `S_UF` and `R_UF` from the adapter. Measured facts as of
+2026-09-21, filed in `docs/CH2_RECOVERY_POINT_20260919.md`:
+
+- `S_UF` and `R_UF` from `uf_structural_engine` are **lifetime means**,
+  not kernel outputs. Joe: *"there are no means there are no medians in
+  the kernel."*
+- `C_k` never reaches L5 — `decision_vector` carries six entries, not
+  seven.
+- `B_k` sits at its floor on 95.9 % of rows in the quarantine kernel,
+  and the V3 basin cancels `B_k` out of every Accumulate decision.
+- The basin gate reads `S_UF, R_UF, D_k, M_k, R_rev_k, U_star_k, C_k,
+  P_k, B_k` but governs carry nowhere — hence ENTRY-R10.
+
+These are reported, not repaired. Repair is Joe's call.
+
+## The honest ladder (2026-09-21, no forward-looking filter)
+
+```
+Accumulate only                 57.1 %   7,290 signals
++ B_k > -0.50   (ENTRY-R10)     62.9 %   3,359 signals     LIVE
++ Fri/weekend block (ENTRY-R2)  64.9 %   2,815 signals     already live
+```
+
+The 81.4 % in `L5_CANONICAL_BASELINE.md` is **not real**: its "Rising
+5d" rung filters on `Return_5d`, which is the forward five-day return
+(verified 400/400 against raw bars). Worth +17.6 pp of pure lookahead.
+Production delivering 57.4 % was reproducing the honest number all
+along.
 
 ## Speaking to Joe about this work
 
-Physics vocabulary only (displacement, stored tension, sign
-structure, contradiction, weather) — never trader/quant jargon
-(feedback_no-jargon-with-joe, escalated). Numbers always with
-numerator/denominator. Never claim a kernel read that ran less than
-the declared chain — that exact overclaim is why this skill exists.
+Plain adult speech. No jargon, no metaphors. Numbers with numerator and
+denominator. Verdict first, then the detail. Never claim a kernel read
+that ran less than the declared chain.
