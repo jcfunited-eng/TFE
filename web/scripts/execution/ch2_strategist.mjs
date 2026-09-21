@@ -41,6 +41,9 @@ const pool = new pg.Pool({
 const CH2_BAR_COUNT_MIN    = 21;
 const CH2_MIN_MARKET_CAP   = 500_000_000;
 const ACCUMULATE_BASIN_MIN = 0.15;
+// ENTRY-R10 carry governance. Fixed constant, from L5_CANONICAL_BASELINE's
+// B_k rung measured WITHOUT its forward-looking "Rising 5d" filter.
+export const CH2_CARRY_MIN = -0.50;
 const BREAK_AGREEMENT_MAX  = 0.20;  // V3 spec exit threshold — reject entry if already in exit territory
 
 function toFloat(v) {
@@ -129,6 +132,27 @@ function parseSignal(row) {
   if (basin.decision_argmax !== "Accumulate")                  { console.log(`[CH2-STRATEGIST]   ${ticker} — REJECT argmax=${basin.decision_argmax}`); return null; }
   if (basin.accumulate_basin < ACCUMULATE_BASIN_MIN)           { console.log(`[CH2-STRATEGIST]   ${ticker} — REJECT acc=${basin.accumulate_basin.toFixed(4)} < ${ACCUMULATE_BASIN_MIN}`); return null; }
   if (basin.break_agreement >= BREAK_AGREEMENT_MAX)            { console.log(`[CH2-STRATEGIST]   ${ticker} — REJECT break=${basin.break_agreement.toFixed(4)} >= ${BREAK_AGREEMENT_MAX} (already in exit territory)`); return null; }
+
+  // ── ENTRY-R10: carry governance (2026-09-21) ────────────────────────
+  // The V3 basin does NOT read B_k on an Accumulate decision: carry_break is
+  // multiplied by R_rev_k, and accumulate_basin by (1 - R_rev_k), so B_k
+  // cancels algebraically on every buy. Carry has to be governed separately.
+  //
+  // Measured on quarantine_12k_l5_trades.csv (7,658 Accumulate signals,
+  // 20-day forward hold), with NO forward-looking filter:
+  //   Accumulate only                     57.1% WR | 7,290 signals
+  //   + Close >= $5 + B_k > -0.50         62.9% WR | 3,359 signals
+  //
+  // The +5.8pp is real. The 81.4% in the L5_CANONICAL_BASELINE ladder is NOT:
+  // that rung adds "Rising 5d", which is Return_5d > 0, and Return_5d is the
+  // FORWARD five-day return (verified 400/400 against the raw bars). It
+  // cannot be known at entry and is worth +17.6pp of pure lookahead.
+  //
+  // Threshold transfers: B_k > -0.50 passes 59.1% of production rows
+  // (uf_core path, 2.65M rows) against 49.0% of the quarantine signals.
+  const bkEntry = toFloat(snap.B_k ?? snap.b_k);
+  if (!Number.isFinite(bkEntry))                               { console.log(`[CH2-STRATEGIST]   ${ticker} — REJECT B_k missing (ENTRY-R10 needs carry)`); return null; }
+  if (bkEntry <= CH2_CARRY_MIN)                                { console.log(`[CH2-STRATEGIST]   ${ticker} — REJECT B_k=${bkEntry.toFixed(4)} <= ${CH2_CARRY_MIN} (ENTRY-R10 carry governance)`); return null; }
 
   return {
     ticker,
