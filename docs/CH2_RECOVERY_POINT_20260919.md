@@ -967,3 +967,74 @@ Selection is not solved and is not solvable from the nine-field state as this
 kernel currently produces it. The best surviving construction remains L1 on a
 fixed carry (+1.75 pp, positive every year, n = 73,540) — and that is a boolean
 chain, i.e. flattened, which is why it is reported as a floor and not a finding.
+
+---
+
+## 22. THE L5 CANONICAL BASELINE LADDER IS CONTAMINATED BY LOOKAHEAD (2026-09-21)
+
+`web/scripts/execution/financial_rules.mjs` header, sourced from
+`L5_CANONICAL_BASELINE.md` (locked 2026-03-25), data
+`quarantine_12k_l5_trades.csv` (7,658 Accumulate signals):
+
+```
+Baseline (Accumulate only):     57.1% WR | 7,290 signals
++ Close >= $5:                  57.7% WR | 6,556 signals
++ Rising 5d (not falling):      75.0% WR | 3,674 signals
++ B_k > -0.80:                  81.1% WR | 2,072 signals
++ B_k > -0.50:                  81.4% WR | 2,016 signals
+```
+
+### "Rising 5d" is a FORWARD return
+
+`quarantine_12k_l5_trades.csv` columns are `Return_5d, Return_10d, Return_20d`.
+Checked against the raw bars in `quarantine_12k_universe.parquet`:
+
+```
+Return_5d == FORWARD  5-day return: 400/400
+Return_5d == TRAILING 5-day return:   0/400
+```
+
+The filter selects rows whose price **rose over the next five sessions**, then
+reports the win rate over the next twenty. It cannot be known at entry.
+
+### Replication, with and without it
+
+| rung | documented | replicated |
+|---|---|---|
+| Accumulate only | 57.1 % / 7,290 | 57.1 % / 7,290 |
+| + Close >= $5 | 57.7 % / 6,556 | 55.3 % / 6,850 |
+| + Rising 5d | 75.0 % / 3,674 | 74.1 % / 3,720 |
+| + B_k > −0.80 | 81.1 % / 2,072 | 80.2 % / 2,096 |
+| + B_k > −0.50 | 81.4 % / 2,016 | 80.5 % / 2,038 |
+| **same ladder, no forward filter** | | |
+| Close >= $5 + B_k > −0.80 | — | **62.6 % / 3,469** |
+| Close >= $5 + B_k > −0.50 | — | **62.9 % / 3,359** |
+
+**The forward-return filter is worth +17.6 points.** Every rung above it
+inherits it.
+
+### The honest ladder
+
+```
+Accumulate only                57.1%   7,290 signals
++ B_k governance (> -0.50)     62.9%   3,359 signals
+```
+
+62.9 %, not 81.4 %. The `B_k` governance step is **real** and worth +5.8 points.
+
+### This resolves the production-vs-quarantine gap
+
+The 428 live Alpaca trades ran **57.4 %** for positions held past day 0. The
+un-governed baseline is **57.1 %**. Production has been reproducing the honest
+number exactly. It was never going to reach 81 % because 81 % was never there.
+
+`financial_rules.mjs` records this as *"the quarantine 81% is real but requires
+20-day hold"*. It is not real. When production "failed to reproduce
+quarantine", production was right.
+
+### What to actually expect
+
+Applying `B_k > −0.50` governance to the live entry path should move the win
+rate toward **~63 %**, not 81 %. That is still a large improvement on 57 %, and
+it is the first number in this chain that is both materially better than
+baseline and free of lookahead.
