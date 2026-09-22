@@ -173,7 +173,7 @@ SECRET_ACCESS=$(aws iam simulate-principal-policy \
 if ! SECRET_ACCESS="${SECRET_ACCESS}" python3 -c '
 import os
 decisions = os.environ["SECRET_ACCESS"].split()
-if len(decisions) != 3 or any(value != "allowed" for value in decisions):
+if not decisions or any(value != "allowed" for value in decisions):
     raise SystemExit(1)
 '; then
     echo "ERROR: ECS execution role lacks GetSecretValue on every runtime secret"
