@@ -6,6 +6,7 @@ Verifies:
 3. Meso-scale (250 ms) beat cadence coordination.
 4. Macro-scale (2 - 10 s) cognitive intent lifecycle (teleological demand, affective valuation, deontic theory of mind).
 5. Cross-scale coupling: Micro-reflex preempting active macro-intent upon physical violation.
+6. Decoupled token advancement from intent fulfillment (SH-A1-05).
 """
 
 from __future__ import annotations
@@ -49,25 +50,26 @@ def test_micro_reflex_thermal_nociception_interrupt() -> None:
         tick=2,
         heard_frames=None,
         skin_contact=0.1,
-        skin_temperature_millikelvin=310_000,
+        skin_temperature_millikelvin=hazard_temp,
         touch_surface_millikelvin=hazard_temp,
         held_surface_millikelvin=hazard_temp,
-        held_entity_id="hot_lantern",
+        held_entity_id="hot_plate",
     )
     assert len(interrupts) == 1
     assert interrupts[0].trigger == "thermal_nociception"
     assert interrupts[0].mitigation_action == "release"
-    assert interrupts[0].entity_id == "hot_lantern"
-    assert interrupts[0].severity == pytest.approx((hazard_temp - NOCICEPTION_MILLIKELVIN) / 1000.0)
+    assert interrupts[0].severity == pytest.approx(1.0)
+    assert interrupts[0].entity_id == "hot_plate"
+    assert len(micro.interrupt_history) == 1
 
 
 def test_micro_reflex_tactile_and_acoustic_shock() -> None:
-    """Verifies tactile impact and acoustic energy blast triggers micro-interrupts."""
+    """Verifies contact shock (>0.95) and acoustic gammatone shock (>0.90) trigger micro-interrupts."""
     micro = MicroReflexField()
 
-    # Tactile compression shock (>= 0.95)
+    # Contact shock
     interrupts = micro.evaluate_subframes(
-        tick=3,
+        tick=1,
         heard_frames=None,
         skin_contact=0.98,
         skin_temperature_millikelvin=310_000,
@@ -75,13 +77,14 @@ def test_micro_reflex_tactile_and_acoustic_shock() -> None:
     )
     assert len(interrupts) == 1
     assert interrupts[0].trigger == "contact_shock"
-    assert interrupts[0].mitigation_action == "halt_locomotion"
+    assert interrupts[0].mitigation_action == "retract"
 
-    # Acoustic shock blast
-    blast_frame = [[0.95] * 7]  # 7 bands all high energy
+    # Acoustic gammatone shock
+    shock_frame = [0.0] * 16
+    shock_frame[4] = 0.95  # Exceeds ACOUSTIC_SHOCK_FLOOR = 0.90
     interrupts = micro.evaluate_subframes(
-        tick=4,
-        heard_frames=blast_frame,
+        tick=2,
+        heard_frames=[shock_frame],
         skin_contact=0.0,
         skin_temperature_millikelvin=310_000,
         touch_surface_millikelvin=310_000,
@@ -101,7 +104,7 @@ def test_meso_beat_field_step() -> None:
 
 
 def test_macro_intent_teleological_demand_lifecycle() -> None:
-    """Verifies acoustic demand intent forms, advances phonemic syllables, and fulfills."""
+    """Verifies acoustic demand intent forms, advances phonemic syllables, and fulfills upon verified goal attainment (SH-A1-05)."""
     stack = HierarchicalTemporalStack()
 
     intent = stack.form_teleological_demand(target_entity_id="apple", tick=10, phoneme_tokens=("dah0", "bah1"))
@@ -115,10 +118,20 @@ def test_macro_intent_teleological_demand_lifecycle() -> None:
     assert token1 == "dah0"
     assert stack.active_macro_intent is not None
     assert stack.active_macro_intent.current_token_index == 1
+    assert stack.active_macro_intent.is_active is True
 
     token2 = stack.macro.advance_active_token()
     assert token2 == "bah1"
-    # When all syllables emitted, intent transitions to fulfilled
+    # Syllables emitted: tokens are exhausted, but intent strictly remains active until physical goal is verified
+    assert stack.active_macro_intent is not None
+    assert stack.active_macro_intent.current_token_index == 2
+    assert stack.active_macro_intent.tokens_exhausted is True
+    assert stack.active_macro_intent.fulfilled is False
+
+    # Goal reached on subsequent beat fulfills the intent
+    fulfilled_intent = stack.macro.step(tick=12, goal_reached=True)
+    assert fulfilled_intent is not None
+    assert fulfilled_intent.fulfilled is True
     assert stack.active_macro_intent is None
     assert len(stack.macro.completed_intents) == 1
     assert stack.macro.completed_intents[0].fulfilled is True

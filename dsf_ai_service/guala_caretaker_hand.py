@@ -160,8 +160,17 @@ def in_doorway(snapshot: Any, spot: PositionMM, region_id: str, clearance_mm: in
     return False
 
 
+MAX_DOMESTIC_OBJECTS = 64
+EDIBLE_MASS_THRESHOLD_MICROGRAMS = 2_000
+
+
 def _is_core(her: Any, item: Any) -> bool:
-    return item.material is None or nothing_left_to_bite(her, item)
+    if item.material is None:
+        return True
+    edible_ug = sum(item.material.tastant_mass_micrograms)
+    if edible_ug < EDIBLE_MASS_THRESHOLD_MICROGRAMS:
+        return True
+    return nothing_left_to_bite(her, item)
 
 
 def _is_stray_apple(her: Any, item: Any) -> bool:
@@ -903,31 +912,70 @@ CLEANUP_ID = "clean-up"
 
 def clean_up_house(world: Any) -> dict[str, object]:
     """The caretaker's clean-up routine:
-    Audit all rooms for stray discarded floor apples / cores not held by Guala,
-    admitting their authored departure (binning them), clearing walking paths
-    and doorways. Returns a record in the caregiver presentation shape."""
+    Audit all rooms for stray discarded floor apples / cores not held by Guala.
+    Inspects the complete global world inventory (not the 64-object capped sensory view).
+    Strictly checks remaining edible tastant mass (<2,000 µg or nothing_left_to_bite),
+    preserves edible food within reach, and bounds stray consumable clutter so food cannot
+    accumulate unchecked. Never silently swallows departure errors.
+    Returns a record in the caregiver presentation shape."""
     snapshot = world.observation_snapshot()
-    her = next(body for body in snapshot.bodies if body.body_id == snapshot.self_body_id)
-    cleared = []
-    for item in snapshot.objects:
+    her = next((body for body in snapshot.bodies if body.body_id == snapshot.self_body_id), None)
+    if her is None:
+        return {
+            "object_id": CLEANUP_ID,
+            "presented": False,
+            "cleared": [],
+            "schema": "guala.caregiver_presentation.v1",
+            "steps": [{"operation": "cleanup", "reason": "no_self_body", "cleared": []}],
+        }
+
+    # Inspect complete global world inventory
+    all_objects = world.global_objects() if hasattr(world, "global_objects") else world._state.world.objects
+    cleared: list[str] = []
+    steps: list[dict[str, object]] = []
+
+    # 1. Clear eaten cores (< 2,000 µg edible or nothing_left_to_bite)
+    # that are not held and not actively reachable by Guala
+    stray_edible_apples = []
+    for item in list(all_objects):
         if not item.object_id.startswith("apple") or item.position is None:
             continue
         if item.held_by_body_id is not None:
             continue
-        # If Guala is actively near it eating, preserve it
-        if _distance_mm(her.pose.position, item.position) <= her.reach_mm:
-            continue
-        try:
-            world.admit_authored_departure(item.object_id)
-            cleared.append(item.object_id)
-        except Exception:
-            pass
+        in_reach = (_distance_mm(her.pose.position, item.position) <= her.reach_mm)
+        
+        edible_ug = sum(item.material.tastant_mass_micrograms) if item.material else 0
+        is_core = (edible_ug < EDIBLE_MASS_THRESHOLD_MICROGRAMS) or nothing_left_to_bite(her, item)
+        
+        if is_core and not in_reach:
+            try:
+                world.admit_authored_departure(item.object_id)
+                cleared.append(item.object_id)
+                steps.append({"operation": "clear_core", "object_id": item.object_id, "edible_ug": edible_ug})
+            except Exception as exc:
+                steps.append({"operation": "departure_error", "object_id": item.object_id, "error": str(exc)})
+        elif not is_core and not in_reach:
+            stray_edible_apples.append((edible_ug, item.object_id))
+
+    # 2. Prevent consumable food clutter accumulation:
+    # If multiple abandoned edible apples exist outside her reach, keep at most 1 fresh apple
+    # and depart excess abandoned apples so food count cannot leak over long runs
+    if len(stray_edible_apples) > 1:
+        stray_edible_apples.sort(key=lambda c: c[0], reverse=True)
+        for edible_ug, obj_id in stray_edible_apples[1:]:
+            try:
+                world.admit_authored_departure(obj_id)
+                cleared.append(obj_id)
+                steps.append({"operation": "clear_excess_stray_food", "object_id": obj_id, "edible_ug": edible_ug})
+            except Exception as exc:
+                steps.append({"operation": "departure_error", "object_id": obj_id, "error": str(exc)})
+
     return {
         "object_id": CLEANUP_ID,
         "presented": True,
         "cleared": cleared,
         "schema": "guala.caregiver_presentation.v1",
-        "steps": [{"operation": "cleanup", "reason": "applied", "cleared": cleared}],
+        "steps": [{"operation": "cleanup", "reason": "applied", "cleared": cleared, "details": steps}],
     }
 
 
@@ -1013,7 +1061,7 @@ def present_food(world: Any, object_id: str) -> dict[str, object]:
     return outcome
 
 
-__all__ = ("BEDTIME_ID", "CLEANUP_ID", "DELIVERY_ID", "clean_up_house", "make_bed", "core_in_a_doorway", "deliver_apple", "in_doorway", "nothing_left_to_bite", "offered_within_reach", "present_food", "stray_core", "touch_her", "withdraw")
+__all__ = ("BEDTIME_ID", "CLEANUP_ID", "DELIVERY_ID", "EDIBLE_MASS_THRESHOLD_MICROGRAMS", "MAX_DOMESTIC_OBJECTS", "clean_up_house", "make_bed", "core_in_a_doorway", "deliver_apple", "in_doorway", "nothing_left_to_bite", "offered_within_reach", "present_food", "stray_core", "touch_her", "withdraw")
 
 
 def offered_within_reach(snapshot: Any) -> str | None:

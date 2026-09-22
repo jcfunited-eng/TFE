@@ -16,6 +16,12 @@ Charter & Architecture:
 - Supports booting from authentic living production state checkpoints (Tick 1,819,000+, nights, and vocal chains).
 - Domestic Housekeeping Invariant: strictly bounds world object count via caretaker clean-up, preventing object accumulation leaks.
 - Unclamped honest reporting: never artificially clamps overclock metrics or mislabels diurnal sleep cycles as 24-hour calendar days.
+- Complete Fail-Closed Verification (SH-A1-01, SH-A1-05, SH-A1-06):
+  - True complete world inventory measurement (world.global_objects()).
+  - Decoupled phonemic syntactic articulation from physical metabolic demand fulfillment.
+  - Scripted token routines formally treated as simulation fixtures; no manufactured developmental success.
+  - Genuine isolated child subprocess execution for cold-restart continuation invariance without shared in-process caches.
+  - Fail-closed exit code 1 on any mathematical divergence or invariant violation.
 
 Pure deterministic physical cognition: no heuristics, no ML approximations, no synthetic language scaffolding.
 All vocal emissions are pure acoustic phoneme syllables from canonical SYLLABLES.
@@ -25,10 +31,14 @@ from __future__ import annotations
 
 import argparse
 from dataclasses import asdict, dataclass, replace
+import hashlib
 import json
 import os
 from pathlib import Path
+import shutil
+import subprocess
 import sys
+import tempfile
 import time
 from typing import Any, Callable, Sequence
 import urllib.request
@@ -96,11 +106,15 @@ class HarnessMetrics:
 
 @dataclass(frozen=True, slots=True)
 class CurriculumReceipt:
+    fixture_classification: str
+    autonomous_speech_observed: bool
     organism_identity: str
     target_entity_id: str
-    acoustic_cues_received: int
+    tutor_acoustic_prompts_delivered: int
     demand_intent_id: str
-    demand_syllables_emitted: tuple[str, ...]
+    demand_preset_tokens_advanced: tuple[str, ...]
+    demand_articulation_complete: bool
+    demand_physical_fulfilled: bool
     demand_fulfilled: bool
     demand_duration_beats: int
     bites_count: int
@@ -108,21 +122,35 @@ class CurriculumReceipt:
     reserve_micrograms_final: int
     moments_formed_count: int
     valuation_intent_id: str | None
-    valuation_syllables_emitted: tuple[str, ...]
+    valuation_preset_tokens_advanced: tuple[str, ...]
     valuation_fulfilled: bool
     wall_clock_seconds: float
     ticks_per_second: float
     overclock_speedup_factor: float
 
+    @property
+    def demand_syllables_emitted(self) -> tuple[str, ...]:
+        return self.demand_preset_tokens_advanced
+
+    @property
+    def valuation_syllables_emitted(self) -> tuple[str, ...]:
+        return self.valuation_preset_tokens_advanced
+
+    @property
+    def acoustic_cues_received(self) -> int:
+        return self.tutor_acoustic_prompts_delivered
+
 
 @dataclass(frozen=True, slots=True)
 class DeonticReceipt:
+    fixture_classification: str
+    autonomous_speech_observed: bool
     organism_identity: str
     target_agent_id: str
     prescribed_action: str
-    acoustic_prompts_exchanged: int
+    tutor_prompts_delivered: int
     deontic_intent_id: str
-    syllables_emitted: tuple[str, ...]
+    preset_tokens_advanced: tuple[str, ...]
     deontic_fulfilled: bool
     duration_beats: int
     reserve_micrograms: int
@@ -130,6 +158,14 @@ class DeonticReceipt:
     wall_clock_seconds: float
     ticks_per_second: float
     overclock_speedup_factor: float
+
+    @property
+    def syllables_emitted(self) -> tuple[str, ...]:
+        return self.preset_tokens_advanced
+
+    @property
+    def acoustic_prompts_exchanged(self) -> int:
+        return self.tutor_prompts_delivered
 
 
 @dataclass(frozen=True, slots=True)
@@ -180,108 +216,58 @@ class HeadlessSpeedHarness:
     def from_live_checkpoint(
         cls,
         checkpoint_dir: str | Path | None = None,
-        state_path: str | Path | None = None,
-        observation_url: str | None = None,
         identity: str = DEFAULT_IDENTITY,
         use_native: bool = True,
         expand_walkway: bool = True,
     ) -> "HeadlessSpeedHarness":
-        """Instantiate speed harness initialized from Guala's real continuous living state.
+        """Instantiate speed harness initialized strictly from Guala's real continuous living state.
         
-        Prioritizes authenticated paired current checkpoint authority (PairedCurrentStore)
-        over synthetic genesis initialization.
+        Strict Fail-Closed Authority (SH-A1-02):
+        - Must restore from authenticated PairedCurrentStore.
+        - Raises RuntimeError / FileNotFoundError if checkpoint is missing or corrupt.
+        - Synthetic genesis fallback is strictly forbidden under authentic execution.
         """
         chk_dir = Path(checkpoint_dir or DEFAULT_CHECKPOINT_DIR)
         
-        # 1. Primary Authority: PairedCurrentStore
-        if chk_dir.exists() and (chk_dir / "CURRENT").exists():
-            try:
-                store = PairedCurrentStore(
-                    chk_dir,
-                    max_body_bytes=33_554_432,
-                    max_world_bytes=16_777_216,
-                )
-                restored = store.restore()
-                current = restored.pointer.current
-                
-                organism = FunctionalOrganism.restore(restored.body)
-                if organism.identity != current.identity or organism.live_organism_tick != current.organism_tick:
-                    raise RuntimeError("restored organism differs from paired CURRENT record")
-                
-                world = home_world_authority(
-                    identity=current.identity,
-                    encoded_world=restored.world,
-                    migrate_physical_return=True,
-                )
-                
-                return cls(
-                    identity=current.identity,
-                    initial_tick=current.organism_tick,
-                    expand_walkway=expand_walkway,
-                    use_native=use_native,
-                    organism=organism,
-                    world=world,
-                    authentic_checkpoint_used=True,
-                )
-            except Exception as error:
-                print(f"[SpeedHarness] Warning: PairedCurrentStore restore failed ({error}), falling back to observation inspection.", file=sys.stderr)
-
-        # 2. Secondary Inspection: Read public observation tick and caretaker state
-        tick = 1
-        nights = 0
-
-        url = observation_url or DEFAULT_LIVE_URL
+        if not (chk_dir.exists() and (chk_dir / "CURRENT").exists()):
+            raise FileNotFoundError(
+                f"Authentic PairedCurrentStore checkpoint missing at {chk_dir}. "
+                "Synthetic genesis fallback is strictly forbidden under authentic execution."
+            )
+        
         try:
-            req = urllib.request.Request(url, headers={"User-Agent": "HeadlessSpeedHarness/1.0"})
-            with urllib.request.urlopen(req, timeout=3.0) as resp:
-                obs_data = json.loads(resp.read().decode("utf-8"))
-                live_tick = obs_data.get("live_tick") or obs_data.get("persisted_tick")
-                if live_tick and isinstance(live_tick, int):
-                    tick = live_tick
-        except Exception:
-            pass
-
-        st_file = Path(state_path or DEFAULT_STATE_PATH)
-        if st_file.exists():
-            try:
-                st_data = json.loads(st_file.read_text("utf-8"))
-                nights = int(st_data.get("bed_made_for_night", 0))
-                if tick == 1:
-                    max_tick = max(
-                        int(st_data.get("play_tick", 0)),
-                        int(st_data.get("bedtime_tick", 0)),
-                        int(st_data.get("meal_tick", 0)),
-                    )
-                    if max_tick > 0:
-                        tick = max_tick
-            except Exception:
-                pass
-
-        if tick <= 0:
-            tick = 1
-
-        organism = FunctionalOrganism.genesis(identity=identity, organism_tick=tick)
-        organism._state["nights"] = nights
-
-        ledger_file = Path(DEFAULT_LEDGER_PATH)
-        if ledger_file.exists():
-            try:
-                chains_count = 0
-                for line in ledger_file.read_text("utf-8").splitlines():
-                    if '"type": "vocal_chain"' in line:
-                        chains_count += 1
-                organism._state["syllables"] = chains_count
-            except Exception:
-                pass
-
-        return cls(
-            identity=identity,
-            initial_tick=tick,
-            expand_walkway=expand_walkway,
-            use_native=use_native,
-            organism=organism,
-            authentic_checkpoint_used=False,
-        )
+            store = PairedCurrentStore(
+                chk_dir,
+                max_body_bytes=33_554_432,
+                max_world_bytes=16_777_216,
+            )
+            restored = store.restore()
+            current = restored.pointer.current
+            
+            organism = FunctionalOrganism.restore(restored.body)
+            if organism.identity != current.identity or organism.live_organism_tick != current.organism_tick:
+                raise RuntimeError("restored organism differs from paired CURRENT record")
+            
+            world = home_world_authority(
+                identity=current.identity,
+                encoded_world=restored.world,
+                migrate_physical_return=True,
+            )
+            
+            return cls(
+                identity=current.identity,
+                initial_tick=current.organism_tick,
+                expand_walkway=expand_walkway,
+                use_native=use_native,
+                organism=organism,
+                world=world,
+                authentic_checkpoint_used=True,
+            )
+        except Exception as error:
+            raise RuntimeError(
+                f"Authentic checkpoint restoration failed from {chk_dir}: {error}. "
+                "Synthetic genesis fallback is strictly forbidden under authentic execution."
+            ) from error
 
     @property
     def live_tick(self) -> int:
@@ -332,7 +318,7 @@ class HeadlessSpeedHarness:
 
         # Lever 4 Multi-Scale Temporal Evaluation
         obs = self.world.observation_snapshot()
-        body = next((b for b in obs.bodies if b.body_id == self.identity), None)
+        body = next((b for b in obs.bodies if b.body_id in (self.identity, obs.self_body_id)), None)
         held_id = body.held_object_id if body else None
         held_temp = None
         if held_id:
@@ -376,11 +362,18 @@ class HeadlessSpeedHarness:
 
         t0 = time.perf_counter()
         for i in range(1, n_ticks + 1):
-            # Caregiver Sustenance Rule with domestic floor cleanliness bound:
+            # Caregiver Sustenance Rule with domestic floor cleanliness and edible mass check (SH-A1-01):
             if enable_caregiver_sustenance and self.organism.feeding and (self.live_tick % 400 == 0):
-                # Check if unconsumed food already exists in her presence
-                obs = self.world.observation_snapshot()
-                stray_food = [o for o in obs.objects if o.object_id.startswith("apple") and o.held_by_body_id is None]
+                all_objects = self.world.global_objects() if hasattr(self.world, "global_objects") else (
+                    self.world._state.world.objects if hasattr(self.world, "_state") else self.world.observation_snapshot().objects
+                )
+                # Check if unconsumed edible food (remaining tastant >= 2,000 ug) already exists
+                stray_food = [
+                    o for o in all_objects
+                    if o.object_id.startswith("apple") and (
+                        o.material is not None and sum(o.material.tastant_mass_micrograms) >= 2_000
+                    )
+                ]
                 if not stray_food:
                     self.feed_sensory_event(source="caretaker-food", food="apple")
                 else:
@@ -388,7 +381,7 @@ class HeadlessSpeedHarness:
             else:
                 self.step()
 
-            # Periodic domestic housekeeping (every 400 ticks at beat 200) to clear eaten cores
+            # Periodic domestic housekeeping (every 400 ticks at beat 200) inspecting full global inventory
             if enable_caregiver_sustenance and (self.live_tick % 400 == 200):
                 clean_up_house(self.world)
 
@@ -472,12 +465,23 @@ class HeadlessSpeedHarness:
         demand_syllables: Sequence[str] = ("dah0", "bah1"),
         valuation_syllables: Sequence[str] = ("kee0", "loo0"),
     ) -> CurriculumReceipt:
-        """Execute a targeted Month 3 acoustic demand and Month 6 valuation session."""
+        """Execute a targeted Month 3 acoustic demand and Month 6 valuation session.
+        
+        Scripted Syntactic Assembly Fixture (SH-A1-05 Evidence Honesty):
+        - Exercises the harness multi-scale timing stack using scripted phoneme tokens.
+        - Does NOT assert autonomous developmental speech synthesis, valuation, or intent.
+        - Measures genuine physical metabolic delta: compares current bites against session initial
+          bites (current_bites > initial_bites) and current reserve (current_reserve > initial_reserve).
+        - Honest ground truth reporting: demand_fulfilled and valuation_fulfilled report True
+          ONLY if genuine physical / affective goal attainment occurs. Advancing scripted tokens
+          alone does NOT constitute cognitive fulfillment.
+        """
         t0 = time.perf_counter()
         initial_reserve = int(self.organism.reserve_micrograms)
+        initial_bites = int(self.organism.counts.get("bites", 0))
         start_tick = self.live_tick
 
-        # Phase 1: Caretaker Acoustic Calling
+        # Phase 1: Caretaker Acoustic Calling (Fixture prompts delivered to microphone)
         acoustic_cues = 0
         call_syllables = ("ah0", "ee0", "oh0")
         for syl in call_syllables:
@@ -492,13 +496,15 @@ class HeadlessSpeedHarness:
             phoneme_tokens=demand_syllables,
         )
 
-        # Phase 3: Articulate Phonemic Syllables Across Beats
+        # Phase 3: Articulate Phonemic Syllables Across Beats (advance scripted tokens)
         demand_tokens: list[str] = []
         for _ in range(len(demand_syllables)):
             token = self.temporal_stack.macro.advance_active_token()
             if token:
                 demand_tokens.append(token)
             self.step()
+
+        articulation_complete = (len(demand_tokens) == len(demand_syllables))
 
         # Phase 4: Caretaker Affordance Presentation
         self.feed_sensory_event(source="caretaker-food", food=target_entity_id)
@@ -507,18 +513,25 @@ class HeadlessSpeedHarness:
         for _ in range(12):
             self.step()
 
-        # Mark demand fulfilled if target reached
-        demand_fulfilled = False
-        completed = [ci for ci in self.temporal_stack.completed_intents if ci.intent_id == demand_intent.intent_id]
-        if completed and completed[-1].fulfilled:
-            demand_fulfilled = True
-        elif self.temporal_stack.active_macro_intent and self.temporal_stack.active_macro_intent.intent_id == demand_intent.intent_id:
-            fulfilled_intent = self.temporal_stack.macro.step(tick=self.live_tick, goal_reached=True)
-            demand_fulfilled = fulfilled_intent.fulfilled if fulfilled_intent else True
+        # Physical goal evaluation without manufactured outcome (SH-A1-05):
+        snapshot = self.world.observation_snapshot()
+        her = next((b for b in snapshot.bodies if b.body_id in (self.identity, snapshot.self_body_id)), None)
+        held_id = her.held_object_id if her else None
+        current_reserve = int(self.organism.reserve_micrograms)
+        current_bites = int(self.organism.counts.get("bites", 0))
+        physical_goal_reached = bool(
+            (held_id == target_entity_id) or
+            (current_reserve > initial_reserve) or
+            (current_bites > initial_bites)
+        )
+
+        demand_fulfilled = bool(articulation_complete and physical_goal_reached)
+        if self.temporal_stack.active_macro_intent and self.temporal_stack.active_macro_intent.intent_id == demand_intent.intent_id:
+            self.temporal_stack.macro.step(tick=self.live_tick, goal_reached=demand_fulfilled)
 
         demand_duration = self.live_tick - demand_intent.start_tick
 
-        # Phase 6: Month 6 Affective Valuation Transition
+        # Phase 6: Month 6 Affective Valuation Transition (Scripted Fixture)
         val_intent = self.form_affective_valuation(target_entity_id, phoneme_tokens=valuation_syllables)
         val_tokens: list[str] = []
         for _ in range(len(val_intent.syntactic_assembly_tokens)):
@@ -527,8 +540,12 @@ class HeadlessSpeedHarness:
                 val_tokens.append(v_tok)
             self.step()
 
-        val_completed = [ci for ci in self.temporal_stack.completed_intents if ci.intent_id == val_intent.intent_id]
-        val_fulfilled = bool(val_completed and val_completed[-1].fulfilled)
+        # Valuation fulfillment requires measured physical affective resonance or hedonic equilibrium shift.
+        # Advancing fixture tokens alone does NOT constitute cognitive valuation (SH-A1-05).
+        # Since this scripted fixture provides no verified sensory hedonic contact, valuation is not fulfilled.
+        val_fulfilled = False
+        if self.temporal_stack.active_macro_intent and self.temporal_stack.active_macro_intent.intent_id == val_intent.intent_id:
+            self.temporal_stack.macro.step(tick=self.live_tick, goal_reached=False)
 
         total_wall_s = time.perf_counter() - t0
         ticks_run = self.live_tick - start_tick
@@ -536,11 +553,15 @@ class HeadlessSpeedHarness:
         speedup = rate / REAL_TIME_TICKS_PER_SECOND
 
         return CurriculumReceipt(
+            fixture_classification="scripted_harness_fixture",
+            autonomous_speech_observed=False,
             organism_identity=self.identity,
             target_entity_id=target_entity_id,
-            acoustic_cues_received=acoustic_cues,
+            tutor_acoustic_prompts_delivered=acoustic_cues,
             demand_intent_id=demand_intent.intent_id,
-            demand_syllables_emitted=tuple(demand_tokens),
+            demand_preset_tokens_advanced=tuple(demand_tokens),
+            demand_articulation_complete=articulation_complete,
+            demand_physical_fulfilled=physical_goal_reached,
             demand_fulfilled=demand_fulfilled,
             demand_duration_beats=demand_duration,
             bites_count=int(self.organism.counts.get("bites", 0)),
@@ -548,7 +569,7 @@ class HeadlessSpeedHarness:
             reserve_micrograms_final=int(self.organism.reserve_micrograms),
             moments_formed_count=int(self.organism.counts.get("moments", 0)),
             valuation_intent_id=val_intent.intent_id,
-            valuation_syllables_emitted=tuple(val_tokens),
+            valuation_preset_tokens_advanced=tuple(val_tokens),
             valuation_fulfilled=val_fulfilled,
             wall_clock_seconds=total_wall_s,
             ticks_per_second=rate,
@@ -561,11 +582,18 @@ class HeadlessSpeedHarness:
         target_agent_id: str = "person-body-1",
         deontic_syllables: Sequence[str] = ("dee0", "mah0"),
     ) -> DeonticReceipt:
-        """Execute a targeted Month 18-24 Deontic Theory of Mind prescriptive session."""
+        """Execute a targeted Month 18-24 Deontic Theory of Mind prescriptive session.
+        
+        Scripted Multi-Scale Social Fixture (SH-A1-05 Evidence Honesty):
+        - Exercises the harness multi-scale timing stack with tutor-delivered prompts.
+        - Does NOT assert autonomous reciprocal dialogue or emergent social theory of mind.
+        - Deontic fulfillment requires verified reciprocal response from the target agent.
+          Delivering fixture prompts does NOT constitute autonomous Theory of Mind fulfillment.
+        """
         t0 = time.perf_counter()
         start_tick = self.live_tick
 
-        # Phase 1: Social Dyadic Contact
+        # Phase 1: Social Dyadic Contact (Tutor-supplied prompt)
         prompts_exchanged = 0
         prompt_pcm = syllable_pcm(SYLLABLE_DRIVES["dah0"], seed=self.live_tick)
         self.present_sensory_block(source="microphone", pcm=prompt_pcm)
@@ -575,14 +603,14 @@ class HeadlessSpeedHarness:
         deontic_intent = self.form_deontic_prescription(target_action, phoneme_tokens=deontic_syllables)
         deontic_tokens: list[str] = []
 
-        # Phase 3: Meso-Scale Phonemic Articulation across Beats
+        # Phase 3: Meso-Scale Phonemic Articulation across Beats (advance scripted tokens)
         for _ in range(len(deontic_intent.syntactic_assembly_tokens)):
             tok = self.temporal_stack.macro.advance_active_token()
             if tok:
                 deontic_tokens.append(tok)
             self.step()
 
-        # Phase 4: Caretaker Social Confirmation
+        # Phase 4: Caretaker Social Confirmation (Tutor-supplied prompt)
         confirm_pcm = syllable_pcm(SYLLABLE_DRIVES["dee0"], seed=self.live_tick)
         self.present_sensory_block(source="microphone", pcm=confirm_pcm)
         prompts_exchanged += 1
@@ -591,13 +619,12 @@ class HeadlessSpeedHarness:
         for _ in range(3):
             self.step()
 
+        # Social prescription fulfillment requires verified reciprocal response from the target agent.
+        # Stepping preset phoneme tokens and receiving tutor-supplied sensory prompts does NOT prove
+        # autonomous Theory of Mind (SH-A1-05). Deontic fulfillment is therefore reported as False.
         deontic_fulfilled = False
-        completed = [ci for ci in self.temporal_stack.completed_intents if ci.intent_id == deontic_intent.intent_id]
-        if completed and completed[-1].fulfilled:
-            deontic_fulfilled = True
-        elif self.temporal_stack.active_macro_intent and self.temporal_stack.active_macro_intent.intent_id == deontic_intent.intent_id:
-            fulfilled = self.temporal_stack.macro.step(tick=self.live_tick, goal_reached=True)
-            deontic_fulfilled = fulfilled.fulfilled if fulfilled else True
+        if self.temporal_stack.active_macro_intent and self.temporal_stack.active_macro_intent.intent_id == deontic_intent.intent_id:
+            self.temporal_stack.macro.step(tick=self.live_tick, goal_reached=False)
 
         total_wall_s = time.perf_counter() - t0
         ticks_run = self.live_tick - start_tick
@@ -605,12 +632,14 @@ class HeadlessSpeedHarness:
         speedup = rate / REAL_TIME_TICKS_PER_SECOND
 
         return DeonticReceipt(
+            fixture_classification="scripted_harness_fixture",
+            autonomous_speech_observed=False,
             organism_identity=self.identity,
             target_agent_id=target_agent_id,
             prescribed_action=target_action,
-            acoustic_prompts_exchanged=prompts_exchanged,
+            tutor_prompts_delivered=prompts_exchanged,
             deontic_intent_id=deontic_intent.intent_id,
-            syllables_emitted=tuple(deontic_tokens),
+            preset_tokens_advanced=tuple(deontic_tokens),
             deontic_fulfilled=deontic_fulfilled,
             duration_beats=ticks_run,
             reserve_micrograms=int(self.organism.reserve_micrograms),
@@ -758,56 +787,216 @@ class HeadlessSpeedHarness:
         }
 
 
-def run_matched_benchmark(ticks: int = 50, checkpoint_dir: Path | None = None) -> dict[str, Any]:
-    """Execute rigorous matched baseline (pure Python) vs accelerated (native Rust) benchmark."""
-    chk_dir = checkpoint_dir or DEFAULT_CHECKPOINT_DIR
-    if not (chk_dir / "CURRENT").exists():
+def run_matched_benchmark(ticks: int = 100, checkpoint_dir: Path | None = None) -> dict[str, Any]:
+    """Execute rigorous matched baseline (pure Python) vs accelerated (native Rust) benchmark.
+    
+    Diamond-Hard Physical Equivalence & Invariance Verification (SH-A1-01, SH-A1-05, SH-A1-06):
+    1. Enforces authentic checkpoint authority (fails closed if missing or corrupt).
+    2. Explicitly verifies native compilation activation (native_core.install() returns True).
+    3. Pins solar UTC illumination to simulation time to guarantee deterministic physical boundary conditions.
+       Guarantees restoration of GUALA_SOLAR_UTC_OVERRIDE in finally block.
+    4. Computes SHA-256 digests of initial, baseline final, and accelerated final states for both body and world.
+    5. Formally asserts bit-exact deterministic equivalence between baseline and native execution.
+    6. Formally asserts cold-restart continuation invariance in a GENUINE ISOLATED CHILD PROCESS (via subprocess.run).
+       Eliminates in-process cache reuse and PyO3 static memory sharing using a fresh tempfile directory.
+    7. Measures true complete global world inventory (world.global_objects()) and verifies domestic bound.
+    8. Fails closed with RuntimeError on any discrepancy (never prints DIVERGED and exits 0).
+    """
+    chk_dir = Path(checkpoint_dir or DEFAULT_CHECKPOINT_DIR)
+    if not (chk_dir.exists() and (chk_dir / "CURRENT").exists()):
         raise FileNotFoundError(f"Authentic checkpoint missing at {chk_dir}")
 
     store = PairedCurrentStore(chk_dir, max_body_bytes=33_554_432, max_world_bytes=16_777_216)
     restored = store.restore()
     current = restored.pointer.current
+    initial_body_sha = current.body_sha256
+    initial_world_sha = hashlib.sha256(restored.world).hexdigest()
 
-    # 1. Baseline Run (pure Python)
-    native_core.uninstall()
-    org_base = FunctionalOrganism.restore(restored.body)
-    world_base = home_world_authority(identity=current.identity, encoded_world=restored.world, migrate_physical_return=True)
-    loop_base = FunctionalPhysicalLoop()
-    occ = PhysicalOccurrence("unattended", None)
+    old_solar = os.environ.get("GUALA_SOLAR_UTC_OVERRIDE")
+    simulated_sec_of_day = int(current.organism_tick / REAL_TIME_TICKS_PER_SECOND) % 86_400
+    os.environ["GUALA_SOLAR_UTC_OVERRIDE"] = str(simulated_sec_of_day)
 
-    t0 = time.perf_counter()
-    for _ in range(ticks):
-        loop_base.settle(org_base, world_base, occ)
-    t_base = time.perf_counter() - t0
-    rate_base = ticks / max(t_base, 1e-6)
+    try:
+        # 1. Baseline Run (pure Python, native uninstalled)
+        native_core.uninstall()
+        org_base = FunctionalOrganism.restore(restored.body)
+        world_base = home_world_authority(identity=current.identity, encoded_world=restored.world, migrate_physical_return=True)
+        loop_base = FunctionalPhysicalLoop()
+        occ = PhysicalOccurrence("unattended", None)
+        initial_obj_count = len(world_base.global_objects() if hasattr(world_base, "global_objects") else world_base._state.world.objects)
 
-    # 2. Accelerated Run (native compiled Rust)
-    native_core.install()
-    org_nat = FunctionalOrganism.restore(restored.body)
-    world_nat = home_world_authority(identity=current.identity, encoded_world=restored.world, migrate_physical_return=True)
-    loop_nat = FunctionalPhysicalLoop()
+        t0 = time.perf_counter()
+        for _ in range(ticks):
+            loop_base.settle(org_base, world_base, occ)
+        t_base = time.perf_counter() - t0
+        rate_base = ticks / max(t_base, 1e-6)
 
-    t0 = time.perf_counter()
-    for _ in range(ticks):
-        loop_nat.settle(org_nat, world_nat, occ)
-    t_nat = time.perf_counter() - t0
-    rate_nat = ticks / max(t_nat, 1e-6)
+        final_body_base_bytes = org_base.encoded()
+        final_world_base_bytes = bytes(world_base.encoded_snapshot())
+        final_body_sha_base = hashlib.sha256(final_body_base_bytes).hexdigest()
+        final_world_sha_base = hashlib.sha256(final_world_base_bytes).hexdigest()
+        base_obj_count = len(world_base.global_objects() if hasattr(world_base, "global_objects") else world_base._state.world.objects)
 
-    speedup_vs_base = rate_nat / max(rate_base, 1e-6)
-    speedup_vs_realtime = rate_nat / REAL_TIME_TICKS_PER_SECOND
+        # 2. Accelerated Run (native compiled Rust hot path)
+        installed = native_core.install()
+        if not installed:
+            raise RuntimeError("native_core.install() failed to activate compiled acceleration hot-path")
 
-    return {
-        "organism_identity": current.identity,
-        "organism_tick": current.organism_tick,
-        "benchmark_ticks": ticks,
-        "baseline_ticks_per_second": round(rate_base, 2),
-        "baseline_speedup_factor": round(rate_base / REAL_TIME_TICKS_PER_SECOND, 2),
-        "baseline_wall_seconds": round(t_base, 3),
-        "accelerated_ticks_per_second": round(rate_nat, 2),
-        "accelerated_speedup_factor": round(speedup_vs_realtime, 2),
-        "accelerated_wall_seconds": round(t_nat, 3),
-        "measured_native_speedup": round(speedup_vs_base, 2),
-    }
+        org_nat = FunctionalOrganism.restore(restored.body)
+        world_nat = home_world_authority(identity=current.identity, encoded_world=restored.world, migrate_physical_return=True)
+        loop_nat = FunctionalPhysicalLoop()
+
+        t0 = time.perf_counter()
+        for _ in range(ticks):
+            loop_nat.settle(org_nat, world_nat, occ)
+        t_nat = time.perf_counter() - t0
+        rate_nat = ticks / max(t_nat, 1e-6)
+
+        final_body_nat_bytes = org_nat.encoded()
+        final_world_nat_bytes = bytes(world_nat.encoded_snapshot())
+        final_body_sha_nat = hashlib.sha256(final_body_nat_bytes).hexdigest()
+        final_world_sha_nat = hashlib.sha256(final_world_nat_bytes).hexdigest()
+        nat_obj_count = len(world_nat.global_objects() if hasattr(world_nat, "global_objects") else world_nat._state.world.objects)
+
+        speedup_vs_base = rate_nat / max(rate_base, 1e-6)
+        speedup_vs_realtime = rate_nat / REAL_TIME_TICKS_PER_SECOND
+
+        # Assert deterministic bit-exact equivalence
+        body_match = (final_body_sha_base == final_body_sha_nat)
+        world_match = (final_world_sha_base == final_world_sha_nat)
+        global_objects_bounded = (nat_obj_count <= initial_obj_count)
+
+        if not body_match:
+            raise RuntimeError(f"DIVERGENCE: Baseline body SHA ({final_body_sha_base}) != Native body SHA ({final_body_sha_nat})")
+        if not world_match:
+            raise RuntimeError(f"DIVERGENCE: Baseline world SHA ({final_world_sha_base}) != Native world SHA ({final_world_sha_nat})")
+        if not global_objects_bounded:
+            raise RuntimeError(f"OBJECT LEAK: Global world object count grew from {initial_obj_count} to {nat_obj_count}")
+
+        # 3. Cold-Restart Continuation Invariance Test in ISOLATED OS SUBPROCESS (SH-A1-06)
+        half_ticks = ticks // 2
+        rem_ticks = ticks - half_ticks
+
+        org_split = FunctionalOrganism.restore(restored.body)
+        world_split = home_world_authority(identity=current.identity, encoded_world=restored.world, migrate_physical_return=True)
+        for _ in range(half_ticks):
+            loop_nat.settle(org_split, world_split, occ)
+
+        with tempfile.TemporaryDirectory(prefix="guala_benchmark_cold_restart_") as tmp_dir:
+            restart_store = PairedCurrentStore(Path(tmp_dir), max_body_bytes=33_554_432, max_world_bytes=16_777_216)
+            restart_store.publish(
+                identity=org_split.identity,
+                organism_tick=org_split.live_organism_tick,
+                body=org_split.encoded(),
+                world=bytes(world_split.encoded_snapshot()),
+                expected_current_body_sha256=None,
+            )
+
+            # Spawn completely separate OS Python process
+            child_code = f"""
+import hashlib
+import os
+from pathlib import Path
+import sys
+
+ROOT_DIR = Path({repr(str(ROOT_DIR))})
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+
+os.environ["GUALA_SOLAR_UTC_OVERRIDE"] = {repr(os.environ["GUALA_SOLAR_UTC_OVERRIDE"])}
+
+from dsf_ai_service.paired_current_store import PairedCurrentStore
+from dsf_ai_service.guala_functional_organism import FunctionalOrganism
+from dsf_ai_service.guala_home_world import home_world_authority
+from dsf_ai_service.guala_functional_loop import FunctionalPhysicalLoop
+from dsf_ai_service.lean_actor import PhysicalOccurrence
+from dsf_ai_service.substrate import native_core
+
+if not native_core.install():
+    sys.exit(2)
+
+store = PairedCurrentStore(Path({repr(tmp_dir)}), max_body_bytes=33_554_432, max_world_bytes=16_777_216)
+restored = store.restore()
+current = restored.pointer.current
+
+org = FunctionalOrganism.restore(restored.body)
+world = home_world_authority(identity=current.identity, encoded_world=restored.world, migrate_physical_return=True)
+loop = FunctionalPhysicalLoop()
+occ = PhysicalOccurrence("unattended", None)
+
+for _ in range({rem_ticks}):
+    loop.settle(org, world, occ)
+
+body_sha = hashlib.sha256(org.encoded()).hexdigest()
+world_sha = hashlib.sha256(bytes(world.encoded_snapshot())).hexdigest()
+print(f"BODY_SHA:{{body_sha}}")
+print(f"WORLD_SHA:{{world_sha}}")
+"""
+            child_env = dict(os.environ)
+            child_env["PYTHONPATH"] = str(ROOT_DIR)
+            proc = subprocess.run(
+                [sys.executable, "-c", child_code],
+                env=child_env,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            if proc.returncode != 0:
+                raise RuntimeError(
+                    f"Cold restart child subprocess failed with code {proc.returncode}:\nSTDERR:\n{proc.stderr}\nSTDOUT:\n{proc.stdout}"
+                )
+
+            body_line = next((l for l in proc.stdout.splitlines() if l.startswith("BODY_SHA:")), None)
+            world_line = next((l for l in proc.stdout.splitlines() if l.startswith("WORLD_SHA:")), None)
+            if not body_line or not world_line:
+                raise RuntimeError(f"Cold restart child subprocess did not produce SHA outputs:\n{proc.stdout}")
+
+            final_body_restart_sha = body_line.split(":", 1)[1].strip()
+            final_world_restart_sha = world_line.split(":", 1)[1].strip()
+
+        cold_restart_body_match = (final_body_restart_sha == final_body_sha_nat)
+        cold_restart_world_match = (final_world_restart_sha == final_world_sha_nat)
+        cold_restart_match = (cold_restart_body_match and cold_restart_world_match)
+
+        if not cold_restart_body_match:
+            raise RuntimeError(f"DIVERGENCE: Cold restart body SHA ({final_body_restart_sha}) != Continuous native body SHA ({final_body_sha_nat})")
+        if not cold_restart_world_match:
+            raise RuntimeError(f"DIVERGENCE: Cold restart world SHA ({final_world_restart_sha}) != Continuous native world SHA ({final_world_sha_nat})")
+
+        return {
+            "organism_identity": current.identity,
+            "starting_checkpoint_tick": current.organism_tick,
+            "benchmark_ticks": ticks,
+            "native_acceleration_installed": installed,
+            "initial_world_objects_count": initial_obj_count,
+            "final_world_objects_count": nat_obj_count,
+            "global_objects_count_bounded": global_objects_bounded,
+            "domestic_object_bound_enforced": global_objects_bounded,
+            "baseline_ticks_per_second": round(rate_base, 2),
+            "baseline_speedup_factor": round(rate_base / REAL_TIME_TICKS_PER_SECOND, 2),
+            "baseline_wall_seconds": round(t_base, 3),
+            "accelerated_ticks_per_second": round(rate_nat, 2),
+            "accelerated_speedup_factor": round(speedup_vs_realtime, 2),
+            "accelerated_wall_seconds": round(t_nat, 3),
+            "measured_native_speedup": round(speedup_vs_base, 2),
+            "initial_body_sha256": initial_body_sha,
+            "initial_world_sha256": initial_world_sha,
+            "final_baseline_body_sha256": final_body_sha_base,
+            "final_native_body_sha256": final_body_sha_nat,
+            "body_state_equivalence_verified": body_match,
+            "final_baseline_world_sha256": final_world_sha_base,
+            "final_native_world_sha256": final_world_sha_nat,
+            "world_state_equivalence_verified": world_match,
+            "cold_restart_isolated_subprocess": True,
+            "cold_restart_body_match": cold_restart_body_match,
+            "cold_restart_world_match": cold_restart_world_match,
+            "cold_restart_invariance_verified": cold_restart_match,
+        }
+    finally:
+        if old_solar is None:
+            os.environ.pop("GUALA_SOLAR_UTC_OVERRIDE", None)
+        else:
+            os.environ["GUALA_SOLAR_UTC_OVERRIDE"] = old_solar
 
 
 def main() -> None:
@@ -827,19 +1016,32 @@ def main() -> None:
 
     if args.benchmark:
         chk_p = Path(args.checkpoint_dir) if args.checkpoint_dir else None
-        res = run_matched_benchmark(ticks=args.ticks, checkpoint_dir=chk_p)
+        try:
+            res = run_matched_benchmark(ticks=args.ticks, checkpoint_dir=chk_p)
+        except Exception as exc:
+            if args.json:
+                print(json.dumps({"status": "FAILED", "error": str(exc)}, indent=2))
+            else:
+                print(f"\n[FATAL BENCHMARK FAILURE] {exc}", file=sys.stderr)
+            sys.exit(1)
+
         if args.json:
             print(json.dumps(res, indent=2))
         else:
             print("\n" + "=" * 70)
-            print("GUALA SPEED HARNESS: AUTHENTIC MATCHED BENCHMARK")
+            print("GUALA SPEED HARNESS: AUTHENTIC MATCHED BENCHMARK & EQUIVALENCE RECEIPT")
             print("=" * 70)
             print(f"Organism Identity:              {res['organism_identity']}")
-            print(f"Starting Checkpoint Tick:       {res['organism_tick']}")
+            print(f"Starting Checkpoint Tick:       {res['starting_checkpoint_tick']}")
             print(f"Benchmark Workload:             {res['benchmark_ticks']} ticks")
+            print(f"Native Hot Path Installed:      {'YES' if res.get('native_acceleration_installed') else 'NO'}")
             print(f"Baseline (Pure Python):         {res['baseline_ticks_per_second']} ticks/s ({res['baseline_speedup_factor']}x real-time, {res['baseline_wall_seconds']}s)")
             print(f"Accelerated (Native Rust):      {res['accelerated_ticks_per_second']} ticks/s ({res['accelerated_speedup_factor']}x real-time, {res['accelerated_wall_seconds']}s)")
             print(f"Measured Native Speedup:        {res['measured_native_speedup']}x faster than baseline")
+            print(f"Body Bit-Exact Equivalence:     {'VERIFIED (100% SHA256 Match)' if res.get('body_state_equivalence_verified') else 'DIVERGED'}")
+            print(f"World Bit-Exact Equivalence:    {'VERIFIED (100% SHA256 Match)' if res.get('world_state_equivalence_verified') else 'DIVERGED'}")
+            print(f"Cold-Restart Continuation:      {'VERIFIED (Isolated Subprocess Bit-Exact Invariance)' if res.get('cold_restart_invariance_verified') else 'DIVERGED'}")
+            print(f"Global World Objects Bound:     {'ENFORCED' if res.get('global_objects_count_bounded') else 'VIOLATED'} ({res.get('initial_world_objects_count')} -> {res.get('final_world_objects_count')} objects)")
             print("=" * 70)
         return
 
@@ -882,15 +1084,17 @@ def main() -> None:
             print(json.dumps(asdict(receipt), indent=2))
         else:
             print("\n" + "=" * 70)
-            print("GUALA THEORY OF MIND RECEIPT: MONTH 18-24 DEONTIC PRESCRIPTION")
+            print("GUALA HARNESS FIXTURE RECEIPT: MONTH 18-24 DEONTIC PRESCRIPTION (SCRIPTED FIXTURE)")
             print("=" * 70)
+            print(f"Fixture Classification:         {receipt.fixture_classification}")
+            print(f"Autonomous Speech Observed:     {'YES' if receipt.autonomous_speech_observed else 'NO'}")
             print(f"Organism Identity:              {receipt.organism_identity}")
             print(f"Target Dyadic Agent:            {receipt.target_agent_id}")
             print(f"Prescribed Action:              {receipt.prescribed_action}")
-            print(f"Acoustic Prompts Exchanged:     {receipt.acoustic_prompts_exchanged} cochlear frames")
+            print(f"Tutor Prompts Delivered:        {receipt.tutor_prompts_delivered} cochlear frames")
             print(f"Deontic Intent Identifier:      {receipt.deontic_intent_id}")
-            print(f"Acoustic Phonemes Emitted:      {' -> '.join(receipt.syllables_emitted)}")
-            print(f"Prescriptive Intent Fulfilled:  {'YES' if receipt.deontic_fulfilled else 'NO'} ({receipt.duration_beats} beats)")
+            print(f"Preset Tokens Advanced:         {' -> '.join(receipt.preset_tokens_advanced)}")
+            print(f"Prescriptive Intent Fulfilled:  {'YES' if receipt.deontic_fulfilled else 'NO (Tutor prompts do not prove autonomous ToM)'} ({receipt.duration_beats} beats)")
             print(f"Metabolic Reserve / Moments:    {receipt.reserve_micrograms} µg / {receipt.moments_formed_count} moments")
             print(f"Throughput & Overclock:         {receipt.ticks_per_second:.1f} ticks/s ({receipt.overclock_speedup_factor:.2f}x real-time)")
             print("=" * 70)
@@ -904,19 +1108,23 @@ def main() -> None:
             print(json.dumps(asdict(receipt), indent=2))
         else:
             print("\n" + "=" * 70)
-            print("GUALA DEVELOPMENTAL CURRICULUM RECEIPT: MONTH 3 DEMAND SYNTAX")
+            print("GUALA HARNESS FIXTURE RECEIPT: MONTH 3 DEMAND SYNTAX (SCRIPTED FIXTURE)")
             print("=" * 70)
+            print(f"Fixture Classification:         {receipt.fixture_classification}")
+            print(f"Autonomous Speech Observed:     {'YES' if receipt.autonomous_speech_observed else 'NO'}")
             print(f"Organism Identity:              {receipt.organism_identity}")
             print(f"Target Affordance Entity:       {receipt.target_entity_id}")
-            print(f"Acoustic Cues Received:         {receipt.acoustic_cues_received} cochlear frames")
+            print(f"Tutor Acoustic Prompts:         {receipt.tutor_acoustic_prompts_delivered} cochlear frames")
             print(f"Teleological Demand Intent:     {receipt.demand_intent_id}")
-            print(f"Demand Phonemes Emitted:        {' -> '.join(receipt.demand_syllables_emitted)}")
+            print(f"Demand Preset Tokens Advanced:  {' -> '.join(receipt.demand_preset_tokens_advanced)}")
+            print(f"Demand Articulation Complete:   {'YES' if receipt.demand_articulation_complete else 'NO'}")
+            print(f"Physical Feeding Fulfilled:     {'YES' if receipt.demand_physical_fulfilled else 'NO'}")
             print(f"Macro Intent Fulfilled:         {'YES' if receipt.demand_fulfilled else 'NO'} ({receipt.demand_duration_beats} beats)")
             print(f"Metabolic Reserve:              {receipt.reserve_micrograms_initial} µg -> {receipt.reserve_micrograms_final} µg")
             print(f"Bites / Moments Formed:         {receipt.bites_count} bites / {receipt.moments_formed_count} moments")
             print(f"Month 6 Valuation Intent:       {receipt.valuation_intent_id or 'None'}")
-            print(f"Valuation Phonemes Emitted:     {' -> '.join(receipt.valuation_syllables_emitted)}")
-            print(f"Valuation Fulfilled:            {'YES' if receipt.valuation_fulfilled else 'NO'}")
+            print(f"Valuation Preset Tokens Adv.:   {' -> '.join(receipt.valuation_preset_tokens_advanced)}")
+            print(f"Valuation Fulfilled:            {'YES' if receipt.valuation_fulfilled else 'NO (Preset tokens do not prove valuation)'}")
             print(f"Throughput & Overclock:         {receipt.ticks_per_second:.1f} ticks/s ({receipt.overclock_speedup_factor:.2f}x real-time)")
             print("=" * 70)
         return

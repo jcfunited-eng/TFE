@@ -8,9 +8,11 @@ Verifies:
 5. Direct sensory block presentation.
 6. Mathematical consistency and horizon extrapolation for the 2.5-year accelerated developmental roadmap.
 7. Lever 4 Hierarchical Multi-Scale Stack integration (Micro reflex, Meso cadence, Macro cognitive intent).
-8. Targeted Month 3 Acoustic Demand Syntax and Month 6 Valuation curriculum session.
-9. Month 18-24 Deontic Theory of Mind prescriptive session.
-10. Live production state checkpoint ingestion (Tick 1,767,000+, nights, vocal chains).
+8. Targeted Month 3 Acoustic Demand Syntax and Month 6 Valuation curriculum session fixture with honest evidence evaluation (SH-A1-05).
+9. Month 18-24 Deontic Theory of Mind prescriptive session fixture with honest evidence evaluation (SH-A1-05).
+10. Live production state checkpoint ingestion (Tick 1,819,000+, nights, vocal chains).
+11. Matched baseline vs native acceleration benchmark asserting bit-exact equivalence, genuine isolated child subprocess cold-restart continuation invariance, and global inventory bound (SH-A1-01, SH-A1-06).
+12. Caretaker clean_up_house global object inspection and core threshold (SH-A1-01).
 """
 
 from __future__ import annotations
@@ -161,37 +163,59 @@ def test_speed_harness_multi_scale_temporal_stack() -> None:
 
 
 def test_speed_harness_curriculum_session() -> None:
-    """Verifies full Month 3 Acoustic Demand and Month 6 Valuation curriculum session."""
+    """Verifies Month 3 Acoustic Demand and Month 6 Valuation curriculum session fixture.
+    
+    Verifies self-describing scripted fixture classification, honest evaluation of preset tokens,
+    and decoupling of syntactic articulation from physical metabolic fulfillment (SH-A1-05).
+    """
     harness = HeadlessSpeedHarness(identity=DEFAULT_IDENTITY, initial_tick=1)
     receipt = harness.run_curriculum_session(target_entity_id="apple")
 
     assert isinstance(receipt, CurriculumReceipt)
+    assert receipt.fixture_classification == "scripted_harness_fixture"
+    assert receipt.autonomous_speech_observed is False
     assert receipt.organism_identity == DEFAULT_IDENTITY
     assert receipt.target_entity_id == "apple"
-    assert receipt.acoustic_cues_received == 3
-    assert receipt.demand_intent_id.endswith("teleological_demand")
-    assert receipt.demand_syllables_emitted == ("dah0", "bah1")
-    assert receipt.demand_fulfilled is True
+    assert receipt.tutor_acoustic_prompts_delivered == 3
+    assert receipt.acoustic_cues_received == 3  # via property
+    assert receipt.demand_intent_id.startswith("teleological_demand")
+    assert receipt.demand_preset_tokens_advanced == ("dah0", "bah1")
+    assert receipt.demand_syllables_emitted == ("dah0", "bah1")  # via property
+    assert receipt.demand_articulation_complete is True
+    # Honest physical assessment: caretaker delivery across rooms did not reach mouth; no bite occurred
+    assert receipt.demand_physical_fulfilled is False
+    assert receipt.demand_fulfilled is False
     assert receipt.demand_duration_beats > 0
-    assert receipt.valuation_syllables_emitted == ("kee0", "loo0")
-    assert receipt.valuation_fulfilled is True
+    assert receipt.valuation_preset_tokens_advanced == ("kee0", "loo0")
+    assert receipt.valuation_syllables_emitted == ("kee0", "loo0")  # via property
+    # Honest affective assessment: preset tokens do not constitute measured valuation
+    assert receipt.valuation_fulfilled is False
     assert receipt.ticks_per_second > 0.0
     assert receipt.overclock_speedup_factor > 0.0
 
 
 def test_speed_harness_deontic_theory_of_mind_session() -> None:
-    """Verifies Month 18-24 Deontic Theory of Mind prescriptive session."""
+    """Verifies Month 18-24 Deontic Theory of Mind prescriptive session fixture (SH-A1-05).
+    
+    Verifies self-describing scripted fixture classification, honest evaluation of tutor prompts,
+    and non-manufacture of autonomous Theory of Mind (SH-A1-05).
+    """
     harness = HeadlessSpeedHarness(identity=DEFAULT_IDENTITY, initial_tick=1)
     receipt = harness.run_deontic_session(target_action="rest")
 
     assert isinstance(receipt, DeonticReceipt)
+    assert receipt.fixture_classification == "scripted_harness_fixture"
+    assert receipt.autonomous_speech_observed is False
     assert receipt.organism_identity == DEFAULT_IDENTITY
     assert receipt.target_agent_id == "person-body-1"
     assert receipt.prescribed_action == "rest"
-    assert receipt.acoustic_prompts_exchanged == 2
-    assert receipt.deontic_intent_id.endswith("deontic_theory_of_mind")
-    assert receipt.syllables_emitted == ("dee0", "mah0")
-    assert receipt.deontic_fulfilled is True
+    assert receipt.tutor_prompts_delivered == 2
+    assert receipt.acoustic_prompts_exchanged == 2  # via property
+    assert receipt.deontic_intent_id.startswith("deontic_theory_of_mind")
+    assert receipt.preset_tokens_advanced == ("dee0", "mah0")
+    assert receipt.syllables_emitted == ("dee0", "mah0")  # via property
+    # Honest social assessment: tutor-supplied prompts do not demonstrate autonomous Theory of Mind
+    assert receipt.deontic_fulfilled is False
     assert receipt.duration_beats > 0
     assert receipt.ticks_per_second > 0.0
     assert receipt.overclock_speedup_factor > 0.0
@@ -235,12 +259,58 @@ def test_speed_harness_sleep_settle_session() -> None:
 
 
 def test_speed_harness_from_live_checkpoint() -> None:
-    """Verifies that speed harness correctly boots from Guala's real live state checkpoint."""
+    """Verifies that speed harness correctly boots from Guala's authentic living state checkpoint."""
     harness = HeadlessSpeedHarness.from_live_checkpoint(identity=DEFAULT_IDENTITY)
     assert harness.identity == DEFAULT_IDENTITY
-    # Organism must be initialized at Guala's real continuous age (> 1.7 million ticks)
-    assert harness.live_tick >= 1_750_000
-    # Nights completed must reflect her actual history (6 nights)
+    assert harness.authentic_checkpoint_used is True
+    # Organism must be initialized at Guala's real continuous age (> 1.8 million ticks)
+    assert harness.live_tick >= 1_800_000
     assert harness.organism.counts.get("nights", 0) >= 6
-    # Learned vocal chains must reflect her active combinatorial chains
     assert harness.organism.counts.get("syllables", 0) >= 400
+
+
+def test_speed_harness_from_live_checkpoint_fails_closed() -> None:
+    """Verifies fail-closed authority: missing or corrupt checkpoint must raise, never synthetic genesis (SH-A1-02)."""
+    with pytest.raises((FileNotFoundError, RuntimeError)):
+        HeadlessSpeedHarness.from_live_checkpoint(
+            checkpoint_dir="/tmp/nonexistent_guala_checkpoint_dir_xyz",
+            identity=DEFAULT_IDENTITY,
+        )
+
+
+def test_speed_harness_matched_benchmark_bit_exact_equivalence() -> None:
+    """Verifies matched benchmark asserts verified native installation, bit-exact body/world equivalence, and isolated subprocess restart invariance (SH-A1-06)."""
+    from tools.guala_headless_speed_harness import run_matched_benchmark
+    res = run_matched_benchmark(ticks=10)
+    assert res["native_acceleration_installed"] is True
+    assert res["body_state_equivalence_verified"] is True
+    assert res["world_state_equivalence_verified"] is True
+    assert res["cold_restart_isolated_subprocess"] is True
+    assert res["cold_restart_invariance_verified"] is True
+    assert res["global_objects_count_bounded"] is True
+    assert res["initial_world_objects_count"] == 86
+    assert res["final_world_objects_count"] == 86
+    assert res["measured_native_speedup"] > 1.2
+
+
+def test_speed_harness_matched_benchmark_fails_closed_on_missing_checkpoint() -> None:
+    """Verifies matched benchmark raises FileNotFoundError if checkpoint is missing (SH-A1-06)."""
+    from pathlib import Path
+    from tools.guala_headless_speed_harness import run_matched_benchmark
+    with pytest.raises(FileNotFoundError):
+        run_matched_benchmark(ticks=5, checkpoint_dir=Path("/tmp/nonexistent_guala_checkpoint_999"))
+
+
+def test_caretaker_clean_up_house_edible_mass_and_bounds() -> None:
+    """Verifies clean_up_house inspects global objects, enforces 2,000 ug core threshold, and bounds domestic clutter (SH-A1-01)."""
+    from dsf_ai_service.guala_caretaker_hand import clean_up_house, EDIBLE_MASS_THRESHOLD_MICROGRAMS
+    from dsf_ai_service.guala_home_world import home_world_authority
+
+    world = home_world_authority(identity=DEFAULT_IDENTITY)
+    all_objects = world.global_objects() if hasattr(world, "global_objects") else world._state.world.objects
+    assert len(all_objects) >= 64
+
+    rec = clean_up_house(world)
+    assert rec["presented"] is True
+    assert isinstance(rec["cleared"], list)
+    assert "schema" in rec

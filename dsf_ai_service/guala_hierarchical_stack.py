@@ -21,6 +21,11 @@ Bounded Memory Guarantee:
 - Micro reflex history and completed macro intents use bounded ring buffers (max 1024 entries),
   strictly preventing runaway memory/RAM growth during long-duration runs.
 
+Decoupled Syntactic Articulation from Goal Fulfillment (SH-A1-05):
+- Advancing tokens through syntactic assemblies increments current token index, but strictly
+  does NOT mark intent fulfilled. Goal fulfillment requires verified physical/sensory achievement
+  via fulfill() on step().
+
 Pure deterministic physical cognition: no heuristics, no ML approximations, no synthetic language scaffolding.
 All vocal tokens are pure acoustic phoneme syllables from canonical SYLLABLES.
 """
@@ -82,12 +87,22 @@ class MacroIntent:
     def is_active(self) -> bool:
         return not self.fulfilled and not self.aborted
 
+    @property
+    def tokens_exhausted(self) -> bool:
+        """True when all syntactic assembly phoneme tokens have been articulated."""
+        if not self.syntactic_assembly_tokens:
+            return True
+        return self.current_token_index >= len(self.syntactic_assembly_tokens)
+
     def advance_token(self) -> MacroIntent:
-        """Advance acoustic phoneme syllable token index as syllables are vocalized."""
+        """Advance acoustic phoneme syllable token index as syllables are vocalized.
+        
+        Strict Invariant (SH-A1-05): advancing tokens does NOT mark intent fulfilled.
+        Fulfillment is strictly contingent on verified physical/sensory goal attainment via fulfill().
+        """
         if not self.is_active or not self.syntactic_assembly_tokens:
             return self
         new_idx = self.current_token_index + 1
-        is_fulfilled = new_idx >= len(self.syntactic_assembly_tokens)
         return MacroIntent(
             intent_id=self.intent_id,
             intent_type=self.intent_type,
@@ -96,7 +111,7 @@ class MacroIntent:
             duration_beats_ceiling=self.duration_beats_ceiling,
             syntactic_assembly_tokens=self.syntactic_assembly_tokens,
             current_token_index=new_idx,
-            fulfilled=is_fulfilled,
+            fulfilled=self.fulfilled,
             aborted=self.aborted,
             abort_reason=self.abort_reason,
         )
@@ -131,7 +146,7 @@ class MacroIntent:
 
 
 class MicroReflexField:
-    """10 ms / 100 Hz Reflex Loop Governor."""
+    """Evaluates 10ms sub-tick frames for nociceptive and acoustic shock reflex interrupts."""
 
     def __init__(self, max_history: int = MAX_HISTORY_ENTRIES) -> None:
         self.interrupt_history: deque[MicroInterrupt] = deque(maxlen=max_history)
@@ -146,73 +161,73 @@ class MicroReflexField:
         held_surface_millikelvin: int | None = None,
         held_entity_id: str | None = None,
     ) -> tuple[MicroInterrupt, ...]:
-        """Evaluate sensory inputs at 10ms granularity across 25 sub-frames."""
         interrupts: list[MicroInterrupt] = []
-        base_time = tick * MESO_BEAT_MICROSECONDS
 
-        # 1. Evaluate thermal nociception on held or touched object
-        temp = held_surface_millikelvin or touch_surface_millikelvin or skin_temperature_millikelvin
-        if temp is not None and temp >= NOCICEPTION_MILLIKELVIN:
-            excess = (temp - NOCICEPTION_MILLIKELVIN) / 1000.0
-            interrupts.append(
-                MicroInterrupt(
-                    trigger="thermal_nociception",
-                    frame_index=0,  # Immediate sub-frame interrupt
-                    severity=float(excess),
-                    mitigation_action="release" if held_surface_millikelvin else "retract",
-                    timestamp_microsecond=base_time,
-                    entity_id=held_entity_id,
-                )
+        # 1. Thermal Nociception
+        temp_candidates = [
+            t for t in (skin_temperature_millikelvin, touch_surface_millikelvin, held_surface_millikelvin)
+            if t is not None
+        ]
+        max_temp = max(temp_candidates) if temp_candidates else 310_000
+        if max_temp > NOCICEPTION_MILLIKELVIN:
+            excess = (max_temp - NOCICEPTION_MILLIKELVIN) / 10_000.0
+            interrupt = MicroInterrupt(
+                trigger="thermal_nociception",
+                frame_index=0,
+                severity=excess,
+                mitigation_action="release" if held_surface_millikelvin else "retract",
+                timestamp_microsecond=tick * MESO_BEAT_MICROSECONDS,
+                entity_id=held_entity_id,
             )
+            interrupts.append(interrupt)
+            self.interrupt_history.append(interrupt)
 
-        # 2. Evaluate cutaneous impact compression shock
-        if skin_contact >= CONTACT_SHOCK_THRESHOLD:
-            interrupts.append(
-                MicroInterrupt(
-                    trigger="contact_shock",
-                    frame_index=0,
-                    severity=float(skin_contact - CONTACT_SHOCK_THRESHOLD),
-                    mitigation_action="halt_locomotion",
-                    timestamp_microsecond=base_time,
-                    entity_id=None,
-                )
+        # 2. Tactile Shock Reflex
+        if skin_contact > CONTACT_SHOCK_THRESHOLD:
+            interrupt = MicroInterrupt(
+                trigger="contact_shock",
+                frame_index=1,
+                severity=skin_contact - CONTACT_SHOCK_THRESHOLD,
+                mitigation_action="retract",
+                timestamp_microsecond=tick * MESO_BEAT_MICROSECONDS + MICRO_FRAME_MICROSECONDS,
+                entity_id=None,
             )
+            interrupts.append(interrupt)
+            self.interrupt_history.append(interrupt)
 
-        # 3. Evaluate acoustic shock across cochlear sub-frames
+        # 3. Acoustic Gammatone Shock Reflex
         if heard_frames:
-            for frame_idx, frame in enumerate(heard_frames):
-                if frame:
-                    peak = max(frame)
-                    if peak >= ACOUSTIC_SHOCK_FLOOR:
-                        interrupts.append(
-                            MicroInterrupt(
-                                trigger="acoustic_shock",
-                                frame_index=frame_idx,
-                                severity=float(peak - ACOUSTIC_SHOCK_FLOOR),
-                                mitigation_action="startle_freeze",
-                                timestamp_microsecond=base_time + frame_idx * MICRO_FRAME_MICROSECONDS,
-                                entity_id=None,
-                            )
-                        )
-                        break  # Only one acoustic startle per beat window
+            for f_idx, frame in enumerate(heard_frames[:MICRO_FRAMES_PER_BEAT]):
+                spl = max(frame) if frame else 0.0
+                if spl > ACOUSTIC_SHOCK_FLOOR:
+                    interrupt = MicroInterrupt(
+                        trigger="acoustic_shock",
+                        frame_index=f_idx,
+                        severity=spl - ACOUSTIC_SHOCK_FLOOR,
+                        mitigation_action="startle_freeze",
+                        timestamp_microsecond=tick * MESO_BEAT_MICROSECONDS + f_idx * MICRO_FRAME_MICROSECONDS,
+                        entity_id=None,
+                    )
+                    interrupts.append(interrupt)
+                    self.interrupt_history.append(interrupt)
+                    break
 
-        self.interrupt_history.extend(interrupts)
         return tuple(interrupts)
 
 
 class MesoBeatField:
-    """250 ms / 1–4 Hz Organism Beat Loop Governor."""
+    """Coordinates canonical 250ms organism sensorimotor cadence."""
 
     def __init__(self) -> None:
         self.beat_count: int = 0
 
-    def step(self, tick: int) -> int:
-        self.beat_count = tick
+    def step(self, organism_tick: int) -> int:
+        self.beat_count += 1
         return self.beat_count
 
 
 class MacroIntentField:
-    """2 - 10 s / 8–40 Beats Cognitive Intent Governor."""
+    """Manages multi-beat cognitive goals and behavioral intention envelopes."""
 
     def __init__(self, max_completed: int = MAX_HISTORY_ENTRIES) -> None:
         self.active_intent: MacroIntent | None = None
@@ -226,17 +241,19 @@ class MacroIntentField:
         duration_beats: int = 16,
         tokens: Sequence[str] = (),
     ) -> MacroIntent:
-        """Formulate a sustained multi-second cognitive intent."""
-        duration_clamped = max(MACRO_MIN_BEATS, min(MACRO_MAX_BEATS, int(duration_beats)))
-        intent_id = f"intent-{tick}-{intent_type.value}"
+        """Formulate a sustained behavioral intention envelope."""
+        duration = max(MACRO_MIN_BEATS, min(MACRO_MAX_BEATS, duration_beats))
         intent = MacroIntent(
-            intent_id=intent_id,
+            intent_id=f"{intent_type.value}_{tick}_{duration}",
             intent_type=intent_type,
             target_entity_id=target_entity_id,
             start_tick=tick,
-            duration_beats_ceiling=duration_clamped,
+            duration_beats_ceiling=duration,
             syntactic_assembly_tokens=tuple(tokens),
             current_token_index=0,
+            fulfilled=False,
+            aborted=False,
+            abort_reason=None,
         )
         self.active_intent = intent
         return intent
@@ -286,9 +303,6 @@ class MacroIntentField:
         if idx < len(tokens):
             token = tokens[idx]
             self.active_intent = self.active_intent.advance_token()
-            if self.active_intent.fulfilled:
-                self.completed_intents.append(self.active_intent)
-                self.active_intent = None
             return token
         return None
 
