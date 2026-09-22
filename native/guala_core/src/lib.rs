@@ -16,6 +16,8 @@
 //!   8. map_inject       -- loom_model/neuron.py::_map_inject Gaussian injection
 //!   9. psi_settle       -- loom_model/neuron.py::PsiLattice.settle imaginary-time
 //!                          evolution (16-dim complex, n_steps iterations)
+//!  10. cast_focal_rays_native -- optical_raycast.rs 19,200 focal raycast kernel
+//!  11. validate_world_kinematics_native -- kinematics.rs 2D disc collision & region containment
 //!
 //! Design rules:
 //!   - EXACT Python operation order is preserved (e.g. `(omega_0 + kappa*s)
@@ -36,6 +38,8 @@ use pyo3::prelude::*;
 
 mod auditory;
 mod auditory_reachability;
+mod kinematics;
+mod optical_raycast;
 
 const F_PI: f64 = std::f64::consts::PI;
 
@@ -605,6 +609,8 @@ fn psi_settle(
 fn guala_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     auditory::register(m)?;
     auditory_reachability::register(m)?;
+    optical_raycast::register(m)?;
+    kinematics::register(m)?;
     m.add_function(wrap_pyfunction!(krim_feed, m)?)?;
     m.add_function(wrap_pyfunction!(word_signal, m)?)?;
     m.add_function(wrap_pyfunction!(lang_transduce, m)?)?;

@@ -1,0 +1,5070 @@
+"""Concrete Python boundary for one native resident Guala organism.
+
+The native object is the sole active and pending-state authority.  Python
+retains only that object and returns fixed prepare receipts; it never carries
+prepared organism bytes or a second materialized-fabric state.
+"""
+
+from __future__ import annotations
+
+import hashlib
+import importlib
+from fractions import Fraction
+from functools import cache
+import sys
+import time
+from dataclasses import dataclass
+from typing import Protocol
+
+# Transport stopwatch only: cumulative wall-clock milliseconds separating the
+# native (Rust) compute of each runtime call from the Python-side evidence
+# validation that follows it. Written under the caller's transition lock,
+# read by the serving app for per-interval deltas. Pure measurement; no
+# organism state, no cognitive authority, no effect on any result.
+RUNTIME_PHASE_WALL_MS: dict[str, float] = {}
+
+
+def _record_runtime_phase(phase: str, started: float) -> None:
+    RUNTIME_PHASE_WALL_MS[phase] = RUNTIME_PHASE_WALL_MS.get(phase, 0.0) + (
+        (time.perf_counter() - started) * 1000.0
+    )
+
+
+RUNTIME_SCHEMA = "guala.native.resident_organism_runtime.v3"
+OBSERVATION_SCHEMA = "guala.native.resident_organism_observation.v3"
+PREPARE_SCHEMA = "guala.native.resident_organism_prepare.v3"
+PALMAR_CONTACT_SENSE_LAYER = 2
+PALMAR_CONTACT_TOPOLOGY_INDEX = 27
+PALMAR_CONTACT_SENSOR_ID = "native-palmar-contact"
+PALMAR_CONTACT_SUBSTREAM_ID = "held-contact"
+# The gustatory intake surface carries the born airway-protection reflex
+# (glottal closing), exactly as the palmar surface carries the born grasp.
+GUSTATORY_CONTACT_SENSE_LAYER = 4
+GUSTATORY_CONTACT_SENSOR_ID = "organism-gustatory-surface"
+GUSTATORY_CONTACT_SITE_COUNT = 5
+
+DirectedPhysicalTransferEvidence = tuple[str, str, int, int]
+TimedDirectedPhysicalTransferEvidence = tuple[int, DirectedPhysicalTransferEvidence]
+ExactRationalEvidence = tuple[int, int]
+StablePhysicalBondEvidence = tuple[str, str, int]
+LearnedMotorWorkRouteEvidence = tuple[
+    str,
+    str,
+    StablePhysicalBondEvidence,
+    StablePhysicalBondEvidence,
+    ExactRationalEvidence,
+]
+LearnedMotorWorkPreparationEvidence = tuple[
+    str,
+    tuple[LearnedMotorWorkRouteEvidence, ...],
+    tuple[
+        ExactRationalEvidence,
+        ExactRationalEvidence,
+        ExactRationalEvidence,
+        ExactRationalEvidence,
+        ExactRationalEvidence,
+        ExactRationalEvidence,
+        ExactRationalEvidence,
+    ],
+]
+ArticulatoryLearnedMotorWorkPreparationEvidence = tuple[
+    str,
+    tuple[LearnedMotorWorkPreparationEvidence, ...],
+]
+LocalAffectiveGradientSettlementEvidence = tuple[
+    int,
+    int,
+    int,
+    int,
+    int,
+    int,
+    int,
+    ExactRationalEvidence,
+    ExactRationalEvidence,
+    ExactRationalEvidence,
+]
+LocalAffectivePlasticitySettlementEvidence = tuple[
+    int,
+    int,
+    int,
+    ExactRationalEvidence,
+    ExactRationalEvidence,
+    ExactRationalEvidence,
+    ExactRationalEvidence,
+    ExactRationalEvidence,
+    tuple[ExactRationalEvidence, ExactRationalEvidence, ExactRationalEvidence],
+    tuple[ExactRationalEvidence, ExactRationalEvidence, ExactRationalEvidence],
+]
+AffectiveBalanceTrajectoryEvidence = tuple[
+    str,
+    int,
+    int,
+    TimedDirectedPhysicalTransferEvidence | None,
+    TimedDirectedPhysicalTransferEvidence | None,
+    LocalAffectiveGradientSettlementEvidence | None,
+    LocalAffectivePlasticitySettlementEvidence | None,
+]
+LocalizedFluidChemistryEvidence = tuple[
+    str,
+    int,
+    int,
+    int,
+    tuple[int, ExactRationalEvidence, int, int, int, int, int],
+    tuple[int, int, int, int, int, int, int, int],
+    tuple[
+        tuple[ExactRationalEvidence, ExactRationalEvidence, ExactRationalEvidence],
+        tuple[ExactRationalEvidence, ExactRationalEvidence, ExactRationalEvidence],
+        ExactRationalEvidence,
+    ],
+]
+LocalizedMetabolicStrainEvidence = tuple[
+    str,
+    int,
+    int,
+    int,
+    tuple[int, ...],
+    int,
+    int,
+]
+
+_FACTORY_AUTHORITY = object()
+
+
+class NativeJointSourceView(Protocol):
+    """Annotation only; the native prepare method enforces source type."""
+
+    @property
+    def port_count(self) -> int: ...
+
+
+class NativeResidentObservationView(Protocol):
+    @property
+    def schema(self) -> str: ...
+
+    @property
+    def identity(self) -> str: ...
+
+    @property
+    def organism_tick(self) -> int: ...
+
+    @property
+    def fabric_generation(self) -> int: ...
+
+    @property
+    def mounted_generation(self) -> int: ...
+
+    @property
+    def state_bytes(self) -> int: ...
+
+    @property
+    def state_sha256(self) -> str: ...
+
+    @property
+    def fabric_bytes(self) -> int: ...
+
+    @property
+    def fabric_sha256(self) -> str: ...
+
+    @property
+    def articulated_body_axes(
+        self,
+    ) -> list[tuple[int, str, str, int, int, int, int]]: ...
+
+    @property
+    def articulated_body_lung_air_microlitres(self) -> int: ...
+
+    @property
+    def articulated_body_vocal_tract_areas_square_millimetres(
+        self,
+    ) -> list[int]: ...
+
+    @property
+    def articulated_body_state_bytes(self) -> int: ...
+
+    @property
+    def articulated_body_proprioception_initialized(self) -> bool: ...
+
+    @property
+    def articulated_body_state_sha256(self) -> str: ...
+
+    @property
+    def joint_field_count(self) -> int: ...
+
+    @property
+    def joint_neuron_count(self) -> int: ...
+
+    @property
+    def complete_neuron_count(self) -> int: ...
+
+    @property
+    def developmental_resting_neuron_count(self) -> int: ...
+
+    @property
+    def physically_transitioned_neuron_count(self) -> int: ...
+
+    @property
+    def metabolically_perturbed_body_receptor_count(self) -> int: ...
+
+    @property
+    def rest_recovered_neuron_count(self) -> int: ...
+
+    @property
+    def rest_drained_dissipation_quanta(self) -> int: ...
+
+    @property
+    def unmet_dissipation_quanta(self) -> int: ...
+
+    @property
+    def externally_perturbed_body_receptor_count(self) -> int: ...
+
+    @property
+    def externally_perturbed_neuron_lineages(self) -> list[str]: ...
+
+    @property
+    def cold_restore_authentication_count(self) -> int: ...
+
+    @property
+    def cold_restore_decode_count(self) -> int: ...
+
+    @property
+    def cold_restore_rebuilt_field_count(self) -> int: ...
+
+    @property
+    def mounted_step_completed(self) -> bool: ...
+
+    @property
+    def physical_transition_claimed(self) -> bool: ...
+
+    @property
+    def cognitive_formation_claimed(self) -> bool: ...
+
+    @property
+    def cognitive_ordinal(self) -> int: ...
+
+    @property
+    def cognitive_trace_count(self) -> int: ...
+
+    @property
+    def cognitive_mosaic_count(self) -> int: ...
+
+    @property
+    def mosaic_of_mosaics_count(self) -> int: ...
+
+    @property
+    def physical_frontier_routes(
+        self,
+    ) -> list[tuple[str, int, int, str, int, int, int, int]]: ...
+
+    @property
+    def changed_contact_channel_states(self) -> list[tuple[object, ...]]: ...
+
+    @property
+    def preceding_distinct_physical_frontier_routes(
+        self,
+    ) -> list[tuple[str, int, int, str, int, int, int, int]]: ...
+
+    @property
+    def reached_and_foregone_physical_frontier_routes(
+        self,
+    ) -> list[tuple[str, int, int, str, int, int, int, int]]: ...
+
+    @property
+    def working_causal_continuations(
+        self,
+    ) -> list[tuple[tuple[str, str, int, str], tuple[str, str, int, str]]]: ...
+
+    @property
+    def settled_working_frontier(
+        self,
+    ) -> list[tuple[str, str, int, str]]: ...
+
+    @property
+    def physical_prediction_alternatives(
+        self,
+    ) -> list[tuple[tuple[str, str, int, str], tuple[str, str, int, str]]]: ...
+
+    @property
+    def body_consequence_transfers(
+        self,
+    ) -> list[tuple[str, str, int, str]]: ...
+
+    @property
+    def affective_balance_trajectories(
+        self,
+    ) -> list[
+        tuple[
+            str,
+            int,
+            int,
+            tuple[int, tuple[str, str, int, str]] | None,
+            tuple[int, tuple[str, str, int, str]] | None,
+            tuple[
+                int,
+                int,
+                int,
+                int,
+                int,
+                int,
+                int,
+                tuple[str, str],
+                tuple[str, str],
+                tuple[str, str],
+            ]
+            | None,
+            tuple[
+                int,
+                str,
+                str,
+                tuple[str, str],
+                tuple[str, str],
+                tuple[str, str],
+                tuple[str, str],
+                tuple[str, str],
+                tuple[tuple[str, str], tuple[str, str], tuple[str, str]],
+                tuple[tuple[str, str], tuple[str, str], tuple[str, str]],
+            ]
+            | None,
+        ]
+    ]: ...
+
+    @property
+    def localized_fluid_chemistry(self) -> list[tuple[object, ...]]: ...
+
+    @property
+    def localized_metabolic_strain_evaluated_body_receptor_lineages(
+        self,
+    ) -> list[str]: ...
+
+    @property
+    def localized_metabolic_strain(self) -> list[tuple[object, ...]]: ...
+
+    @property
+    def organic_mosaic_relations(
+        self,
+    ) -> list[
+        tuple[
+            list[str],
+            list[str],
+            list[tuple[str, str, int]],
+            str,
+            list[tuple[tuple[str, str, int, str], tuple[str, str, int, str]]],
+            list[
+                tuple[
+                    tuple[str, str, int, str],
+                    tuple[str, str, int, str],
+                    tuple[str, str, int, str],
+                    tuple[str, str, int, str],
+                ]
+            ],
+        ]
+    ]: ...
+
+    @property
+    def formation_activation_count(self) -> int: ...
+
+    @property
+    def vocal_founder_refusal_count(self) -> int: ...
+
+    @property
+    def partial_cue_reassembly_count(self) -> int: ...
+
+    @property
+    def endogenous_partial_cue_reassembly_count(self) -> int: ...
+
+    @property
+    def internally_reassembled_formation_cues(
+        self,
+    ) -> list[tuple[str, list[str], str | None]]: ...
+
+    @property
+    def causal_thought_transitions(
+        self,
+    ) -> list[tuple[str, str, str, str, tuple[str, str, int, str]]]: ...
+
+    @property
+    def externally_reassembled_formation_frontiers(
+        self,
+    ) -> list[tuple[str, list[str], str]]: ...
+
+    @property
+    def python_callback_count(self) -> int: ...
+
+    # Exact shared body-energy state. Local neuronal lanes keep their own
+    # discrete reaction extents; only exact rational zeptojoules cross this
+    # organism boundary.
+    @property
+    def available_energy_zeptojoules(self) -> tuple[int, int]: ...
+
+    @property
+    def spent_energy_zeptojoules(self) -> tuple[int, int]: ...
+
+    @property
+    def thermal_energy_zeptojoules(self) -> tuple[int, int]: ...
+
+    @property
+    def available_energy_capacity_zeptojoules(self) -> tuple[int, int]: ...
+
+    @property
+    def dissipated_energy_zeptojoules(self) -> tuple[int, int]: ...
+
+    @property
+    def dissipation_capacity_energy_zeptojoules(self) -> tuple[int, int]: ...
+
+    @property
+    def separated_elementary_charges(self) -> int: ...
+
+    @property
+    def energy_exhausted(self) -> bool: ...
+
+
+@dataclass(frozen=True, slots=True)
+class ResidentContactGrowthEvidence:
+    """Receipts for one prepared AUTHORED contact growth.
+
+    Developmental authorship, not a sensory occurrence: it advances the
+    organism tick and the fabric generation and nothing else.  The mounted
+    joint generation is unchanged, and this boundary refuses any candidate
+    that claims otherwise.
+    """
+
+    token: bytes
+    token_hex: str
+    predecessor_state_sha256: str
+    prepared_state_sha256: str
+    predecessor_organism_tick: int
+    organism_tick: int
+    predecessor_fabric_generation: int
+    fabric_generation: int
+    mounted_generation: int
+    authored_contact_count: int
+
+
+@dataclass(frozen=True, slots=True)
+class ResidentCausalIntervalEvidence:
+    """One transient exact causal boundary inside a one-seal trajectory."""
+
+    predecessor_organism_tick: int
+    organism_tick: int
+    source_duration_samples_at_articulatory_rate: int
+    rest_recovered_neuron_count: int
+    externally_perturbed_neuron_lineages: tuple[str, ...]
+    internally_reassembled_formation_cues: tuple[
+        tuple[str, tuple[str, ...], str | None], ...
+    ]
+    causal_thought_transitions: tuple[
+        tuple[str, str, str, str, tuple[str, str, int, int]], ...
+    ]
+    externally_reassembled_formation_frontiers: tuple[
+        tuple[str, tuple[str, ...], str], ...
+    ]
+    learned_motor_work_preparations: tuple[
+        LearnedMotorWorkPreparationEvidence, ...
+    ]
+    articulatory_learned_motor_work_preparations: tuple[
+        ArticulatoryLearnedMotorWorkPreparationEvidence, ...
+    ]
+    motor_unit_recruitments: tuple[
+        tuple[
+            str,
+            int,
+            int,
+            tuple[tuple[str, int, str, int, int, int], ...],
+            tuple[tuple[str, str, str, int, int, str, str], ...],
+        ],
+        ...,
+    ]
+    root_yaw_unit_recruitments: tuple[tuple[str, int, int, str], ...]
+    root_translation_unit_recruitments: tuple[
+        tuple[str, int, int, str, str], ...
+    ]
+    articulatory_unit_recruitments: tuple[
+        tuple[
+            str,
+            int,
+            int,
+            tuple[tuple[str, int, str, int, int, int], ...],
+        ],
+        ...,
+    ]
+    articulatory_pressure_pcm: tuple[int, ...]
+    articulatory_body_trajectories: bytes
+    articulatory_sample_rate_hz: int
+    articulatory_peak_transducer_surface_velocity_pcm: int
+    articulatory_glottal_open_samples_at_apex: int
+    articulatory_mouth_area_square_millimetres_at_apex: int
+    articulatory_perioral_area_displacement_square_millimetres: int
+    articulatory_applied_motor_quanta: int
+    articulatory_stalled_motor_quanta: int
+    emitted_neuron_lineages: tuple[str, ...]
+    changed_contact_channel_states: tuple[tuple[object, ...], ...]
+    affective_balance_trajectories: tuple[
+        AffectiveBalanceTrajectoryEvidence, ...
+    ]
+    causal_frontier_advances: tuple[tuple[str, str, int, int, str], ...]
+    articulated_body_state: bytes
+
+
+@dataclass(frozen=True, slots=True)
+class ResidentPrepareEvidence:
+    """Fixed receipt and causal evidence for one native pending candidate."""
+
+    token: bytes
+    token_hex: str
+    sealed: bool
+    causal_transition_sha256: str
+    predecessor_state_sha256: str
+    prepared_state_sha256: str | None
+    predecessor_organism_tick: int
+    organism_tick: int
+    predecessor_fabric_generation: int
+    fabric_generation: int
+    predecessor_mounted_generation: int
+    mounted_generation: int
+    predecessor_authentication_count: int
+    predecessor_decode_count: int
+    predecessor_rebuilt_field_count: int
+    current_cohort_evaluation_count: int
+    successor_seal_count: int
+    dsf_delivery_count: int
+    complete_neuron_fractal_count: int
+    recurrent_complete_neuron_fractal_count: int
+    physical_transition_claimed: bool
+    cognitive_formation_claimed: bool
+    cognitive_ordinal: int
+    cognitive_trace_count: int
+    cognitive_mosaic_count: int
+    formation_activation_count: int
+    vocal_founder_refusal_count: int
+    partial_cue_reassembly_count: int
+    endogenous_partial_cue_reassembly_count: int
+    internally_reassembled_formation_cues: tuple[
+        tuple[str, tuple[str, ...], str | None], ...
+    ]
+    causal_thought_transitions: tuple[
+        tuple[str, str, str, str, tuple[str, str, int, int]], ...
+    ]
+    externally_reassembled_formation_frontiers: tuple[
+        tuple[str, tuple[str, ...], str], ...
+    ]
+    python_callback_count: int
+    complete_neuron_count: int = 0
+    developmental_resting_neuron_count: int = 0
+    physically_transitioned_neuron_count: int = 0
+    metabolically_perturbed_body_receptor_count: int = 0
+    rest_recovered_neuron_count: int = 0
+    rest_drained_dissipation_quanta: int = 0
+    unmet_dissipation_quanta: int = 0
+    externally_perturbed_body_receptor_count: int = 0
+    externally_perturbed_neuron_lineages: tuple[str, ...] = ()
+    receptor_ingress_sense_counts: tuple[int, int, int, int, int, int] = (
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+    )
+    receptor_ingress_changing_count: int = 0
+    receptor_ingress_quiescent_count: int = 0
+    motor_unit_recruitments: tuple[
+        tuple[
+            str,
+            int,
+            int,
+            tuple[tuple[str, int, str, int, int, int], ...],
+            tuple[tuple[str, str, str, int, int, str, str], ...],
+        ],
+        ...,
+    ] = ()
+    root_yaw_unit_recruitments: tuple[tuple[str, int, int, str], ...] = ()
+    root_translation_unit_recruitments: tuple[
+        tuple[str, int, int, str, str], ...
+    ] = ()
+    body_effector_bindings: tuple[tuple[str, str, str, int], ...] = ()
+    articulated_body_consequences: tuple[
+        tuple[int, str, str, int, int, int, int, int, int, int, int], ...
+    ] = ()
+    body_proprioceptive_sources: tuple[bytes, ...] = ()
+    body_proprioceptive_source_extents: tuple[
+        tuple[int, int, int, int, int], ...
+    ] = ()
+    body_proprioceptive_source_admissions: tuple[tuple[int, int], ...] = ()
+    articulatory_unit_recruitments: tuple[
+        tuple[
+            str,
+            int,
+            int,
+            tuple[tuple[str, int, str, int, int, int], ...],
+        ],
+        ...,
+    ] = ()
+    changed_contact_channel_states: tuple[tuple[object, ...], ...] = ()
+    physical_frontier_routes: tuple[
+        tuple[str, int, int, str, int, int, int, int], ...
+    ] = ()
+    preceding_distinct_physical_frontier_routes: tuple[
+        tuple[str, int, int, str, int, int, int, int], ...
+    ] = ()
+    reached_and_foregone_physical_frontier_routes: tuple[
+        tuple[str, int, int, str, int, int, int, int], ...
+    ] = ()
+    working_causal_continuations: tuple[
+        tuple[
+            tuple[str, str, int, int],
+            tuple[str, str, int, int],
+        ],
+        ...,
+    ] = ()
+    settled_working_frontier: tuple[tuple[str, str, int, int], ...] = ()
+    physical_prediction_alternatives: tuple[
+        tuple[
+            tuple[str, str, int, int],
+            tuple[str, str, int, int],
+        ],
+        ...,
+    ] = ()
+    body_consequence_transfers: tuple[tuple[str, str, int, int], ...] = ()
+    affective_balance_trajectories: tuple[
+        AffectiveBalanceTrajectoryEvidence, ...
+    ] = ()
+    localized_fluid_chemistry: tuple[LocalizedFluidChemistryEvidence, ...] = ()
+    localized_metabolic_strain_evaluated_body_receptor_lineages: tuple[
+        str, ...
+    ] = ()
+    localized_metabolic_strain: tuple[LocalizedMetabolicStrainEvidence, ...] = ()
+    organic_mosaic_relations: tuple[
+        tuple[
+            tuple[str, ...],
+            tuple[str, ...],
+            tuple[tuple[str, str, int], ...],
+            str,
+            tuple[
+                tuple[
+                    tuple[str, str, int, int],
+                    tuple[str, str, int, int],
+                ],
+                ...,
+            ],
+            tuple[
+                tuple[
+                    tuple[str, str, int, int],
+                    tuple[str, str, int, int],
+                    tuple[str, str, int, int],
+                    tuple[str, str, int, int],
+                ],
+                ...,
+            ],
+        ],
+        ...,
+    ] = ()
+    causal_interval_evidence: tuple[ResidentCausalIntervalEvidence, ...] = ()
+
+
+def _native_core():
+    return importlib.import_module("guala_core")
+
+
+@cache
+def native_articulated_body_state_width() -> int:
+    neutral_state = getattr(
+        _native_core(), "exact_neutral_articulated_body_state", None
+    )
+    if not callable(neutral_state):
+        raise RuntimeError(
+            "guala_core does not expose the articulated-body width authority"
+        )
+    body = neutral_state()
+    if not isinstance(body, bytes) or not body:
+        raise RuntimeError("native articulated-body width authority is invalid")
+    return len(body)
+
+
+def _positive_integer(value: object, label: str) -> int:
+    if (
+        isinstance(value, bool)
+        or not isinstance(value, int)
+        or value <= 0
+        or value > sys.maxsize
+    ):
+        raise ValueError(f"resident organism {label} must be a positive native integer")
+    return value
+
+
+def _nonnegative_integer(value: object, label: str) -> int:
+    if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+        raise RuntimeError(f"resident organism {label} is not a nonnegative integer")
+    return value
+
+
+def _signed_integer(value: object, label: str) -> int:
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise RuntimeError(f"resident organism {label} is not an exact signed integer")
+    return value
+
+
+def _positive_exact_integer(value: object, label: str) -> int:
+    if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
+        raise RuntimeError(f"resident organism {label} is not a positive exact integer")
+    return value
+
+
+def _positive_decimal_integer(value: object, label: str) -> int:
+    if (
+        not isinstance(value, str)
+        or not value
+        or value.strip("0123456789")
+        or value[0] == "0"
+    ):
+        raise RuntimeError(f"resident organism {label} is not a positive exact integer")
+    return int(value)
+
+
+def _nonnegative_decimal_integer(value: object, label: str) -> int:
+    if (
+        not isinstance(value, str)
+        or not value
+        or value.strip("0123456789")
+        or (len(value) > 1 and value[0] == "0")
+    ):
+        raise RuntimeError(f"resident organism {label} is not a nonnegative exact integer")
+    return int(value)
+
+
+def _canonical_sha256(value: object, label: str) -> str:
+    if (
+        not isinstance(value, str)
+        or len(value) != 64
+        or value.strip("0123456789abcdef")
+    ):
+        raise RuntimeError(f"resident organism {label} is not canonical SHA-256")
+    return value
+
+
+# The same few thousand lineages cross this boundary millions of times per
+# interval. Remember every string that has already passed the exact canonical
+# test so repeats cost one set lookup. The accepted and rejected sets are
+# unchanged. HONEST BOUND (corrected after review): this set retains any
+# canonical 32-hex string ever validated in this process, up to the cap
+# below — roughly the declared structural-graph lineage ceiling, ~50MB
+# worst case — and it is cleared whenever an organism is restored so no
+# earlier body's strings persist across a restore.
+_CANONICAL_LINEAGES_SEEN: set[str] = set()
+_CANONICAL_LINEAGES_CAP = 500_000
+
+
+def _clear_canonical_lineage_cache() -> None:
+    _CANONICAL_LINEAGES_SEEN.clear()
+
+
+def _canonical_lineage_hex(value: object, label: str) -> str:
+    if type(value) is str and value in _CANONICAL_LINEAGES_SEEN:
+        return value
+    if (
+        not isinstance(value, str)
+        or len(value) != 32
+        or value.strip("0123456789abcdef")
+    ):
+        raise RuntimeError(f"resident organism {label} is not canonical")
+    if len(_CANONICAL_LINEAGES_SEEN) < _CANONICAL_LINEAGES_CAP:
+        _CANONICAL_LINEAGES_SEEN.add(value)
+    return value
+
+
+def _physical_frontier_route_evidence(
+    value: object, label: str
+) -> tuple[tuple[str, int, int, str, int, int, int, int], ...]:
+    if not isinstance(value, list):
+        raise RuntimeError(f"resident organism {label} changed format")
+    routes: list[tuple[str, int, int, str, int, int, int, int]] = []
+    seen: set[tuple[str, str, int]] = set()
+    for raw_route in value:
+        if not isinstance(raw_route, tuple) or len(raw_route) != 8:
+            raise RuntimeError(f"resident organism {label} changed format")
+        route = (
+            _canonical_lineage_hex(raw_route[0], f"{label} seed lineage"),
+            _nonnegative_integer(raw_route[1], f"{label} seed layer"),
+            _nonnegative_integer(raw_route[2], f"{label} seed topology"),
+            _canonical_lineage_hex(raw_route[3], f"{label} adjacent lineage"),
+            _nonnegative_integer(raw_route[4], f"{label} adjacent layer"),
+            _nonnegative_integer(raw_route[5], f"{label} adjacent topology"),
+            _nonnegative_integer(raw_route[6], f"{label} parallel ordinal"),
+            _signed_integer(raw_route[7], f"{label} outward carriers"),
+        )
+        if route[0] == route[3]:
+            raise RuntimeError(f"resident organism {label} joined one lineage to itself")
+        identity = (route[0], route[3], route[6])
+        if identity in seen:
+            raise RuntimeError(f"resident organism {label} repeated one route")
+        seen.add(identity)
+        routes.append(route)
+    return tuple(routes)
+
+
+def _changed_contact_channel_state_evidence(
+    value: object,
+) -> tuple[tuple[object, ...], ...]:
+    if not isinstance(value, list):
+        raise RuntimeError("resident changed contact-channel evidence changed format")
+    changes: list[tuple[object, ...]] = []
+    seen: set[tuple[int, str, str, int]] = set()
+    for raw in value:
+        if not isinstance(raw, tuple) or len(raw) != 6:
+            raise RuntimeError("resident changed contact-channel evidence changed format")
+        cognitive_ordinal = _nonnegative_integer(
+            raw[0], "changed contact-channel cognitive ordinal"
+        )
+        left = _canonical_lineage_hex(raw[1], "changed contact-channel left lineage")
+        right = _canonical_lineage_hex(raw[2], "changed contact-channel right lineage")
+        if left >= right:
+            raise RuntimeError("changed contact-channel endpoints are not canonical")
+        parallel_ordinal = _nonnegative_integer(
+            raw[3], "changed contact-channel parallel ordinal"
+        )
+        states: list[tuple[object, ...]] = []
+        for label, state in (("predecessor", raw[4]), ("successor", raw[5])):
+            if not isinstance(state, tuple) or len(state) != 3:
+                raise RuntimeError(f"changed contact-channel {label} changed format")
+            states.append(
+                (
+                    _nonnegative_decimal_integer(
+                        state[0], f"changed contact-channel {label} population"
+                    ),
+                    _exact_rational_evidence(
+                        state[1], f"changed contact-channel {label} work phase"
+                    ),
+                    _exact_rational_evidence(
+                        state[2], f"changed contact-channel {label} conductance"
+                    ),
+                )
+            )
+        if states[0] == states[1]:
+            raise RuntimeError("changed contact-channel evidence carried no change")
+        identity = (cognitive_ordinal, left, right, parallel_ordinal)
+        if identity in seen:
+            raise RuntimeError("changed contact-channel evidence repeated one contact")
+        seen.add(identity)
+        changes.append((cognitive_ordinal, left, right, parallel_ordinal, *states))
+    return tuple(changes)
+
+
+def _internally_reassembled_formation_cue_evidence(
+    value: object,
+) -> tuple[tuple[str, tuple[str, ...], str | None], ...]:
+    if not isinstance(value, list):
+        raise RuntimeError("internally reassembled formation cues changed format")
+    observed: list[tuple[str, tuple[str, ...], str | None]] = []
+    for raw_cue in value:
+        if not isinstance(raw_cue, tuple) or len(raw_cue) != 3:
+            raise RuntimeError("internally reassembled formation cue changed format")
+        raw_receipt, raw_cues, raw_recurrent_lineage = raw_cue
+        if not isinstance(raw_cues, list) or not raw_cues:
+            raise RuntimeError("internally reassembled formation cue is empty")
+        receipt = _canonical_sha256(
+            raw_receipt, "internally reassembled formation receipt"
+        )
+        cues = tuple(
+            _canonical_lineage_hex(lineage, "internal formation cue lineage")
+            for lineage in raw_cues
+        )
+        if tuple(sorted(set(cues))) != cues:
+            raise RuntimeError("internally reassembled formation cue is not canonical")
+        recurrent_lineage = (
+            None
+            if raw_recurrent_lineage is None
+            else _canonical_lineage_hex(
+                raw_recurrent_lineage,
+                "internally reassembled formation recurrent lineage",
+            )
+        )
+        observed.append((receipt, cues, recurrent_lineage))
+    result = tuple(observed)
+    if len(set(result)) != len(result):
+        raise RuntimeError("internally reassembled formation cue repeated")
+    return result
+
+
+def _causal_thought_transition_evidence(
+    value: object,
+) -> tuple[tuple[str, str, str, str, tuple[str, str, int, int]], ...]:
+    if not isinstance(value, list):
+        raise RuntimeError("causal thought transitions changed format")
+    observed = []
+    for raw_transition in value:
+        if not isinstance(raw_transition, tuple) or len(raw_transition) != 5:
+            raise RuntimeError("causal thought transition changed format")
+        source_receipt = _canonical_sha256(
+            raw_transition[0], "causal thought source formation receipt"
+        )
+        destination_receipt = _canonical_sha256(
+            raw_transition[1], "causal thought destination formation receipt"
+        )
+        recurrent = _canonical_lineage_hex(
+            raw_transition[2], "causal thought source recurrent lineage"
+        )
+        cue = _canonical_lineage_hex(
+            raw_transition[3], "causal thought destination cue lineage"
+        )
+        transfer = _directed_physical_transfer_evidence(
+            raw_transition[4], "causal thought transfer"
+        )
+        if source_receipt == destination_receipt:
+            raise RuntimeError("causal thought transition is a self-loop")
+        if transfer[0] != recurrent or transfer[1] != cue:
+            raise RuntimeError("causal thought transition lost carrier direction")
+        observed.append(
+            (source_receipt, destination_receipt, recurrent, cue, transfer)
+        )
+    result = tuple(sorted(observed))
+    if len(set(result)) != len(result):
+        raise RuntimeError("causal thought transition repeated")
+    return result
+
+
+def _externally_reassembled_formation_frontier_evidence(
+    value: object,
+) -> tuple[tuple[str, tuple[str, ...], str], ...]:
+    if not isinstance(value, list):
+        raise RuntimeError("externally reassembled formation frontiers changed format")
+    observed: list[tuple[str, tuple[str, ...], str]] = []
+    for raw_frontier in value:
+        if not isinstance(raw_frontier, tuple) or len(raw_frontier) != 3:
+            raise RuntimeError("externally reassembled formation frontier changed format")
+        raw_receipt, raw_cues, raw_recurrent = raw_frontier
+        if not isinstance(raw_cues, list) or not raw_cues:
+            raise RuntimeError("externally reassembled formation frontier has no cue")
+        receipt = _canonical_sha256(
+            raw_receipt, "externally reassembled formation receipt"
+        )
+        cues = tuple(
+            _canonical_lineage_hex(lineage, "external formation cue lineage")
+            for lineage in raw_cues
+        )
+        recurrent = _canonical_lineage_hex(
+            raw_recurrent, "external formation recurrent lineage"
+        )
+        if tuple(sorted(set(cues))) != cues or recurrent in cues:
+            raise RuntimeError("externally reassembled formation frontier is not canonical")
+        observed.append((receipt, cues, recurrent))
+    result = tuple(observed)
+    if len(set(result)) != len(result):
+        raise RuntimeError("externally reassembled formation frontier repeated")
+    return result
+
+
+def _motor_unit_recruitment_evidence(
+    value: object,
+    learned_work_prepared_motor_lineages: frozenset[str] = frozenset(),
+) -> tuple[
+    tuple[
+        str,
+        int,
+        int,
+        tuple[tuple[str, int, str, int, int, int], ...],
+        tuple[tuple[str, str, str, int, int, str, str], ...],
+    ],
+    ...,
+]:
+    if not isinstance(value, list):
+        raise RuntimeError("motor-unit recruitments changed format")
+    observed = []
+    for raw in value:
+        if not isinstance(raw, tuple) or len(raw) != 5:
+            raise RuntimeError("motor-unit recruitment changed format")
+        lineage = _canonical_lineage_hex(raw[0], "motor-unit lineage")
+        topology_index = _nonnegative_integer(
+            raw[1], "motor-unit topology index"
+        )
+        outward_elementary_carriers = _positive_integer(
+            raw[2], "motor-unit outward elementary carriers"
+        )
+        if not isinstance(raw[4], list) or not raw[4]:
+            raise RuntimeError("motor-unit body afferent paths changed format")
+        body_afferent_paths = []
+        for path in raw[4]:
+            if not isinstance(path, tuple) or len(path) != 7:
+                raise RuntimeError("motor-unit body afferent path changed format")
+            regulation = _canonical_lineage_hex(
+                path[0], "motor body-regulation lineage"
+            )
+            integration = _canonical_lineage_hex(
+                path[1], "motor body-integration lineage"
+            )
+            receptor = _canonical_lineage_hex(
+                path[2], "motor body-receptor lineage"
+            )
+            sense_layer = _nonnegative_integer(
+                path[3], "motor body-receptor sense layer"
+            )
+            receptor_topology = _nonnegative_integer(
+                path[4], "motor body-receptor topology index"
+            )
+            sensor_id = path[5]
+            substream_id = path[6]
+            exact_palmar_contact = (
+                sense_layer == PALMAR_CONTACT_SENSE_LAYER
+                and receptor_topology == PALMAR_CONTACT_TOPOLOGY_INDEX
+                and sensor_id == PALMAR_CONTACT_SENSOR_ID
+                and substream_id == PALMAR_CONTACT_SUBSTREAM_ID
+            )
+            exact_gustatory_contact = (
+                sense_layer == GUSTATORY_CONTACT_SENSE_LAYER
+                and receptor_topology < GUSTATORY_CONTACT_SITE_COUNT
+                and sensor_id == GUSTATORY_CONTACT_SENSOR_ID
+                and isinstance(substream_id, str)
+                and substream_id.startswith(f"{GUSTATORY_CONTACT_SENSOR_ID}-")
+            )
+            if (
+                (
+                    sense_layer != 5
+                    and not exact_palmar_contact
+                    and not exact_gustatory_contact
+                )
+                or len({lineage, regulation, integration, receptor}) != 4
+                or not isinstance(sensor_id, str)
+                or not sensor_id
+                or not isinstance(substream_id, str)
+                or not substream_id
+            ):
+                raise RuntimeError("motor-unit body afferent path is not physical")
+            body_afferent_paths.append(
+                (
+                    regulation,
+                    integration,
+                    receptor,
+                    sense_layer,
+                    receptor_topology,
+                    sensor_id,
+                    substream_id,
+                )
+            )
+        if tuple(sorted(set(body_afferent_paths))) != tuple(body_afferent_paths):
+            raise RuntimeError("motor-unit body afferent paths are not canonical")
+        body_regulation_lineages = {
+            path[0] for path in body_afferent_paths
+        }
+        if not isinstance(raw[3], list):
+            raise RuntimeError("motor-unit preparation transfers changed format")
+        preparation_transfers = []
+        for transfer in raw[3]:
+            if not isinstance(transfer, tuple) or len(transfer) != 6:
+                raise RuntimeError("motor-unit preparation transfer changed format")
+            sender = _canonical_lineage_hex(
+                transfer[0], "motor preparation sender"
+            )
+            sender_layer = _nonnegative_integer(
+                transfer[1], "motor preparation sender layer"
+            )
+            receiver = _canonical_lineage_hex(
+                transfer[2], "motor preparation receiver"
+            )
+            receiver_layer = _nonnegative_integer(
+                transfer[3], "motor preparation receiver layer"
+            )
+            parallel_ordinal = _nonnegative_integer(
+                transfer[4], "motor preparation parallel ordinal"
+            )
+            transferred_whole_carriers = _positive_integer(
+                transfer[5], "motor preparation transferred whole carriers"
+            )
+            learned_ordering = (
+                receiver == lineage
+                and receiver_layer == 12
+                and sender_layer == 11
+            )
+            reached_load_reflex = (
+                receiver == lineage
+                and receiver_layer == 12
+                and sender_layer == 8
+                and sender in body_regulation_lineages
+            )
+            if sender == receiver or not (learned_ordering or reached_load_reflex):
+                raise RuntimeError(
+                    "motor-unit preparation is neither an exact layer 11 ordering "
+                    "arrival nor its mounted layer 8 reached-load reflex"
+                )
+            preparation_transfers.append(
+                (
+                    sender,
+                    sender_layer,
+                    receiver,
+                    receiver_layer,
+                    parallel_ordinal,
+                    transferred_whole_carriers,
+                )
+            )
+        if tuple(sorted(set(preparation_transfers))) != tuple(preparation_transfers):
+            raise RuntimeError("motor-unit preparation transfers are not canonical")
+        if not preparation_transfers and lineage not in learned_work_prepared_motor_lineages:
+            raise RuntimeError("motor-unit discharge has no physical preparation")
+        observed.append(
+            (
+                lineage,
+                topology_index,
+                outward_elementary_carriers,
+                tuple(preparation_transfers),
+                tuple(body_afferent_paths),
+            )
+        )
+    return tuple(observed)
+
+
+def _root_yaw_unit_recruitment_evidence(
+    value: object,
+) -> tuple[tuple[str, int, int, str], ...]:
+    if not isinstance(value, list):
+        raise RuntimeError("root-yaw recruitments changed format")
+    observed = []
+    for raw in value:
+        if not isinstance(raw, tuple) or len(raw) != 4:
+            raise RuntimeError("root-yaw recruitment changed format")
+        lineage = _canonical_lineage_hex(raw[0], "root-yaw motor lineage")
+        topology_index = _nonnegative_integer(raw[1], "root-yaw topology index")
+        carriers = _positive_integer(raw[2], "root-yaw outward carriers")
+        direction = raw[3]
+        if direction not in {"negative", "positive"}:
+            raise RuntimeError("root-yaw recruitment lacks typed direction")
+        observed.append((lineage, topology_index, carriers, direction))
+    return tuple(observed)
+
+
+def _root_translation_unit_recruitment_evidence(
+    value: object,
+) -> tuple[tuple[str, int, int, str, str], ...]:
+    if not isinstance(value, list):
+        raise RuntimeError("root-translation recruitments changed format")
+    observed = []
+    for raw in value:
+        if not isinstance(raw, tuple) or len(raw) != 5:
+            raise RuntimeError("root-translation recruitment changed format")
+        lineage = _canonical_lineage_hex(raw[0], "root-translation motor lineage")
+        topology_index = _nonnegative_integer(
+            raw[1], "root-translation topology index"
+        )
+        carriers = _positive_integer(raw[2], "root-translation outward carriers")
+        axis = raw[3]
+        direction = raw[4]
+        if axis not in {"x", "y"} or direction not in {"negative", "positive"}:
+            raise RuntimeError("root-translation recruitment lacks typed anatomy")
+        observed.append((lineage, topology_index, carriers, axis, direction))
+    return tuple(observed)
+
+
+def _articulatory_unit_recruitment_shape_evidence(
+    value: object,
+) -> tuple[
+    tuple[
+        str,
+        int,
+        int,
+        tuple[tuple[str, int, str, int, int, int], ...],
+    ],
+    ...,
+]:
+    if not isinstance(value, list):
+        raise RuntimeError("articulatory-unit recruitments changed format")
+    observed = []
+    for raw in value:
+        if not isinstance(raw, tuple) or len(raw) != 4:
+            raise RuntimeError("articulatory-unit recruitment changed format")
+        lineage = _canonical_lineage_hex(raw[0], "articulatory-unit lineage")
+        topology_index = _nonnegative_integer(
+            raw[1], "articulatory-unit topology index"
+        )
+        outward_elementary_carriers = _positive_integer(
+            raw[2], "articulatory-unit outward elementary carriers"
+        )
+        if not isinstance(raw[3], list):
+            raise RuntimeError("articulatory-unit preparation transfers changed format")
+        preparation_transfers = []
+        for transfer in raw[3]:
+            if not isinstance(transfer, tuple) or len(transfer) != 6:
+                raise RuntimeError("articulatory-unit preparation transfer changed format")
+            sender = _canonical_lineage_hex(
+                transfer[0], "articulatory preparation sender"
+            )
+            sender_layer = _nonnegative_integer(
+                transfer[1], "articulatory preparation sender layer"
+            )
+            receiver = _canonical_lineage_hex(
+                transfer[2], "articulatory preparation receiver"
+            )
+            receiver_layer = _nonnegative_integer(
+                transfer[3], "articulatory preparation receiver layer"
+            )
+            parallel_ordinal = _nonnegative_integer(
+                transfer[4], "articulatory preparation parallel ordinal"
+            )
+            transferred_whole_carriers = _positive_integer(
+                transfer[5], "articulatory preparation transferred whole carriers"
+            )
+            canonical_transfer = (
+                sender,
+                sender_layer,
+                receiver,
+                receiver_layer,
+                parallel_ordinal,
+                transferred_whole_carriers,
+            )
+            preparation_transfers.append(canonical_transfer)
+        observed.append(
+            (
+                lineage,
+                topology_index,
+                outward_elementary_carriers,
+                tuple(preparation_transfers),
+            )
+        )
+    return tuple(observed)
+
+
+def _articulatory_unit_recruitment_evidence(
+    value: object,
+    motor_unit_recruitments: tuple[
+        tuple[
+            str,
+            int,
+            int,
+            tuple[tuple[str, int, str, int, int, int], ...],
+            tuple[tuple[str, str, str, int, int, str, str], ...],
+        ],
+        ...,
+    ],
+    learned_work_by_respiratory_lineage: dict[str, frozenset[str]] | None = None,
+) -> tuple[
+    tuple[
+        str,
+        int,
+        int,
+        tuple[tuple[str, int, str, int, int, int], ...],
+    ],
+    ...,
+]:
+    motor_by_lineage = {
+        recruitment[0]: recruitment for recruitment in motor_unit_recruitments
+    }
+    if len(motor_by_lineage) != len(motor_unit_recruitments):
+        raise RuntimeError("motor-unit recruitment repeated a lineage in one interval")
+    observed = _articulatory_unit_recruitment_shape_evidence(value)
+    learned_work_by_respiratory_lineage = (
+        {} if learned_work_by_respiratory_lineage is None
+        else learned_work_by_respiratory_lineage
+    )
+    observed_learned_respiratory_lineages: set[str] = set()
+    for lineage, _topology, outward_elementary_carriers, transfers in observed:
+        causing_motor_lineages: set[str] = set()
+        for canonical_transfer in transfers:
+            sender, sender_layer, receiver, receiver_layer, _ordinal, _carriers = (
+                canonical_transfer
+            )
+            causing_motor = motor_by_lineage.get(receiver)
+            if (
+                sender == receiver
+                or receiver_layer != 12
+                or causing_motor is None
+                or canonical_transfer not in causing_motor[3]
+                or sender_layer not in (8, 11)
+            ):
+                raise RuntimeError(
+                    "articulatory-unit preparation is not an exact layer 8 "
+                    "reached-load or layer 11 learned arrival into the same "
+                    "discharged typed vocal motor"
+            )
+            causing_motor_lineages.add(receiver)
+        if not transfers:
+            causing_motor_lineages.update(
+                learned_work_by_respiratory_lineage.get(lineage, frozenset())
+            )
+            observed_learned_respiratory_lineages.add(lineage)
+        elif lineage in learned_work_by_respiratory_lineage:
+            raise RuntimeError(
+                "articulatory-unit recruitment mixed carrier and learned-work causes"
+            )
+        if not causing_motor_lineages or any(
+            motor_lineage not in motor_by_lineage
+            for motor_lineage in causing_motor_lineages
+        ):
+            raise RuntimeError(
+                "articulatory-unit discharge has no exact causing vocal motor"
+            )
+        available_motor_carriers = sum(
+            motor_by_lineage[motor_lineage][2]
+            for motor_lineage in causing_motor_lineages
+        )
+        if outward_elementary_carriers > available_motor_carriers:
+            raise RuntimeError(
+                "articulatory-unit discharge exceeds its causing vocal motor discharge"
+            )
+    if set(learned_work_by_respiratory_lineage) != (
+        observed_learned_respiratory_lineages
+    ):
+        raise RuntimeError(
+            "articulatory learned-work cause left its respiratory discharge"
+        )
+    return observed
+
+
+def _articulatory_learned_motor_work_preparation_evidence(
+    value: object,
+    learned_motor_work_preparations: tuple[
+        LearnedMotorWorkPreparationEvidence, ...
+    ],
+) -> tuple[ArticulatoryLearnedMotorWorkPreparationEvidence, ...]:
+    if not isinstance(value, list):
+        raise RuntimeError(
+            "articulatory learned motor-work preparations changed format"
+        )
+    retained = set(learned_motor_work_preparations)
+    observed: list[ArticulatoryLearnedMotorWorkPreparationEvidence] = []
+    seen_respiratory_lineages: set[str] = set()
+    for raw in value:
+        if not isinstance(raw, tuple) or len(raw) != 2:
+            raise RuntimeError(
+                "articulatory learned motor-work preparation changed format"
+            )
+        respiratory_lineage = _canonical_lineage_hex(
+            raw[0], "articulatory learned-work respiratory lineage"
+        )
+        preparations = _learned_motor_work_preparation_evidence(raw[1])
+        if (
+            respiratory_lineage in seen_respiratory_lineages
+            or not preparations
+            or any(preparation not in retained for preparation in preparations)
+        ):
+            raise RuntimeError(
+                "articulatory learned motor-work preparation left its interval"
+            )
+        seen_respiratory_lineages.add(respiratory_lineage)
+        observed.append((respiratory_lineage, preparations))
+    return tuple(observed)
+
+
+def _causal_interval_recruitment_aggregate_evidence(
+    raw_articulatory_unit_recruitments: object,
+    motor_unit_recruitments: tuple[
+        tuple[
+            str,
+            int,
+            int,
+            tuple[tuple[str, int, str, int, int, int], ...],
+            tuple[tuple[str, str, str, int, int, str, str], ...],
+        ],
+        ...,
+    ],
+    root_yaw_unit_recruitments: tuple[tuple[str, int, int, str], ...],
+    root_translation_unit_recruitments: tuple[
+        tuple[str, int, int, str, str], ...
+    ],
+    causal_interval_evidence: tuple[ResidentCausalIntervalEvidence, ...],
+) -> tuple[
+    tuple[
+        str,
+        int,
+        int,
+        tuple[tuple[str, int, str, int, int, int], ...],
+    ],
+    ...,
+]:
+    if not causal_interval_evidence:
+        return _articulatory_unit_recruitment_evidence(
+            raw_articulatory_unit_recruitments,
+            motor_unit_recruitments,
+        )
+    interval_motors = tuple(
+        recruitment
+        for interval in causal_interval_evidence
+        for recruitment in interval.motor_unit_recruitments
+    )
+    interval_root_yaw = tuple(
+        recruitment
+        for interval in causal_interval_evidence
+        for recruitment in interval.root_yaw_unit_recruitments
+    )
+    interval_root_translation = tuple(
+        recruitment
+        for interval in causal_interval_evidence
+        for recruitment in interval.root_translation_unit_recruitments
+    )
+    interval_articulatory = tuple(
+        recruitment
+        for interval in causal_interval_evidence
+        for recruitment in interval.articulatory_unit_recruitments
+    )
+    aggregate_articulatory = _articulatory_unit_recruitment_shape_evidence(
+        raw_articulatory_unit_recruitments
+    )
+    if (
+        motor_unit_recruitments != interval_motors
+        or root_yaw_unit_recruitments != interval_root_yaw
+        or root_translation_unit_recruitments != interval_root_translation
+        or aggregate_articulatory != interval_articulatory
+    ):
+        raise RuntimeError(
+            "top-level recruitment aggregate changed causal interval order"
+        )
+    return aggregate_articulatory
+
+
+def _causal_interval_evidence(
+    value: object,
+    predecessor_organism_tick: int,
+) -> tuple[ResidentCausalIntervalEvidence, ...]:
+    if not isinstance(value, list):
+        raise RuntimeError("causal interval evidence changed format")
+    intervals = []
+    for index, raw in enumerate(value):
+        required_fields = (
+            "source_duration_samples_at_articulatory_rate",
+            "rest_recovered_neuron_count",
+            "externally_perturbed_neuron_lineages",
+            "internally_reassembled_formation_cues",
+            "causal_thought_transitions",
+            "externally_reassembled_formation_frontiers",
+            "learned_motor_work_preparations",
+            "articulatory_learned_motor_work_preparations",
+            "motor_unit_recruitments",
+            "root_yaw_unit_recruitments",
+            "root_translation_unit_recruitments",
+            "articulatory_unit_recruitments",
+            "articulatory_pressure_pcm",
+            "articulatory_body_trajectories",
+            "articulatory_sample_rate_hz",
+            "articulatory_peak_transducer_surface_velocity_pcm",
+            "articulatory_glottal_open_samples_at_apex",
+            "articulatory_mouth_area_square_millimetres_at_apex",
+            "articulatory_perioral_area_displacement_square_millimetres",
+            "articulatory_applied_motor_quanta",
+            "articulatory_stalled_motor_quanta",
+            "emitted_neuron_lineages",
+            "changed_contact_channel_states",
+            "affective_balance_trajectories",
+            "causal_frontier_advances",
+            "articulated_body_state",
+        )
+        if any(not hasattr(raw, field) for field in required_fields):
+            raise RuntimeError("causal interval evidence changed named schema")
+        raw_duration_samples = raw.source_duration_samples_at_articulatory_rate
+        raw_rest_recovered = raw.rest_recovered_neuron_count
+        raw_external = raw.externally_perturbed_neuron_lineages
+        raw_cues = raw.internally_reassembled_formation_cues
+        raw_thought_transitions = raw.causal_thought_transitions
+        raw_external_frontiers = raw.externally_reassembled_formation_frontiers
+        raw_learned_motor_work = raw.learned_motor_work_preparations
+        raw_articulatory_learned_motor_work = (
+            raw.articulatory_learned_motor_work_preparations
+        )
+        raw_motors = raw.motor_unit_recruitments
+        raw_root_yaw = raw.root_yaw_unit_recruitments
+        raw_root_translation = raw.root_translation_unit_recruitments
+        raw_articulatory = raw.articulatory_unit_recruitments
+        raw_articulatory_pressure = raw.articulatory_pressure_pcm
+        raw_articulatory_body_trajectories = raw.articulatory_body_trajectories
+        raw_articulatory_sample_rate = raw.articulatory_sample_rate_hz
+        raw_articulatory_peak_transducer_surface_velocity = (
+            raw.articulatory_peak_transducer_surface_velocity_pcm
+        )
+        raw_articulatory_glottal_open = (
+            raw.articulatory_glottal_open_samples_at_apex
+        )
+        raw_articulatory_mouth_area = (
+            raw.articulatory_mouth_area_square_millimetres_at_apex
+        )
+        raw_articulatory_perioral_area = (
+            raw.articulatory_perioral_area_displacement_square_millimetres
+        )
+        raw_articulatory_applied = raw.articulatory_applied_motor_quanta
+        raw_articulatory_stalled = raw.articulatory_stalled_motor_quanta
+        raw_emitted = raw.emitted_neuron_lineages
+        raw_changes = raw.changed_contact_channel_states
+        raw_affect = raw.affective_balance_trajectories
+        raw_frontier = raw.causal_frontier_advances
+        raw_articulated_body = raw.articulated_body_state
+        if not isinstance(raw_articulated_body, bytes) or len(
+            raw_articulated_body
+        ) != native_articulated_body_state_width():
+            raise RuntimeError(
+                "causal interval articulated body changed format"
+            )
+        duration_samples = _positive_integer(
+            raw_duration_samples,
+            "causal interval articulatory-clock duration",
+        )
+        if not isinstance(raw_articulatory_pressure, list) or any(
+            isinstance(sample, bool)
+            or not isinstance(sample, int)
+            or sample < -32_768
+            or sample > 32_767
+            for sample in raw_articulatory_pressure
+        ):
+            raise RuntimeError("causal interval articulatory pressure changed format")
+        articulatory_pressure = tuple(raw_articulatory_pressure)
+        if not isinstance(raw_articulatory_body_trajectories, bytes):
+            raise RuntimeError("causal interval articulatory body changed format")
+        if len(raw_articulatory_body_trajectories) != 8 * len(
+            articulatory_pressure
+        ):
+            raise RuntimeError(
+                "causal interval articulatory pressure/body clocks diverged"
+            )
+        if articulatory_pressure and len(articulatory_pressure) != duration_samples:
+            raise RuntimeError(
+                "causal interval articulatory pressure changed duration"
+            )
+        articulatory_sample_rate = _positive_integer(
+            raw_articulatory_sample_rate,
+            "causal interval articulatory sample rate",
+        )
+        articulatory_peak_transducer_surface_velocity = _signed_integer(
+            raw_articulatory_peak_transducer_surface_velocity,
+            "causal interval articulatory peak transducer surface velocity",
+        )
+        articulatory_glottal_open = _signed_integer(
+            raw_articulatory_glottal_open,
+            "causal interval articulatory glottal opening",
+        )
+        articulatory_mouth_area = _signed_integer(
+            raw_articulatory_mouth_area,
+            "causal interval articulatory mouth area",
+        )
+        articulatory_perioral_area = _signed_integer(
+            raw_articulatory_perioral_area,
+            "causal interval articulatory perioral displacement",
+        )
+        articulatory_applied = _nonnegative_integer(
+            raw_articulatory_applied,
+            "causal interval applied articulatory motor quanta",
+        )
+        articulatory_stalled = _nonnegative_integer(
+            raw_articulatory_stalled,
+            "causal interval stalled articulatory motor quanta",
+        )
+        if not articulatory_pressure and any(
+            (
+                articulatory_peak_transducer_surface_velocity,
+                articulatory_glottal_open,
+                articulatory_mouth_area,
+                articulatory_perioral_area,
+                articulatory_applied,
+                articulatory_stalled,
+            )
+        ):
+            raise RuntimeError(
+                "quiescent causal interval reports articulatory mechanics"
+            )
+        rest_recovered = _nonnegative_integer(
+            raw_rest_recovered,
+            "causal interval rest-recovered neuron count",
+        )
+        if not isinstance(raw_external, list):
+            raise RuntimeError("causal interval external lineages changed format")
+        external = tuple(
+            _canonical_lineage_hex(lineage, "causal interval external lineage")
+            for lineage in raw_external
+        )
+        if len(set(external)) != len(external):
+            raise RuntimeError("causal interval external lineage repeated")
+        if not isinstance(raw_emitted, list):
+            raise RuntimeError("causal interval emitted lineages changed format")
+        emitted = tuple(
+            _canonical_lineage_hex(lineage, "causal interval emitted lineage")
+            for lineage in raw_emitted
+        )
+        if len(set(emitted)) != len(emitted):
+            raise RuntimeError("causal interval emitted lineage repeated")
+        if not isinstance(raw_frontier, list):
+            raise RuntimeError("causal interval frontier changed format")
+        frontier = []
+        for transfer in raw_frontier:
+            if not isinstance(transfer, tuple) or len(transfer) != 5:
+                raise RuntimeError("causal interval frontier changed format")
+            directed = _directed_physical_transfer_evidence(
+                transfer[:4], "causal interval frontier"
+            )
+            advancing = _canonical_lineage_hex(
+                transfer[4], "causal interval advancing lineage"
+            )
+            if advancing not in directed[:2]:
+                raise RuntimeError("causal interval frontier left its contact")
+            frontier.append((*directed, advancing))
+        canonical_frontier = tuple(frontier)
+        if len(set(canonical_frontier)) != len(canonical_frontier):
+            raise RuntimeError("causal interval frontier repeated a transfer")
+        internal_cues = _internally_reassembled_formation_cue_evidence(raw_cues)
+        thought_transitions = _causal_thought_transition_evidence(
+            raw_thought_transitions
+        )
+        if any(
+            not any(
+                destination_receipt == receipt and cue_lineage in cues
+                for receipt, cues, _recurrent in internal_cues
+            )
+            for (
+                _source_receipt,
+                destination_receipt,
+                _source_recurrent,
+                cue_lineage,
+                _transfer,
+            ) in thought_transitions
+        ):
+            raise RuntimeError(
+                "causal thought transition left its destination formation cue"
+            )
+        predecessor_tick = predecessor_organism_tick + index
+        learned_motor_work_preparations = (
+            _learned_motor_work_preparation_evidence(raw_learned_motor_work)
+        )
+        learned_work_prepared_motor_lineages = frozenset(
+            preparation[0]
+            for preparation in learned_motor_work_preparations
+            if preparation[2][1][0] > 0
+        )
+        motor_unit_recruitments = _motor_unit_recruitment_evidence(
+            raw_motors,
+            learned_work_prepared_motor_lineages,
+        )
+        articulatory_learned_motor_work_preparations = (
+            _articulatory_learned_motor_work_preparation_evidence(
+                raw_articulatory_learned_motor_work,
+                learned_motor_work_preparations,
+            )
+        )
+        learned_work_by_respiratory_lineage = {
+            respiratory_lineage: frozenset(
+                preparation[0] for preparation in preparations
+            )
+            for respiratory_lineage, preparations in (
+                articulatory_learned_motor_work_preparations
+            )
+        }
+        articulatory_unit_recruitments = _articulatory_unit_recruitment_evidence(
+            raw_articulatory,
+            motor_unit_recruitments,
+            learned_work_by_respiratory_lineage,
+        )
+        intervals.append(
+            ResidentCausalIntervalEvidence(
+                predecessor_organism_tick=predecessor_tick,
+                organism_tick=predecessor_tick + 1,
+                source_duration_samples_at_articulatory_rate=duration_samples,
+                rest_recovered_neuron_count=rest_recovered,
+                externally_perturbed_neuron_lineages=external,
+                internally_reassembled_formation_cues=internal_cues,
+                causal_thought_transitions=thought_transitions,
+                externally_reassembled_formation_frontiers=(
+                    _externally_reassembled_formation_frontier_evidence(
+                        raw_external_frontiers
+                    )
+                ),
+                learned_motor_work_preparations=(
+                    learned_motor_work_preparations
+                ),
+                articulatory_learned_motor_work_preparations=(
+                    articulatory_learned_motor_work_preparations
+                ),
+                motor_unit_recruitments=motor_unit_recruitments,
+                root_yaw_unit_recruitments=(
+                    _root_yaw_unit_recruitment_evidence(raw_root_yaw)
+                ),
+                root_translation_unit_recruitments=(
+                    _root_translation_unit_recruitment_evidence(
+                        raw_root_translation
+                    )
+                ),
+                articulatory_unit_recruitments=(
+                    articulatory_unit_recruitments
+                ),
+                articulatory_pressure_pcm=articulatory_pressure,
+                articulatory_body_trajectories=(
+                    raw_articulatory_body_trajectories
+                ),
+                articulatory_sample_rate_hz=articulatory_sample_rate,
+                articulatory_peak_transducer_surface_velocity_pcm=(
+                    articulatory_peak_transducer_surface_velocity
+                ),
+                articulatory_glottal_open_samples_at_apex=(
+                    articulatory_glottal_open
+                ),
+                articulatory_mouth_area_square_millimetres_at_apex=(
+                    articulatory_mouth_area
+                ),
+                articulatory_perioral_area_displacement_square_millimetres=(
+                    articulatory_perioral_area
+                ),
+                articulatory_applied_motor_quanta=articulatory_applied,
+                articulatory_stalled_motor_quanta=articulatory_stalled,
+                emitted_neuron_lineages=emitted,
+                changed_contact_channel_states=(
+                    _changed_contact_channel_state_evidence(raw_changes)
+                ),
+                affective_balance_trajectories=(
+                    _affective_balance_trajectory_evidence(raw_affect)
+                ),
+                causal_frontier_advances=canonical_frontier,
+                articulated_body_state=raw_articulated_body,
+            )
+        )
+    return tuple(intervals)
+
+
+def _directed_physical_transfer_evidence(
+    value: object, label: str
+) -> tuple[str, str, int, int]:
+    if not isinstance(value, tuple) or len(value) != 4:
+        raise RuntimeError(f"resident organism {label} changed format")
+    carriers_text = value[3]
+    if not isinstance(carriers_text, str) or not carriers_text.isdecimal():
+        raise RuntimeError(f"resident organism {label} lost exact carriers")
+    carriers = int(carriers_text)
+    if carriers <= 0:
+        raise RuntimeError(f"resident organism {label} carried no material")
+    sender = _canonical_lineage_hex(value[0], f"{label} sender")
+    receiver = _canonical_lineage_hex(value[1], f"{label} receiver")
+    if sender == receiver:
+        raise RuntimeError(f"resident organism {label} joined one lineage to itself")
+    return (
+        sender,
+        receiver,
+        _nonnegative_integer(value[2], f"{label} bond ordinal"),
+        carriers,
+    )
+
+
+def _working_causal_continuation_evidence(
+    value: object,
+) -> tuple[
+    tuple[
+        tuple[str, str, int, int],
+        tuple[str, str, int, int],
+    ],
+    ...,
+]:
+    if not isinstance(value, list) or len(value) > 1:
+        raise RuntimeError("resident organism working continuation changed bounds")
+    paths = []
+    for raw_path in value:
+        if not isinstance(raw_path, tuple) or len(raw_path) != 2:
+            raise RuntimeError("resident organism working continuation changed format")
+        first = _directed_physical_transfer_evidence(
+            raw_path[0], "working continuation first transfer"
+        )
+        second = _directed_physical_transfer_evidence(
+            raw_path[1], "working continuation second transfer"
+        )
+        if first[1] != second[0]:
+            raise RuntimeError("resident organism working continuation is not adjacent")
+        paths.append((first, second))
+    return tuple(paths)
+
+
+def _settled_working_frontier_evidence(
+    value: object,
+) -> tuple[tuple[str, str, int, int], ...]:
+    if not isinstance(value, list) or len(value) > 1:
+        raise RuntimeError("resident organism settled working frontier changed bounds")
+    return tuple(
+        _directed_physical_transfer_evidence(
+            transfer, "settled working frontier transfer"
+        )
+        for transfer in value
+    )
+
+
+def _physical_prediction_alternative_evidence(
+    value: object,
+) -> tuple[
+    tuple[
+        tuple[str, str, int, int],
+        tuple[str, str, int, int],
+    ],
+    ...,
+]:
+    if not isinstance(value, list) or len(value) not in (0, 2):
+        raise RuntimeError("resident organism prediction alternatives changed bounds")
+    paths = tuple(
+        (
+            _directed_physical_transfer_evidence(
+                raw_path[0], "prediction alternative first transfer"
+            ),
+            _directed_physical_transfer_evidence(
+                raw_path[1], "prediction alternative second transfer"
+            ),
+        )
+        for raw_path in value
+        if isinstance(raw_path, tuple) and len(raw_path) == 2
+    )
+    if len(paths) != len(value):
+        raise RuntimeError("resident organism prediction alternative changed format")
+    if paths and (
+        paths[0][0][1] != paths[0][1][0]
+        or paths[1][0][1] != paths[1][1][0]
+        or paths[0][0][0] != paths[1][0][0]
+        or paths[0][0][1] == paths[1][0][1]
+        or paths[0][1][1] == paths[1][1][1]
+    ):
+        raise RuntimeError("resident organism prediction alternatives lost topology")
+    return paths
+
+
+def _body_consequence_transfer_evidence(
+    value: object,
+) -> tuple[tuple[str, str, int, int], ...]:
+    if not isinstance(value, list) or len(value) > 1:
+        raise RuntimeError("resident organism body consequence changed bounds")
+    return tuple(
+        _directed_physical_transfer_evidence(
+            transfer, "body consequence transfer"
+        )
+        for transfer in value
+    )
+
+
+def _exact_rational_evidence(value: object, label: str) -> ExactRationalEvidence:
+    if not isinstance(value, tuple) or len(value) != 2:
+        raise RuntimeError(f"resident organism {label} changed format")
+    numerator_text, denominator_text = value
+    if (
+        not isinstance(numerator_text, str)
+        or not isinstance(denominator_text, str)
+        or not numerator_text.removeprefix("-").isdecimal()
+        or not denominator_text.isdecimal()
+    ):
+        raise RuntimeError(f"resident organism {label} lost exact rational")
+    numerator = int(numerator_text)
+    denominator = int(denominator_text)
+    if denominator <= 0:
+        raise RuntimeError(f"resident organism {label} has invalid denominator")
+    return numerator, denominator
+
+
+def _learned_motor_work_preparation_evidence(
+    value: object,
+) -> tuple[LearnedMotorWorkPreparationEvidence, ...]:
+    if not isinstance(value, list):
+        raise RuntimeError("learned motor-work preparations changed format")
+    observed: list[LearnedMotorWorkPreparationEvidence] = []
+    seen_motors: set[str] = set()
+    for raw in value:
+        if not isinstance(raw, tuple) or len(raw) != 3:
+            raise RuntimeError("learned motor-work preparation changed format")
+        motor = _canonical_lineage_hex(raw[0], "learned motor-work motor lineage")
+        if motor in seen_motors or not isinstance(raw[1], list) or not raw[1]:
+            raise RuntimeError("learned motor-work preparation lost its unique route")
+        seen_motors.add(motor)
+        routes: list[LearnedMotorWorkRouteEvidence] = []
+        for raw_route in raw[1]:
+            if not isinstance(raw_route, tuple) or len(raw_route) != 5:
+                raise RuntimeError("learned motor-work route changed format")
+            ordering = _canonical_lineage_hex(
+                raw_route[0], "learned motor-work ordering lineage"
+            )
+            founding = _canonical_lineage_hex(
+                raw_route[1], "learned motor-work founding lineage"
+            )
+            bonds: list[StablePhysicalBondEvidence] = []
+            for label, raw_bond in (
+                ("founding", raw_route[2]),
+                ("learned", raw_route[3]),
+            ):
+                if not isinstance(raw_bond, tuple) or len(raw_bond) != 3:
+                    raise RuntimeError(f"learned motor-work {label} bond changed format")
+                left = _canonical_lineage_hex(
+                    raw_bond[0], f"learned motor-work {label} bond left"
+                )
+                right = _canonical_lineage_hex(
+                    raw_bond[1], f"learned motor-work {label} bond right"
+                )
+                ordinal = _nonnegative_integer(
+                    raw_bond[2], f"learned motor-work {label} bond ordinal"
+                )
+                if left >= right:
+                    raise RuntimeError(f"learned motor-work {label} bond is not canonical")
+                bonds.append((left, right, ordinal))
+            if set(bonds[0][:2]) != {ordering, founding} or set(bonds[1][:2]) != {
+                ordering,
+                motor,
+            }:
+                raise RuntimeError("learned motor-work route left its physical bonds")
+            offered = _exact_rational_evidence(
+                raw_route[4], "learned motor-work route offer"
+            )
+            if offered[0] <= 0:
+                raise RuntimeError("learned motor-work route offer is not positive")
+            routes.append((ordering, founding, bonds[0], bonds[1], offered))
+        if tuple(sorted(set(routes))) != tuple(routes):
+            raise RuntimeError("learned motor-work routes are not canonical")
+        if not isinstance(raw[2], tuple) or len(raw[2]) != 7:
+            raise RuntimeError("learned motor-work energy evidence changed format")
+        energies = tuple(
+            _exact_rational_evidence(part, f"learned motor-work energy {index}")
+            for index, part in enumerate(raw[2])
+        )
+        if any(numerator < 0 for numerator, _denominator in energies):
+            raise RuntimeError("learned motor-work energy became negative")
+        total_offered, accepted, predecessor, successor, delivered, retained, narrowing = (
+            energies
+        )
+        as_fraction = lambda exact: Fraction(exact[0], exact[1])
+        if sum(as_fraction(route[4]) for route in routes) != as_fraction(total_offered):
+            raise RuntimeError("learned motor-work route offers lost total work")
+        if as_fraction(accepted) + as_fraction(retained) != as_fraction(total_offered):
+            raise RuntimeError("learned motor-work acceptance lost source work")
+        if (
+            as_fraction(predecessor) + as_fraction(accepted)
+            != as_fraction(delivered)
+            + as_fraction(successor)
+            + as_fraction(narrowing)
+        ):
+            raise RuntimeError("learned motor-work gate settlement lost exact work")
+        observed.append((motor, tuple(routes), energies))
+    return tuple(observed)
+
+
+def _timed_directed_physical_transfer_evidence(
+    value: object, label: str
+) -> TimedDirectedPhysicalTransferEvidence:
+    if not isinstance(value, tuple) or len(value) != 2:
+        raise RuntimeError(f"resident organism {label} changed format")
+    return (
+        _nonnegative_integer(value[0], f"{label} cognitive ordinal"),
+        _directed_physical_transfer_evidence(value[1], label),
+    )
+
+
+def _affective_balance_trajectory_evidence(
+    value: object,
+) -> tuple[AffectiveBalanceTrajectoryEvidence, ...]:
+    if not isinstance(value, list):
+        raise RuntimeError("resident organism affective-balance trajectory changed format")
+    trajectories: list[AffectiveBalanceTrajectoryEvidence] = []
+    for raw in value:
+        if not isinstance(raw, tuple) or len(raw) != 7:
+            raise RuntimeError(
+                "resident organism affective-balance trajectory changed format"
+            )
+        lineage = _canonical_lineage_hex(raw[0], "affective-balance lineage")
+        layer = _nonnegative_integer(raw[1], "affective-balance layer")
+        topology = _nonnegative_integer(raw[2], "affective-balance topology")
+        if layer != 10:
+            raise RuntimeError("resident organism affective-balance cell left layer 10")
+        association = (
+            None
+            if raw[3] is None
+            else _timed_directed_physical_transfer_evidence(
+                raw[3], "affective-balance association influence"
+            )
+        )
+        body = (
+            None
+            if raw[4] is None
+            else _timed_directed_physical_transfer_evidence(
+                raw[4], "affective-balance body influence"
+            )
+        )
+        for influence in (association, body):
+            if influence is not None and lineage not in influence[1][:2]:
+                raise RuntimeError(
+                    "resident organism affective-balance influence missed its cell"
+                )
+        gradient = None
+        if raw[5] is not None:
+            if not isinstance(raw[5], tuple) or len(raw[5]) != 10:
+                raise RuntimeError(
+                    "resident organism affective-balance gradient changed format"
+                )
+            gradient = (
+                _nonnegative_integer(raw[5][0], "affective-balance gradient ordinal"),
+                _signed_integer(raw[5][1], "affective-balance predecessor charge"),
+                _signed_integer(raw[5][2], "affective-balance post-gradient charge"),
+                _signed_integer(raw[5][3], "affective-balance successor charge"),
+                _signed_integer(raw[5][4], "affective-balance returned carriers"),
+                _signed_integer(raw[5][5], "affective-balance pumped carriers"),
+                _signed_integer(raw[5][6], "affective-balance remaining charge"),
+                _exact_rational_evidence(raw[5][7], "affective-balance gradient work"),
+                _exact_rational_evidence(
+                    raw[5][8], "affective-balance environment delivery"
+                ),
+                _exact_rational_evidence(raw[5][9], "affective-balance heat export"),
+            )
+        plasticity = None
+        if raw[6] is not None:
+            if not isinstance(raw[6], tuple) or len(raw[6]) != 10:
+                raise RuntimeError(
+                    "resident organism affective-balance plasticity changed format"
+                )
+            predecessor_reservoir = raw[6][8]
+            successor_reservoir = raw[6][9]
+            if (
+                not isinstance(predecessor_reservoir, tuple)
+                or len(predecessor_reservoir) != 3
+                or not isinstance(successor_reservoir, tuple)
+                or len(successor_reservoir) != 3
+            ):
+                raise RuntimeError(
+                    "resident organism affective-balance plastic reservoir changed format"
+                )
+            plasticity = (
+                _nonnegative_integer(raw[6][0], "affective-balance plastic ordinal"),
+                _positive_decimal_integer(
+                    raw[6][1], "affective-balance incident catalyst"
+                ),
+                _nonnegative_decimal_integer(
+                    raw[6][2], "affective-balance reaction extent"
+                ),
+                _exact_rational_evidence(raw[6][3], "affective-balance delivered work"),
+                _exact_rational_evidence(
+                    raw[6][4], "affective-balance predecessor gate residue"
+                ),
+                _exact_rational_evidence(
+                    raw[6][5], "affective-balance successor gate residue"
+                ),
+                _exact_rational_evidence(
+                    raw[6][6], "affective-balance predecessor plastic rest"
+                ),
+                _exact_rational_evidence(
+                    raw[6][7], "affective-balance successor plastic rest"
+                ),
+                tuple(
+                    _exact_rational_evidence(
+                        item, "affective-balance predecessor plastic reservoir"
+                    )
+                    for item in predecessor_reservoir
+                ),
+                tuple(
+                    _exact_rational_evidence(
+                        item, "affective-balance successor plastic reservoir"
+                    )
+                    for item in successor_reservoir
+                ),
+            )
+        trajectories.append(
+            (lineage, layer, topology, association, body, gradient, plasticity)
+        )
+    if tuple(item[0] for item in trajectories) != tuple(
+        sorted({item[0] for item in trajectories})
+    ):
+        raise RuntimeError("resident organism affective-balance trajectories are not canonical")
+    return tuple(trajectories)
+
+
+def _localized_fluid_chemistry_evidence(
+    value: object,
+) -> tuple[LocalizedFluidChemistryEvidence, ...]:
+    if not isinstance(value, list) or len(value) > 1:
+        raise RuntimeError("resident organism localized fluid chemistry changed format")
+    settlements: list[LocalizedFluidChemistryEvidence] = []
+    for raw in value:
+        if not isinstance(raw, tuple) or len(raw) != 7:
+            raise RuntimeError("resident organism localized fluid chemistry changed format")
+        lineage = _canonical_lineage_hex(raw[0], "localized fluid target lineage")
+        layer = _nonnegative_integer(raw[1], "localized fluid target layer")
+        topology = _nonnegative_integer(raw[2], "localized fluid target topology")
+        ordinal = _positive_integer(raw[3], "localized fluid cognitive ordinal")
+        contact = raw[4]
+        carrier = raw[5]
+        reservoir = raw[6]
+        if not isinstance(contact, tuple) or len(contact) != 7:
+            raise RuntimeError("resident organism localized fluid contact changed format")
+        contact_evidence = (
+            _positive_integer(contact[0], "localized fluid interval"),
+            _exact_rational_evidence(contact[1], "localized fluid contact power"),
+            _positive_integer(contact[2], "localized fluid reached count"),
+            _positive_integer(contact[3], "localized fluid changed reached count"),
+            _nonnegative_integer(contact[4], "localized fluid unchanged unreached count"),
+            _nonnegative_integer(
+                contact[5], "localized fluid unchanged developmental resting count"
+            ),
+            _nonnegative_integer(contact[6], "localized fluid changed unreached count"),
+        )
+        if contact_evidence[3] > contact_evidence[2] or contact_evidence[6] != 0:
+            raise RuntimeError("resident organism localized fluid locality was not preserved")
+        if not isinstance(carrier, tuple) or len(carrier) != 8:
+            raise RuntimeError("resident organism localized fluid carrier changed format")
+        carrier_evidence = (
+            _signed_integer(carrier[0], "localized fluid predecessor charge"),
+            _signed_integer(carrier[1], "localized fluid successor charge"),
+            _nonnegative_decimal_integer(carrier[2], "localized fluid predecessor intracellular"),
+            _nonnegative_decimal_integer(carrier[3], "localized fluid predecessor extracellular"),
+            _nonnegative_decimal_integer(carrier[4], "localized fluid successor intracellular"),
+            _nonnegative_decimal_integer(carrier[5], "localized fluid successor extracellular"),
+            _signed_integer(carrier[6], "localized fluid returned carriers"),
+            _signed_integer(carrier[7], "localized fluid pumped carriers"),
+        )
+        if carrier_evidence[2] + carrier_evidence[3] != carrier_evidence[4] + carrier_evidence[5]:
+            raise RuntimeError("resident organism localized fluid carrier material changed")
+        if not isinstance(reservoir, tuple) or len(reservoir) != 3:
+            raise RuntimeError("resident organism localized fluid reservoir changed format")
+        reservoir_states: list[
+            tuple[ExactRationalEvidence, ExactRationalEvidence, ExactRationalEvidence]
+        ] = []
+        for index, state in enumerate(reservoir[:2]):
+            if not isinstance(state, tuple) or len(state) != 3:
+                raise RuntimeError("resident organism localized fluid reservoir changed format")
+            reservoir_states.append(
+                (
+                    _exact_rational_evidence(state[0], f"localized fluid reservoir {index} available"),
+                    _exact_rational_evidence(state[1], f"localized fluid reservoir {index} spent"),
+                    _exact_rational_evidence(state[2], f"localized fluid reservoir {index} thermal"),
+                )
+            )
+        settlements.append(
+            (
+                lineage,
+                layer,
+                topology,
+                ordinal,
+                contact_evidence,
+                carrier_evidence,
+                (
+                    reservoir_states[0],
+                    reservoir_states[1],
+                    _exact_rational_evidence(reservoir[2], "localized fluid gradient work"),
+                ),
+            )
+        )
+    return tuple(settlements)
+
+
+def _localized_metabolic_strain_evidence(
+    evaluated_lineages: object,
+    value: object,
+) -> tuple[tuple[str, ...], tuple[LocalizedMetabolicStrainEvidence, ...]]:
+    if not isinstance(evaluated_lineages, list):
+        raise RuntimeError(
+            "resident organism localized metabolic-strain lineage evidence changed format"
+        )
+    evaluated = tuple(
+        _canonical_lineage_hex(lineage, "localized metabolic-strain evaluated lineage")
+        for lineage in evaluated_lineages
+    )
+    if evaluated != tuple(sorted(set(evaluated))):
+        raise RuntimeError(
+            "resident organism localized metabolic-strain evaluated lineages are not canonical"
+        )
+    if not isinstance(value, list) or len(value) > len(evaluated):
+        raise RuntimeError(
+            "resident organism localized metabolic-strain evidence changed format"
+        )
+    observations: list[LocalizedMetabolicStrainEvidence] = []
+    for raw in value:
+        if not isinstance(raw, tuple) or len(raw) != 7:
+            raise RuntimeError(
+                "resident organism localized metabolic-strain evidence changed format"
+            )
+        lineage = _canonical_lineage_hex(raw[0], "localized metabolic-strain lineage")
+        layer = _nonnegative_integer(raw[1], "localized metabolic-strain layer")
+        topology = _nonnegative_integer(raw[2], "localized metabolic-strain topology")
+        ordinal = _positive_integer(raw[3], "localized metabolic-strain cognitive ordinal")
+        if lineage not in evaluated or layer != 5:
+            raise RuntimeError(
+                "resident organism localized metabolic-strain source identity changed"
+            )
+        if not isinstance(raw[4], list):
+            raise RuntimeError(
+                "resident organism localized metabolic-strain Psi lanes changed format"
+            )
+        psi = tuple(
+            _nonnegative_decimal_integer(
+                quanta, "localized metabolic-strain Psi dissipation"
+            )
+            for quanta in raw[4]
+        )
+        gate = _nonnegative_decimal_integer(
+            raw[5], "localized metabolic-strain gate dissipation"
+        )
+        plastic = _nonnegative_decimal_integer(
+            raw[6], "localized metabolic-strain plastic dissipation"
+        )
+        if not any(psi) and gate == 0 and plastic == 0:
+            raise RuntimeError(
+                "resident organism localized metabolic-strain sparse evidence retained zero"
+            )
+        observations.append((lineage, layer, topology, ordinal, psi, gate, plastic))
+    if tuple(item[0] for item in observations) != tuple(
+        sorted({item[0] for item in observations})
+    ):
+        raise RuntimeError(
+            "resident organism localized metabolic-strain observations are not canonical"
+        )
+    return evaluated, tuple(observations)
+
+
+def _validated_causal_intervals(
+    maximum_causal_intervals: object,
+) -> list[tuple[int, int]]:
+    """Validate caller-authored maximum causal intervals.
+
+    One exact positive rational ``(numerator, denominator)`` per source
+    occurrence, in exact occurrence order.  Every value is authored by the
+    caller as independent environment/anatomy authority; nothing is defaulted
+    or derived here.
+    """
+
+    if not isinstance(maximum_causal_intervals, (tuple, list)) or not (
+        maximum_causal_intervals
+    ):
+        raise ValueError(
+            "resident organism admission requires one authored maximum causal "
+            "interval per source occurrence"
+        )
+    validated: list[tuple[int, int]] = []
+    for index, interval in enumerate(maximum_causal_intervals):
+        if not isinstance(interval, (tuple, list)) or len(interval) != 2:
+            raise TypeError(
+                f"authored admission {index} must be (numerator, denominator)"
+            )
+        numerator, denominator = interval
+        if (
+            isinstance(numerator, bool)
+            or isinstance(denominator, bool)
+            or not isinstance(numerator, int)
+            or not isinstance(denominator, int)
+        ):
+            raise TypeError(
+                f"authored admission {index} must carry exact integers"
+            )
+        if denominator == 0:
+            raise ValueError(f"authored admission {index} has a zero denominator")
+        if numerator * denominator <= 0:
+            raise ValueError(
+                f"authored admission {index} is not a positive causal interval"
+            )
+        validated.append((numerator, denominator))
+    return validated
+
+
+def _exact_token(value: object) -> bytes:
+    if not isinstance(value, bytes) or len(value) != 32:
+        raise ValueError("resident organism token must be exactly 32 immutable bytes")
+    return value
+
+
+def _concrete_class(core: object, name: str) -> type:
+    candidate = getattr(core, name, None)
+    if not isinstance(candidate, type):
+        raise RuntimeError(f"guala_core does not expose concrete {name}")
+    return candidate
+
+
+def _validate_budget(
+    max_envelope_bytes: object,
+    max_fabric_bytes: object,
+    max_logical_peak_bytes: object,
+) -> tuple[int, int, int]:
+    envelope = _positive_integer(max_envelope_bytes, "envelope budget")
+    fabric = _positive_integer(max_fabric_bytes, "fabric budget")
+    logical = _positive_integer(max_logical_peak_bytes, "logical peak budget")
+    if fabric >= envelope:
+        raise ValueError(
+            "resident organism fabric budget must fit inside its envelope budget"
+        )
+    if logical <= 2 * envelope:
+        raise ValueError(
+            "resident organism logical peak budget must retain two envelopes and workspace"
+        )
+    return envelope, fabric, logical
+
+
+def _observation_signature(
+    observation: NativeResidentObservationView,
+) -> tuple[object, ...]:
+    return (
+        observation.identity,
+        observation.organism_tick,
+        observation.fabric_generation,
+        observation.mounted_generation,
+        observation.state_bytes,
+        observation.state_sha256,
+        observation.fabric_bytes,
+        observation.fabric_sha256,
+        observation.joint_field_count,
+        observation.joint_neuron_count,
+        observation.complete_neuron_count,
+        observation.developmental_resting_neuron_count,
+        observation.cognitive_ordinal,
+        observation.cognitive_trace_count,
+        observation.cognitive_mosaic_count,
+        tuple(observation.physical_frontier_routes),
+        tuple(observation.preceding_distinct_physical_frontier_routes),
+        tuple(observation.reached_and_foregone_physical_frontier_routes),
+        tuple(observation.working_causal_continuations),
+        tuple(observation.settled_working_frontier),
+        tuple(observation.physical_prediction_alternatives),
+        tuple(observation.body_consequence_transfers),
+        tuple(observation.affective_balance_trajectories),
+        tuple(observation.localized_fluid_chemistry),
+        tuple(
+            observation.localized_metabolic_strain_evaluated_body_receptor_lineages
+        ),
+        tuple(observation.localized_metabolic_strain),
+        tuple(
+            (
+                tuple(receipts),
+                tuple(lineages),
+                tuple(bonds),
+                structure_receipt,
+                tuple(ordered_paths),
+                tuple(ordered_path_relations),
+            )
+            for (
+                receipts,
+                lineages,
+                bonds,
+                structure_receipt,
+                ordered_paths,
+                ordered_path_relations,
+            ) in observation.organic_mosaic_relations
+        ),
+        observation.vocal_founder_refusal_count,
+        observation.partial_cue_reassembly_count,
+        observation.endogenous_partial_cue_reassembly_count,
+    )
+
+
+class NativeResidentOrganism:
+    """Factory-only handle retaining exactly one concrete native runtime."""
+
+    __slots__ = (
+        "__runtime",
+        "__runtime_type",
+        "__observation_type",
+        "__prepare_type",
+        "__sealed_direct_token",
+        "__unsealed_tick",
+    )
+
+    def __new__(cls, authority: object = None, *args: object, **kwargs: object):
+        del args, kwargs
+        if authority is not _FACTORY_AUTHORITY:
+            raise TypeError(
+                "native resident organism must be created by cold restore"
+            )
+        return super().__new__(cls)
+
+    def __init__(
+        self,
+        authority: object,
+        runtime: object,
+        runtime_type: type,
+        observation_type: type,
+        prepare_type: type,
+    ) -> None:
+        if authority is not _FACTORY_AUTHORITY or not isinstance(
+            runtime, runtime_type
+        ):
+            raise TypeError("native resident organism runtime is not concrete")
+        self.__runtime = runtime
+        self.__runtime_type = runtime_type
+        self.__observation_type = observation_type
+        self.__prepare_type = prepare_type
+        self.__sealed_direct_token: bytes | None = None
+        self.__unsealed_tick: int | None = None
+
+    def _require_observation(
+        self, candidate: object
+    ) -> NativeResidentObservationView:
+        if not isinstance(candidate, self.__observation_type):
+            raise TypeError(
+                "resident organism operation returned a structural impostor"
+            )
+        if candidate.schema != OBSERVATION_SCHEMA:
+            raise RuntimeError("resident organism observation schema changed")
+        if not isinstance(candidate.identity, str) or not candidate.identity:
+            raise RuntimeError("resident organism identity is absent")
+        organism_tick = _nonnegative_integer(
+            candidate.organism_tick, "organism tick"
+        )
+        fabric_generation = _nonnegative_integer(
+            candidate.fabric_generation, "fabric generation"
+        )
+        mounted_generation = _nonnegative_integer(
+            candidate.mounted_generation, "mounted generation"
+        )
+        del organism_tick, fabric_generation, mounted_generation
+        state_bytes = _positive_integer(candidate.state_bytes, "state bytes")
+        fabric_bytes = _positive_integer(candidate.fabric_bytes, "fabric bytes")
+        if fabric_bytes >= state_bytes:
+            raise RuntimeError("resident organism fabric does not fit its envelope")
+        _canonical_sha256(candidate.state_sha256, "state receipt")
+        _canonical_sha256(candidate.fabric_sha256, "fabric receipt")
+        body_axes = candidate.articulated_body_axes
+        if not isinstance(body_axes, list) or len(body_axes) != 45:
+            raise RuntimeError("resident articulated body axis count changed")
+        seen_body_axes: set[int] = set()
+        for raw_axis in body_axes:
+            if not isinstance(raw_axis, tuple) or len(raw_axis) != 7:
+                raise RuntimeError("resident articulated body axis changed format")
+            ordinal, name, unit, position, minimum, neutral, maximum = raw_axis
+            ordinal = _nonnegative_integer(ordinal, "body axis ordinal")
+            if (
+                ordinal in seen_body_axes
+                or ordinal != len(seen_body_axes)
+                or not isinstance(name, str)
+                or not name
+                or unit not in {"millidegree", "micrometre", "square_millimetre"}
+            ):
+                raise RuntimeError("resident articulated body anatomy is not canonical")
+            position = _signed_integer(position, "body axis position")
+            minimum = _signed_integer(minimum, "body axis minimum")
+            neutral = _signed_integer(neutral, "body axis neutral")
+            maximum = _signed_integer(maximum, "body axis maximum")
+            if not minimum <= position <= maximum or not minimum <= neutral <= maximum:
+                raise RuntimeError("resident articulated body axis left its anatomy")
+            seen_body_axes.add(ordinal)
+        _nonnegative_integer(
+            candidate.articulated_body_lung_air_microlitres,
+            "body lung air",
+        )
+        tract_areas = candidate.articulated_body_vocal_tract_areas_square_millimetres
+        if (
+            not isinstance(tract_areas, list)
+            or len(tract_areas) != 8
+            or any(_positive_integer(area, "vocal tract area") <= 0 for area in tract_areas)
+        ):
+            raise RuntimeError("resident vocal tract state changed format")
+        if _positive_integer(
+            candidate.articulated_body_state_bytes,
+            "articulated body state bytes",
+        ) != native_articulated_body_state_width():
+            raise RuntimeError("resident articulated body state width changed")
+        if not isinstance(
+            candidate.articulated_body_proprioception_initialized, bool
+        ):
+            raise RuntimeError(
+                "resident articulated body proprioception flag changed format"
+            )
+        _canonical_sha256(
+            candidate.articulated_body_state_sha256,
+            "articulated body state receipt",
+        )
+        _nonnegative_integer(
+            candidate.joint_field_count, "joint field count"
+        )
+        _nonnegative_integer(
+            candidate.joint_neuron_count, "joint neuron count"
+        )
+        if (
+            _nonnegative_integer(
+                candidate.cold_restore_authentication_count,
+                "cold authentication count",
+            )
+            != 1
+            or _nonnegative_integer(
+                candidate.cold_restore_decode_count, "cold decode count"
+            )
+            != 1
+        ):
+            raise RuntimeError("resident organism did not cold restore exactly once")
+        _nonnegative_integer(
+            candidate.cold_restore_rebuilt_field_count,
+            "cold rebuilt field count",
+        )
+        cognitive_ordinal = _nonnegative_integer(
+            candidate.cognitive_ordinal, "cognitive ordinal"
+        )
+        cognitive_trace_count = _nonnegative_integer(
+            candidate.cognitive_trace_count, "cognitive trace count"
+        )
+        cognitive_mosaic_count = _nonnegative_integer(
+            candidate.cognitive_mosaic_count, "cognitive mosaic count"
+        )
+        mosaic_of_mosaics_count = _nonnegative_integer(
+            candidate.mosaic_of_mosaics_count, "mosaic of mosaics count"
+        )
+        del mosaic_of_mosaics_count
+        activation_count = _nonnegative_integer(
+            candidate.formation_activation_count,
+            "formation activation count",
+        )
+        _nonnegative_integer(candidate.vocal_founder_refusal_count, "vocal founder refusal count")
+        partial_count = _nonnegative_integer(
+            candidate.partial_cue_reassembly_count,
+            "partial cue reassembly count",
+        )
+        endogenous_partial_count = _nonnegative_integer(
+            candidate.endogenous_partial_cue_reassembly_count,
+            "endogenous partial cue reassembly count",
+        )
+        complete_count = _nonnegative_integer(
+            candidate.complete_neuron_count, "complete neuron count"
+        )
+        resting_count = _nonnegative_integer(
+            candidate.developmental_resting_neuron_count,
+            "developmental resting neuron count",
+        )
+        transitioned_count = _nonnegative_integer(
+            candidate.physically_transitioned_neuron_count,
+            "physically transitioned neuron count",
+        )
+        metabolic_body_count = _nonnegative_integer(
+            candidate.metabolically_perturbed_body_receptor_count,
+            "metabolically perturbed body receptor count",
+        )
+        del cognitive_ordinal, cognitive_trace_count, complete_count, resting_count
+        if (
+            not isinstance(candidate.mounted_step_completed, bool)
+            or not isinstance(candidate.physical_transition_claimed, bool)
+            or not isinstance(candidate.cognitive_formation_claimed, bool)
+            or candidate.physical_transition_claimed
+            != (transitioned_count > 0)
+            or metabolic_body_count > transitioned_count
+            or candidate.python_callback_count != 0
+            or endogenous_partial_count > partial_count
+        ):
+            raise RuntimeError("resident organism observation made a false claim")
+        if not candidate.mounted_step_completed and (
+            candidate.physical_transition_claimed
+            or candidate.cognitive_formation_claimed
+            or activation_count != 0
+            or partial_count != 0
+            or transitioned_count != 0
+        ):
+            raise RuntimeError(
+                "resident organism cold observation claimed step effects"
+            )
+        del cognitive_mosaic_count
+        return candidate
+
+    def snapshot_lived_state(self) -> object:
+        """One fast clone of the lived state for off-lock custodial
+        encoding; touches nothing and never pauses cognition."""
+        return self.__runtime.snapshot_lived_state()
+
+    def adopt_published_lived_checkpoint(self, checkpoint: object) -> None:
+        """Advance recovery custody to one already-published checkpoint.
+
+        The native runtime verifies the checkpoint's exact predecessor and
+        encoded body before moving its recovery boundary. Its newer live
+        cognition and articulated body remain untouched.
+        """
+
+        self.__runtime.adopt_published_lived_checkpoint(checkpoint)
+
+    def validate_lived_checkpoint(self, checkpoint: object) -> None:
+        """Refuse stale custody before the sole writer changes CURRENT."""
+
+        self.__runtime.validate_lived_checkpoint(checkpoint)
+
+    def admit_ordinary_physical_workspace(
+        self, *, anatomy: object, primary_frames: int, hearing_frames: int,
+        hearing_sense: int, maximum_pressure_samples: int, coupled_encoded_limit: int,
+        additional_anatomy: object = None,
+    ) -> None:
+        """Startup-only check against this native runtime's own fixed budget."""
+
+        self.__runtime.admit_ordinary_physical_workspace(
+            anatomy, primary_frames, hearing_frames, hearing_sense,
+            maximum_pressure_samples, coupled_encoded_limit, additional_anatomy,
+        )
+
+    def readiness(self) -> NativeResidentObservationView:
+        """Observe only the active native state."""
+
+        if not isinstance(self.__runtime, self.__runtime_type):
+            raise RuntimeError("resident organism runtime identity changed")
+        return self._require_observation(self.__runtime.readiness())
+
+    def save(self) -> bytes:
+        """Seal only the active GLORUN envelope."""
+
+        observation = self.readiness()
+        state = self.__runtime.save()
+        if (
+            not isinstance(state, bytes)
+            or not state.startswith(b"GLORUN01")
+            or len(state) != observation.state_bytes
+            or hashlib.sha256(state).hexdigest() != observation.state_sha256
+        ):
+            raise RuntimeError("resident organism save changed active custody")
+        return state
+
+    def observe_retained_formations(self) -> tuple[tuple[tuple[str, ...], int], ...]:
+        """Read-only structure of the retained distributed formations.
+
+        One entry per admitted mosaic as ``(member_lineage_hexes,
+        recurrence_bond_count)``.  Structure only — no recognition, recall,
+        meaning, or capital — and reading advances nothing (verified against
+        the active state receipt).
+        """
+
+        before = self.readiness()
+        formations = self.__runtime.observe_retained_formations()
+        validated = []
+        for members, bond_count in formations:
+            lineages = tuple(str(lineage) for lineage in members)
+            if len(lineages) < 3 or any(
+                len(lineage) != 32 for lineage in lineages
+            ):
+                raise RuntimeError(
+                    "retained formation observation is structurally invalid"
+                )
+            validated.append((lineages, _nonnegative_integer(
+                bond_count, "recurrence bond count"
+            )))
+        if self.readiness().state_sha256 != before.state_sha256:
+            raise RuntimeError("formation observation advanced the organism")
+        return tuple(validated)
+
+    def observe_reached_neuron_lineage_layers(
+        self,
+    ) -> tuple[tuple[str, int, bool], ...]:
+        """Read reached lineage, developmental layer, and receptor anatomy."""
+
+        before = self.readiness()
+        observed = self.__runtime.observe_reached_neuron_lineage_layers()
+        validated = []
+        seen_lineages: set[str] = set()
+        for lineage, layer, receptor in observed:
+            lineage = str(lineage)
+            layer = _nonnegative_integer(layer, "reached developmental layer")
+            if (
+                len(lineage) != 32
+                or lineage in seen_lineages
+                or not isinstance(receptor, bool)
+            ):
+                raise RuntimeError("reached lineage-layer observation is invalid")
+            validated.append((lineage, layer, receptor))
+            seen_lineages.add(lineage)
+        if self.readiness().state_sha256 != before.state_sha256:
+            raise RuntimeError("lineage-layer observation advanced the organism")
+        return tuple(validated)
+
+    def observe_active_electrical_frontier_advances_from(
+        self, lineages: tuple[str, ...]
+    ) -> tuple[tuple[str, str, int, int, str], ...]:
+        """Read exact transfers advancing from supplied causal lineages."""
+
+        canonical = tuple(
+            _canonical_lineage_hex(lineage, "active frontier filter lineage")
+            for lineage in lineages
+        )
+        if not canonical or len(set(canonical)) != len(canonical):
+            raise ValueError("active frontier filter lineages must be nonempty and unique")
+        before = self.readiness()
+        observed = self.__runtime.observe_active_electrical_frontier_advances_from(
+            list(canonical)
+        )
+        validated = []
+        for raw in observed:
+            if not isinstance(raw, tuple) or len(raw) != 5:
+                raise RuntimeError("causal frontier advance changed format")
+            transfer = _directed_physical_transfer_evidence(
+                raw[:4], "causal frontier advance"
+            )
+            frontier = _canonical_lineage_hex(raw[4], "causal frontier lineage")
+            if frontier not in transfer[:2]:
+                raise RuntimeError("causal frontier is not a transfer endpoint")
+            predecessor = transfer[1] if frontier == transfer[0] else transfer[0]
+            if predecessor not in canonical:
+                raise RuntimeError("causal frontier did not advance from supplied lineage")
+            validated.append((*transfer, frontier))
+        result = tuple(validated)
+        if len(set(result)) != len(result):
+            raise RuntimeError("filtered active electrical frontier is not canonical")
+        if self.readiness().state_sha256 != before.state_sha256:
+            raise RuntimeError("filtered active electrical frontier observation advanced the organism")
+        return result
+
+    def observe_retained_formation_structures(
+        self,
+    ) -> tuple[
+        tuple[
+            str,
+            tuple[str, ...],
+            tuple[tuple[str, str, int], ...],
+            tuple[tuple[str, str, int], ...],
+            int,
+        ],
+        ...,
+    ]:
+        """Read exact retained structure without assigning meaning."""
+
+        before = self.readiness()
+        observed = self.__runtime.observe_retained_formation_structures()
+        validated = []
+        for receipt, members, original_bonds, recurrence_bonds, reinforcements in observed:
+            receipt = str(receipt)
+            member_lineages = tuple(str(lineage) for lineage in members)
+            if len(receipt) != 64 or len(member_lineages) < 3 or any(
+                len(lineage) != 32 for lineage in member_lineages
+            ):
+                raise RuntimeError("retained formation structure is invalid")
+
+            def bonds(values: object) -> tuple[tuple[str, str, int], ...]:
+                canonical = []
+                for left, right, ordinal in values:
+                    left = str(left)
+                    right = str(right)
+                    ordinal = _nonnegative_integer(ordinal, "parallel bond ordinal")
+                    if len(left) != 32 or len(right) != 32 or left >= right:
+                        raise RuntimeError("retained formation bond is invalid")
+                    canonical.append((left, right, ordinal))
+                return tuple(canonical)
+
+            validated.append(
+                (
+                    receipt,
+                    member_lineages,
+                    bonds(original_bonds),
+                    bonds(recurrence_bonds),
+                    _nonnegative_integer(reinforcements, "reinforcement count"),
+                )
+            )
+        if self.readiness().state_sha256 != before.state_sha256:
+            raise RuntimeError("formation structure observation advanced the organism")
+        return tuple(validated)
+
+    def observe_retained_formation_recurrence_cues(
+        self,
+    ) -> tuple[tuple[str, tuple[str, ...]], ...]:
+        """Read the latest proper physical cue for each retained formation."""
+
+        before = self.readiness()
+        observed = self.__runtime.observe_retained_formation_recurrence_cues()
+        validated = []
+        for receipt, cue in observed:
+            receipt = str(receipt)
+            cue_lineages = tuple(str(lineage) for lineage in cue)
+            if (
+                len(receipt) != 64
+                or not cue_lineages
+                or any(len(lineage) != 32 for lineage in cue_lineages)
+            ):
+                raise RuntimeError("retained formation recurrence cue is invalid")
+            validated.append((receipt, cue_lineages))
+        if self.readiness().state_sha256 != before.state_sha256:
+            raise RuntimeError("formation cue observation advanced the organism")
+        return tuple(validated)
+
+    def observe_retained_formation_recurrence_evidence(
+        self,
+    ) -> tuple[tuple[str, tuple[str, ...], str], ...]:
+        """Read the latest physical recurrence cue and retained origin."""
+
+        before = self.readiness()
+        observed = self.__runtime.observe_retained_formation_recurrence_evidence()
+        validated = []
+        for receipt, cue, origin in observed:
+            receipt = str(receipt)
+            cue_lineages = tuple(str(lineage) for lineage in cue)
+            origin = str(origin)
+            if (
+                len(receipt) != 64
+                or not cue_lineages
+                or any(len(lineage) != 32 for lineage in cue_lineages)
+                or origin not in {"externally_observed", "internally_simulated"}
+            ):
+                raise RuntimeError("retained formation recurrence evidence is invalid")
+            validated.append((receipt, cue_lineages, origin))
+        if self.readiness().state_sha256 != before.state_sha256:
+            raise RuntimeError("formation recurrence evidence advanced the organism")
+        return tuple(validated)
+
+    def navigate_hippocampal(self, lineage_hex: str) -> None:
+        """Refused: the hippocampal episode archive is retired.
+
+        This walked an archived posting chain and returned episode addresses.
+        The archive is no longer written or read: it never carried
+        recognition, recall or meaning, and it grew by roughly 893 files per
+        recognition.  Her memories are the retained formations in her body —
+        read those with :meth:`observe_retained_formations`.
+        """
+
+        return self.__runtime.navigate_hippocampal(lineage_hex)
+
+    def prepare(self, source: NativeJointSourceView) -> ResidentPrepareEvidence:
+        """Prepare one native candidate and return receipts, never state bytes.
+
+        The bare source path remains severed by the mandatory-admission law:
+        the native runtime refuses it because no occurrence admission is
+        supplied. Use :meth:`commit_admitted_trajectory_direct`, which keeps
+        body feedback in the same continuous resident trajectory.
+        """
+
+        source_port_count = _nonnegative_integer(
+            getattr(source, "port_count", None), "source port count"
+        )
+        active_before = self.readiness()
+        candidate = self.__runtime.prepare(source)
+        return self._validated_prepare_evidence(
+            candidate, source_port_count, active_before
+        )
+
+    def prepare_articulated_body_observation(self) -> ResidentPrepareEvidence:
+        """Prepare one full fixed-capacity observation of the current body."""
+
+        active_before = self.readiness()
+        candidate = self.__runtime.prepare_articulated_body_observation()
+        return self._validated_prepare_evidence(candidate, 90, active_before)
+
+    def commit_admitted_trajectory_direct(
+        self,
+        sources: object,
+        maximum_causal_intervals: object,
+    ) -> ResidentPrepareEvidence:
+        """Commit current body plus sources, returning before world consequence."""
+
+        if not isinstance(sources, tuple):
+            raise TypeError("admitted trajectory sources must be a tuple")
+        if (
+            not isinstance(maximum_causal_intervals, tuple)
+            or len(maximum_causal_intervals) != len(sources)
+        ):
+            raise TypeError(
+                "admitted trajectory intervals must match the source tuple"
+            )
+        source_port_count = sum(
+            _nonnegative_integer(
+                getattr(source, "port_count", None), "trajectory source port count"
+            )
+            for source in sources
+        )
+        intervals = tuple(
+            _validated_causal_intervals(value)
+            for value in maximum_causal_intervals
+        )
+        active_before = self.readiness()
+        candidate = self.__runtime.commit_admitted_trajectory_direct(
+            list(sources), [list(value) for value in intervals]
+        )
+        token = getattr(candidate, "token", None)
+        try:
+            evidence = self._validated_prepare_evidence_body(
+                candidate,
+                source_port_count,
+                active_before,
+                causal_interval_count=len(sources),
+                candidate_committed=True,
+            )
+            self.__runtime.acknowledge_direct_commit(token)
+            return evidence
+        except BaseException:
+            if isinstance(token, bytes) and len(token) == 32:
+                try:
+                    self.__runtime.rollback_direct_commit(token)
+                except (RuntimeError, ValueError) as rollback_error:
+                    if "has no pending candidate" not in str(rollback_error):
+                        raise RuntimeError(
+                            "resident direct commit validation and rollback both failed"
+                        ) from rollback_error
+            raise
+
+    def advance_admitted_trajectory_unsealed(
+        self,
+        sources: object,
+        maximum_causal_intervals: object,
+    ) -> ResidentPrepareEvidence:
+        """Advance the living intake without serializing a checkpoint."""
+
+        if not isinstance(sources, tuple):
+            raise TypeError("admitted trajectory sources must be a tuple")
+        if (
+            not isinstance(maximum_causal_intervals, tuple)
+            or len(maximum_causal_intervals) != len(sources)
+        ):
+            raise TypeError(
+                "admitted trajectory intervals must match the source tuple"
+            )
+        intervals = tuple(
+            _validated_causal_intervals(value)
+            for value in maximum_causal_intervals
+        )
+        source_port_count = sum(
+            _nonnegative_integer(
+                getattr(source, "port_count", None), "trajectory source port count"
+            )
+            for source in sources
+        )
+        active_before = self.readiness()
+        candidate: object | None = None
+        try:
+            _rust_started = time.perf_counter()
+            candidate = self.__runtime.advance_admitted_trajectory_unsealed(
+                list(sources), [list(value) for value in intervals]
+            )
+            _record_runtime_phase("rust_advance", _rust_started)
+            _validation_started = time.perf_counter()
+            validated = self._validated_prepare_evidence_body(
+                candidate,
+                source_port_count,
+                active_before,
+                causal_interval_count=len(sources),
+                candidate_committed=False,
+                expected_sealed=False,
+            )
+            _record_runtime_phase("python_validation", _validation_started)
+            return validated
+        except BaseException:
+            try:
+                if candidate is not None:
+                    self.__runtime.abort_unsealed_trajectory()
+            finally:
+                self.__unsealed_tick = None
+            raise
+
+    def advance_admitted_feed_trajectory_unsealed(
+        self,
+        sources: object,
+        maximum_causal_intervals: object,
+        real_nutrition_intake_zeptojoules: object,
+    ) -> ResidentPrepareEvidence:
+        """Advance one lived feed hop carrying real transferred nutrition.
+
+        The intake is the world's own measured transfer (exact integer
+        zeptojoules); the body's conversion law bounds absorption and the
+        remainder is honest waste. Zero or negative intake is refused —
+        a feed with nothing transferred is the plain trajectory.
+        """
+
+        if not isinstance(sources, tuple):
+            raise TypeError("admitted trajectory sources must be a tuple")
+        if (
+            not isinstance(maximum_causal_intervals, tuple)
+            or len(maximum_causal_intervals) != len(sources)
+        ):
+            raise TypeError(
+                "admitted trajectory intervals must match the source tuple"
+            )
+        if (
+            isinstance(real_nutrition_intake_zeptojoules, bool)
+            or not isinstance(real_nutrition_intake_zeptojoules, int)
+            or real_nutrition_intake_zeptojoules <= 0
+        ):
+            raise ValueError(
+                "a feed trajectory requires a positive integer count of "
+                "really transferred zeptojoules"
+            )
+        intervals = tuple(
+            _validated_causal_intervals(value)
+            for value in maximum_causal_intervals
+        )
+        source_port_count = sum(
+            _nonnegative_integer(
+                getattr(source, "port_count", None), "trajectory source port count"
+            )
+            for source in sources
+        )
+        active_before = self.readiness()
+        candidate: object | None = None
+        try:
+            _rust_started = time.perf_counter()
+            candidate = self.__runtime.advance_admitted_feed_trajectory_unsealed(
+                list(sources),
+                [list(value) for value in intervals],
+                real_nutrition_intake_zeptojoules,
+            )
+            _record_runtime_phase("rust_advance", _rust_started)
+            _validation_started = time.perf_counter()
+            validated = self._validated_prepare_evidence_body(
+                candidate,
+                source_port_count,
+                active_before,
+                causal_interval_count=len(sources),
+                candidate_committed=False,
+                expected_sealed=False,
+            )
+            _record_runtime_phase("python_validation", _validation_started)
+            return validated
+        except BaseException:
+            try:
+                if candidate is not None:
+                    self.__runtime.abort_unsealed_trajectory()
+            finally:
+                self.__unsealed_tick = None
+            raise
+
+    def advance_in_flight_self_hearing_unsealed(
+        self,
+        sources: object,
+        maximum_causal_intervals: object,
+        pressure_s16le: bytes,
+        body_s16le: bytes,
+        coexisting_sources: bool = False,
+        consumed_sample_count: int | None = None,
+        real_nutrition_intake_zeptojoules: int | None = None,
+    ) -> ResidentPrepareEvidence:
+        """Consume the exact resident acoustic consequence through hearing."""
+
+        if not isinstance(sources, tuple):
+            raise TypeError("in-flight hearing sources must be a tuple")
+        if (
+            not isinstance(maximum_causal_intervals, tuple)
+            or len(maximum_causal_intervals) != len(sources)
+        ):
+            raise TypeError(
+                "in-flight hearing intervals must match the source tuple"
+            )
+        if not isinstance(pressure_s16le, bytes) or not isinstance(
+            body_s16le, bytes
+        ):
+            raise TypeError("in-flight acoustic transport must be exact bytes")
+        if not isinstance(coexisting_sources, bool):
+            raise TypeError("in-flight acoustic coexistence must be boolean")
+        if consumed_sample_count is None:
+            consumed_sample_count = len(pressure_s16le) // 2
+        consumed_sample_count = _positive_integer(
+            consumed_sample_count,
+            "in-flight acoustic consumed sample count",
+        )
+        intervals = tuple(
+            _validated_causal_intervals(value)
+            for value in maximum_causal_intervals
+        )
+        source_port_count = sum(
+            _nonnegative_integer(
+                getattr(source, "port_count", None),
+                "in-flight hearing source port count",
+            )
+            for source in sources
+        )
+        active_before = self.readiness()
+        candidate: object | None = None
+        try:
+            _rust_started = time.perf_counter()
+            if real_nutrition_intake_zeptojoules is not None and (
+                isinstance(real_nutrition_intake_zeptojoules, bool)
+                or not isinstance(real_nutrition_intake_zeptojoules, int)
+                or real_nutrition_intake_zeptojoules <= 0
+            ):
+                raise ValueError(
+                    "a feed hop requires a positive integer count of "
+                    "really transferred zeptojoules"
+                )
+            candidate = self.__runtime.advance_in_flight_self_hearing_unsealed(
+                list(sources),
+                [list(value) for value in intervals],
+                pressure_s16le,
+                body_s16le,
+                coexisting_sources,
+                consumed_sample_count,
+                real_nutrition_intake_zeptojoules,
+            )
+            _record_runtime_phase("rust_advance", _rust_started)
+            _validation_started = time.perf_counter()
+            validated = self._validated_prepare_evidence_body(
+                candidate,
+                source_port_count,
+                active_before,
+                causal_interval_count=(1 if coexisting_sources else len(sources)),
+                candidate_committed=False,
+                expected_sealed=False,
+                initial_body_coexists=coexisting_sources,
+            )
+            _record_runtime_phase("python_validation", _validation_started)
+            return validated
+        except BaseException:
+            try:
+                if candidate is not None:
+                    self.__runtime.abort_unsealed_trajectory()
+            finally:
+                self.__unsealed_tick = None
+            raise
+
+    def advance_coexisting_admitted_interval_unsealed(
+        self,
+        sources: object,
+        maximum_causal_intervals: object,
+        *,
+        guided_vocal_drives: object = None,
+        pressure_s16le: bytes | None = None,
+        body_s16le: bytes | None = None,
+        consumed_sample_count: int | None = None,
+        vestibular_motion: tuple[int, int] | None = None,
+        real_nutrition_intake_zeptojoules: int = 0,
+    ) -> ResidentPrepareEvidence:
+        """One native interval for current input and exact physical returns."""
+
+        from guala_core import NativePhysicalInputRefused
+
+        if (
+            isinstance(real_nutrition_intake_zeptojoules, bool)
+            or not isinstance(real_nutrition_intake_zeptojoules, int)
+            or real_nutrition_intake_zeptojoules < 0
+            or real_nutrition_intake_zeptojoules >= 1 << 127
+        ):
+            raise ValueError("real nutrition intake is not a bounded non-negative integer")
+
+        native_entered = False
+        candidate: object | None = None
+        try:
+            if not isinstance(sources, tuple) or not sources:
+                raise TypeError("coexisting admitted sources must be a nonempty tuple")
+            if not isinstance(maximum_causal_intervals, tuple) or len(maximum_causal_intervals) != len(sources):
+                raise TypeError("coexisting admitted intervals must match the source tuple")
+            intervals = tuple(_validated_causal_intervals(value) for value in maximum_causal_intervals)
+            acoustic_parts = (pressure_s16le is not None, body_s16le is not None, consumed_sample_count is not None)
+            if any(acoustic_parts):
+                if not all(acoustic_parts) or not isinstance(pressure_s16le, bytes) or not isinstance(body_s16le, bytes):
+                    raise ValueError("acoustic consumption requires exact pressure, body and sample count together")
+                consumed_sample_count = _positive_integer(consumed_sample_count, "acoustic consumed sample count")
+            drives = None
+            if guided_vocal_drives is not None:
+                # Guided drives are body-effector work on the axes a caregiver can
+                # physically move: the airway (glottal 18, tract sections 37-44, the
+                # guided-vocal lesson) and, since the drive organ (2026-09-13), the
+                # trunk 0-1, head 2-3, jaw 14 and limbs 19-36. Native refuses the same
+                # set (BodyAxis::is_caregiver_guidable); this is the last shell guard.
+                guidable = {0, 1, 2, 3, 14, 18, *range(19, 37), *range(37, 45)}
+                if not isinstance(guided_vocal_drives, tuple) or not 1 <= len(guided_vocal_drives) <= 9:
+                    raise ValueError("guided drives exceeded one caregiver's hands")
+                drives = []
+                axes: set[int] = set()
+                for raw in guided_vocal_drives:
+                    if not isinstance(raw, tuple) or len(raw) != 3:
+                        raise TypeError("guided drive changed exact shape")
+                    axis = _nonnegative_integer(raw[0], "guided axis ordinal")
+                    direction = _nonnegative_integer(raw[1], "guided direction ordinal")
+                    carriers = _positive_integer(raw[2], "guided outward carriers")
+                    if axis not in guidable or direction > 1 or carriers > (1 << 32) - 1 or axis in axes:
+                        raise ValueError("guided drive left caregiver-guidable unique anatomy")
+                    axes.add(axis)
+                    drives.append((axis, direction, carriers))
+            if vestibular_motion is not None:
+                if not isinstance(vestibular_motion, tuple) or len(vestibular_motion) != 2:
+                    raise ValueError("vestibular return requires one heading and signed step")
+                heading, step = vestibular_motion
+                if isinstance(heading, bool) or not isinstance(heading, int) or not 0 <= heading < 360000 or isinstance(step, bool) or not isinstance(step, int) or not -(1 << 31) <= step < (1 << 31):
+                    raise ValueError("vestibular return left its physical representation")
+            source_port_count = sum(
+                _nonnegative_integer(getattr(source, "port_count", None), "coexisting source port count")
+                for source in sources
+            ) + int(vestibular_motion is not None)
+            active_before = self.readiness()
+            _rust_started = time.perf_counter()
+            native_entered = True
+            candidate = self.__runtime.advance_coexisting_admitted_interval_unsealed(
+                list(sources), [list(value) for value in intervals], drives,
+                pressure_s16le, body_s16le, consumed_sample_count, vestibular_motion,
+                real_nutrition_intake_zeptojoules=real_nutrition_intake_zeptojoules,
+            )
+            _record_runtime_phase("rust_advance", _rust_started)
+            _validation_started = time.perf_counter()
+            guided_ports = _nonnegative_integer(
+                candidate.guided_input_port_count, "actual guided input port count",
+            )
+            if drives is None:
+                if guided_ports != 0:
+                    raise RuntimeError("native added a guide source without a guide")
+            elif (guided_ports % 4 or guided_ports < len(drives) * 4
+                  or guided_ports > len(active_before.articulated_body_axes) * 4):
+                raise RuntimeError("native guide source left actual body anatomy")
+            validated = self._validated_prepare_evidence_body(
+                candidate, source_port_count + guided_ports, active_before,
+                causal_interval_count=1, candidate_committed=False,
+                expected_sealed=False, initial_body_coexists=True,
+            )
+            _record_runtime_phase("python_validation", _validation_started)
+            return validated
+        except NativePhysicalInputRefused:
+            # Native explicitly reports that its mutation boundary was not crossed.
+            # Preserve the current unsealed tick and all prior lived state.
+            raise
+        except BaseException as error:
+            if not native_entered:
+                raise NativePhysicalInputRefused(str(error)) from error
+            try:
+                if candidate is not None:
+                    self.__runtime.abort_unsealed_trajectory()
+            finally:
+                self.__unsealed_tick = None
+            raise
+
+    def advance_guided_vocal_interval_unsealed(
+        self, sources: object, maximum_causal_intervals: object,
+        guided_vocal_drives: object, *,
+        pressure_s16le: bytes | None = None,
+        body_s16le: bytes | None = None,
+        consumed_sample_count: int | None = None,
+    ) -> ResidentPrepareEvidence:
+        """An external vocal guide uses the same simultaneous physical entry."""
+        if guided_vocal_drives is None:
+            raise ValueError("guided vocal interval requires physical drives")
+        return self.advance_coexisting_admitted_interval_unsealed(
+            sources, maximum_causal_intervals,
+            guided_vocal_drives=guided_vocal_drives,
+            pressure_s16le=pressure_s16le, body_s16le=body_s16le,
+            consumed_sample_count=consumed_sample_count,
+        )
+
+    def seal_unsealed_trajectory_direct(self) -> NativeResidentObservationView:
+        """Seal the completed lived intake once for immediate persistence."""
+
+        if self.__sealed_direct_token is not None:
+            raise RuntimeError("resident sealed intake is awaiting publication")
+        active_before = self.readiness()
+        token, candidate = self.__runtime.seal_unsealed_trajectory_direct()
+        try:
+            if not isinstance(token, bytes) or len(token) != 32:
+                raise RuntimeError("resident final seal token changed format")
+            observed = self._require_observation(candidate)
+            if (
+                observed.predecessor_state_sha256 != active_before.state_sha256
+                or observed.predecessor_organism_tick != active_before.organism_tick
+                or self.__unsealed_tick is None
+                or observed.organism_tick != self.__unsealed_tick
+            ):
+                raise RuntimeError("resident final seal changed lived continuity")
+            self.__sealed_direct_token = token
+            self.__unsealed_tick = None
+            return observed
+        except BaseException:
+            try:
+                self.__runtime.rollback_direct_commit(token)
+            finally:
+                self.__unsealed_tick = None
+            raise
+
+    def acknowledge_sealed_trajectory(self) -> None:
+        """Release predecessor custody only after durable publication."""
+
+        token = self.__sealed_direct_token
+        if token is None:
+            raise RuntimeError("resident has no sealed intake awaiting publication")
+        self.__runtime.acknowledge_direct_commit(token)
+        self.__sealed_direct_token = None
+
+    def abort_unsealed_trajectory(self) -> None:
+        """Restore the authenticated predecessor after a refused open intake."""
+
+        if self.__sealed_direct_token is not None:
+            token = self.__sealed_direct_token
+            self.__runtime.rollback_direct_commit(token)
+            self.__sealed_direct_token = None
+            self.__unsealed_tick = None
+            return
+        try:
+            self.__runtime.abort_unsealed_trajectory()
+        finally:
+            self.__unsealed_tick = None
+
+    def restore_passive_body_source(
+        self, payload: bytes, extents: tuple[int, int, int, int],
+        admission: tuple[int, int],
+    ) -> object:
+        """Decode pending input with this runtime's already-declared budget."""
+        return self.__runtime.restore_passive_body_source(payload, extents, admission)
+
+    def live_articulated_body_axes(
+        self,
+    ) -> tuple[tuple[int, str, str, int, int, int, int], ...]:
+        """Read the exact current body during an open lived intake."""
+
+        axes = self.__runtime.live_articulated_body_axes()
+        if not isinstance(axes, list) or len(axes) != 45:
+            raise RuntimeError("resident live articulated body axis count changed")
+        return tuple(axes)
+
+    @property
+    def live_organism_tick(self) -> int:
+        return _nonnegative_integer(
+            self.__runtime.live_organism_tick,
+            "live organism tick",
+        )
+
+    @property
+    def in_flight_acoustic_source_tick(self) -> int | None:
+        value = self.__runtime.in_flight_acoustic_source_tick
+        return (
+            None
+            if value is None
+            else _nonnegative_integer(value, "in-flight acoustic source tick")
+        )
+
+    @property
+    def in_flight_acoustic_pressure_s16le(self) -> bytes | None:
+        value = self.__runtime.in_flight_acoustic_pressure_s16le
+        if value is not None and not isinstance(value, bytes):
+            raise RuntimeError("in-flight acoustic pressure changed format")
+        return value
+
+    @property
+    def in_flight_acoustic_body_s16le(self) -> bytes | None:
+        value = self.__runtime.in_flight_acoustic_body_s16le
+        if value is not None and not isinstance(value, bytes):
+            raise RuntimeError("in-flight acoustic body changed format")
+        return value
+
+    def commit_vestibular_trajectory_direct(
+        self,
+        predecessor_heading_millidegrees: int,
+        signed_body_motion_millidegrees: tuple[int, ...],
+    ) -> ResidentPrepareEvidence:
+        """Commit ordered balance intervals without cloning resident cognition."""
+
+        predecessor_heading = _nonnegative_integer(
+            predecessor_heading_millidegrees,
+            "vestibular predecessor heading",
+        )
+        if predecessor_heading >= 360_000:
+            raise ValueError("vestibular predecessor heading must be below 360000")
+        if (
+            not isinstance(signed_body_motion_millidegrees, tuple)
+            or not signed_body_motion_millidegrees
+        ):
+            raise TypeError("vestibular trajectory must be a nonempty tuple")
+        if any(
+            not isinstance(step, int)
+            or isinstance(step, bool)
+            or not -(1 << 31) <= step < (1 << 31)
+            for step in signed_body_motion_millidegrees
+        ):
+            raise TypeError(
+                "vestibular trajectory steps must be signed 32-bit integers"
+            )
+        active_before = self.readiness()
+        candidate = self.__runtime.commit_vestibular_trajectory_direct(
+            predecessor_heading,
+            list(signed_body_motion_millidegrees),
+        )
+        token = getattr(candidate, "token", None)
+        try:
+            evidence = self._validated_prepare_evidence_body(
+                candidate,
+                len(signed_body_motion_millidegrees),
+                active_before,
+                causal_interval_count=len(signed_body_motion_millidegrees),
+                candidate_committed=True,
+            )
+            self.__runtime.acknowledge_direct_commit(token)
+            return evidence
+        except BaseException:
+            if isinstance(token, bytes) and len(token) == 32:
+                try:
+                    self.__runtime.rollback_direct_commit(token)
+                except (RuntimeError, ValueError) as rollback_error:
+                    if "has no pending candidate" not in str(rollback_error):
+                        raise RuntimeError(
+                            "resident vestibular validation and rollback both failed"
+                        ) from rollback_error
+            raise
+
+    def advance_vestibular_trajectory_unsealed(
+        self,
+        predecessor_heading_millidegrees: int,
+        signed_body_motion_millidegrees: tuple[int, ...],
+    ) -> ResidentPrepareEvidence:
+        """Advance balance within the open lived intake without sealing."""
+
+        predecessor_heading = _nonnegative_integer(
+            predecessor_heading_millidegrees,
+            "vestibular predecessor heading",
+        )
+        if predecessor_heading >= 360_000:
+            raise ValueError("vestibular predecessor heading must be below 360000")
+        if (
+            not isinstance(signed_body_motion_millidegrees, tuple)
+            or not signed_body_motion_millidegrees
+        ):
+            raise TypeError("vestibular trajectory must be a nonempty tuple")
+        if any(
+            not isinstance(step, int)
+            or isinstance(step, bool)
+            or not -(1 << 31) <= step < (1 << 31)
+            for step in signed_body_motion_millidegrees
+        ):
+            raise TypeError(
+                "vestibular trajectory steps must be signed 32-bit integers"
+            )
+        active_before = self.readiness()
+        candidate: object | None = None
+        try:
+            candidate = self.__runtime.advance_vestibular_trajectory_unsealed(
+                predecessor_heading,
+                list(signed_body_motion_millidegrees),
+            )
+            return self._validated_prepare_evidence_body(
+                candidate,
+                len(signed_body_motion_millidegrees),
+                active_before,
+                causal_interval_count=len(signed_body_motion_millidegrees),
+                candidate_committed=False,
+                expected_sealed=False,
+            )
+        except BaseException:
+            try:
+                if candidate is not None:
+                    self.__runtime.abort_unsealed_trajectory()
+            finally:
+                self.__unsealed_tick = None
+            raise
+
+    def _validated_prepare_evidence(
+        self,
+        candidate: object,
+        source_port_count: int,
+        active_before: NativeResidentObservationView,
+        *,
+        causal_interval_count: int = 1,
+    ) -> ResidentPrepareEvidence:
+        """Validate one native candidate or discard its uncommitted custody."""
+
+        try:
+            return self._validated_prepare_evidence_body(
+                candidate,
+                source_port_count,
+                active_before,
+                causal_interval_count=causal_interval_count,
+            )
+        except BaseException:
+            if isinstance(candidate, self.__prepare_type):
+                token = getattr(candidate, "token", None)
+                if isinstance(token, bytes) and len(token) == 32:
+                    try:
+                        self.discard(token)
+                    except (RuntimeError, ValueError) as discard_error:
+                        if not any(
+                            phrase in str(discard_error)
+                            for phrase in (
+                                "has no pending candidate",
+                                "pending token mismatch",
+                            )
+                        ):
+                            raise RuntimeError(
+                                "resident organism candidate validation and "
+                                "discard both failed"
+                            ) from discard_error
+            raise
+
+    def _validated_prepare_evidence_body(
+        self,
+        candidate: object,
+        source_port_count: int,
+        active_before: NativeResidentObservationView,
+        *,
+        causal_interval_count: int = 1,
+        candidate_committed: bool = False,
+        expected_sealed: bool = True,
+        initial_body_coexists: bool = False,
+    ) -> ResidentPrepareEvidence:
+        if not isinstance(candidate, self.__prepare_type):
+            raise TypeError("resident organism prepare returned a structural impostor")
+        if candidate.schema != PREPARE_SCHEMA:
+            raise RuntimeError("resident organism prepare schema changed")
+        sealed = getattr(candidate, "sealed", None)
+        if not isinstance(sealed, bool) or sealed is not expected_sealed:
+            raise RuntimeError("resident organism prepare seal boundary changed")
+        token = candidate.token
+        if (
+            not isinstance(token, bytes)
+            or len(token) != 32
+            or candidate.token_hex != token.hex()
+        ):
+            raise RuntimeError("resident organism prepare token changed format")
+        predecessor_state_sha256 = _canonical_sha256(
+            candidate.predecessor_state_sha256, "predecessor state receipt"
+        )
+        causal_transition_sha256 = _canonical_sha256(
+            candidate.causal_transition_sha256, "causal transition receipt"
+        )
+        if causal_transition_sha256 != token.hex():
+            raise RuntimeError("resident causal transition receipt changed")
+        prepared_state_sha256 = (
+            _canonical_sha256(
+                candidate.prepared_state_sha256, "prepared state receipt"
+            )
+            if sealed
+            else None
+        )
+        if not sealed and candidate.prepared_state_sha256 is not None:
+            raise RuntimeError("unsealed resident interval claimed a state receipt")
+        predecessor_organism_tick = _nonnegative_integer(
+            candidate.predecessor_organism_tick, "predecessor organism tick"
+        )
+        organism_tick = _nonnegative_integer(
+            candidate.organism_tick, "prepared organism tick"
+        )
+        requested_source_port_count = source_port_count
+        requested_causal_interval_count = causal_interval_count
+        source_port_count = _nonnegative_integer(
+            candidate.reached_source_port_count,
+            "reached source port count",
+        )
+        causal_interval_count = _positive_integer(
+            candidate.causal_interval_count,
+            "causal interval count",
+        )
+        if (
+            source_port_count < requested_source_port_count
+            or causal_interval_count < requested_causal_interval_count
+        ):
+            raise RuntimeError("native prepare omitted an admitted causal source")
+        predecessor_fabric_generation = _nonnegative_integer(
+            candidate.predecessor_fabric_generation,
+            "predecessor fabric generation",
+        )
+        fabric_generation = _nonnegative_integer(
+            candidate.fabric_generation, "prepared fabric generation"
+        )
+        predecessor_mounted_generation = _nonnegative_integer(
+            candidate.predecessor_mounted_generation,
+            "predecessor mounted generation",
+        )
+        mounted_generation = _nonnegative_integer(
+            candidate.mounted_generation, "prepared mounted generation"
+        )
+        predecessor_authentication_count = _nonnegative_integer(
+            candidate.predecessor_authentication_count,
+            "prepare predecessor authentication count",
+        )
+        predecessor_decode_count = _nonnegative_integer(
+            candidate.predecessor_decode_count,
+            "prepare predecessor decode count",
+        )
+        predecessor_rebuilt_field_count = _nonnegative_integer(
+            candidate.predecessor_rebuilt_field_count,
+            "prepare predecessor rebuilt field count",
+        )
+        current_cohort_evaluation_count = _nonnegative_integer(
+            candidate.current_cohort_evaluation_count,
+            "current cohort evaluation count",
+        )
+        successor_seal_count = _nonnegative_integer(
+            candidate.successor_seal_count, "successor seal count"
+        )
+        dsf_delivery_count = _nonnegative_integer(
+            candidate.dsf_delivery_count,
+            "DSF delivery count",
+        )
+        complete_neuron_fractal_count = _nonnegative_integer(
+            candidate.complete_neuron_fractal_count,
+            "complete-neuron fractal count",
+        )
+        # Complete fractals and active bonds stay in the identified native
+        # transition receipt. Ordinary transport does not consume their full
+        # projections; explicit diagnostics read that receipt's native getters.
+        changed_contact_channel_states = _changed_contact_channel_state_evidence(
+            candidate.changed_contact_channel_states
+        )
+        physical_frontier_routes = _physical_frontier_route_evidence(
+            candidate.physical_frontier_routes,
+            "physical frontier route evidence",
+        )
+        preceding_distinct_physical_frontier_routes = (
+            _physical_frontier_route_evidence(
+                candidate.preceding_distinct_physical_frontier_routes,
+                "preceding distinct physical frontier route evidence",
+            )
+        )
+        reached_and_foregone_physical_frontier_routes = (
+            _physical_frontier_route_evidence(
+                candidate.reached_and_foregone_physical_frontier_routes,
+                "reached and foregone physical frontier route evidence",
+            )
+        )
+        if reached_and_foregone_physical_frontier_routes and not (
+            len(reached_and_foregone_physical_frontier_routes) > 1
+            and any(
+                route[7] == 0
+                for route in reached_and_foregone_physical_frontier_routes
+            )
+            and any(
+                route[7] != 0
+                for route in reached_and_foregone_physical_frontier_routes
+            )
+        ):
+            raise RuntimeError(
+                "reached and foregone frontier evidence lost its exact distinction"
+            )
+        working_causal_continuations = _working_causal_continuation_evidence(
+            candidate.working_causal_continuations
+        )
+        settled_working_frontier = _settled_working_frontier_evidence(
+            candidate.settled_working_frontier
+        )
+        physical_prediction_alternatives = (
+            _physical_prediction_alternative_evidence(
+                candidate.physical_prediction_alternatives
+            )
+        )
+        body_consequence_transfers = _body_consequence_transfer_evidence(
+            candidate.body_consequence_transfers
+        )
+        affective_balance_trajectories = _affective_balance_trajectory_evidence(
+            candidate.affective_balance_trajectories
+        )
+        localized_fluid_chemistry = _localized_fluid_chemistry_evidence(
+            candidate.localized_fluid_chemistry
+        )
+        (
+            localized_metabolic_strain_evaluated_body_receptor_lineages,
+            localized_metabolic_strain,
+        ) = _localized_metabolic_strain_evidence(
+            candidate.localized_metabolic_strain_evaluated_body_receptor_lineages,
+            candidate.localized_metabolic_strain,
+        )
+        raw_organic_mosaic_relations = candidate.organic_mosaic_relations
+        if not isinstance(raw_organic_mosaic_relations, list):
+            raise RuntimeError("organic mosaic-relation evidence changed format")
+        organic_mosaic_relations: list[
+            tuple[
+                tuple[str, ...],
+                tuple[str, ...],
+                tuple[tuple[str, str, int], ...],
+                str,
+                tuple[
+                    tuple[
+                        tuple[str, str, int, int],
+                        tuple[str, str, int, int],
+                    ],
+                    ...,
+                ],
+                tuple[
+                    tuple[
+                        tuple[str, str, int, int],
+                        tuple[str, str, int, int],
+                        tuple[str, str, int, int],
+                        tuple[str, str, int, int],
+                    ],
+                    ...,
+                ],
+            ]
+        ] = []
+        for raw_relation in raw_organic_mosaic_relations:
+            if not isinstance(raw_relation, tuple) or len(raw_relation) != 6:
+                raise RuntimeError("organic mosaic relation changed format")
+            (
+                raw_receipts,
+                raw_lineages,
+                raw_bonds,
+                raw_structure_receipt,
+                raw_ordered_paths,
+                raw_ordered_path_relations,
+            ) = raw_relation
+            if (
+                not isinstance(raw_receipts, list)
+                or not isinstance(raw_lineages, list)
+                or not isinstance(raw_bonds, list)
+                or not isinstance(raw_ordered_paths, list)
+                or not isinstance(raw_ordered_path_relations, list)
+            ):
+                raise RuntimeError("organic mosaic relation changed format")
+            receipts = tuple(
+                _canonical_sha256(value, "related formation receipt")
+                for value in raw_receipts
+            )
+            shared_lineages = tuple(
+                _canonical_lineage_hex(value, "shared mosaic lineage")
+                for value in raw_lineages
+            )
+            relation_bonds = tuple(
+                (
+                    _canonical_lineage_hex(value[0], "relation bond left lineage"),
+                    _canonical_lineage_hex(value[1], "relation bond right lineage"),
+                    _nonnegative_integer(value[2], "relation bond parallel ordinal"),
+                )
+                for value in raw_bonds
+                if isinstance(value, tuple) and len(value) == 3
+            )
+            structure_receipt = _canonical_sha256(
+                raw_structure_receipt,
+                "organic relation structural receipt",
+            )
+            ordered_paths: list[
+                tuple[
+                    tuple[str, str, int, int],
+                    tuple[str, str, int, int],
+                ]
+            ] = []
+            for raw_path in raw_ordered_paths:
+                if not isinstance(raw_path, tuple) or len(raw_path) != 2:
+                    raise RuntimeError("ordered physical path changed format")
+                transfers: list[tuple[str, str, int, int]] = []
+                for raw_transfer in raw_path:
+                    if not isinstance(raw_transfer, tuple) or len(raw_transfer) != 4:
+                        raise RuntimeError("directed physical transfer changed format")
+                    carriers_text = raw_transfer[3]
+                    if (
+                        not isinstance(carriers_text, str)
+                        or not carriers_text.isdecimal()
+                    ):
+                        raise RuntimeError("directed physical transfer lost exact carriers")
+                    carriers = int(carriers_text)
+                    if carriers <= 0:
+                        raise RuntimeError("directed physical transfer carried no material")
+                    transfers.append(
+                        (
+                            _canonical_lineage_hex(raw_transfer[0], "transfer sender"),
+                            _canonical_lineage_hex(raw_transfer[1], "transfer receiver"),
+                            _nonnegative_integer(raw_transfer[2], "transfer bond ordinal"),
+                            carriers,
+                        )
+                    )
+                if transfers[0][1] != transfers[1][0]:
+                    raise RuntimeError("ordered physical path is not causally continuous")
+                ordered_paths.append((transfers[0], transfers[1]))
+            ordered_path_relations: list[
+                tuple[
+                    tuple[str, str, int, int],
+                    tuple[str, str, int, int],
+                    tuple[str, str, int, int],
+                    tuple[str, str, int, int],
+                ]
+            ] = []
+            for raw_path_relation in raw_ordered_path_relations:
+                if not isinstance(raw_path_relation, tuple) or len(raw_path_relation) != 4:
+                    raise RuntimeError("ordered path relation changed format")
+                transfers = []
+                for raw_transfer in raw_path_relation:
+                    if not isinstance(raw_transfer, tuple) or len(raw_transfer) != 4:
+                        raise RuntimeError("directed physical transfer changed format")
+                    carriers_text = raw_transfer[3]
+                    if not isinstance(carriers_text, str) or not carriers_text.isdecimal():
+                        raise RuntimeError("directed physical transfer lost exact carriers")
+                    carriers = int(carriers_text)
+                    if carriers <= 0:
+                        raise RuntimeError("directed physical transfer carried no material")
+                    transfers.append(
+                        (
+                            _canonical_lineage_hex(raw_transfer[0], "transfer sender"),
+                            _canonical_lineage_hex(raw_transfer[1], "transfer receiver"),
+                            _nonnegative_integer(raw_transfer[2], "transfer bond ordinal"),
+                            carriers,
+                        )
+                    )
+                if (
+                    transfers[0][1] != transfers[1][0]
+                    or transfers[2][1] != transfers[3][0]
+                    or tuple(item[:3] for item in transfers[:2])
+                    != tuple(item[:3] for item in transfers[2:])
+                ):
+                    raise RuntimeError("ordered path relation did not recur physically")
+                ordered_path_relations.append(
+                    (transfers[0], transfers[1], transfers[2], transfers[3])
+                )
+            if (
+                len(relation_bonds) != len(raw_bonds)
+                or len(receipts) < 2
+                or tuple(sorted(set(receipts))) != receipts
+                or tuple(sorted(set(shared_lineages))) != shared_lineages
+                or tuple(sorted(set(relation_bonds))) != relation_bonds
+                or (not shared_lineages and not relation_bonds)
+            ):
+                raise RuntimeError("organic mosaic relation is not canonical physical evidence")
+            organic_mosaic_relations.append(
+                (
+                    receipts,
+                    shared_lineages,
+                    relation_bonds,
+                    structure_receipt,
+                    tuple(ordered_paths),
+                    tuple(ordered_path_relations),
+                )
+            )
+        recurrent_complete_neuron_fractal_count = _nonnegative_integer(
+            candidate.recurrent_complete_neuron_fractal_count,
+            "recurrent complete-neuron fractal count",
+        )
+        cognitive_ordinal = _nonnegative_integer(
+            candidate.cognitive_ordinal, "cognitive ordinal"
+        )
+        cognitive_trace_count = _nonnegative_integer(
+            candidate.cognitive_trace_count, "cognitive trace count"
+        )
+        cognitive_mosaic_count = _nonnegative_integer(
+            candidate.cognitive_mosaic_count, "cognitive mosaic count"
+        )
+        formation_activation_count = _nonnegative_integer(
+            candidate.formation_activation_count,
+            "formation activation count",
+        )
+        vocal_founder_refusal_count = _nonnegative_integer(
+            candidate.vocal_founder_refusal_count, "vocal founder refusal count"
+        )
+        partial_cue_reassembly_count = _nonnegative_integer(
+            candidate.partial_cue_reassembly_count,
+            "partial cue reassembly count",
+        )
+        endogenous_partial_cue_reassembly_count = _nonnegative_integer(
+            candidate.endogenous_partial_cue_reassembly_count,
+            "endogenous partial cue reassembly count",
+        )
+        if endogenous_partial_cue_reassembly_count > partial_cue_reassembly_count:
+            raise RuntimeError(
+                "endogenous partial cue reassembly exceeds total recurrence"
+            )
+        internally_reassembled_formation_cues = (
+            _internally_reassembled_formation_cue_evidence(
+                candidate.internally_reassembled_formation_cues
+            )
+        )
+        causal_thought_transitions = _causal_thought_transition_evidence(
+            candidate.causal_thought_transitions
+        )
+        if any(
+            not any(
+                destination_receipt == receipt and cue_lineage in cues
+                for receipt, cues, _recurrent in internally_reassembled_formation_cues
+            )
+            for (
+                _source_receipt,
+                destination_receipt,
+                _source_recurrent,
+                cue_lineage,
+                _transfer,
+            ) in causal_thought_transitions
+        ):
+            raise RuntimeError(
+                "causal thought transition left its destination formation cue"
+            )
+        externally_reassembled_formation_frontiers = (
+            _externally_reassembled_formation_frontier_evidence(
+                candidate.externally_reassembled_formation_frontiers
+            )
+        )
+        if (
+            len(externally_reassembled_formation_frontiers)
+            > partial_cue_reassembly_count
+            - endogenous_partial_cue_reassembly_count
+        ):
+            raise RuntimeError(
+                "externally reassembled formation frontiers exceed physical recurrence"
+            )
+        if (
+            len(internally_reassembled_formation_cues)
+            > endogenous_partial_cue_reassembly_count
+        ):
+            raise RuntimeError("internally reassembled formation cues exceed physical recurrence")
+        complete_neuron_count = _nonnegative_integer(
+            candidate.complete_neuron_count, "complete neuron count"
+        )
+        developmental_resting_neuron_count = _nonnegative_integer(
+            candidate.developmental_resting_neuron_count,
+            "developmental resting neuron count",
+        )
+        physically_transitioned_neuron_count = _nonnegative_integer(
+            candidate.physically_transitioned_neuron_count,
+            "physically transitioned neuron count",
+        )
+        metabolically_perturbed_body_receptor_count = _nonnegative_integer(
+            candidate.metabolically_perturbed_body_receptor_count,
+            "metabolically perturbed body receptor count",
+        )
+        rest_recovered_neuron_count = _nonnegative_integer(
+            candidate.rest_recovered_neuron_count,
+            "rest recovered neuron count",
+        )
+        rest_drained_dissipation_quanta = _nonnegative_integer(
+            candidate.rest_drained_dissipation_quanta,
+            "rest drained dissipation quanta",
+        )
+        unmet_dissipation_quanta = _nonnegative_integer(
+            candidate.unmet_dissipation_quanta,
+            "unmet dissipation quanta",
+        )
+        externally_perturbed_body_receptor_count = _nonnegative_integer(
+            candidate.externally_perturbed_body_receptor_count,
+            "externally perturbed body receptor count",
+        )
+        raw_externally_perturbed_neuron_lineages = (
+            candidate.externally_perturbed_neuron_lineages
+        )
+        if not isinstance(raw_externally_perturbed_neuron_lineages, list):
+            raise RuntimeError("externally perturbed neuron lineages changed format")
+        externally_perturbed_neuron_lineages = tuple(
+            _canonical_lineage_hex(lineage, "externally perturbed neuron lineage")
+            for lineage in raw_externally_perturbed_neuron_lineages
+        )
+        if (
+            len(set(externally_perturbed_neuron_lineages))
+            != len(externally_perturbed_neuron_lineages)
+            or externally_perturbed_body_receptor_count
+            > len(externally_perturbed_neuron_lineages)
+            * causal_interval_count
+        ):
+            raise RuntimeError("externally perturbed neuron lineages are inconsistent")
+        raw_ingress_sense_counts = candidate.receptor_ingress_sense_counts
+        if (
+            not isinstance(raw_ingress_sense_counts, tuple)
+            or len(raw_ingress_sense_counts) != 6
+        ):
+            raise RuntimeError("receptor ingress sense counts changed format")
+        receptor_ingress_sense_counts = tuple(
+            _nonnegative_integer(value, "receptor ingress sense count")
+            for value in raw_ingress_sense_counts
+        )
+        receptor_ingress_changing_count = _nonnegative_integer(
+            candidate.receptor_ingress_changing_count,
+            "receptor ingress changing count",
+        )
+        receptor_ingress_quiescent_count = _nonnegative_integer(
+            candidate.receptor_ingress_quiescent_count,
+            "receptor ingress quiescent count",
+        )
+        if (
+            sum(receptor_ingress_sense_counts) != source_port_count
+            or receptor_ingress_changing_count
+            + receptor_ingress_quiescent_count
+            != source_port_count
+        ):
+            raise RuntimeError("receptor ingress observation lost source ports")
+        raw_motor_unit_recruitments = candidate.motor_unit_recruitments
+        learned_prepared_top_level_lineages = frozenset(
+            raw[0]
+            for raw in (
+                raw_motor_unit_recruitments
+                if isinstance(raw_motor_unit_recruitments, list)
+                else ()
+            )
+            if isinstance(raw, tuple)
+            and len(raw) == 5
+            and isinstance(raw[3], list)
+            and not raw[3]
+            and isinstance(raw[0], str)
+        )
+        motor_unit_recruitments = _motor_unit_recruitment_evidence(
+            raw_motor_unit_recruitments,
+            learned_prepared_top_level_lineages,
+        )
+        root_yaw_unit_recruitments = _root_yaw_unit_recruitment_evidence(
+            candidate.root_yaw_unit_recruitments
+        )
+        root_translation_unit_recruitments = (
+            _root_translation_unit_recruitment_evidence(
+                candidate.root_translation_unit_recruitments
+            )
+        )
+        raw_body_effector_bindings = candidate.body_effector_bindings
+        if not isinstance(raw_body_effector_bindings, list):
+            raise RuntimeError("body effector bindings changed format")
+        body_effector_bindings: list[tuple[str, str, str, int]] = []
+        effector_anatomy_by_motor_lineage: dict[str, tuple[str, str]] = {}
+        for raw in raw_body_effector_bindings:
+            if not isinstance(raw, tuple) or len(raw) != 4:
+                raise RuntimeError("body effector binding changed format")
+            lineage = _canonical_lineage_hex(raw[0], "body effector motor lineage")
+            axis = raw[1]
+            direction = raw[2]
+            carriers = _positive_integer(raw[3], "body effector carriers")
+            if (
+                not isinstance(axis, str)
+                or not axis
+                or direction not in {"toward_minimum", "toward_maximum"}
+            ):
+                raise RuntimeError("body effector binding is not typed anatomy")
+            effector_anatomy = (axis, direction)
+            established_effector_anatomy = (
+                effector_anatomy_by_motor_lineage.setdefault(
+                    lineage, effector_anatomy
+                )
+            )
+            if established_effector_anatomy != effector_anatomy:
+                raise RuntimeError(
+                    "one motor lineage carries conflicting body effector anatomy"
+                )
+            body_effector_bindings.append((lineage, axis, direction, carriers))
+
+        raw_body_consequences = candidate.articulated_body_consequences
+        if not isinstance(raw_body_consequences, list):
+            raise RuntimeError("articulated body consequences changed format")
+        articulated_body_consequences: list[
+            tuple[int, str, str, int, int, int, int, int, int, int, int]
+        ] = []
+        for raw in raw_body_consequences:
+            if not isinstance(raw, tuple) or len(raw) != 11:
+                raise RuntimeError("articulated body consequence changed format")
+            source_tick = _nonnegative_integer(raw[0], "body consequence source tick")
+            axis = raw[1]
+            unit = raw[2]
+            predecessor_position = _signed_integer(raw[3], "body predecessor position")
+            successor_position = _signed_integer(raw[4], "body successor position")
+            signed_displacement = _signed_integer(raw[5], "body signed displacement")
+            toward_minimum = _nonnegative_integer(raw[6], "body toward-minimum carriers")
+            toward_maximum = _nonnegative_integer(raw[7], "body toward-maximum carriers")
+            opposed = _nonnegative_integer(raw[8], "body opposed carriers")
+            applied = _nonnegative_integer(raw[9], "body applied displacement")
+            stalled = _nonnegative_integer(raw[10], "body stalled carriers")
+            net = abs(toward_maximum - toward_minimum)
+            if (
+                source_tick < predecessor_organism_tick
+                or source_tick >= organism_tick
+                or not isinstance(axis, str)
+                or not axis
+                or unit not in {"millidegree", "micrometre", "square_millimetre"}
+                or successor_position - predecessor_position != signed_displacement
+                or opposed != min(toward_minimum, toward_maximum)
+                or applied != abs(signed_displacement)
+                or stalled > net
+            ):
+                raise RuntimeError("articulated body consequence lost exact mechanics")
+            articulated_body_consequences.append(
+                (
+                    source_tick,
+                    axis,
+                    unit,
+                    predecessor_position,
+                    successor_position,
+                    signed_displacement,
+                    toward_minimum,
+                    toward_maximum,
+                    opposed,
+                    applied,
+                    stalled,
+                )
+            )
+
+        raw_body_sources = candidate.body_proprioceptive_sources
+        raw_body_source_extents = candidate.body_proprioceptive_source_extents
+        raw_body_admissions = candidate.body_proprioceptive_source_admissions
+        if (
+            not isinstance(raw_body_sources, list)
+            or not isinstance(raw_body_source_extents, list)
+            or not isinstance(raw_body_admissions, list)
+            or len(raw_body_sources) != len(raw_body_source_extents)
+            or len(raw_body_sources) != len(raw_body_admissions)
+        ):
+            raise RuntimeError("body proprioceptive sources changed format")
+        body_proprioceptive_sources: list[bytes] = []
+        body_proprioceptive_source_extents: list[tuple[int, int, int, int, int]] = []
+        body_proprioceptive_source_admissions: list[tuple[int, int]] = []
+        prior_source_tick: int | None = None
+        prior_passive = False
+        for raw_body, raw_extent, raw_admission in zip(
+            raw_body_sources, raw_body_source_extents, raw_body_admissions, strict=True
+        ):
+            if not isinstance(raw_body, bytes):
+                raise RuntimeError("body proprioceptive source is not bytes")
+            passive = raw_body.startswith(b"GLBPTR01")
+            version = 3 if raw_body.startswith(b"GLJSRC03") else (
+                4 if raw_body.startswith(b"GLJSRC04") or passive else None
+            )
+            if (
+                version is None or not isinstance(raw_extent, tuple) or len(raw_extent) != 5
+                or not isinstance(raw_admission, tuple) or len(raw_admission) != 2
+            ):
+                raise RuntimeError("body proprioceptive source or admission changed format")
+            source_tick = _nonnegative_integer(raw_extent[0], "body source tick")
+            ports = _positive_integer(raw_extent[1], "body source port count")
+            samples = _positive_integer(raw_extent[2], "body source sample count")
+            occurrences = _positive_integer(raw_extent[3], "body source occurrence count")
+            frames = _positive_integer(raw_extent[4], "body source frame count")
+            numerator = _positive_integer(raw_admission[0], "body source duration numerator")
+            denominator = _positive_integer(raw_admission[1], "body source duration denominator")
+            per_axis_frames = frames // occurrences
+            if (
+                source_tick < predecessor_organism_tick or source_tick >= organism_tick
+                or prior_source_tick is not None and (
+                    source_tick < prior_source_tick
+                    or source_tick == prior_source_tick and (not passive or prior_passive)
+                )
+                or occurrences > len(active_before.articulated_body_axes)
+                or ports != occurrences * (2 if version == 3 else 4)
+                or per_axis_frames < 2 or frames != occurrences * per_axis_frames
+                or samples != ports * per_axis_frames
+                or Fraction(numerator, denominator) != Fraction(per_axis_frames - 1, 1000)
+            ):
+                raise RuntimeError("body proprioceptive source extents lost causality")
+            if passive:
+                # Check translation metadata here; the native consumer alone
+                # validates every sampled position and expands the full field.
+                if (
+                    len(raw_body) != 21 + occurrences + 4 * occurrences * per_axis_frames
+                    or int.from_bytes(raw_body[8:16], "little") != source_tick
+                    or int.from_bytes(raw_body[16:20], "little") != per_axis_frames
+                    or raw_body[20] != occurrences
+                ):
+                    raise RuntimeError("compact passive source lost its native extent")
+            elif per_axis_frames != 2 or raw_admission != (1, 1000):
+                raise RuntimeError("body impulse changed its one-ms admission")
+            prior_source_tick, prior_passive = source_tick, passive
+            body_proprioceptive_sources.append(raw_body)
+            body_proprioceptive_source_extents.append((source_tick, ports, samples, occurrences, frames))
+            body_proprioceptive_source_admissions.append((numerator, denominator))
+        initial_body_source_count = int(
+            not active_before.articulated_body_proprioception_initialized
+        )
+        initial_body_source_port_count = (
+            len(active_before.articulated_body_axes) * 2
+            if initial_body_source_count
+            else 0
+        )
+        # These receipts are outputs of the admitted interval: sparse body
+        # consequences retained for the caller to deliver in the following
+        # causal interval. They are not additional inputs to this candidate,
+        # so they must never be added to its admitted source/port counts.
+        # Their exact bytes and causal extents were validated above. Python
+        # observes that native physical output; it has no authority to permit
+        # or suppress it.
+        added_interval_count = causal_interval_count - requested_causal_interval_count
+        added_port_count = source_port_count - requested_source_port_count
+        allowed_initial_body_additions = {(0, 0)}
+        if initial_body_source_count:
+            allowed_initial_body_additions.add(
+                (
+                    0 if initial_body_coexists else initial_body_source_count,
+                    initial_body_source_port_count,
+                )
+            )
+        if (added_interval_count, added_port_count) not in allowed_initial_body_additions:
+            raise RuntimeError(
+                "native prepare inserted an unauthorized causal source "
+                f"(requested intervals={requested_causal_interval_count}, "
+                f"prepared intervals={causal_interval_count}, "
+                f"initial body intervals={initial_body_source_count}, "
+                f"requested ports={requested_source_port_count}, "
+                f"prepared ports={source_port_count}, "
+                f"initial body ports={initial_body_source_port_count})"
+            )
+        raw_causal_interval_evidence = getattr(
+            candidate, "causal_interval_evidence", None
+        )
+        causal_interval_evidence = (
+            ()
+            if raw_causal_interval_evidence is None
+            else _causal_interval_evidence(
+                raw_causal_interval_evidence,
+                predecessor_organism_tick,
+            )
+        )
+        if (
+            len(causal_interval_evidence) != causal_interval_count
+            and (causal_interval_evidence or causal_interval_count > 1)
+        ):
+            raise RuntimeError("causal interval evidence lost a physical boundary")
+        if not causal_interval_evidence and learned_prepared_top_level_lineages:
+            raise RuntimeError(
+                "learned motor discharge lost its causal interval work evidence"
+            )
+        # Older pure-Python boundary doubles carry no layer-13 observation;
+        # absence is exactly an empty transient recruitment list. Native
+        # production candidates expose the field explicitly.
+        raw_articulatory_recruitments = getattr(
+            candidate, "articulatory_unit_recruitments", []
+        )
+        articulatory_unit_recruitments = (
+            _causal_interval_recruitment_aggregate_evidence(
+                raw_articulatory_recruitments,
+                tuple(motor_unit_recruitments),
+                tuple(root_yaw_unit_recruitments),
+                tuple(root_translation_unit_recruitments),
+                causal_interval_evidence,
+            )
+        )
+        # A mounted joint cohort exists only where at least two ports share
+        # one exact source clock, so a lawful episode can evaluate zero
+        # mounted cohorts (cognition still receives its occurrences).
+        cohort_count_changed = current_cohort_evaluation_count > (
+            source_port_count * causal_interval_count
+        )
+        reached_neuron_growth = (
+            complete_neuron_count - active_before.complete_neuron_count
+        )
+        claimed_resting_neurons = (
+            active_before.developmental_resting_neuron_count
+            - developmental_resting_neuron_count
+        )
+        expected_predecessor_tick = (
+            active_before.organism_tick
+            if sealed or self.__unsealed_tick is None
+            else self.__unsealed_tick
+        )
+        unsealed_advance = expected_predecessor_tick - active_before.organism_tick
+        expected_predecessor_fabric_generation = (
+            active_before.fabric_generation + unsealed_advance
+        )
+        expected_predecessor_mounted_generation = (
+            active_before.mounted_generation + unsealed_advance
+        )
+        if (
+            predecessor_state_sha256 != active_before.state_sha256
+            or predecessor_organism_tick != expected_predecessor_tick
+            or organism_tick != predecessor_organism_tick + causal_interval_count
+            or predecessor_fabric_generation
+            != expected_predecessor_fabric_generation
+            or fabric_generation
+            != predecessor_fabric_generation + causal_interval_count
+            or predecessor_mounted_generation
+            != expected_predecessor_mounted_generation
+            or mounted_generation
+            != predecessor_mounted_generation + causal_interval_count
+            or predecessor_authentication_count != 0
+            or predecessor_decode_count != 0
+            or predecessor_rebuilt_field_count != 0
+            or cohort_count_changed
+            or successor_seal_count != int(sealed)
+            or recurrent_complete_neuron_fractal_count
+            > complete_neuron_fractal_count
+            or reached_neuron_growth < 0
+            or claimed_resting_neurons < 0
+            or claimed_resting_neurons > reached_neuron_growth
+            or endogenous_partial_cue_reassembly_count
+            > partial_cue_reassembly_count
+            or metabolically_perturbed_body_receptor_count
+            > physically_transitioned_neuron_count
+            or not isinstance(candidate.physical_transition_claimed, bool)
+            or not isinstance(candidate.cognitive_formation_claimed, bool)
+            or candidate.physical_transition_claimed
+            != (physically_transitioned_neuron_count > 0)
+            # A cognitive-formation claim must ride on evidence of the
+            # formation kind: mosaic admission, activations, or partial-cue
+            # reassembly stand on their own counters; trace/ordinal advance
+            # is only lawful in a step that delivered genuine neuronal
+            # fractals. A bare-DSF prepare dressing itself in advanced
+            # cognitive counters is an impostor.
+            or (
+                candidate.cognitive_formation_claimed
+                and cognitive_mosaic_count <= active_before.cognitive_mosaic_count
+                and formation_activation_count == 0
+                # Native recurrence counts describe this prepared interval;
+                # they are not retained organism totals. One recurrence now
+                # remains evidence even when the preceding interval also
+                # observed exactly one recurrence.
+                and partial_cue_reassembly_count == 0
+                and complete_neuron_fractal_count == 0
+                and not organic_mosaic_relations
+            )
+            or candidate.python_callback_count != 0
+        ):
+            raise RuntimeError("resident organism prepare changed causal physics")
+        active_after = self.readiness()
+        active_after_signature = _observation_signature(active_after)
+        if candidate_committed:
+            if not sealed or prepared_state_sha256 is None:
+                raise RuntimeError("resident direct commit was not sealed")
+            if (
+                active_after.state_sha256 != prepared_state_sha256
+                or active_after.organism_tick != organism_tick
+                or active_after.fabric_generation != fabric_generation
+                or active_after.mounted_generation != mounted_generation
+            ):
+                raise RuntimeError(
+                    "resident direct commit did not publish its prepared state"
+                )
+        elif active_after_signature != _observation_signature(active_before):
+            raise RuntimeError("resident organism prepare published pending state")
+        if not sealed:
+            self.__unsealed_tick = organism_tick
+        return ResidentPrepareEvidence(
+            token=token,
+            token_hex=candidate.token_hex,
+            sealed=sealed,
+            causal_transition_sha256=causal_transition_sha256,
+            predecessor_state_sha256=predecessor_state_sha256,
+            prepared_state_sha256=prepared_state_sha256,
+            predecessor_organism_tick=predecessor_organism_tick,
+            organism_tick=organism_tick,
+            predecessor_fabric_generation=predecessor_fabric_generation,
+            fabric_generation=fabric_generation,
+            predecessor_mounted_generation=predecessor_mounted_generation,
+            mounted_generation=mounted_generation,
+            predecessor_authentication_count=predecessor_authentication_count,
+            predecessor_decode_count=predecessor_decode_count,
+            predecessor_rebuilt_field_count=predecessor_rebuilt_field_count,
+            current_cohort_evaluation_count=current_cohort_evaluation_count,
+            successor_seal_count=successor_seal_count,
+            dsf_delivery_count=dsf_delivery_count,
+            complete_neuron_fractal_count=complete_neuron_fractal_count,
+            recurrent_complete_neuron_fractal_count=(
+                recurrent_complete_neuron_fractal_count
+            ),
+            cognitive_ordinal=cognitive_ordinal,
+            cognitive_trace_count=cognitive_trace_count,
+            cognitive_mosaic_count=cognitive_mosaic_count,
+            formation_activation_count=formation_activation_count,
+            vocal_founder_refusal_count=vocal_founder_refusal_count,
+            partial_cue_reassembly_count=partial_cue_reassembly_count,
+            endogenous_partial_cue_reassembly_count=(
+                endogenous_partial_cue_reassembly_count
+            ),
+            internally_reassembled_formation_cues=tuple(
+                internally_reassembled_formation_cues
+            ),
+            causal_thought_transitions=tuple(causal_thought_transitions),
+            externally_reassembled_formation_frontiers=tuple(
+                externally_reassembled_formation_frontiers
+            ),
+            physical_transition_claimed=candidate.physical_transition_claimed,
+            cognitive_formation_claimed=candidate.cognitive_formation_claimed,
+            python_callback_count=0,
+            complete_neuron_count=complete_neuron_count,
+            developmental_resting_neuron_count=(
+                developmental_resting_neuron_count
+            ),
+            physically_transitioned_neuron_count=(
+                physically_transitioned_neuron_count
+            ),
+            metabolically_perturbed_body_receptor_count=(
+                metabolically_perturbed_body_receptor_count
+            ),
+            rest_recovered_neuron_count=rest_recovered_neuron_count,
+            rest_drained_dissipation_quanta=rest_drained_dissipation_quanta,
+            unmet_dissipation_quanta=unmet_dissipation_quanta,
+            externally_perturbed_body_receptor_count=(
+                externally_perturbed_body_receptor_count
+            ),
+            externally_perturbed_neuron_lineages=(
+                externally_perturbed_neuron_lineages
+            ),
+            receptor_ingress_sense_counts=receptor_ingress_sense_counts,
+            receptor_ingress_changing_count=receptor_ingress_changing_count,
+            receptor_ingress_quiescent_count=receptor_ingress_quiescent_count,
+            motor_unit_recruitments=tuple(motor_unit_recruitments),
+            root_yaw_unit_recruitments=tuple(root_yaw_unit_recruitments),
+            root_translation_unit_recruitments=tuple(
+                root_translation_unit_recruitments
+            ),
+            body_effector_bindings=tuple(body_effector_bindings),
+            articulated_body_consequences=tuple(
+                articulated_body_consequences
+            ),
+            body_proprioceptive_sources=tuple(body_proprioceptive_sources),
+            body_proprioceptive_source_extents=tuple(
+                body_proprioceptive_source_extents
+            ),
+            body_proprioceptive_source_admissions=tuple(body_proprioceptive_source_admissions),
+            articulatory_unit_recruitments=tuple(
+                articulatory_unit_recruitments
+            ),
+            changed_contact_channel_states=changed_contact_channel_states,
+            physical_frontier_routes=physical_frontier_routes,
+            preceding_distinct_physical_frontier_routes=(
+                preceding_distinct_physical_frontier_routes
+            ),
+            reached_and_foregone_physical_frontier_routes=(
+                reached_and_foregone_physical_frontier_routes
+            ),
+            working_causal_continuations=working_causal_continuations,
+            settled_working_frontier=settled_working_frontier,
+            physical_prediction_alternatives=physical_prediction_alternatives,
+            body_consequence_transfers=body_consequence_transfers,
+            affective_balance_trajectories=affective_balance_trajectories,
+            localized_fluid_chemistry=localized_fluid_chemistry,
+            localized_metabolic_strain_evaluated_body_receptor_lineages=(
+                localized_metabolic_strain_evaluated_body_receptor_lineages
+            ),
+            localized_metabolic_strain=localized_metabolic_strain,
+            organic_mosaic_relations=tuple(organic_mosaic_relations),
+            causal_interval_evidence=causal_interval_evidence,
+        )
+
+    def prepare_authored_contacts(
+        self, contacts: object
+    ) -> ResidentContactGrowthEvidence:
+        """Prepare one AUTHORED contact growth and return its receipts.
+
+        ``contacts`` is a sequence of ``(left_sensor_id, left_substream_id,
+        right_sensor_id, right_substream_id, conductance_picosiemens)``: the
+        caller names two of its OWN declared receptors and the conductance of
+        the contact between them, exactly the authorship growth DNA carries at
+        genesis.  This boundary derives no adjacency and no conductance.
+
+        Growth is append-only in the body: existing contacts keep their index,
+        endpoints, conductance and retained carrier phase. A growth carries
+        no sensory occurrence, so no fractal may be claimed. The resident
+        cognitive generation advances once because the body itself changed.
+        """
+
+        authored: list[tuple[str, str, str, str, int]] = []
+        for entry in contacts:
+            left_sensor, left_substream, right_sensor, right_substream, conductance = (
+                entry
+            )
+            if (
+                not isinstance(left_sensor, str)
+                or not isinstance(left_substream, str)
+                or not isinstance(right_sensor, str)
+                or not isinstance(right_substream, str)
+                or not left_sensor
+                or not left_substream
+                or not right_sensor
+                or not right_substream
+            ):
+                raise TypeError("authored contact endpoints must be declared receptor names")
+            authored.append(
+                (
+                    left_sensor,
+                    left_substream,
+                    right_sensor,
+                    right_substream,
+                    _positive_integer(conductance, "authored contact conductance"),
+                )
+            )
+        if not authored:
+            raise ValueError("authored contact growth requires at least one contact")
+        active_before = self.readiness()
+        candidate = self.__runtime.prepare_authored_contacts(authored)
+        if not isinstance(candidate, self.__prepare_type):
+            raise TypeError("resident organism prepare returned a structural impostor")
+        if candidate.schema != PREPARE_SCHEMA:
+            raise RuntimeError("resident organism prepare schema changed")
+        token = candidate.token
+        if (
+            not isinstance(token, bytes)
+            or len(token) != 32
+            or candidate.token_hex != token.hex()
+        ):
+            raise RuntimeError("resident organism prepare token changed format")
+        predecessor_state_sha256 = _canonical_sha256(
+            candidate.predecessor_state_sha256, "predecessor state receipt"
+        )
+        prepared_state_sha256 = _canonical_sha256(
+            candidate.prepared_state_sha256, "prepared state receipt"
+        )
+        if (
+            predecessor_state_sha256 != active_before.state_sha256
+            or candidate.predecessor_organism_tick != active_before.organism_tick
+            or candidate.organism_tick != active_before.organism_tick + 1
+            or candidate.predecessor_fabric_generation
+            != active_before.fabric_generation
+            or candidate.fabric_generation != active_before.fabric_generation + 1
+            or candidate.mounted_generation
+            != active_before.mounted_generation + 1
+            or candidate.dsf_delivery_count != 0
+            or candidate.complete_neuron_fractal_count != 0
+            or candidate.physical_transition_claimed
+            or candidate.cognitive_formation_claimed
+        ):
+            raise RuntimeError(
+                "resident organism contact growth changed causal physics"
+            )
+        active_after = self.readiness()
+        if _observation_signature(active_after) != _observation_signature(
+            active_before
+        ):
+            raise RuntimeError("resident organism prepare published pending state")
+        return ResidentContactGrowthEvidence(
+            token=token,
+            token_hex=candidate.token_hex,
+            predecessor_state_sha256=predecessor_state_sha256,
+            prepared_state_sha256=prepared_state_sha256,
+            predecessor_organism_tick=candidate.predecessor_organism_tick,
+            organism_tick=candidate.organism_tick,
+            predecessor_fabric_generation=candidate.predecessor_fabric_generation,
+            fabric_generation=candidate.fabric_generation,
+            mounted_generation=candidate.mounted_generation,
+            authored_contact_count=len(authored),
+        )
+
+    def observe_current_energy(self) -> object:
+        """Read exact energy only on request: identity, live tick, named
+        rational totals, separated charge, and exact exhaustion predicate."""
+        return self.__runtime.observe_current_energy()
+
+    def observe_cohort_contacts(self) -> tuple[tuple[int, int], ...]:
+        """Decoded ``(member_count, contact_count)`` per living cohort."""
+
+        return tuple(
+            (int(members), int(contacts))
+            for members, contacts in self.__runtime.observe_cohort_contacts()
+        )
+
+    def observe_recovery_fluid(self) -> tuple[tuple[Fraction, ...], ...]:
+        """Exact reservoir state per living cohort: available, spent, thermal
+        zeptojoules, then their declared capacities. Her own reserves, read
+        for the metabolic-need interoceptors; reading advances nothing."""
+
+        cohorts = []
+        for parts in self.__runtime.observe_recovery_fluid():
+            if len(parts) != 6:
+                raise RuntimeError("native reservoir observation changed shape")
+            values = tuple(Fraction(int(numerator), int(denominator)) for numerator, denominator in parts)
+            if any(value < 0 for value in values):
+                raise RuntimeError("native reservoir observation is negative")
+            cohorts.append(values)
+        return tuple(cohorts)
+
+    def observe_reached_neuron_count_by_layer(
+        self,
+    ) -> tuple[tuple[int, int], ...]:
+        """Decoded ``(layer, reached_count)`` from persisted neuron anatomy."""
+
+        observed = tuple(
+            (
+                _nonnegative_integer(layer, "developmental layer"),
+                _nonnegative_integer(count, "reached neuron layer count"),
+            )
+            for layer, count in (
+                self.__runtime.observe_reached_neuron_count_by_layer()
+            )
+        )
+        if any(
+            count == 0
+            or (index > 0 and observed[index - 1][0] >= layer)
+            for index, (layer, count) in enumerate(observed)
+        ):
+            raise RuntimeError(
+                "reached neuron layer distribution is not canonical"
+            )
+        return observed
+
+    def observe_reached_neuron_electrical_by_layer(
+        self,
+    ) -> tuple[tuple[int, int, int, int, int, int], ...]:
+        """Read-only layer, charge, capacitance and carrier material."""
+
+        before = self.readiness()
+        observed = tuple(
+            (
+                _nonnegative_integer(layer, "developmental layer"),
+                int(charge),
+                int(capacitance_numerator),
+                _positive_integer(
+                    capacitance_denominator, "capacitance denominator"
+                ),
+                _nonnegative_integer(intracellular, "intracellular carriers"),
+                _nonnegative_integer(extracellular, "extracellular carriers"),
+            )
+            for (
+                layer,
+                charge,
+                capacitance_numerator,
+                capacitance_denominator,
+                intracellular,
+                extracellular,
+            ) in (
+                self.__runtime.observe_reached_neuron_electrical_by_layer()
+            )
+        )
+        reached_neuron_count = sum(
+            count for _, count in self.observe_reached_neuron_count_by_layer()
+        )
+        if len(observed) != reached_neuron_count:
+            raise RuntimeError("reached neuron electrical projection changed width")
+        if self.readiness().state_sha256 != before.state_sha256:
+            raise RuntimeError("reached neuron electrical observation advanced the organism")
+        return observed
+
+    def observe_reached_contact_count_by_layer_pair(
+        self,
+    ) -> tuple[tuple[int, int, int], ...]:
+        """Read-only sparse-contact counts by endpoint layer pair."""
+
+        before = self.readiness()
+        observed = tuple(
+            (
+                _nonnegative_integer(left, "left developmental layer"),
+                _nonnegative_integer(right, "right developmental layer"),
+                _nonnegative_integer(count, "interlayer contact count"),
+            )
+            for left, right, count in (
+                self.__runtime.observe_reached_contact_count_by_layer_pair()
+            )
+        )
+        if any(left > right or count == 0 for left, right, count in observed):
+            raise RuntimeError("reached contact layer projection is not canonical")
+        if self.readiness().state_sha256 != before.state_sha256:
+            raise RuntimeError("reached contact observation advanced the organism")
+        return observed
+
+    def observe_reached_contact_channel_states(
+        self,
+    ) -> tuple[tuple[str, str, int, int, int, int, int, int], ...]:
+        """Read exact retained channel and sub-transition phase state."""
+
+        before = self.readiness()
+        observed = tuple(
+            (
+                _canonical_lineage_hex(left, "contact left lineage"),
+                _canonical_lineage_hex(right, "contact right lineage"),
+                _nonnegative_integer(parallel, "contact parallel ordinal"),
+                _nonnegative_integer(population, "conducting channel population"),
+                _signed_integer(
+                    transition_phase_numerator, "contact transition phase numerator"
+                ),
+                _positive_exact_integer(
+                    transition_phase_denominator, "contact transition phase denominator"
+                ),
+                _signed_integer(conductance_numerator, "contact conductance numerator"),
+                _positive_exact_integer(
+                    conductance_denominator, "contact conductance denominator"
+                ),
+            )
+            for (
+                left,
+                right,
+                parallel,
+                population,
+                transition_phase_numerator,
+                transition_phase_denominator,
+                conductance_numerator,
+                conductance_denominator,
+            ) in self.__runtime.observe_reached_contact_channel_states()
+        )
+        if any(
+            left >= right
+            or population > 6_400
+            or transition_phase_numerator < 0
+            or transition_phase_numerator >= transition_phase_denominator
+            or conductance_numerator < 0
+            or (index > 0 and observed[index - 1][:3] >= row[:3])
+            for index, row in enumerate(observed)
+            for (
+                left,
+                right,
+                _parallel,
+                population,
+                transition_phase_numerator,
+                transition_phase_denominator,
+                conductance_numerator,
+                _conductance_denominator,
+            ) in (row,)
+        ):
+            raise RuntimeError("reached contact channel projection is not canonical")
+        if self.readiness().state_sha256 != before.state_sha256:
+            raise RuntimeError("reached contact channel observation advanced the organism")
+        return observed
+
+    def observe_reached_source_site_count(
+        self,
+        sensor_id: str,
+        substream_id: str,
+    ) -> int:
+        """Count reached cells with one exact persisted physical source."""
+
+        if not isinstance(sensor_id, str) or not sensor_id:
+            raise TypeError("reached source sensor identity must be nonempty text")
+        if not isinstance(substream_id, str) or not substream_id:
+            raise TypeError("reached source substream identity must be nonempty text")
+        return _nonnegative_integer(
+            self.__runtime.observe_reached_source_site_count(
+                sensor_id,
+                substream_id,
+            ),
+            "reached source site count",
+        )
+
+    def commit(self, token: bytes) -> NativeResidentObservationView:
+        """Commit the native pending candidate selected by its fixed token."""
+
+        self.__runtime.commit(_exact_token(token))
+        return self.readiness()
+
+    def discard(self, token: bytes) -> NativeResidentObservationView:
+        """Discard the native pending candidate and preserve active state."""
+
+        active_before = self.readiness()
+        self.__runtime.discard(_exact_token(token))
+        active_after = self.readiness()
+        if _observation_signature(active_after) != _observation_signature(
+            active_before
+        ):
+            raise RuntimeError("resident organism discard changed active state")
+        return active_after
+
+
+def restore_native_resident_organism(
+    *,
+    current_envelope: bytes,
+    max_envelope_bytes: int,
+    max_fabric_bytes: int,
+    max_logical_peak_bytes: int,
+) -> NativeResidentOrganism:
+    """Cold restore one current GLORUN state into one native resident runtime."""
+
+    _clear_canonical_lineage_cache()
+    if (
+        not isinstance(current_envelope, bytes)
+        or not current_envelope.startswith(b"GLORUN01")
+    ):
+        raise TypeError("resident organism cold restore requires GLORUN bytes")
+    envelope, fabric, logical = _validate_budget(
+        max_envelope_bytes,
+        max_fabric_bytes,
+        max_logical_peak_bytes,
+    )
+    core = _native_core()
+    runtime_type = _concrete_class(core, "NativeResidentOrganismRuntime")
+    observation_type = _concrete_class(
+        core, "NativeResidentOrganismObservation"
+    )
+    prepare_type = _concrete_class(core, "NativeResidentOrganismPrepare")
+    restore = getattr(core, "restore_native_resident_organism_runtime", None)
+    if not callable(restore):
+        raise RuntimeError("guala_core does not expose resident cold restore")
+    runtime = restore(current_envelope, envelope, fabric, logical)
+    if not isinstance(runtime, runtime_type):
+        raise TypeError("resident organism cold restore returned a structural impostor")
+    if runtime.schema != RUNTIME_SCHEMA:
+        raise RuntimeError("resident organism runtime schema changed")
+    organism = NativeResidentOrganism(
+        _FACTORY_AUTHORITY,
+        runtime,
+        runtime_type,
+        observation_type,
+        prepare_type,
+    )
+    organism.save()
+    return organism
+
+
+def exact_native_yaw_trajectory(
+    *,
+    predecessor_heading_millidegrees: int,
+    signed_displacement_millidegrees: int,
+    duration_microseconds: int,
+) -> tuple[int, tuple[int, ...]]:
+    """Return the native minimum-jerk yaw path on the 1 ms body clock."""
+
+    trajectory = getattr(_native_core(), "exact_virtual_yaw_trajectory", None)
+    if not callable(trajectory):
+        raise RuntimeError("guala_core does not expose exact virtual yaw physics")
+    successor, steps = trajectory(
+        predecessor_heading_millidegrees,
+        signed_displacement_millidegrees,
+        duration_microseconds,
+    )
+    return int(successor), tuple(int(step) for step in steps)
+
+
+def exact_native_root_yaw_proprioceptive_source(
+    *,
+    source_tick: int,
+    signed_displacement_millidegrees: int,
+) -> NativeJointSourceView:
+    """Build the two fixed directional endings for one settled root turn."""
+
+    builder = getattr(
+        _native_core(), "exact_root_yaw_proprioceptive_source", None
+    )
+    if not callable(builder):
+        raise RuntimeError(
+            "guala_core does not expose exact root-yaw proprioception"
+        )
+    return builder(source_tick, signed_displacement_millidegrees)
+
+
+def exact_native_interoceptive_source(
+    *,
+    source_tick: int,
+    reserve_deficit: Fraction,
+    thermal_load: Fraction,
+) -> NativeJointSourceView:
+    """Build the two metabolic-need interoceptor ports for one interval from
+    the organism's own exact reserve fractions (already the binary64 the
+    receptor receives). A distinct body-sense organ at its own places."""
+    builder = getattr(_native_core(), "exact_interoceptive_source", None)
+    if not callable(builder):
+        raise RuntimeError("guala_core does not expose exact interoception")
+    for value in (reserve_deficit, thermal_load):
+        if not isinstance(value, Fraction) or not 0 <= value <= 1:
+            raise ValueError("interoceptive fraction left the unit interval")
+    return builder(
+        _nonnegative_integer(source_tick, "interoceptive source tick"),
+        reserve_deficit.numerator, reserve_deficit.denominator,
+        thermal_load.numerator, thermal_load.denominator,
+    )
+
+
+def exact_native_root_translation_proprioceptive_source(
+    *,
+    source_tick: int,
+    signed_x_millimetres: int,
+    signed_y_millimetres: int,
+) -> NativeJointSourceView:
+    """Build the four fixed directional endings for settled root movement."""
+
+    builder = getattr(
+        _native_core(), "exact_root_translation_proprioceptive_source", None
+    )
+    if not callable(builder):
+        raise RuntimeError(
+            "guala_core does not expose exact root-translation proprioception"
+        )
+    return builder(source_tick, signed_x_millimetres, signed_y_millimetres)
+
+
+def exact_articulatory_interval_trajectory(
+    *,
+    intervals: tuple[
+        tuple[int, tuple[tuple[int, int], ...], bytes], ...
+    ],
+) -> tuple[int, tuple[int, ...], bytes, int, int, int, int, int, int, int]:
+    """Settle ordered native layer-13 intervals without flattening time."""
+
+    trajectory = getattr(
+        _native_core(), "exact_articulatory_interval_trajectory", None
+    )
+    if not callable(trajectory):
+        raise RuntimeError(
+            "guala_core does not expose interval articulatory body physics"
+        )
+    native_intervals = [
+        (int(sample_count), list(recruitments), body_state)
+        for sample_count, recruitments, body_state in intervals
+    ]
+    (
+        sample_rate_hz,
+        radiated_pressure_pcm,
+        body_mechanical_trajectories,
+        peak_transducer_surface_velocity_pcm,
+        glottal_open_samples_at_apex,
+        mouth_area_square_millimetres_at_apex,
+        perioral_area_displacement_square_millimetres,
+        applied_motor_quanta,
+        stalled_motor_quanta,
+        relaxation_sample_count,
+    ) = trajectory(native_intervals)
+    return (
+        int(sample_rate_hz),
+        tuple(int(value) for value in radiated_pressure_pcm),
+        bytes(body_mechanical_trajectories),
+        int(peak_transducer_surface_velocity_pcm),
+        int(glottal_open_samples_at_apex),
+        int(mouth_area_square_millimetres_at_apex),
+        int(perioral_area_displacement_square_millimetres),
+        int(applied_motor_quanta),
+        int(stalled_motor_quanta),
+        int(relaxation_sample_count),
+    )
+
+
+def migrate_native_resident_organism_exact_energy(
+    *,
+    current_envelope: bytes,
+    expected_predecessor_sha256: str,
+    max_envelope_bytes: int,
+    max_fabric_bytes: int,
+    max_logical_peak_bytes: int,
+) -> bytes:
+    """Derive the explicit current-format body from one exact predecessor.
+
+    The native boundary is idempotent: an already-current body is returned
+    byte-identically. Publication decides whether that is a no-op; treating
+    equality as an error here made every explicitly authorized restart fail.
+    """
+
+    if (
+        not isinstance(current_envelope, bytes)
+        or not current_envelope.startswith(b"GLORUN01")
+    ):
+        raise TypeError("exact-energy migration requires GLORUN bytes")
+    predecessor = _canonical_sha256(
+        expected_predecessor_sha256, "exact-energy predecessor receipt"
+    )
+    if hashlib.sha256(current_envelope).hexdigest() != predecessor:
+        raise RuntimeError("exact-energy migration predecessor changed")
+    envelope, fabric, logical = _validate_budget(
+        max_envelope_bytes,
+        max_fabric_bytes,
+        max_logical_peak_bytes,
+    )
+    migrate = getattr(
+        _native_core(), "migrate_native_resident_organism_exact_energy", None
+    )
+    if not callable(migrate):
+        raise RuntimeError("guala_core does not expose exact-energy migration")
+    migrated = bytes(migrate(current_envelope, envelope, fabric, logical))
+    if not migrated.startswith(b"GLORUN01") or len(migrated) > envelope:
+        raise RuntimeError("current-format migration produced an invalid body")
+    restore_native_resident_organism(
+        current_envelope=migrated,
+        max_envelope_bytes=envelope,
+        max_fabric_bytes=fabric,
+        max_logical_peak_bytes=logical,
+    )
+    return migrated
+
+
+def correct_native_resident_organism_growth_contamination(
+    *,
+    current_envelope: bytes,
+    expected_predecessor_sha256: str,
+    max_envelope_bytes: int,
+    max_fabric_bytes: int,
+    max_logical_peak_bytes: int,
+) -> bytes:
+    """Remove only the rejected recurrent and broad-fanout anatomy once."""
+
+    if (
+        not isinstance(current_envelope, bytes)
+        or not current_envelope.startswith(b"GLORUN01")
+    ):
+        raise TypeError("growth correction requires GLORUN bytes")
+    predecessor = _canonical_sha256(
+        expected_predecessor_sha256, "growth-correction predecessor receipt"
+    )
+    if hashlib.sha256(current_envelope).hexdigest() != predecessor:
+        raise RuntimeError("growth-correction predecessor changed")
+    envelope, fabric, logical = _validate_budget(
+        max_envelope_bytes,
+        max_fabric_bytes,
+        max_logical_peak_bytes,
+    )
+    correct = getattr(
+        _native_core(),
+        "correct_native_resident_organism_growth_contamination",
+        None,
+    )
+    if not callable(correct):
+        raise RuntimeError("guala_core does not expose growth correction")
+    corrected = bytes(correct(current_envelope, envelope, fabric, logical))
+    if not corrected.startswith(b"GLORUN01") or len(corrected) > envelope:
+        raise RuntimeError("growth correction produced an invalid body")
+    restore_native_resident_organism(
+        current_envelope=corrected,
+        max_envelope_bytes=envelope,
+        max_fabric_bytes=fabric,
+        max_logical_peak_bytes=logical,
+    )
+    return corrected
+
+
+def _validated_growth_dna(
+    growth_dna: object,
+    episode_type: type,
+) -> tuple[object, list[tuple[list[int], list[tuple[int, int, int]]]]]:
+    """Validate authored growth DNA: (anatomy_episode, seed_groups).
+
+    Each seed group is (port_indices, contacts): port_indices name joint
+    source ports of the anatomy episode, and each contact is
+    (left_seed_index, right_seed_index, conductance_picosiemens). Every value
+    is authored by the caller; nothing is defaulted or inferred here.
+    """
+
+    if not isinstance(growth_dna, (tuple, list)) or len(growth_dna) != 2:
+        raise TypeError(
+            "resident organism growth_dna must be (anatomy_episode, seed_groups)"
+        )
+    anatomy_episode, seed_groups = growth_dna
+    if not isinstance(anatomy_episode, episode_type):
+        raise TypeError(
+            "resident organism growth_dna anatomy episode must be a concrete "
+            "native joint source episode"
+        )
+    if not isinstance(seed_groups, (tuple, list)) or not seed_groups:
+        raise ValueError(
+            "resident organism growth_dna requires at least one authored seed group"
+        )
+
+    def _index(value: object, label: str) -> int:
+        if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+            raise ValueError(f"growth_dna {label} must be a nonnegative integer")
+        return value
+
+    validated_groups: list[tuple[list[int], list[tuple[int, int, int]]]] = []
+    for group_index, group in enumerate(seed_groups):
+        if not isinstance(group, (tuple, list)) or len(group) != 2:
+            raise TypeError(
+                f"growth_dna seed group {group_index} must be "
+                "(port_indices, contacts)"
+            )
+        port_indices, contacts = group
+        if not isinstance(port_indices, (tuple, list)) or not port_indices:
+            raise ValueError(
+                f"growth_dna seed group {group_index} must name at least one "
+                "port index"
+            )
+        validated_ports = [
+            _index(port_index, f"seed group {group_index} port index")
+            for port_index in port_indices
+        ]
+        if not isinstance(contacts, (tuple, list)):
+            raise TypeError(
+                f"growth_dna seed group {group_index} contacts must be a sequence"
+            )
+        validated_contacts: list[tuple[int, int, int]] = []
+        for contact in contacts:
+            if not isinstance(contact, (tuple, list)) or len(contact) != 3:
+                raise TypeError(
+                    f"growth_dna seed group {group_index} contact must be "
+                    "(left_seed_index, right_seed_index, conductance_picosiemens)"
+                )
+            left, right, conductance = contact
+            if isinstance(conductance, bool) or not isinstance(conductance, int):
+                raise ValueError(
+                    f"growth_dna seed group {group_index} conductance must be "
+                    "an authored integer picosiemens value"
+                )
+            validated_contacts.append(
+                (
+                    _index(left, f"seed group {group_index} contact left index"),
+                    _index(right, f"seed group {group_index} contact right index"),
+                    conductance,
+                )
+            )
+        validated_groups.append((validated_ports, validated_contacts))
+    return anatomy_episode, validated_groups
+
+
+def create_native_resident_organism(
+    *,
+    organism_identity: str,
+    organism_tick: int = 0,
+    growth_dna: object,
+    max_envelope_bytes: int,
+    max_fabric_bytes: int,
+    max_logical_peak_bytes: int,
+) -> NativeResidentOrganism:
+    """Create the canonical native genesis carrying authored growth DNA.
+
+    ``growth_dna`` is required: growth never invents electrical contacts, so a
+    genesis without authored developmental seeds could never form a physical
+    mosaic. The seeded genesis is still structurally empty — zero cohorts,
+    traces, and mosaics — until its seeds are reached and expressed.
+    """
+
+    if not isinstance(organism_identity, str) or not organism_identity:
+        raise TypeError("resident organism genesis identity must be text")
+    tick = _nonnegative_integer(organism_tick, "genesis organism tick")
+    envelope, fabric, logical = _validate_budget(
+        max_envelope_bytes,
+        max_fabric_bytes,
+        max_logical_peak_bytes,
+    )
+    core = _native_core()
+    runtime_type = _concrete_class(core, "NativeResidentOrganismRuntime")
+    observation_type = _concrete_class(
+        core, "NativeResidentOrganismObservation"
+    )
+    prepare_type = _concrete_class(core, "NativeResidentOrganismPrepare")
+    episode_type = _concrete_class(core, "NativeJointSourceEpisode")
+    anatomy_episode, seed_groups = _validated_growth_dna(
+        growth_dna, episode_type
+    )
+    create = getattr(
+        core, "create_native_resident_organism_runtime_with_growth_dna", None
+    )
+    if not callable(create):
+        raise RuntimeError(
+            "guala_core does not expose resident growth-dna genesis"
+        )
+    runtime = create(
+        organism_identity,
+        tick,
+        anatomy_episode,
+        seed_groups,
+        envelope,
+        fabric,
+        logical,
+    )
+    if not isinstance(runtime, runtime_type):
+        raise TypeError("resident organism genesis returned a structural impostor")
+    if runtime.schema != RUNTIME_SCHEMA:
+        raise RuntimeError("resident organism genesis runtime schema changed")
+    organism = NativeResidentOrganism(
+        _FACTORY_AUTHORITY,
+        runtime,
+        runtime_type,
+        observation_type,
+        prepare_type,
+    )
+    observation = organism.readiness()
+    if (
+        observation.identity != organism_identity
+        or observation.organism_tick != tick
+        or observation.fabric_generation != 0
+        or observation.mounted_generation != 0
+        or observation.joint_field_count != 0
+        or observation.joint_neuron_count != 0
+        or observation.cognitive_ordinal != 0
+        or observation.cognitive_trace_count != 0
+        or observation.cognitive_mosaic_count != 0
+    ):
+        raise RuntimeError("resident organism genesis was not structurally empty")
+    organism.save()
+    return organism
+
+
+__all__ = (
+    "NativeResidentObservationView",
+    "NativeResidentOrganism",
+    "OBSERVATION_SCHEMA",
+    "PREPARE_SCHEMA",
+    "RUNTIME_SCHEMA",
+    "ResidentCausalIntervalEvidence",
+    "ResidentPrepareEvidence",
+    "create_native_resident_organism",
+    "exact_articulatory_interval_trajectory",
+    "exact_native_yaw_trajectory",
+    "restore_native_resident_organism",
+    "correct_native_resident_organism_growth_contamination",
+    "migrate_native_resident_organism_exact_energy",
+    "native_articulated_body_state_width",
+)

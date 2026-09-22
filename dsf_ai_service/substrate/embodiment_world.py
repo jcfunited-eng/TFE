@@ -1,0 +1,9266 @@
+"""Deterministic bounded authority for Guala's first multi-region world.
+
+This module owns opaque physical regions, portals, bodies, and objects. One
+body is the substrate's self-body. Every body has a separate physical command
+port, while one non-body environment port can advance only mounted material
+time. Those ports are control topology, never names, language meanings, or
+sensory identity. The authority does not choose actions or assign meaning to
+them. It executes canonical typed commands arriving as opaque bytes on exact
+ports, using exact integer geometry. Each accepted transition is atomic and
+produces authenticated before/after observations and an authenticated
+execution receipt.
+
+There is deliberately no random movement, script, object-to-verb lookup,
+language lookup, chi identity, DSF projection, or dependency on the retired
+semantic-environment mechanisms here.
+"""
+
+from __future__ import annotations
+
+import math
+
+import base64
+import hashlib
+import hmac
+import json
+import os
+import threading
+import time
+from collections.abc import Mapping, Sequence
+from contextlib import contextmanager
+from dataclasses import dataclass, field, replace
+from fractions import Fraction
+from math import isqrt
+
+from dsf_ai_service.substrate.body_surface_contact import (
+    BodySurfaceMaterial,
+    BodySurfaceState,
+    BodySurfaceTrajectory,
+    ExactVector3,
+    ReciprocalBodySurfaceContact,
+    RectangularBodySurfaceSite,
+    admit_body_surface_pair,
+    settle_admitted_body_surface_contact,
+)
+from dsf_ai_service.substrate.exact_lattice_rotation import (
+    rotate_lattice_offset,
+)
+
+
+PORT_ID = "guala.embodiment.w1"
+SECOND_BODY_PORT_ID = "guala.embodiment.w1.body-2"
+ENVIRONMENT_PORT_ID = "guala.embodiment.w1.environment"
+
+COMMAND_SCHEMA = "guala.embodiment.command.v6"
+OBSERVATION_SCHEMA = "guala.embodiment.observation.v6"
+EXECUTION_SCHEMA = "guala.embodiment.execution.v6"
+STATE_SCHEMA = "guala.embodiment.state.v7"
+ENVELOPE_SCHEMA = "guala.embodiment.state.hmac.v7"
+MIGRATION_SCHEMA = "guala.embodiment.optical_surface_migration.v6"
+
+V6_STATE_SCHEMA = "guala.embodiment.state.v6"
+V6_ENVELOPE_SCHEMA = "guala.embodiment.state.hmac.v6"
+
+V5_OBSERVATION_SCHEMA = "guala.embodiment.observation.v5"
+V5_EXECUTION_SCHEMA = "guala.embodiment.execution.v5"
+V5_STATE_SCHEMA = "guala.embodiment.state.v5"
+V5_ENVELOPE_SCHEMA = "guala.embodiment.state.hmac.v5"
+V5_MIGRATION_SCHEMA = "guala.embodiment.material_state_migration.v5"
+
+V4_COMMAND_SCHEMA = "guala.embodiment.command.v4"
+V4_OBSERVATION_SCHEMA = "guala.embodiment.observation.v4"
+V4_EXECUTION_SCHEMA = "guala.embodiment.execution.v4"
+V4_STATE_SCHEMA = "guala.embodiment.state.v4"
+V4_ENVELOPE_SCHEMA = "guala.embodiment.state.hmac.v4"
+V4_MIGRATION_SCHEMA = "guala.embodiment.topology_migration.v4"
+
+V3_COMMAND_SCHEMA = "guala.embodiment.command.v1"
+V3_OBSERVATION_SCHEMA = "guala.embodiment.observation.v3"
+V3_EXECUTION_SCHEMA = "guala.embodiment.execution.v3"
+V3_STATE_SCHEMA = "guala.embodiment.state.v3"
+V3_ENVELOPE_SCHEMA = "guala.embodiment.state.hmac.v3"
+V3_MIGRATION_SCHEMA = "guala.embodiment.topology_migration.v2"
+
+V2_OBSERVATION_SCHEMA = "guala.embodiment.observation.v2"
+V2_EXECUTION_SCHEMA = "guala.embodiment.execution.v2"
+V2_STATE_SCHEMA = "guala.embodiment.state.v2"
+V2_ENVELOPE_SCHEMA = "guala.embodiment.state.hmac.v2"
+V2_MIGRATION_SCHEMA = "guala.embodiment.migration.v1"
+
+LEGACY_OBSERVATION_SCHEMA = "guala.embodiment.observation.v1"
+LEGACY_STATE_SCHEMA = "guala.embodiment.state.v1"
+LEGACY_ENVELOPE_SCHEMA = "guala.embodiment.state.hmac.v1"
+
+OBSERVATION_DOMAIN = b"guala-embodiment-observation-v6\0"
+EXECUTION_DOMAIN = b"guala-embodiment-execution-v6\0"
+STATE_DOMAIN = b"guala-embodiment-state-v7\0"
+MIGRATION_DOMAIN = b"guala-embodiment-optical-surface-migration-v6\0"
+
+V6_STATE_DOMAIN = b"guala-embodiment-state-v6\0"
+
+V5_OBSERVATION_DOMAIN = b"guala-embodiment-observation-v5\0"
+V5_EXECUTION_DOMAIN = b"guala-embodiment-execution-v5\0"
+V5_STATE_DOMAIN = b"guala-embodiment-state-v5\0"
+V5_MIGRATION_DOMAIN = b"guala-embodiment-material-state-migration-v5\0"
+
+V4_OBSERVATION_DOMAIN = b"guala-embodiment-observation-v4\0"
+V4_EXECUTION_DOMAIN = b"guala-embodiment-execution-v4\0"
+V4_STATE_DOMAIN = b"guala-embodiment-state-v4\0"
+
+V3_OBSERVATION_DOMAIN = b"guala-embodiment-observation-v3\0"
+V3_EXECUTION_DOMAIN = b"guala-embodiment-execution-v3\0"
+V3_STATE_DOMAIN = b"guala-embodiment-state-v3\0"
+
+V2_OBSERVATION_DOMAIN = b"guala-embodiment-observation-v2\0"
+V2_EXECUTION_DOMAIN = b"guala-embodiment-execution-v2\0"
+V2_STATE_DOMAIN = b"guala-embodiment-state-v2\0"
+
+LEGACY_OBSERVATION_DOMAIN = b"guala-embodiment-observation-v1\0"
+LEGACY_STATE_DOMAIN = b"guala-embodiment-state-v1\0"
+
+DEFAULT_MAX_REGIONS = 4
+DEFAULT_MAX_PORTALS = 6
+DEFAULT_MAX_OBJECTS = 128
+DEFAULT_MAX_BODIES = 4
+# Retained action receipts: a bounded proof of the order of her last acts, each a before
+# and an after of every thing. Sixteen of a 52-thing home cost two megabytes re-encoded on
+# every action; two keep the proof of order (the pair) at an eighth of the cost (2026-09-16,
+# her live pace fell from 1.5 to 1.05 ticks a second under the colour eye and parts). A world recorded
+# with a longer tail restores keeping its latest receipts.
+DEFAULT_RECEIPT_CAPACITY = 2
+DEFAULT_MAX_COMMAND_BYTES = 4096
+# The world's exact byte capacity: the world, its surface catalog and sixteen
+# retained action receipts (each a before and an after of every thing). Raised
+# from two to eight mebibytes on 2026-09-16 when the furnished home (52 things,
+# 24 looks) put sixteen receipts near two; a persisted world recorded under the
+# smaller bound restores into this one by the authenticated migration.
+DEFAULT_MAX_ENCODED_STATE_BYTES = 8 * 1024 * 1024
+LEGACY_MAX_ENCODED_STATE_BYTES = 8 * 1024 * 1024
+MAX_IDENTIFIER_BYTES = 256
+MAX_REVISION = (1 << 63) - 1
+OPTICAL_BANDS = 6
+MAX_PHYSICAL_PPM = 1_000_000
+MAX_OPTICAL_SURFACE_COLUMNS = 128
+MAX_OPTICAL_SURFACE_ROWS = 160
+MAX_OPTICAL_SURFACE_PALETTE_ENTRIES = 256
+MAX_CONTACT_OPTICAL_SURFACES = 32
+MAX_BODY_SURFACE_SITES = 32
+MAX_BODY_SURFACE_CONTACTS_PER_ACTION = 4
+ODORANT_CHANNELS = 8
+TASTANT_CHANNELS = 5
+RELEASE_CLEARANCE_MM = 40
+MIN_MATERIAL_ACTION_DURATION_US = 1_000
+MAX_MATERIAL_ACTION_DURATION_US = 5_000_000
+MAX_MATERIAL_MASS = (1 << 63) - 1
+VOCAL_SAMPLE_RATE_HZ = 16_000
+MIN_VOCAL_SAMPLE_COUNT = 160
+# One physical vocal action spans exactly one admitted continuous microphone
+# transport window.  The five-second interval is the existing live sample
+# clock contract, not a semantic timeout; keeping it whole prevents one
+# physical experience from being fragmented into dozens of control actions.
+MAX_VOCAL_SAMPLE_COUNT = 5 * VOCAL_SAMPLE_RATE_HZ
+
+
+@dataclass(frozen=True, slots=True)
+class _CanonicalJsonFragment:
+    encoded: bytes
+
+
+def _canonical_skeleton(
+    value: object,
+) -> tuple[bytes, tuple[tuple[bytes, bytes], ...]]:
+    fragments: list[tuple[bytes, bytes]] = []
+
+    def stage(item: object) -> object:
+        kind = type(item)
+        if kind is int or kind is str or kind is float or item is None or kind is bool:
+            return item
+        if isinstance(item, _CanonicalJsonFragment):
+            index = len(fragments)
+            marker = (
+                "__guala_exact_canonical_fragment_"
+                + str(index)
+                + "_"
+                + hashlib.sha256(item.encoded).hexdigest()
+                + "__"
+            )
+            marker_bytes = json.dumps(
+                marker,
+                ensure_ascii=False,
+                separators=(",", ":"),
+            ).encode("utf-8")
+            fragments.append((marker_bytes, item.encoded))
+            return marker
+        if isinstance(item, Mapping):
+            if any(not isinstance(key, str) for key in item):
+                raise TypeError("canonical object keys must be text")
+            return {key: stage(item[key]) for key in item}
+        if isinstance(item, list):
+            return [stage(child) for child in item]
+        if isinstance(item, tuple):
+            return tuple(stage(child) for child in item)
+        return item
+
+    encoded = json.dumps(
+        stage(value),
+        allow_nan=False,
+        ensure_ascii=False,
+        separators=(",", ":"),
+        sort_keys=True,
+    ).encode("utf-8")
+    return encoded, tuple(fragments)
+
+
+def _canonical_plain(value: object) -> bytes:
+    """Canonical JSON of a subtree that carries no fragments (compact records reference
+    surfaces by content identity): the same bytes the full canonicalization would splice
+    in, without the walk."""
+    return json.dumps(
+        value,
+        allow_nan=False,
+        ensure_ascii=False,
+        separators=(",", ":"),
+        sort_keys=True,
+    ).encode("utf-8")
+
+
+def _canonical_fragment_spans(
+    encoded: bytes,
+    fragments: tuple[tuple[bytes, bytes], ...],
+) -> tuple[tuple[int, int, bytes], ...]:
+    if not fragments:
+        return ()
+    replacements = dict(fragments)
+    marker_prefix = b'"__guala_exact_canonical_fragment_'
+    marker_suffix = b'__"'
+    seen: set[bytes] = set()
+    spans: list[tuple[int, int, bytes]] = []
+    cursor = 0
+    while True:
+        marker_start = encoded.find(marker_prefix, cursor)
+        if marker_start < 0:
+            break
+        marker_end = encoded.find(
+            marker_suffix,
+            marker_start + len(marker_prefix),
+        )
+        if marker_end < 0:
+            raise RuntimeError(
+                "canonical fragment marker collided with physical state"
+            )
+        marker_end += len(marker_suffix)
+        marker = encoded[marker_start:marker_end]
+        fragment = replacements.get(marker)
+        if fragment is None or marker in seen:
+            raise RuntimeError(
+                "canonical fragment marker collided with physical state"
+            )
+        spans.append((marker_start, marker_end, fragment))
+        seen.add(marker)
+        cursor = marker_end
+    if len(seen) != len(fragments):
+        raise RuntimeError(
+            "canonical fragment marker collided with physical state"
+        )
+    return tuple(spans)
+
+
+def _canonical(value: object) -> bytes:
+    encoded, fragments = _canonical_skeleton(value)
+    spans = _canonical_fragment_spans(encoded, fragments)
+    if not spans:
+        return encoded
+    assembled: list[bytes] = []
+    cursor = 0
+    for marker_start, marker_end, fragment in spans:
+        assembled.append(encoded[cursor:marker_start])
+        assembled.append(fragment)
+        cursor = marker_end
+    assembled.append(encoded[cursor:])
+    return b"".join(assembled)
+
+
+def _canonical_byte_count(value: object) -> int:
+    encoded, fragments = _canonical_skeleton(value)
+    spans = _canonical_fragment_spans(encoded, fragments)
+    return len(encoded) + sum(
+        len(fragment) - (marker_end - marker_start)
+        for marker_start, marker_end, fragment in spans
+    )
+
+
+def _digest(value: object) -> str:
+    return hashlib.sha256(_canonical(value)).hexdigest()
+
+
+def _sha256(value: bytes) -> str:
+    return hashlib.sha256(value).hexdigest()
+
+
+def _authority_key(value: object) -> bytes:
+    if isinstance(value, str):
+        if len(value) > 4096:
+            raise ValueError("embodiment authority key must be bounded and nonempty")
+        result = value.encode("utf-8")
+    elif isinstance(value, (bytes, bytearray, memoryview)):
+        if len(value) > 4096:
+            raise ValueError("embodiment authority key must be bounded and nonempty")
+        result = bytes(value)
+    else:
+        raise ValueError("embodiment authority key must be bytes or text")
+    if not result or len(result) > 4096:
+        raise ValueError("embodiment authority key must be bounded and nonempty")
+    return result
+
+
+def _identifier(value: object, name: str) -> str:
+    if (
+        not isinstance(value, str)
+        or not value
+        or value.strip() != value
+        or len(value.encode("utf-8")) > MAX_IDENTIFIER_BYTES
+    ):
+        raise ValueError(f"{name} must be a bounded canonical identifier")
+    return value
+
+
+def _bounded_integer(
+    value: object,
+    name: str,
+    *,
+    minimum: int,
+    maximum: int,
+) -> int:
+    if (
+        isinstance(value, bool)
+        or not isinstance(value, int)
+        or value < minimum
+        or value > maximum
+    ):
+        raise ValueError(f"{name} is outside its exact integer boundary")
+    return value
+
+
+def _sha256_identity(value: object, name: str) -> str:
+    if (
+        not isinstance(value, str)
+        or len(value) != 64
+        or any(item not in "0123456789abcdef" for item in value)
+    ):
+        raise ValueError(f"{name} must be a lowercase SHA-256 identity")
+    return value
+
+
+def _sign(key: bytes, domain: bytes, payload: Mapping[str, object]) -> str:
+    return hmac.new(key, domain + _canonical(payload), hashlib.sha256).hexdigest()
+
+
+@dataclass(frozen=True, slots=True)
+class PositionMM:
+    x: int
+    y: int
+    z: int = 0
+
+    def verify(self) -> None:
+        _bounded_integer(self.x, "position x", minimum=-(1 << 31), maximum=(1 << 31) - 1)
+        _bounded_integer(self.y, "position y", minimum=-(1 << 31), maximum=(1 << 31) - 1)
+        _bounded_integer(self.z, "position z", minimum=-(1 << 31), maximum=(1 << 31) - 1)
+
+    def as_record(self) -> dict[str, int]:
+        self.verify()
+        return {"x_mm": self.x, "y_mm": self.y, "z_mm": self.z}
+
+
+@dataclass(frozen=True, slots=True)
+class PoseMM:
+    position: PositionMM
+    heading_millidegrees: int
+
+    def verify(self) -> None:
+        self.position.verify()
+        _bounded_integer(
+            self.heading_millidegrees,
+            "body heading",
+            minimum=0,
+            maximum=359_999,
+        )
+
+    def as_record(self) -> dict[str, object]:
+        self.verify()
+        return {
+            "heading_millidegrees": self.heading_millidegrees,
+            "position": self.position.as_record(),
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class RoomBoundsMM:
+    minimum: PositionMM
+    maximum: PositionMM
+
+    def verify(self) -> None:
+        self.minimum.verify()
+        self.maximum.verify()
+        if not (
+            self.minimum.x < self.maximum.x
+            and self.minimum.y < self.maximum.y
+            and self.minimum.z <= self.maximum.z
+        ):
+            raise ValueError("room bounds are not ordered")
+
+    def contains_floor_disc(self, position: PositionMM, radius_mm: int) -> bool:
+        return (
+            position.z == self.minimum.z
+            and self.minimum.x + radius_mm <= position.x <= self.maximum.x - radius_mm
+            and self.minimum.y + radius_mm <= position.y <= self.maximum.y - radius_mm
+        )
+
+    def as_record(self) -> dict[str, object]:
+        self.verify()
+        return {
+            "maximum": self.maximum.as_record(),
+            "minimum": self.minimum.as_record(),
+        }
+
+
+def _physical_bands(value: object, name: str) -> tuple[int, ...]:
+    if (
+        not isinstance(value, tuple)
+        or len(value) != OPTICAL_BANDS
+        or any(
+            isinstance(item, bool)
+            or not isinstance(item, int)
+            or not 0 <= item <= MAX_PHYSICAL_PPM
+            for item in value
+        )
+    ):
+        raise ValueError(f"{name} must contain six bounded integer bands")
+    return value
+
+
+def _mass_channels(
+    value: object,
+    *,
+    count: int,
+    name: str,
+) -> tuple[int, ...]:
+    if (
+        not isinstance(value, tuple)
+        or len(value) != count
+        or any(
+            isinstance(item, bool)
+            or not isinstance(item, int)
+            or not 0 <= item <= MAX_MATERIAL_MASS
+            for item in value
+        )
+    ):
+        raise ValueError(
+            f"{name} must contain {count} bounded integer masses"
+        )
+    return value
+
+
+def _positive_channels(
+    value: object,
+    *,
+    count: int,
+    name: str,
+) -> tuple[int, ...]:
+    result = _mass_channels(value, count=count, name=name)
+    if any(item == 0 for item in result):
+        raise ValueError(f"{name} must contain positive receptor capacities")
+    return result
+
+
+@dataclass(frozen=True, slots=True)
+class SolarCoupling:
+    """The real sun's schedule entering declared outdoor places.
+
+    Outdoor illumination follows the real clock continuously; indoor
+    places with a declared window share receive that fraction of the
+    outdoor light on top of their authored lamps. The light is written
+    into the world inside each committed action's own transaction, so
+    every snapshot stays exact and restorable; between actions the sky
+    holds its last written value, and her quantized optical law turns
+    the slow flow into sparse discrete receptor events."""
+
+    outdoor_region_ids: tuple[str, ...]
+    window_share_ppm_by_region_id: tuple[tuple[str, int], ...]
+    peak_ppm: int = 950_000
+    night_ppm: int = 20_000
+    sunrise_second_of_day: int = 6 * 3_600
+    sunset_second_of_day: int = 20 * 3_600
+    # The sun's path over her home, declared once: it rises in the east (+x), passes over
+    # the backyard's side (+y) at midday and sets in the west (-x); its height above the
+    # horizon follows the same arc as the sky's light, peaking at sixty degrees.
+    peak_elevation_millidegrees: int = 60_000
+
+    def sun_vector(self, second_of_day: int) -> tuple[float, float, float, int] | None:
+        """Where the sun is: a unit vector toward it (east, north, up) and the sky's light
+        in ppm; None at night."""
+
+        span = self.sunset_second_of_day - self.sunrise_second_of_day
+        if span <= 0:
+            raise ValueError("the declared day has no daylight span")
+        position = second_of_day - self.sunrise_second_of_day
+        if position < 0 or position > span:
+            return None
+        fraction = position / span
+        azimuth = math.pi * fraction                                  # 0 = east (+x), pi/2 = north (+y), pi = west (-x)
+        elevation = math.radians(self.peak_elevation_millidegrees / 1000.0) * 4 * fraction * (1.0 - fraction)
+        return (math.cos(azimuth) * math.cos(elevation), math.sin(azimuth) * math.cos(elevation), math.sin(elevation), self.sky_ppm(second_of_day))
+
+    def sky_ppm(self, second_of_day: int) -> int:
+        span = self.sunset_second_of_day - self.sunrise_second_of_day
+        if span <= 0:
+            raise ValueError("the declared day has no daylight span")
+        position = second_of_day - self.sunrise_second_of_day
+        if position < 0 or position > span:
+            return self.night_ppm
+        # An exact integer arc: 4x(span-x)/span^2 peaks at midday.
+        arc_numerator = 4 * position * (span - position)
+        return self.night_ppm + (
+            (self.peak_ppm - self.night_ppm) * arc_numerator
+        ) // (span * span)
+
+
+@dataclass(frozen=True, slots=True)
+class ScreenBroadcast:
+    """A working screen: declared frames of emitted light cycling on the
+    real clock. Content at her acuity IS changing light — no image is
+    mimed into her senses; the screen genuinely emits, the retina law
+    genuinely sees it, and a dark room makes it more vivid by physics."""
+
+    object_id: str
+    frames: tuple[tuple[int, ...], ...]
+    seconds_per_frame: int = 60
+
+    def emission_at(self, second_of_day: int) -> tuple[int, ...]:
+        if not self.frames:
+            raise ValueError("a screen broadcast requires declared frames")
+        if self.seconds_per_frame <= 0:
+            raise ValueError("a screen broadcast requires a real frame clock")
+        index = (second_of_day // self.seconds_per_frame) % len(self.frames)
+        return self.frames[index]
+
+
+@dataclass(frozen=True, slots=True)
+class AirVolumeState:
+    volume_cubic_mm: int
+    odorant_mass_nanograms: tuple[int, ...]
+
+    def verify(self) -> None:
+        _bounded_integer(
+            self.volume_cubic_mm,
+            "air volume",
+            minimum=1,
+            maximum=MAX_MATERIAL_MASS,
+        )
+        _mass_channels(
+            self.odorant_mass_nanograms,
+            count=ODORANT_CHANNELS,
+            name="air odorant mass",
+        )
+
+    def as_record(self) -> dict[str, object]:
+        self.verify()
+        return {
+            "odorant_mass_nanograms": list(
+                self.odorant_mass_nanograms
+            ),
+            "volume_cubic_mm": self.volume_cubic_mm,
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class ObjectMaterialState:
+    odorant_reservoir_nanograms: tuple[int, ...]
+    odorant_release_nanograms_per_second: tuple[int, ...]
+    tastant_mass_micrograms: tuple[int, ...]
+    surface_temperature_millikelvin: int
+    compliance_ppm: int
+    roughness_micrometers: int
+    moisture_ppm: int
+
+    def verify(self) -> None:
+        _mass_channels(
+            self.odorant_reservoir_nanograms,
+            count=ODORANT_CHANNELS,
+            name="object odorant reservoir",
+        )
+        _mass_channels(
+            self.odorant_release_nanograms_per_second,
+            count=ODORANT_CHANNELS,
+            name="object odorant release",
+        )
+        _mass_channels(
+            self.tastant_mass_micrograms,
+            count=TASTANT_CHANNELS,
+            name="object tastant mass",
+        )
+        _bounded_integer(
+            self.surface_temperature_millikelvin,
+            "object surface temperature",
+            minimum=1,
+            maximum=1_000_000,
+        )
+        _bounded_integer(
+            self.compliance_ppm,
+            "object compliance",
+            minimum=0,
+            maximum=MAX_PHYSICAL_PPM,
+        )
+        _bounded_integer(
+            self.roughness_micrometers,
+            "object roughness",
+            minimum=0,
+            maximum=1_000_000,
+        )
+        _bounded_integer(
+            self.moisture_ppm,
+            "object moisture",
+            minimum=0,
+            maximum=MAX_PHYSICAL_PPM,
+        )
+
+    def as_record(self) -> dict[str, object]:
+        self.verify()
+        return {
+            "compliance_ppm": self.compliance_ppm,
+            "moisture_ppm": self.moisture_ppm,
+            "odorant_release_nanograms_per_second": list(
+                self.odorant_release_nanograms_per_second
+            ),
+            "odorant_reservoir_nanograms": list(
+                self.odorant_reservoir_nanograms
+            ),
+            "roughness_micrometers": self.roughness_micrometers,
+            "surface_temperature_millikelvin": (
+                self.surface_temperature_millikelvin
+            ),
+            "tastant_mass_micrograms": list(
+                self.tastant_mass_micrograms
+            ),
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class _VerifiedOpticalSurfaceIntegrity:
+    columns: int
+    rows: int
+    palette_reflectance_ppm: tuple[tuple[int, ...], ...]
+    cell_palette_indices: tuple[int, ...]
+    canonical_fragment: _CanonicalJsonFragment
+
+    def matches(self, surface: "ObjectOpticalSurface") -> bool:
+        return (
+            surface.columns == self.columns
+            and surface.rows == self.rows
+            and surface.palette_reflectance_ppm
+            is self.palette_reflectance_ppm
+            and surface.cell_palette_indices is self.cell_palette_indices
+        )
+
+
+@dataclass(frozen=True, slots=True)
+class ObjectOpticalSurface:
+    """One exact bounded palette-indexed material reflectance surface."""
+
+    columns: int
+    rows: int
+    palette_reflectance_ppm: tuple[tuple[int, ...], ...]
+    cell_palette_indices: tuple[int, ...]
+    _verified_integrity: _VerifiedOpticalSurfaceIntegrity | None = field(
+        default=None,
+        init=False,
+        repr=False,
+        compare=False,
+    )
+
+    def __post_init__(self) -> None:
+        self._verify_unsealed()
+        object.__setattr__(
+            self,
+            "_verified_integrity",
+            _VerifiedOpticalSurfaceIntegrity(
+                columns=self.columns,
+                rows=self.rows,
+                palette_reflectance_ppm=self.palette_reflectance_ppm,
+                cell_palette_indices=self.cell_palette_indices,
+                canonical_fragment=_CanonicalJsonFragment(
+                    _canonical(
+                        {
+                            "cell_palette_indices": (
+                                self.cell_palette_indices
+                            ),
+                            "columns": self.columns,
+                            "palette_reflectance_ppm": (
+                                self.palette_reflectance_ppm
+                            ),
+                            "rows": self.rows,
+                        }
+                    )
+                ),
+            ),
+        )
+
+    def _verify_unsealed(self) -> None:
+        _bounded_integer(
+            self.columns,
+            "optical surface columns",
+            minimum=1,
+            maximum=MAX_OPTICAL_SURFACE_COLUMNS,
+        )
+        _bounded_integer(
+            self.rows,
+            "optical surface rows",
+            minimum=1,
+            maximum=MAX_OPTICAL_SURFACE_ROWS,
+        )
+        if (
+            not isinstance(self.palette_reflectance_ppm, tuple)
+            or not 2 <= len(self.palette_reflectance_ppm) <= (
+                MAX_OPTICAL_SURFACE_PALETTE_ENTRIES
+            )
+            or any(
+                not isinstance(reflectance, tuple)
+                for reflectance in self.palette_reflectance_ppm
+            )
+        ):
+            raise ValueError(
+                "optical surface palette must contain two to 256 "
+                "six-band reflectances"
+            )
+        for reflectance in self.palette_reflectance_ppm:
+            _physical_bands(
+                reflectance,
+                "optical surface palette reflectance",
+            )
+        if len(set(self.palette_reflectance_ppm)) != len(
+            self.palette_reflectance_ppm
+        ):
+            raise ValueError(
+                "optical surface palette reflectances must be unique"
+            )
+        if (
+            not isinstance(self.cell_palette_indices, tuple)
+            or len(self.cell_palette_indices) != self.columns * self.rows
+            or any(
+                isinstance(value, bool)
+                or not isinstance(value, int)
+                or not 0 <= value < len(self.palette_reflectance_ppm)
+                for value in self.cell_palette_indices
+            )
+        ):
+            raise ValueError(
+                "optical surface cells must be exact bounded palette indices"
+            )
+        if set(self.cell_palette_indices) != set(
+            range(len(self.palette_reflectance_ppm))
+        ):
+            raise ValueError(
+                "optical surface palette contains an unused reflectance"
+            )
+
+    def verify(self) -> None:
+        verified = self._verified_integrity
+        if verified is None or not verified.matches(self):
+            raise ValueError(
+                "optical surface changed after verified construction"
+            )
+
+    def reflectance_at_ppm(
+        self,
+        *,
+        row: int,
+        column: int,
+    ) -> tuple[int, ...]:
+        self.verify()
+        return self.reflectance_at_verified_ppm(
+            row=row,
+            column=column,
+        )
+
+    def reflectance_at_verified_ppm(
+        self,
+        *,
+        row: int,
+        column: int,
+    ) -> tuple[int, ...]:
+        """Read one cell after the enclosing trust boundary verified it."""
+
+        _bounded_integer(
+            row,
+            "optical surface row",
+            minimum=0,
+            maximum=self.rows - 1,
+        )
+        _bounded_integer(
+            column,
+            "optical surface column",
+            minimum=0,
+            maximum=self.columns - 1,
+        )
+        palette_index = self.cell_palette_indices[
+            row * self.columns + column
+        ]
+        return self.palette_reflectance_ppm[palette_index]
+
+    def as_record(self) -> dict[str, object]:
+        self.verify()
+        return {
+            "cell_palette_indices": list(self.cell_palette_indices),
+            "columns": self.columns,
+            "palette_reflectance_ppm": [
+                list(reflectance)
+                for reflectance in self.palette_reflectance_ppm
+            ],
+            "rows": self.rows,
+        }
+
+    def _canonical_fragment(self) -> _CanonicalJsonFragment:
+        self.verify()
+        verified = self._verified_integrity
+        if verified is None:
+            raise RuntimeError(
+                "optical surface lost verified construction"
+            )
+        return verified.canonical_fragment
+
+
+# Authored body matter, the same authority class as the saturation roster
+# below: the chemical energy her digestion can extract from one microgram
+# of transferred tastant mass. 17 kJ/g is carbohydrate oxidation — real
+# food chemistry, not a tuned constant — expressed in her body's own
+# zeptojoule energy unit (17 kJ/g = 17 mJ/ug = 1.7e19 zJ/ug). Absorption
+# is bounded downstream by the body's own conversion law (never past
+# spent-plus-headroom; the remainder is honest waste), so this density
+# states what the food carries, not what the body must take.
+NUTRITION_EXTRACTION_DENSITY_ZEPTOJOULES_PER_MICROGRAM = (
+    17_000_000_000_000_000_000
+)
+
+
+@dataclass(frozen=True, slots=True)
+class BodyReceptorGeometry:
+    retinal_offset_mm: PositionMM
+    left_ear_offset_mm: PositionMM
+    right_ear_offset_mm: PositionMM
+    touch_offset_mm: PositionMM
+    touch_radius_mm: int
+    oral_offset_mm: PositionMM
+    oral_radius_mm: int
+    olfactory_offset_mm: PositionMM
+    odorant_saturation_nanograms_per_cubic_meter: tuple[int, ...]
+    tastant_saturation_micrograms: tuple[int, ...]
+    touch_mass_span_grams: int
+    touch_temperature_min_millikelvin: int
+    touch_temperature_max_millikelvin: int
+    touch_roughness_span_micrometers: int
+
+    def verify(self) -> None:
+        self.retinal_offset_mm.verify()
+        self.left_ear_offset_mm.verify()
+        self.right_ear_offset_mm.verify()
+        self.touch_offset_mm.verify()
+        self.oral_offset_mm.verify()
+        self.olfactory_offset_mm.verify()
+        for value, name in (
+            (self.touch_radius_mm, "touch receptor radius"),
+            (self.oral_radius_mm, "oral receptor radius"),
+            (self.touch_mass_span_grams, "touch mass span"),
+            (
+                self.touch_roughness_span_micrometers,
+                "touch roughness span",
+            ),
+        ):
+            _bounded_integer(
+                value,
+                name,
+                minimum=1,
+                maximum=1_000_000_000,
+            )
+        _bounded_integer(
+            self.touch_temperature_min_millikelvin,
+            "touch temperature minimum",
+            minimum=1,
+            maximum=1_000_000,
+        )
+        _bounded_integer(
+            self.touch_temperature_max_millikelvin,
+            "touch temperature maximum",
+            minimum=1,
+            maximum=1_000_000,
+        )
+        if (
+            self.touch_temperature_min_millikelvin
+            >= self.touch_temperature_max_millikelvin
+        ):
+            raise ValueError("touch temperature span is not ordered")
+        _positive_channels(
+            self.odorant_saturation_nanograms_per_cubic_meter,
+            count=ODORANT_CHANNELS,
+            name="olfactory receptor saturation",
+        )
+        _positive_channels(
+            self.tastant_saturation_micrograms,
+            count=TASTANT_CHANNELS,
+            name="gustatory receptor saturation",
+        )
+
+    def as_record(self) -> dict[str, object]:
+        self.verify()
+        return {
+            "left_ear_offset_mm": self.left_ear_offset_mm.as_record(),
+            "odorant_saturation_nanograms_per_cubic_meter": list(
+                self.odorant_saturation_nanograms_per_cubic_meter
+            ),
+            "olfactory_offset_mm": self.olfactory_offset_mm.as_record(),
+            "oral_offset_mm": self.oral_offset_mm.as_record(),
+            "oral_radius_mm": self.oral_radius_mm,
+            "retinal_offset_mm": self.retinal_offset_mm.as_record(),
+            "right_ear_offset_mm": self.right_ear_offset_mm.as_record(),
+            "tastant_saturation_micrograms": list(
+                self.tastant_saturation_micrograms
+            ),
+            "touch_mass_span_grams": self.touch_mass_span_grams,
+            "touch_offset_mm": self.touch_offset_mm.as_record(),
+            "touch_radius_mm": self.touch_radius_mm,
+            "touch_roughness_span_micrometers": (
+                self.touch_roughness_span_micrometers
+            ),
+            "touch_temperature_max_millikelvin": (
+                self.touch_temperature_max_millikelvin
+            ),
+            "touch_temperature_min_millikelvin": (
+                self.touch_temperature_min_millikelvin
+            ),
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class MountedBodySurfaceSite:
+    """One immutable local body surface and its cutaneous receptor address.
+
+    The site name is morphology outside cognition.  Contact commands address
+    this physical owner directly; no gesture name, social label, or reward
+    value participates in settlement.
+    """
+
+    body_id: str
+    site_id: str
+    local_centre_micrometres: ExactVector3
+    outward_normal: ExactVector3
+    tangent_u: ExactVector3
+    tangent_v: ExactVector3
+    half_extent_u_micrometres: Fraction
+    half_extent_v_micrometres: Fraction
+    material: BodySurfaceMaterial
+    reference_temperature_millikelvin: int
+    cutaneous_topology_index: int | None
+
+    def verify(self) -> None:
+        _identifier(self.body_id, "body surface body")
+        _identifier(self.site_id, "body surface site")
+        for name, vector in (
+            ("local centre", self.local_centre_micrometres),
+            ("outward normal", self.outward_normal),
+            ("tangent u", self.tangent_u),
+            ("tangent v", self.tangent_v),
+        ):
+            if not isinstance(vector, ExactVector3):
+                raise TypeError(f"body surface {name} is not an exact vector")
+            for component in (vector.x, vector.y, vector.z):
+                if not isinstance(component, Fraction):
+                    raise TypeError(f"body surface {name} is not exact")
+                if name == "local centre" and component.denominator != 1:
+                    raise ValueError(
+                        "body surface centre must occupy the micrometre lattice"
+                    )
+        if (
+            self.outward_normal.dot(self.outward_normal) != 1
+            or self.tangent_u.dot(self.tangent_u) != 1
+            or self.tangent_v.dot(self.tangent_v) != 1
+            or self.outward_normal.dot(self.tangent_u) != 0
+            or self.outward_normal.dot(self.tangent_v) != 0
+            or self.tangent_u.dot(self.tangent_v) != 0
+        ):
+            raise ValueError("body surface basis is not exactly orthonormal")
+        for name, value in (
+            ("half extent u", self.half_extent_u_micrometres),
+            ("half extent v", self.half_extent_v_micrometres),
+        ):
+            if not isinstance(value, Fraction) or value <= 0:
+                raise ValueError(f"body surface {name} must be positive and exact")
+        if not isinstance(self.material, BodySurfaceMaterial):
+            raise TypeError("body surface material is not typed")
+        for name, value, positive in (
+            (
+                "normal stiffness",
+                self.material.normal_stiffness_millinewtons_per_micrometre_per_square_micrometre,
+                True,
+            ),
+            (
+                "tangential damping",
+                self.material.tangential_damping_millinewton_microseconds_per_micrometre_per_square_micrometre,
+                False,
+            ),
+            (
+                "thermal conductance",
+                self.material.thermal_conductance_nanowatts_per_square_micrometre_millikelvin,
+                False,
+            ),
+        ):
+            if (
+                not isinstance(value, Fraction)
+                or (value <= 0 if positive else value < 0)
+            ):
+                raise ValueError(f"body surface {name} is invalid")
+        _bounded_integer(
+            self.reference_temperature_millikelvin,
+            "body surface reference temperature",
+            minimum=1,
+            maximum=1_000_000,
+        )
+        if self.cutaneous_topology_index is not None:
+            _bounded_integer(
+                self.cutaneous_topology_index,
+                "body surface cutaneous topology index",
+                minimum=0,
+                maximum=(1 << 31) - 1,
+            )
+
+    def contact_site(
+        self,
+        *,
+        outward_normal: ExactVector3,
+        tangent_u: ExactVector3,
+        tangent_v: ExactVector3,
+    ) -> RectangularBodySurfaceSite:
+        self.verify()
+        return RectangularBodySurfaceSite(
+            body_id=self.body_id,
+            site_id=self.site_id,
+            outward_normal=outward_normal,
+            tangent_u=tangent_u,
+            tangent_v=tangent_v,
+            half_extent_u_micrometres=self.half_extent_u_micrometres,
+            half_extent_v_micrometres=self.half_extent_v_micrometres,
+            material=self.material,
+        )
+
+    def as_record(self) -> dict[str, object]:
+        self.verify()
+
+        def rational(value: Fraction) -> list[int]:
+            return [value.numerator, value.denominator]
+
+        def vector(value: ExactVector3) -> dict[str, list[int]]:
+            return {
+                "x": rational(value.x),
+                "y": rational(value.y),
+                "z": rational(value.z),
+            }
+
+        return {
+            "body_id": self.body_id,
+            "cutaneous_topology_index": self.cutaneous_topology_index,
+            "half_extent_u_micrometres": rational(
+                self.half_extent_u_micrometres
+            ),
+            "half_extent_v_micrometres": rational(
+                self.half_extent_v_micrometres
+            ),
+            "local_centre_micrometres": vector(
+                self.local_centre_micrometres
+            ),
+            "material": {
+                "normal_stiffness": rational(
+                    self.material.normal_stiffness_millinewtons_per_micrometre_per_square_micrometre
+                ),
+                "tangential_damping": rational(
+                    self.material.tangential_damping_millinewton_microseconds_per_micrometre_per_square_micrometre
+                ),
+                "thermal_conductance": rational(
+                    self.material.thermal_conductance_nanowatts_per_square_micrometre_millikelvin
+                ),
+            },
+            "outward_normal": vector(self.outward_normal),
+            "reference_temperature_millikelvin": (
+                self.reference_temperature_millikelvin
+            ),
+            "site_id": self.site_id,
+            "tangent_u": vector(self.tangent_u),
+            "tangent_v": vector(self.tangent_v),
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class BodySurfaceActuation:
+    """One explicit reached surface pair, expressed only in physical units."""
+
+    actor_site_id: str
+    recipient_body_id: str
+    recipient_site_id: str
+    compression_micrometres: int
+    tangential_u_micrometres: int
+    tangential_v_micrometres: int
+
+    def verify(self) -> None:
+        _identifier(self.actor_site_id, "actor body surface site")
+        _identifier(self.recipient_body_id, "recipient body")
+        _identifier(self.recipient_site_id, "recipient body surface site")
+        _bounded_integer(
+            self.compression_micrometres,
+            "body surface compression",
+            minimum=1,
+            maximum=100_000,
+        )
+        for name, value in (
+            ("tangential u displacement", self.tangential_u_micrometres),
+            ("tangential v displacement", self.tangential_v_micrometres),
+        ):
+            _bounded_integer(
+                value,
+                f"body surface {name}",
+                minimum=-1_000_000,
+                maximum=1_000_000,
+            )
+
+    def as_record(self) -> dict[str, object]:
+        self.verify()
+        return {
+            "actor_site_id": self.actor_site_id,
+            "compression_micrometres": self.compression_micrometres,
+            "recipient_body_id": self.recipient_body_id,
+            "recipient_site_id": self.recipient_site_id,
+            "tangential_u_micrometres": self.tangential_u_micrometres,
+            "tangential_v_micrometres": self.tangential_v_micrometres,
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class PreparedBodySurfaceContact:
+    """One admitted reciprocal contact retained only with its prepared action."""
+
+    physical_phases: tuple[ReciprocalBodySurfaceContact, ...]
+    recipient_cutaneous_topology_index: int | None   # None: the recipient is not her (no receptor sheet)
+    recipient_site_area_square_micrometres: Fraction
+
+    @property
+    def physical(self) -> ReciprocalBodySurfaceContact:
+        """The peak-contact phase; retained for sparse receptor addressing."""
+
+        if len(self.physical_phases) != 3:
+            raise RuntimeError("body-surface contact phase anatomy changed")
+        return self.physical_phases[0]
+
+
+@dataclass(frozen=True, slots=True)
+class BodyContactState:
+    kind: str
+    object_id: str
+    contact_patch_square_mm: int
+    duration_microseconds: int
+    # THE BITE'S MOUTHFUL (R1 eating): the tastant mass this exact oral
+    # contact removed from the object, per channel — matter in the mouth
+    # being dissolved, which is what the tongue genuinely tastes even when
+    # the bite took the object's last portion. Empty for touch contacts
+    # and pre-bite records; old persisted worlds decode unchanged.
+    dissolved_tastant_micrograms: tuple[int, ...] = ()
+
+    def verify(self) -> None:
+        if self.kind not in {"touch", "oral"}:
+            raise ValueError("body contact kind changed")
+        _identifier(self.object_id, "body contact object")
+        _bounded_integer(
+            self.contact_patch_square_mm,
+            "body contact patch",
+            minimum=1,
+            maximum=1_000_000_000,
+        )
+        _bounded_integer(
+            self.duration_microseconds,
+            "body contact duration",
+            minimum=MIN_MATERIAL_ACTION_DURATION_US,
+            maximum=MAX_MATERIAL_ACTION_DURATION_US,
+        )
+        if self.dissolved_tastant_micrograms:
+            if self.kind != "oral":
+                raise ValueError(
+                    "only an oral contact holds dissolved tastant"
+                )
+            for mass in self.dissolved_tastant_micrograms:
+                _bounded_integer(
+                    mass,
+                    "dissolved tastant mass",
+                    minimum=0,
+                    maximum=1_000_000_000_000,
+                )
+
+    def as_record(self) -> dict[str, object]:
+        self.verify()
+        record: dict[str, object] = {
+            "contact_patch_square_mm": self.contact_patch_square_mm,
+            "duration_microseconds": self.duration_microseconds,
+            "kind": self.kind,
+            "object_id": self.object_id,
+        }
+        if self.dissolved_tastant_micrograms:
+            record["dissolved_tastant_micrograms"] = list(
+                self.dissolved_tastant_micrograms
+            )
+        return record
+
+
+WINDOW_WALLS = ("x-min", "x-max", "y-min", "y-max")
+
+
+@dataclass(frozen=True, slots=True)
+class WindowMM:
+    """A window: an opening in one of a region's four walls, from one point along the
+    wall to another, from its sill to its top. The sun's direct light enters a region
+    through its windows only; the sky's share enters as the region's ambient (the
+    solar coupling). Declared content, like a thing's material."""
+
+    wall: str                 # which wall: x-min, x-max, y-min or y-max
+    from_mm: int              # along the wall (y for an x wall, x for a y wall)
+    to_mm: int
+    sill_mm: int              # height of the sill above the floor
+    top_mm: int
+
+    def verify(self) -> None:
+        if self.wall not in WINDOW_WALLS:
+            raise ValueError("window wall must be one of the region's four walls")
+        for value, label in ((self.from_mm, "window from"), (self.to_mm, "window to"), (self.sill_mm, "window sill"), (self.top_mm, "window top")):
+            _bounded_integer(value, label, minimum=0, maximum=(1 << 31) - 1)
+        if not (self.from_mm < self.to_mm and self.sill_mm < self.top_mm):
+            raise ValueError("a window must have width and height")
+
+    def as_record(self) -> dict[str, object]:
+        self.verify()
+        return {"wall": self.wall, "from_mm": self.from_mm, "to_mm": self.to_mm, "sill_mm": self.sill_mm, "top_mm": self.top_mm}
+
+
+def _window_from(value: object) -> WindowMM:
+    expected = {"wall", "from_mm", "to_mm", "sill_mm", "top_mm"}
+    if not isinstance(value, Mapping) or set(value) != expected:
+        raise ValueError("window fields changed")
+    window = WindowMM(wall=value["wall"], from_mm=value["from_mm"], to_mm=value["to_mm"], sill_mm=value["sill_mm"], top_mm=value["top_mm"])
+    window.verify()
+    return window
+
+
+LOOK_FACES = frozenset(WINDOW_WALLS) | {"floor", "ceiling"}
+LOOK_CATALOG_CAPACITY = 192   # distinct look patterns the world's surface catalog may hold beyond one per thing
+
+
+@dataclass(frozen=True, slots=True)
+class SurfaceLookMM:
+    """A look on one face of a region: a bounded rectangle of a wall, the floor or
+    the ceiling that carries a palette-indexed reflectance pattern (tiles, planks,
+    panels, stains) instead of the region's one paint. On a wall, from/to run along
+    the wall and low/high are heights; on the floor or ceiling, from/to run along x
+    and low/high along y. Declared content; anatomy, like paint."""
+
+    face: str
+    from_mm: int
+    to_mm: int
+    low_mm: int
+    high_mm: int
+    surface: ObjectOpticalSurface
+
+    def verify(self) -> None:
+        if self.face not in LOOK_FACES:
+            raise ValueError("look face must be a wall, the floor or the ceiling")
+        for value, label in ((self.from_mm, "look from"), (self.to_mm, "look to"), (self.low_mm, "look low"), (self.high_mm, "look high")):
+            _bounded_integer(value, label, minimum=0, maximum=(1 << 31) - 1)
+        if not (self.from_mm < self.to_mm and self.low_mm < self.high_mm):
+            raise ValueError("a look must have width and height")
+        if not isinstance(self.surface, ObjectOpticalSurface):
+            raise ValueError("a look carries an optical surface")
+
+    def as_record(self) -> dict[str, object]:
+        self.verify()
+        return {"face": self.face, "from_mm": self.from_mm, "to_mm": self.to_mm, "low_mm": self.low_mm, "high_mm": self.high_mm,
+                "surface": self.surface.as_record()}
+
+    def cell_at(self, along_mm: float, up_mm: float) -> tuple[int, ...] | None:
+        """The pattern's reflectance where a point on the face falls, or None outside."""
+        if not (self.from_mm <= along_mm <= self.to_mm and self.low_mm <= up_mm <= self.high_mm):
+            return None
+        column = min(self.surface.columns - 1, int((along_mm - self.from_mm) * self.surface.columns / (self.to_mm - self.from_mm)))
+        row = min(self.surface.rows - 1, int((self.high_mm - up_mm) * self.surface.rows / (self.high_mm - self.low_mm)))
+        return self.surface.reflectance_at_verified_ppm(row=row, column=column)
+
+
+def _look_from(value: object) -> SurfaceLookMM:
+    expected = {"face", "from_mm", "to_mm", "low_mm", "high_mm", "surface"}
+    if not isinstance(value, Mapping) or set(value) != expected:
+        raise ValueError("look fields changed")
+    look = SurfaceLookMM(face=value["face"], from_mm=value["from_mm"], to_mm=value["to_mm"], low_mm=value["low_mm"], high_mm=value["high_mm"],
+                         surface=_optical_surface_from(value["surface"]))
+    look.verify()
+    return look
+
+
+@dataclass(frozen=True, slots=True)
+class PhysicalRegion:
+    region_id: str
+    bounds: RoomBoundsMM
+    ceiling_height_mm: int | None
+    reflectance_ppm: tuple[int, ...]
+    illumination_ppm: tuple[int, ...]
+    air: AirVolumeState | None = None
+    windows: tuple[WindowMM, ...] = ()   # declared openings the sun's direct light enters through; old records decode without
+    looks: tuple[SurfaceLookMM, ...] = ()   # declared patterns on walls, floor or ceiling; old records decode without
+
+    def verify(self) -> None:
+        _identifier(self.region_id, "physical region id")
+        self.bounds.verify()
+        for window in self.windows:
+            window.verify()
+            along = (self.bounds.minimum.y, self.bounds.maximum.y) if window.wall.startswith("x") else (self.bounds.minimum.x, self.bounds.maximum.x)
+            if not (along[0] <= window.from_mm and window.to_mm <= along[1]):
+                raise ValueError("window lies outside its wall")
+        for look in self.looks:
+            look.verify()
+            if look.face in ("floor", "ceiling"):
+                along, up = (self.bounds.minimum.x, self.bounds.maximum.x), (self.bounds.minimum.y, self.bounds.maximum.y)
+            else:
+                along = (self.bounds.minimum.y, self.bounds.maximum.y) if look.face.startswith("x") else (self.bounds.minimum.x, self.bounds.maximum.x)
+                up = (self.bounds.minimum.z, self.bounds.maximum.z)
+            if not (along[0] <= look.from_mm and look.to_mm <= along[1] and up[0] <= look.low_mm and look.high_mm <= up[1]):
+                raise ValueError("look lies outside its face")
+        if self.ceiling_height_mm is not None:
+            _bounded_integer(
+                self.ceiling_height_mm,
+                "physical ceiling height",
+                minimum=1,
+                maximum=(1 << 31) - 1,
+            )
+            if self.ceiling_height_mm > self.bounds.maximum.z:
+                raise ValueError("physical ceiling exceeds region volume")
+        _physical_bands(self.reflectance_ppm, "region reflectance")
+        _physical_bands(self.illumination_ppm, "region illumination")
+        if self.air is not None:
+            self.air.verify()
+            expected_volume = (
+                (self.bounds.maximum.x - self.bounds.minimum.x)
+                * (self.bounds.maximum.y - self.bounds.minimum.y)
+                * (self.bounds.maximum.z - self.bounds.minimum.z)
+            )
+            if self.air.volume_cubic_mm != expected_volume:
+                raise ValueError(
+                    "signed air volume differs from region geometry"
+                )
+
+    def as_record(self) -> dict[str, object]:
+        self.verify()
+        return {
+            "bounds": self.bounds.as_record(),
+            "ceiling_height_mm": self.ceiling_height_mm,
+            "illumination_ppm": list(self.illumination_ppm),
+            "reflectance_ppm": list(self.reflectance_ppm),
+            "region_id": self.region_id,
+            "air": self.air.as_record() if self.air is not None else None,
+            **({"windows": [window.as_record() for window in self.windows]} if self.windows else {}),
+            **({"looks": [look.as_record() for look in self.looks]} if self.looks else {}),
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class PhysicalPortal:
+    portal_id: str
+    region_ids: tuple[str, str]
+    axis: str
+    plane_mm: int
+    aperture_min_mm: int
+    aperture_max_mm: int
+    height_mm: int
+    air_flow_cubic_mm_per_second: int | None = None
+
+    def verify(self) -> None:
+        _identifier(self.portal_id, "physical portal id")
+        if (
+            not isinstance(self.region_ids, tuple)
+            or len(self.region_ids) != 2
+            or self.region_ids != tuple(sorted(self.region_ids))
+            or len(set(self.region_ids)) != 2
+        ):
+            raise ValueError("portal region pair is not canonical")
+        for value in self.region_ids:
+            _identifier(value, "portal region id")
+        if self.axis not in {"x", "y"}:
+            raise ValueError("portal axis must be x or y")
+        for value, name in (
+            (self.plane_mm, "portal plane"),
+            (self.aperture_min_mm, "portal aperture minimum"),
+            (self.aperture_max_mm, "portal aperture maximum"),
+            (self.height_mm, "portal height"),
+        ):
+            _bounded_integer(
+                value, name, minimum=-(1 << 31), maximum=(1 << 31) - 1
+            )
+        if (
+            self.aperture_min_mm >= self.aperture_max_mm
+            or self.height_mm <= 0
+        ):
+            raise ValueError("portal aperture is not physically ordered")
+        if self.air_flow_cubic_mm_per_second is not None:
+            _bounded_integer(
+                self.air_flow_cubic_mm_per_second,
+                "portal air flow",
+                minimum=1,
+                maximum=MAX_MATERIAL_MASS,
+            )
+
+    def as_record(self) -> dict[str, object]:
+        self.verify()
+        return {
+            "aperture_max_mm": self.aperture_max_mm,
+            "aperture_min_mm": self.aperture_min_mm,
+            "axis": self.axis,
+            "height_mm": self.height_mm,
+            "plane_mm": self.plane_mm,
+            "portal_id": self.portal_id,
+            "region_ids": list(self.region_ids),
+            "air_flow_cubic_mm_per_second": (
+                self.air_flow_cubic_mm_per_second
+            ),
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class EmbodiedBody:
+    body_id: str
+    pose: PoseMM
+    radius_mm: int
+    reach_mm: int
+    held_object_id: str | None = None
+    receptor_geometry: BodyReceptorGeometry | None = None
+    active_contact: BodyContactState | None = None
+
+    def verify(self) -> None:
+        _identifier(self.body_id, "body id")
+        self.pose.verify()
+        _bounded_integer(self.radius_mm, "body radius", minimum=1, maximum=1_000_000)
+        _bounded_integer(self.reach_mm, "body reach", minimum=1, maximum=1_000_000)
+        if self.held_object_id is not None:
+            _identifier(self.held_object_id, "held object id")
+        if self.receptor_geometry is not None:
+            self.receptor_geometry.verify()
+        if self.active_contact is not None:
+            self.active_contact.verify()
+
+    def as_record(self) -> dict[str, object]:
+        self.verify()
+        return {
+            "body_id": self.body_id,
+            "held_object_id": self.held_object_id,
+            "pose": self.pose.as_record(),
+            "radius_mm": self.radius_mm,
+            "reach_mm": self.reach_mm,
+            "active_contact": (
+                self.active_contact.as_record()
+                if self.active_contact is not None
+                else None
+            ),
+            "receptor_geometry": (
+                self.receptor_geometry.as_record()
+                if self.receptor_geometry is not None
+                else None
+            ),
+        }
+
+
+# A box whose bottom is above the walking layer (a framed picture, a high shelf's
+# things) is out of every body's way: its footprint disc need not cover its plan,
+# so it can hang flat against a wall.
+WALKING_LAYER_MM = 1_200
+PART_KINDS = frozenset({"box", "sphere", "cylinder"})
+MAX_PARTS = 16
+
+
+@dataclass(frozen=True, slots=True)
+class ObjectPart:
+    """One part of a thing's shape in the thing's own frame: a box (extents), a sphere
+    (one diameter) or a vertical cylinder (diameter and height), its centre offset from
+    the thing's floor point (x, y along the thing's frame; z up from the floor plus the
+    thing's elevation), and optionally its own paint. A bear is a body, a head, two ears
+    and four limbs; a chair a seat, a back and four legs."""
+
+    kind: str
+    offset_mm: tuple[int, int, int]
+    size_mm: tuple[int, int, int]
+    reflectance_ppm: tuple[int, ...] = ()
+    _verified: bool = field(default=False, init=False, compare=False, repr=False)   # a frozen part verifies once
+
+    def verify(self) -> None:
+        if self._verified:
+            return
+        self._verify()
+        object.__setattr__(self, "_verified", True)
+
+    def _verify(self) -> None:
+        if self.kind not in PART_KINDS:
+            raise ValueError("a part is a box, a sphere or a cylinder")
+        if not isinstance(self.offset_mm, tuple) or len(self.offset_mm) != 3 or not isinstance(self.size_mm, tuple) or len(self.size_mm) != 3:
+            raise ValueError("a part has a three-part offset and size")
+        for value in self.offset_mm:
+            _bounded_integer(value, "part offset", minimum=-1_000_000, maximum=1_000_000)
+        for value in self.size_mm:
+            _bounded_integer(value, "part size", minimum=1, maximum=1_000_000)
+        if self.kind == "sphere" and not (self.size_mm[0] == self.size_mm[1] == self.size_mm[2]):
+            raise ValueError("a sphere part has one diameter")
+        if self.kind == "cylinder" and self.size_mm[0] != self.size_mm[1]:
+            raise ValueError("a cylinder part has one diameter and a height")
+        if self.reflectance_ppm:
+            _physical_bands(self.reflectance_ppm, "part reflectance")
+
+    def as_record(self) -> dict[str, object]:
+        self.verify()
+        return {"kind": self.kind, "offset_mm": list(self.offset_mm), "size_mm": list(self.size_mm),
+                **({"reflectance_ppm": list(self.reflectance_ppm)} if self.reflectance_ppm else {})}
+
+    def plan_radius_mm(self) -> float:
+        """How far the part reaches from the thing's floor point, in plan."""
+        import math
+        if self.kind == "box":     # the farthest corner of an axis-aligned box in the thing's frame
+            return math.hypot(abs(self.offset_mm[0]) + self.size_mm[0] / 2.0, abs(self.offset_mm[1]) + self.size_mm[1] / 2.0)
+        return math.hypot(self.offset_mm[0], self.offset_mm[1]) + self.size_mm[0] / 2.0
+
+
+def _part_from(value: object) -> ObjectPart:
+    if not isinstance(value, Mapping) or not ({"kind", "offset_mm", "size_mm"} <= set(value) <= {"kind", "offset_mm", "size_mm", "reflectance_ppm"}):
+        raise ValueError("part fields changed")
+    for key in ("offset_mm", "size_mm"):
+        if not isinstance(value[key], (list, tuple)):
+            raise ValueError("part fields changed")
+    part = ObjectPart(kind=value["kind"], offset_mm=tuple(value["offset_mm"]), size_mm=tuple(value["size_mm"]),
+                      reflectance_ppm=tuple(value.get("reflectance_ppm") or ()))
+    part.verify()
+    return part
+
+
+@dataclass(frozen=True, slots=True)
+class EmbodiedObject:
+    object_id: str
+    radius_mm: int
+    mass_grams: int
+    position: PositionMM | None
+    held_by_body_id: str | None = None
+    reflectance_ppm: tuple[int, ...] = (
+        500_000, 500_000, 500_000, 500_000, 500_000, 500_000
+    )
+    material: ObjectMaterialState | None = None
+    optical_surface: ObjectOpticalSurface | None = None
+    # THE EMITTER LAW: light a thing gives off by itself, in parts per
+    # million of full retinal luminance per band, added to what it
+    # reflects. Zero for ordinary matter; a lamp, a glow star, or a
+    # working screen genuinely shines — visible in a dark room because
+    # reflection fades with the light while emission does not. Old
+    # persisted worlds decode unchanged.
+    emission_ppm: tuple[int, ...] = ()
+    # THE SHAPE LAW: what the eye meets. A sphere (the footprint disc of the
+    # radius, as before; it may sit at a height: a lamp's shade on its stand, a
+    # pendant) or a box: its extents in its own frame, its heading about the
+    # vertical, and the height of its bottom above the floor (a framed picture
+    # on a wall, a thing on a shelf). Every planar law (reach,
+    # grasp, clearance, collision) keeps the footprint disc, which must cover
+    # the box's plan. Old persisted worlds decode unchanged as spheres.
+    shape: str = "sphere"
+    size_mm: tuple[int, int, int] = ()
+    heading_millidegrees: int = 0
+    elevation_mm: int = 0
+    parts: tuple[ObjectPart, ...] = ()    # shape "parts": the thing built of parts in its own frame
+    _verified: bool = field(default=False, init=False, compare=False, repr=False)   # a frozen thing verifies once
+
+    def verify(self) -> None:
+        """A thing is frozen: once its record has been verified it stays verified (a
+        replaced copy starts unverified). Every record, canonical or compact, calls this."""
+        if self._verified:
+            return
+        self._verify()
+        object.__setattr__(self, "_verified", True)
+
+    def _verify(self) -> None:
+        _identifier(self.object_id, "object id")
+        _bounded_integer(self.radius_mm, "object radius", minimum=1, maximum=1_000_000)
+        if self.shape == "sphere":
+            if self.size_mm or self.heading_millidegrees:
+                raise ValueError("a sphere has no box extents or heading")
+            _bounded_integer(self.elevation_mm, "sphere elevation", minimum=0, maximum=1_000_000)   # a shade on a stand, a pendant
+        elif self.shape == "box":
+            if not isinstance(self.size_mm, tuple) or len(self.size_mm) != 3:
+                raise ValueError("a box has three extents")
+            for extent in self.size_mm:
+                _bounded_integer(extent, "box extent", minimum=1, maximum=1_000_000)
+            _bounded_integer(self.heading_millidegrees, "box heading", minimum=-180_000, maximum=180_000)
+            _bounded_integer(self.elevation_mm, "box elevation", minimum=0, maximum=1_000_000)
+            if (
+                self.elevation_mm < WALKING_LAYER_MM
+                and 4 * self.radius_mm * self.radius_mm < self.size_mm[0] ** 2 + self.size_mm[1] ** 2
+            ):
+                raise ValueError("the footprint disc must cover the box's plan")
+        elif self.shape == "parts":
+            if not isinstance(self.parts, tuple) or not 1 <= len(self.parts) <= MAX_PARTS:
+                raise ValueError("a thing of parts has one to sixteen parts")
+            for part in self.parts:
+                part.verify()
+            _bounded_integer(self.heading_millidegrees, "parts heading", minimum=-180_000, maximum=180_000)
+            _bounded_integer(self.elevation_mm, "parts elevation", minimum=0, maximum=1_000_000)
+            if self.size_mm:
+                raise ValueError("a thing of parts has no single box extents")
+            if self.elevation_mm < WALKING_LAYER_MM and any(part.plan_radius_mm() > self.radius_mm + 0.5 for part in self.parts):
+                raise ValueError("the footprint disc must cover every part's plan")
+        else:
+            raise ValueError("object shape must be a sphere, a box or parts")
+        if self.shape != "parts" and self.parts:
+            raise ValueError("only a thing of parts carries parts")
+        _bounded_integer(self.mass_grams, "object mass", minimum=1, maximum=1_000_000_000)
+        if (self.position is None) == (self.held_by_body_id is None):
+            raise ValueError("object must be either placed or held")
+        if self.position is not None:
+            self.position.verify()
+        if self.held_by_body_id is not None:
+            _identifier(self.held_by_body_id, "holding body id")
+        _physical_bands(self.reflectance_ppm, "object reflectance")
+        if self.emission_ppm:
+            _physical_bands(self.emission_ppm, "object emission")
+        if self.material is not None:
+            self.material.verify()
+        if self.optical_surface is not None:
+            self.optical_surface.verify()
+
+    def as_record(self) -> dict[str, object]:
+        self.verify()
+        return {
+            "held_by_body_id": self.held_by_body_id,
+            "mass_grams": self.mass_grams,
+            "object_id": self.object_id,
+            "position": self.position.as_record() if self.position is not None else None,
+            "radius_mm": self.radius_mm,
+            "reflectance_ppm": list(self.reflectance_ppm),
+            "material": (
+                self.material.as_record()
+                if self.material is not None
+                else None
+            ),
+            "optical_surface": (
+                self.optical_surface.as_record()
+                if self.optical_surface is not None
+                else None
+            ),
+            **(
+                {"emission_ppm": list(self.emission_ppm)}
+                if any(self.emission_ppm)
+                else {}
+            ),
+            **self._shape_record(),
+        }
+
+    def _shape_record(self) -> dict[str, object]:
+        if self.shape == "sphere" and not self.elevation_mm:
+            return {}
+        record = {"kind": self.shape, "size_mm": list(self.size_mm),
+                  "heading_millidegrees": self.heading_millidegrees, "elevation_mm": self.elevation_mm}
+        if self.shape == "parts":
+            record["parts"] = [part.as_record() for part in self.parts]
+        return {"shape": record}
+
+    def _canonical_record(self) -> dict[str, object]:
+        self.verify()
+        return {
+            "held_by_body_id": self.held_by_body_id,
+            "mass_grams": self.mass_grams,
+            "object_id": self.object_id,
+            "position": self.position.as_record() if self.position is not None else None,
+            "radius_mm": self.radius_mm,
+            "reflectance_ppm": list(self.reflectance_ppm),
+            "material": (
+                self.material.as_record() if self.material is not None else None
+            ),
+            "optical_surface": (
+                self.optical_surface._canonical_fragment()
+                if self.optical_surface is not None else None
+            ),
+            **(
+                {"emission_ppm": list(self.emission_ppm)}
+                if any(self.emission_ppm)
+                else {}
+            ),
+            **self._shape_record(),
+        }
+
+
+def _shape_fields(value: object) -> dict[str, object]:
+    """The shape fields of an object record: absent means a sphere."""
+    raw = value.get("shape") if isinstance(value, Mapping) else None
+    if raw is None:
+        return {}
+    expected = {"kind", "size_mm", "heading_millidegrees", "elevation_mm"}
+    if not isinstance(raw, Mapping) or not (expected <= set(raw) <= expected | {"parts"}):
+        raise ValueError("object shape fields changed")
+    if not isinstance(raw["size_mm"], (list, tuple)) or not isinstance(raw.get("parts", []), list):
+        raise ValueError("object shape fields changed")
+    return {"shape": raw["kind"], "size_mm": tuple(raw["size_mm"]),
+            "heading_millidegrees": raw["heading_millidegrees"], "elevation_mm": raw["elevation_mm"],
+            "parts": tuple(_part_from(item) for item in raw.get("parts", []))}
+
+
+@dataclass(frozen=True, slots=True)
+class EmbodimentPort:
+    port_id: str
+    actor_body_id: str
+
+    def verify(self) -> None:
+        _identifier(self.port_id, "embodiment port id")
+        _identifier(self.actor_body_id, "embodiment port actor body id")
+
+    def as_record(self) -> dict[str, str]:
+        self.verify()
+        return {
+            "actor_body_id": self.actor_body_id,
+            "port_id": self.port_id,
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class MoveCommand:
+    target_pose: PoseMM
+    duration_microseconds: int
+
+
+@dataclass(frozen=True, slots=True)
+class PickCommand:
+    object_id: str
+    duration_microseconds: int
+
+
+@dataclass(frozen=True, slots=True)
+class GraspContactCommand:
+    """Close a hand on the unique object already inside its contact field.
+
+    The command deliberately carries no object identity.  The body's signed
+    receptor geometry and the world's current object geometry are the only
+    authority that may resolve what is grasped.
+    """
+
+    duration_microseconds: int
+
+
+@dataclass(frozen=True, slots=True)
+class ReleaseHeldObjectCommand:
+    """Open a hand and release its one held object without naming it."""
+
+    duration_microseconds: int
+
+
+@dataclass(frozen=True, slots=True)
+class TakeContactHeldObjectCommand:
+    """Take the unique nearby object held by another embodied body.
+
+    The command carries neither an object identity nor a source-body identity.
+    Current body geometry and reciprocal world custody resolve the one physical
+    object that can be transferred.
+    """
+
+    duration_microseconds: int
+
+
+@dataclass(frozen=True, slots=True)
+class AdvanceContactOpticalSurfaceCommand:
+    """Advance the uniquely contacted bound surface by one physical leaf.
+
+    The command deliberately carries no object, source, page, title, or text
+    identity. The world resolves contact geometrically and its mounted
+    immutable surface sequence is transport provenance, never cognition.
+    """
+
+    duration_microseconds: int
+
+
+@dataclass(frozen=True, slots=True)
+class ContactOpticalSurfaceSequence:
+    """One bounded immutable material surface sequence outside cognition."""
+
+    object_id: str
+    source_receipt_sha256: str
+    surfaces: tuple[ObjectOpticalSurface, ...]
+
+    def verify(self) -> None:
+        _identifier(self.object_id, "contact optical surface object")
+        _sha256_identity(
+            self.source_receipt_sha256,
+            "contact optical surface source receipt",
+        )
+        if (
+            not isinstance(self.surfaces, tuple)
+            or not 1 <= len(self.surfaces) <= MAX_CONTACT_OPTICAL_SURFACES
+        ):
+            raise ValueError("contact optical surface sequence exceeds capacity")
+        for surface in self.surfaces:
+            if not isinstance(surface, ObjectOpticalSurface):
+                raise ValueError("contact optical surface sequence changed type")
+            surface.verify()
+        if len(set(self.surfaces)) != len(self.surfaces):
+            raise ValueError("contact optical surface sequence repeats a leaf")
+
+
+@dataclass(frozen=True, slots=True)
+class PlaceCommand:
+    object_id: str
+    target_position: PositionMM
+    duration_microseconds: int
+
+
+@dataclass(frozen=True, slots=True)
+class VocalizeCommand:
+    """One bounded physical pressure actuation by the addressed body."""
+
+    epoch_commitment_sha256: str
+    sequence: int
+    source_sample_start: int
+    pcm_sha256: str
+    sample_count: int
+
+
+@dataclass(frozen=True, slots=True)
+class TouchContactCommand:
+    object_id: str
+    duration_microseconds: int
+
+
+@dataclass(frozen=True, slots=True)
+class OralContactCommand:
+    object_id: str
+    duration_microseconds: int
+
+
+@dataclass(frozen=True, slots=True)
+class BodySurfaceContactCommand:
+    """One bounded set of simultaneous, explicit body-surface actuations."""
+
+    actuations: tuple[BodySurfaceActuation, ...]
+    duration_microseconds: int
+
+
+@dataclass(frozen=True, slots=True)
+class AdvancePhysicalTimeCommand:
+    duration_microseconds: int
+
+
+EmbodimentCommand = (
+    MoveCommand
+    | PickCommand
+    | GraspContactCommand
+    | ReleaseHeldObjectCommand
+    | TakeContactHeldObjectCommand
+    | AdvanceContactOpticalSurfaceCommand
+    | PlaceCommand
+    | VocalizeCommand
+    | TouchContactCommand
+    | OralContactCommand
+    | BodySurfaceContactCommand
+    | AdvancePhysicalTimeCommand
+)
+
+
+def command_record(command: EmbodimentCommand) -> dict[str, object]:
+    if isinstance(command, MoveCommand):
+        command.target_pose.verify()
+        return {
+            "duration_microseconds": _bounded_integer(
+                command.duration_microseconds,
+                "physical action duration",
+                minimum=MIN_MATERIAL_ACTION_DURATION_US,
+                maximum=MAX_MATERIAL_ACTION_DURATION_US,
+            ),
+            "operation": "move",
+            "schema": COMMAND_SCHEMA,
+            "target_pose": command.target_pose.as_record(),
+        }
+    if isinstance(command, PickCommand):
+        return {
+            "duration_microseconds": _bounded_integer(
+                command.duration_microseconds,
+                "physical action duration",
+                minimum=MIN_MATERIAL_ACTION_DURATION_US,
+                maximum=MAX_MATERIAL_ACTION_DURATION_US,
+            ),
+            "object_id": _identifier(command.object_id, "pick object id"),
+            "operation": "pick",
+            "schema": COMMAND_SCHEMA,
+        }
+    if isinstance(command, GraspContactCommand):
+        return {
+            "duration_microseconds": _bounded_integer(
+                command.duration_microseconds,
+                "physical action duration",
+                minimum=MIN_MATERIAL_ACTION_DURATION_US,
+                maximum=MAX_MATERIAL_ACTION_DURATION_US,
+            ),
+            "operation": "grasp_contact",
+            "schema": COMMAND_SCHEMA,
+        }
+    if isinstance(command, ReleaseHeldObjectCommand):
+        return {
+            "duration_microseconds": _bounded_integer(
+                command.duration_microseconds,
+                "physical action duration",
+                minimum=MIN_MATERIAL_ACTION_DURATION_US,
+                maximum=MAX_MATERIAL_ACTION_DURATION_US,
+            ),
+            "operation": "release_held_object",
+            "schema": COMMAND_SCHEMA,
+        }
+    if isinstance(command, TakeContactHeldObjectCommand):
+        return {
+            "duration_microseconds": _bounded_integer(
+                command.duration_microseconds,
+                "physical action duration",
+                minimum=MIN_MATERIAL_ACTION_DURATION_US,
+                maximum=MAX_MATERIAL_ACTION_DURATION_US,
+            ),
+            "operation": "take_contact_held_object",
+            "schema": COMMAND_SCHEMA,
+        }
+    if isinstance(command, AdvanceContactOpticalSurfaceCommand):
+        return {
+            "duration_microseconds": _bounded_integer(
+                command.duration_microseconds,
+                "physical action duration",
+                minimum=MIN_MATERIAL_ACTION_DURATION_US,
+                maximum=MAX_MATERIAL_ACTION_DURATION_US,
+            ),
+            "operation": "advance_contact_optical_surface",
+            "schema": COMMAND_SCHEMA,
+        }
+    if isinstance(command, PlaceCommand):
+        command.target_position.verify()
+        return {
+            "duration_microseconds": _bounded_integer(
+                command.duration_microseconds,
+                "physical action duration",
+                minimum=MIN_MATERIAL_ACTION_DURATION_US,
+                maximum=MAX_MATERIAL_ACTION_DURATION_US,
+            ),
+            "object_id": _identifier(command.object_id, "place object id"),
+            "operation": "place",
+            "schema": COMMAND_SCHEMA,
+            "target_position": command.target_position.as_record(),
+        }
+    if isinstance(command, VocalizeCommand):
+        sample_count = _bounded_integer(
+            command.sample_count,
+            "vocal sample count",
+            minimum=MIN_VOCAL_SAMPLE_COUNT,
+            maximum=MAX_VOCAL_SAMPLE_COUNT,
+        )
+        return {
+            "epoch_commitment_sha256": _sha256_identity(
+                command.epoch_commitment_sha256,
+                "vocal epoch commitment",
+            ),
+            "operation": "vocalize",
+            "pcm_sha256": _sha256_identity(
+                command.pcm_sha256, "vocal pressure identity"
+            ),
+            "sample_count": sample_count,
+            "sample_rate_hz": VOCAL_SAMPLE_RATE_HZ,
+            "sequence": _bounded_integer(
+                command.sequence,
+                "vocal sequence",
+                minimum=0,
+                maximum=MAX_REVISION,
+            ),
+            "schema": COMMAND_SCHEMA,
+            "source_sample_start": _bounded_integer(
+                command.source_sample_start,
+                "vocal source sample start",
+                minimum=0,
+                maximum=MAX_REVISION - sample_count,
+            ),
+        }
+    if isinstance(command, (TouchContactCommand, OralContactCommand)):
+        return {
+            "duration_microseconds": _bounded_integer(
+                command.duration_microseconds,
+                "material action duration",
+                minimum=MIN_MATERIAL_ACTION_DURATION_US,
+                maximum=MAX_MATERIAL_ACTION_DURATION_US,
+            ),
+            "object_id": _identifier(
+                command.object_id,
+                "material contact object id",
+            ),
+            "operation": (
+                "oral_contact"
+                if isinstance(command, OralContactCommand)
+                else "touch_contact"
+            ),
+            "schema": COMMAND_SCHEMA,
+        }
+    if isinstance(command, BodySurfaceContactCommand):
+        if (
+            not isinstance(command.actuations, tuple)
+            or not 1 <= len(command.actuations) <= MAX_BODY_SURFACE_CONTACTS_PER_ACTION
+        ):
+            raise ValueError("body-surface actuation count exceeds its bound")
+        records = tuple(actuation.as_record() for actuation in command.actuations)
+        addressed = tuple(
+            (
+                actuation.actor_site_id,
+                actuation.recipient_body_id,
+                actuation.recipient_site_id,
+            )
+            for actuation in command.actuations
+        )
+        if len(set(addressed)) != len(addressed):
+            raise ValueError("body-surface actuation repeats one surface pair")
+        return {
+            "actuations": list(records),
+            "duration_microseconds": _bounded_integer(
+                command.duration_microseconds,
+                "body-surface action duration",
+                minimum=3 * MIN_MATERIAL_ACTION_DURATION_US,
+                maximum=MAX_MATERIAL_ACTION_DURATION_US,
+            ),
+            "operation": "body_surface_contact",
+            "schema": COMMAND_SCHEMA,
+        }
+    if isinstance(command, AdvancePhysicalTimeCommand):
+        return {
+            "duration_microseconds": _bounded_integer(
+                command.duration_microseconds,
+                "physical time duration",
+                minimum=MIN_MATERIAL_ACTION_DURATION_US,
+                maximum=MAX_MATERIAL_ACTION_DURATION_US,
+            ),
+            "operation": "advance_physical_time",
+            "schema": COMMAND_SCHEMA,
+        }
+    raise ValueError("unsupported embodiment command type")
+
+
+def encode_command(command: EmbodimentCommand) -> bytes:
+    """Encode one typed command into the exact opaque port payload."""
+
+    return _canonical(command_record(command))
+
+
+def _command_elapsed_nanoseconds(
+    command: EmbodimentCommand,
+) -> int:
+    if isinstance(
+        command,
+        (
+            MoveCommand,
+            PickCommand,
+            GraspContactCommand,
+            # Opening the hand takes its declared time like every other act;
+            # a zero elapsed release left the thermal interval below its
+            # minimum and refused her first act on the live world (2026-09-14).
+            ReleaseHeldObjectCommand,
+            TakeContactHeldObjectCommand,
+            AdvanceContactOpticalSurfaceCommand,
+            PlaceCommand,
+            TouchContactCommand,
+            OralContactCommand,
+            BodySurfaceContactCommand,
+            AdvancePhysicalTimeCommand,
+        ),
+    ):
+        return command.duration_microseconds * 1_000
+    if isinstance(command, VocalizeCommand):
+        return (
+            command.sample_count
+            * 1_000_000_000
+            // VOCAL_SAMPLE_RATE_HZ
+        )
+    return 0
+
+
+def _position_from(value: object, name: str) -> PositionMM:
+    if not isinstance(value, Mapping) or set(value) != {"x_mm", "y_mm", "z_mm"}:
+        raise ValueError(f"{name} fields changed")
+    result = PositionMM(x=value.get("x_mm"), y=value.get("y_mm"), z=value.get("z_mm"))
+    result.verify()
+    if result.as_record() != dict(value):
+        raise ValueError(f"{name} is not canonical")
+    return result
+
+
+def _pose_from(value: object, name: str) -> PoseMM:
+    if not isinstance(value, Mapping) or set(value) != {"heading_millidegrees", "position"}:
+        raise ValueError(f"{name} fields changed")
+    result = PoseMM(
+        position=_position_from(value.get("position"), f"{name} position"),
+        heading_millidegrees=value.get("heading_millidegrees"),
+    )
+    result.verify()
+    if result.as_record() != dict(value):
+        raise ValueError(f"{name} is not canonical")
+    return result
+
+
+def decode_command(payload: bytes, *, max_command_bytes: int = DEFAULT_MAX_COMMAND_BYTES) -> EmbodimentCommand:
+    """Decode only the canonical typed command language owned by this port."""
+
+    if not isinstance(payload, bytes) or not payload or len(payload) > max_command_bytes:
+        raise ValueError("embodiment command exceeds its exact byte boundary")
+    try:
+        decoded = json.loads(payload.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+        raise ValueError("embodiment command is not canonical JSON") from error
+    if not isinstance(decoded, Mapping) or decoded.get("schema") != COMMAND_SCHEMA:
+        raise ValueError("embodiment command schema changed")
+    operation = decoded.get("operation")
+    if operation == "move" and set(decoded) == {
+        "duration_microseconds", "operation", "schema", "target_pose"
+    }:
+        result: EmbodimentCommand = MoveCommand(
+            _pose_from(decoded.get("target_pose"), "move target pose"),
+            _bounded_integer(
+                decoded.get("duration_microseconds"),
+                "physical action duration",
+                minimum=MIN_MATERIAL_ACTION_DURATION_US,
+                maximum=MAX_MATERIAL_ACTION_DURATION_US,
+            ),
+        )
+    elif operation == "pick" and set(decoded) == {
+        "duration_microseconds", "object_id", "operation", "schema"
+    }:
+        result = PickCommand(
+            _identifier(decoded.get("object_id"), "pick object id"),
+            _bounded_integer(
+                decoded.get("duration_microseconds"),
+                "physical action duration",
+                minimum=MIN_MATERIAL_ACTION_DURATION_US,
+                maximum=MAX_MATERIAL_ACTION_DURATION_US,
+            ),
+        )
+    elif operation == "grasp_contact" and set(decoded) == {
+        "duration_microseconds", "operation", "schema"
+    }:
+        result = GraspContactCommand(
+            _bounded_integer(
+                decoded.get("duration_microseconds"),
+                "physical action duration",
+                minimum=MIN_MATERIAL_ACTION_DURATION_US,
+                maximum=MAX_MATERIAL_ACTION_DURATION_US,
+            )
+        )
+    elif operation == "release_held_object" and set(decoded) == {
+        "duration_microseconds", "operation", "schema"
+    }:
+        result = ReleaseHeldObjectCommand(
+            _bounded_integer(
+                decoded.get("duration_microseconds"),
+                "physical action duration",
+                minimum=MIN_MATERIAL_ACTION_DURATION_US,
+                maximum=MAX_MATERIAL_ACTION_DURATION_US,
+            )
+        )
+    elif operation == "take_contact_held_object" and set(decoded) == {
+        "duration_microseconds", "operation", "schema"
+    }:
+        result = TakeContactHeldObjectCommand(
+            _bounded_integer(
+                decoded.get("duration_microseconds"),
+                "physical action duration",
+                minimum=MIN_MATERIAL_ACTION_DURATION_US,
+                maximum=MAX_MATERIAL_ACTION_DURATION_US,
+            )
+        )
+    elif operation == "advance_contact_optical_surface" and set(decoded) == {
+        "duration_microseconds", "operation", "schema"
+    }:
+        result = AdvanceContactOpticalSurfaceCommand(
+            _bounded_integer(
+                decoded.get("duration_microseconds"),
+                "physical action duration",
+                minimum=MIN_MATERIAL_ACTION_DURATION_US,
+                maximum=MAX_MATERIAL_ACTION_DURATION_US,
+            )
+        )
+    elif operation == "place" and set(decoded) == {
+        "duration_microseconds", "object_id", "operation", "schema",
+        "target_position"
+    }:
+        result = PlaceCommand(
+            _identifier(decoded.get("object_id"), "place object id"),
+            _position_from(decoded.get("target_position"), "place target position"),
+            _bounded_integer(
+                decoded.get("duration_microseconds"),
+                "physical action duration",
+                minimum=MIN_MATERIAL_ACTION_DURATION_US,
+                maximum=MAX_MATERIAL_ACTION_DURATION_US,
+            ),
+        )
+    elif operation == "vocalize" and set(decoded) == {
+        "epoch_commitment_sha256", "operation", "pcm_sha256", "sample_count",
+        "sample_rate_hz", "schema", "sequence", "source_sample_start"
+    }:
+        if decoded.get("sample_rate_hz") != VOCAL_SAMPLE_RATE_HZ:
+            raise ValueError("vocal sample rate changed")
+        result = VocalizeCommand(
+            epoch_commitment_sha256=_sha256_identity(
+                decoded.get("epoch_commitment_sha256"),
+                "vocal epoch commitment",
+            ),
+            sequence=_bounded_integer(
+                decoded.get("sequence"),
+                "vocal sequence",
+                minimum=0,
+                maximum=MAX_REVISION,
+            ),
+            source_sample_start=_bounded_integer(
+                decoded.get("source_sample_start"),
+                "vocal source sample start",
+                minimum=0,
+                maximum=MAX_REVISION - _bounded_integer(
+                    decoded.get("sample_count"),
+                    "vocal sample count",
+                    minimum=MIN_VOCAL_SAMPLE_COUNT,
+                    maximum=MAX_VOCAL_SAMPLE_COUNT,
+                ),
+            ),
+            pcm_sha256=_sha256_identity(
+                decoded.get("pcm_sha256"), "vocal pressure identity"
+            ),
+            sample_count=_bounded_integer(
+                decoded.get("sample_count"),
+                "vocal sample count",
+                minimum=MIN_VOCAL_SAMPLE_COUNT,
+                maximum=MAX_VOCAL_SAMPLE_COUNT,
+            ),
+        )
+    elif operation in {"touch_contact", "oral_contact"} and set(
+        decoded
+    ) == {
+        "duration_microseconds",
+        "object_id",
+        "operation",
+        "schema",
+    }:
+        object_id = _identifier(
+            decoded.get("object_id"),
+            "material contact object id",
+        )
+        duration = _bounded_integer(
+            decoded.get("duration_microseconds"),
+            "material action duration",
+            minimum=MIN_MATERIAL_ACTION_DURATION_US,
+            maximum=MAX_MATERIAL_ACTION_DURATION_US,
+        )
+        result = (
+            OralContactCommand(object_id, duration)
+            if operation == "oral_contact"
+            else TouchContactCommand(object_id, duration)
+        )
+    elif operation == "body_surface_contact" and set(decoded) == {
+        "actuations",
+        "duration_microseconds",
+        "operation",
+        "schema",
+    }:
+        raw_actuations = decoded.get("actuations")
+        if (
+            not isinstance(raw_actuations, list)
+            or not 1 <= len(raw_actuations) <= MAX_BODY_SURFACE_CONTACTS_PER_ACTION
+        ):
+            raise ValueError("body-surface actuation count exceeds its bound")
+        actuations = []
+        for raw in raw_actuations:
+            if not isinstance(raw, Mapping) or set(raw) != {
+                "actor_site_id",
+                "compression_micrometres",
+                "recipient_body_id",
+                "recipient_site_id",
+                "tangential_u_micrometres",
+                "tangential_v_micrometres",
+            }:
+                raise ValueError("body-surface actuation fields changed")
+            actuation = BodySurfaceActuation(
+                actor_site_id=_identifier(
+                    raw.get("actor_site_id"),
+                    "actor body surface site",
+                ),
+                recipient_body_id=_identifier(
+                    raw.get("recipient_body_id"),
+                    "recipient body",
+                ),
+                recipient_site_id=_identifier(
+                    raw.get("recipient_site_id"),
+                    "recipient body surface site",
+                ),
+                compression_micrometres=_bounded_integer(
+                    raw.get("compression_micrometres"),
+                    "body surface compression",
+                    minimum=1,
+                    maximum=100_000,
+                ),
+                tangential_u_micrometres=_bounded_integer(
+                    raw.get("tangential_u_micrometres"),
+                    "body surface tangential u displacement",
+                    minimum=-1_000_000,
+                    maximum=1_000_000,
+                ),
+                tangential_v_micrometres=_bounded_integer(
+                    raw.get("tangential_v_micrometres"),
+                    "body surface tangential v displacement",
+                    minimum=-1_000_000,
+                    maximum=1_000_000,
+                ),
+            )
+            actuation.verify()
+            actuations.append(actuation)
+        result = BodySurfaceContactCommand(
+            actuations=tuple(actuations),
+            duration_microseconds=_bounded_integer(
+                decoded.get("duration_microseconds"),
+                "body-surface action duration",
+                minimum=3 * MIN_MATERIAL_ACTION_DURATION_US,
+                maximum=MAX_MATERIAL_ACTION_DURATION_US,
+            ),
+        )
+    elif operation == "advance_physical_time" and set(decoded) == {
+        "duration_microseconds",
+        "operation",
+        "schema",
+    }:
+        result = AdvancePhysicalTimeCommand(
+            _bounded_integer(
+                decoded.get("duration_microseconds"),
+                "physical time duration",
+                minimum=MIN_MATERIAL_ACTION_DURATION_US,
+                maximum=MAX_MATERIAL_ACTION_DURATION_US,
+            )
+        )
+    else:
+        raise ValueError("embodiment command operation or fields changed")
+    if encode_command(result) != payload:
+        raise ValueError("embodiment command bytes are not canonical")
+    return result
+
+
+@dataclass(frozen=True, slots=True)
+class _WorldState:
+    revision: int
+    room_id: str
+    room_bounds: RoomBoundsMM
+    regions: tuple[PhysicalRegion, ...]
+    portals: tuple[PhysicalPortal, ...]
+    self_body_id: str
+    bodies: tuple[EmbodiedBody, ...]
+    objects: tuple[EmbodiedObject, ...]
+
+    def as_record(self) -> dict[str, object]:
+        return {
+            "bodies": [item.as_record() for item in self.bodies],
+            "objects": [item.as_record() for item in self.objects],
+            "revision": self.revision,
+            "room_bounds": self.room_bounds.as_record(),
+            "room_id": self.room_id,
+            "regions": [item.as_record() for item in self.regions],
+            "portals": [item.as_record() for item in self.portals],
+            "self_body_id": self.self_body_id,
+        }
+
+    def _canonical_record(self) -> dict[str, object]:
+        return {
+            "bodies": [item.as_record() for item in self.bodies],
+            "objects": [item._canonical_record() for item in self.objects],
+            "revision": self.revision,
+            "room_bounds": self.room_bounds.as_record(),
+            "room_id": self.room_id,
+            "regions": [item.as_record() for item in self.regions],
+            "portals": [item.as_record() for item in self.portals],
+            "self_body_id": self.self_body_id,
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class ObservationSnapshot:
+    revision: int
+    room_id: str
+    room_bounds: RoomBoundsMM
+    regions: tuple[PhysicalRegion, ...]
+    portals: tuple[PhysicalPortal, ...]
+    self_body_id: str
+    bodies: tuple[EmbodiedBody, ...]
+    objects: tuple[EmbodiedObject, ...]
+    state_sha256: str
+    authority_hmac_sha256: str
+    authority_receipt_sha256: str
+
+    def unsigned_record(self) -> dict[str, object]:
+        return {
+            "bodies": [item.as_record() for item in self.bodies],
+            "objects": [item.as_record() for item in self.objects],
+            "revision": self.revision,
+            "room_bounds": self.room_bounds.as_record(),
+            "room_id": self.room_id,
+            "regions": [item.as_record() for item in self.regions],
+            "portals": [item.as_record() for item in self.portals],
+            "schema": OBSERVATION_SCHEMA,
+            "self_body_id": self.self_body_id,
+            "state_sha256": self.state_sha256,
+        }
+
+    def as_record(self) -> dict[str, object]:
+        return {
+            **self.unsigned_record(),
+            "authority_hmac_sha256": self.authority_hmac_sha256,
+            "authority_receipt_sha256": self.authority_receipt_sha256,
+        }
+
+    def _canonical_unsigned_record(self) -> dict[str, object]:
+        return {
+            "bodies": [item.as_record() for item in self.bodies],
+            "objects": [item._canonical_record() for item in self.objects],
+            "revision": self.revision,
+            "room_bounds": self.room_bounds.as_record(),
+            "room_id": self.room_id,
+            "regions": [item.as_record() for item in self.regions],
+            "portals": [item.as_record() for item in self.portals],
+            "schema": OBSERVATION_SCHEMA,
+            "self_body_id": self.self_body_id,
+            "state_sha256": self.state_sha256,
+        }
+
+    def _canonical_record(self) -> dict[str, object]:
+        return {
+            **self._canonical_unsigned_record(),
+            "authority_hmac_sha256": self.authority_hmac_sha256,
+            "authority_receipt_sha256": (
+                self.authority_receipt_sha256
+            ),
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class ActionExecutionReceipt:
+    port_id: str
+    actor_body_id: str | None
+    causal_intent_receipt_sha256: str
+    command_sha256: str
+    expected_revision: int
+    observed_revision: int
+    disposition: str
+    reason: str
+    elapsed_nanoseconds: int
+    lifecycle: tuple[str, ...]
+    before: ObservationSnapshot
+    after: ObservationSnapshot
+    authority_hmac_sha256: str
+    authority_receipt_sha256: str
+
+    def unsigned_record(self) -> dict[str, object]:
+        return {
+            "actor_body_id": self.actor_body_id,
+            "after": self.after.as_record(),
+            "before": self.before.as_record(),
+            "causal_intent_receipt_sha256": self.causal_intent_receipt_sha256,
+            "command_sha256": self.command_sha256,
+            "disposition": self.disposition,
+            "elapsed_nanoseconds": self.elapsed_nanoseconds,
+            "expected_revision": self.expected_revision,
+            "lifecycle": list(self.lifecycle),
+            "observed_revision": self.observed_revision,
+            "port_id": self.port_id,
+            "reason": self.reason,
+            "schema": EXECUTION_SCHEMA,
+        }
+
+    def as_record(self) -> dict[str, object]:
+        return {
+            **self.unsigned_record(),
+            "authority_hmac_sha256": self.authority_hmac_sha256,
+            "authority_receipt_sha256": self.authority_receipt_sha256,
+        }
+
+    def _canonical_unsigned_record(self) -> dict[str, object]:
+        return {
+            "actor_body_id": self.actor_body_id,
+            "after": self.after._canonical_record(),
+            "before": self.before._canonical_record(),
+            "causal_intent_receipt_sha256": self.causal_intent_receipt_sha256,
+            "command_sha256": self.command_sha256,
+            "disposition": self.disposition,
+            "elapsed_nanoseconds": self.elapsed_nanoseconds,
+            "expected_revision": self.expected_revision,
+            "lifecycle": list(self.lifecycle),
+            "observed_revision": self.observed_revision,
+            "port_id": self.port_id,
+            "reason": self.reason,
+            "schema": EXECUTION_SCHEMA,
+        }
+
+    def _canonical_record(self) -> dict[str, object]:
+        return {
+            **self._canonical_unsigned_record(),
+            "authority_hmac_sha256": self.authority_hmac_sha256,
+            "authority_receipt_sha256": (
+                self.authority_receipt_sha256
+            ),
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class _AuthorityState:
+    world: _WorldState
+    observation: ObservationSnapshot
+    recent_applied_receipts: tuple[ActionExecutionReceipt, ...]
+    migration_receipt: "WorldMigrationReceipt | None" = None
+
+
+_PREPARED_ACTION_EXECUTION_AUTHORITY = object()
+
+
+@dataclass(frozen=True, slots=True)
+class PreparedActionExecution:
+    """One verified world transition held outside live physical state."""
+
+    execution_receipt: ActionExecutionReceipt
+    _prior_state: _AuthorityState = field(repr=False)
+    _candidate_state: _AuthorityState = field(repr=False)
+    _construction_authority: object = field(repr=False)
+    body_surface_contacts: tuple[PreparedBodySurfaceContact, ...] = ()
+
+
+@dataclass(frozen=True, slots=True)
+class WorldMigrationReceipt:
+    prior_envelope_sha256: str
+    prior_observation_receipt_sha256: str
+    resulting_observation_receipt_sha256: str
+    prior_revision: int
+    resulting_revision: int
+    parent_migration_receipt_sha256: str | None
+    manifest_sha256: str
+    prior_topology_sha256: str
+    resulting_topology_sha256: str
+    authority_hmac_sha256: str
+    authority_receipt_sha256: str
+
+    def unsigned_record(self) -> dict[str, object]:
+        return {
+            "manifest_sha256": self.manifest_sha256,
+            "parent_migration_receipt_sha256": (
+                self.parent_migration_receipt_sha256
+            ),
+            "prior_envelope_sha256": self.prior_envelope_sha256,
+            "prior_observation_receipt_sha256": (
+                self.prior_observation_receipt_sha256
+            ),
+            "prior_revision": self.prior_revision,
+            "resulting_observation_receipt_sha256": (
+                self.resulting_observation_receipt_sha256
+            ),
+            "resulting_revision": self.resulting_revision,
+            "prior_topology_sha256": self.prior_topology_sha256,
+            "resulting_topology_sha256": self.resulting_topology_sha256,
+            "schema": MIGRATION_SCHEMA,
+        }
+
+    def as_record(self) -> dict[str, object]:
+        return {
+            **self.unsigned_record(),
+            "authority_hmac_sha256": self.authority_hmac_sha256,
+            "authority_receipt_sha256": self.authority_receipt_sha256,
+        }
+
+
+def _distance_squared(left: PositionMM, right: PositionMM) -> int:
+    return (left.x - right.x) ** 2 + (left.y - right.y) ** 2 + (left.z - right.z) ** 2
+
+
+PUSH_MASS_GRAMS = 2_000
+PUSH_CLEARANCE_MM = 40
+
+
+def _is_bed(item: EmbodiedObject) -> bool:
+    """A bed (authored with the ``bed`` prefix): the one thing the self body may
+    lie on, and the one thing other things (her pillow, her blanket) may lie
+    on. Nothing else in the world admits overlap."""
+
+    return item.object_id.startswith("bed")
+
+
+def _push_aside(
+    item: EmbodiedObject,
+    start: PositionMM,
+    target: PositionMM,
+    carried_radius_mm: int,
+    region: PhysicalRegion,
+    objects: list[EmbodiedObject],
+    bodies: list[EmbodiedBody],
+    mover_id: str,
+) -> EmbodiedObject | None:
+    """Slide ``item`` off the straight path from ``start`` to ``target`` to the
+    nearest clear spot beside it, in its own region, touching nothing; None
+    when no such spot exists."""
+
+    dx, dy = target.x - start.x, target.y - start.y
+    length = math.hypot(dx, dy)
+    if length == 0:
+        return None
+    ux, uy = dx / length, dy / length
+    px, py = -uy, ux  # the perpendicular
+    rel_x, rel_y = item.position.x - start.x, item.position.y - start.y
+    along = rel_x * ux + rel_y * uy
+    across = rel_x * px + rel_y * py
+    clearance = carried_radius_mm + item.radius_mm + PUSH_CLEARANCE_MM
+    sides = (1, -1) if across >= 0 else (-1, 1)
+    for side in sides:
+        for extra in (0, 60, 120, 200):
+            offset = side * (clearance + extra)
+            candidate = PositionMM(
+                round(start.x + along * ux + offset * px),
+                round(start.y + along * uy + offset * py),
+                item.position.z,
+            )
+            if not region.bounds.contains_floor_disc(candidate, item.radius_mm):
+                continue
+            if _straight_path_intersects_disc(start, target, candidate, carried_radius_mm + item.radius_mm):
+                continue
+            if any(
+                other.object_id != item.object_id and other.position is not None
+                and _floor_discs_overlap(candidate, item.radius_mm + PUSH_CLEARANCE_MM // 2, other.position, other.radius_mm)
+                for other in objects
+            ):
+                continue
+            if any(
+                other.body_id != mover_id
+                and _floor_discs_overlap(candidate, item.radius_mm + PUSH_CLEARANCE_MM // 2, other.pose.position, other.radius_mm)
+                for other in bodies
+            ):
+                continue
+            return replace(item, position=candidate)
+    return None
+
+
+def _receptor_position(
+    body: EmbodiedBody,
+    offset: PositionMM,
+) -> PositionMM:
+    dx, dy = rotate_lattice_offset(
+        offset.x,
+        offset.y,
+        body.pose.heading_millidegrees,
+    )
+    return PositionMM(
+        body.pose.position.x + dx,
+        body.pose.position.y + dy,
+        body.pose.position.z + offset.z,
+    )
+
+
+def _world_body_surface_geometry(
+    body: EmbodiedBody,
+    site: MountedBodySurfaceSite,
+) -> tuple[ExactVector3, ExactVector3, ExactVector3, ExactVector3]:
+    """Project one site centre onto the world micrometre lattice.
+
+    Contact forces settle in the recipient site's exact local orthonormal
+    frame.  That frame belongs to an articulated surface, not to a hand
+    welded to the body's root heading.  The root pose still determines the
+    site's exact world position and therefore whether the actor can reach it.
+    """
+
+    if site.body_id != body.body_id:
+        raise ValueError("body surface site changed physical owner")
+    if (
+        site.local_centre_micrometres.x.denominator != 1
+        or site.local_centre_micrometres.y.denominator != 1
+    ):
+        raise ValueError("body surface centre left the micrometre lattice")
+    rotated_x, rotated_y = rotate_lattice_offset(
+        site.local_centre_micrometres.x.numerator,
+        site.local_centre_micrometres.y.numerator,
+        body.pose.heading_millidegrees,
+    )
+    centre = ExactVector3(
+        Fraction(body.pose.position.x * 1_000 + rotated_x),
+        Fraction(body.pose.position.y * 1_000 + rotated_y),
+        Fraction(body.pose.position.z * 1_000)
+        + site.local_centre_micrometres.z,
+    )
+    return (
+        centre,
+        site.outward_normal,
+        site.tangent_u,
+        site.tangent_v,
+    )
+
+
+def _derived_contact_patch_square_mm(
+    *,
+    receptor_position: PositionMM,
+    receptor_radius_mm: int,
+    object_position: PositionMM,
+    object_radius_mm: int,
+) -> int | None:
+    distance_squared = _distance_squared(
+        receptor_position,
+        object_position,
+    )
+    combined = receptor_radius_mm + object_radius_mm
+    if distance_squared > combined * combined:
+        return None
+    overlap = combined - isqrt(distance_squared)
+    patch_radius = min(
+        receptor_radius_mm,
+        object_radius_mm,
+        max(1, overlap),
+    )
+    return patch_radius * patch_radius
+
+
+def _floor_discs_overlap(left: PositionMM, left_radius: int, right: PositionMM, right_radius: int) -> bool:
+    distance = (left.x - right.x) ** 2 + (left.y - right.y) ** 2
+    return distance < (left_radius + right_radius) ** 2
+
+
+def _straight_path_intersects_disc(
+    start: PositionMM,
+    finish: PositionMM,
+    obstacle: PositionMM,
+    combined_radius: int,
+) -> bool:
+    """Exact line-segment/disc intersection with integer arithmetic."""
+
+    dx = finish.x - start.x
+    dy = finish.y - start.y
+    length_squared = dx * dx + dy * dy
+    if length_squared == 0:
+        return _floor_discs_overlap(start, 0, obstacle, combined_radius)
+    ox = obstacle.x - start.x
+    oy = obstacle.y - start.y
+    projection = ox * dx + oy * dy
+    if projection <= 0:
+        return ox * ox + oy * oy < combined_radius * combined_radius
+    if projection >= length_squared:
+        ex = obstacle.x - finish.x
+        ey = obstacle.y - finish.y
+        return ex * ex + ey * ey < combined_radius * combined_radius
+    cross = ox * dy - oy * dx
+    return cross * cross < combined_radius * combined_radius * length_squared
+
+
+def _room_from(value: object) -> RoomBoundsMM:
+    if not isinstance(value, Mapping) or set(value) != {"maximum", "minimum"}:
+        raise ValueError("room bounds fields changed")
+    result = RoomBoundsMM(
+        minimum=_position_from(value.get("minimum"), "room minimum"),
+        maximum=_position_from(value.get("maximum"), "room maximum"),
+    )
+    result.verify()
+    if result.as_record() != dict(value):
+        raise ValueError("room bounds are not canonical")
+    return result
+
+
+def _air_from(value: object) -> AirVolumeState:
+    expected = {"odorant_mass_nanograms", "volume_cubic_mm"}
+    if not isinstance(value, Mapping) or set(value) != expected:
+        raise ValueError("air volume fields changed")
+    raw_mass = value.get("odorant_mass_nanograms")
+    result = AirVolumeState(
+        volume_cubic_mm=value.get("volume_cubic_mm"),
+        odorant_mass_nanograms=_mass_channels(
+            tuple(raw_mass) if isinstance(raw_mass, list) else raw_mass,
+            count=ODORANT_CHANNELS,
+            name="air odorant mass",
+        ),
+    )
+    result.verify()
+    if result.as_record() != dict(value):
+        raise ValueError("air volume record is not canonical")
+    return result
+
+
+def _material_from(value: object) -> ObjectMaterialState:
+    expected = {
+        "compliance_ppm",
+        "moisture_ppm",
+        "odorant_release_nanograms_per_second",
+        "odorant_reservoir_nanograms",
+        "roughness_micrometers",
+        "surface_temperature_millikelvin",
+        "tastant_mass_micrograms",
+    }
+    if not isinstance(value, Mapping) or set(value) != expected:
+        raise ValueError("object material fields changed")
+
+    def channels(field: str, count: int) -> tuple[int, ...]:
+        raw = value.get(field)
+        return _mass_channels(
+            tuple(raw) if isinstance(raw, list) else raw,
+            count=count,
+            name=field,
+        )
+
+    result = ObjectMaterialState(
+        odorant_reservoir_nanograms=channels(
+            "odorant_reservoir_nanograms",
+            ODORANT_CHANNELS,
+        ),
+        odorant_release_nanograms_per_second=channels(
+            "odorant_release_nanograms_per_second",
+            ODORANT_CHANNELS,
+        ),
+        tastant_mass_micrograms=channels(
+            "tastant_mass_micrograms",
+            TASTANT_CHANNELS,
+        ),
+        surface_temperature_millikelvin=value.get(
+            "surface_temperature_millikelvin"
+        ),
+        compliance_ppm=value.get("compliance_ppm"),
+        roughness_micrometers=value.get("roughness_micrometers"),
+        moisture_ppm=value.get("moisture_ppm"),
+    )
+    result.verify()
+    if result.as_record() != dict(value):
+        raise ValueError("object material record is not canonical")
+    return result
+
+
+def _receptor_geometry_from(value: object) -> BodyReceptorGeometry:
+    expected = {
+        "left_ear_offset_mm",
+        "odorant_saturation_nanograms_per_cubic_meter",
+        "olfactory_offset_mm",
+        "oral_offset_mm",
+        "oral_radius_mm",
+        "retinal_offset_mm",
+        "right_ear_offset_mm",
+        "tastant_saturation_micrograms",
+        "touch_mass_span_grams",
+        "touch_offset_mm",
+        "touch_radius_mm",
+        "touch_roughness_span_micrometers",
+        "touch_temperature_max_millikelvin",
+        "touch_temperature_min_millikelvin",
+    }
+    if not isinstance(value, Mapping) or set(value) != expected:
+        raise ValueError("body receptor geometry fields changed")
+    raw_odor = value.get(
+        "odorant_saturation_nanograms_per_cubic_meter"
+    )
+    raw_taste = value.get("tastant_saturation_micrograms")
+    result = BodyReceptorGeometry(
+        retinal_offset_mm=_position_from(
+            value.get("retinal_offset_mm"),
+            "retinal receptor offset",
+        ),
+        left_ear_offset_mm=_position_from(
+            value.get("left_ear_offset_mm"),
+            "left ear receptor offset",
+        ),
+        right_ear_offset_mm=_position_from(
+            value.get("right_ear_offset_mm"),
+            "right ear receptor offset",
+        ),
+        touch_offset_mm=_position_from(
+            value.get("touch_offset_mm"),
+            "touch receptor offset",
+        ),
+        touch_radius_mm=value.get("touch_radius_mm"),
+        oral_offset_mm=_position_from(
+            value.get("oral_offset_mm"),
+            "oral receptor offset",
+        ),
+        oral_radius_mm=value.get("oral_radius_mm"),
+        olfactory_offset_mm=_position_from(
+            value.get("olfactory_offset_mm"),
+            "olfactory receptor offset",
+        ),
+        odorant_saturation_nanograms_per_cubic_meter=(
+            _positive_channels(
+                tuple(raw_odor)
+                if isinstance(raw_odor, list)
+                else raw_odor,
+                count=ODORANT_CHANNELS,
+                name="olfactory receptor saturation",
+            )
+        ),
+        tastant_saturation_micrograms=_positive_channels(
+            tuple(raw_taste)
+            if isinstance(raw_taste, list)
+            else raw_taste,
+            count=TASTANT_CHANNELS,
+            name="gustatory receptor saturation",
+        ),
+        touch_mass_span_grams=value.get("touch_mass_span_grams"),
+        touch_temperature_min_millikelvin=value.get(
+            "touch_temperature_min_millikelvin"
+        ),
+        touch_temperature_max_millikelvin=value.get(
+            "touch_temperature_max_millikelvin"
+        ),
+        touch_roughness_span_micrometers=value.get(
+            "touch_roughness_span_micrometers"
+        ),
+    )
+    result.verify()
+    if result.as_record() != dict(value):
+        raise ValueError("body receptor geometry is not canonical")
+    return result
+
+
+def _contact_from(value: object) -> BodyContactState:
+    expected = {
+        "contact_patch_square_mm",
+        "duration_microseconds",
+        "kind",
+        "object_id",
+    }
+    if not isinstance(value, Mapping) or not (
+        set(value) == expected
+        or set(value) == expected | {"dissolved_tastant_micrograms"}
+    ):
+        raise ValueError("body contact fields changed")
+    raw_dissolved = value.get("dissolved_tastant_micrograms", ())
+    if not isinstance(raw_dissolved, (list, tuple)) or any(
+        isinstance(mass, bool) or not isinstance(mass, int)
+        for mass in raw_dissolved
+    ):
+        raise ValueError("body contact fields changed")
+    result = BodyContactState(
+        kind=value.get("kind"),
+        object_id=value.get("object_id"),
+        contact_patch_square_mm=value.get(
+            "contact_patch_square_mm"
+        ),
+        duration_microseconds=value.get("duration_microseconds"),
+        dissolved_tastant_micrograms=tuple(raw_dissolved),
+    )
+    result.verify()
+    if result.as_record() != dict(value):
+        raise ValueError("body contact record is not canonical")
+    return result
+
+
+def _body_from(value: object) -> EmbodiedBody:
+    expected = {
+        "active_contact",
+        "body_id",
+        "held_object_id",
+        "pose",
+        "radius_mm",
+        "reach_mm",
+        "receptor_geometry",
+    }
+    if not isinstance(value, Mapping) or set(value) != expected:
+        raise ValueError("body fields changed")
+    receptor = value.get("receptor_geometry")
+    contact = value.get("active_contact")
+    result = EmbodiedBody(
+        body_id=value.get("body_id"),
+        held_object_id=value.get("held_object_id"),
+        pose=_pose_from(value.get("pose"), "body pose"),
+        radius_mm=value.get("radius_mm"),
+        reach_mm=value.get("reach_mm"),
+        receptor_geometry=(
+            _receptor_geometry_from(receptor)
+            if receptor is not None
+            else None
+        ),
+        active_contact=(
+            _contact_from(contact) if contact is not None else None
+        ),
+    )
+    result.verify()
+    if result.as_record() != dict(value):
+        raise ValueError("body record is not canonical")
+    return result
+
+
+def _optical_surface_from(value: object) -> ObjectOpticalSurface:
+    expected = {
+        "cell_palette_indices",
+        "columns",
+        "palette_reflectance_ppm",
+        "rows",
+    }
+    if not isinstance(value, Mapping) or set(value) != expected:
+        raise ValueError("object optical surface fields changed")
+    raw_indices = value.get("cell_palette_indices")
+    raw_palette = value.get("palette_reflectance_ppm")
+    if (
+        not isinstance(raw_palette, list)
+        or any(not isinstance(item, list) for item in raw_palette)
+    ):
+        raise ValueError("object optical surface palette changed")
+    result = ObjectOpticalSurface(
+        columns=value.get("columns"),
+        rows=value.get("rows"),
+        palette_reflectance_ppm=tuple(
+            _physical_bands(
+                tuple(item),
+                "optical surface palette reflectance",
+            )
+            for item in raw_palette
+        ),
+        cell_palette_indices=(
+            tuple(raw_indices)
+            if isinstance(raw_indices, list)
+            else raw_indices
+        ),
+    )
+    result.verify()
+    if result.as_record() != dict(value):
+        raise ValueError("object optical surface record is not canonical")
+    return result
+
+
+def _object_from(value: object) -> EmbodiedObject:
+    expected = {
+        "held_by_body_id", "mass_grams", "material", "object_id", "position",
+        "radius_mm", "reflectance_ppm", "optical_surface"
+    }
+    if not isinstance(value, Mapping) or not (
+        expected <= set(value) <= expected | {"emission_ppm", "shape"}
+    ):
+        raise ValueError("object fields changed")
+    raw_position = value.get("position")
+    raw_material = value.get("material")
+    raw_optical_surface = value.get("optical_surface")
+    raw_emission = value.get("emission_ppm", ())
+    if not isinstance(raw_emission, (list, tuple)):
+        raise ValueError("object fields changed")
+    result = EmbodiedObject(
+        object_id=value.get("object_id"),
+        radius_mm=value.get("radius_mm"),
+        mass_grams=value.get("mass_grams"),
+        position=_position_from(raw_position, "object position") if raw_position is not None else None,
+        held_by_body_id=value.get("held_by_body_id"),
+        reflectance_ppm=_physical_bands(
+            tuple(value.get("reflectance_ppm"))
+            if isinstance(value.get("reflectance_ppm"), list)
+            else value.get("reflectance_ppm"),
+            "object reflectance",
+        ),
+        material=(
+            _material_from(raw_material)
+            if raw_material is not None
+            else None
+        ),
+        optical_surface=(
+            _optical_surface_from(raw_optical_surface)
+            if raw_optical_surface is not None
+            else None
+        ),
+        emission_ppm=tuple(raw_emission),
+        **_shape_fields(value),
+    )
+    result.verify()
+    if result.as_record() != dict(value):
+        raise ValueError("object record is not canonical")
+    return result
+
+
+def _v5_object_from(value: object) -> EmbodiedObject:
+    expected = {
+        "held_by_body_id",
+        "mass_grams",
+        "material",
+        "object_id",
+        "position",
+        "radius_mm",
+        "reflectance_ppm",
+    }
+    if not isinstance(value, Mapping) or set(value) != expected:
+        raise ValueError("v5 object fields changed")
+    raw_position = value.get("position")
+    raw_material = value.get("material")
+    result = EmbodiedObject(
+        object_id=value.get("object_id"),
+        radius_mm=value.get("radius_mm"),
+        mass_grams=value.get("mass_grams"),
+        position=(
+            _position_from(raw_position, "v5 object position")
+            if raw_position is not None
+            else None
+        ),
+        held_by_body_id=value.get("held_by_body_id"),
+        reflectance_ppm=_physical_bands(
+            tuple(value.get("reflectance_ppm"))
+            if isinstance(value.get("reflectance_ppm"), list)
+            else value.get("reflectance_ppm"),
+            "v5 object reflectance",
+        ),
+        material=(
+            _material_from(raw_material)
+            if raw_material is not None
+            else None
+        ),
+    )
+    result.verify()
+    record = result.as_record()
+    del record["optical_surface"]
+    if record != dict(value):
+        raise ValueError("v5 object record is not canonical")
+    return result
+
+
+def _legacy_object_from(value: object) -> EmbodiedObject:
+    expected = {
+        "held_by_body_id", "mass_grams", "object_id", "position", "radius_mm"
+    }
+    if not isinstance(value, Mapping) or set(value) != expected:
+        raise ValueError("legacy object fields changed")
+    raw_position = value.get("position")
+    result = EmbodiedObject(
+        object_id=value.get("object_id"),
+        radius_mm=value.get("radius_mm"),
+        mass_grams=value.get("mass_grams"),
+        position=(
+            _position_from(raw_position, "legacy object position")
+            if raw_position is not None else None
+        ),
+        held_by_body_id=value.get("held_by_body_id"),
+    )
+    result.verify()
+    legacy_record = result.as_record()
+    del legacy_record["reflectance_ppm"]
+    del legacy_record["material"]
+    del legacy_record["optical_surface"]
+    if legacy_record != dict(value):
+        raise ValueError("legacy object record is not canonical")
+    return result
+
+
+def _looks_expanded(payload: Mapping[str, object]) -> dict[str, object]:
+    """A state payload compared as physics: every look's pattern inline (whether the
+    record carried it by content identity or, in older records, inline), the limits
+    and the surface catalog set aside. Two records that differ only in how a look
+    is stored are the same state."""
+    catalog: dict[str, object] = {}
+    for entry in payload.get("optical_surface_catalog") or []:
+        if isinstance(entry, Mapping) and "content_sha256" in entry:
+            catalog[entry["content_sha256"]] = entry.get("surface")
+
+    def regions(items: object) -> object:
+        if not isinstance(items, list):
+            return items
+        out = []
+        for region in items:
+            if isinstance(region, Mapping) and isinstance(region.get("looks"), list):
+                region = dict(region)
+                looks = []
+                for look in region["looks"]:
+                    surface = look.get("surface") if isinstance(look, Mapping) else None
+                    if isinstance(surface, Mapping) and set(surface) == {"content_sha256"}:
+                        look = dict(look)
+                        look["surface"] = catalog.get(surface["content_sha256"], surface)
+                    looks.append(look)
+                region["looks"] = looks
+            out.append(region)
+        return out
+
+    def observation(value: object) -> object:
+        if isinstance(value, Mapping) and "regions" in value:
+            value = dict(value)
+            value["regions"] = regions(value["regions"])
+        return value
+
+    expanded: dict[str, object] = {}
+    for key, value in payload.items():
+        if key in ("limits", "optical_surface_catalog"):
+            continue
+        if key == "world":
+            value = observation(value)
+        elif key == "recent_applied_receipts" and isinstance(value, list):
+            value = [
+                {**item, "before": observation(item.get("before")), "after": observation(item.get("after"))}
+                if isinstance(item, Mapping) else item
+                for item in value
+            ]
+        expanded[key] = value
+    return expanded
+
+
+def _region_from(value: object) -> PhysicalRegion:
+    expected = {
+        "air", "bounds", "ceiling_height_mm", "illumination_ppm",
+        "reflectance_ppm", "region_id"
+    }
+    if not isinstance(value, Mapping) or not (expected <= set(value) <= expected | {"windows", "looks"}):
+        raise ValueError("physical region fields changed")
+    raw_windows = value.get("windows", [])
+    raw_looks = value.get("looks", [])
+    if not isinstance(raw_windows, list) or not isinstance(raw_looks, list):
+        raise ValueError("region windows and looks must be lists")
+    result = PhysicalRegion(
+        region_id=value.get("region_id"),
+        bounds=_room_from(value.get("bounds")),
+        ceiling_height_mm=value.get("ceiling_height_mm"),
+        windows=tuple(_window_from(item) for item in raw_windows),
+        looks=tuple(_look_from(item) for item in raw_looks),
+        reflectance_ppm=_physical_bands(
+            tuple(value.get("reflectance_ppm"))
+            if isinstance(value.get("reflectance_ppm"), list)
+            else value.get("reflectance_ppm"),
+            "region reflectance",
+        ),
+        illumination_ppm=_physical_bands(
+            tuple(value.get("illumination_ppm"))
+            if isinstance(value.get("illumination_ppm"), list)
+            else value.get("illumination_ppm"),
+            "region illumination",
+        ),
+        air=(
+            _air_from(value.get("air"))
+            if value.get("air") is not None
+            else None
+        ),
+    )
+    result.verify()
+    if result.as_record() != dict(value):
+        raise ValueError("physical region record is not canonical")
+    return result
+
+
+def _portal_from(value: object) -> PhysicalPortal:
+    expected = {
+        "air_flow_cubic_mm_per_second",
+        "aperture_max_mm", "aperture_min_mm", "axis", "height_mm",
+        "plane_mm", "portal_id", "region_ids"
+    }
+    if not isinstance(value, Mapping) or set(value) != expected:
+        raise ValueError("physical portal fields changed")
+    raw_regions = value.get("region_ids")
+    result = PhysicalPortal(
+        portal_id=value.get("portal_id"),
+        region_ids=tuple(raw_regions) if isinstance(raw_regions, list) else raw_regions,
+        axis=value.get("axis"),
+        plane_mm=value.get("plane_mm"),
+        aperture_min_mm=value.get("aperture_min_mm"),
+        aperture_max_mm=value.get("aperture_max_mm"),
+        height_mm=value.get("height_mm"),
+        air_flow_cubic_mm_per_second=value.get(
+            "air_flow_cubic_mm_per_second"
+        ),
+    )
+    result.verify()
+    if result.as_record() != dict(value):
+        raise ValueError("physical portal record is not canonical")
+    return result
+
+
+def _v3_body_from(value: object) -> EmbodiedBody:
+    expected = {
+        "body_id",
+        "held_object_id",
+        "pose",
+        "radius_mm",
+        "reach_mm",
+    }
+    if not isinstance(value, Mapping) or set(value) != expected:
+        raise ValueError("v3 body fields changed")
+    result = EmbodiedBody(
+        body_id=value.get("body_id"),
+        held_object_id=value.get("held_object_id"),
+        pose=_pose_from(value.get("pose"), "v3 body pose"),
+        radius_mm=value.get("radius_mm"),
+        reach_mm=value.get("reach_mm"),
+        receptor_geometry=None,
+        active_contact=None,
+    )
+    result.verify()
+    record = result.as_record()
+    del record["active_contact"]
+    del record["receptor_geometry"]
+    if record != dict(value):
+        raise ValueError("v3 body record is not canonical")
+    return result
+
+
+def _v3_object_from(value: object) -> EmbodiedObject:
+    expected = {
+        "held_by_body_id",
+        "mass_grams",
+        "object_id",
+        "position",
+        "radius_mm",
+        "reflectance_ppm",
+    }
+    if not isinstance(value, Mapping) or set(value) != expected:
+        raise ValueError("v3 object fields changed")
+    raw_position = value.get("position")
+    raw_reflectance = value.get("reflectance_ppm")
+    result = EmbodiedObject(
+        object_id=value.get("object_id"),
+        radius_mm=value.get("radius_mm"),
+        mass_grams=value.get("mass_grams"),
+        position=(
+            _position_from(raw_position, "v3 object position")
+            if raw_position is not None
+            else None
+        ),
+        held_by_body_id=value.get("held_by_body_id"),
+        reflectance_ppm=_physical_bands(
+            tuple(raw_reflectance)
+            if isinstance(raw_reflectance, list)
+            else raw_reflectance,
+            "v3 object reflectance",
+        ),
+        material=None,
+    )
+    result.verify()
+    record = result.as_record()
+    del record["material"]
+    del record["optical_surface"]
+    if record != dict(value):
+        raise ValueError("v3 object record is not canonical")
+    return result
+
+
+def _v3_region_from(value: object) -> PhysicalRegion:
+    expected = {
+        "bounds",
+        "ceiling_height_mm",
+        "illumination_ppm",
+        "reflectance_ppm",
+        "region_id",
+    }
+    if not isinstance(value, Mapping) or set(value) != expected:
+        raise ValueError("v3 region fields changed")
+    raw_reflectance = value.get("reflectance_ppm")
+    raw_illumination = value.get("illumination_ppm")
+    result = PhysicalRegion(
+        region_id=value.get("region_id"),
+        bounds=_room_from(value.get("bounds")),
+        ceiling_height_mm=value.get("ceiling_height_mm"),
+        reflectance_ppm=_physical_bands(
+            tuple(raw_reflectance)
+            if isinstance(raw_reflectance, list)
+            else raw_reflectance,
+            "v3 region reflectance",
+        ),
+        illumination_ppm=_physical_bands(
+            tuple(raw_illumination)
+            if isinstance(raw_illumination, list)
+            else raw_illumination,
+            "v3 region illumination",
+        ),
+        air=None,
+    )
+    result.verify()
+    record = result.as_record()
+    del record["air"]
+    if record != dict(value):
+        raise ValueError("v3 region record is not canonical")
+    return result
+
+
+def _v3_portal_from(value: object) -> PhysicalPortal:
+    expected = {
+        "aperture_max_mm",
+        "aperture_min_mm",
+        "axis",
+        "height_mm",
+        "plane_mm",
+        "portal_id",
+        "region_ids",
+    }
+    if not isinstance(value, Mapping) or set(value) != expected:
+        raise ValueError("v3 portal fields changed")
+    raw_regions = value.get("region_ids")
+    result = PhysicalPortal(
+        portal_id=value.get("portal_id"),
+        region_ids=(
+            tuple(raw_regions)
+            if isinstance(raw_regions, list)
+            else raw_regions
+        ),
+        axis=value.get("axis"),
+        plane_mm=value.get("plane_mm"),
+        aperture_min_mm=value.get("aperture_min_mm"),
+        aperture_max_mm=value.get("aperture_max_mm"),
+        height_mm=value.get("height_mm"),
+        air_flow_cubic_mm_per_second=None,
+    )
+    result.verify()
+    record = result.as_record()
+    del record["air_flow_cubic_mm_per_second"]
+    if record != dict(value):
+        raise ValueError("v3 portal record is not canonical")
+    return result
+
+
+def _default_regions() -> tuple[PhysicalRegion, ...]:
+    return (
+        PhysicalRegion(
+            "W1-region-A",
+            RoomBoundsMM(PositionMM(0, 0, 0), PositionMM(5000, 5000, 3000)),
+            3000,
+            (620000, 600000, 580000, 560000, 540000, 520000),
+            (700000, 680000, 650000, 620000, 590000, 560000),
+            AirVolumeState(
+                75_000_000_000,
+                (0, 0, 0, 0, 0, 0, 0, 0),
+            ),
+        ),
+        PhysicalRegion(
+            "W1-region-B",
+            RoomBoundsMM(PositionMM(5000, 0, 0), PositionMM(15000, 5000, 3000)),
+            None,
+            (310000, 360000, 420000, 480000, 540000, 600000),
+            (820000, 800000, 770000, 730000, 690000, 650000),
+            AirVolumeState(
+                150_000_000_000,
+                (0, 0, 0, 0, 0, 0, 0, 0),
+            ),
+        ),
+        PhysicalRegion(
+            "W1-region-C",
+            RoomBoundsMM(PositionMM(15000, 0, 0), PositionMM(20000, 5000, 3000)),
+            3000,
+            (470000, 500000, 530000, 560000, 590000, 620000),
+            (640000, 630000, 620000, 610000, 600000, 590000),
+            AirVolumeState(
+                75_000_000_000,
+                (0, 0, 0, 0, 0, 0, 0, 0),
+            ),
+        ),
+    )
+
+
+def _default_portals() -> tuple[PhysicalPortal, ...]:
+    return (
+        PhysicalPortal(
+            "W1-portal-1", ("W1-region-A", "W1-region-B"),
+            "x", 5000, 2000, 3000, 2200, 1_000_000_000,
+        ),
+        PhysicalPortal(
+            "W1-portal-2", ("W1-region-B", "W1-region-C"),
+            "x", 15000, 2000, 3000, 2200, 1_000_000_000,
+        ),
+    )
+
+
+def _default_receptor_geometry() -> BodyReceptorGeometry:
+    return BodyReceptorGeometry(
+        retinal_offset_mm=PositionMM(0, 0, 220),
+        left_ear_offset_mm=PositionMM(0, 85, 200),
+        right_ear_offset_mm=PositionMM(0, -85, 200),
+        touch_offset_mm=PositionMM(0, 0, 0),
+        touch_radius_mm=250,
+        oral_offset_mm=PositionMM(0, 0, 0),
+        oral_radius_mm=250,
+        olfactory_offset_mm=PositionMM(0, 0, 200),
+        odorant_saturation_nanograms_per_cubic_meter=(
+            20_000,
+            20_000,
+            20_000,
+            20_000,
+            20_000,
+            20_000,
+            20_000,
+            20_000,
+        ),
+        tastant_saturation_micrograms=(
+            100_000,
+            100_000,
+            100_000,
+            100_000,
+            100_000,
+        ),
+        touch_mass_span_grams=10_000,
+        touch_temperature_min_millikelvin=250_000,
+        touch_temperature_max_millikelvin=350_000,
+        touch_roughness_span_micrometers=100_000,
+    )
+
+
+def _default_material(
+    *,
+    odorant_base_nanograms: int,
+    tastant_base_micrograms: int,
+    temperature_millikelvin: int,
+    compliance_ppm: int,
+    roughness_micrometers: int,
+    moisture_ppm: int,
+) -> ObjectMaterialState:
+    return ObjectMaterialState(
+        odorant_reservoir_nanograms=tuple(
+            odorant_base_nanograms + channel * 10_000
+            for channel in range(ODORANT_CHANNELS)
+        ),
+        odorant_release_nanograms_per_second=tuple(
+            1_000 + channel * 100
+            for channel in range(ODORANT_CHANNELS)
+        ),
+        tastant_mass_micrograms=tuple(
+            tastant_base_micrograms + channel * 1_000
+            for channel in range(TASTANT_CHANNELS)
+        ),
+        surface_temperature_millikelvin=temperature_millikelvin,
+        compliance_ppm=compliance_ppm,
+        roughness_micrometers=roughness_micrometers,
+        moisture_ppm=moisture_ppm,
+    )
+
+
+def _base_objects() -> tuple[EmbodiedObject, ...]:
+    return (
+        EmbodiedObject(
+            "W1-object-1",
+            100,
+            500,
+            PositionMM(1500, 1000, 0),
+            reflectance_ppm=(
+                700000, 300000, 180000, 120000, 90000, 70000
+            ),
+            material=_default_material(
+                odorant_base_nanograms=2_000_000,
+                tastant_base_micrograms=80_000,
+                temperature_millikelvin=310_000,
+                compliance_ppm=250_000,
+                roughness_micrometers=12_000,
+                moisture_ppm=700_000,
+            ),
+        ),
+        EmbodiedObject(
+            "W1-object-2",
+            80,
+            240,
+            PositionMM(2500, 1000, 0),
+            reflectance_ppm=(
+                150000, 650000, 240000, 120000, 90000, 60000
+            ),
+            material=_default_material(
+                odorant_base_nanograms=1_200_000,
+                tastant_base_micrograms=20_000,
+                temperature_millikelvin=305_000,
+                compliance_ppm=500_000,
+                roughness_micrometers=8_000,
+                moisture_ppm=400_000,
+            ),
+        ),
+        EmbodiedObject(
+            "W1-object-3",
+            120,
+            900,
+            PositionMM(3500, 1000, 0),
+            reflectance_ppm=(
+                120000, 220000, 720000, 300000, 120000, 80000
+            ),
+            material=_default_material(
+                odorant_base_nanograms=800_000,
+                tastant_base_micrograms=10_000,
+                temperature_millikelvin=295_000,
+                compliance_ppm=100_000,
+                roughness_micrometers=40_000,
+                moisture_ppm=100_000,
+            ),
+        ),
+        EmbodiedObject(
+            "W1-object-4",
+            90,
+            360,
+            PositionMM(8000, 1000, 0),
+            reflectance_ppm=(
+                680000, 600000, 180000, 100000, 80000, 60000
+            ),
+            material=_default_material(
+                odorant_base_nanograms=500_000,
+                tastant_base_micrograms=15_000,
+                temperature_millikelvin=315_000,
+                compliance_ppm=350_000,
+                roughness_micrometers=18_000,
+                moisture_ppm=300_000,
+            ),
+        ),
+        EmbodiedObject(
+            "W1-object-5",
+            140,
+            1400,
+            PositionMM(12000, 3500, 0),
+            reflectance_ppm=(
+                240000, 180000, 620000, 520000, 180000, 90000
+            ),
+            material=_default_material(
+                odorant_base_nanograms=400_000,
+                tastant_base_micrograms=5_000,
+                temperature_millikelvin=300_000,
+                compliance_ppm=80_000,
+                roughness_micrometers=60_000,
+                moisture_ppm=50_000,
+            ),
+        ),
+        EmbodiedObject(
+            "W1-object-6",
+            110,
+            720,
+            PositionMM(17500, 1000, 0),
+            reflectance_ppm=(
+                520000, 200000, 180000, 650000, 300000, 120000
+            ),
+            material=_default_material(
+                odorant_base_nanograms=300_000,
+                tastant_base_micrograms=8_000,
+                temperature_millikelvin=320_000,
+                compliance_ppm=180_000,
+                roughness_micrometers=25_000,
+                moisture_ppm=200_000,
+            ),
+        ),
+    )
+
+
+def _default_objects() -> tuple[EmbodiedObject, ...]:
+    from dsf_ai_service.substrate.approved_curriculum_physical_surfaces import (
+        approved_curriculum_physical_surfaces,
+    )
+
+    return _base_objects() + approved_curriculum_physical_surfaces()
+
+
+class EmbodimentWorldAuthority:
+    """Atomic authority for one exact W1 multi-body/object world."""
+
+    def __init__(
+        self,
+        *,
+        authority_key: bytes | str,
+        room_id: str = "W1",
+        room_bounds: RoomBoundsMM | None = None,
+        self_body_id: str = "guala-body-1",
+        bodies: Sequence[EmbodiedBody] | None = None,
+        actor_ports: Sequence[EmbodimentPort] | None = None,
+        initial_objects: Sequence[EmbodiedObject] | None = None,
+        regions: Sequence[PhysicalRegion] | None = None,
+        portals: Sequence[PhysicalPortal] | None = None,
+        max_regions: int = DEFAULT_MAX_REGIONS,
+        max_portals: int = DEFAULT_MAX_PORTALS,
+        max_bodies: int = DEFAULT_MAX_BODIES,
+        max_objects: int = DEFAULT_MAX_OBJECTS,
+        receipt_capacity: int = DEFAULT_RECEIPT_CAPACITY,
+        max_command_bytes: int = DEFAULT_MAX_COMMAND_BYTES,
+        max_encoded_state_bytes: int = DEFAULT_MAX_ENCODED_STATE_BYTES,
+        contact_optical_surface_sequences: Sequence[
+            ContactOpticalSurfaceSequence
+        ] = (),
+        body_surface_sites: Sequence[MountedBodySurfaceSite] = (),
+        solar_coupling: SolarCoupling | None = None,
+        departed_object_ids: tuple[str, ...] = (),
+        screen_broadcasts: Sequence[ScreenBroadcast] = (),
+    ) -> None:
+        self._key = _authority_key(authority_key)
+        # Twelve places and sixteen doors bound the renovated home; the
+        # authority still validates every declared plan inside these caps.
+        self._max_regions = _bounded_integer(
+            max_regions, "region capacity", minimum=3, maximum=12
+        )
+        self._max_portals = _bounded_integer(
+            max_portals, "portal capacity", minimum=2, maximum=16
+        )
+        self._max_bodies = _bounded_integer(
+            max_bodies, "body capacity", minimum=2, maximum=DEFAULT_MAX_BODIES
+        )
+        self._max_objects = _bounded_integer(
+            max_objects,
+            "object capacity",
+            minimum=1,
+            maximum=DEFAULT_MAX_OBJECTS,
+        )
+        self._receipt_capacity = _bounded_integer(
+            receipt_capacity,
+            "receipt capacity",
+            minimum=1,
+            maximum=DEFAULT_RECEIPT_CAPACITY,
+        )
+        self._max_command_bytes = _bounded_integer(
+            max_command_bytes,
+            "command byte capacity",
+            minimum=64,
+            maximum=DEFAULT_MAX_COMMAND_BYTES,
+        )
+        self._max_encoded_state_bytes = _bounded_integer(
+            max_encoded_state_bytes,
+            "encoded state byte capacity",
+            minimum=4096,
+            maximum=DEFAULT_MAX_ENCODED_STATE_BYTES,
+        )
+        if (
+            not isinstance(contact_optical_surface_sequences, Sequence)
+            or isinstance(
+                contact_optical_surface_sequences,
+                (str, bytes, bytearray),
+            )
+        ):
+            raise ValueError("contact optical surface sequences changed type")
+        mounted_sequences: dict[str, ContactOpticalSurfaceSequence] = {}
+        for sequence in contact_optical_surface_sequences:
+            if not isinstance(sequence, ContactOpticalSurfaceSequence):
+                raise ValueError("contact optical surface sequence is not typed")
+            sequence.verify()
+            if sequence.object_id in mounted_sequences:
+                raise ValueError("contact optical surface object repeats")
+            mounted_sequences[sequence.object_id] = sequence
+        self._contact_optical_surface_sequences = mounted_sequences
+        if (
+            not isinstance(body_surface_sites, Sequence)
+            or isinstance(body_surface_sites, (str, bytes, bytearray))
+            or len(body_surface_sites) > MAX_BODY_SURFACE_SITES
+        ):
+            raise ValueError("body surface morphology exceeds its exact capacity")
+        mounted_surface_sites: dict[tuple[str, str], MountedBodySurfaceSite] = {}
+        for site in body_surface_sites:
+            if not isinstance(site, MountedBodySurfaceSite):
+                raise TypeError("body surface morphology contains an invalid site")
+            site.verify()
+            address = (site.body_id, site.site_id)
+            if address in mounted_surface_sites:
+                raise ValueError("body surface morphology repeats one site")
+            mounted_surface_sites[address] = site
+        self._body_surface_sites = dict(sorted(mounted_surface_sites.items()))
+        if regions is None:
+            physical_regions = _default_regions()
+        else:
+            if (
+                not isinstance(regions, Sequence)
+                or isinstance(regions, (str, bytes, bytearray))
+                or not 3 <= len(regions) <= self._max_regions
+                or any(not isinstance(item, PhysicalRegion) for item in regions)
+            ):
+                raise ValueError("physical region inventory exceeds capacity")
+            physical_regions = tuple(regions)
+        physical_regions = tuple(
+            sorted(physical_regions, key=lambda item: item.region_id)
+        )
+        self._declared_region_air = tuple(
+            (item.region_id, item.air) for item in physical_regions
+        )
+        if portals is None:
+            physical_portals = _default_portals()
+        else:
+            if (
+                not isinstance(portals, Sequence)
+                or isinstance(portals, (str, bytes, bytearray))
+                or not 2 <= len(portals) <= self._max_portals
+                or any(not isinstance(item, PhysicalPortal) for item in portals)
+            ):
+                raise ValueError("physical portal inventory exceeds capacity")
+            physical_portals = tuple(portals)
+        physical_portals = tuple(
+            sorted(physical_portals, key=lambda item: item.portal_id)
+        )
+        self._declared_portal_air_flow = tuple(
+            (item.portal_id, item.air_flow_cubic_mm_per_second)
+            for item in physical_portals
+        )
+        bounds = physical_regions[0].bounds
+        canonical_self_body_id = _identifier(self_body_id, "self body id")
+        if bodies is None:
+            embodied_bodies = (
+                EmbodiedBody(
+                    body_id=canonical_self_body_id,
+                    pose=PoseMM(PositionMM(1000, 1000, 0), 0),
+                    radius_mm=250,
+                    reach_mm=800,
+                    receptor_geometry=_default_receptor_geometry(),
+                ),
+                EmbodiedBody(
+                    body_id="w1-body-2",
+                    pose=PoseMM(
+                        PositionMM(
+                            bounds.maximum.x - 250,
+                            bounds.maximum.y - 250,
+                            bounds.minimum.z,
+                        ),
+                        180_000,
+                    ),
+                    radius_mm=250,
+                    reach_mm=800,
+                    receptor_geometry=_default_receptor_geometry(),
+                ),
+            )
+        else:
+            if (
+                not isinstance(bodies, Sequence)
+                or isinstance(bodies, (str, bytes, bytearray))
+                or not 2 <= len(bodies) <= self._max_bodies
+                or any(not isinstance(item, EmbodiedBody) for item in bodies)
+            ):
+                raise ValueError("world body inventory exceeds its exact capacity")
+            embodied_bodies = tuple(bodies)
+        embodied_bodies = tuple(
+            sorted(embodied_bodies, key=lambda item: item.body_id)
+        )
+        body_ids = {item.body_id for item in embodied_bodies}
+        if any(
+            body_id not in body_ids
+            for body_id, _site_id in self._body_surface_sites
+        ):
+            raise ValueError("body surface morphology references an absent body")
+        cutaneous_addresses = tuple(
+            (site.body_id, site.cutaneous_topology_index)
+            for site in self._body_surface_sites.values()
+            if site.cutaneous_topology_index is not None
+        )
+        if len(set(cutaneous_addresses)) != len(cutaneous_addresses):
+            raise ValueError("body surface morphology repeats a cutaneous address")
+        self._declared_body_receptor_geometry = tuple(
+            (item.body_id, item.receptor_geometry)
+            for item in embodied_bodies
+        )
+        if actor_ports is None:
+            other_ids = tuple(
+                item.body_id
+                for item in embodied_bodies
+                if item.body_id != canonical_self_body_id
+            )
+            if len(other_ids) != 1:
+                raise ValueError(
+                    "custom multi-body worlds require explicit actor ports"
+                )
+            embodied_ports = (
+                EmbodimentPort(PORT_ID, canonical_self_body_id),
+                EmbodimentPort(SECOND_BODY_PORT_ID, other_ids[0]),
+            )
+        else:
+            if (
+                not isinstance(actor_ports, Sequence)
+                or isinstance(actor_ports, (str, bytes, bytearray))
+                or len(actor_ports) != len(embodied_bodies)
+                or any(not isinstance(item, EmbodimentPort) for item in actor_ports)
+            ):
+                raise ValueError("actor port topology differs from body topology")
+            embodied_ports = tuple(actor_ports)
+        self._actor_ports = tuple(
+            sorted(embodied_ports, key=lambda item: item.port_id)
+        )
+        self._validate_port_topology(
+            canonical_self_body_id, embodied_bodies, self._actor_ports
+        )
+        if initial_objects is None:
+            objects = _default_objects()
+        else:
+            if (
+                not isinstance(initial_objects, Sequence)
+                or isinstance(initial_objects, (str, bytes, bytearray))
+                or not 1 <= len(initial_objects) <= self._max_objects
+            ):
+                raise ValueError("world object inventory exceeds its exact capacity")
+            if any(not isinstance(item, EmbodiedObject) for item in initial_objects):
+                raise ValueError("world object inventory contains an invalid object")
+            objects = tuple(initial_objects)
+        self._declared_object_material = tuple(
+            (item.object_id, item.material) for item in objects
+        )
+        genesis_self = next(
+            body for body in embodied_bodies
+            if body.body_id == canonical_self_body_id
+        )
+        genesis_region = next(
+            (
+                region for region in physical_regions
+                if region.bounds.minimum.x
+                <= genesis_self.pose.position.x
+                < region.bounds.maximum.x
+                and region.bounds.minimum.y
+                <= genesis_self.pose.position.y
+                < region.bounds.maximum.y
+            ),
+            physical_regions[0],
+        )
+        world = _WorldState(
+            revision=0,
+            room_id=genesis_region.region_id,
+            room_bounds=genesis_region.bounds,
+            regions=physical_regions,
+            portals=physical_portals,
+            self_body_id=canonical_self_body_id,
+            bodies=embodied_bodies,
+            objects=tuple(sorted(objects, key=lambda item: item.object_id)),
+        )
+        self._declared_topology_sha256 = self._topology_sha256(
+            physical_regions,
+            physical_portals,
+        )
+        self._validate_world(world)
+        # The exact declared home, retained for the one authenticated
+        # topology migration a renovation release may perform.
+        self._declared_genesis_world = world
+        # Things the declaration has taken away: a renovation removes them if they still
+        # stand in the lived world (a thing arrives by a declaration or a hand, and leaves
+        # the same way; the renovation is the builders' hand).
+        self._departed_object_ids = tuple(sorted(set(departed_object_ids)))
+        # The declaration this world is built under: its things at their authored
+        # places and what it has taken away. A renovation happens when the declaration
+        # a world was last built or renovated under differs from this one, never merely
+        # because she carried a thing into another room (a restore then changes nothing).
+        self._declaration_sha256 = self._declaration_sha256_for(objects)
+        self._recorded_declaration_sha256: str | None = self._declaration_sha256
+        if solar_coupling is not None:
+            region_ids = {region.region_id for region in physical_regions}
+            for region_id in solar_coupling.outdoor_region_ids:
+                if region_id not in region_ids:
+                    raise ValueError(
+                        "solar coupling names an absent outdoor region"
+                    )
+            for region_id, share in (
+                solar_coupling.window_share_ppm_by_region_id
+            ):
+                if region_id not in region_ids or not 0 < share <= 1_000_000:
+                    raise ValueError(
+                        "solar window share names an absent region or an "
+                        "unphysical fraction"
+                    )
+        self._solar_coupling = solar_coupling
+        declared_object_ids = {item.object_id for item in objects}
+        for broadcast in screen_broadcasts:
+            if broadcast.object_id not in declared_object_ids:
+                raise ValueError(
+                    "a screen broadcast names an absent object"
+                )
+            for frame in broadcast.frames:
+                _physical_bands(frame, "screen broadcast frame")
+        self._screen_broadcasts = tuple(screen_broadcasts)
+        # True once this process's restore genuinely renovated the home;
+        # recovery custody re-pairs at exactly that boundary.
+        self._home_renovation_performed = False
+        self._physical_body_mount_observation_receipt = (
+            self._derive_physical_body_mount_observation_receipt(world)
+        )
+        self_body = next(
+            body for body in world.bodies
+            if body.body_id == world.self_body_id
+        )
+        vocal_anatomy = {
+            "body_id": self_body.body_id,
+            "radius_mm": self_body.radius_mm,
+            "schema": "guala.embodiment.vocal_anatomy_edge.v1",
+        }
+        vocal_signature = _sign(
+            self._key,
+            b"guala.embodiment.vocal_anatomy_edge.v1\0",
+            vocal_anatomy,
+        )
+        self._physical_vocal_anatomy_receipt = _digest({
+            "authority_hmac_sha256": vocal_signature,
+            "payload": vocal_anatomy,
+        })
+        self._state = _AuthorityState(
+            world=world,
+            observation=self._observation_for(world),
+            recent_applied_receipts=(),
+            migration_receipt=None,
+        )
+        self._prepared_action_execution: PreparedActionExecution | None = None
+        self._committing_prepared_action_execution: (
+            PreparedActionExecution | None
+        ) = None
+        self._visibility_prepared_action: (
+            PreparedActionExecution | None
+        ) = None
+        self._lock = threading.RLock()
+        self._receipt_compact_bytes_cache: dict[str, int] = {}
+        self._receipt_fragment_cache: dict[str, _CanonicalJsonFragment] = {}
+        self._receipt_cache_catalog_shas: tuple[str, ...] = ()
+        self._empty_envelope_byte_count: int = _canonical_byte_count(
+            {
+                "authority_hmac_sha256": "0" * 64,
+                "payload_base64": "",
+                "schema": ENVELOPE_SCHEMA,
+            }
+        )
+        self._encoded_state_for(self._state)
+
+    def _validate_contact_optical_surface_sequences(
+        self,
+        world: _WorldState,
+    ) -> None:
+        objects = {item.object_id: item for item in world.objects}
+        for object_id, sequence in self._contact_optical_surface_sequences.items():
+            item = objects.get(object_id)
+            if item is None:
+                raise ValueError(
+                    "contact optical surface object is absent from the world"
+                )
+            if (
+                item.optical_surface is not None
+                and item.optical_surface not in sequence.surfaces
+            ):
+                raise ValueError(
+                    "contact optical surface object carries an unknown leaf"
+                )
+
+    def mount_contact_optical_surface_sequence(
+        self,
+        sequence: ContactOpticalSurfaceSequence,
+    ) -> None:
+        """Mount immutable source transport without changing physical state."""
+
+        if not isinstance(sequence, ContactOpticalSurfaceSequence):
+            raise ValueError("contact optical surface sequence is not typed")
+        sequence.verify()
+        with self._lock:
+            self._require_public_visibility_locked()
+            prior = self._contact_optical_surface_sequences.get(
+                sequence.object_id
+            )
+            if prior is not None:
+                if prior != sequence:
+                    raise ValueError(
+                        "contact optical surface sequence cannot be rebound"
+                    )
+                return
+            candidate = dict(self._contact_optical_surface_sequences)
+            candidate[sequence.object_id] = sequence
+            self._contact_optical_surface_sequences = candidate
+            try:
+                self._validate_contact_optical_surface_sequences(
+                    self._state.world
+                )
+            except BaseException:
+                self._contact_optical_surface_sequences = {
+                    key: value
+                    for key, value in candidate.items()
+                    if key != sequence.object_id
+                }
+                raise
+
+    def _derive_physical_body_mount_observation_receipt(
+        self,
+        world: _WorldState,
+    ) -> str:
+        """Bind anatomy before external optical curriculum objects exist."""
+
+        world_record = world._canonical_record()
+        mounted_objects = []
+        for value in world_record["objects"]:
+            if value.get("optical_surface") is not None:
+                continue
+            mounted = dict(value)
+            mounted.pop("optical_surface")
+            mounted_objects.append(mounted)
+        anatomical_world = {
+            **world_record,
+            "objects": mounted_objects,
+        }
+        if self._body_surface_sites:
+            anatomical_world["body_surface_morphology"] = [
+                site.as_record()
+                for site in self._body_surface_sites.values()
+            ]
+        unsigned = {
+            **anatomical_world,
+            "schema": V5_OBSERVATION_SCHEMA,
+            "state_sha256": _digest(anatomical_world),
+        }
+        signature = _sign(
+            self._key,
+            V5_OBSERVATION_DOMAIN,
+            unsigned,
+        )
+        return _digest({
+            "authority_hmac_sha256": signature,
+            "payload": unsigned,
+        })
+
+    def physical_body_mount_observation_receipt(self) -> str:
+        """Return the immutable body/room mount receipt."""
+
+        return self._physical_body_mount_observation_receipt
+
+    def physical_vocal_anatomy_receipt(self) -> str:
+        """Return the immutable authenticated vocal-anatomy body edge."""
+
+        return self._physical_vocal_anatomy_receipt
+
+    def migrate_declared_body_receptor_geometry(self) -> bool:
+        """Restore declared immutable receptor anatomy without resetting life.
+
+        Early persistent home bodies encoded ``None`` before the body's fixed
+        receptor geometry was mounted.  Authentication proves those bytes;
+        this explicit one-way migration then preserves every lived physical
+        value and mounts only the constructor-declared immutable anatomy.
+        """
+
+        with self._lock:
+            self._require_public_visibility_locked()
+            if self._prepared_action_execution is not None:
+                raise RuntimeError(
+                    "body receptor anatomy cannot migrate during an action"
+                )
+            declared = dict(self._declared_body_receptor_geometry)
+            if set(declared) != {
+                item.body_id for item in self._state.world.bodies
+            }:
+                raise ValueError("declared body receptor topology changed")
+            bodies: list[EmbodiedBody] = []
+            changed = False
+            for body in self._state.world.bodies:
+                mounted = declared[body.body_id]
+                if body.receptor_geometry is not None:
+                    if body.receptor_geometry != mounted:
+                        raise ValueError(
+                            "persisted body receptor anatomy differs from "
+                            "the declared mount"
+                        )
+                    bodies.append(body)
+                    continue
+                if mounted is None:
+                    bodies.append(body)
+                    continue
+                bodies.append(replace(body, receptor_geometry=mounted))
+                changed = True
+            if not changed:
+                return False
+            prior = self._state
+            if prior.world.revision >= MAX_REVISION:
+                raise ValueError("body receptor anatomy exhausted world revision")
+            migrated_world = replace(
+                prior.world,
+                revision=prior.world.revision + 1,
+                bodies=tuple(bodies),
+            )
+            self._validate_world(migrated_world)
+            resulting_observation = self._observation_for(migrated_world)
+            topology_sha256 = self._topology_sha256(
+                migrated_world.regions,
+                migrated_world.portals,
+            )
+            prior_encoded = self._encoded_state_for(prior)
+            migration = self._migration_receipt_for(
+                prior_envelope_sha256=hashlib.sha256(
+                    prior_encoded
+                ).hexdigest(),
+                prior_observation_receipt_sha256=(
+                    prior.observation.authority_receipt_sha256
+                ),
+                resulting_observation_receipt_sha256=(
+                    resulting_observation.authority_receipt_sha256
+                ),
+                prior_revision=prior.world.revision,
+                resulting_revision=migrated_world.revision,
+                parent_migration_receipt_sha256=(
+                    None
+                    if prior.migration_receipt is None
+                    else prior.migration_receipt.authority_receipt_sha256
+                ),
+                manifest_sha256=self._physical_manifest_sha256(),
+                prior_topology_sha256=topology_sha256,
+                resulting_topology_sha256=topology_sha256,
+            )
+            candidate = _AuthorityState(
+                world=migrated_world,
+                observation=resulting_observation,
+                recent_applied_receipts=(),
+                migration_receipt=migration,
+            )
+            self._encoded_state_for(candidate)
+            self._commit_authority_state(candidate)
+            return True
+
+    def admit_authored_departure(self, object_id: str) -> str:
+        """Let one thing leave the world at its boundary — the bin.
+
+        The mirror of an arrival: matter inside the world is conserved, and
+        this is where an eaten core lawfully goes out. The thing must be on
+        the floor or in the caregiver's hand; nothing held by the organism
+        body, and nothing its mouth or hand is on, can be taken away.
+        Committed with a revision like any real change. Returns the world
+        state sha after the departure.
+        """
+
+        with self._lock:
+            self._require_public_visibility_locked()
+            if self._prepared_action_execution is not None:
+                raise RuntimeError("a departure cannot happen during an action")
+            prior = self._state
+            world = prior.world
+            item = next((entry for entry in world.objects if entry.object_id == object_id), None)
+            if item is None:
+                raise ValueError("a departure requires an existing thing")
+            if item.held_by_body_id == world.self_body_id:
+                raise ValueError("the organism's own held thing cannot leave the world")
+            for body in world.bodies:
+                contact = body.active_contact
+                if body.body_id == world.self_body_id and contact is not None and contact.object_id == object_id:
+                    raise ValueError("a thing under the organism's contact cannot leave the world")
+            bodies = tuple(
+                replace(
+                    body,
+                    held_object_id=None if body.held_object_id == object_id else body.held_object_id,
+                    active_contact=None if (body.active_contact is not None and body.active_contact.object_id == object_id) else body.active_contact,
+                )
+                for body in world.bodies
+            )
+            if world.revision >= MAX_REVISION:
+                raise ValueError("departure exhausted world revision")
+            candidate_world = replace(
+                world,
+                revision=world.revision + 1,
+                bodies=bodies,
+                objects=tuple(entry for entry in world.objects if entry.object_id != object_id),
+            )
+            self._validate_world(candidate_world)
+            observation = self._observation_for(candidate_world)
+            candidate = _AuthorityState(
+                world=candidate_world,
+                observation=observation,
+                recent_applied_receipts=prior.recent_applied_receipts,
+                migration_receipt=prior.migration_receipt,
+            )
+            self._encoded_state_for(candidate)
+            self._commit_authority_state(candidate)
+            return observation.state_sha256
+
+    def admit_authored_arrival(self, item: EmbodiedObject) -> str:
+        """Admit one authored thing at the world's boundary — groceries.
+
+        Matter inside the world is conserved absolutely; the boundary is
+        where authored events (a caregiver's card, a song, a delivery)
+        lawfully enter. The arrival is validated like genesis authoring:
+        a fresh identity, a lawful standing spot, every cap respected —
+        then committed with a revision like any real change. Returns the
+        world state sha after the arrival.
+        """
+
+        with self._lock:
+            self._require_public_visibility_locked()
+            if self._prepared_action_execution is not None:
+                raise RuntimeError("an arrival cannot land during an action")
+            prior = self._state
+            item.verify()
+            if item.position is None or item.held_by_body_id is not None:
+                raise ValueError("an arrival must stand on the floor")
+            if any(
+                existing.object_id == item.object_id
+                for existing in prior.world.objects
+            ):
+                raise ValueError("an arrival requires a fresh identity")
+            if len(prior.world.objects) + 1 > self._max_objects:
+                raise ValueError("the home holds no room for another thing")
+            if prior.world.revision >= MAX_REVISION:
+                raise ValueError("arrival exhausted world revision")
+            candidate_world = replace(
+                prior.world,
+                revision=prior.world.revision + 1,
+                objects=tuple(
+                    sorted(
+                        (*prior.world.objects, item),
+                        key=lambda entry: entry.object_id,
+                    )
+                ),
+            )
+            self._validate_world(candidate_world)
+            observation = self._observation_for(candidate_world)
+            candidate = _AuthorityState(
+                world=candidate_world,
+                observation=observation,
+                recent_applied_receipts=prior.recent_applied_receipts,
+                migration_receipt=prior.migration_receipt,
+            )
+            self._encoded_state_for(candidate)
+            self._commit_authority_state(candidate)
+            return observation.state_sha256
+
+    def migrate_declared_home_topology(self) -> bool:
+        """Carry a lived world into a grown declared home — the renovation.
+
+        One authenticated release boundary may enlarge the home: the
+        declared genesis topology (regions, portals, authored objects)
+        replaces the persisted one while every piece of LIVED state is
+        preserved exactly — body poses, held objects, and each object's
+        lived material (a bitten apple stays bitten). An object keeps its
+        lived floor position when that position is lawful inside the new
+        plan; otherwise the renovation stands it at its authored place.
+        Room air restarts from the declared derivation: the renovation
+        airs the house out through its open doors, and the receipt says
+        so. The migration refuses to shrink: every persisted body must
+        stand lawfully inside the new plan, and every persisted object
+        must exist in the declaration.
+        """
+
+        with self._lock:
+            self._require_public_visibility_locked()
+            if self._prepared_action_execution is not None:
+                raise RuntimeError(
+                    "home topology cannot migrate during an action"
+                )
+            prior = self._state
+            declared = self._declared_genesis_world
+
+            # The renovation reads the declared anatomy: walls, doors,
+            # ceilings, paint and windows (the same identity the boot
+            # checks) and the authored things. Lived light, air and each
+            # thing's lived position, holder and material are not anatomy.
+            prior_topology = self._topology_sha256(
+                prior.world.regions, prior.world.portals
+            )
+            declared_objects = {
+                item.object_id: item for item in declared.objects
+            }
+            prior_objects = {
+                item.object_id: item for item in prior.world.objects
+            }
+
+            # Lived, never anatomy: where a thing lies, who holds it, its
+            # material (a bitten apple), and what it emits (a screen's
+            # broadcast lights it from within on the real clock).
+            def authored(item: EmbodiedObject) -> dict[str, object]:
+                return {
+                    key: value
+                    for key, value in item.as_record().items()
+                    if key not in (
+                        "position", "held_by_body_id", "material", "emission_ppm"
+                    )
+                }
+
+            def region_of(position: PositionMM | None):
+                if position is None:
+                    return None
+                for region in declared.regions:
+                    if (region.bounds.minimum.x <= position.x <= region.bounds.maximum.x
+                            and region.bounds.minimum.y <= position.y <= region.bounds.maximum.y):
+                        return region.region_id
+                return None
+
+            # A declared thing that lives in another room than its authored place (a chair
+            # shoved through a door, a book carried out) is stood back at its authored place
+            # by the builders when they come; it never brings them by itself.
+            strayed = [
+                object_id for object_id, item in declared_objects.items()
+                if object_id in prior_objects and prior_objects[object_id].position is not None and item.position is not None
+                and region_of(prior_objects[object_id].position) != region_of(item.position)
+            ]
+            if prior_topology == self._declared_topology_sha256 and self._recorded_declaration_sha256 == self._declaration_sha256 and all(
+                object_id in prior_objects
+                and authored(prior_objects[object_id]) == authored(item)
+                for object_id, item in declared_objects.items()
+            ):
+                return False
+            # Things that ARRIVED after genesis are not in the declaration;
+            # a renovation carries them exactly as they lived.
+            arrivals = {
+                object_id: prior_objects[object_id]
+                for object_id in set(prior_objects) - set(declared_objects)
+                if object_id not in self._departed_object_ids
+            }
+
+            def region_containing(
+                x: int, y: int, radius: int = 0
+            ) -> PhysicalRegion | None:
+                for region in declared.regions:
+                    if (
+                        region.bounds.minimum.x + radius <= x
+                        and x + radius <= region.bounds.maximum.x
+                        and region.bounds.minimum.y + radius <= y
+                        and y + radius <= region.bounds.maximum.y
+                    ):
+                        return region
+                return None
+
+            held_radius_by_body = {
+                item.held_by_body_id: item.radius_mm
+                for item in prior.world.objects
+                if item.held_by_body_id is not None
+            }
+
+            def restood(body: EmbodiedBody) -> EmbodiedBody:
+                carried = max(
+                    body.radius_mm,
+                    held_radius_by_body.get(body.body_id, 0),
+                )
+                x = body.pose.position.x
+                y = body.pose.position.y
+                if region_containing(x, y, carried) is not None:
+                    return body
+                # A lived stance that straddles a NEW wall is re-stood at
+                # the nearest lawful spot inside the room holding its
+                # centre: the builders walk you one step clear. The
+                # migration receipt carries this boundary like the rest.
+                home = region_containing(x, y)
+                if home is None:
+                    raise ValueError(
+                        "a lived body stands outside the declared home; "
+                        "the renovation refuses"
+                    )
+                clamped_x = min(
+                    max(x, home.bounds.minimum.x + carried),
+                    home.bounds.maximum.x - carried,
+                )
+                clamped_y = min(
+                    max(y, home.bounds.minimum.y + carried),
+                    home.bounds.maximum.y - carried,
+                )
+                return replace(
+                    body,
+                    pose=replace(
+                        body.pose,
+                        position=PositionMM(
+                            clamped_x, clamped_y, body.pose.position.z
+                        ),
+                    ),
+                )
+
+            restood_bodies = tuple(
+                restood(body) for body in prior.world.bodies
+            )
+            for body in restood_bodies:
+                if region_containing(
+                    body.pose.position.x,
+                    body.pose.position.y,
+                    max(
+                        body.radius_mm,
+                        held_radius_by_body.get(body.body_id, 0),
+                    ),
+                ) is None:
+                    raise ValueError(
+                        "a lived body stands outside the declared home; "
+                        "the renovation refuses"
+                    )
+
+            migrated_objects = list(arrivals.values())
+            for object_id in sorted(declared_objects):
+                authored = declared_objects[object_id]
+                lived = prior_objects.get(object_id)
+                if lived is None:
+                    migrated_objects.append(authored)
+                    continue
+                position = authored.position
+                if lived.position is None:
+                    # Held things stay in the hand that holds them.
+                    position = None
+                elif object_id in strayed:
+                    position = authored.position         # back in its own room, at its authored place
+                elif region_containing(
+                    lived.position.x, lived.position.y, authored.radius_mm
+                ) is not None:
+                    position = lived.position
+                migrated_objects.append(
+                    replace(
+                        authored,
+                        position=position,
+                        held_by_body_id=lived.held_by_body_id,
+                        material=(
+                            lived.material
+                            if lived.material is not None
+                            else authored.material
+                        ),
+                    )
+                )
+            # A carried lived position may collide with the renovation's
+            # new furniture. Deterministically stand the later-named of any
+            # colliding pair at its authored place instead; two authored
+            # placements colliding is a declaration defect and refuses.
+            def collides(left, right) -> bool:
+                if left.position is None or right.position is None:
+                    return False
+                dx = left.position.x - right.position.x
+                dy = left.position.y - right.position.y
+                span = left.radius_mm + right.radius_mm
+                return dx * dx + dy * dy < span * span
+
+            settled = {item.object_id: item for item in migrated_objects}
+            moved = True
+            while moved:
+                moved = False
+                ordered = sorted(settled)
+                for index, left_id in enumerate(ordered):
+                    for right_id in ordered[index + 1 :]:
+                        left, right = settled[left_id], settled[right_id]
+                        if not collides(left, right):
+                            continue
+                        # A thing that arrived after genesis has no authored place: it
+                        # keeps where it lived, and the declared thing it meets goes to
+                        # its own authored place; two arrivals are left as they lived.
+                        authored_right = declared_objects.get(right_id)
+                        if authored_right is not None and right.position != authored_right.position:
+                            settled[right_id] = replace(
+                                right, position=authored_right.position
+                            )
+                            moved = True
+                            continue
+                        authored_left = declared_objects.get(left_id)
+                        if authored_left is not None and left.position != authored_left.position:
+                            settled[left_id] = replace(
+                                left, position=authored_left.position
+                            )
+                            moved = True
+                            continue
+                        if authored_left is None or authored_right is None:
+                            # An arrival standing where a declared thing now goes is set
+                            # one step aside: the nearest free spot around where it lived,
+                            # inside its room and clear of everything settled.
+                            arrival_id = right_id if authored_right is None else left_id
+                            arrival = settled[arrival_id]
+                            spot = None
+                            for ring in (300, 600, 900, 1_200, 1_500):
+                                for eighth in range(8):
+                                    angle = math.pi * eighth / 4.0
+                                    candidate = PositionMM(
+                                        int(round(arrival.position.x + ring * math.cos(angle))),
+                                        int(round(arrival.position.y + ring * math.sin(angle))),
+                                        arrival.position.z,
+                                    )
+                                    if region_containing(candidate.x, candidate.y, arrival.radius_mm) is None:
+                                        continue
+                                    trial = replace(arrival, position=candidate)
+                                    if any(
+                                        other_id != arrival_id and collides(trial, other)
+                                        for other_id, other in settled.items()
+                                    ) or any(
+                                        collides(trial, body_as_thing)
+                                        for body_as_thing in (
+                                            replace(arrival, object_id=body.body_id, position=body.pose.position, radius_mm=body.radius_mm)
+                                            for body in restood_bodies
+                                        )
+                                    ):
+                                        continue
+                                    spot = candidate
+                                    break
+                                if spot is not None:
+                                    break
+                            if spot is None:
+                                raise ValueError(
+                                    f"an arrival ({arrival_id}) has no free spot beside where it lived; "
+                                    "the renovation refuses"
+                                )
+                            settled[arrival_id] = replace(arrival, position=spot)
+                            moved = True
+                            continue
+                        raise ValueError(
+                            "the declared home stands two things in one "
+                            f"place: {left_id} and {right_id}"
+                        )
+            migrated_objects = list(settled.values())
+            if prior.world.revision >= MAX_REVISION:
+                raise ValueError("home renovation exhausted world revision")
+            self_body = next(
+                body for body in restood_bodies
+                if body.body_id == prior.world.self_body_id
+            )
+            her_region = region_containing(
+                self_body.pose.position.x,
+                self_body.pose.position.y,
+                self_body.radius_mm,
+            )
+            if her_region is None:
+                raise ValueError(
+                    "her lived stance does not fit the declared home; "
+                    "the renovation refuses"
+                )
+            migrated_world = replace(
+                prior.world,
+                revision=prior.world.revision + 1,
+                room_id=her_region.region_id,
+                room_bounds=her_region.bounds,
+                regions=declared.regions,
+                portals=declared.portals,
+                bodies=restood_bodies,
+                objects=tuple(
+                    sorted(migrated_objects, key=lambda item: item.object_id)
+                ),
+            )
+            self._validate_world(migrated_world)
+            resulting_observation = self._observation_for(migrated_world)
+            prior_encoded = self._encoded_state_for(prior)
+            migration = self._migration_receipt_for(
+                prior_envelope_sha256=hashlib.sha256(
+                    prior_encoded
+                ).hexdigest(),
+                prior_observation_receipt_sha256=(
+                    prior.observation.authority_receipt_sha256
+                ),
+                resulting_observation_receipt_sha256=(
+                    resulting_observation.authority_receipt_sha256
+                ),
+                prior_revision=prior.world.revision,
+                resulting_revision=migrated_world.revision,
+                parent_migration_receipt_sha256=(
+                    None
+                    if prior.migration_receipt is None
+                    else prior.migration_receipt.authority_receipt_sha256
+                ),
+                manifest_sha256=self._physical_manifest_sha256(),
+                prior_topology_sha256=prior_topology,
+                resulting_topology_sha256=self._declared_topology_sha256,
+            )
+            candidate = _AuthorityState(
+                world=migrated_world,
+                observation=resulting_observation,
+                recent_applied_receipts=(),
+                migration_receipt=migration,
+            )
+            # The renovated world records the declaration it now stands under.
+            self._recorded_declaration_sha256 = self._declaration_sha256
+            self._encoded_state_for(candidate)
+            self._commit_authority_state(candidate)
+            self._home_renovation_performed = True
+            return True
+
+    @property
+    def home_renovation_performed(self) -> bool:
+        return self._home_renovation_performed
+
+    def migrate_declared_material_transport(self) -> bool:
+        """Mount declared material/air state omitted by an older live body.
+
+        Material reservoirs and room air are physical state, so an existing
+        non-null value is preserved.  Only an absent value may be initialized
+        from the constructor declaration; immutable release, contact, volume,
+        and portal-flow anatomy must still agree exactly.
+        """
+
+        with self._lock:
+            self._require_public_visibility_locked()
+            if self._prepared_action_execution is not None:
+                raise RuntimeError(
+                    "material transport cannot migrate during an action"
+                )
+            prior = self._state
+            declared_air = dict(self._declared_region_air)
+            declared_flow = dict(self._declared_portal_air_flow)
+            declared_material = dict(self._declared_object_material)
+            if set(declared_air) != {
+                item.region_id for item in prior.world.regions
+            }:
+                raise ValueError("declared material region topology changed")
+            if set(declared_flow) != {
+                item.portal_id for item in prior.world.portals
+            }:
+                raise ValueError("declared material portal topology changed")
+            declared_ids = set(declared_material)
+            lived_ids = {item.object_id for item in prior.world.objects}
+            # A declared thing may never vanish; a thing that ARRIVED at
+            # the boundary after genesis carries its own authored material
+            # and is its own declaration.
+            if declared_ids - lived_ids:
+                raise ValueError("declared material object topology changed")
+
+            changed = False
+            regions: list[PhysicalRegion] = []
+            for region in prior.world.regions:
+                mounted = declared_air[region.region_id]
+                if region.air is None:
+                    if mounted is not None:
+                        region = replace(region, air=mounted)
+                        changed = True
+                elif mounted is None:
+                    raise ValueError(
+                        "persisted region air is absent from the declared mount"
+                    )
+                elif region.air.volume_cubic_mm != mounted.volume_cubic_mm:
+                    raise ValueError(
+                        "persisted region air volume differs from geometry"
+                    )
+                regions.append(region)
+
+            portals: list[PhysicalPortal] = []
+            for portal in prior.world.portals:
+                mounted = declared_flow[portal.portal_id]
+                if portal.air_flow_cubic_mm_per_second is None:
+                    if mounted is not None:
+                        portal = replace(
+                            portal,
+                            air_flow_cubic_mm_per_second=mounted,
+                        )
+                        changed = True
+                elif portal.air_flow_cubic_mm_per_second != mounted:
+                    raise ValueError(
+                        "persisted portal air flow differs from the declared mount"
+                    )
+                portals.append(portal)
+
+            declared_emission = {
+                item.object_id: item.emission_ppm
+                for item in self._declared_genesis_world.objects
+            }
+            declared_look = {
+                item.object_id: item.optical_surface
+                for item in self._declared_genesis_world.objects
+            }
+            objects: list[EmbodiedObject] = []
+            for item in prior.world.objects:
+                if item.object_id not in declared_material:
+                    # An arrival: its material was authored when it landed.
+                    objects.append(item)
+                    continue
+                mounted = declared_material[item.object_id]
+                # Emission is authored anatomy like release rates: a lived
+                # thing that predates the emitter law takes its declared
+                # shine; a lived nonzero value is preserved.
+                authored_emission = declared_emission.get(item.object_id, ())
+                if not item.emission_ppm and any(authored_emission):
+                    item = replace(item, emission_ppm=authored_emission)
+                    changed = True
+                # A thing's look is authored anatomy too: a lived thing that predates
+                # its declared look takes it; a lived look is preserved.
+                authored_look = declared_look.get(item.object_id)
+                if item.optical_surface is None and authored_look is not None:
+                    item = replace(item, optical_surface=authored_look)
+                    changed = True
+                if item.material is None:
+                    if mounted is not None:
+                        item = replace(item, material=mounted)
+                        changed = True
+                elif mounted is None:
+                    raise ValueError(
+                        "persisted object material is absent from the declared mount"
+                    )
+                elif item.material != replace(
+                    mounted,
+                    # Depleting reservoirs are lived physical state: odour
+                    # leaves through the air at its declared rate, and
+                    # tastant mass leaves through real bites. A restart
+                    # preserves what genuinely remains; only immutable
+                    # material anatomy must match the declaration.
+                    odorant_reservoir_nanograms=(
+                        item.material.odorant_reservoir_nanograms
+                    ),
+                    tastant_mass_micrograms=(
+                        item.material.tastant_mass_micrograms
+                    ),
+                ):
+                    raise ValueError(
+                        "persisted object material anatomy differs from the "
+                        "declared mount"
+                    )
+                objects.append(item)
+
+            if not changed:
+                return False
+            if prior.world.revision >= MAX_REVISION:
+                raise ValueError("material transport exhausted world revision")
+            migrated_world = replace(
+                prior.world,
+                revision=prior.world.revision + 1,
+                regions=tuple(regions),
+                portals=tuple(portals),
+                objects=tuple(objects),
+            )
+            self._validate_world(migrated_world)
+            resulting_observation = self._observation_for(migrated_world)
+            prior_encoded = self._encoded_state_for(prior)
+            migration = self._migration_receipt_for(
+                prior_envelope_sha256=hashlib.sha256(
+                    prior_encoded
+                ).hexdigest(),
+                prior_observation_receipt_sha256=(
+                    prior.observation.authority_receipt_sha256
+                ),
+                resulting_observation_receipt_sha256=(
+                    resulting_observation.authority_receipt_sha256
+                ),
+                prior_revision=prior.world.revision,
+                resulting_revision=migrated_world.revision,
+                parent_migration_receipt_sha256=(
+                    None
+                    if prior.migration_receipt is None
+                    else prior.migration_receipt.authority_receipt_sha256
+                ),
+                manifest_sha256=self._physical_manifest_sha256(),
+                prior_topology_sha256=self._topology_sha256(
+                    prior.world.regions,
+                    prior.world.portals,
+                ),
+                resulting_topology_sha256=self._topology_sha256(
+                    migrated_world.regions,
+                    migrated_world.portals,
+                ),
+            )
+            candidate = _AuthorityState(
+                world=migrated_world,
+                observation=resulting_observation,
+                recent_applied_receipts=(),
+                migration_receipt=migration,
+            )
+            self._encoded_state_for(candidate)
+            self._commit_authority_state(candidate)
+            return True
+
+    def _require_public_visibility_locked(self) -> None:
+        if self._visibility_prepared_action is not None:
+            raise RuntimeError(
+                "embodiment world visibility transaction is in progress"
+            )
+
+    @property
+    def port_id(self) -> str:
+        with self._lock:
+            self._require_public_visibility_locked()
+            return next(
+                item.port_id
+                for item in self._actor_ports
+                if item.actor_body_id
+                == self._state.world.self_body_id
+            )
+
+    @property
+    def self_body_id(self) -> str:
+        with self._lock:
+            self._require_public_visibility_locked()
+            return self._state.world.self_body_id
+
+    @property
+    def actor_ports(self) -> tuple[EmbodimentPort, ...]:
+        return self._actor_ports
+
+    def _validate_port_topology(
+        self,
+        self_body_id: str,
+        bodies: tuple[EmbodiedBody, ...],
+        ports: tuple[EmbodimentPort, ...],
+    ) -> None:
+        if len(ports) != len(bodies):
+            raise ValueError("every body requires exactly one actor port")
+        for item in ports:
+            item.verify()
+        if tuple(sorted(ports, key=lambda item: item.port_id)) != ports:
+            raise ValueError("actor ports are not in canonical port order")
+        port_ids = tuple(item.port_id for item in ports)
+        actor_ids = tuple(item.actor_body_id for item in ports)
+        body_ids = tuple(item.body_id for item in bodies)
+        if len(set(port_ids)) != len(port_ids):
+            raise ValueError("actor port identities repeat")
+        if len(set(actor_ids)) != len(actor_ids) or set(actor_ids) != set(body_ids):
+            raise ValueError("actor port/body reciprocity changed")
+        self_ports = tuple(
+            item for item in ports if item.actor_body_id == self_body_id
+        )
+        if len(self_ports) != 1 or self_ports[0].port_id != PORT_ID:
+            raise ValueError("self body must retain the canonical self port")
+
+    def _validate_physical_topology(
+        self,
+        regions: tuple[PhysicalRegion, ...],
+        portals: tuple[PhysicalPortal, ...],
+    ) -> None:
+        if (
+            not 3 <= len(regions) <= self._max_regions
+            or regions != tuple(sorted(regions, key=lambda item: item.region_id))
+            or len({item.region_id for item in regions}) != len(regions)
+        ):
+            raise ValueError("physical region topology is not canonical")
+        for item in regions:
+            item.verify()
+        if (
+            not 2 <= len(portals) <= self._max_portals
+            or portals != tuple(sorted(portals, key=lambda item: item.portal_id))
+            or len({item.portal_id for item in portals}) != len(portals)
+        ):
+            raise ValueError("physical portal topology is not canonical")
+        region_by_id = {item.region_id: item for item in regions}
+        connected_pairs = set()
+        for portal in portals:
+            portal.verify()
+            if any(value not in region_by_id for value in portal.region_ids):
+                raise ValueError("portal names a region outside topology")
+            if portal.region_ids in connected_pairs:
+                raise ValueError("physical regions repeat a portal edge")
+            connected_pairs.add(portal.region_ids)
+            left, right = (region_by_id[value] for value in portal.region_ids)
+            if portal.axis == "x":
+                shared = {
+                    left.bounds.minimum.x, left.bounds.maximum.x
+                }.intersection({right.bounds.minimum.x, right.bounds.maximum.x})
+                overlap_min = max(left.bounds.minimum.y, right.bounds.minimum.y)
+                overlap_max = min(left.bounds.maximum.y, right.bounds.maximum.y)
+            else:
+                shared = {
+                    left.bounds.minimum.y, left.bounds.maximum.y
+                }.intersection({right.bounds.minimum.y, right.bounds.maximum.y})
+                overlap_min = max(left.bounds.minimum.x, right.bounds.minimum.x)
+                overlap_max = min(left.bounds.maximum.x, right.bounds.maximum.x)
+            if (
+                shared != {portal.plane_mm}
+                or not overlap_min <= portal.aperture_min_mm
+                < portal.aperture_max_mm <= overlap_max
+                or portal.height_mm > min(
+                    left.bounds.maximum.z, right.bounds.maximum.z
+                )
+            ):
+                raise ValueError("portal aperture differs from shared boundaries")
+            if portal.air_flow_cubic_mm_per_second is not None and (
+                left.air is None or right.air is None
+            ):
+                raise ValueError(
+                    "portal air flow requires signed air on both regions"
+                )
+        for region in regions:
+            incident_flow = sum(
+                portal.air_flow_cubic_mm_per_second or 0
+                for portal in portals
+                if region.region_id in portal.region_ids
+            )
+            if (
+                region.air is not None
+                and incident_flow * MAX_MATERIAL_ACTION_DURATION_US
+                > region.air.volume_cubic_mm * 1_000_000
+            ):
+                raise ValueError(
+                    "portal flow can evacuate more than signed air volume"
+                )
+
+    @staticmethod
+    def _region_containing(
+        regions: tuple[PhysicalRegion, ...],
+        position: PositionMM,
+        radius_mm: int,
+    ) -> PhysicalRegion | None:
+        matches = tuple(
+            item for item in regions
+            if item.bounds.contains_floor_disc(position, radius_mm)
+        )
+        return matches[0] if len(matches) == 1 else None
+
+    @staticmethod
+    def _portal_between(
+        portals: tuple[PhysicalPortal, ...],
+        left: str,
+        right: str,
+    ) -> PhysicalPortal | None:
+        pair = tuple(sorted((left, right)))
+        return next((item for item in portals if item.region_ids == pair), None)
+
+    @staticmethod
+    def _portal_crossing_is_clear(
+        portal: PhysicalPortal,
+        start: PositionMM,
+        finish: PositionMM,
+        radius_mm: int,
+    ) -> bool:
+        if portal.axis == "x":
+            delta = finish.x - start.x
+            if delta == 0:
+                return False
+            numerator = (portal.plane_mm - start.x) * (finish.y - start.y)
+            crossing_num = start.y * delta + numerator
+            denominator = delta
+        else:
+            delta = finish.y - start.y
+            if delta == 0:
+                return False
+            numerator = (portal.plane_mm - start.y) * (finish.x - start.x)
+            crossing_num = start.x * delta + numerator
+            denominator = delta
+        if denominator < 0:
+            crossing_num = -crossing_num
+            denominator = -denominator
+        return (
+            (portal.aperture_min_mm + radius_mm) * denominator
+            <= crossing_num
+            <= (portal.aperture_max_mm - radius_mm) * denominator
+            and start.z + radius_mm <= portal.height_mm
+            and finish.z + radius_mm <= portal.height_mm
+        )
+
+    @staticmethod
+    def _odorant_totals(world: _WorldState) -> tuple[int, ...]:
+        totals = [0] * ODORANT_CHANNELS
+        for region in world.regions:
+            if region.air is not None:
+                for index, value in enumerate(
+                    region.air.odorant_mass_nanograms
+                ):
+                    totals[index] += value
+        for item in world.objects:
+            if item.material is not None:
+                for index, value in enumerate(
+                    item.material.odorant_reservoir_nanograms
+                ):
+                    totals[index] += value
+        return tuple(totals)
+
+    def _advance_material_time(
+        self,
+        world: _WorldState,
+        duration_nanoseconds: int,
+    ) -> _WorldState:
+        duration = _bounded_integer(
+            duration_nanoseconds,
+            "material transport duration",
+            minimum=MIN_MATERIAL_ACTION_DURATION_US * 1_000,
+            maximum=MAX_MATERIAL_ACTION_DURATION_US * 1_000,
+        )
+        before_totals = self._odorant_totals(world)
+        regions = list(world.regions)
+        objects = list(world.objects)
+        region_index = {
+            region.region_id: index
+            for index, region in enumerate(regions)
+        }
+        air_mass = [
+            (
+                list(region.air.odorant_mass_nanograms)
+                if region.air is not None
+                else None
+            )
+            for region in regions
+        ]
+        body_by_id = {body.body_id: body for body in world.bodies}
+
+        for object_index, item in enumerate(objects):
+            material = item.material
+            if material is None:
+                continue
+            position = item.position
+            if position is None and item.held_by_body_id is not None:
+                holder = body_by_id.get(item.held_by_body_id)
+                position = (
+                    holder.pose.position if holder is not None else None
+                )
+            if position is None:
+                raise ValueError(
+                    "material object has no physical transport position"
+                )
+            region = self._region_containing(
+                world.regions,
+                position,
+                0,
+            )
+            if region is None:
+                raise ValueError(
+                    "material object left signed air topology"
+                )
+            target_index = region_index[region.region_id]
+            target_air = air_mass[target_index]
+            if target_air is None:
+                continue
+            reservoir = list(material.odorant_reservoir_nanograms)
+            for channel, rate in enumerate(
+                material.odorant_release_nanograms_per_second
+            ):
+                released = min(
+                    reservoir[channel],
+                    rate * duration // 1_000_000_000,
+                )
+                reservoir[channel] -= released
+                target_air[channel] += released
+                if target_air[channel] > MAX_MATERIAL_MASS:
+                    raise ValueError(
+                        "air odorant mass exceeds signed capacity"
+                    )
+            objects[object_index] = replace(
+                item,
+                material=replace(
+                    material,
+                    odorant_reservoir_nanograms=tuple(reservoir),
+                ),
+            )
+
+        base_air = [
+            tuple(values) if values is not None else None
+            for values in air_mass
+        ]
+        deltas = [
+            [0] * ODORANT_CHANNELS
+            for _region in regions
+        ]
+        for portal in world.portals:
+            flow = portal.air_flow_cubic_mm_per_second
+            if flow is None:
+                continue
+            left_id, right_id = portal.region_ids
+            left_index = region_index[left_id]
+            right_index = region_index[right_id]
+            left_region = regions[left_index]
+            right_region = regions[right_index]
+            left_air = base_air[left_index]
+            right_air = base_air[right_index]
+            if (
+                left_region.air is None
+                or right_region.air is None
+                or left_air is None
+                or right_air is None
+            ):
+                raise ValueError(
+                    "signed portal flow lost its air volume"
+                )
+            for channel in range(ODORANT_CHANNELS):
+                left_to_right = (
+                    left_air[channel] * flow * duration
+                    // (
+                        left_region.air.volume_cubic_mm
+                        * 1_000_000_000
+                    )
+                )
+                right_to_left = (
+                    right_air[channel] * flow * duration
+                    // (
+                        right_region.air.volume_cubic_mm
+                        * 1_000_000_000
+                    )
+                )
+                deltas[left_index][channel] += (
+                    right_to_left - left_to_right
+                )
+                deltas[right_index][channel] += (
+                    left_to_right - right_to_left
+                )
+
+        for index, region in enumerate(regions):
+            values = air_mass[index]
+            if values is None:
+                continue
+            settled = tuple(
+                values[channel] + deltas[index][channel]
+                for channel in range(ODORANT_CHANNELS)
+            )
+            if any(
+                value < 0 or value > MAX_MATERIAL_MASS
+                for value in settled
+            ):
+                raise ValueError(
+                    "finite air transport exceeded signed mass bounds"
+                )
+            regions[index] = replace(
+                region,
+                air=replace(
+                    region.air,
+                    odorant_mass_nanograms=settled,
+                ),
+            )
+        result = replace(
+            world,
+            regions=tuple(regions),
+            objects=tuple(objects),
+        )
+        if self._odorant_totals(result) != before_totals:
+            raise AssertionError(
+                "odorant transport violated exact mass conservation"
+            )
+        result = self._settle_solar_illumination(result)
+        return result
+
+    def solar_sun(self) -> tuple[float, float, float, int] | None:
+        """Where the sun is now for her world eye (the same clock and law that write
+        the sky's light into her rooms): a unit vector toward it and the sky's light in
+        ppm; None at night or in a home without a sun."""
+
+        coupling = self._solar_coupling
+        if coupling is None:
+            return None
+        override = os.environ.get("GUALA_SOLAR_UTC_OVERRIDE", "").strip()
+        second_of_day = (int(override) if override else int(time.time())) % 86_400
+        return coupling.sun_vector(second_of_day)
+
+    def _settle_solar_illumination(self, world: _WorldState) -> _WorldState:
+        """Write the real sun's current light into the declared places.
+
+        Runs inside each committed action's own transaction: outdoor
+        places take the sky's value for the real clock's second of day;
+        windowed places add their declared share of the sky on top of
+        their authored lamps. Between actions the light holds its last
+        written value, exactly restorable.
+        """
+
+        coupling = self._solar_coupling
+        if coupling is None and not self._screen_broadcasts:
+            return world
+        override = os.environ.get("GUALA_SOLAR_UTC_OVERRIDE", "").strip()
+        if override:
+            second_of_day = int(override) % 86_400
+        else:
+            second_of_day = int(time.time()) % 86_400
+        if self._screen_broadcasts:
+            emissions = {
+                broadcast.object_id: broadcast.emission_at(second_of_day)
+                for broadcast in self._screen_broadcasts
+            }
+            objects = []
+            screens_changed = False
+            for item in world.objects:
+                target = emissions.get(item.object_id)
+                if target is not None and item.emission_ppm != target:
+                    item = replace(item, emission_ppm=target)
+                    screens_changed = True
+                objects.append(item)
+            if screens_changed:
+                world = replace(world, objects=tuple(objects))
+        if coupling is None:
+            return world
+        sky = coupling.sky_ppm(second_of_day)
+        window_share = dict(coupling.window_share_ppm_by_region_id)
+        authored = {
+            region.region_id: region.illumination_ppm
+            for region in self._declared_genesis_world.regions
+        }
+        changed = False
+        regions = []
+        for region in world.regions:
+            if region.region_id in coupling.outdoor_region_ids:
+                lit = (sky,) * len(region.illumination_ppm)
+            elif region.region_id in window_share:
+                base = authored.get(
+                    region.region_id, region.illumination_ppm
+                )
+                share = window_share[region.region_id]
+                lit = tuple(
+                    min(1_000_000, value + (sky * share) // 1_000_000)
+                    for value in base
+                )
+            else:
+                regions.append(region)
+                continue
+            if lit != region.illumination_ppm:
+                region = replace(region, illumination_ppm=lit)
+                changed = True
+            regions.append(region)
+        if not changed:
+            return world
+        return replace(world, regions=tuple(regions))
+
+    def _validate_world(self, world: _WorldState) -> None:
+        _bounded_integer(world.revision, "world revision", minimum=0, maximum=MAX_REVISION)
+        self._validate_physical_topology(world.regions, world.portals)
+        region_by_id = {item.region_id: item for item in world.regions}
+        if (
+            world.room_id not in region_by_id
+            or world.room_bounds != region_by_id[world.room_id].bounds
+        ):
+            raise ValueError("self region projection differs from topology")
+        _identifier(world.self_body_id, "self body id")
+        if not 2 <= len(world.bodies) <= self._max_bodies:
+            raise ValueError("world body inventory exceeds its exact capacity")
+        if tuple(sorted(world.bodies, key=lambda item: item.body_id)) != world.bodies:
+            raise ValueError("world bodies are not in canonical identity order")
+        body_ids = [item.body_id for item in world.bodies]
+        if len(body_ids) != len(set(body_ids)) or world.self_body_id not in body_ids:
+            raise ValueError("world body identities or self-body changed")
+        for body in world.bodies:
+            body.verify()
+        self._validate_port_topology(
+            world.self_body_id, world.bodies, self._actor_ports
+        )
+        if not 1 <= len(world.objects) <= self._max_objects:
+            raise ValueError("world object inventory exceeds its exact capacity")
+        if tuple(sorted(world.objects, key=lambda item: item.object_id)) != world.objects:
+            raise ValueError("world objects are not in canonical identity order")
+        ids = [item.object_id for item in world.objects]
+        if len(ids) != len(set(ids)):
+            raise ValueError("world object identities are not unique")
+        held_by_body: dict[str, list[str]] = {
+            item.body_id: [] for item in world.bodies
+        }
+        placed = []
+        for item in world.objects:
+            item.verify()
+            if item.held_by_body_id is not None:
+                if item.held_by_body_id not in held_by_body:
+                    raise ValueError("object is held by a body outside this authority")
+                held_by_body[item.held_by_body_id].append(item.object_id)
+            else:
+                if self._region_containing(
+                    world.regions, item.position, item.radius_mm
+                ) is None:
+                    raise ValueError("object position is outside room geometry")
+                placed.append(item)
+        object_by_id = {item.object_id: item for item in world.objects}
+        occupied: list[tuple[EmbodiedBody, int]] = []
+        for body in world.bodies:
+            held = held_by_body[body.body_id]
+            expected_held = held[0] if len(held) == 1 else None
+            if len(held) > 1 or body.held_object_id != expected_held:
+                raise ValueError("body/object holding relation is not reciprocal")
+            carried_radius = body.radius_mm
+            if expected_held is not None:
+                carried_radius = max(
+                    carried_radius, object_by_id[expected_held].radius_mm
+                )
+            if self._region_containing(
+                world.regions, body.pose.position, carried_radius
+            ) is None:
+                raise ValueError("body and held object are outside room geometry")
+            occupied.append((body, carried_radius))
+            contact = body.active_contact
+            if contact is not None:
+                item = object_by_id.get(contact.object_id)
+                geometry = body.receptor_geometry
+                if (
+                    item is None
+                    or item.material is None
+                    or geometry is None
+                ):
+                    raise ValueError(
+                        "body contact lacks signed material/receptor state"
+                    )
+                if contact.kind == "oral" and not (
+                    (
+                        body.held_object_id == item.object_id
+                        and item.held_by_body_id == body.body_id
+                    )
+                    or (
+                        # Hand-fed: the thing at her mouth is held out by
+                        # another body (the caregiver), in that body's hand.
+                        item.position is None
+                        and item.held_by_body_id is not None
+                        and item.held_by_body_id != body.body_id
+                        and any(
+                            other.body_id == item.held_by_body_id
+                            and other.held_object_id == item.object_id
+                            for other in world.bodies
+                        )
+                    )
+                ):
+                    raise ValueError(
+                        "oral contact is not a reciprocal held relation"
+                    )
+                offset = (
+                    geometry.oral_offset_mm
+                    if contact.kind == "oral"
+                    else geometry.touch_offset_mm
+                )
+                receptor_radius = (
+                    geometry.oral_radius_mm
+                    if contact.kind == "oral"
+                    else geometry.touch_radius_mm
+                )
+                receptor_position = _receptor_position(body, offset)
+                # A held object has no floor position: it is in the body's
+                # hands and, during a contact, brought TO the receptor. Its
+                # contact position is the receptor's own; anything else would
+                # leave an object that must be held (the oral custody law
+                # above) forever separated from the mouth it must touch.
+                object_position = (
+                    item.position
+                    if item.position is not None
+                    else receptor_position
+                )
+                expected_patch = (
+                    _derived_contact_patch_square_mm(
+                        receptor_position=receptor_position,
+                        receptor_radius_mm=receptor_radius,
+                        object_position=object_position,
+                        object_radius_mm=item.radius_mm,
+                    )
+                    if receptor_position is not None
+                    else None
+                )
+                if expected_patch != contact.contact_patch_square_mm:
+                    raise ValueError(
+                        "body contact differs from signed geometry"
+                    )
+        self_body = next(
+            item for item in world.bodies if item.body_id == world.self_body_id
+        )
+        self_region = self._region_containing(
+            world.regions,
+            self_body.pose.position,
+            next(
+                radius for body, radius in occupied
+                if body.body_id == world.self_body_id
+            ),
+        )
+        if self_region is None or self_region.region_id != world.room_id:
+            raise ValueError("self body current region changed")
+        for index, (left, left_radius) in enumerate(occupied):
+            for right, right_radius in occupied[index + 1 :]:
+                if (
+                    self._region_containing(
+                        world.regions, left.pose.position, left_radius
+                    )
+                    == self._region_containing(
+                        world.regions, right.pose.position, right_radius
+                    )
+                    and _floor_discs_overlap(
+                    left.pose.position,
+                    left_radius,
+                    right.pose.position,
+                    right_radius,
+                    )
+                ):
+                    raise ValueError("body geometries intersect")
+        for body, carried_radius in occupied:
+            for item in placed:
+                if _is_bed(item) and body.body_id == world.self_body_id:
+                    continue  # she lies on her bed
+                if (
+                    self._region_containing(
+                        world.regions, body.pose.position, carried_radius
+                    )
+                    == self._region_containing(
+                        world.regions, item.position, item.radius_mm
+                    )
+                    and _floor_discs_overlap(
+                    body.pose.position,
+                    carried_radius,
+                    item.position,
+                    item.radius_mm,
+                    )
+                ):
+                    raise ValueError("body or held object intersects placed object geometry")
+        for index, left in enumerate(placed):
+            for right in placed[index + 1 :]:
+                if _is_bed(left) or _is_bed(right):
+                    continue  # her pillow and blanket lie on her bed
+                if (
+                    self._region_containing(
+                        world.regions, left.position, left.radius_mm
+                    )
+                    == self._region_containing(
+                        world.regions, right.position, right.radius_mm
+                    )
+                    and _floor_discs_overlap(
+                        left.position, left.radius_mm,
+                        right.position, right.radius_mm
+                    )
+                ):
+                    raise ValueError("placed objects intersect each other")
+        self._validate_contact_optical_surface_sequences(world)
+
+    def _observation_for(self, world: _WorldState) -> ObservationSnapshot:
+        state_record = world._canonical_record()
+        state_sha = _digest(state_record)
+        unsigned = {
+            **state_record,
+            "schema": OBSERVATION_SCHEMA,
+            "state_sha256": state_sha,
+        }
+        signature = _sign(self._key, OBSERVATION_DOMAIN, unsigned)
+        receipt = _digest({"authority_hmac_sha256": signature, "payload": unsigned})
+        return ObservationSnapshot(
+            revision=world.revision,
+            room_id=world.room_id,
+            room_bounds=world.room_bounds,
+            regions=world.regions,
+            portals=world.portals,
+            self_body_id=world.self_body_id,
+            bodies=world.bodies,
+            objects=world.objects,
+            state_sha256=state_sha,
+            authority_hmac_sha256=signature,
+            authority_receipt_sha256=receipt,
+        )
+
+    def observation_snapshot(self) -> ObservationSnapshot:
+        with self._lock:
+            self._require_public_visibility_locked()
+            return self._state.observation
+
+    def latest_execution_snapshot(self) -> ActionExecutionReceipt | None:
+        """Return the latest immutable completed action, if one exists."""
+        with self._lock:
+            self._require_public_visibility_locked()
+            if not self._state.recent_applied_receipts:
+                return None
+            return self._state.recent_applied_receipts[-1]
+
+    def applied_execution_for_causal_intent(
+        self,
+        causal_intent_receipt_sha256: str,
+    ) -> ActionExecutionReceipt | None:
+        """Resolve one retained applied execution by exact causal intent."""
+
+        intent = _sha256_identity(
+            causal_intent_receipt_sha256,
+            "causal intent receipt",
+        )
+        with self._lock:
+            self._require_public_visibility_locked()
+            matches = tuple(
+                value
+                for value in self._state.recent_applied_receipts
+                if value.causal_intent_receipt_sha256 == intent
+            )
+            if len(matches) > 1:
+                raise RuntimeError(
+                    "causal intent resolves multiple applied executions"
+                )
+            if not matches:
+                return None
+            return matches[0]
+
+    def _execution_receipt(
+        self,
+        *,
+        port_id: str,
+        actor_body_id: str | None,
+        causal_intent_receipt_sha256: str,
+        command_sha256: str,
+        expected_revision: int,
+        disposition: str,
+        reason: str,
+        elapsed_nanoseconds: int,
+        lifecycle: tuple[str, ...],
+        before: ObservationSnapshot,
+        after: ObservationSnapshot,
+    ) -> ActionExecutionReceipt:
+        elapsed = _bounded_integer(
+            elapsed_nanoseconds,
+            "execution elapsed time",
+            minimum=0,
+            maximum=MAX_MATERIAL_ACTION_DURATION_US * 1_000,
+        )
+        unsigned = {
+            "actor_body_id": actor_body_id,
+            "after": after._canonical_record(),
+            "before": before._canonical_record(),
+            "causal_intent_receipt_sha256": causal_intent_receipt_sha256,
+            "command_sha256": command_sha256,
+            "disposition": disposition,
+            "elapsed_nanoseconds": elapsed,
+            "expected_revision": expected_revision,
+            "lifecycle": list(lifecycle),
+            "observed_revision": before.revision,
+            "port_id": port_id,
+            "reason": reason,
+            "schema": EXECUTION_SCHEMA,
+        }
+        signature = _sign(self._key, EXECUTION_DOMAIN, unsigned)
+        receipt = _digest({"authority_hmac_sha256": signature, "payload": unsigned})
+        return ActionExecutionReceipt(
+            port_id=port_id,
+            actor_body_id=actor_body_id,
+            causal_intent_receipt_sha256=causal_intent_receipt_sha256,
+            command_sha256=command_sha256,
+            expected_revision=expected_revision,
+            observed_revision=before.revision,
+            disposition=disposition,
+            reason=reason,
+            elapsed_nanoseconds=elapsed,
+            lifecycle=lifecycle,
+            before=before,
+            after=after,
+            authority_hmac_sha256=signature,
+            authority_receipt_sha256=receipt,
+        )
+
+    def _reject(
+        self,
+        *,
+        port_id: str,
+        actor_body_id: str | None,
+        causal_intent_receipt_sha256: str,
+        command_sha256: str,
+        expected_revision: int,
+        reason: str,
+        lifecycle: tuple[str, ...],
+        before: ObservationSnapshot,
+    ) -> ActionExecutionReceipt:
+        return self._execution_receipt(
+            port_id=port_id,
+            actor_body_id=actor_body_id,
+            causal_intent_receipt_sha256=causal_intent_receipt_sha256,
+            command_sha256=command_sha256,
+            expected_revision=expected_revision,
+            disposition="rejected",
+            reason=reason,
+            elapsed_nanoseconds=0,
+            lifecycle=lifecycle + ("rejected",),
+            before=before,
+            after=before,
+        )
+
+    def _body_surface_temperature_millikelvin(
+        self,
+        body_id: str,
+        site: MountedBodySurfaceSite,
+    ) -> Fraction:
+        """Return the exact current surface temperature for this authority.
+
+        The base world has no thermal owner and therefore uses its explicit
+        immutable morphology temperature.  The thermally coupled production
+        authority overrides this with the current cutaneous energy state.
+        """
+
+        if site.body_id != body_id:
+            raise ValueError("body surface temperature changed owner")
+        return Fraction(site.reference_temperature_millikelvin)
+
+    def _settle_body_surface_command(
+        self,
+        world: _WorldState,
+        actor_body_id: str | None,
+        command: BodySurfaceContactCommand,
+    ) -> tuple[PreparedBodySurfaceContact, ...]:
+        if actor_body_id is None:
+            raise ValueError("body-surface contact requires an actor body")
+        command_record(command)
+        bodies = {body.body_id: body for body in world.bodies}
+        actor = bodies.get(actor_body_id)
+        if actor is None:
+            raise ValueError("body-surface actor is absent")
+        actor_sites_seen: set[str] = set()
+        recipient_sites_seen: set[tuple[str, str]] = set()
+        prepared: list[PreparedBodySurfaceContact] = []
+        for actuation in command.actuations:
+            recipient = bodies.get(actuation.recipient_body_id)
+            if recipient is None or recipient.body_id == actor.body_id:
+                raise ValueError("body-surface recipient is absent or identical")
+            actor_site = self._body_surface_sites.get(
+                (actor.body_id, actuation.actor_site_id)
+            )
+            recipient_site = self._body_surface_sites.get(
+                (recipient.body_id, actuation.recipient_site_id)
+            )
+            if actor_site is None or recipient_site is None:
+                raise ValueError("body-surface actuation references unmounted morphology")
+            # Her receptor sheet is addressed by the cutaneous index: a contact that
+            # lands on her must name one. Another body has no sheet here; her own
+            # touch on the caregiver's skin is settled by the same physics without it.
+            if recipient_site.cutaneous_topology_index is None and recipient.body_id == self._state.world.self_body_id:
+                raise ValueError("body-surface recipient has no cutaneous receptor")
+            if (
+                actuation.actor_site_id in actor_sites_seen
+                or (recipient.body_id, actuation.recipient_site_id)
+                in recipient_sites_seen
+            ):
+                raise ValueError("one surface cannot occupy two simultaneous contacts")
+            actor_sites_seen.add(actuation.actor_site_id)
+            recipient_sites_seen.add(
+                (recipient.body_id, actuation.recipient_site_id)
+            )
+            actor_rest_centre, _, _, _ = _world_body_surface_geometry(
+                actor,
+                actor_site,
+            )
+            (
+                recipient_centre,
+                recipient_normal,
+                recipient_tangent_u,
+                recipient_tangent_v,
+            ) = _world_body_surface_geometry(recipient, recipient_site)
+            travel = recipient_centre - actor_rest_centre
+            maximum_travel = actor.reach_mm * 1_000
+            if travel.dot(travel) > maximum_travel * maximum_travel:
+                raise ValueError("body-surface contact lies outside actor reach")
+            recipient_temperature = self._body_surface_temperature_millikelvin(
+                recipient.body_id,
+                recipient_site,
+            )
+            actor_temperature = self._body_surface_temperature_millikelvin(
+                actor.body_id,
+                actor_site,
+            )
+            boundary = recipient_centre
+            compressed = (
+                boundary
+                + recipient_normal.scaled(
+                    Fraction(-actuation.compression_micrometres)
+                )
+                + recipient_tangent_u.scaled(
+                    Fraction(actuation.tangential_u_micrometres)
+                )
+                + recipient_tangent_v.scaled(
+                    Fraction(actuation.tangential_v_micrometres)
+                )
+            )
+            released = (
+                boundary
+                + recipient_tangent_u.scaled(
+                    Fraction(actuation.tangential_u_micrometres)
+                )
+                + recipient_tangent_v.scaled(
+                    Fraction(actuation.tangential_v_micrometres)
+                )
+            )
+            recipient_contact_site = recipient_site.contact_site(
+                outward_normal=recipient_normal,
+                tangent_u=recipient_tangent_u,
+                tangent_v=recipient_tangent_v,
+            )
+            actor_contact_site = actor_site.contact_site(
+                outward_normal=recipient_normal.scaled(Fraction(-1)),
+                tangent_u=recipient_tangent_u,
+                tangent_v=recipient_tangent_v,
+            )
+            recipient_state = BodySurfaceState(
+                centre_micrometres=recipient_centre,
+                temperature_millikelvin=recipient_temperature,
+            )
+
+            def settle_phase(
+                actor_predecessor: ExactVector3,
+                actor_successor: ExactVector3,
+                duration_microseconds: int,
+            ) -> ReciprocalBodySurfaceContact:
+                physical = settle_admitted_body_surface_contact(
+                    admit_body_surface_pair(
+                        BodySurfaceTrajectory(
+                            site=recipient_contact_site,
+                            predecessor=recipient_state,
+                            successor=recipient_state,
+                        ),
+                        BodySurfaceTrajectory(
+                            site=actor_contact_site,
+                            predecessor=BodySurfaceState(
+                                centre_micrometres=actor_predecessor,
+                                temperature_millikelvin=actor_temperature,
+                            ),
+                            successor=BodySurfaceState(
+                                centre_micrometres=actor_successor,
+                                temperature_millikelvin=actor_temperature,
+                            ),
+                        ),
+                        duration_microseconds=Fraction(duration_microseconds),
+                    )
+                )
+                if physical.disposition.value != "contact":
+                    raise ValueError(
+                        "body-surface actuation phase did not produce contact"
+                    )
+                return physical
+
+            edge_duration = MIN_MATERIAL_ACTION_DURATION_US
+            dwell_duration = command.duration_microseconds - 2 * edge_duration
+            physical_phases = (
+                settle_phase(boundary, compressed, edge_duration),
+                settle_phase(compressed, compressed, dwell_duration),
+                settle_phase(compressed, released, edge_duration),
+            )
+            site_area = (
+                4
+                * recipient_site.half_extent_u_micrometres
+                * recipient_site.half_extent_v_micrometres
+            )
+            prepared.append(
+                PreparedBodySurfaceContact(
+                    physical_phases=physical_phases,
+                    recipient_cutaneous_topology_index=(
+                        recipient_site.cutaneous_topology_index
+                    ),
+                    recipient_site_area_square_micrometres=site_area,
+                )
+            )
+        return tuple(prepared)
+
+    def _transition(
+        self,
+        world: _WorldState,
+        actor_body_id: str | None,
+        command: EmbodimentCommand,
+    ) -> tuple[_WorldState | None, str]:
+        if (
+            actor_body_id is None
+            and isinstance(command, AdvancePhysicalTimeCommand)
+        ):
+            return self._advance_material_time(
+                world,
+                command.duration_microseconds * 1_000,
+            ), "applied"
+        if actor_body_id is None:
+            raise ValueError("a body command requires an actor body")
+        bodies = list(world.bodies)
+        body_index = next(
+            index
+            for index, item in enumerate(bodies)
+            if item.body_id == actor_body_id
+        )
+        body = replace(bodies[body_index], active_contact=None)
+        bodies[body_index] = body
+        objects = list(world.objects)
+        by_id = {item.object_id: (index, item) for index, item in enumerate(objects)}
+
+        def occupied_radius(value: EmbodiedBody) -> int:
+            if value.held_object_id is None:
+                return value.radius_mm
+            return max(value.radius_mm, by_id[value.held_object_id][1].radius_mm)
+
+        if isinstance(command, BodySurfaceContactCommand):
+            return self._advance_material_time(
+                replace(world, bodies=tuple(bodies)),
+                command.duration_microseconds * 1_000,
+            ), "applied"
+
+        if isinstance(
+            command,
+            (TouchContactCommand, OralContactCommand),
+        ):
+            found = by_id.get(command.object_id)
+            if found is None:
+                return None, "contact_unknown_object"
+            _object_index, item = found
+            geometry = body.receptor_geometry
+            if item.material is None or geometry is None:
+                return None, "material_receptors_unavailable"
+            # THE HAND-FEEDING LAW (drive organ, 2026-09-14): an oral contact
+            # takes matter from what is IN her mouth's reach — the object she
+            # holds herself, or the object another body holds out to her:
+            # that holder standing in her region within her reach, exactly
+            # the geometry by which a held thing can be taken hand to hand.
+            # Nothing else is biteable: no floor object, no distant hand.
+            # Every feeding animal is first fed by another's hand; the
+            # caregiver presents, the mouth acts.
+            hand_fed = False
+            if isinstance(command, OralContactCommand) and not (
+                body.held_object_id == item.object_id
+                and item.held_by_body_id == body.body_id
+            ):
+                holder = next(
+                    (
+                        other for other in bodies
+                        if other.body_id != body.body_id
+                        and other.held_object_id == item.object_id
+                    ),
+                    None,
+                )
+                if (
+                    holder is None
+                    or item.held_by_body_id != holder.body_id
+                    or item.position is not None
+                ):
+                    return None, "oral_contact_requires_held_object"
+                body_region = self._region_containing(
+                    world.regions, body.pose.position, body.radius_mm,
+                )
+                holder_region = self._region_containing(
+                    world.regions, holder.pose.position, occupied_radius(holder),
+                )
+                if (
+                    body_region is None
+                    or holder_region is None
+                    or holder_region.region_id != body_region.region_id
+                    or _distance_squared(body.pose.position, holder.pose.position)
+                    > body.reach_mm**2
+                ):
+                    return None, "oral_contact_offer_out_of_reach"
+                hand_fed = True
+            if (
+                item.position is None
+                and item.held_by_body_id != body.body_id
+                and not hand_fed
+            ):
+                return None, "contact_object_unavailable"
+            offset = (
+                geometry.oral_offset_mm
+                if isinstance(command, OralContactCommand)
+                else geometry.touch_offset_mm
+            )
+            receptor_radius = (
+                geometry.oral_radius_mm
+                if isinstance(command, OralContactCommand)
+                else geometry.touch_radius_mm
+            )
+            receptor_position = _receptor_position(body, offset)
+            if receptor_position is None:
+                return None, "contact_heading_geometry_unresolved"
+            # A held object has no floor position: it is in the body's hands
+            # and, during a contact, brought TO the receptor. Its contact
+            # position is the receptor's own; anything else would leave an
+            # object that must be held (the oral custody law) forever
+            # separated from the mouth it must touch.
+            object_position = (
+                item.position
+                if item.position is not None
+                else receptor_position
+            )
+            patch = _derived_contact_patch_square_mm(
+                receptor_position=receptor_position,
+                receptor_radius_mm=receptor_radius,
+                object_position=object_position,
+                object_radius_mm=item.radius_mm,
+            )
+            if patch is None:
+                return None, "contact_geometry_separated"
+            # THE BITE LAW (R1 eating, 2026-09-02): an oral contact takes
+            # real matter. The mouth removes exactly the contacted fraction
+            # of the object's tastant mass — patch over the object's own
+            # cross-section, the same geometric fraction the taste law
+            # already senses. No rate dial exists; matter present and
+            # geometry bound the bite. The world's mass genuinely falls;
+            # the organism-side bridge reads the exact before/after delta
+            # in the same transaction and delivers it to the resurrected
+            # nutrition law, so nothing is destroyed — it is eaten.
+            eaten_objects = list(world.objects)
+            dissolved_mouthful: tuple[int, ...] = ()
+            if isinstance(command, OralContactCommand) and item.material is not None:
+                cross_section = item.radius_mm * item.radius_mm
+                bitten = tuple(
+                    mass - min(mass, (mass * patch) // max(1, cross_section))
+                    for mass in item.material.tastant_mass_micrograms
+                )
+                dissolved_mouthful = tuple(
+                    before - after
+                    for before, after in zip(
+                        item.material.tastant_mass_micrograms, bitten
+                    )
+                )
+                if not any(dissolved_mouthful):
+                    dissolved_mouthful = ()
+                if bitten != item.material.tastant_mass_micrograms:
+                    object_index = next(
+                        index
+                        for index, candidate in enumerate(eaten_objects)
+                        if candidate.object_id == item.object_id
+                    )
+                    eaten_objects[object_index] = replace(
+                        item,
+                        material=replace(
+                            item.material,
+                            tastant_mass_micrograms=bitten,
+                        ),
+                    )
+                    item = eaten_objects[object_index]
+            advanced = self._advance_material_time(
+                replace(world, bodies=tuple(bodies), objects=tuple(eaten_objects)),
+                command.duration_microseconds * 1_000,
+            )
+            advanced_bodies = list(advanced.bodies)
+            advanced_body = advanced_bodies[body_index]
+            advanced_bodies[body_index] = replace(
+                advanced_body,
+                active_contact=BodyContactState(
+                    kind=(
+                        "oral"
+                        if isinstance(command, OralContactCommand)
+                        else "touch"
+                    ),
+                    object_id=item.object_id,
+                    contact_patch_square_mm=patch,
+                    duration_microseconds=(
+                        command.duration_microseconds
+                    ),
+                    dissolved_tastant_micrograms=dissolved_mouthful,
+                ),
+            )
+            return replace(
+                advanced,
+                bodies=tuple(advanced_bodies),
+            ), "applied"
+
+        if isinstance(command, AdvancePhysicalTimeCommand):
+            return self._advance_material_time(
+                replace(world, bodies=tuple(bodies)),
+                command.duration_microseconds * 1_000,
+            ), "applied"
+
+        if isinstance(command, MoveCommand):
+            target = command.target_pose
+            carried_radius = occupied_radius(body)
+            start_region = self._region_containing(
+                world.regions, body.pose.position, carried_radius
+            )
+            target_region = self._region_containing(
+                world.regions, target.position, carried_radius
+            )
+            if target_region is None:
+                return None, "move_outside_room"
+            if start_region is None:
+                raise RuntimeError("body lost its physical region")
+            if start_region.region_id != target_region.region_id:
+                portal = self._portal_between(
+                    world.portals,
+                    start_region.region_id,
+                    target_region.region_id,
+                )
+                if portal is None:
+                    return None, "move_crosses_disconnected_regions"
+                if not self._portal_crossing_is_clear(
+                    portal, body.pose.position, target.position, carried_radius
+                ):
+                    return None, "move_misses_portal_aperture"
+            for other in bodies:
+                if other.body_id == body.body_id:
+                    continue
+                other_region = self._region_containing(
+                    world.regions,
+                    other.pose.position,
+                    occupied_radius(other),
+                )
+                if (
+                    other_region in {start_region, target_region}
+                    and _straight_path_intersects_disc(
+                    body.pose.position,
+                    target.position,
+                    other.pose.position,
+                    carried_radius + occupied_radius(other),
+                    )
+                ):
+                    return None, "move_path_intersects_body"
+            # A step pushes light things in its path aside (a foot against a
+            # cup); heavy things block it. A thing that cannot be pushed to a
+            # clear spot blocks the step too.
+            pushed_objects = list(objects)
+            for index, item in enumerate(objects):
+                item_region = (
+                    self._region_containing(
+                        world.regions, item.position, item.radius_mm
+                    ) if item.position is not None else None
+                )
+                if (
+                    item.position is not None
+                    and item_region in {start_region, target_region}
+                    and _straight_path_intersects_disc(
+                    body.pose.position,
+                    target.position,
+                    item.position,
+                    carried_radius + item.radius_mm,
+                    )
+                ):
+                    if _is_bed(item) and body.body_id == world.self_body_id:
+                        continue  # her bed: she may step onto it and lie on it
+                    if int(item.mass_grams) > PUSH_MASS_GRAMS or item_region is None:
+                        return None, "move_path_intersects_object"
+                    # A thing a body is touching or holding is not pushed: its
+                    # contact is signed to where it lies, and moving it from
+                    # under a hand would make the world's own geometry a lie
+                    # (it raised in validation and stopped the actor, 2026-09-14).
+                    if any(
+                        other.active_contact is not None
+                        and other.active_contact.object_id == item.object_id
+                        for other in bodies
+                    ):
+                        return None, "move_path_intersects_object"
+                    moved = _push_aside(
+                        item, body.pose.position, target.position, carried_radius,
+                        item_region, pushed_objects, bodies, body.body_id,
+                    )
+                    if moved is None:
+                        return None, "move_path_intersects_object"
+                    pushed_objects[index] = moved
+            bodies[body_index] = replace(body, pose=target)
+            changed = replace(world, bodies=tuple(bodies), objects=tuple(pushed_objects))
+            if body.body_id == world.self_body_id:
+                changed = replace(
+                    changed,
+                    room_id=target_region.region_id,
+                    room_bounds=target_region.bounds,
+                )
+            return self._advance_material_time(
+                changed,
+                command.duration_microseconds * 1_000,
+            ), "applied"
+
+        if isinstance(command, PickCommand):
+            found = by_id.get(command.object_id)
+            if found is None:
+                return None, "pick_unknown_object"
+            if body.held_object_id is not None:
+                return None, "pick_body_already_holding"
+            index, item = found
+            if item.position is None:
+                return None, "pick_object_unavailable"
+            body_region = self._region_containing(
+                world.regions, body.pose.position, body.radius_mm
+            )
+            object_region = self._region_containing(
+                world.regions, item.position, item.radius_mm
+            )
+            if body_region != object_region:
+                return None, "pick_object_outside_region"
+            if _distance_squared(body.pose.position, item.position) > body.reach_mm**2:
+                return None, "pick_out_of_reach"
+            if self._region_containing(
+                world.regions,
+                body.pose.position,
+                max(body.radius_mm, item.radius_mm),
+            ) is None:
+                return None, "pick_carried_geometry_outside_room"
+            for other in bodies:
+                if (
+                    other.body_id != body.body_id
+                    and self._region_containing(
+                        world.regions,
+                        other.pose.position,
+                        occupied_radius(other),
+                    ) == body_region
+                    and _straight_path_intersects_disc(
+                        body.pose.position,
+                        item.position,
+                        other.pose.position,
+                        item.radius_mm + occupied_radius(other),
+                    )
+                ):
+                    return None, "pick_path_intersects_body"
+            for other in objects:
+                if (
+                    other.object_id != item.object_id
+                    and other.position is not None
+                    and self._region_containing(
+                        world.regions,
+                        other.position,
+                        other.radius_mm,
+                    ) == body_region
+                    and _straight_path_intersects_disc(
+                        body.pose.position,
+                        item.position,
+                        other.position,
+                        item.radius_mm + other.radius_mm,
+                    )
+                ):
+                    return None, "pick_path_intersects_object"
+            objects[index] = replace(item, position=None, held_by_body_id=body.body_id)
+            for other_index, other in enumerate(bodies):
+                if (
+                    other.active_contact is not None
+                    and other.active_contact.object_id == item.object_id
+                ):
+                    bodies[other_index] = replace(other, active_contact=None)
+            bodies[body_index] = replace(
+                body, held_object_id=item.object_id
+            )
+            return self._advance_material_time(
+                replace(
+                    world,
+                    bodies=tuple(bodies),
+                    objects=tuple(objects),
+                ),
+                command.duration_microseconds * 1_000,
+            ), "applied"
+
+        if isinstance(command, GraspContactCommand):
+            geometry = body.receptor_geometry
+            if geometry is None:
+                return None, "grasp_contact_geometry_unavailable"
+            receptor_position = _receptor_position(
+                body,
+                geometry.touch_offset_mm,
+            )
+            if receptor_position is None:
+                return None, "grasp_contact_heading_geometry_unresolved"
+            contacted = tuple(
+                item
+                for item in objects
+                if item.position is not None
+                and _derived_contact_patch_square_mm(
+                    receptor_position=receptor_position,
+                    receptor_radius_mm=geometry.touch_radius_mm,
+                    object_position=item.position,
+                    object_radius_mm=item.radius_mm,
+                )
+                is not None
+            )
+            if not contacted:
+                return None, "grasp_contact_absent"
+            if len(contacted) != 1:
+                return None, "grasp_contact_ambiguous"
+            return self._transition(
+                world,
+                actor_body_id,
+                PickCommand(
+                    object_id=contacted[0].object_id,
+                    duration_microseconds=command.duration_microseconds,
+                ),
+            )
+
+        if isinstance(command, ReleaseHeldObjectCommand):
+            if body.held_object_id is None:
+                return None, "release_body_holds_nothing"
+            held = by_id.get(body.held_object_id)
+            if held is None:
+                raise RuntimeError("held release object disappeared")
+            _object_index, item = held
+            if (
+                item.position is not None
+                or item.held_by_body_id != body.body_id
+            ):
+                raise RuntimeError("held release custody changed")
+            # Set down a hand's margin ahead, clear of the body's own disc:
+            # at exactly touching distance the lattice rounding overlapped
+            # the discs and the world refused every release (2026-09-14).
+            # The carried thing may be wider than the body: measure from the
+            # occupied radius, so a wide thing is not set down inside itself.
+            separation_mm = occupied_radius(body) + item.radius_mm + RELEASE_CLEARANCE_MM
+            dx, dy = rotate_lattice_offset(
+                separation_mm,
+                0,
+                body.pose.heading_millidegrees,
+            )
+            return self._transition(
+                world,
+                actor_body_id,
+                PlaceCommand(
+                    object_id=item.object_id,
+                    target_position=PositionMM(
+                        body.pose.position.x + dx,
+                        body.pose.position.y + dy,
+                        body.pose.position.z,
+                    ),
+                    duration_microseconds=command.duration_microseconds,
+                ),
+            )
+
+        if isinstance(command, TakeContactHeldObjectCommand):
+            if body.held_object_id is not None:
+                return None, "take_body_already_holding"
+            body_region = self._region_containing(
+                world.regions,
+                body.pose.position,
+                body.radius_mm,
+            )
+            candidates: list[tuple[int, EmbodiedBody, int, EmbodiedObject]] = []
+            for holder_index, holder in enumerate(bodies):
+                if holder.body_id == body.body_id or holder.held_object_id is None:
+                    continue
+                held = by_id.get(holder.held_object_id)
+                if held is None:
+                    raise RuntimeError("take contact held object disappeared")
+                object_index, item = held
+                if (
+                    item.position is not None
+                    or item.held_by_body_id != holder.body_id
+                ):
+                    raise RuntimeError("take contact custody changed")
+                holder_region = self._region_containing(
+                    world.regions,
+                    holder.pose.position,
+                    occupied_radius(holder),
+                )
+                if (
+                    holder_region == body_region
+                    and _distance_squared(
+                        body.pose.position,
+                        holder.pose.position,
+                    )
+                    <= body.reach_mm**2
+                ):
+                    candidates.append(
+                        (holder_index, holder, object_index, item)
+                    )
+            if not candidates:
+                return None, "take_contact_absent"
+            if len(candidates) != 1:
+                return None, "take_contact_ambiguous"
+            holder_index, holder, object_index, item = candidates[0]
+            for other in bodies:
+                if other.body_id in {body.body_id, holder.body_id}:
+                    continue
+                if (
+                    self._region_containing(
+                        world.regions,
+                        other.pose.position,
+                        occupied_radius(other),
+                    )
+                    == body_region
+                    and _straight_path_intersects_disc(
+                        body.pose.position,
+                        holder.pose.position,
+                        other.pose.position,
+                        item.radius_mm + occupied_radius(other),
+                    )
+                ):
+                    return None, "take_path_intersects_body"
+            for other in objects:
+                if other.object_id == item.object_id or other.position is None:
+                    continue
+                if (
+                    self._region_containing(
+                        world.regions,
+                        other.position,
+                        other.radius_mm,
+                    )
+                    == body_region
+                    and _straight_path_intersects_disc(
+                        body.pose.position,
+                        holder.pose.position,
+                        other.position,
+                        item.radius_mm + other.radius_mm,
+                    )
+                ):
+                    return None, "take_path_intersects_object"
+            objects[object_index] = replace(
+                item,
+                held_by_body_id=body.body_id,
+            )
+            bodies[body_index] = replace(
+                body,
+                held_object_id=item.object_id,
+            )
+            bodies[holder_index] = replace(
+                holder,
+                held_object_id=None,
+                active_contact=(
+                    None
+                    if (
+                        holder.active_contact is not None
+                        and holder.active_contact.object_id == item.object_id
+                    )
+                    else holder.active_contact
+                ),
+            )
+            return self._advance_material_time(
+                replace(
+                    world,
+                    bodies=tuple(bodies),
+                    objects=tuple(objects),
+                ),
+                command.duration_microseconds * 1_000,
+            ), "applied"
+
+        if isinstance(command, AdvanceContactOpticalSurfaceCommand):
+            if body.held_object_id is not None:
+                return None, "contact_surface_body_already_holding"
+            geometry = body.receptor_geometry
+            if geometry is None:
+                return None, "contact_surface_geometry_unavailable"
+            receptor_position = _receptor_position(
+                body,
+                geometry.touch_offset_mm,
+            )
+            if receptor_position is None:
+                return None, "contact_surface_heading_geometry_unresolved"
+            contacted = tuple(
+                (index, item, patch)
+                for index, item in enumerate(objects)
+                if item.position is not None
+                and (
+                    patch := _derived_contact_patch_square_mm(
+                        receptor_position=receptor_position,
+                        receptor_radius_mm=geometry.touch_radius_mm,
+                        object_position=item.position,
+                        object_radius_mm=item.radius_mm,
+                    )
+                )
+                is not None
+            )
+            if not contacted:
+                return None, "contact_surface_absent"
+            if len(contacted) != 1:
+                return None, "contact_surface_ambiguous"
+            object_index, item, patch = contacted[0]
+            sequence = self._contact_optical_surface_sequences.get(
+                item.object_id
+            )
+            if sequence is None:
+                return None, "contact_surface_unbound"
+            if item.optical_surface is None:
+                successor_index = 0
+            else:
+                try:
+                    successor_index = (
+                        sequence.surfaces.index(item.optical_surface) + 1
+                    )
+                except ValueError as error:
+                    raise RuntimeError(
+                        "contact surface left its mounted source sequence"
+                    ) from error
+            if successor_index >= len(sequence.surfaces):
+                return None, "contact_surface_sequence_complete"
+            objects[object_index] = replace(
+                item,
+                optical_surface=sequence.surfaces[successor_index],
+            )
+            bodies[body_index] = replace(
+                body,
+                active_contact=BodyContactState(
+                    kind="touch",
+                    object_id=item.object_id,
+                    contact_patch_square_mm=patch,
+                    duration_microseconds=command.duration_microseconds,
+                ),
+            )
+            return self._advance_material_time(
+                replace(
+                    world,
+                    bodies=tuple(bodies),
+                    objects=tuple(objects),
+                ),
+                command.duration_microseconds * 1_000,
+            ), "applied"
+
+        if isinstance(command, PlaceCommand):
+            found = by_id.get(command.object_id)
+            if found is None:
+                return None, "place_unknown_object"
+            index, item = found
+            if body.held_object_id != item.object_id or item.held_by_body_id != body.body_id:
+                return None, "place_object_not_held"
+            body_region = self._region_containing(
+                world.regions, body.pose.position, body.radius_mm
+            )
+            target_region = self._region_containing(
+                world.regions, command.target_position, item.radius_mm
+            )
+            if target_region is None:
+                return None, "place_outside_room"
+            if target_region != body_region:
+                return None, "place_target_outside_region"
+            if _distance_squared(body.pose.position, command.target_position) > body.reach_mm**2:
+                return None, "place_out_of_reach"
+            for other in bodies:
+                other_region = self._region_containing(
+                    world.regions,
+                    other.pose.position,
+                    occupied_radius(other),
+                )
+                if other_region == target_region and _floor_discs_overlap(
+                    other.pose.position,
+                    occupied_radius(other),
+                    command.target_position,
+                    item.radius_mm,
+                ):
+                    return None, "place_intersects_body"
+            for other in objects:
+                if (
+                    other.object_id != item.object_id
+                    and other.position is not None
+                    and not _is_bed(other)  # things may be set down on a bed
+                    and self._region_containing(
+                        world.regions, other.position, other.radius_mm
+                    ) == target_region
+                    and _floor_discs_overlap(
+                    command.target_position,
+                    item.radius_mm,
+                    other.position,
+                    other.radius_mm,
+                    )
+                ):
+                    return None, "place_intersects_object"
+            for other in bodies:
+                if (
+                    other.body_id != body.body_id
+                    and self._region_containing(
+                        world.regions,
+                        other.pose.position,
+                        occupied_radius(other),
+                    ) == target_region
+                    and _straight_path_intersects_disc(
+                        body.pose.position,
+                        command.target_position,
+                        other.pose.position,
+                        item.radius_mm + occupied_radius(other),
+                    )
+                ):
+                    return None, "place_path_intersects_body"
+            for other in objects:
+                if (
+                    other.object_id != item.object_id
+                    and other.position is not None
+                    and self._region_containing(
+                        world.regions,
+                        other.position,
+                        other.radius_mm,
+                    ) == target_region
+                    and not _is_bed(other)  # a thing carried onto a bed crosses it
+                    and _straight_path_intersects_disc(
+                        body.pose.position,
+                        command.target_position,
+                        other.position,
+                        item.radius_mm + other.radius_mm,
+                    )
+                ):
+                    return None, "place_path_intersects_object"
+            placed_item = replace(
+                item,
+                position=command.target_position,
+                held_by_body_id=None,
+            )
+            objects[index] = placed_item
+            bodies[body_index] = replace(body, held_object_id=None)
+            if placed_item.material is not None:
+                for recipient_index, recipient in enumerate(bodies):
+                    if recipient.held_object_id is not None:
+                        continue
+                    geometry = recipient.receptor_geometry
+                    if geometry is None:
+                        continue
+                    receptor_position = _receptor_position(
+                        recipient,
+                        geometry.touch_offset_mm,
+                    )
+                    contacted = tuple(
+                        (candidate, patch)
+                        for candidate in objects
+                        if candidate.position is not None
+                        and candidate.material is not None
+                        and (
+                            patch := _derived_contact_patch_square_mm(
+                                receptor_position=receptor_position,
+                                receptor_radius_mm=geometry.touch_radius_mm,
+                                object_position=candidate.position,
+                                object_radius_mm=candidate.radius_mm,
+                            )
+                        )
+                        is not None
+                    )
+                    placed_contact = tuple(
+                        (candidate, patch)
+                        for candidate, patch in contacted
+                        if candidate.object_id == placed_item.object_id
+                    )
+                    if not placed_contact:
+                        continue
+                    if len(contacted) != 1:
+                        return None, "place_recipient_contact_ambiguous"
+                    _candidate, patch = placed_contact[0]
+                    bodies[recipient_index] = replace(
+                        recipient,
+                        active_contact=BodyContactState(
+                            kind="touch",
+                            object_id=placed_item.object_id,
+                            contact_patch_square_mm=patch,
+                            duration_microseconds=command.duration_microseconds,
+                        ),
+                    )
+            return self._advance_material_time(
+                replace(
+                    world,
+                    bodies=tuple(bodies),
+                    objects=tuple(objects),
+                ),
+                command.duration_microseconds * 1_000,
+            ), "applied"
+
+        if isinstance(command, VocalizeCommand):
+            command_record(command)
+            return self._advance_material_time(
+                replace(world, bodies=tuple(bodies)),
+                command.sample_count
+                * 1_000_000_000
+                // VOCAL_SAMPLE_RATE_HZ,
+            ), "applied"
+
+        raise ValueError("unsupported embodiment command type")
+
+    def _commit_authority_state(self, candidate: _AuthorityState) -> None:
+        prepared = self._prepared_action_execution
+        if (
+            prepared is not None
+            and self._committing_prepared_action_execution is not prepared
+        ):
+            raise RuntimeError(
+                "embodiment world has a prepared action execution"
+            )
+        self._state = candidate
+
+    def prepare_port_command(
+        self,
+        *,
+        port_id: str,
+        command_payload: bytes,
+        causal_intent_receipt_sha256: str,
+        expected_revision: int,
+    ) -> PreparedActionExecution | ActionExecutionReceipt:
+        """Prepare one opaque command without changing live physical state.
+
+        Structurally rejected commands return their authenticated rejection
+        receipt immediately because there is no transition to reserve.
+        """
+
+        port = _identifier(port_id, "embodiment port id")
+        intent = _sha256_identity(causal_intent_receipt_sha256, "causal intent receipt")
+        revision = _bounded_integer(expected_revision, "expected revision", minimum=0, maximum=MAX_REVISION)
+        if (
+            not isinstance(command_payload, bytes)
+            or not command_payload
+            or len(command_payload) > self._max_command_bytes
+        ):
+            raise ValueError("embodiment command payload exceeds its exact byte boundary")
+        command_sha = _sha256(command_payload)
+
+        with self._lock:
+            self._require_public_visibility_locked()
+            if self._prepared_action_execution is not None:
+                raise RuntimeError(
+                    "embodiment world already has a prepared action execution"
+                )
+            before_state = self._state
+            before = before_state.observation
+            lifecycle = ("received",)
+            actor_by_port = {
+                item.port_id: item.actor_body_id for item in self._actor_ports
+            }
+            actor_body_id = actor_by_port.get(port)
+            environment_port = port == ENVIRONMENT_PORT_ID
+            if actor_body_id is None and not environment_port:
+                return self._reject(
+                    port_id=port,
+                    actor_body_id=None,
+                    causal_intent_receipt_sha256=intent,
+                    command_sha256=command_sha,
+                    expected_revision=revision,
+                    reason="port_mismatch",
+                    lifecycle=lifecycle,
+                    before=before,
+                )
+            lifecycle += (
+                "environment_port_validated"
+                if environment_port
+                else "port_validated",
+            )
+            if revision != before.revision:
+                return self._reject(
+                    port_id=port,
+                    actor_body_id=actor_body_id,
+                    causal_intent_receipt_sha256=intent,
+                    command_sha256=command_sha,
+                    expected_revision=revision,
+                    reason="stale_world_revision",
+                    lifecycle=lifecycle,
+                    before=before,
+                )
+            if before.revision == MAX_REVISION:
+                return self._reject(
+                    port_id=port,
+                    actor_body_id=actor_body_id,
+                    causal_intent_receipt_sha256=intent,
+                    command_sha256=command_sha,
+                    expected_revision=revision,
+                    reason="world_revision_exhausted",
+                    lifecycle=lifecycle,
+                    before=before,
+                )
+            try:
+                command = decode_command(command_payload, max_command_bytes=self._max_command_bytes)
+            except ValueError:
+                return self._reject(
+                    port_id=port,
+                    actor_body_id=actor_body_id,
+                    causal_intent_receipt_sha256=intent,
+                    command_sha256=command_sha,
+                    expected_revision=revision,
+                    reason="command_not_canonical",
+                    lifecycle=lifecycle,
+                    before=before,
+                )
+            if environment_port and not isinstance(
+                command, AdvancePhysicalTimeCommand
+            ):
+                return self._reject(
+                    port_id=port,
+                    actor_body_id=None,
+                    causal_intent_receipt_sha256=intent,
+                    command_sha256=command_sha,
+                    expected_revision=revision,
+                    reason="environment_port_requires_physical_time",
+                    lifecycle=lifecycle + ("command_decoded",),
+                    before=before,
+                )
+            lifecycle += ("command_decoded",)
+            body_surface_contacts: tuple[PreparedBodySurfaceContact, ...] = ()
+            if isinstance(command, BodySurfaceContactCommand):
+                try:
+                    body_surface_contacts = self._settle_body_surface_command(
+                        before_state.world,
+                        actor_body_id,
+                        command,
+                    )
+                except (TypeError, ValueError):
+                    return self._reject(
+                        port_id=port,
+                        actor_body_id=actor_body_id,
+                        causal_intent_receipt_sha256=intent,
+                        command_sha256=command_sha,
+                        expected_revision=revision,
+                        reason="body_surface_contact_geometry_rejected",
+                        lifecycle=lifecycle + ("geometry_rejected",),
+                        before=before,
+                    )
+            transitioned, reason = self._transition(
+                before_state.world, actor_body_id, command
+            )
+            if transitioned is None:
+                return self._reject(
+                    port_id=port,
+                    actor_body_id=actor_body_id,
+                    causal_intent_receipt_sha256=intent,
+                    command_sha256=command_sha,
+                    expected_revision=revision,
+                    reason=reason,
+                    lifecycle=lifecycle + ("geometry_rejected",),
+                    before=before,
+                )
+            transitioned = replace(transitioned, revision=before.revision + 1)
+            if isinstance(command, VocalizeCommand):
+                consequence_lifecycle = "vocal_commitment_validated"
+            elif isinstance(
+                command,
+                (TouchContactCommand, OralContactCommand),
+            ):
+                consequence_lifecycle = (
+                    "material_contact_geometry_validated"
+                )
+            elif isinstance(command, BodySurfaceContactCommand):
+                consequence_lifecycle = "body_surface_contact_validated"
+            elif isinstance(command, AdvancePhysicalTimeCommand):
+                consequence_lifecycle = (
+                    "physical_time_transport_validated"
+                )
+            else:
+                consequence_lifecycle = "geometry_validated"
+            self._validate_world(transitioned)
+            after = self._observation_for(transitioned)
+            receipt = self._execution_receipt(
+                port_id=port,
+                actor_body_id=actor_body_id,
+                causal_intent_receipt_sha256=intent,
+                command_sha256=command_sha,
+                expected_revision=revision,
+                disposition="applied",
+                reason="applied",
+                elapsed_nanoseconds=_command_elapsed_nanoseconds(
+                    command
+                ),
+                lifecycle=lifecycle + (consequence_lifecycle, "applied"),
+                before=before,
+                after=after,
+            )
+            # Applied body receipts are transaction authorities, not material
+            # world state.  The next ordinary environment boundary retires
+            # the bounded observation tail after every committed body action;
+            # retaining it unchanged made each later quiet beat re-encode two
+            # complete historical worlds per receipt forever.  A caller that
+            # still holds a receipt can continue to verify it independently.
+            retained = (
+                ()
+                if environment_port
+                else (
+                    before_state.recent_applied_receipts + (receipt,)
+                )[-self._receipt_capacity :]
+            )
+            candidate = _AuthorityState(
+                world=transitioned,
+                observation=after,
+                recent_applied_receipts=retained,
+                migration_receipt=before_state.migration_receipt,
+            )
+            try:
+                self._verify_state_capacity_for(candidate)
+            except ValueError as error:
+                if "byte capacity" not in str(error):
+                    raise
+                return self._reject(
+                    port_id=port,
+                    actor_body_id=actor_body_id,
+                    causal_intent_receipt_sha256=intent,
+                    command_sha256=command_sha,
+                    expected_revision=revision,
+                    reason="state_capacity_exhausted",
+                    lifecycle=lifecycle + (
+                        consequence_lifecycle,
+                        "state_capacity_rejected",
+                    ),
+                    before=before,
+                )
+            prepared = PreparedActionExecution(
+                execution_receipt=receipt,
+                _prior_state=before_state,
+                _candidate_state=candidate,
+                _construction_authority=(
+                    _PREPARED_ACTION_EXECUTION_AUTHORITY
+                ),
+                body_surface_contacts=body_surface_contacts,
+            )
+            self._require_prepared_action_execution_locked(
+                prepared,
+                require_live=False,
+            )
+            self._prepared_action_execution = prepared
+            return prepared
+
+    def _require_prepared_action_execution_locked(
+        self,
+        prepared: PreparedActionExecution,
+        *,
+        require_live: bool = True,
+    ) -> PreparedActionExecution:
+        if (
+            not isinstance(prepared, PreparedActionExecution)
+            or prepared._construction_authority
+            is not _PREPARED_ACTION_EXECUTION_AUTHORITY
+            or (
+                require_live
+                and self._prepared_action_execution is not prepared
+            )
+        ):
+            raise ValueError(
+                "prepared embodiment action execution changed custody"
+            )
+        receipt = prepared.execution_receipt
+        body_surface_lifecycle = (
+            receipt.lifecycle[-2:]
+            == ("body_surface_contact_validated", "applied")
+        )
+        if body_surface_lifecycle != bool(prepared.body_surface_contacts):
+            raise ValueError("prepared body-surface consequence changed custody")
+        for contact in prepared.body_surface_contacts:
+            if (
+                not isinstance(contact, PreparedBodySurfaceContact)
+                or not isinstance(
+                    contact.physical,
+                    ReciprocalBodySurfaceContact,
+                )
+                or contact.recipient_site_area_square_micrometres <= 0
+                or contact.physical.contact_area_square_micrometres <= 0
+                or contact.physical.contact_area_square_micrometres
+                > contact.recipient_site_area_square_micrometres
+            ):
+                raise ValueError("prepared body-surface consequence changed")
+        environment_interval = receipt.port_id == ENVIRONMENT_PORT_ID
+        receipt_custody_valid = (
+            not prepared._candidate_state.recent_applied_receipts
+            if environment_interval
+            else (
+                bool(prepared._candidate_state.recent_applied_receipts)
+                and prepared._candidate_state.recent_applied_receipts[-1]
+                is receipt
+            )
+        )
+        if (
+            receipt.disposition != "applied"
+            or receipt.before is not prepared._prior_state.observation
+            or receipt.after is not prepared._candidate_state.observation
+            or not receipt_custody_valid
+            or (environment_interval and receipt.actor_body_id is not None)
+            or prepared._candidate_state.migration_receipt
+            != prepared._prior_state.migration_receipt
+        ):
+            raise ValueError(
+                "prepared embodiment action execution changed state"
+            )
+        return prepared
+
+    def verify_prepared_action(
+        self,
+        prepared: PreparedActionExecution,
+    ) -> None:
+        """Verify that one prepared transition is still this world's live one."""
+
+        with self._lock:
+            current = self._require_prepared_action_execution_locked(prepared)
+            if self._state is not current._prior_state:
+                raise RuntimeError(
+                    "prepared embodiment action world changed before commit"
+                )
+
+    def body_surface_contacts_for_prepared_action(
+        self,
+        prepared: PreparedActionExecution,
+    ) -> tuple[PreparedBodySurfaceContact, ...]:
+        """Expose only the immutable consequences carried by one live prepare."""
+
+        with self._lock:
+            current = self._require_prepared_action_execution_locked(prepared)
+            return current.body_surface_contacts
+
+    def body_surface_sites_for(self, body_id: str) -> tuple[MountedBodySurfaceSite, ...]:
+        """The skin sites mounted on one body, in site-id order: morphology, read-only."""
+
+        with self._lock:
+            return tuple(site for (owner, _site_id), site in sorted(self._body_surface_sites.items()) if owner == body_id)
+
+    @contextmanager
+    def prepared_action_visibility_transaction(
+        self,
+        prepared: PreparedActionExecution,
+    ):
+        """Hide the physical commit until dependent sensory state installs."""
+
+        with self._lock:
+            current = self._require_prepared_action_execution_locked(
+                prepared
+            )
+            if (
+                self._state is not current._prior_state
+                or self._visibility_prepared_action is not None
+            ):
+                raise RuntimeError(
+                    "prepared embodiment visibility transaction changed"
+                )
+            self._visibility_prepared_action = current
+            try:
+                yield
+            finally:
+                self._visibility_prepared_action = None
+
+    def commit_prepared_action(
+        self,
+        prepared: PreparedActionExecution,
+    ) -> ActionExecutionReceipt:
+        """Commit exactly one live prepared transition."""
+
+        with self._lock:
+            current = self._require_prepared_action_execution_locked(
+                prepared
+            )
+            if self._state is not current._prior_state:
+                raise RuntimeError(
+                    "prepared embodiment action world changed before commit"
+                )
+            self._committing_prepared_action_execution = current
+            try:
+                self._commit_authority_state(current._candidate_state)
+            except BaseException:
+                self._state = current._prior_state
+                raise
+            finally:
+                self._committing_prepared_action_execution = None
+            self._prepared_action_execution = None
+            return current.execution_receipt
+
+    def encoded_committed_prepared_action(
+        self,
+        prepared: PreparedActionExecution,
+    ) -> bytes:
+        """Encode the hidden committed candidate for atomic persistence.
+
+        Public snapshots remain refused while the visibility transaction is
+        open.  The holder of the exact prepared capability may nevertheless
+        persist that same committed candidate before a dependent organism
+        successor becomes public.
+        """
+
+        with self._lock:
+            current = self._require_prepared_action_execution_locked(
+                prepared,
+                require_live=False,
+            )
+            if (
+                self._visibility_prepared_action is not current
+                or self._state is not current._candidate_state
+                or self._prepared_action_execution is not None
+                or self._committing_prepared_action_execution is not None
+            ):
+                raise RuntimeError(
+                    "committed prepared action is not the hidden world candidate"
+                )
+            return self._encoded_state_for(current._candidate_state)
+
+    @contextmanager
+    def committed_prepared_action_rollback_transaction(
+        self,
+        prepared: PreparedActionExecution,
+    ):
+        """Hold public visibility while one current prepared tail is undone."""
+
+        with self._lock:
+            current = self._require_prepared_action_execution_locked(
+                prepared,
+                require_live=False,
+            )
+            if (
+                self._state is not current._candidate_state
+                or self._prepared_action_execution is not None
+                or self._committing_prepared_action_execution is not None
+                or self._visibility_prepared_action is not None
+            ):
+                raise ValueError(
+                    "committed embodiment action tail changed"
+                )
+            rolled_back = [False]
+            self._visibility_prepared_action = current
+
+            def rollback_now() -> None:
+                assert not rolled_back[0]
+                self._state = current._prior_state
+                rolled_back[0] = True
+
+            try:
+                yield rollback_now
+            finally:
+                self._visibility_prepared_action = None
+
+    def discard_prepared_action(
+        self,
+        prepared: PreparedActionExecution,
+    ) -> None:
+        """Release one uncommitted transition without changing the world."""
+
+        with self._lock:
+            self._require_prepared_action_execution_locked(prepared)
+            self._prepared_action_execution = None
+
+    def execute_port_command(
+        self,
+        *,
+        port_id: str,
+        command_payload: bytes,
+        causal_intent_receipt_sha256: str,
+        expected_revision: int,
+    ) -> ActionExecutionReceipt:
+        """Execute one command while preserving the historical atomic API."""
+
+        with self._lock:
+            prepared = self.prepare_port_command(
+                port_id=port_id,
+                command_payload=command_payload,
+                causal_intent_receipt_sha256=(
+                    causal_intent_receipt_sha256
+                ),
+                expected_revision=expected_revision,
+            )
+            if isinstance(prepared, ActionExecutionReceipt):
+                return prepared
+            try:
+                return self.commit_prepared_action(prepared)
+            except BaseException:
+                if self._prepared_action_execution is prepared:
+                    self.discard_prepared_action(prepared)
+                raise
+
+    def recent_applied_receipts(self) -> tuple[ActionExecutionReceipt, ...]:
+        with self._lock:
+            self._require_public_visibility_locked()
+            return self._state.recent_applied_receipts
+
+    def verify_execution_receipt(self, receipt: ActionExecutionReceipt) -> None:
+        """Verify one self-contained applied W1 execution authority.
+
+        Verification authenticates the exact before/after geometry and command
+        identity.  It does not require the receipt to remain in the bounded
+        recent-receipt window.
+        """
+
+        if not isinstance(receipt, ActionExecutionReceipt):
+            raise ValueError("execution receipt is not typed")
+        with self._lock:
+            self._verify_execution(receipt)
+
+    def execution_receipt_from_record(
+        self,
+        record: object,
+    ) -> ActionExecutionReceipt:
+        """Decode and authenticate one exact applied execution record.
+
+        This is the public cold-custody counterpart to
+        :meth:`verify_execution_receipt`.  It accepts no compatibility
+        projection and reconstructs the complete signed before/after world
+        geometry before returning the typed receipt.
+        """
+
+        with self._lock:
+            return self._execution_from_record(record)
+
+    def verify_observation_snapshot(
+        self, observation: ObservationSnapshot
+    ) -> None:
+        """Verify one self-contained authenticated W1 observation."""
+
+        if not isinstance(observation, ObservationSnapshot):
+            raise ValueError("observation snapshot is not typed")
+        with self._lock:
+            self._verify_observation(observation)
+
+    def _verify_observation(self, observation: ObservationSnapshot) -> None:
+        world = _WorldState(
+            revision=observation.revision,
+            room_id=observation.room_id,
+            room_bounds=observation.room_bounds,
+            regions=observation.regions,
+            portals=observation.portals,
+            self_body_id=observation.self_body_id,
+            bodies=observation.bodies,
+            objects=observation.objects,
+        )
+        self._validate_world(world)
+        expected = self._observation_for(world)
+        if expected != observation:
+            raise ValueError("observation authentication changed")
+
+    def _verify_execution(self, receipt: ActionExecutionReceipt) -> None:
+        if receipt.disposition != "applied" or receipt.reason != "applied":
+            raise ValueError("retained execution must be applied")
+        if receipt.lifecycle[-2:] not in (
+            ("geometry_validated", "applied"),
+            ("vocal_commitment_validated", "applied"),
+            ("material_contact_geometry_validated", "applied"),
+            ("body_surface_contact_validated", "applied"),
+            ("physical_time_transport_validated", "applied"),
+        ):
+            raise ValueError("retained execution lifecycle changed")
+        elapsed = _bounded_integer(
+            receipt.elapsed_nanoseconds,
+            "execution elapsed time",
+            minimum=0,
+            maximum=MAX_MATERIAL_ACTION_DURATION_US * 1_000,
+        )
+        timed_lifecycles = {
+            ("geometry_validated", "applied"),
+            ("vocal_commitment_validated", "applied"),
+            ("material_contact_geometry_validated", "applied"),
+            ("body_surface_contact_validated", "applied"),
+            ("physical_time_transport_validated", "applied"),
+        }
+        if (
+            receipt.lifecycle[-2:] in timed_lifecycles
+            and elapsed == 0
+        ):
+            raise ValueError(
+                "execution elapsed time differs from physical lifecycle"
+            )
+        port_actor = next(
+            (
+                item.actor_body_id
+                for item in self._actor_ports
+                if item.port_id == receipt.port_id
+            ),
+            None,
+        )
+        environment_interval = receipt.port_id == ENVIRONMENT_PORT_ID
+        if environment_interval:
+            if (
+                receipt.actor_body_id is not None
+                or "environment_port_validated" not in receipt.lifecycle
+                or receipt.lifecycle[-2:]
+                != ("physical_time_transport_validated", "applied")
+            ):
+                raise ValueError("environment interval authority changed")
+        elif port_actor is None or receipt.actor_body_id != port_actor:
+            raise ValueError("retained execution port changed")
+        _sha256_identity(receipt.causal_intent_receipt_sha256, "causal intent receipt")
+        _sha256_identity(receipt.command_sha256, "command identity")
+        self._verify_observation(receipt.before)
+        self._verify_observation(receipt.after)
+        if (
+            receipt.expected_revision != receipt.before.revision
+            or receipt.observed_revision != receipt.before.revision
+            or receipt.after.revision != receipt.before.revision + 1
+        ):
+            raise ValueError("retained execution revision chain changed")
+        unsigned = receipt._canonical_unsigned_record()
+        expected_hmac = _sign(self._key, EXECUTION_DOMAIN, unsigned)
+        if not hmac.compare_digest(expected_hmac, receipt.authority_hmac_sha256):
+            raise ValueError("execution HMAC changed")
+        expected_receipt = _digest({"authority_hmac_sha256": expected_hmac, "payload": unsigned})
+        if expected_receipt != receipt.authority_receipt_sha256:
+            raise ValueError("execution receipt identity changed")
+
+    @staticmethod
+    def _verify_retained_execution_order(
+        receipts: tuple[ActionExecutionReceipt, ...],
+        current_observation: ObservationSnapshot,
+        *,
+        version_name: str = "",
+    ) -> None:
+        """Verify the bounded body-action tail around unretained world time."""
+
+        prefix = f"{version_name} " if version_name else ""
+        for left, right in zip(receipts, receipts[1:]):
+            if (
+                left.after.revision > right.before.revision
+                or (
+                    left.after.revision == right.before.revision
+                    and left.after != right.before
+                )
+            ):
+                raise ValueError(
+                    f"{prefix}retained execution order changed"
+                )
+        if receipts:
+            latest = receipts[-1].after
+            if (
+                latest.revision > current_observation.revision
+                or (
+                    latest.revision == current_observation.revision
+                    and latest != current_observation
+                )
+            ):
+                raise ValueError(
+                    f"{prefix}retained execution tail changed"
+                )
+
+    @staticmethod
+    def _optical_surface_content_sha(
+        surface: ObjectOpticalSurface,
+    ) -> str:
+        surface.verify()
+        return _sha256(surface._canonical_fragment().encoded)
+
+    def _optical_surface_catalog_for(
+        self,
+        state: _AuthorityState,
+    ) -> dict[str, ObjectOpticalSurface]:
+        objects: list[EmbodiedObject] = list(state.world.objects)
+        regions: list[PhysicalRegion] = list(state.world.regions)
+        for receipt in state.recent_applied_receipts:
+            objects.extend(receipt.before.objects)
+            objects.extend(receipt.after.objects)
+            regions.extend(receipt.before.regions)
+            regions.extend(receipt.after.regions)
+        catalog: dict[str, ObjectOpticalSurface] = {}
+        surfaces = [item.optical_surface for item in objects] + [look.surface for region in regions for look in region.looks]
+        for surface in surfaces:
+            if surface is None:
+                continue
+            content_sha = self._optical_surface_content_sha(surface)
+            prior = catalog.get(content_sha)
+            if prior is not None and prior != surface:
+                raise ValueError("optical surface content identity collided")
+            catalog[content_sha] = surface
+        return dict(sorted(catalog.items()))
+
+    def _compact_object_record(
+        self,
+        item: EmbodiedObject,
+        catalog: Mapping[str, ObjectOpticalSurface],
+    ) -> dict[str, object]:
+        item.verify()
+        record = item._canonical_record()
+        surface = item.optical_surface
+        if surface is None:
+            return record
+        content_sha = self._optical_surface_content_sha(surface)
+        if catalog.get(content_sha) != surface:
+            raise ValueError("optical surface is absent from exact catalog")
+        record["optical_surface"] = {"content_sha256": content_sha}
+        return record
+
+    def _compact_region_record(
+        self,
+        region: PhysicalRegion,
+        catalog: Mapping[str, ObjectOpticalSurface],
+    ) -> dict[str, object]:
+        """A region's record with each look's pattern replaced by its content identity:
+        the pattern lives once in the catalog, not in every receipt's before and after."""
+        record = region.as_record()
+        if not region.looks:
+            return record
+        looks = []
+        for look in region.looks:
+            content_sha = self._optical_surface_content_sha(look.surface)
+            if catalog.get(content_sha) != look.surface:
+                raise ValueError("look surface is absent from exact catalog")
+            entry = look.as_record()
+            entry["surface"] = {"content_sha256": content_sha}
+            looks.append(entry)
+        record["looks"] = looks
+        return record
+
+    def _region_from_compact_record(
+        self,
+        value: object,
+        catalog: Mapping[str, ObjectOpticalSurface],
+    ) -> PhysicalRegion:
+        """A region from its compact record; a look's pattern is resolved from the
+        catalog by content identity, or read inline as older records carried it."""
+        if isinstance(value, Mapping) and isinstance(value.get("looks"), list):
+            expanded = dict(value)
+            looks = []
+            for entry in value["looks"]:
+                if isinstance(entry, Mapping) and isinstance(entry.get("surface"), Mapping) and set(entry["surface"]) == {"content_sha256"}:
+                    content_sha = _sha256_identity(entry["surface"].get("content_sha256"), "look surface reference")
+                    surface = catalog.get(content_sha)
+                    if surface is None:
+                        raise ValueError("look surface reference is unresolved")
+                    entry = dict(entry)
+                    entry["surface"] = surface.as_record()
+                looks.append(entry)
+            expanded["looks"] = looks
+            value = expanded
+        return _region_from(value)
+
+    def _catalog_with_looks(
+        self,
+        catalog: Mapping[str, ObjectOpticalSurface],
+        regions: tuple[PhysicalRegion, ...],
+    ) -> dict[str, ObjectOpticalSurface]:
+        """The catalog plus the looks a record carried inline (older records)."""
+        full = dict(catalog)
+        for region in regions:
+            for look in region.looks:
+                full.setdefault(self._optical_surface_content_sha(look.surface), look.surface)
+        return full
+
+    @staticmethod
+    def _regions_match(raw_regions: object, regions: tuple[PhysicalRegion, ...], compact: list[dict[str, object]]) -> bool:
+        """The stored regions equal their canonical compact form, or their older inline form."""
+        if raw_regions == compact:
+            return True
+        return raw_regions == [item.as_record() for item in regions]
+
+    def _compact_world_record(
+        self,
+        world: _WorldState,
+        catalog: Mapping[str, ObjectOpticalSurface],
+    ) -> dict[str, object]:
+        return {
+            "bodies": [item.as_record() for item in world.bodies],
+            "objects": [
+                self._compact_object_record(item, catalog)
+                for item in world.objects
+            ],
+            "revision": world.revision,
+            "room_bounds": world.room_bounds.as_record(),
+            "room_id": world.room_id,
+            "regions": [self._compact_region_record(item, catalog) for item in world.regions],
+            "portals": [item.as_record() for item in world.portals],
+            "self_body_id": world.self_body_id,
+        }
+
+    def _compact_observation_record(
+        self,
+        observation: ObservationSnapshot,
+        catalog: Mapping[str, ObjectOpticalSurface],
+    ) -> dict[str, object]:
+        record = observation._canonical_record()
+        record["objects"] = [
+            self._compact_object_record(item, catalog)
+            for item in observation.objects
+        ]
+        record["regions"] = [self._compact_region_record(item, catalog) for item in observation.regions]
+        return record
+    def _compact_execution_record(
+        self,
+        receipt: ActionExecutionReceipt,
+        catalog: Mapping[str, ObjectOpticalSurface],
+    ) -> dict[str, object]:
+        record = receipt._canonical_record()
+        record["before"] = self._compact_observation_record(receipt.before, catalog)
+        record["after"] = self._compact_observation_record(receipt.after, catalog)
+        return record
+
+    def _state_payload_without_receipts_for(
+        self,
+        state: _AuthorityState,
+        catalog: Mapping[str, ObjectOpticalSurface],
+    ) -> dict[str, object]:
+        payload: dict[str, object] = {
+            "actor_ports": [item.as_record() for item in self._actor_ports],
+            "limits": {
+                "max_regions": self._max_regions,
+                "max_portals": self._max_portals,
+                "max_bodies": self._max_bodies,
+                "max_command_bytes": self._max_command_bytes,
+                "max_encoded_state_bytes": self._max_encoded_state_bytes,
+                "max_objects": self._max_objects,
+                "receipt_capacity": self._receipt_capacity,
+            },
+            "migration_receipt": (
+                state.migration_receipt.as_record()
+                if state.migration_receipt is not None
+                else None
+            ),
+            "optical_surface_catalog": [
+                {"content_sha256": content_sha,
+                 "surface": surface._canonical_fragment()}
+                for content_sha, surface in catalog.items()
+            ],
+            "recent_applied_receipts": [],
+            "schema": STATE_SCHEMA,
+            # The compact world record carries no fragments: encoded once here, spliced
+            # verbatim, so the canonical walk touches the catalog and the top level only.
+            "world": _CanonicalJsonFragment(_canonical_plain(self._compact_world_record(state.world, catalog))),
+        }
+        if self._recorded_declaration_sha256 is not None:
+            # A world built or renovated since the declaration identity exists records
+            # it; an older world records none until its next renovation.
+            payload["declaration_sha256"] = self._recorded_declaration_sha256
+        return payload
+
+    def _receipt_fragment(self, receipt: ActionExecutionReceipt, catalog: Mapping[str, ObjectOpticalSurface], catalog_shas: tuple[str, ...]) -> _CanonicalJsonFragment:
+        """A retained receipt's compact record, canonical once and kept by its identity for as
+        long as the catalog it references is the same."""
+        if catalog_shas != self._receipt_cache_catalog_shas:
+            self._receipt_compact_bytes_cache.clear()
+            self._receipt_fragment_cache.clear()
+            self._receipt_cache_catalog_shas = catalog_shas
+        fragment = self._receipt_fragment_cache.get(receipt.authority_receipt_sha256)
+        if fragment is None:
+            fragment = _CanonicalJsonFragment(_canonical_plain(self._compact_execution_record(receipt, catalog)))
+            self._receipt_fragment_cache[receipt.authority_receipt_sha256] = fragment
+        return fragment
+
+    def _state_payload_for(self, state: _AuthorityState) -> dict[str, object]:
+        catalog = self._optical_surface_catalog_for(state)
+        payload = self._state_payload_without_receipts_for(state, catalog)
+        catalog_shas = tuple(sorted(catalog.keys()))
+        payload["recent_applied_receipts"] = [
+            self._receipt_fragment(item, catalog, catalog_shas)
+            for item in state.recent_applied_receipts
+        ]
+        current = {item.authority_receipt_sha256 for item in state.recent_applied_receipts}
+        if len(self._receipt_fragment_cache) > len(current) + self._receipt_capacity:
+            self._receipt_fragment_cache = {sha: kept for sha, kept in self._receipt_fragment_cache.items() if sha in current}
+        return payload
+
+    def _v6_state_payload_for(self, state: _AuthorityState) -> dict[str, object]:
+        return {
+            "actor_ports": [item.as_record() for item in self._actor_ports],
+            "limits": {
+                "max_regions": self._max_regions,
+                "max_portals": self._max_portals,
+                "max_bodies": self._max_bodies,
+                "max_command_bytes": self._max_command_bytes,
+                "max_encoded_state_bytes": self._max_encoded_state_bytes,
+                "max_objects": self._max_objects,
+                "receipt_capacity": self._receipt_capacity,
+            },
+            "migration_receipt": (
+                state.migration_receipt.as_record()
+                if state.migration_receipt is not None
+                else None
+            ),
+            "recent_applied_receipts": [
+                item._canonical_record()
+                for item in state.recent_applied_receipts
+            ],
+            "schema": V6_STATE_SCHEMA,
+            "world": state.world._canonical_record(),
+        }
+
+    def _encoded_state_for(self, state: _AuthorityState) -> bytes:
+        payload = _canonical(self._state_payload_for(state))
+        if len(payload) > self._max_encoded_state_bytes:
+            raise ValueError("embodiment state exceeds its exact byte capacity")
+        signature = hmac.new(self._key, STATE_DOMAIN + payload, hashlib.sha256).hexdigest()
+        envelope = {
+            "authority_hmac_sha256": signature,
+            "payload_base64": base64.b64encode(payload).decode("ascii"),
+            "schema": ENVELOPE_SCHEMA,
+        }
+        encoded = _canonical(envelope)
+        if len(encoded) > self._max_encoded_state_bytes:
+            raise ValueError("encoded embodiment state exceeds its exact byte capacity")
+        return encoded
+
+    def _exact_state_payload_byte_count(self, state: _AuthorityState) -> int:
+        """The exact length of the state's canonical payload: the world and the retained
+        receipts are pre-encoded fragments, so this costs their splice, not a walk."""
+        return len(_canonical(self._state_payload_for(state)))
+
+    def _verify_state_capacity_for(self, state: _AuthorityState) -> None:
+        """Prove persistence extent without constructing a persistence image."""
+
+        payload_byte_count = self._exact_state_payload_byte_count(state)
+        if payload_byte_count > self._max_encoded_state_bytes:
+            raise ValueError(
+                "embodiment state exceeds its exact byte capacity"
+            )
+        payload_base64_byte_count = 4 * (
+            (payload_byte_count + 2) // 3
+        )
+        empty_envelope_byte_count = self._empty_envelope_byte_count
+        encoded_byte_count = (
+            empty_envelope_byte_count + payload_base64_byte_count
+        )
+        if encoded_byte_count > self._max_encoded_state_bytes:
+            raise ValueError(
+                "encoded embodiment state exceeds its exact byte capacity"
+            )
+
+    def encoded_snapshot(self) -> bytes:
+        with self._lock:
+            self._require_public_visibility_locked()
+            return self._encoded_state_for(self._state)
+
+    def _observation_from_record(self, value: object) -> ObservationSnapshot:
+        expected = {
+            "authority_hmac_sha256",
+            "authority_receipt_sha256",
+            "bodies",
+            "objects",
+            "portals",
+            "regions",
+            "revision",
+            "room_bounds",
+            "room_id",
+            "schema",
+            "self_body_id",
+            "state_sha256",
+        }
+        if not isinstance(value, Mapping) or set(value) != expected or value.get("schema") != OBSERVATION_SCHEMA:
+            raise ValueError("observation record fields changed")
+        raw_objects = value.get("objects")
+        raw_bodies = value.get("bodies")
+        raw_regions = value.get("regions")
+        raw_portals = value.get("portals")
+        if not isinstance(raw_bodies, list) or not 2 <= len(raw_bodies) <= self._max_bodies:
+            raise ValueError("observation bodies changed")
+        if not isinstance(raw_objects, list) or not 1 <= len(raw_objects) <= self._max_objects:
+            raise ValueError("observation objects changed")
+        result = ObservationSnapshot(
+            revision=value.get("revision"),
+            room_id=value.get("room_id"),
+            room_bounds=_room_from(value.get("room_bounds")),
+            regions=tuple(_region_from(item) for item in raw_regions)
+            if isinstance(raw_regions, list) else (),
+            portals=tuple(_portal_from(item) for item in raw_portals)
+            if isinstance(raw_portals, list) else (),
+            self_body_id=_identifier(value.get("self_body_id"), "self body id"),
+            bodies=tuple(_body_from(item) for item in raw_bodies),
+            objects=tuple(_object_from(item) for item in raw_objects),
+            state_sha256=_sha256_identity(value.get("state_sha256"), "observation state identity"),
+            authority_hmac_sha256=_sha256_identity(value.get("authority_hmac_sha256"), "observation HMAC"),
+            authority_receipt_sha256=_sha256_identity(value.get("authority_receipt_sha256"), "observation receipt"),
+        )
+        if result.as_record() != dict(value):
+            raise ValueError("observation record is not canonical")
+        self._verify_observation(result)
+        return result
+
+    def _execution_from_record(self, value: object) -> ActionExecutionReceipt:
+        expected = {
+            "actor_body_id",
+            "after",
+            "authority_hmac_sha256",
+            "authority_receipt_sha256",
+            "before",
+            "causal_intent_receipt_sha256",
+            "command_sha256",
+            "disposition",
+            "elapsed_nanoseconds",
+            "expected_revision",
+            "lifecycle",
+            "observed_revision",
+            "port_id",
+            "reason",
+            "schema",
+        }
+        if not isinstance(value, Mapping) or set(value) != expected or value.get("schema") != EXECUTION_SCHEMA:
+            raise ValueError("execution record fields changed")
+        lifecycle = value.get("lifecycle")
+        if not isinstance(lifecycle, list) or not lifecycle or any(not isinstance(item, str) for item in lifecycle):
+            raise ValueError("execution lifecycle changed")
+        result = ActionExecutionReceipt(
+            port_id=_identifier(value.get("port_id"), "execution port id"),
+            actor_body_id=(
+                None
+                if value.get("actor_body_id") is None
+                else _identifier(
+                    value.get("actor_body_id"), "execution actor body id"
+                )
+            ),
+            causal_intent_receipt_sha256=_sha256_identity(value.get("causal_intent_receipt_sha256"), "causal intent receipt"),
+            command_sha256=_sha256_identity(value.get("command_sha256"), "command identity"),
+            expected_revision=_bounded_integer(value.get("expected_revision"), "expected revision", minimum=0, maximum=MAX_REVISION),
+            observed_revision=_bounded_integer(value.get("observed_revision"), "observed revision", minimum=0, maximum=MAX_REVISION),
+            disposition=value.get("disposition"),
+            reason=value.get("reason"),
+            elapsed_nanoseconds=_bounded_integer(
+                value.get("elapsed_nanoseconds"),
+                "execution elapsed time",
+                minimum=0,
+                maximum=MAX_MATERIAL_ACTION_DURATION_US * 1_000,
+            ),
+            lifecycle=tuple(lifecycle),
+            before=self._observation_from_record(value.get("before")),
+            after=self._observation_from_record(value.get("after")),
+            authority_hmac_sha256=_sha256_identity(value.get("authority_hmac_sha256"), "execution HMAC"),
+            authority_receipt_sha256=_sha256_identity(value.get("authority_receipt_sha256"), "execution receipt"),
+        )
+        if result.as_record() != dict(value):
+            raise ValueError("execution record is not canonical")
+        self._verify_execution(result)
+        return result
+
+    def _optical_surface_catalog_from_record(
+        self,
+        value: object,
+    ) -> dict[str, ObjectOpticalSurface]:
+        if (
+            not isinstance(value, list)
+            or len(value) > self._max_objects + LOOK_CATALOG_CAPACITY
+        ):
+            raise ValueError("optical surface catalog exceeds capacity")
+        catalog: dict[str, ObjectOpticalSurface] = {}
+        prior_sha: str | None = None
+        for entry in value:
+            if (
+                not isinstance(entry, Mapping)
+                or set(entry) != {"content_sha256", "surface"}
+            ):
+                raise ValueError("optical surface catalog fields changed")
+            content_sha = _sha256_identity(entry.get("content_sha256"), "optical surface content")
+            if prior_sha is not None and content_sha <= prior_sha:
+                raise ValueError("optical surface catalog order changed")
+            surface = _optical_surface_from(entry.get("surface"))
+            if self._optical_surface_content_sha(surface) != content_sha:
+                raise ValueError("optical surface catalog content changed")
+            catalog[content_sha] = surface
+            prior_sha = content_sha
+        return catalog
+
+    def _object_from_compact_record(
+        self,
+        value: object,
+        catalog: Mapping[str, ObjectOpticalSurface],
+    ) -> EmbodiedObject:
+        expected = {
+            "held_by_body_id", "mass_grams", "material", "object_id",
+            "position", "radius_mm", "reflectance_ppm", "optical_surface",
+        }
+        if not isinstance(value, Mapping) or not (
+            expected <= set(value) <= expected | {"emission_ppm", "shape"}
+        ):
+            raise ValueError("compact physical object record changed")
+        raw_position = value.get("position")
+        raw_material = value.get("material")
+        raw_surface = value.get("optical_surface")
+        raw_emission = value.get("emission_ppm", ())
+        if not isinstance(raw_emission, (list, tuple)):
+            raise ValueError("compact physical object record changed")
+        surface = None
+        if raw_surface is not None:
+            if (
+                not isinstance(raw_surface, Mapping)
+                or set(raw_surface) != {"content_sha256"}
+            ):
+                raise ValueError("optical surface reference fields changed")
+            content_sha = _sha256_identity(raw_surface.get("content_sha256"), "optical surface reference")
+            surface = catalog.get(content_sha)
+            if surface is None:
+                raise ValueError("optical surface reference is unresolved")
+        result = EmbodiedObject(
+            object_id=value.get("object_id"),
+            radius_mm=value.get("radius_mm"),
+            mass_grams=value.get("mass_grams"),
+            position=_position_from(raw_position, "object position") if raw_position is not None else None,
+            held_by_body_id=value.get("held_by_body_id"),
+            reflectance_ppm=_physical_bands(
+                tuple(value.get("reflectance_ppm"))
+                if isinstance(value.get("reflectance_ppm"), list)
+                else value.get("reflectance_ppm"),
+                "object reflectance",
+            ),
+            material=(
+                _material_from(raw_material)
+                if raw_material is not None
+                else None
+            ),
+            optical_surface=surface,
+            emission_ppm=tuple(raw_emission),
+            **_shape_fields(value),
+        )
+        result.verify()
+        if self._compact_object_record(result, catalog) != dict(value):
+            raise ValueError("compact physical object is not canonical")
+
+        return result
+    def _observation_from_compact_record(
+        self,
+        value: object,
+        catalog: Mapping[str, ObjectOpticalSurface],
+    ) -> ObservationSnapshot:
+        expected = {
+            "authority_hmac_sha256", "authority_receipt_sha256", "bodies", "objects",
+            "portals", "regions", "revision", "room_bounds", "room_id",
+            "schema", "self_body_id", "state_sha256",
+        }
+        if (
+            not isinstance(value, Mapping)
+            or set(value) != expected
+            or value.get("schema") != OBSERVATION_SCHEMA
+        ):
+            raise ValueError("compact observation record changed")
+        raw_objects = value.get("objects")
+        raw_bodies = value.get("bodies")
+        raw_regions = value.get("regions")
+        raw_portals = value.get("portals")
+        if not isinstance(raw_bodies, list) or not 2 <= len(raw_bodies) <= self._max_bodies:
+            raise ValueError("compact observation bodies changed")
+        if not isinstance(raw_objects, list) or not 1 <= len(raw_objects) <= self._max_objects:
+            raise ValueError("compact observation objects changed")
+        objects = tuple(
+            self._object_from_compact_record(item, catalog)
+            for item in raw_objects
+        )
+        result = ObservationSnapshot(
+            revision=_bounded_integer(value.get("revision"), "observation revision", minimum=0, maximum=MAX_REVISION),
+            room_id=_identifier(value.get("room_id"), "observation room id"),
+            room_bounds=_room_from(value.get("room_bounds")),
+            regions=tuple(self._region_from_compact_record(item, catalog) for item in raw_regions)
+            if isinstance(raw_regions, list) else (),
+            portals=tuple(_portal_from(item) for item in raw_portals)
+            if isinstance(raw_portals, list) else (),
+            self_body_id=_identifier(value.get("self_body_id"), "self body id"),
+            bodies=tuple(_body_from(item) for item in raw_bodies),
+            objects=objects,
+            state_sha256=_sha256_identity(value.get("state_sha256"), "observation state identity"),
+            authority_hmac_sha256=_sha256_identity(value.get("authority_hmac_sha256"), "observation HMAC"),
+            authority_receipt_sha256=_sha256_identity(value.get("authority_receipt_sha256"), "observation receipt"),
+        )
+        self._verify_observation(result)
+        canonical = self._compact_observation_record(result, self._catalog_with_looks(catalog, result.regions))
+        stored = dict(value)
+        if canonical != stored and not (
+            {k: v for k, v in canonical.items() if k != "regions"} == {k: v for k, v in stored.items() if k != "regions"}
+            and self._regions_match(stored.get("regions"), result.regions, canonical["regions"])
+        ):
+            raise ValueError("compact observation is not canonical")
+        return result
+
+    def _execution_from_compact_record(
+        self,
+        value: object,
+        catalog: Mapping[str, ObjectOpticalSurface],
+    ) -> ActionExecutionReceipt:
+        expected = {
+            "actor_body_id", "after", "authority_hmac_sha256", "authority_receipt_sha256",
+            "before", "causal_intent_receipt_sha256", "command_sha256", "disposition",
+            "elapsed_nanoseconds", "expected_revision", "lifecycle", "observed_revision",
+            "port_id", "reason", "schema",
+        }
+        if not isinstance(value, Mapping) or set(value) != expected or value.get("schema") != EXECUTION_SCHEMA:
+            raise ValueError("compact execution record changed")
+        lifecycle = value.get("lifecycle")
+        if not isinstance(lifecycle, list) or not lifecycle or any(not isinstance(item, str) for item in lifecycle):
+            raise ValueError("compact execution lifecycle changed")
+        before = self._observation_from_compact_record(value.get("before"), catalog)
+        after = self._observation_from_compact_record(value.get("after"), catalog)
+        result = ActionExecutionReceipt(
+            port_id=_identifier(value.get("port_id"), "execution port id"),
+            actor_body_id=(
+                None
+                if value.get("actor_body_id") is None
+                else _identifier(value.get("actor_body_id"), "execution actor body id")
+            ),
+            causal_intent_receipt_sha256=_sha256_identity(value.get("causal_intent_receipt_sha256"), "causal intent receipt"),
+            command_sha256=_sha256_identity(value.get("command_sha256"), "command identity"),
+            expected_revision=_bounded_integer(value.get("expected_revision"), "expected revision", minimum=0, maximum=MAX_REVISION),
+            observed_revision=_bounded_integer(value.get("observed_revision"), "observed revision", minimum=0, maximum=MAX_REVISION),
+            disposition=value.get("disposition"),
+            reason=value.get("reason"),
+            elapsed_nanoseconds=_bounded_integer(
+                value.get("elapsed_nanoseconds"),
+                "execution elapsed time",
+                minimum=0,
+                maximum=MAX_MATERIAL_ACTION_DURATION_US * 1_000,
+            ),
+            lifecycle=tuple(lifecycle),
+            before=before,
+            after=after,
+            authority_hmac_sha256=_sha256_identity(value.get("authority_hmac_sha256"), "execution HMAC"),
+            authority_receipt_sha256=_sha256_identity(value.get("authority_receipt_sha256"), "execution receipt"),
+        )
+        self._verify_execution(result)
+        canonical = self._compact_execution_record(result, self._catalog_with_looks(catalog, result.before.regions + result.after.regions))
+        stored = dict(value)
+        def same(side: str) -> bool:
+            a, b = canonical.get(side), stored.get(side)
+            if not isinstance(a, Mapping) or not isinstance(b, Mapping):
+                return a == b
+            regions = result.before.regions if side == "before" else result.after.regions
+            return ({k: v for k, v in a.items() if k != "regions"} == {k: v for k, v in b.items() if k != "regions"}
+                    and self._regions_match(b.get("regions"), regions, a["regions"]))
+        if not (
+            {k: v for k, v in canonical.items() if k not in ("before", "after")} == {k: v for k, v in stored.items() if k not in ("before", "after")}
+            and same("before") and same("after")
+        ):
+            raise ValueError("compact execution is not canonical")
+        return result
+
+    def _world_from_compact_record(
+        self,
+        value: object,
+        catalog: Mapping[str, ObjectOpticalSurface],
+    ) -> _WorldState:
+        expected = {
+            "bodies", "objects", "portals", "regions", "revision",
+            "room_bounds", "room_id", "self_body_id"
+        }
+        if not isinstance(value, Mapping) or set(value) != expected:
+            raise ValueError("compact world state fields changed")
+        raw_objects = value.get("objects")
+        raw_bodies = value.get("bodies")
+        raw_regions = value.get("regions")
+        raw_portals = value.get("portals")
+        if not isinstance(raw_bodies, list) or not 2 <= len(raw_bodies) <= self._max_bodies:
+            raise ValueError("compact world body inventory changed")
+        if not isinstance(raw_objects, list) or not 1 <= len(raw_objects) <= self._max_objects:
+            raise ValueError("compact world object inventory changed")
+        objects = tuple(
+            self._object_from_compact_record(item, catalog)
+            for item in raw_objects
+        )
+        world = _WorldState(
+            revision=_bounded_integer(value.get("revision"), "world revision", minimum=0, maximum=MAX_REVISION),
+            room_id=_identifier(value.get("room_id"), "room id"),
+            room_bounds=_room_from(value.get("room_bounds")),
+            regions=tuple(self._region_from_compact_record(item, catalog) for item in raw_regions)
+            if isinstance(raw_regions, list) else (),
+            portals=tuple(_portal_from(item) for item in raw_portals)
+            if isinstance(raw_portals, list) else (),
+            self_body_id=_identifier(value.get("self_body_id"), "self body id"),
+            bodies=tuple(_body_from(item) for item in raw_bodies),
+            objects=objects,
+        )
+        self._validate_world(world)
+        canonical = self._compact_world_record(world, self._catalog_with_looks(catalog, world.regions))
+        stored = dict(value)
+        if canonical != stored and not (
+            {k: v for k, v in canonical.items() if k != "regions"} == {k: v for k, v in stored.items() if k != "regions"}
+            and self._regions_match(stored.get("regions"), world.regions, canonical["regions"])
+        ):
+            raise ValueError("compact world state is not canonical")
+        return world
+
+    def _world_from_record(self, value: object) -> _WorldState:
+        expected = {
+            "bodies", "objects", "portals", "regions", "revision",
+            "room_bounds", "room_id", "self_body_id"
+        }
+        if not isinstance(value, Mapping) or set(value) != expected:
+            raise ValueError("world state fields changed")
+        raw_objects = value.get("objects")
+        raw_bodies = value.get("bodies")
+        raw_regions = value.get("regions")
+        raw_portals = value.get("portals")
+        if not isinstance(raw_bodies, list) or not 2 <= len(raw_bodies) <= self._max_bodies:
+            raise ValueError("world body inventory changed")
+        if not isinstance(raw_objects, list) or not 1 <= len(raw_objects) <= self._max_objects:
+            raise ValueError("world object inventory changed")
+        world = _WorldState(
+            revision=_bounded_integer(value.get("revision"), "world revision", minimum=0, maximum=MAX_REVISION),
+            room_id=_identifier(value.get("room_id"), "room id"),
+            room_bounds=_room_from(value.get("room_bounds")),
+            regions=tuple(_region_from(item) for item in raw_regions)
+            if isinstance(raw_regions, list) else (),
+            portals=tuple(_portal_from(item) for item in raw_portals)
+            if isinstance(raw_portals, list) else (),
+            self_body_id=_identifier(value.get("self_body_id"), "self body id"),
+            bodies=tuple(_body_from(item) for item in raw_bodies),
+            objects=tuple(_object_from(item) for item in raw_objects),
+        )
+        self._validate_world(world)
+        if world.as_record() != dict(value):
+            raise ValueError("world state is not canonical")
+        return world
+
+    def _migration_receipt_for(
+        self,
+        *,
+        prior_envelope_sha256: str,
+        prior_observation_receipt_sha256: str,
+        resulting_observation_receipt_sha256: str,
+        prior_revision: int,
+        resulting_revision: int,
+        parent_migration_receipt_sha256: str | None,
+        manifest_sha256: str,
+        prior_topology_sha256: str,
+        resulting_topology_sha256: str,
+    ) -> WorldMigrationReceipt:
+        unsigned = {
+            "manifest_sha256": manifest_sha256,
+            "parent_migration_receipt_sha256": parent_migration_receipt_sha256,
+            "prior_envelope_sha256": prior_envelope_sha256,
+            "prior_observation_receipt_sha256": prior_observation_receipt_sha256,
+            "prior_revision": prior_revision,
+            "resulting_observation_receipt_sha256": resulting_observation_receipt_sha256,
+            "resulting_revision": resulting_revision,
+            "prior_topology_sha256": prior_topology_sha256,
+            "resulting_topology_sha256": resulting_topology_sha256,
+            "schema": MIGRATION_SCHEMA,
+        }
+        signature = _sign(self._key, MIGRATION_DOMAIN, unsigned)
+        return WorldMigrationReceipt(
+            prior_envelope_sha256=prior_envelope_sha256,
+            prior_observation_receipt_sha256=prior_observation_receipt_sha256,
+            resulting_observation_receipt_sha256=resulting_observation_receipt_sha256,
+            prior_revision=prior_revision,
+            resulting_revision=resulting_revision,
+            parent_migration_receipt_sha256=parent_migration_receipt_sha256,
+            manifest_sha256=manifest_sha256,
+            prior_topology_sha256=prior_topology_sha256,
+            resulting_topology_sha256=resulting_topology_sha256,
+            authority_hmac_sha256=signature,
+            authority_receipt_sha256=_digest(
+                {"authority_hmac_sha256": signature, "payload": unsigned}
+            ),
+        )
+
+    def _verify_migration_receipt(
+        self,
+        receipt: WorldMigrationReceipt,
+        world: _WorldState,
+        *,
+        require_current_manifest: bool = True,
+    ) -> None:
+        if not isinstance(receipt, WorldMigrationReceipt):
+            raise ValueError("world migration receipt is not typed")
+        for value, name in (
+            (receipt.prior_envelope_sha256, "prior envelope"),
+            (receipt.prior_observation_receipt_sha256, "prior observation"),
+            (receipt.resulting_observation_receipt_sha256, "resulting observation"),
+            (receipt.manifest_sha256, "migration manifest"),
+            (receipt.prior_topology_sha256, "prior topology"),
+            (receipt.resulting_topology_sha256, "resulting topology"),
+        ):
+            _sha256_identity(value, name)
+        if receipt.parent_migration_receipt_sha256 is not None:
+            _sha256_identity(
+                receipt.parent_migration_receipt_sha256,
+                "parent migration receipt",
+            )
+        _bounded_integer(
+            receipt.prior_revision,
+            "migration prior revision",
+            minimum=0,
+            maximum=MAX_REVISION,
+        )
+        _bounded_integer(
+            receipt.resulting_revision,
+            "migration resulting revision",
+            minimum=1,
+            maximum=MAX_REVISION,
+        )
+        if (
+            receipt.resulting_revision != receipt.prior_revision + 1
+            or receipt.resulting_revision > world.revision
+            or (
+                require_current_manifest
+                and receipt.manifest_sha256
+                != self._physical_manifest_sha256()
+            )
+        ):
+            raise ValueError("world migration causal chain changed")
+        unsigned = receipt.unsigned_record()
+        expected_hmac = _sign(self._key, MIGRATION_DOMAIN, unsigned)
+        if not hmac.compare_digest(
+            expected_hmac, receipt.authority_hmac_sha256
+        ):
+            raise ValueError("world migration HMAC changed")
+        if receipt.authority_receipt_sha256 != _digest(
+            {"authority_hmac_sha256": expected_hmac, "payload": unsigned}
+        ):
+            raise ValueError("world migration identity changed")
+        current_topology_sha256 = self._topology_sha256(
+            world.regions,
+            world.portals,
+        )
+        if (
+            require_current_manifest
+            and current_topology_sha256 != self._declared_topology_sha256
+        ):
+            # Under the authenticated-migration authorization a restored
+            # world may still carry its pre-renovation topology; the home
+            # renovation that immediately follows brings it to the
+            # declared plan or the boot refuses there.
+            raise ValueError("world topology differs from its declared anatomy")
+        if (
+            receipt.resulting_topology_sha256
+            != current_topology_sha256
+            and receipt.resulting_revision == world.revision
+        ):
+            raise ValueError("world migration topology changed")
+
+    def _migration_from_record(
+        self,
+        value: object,
+        world: _WorldState,
+        *,
+        require_current_manifest: bool = True,
+    ) -> WorldMigrationReceipt:
+        expected = {
+            "authority_hmac_sha256",
+            "authority_receipt_sha256",
+            "manifest_sha256",
+            "parent_migration_receipt_sha256",
+            "prior_envelope_sha256",
+            "prior_observation_receipt_sha256",
+            "prior_revision",
+            "prior_topology_sha256",
+            "resulting_observation_receipt_sha256",
+            "resulting_revision",
+            "resulting_topology_sha256",
+            "schema",
+        }
+        if (
+            not isinstance(value, Mapping)
+            or set(value) != expected
+            or value.get("schema") != MIGRATION_SCHEMA
+        ):
+            raise ValueError("world migration fields changed")
+        result = WorldMigrationReceipt(
+            prior_envelope_sha256=_sha256_identity(
+                value.get("prior_envelope_sha256"), "prior envelope"
+            ),
+            prior_observation_receipt_sha256=_sha256_identity(
+                value.get("prior_observation_receipt_sha256"),
+                "prior observation",
+            ),
+            resulting_observation_receipt_sha256=_sha256_identity(
+                value.get("resulting_observation_receipt_sha256"),
+                "resulting observation",
+            ),
+            prior_revision=_bounded_integer(
+                value.get("prior_revision"),
+                "migration prior revision",
+                minimum=0,
+                maximum=MAX_REVISION,
+            ),
+            resulting_revision=_bounded_integer(
+                value.get("resulting_revision"),
+                "migration resulting revision",
+                minimum=1,
+                maximum=MAX_REVISION,
+            ),
+            parent_migration_receipt_sha256=(
+                _sha256_identity(
+                    value.get("parent_migration_receipt_sha256"),
+                    "parent migration receipt",
+                )
+                if value.get("parent_migration_receipt_sha256") is not None
+                else None
+            ),
+            manifest_sha256=_sha256_identity(
+                value.get("manifest_sha256"), "migration manifest"
+            ),
+            prior_topology_sha256=_sha256_identity(
+                value.get("prior_topology_sha256"), "prior topology"
+            ),
+            resulting_topology_sha256=_sha256_identity(
+                value.get("resulting_topology_sha256"), "resulting topology"
+            ),
+            authority_hmac_sha256=_sha256_identity(
+                value.get("authority_hmac_sha256"), "migration HMAC"
+            ),
+            authority_receipt_sha256=_sha256_identity(
+                value.get("authority_receipt_sha256"), "migration receipt"
+            ),
+        )
+        if result.as_record() != dict(value):
+            raise ValueError("world migration record is not canonical")
+        self._verify_migration_receipt(
+            result,
+            world,
+            require_current_manifest=require_current_manifest,
+        )
+        return result
+
+    def _declaration_sha256_for(self, objects: Sequence[EmbodiedObject]) -> str:
+        """Identify the declaration of things: each authored thing at its authored
+        place (its lived holder, material and emission are not the declaration) and
+        what the declaration has taken away."""
+
+        return _digest({
+            "departed": list(self._departed_object_ids),
+            "things": [
+                {
+                    key: value for key, value in item.as_record().items()
+                    if key not in ("held_by_body_id", "material", "emission_ppm")
+                }
+                for item in sorted(objects, key=lambda item: item.object_id)
+            ],
+        })
+
+    def _topology_sha256(
+        self,
+        regions: tuple[PhysicalRegion, ...],
+        portals: tuple[PhysicalPortal, ...],
+    ) -> str:
+        """Identify immutable room anatomy, never changing air contents.
+
+        Illumination left this identity when the sun entered the world:
+        light is lived state that flows on the real clock, exactly as
+        air contents already were. Walls, bounds, ceilings, paint and
+        windows (holes in the walls) remain anatomy; a room without
+        windows keeps the identity it had before windows existed."""
+
+        return _digest(
+            {
+                "portals": [item.as_record() for item in portals],
+                "regions": [
+                    {
+                        "air_volume_cubic_mm": (
+                            None
+                            if item.air is None
+                            else item.air.volume_cubic_mm
+                        ),
+                        "bounds": item.bounds.as_record(),
+                        "ceiling_height_mm": item.ceiling_height_mm,
+                        "reflectance_ppm": list(item.reflectance_ppm),
+                        "region_id": item.region_id,
+                        **(
+                            {"windows": [w.as_record() for w in item.windows]}
+                            if item.windows
+                            else {}
+                        ),
+                        **(
+                            {"looks": [w.as_record() for w in item.looks]}
+                            if item.looks
+                            else {}
+                        ),
+                    }
+                    for item in regions
+                ],
+            }
+        )
+
+    def _physical_manifest_sha256(self) -> str:
+        manifest = {
+            "object_physics": [
+                item.as_record()
+                for item in _default_objects()
+            ],
+            "portals": [item.as_record() for item in _default_portals()],
+            "regions": [item.as_record() for item in _default_regions()],
+        }
+        if self._body_surface_sites:
+            manifest["body_surface_morphology"] = [
+                site.as_record()
+                for site in self._body_surface_sites.values()
+            ]
+        return _digest(manifest)
+
+    def _decode_authenticated_envelope(
+        self, encoded: bytes, *, envelope_schema: str, domain: bytes, limit: int
+    ) -> tuple[Mapping[str, object], bytes]:
+        if not isinstance(encoded, bytes) or not encoded or len(encoded) > limit:
+            raise ValueError("encoded embodiment state exceeds its exact byte capacity")
+        try:
+            envelope = json.loads(encoded.decode("utf-8"))
+        except (UnicodeDecodeError, json.JSONDecodeError) as error:
+            raise ValueError("embodiment state envelope is not canonical JSON") from error
+        expected_envelope = {"authority_hmac_sha256", "payload_base64", "schema"}
+        if (
+            not isinstance(envelope, Mapping)
+            or set(envelope) != expected_envelope
+            or envelope.get("schema") != envelope_schema
+        ):
+            raise ValueError("embodiment state envelope fields changed")
+        if _canonical(envelope) != encoded:
+            raise ValueError("embodiment state envelope is not canonical")
+        try:
+            payload = base64.b64decode(
+                envelope.get("payload_base64"), validate=True
+            )
+        except Exception as error:
+            raise ValueError("embodiment state payload is not canonical base64") from error
+        if not payload or len(payload) > limit:
+            raise ValueError("embodiment state payload exceeds its exact byte capacity")
+        provided_hmac = _sha256_identity(
+            envelope.get("authority_hmac_sha256"), "state HMAC"
+        )
+        expected_hmac = hmac.new(
+            self._key, domain + payload, hashlib.sha256
+        ).hexdigest()
+        if not hmac.compare_digest(expected_hmac, provided_hmac):
+            raise ValueError("embodiment state HMAC changed")
+        try:
+            decoded = json.loads(payload.decode("utf-8"))
+        except (UnicodeDecodeError, json.JSONDecodeError) as error:
+            raise ValueError("embodiment state payload is not canonical JSON") from error
+        if not isinstance(decoded, Mapping) or _canonical(decoded) != payload:
+            raise ValueError("embodiment state payload is not canonical")
+        return decoded, payload
+
+    def _migrated_objects(
+        self,
+        prior_objects: tuple[EmbodiedObject, ...],
+        *,
+        preserve_material: bool = False,
+    ) -> tuple[EmbodiedObject, ...]:
+        migrated: list[EmbodiedObject] = []
+        present: set[str] = set()
+        for item in prior_objects:
+            if item.object_id in present:
+                raise ValueError("prior world object identities repeat")
+            present.add(item.object_id)
+            migrated.append(
+                item
+                if preserve_material
+                else replace(
+                    item,
+                    material=None,
+                    optical_surface=None,
+                )
+            )
+        from dsf_ai_service.substrate.approved_curriculum_physical_surfaces import (
+            approved_curriculum_physical_surfaces,
+        )
+        for item in approved_curriculum_physical_surfaces():
+            if item.object_id not in present:
+                migrated.append(item)
+                present.add(item.object_id)
+        if len(migrated) > self._max_objects:
+            raise ValueError("migrated world object inventory exceeds capacity")
+        return tuple(sorted(migrated, key=lambda item: item.object_id))
+
+    def _commit_migrated_world(
+        self,
+        *,
+        encoded: bytes,
+        prior_revision: int,
+        prior_room_id: str,
+        prior_room_bounds: RoomBoundsMM,
+        prior_bodies: tuple[EmbodiedBody, ...],
+        prior_objects: tuple[EmbodiedObject, ...],
+        prior_observation_unsigned: Mapping[str, object],
+        prior_observation_domain: bytes,
+        parent_migration_receipt_sha256: str | None,
+        preserve_material: bool = False,
+        preserve_current_world: bool = False,
+        prior_regions: tuple[PhysicalRegion, ...] | None = None,
+        prior_portals: tuple[PhysicalPortal, ...] | None = None,
+    ) -> None:
+        if preserve_current_world:
+            if prior_regions is None or prior_portals is None:
+                raise ValueError(
+                    "manifest-only migration requires the authenticated physical topology"
+                )
+            regions = prior_regions
+            portals = prior_portals
+            objects = prior_objects
+        else:
+            regions = _default_regions()
+            portals = _default_portals()
+            objects = self._migrated_objects(
+                prior_objects,
+                preserve_material=preserve_material,
+            )
+        self_body_id = self._state.world.self_body_id
+        bodies = prior_bodies
+        if {item.body_id for item in bodies} != {
+            item.actor_body_id for item in self._actor_ports
+        }:
+            raise ValueError("prior physical bodies differ from actor port topology")
+        if self_body_id not in {item.body_id for item in bodies}:
+            raise ValueError("prior world self body changed")
+        self_body = next(item for item in bodies if item.body_id == self_body_id)
+        current_region = self._region_containing(
+            regions, self_body.pose.position, self_body.radius_mm
+        )
+        if current_region is None:
+            raise ValueError("prior self body is outside the v3 physical topology")
+        migrated_world = _WorldState(
+            revision=prior_revision + 1,
+            room_id=current_region.region_id,
+            room_bounds=current_region.bounds,
+            regions=regions,
+            portals=portals,
+            self_body_id=self_body_id,
+            bodies=tuple(sorted(bodies, key=lambda item: item.body_id)),
+            objects=objects,
+        )
+        try:
+            self._validate_world(migrated_world)
+        except ValueError as error:
+            raise ValueError(
+                "prior physical state cannot settle into the current topology"
+            ) from error
+        prior_hmac = _sign(
+            self._key, prior_observation_domain, prior_observation_unsigned
+        )
+        prior_observation_receipt = _digest(
+            {
+                "authority_hmac_sha256": prior_hmac,
+                "payload": prior_observation_unsigned,
+            }
+        )
+        resulting_observation = self._observation_for(migrated_world)
+        migration = self._migration_receipt_for(
+            prior_envelope_sha256=hashlib.sha256(encoded).hexdigest(),
+            prior_observation_receipt_sha256=prior_observation_receipt,
+            resulting_observation_receipt_sha256=(
+                resulting_observation.authority_receipt_sha256
+            ),
+            prior_revision=prior_revision,
+            resulting_revision=migrated_world.revision,
+            parent_migration_receipt_sha256=parent_migration_receipt_sha256,
+            manifest_sha256=self._physical_manifest_sha256(),
+            prior_topology_sha256=(
+                self._topology_sha256(regions, portals)
+                if preserve_current_world
+                else _digest(
+                    {
+                        "room_bounds": prior_room_bounds.as_record(),
+                        "room_id": prior_room_id,
+                    }
+                )
+            ),
+            resulting_topology_sha256=self._topology_sha256(regions, portals),
+        )
+        candidate = _AuthorityState(
+            world=migrated_world,
+            observation=resulting_observation,
+            recent_applied_receipts=(),
+            migration_receipt=migration,
+        )
+        self._encoded_state_for(candidate)
+        with self._lock:
+            before_state = self._state
+            try:
+                self._commit_authority_state(candidate)
+            except BaseException:
+                self._state = before_state
+                raise
+
+    def _restore_pre_material_encoded(
+        self,
+        encoded: bytes,
+        *,
+        envelope_schema: str,
+        state_schema: str,
+        observation_schema: str,
+        state_domain: bytes,
+        observation_domain: bytes,
+        version_name: str,
+    ) -> None:
+        decoded, _payload = self._decode_authenticated_envelope(
+            encoded,
+            envelope_schema=envelope_schema,
+            domain=state_domain,
+            limit=self._max_encoded_state_bytes,
+        )
+        expected_state = {
+            "actor_ports",
+            "limits",
+            "migration_receipt",
+            "recent_applied_receipts",
+            "schema",
+            "world",
+        }
+        if (
+            set(decoded) != expected_state
+            or decoded.get("schema") != state_schema
+        ):
+            raise ValueError(
+                f"{version_name} embodiment state fields changed"
+            )
+        limits = decoded.get("limits")
+        expected_limit_fields = {
+            "max_regions",
+            "max_portals",
+            "max_bodies",
+            "max_command_bytes",
+            "max_encoded_state_bytes",
+            "max_objects",
+            "receipt_capacity",
+        }
+        if (
+            not isinstance(limits, Mapping)
+            or set(limits) != expected_limit_fields
+            or limits.get("max_regions") != self._max_regions
+            or limits.get("max_portals") != self._max_portals
+            or limits.get("max_bodies") != self._max_bodies
+            or limits.get("max_command_bytes") != self._max_command_bytes
+            or limits.get("max_encoded_state_bytes")
+            != self._max_encoded_state_bytes
+            or limits.get("receipt_capacity") != self._receipt_capacity
+        ):
+            raise ValueError(
+                f"{version_name} embodiment limits changed"
+            )
+        prior_object_capacity = _bounded_integer(
+            limits.get("max_objects"),
+            f"{version_name} object capacity",
+            minimum=1,
+            maximum=self._max_objects,
+        )
+        if decoded.get("actor_ports") != [
+            item.as_record() for item in self._actor_ports
+        ]:
+            raise ValueError(
+                f"{version_name} actor port topology changed"
+            )
+        raw_receipts = decoded.get("recent_applied_receipts")
+        if (
+            not isinstance(raw_receipts, list)
+            or len(raw_receipts) > self._receipt_capacity
+            or any(not isinstance(item, Mapping) for item in raw_receipts)
+        ):
+            raise ValueError(
+                f"{version_name} execution custody changed"
+            )
+        world_value = decoded.get("world")
+        world_expected = {
+            "bodies",
+            "objects",
+            "portals",
+            "regions",
+            "revision",
+            "room_bounds",
+            "room_id",
+            "self_body_id",
+        }
+        if (
+            not isinstance(world_value, Mapping)
+            or set(world_value) != world_expected
+        ):
+            raise ValueError(
+                f"{version_name} world state fields changed"
+            )
+        raw_bodies = world_value.get("bodies")
+        raw_objects = world_value.get("objects")
+        raw_regions = world_value.get("regions")
+        raw_portals = world_value.get("portals")
+        if (
+            not isinstance(raw_bodies, list)
+            or not 2 <= len(raw_bodies) <= self._max_bodies
+            or not isinstance(raw_objects, list)
+            or not 1 <= len(raw_objects) <= prior_object_capacity
+            or not isinstance(raw_regions, list)
+            or not isinstance(raw_portals, list)
+        ):
+            raise ValueError(
+                f"{version_name} physical inventory changed"
+            )
+        prior_revision = _bounded_integer(
+            world_value.get("revision"),
+            f"{version_name} world revision",
+            minimum=0,
+            maximum=MAX_REVISION - 1,
+        )
+        room_id = _identifier(
+            world_value.get("room_id"),
+            f"{version_name} room id",
+        )
+        room_bounds = _room_from(world_value.get("room_bounds"))
+        self_body_id = _identifier(
+            world_value.get("self_body_id"),
+            f"{version_name} self body id",
+        )
+        bodies = tuple(_v3_body_from(item) for item in raw_bodies)
+        objects = tuple(_v3_object_from(item) for item in raw_objects)
+        regions = tuple(_v3_region_from(item) for item in raw_regions)
+        portals = tuple(_v3_portal_from(item) for item in raw_portals)
+        if (
+            self_body_id != self._state.world.self_body_id
+            or {item.body_id for item in bodies}
+            != {item.actor_body_id for item in self._actor_ports}
+        ):
+            raise ValueError(
+                f"{version_name} body identity changed"
+            )
+        prior_world_record = dict(world_value)
+        prior_observation_unsigned = {
+            **prior_world_record,
+            "schema": observation_schema,
+            "state_sha256": _digest(prior_world_record),
+        }
+        prior_hmac = _sign(
+            self._key,
+            observation_domain,
+            prior_observation_unsigned,
+        )
+        prior_observation_receipt = _digest({
+            "authority_hmac_sha256": prior_hmac,
+            "payload": prior_observation_unsigned,
+        })
+        self_body = next(
+            item for item in bodies
+            if item.body_id == self_body_id
+        )
+        current_region = self._region_containing(
+            regions,
+            self_body.pose.position,
+            self_body.radius_mm,
+        )
+        if (
+            current_region is None
+            or current_region.region_id != room_id
+            or current_region.bounds != room_bounds
+        ):
+            raise ValueError(
+                f"{version_name} self-region projection changed"
+            )
+        migrated_world = _WorldState(
+            revision=prior_revision + 1,
+            room_id=room_id,
+            room_bounds=room_bounds,
+            regions=regions,
+            portals=portals,
+            self_body_id=self_body_id,
+            bodies=bodies,
+            objects=self._migrated_objects(objects),
+        )
+        self._validate_world(migrated_world)
+        resulting_observation = self._observation_for(
+            migrated_world
+        )
+        parent_receipt = decoded.get("migration_receipt")
+        parent_identity = None
+        if parent_receipt is not None:
+            if not isinstance(parent_receipt, Mapping):
+                raise ValueError(
+                    f"{version_name} migration custody changed"
+                )
+            parent_identity = _sha256_identity(
+                parent_receipt.get("authority_receipt_sha256"),
+                f"{version_name} migration receipt",
+            )
+        migration = self._migration_receipt_for(
+            prior_envelope_sha256=hashlib.sha256(encoded).hexdigest(),
+            prior_observation_receipt_sha256=(
+                prior_observation_receipt
+            ),
+            resulting_observation_receipt_sha256=(
+                resulting_observation.authority_receipt_sha256
+            ),
+            prior_revision=prior_revision,
+            resulting_revision=migrated_world.revision,
+            parent_migration_receipt_sha256=parent_identity,
+            manifest_sha256=self._physical_manifest_sha256(),
+            prior_topology_sha256=_digest({
+                "portals": list(raw_portals),
+                "regions": list(raw_regions),
+            }),
+            resulting_topology_sha256=self._topology_sha256(
+                regions,
+                portals,
+            ),
+        )
+        candidate = _AuthorityState(
+            world=migrated_world,
+            observation=resulting_observation,
+            recent_applied_receipts=(),
+            migration_receipt=migration,
+        )
+        self._encoded_state_for(candidate)
+        with self._lock:
+            before_state = self._state
+            try:
+                self._commit_authority_state(candidate)
+            except BaseException:
+                self._state = before_state
+                raise
+
+    def _restore_legacy_encoded(self, encoded: bytes) -> None:
+        decoded, _payload = self._decode_authenticated_envelope(
+            encoded,
+            envelope_schema=LEGACY_ENVELOPE_SCHEMA,
+            domain=LEGACY_STATE_DOMAIN,
+            limit=LEGACY_MAX_ENCODED_STATE_BYTES,
+        )
+        expected_state = {
+            "limits", "port_id", "recent_applied_receipts", "schema", "world"
+        }
+        if set(decoded) != expected_state or decoded.get("schema") != LEGACY_STATE_SCHEMA:
+            raise ValueError("legacy embodiment state fields changed")
+        limits = decoded.get("limits")
+        expected_limit_fields = {
+            "max_command_bytes",
+            "max_encoded_state_bytes",
+            "max_objects",
+            "receipt_capacity",
+        }
+        if not isinstance(limits, Mapping) or set(limits) != expected_limit_fields:
+            raise ValueError("legacy embodiment authority limits changed")
+        _bounded_integer(
+            limits.get("max_command_bytes"),
+            "legacy command capacity",
+            minimum=64,
+            maximum=self._max_command_bytes,
+        )
+        prior_state_capacity = _bounded_integer(
+            limits.get("max_encoded_state_bytes"),
+            "legacy encoded state capacity",
+            minimum=4096,
+            maximum=LEGACY_MAX_ENCODED_STATE_BYTES,
+        )
+        prior_object_capacity = _bounded_integer(
+            limits.get("max_objects"),
+            "legacy object capacity",
+            minimum=1,
+            maximum=self._max_objects,
+        )
+        prior_receipt_capacity = _bounded_integer(
+            limits.get("receipt_capacity"),
+            "legacy receipt capacity",
+            minimum=1,
+            maximum=4096,
+        )
+        if decoded.get("port_id") != PORT_ID or len(encoded) > prior_state_capacity:
+            raise ValueError("legacy embodiment authority port or capacity changed")
+        raw_receipts = decoded.get("recent_applied_receipts")
+        if (
+            not isinstance(raw_receipts, list)
+            or len(raw_receipts) > prior_receipt_capacity
+            or any(not isinstance(item, Mapping) for item in raw_receipts)
+        ):
+            raise ValueError("legacy retained execution receipts changed")
+        world_value = decoded.get("world")
+        expected_world = {"body", "objects", "revision", "room_bounds", "room_id"}
+        if not isinstance(world_value, Mapping) or set(world_value) != expected_world:
+            raise ValueError("legacy world state fields changed")
+        raw_objects = world_value.get("objects")
+        if (
+            not isinstance(raw_objects, list)
+            or not 1 <= len(raw_objects) <= prior_object_capacity
+        ):
+            raise ValueError("legacy world object inventory changed")
+        prior_revision = _bounded_integer(
+            world_value.get("revision"),
+            "legacy world revision",
+            minimum=0,
+            maximum=MAX_REVISION - 1,
+        )
+        room_id = _identifier(world_value.get("room_id"), "legacy room id")
+        room_bounds = _room_from(world_value.get("room_bounds"))
+        legacy_body = _v3_body_from(world_value.get("body"))
+        legacy_objects = tuple(_legacy_object_from(item) for item in raw_objects)
+        legacy_world_record = {
+            "body": {
+                key: value
+                for key, value in legacy_body.as_record().items()
+                if key not in {"active_contact", "receptor_geometry"}
+            },
+            "objects": [],
+            "revision": prior_revision,
+            "room_bounds": room_bounds.as_record(),
+            "room_id": room_id,
+        }
+        for item in legacy_objects:
+            record = item.as_record()
+            del record["reflectance_ppm"]
+            del record["material"]
+            del record["optical_surface"]
+            legacy_world_record["objects"].append(record)
+        if legacy_world_record != dict(world_value):
+            raise ValueError("legacy world state is not canonical")
+        other_bodies = tuple(
+            item
+            for item in self._state.world.bodies
+            if item.body_id != legacy_body.body_id
+        )
+        if len(other_bodies) != 1:
+            raise ValueError("legacy migration requires one added physical body")
+        bodies = tuple(
+            sorted((legacy_body, other_bodies[0]), key=lambda item: item.body_id)
+        )
+        prior_observation_unsigned = {
+            **legacy_world_record,
+            "schema": LEGACY_OBSERVATION_SCHEMA,
+            "state_sha256": _digest(legacy_world_record),
+        }
+        self._commit_migrated_world(
+            encoded=encoded,
+            prior_revision=prior_revision,
+            prior_room_id=room_id,
+            prior_room_bounds=room_bounds,
+            prior_bodies=bodies,
+            prior_objects=legacy_objects,
+            prior_observation_unsigned=prior_observation_unsigned,
+            prior_observation_domain=LEGACY_OBSERVATION_DOMAIN,
+            parent_migration_receipt_sha256=None,
+        )
+
+    def _restore_v2_encoded(self, encoded: bytes) -> None:
+        decoded, _payload = self._decode_authenticated_envelope(
+            encoded,
+            envelope_schema=V2_ENVELOPE_SCHEMA,
+            domain=V2_STATE_DOMAIN,
+            limit=self._max_encoded_state_bytes,
+        )
+        expected_state = {
+            "actor_ports", "limits", "migration_receipt",
+            "recent_applied_receipts", "schema", "world"
+        }
+        if set(decoded) != expected_state or decoded.get("schema") != V2_STATE_SCHEMA:
+            raise ValueError("v2 embodiment state fields changed")
+        limits = decoded.get("limits")
+        expected_limit_fields = {
+            "max_bodies",
+            "max_command_bytes",
+            "max_encoded_state_bytes",
+            "max_objects",
+            "receipt_capacity",
+        }
+        if not isinstance(limits, Mapping) or set(limits) != expected_limit_fields:
+            raise ValueError("v2 embodiment authority limits changed")
+        _bounded_integer(
+            limits.get("max_bodies"),
+            "v2 body capacity",
+            minimum=2,
+            maximum=self._max_bodies,
+        )
+        _bounded_integer(
+            limits.get("max_command_bytes"),
+            "v2 command capacity",
+            minimum=64,
+            maximum=self._max_command_bytes,
+        )
+        prior_state_capacity = _bounded_integer(
+            limits.get("max_encoded_state_bytes"),
+            "v2 encoded state capacity",
+            minimum=4096,
+            maximum=self._max_encoded_state_bytes,
+        )
+        prior_object_capacity = _bounded_integer(
+            limits.get("max_objects"),
+            "v2 object capacity",
+            minimum=1,
+            maximum=self._max_objects,
+        )
+        prior_receipt_capacity = _bounded_integer(
+            limits.get("receipt_capacity"),
+            "v2 receipt capacity",
+            minimum=1,
+            maximum=4096,
+        )
+        if len(encoded) > prior_state_capacity:
+            raise ValueError("v2 embodiment state exceeded its own byte capacity")
+        if decoded.get("actor_ports") != [
+            item.as_record() for item in self._actor_ports
+        ]:
+            raise ValueError("v2 actor port topology changed")
+        raw_receipts = decoded.get("recent_applied_receipts")
+        if (
+            not isinstance(raw_receipts, list)
+            or len(raw_receipts) > prior_receipt_capacity
+            or any(not isinstance(item, Mapping) for item in raw_receipts)
+        ):
+            raise ValueError("v2 retained execution receipts changed")
+        world_value = decoded.get("world")
+        expected_world = {
+            "bodies", "objects", "revision", "room_bounds", "room_id",
+            "self_body_id"
+        }
+        if not isinstance(world_value, Mapping) or set(world_value) != expected_world:
+            raise ValueError("v2 world state fields changed")
+        raw_bodies = world_value.get("bodies")
+        raw_objects = world_value.get("objects")
+        if (
+            not isinstance(raw_bodies, list)
+            or not 2 <= len(raw_bodies) <= limits["max_bodies"]
+            or not isinstance(raw_objects, list)
+            or not 1 <= len(raw_objects) <= prior_object_capacity
+        ):
+            raise ValueError("v2 physical inventory changed")
+        prior_revision = _bounded_integer(
+            world_value.get("revision"),
+            "v2 world revision",
+            minimum=0,
+            maximum=MAX_REVISION - 1,
+        )
+        room_id = _identifier(world_value.get("room_id"), "v2 room id")
+        room_bounds = _room_from(world_value.get("room_bounds"))
+        self_body_id = _identifier(
+            world_value.get("self_body_id"), "v2 self body id"
+        )
+        if self_body_id != self._state.world.self_body_id:
+            raise ValueError("v2 self body identity changed")
+        bodies = tuple(_v3_body_from(item) for item in raw_bodies)
+        objects = tuple(_legacy_object_from(item) for item in raw_objects)
+        v2_world_record = {
+            "bodies": [
+                {
+                    key: value
+                    for key, value in item.as_record().items()
+                    if key
+                    not in {"active_contact", "receptor_geometry"}
+                }
+                for item in bodies
+            ],
+            "objects": [],
+            "revision": prior_revision,
+            "room_bounds": room_bounds.as_record(),
+            "room_id": room_id,
+            "self_body_id": self_body_id,
+        }
+        for item in objects:
+            record = item.as_record()
+            del record["reflectance_ppm"]
+            del record["material"]
+            del record["optical_surface"]
+            v2_world_record["objects"].append(record)
+        if v2_world_record != dict(world_value):
+            raise ValueError("v2 world state is not canonical")
+        parent_migration_receipt_sha256 = None
+        parent = decoded.get("migration_receipt")
+        if parent is not None:
+            if (
+                not isinstance(parent, Mapping)
+                or parent.get("schema") != V2_MIGRATION_SCHEMA
+            ):
+                raise ValueError("v2 migration receipt changed")
+            parent_migration_receipt_sha256 = _sha256_identity(
+                parent.get("authority_receipt_sha256"),
+                "v2 migration receipt",
+            )
+        prior_observation_unsigned = {
+            **v2_world_record,
+            "schema": V2_OBSERVATION_SCHEMA,
+            "state_sha256": _digest(v2_world_record),
+        }
+        self._commit_migrated_world(
+            encoded=encoded,
+            prior_revision=prior_revision,
+            prior_room_id=room_id,
+            prior_room_bounds=room_bounds,
+            prior_bodies=bodies,
+            prior_objects=objects,
+            prior_observation_unsigned=prior_observation_unsigned,
+            prior_observation_domain=V2_OBSERVATION_DOMAIN,
+            parent_migration_receipt_sha256=parent_migration_receipt_sha256,
+        )
+
+    def _restore_v5_encoded(self, encoded: bytes) -> None:
+        decoded, _payload = self._decode_authenticated_envelope(
+            encoded,
+            envelope_schema=V5_ENVELOPE_SCHEMA,
+            domain=V5_STATE_DOMAIN,
+            limit=self._max_encoded_state_bytes,
+        )
+        expected_state = {
+            "actor_ports",
+            "limits",
+            "migration_receipt",
+            "recent_applied_receipts",
+            "schema",
+            "world",
+        }
+        if (
+            not isinstance(decoded, Mapping)
+            or set(decoded) != expected_state
+            or decoded.get("schema") != V5_STATE_SCHEMA
+        ):
+            raise ValueError("v5 embodiment state fields changed")
+        limits = decoded.get("limits")
+        expected_limit_fields = {
+            "max_regions",
+            "max_portals",
+            "max_bodies",
+            "max_command_bytes",
+            "max_encoded_state_bytes",
+            "max_objects",
+            "receipt_capacity",
+        }
+        if (
+            not isinstance(limits, Mapping)
+            or set(limits) != expected_limit_fields
+            or limits.get("max_regions") != self._max_regions
+            or limits.get("max_portals") != self._max_portals
+            or limits.get("max_bodies") != self._max_bodies
+            or limits.get("max_command_bytes") != self._max_command_bytes
+            or limits.get("max_encoded_state_bytes")
+            != self._max_encoded_state_bytes
+            or limits.get("receipt_capacity") != self._receipt_capacity
+        ):
+            raise ValueError("v5 embodiment authority limits changed")
+        prior_object_capacity = _bounded_integer(
+            limits.get("max_objects"),
+            "v5 object capacity",
+            minimum=1,
+            maximum=self._max_objects,
+        )
+        if decoded.get("actor_ports") != [
+            item.as_record() for item in self._actor_ports
+        ]:
+            raise ValueError("v5 actor port topology changed")
+        raw_receipts = decoded.get("recent_applied_receipts")
+        if (
+            not isinstance(raw_receipts, list)
+            or len(raw_receipts) > self._receipt_capacity
+            or any(not isinstance(item, Mapping) for item in raw_receipts)
+        ):
+            raise ValueError("v5 execution custody changed")
+        world_value = decoded.get("world")
+        world_expected = {
+            "bodies",
+            "objects",
+            "portals",
+            "regions",
+            "revision",
+            "room_bounds",
+            "room_id",
+            "self_body_id",
+        }
+        if (
+            not isinstance(world_value, Mapping)
+            or set(world_value) != world_expected
+        ):
+            raise ValueError("v5 world state fields changed")
+        raw_bodies = world_value.get("bodies")
+        raw_objects = world_value.get("objects")
+        raw_regions = world_value.get("regions")
+        raw_portals = world_value.get("portals")
+        if (
+            not isinstance(raw_bodies, list)
+            or not 2 <= len(raw_bodies) <= self._max_bodies
+            or not isinstance(raw_objects, list)
+            or not 1 <= len(raw_objects) <= prior_object_capacity
+            or not isinstance(raw_regions, list)
+            or not isinstance(raw_portals, list)
+        ):
+            raise ValueError("v5 physical inventory changed")
+        bodies = tuple(_body_from(item) for item in raw_bodies)
+        objects = tuple(_v5_object_from(item) for item in raw_objects)
+        regions = tuple(_region_from(item) for item in raw_regions)
+        portals = tuple(_portal_from(item) for item in raw_portals)
+        prior_revision = _bounded_integer(
+            world_value.get("revision"),
+            "v5 world revision",
+            minimum=0,
+            maximum=MAX_REVISION - 1,
+        )
+        prior_room_id = _identifier(
+            world_value.get("room_id"),
+            "v5 room id",
+        )
+        prior_room_bounds = _room_from(world_value.get("room_bounds"))
+        prior_self_body_id = _identifier(
+            world_value.get("self_body_id"),
+            "v5 self body id",
+        )
+        if (
+            tuple(sorted(bodies, key=lambda item: item.body_id)) != bodies
+            or tuple(sorted(objects, key=lambda item: item.object_id))
+            != objects
+            or prior_self_body_id
+            != self._state.world.self_body_id
+        ):
+            raise ValueError("v5 physical identity order changed")
+        migration_value = decoded.get("migration_receipt")
+        parent_migration_receipt_sha256 = None
+        if migration_value is not None:
+            if (
+                not isinstance(migration_value, Mapping)
+                or migration_value.get("schema") != V5_MIGRATION_SCHEMA
+            ):
+                raise ValueError("v5 migration receipt changed")
+            parent_migration_receipt_sha256 = _sha256_identity(
+                migration_value.get("authority_receipt_sha256"),
+                "v5 migration receipt identity",
+            )
+        prior_world_record = dict(world_value)
+        prior_observation_unsigned = {
+            **prior_world_record,
+            "schema": V5_OBSERVATION_SCHEMA,
+            "state_sha256": _digest(prior_world_record),
+        }
+        self._commit_migrated_world(
+            encoded=encoded,
+            prior_revision=prior_revision,
+            prior_room_id=prior_room_id,
+            prior_room_bounds=prior_room_bounds,
+            prior_bodies=bodies,
+            prior_objects=objects,
+            prior_observation_unsigned=prior_observation_unsigned,
+            prior_observation_domain=V5_OBSERVATION_DOMAIN,
+            parent_migration_receipt_sha256=(
+                parent_migration_receipt_sha256
+            ),
+            preserve_material=True,
+        )
+
+    def _restore_v6_encoded(self, encoded: bytes) -> None:
+        decoded, payload = self._decode_authenticated_envelope(
+            encoded,
+            envelope_schema=V6_ENVELOPE_SCHEMA,
+            domain=V6_STATE_DOMAIN,
+            limit=self._max_encoded_state_bytes,
+        )
+        expected_state = {
+            "actor_ports", "limits", "migration_receipt",
+            "recent_applied_receipts", "schema", "world"
+        }
+        if (
+            not isinstance(decoded, Mapping)
+            or set(decoded) != expected_state
+            or decoded.get("schema") != V6_STATE_SCHEMA
+        ):
+            raise ValueError("v6 embodiment state fields changed")
+        expected_limits = {
+            "max_regions": self._max_regions,
+            "max_portals": self._max_portals,
+            "max_bodies": self._max_bodies,
+            "max_command_bytes": self._max_command_bytes,
+            "max_encoded_state_bytes": self._max_encoded_state_bytes,
+            "max_objects": self._max_objects,
+            "receipt_capacity": self._receipt_capacity,
+        }
+        if decoded.get("limits") != expected_limits:
+            raise ValueError("v6 embodiment state limits changed")
+        if decoded.get("actor_ports") != [item.as_record() for item in self._actor_ports]:
+            raise ValueError("v6 embodiment actor port topology changed")
+        world = self._world_from_record(decoded.get("world"))
+        raw_receipts = decoded.get("recent_applied_receipts")
+        if not isinstance(raw_receipts, list) or len(raw_receipts) > self._receipt_capacity:
+            raise ValueError("v6 retained execution receipts exceed capacity")
+        receipts = tuple(self._execution_from_record(item) for item in raw_receipts)
+        current_observation = self._observation_for(world)
+        self._verify_retained_execution_order(
+            receipts,
+            current_observation,
+            version_name="v6",
+        )
+        migration_value = decoded.get("migration_receipt")
+        prior_migration = (
+            self._migration_from_record(
+                migration_value,
+                world,
+                require_current_manifest=False,
+            )
+            if migration_value is not None
+            else None
+        )
+        prior_candidate = _AuthorityState(
+            world=world,
+            observation=current_observation,
+            recent_applied_receipts=receipts,
+            migration_receipt=prior_migration,
+        )
+        if _canonical(self._v6_state_payload_for(prior_candidate)) != payload:
+            raise ValueError("v6 embodiment state is not canonical")
+        self._commit_migrated_world(
+            encoded=encoded,
+            prior_revision=world.revision,
+            prior_room_id=world.room_id,
+            prior_room_bounds=world.room_bounds,
+            prior_bodies=world.bodies,
+            prior_objects=world.objects,
+            prior_observation_unsigned=current_observation.unsigned_record(),
+            prior_observation_domain=OBSERVATION_DOMAIN,
+            parent_migration_receipt_sha256=(
+                None
+                if prior_migration is None
+                else prior_migration.authority_receipt_sha256
+            ),
+            preserve_material=True,
+        )
+
+    def restore_encoded(
+        self,
+        encoded: bytes,
+        *,
+        allow_authenticated_physical_manifest_migration: bool = False,
+    ) -> None:
+        """Atomically restore one exact authenticated authority snapshot."""
+        self._receipt_compact_bytes_cache.clear()
+        self._receipt_cache_catalog_shas = ()
+        if not isinstance(encoded, bytes) or not encoded or len(encoded) > LEGACY_MAX_ENCODED_STATE_BYTES:
+            raise ValueError("encoded embodiment state exceeds its exact byte capacity")
+        try:
+            envelope_probe = json.loads(encoded.decode("utf-8"))
+        except (UnicodeDecodeError, json.JSONDecodeError) as error:
+            raise ValueError("embodiment state envelope is not canonical JSON") from error
+        if isinstance(envelope_probe, Mapping) and envelope_probe.get("schema") == LEGACY_ENVELOPE_SCHEMA:
+            self._restore_legacy_encoded(encoded)
+            return
+        if isinstance(envelope_probe, Mapping) and envelope_probe.get("schema") == V2_ENVELOPE_SCHEMA:
+            self._restore_v2_encoded(encoded)
+            return
+        if (
+            isinstance(envelope_probe, Mapping)
+            and envelope_probe.get("schema") == V3_ENVELOPE_SCHEMA
+        ):
+            self._restore_pre_material_encoded(
+                encoded,
+                envelope_schema=V3_ENVELOPE_SCHEMA,
+                state_schema=V3_STATE_SCHEMA,
+                observation_schema=V3_OBSERVATION_SCHEMA,
+                state_domain=V3_STATE_DOMAIN,
+                observation_domain=V3_OBSERVATION_DOMAIN,
+                version_name="v3",
+            )
+            return
+        if (
+            isinstance(envelope_probe, Mapping)
+            and envelope_probe.get("schema") == V4_ENVELOPE_SCHEMA
+        ):
+            self._restore_pre_material_encoded(
+                encoded,
+                envelope_schema=V4_ENVELOPE_SCHEMA,
+                state_schema=V4_STATE_SCHEMA,
+                observation_schema=V4_OBSERVATION_SCHEMA,
+                state_domain=V4_STATE_DOMAIN,
+                observation_domain=V4_OBSERVATION_DOMAIN,
+                version_name="v4",
+            )
+            return
+        if (
+            isinstance(envelope_probe, Mapping)
+            and envelope_probe.get("schema") == V5_ENVELOPE_SCHEMA
+        ):
+            self._restore_v5_encoded(encoded)
+            return
+        if (
+            isinstance(envelope_probe, Mapping)
+            and envelope_probe.get("schema") == V6_ENVELOPE_SCHEMA
+        ):
+            self._restore_v6_encoded(encoded)
+            return
+        decoded, _payload = self._decode_authenticated_envelope(
+            encoded,
+            envelope_schema=ENVELOPE_SCHEMA,
+            domain=STATE_DOMAIN,
+            limit=self._max_encoded_state_bytes,
+        )
+        expected_state = {
+            "actor_ports", "limits", "migration_receipt", "optical_surface_catalog",
+            "recent_applied_receipts", "schema", "world"
+        }
+        if not isinstance(decoded, Mapping) or set(decoded) - {"declaration_sha256"} != expected_state or decoded.get("schema") != STATE_SCHEMA:
+            raise ValueError("embodiment state fields changed")
+        # The declaration the world was last built or renovated under, if it recorded one.
+        self._recorded_declaration_sha256 = (
+            None if "declaration_sha256" not in decoded
+            else _sha256_identity(decoded["declaration_sha256"], "declaration identity")
+        )
+        expected_limits = {
+            "max_regions": self._max_regions,
+            "max_portals": self._max_portals,
+            "max_bodies": self._max_bodies,
+            "max_command_bytes": self._max_command_bytes,
+            "max_encoded_state_bytes": self._max_encoded_state_bytes,
+            "max_objects": self._max_objects,
+            "receipt_capacity": self._receipt_capacity,
+        }
+        recorded_limits = decoded.get("limits")
+        if recorded_limits != expected_limits:
+            # A renovation release may grow the home; a snapshot recorded
+            # under smaller caps restores into an authority granting at
+            # least as much of every capacity, and only under the same
+            # authenticated-migration authorization that geometry uses.
+            if not (
+                allow_authenticated_physical_manifest_migration
+                and isinstance(recorded_limits, Mapping)
+                and set(recorded_limits) == set(expected_limits)
+                and all(
+                    isinstance(recorded_limits[name], int)
+                    and not isinstance(recorded_limits[name], bool)
+                    and 0 < recorded_limits[name]
+                    and (name == "receipt_capacity" or recorded_limits[name] <= expected_limits[name])
+                    for name in expected_limits
+                )
+            ):
+                raise ValueError("embodiment state limits changed")
+        if decoded.get("actor_ports") != [item.as_record() for item in self._actor_ports]:
+            raise ValueError("embodiment actor port topology changed")
+        catalog = self._optical_surface_catalog_from_record(decoded.get("optical_surface_catalog"))
+        world = self._world_from_compact_record(decoded.get("world"), catalog)
+        raw_receipts = decoded.get("recent_applied_receipts")
+        if not isinstance(raw_receipts, list):
+            raise ValueError("retained execution receipts exceed capacity")
+        if len(raw_receipts) > self._receipt_capacity:
+            if not allow_authenticated_physical_manifest_migration:
+                raise ValueError("retained execution receipts exceed capacity")
+            # A world recorded with a longer tail of receipts keeps its latest ones: the
+            # tail is a bounded proof of the order of her acts, not lived state.
+            raw_receipts = raw_receipts[-self._receipt_capacity:]
+            decoded = {**decoded, "recent_applied_receipts": raw_receipts}
+        receipts = tuple(self._execution_from_compact_record(item, catalog) for item in raw_receipts)
+        current_observation = self._observation_for(world)
+        self._verify_retained_execution_order(
+            receipts,
+            current_observation,
+        )
+        migration_value = decoded.get("migration_receipt")
+        migration = (
+            self._migration_from_record(
+                migration_value,
+                world,
+                require_current_manifest=(
+                    not allow_authenticated_physical_manifest_migration
+                ),
+            )
+            if migration_value is not None
+            else None
+        )
+        candidate = _AuthorityState(
+            world=world,
+            observation=current_observation,
+            recent_applied_receipts=receipts,
+            migration_receipt=migration,
+        )
+        candidate_encoded = self._encoded_state_for(candidate)
+        if candidate_encoded != encoded:
+            # Under the accepted limits relaxation the re-encoding differs
+            # ONLY in the limits stanza (the new authority grants more);
+            # every other field must still reproduce exactly.
+            if recorded_limits == expected_limits:
+                raise ValueError("embodiment state is not canonical")
+            candidate_payload, _ = self._decode_authenticated_envelope(
+                candidate_encoded,
+                envelope_schema=ENVELOPE_SCHEMA,
+                domain=STATE_DOMAIN,
+                limit=self._max_encoded_state_bytes,
+            )
+            if _looks_expanded(candidate_payload) != _looks_expanded(decoded):
+                raise ValueError("embodiment state is not canonical")
+        if (
+            allow_authenticated_physical_manifest_migration
+            and migration is not None
+            and migration.manifest_sha256
+            != self._physical_manifest_sha256()
+        ):
+            self._commit_migrated_world(
+                encoded=encoded,
+                prior_revision=world.revision,
+                prior_room_id=world.room_id,
+                prior_room_bounds=world.room_bounds,
+                prior_bodies=world.bodies,
+                prior_objects=world.objects,
+                prior_observation_unsigned=(
+                    current_observation.unsigned_record()
+                ),
+                prior_observation_domain=OBSERVATION_DOMAIN,
+                parent_migration_receipt_sha256=(
+                    migration.authority_receipt_sha256
+                ),
+                preserve_material=True,
+                preserve_current_world=True,
+                prior_regions=world.regions,
+                prior_portals=world.portals,
+            )
+            return
+        with self._lock:
+            before_state = self._state
+            try:
+                self._commit_authority_state(candidate)
+            except BaseException:
+                self._state = before_state
+                raise
+
+    def status(self) -> dict[str, object]:
+        with self._lock:
+            self._require_public_visibility_locked()
+            world = self._state.world
+            self_body = next(
+                item for item in world.bodies
+                if item.body_id == world.self_body_id
+            )
+            return {
+                "body_capacity": self._max_bodies,
+                "body_count": len(world.bodies),
+                "body_ids": [item.body_id for item in world.bodies],
+                "self_body_id": world.self_body_id,
+                "held_object_id": self_body.held_object_id,
+                "object_capacity": self._max_objects,
+                "object_count": len(world.objects),
+                "portal_capacity": self._max_portals,
+                "portal_count": len(world.portals),
+                "portal_ids": [item.portal_id for item in world.portals],
+                "port_id": self.port_id,
+                "region_capacity": self._max_regions,
+                "region_count": len(world.regions),
+                "region_ids": [item.region_id for item in world.regions],
+                "actor_ports": [item.as_record() for item in self._actor_ports],
+                "migration_receipt_sha256": (
+                    self._state.migration_receipt.authority_receipt_sha256
+                    if self._state.migration_receipt is not None
+                    else None
+                ),
+                "prepared_action_execution": int(
+                    self._prepared_action_execution is not None
+                ),
+                "receipt_capacity": self._receipt_capacity,
+                "retained_applied_receipts": len(self._state.recent_applied_receipts),
+                "revision": world.revision,
+                "room_id": world.room_id,
+            }
+
+
+__all__ = [
+    "ActionExecutionReceipt",
+    "AdvanceContactOpticalSurfaceCommand",
+    "AdvancePhysicalTimeCommand",
+    "AirVolumeState",
+    "BodyContactState",
+    "BodyReceptorGeometry",
+    "BodySurfaceActuation",
+    "BodySurfaceContactCommand",
+    "ContactOpticalSurfaceSequence",
+    "EmbodiedBody",
+    "EmbodiedObject",
+    "EmbodimentPort",
+    "EmbodimentWorldAuthority",
+    "ENVIRONMENT_PORT_ID",
+    "GraspContactCommand",
+    "ReleaseHeldObjectCommand",
+    "TakeContactHeldObjectCommand",
+    "MoveCommand",
+    "MountedBodySurfaceSite",
+    "ObjectMaterialState",
+    "ObjectOpticalSurface",
+    "MAX_OPTICAL_SURFACE_COLUMNS",
+    "MAX_OPTICAL_SURFACE_PALETTE_ENTRIES",
+    "MAX_OPTICAL_SURFACE_ROWS",
+    "MAX_VOCAL_SAMPLE_COUNT",
+    "MIN_VOCAL_SAMPLE_COUNT",
+    "ObservationSnapshot",
+    "OralContactCommand",
+    "PORT_ID",
+    "PreparedActionExecution",
+    "PreparedBodySurfaceContact",
+    "SECOND_BODY_PORT_ID",
+    "PickCommand",
+    "PlaceCommand",
+    "VocalizeCommand",
+    "VOCAL_SAMPLE_RATE_HZ",
+    "PoseMM",
+    "PositionMM",
+    "PhysicalPortal",
+    "PhysicalRegion",
+    "RoomBoundsMM",
+    "TouchContactCommand",
+    "V5_ENVELOPE_SCHEMA",
+    "V5_STATE_SCHEMA",
+    "WorldMigrationReceipt",
+    "decode_command",
+    "encode_command",
+]

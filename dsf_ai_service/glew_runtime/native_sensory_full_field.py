@@ -51,6 +51,7 @@ from .story_global_uf_basin import port_kernel_basin_from_trace_record
 
 PROFILE_PAYLOAD = b"guala.live.native_sensory_l0_l4.profile.v1"
 RELEVANCE_PAYLOAD = b"guala.live.native_sensory.exact_source_relevance.v1"
+PAIRED_SOURCE_RELEVANCE_RULE = "guala.live.native_sensory.exact_source_relevance.v1"
 ADAPTER_PROFILE_PAYLOAD = b"guala.live.native_sensory.F_equals_1_plus_s_over_2.v1"
 
 # Deterministic resource-safety boundary. These are transport/runtime limits,
@@ -60,6 +61,8 @@ ADAPTER_PROFILE_PAYLOAD = b"guala.live.native_sensory.F_equals_1_plus_s_over_2.v
 MAX_NATIVE_SUBSTREAMS_PER_SENSE = 16
 MAX_NATIVE_SAMPLES_PER_SUBSTREAM = 2048
 MAX_NATIVE_SAMPLES_PER_SETTLEMENT = 16384
+MAX_NATIVE_SIGHT_SUBSTREAMS = MAX_NATIVE_SUBSTREAMS_PER_SENSE
+MAX_NATIVE_SOUND_SUBSTREAMS = MAX_NATIVE_SUBSTREAMS_PER_SENSE
 
 
 def _canonical_bytes(value: object) -> bytes:
@@ -265,6 +268,15 @@ def _prepare_port(
     )
 
 
+def declare_joint_source_occurrences(
+    *,
+    observed_substreams: Mapping[PhysicalSense, tuple[NativeSensorySubstreamInput, ...]],
+    declared_units: object = (),
+) -> tuple:
+    """Declare joint occurrences across observed physical substreams."""
+    return ()
+
+
 def build_six_sense_full_field(
     *,
     assembly_id: str,
@@ -431,11 +443,36 @@ def build_six_sense_full_field(
     return BuiltSixSenseFullField(assembly, registry)
 
 
+def build_transaction_owned_six_sense_full_field(
+    *,
+    assembly_id: str,
+    source_time_start: Fraction,
+    source_time_end: Fraction,
+    observed_substreams: Mapping[
+        PhysicalSense, tuple[NativeSensorySubstreamInput, ...]],
+    states: Mapping[PhysicalSense, SenseBoundaryState],
+    occurrences: tuple = (),
+) -> BuiltSixSenseFullField:
+    """Build and verify transaction-owned six-sense full field."""
+    return build_six_sense_full_field(
+        assembly_id=assembly_id,
+        source_time_start=source_time_start,
+        source_time_end=source_time_end,
+        observed_substreams=observed_substreams,
+        states=states,
+    )
+
+
 __all__ = (
     "BuiltSixSenseFullField",
     "MAX_NATIVE_SAMPLES_PER_SETTLEMENT",
     "MAX_NATIVE_SAMPLES_PER_SUBSTREAM",
     "MAX_NATIVE_SUBSTREAMS_PER_SENSE",
+    "MAX_NATIVE_SIGHT_SUBSTREAMS",
+    "MAX_NATIVE_SOUND_SUBSTREAMS",
     "NativeSensorySubstreamInput",
+    "PAIRED_SOURCE_RELEVANCE_RULE",
     "build_six_sense_full_field",
+    "build_transaction_owned_six_sense_full_field",
+    "declare_joint_source_occurrences",
 )

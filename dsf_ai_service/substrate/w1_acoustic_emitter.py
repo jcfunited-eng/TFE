@@ -1,0 +1,716 @@
+"""Authenticated transient acoustic emission inside the W1 environment.
+
+This authority is the virtual physical emitter.  It binds exact PCM16 bytes to
+one authenticated current W1 observation, one external actor control port, one
+causal sample interval, and one capture epoch.  The signed control receipt is
+consumed transiently by the audiovisual perception authority; emitter identity
+and raw PCM are never copied into perceptual identity or persisted evidence.
+"""
+
+from __future__ import annotations
+
+import hashlib
+import hmac
+import json
+import struct
+import threading
+from dataclasses import dataclass, field
+
+from dsf_ai_service.substrate.embodiment_world import (
+    ActionExecutionReceipt,
+    EmbodimentWorldAuthority,
+    MAX_VOCAL_SAMPLE_COUNT,
+    ObservationSnapshot,
+    PreparedActionExecution,
+    VOCAL_SAMPLE_RATE_HZ,
+    VocalizeCommand,
+    decode_command,
+    encode_command,
+)
+from dsf_ai_service.substrate.senses.auditory_full_field_provider import (
+    OBSERVATION_HOP_SAMPLES,
+)
+
+
+EMISSION_SCHEMA = "guala.w1.authenticated_acoustic_emission.v3"
+AUTHORITY_DOMAIN = b"guala-w1-authenticated-acoustic-emitter-v3\0"
+PREPARED_EMISSION_SCHEMA = "guala.w1.prepared_acoustic_emission.v1"
+PREPARED_AUTHORITY_DOMAIN = b"guala-w1-prepared-acoustic-emitter-v1\0"
+PCM_SAMPLE_RATE_HZ = VOCAL_SAMPLE_RATE_HZ
+PCM_SAMPLE_WIDTH_BYTES = 2
+MIN_EMITTED_PCM_SAMPLES = 160
+MAX_EMITTED_PCM_SAMPLES = MAX_VOCAL_SAMPLE_COUNT
+MAX_SOURCE_SAMPLE_INDEX = (1 << 63) - 1
+_PREPARED_EMISSION_AUTHORITY = object()
+
+
+def _canonical(value: object) -> bytes:
+    return json.dumps(
+        value,
+        allow_nan=False,
+        ensure_ascii=False,
+        separators=(",", ":"),
+        sort_keys=True,
+    ).encode("utf-8")
+
+
+def _digest(value: object) -> str:
+    return hashlib.sha256(_canonical(value)).hexdigest()
+
+
+def _key(value: bytes | str) -> bytes:
+    if isinstance(value, str):
+        result = value.encode("utf-8")
+    elif isinstance(value, (bytes, bytearray, memoryview)):
+        result = bytes(value)
+    else:
+        raise ValueError("W1 acoustic emitter key must be bytes or text")
+    if not 32 <= len(result) <= 4096:
+        raise ValueError("W1 acoustic emitter key has an invalid boundary")
+    return result
+
+
+def _sha256(value: object, name: str) -> str:
+    if (
+        not isinstance(value, str)
+        or len(value) != 64
+        or any(character not in "0123456789abcdef" for character in value)
+    ):
+        raise ValueError(f"{name} must be a lowercase SHA-256 identity")
+    return value
+
+
+def _pcm_sample_count(value: bytes) -> int:
+    if not isinstance(value, bytes) or len(value) % PCM_SAMPLE_WIDTH_BYTES:
+        raise ValueError("W1 emission must be signed little-endian PCM16")
+    count = len(value) // PCM_SAMPLE_WIDTH_BYTES
+    if not MIN_EMITTED_PCM_SAMPLES <= count <= MAX_EMITTED_PCM_SAMPLES:
+        raise ValueError("W1 emission exceeds its exact sample boundary")
+    if count % OBSERVATION_HOP_SAMPLES:
+        raise ValueError(
+            "W1 emission does not close an exact auditory hop"
+        )
+    tuple(struct.iter_unpack("<h", value))
+    return count
+
+
+@dataclass(frozen=True, slots=True)
+class W1AcousticEmissionReceipt:
+    epoch_commitment_sha256: str
+    sequence: int
+    source_sample_start: int
+    source_sample_end: int
+    emitter_port_id: str
+    world_execution_receipt_sha256: str
+    world_observation_receipt_sha256: str
+    pcm_sha256: str
+    sample_count: int
+    authority_hmac_sha256: str
+    authority_receipt_sha256: str
+
+    def payload(self) -> dict[str, object]:
+        return {
+            "emitter_port_id": self.emitter_port_id,
+            "epoch_commitment_sha256": self.epoch_commitment_sha256,
+            "pcm_sha256": self.pcm_sha256,
+            "sample_count": self.sample_count,
+            "sample_rate_hz": PCM_SAMPLE_RATE_HZ,
+            "schema": EMISSION_SCHEMA,
+            "sequence": self.sequence,
+            "source_sample_end": self.source_sample_end,
+            "source_sample_start": self.source_sample_start,
+            "world_execution_receipt_sha256": (
+                self.world_execution_receipt_sha256
+            ),
+            "world_observation_receipt_sha256": (
+                self.world_observation_receipt_sha256
+            ),
+        }
+
+    def verify(self, authority_key: bytes | str) -> None:
+        key = _key(authority_key)
+        _sha256(self.epoch_commitment_sha256, "W1 emission epoch")
+        _sha256(
+            self.world_execution_receipt_sha256,
+            "W1 vocal execution receipt",
+        )
+        _sha256(
+            self.world_observation_receipt_sha256,
+            "W1 world observation receipt",
+        )
+        _sha256(self.pcm_sha256, "W1 emitted PCM")
+        if (
+            isinstance(self.sequence, bool)
+            or not isinstance(self.sequence, int)
+            or not 0 <= self.sequence <= MAX_SOURCE_SAMPLE_INDEX
+            or isinstance(self.source_sample_start, bool)
+            or not isinstance(self.source_sample_start, int)
+            or not 0 <= self.source_sample_start <= MAX_SOURCE_SAMPLE_INDEX
+            or isinstance(self.source_sample_end, bool)
+            or not isinstance(self.source_sample_end, int)
+            or not self.source_sample_start
+            < self.source_sample_end
+            <= MAX_SOURCE_SAMPLE_INDEX
+            or self.source_sample_end - self.source_sample_start
+            != self.sample_count
+            or not MIN_EMITTED_PCM_SAMPLES
+            <= self.sample_count
+            <= MAX_EMITTED_PCM_SAMPLES
+            or not isinstance(self.emitter_port_id, str)
+            or not self.emitter_port_id
+        ):
+            raise ValueError("W1 acoustic emission boundary changed")
+        expected_hmac = hmac.new(
+            key,
+            AUTHORITY_DOMAIN + _canonical(self.payload()),
+            hashlib.sha256,
+        ).hexdigest()
+        if not hmac.compare_digest(
+            expected_hmac, self.authority_hmac_sha256
+        ):
+            raise ValueError("W1 acoustic emission HMAC changed")
+        expected_receipt = _digest({
+            "authority_hmac_sha256": expected_hmac,
+            "payload": self.payload(),
+        })
+        if expected_receipt != self.authority_receipt_sha256:
+            raise ValueError("W1 acoustic emission receipt changed")
+
+
+@dataclass(frozen=True, slots=True)
+class AuthenticatedW1AcousticEmission:
+    receipt: W1AcousticEmissionReceipt
+    pcm_s16le: bytes
+
+    def verify(
+        self,
+        *,
+        authority_key: bytes | str,
+        world_authority: EmbodimentWorldAuthority,
+        observation_snapshot: ObservationSnapshot,
+        execution_receipt: ActionExecutionReceipt,
+    ) -> None:
+        self.receipt.verify(authority_key)
+        world_authority.verify_observation_snapshot(observation_snapshot)
+        world_authority.verify_execution_receipt(execution_receipt)
+        current = world_authority.observation_snapshot()
+        count = _pcm_sample_count(self.pcm_s16le)
+        if (
+            count != self.receipt.sample_count
+            or hashlib.sha256(self.pcm_s16le).hexdigest()
+            != self.receipt.pcm_sha256
+            or observation_snapshot.authority_receipt_sha256
+            != self.receipt.world_observation_receipt_sha256
+            or execution_receipt.authority_receipt_sha256
+            != self.receipt.world_execution_receipt_sha256
+            or execution_receipt.after.authority_receipt_sha256
+            != observation_snapshot.authority_receipt_sha256
+            or execution_receipt.port_id != self.receipt.emitter_port_id
+            or current.authority_receipt_sha256
+            != observation_snapshot.authority_receipt_sha256
+        ):
+            raise ValueError(
+                "W1 acoustic pressure differs from its authenticated emission"
+            )
+        actor_by_port = {
+            item.port_id: item.actor_body_id
+            for item in world_authority.actor_ports
+        }
+        emitter_body_id = actor_by_port.get(self.receipt.emitter_port_id)
+        if emitter_body_id is None:
+            raise ValueError("W1 acoustic emitter port is not mounted")
+        if emitter_body_id == observation_snapshot.self_body_id:
+            raise ValueError("W1 external emission used the self port")
+
+    def verify_retained(
+        self,
+        *,
+        authority_key: bytes | str,
+        world_authority: EmbodimentWorldAuthority,
+        observation_snapshot: ObservationSnapshot,
+        execution_receipt: ActionExecutionReceipt,
+    ) -> None:
+        """Verify an authenticated historical emission after world advance."""
+
+        self.receipt.verify(authority_key)
+        world_authority.verify_observation_snapshot(observation_snapshot)
+        world_authority.verify_execution_receipt(execution_receipt)
+        count = _pcm_sample_count(self.pcm_s16le)
+        if (
+            count != self.receipt.sample_count
+            or hashlib.sha256(self.pcm_s16le).hexdigest()
+            != self.receipt.pcm_sha256
+            or observation_snapshot.authority_receipt_sha256
+            != self.receipt.world_observation_receipt_sha256
+            or execution_receipt.authority_receipt_sha256
+            != self.receipt.world_execution_receipt_sha256
+            or execution_receipt.after.authority_receipt_sha256
+            != observation_snapshot.authority_receipt_sha256
+            or execution_receipt.port_id != self.receipt.emitter_port_id
+        ):
+            raise ValueError(
+                "W1 retained acoustic pressure differs from its "
+                "authenticated emission"
+            )
+        actor_by_port = {
+            item.port_id: item.actor_body_id
+            for item in world_authority.actor_ports
+        }
+        emitter_body_id = actor_by_port.get(self.receipt.emitter_port_id)
+        if emitter_body_id is None:
+            raise ValueError("W1 acoustic emitter port is not mounted")
+        if emitter_body_id == observation_snapshot.self_body_id:
+            raise ValueError("W1 external emission used the self port")
+
+
+@dataclass(frozen=True, slots=True)
+class PreparedW1AcousticEmission:
+    """Prospective pressure custody for one uncommitted world action."""
+
+    prospective_emission_receipt_sha256: str
+    preparation_hmac_sha256: str
+    preparation_receipt_sha256: str
+    pcm_s16le: bytes
+    command_payload: bytes
+    prepared_world_action: PreparedActionExecution
+    _epoch_token: str = field(repr=False, compare=False)
+    _world_authority: EmbodimentWorldAuthority = field(
+        repr=False,
+        compare=False,
+    )
+    _owner_authority: object = field(repr=False, compare=False)
+    _construction_authority: object = field(repr=False, compare=False)
+
+    def payload(self) -> dict[str, object]:
+        execution = self.prepared_world_action.execution_receipt
+        return {
+            "command_sha256": hashlib.sha256(
+                self.command_payload
+            ).hexdigest(),
+            "pcm_sha256": hashlib.sha256(self.pcm_s16le).hexdigest(),
+            "prospective_emission_receipt_sha256": (
+                self.prospective_emission_receipt_sha256
+            ),
+            "schema": PREPARED_EMISSION_SCHEMA,
+            "world_after_receipt_sha256": (
+                execution.after.authority_receipt_sha256
+            ),
+            "world_before_receipt_sha256": (
+                execution.before.authority_receipt_sha256
+            ),
+            "world_execution_receipt_sha256": (
+                execution.authority_receipt_sha256
+            ),
+        }
+
+
+class W1AcousticEmitterAuthority:
+    """Issue authenticated transient pressure from a mounted W1 actor."""
+
+    def __init__(
+        self,
+        *,
+        authority_key: bytes | str,
+        world_authority: EmbodimentWorldAuthority,
+    ) -> None:
+        if not isinstance(world_authority, EmbodimentWorldAuthority):
+            raise TypeError("W1 acoustic emitter requires the world authority")
+        self._key = _key(authority_key)
+        self._world = world_authority
+        self._prepared_emission: PreparedW1AcousticEmission | None = None
+        self._prepared_emission_authority = object()
+        self._lock = threading.RLock()
+
+    def owns_world(self, world_authority: EmbodimentWorldAuthority) -> bool:
+        return self._world is world_authority
+
+    def verify_emission(
+        self,
+        emission: AuthenticatedW1AcousticEmission,
+        *,
+        observation_snapshot: ObservationSnapshot,
+        execution_receipt: ActionExecutionReceipt,
+    ) -> None:
+        if not isinstance(emission, AuthenticatedW1AcousticEmission):
+            raise TypeError("W1 authenticated acoustic emission is required")
+        emission.verify(
+            authority_key=self._key,
+            world_authority=self._world,
+            observation_snapshot=observation_snapshot,
+            execution_receipt=execution_receipt,
+        )
+
+    def verify_retained_emission(
+        self,
+        emission: AuthenticatedW1AcousticEmission,
+        *,
+        observation_snapshot: ObservationSnapshot,
+        execution_receipt: ActionExecutionReceipt,
+    ) -> None:
+        if not isinstance(emission, AuthenticatedW1AcousticEmission):
+            raise TypeError("W1 authenticated acoustic emission is required")
+        emission.verify_retained(
+            authority_key=self._key,
+            world_authority=self._world,
+            observation_snapshot=observation_snapshot,
+            execution_receipt=execution_receipt,
+        )
+
+    def _prospective_emission_receipt_sha256(
+        self,
+        *,
+        epoch_token: str,
+        sequence: int,
+        source_sample_start: int,
+        execution_receipt: ActionExecutionReceipt,
+        command_payload: bytes,
+        emitter_port_id: str,
+        pcm_s16le: bytes,
+    ) -> str:
+        if (
+            not isinstance(epoch_token, str)
+            or not epoch_token
+            or len(epoch_token.encode("utf-8")) > 256
+        ):
+            raise ValueError("W1 acoustic emission epoch is required")
+        self._world.verify_execution_receipt(execution_receipt)
+        count = _pcm_sample_count(pcm_s16le)
+        command = decode_command(command_payload)
+        if (
+            not isinstance(command, VocalizeCommand)
+            or encode_command(command) != command_payload
+            or execution_receipt.command_sha256
+            != hashlib.sha256(command_payload).hexdigest()
+            or execution_receipt.port_id != emitter_port_id
+            or command.epoch_commitment_sha256
+            != hashlib.sha256(epoch_token.encode("utf-8")).hexdigest()
+            or command.sequence != sequence
+            or command.source_sample_start != source_sample_start
+            or command.pcm_sha256 != hashlib.sha256(pcm_s16le).hexdigest()
+            or command.sample_count != count
+            or VOCAL_SAMPLE_RATE_HZ != PCM_SAMPLE_RATE_HZ
+            or isinstance(sequence, bool)
+            or not isinstance(sequence, int)
+            or not 0 <= sequence <= MAX_SOURCE_SAMPLE_INDEX
+            or isinstance(source_sample_start, bool)
+            or not isinstance(source_sample_start, int)
+            or not 0 <= source_sample_start
+            <= MAX_SOURCE_SAMPLE_INDEX - count
+        ):
+            raise ValueError(
+                "W1 prospective pressure differs from its vocal action"
+            )
+        payload = {
+            "emitter_port_id": emitter_port_id,
+            "epoch_commitment_sha256": hashlib.sha256(
+                epoch_token.encode("utf-8")
+            ).hexdigest(),
+            "pcm_sha256": hashlib.sha256(pcm_s16le).hexdigest(),
+            "sample_count": count,
+            "sample_rate_hz": PCM_SAMPLE_RATE_HZ,
+            "schema": EMISSION_SCHEMA,
+            "sequence": sequence,
+            "source_sample_end": source_sample_start + count,
+            "source_sample_start": source_sample_start,
+            "world_execution_receipt_sha256": (
+                execution_receipt.authority_receipt_sha256
+            ),
+            "world_observation_receipt_sha256": (
+                execution_receipt.after.authority_receipt_sha256
+            ),
+        }
+        signature = hmac.new(
+            self._key,
+            AUTHORITY_DOMAIN + _canonical(payload),
+            hashlib.sha256,
+        ).hexdigest()
+        return _digest({
+            "authority_hmac_sha256": signature,
+            "payload": payload,
+        })
+
+    def prepare_emission(
+        self,
+        *,
+        epoch_token: str,
+        sequence: int,
+        source_sample_start: int,
+        prepared_world_action: PreparedActionExecution,
+        command_payload: bytes,
+        emitter_port_id: str,
+        pcm_s16le: bytes,
+    ) -> PreparedW1AcousticEmission:
+        """Bind exact candidate pressure while the live world is unchanged."""
+
+        if not isinstance(prepared_world_action, PreparedActionExecution):
+            raise TypeError(
+                "W1 prospective emission requires a prepared world action"
+            )
+        with self._lock:
+            if self._prepared_emission is not None:
+                raise RuntimeError(
+                    "W1 acoustic emitter already has prepared pressure"
+                )
+            self._world.verify_prepared_action(prepared_world_action)
+            execution = prepared_world_action.execution_receipt
+            prospective_sha256 = (
+                self._prospective_emission_receipt_sha256(
+                    epoch_token=epoch_token,
+                    sequence=sequence,
+                    source_sample_start=source_sample_start,
+                    execution_receipt=execution,
+                    command_payload=command_payload,
+                    emitter_port_id=emitter_port_id,
+                    pcm_s16le=pcm_s16le,
+                )
+            )
+            provisional = PreparedW1AcousticEmission(
+                prospective_emission_receipt_sha256=prospective_sha256,
+                preparation_hmac_sha256="0" * 64,
+                preparation_receipt_sha256="0" * 64,
+                pcm_s16le=pcm_s16le,
+                command_payload=command_payload,
+                prepared_world_action=prepared_world_action,
+                _epoch_token=epoch_token,
+                _world_authority=self._world,
+                _owner_authority=self._prepared_emission_authority,
+                _construction_authority=_PREPARED_EMISSION_AUTHORITY,
+            )
+            signature = hmac.new(
+                self._key,
+                PREPARED_AUTHORITY_DOMAIN + _canonical(provisional.payload()),
+                hashlib.sha256,
+            ).hexdigest()
+            prepared = PreparedW1AcousticEmission(
+                prospective_emission_receipt_sha256=prospective_sha256,
+                preparation_hmac_sha256=signature,
+                preparation_receipt_sha256=_digest({
+                    "authority_hmac_sha256": signature,
+                    "payload": provisional.payload(),
+                }),
+                pcm_s16le=pcm_s16le,
+                command_payload=command_payload,
+                prepared_world_action=prepared_world_action,
+                _epoch_token=epoch_token,
+                _world_authority=self._world,
+                _owner_authority=self._prepared_emission_authority,
+                _construction_authority=_PREPARED_EMISSION_AUTHORITY,
+            )
+            self._prepared_emission = prepared
+            try:
+                self._require_prepared_emission_locked(prepared)
+            except BaseException:
+                self._prepared_emission = None
+                raise
+            return prepared
+
+    def _require_prepared_emission_locked(
+        self,
+        prepared: PreparedW1AcousticEmission,
+    ) -> PreparedW1AcousticEmission:
+        if (
+            not isinstance(prepared, PreparedW1AcousticEmission)
+            or prepared._construction_authority
+            is not _PREPARED_EMISSION_AUTHORITY
+            or prepared._world_authority is not self._world
+            or prepared._owner_authority
+            is not self._prepared_emission_authority
+            or self._prepared_emission is not prepared
+        ):
+            raise ValueError("W1 prepared acoustic emission changed custody")
+        self._world.verify_prepared_action(prepared.prepared_world_action)
+        execution = prepared.prepared_world_action.execution_receipt
+        prospective_sha256 = self._prospective_emission_receipt_sha256(
+            epoch_token=prepared._epoch_token,
+            sequence=decode_command(prepared.command_payload).sequence,
+            source_sample_start=(
+                decode_command(prepared.command_payload).source_sample_start
+            ),
+            execution_receipt=execution,
+            command_payload=prepared.command_payload,
+            emitter_port_id=execution.port_id,
+            pcm_s16le=prepared.pcm_s16le,
+        )
+        signature = hmac.new(
+            self._key,
+            PREPARED_AUTHORITY_DOMAIN + _canonical(prepared.payload()),
+            hashlib.sha256,
+        ).hexdigest()
+        if (
+            prepared.prospective_emission_receipt_sha256
+            != prospective_sha256
+            or not hmac.compare_digest(
+                signature,
+                prepared.preparation_hmac_sha256,
+            )
+            or prepared.preparation_receipt_sha256
+            != _digest({
+                "authority_hmac_sha256": signature,
+                "payload": prepared.payload(),
+            })
+        ):
+            raise ValueError("W1 prepared acoustic emission changed state")
+        return prepared
+
+    def verify_prepared_emission(
+        self,
+        prepared: PreparedW1AcousticEmission,
+    ) -> None:
+        """Verify prospective pressure custody without world mutation."""
+
+        with self._lock:
+            self._require_prepared_emission_locked(prepared)
+
+    def commit_prepared_emission(
+        self,
+        prepared: PreparedW1AcousticEmission,
+    ) -> str:
+        """Consume prospective custody immediately before its world commit."""
+
+        with self._lock:
+            current = self._require_prepared_emission_locked(prepared)
+            receipt_sha256 = current.prospective_emission_receipt_sha256
+            self._prepared_emission = None
+            return receipt_sha256
+
+    def discard_prepared_emission(
+        self,
+        prepared: PreparedW1AcousticEmission,
+    ) -> None:
+        """Release prospective pressure while the world remains uncommitted."""
+
+        with self._lock:
+            self._require_prepared_emission_locked(prepared)
+            self._prepared_emission = None
+
+    def emit(
+        self,
+        *,
+        epoch_token: str,
+        sequence: int,
+        source_sample_start: int,
+        observation_snapshot: ObservationSnapshot,
+        execution_receipt: ActionExecutionReceipt,
+        command_payload: bytes,
+        emitter_port_id: str,
+        pcm_s16le: bytes,
+    ) -> AuthenticatedW1AcousticEmission:
+        if (
+            not isinstance(epoch_token, str)
+            or not epoch_token
+            or len(epoch_token.encode("utf-8")) > 256
+        ):
+            raise ValueError("W1 acoustic emission epoch is required")
+        self._world.verify_observation_snapshot(observation_snapshot)
+        self._world.verify_execution_receipt(execution_receipt)
+        current = self._world.observation_snapshot()
+        if current.authority_receipt_sha256 != (
+            observation_snapshot.authority_receipt_sha256
+        ):
+            raise ValueError("W1 acoustic emission requires the current world")
+        count = _pcm_sample_count(pcm_s16le)
+        command = decode_command(command_payload)
+        if not isinstance(command, VocalizeCommand):
+            raise ValueError("W1 acoustic emission requires a vocal action")
+        if (
+            encode_command(command) != command_payload
+            or execution_receipt.command_sha256
+            != hashlib.sha256(command_payload).hexdigest()
+            or execution_receipt.after.authority_receipt_sha256
+            != observation_snapshot.authority_receipt_sha256
+            or execution_receipt.port_id != emitter_port_id
+            or command.epoch_commitment_sha256
+            != hashlib.sha256(epoch_token.encode("utf-8")).hexdigest()
+            or command.sequence != sequence
+            or command.source_sample_start != source_sample_start
+            or command.pcm_sha256 != hashlib.sha256(pcm_s16le).hexdigest()
+            or command.sample_count != count
+            or VOCAL_SAMPLE_RATE_HZ != PCM_SAMPLE_RATE_HZ
+        ):
+            raise ValueError(
+                "W1 emitted pressure differs from its vocal execution"
+            )
+        if (
+            isinstance(sequence, bool)
+            or not isinstance(sequence, int)
+            or not 0 <= sequence <= MAX_SOURCE_SAMPLE_INDEX
+            or isinstance(source_sample_start, bool)
+            or not isinstance(source_sample_start, int)
+            or not 0 <= source_sample_start
+            <= MAX_SOURCE_SAMPLE_INDEX - count
+        ):
+            raise ValueError("W1 acoustic emission clock is invalid")
+        payload = {
+            "emitter_port_id": emitter_port_id,
+            "epoch_commitment_sha256": hashlib.sha256(
+                epoch_token.encode("utf-8")
+            ).hexdigest(),
+            "pcm_sha256": hashlib.sha256(pcm_s16le).hexdigest(),
+            "sample_count": count,
+            "sample_rate_hz": PCM_SAMPLE_RATE_HZ,
+            "schema": EMISSION_SCHEMA,
+            "sequence": sequence,
+            "source_sample_end": source_sample_start + count,
+            "source_sample_start": source_sample_start,
+            "world_execution_receipt_sha256": (
+                execution_receipt.authority_receipt_sha256
+            ),
+            "world_observation_receipt_sha256": (
+                observation_snapshot.authority_receipt_sha256
+            ),
+        }
+        signature = hmac.new(
+            self._key,
+            AUTHORITY_DOMAIN + _canonical(payload),
+            hashlib.sha256,
+        ).hexdigest()
+        receipt = W1AcousticEmissionReceipt(
+            epoch_commitment_sha256=payload["epoch_commitment_sha256"],
+            sequence=sequence,
+            source_sample_start=source_sample_start,
+            source_sample_end=source_sample_start + count,
+            emitter_port_id=emitter_port_id,
+            world_execution_receipt_sha256=(
+                execution_receipt.authority_receipt_sha256
+            ),
+            world_observation_receipt_sha256=(
+                observation_snapshot.authority_receipt_sha256
+            ),
+            pcm_sha256=payload["pcm_sha256"],
+            sample_count=count,
+            authority_hmac_sha256=signature,
+            authority_receipt_sha256=_digest({
+                "authority_hmac_sha256": signature,
+                "payload": payload,
+            }),
+        )
+        result = AuthenticatedW1AcousticEmission(
+            receipt=receipt,
+            pcm_s16le=pcm_s16le,
+        )
+        self.verify_emission(
+            result,
+            observation_snapshot=observation_snapshot,
+            execution_receipt=execution_receipt,
+        )
+        return result
+
+    def status(self) -> dict[str, object]:
+        with self._lock:
+            return {
+                "max_pcm_samples_per_emission": MAX_EMITTED_PCM_SAMPLES,
+                "prepared": int(self._prepared_emission is not None),
+                "retained_raw_media_bytes": 0,
+                "schema": "guala.w1.acoustic_emitter_status.v1",
+            }
+
+
+__all__ = (
+    "AuthenticatedW1AcousticEmission",
+    "MAX_EMITTED_PCM_SAMPLES",
+    "MIN_EMITTED_PCM_SAMPLES",
+    "PCM_SAMPLE_RATE_HZ",
+    "PreparedW1AcousticEmission",
+    "W1AcousticEmissionReceipt",
+    "W1AcousticEmitterAuthority",
+)

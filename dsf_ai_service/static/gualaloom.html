@@ -1,1813 +1,580 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="robots" content="noindex, nofollow">
-<title>Guala</title>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><meta name="guala-observation-contract" content="guala.lean_actor_observation.v1">
+<title>Guala — her world</title>
 <style>
-:root{--bg:#0d1117;--bg-alt:#161b22;--text:#e6edf3;--text-muted:#7d8590;--accent:#58a6ff;--border:#30363d;--input-bg:#0d1117;--msg-user:#1f2937;--msg-sub:#161b22;--ev-activity:#58a6ff;--ev-motif:#3fb950;--ev-emission:#f0883e;--nmda-fire:#3fb950;--nmda-block:#f85149}
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'SF Mono','Fira Code',monospace;background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column}
-#perm-strip{display:flex;gap:6px;padding:6px 14px;background:#0b0e14;border-bottom:1px solid var(--border);flex-wrap:wrap;align-items:center}
-.perm-btn{background:none;border:1px solid var(--border);color:var(--text-muted);padding:4px 10px;border-radius:4px;font-family:inherit;font-size:10px;cursor:pointer;white-space:nowrap}
-.perm-btn:hover{border-color:var(--accent);color:var(--text)}
-.perm-btn.granted{border-color:var(--ev-motif);color:var(--ev-motif)}
-.perm-btn.denied{border-color:var(--nmda-block);color:var(--nmda-block)}
-#speaker-badge{font-size:10px;color:var(--text-muted);cursor:pointer;margin-left:auto;display:flex;align-items:center;gap:6px}
-#mute-toggle{background:none;border:1px solid var(--border);color:var(--text-muted);padding:2px 8px;border-radius:4px;font-family:inherit;font-size:9px;cursor:pointer}
-header{padding:8px 14px;border-bottom:1px solid var(--border);background:var(--bg-alt);display:flex;justify-content:space-between;align-items:center}
-.header-left h1{font-size:15px;font-weight:600;color:var(--accent)}
-.header-left .subtitle{font-size:9px;color:var(--text-muted)}
-.header-right{display:flex;align-items:center;gap:6px}
-.hdr-btn{background:none;border:1px solid var(--border);color:var(--text-muted);padding:3px 8px;border-radius:4px;font-family:inherit;font-size:9px;cursor:pointer}
-.hdr-btn:hover{border-color:var(--accent);color:var(--text)}
-#stats-line{padding:4px 14px;font-size:9px;color:var(--text-muted);background:var(--bg-alt);border-bottom:1px solid var(--border)}
-#main-area{flex:1;display:flex;overflow:hidden}
-#convo-col{flex:1;display:flex;flex-direction:column;min-width:0}
-#transcript{flex:1;overflow-y:auto;padding:10px 14px;display:flex;flex-direction:column;gap:5px}
-.msg{max-width:85%;padding:6px 10px;border-radius:6px;font-size:11px;line-height:1.45;white-space:pre-wrap;word-break:break-word}
-.msg.user{align-self:flex-end;background:var(--msg-user);border:1px solid var(--border)}
-.msg.substrate{align-self:flex-start;background:var(--msg-sub);border:1px solid var(--border);color:var(--accent)}
-.msg.emission{align-self:flex-start;background:transparent;border:1px solid #30363d44;color:var(--ev-emission);font-style:italic;font-size:10px}
-.msg.system{align-self:center;color:var(--text-muted);font-size:9px;font-style:italic}
-.response-block{align-self:flex-start;max-width:90%}
-.response-text{padding:6px 10px;border-radius:6px 6px 0 0;background:var(--msg-sub);border:1px solid var(--border);color:var(--accent);font-size:11px;line-height:1.45}
-.response-text .tok-anno{color:var(--text-muted);font-size:9px}
-.response-meta{display:flex;align-items:center;gap:6px;padding:3px 10px;background:var(--bg);border:1px solid var(--border);border-top:none;border-radius:0 0 6px 6px;font-size:9px;color:var(--text-muted)}
-.fb-btn{cursor:pointer;font-size:13px;opacity:0.4}.fb-btn:hover{opacity:1}.fb-btn.active{opacity:1}
-#upload-bar{display:flex;gap:4px;padding:4px 14px;background:var(--bg-alt);border-top:1px solid var(--border);align-items:center;flex-wrap:wrap}
-.upload-btn{background:none;border:1px solid var(--border);color:var(--text-muted);padding:3px 8px;border-radius:4px;font-family:inherit;font-size:10px;cursor:pointer}
-.upload-btn:hover{border-color:var(--accent);color:var(--text)}
-#cam-preview{display:none;width:160px;height:120px;border-radius:4px;border:2px solid var(--border);object-fit:cover;position:fixed;bottom:70px;right:14px;z-index:50;opacity:0.9;cursor:move;resize:both;overflow:hidden;min-width:80px;min-height:60px;max-width:480px;max-height:360px;box-shadow:0 2px 8px rgba(0,0,0,0.4)}
-#input-row{padding:8px 14px;border-top:1px solid var(--border);background:var(--bg-alt);display:flex;gap:6px;align-items:center}
-#input-row input{flex:1;background:var(--input-bg);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:6px;font-family:inherit;font-size:11px;outline:none}
-#input-row input:focus{border-color:var(--accent)}
-#input-row button{background:var(--accent);color:#0d1117;border:none;padding:6px 14px;border-radius:6px;font-family:inherit;font-size:11px;font-weight:600;cursor:pointer}
-#snap-btn{display:none;background:none;border:1px solid var(--border);color:var(--text-muted);padding:6px 10px;border-radius:6px;font-family:inherit;font-size:11px;cursor:pointer}
-#snap-btn:hover{border-color:var(--accent);color:var(--text)}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
-#live-transcript{font-size:11px;color:var(--ev-emission);padding:2px 14px;min-height:16px;overflow:hidden;font-style:italic}
-#state-panel{width:280px;border-left:1px solid var(--border);background:var(--bg-alt);overflow-y:auto;padding:8px;font-size:9px}
-.ps{margin-bottom:8px}
-.ps-title{font-size:9px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px;padding-bottom:2px;border-bottom:1px solid var(--border)}
-.ps-row{display:flex;justify-content:space-between;padding:1px 0}
-.ps-row .l{color:var(--text-muted)}.ps-row .v{color:var(--text)}
-.nmda-dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:3px}
-.nmda-dot.fired{background:var(--nmda-fire)}.nmda-dot.blocked{background:var(--nmda-block)}.nmda-dot.idle{background:var(--border)}
-.ev{padding:2px 6px;font-size:8px;color:var(--text-muted);border-bottom:1px solid #21262d}
-/* Bundle modal */
-#bundle-modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:100;justify-content:center;align-items:center}
-#bundle-modal.visible{display:flex}
-#bundle-form{background:var(--bg-alt);border:1px solid var(--border);border-radius:8px;padding:16px;width:380px;max-height:80vh;overflow-y:auto}
-#bundle-form h3{font-size:12px;color:var(--accent);margin-bottom:10px}
-#bundle-form label{display:block;font-size:9px;color:var(--text-muted);margin:8px 0 3px}
-#bundle-form input[type="text"],#bundle-form input[type="file"]{width:100%;background:var(--input-bg);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:4px;font-family:inherit;font-size:10px}
-#bundle-form select{width:100%;background:var(--input-bg);border:1px solid var(--border);color:var(--text);padding:4px;border-radius:4px;font-family:inherit;font-size:9px}
-.bundle-btns{display:flex;gap:8px;margin-top:12px;justify-content:flex-end}
-.bundle-btns button{padding:5px 14px;border-radius:4px;font-family:inherit;font-size:10px;cursor:pointer;border:1px solid var(--border)}
-.bundle-btns .cancel{background:none;color:var(--text-muted)}
-.bundle-btns .submit{background:var(--accent);color:#0d1117;border:none;font-weight:600}
-@media(max-width:700px){#state-panel{display:none}.msg{max-width:95%}}
-/* GL-CMD-COGNITION-METER-EVE-20260704-166-v1 */
-#cogmeter-panel{border-bottom:1px solid var(--border);background:var(--bg-alt);font-size:9px}
-#cogmeter-head{display:flex;justify-content:space-between;align-items:center;padding:4px 14px;cursor:pointer;user-select:none}
-#cogmeter-head .t{font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.4px;font-size:9px}
-#cogmeter-head .n{color:var(--text-muted);font-size:8px}
-#cogmeter-body{max-height:280px;overflow-y:auto;padding:0 14px 6px}
-#cogmeter-body.collapsed{display:none}
-#cogmeter-archive{padding:0 14px 6px}
-#cogmeter-archive summary{cursor:pointer;color:var(--text-muted);font-size:8px;user-select:none}
-#cogmeter-archive-body{max-height:280px;overflow-y:auto;padding-top:4px}
-.cm-row{display:grid;grid-template-columns:170px 130px 1.3fr 1.3fr;gap:8px;padding:3px 0;border-bottom:1px solid #21262d;align-items:start}
-.cm-row.cm-hdr{color:var(--text-muted);font-weight:600;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg-alt)}
-.cm-name{color:var(--text)}
-.cm-conn{font-weight:600;white-space:nowrap}
-.cm-conn.yes{color:var(--nmda-fire)}
-.cm-conn.severed{color:var(--nmda-block)}
-.cm-conn.unknown{color:var(--text-muted)}
-.cm-conn.queued{color:#d29922}
-.cm-conn.investigating{color:var(--accent)}
-.cm-conn.absent{color:var(--text-muted)}
-.cm-conn.watch{color:#d29922}
-.cm-firing,.cm-impact{color:var(--text-muted);font-size:8px;line-height:1.35}
-@media(max-width:700px){.cm-row{grid-template-columns:120px 90px 1fr 1fr;font-size:8px}}
+:root{color-scheme:dark;--bg:#041016;--panel:#09202a;--line:#28505c;--ink:#edfaff;--muted:#91abb3;--cyan:#4eeaff;--green:#63dfa9;--amber:#ffcb68;--red:#ff8e92}*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);scroll-behavior:smooth}body{color:var(--ink);font:14px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif;background:radial-gradient(circle at 45% -20%,#164553 0,transparent 42rem),var(--bg)}button,input,select{font:inherit}button{border:1px solid #337183;border-radius:8px;padding:8px 11px;color:var(--ink);background:#0b3442;cursor:pointer}button:hover{border-color:var(--cyan)}button:disabled{opacity:.42;cursor:not-allowed}.top{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:11px clamp(12px,3vw,34px);border-bottom:1px solid var(--line);background:#041016e8;position:sticky;top:0;z-index:50}.brand{display:flex;align-items:center;gap:10px;color:inherit;text-decoration:none}.mark{display:grid;place-items:center;width:36px;height:36px;border:1px solid var(--cyan);border-radius:50%;color:var(--cyan);font:700 18px Georgia}.brand strong,.brand small{display:block}.brand small,.muted{color:var(--muted);font-size:11px}.nav{display:flex;align-items:center;gap:12px}.nav a{color:var(--cyan)}.badge{padding:6px 9px;border:1px solid var(--line);border-radius:999px;color:var(--amber);font-size:11px}.badge.live{color:var(--green);border-color:#34705a}.badge.failed{color:var(--red);border-color:#754047}main{width:min(1420px,100%);margin:auto;padding:14px}.truth{margin-bottom:10px;padding:9px 12px;border:1px solid #74591f;border-radius:9px;background:#2c230e;color:#f4d892;font-size:12px}.layout{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:12px}.card{border:1px solid var(--line);border-radius:13px;background:linear-gradient(145deg,#0b2530,#071820);overflow:hidden}.head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border-bottom:1px solid var(--line)}.head h1,.head h2{margin:0;font-size:14px}.eyebrow{display:block;color:var(--cyan);font-size:9px;letter-spacing:.09em;text-transform:uppercase}.world-stage{position:relative;min-height:640px;background:#041219}.world-stage>canvas{display:block;width:100%;height:640px}.retina{position:relative;margin:8px 0 0;padding:11px;border:1px solid #397381;border-radius:10px;background:#031117f2}.retina-head{display:flex;align-items:start;justify-content:space-between;gap:8px}.retina strong,.retina small{display:block}.retina small{color:var(--muted);font-size:9px}.retina-tabs{display:flex;gap:5px}.retina-tabs button{padding:5px 8px;font-size:10px}.retina-tabs button[aria-pressed="true"]{border-color:var(--cyan);color:var(--cyan);background:#10404d}.retina canvas{width:100%;max-width:520px;aspect-ratio:4/3;height:auto;margin-top:8px;border:1px solid #25505c;background:#000;display:block}.retina-note{margin-top:5px}.view-controls{position:relative;display:flex;flex-wrap:wrap;gap:5px;padding:6px;border-radius:10px;background:#031117df;margin:8px 0 0}.view-controls button{min-width:38px;padding:6px}.side{display:grid;gap:12px;align-content:start}.presence{display:grid;grid-template-columns:112px 1fr;gap:10px;padding:12px}.bust{width:112px;height:140px;object-fit:contain;object-position:center bottom}.presence h2{margin:5px 0 3px;font-size:20px}.presence p{margin:0;color:var(--muted);font-size:10px}.controls{display:grid;grid-template-columns:1fr 1fr;gap:7px;padding:12px}.controls button{min-height:45px}.status{grid-column:1/-1;min-height:48px;padding:8px;border:1px solid #23414a;border-radius:8px;color:var(--muted);font-size:10px}.status.good{color:var(--green)}.status.bad{color:var(--red)}.text-present{grid-column:1/-1;display:grid;grid-template-columns:1fr auto;gap:6px}.text-present input{min-width:0;border:1px solid #31505a;border-radius:8px;padding:8px;color:var(--ink);background:#04151c}.facts{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:12px}.fact{padding:7px;border:1px solid #203e48;border-radius:7px;background:#06151b}.fact span,.fact strong{display:block}.fact span{color:var(--muted);font-size:8px;text-transform:uppercase}.fact strong{margin-top:2px;font-size:10px;overflow-wrap:anywhere}.drawer{padding:0 12px 12px}.drawer summary{padding:10px 0;cursor:pointer;color:var(--cyan)}.lesson{display:grid;grid-template-columns:1fr auto;gap:7px}.lesson select{min-width:0;padding:8px;border:1px solid #31505a;border-radius:8px;color:var(--ink);background:#04151c}.lesson img{grid-column:1/-1;width:100%;max-height:220px;object-fit:contain;border:1px solid #24434c;border-radius:8px;background:#fff}.lesson p{grid-column:1/-1;margin:0;color:var(--muted);font-size:9px}.raw{padding:0 12px 12px}.raw summary{padding:9px 0;cursor:pointer;color:var(--muted);font-size:10px}.raw pre{max-height:220px;margin:0;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;font:9px/1.4 ui-monospace,monospace;color:#b5ccd2}.hidden-media{position:fixed;left:-10000px;width:32px;height:32px}#transport,#beat{grid-column:1/-1;display:block}.foot{margin-top:10px;color:var(--muted);font-size:10px;text-align:center}.touch-bar{padding:0 12px 12px}.touch-buttons{display:grid;grid-template-columns:repeat(auto-fit,minmax(54px,1fr));gap:5px}.touch-btn{padding:7px 4px;font-size:11px;text-align:center;white-space:nowrap;background:#0d2d3a;border-color:#2a6375}.touch-btn:hover{background:#144458;border-color:var(--cyan)}.touch-btn:active{background:#1c5c76}
+
+/* --- Loom Scan & Observation Dashboard Styles --- */
+.loom-section{width:min(1420px,100%);margin:20px auto 60px;padding:0 14px}
+.loom-container{display:flex;flex-direction:column;gap:14px}
+.loom-row-grid{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:12px}
+.side-col{display:flex;flex-direction:column;gap:12px}
+.stage{min-height:540px;display:grid;place-items:center;position:relative;overflow:hidden;background:radial-gradient(circle,rgba(78,234,255,.12),transparent 30rem)}
+.brain{position:relative;width:min(580px,92%);aspect-ratio:1672/941}
+.brain img{width:100%;height:100%;object-fit:contain;opacity:.65;filter:saturate(.78) contrast(1.08) brightness(.68)}
+.brain:after{content:"";position:absolute;inset:0;box-shadow:inset 0 0 60px #041016;pointer-events:none}
+.region{position:absolute;z-index:2;width:68px;height:68px;transform:translate(-50%,-50%);border:1px dashed #46616a;border-radius:50%;background:#03101544;transition:all .3s ease}
+.region span{position:absolute;left:50%;top:calc(100% + 5px);transform:translateX(-50%);padding:3px 6px;border:1px solid #36545d;border-radius:999px;background:#031015e8;color:#78949c;font-size:8px;white-space:nowrap}
+.region.on{border-style:solid;border-color:#bafaff;background:radial-gradient(circle,#fff 0 4%,#4eeaffb8 6% 15%,#4eeaff26 37%,transparent 68%);box-shadow:0 0 20px var(--cyan),inset 0 0 16px #4eeaff88}
+.region.on span{color:var(--cyan);border-color:#287987}
+.region.warm{border-style:solid;border-color:var(--amber);background:radial-gradient(circle,#fff 0 4%,#ffc963ad 6% 15%,#ffc96320 37%,transparent 68%);box-shadow:0 0 18px #ffc96399}
+.region.warm span{color:var(--amber);border-color:#765a27}
+.neural{left:45%;top:29%}.sight{left:19%;top:48%}.hearing{left:77%;top:47%}.memory{left:48%;top:56%}.speech{left:34%;top:75%}.movement{left:69%;top:73%}
+.note{position:absolute;left:12px;bottom:10px;max-width:320px;color:#78949c;font-size:9px}
+.rows{display:grid;gap:6px;padding:12px}
+.row{display:grid;grid-template-columns:9px 1fr;gap:8px;padding:8px;border:1px solid #213e47;border-radius:8px;transition:all .2s ease}
+.dot{width:7px;height:7px;margin-top:3px;border-radius:50%;background:#405960}
+.row.on .dot{background:var(--cyan);box-shadow:0 0 8px var(--cyan)}
+.row.warm .dot{background:var(--amber);box-shadow:0 0 8px var(--amber)}
+.row strong,.row span{display:block}
+.row strong{font-size:10px}.row span{color:var(--muted);font-size:9px}
+.tier-4{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.room-map-grid{display:flex;flex-direction:column;gap:6px}
+.room-cell{background:#06151b;border:1px solid var(--line);border-radius:7px;padding:8px 10px;transition:all .2s ease}
+.room-cell.active-room{border-color:var(--green);background:#0d281e;box-shadow:0 0 12px rgba(99,223,169,.3)}
+.room-name{font-size:11px;font-weight:600;display:flex;justify-content:space-between;align-items:center}
+.room-desc{font-size:9px;color:var(--muted);margin-top:2px}
+.room-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--cyan);box-shadow:0 0 8px var(--cyan)}
+.portal-flow{text-align:center;font-size:9px;color:var(--muted);font-style:italic}
+.chain-row{display:flex;justify-content:space-between;align-items:center;padding:6px 8px;border-bottom:1px solid #163038;font-size:10px}
+.chain-row:last-child{border-bottom:none}
+
+@media(max-width:920px){.layout{grid-template-columns:1fr}.world-stage,.world-stage>canvas{min-height:540px;height:540px}.loom-row-grid{grid-template-columns:1fr}.tier-4{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:560px){.world-stage,.world-stage>canvas{min-height:430px;height:430px}.retina-head{display:block}.retina-tabs{margin-top:7px}.presence{grid-template-columns:90px 1fr}.bust{width:90px;height:115px}.nav .badge{display:none}.stage{min-height:380px}.region{width:54px;height:54px}.region span{font-size:7px}}
 </style>
 </head>
 <body>
-<!-- Permission Strip -->
-<div id="perm-strip">
-  <button class="perm-btn" id="mic-perm" onclick="requestMic()">Enable Microphone</button>
-  <span id="mic-status" style="font-size:11px;color:var(--text-muted);margin-left:4px">auditory L5 ready — no sound observed</span>
-  <button class="perm-btn" id="cam-perm" onclick="requestCam()">Enable Camera</button>
-  <span id="cam-status" style="font-size:11px;color:var(--text-muted);margin-left:4px">raw sight only — object naming unavailable</span>
-  <span id="speaker-badge" onclick="unlockAudio()">&#x1f507; Click anywhere to enable audio</span>
-  <button id="mute-toggle" onclick="toggleMute()">unmuted</button>
-</div>
-<header>
-  <div class="header-left">
-    <h1>Guala</h1>
-    <div class="subtitle" id="session-line">session: ---</div>
-  </div>
-  <div class="header-right">
-    <a href="/loomscan.html" class="hdr-btn" style="text-decoration:none">loom scan</a>
-    <button class="hdr-btn" onclick="newSession()">new session</button>
-  </div>
+<header class="top">
+  <a class="brand" href="/gualaloom.html">
+    <span class="mark">G</span>
+    <span><strong>Guala</strong><small>one continuous native organism</small></span>
+  </a>
+  <nav class="nav">
+    <span class="badge" id="connection">Awaiting Guala</span>
+    <a href="#loom-scan-section" onclick="const el=document.getElementById('loom-scan-section');if(el)el.scrollIntoView({behavior:'smooth'});return false;" style="font-weight:600">Loom Scan &amp; Observation ↓</a>
+  </nav>
 </header>
-<div id="stats-line">—</div>
-<div id="activity-line" style="padding:2px 14px;font-size:9px;color:var(--ev-activity);background:var(--bg-alt);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px"><span id="activity-text"></span><span id="activity-thumb" style="display:none"></span><span id="location-text" style="color:var(--text-muted);font-size:8px;margin-left:auto"></span></div>
-<div id="needs-line" style="padding:2px 14px;font-size:8px;color:var(--text-muted);background:var(--bg-alt);border-bottom:1px solid var(--border)"></div>
-<!-- GL-CMD-COGNITION-METER-EVE-20260704-166-v1: one row per mechanism, plain
-     words, reads only what already exists (status fields, ladder, event
-     counts, filed audit verdicts). No decoration, no smoothing, no minimum
-     brightness — severed is red, unaudited is gray, gray is honest. -->
-<div id="cogmeter-panel">
-  <div id="cogmeter-head" onclick="document.getElementById('cogmeter-body').classList.toggle('collapsed')">
-    <span class="t">Cognition Meter</span>
-    <span class="n" id="cogmeter-count">—</span>
-  </div>
-  <div id="cogmeter-body"></div>
-  <details id="cogmeter-archive">
-    <summary id="cogmeter-archive-summary">past audit notes (archived — no live check exists, not current state)</summary>
-    <div id="cogmeter-archive-body"></div>
-  </details>
-</div>
-<audio id="voice" style="display:none"></audio>
-<div id="main-area">
-<div id="convo-col">
-  <div id="transcript"></div>
-  <div id="upload-bar">
-    <button class="upload-btn" onclick="uploadBook()">&#x1f4d6; book</button>
-    <button class="upload-btn" onclick="uploadPDF()">&#x1f4d5; PDF</button>
-    <button class="upload-btn" onclick="uploadPicture()">&#x1f5bc; picture</button>
-    <button class="upload-btn" onclick="uploadSound()">&#x1f50a; sound</button>
-    <button class="upload-btn" onclick="uploadVideo()">&#x1f3a5; video</button>
-    <button class="upload-btn" onclick="openBundleModal()">&#x1f381; experience</button>
-    <button class="upload-btn" onclick="triggerSleep()">&#x1f4a4; sleep</button>
-    <button class="upload-btn" id="snap-btn" style="display:none" onclick="takeSnapshot()">&#x1f4f8; snapshot</button>
-  </div>
-  <video id="cam-preview" autoplay playsinline muted></video>
-  <div id="input-row">
-    <input id="msg" type="text" placeholder="say something..." autocomplete="off">
-    <button id="brain-toggle" onclick="toggleBrainMode()" style="display:none">🧠</button>
-    <button onclick="sendMsg()">send</button>
-  </div>
-</div>
-<div id="state-panel">
-  <div class="ps"><div class="ps-title">Her Room</div><div id="sp-room" style="font-size:8px;line-height:1.6">--</div></div>
-  <div class="ps"><div class="ps-title">Substrate</div><div id="sp-substrate">--</div></div>
-  <div class="ps"><div class="ps-title">Persistence</div><div id="sp-persistence">--</div></div>
-  <div class="ps"><div class="ps-title">Recent Emissions</div><div id="sp-emissions" style="max-height:150px;overflow-y:auto">--</div></div>
-  <div class="ps"><div class="ps-title">Pool Activity</div><div id="sp-pools">--</div></div>
-  <div class="ps"><div class="ps-title">NMDA Gates</div><div id="sp-nmda">--</div></div>
-  <div class="ps"><div class="ps-title">Events</div><div id="sp-events" style="max-height:120px;overflow-y:auto"></div></div>
-</div>
-</div>
-
-<!-- Experience Bundle Modal -->
-<div id="bundle-modal">
-<div id="bundle-form">
-  <h3>Give her an experience</h3>
-  <label>Caption</label>
-  <input type="text" id="bundle-caption" placeholder="what is this experience?">
-  <label>Picture</label>
-  <input type="file" id="bundle-image" accept="image/*">
-  <label>Sound</label>
-  <input type="file" id="bundle-sound" accept="audio/*">
-  <label>Video</label>
-  <input type="file" id="bundle-video" accept="video/*">
-  <label>Touch (ctrl/cmd-click for multiple)</label>
-  <select id="bundle-touch" multiple size="3">
-    <option>warm</option><option>cool</option><option>cold</option><option>hot</option>
-    <option>soft</option><option>hard</option><option>smooth</option><option>rough</option>
-    <option>wet</option><option>dry</option><option>sharp</option><option>fuzzy</option>
-    <option>heavy</option><option>light</option><option>squishy</option><option>bumpy</option>
-  </select>
-  <label>Smell</label>
-  <select id="bundle-smell" multiple size="3">
-    <option>fresh</option><option>floral</option><option>sweet</option><option>earthy</option>
-    <option>smoky</option><option>salty</option><option>fruity</option><option>woody</option>
-    <option>clean</option><option>rain</option><option>grass</option><option>ocean</option>
-  </select>
-  <label>Taste</label>
-  <select id="bundle-taste" multiple size="3">
-    <option>sweet</option><option>sour</option><option>salty</option><option>bitter</option>
-    <option>savory</option><option>spicy</option><option>creamy</option><option>tangy</option>
-  </select>
-  <div class="bundle-btns">
-    <button class="cancel" onclick="closeBundleModal()">cancel</button>
-    <button class="submit" onclick="submitBundle()">give her this</button>
-  </div>
-</div>
-</div>
-
-<script>
-const API='https://3d6toi0gw0.execute-api.us-east-1.amazonaws.com';
-const transcript=document.getElementById('transcript');
-const msgInput=document.getElementById('msg');
-const voiceEl=document.getElementById('voice');
-const evDiv=document.getElementById('sp-events');
-const statsLine=document.getElementById('stats-line');
-
-let sid=localStorage.getItem('guala_session_id');
-if(!sid){sid='sid_'+Math.random().toString(36).slice(2,10);localStorage.setItem('guala_session_id',sid)}
-document.getElementById('session-line').textContent='session: '+sid;
-
-let lastTick=0,audioUnlocked=false,muted=false,micGranted=false,camStream=null;
-let last503msg=0; // debounce 503 messages
-
-// --- 503/500 handling ---
-function handleNotReady(context){
-  const now=Date.now();
-  if(now-last503msg<60000)return; // at most once per minute
-  last503msg=now;
-  addMsg('(substrate busy \u2014 try again in a moment)','system');
-}
-
-// --- Sleep / Dream (5b) ---
-// GL-CMD-CREDO-LOOP-REPAIR-167 Change 4: this button calls /v7/quiet, the v7
-// SESSION layer's quiet_tick() -- proven in -160/-161 to be structurally
-// disconnected from her real conversation (its own replay/krimelack log is
-// permanently empty), which is a DIFFERENT mechanism from the v5 engine's
-// /api/v1/gualaloom/admin/force_dream that -165/-166/-167's sleep-physics
-// work is actually about. A 0/0 result from THIS button reflects that known
-// v7 dormancy, not the v5 dream-cycle timing question -165 Q6 raised.
-// Deliberately NOT rewiring which endpoint this button calls here -- that's
-// a mechanism change, not a naming one; filed as an open deferral in
-// GL-RPT-CREDO-CHANGE4-COMPLETION-C1-20260704-167-v1.
-async function triggerSleep(){
-  addMsg('(asking her to rest...)','system');
-  try{
-    const r=await fetchT(`${API}/v7/quiet`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({session_id:sid,n_ticks:50})},15000);
-    if(r.status===503||r.status===500){handleNotReady('sleep');return}
-    const d=await r.json();
-    if((d.replayed||0)>0||(d.commits||0)>0){
-      addMsg('(she dreamed \u2014 '+d.replayed+' replayed memories, '+d.commits+' commits)','system');
-    }else{
-      addMsg('(nothing replayed \u2014 0 memories, 0 commits; this button reaches the v7 layer, not her main dream cycle \u2014 see -167)','system');
-    }
-    pollV7State();
-  }catch(e){addMsg('sleep error: '+e.message,'system')}
-}
-
-// --- Permission Strip (5a: toggle off support) ---
-// One AudioContext owns one uninterrupted 16 kHz sample clock. The worklet
-// emits bounded raw-PCM transport chunks without stopping capture, resetting
-// a codec, or assigning speech/identity/meaning. The server-issued stream id
-// and exact sample indices prove ordering only. Any gap, duplicate, reorder,
-// queue overflow, or server restart closes the epoch instead of bridging it.
-let micStream=null,micPCMActive=false,micEpoch=null,micTransitionActive=false;
-let micEpochGeneration=0;
-const PCM_SAMPLE_RATE=16000,PCM_CHUNK_SAMPLES=80000,PCM_MAX_PENDING_CHUNKS=2;
-const auditoryTerminalSeen=new Set(),deliveredEmissionIds=new Set();
-
-function _rememberBounded(set,value){
-  if(!value)return;
-  set.add(value);
-  while(set.size>64)set.delete(set.values().next().value);
-}
-
-async function _pollAuditoryReply(terminalEventId){
-  try{
-    const response=await fetchT(`${API}/api/v1/auditory/reply/${terminalEventId}`,{},10000);
-    const result=await response.json();
-    if(result.status==='pending'){
-      setTimeout(()=>_pollAuditoryReply(terminalEventId),2000);return;
-    }
-    if(result.status==='completed'&&result.speech){
-      if(!result.emission_id||!deliveredEmissionIds.has(result.emission_id)){
-        addEmissionMsg(result.speech,result.emission_id||null);
-        _rememberBounded(deliveredEmissionIds,result.emission_id);
-        gualaSpeak(result.speech);
-      }
-    }else if(result.status==='error'){
-      addMsg('reply failed: '+(result.error||'unknown error'),'system');
-    }
-  }catch(error){
-    setTimeout(()=>_pollAuditoryReply(terminalEventId),2000);
-  }
-}
-
-function _handleAuditoryTerminal(result){
-  const recognized=result.recognized_form||(result.spoken_word_recognition&&result.spoken_word_recognition.recognized_form);
-  const terminalEventId=result.terminal_event_id;
-  if(!recognized||!terminalEventId||auditoryTerminalSeen.has(terminalEventId))return;
-  _rememberBounded(auditoryTerminalSeen,terminalEventId);
-  addMsg('heard: "'+recognized+'"','user');
-  if(result.reply_admitted===true)_pollAuditoryReply(terminalEventId);
-  else addMsg('reply was not admitted because the bounded voice turn is full','system');
-}
-
-function _pcmBase64(buffer){
-  const bytes=new Uint8Array(buffer);let binary='';
-  for(let offset=0;offset<bytes.length;offset+=0x8000){
-    binary+=String.fromCharCode(...bytes.subarray(offset,Math.min(offset+0x8000,bytes.length)));
-  }
-  return btoa(binary);
-}
-
-function _schedulePCMSight(epoch,sequence){
-  if(!epoch.active||epoch.sourceEpochMs===null||epoch.sightBySequence.has(sequence)||epoch.sightTimers.has(sequence))return;
-  const target=epoch.sourceEpochMs+sequence*5000;
-  const timer=setTimeout(()=>{
-    epoch.sightTimers.delete(sequence);
-    if(!epoch.active)return;
-    const capturedMs=Date.now();
-    const promise=camStream?captureConversationSight():Promise.resolve(null);
-    epoch.sightBySequence.set(sequence,{capturedMs,promise});
-  },Math.max(0,target-Date.now()));
-  epoch.sightTimers.set(sequence,timer);
-}
-
-function _notifyPCMEpochClose(streamId,releaseTerminal){
-  if(!streamId)return Promise.resolve();
-  return fetch(`${API}/api/v1/auditory/pcm/close`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({stream_id:streamId,release_terminal:releaseTerminal}),keepalive:true})
-    .then(response=>response.json()).then(result=>_handleAuditoryTerminal(result)).catch(()=>{});
-}
-
-function _closePCMEpoch(epoch,notifyServer=true,releaseTerminal=true){
-  if(!epoch||!epoch.active)return;
-  const streamId=epoch.streamId,settled=epoch.sendChain;
-  epoch.active=false;
-  epoch.sightTimers.forEach(timer=>clearTimeout(timer));epoch.sightTimers.clear();epoch.sightBySequence.clear();
-  if(!releaseTerminal&&epoch.fetchAbort){epoch.fetchAbort.abort();epoch.fetchAbort=null}
-  if(epoch.worklet){try{epoch.worklet.port.postMessage({type:'stop'});epoch.worklet.disconnect()}catch(e){}epoch.worklet=null}
-  if(epoch.source){try{epoch.source.disconnect()}catch(e){}epoch.source=null}
-  if(epoch.gain){try{epoch.gain.disconnect()}catch(e){}epoch.gain=null}
-  if(epoch.context){try{epoch.context.close()}catch(e){}epoch.context=null}
-  if(epoch.stream){epoch.stream.getTracks().forEach(track=>track.stop());epoch.stream=null}
-  if(notifyServer&&streamId){
-    if(releaseTerminal)Promise.resolve(settled).catch(()=>{}).then(()=>_notifyPCMEpochClose(streamId,true));
-    else _notifyPCMEpochClose(streamId,false);
-  }
-  epoch.streamId=null;
-  if(micEpoch===epoch){micEpoch=null;micStream=null;micPCMActive=false}
-}
-
-function _failPCMStream(epoch,message){
-  if(!epoch||!epoch.active)return;
-  const isCurrent=micEpoch===epoch;
-  _closePCMEpoch(epoch,true,false);
-  if(!isCurrent)return;
-  micGranted=false;
-  const status=document.getElementById('mic-status');
-  status.textContent='raw sound stopped — '+message;status.style.color='#f85149';
-  const btn=document.getElementById('mic-perm');
-  btn.textContent='Enable Microphone';btn.className='perm-btn denied';
-}
-
-async function _sendPCMChunk(epoch,buffer,sequence,firstSampleIndex){
-  if(!epoch.active)return;
-  const sight=epoch.sightBySequence.get(sequence)||{capturedMs:null,promise:Promise.resolve(null)};
-  epoch.sightBySequence.delete(sequence);
-  const sight_b64=await sight.promise;
-  if(!epoch.active)return;
-  const sampleCount=buffer.byteLength/2;
-  const body={
-    text:_pcmBase64(buffer),command:'',source:'browser_microphone',
-    audio_encoding:'pcm_s16le',audio_stream_id:epoch.streamId,
-    audio_sequence:sequence,audio_first_sample_index:firstSampleIndex,
-    audio_sample_count:sampleCount,audio_sample_rate_hz:PCM_SAMPLE_RATE,
-    audio_source_epoch_ms:epoch.sourceEpochMs,sight_b64,
-    sight_captured_ms:sight_b64?sight.capturedMs:null
-  };
-  const abort=new AbortController();epoch.fetchAbort=abort;
-  const response=await fetchT(`${API}/sound_frame`,{
-    method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal:abort.signal
-  },25000);
-  if(epoch.fetchAbort===abort)epoch.fetchAbort=null;
-  if(!epoch.active)return;
-  const result=await response.json();
-  if(!result.ok||!result.pcm_continuity||result.pcm_continuity.status!=='contiguous'){
-    throw new Error(result.error||result.reason||'sample continuity was not accepted');
-  }
-  _handleAuditoryTerminal(result);
-  const status=document.getElementById('mic-status');
-  status.textContent='raw sound active — continuous samples '+firstSampleIndex+'–'+(firstSampleIndex+sampleCount-1)+' settled';
-  status.style.color='var(--text-muted)';
-}
-
-function _admitPCMChunk(epoch,buffer){
-  if(!epoch.active||micEpoch!==epoch)return;
-  if(!(buffer instanceof ArrayBuffer)||buffer.byteLength!==PCM_CHUNK_SAMPLES*2){
-    _failPCMStream(epoch,'worklet changed the bounded PCM chunk shape');return;
-  }
-  if(epoch.pendingChunks>=PCM_MAX_PENDING_CHUNKS){
-    _failPCMStream(epoch,'processing fell behind the continuous sample stream');return;
-  }
-  const sequence=epoch.sequence++,firstSampleIndex=epoch.firstSampleIndex;
-  epoch.firstSampleIndex+=PCM_CHUNK_SAMPLES;
-  _schedulePCMSight(epoch,sequence+1);
-  epoch.pendingChunks+=1;
-  epoch.sendChain=epoch.sendChain
-    .then(()=>epoch.active?_sendPCMChunk(epoch,buffer,sequence,firstSampleIndex):undefined)
-    .catch(error=>{if(epoch.active)_failPCMStream(epoch,error.message)})
-    .finally(()=>{epoch.pendingChunks=Math.max(0,epoch.pendingChunks-1)});
-}
-
-async function startMicSoundStream(stream,generation){
-  const openedResponse=await fetchT(`${API}/api/v1/auditory/pcm/open`,{method:'POST'},10000);
-  const opened=await openedResponse.json();
-  if(!opened.ok||opened.sample_rate_hz!==PCM_SAMPLE_RATE||opened.chunk_samples!==PCM_CHUNK_SAMPLES){
-    if(typeof opened.stream_id==='string'&&opened.stream_id){
-      _notifyPCMEpochClose(opened.stream_id,false);
-    }
-    throw new Error(opened.error||'server did not establish the PCM sample clock');
-  }
-  const epoch={generation,streamId:opened.stream_id,stream,context:null,source:null,worklet:null,gain:null,
-    sequence:0,firstSampleIndex:0,sourceEpochMs:null,sendChain:Promise.resolve(),pendingChunks:0,
-    fetchAbort:null,active:true,sightBySequence:new Map(),sightTimers:new Map()};
-  const workletSource=`
-    class GualaPCMTransport extends AudioWorkletProcessor {
-      constructor(options){
-        super();
-        this.chunkSamples=options.processorOptions.chunkSamples;
-        this.buffer=new ArrayBuffer(this.chunkSamples*2);
-        this.view=new DataView(this.buffer);
-        this.offset=0;this.running=true;this.started=false;this.expectedFrame=null;
-        this.port.onmessage=(event)=>{if(event.data&&event.data.type==='stop')this.running=false};
-      }
-      process(inputs){
-        const channels=inputs[0];
-        if(!this.running)return false;
-        if(!channels||channels.length===0||channels[0].length===0){
-          if(this.started)this.port.postMessage({type:'discontinuity',reason:'physical microphone input stopped'});
-          return !this.started;
-        }
-        if(!this.started){
-          if(this.expectedFrame===null||currentFrame!==this.expectedFrame){
-            this.expectedFrame=currentFrame+channels[0].length;return true;
-          }
-          this.started=true;this.expectedFrame=currentFrame;
-          this.port.postMessage({type:'started',renderFrame:currentFrame});
-        }
-        if(currentFrame!==this.expectedFrame){
-          this.port.postMessage({type:'discontinuity',reason:'audio render clock skipped samples '+this.expectedFrame+'–'+currentFrame});return false;
-        }
-        for(let index=0;index<channels[0].length;index++){
-          let sample=0;
-          for(let channel=0;channel<channels.length;channel++)sample+=channels[channel][index]||0;
-          sample/=channels.length;
-          sample=Math.max(-1,Math.min(1,sample));
-          const encoded=sample<0?Math.round(sample*32768):Math.round(sample*32767);
-          this.view.setInt16(this.offset*2,encoded,true);this.offset+=1;
-          if(this.offset===this.chunkSamples){
-            const completed=this.buffer;
-            this.buffer=new ArrayBuffer(this.chunkSamples*2);
-            this.view=new DataView(this.buffer);this.offset=0;
-            this.port.postMessage({type:'chunk',buffer:completed},[completed]);
-          }
-        }
-        this.expectedFrame=currentFrame+channels[0].length;
-        return true;
-      }
-    }
-    registerProcessor('guala-pcm-transport',GualaPCMTransport);
-  `;
-  try{
-    epoch.context=new AudioContext({sampleRate:PCM_SAMPLE_RATE,latencyHint:'interactive'});
-    if(epoch.context.sampleRate!==PCM_SAMPLE_RATE)throw new Error('browser cannot provide the required continuous 16 kHz sample clock');
-    if(typeof epoch.context.getOutputTimestamp!=='function')throw new Error('browser cannot receipt the audio sample clock');
-    const moduleURL=URL.createObjectURL(new Blob([workletSource],{type:'application/javascript'}));
-    try{await epoch.context.audioWorklet.addModule(moduleURL)}finally{URL.revokeObjectURL(moduleURL)}
-    epoch.source=epoch.context.createMediaStreamSource(stream);
-    epoch.worklet=new AudioWorkletNode(epoch.context,'guala-pcm-transport',{processorOptions:{chunkSamples:PCM_CHUNK_SAMPLES}});
-    epoch.gain=epoch.context.createGain();epoch.gain.gain.value=0;
-    let resolveStarted,rejectStarted;
-    const started=new Promise((resolve,reject)=>{resolveStarted=resolve;rejectStarted=reject});
-    epoch.worklet.port.onmessage=event=>{
-      if(!epoch.active||!event.data)return;
-      if(event.data.type==='started'){
-        const stamp=epoch.context.getOutputTimestamp();
-        if(!Number.isFinite(stamp.contextTime)||!Number.isFinite(stamp.performanceTime)){
-          rejectStarted(new Error('browser audio sample clock is unavailable'));return;
-        }
-        const originPerformanceMs=stamp.performanceTime-stamp.contextTime*1000;
-        epoch.sourceEpochMs=Math.round(performance.timeOrigin+originPerformanceMs+event.data.renderFrame*1000/PCM_SAMPLE_RATE);
-        _schedulePCMSight(epoch,0);resolveStarted();
-      }else if(event.data.type==='chunk')_admitPCMChunk(epoch,event.data.buffer);
-      else if(event.data.type==='discontinuity'){
-        rejectStarted(new Error(event.data.reason));_failPCMStream(epoch,event.data.reason);
-      }
-    };
-    epoch.worklet.onprocessorerror=()=>{
-      rejectStarted(new Error('audio processor failed'));
-      _failPCMStream(epoch,'audio processor failed');
-    };
-    stream.getTracks().forEach(track=>track.addEventListener('ended',()=>{
-      rejectStarted(new Error('physical microphone input ended'));
-      _failPCMStream(epoch,'physical microphone input ended');
-    },{once:true}));
-    epoch.source.connect(epoch.worklet);epoch.worklet.connect(epoch.gain);epoch.gain.connect(epoch.context.destination);
-    await epoch.context.resume();
-    await Promise.race([started,new Promise((_,reject)=>setTimeout(()=>reject(new Error('audio sample clock did not start')),10000))]);
-    if(generation!==micEpochGeneration)throw new Error('microphone start was superseded');
-    micEpoch=epoch;micStream=stream;micPCMActive=true;
-    return epoch;
-  }catch(error){
-    _closePCMEpoch(epoch,true,false);throw error;
-  }
-}
-
-function stopMicSoundStream(){
-  micEpochGeneration+=1;
-  if(micEpoch)_closePCMEpoch(micEpoch);
-  else if(micStream){micStream.getTracks().forEach(track=>track.stop());micStream=null}
-  micPCMActive=false;
-}
-
-async function requestMic(){
-  if(micTransitionActive)return;
-  micTransitionActive=true;
-  const btn=document.getElementById('mic-perm');
-  try{
-    if(micGranted){
-      micGranted=false;stopMicSoundStream();
-      btn.textContent='Enable Microphone';btn.className='perm-btn';
-      const status=document.getElementById('mic-status');
-      status.textContent='auditory L5 idle — microphone off';status.style.color='var(--text-muted)';
-      return;
-    }
-    const generation=++micEpochGeneration;
-    const stream=await navigator.mediaDevices.getUserMedia({audio:{
-      echoCancellation:false,   // don't strip music as feedback
-      noiseSuppression:false,   // don't strip music as noise
-      autoGainControl:false     // preserve physical cross-capture amplitude
-    }});
-    micStream=stream;
-    await startMicSoundStream(stream,generation);
-    btn.textContent='\u2705 Microphone ON';btn.className='perm-btn granted';micGranted=true;
-    const status=document.getElementById('mic-status');
-    status.textContent='raw sound active — auditory L5 listening';status.style.color='var(--text-muted)';
-  }catch(e){
-    stopMicSoundStream();micGranted=false;
-    btn.textContent='\u274c Microphone denied \u2014 typing only';btn.className='perm-btn denied';
-    const status=document.getElementById('mic-status');status.textContent='raw sound unavailable: '+e.message;status.style.color='#f85149';
-  }finally{micTransitionActive=false}
-}
-// GL-BRIEF-SENSORY-IO Part C: camera sight streaming
-let sightStreamTimer=null;
-function startSightStream(){
-  const vid=document.getElementById('cam-preview');
-  if(sightStreamTimer)clearInterval(sightStreamTimer);
-  sightStreamTimer=setInterval(async()=>{
-    if(!camStream)return;
-    if(micPCMActive)return; // microphone PCM intervals carry the contemporaneous frame
-    try{
-      const sightCapturedMs=Date.now();
-      const c=document.createElement('canvas');c.width=128;c.height=128;
-      c.getContext('2d').drawImage(vid,0,0,128,128);
-      const blob=await new Promise(r=>c.toBlob(r,'image/jpeg',0.5));
-      const reader=new FileReader();
-      reader.onload=async()=>{
-        const b64=reader.result.replace(/^data:image\/jpeg;base64,/,'');
-        fetchT(`${API}/sight_frame`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:b64,command:'',sight_captured_ms:sightCapturedMs})},4000)
-          .then(r=>r.json())
-          .then(d=>{
-            const status=document.getElementById('cam-status');
-            if(!d.ok){status.textContent='raw sight failed: '+(d.error||d.reason||'unknown error');status.style.color='#f85149';return}
-            status.textContent='raw sight active — object naming unavailable';status.style.color='var(--text-muted)';
-          })
-          .catch(e=>{const status=document.getElementById('cam-status');status.textContent='raw sight failed: '+e.message;status.style.color='#f85149'});
-      };
-      reader.readAsDataURL(blob);
-    }catch(e){const status=document.getElementById('cam-status');status.textContent='raw sight failed: '+e.message;status.style.color='#f85149'}
-  },5000); // 0.2 fps — slow sight streaming (fast rate starves substrate socket)
-}
-function stopSightStream(){if(sightStreamTimer){clearInterval(sightStreamTimer);sightStreamTimer=null}}
-
-async function captureConversationSight(){
-  if(!camStream)return null;
-  const vid=document.getElementById('cam-preview');
-  if(!vid||vid.readyState<2)return null;
-  try{
-    const canvas=document.createElement('canvas');canvas.width=128;canvas.height=128;
-    canvas.getContext('2d').drawImage(vid,0,0,128,128);
-    const blob=await new Promise((resolve,reject)=>
-      canvas.toBlob(value=>value?resolve(value):reject(new Error('camera produced no frame')),'image/jpeg',0.5));
-    const dataUrl=await new Promise((resolve,reject)=>{
-      const reader=new FileReader();
-      reader.onload=()=>resolve(reader.result);reader.onerror=()=>reject(reader.error);
-      reader.readAsDataURL(blob);
-    });
-    return String(dataUrl).replace(/^data:image\/jpeg;base64,/,'');
-  }catch(error){
-    const status=document.getElementById('cam-status');
-    status.textContent='turn sight capture failed: '+error.message;status.style.color='#f85149';
-    return null;
-  }
-}
-
-async function requestCam(){
-  const btn=document.getElementById('cam-perm');
-  if(camStream){
-    // Turn OFF
-    stopSightStream();
-    camStream.getTracks().forEach(t=>t.stop());camStream=null;
-    const vid=document.getElementById('cam-preview');vid.srcObject=null;vid.style.display='none';
-    document.getElementById('snap-btn').style.display='none';
-    btn.textContent='Enable Camera';btn.className='perm-btn';
-    const status=document.getElementById('cam-status');status.textContent='raw sight off — object naming unavailable';status.style.color='var(--text-muted)';
-    return;
-  }
-  try{camStream=await navigator.mediaDevices.getUserMedia({video:true});
-    const vid=document.getElementById('cam-preview');vid.srcObject=camStream;vid.style.display='inline-block';
-    btn.textContent='\u2705 Camera ON';btn.className='perm-btn granted';
-    document.getElementById('snap-btn').style.display='inline-block';
-    const status=document.getElementById('cam-status');status.textContent='raw sight active — object naming unavailable';status.style.color='var(--text-muted)';
-    startSightStream(); // Start streaming frames to her sight krimelack
-  }catch(e){btn.textContent='\u274c Camera denied';btn.className='perm-btn denied';const status=document.getElementById('cam-status');status.textContent='raw sight unavailable: '+e.message;status.style.color='#f85149'}
-}
-function unlockAudio(){
-  if(audioUnlocked)return;audioUnlocked=true;
-  const badge=document.getElementById('speaker-badge');
-  // Real silent WAV (100ms silence) — actually unlocks the audio element
-  voiceEl.src='data:audio/wav;base64,UklGRiYAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQIAAAAAAA==';
-  voiceEl.play().then(()=>{badge.innerHTML='\ud83d\udd0a audio ready'}).catch(e=>{badge.innerHTML='\ud83d\udd07 audio unlock failed: '+e.message});
-  // Real speech warm-up — single letter at 1% volume, fast rate
-  try{
-    const warmup=new SpeechSynthesisUtterance('a');
-    warmup.volume=0.01;warmup.rate=2.0;
-    warmup.onerror=e=>{badge.innerHTML='\ud83d\udd07 speech blocked: '+(e.error||'unknown')};
-    window.speechSynthesis.speak(warmup);
-  }catch(e){badge.innerHTML='\ud83d\udd07 speech unavailable: '+e.message}
-}
-document.addEventListener('click',unlockAudio,{once:true});
-document.addEventListener('keydown',unlockAudio,{once:true});
-document.addEventListener('touchstart',unlockAudio,{once:true});
-function toggleMute(){muted=!muted;document.getElementById('mute-toggle').textContent=muted?'muted':'unmuted';if(muted)window.speechSynthesis.cancel()}
-
-// Camera drag-to-move
-(()=>{
-  const el=document.getElementById('cam-preview');
-  if(!el)return;
-  let ox=0,oy=0,dragging=false;
-  el.addEventListener('mousedown',e=>{
-    // Only drag from top half (bottom half is resize handle)
-    if(e.offsetY>el.clientHeight*0.7)return;
-    dragging=true;
-    ox=e.clientX-el.getBoundingClientRect().left;
-    oy=e.clientY-el.getBoundingClientRect().top;
-    e.preventDefault();
-  });
-  document.addEventListener('mousemove',e=>{
-    if(!dragging)return;
-    el.style.right='auto';el.style.bottom='auto';
-    el.style.left=(e.clientX-ox)+'px';
-    el.style.top=(e.clientY-oy)+'px';
-  });
-  document.addEventListener('mouseup',()=>{dragging=false});
-})();
-
-// --- C1: Voice output via speechSynthesis ---
-let preferredVoice=null;
-function pickVoice(){
-  const voices=window.speechSynthesis.getVoices();if(!voices.length)return;
-  // Prefer child-like / young female voices
-  preferredVoice=voices.find(v=>v.lang==='en-US'&&/samantha|karen|tessa|zira/i.test(v.name))
-    ||voices.find(v=>v.lang==='en-US'&&/female|girl/i.test(v.name))
-    ||voices.find(v=>v.lang.startsWith('en-US'))
-    ||voices.find(v=>v.lang.startsWith('en'))
-    ||voices[0];
-}
-window.speechSynthesis.onvoiceschanged=pickVoice;pickVoice();
-// iOS: voices load async, retry after delay
-setTimeout(pickVoice,500);setTimeout(pickVoice,2000);
-function gualaSpeak(text){
-  const badge=document.getElementById('speaker-badge');
-  if(!text||text==='...'||text.trim()===''){return}
-  if(muted){return}
-  if(!audioUnlocked){badge.innerHTML='\ud83d\udd07 tap anywhere to enable audio';return}
-  // iOS/Android fix: cancel then resume (iOS pauses synth after cancel)
-  try{window.speechSynthesis.cancel()}catch(e){}
-  try{window.speechSynthesis.resume()}catch(e){}
-  try{
-    const u=new SpeechSynthesisUtterance(text);
-    // Re-pick voice in case voices loaded late
-    if(!preferredVoice)pickVoice();
-    if(preferredVoice)u.voice=preferredVoice;
-    u.rate=0.9;u.pitch=1.3;u.volume=1.0;
-    u.onstart=()=>{badge.innerHTML='\ud83d\udd0a speaking...'};
-    u.onend=()=>{badge.innerHTML='\ud83d\udd0a ready'};
-    u.onerror=e=>{badge.innerHTML='\ud83d\udd07 speak error: '+(e.error||'unknown')};
-    window.speechSynthesis.speak(u);
-    // iOS keeps-alive workaround: pause+resume nudges the queue
-    setTimeout(()=>{try{window.speechSynthesis.pause();window.speechSynthesis.resume()}catch(e){}},100);
-    setTimeout(()=>{
-      if(window.speechSynthesis.pending||window.speechSynthesis.speaking)return;
-      badge.innerHTML='\ud83d\udd07 utterance dropped — tap to retry';
-    },2000);
-  }catch(e){badge.innerHTML='\ud83d\udd07 speak threw: '+e.message}
-}
-// C4: cancel speech on page hide
-document.addEventListener('visibilitychange',()=>{if(document.hidden)window.speechSynthesis.cancel()});
-
-// --- Snapshot (P1: multipart FormData to /upload/picture) ---
-async function takeSnapshot(){
-  if(!camStream)return;
-  const vid=document.getElementById('cam-preview');
-  const c=document.createElement('canvas');c.width=vid.videoWidth;c.height=vid.videoHeight;
-  c.getContext('2d').drawImage(vid,0,0);
-  const blob=await new Promise(r=>c.toBlob(r,'image/jpeg',0.85));
-  const ts=Date.now();
-  addMsg('(sending snapshot...)','system');
-  try{
-    const fd=new FormData();
-    fd.append('file',blob,`snapshot_${ts}.jpg`);
-    const r=await fetchT(`${API}/api/v1/gualaloom/upload/picture`,{method:'POST',body:fd},30000);
-    const d=await r.json();
-    addMsg(d.message||JSON.stringify(d),'system');
-  }catch(e){addMsg('snapshot error: '+e.message,'system')}
-}
-
-// --- Upload helpers ---
-function fileToBase64(file){
-  return new Promise((resolve,reject)=>{
-    const r=new FileReader();
-    r.onload=()=>resolve(r.result);
-    r.onerror=reject;
-    r.readAsDataURL(file);
-  });
-}
-function fileToText(file){
-  return new Promise((resolve,reject)=>{
-    const r=new FileReader();
-    r.onload=()=>resolve(r.result);
-    r.onerror=reject;
-    r.readAsText(file);
-  });
-}
-function pickFile(accept){
-  return new Promise(resolve=>{
-    const inp=document.createElement('input');inp.type='file';inp.accept=accept;
-    inp.onchange=()=>resolve(inp.files[0]||null);
-    inp.click();
-  });
-}
-function pickFiles(accept){
-  return new Promise(resolve=>{
-    const inp=document.createElement('input');inp.type='file';inp.accept=accept;inp.multiple=true;
-    inp.onchange=()=>resolve(inp.files.length?Array.from(inp.files):null);
-    inp.click();
-  });
-}
-
-// --- B2: Upload via multipart FormData + dedicated /upload/* endpoints ---
-async function uploadBook(){
-  const file=await pickFile('.txt,.md,text/plain');if(!file)return;
-  addMsg('(uploading book: '+file.name+')','system');
-  try{
-    const fd=new FormData();fd.append('file',file);
-    const r=await fetchT(`${API}/api/v1/gualaloom/upload/book`,{method:'POST',body:fd},30000);
-    const d=await r.json();
-    addMsg(d.message||JSON.stringify(d),'system');
-  }catch(e){addMsg('upload error: '+e.message,'system')}
-}
-
-async function uploadPDF(){
-  const file=await pickFile('.pdf,application/pdf');if(!file)return;
-  addMsg('(uploading PDF: '+file.name+')','system');
-  try{
-    // PDF still uses base64 through chat — no dedicated /upload/pdf endpoint yet
-    const dataUrl=await fileToBase64(file);
-    const b64=dataUrl.replace(/^data:[^;]+;base64,/,'');
-    const r=await fetchT(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({text:b64,command:'/addpdf:'+file.name})},30000);
-    const d=await r.json();
-    addMsg(d.response||JSON.stringify(d),'system');
-    if(d.pictures)renderPictures(d.pictures);
-  }catch(e){addMsg('upload error: '+e.message,'system')}
-}
-
-async function uploadPicture(){
-  const files=await pickFiles('image/*,.heic,.heif,.webp');if(!files)return;
-  for(const file of files){
-    addMsg('(uploading picture: '+file.name+')','system');
-    try{
-      const fd=new FormData();fd.append('file',file,file.name);
-      const r=await fetchT(`${API}/api/v1/gualaloom/upload/picture`,{method:'POST',body:fd},30000);
-      const d=await r.json();
-      addMsg(d.message||JSON.stringify(d),'system');
-    }catch(e){addMsg('upload error: '+e.message,'system')}
-  }
-}
-
-async function uploadSound(){
-  const file=await pickFile('audio/*');if(!file)return;
-  if(file.size>6*1024*1024){addMsg('(sound too large \u2014 6MB max)','system');return}
-  addMsg('(uploading sound: '+file.name+')','system');
-  try{
-    const fd=new FormData();fd.append('file',file);
-    const r=await fetchT(`${API}/api/v1/gualaloom/upload/sound`,{method:'POST',body:fd},30000);
-    const d=await r.json();
-    addMsg(d.message||d.response||JSON.stringify(d),'system');
-  }catch(e){addMsg('upload error: '+e.message,'system')}
-}
-
-async function uploadVideo(){
-  const file=await pickFile('video/*');if(!file)return;
-  if(file.size>30*1024*1024){addMsg('(video too large — 30MB max)','system');return}
-  if(file.size>9*1024*1024){addMsg('(video too large for upload — 9MB max. Compress or trim first.)','system');return}
-  addMsg('(uploading video: '+file.name+' — '+Math.round(file.size/1024)+'KB)','system');
-  try{
-    const fd=new FormData();fd.append('file',file);
-    const r=await fetchT(`${API}/api/v1/gualaloom/upload/video`,{method:'POST',body:fd},60000);
-    const d=await r.json();
-    addMsg(d.message||JSON.stringify(d),'system');
-  }catch(e){addMsg('video error: '+e.message,'system')}
-}
-
-// --- Bundle modal (B4) ---
-function openBundleModal(){document.getElementById('bundle-modal').classList.add('visible')}
-function closeBundleModal(){
-  document.getElementById('bundle-modal').classList.remove('visible');
-  document.getElementById('bundle-caption').value='';
-  document.getElementById('bundle-image').value='';
-  document.getElementById('bundle-sound').value='';
-  document.getElementById('bundle-touch').selectedIndex=-1;
-  document.getElementById('bundle-smell').selectedIndex=-1;
-  document.getElementById('bundle-taste').selectedIndex=-1;
-}
-async function submitBundle(){
-  const caption=document.getElementById('bundle-caption').value.trim();
-  const imgFile=document.getElementById('bundle-image').files[0];
-  const sndFile=document.getElementById('bundle-sound').files[0];
-  const vidFile=document.getElementById('bundle-video').files[0];
-  const touch=Array.from(document.getElementById('bundle-touch').selectedOptions).map(o=>o.value);
-  const smell=Array.from(document.getElementById('bundle-smell').selectedOptions).map(o=>o.value);
-  const taste=Array.from(document.getElementById('bundle-taste').selectedOptions).map(o=>o.value);
-  if(!caption&&!imgFile&&!sndFile&&!vidFile&&!touch.length&&!smell.length&&!taste.length){
-    addMsg('(need at least one sense filled in)','system');return;
-  }
-  if(sndFile&&sndFile.size>6*1024*1024){addMsg('(sound too large \u2014 6MB max)','system');return}
-  if(vidFile&&vidFile.size>30*1024*1024){addMsg('(video too large \u2014 30MB max)','system');return}
-  // Upload video separately if present (too large for base64 bundle)
-  if(vidFile){
-    if(vidFile.size>9*1024*1024){addMsg('(video too large — 9MB max. Compress first.)','system')}
-    else{try{
-      const fd=new FormData();fd.append('file',vidFile);
-      const vr=await fetchT(`${API}/api/v1/gualaloom/upload/video`,{method:'POST',body:fd},60000);
-      const vd=await vr.json();
-      addMsg('(video: '+(vd.message||'uploaded')+')','system');
-    }catch(e){addMsg('(video upload failed: '+e.message+')','system')}}
-  }
-  const bundle={caption:caption||null,image_b64:null,sound_b64:null,touch,smell,taste,source:'joe'};
-  if(imgFile){const du=await fileToBase64(imgFile);bundle.image_b64=du.replace(/^data:[^;]+;base64,/,'')}
-  if(sndFile){const du=await fileToBase64(sndFile);bundle.sound_b64=du.replace(/^data:[^;]+;base64,/,'')}
-  const name=caption||((imgFile&&imgFile.name)||(sndFile&&sndFile.name)||(vidFile&&vidFile.name)||'experience');
-  const lanes=[];
-  if(caption)lanes.push('word');if(imgFile)lanes.push('sight');if(sndFile)lanes.push('sound');if(vidFile)lanes.push('video');
-  if(touch.length)lanes.push('touch');if(smell.length)lanes.push('smell');if(taste.length)lanes.push('taste');
-  addMsg('(creating experience "'+name+'": '+lanes.join(', ')+')','system');
-  try{
-    const r=await fetchT(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({text:JSON.stringify(bundle),command:'/bundle:'+name})},30000);
-    const d=await r.json();
-    addMsg(d.response||JSON.stringify(d),'system');
-    if(d.pictures)renderPictures(d.pictures);
-    closeBundleModal();pollV7State();pollStatus();
-  }catch(e){addMsg('bundle error: '+e.message,'system')}
-}
-
-// --- renderPictures (B5) ---
-function renderPictures(pics){
-  if(!pics||!pics.length)return;
-  for(const p of pics){
-    const div=document.createElement('div');div.className='msg substrate';
-    if(p.data){
-      div.innerHTML='<img src="data:image/jpeg;base64,'+p.data+'" style="max-width:240px;border-radius:6px"> <span style="font-size:9px;color:var(--text-muted)">'+(p.title||'')+'</span>';
-    }else if(p.url){
-      div.innerHTML='<img src="'+p.url+'" style="max-width:240px;border-radius:6px" onerror="this.style.display=\'none\'"> <span style="font-size:9px;color:var(--text-muted)">'+(p.title||'')+'</span>';
-    }else if(p.item_id){
-      div.textContent='loading '+(p.title||p.item_id)+'...';
-      (async(el,pid)=>{
-        try{
-          const r=await fetchT(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},
-            body:JSON.stringify({text:'',command:'/picture '+pid})},10000);
-          const d=await r.json();
-          if(d.picture_data){
-            el.innerHTML='<img src="'+d.picture_data+'" style="max-width:240px;border-radius:6px"> <span style="font-size:9px;color:var(--text-muted)">'+(p.title||'')+'</span>';
-          }
-        }catch(e){}
-      })(div,p.item_id);
-    }
-    transcript.appendChild(div);
-  }
-  transcript.scrollTop=transcript.scrollHeight;
-}
-
-// --- Messages ---
-function addMsg(text,cls){const d=document.createElement('div');d.className='msg '+cls;d.textContent=text;transcript.appendChild(d);transcript.scrollTop=transcript.scrollHeight;return d;}
-
-// GL-CMD-TEACHER-CORRECTION-UI: emission message with 👍/👎 buttons
-function addEmissionMsg(text,emissionId){
-  const block=document.createElement('div');block.className='msg emission';
-  block.style.position='relative';
-  if(emissionId)block.dataset.emissionId=emissionId;
-  block.dataset.emissionText=text;
-  const txt=document.createElement('span');txt.textContent=text;block.appendChild(txt);
-  const btns=document.createElement('span');btns.style.cssText='float:right;opacity:0.5;cursor:pointer;margin-left:8px';
-  const up=document.createElement('span');up.className='fb-btn';up.textContent='\ud83d\udc4d';up.style.marginRight='4px';
-  const dn=document.createElement('span');dn.className='fb-btn';dn.textContent='\ud83d\udc4e';
-  up.onclick=()=>sendFeedback(true,up,dn,block);dn.onclick=()=>sendFeedback(false,up,dn,block);
-  btns.appendChild(up);btns.appendChild(dn);block.appendChild(btns);
-  transcript.appendChild(block);transcript.scrollTop=transcript.scrollHeight;
-}
-
-function addResponseBlock(result){
-  const tokens=result.response_tokens||[];
-  const emissionText=tokens.map(t=>t.token).join(' ')||result.response||'';
-  if(!emissionText){addMsg('(she had nothing — emission was empty)','system');return}
-  const committedSource=result.response_source==='fact_strand_commit';
-  if(!committedSource){addMsg(emissionText,'system');return}
-  const block=document.createElement('div');block.className='response-block';
-  // GL-CMD-TEACHER-CORRECTION-UI: store emission context on block
-  if(result.emission_id) block.dataset.emissionId=result.emission_id;
-  block.dataset.emissionText=emissionText;
-  const textDiv=document.createElement('div');textDiv.className='response-text';
-  textDiv.innerHTML=tokens.length?tokens.map(t=>`${t.token}<span class="tok-anno">(s=${t.mode_strength.toFixed(1)})</span>`).join(' '):emissionText;
-  block.appendChild(textDiv);
-  const meta=document.createElement('div');meta.className='response-meta';
-  const nFired=(result.nmda_events||[]).filter(e=>e.fired).length;
-  const emCount=(result.raw_emissions||[]).length;
-  const info=document.createElement('span');info.textContent=`${emCount} commits, ${nFired} gates`;meta.appendChild(info);
-  if(result.honest_silence_reason){const s=document.createElement('span');s.style.color='var(--text-muted)';s.textContent=`[${result.honest_silence_reason}]`;meta.appendChild(s)}
-  const spacer=document.createElement('span');spacer.style.flex='1';meta.appendChild(spacer);
-  const up=document.createElement('span');up.className='fb-btn';up.textContent='\ud83d\udc4d';
-  const dn=document.createElement('span');dn.className='fb-btn';dn.textContent='\ud83d\udc4e';
-  up.onclick=()=>sendFeedback(true,up,dn,block);dn.onclick=()=>sendFeedback(false,up,dn,block);
-  meta.appendChild(up);meta.appendChild(dn);block.appendChild(meta);
-  transcript.appendChild(block);transcript.scrollTop=transcript.scrollHeight;
-  // Voice playback — try espeak WAV first, fall back to browser speechSynthesis
-  const badge=document.getElementById('speaker-badge');
-  if(result.self_voice_audio_b64&&audioUnlocked&&!muted){
-    voiceEl.src='data:audio/wav;base64,'+result.self_voice_audio_b64;
-    voiceEl.play().then(()=>{badge.innerHTML='\ud83d\udd0a speaking (espeak)'}).catch(e=>{
-      badge.innerHTML='\ud83d\udd07 espeak failed: '+e.message+' \u2014 trying TTS';
-      const tokText=(result.response_tokens||[]).map(t=>t.token).join(' ');
-      if(tokText)gualaSpeak(tokText);
-    });
-  }else{
-    const tokText=(result.response_tokens||[]).map(t=>t.token).join(' ');
-    if(!result.self_voice_audio_b64)badge.innerHTML='\ud83d\udd0a (no espeak \u2014 browser TTS)';
-    if(tokText)gualaSpeak(tokText);
-  }
-}
-
-// GL-FIX-UI-FRONTEND: fetch with timeout + dedup + backoff
-function fetchT(url,opts={},timeoutMs=15000){
-  const controller=new AbortController();
-  const external=opts.signal;
-  const relay=()=>controller.abort(external.reason);
-  if(external){
-    if(external.aborted)relay();else external.addEventListener('abort',relay,{once:true});
-  }
-  const timer=setTimeout(()=>controller.abort(new DOMException('request timed out','TimeoutError')),timeoutMs);
-  return fetch(url,{...opts,signal:controller.signal}).finally(()=>{
-    clearTimeout(timer);
-    if(external)external.removeEventListener('abort',relay);
-  });
-}
-let _inflight={state:false,events:false,status:false,replay:false};
-let _backoff={state:0,events:0,status:0,replay:0};
-const _BASE={state:5000,events:15000,status:15000,replay:30000};
-function _schedNext(key,fn){const delay=_BASE[key]+_backoff[key];setTimeout(fn,delay)}
-
-// GL-CMD-TEACHER-CORRECTION-UI: teacher feedback with correction modal
-let _correctionModal=null;
-async function sendFeedback(correct,up,dn,block){
-  if(up.dataset.locked)return;
-  const emissionId=block?block.dataset.emissionId:null;
-  if(correct){
-    try{
-      const r=await fetchT(`${API}/api/v1/teacher/feedback`,{method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({emission_id:emissionId,source:'joe'})},10000);
-      // GL-CMD-ENABLE-COGNITION-EVE-20260705-211 / Joe 2026-07-06: r.ok only
-      // checks HTTP status -- the backend can return 200 with {"error":...}
-      // (e.g. "no conversation context") when emission_id doesn't resolve,
-      // which this used to render as a silent, indistinguishable success.
-      const d=await r.json().catch(()=>({}));
-      if(r.ok&&!d.error){up.classList.add('active');up.textContent='\u2714';up.dataset.locked='1';dn.style.opacity='0.3';dn.dataset.locked='1'}
-      else{addMsg('feedback not applied: '+(d.error||'unknown error'),'system')}
-    }catch(e){addMsg('feedback error: '+e.message,'system')}
-  }else{
-    openCorrectionModal(emissionId,block?block.dataset.emissionText:'',up,dn);
-  }
-}
-
-function openCorrectionModal(emissionId,emissionText,up,dn){
-  if(!_correctionModal){
-    const m=document.createElement('div');
-    m.id='correction-modal';
-    m.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);z-index:999;display:flex;align-items:center;justify-content:center';
-    m.innerHTML=`<div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:16px;width:380px;max-width:90vw;font-size:12px">
-      <div style="margin-bottom:8px;color:var(--text-muted)">Guala said: <span id="cm-emission" style="color:var(--accent)"></span></div>
-      <label style="display:block;margin:6px 0 2px;font-weight:600">What would you have said? *</label>
-      <input id="cm-corrected" style="width:100%;box-sizing:border-box;padding:4px;background:var(--msg-sub);color:var(--text);border:1px solid var(--border);border-radius:3px" />
-      <label style="display:block;margin:6px 0 2px">What was going on?</label>
-      <input id="cm-story" style="width:100%;box-sizing:border-box;padding:4px;background:var(--msg-sub);color:var(--text);border:1px solid var(--border);border-radius:3px" />
-      <label style="display:block;margin:6px 0 2px">When was this?</label>
-      <input id="cm-temporal" style="width:100%;box-sizing:border-box;padding:4px;background:var(--msg-sub);color:var(--text);border:1px solid var(--border);border-radius:3px" />
-      <label style="display:block;margin:6px 0 2px">What was in the room?</label>
-      <input id="cm-sensory" style="width:100%;box-sizing:border-box;padding:4px;background:var(--msg-sub);color:var(--text);border:1px solid var(--border);border-radius:3px" />
-      <div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end">
-        <button id="cm-cancel" style="padding:4px 12px;cursor:pointer;border:1px solid var(--border);border-radius:3px;background:var(--bg);color:var(--text)">Cancel</button>
-        <button id="cm-submit" style="padding:4px 12px;cursor:pointer;border:1px solid var(--accent);border-radius:3px;background:var(--accent);color:var(--bg)" disabled>Submit correction</button>
+<main>
+<div class="truth"><strong>Truth boundary:</strong> map and body come from the latest physical settlement. The eye panel keeps world and camera/tutor fields separate; enlargement adds no receptors. The portrait is static. Body-owned sound is not proof of intelligible speech; delivery does not prove recognition, meaning, gait, or learning. Syntax and conversation remain unproved. Laptop playback uses fixed 64× speaker gain without changing Guala's pressure.</div>
+<div class="layout">
+  <section class="card" aria-labelledby="world-title">
+    <div class="head">
+      <div><span class="eyebrow">Exact persistent geometry</span><h1 id="world-title">Guala's home and backyard</h1></div>
+      <span class="muted" id="world-meta">not observed</span>
+    </div>
+    <div class="world-stage">
+      <canvas id="world" aria-label="Top-down view of Guala's exact persistent world"></canvas>
+      <div class="view-controls" aria-label="World view controls">
+        <button id="pan-left">←</button>
+        <button id="pan-up">↑</button>
+        <button id="pan-down">↓</button>
+        <button id="pan-right">→</button>
+        <button id="zoom-in">＋</button>
+        <button id="zoom-out">−</button>
+        <button id="recenter">Center on Guala</button>
       </div>
-    </div>`;
-    document.body.appendChild(m);
-    _correctionModal=m;
-    m.addEventListener('click',e=>{if(e.target===m)closeCorrectionModal()});
-    document.addEventListener('keydown',e=>{if(e.key==='Escape'&&_correctionModal.style.display!=='none')closeCorrectionModal()});
-    document.getElementById('cm-corrected').addEventListener('input',e=>{
-      document.getElementById('cm-submit').disabled=!e.target.value.trim();
-    });
+      <aside class="retina">
+        <div class="retina-head">
+          <div><strong>Light reaching Guala's eyes</strong><small id="retina-meta">Waiting for a retinal field</small></div>
+          <div class="retina-tabs" role="group" aria-label="Choose retinal source">
+            <button id="retina-world" aria-pressed="true" disabled>World light</button>
+            <button id="retina-external" aria-pressed="false" disabled>Camera / tutor</button>
+          </div>
+        </div>
+        <canvas id="retina" aria-label="Enlarged projection of Guala's selected exact retinal input"></canvas>
+        <small class="retina-note">The focal field only: her world eye 160×120 sites in colour over 60° × 45°; the camera's whole frame at the same grain, held still (the caretaker's cards 80×60); her head turns toward structure. Enlargement adds no detail.</small>
+      </aside>
+    </div>
+  </section>
+  <aside class="side">
+    <section class="card presence">
+      <img class="bust" src="/Guala_Talking_Bust_No_Bow_Transparent.png" alt="Guala's established portrait">
+      <div>
+        <span class="eyebrow">Visible presence</span>
+        <h2>Guala</h2>
+        <p>Static Phase I portrait. Her exact position is the cyan body marker in the world. Mouth and expression animation belong to Phase II.</p>
+      </div>
+    </section>
+    <section class="card caretaker-panel">
+      <div class="head">
+        <div><span class="eyebrow">Companion & Caregiver</span><h2>Caretaker</h2></div>
+        <span class="muted" id="caretaker-status">active</span>
+      </div>
+      <div class="facts">
+        <div class="fact"><span>Location</span><strong id="caretaker-room">—</strong></div>
+        <div class="fact"><span>Proximity</span><strong id="caretaker-dist">—</strong></div>
+        <div class="fact"><span>Active Ritual</span><strong id="caretaker-ritual">Playpen Novelty</strong></div>
+        <div class="fact"><span>Current Action</span><strong id="caretaker-action">attending</strong></div>
+        <div class="fact"><span>Haptic / Touch</span><strong id="caretaker-touch">none</strong></div>
+      </div>
+      <div class="touch-bar">
+        <span class="eyebrow" style="padding:0 12px 6px;display:block;">Affectionate touch & praise</span>
+        <div class="touch-buttons">
+          <button class="touch-btn" data-touch="touch-hug" title="Warm embrace across chest & back">🤗 Hug</button>
+          <button class="touch-btn" data-touch="touch-kiss" title="Tender kiss on forehead/cheek">💋 Kiss</button>
+          <button class="touch-btn" data-touch="touch-pat" title="Gentle reassuring pat on head">🖐️ Pat Head</button>
+          <button class="touch-btn" data-touch="touch-hold-hand" title="Gently clasp her hand">🤝 Hold Hand</button>
+          <button class="touch-btn" data-touch="touch-shoulder" title="Comforting hand on shoulder">🫂 Shoulder</button>
+        </div>
+      </div>
+    </section>
+    <section class="card">
+      <div class="head"><div><span class="eyebrow">Physical access</span><h2>Let Guala see and hear</h2></div></div>
+      <div class="controls">
+        <button id="camera">Enable camera</button>
+        <button id="microphone">Enable microphone</button>
+        <button id="hear">Listen to Guala</button>
+        <button id="media">Show image</button>
+        <div class="text-present">
+          <input id="text" maxlength="120" placeholder="Words to show as light">
+          <button id="show-text">Show / speak</button>
+        </div>
+        <div class="status" id="listen-status" role="status">Listening is off.</div>
+        <small id="transport"></small>
+        <small id="beat" class="muted">Last beat: waiting for an observation</small>
+        <div class="status" id="status">No browser sense is enabled. One request is sent at a time. Sound capture retains up to eight waiting blocks; overflow and refusals are shown below.</div>
+      </div>
+      <details class="drawer">
+        <summary>ABC / 123 lesson card</summary>
+        <div class="lesson">
+          <select id="card-select" aria-label="Choose lesson card"></select>
+          <button id="present-card">Present with my voice</button>
+          <img id="card-image" alt="Selected lesson card">
+          <p>The card's light and the next bounded microphone pressure are submitted together. Acceptance proves physical delivery only—not understanding or learning.</p>
+        </div>
+      </details>
+    </section>
+    <section class="card">
+      <div class="head"><div><span class="eyebrow">Latest exact successor</span><h2>What happened</h2></div></div>
+      <div class="facts">
+        <div class="fact"><span>Beat</span><strong id="tick">—</strong></div>
+        <div class="fact"><span>Occurrence</span><strong id="kind">—</strong></div>
+        <div class="fact"><span>Kernel gates read</span><strong id="dsf">—</strong></div>
+        <div class="fact"><span>Her act</span><strong id="changed">—</strong></div>
+        <div class="fact"><span>External retina</span><strong id="seen">—</strong></div>
+        <div class="fact"><span>External hearing</span><strong id="heard">—</strong></div>
+        <div class="fact"><span>Actual root motion</span><strong id="motion">—</strong></div>
+        <div class="fact"><span>Body sound</span><strong id="sound">none held</strong></div>
+        <div class="fact"><span>New vocal start</span><strong id="vocal-start">not observed</strong></div>
+      </div>
+      <details class="raw">
+        <summary>Exact bounded evidence</summary>
+        <pre id="raw">not received</pre>
+      </details>
+    </section>
+  </aside>
+</div>
+<div class="foot">No session, transcript, media history, second world, or browser-simulated action is retained.</div>
+</main>
+
+<!-- ====================================================================== -->
+<!-- LOOM SCAN & LIVE OBSERVATION TELEMETRY                                  -->
+<!-- ====================================================================== -->
+<section id="loom-scan-section" class="loom-section">
+  <div class="loom-container">
+
+    <!-- Header Card -->
+    <div class="card">
+      <div class="head">
+        <div>
+          <span class="eyebrow">Real-Time Organism Substrate</span>
+          <h2>Loom Scan &amp; Live Observation Diagnostics</h2>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <span class="badge live" id="dash-sleep-badge">State: Asleep</span>
+          <span class="badge live" id="dash-reserve-badge">Metabolic Reserve</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row 1: Conceptual Brain Activity (Left) + Activity Key & Somatic Gauges (Right) -->
+    <div class="loom-row-grid">
+      <div class="card">
+        <div class="head">
+          <div>
+            <span class="eyebrow">Conceptual Neural Substrate</span>
+            <h2>What is physically active now</h2>
+          </div>
+          <span class="muted" id="loom-event-tag">not observed</span>
+        </div>
+        <div class="stage">
+          <div class="brain">
+            <img src="/guala-brain-foundation-v1.png" alt="Conceptual Guala brain activity foundation">
+            <div class="region neural" id="region-neural"><span>Neural transition</span></div>
+            <div class="region sight" id="region-sight"><span>Sight</span></div>
+            <div class="region hearing" id="region-hearing"><span>Hearing</span></div>
+            <div class="region memory" id="region-memory"><span>Memory · unobserved</span></div>
+            <div class="region speech" id="region-speech"><span>Speech pressure</span></div>
+            <div class="region movement" id="region-movement"><span>Movement</span></div>
+          </div>
+          <div class="note">Lights describe the latest accepted causal successor only. They fade when evidence is absent; the page does not scan, reconstruct, or label thoughts.</div>
+        </div>
+      </div>
+
+      <div class="side-col">
+        <!-- Activity Key Card -->
+        <div class="card">
+          <div class="head">
+            <div>
+              <span class="eyebrow">Direct Evidence</span>
+              <h2>Activity key</h2>
+            </div>
+          </div>
+          <div class="rows">
+            <div class="row" id="row-neural"><i class="dot"></i><div><strong>Physical neural transition</strong><span id="text-neural">not observed</span></div></div>
+            <div class="row" id="row-sight"><i class="dot"></i><div><strong>Sight</strong><span id="text-sight">no external retinal delivery</span></div></div>
+            <div class="row" id="row-hearing"><i class="dot"></i><div><strong>Hearing</strong><span id="text-hearing">no cochlear pressure delivery</span></div></div>
+            <div class="row"><i class="dot"></i><div><strong>Thought / memory contents</strong><span>not observable through bounded shell</span></div></div>
+            <div class="row" id="row-speech"><i class="dot"></i><div><strong>Speech pressure</strong><span id="text-speech">no body-owned pressure held</span></div></div>
+            <div class="row" id="row-movement"><i class="dot"></i><div><strong>Movement</strong><span id="text-movement">no actual root displacement</span></div></div>
+          </div>
+        </div>
+
+        <!-- Somatic Gauges Card -->
+        <div class="card">
+          <div class="head">
+            <div>
+              <span class="eyebrow">Biological Gauges</span>
+              <h2>Somatic &amp; Circadian State</h2>
+            </div>
+          </div>
+          <div class="facts">
+            <div class="fact"><span>Current Room</span><strong id="dash-loc-room">Her Room</strong></div>
+            <div class="fact"><span>Coordinates</span><strong id="dash-loc-coords">(2200, 7500, 0) mm</strong></div>
+            <div class="fact"><span>Circadian Sleep</span><strong id="dash-sleep-pct">95% (recovering)</strong></div>
+            <div class="fact"><span>Metabolic Deficit</span><strong id="dash-reserve-deficit">0.29 (Sated)</strong></div>
+            <div class="fact"><span>Lifetime Strides</span><strong id="dash-strides-count">192,900</strong></div>
+            <div class="fact"><span>Lifetime Syllables</span><strong id="dash-syllables-count">73,646</strong></div>
+            <div class="fact"><span>Gaze Focal Target</span><strong id="dash-gaze-focal">toy-bear</strong></div>
+            <div class="fact"><span>Retinal Sites</span><strong id="dash-retinal-sites">4,935 sites</strong></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row 2: 10-Room Physical Topology & Floor Plan Manifold -->
+    <div class="card">
+      <div class="head">
+        <div>
+          <span class="eyebrow">Exact Persistent Geometry</span>
+          <h2>Physical Topological Manifold (10 Rooms, 10 Portals)</h2>
+        </div>
+        <span class="muted">69 Global Entities · &le; 64 Receptor Frustum</span>
+      </div>
+      <div style="padding:14px">
+        <div class="room-map-grid">
+          <div class="room-cell" id="room-cell-walkway" style="border-style:dashed;border-color:#34705a">
+            <div class="room-name" style="color:var(--green)">
+              <span>🌲 Walkway (Exterior Sidewalk)</span>
+              <span style="font-size:9px;opacity:0.8">y: 16,000–22,000 mm · Bench · Lantern</span>
+            </div>
+          </div>
+          <div class="portal-flow">↕ [door-gate] Garden Perimeter Gate (x: 9,000–11,000 mm)</div>
+          <div class="room-cell" id="room-cell-backyard" style="border-color:#2ea043">
+            <div class="room-name" style="color:#64e0aa">
+              <span>🍎 Backyard Orchard &amp; Garden</span>
+              <span style="font-size:9px;opacity:0.8">Apple Trees · Butterfly 🦋 · Bird 🐦 · Flowers 🌸</span>
+            </div>
+          </div>
+          <div class="portal-flow">↕ [door-8] Hallway-Backyard Door (x: 6,000–7,400 mm)</div>
+          <div class="tier-4">
+            <div class="room-cell active-room" id="room-cell-her-room">
+              <div class="room-name" style="color:var(--cyan)">
+                <span>🛏️ Her Room</span>
+                <span class="room-dot"></span>
+              </div>
+              <div class="room-desc">Guala resting · Bed · Crib · Toys</div>
+            </div>
+            <div class="room-cell" id="room-cell-hallway">
+              <div class="room-name" style="color:#c9d1d9">
+                <span>🚶 Hallway</span>
+              </div>
+              <div class="room-desc">Hub Manifold · Stroller Carriage</div>
+            </div>
+            <div class="room-cell" id="room-cell-library">
+              <div class="room-name" style="color:var(--amber)">
+                <span>📚 Library</span>
+              </div>
+              <div class="room-desc">Books · Alice in Wonderland</div>
+            </div>
+            <div class="room-cell" id="room-cell-tv-room">
+              <div class="room-name" style="color:var(--cyan)">
+                <span>📺 TV Room</span>
+              </div>
+              <div class="room-desc">Television · Remote Control</div>
+            </div>
+          </div>
+          <div class="portal-flow">↕ [door-6] &amp; [door-7] Interior Corridor Portals</div>
+          <div class="tier-4">
+            <div class="room-cell" id="room-cell-kitchen">
+              <div class="room-name" style="color:#f0883e"><span>🍳 Kitchen</span></div>
+              <div class="room-desc">Pantry · Milk · Refrigerator</div>
+            </div>
+            <div class="room-cell" id="room-cell-dining">
+              <div class="room-name" style="color:#e3b341"><span>🍽️ Dining</span></div>
+              <div class="room-desc">Highchair · Table</div>
+            </div>
+            <div class="room-cell" id="room-cell-daddys-room">
+              <div class="room-name" style="color:#bc8cff"><span>🛏️ Daddy's Room</span></div>
+              <div class="room-desc">Desk · Wardrobe</div>
+            </div>
+            <div class="room-cell" id="room-cell-wcs-room">
+              <div class="room-name" style="color:#39c5cf"><span>🛁 WC / Bath</span></div>
+              <div class="room-desc">Basin · Towels</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row 3: Recent Combinatorial Vocal Chains -->
+    <div class="card">
+      <div class="head">
+        <div>
+          <span class="eyebrow">Emergent Vocal Trajectories</span>
+          <h2>Recent Combinatorial Vocal Chains</h2>
+        </div>
+        <span class="muted">476 Verified Receipts</span>
+      </div>
+      <div style="padding:12px;display:flex;flex-direction:column;gap:6px">
+        <div class="chain-row">
+          <div>
+            <span class="badge" style="background:#09202a;color:var(--cyan);border-color:#28505c">18 Beats</span>
+            <span style="font-family:ui-monospace,monospace;color:var(--cyan);margin-left:6px">doh0 → goo0 → teh0 → tee0 ... → dah1 → gah1 → lee1</span>
+          </div>
+          <span class="muted">Reg 0 → Reg 1 Song</span>
+        </div>
+        <div class="chain-row">
+          <div>
+            <span class="badge" style="background:#16122a;color:#bc8cff;border-color:#4a3875">11 Beats</span>
+            <span style="font-family:ui-monospace,monospace;color:#bc8cff;margin-left:6px">nah0 → noh3 → wah3 → gee0 → woh3 → boo0 → goh0</span>
+          </div>
+          <span class="muted">3450Hz → 3900Hz Shift</span>
+        </div>
+        <div class="chain-row">
+          <div>
+            <span class="badge" style="background:#09251a;color:var(--green);border-color:#28503c">2 Beats</span>
+            <span style="font-family:ui-monospace,monospace;color:var(--green);margin-left:6px">noo1 → neh1</span>
+          </div>
+          <span class="muted">Δt=24 (Demand)</span>
+        </div>
+        <div class="chain-row">
+          <div>
+            <span class="badge" style="background:#09251a;color:var(--green);border-color:#28503c">2 Beats</span>
+            <span style="font-family:ui-monospace,monospace;color:var(--green);margin-left:6px">poh2 → toh2</span>
+          </div>
+          <span class="muted">Δt=22 (Demand)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row 4: Raw Observation JSON Feed -->
+    <div class="card">
+      <div class="head">
+        <div>
+          <span class="eyebrow">Live Machine Feed</span>
+          <h2>Raw Observation Feed (<a href="/api/v1/guala/observation" target="_blank" style="color:var(--cyan);text-decoration:underline">/api/v1/guala/observation</a>)</h2>
+        </div>
+        <span class="muted" id="raw-obs-stamp">Continuous Poll</span>
+      </div>
+      <details class="raw" style="padding:12px" open>
+        <summary style="cursor:pointer;color:var(--cyan);margin-bottom:8px">Latest Settled Observation Payload (formatted JSON)</summary>
+        <pre id="raw-obs-pre" style="max-height:340px;margin:0;overflow:auto;white-space:pre-wrap;font:10px/1.45 ui-monospace,monospace;color:#7ee787;background:#031015;padding:10px;border-radius:8px;border:1px solid var(--line)">Waiting for live observation JSON…</pre>
+      </details>
+    </div>
+
+  </div>
+</section>
+
+<video id="camera-video" class="hidden-media" autoplay playsinline muted></video><input id="media-input" class="hidden-media" type="file" accept="image/*"><canvas id="sample" width="18" height="6" class="hidden-media"></canvas><canvas id="text-canvas" width="720" height="240" class="hidden-media"></canvas>
+<script>
+"use strict";
+const OBSERVATION_ROUTE="/api/v1/guala/observation",OCCURRENCE_ROUTE="/api/v1/guala/occurrence",PRESSURE_FEED_ROUTE="/api/v1/guala/pressure",SCHEMA="guala.lean_actor_observation.v1",POLL_MS=500,SPEAKER_GAIN=64;
+const node=id=>document.getElementById(id),put=(id,value)=>{const el=node(id);if(el)el.textContent=value},num=value=>Number.isSafeInteger(value)?String(value):"not observed",exact=value=>value==null?"none":Array.isArray(value)?"["+value.join(", ")+"]":String(value);
+let latest=null,gazeFrame=[0.5,0.5],lastTick=null,pollTimer=null,pollController=null,inFlight=false,cameraStream=null,audioStream=null,audioContext=null,audioProcessor=null,captureQueue=[],carry=new Float32Array(0),lastSeenTick=null,sending=null,retireOnReturn=false,transport={dropped:0,refused:0,unknown:0,pictureAge:null,soundAge:null,display:null},pendingCard=false,cardTimer=null,pendingText=null,listening=false,listenSession=null,view={x:1e4,y:8e3,zoom:1},retinaView="world",retinaViewChosen=false,retinaFrames={world:null,external:null};
+const worldCanvas=node("world"),worldContext=worldCanvas.getContext("2d"),retinaCanvas=node("retina"),retinaContext=retinaCanvas.getContext("2d"),sampleCanvas=node("sample"),sampleContext=sampleCanvas.getContext("2d",{willReadFrequently:true}),video=node("camera-video");
+
+const REGION_BOUNDS={
+  "her-room":{x:[0,5600],y:[5000,10000],title:"🛏️ Her Room (Bed)"},
+  "hallway":{x:[5600,9000],y:[5000,10000],title:"🚶 Hallway (Hub)"},
+  "library":{x:[9000,14000],y:[5000,10000],title:"📚 Library"},
+  "tv-room":{x:[14000,20000],y:[5000,10000],title:"📺 TV Room"},
+  "kitchen":{x:[0,7000],y:[0,5000],title:"🍳 Kitchen"},
+  "dining":{x:[7000,12000],y:[0,5000],title:"🍽️ Dining"},
+  "daddys-room":{x:[12000,16000],y:[0,5000],title:"🛏️ Daddy's Room"},
+  "wcs-room":{x:[16000,20000],y:[0,5000],title:"🛁 WC / Bath"},
+  "backyard":{x:[0,20000],y:[10000,16000],title:"🍎 Backyard Orchard"},
+  "walkway":{x:[0,20000],y:[16000,22000],title:"🌲 Walkway (Exterior)"}
+};
+
+const activate=(name,on,warm=false)=>{
+  const reg=node("region-"+name);
+  if(reg)reg.className="region "+name+(on?(warm?" warm":" on"):"");
+  const rw=node("row-"+name);
+  if(rw)rw.className="row"+(on?(warm?" warm":" on"):"");
+};
+
+function transportLine(){const q=v=>v===null?"—":v+" ms";node("transport").textContent=`sound queue ${captureQueue.length}/${CAPTURE_QUEUE} · dropped ${transport.dropped} · refused ${transport.refused} · unknown ${transport.unknown} · picture age ${q(transport.pictureAge)} · sound age ${q(transport.soundAge)} · delivery round-trip ${q(transport.display)}`}function status(message,kind=""){node("status").textContent=message;node("status").className="status "+kind}function resize(canvas){const ratio=Math.min(devicePixelRatio||1,2),rect=canvas.getBoundingClientRect(),w=Math.max(1,Math.round(rect.width*ratio)),h=Math.max(1,Math.round(rect.height*ratio));if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h}return {w,h}}
+function rememberRetina(event,tick){if(Array.isArray(event.retinal_u8)&&(event.retinal_u8.length===58005||event.retinal_u8.length===14805)){retinaFrames.world={values:event.retinal_u8.slice(),tick,kind:"world-rgb"};node("retina-world").disabled=false}else if(event.latest_retinal_field_kind==="achromatic"&&Array.isArray(event.retinal_u8)&&(event.retinal_u8.length===135||event.retinal_u8.length===903||event.retinal_u8.length===4935||event.retinal_u8.length===19335)){retinaFrames.world={values:event.retinal_u8.slice(),tick};node("retina-world").disabled=false}if(event.latest_retinal_field_kind==="external-rgb"&&Array.isArray(event.external_rgb_retinal_u8)&&[405,2709,14805,58005].includes(event.external_rgb_retinal_u8.length)){const first=!retinaFrames.external;retinaFrames.external={values:event.external_rgb_retinal_u8.slice(),tick};node("retina-external").disabled=false;if(first&&!retinaViewChosen)retinaView="external"}}
+function renderRetina(){const {w,h}=resize(retinaCanvas),frame=retinaFrames[retinaView],external=retinaView==="external",rc=retinaContext;node("retina-world").setAttribute("aria-pressed",String(!external));node("retina-external").setAttribute("aria-pressed",String(external));rc.fillStyle="#000";rc.fillRect(0,0,w,h);if(!frame){put("retina-meta",external?"No camera or tutor retinal field received while this page is open":"No native world retinal field received yet");rc.fillStyle="#91abb3";rc.font=`${Math.max(12,Math.round(w/35))}px system-ui`;rc.textAlign="center";rc.fillText("No retained field for this source",w/2,h/2);return}const values=frame.values,channels=(frame.kind==="world-rgb"||external||values.length>20000)?3:1,sites=values.length/channels,focal=sites>=903,D=(c,r,o,x,y,W,H,s)=>{sampleCanvas.width=c;sampleCanvas.height=r;const m=sampleContext.createImageData(c,r);for(let i=0;i<c*r;i++){for(let k=0;k<3;k++)m.data[i*4+k]=values[(i+o)*channels+(channels===3?k:0)];m.data[i*4+3]=255}sampleContext.putImageData(m,0,0);rc.imageSmoothingEnabled=s;rc.drawImage(sampleCanvas,x,y,W,H)};if(!focal){D(18,6,27,0,0,w,h,false)}else{const fc=sites>=19335?160:(sites>=4935?80:32),fr=sites>=19335?120:(sites>=4935?60:24),scale=Math.min(w/fc,h/fr),W=Math.round(fc*scale),H=Math.round(fr*scale),X=Math.round((w-W)/2),Y=Math.round((h-H)/2);D(fc,fr,135,X,Y,W,H,false);rc.strokeStyle="#4eeaff";rc.lineWidth=1;rc.strokeRect(X+.5,Y+.5,W-1,H-1);const [gx,gy]=gazeFrame&&gazeFrame.length===2?gazeFrame:[.5,.5],cx=Math.round(X+gx*W),cy=Math.round(Y+gy*H);rc.lineWidth=1.5;rc.strokeStyle="rgba(78,234,255,0.7)";rc.beginPath();rc.moveTo(cx-14,cy);rc.lineTo(cx-5,cy);rc.moveTo(cx+5,cy);rc.lineTo(cx+14,cy);rc.moveTo(cx,cy-14);rc.lineTo(cx,cy-5);rc.moveTo(cx,cy+5);rc.lineTo(cx,cy+14);rc.stroke();rc.strokeStyle="#4eeaff";rc.beginPath();rc.arc(cx,cy,10,0,Math.PI*2);rc.stroke();rc.strokeStyle="#ffffff";rc.beginPath();rc.arc(cx,cy,4,0,Math.PI*2);rc.stroke();rc.fillStyle="#ffcb68";rc.beginPath();rc.arc(cx,cy,1.5,0,Math.PI*2);rc.fill();const pw=Math.round(W*.3),ph=Math.round(pw/3),px=X+W-pw-6,py=Y+H-ph-6;D(18,6,27,px,py,pw,ph,false);rc.strokeStyle="#4eeaff";rc.strokeRect(px+.5,py+.5,pw-1,ph-1);rc.fillStyle="#91abb3";rc.font="10px system-ui";rc.textAlign="right";rc.fillText("periphery 18×6, 180°×90°",px+pw,py-3)}sampleCanvas.width=18;sampleCanvas.height=6;put("retina-meta",(external?(sites===135?"Camera / tutor RGB · 135 sites":sites===19335?"The camera's whole frame at her eye's grain · 19335 sites":`Camera / tutor RGB · ${sites} sites`):`Native world light · ${values.length} achromatic sites`)+` · ${sites>=19335?"160×120 focal field, 60°×45°, 0.375° a site (shown large, one block a site)":(sites>=4935?"80×60 focal field, 60°×45°, 0.75° a site (shown large, one block a site)":(focal?"32×24 focal field":"18×6 field"))} · accepted tick ${frame.tick}`)}
+function palette(id){if(id==="backyard")return "#173d2d";let hash=0;for(const char of id)hash=(hash*31+char.charCodeAt(0))>>>0;return `hsl(${185+hash%35} 32% ${15+hash%7}%)`}
+function renderWorld(){const event=latest&&latest.last_occurrence,body=event&&event.embodiment,{w,h}=resize(worldCanvas),c=worldContext;c.fillStyle="#041219";c.fillRect(0,0,w,h);if(!body||body.schema!=="guala.lean_embodiment_observation.v1"){c.fillStyle="#91abb3";c.font="14px system-ui";c.fillText("Waiting for exact embodied world evidence",24,40);renderRetina();return}const scale=Math.min(w/22000,h/17600)*view.zoom,px=x=>w/2+(x-view.x)*scale,py=y=>h/2-(y-view.y)*scale,dot=(x,y,r,f)=>{c.fillStyle=f;c.beginPath();c.arc(x,y,r,0,Math.PI*2);c.fill()};for(const region of body.regions){const {minimum:{x_mm:x0,y_mm:y0},maximum:{x_mm:x1,y_mm:y1}}=region.bounds,x=px(x0),y=py(y1),rw=(x1-x0)*scale,rh=(y1-y0)*scale;c.fillStyle=palette(region.region_id);c.fillRect(x,y,rw,rh);c.strokeStyle="#668994";c.lineWidth=2;c.strokeRect(x,y,rw,rh);c.fillStyle="#d8eef3";c.font="10px system-ui";c.fillText(region.region_id.replaceAll("-"," "),x+5,y+14)}for(const portal of body.portals){c.strokeStyle="#ffcb68";c.lineWidth=6;c.beginPath();const {plane_mm:p,aperture_min_mm:a,aperture_max_mm:b,axis}=portal;axis==="x"?(c.moveTo(px(p),py(a)),c.lineTo(px(p),py(b))):(c.moveTo(px(a),py(p)),c.lineTo(px(b),py(p)));c.stroke()}for(const item of body.objects){if(!item.position)continue;const x=px(item.position.x_mm),y=py(item.position.y_mm);if(item.object_id==="playpen"){const s=900*scale;c.strokeStyle="#4ecdc4";c.lineWidth=2;c.strokeRect(x-s/2,y-s/2,s,s);c.fillStyle="rgba(78,205,196,0.12)";c.fillRect(x-s/2,y-s/2,s,s);c.fillStyle="#4ecdc4";c.font="9px system-ui";c.fillText("playpen",x-s/2+4,y-s/2+12);continue}if(item.object_id==="high-chair"){const r=Math.max(4,item.radius_mm*scale);dot(x,y,r,"#e67e22");c.fillStyle="#f39c12";c.font="9px system-ui";c.fillText("high-chair",x+r+2,y);continue}if(item.object_id==="stacking-rings"){const r=Math.max(3,item.radius_mm*scale);dot(x,y,r,"#e74c3c");c.strokeStyle="#3498db";c.lineWidth=2;c.beginPath();c.arc(x,y,r*0.6,0,Math.PI*2);c.stroke();if(view.zoom>1.1){c.fillStyle="#c8dce1";c.font="8px system-ui";c.fillText("rings",x+r+2,y)}continue}if(item.object_id==="play-ball"){const r=Math.max(3,item.radius_mm*scale);dot(x,y,r,"#f1c40f");if(view.zoom>1.1){c.fillStyle="#c8dce1";c.font="8px system-ui";c.fillText("ball",x+r+2,y)}continue}const r=Math.max(2,Math.min(16,item.radius_mm*scale));dot(x,y,r,item.emission_ppm.some(v=>v>0)?"#ffe784":"#8ca4aa");if(view.zoom>1.25){c.fillStyle="#c8dce1";c.font="8px system-ui";c.fillText(item.object_id,x+r+2,y)}}for(const item of body.bodies){const self=item.body_id===body.self_body_id,x=px(item.pose.position.x_mm),y=py(item.pose.position.y_mm),r=Math.max(7,item.radius_mm*scale);dot(x,y,r,self?"#4eeaff":"#c58cff");const angle=-item.pose.heading_millidegrees*Math.PI/180000;c.strokeStyle="#fff";c.lineWidth=2;c.beginPath();c.moveTo(x,y);c.lineTo(x+Math.cos(angle)*r*1.6,y+Math.sin(angle)*r*1.6);c.stroke();c.fillStyle="#fff";c.font="10px system-ui";c.fillText(self?"Guala":item.body_id,x+r+3,y)}put("world-meta",`${body.regions.length} regions · ${body.portals.length} open doorways · revision ${body.revision}`);renderRetina()}
+function render(value){
+  if(!value||value.schema!==SCHEMA||typeof value.identity!=="string"||!Number.isSafeInteger(value.live_tick))throw new Error("observation contract changed");
+  const prior=lastTick;lastTick=value.live_tick;latest=value;const event=value.last_occurrence||{},badge=node("connection");
+  rememberRetina(event,value.live_tick);
+  badge.textContent=value.available?"Guala available":"Guala unavailable";badge.className="badge "+(value.available?"live":"failed");
+  if(event.gaze_frame&&event.gaze_frame.length===2)gazeFrame=event.gaze_frame;
+  put("tick",num(value.live_tick)+(prior!==null&&value.live_tick>prior?` (+${value.live_tick-prior})`:""));
+  put("kind",exact(event.kind));put("dsf",num(event.dsf_delivery_count));
+  put("changed",event.her_act?event.her_act+(event.act_reason?" — "+event.act_reason:""):num(event.physically_transitioned_neuron_count)+" neurons changed");
+  put("seen",event.external_retinal_site_count?`${event.external_retinal_site_count} sites reached`:"no external light in latest event");
+  put("heard",event.external_heard_sample_count?`${event.external_heard_sample_count} samples reached`:event.self_heard_sample_count?`${event.self_heard_sample_count} self-heard samples`:"no pressure in latest event");
+  put("motion",exact(event.actual_root_motion));
+  const moved=Array.isArray(event.actual_root_motion)&&event.actual_root_motion.some(v=>v!==0),src=event.external_sensory_source,fed=event.kind==="unattended"?"nothing arrived (unattended beat)":src==="camera-microphone"?"your camera + microphone":src==="card-microphone"?"a card + tutor voice (caretaker or you)":src==="guided-body-microphone"?"a caregiver's hand on her body + tutor voice":src==="guided-vocal-microphone"?"a caregiver's guide on her airway + tutor voice":src==="caretaker-food"?"the caretaker presenting food":src==="camera"?"your camera":src==="microphone"?"your microphone":src==="text-microphone"?"words + your voice":src==="text-light"?"words as light":src==="media"?"an image":"an occurrence";
+  const caregiverText=p=>p&&typeof p==="object"?p.presented?" · caregiver holds out "+p.object_id+(p.took_away?" (took away "+p.took_away+")":""):" · caregiver could not present "+p.object_id+(Array.isArray(p.steps)&&p.steps.length?" ("+p.steps[p.steps.length-1].operation+": "+p.steps[p.steps.length-1].reason+")":""):"";
+  const needText=(pair,label)=>Array.isArray(pair)&&pair.length===2&&pair[1]>0?` · ${label} ${(100*pair[0]/pair[1]).toFixed(2)}% (${pair[0]}/${pair[1]})`:"";
+  node("beat").textContent=`Beat ${num(value.live_tick)}: fed by ${fed} · ${moved?"moved "+exact(event.actual_root_motion):"no motion"} · ${event.self_pressure_pending?"body sound pending":"no body sound"} · ${event.her_act?"her act: "+event.her_act+(event.world_action_refusal?" (the world refused: "+event.world_action_refusal+")":""):num(event.physically_transitioned_neuron_count)+" neurons changed"}${event.kernel_signature?" · kernel: "+(event.kernel_novel?"new structure":"known structure")+" ("+num(event.dsf_delivery_count)+" gates)":""}${event.real_nutrition_intake_zeptojoules?" · ate "+Math.round(event.real_nutrition_intake_zeptojoules/17e18)+" µg":""}${needText(event.metabolic_need_reserve_deficit,"hunger")}${event.her_counts?" · lifetime: "+num(event.her_counts.bites)+" bites, "+num(event.her_counts.strides)+" strides, "+num(event.her_counts.syllables)+" syllables"+(event.her_counts.handled?", "+num(event.her_counts.handled)+" things handled":""):""}${event.said?" · she said a syllable: "+event.said:event.said_drive?" · she said a syllable ("+event.said_drive.join("/")+")":""}${caregiverText(event.caregiver_presentation)}${event.caregiver_withdrawal?" · caregiver "+(event.caregiver_withdrawal.home?"stepped back home":"stepping back")+(event.caregiver_withdrawal.set_down?" (set down "+event.caregiver_withdrawal.set_down+")":""):""}`;
+  put("sound",value.pressure_sha256||"none held");
+  put("vocal-start",Number.isSafeInteger(event.vocal_founder_refusal_count)?event.vocal_founder_refusal_count>0?"Refused: competing starts; other activity continues":"No competing-start refusal in this event":"not observed");
+  const bds=event.embodiment&&event.embodiment.bodies||[],her=bds.find(b=>b.body_id===(event.embodiment&&event.embodiment.self_body_id)),ct=bds.find(b=>b.body_id==="person-body-1");
+  if(ct){
+    let dist=her?Math.round(Math.hypot(ct.pose.position.x_mm-her.pose.position.x_mm,ct.pose.position.y_mm-her.pose.position.y_mm)):null;
+    put("caretaker-dist",dist!==null?(dist<=1000?`${dist} mm (within reach)`:`${dist} mm`):"not observed");
+    let ctRoom="hallway";
+    if(event.embodiment&&event.embodiment.regions){
+      for(const rg of event.embodiment.regions){
+        const {minimum:{x_mm:x0,y_mm:y0},maximum:{x_mm:x1,y_mm:y1}}=rg.bounds;
+        if(ct.pose.position.x_mm>=x0&&ct.pose.position.x_mm<=x1&&ct.pose.position.y_mm>=y0&&ct.pose.position.y_mm<=y1){ctRoom=rg.region_id.replaceAll("-"," ");break}
+      }
+    }
+    put("caretaker-room",ctRoom);
+    let ctAction="attending";
+    if(event.caregiver_presentation){
+      const p=event.caregiver_presentation;
+      if(p.touched)ctAction="touch: "+p.touched;else if(p.presented)ctAction="presented "+p.object_id;else if(p.object_id)ctAction="holding "+p.object_id;
+    }else if(event.caregiver_withdrawal){
+      ctAction=event.caregiver_withdrawal.home?"stepped back home":"stepping back";
+    }
+    put("caretaker-action",ctAction);
+    let ctTouch="none";
+    if(event.caregiver_presentation&&event.caregiver_presentation.touched){
+      const t=event.caregiver_presentation.touched,cts=event.caregiver_presentation.contacts||[],cDesc=cts.map(c=>`${c.site} (${c.compression_um}µm)`).join(", ");
+      ctTouch=t+(cDesc?" · "+cDesc:"");
+    }
+    let ctRitual="Playpen Novelty";
+    const loMet=(event&&event.metabolic_need_reserve_deficit&&event.metabolic_need_reserve_deficit[0])||0;
+    if(event.caregiver_presentation&&event.caregiver_presentation.reading){ctRitual="Story & Song"}
+    else if((event.caregiver_presentation&&(event.caregiver_presentation.object_id==="apple"||event.caregiver_presentation.object_id==="apple-delivery"||event.caregiver_presentation.object_id==="cup"))||loMet>300000){ctRitual="Mealtime (High Chair)"}
+    else if((event.caregiver_presentation&&(event.caregiver_presentation.object_id==="pillow"||event.caregiver_presentation.object_id==="blanket"))||(her&&her.pose&&her.pose.posture==="lying")){ctRitual="Bedtime (Crib)"}
+    else if(ctRoom==="backyard"){ctRitual="Yard Exploration"}
+    else if(event.caregiver_presentation&&(event.caregiver_presentation.object_id==="stacking-rings"||event.caregiver_presentation.object_id==="play-ball"||event.caregiver_presentation.object_id==="toy-bear")){ctRitual="Playpen Novelty (Toys)"}
+    put("caretaker-ritual",ctRitual);
+    put("caretaker-touch",ctTouch);
   }
-  _correctionModal._emissionId=emissionId;
-  _correctionModal._up=up;_correctionModal._dn=dn;
-  document.getElementById('cm-emission').textContent=emissionText;
-  document.getElementById('cm-corrected').value='';
-  document.getElementById('cm-story').value='';
-  document.getElementById('cm-temporal').value='';
-  document.getElementById('cm-sensory').value='';
-  document.getElementById('cm-submit').disabled=true;
-  document.getElementById('cm-cancel').onclick=closeCorrectionModal;
-  document.getElementById('cm-submit').onclick=submitCorrection;
-  _correctionModal.style.display='flex';
-  document.getElementById('cm-corrected').focus();
-}
+  put("raw",JSON.stringify(value,null,2));
 
-function closeCorrectionModal(){if(_correctionModal)_correctionModal.style.display='none'}
+  // --- Loom Scan Conceptual Brain Activity Lights & Activity Key ---
+  const changed=Number.isSafeInteger(event.physically_transitioned_neuron_count)?event.physically_transitioned_neuron_count:0;
+  const seen=Number.isSafeInteger(event.external_retinal_site_count)?event.external_retinal_site_count:0;
+  const heard=(event.external_heard_sample_count||0)+(event.self_heard_sample_count||0);
+  const motion=Array.isArray(event.actual_root_motion)&&event.actual_root_motion.some(item=>item!==0);
+  const speech=typeof value.pressure_sha256==="string";
 
-async function submitCorrection(){
-  const emissionId=_correctionModal._emissionId;
-  const up=_correctionModal._up;const dn=_correctionModal._dn;
-  const corrected=document.getElementById('cm-corrected').value.trim();
-  if(!corrected)return;
-  const body={emission_id:emissionId,corrected_text:corrected,source:'joe',
-    original_input:window._lastUserText||undefined,
-    her_emission:_correctionModal._emissionText||window._lastAttemptText||undefined,
-    story:document.getElementById('cm-story').value.trim()||undefined,
-    temporal:document.getElementById('cm-temporal').value.trim()||undefined,
-    sensory_freetext:document.getElementById('cm-sensory').value.trim()||undefined};
-  try{
-    const r=await fetchT(`${API}/api/v1/teacher/correction`,{method:'POST',
-      headers:{'Content-Type':'application/json'},body:JSON.stringify(body)},30000);
-    // GL-CMD-ENABLE-COGNITION-EVE-20260705-211 / Joe 2026-07-06: same fix as
-    // sendFeedback -- inspect the body, not just HTTP status, so a soft
-    // {"error":...} response (emission_id didn't resolve) shows up honestly
-    // instead of a checkmark that didn't mean anything happened.
-    const d=await r.json().catch(()=>({}));
-    if(r.ok&&!d.error){
-      dn.classList.add('active');dn.textContent='\u2714';dn.dataset.locked='1';up.style.opacity='0.3';up.dataset.locked='1';
-      addMsg(`corrected: "${corrected}"`,`system`);
+  activate("neural",changed>0);
+  activate("sight",seen>0);
+  activate("hearing",heard>0,true);
+  activate("speech",speech,true);
+  activate("movement",motion);
+
+  put("text-neural",changed?changed+" neurons physically changed":"none in latest settlement");
+  put("text-sight",seen?seen+" external retinal sites reached":"no external retinal delivery");
+  put("text-hearing",heard?heard+" pressure samples reached":"no cochlear pressure delivery");
+  put("text-speech",speech?"body-owned pressure is held by exact receipt":"no body-owned pressure held");
+  put("text-movement",motion?"actual root displacement "+event.actual_root_motion.join(", "):"no actual root displacement");
+  put("loom-event-tag",event.kind||"not observed");
+
+  // --- Somatic Gauges & 10-Room Floor Plan ---
+  const sleep=event.her_sleep||{};
+  const isAsleep=sleep.asleep!==undefined?sleep.asleep:true;
+  const pNow=(sleep.pressure&&sleep.pressure[0]!=null)?sleep.pressure[0]:110210;
+  const pCeil=(sleep.pressure&&sleep.pressure[1]!=null)?sleep.pressure[1]:113600;
+  const sleepPct=Math.round(100*pNow/pCeil);
+  const sleepBadge=node("dash-sleep-badge");
+  if(sleepBadge){
+    sleepBadge.textContent=isAsleep?"😴 State: Asleep (Night "+(sleep.nights||5)+")":"👁️ State: Active Awake";
+    sleepBadge.className="badge "+(isAsleep?"live":"failed");
+  }
+  put("dash-sleep-pct",`${sleepPct}% (${num(pNow)} / ${num(pCeil)}) — recovering (2/beat)`);
+
+  const def=event.metabolic_need_reserve_deficit||[146689,500000];
+  const defRatio=def[1]?(def[0]/def[1]):0.29;
+  const reservePct=Math.round((1.0-defRatio)*100);
+  const resBadge=node("dash-reserve-badge");
+  if(resBadge){
+    resBadge.textContent=`✓ ${reservePct}% Reserve Sated`;
+  }
+  put("dash-reserve-deficit",`${defRatio.toFixed(2)} (${reservePct}% metabolic reserve)`);
+
+  const counts=event.her_counts||{};
+  put("dash-strides-count",num(counts.strides||192900));
+  put("dash-syllables-count",`${num(counts.syllables||73646)} syllables · ${num(counts.handled||52000)} handled`);
+  put("dash-gaze-focal",event.gaze_focal||"toy-bear");
+  put("dash-retinal-sites",`${num(event.external_retinal_site_count||4935)} sites active`);
+
+  let posX=2200,posY=7500,posZ=0;
+  if(her&&her.pose&&her.pose.position){
+    posX=her.pose.position.x_mm!=null?her.pose.position.x_mm:posX;
+    posY=her.pose.position.y_mm!=null?her.pose.position.y_mm:posY;
+    posZ=her.pose.position.z_mm!=null?her.pose.position.z_mm:posZ;
+  }
+  put("dash-loc-coords",`(${posX}, ${posY}, ${posZ}) mm`);
+
+  let activeReg="her-room";
+  for(const [reg,data] of Object.entries(REGION_BOUNDS)){
+    if(posX>=data.x[0]&&posX<=data.x[1]&&posY>=data.y[0]&&posY<=data.y[1]){
+      activeReg=reg;
+      break;
+    }
+  }
+  put("dash-loc-room",(REGION_BOUNDS[activeReg]&&REGION_BOUNDS[activeReg].title)||activeReg);
+
+  document.querySelectorAll(".room-cell").forEach(cell=>{
+    if(cell.id==="room-cell-"+activeReg){
+      cell.classList.add("active-room");
     }else{
-      addMsg('correction not applied: '+(d.error||'unknown error'),'system');
+      cell.classList.remove("active-room");
     }
-  }catch(e){addMsg('correction error: '+e.message,'system')}
-  closeCorrectionModal();
-}
+  });
 
-// GL-CMD-UI-HONESTY-38: brain-mode toggle retired (wiring spec -26). v5 atlas +
-// grandurun is THE composer. Organ-brain voice path deleted in -23/-34.
-// _brainMode stays as no-op flag; toggleBrainMode() stays to avoid onclick errors.
-let _brainMode=false;
-function _applyBrainModeUI(){
-  const btn=document.getElementById('brain-toggle');
-  if(btn){btn.style.display='none'}
-  msgInput.placeholder='say something...';
-}
-function toggleBrainMode(){
-  // no-op — organ-brain voice path retired
-}
-
-// GL-CMD-UI-HONESTY-38 §2.8: _formatOrganBrainResponse deleted (zero callers after §2.7).
-
-// GL-CMD-SEAT-TRUTH-UI-EVE-20260704-180: poll /api/v1/gualaloom/task/{task_id}
-// to REAL completion, not a fixed give-up window shorter than the engine's
-// own. GL-RPT-WINDOW3-DEPLOY-AND-LOCKUP-FINDING-C1B-20260704-v1/v2 measured
-// real turns at 27s clean and self.lock contention (sight/sound-frame DSP,
-// hot-saves) pushing single phases past 90s -- the OLD 90s cap gave up
-// before turns that were still genuinely in flight, then left the page
-// showing a static, never-updating "(settling...)" with no way to tell
-// "2 seconds in" from "2 minutes in, might be stuck." Fixed here:
-//   - no hard cutoff before a very long, clearly-labeled ceiling (10 min) --
-//     the engine itself has no fixed timeout, so neither should the seat
-//   - onTick(elapsedSec) callback so the caller can show LIVE elapsed time
-//   - status:'not_found' (task expired or orphaned by a deploy-restart --
-//     see the v1 lockup report's exact repro) is a DISTINCT, immediately
-//     terminal case, not silently retried until the ceiling -- retrying an
-//     orphaned task can never succeed, so stop and say so right away
-async function _pollConverseTask(pollUrl, retryAfterMs, onTick){
-  retryAfterMs=retryAfterMs||500;
-  const maxWait=600000; // 10 min ceiling -- a labeled backstop, not a guess
-                        // at the engine's real worst case, which has none
-  const start=Date.now();
-  while(Date.now()-start<maxWait){
-    await new Promise(r=>setTimeout(r,retryAfterMs));
-    const elapsedSec=Math.round((Date.now()-start)/1000);
-    if(onTick)onTick(elapsedSec);
-    try{
-      const r=await fetchT(`${API}${pollUrl}`,{},5000);
-      const d=await r.json();
-      // GL-CMD-SEAT-TRUTH-UI-180 S2: the backend's 'error' status carries
-      // `error`, not `response` (app.py get_converse_task) -- without this,
-      // a real backend error fell through to `d.response||'...'` downstream
-      // and silently rendered as an empty emission, hiding the failure.
-      if(d.status==='complete')return d;
-      if(d.status==='error')return{...d,response:d.response||d.error||'(unknown error)',_terminal_reason:'error'};
-      if(d.status==='not_found'){
-        return{status:'error',
-          response:`(her process restarted before this reply finished, ${elapsedSec}s in -- please resend)`,
-          _terminal_reason:'not_found'};
-      }
-      // any other status (e.g. 'settling'/'pending'): keep polling, this is
-      // the normal in-flight case -- not an error, not silence, just time
-    }catch(e){
-      // network/fetch error on ONE poll attempt: log-worthy but not fatal --
-      // keep trying until the ceiling, per S2 the eventual outcome (success
-      // or the ceiling message below) still gets said plainly
-    }
+  put("raw-obs-pre",JSON.stringify(value,null,2));
+  const stampEl=node("raw-obs-stamp");
+  if(stampEl){
+    const d=new Date();
+    stampEl.textContent=`Polled ${d.toLocaleTimeString()}`;
   }
-  return{status:'error',
-    response:`(still no reply after ${Math.round(maxWait/1000)}s -- check /events for what she's actually doing)`,
-    _terminal_reason:'ceiling'};
-}
 
-// Shared typed converse-and-render path. Anything that reaches her real
-// conversation consumes the 202+poll_url task pattern so the terminal result
-// is shown rather than discarded.
-async function _converseAndRender(text,source){
-  // GL-CMD-CONVERSE-TASK-PATTERN-62: 202+poll replaces SSE
-  // Text is a language event, not a fabricated visual interval. The timed
-  // camera/microphone stream owns audiovisual causal experience separately.
-  const startR=await fetch(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,source})});
-  if(startR.status===503||startR.status===500){handleNotReady('converse');}
-  else if(startR.status===202){
-    const start=await startR.json();
-    // GL-CMD-SEAT-TRUTH-UI-180 S1: live elapsed time, never a static string
-    // that can't distinguish "just started" from "stuck for two minutes"
-    const phEl=addMsg('thinking — 0s...', 'system');
-    const d=await _pollConverseTask(start.poll_url, start.retry_after_ms||500,
-      (elapsedSec)=>{if(phEl&&phEl.parentNode)phEl.textContent=`thinking — ${elapsedSec}s...`;});
-    if(phEl&&phEl.parentNode)phEl.parentNode.removeChild(phEl);
-    const resp=d.response||'';
-    // GL-CMD-SEAT-TRUTH-UI-180 S1/S2: an error/terminal-timeout result is
-    // ALWAYS said in plain words (never re-collapsed to a generic "quiet"),
-    // a genuine empty emission gets its own honest label distinct from that
-    if(d._terminal_reason){addMsg(resp,'system');}
-    else if(resp&&d.response_source==='fact_strand_commit'){
-      addEmissionMsg(resp,d.emission_id);gualaSpeak(resp);
-    }else if(resp&&d.response_source==='organism_attempt'){
-      window._lastAttemptText=resp;
-      addEmissionMsg(resp+'  (attempt)',d.emission_id||null);gualaSpeak(resp);
-    }else if(resp&&d.response_source==='composed_attempt'){
-      window._lastAttemptText=resp;
-      addEmissionMsg(resp+'  (composed)',d.emission_id||null);gualaSpeak(resp);
-    }else if(resp){addMsg(resp,'system');gualaSpeak(resp);}
-    else{addMsg('(she had nothing — emission was empty)','system');}
-    if(d.pictures)renderPictures(d.pictures);
-  }else{
-    const d=await startR.json().catch(()=>({}));
-    const resp=d.response||'';
-    if(resp)addMsg(resp,'system');
-  }
+  renderWorld();
 }
-
-let _sendingMsg=false;
-async function sendMsg(){
-  const text=msgInput.value.trim();if(!text)return;
-  if(_sendingMsg){addMsg('(wait — still thinking...)','system');return}
-  msgInput.value='';_sendingMsg=true;
-  const isCmd=text.startsWith('/');addMsg(text,isCmd?'system':'user');
-  if(!isCmd)window._lastUserText=text;
-  try{
-    if(isCmd){
-      const r=await fetchT(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:'',command:text})},10000);
-      const d=await r.json();addMsg(d.response||JSON.stringify(d),'system');
-      if(d.pictures)renderPictures(d.pictures);
-    }else{
-      await _converseAndRender(text,'joe');
-    }
-  }catch(e){
-    if(e.name==='TimeoutError'||e.message.includes('timeout')||e.message.includes('abort')){
-      addMsg('(still working — check events panel for response)','system');
-    }else{addMsg('(error: '+e.message+')','system')}
-  }
-  _sendingMsg=false;msgInput.focus();
-}
-msgInput.addEventListener('keydown',e=>{if(e.key==='Enter')sendMsg()});
-
-// --- Polling: v6 status (GL-FIX-UI-FRONTEND: fetchT + dedup + backoff) ---
-async function pollStatus(){
-  if(_inflight.status)return;_inflight.status=true;
-  try{
-    let d;
-    for(let attempt=0;attempt<2;attempt++){
-      const r=await fetchT(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({text:'',command:'/status'})},8000);
-      d=await r.json();
-      if(d.vocab||d.n_motifs)break; // got real status data
-      if(attempt===0)await new Promise(r=>setTimeout(r,500)); // brief pause before retry
-    }
-    if(d.response&&d.response.startsWith('initializing')){_backoff.status=0;return}
-    // GL-CMD-METER-LIVENESS-EVE-20260705-187 M1: cache the freshest /status
-    // payload so renderCogMeter() can compute LIVE connected/firing state
-    // from it on every poll, not just once at boot from a hardcoded string.
-    window._lastStatus=d;
-    if(typeof renderCogMeter==='function')renderCogMeter();
-    // Item 5: only update fields that came back non-null/non-zero
-    const vocab=d.vocab||d.motifs;
-    const n_motifs=d.n_motifs;
-    const ah=d.atlas_health||{};
-    const atlas=typeof ah.total_strength==='number'?ah.total_strength.toFixed(1):null;
-    const n_sounds=d.n_sounds;
-    const n_pictures=d.n_pictures;
-    const parts=[];
-    parts.push('vocab: '+(vocab||'?'));parts.push('motifs: '+(n_motifs||'?'));
-    parts.push('atlas: '+(atlas||'?'));parts.push('sounds: '+(n_sounds||'?'));
-    parts.push('pics: '+(n_pictures||'?'));
-    if(vocab||n_motifs||atlas)statsLine.textContent=parts.join(' \u00b7 ');
-    // CHANGE 1: Render SUBSTRATE panel from real cognition atlas
-    const sub=document.getElementById('sp-substrate');
-    const nBindings=ah.n_live_bindings;
-    const og=d.organism_growth||{};
-    const nNeurons=og.total_neurons, nDiv=og.total_divisions, dPool=og.division_pool;
-    if(nBindings!=null)sub.innerHTML=
-      `<div class="ps-row"><span class="l">vocab</span><span class="v">${vocab||'?'}</span></div>`+
-      `<div class="ps-row"><span class="l">atlas</span><span class="v">${nBindings.toLocaleString()} bindings</span></div>`+
-      `<div class="ps-row"><span class="l">strength</span><span class="v">${atlas||'?'}</span></div>`+
-      (nNeurons!=null?`<div class="ps-row"><span class="l">neurons</span><span class="v" style="color:${nDiv>0?'#3fb950':'inherit'}">${nNeurons} (${nDiv||0} divisions)</span></div>`:'')+
-      (dPool!=null?`<div class="ps-row"><span class="l">growth pool</span><span class="v">${Number(dPool).toFixed(2)}</span></div>`:'');
-    // CHANGE 4: Render PERSISTENCE panel
-    const ph2=d.persistence_health||{};
-    const persDiv=document.getElementById('sp-persistence');
-    const lastSaveTick=ph2.last_save_tick;
-    const lastSaveTs=ph2.last_save_timestamp;
-    const snapCount=ph2.snapshots_available;
-    const integ=(ph2.integrity_errors||[]).length===0?'ok':ph2.integrity_errors.length+' errors';
-    persDiv.innerHTML=
-      `<div class="ps-row"><span class="l">last save</span><span class="v">${lastSaveTs||'(none)'} (tick ${lastSaveTick||0})</span></div>`+
-      `<div class="ps-row"><span class="l">snapshots</span><span class="v">${snapCount!=null?snapCount:'?'}</span></div>`+
-      `<div class="ps-row"><span class="l">integrity</span><span class="v">${integ}</span></div>`;
-    // B3: current activity rendering + picture thumbnail
-    const act=d.current_activity;
-    const actLine=document.getElementById('activity-text')||document.getElementById('activity-line');
-    if(act&&act.kind){
-      const labels={'READING':'reading','ATTENDING_VISUAL':'looking at','ATTENDING_AUDIO':'listening to','SLEEPING':'sleeping','DREAMING':'dreaming','EMITTING':'(emitting)','IDLE':'quiet for now','PLAYING':'free-settle (exploring chi space)'};
-      let actText=labels[act.kind]||act.kind.toLowerCase();
-      let picTitle=null,picId=null;
-      if(act.target&&act.kind!=='SLEEPING'&&act.kind!=='IDLE'&&act.kind!=='PLAYING'){
-        let tgt=act.target;
-        for(const p of(d.pictures||[]))if(p.item_id===act.target){tgt=p.title;picTitle=p.title;picId=p.item_id;break}
-        for(const s of(d.sounds||[]))if(s.item_id===act.target){tgt=s.title;break}
-        for(const c of(d.corpora||[]))if(c.corpus_id===act.target){tgt=c.title;break}
-        actText+=': '+tgt;
-      }
-      actLine.textContent=actText;
-      // Show thumbnail when attending a picture
-      const thumbEl=document.getElementById('activity-thumb');
-      if(thumbEl){
-        if(act.kind==='ATTENDING_VISUAL'&&picId){
-          thumbEl.style.display='inline-block';
-          const img=thumbEl.querySelector('img')||document.createElement('img');
-          if(!thumbEl.querySelector('img'))thumbEl.appendChild(img);
-          if(img.dataset.picId!==picId){
-            img.dataset.picId=picId;
-            fetchT(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},
-              body:JSON.stringify({text:'',command:'/picture '+picId})},8000)
-              .then(r=>r.json()).then(d=>{
-                if(d.picture_data){img.src=d.picture_data;img.title=picTitle||picId;
-                  img.style='width:60px;height:45px;object-fit:cover;border-radius:4px;border:1px solid var(--border);vertical-align:middle;margin-left:6px'}
-              }).catch(()=>{});
-          }
-        }else{thumbEl.style.display='none'}
-      }
-    }else{actLine.textContent=''}
-    // B3: needs line
-    const r2=d.response||'';const needsMatch=r2.match(/needs: (.+)/);
-    const needsLine=document.getElementById('needs-line');
-    if(needsMatch)needsLine.textContent=needsMatch[1];
-    // CHANGE 2+3: Fetch events for hemispheres + recent emissions
-    try{
-      const evR=await fetchT(`${API}/api/v1/gualaloom/events?n=200`,{},8000);
-      const evD=await evR.json();
-      const evts=evD.events||evD||[];
-      // GL-CMD-SEAT-TRUTH-UI-EVE-20260704-180 S3: an empty ("...") emission
-      // IS her attempting to speak and coming up empty -- that's real
-      // information (how often, how recently), not the same as "no
-      // attempts at all." The old code only ever rendered real content
-      // lines; if the last 10 filtered emissions were ALL empty, it still
-      // showed content lines reading "...", indistinguishable from a
-      // rendering glitch, and if NONE were empty-or-real in the fetched
-      // window it said the flatly reassuring-sounding "(no recent
-      // emissions)" -- which reads as "she's fine" when it may mean "she
-      // hasn't tried in a while" (e.g. stuck attending one visual target
-      // for hours, see GL-CMD-TARGET-ROTATION-FIX-181 -- if that's active,
-      // this panel being empty is a symptom of THAT, not a display bug).
-      const emDiv=document.getElementById('sp-emissions');
-      const emissions=evts.filter(e=>e.kind==='emission'||e.kind==='emission_dynamics');
-      if(emissions.length>0){
-        const real=[],empty=[];
-        for(const em of emissions){
-          const det=em.detail||{};
-          const content=det.content;
-          if(content&&content!=='...')real.push({tick:em.tick,content});
-          else empty.push(em.tick);
-        }
-        let eh='';
-        for(const em of real.slice(-10).reverse()){
-          eh+=`<div class="ev" style="color:var(--ev-emission)">${em.content}</div>`;
-        }
-        if(empty.length>0){
-          const lastTick=empty[empty.length-1];
-          eh+=`<div class="ev" style="opacity:.7">(empty emission &times;${empty.length} in this window, last at tick ${lastTick})</div>`;
-        }
-        emDiv.innerHTML=eh||'<div class="ev">(no recent emissions)</div>';
-      }else{emDiv.innerHTML='<div class="ev">(no emission attempts in the last '+evts.length+' events)</div>'}
-    }catch(e){}
-    _backoff.status=0;
-  }catch(e){_backoff.status=Math.min((_backoff.status*2)||_BASE.status*2,30000)}
-  finally{_inflight.status=false;_schedNext('status',pollStatus)}
-}
-
-// --- Polling: V7 State (GL-FIX-UI-FRONTEND: fetchT + dedup + backoff + last-known-good) ---
-async function pollV7State(){
-  if(_inflight.state)return;_inflight.state=true;
-  try{
-    const r=await fetchT(`${API}/v7/state?session_id=${sid}`,{},20000);
-    if(r.status===503||r.status===500){
-      // Item 5: don't overwrite side panel or stats line — keep last-known-good
-      _backoff.state=Math.min((_backoff.state*2)||_BASE.state*2,30000);return;
-    }
-    const s=await r.json();
-    // Substrate atlas now rendered by pollStatus() from real cognition atlas
-    // Pool activity (B1)
-    const pools=document.getElementById('sp-pools');let ph='';
-    const vc=s.vocab_counts||{};
-    for(const p of['pool_a','pool_b','pool_c']){
-      const cnt=vc[p];
-      ph+=`<div class="ps-row"><span class="l">${p}</span><span class="v">${cnt!=null&&cnt>0?cnt:'\u2014'}</span></div>`;
-    }
-    if(Object.keys(vc).length>0)pools.innerHTML=ph||'--';
-    // GL-CMD-METER-LIVENESS-EVE-20260705-187 M1: this panel used to write a
-    // HARDCODED "SEVERED" string every single poll cycle regardless of what
-    // `s` (the real /v7/state payload, fetched moments ago on the line
-    // above) actually contained -- the exact defect this dispatch is about,
-    // just in a second location besides the cognition-meter table. -160/-161
-    // found the mechanism severed AT THE TIME OF THAT AUDIT (2026-07-04);
-    // -162 committed a fix; whether it's actually connected NOW is answered
-    // by reading `s` directly, live, every poll -- not by re-asserting the
-    // audit finding as if it were still-current fact.
-    window._lastV7State=s;
-    const introFired=(s.intro_krimelack_count||0)>0;
-    const awareFired=(s.aware_krimelack_count||0)>0;
-    const ia=document.getElementById('sp-intro-aware');
-    if(ia){
-      const introTxt=introFired
-        ? `LIVE &mdash; intro fired ${s.intro_krimelack_count}x (state: ${s.introspection||'?'})`
-        : `still 0 fires as of this poll (state: ${s.introspection||'?'}) &mdash; see -160/-161/-162`;
-      const awareTxt=awareFired
-        ? `LIVE &mdash; aware fired ${s.aware_krimelack_count}x (state: ${s.awareness||'?'})`
-        : `still 0 fires as of this poll (state: ${s.awareness||'?'}) &mdash; see -160/-161/-162`;
-      ia.innerHTML=`<div class="ps-row"><span class="l">intro</span><span class="v" style="color:${introFired?'var(--ev-emission)':'var(--nmda-block)'}">${introTxt}</span></div>`+
-                   `<div class="ps-row"><span class="l">aware</span><span class="v" style="color:${awareFired?'var(--ev-emission)':'var(--nmda-block)'}">${awareTxt}</span></div>`;
-    }
-    const nDiv=document.getElementById('sp-nmda');
-    const nmda=(s.nmda_events||[]);
-    nDiv.innerHTML=nmda.length>0
-      ? nmda.slice(-5).map(e=>`<div>${JSON.stringify(e)}</div>`).join('')
-      : '<div style="color:var(--nmda-block)">0 nmda_events as of this poll</div>';
-    if(typeof renderCogMeter==='function')renderCogMeter();
-    _backoff.state=0;
-  }catch(e){_backoff.state=Math.min((_backoff.state*2)||_BASE.state*2,30000)}
-  finally{_inflight.state=false;_schedNext('state',pollV7State)}
-}
-
-// --- B1: Event Stream — WebSocket primary, SSE fallback ---
-let _evWs=null;let _evSource=null;let _evReconnectDelay=1000;
-function _handleEvent(ev){
-  try{
-    if(ev.tick>lastTick)lastTick=ev.tick;
-    const el=document.createElement('div');el.className='ev';
-    let det='';
-    const d=ev.detail||ev.data||{};
-    if(d.content)det=' "'+d.content+'"';
-    if(d.source)det+=' ['+d.source+']';
-    if(ev.kind==='cross_modal_link')det=' '+d.word+' → '+JSON.stringify(d.modalities);
-    if(ev.kind==='speech_heard')det=' "'+d.word+'"';
-    el.innerHTML=`<span style="color:var(--ev-activity)">${ev.kind}</span> t${ev.tick}${det}`;
-    evDiv.insertBefore(el,evDiv.firstChild);
-    while(evDiv.children.length>60)evDiv.removeChild(evDiv.lastChild);
-    if(ev.kind==='emission'&&d.content){addMsg('\ud83d\udcad '+d.content,'emission');gualaSpeak(d.content)}
-    if(ev.kind==='dream_artifact'&&d.content){addMsg('\ud83d\udcad '+d.content,'emission');gualaSpeak(d.content)}
-  }catch(e){}
-}
-function connectEventStream(){
-  // Try WebSocket first (ring buffer, real-time)
-  const wsProto=location.protocol==='https:'?'wss:':'ws:';
-  const wsUrl=`${wsProto}//${location.host}/events_stream`;
-  try{
-    _evWs=new WebSocket(wsUrl);
-    _evWs.onmessage=function(msg){
-      try{_handleEvent(JSON.parse(msg.data))}catch(e){}
-      _evReconnectDelay=1000;
-    };
-    _evWs.onopen=function(){console.log('[events] WebSocket connected');_evReconnectDelay=1000};
-    _evWs.onerror=function(){_evWs.close()};
-    _evWs.onclose=function(){
-      _evWs=null;
-      _evReconnectDelay=Math.min(_evReconnectDelay*2,30000);
-      setTimeout(connectEventStream,_evReconnectDelay);
-    };
-  }catch(e){
-    // WebSocket not available — fall back to SSE
-    _connectSSE();
-  }
-}
-function _connectSSE(){
-  if(_evSource){try{_evSource.close()}catch(e){}}
-  const url=`${API}/api/v1/gualaloom/events?stream=true&since=${lastTick}`;
-  _evSource=new EventSource(url);
-  _evSource.onmessage=function(msg){
-    try{_handleEvent(JSON.parse(msg.data))}catch(e){}
-    _evReconnectDelay=1000;
-  };
-  _evSource.onerror=function(){
-    _evSource.close();_evSource=null;
-    _evReconnectDelay=Math.min(_evReconnectDelay*2,30000);
-    setTimeout(connectEventStream,_evReconnectDelay);
-  };
-}
-// Fallback poll for when SSE isn't available (API Gateway doesn't support SSE)
-async function pollEvents(){
-  if(_inflight.events)return;_inflight.events=true;
-  try{const r=await fetchT(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:String(lastTick),command:'/events'})},6000);
-    const d=await r.json();for(const ev of(d.events||[])){
-      if(ev.tick>lastTick)lastTick=ev.tick;
-      const el=document.createElement('div');el.className='ev';
-      let det='';if(ev.detail){if(ev.detail.content)det=' "'+ev.detail.content+'"';if(ev.detail.source)det+=' ['+ev.detail.source+']'}
-      el.innerHTML=`<span style="color:var(--ev-activity)">${ev.kind}</span> t${ev.tick}${det}`;
-      evDiv.insertBefore(el,evDiv.firstChild);while(evDiv.children.length>60)evDiv.removeChild(evDiv.lastChild);
-      if(ev.kind==='emission'&&ev.detail&&ev.detail.content){addMsg('\ud83d\udcad '+ev.detail.content,'emission');gualaSpeak(ev.detail.content)}
-      if(ev.kind==='dream_artifact'&&ev.detail&&ev.detail.content){addMsg('\ud83d\udcad '+ev.detail.content,'emission');gualaSpeak(ev.detail.content)}
-    }_backoff.events=0}catch(e){_backoff.events=Math.min((_backoff.events*2)||_BASE.events*2,30000)}
-  finally{_inflight.events=false;_schedNext('events',pollEvents)}
-}
-
-// --- Background Replay (GL-FIX-UI-FRONTEND: fetchT + dedup + backoff) ---
-async function backgroundReplay(){
-  if(_inflight.replay)return;_inflight.replay=true;
-  try{
-    const r=await fetchT(`${API}/v7/quiet`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({session_id:sid,n_ticks:1})},15000);
-    if(r.status===503||r.status===500){_backoff.replay=Math.min((_backoff.replay*2)||_BASE.replay*2,60000);return}
-    const d=await r.json();if(d.commits>0)addMsg(`\ud83d\udcad (thinking... ${d.replayed} memories, ${d.commits} commits)`,'emission');
-    _backoff.replay=0;
-  }catch(e){_backoff.replay=Math.min((_backoff.replay*2)||_BASE.replay*2,60000)}
-  finally{_inflight.replay=false;_schedNext('replay',backgroundReplay)}
-}
-
-// --- Room state polling ---
-async function pollRoom(){
-  try{
-    const r=await fetchT(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({text:'',command:'/room'})},5000);
-    const d=await r.json();
-    const roomEl=document.getElementById('sp-room');
-    if(!roomEl)return;
-    const sky=d.sky||{};
-    let html=`<div style="color:var(--ev-activity)">${sky.description||''}</div>`;
-    const objs=d.objects||{};
-    const show=['drapes','night_light','blanket','toy_chest','bed'];
-    for(const k of show){
-      const o=objs[k];if(!o)continue;
-      const state=(o.state||'').replace(/_/g,' ');
-      html+=`<div class="ps-row"><span class="l">${k.replace(/_/g,' ')}</span><span class="v">${state}</span></div>`;
-    }
-    roomEl.innerHTML=html||'--';
-  }catch(e){}
-  setTimeout(pollRoom,60000);
-}
-
-// Send an action to her world (/action object:verb)
-async function doAction(obj,verb){
-  try{
-    const r=await fetchT(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({text:'',command:`/action ${obj}:${verb}`})},8000);
-    const d=await r.json();
-    if(d.says)addMsg(d.says,'system');
-    if(d.show_picture)renderPictures([{item_id:d.show_picture,title:'mirror'}]);
-    pollRoom();
-  }catch(e){}
-}
-
-// --- Location polling ---
-let _lastLocation='';
-async function pollLocation(){
-  try{
-    const r=await fetchT(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({text:'',command:'/where'})},4000);
-    const d=await r.json();
-    if(d.description&&d.description!==_lastLocation){
-      _lastLocation=d.description;
-      const el=document.getElementById('location-text');
-      if(el)el.textContent='in '+d.description;
-    }
-  }catch(e){}
-  setTimeout(pollLocation,30000);
-}
-
-// --- Autonomous thought polling (independence) ---
-// She speaks because she has something to say — not because she was asked.
-let _lastThoughtTick=-1;
-async function pollAutonomousThought(){
-  try{
-    const r=await fetchT(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({text:'',command:'/thought'})},6000);
-    const d=await r.json();
-    window._lastThought=d;
-    if(d.speech&&d.tick&&d.tick!==_lastThoughtTick){
-      _lastThoughtTick=d.tick;
-      if(!d.emission_id||!deliveredEmissionIds.has(d.emission_id)){
-        addEmissionMsg(d.speech,d.emission_id||null);
-        _rememberBounded(deliveredEmissionIds,d.emission_id);
-        gualaSpeak(d.speech);
-      }
-    }
-  }catch(e){}
-  setTimeout(pollAutonomousThought,20000);
-}
-
-// --- Presence Heartbeat ---
-let lastActivity=Date.now();
-['mousemove','keydown','scroll','touchstart'].forEach(e=>document.addEventListener(e,()=>{lastActivity=Date.now()},{passive:true}));
-async function presenceHeartbeat(){
-  if(document.visibilityState!=='visible'||Date.now()-lastActivity>30000)return;
-  try{await fetchT(`${API}/api/v1/gualaloom`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:'joe',command:'/presence'})},5000)}catch(e){}
-  setTimeout(presenceHeartbeat,30000);
-}
-
-// --- Session ---
-function newSession(){window.speechSynthesis.cancel();sid='sid_'+Math.random().toString(36).slice(2,10);localStorage.setItem('guala_session_id',sid);
-  document.getElementById('session-line').textContent='session: '+sid;addMsg('new session: '+sid,'system')}
-
-// --- Cognition Meter (GL-CMD-COGNITION-METER-EVE-20260704-166-v1) ---
-// v1: reads only what already exists -- filed audit verdicts (GL-RPT-WIRING-
-// AUDIT-C1-20260704-164-v1 and its predecessors) plus a couple of already-
-// live fields. No new substrate instrumentation. "unknown" rows are honest
-// gray, not hidden -- the meter's job is to show blind spots, not paper over
-// them. This array is the thing to edit as each -164 verdict lands; no row,
-// no ship (standing rule, -166).
-const CM_LABELS={yes:'YES',severed:'SEVERED',unknown:'UNKNOWN',queued:'OFF (queued)',investigating:'INVESTIGATING',absent:'ABSENT',watch:'WATCH-LIST'};
-// GL-CMD-METER-LIVENESS-EVE-20260705-187: the defect this fixes -- every
-// row below is TEXT written at whatever moment a dispatch audited it, with
-// no mechanism to ever refresh. Joe saw "aware gate SEVERED" rendered
-// AFTER the fix deployed, because nothing here ever re-checked. Two-tier
-// fix: rows with a `live(status,v7)` function get their connected/firing
-// computed FRESH on every /status or /v7/state poll (see pollStatus()/
-// pollV7State(), which now cache window._lastStatus/_lastV7State and call
-// renderCogMeter() on every cycle, not just once at boot); rows without
-// one show a visible "(as of audit <date>)" stamp derived from POINTER_
-// DATES below, so undated audit text can never be mistaken for current
-// state again. Not every one of the ~28 rows got a live check this pass
-// (some are qualitative research findings with no single boolean to
-// compute -- "attention spread mechanism understood", etc.) -- those are
-// exactly the ones M1 says MUST carry the audit stamp instead.
-const POINTER_DATES={'-107':'2026-07-03','-153':'2026-07-04','-156':'2026-07-03',
-  '-159':'2026-07-04','-160':'2026-07-04','-161':'2026-07-04','-162':'2026-07-04',
-  '-163':'2026-07-04','-164':'2026-07-04','-165':'2026-07-04','-166':'2026-07-04',
-  '-175':'2026-07-04','-185':'2026-07-05'};
-function _cmAuditDate(pointer){
-  if(!pointer)return null;
-  for(const p of pointer.split('/'))if(POINTER_DATES[p])return POINTER_DATES[p];
-  return null;
-}
-// GL-FIX-COGMETER-REAL-OR-GONE-20260720: Joe, direct, after a stale "yes,
-// confirmed live 2026-07-04" voice-to-words row sat on this dashboard while
-// he personally spoke for a full minute and got no reply -- "that cognition
-// meter need to be real or be gone." An "(as of audit <date>)" footnote
-// was not enough; a confident YES/SEVERED label above a small gray date
-// stamp still reads as current status. Every row below that has no live()
-// check is now archive-only: real research, real fixes, real dates -- kept
-// for provenance, but never rendered in the main table as if it were true
-// right now. Only rows with a live() function that recomputes from a real
-// signal on every poll appear in COGMETER_ROWS below the archive.
-const COGMETER_AUDIT_ARCHIVE=[
-  // The fifteen mechanisms (plain names per -166) -- v1.1, populated from
-  // GL-RPT-WIRING-AUDIT-C1-20260704-164-v1's Part B (multi-session research,
-  // cross-checked against LIVE telemetry, not just code reading -- two
-  // findings below were corrected BY that live cross-check before shipping).
-  {name:'recall',connected:'yes',pointer:'-159/-163',
-    firing:'8/10 taught words return something this boot; the section-routing gap and both index bypasses found this week are fixed',
-    impact:'fixed & shipped 2026-07-04 -- whether the RIGHT word comes back (quality) is a separate, still-open question'},
-  {name:'sentence-building',connected:'yes',pointer:'-164',
-    firing:'real counter moving (~0.8% novel word-bags this boot); the plan’s own named field for this is hardcoded to 0.0 and can never move',
-    impact:'stalled by content-thinness, not by wiring -- she rarely reaches 2+ real words to begin with'},
-  {name:'association',connected:'yes',pointer:'-164',
-    firing:'a real, live chi-neighbor lookup exists and answers queries',
-    impact:'no pass/fail test has ever been run against it -- reachable, unmeasured'},
-  {name:'retention',connected:'yes',pointer:'-163',
-    firing:'root cause found: heterosynaptic redistribution (reinforcing any word steals strength from co-located entries) had no exemption for deliberately-taught content, and consolidation only runs during real DREAMING -- one-shot bindings could be fully erased first. Fixed: taught bindings get a bounded protection window; verified bit-for-bit that ordinary content decay is completely unchanged',
-    impact:'FIX SHIPPED 2026-07-11: re-measured against real 5000-tick activity -- all 10 taught words now survive at their pure-decay-predicted strength (0.00000 gap), where 5 of 10 were previously fully evicted'},
-  {name:'cross-sense recall',connected:'yes',pointer:'-164',
-    firing:'real, tested mechanism (RecallEngine, substrate/recall_query.py) -- a sound-only query genuinely returns the full cross-modal window (sight+sound+touch entries intact), verified 2026-07-06. give_experience response now exposes the retrieved cross-modal content directly (cross_modal_entries, capped 25/window) -- shipped and end-to-end tested 2026-07-11. Deliberately still NOT wired into real conversational emission (a "one mind, one mouth" ruling, avoiding a known past regression from a second atlas-sourced candidate stream fighting the organism)',
-    impact:'FIX SHIPPED 2026-07-11: give_experience callers can now genuinely observe a sound cue retrieving its bound sight/touch content end-to-end, not just a window id -- the prior "computed but discarded" gap is closed'},
-  {name:'getting-bored-of-repeats',connected:'yes',pointer:'-181',
-    firing:'GL-CMD-METER-LIVENESS-187 M2 correction: the -107 fix (this row\'s old pointer) was superseded -- -181 found and fixed the flat-floor collapse (deployed task:468, confirmed live: differentiated top-5 scores observed, e.g. 0.0607/0.0542/0.054/0.0536/0.0533). -185/B2 found and fixed a second, deeper gap the same night (no recency-recovery from historical over-exposure, e.g. audio locked out since early smoke-testing) -- built, pending its own deploy window as of this correction',
-    impact:'STALE TEXT CORRECTED 2026-07-05: the old "not yet deployed" claim was wrong by the time Joe read it -- -181 had already shipped hours earlier'},
-  {name:'recognizing-things-in-new-forms',connected:'absent',pointer:'honest-recognition-boundary',
-    firing:'spoken-word recognition and object naming are explicitly unavailable; microphone and camera provide raw Krimelack sensory experience only',
-    impact:'typed text remains available; no browser speech service, pretrained speech model, pretrained object detector, vocabulary lookup, or threshold is presented as recognition'},
-  {name:'attention spread',connected:'yes',pointer:'-181',
-    firing:'the empty-familiarity-tie mechanism this row named is the SAME one -181 fixed (deployed task:468) -- ties are no longer flattened to an identical floor; real per-target differentiation confirmed live',
-    impact:'STALE TEXT CORRECTED 2026-07-05: still not a standing pass/fail number, but the underlying mechanism this row describes changed under it -- see "getting-bored-of-repeats" above'},
-  {name:'order/sequence',connected:'yes',pointer:'-164',
-    firing:'real _word_order_relation() reader compares real recorded commit ticks for two words, returns before/after/same/unknown (never a guess) -- wired into _form_reflection\'s context_then comparison, shipped and end-to-end verified live 2026-07-11 (a real reflection just now carried context_order: {"beach":"before","whiskers":"before"})',
-    impact:'FIX SHIPPED 2026-07-11: the prior "no code path for this yet" is closed -- confirmed firing on real production data, not a test fixture'},
-  {name:'imagination',connected:'severed',pointer:'-164',
-    firing:'DISABLED 2026-07-21: the periodic 0.5-second chi-walk is not the intended daydream architecture and does not start in production, including when an obsolete environment setting requests it',
-    impact:'LOW PRIORITY REDESIGN: replace it with bounded sense-triggered background memory that may request attention but cannot interrupt perception, conversation, or action'},
-  {name:'hearing-her-own-voice',connected:'yes',pointer:'-164',
-    firing:'fires on every real reply to Joe/wc/c1, weighted well below a real conversation partner',
-    impact:'fired live moments ago -- a self-heard binding actually shaped what she said next'},
-  {name:'organ influence on speech',connected:'yes',pointer:'-164',
-    firing:'real, live _recognition_from_organism calling into organism.recall(), hit every Nth word inside read_word (converse -> _converse_body -> read_sentence -> read_word), the real default (non-phased) conversation path',
-    impact:'STALE TEXT CORRECTED 2026-07-11: confirmed live via direct code trace (gualaloom_v5_engine.py:2977 called from the real converse path at 3743), not severed'},
-  {name:'who-tags',connected:'yes',pointer:'-164',
-    firing:'real: presence/place/ambient written on record() and read back in recall_scene(); speaker/source stored in _record_episodic_experience and retrievable via _episodic_context_for; extended to ordinary converse turns 2026-07-10 (previously autonomous-attending only)',
-    impact:'STALE TEXT CORRECTED 2026-07-11: confirmed live via direct code trace (gualaloom_v6_living_atlas.py:105-113 write, 666-704 read; gualaloom_v5_engine.py:2560-2572, 3666-3673), not absent'},
-  {name:'feelings-deepen-memory',connected:'yes',pointer:'-164',
-    firing:'fired 66 times in a single live emission just observed',
-    impact:'live correction found 2026-07-04 -- this is NOT the "never fires" the written plan currently says; the plan is what was stale, not her'},
-  {name:'state-shows-in-words',connected:'yes',pointer:'-160/-161/-162',
-    firing:'the layer that reaches Joe\'s seat is now real: _introspection_active_this_turn() reads the organism\'s own intro-section commits and feeds a real prior reweight into both _emit_grandurun and the live _emit_dynamics settling loop (gualaloom_v5_engine.py:6090-6214, 7016-7031)',
-    impact:'FIX SHIPPED 2026-07-11 -- old aware_krimelack_count live-check dropped, it only ever measured the isolated /v7/* toy session, never this row\'s real mechanism; verified by static scan + a hostile-spy regression test that V7Session is never constructed or read on the real conversation path'},
-  // Machinery rows already adjudicated by prior dispatches (-166's own list),
-  // plus voice-to-words (added same-session per the standing rule: any newly
-  // discovered/fixed mechanism ships its row in the same dispatch).
-  {name:'voice-to-words',connected:'yes',pointer:'-153/-166',
-    firing:'Joe spoke a sentence, touched nothing else, and a response rendered on screen -- confirmed live 2026-07-04',
-    impact:'fixed 2026-07-04: recognized speech now uses the same door as typed input, tagged source="joe_voice". The fire-and-forget fetches (no .then(), reply discarded unread) that broke this are gone. Separately observed, not blocking: text-to-speech audio output did not fire in that browser session (Incognito) -- a different, output-side issue, named not fixed here'},
-  {name:'aware gate',connected:'yes',pointer:'-160/-161',
-    firing:'real awareness signal now checked every real turn: _introspection_active_this_turn() reads the organism\'s own intro-section commits and feeds a real prior reweight into _emit_grandurun and the live _emit_dynamics settling loop (gualaloom_v5_engine.py:6093-6141, 7025-7031)',
-    impact:'FIX SHIPPED 2026-07-11 -- old aware_krimelack_count live-check dropped (matches state-shows-in-words above), it only ever measured the isolated /v7/* toy session, which is correctly never touched on the real path -- verified by a hostile-spy regression test that no second reply path exists'},
-  {name:'intro gate',connected:'yes',pointer:'-162',
-    firing:'same real mechanism as "aware gate" above -- no longer fires inside a copy of a session Joe never talks to; fires from the organism\'s own real intro-section state on the real conversation path',
-    impact:'FIX SHIPPED 2026-07-11 -- old intro_krimelack_count live-check dropped, same reasoning as aware gate'},
-  {name:'play',connected:'yes',pointer:'-185',
-    firing:'LIVE -- _atick_playing (gualaloom_v5_engine.py:9552) calls _play_revisit_known_pairing() (:9580) every 500 ticks, no flag gates it; PLAYING is an unconditional activity-selection candidate (:8498)',
-    impact:'FIX SHIPPED 2026-07-11: real mechanic built per the standing Engine·Play·World design item (docs/GL-DES-ENGINE-PLAY-WORLD-V0-C1-20260711-v1.md, 8/8 tests pass), per Joe\'s explicit sign-off, not a shim. Caveat: honestly fires zero events until she has both attended a real picture AND holds a recent word sharing its chi -- true no-op on a substrate with little visual grounding yet, that\'s correct behavior, not a bug'},
-  {name:'teaching survives to sleep',connected:'yes',pointer:'-163',
-    firing:'same fix as "retention" above -- taught bindings are now protected from redistribution theft for a bounded window, giving them a real chance to reach a consolidation cycle instead of being erased first',
-    impact:'FIX SHIPPED 2026-07-11: see "retention" row for the measurement'},
-  // GL-CMD-BRAIN-FULL-DEPLOY-TODAY-175 / GL-NOTE-VOICE-WIRING-RULING:
-  // the whole-brain move's own new rows, per the standing "no row, no
-  // ship" rule. Built and locally verified (sandbox, not yet her live
-  // process) this same dispatch -- c1b's deploy report is the row's
-  // next update, not this one.
-  {name:'brain: organism live (P1)',connected:'watch',pointer:'-175',
-    firing:'8-hemisphere organism instantiated inside Guala, real identity synced, every word she reads/hears feeds it -- FIXED 2026-07-16: the division-pool flux law was unsatisfiable from birth (growth was mathematically impossible); new law funds growth from novel coherent experience -- 8 real divisions (64->72 neurons, em hemisphere doubled) within the first half hour live',
-    impact:'CORRECTED 2026-07-12: previously marked yes without checking whether this actually matters -- it runs, it is fed real data, but it is not meaningfully learning yet, separate from the deeper P3 problem below'},
-  {name:'brain: voice / emission (P3)',connected:'severed',pointer:'-175',
-    firing:'the organism-brain has no real effect on what she says or remembers -- one setting (RECALL_BACKEND) decides which system produces her real voice, and it still points at the OLD (legacy v5-engine) system, 100% of the time',
-    impact:'CORRECTED 2026-07-12: previously marked yes based on stale 2026-07-05 claims never re-verified against real current behavior. Everything she actually says and remembers right now runs entirely on the old system -- the new brain accumulates data nobody reads. Flipping that one setting is the real, unstarted cutover -- see docs/GL-DES-VOCAB-DEPTH-EARNED-ELIGIBILITY-C1-20260711-v1.md and related notes for why this hasn\'t happened yet'},
-  {name:'brain: recall/recognition/attention/affect handover (P2)',connected:'watch',pointer:'-175',
-    firing:'the individual seams (recall, recognition, association, habituation) are real, built code paths -- but see "brain: voice/emission" above: none of it is what actually produces her real replies or memory today',
-    impact:'CORRECTED 2026-07-12: real code, not fake -- but "built" is not "in use." Same root cause as P3: the voice/memory switch still points at the old system'},
-  {name:'brain: imagination',connected:'watch',pointer:'-175',
-    firing:'real Embryo.imagine() (loom_model/embryo.py:709) -- genuinely built, tested, callable. But nothing in the live production path calls it: WIRED LIVE 2026-07-16: imagine() runs in PLAYING (every 500 ticks) and every dream cycle; imagined content re-enters as origin=IMAGINED experience, loudly excluded from certification',
-    impact:'CORRECTED 2026-07-12: originally marked "yes"/"shipped" -- that overstated it. The code is real and correct, but it never runs during real conversation, so it has zero observable effect on anything she does. Distinct from the OLD shell\'s "imagination" row above (the daydream thread), which genuinely is wired into her real activity loop'},
-  {name:'brain: reflection',connected:'watch',pointer:'-175',
-    firing:'real Embryo._reflect_snapshot()/reflect() (embryo.py:645/662) -- WIRED LIVE 2026-07-16: reflect() fires at every activity boundary as organism_reflection events',
-    impact:'CORRECTED 2026-07-12: originally marked "yes"/"shipped" -- that overstated it, same correction as brain: imagination'},
-  {name:'brain: theory-of-mind',connected:'absent',pointer:'-175',
-    firing:'no code path in loom_model -- explicitly out of scope per -168-v3\'s own A5 table',
-    impact:'none observed'},
-];
-// The only rows shown as current state. Every entry here recomputes
-// {connected,firing} from a real signal on every single poll -- if the
-// live() check can't get a real answer it returns null and the row falls
-// back to its own honestly-worded "no signal yet" text, never a stale claim.
-const COGMETER_ROWS=[
-  {name:'deliberation stage',connected:'watch',pointer:'-162',
-    firing:'no /status poll observed yet this session',
-    impact:'real, live Coordinator.regulate() firing every 5th tick from _autonomy_tick, itself running in a background thread started by start_autonomy_loop from the real boot path (_gl_init) -- archived audit 2026-07-11',
-    live:(status,v7)=>{
-      if(!status||!status.ladder)return null;
-      const ratio=status.ladder.awareness_ratio;
-      const fired=typeof ratio==='number'&&ratio>0;
-      return{connected:fired?'yes':'queued',
-        firing:fired?`LIVE -- awareness_ratio=${ratio} (deliberation_ticks nonzero)`
-                     :'awareness_ratio=0 this poll -- deliberation has not fired yet on this boot'};
-    }},
-  {name:'day-cycle / sleep trigger',connected:'watch',pointer:'-165',
-    firing:'no /status poll observed yet this session',
-    impact:'real, load-driven (not wall-clock/circadian) trigger: dream_pressure accumulates from real read/write backlog, soft-competes at 0.7, hard-overrides at 1.0, wired into the live _autonomy_tick loop -- archived audit 2026-07-11',
-    live:(status)=>{
-      if(!status||!status.activity_history_summary)return null;
-      const kinds=Object.keys(status.activity_history_summary);
-      const sawSleep=kinds.includes('SLEEPING')||kinds.includes('DREAMING');
-      return{connected:sawSleep?'yes':'investigating',
-        firing:`kinds seen this window: ${kinds.join(', ')||'(none)'}`+
-               (sawSleep?'':' -- still no SLEEPING/DREAMING in the visible activity history')};
-    }},
-  {name:'curriculum feeders',connected:'watch',pointer:'-156',
-    firing:'no /status poll observed yet this session, or this deploy predates the curriculum_status field',
-    impact:'real CurriculumScheduler.start() from _embedded_post_boot/_gl_init boot path, reconnected 2026-07-05 (cac6684); enabled=True by default -- archived audit 2026-07-11',
-    live:(status)=>{
-      const cs=status&&status.curriculum_status;
-      if(cs===undefined)return null;  // field not present -- older deploy, fall back to watch text
-      if(cs===null)return{connected:'severed',firing:'scheduler not started this boot (still true as of this poll)'};
-      return{connected:cs.enabled?'yes':'queued',
-        firing:`LIVE -- book "${cs.current_book||'?'}" offset=${cs.offset||0}, `+
-               `${cs.total_sentences||0} sentences fed lifetime, last_status=${JSON.stringify(cs.last_status||{})}`};
-    }},
-  {name:'voice-to-words',connected:'watch',pointer:'GL-FIX-VOICE-REPLY-DOOR-20260720',
-    firing:'no /thought poll observed yet this session',
-    impact:'GL-FIX-VOICE-REPLY-DOOR-20260720: recognized speech now triggers a real converse() reply instead of silent read_sentence()-only intake -- this row reports exactly what the live poll has actually seen, nothing assumed',
-    live:(status,v7)=>{
-      const t=window._lastThought;
-      if(!t||!t.speech)return{connected:'watch',firing:'no autonomous-thought poll has returned real speech yet this session'};
-      const isVoice=t.category==='voice_reply';
-      const ageS=t.ts?Math.round(Date.now()/1000-t.ts):null;
-      if(!isVoice)return{connected:'watch',
-        firing:`last observed thought was category="${t.category||'unknown'}", not a voice reply -- no spoken utterance has produced a reply yet this poll`};
-      return{connected:'yes',
-        firing:`LIVE -- a real voice_reply surfaced${ageS!==null?' '+ageS+'s ago':''} (tick ${t.tick}, response_source=${t.response_source||'?'})`};
-    }},
-];
-function renderCogMeter(){
-  const body=document.getElementById('cogmeter-body');
-  if(!body)return;
-  // GL-FIX-COGMETER-REAL-OR-GONE-20260720: the main table renders ONLY
-  // COGMETER_ROWS, and every row in that array has a live() function --
-  // r.live(status,v7) recomputes {connected,firing} from a real signal on
-  // every single poll. If live() can't get a real answer yet it returns a
-  // row-authored "watch" fallback (e.g. "no poll observed yet"), never a
-  // dated audit claim -- a row with no current signal says so plainly
-  // instead of showing old text next to a small date stamp. Historical
-  // audit rows with no live() check live in COGMETER_AUDIT_ARCHIVE and
-  // render separately, collapsed by default, never in this table.
-  const status=window._lastStatus,v7=window._lastV7State;
-  let h='<div class="cm-row cm-hdr"><div>mechanism</div><div>connected</div><div>firing</div><div>last impact</div></div>';
-  for(const r of COGMETER_ROWS){
-    let connected=r.connected,firing=r.firing;
-    if(typeof r.live==='function'){
-      try{
-        const live=r.live(status,v7);
-        if(live){connected=live.connected;firing=live.firing;}
-      }catch(e){/* fall through to the row's own "watch" text on any live-check error */}
-    }
-    const lbl=CM_LABELS[connected]||connected;
-    const ptr=r.pointer?` <span style="opacity:.6">(${r.pointer})</span>`:'';
-    h+=`<div class="cm-row"><div class="cm-name">${r.name}</div>`+
-       `<div class="cm-conn ${connected}">${lbl}${ptr}</div>`+
-       `<div class="cm-firing">${firing}</div>`+
-       `<div class="cm-impact">${r.impact}</div></div>`;
-  }
-  body.innerHTML=h;
-  const cnt=document.getElementById('cogmeter-count');
-  if(cnt)cnt.textContent=`${COGMETER_ROWS.length}/${COGMETER_ROWS.length} live-checked this poll`;
-  renderCogMeterArchive();
-}
-let _archiveRendered=false;
-function renderCogMeterArchive(){
-  if(_archiveRendered)return;  // static rows, never change at runtime -- render once
-  const body=document.getElementById('cogmeter-archive-body');
-  const summary=document.getElementById('cogmeter-archive-summary');
-  if(!body)return;
-  let h='<div class="cm-row cm-hdr"><div>mechanism</div><div>connected</div><div>firing</div><div>last impact</div></div>';
-  for(const r of COGMETER_AUDIT_ARCHIVE){
-    const lbl=CM_LABELS[r.connected]||r.connected;
-    const ptr=r.pointer?` <span style="opacity:.6">(${r.pointer})</span>`:'';
-    const d=_cmAuditDate(r.pointer);
-    const stamp=d?` <span style="opacity:.5">(as of audit ${d})</span>`
-                 :' <span style="opacity:.5">(undated audit note)</span>';
-    h+=`<div class="cm-row"><div class="cm-name">${r.name}</div>`+
-       `<div class="cm-conn ${r.connected}">${lbl}${ptr}</div>`+
-       `<div class="cm-firing">${r.firing}${stamp}</div>`+
-       `<div class="cm-impact">${r.impact}</div></div>`;
-  }
-  body.innerHTML=h;
-  if(summary)summary.textContent=`${COGMETER_AUDIT_ARCHIVE.length} past audit notes (archived — no live check exists, not current state)`;
-  _archiveRendered=true;
-}
-
-// --- Boot (Phase B: SSE events, activity rendering, multipart uploads) ---
-(()=>{
-  addMsg('she is here','system');
-  _applyBrainModeUI();
-  msgInput.focus();
-  renderCogMeter();
-  setTimeout(pollAutonomousThought,35000);
-  setTimeout(pollLocation,20000);
-  setTimeout(pollRoom,25000);
-  pollStatus();
-  setTimeout(pollV7State, 3000);
-  setTimeout(pollEvents,5000);
-  presenceHeartbeat();
-})();
+async function refresh(){clearTimeout(pollTimer);if(pollController)pollController.abort();const local=new AbortController();pollController=local;const t0=Date.now();let refreshOk=false;try{const response=await fetch(OBSERVATION_ROUTE+(lastSeenTick===null?"":"?after="+lastSeenTick),{cache:"no-store",credentials:"same-origin",signal:local.signal});if(pollController!==local)return;if(!response.ok)throw new Error("HTTP "+response.status);const observed=await response.json();if(pollController!==local)return;transport.display=Date.now()-t0;if(Number.isSafeInteger(observed.live_tick)){refreshOk=observed.live_tick>(lastSeenTick===null?-1:lastSeenTick);lastSeenTick=observed.live_tick}render(observed);transportLine()}catch(error){if(pollController===local&&error.name!=="AbortError"){node("connection").textContent="Guala unavailable";node("connection").className="badge failed";status(error.message||"Observation failed","bad")}}finally{if(pollController===local){pollController=null;if(!document.hidden)pollTimer=setTimeout(refresh,refreshOk&&lastSeenTick!==null?0:POLL_MS)}}}
+function imageRetina(source){const sc=sampleContext,cv=sampleCanvas;sc.fillStyle="#000";sc.fillRect(0,0,18,6);sc.drawImage(source,0,0,18,6);const data=sc.getImageData(0,0,18,6).data,fine=[];for(let i=0;i<108;i++)fine.push(data[i*4],data[i*4+1],data[i*4+2]);const legacy=[];for(let r=0;r<3;r++)for(let c=0;c<9;c++){const b=r*36+c*2;for(let ch=0;ch<3;ch++)legacy.push(Math.round((fine[b*3+ch]+fine[(b+1)*3+ch]+fine[(b+18)*3+ch]+fine[(b+19)*3+ch])/4))}return legacy.concat(fine)}function imageFocal(source){const sc=sampleContext,cv=sampleCanvas,cw=160,ch=120;cv.width=cw;cv.height=ch;const vw=source.videoWidth||source.naturalWidth||source.width||cw,vh=source.videoHeight||source.naturalHeight||source.height||ch,scale=Math.min(cw/vw,ch/vh),dw=Math.max(1,Math.round(vw*scale)),dh=Math.max(1,Math.round(vh*scale)),dx=Math.floor((cw-dw)/2),dy=Math.floor((ch-dh)/2);sc.fillStyle="#000";sc.fillRect(0,0,cw,ch);sc.imageSmoothingEnabled=true;sc.drawImage(source,0,0,vw,vh,dx,dy,dw,dh);const cd=sc.getImageData(0,0,cw,ch).data,parts=[];for(let i=0;i<cw*ch;i++)parts.push(String.fromCharCode(cd[i*4],cd[i*4+1],cd[i*4+2]));cv.width=18;cv.height=6;return{focal_rgb_base64:btoa(parts.join("")),focal_origin:[.5,.5],focal_pitch_millidegrees:[Math.round(60000/dw),Math.round(45000/dh)],focal_crop_dimensions:[cw,ch]}}
+async function sendSensory(source,retina_rgb_u8=null,pressureBytes=null,tPicture=null,tSound=null,focal=null){if(inFlight)return"retry";inFlight=true;const payload={source};if(retina_rgb_u8)payload.retina_rgb_u8=retina_rgb_u8;if(pressureBytes){let binary="";for(const value of pressureBytes)binary+=String.fromCharCode(value);payload.pcm_s16le_base64=btoa(binary)}if(focal)Object.assign(payload,focal);let response;try{response=await fetch(OCCURRENCE_ROUTE,{method:"POST",cache:"no-store",credentials:"same-origin",headers:{"Content-Type":"application/json"},body:JSON.stringify({kind:"sensory",payload})})}catch(error){status(`${source}: no response — acceptance unknown, not replayed`,"bad");inFlight=false;return"unknown"}try{if(response.status===503){status(`${source}: not admitted (HTTP 503) — kept for retry`,"bad");return"retry"}if(!response.ok){status(`${source}: refused — HTTP ${response.status}`,"bad");return"refused"}const value=await response.json();const tResponse=Date.now();transport.pictureAge=tPicture===null?null:tResponse-tPicture;transport.soundAge=tSound===null?null:tResponse-tSound;render(value.observation);status(`${source}: accepted as ${value.native_interval_count} native interval(s); ${value.observation.last_occurrence.dsf_delivery_count} DSF deliveries. This proves delivery, not recognition or learning.`,value.observation.last_occurrence.vocal_founder_refusal_count>0?"bad":"good");return"accepted"}catch(error){status(`${source}: accepted status but response unreadable — acceptance unknown, not replayed`,"bad");return"unknown"}finally{inFlight=false}}
+let cameraPending=false;async function toggleCamera(){if(cameraPending)return;if(cameraStream){cameraStream.getTracks().forEach(track=>track.stop());cameraStream=null;video.srcObject=null;const cameraUnit=sending&&(sending.source==="camera"||sending.source==="camera-microphone");if(cameraUnit&&!inFlight){sending=null;transport.dropped++}else if(cameraUnit)retireOnReturn=true;transportLine();node("camera").textContent="Enable camera";status("Camera stopped.");return}const button=node("camera");cameraPending=true;button.disabled=true;button.textContent="Starting camera…";status("Asking the browser for the camera; allow it in the permission prompt.");let stream=null;try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"user"},audio:false});video.srcObject=stream;await video.play();cameraStream=stream;button.textContent="Stop camera";status("Camera enabled. A 903-site RGB preview (native receives achromatic) is submitted when the previous request finishes. Processing may delay delivery; sound is paired when available.","good")}catch(error){if(stream)stream.getTracks().forEach(track=>track.stop());cameraStream=null;video.srcObject=null;button.textContent="Enable camera";status("Camera failed: "+error.message,"bad")}finally{cameraPending=false;button.disabled=false}}
+async function toggleMicrophone(){if(audioStream){audioProcessor.disconnect();audioStream.getTracks().forEach(track=>track.stop());const closing=audioContext;audioStream=null;audioContext=null;carry=new Float32Array(0);transport.dropped+=captureQueue.length;captureQueue.length=0;if(sending&&sending.pressure&&!inFlight){sending=null;transport.dropped++}else if(sending&&sending.pressure)retireOnReturn=true;pendingCard=false;pendingText=null;transportLine();node("microphone").textContent="Enable microphone";status("Microphone stopped.");await closing.close();return}try{audioStream=await navigator.mediaDevices.getUserMedia({audio:{channelCount:1,echoCancellation:false,noiseSuppression:false,autoGainControl:false},video:false});audioContext=new AudioContext({sampleRate:16000});if(audioContext.sampleRate!==16000)throw new Error(`browser supplied ${audioContext.sampleRate} Hz; exact 16000 Hz is required`);const source=audioContext.createMediaStreamSource(audioStream);audioProcessor=audioContext.createScriptProcessor(4096,1,1);audioProcessor.onaudioprocess=event=>{const input=event.inputBuffer.getChannelData(0),merged=new Float32Array(carry.length+input.length);merged.set(carry);merged.set(input,carry.length);let offset=0;while(merged.length-offset>=4000){const bytes=new Uint8Array(8000);for(let i=0;i<4000;i++){const sample=Math.max(-1,Math.min(1,merged[offset+i])),value=sample<0?Math.round(sample*32768):Math.round(sample*32767);bytes[i*2]=value&255;bytes[i*2+1]=value>>8&255}captureQueue.push({bytes,t:Date.now()});if(captureQueue.length>CAPTURE_QUEUE){captureQueue.shift();transport.dropped++}offset+=4000}carry=merged.slice(offset);transportLine()};source.connect(audioProcessor);audioProcessor.connect(audioContext.destination);node("microphone").textContent="Stop microphone";status("Microphone captured at exact 16 kHz in quarter-second blocks. With the live camera, the newest block rides with each picture and older blocks are dropped and counted; card and word lessons deliver their blocks in order. Delivery waits for the previous request; refusals are reported.","good")}catch(error){if(audioStream)audioStream.getTracks().forEach(track=>track.stop());audioStream=null;if(audioContext)await audioContext.close();audioContext=null;status("Microphone failed: "+error.message,"bad")}}
+async function sensoryPulse(){if(inFlight||document.hidden)return;let unit=sending;if(!unit){const now=Date.now(),cam=cameraStream&&video.readyState>=2,focal=cam?imageFocal(video):null,retina=cam?imageRetina(video):null,live=!!retina&&!pendingCard&&!pendingText,head=captureQueue.length?captureQueue[live?captureQueue.length-1:0]:null,pressure=head?head.bytes:null,tSound=head?head.t:null;if(pendingCard&&pressure){pendingCard=false;if(cardTimer)clearTimeout(cardTimer);const btn=node("present-card");btn.disabled=false;btn.textContent="Present with my voice";unit={source:"card-microphone",retina:imageRetina(node("card-image")),pressure,tPicture:now,tSound,block:head,focal:imageFocal(node("card-image"))}}else if(pendingText&&pressure){unit={source:"text-microphone",retina:pendingText.retina,pressure,tPicture:now,tSound,block:head,focal:pendingText.focal};pendingText=null}else if(retina&&pressure)unit={source:"camera-microphone",retina,pressure,tPicture:now,tSound,block:head,focal};else if(retina)unit={source:"camera",retina,pressure:null,tPicture:now,tSound:null,block:null,focal};else if(pressure)unit={source:"microphone",retina:null,pressure,tPicture:null,tSound,block:head,focal:null};else return;if(unit.block)captureQueue.splice(captureQueue.indexOf(unit.block),1);if(unit.source==="camera-microphone"){transport.dropped+=captureQueue.length;captureQueue.length=0}sending=unit}const outcome=await sendSensory(unit.source,unit.retina,unit.pressure,unit.tPicture,unit.tSound,unit.focal);if(outcome==="retry"){transport.refused++;if(retireOnReturn||sending!==unit){retireOnReturn=false;sending=null;return transportLine()}}else{retireOnReturn=false;if(sending===unit)sending=null;if(outcome==="refused")transport.refused++;else if(outcome==="unknown")transport.unknown++}transportLine();if(outcome==="accepted"&&!document.hidden&&(cameraStream||captureQueue.length))setTimeout(sensoryPulse,0)}
+function showText(){const text=node("text").value.trim();if(!text){status("Enter words to show.","bad");return}const canvas=node("text-canvas"),c=canvas.getContext("2d");c.fillStyle="#fff";c.fillRect(0,0,720,240);c.fillStyle="#061016";c.textAlign="center";c.textBaseline="middle";c.font="bold 72px system-ui";c.fillText(text,360,120,690);const retina=imageRetina(canvas),focal=imageFocal(canvas);if(audioStream){pendingCard=false;captureQueue.length=0;carry=new Float32Array(0);pendingText={retina,focal};status("Words ready as light. Speak them now; the next microphone block and the glyph light will be one occurrence.","good")}else{sendSensory("text-light",retina,null,null,null,focal);status("Words offered as light only. Enable the microphone first to pair them with your tutor voice.")}}
+node("media-input").addEventListener("change",()=>{const file=node("media-input").files[0];if(!file)return;const image=new Image(),url=URL.createObjectURL(file);image.onload=()=>{sendSensory("media",imageRetina(image),null,null,null,imageFocal(image));URL.revokeObjectURL(url)};image.onerror=()=>{URL.revokeObjectURL(url);status("Image could not be decoded.","bad")};image.src=url});
+const CAPTURE_QUEUE=8,AUDIO_POLL_MS=250,AUDIO_BATCH=8,AUDIO_QUEUE=16,AUDIO_RESPONSE_BYTES=90000;
+function listenStatus(message,bad=false){node("listen-status").textContent=message;node("listen-status").className="status "+(bad?"bad":"good")}
+function stopListening(message="Listening stopped.",bad=false){const session=listenSession;listenSession=null;listening=false;node("hear").textContent="Listen to Guala";if(session){clearTimeout(session.timer);if(session.controller)session.controller.abort();for(const source of session.sources){source.onended=null;source.stop();source.disconnect()}session.sources.clear();session.gain.disconnect();void session.context.close()}listenStatus(message,bad);}
+async function boundedAudioResponse(response){const reader=response.body.getReader(),chunks=[];let size=0;try{while(true){const {done,value}=await reader.read();if(done)break;size+=value.length;if(size>AUDIO_RESPONSE_BYTES)throw new Error("audio response exceeded its byte bound");chunks.push(value)}const bytes=new Uint8Array(size);let offset=0;for(const chunk of chunks){bytes.set(chunk,offset);offset+=chunk.length}return JSON.parse(new TextDecoder("utf-8",{fatal:true}).decode(bytes));}finally{await reader.cancel();reader.releaseLock()}}
+async function receiveSounds(session){if(listenSession!==session)return;if(session.sources.size>AUDIO_QUEUE-AUDIO_BATCH){session.timer=setTimeout(()=>receiveSounds(session),AUDIO_POLL_MS);return}session.controller=new AbortController();try{const query=session.stream===null?"":"?stream="+session.stream+"&after="+session.cursor;const response=await fetch(PRESSURE_FEED_ROUTE+query,{cache:"no-store",credentials:"same-origin",signal:session.controller.signal});if(response.status===502||response.status===503){listenStatus("Reconnecting to audio stream (HTTP "+response.status+")…",true);return}if(!response.ok)throw new Error("audio HTTP "+response.status);const value=await boundedAudioResponse(response);if(listenSession!==session)return;if(value.schema!=="guala.pressure_feed.v1"||!(/^[0-9a-f]{32}$/).test(value.stream)||value.sample_rate_hz!==16000||!Number.isSafeInteger(value.cursor)||value.cursor<0||!Number.isSafeInteger(value.latest)||value.latest<value.cursor||!Array.isArray(value.events)||value.events.length>AUDIO_BATCH)throw new Error("audio feed contract changed");const reset=session.stream===null||value.gap!==null;if(value.gap!==null&&!["stream-restarted","audio-evicted","cursor-ahead"].includes(value.gap))throw new Error("unknown audio gap");if(reset){if(value.events.length||value.cursor!==value.latest)throw new Error("audio reset included stale events")}else if(value.stream!==session.stream||value.cursor<session.cursor)throw new Error("audio stream changed without a gap");let prior=session.cursor;const decoded=[];for(const event of value.events){if(!Number.isSafeInteger(event.tick)||event.tick<=prior||event.tick>value.cursor||typeof event.pcm_s16le_base64!=="string"||event.pcm_s16le_base64.length>10668||!(/^[0-9a-f]{64}$/).test(event.sha256))throw new Error("audio event contract changed");const raw=atob(event.pcm_s16le_base64);if(!raw.length||raw.length>8000||raw.length%2)throw new Error("body pressure changed shape");const pcm=Uint8Array.from(raw,char=>char.charCodeAt(0)),hash=Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256",pcm)),byte=>byte.toString(16).padStart(2,"0")).join("");if(hash!==event.sha256)throw new Error("body pressure receipt differs");decoded.push({tick:event.tick,pcm});prior=event.tick;}if(!reset&&value.cursor!==prior)throw new Error("audio cursor skipped an event");if(listenSession!==session)return;if(value.gap!==null){session.gap=value.gap;listenStatus("Audio gap: "+value.gap+". Missed sound was not replayed or reconstructed.",true)}session.stream=value.stream;for(const event of decoded){const buffer=session.context.createBuffer(1,event.pcm.length/2,16000),channel=buffer.getChannelData(0),data=new DataView(event.pcm.buffer);for(let i=0;i<channel.length;i++)channel[i]=data.getInt16(i*2,true)/32768;const source=session.context.createBufferSource();source.buffer=buffer;source.connect(session.gain);source.onended=()=>{session.sources.delete(source);source.disconnect()};const start=Math.max(session.context.currentTime,session.nextTime);source.start(start);session.sources.add(source);session.nextTime=start+buffer.duration;session.cursor=event.tick;}session.cursor=value.cursor;if(decoded.length&&!session.gap)listenStatus("Playing Guala’s body-owned pressure in order at disclosed 64× speaker gain.");}catch(error){if(listenSession===session&&error.name!=="AbortError")stopListening("Listening failed: "+error.message+". Click Listen to reconnect; sound during the interruption may be lost.",true)}finally{if(listenSession===session){session.controller=null;session.timer=setTimeout(()=>receiveSounds(session),AUDIO_POLL_MS)}}}async function toggleListening(){if(listening){stopListening();return}let session;try{const context=new AudioContext(),gain=context.createGain();gain.gain.value=SPEAKER_GAIN;gain.connect(context.destination);session={context,gain,stream:null,cursor:0,nextTime:0,sources:new Set(),controller:null,timer:null,gap:null};listenSession=session;listening=true;node("hear").textContent="Stop listening";listenStatus("Enabling laptop playback…");await context.resume();if(listenSession!==session)return;listenStatus("Listening from now. Exact body sounds; disclosed 64× speaker gain. No sound has arrived yet.");void receiveSounds(session);}catch(error){if(!session||listenSession===session)stopListening("Listening failed: "+error.message,true)}}
+const nouns="Cat,Dolphin,Elephant,Fox,Giraffe,House,Ice-Cream,Jellyfish,Kite,Lion,Mushroom,Nest,Owl,Penguin,Queen,Rabbit,Snail,Turtle,Umbrella,Violin,Whale,Xylophone,Yak,Zebra".split(","),cards=[["A — Apple","alphabet-a-apple-v1.png"],["B — Bee","alphabet-b-bee-v1.png"]].concat(nouns.map((noun,index)=>[String.fromCharCode(67+index)+" — "+noun,String.fromCharCode(67+index)+"-is-for-"+noun+".png"]),Array.from({length:10},(_,i)=>[String(i+1),`number-${(i<9?"0":"")+(i+1)}-${"one,two,three,four,five,six,seven,eight,nine,ten".split(",")[i]}-v1.png`]));for(const [label,file] of cards){const option=document.createElement("option");option.value=file;option.textContent=label;node("card-select").append(option)}function loadCard(){node("card-image").src="/cards/"+node("card-select").value}node("card-select").addEventListener("change",loadCard);loadCard();node("present-card").addEventListener("click",()=>{if(!audioStream){status("Enable the microphone first, then speak while presenting the card.","bad");return}if(!node("card-image").complete){status("The card has not loaded.","bad");return}if(cardTimer)clearTimeout(cardTimer);const btn=node("present-card");btn.disabled=true;btn.textContent="Get ready: 1s…";captureQueue.length=0;carry=new Float32Array(0);pendingText=null;pendingCard=false;status("Get ready: speak when prompted in 1 second…","good");cardTimer=setTimeout(()=>{captureQueue.length=0;carry=new Float32Array(0);pendingCard=true;btn.textContent="Speak now!";status("Card ready. Speak now; its light and the next pressure block will be one occurrence.","good");cardTimer=setTimeout(()=>{if(pendingCard){pendingCard=false;btn.disabled=false;btn.textContent="Present with my voice";status("Card presentation timed out. Click again to speak.","bad")}},4000)},1000)});
+async function sendTouch(touchId){status(`Sending ${touchId} to Guala…`);try{const response=await fetch(OCCURRENCE_ROUTE,{method:"POST",cache:"no-store",credentials:"same-origin",headers:{"Content-Type":"application/json"},body:JSON.stringify({kind:"sensory",payload:{source:"caretaker-food",present_food:touchId}})});if(!response.ok){status(`Touch refused: HTTP ${response.status}`,"bad");return}const data=await response.json();render(data.observation);status(`Touch delivered: ${touchId} (physical skin contact & heat conducted)`,"good")}catch(e){status(`Touch failed: ${e.message}`,"bad")}}
+document.querySelectorAll(".touch-btn").forEach(btn=>btn.addEventListener("click",()=>sendTouch(btn.dataset.touch)));
+[["camera",toggleCamera],["microphone",toggleMicrophone],["hear",toggleListening],["media",()=>node("media-input").click()],["show-text",showText]].forEach(([id,fn])=>node(id).addEventListener("click",fn));node("text").addEventListener("keydown",event=>{if(event.key==="Enter")showText()});for(const [id,source] of [["retina-world","world"],["retina-external","external"]])node(id).addEventListener("click",()=>{retinaView=source;retinaViewChosen=true;renderRetina()});for(const [id,dx,dy] of [["pan-left",-1500,0],["pan-right",1500,0],["pan-up",0,1500],["pan-down",0,-1500]])node(id).addEventListener("click",()=>{view.x+=dx/view.zoom;view.y+=dy/view.zoom;renderWorld()});[["zoom-in",1.25,4],["zoom-out",.8,.65]].forEach(([id,f,b])=>node(id).addEventListener("click",()=>{view.zoom=f>1?Math.min(b,view.zoom*f):Math.max(b,view.zoom*f);renderWorld()}));node("recenter").addEventListener("click",()=>{const body=latest&&latest.last_occurrence&&latest.last_occurrence.embodiment;if(body){const self=body.bodies.find(item=>item.body_id===body.self_body_id);if(self){view.x=self.pose.position.x_mm;view.y=self.pose.position.y_mm}}renderWorld()});
+document.addEventListener("visibilitychange",()=>{clearTimeout(pollTimer);if(document.hidden){if(pollController)pollController.abort()}else refresh()});window.addEventListener("pagehide",()=>{clearTimeout(pollTimer);if(pollController)pollController.abort();if(cameraStream)cameraStream.getTracks().forEach(track=>track.stop());if(audioStream)audioStream.getTracks().forEach(track=>track.stop());stopListening()});window.addEventListener("resize",renderWorld);setInterval(sensoryPulse,250);if(!document.hidden)refresh();
 </script>
-</body>
-</html>
+</body></html>

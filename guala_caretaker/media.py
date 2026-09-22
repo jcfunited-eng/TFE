@@ -31,6 +31,15 @@ ARCHIVE_METADATA = "https://archive.org/metadata/"
 ARCHIVE_DOWNLOAD = "https://archive.org/download/"
 LIBRIVOX_LICENCE = "public domain (LibriVox: readers release their recordings into the public domain; texts are public domain)"
 
+# Catalog of canonical public-domain children's titles placed on library shelves:
+BOOK_CATALOG: dict[str, dict[str, str]] = {
+    "book": {"title": "Alice's Adventures in Wonderland", "archive": "alice_in_wonderland_librivox"},
+    "book-peter-rabbit": {"title": "The Tale of Peter Rabbit", "archive": "tale_peter_rabbit_librivox"},
+    "book-wind-willows": {"title": "The Wind in the Willows", "archive": "wind_in_the_willows_librivox"},
+    "book-aesops-fables": {"title": "Aesop's Fables", "archive": "aesops_fables_volume_one_librivox"},
+    "book-mother-goose": {"title": "The Real Mother Goose", "archive": "real_mother_goose_librivox"},
+}
+
 
 def _get(url: str, timeout: int = 120) -> bytes:
     request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
@@ -40,10 +49,14 @@ def _get(url: str, timeout: int = 120) -> bytes:
 
 def librivox_book(title: str, language: str = "English") -> dict:
     """The first LibriVox recording of a title in a language: its Internet
-    Archive identifier and the whole recording's length."""
+    Archive identifier and the whole recording's length. Zero silent fallbacks."""
 
-    archive_fallback = "alice_in_wonderland_librivox"
-    archive_dir = os.path.join(LIBRARY, archive_fallback)
+    # Check if this title is known in our canonical catalog:
+    for item in BOOK_CATALOG.values():
+        if item["title"].lower() == title.lower():
+            return {"id": "catalog", "title": item["title"], "language": language, "seconds": 3600,
+                    "archive": item["archive"], "url": "https://archive.org/details/" + item["archive"]}
+
     try:
         query = urllib.parse.quote(title)
         fields = "%7Bid,title,language,totaltimesecs,url_zip_file,url_librivox%7D"
@@ -53,12 +66,9 @@ def librivox_book(title: str, language: str = "English") -> dict:
         if match is not None:
             return {"id": book["id"], "title": book["title"], "language": book["language"], "seconds": int(book["totaltimesecs"]),
                     "archive": match.group(1), "url": book["url_librivox"]}
-    except Exception:
-        pass
-    if os.path.isdir(archive_dir):
-        return {"id": "local", "title": title, "language": language, "seconds": 3600,
-                "archive": archive_fallback, "url": "https://archive.org/details/" + archive_fallback}
-    raise ValueError("LibriVox book has no Internet Archive identifier and no local cache")
+    except Exception as err:
+        raise ValueError(f"LibriVox book '{title}' retrieval failed: {err}") from err
+    raise ValueError(f"LibriVox book '{title}' has no Internet Archive identifier in metadata")
 
 
 def chapters(archive: str) -> list[dict]:
@@ -87,6 +97,7 @@ def chapters(archive: str) -> list[dict]:
         files = sorted([f for f in os.listdir(archive_dir) if f.lower().endswith((".mp3", ".pcm"))])
         if files:
             return [{"name": re.sub(r"\.pcm$", ".mp3", f, flags=re.IGNORECASE), "length": None, "size": os.path.getsize(os.path.join(archive_dir, f))} for f in files]
+    
     raise RuntimeError(f"no chapters found for archive item {archive}")
 
 
@@ -103,13 +114,16 @@ def fetch_chapter(archive: str, name: str) -> str:
         return pcm_path
     os.makedirs(os.path.dirname(pcm_path), exist_ok=True)
     mp3_path = os.path.join(os.path.dirname(pcm_path), name)
-    with open(mp3_path, "wb") as out:
-        out.write(_get(f"{ARCHIVE_DOWNLOAD}{archive}/{urllib.parse.quote(name)}", timeout=600))
-    _convert(mp3_path, pcm_path)
-    os.remove(mp3_path)
-    with open(os.path.join(os.path.dirname(pcm_path), "LICENCE.json"), "w") as out:
-        json.dump({"archive": archive, "source": f"{ARCHIVE_DOWNLOAD}{archive}", "licence": LIBRIVOX_LICENCE}, out, indent=1)
-    return pcm_path
+    try:
+        with open(mp3_path, "wb") as out:
+            out.write(_get(f"{ARCHIVE_DOWNLOAD}{archive}/{urllib.parse.quote(name)}", timeout=600))
+        _convert(mp3_path, pcm_path)
+        os.remove(mp3_path)
+        with open(os.path.join(os.path.dirname(pcm_path), "LICENCE.json"), "w") as out:
+            json.dump({"archive": archive, "source": f"{ARCHIVE_DOWNLOAD}{archive}", "licence": LIBRIVOX_LICENCE}, out, indent=1)
+        return pcm_path
+    except Exception as err:
+        raise RuntimeError(f"failed to fetch chapter {name} from {archive}: {err}") from err
 
 
 def _convert(source: str, pcm_path: str) -> None:
@@ -275,4 +289,4 @@ def commons_word(word: str, accent: str = "en-us") -> str | None:
         return None
 
 
-__all__ = ("LIBRARY", "BLOCK_BYTES", "MUSIC_ITEMS", "blocks", "chapters", "commons_word", "fetch_chapter", "fetch_track", "librivox_book", "tracks")
+__all__ = ("LIBRARY", "BLOCK_BYTES", "BOOK_CATALOG", "MUSIC_ITEMS", "blocks", "chapters", "commons_word", "fetch_chapter", "fetch_track", "librivox_book", "tracks")

@@ -51,6 +51,7 @@ SENSE_ORDER: tuple[PhysicalSense, ...] = tuple(PhysicalSense)
 
 class SenseBoundaryState(str, Enum):
     OBSERVED = "observed"
+    QUIESCENT = "quiescent"
     SENSOR_UNAVAILABLE = "sensor_unavailable"
     UNKNOWN = "unknown"
 
