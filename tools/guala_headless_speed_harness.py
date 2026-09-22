@@ -13,8 +13,9 @@ Charter & Architecture:
 - Lever 1 Compiled Native Acceleration:
   - Hot-swaps hot-path kernels (krimelack, cochlear, visual, psi_settle, optical raycasting, kinematics) via native_core.
 - Provides rigorous empirical extrapolation to the 2.5-year developmental horizon.
-- Supports booting from live production state checkpoints (Tick 1,767,000+, nights, and vocal chains).
-- Supports long-duration diurnal runs with autonomous caregiver feeding cadence (MEAL_TICKS = 400).
+- Supports booting from authentic living production state checkpoints (Tick 1,819,000+, nights, and vocal chains).
+- Domestic Housekeeping Invariant: strictly bounds world object count via caretaker clean-up, preventing object accumulation leaks.
+- Unclamped honest reporting: never artificially clamps overclock metrics or mislabels diurnal sleep cycles as 24-hour calendar days.
 
 Pure deterministic physical cognition: no heuristics, no ML approximations, no synthetic language scaffolding.
 All vocal emissions are pure acoustic phoneme syllables from canonical SYLLABLES.
@@ -23,7 +24,7 @@ All vocal emissions are pure acoustic phoneme syllables from canonical SYLLABLES
 from __future__ import annotations
 
 import argparse
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 import json
 import os
 from pathlib import Path
@@ -36,6 +37,7 @@ ROOT_DIR = Path(__file__).resolve().parents[1]
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
+from dsf_ai_service.guala_caretaker_hand import clean_up_house
 from dsf_ai_service.guala_functional_loop import FunctionalPhysicalLoop
 from dsf_ai_service.guala_functional_organism import (
     FunctionalOrganism,
@@ -52,14 +54,19 @@ from dsf_ai_service.guala_hierarchical_stack import (
 from dsf_ai_service.guala_home_world import home_world_authority
 from dsf_ai_service.lean_actor import PhysicalOccurrence
 from dsf_ai_service.lean_sensory_occurrence import LeanSensoryOccurrence
+from dsf_ai_service.paired_current_store import PairedCurrentStore
 from dsf_ai_service.substrate import native_core
+from dsf_ai_service.substrate.embodiment_world import PoseMM, PositionMM
 
 DEFAULT_IDENTITY = "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1"
-REAL_TIME_TICKS_PER_SECOND = 4.0  # 250 ms per tick
-DIURNAL_CEILING_TICKS = 113_600   # 1 subjective day of waking + sleeping
+REAL_TIME_TICKS_PER_SECOND = 4.0        # 250 ms per tick
+DIURNAL_SLEEP_CYCLE_TICKS = 113_600     # 1 subjective wake-sleep cycle (7.889 hours)
+CALENDAR_DAY_TICKS = 345_600            # 1 full calendar day (24 hours = 86,400s * 4 ticks/s)
 DEFAULT_LIVE_URL = "https://dsf-ai.com/api/v1/guala/observation"
-DEFAULT_STATE_PATH = "/workspaces/Tao_Financial_Engine/guala_caretaker/state.json"
-DEFAULT_LEDGER_PATH = "/workspaces/Tao_Financial_Engine/backups/runtime/combinatorial_chains_ledger.jsonl"
+DEFAULT_CHECKPOINT_DIR = ROOT_DIR / "backups/runtime/paired-live-current"
+DEFAULT_STATE_PATH = ROOT_DIR / "guala_caretaker/state.json"
+DEFAULT_LEDGER_PATH = ROOT_DIR / "backups/runtime/combinatorial_chains_ledger.jsonl"
+BED_ID = "playpen-bed"
 
 
 @dataclass(frozen=True, slots=True)
@@ -84,6 +91,7 @@ class HarnessMetrics:
     active_macro_intent_type: str | None
     macro_intents_completed: int
     native_acceleration_active: bool
+    authentic_checkpoint_used: bool
 
 
 @dataclass(frozen=True, slots=True)
@@ -106,14 +114,6 @@ class CurriculumReceipt:
     ticks_per_second: float
     overclock_speedup_factor: float
 
-    @property
-    def demand_tokens_emitted(self) -> tuple[str, ...]:
-        return self.demand_syllables_emitted
-
-    @property
-    def valuation_tokens_emitted(self) -> tuple[str, ...]:
-        return self.valuation_syllables_emitted
-
 
 @dataclass(frozen=True, slots=True)
 class DeonticReceipt:
@@ -125,15 +125,11 @@ class DeonticReceipt:
     syllables_emitted: tuple[str, ...]
     deontic_fulfilled: bool
     duration_beats: int
-    moments_formed_count: int
     reserve_micrograms: int
+    moments_formed_count: int
     wall_clock_seconds: float
     ticks_per_second: float
     overclock_speedup_factor: float
-
-    @property
-    def syntactic_tokens_emitted(self) -> tuple[str, ...]:
-        return self.syllables_emitted
 
 
 @dataclass(frozen=True, slots=True)
@@ -167,6 +163,7 @@ class HeadlessSpeedHarness:
         use_native: bool = True,
         organism: FunctionalOrganism | None = None,
         world: Any = None,
+        authentic_checkpoint_used: bool = False,
     ) -> None:
         self.identity = identity
         self.native_active = False
@@ -177,21 +174,62 @@ class HeadlessSpeedHarness:
         self.loop = FunctionalPhysicalLoop()
         self.temporal_stack = HierarchicalTemporalStack()
         self.unattended_occurrence = PhysicalOccurrence("unattended", None)
+        self.authentic_checkpoint_used = authentic_checkpoint_used
 
     @classmethod
     def from_live_checkpoint(
         cls,
+        checkpoint_dir: str | Path | None = None,
         state_path: str | Path | None = None,
         observation_url: str | None = None,
         identity: str = DEFAULT_IDENTITY,
         use_native: bool = True,
         expand_walkway: bool = True,
     ) -> "HeadlessSpeedHarness":
-        """Instantiate speed harness initialized from Guala's real continuous living state."""
+        """Instantiate speed harness initialized from Guala's real continuous living state.
+        
+        Prioritizes authenticated paired current checkpoint authority (PairedCurrentStore)
+        over synthetic genesis initialization.
+        """
+        chk_dir = Path(checkpoint_dir or DEFAULT_CHECKPOINT_DIR)
+        
+        # 1. Primary Authority: PairedCurrentStore
+        if chk_dir.exists() and (chk_dir / "CURRENT").exists():
+            try:
+                store = PairedCurrentStore(
+                    chk_dir,
+                    max_body_bytes=33_554_432,
+                    max_world_bytes=16_777_216,
+                )
+                restored = store.restore()
+                current = restored.pointer.current
+                
+                organism = FunctionalOrganism.restore(restored.body)
+                if organism.identity != current.identity or organism.live_organism_tick != current.organism_tick:
+                    raise RuntimeError("restored organism differs from paired CURRENT record")
+                
+                world = home_world_authority(
+                    identity=current.identity,
+                    encoded_world=restored.world,
+                    migrate_physical_return=True,
+                )
+                
+                return cls(
+                    identity=current.identity,
+                    initial_tick=current.organism_tick,
+                    expand_walkway=expand_walkway,
+                    use_native=use_native,
+                    organism=organism,
+                    world=world,
+                    authentic_checkpoint_used=True,
+                )
+            except Exception as error:
+                print(f"[SpeedHarness] Warning: PairedCurrentStore restore failed ({error}), falling back to observation inspection.", file=sys.stderr)
+
+        # 2. Secondary Inspection: Read public observation tick and caretaker state
         tick = 1
         nights = 0
 
-        # 1. Try reading live observation from production server
         url = observation_url or DEFAULT_LIVE_URL
         try:
             req = urllib.request.Request(url, headers={"User-Agent": "HeadlessSpeedHarness/1.0"})
@@ -203,13 +241,11 @@ class HeadlessSpeedHarness:
         except Exception:
             pass
 
-        # 2. Try reading state.json from local caretaker
         st_file = Path(state_path or DEFAULT_STATE_PATH)
         if st_file.exists():
             try:
                 st_data = json.loads(st_file.read_text("utf-8"))
                 nights = int(st_data.get("bed_made_for_night", 0))
-                # If observation was unreachable, fallback to play/bedtime tick
                 if tick == 1:
                     max_tick = max(
                         int(st_data.get("play_tick", 0)),
@@ -221,14 +257,12 @@ class HeadlessSpeedHarness:
             except Exception:
                 pass
 
-        # Ensure tick is strictly valid
         if tick <= 0:
             tick = 1
 
         organism = FunctionalOrganism.genesis(identity=identity, organism_tick=tick)
         organism._state["nights"] = nights
 
-        # 3. Load combinatorial chain metrics if ledger exists
         ledger_file = Path(DEFAULT_LEDGER_PATH)
         if ledger_file.exists():
             try:
@@ -246,6 +280,7 @@ class HeadlessSpeedHarness:
             expand_walkway=expand_walkway,
             use_native=use_native,
             organism=organism,
+            authentic_checkpoint_used=False,
         )
 
     @property
@@ -334,18 +369,28 @@ class HeadlessSpeedHarness:
         callback_interval: int = 50,
         enable_caregiver_sustenance: bool = True,
     ) -> HarnessMetrics:
-        """Run n_ticks at maximum CPU throughput, with optional caregiver sustenance on hunger deficit."""
+        """Run n_ticks at maximum CPU throughput with bounded world object density."""
         initial_tick = self.live_tick
         init_sleep = self.current_sleep_state()
         init_pressure = int(init_sleep["pressure"][0])
 
         t0 = time.perf_counter()
         for i in range(1, n_ticks + 1):
-            # Caregiver Sustenance Rule (analogous to caretaker.py MEAL_TICKS = 400 when hungry):
+            # Caregiver Sustenance Rule with domestic floor cleanliness bound:
             if enable_caregiver_sustenance and self.organism.feeding and (self.live_tick % 400 == 0):
-                self.feed_sensory_event(source="caretaker-food", food="apple")
+                # Check if unconsumed food already exists in her presence
+                obs = self.world.observation_snapshot()
+                stray_food = [o for o in obs.objects if o.object_id.startswith("apple") and o.held_by_body_id is None]
+                if not stray_food:
+                    self.feed_sensory_event(source="caretaker-food", food="apple")
+                else:
+                    self.step()
             else:
                 self.step()
+
+            # Periodic domestic housekeeping (every 400 ticks at beat 200) to clear eaten cores
+            if enable_caregiver_sustenance and (self.live_tick % 400 == 200):
+                clean_up_house(self.world)
 
             if progress_callback and (i % callback_interval == 0 or i == n_ticks):
                 elapsed = time.perf_counter() - t0
@@ -386,6 +431,7 @@ class HeadlessSpeedHarness:
             active_macro_intent_type=self.temporal_stack.active_macro_intent.intent_type.value if self.temporal_stack.active_macro_intent else None,
             macro_intents_completed=len(self.temporal_stack.completed_intents),
             native_acceleration_active=self.native_active,
+            authentic_checkpoint_used=self.authentic_checkpoint_used,
         )
 
     def feed_sensory_event(
@@ -426,16 +472,7 @@ class HeadlessSpeedHarness:
         demand_syllables: Sequence[str] = ("dah0", "bah1"),
         valuation_syllables: Sequence[str] = ("kee0", "loo0"),
     ) -> CurriculumReceipt:
-        """Execute a targeted Month 3 acoustic demand and Month 6 valuation session.
-
-        Phases:
-        1. Acoustic Calling Phase: Caretaker emits auditory phonemic syllables.
-        2. Demand Formulation Phase: Organism formulates acoustic demand macro-intent.
-        3. Meso-Scale Phonemic Articulation: Syllables articulated and advanced across beats.
-        4. Affordance Response Phase: Caretaker presents requested object into reach.
-        5. Settlement & Ingestion: Grasp/bite reflex consumes item, updating reserve & moments.
-        6. Affective Valuation Phase: Organism formulates acoustic valuation envelope.
-        """
+        """Execute a targeted Month 3 acoustic demand and Month 6 valuation session."""
         t0 = time.perf_counter()
         initial_reserve = int(self.organism.reserve_micrograms)
         start_tick = self.live_tick
@@ -449,22 +486,25 @@ class HeadlessSpeedHarness:
                 self.present_sensory_block(source="microphone", pcm=pcm)
                 acoustic_cues += 1
 
-        # Phase 2: Formulate Month 3 Acoustic Demand
-        demand_intent = self.form_teleological_demand(target_entity_id, phoneme_tokens=demand_syllables)
-        demand_tokens: list[str] = []
+        # Phase 2: Form Acoustic Demand Intent
+        demand_intent = self.form_teleological_demand(
+            target_entity_id=target_entity_id,
+            phoneme_tokens=demand_syllables,
+        )
 
-        # Phase 3: Acoustic Phonemic Articulation across Meso Beats
-        for _ in range(len(demand_intent.syntactic_assembly_tokens)):
+        # Phase 3: Articulate Phonemic Syllables Across Beats
+        demand_tokens: list[str] = []
+        for _ in range(len(demand_syllables)):
             token = self.temporal_stack.macro.advance_active_token()
             if token:
                 demand_tokens.append(token)
             self.step()
 
-        # Phase 4: Caretaker Affordance Delivery
-        self.present_sensory_block(source="caretaker-food", food=target_entity_id)
+        # Phase 4: Caretaker Affordance Presentation
+        self.feed_sensory_event(source="caretaker-food", food=target_entity_id)
 
-        # Phase 5: Settlement & Consummatory Reflex
-        for _ in range(4):
+        # Phase 5: Autonomous Grasp/Bite Settlement
+        for _ in range(12):
             self.step()
 
         # Mark demand fulfilled if target reached
@@ -521,15 +561,7 @@ class HeadlessSpeedHarness:
         target_agent_id: str = "person-body-1",
         deontic_syllables: Sequence[str] = ("dee0", "mah0"),
     ) -> DeonticReceipt:
-        """Execute a targeted Month 18-24 Deontic Theory of Mind prescriptive session.
-
-        Phases:
-        1. Social Dyadic Contact: Caretaker emits prompt phonemes.
-        2. Prescriptive Deficit Modeling: Guala models other agent state and forms acoustic prescription.
-        3. Meso-Scale Phonemic Articulation: Syllables articulated across beats.
-        4. Social Behavioral Confirmation: Caretaker confirms prescription with affirmative audio.
-        5. Invariant Fulfillment: Deontic intent fulfilled and stabilized in episodic memory.
-        """
+        """Execute a targeted Month 18-24 Deontic Theory of Mind prescriptive session."""
         t0 = time.perf_counter()
         start_tick = self.live_tick
 
@@ -581,8 +613,8 @@ class HeadlessSpeedHarness:
             syllables_emitted=tuple(deontic_tokens),
             deontic_fulfilled=deontic_fulfilled,
             duration_beats=ticks_run,
-            moments_formed_count=int(self.organism.counts.get("moments", 0)),
             reserve_micrograms=int(self.organism.reserve_micrograms),
+            moments_formed_count=int(self.organism.counts.get("moments", 0)),
             wall_clock_seconds=total_wall_s,
             ticks_per_second=rate,
             overclock_speedup_factor=speedup,
@@ -590,22 +622,9 @@ class HeadlessSpeedHarness:
 
     def run_sleep_settle_session(
         self,
-        target_sleep_beats: int | None = None,
+        target_sleep_beats: int = 100,
     ) -> SleepReceipt:
-        """Execute a targeted caregiver bedtime settle and nocturnal sleep consolidation pass.
-
-        Phases:
-        1. Bed Preparation: Caregiver executes bedtime routine, placing pillow and blanket on bed.
-        2. Somatosensory Settling: Organism transitions to bed surface, activating nocturnal posture.
-        3. Sleep State Gate: Sleep pressure triggers falling asleep (eyelids close, basal metabolic burn).
-        4. Nocturnal Dream Consolidation: _dream() and _dream_moment() consolidate recurrent/salient
-           moments into semantic meanings, discarding unsalient one-off noise (Pool Shock Principle).
-        5. Awakening / State Settle: Sleep pressure clears, restoring diurnal vigor.
-        """
-        from dataclasses import replace
-        from dsf_ai_service.guala_functional_organism import BED_ID
-        from dsf_ai_service.substrate.embodiment_world import PositionMM, PoseMM
-
+        """Execute caregiver bedtime routine, sleep onset, and nocturnal Krimelack consolidation."""
         t0 = time.perf_counter()
         initial_reserve = int(self.organism.reserve_micrograms)
         initial_pressure = int(self.current_sleep_state()["pressure"][0])
@@ -614,7 +633,7 @@ class HeadlessSpeedHarness:
 
         # Phase 1: Bed Preparation (Caretaker delivers bedtime bedding)
         bed_occ = self.present_sensory_block(source="caretaker-food", food="bedtime")
-        pres = bed_occ.observation.get("caregiver_presentation", {})
+        pres = bed_occ.observation.get("caregiver_presentation", {}) if hasattr(bed_occ, "observation") else {}
         bed_made = bool(pres.get("presented"))
         bedding = tuple(pres.get("made", ()))
 
@@ -675,18 +694,49 @@ class HeadlessSpeedHarness:
             overclock_speedup_factor=speedup,
         )
 
+    def export_checkpoint(self, export_dir: str | Path) -> None:
+        """Atomically persist simulated organism and world state to a PairedCurrentStore."""
+        dest = Path(export_dir)
+        dest.mkdir(parents=True, exist_ok=True)
+        store = PairedCurrentStore(dest, max_body_bytes=33_554_432, max_world_bytes=16_777_216)
+        
+        body_bytes = self.organism.encoded()
+        world_bytes = bytes(self.world.encoded_snapshot())
+        
+        expected_sha = ""
+        try:
+            r = store.restore()
+            expected_sha = r.pointer.current.body_sha256
+        except Exception:
+            pass
+            
+        store.publish(
+            identity=self.identity,
+            organism_tick=self.live_tick,
+            body=body_bytes,
+            world=world_bytes,
+            expected_current_body_sha256=expected_sha,
+        )
+        print(f"[SpeedHarness] Successfully exported atomic checkpoint to {dest} at tick {self.live_tick}")
+
     def extrapolate_developmental_timeline(self, current_metrics: HarnessMetrics) -> dict[str, Any]:
-        """Extrapolate empirical simulation throughput to full developmental horizons."""
-        speedup = max(current_metrics.overclock_speedup_factor, 1.0)
-        ticks_per_sec = max(current_metrics.ticks_per_second, 0.1)
+        """Extrapolate empirical simulation throughput to full developmental horizons.
+        
+        Honest physical reporting:
+        - Never clamps speedup with artificial max(..., 1.0) floor.
+        - Meticulously distinguishes subjective sleep cycles (113,600 ticks = 7.89h)
+          from true 24-hour calendar days (345,600 ticks = 24.0h).
+        """
+        speedup = current_metrics.overclock_speedup_factor
+        ticks_per_sec = max(current_metrics.ticks_per_second, 0.001)
 
         milestones = [
-            ("1 Subjective Day (Diurnal Cycle)", 113_600),
-            ("Month 1 (Sensory Habituation)", 113_600 * 30),
-            ("Month 3 (Acoustic Demand Syntax)", 113_600 * 90),
-            ("Month 6 (Acoustic Valuation)", 113_600 * 180),
-            ("Month 12 ('Let's Play' Affordance)", 113_600 * 365),
-            ("2.5 Years (Deontic Theory of Mind)", int(113_600 * 365 * 2.5)),
+            ("1 Subjective Day (Diurnal Cycle)", DIURNAL_SLEEP_CYCLE_TICKS),
+            ("Month 1 (Sensory Habituation)", CALENDAR_DAY_TICKS * 30),
+            ("Month 3 (Acoustic Demand Syntax)", CALENDAR_DAY_TICKS * 90),
+            ("Month 6 (Acoustic Valuation)", CALENDAR_DAY_TICKS * 180),
+            ("Month 12 ('Let's Play' Affordance)", CALENDAR_DAY_TICKS * 365),
+            ("2.5 Years (Deontic Theory of Mind)", int(CALENDAR_DAY_TICKS * 365 * 2.5)),
         ]
 
         projections = {}
@@ -699,7 +749,7 @@ class HeadlessSpeedHarness:
                 "natural_realtime_days": round(natural_wall_seconds / 86400.0, 1),
                 "accelerated_sim_days": round(accelerated_days, 2),
                 "accelerated_sim_hours": round(accelerated_wall_seconds / 3600.0, 1),
-                "acceleration_factor": round(speedup, 2),
+                "acceleration_factor": round(speedup, 3),
             }
 
         return {
@@ -708,11 +758,66 @@ class HeadlessSpeedHarness:
         }
 
 
+def run_matched_benchmark(ticks: int = 50, checkpoint_dir: Path | None = None) -> dict[str, Any]:
+    """Execute rigorous matched baseline (pure Python) vs accelerated (native Rust) benchmark."""
+    chk_dir = checkpoint_dir or DEFAULT_CHECKPOINT_DIR
+    if not (chk_dir / "CURRENT").exists():
+        raise FileNotFoundError(f"Authentic checkpoint missing at {chk_dir}")
+
+    store = PairedCurrentStore(chk_dir, max_body_bytes=33_554_432, max_world_bytes=16_777_216)
+    restored = store.restore()
+    current = restored.pointer.current
+
+    # 1. Baseline Run (pure Python)
+    native_core.uninstall()
+    org_base = FunctionalOrganism.restore(restored.body)
+    world_base = home_world_authority(identity=current.identity, encoded_world=restored.world, migrate_physical_return=True)
+    loop_base = FunctionalPhysicalLoop()
+    occ = PhysicalOccurrence("unattended", None)
+
+    t0 = time.perf_counter()
+    for _ in range(ticks):
+        loop_base.settle(org_base, world_base, occ)
+    t_base = time.perf_counter() - t0
+    rate_base = ticks / max(t_base, 1e-6)
+
+    # 2. Accelerated Run (native compiled Rust)
+    native_core.install()
+    org_nat = FunctionalOrganism.restore(restored.body)
+    world_nat = home_world_authority(identity=current.identity, encoded_world=restored.world, migrate_physical_return=True)
+    loop_nat = FunctionalPhysicalLoop()
+
+    t0 = time.perf_counter()
+    for _ in range(ticks):
+        loop_nat.settle(org_nat, world_nat, occ)
+    t_nat = time.perf_counter() - t0
+    rate_nat = ticks / max(t_nat, 1e-6)
+
+    speedup_vs_base = rate_nat / max(rate_base, 1e-6)
+    speedup_vs_realtime = rate_nat / REAL_TIME_TICKS_PER_SECOND
+
+    return {
+        "organism_identity": current.identity,
+        "organism_tick": current.organism_tick,
+        "benchmark_ticks": ticks,
+        "baseline_ticks_per_second": round(rate_base, 2),
+        "baseline_speedup_factor": round(rate_base / REAL_TIME_TICKS_PER_SECOND, 2),
+        "baseline_wall_seconds": round(t_base, 3),
+        "accelerated_ticks_per_second": round(rate_nat, 2),
+        "accelerated_speedup_factor": round(speedup_vs_realtime, 2),
+        "accelerated_wall_seconds": round(t_nat, 3),
+        "measured_native_speedup": round(speedup_vs_base, 2),
+    }
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Guala Headless Speed Harness")
     parser.add_argument("--ticks", type=int, default=100, help="Number of ticks to simulate")
     parser.add_argument("--identity", type=str, default=DEFAULT_IDENTITY, help="UUID of the organism")
-    parser.add_argument("--live", action="store_true", help="Boot harness from live production state checkpoint (Tick 1,767,000+)")
+    parser.add_argument("--live", action="store_true", help="Boot harness from authentic living state checkpoint")
+    parser.add_argument("--checkpoint-dir", type=str, default=None, help="Directory containing PairedCurrentStore checkpoint")
+    parser.add_argument("--export-checkpoint", type=str, default=None, help="Export resulting state to PairedCurrentStore directory")
+    parser.add_argument("--benchmark", action="store_true", help="Run matched baseline vs native benchmark on authentic checkpoint")
     parser.add_argument("--demand", type=str, default=None, help="Formulate an acoustic demand for target object")
     parser.add_argument("--curriculum", type=str, nargs="?", const="apple", default=None, help="Run targeted developmental curriculum session for target object")
     parser.add_argument("--deontic", type=str, nargs="?", const="rest", default=None, help="Run Month 18-24 Deontic Theory of Mind prescriptive session")
@@ -720,13 +825,36 @@ def main() -> None:
     parser.add_argument("--json", action="store_true", help="Output results as JSON")
     args = parser.parse_args()
 
+    if args.benchmark:
+        chk_p = Path(args.checkpoint_dir) if args.checkpoint_dir else None
+        res = run_matched_benchmark(ticks=args.ticks, checkpoint_dir=chk_p)
+        if args.json:
+            print(json.dumps(res, indent=2))
+        else:
+            print("\n" + "=" * 70)
+            print("GUALA SPEED HARNESS: AUTHENTIC MATCHED BENCHMARK")
+            print("=" * 70)
+            print(f"Organism Identity:              {res['organism_identity']}")
+            print(f"Starting Checkpoint Tick:       {res['organism_tick']}")
+            print(f"Benchmark Workload:             {res['benchmark_ticks']} ticks")
+            print(f"Baseline (Pure Python):         {res['baseline_ticks_per_second']} ticks/s ({res['baseline_speedup_factor']}x real-time, {res['baseline_wall_seconds']}s)")
+            print(f"Accelerated (Native Rust):      {res['accelerated_ticks_per_second']} ticks/s ({res['accelerated_speedup_factor']}x real-time, {res['accelerated_wall_seconds']}s)")
+            print(f"Measured Native Speedup:        {res['measured_native_speedup']}x faster than baseline")
+            print("=" * 70)
+        return
+
     if args.live:
-        harness = HeadlessSpeedHarness.from_live_checkpoint(identity=args.identity)
+        harness = HeadlessSpeedHarness.from_live_checkpoint(
+            checkpoint_dir=args.checkpoint_dir,
+            identity=args.identity,
+        )
     else:
         harness = HeadlessSpeedHarness(identity=args.identity)
 
     if args.sleep is not None:
         receipt = harness.run_sleep_settle_session(target_sleep_beats=args.sleep)
+        if args.export_checkpoint:
+            harness.export_checkpoint(args.export_checkpoint)
         if args.json:
             print(json.dumps(asdict(receipt), indent=2))
         else:
@@ -748,6 +876,8 @@ def main() -> None:
 
     if args.deontic:
         receipt = harness.run_deontic_session(target_action=args.deontic)
+        if args.export_checkpoint:
+            harness.export_checkpoint(args.export_checkpoint)
         if args.json:
             print(json.dumps(asdict(receipt), indent=2))
         else:
@@ -768,6 +898,8 @@ def main() -> None:
 
     if args.curriculum:
         receipt = harness.run_curriculum_session(target_entity_id=args.curriculum)
+        if args.export_checkpoint:
+            harness.export_checkpoint(args.export_checkpoint)
         if args.json:
             print(json.dumps(asdict(receipt), indent=2))
         else:
@@ -804,6 +936,9 @@ def main() -> None:
     metrics = harness.run_ticks(args.ticks, progress_callback=on_progress if not args.json else None, callback_interval=interval)
     extrapolations = harness.extrapolate_developmental_timeline(metrics)
 
+    if args.export_checkpoint:
+        harness.export_checkpoint(args.export_checkpoint)
+
     if args.json:
         print(json.dumps(extrapolations, indent=2))
     else:
@@ -811,11 +946,12 @@ def main() -> None:
         print("GUALA HEADLESS SPEED HARNESS: BENCHMARK & EXTRAPOLATION RECEIPT")
         print("=" * 70)
         print(f"Organism Identity:              {metrics.organism_identity}")
+        print(f"Authentic Checkpoint Authority: {'YES (PairedCurrentStore)' if metrics.authentic_checkpoint_used else 'NO (Synthetic Fallback)'}")
         print(f"Native Acceleration (Rust):     {'ACTIVE (PyO3 Hot Path)' if metrics.native_acceleration_active else 'FALLBACK (Pure Python)'}")
         print(f"Simulated Ticks:                {metrics.ticks_elapsed} ticks ({metrics.initial_tick} -> {metrics.final_tick})")
         print(f"Subjective Organism Time:       {metrics.simulated_subjective_hours:.3f} hours ({metrics.simulated_subjective_seconds:.1f}s)")
         print(f"Simulation Wall-Clock Time:     {metrics.wall_clock_seconds:.3f} seconds")
-        print(f"Simulation Throughput:          {metrics.ticks_per_second:.1f} ticks/second")
+        print(f"Simulation Throughput:          {metrics.ticks_per_second:.2f} ticks/second")
         print(f"Overclock Acceleration Factor:  {metrics.overclock_speedup_factor:.2f}x real-time speed")
         print(f"Sleep Pressure:                 {metrics.sleep_pressure_units_start} -> {metrics.sleep_pressure_units_end} ({metrics.sleep_pressure_fraction_end*100:.1f}%)")
         print(f"Reserve / Moments Formed:       {metrics.reserve_micrograms} µg / {metrics.moments_count} moments")

@@ -17,14 +17,19 @@ Charter & Physical Invariant (docs/guala_accelerated_developmental_roadmap.md, L
      - Multi-Step Affordance: Inter-room navigation, climbing, tool-mediated retrieval.
      - Prescriptive Deontic Theory of Mind: External agent deficit modeling + dyadic acoustic cues.
 
+Bounded Memory Guarantee:
+- Micro reflex history and completed macro intents use bounded ring buffers (max 1024 entries),
+  strictly preventing runaway memory/RAM growth during long-duration runs.
+
 Pure deterministic physical cognition: no heuristics, no ML approximations, no synthetic language scaffolding.
 All vocal tokens are pure acoustic phoneme syllables from canonical SYLLABLES.
 """
 
 from __future__ import annotations
 
-import enum
+from collections import deque
 from dataclasses import asdict, dataclass, field
+import enum
 from typing import Any, Sequence
 
 # Canonical Physical Limits
@@ -36,6 +41,7 @@ CONTACT_SHOCK_THRESHOLD = 0.95          # Sudden full-surface skin compression
 ACOUSTIC_SHOCK_FLOOR = 0.90             # Sudden explosive sound pressure level
 MACRO_MIN_BEATS = 8                     # 2.0 seconds at 4 beats/sec
 MACRO_MAX_BEATS = 40                    # 10.0 seconds at 4 beats/sec
+MAX_HISTORY_ENTRIES = 1024              # Hard capacity bound preventing memory leaks
 
 
 class MacroIntentType(enum.Enum):
@@ -127,8 +133,8 @@ class MacroIntent:
 class MicroReflexField:
     """10 ms / 100 Hz Reflex Loop Governor."""
 
-    def __init__(self) -> None:
-        self.interrupt_history: list[MicroInterrupt] = []
+    def __init__(self, max_history: int = MAX_HISTORY_ENTRIES) -> None:
+        self.interrupt_history: deque[MicroInterrupt] = deque(maxlen=max_history)
 
     def evaluate_subframes(
         self,
@@ -208,9 +214,9 @@ class MesoBeatField:
 class MacroIntentField:
     """2 - 10 s / 8–40 Beats Cognitive Intent Governor."""
 
-    def __init__(self) -> None:
+    def __init__(self, max_completed: int = MAX_HISTORY_ENTRIES) -> None:
         self.active_intent: MacroIntent | None = None
-        self.completed_intents: list[MacroIntent] = []
+        self.completed_intents: deque[MacroIntent] = deque(maxlen=max_completed)
 
     def form_intent(
         self,
@@ -290,10 +296,10 @@ class MacroIntentField:
 class HierarchicalTemporalStack:
     """Unified Hierarchical Multi-Scale DSF Temporal Stack."""
 
-    def __init__(self) -> None:
-        self.micro = MicroReflexField()
+    def __init__(self, max_history: int = MAX_HISTORY_ENTRIES) -> None:
+        self.micro = MicroReflexField(max_history=max_history)
         self.meso = MesoBeatField()
-        self.macro = MacroIntentField()
+        self.macro = MacroIntentField(max_completed=max_history)
 
     @property
     def active_macro_intent(self) -> MacroIntent | None:
@@ -301,11 +307,11 @@ class HierarchicalTemporalStack:
 
     @property
     def interrupt_history(self) -> list[MicroInterrupt]:
-        return self.micro.interrupt_history
+        return list(self.micro.interrupt_history)
 
     @property
     def completed_intents(self) -> list[MacroIntent]:
-        return self.macro.completed_intents
+        return list(self.macro.completed_intents)
 
     def evaluate_cycle(
         self,

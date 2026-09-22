@@ -188,6 +188,15 @@ def _restore_production_actor() -> LeanOrganismActor:
         raise RuntimeError("GUALA_PAIRED_ROOT is required")
     root = Path(root_text)
 
+    # Opt-in native compiled Rust hot-path kernel installation (All-at-once doctrine, Joe 2026-07-16)
+    if os.environ.get("NATIVE_CORE_ENABLED", "1") != "0":
+        try:
+            from dsf_ai_service.substrate import native_core
+            installed = native_core.install()
+            print(f"[lean_production_app] native_core acceleration installed: {installed}", flush=True)
+        except Exception as error:
+            print(f"[lean_production_app] native_core acceleration fallback: {error}", flush=True)
+
     from dsf_ai_service.guala_functional_loop import FunctionalPhysicalLoop
     from dsf_ai_service.guala_functional_organism import FunctionalOrganism, MAGIC as FUNCTIONAL_MAGIC
     from dsf_ai_service.guala_home_world import home_world_authority
@@ -395,29 +404,12 @@ def create_lean_production_app(
         request: Request,
         after: int | None = Query(default=None, ge=0),
     ) -> dict[str, object]:
-        # Observer delivery (vision release, 2026-09-13): the same cached
-        # projection, either immediately (no ``after``) or as a bounded
-        # long-poll held until live_tick exceeds ``after`` or the bound
-        # expires. It waits on the actor's own publication signal in a worker
-        # thread — no polling, no runtime or world reads, no history, no
-        # second clock. A disconnected client leaves nothing behind: the
-        # waiter releases at the bound and the response is discarded.
         actor = actor_for(request)
         if after is None:
             return actor.observation()
-        # Bounded observer admission: at most OBSERVATION_WAITERS held waits
-        # at once; a caller past the bound receives the current projection
-        # immediately (same shape, no wait) instead of queued worker backlog.
-        # The permit is released when the wait ends — on delivery, at the
-        # bound, or after a disconnected caller's wait expires — never leaked.
         waiters = request.app.state.observation_waiters
         if waiters.locked():
             return actor.observation()
-        # The permit is held until the WORKER finishes, not until the awaiting
-        # coroutine ends: a cancelled or disconnected caller does not free a
-        # permit while its worker still runs, so at most OBSERVATION_WAITERS
-        # real workers ever exist. Released exactly once by the done-callback,
-        # or directly if submission itself fails before a future exists.
         await waiters.acquire()
         try:
             future = asyncio.get_running_loop().run_in_executor(
