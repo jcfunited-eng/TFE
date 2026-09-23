@@ -7,7 +7,12 @@
  */
 
 import assert from "node:assert/strict";
-import { liquidityFloorPasses, CH2_MIN_AVG_DOLLAR_VOLUME } from "../ch2_strategist.mjs";
+import {
+  liquidityFloorPasses,
+  entryAssetTypeAllowed,
+  CH2_MIN_AVG_DOLLAR_VOLUME,
+  CH2_ENTRY_ASSET_TYPE,
+} from "../ch2_strategist.mjs";
 
 let passed = 0;
 function t(name, fn) {
@@ -38,5 +43,17 @@ t("zero volume fails",               () => assert.equal(liquidityFloorPasses(50,
 t("strings from the database parse", () => assert.equal(liquidityFloorPasses("20.6", "4555939.6"), true));
 t("garbage strings fail",            () => assert.equal(liquidityFloorPasses("abc", "4555939.6"), false));
 t("custom floor honoured",           () => assert.equal(liquidityFloorPasses(10, 100_000, 5_000_000), false));
+
+// ENTRY-R11 (Joe, 2026-09-23): stocks only. Labels as they appear in
+// runtime_decisions_latest.snapshot_row_json.asset_type on run 578df27a:
+// stock 5,986 | etf 5,664 | crypto 25 | index 10.
+t("entry asset type is 'stock'",     () => assert.equal(CH2_ENTRY_ASSET_TYPE, "stock"));
+t("DOC  stock passes",               () => assert.equal(entryAssetTypeAllowed("stock"), true));
+t("HEWJ etf fails",                  () => assert.equal(entryAssetTypeAllowed("etf"), false));
+t("crypto fails",                    () => assert.equal(entryAssetTypeAllowed("crypto"), false));
+t("index fails",                     () => assert.equal(entryAssetTypeAllowed("index"), false));
+t("blank fails",                     () => assert.equal(entryAssetTypeAllowed(""), false));
+t("missing fails",                   () => assert.equal(entryAssetTypeAllowed(undefined), false));
+t("case and spaces tolerated",       () => assert.equal(entryAssetTypeAllowed(" Stock "), true));
 
 console.log(`${passed}/${passed} passed`);

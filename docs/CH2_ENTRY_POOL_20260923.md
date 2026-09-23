@@ -87,25 +87,41 @@ FLJH 1.7, FTHF 1.3, AEMS 1.2 (also under $5), KBA 1.2, AIVC 1.0,
 NORW 0.9, QTUP 0.8, XOVL 0.3, ASHS 0.3, SGU 0.2, REKT 0.14,
 BITK 0.05, MRA 0.04, COIO 0.01.
 
-Some of the newly visible names are funds (HEWJ, RECS, SIND …). Funds
-never had a market cap, which is why they were never in the pool. No
-rule about asset type was added; the quarantine baseline universe
-(11,882 symbols) that produced the 57.1 % honest number includes them.
-If Joe wants funds out, that is a separate rule and his call.
+## ENTRY-R11 — stocks only (JOE's rule, 2026-09-23)
+
+Funds never had a market cap, so the old filter kept them out by
+accident; the dollar-volume floor would have let them in. Joe, on
+reading the first version of this record: *"I think funds should come
+out."* So:
+
+```
+LOWER(TRIM(snapshot_row_json->>'asset_type')) = 'stock'
+```
+
+Labels on the live run: stock 5,986 | etf 5,664 | crypto 25 | index 10.
+Of the 47 basin passers, 15 were funds (HEWJ, RECS, NORW, FLJH, FTHF,
+AIVC, KBA, XOVL, ASHS, QTUP, REKT, BITK, COIO, MRA, AEMS). 32 stocks
+remain.
+
+Pre-basin count, live run, both rules: **3,765** (old 1,389; dollar
+volume alone 5,620).
 
 ## What was changed
 
 ```
 web/scripts/execution/ch2_strategist.mjs
     CH2_MIN_MARKET_CAP removed
-    CH2_MIN_AVG_DOLLAR_VOLUME = 2_000_000 (exported)
+    CH2_MIN_AVG_DOLLAR_VOLUME = 2_000_000 (exported)            MINE
+    CH2_ENTRY_ASSET_TYPE = "stock" (exported)                   JOE
     liquidityFloorPasses(price, avgVolume) (exported, pure)
-    fetchCandidateRows: JOIN runtime_metrics_latest, dollar-volume condition
-    [CH2-DIAG] query: same condition
+    entryAssetTypeAllowed(assetType) (exported, pure)
+    fetchCandidateRows: JOIN runtime_metrics_latest, dollar-volume + asset_type conditions
+    [CH2-DIAG] query: same conditions
 web/scripts/execution/financial_rules.mjs
     ENTRY-R5 changelog entry + entryR5_LiquidityFloor (record copy)
+    ENTRY-R11 changelog entry
 web/scripts/execution/tests/ch2_liquidity_floor_test.mjs
-    16 tests on real rows from the 2026-09-23 run — 16/16 pass
+    24 tests on real rows and labels from the 2026-09-23 run — 24/24 pass
     sentinel_bugs_test.mjs still 29/29
 ```
 

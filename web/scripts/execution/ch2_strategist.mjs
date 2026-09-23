@@ -7,6 +7,7 @@
  *   2. accumulate_basin >= 0.15
  *   3. bar_count > 20  — established stock
  *   4. avg dollar volume >= $2M  — liquidity floor (ENTRY-R5, re-based 2026-09-23)
+ *   5. asset_type = 'stock'  — no funds, no crypto, no indexes (ENTRY-R11, Joe 2026-09-23)
  *
  * Replaces TFE-CMD-V3-BASIN-DETERMINISTIC-WC-20260707-v1: tuple-proximity
  * decision_label gate and D_k=1 scalar gate removed. V3 basin coupled math
@@ -52,6 +53,11 @@ const CH2_BAR_COUNT_MIN    = 21;
 // the same thing directly and exists for 11,506 of 11,513 tickers. $2M a day
 // against a ~$2,500 order is about 0.1% of one day's trade. Passes 5,620.
 export const CH2_MIN_AVG_DOLLAR_VOLUME = 2_000_000;
+// ENTRY-R11, Joe's rule 2026-09-23: "funds should come out". The cap filter
+// had excluded funds by accident (funds have no market cap). Now explicit.
+// snapshot asset_type on the 2026-09-23 run: stock 5,986 | etf 5,664 |
+// crypto 25 | index 10. Only 'stock' enters.
+export const CH2_ENTRY_ASSET_TYPE = "stock";
 const ACCUMULATE_BASIN_MIN = 0.15;
 // ENTRY-R10 carry governance. Fixed constant, from L5_CANONICAL_BASELINE's
 // B_k rung measured WITHOUT its forward-looking "Rising 5d" filter.
@@ -74,6 +80,11 @@ export function liquidityFloorPasses(price, avgVolume, minDollarVolume = CH2_MIN
   const v = toFloat(avgVolume);
   if (p === null || v === null) return false;
   return p * v >= minDollarVolume;
+}
+
+// ENTRY-R11 as one pure check. The SQL in fetchCandidateRows applies the same test.
+export function entryAssetTypeAllowed(assetType) {
+  return String(assetType ?? "").trim().toLowerCase() === CH2_ENTRY_ASSET_TYPE;
 }
 
 // Readings older than this are not a basis for a buy. The nightly rebuild
@@ -118,8 +129,9 @@ async function fetchCandidateRows(runId) {
        AND CAST(NULLIF(r.snapshot_row_json->>'bar_count', '') AS INTEGER) > $2
        AND CAST(NULLIF(r.snapshot_row_json->>'price', '') AS DOUBLE PRECISION)
            * COALESCE(m.avg_volume, 0) >= $3
+       AND LOWER(TRIM(COALESCE(r.snapshot_row_json->>'asset_type', ''))) = $4
      ORDER BY r.ticker ASC`,
-    [runId, CH2_BAR_COUNT_MIN - 1, CH2_MIN_AVG_DOLLAR_VOLUME]
+    [runId, CH2_BAR_COUNT_MIN - 1, CH2_MIN_AVG_DOLLAR_VOLUME, CH2_ENTRY_ASSET_TYPE]
   );
   return res.rows;
 }
@@ -245,8 +257,9 @@ export async function getCh2Signals() {
        WHERE r.run_id = $1 AND r.ticker != 'SPY'
          AND CAST(NULLIF(r.snapshot_row_json->>'bar_count','') AS INTEGER) > $2
          AND CAST(NULLIF(r.snapshot_row_json->>'price','') AS DOUBLE PRECISION)
-             * COALESCE(m.avg_volume, 0) >= $3`,
-      [runId, CH2_BAR_COUNT_MIN - 1, CH2_MIN_AVG_DOLLAR_VOLUME]
+             * COALESCE(m.avg_volume, 0) >= $3
+         AND LOWER(TRIM(COALESCE(r.snapshot_row_json->>'asset_type',''))) = $4`,
+      [runId, CH2_BAR_COUNT_MIN - 1, CH2_MIN_AVG_DOLLAR_VOLUME, CH2_ENTRY_ASSET_TYPE]
     );
     console.log(`[CH2-DIAG] run_id=${runId} | pre-basin candidates: ${diag.rows[0].cnt}`);
   } catch (diagErr) {

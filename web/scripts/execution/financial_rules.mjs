@@ -101,6 +101,10 @@ import * as _marketCalendar from "./market_calendar.mjs";
  *                          by 2026-09-23 every passer in it was held with $49,740 idle.
  *                          price x runtime_metrics_latest.avg_volume covers 11,506 of 11,513.
  *                          Receipt: docs/CH2_ENTRY_POOL_20260923.md
+ *   2026-09-23  ENTRY-R11 Stocks only (JOE: "funds should come out"). snapshot
+ *                          asset_type must be 'stock'; etf/crypto/index never enter.
+ *                          Funds had been excluded by accident (no market cap on file);
+ *                          the dollar-volume floor would have let them in.
  *   2026-05-19  EXIT-R1   Catastrophic floor: -10% CH2, -1% CH3
  *   2026-05-19  EXIT-R2   Acceleration complete: S_UF >= 0.75
  *   2026-05-19  EXIT-R3   D_k collapse: D_k != 1 after entry
