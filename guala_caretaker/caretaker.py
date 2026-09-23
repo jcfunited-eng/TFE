@@ -50,6 +50,8 @@ except ImportError:
         return struct.pack("<4000h", *([0] * 4000))
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+if HERE not in sys.path:
+    sys.path.insert(0, HERE)
 BASE = "https://dsf-ai.com/api/v1/guala"
 CUR = os.path.join(HERE, "curriculum")
 STOP = os.path.join(HERE, "STOP")
@@ -1294,9 +1296,6 @@ def main() -> None:
     log("caretaker stopped (STOP or signal)")
 
 
-if __name__ == "__main__":
-    main()
-
 TACTILE_OBJECTS = ("cup", "stacking-rings", "play-ball", "toy-bear")
 
 
@@ -1324,3 +1323,7 @@ def maybe_tactile_curriculum(o: dict, st: dict) -> None:
     record_story_moment(st, "tactile", "visual", "auditory", "proprioceptive")
     with open(STATE, "w") as f:
         json.dump(st, f)
+
+
+if __name__ == "__main__":
+    main()

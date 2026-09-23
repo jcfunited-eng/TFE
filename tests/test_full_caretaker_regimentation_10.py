@@ -173,3 +173,62 @@ def test_routine_10_diurnal_circadian_pacing_exclusivity() -> None:
     e5, _ = circadian_epoch(105_000)
     assert e5 == "NIGHT_CONSOLIDATION"
 
+def test_caretaker_script_order_and_awake_dispatch(monkeypatch, tmp_path) -> None:
+    """Verify REG-A1-01: script entry-point main() is placed strictly after all
+    function and constant definitions, and wait_clear dispatches awake routines in
+    isolation without NameError or unhandled exceptions."""
+    import ast
+    import os
+    import guala_caretaker.caretaker as ct
+
+    # 1. Structural AST proof: if __name__ == "__main__" is strictly the final top-level node
+    caretaker_path = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+        "guala_caretaker",
+        "caretaker.py",
+    )
+    with open(caretaker_path, "r", encoding="utf-8") as f:
+        tree = ast.parse(f.read(), filename=caretaker_path)
+
+    main_node_idx = None
+    for i, node in enumerate(tree.body):
+        if isinstance(node, ast.If) and "__name__" in ast.unparse(node.test):
+            main_node_idx = i
+
+    assert main_node_idx is not None, "if __name__ == '__main__' not found"
+    nodes_after_main = tree.body[main_node_idx + 1:]
+    assert len(nodes_after_main) == 0, f"Expected 0 nodes after main, found {len(nodes_after_main)}"
+
+    # 2. Functional isolated awake dispatch proof:
+    simulated_obs = {
+        "live_tick": 20_000,
+        "persisted_tick": 19_995,
+        "available": True,
+        "checkpoint_error": None,
+        "her_sleep": {"asleep": False},
+        "world": {"bodies": []},
+    }
+
+    monkeypatch.setattr(ct, "obs", lambda: simulated_obs)
+    monkeypatch.setattr(ct, "present_food", lambda toy: {"operation": "present", "reason": "applied", "toy": toy})
+    monkeypatch.setattr(ct, "say_word", lambda word: True)
+    monkeypatch.setattr(ct, "sing_block", lambda pcm: True)
+    monkeypatch.setattr(ct, "material_impact_pcm", lambda mat, intensity=0.75: b"\x00" * 8000)
+
+    fake_state_file = str(tmp_path / "state.json")
+    monkeypatch.setattr(ct, "STATE", fake_state_file)
+
+    st = {
+        "tactile_index": 0,
+        "tactile_next_tick": 0,
+        "circadian_epoch": "MORNING_FOCUS",
+        "circadian_day": 1,
+        "daily_moments_presented": 0,
+        "active_modalities_stimulated": {},
+    }
+
+    res = ct.wait_clear(min_tick=20_000, st=st)
+    assert res is not None
+    assert st.get("tactile_index") == 1
+    assert st.get("tactile_next_tick") == 23_600
+
