@@ -19,6 +19,7 @@
   ],
   "postCreateCommand": "bash /workspaces/Tao_Financial_Engine/.devcontainer/post-create.sh",
   "postStartCommand": "bash /workspaces/Tao_Financial_Engine/.devcontainer/post-start.sh",
+  "postAttachCommand": "bash /workspaces/Tao_Financial_Engine/.devcontainer/post-start.sh",
   "customizations": {
     "vscode": {
       "extensions": [

@@ -37,4 +37,11 @@ start_loop tools/ch6_loop.sh                       artifacts/vtvr_observer/ch6_r
 start_loop tools/ch3_shadow_loop.sh                artifacts/vtvr_observer/ch3_shadow_loop.log
 start_loop tools/channel_book_publication_loop.sh  artifacts/vtvr_observer/channel_book_publication.log
 start_loop tools/db_rotation_guard.sh              artifacts/vtvr_observer/db_rotation_guard.log
-date -u +%FT%TZ > artifacts/vtvr_observer/.post_start_last_run
+# 2026-09-23: the loops die every few days, not only on container start
+# (ch6_loop.sh restarted seven times 08-31..09-23). The watchdog re-runs this
+# script every five minutes; it is also started here, and it also runs on
+# every editor attach (devcontainer postAttachCommand) as a second trigger.
+start_loop tools/loops_watchdog.sh                 artifacts/vtvr_observer/loops_watchdog.log
+if [ "${POST_START_FROM_WATCHDOG:-0}" != "1" ]; then
+  date -u +%FT%TZ > artifacts/vtvr_observer/.post_start_last_run
+fi
