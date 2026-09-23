@@ -1,21 +1,20 @@
 #!/usr/bin/env python3
-"""dsf_ai_service/guala_hierarchical_stack.py — Hierarchical Multi-Scale Nested Temporal Stack.
+"""dsf_ai_service/guala_hierarchical_stack.py — Quarantined Test-Only Hierarchical Timing Harness Fixture.
 
-Charter & Physical Invariant (docs/guala_accelerated_developmental_roadmap.md, Lever 4):
-- Guala's embodied sensorimotor loop operates across three nested physical timescales:
-  1. Micro-Scale Loop (10 ms / 100 Hz): 25 sub-tick frames per 250ms beat.
-     Evaluates high-frequency sensory signals (acoustic gammatone cochlear frames,
-     cutaneous thermal nociception, tactile shock). Emits immediate physical reflex
-     interrupts to preempt active motor drive without waiting for the 250ms beat boundary.
-  2. Meso-Scale Loop (250 ms - 1 s / 1–4 Hz): The canonical organism beat (BEAT_MICROSECONDS = 250_000).
-     Coordinates discrete phonemic/syllabic vocal emissions, gaze/head saccades,
-     single-step movement strides, and contact grasp/touch mechanics.
-  3. Macro-Scale Loop (2 - 10 s / 8–40 beats / 0.1–0.5 Hz):
-     Sustained cognitive intent envelope maintaining multi-beat goals:
-     - Teleological Demand: Target object + metabolic deficit + acoustic phoneme chain.
-     - Affective Valuation: Episodic memory match + preference basin + acoustic confirmation.
-     - Multi-Step Affordance: Inter-room navigation, climbing, tool-mediated retrieval.
-     - Prescriptive Deontic Theory of Mind: External agent deficit modeling + dyadic acoustic cues.
+ARCHITECTURAL HONESTY & QUARANTINE CONTRACT:
+- This module is an isolated, test-only evaluation apparatus used exclusively by
+  tools/guala_headless_speed_harness.py and tests/test_hierarchical_temporal_stack.py.
+- It is STRICTLY QUARANTINED from production: it is NOT imported or called by the live
+  organism (dsf_ai_service/lean_actor.py), the physical world authority, or the caretaker.
+- SCRIPTED TEST FIXTURE DESIGNATION:
+  The MacroIntentType enums ("teleological_demand", "affective_valuation", "deontic_theory_of_mind")
+  and default syllable arrays (e.g. ("dah0", "bah1")) in this module are programmer-supplied
+  scripted test fixtures for measuring ring-buffer memory bounds, tick cadence, and sub-tick
+  interruption timing in offline test harnesses. They do NOT evaluate the L0–L4 structural kernel
+  ($D_k, S_{UF}, M_k, R_{rev,k}, U^*_k, C_k, P_k, B_k$) and do NOT constitute learned or emergent
+  cognitive syntax.
+- The true cognitive architecture for multi-timescale persistence is governed by the empirical
+  Pursuit Milestone defined in docs/guala_accelerated_developmental_roadmap.md.
 
 Bounded Memory Guarantee:
 - Micro reflex history and completed macro intents use bounded ring buffers (max 1024 entries),
@@ -25,9 +24,6 @@ Decoupled Syntactic Articulation from Goal Fulfillment (SH-A1-05):
 - Advancing tokens through syntactic assemblies increments current token index, but strictly
   does NOT mark intent fulfilled. Goal fulfillment requires verified physical/sensory achievement
   via fulfill() on step().
-
-Pure deterministic physical cognition: no heuristics, no ML approximations, no synthetic language scaffolding.
-All vocal tokens are pure acoustic phoneme syllables from canonical SYLLABLES.
 """
 
 from __future__ import annotations
@@ -51,10 +47,10 @@ MAX_HISTORY_ENTRIES = 1024              # Hard capacity bound preventing memory 
 
 class MacroIntentType(enum.Enum):
     IDLE_EXPLORATION = "idle_exploration"
-    TELEOLOGICAL_DEMAND = "teleological_demand"          # Metabolic deficit + target object + acoustic demand
-    AFFECTIVE_VALUATION = "affective_valuation"          # Hedonic valence + acoustic valuation phonemes
-    MULTI_STEP_AFFORDANCE = "multi_step_affordance"      # Navigate -> reach -> grasp
-    DEONTIC_THEORY_OF_MIND = "deontic_theory_of_mind"    # Dyadic agent deficit modeling + acoustic phonemes
+    TELEOLOGICAL_DEMAND = "teleological_demand"          # Test fixture demand envelope
+    AFFECTIVE_VALUATION = "affective_valuation"          # Test fixture valuation envelope
+    MULTI_STEP_AFFORDANCE = "multi_step_affordance"      # Test fixture affordance envelope
+    DEONTIC_THEORY_OF_MIND = "deontic_theory_of_mind"    # Test fixture social prescription envelope
     PROTECTIVE_AVOIDANCE = "protective_avoidance"        # Preemptive hazard diversion
 
 
