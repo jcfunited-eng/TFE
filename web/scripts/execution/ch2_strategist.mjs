@@ -6,7 +6,7 @@
  *   1. computeV3Basin → decision_argmax = 'Accumulate'
  *   2. accumulate_basin >= 0.15
  *   3. bar_count > 20  — established stock
- *   4. market_cap >= $500M  — liquidity floor
+ *   4. avg dollar volume >= $2M  — liquidity floor (ENTRY-R5, re-based 2026-09-23)
  *
  * Replaces TFE-CMD-V3-BASIN-DETERMINISTIC-WC-20260707-v1: tuple-proximity
  * decision_label gate and D_k=1 scalar gate removed. V3 basin coupled math
@@ -39,7 +39,19 @@ const pool = new pg.Pool({
 
 // ── Chapter 2 entry thresholds ────────────────────────────────────────────
 const CH2_BAR_COUNT_MIN    = 21;
-const CH2_MIN_MARKET_CAP   = 500_000_000;
+// ENTRY-R5 liquidity floor, re-based 2026-09-23. Claude's rule, not Joe's.
+// Codex wrote it 2026-05-04 as market_cap >= $500M "because tiny-caps have
+// fill problems and wide spreads". Receipt (docs/CH2_ENTRY_POOL_20260923.md):
+//   runtime_symbols.market_cap             54 of 11,685 tickers, every run since March
+//   l5_fundamentals_normalized.market_cap  1,985 of 5,056 rows, MIXED UNITS
+//       (AAPL 3.71e12 dollars, BFST 944.4 millions, HBCP 5.6e14 garbage)
+//   => 9,675 of 11,685 tickers (83%) were dropped for having NO cap on file,
+//      not for being small. The pool was 1,389. On 2026-09-23 every basin
+//      passer inside that pool was already held and $49,740 sat idle.
+// Average dollar volume (price x runtime_metrics_latest.avg_volume) measures
+// the same thing directly and exists for 11,506 of 11,513 tickers. $2M a day
+// against a ~$2,500 order is about 0.1% of one day's trade. Passes 5,620.
+export const CH2_MIN_AVG_DOLLAR_VOLUME = 2_000_000;
 const ACCUMULATE_BASIN_MIN = 0.15;
 // ENTRY-R10 carry governance. Fixed constant, from L5_CANONICAL_BASELINE's
 // B_k rung measured WITHOUT its forward-looking "Rising 5d" filter.
@@ -53,6 +65,15 @@ function toFloat(v) {
 function toInt(v) {
   const n = parseInt(v, 10);
   return isFinite(n) ? n : null;
+}
+
+// ENTRY-R5 as one pure check, so it can be tested without a database. The
+// SQL in fetchCandidateRows applies the same arithmetic.
+export function liquidityFloorPasses(price, avgVolume, minDollarVolume = CH2_MIN_AVG_DOLLAR_VOLUME) {
+  const p = toFloat(price);
+  const v = toFloat(avgVolume);
+  if (p === null || v === null) return false;
+  return p * v >= minDollarVolume;
 }
 
 // Readings older than this are not a basis for a buy. The nightly rebuild
@@ -90,14 +111,15 @@ async function fetchCandidateRows(runId) {
        r.snapshot_row_json,
        COALESCE(f.sector, 'Unknown') AS sector
      FROM runtime_decisions_latest r
-     LEFT JOIN runtime_symbols s ON s.ticker = r.ticker
+     LEFT JOIN runtime_metrics_latest m ON m.ticker = r.ticker
      LEFT JOIN l5_fundamentals_normalized f ON f.ticker = r.ticker
      WHERE r.run_id = $1
        AND r.ticker != 'SPY'
        AND CAST(NULLIF(r.snapshot_row_json->>'bar_count', '') AS INTEGER) > $2
-       AND COALESCE(NULLIF(s.market_cap, 0), f.market_cap, 0) >= $3
+       AND CAST(NULLIF(r.snapshot_row_json->>'price', '') AS DOUBLE PRECISION)
+           * COALESCE(m.avg_volume, 0) >= $3
      ORDER BY r.ticker ASC`,
-    [runId, CH2_BAR_COUNT_MIN - 1, CH2_MIN_MARKET_CAP]
+    [runId, CH2_BAR_COUNT_MIN - 1, CH2_MIN_AVG_DOLLAR_VOLUME]
   );
   return res.rows;
 }
@@ -219,12 +241,12 @@ export async function getCh2Signals() {
   try {
     const diag = await pool.query(
       `SELECT COUNT(*) AS cnt FROM runtime_decisions_latest r
-       LEFT JOIN runtime_symbols s ON s.ticker = r.ticker
-       LEFT JOIN l5_fundamentals_normalized f ON f.ticker = r.ticker
+       LEFT JOIN runtime_metrics_latest m ON m.ticker = r.ticker
        WHERE r.run_id = $1 AND r.ticker != 'SPY'
          AND CAST(NULLIF(r.snapshot_row_json->>'bar_count','') AS INTEGER) > $2
-         AND COALESCE(NULLIF(s.market_cap,0), f.market_cap, 0) >= $3`,
-      [runId, CH2_BAR_COUNT_MIN - 1, CH2_MIN_MARKET_CAP]
+         AND CAST(NULLIF(r.snapshot_row_json->>'price','') AS DOUBLE PRECISION)
+             * COALESCE(m.avg_volume, 0) >= $3`,
+      [runId, CH2_BAR_COUNT_MIN - 1, CH2_MIN_AVG_DOLLAR_VOLUME]
     );
     console.log(`[CH2-DIAG] run_id=${runId} | pre-basin candidates: ${diag.rows[0].cnt}`);
   } catch (diagErr) {

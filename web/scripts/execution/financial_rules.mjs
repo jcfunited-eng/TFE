@@ -93,6 +93,14 @@ import * as _marketCalendar from "./market_calendar.mjs";
  *   2026-05-19  ENTRY-R3  Minimum share price $5 (penny stock filter)
  *   2026-05-19  ENTRY-R4  Minimum 5% bracket width (tight brackets lose at 50%)
  *   2026-05-19  ENTRY-R5  Market cap >= $500M (liquidity floor)
+ *   2026-09-23  ENTRY-R5  RE-BASED to average dollar volume >= $2M/day (Claude's rule).
+ *                          Market cap was on file for 54 of 11,685 tickers in
+ *                          runtime_symbols and 1,985 of 5,056 in l5_fundamentals_normalized,
+ *                          the latter in mixed units. 83% of the universe was dropped
+ *                          for MISSING data, not for being small; the pool was 1,389 and
+ *                          by 2026-09-23 every passer in it was held with $49,740 idle.
+ *                          price x runtime_metrics_latest.avg_volume covers 11,506 of 11,513.
+ *                          Receipt: docs/CH2_ENTRY_POOL_20260923.md
  *   2026-05-19  EXIT-R1   Catastrophic floor: -10% CH2, -1% CH3
  *   2026-05-19  EXIT-R2   Acceleration complete: S_UF >= 0.75
  *   2026-05-19  EXIT-R3   D_k collapse: D_k != 1 after entry
@@ -235,18 +243,26 @@ export function entryR4_MinBracketWidth(entryPrice, takeProfitPrice) {
 }
 
 /**
- * ENTRY-R5: Market cap floor
- * $500M minimum — illiquid stocks get wide spreads and phantom fills.
+ * ENTRY-R5: Liquidity floor — average dollar volume >= $2M a day.
+ * Illiquid names get wide spreads and phantom fills.
  *
- * @param {number} marketCap
+ * Was "market cap >= $500M" from 2026-05-04 to 2026-09-23. Market cap was
+ * missing for 83% of the universe, so the rule was dropping tickers for
+ * having no data, not for being small. Average dollar volume measures the
+ * same thing directly and exists for every ticker. Production check is
+ * liquidityFloorPasses() in ch2_strategist.mjs; this copy is the record.
+ *
+ * @param {number} price
+ * @param {number} avgVolume  shares per day, runtime_metrics_latest.avg_volume
  * @returns {{ blocked: boolean, rule: string, reason?: string }}
  */
-export function entryR5_MarketCapFloor(marketCap) {
+export function entryR5_LiquidityFloor(price, avgVolume) {
   const RULE = "ENTRY-R5";
-  const MIN_CAP = 500_000_000;
+  const MIN_DOLLAR_VOLUME = 2_000_000;
+  const dollarVolume = Number(price) * Number(avgVolume);
 
-  if (marketCap < MIN_CAP) {
-    return { blocked: true, rule: RULE, reason: `${marketCap} < $500M` };
+  if (!Number.isFinite(dollarVolume) || dollarVolume < MIN_DOLLAR_VOLUME) {
+    return { blocked: true, rule: RULE, reason: `${dollarVolume} < $2M/day` };
   }
 
   return { blocked: false, rule: RULE };
