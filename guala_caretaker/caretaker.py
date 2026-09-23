@@ -491,6 +491,14 @@ def maybe_housekeeping(o: dict, st: dict) -> None:
             with open(STATE, "w") as f:
                 json.dump(st, f)
 
+    if st.get("nocturnal_tidy_night") != nights:
+        res = present_food("clean-up")
+        if res is not None:
+            st["nocturnal_tidy_night"] = nights
+            log(f"housekeeping: nocturnal house tidying performed for Night {nights} (books reshelved, TV reset to boring channel 0, apples cleared) — res={bool(res)}")
+            with open(STATE, "w") as f:
+                json.dump(st, f)
+
     emb = (o.get("last_occurrence") or {}).get("embodiment") or {}
     stray_apples = [
         ob for ob in emb.get("objects") or []

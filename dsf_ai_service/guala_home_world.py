@@ -1724,12 +1724,22 @@ def operate_tv_remote(authority: Any) -> int:
     return switch_tv_channel(authority)
 
 
+LIBRARY_BOOK_SHELVES = {
+    "book-peter-rabbit": (9_850, 9_400, 0, 330),
+    "book-wind-willows": (10_150, 9_400, 0, 330),
+    "book": (12_250, 9_400, 0, 330),
+    "book-aesops-fables": (12_500, 9_400, 0, 330),
+    "book-mother-goose": (12_750, 9_400, 0, 330),
+}
+
+
 def nocturnal_house_tidying(authority: Any) -> None:
     """Perform caretaker nocturnal house-cleaning and state reset during sleep cycles under coupled transaction.
 
     1. Resets the television broadcast back to Channel 0 (Boring static & 60 Hz hum).
     2. Tidies tv-remote, stroller-carriage, and garden fauna perches.
-    3. Preserves objects currently held by Guala or caretaker.
+    3. Reshelves unheld library books to shelf-a and shelf-b within child reach for wakeful selection.
+    4. Clears stray floor apples and preserves objects currently held by Guala or caretaker.
     """
     with _world_thermal_transaction(authority):
         broadcast = get_tv_broadcast(authority)
@@ -1757,6 +1767,9 @@ def nocturnal_house_tidying(authority: Any) -> None:
                         updated.append(replace(obj, position=PositionMM(14_000, 15_500, 0), elevation_mm=1_800))
                     elif obj.object_id == "garden-butterfly":
                         updated.append(replace(obj, position=PositionMM(16_500, 11_500, 0), elevation_mm=180))
+                    elif obj.object_id in LIBRARY_BOOK_SHELVES and obj.position is not None:
+                        bx, by, bz, target_elev = LIBRARY_BOOK_SHELVES[obj.object_id]
+                        updated.append(replace(obj, position=PositionMM(bx, by, bz), elevation_mm=target_elev))
                     elif obj.object_id.startswith("apple") and obj.position is not None:
                         # Clear stray abandoned floor apples during nocturnal house tidying so Guala wakes to a clean home
                         continue

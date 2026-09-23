@@ -325,6 +325,7 @@ def test_caretaker_script_order_and_awake_dispatch(monkeypatch, tmp_path) -> Non
 
     fake_state_file = str(tmp_path / "state.json")
     monkeypatch.setattr(ct, "STATE", fake_state_file)
+    monkeypatch.setattr(ct, "LOG", str(tmp_path / "test_caretaker.log"))
 
     st = {
         "tactile_index": 0,
@@ -339,3 +340,38 @@ def test_caretaker_script_order_and_awake_dispatch(monkeypatch, tmp_path) -> Non
     assert res is not None
     assert st.get("tactile_index") == 1
     assert st.get("tactile_next_tick") == 23_600
+
+
+def test_routine_nocturnal_cleanup_books_and_tv() -> None:
+    world = home_world_authority(identity=str(uuid.uuid4()))
+    # 1. Displace a book to floor and set TV away from Channel 0
+    from dataclasses import replace
+    cur_world = world._state.world
+    updated = []
+    for obj in cur_world.objects:
+        if obj.object_id == "book-peter-rabbit":
+            updated.append(replace(obj, position=PositionMM(11_000, 7_000, 0), elevation_mm=0))
+        elif obj.object_id == "television":
+            updated.append(replace(obj, optical_surface=((50_000, 50_000, 50_000, 50_000, 50_000, 50_000),) * 6, emission_ppm=(50_000,) * 6))
+        else:
+            updated.append(obj)
+    world._state = replace(world._state, world=replace(cur_world, revision=cur_world.revision + 1, objects=tuple(updated)))
+
+    world.television_broadcast.channel = 1
+
+    # 2. Execute clean-up routine
+    res = present_food(world, "clean-up")
+    assert res["presented"] is True
+    ops = [s.get("operation") for s in res.get("steps", [])]
+    assert "nocturnal_house_tidying" in ops
+
+    # 3. Assert TV reset to Channel 0 (Boring static)
+    assert world.television_broadcast.channel == 0
+    tv_obj = next(o for o in world._state.world.objects if o.object_id == "television")
+    assert tv_obj.emission_ppm == (150_000, 150_000, 150_000, 150_000, 150_000, 150_000)
+
+    # 4. Assert book-peter-rabbit reshelved to shelf-a reachable position
+    book = next(o for o in world._state.world.objects if o.object_id == "book-peter-rabbit")
+    assert book.position.x == 9_850
+    assert book.position.y == 9_400
+    assert book.elevation_mm == 330

@@ -975,10 +975,18 @@ def clean_up_house(world: Any) -> dict[str, object]:
     Audit all rooms for stray discarded floor apples / cores not held by Guala.
     Gathers them systematically and transports them to the boundary departure portal.
     Leaves items currently within Guala's reach untouched.
+    Performs nocturnal tidying: resets TV to Channel 0 (boring static) and
+    reshelves books to shelf-a and shelf-b within child reach.
     """
     hand = _Hand(world, CLEANUP_ID)
     cleared = []
     steps = []
+    try:
+        from dsf_ai_service.guala_home_world import nocturnal_house_tidying
+        nocturnal_house_tidying(world)
+        steps.append({"operation": "nocturnal_house_tidying", "reason": "applied"})
+    except Exception as exc:
+        steps.append({"operation": "nocturnal_house_tidying", "reason": str(exc)})
     try:
         while len(cleared) < 16:
             snapshot = hand.snapshot()
@@ -1015,12 +1023,13 @@ def clean_up_house(world: Any) -> dict[str, object]:
             steps.append({"cleared": target_id, "status": "departed"})
     except _Bounded:
         pass
+    applied = any(s.get("reason") == "applied" for s in steps)
     return {
         "object_id": CLEANUP_ID,
-        "presented": True,
+        "presented": applied,
         "cleared": cleared,
         "schema": "guala.caregiver_presentation.v1",
-        "steps": [{"operation": "cleanup", "reason": "applied", "cleared": cleared, "details": steps}],
+        "steps": [{"operation": "cleanup", "reason": "applied" if applied else "not_performed", "cleared": cleared}] + steps,
     }
 
 
