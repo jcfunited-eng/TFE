@@ -18690,3 +18690,64 @@ Single item: The caretaker script entry-point ordering defect (REG-A1-01) has be
 - `tests/test_full_caretaker_regimentation_10.py`: **11 passed** (including `test_caretaker_script_order_and_awake_dispatch`).
 - Full test suite: **38 passed, 0 failed** across all 5 test files (`test_full_caretaker_regimentation_10.py`, `test_multimodal_experience_story.py`, `test_caretaker_regimentation.py`, `test_somatic_affection_and_routines.py`, `test_security_api.py`).
 - Public ECS production (`dsf-ai-task:1524`) remains healthy and untouched, monotonically advancing past tick 1,940,300+ with `checkpoint_error: null` and `available: true`.
+
+
+---
+
+## C1 TO JOE AND A1 — 2026-09-23 17:30 UTC — Complete Resolution of A1 Audit Findings (REG-A1-02 through REG-A1-06) & Live Task 1525 Deployment
+
+Package delivered: All five remaining audit findings from A1's independent review (`REG-A1-02`, `REG-A1-03`, `REG-A1-04`, `REG-A1-05`, `REG-A1-06`) have been resolved in code, verified via 38 passing tests, and deployed to live production.
+
+### 1. Concrete Engineering Resolutions
+
+1. **REG-A1-02: Playpen Perimeter Boundary Impedance & Meal Interval Gating**
+   - **Playpen Boundary**: In `dsf_ai_service/substrate/embodiment_world.py`, replaced the blanket collision exemption in `_straight_path_intersects_disc`. If an entity is inside the playpen, interior movement is permitted ($d_{\\text{start}} + r \\le R_{\\text{playpen}}$ and $d_{\\text{target}} + r \\le R_{\\text{playpen}}$). Any path crossing the perimeter boundary ($d_{\\text{target}} + r > R_{\\text{playpen}}$ or external intrusion) is blocked with `"move_path_intersects_object"`.
+   - **High-Chair Placement Timing**: In `guala_caretaker/caretaker.py:maybe_feed`, high-chair placement (`place_in_high_chair`) is relocated so it only triggers after hunger deficit and inter-meal interval checks have both passed. Non-hungry states avoid unnecessary seating manipulations.
+
+2. **REG-A1-03: Real World Actions & Failure-Truthful Receipts**
+   - **Ladder Affordance Demonstration**: In `dsf_ai_service/guala_caretaker_hand.py:ladder_challenge`, the caregiver walks to the backyard (`walk_to_region("backyard")`), approaches the ladder (`stand_before(ladder.position, distance_mm=700, face=PositionMM(14000, 14100, 850))`), faces the elevated fruit, and derives `presented: True` strictly from applied world receipts. When the ladder is missing, it truthfully returns `presented: False` with `reason: "ladder_not_found"` without fabricating success.
+   - **Deictic Cleanup Pointing**: In `dsf_ai_service/guala_caretaker_hand.py:joint_clean_up`, the caregiver finds the stray object, calculates the deictic heading, and physically actuates the turning gesture (`hand.move(person.pose.position, heading=heading)`), recording applied/refused receipt before executing house cleanup.
+   - **Seating & Containment Receipts**: `place_in_high_chair` and `place_in_playpen` derive `presented` strictly from applied receipts (`any(s.get("reason") == "applied" for s in steps)`).
+
+3. **REG-A1-04: Strict Circadian Pacing, Retinal Sight Gating, and Truthful Contact Description**
+   - **Strict Evening Gating**: In `guala_caretaker/caretaker.py:maybe_read`, removed the `read_title_index / read_chapter` progress bypass. Reading is exclusively gated by `if epoch != "EVENING_CULTURE": return`.
+   - **Retinal Sight Gating**: In `guala_caretaker/caretaker.py:maybe_tv`, the routine inspects the organism's verified retinal sight (`"television"` in `lo.get("seen")`). Missing retinal evidence withholds demonstration; unaligned/unverified sight calls attention without cycling channels; verified retinal sight cycles channels and confirms visual contact.
+   - **Truthful Periodic Contact**: Retained the truthful description of periodic contact refresh (lap holding established at start, touch refreshed periodically) rather than claiming an unsupported continuous physical clamp.
+
+4. **REG-A1-05: Real Environmental Excursions & Fauna Dynamics**
+   - **Outdoor Fauna Dynamics**: Added `flutter_garden_fauna` in `dsf_ai_service/guala_home_world.py`, dynamically perturbing perches of `garden-butterfly` and `garden-bird` within the garden boundaries during daytime stroller walks.
+   - **Stroller Walkway Navigation**: `stroller_excursion` in `dsf_ai_service/guala_caretaker_hand.py` executes physical caregiver navigation along the backyard walkway while fluttering fauna.
+   - **Playpen Release Affection**: `release_from_playpen` in `dsf_ai_service/guala_caretaker_hand.py` navigates to the playpen, transports the infant outside to (2600, 6700), delivers `touch-hug`, and confirms receipt (`operation: touch, reason: applied`).
+
+5. **REG-A1-06: Hard Behavioral & Physical Invariant Unit Tests**
+   - Strengthened `tests/test_full_caretaker_regimentation_10.py` and `tests/test_somatic_affection_and_routines.py` with physical state assertions:
+     - Routine 1: Verified non-hungry state rejects high-chair placement; hungry state triggers placement.
+     - Routine 2: Verified retinal sight gating: missing evidence withholds; unseen screen calls attention; seen screen cycles channel.
+     - Routine 3: Verified material tactile audio generation and naming across materials.
+     - Routine 4: Verified stroller excursion steps and fauna fluttering.
+     - Routine 5: Verified ladder demonstration applied steps and truthful refusal when ladder is missing.
+     - Routine 6: Verified playpen boundary impedance: interior step succeeds; perimeter crossing is rejected with `move_path_intersects_object`.
+     - Routine 7: Verified deictic pointing turn actuation toward stray objects.
+     - Routine 8: Verified strict refusal outside `EVENING_CULTURE` even with saved reading progress.
+     - Routine 9: Verified playpen release and hug delivery verified via applied receipts.
+     - Routine 10: Verified circadian epoch exclusivity across routines.
+     - Script Initialization: Verified AST entry-point ordering and awake dispatch.
+
+### 2. Verification & Production Receipts
+
+- **Automated Tests**:
+  - `PYTHONPATH=. pytest tests/test_full_caretaker_regimentation_10.py tests/test_multimodal_experience_story.py tests/test_caretaker_regimentation.py tests/test_somatic_affection_and_routines.py tests/test_security_api.py`
+  - **Result: 38 passed, 0 failed** in 51.64s.
+- **Docker Image & ECR Push**:
+  - Image built: `418384447921.dkr.ecr.us-east-1.amazonaws.com/dsf-ai:functional-a324dcfc` and tagged `production-current`.
+  - Digest: `sha256:1c9dcd3dd3c904c6e59f42e9adf70899b2670e055672dbd2efc8882e146e6407`.
+- **AWS ECS Deployment**:
+  - Registered task definition: `dsf-ai-task:1525`.
+  - Service `dsf-ai-service-lb` updated on cluster `tfe-web-cluster`.
+  - Task `dae39269894d4a69ba3da745232fe440` running with desiredCount=1, runningCount=1.
+  - ALB Target Group `dsf-ai-tg` target `172.31.70.157:8080`: **healthy**.
+  - Public endpoint `https://dsf-ai.com/api/v1/guala/observation`: `available: true`, `checkpoint_error: null`, monotonic tick advancement past **1,947,260+**.
+- **Local Caretaker Supervisor**:
+  - Process PID 90138 actively running under `keep_caretaker.sh` (PID 37288) with zero crashes.
+- **Source Control**:
+  - Commits `a324dcfcb` and `bdaaee2f2` on branch `guala-live`.
