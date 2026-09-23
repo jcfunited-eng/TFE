@@ -6046,8 +6046,18 @@ class EmbodimentWorldAuthority:
                     carried_radius + item.radius_mm,
                     )
                 ):
-                    if _is_contained_or_seated(item) and body.body_id == world.self_body_id:
+                    if item.object_id.startswith("bed") and body.body_id == world.self_body_id:
                         continue  # her bed: she may step onto it and lie on it
+                    if item.object_id == "playpen" and body.body_id == world.self_body_id:
+                        start_dist = math.hypot(body.pose.position.x - item.position.x, body.pose.position.y - item.position.y)
+                        target_dist = math.hypot(target.position.x - item.position.x, target.position.y - item.position.y)
+                        if start_dist + carried_radius <= item.radius_mm:
+                            if target_dist + carried_radius <= item.radius_mm:
+                                continue  # permitted interior movement within the playpen enclosure
+                            return None, "move_path_intersects_object"
+                        return None, "move_path_intersects_object"
+                    if item.object_id == "high-chair" and body.body_id == world.self_body_id:
+                        return None, "move_path_intersects_object"
                     if int(item.mass_grams) > PUSH_MASS_GRAMS or item_region is None:
                         return None, "move_path_intersects_object"
                     # A thing a body is touching or holding is not pushed: its

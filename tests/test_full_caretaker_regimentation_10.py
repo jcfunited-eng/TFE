@@ -3,7 +3,14 @@ import uuid
 import pytest
 
 from dsf_ai_service.guala_home_world import home_world_authority
-from dsf_ai_service.substrate.embodiment_world import PoseMM, PositionMM
+from dsf_ai_service.substrate.embodiment_world import (
+    PORT_ID,
+    PoseMM,
+    PositionMM,
+    MoveCommand,
+    encode_command,
+    ActionExecutionReceipt,
+)
 from dsf_ai_service.guala_caretaker_hand import (
     present_food,
     touch_her,
@@ -28,11 +35,13 @@ from guala_caretaker.caretaker import (
 )
 
 
-def test_routine_1_high_chair_meal_variety() -> None:
+def test_routine_1_high_chair_meal_variety(monkeypatch) -> None:
     world = home_world_authority(identity=str(uuid.uuid4()))
-    # 1. Place in high chair
+    # 1. Place in high chair via physical world action
     res = present_food(world, "high-chair-meal")
     assert res["presented"] is True
+    applied_steps = [s for s in (res.get("steps") or []) if s.get("reason") == "applied"]
+    assert any(s.get("operation") == "place_in_high_chair" for s in applied_steps)
     snap = world.observation_snapshot()
     her = next(b for b in snap.bodies if b.body_id == snap.self_body_id)
     assert her.pose.position.x == 3500
@@ -48,23 +57,58 @@ def test_routine_1_high_chair_meal_variety() -> None:
     res_bread = present_food(world, "bread-delivery")
     assert res_bread["delivered"] is not None
 
+    # 4. Gating check: high-chair placement occurs only when hungry and meal interval has elapsed
+    st = {"meal_tick": 0}
+    placed_calls = []
+    monkeypatch.setattr("guala_caretaker.caretaker.present_food", lambda item: placed_calls.append(item) or {"presented": True})
 
-def test_routine_2_tv_time_remote_gaze_alignment() -> None:
-    # Retinal heading alignment calculation
-    hx, hy = 15000, 7000
-    tv_x, tv_y = 17000, 9200
-    target_heading = round(math.degrees(math.atan2(tv_y - hy, tv_x - hx)) * 1_000) % 360_000
-    assert 0 <= target_heading < 360_000
+    # Not hungry: deficit below threshold -> high-chair placement not called
+    obs_not_hungry = {
+        "live_tick": 10_000,
+        "last_occurrence": {
+            "metabolic_need_reserve_deficit": [0, 1],
+            "embodiment": {"bodies": [{"body_id": "guala-body-1", "pose": {"position": {"x_mm": 1000, "y_mm": 1000}}}], "self_body_id": "guala-body-1"},
+            "tastant_remaining_micrograms": {},
+        }
+    }
+    maybe_feed(obs_not_hungry, st)
+    assert "high-chair-meal" not in placed_calls
 
-    # Test gaze within 45 degrees
-    aligned_heading = target_heading
-    deviation = min(abs(aligned_heading - target_heading), 360_000 - abs(aligned_heading - target_heading))
-    assert deviation <= 45_000
 
-    # Test unaligned gaze
-    unaligned_heading = (target_heading + 90_000) % 360_000
-    dev_unaligned = min(abs(unaligned_heading - target_heading), 360_000 - abs(unaligned_heading - target_heading))
-    assert dev_unaligned > 45_000
+def test_routine_2_tv_time_remote_gaze_alignment(monkeypatch) -> None:
+    # Test retinal visibility evidence gating
+    st = {}
+    remote_cycled = []
+    words = []
+    monkeypatch.setattr("guala_caretaker.caretaker.present_food", lambda item: remote_cycled.append(item) or ({"channel": 1} if item == "tv-remote-cycle" else {"presented": True}))
+    monkeypatch.setattr("guala_caretaker.caretaker.say_word", lambda word: words.append(word) or True)
+
+    # Case A: Missing visual evidence (seen is None) -> demonstration withheld
+    obs_missing = {
+        "live_tick": 60_000,
+        "last_occurrence": {"seen": None}
+    }
+    maybe_tv(obs_missing, st)
+    assert len(remote_cycled) == 0
+
+    # Case B: Television not in retinal field -> attention called, no remote cycle
+    st["tv_next_tick"] = 0
+    obs_not_seen = {
+        "live_tick": 60_001,
+        "last_occurrence": {"seen": ["bed", "toy-bear"]}
+    }
+    maybe_tv(obs_not_seen, st)
+    assert len(remote_cycled) == 0
+    assert "television" in words
+
+    # Case C: Television verified in retinal field -> remote cycle demonstrated
+    st["tv_next_tick"] = 0
+    obs_seen = {
+        "live_tick": 60_002,
+        "last_occurrence": {"seen": ["television", "sofa"]}
+    }
+    maybe_tv(obs_seen, st)
+    assert "tv-remote-cycle" in remote_cycled
 
 
 def test_routine_3_curriculum_variety_tactile() -> None:
@@ -80,13 +124,17 @@ def test_routine_3_curriculum_variety_tactile() -> None:
     assert len(wood_pcm) == 8000
     ceramic_pcm = material_impact_pcm("ceramic", intensity=0.7)
     assert len(ceramic_pcm) == 8000
+    metal_pcm = material_impact_pcm("metal", intensity=0.85)
+    assert len(metal_pcm) == 8000
 
 
 def test_routine_4_stroller_walk_and_sensory_field() -> None:
     world = home_world_authority(identity=str(uuid.uuid4()))
-    # Stroller carriage delivery
+    # Stroller carriage delivery & excursion
     res_stroller = present_food(world, "stroller-carriage")
-    assert res_stroller is not None
+    assert res_stroller["presented"] is True
+    applied_ops = [s.get("operation") for s in res_stroller.get("steps", []) if s.get("reason") == "applied"]
+    assert "stroller_excursion" in applied_ops
 
     # Hand holding contact
     res_hand = present_food(world, "touch-hold-hand")
@@ -101,15 +149,30 @@ def test_routine_4_stroller_walk_and_sensory_field() -> None:
 
 def test_routine_5_ladder_tool_affordance_challenge() -> None:
     world = home_world_authority(identity=str(uuid.uuid4()))
+    # 1. Successful demonstration: caregiver moves to backyard, faces elevated fruit, records applied receipt
     res = present_food(world, "ladder-challenge")
     assert res["presented"] is True
-    metal_pcm = material_impact_pcm("metal", intensity=0.85)
-    assert len(metal_pcm) == 8000
+    applied = [s for s in res.get("steps", []) if s.get("reason") == "applied"]
+    assert any(s.get("operation") == "ladder_demonstration" for s in applied)
+    assert any(s.get("target") == "garden-apple" for s in applied)
+
+    # 2. Truthful refusal when ladder is missing
+    from dataclasses import replace
+    no_ladder_objects = tuple(o for o in world.observation_snapshot().objects if o.object_id != "garden-ladder")
+    cur_world = world._state.world
+    new_world = replace(cur_world, revision=cur_world.revision + 1, objects=no_ladder_objects)
+    from dsf_ai_service.guala_home_world import _commit_world_successor, _world_thermal_transaction
+    with _world_thermal_transaction(world):
+        _commit_world_successor(world, new_world)
+
+    res_no_ladder = present_food(world, "ladder-challenge")
+    assert res_no_ladder["presented"] is False
+    assert any(s.get("reason") == "ladder_not_found" for s in res_no_ladder.get("steps", []))
 
 
 def test_routine_6_playpen_containment_impedance() -> None:
     world = home_world_authority(identity=str(uuid.uuid4()))
-    # 1. Contain in playpen
+    # 1. Place in playpen at (2050, 6700)
     res_contain = present_food(world, "playpen-containment")
     assert res_contain["presented"] is True
     snap = world.observation_snapshot()
@@ -118,15 +181,45 @@ def test_routine_6_playpen_containment_impedance() -> None:
     assert her.pose.position.y == 6700
     assert snap.room_id == "her-room"
 
+    # 2. Movement INSIDE playpen is permitted (interior step within 450mm radius)
+    # Guala radius 200mm, playpen center (2050, 6700), target (2060, 6700): dist = 10mm + 200mm <= 450mm
+    valid_step = PoseMM(PositionMM(2060, 6700, 0), her.pose.heading_millidegrees)
+    prep_valid = world.prepare_port_command(
+        port_id=PORT_ID,
+        command_payload=encode_command(MoveCommand(valid_step, 100_000)),
+        causal_intent_receipt_sha256="0" * 64,
+        expected_revision=snap.revision,
+    )
+    assert not isinstance(prep_valid, ActionExecutionReceipt)
+    world.discard_prepared_action(prep_valid)
+
+    # 3. Stepping OUT of playpen hits boundary perimeter impedance and is rejected
+    # target (2500, 6700): dist = 450mm + 200mm = 650mm > 450mm -> crosses perimeter boundary
+    blocked_step = PoseMM(PositionMM(2500, 6700, 0), her.pose.heading_millidegrees)
+    prep_blocked = world.prepare_port_command(
+        port_id=PORT_ID,
+        command_payload=encode_command(MoveCommand(blocked_step, 100_000)),
+        causal_intent_receipt_sha256="1" * 64,
+        expected_revision=snap.revision,
+    )
+    assert isinstance(prep_blocked, ActionExecutionReceipt)
+    assert prep_blocked.reason == "move_path_intersects_object"
+
 
 def test_routine_7_joint_clean_up_routine() -> None:
     world = home_world_authority(identity=str(uuid.uuid4()))
     res = present_food(world, "joint-clean-up")
     assert res["presented"] is True
     assert res["object_id"] == "joint-clean-up"
+    # Verify deictic orientation pointing step was recorded and applied
+    steps = res.get("steps") or []
+    pointing_steps = [s for s in steps if s.get("operation") == "point_to_stray"]
+    if pointing_steps:
+        assert pointing_steps[0]["reason"] == "applied"
+        assert "heading" in pointing_steps[0]
 
 
-def test_routine_8_lap_reading_stabilized_seating() -> None:
+def test_routine_8_lap_reading_stabilized_seating(monkeypatch) -> None:
     world = home_world_authority(identity=str(uuid.uuid4()))
     lap = present_food(world, "touch-lap")
     assert lap["touched"] == "lap_hold"
@@ -136,12 +229,26 @@ def test_routine_8_lap_reading_stabilized_seating() -> None:
     assert "left-shoulder" in sites
     assert "right-shoulder" in sites
 
+    # Verify strict evening gate: reading is refused outside EVENING_CULTURE
+    # even when read_title_index or read_chapter is nonzero (REG-A1-04 verification)
+    st = {"read_title_index": 1, "read_chapter": 2, "read_next_tick": 0}
+    books_presented = []
+    monkeypatch.setattr("guala_caretaker.caretaker.present_food", lambda item: books_presented.append(item) or {"presented": True})
+
+    # Tick 20_000 is MORNING_FOCUS: must refuse to read despite saved chapter progress
+    obs_morning = {"live_tick": 20_000, "her_sleep": {"asleep": False}}
+    maybe_read(obs_morning, st)
+    assert len(books_presented) == 0, "Reading must not proceed outside EVENING_CULTURE despite saved chapter"
+
 
 def test_routine_9_affection_and_stress_recovery_hug() -> None:
     world = home_world_authority(identity=str(uuid.uuid4()))
-    # Playpen release delivers contingent recovery hug
+    # Playpen release delivers contingent recovery hug with applied receipt
     res_release = present_food(world, "playpen-release")
     assert res_release["presented"] is True
+    steps = res_release.get("steps") or []
+    assert any(s.get("operation") == "release_from_playpen" and s.get("reason") == "applied" for s in steps)
+    assert any(s.get("operation") == "touch" and s.get("reason") == "applied" for s in steps)
     snap = world.observation_snapshot()
     her = next(b for b in snap.bodies if b.body_id == snap.self_body_id)
     assert her.pose.position.x == 2600
@@ -172,6 +279,7 @@ def test_routine_10_diurnal_circadian_pacing_exclusivity() -> None:
 
     e5, _ = circadian_epoch(105_000)
     assert e5 == "NIGHT_CONSOLIDATION"
+
 
 def test_caretaker_script_order_and_awake_dispatch(monkeypatch, tmp_path) -> None:
     """Verify REG-A1-01: script entry-point main() is placed strictly after all
@@ -231,4 +339,3 @@ def test_caretaker_script_order_and_awake_dispatch(monkeypatch, tmp_path) -> Non
     assert res is not None
     assert st.get("tactile_index") == 1
     assert st.get("tactile_next_tick") == 23_600
-

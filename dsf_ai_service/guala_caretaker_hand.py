@@ -1053,6 +1053,8 @@ def present_food(world: Any, object_id: str) -> dict[str, object]:
         return release_from_playpen(world)
     if object_id == "joint-clean-up":
         return joint_clean_up(world)
+    if object_id == "stroller-carriage":
+        return stroller_excursion(world)
     if object_id in CARRY_IDS:
         # Carry a thing to her: fetched and brought within her reach as a thing is
         # offered, then set down on the floor beside the caregiver (never at her
@@ -1158,6 +1160,9 @@ __all__ = (
     "place_in_playpen",
     "release_from_playpen",
     "joint_clean_up",
+    "ladder_challenge",
+    "playpen_challenge",
+    "stroller_excursion",
 )
 
 
@@ -1195,13 +1200,42 @@ def ladder_challenge(world: Any) -> dict[str, object]:
     """The backyard tool affordance challenge:
     Caregiver approaches the garden-ladder and garden-apple beneath the apple tree,
     demonstrating the reaching affordance. Returns presentation record."""
-    snapshot = world.observation_snapshot()
-    ladder = next((o for o in snapshot.objects if o.object_id == "garden-ladder"), None)
+    hand = _Hand(world, "ladder-challenge")
+    steps = []
+    try:
+        snapshot = hand.snapshot()
+        her, person = hand.bodies(snapshot)
+        ladder = next((o for o in snapshot.objects if o.object_id == "garden-ladder"), None)
+        if ladder is None or ladder.position is None:
+            steps.append({"operation": "ladder_demonstration", "reason": "ladder_not_found", "to": None})
+            return {
+                "object_id": "ladder-challenge",
+                "presented": False,
+                "schema": "guala.caregiver_presentation.v1",
+                "steps": steps,
+            }
+        hand.walk_to_region("backyard")
+        apple_elevated = PositionMM(14_000, 14_100, 850)
+        approached = hand.stand_before(ladder.position, distance_mm=700, face=apple_elevated)
+        if approached:
+            snapshot = hand.snapshot()
+            _her, person = hand.bodies(snapshot)
+            heading = _heading_toward(person.pose.position, apple_elevated)
+            turned = hand.move(person.pose.position, heading=heading)
+            reason = "applied" if turned else "turn_refused"
+            steps.extend(hand.steps)
+            steps.append({"operation": "ladder_demonstration", "reason": reason, "ladder": "garden-ladder", "target": "garden-apple"})
+        else:
+            steps.extend(hand.steps)
+            steps.append({"operation": "ladder_demonstration", "reason": "approach_refused", "ladder": "garden-ladder"})
+    except Exception as e:
+        steps.append({"operation": "ladder_demonstration", "reason": str(e), "ladder": "garden-ladder"})
+    applied = any(s.get("reason") == "applied" and s.get("operation") == "ladder_demonstration" for s in steps)
     return {
         "object_id": "ladder-challenge",
-        "presented": True,
+        "presented": applied,
         "schema": "guala.caregiver_presentation.v1",
-        "steps": [{"operation": "ladder_demonstration", "reason": "applied"}],
+        "steps": steps,
     }
 
 
@@ -1219,11 +1253,14 @@ def place_in_high_chair(world: Any) -> dict[str, object]:
             target_pose = PoseMM(PositionMM(3500, 1500, 0), her.pose.heading_millidegrees)
             world.admit_authored_body_transport(her.body_id, target_pose)
             steps.append({"operation": "place_in_high_chair", "reason": "applied", "to": [3500, 1500]})
+        else:
+            steps.append({"operation": "place_in_high_chair", "reason": "unreachable", "to": None})
     except Exception as e:
         steps.append({"operation": "place_in_high_chair", "reason": str(e), "to": None})
+    applied = any(s.get("reason") == "applied" for s in steps)
     return {
         "object_id": "high-chair-meal",
-        "presented": True,
+        "presented": applied,
         "schema": "guala.caregiver_presentation.v1",
         "steps": steps,
     }
@@ -1243,11 +1280,14 @@ def place_in_playpen(world: Any) -> dict[str, object]:
             target_pose = PoseMM(PositionMM(2050, 6700, 0), her.pose.heading_millidegrees)
             world.admit_authored_body_transport(her.body_id, target_pose)
             steps.append({"operation": "place_in_playpen", "reason": "applied", "to": [2050, 6700]})
+        else:
+            steps.append({"operation": "place_in_playpen", "reason": "unreachable", "to": None})
     except Exception as e:
         steps.append({"operation": "place_in_playpen", "reason": str(e), "to": None})
+    applied = any(s.get("reason") == "applied" for s in steps)
     return {
         "object_id": "playpen-containment",
-        "presented": True,
+        "presented": applied,
         "schema": "guala.caregiver_presentation.v1",
         "steps": steps,
     }
@@ -1262,6 +1302,9 @@ def release_from_playpen(world: Any) -> dict[str, object]:
     try:
         snapshot = hand.snapshot()
         her, person = hand.bodies(snapshot)
+        playpen = next((o for o in snapshot.objects if o.object_id == "playpen"), None)
+        if playpen is not None and playpen.position is not None:
+            hand.stand_before(playpen.position, distance_mm=700)
         target_pose = PoseMM(PositionMM(2600, 6700, 0), her.pose.heading_millidegrees)
         world.admit_authored_body_transport(her.body_id, target_pose)
         steps.append({"operation": "release_from_playpen", "reason": "applied", "to": [2600, 6700]})
@@ -1269,9 +1312,10 @@ def release_from_playpen(world: Any) -> dict[str, object]:
         steps.extend(hug_res.get("steps") or [])
     except Exception as e:
         steps.append({"operation": "release_from_playpen", "reason": str(e), "to": None})
+    applied = any(s.get("reason") == "applied" and s.get("operation") == "release_from_playpen" for s in steps)
     return {
         "object_id": "playpen-release",
-        "presented": True,
+        "presented": applied,
         "schema": "guala.caregiver_presentation.v1",
         "steps": steps,
     }
@@ -1294,14 +1338,45 @@ def joint_clean_up(world: Any) -> dict[str, object]:
                     break
         if stray is not None:
             heading = deictic_orientation_millidegrees(person.pose.position, stray.position)
-            steps.append({"operation": "point_to_stray", "reason": "applied", "heading": heading, "target": stray.object_id})
+            turned = hand.move(person.pose.position, heading=heading)
+            reason = "applied" if turned else "turn_refused"
+            steps.append({"operation": "point_to_stray", "reason": reason, "heading": heading, "target": stray.object_id})
         cleanup_res = clean_up_house(world)
         steps.extend(cleanup_res.get("steps") or [])
     except Exception as e:
         steps.append({"operation": "joint_clean_up", "reason": str(e)})
+    applied = any(s.get("reason") == "applied" for s in steps)
     return {
         "object_id": "joint-clean-up",
-        "presented": True,
+        "presented": applied,
+        "schema": "guala.caregiver_presentation.v1",
+        "steps": steps,
+    }
+
+
+def stroller_excursion(world: Any) -> dict[str, object]:
+    """Caregiver approaches stroller carriage, holds Guala hand,
+    and executes an excursion along the walkway/garden into the backyard,
+    animating outdoor fauna."""
+    hand = _Hand(world, "stroller-carriage")
+    steps = []
+    try:
+        snapshot = hand.snapshot()
+        _her, person = hand.bodies(snapshot)
+        stroller = next((o for o in snapshot.objects if o.object_id == "stroller-carriage"), None)
+        if stroller is not None and stroller.position is not None:
+            hand.stand_before(stroller.position, distance_mm=600)
+        hand.walk_to_region("backyard")
+        steps.extend(hand.steps)
+        from dsf_ai_service.guala_home_world import flutter_garden_fauna
+        flutter_garden_fauna(world)
+        steps.append({"operation": "stroller_excursion", "reason": "applied", "to": "backyard"})
+    except Exception as e:
+        steps.append({"operation": "stroller_excursion", "reason": str(e), "to": None})
+    applied = any(s.get("reason") == "applied" and s.get("operation") == "stroller_excursion" for s in steps)
+    return {
+        "object_id": "stroller-carriage",
+        "presented": applied,
         "schema": "guala.caregiver_presentation.v1",
         "steps": steps,
     }

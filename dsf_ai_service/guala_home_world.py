@@ -1769,6 +1769,37 @@ def nocturnal_house_tidying(authority: Any) -> None:
             raise
 
 
+def flutter_garden_fauna(authority: Any) -> bool:
+    """Animate outdoor garden fauna (butterfly flutter / bird perch shift)
+    during daylight stroller excursions under coupled thermal transaction."""
+    with _world_thermal_transaction(authority):
+        if not hasattr(authority, "_state") or not hasattr(authority._state, "world"):
+            return False
+        from dataclasses import replace
+        from dsf_ai_service.substrate.embodiment_world import PositionMM
+        cur_world = authority._state.world
+        updated = []
+        shifted = False
+        rev = cur_world.revision
+        delta_x = 100 if (rev % 2 == 0) else -100
+        for obj in cur_world.objects:
+            if obj.object_id == "garden-butterfly" and obj.position is not None:
+                new_pos = PositionMM(obj.position.x + delta_x, obj.position.y, obj.position.z)
+                updated.append(replace(obj, position=new_pos, elevation_mm=450 + (50 if rev % 2 == 0 else -50)))
+                shifted = True
+            elif obj.object_id == "garden-bird" and obj.position is not None:
+                new_pos = PositionMM(obj.position.x, obj.position.y + delta_x, obj.position.z)
+                updated.append(replace(obj, position=new_pos))
+                shifted = True
+            else:
+                updated.append(obj)
+        if shifted:
+            new_world = replace(cur_world, revision=cur_world.revision + 1, objects=tuple(updated))
+            _commit_world_successor(authority, new_world)
+            return True
+        return False
+
+
 def compute_spatial_horizon_observation(
     authority: Any,
     body_id: str = "guala-body-1",

@@ -617,25 +617,20 @@ def maybe_tv(o: dict, st: dict) -> None:
     st["tv_next_tick"] = tick + TV_EVERY_TICKS
 
     lo = o.get("last_occurrence") or {}
-    emb = lo.get("embodiment") or {}
-    her_b = next((b for b in (emb.get("bodies") or []) if b.get("body_id") == emb.get("self_body_id")), None)
-    her_pos = ((her_b.get("pose") or {}).get("position") or {}) if her_b else {}
-    her_heading = ((her_b.get("pose") or {}).get("heading_millidegrees") or 0) if her_b else 0
-    hx, hy = her_pos.get("x_mm", 0), her_pos.get("y_mm", 0)
-    tv_x, tv_y = 17_000, 9_200
-    target_heading = round(math.degrees(math.atan2(tv_y - hy, tv_x - hx)) * 1_000) % 360_000
-    deviation = min(abs(her_heading - target_heading), 360_000 - abs(her_heading - target_heading))
-    aligned = deviation <= 45_000
-    if not aligned:
+    seen = lo.get("seen")
+    if seen is None:
+        log(f"tv: retinal visibility evidence unavailable at tick {tick}; demonstration withheld")
+        return
+    if "television" not in seen:
         say_word("television")
-        log(f"tv: calling attention to screen (gaze deviation {deviation/1000:.1f} deg) at tick {tick}")
+        log(f"tv: screen not verified in retinal field (seen={seen}) at tick {tick}; calling attention")
         return
 
     res1 = present_food("tv-remote")
     res2 = present_food("tv-remote-cycle")
     ch = (res2 or {}).get("channel", 0) if res2 else 0
     named = say_word("television")
-    log(f"tv: demonstrated tv-remote cycle to channel {ch} with verified visual alignment — named={named} at tick {tick}")
+    log(f"tv: demonstrated tv-remote cycle to channel {ch} with verified retinal sight of screen — named={named} at tick {tick}")
     record_story_moment(st, "auditory", "visual")
 
 
@@ -677,7 +672,7 @@ def maybe_read(o: dict, st: dict) -> None:
     if sleep.get("asleep"):
         return
     epoch, _ = circadian_epoch(int(o.get("live_tick") or 0))
-    if epoch != "EVENING_CULTURE" and not (st.get("read_title_index") or st.get("read_chapter")):
+    if epoch != "EVENING_CULTURE":
         return
     tick = int(o.get("live_tick") or 0)
     if st.get("read_next_tick") is not None and tick < int(st["read_next_tick"]):
@@ -968,7 +963,7 @@ def maybe_play(o: dict, st: dict) -> None:
 
 def maybe_playpen_challenge(o: dict, st: dict) -> None:
     """During MORNING_FOCUS: Caregiver places Guala inside playpen at (2050, 6700)
-    creating physical impedance that drives vocal signaling, followed by release
+    creating physical boundary impedance that drives vocal signaling, followed by release
     and an immediate recovery hug (touch-hug) for homeostatic down-regulation."""
     if asleep(o):
         return
@@ -982,9 +977,13 @@ def maybe_playpen_challenge(o: dict, st: dict) -> None:
     res1 = present_food("playpen-containment")
     impact_pcm = material_impact_pcm("wood", intensity=0.9)
     sing_block(impact_pcm)
-    log(f"challenge: playpen containment applied at tick {tick} — res={bool(res1)}")
+    contained = (res1 or {}).get("presented", False)
+    log(f"challenge: playpen containment applied={contained} at tick {tick}")
     res2 = present_food("playpen-release")
-    log(f"challenge: playpen release and recovery hug delivered — res={bool(res2)}")
+    released = (res2 or {}).get("presented", False)
+    hug_steps = ((res2 or {}).get("steps") or []) if res2 else []
+    hug_delivered = any(s.get("operation") == "touch" and s.get("reason") == "applied" for s in hug_steps)
+    log(f"challenge: playpen release applied={released}, recovery hug delivered={hug_delivered} at tick {tick}")
     record_story_moment(st, "visual", "proprioceptive", "auditory", "tactile")
     with open(STATE, "w") as f:
         json.dump(st, f)
@@ -1016,20 +1015,13 @@ def maybe_ladder_challenge(o: dict, st: dict) -> None:
 def maybe_feed(o: dict, st: dict) -> None:
     """Present a meal when due. Reads her world; decides nothing about her.
     In MORNING_FOCUS/DAWN_AWAKENING, places Guala in the high chair at (3500, 1500)
-    and rotates diet across bread, milk, and apple held at face level for olfactory plume delivery.
+    when hunger is verified and meal interval has elapsed, rotating diet across bread, milk, and apple.
     Strictly holds meals during NIGHT_CONSOLIDATION."""
     if "tastant_remaining_micrograms" not in json.dumps(o)[:200000]:
         return
     epoch, _ = circadian_epoch(int(o.get("live_tick") or 0))
     if epoch == "NIGHT_CONSOLIDATION":
         return
-    if epoch in ("DAWN_AWAKENING", "MORNING_FOCUS"):
-        emb = (o.get("last_occurrence") or {}).get("embodiment") or {}
-        her_b = next((b for b in (emb.get("bodies") or []) if b.get("body_id") == emb.get("self_body_id")), None)
-        her_pos = ((her_b.get("pose") or {}).get("position") or {}) if her_b else {}
-        if her_pos.get("x_mm") != 3500 or her_pos.get("y_mm") != 1500:
-            chair_res = present_food("high-chair-meal")
-            log(f"meal: Guala placed in high-chair at (3500, 1500) for morning meal — res={bool(chair_res)}")
     tick = o.get("live_tick") or 0
     if tick < (st.get("meal_tick") or 0) + MEAL_TICKS and not st.get("meal_retry"):
         return
@@ -1048,6 +1040,18 @@ def maybe_feed(o: dict, st: dict) -> None:
     if at_mouth:
         st["meal_retry"] = False
         return
+
+    # Verified hunger deficit and meal interval: now seat Guala in high chair if not already there
+    if epoch in ("DAWN_AWAKENING", "MORNING_FOCUS"):
+        emb = (o.get("last_occurrence") or {}).get("embodiment") or {}
+        her_b = next((b for b in (emb.get("bodies") or []) if b.get("body_id") == emb.get("self_body_id")), None)
+        her_pos = ((her_b.get("pose") or {}).get("position") or {}) if her_b else {}
+        if her_pos.get("x_mm") != 3500 or her_pos.get("y_mm") != 1500:
+            chair_res = present_food("high-chair-meal")
+            chair_steps = ((chair_res or {}).get("steps") or []) if chair_res else []
+            chair_applied = any(s.get("reason") == "applied" for s in chair_steps)
+            log(f"meal: Guala placed in high-chair at (3500, 1500) for morning meal — applied={chair_applied}")
+
     foods = [f for f in foods if f not in skip]
     if not foods:
         cycle_idx = int(st.get("meal_cycle_index") or 0)

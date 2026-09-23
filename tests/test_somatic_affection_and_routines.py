@@ -346,7 +346,8 @@ def test_caretaker_maybe_read_actual_routine_and_book_coupling(monkeypatch, tmp_
 
     # index 1 in BOOK_CATALOG is book-peter-rabbit ("The Tale of Peter Rabbit")
     st = {"read_title_index": 1, "read_chapter": 0}
-    o = {"live_tick": 200, "last_occurrence": {"her_sleep": {"asleep": False}}}
+    # Tick 85_000 corresponds to EVENING_CULTURE circadian epoch
+    o = {"live_tick": 85_000, "last_occurrence": {"her_sleep": {"asleep": False}}}
 
     caretaker.maybe_read(o, st)
 
