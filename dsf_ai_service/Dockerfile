@@ -107,4 +107,4 @@ ENV HEMI_GP_ENABLED=1
 
 EXPOSE 8080
 
-CMD ["uvicorn", "dsf_ai_service.app:app", "--host", "0.0.0.0", "--port", "8080"]
+CMD ["uvicorn", "dsf_ai_service.lean_production_app:app", "--host", "0.0.0.0", "--port", "8080", "--workers", "1", "--no-access-log"]
