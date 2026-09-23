@@ -65,8 +65,39 @@ MEAL_TICKS = 400
 HUNGRY_DEFICIT = 0.40  # her feeding law starts below 60 percent of capacity
 DELIVERY_ID = "apple-delivery"  # asks the caregiver to bring a fresh apple from outside
 REACH_MM = 800  # her declared reach (guala_home_world)
-FOOD_PREFIX = "apple"
-CORE_MICROGRAMS = 2_000  # below this an apple is a core: a bite takes a geometric share of what is left, and under two milligrams that is nothing worth a walk
+FOOD_PREFIXES = ("apple", "bread", "milk", "bottle-milk", "cheese", "berries", "carrot")
+FOOD_PREFIX = FOOD_PREFIXES[0]
+MEAL_DELIVERY_CYCLE = ("apple-delivery", "bread-delivery", "milk-delivery")
+DIURNAL_CYCLE_TICKS = 113_600
+PLAYPEN_CHALLENGE_TICKS = 14_200
+LADDER_CHALLENGE_TICKS = 14_200
+CORE_MICROGRAMS = 2_000
+
+
+def circadian_epoch(tick: int) -> tuple[str, int]:
+    """Partition the 113,600-tick diurnal cycle into 6 distinct epochs:
+    - DAWN_AWAKENING: ticks 0 - 14,200
+    - MORNING_FOCUS: ticks 14,200 - 37,867
+    - MIDDAY_STROLL: ticks 37,867 - 56,800
+    - AFTERNOON_CHALLENGE: ticks 56,800 - 75,733
+    - EVENING_CULTURE: ticks 75,733 - 94,667
+    - NIGHT_CONSOLIDATION: ticks 94,667 - 113,600
+    Returns (epoch_name, day_number)."""
+    day = tick // DIURNAL_CYCLE_TICKS
+    phase = tick % DIURNAL_CYCLE_TICKS
+    if phase < 14_200:
+        epoch = "DAWN_AWAKENING"
+    elif phase < 37_867:
+        epoch = "MORNING_FOCUS"
+    elif phase < 56_800:
+        epoch = "MIDDAY_STROLL"
+    elif phase < 75_733:
+        epoch = "AFTERNOON_CHALLENGE"
+    elif phase < 94_667:
+        epoch = "EVENING_CULTURE"
+    else:
+        epoch = "NIGHT_CONSOLIDATION"
+    return epoch, day  # below this an apple is a core: a bite takes a geometric share of what is left, and under two milligrams that is nothing worth a walk
 AUTH_TOKEN = os.environ.get("GUALA_OCCURRENCE_AUTH_TOKEN") or os.environ.get("GUALA_API_TOKEN")
 
 
@@ -284,7 +315,7 @@ def food_state(o: dict, skip: set[str]) -> tuple[bool, list[str]]:
             carried.append(held)
     floor = [
         ob for ob in objects
-        if str(ob.get("object_id", "")).startswith(FOOD_PREFIX)
+        if any(str(ob.get("object_id", "")).startswith(p) for p in FOOD_PREFIXES)
         and ob.get("held_by_body_id") is None and ob.get("position") is not None
         and (ob.get("tastant_remaining_micrograms") or 0) > CORE_MICROGRAMS
     ]
@@ -320,6 +351,32 @@ MUSIC_MAX_BLOCKS = 2_400      # ten minutes of a piece at most in one sitting
 BEDTIME_RETRY_BEATS = 10_000   # about an hour of her beats between tries until both are on the bed
 LULLABY_HZ = (330, 330, 392, 330, 330, 392, 330, 392, 523, 494, 440, 440, 392, 294, 330, 349, 294, 294, 330, 349, 294, 349, 494, 440, 392, 494, 523)
 LULLABY_BEATS = (1, 1, 2, 1, 1, 2, 1, 1, 2, 2, 1, 1, 2, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 3)  # quarter-second blocks per note
+
+
+def birdsong_blocks() -> list[bytes]:
+    """Outdoor nature birdsong synthesis as 8,000-byte blocks (0.25 s at 16 kHz):
+    Frequency-modulated avian calls between 2.2 kHz and 4.2 kHz with bell-like harmonics."""
+    import math, struct
+    blocks = []
+    chirp_configs = [
+        (2200.0, 3600.0, 16.0, 5000.0),
+        (3600.0, 2600.0, 24.0, 4500.0),
+        (1800.0, 2400.0, 8.0, 2000.0),
+        (2600.0, 4200.0, 20.0, 5500.0),
+    ]
+    for f_start, f_end, mod_rate, amp in chirp_configs:
+        samples = []
+        for i in range(4000):
+            t = i / 16000.0
+            f_inst = f_start + (f_end - f_start) * (i / 4000.0)
+            env = math.sin(math.pi * (i / 4000.0)) ** 1.5
+            vibrato = 80.0 * math.sin(2 * math.pi * mod_rate * t)
+            phase = 2 * math.pi * (f_inst + vibrato) * t
+            v = amp * env * (0.8 * math.sin(phase) + 0.2 * math.sin(2 * phase))
+            samples.append(int(max(-32767, min(32767, v))))
+        pcm = struct.pack("<4000h", *samples)
+        blocks.append(pcm)
+    return blocks
 
 
 def lullaby_blocks() -> list[bytes]:
@@ -566,7 +623,8 @@ def maybe_tv(o: dict, st: dict) -> None:
 
 def maybe_stroll(o: dict, st: dict) -> None:
     """Outdoor stroll: during awake periods, the caregiver brings the stroller carriage
-    beside her and holds her hand for an excursion along the walkway."""
+    beside her, holds her hand for an excursion along the walkway, and plays outdoor
+    nature birdsong audio blocks."""
     sleep = her_sleep(o)
     if sleep.get("asleep"):
         return
@@ -576,7 +634,16 @@ def maybe_stroll(o: dict, st: dict) -> None:
     st["stroll_next_tick"] = tick + STROLL_EVERY_TICKS
     res = present_food("stroller-carriage")
     touch = present_food("touch-hold-hand")
-    log(f"stroll: stroller carriage offered (stroller={res is not None}, hand_held={touch is not None}) at tick {tick}")
+    b_blocks = birdsong_blocks()
+    sung = 0
+    for block in b_blocks[:4]:
+        r = sing_block(block)
+        if r is not None:
+            sung += 1
+            ob = r.get("observation") or {}
+            MINE.append(ob.get("live_tick") or 0)
+            MINE.append((ob.get("last_occurrence") or {}).get("native_tick"))
+    log(f"stroll: stroller carriage offered (stroller={res is not None}, hand_held={touch is not None}, birdsong={sung}/{len(b_blocks)}) at tick {tick}")
 
 
 def maybe_read(o: dict, st: dict) -> None:
@@ -873,6 +940,46 @@ def maybe_play(o: dict, st: dict) -> None:
     log(f"play: offered {toy} — presented={pres.get('presented')} steps={len(pres.get('steps') or [])} named={named}")
 
 
+def maybe_playpen_challenge(o: dict, st: dict) -> None:
+    """During MORNING_FOCUS: Caregiver presents playpen challenge, setting down an
+    interactive object inside the playpen at (2050, 6700) to create physical impedance
+    and stimulate teleological vocal demand."""
+    if asleep(o):
+        return
+    epoch, _ = circadian_epoch(int(o.get("live_tick") or 0))
+    if epoch != "MORNING_FOCUS":
+        return
+    tick = int(o.get("live_tick") or 0)
+    if st.get("playpen_next_tick") is not None and tick < int(st["playpen_next_tick"]):
+        return
+    st["playpen_next_tick"] = tick + PLAYPEN_CHALLENGE_TICKS
+    res = present_food("playpen-challenge")
+    if res is not None:
+        pres = ((res.get("observation") or {}).get("last_occurrence") or {}).get("caregiver_presentation") or {}
+        log(f"challenge: playpen impedance challenge presented at tick {tick} — steps={len(pres.get('steps') or [])}")
+        with open(STATE, "w") as f:
+            json.dump(st, f)
+
+
+def maybe_ladder_challenge(o: dict, st: dict) -> None:
+    """During AFTERNOON_CHALLENGE: Caregiver approaches the garden-ladder and garden-apple
+    beneath the apple tree at (14000, 11800), demonstrating vertical tool affordance."""
+    if asleep(o):
+        return
+    epoch, _ = circadian_epoch(int(o.get("live_tick") or 0))
+    if epoch != "AFTERNOON_CHALLENGE":
+        return
+    tick = int(o.get("live_tick") or 0)
+    if st.get("ladder_next_tick") is not None and tick < int(st["ladder_next_tick"]):
+        return
+    st["ladder_next_tick"] = tick + LADDER_CHALLENGE_TICKS
+    res = present_food("ladder-challenge")
+    if res is not None:
+        pres = ((res.get("observation") or {}).get("last_occurrence") or {}).get("caregiver_presentation") or {}
+        log(f"challenge: backyard ladder affordance challenge presented at tick {tick} — steps={len(pres.get('steps') or [])}")
+        with open(STATE, "w") as f:
+            json.dump(st, f)
+
 def maybe_feed(o: dict, st: dict) -> None:
     """Present a meal when due. Reads her world; decides nothing about her.
     A presentation the world did not allow (a thing boxed in by furniture)
@@ -902,10 +1009,13 @@ def maybe_feed(o: dict, st: dict) -> None:
         return
     foods = [f for f in foods if f not in skip]  # an unreachable apple is not retried; a fresh one is brought instead
     if not foods:
-        # Nothing edible within reach: the caregiver brings a fresh apple
+        # Nothing edible within reach: the caregiver brings a fresh meal
         # from outside (the world's grocery boundary) and presents it.
-        log("no apple with matter left within reach; bringing a fresh one")
-        foods = [DELIVERY_ID]
+        cycle_idx = int(st.get("meal_cycle_index") or 0)
+        delivery_choice = MEAL_DELIVERY_CYCLE[cycle_idx % len(MEAL_DELIVERY_CYCLE)]
+        st["meal_cycle_index"] = cycle_idx + 1
+        log(f"no food with matter left within reach; bringing fresh {delivery_choice}")
+        foods = [delivery_choice]
     food = foods[0]
     res = present_food(food)
     st["meal_tick"] = tick
@@ -921,7 +1031,7 @@ def maybe_feed(o: dict, st: dict) -> None:
     named = say_word(food) if pres.get("presented") else 0
     log(f"meal: named={named} presented {food} — presented={pres.get('presented')} took_away={pres.get('took_away')} "
         f"steps={len(steps)} last={steps[-1] if steps else None}")
-    if not pres.get("presented") and food != DELIVERY_ID:
+    if not pres.get("presented") and food not in MEAL_DELIVERY_CYCLE and food != DELIVERY_ID:
         st["unreachable"] = sorted(skip | {food})
         st["meal_retry"] = len(foods) > 1
     # An apple the world would not let the caregiver reach stays unreachable
@@ -1008,6 +1118,14 @@ def wait_clear(min_tick: int | None = None, st: dict | None = None) -> dict | No
             # story & song, and bedtime. Structured routines transform diffuse wandering into
             # goal-directed intentional planning and cognitive scaffolding.
             if st is not None:
+                cur_tick = int(o.get("live_tick") or 0)
+                cur_epoch, cur_day = circadian_epoch(cur_tick)
+                if st.get("circadian_epoch") != cur_epoch:
+                    log(f"circadian transition: Day {cur_day + 1} entering {cur_epoch} at tick {cur_tick}")
+                    st["circadian_epoch"] = cur_epoch
+                    st["circadian_day"] = cur_day
+                    with open(STATE, "w") as f:
+                        json.dump(st, f)
                 lo = o.get("last_occurrence") or {}
                 deficit = lo.get("metabolic_need_reserve_deficit") or [0, 1]
                 hungry = (deficit[0] / deficit[1]) > HUNGRY_DEFICIT if (deficit and len(deficit) == 2 and deficit[1]) else False
@@ -1041,6 +1159,8 @@ def wait_clear(min_tick: int | None = None, st: dict | None = None) -> dict | No
                 maybe_play(o, st)
                 maybe_tv(o, st)
                 maybe_stroll(o, st)
+                maybe_playpen_challenge(o, st)
+                maybe_ladder_challenge(o, st)
                 maybe_read(o, st)   # a reading does not wait for a clear window: a person on the page does not close her book
                 maybe_music(o, st)
 
@@ -1094,6 +1214,8 @@ def main() -> None:
             maybe_play(o, st)
             maybe_tv(o, st)
             maybe_stroll(o, st)
+            maybe_playpen_challenge(o, st)
+            maybe_ladder_challenge(o, st)
             ok = True
             for i, pcm in enumerate(blocks):
                 res = present_block(retina, pcm, focal_b64)

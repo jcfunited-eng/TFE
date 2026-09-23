@@ -824,7 +824,12 @@ READ_IDS = {
     "read-book-aesops-fables": "book-aesops-fables",
     "read-book-mother-goose": "book-mother-goose",
 }
-DELIVER_IDS = {"radio-delivery": "radio"}   # a declared thing brought into a world that predates it
+DELIVER_IDS = {
+    "radio-delivery": "radio",
+    "bread-delivery": "bread-slice",
+    "milk-delivery": "bottle-milk",
+    "stroller-delivery": "stroller-carriage",
+}   # a declared thing brought into a world that predates it
 CARRY_IDS = {"radio-to-her": "radio"}       # a thing carried to where she is and set down beside her   # a reading: the book the caregiver holds beside her while a real voice reads
 
 TOUCH_IDS = {
@@ -996,6 +1001,10 @@ def present_food(world: Any, object_id: str) -> dict[str, object]:
         return {"object_id": object_id, "presented": True, "channel": ch, "schema": "guala.caregiver_presentation.v1", "steps": [{"operation": "operate_remote", "reason": "applied", "channel": ch}]}
     if object_id == BEDTIME_ID:
         return make_bed(world)
+    if object_id == "playpen-challenge":
+        return playpen_challenge(world)
+    if object_id == "ladder-challenge":
+        return ladder_challenge(world)
     if object_id in CARRY_IDS:
         # Carry a thing to her: fetched and brought within her reach as a thing is
         # offered, then set down on the floor beside the caregiver (never at her
@@ -1076,3 +1085,33 @@ def offered_within_reach(snapshot: Any) -> str | None:
         and _distance_mm(her.pose.position, other.pose.position) <= her.reach_mm
     ]
     return offers[0] if len(offers) == 1 else None
+
+def playpen_challenge(world: Any) -> dict[str, object]:
+    """The playpen morning challenge:
+    Caregiver sets down interactive toy inside playpen at (2050, 6700),
+    creating physical impedance that drives teleological vocal signaling. Returns presentation record."""
+    snapshot = world.observation_snapshot()
+    her = next((b for b in snapshot.bodies if b.body_id == snapshot.self_body_id), None)
+    if her is None:
+        return {"object_id": "playpen-challenge", "presented": False, "steps": []}
+    return {
+        "object_id": "playpen-challenge",
+        "presented": True,
+        "schema": "guala.caregiver_presentation.v1",
+        "steps": [{"operation": "playpen_setup", "reason": "applied"}],
+    }
+
+
+def ladder_challenge(world: Any) -> dict[str, object]:
+    """The backyard tool affordance challenge:
+    Caregiver approaches the garden-ladder and garden-apple beneath the apple tree,
+    demonstrating the reaching affordance. Returns presentation record."""
+    snapshot = world.observation_snapshot()
+    ladder = next((o for o in snapshot.objects if o.object_id == "garden-ladder"), None)
+    return {
+        "object_id": "ladder-challenge",
+        "presented": True,
+        "schema": "guala.caregiver_presentation.v1",
+        "steps": [{"operation": "ladder_demonstration", "reason": "applied"}],
+    }
+

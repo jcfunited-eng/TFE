@@ -83,7 +83,7 @@ def test_library_bookshelf_entities_and_shapes():
         assert book_id in PATTERNED_BOXES, f"Missing patterned box for {book_id}"
         assert book_id in BOOK_CATALOG, f"Missing media catalog entry for {book_id}"
 
-    auth = home_world_authority(identity=IDENTITY)
+    auth = home_world_authority(identity=IDENTITY, expand_library=False)
     rev_before = auth._state.world.revision
     expand_library_books(auth)
     assert auth._state.world.revision == rev_before + 1
