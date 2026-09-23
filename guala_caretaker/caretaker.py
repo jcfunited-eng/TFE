@@ -930,6 +930,32 @@ def maybe_feed(o: dict, st: dict) -> None:
     json.dump(st, open(STATE, "w"))
 
 
+
+def ready_for_lesson(o: dict, st: dict | None = None) -> bool:
+    """A card lesson requires an awake, upright, attentive pupil.
+    Lessons hold during bedtime, sleep, meals, or when lying down."""
+    if not gates_clear(o):
+        return False
+    if asleep(o):
+        return False
+    lo = o.get('last_occurrence') or {}
+    sleep = her_sleep(o)
+    pressure = sleep.get('pressure') or [0, 0]
+    if pressure[1] and (pressure[0] / pressure[1]) > 0.85:
+        return False
+    emb = lo.get('embodiment') or {}
+    her_b = next((b for b in (emb.get('bodies') or []) if b.get('body_id') == emb.get('self_body_id')), None)
+    if her_b:
+        posture = (her_b.get('pose') or {}).get('posture')
+        if posture == 'lying':
+            return False
+    deficit = lo.get('metabolic_need_reserve_deficit') or [0, 1]
+    if deficit and len(deficit) == 2 and deficit[1] and (deficit[0] / deficit[1]) > HUNGRY_DEFICIT:
+        return False
+    if st is not None and st.get('active_ritual') in ('BEDTIME', 'MEALTIME'):
+        return False
+    return True
+
 def wait_clear(min_tick: int | None = None, st: dict | None = None) -> dict | None:
     """Wait on HER state: gates clear, her clock past min_tick, no
     TEACHING marker, and no one else feeding her. Explicit control first:
@@ -1017,6 +1043,19 @@ def wait_clear(min_tick: int | None = None, st: dict | None = None) -> dict | No
                 maybe_stroll(o, st)
                 maybe_read(o, st)   # a reading does not wait for a clear window: a person on the page does not close her book
                 maybe_music(o, st)
+
+                if not ready_for_lesson(o, st):
+                    ritual = st.get('active_ritual', 'UNKNOWN')
+                    if not st.get('lesson_hold_logged') or st.get('lesson_hold_ritual') != ritual:
+                        log(f'lesson holding: pupil not in attentive learning state (ritual={ritual}, asleep={asleep(o)})')
+                        st['lesson_hold_logged'] = True
+                        st['lesson_hold_ritual'] = ritual
+                    time.sleep(POLL_S)
+                    continue
+                if st.get('lesson_hold_logged'):
+                    log('lesson resumed: pupil alert and ready for learning')
+                    st['lesson_hold_logged'] = False
+                    st['lesson_hold_ritual'] = None
             return o
         time.sleep(POLL_S)
 
