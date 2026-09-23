@@ -36,6 +36,7 @@ import collections
 import fcntl
 import hashlib
 import json
+import math
 import os
 import sys
 import time
@@ -81,6 +82,7 @@ DIURNAL_CYCLE_TICKS = 113_600
 PLAYPEN_CHALLENGE_TICKS = 14_200
 LADDER_CHALLENGE_TICKS = 14_200
 CORE_MICROGRAMS = 2_000
+TACTILE_OBJECTS = ("cup", "stacking-rings", "play-ball", "toy-bear")
 
 
 def record_story_moment(st: dict, *modalities: str) -> None:
@@ -169,7 +171,6 @@ def someone_else_present(o: dict) -> int | None:
     lo = o.get("last_occurrence") or {}
     if lo.get("kind") == "unattended":
         return None
-    # Active human interventions: direct food presentation or explicit card/word presentation:
     src = lo.get("external_sensory_source")
     pres = lo.get("caregiver_presentation")
     is_active = (pres is not None) or (src in ("card-microphone", "text-microphone", "guided-vocal-microphone", "caretaker-food"))
@@ -291,7 +292,6 @@ def _extract_presentation(res: dict | None) -> dict:
     """Extract caregiver presentation payload from API occurrence response or direct presentation dict."""
     if not res or not isinstance(res, dict):
         return {}
-    # Real production API envelope: {"observation": {"last_occurrence": {"caregiver_presentation": {...}}}}
     obs = res.get("observation")
     if isinstance(obs, dict):
         lo = obs.get("last_occurrence")
@@ -299,7 +299,6 @@ def _extract_presentation(res: dict | None) -> dict:
             pres = lo.get("caregiver_presentation")
             if isinstance(pres, dict):
                 return pres
-    # Direct dictionary fallback (mock or internal return)
     if "presented" in res or "steps" in res or "channel" in res or "schema" in res or "touched" in res:
         return res
     return {}
@@ -316,7 +315,6 @@ def food_state(o: dict, skip: set[str]) -> tuple[bool, list[str]]:
     remaining = {ob.get("object_id"): ob.get("tastant_remaining_micrograms") for ob in objects}
     self_id = emb.get("self_body_id")
     her = next((b for b in bodies if b.get("body_id") == self_id), None)
-    others = [b for b in bodies if b.get("body_id") != self_id]
 
     def within_reach(b: dict) -> bool:
         if her is None:
@@ -377,7 +375,7 @@ LULLABY_BEATS = (1, 1, 2, 1, 1, 2, 1, 1, 2, 2, 1, 1, 2, 1, 1, 2, 1, 1, 1, 1, 1, 
 def birdsong_blocks() -> list[bytes]:
     """Outdoor nature birdsong synthesis as 8,000-byte blocks (0.25 s at 16 kHz):
     Frequency-modulated avian calls between 2.2 kHz and 4.2 kHz with bell-like harmonics."""
-    import math, struct
+    import struct
     blocks = []
     chirp_configs = [
         (2200.0, 3600.0, 16.0, 5000.0),
@@ -403,7 +401,7 @@ def birdsong_blocks() -> list[bytes]:
 def lullaby_blocks() -> list[bytes]:
     """A soft lullaby as 8,000-byte blocks (0.25 s at 16 kHz): a sine with a
     warm second harmonic and a gentle rise and fall on every note."""
-    import math, struct
+    import struct
     blocks = []
     for hz, beats in zip(LULLABY_HZ, LULLABY_BEATS):
         n = 4000 * beats
@@ -629,8 +627,8 @@ def maybe_touch(o: dict, st: dict) -> None:
 
 def maybe_tv(o: dict, st: dict) -> None:
     """TV demonstration: during AFTERNOON_CHALLENGE, verifies geometric line-of-sight
-    alignment with the screen before remote operation, accompanied by acoustic labeling
-    'television' (optical/retinal receptor verification left open)."""
+    alignment with the screen before remote operation, requiring valid delivery receipts
+    for both remote fetch and channel cycle before claiming demonstration (REG-A1-03)."""
     sleep = her_sleep(o)
     if sleep.get("asleep"):
         return
@@ -652,10 +650,27 @@ def maybe_tv(o: dict, st: dict) -> None:
         log(f"tv: screen not in geometric line-of-sight (seen={seen}) at tick {tick}; calling attention (retinal certification open)")
         return
 
+    # Verify receipt of remote fetch
     res1 = present_food("tv-remote")
+    pres1 = _extract_presentation(res1)
+    pres1_ok = pres1.get("presented", False) or any(s.get("reason") == "applied" for s in pres1.get("steps") or [])
+    if not pres1_ok:
+        log(f"tv: remote retrieval refused or unpresented at tick {tick}; demonstration aborted")
+        return
+
+    # Verify receipt of remote channel cycle
     res2 = present_food("tv-remote-cycle")
     pres2 = _extract_presentation(res2)
-    ch = pres2.get("channel", 0)
+    pres2_ok = pres2.get("presented", False) or any(s.get("reason") == "applied" for s in pres2.get("steps") or [])
+    if not pres2_ok:
+        log(f"tv: remote cycle operation refused at tick {tick}; demonstration aborted")
+        return
+
+    ch = pres2.get("channel")
+    if ch is None:
+        log(f"tv: channel receipt missing at tick {tick}; demonstration aborted")
+        return
+
     named = say_word("television")
     log(f"tv: demonstrated tv-remote cycle to channel {ch} with verified geometric visibility of screen — named={named} at tick {tick}")
     record_story_moment(st, "auditory", "visual")
@@ -1059,49 +1074,107 @@ def maybe_ladder_challenge(o: dict, st: dict) -> None:
             json.dump(st, f)
 
 
+def is_seated_in_high_chair(o: dict) -> bool:
+    """Physical verification: True when Guala's body coordinates sit within the high-chair seating disc."""
+    emb = (o.get("last_occurrence") or {}).get("embodiment") or {}
+    her_b = next((b for b in (emb.get("bodies") or []) if b.get("body_id") == emb.get("self_body_id")), None)
+    if not her_b:
+        return False
+    her_pos = ((her_b.get("pose") or {}).get("position") or {})
+    hx = her_pos.get("x_mm")
+    hy = her_pos.get("y_mm")
+    if hx is None or hy is None:
+        return False
+    # High-chair is stationed at (3500, 1500)
+    return ((hx - 3500) ** 2 + (hy - 1500) ** 2) <= 250 ** 2
+
+
 def maybe_feed(o: dict, st: dict) -> None:
     """Present a meal when due. Reads her world; decides nothing about her.
     In MORNING_FOCUS/DAWN_AWAKENING, places Guala in the high chair at (3500, 1500)
     when hunger is verified and meal interval has elapsed, rotating diet across bread, milk, and apple.
+    Follows a complete seated-to-released lifecycle: acts only on genuinely seated child,
+    honors approach refusal, and handles interrupted/failed delivery without stranding (REG-A1-02).
     Strictly holds meals during NIGHT_CONSOLIDATION."""
     if "tastant_remaining_micrograms" not in json.dumps(o)[:200000]:
         return
     epoch, _ = circadian_epoch(int(o.get("live_tick") or 0))
     if epoch == "NIGHT_CONSOLIDATION":
         return
-    tick = o.get("live_tick") or 0
-    if tick < (st.get("meal_tick") or 0) + MEAL_TICKS and not st.get("meal_retry"):
-        return
+    tick = int(o.get("live_tick") or 0)
+
+    # 1. Reconcile actual physical seated state
+    child_in_chair = is_seated_in_high_chair(o)
+    if not child_in_chair and st.get("seated_for_meal"):
+        st["seated_for_meal"] = False
+
     deficit = ((o.get("last_occurrence") or {}).get("metabolic_need_reserve_deficit") or [0, 1])
     try:
         hungry = (deficit[0] / deficit[1]) > HUNGRY_DEFICIT if deficit[1] else False
     except (TypeError, ZeroDivisionError, IndexError):
         hungry = False
+
+    skip = set(st.get("unreachable") or [])
+    at_mouth, foods = food_state(o, skip)
+
+    # 2. Reconcile high-chair release lifecycle:
+    # If child is genuinely seated in high chair, check whether meal is observed complete or interrupted
+    if child_in_chair:
+        meal_finished = (not at_mouth) and (not hungry or tick >= (st.get("seated_meal_tick") or 0) + MEAL_TICKS or st.get("food_delivered_for_meal"))
+        if meal_finished:
+            rel_res = present_food("high-chair-release")
+            rel_pres = _extract_presentation(rel_res)
+            rel_steps = rel_pres.get("steps") or []
+            rel_applied = rel_pres.get("presented", False) or any(s.get("reason") == "applied" for s in rel_steps)
+            if rel_applied:
+                st["seated_for_meal"] = False
+                st["food_delivered_for_meal"] = False
+                log(f"meal: observed meal complete; Guala released from high-chair to floor at (2700, 1500) (center separation 800 mm) — applied=True")
+            else:
+                log(f"meal: high-chair release refused or pending at tick {tick}")
+            with open(STATE, "w") as f:
+                json.dump(st, f)
+            return
+        if at_mouth:
+            # Child is currently seated and actively eating from food at her mouth
+            st["meal_retry"] = False
+            with open(STATE, "w") as f:
+                json.dump(st, f)
+            return
+
+    # 3. Child is NOT in high chair: check interval and hunger eligibility
+    if tick < (st.get("meal_tick") or 0) + MEAL_TICKS and not st.get("meal_retry"):
+        return
+
     if not hungry:
         if st.get("not_hungry_logged") != tick // 2000:
             log(f"not hungry (deficit {deficit[0]}/{deficit[1]}); no meal offered")
             st["not_hungry_logged"] = tick // 2000
         return
-    skip = set(st.get("unreachable") or [])
-    at_mouth, foods = food_state(o, skip)
+
     if at_mouth:
         st["meal_retry"] = False
         return
 
-    # Verified hunger deficit and meal interval: now seat Guala in high chair if not already there
+    # 4. Verified hunger deficit and meal interval: seat Guala in high chair
     seated_this_meal = False
     if epoch in ("DAWN_AWAKENING", "MORNING_FOCUS"):
-        emb = (o.get("last_occurrence") or {}).get("embodiment") or {}
-        her_b = next((b for b in (emb.get("bodies") or []) if b.get("body_id") == emb.get("self_body_id")), None)
-        her_pos = ((her_b.get("pose") or {}).get("position") or {}) if her_b else {}
-        if her_pos.get("x_mm") != 3500 or her_pos.get("y_mm") != 1500:
-            chair_res = present_food("high-chair-meal")
-            chair_pres = _extract_presentation(chair_res)
-            chair_steps = chair_pres.get("steps") or []
-            chair_applied = chair_pres.get("presented", False) or any(s.get("reason") == "applied" for s in chair_steps)
-            log(f"meal: Guala placed in high-chair at (3500, 1500) for morning meal — applied={chair_applied}")
-            seated_this_meal = chair_applied
+        chair_res = present_food("high-chair-meal")
+        chair_pres = _extract_presentation(chair_res)
+        chair_steps = chair_pres.get("steps") or []
+        chair_applied = chair_pres.get("presented", False) or any(s.get("reason") == "applied" for s in chair_steps)
+        log(f"meal: Guala placed in high-chair at (3500, 1500) for morning meal — applied={chair_applied}")
+        if not chair_applied:
+            log("meal: high-chair seating refused; aborting meal presentation to honor physical refusal")
+            st["meal_retry"] = True
+            with open(STATE, "w") as f:
+                json.dump(st, f)
+            return
+        seated_this_meal = True
+        st["seated_for_meal"] = True
+        st["seated_meal_tick"] = tick
 
+    # 5. Food presentation
     foods = [f for f in foods if f not in skip]
     if not foods:
         cycle_idx = int(st.get("meal_cycle_index") or 0)
@@ -1110,40 +1183,94 @@ def maybe_feed(o: dict, st: dict) -> None:
         log(f"no food with matter left within reach; bringing fresh {delivery_choice}")
         foods = [delivery_choice]
     food = foods[0]
+
     res = present_food(food)
     st["meal_tick"] = tick
     st["meal_retry"] = False
+
     if res is None:
-        json.dump(st, open(STATE, "w"))
+        # Interrupted delivery: release child immediately so she is not stranded in high chair
+        if seated_this_meal or st.get("seated_for_meal"):
+            rel_res = present_food("high-chair-release")
+            rel_pres = _extract_presentation(rel_res)
+            rel_applied = rel_pres.get("presented", False) or any(s.get("reason") == "applied" for s in rel_pres.get("steps") or [])
+            if rel_applied:
+                st["seated_for_meal"] = False
+            log(f"meal: food presentation failed (None); released child to avoid stranding — applied={rel_applied}")
+        with open(STATE, "w") as f:
+            json.dump(st, f)
         return
+
     ob = res.get("observation") or {} if isinstance(res, dict) else {}
     MINE.append(ob.get("live_tick") or 0)
     MINE.append((ob.get("last_occurrence") or {}).get("native_tick"))
     pres = _extract_presentation(res)
     steps = pres.get("steps") or []
-    named = say_word(food) if pres.get("presented") else 0
-    if pres.get("presented"):
+    presented = pres.get("presented", False) or any(s.get("reason") == "applied" for s in steps)
+
+    if presented:
+        st["food_delivered_for_meal"] = True
         mat = "ceramic" if "milk" in food else "wood"
         impact_pcm = material_impact_pcm(mat, intensity=0.7)
         sing_block(impact_pcm)
+        named = say_word(food)
         record_story_moment(st, "olfactory", "tactile", "visual", "auditory")
-    log(f"meal: named={named} presented {food} — presented={pres.get('presented')} took_away={pres.get('took_away')} "
-        f"steps={len(steps)} last={steps[-1] if steps else None}")
-    if not pres.get("presented") and food not in MEAL_DELIVERY_CYCLE and food != DELIVERY_ID:
-        st["unreachable"] = sorted(skip | {food})
-        st["meal_retry"] = len(foods) > 1
+        log(f"meal: named={named} presented {food} — presented=True took_away={pres.get('took_away')} steps={len(steps)}")
+    else:
+        # Delivery refused or failed: release child immediately to avoid stranding
+        if seated_this_meal or st.get("seated_for_meal"):
+            rel_res = present_food("high-chair-release")
+            rel_pres = _extract_presentation(rel_res)
+            rel_applied = rel_pres.get("presented", False) or any(s.get("reason") == "applied" for s in rel_pres.get("steps") or [])
+            if rel_applied:
+                st["seated_for_meal"] = False
+            log(f"meal: food presentation refused; released child to avoid stranding — applied={rel_applied}")
+        if food not in MEAL_DELIVERY_CYCLE and food != DELIVERY_ID:
+            st["unreachable"] = sorted(skip | {food})
+            st["meal_retry"] = len(foods) > 1
 
-    # Meal-complete release lifecycle:
-    # Release Guala from high chair back to kitchen floor at (3500, 2200, 0)
-    # completing the seated-to-released lifecycle so high-chair boundary does not trap her
-    if epoch in ("DAWN_AWAKENING", "MORNING_FOCUS"):
-        rel_res = present_food("high-chair-release")
-        rel_pres = _extract_presentation(rel_res)
-        rel_steps = rel_pres.get("steps") or []
-        rel_applied = rel_pres.get("presented", False) or any(s.get("reason") == "applied" for s in rel_steps)
-        log(f"meal: Guala released from high-chair to floor at (2700, 1500) — applied={rel_applied}")
+    with open(STATE, "w") as f:
+        json.dump(st, f)
 
-    json.dump(st, open(STATE, "w"))
+
+def maybe_tactile_curriculum(o: dict, st: dict) -> None:
+    """Tactile object exploration curriculum: alternately explores cups, rings,
+    blocks, and toys with material impact dynamics and acoustic naming.
+    Derives applied claims and modality counts strictly from accepted receipts (REG-A1-03)."""
+    if asleep(o):
+        return
+    epoch, _ = circadian_epoch(int(o.get("live_tick") or 0))
+    if epoch not in ("MORNING_FOCUS", "AFTERNOON_CHALLENGE"):
+        return
+    tick = int(o.get("live_tick") or 0)
+    if st.get("tactile_next_tick") is not None and tick < int(st["tactile_next_tick"]):
+        return
+    st["tactile_next_tick"] = tick + 3600
+    idx = int(st.get("tactile_index") or 0)
+    toy = TACTILE_OBJECTS[idx % len(TACTILE_OBJECTS)]
+    st["tactile_index"] = idx + 1
+    res = present_food(toy)
+    pres = _extract_presentation(res)
+    presented = pres.get("presented", False) or any(s.get("reason") == "applied" for s in pres.get("steps") or [])
+    if not presented:
+        log(f"tactile curriculum: presentation of {toy} refused or unpresented at tick {tick}")
+        with open(STATE, "w") as f:
+            json.dump(st, f)
+        return
+
+    mat = "wood" if toy == "stacking-rings" else ("ceramic" if toy == "cup" else "fabric")
+    impact_pcm = material_impact_pcm(mat, intensity=0.75)
+    sing_res = sing_block(impact_pcm)
+    named = say_word(toy)
+    stimulated_modalities = ["tactile", "visual"]
+    if sing_res is not None or named > 0:
+        stimulated_modalities.append("auditory")
+    stimulated_modalities.append("proprioceptive")
+
+    log(f"tactile curriculum: presented {toy} ({mat}) — named={named} at tick {tick}")
+    record_story_moment(st, *stimulated_modalities)
+    with open(STATE, "w") as f:
+        json.dump(st, f)
 
 
 def ready_for_lesson(o: dict, st: dict | None = None) -> bool:
@@ -1359,35 +1486,6 @@ def main() -> None:
             log(f"caretaker loop error: {err}")
             time.sleep(POLL_S)
     log("caretaker stopped (STOP or signal)")
-
-
-TACTILE_OBJECTS = ("cup", "stacking-rings", "play-ball", "toy-bear")
-
-
-def maybe_tactile_curriculum(o: dict, st: dict) -> None:
-    """Tactile object exploration curriculum: alternately explores cups, rings,
-    blocks, and toys with material impact dynamics and acoustic naming."""
-    if asleep(o):
-        return
-    epoch, _ = circadian_epoch(int(o.get("live_tick") or 0))
-    if epoch not in ("MORNING_FOCUS", "AFTERNOON_CHALLENGE"):
-        return
-    tick = int(o.get("live_tick") or 0)
-    if st.get("tactile_next_tick") is not None and tick < int(st["tactile_next_tick"]):
-        return
-    st["tactile_next_tick"] = tick + 3600
-    idx = int(st.get("tactile_index") or 0)
-    toy = TACTILE_OBJECTS[idx % len(TACTILE_OBJECTS)]
-    st["tactile_index"] = idx + 1
-    res = present_food(toy)
-    mat = "wood" if toy == "stacking-rings" else ("ceramic" if toy == "cup" else "fabric")
-    impact_pcm = material_impact_pcm(mat, intensity=0.75)
-    sing_block(impact_pcm)
-    named = say_word(toy)
-    log(f"tactile curriculum: presented {toy} ({mat}) — named={named} at tick {tick}")
-    record_story_moment(st, "tactile", "visual", "auditory", "proprioceptive")
-    with open(STATE, "w") as f:
-        json.dump(st, f)
 
 
 if __name__ == "__main__":

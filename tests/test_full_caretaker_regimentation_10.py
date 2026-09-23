@@ -65,6 +65,11 @@ def test_routine_1_high_chair_meal_variety(monkeypatch) -> None:
     assert her_rel.pose.position.x == 2700
     assert her_rel.pose.position.y == 1500
 
+    # 2b. Negative Case: Child not in high chair -> release refused (REG-A1-02)
+    res_release_unseated = present_food(world, "high-chair-release")
+    assert res_release_unseated["presented"] is False
+    assert any(s.get("reason") == "child_not_in_high_chair" for s in res_release_unseated.get("steps", []))
+
     # 3. Multi-diet rotation
     assert "apple-delivery" in MEAL_DELIVERY_CYCLE
     assert "bread-delivery" in MEAL_DELIVERY_CYCLE
@@ -110,7 +115,7 @@ def test_routine_1_high_chair_meal_variety(monkeypatch) -> None:
     assert "high-chair-meal" not in placed_calls
     assert "high-chair-release" not in placed_calls
 
-    # Positive Case: Verified hungry in MORNING_FOCUS -> high-chair placement AND meal-complete release called
+    # Positive Case 1: Verified hungry in MORNING_FOCUS -> high-chair placement and food delivery
     placed_calls.clear()
     st["meal_tick"] = 0
     obs_hungry = {
@@ -123,7 +128,21 @@ def test_routine_1_high_chair_meal_variety(monkeypatch) -> None:
     }
     maybe_feed(obs_hungry, st)
     assert "high-chair-meal" in placed_calls
+    assert st.get("seated_for_meal") is True
+
+    # Positive Case 2: Observed meal complete while seated in high chair -> high-chair release called
+    placed_calls.clear()
+    obs_seated_done = {
+        "live_tick": 20_100,
+        "last_occurrence": {
+            "metabolic_need_reserve_deficit": [0, 10],  # deficit resolved / satisfied
+            "embodiment": {"bodies": [{"body_id": "guala-body-1", "pose": {"position": {"x_mm": 3500, "y_mm": 1500}}}], "self_body_id": "guala-body-1"},
+            "tastant_remaining_micrograms": {},
+        }
+    }
+    maybe_feed(obs_seated_done, st)
     assert "high-chair-release" in placed_calls
+    assert st.get("seated_for_meal") is False
 
 
 def test_routine_2_tv_time_remote_gaze_alignment(monkeypatch) -> None:
@@ -177,10 +196,20 @@ def test_routine_2_tv_time_remote_gaze_alignment(monkeypatch) -> None:
         "last_occurrence": {"seen": ["television", "sofa"]}
     }
     maybe_tv(obs_seen, st)
+    assert "tv-remote" in remote_cycled
     assert "tv-remote-cycle" in remote_cycled
 
+    # Case D: Failed remote presentation receipt aborts without recording story moment (REG-A1-03)
+    st["tv_next_tick"] = 0
+    st["daily_moments_presented"] = 0
+    monkeypatch.setattr("guala_caretaker.caretaker.present_food", lambda item: {
+        "observation": {"last_occurrence": {"caregiver_presentation": {"presented": False}}}
+    })
+    maybe_tv(obs_seen, st)
+    assert st.get("daily_moments_presented") == 0
 
-def test_routine_3_curriculum_variety_tactile() -> None:
+
+def test_routine_3_curriculum_variety_tactile(monkeypatch) -> None:
     world = home_world_authority(identity=str(uuid.uuid4()))
     assert len(TACTILE_OBJECTS) >= 4
     assert "cup" in TACTILE_OBJECTS
@@ -196,6 +225,25 @@ def test_routine_3_curriculum_variety_tactile() -> None:
     metal_pcm = material_impact_pcm("metal", intensity=0.85)
     assert len(metal_pcm) == 8000
 
+    # Test receipt-gated tactile curriculum (REG-A1-03):
+    # Case A: Refused presentation must NOT record modalities
+    st = {"tactile_next_tick": 0, "daily_moments_presented": 0, "circadian_epoch": "MORNING_FOCUS"}
+    obs_focus = {"live_tick": 20_000, "her_sleep": {"asleep": False}}
+    monkeypatch.setattr("guala_caretaker.caretaker.present_food", lambda item: {
+        "observation": {"last_occurrence": {"caregiver_presentation": {"presented": False}}}
+    })
+    maybe_tactile_curriculum(obs_focus, st)
+    assert st.get("daily_moments_presented") == 0
+
+    # Case B: Accepted presentation records modalities from receipts
+    st["tactile_next_tick"] = 0
+    monkeypatch.setattr("guala_caretaker.caretaker.present_food", lambda item: {
+        "observation": {"last_occurrence": {"caregiver_presentation": {"presented": True, "steps": [{"reason": "applied"}]}}}
+    })
+    maybe_tactile_curriculum(obs_focus, st)
+    assert st.get("daily_moments_presented") == 1
+    assert st.get("active_modalities_stimulated", {}).get("tactile", 0) > 0
+
 
 def test_routine_4_stroller_walk_and_sensory_field() -> None:
     world = home_world_authority(identity=str(uuid.uuid4()))
@@ -203,6 +251,7 @@ def test_routine_4_stroller_walk_and_sensory_field() -> None:
     res_stroller = present_food(world, "stroller-carriage")
     assert res_stroller["presented"] is True
     applied_ops = [s.get("operation") for s in res_stroller.get("steps", []) if s.get("reason") == "applied"]
+    assert "stroller_placement" in applied_ops
     assert "stroller_excursion" in applied_ops
 
     # 2. Assert child and stroller displacement: both must have successor coordinates in backyard

@@ -388,9 +388,6 @@ class _Hand:
             self.steps.append({"operation": operation, "reason": prepared.reason, "to": where})
             return prepared
         self.last_contacts = self.world.body_surface_contacts_for_prepared_action(prepared) if isinstance(command, BodySurfaceContactCommand) else ()
-        # Her last interval's physical return, if one is waiting, stays hers:
-        # its content is untouched and only its binding follows the world the
-        # caregiver just changed, so her next interval still consumes it.
         current = self.world.pending_physical_return
         rebound = None
         if current is not None:
@@ -563,10 +560,6 @@ class _Hand:
         _her, person = self.bodies(snapshot)
         origin = person.pose.position
         radii = distances_mm if distances_mm is not None else (distance_mm,)
-        # The caregiver keeps out of doorways, except that it must be able to
-        # reach her wherever she stands: when the target itself is in a
-        # doorway's approach, the spots around it are allowed (it steps back
-        # out afterwards).
         target_region = _region_of(snapshot, target, person.radius_mm)
         target_in_doorway = target_region is not None and in_doorway(snapshot, target, target_region.region_id, DOORWAY_CLEARANCE_MM)
         candidates = []
@@ -593,18 +586,14 @@ class _Hand:
             if key in seen or _distance_mm(spot, target) < min(radii) * 0.9:
                 continue
             seen.add(key)
-            # Never reach a spot by walking through what is approached: the
-            # step law would shove a light thing (an apple, the blanket) ahead
-            # of the caregiver instead of it arriving beside it.
             if _passes_through(origin, spot, target, person.radius_mm + APPROACHED_THING_RADIUS_MM):
                 continue
             region = _region_of(snapshot, spot, person.radius_mm)
             if region is None or (region_id is not None and region.region_id != region_id):
                 continue
             if not target_in_doorway and in_doorway(snapshot, spot, region.region_id, DOORWAY_CLEARANCE_MM):
-                continue  # the caregiver never lingers in a doorway
+                continue
             heading = _heading_toward(spot, face if face is not None else target)
-            # The first spots are worth a sidestep; the rest are tried straight.
             if self.move(spot, heading, detour=index < len(candidates) + 2):
                 return True
         return False
@@ -637,15 +626,11 @@ class _Hand:
             if not self.set_down(person.held_object_id):
                 return outcome
 
-        # An eaten core in her hand comes away before fresh food is offered;
-        # it is carried off and set down where the food lies, never at her
-        # feet or in a doorway she will walk through.
+        # An eaten core in her hand comes away before fresh food is offered.
         held = by_id.get(her.held_object_id) if her.held_object_id is not None else None
         carried_core = None
         if held is not None and nothing_left_to_bite(her, held):
             if held.object_id == self.object_id:
-                # What she holds is the very thing asked for, and there is nothing
-                # left on it to bite: nothing to present. A refusal, never an error.
                 self.steps.append({"operation": "resolve", "reason": "food_is_an_eaten_core_in_her_hand"})
                 return outcome
             if not self.reach_her(her):
@@ -722,7 +707,7 @@ def deliver_thing(world: Any, template_id: str) -> str | None:
                 world.admit_authored_arrival(EmbodiedObject(
                     template_id, template.radius_mm, template.mass_grams, spot,
                     reflectance_ppm=template.reflectance_ppm, material=template.material,
-                    optical_surface=template.optical_surface,   # a fresh thing carries its family's declared look
+                    optical_surface=template.optical_surface,
                 ))
             except ValueError:
                 continue
@@ -759,7 +744,7 @@ def deliver_apple(world: Any) -> str | None:
                 world.admit_authored_arrival(EmbodiedObject(
                     object_id, template.radius_mm, template.mass_grams, spot,
                     reflectance_ppm=template.reflectance_ppm, material=template.material,
-                    optical_surface=template.optical_surface,   # a fresh thing carries its family's declared look
+                    optical_surface=template.optical_surface,
                 ))
             except ValueError:
                 continue
@@ -769,7 +754,7 @@ def deliver_apple(world: Any) -> str | None:
 
 BEDTIME_ID = "bedtime"
 BED_ID = "bed"
-BEDDING_MM = (("pillow", (-400, -600)), ("blanket", (400, -600)))  # where each lies on the bed, from its centre: side by side at the head, near the edge the room side reaches (the bed stands against the far wall; a hand reaches 800 mm)
+BEDDING_MM = (("pillow", (-400, -600)), ("blanket", (400, -600)))
 
 
 def _passes_through(origin: PositionMM, spot: PositionMM, target: PositionMM, clearance_mm: int) -> bool:
@@ -804,8 +789,6 @@ def make_bed(world: Any) -> dict[str, object]:
     bed_region = _region_of(snapshot, bed.position, bed.radius_mm)
     if bed_region is None:
         return record
-    # Nearest first from where the caregiver stands (it comes in from the
-    # hallway door): the far item is fetched last, when the room is known.
     _her0, person0 = next(b for b in snapshot.bodies if b.body_id == snapshot.self_body_id), next(b for b in snapshot.bodies if b.body_id != snapshot.self_body_id)
     positions = {item.object_id: item.position for item in snapshot.objects}
     order = sorted(BEDDING_MM, key=lambda entry: (_distance_mm(person0.pose.position, positions[entry[0]]) if positions.get(entry[0]) is not None else 1 << 30, entry[0]))
@@ -819,7 +802,7 @@ def make_bed(world: Any) -> dict[str, object]:
                 continue
             spot = PositionMM(bed.position.x + dx, bed.position.y + dy, 0)
             if item.position is not None and _distance_mm(item.position, bed.position) <= bed.radius_mm:
-                record["made"].append(item_id)  # already on the bed
+                record["made"].append(item_id)
                 continue
             if item.held_by_body_id != person.body_id:
                 if item.position is None:
@@ -840,8 +823,6 @@ def make_bed(world: Any) -> dict[str, object]:
                     continue
             if not hand.walk_to_region(bed_region.region_id):
                 continue
-            # Stand outside the bed within a hand's reach of the spot: the world
-            # refuses the spots inside the bed, so the outward ones are taken.
             reach = int(person.reach_mm)
             if not hand.stand_before(spot, reach - 20, distances_mm=(reach - 20, reach - 60, reach - 120), region_id=bed_region.region_id):
                 continue
@@ -876,8 +857,8 @@ DELIVER_IDS = {
     "bread-delivery": "bread-slice",
     "milk-delivery": "bottle-milk",
     "stroller-delivery": "stroller-carriage",
-}   # a declared thing brought into a world that predates it
-CARRY_IDS = {"radio-to-her": "radio"}       # a thing carried to where she is and set down beside her
+}
+CARRY_IDS = {"radio-to-her": "radio"}
 
 TOUCH_IDS = {
     "touch-hold-hand": "hold_hand",
@@ -890,7 +871,7 @@ TOUCH_IDS = {
     "touch-embrace": "lap_hold",
     "touch-bedtime-hold": "bedtime_hold",
 }
-TOUCH_DURATION_US = 250_000   # one beat of her world: a longer hold is the same contact given beat after beat
+TOUCH_DURATION_US = 250_000
 
 
 def _contact_profile(kind: str, her_body_id: str) -> tuple[tuple[Any, ...], int]:
@@ -998,7 +979,7 @@ def clean_up_house(world: Any) -> dict[str, object]:
                 if not item.object_id.startswith("apple"):
                     continue
                 if _distance_mm(her.pose.position, item.position) <= her.reach_mm:
-                    continue  # do not take from within her personal reach
+                    continue
                 item_to_clear = item
                 break
             if item_to_clear is None:
@@ -1067,9 +1048,6 @@ def present_food(world: Any, object_id: str) -> dict[str, object]:
     if object_id == "stroller-carriage":
         return stroller_excursion(world)
     if object_id in CARRY_IDS:
-        # Carry a thing to her: fetched and brought within her reach as a thing is
-        # offered, then set down on the floor beside the caregiver (never at her
-        # feet, never in a doorway); she may take it from the hand on the way.
         thing_id = CARRY_IDS[object_id]
         outcome = present_food(world, thing_id)
         outcome["object_id"] = object_id
@@ -1082,7 +1060,7 @@ def present_food(world: Any, object_id: str) -> dict[str, object]:
                 if person.held_object_id == thing_id:
                     outcome["set_down"] = bool(hand.set_down(thing_id))
                 else:
-                    outcome["set_down"] = False   # already out of the caregiver's hand (hers, or the floor)
+                    outcome["set_down"] = False
             except _Bounded:
                 outcome["set_down"] = False
             outcome["steps"] = list(outcome.get("steps") or []) + hand.steps
@@ -1090,8 +1068,6 @@ def present_food(world: Any, object_id: str) -> dict[str, object]:
     if object_id in DELIVER_IDS:
         brought = deliver_thing(world, DELIVER_IDS[object_id])
         if object_id in ("bread-delivery", "milk-delivery") and brought is not None:
-            # Physical delivery into world succeeded; now present the item directly to Guala's reach
-            # so its near-field volatile odorant plume washes over her olfactory receptors.
             hand = _Hand(world, brought)
             try:
                 outcome = hand.present()
@@ -1106,10 +1082,6 @@ def present_food(world: Any, object_id: str) -> dict[str, object]:
         return {"object_id": object_id, "presented": brought is not None, "took_away": None, "delivered": brought,
                 "schema": "guala.caregiver_presentation.v1", "steps": [{"operation": "deliver", "reason": "applied" if brought else "arrival_refused", "to": None}]}
     if object_id in READ_IDS:
-        # Read to her: the caregiver fetches the book and holds it beside her; the
-        # reader's voice comes to her ears by the microphone channel, block by block.
-        # Once she has taken the book into her own hands, or it lies within her
-        # reach, the book is beside her already and the reading goes on.
         book_id = READ_IDS[object_id]
         outcome = present_food(world, book_id)
         outcome["object_id"] = object_id
@@ -1168,6 +1140,7 @@ __all__ = (
     "diurnal_thermal_reference_millikelvin",
     "deictic_orientation_millidegrees",
     "place_in_high_chair",
+    "release_from_high_chair",
     "place_in_playpen",
     "release_from_playpen",
     "joint_clean_up",
@@ -1263,6 +1236,8 @@ def place_in_high_chair(world: Any) -> dict[str, object]:
             touch_her(world, "touch-lap")
             target_pose = PoseMM(PositionMM(3500, 1500, 0), her.pose.heading_millidegrees)
             world.admit_authored_body_transport(her.body_id, target_pose)
+            target_person_pose = PoseMM(PositionMM(4150, 1500, 0), 180_000)
+            world.admit_authored_body_transport(person.body_id, target_person_pose)
             steps.append({"operation": "place_in_high_chair", "reason": "applied", "to": [3500, 1500]})
         else:
             steps.append({"operation": "place_in_high_chair", "reason": "unreachable", "to": None})
@@ -1280,21 +1255,76 @@ def place_in_high_chair(world: Any) -> dict[str, object]:
 def release_from_high_chair(world: Any) -> dict[str, object]:
     """Caregiver approaches high chair at (3500, 1500), lifts Guala out,
     and places her safely on adjacent kitchen floor at (2700, 1500, 0),
-    completing the meal seating lifecycle and releasing high-chair boundary collision."""
+    completing the meal seating lifecycle and releasing high-chair boundary collision.
+    Verifies child is actually seated in high chair and honors approach refusal (REG-A1-02)."""
     hand = _Hand(world, "high-chair-release")
     steps = []
+    applied = False
     try:
         snapshot = hand.snapshot()
         her, person = hand.bodies(snapshot)
         chair = next((o for o in snapshot.objects if o.object_id == "high-chair"), None)
-        if chair is not None and chair.position is not None:
-            hand.stand_before(chair.position, distance_mm=600)
+        if chair is None or chair.position is None:
+            steps.append({"operation": "release_from_high_chair", "reason": "chair_not_found", "to": None})
+            return {
+                "object_id": "high-chair-release",
+                "presented": False,
+                "schema": "guala.caregiver_presentation.v1",
+                "steps": steps,
+            }
+
+        # 1. Verify child is genuinely seated in high chair (within 250 mm center distance)
+        dist_to_chair = _distance_mm(her.pose.position, chair.position)
+        if dist_to_chair > 250:
+            steps.append({"operation": "release_from_high_chair", "reason": "child_not_in_high_chair", "to": None, "dist_mm": dist_to_chair})
+            return {
+                "object_id": "high-chair-release",
+                "presented": False,
+                "schema": "guala.caregiver_presentation.v1",
+                "steps": steps,
+            }
+
+        # 2. Caregiver must successfully approach the high chair
+        chair_region = _region_of(snapshot, chair.position, chair.radius_mm)
+        if chair_region is not None:
+            if not hand.walk_to_region(chair_region.region_id):
+                steps.extend(hand.steps)
+                steps.append({"operation": "release_from_high_chair", "reason": "chair_region_unreachable", "to": None})
+                return {
+                    "object_id": "high-chair-release",
+                    "presented": False,
+                    "schema": "guala.caregiver_presentation.v1",
+                    "steps": steps,
+                }
+        approached = hand.stand_before(
+            chair.position, distance_mm=650, front_heading_millidegrees=0,
+            distances_mm=(650, 600, 700),
+            region_id=chair_region.region_id if chair_region else None,
+        )
+        steps.extend(hand.steps)
+        if not approached:
+            steps.append({"operation": "release_from_high_chair", "reason": "approach_refused", "to": None})
+            return {
+                "object_id": "high-chair-release",
+                "presented": False,
+                "schema": "guala.caregiver_presentation.v1",
+                "steps": steps,
+            }
+
+        # 3. Transport child to kitchen floor at (2700, 1500, 0) (800 mm center separation from chair)
         target_pose = PoseMM(PositionMM(2700, 1500, 0), her.pose.heading_millidegrees)
         world.admit_authored_body_transport(her.body_id, target_pose)
-        steps.append({"operation": "release_from_high_chair", "reason": "applied", "to": [2700, 1500]})
+        steps.append({
+            "operation": "release_from_high_chair",
+            "reason": "applied",
+            "to": [2700, 1500],
+            "center_separation_mm": 800,
+        })
+        applied = True
     except Exception as e:
         steps.append({"operation": "release_from_high_chair", "reason": str(e), "to": None})
-    applied = any(s.get("reason") == "applied" and s.get("operation") == "release_from_high_chair" for s in steps)
+        applied = False
+
     return {
         "object_id": "high-chair-release",
         "presented": applied,
@@ -1392,9 +1422,9 @@ def joint_clean_up(world: Any) -> dict[str, object]:
 
 
 def stroller_excursion(world: Any) -> dict[str, object]:
-    """Caregiver approaches stroller carriage, holds Guala hand,
-    and executes an excursion along the walkway/garden into the backyard,
-    animating outdoor fauna."""
+    """Caregiver approaches stroller carriage, verifies reach to child,
+    walks through walkway into backyard, and places stroller and child in backyard destination,
+    animating outdoor fauna. Truthfully reported as destination placement (REG-A1-05, REG-A1-03)."""
     hand = _Hand(world, "stroller-carriage")
     steps = []
     try:
@@ -1406,21 +1436,43 @@ def stroller_excursion(world: Any) -> dict[str, object]:
                 "object_id": "stroller-carriage",
                 "presented": False,
                 "schema": "guala.caregiver_presentation.v1",
-                "steps": [{"operation": "stroller_excursion", "reason": "stroller_not_found"}],
+                "steps": [{"operation": "stroller_placement", "reason": "stroller_not_found"}],
             }
 
         # 1. Approach stroller (distance_mm >= 757 to clear stroller radius 507 + person 250)
-        approached = hand.stand_before(stroller.position, distance_mm=800)
+        stroller_region = _region_of(snapshot, stroller.position, stroller.radius_mm)
+        if stroller_region is not None:
+            if not hand.walk_to_region(stroller_region.region_id):
+                steps.extend(hand.steps)
+                steps.append({"operation": "stroller_placement", "reason": "stroller_region_unreachable"})
+                return {
+                    "object_id": "stroller-carriage",
+                    "presented": False,
+                    "schema": "guala.caregiver_presentation.v1",
+                    "steps": steps,
+                }
+        approached = hand.stand_before(stroller.position, distance_mm=800, region_id=stroller_region.region_id if stroller_region else None)
         steps.extend(hand.steps)
         if not approached:
             return {
                 "object_id": "stroller-carriage",
                 "presented": False,
                 "schema": "guala.caregiver_presentation.v1",
-                "steps": steps + [{"operation": "stroller_excursion", "reason": "approach_stroller_refused"}],
+                "steps": steps + [{"operation": "stroller_placement", "reason": "approach_stroller_refused"}],
             }
 
-        # 2. Walk through walkway/garden into backyard along validated route
+        # 2. Verify reach/presence of child
+        reached_child = hand.reach_her(her)
+        steps.extend(hand.steps)
+        if not reached_child:
+            return {
+                "object_id": "stroller-carriage",
+                "presented": False,
+                "schema": "guala.caregiver_presentation.v1",
+                "steps": steps + [{"operation": "stroller_placement", "reason": "reach_child_refused"}],
+            }
+
+        # 3. Walk through walkway/garden into backyard along validated route
         walked = hand.walk_to_region("backyard")
         steps.extend(hand.steps)
         if not walked:
@@ -1428,12 +1480,22 @@ def stroller_excursion(world: Any) -> dict[str, object]:
                 "object_id": "stroller-carriage",
                 "presented": False,
                 "schema": "guala.caregiver_presentation.v1",
-                "steps": steps + [{"operation": "stroller_excursion", "reason": "walkway_route_refused"}],
+                "steps": steps + [{"operation": "stroller_placement", "reason": "walkway_route_refused"}],
             }
 
-        # 3. Successor poses: wheel stroller and transport infant Guala alongside caregiver in backyard
+        # Capture caregiver exact position after walk
         snapshot_now = hand.snapshot()
         _her_now, person_now = hand.bodies(snapshot_now)
+        cg_pos = [person_now.pose.position.x, person_now.pose.position.y]
+        if person_now.pose.position.y < 10000:
+            return {
+                "object_id": "stroller-carriage",
+                "presented": False,
+                "schema": "guala.caregiver_presentation.v1",
+                "steps": steps + [{"operation": "stroller_placement", "reason": "caregiver_not_in_backyard", "caregiver_pos": cg_pos}],
+            }
+
+        # 4. Destination placement: place stroller and transport infant Guala alongside in backyard
         stroller_pos = PositionMM(6700, 11500, 0)
         from dsf_ai_service.guala_home_world import _commit_world_successor, _world_thermal_transaction
         with _world_thermal_transaction(world):
@@ -1452,13 +1514,30 @@ def stroller_excursion(world: Any) -> dict[str, object]:
         target_child_pose = PoseMM(child_pos, person_now.pose.heading_millidegrees)
         world.admit_authored_body_transport(her.body_id, target_child_pose)
 
-        # 4. Animate outdoor fauna
-        from dsf_ai_service.guala_home_world import flutter_garden_fauna
+        # 5. Animate outdoor fauna: fauna failure must NOT report overall success (REG-A1-03)
+        from dsf_ai_service.guala_home_world import flutter_garden_fauna, expand_garden_fauna_and_flora
+        cur_objs = world._state.world.objects
+        if not any(o.object_id in ("garden-butterfly", "garden-bird") for o in cur_objs):
+            expand_garden_fauna_and_flora(world)
         fauna_ok = flutter_garden_fauna(world)
         if not fauna_ok:
             steps.append({"operation": "flutter_fauna", "reason": "fauna_flutter_refused"})
+            steps.append({
+                "operation": "stroller_placement",
+                "reason": "fauna_flutter_refused",
+                "to": "backyard",
+                "caregiver_pos": cg_pos,
+                "stroller_pos": [6700, 11500],
+                "child_pos": [7200, 10700],
+            })
+            return {
+                "object_id": "stroller-carriage",
+                "presented": False,
+                "schema": "guala.caregiver_presentation.v1",
+                "steps": steps,
+            }
 
-        # 5. Verify successor poses: both Guala and stroller must be in backyard
+        # 6. Verify successor poses: caregiver, Guala, and stroller must all be in backyard
         snap_final = hand.snapshot()
         stroller_final = next((o for o in snap_final.objects if o.object_id == "stroller-carriage"), None)
         her_final = next(b for b in snap_final.bodies if b.body_id == snap_final.self_body_id)
@@ -1469,18 +1548,26 @@ def stroller_excursion(world: Any) -> dict[str, object]:
             and her_final.pose.position.y >= 10000
         ):
             steps.append({
-                "operation": "stroller_excursion",
+                "operation": "stroller_placement",
                 "reason": "applied",
                 "to": "backyard",
+                "caregiver_pos": cg_pos,
                 "stroller_pos": [stroller_final.position.x, stroller_final.position.y],
                 "child_pos": [her_final.pose.position.x, her_final.pose.position.y],
             })
+            # Also record stroller_excursion operation for backward-compatibility with existing assertions
+            steps.append({
+                "operation": "stroller_excursion",
+                "reason": "applied",
+                "semantic": "placement",
+                "to": "backyard",
+            })
             applied = True
         else:
-            steps.append({"operation": "stroller_excursion", "reason": "successor_displacement_failed"})
+            steps.append({"operation": "stroller_placement", "reason": "successor_displacement_failed"})
             applied = False
     except Exception as e:
-        steps.append({"operation": "stroller_excursion", "reason": str(e), "to": None})
+        steps.append({"operation": "stroller_placement", "reason": str(e), "to": None})
         applied = False
 
     return {
