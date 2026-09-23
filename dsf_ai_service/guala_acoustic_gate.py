@@ -53,6 +53,8 @@ class AcousticEvent:
     key: str                         # sha-256 (16 hex) of its structure
     gates_per_band: tuple[int, ...]  # how many gates the kernel found inside it per band (0s when too short)
     tokens: tuple[tuple[str, ...], ...]   # the per-band gate tokens (regime + seven signs), or the quantized shapes
+    profile: tuple[float, ...] | None = None  # the sound's measured 32-channel peak spectrum
+    envelopes: tuple[tuple[float, ...], ...] = ()  # chronological sounding frame-by-frame 32-channel envelopes
 
     @property
     def frames(self) -> int:
@@ -79,6 +81,17 @@ def frames_of_cochleae(cochleae: Sequence[Sequence[float]]) -> tuple[Frame, ...]
         shape = tuple(round(sum(channels[c] for c in band) / total, GRAIN) for band in EAR_BAND_CHANNELS)
         frames.append((energy,) + shape)
     return tuple(frames)
+
+
+def envelopes_of_cochleae(cochleae: Sequence[Sequence[float]]) -> tuple[tuple[float, ...], ...]:
+    """One hop's 25 frame-aligned 32-channel envelopes from the ear's channels."""
+    if not cochleae:
+        return ((0.0,) * 32,) * FRAMES_PER_HOP
+    channels_count = len(cochleae)
+    return tuple(
+        tuple(round(float(cochleae[c][index]), GRAIN) for c in range(channels_count))
+        for index in range(FRAMES_PER_HOP)
+    )
 
 
 def hop_frames(pressure_s16le: bytes) -> tuple[tuple[Frame, ...], bool]:
@@ -129,11 +142,23 @@ def event_structure(frames: Sequence[Sequence[float]]) -> tuple[str, tuple[int, 
 def _close(open_event: dict[str, Any]) -> AcousticEvent:
     kept = open_event["frames"][: int(open_event["last"]) - int(open_event["start"]) + 1]   # up to its last sounding frame
     key, counts, tokens = event_structure(kept)
-    return AcousticEvent(int(open_event["start"]), int(open_event["last"]), float(open_event["peak"]), key, counts, tokens)
+    prof = open_event.get("channel_peaks")
+    envs = open_event.get("envelopes")
+    return AcousticEvent(
+        int(open_event["start"]),
+        int(open_event["last"]),
+        float(open_event["peak"]),
+        key,
+        counts,
+        tokens,
+        tuple(float(v) for v in prof) if prof is not None else None,
+        tuple(tuple(float(c) for c in f) for f in envs) if envs else (),
+    )
 
 
 def gate_step(open_event: dict[str, Any] | None, frames: Sequence[Sequence[float]], heard: bool, base_index: int,
-              ) -> tuple[dict[str, Any] | None, list[AcousticEvent], list[int]]:
+              envelopes: Sequence[Sequence[float]] | None = None,
+              profile: Sequence[float] | None = None) -> tuple[dict[str, Any] | None, list[AcousticEvent], list[int]]:
     """The boundary law over one hop's frames (absolute index base_index + i).
     Returns (the open event after the hop, the events closed within it, the lengths
     of quiet runs inside events that a sounding frame ended: the measured datum
@@ -146,9 +171,18 @@ def gate_step(open_event: dict[str, Any] | None, frames: Sequence[Sequence[float
         index = base_index + offset
         frame = tuple(float(v) for v in raw) if heard else SILENT_FRAME
         energy = frame[0]
+        env = tuple(float(v) for v in envelopes[offset]) if (envelopes and offset < len(envelopes) and heard) else None
         if open_event is None:
             if heard and energy > 0.0:
-                open_event = {"frames": [list(frame)], "start": index, "peak": energy, "quiet": 0, "last": index}
+                open_event = {
+                    "frames": [list(frame)],
+                    "start": index,
+                    "peak": energy,
+                    "quiet": 0,
+                    "last": index,
+                    "channel_peaks": [round(float(v), GRAIN) for v in env] if env is not None else None,
+                    "envelopes": [tuple(round(float(v), GRAIN) for v in env)] if env is not None else [],
+                }
             continue
         open_event["peak"] = max(float(open_event["peak"]), energy)
         sounding = energy > 0.0 and energy * SOUNDING_FRACTION_OF_PEAK >= float(open_event["peak"])
@@ -158,6 +192,13 @@ def gate_step(open_event: dict[str, Any] | None, frames: Sequence[Sequence[float
                 quiet_runs.append(int(open_event["quiet"]))
             open_event["quiet"] = 0
             open_event["last"] = index
+            if env is not None:
+                ch_peaks = open_event.get("channel_peaks")
+                if ch_peaks is None:
+                    open_event["channel_peaks"] = [round(float(v), GRAIN) for v in env]
+                else:
+                    open_event["channel_peaks"] = [round(max(float(a), float(b)), GRAIN) for a, b in zip(ch_peaks, env)]
+                open_event.setdefault("envelopes", []).append(tuple(round(float(v), GRAIN) for v in env))
         else:
             open_event["quiet"] = int(open_event["quiet"]) + 1
         if int(open_event["quiet"]) >= PAUSE_FRAMES or len(open_event["frames"]) >= MAX_EVENT_FRAMES:
@@ -179,11 +220,15 @@ class AcousticGate:
         return self._open is not None
 
     def feed(self, pressure_s16le: bytes) -> list[AcousticEvent]:
-        frames, heard = hop_frames(pressure_s16le)
-        return self.feed_frames(frames, heard)
+        _times, _legacy, cochleae, _consumed = one_self_hearing_hop(pressure_s16le)
+        one_ear = cochleae[:CHANNELS_PER_EAR]
+        peak_profile_energy = sum(max(one_ear[channel]) for channel in range(CHANNELS_PER_EAR)) / CHANNELS_PER_EAR
+        return self.feed_frames(frames_of_cochleae(cochleae), peak_profile_energy >= HEARD_ENERGY_FLOOR, envelopes=envelopes_of_cochleae(cochleae))
 
-    def feed_frames(self, frames: Sequence[Sequence[float]], heard: bool) -> list[AcousticEvent]:
-        self._open, closed, _runs = gate_step(self._open, frames, heard, self._frame_index)
+    def feed_frames(self, frames: Sequence[Sequence[float]], heard: bool,
+                    envelopes: Sequence[Sequence[float]] | None = None,
+                    profile: Sequence[float] | None = None) -> list[AcousticEvent]:
+        self._open, closed, _runs = gate_step(self._open, frames, heard, self._frame_index, envelopes=envelopes, profile=profile)
         self._frame_index += len(frames)
         return closed
 
@@ -209,4 +254,4 @@ def events_of(hops: Sequence[bytes]) -> list[AcousticEvent]:
 
 
 __all__ = ("AcousticEvent", "AcousticGate", "Frame", "SILENT_FRAME", "EAR_BANDS", "FRAMES_PER_HOP", "MAX_EVENT_FRAMES", "PAUSE_FRAMES",
-           "event_structure", "events_of", "frames_of_cochleae", "gate_step", "hop_frames")
+           "envelopes_of_cochleae", "event_structure", "events_of", "frames_of_cochleae", "gate_step", "hop_frames")

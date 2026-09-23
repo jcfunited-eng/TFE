@@ -1,242 +1,236 @@
-"""CH2 book simulation — the measurement declared in
-docs/CH2_BOOK_SIMULATION_DECLARATION_20260919.md.
+"""Session-complete CH2 historical control, not a new structural selection law.
 
-A capacity-bounded book: $100,000, $2,500 slices, whole shares, cash-limited,
-the live exit law, run day by day. One difference between the two runs: how
-many positions a single stock may hold at once. A random-entry book of the
-same shape is the null.
-
-Usage:
-  PYTHONHASHSEED=0 python tools/ch2_book_simulation.py \
-      artifacts/ch4_uf/ch2_lanes_20260919.csv.gz ch4_live_store.parquet
+Retains the existing V3 entry projection and declared book exits. Uses every
+SPY session, net realized wins, round-trip costs, and matched-date SPY lift.
+Publication dates need not be trading dates; eligibility uses the last close
+available at publication, and fills occur strictly after publication.
 """
 from __future__ import annotations
-
-import json
-import sys
+import argparse
 from collections import defaultdict
+import hashlib
+import json
 from pathlib import Path
-
+import sys
 import numpy as np
 import pandas as pd
-
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from ch2_winner_exit_measure import (  # noqa: E402
+from ch2_winner_exit_measure import (
     GATE_ACC_MIN, GATE_BREAK_MAX, GATE_BARS_MIN, DEAD_DAMAGE_PCT, DEAD_SESSIONS,
     WALL_DAYS, BRAKE_PCT, RATCHET_ENGAGE, RATCHET_GIVEBACK,
     basin_frame, verify_vectorised,
 )
-from ch2_holding_length_measure import LIQ_FLOOR_USD, LIQ_WINDOW, PRICE_FLOOR  # noqa: E402
-
-ROOT = Path(__file__).resolve().parents[1]
-OUT = ROOT / "artifacts" / "ch4_uf" / "ch2_book_simulation_20260919.json"
-
-CAPITAL = 100_000.0
-SLICE = 2_500.0
-MAX_PER_STOCK = {"one_per_stock": 1, "repeats_3": 3}
-COSTS_BPS = [0.0, 10.0]
-NULL_SEEDS = 50
-SPLIT = np.datetime64("2024-03-15", "D")
+from ch2_holding_length_measure import LIQ_FLOOR_USD, LIQ_WINDOW, PRICE_FLOOR
+ROOT=Path(__file__).resolve().parents[1]
+CAPITAL=100_000.0
+SLICE=2_500.0
+MAX_PER_STOCK={'one_per_stock':1,'repeats_3':3}
+COSTS_BPS=[0.0,10.0]
+NULL_SEEDS=50
+SPLIT=np.datetime64('2024-03-15','D')
+FIELDS=['s_uf','r_uf','d_k','m_k','r_rev_k','u_star_k','c_k','p_k','b_k']
 
 
-def simulate_book(day_signals, bars, calendar, max_per_stock, cost_bps,
-                  start, end, rng=None, random_pool=None):
-    """Run the book across `calendar`. Returns a result dict."""
-    cash = CAPITAL
-    open_pos = []           # dicts
-    per_stock = defaultdict(int)
-    closed = []
-    equity_curve = []
-    cost = cost_bps / 10_000.0
-
-    for day in calendar:
-        if day < start or day > end:
-            continue
-        # 1. exits first, on today's close
-        still = []
+def simulate_book(day_signals,bars,calendar,max_per_stock,cost_bps,start,end,rng=None,random_pool=None):
+    """Close-only historical control; no inference of executable stop prices."""
+    calendar=np.asarray(calendar,dtype='datetime64[D]')
+    if not len(calendar) or np.any(calendar[1:]<=calendar[:-1]):
+        raise ValueError('calendar must be nonempty, unique and increasing')
+    if cost_bps<0 or not np.isfinite(cost_bps) or max_per_stock<1:
+        raise ValueError('invalid cost or capacity')
+    sessions=calendar[(calendar>=start)&(calendar<=end)]
+    if not len(sessions):
+        raise ValueError('no sessions in evaluation window')
+    for ticker,(dates,prices,eligible) in bars.items():
+        if len(dates)!=len(prices) or len(prices)!=len(eligible):
+            raise ValueError(f'misaligned bar arrays: {ticker}')
+        if np.any(dates[1:]<=dates[:-1]) or not np.isfinite(prices).all() or np.any(prices<=0):
+            raise ValueError(f'invalid bar series: {ticker}')
+    cash,open_pos,closed,curve=CAPITAL,[],[],[]
+    per_stock=defaultdict(int)
+    leg_cost=cost_bps/20_000.0
+    for day in sessions:
+        still=[]
         for p in open_pos:
-            d, close, _ = bars[p["ticker"]]
-            k = np.searchsorted(d, day, side="left")
-            if k >= len(d) or d[k] != day:
-                still.append(p); continue
-            px = close[k]
-            p["peak"] = max(p["peak"], px)
-            reason = None
-            if px <= p["brake_line"]:
-                reason, fill = "brake", px
-            elif p["peak"] >= p["entry"] * (1 + RATCHET_ENGAGE) and \
-                    px <= p["entry"] + (p["peak"] - p["entry"]) * (1 - RATCHET_GIVEBACK):
-                reason, fill = "ratchet", px
-            else:
-                p["below"] = p["below"] + 1 if px <= p["damage_line"] else 0
-                if p["below"] > DEAD_SESSIONS:
-                    reason, fill = "dead_clock", px
-                elif (day - p["entry_date"]).astype("timedelta64[D]").astype(int) >= WALL_DAYS:
-                    reason, fill = "wall", px
-            if reason:
-                proceeds = p["shares"] * fill * (1 - cost)
-                cash += proceeds
-                per_stock[p["ticker"]] -= 1
-                closed.append({"ticker": p["ticker"], "entry_date": str(p["entry_date"]),
-                               "exit_date": str(day), "reason": reason,
-                               "pnl": proceeds - p["cost_basis"],
-                               "ret": (fill / p["entry"]) - 1.0})
+            dates,prices,_=bars[p['ticker']]
+            k=int(np.searchsorted(dates,day))
+            if k>=len(dates) or dates[k]!=day:
+                raise ValueError(f"missing held-position session: {p['ticker']} {day}")
+            px=float(prices[k])
+            p['peak']=max(p['peak'],px)
+            reason=p.get('pending_exit')
+            if reason is None:
+                if px<=p['brake_line']:
+                    reason='brake'
+                elif p['peak']>=p['entry']*(1+RATCHET_ENGAGE) and px<=p['entry']+(p['peak']-p['entry'])*(1-RATCHET_GIVEBACK):
+                    reason='ratchet'
+                else:
+                    p['below']=p['below']+1 if px<=p['damage_line'] else 0
+                    if p['below']>DEAD_SESSIONS:
+                        p['pending_exit']='dead_clock'
+                    elif int((day-p['entry_date'])/np.timedelta64(1,'D'))>=WALL_DAYS:
+                        p['pending_exit']='wall'
+            if reason is not None:
+                proceeds=p['shares']*px*(1-leg_cost)
+                cash+=proceeds
+                per_stock[p['ticker']]-=1
+                closed.append({'ticker':p['ticker'],'entry_date':str(p['entry_date']),
+                    'exit_date':str(day),'reason':reason,'entry_px':p['entry'],
+                    'exit_px':px,'shares':p['shares'],'pnl':proceeds-p['cost_basis'],
+                    'ret':px/p['entry']-1})
             else:
                 still.append(p)
-        open_pos = still
-
-        # 2. entries
-        todays = day_signals.get(day, [])
+        open_pos=still
+        todays=day_signals.get(day,[])
         if random_pool is not None:
-            pool = random_pool.get(day, [])
-            n = len(todays)
-            todays = [(t, 0.0) for t in rng.choice(pool, size=min(n, len(pool)), replace=False)] if (n and len(pool)) else []
-        for ticker, _basin in todays:
-            if per_stock[ticker] >= max_per_stock:
+            if rng is None:
+                raise ValueError('random control requires explicit generator')
+            pool=random_pool.get(day,[])
+            todays=[(str(t),0.0) for t in rng.choice(pool,size=min(len(todays),len(pool)),replace=False)] if todays and pool else []
+        for ticker,_ in todays:
+            if per_stock[ticker]>=max_per_stock:
                 continue
-            d, close, ok = bars[ticker]
-            k = np.searchsorted(d, day, side="left")
-            if k >= len(d) or d[k] != day or not ok[k]:
+            dates,prices,_=bars[ticker]
+            k=int(np.searchsorted(dates,day))
+            if k>=len(dates) or dates[k]!=day:
+                raise ValueError(f'missing scheduled fill: {ticker} {day}')
+            px=float(prices[k])
+            shares=int(SLICE//(px*(1+leg_cost)))
+            spend=shares*px*(1+leg_cost)
+            if shares<=0 or spend>cash:
                 continue
-            px = close[k]
-            shares = int(SLICE // px)
-            if shares <= 0:
-                continue
-            spend = shares * px * (1 + cost)
-            if spend > cash:
-                continue
-            cash -= spend
-            per_stock[ticker] += 1
-            open_pos.append({"ticker": ticker, "entry": px, "entry_date": day, "shares": shares,
-                             "cost_basis": spend, "peak": px, "below": 0,
-                             "damage_line": px * (1 - DEAD_DAMAGE_PCT),
-                             "brake_line": px * (1 - BRAKE_PCT)})
-
-        # 3. mark
-        mv = 0.0
+            cash-=spend
+            per_stock[ticker]+=1
+            open_pos.append({'ticker':ticker,'entry':px,'entry_date':day,'shares':shares,
+                'cost_basis':spend,'peak':px,'below':0,'damage_line':px*(1-DEAD_DAMAGE_PCT),
+                'brake_line':px*(1-BRAKE_PCT)})
+        marked=0.0
         for p in open_pos:
-            d, close, _ = bars[p["ticker"]]
-            k = np.searchsorted(d, day, side="right") - 1
-            if 0 <= k < len(close):
-                mv += p["shares"] * close[k]
-        equity_curve.append(cash + mv)
+            dates,prices,_=bars[p['ticker']]
+            k=int(np.searchsorted(dates,day))
+            if k>=len(dates) or dates[k]!=day:
+                raise ValueError(f"missing daily mark: {p['ticker']} {day}")
+            marked+=p['shares']*prices[k]
+        curve.append({'date':str(day),'equity':float(cash+marked)})
+    equity=np.array([CAPITAL]+[r['equity'] for r in curve])
+    reasons={reason:sum(t['reason']==reason for t in closed) for reason in sorted({t['reason'] for t in closed})}
+    expected_cash=CAPITAL+sum(t['pnl'] for t in closed)-sum(p['cost_basis'] for p in open_pos)
+    if abs(expected_cash-cash)>1e-6:
+        raise ValueError('cash reconciliation failed')
+    return {'final_equity':float(equity[-1]),'return_pct':float((equity[-1]/CAPITAL-1)*100),
+        'max_drawdown_pct':float(np.min(equity/np.maximum.accumulate(equity)-1)*100),
+        'positions_taken':len(closed)+len(open_pos),'positions_closed':len(closed),
+        'still_open':len(open_pos),'win_rate_pct':100*sum(t['pnl']>0 for t in closed)/len(closed) if closed else None,
+        'mean_trade_pct':100*float(np.mean([t['ret'] for t in closed])) if closed else None,
+        'exit_reasons':reasons,'cash_reconciled':True,'round_trip_cost_bps':cost_bps,
+        'cash':cash,'curve':curve,'closed_trades':closed,
+        'open_positions':[{**p,'entry_date':str(p['entry_date'])} for p in open_pos]}
 
-    eq = np.array(equity_curve) if equity_curve else np.array([CAPITAL])
-    peak = np.maximum.accumulate(eq)
-    dd = float(((eq - peak) / peak).min() * 100)
-    rets = np.array([c["ret"] for c in closed]) if closed else np.array([])
-    reasons = defaultdict(int)
-    for c in closed:
-        reasons[c["reason"]] += 1
-    return {"final_equity": float(eq[-1]), "return_pct": float((eq[-1] / CAPITAL - 1) * 100),
-            "max_drawdown_pct": dd, "positions_taken": len(closed) + len(open_pos),
-            "positions_closed": len(closed), "still_open": len(open_pos),
-            "win_rate_pct": float((rets > 0).mean() * 100) if len(rets) else None,
-            "mean_trade_pct": float(rets.mean() * 100) if len(rets) else None,
-            "exit_reasons": dict(reasons)}
+
+def publication_fill_indices(dates,calendar,day):
+    """Require a current known close; allow publications on exchange holidays."""
+    asof=int(np.searchsorted(dates,day,side='right'))-1
+    market_asof=int(np.searchsorted(calendar,day,side='right'))-1
+    if asof<0 or market_asof<0:
+        return None
+    if dates[asof]!=calendar[market_asof]:
+        raise ValueError(f'stale source at publication {day}; last bar {dates[asof]}')
+    fill=asof+1
+    if fill>=len(dates):
+        return None
+    if market_asof+1>=len(calendar) or dates[fill]!=calendar[market_asof+1]:
+        raise ValueError(f'missing next-session fill after {day}')
+    return asof,fill
 
 
-def main() -> int:
-    lanes = pd.read_csv(sys.argv[1], parse_dates=["d"])
-    lanes = lanes.dropna(subset=["s_uf", "r_uf", "d_k", "m_k", "r_rev_k", "u_star_k", "c_k", "p_k", "b_k"])
-    lanes = lanes.sort_values(["ticker", "d"]).reset_index(drop=True)
-    port = verify_vectorised(lanes)
-    print(f"[book] port check {port}", flush=True)
-    if port["decision_mismatches"]:
-        return 1
-    bf = basin_frame(lanes)
-    lanes["acc"] = bf.acc.values
-    lanes["entry_ok"] = (bf.is_acc.values & (bf.acc.values >= GATE_ACC_MIN)
-                         & (bf.brk.values < GATE_BREAK_MAX)
-                         & (lanes.bar_count.fillna(0).values > GATE_BARS_MIN))
-
-    bars_df = pd.read_parquet(sys.argv[2], columns=["Date", "Symbol", "Close", "Volume"]).dropna()
-    bars_df = bars_df.sort_values(["Symbol", "Date"])
-    lo = lanes.d.min().to_datetime64().astype("datetime64[D]")
-    hi = lanes.d.max().to_datetime64().astype("datetime64[D]")
-    bars = {}
-    for sym, g in bars_df.groupby("Symbol", sort=False):
-        close = g.Close.values.astype(float)
-        d = g.Date.values.astype("datetime64[D]")
-        liq = pd.Series(close * g.Volume.values.astype(float)).rolling(
-            LIQ_WINDOW, min_periods=LIQ_WINDOW).median().values
-        ok = np.nan_to_num((liq >= LIQ_FLOOR_USD), nan=0).astype(bool) & (close >= PRICE_FLOOR)
-        bars[sym] = (d, close, ok)
-
-    # signals keyed by the session they would fill on
-    day_signals: dict[np.datetime64, list] = defaultdict(list)
-    sig = lanes[lanes.entry_ok]
-    for ticker, gl in sig.groupby("ticker", sort=False):
-        grp = bars.get(ticker)
-        if grp is None:
+def main():
+    parser=argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('lanes',type=Path)
+    parser.add_argument('bars',type=Path)
+    parser.add_argument('--output',type=Path,required=True)
+    parser.add_argument('--no-null',action='store_true',required=True)
+    args=parser.parse_args()
+    if args.output.exists():
+        raise FileExistsError(args.output)
+    pieces=[]
+    lo=hi=checked=None
+    for chunk in pd.read_csv(args.lanes,parse_dates=['d'],chunksize=100_000):
+        if chunk[FIELDS+['bar_count']].isna().any().any() or not np.isfinite(chunk[FIELDS].to_numpy()).all():
+            raise ValueError('incomplete or nonfinite source field')
+        lo=chunk.d.min() if lo is None else min(lo,chunk.d.min())
+        hi=chunk.d.max() if hi is None else max(hi,chunk.d.max())
+        if checked is None:
+            checked=verify_vectorised(chunk)
+            if checked['decision_mismatches']:
+                raise ValueError('vectorised decision mismatch')
+        bf=basin_frame(chunk)
+        ok=bf.is_acc&(bf.acc>=GATE_ACC_MIN)&(bf.brk<GATE_BREAK_MAX)&(chunk.bar_count>GATE_BARS_MIN)
+        selected=chunk.loc[ok,['ticker','d']].copy()
+        selected['acc']=bf.loc[ok,'acc'].values
+        pieces.append(selected)
+    signals=pd.concat(pieces,ignore_index=True)
+    if signals.duplicated(['ticker','d']).any():
+        raise ValueError('duplicate signal dates')
+    lo,hi=np.datetime64(lo.date(),'D'),np.datetime64(hi.date(),'D')
+    symbols=sorted(set(signals.ticker)|{'SPY'})
+    market=pd.read_parquet(args.bars,columns=['Date','Symbol','Close','Volume'],filters=[('Symbol','in',symbols)])
+    if market.isna().any().any() or market.duplicated(['Symbol','Date']).any():
+        raise ValueError('invalid market data')
+    bars={}
+    for symbol,g in market.groupby('Symbol',sort=True):
+        g=g.sort_values('Date')
+        close=g.Close.to_numpy(dtype=float)
+        dates=g.Date.to_numpy(dtype='datetime64[D]')
+        liquidity=pd.Series(close*g.Volume.to_numpy(dtype=float)).rolling(LIQ_WINDOW,min_periods=LIQ_WINDOW).median().to_numpy()
+        bars[symbol]=(dates,close,(liquidity>=LIQ_FLOOR_USD)&(close>=PRICE_FLOOR))
+    if 'SPY' not in bars:
+        raise ValueError('SPY calendar missing')
+    calendar=bars['SPY'][0]
+    day_signals=defaultdict(list)
+    for symbol,g in signals.groupby('ticker',sort=True):
+        if symbol not in bars:
+            raise ValueError(f'missing signal symbol: {symbol}')
+        if symbol=='SPY':
             continue
-        d, close, ok = grp
-        j = np.searchsorted(d, gl.d.values.astype("datetime64[D]"), side="right")
-        for jj, acc in zip(j, gl.acc.values):
-            if jj < len(d) and ok[jj] and lo <= d[jj] <= hi:
-                day_signals[d[jj]].append((ticker, float(acc)))
+        dates,prices,eligible=bars[symbol]
+        for row in g.itertuples():
+            day=np.datetime64(row.d.date(),'D')
+            try:
+                indices=publication_fill_indices(dates,calendar,day)
+            except ValueError as error:
+                raise ValueError(f'{symbol}: {error}') from error
+            if indices is None:
+                continue
+            k,j=indices
+            if eligible[k] and dates[j]<=hi:
+                day_signals[dates[j]].append((symbol,float(row.acc)))
     for day in day_signals:
-        day_signals[day].sort(key=lambda x: -x[1])
-    calendar = np.array(sorted(day_signals.keys()))
-    print(f"[book] signal days={len(calendar)} signals={sum(len(v) for v in day_signals.values())}", flush=True)
-
-    # eligible pool per day for the null
-    pool: dict[np.datetime64, list] = {}
-    for day in calendar:
-        names = [t for t, (d, c, ok) in bars.items()
-                 if (k := int(np.searchsorted(d, day, side="left"))) < len(d) and d[k] == day and ok[k]]
-        pool[day] = names
-    print(f"[book] null pool built (median {int(np.median([len(v) for v in pool.values()]))} names/day)", flush=True)
-
-    windows = {"full": (lo, hi), "first_half": (lo, SPLIT), "second_half": (SPLIT, hi)}
-    out = {"declaration": "docs/CH2_BOOK_SIMULATION_DECLARATION_20260919.md",
-           "generated_at_utc": pd.Timestamp.utcnow().isoformat(), "port_check": port,
-           "capital": CAPITAL, "slice": SLICE, "windows": {}}
-
-    for wname, (ws, we) in windows.items():
-        w = {}
+        day_signals[day].sort(key=lambda item:(-item[1],item[0]))
+    windows={'full':(lo,hi),'first_half':(lo,SPLIT-np.timedelta64(1,'D')),'second_half':(SPLIT,hi)}
+    output={'scope':'Legacy V3 control; lane fidelity and historical universe membership not certified. Not current CH2 deployment parity or a new full-field strategy.',
+        'source_lanes':str(args.lanes),'source_sha256':hashlib.sha256(args.lanes.read_bytes()).hexdigest(),
+        'port_check':checked,'windows':{},'null_omitted':True}
+    for name,(start,end) in windows.items():
+        sessions=calendar[(calendar>=start)&(calendar<=end)]
+        if not len(sessions):
+            continue
+        start,end=sessions[0],sessions[-1]
+        window_signals={d:s for d,s in day_signals.items() if start<d<=end}
+        spy_d,spy_c,_=bars['SPY']
+        benchmark=100*(spy_c[np.searchsorted(spy_d,end)]/spy_c[np.searchsorted(spy_d,start)]-1)
+        output['windows'][name]={'start':str(start),'end':str(end),'spy_return_pct':float(benchmark),'runs':{}}
         for cost in COSTS_BPS:
-            c = {}
-            for run, cap in MAX_PER_STOCK.items():
-                r = simulate_book(day_signals, bars, calendar, cap, cost, ws, we)
-                c[run] = r
-                print(f"[book] {wname:12s} cost={cost:4.1f}bp {run:14s} "
-                      f"equity=${r['final_equity']:,.0f} ret={r['return_pct']:+.1f}% "
-                      f"dd={r['max_drawdown_pct']:.1f}% trades={r['positions_taken']} "
-                      f"win={r['win_rate_pct'] if r['win_rate_pct'] is None else round(r['win_rate_pct'],1)}%", flush=True)
-            # null: random-entry book at the live cap
-            nulls = []
-            for seed in range(NULL_SEEDS):
-                rng = np.random.default_rng(4242 + seed)
-                nulls.append(simulate_book(day_signals, bars, calendar, 1, cost, ws, we,
-                                           rng=rng, random_pool=pool)["return_pct"])
-            nm = np.array(nulls)
-            c["random_entry_null"] = {"seeds": NULL_SEEDS, "mean_return_pct": float(nm.mean()),
-                                      "p05": float(np.percentile(nm, 5)), "p95": float(np.percentile(nm, 95))}
-            print(f"[book] {wname:12s} cost={cost:4.1f}bp null mean={nm.mean():+.1f}% "
-                  f"p95={np.percentile(nm, 95):+.1f}%", flush=True)
-            w[f"cost_{int(cost)}bp"] = c
-        out["windows"][wname] = w
-
-    def passes():
-        for wname in windows:
-            for cost in COSTS_BPS:
-                c = out["windows"][wname][f"cost_{int(cost)}bp"]
-                if c["repeats_3"]["return_pct"] <= c["one_per_stock"]["return_pct"]:
-                    return False
-                if c["repeats_3"]["return_pct"] <= c["random_entry_null"]["p95"]:
-                    return False
-                if c["one_per_stock"]["return_pct"] <= c["random_entry_null"]["p95"]:
-                    return False
-        return True
-
-    out["repeats_3_passes_declared_bar"] = passes()
-    OUT.parent.mkdir(parents=True, exist_ok=True)
-    OUT.write_text(json.dumps(out, indent=2, default=str))
-    print(f"[book] repeats_3 passes declared bar: {out['repeats_3_passes_declared_bar']}", flush=True)
-    print(f"[book] written {OUT}", flush=True)
-    return 0
+            for label,cap in MAX_PER_STOCK.items():
+                result=simulate_book(window_signals,bars,calendar,cap,cost,start,end)
+                result['lift_percentage_points']=result['return_pct']-benchmark
+                key=f'{label}_{cost:g}bp_round_trip'
+                output['windows'][name]['runs'][key]=result
+                print(json.dumps({'window':name,'run':key,**{k:result[k] for k in ('positions_closed','win_rate_pct','return_pct','lift_percentage_points')}}),flush=True)
+    args.output.parent.mkdir(parents=True,exist_ok=True)
+    with args.output.open('x') as stream:
+        json.dump(output,stream,indent=2,allow_nan=False)
+        stream.write('\n')
 
 
-if __name__ == "__main__":
-    raise SystemExit(main())
+if __name__=='__main__':
+    main()

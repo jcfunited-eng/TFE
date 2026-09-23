@@ -122,18 +122,17 @@ def evaluate_anticipatory_consequence(
     Returns:
       (expected_somatic_valence, projected_consequence_reason)
       - Positive valence: promotes action (e.g. food ingestion / comfort)
-      - Negative valence (< -0.40): vetoes action (e.g. pain / shock)
+      - Negative valence (< -0.35): vetoes action (e.g. pain / shock)
       - Zero valence: no anticipatory precedent
     """
     for key, entry in meanings.items():
         # Match against stored episode cues
         ep_fig = entry.get("figure") or entry.get("held", "none")
-        ep_src = entry.get("source", "heard")
         ep_room = entry.get("room")
 
-        match_visual = (visual_figure != "none" and visual_figure == ep_fig)
+        match_visual = (visual_figure != "none" and (visual_figure == ep_fig or visual_figure in str(ep_fig)))
         match_acoustic = (acoustic_event != "none" and acoustic_event in str(entry.get("context", [])))
-        match_room = (ep_room is None or ep_room == room)
+        match_room = (ep_room is None or ep_room == "unknown" or room is None or ep_room == room)
 
         if (match_visual or match_acoustic) and match_room:
             # Inspect consequences associated with candidate_act
@@ -151,4 +150,3 @@ def evaluate_anticipatory_consequence(
                 return 1.0, f"promoted by positive feeding consequence from prior episode {key[:6]}"
 
     return 0.0, None
-

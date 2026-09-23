@@ -20,12 +20,12 @@ try:
 except ImportError:
     _gc = None
 
-from dsf_ai_service.guala_acoustic_gate import frames_of_cochleae
+from dsf_ai_service.guala_acoustic_gate import envelopes_of_cochleae, frames_of_cochleae
 from dsf_ai_service.guala_caretaker_hand import nothing_left_to_bite, present_food, withdraw
 from dsf_ai_service.guala_cochlea import one_binaural_hearing_hop, one_self_hearing_hop
 from dsf_ai_service.guala_vision_fovea import compute_saccadic_gaze
 from dsf_ai_service.guala_functional_organism import (
-    BEAT_MICROSECONDS, CAPACITY_MICROGRAMS, Decision, FunctionalOrganism, Sensed,
+    BEAT_MICROSECONDS, CAPACITY_MICROGRAMS, Decision, FunctionalOrganism, OpticalEvidence, Sensed,
     _distance_mm, _region_of, cochlear_profile, door_crossing, syllable_pcm,
 )
 from dsf_ai_service.guala_world_sensorium import (
@@ -78,7 +78,7 @@ def _self_body(snapshot: Any) -> Any:
     return next(body for body in snapshot.bodies if body.body_id == snapshot.self_body_id)
 
 
-def _world_retina_u8(snapshot: Any, axes: tuple[Any, ...], sun: tuple[float, float, float, int] | None = None, pupil: bool = True) -> tuple[int, ...]:
+def _world_retina_u8(snapshot: Any, axes: tuple[Any, ...], sun: tuple[float, float, float, int] | None = None, pupil: bool = True) -> tuple[tuple[int, ...], OpticalEvidence]:
     """Her world retina at this beat in full RGB colour: 3 channels per site across all
     19,335 sites (58,005 values). Red = mean(bands 0, 1), Green = mean(bands 2, 3),
     Blue = mean(bands 4, 5)."""
@@ -109,31 +109,40 @@ def _world_retina_u8(snapshot: Any, axes: tuple[Any, ...], sun: tuple[float, flo
     if pupil and middle > 0.0 and bright > 0.0:
         wanted = min(PUPIL_GAIN_MAX, max(1.0, PUPIL_MID_RANGE / middle), max(1.0, 1.0 / bright))
         gain = float(2 ** int(math.log2(wanted)))     # in doublings, so a small shift of the field's middle does not move the gain
-    values = np.rint(np.minimum(1.0, rgb * gain) * (255.0 * float(transmission))).astype(np.int64).reshape(-1).tolist()
+    pre_clip = rgb * gain
+    focal_pre_clip = pre_clip[-WORLD_FOCAL_SITES:]
+    focal_saturated = (focal_pre_clip >= 1.0)
+    focal_mask = np.packbits(focal_saturated.ravel(), bitorder="little").tobytes()
+    values = np.rint(np.minimum(1.0, pre_clip) * (255.0 * float(transmission))).astype(np.int64).reshape(-1).tolist()
     if len(values) != WORLD_RETINAL_VALUES:
         raise RuntimeError("world retina changed its site count")
-    return tuple(values)
+    evidence = OpticalEvidence(
+        pupil_gain=gain,
+        eyelid_transmission=transmission,
+        focal_saturation_mask=focal_mask,
+    )
+    return tuple(values), evidence
 
 
-def _hearing(pressure: bytes) -> tuple[tuple[float, ...], tuple[tuple[float, ...], ...], int]:
-    """One transduction of a sound at her ear: the hop's peak profile (her streams)
-    and its 25 frames (her acoustic gate, Level 1)."""
+def _hearing(pressure: bytes) -> tuple[tuple[float, ...], tuple[tuple[float, ...], ...], int, tuple[tuple[float, ...], ...]]:
+    """One transduction of a sound at her ear: the hop's peak profile (her streams),
+    its 25 frames (her acoustic gate, Level 1), bytes consumed, and its 25 frame-aligned 32-channel envelopes."""
 
     _times, _legacy, cochleae, consumed = one_self_hearing_hop(pressure)
-    return cochlear_profile(cochleae), frames_of_cochleae(cochleae), consumed
+    return cochlear_profile(cochleae), frames_of_cochleae(cochleae), consumed, envelopes_of_cochleae(cochleae)
 
 
-def _binaural_hearing(left_pressure: bytes, right_pressure: bytes) -> tuple[tuple[float, ...], tuple[tuple[float, ...], ...], int]:
+def _binaural_hearing(left_pressure: bytes, right_pressure: bytes) -> tuple[tuple[float, ...], tuple[tuple[float, ...], ...], int, tuple[tuple[float, ...], ...]]:
     """One binaural transduction with distinct left and right ear arrival channels."""
 
     _times, _legacy, cochleae, consumed = one_binaural_hearing_hop(left_pressure, right_pressure)
-    return cochlear_profile(cochleae), frames_of_cochleae(cochleae), consumed
+    return cochlear_profile(cochleae), frames_of_cochleae(cochleae), consumed, envelopes_of_cochleae(cochleae)
 
 
 def _profile(pressure: bytes) -> tuple[tuple[float, ...], int]:
     """Her own voice heard back: the profile alone (its frames open no event)."""
 
-    profile, _frames, consumed = _hearing(pressure)
+    profile, _frames, consumed, _envelopes = _hearing(pressure)
     return profile, consumed
 
 
@@ -338,7 +347,7 @@ class FunctionalPhysicalLoop:
                 returning = world.pending_physical_return
             before = world.observation_snapshot()
             axes = organism.body_axes
-            world_retina = _world_retina_u8(before, axes, _sun_of(world))
+            world_retina, optical_evidence = _world_retina_u8(before, axes, _sun_of(world))
             external_rgb = None
             focal = world_retina[-WORLD_FOCAL_VALUES:]
             source = "world"
@@ -360,8 +369,14 @@ class FunctionalPhysicalLoop:
                 else:
                     focal = tuple(external_rgb)
                 source = "camera"
+                optical_evidence = OpticalEvidence(
+                    pupil_gain=None,
+                    eyelid_transmission=transmission,
+                    focal_saturation_mask=None,
+                )
             heard_profile = None
             heard_frames: tuple[tuple[float, ...], ...] = ()
+            heard_envelopes: tuple[tuple[float, ...], ...] = ()
             external_heard = 0
             room_sound = None
             sound_source = None
@@ -398,23 +413,24 @@ class FunctionalPhysicalLoop:
                         if p_right is not None and delay_r > 0:
                             p_right = (b"\x00\x00" * delay_r) + p_right[:-2 * delay_r]
                         if p_left is not None and p_right is not None:
-                            heard_profile, heard_frames, external_heard = _binaural_hearing(p_left, p_right)
+                            heard_profile, heard_frames, external_heard, heard_envelopes = _binaural_hearing(p_left, p_right)
                         elif p_left is not None:
-                            heard_profile, heard_frames, external_heard = _hearing(p_left)
+                            heard_profile, heard_frames, external_heard, heard_envelopes = _hearing(p_left)
                         elif p_right is not None:
-                            heard_profile, heard_frames, external_heard = _hearing(p_right)
+                            heard_profile, heard_frames, external_heard, heard_envelopes = _hearing(p_right)
                     else:
                         pressure = audioop.mul(pressure, 2, float(gain)) if gain > 0 else None
                         if pressure is not None:
-                            heard_profile, heard_frames, external_heard = _hearing(pressure)
+                            heard_profile, heard_frames, external_heard, heard_envelopes = _hearing(pressure)
                 else:
-                    heard_profile, heard_frames, external_heard = _hearing(pressure)
+                    heard_profile, heard_frames, external_heard, heard_envelopes = _hearing(pressure)
             self_profile = None
             own_frames: tuple[tuple[float, ...], ...] = ()
+            own_envelopes: tuple[tuple[float, ...], ...] = ()
             self_heard = 0
             own_voice = organism.pending_voice
             if own_voice is not None:
-                self_profile, own_frames, self_heard = _hearing(own_voice)
+                self_profile, own_frames, self_heard, own_envelopes = _hearing(own_voice)
             # The wide field (18 x 6 sites carried by her head) aims her head;
             # it is the world eye's, whichever source fills the focal field.
             wide_raw = world_retina[WORLD_LEGACY_SITES * 3:(WORLD_LEGACY_SITES + WORLD_WIDE_SITES) * 3]
@@ -432,7 +448,8 @@ class FunctionalPhysicalLoop:
             skin_mk = None if read_skin is None else int(read_skin())
             touch_mk = max((int(c["surface_millikelvin"]) for c in contacts if c.get("surface_millikelvin") is not None), default=None)
             sensed = Sensed(before, focal, source, heard_profile, self_profile, wide, skin_contact, skin_mk, touch_mk,
-                            heard_frames=heard_frames, own_frames=own_frames, sound_source_id=sound_source)
+                            heard_frames=heard_frames, own_frames=own_frames, sound_source_id=sound_source,
+                            optical_evidence=optical_evidence, heard_envelopes=heard_envelopes, own_envelopes=own_envelopes)
             decision = organism.decide(sensed)
             prepared, applied, refusal, refused = _apply(world, decision, before)
             execution = prepared.execution_receipt
@@ -460,6 +477,23 @@ class FunctionalPhysicalLoop:
                             break
                     if own_contact_mk is not None:
                         break
+            elif applied == "touch" and refusal is None:
+                after_self = _self_body(execution.after)
+                contact = getattr(after_self, "active_contact", None)
+                target_id = getattr(contact, "object_id", None) or decision.target_object_id
+                if target_id is not None:
+                    target_item = next((item for item in execution.after.objects if item.object_id == target_id), None)
+                    if target_item is not None and target_item.material is not None:
+                        own_contact_mk = int(target_item.material.surface_temperature_millikelvin)
+                        own_contact = 1.0
+            elif applied == "grasp" and refusal is None:
+                after_self = _self_body(execution.after)
+                held_id = after_self.held_object_id or decision.target_object_id
+                if held_id is not None:
+                    target_item = next((item for item in execution.after.objects if item.object_id == held_id), None)
+                    if target_item is not None and target_item.material is not None:
+                        own_contact_mk = int(target_item.material.surface_temperature_millikelvin)
+                        own_contact = 1.0
             with world.prepared_action_visibility_transaction(prepared):
                 world.commit_prepared_action(prepared, expected_physical_return=returning, physical_return=None)
             prepared = None

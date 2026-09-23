@@ -33,8 +33,9 @@ from uf_core.layer2 import interpret_gates
 from uf_core.layer3 import compute_resonance
 from uf_core.layer4 import compute_directional_signal, compute_dsf
 
+from dsf_ai_service.substrate.guala_sensorimotor_mesh import GualaSensorimotorMesh
 from dsf_ai_service.guala_acoustic_gate import (   # her ear's declared numbers live with the gate, once
-    EAR_BAND_CHANNELS, EAR_BANDS, FRAMES_PER_HOP, HEARD_ENERGY_FLOOR, KERNEL_MINIMUM, PAUSE_FRAMES, SILENT_FRAME, STREAM_FLOOR, gate_step,
+    EAR_BAND_CHANNELS, EAR_BANDS, FRAMES_PER_HOP, GRAIN, HEARD_ENERGY_FLOOR, KERNEL_MINIMUM, PAUSE_FRAMES, SILENT_FRAME, STREAM_FLOOR, gate_step,
 )
 from dsf_ai_service.guala_eye_figure import FOCAL_COLUMNS, FOCAL_ROWS, Figure, figure_of_disc   # her focal field's size lives with the eye, once
 from dsf_ai_service.substrate.exact_lattice_rotation import rotate_lattice_offset
@@ -263,7 +264,7 @@ GAP_BINS_FRAMES = (FRAMES_PER_HOP, FRAMES_PER_HOP * 2, FRAMES_PER_HOP * 8, FRAME
 def _empty_ear_quiet() -> dict[str, list[int]]:
     return {"inside": [0] * QUIET_RUN_BINS, "between": [0] * (len(GAP_BINS_FRAMES) + 1)}
 
-# Syllables: everything her airway declares: its onsets x vowels x pitches (2 x 5 x 4 = 40).
+# Syllables: everything her airway declares: its onsets x vowels x pitches (11 x 5 x 4 = 220).
 # A syllable is valued exactly as her acts are, by what followed it (her measured needs:
 # a sound standing out, a touch, intake, new structure), under the situation and the
 # syllable before it, so speech grows into sequences by the same law as every act.
@@ -365,6 +366,18 @@ class SeenThing:
 
 
 @dataclass(frozen=True, slots=True)
+class OpticalEvidence:
+    """Frame-aligned ocular transducer state and producer-origin saturation evidence.
+
+    Delivers producer-origin saturation evidence for a future explicitly reviewed consumer.
+    """
+
+    pupil_gain: float | None
+    eyelid_transmission: Fraction | None
+    focal_saturation_mask: bytes | None
+
+
+@dataclass(frozen=True, slots=True)
 class Sensed:
     """One beat of her measured senses, assembled by the loop from the world,
     the page's camera and microphone, and her own airway."""
@@ -381,6 +394,9 @@ class Sensed:
     heard_frames: tuple[tuple[float, ...], ...] = ()  # the room sound's 25 frames at her ear (energy, six band fractions); () = no sound
     own_frames: tuple[tuple[float, ...], ...] = ()    # her own voice heard back, the same 25 frames; () = she made no sound
     sound_source_id: str | None = None
+    optical_evidence: OpticalEvidence | None = None
+    heard_envelopes: tuple[tuple[float, ...], ...] = ()
+    own_envelopes: tuple[tuple[float, ...], ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -564,7 +580,7 @@ def _target_point(snapshot: Any, body: Any, target_id: str | None, conserved_obj
     her hand's contact point; another body at its position at her eye's height; a conserved
     topological coordinate when the entity is temporarily occluded; else None."""
 
-    if not target_id:
+    if not target_id or not isinstance(target_id, str):
         return None
     if body.held_object_id == target_id:
         geometry = body.receptor_geometry
@@ -595,6 +611,8 @@ def _target_point(snapshot: Any, body: Any, target_id: str | None, conserved_obj
 def _target_radius_mm(snapshot: Any, body: Any, target_id: str | None, conserved_objects: dict[str, Any] | None = None) -> int:
     """The radius of the thing she acts on (a thing's or a body's), zero when unknown."""
 
+    if not target_id or not isinstance(target_id, str):
+        return 0
     for item in snapshot.objects:
         if item.object_id == target_id:
             return int(item.radius_mm)
@@ -1007,6 +1025,22 @@ class FunctionalOrganism:
     def __init__(self, state: dict[str, Any]) -> None:
         self._state = state
 
+    @property
+    def _sensorimotor_mesh(self) -> GualaSensorimotorMesh:
+        mesh_dict = self._state.get("sensorimotor_mesh")
+        cached = getattr(self, "_cached_mesh", None)
+        if cached is None:
+            if mesh_dict is not None:
+                self._cached_mesh = GualaSensorimotorMesh.from_dict(mesh_dict)
+            else:
+                self._cached_mesh = GualaSensorimotorMesh()
+        return self._cached_mesh
+
+    def _sync_sensorimotor_mesh(self) -> None:
+        cached = getattr(self, "_cached_mesh", None)
+        if cached is not None:
+            self._state["sensorimotor_mesh"] = cached.to_dict()
+
     # ----- genesis, restore, encode -------------------------------------------------
 
     @classmethod
@@ -1029,6 +1063,7 @@ class FunctionalOrganism:
             "gaze": None, "gaze_target": None, "sight_figure": None, "figures": {}, "eyes": [0, 0], "gaze_radius": 0.0,
             "moments": {}, "last_moment": None,
             "voice_event": None, "own_events": {}, "own_event": None, "meanings": {}, "last_said": None, "affordance_plan": None, "planned_target_id": None, "conserved_objects": {}, "expectation_discrepancy": None, "joint_attention_target": None, "pending_chain": [], "last_demand_chain": None,
+            "room_dwell_beats": 0, "prior_room": None, "region_visits": {}, "region_last_tick": {},
         })
 
     @classmethod
@@ -1056,7 +1091,7 @@ class FunctionalOrganism:
             state["speech"], state["syllable_totals"], state["prior_syllable"] = {}, {}, None
             state["voice_version"] = VOICE_VERSION
             changed = True
-        for key, empty in (("voice_event", None), ("own_events", {}), ("own_event", None), ("meanings", {}), ("last_said", None), ("affordance_plan", None), ("planned_target_id", None), ("syllable_profiles", {}), ("conserved_objects", {}), ("expectation_discrepancy", None), ("joint_attention_target", None), ("pending_chain", []), ("last_demand_chain", None)):
+        for key, empty in (("voice_event", None), ("own_events", {}), ("own_event", None), ("meanings", {}), ("last_said", None), ("affordance_plan", None), ("planned_target_id", None), ("syllable_profiles", {}), ("conserved_objects", {}), ("expectation_discrepancy", None), ("joint_attention_target", None), ("pending_chain", []), ("last_demand_chain", None), ("room_dwell_beats", 0), ("prior_room", None), ("region_visits", {}), ("region_last_tick", {})):
             if key not in state:
                 state[key] = {} if isinstance(empty, dict) else empty
                 changed = True
@@ -1400,6 +1435,7 @@ class FunctionalOrganism:
         # minus her own skin temperature, over her receptors' declared span; 0.5 = no
         # contrast or no contact. Pain is the excess above nature's threshold.
         geometry = getattr(body, "receptor_geometry", None)
+        self._receptor_geometry = geometry
         span_mk = (int(geometry.touch_temperature_max_millikelvin) - int(geometry.touch_temperature_min_millikelvin)) if geometry is not None else 50_000
         half_span = max(1, span_mk // 2)
         skin_mk = sensed.skin_temperature_millikelvin
@@ -1482,6 +1518,21 @@ class FunctionalOrganism:
         seen = things_in_sight(snapshot)
         here = _region_of(snapshot, body.pose.position, body.radius_mm)
         state["room_now"] = None if here is None else here.region_id
+        cur_room = state.get("room_now")
+        prior_room = state.get("prior_room")
+        if cur_room is not None:
+            if prior_room is None or cur_room == prior_room:
+                state["room_dwell_beats"] = int(state.get("room_dwell_beats", 0)) + 1
+                state["prior_room"] = cur_room
+            else:
+                state["room_dwell_beats"] = 1
+                state["prior_room"] = cur_room
+            reg_visits = state.setdefault("region_visits", {})
+            reg_visits[cur_room] = int(reg_visits.get(cur_room, 0)) + 1
+            reg_last = state.setdefault("region_last_tick", {})
+            reg_last[cur_room] = tick
+        else:
+            state["prior_room"] = None
 
         # Cognitive Asset 4: Spatial Object Permanence & Occlusion Conservation (The Piaget Invariant)
         conserved = state.setdefault("conserved_objects", {})
@@ -1562,7 +1613,7 @@ class FunctionalOrganism:
         else:
             state["joint_attention_target"] = None
 
-        target_id = body.held_object_id or state.get("gaze_target") or state.get("joint_attention_target")
+        target_id = body.held_object_id or state.get("gaze_target") or state.get("joint_attention_target") or (seen[0].object_id if seen else None)
         point = None if state.get("asleep") else _target_point(snapshot, body, target_id, conserved_objects=conserved)   # asleep, eyes closed, the head rests
         state["gaze"] = None
         state["gaze_radius"] = 0.0
@@ -1637,9 +1688,24 @@ class FunctionalOrganism:
             hop_heard = energy >= HEARD_ENERGY_FLOOR
             if hop_heard and energy >= ambient * HEARD_ABOVE_AMBIENT:
                 sound_now = _clamp(energy * 4, 0.0, 1.0)
-        self._hear_events(sensed.heard_frames, hop_heard, tick, profile=sensed.heard_profile)
+        self._hear_events(sensed.heard_frames, hop_heard, tick, envelopes=sensed.heard_envelopes)
         self._hear_own(sensed.own_frames, tick)
+        self._sensorimotor_mesh.step_polarization(sensed.heard_frames)
+        self._sync_sensorimotor_mesh()
         self._form_moments(body, measures, tick)
+        if sensed.self_profile is not None and sum(sensed.self_profile) > 0:
+            pending = state.get("pending_act")
+            if pending is not None and pending.get("act") == "say":
+                pending["self_profile"] = list(sensed.self_profile)
+                if sensed.own_envelopes:
+                    pending["self_envelopes"] = [list(e) for e in sensed.own_envelopes]
+                if sensed.own_frames:
+                    pending["self_frames"] = [list(f) for f in sensed.own_frames]
+            if state.get("pending_drive") is not None:
+                p_drive = tuple(state["pending_drive"])
+                s_name = next((name for name, d in SYLLABLE_DRIVES.items() if d == p_drive), None)
+                if s_name is not None:
+                    state.setdefault("syllable_profiles", {})[s_name] = list(sensed.self_profile)
         self._settle(key, novel, sound_now, skin_now, tick, warmth_likeness=float(getattr(self, "_warmth_likeness", 0.0)), pain=float(getattr(self, "_pain", 0.0)))
 
         def decision(act: str, reason: str, commands: tuple[Any, ...] = (), target: str | None = None, drive: tuple[int, int, int] | None = None) -> Decision:
@@ -1712,6 +1778,25 @@ class FunctionalOrganism:
         if planned_target:
             matching_targeted = [o for o in matching if o[3] == planned_target]
             chosen_option = matching_targeted[0] if matching_targeted else matching[0]
+        elif act == "toward_door" and len(matching) > 1 and tick > 100:
+            # Cognitive Asset 6: Distal Negative Space Attraction (Novelty & Anti-Reversal)
+            cur_r = state.get("room_now")
+            prior_r = state.get("prior_room")
+            reg_visits = state.get("region_visits", {})
+            reg_last = state.get("region_last_tick", {})
+            def _portal_novelty(opt: tuple) -> tuple:
+                portal_id = opt[3]
+                portal = next((p for p in snapshot.portals if p.portal_id == portal_id), None)
+                if portal is None:
+                    return (False, False, 0, 0)
+                dest_r = next((r for r in portal.region_ids if r != cur_r), None)
+                visits = int(reg_visits.get(dest_r, 0))
+                last_t = int(reg_last.get(dest_r, 0))
+                elapsed = tick - last_t if last_t > 0 else 1_000_000
+                not_prior = (dest_r != prior_r) if prior_r else True
+                return (not_prior, visits == 0, elapsed, -visits)
+            matching_sorted = sorted(matching, key=_portal_novelty, reverse=True)
+            chosen_option = matching_sorted[0]
         else:
             chosen_option = matching[0]
         if chosen_option[3] is not None:
@@ -1724,6 +1809,10 @@ class FunctionalOrganism:
         state["pending_act"] = {"key": key, "regimes": regimes, "act": act, "deficit": deficit, "sleep_ratio": sleep_ratio, "contact_ratio": contact_ratio, "intake": 0, "refused": False}
         if act == "say":
             state["pending_act"]["syllable"], state["pending_act"]["context"] = say_name, say_context   # valued by what follows, under its context
+            state["pending_act"]["drive"] = list(say_drive)
+            target = state.get("heard_speech_target")
+            if target and target.get("envelopes"):
+                target["consumed"] = True
             # Cognitive Asset 5: Combinatorial Demand Chaining
             chain = state.get("pending_chain")
             if chain:
@@ -1795,26 +1884,21 @@ class FunctionalOrganism:
     # ----- Level 2 and 3: the moment, and what followed it ------------------------------
 
     def _form_moments(self, body: Any, measures: dict[str, float], tick: int) -> None:
-        """On a beat a sound event closed: the moment's key from the physical invariants
-        (the event, the held thing's texture and warmth in eighths, the figure under her
-        gaze), its context (hunger, taste, the caregiver's touch, in eighths), counted in
-        the day's store; and, when the last moment is within the window, this one counted
+        """On a beat a sound event closed, or on a silent beat with somatic salience or visual figure:
+        the moment's key from the physical invariants (the event, the held thing's texture and warmth
+        in eighths, the figure under her gaze), its context (hunger, taste, the caregiver's touch, in eighths),
+        counted in the day's store; and, when the last moment is within the window, this one counted
         as what followed it."""
 
         state = self._state
+        if state.get("asleep"):
+            return
         self._moment_formed = None
-        # Her own sound's moment is keyed by what she said (her drive, her own exact act),
-        # not by how it sounded back: a rendition's key differs every time (measured), her
-        # drive does not, so "I said mah, then what followed" recurs and can be counted.
         said = state.get("last_said")
         closed = list(getattr(self, "_ear_closed", [])) + [f"own:{said}" for _key in getattr(self, "_own_closed", []) if said]
-        if not closed:
-            return
+
         eighth = lambda value: int(_clamp(round(float(value) * 8), 0, 8))
         held = "none" if body.held_object_id is None else f"{eighth(measures['touch_texture'])}/{eighth(measures['touch_warmth'])}"
-        # A thing in her hand is named by the hand alone (the figure would change as her head
-        # turns to it and back: a transit, not a thing); the figure names what she looks at
-        # only when her hand is empty.
         figure = "held" if held != "none" else (state.get("sight_figure") or "none")
         context = [eighth(measures["hunger"]), eighth(measures["taste_residue"]), eighth(measures["skin_contact"])]
         pain = float(getattr(self, "_pain", 0.0))
@@ -1823,19 +1907,51 @@ class FunctionalOrganism:
             shock_magnitude=pain,
             pain_signal=(pain > 0.0),
         )
+
         moments = state.setdefault("moments", {})
+        room_now = state.get("room_now") or "unknown"
+
+        if not closed:
+            last_moment_id = state.get("last_moment", [None])[0] if state.get("last_moment") else None
+            last_entry = moments.get(last_moment_id) if last_moment_id else None
+            last_fig = last_entry.get("figure") if last_entry else None
+            last_held = last_entry.get("held") if last_entry else "none"
+            last_room = last_entry.get("room") if last_entry else None
+            is_phase_shift = (
+                (figure != "none" and figure != last_fig) or
+                (held != "none" and held != last_held) or
+                (room_now != last_room and last_room is not None)
+            )
+            if salience > 0.0 or is_phase_shift:
+                closed = [f"visual:{figure}"]
+            else:
+                return
         for event in closed:
             key = hashlib.sha256(f"{event}|{held}|{figure}".encode("ascii")).hexdigest()[:16]
             entry = moments.get(key)
             if entry is None:
-                moments[key] = {"count": 1, "tick": tick, "held": held, "context": context, "next": {}, "fed": 0,
-                                "source": "own" if event.startswith("own:") else "heard",
-                                "salience": round(salience, 4)}
+                moments[key] = {
+                    "count": 1,
+                    "tick": tick,
+                    "held": held,
+                    "figure": figure,
+                    "room": room_now,
+                    "context": context,
+                    "next": {},
+                    "acts": {},
+                    "fed": 0,
+                    "source": "own" if event.startswith("own:") else ("visual" if event.startswith("visual:") else "heard"),
+                    "salience": round(salience, 4),
+                }
             else:
                 entry["count"] = int(entry["count"]) + 1
                 entry["tick"] = tick
                 entry["context"] = context
+                entry["figure"] = figure
+                entry["room"] = room_now
                 entry["salience"] = max(float(entry.get("salience", 0.0)), round(salience, 4))
+                if "acts" not in entry:
+                    entry["acts"] = {}
             last = state.get("last_moment")
             if last is not None and last[0] != key and tick - int(last[1]) <= FOLLOW_WINDOW_BEATS and last[0] in moments:
                 following = moments[last[0]].setdefault("next", {})
@@ -1849,7 +1965,7 @@ class FunctionalOrganism:
 
     # ----- Level 1: the acoustic gate over her beat ------------------------------------
 
-    def _hear_events(self, frames: tuple[tuple[float, ...], ...], heard: bool, tick: int, profile: tuple[float, ...] | None = None) -> None:
+    def _hear_events(self, frames: tuple[tuple[float, ...], ...], heard: bool, tick: int, envelopes: Sequence[Sequence[float]] | None = None) -> None:
         """The boundary law over this beat's frames at her ear; a beat without a room
         sound is a hop of silence to it (an open event closes within it). Each event
         closed is kept in her day's store by the key of its own structure; the gaps
@@ -1857,7 +1973,7 @@ class FunctionalOrganism:
 
         state = self._state
         hop = tuple(frames) if frames else (SILENT_FRAME,) * FRAMES_PER_HOP
-        open_event, closed, quiet_runs = gate_step(state.get("ear_event"), hop, heard, tick * FRAMES_PER_HOP)
+        open_event, closed, quiet_runs = gate_step(state.get("ear_event"), hop, heard, tick * FRAMES_PER_HOP, envelopes=envelopes)
         state["ear_event"] = open_event
         quiet = state.setdefault("ear_quiet", _empty_ear_quiet())
         for run in quiet_runs:
@@ -1876,7 +1992,15 @@ class FunctionalOrganism:
                 del events[min(events, key=lambda k: (int(events[k][0]), int(events[k][1]), k))]   # the least met, then the least recently met, leaves
             state["sound_event"] = [event.key, tick, event.end_frame]
             self._ear_closed.append(event.key)
-            state["heard_speech_target"] = {"tick": tick, "key": event.key, "profile": list(profile) if profile is not None else None, "bands": ear_bands(profile)}
+            ev_prof = getattr(event, "profile", None)
+            ev_envs = getattr(event, "envelopes", ())
+            state["heard_speech_target"] = {
+                "tick": tick,
+                "key": event.key,
+                "profile": list(ev_prof) if ev_prof is not None else None,
+                "envelopes": [list(e) for e in ev_envs] if ev_envs else [],
+                "bands": ear_bands(ev_prof),
+            }
 
     # ----- her record of acts -----------------------------------------------------------
 
@@ -1939,6 +2063,23 @@ class FunctionalOrganism:
         value = intake_value + new_structure_value + sound_value + contact_value - burn_cost - pain_cost
         self._credit(str(pending["key"]), act, round(value, 6), tick, str(pending.get("regimes", "")), successor_key=key_now)
         if act == "say" and pending.get("syllable"):
+            # Update physical sensorimotor mesh contacts
+            p_drive = pending.get("drive")
+            self_envs = pending.get("self_envelopes")
+            if p_drive and self_envs:
+                self_frames_list = [
+                    (
+                        round(sum(env[:16]) / 16.0, GRAIN),
+                        *(
+                            round(sum(env[:16][c] for c in band) / max(1e-9, sum(env[:16])), GRAIN)
+                            for band in EAR_BAND_CHANNELS
+                        )
+                    )
+                    for env in self_envs
+                ]
+                yielded = self._sensorimotor_mesh.plastic_settle(tuple(p_drive), self_frames_list)
+                self._sync_sensorimotor_mesh()
+
             # The syllable she said is valued by the same measured worth, under its context.
             entry = self._state.setdefault("speech", {}).setdefault(str(pending["context"]), {"syllables": {}, "tick": tick})
             tried = entry["syllables"].setdefault(str(pending["syllable"]), [0, 0.0])
@@ -2004,14 +2145,33 @@ class FunctionalOrganism:
         meanings = state.setdefault("meanings", {})
         kept = meanings.get(key)
         if kept is None:
-            meanings[key] = {"count": int(entry["count"]), "tick": tick, "held": entry.get("held", "none"), "source": entry.get("source", "heard"),
-                             "context": list(entry.get("context", [])), "next": dict(entry.get("next", {})), "fed": int(entry.get("fed", 0)),
-                             "salience": round(salience, 4)}
+            meanings[key] = {
+                "count": int(entry["count"]),
+                "tick": tick,
+                "held": entry.get("held", "none"),
+                "figure": entry.get("figure", "none"),
+                "room": entry.get("room", "unknown"),
+                "source": entry.get("source", "heard"),
+                "acts": dict(entry.get("acts", {})),
+                "context": list(entry.get("context", [])),
+                "next": dict(entry.get("next", {})),
+                "fed": int(entry.get("fed", 0)),
+                "salience": round(salience, 4),
+            }
         else:
             kept["count"] = int(kept["count"]) + int(entry["count"])
             kept["tick"] = tick
             kept["fed"] = int(kept.get("fed", 0)) + int(entry.get("fed", 0))
             kept["salience"] = max(float(kept.get("salience", 0.0)), round(salience, 4))
+            if entry.get("figure") and entry.get("figure") != "none":
+                kept["figure"] = entry["figure"]
+            if entry.get("room") and entry.get("room") != "unknown":
+                kept["room"] = entry["room"]
+            stored_acts = kept.setdefault("acts", {})
+            for act_name, (tries, net_val) in entry.get("acts", {}).items():
+                cur = stored_acts.setdefault(act_name, [0, 0.0])
+                cur[0] = int(cur[0]) + int(tries)
+                cur[1] = round(float(cur[1]) + float(net_val), 4)
             following = kept.setdefault("next", {})
             for other, count in entry.get("next", {}).items():
                 following[other] = int(following.get(other, 0)) + int(count)
@@ -2040,8 +2200,25 @@ class FunctionalOrganism:
         totals = self._state.setdefault("syllable_totals", {})
         tried = (self._state.setdefault("speech", {}).get(context) or {}).get("syllables") or {}
 
-        # Resonant Auditory-Vocal Imitation: if a speech target was recently heard
+        # Physical Sensorimotor Conduction Path:
         target = self._state.get("heard_speech_target")
+        if target and target.get("envelopes") and not target.get("consumed"):
+            cue_frames_list = [
+                (
+                    round(sum(env[:16]) / 16.0, GRAIN),
+                    *(
+                        round(sum(env[:16][c] for c in band) / max(1e-9, sum(env[:16])), GRAIN)
+                        for band in EAR_BAND_CHANNELS
+                    )
+                )
+                for env in target["envelopes"]
+            ]
+            mesh_drive, mesh_name, mesh_info = self._sensorimotor_mesh.readout(cue_frames_list)
+            if mesh_drive is not None and mesh_name is not None:
+                ctx = f"{situation}:{prior_syllable if prior_syllable else 'start'}"
+                return mesh_drive, mesh_name, ctx, f"sensorimotor conduction: {mesh_name} (max_V={mesh_info['max_onset_v']:.2f})"
+
+        # Resonant Auditory-Vocal Imitation: if a speech target was recently heard
         if target and (self.live_organism_tick - int(target.get("tick", 0)) <= 6) and target.get("profile"):
             t_prof = target["profile"]
             syl_profs = self._state.setdefault("syllable_profiles", {})
@@ -2121,12 +2298,13 @@ class FunctionalOrganism:
         meanings = self._state.get("meanings", {})
         fig = self._state.get("sight_figure") or "none"
         last_ev = (self._state.get("ear_event") or [None])[0] if isinstance(self._state.get("ear_event"), list) else "none"
+        cur_room = self._state.get("room_now") or situation
         if meanings and acts:
             vetoed = set()
             promoted = []
             for candidate in acts:
                 valence, promo_reason = evaluate_anticipatory_consequence(
-                    candidate, visual_figure=fig, acoustic_event=str(last_ev), room=situation, meanings=meanings
+                    candidate, visual_figure=fig, acoustic_event=str(last_ev), room=cur_room, meanings=meanings
                 )
                 if valence < -0.35:
                     vetoed.add(candidate)
@@ -2141,14 +2319,24 @@ class FunctionalOrganism:
                 if best_act in acts:
                     return best_act, "structure " + key[:6] + f": {reason_text}"
 
+        # Cognitive Asset 6: Unified Structural Boredom & Distal Interest Potential Manifold
+        dwell_beats = int(self._state.get("room_dwell_beats", 0))
+        deficit = float(self.deficit)
+        sleep_ratio = float(self._state.get("sleep_pressure", 0)) / SLEEP_PRESSURE_CEILING
+        surplus = max(0.0, min(1.0, (1.0 - deficit) * (1.0 - sleep_ratio)))
+        boredom = surplus * math.tanh(max(0.0, float(dwell_beats - 32)) / 24.0)
+        if boredom > 0.25 and "toward_door" in acts:
+            return "toward_door", f"structural boredom ({boredom:.2f} over {dwell_beats} dwell beats): evacuating saturated basin toward negative space"
+
         entry = self._state.setdefault("acts", {}).get(key)
         label = "structure " + key[:6]
         if entry is None:
             learned = self._state.setdefault("learned", {}).get(situation)
             known = [act for act in acts if learned is not None and act in learned["acts"]]
-            if known:
+            viable_known = [act for act in known if float(learned["acts"][act][1]) / int(learned["acts"][act][0]) >= -0.35]
+            if viable_known:
                 tried = learned["acts"]
-                act = max(known, key=lambda a: (float(tried[a][1]) / int(tried[a][0]), -acts.index(a)))
+                act = max(viable_known, key=lambda a: (float(tried[a][1]) / int(tried[a][0]), -acts.index(a)))
                 mean = float(tried[act][1]) / int(tried[act][0])
                 return act, label + ", new today; from her sleep, situation " + situation + ": " + act + f" ({mean:+.2f} over {int(tried[act][0])})"
             # Nothing known here or in her sleep: the act she has tried least in
@@ -2204,8 +2392,8 @@ class FunctionalOrganism:
         state = self._state
         if tick_now != self.live_organism_tick:
             raise RuntimeError("functional organism tick left its line")
-        # Skin on skin by her own act (her palm on the caregiver's hand) is felt on the next beat, at its temperature.
-        reached = applied_action == "reach_hand" and refusal is None
+        # Skin on skin or object contact by her own act is felt on the next beat, at its temperature.
+        reached = applied_action in ("reach_hand", "touch", "grasp") and refusal is None
         state["pending_contact"] = round(float(contact_fraction), 6) if reached else 0.0
         state["pending_contact_millikelvin"] = int(contact_millikelvin) if (reached and contact_millikelvin is not None) else None
         before = self.reserve_micrograms
@@ -2224,6 +2412,23 @@ class FunctionalOrganism:
                 mom_entry["fed"] = int(mom_entry.get("fed", 0)) + 1
                 intake_salience = compute_somatic_salience(reserve_delta_ug=intake)
                 mom_entry["salience"] = max(float(mom_entry.get("salience", 0.0)), intake_salience)
+                acts_rec = mom_entry.setdefault("acts", {})
+                act_stat = acts_rec.setdefault("bite", [0, 0.0])
+                act_stat[0] += 1
+                act_stat[1] = round(act_stat[1] + min(1.0, intake / 100_000.0), 4)
+        geom = getattr(self, "_receptor_geometry", None)
+        nociception_span = max(1, int(geom.touch_temperature_max_millikelvin) - NOCICEPTION_MILLIKELVIN) if geom is not None else 23_000
+        action_pain = _clamp((contact_millikelvin - NOCICEPTION_MILLIKELVIN) / float(nociception_span), 0.0, 1.0) if contact_millikelvin is not None else 0.0
+        if action_pain > 0.0:
+            self._pain = action_pain
+            last = state.get("last_moment")
+            if last is not None and tick_now - int(last[1]) <= FOLLOW_WINDOW_BEATS and last[0] in (state.get("moments") or {}):
+                mom_entry = state["moments"][last[0]]
+                mom_entry["salience"] = max(float(mom_entry.get("salience", 0.0)), action_pain)
+                acts_rec = mom_entry.setdefault("acts", {})
+                act_stat = acts_rec.setdefault(applied_action, [0, 0.0])
+                act_stat[0] += 1
+                act_stat[1] = round(act_stat[1] - action_pain, 4)
         state["taste_residue"] = round(float(state.get("taste_residue", 0.0)) * 0.95, 6)
 
         pending = state.get("pending_act")
@@ -2231,8 +2436,6 @@ class FunctionalOrganism:
             pending["intake"] = int(pending.get("intake", 0)) + intake
             pending["refused"] = bool(pending.get("refused")) or refusal is not None
             pending["burn"] = int(pending.get("burn", 0)) + int(burn)  # what this act actually cost her, measured
-            if self_profile is not None and pending.get("act") == "say":
-                pending["self_profile"] = list(self_profile)
         elif decision.act == "bite" and intake and state.get("last_chosen"):
             last = state["last_chosen"]
             self._credit(str(last["key"]), str(last["act"]), round(float(last["deficit"]), 6), tick_now, str(last.get("regimes", "")))
@@ -2293,10 +2496,6 @@ class FunctionalOrganism:
             del state["voice"][:-VOICE_CAPACITY]
         state["pending_voice"] = None if spoke is None else base64.b64encode(spoke).decode("ascii")
         state["pending_drive"] = None if spoke is None else list(decision.drive)
-        if self_profile is not None and decision.act == "say":
-            spoke_drive = tuple(decision.drive) if decision.drive is not None else DEFAULT_DRIVE
-            s_name = next((name for name, d in SYLLABLE_DRIVES.items() if d == spoke_drive), DEFAULT_SYLLABLE)
-            state.setdefault("syllable_profiles", {})[s_name] = list(self_profile)
         if spoke is not None:
             state["last_spoke_tick"] = tick_now
             state["syllables"] += 1
@@ -2321,7 +2520,7 @@ class FunctionalOrganism:
 
 
 __all__ = (
-    "BODY_AXES", "CAPACITY_MICROGRAMS", "Decision", "FunctionalOrganism", "MAGIC", "SCHEMA", "Sensed",
+    "BODY_AXES", "CAPACITY_MICROGRAMS", "Decision", "FunctionalOrganism", "MAGIC", "OpticalEvidence", "SCHEMA", "Sensed",
     "SeenThing", "SYLLABLES", "SYLLABLE_DRIVES", "cochlear_profile", "in_hand_reach", "move_commands_toward", "spectral_cosine_similarity",
     "syllable_pcm", "things_in_sight", "project_caregiver_gaze_ray",
 )
