@@ -465,8 +465,18 @@ def maybe_bedtime(o: dict, st: dict) -> None:
 
 
 def maybe_housekeeping(o: dict, st: dict) -> None:
-    """While she sleeps: her bedding returned to the bed and discarded stray apples
-    collected and cleared from the rooms."""
+    """During EVENING_CULTURE, runs joint clean-up with deictic pointing.
+    While she sleeps: her bedding returned to the bed and discarded stray apples collected."""
+    sleep = her_sleep(o)
+    epoch, _ = circadian_epoch(int(o.get("live_tick") or 0))
+    tick = int(o.get("live_tick") or 0)
+    if not sleep.get("asleep") and epoch == "EVENING_CULTURE":
+        if st.get("last_joint_cleanup_tick") is None or tick - int(st["last_joint_cleanup_tick"]) >= 4800:
+            st["last_joint_cleanup_tick"] = tick
+            res = present_food("joint-clean-up")
+            log(f"housekeeping: evening joint clean-up performed — res={bool(res)}")
+            with open(STATE, "w") as f:
+                json.dump(st, f)
     sleep = her_sleep(o)
     if not sleep.get("asleep"):
         return
@@ -590,30 +600,52 @@ def maybe_touch(o: dict, st: dict) -> None:
 
 
 def maybe_tv(o: dict, st: dict) -> None:
-    """TV demonstration: the caregiver escorts or brings the tv-remote to her,
-    demonstrates pressing the remote button to cycle channels in her direct field of view,
-    and says the word 'television'."""
+    """TV demonstration: during AFTERNOON_CHALLENGE, requires shared visual alignment
+    where Guala's retinal gaze is oriented toward the TV screen at (17000, 9200)
+    before channel cycling, accompanied by acoustic labeling 'television'."""
     sleep = her_sleep(o)
     if sleep.get("asleep"):
+        return
+    epoch, _ = circadian_epoch(int(o.get("live_tick") or 0))
+    if epoch != "AFTERNOON_CHALLENGE":
         return
     tick = int(o.get("live_tick") or 0)
     if st.get("tv_next_tick") is not None and tick < int(st["tv_next_tick"]):
         return
     st["tv_next_tick"] = tick + TV_EVERY_TICKS
+
+    lo = o.get("last_occurrence") or {}
+    emb = lo.get("embodiment") or {}
+    her_b = next((b for b in (emb.get("bodies") or []) if b.get("body_id") == emb.get("self_body_id")), None)
+    her_pos = ((her_b.get("pose") or {}).get("position") or {}) if her_b else {}
+    her_heading = ((her_b.get("pose") or {}).get("heading_millidegrees") or 0) if her_b else 0
+    hx, hy = her_pos.get("x_mm", 0), her_pos.get("y_mm", 0)
+    tv_x, tv_y = 17_000, 9_200
+    target_heading = round(math.degrees(math.atan2(tv_y - hy, tv_x - hx)) * 1_000) % 360_000
+    deviation = min(abs(her_heading - target_heading), 360_000 - abs(her_heading - target_heading))
+    aligned = deviation <= 45_000
+    if not aligned:
+        say_word("television")
+        log(f"tv: calling attention to screen (gaze deviation {deviation/1000:.1f} deg) at tick {tick}")
+        return
+
     res1 = present_food("tv-remote")
     res2 = present_food("tv-remote-cycle")
     ch = (res2 or {}).get("channel", 0) if res2 else 0
     named = say_word("television")
-    log(f"tv: demonstrated tv-remote cycle to channel {ch} — named={named} at tick {tick}")
+    log(f"tv: demonstrated tv-remote cycle to channel {ch} with verified visual alignment — named={named} at tick {tick}")
     record_story_moment(st, "auditory", "visual")
 
 
 def maybe_stroll(o: dict, st: dict) -> None:
-    """Outdoor stroll: during awake periods, the caregiver brings the stroller carriage
-    beside her, holds her hand for an excursion along the walkway, and plays outdoor
-    nature birdsong audio blocks."""
+    """Outdoor stroll: during MIDDAY_STROLL, the caregiver brings the stroller carriage
+    beside her, holds her hand for an excursion along the walkway, plays outdoor
+    nature birdsong audio blocks, and simulates visual fauna flutter."""
     sleep = her_sleep(o)
     if sleep.get("asleep"):
+        return
+    epoch, _ = circadian_epoch(int(o.get("live_tick") or 0))
+    if epoch != "MIDDAY_STROLL":
         return
     tick = int(o.get("live_tick") or 0)
     if st.get("stroll_next_tick") is not None and tick < int(st["stroll_next_tick"]):
@@ -635,14 +667,15 @@ def maybe_stroll(o: dict, st: dict) -> None:
 
 
 def maybe_read(o: dict, st: dict) -> None:
-    """Read to her: once in READ_EVERY_TICKS of her beats while she is awake, the
-    caregiver fetches the book, holds Guala in their lap (lap holding / torso embrace),
-    and a real human voice (a LibriVox chapter, public domain) comes to her ears block
-    by block at her beat, the book shown again every so often so the caregiver stays.
-    Stops when she falls asleep or the chapter ends; the next chapter follows next time."""
+    """Read to her: during EVENING_CULTURE, the caregiver fetches the book, holds Guala
+    in their lap (lap holding / torso embrace), reading LibriVox chapters continuously.
+    Mechanically stabilized seating holds lap contact continuously without collision interruptions."""
     import media
     sleep = her_sleep(o)
     if sleep.get("asleep"):
+        return
+    epoch, _ = circadian_epoch(int(o.get("live_tick") or 0))
+    if epoch != "EVENING_CULTURE" and not (st.get("read_title_index") or st.get("read_chapter")):
         return
     tick = int(o.get("live_tick") or 0)
     if st.get("read_next_tick") is not None and tick < int(st["read_next_tick"]):
@@ -932,9 +965,9 @@ def maybe_play(o: dict, st: dict) -> None:
 
 
 def maybe_playpen_challenge(o: dict, st: dict) -> None:
-    """During MORNING_FOCUS: Caregiver presents playpen challenge, setting down an
-    interactive object inside the playpen at (2050, 6700) to create physical impedance
-    and stimulate teleological vocal demand."""
+    """During MORNING_FOCUS: Caregiver places Guala inside playpen at (2050, 6700)
+    creating physical impedance that drives vocal signaling, followed by release
+    and an immediate recovery hug (touch-hug) for homeostatic down-regulation."""
     if asleep(o):
         return
     epoch, _ = circadian_epoch(int(o.get("live_tick") or 0))
@@ -944,15 +977,15 @@ def maybe_playpen_challenge(o: dict, st: dict) -> None:
     if st.get("playpen_next_tick") is not None and tick < int(st["playpen_next_tick"]):
         return
     st["playpen_next_tick"] = tick + PLAYPEN_CHALLENGE_TICKS
-    res = present_food("playpen-challenge")
-    if res is not None:
-        pres = ((res.get("observation") or {}).get("last_occurrence") or {}).get("caregiver_presentation") or {}
-        impact_pcm = material_impact_pcm("wood", intensity=0.9)
-        sing_block(impact_pcm)
-        record_story_moment(st, "visual", "proprioceptive", "auditory")
-        log(f"challenge: playpen impedance challenge presented at tick {tick} — steps={len(pres.get('steps') or [])}")
-        with open(STATE, "w") as f:
-            json.dump(st, f)
+    res1 = present_food("playpen-containment")
+    impact_pcm = material_impact_pcm("wood", intensity=0.9)
+    sing_block(impact_pcm)
+    log(f"challenge: playpen containment applied at tick {tick} — res={bool(res1)}")
+    res2 = present_food("playpen-release")
+    log(f"challenge: playpen release and recovery hug delivered — res={bool(res2)}")
+    record_story_moment(st, "visual", "proprioceptive", "auditory", "tactile")
+    with open(STATE, "w") as f:
+        json.dump(st, f)
 
 
 def maybe_ladder_challenge(o: dict, st: dict) -> None:
@@ -980,10 +1013,21 @@ def maybe_ladder_challenge(o: dict, st: dict) -> None:
 
 def maybe_feed(o: dict, st: dict) -> None:
     """Present a meal when due. Reads her world; decides nothing about her.
-    A presentation the world did not allow (a thing boxed in by furniture)
-    is remembered so the next candidate is tried at the next clear window."""
+    In MORNING_FOCUS/DAWN_AWAKENING, places Guala in the high chair at (3500, 1500)
+    and rotates diet across bread, milk, and apple held at face level for olfactory plume delivery.
+    Strictly holds meals during NIGHT_CONSOLIDATION."""
     if "tastant_remaining_micrograms" not in json.dumps(o)[:200000]:
         return
+    epoch, _ = circadian_epoch(int(o.get("live_tick") or 0))
+    if epoch == "NIGHT_CONSOLIDATION":
+        return
+    if epoch in ("DAWN_AWAKENING", "MORNING_FOCUS"):
+        emb = (o.get("last_occurrence") or {}).get("embodiment") or {}
+        her_b = next((b for b in (emb.get("bodies") or []) if b.get("body_id") == emb.get("self_body_id")), None)
+        her_pos = ((her_b.get("pose") or {}).get("position") or {}) if her_b else {}
+        if her_pos.get("x_mm") != 3500 or her_pos.get("y_mm") != 1500:
+            chair_res = present_food("high-chair-meal")
+            log(f"meal: Guala placed in high-chair at (3500, 1500) for morning meal — res={bool(chair_res)}")
     tick = o.get("live_tick") or 0
     if tick < (st.get("meal_tick") or 0) + MEAL_TICKS and not st.get("meal_retry"):
         return
@@ -1151,6 +1195,7 @@ def wait_clear(min_tick: int | None = None, st: dict | None = None) -> dict | No
                 maybe_name_attended(o, st)
                 maybe_echo_syllable(o, st)
                 maybe_play(o, st)
+                maybe_tactile_curriculum(o, st)
                 maybe_tv(o, st)
                 maybe_stroll(o, st)
                 maybe_playpen_challenge(o, st)
@@ -1251,3 +1296,31 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
+TACTILE_OBJECTS = ("cup", "stacking-rings", "play-ball", "toy-bear")
+
+
+def maybe_tactile_curriculum(o: dict, st: dict) -> None:
+    """Tactile object exploration curriculum: alternately explores cups, rings,
+    blocks, and toys with material impact dynamics and acoustic naming."""
+    if asleep(o):
+        return
+    epoch, _ = circadian_epoch(int(o.get("live_tick") or 0))
+    if epoch not in ("MORNING_FOCUS", "AFTERNOON_CHALLENGE"):
+        return
+    tick = int(o.get("live_tick") or 0)
+    if st.get("tactile_next_tick") is not None and tick < int(st["tactile_next_tick"]):
+        return
+    st["tactile_next_tick"] = tick + 3600
+    idx = int(st.get("tactile_index") or 0)
+    toy = TACTILE_OBJECTS[idx % len(TACTILE_OBJECTS)]
+    st["tactile_index"] = idx + 1
+    res = present_food(toy)
+    mat = "wood" if toy == "stacking-rings" else ("ceramic" if toy == "cup" else "fabric")
+    impact_pcm = material_impact_pcm(mat, intensity=0.75)
+    sing_block(impact_pcm)
+    named = say_word(toy)
+    log(f"tactile curriculum: presented {toy} ({mat}) — named={named} at tick {tick}")
+    record_story_moment(st, "tactile", "visual", "auditory", "proprioceptive")
+    with open(STATE, "w") as f:
+        json.dump(st, f)

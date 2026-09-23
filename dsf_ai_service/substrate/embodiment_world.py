@@ -2589,6 +2589,12 @@ def _is_bed(item: EmbodiedObject) -> bool:
     return item.object_id.startswith("bed")
 
 
+def _is_contained_or_seated(item: EmbodiedObject) -> bool:
+    """Furniture that lawfully accommodates or contains the infant self-body:
+    her bed, her high-chair, and her playpen."""
+    return item.object_id.startswith("bed") or item.object_id in ("high-chair", "playpen")
+
+
 def _push_aside(
     item: EmbodiedObject,
     start: PositionMM,
@@ -4266,6 +4272,56 @@ class EmbodimentWorldAuthority:
             self._commit_authority_state(candidate)
             return observation.state_sha256
 
+    def admit_authored_body_transport(
+        self, body_id: str, target_pose: PoseMM
+    ) -> str:
+        """Transport an embodied body to a target destination (e.g. caregiver lifting
+        infant into high-chair or playpen) while respecting region boundaries and conservation.
+        """
+        with self._lock:
+            self._require_public_visibility_locked()
+            if self._prepared_action_execution is not None:
+                raise RuntimeError("a body transport cannot happen during an action")
+            prior = self._state
+            world = prior.world
+            body = next((b for b in world.bodies if b.body_id == body_id), None)
+            if body is None:
+                raise ValueError(f"unknown body {body_id}")
+            target_pose.verify()
+            region = self._region_containing(
+                world.regions, target_pose.position, body.radius_mm
+            )
+            if region is None:
+                raise ValueError("target position outside lawful room bounds")
+            bodies = tuple(
+                replace(b, pose=target_pose) if b.body_id == body_id else b
+                for b in world.bodies
+            )
+            if world.revision >= MAX_REVISION:
+                raise ValueError("transport exhausted world revision")
+            candidate_world = replace(
+                world,
+                revision=world.revision + 1,
+                bodies=bodies,
+            )
+            if body_id == world.self_body_id:
+                candidate_world = replace(
+                    candidate_world,
+                    room_id=region.region_id,
+                    room_bounds=region.bounds,
+                )
+            self._validate_world(candidate_world)
+            observation = self._observation_for(candidate_world)
+            candidate = _AuthorityState(
+                world=candidate_world,
+                observation=observation,
+                recent_applied_receipts=prior.recent_applied_receipts,
+                migration_receipt=prior.migration_receipt,
+            )
+            self._encoded_state_for(candidate)
+            self._commit_authority_state(candidate)
+            return observation.state_sha256
+
     def migrate_declared_home_topology(self) -> bool:
         """Carry a lived world into a grown declared home — the renovation.
 
@@ -5375,7 +5431,7 @@ class EmbodimentWorldAuthority:
                     raise ValueError("body geometries intersect")
         for body, carried_radius in occupied:
             for item in placed:
-                if _is_bed(item) and body.body_id == world.self_body_id:
+                if _is_contained_or_seated(item) and body.body_id == world.self_body_id:
                     continue  # she lies on her bed
                 if (
                     self._region_containing(
@@ -5990,7 +6046,7 @@ class EmbodimentWorldAuthority:
                     carried_radius + item.radius_mm,
                     )
                 ):
-                    if _is_bed(item) and body.body_id == world.self_body_id:
+                    if _is_contained_or_seated(item) and body.body_id == world.self_body_id:
                         continue  # her bed: she may step onto it and lie on it
                     if int(item.mass_grams) > PUSH_MASS_GRAMS or item_region is None:
                         return None, "move_path_intersects_object"

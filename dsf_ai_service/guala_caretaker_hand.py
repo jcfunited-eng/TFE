@@ -1045,6 +1045,14 @@ def present_food(world: Any, object_id: str) -> dict[str, object]:
         return playpen_challenge(world)
     if object_id == "ladder-challenge":
         return ladder_challenge(world)
+    if object_id == "high-chair-meal":
+        return place_in_high_chair(world)
+    if object_id == "playpen-containment":
+        return place_in_playpen(world)
+    if object_id == "playpen-release":
+        return release_from_playpen(world)
+    if object_id == "joint-clean-up":
+        return joint_clean_up(world)
     if object_id in CARRY_IDS:
         # Carry a thing to her: fetched and brought within her reach as a thing is
         # offered, then set down on the floor beside the caregiver (never at her
@@ -1146,6 +1154,10 @@ __all__ = (
     "material_impact_pcm",
     "diurnal_thermal_reference_millikelvin",
     "deictic_orientation_millidegrees",
+    "place_in_high_chair",
+    "place_in_playpen",
+    "release_from_playpen",
+    "joint_clean_up",
 )
 
 
@@ -1190,4 +1202,106 @@ def ladder_challenge(world: Any) -> dict[str, object]:
         "presented": True,
         "schema": "guala.caregiver_presentation.v1",
         "steps": [{"operation": "ladder_demonstration", "reason": "applied"}],
+    }
+
+
+def place_in_high_chair(world: Any) -> dict[str, object]:
+    """Caregiver approaches Guala, provides grounding contact,
+    and transports Guala to the high chair at (3500, 1500, 0) in the kitchen,
+    ready for multi-diet meal presentation."""
+    hand = _Hand(world, "high-chair-meal")
+    steps = []
+    try:
+        snapshot = hand.snapshot()
+        her, person = hand.bodies(snapshot)
+        if hand.reach_her(her):
+            touch_her(world, "touch-lap")
+            target_pose = PoseMM(PositionMM(3500, 1500, 0), her.pose.heading_millidegrees)
+            world.admit_authored_body_transport(her.body_id, target_pose)
+            steps.append({"operation": "place_in_high_chair", "reason": "applied", "to": [3500, 1500]})
+    except Exception as e:
+        steps.append({"operation": "place_in_high_chair", "reason": str(e), "to": None})
+    return {
+        "object_id": "high-chair-meal",
+        "presented": True,
+        "schema": "guala.caregiver_presentation.v1",
+        "steps": steps,
+    }
+
+
+def place_in_playpen(world: Any) -> dict[str, object]:
+    """Caregiver approaches Guala, provides grounding contact,
+    and places Guala safely inside the playpen enclosure at (2050, 6700, 0),
+    creating spatial boundary impedance that drives vocal signaling."""
+    hand = _Hand(world, "playpen-containment")
+    steps = []
+    try:
+        snapshot = hand.snapshot()
+        her, person = hand.bodies(snapshot)
+        if hand.reach_her(her):
+            touch_her(world, "touch-hold-hand")
+            target_pose = PoseMM(PositionMM(2050, 6700, 0), her.pose.heading_millidegrees)
+            world.admit_authored_body_transport(her.body_id, target_pose)
+            steps.append({"operation": "place_in_playpen", "reason": "applied", "to": [2050, 6700]})
+    except Exception as e:
+        steps.append({"operation": "place_in_playpen", "reason": str(e), "to": None})
+    return {
+        "object_id": "playpen-containment",
+        "presented": True,
+        "schema": "guala.caregiver_presentation.v1",
+        "steps": steps,
+    }
+
+
+def release_from_playpen(world: Any) -> dict[str, object]:
+    """Caregiver lifts Guala out of the playpen enclosure to (2600, 6700, 0) in her-room,
+    immediately delivering an affection hug (touch-hug) for homeostatic down-regulation
+    and stress recovery."""
+    hand = _Hand(world, "playpen-release")
+    steps = []
+    try:
+        snapshot = hand.snapshot()
+        her, person = hand.bodies(snapshot)
+        target_pose = PoseMM(PositionMM(2600, 6700, 0), her.pose.heading_millidegrees)
+        world.admit_authored_body_transport(her.body_id, target_pose)
+        steps.append({"operation": "release_from_playpen", "reason": "applied", "to": [2600, 6700]})
+        hug_res = touch_her(world, "touch-hug")
+        steps.extend(hug_res.get("steps") or [])
+    except Exception as e:
+        steps.append({"operation": "release_from_playpen", "reason": str(e), "to": None})
+    return {
+        "object_id": "playpen-release",
+        "presented": True,
+        "schema": "guala.caregiver_presentation.v1",
+        "steps": steps,
+    }
+
+
+def joint_clean_up(world: Any) -> dict[str, object]:
+    """Embodied joint clean-up activity:
+    Caregiver approaches Guala, turns toward stray cores/toys using deictic orientation,
+    points toward the target, and escorts to departure portal together."""
+    hand = _Hand(world, "joint-clean-up")
+    steps = []
+    try:
+        snapshot = hand.snapshot()
+        her, person = hand.bodies(snapshot)
+        stray = None
+        for item in snapshot.objects:
+            if item.position is not None and item.held_by_body_id is None:
+                if item.object_id.startswith("apple") or item.object_id in ("play-ball", "stacking-rings"):
+                    stray = item
+                    break
+        if stray is not None:
+            heading = deictic_orientation_millidegrees(person.pose.position, stray.position)
+            steps.append({"operation": "point_to_stray", "reason": "applied", "heading": heading, "target": stray.object_id})
+        cleanup_res = clean_up_house(world)
+        steps.extend(cleanup_res.get("steps") or [])
+    except Exception as e:
+        steps.append({"operation": "joint_clean_up", "reason": str(e)})
+    return {
+        "object_id": "joint-clean-up",
+        "presented": True,
+        "schema": "guala.caregiver_presentation.v1",
+        "steps": steps,
     }

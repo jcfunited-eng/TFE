@@ -91,3 +91,4 @@ def test_multi_diet_delivery_ids_cover_essential_nutrition() -> None:
 
     assert "stroller-delivery" in DELIVER_IDS
     assert DELIVER_IDS["stroller-delivery"] == "stroller-carriage"
+

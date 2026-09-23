@@ -971,6 +971,23 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
             self.encoded_snapshot()
             return state_sha
 
+    def admit_authored_body_transport(self, body_id: str, target_pose) -> str:
+        """Atomically bind one authored body transport to thermal custody."""
+
+        with self._thermal_lock:
+            self._require_no_physical_return_for_renovation()
+            state_sha = super().admit_authored_body_transport(body_id, target_pose)
+            observation = super().observation_snapshot()
+            self._thermal_world_revision = observation.revision
+            self._thermal_world_observation_receipt_sha256 = (
+                observation.authority_receipt_sha256
+            )
+            self._latest_thermal_transition = None
+            self._pending_thermal = None
+            self._committed_thermal_tail = None
+            self.encoded_snapshot()
+            return state_sha
+
     def migrate_declared_home_topology(self) -> bool:
         """Atomically bind a renovated home to thermal custody."""
 
