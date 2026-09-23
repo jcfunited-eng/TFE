@@ -47,6 +47,7 @@ COPY tools/derive_sppu_weights.py tools/wave_constants.py tools/wave_spillover.p
 COPY tools/sensory_curriculum_orchestrator.py tools/curriculum_seed.json /app/tools/
 COPY dsf_ai_service/ /app/dsf_ai_service/
 COPY dsf_ai_service/corpus/ /app/corpus/
+COPY guala_curriculum/ /app/guala_curriculum/
 
 # GualaLoom state dir (persists via ECS volume or recreates on deploy)
 RUN mkdir -p /app/state/dreams
