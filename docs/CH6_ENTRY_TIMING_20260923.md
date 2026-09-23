@@ -124,12 +124,19 @@ What the at-close read does differently, stated:
   3× volume yet) — a quiet day, the chain runs end to end.
 - first live pass 2026-09-23 15:45 ET: door 2, eligible 0 (FSLY refused
   by the reading — no proven paying structure), opened 0.
-- hole found and closed the same day (commit `6283272ed`): the store had
-  not advanced past 09-18 (loops were dead), so 09-18 next-morning stages
-  stayed "valid" and six filled on 09-23 through the old path (AAT, ACVA,
-  ARCT, ARR, AHCO, ALGT — marked `next_morning`, not in the grade). Stages
-  are now cleared by the hunt and dropped by the fill path while
-  `ENTRY_AT_CLOSE` is on; APOG, BAND, BBW cleared live.
+- **CH6 has two doors, and only one moved.** Besides the spike door in
+  `ch6_fast_harvest.hunt`, the nightly chain runs Joseph's rulebook door
+  (`docs/CH6_RULEBOOK_20260821.md`: `ch6_pool` → `ch6_month_scan` →
+  `ch6_stage_slate`), which stages readings-based picks for a next-morning
+  fill through the same book. That door is **unchanged** — the at-close
+  change and its grade apply to the spike door only. The six fills on
+  09-23 (AAT, ACVA, ARCT, ARR, AHCO, ALGT) and the APOG/BAND/BBW stages
+  were the 09-18 slate, kept "valid" because the store had frozen at 09-18
+  (WHLR reverse split; see `tools/ch4_store_reconcile_overlap.py`). I
+  first shipped a stage-clearing (`6283272ed`) that would have killed the
+  slate door every morning; reverted the same night (`7eba2e0a7`). The
+  frozen store was the fault, and that is fixed. The slate's stages expire
+  correctly once the store advances each night.
 
 GRADE, declared before the first fill: **20 closed at-close entries.**
 FAILS if average P&L per closed trade ≤ $0 or fewer than 60 % bank →
