@@ -1427,6 +1427,8 @@ def stroller_excursion(world: Any) -> dict[str, object]:
     animating outdoor fauna. Truthfully reported as destination placement (REG-A1-05, REG-A1-03)."""
     hand = _Hand(world, "stroller-carriage")
     steps = []
+    stroller_committed = False
+    cg_pos = None
     try:
         snapshot = hand.snapshot()
         her, person = hand.bodies(snapshot)
@@ -1509,6 +1511,13 @@ def stroller_excursion(world: Any) -> dict[str, object]:
             new_world = replace(cur_world, revision=cur_world.revision + 1, objects=tuple(updated_objs))
             _commit_world_successor(world, new_world)
 
+        stroller_committed = True
+        steps.append({
+            "operation": "stroller_relocation",
+            "reason": "applied",
+            "stroller_pos": [6700, 11500],
+        })
+
         # Transport infant Guala beside stroller in backyard (clearance >= 757mm from stroller center)
         child_pos = PositionMM(7200, 10700, 0)
         target_child_pose = PoseMM(child_pos, person_now.pose.heading_millidegrees)
@@ -1564,10 +1573,31 @@ def stroller_excursion(world: Any) -> dict[str, object]:
             })
             applied = True
         else:
-            steps.append({"operation": "stroller_placement", "reason": "successor_displacement_failed"})
+            steps.append({
+                "operation": "stroller_placement",
+                "reason": "successor_displacement_failed",
+                "to": "partial_stroller_only" if (stroller_final and stroller_final.position and stroller_final.position.y >= 10000) else None,
+                "stroller_pos": [stroller_final.position.x, stroller_final.position.y] if (stroller_final and stroller_final.position) else None,
+                "caregiver_pos": cg_pos,
+            })
             applied = False
     except Exception as e:
-        steps.append({"operation": "stroller_placement", "reason": str(e), "to": None})
+        stroller_err_pos = None
+        if stroller_committed:
+            try:
+                snap_e = hand.snapshot()
+                stroller_obj = next((o for o in snap_e.objects if o.object_id == "stroller-carriage"), None)
+                if stroller_obj and stroller_obj.position:
+                    stroller_err_pos = [stroller_obj.position.x, stroller_obj.position.y]
+            except Exception:
+                stroller_err_pos = [6700, 11500]
+        steps.append({
+            "operation": "stroller_placement",
+            "reason": str(e),
+            "to": "partial_stroller_only" if stroller_committed else None,
+            "stroller_pos": stroller_err_pos,
+            "caregiver_pos": cg_pos,
+        })
         applied = False
 
     return {

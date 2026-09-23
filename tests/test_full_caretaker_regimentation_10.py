@@ -144,6 +144,39 @@ def test_routine_1_high_chair_meal_variety(monkeypatch) -> None:
     assert "high-chair-release" in placed_calls
     assert st.get("seated_for_meal") is False
 
+    # Positive Case 2b (Counterexample): Still-hungry child in high chair whose food left reach (REG-A1-02)
+    # Delivered-but-uneaten: food was delivered, but child is NOT at mouth and STILL hungry
+    placed_calls.clear()
+    st["seated_for_meal"] = True
+    st["food_delivered_for_meal"] = True
+    obs_seated_still_hungry = {
+        "live_tick": 20_150,
+        "last_occurrence": {
+            "metabolic_need_reserve_deficit": [8, 10],  # 80% deficit (STILL hungry)
+            "embodiment": {"bodies": [{"body_id": "guala-body-1", "pose": {"position": {"x_mm": 3500, "y_mm": 1500}}}], "self_body_id": "guala-body-1"},
+            "tastant_remaining_micrograms": {},
+        }
+    }
+    maybe_feed(obs_seated_still_hungry, st)
+    assert "high-chair-release" in placed_calls
+    assert st.get("seated_for_meal") is False
+    assert st.get("meal_retry") is True  # Interrupted meal flags retry
+
+    # Case 2c: Child seated in high chair during NIGHT_CONSOLIDATION -> safety release triggered (REG-A1-02)
+    placed_calls.clear()
+    st["seated_for_meal"] = True
+    obs_night_seated = {
+        "live_tick": 105_000,  # NIGHT_CONSOLIDATION epoch
+        "last_occurrence": {
+            "metabolic_need_reserve_deficit": [8, 10],
+            "embodiment": {"bodies": [{"body_id": "guala-body-1", "pose": {"position": {"x_mm": 3500, "y_mm": 1500}}}], "self_body_id": "guala-body-1"},
+            "tastant_remaining_micrograms": {},
+        }
+    }
+    maybe_feed(obs_night_seated, st)
+    assert "high-chair-release" in placed_calls
+    assert st.get("seated_for_meal") is False
+
 
 def test_routine_2_tv_time_remote_gaze_alignment(monkeypatch) -> None:
     # Test geometric visibility evidence gating with real nested presentation envelope
@@ -208,6 +241,27 @@ def test_routine_2_tv_time_remote_gaze_alignment(monkeypatch) -> None:
     maybe_tv(obs_seen, st)
     assert st.get("daily_moments_presented") == 0
 
+    # Case E: Terminal refusal with intermediate applied movement step (REG-A1-03)
+    st["tv_next_tick"] = 0
+    st["daily_moments_presented"] = 0
+    calls_e = []
+    monkeypatch.setattr("guala_caretaker.caretaker.present_food", lambda item: calls_e.append(item) or {
+        "observation": {
+            "last_occurrence": {
+                "caregiver_presentation": {
+                    "object_id": item,
+                    "presented": False,
+                    "steps": [{"operation": "move", "reason": "applied"}],
+                }
+            }
+        }
+    })
+    maybe_tv(obs_seen, st)
+    assert len(calls_e) == 1
+    assert "tv-remote" in calls_e
+    assert "tv-remote-cycle" not in calls_e
+    assert st.get("daily_moments_presented") == 0
+
 
 def test_routine_3_curriculum_variety_tactile(monkeypatch) -> None:
     world = home_world_authority(identity=str(uuid.uuid4()))
@@ -226,26 +280,41 @@ def test_routine_3_curriculum_variety_tactile(monkeypatch) -> None:
     assert len(metal_pcm) == 8000
 
     # Test receipt-gated tactile curriculum (REG-A1-03):
-    # Case A: Refused presentation must NOT record modalities
+    # Case A: Refused presentation must NOT record modalities (even with applied move step)
     st = {"tactile_next_tick": 0, "daily_moments_presented": 0, "circadian_epoch": "MORNING_FOCUS"}
     obs_focus = {"live_tick": 20_000, "her_sleep": {"asleep": False}}
     monkeypatch.setattr("guala_caretaker.caretaker.present_food", lambda item: {
-        "observation": {"last_occurrence": {"caregiver_presentation": {"presented": False}}}
+        "observation": {"last_occurrence": {"caregiver_presentation": {"presented": False, "steps": [{"operation": "move", "reason": "applied"}]}}}
     })
     maybe_tactile_curriculum(obs_focus, st)
     assert st.get("daily_moments_presented") == 0
 
-    # Case B: Accepted presentation records modalities from receipts
+    # Case B: Accepted presentation without physical contact records only visual & auditory (no tactile / proprioceptive)
     st["tactile_next_tick"] = 0
     monkeypatch.setattr("guala_caretaker.caretaker.present_food", lambda item: {
-        "observation": {"last_occurrence": {"caregiver_presentation": {"presented": True, "steps": [{"reason": "applied"}]}}}
+        "observation": {"last_occurrence": {"caregiver_presentation": {"presented": True, "steps": [{"operation": "present", "reason": "applied"}]}}}
     })
     maybe_tactile_curriculum(obs_focus, st)
     assert st.get("daily_moments_presented") == 1
-    assert st.get("active_modalities_stimulated", {}).get("tactile", 0) > 0
+    assert st.get("active_modalities_stimulated", {}).get("visual", 0) > 0
+    assert st.get("active_modalities_stimulated", {}).get("auditory", 0) > 0
+    assert st.get("active_modalities_stimulated", {}).get("tactile", 0) == 0
+    assert st.get("active_modalities_stimulated", {}).get("proprioceptive", 0) == 0
+
+    # Case C: Accepted presentation WITH skin contact evidence records tactile modality
+    st["tactile_next_tick"] = 0
+    monkeypatch.setattr("guala_caretaker.caretaker.present_food", lambda item: {
+        "observation": {"last_occurrence": {"caregiver_presentation": {
+            "presented": True,
+            "contacts": [{"site": "palm", "pressure": 0.5}],
+            "steps": [{"operation": "present", "reason": "applied"}]
+        }}}
+    })
+    maybe_tactile_curriculum(obs_focus, st)
+    assert st.get("active_modalities_stimulated", {}).get("tactile", 0) == 1
 
 
-def test_routine_4_stroller_walk_and_sensory_field() -> None:
+def test_routine_4_stroller_walk_and_sensory_field(monkeypatch) -> None:
     world = home_world_authority(identity=str(uuid.uuid4()))
     # 1. Stroller carriage delivery & physical excursion with child
     res_stroller = present_food(world, "stroller-carriage")
@@ -284,6 +353,21 @@ def test_routine_4_stroller_walk_and_sensory_field() -> None:
     assert len(blocks) >= 4
     for b in blocks[:4]:
         assert len(b) == 8000
+
+    # 6. Partial outcome retention on child transport exception (REG-A1-05)
+    world_exc = home_world_authority(identity=str(uuid.uuid4()))
+    def fail_transport(*args, **kwargs):
+        raise RuntimeError("simulated child transport barrier")
+    monkeypatch.setattr(world_exc, "admit_authored_body_transport", fail_transport)
+    res_partial = present_food(world_exc, "stroller-carriage")
+    assert res_partial["presented"] is False
+    reloc_steps = [s for s in res_partial.get("steps", []) if s.get("operation") == "stroller_relocation"]
+    assert len(reloc_steps) == 1
+    assert reloc_steps[0]["reason"] == "applied"
+    assert reloc_steps[0]["stroller_pos"] == [6700, 11500]
+    final_step = (res_partial.get("steps") or [])[-1]
+    assert final_step.get("to") == "partial_stroller_only"
+    assert final_step.get("stroller_pos") == [6700, 11500]
 
 
 def test_routine_5_ladder_tool_affordance_challenge() -> None:
