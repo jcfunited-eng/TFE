@@ -76,6 +76,26 @@ SWEEP_PCT = 2.0     # Joseph's fast-cash law: end-of-day bank at 2%+
 GIVEBACK_PP = 1.0
 ANOMALY_STOP_PCT = 20.0
 HOLD_SESSIONS = 5
+# Joe 2026-09-23: the entry moves to the CLOSE of the spike day. Receipt in
+# docs/CH6_ENTRY_TIMING_20260923.md — 111 of 122 live fills landed below
+# the spike-day close (mean -1.06%, 15 of them 2%+ below) against a 2%
+# bank; same exits, short at the decided close: +$2,790 vs -$534. The
+# filed decade study (ch6_fast_cash_laws, close entry) pays +$31/+$39 per
+# $2,500 at 74% W; the live next-morning book was break-even. The two
+# rules this sets aside are Joseph's 08-20 "decide tonight, purchase
+# tomorrow" and 08-21 "a stock on the rise is never entered". His word:
+# "the rules ... are to help with trade and timing so if one of them
+# blocks a sound strategy we don't have to enforce it."
+# GRADE (declared before the first fill): 20 closed at-close entries.
+# FAILS if average P&L per closed trade <= $0 or fewer than 60% bank ->
+# ENTRY_AT_CLOSE goes back to False (next-morning staging returns).
+# CONTROL: every at-close position records the next session's first mark
+# and whether the old rule would have filled there (control_next_morning).
+ENTRY_AT_CLOSE = True
+CLOSE_ENTRY_STORE_MAX_LAG_SESSIONS = 5   # MINE: trailing volume, normal-day
+                                          # money, herd and readings all come
+                                          # from the store; older than this,
+                                          # refuse the day loudly
 
 STORE = ROOT / "ch4_live_store.parquet"
 TAIL = ROOT / "ch3_supply_tail.parquet"
@@ -227,6 +247,8 @@ def close_position(
             "pnl": pnl,
             "reason": reason,
             "peak_gain_pct": position.get("peak_gain_pct", 0.0),
+            "entry_mode": position.get("entry_mode", "next_morning"),
+            "control_next_morning": position.get("control_next_morning"),
         }
     )
     del positions(book)[symbol]
@@ -378,6 +400,112 @@ def qualifying_events(
     return events, unknown_herd, active_refutations
 
 
+def close_entry_door(px, vol_today, prev_close, vol_mean20):
+    """The engine's door read from the day so far (~15:50 ET), on the same
+    three conditions qualifying_events applies to a completed close:
+    gain >= EVENT_GAIN over the prior close, volume >= VOL_MULT x the
+    trailing-20 mean, price >= PRICE_FLOOR. Returns the gain (percent) when
+    the door opens, None when it does not or an input is unusable."""
+    try:
+        px = float(px)
+        vol = float(vol_today)
+        prev = float(prev_close)
+        mean = float(vol_mean20)
+    except (TypeError, ValueError):
+        return None
+    if not all(np.isfinite(x) for x in (px, vol, prev, mean)):
+        return None
+    if px < PRICE_FLOOR or prev <= 0 or mean <= 0:
+        return None
+    gain = 100 * (px / prev - 1)
+    if gain < EVENT_GAIN or vol < VOL_MULT * mean:
+        return None
+    return gain
+
+
+def _market_snapshot() -> dict:
+    """ONE call for the whole market: every ticker's price now, volume so
+    far today and prior close (Massive full-market snapshot; 13,247
+    tickers in about a second on 2026-09-23)."""
+    import urllib.request
+    key = os.environ.get("MASSIVE_API_KEY") or os.environ.get("POLYGON_API_KEY", "")
+    if not key:
+        for line in open(ROOT / ".env"):
+            if line.startswith("MASSIVE_API_KEY="):
+                key = line.split("=", 1)[1].strip().strip('"')
+    if not key:
+        raise RuntimeError("no MASSIVE_API_KEY for the market snapshot")
+    url = ("https://api.polygon.io/v2/snapshot/locale/us/markets/stocks/"
+           f"tickers?apiKey={key}")
+    payload = json.load(urllib.request.urlopen(url, timeout=60))
+    out: dict[str, dict] = {}
+    for t in payload.get("tickers") or []:
+        day = t.get("day") or {}
+        mn = t.get("min") or {}
+        prev = t.get("prevDay") or {}
+        out[str(t.get("ticker", ""))] = {
+            "px": float(mn.get("c") or day.get("c") or 0.0),
+            "vol": float(day.get("v") or 0.0),
+            "prev_close": float(prev.get("c") or 0.0),
+        }
+    return out
+
+
+def _gate_and_rank(events: list) -> tuple[list, int, bool]:
+    """The entry reading and Joseph's cherry-pick ranking, shared by the
+    nightly hunt and the at-close entry. Returns (events, refused_by_reading,
+    deferred). deferred=True means the readings are not current: the day's
+    entry decision must NOT be concluded on them."""
+    if not events:
+        return events, 0, False
+    from tools.ch_entry_reading import gate as _entry_gate
+    _verdicts = _entry_gate([str(e["symbol"]) for e in events], "CH6")
+    # the kernel readings lag the store for ~40 min after the
+    # nightly close refresh; a transient STALE/ERROR judgment must
+    # DEFER the day's entry decision, never conclude it — same
+    # semantics as the herd-not-published path
+    if any(v.get("structure_verdict") in ("STALE", "ERROR")
+           for v in _verdicts.values()):
+        return events, 0, True
+    pre_reading = len(events)
+    events = [e for e in events
+              if _verdicts.get(str(e["symbol"]), {}).get("verdict") == "ALLOW"]
+    refused_reading = pre_reading - len(events)
+    if len(events) > 1:
+        # Joseph's cherry-pick law 2026-08-19: harvests are not
+        # equal — rank the night's candidates by their structure's
+        # decade record, conservative half, dollars per 100 events;
+        # tiebreak favors interior structures (no avoid cell within
+        # one fact-step).
+        _census = json.load(open(
+            ROOT / "artifacts" / "ch6_harvest" /
+            "ch6_structure_census.json"))
+        _money = {e2["config"]: min(e2["derive"]["money_per_100ev"],
+                                    e2["confirm"]["money_per_100ev"])
+                  for e2 in _census["PAY_both_halves"]}
+        _avoid = [a["config"].split()
+                  for a in _census["AVOID_both_halves"]]
+
+        def _interior(cfg: str) -> int:
+            toks = cfg.split()
+            return 0 if any(
+                sum(1 for x, y in zip(toks, a) if x != y) == 1
+                for a in _avoid) else 1
+
+        def _rank(ev0: dict) -> tuple:
+            cfg = str(_verdicts.get(str(ev0["symbol"]), {})
+                      .get("structure", ""))
+            return (_money.get(cfg, -1e9), _interior(cfg))
+
+        events.sort(key=_rank, reverse=True)
+        dropped = events[MAX_ENTRIES_PER_NIGHT:]
+        events = events[:MAX_ENTRIES_PER_NIGHT]
+        for ev0 in dropped:
+            print(f"  RANKED OUT {ev0['symbol']}: weaker structure "
+                  "than the day's best-ranked — cherry-pick law")
+    return events, refused_reading, False
+
+
 def hunt(dry: bool = False) -> None:
     book = load_book()
     market, days, latest = load_market()
@@ -414,57 +542,20 @@ def hunt(dry: bool = False) -> None:
     if ENTRIES_HALT_FILE.exists():
         print('[ch6 hunt] ENTRIES HALTED (protective) — settlements only')
         events = []
-    refused_reading = 0
-    if events:
-        from tools.ch_entry_reading import gate as _entry_gate
-        _verdicts = _entry_gate([str(e["symbol"]) for e in events], "CH6")
-        # the kernel readings lag the store for ~40 min after the
-        # nightly close refresh; a transient STALE/ERROR judgment must
-        # DEFER the day's entry decision, never conclude it — same
-        # semantics as the herd-not-published path above
-        if any(v.get("structure_verdict") in ("STALE", "ERROR")
-               for v in _verdicts.values()):
-            print("[ch6 hunt] kernel readings not current yet — entry "
-                  "decision deferred, no day stamp")
-            if settled and not dry:
-                save_book(book)
-            return
-        pre_reading = len(events)
-        events = [e for e in events
-                  if _verdicts.get(str(e["symbol"]), {}).get("verdict") == "ALLOW"]
-        refused_reading = pre_reading - len(events)
-        if len(events) > 1:
-            # Joseph's cherry-pick law 2026-08-19: harvests are not
-            # equal — rank the night's candidates by their structure's
-            # decade record, conservative half, dollars per 100 events;
-            # tiebreak favors interior structures (no avoid cell within
-            # one fact-step). At most the best two enter.
-            _census = json.load(open(
-                ROOT / "artifacts" / "ch6_harvest" /
-                "ch6_structure_census.json"))
-            _money = {e2["config"]: min(e2["derive"]["money_per_100ev"],
-                                        e2["confirm"]["money_per_100ev"])
-                      for e2 in _census["PAY_both_halves"]}
-            _avoid = [a["config"].split()
-                      for a in _census["AVOID_both_halves"]]
-
-            def _interior(cfg: str) -> int:
-                toks = cfg.split()
-                return 0 if any(
-                    sum(1 for x, y in zip(toks, a) if x != y) == 1
-                    for a in _avoid) else 1
-
-            def _rank(ev0: dict) -> tuple:
-                cfg = str(_verdicts.get(str(ev0["symbol"]), {})
-                          .get("structure", ""))
-                return (_money.get(cfg, -1e9), _interior(cfg))
-
-            events.sort(key=_rank, reverse=True)
-            dropped = events[MAX_ENTRIES_PER_NIGHT:]
-            events = events[:MAX_ENTRIES_PER_NIGHT]
-            for ev0 in dropped:
-                print(f"  RANKED OUT {ev0['symbol']}: weaker structure "
-                      "than the night's best-ranked — cherry-pick law")
+    if ENTRY_AT_CLOSE and events:
+        # one entry instant, not two: the spike day's events were already
+        # decided at the close by hunt_at_close (Joe 2026-09-23); the
+        # nightly pass stages nothing for the next morning
+        print(f"[ch6 hunt] {len(events)} completed-close events noted; entry "
+              "is at the close of the spike day now — nothing staged")
+        events = []
+    events, refused_reading, deferred = _gate_and_rank(events)
+    if deferred:
+        print("[ch6 hunt] kernel readings not current yet — entry "
+              "decision deferred, no day stamp")
+        if settled and not dry:
+            save_book(book)
+        return
 
     # Joseph 2026-08-20: decide on tonight's close, PURCHASE at the next
     # session's prints. Decisions stage here; fills happen at the first
@@ -521,6 +612,160 @@ def hunt(dry: bool = False) -> None:
         f"refused unknown-herd {unknown_herd}, refused refutation {active_refutations}, "
         f"open {len(positions(book))}, cash ${float(book['cash']):,.2f}" + (" (DRY)" if dry else "")
     )
+
+
+def hunt_at_close(dry: bool = False) -> None:
+    """Joe 2026-09-23: decide ~15:50 ET on the day so far, and be short at
+    the close of the spike day — not the next morning after the overnight
+    drop. Door, herd, refutation, reading gate, cherry-pick ranking, sizing
+    and fillability law are the engine's own; only the instant moves. Runs
+    once per session (book stamp); exits are untouched."""
+    book = load_book()
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    now = datetime.now(timezone.utc).isoformat()
+    if book.get("last_close_entry") == today:
+        print(f"[ch6 close-entry] {today} already run; no duplicate entry")
+        return
+    if ENTRIES_HALT_FILE.exists():
+        print("[ch6 close-entry] ENTRIES HALTED (protective) — nothing opens")
+        return
+    market, days, latest = load_market()
+    latest_s = latest.strftime("%Y-%m-%d")
+    lag = len(pd.bdate_range(latest, pd.Timestamp(today))) - 1
+    if lag > CLOSE_ENTRY_STORE_MAX_LAG_SESSIONS:
+        print(f"[ch6 close-entry] store's last completed close is {latest_s}, "
+              f"{lag} sessions old — trailing volume, normal-day money, herd "
+              "and readings would be stale; REFUSED, no day stamp")
+        return
+    try:
+        herd_state = explicit_herd(latest)
+    except RuntimeError as error:
+        print(f"[ch6 close-entry] {error}; entries refused")
+        return
+    try:
+        snap = _market_snapshot()
+    except Exception as error:  # noqa: BLE001 — loud; the window retries once
+        print(f"[ch6 close-entry] market snapshot failed "
+              f"({type(error).__name__}: {error}) — nothing opens, no day stamp")
+        return
+
+    recent = market[market["Date"].isin(days[-21:])]
+    cuts = [trade for trade in closed(book)
+            if str(trade.get("reason", "")).upper().startswith("ANOMALY-CUT")]
+    herd_covered = herd_coverage_universe()
+    events: list[dict] = []
+    screened = unknown_herd = active_refutations = 0
+    for symbol, rows in recent.groupby("Symbol"):
+        rows = rows.sort_values("Date")
+        if len(rows) < 20 or pd.Timestamp(rows["Date"].iloc[-1]) != latest:
+            continue
+        s = snap.get(str(symbol))
+        if not s:
+            continue
+        closes = rows["Close"].to_numpy(dtype=float)
+        volumes = rows["Volume"].to_numpy(dtype=float)
+        # the prior close comes from the feed (yesterday's actual close); the
+        # store's last close stands in only when the feed has none
+        prev_close = s["prev_close"] if s["prev_close"] > 0 else float(closes[-1])
+        gain = close_entry_door(s["px"], s["vol"], prev_close, float(np.mean(volumes[-20:])))
+        if gain is None:
+            continue
+        screened += 1
+        gband = herd_state.get(str(symbol))
+        covered = str(symbol) in herd_covered
+        if covered:
+            if gband is None:
+                unknown_herd += 1
+                continue
+            if gband != 0:
+                continue
+        elif gband is not None and gband != 0:
+            continue
+        _hist = rows
+        if any(str(c.get("symbol", c.get("sym", ""))) == str(symbol) for c in cuts):
+            _hist = market[market["Symbol"] == symbol].sort_values("Date")
+        if has_unreset_refutation(
+            symbol=str(symbol),
+            candidate_day=today,
+            anomaly_cuts=cuts,
+            history_days=_hist["Date"].tolist(),
+            history_closes=_hist["Close"].tolist(),
+        ):
+            active_refutations += 1
+            continue
+        events.append({
+            "symbol": str(symbol),
+            "gain": round(gain, 1),
+            "normal_day_dollars": float(np.median(closes[-20:] * volumes[-20:])),
+            "close": float(s["px"]),
+            "dollar_vol": float(s["vol"] * s["px"]),
+        })
+    events.sort(key=lambda event: -float(event["dollar_vol"]))
+
+    events, refused_reading, deferred = _gate_and_rank(events)
+    if deferred:
+        print("[ch6 close-entry] kernel readings not current — entry decision "
+              "deferred, no day stamp")
+        return
+
+    opened = 0
+    for event in events:
+        symbol = str(event["symbol"])
+        if symbol in positions(book):
+            continue
+        normal_day = float(event.get("normal_day_dollars", 0.0))
+        if not (np.isfinite(normal_day) and normal_day > 0):
+            print(f"  REFUSE {symbol}: normal-day money unknown "
+                  f"({normal_day!r}) — the fillability law cannot size it")
+            continue
+        if 0.01 * normal_day < SLICE_FLOOR_USD:
+            print(f"  REFUSE {symbol}: 1% of its normal day "
+                  f"(${normal_day:,.0f}) cannot absorb even the "
+                  f"${SLICE_FLOOR_USD:,.0f} floor — unfillable")
+            continue
+        price = float(event["close"])
+        slice_usd = min(SLICE_TARGET_USD, float(book["cash"]), 0.01 * normal_day)
+        if slice_usd < SLICE_FLOOR_USD:
+            print(f"  REFUSE {symbol}: cash or fillability below the floor")
+            continue
+        shares = int(slice_usd // price)
+        if shares < 1:
+            print(f"  REFUSE {symbol}: price ${price:.2f} exceeds the slice")
+            continue
+        if dry:
+            print(f"  WOULD FILL SHORT {shares} {symbol} @ {price:.4f} at the close "
+                  f"(+{event['gain']}% day)")
+            opened += 1
+            continue
+        notional = round(shares * round(price, 4), 2)
+        book["cash"] = round(float(book["cash"]) - notional, 2)
+        positions(book)[symbol] = {
+            "engine": ENGINE, "entry_date": today, "opened_at": now,
+            "side": -1, "entry_px": round(price, 4), "shares": shares,
+            "notional": notional, "armed": False, "peak_gain_pct": 0.0,
+            "decided_date": today, "decided_close": round(price, 4),
+            "normal_day_dollars": normal_day,
+            "entry_mode": "at_close", "control_next_morning": None,
+        }
+        print(f"  FILLED SHORT {shares} {symbol} @ {price:.4f} AT THE CLOSE "
+              f"(+{event['gain']}% day)")
+        opened += 1
+
+    if not dry:
+        book["last_close_entry"] = today
+        book["last_close_entry_custody"] = {
+            "session": today, "store_close": latest_s, "screened": screened,
+            "eligible": len(events), "opened": opened,
+            "refused_unknown_herd": unknown_herd,
+            "refused_unreset_refutation": active_refutations,
+            "refused_by_reading": refused_reading,
+        }
+        save_book(book)
+    print(f"[ch6 close-entry] {today}: door {screened}, eligible {len(events)}, "
+          f"opened {opened}, refused unknown-herd {unknown_herd}, refutation "
+          f"{active_refutations}, reading {refused_reading}, open "
+          f"{len(positions(book))}, cash ${float(book['cash']):,.2f}"
+          + (" (DRY)" if dry else ""))
 
 
 def govern(book: dict[str, object]) -> tuple[int, bool]:
@@ -745,6 +990,27 @@ def evaluate_live_marks(action: str) -> None:
                   f"{entry['decided_close']})")
         book["staged_entries"] = remaining
 
+    # CONTROL for the at-close entry (Joe 2026-09-23): on the next session,
+    # record the first live mark and whether the old rule ("next morning, at
+    # or below the decided close") would have filled there. Read only —
+    # nothing trades on it. Filed into the closed record with the trade.
+    if action == "poll":
+        for symbol, position in positions(book).items():
+            if (position.get("entry_mode") == "at_close"
+                    and position.get("control_next_morning") is None
+                    and str(position.get("entry_date", "")) < now[:10]):
+                price = marks.get(symbol)
+                if price is None:
+                    continue
+                decided = float(position["decided_close"])
+                position["control_next_morning"] = {
+                    "date": now[:10], "mark": round(float(price), 4),
+                    "gap_pct": round(100 * (float(price) / decided - 1), 3),
+                    "old_rule_would_fill": bool(price <= decided),
+                }
+                print(f"  CONTROL {symbol}: next-morning mark {price:.4f} vs "
+                      f"close entry {decided:.4f} ({100 * (price / decided - 1):+.2f}%)")
+
     for symbol in sorted(list(positions(book))):
         position = positions(book)[symbol]
         price = marks.get(symbol)
@@ -807,10 +1073,20 @@ def sweep() -> None:
     evaluate_live_marks("sweep")
 
 
+def close_entry() -> None:
+    hunt_at_close()
+
+
+def close_entry_dry() -> None:
+    hunt_at_close(dry=True)
+
+
 COMMANDS: dict[str, Callable[[], None]] = {
     "hunt": hunt,
     "poll": poll,
     "sweep": sweep,
+    "close_entry": close_entry,          # Joe 2026-09-23: short at the close of the spike day
+    "close_entry_dry": close_entry_dry,  # same read, nothing opens, nothing stamped
 }
 
 

@@ -83,7 +83,54 @@ Expected, from the filed study: roughly +$30–40 per trade at the same
 instant, declared before the first one; control = the same events'
 next-morning marks, logged alongside.
 
+## SHIPPED 2026-09-23 — Joe's word
+
+> "we do find the falls — it's a timing issue — that we could correct and
+> see if it works — and the rules you talk about are to help with trade
+> and timing so if one of them blocks a sound strategy we don't have to
+> enforce it."
+
+```
+tools/ch6_fast_harvest.py
+   ENTRY_AT_CLOSE = True
+   close_entry_door(px, vol_today, prev_close, vol_mean20)   pure; tests/test_ch6_close_entry_door.py 9/9
+   _market_snapshot()      one Massive full-market call: price now, volume so far, prior close
+   _gate_and_rank(events)  the entry reading + cherry-pick ranking, shared with the nightly hunt
+   hunt_at_close()         decide on the day so far, fill at the mark, once per session
+   hunt()                  settles as before; stages NOTHING for the next morning
+   evaluate_live_marks()   poll records control_next_morning on every at-close position
+   close_position()        closed record carries entry_mode + control_next_morning
+   commands                close_entry, close_entry_dry
+tools/ch6_loop.sh
+   19:45-19:54 UTC weekdays: python tools/ch6_fast_harvest.py close_entry
+   (before the 19:55 sweep; one stamp per session; a refused pass retries once)
+```
+
+What is unchanged: the door's three conditions, herd band 0, unreset
+refutations, the entry reading, the cherry-pick cap, sizing ($2,500 /
+1 % of a normal day / floor), every exit, the sound-structure cut, the
+protective halt file.
+
+What the at-close read does differently, stated:
+- gain and volume are read fifteen minutes before the close, so volume
+  is ~85–90 % of the day's; the 3× test is slightly stricter than at the
+  completed close. Prior close comes from the feed (yesterday's actual
+  close), not the store.
+- the universe is the store's symbols with 20 completed closes in the
+  last 21 sessions (5,029 on 2026-09-23).
+- the store must be within 5 sessions of today or the day is refused
+  loudly (MINE). Loop hours are fixed UTC and assume EDT, as before.
+- dry run 2026-09-23 ~14:10 ET: door 0 (seven names up 8 %+, none on
+  3× volume yet) — a quiet day, the chain runs end to end.
+
+GRADE, declared before the first fill: **20 closed at-close entries.**
+FAILS if average P&L per closed trade ≤ $0 or fewer than 60 % bank →
+`ENTRY_AT_CLOSE = False`, next-morning staging returns, nothing
+re-tuned. CONTROL: `control_next_morning` on every position — the next
+session's first mark, its gap to the close entry, and whether the old
+rule would have filled there.
+
 ## Not touched
 
-Door conditions, exits, sizing, the sound-structure cut, the herd
-condition. The watchdog shipped earlier today stands.
+The watchdog shipped earlier today stands. CH6 remains a paper book;
+no real orders.

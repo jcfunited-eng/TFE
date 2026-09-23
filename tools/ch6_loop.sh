@@ -1,8 +1,10 @@
 #!/bin/bash
 # CH6 fast-harvest loop — 5-minute polling during market hours.
-# CH6 is its own channel: it runs its OWN entry scan after the close,
-# polls for display 13:35-19:50, and sweeps at 19:55 UTC banking anything
-# at +2% or better (Joseph's fast-cash law 2026-08-19). It never reads CH3's book.
+# CH6 is its own channel: it decides its entries at the CLOSE of the spike
+# day (19:45-19:54 UTC, Joe 2026-09-23; the nightly hunt settles and stages
+# nothing), polls for display 13:35-19:50, and sweeps at 19:55 UTC banking
+# anything at +2% or better (Joseph's fast-cash law 2026-08-19). It never
+# reads CH3's book. Hours are fixed UTC and assume EDT, as they always have.
 # Restart after container restart:
 #   nohup bash tools/ch6_loop.sh > artifacts/vtvr_observer/ch6_runner.log 2>&1 &
 cd "$(dirname "$0")/.." || exit 1
@@ -30,6 +32,15 @@ while true; do
     if { [ "$h" -ge 14 ] || { [ "$h" = "13" ] && [ "$m" -ge 35 ]; }; } \
         && { [ "$h" -lt 19 ] || { [ "$h" = "19" ] && [ "$m" -lt 50 ]; }; }; then
       python tools/ch6_fast_harvest.py poll
+      python tools/ch6_page.py artifacts/vtvr_observer/ch6_page.html
+    fi
+    # Joe 2026-09-23: the entry is at the CLOSE of the spike day (receipt:
+    # docs/CH6_ENTRY_TIMING_20260923.md). Decided in the 19:45-19:54 UTC
+    # window, before the 19:55 sweep. The script stamps the session, so a
+    # second pass in the window is a no-op, and a refused pass (stale
+    # store, feed down) gets one retry. The nightly hunt stages nothing.
+    if [ "$h" = "19" ] && [ "$m" -ge 45 ] && [ "$m" -lt 55 ]; then
+      python tools/ch6_fast_harvest.py close_entry >> artifacts/vtvr_observer/ch6_runner.log 2>&1
       python tools/ch6_page.py artifacts/vtvr_observer/ch6_page.html
     fi
     if [ "$h" = "19" ] && [ "$m" -ge 55 ] && [ "$last_sweep" != "$d" ]; then
