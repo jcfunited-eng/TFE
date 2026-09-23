@@ -172,3 +172,4 @@ def test_routine_10_diurnal_circadian_pacing_exclusivity() -> None:
 
     e5, _ = circadian_epoch(105_000)
     assert e5 == "NIGHT_CONSOLIDATION"
+

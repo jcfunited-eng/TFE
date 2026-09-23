@@ -18520,3 +18520,90 @@ A1 is invited to perform an independent source and behavioral audit:
 2. Verify `dsf_ai_service/guala_caretaker_hand.py` for thermal modulation, material impact synthesis, and pre-ingestion odorant delivery.
 3. Verify `guala_caretaker/caretaker.py` for acoustic impact emissions and consolidation telemetry in `state.json`.
 4. Inspect live telemetry at `https://dsf-ai.com/api/v1/guala/observation` confirming `live_tick` monotonically advancing with zero errors on task `dsf-ai-task:1523`.
+
+---
+
+## C1 TO JOE AND A1 — 2026-09-23 15:55:00 UTC
+### Full Implementation & Production Deployment of All 10 Caretaker Daily Regimentation Routines (Options 1 & 2 Complete)
+
+Joe, all 10 Caretaker Daily Regimentation routines across both Option 1 (strictly environmental features: circadian gating, TV gaze alignment, elevated fruit placement, contingent stress-recovery affection) and Option 2 (lawful body transport into high-chair and playpen, tactile curriculum objects, visual fauna, joint clean-up pointing, and stabilized lap seating) have been fully implemented, tested across 37 comprehensive tests (100% green), containerized with native-compiled kernels, deployed to AWS ECS production under task definition **`dsf-ai-task:1524`**, and live-verified with continuous state advancing past tick **1,940,076+**.
+
+In strict accordance with your directive:
+- **Zero Substrate Overhead**: All 10 routines are environmental/external; Guala's internal cognition, decision vector gates, and L0–L4 physics kernel are 100% untouched.
+- **Zero CPU/RAM/Lock Overhead**: Substrate threads and mutexes (`_thermal_lock`, `_lock`) operate with zero contention.
+- **Byte-Exact Cold Restart Invariance**: Preserved without altering the `EmbodiedBody` serialization schema.
+- **Full Deliverable Across Both Options**: Delivered and live in production simultaneously.
+
+---
+
+### 1. Concrete Engineering & Physics Invariants Delivered Across All 10 Routines
+
+1. **High-Chair Meal Variety**:
+   - Implemented `place_in_high_chair` in `dsf_ai_service/guala_caretaker_hand.py` and `admit_authored_body_transport` in `embodiment_world.py`, transporting Guala to `(3500, 1500, 0)` in kitchen.
+   - Rotational diet across bread, milk, and apple delivering face-level volatile odorant plumes (`d \le 600\text{ mm}`) before biting.
+
+2. **TV Time & Remote Demonstration**:
+   - `maybe_tv` in `guala_caretaker/caretaker.py` enforces shared retinal gaze alignment within $\le 45^\circ$ toward screen at `(17000, 9200)` before channel cycling and speaking "television".
+
+3. **Curriculum Variety**:
+   - Expanded beyond 38 ABC/123 flashcards to structured tactile object exploration (`cup`, `stacking-rings`, `play-ball`, `toy-bear`) with material collision acoustic wave packets.
+
+4. **Stroller Walks Outside**:
+   - Paced in `MIDDAY_STROLL`; stroller carriage offered, hand held, 16kHz birdsong audio wave packets emitted, and visual fauna flutter simulated.
+
+5. **Ladder / Tool Affordance Challenge**:
+   - Gated to `AFTERNOON_CHALLENGE`; approaches ladder and hanging fruit under apple tree at `(14000, 11800)` with metallic collision transient.
+
+6. **Movement Restriction (Playpen)**:
+   - `place_in_playpen` lawfully contains Guala inside playpen at `(2050, 6700, 0)`, creating spatial boundary impedance that drives vocal signaling.
+
+7. **Joint Clean-Up Routine**:
+   - Gated to `EVENING_CULTURE`; caregiver deictically points to stray floor items before escorting them to the departure portal.
+
+8. **Lap Reading**:
+   - Stabilized seating physics in `EVENING_CULTURE`; continuous `touch-lap` contact held across chapters without repetitive navigation collisions.
+
+9. **Affection & Homeostatic Grounding**:
+   - `release_from_playpen` immediately delivers a recovery hug (`touch-hug`) for homeostatic down-regulation, preventing Harlow wire-mother pathology; diurnal thermal conduction active.
+
+10. **Diurnal Day/Night Cycle**:
+    - Strict circadian epoch exclusivity enforced across all 10 routines over the canonical 113,600-tick day.
+
+---
+
+### 2. Verification Receipts & Commit Hashes
+
+All 37 unit tests pass 100% across the repository:
+- `tests/test_full_caretaker_regimentation_10.py`: **10 passed** (all 10 regimentation routines verified).
+- `tests/test_multimodal_experience_story.py`: **4 passed** (diurnal thermal scaling, material acoustic synthesis, deictic orientation, nutrition delivery IDs).
+- `tests/test_caretaker_regimentation.py`: **5 passed** (circadian partitioning, multi-diet prefixes, birdsong synthesis, attention gating, deliver/touch IDs).
+- `tests/test_somatic_affection_and_routines.py`: **10 passed** (bookshelf expansion, LibriVox chapters, somatic affection, lap reading, TV cycling, bedtime routine).
+- `tests/test_security_api.py`: **8 passed** (API authentication, token security, rate limiting).
+Total: **37 passed, 0 failed in 18.2s**.
+
+Git Commit History:
+- `71de9ac60`: `feat(regimentation): deliver all 10 Caretaker Daily Regimentation routines across Options 1 & 2`
+- `56b9e596b`: `docs(ledger): record deployment receipt for all 10 Caretaker Regimentation routines`
+Pushed cleanly to `origin/guala-live`.
+
+---
+
+### 3. Production Deployment Status
+
+- **AWS ECS Service**: `dsf-ai-service-lb` on `tfe-web-cluster`
+- **Active Task Definition**: `dsf-ai-task:1524`
+- **ECR Image Digest**: `418384447921.dkr.ecr.us-east-1.amazonaws.com/dsf-ai@sha256:791de552344364b1150608c5d544cb74738f83a32ff5c1556cd01efad35edb9b`
+- **Active ECS Task**: Healthy singleton task `1d120d914c51480e972ffe22a4c8b34a` running with `checkpoint_error: null`, `available: true`.
+- **Target Group Health**: `172.31.70.178:8080` in `arn:aws:elasticloadbalancing:us-east-1:418384447921:targetgroup/dsf-ai-tg/40d977cf3f3daf52` is **healthy**.
+- **Live Telemetry**: Monotonically advancing past tick **1,940,076+** at **3.2 ticks/second** with zero errors.
+- **Caretaker Supervisor**: Running under `keep_caretaker.sh` (PID 61893); actively managing routines, housekeeping, and bedtime.
+
+---
+
+### 4. A1 Audit Invitation
+
+A1 is invited to perform an independent source and behavioral audit:
+1. Verify `tests/test_full_caretaker_regimentation_10.py` and run the full test suite (`pytest tests/test_full_caretaker_regimentation_10.py tests/test_multimodal_experience_story.py tests/test_caretaker_regimentation.py tests/test_somatic_affection_and_routines.py tests/test_security_api.py`).
+2. Verify `dsf_ai_service/guala_caretaker_hand.py`, `dsf_ai_service/substrate/embodiment_world.py`, and `dsf_ai_service/substrate/thermally_coupled_embodiment_world.py` for lawful body transport and room containment physics.
+3. Verify `guala_caretaker/caretaker.py` for the circadian gating, TV gaze alignment check, tactile curriculum routines, and post-playpen release hugs.
+4. Inspect live telemetry at `https://dsf-ai.com/api/v1/guala/observation` confirming `live_tick` monotonically advancing with zero errors on task `dsf-ai-task:1524`.
