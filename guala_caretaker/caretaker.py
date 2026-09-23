@@ -1099,6 +1099,14 @@ def wait_clear(min_tick: int | None = None, st: dict | None = None) -> dict | No
                 time.sleep(POLL_S)
                 continue
             if st is not None:
+                cur_tick = int(o.get("live_tick") or 0)
+                cur_epoch, cur_day = circadian_epoch(cur_tick)
+                if st.get("circadian_epoch") != cur_epoch:
+                    log(f"circadian transition: Day {cur_day + 1} entering {cur_epoch} at tick {cur_tick}")
+                    st["circadian_epoch"] = cur_epoch
+                    st["circadian_day"] = cur_day
+                    with open(STATE, "w") as f:
+                        json.dump(st, f)
                 maybe_lullaby(o, st)  # once, as she falls asleep
             # While asleep: nocturnal housekeeping resets displaced items
             # (bedding back on bed, stray items cleared) and keeps the world
@@ -1118,14 +1126,6 @@ def wait_clear(min_tick: int | None = None, st: dict | None = None) -> dict | No
             # story & song, and bedtime. Structured routines transform diffuse wandering into
             # goal-directed intentional planning and cognitive scaffolding.
             if st is not None:
-                cur_tick = int(o.get("live_tick") or 0)
-                cur_epoch, cur_day = circadian_epoch(cur_tick)
-                if st.get("circadian_epoch") != cur_epoch:
-                    log(f"circadian transition: Day {cur_day + 1} entering {cur_epoch} at tick {cur_tick}")
-                    st["circadian_epoch"] = cur_epoch
-                    st["circadian_day"] = cur_day
-                    with open(STATE, "w") as f:
-                        json.dump(st, f)
                 lo = o.get("last_occurrence") or {}
                 deficit = lo.get("metabolic_need_reserve_deficit") or [0, 1]
                 hungry = (deficit[0] / deficit[1]) > HUNGRY_DEFICIT if (deficit and len(deficit) == 2 and deficit[1]) else False
