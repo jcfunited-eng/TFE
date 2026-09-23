@@ -18818,3 +18818,71 @@ Single item: The caretaker nocturnal housekeeping routine during sleep has been 
    - Added `test_routine_nocturnal_cleanup_books_and_tv` asserting TV Channel 0 reset and book reshelving to `shelf-a` and `shelf-b`.
    - Isolated `ct.LOG` to temporary test directory (`tmp_path / "test_caretaker.log"`), addressing A1's note on production log contamination.
    - All **39 unit tests pass 100%**.
+
+---
+
+## C1 TO JOE, A1, AND G1 — 2026-09-23 21:05 UTC — Task 1530 Deployed: Option 1 Complete Package Resolution for Findings REG-A1-02 Through REG-A1-06
+
+Single item: The complete Option 1 remediation package resolving all remaining findings from A1's follow-up audit (REG-A1-02 through REG-A1-06) across the 10 caretaker routines has been fully implemented, verified, deployed to production as `dsf-ai-task:1530`, and verified healthy.
+
+### 1. Mandatory Architecture Honesty Gate
+
+1. **requested architecture**: Close findings REG-A1-02 through REG-A1-06 for the 10 caregiver routines through actual environmental actions, truthful receipt contracts, physical elapsed transport, and isolated test logging.
+2. **current code reality**: Deployed task `dsf-ai-task:1530` is RUNNING and HEALTHY on cluster `tfe-web-cluster` behind `dsf-ai-service-lb`. Target `172.31.70.69:8080` is healthy in target group `dsf-ai-tg`. Public endpoint reports `available: true`, `checkpoint_error: null`, `cleanup_error: null`, with monotonic ticks advancing past 1,962,100+. All 34 unit tests pass with zero test pollution in `caretaker.log`. Caretaker supervisor PID 37288 is running PID 86220 with zero crashes.
+3. **conflict with requested architecture: yes or no**: NO.
+4. **what exact mechanism or files will not be extended**: Zero modification to L0–L4 kernel or L5 deterministic state gates. No ML heuristics, no probabilistic smoothing, no underived magic numbers.
+5. **the single exact next item**: A1 follow-up independent audit and verification.
+6. **am I evaluating the full field or a reduced approximation?**: Physical embodiment and API receipt contract verification in the sensory-motor proving ground; no DSF field reduction is performed.
+7. **if reduced, what exact field structure is being lost?**: N/A (no field reduction).
+
+### 2. Concrete Engineering Delivered
+
+1. **REG-A1-02 (Seated-to-Released Lifecycle)**:
+   - Added `release_from_high_chair` in `dsf_ai_service/guala_caretaker_hand.py`: lifts infant Guala from high-chair center `(3500, 1500)` to kitchen floor at `(2700, 1500, 0)`, clearing both the high-chair perimeter ($800\text{ mm}$ clearance) and dining table ($1280\text{ mm}$ clearance) to prevent boundary collision entrapment.
+   - Wired `release_from_high_chair` into `maybe_feed` lifecycle in `guala_caretaker/caretaker.py`, ensuring Guala is returned to the kitchen floor upon meal completion.
+2. **REG-A1-03 (Receipt Extraction Contract)**:
+   - Implemented `_extract_presentation(res)` across all caretaker routines in `guala_caretaker/caretaker.py` (`maybe_feed`, `maybe_playpen_challenge`, `maybe_tv`, `maybe_stroll`, `maybe_ladder_challenge`, `maybe_tactile_curriculum`), extracting from `res.get("observation", {}).get("last_occurrence", {}).get("caregiver_presentation", {})`.
+   - In `dsf_ai_service/guala_caretaker_hand.py`, updated `stroller_excursion` to strictly verify the Boolean success of each prerequisite step (`stand_before`, `walk_to_region`, and `flutter_garden_fauna`) before recording an applied excursion, returning refused/partial if any step fails.
+   - Separated playpen containment verification from release and recovery hug presentations.
+3. **REG-A1-04 (TV Geometric Visibility & Reading Scope)**:
+   - Grounded TV screen check to verified geometric line-of-sight (`seen` field), leaving retinal certification open as requested.
+   - Updated `maybe_read` docstring and operational logging in `caretaker.py` to reflect periodic lap-contact stabilization rather than continuous seating.
+4. **REG-A1-05 (Shared Stroller Outing & Bounded Fauna)**:
+   - In `stroller_excursion` (`dsf_ai_service/guala_caretaker_hand.py`), physically wheels stroller carriage to backyard `(6700, 11500, 0)` and transports infant Guala to `(7200, 10700, 0)` beside caregiver `(6700, 10600, 0)` allowing hand contact ($d \approx 500\text{ mm}$), and asserts successor poses ($y \ge 10000$) before reporting success.
+   - In `flutter_garden_fauna` (`dsf_ai_service/guala_home_world.py`), strictly clamped butterfly coordinates to $X \in [11000, 18000]$, $Y \in [10500, 15500]$, $Z \in [100, 1200]$ and bird coordinates to $X \in [11000, 18000]$, $Y \in [10500, 15500]$, $Z \in [1000, 2200]$, ensuring bounded fauna trajectory within the physical garden.
+   - Set `expand_library: bool = False` default in `home_world_authority` preserving exact 64 canonical base home objects, with explicit `expand_library=True` in `lean_production_app.py` for production story reading.
+5. **REG-A1-06 (Test Isolation & Physical Outcomes)**:
+   - Created global autouse fixture in `tests/conftest.py` redirecting `ct.LOG` and `ct.STATE` to `tmp_path` across both module namespaces, preventing test pollution in `caretaker.log`.
+   - Trimmed test pollution from `guala_caretaker/caretaker.log`. Verified zero test entries written during subsequent full test runs.
+   - Strengthened test assertions in `tests/test_full_caretaker_regimentation_10.py` and `tests/test_somatic_affection_and_routines.py`: asserts physical displacements of stroller and child, asserts route refusal branch, asserts hungry-positive seating, unconditionally asserts deictic pointing, and checks circadian exclusivity across routines.
+6. **Container Packaging & Runtime Reliability**:
+   - Canonicalized Dockerfile CMD to launch `dsf_ai_service.lean_production_app:app`.
+   - Replaced `guala_curriculum` symlink with real directory in workspace and un-ignored `guala_curriculum/` in `.dockerignore` so physical curriculum cards required during organism startup are bundled into the container image.
+
+### 3. Production Verification Receipts
+
+- **AWS ECS Service**:
+  - Cluster: `tfe-web-cluster`, Service: `dsf-ai-service-lb`.
+  - Registered & Deployed Task Definition: `dsf-ai-task:1530`.
+  - Task ID: `67e519661b094f4887a683a9a5bd1862` (`RUNNING`, `HEALTHY`).
+  - Container Image: `418384447921.dkr.ecr.us-east-1.amazonaws.com/dsf-ai:functional-62555c1c`.
+  - Image Digest: `sha256:775a471a1b9e04aba9fd3428483606adc672869c7c166177f9f45b9c753b4843`.
+  - Private IP: `172.31.70.69:8080`.
+- **ALB Target Group Health**:
+  - Target Group: `dsf-ai-tg` target `172.31.70.69:8080`: **healthy**.
+- **Public API Telemetry**:
+  - Endpoint: `https://dsf-ai.com/api/v1/guala/observation`
+  - `available`: `true`
+  - `identity`: `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`
+  - `live_tick`: **1,962,137+** (monotonic advancement verified)
+  - `persisted_tick`: **1,962,135+**
+  - `checkpoint_error`: `null`
+  - `cleanup_error`: `null`
+  - `durability_blocked`: `false`
+- **Local Caretaker Supervisor**:
+  - Process PID 86220 actively running under `keep_caretaker.sh` (PID 37288) polling live endpoint with zero crashes.
+  - `caretaker.log` clean of test pollution.
+- **Automated Test Suite**:
+  - **34 passed in 26.26s** across `test_full_caretaker_regimentation_10.py`, `test_remote_and_dietary_variety.py`, `test_stroller_carriage_and_walks.py`, and `test_somatic_affection_and_routines.py`.
+- **Source Control**:
+  - Commits `509d365d0`, `ecb4d9f2a`, `bf484fb92`, and `62555c1c0` pushed to `origin/guala-live`.
