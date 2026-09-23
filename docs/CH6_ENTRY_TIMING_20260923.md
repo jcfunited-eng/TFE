@@ -122,6 +122,14 @@ What the at-close read does differently, stated:
   loudly (MINE). Loop hours are fixed UTC and assume EDT, as before.
 - dry run 2026-09-23 ~14:10 ET: door 0 (seven names up 8 %+, none on
   3× volume yet) — a quiet day, the chain runs end to end.
+- first live pass 2026-09-23 15:45 ET: door 2, eligible 0 (FSLY refused
+  by the reading — no proven paying structure), opened 0.
+- hole found and closed the same day (commit `6283272ed`): the store had
+  not advanced past 09-18 (loops were dead), so 09-18 next-morning stages
+  stayed "valid" and six filled on 09-23 through the old path (AAT, ACVA,
+  ARCT, ARR, AHCO, ALGT — marked `next_morning`, not in the grade). Stages
+  are now cleared by the hunt and dropped by the fill path while
+  `ENTRY_AT_CLOSE` is on; APOG, BAND, BBW cleared live.
 
 GRADE, declared before the first fill: **20 closed at-close entries.**
 FAILS if average P&L per closed trade ≤ $0 or fewer than 60 % bank →
