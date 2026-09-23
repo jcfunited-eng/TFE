@@ -36,6 +36,10 @@ dsf_ai_service/models/**
 !tools/curriculum_seed.json
 yolov8n.onnx
 
+# Guala curriculum assets
+!guala_curriculum/
+!guala_curriculum/**
+
 # Root runtime files copied by the Dockerfile.
 !certs/
 !certs/**
