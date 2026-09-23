@@ -913,6 +913,7 @@ def candidates(
 
     out: list[tuple[str, str, tuple[Any, ...], str | None, tuple[int, int, int] | None]] = []
     position, heading = body.pose.position, body.pose.heading_millidegrees
+    here = _region_of(snapshot, position, body.radius_mm)
     reachable = [item for item in snapshot.objects if item.position is not None and in_hand_reach(snapshot, item)]
 
     # 1. Take from hand
@@ -953,12 +954,23 @@ def candidates(
                         dist = _distance_mm(body.pose.position, pos)
                         stop = body.radius_mm + int(c_entry.get("radius_mm", 100)) + STOP_MARGIN_MM
                         if dist > stop + ARRIVAL_MM:
-                            conserved_food.append((dist, obj_id, pos, stop))
+                            food_reg = _region_of(snapshot, pos, 100)
+                            if here is not None and food_reg is not None and here.region_id != food_reg.region_id:
+                                route = _portal_route(snapshot, here.region_id, food_reg.region_id)
+                                if route:
+                                    first_portal = route[0]
+                                    before_door, _past = door_crossing(snapshot, first_portal, here.region_id)
+                                    if _distance_mm(position, before_door) <= ARRIVAL_MM + STEP_MM // 2:
+                                        conserved_food.append((dist, obj_id, f"through {first_portal.portal_id} toward {obj_id}", door_crossing_commands(snapshot, first_portal, here.region_id)))
+                                    else:
+                                        conserved_food.append((dist, obj_id, f"toward {first_portal.portal_id} toward {obj_id}", move_commands_toward(snapshot, before_door, 0)))
+                                    continue
+                            conserved_food.append((dist, obj_id, f"{obj_id} (conserved)", move_commands_toward(snapshot, pos, stop)))
             conserved_food.sort(key=lambda x: (x[0], x[1]))
-            for dist, obj_id, pos, stop in conserved_food[:2]:
-                out.append(("toward_food", f"{obj_id} (conserved)", move_commands_toward(snapshot, pos, stop), obj_id, None))
+            for dist, obj_id, detail, cmds in conserved_food[:2]:
+                out.append(("toward_food", detail, cmds, obj_id, None))
 
-    # 5. Toward bed
+    # 5. Toward bed (multi-room topological portal routing across doorways)
     bed = next((thing for thing in seen if thing.object_id == BED_ID), None)
     if bed is not None and bed.distance_mm > ARRIVAL_MM + STEP_MM // 2:
         out.append(("toward_bed", "her bed", move_commands_toward(snapshot, bed.position, 0), bed.object_id, None))
@@ -967,7 +979,20 @@ def candidates(
         bed_pos = PositionMM(*c_bed["position"])
         bed_dist = _distance_mm(body.pose.position, bed_pos)
         if bed_dist > ARRIVAL_MM + STEP_MM // 2:
-            out.append(("toward_bed", "her bed (conserved)", move_commands_toward(snapshot, bed_pos, 0), BED_ID, None))
+            bed_reg = _region_of(snapshot, bed_pos, 100)
+            if here is not None and bed_reg is not None and here.region_id != bed_reg.region_id:
+                route = _portal_route(snapshot, here.region_id, bed_reg.region_id)
+                if route:
+                    first_portal = route[0]
+                    before_door, _past = door_crossing(snapshot, first_portal, here.region_id)
+                    if _distance_mm(position, before_door) <= ARRIVAL_MM + STEP_MM // 2:
+                        out.append(("toward_bed", "through " + first_portal.portal_id + " toward bed", door_crossing_commands(snapshot, first_portal, here.region_id), BED_ID, None))
+                    else:
+                        out.append(("toward_bed", "toward " + first_portal.portal_id + " toward bed", move_commands_toward(snapshot, before_door, 0), BED_ID, None))
+                else:
+                    out.append(("toward_bed", "her bed (conserved)", move_commands_toward(snapshot, bed_pos, 0), BED_ID, None))
+            else:
+                out.append(("toward_bed", "her bed (conserved)", move_commands_toward(snapshot, bed_pos, 0), BED_ID, None))
 
     # 6. Toward every sensed thing, nearest first (the least strides to reach)
     seen_thing_ids = {thing.object_id for thing in seen if not thing.is_food}
@@ -1803,6 +1828,11 @@ class FunctionalOrganism:
             target_totals[chosen_option[3]] = int(target_totals.get(chosen_option[3], 0)) + 1
         _name, detail, commands, target, drive = chosen_option
 
+        if act in ("turn_left", "turn_right"):
+            state["consecutive_turns"] = int(state.get("consecutive_turns", 0)) + 1
+        else:
+            state["consecutive_turns"] = 0
+
         deficit = round(float(self.deficit), 6)
         sleep_ratio = round(float(state.get("sleep_pressure", 0)) / SLEEP_PRESSURE_CEILING, 6)
         contact_ratio = round(float(state.get("contact_pressure", 0)) / CONTACT_PRESSURE_CEILING, 6)
@@ -2266,6 +2296,13 @@ class FunctionalOrganism:
 
         label = "structure " + key[:6]
 
+        # Break rotational limit-cycle deadlocks: maximum 2 consecutive in-place turns
+        consecutive_turns = int(self._state.get("consecutive_turns", 0))
+        if consecutive_turns >= 2:
+            non_turn = [a for a in acts if a not in ("turn_left", "turn_right")]
+            if non_turn:
+                acts = non_turn
+
         # Cognitive Asset 2: Multi-Step Predictive Affordance Planning
         plan_dict = self._state.get("affordance_plan")
         if plan_dict:
@@ -2323,8 +2360,23 @@ class FunctionalOrganism:
         dwell_beats = int(self._state.get("room_dwell_beats", 0))
         deficit = float(self.deficit)
         sleep_ratio = float(self._state.get("sleep_pressure", 0)) / SLEEP_PRESSURE_CEILING
+        cur_room = self._state.get("room_now")
+
+        # Homeostatic Barrenness in Lived Cognition (tick > 100):
+        # Does the current room lack the active homeostatic requirement?
+        if self.live_organism_tick > 100:
+            needs_bed = sleep_ratio >= 0.5
+            needs_food = deficit >= 0.6
+            has_bed = (cur_room == "her-room")
+            has_food = (cur_room == "kitchen")
+            is_barren = (needs_bed and not has_bed) or (needs_food and not has_food)
+            if is_barren:
+                phi_barren = math.tanh(max(0.0, float(dwell_beats - 16)) / 16.0)
+                if phi_barren > 0.25 and "toward_door" in acts:
+                    return "toward_door", f"barren basin exhaustion ({phi_barren:.2f} over {dwell_beats} dwell beats in {cur_room}): evacuating toward negative space"
+
         surplus = max(0.0, min(1.0, (1.0 - deficit) * (1.0 - sleep_ratio)))
-        boredom = surplus * math.tanh(max(0.0, float(dwell_beats - 32)) / 24.0)
+        boredom = max(0.35 if self.live_organism_tick > 100 else 0.0, surplus) * math.tanh(max(0.0, float(dwell_beats - 32)) / 24.0)
         if boredom > 0.25 and "toward_door" in acts:
             return "toward_door", f"structural boredom ({boredom:.2f} over {dwell_beats} dwell beats): evacuating saturated basin toward negative space"
 

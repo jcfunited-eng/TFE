@@ -5,18 +5,25 @@ Verifies:
 2. Local Basin Exhaustion (boredom monotonically rising with room dwell time under surplus).
 3. Distal Negative Space Attraction (interest favoring unvisited/least-recent portals).
 4. Natural room evacuation out of a saturated room without heuristic scripts or momentum hacks.
+5. Barren room exhaustion (evacuation under fatigue when room lacks bed).
+6. Topological multi-room portal routing toward distal bed across doorways.
+7. Rotational limit-cycle damping breaking in-place spin traps.
 """
 
 from __future__ import annotations
 
+from dataclasses import replace
 import math
 from typing import Any
 import pytest
 
 from dsf_ai_service.guala_functional_organism import (
     FunctionalOrganism,
+    candidates,
+    BED_ID,
     CAPACITY_MICROGRAMS,
     SLEEP_PRESSURE_CEILING,
+    PositionMM,
 )
 from dsf_ai_service.guala_functional_loop import FunctionalPhysicalLoop
 from dsf_ai_service.guala_home_world import home_world_authority
@@ -131,3 +138,37 @@ def test_room_evacuation_under_boredom_in_loop():
     assert room_transitions[0] == "hallway"
     # Verify dwell reset to 1 in the new room
     assert org._state.get("room_dwell_beats") == 1
+
+
+def test_barren_room_evacuation_under_fatigue():
+    """Verify that when fatigued in a room with no bed (e.g. kitchen), basin exhaustion drives toward_door."""
+    org = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1000)
+    org._state["room_now"] = "kitchen"
+    org._state["room_dwell_beats"] = 22
+    org._state["sleep_pressure"] = int(SLEEP_PRESSURE_CEILING * 0.95)
+    acts = ["turn_left", "turn_right", "step", "toward_door"]
+    act, why = org._choose("barren_key_1", "TSVS", acts)
+    assert act == "toward_door"
+    assert "barren basin exhaustion" in why
+
+
+def test_toward_bed_multi_room_portal_routing():
+    """Verify that toward_bed in kitchen routes toward door-6 connecting to hallway."""
+    world = home_world_authority(identity=IDENTITY)
+    snapshot = world.observation_snapshot()
+    body = [b for b in snapshot.bodies if b.body_id == "guala-body-1"][0]
+    pose = replace(body.pose, position=PositionMM(6000, 3500, 0))
+    kitchen_body = replace(body, pose=pose)
+    conserved = {BED_ID: {"position": (1200, 8800, 0), "radius_mm": 600, "is_food": False}}
+    cands = candidates(snapshot, kitchen_body, None, None, (), 1000, sleepy=True, conserved_objects=conserved)
+    toward_bed_cands = [c for c in cands if c[0] == "toward_bed"]
+    assert len(toward_bed_cands) > 0
+    assert "door-6" in toward_bed_cands[0][1]
+
+
+def test_rotational_spin_trap_damping():
+    """Verify that after 2 consecutive turns, in-place turns are damped and forward translation is selected."""
+    org = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1000)
+    org._state["consecutive_turns"] = 2
+    act, why = org._choose("spin_test_key", "SSSS", ["turn_left", "turn_right", "step"])
+    assert act == "step"
