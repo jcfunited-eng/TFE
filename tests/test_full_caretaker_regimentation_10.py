@@ -372,6 +372,6 @@ def test_routine_nocturnal_cleanup_books_and_tv() -> None:
 
     # 4. Assert book-peter-rabbit reshelved to shelf-a reachable position
     book = next(o for o in world._state.world.objects if o.object_id == "book-peter-rabbit")
-    assert book.position.x == 9_850
-    assert book.position.y == 9_400
+    assert book.position.x == 9_800
+    assert book.position.y == 8_900
     assert book.elevation_mm == 330

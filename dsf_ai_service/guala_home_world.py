@@ -1725,11 +1725,11 @@ def operate_tv_remote(authority: Any) -> int:
 
 
 LIBRARY_BOOK_SHELVES = {
-    "book-peter-rabbit": (9_850, 9_400, 0, 330),
-    "book-wind-willows": (10_150, 9_400, 0, 330),
-    "book": (12_250, 9_400, 0, 330),
-    "book-aesops-fables": (12_500, 9_400, 0, 330),
-    "book-mother-goose": (12_750, 9_400, 0, 330),
+    "book-peter-rabbit": (9_800, 8_900, 0, 330),
+    "book-wind-willows": (10_200, 8_900, 0, 330),
+    "book": (12_100, 8_900, 0, 330),
+    "book-aesops-fables": (12_500, 8_900, 0, 330),
+    "book-mother-goose": (12_900, 8_900, 0, 330),
 }
 
 
