@@ -231,6 +231,7 @@ def _restore_production_actor() -> LeanOrganismActor:
         identity=current.identity,
         encoded_world=restored.world,
         migrate_physical_return=True,
+        expand_library=True,
     )
     current_world = bytes(world.encoded_snapshot())
     # One startup-only receipt of the validated bytes actually read. It precedes

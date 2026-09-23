@@ -287,6 +287,24 @@ def present_food(object_id: str) -> dict | None:
         return None
 
 
+def _extract_presentation(res: dict | None) -> dict:
+    """Extract caregiver presentation payload from API occurrence response or direct presentation dict."""
+    if not res or not isinstance(res, dict):
+        return {}
+    # Real production API envelope: {"observation": {"last_occurrence": {"caregiver_presentation": {...}}}}
+    obs = res.get("observation")
+    if isinstance(obs, dict):
+        lo = obs.get("last_occurrence")
+        if isinstance(lo, dict):
+            pres = lo.get("caregiver_presentation")
+            if isinstance(pres, dict):
+                return pres
+    # Direct dictionary fallback (mock or internal return)
+    if "presented" in res or "steps" in res or "channel" in res or "schema" in res or "touched" in res:
+        return res
+    return {}
+
+
 def food_state(o: dict, skip: set[str]) -> tuple[bool, list[str]]:
     """(something edible is already at her mouth, the apples on the floor
     fullest first) from her published world: the apple in her own hand or in
@@ -610,9 +628,9 @@ def maybe_touch(o: dict, st: dict) -> None:
 
 
 def maybe_tv(o: dict, st: dict) -> None:
-    """TV demonstration: during AFTERNOON_CHALLENGE, requires shared visual alignment
-    where Guala's retinal gaze is oriented toward the TV screen at (17000, 9200)
-    before channel cycling, accompanied by acoustic labeling 'television'."""
+    """TV demonstration: during AFTERNOON_CHALLENGE, verifies geometric line-of-sight
+    alignment with the screen before remote operation, accompanied by acoustic labeling
+    'television' (optical/retinal receptor verification left open)."""
     sleep = her_sleep(o)
     if sleep.get("asleep"):
         return
@@ -627,25 +645,26 @@ def maybe_tv(o: dict, st: dict) -> None:
     lo = o.get("last_occurrence") or {}
     seen = lo.get("seen")
     if seen is None:
-        log(f"tv: retinal visibility evidence unavailable at tick {tick}; demonstration withheld")
+        log(f"tv: geometric visibility evidence unavailable at tick {tick}; demonstration withheld (retinal certification open)")
         return
     if "television" not in seen:
         say_word("television")
-        log(f"tv: screen not verified in retinal field (seen={seen}) at tick {tick}; calling attention")
+        log(f"tv: screen not in geometric line-of-sight (seen={seen}) at tick {tick}; calling attention (retinal certification open)")
         return
 
     res1 = present_food("tv-remote")
     res2 = present_food("tv-remote-cycle")
-    ch = (res2 or {}).get("channel", 0) if res2 else 0
+    pres2 = _extract_presentation(res2)
+    ch = pres2.get("channel", 0)
     named = say_word("television")
-    log(f"tv: demonstrated tv-remote cycle to channel {ch} with verified retinal sight of screen — named={named} at tick {tick}")
+    log(f"tv: demonstrated tv-remote cycle to channel {ch} with verified geometric visibility of screen — named={named} at tick {tick}")
     record_story_moment(st, "auditory", "visual")
 
 
 def maybe_stroll(o: dict, st: dict) -> None:
     """Outdoor stroll: during MIDDAY_STROLL, the caregiver brings the stroller carriage
     beside her, holds her hand for an excursion along the walkway, plays outdoor
-    nature birdsong audio blocks, and simulates visual fauna flutter."""
+    nature birdsong audio blocks, and animates visual fauna flutter."""
     sleep = her_sleep(o)
     if sleep.get("asleep"):
         return
@@ -657,7 +676,11 @@ def maybe_stroll(o: dict, st: dict) -> None:
         return
     st["stroll_next_tick"] = tick + STROLL_EVERY_TICKS
     res = present_food("stroller-carriage")
+    pres_stroller = _extract_presentation(res)
+    stroller_applied = pres_stroller.get("presented", False)
     touch = present_food("touch-hold-hand")
+    pres_touch = _extract_presentation(touch)
+    hand_held = pres_touch.get("touched") == "hold_hand" or pres_touch.get("presented", False)
     b_blocks = birdsong_blocks()
     sung = 0
     for block in b_blocks[:4]:
@@ -667,14 +690,19 @@ def maybe_stroll(o: dict, st: dict) -> None:
             ob = r.get("observation") or {}
             MINE.append(ob.get("live_tick") or 0)
             MINE.append((ob.get("last_occurrence") or {}).get("native_tick"))
-    log(f"stroll: stroller carriage offered (stroller={res is not None}, hand_held={touch is not None}, birdsong={sung}/{len(b_blocks)}) at tick {tick}")
-    record_story_moment(st, "auditory", "visual", "tactile", "thermal")
+    log(f"stroll: stroller carriage excursion (stroller_applied={stroller_applied}, hand_held={hand_held}, birdsong={sung}/{len(b_blocks)}) at tick {tick}")
+    delivered = ["auditory"]
+    if stroller_applied:
+        delivered.extend(["visual", "proprioceptive"])
+    if hand_held:
+        delivered.extend(["tactile", "thermal"])
+    record_story_moment(st, *delivered)
 
 
 def maybe_read(o: dict, st: dict) -> None:
     """Read to her: during EVENING_CULTURE, the caregiver fetches the book, holds Guala
-    in their lap (lap holding / torso embrace), reading LibriVox chapters continuously.
-    Mechanically stabilized seating holds lap contact continuously without collision interruptions."""
+    in their lap (lap holding / torso embrace), reading LibriVox chapters.
+    Provides periodic lap-contact stabilization throughout reading engagement."""
     import media
     sleep = her_sleep(o)
     if sleep.get("asleep"):
@@ -960,19 +988,19 @@ def maybe_play(o: dict, st: dict) -> None:
     json.dump(st, open(STATE, "w"))
     if res is None:
         return
-    pres = ((res.get("observation") or {}).get("last_occurrence") or {}).get("caregiver_presentation") or {}
+    pres = _extract_presentation(res)
     named = say_word(toy) if pres.get("presented") else 0
     if pres.get("presented"):
         impact_pcm = material_impact_pcm("wood", intensity=0.8)
         sing_block(impact_pcm)
         record_story_moment(st, "tactile", "visual", "auditory", "proprioceptive")
-    log(f"play: offered {toy} — presented={pres.get('presented')} steps={len(pres.get('steps') or [])} named={named}")
+    log(f"play: offered {toy} — presented={pres.get('presented', False)} steps={len(pres.get('steps') or [])} named={named}")
 
 
 def maybe_playpen_challenge(o: dict, st: dict) -> None:
     """During MORNING_FOCUS: Caregiver places Guala inside playpen at (2050, 6700)
     creating physical boundary impedance that drives vocal signaling, followed by release
-    and an immediate recovery hug (touch-hug) for homeostatic down-regulation."""
+    and a caregiver affection hug presentation (touch-hug)."""
     if asleep(o):
         return
     epoch, _ = circadian_epoch(int(o.get("live_tick") or 0))
@@ -983,16 +1011,23 @@ def maybe_playpen_challenge(o: dict, st: dict) -> None:
         return
     st["playpen_next_tick"] = tick + PLAYPEN_CHALLENGE_TICKS
     res1 = present_food("playpen-containment")
+    pres1 = _extract_presentation(res1)
+    contained = pres1.get("presented", False)
     impact_pcm = material_impact_pcm("wood", intensity=0.9)
     sing_block(impact_pcm)
-    contained = (res1 or {}).get("presented", False)
-    log(f"challenge: playpen containment applied={contained} at tick {tick}")
+    log(f"challenge: playpen containment presentation applied={contained} at tick {tick}")
     res2 = present_food("playpen-release")
-    released = (res2 or {}).get("presented", False)
-    hug_steps = ((res2 or {}).get("steps") or []) if res2 else []
+    pres2 = _extract_presentation(res2)
+    released = pres2.get("presented", False)
+    hug_steps = pres2.get("steps") or []
     hug_delivered = any(s.get("operation") == "touch" and s.get("reason") == "applied" for s in hug_steps)
-    log(f"challenge: playpen release applied={released}, recovery hug delivered={hug_delivered} at tick {tick}")
-    record_story_moment(st, "visual", "proprioceptive", "auditory", "tactile")
+    log(f"challenge: playpen release presentation applied={released}, caregiver hug presentation delivered={hug_delivered} at tick {tick}")
+    modalities = ["auditory"]
+    if contained or released:
+        modalities.extend(["proprioceptive", "visual"])
+    if hug_delivered:
+        modalities.append("tactile")
+    record_story_moment(st, *modalities)
     with open(STATE, "w") as f:
         json.dump(st, f)
 
@@ -1011,11 +1046,15 @@ def maybe_ladder_challenge(o: dict, st: dict) -> None:
     st["ladder_next_tick"] = tick + LADDER_CHALLENGE_TICKS
     res = present_food("ladder-challenge")
     if res is not None:
-        pres = ((res.get("observation") or {}).get("last_occurrence") or {}).get("caregiver_presentation") or {}
-        impact_pcm = material_impact_pcm("metal", intensity=0.85)
-        sing_block(impact_pcm)
-        record_story_moment(st, "visual", "proprioceptive", "auditory")
-        log(f"challenge: backyard ladder affordance challenge presented at tick {tick} — steps={len(pres.get('steps') or [])}")
+        pres = _extract_presentation(res)
+        presented = pres.get("presented", False)
+        if presented:
+            impact_pcm = material_impact_pcm("metal", intensity=0.85)
+            sing_block(impact_pcm)
+            record_story_moment(st, "visual", "proprioceptive", "auditory")
+            log(f"challenge: backyard ladder affordance challenge presented at tick {tick} — steps={len(pres.get('steps') or [])}")
+        else:
+            log(f"challenge: backyard ladder affordance challenge refused at tick {tick} — steps={len(pres.get('steps') or [])}")
         with open(STATE, "w") as f:
             json.dump(st, f)
 
@@ -1050,15 +1089,18 @@ def maybe_feed(o: dict, st: dict) -> None:
         return
 
     # Verified hunger deficit and meal interval: now seat Guala in high chair if not already there
+    seated_this_meal = False
     if epoch in ("DAWN_AWAKENING", "MORNING_FOCUS"):
         emb = (o.get("last_occurrence") or {}).get("embodiment") or {}
         her_b = next((b for b in (emb.get("bodies") or []) if b.get("body_id") == emb.get("self_body_id")), None)
         her_pos = ((her_b.get("pose") or {}).get("position") or {}) if her_b else {}
         if her_pos.get("x_mm") != 3500 or her_pos.get("y_mm") != 1500:
             chair_res = present_food("high-chair-meal")
-            chair_steps = ((chair_res or {}).get("steps") or []) if chair_res else []
-            chair_applied = any(s.get("reason") == "applied" for s in chair_steps)
+            chair_pres = _extract_presentation(chair_res)
+            chair_steps = chair_pres.get("steps") or []
+            chair_applied = chair_pres.get("presented", False) or any(s.get("reason") == "applied" for s in chair_steps)
             log(f"meal: Guala placed in high-chair at (3500, 1500) for morning meal — applied={chair_applied}")
+            seated_this_meal = chair_applied
 
     foods = [f for f in foods if f not in skip]
     if not foods:
@@ -1074,10 +1116,10 @@ def maybe_feed(o: dict, st: dict) -> None:
     if res is None:
         json.dump(st, open(STATE, "w"))
         return
-    ob = res.get("observation") or {}
+    ob = res.get("observation") or {} if isinstance(res, dict) else {}
     MINE.append(ob.get("live_tick") or 0)
     MINE.append((ob.get("last_occurrence") or {}).get("native_tick"))
-    pres = (ob.get("last_occurrence") or {}).get("caregiver_presentation") or {}
+    pres = _extract_presentation(res)
     steps = pres.get("steps") or []
     named = say_word(food) if pres.get("presented") else 0
     if pres.get("presented"):
@@ -1090,6 +1132,17 @@ def maybe_feed(o: dict, st: dict) -> None:
     if not pres.get("presented") and food not in MEAL_DELIVERY_CYCLE and food != DELIVERY_ID:
         st["unreachable"] = sorted(skip | {food})
         st["meal_retry"] = len(foods) > 1
+
+    # Meal-complete release lifecycle:
+    # Release Guala from high chair back to kitchen floor at (3500, 2200, 0)
+    # completing the seated-to-released lifecycle so high-chair boundary does not trap her
+    if epoch in ("DAWN_AWAKENING", "MORNING_FOCUS"):
+        rel_res = present_food("high-chair-release")
+        rel_pres = _extract_presentation(rel_res)
+        rel_steps = rel_pres.get("steps") or []
+        rel_applied = rel_pres.get("presented", False) or any(s.get("reason") == "applied" for s in rel_steps)
+        log(f"meal: Guala released from high-chair to floor at (2700, 1500) — applied={rel_applied}")
+
     json.dump(st, open(STATE, "w"))
 
 

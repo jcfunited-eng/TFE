@@ -248,6 +248,7 @@ def test_caretaker_maybe_bedtime_actual_routine(monkeypatch, tmp_path):
     3. It does not commit state if touch delivery fails.
     """
     monkeypatch.setattr(caretaker, "STATE", str(tmp_path / "caretaker_state.json"))
+    monkeypatch.setattr(caretaker, "LOG", str(tmp_path / "test_caretaker.log"))
 
     calls = []
 
@@ -316,6 +317,7 @@ def test_caretaker_maybe_read_actual_routine_and_book_coupling(monkeypatch, tmp_
     3. Chapter completion updates state correctly.
     """
     monkeypatch.setattr(caretaker, "STATE", str(tmp_path / "caretaker_state.json"))
+    monkeypatch.setattr(caretaker, "LOG", str(tmp_path / "test_caretaker.log"))
 
     calls = []
 

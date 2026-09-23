@@ -1056,6 +1056,8 @@ def present_food(world: Any, object_id: str) -> dict[str, object]:
         return ladder_challenge(world)
     if object_id == "high-chair-meal":
         return place_in_high_chair(world)
+    if object_id == "high-chair-release":
+        return release_from_high_chair(world)
     if object_id == "playpen-containment":
         return place_in_playpen(world)
     if object_id == "playpen-release":
@@ -1275,6 +1277,32 @@ def place_in_high_chair(world: Any) -> dict[str, object]:
     }
 
 
+def release_from_high_chair(world: Any) -> dict[str, object]:
+    """Caregiver approaches high chair at (3500, 1500), lifts Guala out,
+    and places her safely on adjacent kitchen floor at (2700, 1500, 0),
+    completing the meal seating lifecycle and releasing high-chair boundary collision."""
+    hand = _Hand(world, "high-chair-release")
+    steps = []
+    try:
+        snapshot = hand.snapshot()
+        her, person = hand.bodies(snapshot)
+        chair = next((o for o in snapshot.objects if o.object_id == "high-chair"), None)
+        if chair is not None and chair.position is not None:
+            hand.stand_before(chair.position, distance_mm=600)
+        target_pose = PoseMM(PositionMM(2700, 1500, 0), her.pose.heading_millidegrees)
+        world.admit_authored_body_transport(her.body_id, target_pose)
+        steps.append({"operation": "release_from_high_chair", "reason": "applied", "to": [2700, 1500]})
+    except Exception as e:
+        steps.append({"operation": "release_from_high_chair", "reason": str(e), "to": None})
+    applied = any(s.get("reason") == "applied" and s.get("operation") == "release_from_high_chair" for s in steps)
+    return {
+        "object_id": "high-chair-release",
+        "presented": applied,
+        "schema": "guala.caregiver_presentation.v1",
+        "steps": steps,
+    }
+
+
 def place_in_playpen(world: Any) -> dict[str, object]:
     """Caregiver approaches Guala, provides grounding contact,
     and places Guala safely inside the playpen enclosure at (2050, 6700, 0),
@@ -1371,18 +1399,90 @@ def stroller_excursion(world: Any) -> dict[str, object]:
     steps = []
     try:
         snapshot = hand.snapshot()
-        _her, person = hand.bodies(snapshot)
+        her, person = hand.bodies(snapshot)
         stroller = next((o for o in snapshot.objects if o.object_id == "stroller-carriage"), None)
-        if stroller is not None and stroller.position is not None:
-            hand.stand_before(stroller.position, distance_mm=600)
-        hand.walk_to_region("backyard")
+        if stroller is None or stroller.position is None:
+            return {
+                "object_id": "stroller-carriage",
+                "presented": False,
+                "schema": "guala.caregiver_presentation.v1",
+                "steps": [{"operation": "stroller_excursion", "reason": "stroller_not_found"}],
+            }
+
+        # 1. Approach stroller (distance_mm >= 757 to clear stroller radius 507 + person 250)
+        approached = hand.stand_before(stroller.position, distance_mm=800)
         steps.extend(hand.steps)
+        if not approached:
+            return {
+                "object_id": "stroller-carriage",
+                "presented": False,
+                "schema": "guala.caregiver_presentation.v1",
+                "steps": steps + [{"operation": "stroller_excursion", "reason": "approach_stroller_refused"}],
+            }
+
+        # 2. Walk through walkway/garden into backyard along validated route
+        walked = hand.walk_to_region("backyard")
+        steps.extend(hand.steps)
+        if not walked:
+            return {
+                "object_id": "stroller-carriage",
+                "presented": False,
+                "schema": "guala.caregiver_presentation.v1",
+                "steps": steps + [{"operation": "stroller_excursion", "reason": "walkway_route_refused"}],
+            }
+
+        # 3. Successor poses: wheel stroller and transport infant Guala alongside caregiver in backyard
+        snapshot_now = hand.snapshot()
+        _her_now, person_now = hand.bodies(snapshot_now)
+        stroller_pos = PositionMM(6700, 11500, 0)
+        from dsf_ai_service.guala_home_world import _commit_world_successor, _world_thermal_transaction
+        with _world_thermal_transaction(world):
+            cur_world = world._state.world
+            updated_objs = []
+            for obj in cur_world.objects:
+                if obj.object_id == "stroller-carriage":
+                    updated_objs.append(replace(obj, position=stroller_pos))
+                else:
+                    updated_objs.append(obj)
+            new_world = replace(cur_world, revision=cur_world.revision + 1, objects=tuple(updated_objs))
+            _commit_world_successor(world, new_world)
+
+        # Transport infant Guala beside stroller in backyard (clearance >= 757mm from stroller center)
+        child_pos = PositionMM(7200, 10700, 0)
+        target_child_pose = PoseMM(child_pos, person_now.pose.heading_millidegrees)
+        world.admit_authored_body_transport(her.body_id, target_child_pose)
+
+        # 4. Animate outdoor fauna
         from dsf_ai_service.guala_home_world import flutter_garden_fauna
-        flutter_garden_fauna(world)
-        steps.append({"operation": "stroller_excursion", "reason": "applied", "to": "backyard"})
+        fauna_ok = flutter_garden_fauna(world)
+        if not fauna_ok:
+            steps.append({"operation": "flutter_fauna", "reason": "fauna_flutter_refused"})
+
+        # 5. Verify successor poses: both Guala and stroller must be in backyard
+        snap_final = hand.snapshot()
+        stroller_final = next((o for o in snap_final.objects if o.object_id == "stroller-carriage"), None)
+        her_final = next(b for b in snap_final.bodies if b.body_id == snap_final.self_body_id)
+        if (
+            stroller_final is not None
+            and stroller_final.position is not None
+            and stroller_final.position.y >= 10000
+            and her_final.pose.position.y >= 10000
+        ):
+            steps.append({
+                "operation": "stroller_excursion",
+                "reason": "applied",
+                "to": "backyard",
+                "stroller_pos": [stroller_final.position.x, stroller_final.position.y],
+                "child_pos": [her_final.pose.position.x, her_final.pose.position.y],
+            })
+            applied = True
+        else:
+            steps.append({"operation": "stroller_excursion", "reason": "successor_displacement_failed"})
+            applied = False
     except Exception as e:
         steps.append({"operation": "stroller_excursion", "reason": str(e), "to": None})
-    applied = any(s.get("reason") == "applied" and s.get("operation") == "stroller_excursion" for s in steps)
+        applied = False
+
     return {
         "object_id": "stroller-carriage",
         "presented": applied,

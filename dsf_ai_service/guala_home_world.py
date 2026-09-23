@@ -1406,7 +1406,7 @@ def home_world_authority(
     tv_broadcast: Any = None,
     expand_garden: bool = False,
     expand_walkway: bool = False,
-    expand_library: bool = True,
+    expand_library: bool = False,
 ) -> Any:
     """Build the declared home and optionally cold-restore its exact state."""
 
@@ -1784,7 +1784,8 @@ def nocturnal_house_tidying(authority: Any) -> None:
 
 def flutter_garden_fauna(authority: Any) -> bool:
     """Animate outdoor garden fauna (butterfly flutter / bird perch shift)
-    during daylight stroller excursions under coupled thermal transaction."""
+    during daylight stroller excursions under coupled thermal transaction,
+    strictly bounded within the physical garden/backyard area."""
     with _world_thermal_transaction(authority):
         if not hasattr(authority, "_state") or not hasattr(authority._state, "world"):
             return False
@@ -1794,15 +1795,23 @@ def flutter_garden_fauna(authority: Any) -> bool:
         updated = []
         shifted = False
         rev = cur_world.revision
-        delta_x = 100 if (rev % 2 == 0) else -100
+        delta = 100 if (rev % 2 == 0) else -100
         for obj in cur_world.objects:
             if obj.object_id == "garden-butterfly" and obj.position is not None:
-                new_pos = PositionMM(obj.position.x + delta_x, obj.position.y, obj.position.z)
-                updated.append(replace(obj, position=new_pos, elevation_mm=450 + (50 if rev % 2 == 0 else -50)))
+                # Strictly clamp butterfly within garden flora bounds: x in [11_000, 18_000], y in [10_500, 15_500], z in [100, 1_200]
+                target_x = max(11_000, min(18_000, obj.position.x + delta))
+                target_y = max(10_500, min(15_500, obj.position.y + (50 if rev % 3 == 0 else -50)))
+                target_elev = max(100, min(1_200, 450 + (50 if rev % 2 == 0 else -50)))
+                new_pos = PositionMM(target_x, target_y, 0)
+                updated.append(replace(obj, position=new_pos, elevation_mm=target_elev))
                 shifted = True
             elif obj.object_id == "garden-bird" and obj.position is not None:
-                new_pos = PositionMM(obj.position.x, obj.position.y + delta_x, obj.position.z)
-                updated.append(replace(obj, position=new_pos))
+                # Strictly clamp bird within tree perch bounds: x in [11_000, 18_000], y in [10_500, 15_500], z in [1_000, 2_200]
+                target_x = max(11_000, min(18_000, obj.position.x + (50 if rev % 3 == 1 else -50)))
+                target_y = max(10_500, min(15_500, obj.position.y + delta))
+                target_elev = max(1_000, min(2_200, 1_800 + (100 if rev % 2 == 0 else -100)))
+                new_pos = PositionMM(target_x, target_y, 0)
+                updated.append(replace(obj, position=new_pos, elevation_mm=target_elev))
                 shifted = True
             else:
                 updated.append(obj)
