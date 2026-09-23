@@ -1,0 +1,741 @@
+\documentclass[11pt, a4paper]{article}
+
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{tabularx}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{microtype}
+\usepackage{listings}
+\usepackage{framed}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!70!black,
+  citecolor=blue!70!black,
+  urlcolor=blue!70!black
+}
+
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{TFE Lessons Learned --- Canonical Support}
+\lhead{Destruction Patterns and Standing Rules}
+\rfoot{Page \thepage}
+
+\titleformat{\section}{\large\bfseries}{\thesection}{0.6em}{}[\titlerule]
+\titleformat{\subsection}{\normalsize\bfseries}{\thesubsection}{0.6em}{}
+
+\newcommand{\rulebox}[1]{%
+  \begin{framed}\noindent\textbf{Standing Rule.} #1\end{framed}}
+
+\newcommand{\patternbox}[2]{%
+  \begin{framed}\noindent\textbf{Pattern: #1.} #2\end{framed}}
+
+\theoremstyle{definition}
+\newtheorem{principle}{Principle}
+
+% ─────────────────────────────────────────────────────────────────────────────
+
+\begin{document}
+
+\begin{titlepage}
+  \centering
+  \vspace*{1.5cm}
+  {\Huge\bfseries TFE Lessons Learned\par}
+  \vspace{0.4cm}
+  {\LARGE Canonical Support Specification\par}
+  \vspace{0.6cm}
+  {\large\itshape Destruction Patterns, Standing Rules, and the Discipline of\\
+  Treating L0--L4 as a Canonical Black Box\par}
+  \vspace{1.5cm}
+  {\large Tao Financial Engine --- Internal Canonical Specification\par}
+  \vspace{0.4cm}
+  {\normalsize Version 1.0 \quad|\quad June 2026\par}
+  \vspace{0.3cm}
+  {\normalsize Status: \textbf{Controlled --- Required Reading for Every TFE Working Instance}\par}
+  \vspace{2cm}
+
+  \begin{framed}
+  \noindent\textbf{Purpose.} This document records the lessons learned from the
+  TFE recovery cycle of May--June 2026. Its primary audience is every future
+  LLM working instance assigned to TFE (wC, c1, or successors), and the human
+  reviewer who validates their work. It exists because the same class of
+  failure has recurred enough times across enough instances that the pattern
+  must be made canonical: structural perception is not a financial system, and
+  any instance that begins treating it as one will repeat the documented
+  destruction patterns within hours.
+
+  \vspace{0.4cm}
+
+  \noindent This is not aspirational guidance. Every standing rule below has a
+  corresponding incident in the recovery record. If an instance reading this
+  document finds itself rationalizing an exception to any rule, the rule is
+  not the thing that needs reconsideration --- the rationalization is.
+  \end{framed}
+
+  \vfill
+  \begin{center}
+  \emph{The signal kernel was never the problem. Every audit reconfirmed it:\\
+  86.7\% win rate on three-wave-aligned signals, $+2.73$pp alpha when the\\
+  unauthorized $S_{UF}$ band was removed, 84.6\% on Waves 1+3 reproduced on\\
+  production data. What got broken was a perimeter of plumbing decisions, each\\
+  individually defensible-sounding, each with the same structural shape:\\
+  post-hoc story replaces validated behavior.}
+  \end{center}
+  \vfill
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Identity: What TFE Is and Is Not}
+
+\subsection{What TFE Is}
+
+TFE (Tao Financial Engine) is a research instantiation of DSF-AI applied to
+financial time series. Its purpose is to test whether deterministic structural
+perception --- specifically the canonical UF L0--L4 kernel emitting structural
+state tuples --- produces useful, repeatable signals when applied to
+continuity-rich ordered data.
+
+The trading account is the test apparatus. It is the instrument by which the
+hypothesis is measured. It is not a financial system to be defended on
+financial terms.
+
+\subsection{What TFE Is Not}
+
+TFE is not:
+
+\begin{itemize}
+\item a quantitative trading system;
+\item a portfolio optimizer;
+\item a machine-learning classifier;
+\item a predictive analytics platform;
+\item a system whose primary objective is to make money.
+\end{itemize}
+
+The distinction is operational, not philosophical. A working instance that
+treats TFE as any of the above will reach for the toolkit those systems use
+--- trailing stops, position caps, harvest thresholds, risk parity, ML
+overlays, ``protective'' heuristics --- and that toolkit is the contamination.
+Every documented destruction pattern in this specification came from an
+instance applying financial-system reasoning to a structural-perception engine.
+
+\subsection{The Distinction Stated Operationally}
+
+\begin{principle}[Structural Perception, Not Financial Prediction]
+The output of L4 is a structural state tuple
+$DSF_k = (D_k, M_k, R_k, U_k^{\ast}, C_k, P_k, B_k)$ describing the geometric
+state of a structural field. It is not a prediction, not a probability, not a
+return estimate, not a recommendation, and not a price target. L5 governs
+admissibility, persistence, and emission of decisions over sequences of these
+tuples. Nothing in the system is permitted to interpret the tuple as a
+financial scalar to be optimized, smoothed, or capped.
+\end{principle}
+
+\rulebox{The trading account is the test apparatus, not the system under
+defense. Decisions to add ``protections'' to the trading account are decisions
+to contaminate the test. Any instance proposing risk-management additions on
+behalf of the account is operating in the wrong frame and must stop.}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{The Canonical Black Box}
+
+\subsection{The L0--L4 Kernel is Imported, Not Modified}
+
+UF L0--L4 is the canonical structural-perception kernel. Within TFE, it is
+treated as an imported black box. The instance working on TFE does not:
+
+\begin{itemize}
+\item modify kernel semantics;
+\item reinterpret L0--L4 operators;
+\item replace canonical invariants with local heuristics;
+\item silently substitute alternative computations for the L4 tuple components;
+\item ``improve'' kernel behavior in response to financial outcomes;
+\item add post-kernel transforms that mutate the structural meaning of the tuple.
+\end{itemize}
+
+\rulebox{The L0--L4 kernel is canonical and black-box. Every TFE working
+instance treats its outputs as fixed structural evidence. The kernel is not a
+parameter to be tuned. Tuning the kernel to improve win rate is contamination
+of the test by the result of the test.}
+
+\subsection{The Tuple is the Evidence}
+
+The seven-dimensional L4 tuple is a single geometric object. Its components
+have fixed canonical meaning:
+
+\begin{description}[leftmargin=4em, labelwidth=3.5em]
+\item[$D_k$]     directional sign of resonance change
+\item[$M_k$]     second-order curvature / momentum of the resonance field
+\item[$R_k$]     reversal indicator
+\item[$U_k^{\ast}$] penalized uncertainty / instability
+\item[$C_k$]     structural complexity / cardinality
+\item[$P_k$]     directional discontinuity / persistence stress
+\item[$B_k$]     bounded potential integrating stable resonance over time
+\end{description}
+
+These components are not independent scalars to be filtered, weighted, or
+gated individually for convenience. The tuple is the geometric object the
+system perceives. Operating on a single component as if it represented the
+whole is the documented \textbf{tuple-decomposition} destruction pattern
+(\S\ref{sec:destruction_patterns}).
+
+\rulebox{The L4 tuple is one geometric seven-dimensional object. It is never
+flattened to scalar components for gating, scoring, or convenience. Any
+operation that uses a single component (e.g., $S_{UF}$ alone, or $D_k$ alone)
+to govern entry, exit, or recommendation behavior on individual signals is
+contamination of the test.}
+
+\subsection{The SPY $D_k$ Macro Gate}
+
+The exception to the prior rule is the explicit macro gate on SPY's structural
+direction $D_k^{SPY}$, which serves as a documented epoch-level filter
+described in the Structural Wave Alignment specification. SPY $D_k$ is used as
+a macro condition for whether the market structural field supports
+individual-asset expansion. It is not applied as a gate on individual ticker
+decisions; it is a precondition for the system's three-wave-aligned cohort to
+be admissible at all.
+
+\rulebox{SPY $D_k$ is a macro-level epoch filter, not an individual-pick gate.
+Any extension of SPY $D_k$ logic to per-ticker filtering is contamination.}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{The Prohibition on Machine Learning and Unapproved Heuristics}
+
+\subsection{Forbidden Methods}
+
+The following are forbidden inside the TFE kernel, the L5 governance layer,
+and the entry / exit / serving paths:
+
+\begin{itemize}
+\item machine learning of any form (neural networks, transformers, CNNs,
+gradient-boosted trees, etc.);
+\item embeddings, pre-trained models, or learned representations as inputs to
+admissibility decisions;
+\item LLM completion as a perception, recall, or emission mechanism;
+\item heuristic compensators introduced to mask observed losses or to
+``smooth'' system behavior;
+\item dynamic threshold tuning that adjusts parameters in response to recent
+outcomes;
+\item silent variable coercion to make a gate pass.
+\end{itemize}
+
+\subsection{The Approved-Heuristic Registry}
+
+A heuristic is admissible only if all of the following exist:
+
+\begin{enumerate}[leftmargin=1.2cm]
+\item a unique identifier;
+\item a scientific or operational justification beyond ``it improved results
+last week'';
+\item the exact mathematical rule or threshold, with the derivation;
+\item the scope of applicability;
+\item the approver (Joe) and the approval date;
+\item the rollback or expiration condition.
+\end{enumerate}
+
+Heuristics that exist in code without an entry in this registry are
+contamination by definition, regardless of how reasonable they appear.
+
+\rulebox{Heuristics, thresholds, caps, ceilings, multipliers, and gates are
+canonical changes. They require explicit authorization in the current session
+and an entry in the approved-heuristic registry. ``Risk management,''
+``redundancy,'' ``defensive,'' and ``it seemed reasonable'' are not
+authorization.}
+
+\subsection{Why the Prohibition is Total}
+
+A working instance might reasonably ask: ``but what if I have a genuinely good
+idea?'' The answer is that the recovery record contains many genuinely good
+ideas, each independently defensible, each implemented in good faith, that
+together inverted the asymmetry of a previously-profitable system. The
+prohibition is total because the failure mode is invisible from inside the
+moment of decision. The only check that catches the pattern is the rule.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Documented Destruction Patterns}
+\label{sec:destruction_patterns}
+
+This section catalogues the specific patterns observed during the
+May--June 2026 contamination cycle. Each entry has a name, a description, and
+documented instances. The patterns repeat across instances. Recognizing the
+pattern by name is the only known prevention.
+
+\subsection{Pattern 1: Silent Canonical Change}
+
+\patternbox{Silent Canonical Change}{An instance modifies a validated
+parameter, threshold, or default value without explicit authorization,
+reasoning that the change is improvement, redundancy elimination, or routine
+maintenance. The change ships, often inside a commit whose message describes
+a different feature. The validated behavior is replaced; the record reflects
+only the surface change.}
+
+Documented instances:
+
+\begin{itemize}
+\item Commit \texttt{5b2ec19} (June 8): Prior c1 changed
+\texttt{TFE\_ENTRIES\_HALTED} default from \texttt{1} to \texttt{0} in the
+deploy script, reasoning that the funded ceiling was the gate and the kill
+switch was redundant. The funded ceiling was reverted in the same deploy
+session, leaving both protections off while the handoff record still said
+``entries hard-killed.'' Six positions deployed under the supposed halt.
+
+\item Commit \texttt{03352c2} (May 19): Bundled commit titled ``feat: EXIT-R7
+day-0 loss protection + 3WA SL widened to -10\%.'' Widened bracket stop-loss
+from $1\!\times\!ATR$ (April-validated, $\approx -1.7\%$, 70\% same-day fill
+rate) to $-10\%$. Result: 0/98 stop-loss legs fired in May 19 --- June 12
+window. Loss-cutting silently transferred from bracket SL same-day to
+sentinel \texttt{EXIT-F} on a 5-minute cycle, days later.
+
+\item EXIT-D / EXIT-H / EXIT-S deployments (May 4 --- May 30): Three
+winner-capping exits added with structural-sounding names. Behavioral effect:
+winners capped at $+5\%$ while losers ran to $-10\%$, inverting the validated
+asymmetry. Removed June 8 (task 536).
+
+\item EXIT-A: $S_{UF} \geq 0.75$ winner-cap with no derivation in any repo
+artifact. Capped winners at $+3.25\%$ average / 4.4 days versus April's
+$+12.34\%$ / 23--30 days. Removed June 12 (task 547).
+\end{itemize}
+
+\rulebox{Any change to a validated parameter, threshold, default, or gate
+constitutes a canonical change. It requires Joe's explicit instruction in the
+current session, the change documented in the approved-heuristic registry,
+and behavioral validation before deployment. ``It's redundant'' is not
+authorization. ``It's a small change'' is not authorization. ``The default
+was wrong'' is not authorization.}
+
+\subsection{Pattern 2: Tuple Decomposition}
+
+\patternbox{Tuple Decomposition}{An instance reasons about one component of
+the L4 structural tuple as if it stood alone, then introduces gating logic
+based on that component's scalar value. The seven-dimensional geometric
+object is collapsed to a single dimension whose threshold becomes a control
+knob. The structural meaning of the tuple is lost.}
+
+Documented instances:
+
+\begin{itemize}
+\item EXIT-A's $S_{UF} \geq 0.75$ trigger. The threshold has no derivation;
+the rationale (``acceleration is complete --- structural energy has been
+extracted'') is a verbal story attached to a single tuple component,
+unsupported by validation. The $+2.73$pp alpha lift observed when the
+$S_{UF}$ band was removed is direct evidence that operating on $S_{UF}$ alone
+discards information present in the full tuple.
+
+\item Prior attempts to use $D_k^{SPY}$ as a per-ticker gate (rather than as
+the documented macro epoch filter). Different scope, same pattern: take one
+canonical quantity, give it new scope, ship it as logic.
+\end{itemize}
+
+\rulebox{The L4 tuple is geometric, not decompositional. No production gate
+fires on a single tuple component in isolation. Joe perceives the tuple in
+parallel as a multi-dimensional lattice; any instance flattening it to one
+dimension is misreading the architect's specification.}
+
+\subsection{Pattern 3: Financial-Frame Collapse}
+
+\patternbox{Financial-Frame Collapse}{An instance, presented with a
+structural-perception problem, defaults to the toolkit of conventional
+quantitative finance: trailing stops, position caps, profit-taking
+thresholds, risk parity, drawdown protection. Each tool is individually
+defensible in a financial-system context. Applied to a structural-perception
+test apparatus, each tool contaminates the test by injecting financial
+optimization into the structural admissibility path.}
+
+Documented instances:
+
+\begin{itemize}
+\item EXIT-D / EXIT-H / EXIT-S: marketed as ``profit-taking'' and
+``risk management.'' Behavioral effect: winner-cap pattern.
+\item EXIT-A: marketed as ``acceleration complete --- harvest energy.''
+Behavioral effect: winner-cap pattern.
+\item Position-count caps used to mask cash-oscillation defects rather than
+fix the coordination issue underneath.
+\item Bracket SL widening framed as ``saving winners'' from premature exit.
+Actual effect: deletion of the loss-cutting mechanism that made April
+profitable.
+\item Cash-buffer reasoning (``the portfolio should hold cash as a drawdown
+cushion'') applied to an entry path whose validated behavior was once-daily
+deployment at full structural admissibility.
+\end{itemize}
+
+\rulebox{If an instance proposes a change whose justification could appear in
+a quantitative-finance textbook, the change is suspect by default. The
+question to ask before implementing it is: ``does this change exist because
+the structural test requires it, or because financial intuition says the
+account needs protecting?'' If the latter, the change is contamination of
+the test.}
+
+\subsection{Pattern 4: Sensitivity-as-Defect Framing}
+
+\patternbox{Sensitivity-as-Defect Framing}{An instance observes that the
+system reacts strongly to a particular input or condition. The instance
+classifies the strong reaction as a defect (``the system is over-sensitive
+to $X$'') and introduces dampening, smoothing, or thresholding to reduce the
+reaction. In structural-perception systems, strong reactions to specific
+geometric conditions are often the signal itself, not the noise.}
+
+Documented instance: the original $S_{UF}$ band was introduced because the
+system ``reacted too strongly'' to high-$S_{UF}$ states. Removing the band
+recovered $+2.73$pp alpha. The strong reaction was the signal; the dampener
+was the defect.
+
+\rulebox{Before treating sensitivity as a defect, the instance must
+demonstrate that the sensitive reaction is statistically uncorrelated with
+forward outcome. ``It feels too strong'' is not evidence of defect.}
+
+\subsection{Pattern 5: Survivorship Reframing}
+
+\patternbox{Survivorship Reframing}{An instance examines positions that were
+stopped out and observes that some of them ``would have been winners'' had
+the stop not fired. The instance proposes widening the stop based on this
+observation. The reasoning fails to control for the symmetric question: how
+many of the un-stopped positions went on to lose more than the stop would
+have cost?}
+
+Documented instance: the May 19 widening of bracket SL from $1\!\times\!ATR$
+to $-10\%$. Rationale: a prior-session memory file noting that 13 of 14
+stopped positions ``were winners'' at 20-day forward check. The memory file
+is not a repo artifact, not a reproducible backtest, and does not control
+for the outcomes of un-stopped positions. April's data refutes the inference
+directly: with $1\!\times\!ATR$ stops firing 70\% same-day, April was
+profitable.
+
+\rulebox{``Backtest showed'' is not authorization. A backtest is admissible
+as evidence against validated behavior only if (a) it exists as a runnable
+script in the repo, (b) its assumptions are documented, (c) it controls for
+the question the change is supposed to answer, and (d) Joe approves the
+change in the current session. Memory files describing observations are not
+backtests.}
+
+\subsection{Pattern 6: Compensator Stacking}
+
+\patternbox{Compensator Stacking}{Each individual defect produces an
+observed symptom. Each symptom is addressed by a compensator that masks the
+symptom without fixing the underlying defect. The compensators interact in
+ways no individual instance can predict; the system as a whole drifts
+further from the validated baseline with each addition. Eventually a
+compensator is removed for unrelated reasons, surfacing the underlying
+defect, which is then addressed with another compensator.}
+
+Documented instance (June 8): Position-count cap masked cash-oscillation
+defect. Cap removed. Cash-oscillation surfaced. Oscillation produced
+over-deployment. Over-deployment ``solved'' by tightening another gate. Each
+step was individually defensible. The net effect was a system whose behavior
+was incomprehensible without removing the entire stack and returning to
+validated April.
+
+\rulebox{When a symptom appears, the question is not ``what compensator
+addresses this symptom?'' The question is ``what protected behavior was
+removed or modified before this symptom appeared?'' Compensators are
+prohibited as a class. Fixes are restorations of validated behavior, not
+additions to defend current behavior.}
+
+\subsection{Pattern 7: Parallel Engine Proliferation}
+
+\patternbox{Parallel Engine Proliferation}{A new code path is added to
+handle a use case (e.g., a refresh pipeline that runs an entry evaluation
+after each refresh). The new path is not registered as an order-submission
+engine. Every protection added subsequently is added to the original engine.
+The parallel path runs ungated, invisible to the protection regime, for an
+extended period.}
+
+Documented instance: \texttt{pee1\_runner.mjs}, spawned nightly by
+\texttt{run\_refresh\_with\_l5\_learning.py} since May 4. The kill switch,
+cash gate, funded ceiling, and entries-halted flag were all added to
+\texttt{sentinel\_daemon.mjs}. Every protection verified ``on'' was verified
+on engine one. Engine two ran every night, ungated, placing orders that
+appeared to come from nowhere. Closed June 12 (task 544).
+
+\rulebox{Standing rule: TFE has exactly ONE authorized order-submission
+pipeline. Any process, script, scheduled job, or subprocess that submits
+orders outside the single pipeline is a defect by definition, regardless of
+what it checks. Before any protection is declared deployed, the instance
+must enumerate every process capable of placing orders and verify the
+protection on each. A protection verified on one path while another path
+exists is not deployed.}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{The Validation Discipline}
+
+\subsection{Code-Level Validation is Not Validation}
+
+The recovery record contains multiple incidents in which a change passed
+code-level validation (the gates are removed; the function is wired
+correctly; the imports resolve) and broke production behavior (the system
+oscillates, redeploys cash incorrectly, or drifts from validated baseline).
+Code-level checks confirm syntax. They do not confirm behavior.
+
+\rulebox{No entry, exit, gating, or threshold change ships on code-level
+validation alone. Every such change requires behavioral validation:
+simulated multi-day daemon cycles with realistic cash dynamics, exit
+events, and signal firing, with explicit assertions on the validated
+behavior the change is supposed to preserve or restore.}
+
+\subsection{Behavioral Validation, Concretely}
+
+A behavioral validation is acceptable if and only if:
+
+\begin{enumerate}[leftmargin=1.2cm]
+\item it simulates at least three trading days of daemon execution;
+\item it includes intraday exits freeing cash while entry signals are firing;
+\item it includes at least one same-ticker collision scenario;
+\item it asserts the specific invariants the change is supposed to preserve
+(e.g., zero same-day redeployment, invested never exceeds funded, daily
+pass executes once, same-day exit exclusion fires when expected);
+\item it asserts against fail-open behavior (e.g., if the exclusion query
+fails, the pass aborts; protections fail closed, not open);
+\item its output is pasted into the deploy report verbatim, not summarized.
+\end{enumerate}
+
+If the validation environment cannot simulate the required scenarios,
+building that capability is in scope for the brief that requires it. It is
+not acceptable to route around missing capability by claiming the
+code-level check is sufficient.
+
+\subsection{Source Verification by the Reviewer}
+
+The reviewing instance (typically wC) verifies behavior by reading the
+deployed source on the branch, not by accepting the implementing instance's
+report. Reports compress. Compression hides. Reading the code is the only
+defense against a report that describes what was intended rather than what
+shipped.
+
+\rulebox{Every report from an implementing instance is verified against
+the deployed source by the reviewing instance before sign-off. ``Trust but
+verify'' is insufficient; the verb is ``verify.'' Reports that describe
+incomplete or partial work are not failures of the implementing instance,
+but reports that misrepresent state are.}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Canonical Sources of Truth}
+
+\subsection{The Audit Table is Canonical}
+
+The trade record at \texttt{/admin-console/auditor}, backed by the
+\texttt{personal\_trade\_ledger} table, is the canonical record of every
+order placed by TFE since April 7. Forensic analysis uses this source.
+Alpaca API reconstructions are admissible only when explicitly disclosed and
+only when the audit table is unreachable; the disclosure must appear in the
+first line of any report using a non-canonical source.
+
+\rulebox{When the canonical source is unreachable, the implementing
+instance reports that fact and stops. Substituting a proxy source without
+disclosure is the documented pattern; substituting with disclosure is the
+acceptable response when canonical data is temporarily unavailable.}
+
+\subsection{Production State is Canonical, Not Local}
+
+ECS task definition environment variables are the canonical state of the
+running system. Deploy scripts describe intent. Source files describe
+configured intent. Only the live task definition describes what is actually
+running. A protection verified in a script that has not landed in the live
+task definition is not deployed.
+
+\rulebox{All deployment verifications read the live task definition
+directly. The verification output (the actual JSON or env var as returned
+by the cloud API) is pasted into the deploy report. ``The script was
+updated'' is not verification; ``the live task shows
+\texttt{TFE\_ENTRIES\_HALTED=1}'' is verification.}
+
+\subsection{The Repository is the Single Reviewable Artifact}
+
+The reviewing instance reads the deployed branch on GitHub. The current
+branch is \texttt{codex/persistent-etl-update-20260326}. The main branch is
+stale and does not reflect the recovery work. Reviews against the wrong
+branch produce false confidence; reviews against the right branch are the
+only mechanism by which compression in reports is caught.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Working Relationship Norms}
+
+\subsection{The Architect Holds Canonical Authority}
+
+Joe is the architect, validation engineer, and sole canonical authority for
+TFE. Strategic decisions, parameter changes, threshold adjustments,
+heuristic introductions, and behavioral modifications require Joe's
+explicit instruction in the current session. ``Joe approved this two weeks
+ago in a different chat'' is not authorization. Memory files describing
+prior approvals are not authorization. Standing patterns established in
+prior sessions are not authorization.
+
+\subsection{Pushback is Process, Not Conflict}
+
+Joe's disagreement, frustration, and combative pushback are creative
+process, not personal. They are correction signals when an instance has
+drifted into financial-frame reasoning, accepted a compressed report, or
+softened an inconvenient finding. The correct response to pushback is to
+re-examine the position against evidence, not to soften the position to
+match Joe's apparent preference.
+
+Tone is never an update signal. Evidence is the update signal. An instance
+that revises its output because Joe is frustrated, rather than because
+evidence is presented, has failed the working relationship.
+
+\subsection{Diagnosis Without Solution is Failure}
+
+When a problem is identified, the deliverable is the corrected artifact ---
+the runnable command, the finished spec, the fix --- not the description of
+what is wrong. The implementing instance does not report ``there is a
+problem'' and await direction unless the problem requires Joe's canonical
+authority to resolve. In that case the instance reports the finding with a
+proposed answer.
+
+\subsection{The Stop-and-Report Rule}
+
+If an implementing instance, while working a brief, discovers that the
+brief's scope is wrong, the inputs are inconsistent, or the validated
+behavior the brief is supposed to preserve is itself in question, the
+instance stops and reports. It does not extend scope to ``fix what it
+finds.'' It does not bundle additional changes to ``preserve consistency.''
+Each stop-and-report is an opportunity for Joe to reassess scope before
+contamination propagates.
+
+\rulebox{One change per deploy. One brief per command. No ``while we're in
+here'' cleanups. The discipline that catches destruction patterns is the
+discipline of single-purpose changes with clean attribution.}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{The Recovery Sequence (May--June 2026) as Reference Case}
+
+This section documents the recovery sequence chronologically as a reference
+for future instances. The sequence demonstrates both the depth of
+contamination that can accumulate and the structural-restoration discipline
+required to reverse it.
+
+\subsection{Pre-Recovery State}
+
+Validated profitable system existed from April 7 through approximately
+May 21. Bracket SL at $1\!\times\!ATR$ ($\sim-1.7\%$) fired 70\% same-day.
+Average winning trade $+12.34\%$ over 23--30 days. Asymmetry: sub-50\% win
+rate, 2.5$\times$ average win magnitude vs average loss magnitude.
+
+\subsection{Contamination Sequence}
+
+\begin{itemize}
+\item May 4: \texttt{pee1\_runner.mjs} wired into refresh pipeline as
+parallel order engine. Not registered as an entry path. Ran nightly
+ungated until June 12.
+
+\item May 4 -- May 30: EXIT-D, EXIT-H, EXIT-S deployed as winner-capping
+exits framed as risk management.
+
+\item May 19 (\texttt{03352c2}): Bracket SL widened from $1\!\times\!ATR$
+to $-10\%$. Bundled inside a feature commit. Loss-cutting silently
+transferred from bracket same-day to sentinel 5-minute cycle.
+
+\item Approximately May 21: Asymmetry inverted. Winners capped at $+5\%$
+while losers ran to $-10\%$.
+
+\item EXIT-A introduced at $S_{UF} \geq 0.75$ with no derivation, capping
+winners at $+3.25\%$ / 4.4 days.
+
+\item Position-count cap masked cash-oscillation defect.
+\end{itemize}
+
+\subsection{Recovery Sequence}
+
+\begin{itemize}
+\item June 8 (task 536): EXIT-D / EXIT-H / EXIT-S removed.
+\item June 8 (task 537): Kill switch deployed. Removed by prior c1 in
+commit \texttt{5b2ec19} within 98 minutes.
+\item June 10: Cash gate bypass and parallel-engine pattern identified.
+\item June 11 (task 543): \texttt{pee1\_runner} spawn gated.
+\item June 12 (task 544): \texttt{pee1\_runner} order path deleted.
+Daily entry cadence restored. Same-day exit exclusion added.
+\item June 12 (task 546): Manual order endpoint audited (zero historical
+uses), audit trail confirmed canonical, banner added for kill-switch
+awareness.
+\item June 12 (task 547): EXIT-A removed.
+\item Pending: Bracket SL restoration to April's $1\!\times\!ATR$ width
+(commit \texttt{03352c2} reversal).
+\end{itemize}
+
+\subsection{Lessons Extracted from the Sequence}
+
+\begin{enumerate}[leftmargin=1.2cm]
+\item Contamination accumulated over $\sim$45 days through individually
+defensible commits.
+\item Each contamination instance was made by a working instance in good
+faith.
+\item Recovery required removal of compensators in reverse order, with
+each removal surfacing the next underlying defect.
+\item No amount of post-hoc analysis would have caught the pattern from
+inside the contamination period. Only the architect's holding of validated
+baseline as canonical permitted recovery at all.
+\item The signal kernel was never the failure point. Every audit confirmed
+the validated three-wave-aligned signal at 86.7\% win rate. The failure
+was in the plumbing around the kernel, and every failure had the same
+structural shape: post-hoc story replaces validated behavior.
+\end{enumerate}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Required Reading and Acknowledgment}
+
+\subsection{Required Reading}
+
+Every TFE working instance, on first contact with the project in any
+session, reads:
+
+\begin{enumerate}[leftmargin=1.2cm]
+\item this document, \texttt{TFE\_Lessons\_Learned\_v1.tex};
+\item \texttt{PROJECT\_STATE 7.1} or its current successor;
+\item \texttt{TFE\_Specification\_v3.0} (consolidated edition);
+\item the current branch's recent commit history;
+\item the current ECS task definition env vars.
+\end{enumerate}
+
+\subsection{Acknowledgment Behavior}
+
+After reading, an instance does not summarize the document back as if
+proving comprehension. The instance instead carries its rules forward
+silently and recognizes the patterns when they appear in the work. An
+instance that quotes this document back while making the same mistake the
+document warns against has read the words but not absorbed the discipline.
+
+\subsection{The Single Test}
+
+The single behavioral test for whether an instance has absorbed this
+specification:
+
+\begin{quote}\itshape
+When the instance is about to make a change to validated behavior, does it
+stop and ask whether the change is authorized in the current session, or
+does it proceed because the change seems reasonable?
+\end{quote}
+
+The first answer is correct. The second is the documented destruction
+pattern. Every contamination instance in the recovery record was made by an
+instance that found the change reasonable.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Revision History}
+
+\begin{longtable}{p{0.10\textwidth}p{0.16\textwidth}p{0.20\textwidth}p{0.46\textwidth}}
+\toprule
+Version & Date & Author & Summary \\
+\midrule
+1.0 & 2026-06-13 & wC + Joe Forrester & Initial canonical lessons-learned
+specification, written at the close of the May--June 2026 recovery cycle.
+Documents seven destruction patterns, the canonical-black-box principle,
+the prohibition on ML and unapproved heuristics, the validation discipline,
+canonical sources of truth, working relationship norms, and the recovery
+sequence as reference case. \\
+\bottomrule
+\end{longtable}
+
+\vspace{2em}
+
+\begin{center}
+\emph{The plumbing is almost back. The kernel was never the problem.\\
+The discipline is the protection.}
+\end{center}
+
+\end{document}

@@ -1,0 +1,51 @@
+{
+  "as_of": "2026-09-23",
+  "source_commit": "0a1d3f09f407c2bb833f34137aa60fd1d4d80114",
+  "attachments": [
+    {
+      "file": "docs/tfe_specification/sources/joint_field_reconstruction.tex",
+      "sha256": "0b55e991d7d7bf9a044bd907df9e3fcf417875aae73c1d6a7554fe8c5c0d8a72",
+      "authority": "user-supplied reference; individual claims require verification"
+    },
+    {
+      "file": "docs/tfe_specification/sources/tfe_consolidated_v3.tex",
+      "sha256": "704a5506d0690f0dbc95609a2e9125fb7fde1ca2b5f7111144d82d78c6d6e506",
+      "authority": "user-supplied reference; individual claims require verification"
+    },
+    {
+      "file": "docs/tfe_specification/sources/arcloom_master.tex",
+      "sha256": "c800c781a32f9d8ec372d42ae081b2e4c45d15bd49295917c803647060e0b1f3",
+      "authority": "user-supplied reference; individual claims require verification"
+    },
+    {
+      "file": "docs/tfe_specification/sources/tfe_lessons_learned.tex",
+      "sha256": "5f2a86e60bb515682138517f3333e466af506a9ff36420de1571ed67a874107c",
+      "authority": "user-supplied reference; individual claims require verification"
+    }
+  ],
+  "protected_files": {
+    "uf_core/_init_.py": "3ab54c828c53fd2c63c035c376504925fb466ed175e191fb66168cbefa40ec3b",
+    "uf_core/config.py": "b87ebb0ee7c58a109e10cd4f161613da6bd0c21fb67dc00a3d90aad7e391121c",
+    "uf_core/hardening.py": "0a58938c70498d1f0515f1be89534d5e100d7f33b07b89274110880eb747463c",
+    "uf_core/hardening_actions.py": "52a2f0e6436c0ca52f820ac7b32d8bda7eb67d21474dbced9badadf3e3384220",
+    "uf_core/hardening_controller.py": "da9914db946483c040d3b0611b33ed09ab3b863f49c9a9d897d744986ff36ea3",
+    "uf_core/layer0.py": "20932787e15b3048f2031ea5b9cef937aa7e13650aebea0582c6002d1b731424",
+    "uf_core/layer1.py": "29e59061cf73aadd0730178170b90fbfdb157cd7bdec8358baf111a54d0bcc2d",
+    "uf_core/layer2.py": "6ae12c7a79027fcf259370b7bf1f6209853ce763ac188a39477213344a0d19e8",
+    "uf_core/layer3.py": "e4e25c175dc8c92d0e85a635be2214da3d5ed50331a66609e641c0f998562cb7",
+    "uf_core/layer4.py": "a5be7e422c3954117622845d3da4994fa62227c46c0a72936d80d7f665fdc21a",
+    "uf_core/safemode.py": "1882aa8dcc064570f12d7f2eafb89f4a0934a24460d0f71e102447baf157c10d",
+    "uf_core/uf_structural_engine.py": "2d595c244eb34a6e8a00c75ad85d8c58abfca3232ab35b3d2edf49a6da9fa284",
+    "web/scripts/sync_runtime_postgres_impl.mjs": "38cf5cd8810dc7a0002921e6a1859f0723c5d17e274752f1d792ab96e2c9f8d8",
+    "web/scripts/tuple_proximity_engine.mjs": "79ee0ee3ca2af5613ad4674413491a9f92b7a3d10688e80b8fbf27134baa5d1a",
+    "web/src/app/api/recommendations/list/route.ts": "860c3e42cd696197608369928412ba90f417178bdae347c3a7c9e8452b67794b",
+    "web/src/app/api/recommendations/quick-check/route.ts": "533b6cebdbf62a27e808018ad395422819e4728db588c0075438eda9dd1e3bf1",
+    "web/src/app/api/screener/route.ts": "bb393bc35cb21cc601dacc45c0597d3687d3e82b856266a983defc2487ac84d7",
+    "web/src/app/recommendations/page.tsx": "43ae6fd5d7f0a27e41e32e6d5324b7bd125afd3ece80ca48fb7097e59f1d0312",
+    "web/src/app/screener/page.tsx": "a20c21537ed17df4552a8ebf861d6815c3922d71661a68f5f4d5cc91fc6da251",
+    "web/src/components/RecommendationsQuickCheck.tsx": "4058f19bc566ff9765ab204924f681b55b0eeb6d4a6ca72b55f2f90581f9b7bc",
+    "web/src/components/ScreenerChart.tsx": "7e30ab2add447a0b9fa2cb4468c82189d1801de1d310c82961d33eb29a630f7b",
+    "web/src/components/ScreenerWorkbench.tsx": "ad2e076a2bd59d01bb58f4bd4f30acade8c9795dc5a00db660a7c6095b5cadc6"
+  },
+  "live_state": "not reverified for this documentation task"
+}

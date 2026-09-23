@@ -1,0 +1,13 @@
+{
+  "document": "TFE_COMPLETE_SPECIFICATION.md",
+  "sha256": "ffc51aa58d10c69c80fd2e7658ab4daa72b2f99d86a44eecd695cb821d14804b",
+  "words": 5283,
+  "sections": 20,
+  "unique_requirement_ids": 75,
+  "local_links_checked": 13,
+  "source_attachments_verified": 4,
+  "protected_files_unchanged": 22,
+  "open_definition_rows": 11,
+  "all_document_checks_passed": true,
+  "scope": "Document integrity only. No claim of mathematical strategy completeness, live verification, or achieved WR/lift."
+}

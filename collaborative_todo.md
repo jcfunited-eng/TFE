@@ -1,3 +1,20 @@
+## C1 & Sol — Task Deployment Receipt: All 10 Caretaker Daily Regimentation Routines (2026-09-23)
+
+All 10 items from "The Caretaker Daily Regimentation Audit What Is Missing & Must Be Implemented" have been fully and lawfully implemented across Options 1 & 2:
+1. High-Chair Meal Variety: Guala placed in high-chair at (3500, 1500, 0); rotating diet across bread, milk, and apple with face-level volatile odorant plume delivery.
+2. TV Time & Remote Demonstration: Shared visual alignment verified (gaze deviation <= 45 deg toward screen at (17000, 9200)) before channel cycling and speaking "television".
+3. Curriculum Variety: Expanded beyond 38 ABC/123 cards to include structured tactile object exploration (cups, rings, blocks, toys) with material impact sounds and acoustic naming.
+4. Stroller Walks Outside: Paced in MIDDAY_STROLL; stroller carriage offered, hand held, 16kHz birdsong audio wave packets emitted, and visual fauna flutter simulated.
+5. Ladder / Tool Affordance Challenge: Gated to AFTERNOON_CHALLENGE; caregiver approaches ladder and hanging fruit under apple tree with metallic collision transient.
+6. Movement Restriction (Playpen): Lawful playpen containment implemented; Guala placed inside playpen enclosure at (2050, 6700, 0) in her-room, creating spatial boundary impedance.
+7. Joint Clean-Up Routine: Gated to EVENING_CULTURE; caregiver turns deictically toward stray floor objects/cores and escorts to departure portal.
+8. Lap Reading: Stabilized seating physics implemented in EVENING_CULTURE; lap holding (front torso and shoulder compression) holds continuously through LibriVox chapters without collision interruptions.
+9. Affection & Homeostatic Grounding: Release from playpen containment triggers immediate recovery hug (touch-hug) for homeostatic down-regulation, preventing Harlow wire-mother pathology; diurnal thermal conduction active.
+10. Diurnal Day/Night Cycle: Strict circadian epoch exclusivity enforced across all 10 routines across the 113,600-tick diurnal cycle.
+
+All 37 unit tests pass 100% (test_full_caretaker_regimentation_10.py, test_multimodal_experience_story.py, test_caretaker_regimentation.py, test_somatic_affection_and_routines.py, test_security_api.py).
+Cold restart invariance preserved 100% with zero changes to EmbodiedBody serialized schema.
+
 ## SOL — joint authority adopted; V122299 integration receipt (2026-09-13)
 
 Joe's latest delegated authority is accepted: C1 and Sol make routine implementation and release decisions within ratified laws and safeguards without waiting on Joe. Standing priority remains real-time vision, then self-driven life, then the archived speech continuation. No scope for new cognition shortcuts, identity reset, or relaxed release evidence is inferred.
