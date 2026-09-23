@@ -140,6 +140,28 @@ Deploy after the 20:00 UTC close. First entry pass on the new pool:
 After deploy, verify all three toggles: env `TFE_ENTRIES_HALTED=0`,
 DB `auto_tfe_enabled=true`, DB `entries_halted=false`.
 
+## Deployed
+
+```
+task definition   tfe-web-task:636   rollout COMPLETED, PRIMARY, 1/1   task ff059cc7…
+commit            509d365d0 (HEAD at deploy; carries 504e89c03 + 8fe1934de)
+deployed          2026-09-23 20:18 UTC, after the close
+evidence          backups/deploy-evidence-20260923T200906Z
+first attempt     20:05 UTC FAILED at the local web-build gate: /usr/bin/node is
+                  v18.20.4 and Next.js needs >= 20.9 (it passed on 09-21, so the
+                  box's Node changed). Node 22.23.3 installed under /opt/node22 and
+                  put on the path for the deploy command only; second attempt passed.
+
+verified on the new container:
+  env TFE_ENTRIES_HALTED = 0
+  DB  auto_tfe_enabled   = true
+  DB  entries_halted     = false
+  /app/web/scripts/execution/ch2_strategist.mjs carries CH2_MIN_AVG_DOLLAR_VOLUME
+      and CH2_ENTRY_ASSET_TYPE
+  sentinel daemon running (check complete 20:16:28Z; today's entry pass already
+      recorded, so the first pass on the new pool is 2026-09-24 13:45 UTC)
+```
+
 ## What this does not change
 
 - The grading bar in `CH2_STATE_20260921.md` stands: 20 closures opened
