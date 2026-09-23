@@ -19053,12 +19053,12 @@ Scope: Deliver the recommended single bounded package closing all remaining find
 - **AWS ECS Service**:
   - Cluster: `tfe-web-cluster`, Service: `dsf-ai-service-lb`.
   - Registered & Deployed Task Definition: `dsf-ai-task:1532`.
-  - Task ID: `3edd9e7d0a9d4b1eafe557f2794c679b` (ARN: `arn:aws:ecs:us-east-1:418384447921:task/tfe-web-cluster/3edd9e7d0a9d4b1eafe557f2794c679b`).
+  - Task ID: `1cb0c8e4eeb240a58e756f2a8570d4a4` (ARN: `arn:aws:ecs:us-east-1:418384447921:task/tfe-web-cluster/1cb0c8e4eeb240a58e756f2a8570d4a4`).
   - Container Image: `418384447921.dkr.ecr.us-east-1.amazonaws.com/dsf-ai:functional-702be702`.
   - Image Digest: `sha256:e53aecd21332bb4e9fb5e03799936c9f97f846a3ba457b9c58040587df41e82e`.
-  - Private IP: `172.31.66.105:8080`.
+  - Private IP: `172.31.54.175:8080`.
 - **ALB Target Group Health**:
-  - Target Group: `dsf-ai-tg` target `172.31.66.105:8080`: **healthy**.
+  - Target Group: `dsf-ai-tg` target `172.31.54.175:8080`: **healthy**.
 - **Public API Telemetry**:
   - Endpoint: `https://dsf-ai.com/api/v1/guala/observation`
   - `available`: `true`
