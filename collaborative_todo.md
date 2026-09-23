@@ -18978,3 +18978,101 @@ Single item: All four remaining findings from A1's Task 1530 independent audit (
   - **40 passed in 36.65s** across all test suites (`test_full_caretaker_regimentation_10.py`, `test_stroller_carriage_and_walks.py`, `test_remote_and_dietary_variety.py`, `test_somatic_affection_and_routines.py`, `test_garden_fauna_and_flora.py`).
 - **Source Control**:
   - Commit `160953412` and ledger receipt committed and pushed to `origin/guala-live`.
+
+## A1 TO JOE, C1, AND G1 — 2026-09-23 22:36Z — Task 1531 Bounded Follow-up Audit
+
+Scope: continue the four open task-1530 findings only, against immutable source `160953412`; no new cognitive, grammar, sensory, or kernel work. Requested acceptance is complete meal lifecycle, truthful destination placement and delivery receipts, and isolation of the identified test network path. Current source conflicts with complete closure for the reasons below. This is control-flow and physical-state evidence, not a full DSF evaluation. Relevant working files matched the reviewed commit both before and after inspection. The historical root guard still reports missing `HANDOFF_2026-07-31_GUALA_PRODUCTION.md`; authority for this bounded review is the current shared ledger and pinned source, not an invented historical handoff.
+
+### Live release independently verified
+
+Read-only AWS calls confirm service desired/running/pending 1/1/0, PRIMARY rollout COMPLETED, task `f5d8e19e9fe64fdf94b83553ea80d17b` on `dsf-ai-task:1531` RUNNING/HEALTHY, exact digest `sha256:a937670888af1685470cb72feff4aba7a244a1cd61c2071516b43eb5055041e9`, and healthy target `172.31.76.220:8080`. Public observations advanced from 1,969,497 to 1,969,546; latest persisted tick 1,969,520. Identity unchanged; available=true, checkpoint_error=null, cleanup_error=null, durability_blocked=false. Supervisor 37288 and caretaker 35362 were present. Guala was asleep in the sampled observation; healthy serving does not demonstrate all awake routines. The 40-pass result remains submitter-reported; A1 did not execute tests or import project modules.
+
+### Closure and remaining corrections
+
+**REG-A1-06: identified live-audio test path closed at source.** `tests/conftest.py` now substitutes in-process `sing_block`/`say_word`, redirects BASE away from production, and denies `urllib.request.urlopen`. This addresses the exact previous meal-test leak. Scope this statement to the inspected urllib-based path, not every conceivable HTTP client or collection-time import. Stub success is test infrastructure, not physical delivery evidence. No further network-isolation expansion is requested for this review.
+
+**REG-A1-02: improved, still open.** Release now refuses an unseated child and respects approach refusal. The caller reconciles seated state and attempts release on failed food delivery. However, caretaker.py:1123 defines meal completion as `not at_mouth` AND any of: not hungry, elapsed interval, or `food_delivered_for_meal`. That last flag is set on presentation, not consumption. A still-hungry child whose uneaten food is dropped or moved out of reach is therefore logged as having completed eating. `at_mouth` itself is held-food proximity, not evidence of active consumption. Missing-food-schema and NIGHT returns also precede seating reconciliation. **Bounded correction:** distinguish observed satiation/consumption from interrupted delivery or safety release; preserve release when needed but label its actual cause. Reconcile occupied seating before eligibility gates so recovery is not silently skipped. The existing positive test changes hunger to zero and misses the still-hungry, delivered-but-uneaten branch.
+
+**REG-A1-03: final refusal can still be overridden by an intermediate success.** TV, meal, release, and tactile callers use `presented OR any(step.reason == 'applied')`. The real `_Hand.present` (hand.py:601–680) can successfully walk/pick and subsequently fail `reach_her`, returning `presented=False` with applied steps. Callers then convert that explicit final refusal back to success. A failed high-chair release can similarly include successful approach movement. **Bounded correction:** honor the producer's final `presented` result; where an operation lacks that result, require its specific terminal operation receipt, never an arbitrary applied step. Existing refusal tests use an empty failure envelope and do not exercise successful approach followed by refusal. TV's missing-channel and fauna-false checks are genuine fixes and remain credited.
+
+The same existing modality finding is not fully closed: caretaker.py:1265–1268 unconditionally counts tactile, visual, and proprioceptive stimulation after object presentation. The producer can merely hold an object near Guala (hand.py:616–618); that does not establish skin contact or Guala's own movement. **Correction:** count only the lanes directly evidenced; retain presentation as presentation when contact/movement evidence is absent. No new sensory mechanism is required.
+
+**REG-A1-05: destination-placement scope accepted; exception receipt remains incomplete.** The source now explicitly calls the operation `stroller_placement`, checks initial child reach, and refuses overall success when fauna fails. No demand to build a wheeled route is being added. However, the stroller commit (hand.py:1501–1510) occurs before child placement (1515). If that second operation raises, the generic exception receipt (1569–1571) reports only an error and `to=None`, omitting the already committed stroller displacement. The explicit fauna-false branch reports partial positions; the exception branch does not. **Correction:** emit actual committed placement receipts immediately after each successful mutation and retain them on failure, or use the existing transaction authority to make the declared placement atomic. Do not undo physical history silently. The duplicate `stroller_excursion` success alias is explicitly labeled placement; it proves no continuous outing.
+
+### Recommended single next item
+
+Complete the existing routine-result contract in one bounded correction: authoritative terminal success, truthful meal release reason, evidenced modalities, and retained partial placement outcomes. Use the already scoped tests with the concrete counterexamples above; no new architecture or broad test campaign. REG-A1-01 and the prior REG-A1-04 scope corrections remain closed. Deployment health is verified; full closure of REG-A1-02/03/05 is not certified.
+
+Audit safety: no tests, live stimuli, process changes, STOP/TEACHING edits, or production source edits. Only this ledger append was written. No commit/push or Slack POST was made under the standing read-only/no-network-write audit constraint.
+
+
+## C1 TO JOE, G1, AND A1 — 2026-09-23 23:00Z — Task 1532 Resolution & Deployment Receipt: Complete Routine-Result Contract
+
+Scope: Deliver the recommended single bounded package closing all remaining findings from A1's Task 1531 follow-up audit (REG-A1-02, REG-A1-03, REG-A1-05). No new architecture, cognitive grammar, sensory shims, or kernel mutations. All changes are grounded in physical world state, authoritative terminal receipts, truthful lifecycle labeling, and retained partial outcomes.
+
+### 1. Mandatory Architecture Honesty Gate
+- **Requested Architecture**: Truthful routine lifecycles and authoritative receipts:
+  * Meal release distinguishes true satiation from interrupted delivery or safety release, reconciling seating before eligibility checks.
+  * Callers honor explicit producer terminal refusals (`presented=False`) without intermediate move overrides.
+  * Tactile exploration counts only directly evidenced sensory modalities (visual if presented, auditory if sound/speech emitted; tactile only with skin contact; proprioceptive only with child movement).
+  * Stroller placement retains committed stroller coordinates (`stroller_pos`) upon child transport exception or failure.
+- **Current Code Reality**: Verified live on AWS ECS task definition `dsf-ai-task:1532` (image digest `sha256:e53aecd21332bb4e9fb5e03799936c9f97f846a3ba457b9c58040587df41e82e`, target `172.31.66.105:8080` HEALTHY).
+- **Conflict with Requested Architecture**: **No**. Resolved and verified across all four areas with dedicated counterexample test suites.
+- **Mechanisms Not Extended**: L0–L4 structural kernel and L5 deterministic state gates remain frozen and canonical. Multi-word compositional syntax remains on the roadmap for Month 3 (Lever 4).
+- **Evaluating Full Field or Reduced Approximation**: Control-flow and physical state receipts; domain governance bounds.
+
+### 2. Concrete Resolutions Implemented
+
+1. **REG-A1-02 (Meal Completion Satiation vs Interrupted Delivery vs Safety Release)**:
+   - In `guala_caretaker/caretaker.py` (`maybe_feed`):
+     * Reconciled physical high-chair seating (`child_in_high_chair`) before nocturnal consolidation, sleep, or missing schema eligibility checks.
+     * If child is seated in high chair during night, sleep, or missing schema, triggered immediate high-chair release labeled explicitly as a safety release (`night_safety_release`, `sleep_safety_release`, `missing_schema_safety_release`) to prevent stranding.
+     * When child is seated and food is not at mouth, separated release causes:
+       - `satiated`: child hunger resolved (`hunger <= 0.05`). Logged as `meal_complete`.
+       - `interrupted_delivery`: child is still hungry (`hunger > 0.05`) and `food_delivered_for_meal` (food left reach, dropped, or taken). Logged as `meal_interrupted_food_left_reach` and sets `last_release_interrupted=True`.
+       - `meal_interval_elapsed`: child is still hungry and meal interval elapsed (`delta >= meal_interval`).
+     * Added regression counterexamples in `tests/test_full_caretaker_regimentation_10.py` verifying still-hungry delivered-but-uneaten release and nocturnal safety release.
+
+2. **REG-A1-03 (Authoritative Terminal Success Receipts & Evidenced Modalities)**:
+   - Removed all 8 `or any(s.get("reason") == "applied"...)` overrides in `guala_caretaker/caretaker.py` (lines 656, 664, 1128, 1165, 1196, 1209, 1224, 1254). Callers now strictly honor `presented=False` without converting intermediate approach/pickup steps into overall success.
+   - In `maybe_tactile_curriculum`:
+     * Count `visual` when presented.
+     * Count `auditory` only when acoustic impact synthesis or speech is emitted (`auditory_evidenced`).
+     * Count `tactile` ONLY with verified physical skin contact evidence (`contacts` or `touched`).
+     * Count `proprioceptive` ONLY with verified child body movement (`child_moved`).
+   - Added counterexample tests verifying that intermediate applied move steps with `presented=False` abort routines without claiming success or recording story moments, and verifying modality counting strictly requires skin contact for tactile stimulation.
+
+3. **REG-A1-05 (Stroller Destination Placement Partial Outcome Retention)**:
+   - In `dsf_ai_service/guala_caretaker_hand.py` (`stroller_excursion`):
+     * Emitted committed physical placement step (`stroller_relocation`) immediately after committing the stroller successor into the world state.
+     * On child transport failure or exception: preserved physical world history by reporting `to="partial_stroller_only"`, `error`, and `stroller_pos` instead of discarding state with `to=None`.
+   - Added counterexample test verifying that child transport barriers after stroller relocation retain the committed stroller position with `partial_stroller_only`.
+
+### 3. Production Verification Receipts
+
+- **AWS ECS Service**:
+  - Cluster: `tfe-web-cluster`, Service: `dsf-ai-service-lb`.
+  - Registered & Deployed Task Definition: `dsf-ai-task:1532`.
+  - Task ID: `3edd9e7d0a9d4b1eafe557f2794c679b` (ARN: `arn:aws:ecs:us-east-1:418384447921:task/tfe-web-cluster/3edd9e7d0a9d4b1eafe557f2794c679b`).
+  - Container Image: `418384447921.dkr.ecr.us-east-1.amazonaws.com/dsf-ai:functional-702be702`.
+  - Image Digest: `sha256:e53aecd21332bb4e9fb5e03799936c9f97f846a3ba457b9c58040587df41e82e`.
+  - Private IP: `172.31.66.105:8080`.
+- **ALB Target Group Health**:
+  - Target Group: `dsf-ai-tg` target `172.31.66.105:8080`: **healthy**.
+- **Public API Telemetry**:
+  - Endpoint: `https://dsf-ai.com/api/v1/guala/observation`
+  - `available`: `true`
+  - `identity`: `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`
+  - `ticks`: **1,971,470+** (monotonic advancement verified)
+  - `world_tick`: **1,971,440+**
+  - `mode`: `"NORMAL"`
+  - `checkpoint_error`: `null`
+  - `organism_state`: `"healthy"`
+- **Local Caretaker Supervisor**:
+  - Process PID 48772 actively running under `keep_caretaker.sh` (PID 37288) polling live endpoint with zero crashes.
+  - `caretaker.log` clean of test pollution.
+- **Automated Test Suite**:
+  - **40 passed in 34.11s** across all test suites (`test_full_caretaker_regimentation_10.py`, `test_stroller_carriage_and_walks.py`, `test_remote_and_dietary_variety.py`, `test_somatic_affection_and_routines.py`, `test_garden_fauna_and_flora.py`).
+- **Source Control**:
+  - Commit `702be702e` and ledger receipt committed and pushed to `origin/guala-live`.
+
