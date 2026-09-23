@@ -508,6 +508,18 @@ def _gate_and_rank(events: list) -> tuple[list, int, bool]:
 
 def hunt(dry: bool = False) -> None:
     book = load_book()
+    stale_stages = list(book.get("staged_entries") or []) if ENTRY_AT_CLOSE else []
+    if stale_stages:
+        # one entry instant (Joe 2026-09-23): no next-morning fills. Stages
+        # left from before the switch stayed "valid" because the store had
+        # not advanced past their decision day (six filled on 2026-09-23 off
+        # 09-18 decisions). Cleared here, loudly, before anything else.
+        print(f"[ch6 hunt] clearing {len(stale_stages)} next-morning stage(s) "
+              f"({', '.join(str(s.get('symbol')) for s in stale_stages)}) — "
+              "entry is at the close now")
+        book["staged_entries"] = []
+        if not dry:
+            save_book(book)
     market, days, latest = load_market()
     latest_s = latest.strftime("%Y-%m-%d")
     if latest_s < START_DATE:
@@ -916,6 +928,14 @@ def evaluate_live_marks(action: str) -> None:
     # fills: decisions staged at a PRIOR session's close purchase here,
     # at the first live mark of the next session — prices that actually
     # existed (Joseph 2026-08-20: decide tonight, purchase tomorrow)
+    if action == "poll" and staged and ENTRY_AT_CLOSE:
+        # one entry instant (Joe 2026-09-23): the next-morning fill path is
+        # closed. Anything still staged is dropped, loudly, never filled.
+        print(f"[ch6 fill] {len(staged)} next-morning stage(s) dropped "
+              f"({', '.join(str(s.get('symbol')) for s in staged)}) — entry "
+              "is at the close now")
+        book["staged_entries"] = []
+        staged = []
     if action == "poll" and staged:
         remaining = []
         halted = ENTRIES_HALT_FILE.exists()
