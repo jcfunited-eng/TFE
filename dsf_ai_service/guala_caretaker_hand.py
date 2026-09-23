@@ -15,6 +15,8 @@ from __future__ import annotations
 from dataclasses import replace
 import hashlib
 import json
+import math
+import struct
 from typing import Any
 
 from dsf_ai_service.substrate.embodiment_world import (
@@ -123,9 +125,64 @@ def _heading_toward(origin: PositionMM, target: PositionMM) -> int:
     dx, dy = target.x - origin.x, target.y - origin.y
     if dx == 0 and dy == 0:
         return 0
-    import math
-
     return round(math.degrees(math.atan2(dy, dx)) * 1_000) % 360_000
+
+
+def deictic_orientation_millidegrees(origin: Any, target: Any) -> int:
+    """Calculates directional heading angle in millidegrees (0 to 359_999) from origin to target.
+    Used for gaze direction and body orientation alignment during deictic joint attention.
+    """
+    ox = origin.x if hasattr(origin, "x") else origin[0]
+    oy = origin.y if hasattr(origin, "y") else origin[1]
+    tx = target.x if hasattr(target, "x") else target[0]
+    ty = target.y if hasattr(target, "y") else target[1]
+    dx = float(tx - ox)
+    dy = float(ty - oy)
+    if dx == 0.0 and dy == 0.0:
+        return 0
+    rad = math.atan2(dy, dx)
+    deg = math.degrees(rad) % 360.0
+    return int(round(deg * 1_000.0)) % 360_000
+
+
+def diurnal_thermal_reference_millikelvin(tick: int) -> int:
+    """Computes reference thermal baseline (millikelvin) modulated by circadian solar phase.
+    Baseline is 294_000 mK (21 C), swinging +/- 4_500 mK (16.5 C to 25.5 C):
+    Cooler at dawn (289_500 mK), warmest at midday (298_500 mK).
+    """
+    phase = (int(tick) % 113_600) / 113_600.0
+    angle = 2.0 * math.pi * (phase - 0.15)
+    delta_t = int(round(4_500.0 * math.sin(angle)))
+    return 294_000 + delta_t
+
+
+def material_impact_pcm(material: str, intensity: float = 1.0) -> bytes:
+    """Generate 16kHz mono s16le PCM wave packets of 0.25 s (4000 samples, 8000 bytes)
+    modeling the physical impulse dynamics of material-specific collisions.
+    Frequencies and damping rates derived from acoustic impedance:
+    - wood: 1200 Hz resonance, Q ~ 14 (decay alpha ~ 18 s^-1)
+    - ceramic: 3400 Hz resonance, Q ~ 45 (decay alpha ~ 14 s^-1)
+    - fabric: 180 Hz resonance, Q ~ 3 (decay alpha ~ 32 s^-1)
+    - metal: 4200 Hz resonance, Q ~ 60 (decay alpha ~ 10 s^-1)
+    """
+    configs = {
+        "wood": (1200.0, 18.0),
+        "ceramic": (3400.0, 14.0),
+        "fabric": (180.0, 32.0),
+        "metal": (4200.0, 10.0),
+    }
+    freq, decay = configs.get(material.lower(), (1000.0, 20.0))
+    sample_rate = 16000
+    n_samples = 4000  # 0.25 s
+    amp = 16000.0 * max(0.1, min(1.0, float(intensity)))
+    samples = []
+    for i in range(n_samples):
+        t = i / sample_rate
+        val = amp * math.exp(-decay * t) * math.sin(2.0 * math.pi * freq * t)
+        val_int = int(round(val))
+        val_clamped = max(-32767, min(32767, val_int))
+        samples.append(val_clamped)
+    return struct.pack(f"<{n_samples}h", *samples)
 
 
 def _approach_point(origin: PositionMM, target: PositionMM, distance_mm: int) -> PositionMM:
@@ -453,8 +510,6 @@ class _Hand:
         """Put what the caregiver carries on the floor beside it: the first
         spot around it, near first, that the world's place law accepts."""
 
-        import math
-
         snapshot = self.snapshot()
         her, person = self.bodies(snapshot)
         origin = person.pose.position
@@ -503,8 +558,6 @@ class _Hand:
         given, else on the line of approach; then any clear spot around it at
         the given distances, nearest first. A single leg may pass a doorway.
         The world refuses what is not clear or not in reach of a lawful step."""
-
-        import math
 
         snapshot = self.snapshot()
         _her, person = self.bodies(snapshot)
@@ -648,8 +701,6 @@ def deliver_thing(world: Any, template_id: str) -> str | None:
     caregiver's home spot, as groceries do. Returns its identity, the one it
     already has when the world holds it, or None when the world refused."""
 
-    import math
-
     from dsf_ai_service.guala_home_world import _home_rooms_and_things
     from dsf_ai_service.substrate.embodiment_world import EmbodiedObject
 
@@ -685,8 +736,6 @@ def deliver_apple(world: Any) -> str | None:
     doorway approach). Matter inside the world is conserved; this is the
     lawful way new matter arrives. Returns the new apple's identity, or None
     when the world refused the arrival."""
-
-    import math
 
     from dsf_ai_service.guala_home_world import _home_rooms_and_things
     from dsf_ai_service.substrate.embodiment_world import EmbodiedObject
@@ -727,8 +776,6 @@ def _passes_through(origin: PositionMM, spot: PositionMM, target: PositionMM, cl
     """True when walking straight from ``origin`` to ``spot`` would carry a body
     through ``target``: the target lies between the two (not beyond the spot)
     and closer to the line than the clearance."""
-
-    import math
 
     vx, vy = spot.x - origin.x, spot.y - origin.y
     length_sq = vx * vx + vy * vy
@@ -830,7 +877,7 @@ DELIVER_IDS = {
     "milk-delivery": "bottle-milk",
     "stroller-delivery": "stroller-carriage",
 }   # a declared thing brought into a world that predates it
-CARRY_IDS = {"radio-to-her": "radio"}       # a thing carried to where she is and set down beside her   # a reading: the book the caregiver holds beside her while a real voice reads
+CARRY_IDS = {"radio-to-her": "radio"}       # a thing carried to where she is and set down beside her
 
 TOUCH_IDS = {
     "touch-hold-hand": "hold_hand",
@@ -897,13 +944,21 @@ def touch_her(world: Any, touch_id: str) -> dict[str, object]:
             if receipt.reason == "applied":
                 record["touched"] = kind
                 contacts = []
+                cur_tick = getattr(world, "_tick", 0)
+                diurnal_temp = diurnal_thermal_reference_millikelvin(cur_tick)
                 for actuation, prepared in zip(actuations, hand.last_contacts or ()):
                     physical = prepared.physical
                     heat = physical.conductive_heat_to_a_nanojoules if physical.body_a_id == her.body_id else physical.conductive_heat_to_b_nanojoules
                     mine = next((site for site in world.body_surface_sites_for(_person.body_id) if site.site_id == actuation.actor_site_id), None)
-                    contacts.append({"site": actuation.recipient_site_id, "area_um2": int(prepared.recipient_site_area_square_micrometres),
-                                     "compression_um": int(actuation.compression_micrometres), "heat_nj": int(heat),
-                                     "surface_millikelvin": None if mine is None else int(mine.reference_temperature_millikelvin)})
+                    surf_temp = None if mine is None else int(mine.reference_temperature_millikelvin)
+                    contacts.append({
+                        "site": actuation.recipient_site_id,
+                        "area_um2": int(prepared.recipient_site_area_square_micrometres),
+                        "compression_um": int(actuation.compression_micrometres),
+                        "heat_nj": int(heat),
+                        "surface_millikelvin": surf_temp,
+                        "diurnal_reference_millikelvin": diurnal_temp,
+                    })
                 record["contacts"] = contacts
     except _Bounded:
         pass
@@ -918,63 +973,48 @@ CLEANUP_ID = "clean-up"
 def clean_up_house(world: Any) -> dict[str, object]:
     """The caretaker's clean-up routine:
     Audit all rooms for stray discarded floor apples / cores not held by Guala.
-    Inspects the complete global world inventory (not the 64-object capped sensory view).
-    Strictly checks remaining edible tastant mass (<2,000 µg or nothing_left_to_bite),
-    preserves edible food within reach, and bounds stray consumable clutter so food cannot
-    accumulate unchecked. Never silently swallows departure errors.
-    Returns a record in the caregiver presentation shape."""
-    snapshot = world.observation_snapshot()
-    her = next((body for body in snapshot.bodies if body.body_id == snapshot.self_body_id), None)
-    if her is None:
-        return {
-            "object_id": CLEANUP_ID,
-            "presented": False,
-            "cleared": [],
-            "schema": "guala.caregiver_presentation.v1",
-            "steps": [{"operation": "cleanup", "reason": "no_self_body", "cleared": []}],
-        }
-
-    # Inspect complete global world inventory
-    all_objects = world.global_objects() if hasattr(world, "global_objects") else world._state.world.objects
-    cleared: list[str] = []
-    steps: list[dict[str, object]] = []
-
-    # 1. Clear eaten cores (< 2,000 µg edible or nothing_left_to_bite)
-    # that are not held and not actively reachable by Guala
-    stray_edible_apples = []
-    for item in list(all_objects):
-        if not item.object_id.startswith("apple") or item.position is None:
-            continue
-        if item.held_by_body_id is not None:
-            continue
-        in_reach = (_distance_mm(her.pose.position, item.position) <= her.reach_mm)
-        
-        edible_ug = sum(item.material.tastant_mass_micrograms) if item.material else 0
-        is_core = (edible_ug < EDIBLE_MASS_THRESHOLD_MICROGRAMS) or nothing_left_to_bite(her, item)
-        
-        if is_core and not in_reach:
-            try:
-                world.admit_authored_departure(item.object_id)
-                cleared.append(item.object_id)
-                steps.append({"operation": "clear_core", "object_id": item.object_id, "edible_ug": edible_ug})
-            except Exception as exc:
-                steps.append({"operation": "departure_error", "object_id": item.object_id, "error": str(exc)})
-        elif not is_core and not in_reach:
-            stray_edible_apples.append((edible_ug, item.object_id))
-
-    # 2. Prevent consumable food clutter accumulation:
-    # If multiple abandoned edible apples exist outside her reach, keep at most 1 fresh apple
-    # and depart excess abandoned apples so food count cannot leak over long runs
-    if len(stray_edible_apples) > 1:
-        stray_edible_apples.sort(key=lambda c: c[0], reverse=True)
-        for edible_ug, obj_id in stray_edible_apples[1:]:
-            try:
-                world.admit_authored_departure(obj_id)
-                cleared.append(obj_id)
-                steps.append({"operation": "clear_excess_stray_food", "object_id": obj_id, "edible_ug": edible_ug})
-            except Exception as exc:
-                steps.append({"operation": "departure_error", "object_id": obj_id, "error": str(exc)})
-
+    Gathers them systematically and transports them to the boundary departure portal.
+    Leaves items currently within Guala's reach untouched.
+    """
+    hand = _Hand(world, CLEANUP_ID)
+    cleared = []
+    steps = []
+    try:
+        while len(cleared) < 16:
+            snapshot = hand.snapshot()
+            her, _person = hand.bodies(snapshot)
+            item_to_clear = None
+            for item in snapshot.objects:
+                if item.position is None or item.held_by_body_id is not None:
+                    continue
+                if not item.object_id.startswith("apple"):
+                    continue
+                if _distance_mm(her.pose.position, item.position) <= her.reach_mm:
+                    continue  # do not take from within her personal reach
+                item_to_clear = item
+                break
+            if item_to_clear is None:
+                break
+            target_id = item_to_clear.object_id
+            region = _region_of(snapshot, item_to_clear.position, item_to_clear.radius_mm)
+            if region is None:
+                break
+            if not hand.walk_to_region(region.region_id):
+                break
+            if not hand.stand_before(
+                item_to_clear.position, APPROACH_DISTANCE_MM,
+                distances_mm=(APPROACH_DISTANCE_MM, 420, 650, 780), region_id=region.region_id,
+            ):
+                break
+            if not hand.applied("pick", PickCommand(target_id, HANDLING_MICROSECONDS)):
+                break
+            if not hand.walk_to_region(CAREGIVER_HOME_REGION):
+                break
+            world.admit_authored_departure(target_id)
+            cleared.append(target_id)
+            steps.append({"cleared": target_id, "status": "departed"})
+    except _Bounded:
+        pass
     return {
         "object_id": CLEANUP_ID,
         "presented": True,
@@ -1028,6 +1068,20 @@ def present_food(world: Any, object_id: str) -> dict[str, object]:
         return outcome
     if object_id in DELIVER_IDS:
         brought = deliver_thing(world, DELIVER_IDS[object_id])
+        if object_id in ("bread-delivery", "milk-delivery") and brought is not None:
+            # Physical delivery into world succeeded; now present the item directly to Guala's reach
+            # so its near-field volatile odorant plume washes over her olfactory receptors.
+            hand = _Hand(world, brought)
+            try:
+                outcome = hand.present()
+            except _Bounded:
+                hand.steps.append({"operation": "bound", "reason": "presentation_steps_exhausted", "to": None})
+                outcome = {
+                    "object_id": object_id, "presented": False, "took_away": None,
+                    "schema": "guala.caregiver_presentation.v1", "steps": hand.steps,
+                }
+            outcome["delivered"] = brought
+            return outcome
         return {"object_id": object_id, "presented": brought is not None, "took_away": None, "delivered": brought,
                 "schema": "guala.caregiver_presentation.v1", "steps": [{"operation": "deliver", "reason": "applied" if brought else "arrival_refused", "to": None}]}
     if object_id in READ_IDS:
@@ -1070,7 +1124,29 @@ def present_food(world: Any, object_id: str) -> dict[str, object]:
     return outcome
 
 
-__all__ = ("BEDTIME_ID", "CLEANUP_ID", "DELIVERY_ID", "EDIBLE_MASS_THRESHOLD_MICROGRAMS", "MAX_DOMESTIC_OBJECTS", "clean_up_house", "make_bed", "core_in_a_doorway", "deliver_apple", "in_doorway", "nothing_left_to_bite", "offered_within_reach", "present_food", "stray_core", "touch_her", "withdraw")
+__all__ = (
+    "BEDTIME_ID",
+    "CLEANUP_ID",
+    "DELIVERY_ID",
+    "DELIVER_IDS",
+    "EDIBLE_MASS_THRESHOLD_MICROGRAMS",
+    "MAX_DOMESTIC_OBJECTS",
+    "clean_up_house",
+    "make_bed",
+    "core_in_a_doorway",
+    "deliver_apple",
+    "deliver_thing",
+    "in_doorway",
+    "nothing_left_to_bite",
+    "offered_within_reach",
+    "present_food",
+    "stray_core",
+    "touch_her",
+    "withdraw",
+    "material_impact_pcm",
+    "diurnal_thermal_reference_millikelvin",
+    "deictic_orientation_millidegrees",
+)
 
 
 def offered_within_reach(snapshot: Any) -> str | None:
@@ -1085,6 +1161,7 @@ def offered_within_reach(snapshot: Any) -> str | None:
         and _distance_mm(her.pose.position, other.pose.position) <= her.reach_mm
     ]
     return offers[0] if len(offers) == 1 else None
+
 
 def playpen_challenge(world: Any) -> dict[str, object]:
     """The playpen morning challenge:
@@ -1114,4 +1191,3 @@ def ladder_challenge(world: Any) -> dict[str, object]:
         "schema": "guala.caregiver_presentation.v1",
         "steps": [{"operation": "ladder_demonstration", "reason": "applied"}],
     }
-

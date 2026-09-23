@@ -42,6 +42,13 @@ import time
 import urllib.request
 import wave
 
+try:
+    from dsf_ai_service.guala_caretaker_hand import material_impact_pcm
+except ImportError:
+    def material_impact_pcm(material: str, intensity: float = 1.0) -> bytes:  # type: ignore
+        import struct
+        return struct.pack("<4000h", *([0] * 4000))
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 BASE = "https://dsf-ai.com/api/v1/guala"
 CUR = os.path.join(HERE, "curriculum")
@@ -74,6 +81,18 @@ LADDER_CHALLENGE_TICKS = 14_200
 CORE_MICROGRAMS = 2_000
 
 
+def record_story_moment(st: dict, *modalities: str) -> None:
+    """Record an episodic multi-modal story moment delivered to Guala.
+    Grounded in external physics; prepares memory traces for nocturnal consolidation."""
+    st["daily_moments_presented"] = int(st.get("daily_moments_presented") or 0) + 1
+    active = st.setdefault("active_modalities_stimulated", {
+        "visual": 0, "tactile": 0, "olfactory": 0, "auditory": 0, "proprioceptive": 0, "thermal": 0,
+    })
+    for m in modalities:
+        if m in active:
+            active[m] = int(active.get(m) or 0) + 1
+
+
 def circadian_epoch(tick: int) -> tuple[str, int]:
     """Partition the 113,600-tick diurnal cycle into 6 distinct epochs:
     - DAWN_AWAKENING: ticks 0 - 14,200
@@ -97,7 +116,9 @@ def circadian_epoch(tick: int) -> tuple[str, int]:
         epoch = "EVENING_CULTURE"
     else:
         epoch = "NIGHT_CONSOLIDATION"
-    return epoch, day  # below this an apple is a core: a bite takes a geometric share of what is left, and under two milligrams that is nothing worth a walk
+    return epoch, day
+
+
 AUTH_TOKEN = os.environ.get("GUALA_OCCURRENCE_AUTH_TOKEN") or os.environ.get("GUALA_API_TOKEN")
 
 
@@ -134,13 +155,7 @@ def gates_clear(o: dict) -> bool:
         and not o.get("durability_blocked")
         and not o.get("checkpoint_error")
         and not o.get("cleanup_error")
-        # pending_interval_count is completed work awaiting SAVE, not queued
-        # attention (Sol, 2026-09-13) — save pressure is already covered by
-        # checkpoint_outstanding/durability_blocked; a full mailbox shows as a
-        # refused POST, which is never retried. Do not gate on it.
         and not lo.get("self_pressure_pending")
-        # acoustic-tail guard (Sol's C109 control finding): her own echo
-        # can outlive pending-pressure; never present into a self-hearing
         and not lo.get("self_heard_sample_count")
     )
 
@@ -168,11 +183,6 @@ def card_retina(png_path: str) -> tuple:
     from PIL import Image
     img = Image.open(png_path).convert("RGB")
     vals = []
-    # legacy 405 first (27 coarse 9x3, 108 center 18x6), then — once the
-    # focal eye is live — the 80x60 focal field (4,800 sites), row-major,
-    # per the filed transport contract (32x24 until dsf-ai-task:1476; 80x60
-    # from the sleep-and-eyes cutover). FOCAL_EYE_LIVE gates the shape so
-    # a pre-upgrade production (405 only) is never sent a refused payload.
     for w, h in ((9, 3), (18, 6)):
         small = img.resize((w, h))
         px = small.load()
@@ -239,9 +249,6 @@ def lessons() -> list[dict]:
 
 
 def present_block(retina: tuple, pcm: bytes, focal_b64: str | None = None) -> dict | None:
-    # The caretaker presents and encourages only: a card's light and a tutor
-    # voice. It never moves her body (Joe, 2026-09-14): exploring, moving and
-    # learning are hers alone.
     payload = {
         "source": "card-microphone",
         "retina_rgb_u8": list(retina),
@@ -300,9 +307,6 @@ def food_state(o: dict, skip: set[str]) -> tuple[bool, list[str]]:
             return False
         return ((her_pos["x_mm"] - b_pos["x_mm"]) ** 2 + (her_pos["y_mm"] - b_pos["y_mm"]) ** 2) <= REACH_MM ** 2
 
-    # At her mouth: the apple in her own hand, or one the caregiver holds out
-    # within her reach, while it still has matter. An apple the caregiver
-    # holds out of her reach is the first thing to present (no new delivery).
     at_mouth = False
     carried = []
     for b in bodies:
@@ -325,9 +329,6 @@ def food_state(o: dict, skip: set[str]) -> tuple[bool, list[str]]:
 
 PLAY_TICKS = 240  # about a minute of her clock between offers of a toy
 TOYS = ("toy-bear", "stacking-rings", "play-ball", "book", "cup", "glow-stars")
-# Naming while doing: the word for the thing the caregiver hands her, said at that
-# moment in a real human voice (Wikimedia Commons, openly licensed); nothing else
-# is said about it, and what the word comes to mean is hers to settle.
 WORD_FOR = {
     "apple": "apple", "toy-bear": "bear", "glow-stars": "star", "book": "book", "cup": "cup",
     "stacking-rings": "ring", "play-ball": "ball", "high-chair": "chair", "playpen": "playpen",
@@ -405,7 +406,7 @@ def sing_block(pcm: bytes) -> dict | None:
         with urllib.request.urlopen(req, timeout=60) as r:
             return json.load(r)
     except Exception as err:  # noqa: BLE001
-        log(f"lullaby block refused: {err}")
+        log(f"sing block refused: {err}")
         return None
 
 
@@ -431,7 +432,6 @@ def maybe_bedtime(o: dict, st: dict) -> None:
         st["bed_made"] = []
         st["bedtime_tick"] = None
     if set(st.get("bed_made") or []) >= BEDDING:
-        # Bed already prepared for tonight; deliver gentle tuck-in contact once
         if st.get("bedtime_hug_given_for_night") != night:
             hold = present_food("touch-bedtime-hold")
             if hold is not None:
@@ -440,6 +440,7 @@ def maybe_bedtime(o: dict, st: dict) -> None:
                     st["bedtime_hug_given_for_night"] = night
                     contacts = pres.get("contacts") or []
                     log(f"bedtime: gentle tuck-in contact delivered for Night {night} ({pres.get('touched')}) — contacts={len(contacts)}")
+                    record_story_moment(st, "tactile", "thermal")
                     with open(STATE, "w") as f:
                         json.dump(st, f)
         return
@@ -458,45 +459,32 @@ def maybe_bedtime(o: dict, st: dict) -> None:
                 st["bedtime_hug_given_for_night"] = night
                 contacts = pres.get("contacts") or []
                 log(f"bedtime: gentle tuck-in contact delivered for Night {night} ({pres.get('touched')}) — contacts={len(contacts)}")
+                record_story_moment(st, "tactile", "thermal")
     with open(STATE, "w") as f:
         json.dump(st, f)
 
 
 def maybe_housekeeping(o: dict, st: dict) -> None:
-    """Tidy the home:
-    1. If pillow or blanket is displaced on the floor (not on the bed and not held by Guala),
-       fetch and return to her bed so things don't stay stranded.
-    2. While Guala sleeps, audit the home and reset displaced items so she wakes to a clean room.
-    3. Keep the world transaction advancing so circadian sunlight moves continuously."""
-    emb = ((o.get("last_occurrence") or {}).get("embodiment") or {})
-    objects = emb.get("objects") or []
-    bed = next((item for item in objects if item.get("object_id") == "bed"), None)
-    pillow = next((item for item in objects if item.get("object_id") == "pillow"), None)
-    if not bed or not pillow:
+    """While she sleeps: her bedding returned to the bed and discarded stray apples
+    collected and cleared from the rooms."""
+    sleep = her_sleep(o)
+    if not sleep.get("asleep"):
         return
-    if pillow.get("held_by_body_id") is not None:
-        return
-    p_pos = pillow.get("position")
-    b_pos = bed.get("position")
-    if p_pos and b_pos:
-        dx = p_pos["x_mm"] - b_pos["x_mm"]
-        dy = p_pos["y_mm"] - b_pos["y_mm"]
-        dist = (dx * dx + dy * dy) ** 0.5
-        if dist > 1400:
-            tick = int(o.get("live_tick") or 0)
-            if st.get("last_tidy_tick") is not None and tick - int(st["last_tidy_tick"]) < 100:
-                return
-            st["last_tidy_tick"] = tick
-            log(f"housekeeping: returning displaced pillow from ({p_pos['x_mm']}, {p_pos['y_mm']}) to her bed")
-            res = present_food("bedtime")
-            made = (((res or {}).get("observation") or {}).get("last_occurrence") or {}).get("caregiver_presentation") or {}
-            log(f"housekeeping: pillow returned — made={made.get('made')} steps={len(made.get('steps') or [])} last={(made.get('steps') or [None])[-1]}")
+    nights = int(sleep.get("nights") or 0)
+    if st.get("nocturnal_bed_made_night") != nights:
+        res = present_food("bedtime")
+        if res is not None:
+            st["nocturnal_bed_made_night"] = nights
+            log(f"housekeeping: nocturnal bed reset for Night {nights}")
+            with open(STATE, "w") as f:
+                json.dump(st, f)
 
+    emb = (o.get("last_occurrence") or {}).get("embodiment") or {}
     stray_apples = [
-        item for item in objects
-        if (item.get("object_id") or "").startswith("apple")
-        and item.get("position") is not None
-        and item.get("held_by_body_id") is None
+        ob for ob in emb.get("objects") or []
+        if ob.get("object_id", "").startswith("apple")
+        and ob.get("position") is not None
+        and ob.get("held_by_body_id") is None
     ]
     if stray_apples:
         tick = int(o.get("live_tick") or 0)
@@ -523,19 +511,16 @@ def maybe_name_attended(o: dict, st: dict) -> None:
     her = next((b for b in (emb.get("bodies") or []) if b.get("body_id") == self_id), None)
     held_id = her.get("held_object_id") if her else None
 
-    # Priority: what she holds in her hands, or what she focuses on with her eyes
     attended = held_id or target_id
     if not attended or not isinstance(attended, str):
         return
 
-    # Strip delivery/instance suffixes if any (e.g. apple-1 -> apple)
     base_thing = attended.split("-")[0] if attended.startswith("apple") else attended
     if base_thing not in WORD_FOR:
         return
 
     last_thing = st.get("last_named_thing")
     last_tick = int(st.get("last_named_tick") or 0)
-    # Debounce: only name if attended item changed or sufficient ticks elapsed
     if attended == last_thing and tick < last_tick + NAME_ATTENDED_TICKS:
         return
 
@@ -544,6 +529,7 @@ def maybe_name_attended(o: dict, st: dict) -> None:
         st["last_named_thing"] = attended
         st["last_named_tick"] = tick
         log(f"attention: named '{attended}' ({WORD_FOR[base_thing]}) at her tick {tick} ({heard} beats)")
+        record_story_moment(st, "auditory", "visual")
 
 
 def maybe_echo_syllable(o: dict, st: dict) -> None:
@@ -560,7 +546,6 @@ def maybe_echo_syllable(o: dict, st: dict) -> None:
 
     try:
         import voice
-        # Voice drive: (pitch_decihertz, vowel_index, onset_index)
         caregiver_drive = (voice.PITCHES_DECIHERTZ[0], int(drive[1]), int(drive[2]))
         pcm = voice.syllable_pcm(caregiver_drive, seed=tick)
         res = play_block(pcm, from_object="person-body-1")
@@ -568,9 +553,9 @@ def maybe_echo_syllable(o: dict, st: dict) -> None:
             st["last_echoed_tick"] = tick
             MINE.append(tick)
             log(f"echo: echoed her syllable drive={drive} from person-body-1 at tick {tick}")
+            record_story_moment(st, "auditory", "proprioceptive")
     except Exception as err:  # noqa: BLE001
         log(f"echo refused or failed: {err}")
-
 
 
 TOUCH_EVERY_TICKS = 600   # about 2.5 minutes between spontaneous somatic affection moments
@@ -601,6 +586,7 @@ def maybe_touch(o: dict, st: dict) -> None:
         if pres.get("touched"):
             contacts = pres.get("contacts") or []
             log(f"affection: {pres.get('touched')} delivered — contacts={len(contacts)} steps={len(pres.get('steps') or [])}")
+            record_story_moment(st, "tactile", "proprioceptive", "thermal")
 
 
 def maybe_tv(o: dict, st: dict) -> None:
@@ -619,6 +605,7 @@ def maybe_tv(o: dict, st: dict) -> None:
     ch = (res2 or {}).get("channel", 0) if res2 else 0
     named = say_word("television")
     log(f"tv: demonstrated tv-remote cycle to channel {ch} — named={named} at tick {tick}")
+    record_story_moment(st, "auditory", "visual")
 
 
 def maybe_stroll(o: dict, st: dict) -> None:
@@ -644,6 +631,7 @@ def maybe_stroll(o: dict, st: dict) -> None:
             MINE.append(ob.get("live_tick") or 0)
             MINE.append((ob.get("last_occurrence") or {}).get("native_tick"))
     log(f"stroll: stroller carriage offered (stroller={res is not None}, hand_held={touch is not None}, birdsong={sung}/{len(b_blocks)}) at tick {tick}")
+    record_story_moment(st, "auditory", "visual", "tactile", "thermal")
 
 
 def maybe_read(o: dict, st: dict) -> None:
@@ -683,7 +671,6 @@ def maybe_read(o: dict, st: dict) -> None:
     if not made.get("reading"):
         log(f"reading: the caregiver could not bring the book beside her — steps={len(made.get('steps') or [])} last={(made.get('steps') or [None])[-1]}")
         return
-    # Lap holding established during reading: periodic grounding contact with front-torso and palms refreshed throughout story time
     lap = present_food("touch-lap")
     lap_presentation = (((lap or {}).get("observation") or {}).get("last_occurrence") or {}).get("caregiver_presentation") or {}
     lap_touched = lap_presentation.get("touched") if isinstance(lap_presentation, dict) else None
@@ -692,6 +679,7 @@ def maybe_read(o: dict, st: dict) -> None:
     else:
         log("reading: lap holding could not be established; reading beside her")
     log(f"reading: {book['title']}, chapter file {chapter['name']} ({len(blocks)} beats of sound) begins at tick {tick}")
+    record_story_moment(st, "auditory", "visual", "tactile")
     heard = 0
     for i, pcm in enumerate(blocks):
         if os.path.exists(STOP) or os.path.exists(TEACHING):
@@ -727,7 +715,6 @@ def maybe_read(o: dict, st: dict) -> None:
                 keep = present_food(book_pres_id)
                 kept = (((keep or {}).get("observation") or {}).get("last_occurrence") or {}).get("caregiver_presentation") or {}
                 if kept.get("reading"):
-                    # maintain lap holding contact during reading
                     present_food("touch-lap")
                     break
                 time.sleep(2)
@@ -826,8 +813,6 @@ def maybe_music(o: dict, st: dict) -> None:
             return
         st["radio_in_world"] = True
         log(f"radio: brought into her world as {made.get('delivered')}")
-    # The radio comes to where she is when it stands in another room, so the
-    # music is at hand rather than through a doorway.
     emb = (o.get("last_occurrence") or {}).get("embodiment") or {}
     radio = next((ob for ob in (emb.get("objects") or []) if ob.get("object_id") == "radio"), None)
     her_room = emb.get("room_id")
@@ -851,6 +836,7 @@ def maybe_music(o: dict, st: dict) -> None:
         log(f"radio: the library could not give the piece: {err}")
         return
     log(f"radio: {archive} — {track['name']} ({len(blocks)} beats of sound) begins at tick {tick}")
+    record_story_moment(st, "auditory")
     heard = 0
     for i, pcm in enumerate(blocks):
         r = None
@@ -879,7 +865,7 @@ def maybe_music(o: dict, st: dict) -> None:
         st["music_track"] = 0
     else:
         st["music_track"] = track_index + 1
-    json.dump(st, open(STATE, "w"))   # which piece comes next survives a restart
+    json.dump(st, open(STATE, "w"))
     log(f"radio: {heard} of {len(blocks)} beats sounded; next {st.get('music_index', index)}/{st.get('music_track', 0)}")
 
 
@@ -895,6 +881,7 @@ def maybe_lullaby(o: dict, st: dict) -> None:
     blocks = lullaby_blocks()
     sung = sum(1 for pcm in blocks if sing_block(pcm) is not None)
     log(f"lullaby: {sung} of {len(blocks)} blocks reached her (night {nights})")
+    record_story_moment(st, "auditory")
 
 
 def asleep(o: dict) -> bool:
@@ -923,7 +910,7 @@ def maybe_play(o: dict, st: dict) -> None:
     emb = lo.get("embodiment") or {}
     bodies = emb.get("bodies") or []
     if any(b.get("held_object_id") for b in bodies):
-        return  # a hand is busy; no toy now
+        return
     on_floor = {ob.get("object_id") for ob in emb.get("objects") or [] if ob.get("position") is not None}
     choices = [t for t in TOYS if t in on_floor]
     if not choices:
@@ -937,6 +924,10 @@ def maybe_play(o: dict, st: dict) -> None:
         return
     pres = ((res.get("observation") or {}).get("last_occurrence") or {}).get("caregiver_presentation") or {}
     named = say_word(toy) if pres.get("presented") else 0
+    if pres.get("presented"):
+        impact_pcm = material_impact_pcm("wood", intensity=0.8)
+        sing_block(impact_pcm)
+        record_story_moment(st, "tactile", "visual", "auditory", "proprioceptive")
     log(f"play: offered {toy} — presented={pres.get('presented')} steps={len(pres.get('steps') or [])} named={named}")
 
 
@@ -956,6 +947,9 @@ def maybe_playpen_challenge(o: dict, st: dict) -> None:
     res = present_food("playpen-challenge")
     if res is not None:
         pres = ((res.get("observation") or {}).get("last_occurrence") or {}).get("caregiver_presentation") or {}
+        impact_pcm = material_impact_pcm("wood", intensity=0.9)
+        sing_block(impact_pcm)
+        record_story_moment(st, "visual", "proprioceptive", "auditory")
         log(f"challenge: playpen impedance challenge presented at tick {tick} — steps={len(pres.get('steps') or [])}")
         with open(STATE, "w") as f:
             json.dump(st, f)
@@ -976,22 +970,23 @@ def maybe_ladder_challenge(o: dict, st: dict) -> None:
     res = present_food("ladder-challenge")
     if res is not None:
         pres = ((res.get("observation") or {}).get("last_occurrence") or {}).get("caregiver_presentation") or {}
+        impact_pcm = material_impact_pcm("metal", intensity=0.85)
+        sing_block(impact_pcm)
+        record_story_moment(st, "visual", "proprioceptive", "auditory")
         log(f"challenge: backyard ladder affordance challenge presented at tick {tick} — steps={len(pres.get('steps') or [])}")
         with open(STATE, "w") as f:
             json.dump(st, f)
+
 
 def maybe_feed(o: dict, st: dict) -> None:
     """Present a meal when due. Reads her world; decides nothing about her.
     A presentation the world did not allow (a thing boxed in by furniture)
     is remembered so the next candidate is tried at the next clear window."""
     if "tastant_remaining_micrograms" not in json.dumps(o)[:200000]:
-        return  # the feeding route is not live yet; nothing to present
+        return
     tick = o.get("live_tick") or 0
     if tick < (st.get("meal_tick") or 0) + MEAL_TICKS and not st.get("meal_retry"):
         return
-    # Food is offered when she is hungry (her own published reserve deficit
-    # above HUNGRY_DEFICIT); otherwise the caregiver stays home. Presenting
-    # only, never deciding for her.
     deficit = ((o.get("last_occurrence") or {}).get("metabolic_need_reserve_deficit") or [0, 1])
     try:
         hungry = (deficit[0] / deficit[1]) > HUNGRY_DEFICIT if deficit[1] else False
@@ -1007,10 +1002,8 @@ def maybe_feed(o: dict, st: dict) -> None:
     if at_mouth:
         st["meal_retry"] = False
         return
-    foods = [f for f in foods if f not in skip]  # an unreachable apple is not retried; a fresh one is brought instead
+    foods = [f for f in foods if f not in skip]
     if not foods:
-        # Nothing edible within reach: the caregiver brings a fresh meal
-        # from outside (the world's grocery boundary) and presents it.
         cycle_idx = int(st.get("meal_cycle_index") or 0)
         delivery_choice = MEAL_DELIVERY_CYCLE[cycle_idx % len(MEAL_DELIVERY_CYCLE)]
         st["meal_cycle_index"] = cycle_idx + 1
@@ -1029,16 +1022,17 @@ def maybe_feed(o: dict, st: dict) -> None:
     pres = (ob.get("last_occurrence") or {}).get("caregiver_presentation") or {}
     steps = pres.get("steps") or []
     named = say_word(food) if pres.get("presented") else 0
+    if pres.get("presented"):
+        mat = "ceramic" if "milk" in food else "wood"
+        impact_pcm = material_impact_pcm(mat, intensity=0.7)
+        sing_block(impact_pcm)
+        record_story_moment(st, "olfactory", "tactile", "visual", "auditory")
     log(f"meal: named={named} presented {food} — presented={pres.get('presented')} took_away={pres.get('took_away')} "
         f"steps={len(steps)} last={steps[-1] if steps else None}")
     if not pres.get("presented") and food not in MEAL_DELIVERY_CYCLE and food != DELIVERY_ID:
         st["unreachable"] = sorted(skip | {food})
         st["meal_retry"] = len(foods) > 1
-    # An apple the world would not let the caregiver reach stays unreachable
-    # (the furniture around it does not move); it is not retried after a
-    # successful meal elsewhere.
     json.dump(st, open(STATE, "w"))
-
 
 
 def ready_for_lesson(o: dict, st: dict | None = None) -> bool:
@@ -1065,6 +1059,7 @@ def ready_for_lesson(o: dict, st: dict | None = None) -> bool:
     if st is not None and st.get('active_ritual') in ('BEDTIME', 'MEALTIME'):
         return False
     return True
+
 
 def wait_clear(min_tick: int | None = None, st: dict | None = None) -> dict | None:
     """Wait on HER state: gates clear, her clock past min_tick, no
@@ -1105,12 +1100,14 @@ def wait_clear(min_tick: int | None = None, st: dict | None = None) -> dict | No
                     log(f"circadian transition: Day {cur_day + 1} entering {cur_epoch} at tick {cur_tick}")
                     st["circadian_epoch"] = cur_epoch
                     st["circadian_day"] = cur_day
+                    if cur_epoch == "NIGHT_CONSOLIDATION":
+                        st["nocturnal_consolidation_cycles"] = int(st.get("nocturnal_consolidation_cycles") or 0) + 1
+                        moments = st.get("daily_moments_presented", 0)
+                        mods = st.get("active_modalities_stimulated", {})
+                        log(f"consolidation: Night consolidation initiated for Day {cur_day + 1}. Daily story moments presented: {moments}, active modalities: {mods}, total consolidation cycles: {st['nocturnal_consolidation_cycles']}")
                     with open(STATE, "w") as f:
                         json.dump(st, f)
-                maybe_lullaby(o, st)  # once, as she falls asleep
-            # While asleep: nocturnal housekeeping resets displaced items
-            # (bedding back on bed, stray items cleared) and keeps the world
-            # clock advancing. Lessons and meals hold.
+                maybe_lullaby(o, st)
             if asleep(o):
                 if st is not None and not st.get("asleep_logged"):
                     log(f"she is asleep (tick {o.get('live_tick')}); nocturnal housekeeping active")
@@ -1122,9 +1119,6 @@ def wait_clear(min_tick: int | None = None, st: dict | None = None) -> dict | No
             if st is not None and st.get("asleep_logged"):
                 log(f"she is awake (tick {o.get('live_tick')}); the caretaker resumes")
                 st["asleep_logged"] = False
-            # Developmental epochs and rituals: mealtime, playpen novelty, yard exploration,
-            # story & song, and bedtime. Structured routines transform diffuse wandering into
-            # goal-directed intentional planning and cognitive scaffolding.
             if st is not None:
                 lo = o.get("last_occurrence") or {}
                 deficit = lo.get("metabolic_need_reserve_deficit") or [0, 1]
@@ -1161,7 +1155,7 @@ def wait_clear(min_tick: int | None = None, st: dict | None = None) -> dict | No
                 maybe_stroll(o, st)
                 maybe_playpen_challenge(o, st)
                 maybe_ladder_challenge(o, st)
-                maybe_read(o, st)   # a reading does not wait for a clear window: a person on the page does not close her book
+                maybe_read(o, st)
                 maybe_music(o, st)
 
                 if not ready_for_lesson(o, st):
@@ -1221,7 +1215,7 @@ def main() -> None:
                 res = present_block(retina, pcm, focal_b64)
                 if res is None:
                     ok = False
-                    break  # never retried; lesson re-presents next window
+                    break
                 ob = res.get("observation") or {}
                 tick = ob.get("live_tick") or 0
                 MINE.append(tick)
@@ -1236,6 +1230,7 @@ def main() -> None:
             if ok:
                 st["presented"] += 1
                 st["next"] += 1
+                record_story_moment(st, "visual", "auditory")
                 json.dump(st, open(STATE, "w"))
                 end = obs()
                 end_tick = (end or {}).get("live_tick") or 0
@@ -1243,8 +1238,6 @@ def main() -> None:
                 if wait_clear(min_tick=end_tick + QUIET_TICKS, st=st) is None:
                     break
             else:
-                # a refusal means her one mouth is in someone else's use:
-                # hold the recovery window before re-presenting, never fight
                 now = obs()
                 now_tick = (now or {}).get("live_tick") or 0
                 log(f"lesson {lesson['name']} interrupted; holding until her tick {now_tick + PERSON_HOLD_TICKS}, then re-present")
