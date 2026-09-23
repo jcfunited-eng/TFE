@@ -280,10 +280,14 @@ def _apply(world: Any, decision: Decision, before: Any) -> tuple[PreparedActionE
             "target": decision.target_object_id, "world_revision": before.revision,
             "world_state_before_sha256": before.state_sha256,
         })
-        prepared = world.prepare_port_command(
-            port_id=PORT_ID, command_payload=encode_command(command),
-            causal_intent_receipt_sha256=intent, expected_revision=before.revision,
-        )
+        try:
+            prepared = world.prepare_port_command(
+                port_id=PORT_ID, command_payload=encode_command(command),
+                causal_intent_receipt_sha256=intent, expected_revision=before.revision,
+            )
+        except ValueError as collision_error:
+            refused.append(str(collision_error))
+            continue
         if isinstance(prepared, ActionExecutionReceipt):
             refused.append(prepared.reason)
             continue
@@ -424,6 +428,7 @@ class FunctionalPhysicalLoop:
                             heard_profile, heard_frames, external_heard, heard_envelopes = _hearing(pressure)
                 else:
                     heard_profile, heard_frames, external_heard, heard_envelopes = _hearing(pressure)
+            # Self-hearing (reafference): her own throat sounded in her ears.
             self_profile = None
             own_frames: tuple[tuple[float, ...], ...] = ()
             own_envelopes: tuple[tuple[float, ...], ...] = ()
