@@ -14,6 +14,7 @@ from __future__ import annotations
 
 from dataclasses import replace
 import hashlib
+import heapq
 import json
 import math
 import struct
@@ -347,6 +348,105 @@ class _Bounded(Exception):
     """The presentation used up its bounded steps; it ends where it stands."""
 
 
+
+
+def _negative_space_path_for_hand(snapshot: Any, person: Any, origin: PositionMM, goal: PositionMM) -> list[PositionMM] | None:
+    here = _region_of(snapshot, origin, person.radius_mm)
+    if here is None:
+        return None
+    carried_radius = person.radius_mm
+    if person.held_object_id is not None:
+        held_obj = next((o for o in snapshot.objects if o.object_id == person.held_object_id), None)
+        if held_obj is not None:
+            carried_radius = max(carried_radius, int(held_obj.radius_mm))
+
+    room_obs = []
+    for item in snapshot.objects:
+        if item.position is None:
+            continue
+        if _distance_mm(item.position, goal) == 0:
+            continue
+        room_obs.append((item.position, int(item.radius_mm)))
+    for other in snapshot.bodies:
+        if other.body_id == person.body_id:
+            continue
+        if _distance_mm(other.pose.position, goal) == 0:
+            continue
+        room_obs.append((other.pose.position, int(other.radius_mm)))
+
+    if not any(_straight_path_intersects_disc(origin, goal, opos, carried_radius + orad) for opos, orad in room_obs):
+        return [origin, goal]
+
+    bounds = here.bounds
+    min_x = bounds.minimum.x + carried_radius
+    max_x = bounds.maximum.x - carried_radius
+    min_y = bounds.minimum.y + carried_radius
+    max_y = bounds.maximum.y - carried_radius
+
+    waypoints = [origin, goal]
+    for pos, rad in room_obs:
+        rc = carried_radius + rad + 150
+        for k in range(16):
+            ang = 2 * math.pi * k / 16.0
+            wx = round(pos.x + rc * math.cos(ang))
+            wy = round(pos.y + rc * math.sin(ang))
+            if not (min_x <= wx <= max_x and min_y <= wy <= max_y):
+                continue
+            wp = PositionMM(wx, wy, origin.z)
+            if any(_distance_mm(wp, opos) < carried_radius + orad + 50 for opos, orad in room_obs):
+                continue
+            waypoints.append(wp)
+
+    step_x = (max_x - min_x) // 6
+    step_y = (max_y - min_y) // 6
+    if step_x > 0 and step_y > 0:
+        for ix in range(1, 6):
+            for iy in (1, 5):
+                wp = PositionMM(min_x + ix * step_x, min_y + iy * step_y, origin.z)
+                if not any(_distance_mm(wp, opos) < carried_radius + orad + 50 for opos, orad in room_obs):
+                    waypoints.append(wp)
+
+    adj: dict[PositionMM, list[tuple[float, PositionMM]]] = {wp: [] for wp in waypoints}
+    for i, w1 in enumerate(waypoints):
+        for j in range(i + 1, len(waypoints)):
+            w2 = waypoints[j]
+            blocked = False
+            for opos, orad in room_obs:
+                req_r = carried_radius + orad if (w1 == origin or w2 == origin or w1 == goal or w2 == goal) else (carried_radius + orad + 50)
+                if _straight_path_intersects_disc(w1, w2, opos, req_r):
+                    blocked = True
+                    break
+            if not blocked:
+                d = _distance_mm(w1, w2)
+                adj[w1].append((d, w2))
+                adj[w2].append((d, w1))
+
+    dist_map = {wp: float('inf') for wp in waypoints}
+    dist_map[origin] = 0.0
+    parent: dict[PositionMM, PositionMM] = {}
+    pq: list[tuple[float, int, PositionMM]] = [(0.0, id(origin), origin)]
+    while pq:
+        d, _, u = heapq.heappop(pq)
+        if d > dist_map[u]:
+            continue
+        if u == goal:
+            break
+        for edge_d, v in adj[u]:
+            if d + edge_d < dist_map[v]:
+                dist_map[v] = d + edge_d
+                parent[v] = u
+                heapq.heappush(pq, (dist_map[v], id(v), v))
+
+    if goal not in parent:
+        return None
+    curr = goal
+    path = [curr]
+    while curr != origin:
+        curr = parent[curr]
+        path.append(curr)
+    path.reverse()
+    return path
+
 class _Hand:
     def __init__(self, world: Any, object_id: str) -> None:
         self.world = world
@@ -440,6 +540,18 @@ class _Hand:
             return True
         if not detour or reason not in ("move_path_intersects_object", "move_path_intersects_body"):
             return False
+
+        path = _negative_space_path_for_hand(snapshot, person, origin, target)
+        if path is not None and len(path) > 2:
+            applied_all = True
+            for wp in path[1:]:
+                wp_heading = heading if wp == target and heading is not None else None
+                if self.leg(wp, wp_heading) != "applied":
+                    applied_all = False
+                    break
+            if applied_all:
+                return True
+
         dx, dy = target.x - origin.x, target.y - origin.y
         span = (dx * dx + dy * dy) ** 0.5
         if span == 0:
@@ -605,7 +717,7 @@ class _Hand:
             if not target_in_doorway and in_doorway(snapshot, spot, region.region_id, DOORWAY_CLEARANCE_MM):
                 continue
             heading = _heading_toward(spot, face if face is not None else target)
-            if self.move(spot, heading, detour=index < len(candidates) + 2):
+            if self.move(spot, heading, detour=True):
                 return True
         return False
 
