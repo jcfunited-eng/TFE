@@ -1407,9 +1407,17 @@ export async function runSentinel() {
       try {
         const clockEntry = livePosEntry ?? parseFloat(pos.entry_filled_price ?? "0");
         if (posEntryDate && clockEntry > 0) {
+          // Closed SESSIONS come from daily_bars (one row per ticker per
+          // trading day, provider bars). Until 2026-09-24 this read
+          // runtime_bars_daily, whose bar_date is the date the nightly sync
+          // RAN, not the session: weekends and stalled syncs repeated the
+          // same close under new dates (MSBI 09-17/18/19 all 33.33 while the
+          // real 09-17 close, 33.63, never appeared), so the clock counted
+          // calendar rows and could miss the very heal that ends an episode.
+          // Receipt: docs/CH2_READING_FRESHNESS_20260924.md
           const barsRes = await pool.query(
             `SELECT bar_date::text AS date, close
-               FROM runtime_bars_daily
+               FROM daily_bars
               WHERE ticker = $1
                 AND bar_date >= $2::date
                 AND bar_date < (NOW() AT TIME ZONE 'America/New_York')::date

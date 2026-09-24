@@ -2965,14 +2965,29 @@ async function normalizeStatus(): Promise<RefreshStatusRecord> {
   }
 }
 
+// Nightly refresh mode. 2026-09-24 (Claude, receipt in
+// docs/CH2_READING_FRESHNESS_20260924.md): the targeted PFSC path recomputes
+// only symbols with regime != STABLE or < 514 bars — 6,752 of 11,685 on the
+// 09-24 run — and CLONES the other 4,852 from the previous night. Those names
+// got a fresh kernel reading once a week (the Sunday full run); Monday to
+// Saturday CH2 was buying and holding them on readings up to six sessions old
+// (IVZ, MSBI, VALE, RBC, BAM, SNY held on 09-18 readings on 09-24). The
+// rebuild runs in-process with no kill budget; last night recomputed ~6,300
+// names in 2,018 s, so the full universe is about an hour. No model calls.
+// Set TFE_SNAPSHOT_REFRESH_MODE=targeted_pfsc to go back.
+const SNAPSHOT_REFRESH_MODE_ENV = "TFE_SNAPSHOT_REFRESH_MODE";
+
+export function resolveSnapshotRefreshMode(raw: string | undefined): "full_universe" | "targeted_pfsc" {
+  return String(raw ?? "").trim().toLowerCase() === "targeted_pfsc" ? "targeted_pfsc" : "full_universe";
+}
+
 function buildRefreshArgs(mode: RefreshMode): string[] {
   const args = [REFRESH_SCRIPT];
 
   if (mode === "snapshot") {
-    // Investor-facing snapshot refresh should use the targeted PFSC path so
-    // the serving publication can refresh in minutes instead of rebuilding the
-    // full universe.
-    args.push("--refresh-mode", "targeted_pfsc", "--skip-l5-learning");
+    // Nightly: every symbol through the kernel, no universe re-pull, no L5
+    // learning. The weekly universe_snapshot still re-pulls the ticker list.
+    args.push("--refresh-mode", resolveSnapshotRefreshMode(process.env[SNAPSHOT_REFRESH_MODE_ENV]), "--skip-l5-learning");
     return args;
   }
 
