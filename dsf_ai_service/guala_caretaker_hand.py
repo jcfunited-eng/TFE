@@ -504,20 +504,31 @@ class _Hand:
         )
 
     def set_down(self, object_id: str) -> bool:
-        """Put what the caregiver carries on the floor beside it: the first
-        spot around it, near first, that the world's place law accepts."""
+        """Place a carried object outside the released body's footprint.
+
+        Existing near-first directions are retained, including the actual reach
+        boundary for objects too wide for the smaller rings. Impossible self
+        overlap and out-of-reach points do not consume physical refusal work.
+        The world still decides every attempted placement and swept-path check.
+        """
 
         snapshot = self.snapshot()
         her, person = self.bodies(snapshot)
+        item = next((obj for obj in snapshot.objects if obj.object_id == object_id), None)
+        if item is None or person.held_object_id != object_id:
+            return False
         origin = person.pose.position
         region = _region_of(snapshot, origin, person.radius_mm)
+        clearance_squared = (person.radius_mm + item.radius_mm) ** 2
+        reach_squared = person.reach_mm ** 2
         spots = []
-        for radius in (450, 600, 750):
+        for radius in sorted({450, 600, 750, person.reach_mm}):
             for turn in (-90_000, 90_000, 0, 180_000, -45_000, 45_000, -135_000, 135_000):
                 angle = math.radians(((person.pose.heading_millidegrees + turn) % 360_000) / 1_000)
-                spot = PositionMM(round(origin.x + radius * math.cos(angle)), round(origin.y + radius * math.sin(angle)), 0)
-                # Never in a doorway's approach (a thing on the floor blocks a
-                # walking body), and away from her rather than at her feet.
+                spot = PositionMM(origin.x + int(radius * math.cos(angle)), origin.y + int(radius * math.sin(angle)), 0)
+                separation_squared = (spot.x - origin.x) ** 2 + (spot.y - origin.y) ** 2
+                if not clearance_squared <= separation_squared <= reach_squared:
+                    continue
                 if region is not None and in_doorway(snapshot, spot, region.region_id, SET_DOWN_DOOR_CLEARANCE_MM):
                     continue
                 spots.append((radius, -_distance_mm(spot, her.pose.position), spot))
@@ -1098,14 +1109,22 @@ def present_food(world: Any, object_id: str) -> dict[str, object]:
         outcome["reading"] = reading
         return outcome
     delivered = None
-    if object_id == DELIVERY_ID:
-        delivered = deliver_apple(world)
-        if delivered is None:
-            return {"object_id": object_id, "presented": False, "took_away": None, "delivered": None,
-                    "schema": "guala.caregiver_presentation.v1", "steps": [{"operation": "deliver", "reason": "arrival_refused", "to": None}]}
-        object_id = delivered
     hand = _Hand(world, object_id)
     try:
+        if object_id == DELIVERY_ID:
+            # Free the carrying envelope before groceries arrive beside it.
+            # Otherwise the arrival can obstruct every swept set-down path.
+            _her, person = hand.bodies(hand.snapshot())
+            if person.held_object_id is not None and not hand.set_down(person.held_object_id):
+                return {"object_id": object_id, "presented": False, "took_away": None, "delivered": None,
+                        "schema": "guala.caregiver_presentation.v1", "steps": hand.steps}
+            delivered = deliver_apple(world)
+            if delivered is None:
+                hand.steps.append({"operation": "deliver", "reason": "arrival_refused", "to": None})
+                return {"object_id": object_id, "presented": False, "took_away": None, "delivered": None,
+                        "schema": "guala.caregiver_presentation.v1", "steps": hand.steps}
+            object_id = delivered
+            hand.object_id = object_id
         outcome = hand.present()
     except _Bounded:
         hand.steps.append({"operation": "bound", "reason": "presentation_steps_exhausted", "to": None})

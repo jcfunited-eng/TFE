@@ -230,8 +230,9 @@ def _restore_production_actor() -> LeanOrganismActor:
     world = home_world_authority(
         identity=current.identity,
         encoded_world=restored.world,
-        migrate_physical_return=True,
-        expand_library=True,
+        # Ordinary release restores the lived world exactly. Schema migration
+        # and home renovation are separate authorized operations, not startup.
+        migrate_physical_return=False,
     )
     current_world = bytes(world.encoded_snapshot())
     # One startup-only receipt of the validated bytes actually read. It precedes

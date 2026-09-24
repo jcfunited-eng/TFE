@@ -6437,14 +6437,19 @@ class EmbodimentWorldAuthority:
             if _distance_squared(body.pose.position, command.target_position) > body.reach_mm**2:
                 return None, "place_out_of_reach"
             for other in bodies:
+                # The placed object no longer occupies the releasing body.
+                # Count its radius once, at the destination; other bodies still
+                # carry their own objects and retain their occupied footprints.
+                other_radius = (
+                    other.radius_mm if other.body_id == body.body_id
+                    else occupied_radius(other)
+                )
                 other_region = self._region_containing(
-                    world.regions,
-                    other.pose.position,
-                    occupied_radius(other),
+                    world.regions, other.pose.position, other_radius,
                 )
                 if other_region == target_region and _floor_discs_overlap(
                     other.pose.position,
-                    occupied_radius(other),
+                    other_radius,
                     command.target_position,
                     item.radius_mm,
                 ):
