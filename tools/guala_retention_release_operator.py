@@ -80,3 +80,4 @@ elif mode == "backup":
         "bytes":destination.stat().st_size,"current":asdict(pair.pointer.current)}),flush=True)
 else:
     raise ValueError("unknown operator mode")
+
