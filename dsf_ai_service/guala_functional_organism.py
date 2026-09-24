@@ -51,6 +51,7 @@ from dsf_ai_service.affordance_planner import (
 from dsf_ai_service.episodic_binding_engine import (
     compute_somatic_salience,
     evaluate_anticipatory_consequence,
+    find_supported_continuation,
     should_consolidate,
 )
 from dsf_ai_service.guala_voice import ONSETS, PITCHES_DECIHERTZ, VOWELS, syllable_pcm as airway_syllable_pcm
@@ -1044,6 +1045,22 @@ def candidates(
 
 
 
+
+def _extract_sensory_key_from_options(held_object_id: str | None, options: Sequence[tuple] | None) -> str:
+    if held_object_id is not None:
+        food_t = str(held_object_id).split("-")[0]
+        return f"held|{food_t}|reach"
+    if options:
+        has_grasp = next((opt for opt in options if opt[0] == "grasp"), None)
+        if has_grasp is not None:
+            food_t = str(has_grasp[3] or "food").split("-")[0]
+            return f"none|{food_t}|reach"
+        has_toward = next((opt for opt in options if opt[0] == "toward_food"), None)
+        if has_toward is not None:
+            food_t = str(has_toward[3] or "food").split("-")[0]
+            return f"none|{food_t}|far"
+    return "none|none|none"
+
 class FunctionalOrganism:
     """One organism: bounded state, pure decisions, exact encoding."""
 
@@ -1721,6 +1738,59 @@ class FunctionalOrganism:
         self._sensorimotor_mesh.step_polarization(sensed.heard_frames)
         self._sync_sensorimotor_mesh()
         self._form_moments(body, measures, tick)
+
+        # Cognitive Asset 1: Complete and finalize in-flight transition from previous beat
+        pending_trans = state.get("pending_transition")
+        if pending_trans:
+            pre_key = pending_trans.get("pre_key")
+            app_act = pending_trans.get("applied_action")
+            refused = pending_trans.get("refusal")
+            tgt_id = pending_trans.get("target_id")
+            intake_val = int(pending_trans.get("intake", 0))
+            relief_val = pending_trans.get("relief")
+
+            # Invariant post-action state
+            tgt_name = str(tgt_id or "food").split("-")[0]
+            if app_act == "grasp" and not refused:
+                succ_sensory_key = f"held|{tgt_name}|reach"
+            elif app_act == "toward_food" and not refused:
+                # Check if arrived in reach of target
+                snap_tgt = next((obj for obj in snapshot.objects if obj.object_id == tgt_id), None) if hasattr(snapshot, "objects") else None
+                in_reach_now = bool(snap_tgt and in_hand_reach(snapshot, snap_tgt))
+                succ_sensory_key = f"none|{tgt_name}|reach" if in_reach_now else f"none|{tgt_name}|far"
+            elif app_act == "bite" and not refused:
+                succ_sensory_key = f"held|{tgt_name}|reach"
+            else:
+                succ_sensory_key = pre_key
+
+            if pre_key and app_act and not refused:
+                moments_dict = state.setdefault("moments", {})
+                m_entry = moments_dict.setdefault(pre_key, {
+                    "count": 0, "tick": tick, "held": "held" if body.held_object_id else "none",
+                    "figure": tgt_name,
+                    "room": state.get("room_now") or "unknown", "context": [0, 0, 0],
+                    "next": {}, "acts": {}, "fed": 0, "source": "sensory", "salience": 0.8,
+                })
+                m_entry["count"] = int(m_entry.get("count", 0)) + 1
+                transitions = m_entry.setdefault("transitions", {})
+                act_map = transitions.setdefault(app_act, {})
+                succ_info = act_map.setdefault(succ_sensory_key, {"count": 0, "target_id": tgt_id})
+                succ_info["count"] = int(succ_info["count"]) + 1
+                if tgt_id:
+                    succ_info["target_id"] = tgt_id
+
+                if intake_val > 0 or relief_val:
+                    consequences = m_entry.setdefault("consequences", {})
+                    consequences[app_act] = {
+                        "intake": intake_val,
+                        "relief": relief_val or ("feeding" if intake_val > 0 else None),
+                        "target_id": tgt_id,
+                    }
+                    m_entry["fed"] = int(m_entry.get("fed", 0)) + 1
+                    m_entry["salience"] = 1.0
+
+            state["pending_transition"] = None
+
         if sensed.self_profile is not None and sum(sensed.self_profile) > 0:
             pending = state.get("pending_act")
             if pending is not None and pending.get("act") == "say":
@@ -1738,6 +1808,24 @@ class FunctionalOrganism:
 
         def decision(act: str, reason: str, commands: tuple[Any, ...] = (), target: str | None = None, drive: tuple[int, int, int] | None = None) -> Decision:
             state["gaze_target"] = target   # what she acts on is what her head turns to next beat
+            tgt_name = str(target or body.held_object_id or "food").split("-")[0]
+            if body.held_object_id is not None or act == "bite":
+                cur_pre_key = f"held|{tgt_name}|reach"
+            elif act == "grasp":
+                cur_pre_key = f"none|{tgt_name}|reach"
+            elif act == "toward_food":
+                cur_pre_key = f"none|{tgt_name}|far"
+            else:
+                cur_pre_key = "none|none|none"
+            state["pending_transition"] = {
+                "pre_key": cur_pre_key,
+                "action": act,
+                "target_id": target,
+                "applied_action": None,
+                "refusal": None,
+                "intake": 0,
+                "relief": None,
+            }
             return Decision(act, reason, commands, target, drive, signature, novel, gate_count, seen)
 
         if feeding:
@@ -2191,6 +2279,8 @@ class FunctionalOrganism:
                 "next": dict(entry.get("next", {})),
                 "fed": int(entry.get("fed", 0)),
                 "salience": round(salience, 4),
+                "transitions": {a: dict(m) for a, m in entry.get("transitions", {}).items()},
+                "consequences": {a: dict(c) for a, c in entry.get("consequences", {}).items()},
             }
         else:
             kept["count"] = int(kept["count"]) + int(entry["count"])
@@ -2211,6 +2301,19 @@ class FunctionalOrganism:
                 following[other] = int(following.get(other, 0)) + int(count)
             while len(following) > FOLLOW_CAPACITY:
                 del following[min(following, key=lambda k: (int(following[k]), k))]
+
+            # Consolidate empirical transitions and consequences
+            stored_trans = kept.setdefault("transitions", {})
+            for act_name, succ_map in entry.get("transitions", {}).items():
+                cur_act_map = stored_trans.setdefault(act_name, {})
+                for succ_key, info in succ_map.items():
+                    if succ_key not in cur_act_map:
+                        cur_act_map[succ_key] = dict(info) if isinstance(info, dict) else {"count": int(info), "target_id": None}
+                    else:
+                        cur_act_map[succ_key]["count"] = int(cur_act_map[succ_key]["count"]) + (int(info["count"]) if isinstance(info, dict) else int(info))
+            stored_cons = kept.setdefault("consequences", {})
+            for act_name, c_info in entry.get("consequences", {}).items():
+                stored_cons[act_name] = dict(c_info)
         while len(meanings) > MEANING_CAPACITY:
             del meanings[min(meanings, key=lambda k: (int(meanings[k]["count"]), int(meanings[k]["tick"]), k))]   # the least counted leaves
 
@@ -2344,53 +2447,62 @@ class FunctionalOrganism:
         body_pos = self._state.get("body_pos")
         deficit = float(self.deficit)
 
-        act_targets: dict[str, list[str]] = {}
-        if candidate_options:
-            for opt in candidate_options:
-                opt_act = opt[0]
-                opt_tgt = opt[3]
-                if opt_tgt:
-                    act_targets.setdefault(opt_act, []).append(opt_tgt)
-
+        # Cognitive Asset 1: Anticipatory Trauma Veto & Direct Sensory Affordance Promotion
         if meanings and acts:
             vetoed = set()
             promoted = []
             for candidate in acts:
-                targets = act_targets.get(candidate, [None])
-                best_val = 0.0
-                best_reason = None
-                best_tgt = None
-                for tgt in targets:
-                    val, reason = evaluate_anticipatory_consequence(
-                        candidate,
-                        visual_figure=fig,
-                        acoustic_event=str(last_ev),
-                        room=cur_room,
-                        meanings=meanings,
-                        target_id=tgt,
-                        body_position=body_pos,
-                        conserved_objects=conserved,
-                        somatic_deficit=deficit,
-                    )
-                    if val < -0.35:
-                        vetoed.add(candidate)
-                    if val > best_val:
-                        best_val = val
-                        best_reason = reason
-                        best_tgt = tgt
-                if best_val > 0.35:
-                    promoted.append((best_val, candidate, best_reason, best_tgt))
+                val, promo_reason = evaluate_anticipatory_consequence(
+                    candidate,
+                    visual_figure=fig,
+                    acoustic_event=str(last_ev),
+                    room=cur_room,
+                    meanings=meanings,
+                )
+                if val < -0.35:
+                    vetoed.add(candidate)
+                elif val > 0.35:
+                    promoted.append((val, candidate, promo_reason))
 
             viable_acts = [a for a in acts if a not in vetoed]
             if viable_acts and len(viable_acts) < len(acts):
                 acts = viable_acts
             if promoted:
                 promoted.sort(key=lambda x: x[0], reverse=True)
-                _val, best_act, reason_text, best_tgt = promoted[0]
+                _val, best_act, reason_text = promoted[0]
                 if best_act in acts:
-                    if best_tgt:
-                        self._state["planned_target_id"] = best_tgt
                     return best_act, "structure " + key[:6] + f": {reason_text}"
+
+        # Cognitive Asset 1: Learned Closed-Loop Continuation Selector
+        feeding = self._state.get("feeding") or self.reserve_micrograms < CAPACITY_MICROGRAMS * HUNGRY_BELOW
+        if self.reserve_micrograms >= CAPACITY_MICROGRAMS * SATED_ABOVE:
+            feeding = False
+
+        held_obj = self._state.get("held_object_id")
+        cur_sensory_key = _extract_sensory_key_from_options(held_obj, candidate_options)
+        target_figures = {obj_id: c_data.get("figure_key") for obj_id, c_data in conserved.items() if "figure_key" in c_data}
+
+        if feeding and meanings and candidate_options:
+            body_pos = self._state.get("body_pos")
+            target_positions = {obj_id: c_data["position"] for obj_id, c_data in conserved.items() if "position" in c_data}
+
+            supported_cand = find_supported_continuation(
+                cur_sensory_key,
+                "feeding",
+                meanings,
+                candidate_options,
+                current_figure=fig,
+                current_held="held" if held_obj else "none",
+                body_position=body_pos,
+                target_positions=target_positions,
+                target_figures=target_figures,
+            )
+            if supported_cand is not None:
+                c_act, c_detail, _cmds, c_tgt, _drv = supported_cand
+                if c_act in acts:
+                    if c_tgt:
+                        self._state["planned_target_id"] = c_tgt
+                    return c_act, "structure " + key[:6] + f": learned continuation toward {c_tgt or c_act} ({c_detail})"
 
         # Cognitive Asset 6: Unified Structural Boredom & Distal Interest Potential Manifold
         dwell_beats = int(self._state.get("room_dwell_beats", 0))
@@ -2498,6 +2610,7 @@ class FunctionalOrganism:
             if last is not None and tick_now - int(last[1]) <= FOLLOW_WINDOW_BEATS and last[0] in (state.get("moments") or {}):
                 mom_entry = state["moments"][last[0]]
                 mom_entry["fed"] = int(mom_entry.get("fed", 0)) + 1
+                mom_entry["count"] = int(mom_entry.get("count", 1)) + 1
                 if decision.target_object_id:
                     mom_entry["target_object_id"] = decision.target_object_id
                     conserved = state.get("conserved_objects", {})
@@ -2509,6 +2622,12 @@ class FunctionalOrganism:
                 act_stat = acts_rec.setdefault("bite", [0, 0.0])
                 act_stat[0] += 1
                 act_stat[1] = round(act_stat[1] + min(1.0, intake / 100_000.0), 4)
+                consequences = mom_entry.setdefault("consequences", {})
+                consequences["bite"] = {
+                    "intake": intake,
+                    "relief": "feeding",
+                    "target_id": decision.target_object_id,
+                }
         geom = getattr(self, "_receptor_geometry", None)
         nociception_span = max(1, int(geom.touch_temperature_max_millikelvin) - NOCICEPTION_MILLIKELVIN) if geom is not None else 23_000
         action_pain = _clamp((contact_millikelvin - NOCICEPTION_MILLIKELVIN) / float(nociception_span), 0.0, 1.0) if contact_millikelvin is not None else 0.0
@@ -2523,6 +2642,14 @@ class FunctionalOrganism:
                 act_stat[0] += 1
                 act_stat[1] = round(act_stat[1] - action_pain, 4)
         state["taste_residue"] = round(float(state.get("taste_residue", 0.0)) * 0.95, 6)
+
+        pending_trans = state.get("pending_transition")
+        if pending_trans is not None:
+            pending_trans["applied_action"] = applied_action
+            pending_trans["refusal"] = refusal
+            pending_trans["intake"] = intake
+            if intake > 0:
+                pending_trans["relief"] = "feeding"
 
         pending = state.get("pending_act")
         if pending is not None:
