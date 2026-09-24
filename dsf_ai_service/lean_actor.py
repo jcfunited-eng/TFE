@@ -417,9 +417,11 @@ class LeanOrganismActor:
                 or hashlib.sha256(pressure_body).hexdigest() != pressure_sha256
             ):
                 raise RuntimeError("physical pressure receipt changed")
-        readiness = self._runtime.readiness()
+        runtime_identity = getattr(self._runtime, "identity", None)
+        if runtime_identity is None and hasattr(self._runtime, "readiness"):
+            runtime_identity = self._runtime.readiness().identity
         live_tick = self._live_tick()
-        if readiness.identity != self._pointer.current.identity:
+        if runtime_identity != self._pointer.current.identity:
             raise RuntimeError("organism identity changed after settlement")
         if live_tick - before_tick != result.native_interval_count:
             raise RuntimeError("physical settlement changed native interval count")

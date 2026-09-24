@@ -30,7 +30,7 @@ from dsf_ai_service.lean_sensory_occurrence import LeanSensoryOccurrence
 # sixteen seconds instead of blocking perception behind continuous encoding.
 CHECKPOINT_EVERY_INTERVALS = 32
 UNATTENDED_INTERVAL_SECONDS = 0.25
-MAILBOX_CAPACITY = 1
+MAILBOX_CAPACITY = 4
 # Occurrence envelope (vision upgrade, 2026-09-13; drive organ, 2026-09-13).
 # The HTTP contract is JSON, not raw bytes: the worst admissible body is now
 # guided-body-microphone carrying the 2,709-value retina (all 255) + 8,000 B

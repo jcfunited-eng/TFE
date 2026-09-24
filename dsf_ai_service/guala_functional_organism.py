@@ -694,6 +694,88 @@ def _object(snapshot: Any, object_id: str) -> Any | None:
     return next((item for item in snapshot.objects if item.object_id == object_id), None)
 
 
+_OBSTACLE_VISIBILITY_GRAPH_CACHE: dict[tuple, tuple[list[PositionMM], dict[PositionMM, list[tuple[float, PositionMM]]]]] = {}
+
+
+def _get_or_build_static_obstacle_graph(
+    here: Any,
+    carried_radius: int,
+    floor_z: int,
+    room_obs: list[tuple[PositionMM, int, str]],
+    snapshot: Any,
+) -> tuple[list[PositionMM], dict[PositionMM, list[tuple[float, PositionMM]]]]:
+    """Bounded, deterministically invalidated cache of static obstacle visibility
+    graphs within a room. Strictly invalidates when furniture, doors, bodies,
+    carried-object clearance, or room bounds change."""
+    bounds_key = (
+        (here.region_id, here.bounds.minimum.x, here.bounds.maximum.x, here.bounds.minimum.y, here.bounds.maximum.y, floor_z)
+        if here is not None else None
+    )
+    portals_key = (
+        tuple(sorted((p.portal_id, p.axis, p.plane_mm, p.aperture_min_mm, p.aperture_max_mm)
+                     for p in getattr(snapshot, "portals", ()) if here is not None and here.region_id in p.region_ids))
+    )
+    obs_key = tuple(sorted((item_id, pos.x, pos.y, rad) for pos, rad, item_id in room_obs))
+    cache_key = (bounds_key, carried_radius, obs_key, portals_key)
+
+    cached = _OBSTACLE_VISIBILITY_GRAPH_CACHE.get(cache_key)
+    if cached is not None:
+        return cached
+
+    if here is not None:
+        bounds = here.bounds
+        min_x = bounds.minimum.x + carried_radius
+        max_x = bounds.maximum.x - carried_radius
+        min_y = bounds.minimum.y + carried_radius
+        max_y = bounds.maximum.y - carried_radius
+    else:
+        min_x, max_x, min_y, max_y = -100_000, 100_000, -100_000, 100_000
+
+    waypoints: list[PositionMM] = []
+    for pos, rad, _ in room_obs:
+        rc = carried_radius + rad + DROP_MARGIN_MM + 50
+        for k in range(16):
+            ang = 2 * math.pi * k / 16.0
+            wx = round(pos.x + rc * math.cos(ang))
+            wy = round(pos.y + rc * math.sin(ang))
+            if not (min_x <= wx <= max_x and min_y <= wy <= max_y):
+                continue
+            wp = PositionMM(wx, wy, floor_z)
+            if any(_distance_mm(wp, opos) < carried_radius + orad + DROP_MARGIN_MM for opos, orad, _ in room_obs):
+                continue
+            waypoints.append(wp)
+
+    step_x = (max_x - min_x) // 6
+    step_y = (max_y - min_y) // 6
+    if step_x > 0 and step_y > 0:
+        for ix in range(1, 6):
+            for iy in (1, 5):
+                wp = PositionMM(min_x + ix * step_x, min_y + iy * step_y, floor_z)
+                if not any(_distance_mm(wp, opos) < carried_radius + orad + DROP_MARGIN_MM for opos, orad, _ in room_obs):
+                    waypoints.append(wp)
+
+    adj: dict[PositionMM, list[tuple[float, PositionMM]]] = {wp: [] for wp in waypoints}
+    for i, w1 in enumerate(waypoints):
+        for j in range(i + 1, len(waypoints)):
+            w2 = waypoints[j]
+            blocked = False
+            for opos, orad, _ in room_obs:
+                req_r = carried_radius + orad + DROP_MARGIN_MM
+                if _straight_path_intersects_disc(w1, w2, opos, req_r):
+                    blocked = True
+                    break
+            if not blocked:
+                d = _distance_mm(w1, w2)
+                adj[w1].append((d, w2))
+                adj[w2].append((d, w1))
+
+    if len(_OBSTACLE_VISIBILITY_GRAPH_CACHE) > 32:
+        _OBSTACLE_VISIBILITY_GRAPH_CACHE.clear()
+    result = (waypoints, adj)
+    _OBSTACLE_VISIBILITY_GRAPH_CACHE[cache_key] = result
+    return result
+
+
 def move_commands_toward(snapshot: Any, target: PositionMM, stop_mm: int) -> tuple[MoveCommand, ...]:
     """One stride toward target (turning to face it), or deterministic
     negative-space visibility path strides around intervening rigid obstacles,
@@ -716,11 +798,20 @@ def move_commands_toward(snapshot: Any, target: PositionMM, stop_mm: int) -> tup
     carried_radius = max(int(body.radius_mm), held_radius)
     here = _region_of(snapshot, origin, body.radius_mm)
 
+    playpen = next((item for item in snapshot.objects if item.object_id == "playpen" and item.position is not None), None)
+    in_playpen = False
+    if playpen is not None:
+        start_dist = math.hypot(origin.x - playpen.position.x, origin.y - playpen.position.y)
+        if start_dist + carried_radius <= playpen.radius_mm:
+            in_playpen = True
+
     room_obs: list[tuple[PositionMM, int, str]] = []
     for item in snapshot.objects:
-        if item.position is None or _is_bed(item) or _is_contained_or_seated(item):
+        if item.position is None or _is_bed(item):
             continue
         if _distance_mm(item.position, target) == 0:
+            continue
+        if item.object_id == "playpen" and in_playpen:
             continue
         room_obs.append((item.position, int(item.radius_mm), item.object_id))
     for other in snapshot.bodies:
@@ -741,59 +832,36 @@ def move_commands_toward(snapshot: Any, target: PositionMM, stop_mm: int) -> tup
             step = PositionMM(round(origin.x + stride * math.cos(rad)), round(origin.y + stride * math.sin(rad)), origin.z)
             if here is not None and not here.bounds.contains_floor_disc(step, carried_radius):
                 continue
+            if in_playpen and playpen is not None:
+                step_dist = math.hypot(step.x - playpen.position.x, step.y - playpen.position.y)
+                if step_dist + carried_radius > playpen.radius_mm:
+                    continue
             if any(_straight_path_intersects_disc(origin, step, opos, carried_radius + orad) for opos, orad, _ in room_obs):
                 continue
             commands.append(MoveCommand(PoseMM(step, bearing), BEAT_MICROSECONDS))
         if commands:
             return tuple(commands)
 
-    # Negative-space continuous path planning within room
-    waypoints: list[PositionMM] = [origin, goal]
-    if here is not None:
-        bounds = here.bounds
-        min_x = bounds.minimum.x + carried_radius
-        max_x = bounds.maximum.x - carried_radius
-        min_y = bounds.minimum.y + carried_radius
-        max_y = bounds.maximum.y - carried_radius
-    else:
-        min_x, max_x, min_y, max_y = -100_000, 100_000, -100_000, 100_000
+    # Negative-space continuous path planning within room (bounded obstacle visibility reuse)
+    static_wps, static_adj = _get_or_build_static_obstacle_graph(here, carried_radius, origin.z, room_obs, snapshot)
 
-    for pos, rad, _ in room_obs:
-        rc = carried_radius + rad + DROP_MARGIN_MM + 50
-        for k in range(16):
-            ang = 2 * math.pi * k / 16.0
-            wx = round(pos.x + rc * math.cos(ang))
-            wy = round(pos.y + rc * math.sin(ang))
-            if not (min_x <= wx <= max_x and min_y <= wy <= max_y):
-                continue
-            wp = PositionMM(wx, wy, origin.z)
-            if any(_distance_mm(wp, opos) < carried_radius + orad + DROP_MARGIN_MM for opos, orad, _ in room_obs):
-                continue
-            waypoints.append(wp)
+    waypoints: list[PositionMM] = [origin, goal] + static_wps
+    adj: dict[PositionMM, list[tuple[float, PositionMM]]] = {wp: list(static_adj.get(wp, [])) for wp in waypoints}
 
-    step_x = (max_x - min_x) // 6
-    step_y = (max_y - min_y) // 6
-    if step_x > 0 and step_y > 0:
-        for ix in range(1, 6):
-            for iy in (1, 5):
-                wp = PositionMM(min_x + ix * step_x, min_y + iy * step_y, origin.z)
-                if not any(_distance_mm(wp, opos) < carried_radius + orad + DROP_MARGIN_MM for opos, orad, _ in room_obs):
-                    waypoints.append(wp)
+    if not any(_straight_path_intersects_disc(origin, goal, opos, carried_radius + orad) for opos, orad, _ in room_obs):
+        d = _distance_mm(origin, goal)
+        adj[origin].append((d, goal))
+        adj[goal].append((d, origin))
 
-    adj: dict[PositionMM, list[tuple[float, PositionMM]]] = {wp: [] for wp in waypoints}
-    for i, w1 in enumerate(waypoints):
-        for j in range(i + 1, len(waypoints)):
-            w2 = waypoints[j]
-            blocked = False
-            for opos, orad, _ in room_obs:
-                req_r = carried_radius + orad if (w1 == origin or w2 == origin) else (carried_radius + orad + DROP_MARGIN_MM)
-                if _straight_path_intersects_disc(w1, w2, opos, req_r):
-                    blocked = True
-                    break
-            if not blocked:
-                d = _distance_mm(w1, w2)
-                adj[w1].append((d, w2))
-                adj[w2].append((d, w1))
+    for w in static_wps:
+        if not any(_straight_path_intersects_disc(origin, w, opos, carried_radius + orad) for opos, orad, _ in room_obs):
+            d = _distance_mm(origin, w)
+            adj[origin].append((d, w))
+            adj[w].append((d, origin))
+        if not any(_straight_path_intersects_disc(goal, w, opos, carried_radius + orad + DROP_MARGIN_MM) for opos, orad, _ in room_obs):
+            d = _distance_mm(goal, w)
+            adj[goal].append((d, w))
+            adj[w].append((d, goal))
 
     dist_map: dict[PositionMM, float] = {wp: float('inf') for wp in waypoints}
     dist_map[origin] = 0.0
@@ -836,6 +904,10 @@ def move_commands_toward(snapshot: Any, target: PositionMM, stop_mm: int) -> tup
         step = PositionMM(round(origin.x + stride * math.cos(rad)), round(origin.y + stride * math.sin(rad)), origin.z)
         if here is not None and not here.bounds.contains_floor_disc(step, carried_radius):
             continue
+        if in_playpen and playpen is not None:
+            step_dist = math.hypot(step.x - playpen.position.x, step.y - playpen.position.y)
+            if step_dist + carried_radius > playpen.radius_mm:
+                continue
         collides = any(_straight_path_intersects_disc(origin, step, opos, carried_radius + orad) for opos, orad, _ in room_obs)
         if not collides:
             commands.append(MoveCommand(PoseMM(step, bearing), BEAT_MICROSECONDS))
@@ -1048,6 +1120,9 @@ def candidates(
     here = _region_of(snapshot, position, body.radius_mm)
     reachable = [item for item in snapshot.objects if item.position is not None and in_hand_reach(snapshot, item)]
 
+    chair = next((o for o in snapshot.objects if o.object_id == "high-chair" and o.position is not None), None)
+    in_high_chair = (chair is not None and _distance_mm(position, chair.position) <= 250)
+
     # 1. Take from hand
     if held is None and offered is not None and handleable_held(offered):
         out.append(("take", offered.object_id + " from a hand", (TakeContactHeldObjectCommand(BEAT_MICROSECONDS),), offered.object_id, None))
@@ -1067,7 +1142,7 @@ def candidates(
     seen_food_ids = {thing.object_id for thing in seen if thing.is_food}
 
     # 4. Toward every sensed food target, nearest first (the least strides to reach)
-    if held is None:
+    if held is None and not in_high_chair:
         food = sorted((thing for thing in seen if thing.is_food and not nothing_left_to_bite(body, _object(snapshot, thing.object_id))),
                       key=lambda thing: (thing.distance_mm, thing.object_id))
         for item in food:
@@ -1103,7 +1178,7 @@ def candidates(
                 out.append(("toward_food", detail, cmds, obj_id, None))
 
     # 5. Toward bed (multi-room topological portal routing across doorways)
-    bed = next((thing for thing in seen if thing.object_id == BED_ID), None)
+    bed = next((thing for thing in seen if thing.object_id == BED_ID), None) if not in_high_chair else None
     if bed is not None and bed.distance_mm > ARRIVAL_MM + STEP_MM // 2:
         out.append(("toward_bed", "her bed", move_commands_toward(snapshot, bed.position, 0), bed.object_id, None))
     elif bed is None and sleepy and conserved_objects and BED_ID in conserved_objects:
@@ -1128,7 +1203,7 @@ def candidates(
 
     # 6. Toward every sensed thing, nearest first (the least strides to reach)
     seen_thing_ids = {thing.object_id for thing in seen if not thing.is_food}
-    things = sorted((thing for thing in seen if not thing.is_food), key=lambda thing: (thing.distance_mm, thing.object_id))
+    things = sorted((thing for thing in seen if not thing.is_food), key=lambda thing: (thing.distance_mm, thing.object_id)) if not in_high_chair else []
     for item in things:
         stop = body.radius_mm + item.radius_mm + (HANDLE_STOP_MM if held is None and handleable(_object(snapshot, item.object_id)) else WANDER_STOP_MM)
         if item.distance_mm > stop + ARRIVAL_MM:
@@ -1139,7 +1214,7 @@ def candidates(
     # enough for her reach (the world settles the geometry and refuses what it cannot).
     person = caregiver_in_sight(snapshot)
     if person is not None:
-        if person.distance_mm > PERSON_STOP_MM + ARRIVAL_MM:
+        if not in_high_chair and person.distance_mm > PERSON_STOP_MM + ARRIVAL_MM:
             out.append(("toward_person", person.object_id, move_commands_toward(snapshot, person.position, PERSON_STOP_MM), person.object_id, None))
         if held is None and person.distance_mm <= body.reach_mm + person.radius_mm:
             commands = tuple(
@@ -1150,7 +1225,7 @@ def candidates(
 
     # 7. Toward every door of her room
     here = _region_of(snapshot, position, body.radius_mm)
-    if here is not None:
+    if here is not None and not in_high_chair:
         doors = [item for item in snapshot.portals if here.region_id in item.region_ids]
         for portal in sorted(doors, key=lambda item: (_distance_mm(position, door_crossing(snapshot, item, here.region_id)[0]), item.portal_id)):
             if last_crossed_portal is not None:
@@ -1164,11 +1239,12 @@ def candidates(
                 out.append(("toward_door", portal.portal_id, move_commands_toward(snapshot, before_door, 0), portal.portal_id, None))
 
     # 8. Elementary motions, airway, rest
-    dx, dy = rotate_lattice_offset(STEP_MM, 0, heading)
-    ahead = PositionMM(position.x + dx, position.y + dy, position.z)
-    out.append(("step", "one stride ahead", (MoveCommand(PoseMM(ahead, heading), BEAT_MICROSECONDS),), None, None))
-    for name, sign in (("turn_left", 1), ("turn_right", -1)):
-        out.append((name, "", (MoveCommand(PoseMM(position, (heading + sign * TURN_MILLIDEGREES) % 360_000), BEAT_MICROSECONDS),), None, None))
+    if not in_high_chair:
+        dx, dy = rotate_lattice_offset(STEP_MM, 0, heading)
+        ahead = PositionMM(position.x + dx, position.y + dy, position.z)
+        out.append(("step", "one stride ahead", (MoveCommand(PoseMM(ahead, heading), BEAT_MICROSECONDS),), None, None))
+        for name, sign in (("turn_left", 1), ("turn_right", -1)):
+            out.append((name, "", (MoveCommand(PoseMM(position, (heading + sign * TURN_MILLIDEGREES) % 360_000), BEAT_MICROSECONDS),), None, None))
     drive = say_drive if say_drive is not None else DEFAULT_DRIVE
     out.append(("say", say_detail, (), None, drive))
     out.append(("rest", "", (), None, None))
@@ -2617,6 +2693,10 @@ class FunctionalOrganism:
         sleep_ratio = float(self._state.get("sleep_pressure", 0)) / SLEEP_PRESSURE_CEILING
         cur_room = self._state.get("room_now")
 
+        last_ref = self._state.get("last_refusal")
+        refused_act = last_ref[0] if (last_ref and (self.live_organism_tick - int(last_ref[2])) <= 2) else None
+        door_refused = (refused_act == "toward_door")
+
         # Homeostatic Barrenness in Lived Cognition (tick > 100):
         # Does the current environment lack the active homeostatic requirement?
         if self.live_organism_tick > 100:
@@ -2627,13 +2707,19 @@ class FunctionalOrganism:
             is_barren = (needs_bed and not has_bed) or (needs_food and not has_food)
             if is_barren:
                 phi_barren = math.tanh(max(0.0, float(dwell_beats - 16)) / 16.0)
-                if phi_barren > 0.25 and "toward_door" in acts:
+                if phi_barren > 0.25 and "toward_door" in acts and not door_refused:
                     return "toward_door", f"barren basin exhaustion ({phi_barren:.2f} over {dwell_beats} dwell beats in {cur_room}): evacuating toward negative space"
 
         surplus = max(0.0, min(1.0, (1.0 - deficit) * (1.0 - sleep_ratio)))
         boredom = max(0.35 if self.live_organism_tick > 100 else 0.0, surplus) * math.tanh(max(0.0, float(dwell_beats - 32)) / 24.0)
-        if boredom > 0.25 and "toward_door" in acts:
+        if boredom > 0.25 and "toward_door" in acts and not door_refused:
             return "toward_door", f"structural boredom ({boredom:.2f} over {dwell_beats} dwell beats): evacuating saturated basin toward negative space"
+
+        # Physical execution feedback: an act refused on the previous beat yields to alternative viable acts
+        if refused_act and len(acts) > 1:
+            viable_unrefused = [a for a in acts if a != refused_act]
+            if viable_unrefused:
+                acts = viable_unrefused
 
         entry = self._state.setdefault("acts", {}).get(key)
         label = "structure " + key[:6]
@@ -2809,6 +2895,11 @@ class FunctionalOrganism:
             refusals[refusal] = int(refusals.get(refusal, 0)) + 1
             while len(refusals) > REFUSAL_CAPACITY:
                 del refusals[min(refusals, key=lambda k: int(refusals[k]))]
+            last_ref = state.get("last_refusal")
+            prior_count = int(last_ref[4]) if (last_ref and last_ref[0] == decision.act) else 0
+            state["last_refusal"] = (decision.act, applied_action, tick_now, refusal, prior_count + 1)
+        else:
+            state["last_refusal"] = None
         key = choice_key("".join(token[0] for token in decision.signature.split(" ")))
         familiarity = state["familiarity"]
         entry = familiarity.get(key)

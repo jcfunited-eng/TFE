@@ -873,19 +873,20 @@ def play_block(pcm: bytes, from_object: str) -> dict | None:
 
 
 def maybe_music(o: dict, st: dict) -> None:
-    """Music on the radio: once in MUSIC_EVERY_TICKS of her beats while she is
-    awake, one public-domain piece (Musopen, from the Internet Archive) sounds
-    from the radio in her world, block by block at her beat; her ears hear it by
-    the room's geometry, so walking toward it or away changes what she hears.
-    The radio is brought into a world that predates it, once."""
+    """Music on the radio: delivered block-by-block, yielding each beat so feeding
+    and safe release remain reachable. Quiets upon sleep."""
     import media
     sleep = her_sleep(o)
     if sleep.get("asleep"):
+        if st.get("music_block_index"):
+            st["music_block_index"] = 0
+            log("radio: she fell asleep; the radio goes quiet")
+            with open(STATE, "w") as f:
+                json.dump(st, f)
         return
     tick = int(o.get("live_tick") or 0)
-    if st.get("music_next_tick") is not None and tick < int(st["music_next_tick"]):
+    if st.get("music_next_tick") is not None and tick < int(st["music_next_tick"]) and not st.get("music_block_index"):
         return
-    st["music_next_tick"] = tick + MUSIC_EVERY_TICKS
     if not st.get("radio_in_world"):
         res = present_food("radio-delivery")
         made = (((res or {}).get("observation") or {}).get("last_occurrence") or {}).get("caregiver_presentation") or {}
@@ -908,6 +909,7 @@ def maybe_music(o: dict, st: dict) -> None:
         if not tracks:
             log(f"radio: {archive} has no sound files; skipping")
             st["music_index"] = index + 1
+            st["music_block_index"] = 0
             return
         track_index = int(st.get("music_track") or 0) % len(tracks)
         track = tracks[track_index]
@@ -916,38 +918,54 @@ def maybe_music(o: dict, st: dict) -> None:
     except Exception as err:  # noqa: BLE001
         log(f"radio: the library could not give the piece: {err}")
         return
-    log(f"radio: {archive} — {track['name']} ({len(blocks)} beats of sound) begins at tick {tick}")
-    record_story_moment(st, "auditory")
-    heard = 0
-    for i, pcm in enumerate(blocks):
-        r = None
-        for attempt in range(READ_BLOCK_RETRIES + 1):
+
+    cur_block = int(st.get("music_block_index") or 0)
+    if cur_block >= len(blocks):
+        if track_index + 1 >= len(tracks):
+            st["music_index"] = index + 1
+            st["music_track"] = 0
+        else:
+            st["music_track"] = track_index + 1
+        st["music_block_index"] = 0
+        st["music_next_tick"] = tick + MUSIC_EVERY_TICKS
+        with open(STATE, "w") as f:
+            json.dump(st, f)
+        log(f"radio: piece finished ({len(blocks)} beats); next at {st['music_next_tick']}")
+        return
+
+    pcm = blocks[cur_block]
+    r = None
+    for attempt in range(READ_BLOCK_RETRIES + 1):
+        if os.path.exists(STOP) or os.path.exists(TEACHING):
+            break
+        r = play_block(pcm, "radio")
+        if r is not None:
+            break
+        for _ in range(int(READ_BLOCK_RETRY_S * 10)):
             if os.path.exists(STOP) or os.path.exists(TEACHING):
                 break
-            r = play_block(pcm, "radio")
-            if r is not None:
-                break
-            for _ in range(int(READ_BLOCK_RETRY_S * 10)):
-                if os.path.exists(STOP) or os.path.exists(TEACHING):
-                    break
-                time.sleep(0.1)
-        if r is None:
-            log("radio: her service refused a block repeatedly; the radio goes quiet")
-            break
-        heard += 1
+            time.sleep(0.1)
+
+    if r is None:
+        log(f"radio: block {cur_block + 1}/{len(blocks)} refused; radio goes quiet")
+        st["music_block_index"] = 0
+        st["music_next_tick"] = tick + MUSIC_EVERY_TICKS
+    else:
+        st["music_block_index"] = cur_block + 1
         ob = r.get("observation") or {}
         MINE.append(ob.get("live_tick") or 0)
         MINE.append((ob.get("last_occurrence") or {}).get("native_tick"))
-        if (i + 1) % READ_KEEP_EVERY_BLOCKS == 0 and asleep(ob):
+        if cur_block == 0:
+            log(f"radio: {archive} — {track['name']} ({len(blocks)} beats) begins; beat 1 delivered")
+        if (cur_block + 1) % 50 == 0:
+            log(f"radio: playing beat {cur_block + 1}/{len(blocks)}")
+        if (cur_block + 1) % READ_KEEP_EVERY_BLOCKS == 0 and asleep(ob):
             log("radio: she fell asleep; the radio goes quiet")
-            break
-    if track_index + 1 >= len(tracks):
-        st["music_index"] = index + 1
-        st["music_track"] = 0
-    else:
-        st["music_track"] = track_index + 1
-    json.dump(st, open(STATE, "w"))
-    log(f"radio: {heard} of {len(blocks)} beats sounded; next {st.get('music_index', index)}/{st.get('music_track', 0)}")
+            st["music_block_index"] = 0
+            st["music_next_tick"] = tick + MUSIC_EVERY_TICKS
+
+    with open(STATE, "w") as f:
+        json.dump(st, f)
 
 
 def maybe_lullaby(o: dict, st: dict) -> None:
@@ -1204,15 +1222,12 @@ def maybe_feed(o: dict, st: dict) -> None:
         chair_pres = _extract_presentation(chair_res)
         chair_applied = bool(chair_pres.get("presented", False))
         log(f"meal: Guala placed in high-chair at (3500, 1500) for morning meal — applied={chair_applied}")
-        if not chair_applied:
-            log("meal: high-chair seating refused; aborting meal presentation to honor physical refusal")
-            st["meal_retry"] = True
-            with open(STATE, "w") as f:
-                json.dump(st, f)
-            return
-        seated_this_meal = True
-        st["seated_for_meal"] = True
-        st["seated_meal_tick"] = tick
+        if chair_applied:
+            seated_this_meal = True
+            st["seated_for_meal"] = True
+            st["seated_meal_tick"] = tick
+        else:
+            log("meal: high-chair seating unapplied/refused; presenting food directly to Guala in place to prevent starvation")
 
     # 6. Food presentation
     foods = [f for f in foods if f not in skip]
