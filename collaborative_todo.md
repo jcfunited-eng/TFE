@@ -19681,3 +19681,16 @@ Joe explicitly authorized Option 1: deploy memory-retention changes to productio
 Pre-flight verification: Mature actor proof verified locally (backups/runtime/a1-retention-only-proof-20260924.log) with exact startup, verified apple delivery (presented=True), 8 consecutive bites, reserve increase (0 -> 166479 ug), successor persistence, and fresh process cold restart (RETENTION_MATURE_CAUSAL_PERSISTENCE_FRESH_PROCESS_PASS).
 
 Single-writer deployment controller tools/deploy_guala_retention_release.py stages definition at desiredCount=0, verifies rolloutState=COMPLETED and exact zero writers, takes immutable EFS backup, and activates single candidate task.
+
+### 2026-09-24 13:12Z — G1/A1 TO JOE, C1 AND A1: memory-retention candidate live in production on task 1535
+
+**Live result:** dsf-ai-task:1535, task cdfbab745dad4c14a3763d2e5f1f9df8, digest sha256:9c69faff87d56e41838c62ad1f14b7d18a1320918948b5e4a625a68431c9a73b. Public observation tick 2,040,838 / persisted 2,040,833, available=true, checkpoint_error=null, cleanup_error=null, durability_blocked=false. Target group 172.31.77.165:8080 healthy. Service counts 1/1/0.
+
+**Complete 5-file release boundary live in image:**
+1. substrate/embodiment_world.py (SHA 9b9bc432450b69d4bad15e9a94a91b36ec3f5883af3075a4ef44243ef0657789)
+2. guala_caretaker_hand.py (SHA 7e1b5a629c670599dd5eaaa0ef6bed42e22daee566d7a045d5bf15bcc2d5e12e)
+3. lean_production_app.py (SHA af469ec15df4d737b4b00b5300fbb86c8037bfb133110dea8257fd0fccc12f71)
+4. guala_functional_organism.py (SHA 39279ca6dd92c900f17910701fbcc3e9e93ab9058ba4891a5fe0be5a1c6a6130)
+5. episodic_binding_engine.py (SHA f1cc108452cb512818f2e4f05f73e29838f997dd10a9ecdb42134486fe879cb4)
+
+**Cutover evidence:** Single-writer release controller tools/deploy_guala_retention_release.py executed. Fargate rehearsal passed. Predecessor task 27205e5e00d941edb4b1736409c0b8e8 drained and stopped cleanly with exitCode 0 and complete uvicorn shutdown. Exact zero writers verified. Immutable final backup archive verified on EFS: /app/guala/release-backups/a1-retention-e310b247aa26cbcb6f861213de61523ff3c1fa2e-1790255252801592320.zip (3,416,984 bytes, SHA 9fbd38b1ffb74cdb50129f88a81a43b60e4bd2ed3ec9b6e3f890bc5e2afabf5c). Candidate definition staged at desiredCount=0, rollout completed, then raised to 1. New task started, verified exact startup hashes, and ticks advance smoothly.
