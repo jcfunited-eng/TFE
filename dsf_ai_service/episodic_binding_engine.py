@@ -305,21 +305,24 @@ def find_supported_continuation(
         # that happens to afford the same verb. IDs bind current custody only.
         if target is not None and target != current_target_id:
             continue
-        if body_position is not None and target_positions and target in target_positions:
-            displacement = tuple(int(t) - int(p) for t, p in zip(target_positions[target], body_position))
-            # Check every offered move, since ordinary actuation may try alternatives.
-            progresses = True
-            for command in commands:
-                pose = getattr(command, "target_pose", None)
-                if pose is None:
-                    continue
+        # Commands are alternatives, not a sequence that must all execute.
+        # Keep original payloads/order; the world still accepts or refuses each.
+        retained_commands = []
+        for command in commands:
+            pose = getattr(command, "target_pose", None)
+            if pose is not None:
+                if body_position is None or not target_positions or target not in target_positions:
+                    continue  # no physical displacement evidence for this move
+                displacement = tuple(int(t) - int(p) for t, p in zip(target_positions[target], body_position))
                 position = pose.position
                 step = tuple(int(t) - int(p) for t, p in zip((position.x, position.y, position.z), body_position))
                 if 2 * sum(v * d for v, d in zip(step, displacement)) <= sum(v * v for v in step):
-                    progresses = False
-                    break
-            if not progresses:
-                continue
+                    continue
+            retained_commands.append(command)
+        if commands and not retained_commands:
+            continue
+        if len(retained_commands) != len(commands):
+            candidate = (act, _detail, tuple(retained_commands), target, _drive)
         if candidate not in viable:
             viable.append(candidate)
     return viable[0] if len(viable) == 1 else None

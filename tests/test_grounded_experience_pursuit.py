@@ -361,3 +361,117 @@ def test_observed_subject_is_not_replaced_by_acted_target() -> None:
     # original trial actually observed its acted target; IDs are not cue keys.
     assert find_supported_continuation("actual-cue", "feeding",
         {"motor": {"motor_transition": witnessed}}, candidates, **kwargs) == candidates[0]
+
+
+def test_visible_encounter_retention_changes_matched_action() -> None:
+    """Same-view causal proof, not gaze acquisition or a mature-body release proof.
+
+    Initial head posture, test-world re-presentation, 80% recall reserves, and
+    sleep onset are explicit controlled conditions. No perception, memory,
+    action history, or chosen action is supplied by the fixture.
+    """
+    from dsf_ai_service.guala_functional_organism import (
+        HEAD_PITCH_BOUND_MILLIDEGREES, HEAD_YAW_BOUND_MILLIDEGREES,
+        _aim, _self_body, _target_point,
+    )
+
+    def aimed_posture(org, world):
+        snap = world.observation_snapshot()
+        body = _self_body(snap)
+        point = _target_point(snap, body, "apple-target")
+        assert point is not None
+        yaw, pitch = _aim(body, point)
+        assert abs(yaw) <= HEAD_YAW_BOUND_MILLIDEGREES
+        assert abs(pitch) <= HEAD_PITCH_BOUND_MILLIDEGREES
+        # Starting physical pose only; the real retina computes the evidence.
+        org._state["head"] = [yaw, pitch]
+        org._state["eyes"] = [0, 0]
+
+    world = home_world_authority(identity=IDENTITY)
+    _apple_ahead(world, "apple-target", 600)
+    initial_world = bytes(world.encoded_snapshot())
+    org = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
+    aimed_posture(org, world)
+    loop = FunctionalPhysicalLoop()
+    first = loop.settle(org, world, UNATTENDED)
+    teaching_cue = org._state["pending_transition"]["pre_key"]
+    assert org._state["sight_figure"] is not None, "Aimed encounter still has no visual figure"
+    assert first.observation["her_act"] == "toward_food"
+    for _ in range(7):
+        loop.settle(org, world, UNATTENDED)
+    assert org.counts["bites"] > 0
+
+    org._state["asleep"] = True
+    sleep_beats = len(org._state["moments"]) + 1
+    org._state["sleep_pressure"] = SLEEP_RECOVERY_PER_BEAT * sleep_beats
+    for _ in range(sleep_beats + 2):
+        loop.settle(org, world, UNATTENDED)
+        if not org.asleep:
+            break
+    assert not org.asleep
+    approach = org._state["meanings"]["motor:1"]
+    assert approach["count"] == 1 and approach["salience"] == 0
+    assert approach["motor_transition"]["pre"] == teaching_cue
+
+    # A controlled identical visual re-presentation, not a claim of autonomous
+    # navigation back to this spot. Both branches have the same body/world.
+    world_a = home_world_authority(identity=IDENTITY, encoded_world=initial_world)
+    org._state["reserve_micrograms"] = int(CAPACITY_MICROGRAMS * .80)
+    org._state["feeding"] = True
+    aimed_posture(org, world_a)
+    body_bytes = org.encoded()
+    org_a = FunctionalOrganism.restore(body_bytes)
+    org_b = FunctionalOrganism.restore(body_bytes)
+    world_b = home_world_authority(identity=IDENTITY, encoded_world=initial_world)
+    assert bytes(world_a.encoded_snapshot()) == bytes(world_b.encoded_snapshot())
+    expected_b = copy.deepcopy(org_a._state)
+    for state in (org_b._state, expected_b):
+        for entry in state["meanings"].values():
+            entry.pop("motor_transition", None)
+            entry.pop("episode_tail", None)
+    assert org_b._state == expected_b
+
+    result_a = FunctionalPhysicalLoop().settle(org_a, world_a, UNATTENDED)
+    result_b = FunctionalPhysicalLoop().settle(org_b, world_b, UNATTENDED)
+    print("visible encounter", {
+        "teaching_cue": teaching_cue,
+        "recall_cue": org_a._state["pending_transition"]["pre_key"],
+        "retained_act": result_a.observation["her_act"],
+        "control_act": result_b.observation["her_act"],
+        "retained_reason": result_a.observation["act_reason"],
+        "control_reason": result_b.observation["act_reason"],
+    })
+    assert org_a._state["pending_transition"]["pre_key"] == teaching_cue
+    assert result_a.observation["act_reason"].startswith("learned continuation")
+    assert result_a.observation["her_act"] != result_b.observation["her_act"]
+    assert any(result_a.observation["actual_root_motion"][1:])
+    assert FunctionalOrganism.restore(org_a.encoded()).encoded() == org_a.encoded()
+
+
+def test_continuation_preserves_only_progressing_motor_alternatives() -> None:
+    """Isolated geometry contract: not an independent learning proof."""
+    from dsf_ai_service.episodic_binding_engine import find_supported_continuation
+    from dsf_ai_service.substrate.embodiment_world import MoveCommand, PoseMM
+
+    trial = {"key": "a", "start_tick": 1, "end_tick": 2,
+             "pre": "visible-cue", "post": "near", "action": "step",
+             "target": "T", "observed_subject": "T", "previous": None,
+             "refusal": None, "intake": 0}
+    outcome = {**trial, "key": "b", "start_tick": 2, "end_tick": 3,
+               "pre": "near", "post": "fed", "action": "bite",
+               "previous": "a", "intake": 12}
+    meanings = {"a": {"motor_transition": trial}, "b": {"motor_transition": outcome}}
+    forward = MoveCommand(PoseMM(PositionMM(300, 0, 0), 0), 250_000)
+    sideways = MoveCommand(PoseMM(PositionMM(0, 300, 0), 0), 250_000)
+    backward = MoveCommand(PoseMM(PositionMM(-300, 0, 0), 0), 250_000)
+    original = ("step", "original", (forward, sideways, backward), "T", None)
+    kwargs = dict(current_target_id="T", current_figure="actual-figure",
+                  body_position=(0, 0, 0), target_positions={"T": (1000, 0, 0)})
+    selected = find_supported_continuation("visible-cue", "feeding", meanings, (original,), **kwargs)
+    assert selected == ("step", "original", (forward,), "T", None)
+    assert selected[2][0] is forward
+    assert original[2] == (forward, sideways, backward)
+    away = ("step", "original", (sideways, backward), "T", None)
+    assert find_supported_continuation("visible-cue", "feeding", meanings, (away,), **kwargs) is None
+    assert find_supported_continuation("visible-cue", "feeding", meanings, (original,),
+        **{**kwargs, "target_positions": {}}) is None
