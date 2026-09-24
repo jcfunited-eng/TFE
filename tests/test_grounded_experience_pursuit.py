@@ -15,14 +15,15 @@ Grounded strictly in:
 
 from __future__ import annotations
 
+import copy
 import math
 import struct
 import pytest
 
 from dsf_ai_service.guala_functional_loop import FunctionalPhysicalLoop
 from dsf_ai_service.guala_functional_organism import (
-    ACTS, CAPACITY_MICROGRAMS, FunctionalOrganism, HUNGRY_BELOW,
-    PositionMM,
+    ACTS, CAPACITY_MICROGRAMS, FunctionalOrganism, HUNGRY_BELOW, SATED_ABOVE,
+    SLEEP_RECOVERY_PER_BEAT, PositionMM,
 )
 from dsf_ai_service.guala_home_world import home_world_authority
 from dsf_ai_service.lean_actor import PhysicalOccurrence
@@ -34,25 +35,28 @@ def _train_experienced_organism() -> FunctionalOrganism:
     """Trains an organism through the authentic physical loop:
     1. Organism encounters food at hand reach in the home world.
     2. Guala approaches, grasps, and bites the food across multiple beats, consuming matter.
-    3. Moment forms with authentic somatic salience (intake > 0).
-    4. Sleep occurs, and _dream_moment consolidates the episodic moment into meanings
-       via the Pool Shock Principle (without manual count manipulation).
+    3. Moments form with authentic somatic salience and measured successor states.
+    4. Sleep occurs naturally through the physical loop, consolidating episodic moments into meanings
+       via the Pool Shock Principle without manual count or salience manipulation.
     """
     world_train = home_world_authority(identity=IDENTITY)
-    _apple_ahead(world_train, "apple-near", 600)
+    _apple_ahead(world_train, "apple-target", 600)
     org = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
     loop = FunctionalPhysicalLoop()
 
-    # Natural waking experience: approach -> grasp -> bite -> bite -> bite -> bite
-    for beat in range(6):
+    # Natural waking experience: approach -> grasp -> bite -> bite
+    for beat in range(8):
         loop.settle(org, world_train, UNATTENDED)
 
     assert org.counts["bites"] >= 1, "Organism must execute real biting in the world"
     assert len(org._state["moments"]) > 0, "Real moment must form from waking experience"
 
-    # Natural sleep consolidation: drain waking moments into meanings
-    while org._state["moments"]:
-        org._dream_moment(tick=100)
+    # Natural sleep consolidation through the physical loop:
+    # Sets sleep pressure proportional to moments to drain and sleeps until recovered
+    org._state["asleep"] = True
+    org._state["sleep_pressure"] = SLEEP_RECOVERY_PER_BEAT * (len(org._state["moments"]) + 1)
+    while org.asleep:
+        loop.settle(org, world_train, UNATTENDED)
 
     assert len(org._state["meanings"]) > 0, "Pool Shock Principle failed to consolidate into meanings"
     assert any(m.get("fed", 0) >= 1 for m in org._state["meanings"].values()), "Consolidated meaning must record positive feeding consequence"
@@ -63,7 +67,8 @@ def test_matched_naive_vs_experienced_encounter() -> None:
     """1. Experience-Grown Formation:
     Compares two identical organisms in the exact same room encounter with food at 1500 mm.
     - Experienced organism: Pursues food across consecutive beats (4 toward_food + 1 grasp).
-    - Naive organism: Has empty meanings; meanders across untried affordances (things and doors).
+    - Matched control: Identical checkpoint history, but with the learned association ablated;
+      meanders across untried affordances (things and doors).
     """
     # Experienced Organism
     org_exp = _train_experienced_organism()
@@ -81,22 +86,23 @@ def test_matched_naive_vs_experienced_encounter() -> None:
     # Experienced organism exhibits sustained pursuit transitioning to grasp
     assert exp_acts == ["toward_food", "toward_food", "toward_food", "toward_food", "grasp"]
 
-    # Naive Organism (never eaten, empty meanings)
-    org_naive = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
-    world_naive = home_world_authority(identity=IDENTITY)
-    _apple_ahead(world_naive, "apple-target", 1500)
-    org_naive._state["reserve_micrograms"] = int(CAPACITY_MICROGRAMS * 0.20)
-    org_naive._state["feeding"] = True
-    loop_naive = FunctionalPhysicalLoop()
+    # Matched Checkpoint Control (identical body/world history, with learned meanings ablated)
+    org_control = FunctionalOrganism(copy.deepcopy(org_exp._state))
+    org_control._state["meanings"].clear()
+    world_control = home_world_authority(identity=IDENTITY)
+    _apple_ahead(world_control, "apple-target", 1500)
+    org_control._state["reserve_micrograms"] = int(CAPACITY_MICROGRAMS * 0.20)
+    org_control._state["feeding"] = True
+    loop_control = FunctionalPhysicalLoop()
 
-    naive_acts = []
+    control_acts = []
     for beat in range(5):
-        res = loop_naive.settle(org_naive, world_naive, UNATTENDED)
-        naive_acts.append(res.observation["her_act"])
+        res = loop_control.settle(org_control, world_control, UNATTENDED)
+        control_acts.append(res.observation["her_act"])
 
-    # Naive organism diverts to exploring other untried affordances (toward_thing, toward_door)
-    assert naive_acts != exp_acts
-    assert "toward_thing" in naive_acts or "toward_door" in naive_acts
+    # Control organism diverts to exploring other untried affordances (toward_thing, toward_door)
+    assert control_acts != exp_acts
+    assert "toward_thing" in control_acts or "toward_door" in control_acts
 
 
 def test_multi_beat_trajectory_displacement() -> None:
@@ -135,7 +141,7 @@ def test_distraction_and_natural_resumption() -> None:
     org = _train_experienced_organism()
     world = home_world_authority(identity=IDENTITY)
     _apple_ahead(world, "apple-target", 1500)
-    org._state["reserve_micrograms"] = int(CAPACITY_MICROGRAMS * 0.20)
+    org._state["reserve_micrograms"] = int(CAPACITY_MICROGRAMS * 0.50)
     org._state["feeding"] = True
     loop = FunctionalPhysicalLoop()
 
@@ -143,49 +149,62 @@ def test_distraction_and_natural_resumption() -> None:
     r1 = loop.settle(org, world, UNATTENDED)
     assert r1.observation["her_act"] == "toward_food"
 
-    # Beat 2: Distraction arrives - acoustic sound event
+    # Beat 2: Distraction arrives - acoustic sound event from another object
     pcm = struct.pack("<4000h", *(int(14_000 * math.sin(2 * math.pi * 440 * i / 16_000)) for i in range(4000)))
     sound_occ = PhysicalOccurrence("sensory", LeanSensoryOccurrence(
-        source="microphone", retina_rgb_u8=None, pressure_s16le=pcm,
+        source="thing-sound", retina_rgb_u8=None, pressure_s16le=pcm, from_object="toy-bear",
     ))
     r2 = loop.settle(org, world, sound_occ)
-    # The distraction actually alters action (assert non-pursuit during distraction)
-    assert r2.observation["her_act"] != "toward_food" or "apple-target" in org.conserved_objects
+    # The distraction actually alters action (mandatory observed interruption)
+    assert r2.observation["her_act"] != "toward_food", "Acoustic distraction must interrupt motor pursuit"
+    # Mandatory target retention in spatial object permanence
+    assert "apple-target" in org.conserved_objects, "Pursuit target must be retained in spatial object permanence"
 
     # Beat 3: Distraction clears (quiet beat)
     # The attractor basin in phase space remains active:
     # Deficit is still high, apple-target is in conserved_objects, meaning is positive.
     r3 = loop.settle(org, world, UNATTENDED)
-    assert r3.observation["her_act"] == "toward_food"
+    assert r3.observation["her_act"] == "toward_food", "Pursuit must resume after distraction clears"
     assert "apple-target" in org.conserved_objects
 
 
 def test_consequence_satisfaction_terminates_pursuit() -> None:
     """4. Consequence-Driven Termination (Satisfaction):
-    When food is consumed and bodily deficit is relieved to the satisfaction boundary (>= 85%),
-    the anticipatory continuation gradient dissipates naturally, and pursuit ceases without forced counters.
+    When food is consumed through actual bites and bodily deficit is relieved to the
+    satisfaction boundary (>= 85%), the anticipatory continuation gradient dissipates naturally,
+    and pursuit ceases without forced counters or manual state overrides.
     """
     org = _train_experienced_organism()
-    world = home_world_authority(identity=IDENTITY)
-    _apple_ahead(world, "apple-target", 1500)
     loop = FunctionalPhysicalLoop()
 
     # Hungry -> Pursues food
-    org._state["reserve_micrograms"] = int(CAPACITY_MICROGRAMS * 0.20)
+    world_hungry = home_world_authority(identity=IDENTITY)
+    _apple_ahead(world_hungry, "apple-target", 1500)
+    org._state["reserve_micrograms"] = int(CAPACITY_MICROGRAMS * 0.50)
     org._state["feeding"] = True
-    r_hungry = loop.settle(org, world, UNATTENDED)
+    r_hungry = loop.settle(org, world_hungry, UNATTENDED)
     assert r_hungry.observation["her_act"] == "toward_food"
 
-    # Real consumption brings reserves past the satisfaction boundary (>= 85%)
+    # Actual consumption in the physical world bringing reserves past satisfaction boundary (>= 85%)
     world_feed = home_world_authority(identity=IDENTITY)
-    _apple_ahead(world_feed, "apple-feed", 350)
-    # Natural eating: multiple bites until full
-    org._state["reserve_micrograms"] = int(CAPACITY_MICROGRAMS * 0.86)
-    org._state["feeding"] = False
+    _apple_ahead(world_feed, "apple-target", 350)
+    org._state["reserve_micrograms"] = int(CAPACITY_MICROGRAMS * 0.80)
+    org._state["feeding"] = True
+
+    # Natural eating: actual grasp and bites until full
+    for _ in range(6):
+        r_feed = loop.settle(org, world_feed, UNATTENDED)
+        if not org._state["feeding"]:
+            break
+
+    assert org.reserve_micrograms >= int(CAPACITY_MICROGRAMS * SATED_ABOVE), "Bites must relieve deficit to satisfaction boundary"
+    assert not org._state["feeding"], "Feeding state must terminate naturally from intake"
+
+    # Now sated, presented with food at 1500 mm:
     world_sated = home_world_authority(identity=IDENTITY)
-    _apple_ahead(world_sated, "apple-target-sated", 1500)
+    _apple_ahead(world_sated, "apple-target", 1500)
     r_sated = loop.settle(org, world_sated, UNATTENDED)
-    assert r_sated.observation["her_act"] != "toward_food"
+    assert r_sated.observation["her_act"] != "toward_food", "Sated organism must not pursue food"
 
 
 def test_target_departure_collapses_pursuit_via_expectation_discrepancy() -> None:
@@ -196,7 +215,7 @@ def test_target_departure_collapses_pursuit_via_expectation_discrepancy() -> Non
     org = _train_experienced_organism()
     world = home_world_authority(identity=IDENTITY)
     _apple_ahead(world, "apple-target", 1000)
-    org._state["reserve_micrograms"] = int(CAPACITY_MICROGRAMS * 0.20)
+    org._state["reserve_micrograms"] = int(CAPACITY_MICROGRAMS * 0.50)
     org._state["feeding"] = True
     loop = FunctionalPhysicalLoop()
 

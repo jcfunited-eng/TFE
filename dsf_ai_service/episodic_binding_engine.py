@@ -165,6 +165,7 @@ def find_supported_continuation(
     meanings: dict[str, Any],
     available_candidates: Sequence[tuple[str, str, Any, str | None, Any]],
     *,
+    current_target_id: str | None = None,
     current_figure: str | None = None,
     current_held: str | None = None,
     body_position: tuple[int, int, int] | None = None,
@@ -206,7 +207,6 @@ def find_supported_continuation(
                 tgt_id = info.get("target_id") if isinstance(info, dict) else None
                 predecessors.setdefault(succ_key, []).append((m_key, act_name, tgt_id))
 
-    # Helper to check if a meaning state matches current sensory condition
     def _state_matches_current(s_key: str) -> bool:
         if current_sensory_key:
             return current_sensory_key == s_key
@@ -235,6 +235,8 @@ def find_supported_continuation(
     while queue:
         curr = queue.pop(0)
         for pre_key, act, tgt in predecessors.get(curr, []):
+            if pre_key == curr:
+                continue  # Self-loops do not advance toward goal
             edge = (pre_key, act, tgt, curr)
             if edge in visited_edges:
                 continue
@@ -260,40 +262,53 @@ def find_supported_continuation(
 
     for cand in available_candidates:
         c_act = cand[0]
+        c_cmds = cand[2]
         c_tgt = cand[3]
         for sup_act, sup_tgt in unique_supported:
             if c_act == sup_act:
-                # Target identity verification (Grounded in visual appearance / entity type)
+                # Attention focus check: candidate must align with currently attended target if attention is active
+                if current_target_id is not None and c_tgt is not None and c_tgt != current_target_id:
+                    continue
+
+                # Target identity verification (Grounded in sensory continuity and visual recognition; zero name parsing)
                 if c_tgt is not None and sup_tgt is not None and c_tgt != sup_tgt:
-                    # Must be same entity category (e.g. apple)
-                    if not (c_tgt.startswith("apple") and sup_tgt.startswith("apple")):
-                        continue
+                    c_fig = target_figures.get(c_tgt) if target_figures else None
+                    sup_fig = target_figures.get(sup_tgt) if target_figures else None
+                    if c_fig is not None and sup_fig is not None and c_fig == sup_fig:
+                        pass  # Matching visual figure supports recognition transfer
+                    else:
+                        continue  # Recognition unavailable: abstain rather than fabricate transfer
+                elif sup_tgt is not None and c_tgt is None:
+                    continue  # Supported transition requires specific target, candidate provides none
 
                 # Physical feasibility check:
-                # Finite displacement condition 2(v . d) > ||v||^2
+                # Uses actuator's actual candidate command geometry to verify 2(v . d) > ||v||^2
                 if body_position and target_positions and c_tgt and c_tgt in target_positions:
                     t_pos = target_positions[c_tgt]
                     dx = float(t_pos[0] - body_position[0])
                     dy = float(t_pos[1] - body_position[1])
                     dz = float(t_pos[2] - body_position[2])
                     d_sq = dx * dx + dy * dy + dz * dz
-                    if d_sq > 0 and c_act in ("toward_food", "step", "toward_thing"):
-                        d_norm = math.sqrt(d_sq)
-                        v_step = min(300.0, d_norm)
-                        vx = (dx / d_norm) * v_step
-                        vy = (dy / d_norm) * v_step
-                        vz = (dz / d_norm) * v_step
-                        v_sq = vx * vx + vy * vy + vz * vz
-                        two_v_dot_d = 2.0 * (vx * dx + vy * dy + vz * dz)
-                        if two_v_dot_d <= v_sq:
-                            continue
+                    if d_sq > 0 and c_act in ("toward_food", "step", "toward_thing") and c_cmds:
+                        first_cmd = c_cmds[0]
+                        target_pose = getattr(first_cmd, "target_pose", None)
+                        if target_pose is not None and hasattr(target_pose, "position"):
+                            cmd_p = target_pose.position
+                            vx = float(cmd_p.x - body_position[0])
+                            vy = float(cmd_p.y - body_position[1])
+                            vz = float(cmd_p.z - body_position[2])
+                            v_sq = vx * vx + vy * vy + vz * vz
+                            two_v_dot_d = 2.0 * (vx * dx + vy * dy + vz * dz)
+                            if v_sq > 0 and two_v_dot_d <= v_sq:
+                                continue  # Proposed movement does not decrease target displacement
 
                 viable_candidates.append(cand)
 
+    # Deduplicate complete candidate representations (action, detail, commands, target, drive)
     deduped: list[tuple[str, str, Any, str | None, Any]] = []
     seen_sigs = set()
     for c in viable_candidates:
-        sig = (c[0], c[1], c[3])
+        sig = (c[0], c[1], c[2], c[3], c[4])
         if sig not in seen_sigs:
             seen_sigs.add(sig)
             deduped.append(c)

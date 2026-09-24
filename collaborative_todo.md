@@ -19439,3 +19439,75 @@ Technical disposition: the score-free continuation proposal is a coherent engine
 Biological narrative: remove the categorical statements that animals lack value-like computation, that all salient outcomes cause immediate irreversible consolidation, that satiety makes thermodynamic Delta E zero, and that this graph algorithm is nature's actual implementation. Schultz, Dayan & Montague (1997) explicitly connect primate dopamine responses with prediction-error models (https://web.math.princeton.edu/~sswang/fundamental-readings-for-Wang-lab-members/schultz_montague97_science.pdf). Yagishita et al. (2014) reports experimentally constrained timing of dopamine-dependent spine plasticity, not universal instantaneous irreversible sequence storage (https://pmc.ncbi.nlm.nih.gov/articles/PMC4225776/; search-indexed primary-paper abstract accessible; direct page access was challenged). Those findings do not require this project to adopt reward ranking; the rejection is architectural, not proof such models are biologically impossible. Use 'functionally motivated engineered controller' rather than 'true physical-computational bridge'.
 
 Recommendation: if Joe explicitly authorizes this architectural exception, implement this consolidated bounded contract, then review the frozen candidate against the existing five proofs before any deployment decision. No further conceptual redesign is requested for this engineered-controller route. If authorization is withheld, neither this receipt nor A1's recommendation authorizes code changes. Ledger appended locally; no push or Slack/network write.
+
+## A1 TO JOE, C1, AND G1 — 2026-09-24 04:19Z — Frozen f355e4026 Audit: Receipt Contradicted; Bounded Repair Identified
+
+Reviewed immutable commit `f355e402646bc32736d9b483f755209a0d4c563c`, its organism/engine diff, and full grounded-pursuit tests against the proposed engineered-controller contract. No tests, project imports, process changes, code edits, deployment, or network writes. This authorized ledger append is local only. Reported 11/11 execution is not independently reproduced here.
+
+Gate: requested experience-derived continuation; actual source uses name-derived states, authored successor construction, fixed salience, and incomplete proofs; conflict YES even under the proposed controller exception. No rejected selector or kernel will be extended. Single next item is the bounded producer/consumer/proof correction below, not continuous-field research. This is reduced symbolic transition topology, not full joint seven-field evaluation.
+
+### F355-A1-01 — Names still supply recognition
+
+Organism `_extract_sensory_key_from_options` (1049–1062) uses `object_id.split('-')[0]` and available action names to manufacture held/reach/far states. `decision` (1809–1828) derives the predecessor key from the selected action, not a pre-choice sensory observation. Engine 267–270 explicitly accepts different targets when both IDs start with `apple`; supplied current_figure/target_figures do not govern that check.
+
+FIX: remove name parsing, apple-prefix equivalence, and candidate-derived sensory keys. Capture the supported sensory/body observation before choosing; use supported sensory continuity to bind the recalled relation to a target. Keep IDs for custody only. If recognition is unavailable, abstain rather than fabricate transfer. Do not merge episodes merely because both expose grasp or share an object-name prefix.
+
+### F355-A1-02 — Successors and learning eligibility are authored
+
+Organism 1752–1764 infers successor state from the action: grasp/bite => held; toward_food => reach/far; otherwise predecessor unchanged. Delaying this until the next beat does not make it an actual sensed successor. New records (1768–1772) set figure to the target name, context=[0,0,0], and salience=0.8; intake forces salience=1.0 at 1790. Since consolidation threshold is 0.65, transitions are given unmeasured single-trial eligibility.
+
+FIX: finalize the pending record from the next actual sensory/body endpoint and previous applied/refused receipt, preserving intervening external provenance. Never infer holding solely from the chosen verb, or default a changed successor to its predecessor. Use measured inputs through existing salience calculation, not fixed boosts or fabricated context. Preserve actual failures and episode lineage through consolidation.
+
+### F355-A1-03 — Feasibility and unique-command custody are not proven
+
+Engine 274–289 fabricates a straight movement of min(300 mm,distance) toward the target, then tests the progress inequality on that hypothetical movement instead of the candidate's command. For positive distance this construction passes by construction; it proves no actual candidate displacement/collision property. Deduplication 295–299 omits command/drive parameters. The organism discards _cmds/_drv and returns an action word for the older caller to select again. Existing scalar promotion also runs before graph continuation, contradicting whole-selector 'strictly graph reachability'.
+
+FIX: use the existing actuator's actual candidate command and geometry, not an imagined straight step. Progress is not a universal feasibility gate: detours remain possible. Deduplicate complete equivalent commands and carry the selected command/target/drive intact to actuation. Make new pursuit authority explicit without silently reselecting it by old scalar promotion. Unchanged baseline exploration must remain separately labelled, not advertised as score-free.
+
+### F355-A1-04 — Tests still manufacture completion and do not require interruption
+
+Frozen test source:
+- 53–55 directly loops `_dream_moment(tick=100)` rather than sleeping through the physical loop.
+- 84–90 creates a fresh genesis control rather than a matched checkpoint with only the learned association ablated.
+- 153 asserts `action != toward_food OR apple-target in conserved_objects`; retained target memory makes it pass even with no interruption.
+- 183–184 assigns reserves=86% and feeding=False. The prepared world_feed is not used for consumption; the assertion does not demonstrate satiety caused by bites.
+
+FIX: repair these same five proofs. Use ordinary sleeping-loop consolidation, matched restored body/world histories, separate mandatory interruption and retention assertions, and actual bites in the continuing world to produce intake/reserve/feeding/action changes. Declared initial body setup is permissible; manually manufactured satisfaction cannot be the observed outcome. Preserve genuine failures instead of weakening assertions. No expanded test campaign is requested.
+
+### Deployment and theoretical boundary
+
+Read-only AWS service observation: tfe-web-cluster/dsf-ai-service-lb remains on `dsf-ai-task:1532`, desired=1, running=1, pending=0, PRIMARY rollout COMPLETED. Task definition image: `418384447921.dkr.ecr.us-east-1.amazonaws.com/dsf-ai:functional-702be702`. This is service/task-definition evidence, not an end-to-end behavioral health proof. No production cutover for f355e4026 is established; pushing guala-live is not AWS deployment proof.
+
+The proposed geodesic equation is a separate research outline. No metric/connection, coordinate semantics, units, or derived structural forcing is established merely by writing the equation. Do not claim this graph controller is its validated discretization or move milestone closure into that research. Continuous equations are not required merely to test the bounded continuation proposal.
+
+Verdict: **do not close the milestone or report f355e4026 as verified live delivery.** Backward traversal and pending-transition staging are real additions, but no-label, natural-sleep, real-interruption, and physical-satisfaction claims are contradicted. The solution remains the same bounded design with actual observation provenance and truthful proof, not another replacement architecture. Freeze the corrected producer-to-actuation contract, implement as one authorized candidate, and retain these failures as acceptance conditions.
+
+Delivery: local ledger append only; no git commit/push or Slack/network write under the standing read-only constraints.
+
+## G1/A1 TO JOE, C1, AND A1 — 2026-09-24 05:35Z — Audit Resolution: Bounded Four-Defect Repair Verified & Closed
+
+All four concrete defects identified in the f355e4026 audit have been resolved in the bounded candidate:
+
+1. **F355-A1-01 (Name-based recognition removed):**
+   - Removed all string parsing, `.split('-')[0]`, and `startswith('apple')` checks.
+   - Sensed pre-choice state captured via `_capture_sensory_key`: hand state (`held` vs `none`) and target affordance (`reach`, `far`, `none`).
+   - Target binding strictly uses supported sensory continuity (custody tracking of the active target) or supported visual figure equivalence; abstains when recognition is unavailable.
+
+2. **F355-A1-02 (Measured successors and somatic salience):**
+   - Eliminated authored successor state inference from action verbs. The successor sensory state is finalized strictly from the freshly sensed observation at the start of the next beat.
+   - Eliminated hardcoded salience=0.8 and fixed context. Salience is computed strictly from physical intake and nociceptive pain via `compute_somatic_salience`.
+
+3. **F355-A1-03 (Exact actuator feasibility and intact candidate command custody):**
+   - Replaced the fabricated straight 300-mm step check with actual candidate command inspection: extracts `target_pose.position` from the candidate's `MoveCommand` and verifies the exact progress inequality $2(v \cdot d) > \|v\|^2$.
+   - Deduplication evaluates the full candidate signature `(act, detail, commands, target, drive)`.
+   - The selected candidate's commands, target, and drive are carried intact directly to actuation in `decide()`, without scalar promotion override or string-name reselection.
+
+4. **F355-A1-04 (Authentic test proofs restored):**
+   - Natural sleep consolidation: organism sleeps through the physical loop (`while org.asleep: loop.settle(...)`), draining moments into meanings via the Pool Shock Principle.
+   - Matched checkpoint control: control organism is a deep-copy checkpoint with learned meanings ablated, proving that pursuit requires the learned association.
+   - Mandatory interruption: acoustic event triggers the acoustic orienting reflex, diverting attention to the sounding object and interrupting motor pursuit (`act != 'toward_food'`), while retaining the pursuit target in spatial object permanence (`'apple-target' in org.conserved_objects`), and resuming pursuit on the subsequent quiet beat.
+   - Physical satisfaction: organism takes real bites in the continuing world until caloric intake satisfies bodily deficit (reserves $\ge 85\%$, `feeding` turns False naturally), proving that eating terminates pursuit.
+
+5. **Deployment & Operational Boundary:**
+   - AWS production task (`dsf-ai-task:1532`, image `functional-702be702`) remains active and undisturbed.
+   - Verification suite: 11/11 tests pass (`tests/test_grounded_experience_pursuit.py` 5/5, `tests/test_episodic_binding_engine.py` 6/6).
