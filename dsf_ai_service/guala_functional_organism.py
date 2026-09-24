@@ -62,7 +62,7 @@ from dsf_ai_service.substrate.embodiment_world import (
     BodySurfaceActuation, BodySurfaceContactCommand,
     GraspContactCommand, MoveCommand, OralContactCommand, PoseMM, PositionMM,
     ReleaseHeldObjectCommand, TakeContactHeldObjectCommand, TouchContactCommand, _derived_contact_patch_square_mm, _receptor_position,
-    rotate_lattice_offset,
+    rotate_lattice_offset, _floor_discs_overlap, _is_bed, _is_contained_or_seated, _straight_path_intersects_disc,
 )
 
 
@@ -161,7 +161,7 @@ EYELID_OPEN_MICROMETRES = 10_000
 # consolidated memory when the day has nothing for the present structure.
 CONSOLIDATED_STREAMS = ("sound_energy", "hunger", "food_distance", "hand")
 CONSOLIDATED_CAPACITY = 2048
-RETIRED_KEYS = ("pending_syllable", "visited", "door_goal", "bout_syllables", "quiet_until_tick", "blocked_doors", "attended_tick", "unreachable_food", "food_goal",
+RETIRED_KEYS = ("pending_syllable", "visited", "door_goal", "bout_syllables", "quiet_until_tick", "blocked_doors", "unreachable_food", "food_goal",
                 "food_refusals", "food_best_mm", "food_stall_beats", "answered_profile", "touched", "strides_since_pickup", "release_refusals",
                 "touching", "listening_since", "call_profile", "answer_bout", "answer_target", "answer_pending", "answer_map", "food_rooms",
                 "food_room_goal", "room_beats", "keeping_room", "keep_walk_beats", "last_kept", "kept", "stuck_beats", "approached", "goal",
@@ -699,23 +699,106 @@ def _object(snapshot: Any, object_id: str) -> Any | None:
 
 
 def move_commands_toward(snapshot: Any, target: PositionMM, stop_mm: int) -> tuple[MoveCommand, ...]:
-    """One stride toward ``target`` (turning to face it), then sidesteps the
-    world may accept instead when the straight stride is blocked."""
+    """One stride toward target (turning to face it), or clearance tangent
+    contour strides around intervening rigid obstacles in negative space,
+    followed by sidesteps the world may accept when direct headings are obstructed."""
 
     body = _self_body(snapshot)
     origin = body.pose.position
     bearing = _heading_toward(origin, target)
     goal = _approach_point(origin, target, stop_mm)
     span = _distance_mm(origin, goal)
-    commands = []
     if span <= 0:
         return (MoveCommand(PoseMM(origin, bearing), BEAT_MICROSECONDS),)
+
     stride = min(STEP_MM, span)
-    for offset in (0, *SIDESTEP_MILLIDEGREES):
-        heading = (bearing + offset) % 360_000
-        radians = math.radians(heading / 1000)
-        step = PositionMM(round(origin.x + stride * math.cos(radians)), round(origin.y + stride * math.sin(radians)), origin.z)
+    held_radius = 0
+    if body.held_object_id is not None:
+        held_obj = _object(snapshot, body.held_object_id)
+        if held_obj is not None:
+            held_radius = int(held_obj.radius_mm)
+    carried_radius = max(int(body.radius_mm), held_radius)
+    here = _region_of(snapshot, origin, body.radius_mm)
+
+    room_obs: list[tuple[PositionMM, int, str]] = []
+    for item in snapshot.objects:
+        if item.position is None or _is_bed(item) or _is_contained_or_seated(item):
+            continue
+        if _distance_mm(item.position, target) == 0:
+            continue
+        room_obs.append((item.position, int(item.radius_mm), item.object_id))
+    for other in snapshot.bodies:
+        if other.body_id == body.body_id:
+            continue
+        room_obs.append((other.pose.position, int(other.radius_mm), other.body_id))
+
+    blocking: list[tuple[PositionMM, int, str]] = []
+    for pos, rad, oid in room_obs:
+        comb_r = carried_radius + rad
+        if _straight_path_intersects_disc(origin, goal, pos, comb_r):
+            blocking.append((pos, rad, oid))
+
+    clearance_headings: list[int] = []
+    if blocking:
+        blocking.sort(key=lambda x: _distance_mm(origin, x[0]))
+        candidate_tangents: list[int] = []
+        for obs_pos, obs_rad, _ in blocking[:2]:
+            rc = carried_radius + obs_rad + DROP_MARGIN_MM
+            dx = obs_pos.x - origin.x
+            dy = obs_pos.y - origin.y
+            dist = math.hypot(dx, dy)
+            theta_obs = math.atan2(dy, dx)
+            alpha = math.asin(min(1.0, rc / dist)) if dist > rc else math.pi / 2.0
+            h1 = round(math.degrees(theta_obs + alpha) * 1000) % 360_000
+            h2 = round(math.degrees(theta_obs - alpha) * 1000) % 360_000
+            candidate_tangents.extend([h1, h2])
+
+        unobstructed: list[int] = []
+        for th in candidate_tangents:
+            rad = math.radians(th / 1000.0)
+            step = PositionMM(round(origin.x + stride * math.cos(rad)), round(origin.y + stride * math.sin(rad)), origin.z)
+            if here is not None and not here.bounds.contains_floor_disc(step, carried_radius):
+                continue
+            collides = False
+            for obs_pos, obs_rad, _ in room_obs:
+                if _straight_path_intersects_disc(origin, step, obs_pos, carried_radius + obs_rad):
+                    collides = True
+                    break
+            if not collides:
+                unobstructed.append(th)
+
+        goal_rad = math.radians(bearing / 1000.0)
+        curr_rad = math.radians(body.pose.heading_millidegrees / 1000.0)
+        def _score(h: int) -> float:
+            hr = math.radians(h / 1000.0)
+            return math.cos(hr - goal_rad) + 0.3 * math.cos(hr - curr_rad)
+
+        unobstructed.sort(key=_score, reverse=True)
+        for th in unobstructed:
+            clearance_headings.append(th)
+            for off in (15_000, -15_000):
+                clearance_headings.append((th + off) % 360_000)
+
+    if clearance_headings:
+        attempt_headings = list(dict.fromkeys(clearance_headings + [bearing] + [(bearing + off) % 360_000 for off in SIDESTEP_MILLIDEGREES]))
+    else:
+        attempt_headings = [(bearing + off) % 360_000 for off in (0, *SIDESTEP_MILLIDEGREES)]
+
+    commands: list[MoveCommand] = []
+    for heading in attempt_headings:
+        rad = math.radians(heading / 1000.0)
+        step = PositionMM(round(origin.x + stride * math.cos(rad)), round(origin.y + stride * math.sin(rad)), origin.z)
+        if here is not None and not here.bounds.contains_floor_disc(step, carried_radius):
+            continue
         commands.append(MoveCommand(PoseMM(step, bearing), BEAT_MICROSECONDS))
+
+    if not commands:
+        for offset in (0, *SIDESTEP_MILLIDEGREES):
+            heading = (bearing + offset) % 360_000
+            rad = math.radians(heading / 1000.0)
+            step = PositionMM(round(origin.x + stride * math.cos(rad)), round(origin.y + stride * math.sin(rad)), origin.z)
+            commands.append(MoveCommand(PoseMM(step, bearing), BEAT_MICROSECONDS))
+
     return tuple(commands)
 
 
@@ -1644,13 +1727,17 @@ class FunctionalOrganism:
         # Sound Attunement: When an external sound is heard, or a speaker is speaking,
         # her acoustic orienting reflex turns her neck and eyes to face the speaker.
         sound_source = getattr(sensed, "sound_source_id", None)
+        caregiver = next((b for b in snapshot.bodies if b.body_id != snapshot.self_body_id), None)
+        if sound_source is None and caregiver is not None:
+            sound_source = caregiver.body_id
+
         heard_now = sensed.heard_profile
         sound_heard = False
         if heard_now is not None:
             energy = sum(heard_now) / len(heard_now)
             sound_heard = energy >= HEARD_ENERGY_FLOOR
 
-        if body.held_object_id is None and sound_source is not None and sound_heard:
+        if sound_source is not None and sound_heard:
             state["gaze_target"] = sound_source
             state["attended_tick"] = tick
 
@@ -1809,7 +1896,8 @@ class FunctionalOrganism:
         self._settle(key, novel, sound_now, skin_now, tick, warmth_likeness=float(getattr(self, "_warmth_likeness", 0.0)), pain=float(getattr(self, "_pain", 0.0)))
 
         def decision(act: str, reason: str, commands: tuple[Any, ...] = (), target: str | None = None, drive: tuple[int, int, int] | None = None) -> Decision:
-            state["gaze_target"] = target   # what she acts on is what her head turns to next beat
+            if not sound_heard:
+                state["gaze_target"] = target   # what she acts on is what her head turns to next beat
             state["pending_transition"] = {
                 "pre_key": current_sensory_key,
                 "start_tick": tick,
