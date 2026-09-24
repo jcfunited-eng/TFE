@@ -45,11 +45,6 @@ from dsf_ai_service.guala_caretaker_hand import (
     _approach_point, _distance_mm, _heading_toward, _portal_points, _portal_route, _region_of,
     nothing_left_to_bite, offered_within_reach,
 )
-from dsf_ai_service.affordance_planner import (
-    AffordancePlan,
-    extract_affordances,
-    plan_need_fulfillment,
-)
 from dsf_ai_service.episodic_binding_engine import (
     compute_somatic_salience,
     evaluate_anticipatory_consequence,
@@ -864,7 +859,7 @@ def door_crossing_commands(snapshot: Any, portal: Any, from_region: str) -> tupl
     door does not close it."""
 
     commands = []
-    for margin in (DOOR_MARGIN_MM, 450, 350):
+    for margin in (850, 700, 550):
         for offset in DOOR_CROSSING_OFFSETS_MM:
             before_door, past_door = _portal_points(portal, from_region, snapshot, offset, margin)
             commands.append(MoveCommand(PoseMM(past_door, _heading_toward(before_door, past_door)), BEAT_MICROSECONDS))
@@ -1037,6 +1032,7 @@ def candidates(
     sleepy: bool = True,
     conserved_objects: dict[str, Any] | None = None,
     pending_chain: list[str] | None = None,
+    last_crossed_portal: tuple[str, int] | None = None,
 ) -> list[tuple[str, str, tuple[Any, ...], str | None, tuple[int, int, int] | None]]:
     """What her body can do this beat, across every sensed target: each entry is
     (act, detail, world commands tried in order, target, voice drive).
@@ -1157,6 +1153,10 @@ def candidates(
     if here is not None:
         doors = [item for item in snapshot.portals if here.region_id in item.region_ids]
         for portal in sorted(doors, key=lambda item: (_distance_mm(position, door_crossing(snapshot, item, here.region_id)[0]), item.portal_id)):
+            if last_crossed_portal is not None:
+                p_id, p_tick = last_crossed_portal
+                if portal.portal_id == p_id and (tick - p_tick) < 12:
+                    continue
             before_door, _past = door_crossing(snapshot, portal, here.region_id)
             if _distance_mm(position, before_door) <= ARRIVAL_MM + STEP_MM // 2:
                 out.append(("toward_door", "through " + portal.portal_id, door_crossing_commands(snapshot, portal, here.region_id), portal.portal_id, None))
@@ -1705,6 +1705,11 @@ class FunctionalOrganism:
         cur_room = state.get("room_now")
         prior_room = state.get("prior_room")
         if cur_room is not None:
+            if prior_room is not None and cur_room != prior_room:
+                for p in snapshot.portals:
+                    if prior_room in p.region_ids and cur_room in p.region_ids:
+                        state["last_crossed_portal"] = (p.portal_id, tick)
+                        break
             if prior_room is None or cur_room == prior_room:
                 state["room_dwell_beats"] = int(state.get("room_dwell_beats", 0)) + 1
                 state["prior_room"] = cur_room
@@ -1968,19 +1973,7 @@ class FunctionalOrganism:
                     if item.material is not None and int(item.material.surface_temperature_millikelvin) >= NOCICEPTION_MILLIKELVIN:
                         continue   # too hot to bite: the jaw waits for it to cool (the mouth's reflex)
                     return decision("bite", "food at her mouth while feeding (the jaw's reflex)", (OralContactCommand(item.object_id, BEAT_MICROSECONDS),), item.object_id)
-            # Cognitive Asset 2: If acute hunger and food not at mouth, evaluate multi-step affordance plan
-            if float(self.deficit) >= 0.80 and not state.get("affordance_plan") and hasattr(snapshot, "objects"):
-                body_pos = (int(body.pose.position.x), int(body.pose.position.y), int(body.pose.position.z))
-                affordances = extract_affordances(snapshot.objects, getattr(snapshot, "portals", ()), body, getattr(snapshot, "regions", ()))
-                plan = plan_need_fulfillment(
-                    affordances=affordances,
-                    self_pos=body_pos,
-                    self_region=state.get("room_now"),
-                    hunger_deficit=float(self.deficit),
-                    tick=tick,
-                )
-                if not plan.is_refused and len(plan.steps) > 0:
-                    state["affordance_plan"] = plan.to_dict()
+
         pressure = int(state.get("sleep_pressure", 0))
         if state.get("asleep"):
             if pressure <= 0:
@@ -2019,7 +2012,7 @@ class FunctionalOrganism:
         sleepy = int(state.get("sleep_pressure", 0)) >= SLEEP_PRESSURE_CEILING // 2
         p_chain = list(state.get("pending_chain") or [])
         state["body_pos"] = (int(body.pose.position.x), int(body.pose.position.y), int(body.pose.position.z))
-        options = candidates(snapshot, body, held, offered, seen, tick, say_drive=say_drive, say_detail=say_reason, feeding=feeding, sleepy=sleepy, conserved_objects=conserved, pending_chain=p_chain)
+        options = candidates(snapshot, body, held, offered, seen, tick, say_drive=say_drive, say_detail=say_reason, feeding=feeding, sleepy=sleepy, conserved_objects=conserved, pending_chain=p_chain, last_crossed_portal=state.get("last_crossed_portal"))
 
         # Cognitive Asset 1: Learned Closed-Loop Continuation Selector
         # When an internal demand is active, searches the empirical transition graph for supported continuation
@@ -2589,40 +2582,7 @@ class FunctionalOrganism:
 
         label = "structure " + key[:6]
 
-        # Break rotational limit-cycle deadlocks: maximum 2 consecutive in-place turns
-        consecutive_turns = int(self._state.get("consecutive_turns", 0))
-        if consecutive_turns >= 2:
-            non_turn = [a for a in acts if a not in ("turn_left", "turn_right")]
-            if non_turn:
-                acts = non_turn
 
-        # Cognitive Asset 2: Multi-Step Predictive Affordance Planning
-        plan_dict = self._state.get("affordance_plan")
-        if plan_dict:
-            plan = AffordancePlan.from_dict(plan_dict)
-            step = plan.next_step()
-            if step and step.action in acts:
-                self._state["planned_target_id"] = step.target_id
-                should_advance = False
-                room_now = self._state.get("room_now")
-                if step.action == "toward_door" and step.expected_postcondition.startswith("in_region_"):
-                    dest_reg = step.expected_postcondition.replace("in_region_", "")
-                    if room_now == dest_reg:
-                        should_advance = True
-                else:
-                    should_advance = True
-
-                if should_advance:
-                    plan.advance_step()
-                    if plan.is_complete:
-                        self._state["affordance_plan"] = None
-                        self._state["planned_target_id"] = None
-                    else:
-                        self._state["affordance_plan"] = plan.to_dict()
-                return step.action, label + f": affordance plan step {step.step_index} ({step.action} -> {step.expected_postcondition})"
-            else:
-                self._state["affordance_plan"] = None
-                self._state["planned_target_id"] = None
 
         # Cognitive Asset 1: Anticipatory Trajectory Reactivation
         meanings = self._state.get("meanings", {})
@@ -2658,12 +2618,12 @@ class FunctionalOrganism:
         cur_room = self._state.get("room_now")
 
         # Homeostatic Barrenness in Lived Cognition (tick > 100):
-        # Does the current room lack the active homeostatic requirement?
+        # Does the current environment lack the active homeostatic requirement?
         if self.live_organism_tick > 100:
             needs_bed = sleep_ratio >= 0.5
             needs_food = deficit >= 0.6
-            has_bed = (cur_room == "her-room")
-            has_food = (cur_room == "kitchen")
+            has_bed = any(c.get("room_id") == cur_room for o_id, c in conserved.items() if o_id == BED_ID) or (candidate_options is not None and any(opt[0] == "toward_bed" for opt in candidate_options))
+            has_food = any(c.get("is_food") and c.get("room_id") == cur_room for c in conserved.values()) or (candidate_options is not None and any(opt[0] == "toward_food" for opt in candidate_options))
             is_barren = (needs_bed and not has_bed) or (needs_food and not has_food)
             if is_barren:
                 phi_barren = math.tanh(max(0.0, float(dwell_beats - 16)) / 16.0)
@@ -2840,6 +2800,8 @@ class FunctionalOrganism:
             state["sleep_pressure"] = int(state.get("sleep_pressure", 0)) + 1
         if applied_action in MOVES and refusal is None:
             state["strides"] += 1
+            if decision.act == "toward_door" and decision.target_object_id:
+                state["last_crossed_portal"] = (decision.target_object_id, tick_now)
         if applied_action in ("grasp", "take") and refusal is None:
             state["handled"] = int(state.get("handled", 0)) + 1
         if refusal is not None:

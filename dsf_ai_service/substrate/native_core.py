@@ -23,7 +23,6 @@ organism.experience_word / neuron.step, per tools/bench_organism_core.py):
   - w1_physical_receptors._lit_surfaces_focal -> _native_lit_surfaces_focal (cast_focal_rays_native)
   - guala_home_world.compute_spatial_horizon_observation -> _cached_compute_spatial_horizon_observation
   - embodiment_world._canonical_skeleton -> _fast_canonical_skeleton
-  - embodiment_world.EmbodimentWorldAuthority._validate_world -> _native_validate_world
 
 All Python-side object state (event deques, winding counters, pickle shape)
 stays exactly where it was -- the kernels are pure functions; wrappers write
@@ -657,171 +656,17 @@ def _fast_canonical_skeleton(
 
 
 def _native_validate_world(self, world: Any) -> None:
-    """Compiled native Twin of EmbodimentWorldAuthority._validate_world.
+    """Validate world state using canonical Python physical invariants.
 
-    Accelerates 2D floor disc kinematics, spatial region containment, and pairwise
-    collision checks via guala_core.validate_world_kinematics_native while strictly
-    preserving all physical boundary and contact patch invariants.
+    Preserves exact _is_contained_or_seated accommodation for high-chair, playpen,
+    and bed fixtures without collision false positives.
     """
+    orig = _originals.get("_validate_world")
+    if orig is not None:
+        orig(self, world)
+        return
     from dsf_ai_service.substrate import embodiment_world as ew
-
-    ew._bounded_integer(world.revision, "world revision", minimum=0, maximum=ew.MAX_REVISION)
-    self._validate_physical_topology(world.regions, world.portals)
-    region_by_id = {item.region_id: item for item in world.regions}
-    if (
-        world.room_id not in region_by_id
-        or world.room_bounds != region_by_id[world.room_id].bounds
-    ):
-        raise ValueError("self region projection differs from topology")
-    ew._identifier(world.self_body_id, "self body id")
-    if not 2 <= len(world.bodies) <= self._max_bodies:
-        raise ValueError("world body inventory exceeds its exact capacity")
-    if tuple(sorted(world.bodies, key=lambda item: item.body_id)) != world.bodies:
-        raise ValueError("world bodies are not in canonical identity order")
-    body_ids = [item.body_id for item in world.bodies]
-    if len(body_ids) != len(set(body_ids)) or world.self_body_id not in body_ids:
-        raise ValueError("world body identities or self-body changed")
-    for body in world.bodies:
-        body.verify()
-    self._validate_port_topology(
-        world.self_body_id, world.bodies, self._actor_ports
-    )
-    if not 1 <= len(world.objects) <= self._max_objects:
-        raise ValueError("world object inventory exceeds its exact capacity")
-    if tuple(sorted(world.objects, key=lambda item: item.object_id)) != world.objects:
-        raise ValueError("world objects are not in canonical identity order")
-    ids = [item.object_id for item in world.objects]
-    if len(ids) != len(set(ids)):
-        raise ValueError("world object identities are not unique")
-    held_by_body = {
-        item.body_id: [] for item in world.bodies
-    }
-    placed = []
-    for item in world.objects:
-        item.verify()
-        if item.held_by_body_id is not None:
-            if item.held_by_body_id not in held_by_body:
-                raise ValueError("object is held by a body outside this authority")
-            held_by_body[item.held_by_body_id].append(item.object_id)
-        else:
-            placed.append(item)
-    object_by_id = {item.object_id: item for item in world.objects}
-    occupied = []
-    for body in world.bodies:
-        held = held_by_body[body.body_id]
-        expected_held = held[0] if len(held) == 1 else None
-        if len(held) > 1 or body.held_object_id != expected_held:
-            raise ValueError("body/object holding relation is not reciprocal")
-        carried_radius = body.radius_mm
-        if expected_held is not None:
-            carried_radius = max(
-                carried_radius, object_by_id[expected_held].radius_mm
-            )
-        occupied.append((body, carried_radius))
-        contact = body.active_contact
-        if contact is not None:
-            item = object_by_id.get(contact.object_id)
-            geometry = body.receptor_geometry
-            if (
-                item is None
-                or item.material is None
-                or geometry is None
-            ):
-                raise ValueError(
-                    "body contact lacks signed material/receptor state"
-                )
-            if contact.kind == "oral" and not (
-                (
-                    body.held_object_id == item.object_id
-                    and item.held_by_body_id == body.body_id
-                )
-                or (
-                    item.position is None
-                    and item.held_by_body_id is not None
-                    and item.held_by_body_id != body.body_id
-                    and any(
-                        other.body_id == item.held_by_body_id
-                        and other.held_object_id == item.object_id
-                        for other in world.bodies
-                    )
-                )
-            ):
-                raise ValueError(
-                    "oral contact is not a reciprocal held relation"
-                )
-            offset = (
-                geometry.oral_offset_mm
-                if contact.kind == "oral"
-                else geometry.touch_offset_mm
-            )
-            receptor_radius = (
-                geometry.oral_radius_mm
-                if contact.kind == "oral"
-                else geometry.touch_radius_mm
-            )
-            receptor_position = ew._receptor_position(body, offset)
-            object_position = (
-                item.position
-                if item.position is not None
-                else receptor_position
-            )
-            expected_patch = (
-                ew._derived_contact_patch_square_mm(
-                    receptor_position=receptor_position,
-                    receptor_radius_mm=receptor_radius,
-                    object_position=object_position,
-                    object_radius_mm=item.radius_mm,
-                )
-                if receptor_position is not None
-                else None
-            )
-            if expected_patch != contact.contact_patch_square_mm:
-                raise ValueError(
-                    "body contact differs from signed geometry"
-                )
-
-    if _gc is not None and hasattr(_gc, "validate_world_kinematics_native"):
-        regions_tuples = [
-            (
-                int(r.bounds.minimum.x),
-                int(r.bounds.maximum.x),
-                int(r.bounds.minimum.y),
-                int(r.bounds.maximum.y),
-                int(r.bounds.minimum.z),
-                str(r.region_id),
-            )
-            for r in world.regions
-        ]
-        placed_tuples = [
-            (
-                int(item.position.x),
-                int(item.position.y),
-                int(item.position.z),
-                int(item.radius_mm),
-                bool(ew._is_bed(item)),
-            )
-            for item in placed
-        ]
-        occupied_tuples = [
-            (
-                int(body.pose.position.x),
-                int(body.pose.position.y),
-                int(body.pose.position.z),
-                int(carried_radius),
-                bool(body.body_id == world.self_body_id),
-            )
-            for body, carried_radius in occupied
-        ]
-        _gc.validate_world_kinematics_native(
-            regions_tuples, placed_tuples, occupied_tuples, str(world.room_id)
-        )
-    else:
-        orig = _originals.get("_validate_world")
-        if orig is not None:
-            orig(self, world)
-            return
-
-    self._validate_contact_optical_surface_sequences(world)
+    ew.EmbodimentWorldAuthority._validate_world(self, world)
 
 
 # ---------------------------------------------------------------------------
@@ -879,7 +724,8 @@ def install() -> bool:
     w1pr._lit_surfaces_focal = _native_lit_surfaces_focal
     ghw.compute_spatial_horizon_observation = _cached_compute_spatial_horizon_observation
     ew._canonical_skeleton = _fast_canonical_skeleton
-    ew.EmbodimentWorldAuthority._validate_world = _native_validate_world
+    # Note: _validate_world is preserved as canonical Python authority to guarantee
+    # exact _is_contained_or_seated accommodation for high-chair, playpen, and bed.
 
     _installed = True
     return True
@@ -916,7 +762,8 @@ def uninstall() -> None:
     w1pr._lit_surfaces_focal = _originals["_lit_surfaces_focal"]
     ghw.compute_spatial_horizon_observation = _originals["compute_spatial_horizon_observation"]
     ew._canonical_skeleton = _originals["_canonical_skeleton"]
-    ew.EmbodimentWorldAuthority._validate_world = _originals["_validate_world"]
+    if "_validate_world" in _originals:
+        ew.EmbodimentWorldAuthority._validate_world = _originals["_validate_world"]
     _HORIZON_OBS_CACHE.clear()
     _FOCAL_LIST_CACHE.clear()
     _OPTICAL_SURFACE_CANONICAL_CACHE.clear()
