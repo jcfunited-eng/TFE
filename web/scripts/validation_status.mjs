@@ -35,8 +35,24 @@ export function taSemanticsValidationCheck({
   });
 }
 
+// An ADVISORY check is recorded with its real status but never decides the
+// verdict. Joseph 2026-09-24, on ui_filter_behavior_integrity (a website
+// screener-filter test that needs a site login no container has ever
+// carried, so it sat at not_run and stamped every nightly run FAILED since
+// 09-16 while all seventeen data checks passed): "do what you think you need
+// to do." The 2026-08-18 rule — a check that cannot run counts as failed —
+// still holds for every blocking check.
+export function advisoryValidationCheck(name, status, details = {}) {
+  return buildValidationCheck(name, status, { ...details, enforcement: "advisory" });
+}
+
+export function isAdvisoryCheck(check) {
+  return check?.details?.enforcement === "advisory";
+}
+
 export function validationReportPassed(checks) {
-  return Array.isArray(checks)
-    && checks.length > 0
-    && checks.every((check) => check?.status === "pass");
+  if (!Array.isArray(checks)) return false;
+  const blocking = checks.filter((check) => !isAdvisoryCheck(check));
+  return blocking.length > 0
+    && blocking.every((check) => check?.status === "pass");
 }

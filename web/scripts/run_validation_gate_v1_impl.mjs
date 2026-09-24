@@ -5,6 +5,7 @@ import path from "node:path";
 import { Pool } from "pg";
 import {
   binaryValidationCheck,
+  advisoryValidationCheck,
   buildValidationCheck,
   taSemanticsValidationCheck,
   validationReportPassed,
@@ -871,19 +872,19 @@ async function main() {
         blockingReason = blockingReason ?? "schedule_evidence_missing";
       }
 
+      // ADVISORY since 2026-09-24 (Joseph's word). This is a website test:
+      // it signs in and checks the screener's sector / min-price filters on
+      // seven tabs. It has no bearing on the readings or on trading, and it
+      // needs TFE_VALIDATION_BASE_URL/USERNAME/PASSWORD, which no container
+      // has ever carried — so it sat at not_run and failed every nightly run
+      // from 09-16 while the seventeen data checks passed. Its real status
+      // is still recorded here; it no longer decides the verdict.
       const apiFilterValidation = await runApiFilterValidation(root);
-      checks.push(buildValidationCheck(
+      checks.push(advisoryValidationCheck(
         "ui_filter_behavior_integrity",
         apiFilterValidation.status,
         apiFilterValidation.details,
       ));
-      if (!apiFilterValidation.passed) {
-        blockingReason = blockingReason ?? (
-          apiFilterValidation.status === "not_run"
-            ? "ui_filter_behavior_integrity_not_run"
-            : "ui_filter_behavior_integrity_failed"
-        );
-      }
     }
 
     let passed = validationReportPassed(checks);

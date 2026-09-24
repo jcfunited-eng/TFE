@@ -4,6 +4,8 @@ import {
   buildValidationCheck,
   taSemanticsValidationCheck,
   validationReportPassed,
+  advisoryValidationCheck,
+  isAdvisoryCheck,
 } from "../validation_status.mjs";
 
 assert.equal(binaryValidationCheck("executed", true).status, "pass");
@@ -34,5 +36,19 @@ assert.equal(validationReportPassed([clean, binaryValidationCheck("second", true
 assert.equal(validationReportPassed([clean, flagged]), false);
 assert.equal(validationReportPassed([clean, buildValidationCheck("browser", "not_run")]), false);
 assert.equal(validationReportPassed([]), false);
+
+// ADVISORY checks (2026-09-24): recorded with their real status, never decide
+// the verdict. Blocking checks that cannot run still fail the report.
+const advisoryNotRun = advisoryValidationCheck("ui_filter_behavior_integrity", "not_run", { reason: "no login" });
+const advisoryFail = advisoryValidationCheck("ui_filter_behavior_integrity", "fail");
+assert.equal(isAdvisoryCheck(advisoryNotRun), true);
+assert.equal(isAdvisoryCheck(clean), false);
+assert.equal(advisoryNotRun.details.enforcement, "advisory");
+assert.equal(advisoryNotRun.details.reason, "no login");
+assert.equal(validationReportPassed([clean, advisoryNotRun]), true);
+assert.equal(validationReportPassed([clean, advisoryFail]), true);
+assert.equal(validationReportPassed([clean, flagged, advisoryNotRun]), false);
+assert.equal(validationReportPassed([clean, buildValidationCheck("browser", "not_run"), advisoryNotRun]), false);
+assert.equal(validationReportPassed([advisoryNotRun]), false, "an all-advisory report has nothing blocking that passed");
 
 console.log("validation status tests passed");
