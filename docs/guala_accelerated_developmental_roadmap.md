@@ -12,18 +12,20 @@ This document replaces ungrounded calendar and equation promises with measurable
 
 In Deterministic Structural Field AI (DSF-AI), the L0–L4 structural kernel ($D_k, S_{UF}, M_k, R_{rev,k}, U^*_k, C_k, P_k, B_k$) dimensionalizes continuous-time sensory-motor interaction into deterministic geometry. 
 
-Crucially, kernel metrics do not by themselves establish high-level cognition or language:
-- Positive structural stability ($S_{UF} > 0$) indicates Lyapunov stability of the field; it does **not** by itself establish grammatical composition, semantic liking, or social intent.
-- Pressure exceeding breathing ($P_k > B_k$) indicates metabolic or structural tension; it does **not** by itself establish wanting or teleological demand without derived sensorimotor grounding and behavioral evidence.
+Crucially, raw kernel metrics do not by themselves establish high-level cognition, grammar, or psychological states:
+- Positive structural stability ($S_{UF} > 0$) is a computed geometric coordinate; it cannot be assumed to establish Lyapunov stability, grammatical composition, semantic liking, or social intent without an explicit mathematical derivation and demonstrated behavioral grounding.
+- Pressure exceeding breathing ($P_k > B_k$) is a relationship between geometric displacement fields; it cannot be assumed to establish metabolic tension, wanting, or teleological demand without derived sensorimotor grounding and physical evidence.
 
 Linguistic and cognitive milestones are defined strictly as **behavioral acceptance criteria** requiring demonstrated physical consequence, not programmer-supplied action lists or canned syllable sequences:
 
-| Target Milestone | Phenomenological Description | Grounded Physical Evidence Requirement | Baseline Horizon |
+| Target Milestone | Phenomenological Description | Grounded Physical Evidence Requirement | Hypothesized Planning Horizon (Unvalidated Estimate)* |
 | :--- | :--- | :--- | :--- |
 | **First-Person Teleological Demand** | "I want [X]" / vocal demand | Measured metabolic tension + physical focal orientation + motor reach toward target + reciprocal sound emission contingent on target state. | Month 3 – 6 |
 | **Affective Basin Valuation** | "I like [X]" / selective preference | Measured stability contrast across entities + repeatable approach bias toward preferred physical entity + persistence across repeated encounters. | Month 6 – 9 |
 | **Cooperative Joint Affordance** | "Let's Play" / shared activity | Mutual gaze alignment + contingent give-and-take physical manipulation with caregiver + social interaction initiation. | Month 9 – 12 |
 | **Prescriptive Deontic Guidance** | "You should [X]" / normative cue | Observed modeling of external agent state + corrective vocal/gestural directive contingent on external agent trajectory. | Month 18 – 24 |
+
+*\*Note: Horizon intervals (e.g. Month 3–24) are planning hypotheses for engineering roadmap sequencing, not validated developmental predictions.*
 
 ---
 
@@ -66,8 +68,8 @@ Developmental acceleration cannot be achieved by substituting scripted shims for
 
 Arbitrary tick counts (such as "100,000 ticks") do not define physical boundaries. Infrastructure transitions are governed strictly by measurable latency and memory thresholds:
 
-1. **State Persistence Latency**: Disk/S3 serialization must not exceed an allowable fraction of the canonical tick budget ($< 50\,\text{ms}$ of $250\,\text{ms}$). If memory growth causes serialization pauses that breach continuous-time execution, binary state storage or incremental delta persistence must be deployed.
-2. **Bounded Memory Allocation**: All runtime histories, sensory buffers, and transaction logs must adhere to $O(1)$ hard capacity bounds (ring buffers), preventing unbounded RAM growth.
+1. **State Persistence Latency**: The proposed $< 50\,\text{ms}$ persistence target is an engineering budget allocation (one-fifth of the $250\,\text{ms}$ canonical beat), not a derived physical law. End-to-end serialization and storage latency must be measured directly under production load. If memory growth causes serialization pauses that breach continuous-time execution, binary state storage or incremental delta persistence must be deployed.
+2. **Bounded Diagnostic Buffers vs. Indispensable Retained State**: Fixed-capacity ring buffers ($O(1)$ entry limits) apply strictly to disposable transport logs, reflex telemetry, and diagnostic histories to prevent memory leaks. They must **never** be used to arbitrarily evict causative learned state, episodic memory, or indispensable recovery records. Furthermore, bounding entry count alone does not bound memory; byte footprint per entry must be tracked and bounded.
 3. **Equivalence Verification**: Any compilation or native core acceleration must be verified byte-for-byte or trajectory-for-trajectory against reference dynamics to prevent ML approximations or floating-point drift.
 
 ---

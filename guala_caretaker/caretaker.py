@@ -1396,6 +1396,7 @@ def wait_clear(min_tick: int | None = None, st: dict | None = None) -> dict | No
                     log(f"she is asleep (tick {o.get('live_tick')}); nocturnal housekeeping active")
                     st["asleep_logged"] = True
                 if st is not None:
+                    maybe_feed(o, st)
                     maybe_housekeeping(o, st)
                 time.sleep(POLL_S)
                 continue

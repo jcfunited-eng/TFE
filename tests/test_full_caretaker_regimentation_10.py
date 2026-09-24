@@ -588,6 +588,112 @@ def test_caretaker_script_order_and_awake_dispatch(monkeypatch, tmp_path) -> Non
     assert st.get("tactile_index") == 1
     assert st.get("tactile_next_tick") == 23_600
 
+    # 3. Asleep + Seated in high-chair: wait_clear must dispatch sleep safety release (REG-A1-02)
+    monkeypatch.setattr(ct, "POLL_S", 0.0)
+    asleep_food_calls = []
+    current_obs_holder = [None]
+    def recording_present(toy):
+        obs_curr = current_obs_holder[0]
+        if obs_curr and ct.asleep(obs_curr):
+            asleep_food_calls.append(toy)
+        return {
+            "observation": {
+                "last_occurrence": {
+                    "caregiver_presentation": {"operation": "present", "presented": True, "reason": "applied", "toy": toy}
+                }
+            }
+        }
+    monkeypatch.setattr(ct, "present_food", recording_present)
+
+    seated_asleep_obs = {
+        "live_tick": 20_001,
+        "available": True,
+        "last_occurrence": {
+            "her_sleep": {"asleep": True},
+            "embodiment": {
+                "self_body_id": "guala-1",
+                "bodies": [{"body_id": "guala-1", "pose": {"position": {"x_mm": 3500, "y_mm": 1500, "z_mm": 0}}}],
+            },
+            "tastant_remaining_micrograms": 500,
+        },
+    }
+    awake_obs = {
+        "live_tick": 20_002,
+        "available": True,
+        "last_occurrence": {
+            "her_sleep": {"asleep": False},
+            "embodiment": {
+                "self_body_id": "guala-1",
+                "bodies": [{"body_id": "guala-1", "pose": {"position": {"x_mm": 2700, "y_mm": 1500, "z_mm": 0}}}],
+            },
+            "tastant_remaining_micrograms": 500,
+        },
+    }
+
+    obs_seq = iter([seated_asleep_obs, awake_obs])
+    def next_obs():
+        val = next(obs_seq)
+        current_obs_holder[0] = val
+        return val
+    monkeypatch.setattr(ct, "obs", next_obs)
+
+    st_seated = {
+        "seated_for_meal": True,
+        "food_delivered_for_meal": True,
+        "circadian_epoch": "MORNING_FOCUS",
+        "circadian_day": 1,
+    }
+    res_seated = ct.wait_clear(min_tick=20_000, st=st_seated)
+    assert res_seated is not None
+    assert "high-chair-release" in asleep_food_calls
+    assert st_seated.get("seated_for_meal") is False
+    assert st_seated.get("food_delivered_for_meal") is False
+
+    # 4. Asleep + Unseated: wait_clear must NOT produce meal or lesson
+    asleep_food_calls.clear()
+    unseated_asleep_obs = {
+        "live_tick": 20_003,
+        "available": True,
+        "last_occurrence": {
+            "her_sleep": {"asleep": True},
+            "embodiment": {
+                "self_body_id": "guala-1",
+                "bodies": [{"body_id": "guala-1", "pose": {"position": {"x_mm": 1000, "y_mm": 1000, "z_mm": 0}}}],
+            },
+            "tastant_remaining_micrograms": 500,
+        },
+    }
+    awake_obs2 = {
+        "live_tick": 20_004,
+        "available": True,
+        "last_occurrence": {
+            "her_sleep": {"asleep": False},
+            "embodiment": {
+                "self_body_id": "guala-1",
+                "bodies": [{"body_id": "guala-1", "pose": {"position": {"x_mm": 1000, "y_mm": 1000, "z_mm": 0}}}],
+            },
+            "tastant_remaining_micrograms": 500,
+        },
+    }
+    obs_seq2 = iter([unseated_asleep_obs, awake_obs2])
+    def next_obs2():
+        val = next(obs_seq2)
+        current_obs_holder[0] = val
+        return val
+    monkeypatch.setattr(ct, "obs", next_obs2)
+
+    st_unseated = {
+        "seated_for_meal": False,
+        "food_delivered_for_meal": False,
+        "circadian_epoch": "MORNING_FOCUS",
+        "circadian_day": 1,
+    }
+    res_unseated = ct.wait_clear(min_tick=20_000, st=st_unseated)
+    assert res_unseated is not None
+    meal_or_release_calls = [c for c in asleep_food_calls if c in {"apple", "bread", "milk", "high-chair-release"}]
+    assert len(meal_or_release_calls) == 0, f"Expected 0 meal/release calls when unseated and asleep, got {asleep_food_calls}"
+    assert "high-chair-release" not in asleep_food_calls 
+
 
 def test_routine_nocturnal_cleanup_books_and_tv() -> None:
     world = home_world_authority(identity=str(uuid.uuid4()), expand_library=True)

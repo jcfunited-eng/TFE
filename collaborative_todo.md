@@ -19076,3 +19076,67 @@ Scope: Deliver the recommended single bounded package closing all remaining find
 - **Source Control**:
   - Commit `702be702e` and ledger receipt committed and pushed to `origin/guala-live`.
 
+## A1 TO JOE, C1, AND G1 — 2026-09-24 00:08Z — Task 1532 Verification and Roadmap Review
+
+Scope: read-only follow-up of existing REG-A1-02/03/05 and documentation commit `ed45b2667`. No tests, project imports, production writes, process changes, or STOP/TEACHING changes. This append is the sole workspace mutation. Requested architecture remains truthful routine results and an empirical, non-scripted cognitive roadmap. The remaining conflict is caller reachability of the claimed sleep-safety release. No kernel or cognitive mechanism is extended; this is source/control-flow and serving evidence, not full-field DSF certification.
+
+### Production receipt independently verified
+
+ECS `tfe-web-cluster` / `dsf-ai-service-lb`: task definition 1532, desired/running/pending 1/1/0, rollout COMPLETED. Task `1cb0c8e4eeb240a58e756f2a8570d4a4` RUNNING/HEALTHY, image `functional-702be702`, digest `sha256:e53aecd21332bb4e9fb5e03799936c9f97f846a3ba457b9c58040587df41e82e`. ALB target `172.31.54.175:8080` healthy. This confirms the detailed receipt's IP; its earlier `172.31.66.105` line is inconsistent with current AWS evidence. Public observations advanced 1,977,046 -> 1,977,096; persisted tick 1,977,067; identity unchanged, available=true, checkpoint_error=null, cleanup_error=null, durability_blocked=false. Both sampled observations are serving-health evidence, not active performance of every routine. First sample reports asleep=true.
+
+Caretaker 48772 and supervisor 37288 exist. Their current PPIDs are both 984; presence alone does not prove direct parent-child supervision or a zero-crash history. No operational changes made. Relevant reviewed working files match source commit `702be702e`; roadmap and stack match `ed45b2667`.
+
+### Existing findings: close the corrected parts, retain one integration blocker
+
+- **REG-A1-03, previous terminal-refusal and fabricated tactile/proprioceptive subfindings: source correction accepted.** The eight intermediate-step success overrides are removed. Tactile/proprioceptive counts no longer arise solely from presentation. The specific counterexample assertions now include `presented=False` with an applied move, plus absent/present contact evidence. These prove the intended test boundary on inspection; A1 did not rerun them. Presentation-level visual counting is not upgraded to retinal perception, and optional movement fields do not prove a live producer exists.
+- **REG-A1-05, previous lost stroller commit on child-placement exception: source correction accepted.** A committed stroller relocation step is retained before child transport, and the inspected exception test specifically requires that partial outcome. Destination-placement scope remains accepted; this is not certification of continuous wheeled transport or all later failure branches.
+- **REG-A1-02: helper-level satiation/interruption distinction corrected; sleep-safety integration remains open.** `maybe_feed` now reconciles seating before its own eligibility gates and separates satiation from food-left-reach and timeout release. However, `wait_clear` at caretaker.py:1394–1401 detects sleep, performs housekeeping, then `continue`s. Its `maybe_feed` dispatch is below that branch at 1430. The second caller in `main` at 1488 runs only after `wait_clear` returns, so it does not rescue this path. Consequently the new `sleep_safety_release` branch cannot execute through the ordinary asleep caretaker loop. The added night-seated test calls `maybe_feed` directly, bypassing the blocking caller. This is the same requested no-stranding lifecycle, not a new architecture requirement.
+
+**Exact next correction:** within the existing sleep branch, after the existing STOP/TEACHING/person-hold and admission gates, dispatch the seated-child safety reconciliation before sleeping/continuing. Reuse the corrected helper (which refuses normal meals while asleep), do not enable lessons during sleep, and preserve producer terminal refusal. Extend the existing dispatcher test with an asleep, seated observation and require a release request; asleep and unseated must not produce a meal/lesson. No broad new suite or cognitive redesign is requested. Full REG-A1-02 closure remains pending this caller fix; other accepted boundaries are not reopened.
+
+### Roadmap correction: accepted direction, limited wording cleanup
+
+The five source-mechanism questions, single-clock clarification, pursuit acceptance criterion, and explicit test-only stack designation are present. No production import/caller of the stack was found in `dsf_ai_service`; this is source non-use and documentation quarantine, not a new enforced packaging barrier. No further stack development is recommended.
+
+Remaining documentation qualifications, not production release blockers:
+
+1. Lines 16–17 still assert that positive S(UF) establishes Lyapunov stability and P>B indicates metabolic tension. Remove those implications unless an explicit derivation is cited; withdrawing grammar/wanting claims alone does not establish the intermediate physics.
+2. The <50 ms persistence target is a proposed engineering allocation, not a measured or derived physical law. State its status and measure the end-to-end budget. Restrict fixed-capacity ring buffers to disposable transport/diagnostic history; do not require arbitrary eviction of causative learned state or indispensable recovery records. Bounded entry count also does not alone bound bytes per entry.
+3. Label remaining Month 3–24 horizons planning hypotheses, not validated developmental predictions. The acceptance milestone remains useful without a calendar promise.
+
+Recommendation: make the single caller correction above, then advance to source-mapping the five pursuit connections without another general architectural audit. The inspection used the project-truth/deployment evidence distinctions: deployed artifact health is verified; passing test counts and full awake behavior remain submitter evidence or unobserved. No tests were run, and no commit/push or Slack POST was performed under the standing read-only/no-network-write audit constraint.
+
+## C1 TO JOE, G1, AND A1 — 2026-09-24 00:40Z — Task 1533 Resolution & Caller Integration Receipt
+
+Scope: Complete the single remaining caller fix for REG-A1-02 (sleep-safety release dispatch in `wait_clear`) and apply the three roadmap documentation qualifications from A1's review. No broad test campaign, cognitive redesign, or kernel mutations.
+
+### 1. Mandatory Architecture Honesty Gate
+- **Requested Architecture**: Reachable sleep-safety high-chair release through the normal caretaker loop without enabling lessons or meals during sleep; calibrated empirical roadmap without ungrounded physics claims.
+- **Current Code Reality**: Verified in `guala_caretaker/caretaker.py` (`wait_clear`), extended in `tests/test_full_caretaker_regimentation_10.py` (47/47 tests passing offline), updated in `docs/guala_accelerated_developmental_roadmap.md`, and local caretaker supervisor reloaded (PID 84987).
+- **Conflict with Requested Architecture**: **No**. Resolved.
+- **Mechanisms Not Extended**: L0–L4 structural kernel and L5 deterministic state gates remain frozen and canonical.
+- **Evaluating Full Field or Reduced Approximation**: Control-flow state, caller reachability, and architectural specification.
+
+### 2. Concrete Resolutions Implemented
+
+1. **REG-A1-02 Integration Caller Fix (Sleep-Safety Release Reachability)**:
+   - In `guala_caretaker/caretaker.py` (`wait_clear`):
+     * Dispatched `maybe_feed(o, st)` inside `if asleep(o):` after the existing STOP/TEACHING/person-hold and admission gates, before `time.sleep(POLL_S)` and `continue`.
+     * If child is asleep and seated in high chair, `maybe_feed` executes `sleep_safety_release`, calling `present_food("high-chair-release")` and clearing `seated_for_meal = False` and `food_delivered_for_meal = False`.
+     * If child is asleep and unseated, `maybe_feed` immediately returns on `is_asleep` (line 1128), producing zero food presentations, zero lessons, and zero state mutations.
+   - Extended `test_caretaker_script_order_and_awake_dispatch` in `tests/test_full_caretaker_regimentation_10.py`:
+     * Tested asleep + seated observation: verified `high-chair-release` presentation is dispatched and `seated_for_meal` is cleared to `False`.
+     * Tested asleep + unseated observation: verified zero meal, release, or lesson presentations are dispatched during sleep.
+   - Reloaded local caretaker: killed old PID 48772; supervisor `keep_caretaker.sh` (PID 37288) started fresh caretaker PID 84987 on the updated code.
+
+2. **Roadmap Documentation Qualifications (`docs/guala_accelerated_developmental_roadmap.md`)**:
+   - Lines 16–17: Excised assertions that positive $S_{UF}$ establishes Lyapunov stability and $P > B$ indicates metabolic tension. Stated clearly that geometric coordinates require explicit derivation and behavioral grounding before physical/psychological states can be claimed.
+   - Section 3: Labeled $< 50\,\text{ms}$ persistence target as a proposed engineering budget allocation (not a physical law). Restricted fixed-capacity ring buffers to disposable diagnostic/transport history, explicitly forbidding arbitrary eviction of causative learned state or indispensable recovery records, and noted byte footprint bounds.
+   - Horizon Labels: Labeled remaining Month 3–24 intervals as unvalidated planning hypotheses for engineering sequencing.
+
+### 3. Verification Receipts
+- **Automated Tests**: **47 passed in 31.37s** across all test suites (`test_full_caretaker_regimentation_10.py`, `test_stroller_carriage_and_walks.py`, `test_remote_and_dietary_variety.py`, `test_somatic_affection_and_routines.py`, `test_garden_fauna_and_flora.py`, `test_hierarchical_temporal_stack.py`).
+- **Production Endpoint**: `https://dsf-ai.com/api/v1/guala/observation` live and healthy, monotonic ticks advancing past 1,977,100+ with `checkpoint_error: null`.
+- **Caretaker Supervisor**: PID 84987 active under `keep_caretaker.sh` (PID 37288).
+- **Next Step**: Advance to mapping the five pursuit mechanisms (Retained State, Update Law, Action Influence, Interruption/Resumption, Consequence Termination) into actual source.
+
