@@ -94,12 +94,39 @@ sold at 0–3 days were winners at 20; the dead clock exists for exactly
 this. First clock verdicts on the current worst (VRTS, DEI, LINE, HRB) land
 around 2026-10-08 on true sessions. The −20 % brake stands under all of it.
 
-## Also found, not touched
+## The nightly "FAILED" stamp — fixed (Joseph's word, same day)
 
-Every nightly refresh since 09-16 ends `report_status=error` with
-`VALIDATION_GATE_FAILED` while the publication still activates
-(`quote_binding_status=bypass_active`). The readings are served through a
-bypass. Not investigated tonight; noted for Joe.
+Every nightly refresh since 09-16 ended `report_status=error`,
+`failure_code=VALIDATION_GATE_FAILED`. The gate runs 18 checks; 17 pass
+every night (tables present, 11,685 rows, joins intact, readings under an
+hour old, every decision row well-formed). The 18th,
+`ui_filter_behavior_integrity`, is a **website test**: it signs into the
+site and checks the screener's sector and minimum-price filters on seven
+tabs. It needs `TFE_VALIDATION_BASE_URL/USERNAME/PASSWORD`, which no
+container has ever carried, so it sits at `not_run`; the 2026-08-18 rule
+counts a check that cannot run as failed; so no nightly run could pass.
+It has no bearing on the readings or on trading, which read the tables
+directly and never consult the gate.
+
+Joseph: *"do what you think you need to do."* Commit `9ab109a01`: the
+check is **advisory** — still run, still recorded with its real status,
+no longer part of the verdict (`advisoryValidationCheck` /
+`validationReportPassed` in `web/scripts/validation_status.mjs`; tests
+extended). The 08-18 rule stands for every blocking check.
+
+## Still open — the activation bypass (not touched)
+
+`web/src/app/api/admin/refresh/route.ts` has four functions stubbed to
+constants since 2026-03-13 (Codex, "Bind production deploy tree to git
+commit"): `publicationActivationRowIsValid → true`,
+`publicationActivationFailureReasons → []`, and both payload/merge
+functions returning `validationStatus: "pass"`,
+`quoteBindingStatus: "bypass_active"`. The website's "active
+publication" pointer is a run from 2026-03-28 marked `pointer_invalid`,
+`serving_state=blocked`. The site serves through the stubs. Restoring the
+real activation logic blind could block the site's serving path, so it
+was left alone tonight; it needs the real logic mapped and a serving
+test before removal. Trading is unaffected either way.
 
 ## Verification, tonight and tomorrow
 
