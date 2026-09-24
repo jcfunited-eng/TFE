@@ -1768,7 +1768,10 @@ class FunctionalOrganism:
 
             succ_sensory_key = current_sensory_key
 
-            if pre_key and app_act and not refused:
+            # Passive clock advancement is not another executed motor trial.
+            # Sensory changes during rest/sleep are handled by _form_moments;
+            # they must not boost this motor graph's recurrence eligibility.
+            if pre_key and app_act and app_act != "body" and not refused:
                 moments_dict = state.setdefault("moments", {})
                 m_entry = moments_dict.setdefault(pre_key, {
                     "count": 0, "tick": tick, "held": "held" if body.held_object_id else "none",
@@ -1818,7 +1821,6 @@ class FunctionalOrganism:
                 "pre_key": current_sensory_key,
                 "action": act,
                 "target_id": target,
-                "commands": commands,
                 "applied_action": None,
                 "refusal": None,
                 "intake": 0,
@@ -2637,7 +2639,11 @@ class FunctionalOrganism:
 
         pending_trans = state.get("pending_transition")
         if pending_trans is not None:
-            pending_trans["applied_action"] = applied_action
+            # Empty world commands also accompany a real, synthesized vocal act.
+            # Preserve that measured act while keeping passive time out of trials.
+            pending_trans["applied_action"] = (
+                "say" if applied_action == "body" and spoke is not None else applied_action
+            )
             pending_trans["refusal"] = refusal
             pending_trans["intake"] = intake
             if intake > 0:

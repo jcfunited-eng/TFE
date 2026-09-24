@@ -1,12 +1,12 @@
 """tests/test_grounded_experience_pursuit.py — Empirical Pursuit Milestone Verification.
 
-Fulfills A1's empirical Pursuit Milestone acceptance criterion:
+Acceptance falsifiers for A1's empirical Pursuit Milestone (not a certification):
 "Demonstrate one experience-grown pursuit that survives a distraction, resumes when
 appropriate, and stops or changes when its real consequence changes—without a supplied
 action list, semantic intent label, or forced duration."
 
 Grounded strictly in:
-1. Senses & 7-field L0-L4 structural kernel.
+1. The ordinary sensorimotor loop (not a proof of full joint-field cognition).
 2. Real episodic memory consolidation (eat -> sleep -> Pool Shock consolidation into meanings).
 3. Spatial object permanence (conserved_objects) bound to sensorimotor figures.
 4. Learned Closed-Loop Continuation Mechanism over experienced transitions without scalar reward ranking.
@@ -36,8 +36,9 @@ def _train_experienced_organism() -> FunctionalOrganism:
     1. Organism encounters food at hand reach in the home world.
     2. Guala approaches, grasps, and bites the food across multiple beats, consuming matter.
     3. Moments form with authentic somatic salience and measured successor states.
-    4. Sleep occurs naturally through the physical loop, consolidating episodic moments into meanings
-       via the Pool Shock Principle without manual count or salience manipulation.
+    4. Sleep is deliberately induced in this fixture; consolidation and wake then
+       execute through the ordinary physical loop. No moment counts or salience
+       are altered. This does NOT establish autonomous circadian sleep onset.
     """
     world_train = home_world_authority(identity=IDENTITY)
     _apple_ahead(world_train, "apple-target", 600)
@@ -51,59 +52,70 @@ def _train_experienced_organism() -> FunctionalOrganism:
     assert org.counts["bites"] >= 1, "Organism must execute real biting in the world"
     assert len(org._state["moments"]) > 0, "Real moment must form from waking experience"
 
-    # Natural sleep consolidation through the physical loop:
-    # Sets sleep pressure proportional to moments to drain and sleeps until recovered
+    # Controlled sleep induction (explicit test intervention, not natural onset).
+    # The ordinary loop performs consolidation and recovery until she wakes.
     org._state["asleep"] = True
     org._state["sleep_pressure"] = SLEEP_RECOVERY_PER_BEAT * (len(org._state["moments"]) + 1)
     while org.asleep:
         loop.settle(org, world_train, UNATTENDED)
 
+    assert all("body" not in entry.get("transitions", {}) for entry in org._state["meanings"].values()), (
+        "Passive sleep/rest intervals were counted as physical motor trials"
+    )
     assert len(org._state["meanings"]) > 0, "Pool Shock Principle failed to consolidate into meanings"
     assert any(m.get("fed", 0) >= 1 for m in org._state["meanings"].values()), "Consolidated meaning must record positive feeding consequence"
     return org
 
 
 def test_matched_naive_vs_experienced_encounter() -> None:
-    """1. Experience-Grown Formation:
-    Compares two identical organisms in the exact same room encounter with food at 1500 mm.
-    - Experienced organism: Pursues food across consecutive beats (4 toward_food + 1 grasp).
-    - Matched control: Identical checkpoint history, but with the learned association ablated;
-      meanders across untried affordances (things and doors).
+    """Learned continuation must cause pursuit, not baseline food exploration.
+
+    Both branches start at the SAME body/world checkpoint BEFORE either acts.
+    Only the new continuation relations are ablated in the control. Existing
+    meanings, scores, action history, senses, and bodily need stay identical.
     """
-    # Experienced Organism
     org_exp = _train_experienced_organism()
     world_exp = home_world_authority(identity=IDENTITY)
     _apple_ahead(world_exp, "apple-target", 1500)
+    # Declared initial condition, identical in both branches (not a learned result).
     org_exp._state["reserve_micrograms"] = int(CAPACITY_MICROGRAMS * 0.20)
     org_exp._state["feeding"] = True
-    loop_exp = FunctionalPhysicalLoop()
+    body_bytes = org_exp.encoded()
+    org_exp = FunctionalOrganism.restore(body_bytes)
+    world_bytes = bytes(world_exp.encoded_snapshot())
+    org_control = FunctionalOrganism.restore(body_bytes)
+    world_control = home_world_authority(identity=IDENTITY, encoded_world=world_bytes)
+    assert org_control.encoded() == body_bytes
+    assert bytes(world_control.encoded_snapshot()) == world_bytes
 
-    exp_acts = []
-    for beat in range(5):
-        res = loop_exp.settle(org_exp, world_exp, UNATTENDED)
-        exp_acts.append(res.observation["her_act"])
+    # Remove only the relations whose causal effect this test claims to prove.
+    for entry in org_control._state["meanings"].values():
+        entry.pop("transitions", None)
+        entry.pop("consequences", None)
+    expected_control = copy.deepcopy(org_exp._state)
+    for entry in expected_control["meanings"].values():
+        entry.pop("transitions", None)
+        entry.pop("consequences", None)
+    assert org_control._state == expected_control
 
-    # Experienced organism exhibits sustained pursuit transitioning to grasp
-    assert exp_acts == ["toward_food", "toward_food", "toward_food", "toward_food", "grasp"]
+    exp_acts, control_acts, exp_reasons = [], [], []
+    for _ in range(5):
+        result_a = FunctionalPhysicalLoop().settle(org_exp, world_exp, UNATTENDED)
+        result_b = FunctionalPhysicalLoop().settle(org_control, world_control, UNATTENDED)
+        exp_acts.append(result_a.observation["her_act"])
+        control_acts.append(result_b.observation["her_act"])
+        exp_reasons.append(result_a.observation["act_reason"])
+        # Every lived successor must survive a real cold JSON checkpoint.
+        org_exp = FunctionalOrganism.restore(org_exp.encoded())
+        org_control = FunctionalOrganism.restore(org_control.encoded())
 
-    # Matched Checkpoint Control (identical body/world history, with learned meanings ablated)
-    org_control = FunctionalOrganism(copy.deepcopy(org_exp._state))
-    org_control._state["meanings"].clear()
-    world_control = home_world_authority(identity=IDENTITY)
-    _apple_ahead(world_control, "apple-target", 1500)
-    org_control._state["reserve_micrograms"] = int(CAPACITY_MICROGRAMS * 0.20)
-    org_control._state["feeding"] = True
-    loop_control = FunctionalPhysicalLoop()
-
-    control_acts = []
-    for beat in range(5):
-        res = loop_control.settle(org_control, world_control, UNATTENDED)
-        control_acts.append(res.observation["her_act"])
-
-    # Control organism diverts to exploring other untried affordances (toward_thing, toward_door)
-    assert control_acts != exp_acts
-    assert "toward_thing" in control_acts or "toward_door" in control_acts
-
+    assert any(reason.startswith("learned continuation") for reason in exp_reasons), (
+        "No learned continuation executed; baseline exploration is not pursuit proof. "
+        f"experienced={exp_acts}, control={control_acts}, reasons={exp_reasons}"
+    )
+    assert exp_acts != control_acts, (
+        f"Removing continuation relations did not change behavior: {exp_acts}"
+    )
 
 def test_multi_beat_trajectory_displacement() -> None:
     """2. Multi-Beat Trajectory Persistence:
@@ -161,51 +173,44 @@ def test_distraction_and_natural_resumption() -> None:
     assert "apple-target" in org.conserved_objects, "Pursuit target must be retained in spatial object permanence"
 
     # Beat 3: Distraction clears (quiet beat)
-    # The attractor basin in phase space remains active:
-    # Deficit is still high, apple-target is in conserved_objects, meaning is positive.
+    # The retained experience is still available. This checks observed resumption,
+    # not the existence of a continuous physical attractor basin.
     r3 = loop.settle(org, world, UNATTENDED)
     assert r3.observation["her_act"] == "toward_food", "Pursuit must resume after distraction clears"
     assert "apple-target" in org.conserved_objects
 
 
 def test_consequence_satisfaction_terminates_pursuit() -> None:
-    """4. Consequence-Driven Termination (Satisfaction):
-    When food is consumed through actual bites and bodily deficit is relieved to the
-    satisfaction boundary (>= 85%), the anticipatory continuation gradient dissipates naturally,
-    and pursuit ceases without forced counters or manual state overrides.
+    """Actual bites, in one continuing world, must cross the satiety boundary.
+
+    Initial reserves and the initial feeding phase are controlled setup. Neither
+    reserves nor the world is replaced after the first observed action.
     """
     org = _train_experienced_organism()
     loop = FunctionalPhysicalLoop()
-
-    # Hungry -> Pursues food
-    world_hungry = home_world_authority(identity=IDENTITY)
-    _apple_ahead(world_hungry, "apple-target", 1500)
-    org._state["reserve_micrograms"] = int(CAPACITY_MICROGRAMS * 0.50)
-    org._state["feeding"] = True
-    r_hungry = loop.settle(org, world_hungry, UNATTENDED)
-    assert r_hungry.observation["her_act"] == "toward_food"
-
-    # Actual consumption in the physical world bringing reserves past satisfaction boundary (>= 85%)
-    world_feed = home_world_authority(identity=IDENTITY)
-    _apple_ahead(world_feed, "apple-target", 350)
+    world = home_world_authority(identity=IDENTITY)
+    _apple_ahead(world, "apple-target", 1500)
     org._state["reserve_micrograms"] = int(CAPACITY_MICROGRAMS * 0.80)
     org._state["feeding"] = True
-
-    # Natural eating: actual grasp and bites until full
-    for _ in range(6):
-        r_feed = loop.settle(org, world_feed, UNATTENDED)
+    starting_reserves = org.reserve_micrograms
+    starting_bites = org.counts["bites"]
+    first = loop.settle(org, world, UNATTENDED)
+    assert first.observation["her_act"] == "toward_food"
+    # Finite TEST budget, never an organism stopping rule.
+    for _ in range(12):
+        result = loop.settle(org, world, UNATTENDED)
+        org = FunctionalOrganism.restore(org.encoded())
         if not org._state["feeding"]:
             break
 
-    assert org.reserve_micrograms >= int(CAPACITY_MICROGRAMS * SATED_ABOVE), "Bites must relieve deficit to satisfaction boundary"
-    assert not org._state["feeding"], "Feeding state must terminate naturally from intake"
-
-    # Now sated, presented with food at 1500 mm:
-    world_sated = home_world_authority(identity=IDENTITY)
-    _apple_ahead(world_sated, "apple-target", 1500)
-    r_sated = loop.settle(org, world_sated, UNATTENDED)
-    assert r_sated.observation["her_act"] != "toward_food", "Sated organism must not pursue food"
-
+    assert org.counts["bites"] > starting_bites
+    assert org.reserve_micrograms > starting_reserves
+    assert org.reserve_micrograms >= int(CAPACITY_MICROGRAMS * SATED_ABOVE)
+    assert not org._state["feeding"], "Real intake did not end feeding"
+    after = loop.settle(org, world, UNATTENDED)
+    assert not after.observation["act_reason"].startswith("learned continuation")
+    assert after.observation["her_act"] != "toward_food"
+    assert not org._state["feeding"]
 
 def test_target_departure_collapses_pursuit_via_expectation_discrepancy() -> None:
     """5. Reality Feedback (Target Removal):
@@ -234,3 +239,20 @@ def test_target_departure_collapses_pursuit_via_expectation_discrepancy() -> Non
     assert "apple-target" not in org.conserved_objects
     # Pursuit collapsed: does NOT attempt toward_food on the departed apple
     assert r2.observation["her_act"] != "toward_food"
+
+
+def test_moving_successor_cold_checkpoint_and_next_interval() -> None:
+    """A real motor command must not leak a Python object into durable state."""
+    world = home_world_authority(identity=IDENTITY)
+    _apple_ahead(world, "opaque-target", 600)
+    org = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
+    result = FunctionalPhysicalLoop().settle(org, world, UNATTENDED)
+    assert any(result.observation["actual_root_motion"][1:]), "A physical move must execute"
+    before_tick = org.live_organism_tick
+    encoded = org.encoded()
+    restored = FunctionalOrganism.restore(encoded)
+    restored_world = home_world_authority(identity=IDENTITY, encoded_world=bytes(world.encoded_snapshot()))
+    assert restored.encoded() == encoded
+    FunctionalPhysicalLoop().settle(restored, restored_world, UNATTENDED)
+    assert restored.live_organism_tick == before_tick + 1
+    assert FunctionalOrganism.restore(restored.encoded()).encoded() == restored.encoded()
