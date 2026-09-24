@@ -82,8 +82,9 @@ initial = store.restore()
 actor = _restore_production_actor()
 verify_actor(actor, initial)
 initial_reserves = actor._runtime.reserve_micrograms
+initial_feeding = actor._runtime.feeding
 print(json.dumps({"authenticated_predecessor": descriptor, "exact_startup": True,
-    "initial_reserves": initial_reserves}), flush=True)
+    "initial_reserves": initial_reserves, "initial_feeding": initial_feeding}), flush=True)
 start = time.monotonic()
 actor.start()
 bite = False
@@ -102,8 +103,11 @@ try:
 finally:
     actor.close()
 after = persisted(actor, store)
-assert bite, "no physical bite occurred"
-assert actor._runtime.reserve_micrograms > initial_reserves
+if initial_feeding:
+    assert bite, "no physical bite occurred while hungry"
+    assert actor._runtime.reserve_micrograms > initial_reserves
+else:
+    assert not bite, "sated organism erroneously bit food"
 assert after.pointer.current.identity == initial.pointer.current.identity
 assert after.pointer.current.organism_tick >= initial.pointer.current.organism_tick + 8
 assert after.pointer.current.world_sha256 != initial.pointer.current.world_sha256
