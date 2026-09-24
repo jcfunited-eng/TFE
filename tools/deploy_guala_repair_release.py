@@ -111,11 +111,11 @@ def zero_writers(arns):
         for arn in listed:
             assert task(arn)["lastStatus"]=="STOPPED",arn
 
-def oneoff(definition, network, mode):
+def oneoff(definition, network, mode, command=None):
     response=ecs.run_task(cluster=CLUSTER,taskDefinition=definition,launchType="FARGATE",
         count=1,networkConfiguration=network,
         overrides={"containerOverrides":[{"name":"dsf-ai","command":
-            ["python3","/opt/a1_repair_release_operator.py",mode]}]})
+            (command or ["python3","/opt/a1_repair_release_operator.py",mode])}]})
     assert not response.get("failures"),response.get("failures")
     arn=response["tasks"][0]["taskArn"]
     emit("operator_started",mode=mode,task=arn)
@@ -138,13 +138,177 @@ def records(messages,schema):
             found.append(value)
     return found
 
+
+def activate(definition,backup,source_arn,candidate_arns,digest):
+    # Changing the definition and raising count together can race an ACTIVE
+    # predecessor deployment. Install and converge the definition at ZERO first.
+    zero_writers([source_arn])
+    ecs.update_service(cluster=CLUSTER,service=SERVICE,taskDefinition=definition,desiredCount=0)
+    deadline=time.monotonic()+300
+    while time.monotonic()<deadline:
+        s=service()
+        deployments=s["deployments"]
+        if (s["taskDefinition"]==definition
+            and (s["desiredCount"],s["runningCount"],s["pendingCount"])==(0,0,0)
+            and len(deployments)==1):
+            d=deployments[0]
+            if (d["status"]=="PRIMARY" and d["taskDefinition"]==definition
+                and d.get("rolloutState")=="COMPLETED"
+                and (d["desiredCount"],d["runningCount"],d["pendingCount"])==(0,0,0)):
+                break
+        emit("waiting_zero_definition_convergence",definition=definition)
+        time.sleep(10)
+    else:
+        raise RuntimeError("zero-count candidate deployment did not converge")
+    zero_writers([source_arn])
+    ecs.update_service(cluster=CLUSTER,service=SERVICE,desiredCount=1)
+    emit("candidate_start_requested",definition=definition,backup=backup)
+    deadline=time.monotonic()+600
+    live=None
+    while time.monotonic()<deadline:
+        listed=ecs.list_tasks(cluster=CLUSTER,serviceName=SERVICE,desiredStatus="RUNNING")["taskArns"]
+        candidate_arns.update(listed)
+        for arn in listed:
+            value=task(arn)
+            assert value["taskDefinitionArn"]==definition
+            if value["lastStatus"]=="RUNNING" and value.get("healthStatus")=="HEALTHY":
+                live=value
+        if live is not None:
+            break
+        emit("waiting_candidate",tasks=listed)
+        time.sleep(10)
+    assert live is not None,"candidate failed to become healthy"
+    assert len(ecs.list_tasks(cluster=CLUSTER,serviceName=SERVICE,desiredStatus="RUNNING")["taskArns"])==1
+    assert next(c for c in live["containers"] if c["name"]=="dsf-ai")["imageDigest"]==digest
+    receipts=records(log_messages(live["taskArn"]),"guala.paired_predecessor.v1")
+    assert len(receipts)==1
+    for key in ("identity","organism_tick","body_sha256","body_bytes","world_sha256","world_bytes"):
+        assert receipts[0][key]==backup["current"][key],key
+    assert receipts[0]["functional_conversion"] is False
+    first=observation()
+    assert first["available"] and not first["checkpoint_error"] and not first["cleanup_error"]
+    assert first["live_tick"]>=backup["current"]["organism_tick"]
+    time.sleep(12)
+    second=observation()
+    assert second["available"]
+    assert second["live_tick"]>first["live_tick"]
+    assert second["persisted_tick"]>backup["current"]["organism_tick"]
+    assert not second["checkpoint_error"] and not second["cleanup_error"] and not second["durability_blocked"]
+    final_service=service()
+    assert final_service["taskDefinition"]==definition
+    assert (final_service["desiredCount"],final_service["runningCount"],final_service["pendingCount"])==(1,1,0)
+    final_task=task(live["taskArn"])
+    assert final_task["lastStatus"]=="RUNNING" and final_task.get("healthStatus")=="HEALTHY"
+    assert ecs.list_tasks(cluster=CLUSTER,serviceName=SERVICE,desiredStatus="RUNNING")["taskArns"]==[live["taskArn"]]
+    emit("live_restore_and_progress_verified",task=live["taskArn"],definition=definition,
+         digest=digest,first=first,second=second)
+
+def resume(path,execute):
+    """Resume the same artifact only after a proven pre-boot scheduling refusal."""
+    global journal
+    receipt=Path(path).resolve()
+    assert receipt.name=="receipt.jsonl"
+    assert receipt.is_relative_to((ROOT/"backups/runtime").resolve())
+    rows=[json.loads(line) for line in receipt.read_text().splitlines()]
+    def single(event):
+        matching=[r for r in rows if r["event"]==event]
+        assert len(matching)==1,(event,len(matching))
+        return matching[0]
+    assert not any(r["event"]=="live_restore_and_progress_verified" for r in rows)
+    single("failure_zero_writers_verified")
+    release=single("release_start")
+    image=single("immutable_image")["image"]
+    definition=single("registered")["definition"]
+    start=single("candidate_start_requested")
+    backup=start["backup"]
+    assert start["definition"]==definition
+    assert image.startswith(REPOSITORY+"@sha256:")
+    digest=image.split("@")[1]
+    finished=[r for r in rows if r["event"]=="operator_finished" and r.get("mode")=="rehearse"]
+    started=[r for r in rows if r["event"]=="operator_started" and r.get("mode")=="rehearse"]
+    assert len(finished)==len(started)==1
+    assert finished[0]["task"]==started[0]["task"] and finished[0]["exit"]==0
+    assert "REPAIR_ONLY_MATURE_CAUSAL_PERSISTENCE_FRESH_PROCESS_PASS" in finished[0]["logs"]
+    rehearsal=task(finished[0]["task"])
+    assert rehearsal["lastStatus"]=="STOPPED" and rehearsal["taskDefinitionArn"]==definition
+    assert next(c for c in rehearsal["containers"] if c["name"]=="dsf-ai")["imageDigest"]==digest
+    assert boto3.client("sts",config=CONFIG).get_caller_identity()["Account"]==ACCOUNT
+    assert ecr.batch_get_image(repositoryName="dsf-ai",imageIds=[{"imageDigest":digest}])["images"]
+    baseline=ecs.describe_task_definition(taskDefinition=OLD_DEFINITION)["taskDefinition"]
+    candidate=ecs.describe_task_definition(taskDefinition=definition)["taskDefinition"]
+    allowed=set(ecs.meta.service_model.operation_model("RegisterTaskDefinition").input_shape.members)
+    expected={k:copy.deepcopy(v) for k,v in baseline.items() if k in allowed}
+    expected["containerDefinitions"][0]["image"]=image
+    assert {k:v for k,v in candidate.items() if k in allowed}==expected
+    for file,digest_source in FILES.items():
+        assert hashlib.sha256((ROOT/file).read_bytes()).hexdigest()==digest_source
+        assert hashlib.sha256(subprocess.check_output(["git","show",release["commit"]+":"+file],cwd=ROOT)).hexdigest()==digest_source
+    source=task(OLD_TASK)
+    assert source["lastStatus"]=="STOPPED"
+    assert next(c for c in source["containers"] if c["name"]=="dsf-ai").get("exitCode")==0
+    unexpected=task("3807e448a6c94d6f9e4dd75d91316538")
+    assert unexpected["lastStatus"]=="STOPPED" and "startedAt" not in unexpected
+    assert all(c.get("imageDigest") is None and c.get("exitCode") is None for c in unexpected["containers"])
+    zero_writers([source["taskArn"],unexpected["taskArn"]])
+    s=service()
+    assert s["taskDefinition"]==definition
+    assert not s["deploymentConfiguration"].get("deploymentCircuitBreaker",{}).get("rollback",False)
+    assert not s["deploymentConfiguration"].get("alarms",{}).get("rollback",False)
+    assert not boto3.client("application-autoscaling",region_name=REGION,config=CONFIG).describe_scalable_targets(
+        ServiceNamespace="ecs",ResourceIds=["service/"+CLUSTER+"/"+SERVICE])["ScalableTargets"]
+    emit("resume_plan_verified",image=image,definition=definition,backup=backup,
+         original_commit=release["commit"],no_build_or_registration=True)
+    if not execute:
+        return
+    journal=receipt
+    # Read-only probe on the existing image: authenticate BOTH retained backup
+    # and still-current pair; do not launch an organism or republish CURRENT.
+    code = """import signal\nsignal.alarm(240)\nimport hashlib,json,os
+from pathlib import Path
+from dataclasses import asdict
+from dsf_ai_service.paired_current_store import PairedCurrentStore
+from dsf_ai_service.substrate.native_resident_resource_admission import derive_native_resident_resource_admission
+expected=json.loads(%r)
+path=Path(expected["path"])
+assert hashlib.sha256(path.read_bytes()).hexdigest()==expected["sha256"]
+assert path.stat().st_size==expected["bytes"]
+root=Path(os.environ["GUALA_PAIRED_ROOT"])
+admission=derive_native_resident_resource_admission(root)
+pair=PairedCurrentStore(root,max_body_bytes=admission.max_envelope_bytes,max_world_bytes=int(os.environ["GUALA_MAX_WORLD_BYTES"])).restore()
+assert asdict(pair.pointer.current)==expected["current"]
+print("A1_RESUME_BACKUP_AND_CURRENT_EXACT",flush=True)
+""" % json.dumps(backup)
+    messages=oneoff(definition,s["networkConfiguration"],"verify-resume",["python3","-c",code])
+    assert "A1_RESUME_BACKUP_AND_CURRENT_EXACT" in messages
+    candidate_arns=set()
+    try:
+        activate(definition,backup,source["taskArn"],candidate_arns,image.split("@")[1])
+    except BaseException:
+        ecs.update_service(cluster=CLUSTER,service=SERVICE,desiredCount=0)
+        for desired in ("RUNNING","STOPPED"):
+            candidate_arns.update(ecs.list_tasks(cluster=CLUSTER,serviceName=SERVICE,desiredStatus=desired)["taskArns"])
+        for arn in candidate_arns|{source["taskArn"]}:
+            wait_stopped(arn)
+        for _ in range(30):
+            current=service()
+            if (current["desiredCount"],current["runningCount"],current["pendingCount"])==(0,0,0):
+                break
+            time.sleep(2)
+        zero_writers(candidate_arns|{source["taskArn"]})
+        emit("resume_failure_zero_writers_verified",no_old_checkpoint_restored=True)
+        raise
+
+
 def main():
     global journal
     parser=argparse.ArgumentParser()
     parser.add_argument("--execute",action="store_true")
     parser.add_argument("--plan",action="store_true")
+    parser.add_argument("--resume")
     args=parser.parse_args()
     os.chdir(ROOT)
+    if args.resume:
+        return resume(args.resume,args.execute)
     assert boto3.client("sts",config=CONFIG).get_caller_identity()["Account"]==ACCOUNT
     assert shutil.which("docker")
     commit=subprocess.check_output(["git","rev-parse","HEAD"],text=True).strip()
@@ -255,47 +419,7 @@ def main():
         assert backup["current"]["identity"]==IDENTITY
         assert backup["current"]["organism_tick"]>=before["persisted_tick"]
         zero_writers([source_arn])
-        ecs.update_service(cluster=CLUSTER,service=SERVICE,taskDefinition=definition,desiredCount=1)
-        emit("candidate_start_requested",definition=definition,backup=backup)
-        deadline=time.monotonic()+600
-        live=None
-        while time.monotonic()<deadline:
-            listed=ecs.list_tasks(cluster=CLUSTER,serviceName=SERVICE,desiredStatus="RUNNING")["taskArns"]
-            candidate_arns.update(listed)
-            for arn in listed:
-                value=task(arn)
-                assert value["taskDefinitionArn"]==definition
-                if value["lastStatus"]=="RUNNING" and value.get("healthStatus")=="HEALTHY":
-                    live=value
-            if live is not None:
-                break
-            emit("waiting_candidate",tasks=listed)
-            time.sleep(10)
-        assert live is not None,"candidate failed to become healthy"
-        assert len(ecs.list_tasks(cluster=CLUSTER,serviceName=SERVICE,desiredStatus="RUNNING")["taskArns"])==1
-        assert next(c for c in live["containers"] if c["name"]=="dsf-ai")["imageDigest"]==digest
-        receipts=records(log_messages(live["taskArn"]),"guala.paired_predecessor.v1")
-        assert len(receipts)==1
-        for key in ("identity","organism_tick","body_sha256","body_bytes","world_sha256","world_bytes"):
-            assert receipts[0][key]==backup["current"][key],key
-        assert receipts[0]["functional_conversion"] is False
-        first=observation()
-        assert first["available"] and not first["checkpoint_error"] and not first["cleanup_error"]
-        assert first["live_tick"]>=backup["current"]["organism_tick"]
-        time.sleep(12)
-        second=observation()
-        assert second["available"]
-        assert second["live_tick"]>first["live_tick"]
-        assert second["persisted_tick"]>backup["current"]["organism_tick"]
-        assert not second["checkpoint_error"] and not second["cleanup_error"] and not second["durability_blocked"]
-        final_service=service()
-        assert final_service["taskDefinition"]==definition
-        assert (final_service["desiredCount"],final_service["runningCount"],final_service["pendingCount"])==(1,1,0)
-        final_task=task(live["taskArn"])
-        assert final_task["lastStatus"]=="RUNNING" and final_task.get("healthStatus")=="HEALTHY"
-        assert ecs.list_tasks(cluster=CLUSTER,serviceName=SERVICE,desiredStatus="RUNNING")["taskArns"]==[live["taskArn"]]
-        emit("live_restore_and_progress_verified",task=live["taskArn"],definition=definition,
-             digest=digest,first=first,second=second)
+        activate(definition,backup,source_arn,candidate_arns,digest)
     except BaseException:
         if drained:
             ecs.update_service(cluster=CLUSTER,service=SERVICE,desiredCount=0)
