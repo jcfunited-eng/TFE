@@ -92,10 +92,14 @@ def test_matched_naive_vs_experienced_encounter() -> None:
     for entry in org_control._state["meanings"].values():
         entry.pop("transitions", None)
         entry.pop("consequences", None)
+        entry.pop("motor_transition", None)
+        entry.pop("episode_tail", None)
     expected_control = copy.deepcopy(org_exp._state)
     for entry in expected_control["meanings"].values():
         entry.pop("transitions", None)
         entry.pop("consequences", None)
+        entry.pop("motor_transition", None)
+        entry.pop("episode_tail", None)
     assert org_control._state == expected_control
 
     exp_acts, control_acts, exp_reasons = [], [], []
@@ -256,3 +260,104 @@ def test_moving_successor_cold_checkpoint_and_next_interval() -> None:
     FunctionalPhysicalLoop().settle(restored, restored_world, UNATTENDED)
     assert restored.live_organism_tick == before_tick + 1
     assert FunctionalOrganism.restore(restored.encoded()).encoded() == restored.encoded()
+
+
+def test_sleep_retains_actual_predecessors_without_extra_trials() -> None:
+    """Real world training, ordinary consolidation, unchanged trial evidence.
+
+    Sleep onset is controlled setup. Neither its memory inputs nor consequences
+    are injected. This proves retention, not view-invariant recognition.
+    """
+    world = home_world_authority(identity=IDENTITY)
+    _apple_ahead(world, "apple-target", 600)
+    org = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
+    loop = FunctionalPhysicalLoop()
+    for _ in range(8):
+        loop.settle(org, world, UNATTENDED)
+    before = copy.deepcopy({
+        key: entry for key, entry in org._state["moments"].items()
+        if "motor_transition" in entry
+    })
+    approach = [
+        key for key, entry in before.items()
+        if entry["motor_transition"]["action"] == "toward_food"
+    ]
+    assert approach
+    assert all(before[key]["count"] == 1 and before[key]["salience"] == 0.0 for key in approach)
+    org._state["asleep"] = True
+    org._state["sleep_pressure"] = SLEEP_RECOVERY_PER_BEAT * (len(org._state["moments"]) + 1)
+    while org.asleep:
+        loop.settle(org, world, UNATTENDED)
+    meanings = org._state["meanings"]
+    assert all(key in meanings for key in approach), "Experienced approach was discarded during sleep"
+    for key, entry in before.items():
+        if key in meanings:
+            assert meanings[key] == entry, "Sleep changed the actual trial or its evidence"
+    assert all(entry.get("motor_transition", {}).get("action") != "body" for entry in meanings.values())
+    restored = FunctionalOrganism.restore(org.encoded())
+    assert restored.encoded() == org.encoded()
+
+
+def test_retention_requires_actual_contiguous_links_and_preserves_distinctions() -> None:
+    """Isolated law falsifier, not an organism behavior or learning proof."""
+    from dsf_ai_service.episodic_binding_engine import retained_episode_keys
+    def trial(key, tick, before, after, previous=None, target="physical-custody"):
+        return {"count": 1, "tick": tick + 1, "salience": 0.0, "motor_transition": {
+            "key": key, "start_tick": tick, "end_tick": tick + 1,
+            "pre": before, "post": after, "previous": previous,
+            "target": target, "action": "step", "refusal": None, "intake": 0,
+        }}
+    moments = {
+        "a": trial("a", 1, "view-A", "view-B"),
+        "b": trial("b", 2, "view-B", "view-C", "a"),
+        "unrelated": trial("unrelated", 9, "view-A", "view-C"),
+        "outcome": {"count": 2, "tick": 4, "salience": 0.3, "episode_tail": "b"},
+    }
+    untouched = copy.deepcopy(moments)
+    assert retained_episode_keys(moments, "outcome") == ("outcome", "b", "a")
+    assert moments == untouched
+    for field, wrong in (("pre", "different-view"), ("start_tick", 8), ("target", "other-custody")):
+        altered = copy.deepcopy(moments)
+        altered["b"]["motor_transition"][field] = wrong
+        assert retained_episode_keys(altered, "outcome") == ("outcome", "b")
+    del moments["a"]
+    assert retained_episode_keys(moments, "outcome") == ("outcome", "b")
+    moments["outcome"]["count"] = 1
+    assert retained_episode_keys(moments, "outcome") == ()
+
+
+def test_retention_admits_whole_episode_at_mature_capacity_and_refuses_oversize() -> None:
+    """Storage boundary falsifier; counts cannot exclude new real one-trial links."""
+    from dsf_ai_service.episodic_binding_engine import bound_retained_episode
+    old = {f"old-{i}": {"count": 20, "tick": i} for i in range(4)}
+    new = {
+        "outcome": {"count": 2, "tick": 10, "episode_tail": "motor"},
+        "motor": {"count": 1, "tick": 9, "salience": 0.0,
+                  "motor_transition": {"previous": None}},
+    }
+    before = copy.deepcopy(old)
+    combined = {**old, **new}
+    successor = bound_retained_episode(combined, set(new), 4)
+    assert successor is not None and len(successor) == 4
+    assert all(successor[k] == v for k, v in new.items())
+    assert old == before
+    assert bound_retained_episode(combined, set(new), 1) is None
+    assert old == before and combined == {**before, **new}
+
+
+def test_observed_subject_is_not_replaced_by_acted_target() -> None:
+    """A looked-at A / acted-on B record cannot become an A-directed act."""
+    from dsf_ai_service.episodic_binding_engine import find_supported_continuation
+    record = {"key": "motor", "start_tick": 1, "end_tick": 2,
+              "pre": "actual-cue", "post": "successor", "action": "touch",
+              "target": "B", "observed_subject": "A", "previous": None,
+              "refusal": None, "intake": 12}
+    candidates = (("touch", "A", (), "A", None),)
+    kwargs = dict(current_target_id="A", current_figure="measured-shape")
+    assert find_supported_continuation("actual-cue", "feeding",
+        {"motor": {"motor_transition": record}}, candidates, **kwargs) is None
+    witnessed = {**record, "observed_subject": "B"}
+    # Exact cue recurrence may support an experienced act only after the
+    # original trial actually observed its acted target; IDs are not cue keys.
+    assert find_supported_continuation("actual-cue", "feeding",
+        {"motor": {"motor_transition": witnessed}}, candidates, **kwargs) == candidates[0]

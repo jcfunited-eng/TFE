@@ -159,6 +159,91 @@ def evaluate_anticipatory_consequence(
     return 0.0, None
 
 
+def retained_episode_keys(moments: dict[str, Any], root: str) -> tuple[str, ...]:
+    """The qualified outcome and only its actually witnessed predecessor chain.
+
+    This is the ratified bounded retention law, not extra trials or salience.
+    References into already consolidated/evicted state end this local traversal.
+    """
+    entry = moments[root]
+    if not should_consolidate(float(entry.get("salience", 0.0)), int(entry["count"])):
+        return ()
+    keys = [root]
+    visited = {root}
+    tail = entry.get("episode_tail")
+    root_trial = entry.get("motor_transition")
+    if root_trial is not None:
+        previous = root_trial.get("previous")
+        predecessor = moments.get(previous, {}).get("motor_transition")
+        if (predecessor is not None and predecessor["end_tick"] == root_trial["start_tick"]
+                and predecessor["post"] == root_trial["pre"] and predecessor["target"] == root_trial["target"]):
+            tail = previous
+    while tail in moments and tail not in visited:
+        trial = moments[tail].get("motor_transition")
+        if not isinstance(trial, dict):
+            break
+        visited.add(tail)
+        keys.append(tail)
+        previous = trial.get("previous")
+        predecessor = moments.get(previous, {}).get("motor_transition")
+        if not isinstance(predecessor, dict):
+            break
+        if (predecessor["end_tick"] != trial["start_tick"]
+                or predecessor["post"] != trial["pre"]
+                or predecessor["target"] != trial["target"]):
+            break
+        tail = previous
+    return tuple(keys)
+
+
+def bound_retained_episode(
+    candidate: dict[str, Any], protected: set[str], capacity: int,
+) -> dict[str, Any] | None:
+    """Prepare bounded retention without tearing a retained episode apart.
+
+    Eviction changes storage only, never observation counts or action worth.
+    The new episode is admitted as a whole or the caller retains its predecessor.
+    """
+    if len(candidate) <= capacity:
+        return candidate
+    adjacent: dict[str, set[str]] = {key: set() for key in candidate}
+    for key, entry in candidate.items():
+        previous = entry.get("motor_transition", {}).get("previous")
+        for linked in (entry.get("episode_tail"), previous):
+            if linked in adjacent:
+                adjacent[key].add(linked)
+                adjacent[linked].add(key)
+    components: list[set[str]] = []
+    remaining = set(candidate)
+    for seed in sorted(candidate):
+        if seed not in remaining:
+            continue
+        frontier = [seed]
+        component: set[str] = set()
+        while frontier:
+            key = frontier.pop()
+            if key in component:
+                continue
+            component.add(key)
+            frontier.extend(adjacent[key] - component)
+        remaining.difference_update(component)
+        components.append(component)
+    protected_size = sum(len(group) for group in components if group & protected)
+    if protected_size > capacity:
+        return None
+    removable = sorted(
+        (group for group in components if not group & protected),
+        key=lambda group: (max(int(candidate[k]["tick"]) for k in group), min(group)),
+    )
+    result = dict(candidate)
+    for group in removable:
+        if len(result) <= capacity:
+            break
+        for key in group:
+            del result[key]
+    return result
+
+
 def find_supported_continuation(
     current_sensory_key: str,
     active_demand: str,
@@ -172,148 +257,69 @@ def find_supported_continuation(
     target_positions: dict[str, tuple[int, int, int]] | None = None,
     target_figures: dict[str, str] | None = None,
 ) -> tuple[str, str, Any, str | None, Any] | None:
-    """Learned Closed-Loop Continuation Selector:
-    Finds which available motor candidate belongs to a sequence actually experienced,
-    whose consequence addressed active_demand.
+    """Read actual retained trials, never invent a terminal act from 'fed'.
 
-    Returns the unique executable candidate tuple if exactly one is supported and feasible.
-    Returns None if zero or multiple conflicting candidates are supported (abstains).
+    This bounded engineered controller is not full joint-field evaluation.
+    Exact available sensory evidence is required; missing vision is not identity.
+    Progress checks constrain proposed motion; world settlement remains authority
+    for collisions and actual execution.
     """
-    if not meanings or not available_candidates:
+    if active_demand != "feeding" or not current_sensory_key:
         return None
-
-    # 1. Identify goal states in meanings that relieved active_demand
-    goal_keys: set[str] = set()
-    for m_key, m_entry in meanings.items():
-        consequences = m_entry.get("consequences", {})
-        if active_demand == "feeding":
-            if int(m_entry.get("fed", 0)) > 0:
-                goal_keys.add(m_key)
-            elif any(c.get("relief") == "feeding" or int(c.get("intake", 0)) > 0 for c in consequences.values()):
-                goal_keys.add(m_key)
-        else:
-            if any(c.get("relief") == active_demand for c in consequences.values()):
-                goal_keys.add(m_key)
-
-    if not goal_keys:
+    # A room/reach category alone cannot recognize the target of an experience.
+    if current_figure in (None, "none") and current_held != "held":
         return None
+    supported: set[str] = set()
+    visited: set[str] = set()
+    for entry in meanings.values():
+        trial = entry.get("motor_transition")
+        if not isinstance(trial, dict) or trial.get("refusal") is not None or int(trial["intake"]) <= 0:
+            continue
+        while isinstance(trial, dict):
+            trial_key = trial["key"]
+            if trial_key in visited:
+                break
+            visited.add(trial_key)
+            if trial.get("refusal") is not None:
+                break
+            if (trial["pre"] == current_sensory_key
+                    and trial.get("observed_subject") == trial["target"]
+                    and trial.get("observed_subject") is not None):
+                supported.add(trial["action"])
+            previous = trial.get("previous")
+            predecessor = meanings.get(previous, {}).get("motor_transition")
+            if not isinstance(predecessor, dict):
+                break
+            if (predecessor["end_tick"] != trial["start_tick"]
+                    or predecessor["post"] != trial["pre"]
+                    or predecessor["target"] != trial["target"]):
+                break
+            trial = predecessor
 
-    # 2. Build predecessor transition graph: S_next -> list of (S_pre, action, target_id)
-    predecessors: dict[str, list[tuple[str, str, str | None]]] = {}
-    for m_key, m_entry in meanings.items():
-        transitions = m_entry.get("transitions", {})
-        for act_name, succ_map in transitions.items():
-            for succ_key, info in succ_map.items():
-                tgt_id = info.get("target_id") if isinstance(info, dict) else None
-                predecessors.setdefault(succ_key, []).append((m_key, act_name, tgt_id))
-
-    def _state_matches_current(s_key: str) -> bool:
-        if current_sensory_key:
-            return current_sensory_key == s_key
-        return False
-
-    supported_from_current: list[tuple[str, str | None]] = []
-
-    # If current state itself is a goal state, terminal action (like bite) may be directly afforded
-    for g_key in goal_keys:
-        if _state_matches_current(g_key):
-            m_entry = meanings.get(g_key, {})
-            consequences = m_entry.get("consequences", {})
-            for act_name, c_info in consequences.items():
-                if active_demand == "feeding" and (c_info.get("relief") == "feeding" or int(c_info.get("intake", 0)) > 0):
-                    supported_from_current.append((act_name, c_info.get("target_id")))
-            if active_demand == "feeding" and int(m_entry.get("fed", 0)) > 0:
-                supported_from_current.append(("bite", None))
-
-    # Backward search from all goals to current_sensory_key
-    queue = list(goal_keys)
-    visited_nodes: set[str] = set(goal_keys)
-    visited_edges: set[tuple[str, str, str | None, str]] = set()
-
-    leads_to_goal: dict[str, set[tuple[str, str | None]]] = {}
-
-    while queue:
-        curr = queue.pop(0)
-        for pre_key, act, tgt in predecessors.get(curr, []):
-            if pre_key == curr:
-                continue  # Self-loops do not advance toward goal
-            edge = (pre_key, act, tgt, curr)
-            if edge in visited_edges:
-                continue
-            visited_edges.add(edge)
-            leads_to_goal.setdefault(pre_key, set()).add((act, tgt))
-            if pre_key not in visited_nodes:
-                visited_nodes.add(pre_key)
-                queue.append(pre_key)
-
-    # 3. Match current sensory condition against predecessor states that lead to goal
-    for state_key, act_set in leads_to_goal.items():
-        if _state_matches_current(state_key):
-            for act, tgt in act_set:
-                supported_from_current.append((act, tgt))
-
-    if not supported_from_current:
-        return None
-
-    unique_supported = list(dict.fromkeys(supported_from_current))
-
-    # 4. Intersect with physically available motor candidates
-    viable_candidates: list[tuple[str, str, Any, str | None, Any]] = []
-
-    for cand in available_candidates:
-        c_act = cand[0]
-        c_cmds = cand[2]
-        c_tgt = cand[3]
-        for sup_act, sup_tgt in unique_supported:
-            if c_act == sup_act:
-                # Attention focus check: candidate must align with currently attended target if attention is active
-                if current_target_id is not None and c_tgt is not None and c_tgt != current_target_id:
+    viable = []
+    for candidate in available_candidates:
+        act, _detail, commands, target, _drive = candidate
+        if act not in supported:
+            continue
+        # Candidate must concern the current sensory subject, not another object
+        # that happens to afford the same verb. IDs bind current custody only.
+        if target is not None and target != current_target_id:
+            continue
+        if body_position is not None and target_positions and target in target_positions:
+            displacement = tuple(int(t) - int(p) for t, p in zip(target_positions[target], body_position))
+            # Check every offered move, since ordinary actuation may try alternatives.
+            progresses = True
+            for command in commands:
+                pose = getattr(command, "target_pose", None)
+                if pose is None:
                     continue
-
-                # Target identity verification (Grounded in sensory continuity and visual recognition; zero name parsing)
-                if c_tgt is not None and sup_tgt is not None and c_tgt != sup_tgt:
-                    c_fig = target_figures.get(c_tgt) if target_figures else None
-                    sup_fig = target_figures.get(sup_tgt) if target_figures else None
-                    if c_fig is not None and sup_fig is not None and c_fig == sup_fig:
-                        pass  # Matching visual figure supports recognition transfer
-                    else:
-                        continue  # Recognition unavailable: abstain rather than fabricate transfer
-                elif sup_tgt is not None and c_tgt is None:
-                    continue  # Supported transition requires specific target, candidate provides none
-
-                # Physical feasibility check:
-                # Uses actuator's actual candidate command geometry to verify 2(v . d) > ||v||^2
-                if body_position and target_positions and c_tgt and c_tgt in target_positions:
-                    t_pos = target_positions[c_tgt]
-                    dx = float(t_pos[0] - body_position[0])
-                    dy = float(t_pos[1] - body_position[1])
-                    dz = float(t_pos[2] - body_position[2])
-                    d_sq = dx * dx + dy * dy + dz * dz
-                    if d_sq > 0 and c_act in ("toward_food", "step", "toward_thing") and c_cmds:
-                        first_cmd = c_cmds[0]
-                        target_pose = getattr(first_cmd, "target_pose", None)
-                        if target_pose is not None and hasattr(target_pose, "position"):
-                            cmd_p = target_pose.position
-                            vx = float(cmd_p.x - body_position[0])
-                            vy = float(cmd_p.y - body_position[1])
-                            vz = float(cmd_p.z - body_position[2])
-                            v_sq = vx * vx + vy * vy + vz * vz
-                            two_v_dot_d = 2.0 * (vx * dx + vy * dy + vz * dz)
-                            if v_sq > 0 and two_v_dot_d <= v_sq:
-                                continue  # Proposed movement does not decrease target displacement
-
-                viable_candidates.append(cand)
-
-    # Deduplicate complete candidate representations (action, detail, commands, target, drive)
-    deduped: list[tuple[str, str, Any, str | None, Any]] = []
-    seen_sigs = set()
-    for c in viable_candidates:
-        sig = (c[0], c[1], c[2], c[3], c[4])
-        if sig not in seen_sigs:
-            seen_sigs.add(sig)
-            deduped.append(c)
-
-    if len(deduped) == 1:
-        return deduped[0]
-
-    return None
+                position = pose.position
+                step = tuple(int(t) - int(p) for t, p in zip((position.x, position.y, position.z), body_position))
+                if 2 * sum(v * d for v, d in zip(step, displacement)) <= sum(v * v for v in step):
+                    progresses = False
+                    break
+            if not progresses:
+                continue
+        if candidate not in viable:
+            viable.append(candidate)
+    return viable[0] if len(viable) == 1 else None

@@ -18,6 +18,7 @@ encoded body is a few tens of kilobytes at any age.
 from __future__ import annotations
 
 import base64
+import copy
 from dataclasses import dataclass
 from fractions import Fraction
 import hashlib
@@ -53,6 +54,8 @@ from dsf_ai_service.episodic_binding_engine import (
     evaluate_anticipatory_consequence,
     find_supported_continuation,
     should_consolidate,
+    retained_episode_keys,
+    bound_retained_episode,
 )
 from dsf_ai_service.guala_voice import ONSETS, PITCHES_DECIHERTZ, VOWELS, syllable_pcm as airway_syllable_pcm
 from dsf_ai_service.substrate.embodiment_world import (
@@ -1047,31 +1050,26 @@ def candidates(
 
 
 def _capture_sensory_key(snapshot: Any, body: Any, state: dict[str, Any], seen: tuple[SeenThing, ...]) -> str:
-    """Captures the genuine sensorimotor observation before decision:
-    - Hand state: held vs none
-    - Target affordance relation: reach vs far vs none
-    Zero name parsing, zero string splitting, zero synthetic object tokens.
+    """Exact available cue distinctions for this reduced episodic controller.
+
+    IDs resolve current sensory custody, but are not included as recognition keys.
+    Missing visual/contact evidence remains None, never a manufactured figure.
     """
-    if body.held_object_id is not None:
-        return "held|reach"
-    target_id = (
-        state.get("gaze_target")
-        or state.get("joint_attention_target")
-        or (seen[0].object_id if seen else None)
+    target = body.held_object_id or state.get("gaze_target") or state.get("joint_attention_target") or (seen[0].object_id if seen else None)
+    obj = _object(snapshot, target) if target is not None else None
+    relation = None if obj is None else ("reach" if in_hand_reach(snapshot, obj) else "far")
+    contact = getattr(body, "active_contact", None)
+    contact_id = body.held_object_id or getattr(contact, "object_id", None)
+    touched = _object(snapshot, contact_id) if contact_id is not None else None
+    material = getattr(touched, "material", None)
+    tactile = None if material is None else (
+        material.compliance_ppm, material.roughness_micrometers,
+        material.surface_temperature_millikelvin,
     )
-    if target_id is not None:
-        target_obj = _object(snapshot, target_id)
-        if target_obj is not None:
-            rel_str = "reach" if in_hand_reach(snapshot, target_obj) else "far"
-        else:
-            conserved = state.get("conserved_objects", {})
-            if target_id in conserved:
-                rel_str = "far"
-            else:
-                rel_str = "none"
-    else:
-        rel_str = "none"
-    return f"none|{rel_str}"
+    return json.dumps(
+        (state.get("room_now"), state.get("sight_figure"), body.held_object_id is not None, relation, tactile),
+        separators=(",", ":"), ensure_ascii=False,
+    )
 
 class FunctionalOrganism:
     """One organism: bounded state, pure decisions, exact encoding."""
@@ -1754,51 +1752,46 @@ class FunctionalOrganism:
         # Pre-choice sensory observation captured before any action evaluation
         current_sensory_key = _capture_sensory_key(snapshot, body, state, seen)
 
-        # Cognitive Asset 1: Complete and finalize in-flight transition from previous beat
-        # Successor state is the freshly observed current_sensory_key (never inferred from chosen verb)
-        pending_trans = state.get("pending_transition")
+        # Finalize the prior actually executed trial with this observed successor.
+        # Each event has its own record: equal reach categories never splice lives.
+        pending_trans = state.pop("pending_transition", None)
         if pending_trans:
-            pre_key = pending_trans.get("pre_key")
-            app_act = pending_trans.get("applied_action")
-            refused = pending_trans.get("refusal")
-            tgt_id = pending_trans.get("target_id")
-            intake_val = int(pending_trans.get("intake", 0))
-            relief_val = pending_trans.get("relief")
-            salience_val = float(pending_trans.get("salience", 0.0))
-
-            succ_sensory_key = current_sensory_key
-
-            # Passive clock advancement is not another executed motor trial.
-            # Sensory changes during rest/sleep are handled by _form_moments;
-            # they must not boost this motor graph's recurrence eligibility.
-            if pre_key and app_act and app_act != "body" and not refused:
-                moments_dict = state.setdefault("moments", {})
-                m_entry = moments_dict.setdefault(pre_key, {
-                    "count": 0, "tick": tick, "held": "held" if body.held_object_id else "none",
-                    "figure": state.get("sight_figure") or "none",
-                    "room": state.get("room_now") or "unknown",
-                    "context": [0, 0, 0],
-                    "next": {}, "acts": {}, "fed": 0, "source": "sensory", "salience": salience_val,
-                })
-                m_entry["count"] = int(m_entry.get("count", 0)) + 1
-                m_entry["salience"] = max(float(m_entry.get("salience", 0.0)), salience_val)
-                transitions = m_entry.setdefault("transitions", {})
-                act_map = transitions.setdefault(app_act, {})
-                succ_info = act_map.setdefault(succ_sensory_key, {"count": 0, "target_id": tgt_id})
-                succ_info["count"] = int(succ_info["count"]) + 1
-                if tgt_id:
-                    succ_info["target_id"] = tgt_id
-
-                if intake_val > 0 or relief_val:
-                    consequences = m_entry.setdefault("consequences", {})
-                    consequences[app_act] = {
-                        "intake": intake_val,
-                        "relief": relief_val or ("feeding" if intake_val > 0 else None),
-                        "target_id": tgt_id,
-                    }
-                    m_entry["fed"] = int(m_entry.get("fed", 0)) + 1
-
-            state["pending_transition"] = None
+            action = pending_trans.get("applied_action")
+            if action and action != "body" and "start_tick" in pending_trans:
+                moments = state.setdefault("moments", {})
+                trial_key = f"motor:{pending_trans['start_tick']}"
+                trial = {
+                    "key": trial_key,
+                    "start_tick": pending_trans["start_tick"], "end_tick": tick,
+                    "pre": pending_trans["pre_key"], "post": current_sensory_key,
+                    "action": action, "target": pending_trans["target_id"],
+                    "observed_subject": pending_trans["observed_subject"],
+                    "refusal": pending_trans.get("refusal"),
+                    "intake": int(pending_trans.get("intake", 0)),
+                    "previous": None,
+                }
+                previous = pending_trans.get("previous")
+                predecessor_entry = moments.get(previous) or state.get("meanings", {}).get(previous) or {}
+                predecessor = predecessor_entry.get("motor_transition")
+                if (predecessor is not None
+                        and predecessor["end_tick"] == trial["start_tick"]
+                        and predecessor["post"] == trial["pre"]
+                        and predecessor["target"] == trial["target"]):
+                    trial["previous"] = previous
+                moments[trial_key] = {
+                    "count": 1, "tick": tick, "salience": float(pending_trans.get("salience", 0.0)),
+                    "motor_transition": trial,
+                }
+                outcome = pending_trans.get("outcome_key")
+                if outcome in moments:
+                    moments[outcome]["episode_tail"] = trial_key
+                state["last_motor_trial"] = trial_key
+                while len(moments) > MOMENT_RECORD_CAPACITY:
+                    del moments[min(moments, key=lambda k: (int(moments[k]["tick"]), k))]
+            else:
+                # Passive time is not a rehearsed act and cannot bridge an
+                # unobserved interval into an experience sequence.
+                state["last_motor_trial"] = None
 
         if sensed.self_profile is not None and sum(sensed.self_profile) > 0:
             pending = state.get("pending_act")
@@ -1819,6 +1812,9 @@ class FunctionalOrganism:
             state["gaze_target"] = target   # what she acts on is what her head turns to next beat
             state["pending_transition"] = {
                 "pre_key": current_sensory_key,
+                "start_tick": tick,
+                "observed_subject": target_id,
+                "previous": state.get("last_motor_trial"),
                 "action": act,
                 "target_id": target,
                 "applied_action": None,
@@ -1898,8 +1894,7 @@ class FunctionalOrganism:
             body_pos = state["body_pos"]
             target_positions = {obj_id: c_data["position"] for obj_id, c_data in conserved.items() if "position" in c_data}
             target_figures = {obj_id: c_data.get("figure_key") for obj_id, c_data in conserved.items() if "figure_key" in c_data}
-            is_distracted = (state.get("attended_tick") == tick)
-            cur_target = (state.get("gaze_target") or state.get("joint_attention_target")) if is_distracted else None
+            cur_target = body.held_object_id or state.get("gaze_target") or state.get("joint_attention_target") or (seen[0].object_id if seen else None)
             supported_cand = find_supported_continuation(
                 current_sensory_key,
                 "feeding",
@@ -2116,7 +2111,7 @@ class FunctionalOrganism:
             state["last_moment"] = [key, tick]
             self._moment_formed = key
         while len(moments) > MOMENT_RECORD_CAPACITY:
-            del moments[min(moments, key=lambda k: (int(moments[k]["count"]), int(moments[k]["tick"]), k))]   # the least met, then the least recently met, leaves
+            del moments[min(moments, key=lambda k: (int(moments[k]["tick"]), k))]   # recency admits fresh lived evidence; counts are unchanged
 
     # ----- Level 1: the acoustic gate over her beat ------------------------------------
 
@@ -2282,24 +2277,43 @@ class FunctionalOrganism:
         return key[:6] + " into situation " + situation
 
     def _dream_moment(self, tick: int) -> None:
-        """One sleeping beat of consolidation for moments: the most recurrent or salient moment of
-        the day moves into her meanings (counts, what followed and the bites merged by
-        addition; the least counted meaning leaves past the bound); a moment met only
-        once without somatic salience is dropped (The Pool Shock Principle).
-        By morning the day's moments are empty."""
+        """Retain a qualifying outcome with its actual experienced predecessors.
 
+        Counts and salience are not increased by retention or by sleep.
+        A single bounded traversal replaces disconnected per-node forgetting.
+        """
         state = self._state
         moments = state.get("moments") or {}
         if not moments:
             return
         key = max(moments, key=lambda k: (int(moments[k]["count"]), int(moments[k]["tick"]), k))
-        entry = moments.pop(key)
-        salience = float(entry.get("salience", 0.0))
-        if not should_consolidate(salience, int(entry["count"])):
+        retained = retained_episode_keys(moments, key)
+        if not retained:
+            moments.pop(key)
             return
-        meanings = state.setdefault("meanings", {})
+        # Prepare all fallible copying/merging/space decisions before publishing.
+        meanings = state.get("meanings") or {}
+        prepared = dict(meanings)
+        for episode_key in retained:
+            if episode_key in prepared:
+                prepared[episode_key] = copy.deepcopy(prepared[episode_key])
+            self._retain_moment(prepared, episode_key, moments[episode_key], tick)
+        successor = bound_retained_episode(prepared, set(retained), MEANING_CAPACITY)
+        self._retention_refused = successor is None  # transient diagnostic, not cognition
+        if successor is None:
+            return
+        state["meanings"] = successor
+        for episode_key in retained:
+            moments.pop(episode_key)
+
+    def _retain_moment(self, meanings: dict[str, Any], key: str, entry: dict[str, Any], tick: int) -> None:
+        """Prepare one retained observation without manufacturing another trial."""
+        salience = float(entry.get("salience", 0.0))
         kept = meanings.get(key)
-        if kept is None:
+        if "motor_transition" in entry:
+            # Actual event records are immutable; recurrence never rewrites an event.
+            meanings[key] = entry
+        elif kept is None:
             meanings[key] = {
                 "count": int(entry["count"]),
                 "tick": tick,
@@ -2314,6 +2328,7 @@ class FunctionalOrganism:
                 "salience": round(salience, 4),
                 "transitions": {a: dict(m) for a, m in entry.get("transitions", {}).items()},
                 "consequences": {a: dict(c) for a, c in entry.get("consequences", {}).items()},
+                "episode_tail": entry.get("episode_tail"),
             }
         else:
             kept["count"] = int(kept["count"]) + int(entry["count"])
@@ -2347,8 +2362,8 @@ class FunctionalOrganism:
             stored_cons = kept.setdefault("consequences", {})
             for act_name, c_info in entry.get("consequences", {}).items():
                 stored_cons[act_name] = dict(c_info)
-        while len(meanings) > MEANING_CAPACITY:
-            del meanings[min(meanings, key=lambda k: (int(meanings[k]["count"]), int(meanings[k]["tick"]), k))]   # the least counted leaves
+        if "episode_tail" in entry:
+            meanings[key]["episode_tail"] = entry["episode_tail"]
 
     def _choose_syllable(self, situation: str, prior_syllable: str | None, uncertain: bool | None = None) -> tuple[tuple[int, int, int], str, str, str]:
         """The syllable for this beat from her speech record, by the law her acts use:
@@ -2649,6 +2664,9 @@ class FunctionalOrganism:
             if intake > 0:
                 pending_trans["relief"] = "feeding"
             pain = float(getattr(self, "_pain", 0.0))
+            last = state.get("last_moment")
+            if (intake > 0 or action_pain > 0) and last is not None and last[0] in state.get("moments", {}) and tick_now - int(last[1]) <= FOLLOW_WINDOW_BEATS:
+                pending_trans["outcome_key"] = last[0]
             pending_trans["salience"] = compute_somatic_salience(
                 reserve_delta_ug=intake,
                 shock_magnitude=pain,
