@@ -1577,6 +1577,9 @@ class FunctionalOrganism:
                     "last_seen_tick": tick,
                     "confidence": 1.0,
                 }
+                fig = state.get("sight_figure")
+                if fig and fig != "none" and (state.get("gaze_target") == thing.object_id or (body.held_object_id == thing.object_id) or (seen and seen[0].object_id == thing.object_id)):
+                    conserved[thing.object_id]["figure_key"] = fig
 
         # 2. Update held object position (moves with Guala's body)
         if body.held_object_id is not None and body.held_object_id in conserved:
@@ -1793,9 +1796,10 @@ class FunctionalOrganism:
         uncertain = any(len(t) >= 5 and t[4] == "+" for t in tokens)
         sleepy = int(state.get("sleep_pressure", 0)) >= SLEEP_PRESSURE_CEILING // 2
         p_chain = list(state.get("pending_chain") or [])
+        state["body_pos"] = (int(body.pose.position.x), int(body.pose.position.y), int(body.pose.position.z))
         options = candidates(snapshot, body, held, offered, seen, tick, say_drive=say_drive, say_detail=say_reason, feeding=feeding, sleepy=sleepy, conserved_objects=conserved, pending_chain=p_chain)
         candidate_acts = list(dict.fromkeys(option[0] for option in options))
-        act, why = self._choose(key, situation, candidate_acts, uncertain=uncertain)
+        act, why = self._choose(key, situation, candidate_acts, uncertain=uncertain, candidate_options=options)
         matching = [option for option in options if option[0] == act]
         target_totals = state.setdefault("target_totals", {})
         # Targeted affordance execution or nearest candidate:
@@ -2287,7 +2291,7 @@ class FunctionalOrganism:
         mean = float(tried[syl][1]) / max(1, int(tried[syl][0]))
         return SYLLABLE_DRIVES[syl], syl, context, f"best worth under {context}: {syl} ({mean:.2f} over {int(tried[syl][0])})"
 
-    def _choose(self, key: str, situation: str, acts: list[str], uncertain: bool | None = None) -> tuple[str, str]:
+    def _choose(self, key: str, situation: str, acts: list[str], uncertain: bool | None = None, candidate_options: list[tuple] | None = None) -> tuple[str, str]:
         """The act for this structure: from the day's record (untried first,
         the least tried under structural uncertainty U*_k > 0 or visit interval,
         otherwise the best by one-step predictive foresight); when the day's
@@ -2336,24 +2340,56 @@ class FunctionalOrganism:
         fig = self._state.get("sight_figure") or "none"
         last_ev = (self._state.get("ear_event") or [None])[0] if isinstance(self._state.get("ear_event"), list) else "none"
         cur_room = self._state.get("room_now") or situation
+        conserved = self._state.get("conserved_objects") or {}
+        body_pos = self._state.get("body_pos")
+        deficit = float(self.deficit)
+
+        act_targets: dict[str, list[str]] = {}
+        if candidate_options:
+            for opt in candidate_options:
+                opt_act = opt[0]
+                opt_tgt = opt[3]
+                if opt_tgt:
+                    act_targets.setdefault(opt_act, []).append(opt_tgt)
+
         if meanings and acts:
             vetoed = set()
             promoted = []
             for candidate in acts:
-                valence, promo_reason = evaluate_anticipatory_consequence(
-                    candidate, visual_figure=fig, acoustic_event=str(last_ev), room=cur_room, meanings=meanings
-                )
-                if valence < -0.35:
-                    vetoed.add(candidate)
-                elif valence > 0.35:
-                    promoted.append((valence, candidate, promo_reason))
+                targets = act_targets.get(candidate, [None])
+                best_val = 0.0
+                best_reason = None
+                best_tgt = None
+                for tgt in targets:
+                    val, reason = evaluate_anticipatory_consequence(
+                        candidate,
+                        visual_figure=fig,
+                        acoustic_event=str(last_ev),
+                        room=cur_room,
+                        meanings=meanings,
+                        target_id=tgt,
+                        body_position=body_pos,
+                        conserved_objects=conserved,
+                        somatic_deficit=deficit,
+                    )
+                    if val < -0.35:
+                        vetoed.add(candidate)
+                    if val > best_val:
+                        best_val = val
+                        best_reason = reason
+                        best_tgt = tgt
+                if best_val > 0.35:
+                    promoted.append((best_val, candidate, best_reason, best_tgt))
+
             viable_acts = [a for a in acts if a not in vetoed]
             if viable_acts and len(viable_acts) < len(acts):
                 acts = viable_acts
             if promoted:
                 promoted.sort(key=lambda x: x[0], reverse=True)
-                _val, best_act, reason_text = promoted[0]
+                _val, best_act, reason_text, best_tgt = promoted[0]
                 if best_act in acts:
+                    if best_tgt:
+                        self._state["planned_target_id"] = best_tgt
                     return best_act, "structure " + key[:6] + f": {reason_text}"
 
         # Cognitive Asset 6: Unified Structural Boredom & Distal Interest Potential Manifold
@@ -2462,6 +2498,11 @@ class FunctionalOrganism:
             if last is not None and tick_now - int(last[1]) <= FOLLOW_WINDOW_BEATS and last[0] in (state.get("moments") or {}):
                 mom_entry = state["moments"][last[0]]
                 mom_entry["fed"] = int(mom_entry.get("fed", 0)) + 1
+                if decision.target_object_id:
+                    mom_entry["target_object_id"] = decision.target_object_id
+                    conserved = state.get("conserved_objects", {})
+                    if decision.target_object_id in conserved:
+                        conserved[decision.target_object_id]["fed_count"] = int(conserved[decision.target_object_id].get("fed_count", 0)) + 1
                 intake_salience = compute_somatic_salience(reserve_delta_ug=intake)
                 mom_entry["salience"] = max(float(mom_entry.get("salience", 0.0)), intake_salience)
                 acts_rec = mom_entry.setdefault("acts", {})
