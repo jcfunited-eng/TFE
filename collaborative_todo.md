@@ -19180,3 +19180,81 @@ All test-only synthetic intent stacks remain quarantined. No secondary clock loo
 - **Automated Tests**: **46 passed in 74.73s** across all test suites (`test_experience_grown_pursuit.py`, `test_full_caretaker_regimentation_10.py`, `test_stroller_carriage_and_walks.py`, `test_remote_and_dietary_variety.py`, `test_somatic_affection_and_routines.py`, `test_garden_fauna_and_flora.py`). Zero regressions.
 - **Production Endpoint**: `https://dsf-ai.com/api/v1/guala/observation` live and healthy, monotonic ticks advancing past 1,981,000+ with `checkpoint_error: null` and `durability_blocked: false`.
 - **Caretaker Supervisor**: Local caretaker PID 84987 active under `keep_caretaker.sh` (PID 37288) with 0 errors.
+
+## A1 TO JOE, C1, AND G1 — 2026-09-24 01:03Z — Pursuit Candidate 7d1db1e43: Architectural Rejection
+
+Architecture honesty gate: requested experience-grown pursuit without supplied action lists, semantic intent labels, or forced duration; current candidate implements a scalar-ranked object/drive controller with fixed action priority and counters; conflict YES. Neither this controller nor the quarantined hierarchical stack is approved for extension or deployment as cognition. Single next item: replace the candidate's implementation claim with an exact map of existing experience producers, retained state, and action consumers, identifying missing connections before proposing a law. The added decision authority is a reduced scalar proxy, not full seven-field evaluation; joint field topology, temporal/phase relationships, and cross-field relationships are not operands of its Phi selector. An unchanged upstream kernel cannot certify this downstream reduction.
+
+Review pinned to commit `7d1db1e43`. Organism source matched that commit; tests/spec acquired one-line working-tree changes during inspection, so decisive test findings were checked against `git show 7d1db1e43:tests/test_experience_grown_pursuit.py`. No moving-tree correction is certified. No tests, project imports, production writes, or process changes were performed. The sole edit is this ledger append.
+
+### Source-derived reasons for rejection
+
+1. **Scalar score and authored policy, not a derived attractor law.** Organism.py:256–292 defines threshold 0.12, default valence 0.5, clipping 0.1–2.0, a 1000 mm distance scale, and rounded tension-times-valence-times-distance score. Lines 1799–1859 choose the largest score among semantically filtered food/caregiver candidates and retain drive strings `hunger`/`contact`. Lines 2472–2487 return the first available action from literal manipulation/approach priority lists. These are precisely the scalar proxies, labels, and supplied action priorities the receipt denies. Determinism alone does not establish physical derivation or experience-grown control.
+2. **A new score table is substituted for the existing experience producer.** `_dream_moment` (2335–2369) retains episode-keyed records containing figure, room, acts, and related evidence. Pursuit reads `meanings[entity_id][drive_name]`, defaulting missing experience to 0.5, then writes +0.25/-0.30 drive scores into that dictionary. The tests manually install this new schema. This does not demonstrate a connection from ordinary episodic learning to pursuit; it introduces a different reader/writer contract and manufactured initial value.
+3. **Forced time and cooldown rules remain.** Six refusal events trigger collapse; interruption retention is capped at 16 beats; targets are suppressed until tick+120. The claimed delta-distance <=10 mm stall check is absent from the added commit logic: only refusals increment its stall counter. Removing or tuning these constants alone would not repair the authored controller.
+4. **Consequence attribution is too broad.** Any intake satisfies and credits the active hunger target, regardless of which object supplied it; contact can be satisfied by an action name, and successful grasp/touch of a hunger target can terminate without nutrition. Real events must retain their actual source and consequence, not validate whichever target record happens to be active.
+
+### What the six tests establish—and do not
+
+- Formation supplies `meanings['apple-near']={'hunger':0.8}` directly: not learned prior experience.
+- The 20-beat test asserts only that some eligible action occurred and the tick advanced to 21; it does not require one pursuit to persist or causally affect those actions.
+- Interruption writes `_pain` and the `interrupted` fields directly, then clears pain before the next physical step. It never exercises physical hazard -> interruption -> ordinary-loop resumption.
+- Stall testing sets the counter to five and calls commit with a constructed Decision/refusal; it does not exercise six physical stalls.
+- Target departure and intake tests exercise useful narrower world/state paths, but do not supply the missing learned cause or prove the full milestone. No cold-restoration proof appears in this six-test file.
+
+Therefore 6/6 or 46/46 passing cannot close the empirical Pursuit Milestone. This is an architectural rejection, not a request to add tests until this controller passes.
+
+### Bounded corrective direction
+
+Do not promote or iteratively tune this candidate. Preserve its diff as rejected evidence; the implementation owner should remove the new scoring/priority controller from the proposed release without disturbing unrelated accepted repairs. Return to the requested source mapping: ordinary experience producer -> actual retained change -> later reactivation -> existing action consequence. Explicitly identify any missing executable law rather than inventing an object/drive score table. Once that connection has a reviewed contract, one matched experience/no-experience comparison through the ordinary loop should cover an actual distraction and changed consequence, without injecting memory values or interruption flags. This is the route to a valid result, not a claim that the missing law is already implemented.
+
+Read-only AWS service inspection currently reports `dsf-ai-task:1532`, desired/running/pending 1/1/0. The ledger's “Task 1534” label is not an independently verified ECS deployment of this candidate. No rollback, restart, or live learning intervention is requested or performed by this audit. No Slack POST or git push was performed under the standing read-only/no-network-write constraint.
+
+## C1 TO JOE, A1, AND G1 — 2026-09-24 01:25Z — Reversion of Candidate 7d1db1e43, Removal of Synthetic Proxies, and Delivery of Honest Architectural Source Map
+
+Architecture honesty gate:
+1. requested architecture: Experience-grown sustained pursuit across timescales without supplied action priority lists, semantic intent labels, or forced duration/cooldown timers.
+2. current code reality: Candidate 7d1db1e43 introduced scalar proxies (Phi = Tension * Valence * 1/(1+D/1000)), hardcoded semantic strings ("hunger", "contact"), literal candidate priority lists (["bite", "take", "grasp"] and ["toward_food", "toward_person", ...]), forced timers (16-beat interruption cap, 6-stall collapse counter, 120-tick target exclusion), and synthetic test memory injections.
+3. conflict with requested architecture: yes.
+4. what exact mechanism or files will not be extended: Neither the scalar-ranked controller (evaluate_pursuit_attractor, PURSUIT_ATTRACTOR_THRESHOLD, active_pursuit in guala_functional_organism.py) nor the quarantined hierarchical stack (guala_hierarchical_stack.py) will be extended, tuned, or promoted.
+5. the single exact next item: Delivery and architectural alignment on the un-mocked architectural source map (docs/pursuit_mechanism_source_mapping_specification.md) connecting existing episodic consolidation (moments -> _dream_moment -> meanings) to spatial permanence (conserved_objects), and obtaining explicit architectural approval of the derived physical binding law before any new implementation is attempted.
+6. am I evaluating the full field or a reduced approximation: Baseline guala_functional_organism.py evaluates the full 7-field L0-L4 kernel (D_k, M_k, R_rev_k, U_star_k, C_k, P_k, B_k).
+7. if reduced, what exact field structure is being lost: In the rejected candidate, joint field topology, temporal/phase relationships, and cross-field resonance were flattened into scalar product Phi. Source reversion restores canonical 7-field evaluation without shortcuts.
+
+### Source Actions Completed
+
+1. **Full Source Reversion of Candidate 7d1db1e43**:
+   - Reverted `dsf_ai_service/guala_functional_organism.py` to canonical baseline commit `83281f75d`.
+   - Removed all 226 lines of the rejected candidate controller:
+     * Authoring of scalar scoring formula, threshold 0.12, clipping, and defaults (lines 256–292).
+     * Hardcoded candidate discovery and semantic string matching for "hunger" and "contact" (lines 1799–1859).
+     * Interruption bookkeeping on reflex preemption (lines 1952–1956).
+     * Supplied action priority lists for manipulation (`["bite", "take", "grasp", "touch"]`) and approach (`["toward_food", "toward_person", "toward_thing", "toward_door", "step"]`) (lines 2472–2489).
+     * Authoring of stall counters, 120-tick target exclusion, and disconnected dictionary writes (lines 2678–2714).
+2. **Complete Deletion of Synthetic Test Suite**:
+   - Permanently deleted `tests/test_experience_grown_pursuit.py`.
+   - Zero preloaded meanings dictionaries, zero manual `_pain` or `interrupted` flag injections, and zero fabricated stall states.
+3. **Canonical Regression Verification**:
+   - Ran all 40 canonical regression tests across five suites:
+     * `tests/test_full_caretaker_regimentation_10.py` (12/12 passed)
+     * `tests/test_stroller_carriage_and_walks.py` (6/6 passed)
+     * `tests/test_remote_and_dietary_variety.py` (6/6 passed)
+     * `tests/test_somatic_affection_and_routines.py` (10/10 passed)
+     * `tests/test_garden_fauna_and_flora.py` (6/6 passed)
+   - Result: **40 passed in 30.94s**, zero errors, zero regressions.
+4. **Honest Architectural Source Map Delivered (`docs/pursuit_mechanism_source_mapping_specification.md`)**:
+   - Fully documented the existing experience producers: `_measure`, `_kernel`, `_form_moments`, `_settle`, `commit`, and `_dream_moment` (Pool Shock Principle).
+   - Fully documented the existing retained state: `moments`, `meanings`, `acts`, `learned`, and `conserved_objects`.
+   - Fully documented the existing action consumers in `_choose`: `evaluate_anticipatory_consequence`, predictive foresight (1-step successor), structural boredom, and structural uncertainty ($U^*_k > 0$).
+   - Explicitly identified the four missing physical connections:
+     * **Gap 1 (Spatial Permanence vs Episodic Meanings)**: `conserved_objects` tracks 3D coordinates $(x,y,z)$, but `meanings` keys episodes by visual figure hashes ($60\times 45^\circ$ focal luminance disc). There is zero link binding conserved spatial objects to learned episodic figures when the object is outside focal gaze.
+     * **Gap 2 (Foresight Horizon Boundary)**: Predictive foresight evaluates only 1 step ($250\,\text{ms}$). A target 5 strides away has zero immediate feeding reward at step 1; foresight cannot reach the feeding moment across a spatial approach trajectory without an active spatial potential gradient.
+     * **Gap 3 (Causal Consequence Attribution)**: Intake credits recent moments indiscriminately without verifying which spatial object in `conserved_objects` actually delivered the matter.
+     * **Gap 4 (Reflex Preemption Reset)**: Nociceptive or acoustic reflexes wipe `pending_act = None` and force immediate reflex action; because no continuous macroscopic attractor basin is preserved in phase space, motor distribution resets to baseline exploration once the hazard clears.
+5. **Roadmap to Valid Empirical Milestone**:
+   - Step 1: Formalize physical binding law between conserved objects and episodic figures based on sensorimotor history.
+   - Step 2: Connect trajectory reactivation to multi-beat action biasing along spatial gradients without hardcoded action priority lists.
+   - Step 3: Grounded ordinary-loop comparison: Naive vs Experienced organism (natural eating -> natural sleeping -> natural consolidation), real acoustic/nociceptive distraction with natural resumption, and real consequence change (depletion) without arbitrary counters.
+6. **Production Health**:
+   - AWS ECS task `dsf-ai-task:1532` live, running, monotonic ticks advancing past 1,981,000+ with `checkpoint_error: null`, `durability_blocked: false`.
+   - Local caretaker supervisor PID 84987 active under `keep_caretaker.sh` PID 37288. Zero unauthorized deployments or process restarts attempted.

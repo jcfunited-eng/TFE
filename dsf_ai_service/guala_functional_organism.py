@@ -253,45 +253,6 @@ OBJECT_PERMANENCE_CAPACITY = 64
 PERMANENCE_FIXTURES = (BED_ID, "desk", "toy-chest", "radio", "window", "mirror", "bookshelf", "blanket")
 DISCREPANCY_VERIFICATION_DISTANCE_MM = 1_000
 
-PURSUIT_ATTRACTOR_THRESHOLD = 0.12
-PURSUIT_STALL_CEILING = 6
-PURSUIT_RETENTION_BEATS = 16
-
-
-def evaluate_pursuit_attractor(
-    entity_id: str,
-    entity_pos: tuple[int, int, int] | PositionMM,
-    guala_pos: PositionMM,
-    drive_name: str,
-    drive_tension: float,
-    meanings: dict[str, Any],
-) -> float:
-    """Deterministic attractor potential Phi(e) for entity e under active drive tension.
-
-    Phi(e) = Tension(drive) * max(0.1, V(e)) * 1 / (1 + distance / 1000.0)
-    No ML or probabilistic approximation; pure physical potential gradient.
-    """
-    if isinstance(entity_pos, PositionMM):
-        dx = entity_pos.x - guala_pos.x
-        dy = entity_pos.y - guala_pos.y
-        dz = entity_pos.z - guala_pos.z
-    else:
-        dx = entity_pos[0] - guala_pos.x
-        dy = entity_pos[1] - guala_pos.y
-        dz = entity_pos[2] - guala_pos.z
-    dist_mm = math.sqrt(dx * dx + dy * dy + dz * dz)
-
-    ent_meaning = meanings.get(entity_id, {})
-    if isinstance(ent_meaning, dict):
-        valence = float(ent_meaning.get(drive_name, 0.5))
-    else:
-        valence = 0.5
-
-    valence_factor = max(0.1, min(2.0, valence))
-    distance_factor = 1.0 / (1.0 + dist_mm / 1000.0)
-    return round(drive_tension * valence_factor * distance_factor, 6)
-
-
 # Cognitive Asset 5: Joint Attention & Caregiver Gaze Vector Tracking
 MAX_GAZE_RAY_MM = 4_000
 GAZE_CONE_HALF_ANGLE_DEG = 15.0
@@ -1128,7 +1089,6 @@ class FunctionalOrganism:
             "moments": {}, "last_moment": None,
             "voice_event": None, "own_events": {}, "own_event": None, "meanings": {}, "last_said": None, "affordance_plan": None, "planned_target_id": None, "conserved_objects": {}, "expectation_discrepancy": None, "joint_attention_target": None, "pending_chain": [], "last_demand_chain": None,
             "room_dwell_beats": 0, "prior_room": None, "region_visits": {}, "region_last_tick": {},
-            "active_pursuit": None, "unreachable_targets": {},
         })
 
     @classmethod
@@ -1156,7 +1116,7 @@ class FunctionalOrganism:
             state["speech"], state["syllable_totals"], state["prior_syllable"] = {}, {}, None
             state["voice_version"] = VOICE_VERSION
             changed = True
-        for key, empty in (("voice_event", None), ("own_events", {}), ("own_event", None), ("meanings", {}), ("last_said", None), ("affordance_plan", None), ("planned_target_id", None), ("syllable_profiles", {}), ("conserved_objects", {}), ("expectation_discrepancy", None), ("joint_attention_target", None), ("pending_chain", []), ("last_demand_chain", None), ("room_dwell_beats", 0), ("prior_room", None), ("region_visits", {}), ("region_last_tick", {}), ("active_pursuit", None), ("unreachable_targets", {})):
+        for key, empty in (("voice_event", None), ("own_events", {}), ("own_event", None), ("meanings", {}), ("last_said", None), ("affordance_plan", None), ("planned_target_id", None), ("syllable_profiles", {}), ("conserved_objects", {}), ("expectation_discrepancy", None), ("joint_attention_target", None), ("pending_chain", []), ("last_demand_chain", None), ("room_dwell_beats", 0), ("prior_room", None), ("region_visits", {}), ("region_last_tick", {})):
             if key not in state:
                 state[key] = {} if isinstance(empty, dict) else empty
                 changed = True
@@ -1412,19 +1372,12 @@ class FunctionalOrganism:
         counts["own_events"] = len(self._state.get("own_events") or {})
         counts["meanings"] = len(self._state.get("meanings") or {})
         counts["conserved_objects"] = len(self._state.get("conserved_objects") or {})
-        counts["pursuits"] = 1 if self._state.get("active_pursuit") else 0
         return counts
 
     @property
     def conserved_objects(self) -> dict[str, Any]:
         """Cognitive Asset 4: The topological spatial conservation register of unobserved and observed entities."""
         return dict(self._state.get("conserved_objects") or {})
-
-    @property
-    def active_pursuit(self) -> dict[str, Any] | None:
-        """Lever 4: The physical pursuit attractor currently active across beats, if any."""
-        pursuit = self._state.get("active_pursuit")
-        return dict(pursuit) if isinstance(pursuit, dict) else None
 
     @property
     def joint_attention_target(self) -> str | None:
@@ -1658,56 +1611,6 @@ class FunctionalOrganism:
             oldest = min(mobile_entries, key=lambda k: int(conserved[k].get("last_seen_tick", 0)))
             del conserved[oldest]
 
-        # Lever 4 Mechanism 1 & 4: Active Pursuit Maintenance and Reality Grounding
-        pursuit = state.get("active_pursuit")
-        if pursuit is not None:
-            p_target = pursuit.get("target_entity_id")
-            target_present = (
-                (p_target in conserved) or
-                any(th.object_id == p_target for th in seen) or
-                (body.held_object_id == p_target) or
-                (offered_within_reach(snapshot) == p_target)
-            )
-            if not target_present:
-                state["active_pursuit"] = None
-                pursuit = None
-            else:
-                pursuit["accumulated_beats"] = int(pursuit.get("accumulated_beats", 1)) + 1
-                if p_target in conserved:
-                    c_pos = PositionMM(*conserved[p_target]["position"])
-                    pursuit["last_distance_mm"] = round(_distance_mm(body.pose.position, c_pos), 3)
-                elif any(th.object_id == p_target for th in seen):
-                    s_th = next(th for th in seen if th.object_id == p_target)
-                    pursuit["last_distance_mm"] = round(s_th.distance_mm, 3)
-
-        # Lever 4 Mechanism 4: Resumption Check for Interrupted Pursuit
-        if pursuit is not None and pursuit.get("interrupted"):
-            pain_val = float(getattr(self, "_pain", 0.0))
-            if pain_val <= 0.0:
-                p_target = pursuit.get("target_entity_id")
-                p_drive = pursuit.get("drive", "hunger")
-                inter_beats = int(pursuit.get("interruption_beats", 0))
-                under_bound = inter_beats <= PURSUIT_RETENTION_BEATS
-                target_ok = (p_target in conserved or any(th.object_id == p_target for th in seen) or body.held_object_id == p_target)
-                drive_active = True
-                if p_drive == "hunger":
-                    drive_active = (self.reserve_micrograms < CAPACITY_MICROGRAMS * SATED_ABOVE)
-                elif p_drive == "contact":
-                    drive_active = (int(state.get("contact_pressure", 0)) > 0)
-
-                if under_bound and target_ok and drive_active:
-                    pursuit["interrupted"] = False
-                    pursuit["interruption_reason"] = None
-                    pursuit["interruption_beats"] = 0
-                else:
-                    state["active_pursuit"] = None
-                    pursuit = None
-            else:
-                pursuit["interruption_beats"] = int(pursuit.get("interruption_beats", 0)) + 1
-                if pursuit["interruption_beats"] > PURSUIT_RETENTION_BEATS:
-                    state["active_pursuit"] = None
-                    pursuit = None
-
         # Sound Attunement: When an external sound is heard, or a speaker is speaking,
         # her acoustic orienting reflex turns her neck and eyes to face the speaker.
         sound_source = getattr(sensed, "sound_source_id", None)
@@ -1735,8 +1638,7 @@ class FunctionalOrganism:
         else:
             state["joint_attention_target"] = None
 
-        pursuit_target = pursuit.get("target_entity_id") if (pursuit and not pursuit.get("interrupted")) else None
-        target_id = body.held_object_id or pursuit_target or state.get("gaze_target") or state.get("joint_attention_target") or (seen[0].object_id if seen else None)
+        target_id = body.held_object_id or state.get("gaze_target") or state.get("joint_attention_target") or (seen[0].object_id if seen else None)
         point = None if state.get("asleep") else _target_point(snapshot, body, target_id, conserved_objects=conserved)   # asleep, eyes closed, the head rests
         state["gaze"] = None
         state["gaze_radius"] = 0.0
@@ -1795,69 +1697,6 @@ class FunctionalOrganism:
         feeding = state["feeding"] or self.reserve_micrograms < CAPACITY_MICROGRAMS * HUNGRY_BELOW
         if self.reserve_micrograms >= CAPACITY_MICROGRAMS * SATED_ABOVE:
             feeding = False
-
-        # Lever 4 Mechanism 2: Deterministic Attractor Formation (when no pursuit active)
-        if state.get("active_pursuit") is None and not state.get("asleep"):
-            cur_deficit = float(self.deficit)
-            cur_contact = float(state.get("contact_pressure", 0)) / CONTACT_PRESSURE_CEILING
-            drive_candidates: list[tuple[str, float]] = []
-            if cur_deficit >= float(HUNGRY_BELOW) or state.get("feeding") or feeding:
-                drive_candidates.append(("hunger", cur_deficit))
-            if cur_contact >= 0.15:
-                drive_candidates.append(("contact", cur_contact))
-
-            meanings = state.get("meanings", {})
-            unreachable = state.get("unreachable_targets", {})
-            best_phi = 0.0
-            best_id = None
-            best_drive = None
-            best_dist = 0.0
-            best_valence = 0.5
-
-            for d_name, d_tension in drive_candidates:
-                if d_name == "hunger":
-                    cand_foods: list[tuple[str, PositionMM]] = []
-                    for c_id, c_ent in conserved.items():
-                        if c_ent.get("is_food") and (c_id not in unreachable or tick >= unreachable[c_id]):
-                            cand_foods.append((c_id, PositionMM(*c_ent["position"])))
-                    for s in seen:
-                        if s.is_food and (s.object_id not in unreachable or tick >= unreachable[s.object_id]):
-                            cand_foods.append((s.object_id, s.position))
-                    for f_id, f_pos in cand_foods:
-                        phi = evaluate_pursuit_attractor(f_id, f_pos, body.pose.position, d_name, d_tension, meanings)
-                        if phi > best_phi:
-                            best_phi = phi
-                            best_id = f_id
-                            best_drive = d_name
-                            best_dist = _distance_mm(body.pose.position, f_pos)
-                            v = meanings.get(f_id, {}).get(d_name, 0.5) if isinstance(meanings.get(f_id), dict) else 0.5
-                            best_valence = float(v)
-                elif d_name == "contact":
-                    person = caregiver_in_sight(snapshot)
-                    if person is not None and (person.object_id not in unreachable or tick >= unreachable[person.object_id]):
-                        phi = evaluate_pursuit_attractor(person.object_id, person.position, body.pose.position, d_name, d_tension, meanings)
-                        if phi > best_phi:
-                            best_phi = phi
-                            best_id = person.object_id
-                            best_drive = d_name
-                            best_dist = person.distance_mm
-                            v = meanings.get(person.object_id, {}).get(d_name, 0.5) if isinstance(meanings.get(person.object_id), dict) else 0.5
-                            best_valence = float(v)
-
-            if best_id is not None and best_phi >= PURSUIT_ATTRACTOR_THRESHOLD:
-                state["active_pursuit"] = {
-                    "target_entity_id": best_id,
-                    "drive": best_drive,
-                    "initiation_tick": tick,
-                    "accumulated_beats": 1,
-                    "interrupted": False,
-                    "interruption_reason": None,
-                    "interruption_beats": 0,
-                    "consecutive_stalls": 0,
-                    "last_distance_mm": round(best_dist, 3),
-                    "prior_valence": round(best_valence, 4),
-                }
-                pursuit = state["active_pursuit"]
         held = None if body.held_object_id is None else _object(snapshot, body.held_object_id)
         offered_id = offered_within_reach(snapshot)
         offered = None if offered_id is None else _object(snapshot, offered_id)
@@ -1949,10 +1788,6 @@ class FunctionalOrganism:
         if float(getattr(self, "_pain", 0.0)) > 0 and held is not None and held.material is not None \
                 and int(held.material.surface_temperature_millikelvin) >= NOCICEPTION_MILLIKELVIN:
             state["pending_act"] = None
-            if state.get("active_pursuit"):
-                state["active_pursuit"]["interrupted"] = True
-                state["active_pursuit"]["interruption_reason"] = "thermal_nociception"
-                state["active_pursuit"]["interruption_beats"] = 1
             return decision("release", "it burns; let go (the hand's reflex)", (ReleaseHeldObjectCommand(BEAT_MICROSECONDS),), held.object_id)
 
         uncertain = any(len(t) >= 5 and t[4] == "+" for t in tokens)
@@ -1964,8 +1799,7 @@ class FunctionalOrganism:
         matching = [option for option in options if option[0] == act]
         target_totals = state.setdefault("target_totals", {})
         # Targeted affordance execution or nearest candidate:
-        active_p = state.get("active_pursuit")
-        planned_target = (active_p.get("target_entity_id") if active_p and not active_p.get("interrupted") else None) or state.get("planned_target_id")
+        planned_target = state.get("planned_target_id")
         if planned_target:
             matching_targeted = [o for o in matching if o[3] == planned_target]
             chosen_option = matching_targeted[0] if matching_targeted else matching[0]
@@ -2469,23 +2303,6 @@ class FunctionalOrganism:
             if non_turn:
                 acts = non_turn
 
-        # Lever 4 Mechanism 3: Pursuit Dynamic Action Biasing
-        pursuit = self._state.get("active_pursuit")
-        if pursuit and not pursuit.get("interrupted"):
-            p_target = pursuit.get("target_entity_id")
-            p_drive = pursuit.get("drive", "hunger")
-            dist = float(pursuit.get("last_distance_mm", 1000.0))
-            if dist <= 400.0:
-                manip_candidates = ["bite", "take", "grasp", "touch"] if p_drive == "hunger" else ["reach_hand", "touch", "grasp"]
-                for m_act in manip_candidates:
-                    if m_act in acts:
-                        return m_act, label + f": pursuit manipulation ({m_act} on {p_target} under {p_drive})"
-            else:
-                approach_candidates = ["toward_food", "toward_person", "toward_thing", "toward_door", "step"]
-                for a_act in approach_candidates:
-                    if a_act in acts:
-                        return a_act, label + f": pursuit approach ({a_act} toward {p_target} under {p_drive})"
-
         # Cognitive Asset 2: Multi-Step Predictive Affordance Planning
         plan_dict = self._state.get("affordance_plan")
         if plan_dict:
@@ -2674,43 +2491,6 @@ class FunctionalOrganism:
         elif decision.act == "bite" and intake and state.get("last_chosen"):
             last = state["last_chosen"]
             self._credit(str(last["key"]), str(last["act"]), round(float(last["deficit"]), 6), tick_now, str(last.get("regimes", "")))
-
-        # Lever 4 Mechanism 5: Consequence-Driven Termination & Adaptation
-        pursuit = state.get("active_pursuit")
-        if pursuit is not None:
-            p_target = pursuit.get("target_entity_id")
-            p_drive = pursuit.get("drive", "hunger")
-            satisfied = False
-            if p_drive == "hunger" and intake > 0:
-                satisfied = True
-            elif p_drive == "contact" and (contact_fraction > 0.3 or applied_action in ("reach_hand", "touch")):
-                satisfied = True
-            elif decision.target_object_id == p_target and applied_action in ("bite", "grasp", "take", "touch") and refusal is None:
-                satisfied = True
-
-            if satisfied:
-                m_dict = state.setdefault("meanings", {})
-                t_mean = m_dict.setdefault(p_target, {})
-                if isinstance(t_mean, dict):
-                    cur_val = float(t_mean.get(p_drive, 0.5))
-                    t_mean[p_drive] = round(min(2.0, cur_val + 0.25), 4)
-                state["active_pursuit"] = None
-            else:
-                is_stall = False
-                if refusal is not None and (decision.target_object_id == p_target or applied_action in MOVES):
-                    is_stall = True
-                if is_stall:
-                    pursuit["consecutive_stalls"] = int(pursuit.get("consecutive_stalls", 0)) + 1
-                    if pursuit["consecutive_stalls"] >= PURSUIT_STALL_CEILING:
-                        m_dict = state.setdefault("meanings", {})
-                        t_mean = m_dict.setdefault(p_target, {})
-                        if isinstance(t_mean, dict):
-                            cur_val = float(t_mean.get(p_drive, 0.5))
-                            t_mean[p_drive] = round(max(0.0, cur_val - 0.30), 4)
-                        state.setdefault("unreachable_targets", {})[p_target] = tick_now + 120
-                        state["active_pursuit"] = None
-                elif applied_action in MOVES and refusal is None:
-                    pursuit["consecutive_stalls"] = 0
 
         # Cognitive Asset 5: Combinatorial Demand Chaining Credit
         demand = state.get("last_demand_chain")
