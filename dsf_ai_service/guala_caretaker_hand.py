@@ -56,11 +56,11 @@ SET_DOWN_DOOR_CLEARANCE_MM = 1_200  # nothing is put down within this of a doorw
 CAREGIVER_HOME_REGION = "hallway"
 CAREGIVER_HOME_MM = PositionMM(7_300, 7_500, 0)  # where the caregiver body was declared
 ARRIVED_HOME_MM = 150
-MAX_STEPS = 64
+MAX_STEPS = 96
 # A straight leg the world refuses for a thing in the way is retried around it:
 # a sidestep of these widths at the leg's midpoint, then on to the target.
 DETOUR_MM = (800, -800, 1600, -1600)
-CROSSING_OFFSETS_MM = (0, 300, -300, 600, -600)
+CROSSING_OFFSETS_MM = (0, 600, -600, 300, -300)
 CROSSING_MARGINS_MM = (600, 350)
 STAND_ANGLES_MILLIDEGREES = (0, 45_000, -45_000, 90_000, -90_000, 135_000, -135_000, 180_000)
 MAX_REFUSALS = 160
@@ -715,6 +715,10 @@ class _Hand:
             if region is None or (region_id is not None and region.region_id != region_id):
                 continue
             if not target_in_doorway and in_doorway(snapshot, spot, region.region_id, DOORWAY_CLEARANCE_MM):
+                continue
+            if any(item.position is not None and item.object_id != self.object_id and _distance_mm(spot, item.position) < person.radius_mm + item.radius_mm for item in snapshot.objects):
+                continue
+            if any(body.body_id != person.body_id and _distance_mm(spot, body.pose.position) < person.radius_mm + body.radius_mm for body in snapshot.bodies):
                 continue
             heading = _heading_toward(spot, face if face is not None else target)
             if self.move(spot, heading, detour=True):

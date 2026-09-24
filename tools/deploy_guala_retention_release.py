@@ -1,6 +1,6 @@
 """Bounded retention release, one image, one definition, one writer cutover.
 
-Includes full release (tick acceleration + refusal suppression + mailbox expansion).
+Includes full release (tick acceleration + refusal suppression + mailbox expansion + caretaker hand fix).
 Invoke --plan first; --execute runs this same plan after local proof clearance.
 """
 import argparse
@@ -31,7 +31,7 @@ BASE = ACCOUNT+".dkr.ecr."+REGION+".amazonaws.com/dsf-ai@sha256:950d884876599f76
 REPOSITORY = BASE.split("@")[0]
 FILES = {
  "dsf_ai_service/substrate/embodiment_world.py": "9b9bc432450b69d4bad15e9a94a91b36ec3f5883af3075a4ef44243ef0657789",
- "dsf_ai_service/guala_caretaker_hand.py": "7b13a172e15594f5e6cffc9de8f8997e5d57a39bd523c111334fa1f8db8d9e5a",
+ "dsf_ai_service/guala_caretaker_hand.py": "df525a0dfa5ac24e7a53cef1c23f4ad4106c713cf655265c8f8133d242d86150",
  "dsf_ai_service/lean_production_app.py": "d157b4b89c2c0b14bdf2344ee18582cd9be7ca3e9b15a669ac2751e8772af20d",
  "dsf_ai_service/guala_functional_organism.py": "b98c1e36c9b50a966b16c283518db3e0464486f09df2023258e5cbd9eeed146a",
  "dsf_ai_service/lean_actor.py": "7bcb4658caeeead8c507f902698cb8bfa99f840d6ce0d0155c3d95f424ed5e7f",
