@@ -25,15 +25,15 @@ REGION = "us-east-1"
 ACCOUNT = "418384447921"
 CLUSTER = "tfe-web-cluster"
 SERVICE = "dsf-ai-service-lb"
-OLD_TASK = "cdfbab745dad4c14a3763d2e5f1f9df8"
-OLD_DEFINITION = "arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1535"
-BASE = ACCOUNT+".dkr.ecr."+REGION+".amazonaws.com/dsf-ai@sha256:9c69faff87d56e41838c62ad1f14b7d18a1320918948b5e4a625a68431c9a73b"
+OLD_TASK = "8d577692a5d24a5fbcce37c055113221"
+OLD_DEFINITION = "arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1536"
+BASE = ACCOUNT+".dkr.ecr."+REGION+".amazonaws.com/dsf-ai@sha256:b85933662148ca0ab8e9a2e552b48eecdb2bc6a5aab35ff241693526e700a277"
 REPOSITORY = BASE.split("@")[0]
 FILES = {
  "dsf_ai_service/substrate/embodiment_world.py": "9b9bc432450b69d4bad15e9a94a91b36ec3f5883af3075a4ef44243ef0657789",
  "dsf_ai_service/guala_caretaker_hand.py": "7e1b5a629c670599dd5eaaa0ef6bed42e22daee566d7a045d5bf15bcc2d5e12e",
  "dsf_ai_service/lean_production_app.py": "af469ec15df4d737b4b00b5300fbb86c8037bfb133110dea8257fd0fccc12f71",
- "dsf_ai_service/guala_functional_organism.py": "70463fc2a306be9650081afb3c8c7a41d18a12657b6aba3fbb2c63c298453eba",
+ "dsf_ai_service/guala_functional_organism.py": "753b0042fb5c9044b62ae356bfd1851983bb8794495418a6cc18a677b6bb255f",
  "dsf_ai_service/episodic_binding_engine.py": "f1cc108452cb512818f2e4f05f73e29838f997dd10a9ecdb42134486fe879cb4",
 }
 IDENTITY = "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1"

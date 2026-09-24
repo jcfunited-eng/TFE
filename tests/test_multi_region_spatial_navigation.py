@@ -6,6 +6,8 @@ Validates:
 3. Mobile object carrying across doorways (blanket travels with Guala and lands in new room).
 4. Physical presence of the hallway mailbox by the entrance.
 5. Kinematic bounds and energy cost per stride.
+6. Obstacle barrier contouring in negative space (dining table/chair traversal to Daddy's room without oscillation).
+7. Multimodal acoustic acknowledgement without motor stride arrest.
 """
 
 from __future__ import annotations
@@ -22,6 +24,7 @@ from dsf_ai_service.guala_caretaker_hand import _distance_mm, _portal_points, _r
 from dsf_ai_service.guala_functional_organism import (
     BEAT_MICROSECONDS,
     FunctionalOrganism,
+    Sensed,
     door_crossing,
     door_crossing_commands,
     move_commands_toward,
@@ -230,3 +233,60 @@ def test_multi_room_affordance_plan_execution():
     assert door_steps[1].target_id == "door-6"
     assert actions[-3:] == ["toward_food", "grasp", "bite"]
 
+
+def test_dining_room_obstacle_barrier_traversal_to_daddys_room():
+    """Guala starting trapped in the dining room pocket between table and chair
+    successfully contours around the barrier through negative space to reach Daddy's room."""
+    world = home_world_authority(identity=IDENTITY)
+    # Transport her into the exact live oscillation position (9017, 1610)
+    world.admit_authored_body_transport("guala-body-1", PoseMM(PositionMM(9017, 1610, 0), 20480))
+    reached = False
+    for _ in range(25):
+        snap = world.observation_snapshot()
+        her = _her(world)
+        here = _region_of(snap, her.pose.position, her.radius_mm)
+        if here is not None and here.region_id == "daddys-room":
+            reached = True
+            break
+        portal = next(p for p in snap.portals if p.portal_id == "door-1")
+        before_door, past_door = door_crossing(snap, portal, "dining")
+        dist = _distance_mm(her.pose.position, before_door)
+        if dist <= 400:
+            for cmd in door_crossing_commands(snap, portal, "dining"):
+                if _execute(world, cmd) == "applied":
+                    break
+        else:
+            for cmd in move_commands_toward(snap, before_door, 0):
+                if _execute(world, cmd) == "applied":
+                    break
+    final_snap = world.observation_snapshot()
+    final_her = _her(world)
+    final_here = _region_of(final_snap, final_her.pose.position, final_her.radius_mm)
+    assert final_here is not None and final_here.region_id == "daddys-room", f"Expected daddys-room, got {final_here.region_id if final_here else None} at {final_her.pose.position}"
+
+
+def test_multimodal_acoustic_acknowledgement_during_motor_stride():
+    """When spoken to while in motion, Guala vocalizes an acknowledging syllable
+    without arresting or halting her motor strides."""
+    world = home_world_authority(identity=IDENTITY)
+    world.admit_authored_body_transport("guala-body-1", PoseMM(PositionMM(8764, 1772, 0), 20480))
+    snap = world.observation_snapshot()
+    organism = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
+
+    sensed = Sensed(
+        snapshot=snap,
+        focal_luminance_u8=(128,) * 19200,
+        luminance_source="world",
+        heard_profile=(0.5,) * 16,
+        self_profile=None,
+        wide_luminance_u8=(128,) * 108,
+        skin_contact=0.0,
+        skin_temperature_millikelvin=300_000,
+        touch_surface_millikelvin=None,
+        heard_frames=((0.5,) * 7,) * 25,
+        sound_source_id="person-body-1",
+    )
+
+    decision = organism.decide(sensed)
+    assert decision.drive is not None, "Airway drive must vocalize an acknowledging syllable when sound is heard"
+    assert decision.commands, "Motor strides must not be halted when vocalizing (walk and talk simultaneously)"

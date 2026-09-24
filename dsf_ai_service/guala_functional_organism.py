@@ -22,6 +22,7 @@ import copy
 from dataclasses import dataclass
 from fractions import Fraction
 import hashlib
+import heapq
 import json
 import math
 import struct
@@ -699,8 +700,8 @@ def _object(snapshot: Any, object_id: str) -> Any | None:
 
 
 def move_commands_toward(snapshot: Any, target: PositionMM, stop_mm: int) -> tuple[MoveCommand, ...]:
-    """One stride toward target (turning to face it), or clearance tangent
-    contour strides around intervening rigid obstacles in negative space,
+    """One stride toward target (turning to face it), or deterministic
+    negative-space visibility path strides around intervening rigid obstacles,
     followed by sidesteps the world may accept when direct headings are obstructed."""
 
     body = _self_body(snapshot)
@@ -732,72 +733,120 @@ def move_commands_toward(snapshot: Any, target: PositionMM, stop_mm: int) -> tup
             continue
         room_obs.append((other.pose.position, int(other.radius_mm), other.body_id))
 
-    blocking: list[tuple[PositionMM, int, str]] = []
-    for pos, rad, oid in room_obs:
-        comb_r = carried_radius + rad
-        if _straight_path_intersects_disc(origin, goal, pos, comb_r):
-            blocking.append((pos, rad, oid))
-
-    clearance_headings: list[int] = []
-    if blocking:
-        blocking.sort(key=lambda x: _distance_mm(origin, x[0]))
-        candidate_tangents: list[int] = []
-        for obs_pos, obs_rad, _ in blocking[:2]:
-            rc = carried_radius + obs_rad + DROP_MARGIN_MM
-            dx = obs_pos.x - origin.x
-            dy = obs_pos.y - origin.y
-            dist = math.hypot(dx, dy)
-            theta_obs = math.atan2(dy, dx)
-            alpha = math.asin(min(1.0, rc / dist)) if dist > rc else math.pi / 2.0
-            h1 = round(math.degrees(theta_obs + alpha) * 1000) % 360_000
-            h2 = round(math.degrees(theta_obs - alpha) * 1000) % 360_000
-            candidate_tangents.extend([h1, h2])
-
-        unobstructed: list[int] = []
-        for th in candidate_tangents:
-            rad = math.radians(th / 1000.0)
+    # Check direct line
+    direct_blocked = any(
+        _straight_path_intersects_disc(origin, goal, pos, carried_radius + rad)
+        for pos, rad, _ in room_obs
+    )
+    if not direct_blocked:
+        attempt_headings = [(bearing + off) % 360_000 for off in (0, *SIDESTEP_MILLIDEGREES)]
+        commands: list[MoveCommand] = []
+        for heading in attempt_headings:
+            rad = math.radians(heading / 1000.0)
             step = PositionMM(round(origin.x + stride * math.cos(rad)), round(origin.y + stride * math.sin(rad)), origin.z)
             if here is not None and not here.bounds.contains_floor_disc(step, carried_radius):
                 continue
-            collides = False
-            for obs_pos, obs_rad, _ in room_obs:
-                if _straight_path_intersects_disc(origin, step, obs_pos, carried_radius + obs_rad):
-                    collides = True
+            if any(_straight_path_intersects_disc(origin, step, opos, carried_radius + orad) for opos, orad, _ in room_obs):
+                continue
+            commands.append(MoveCommand(PoseMM(step, bearing), BEAT_MICROSECONDS))
+        if commands:
+            return tuple(commands)
+
+    # Negative-space continuous path planning within room
+    waypoints: list[PositionMM] = [origin, goal]
+    if here is not None:
+        bounds = here.bounds
+        min_x = bounds.minimum.x + carried_radius
+        max_x = bounds.maximum.x - carried_radius
+        min_y = bounds.minimum.y + carried_radius
+        max_y = bounds.maximum.y - carried_radius
+    else:
+        min_x, max_x, min_y, max_y = -100_000, 100_000, -100_000, 100_000
+
+    for pos, rad, _ in room_obs:
+        rc = carried_radius + rad + DROP_MARGIN_MM + 50
+        for k in range(16):
+            ang = 2 * math.pi * k / 16.0
+            wx = round(pos.x + rc * math.cos(ang))
+            wy = round(pos.y + rc * math.sin(ang))
+            if not (min_x <= wx <= max_x and min_y <= wy <= max_y):
+                continue
+            wp = PositionMM(wx, wy, origin.z)
+            if any(_distance_mm(wp, opos) < carried_radius + orad + DROP_MARGIN_MM for opos, orad, _ in room_obs):
+                continue
+            waypoints.append(wp)
+
+    step_x = (max_x - min_x) // 6
+    step_y = (max_y - min_y) // 6
+    if step_x > 0 and step_y > 0:
+        for ix in range(1, 6):
+            for iy in (1, 5):
+                wp = PositionMM(min_x + ix * step_x, min_y + iy * step_y, origin.z)
+                if not any(_distance_mm(wp, opos) < carried_radius + orad + DROP_MARGIN_MM for opos, orad, _ in room_obs):
+                    waypoints.append(wp)
+
+    adj: dict[PositionMM, list[tuple[float, PositionMM]]] = {wp: [] for wp in waypoints}
+    for i, w1 in enumerate(waypoints):
+        for j in range(i + 1, len(waypoints)):
+            w2 = waypoints[j]
+            blocked = False
+            for opos, orad, _ in room_obs:
+                req_r = carried_radius + orad if (w1 == origin or w2 == origin) else (carried_radius + orad + DROP_MARGIN_MM)
+                if _straight_path_intersects_disc(w1, w2, opos, req_r):
+                    blocked = True
                     break
-            if not collides:
-                unobstructed.append(th)
+            if not blocked:
+                d = _distance_mm(w1, w2)
+                adj[w1].append((d, w2))
+                adj[w2].append((d, w1))
 
-        goal_rad = math.radians(bearing / 1000.0)
-        curr_rad = math.radians(body.pose.heading_millidegrees / 1000.0)
-        def _score(h: int) -> float:
-            hr = math.radians(h / 1000.0)
-            return math.cos(hr - goal_rad) + 0.3 * math.cos(hr - curr_rad)
+    dist_map: dict[PositionMM, float] = {wp: float('inf') for wp in waypoints}
+    dist_map[origin] = 0.0
+    parent: dict[PositionMM, PositionMM] = {}
+    pq: list[tuple[float, int, PositionMM]] = [(0.0, id(origin), origin)]
+    while pq:
+        d, _, u = heapq.heappop(pq)
+        if d > dist_map[u]:
+            continue
+        if u == goal:
+            break
+        for edge_d, v in adj[u]:
+            if d + edge_d < dist_map[v]:
+                dist_map[v] = d + edge_d
+                parent[v] = u
+                heapq.heappush(pq, (dist_map[v], id(v), v))
 
-        unobstructed.sort(key=_score, reverse=True)
-        for th in unobstructed:
-            clearance_headings.append(th)
-            for off in (15_000, -15_000):
-                clearance_headings.append((th + off) % 360_000)
+    intermediate_target: PositionMM | None = None
+    if goal in parent:
+        curr = goal
+        path = [curr]
+        while curr != origin:
+            curr = parent[curr]
+            path.append(curr)
+        path.reverse()
+        if len(path) > 1:
+            intermediate_target = path[1]
 
-    if clearance_headings:
-        attempt_headings = list(dict.fromkeys(clearance_headings + [bearing] + [(bearing + off) % 360_000 for off in SIDESTEP_MILLIDEGREES]))
+    if intermediate_target is not None:
+        target_heading = _heading_toward(origin, intermediate_target)
+        attempt_headings = [target_heading]
+        for off in (15_000, -15_000, 30_000, -30_000):
+            attempt_headings.append((target_heading + off) % 360_000)
     else:
         attempt_headings = [(bearing + off) % 360_000 for off in (0, *SIDESTEP_MILLIDEGREES)]
 
-    commands: list[MoveCommand] = []
+    commands = []
     for heading in attempt_headings:
         rad = math.radians(heading / 1000.0)
         step = PositionMM(round(origin.x + stride * math.cos(rad)), round(origin.y + stride * math.sin(rad)), origin.z)
         if here is not None and not here.bounds.contains_floor_disc(step, carried_radius):
             continue
-        commands.append(MoveCommand(PoseMM(step, bearing), BEAT_MICROSECONDS))
+        collides = any(_straight_path_intersects_disc(origin, step, opos, carried_radius + orad) for opos, orad, _ in room_obs)
+        if not collides:
+            commands.append(MoveCommand(PoseMM(step, bearing), BEAT_MICROSECONDS))
 
     if not commands:
-        for offset in (0, *SIDESTEP_MILLIDEGREES):
-            heading = (bearing + offset) % 360_000
-            rad = math.radians(heading / 1000.0)
-            step = PositionMM(round(origin.x + stride * math.cos(rad)), round(origin.y + stride * math.sin(rad)), origin.z)
-            commands.append(MoveCommand(PoseMM(step, bearing), BEAT_MICROSECONDS))
+        commands.append(MoveCommand(PoseMM(origin, bearing), BEAT_MICROSECONDS))
 
     return tuple(commands)
 
@@ -2045,7 +2094,8 @@ class FunctionalOrganism:
         sleep_ratio = round(float(state.get("sleep_pressure", 0)) / SLEEP_PRESSURE_CEILING, 6)
         contact_ratio = round(float(state.get("contact_pressure", 0)) / CONTACT_PRESSURE_CEILING, 6)
         state["pending_act"] = {"key": key, "regimes": regimes, "act": act, "deficit": deficit, "sleep_ratio": sleep_ratio, "contact_ratio": contact_ratio, "intake": 0, "refused": False}
-        if act == "say":
+        if act == "say" or (sound_heard and drive is None):
+            drive = say_drive
             state["pending_act"]["syllable"], state["pending_act"]["context"] = say_name, say_context   # valued by what follows, under its context
             state["pending_act"]["drive"] = list(say_drive)
             target = state.get("heard_speech_target")
