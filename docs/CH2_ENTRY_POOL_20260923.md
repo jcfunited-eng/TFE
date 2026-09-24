@@ -162,6 +162,26 @@ verified on the new container:
       recorded, so the first pass on the new pool is 2026-09-24 13:45 UTC)
 ```
 
+## First pass on the new pool — 2026-09-24 13:47 UTC
+
+```
+[CH2-DIAG] pre-basin candidates: 3758                         (was 1389)
+[CH2-STRATEGIST] 3758 candidates → 30 passed V3 basin → 11 dedup → 11 after epoch governance
+[DAILY-ENTRY] Account: cash=$49740 invested=$47524 headroom=$52476
+[DAILY-ENTRY] CRVL excluded: cooling off after the law sold it (14 days)
+[DAILY-ENTRY] Pass complete: 10 entries placed | cash remaining=$25425 | invested=$71839
+
+filled (9):  AVO 191@12.70  BFST 79@30.52  CFFI 25@93.74  DOC 119@20.43
+             FBRT 327@7.44  IVZ 80@30.13   OCFC 143@17.00 PRKS 74@32.83
+             SIND 174@13.90                                 ~$2,432 each
+cancelled:   AVBH (77@31.22 — the thinnest of the ten, $2.08M/day)
+```
+
+These are the names the 2026-09-23 measurement said the old filter was
+hiding (DOC, IVZ, PRKS, FBRT, OCFC, AVO, BFST, CFFI, SIND, AVBH). The
+grading cohort — 20 closures on positions opened after 2026-09-21 — starts
+with these nine.
+
 ## What this does not change
 
 - The grading bar in `CH2_STATE_20260921.md` stands: 20 closures opened
