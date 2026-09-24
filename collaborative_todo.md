@@ -19140,3 +19140,43 @@ Scope: Complete the single remaining caller fix for REG-A1-02 (sleep-safety rele
 - **Caretaker Supervisor**: PID 84987 active under `keep_caretaker.sh` (PID 37288).
 - **Next Step**: Advance to mapping the five pursuit mechanisms (Retained State, Update Law, Action Influence, Interruption/Resumption, Consequence Termination) into actual source.
 
+
+
+## C1 TO JOE, G1, AND A1 — 2026-09-24 00:55Z — Task 1534 Resolution & Lever 4 Pursuit Mechanisms Receipt
+
+Scope: Source-map the Five Pursuit Mechanisms directly into `dsf_ai_service/guala_functional_organism.py` to satisfy A1's empirical Pursuit Milestone:
+"Demonstrate one experience-grown pursuit that survives a distraction, resumes when appropriate, and stops or changes when its real consequence changes—without a supplied action list, semantic intent label, or forced duration."
+All test-only synthetic intent stacks remain quarantined. No secondary clock loops; multi-beat persistence operates within the canonical single-clock 250ms loop via `self._state`.
+
+### 1. Mandatory Architecture Honesty Gate
+- **Requested Architecture**: Experience-grown pursuit mechanism satisfying A1's empirical milestone: sustained activity across multi-beat intervals (2–10s) that survives a distraction, resumes appropriately, and changes on physical consequence without canned action lists, semantic enums, or forced timers.
+- **Current Code Reality**: Fully mapped and verified in `dsf_ai_service/guala_functional_organism.py`, documented in `docs/pursuit_mechanism_source_mapping_specification.md`, and proven via `tests/test_experience_grown_pursuit.py` (6/6 passing).
+- **Conflict with Requested Architecture**: **No**. Fully resolved.
+- **Mechanisms Not Extended**: `dsf_ai_service/guala_hierarchical_stack.py` (canned syllable stack and synthetic intent enums) remains quarantined as test-only harness fixture. L0–L4 structural kernel and L5 state gates remain canonical and frozen.
+- **Evaluating Full Field or Reduced Approximation**: Full structural field (7-field L0–L4 dynamics + somatic drives + spatial permanence + sensorimotor consequences). Zero ML approximations, heuristics, or smoothing.
+
+### 2. Concrete Resolutions Implemented
+
+1. **Lever 4 Specification Document (`docs/pursuit_mechanism_source_mapping_specification.md`)**:
+   - Formalized the five deterministic mechanisms, mathematical update laws (Phi potential gradient), state schemas, and empirical acceptance proofs.
+
+2. **Five Pursuit Mechanisms in `dsf_ai_service/guala_functional_organism.py`**:
+   - **Mechanism 1 (Retained State Representation)**: Initialized `"active_pursuit": None` in `genesis()` and `migrate()`. Added explicit schema tracking `target_entity_id`, `drive`, `initiation_tick`, `accumulated_beats`, `interrupted`, `interruption_reason`, `interruption_beats`, `consecutive_stalls`, `last_distance_mm`, and `prior_valence`.
+   - **Mechanism 2 (Deterministic Attractor Formation)**: In `decide()`, when somatic tension is high (`deficit >= HUNGRY_BELOW` or `contact_pressure >= 0.15`), organism matches tension against episodic memory `meanings` and spatial distance to conserved objects/seen things via potential gradient Phi(e). Forms `active_pursuit` when Phi(e*) >= 0.12 without any programmer-supplied action list or semantic intent label.
+   - **Mechanism 3 (Dynamic Action Influence)**: In `_choose()` and candidate selection, `planned_target` is coupled to `active_pursuit["target_entity_id"]`. When in reach (<= 400 mm), manipulation acts (`bite`, `take`, `grasp`, `touch`) are prioritized; when beyond reach, approach acts (`toward_food`, `toward_thing`, `toward_person`, `step`) are prioritized.
+   - **Mechanism 4 (Prompt Interruption & Appropriate Resumption)**: In `decide()`, thermal nociception triggers immediate reflex (`release`), setting `interrupted = True` and preserving the pursuit basin. In subsequent beats, when the hazard clears, the 3 resumption invariants are checked: (1) target permanence in `conserved_objects`, (2) drive tension unresolved, and (3) interruption duration within 16 beats (4.0s). If satisfied, pursuit resumes immediately; if target disappeared, pursuit collapses cleanly.
+   - **Mechanism 5 (Consequence-Driven Termination & Adaptation)**: In `commit()`, nutritional intake or touch satisfaction credits episodic valence in `meanings` and collapses pursuit cleanly. Refusals or displacement stalls (delta D <= 10 mm) increment `consecutive_stalls`; upon reaching ceiling (6 stalls / 1.5s), pursuit collapses, valence is penalized, and target is registered in `unreachable_targets`, preventing infinite loops.
+
+3. **Automated Verification Suite (`tests/test_experience_grown_pursuit.py`)**:
+   - 6/6 tests passing:
+     1. `test_pursuit_forms_from_experience_without_scripted_plan`: PASS
+     2. `test_pursuit_persists_across_20_beats`: PASS
+     3. `test_pursuit_survives_nociceptive_interruption_and_resumes`: PASS
+     4. `test_pursuit_abandons_when_target_disappears`: PASS
+     5. `test_pursuit_terminates_on_consequence_satisfaction`: PASS
+     6. `test_pursuit_collapses_on_physical_stall`: PASS
+
+### 3. Verification Receipts
+- **Automated Tests**: **46 passed in 74.73s** across all test suites (`test_experience_grown_pursuit.py`, `test_full_caretaker_regimentation_10.py`, `test_stroller_carriage_and_walks.py`, `test_remote_and_dietary_variety.py`, `test_somatic_affection_and_routines.py`, `test_garden_fauna_and_flora.py`). Zero regressions.
+- **Production Endpoint**: `https://dsf-ai.com/api/v1/guala/observation` live and healthy, monotonic ticks advancing past 1,981,000+ with `checkpoint_error: null` and `durability_blocked: false`.
+- **Caretaker Supervisor**: Local caretaker PID 84987 active under `keep_caretaker.sh` (PID 37288) with 0 errors.
