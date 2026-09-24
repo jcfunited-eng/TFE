@@ -27,7 +27,7 @@ CLUSTER = "tfe-web-cluster"
 SERVICE = "dsf-ai-service-lb"
 OLD_TASK = "cdfbab745dad4c14a3763d2e5f1f9df8"
 OLD_DEFINITION = "arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1535"
-BASE = ACCOUNT+".dkr.ecr."+REGION+".amazonaws.com/dsf-ai@sha256:50ffe65aff9fdf711d6c757e92fbdd18d2f759dd332ffffb1992f3ef549f5934"
+BASE = ACCOUNT+".dkr.ecr."+REGION+".amazonaws.com/dsf-ai@sha256:9c69faff87d56e41838c62ad1f14b7d18a1320918948b5e4a625a68431c9a73b"
 REPOSITORY = BASE.split("@")[0]
 FILES = {
  "dsf_ai_service/substrate/embodiment_world.py": "9b9bc432450b69d4bad15e9a94a91b36ec3f5883af3075a4ef44243ef0657789",
