@@ -56,6 +56,7 @@ from dsf_ai_service.episodic_binding_engine import (
 from dsf_ai_service.guala_voice import ONSETS, PITCHES_DECIHERTZ, VOWELS, syllable_pcm as airway_syllable_pcm
 from dsf_ai_service.substrate.embodiment_world import (
     BodySurfaceActuation, BodySurfaceContactCommand,
+    NUTRITION_EXTRACTION_DENSITY_ZEPTOJOULES_PER_MICROGRAM,
     GraspContactCommand, MoveCommand, OralContactCommand, PoseMM, PositionMM,
     ReleaseHeldObjectCommand, TakeContactHeldObjectCommand, TouchContactCommand, _derived_contact_patch_square_mm, _receptor_position,
     rotate_lattice_offset, _floor_discs_overlap, _is_bed, _is_contained_or_seated, _straight_path_intersects_disc,
@@ -75,6 +76,13 @@ BEAT_MICROSECONDS = 250_000
 # meals.
 CAPACITY_MICROGRAMS = 500_000
 BASAL_BURN_MICROGRAMS = 3
+# Same chemical reserve as digestion, expressed on a body-only 1 nJ debit
+# lattice. Rounding positive numerical work up costs less than 1 nJ/interval;
+# it never supplies free work. This is not a second spendable energy store.
+RESERVE_NANOJOULES_PER_MICROGRAM, _nutrition_residue = divmod(
+    NUTRITION_EXTRACTION_DENSITY_ZEPTOJOULES_PER_MICROGRAM, 10**12)
+if _nutrition_residue:
+    raise ValueError("nutrition density is not on the declared body-energy lattice")
 ACT_BURN_MULTIPLE = {
     "rest": 0, "sleep": 0, "bite": 2, "grasp": 2, "take": 2, "release": 1, "touch": 1, "turn_left": 1, "turn_right": 1,
     "step": 4, "toward_food": 4, "toward_bed": 4, "toward_thing": 4, "toward_door": 4, "toward_person": 4, "reach_hand": 1, "say": 2,
@@ -410,6 +418,39 @@ class Decision:
     novel: bool
     gate_count: int
     seen: tuple[SeenThing, ...]
+
+
+@dataclass(frozen=True, slots=True)
+class BodyEnergyTransition:
+    """Prepared chemical-reserve successor, before world/body publication.
+
+    The caller supplies actual positive mechanical work from the native result.
+    Braking and dissipated heat are not further food charges and never regenerate
+    reserves. One immutable transition, not a reservoir or transaction owner.
+    """
+    tick: int
+    before_nanojoules: int
+    work_nanojoules: int
+    basal_nanojoules: int
+    intake_micrograms: int
+    after_nanojoules: int
+
+    def __post_init__(self):
+        values = (self.tick, self.before_nanojoules, self.work_nanojoules,
+                  self.basal_nanojoules, self.intake_micrograms, self.after_nanojoules)
+        if any(type(value) is not int or value < 0 for value in values):
+            raise ValueError("body-energy transition requires nonnegative integers")
+        unit = RESERVE_NANOJOULES_PER_MICROGRAM
+        capacity = CAPACITY_MICROGRAMS * unit
+        if self.before_nanojoules > capacity or self.after_nanojoules > capacity:
+            raise ValueError("body-energy transition exceeds chemical capacity")
+        if self.basal_nanojoules != min(self.before_nanojoules, BASAL_BURN_MICROGRAMS * unit):
+            raise ValueError("body-energy transition changed basal consumption")
+        if self.work_nanojoules > self.before_nanojoules - self.basal_nanojoules:
+            raise ValueError("mechanical work exceeds existing chemical supply")
+        if self.after_nanojoules != (self.before_nanojoules - self.basal_nanojoules
+                                    - self.work_nanojoules + self.intake_micrograms * unit):
+            raise ValueError("body-energy transition does not conserve chemical supply")
 
 
 def _self_body(snapshot: Any) -> Any:
@@ -1284,6 +1325,15 @@ class FunctionalOrganism:
 
     def __init__(self, state: dict[str, Any]) -> None:
         self._state = state
+        # Old bodies have no fractional debit and remain byte-identical. New
+        # body-energy state must validate at construction/restore, not be erased
+        # or treated as a zero-cost legacy interval when corrupt.
+        self.reserve_energy_nanojoules
+        pending = state.get("pending_act")
+        if isinstance(pending, dict) and "burn_nanojoules" in pending:
+            cost = pending["burn_nanojoules"]
+            if type(cost) is not int or cost < 0:
+                raise ValueError("invalid retained motor energy cost")
 
     @property
     def _sensorimotor_mesh(self) -> GualaSensorimotorMesh:
@@ -1549,15 +1599,57 @@ class FunctionalOrganism:
 
     @property
     def feeding(self) -> bool:
-        return bool(self._state["feeding"]) or self.reserve_micrograms < CAPACITY_MICROGRAMS * HUNGRY_BELOW
+        return (bool(self._state["feeding"])
+                or self.reserve_energy_nanojoules
+                < CAPACITY_MICROGRAMS * RESERVE_NANOJOULES_PER_MICROGRAM * HUNGRY_BELOW)
 
     @property
     def reserve_micrograms(self) -> int:
         return int(self._state["reserve_micrograms"])
 
     @property
+    def reserve_energy_nanojoules(self) -> int:
+        """One reserve: integer micrograms less already-spent fractional energy."""
+        reserve = self._state["reserve_micrograms"]
+        spent = self._state.get("reserve_spent_nanojoules", 0)
+        unit = RESERVE_NANOJOULES_PER_MICROGRAM
+        if (type(reserve) is not int or not 0 <= reserve <= CAPACITY_MICROGRAMS
+                or type(spent) is not int or not 0 <= spent < unit
+                or reserve == 0 and spent != 0):
+            raise ValueError("invalid chemical reserve or fractional body debit")
+        return reserve * unit - spent
+
+    @property
+    def available_motor_work_j(self) -> float:
+        """Pre-interval supply; food arriving later cannot fund earlier motion."""
+        available = max(0, self.reserve_energy_nanojoules
+                        - BASAL_BURN_MICROGRAMS * RESERVE_NANOJOULES_PER_MICROGRAM)
+        exact = Fraction(available, 1_000_000_000)
+        value = float(exact)
+        # Native comparison uses binary64. Never round the supply upward.
+        return math.nextafter(value, 0.0) if Fraction.from_float(value) > exact else value
+
+    def prepare_body_energy(self, *, positive_motor_work_j: float,
+                            intake_micrograms: int) -> BodyEnergyTransition:
+        """Prepare without mutation; caller does this before world publication."""
+        if (type(positive_motor_work_j) not in (int, float)
+                or not math.isfinite(positive_motor_work_j) or positive_motor_work_j < 0):
+            raise ValueError("finite nonnegative measured positive motor work required")
+        if type(intake_micrograms) is not int or intake_micrograms < 0:
+            raise ValueError("nonnegative measured intake required")
+        numerator, denominator = float(positive_motor_work_j).as_integer_ratio()
+        work = (numerator * 1_000_000_000 + denominator - 1) // denominator
+        before = self.reserve_energy_nanojoules
+        basal = min(before, BASAL_BURN_MICROGRAMS * RESERVE_NANOJOULES_PER_MICROGRAM)
+        intake = min(intake_micrograms, CAPACITY_MICROGRAMS - self.reserve_micrograms)
+        return BodyEnergyTransition(
+            self.live_organism_tick, before, work, basal, intake,
+            before - basal - work + intake * RESERVE_NANOJOULES_PER_MICROGRAM)
+
+    @property
     def deficit(self) -> Fraction:
-        return Fraction(CAPACITY_MICROGRAMS - self.reserve_micrograms, CAPACITY_MICROGRAMS)
+        capacity = CAPACITY_MICROGRAMS * RESERVE_NANOJOULES_PER_MICROGRAM
+        return Fraction(capacity - self.reserve_energy_nanojoules, capacity)
 
     @property
     def pending_voice(self) -> bytes | None:
@@ -1941,8 +2033,8 @@ class FunctionalOrganism:
         tick = self.live_organism_tick
         novel = key not in state["familiarity"]
 
-        feeding = state["feeding"] or self.reserve_micrograms < CAPACITY_MICROGRAMS * HUNGRY_BELOW
-        if self.reserve_micrograms >= CAPACITY_MICROGRAMS * SATED_ABOVE:
+        feeding = self.feeding
+        if self.reserve_energy_nanojoules >= CAPACITY_MICROGRAMS * RESERVE_NANOJOULES_PER_MICROGRAM * SATED_ABOVE:
             feeding = False
         held = None if body.held_object_id is None else _object(snapshot, body.held_object_id)
         offered_id = offered_within_reach(snapshot)
@@ -2406,7 +2498,12 @@ class FunctionalOrganism:
         # 4. Metabolic cost: what the act actually burned (the commit's own
         # number), as a fraction of her capacity; a refused act burned what it
         # burned and moved nothing, no doubling by hand.
-        burn_cost = int(pending.get("burn", 0)) / CAPACITY_MICROGRAMS
+        # Same cost/capacity law, measured at nJ resolution for articulated work.
+        # Legacy action records retain their original integer-microgram meaning.
+        burn_cost = (int(pending["burn_nanojoules"]) /
+                     (RESERVE_NANOJOULES_PER_MICROGRAM * CAPACITY_MICROGRAMS)
+                     if "burn_nanojoules" in pending else
+                     int(pending.get("burn", 0)) / CAPACITY_MICROGRAMS)
 
         # 5. Another body's touch on her skin: contact comfort pays in its own right by
         # how much of her skin it reached, and her deprivation at the moment she chose
@@ -2781,20 +2878,55 @@ class FunctionalOrganism:
     def commit(self, decision: Decision, *, applied_action: str, refusal: str | None,
                intake_micrograms: int, spoke: bytes | None, heard_profile: tuple[float, ...] | None,
                self_profile: tuple[float, ...] | None, tick_now: int, contact_fraction: float = 0.0,
-               contact_millikelvin: int | None = None) -> None:
+               contact_millikelvin: int | None = None,
+               body_energy: BodyEnergyTransition | None = None) -> None:
         state = self._state
         if tick_now != self.live_organism_tick:
             raise RuntimeError("functional organism tick left its line")
-        # Skin on skin or object contact by her own act is felt on the next beat, at its temperature.
+        before = self.reserve_micrograms
+        before_energy = self.reserve_energy_nanojoules
+        intake = max(0, min(int(intake_micrograms), CAPACITY_MICROGRAMS - before))
+        if body_energy is not None:
+            if (not isinstance(body_energy, BodyEnergyTransition)
+                    or body_energy.tick != tick_now
+                    or body_energy.before_nanojoules != before_energy
+                    or body_energy.intake_micrograms != intake):
+                raise RuntimeError("prepared body energy lost current organism custody")
+            if applied_action == "refused" and body_energy.work_nanojoules:
+                raise ValueError("refused motion cannot debit unperformed motor work")
+            reserve, residual = divmod(body_energy.after_nanojoules,
+                                       RESERVE_NANOJOULES_PER_MICROGRAM)
+            if residual:
+                reserve += 1
+                residual = RESERVE_NANOJOULES_PER_MICROGRAM - residual
+            burn = None  # No simultaneous action-name effort multiplier.
+            pending = state.get("pending_act")
+            accumulated_cost = None
+            if pending is not None:
+                if not isinstance(pending, dict):
+                    raise ValueError("invalid pending motor trial")
+                prior_nj = pending.get("burn_nanojoules", 0)
+                if type(prior_nj) is not int or prior_nj < 0:
+                    raise ValueError("invalid retained motor energy cost")
+                prior_ug = int(pending.get("burn", 0))
+                if prior_ug < 0:
+                    raise ValueError("invalid retained legacy energy cost")
+                accumulated_cost = (prior_nj + prior_ug * RESERVE_NANOJOULES_PER_MICROGRAM
+                                    + body_energy.basal_nanojoules + body_energy.work_nanojoules)
+        else:
+            if "reserve_spent_nanojoules" in state:
+                raise RuntimeError("articulated energy requires a measured successor")
+            burn = BASAL_BURN_MICROGRAMS * (1 + ACT_BURN_MULTIPLE.get(decision.act, 1)) if applied_action != "refused" else BASAL_BURN_MICROGRAMS
+            reserve = max(0, before - burn) + intake
+        # Every fallible energy/custody check precedes the first mutation.
         reached = applied_action in ("reach_hand", "touch", "grasp") and refusal is None
         state["pending_contact"] = round(float(contact_fraction), 6) if reached else 0.0
         state["pending_contact_millikelvin"] = int(contact_millikelvin) if (reached and contact_millikelvin is not None) else None
-        before = self.reserve_micrograms
-        burn = BASAL_BURN_MICROGRAMS * (1 + ACT_BURN_MULTIPLE.get(decision.act, 1)) if applied_action != "refused" else BASAL_BURN_MICROGRAMS
-        intake = max(0, min(int(intake_micrograms), CAPACITY_MICROGRAMS - before))
-        reserve = max(0, before - burn) + intake
         state["reserve_micrograms"] = min(CAPACITY_MICROGRAMS, reserve)
-        state["feeding"] = (state["feeding"] or before < CAPACITY_MICROGRAMS * HUNGRY_BELOW) and state["reserve_micrograms"] < CAPACITY_MICROGRAMS * SATED_ABOVE
+        if body_energy is not None:
+            state["reserve_spent_nanojoules"] = residual
+        capacity_energy = CAPACITY_MICROGRAMS * RESERVE_NANOJOULES_PER_MICROGRAM
+        state["feeding"] = (state["feeding"] or before_energy < capacity_energy * HUNGRY_BELOW) and self.reserve_energy_nanojoules < capacity_energy * SATED_ABOVE
         if intake:
             state["meals_micrograms"] += intake
             state["bites"] += 1
@@ -2861,7 +2993,13 @@ class FunctionalOrganism:
         if pending is not None:
             pending["intake"] = int(pending.get("intake", 0)) + intake
             pending["refused"] = bool(pending.get("refused")) or refusal is not None
-            pending["burn"] = int(pending.get("burn", 0)) + int(burn)  # what this act actually cost her, measured
+            if body_energy is None:
+                pending["burn"] = int(pending.get("burn", 0)) + int(burn)
+            else:
+                # Convert any predecessor's already-recorded cost, never count
+                # the named-action multiplier in addition to mechanical work.
+                pending.pop("burn", None)
+                pending["burn_nanojoules"] = accumulated_cost
         elif decision.act == "bite" and intake and state.get("last_chosen"):
             last = state["last_chosen"]
             self._credit(str(last["key"]), str(last["act"]), round(float(last["deficit"]), 6), tick_now, str(last.get("regimes", "")))

@@ -1384,3 +1384,67 @@ test 7db78acaedad3ad4e4d083ab2dd2e009004780d7229d91ee03b5d29a83fd59e5
 This closes only the native input/local-feedback/work-reporting seam. It does
 not close world mounting, energetic transaction, memory-safe learner connection,
 actual head optics, copied-body proof or production delivery. Goal ACTIVE.
+
+### FB-01g existing-reserve integration — 2026-09-25 18:11Z
+
+Previous turn was concrete progress (1683d4ff7). This turn implements the
+chemical-energy preparation boundary in the existing FunctionalOrganism, not
+another stamina pool. Whole-world native mounting is still incomplete.
+
+Requested architecture: native positive work spends the existing reserve,
+prepared before the world's successor is published. Current source now has
+BodyEnergyTransition, available_motor_work_j and prepare_body_energy. commit
+accepts the prepared successor and preserves fractional expenditure. Conflict
+remaining: ordinary world/loop still uses root commands and does not call this
+interface yet. No kernel, new reward, native-brain revival or scripted motor
+sequence is added. This is body-only numerical/chemical accounting; existing
+reduced functional cognition remains reduced, not full-field neuronal delivery.
+
+Law and scope:
+- Reuse digestion's17,000,000nJ/ug. E=reserve_ug*unit-spent_nJ, with
+  0<=spent<unit; reserve_ug is the ceiling projection, not another energy stock.
+- Available native work excludes min(E,3ug*unit) basal consumption and future
+  intake. Binary64 supply rounds downward. Numerical positive work rounds
+  upward to whole nJ (less than1nJ excess debit per interval).
+- Prepared successor satisfies E_after=E_before-basal-positive_work+intake*unit.
+  Negative motor work/braking never regenerates food; bearing heat is not
+  charged a second time. This is an ideal mechanical supply conversion, not
+  human muscle efficiency/isometric metabolism.
+- Body-energy publication verifies current tick, reserve and actual intake.
+  Once activated, omission of measured energy fails closed instead of silently
+  restoring named-action effort costs. Old bodies retain old encoding/costs
+  until explicit cutover; no default new field is inserted by migration.
+- The existing learning cost/capacity equation gets measured nJ cost, with no
+  new shaping coefficient. Existing learner rounding and contextual reduction
+  remain; this is not proof of learned control. Pending legacy costs are unit-
+  converted, not fabricated into new joint trials.
+- Independent source review caught pending-cost conversion after mutation.
+  One localized correction validates new retained costs at restore and computes
+  accumulated cost before mutation. Invalid-cost refusal now preserves bytes.
+
+Standalone test_functional_body_energy.py:8/8 passed in0.083s
+(processelapsed0.569s, peakRSS133,264KiB, user2.147s/system0.094s).
+Uses actual native mechanics and actual FunctionalOrganism commit/restore;
+controlled bench effort is not autonomous choice. No world genesis, pytest,
+network calls, production replay or field-learning claim. TestPID78958 exited.
+System Python provides pandas3.0.5; isolated native site-packages supplies pinned
+MuJoCo3.3.7/numpy2.4.6. No package installation or shared environment mutation.
+
+Before/after readonly AWS: task1547, desired/running/pending1/1/0;
+identityunchanged; live2249919->2250042, persisted2249894->2250022,
+availabletrue, no checkpoint/cleanup error or durabilityblock. CPU~50.76%,
+memory~4.79%; CloudWatch window lag means these are envelope observations, not
+local-test causality or end-to-end latency proof. Caretaker37677 untouched.
+
+Joe reports G1's reach_hand/toward_person/toward_door caregiver following work.
+Current main has uncommitted organism/episodic/caretaker changes and is10commits
+ahead of origin; A1 does not overwrite or cherry-pick across that moving lane.
+The integration must preserve history but retire root-displacement authority at
+the articulated cutover, not compile semantic affordances into a scripted gait.
+Reconcile G1's actual final source before release. No extra approval requested.
+
+Source d5e028aa4e28b26664f6552328dca66e964690219a1319b91088d2f3c43881c4
+Test d91d119fc8a2663971aa3d01c329362b2d36023c14364e25ee6bb4934e6a4b7a
+Full objective remainsACTIVE. Next: existing world/thermal prepare/commit mount,
+with native state canonical custody, actual root/head/object projection and
+no competing old movement/contact authority. No production delivery claimed.
