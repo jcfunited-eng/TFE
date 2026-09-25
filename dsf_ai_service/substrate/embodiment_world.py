@@ -62,11 +62,11 @@ MIGRATION_SCHEMA = "guala.embodiment.optical_surface_migration.v6"
 # predecessor command, observation and persistence encoding unchanged.
 NATIVE_COMMAND_SCHEMA = "guala.embodiment.command.native.v1"
 NATIVE_OBSERVATION_SCHEMA = "guala.embodiment.observation.native.v1"
-NATIVE_EXECUTION_SCHEMA = "guala.embodiment.execution.native.v1"
+NATIVE_EXECUTION_SCHEMA = "guala.embodiment.execution.native.v2"
 NATIVE_STATE_SCHEMA = "guala.embodiment.state.native.v1"
 NATIVE_ENVELOPE_SCHEMA = "guala.embodiment.state.hmac.native.v1"
 NATIVE_OBSERVATION_DOMAIN = b"guala-embodiment-observation-native-v1\0"
-NATIVE_EXECUTION_DOMAIN = b"guala-embodiment-execution-native-v1\0"
+NATIVE_EXECUTION_DOMAIN = b"guala-embodiment-execution-native-v2\0"
 NATIVE_STATE_DOMAIN = b"guala-embodiment-state-native-v1\0"
 
 
@@ -2638,6 +2638,7 @@ class NativeMechanicalWork:
     motor_braking_work_j: float
     bearing_dissipation_j: float
     unresolved_energy_exchange_j: float
+    self_bearing_dissipation_j: float | None
 
     def as_record(self):
         result = {name: getattr(self, name) for name in (
@@ -2647,12 +2648,19 @@ class NativeMechanicalWork:
         if any(result[name] < 0 for name in (
                 "positive_motor_work_j", "motor_braking_work_j", "bearing_dissipation_j")):
             raise ValueError("native nonnegative work component changed")
+        owned = self.self_bearing_dissipation_j
+        if owned is not None:
+            _native_vector((owned,), 1, "self bearing dissipation")
+            if owned < 0:
+                raise ValueError("self bearing dissipation must be nonnegative")
+        result["self_bearing_dissipation_j"] = owned
         return result
 
     @classmethod
     def from_record(cls, value):
         expected = {"positive_motor_work_j", "signed_motor_work_j", "motor_braking_work_j",
-                    "bearing_dissipation_j", "unresolved_energy_exchange_j"}
+                    "bearing_dissipation_j", "unresolved_energy_exchange_j",
+                    "self_bearing_dissipation_j"}
         if not isinstance(value, Mapping) or set(value) != expected:
             raise ValueError("native work fields changed")
         result = cls(**value)
@@ -4494,7 +4502,7 @@ class EmbodimentWorldAuthority:
         work = NativeMechanicalWork(
             result.positive_motor_work_j, result.signed_motor_work_j,
             result.motor_braking_work_j, result.bearing_dissipation_j,
-            result.unresolved_energy_exchange_j)
+            result.unresolved_energy_exchange_j, result.self_bearing_dissipation_j)
         work.as_record()
         return projected, "applied", work
 

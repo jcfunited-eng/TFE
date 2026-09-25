@@ -121,6 +121,8 @@ class MechanicalSuccessor:
     # Wmotor - delta(K+U) - Qbearing. Includes unaccounted constraint/fluid/
     # other damping work and numerical error. NEVER deposit this as heat.
     unresolved_energy_exchange_j: float
+    # Owned viscous loss only; None means no anatomical subtree was declared.
+    self_bearing_dissipation_j: float | None
 
 
 class NativeBody:
@@ -208,7 +210,7 @@ class NativeBody:
             if (name := mj.mj_id2name(m, mj.mjtObj.mjOBJ_BODY, i)) is not None
         )
         self._sensory_root = sensory_root
-        self._self_sensors, self._self_geoms = self._sensory_membership(sensory_root)
+        self._self_sensors, self._self_geoms, self._self_dofs = self._sensory_membership(sensory_root)
         self._data = mj.MjData(m)
         self._size = mj.mj_stateSize(m, STATE_KIND)
         self._header = sha256((ENGINE_VERSION + repr(limits) + repr(sensory_root) + xml).encode()).digest()
@@ -227,7 +229,7 @@ class NativeBody:
     def _sensory_membership(self, root_name):
         m = self._model
         if root_name is None:
-            return (), {}
+            return (), {}, np.empty(0, dtype=np.intp)
         if not isinstance(root_name, str) or not root_name:
             raise ValueError("named self-body root required")
         root = mj.mj_name2id(m, mj.mjtObj.mjOBJ_BODY, root_name)
@@ -259,7 +261,12 @@ class NativeBody:
                 continue
             if body in bodies:
                 sensors.append(i)
-        return tuple(sensors), geoms
+        # Bearing ownership follows joint-body ancestry, including links with
+        # inertia but no collision geometry or sensor. Names carry no ownership.
+        dofs = np.asarray([i for i, body in enumerate(m.dof_bodyid)
+                           if int(body) in bodies], dtype=np.intp)
+        dofs.flags.writeable = False
+        return tuple(sensors), geoms, dofs
 
     def _capture(self):
         mj.mj_getState(self._model, self._data, self._state_buffer, STATE_KIND)
@@ -402,10 +409,13 @@ class NativeBody:
         if math.ulp(initial_time) > m.opt.timestep:
             raise ValueError("mechanical time cannot represent this interval")
         positive_work = signed_work = braking_work = bearing_heat = travel_peak = 0.0
+        self_bearing_heat = 0.0
         for _ in range(elapsed_us // lim.step_us):
             position, rotation = d.geom_xpos.copy(), d.geom_xmat.copy().reshape(-1, 3, 3)
             power_before = effort * d.qvel[self._motor_dof]
             bearing_before = float(np.dot(m.dof_damping, d.qvel**2))
+            self_bearing_before = (0.0 if self._sensory_root is None else
+                float(np.dot(m.dof_damping[self._self_dofs], d.qvel[self._self_dofs]**2)))
             mj.mj_step(m, d)
             mj.mj_kinematics(m, d)
             mj.mj_collision(m, d)
@@ -418,7 +428,12 @@ class NativeBody:
             braking_work += float(np.sum(np.maximum(-power_before, 0)
                                         + np.maximum(-power_after, 0))) * dt_half
             bearing_heat += (bearing_before + float(np.dot(m.dof_damping, d.qvel**2))) * dt_half
-            if not all(math.isfinite(x) for x in (positive_work, signed_work, braking_work, bearing_heat)):
+            if self._sensory_root is not None:
+                self_bearing_after = float(np.dot(
+                    m.dof_damping[self._self_dofs], d.qvel[self._self_dofs]**2))
+                self_bearing_heat += (self_bearing_before + self_bearing_after) * dt_half
+            if not all(math.isfinite(x) for x in (
+                    positive_work, signed_work, braking_work, bearing_heat, self_bearing_heat)):
                 raise ValueError("non-finite mechanical work")
             if positive_work > available_work_j:
                 raise ValueError("mechanical energy supply exhausted; no successor")
@@ -441,4 +456,5 @@ class NativeBody:
         if not math.isfinite(residual):
             raise ValueError("non-finite mechanical energy balance")
         return MechanicalSuccessor(self._capture(), observation, positive_work,
-                                   signed_work, travel_peak, braking_work, bearing_heat, residual)
+                                   signed_work, travel_peak, braking_work, bearing_heat, residual,
+                                   None if self._sensory_root is None else self_bearing_heat)

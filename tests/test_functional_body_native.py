@@ -289,7 +289,114 @@ def sensory_bench(*, other_x=5.0, root="self"):
     </mujoco>''', LIMITS, sensory_root=root)
 
 
+def bearing_ownership_bench(*, root="self"):
+    # Two independent unit-mass sliders. The self descendant intentionally has
+    # no geom or sensor; the external body/geom has a misleading self-like name.
+    # Membership must therefore come from body ancestry and dof_bodyid.
+    xml = '''<mujoco><size memory="2M"/>
+      <option integrator="implicitfast" iterations="100" tolerance="1e-10" gravity="0 0 0"/>
+      <worldbody>
+        <body name="self">
+          <body name="unlabeled-descendant">
+            <joint name="owned-slide" type="slide" axis="1 0 0" damping="2"/>
+            <inertial pos="0 0 0" mass="1" diaginertia=".1 .1 .1"/>
+          </body>
+        </body>
+        <body name="self-looking-outsider" pos="5 0 0">
+          <joint name="external-slide" type="slide" axis="1 0 0" damping="3"/>
+          <geom name="self-looking-skin" type="sphere" size=".1" mass="1"/>
+        </body>
+      </worldbody>
+      <actuator>
+        <motor name="owned-force" joint="owned-slide" forcelimited="true" forcerange="-1 1"/>
+        <motor name="external-force" joint="external-slide" forcelimited="true" forcerange="-1 1"/>
+      </actuator>
+    </mujoco>'''
+    return NativeBody(xml, LIMITS, sensory_root=root)
+
+
 class NativeInterfaceTests(unittest.TestCase):
+
+    def test_external_passive_bearing_loss_does_not_warm_self(self):
+        engine = bearing_ownership_bench()
+        driven = engine.advance(engine.initial_state(), (0., .4), 10000, 1.)
+        # The external motor is now off: its retained kinetic energy feeds only
+        # the external viscous bearing. There is no contact or self motion.
+        coast = engine.advance(driven.state, (0., 0.), 10000, 0.)
+        self.assertGreater(coast.bearing_dissipation_j, 0.)
+        self.assertEqual(coast.self_bearing_dissipation_j, 0.)
+        self.assertEqual(coast.positive_motor_work_j, 0.)
+        self.assertEqual(coast.motor_braking_work_j, 0.)
+        self.assertEqual(coast.observation.qvel[0], 0.)
+        self.assertEqual(coast.observation.contacts, ())
+        # A stationary subtree is measured zero, not unavailable, even when
+        # the inertial-only moving link itself is the declared root.
+        descendant_root = bearing_ownership_bench(root="unlabeled-descendant")
+        own = descendant_root.advance(descendant_root.initial_state(), (0., .4), 1000, 1.)
+        self.assertEqual(own.self_bearing_dissipation_j, 0.)
+
+    def test_self_bearing_quadrature_uses_physical_descendant_not_geoms(self):
+        engine = bearing_ownership_bench()
+        result = engine.advance(engine.initial_state(), (.3, .4), 1000, 1.)
+        dt = .001
+        # Each uncoupled slider has m=1 kg, no springs/gravity/contact.
+        # implicitfast solves v1=(v0+F*dt)/(1+B*dt), v0=0. The declared
+        # quadrature is dt/2 * B*(v0^2+v1^2), not an exact time integral.
+        self_rate = .3 * dt / (1. + 2. * dt)
+        other_rate = .4 * dt / (1. + 3. * dt)
+        owned_heat = dt / 2 * 2. * self_rate**2
+        other_heat = dt / 2 * 3. * other_rate**2
+        self.assertAlmostEqual(result.observation.qvel[0], self_rate, places=15)
+        self.assertAlmostEqual(result.observation.qvel[1], other_rate, places=15)
+        self.assertAlmostEqual(result.self_bearing_dissipation_j, owned_heat, delta=1e-22)
+        self.assertAlmostEqual(result.bearing_dissipation_j, owned_heat + other_heat, delta=1e-22)
+        self.assertGreater(result.self_bearing_dissipation_j, 0.)
+        self.assertLess(result.self_bearing_dissipation_j, result.bearing_dissipation_j)
+
+    def test_owned_bearing_loss_cold_continues_without_changing_mechanics(self):
+        engine = bearing_ownership_bench()
+        initial = engine.initial_state()
+        driven = engine.advance(initial, (.3, .4), 10000, 1.)
+        coast = engine.advance(driven.state, (0., 0.), 10000, 0.)
+        self.assertGreater(coast.self_bearing_dissipation_j, 0.)
+        self.assertEqual(coast, bearing_ownership_bench().advance(
+            bytes(driven.state), (0., 0.), 10000, 0.))
+        self.assertEqual(engine.advance(coast.state, None, 1000, 0.),
+                         bearing_ownership_bench().advance(coast.state, None, 1000, 0.))
+        self.assertEqual(len(initial), len(coast.state))
+        diagnostic = bearing_ownership_bench(root=None)
+        unnamed = diagnostic.advance(diagnostic.initial_state(), (.3, .4), 10000, 1.)
+        self.assertIsNone(unnamed.self_bearing_dissipation_j)
+        self.assertEqual(unnamed.bearing_dissipation_j, driven.bearing_dissipation_j)
+        self.assertEqual(unnamed.unresolved_energy_exchange_j, driven.unresolved_energy_exchange_j)
+        # Root identity changes the header and feedback scope only, not the
+        # integration payload, solver/control behavior or mechanical trajectory.
+        self.assertNotEqual(unnamed.state[:32], driven.state[:32])
+        self.assertEqual(unnamed.state[32:], driven.state[32:])
+
+    def test_owned_bearing_work_codec_cannot_default_missing_heat(self):
+        from dsf_ai_service.substrate.embodiment_world import (
+            NativeMechanicalWork, NATIVE_EXECUTION_SCHEMA,
+        )
+        engine = bearing_ownership_bench()
+        value = engine.advance(engine.initial_state(), (.3, .4), 1000, 1.)
+        work = NativeMechanicalWork(
+            value.positive_motor_work_j, value.signed_motor_work_j,
+            value.motor_braking_work_j, value.bearing_dissipation_j,
+            value.unresolved_energy_exchange_j, value.self_bearing_dissipation_j)
+        record = work.as_record()
+        self.assertEqual(record["self_bearing_dissipation_j"], value.self_bearing_dissipation_j)
+        self.assertEqual(NativeMechanicalWork.from_record(record), work)
+        self.assertEqual(NATIVE_EXECUTION_SCHEMA, "guala.embodiment.execution.native.v2")
+        del record["self_bearing_dissipation_j"]
+        with self.assertRaises(ValueError):
+            NativeMechanicalWork.from_record(record)
+        for bad in (-1., math.inf, math.nan, True):
+            with self.assertRaises(ValueError):
+                replace(work, self_bearing_dissipation_j=bad).as_record()
+        unknown = replace(work, self_bearing_dissipation_j=None)
+        self.assertEqual(NativeMechanicalWork.from_record(unknown.as_record()), unknown)
+
     def test_world_frames_are_rigid_geometry_not_extra_sensory_channels(self):
         engine = sensory_bench(other_x=5)
         state = engine.initial_state()

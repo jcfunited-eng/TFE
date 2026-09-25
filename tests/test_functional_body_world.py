@@ -3,13 +3,20 @@
 Uses the actual reference anatomy and existing world/thermal authority. No
 pytest fixtures, processes, network transport or production body is imported.
 External entities are explicitly fixed bench bodies, not simulated caretaking.
-Timed thermal dissipation remains unavailable in this mount candidate.
+Measured internal heat is tested through existing core storage; contact heat,
+ordinary learner integration, home conversion and live delivery remain open.
 """
+from fractions import Fraction
 import base64
 import json
 import unittest
 import xml.etree.ElementTree as ET
 
+from dsf_ai_service.guala_functional_organism import FunctionalOrganism, Decision, STREAMS
+from dsf_ai_service.substrate.bounded_home_thermal_physics import (
+    BoundedThermalState, ThermalNodeState, ThermalPowerSource,
+    advance_bounded_thermal_state,
+)
 from dsf_ai_service.substrate.functional_body_anatomy import append_reference_biped
 from dsf_ai_service.substrate.functional_body_native import MechanicalLimits
 from dsf_ai_service.substrate.embodiment_world import (
@@ -57,7 +64,7 @@ def declaration(*, shifted_x=0.):
     )
 
 
-def world(*, thermal=False):
+def world(*, thermal=False, measured_core=False, core_temperature=310000):
     parameters = dict(authority_key=KEY, receipt_capacity=2,
                       initial_objects=(EmbodiedObject("bench-object", 100, 500,
                                                      PositionMM(1500, 1000, 0)),))
@@ -65,13 +72,13 @@ def world(*, thermal=False):
         return EmbodimentWorldAuthority(**parameters)
     anatomy = CoupledThermalAnatomy(
         node_ids=("air:A", "air:B", "air:C", "skin", "core"),
-        initial_temperatures_millikelvin=(290000, 291000, 292000, 305000, 310000),
+        initial_temperatures_millikelvin=(290000, 291000, 292000, 305000, core_temperature),
         capacities_microjoules_per_millikelvin=(1000,) * 5,
         fixed_conductive_edges=(),
         room_air_node_by_region_id=(("W1-region-A", 0), ("W1-region-B", 1), ("W1-region-C", 2)),
         skin_node_index=3, core_node_index=4,
         skin_air_conductance_microwatts_per_kelvin=1,
-        bath_edges=(), power_sources=(),
+        bath_edges=(), power_sources=(ThermalPowerSource(4, 41500000),) if measured_core else (),
         parameter_provenance=("declared-offline-thermal-bench",),
     )
     return ThermallyCoupledEmbodimentWorldAuthority(thermal_anatomy=anatomy, **parameters)
@@ -274,9 +281,151 @@ class NativeWorldCustodyTests(unittest.TestCase):
         self.assertEqual(fresh.encoded_snapshot(), authority.encoded_snapshot())
         self.assertEqual(fresh.thermal_observation(), authority.thermal_observation())
         mounted = fresh.encoded_snapshot()
-        with self.assertRaisesRegex(RuntimeError, "native thermal dissipation"):
+        with self.assertRaisesRegex(ValueError, "measured basal heat"):
             prepare_effort(fresh)
         self.assertEqual(fresh.encoded_snapshot(), mounted)
+
+def prepare_heated_effort(authority, org, *, effort=.0002, duration=10000):
+    # Basal debit is independent of mechanical work; prepare it from actual
+    # reserve, then finalize with the world's measured work before publication.
+    basal = org.prepare_body_energy(positive_motor_work_j=0., intake_micrograms=0)
+    prepared = authority.prepare_port_command(
+        port_id=PORT_ID,
+        command_payload=encode_command(AnatomicalEffortCommand(((EFFORT, effort),), duration)),
+        causal_intent_receipt_sha256=INTENT,
+        expected_revision=authority.observation_snapshot().revision,
+        available_motor_work_j=org.available_motor_work_j,
+        basal_heat_nanojoules=basal.basal_nanojoules,
+    )
+    energy = org.prepare_body_energy(
+        positive_motor_work_j=prepared.native_work.positive_motor_work_j,
+        intake_micrograms=0,
+    )
+    assert energy.basal_nanojoules == basal.basal_nanojoules
+    return prepared, energy
+
+
+def commit_energy(org, energy):
+    decision = Decision("joint-effort", "controlled thermal bench input", (), None, None,
+                        " ".join("________" for _ in STREAMS), False, 0, ())
+    org.commit(decision, applied_action="joint-effort", refusal=None,
+               intake_micrograms=0, spoke=None, heard_profile=None,
+               self_profile=None, tick_now=org.live_organism_tick, body_energy=energy)
+
+
+class NativeInternalHeatTests(unittest.TestCase):
+    def test_actual_work_reserve_heat_and_cold_next_interval(self):
+        authority = world(thermal=True, measured_core=True)
+        mount(authority)
+        org = FunctionalOrganism.genesis(identity="offline-heat-bench", organism_tick=0)
+        reserve_before = org.reserve_energy_nanojoules
+        heat_before = authority._thermal_state.nodes[4].energy_microjoules
+        prepared, energy = prepare_heated_effort(authority, org)
+        work = prepared.native_work
+        self.assertGreater(work.positive_motor_work_j, 0)
+        self.assertGreater(work.self_bearing_dissipation_j, 0)
+        self.assertEqual(authority._thermal_state.nodes[4].energy_microjoules, heat_before)
+        authority.commit_prepared_action(prepared)
+        commit_energy(org, energy)
+        receipt = authority._latest_thermal_transition
+        loss = round((Fraction.from_float(work.self_bearing_dissipation_j)
+                      + Fraction.from_float(work.motor_braking_work_j)) * 10**9)
+        supplied = energy.basal_nanojoules + loss
+        self.assertEqual(receipt.native_basal_heat_nanojoules, energy.basal_nanojoules)
+        self.assertEqual(receipt.native_dissipation_heat_nanojoules, loss)
+        self.assertEqual(receipt.powered_into_nodes_microjoules, (supplied // 1000,))
+        self.assertEqual(authority._thermal_state.nodes[4].energy_microjoules - heat_before,
+                         supplied // 1000)
+        self.assertEqual(authority._thermal_state.power_residue_numerators,
+                         ((supplied % 1000) * 1000,))
+        self.assertEqual(org.reserve_energy_nanojoules,
+                         reserve_before - energy.basal_nanojoules - energy.work_nanojoules)
+        # Neither fixed 41.5W nor positive motor work is extra deposited heat.
+        self.assertNotEqual(receipt.powered_into_nodes_microjoules, (415000,))
+        self.assertNotEqual(loss, energy.work_nanojoules)
+        restored = world(thermal=True, measured_core=True)
+        restored.restore_encoded(authority.encoded_snapshot())
+        other = FunctionalOrganism.restore(org.encoded())
+        self.assertEqual(restored.encoded_snapshot(), authority.encoded_snapshot())
+        self.assertEqual(other.encoded(), org.encoded())
+        a, ea = prepare_heated_effort(authority, org, effort=-.0002, duration=1000)
+        b, eb = prepare_heated_effort(restored, other, effort=-.0002, duration=1000)
+        self.assertGreater(a.native_work.motor_braking_work_j, 0)
+        self.assertEqual(a.execution_receipt, b.execution_receipt)
+        self.assertEqual(ea, eb)
+        self.assertEqual(authority._pending_thermal.receipt, restored._pending_thermal.receipt)
+        for auth, body, command, debit in ((authority, org, a, ea), (restored, other, b, eb)):
+            auth.commit_prepared_action(command)
+            commit_energy(body, debit)
+        self.assertEqual(authority.encoded_snapshot(), restored.encoded_snapshot())
+        self.assertEqual(org.encoded(), other.encoded())
+
+    def test_heat_discard_and_committed_rollback_preserve_cold_successor(self):
+        authority = world(thermal=True, measured_core=True)
+        mount(authority)
+        org = FunctionalOrganism.genesis(identity="offline-heat-bench", organism_tick=0)
+        before = authority.encoded_snapshot()
+        prepared, _ = prepare_heated_effort(authority, org)
+        authority.discard_prepared_action(prepared)
+        self.assertEqual(authority.encoded_snapshot(), before)
+        prepared, _ = prepare_heated_effort(authority, org)
+        with authority.prepared_action_visibility_transaction(prepared):
+            authority.commit_prepared_action(prepared)
+            candidate = authority.encoded_committed_prepared_action(prepared)
+        self.assertNotEqual(candidate, before)
+        with authority.committed_prepared_action_rollback_transaction(prepared) as rollback:
+            rollback()
+        self.assertEqual(authority.encoded_snapshot(), before)
+        fresh = world(thermal=True, measured_core=True)
+        fresh.restore_encoded(before)
+        a, _ = prepare_heated_effort(authority, org)
+        b, _ = prepare_heated_effort(fresh, org)
+        self.assertEqual(a.execution_receipt, b.execution_receipt)
+        self.assertEqual(authority._pending_thermal.receipt, fresh._pending_thermal.receipt)
+        authority.discard_prepared_action(a)
+        fresh.discard_prepared_action(b)
+
+    def test_missing_supply_bad_anatomy_and_overflow_do_not_publish(self):
+        org = FunctionalOrganism.genesis(identity="offline-heat-bench", organism_tick=0)
+        for supplied, temperature, reason in (
+            (False, 310000, "one declared core source"),
+            (True, 1000000, "temperature exceeds"),
+        ):
+            authority = world(thermal=True, measured_core=supplied,
+                              core_temperature=temperature)
+            mount(authority)
+            before = authority.encoded_snapshot()
+            with self.assertRaisesRegex(ValueError, "measured basal heat"):
+                prepare_effort(authority)
+            self.assertEqual(authority.encoded_snapshot(), before)
+            with self.assertRaisesRegex(ValueError, reason):
+                prepare_heated_effort(authority, org)
+            self.assertEqual(authority.encoded_snapshot(), before)
+            self.assertIsNone(authority._pending_thermal)
+        unmounted = world(thermal=True, measured_core=True)
+        before = unmounted.encoded_snapshot()
+        with self.assertRaisesRegex(ValueError, "unmounted body"):
+            prepare_heated_effort(unmounted, org)
+        self.assertEqual(unmounted.encoded_snapshot(), before)
+
+    def test_subquantum_source_energy_retains_exact_residue_and_default_law(self):
+        state = BoundedThermalState((ThermalNodeState(300000000, 1000),), (), (), (0,))
+        source = (ThermalPowerSource(0, 1000000),)
+        kwargs = dict(conductive_edges=(), bath_edges=(), power_sources=source,
+                      duration_microseconds=1000)
+        ordinary = advance_bounded_thermal_state(state, **kwargs)
+        explicit = advance_bounded_thermal_state(state, **kwargs, source_energy_nanojoules=(None,))
+        self.assertEqual(ordinary, explicit)
+        self.assertEqual(ordinary.powered_into_nodes_microjoules, (1000,))
+        start = state.nodes[0].energy_microjoules
+        for _ in range(4):
+            state = advance_bounded_thermal_state(
+                state, **kwargs, source_energy_nanojoules=(301,)).successor
+        self.assertEqual(state.nodes[0].energy_microjoules - start, 1)
+        self.assertEqual(state.power_residue_numerators, (204000,))
+        for invalid in ((True,), (-1,), (1.5,), (), [0], (10**100,)):
+            with self.assertRaises(ValueError):
+                advance_bounded_thermal_state(state, **kwargs, source_energy_nanojoules=invalid)
 
 
 if __name__ == "__main__":

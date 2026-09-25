@@ -347,9 +347,15 @@ def _power_transfer(
     source: ThermalPowerSource,
     duration_microseconds: int,
     residue_numerator: int,
+    energy_nanojoules: int | None = None,
 ) -> tuple[int, int]:
+    # An admitted measured energy replaces constant power for this interval.
+    # nJ -> uJ numerator: 1000 / 1_000_000. The existing source residue
+    # preserves the fractional quantum, with no additional thermal reservoir.
+    supplied = (source.power_microwatts * duration_microseconds
+                if energy_nanojoules is None else energy_nanojoules * 1000)
     return _whole_toward_zero(
-        source.power_microwatts * duration_microseconds + residue_numerator,
+        supplied + residue_numerator,
         1_000_000,
     )
 
@@ -361,8 +367,14 @@ def advance_bounded_thermal_state(
     bath_edges: tuple[ThermalBathEdge, ...],
     power_sources: tuple[ThermalPowerSource, ...],
     duration_microseconds: int,
+    source_energy_nanojoules: tuple[int | None, ...] | None = None,
 ) -> ThermalTransition:
-    """Advance each reached sparse thermal path once from one predecessor."""
+    """Advance each reached sparse thermal path once from one predecessor.
+
+    A measured source-energy entry replaces its declared constant power for
+    this interval; None retains the constant source. Source location and the
+    existing fractional-energy residue stay unchanged.
+    """
 
     predecessor.verify(conductive_edges, bath_edges, power_sources)
     duration = _integer(
@@ -371,6 +383,15 @@ def advance_bounded_thermal_state(
         minimum=1,
         maximum=MAX_DURATION_MICROSECONDS,
     )
+    if source_energy_nanojoules is None:
+        source_energy_nanojoules = (None,) * len(power_sources)
+    if (type(source_energy_nanojoules) is not tuple
+            or len(source_energy_nanojoules) != len(power_sources)):
+        raise ValueError("measured thermal energy must match source anatomy")
+    for energy in source_energy_nanojoules:
+        if energy is not None:
+            _integer(energy, "measured source energy", minimum=0,
+                     maximum=MAX_ENERGY_MICROJOULES * 1000)
     deltas = [0] * len(predecessor.nodes)
     conductive_transfers: list[int] = []
     conductive_residues: list[int] = []
@@ -410,12 +431,13 @@ def advance_bounded_thermal_state(
 
     powered: list[int] = []
     power_residues: list[int] = []
-    for source, residue in zip(
+    for source, residue, measured in zip(
         power_sources,
         predecessor.power_residue_numerators,
+        source_energy_nanojoules,
         strict=True,
     ):
-        transfer, next_residue = _power_transfer(source, duration, residue)
+        transfer, next_residue = _power_transfer(source, duration, residue, measured)
         deltas[source.node_index] += transfer
         powered.append(transfer)
         power_residues.append(next_residue)

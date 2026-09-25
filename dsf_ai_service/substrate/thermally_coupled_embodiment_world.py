@@ -51,8 +51,10 @@ V2_COUPLED_DOMAIN = b"guala-thermally-coupled-embodiment-state-v2\0"
 COUPLED_DOMAIN = b"guala-thermally-coupled-embodiment-state-v3\0"
 LEGACY_TRANSITION_SCHEMA = "guala.thermally_coupled_embodiment.transition.v1"
 TRANSITION_SCHEMA = "guala.thermally_coupled_embodiment.transition.v2"
+NATIVE_TRANSITION_SCHEMA = "guala.thermally_coupled_embodiment.transition.v3"
 LEGACY_TRANSITION_DOMAIN = b"guala-thermally-coupled-embodiment-transition-v1\0"
 TRANSITION_DOMAIN = b"guala-thermally-coupled-embodiment-transition-v2\0"
+NATIVE_TRANSITION_DOMAIN = b"guala-thermally-coupled-embodiment-transition-v3\0"
 # The coupled envelope reserves the base world's full capacity twice base64-expanded
 # (8 MiB -> 10.7 MiB) plus the thermal state; the paired store admits 16 MiB.
 MAX_COUPLED_STATE_BYTES = 16 * 1024 * 1024
@@ -368,6 +370,8 @@ class ThermalTransitionReceipt:
     external_energy_into_nodes_microjoules: int
     authority_hmac_sha256: str
     authority_receipt_sha256: str
+    native_basal_heat_nanojoules: int | None = None
+    native_dissipation_heat_nanojoules: int | None = None
 
     def payload(self) -> dict[str, object]:
         result = {
@@ -394,10 +398,13 @@ class ThermalTransitionReceipt:
             "world_revision_after": self.world_revision_after,
             "world_revision_before": self.world_revision_before,
         }
-        if self.schema == TRANSITION_SCHEMA:
+        if self.schema in (TRANSITION_SCHEMA, NATIVE_TRANSITION_SCHEMA):
             result["body_surface_heat_into_skin_microjoules"] = (
                 self.body_surface_heat_into_skin_microjoules
             )
+        if self.schema == NATIVE_TRANSITION_SCHEMA:
+            result["native_basal_heat_nanojoules"] = self.native_basal_heat_nanojoules
+            result["native_dissipation_heat_nanojoules"] = self.native_dissipation_heat_nanojoules
         return result
 
     def record(self) -> dict[str, object]:
@@ -457,6 +464,8 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
         self._thermal_key = _key(authority_key)
         self._thermal_lock = threading.RLock()
         self._thermal_anatomy = thermal_anatomy
+        self._core_power_sources = tuple(i for i, source in enumerate(thermal_anatomy.power_sources)
+                                         if source.node_index == thermal_anatomy.core_node_index)
         self._thermal_state = thermal_anatomy.genesis_state()
         self._body_surface_heat_residue_nanojoules = Fraction(0)
         self._thermal_world_revision = 0
@@ -484,7 +493,9 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
         room_id: str,
         transition: ThermalTransition,
         body_surface_heat_into_skin_microjoules: int,
+        native_heat: tuple[int, int] | None = None,
     ) -> ThermalTransitionReceipt:
+        schema = NATIVE_TRANSITION_SCHEMA if native_heat is not None else TRANSITION_SCHEMA
         payload = {
             "bath_transfers_into_nodes_microjoules": list(
                 transition.bath_transfers_into_nodes_microjoules
@@ -504,7 +515,7 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
             "powered_into_nodes_microjoules": list(
                 transition.powered_into_nodes_microjoules
             ),
-            "schema": TRANSITION_SCHEMA,
+            "schema": schema,
             "thermal_state_after_sha256": _digest(
                 _state_record(transition.successor)
             ),
@@ -517,14 +528,16 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
             "world_revision_after": execution.after.revision,
             "world_revision_before": execution.before.revision,
         }
+        if native_heat is not None:
+            payload["native_basal_heat_nanojoules"], payload["native_dissipation_heat_nanojoules"] = native_heat
         signature = hmac.new(
             self._thermal_key,
-            TRANSITION_DOMAIN + _canonical(payload),
+            (NATIVE_TRANSITION_DOMAIN if native_heat is not None else TRANSITION_DOMAIN) + _canonical(payload),
             hashlib.sha256,
         ).hexdigest()
         receipt = _digest({"authority_hmac_sha256": signature, "payload": payload})
         return ThermalTransitionReceipt(
-            schema=TRANSITION_SCHEMA,
+            schema=schema,
             world_execution_receipt_sha256=execution.authority_receipt_sha256,
             world_revision_before=execution.before.revision,
             world_revision_after=execution.after.revision,
@@ -550,6 +563,8 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
             ),
             authority_hmac_sha256=signature,
             authority_receipt_sha256=receipt,
+            native_basal_heat_nanojoules=None if native_heat is None else native_heat[0],
+            native_dissipation_heat_nanojoules=None if native_heat is None else native_heat[1],
         )
 
     def _body_surface_temperature_millikelvin(
@@ -632,8 +647,9 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
         """Prepare zero-time body anatomy installation in the same transaction.
 
         No heat or chemical stock is reset and no transition duration is
-        invented. Timed native/thermal dissipation coupling is a separate,
-        required integration boundary; until present it fails closed below.
+        invented. Timed native intervals require measured basal energy and
+        deposit only physically attributed internal losses, never the unresolved
+        constraint/numerical residual. Contact-heat coupling is not supplied here.
         """
         with self._thermal_lock, self._lock:
             if self._pending_thermal is not None:
@@ -678,12 +694,16 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
             self._pending_thermal = pending
             return prepared
 
-    def prepare_port_command(self, **parameters: object):
+    def prepare_port_command(self, *, basal_heat_nanojoules: int | None = None,
+                             **parameters: object):
         with self._thermal_lock, self._lock:
-            if self._state.world.native is not None:
-                # Native loss terms need a physical thermal-node mapping.
-                # This offline custody candidate is not a production release.
-                raise RuntimeError("native thermal dissipation coupling is not mounted")
+            native = self._state.world.native is not None
+            if native:
+                _integer(basal_heat_nanojoules, "measured basal heat")
+                if len(self._core_power_sources) != 1:
+                    raise ValueError("native internal heat requires one declared core source")
+            elif basal_heat_nanojoules is not None:
+                raise ValueError("unmounted body cannot admit native basal heat")
             if self._pending_thermal is not None:
                 raise RuntimeError("thermal embodiment already has a prepared action")
             prepared = super().prepare_port_command(**parameters)
@@ -702,12 +722,28 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
                 raise RuntimeError("thermal body lost current world custody")
             room_id = execution.after.room_id
             try:
+                native_heat = None
+                energy_inputs = None
+                if native:
+                    work = prepared.native_work
+                    if work is None or work.self_bearing_dissipation_j is None:
+                        raise ValueError("native thermal interval lacks self-owned work")
+                    # Exact conversion of the already numerical quadratures,
+                    # followed by one bounded nJ rounding (at most 0.5 nJ error).
+                    dissipation = round((Fraction.from_float(work.self_bearing_dissipation_j)
+                                         + Fraction.from_float(work.motor_braking_work_j)) * 1_000_000_000)
+                    _integer(dissipation, "native internal dissipation")
+                    native_heat = (basal_heat_nanojoules, dissipation)
+                    core_source = self._core_power_sources[0]
+                    energy_inputs = tuple(sum(native_heat) if i == core_source else None
+                                          for i in range(len(self._thermal_anatomy.power_sources)))
                 transition = advance_bounded_thermal_state(
                     self._thermal_state,
                     conductive_edges=self._thermal_anatomy.conductive_edges(room_id),
                     bath_edges=self._thermal_anatomy.bath_edges,
                     power_sources=self._thermal_anatomy.power_sources,
                     duration_microseconds=execution.elapsed_nanoseconds // 1_000,
+                    source_energy_nanojoules=energy_inputs,
                 )
                 (
                     transition,
@@ -722,6 +758,7 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
                     room_id,
                     transition,
                     body_surface_heat_into_skin_microjoules,
+                    native_heat,
                 )
             except BaseException:
                 super().discard_prepared_action(prepared)
@@ -1439,6 +1476,7 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
         transition_schema = value.get("schema")
         if transition_schema not in {
             TRANSITION_SCHEMA,
+            NATIVE_TRANSITION_SCHEMA,
             LEGACY_TRANSITION_SCHEMA,
         }:
             raise ValueError("thermal transition schema changed")
@@ -1458,8 +1496,10 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
             "world_revision_after",
             "world_revision_before",
         }
-        if transition_schema == TRANSITION_SCHEMA:
+        if transition_schema in (TRANSITION_SCHEMA, NATIVE_TRANSITION_SCHEMA):
             expected.add("body_surface_heat_into_skin_microjoules")
+        if transition_schema == NATIVE_TRANSITION_SCHEMA:
+            expected.update(("native_basal_heat_nanojoules", "native_dissipation_heat_nanojoules"))
         if set(value) != expected:
             raise ValueError("thermal transition fields changed")
 
@@ -1513,7 +1553,7 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
                     value.get("body_surface_heat_into_skin_microjoules"),
                     "body-surface heat into skin",
                 )
-                if transition_schema == TRANSITION_SCHEMA
+                if transition_schema in (TRANSITION_SCHEMA, NATIVE_TRANSITION_SCHEMA)
                 else 0
             ),
             external_energy_into_nodes_microjoules=_signed_integer(
@@ -1528,6 +1568,12 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
                 value.get("authority_receipt_sha256"),
                 "thermal transition receipt",
             ),
+            native_basal_heat_nanojoules=(
+                _integer(value.get("native_basal_heat_nanojoules"), "native basal heat")
+                if transition_schema == NATIVE_TRANSITION_SCHEMA else None),
+            native_dissipation_heat_nanojoules=(
+                _integer(value.get("native_dissipation_heat_nanojoules"), "native dissipation heat")
+                if transition_schema == NATIVE_TRANSITION_SCHEMA else None),
         )
         if (
             receipt.world_revision_after != receipt.world_revision_before + 1
@@ -1540,8 +1586,8 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
         expected_signature = hmac.new(
             self._thermal_key,
             (
-                TRANSITION_DOMAIN
-                if transition_schema == TRANSITION_SCHEMA
+                NATIVE_TRANSITION_DOMAIN if transition_schema == NATIVE_TRANSITION_SCHEMA
+                else TRANSITION_DOMAIN if transition_schema == TRANSITION_SCHEMA
                 else LEGACY_TRANSITION_DOMAIN
             )
             + _canonical(receipt.payload()),

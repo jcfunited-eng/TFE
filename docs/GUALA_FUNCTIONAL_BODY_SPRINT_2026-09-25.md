@@ -1657,3 +1657,158 @@ Actual home/caregiver conversion, learner effector and signed feedback interface
 head optics, copied mature body, packaging, restart and live acceptance remain
 open. No production delivery, autonomous following, gait or climbing is claimed.
 G1's affordance/curriculum work is untouched. Full goal remains ACTIVE.
+
+### FB-01h measured internal heat coupling — contract, 2026-09-25
+
+Previous turn is PROGRESS:3bb09d322 closes offline world custody, not delivery.
+Single next item: permit timed articulated settlement to feed measured internal
+work into the existing thermal circuit without another heat store or energy
+source. Preserve current body state, chemical reserve law, L0-L4 and cognition.
+Main/G1 ledger has no new entry beyond the A1 custody handoff at this check.
+
+Source facts: current native work includes global bearing losses, whereas a
+passive external object may also have damping; those losses must not heat Guala.
+The existing home core has a fixed41.5W power source, independent of the current
+organism's3ug-per-interval chemical debit. In articulated mode this source must
+receive the actual basal debit plus measured self bearing/braking heat instead
+of also injecting its fixed value. Existing body thermal mass/core/skin stores
+remain intact. Neither mechanical residual nor positive motor work is heat.
+
+Frozen intended causal contract (source edits not yet tested):
+- NativeBody partitions bearing power by actual dof_bodyid descendant membership
+  of the mounted self root. Integrate the same B*qdot^2 trapezoidal rule during
+  existing substeps. Keep total bearing and residual diagnostics; expose exact
+  measured self_bearing_dissipation_j separately (None with no declared self).
+  All mounted actuators already belong to self, so existing motor braking is
+  self-owned. Solver, controls, integration bytes and cognitive inputs unchanged.
+- NativeMechanicalWork transports this field in its signed work receipt. No
+  guessed heat ownership, actuator name parsing or second reserve.
+- Existing bounded thermal source transfer accepts optional per-source measured
+  energy (integer nJ), replacing power*elapsed_time for that interval. Keep its
+  existing fixed-denominator residue and thermal state: nJ*1000 enters the
+  numerator whose denominator is1,000,000 per microjoule. No new retained
+  accumulator. Unsupplied sources keep their declared physical power.
+- In mounted mode require exactly one existing power source at the core node;
+  replace that source input with basal_debit_nJ+round((self_bearing+braking)*1e9).
+  The latter is body-only numerical quadrature with at most0.5nJ rounding error per
+  interval; basal debit is integer exact. Caller must supply the actually
+  prepared existing-reserve basal debit; missing input fails before preparation.
+  No fallback to the fixed heater after a mount. External power sources unchanged.
+- Keep heat in the existing core/skin bulk approximation: heat is internally
+  generated in Guala, not on a touched surface. Joint-local temperature gradients
+  are not represented by this two-node model; do not claim they are. Contact
+  friction/constraint losses and object/body thermal contact still need their
+  own physically located law. Report unresolved mechanical exchange; NEVER
+  relabel its residual or spring work as heat. This step is not that contact law.
+- Native thermal receipts explicitly separate basal input and measured internal
+  dissipation; both already enter powered-node transfers, never add them again
+  to conservation totals. Current thermal state encoding needs no added stock.
+- Full existing prepare/commit/discard/rollback/fresh restore boundary applies.
+  All conversion, source validation and heat preparation precede publication.
+  Cold-restored source residues and next interval must match exactly.
+
+Ownership: body_force_review owns only native adapter, world work projection and
+native tests. Parent owns bounded thermal transfer, coupled wrapper and focused
+thermal tests. No review until both owners freeze. No production/caretaker work.
+Acceptance: actual native joint work + actual FunctionalOrganism basal/work
+preparation -> existing thermal source replacement -> exact heat/residue and
+reserve successor -> cold next interval. Falsify missing basal, external-bearing
+attribution, fixed-heater double count, positive-work double count, thermal
+overflow, discard/rollback and paired restore. These remain offline until the
+full ordinary learner/world call path and production gates are completed.
+
+Reference boundary: MuJoCo3.3.7 computation/modeling docs distinguish soft
+constraint behavior from exact hard contact; no documented native total-energy
+residual is a localized heat observable. Consulted official docs only:
+https://mujoco.readthedocs.io/en/3.3.7/computation/index.html
+https://mujoco.readthedocs.io/en/3.3.7/modeling.html#solver-parameters
+Read-only glob mistake: substrate/home* does not exist in this worktree; actual
+home thermal anatomy is in guala_home_world.py:1220 onward. Do not retry the glob.
+
+### FB-01h candidate frozen for source-only review — 2026-09-25
+
+Acceptance-evidence map (all backend/offline-only):
+native actual body-descendant DOFs -> same substep B*qdot^2 quadrature ->
+MechanicalSuccessor.self_bearing_dissipation_j -> NativeMechanicalWork ->
+signed native execution v2 -> existing coupled thermal source override ->
+existing core energy/power residue -> signed thermal transition v3 ->
+coupled current-state encoding -> fresh authority restore -> equal next interval.
+FunctionalOrganism existing prepare_body_energy supplies basal input and measured
+positive-work debit; no new organism memory, energy reservoir or learning law.
+The ordinary production FunctionalLoop caller is not mounted yet. This test does
+not prove its outer organism/world publication path or UI/receptor delivery.
+
+Source-only changes:4 focused native tests and4 heat/cold/rollback/source tests
+added; prior8 custody tests retained, obsolete blanket heat-refusal assertion now
+checks actual missing basal input refusal. Existing constant-power default has
+an exact equality test; source residue has explicit subquantum accumulation.
+Caller-provided efforts are test interventions, not learned behavior. Full
+reference biped tested in a fixed offline bench, not the lived home.
+
+First-use and recurrence branches: unmounted legacy state unchanged; explicit
+zero-time native mount preserves thermal stocks; timed effort prepares heat
+before publication; discard/error/rollback preserve predecessor; cold restored
+native work and heat then produce the same next braking interval. Source bounds
+and overflow fail before publication. External damped-body exclusion tested
+separately at the native ownership boundary. No residual-to-heat conversion.
+
+Lean closure: no new retained accumulator, anatomy, source scan per interval,
+solver invocation, cognitive selector, process, daemon or network writer.
+Core-source indices compile once with immutable thermal anatomy. Existing
+per-source residue carries nJ remainder. New thermal receipt fields are evidence
+of distinct admitted input, never additional energy. Native current-state bytes
+unchanged by self-dissipation reporting. Contact friction/conduction remains
+unimplemented in this slice and blocks any whole-body thermal-completion claim.
+
+Frozen source hashes:
+- functional_body_native.py d132e5d1a04765f2201a4be8f6ee48b3ddd7def53a0ef7a8c0bcef77c0ae36ed
+- embodiment_world.py 022c835038b2d226d304d1f495f616c29b2968dd68e4f243eaaccb9026932b62
+- bounded_home_thermal_physics.py fb2a975f9fa3d26b79ce23324edd6586d36457ccf718945944a41aa813f4e03d
+- thermally_coupled_embodiment_world.py abc37a278483b860dda0b8c1c99b8990ccf3ef4e7a711d454d388a65e8a34832
+- test_functional_body_native.py 66986ad905b4dd9c514634ae87415f971ad0203689f61f5ed02ab3006661595f
+- test_functional_body_world.py dfd1d8ae96a41e8b5c37f97520a5e49e45fe887a2812ad6b4799a8bfe2996476
+
+No tests/imports/compile run on this candidate. Both implementation owners stopped.
+Known absent fingerprint script not retried; explicit file hashes and clean diff
+used as previously recorded. Remaining ordinary-loop/caregiver/home integration,
+copied-body, resource and production gates remain open; goal ACTIVE.
+
+### FB-01h offline measured-heat proof — 2026-09-25 19:12Z
+
+Independent source-only review passed with no architectural or localized blocking
+findings. All six frozen source hashes matched before and after review and tests.
+No implementation edits were needed after freeze.
+
+- Focused native world+heat tests12/12 passed in0.861s; full standalone process
+  1.805s, peakRSS144632KiB, user1.729s/system0.084s, PID94706 exited.
+- Native/anatomy/energy regressions40/40 passed in1.767s; process2.159s,
+  peakRSS143808KiB, user2.120s/system0.056s, PID94805 exited.
+- SystemPython with existing pinnedMuJoCo3.3.7, numerical threads1 and bytecode
+  writes disabled. No pytest/conftest, package install, production body or network
+  call in either harness. Postrun census has no A1 test survivor.
+- Both first-use and retained next braking interval physically exercised. Actual
+  native work feeds actual reserve preparation and measured internal heat replaces
+  fixed power exactly through existing subquantum residues. Positive work is not
+  also deposited as heat. External passive bearings stay external.
+- Error, discarded prepare, hidden committed rollback and failed fresh restore
+  retain prior body/thermal custody. Default unmounted thermal law unchanged.
+- These tests are offline causal component evidence only: external effort input,
+  fixed bench surroundings, existing bulk core/skin thermal approximation.
+
+Read-only AWS pre/post envelope differed from prior turn because G1's release
+operator PID93278 was actively cutting over. At19:09 and19:11 service definition
+1547 had desired/running/pending0/0/0; no service task; observationHTTP503.
+Old task772d1e4f5096497e879f12a4cba2bcb4 stopped19:10:28.630Z, same old digest
+d180f16cd50a1089365cfccd648560ab7bda14a65e2886c09c1fc93d7e5c3d93.
+Its retained health label is not current availability. CPU previous5min average
+49.657%,max53.765%; memory4.749%,max4.755%. Resource/refusal alarmsOK and
+historical clock-stalledALARM remains. No current production-parity claim is
+permitted from this cutover window. G1 caretakerPID37677(parent760) remains.
+A1 made no production/process/control change; coordination recorded main ledger.
+
+This closes only measured internal-heat coupling. Still required: physical contact
+friction/conduction, live home/caregiver geometry conversion, ordinary learner
+effort and local afference mapping, head optics, single outer organism/world
+publication, copied mature-body/restart/resource and production gates. No new
+approval needed within ratified body/interface scope. No gait/climbing/speech
+claim and no deployment; full objective remains ACTIVE.
