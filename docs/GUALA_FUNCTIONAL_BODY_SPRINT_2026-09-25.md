@@ -2167,3 +2167,138 @@ seek that exact extension rather than stretching the body-only exception. All
 existing body/interface approvals stand; no reapproval requested for them.
 First occurrence of this distinct authority blocker, not a three-turn blocked
 condition. Goal stays ACTIVE and incomplete. No claim of a new live capability.
+
+### FB-01k authorization and optical regime measurement — 2026-09-25 20:08Z
+
+Joe explicitly approved: "I approve bounded numerical optics". The goal has
+resumed ACTIVE. The preceding authority blocker is closed; do not ask again.
+Prior numerical body and motor/sensory approvals remain effective. The renderer
+may change the declared numerical optical approximation, but not retinal count,
+DSF, cognition, learning law or source identity. No production change yet.
+
+One immediate measurement: aperture quadrature on the actual native scene,
+using analytically known luminous edges/strips, the existing reference body,
+and the current135 coarse +19200 focal angular apertures. This determines the
+error/cost relation before a production sample count is chosen; it is not a
+second renderer to retain in the organism. Authorized diagnostic file:
+tools/guala_body_optical_regime.py. Runtime source remains unchanged this step.
+
+Contract: native accepted geometry/state -> existing batched ray query -> fixed
+six-band emissive material of the struck surface -> solid-angle aperture mean.
+Use h and mu=sin(v) coordinates, since dOmega=dh*dmu. Midpoint quadrature has
+equal solid-angle weights within each aperture. World geometry IDs address
+physical material inside this offline renderer only, never cognitive identities.
+No anatomy replica, collision solver, mutable observer state or world authority.
+
+Physical cases: a planar bright half-field with known angular edge and a narrow
+bright strip with known angular width. Their exact solid-angle means provide
+independent error truth; comparing only two numerical levels is insufficient
+because both may miss the same strip. Sweep fixed deterministic edge phases and
+sample counts, including subpixel features. The current full retinal grid is
+exercised at bounded counts; coarse error is measured independently at finer
+counts. Report max/mean six-band error, eight-bit discrepancy both before gain
+and at existing maximum16x gain, rays, calls, elapsed time and process peakRAM.
+Report convergence estimates separately from true analytic error; do not call
+agreement between two sample levels a guaranteed error bound.
+
+Transient rays are chunked by an explicit8MiB logical working allocation at
+256bytes/ray=32768 rays; allocator/native peak is separately measured, not claimed
+bounded by that estimate. Total declared work is finite. No imports of tests,
+functional loop, caretaker, pytest, live endpoints or production state.
+Fresh native restore must return identical light; querying must leave the next
+motor successor unchanged. Native self geometry remains visible.
+
+Freeze and independent source-only review precede running. Read-only AWS health
+envelopes surround execution. No ordinary-loop or deployment claim is possible
+from this diagnostic. The next production optical contract will use the measured
+error/cost and preserve the full material/light/visibility path; no fixed sample
+count is accepted in advance merely because it renders quickly.
+
+Pre-run independent review found one localized reference defect: native panels
+have finite depth/extent, but the initial analytic reference treated them as
+infinitely thin/unbounded. No run occurred. Corrected in one batch: use all
+front/back horizontal silhouette corners and report a separate bounded far-z
+angular sliver. Native self AABBs certify that the initial diagnostic FOV has
+no body occlusion; all body geometry still participates in ray queries. Analytic
+bounds are float64 evaluations, not a formal directed-rounding certificate.
+Also moved the immutable count-array conversion out of the chunk loop. No
+production optical law or body physics changed. Re-freeze/review before run.
+
+### FB-01k measured aperture error/cost — 2026-09-25 20:20Z
+
+Independent corrected frozen source review passed before execution; fingerprint
+0cd714ab4e9920ffbe6c6f4fc4e0d84f726d359bb7daa84b15dddd8990e88737
+also matched after. Diagnostic SHA256:
+66dd7060b6ed368808ff669408e4efe876bfb0cd0b3b11a59674cc39223d030d.
+
+Run PID17577/session54787, exit0. All32 declared regimes completed;
+cold optical outputs and next actual motor successors match, no non-panel hits.
+Wall4.779776s,user4.888849s,system0.036065s,peakRSS211340KiB. Postrun PID/process
+census has no diagnostic survivor. Peak includes native models/scratch, not
+just the8MiB logical batch budget. No package install, pytest, production body,
+live write or engine/cognitive source modification.
+
+Decisive finding: uniform midpoint supersampling is NOT accepted. In the narrow
+strip,1x1,2x2 and4x4 full-field samples all miss the same feature: true maximum
+error0.053608389,14 byte levels before gain,219 at16x. Equal successive samples
+therefore cannot establish convergence. The135 coarse sites still miss that
+strip at64x64 (~173ms), then overshoot at128x128 (~690ms,24 byte error at16x).
+More rays alone are not the proposed solution. Full-grid4x4 costs100–121ms on
+this two-panel/reference-body scene and still misses the strip. These timings
+are not production/home performance or a250ms acceptance receipt.
+
+Record of measured regimes (error bounds use analytic float64 interval; interval
+width for half-fields <=5.7295782e-7, strip0; not formally rounded arithmetic).
+Gain1/16 are the uncloaked eight-bit discrepancy, without eyelid attenuation.
+High sample counts measure135 coarse apertures only, not the19200 focal sites.
+
+| case / lower edge deg | n per axis | sites | rays | ms | maximum error bound | byte error gain1/16 | coarse change from prior |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| edge 0.117 | 1 | 19335 | 19335 | 11.668 | 0.49418017 | 126/255 | — |
+| edge 0.117 | 2 | 19335 | 77340 | 27.223 | 0.18960907 | 48/51 | 0.5 |
+| edge 0.117 | 4 | 19335 | 309360 | 105.483 | 0.060390928 | 15/2 | 0 |
+| edge 0.117 | 8 | 135 | 8640 | 3.945 | 0.011639660 | 3/2 | 0 |
+| edge 0.117 | 16 | 135 | 34560 | 11.875 | 0.011639660 | 3/2 | 0 |
+| edge 0.117 | 32 | 135 | 138240 | 50.613 | 0.011639660 | 3/2 | 0 |
+| edge 0.117 | 64 | 135 | 552960 | 185.413 | 0.0058198299 | 2/2 | 0.015625 |
+| edge 0.117 | 128 | 135 | 2211840 | 723.015 | 0.0038271598 | 1/1 | 0.0078125 |
+| edge 0.499 | 1 | 19335 | 19335 | 7.410 | 0.47517867 | 121/255 | — |
+| edge 0.499 | 2 | 19335 | 77340 | 25.797 | 0.17619563 | 44/51 | 0.5 |
+| edge 0.499 | 4 | 19335 | 309360 | 106.751 | 0.073804367 | 19/10 | 0 |
+| edge 0.499 | 8 | 135 | 8640 | 3.230 | 0.049642664 | 13/10 | 0 |
+| edge 0.499 | 16 | 135 | 34560 | 15.649 | 0.024821332 | 7/10 | 0.0625 |
+| edge 0.499 | 32 | 135 | 138240 | 43.007 | 0.012857336 | 3/3 | 0.03125 |
+| edge 0.499 | 64 | 135 | 552960 | 170.095 | 0.0064286681 | 1/3 | 0.015625 |
+| edge 0.499 | 128 | 135 | 2211840 | 710.642 | 0.0027676638 | 1/0 | 0.0078125 |
+| edge 4.999 | 1 | 19335 | 19335 | 6.456 | 0.49733483 | 127/255 | — |
+| edge 4.999 | 2 | 19335 | 77340 | 25.642 | 0.24866742 | 64/101 | 0.5 |
+| edge 4.999 | 4 | 19335 | 309360 | 100.243 | 0.012262149 | 3/1 | 0.25 |
+| edge 4.999 | 8 | 135 | 8640 | 3.294 | 0.0026651694 | 1/1 | 0 |
+| edge 4.999 | 16 | 135 | 34560 | 12.113 | 0.0026651694 | 1/1 | 0 |
+| edge 4.999 | 32 | 135 | 138240 | 43.833 | 0.0026651694 | 1/1 | 0 |
+| edge 4.999 | 64 | 135 | 552960 | 174.382 | 0.0026651694 | 1/1 | 0 |
+| edge 4.999 | 128 | 135 | 2211840 | 823.160 | 0.0026651694 | 1/1 | 0 |
+| strip 0.02 | 1 | 19335 | 19335 | 11.163 | 0.053608389 | 14/219 | — |
+| strip 0.02 | 2 | 19335 | 77340 | 39.037 | 0.053608389 | 14/219 | 0 |
+| strip 0.02 | 4 | 19335 | 309360 | 121.231 | 0.053608389 | 14/219 | 0 |
+| strip 0.02 | 8 | 135 | 8640 | 3.982 | 0.0020103146 | 1/8 | 0 |
+| strip 0.02 | 16 | 135 | 34560 | 14.917 | 0.0020103146 | 1/8 | 0 |
+| strip 0.02 | 32 | 135 | 138240 | 53.425 | 0.0020103146 | 1/8 | 0 |
+| strip 0.02 | 64 | 135 | 552960 | 172.983 | 0.0020103146 | 1/8 | 0 |
+| strip 0.02 | 128 | 135 | 2211840 | 690.332 | 0.0058021854 | 2/24 | 0.0078125 |
+
+Read-only AWS pre20:18:10/post20:19:04: task1549,
+478e055e5f0146789dd2ba0642bb578b, digest
+c883967dae9703796245db6408d12ec03a7591dbb48c8c0c4188bdc2d1a837b8,
+RUNNING/HEALTHY, service1/1/0, sole listed task. Same organism identity
+1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1; live2259506->2259603,
+persisted2259487->2259583; availabletrue, checkpoint/cleanupnull,
+durabilityblockedfalse. CPU20:15 avg51.419%,max52.513%; RAMavg3.162%,max3.198%.
+Resource/refusalalarmsOK; oldclockalarmALARM unchanged. Caretaker95907 active.
+A1 did not modify live serving or controls.
+
+Next exact optical item: account for actual geometric/material boundaries in
+aperture integration, retaining native visibility and fixed surface coordinates.
+Use the recorded edge/strip failures as falsifiers; do not install the diagnostic
+midpoint sampler or invent a sample-agreement threshold as production truth.
+No new user approval needed. Whole-body objective ACTIVE, still not delivered.
