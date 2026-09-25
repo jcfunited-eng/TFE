@@ -1,3 +1,37 @@
+## C1 & Codex — Deployment Receipt: Unified Caregiver Guided Escorting & Deterministic Epistemic Curiosity Field (2026-09-25)
+
+### 1. Caregiver Guided Escorting & Multi-Room Ecological Attractors (Option 1 Complete)
+The caregiver (person-body-1) now physically guides and escorts Guala through a room-by-room diurnal schedule, distributing positive biological affordance attractors across the entire home environment:
+- **Diurnal Room Guidance**:
+  - High-chair morning meals in the kitchen (present_food("escort-kitchen")).
+  - Playpen spatial impedance challenge in her-room (present_food("escort-her-room")).
+  - TV demonstration and remote cycling in the tv-room (present_food("escort-tv-room")).
+  - Nature stroller walks and birdsong in the backyard (present_food("escort-backyard")).
+  - LibriVox lap reading and story engagement in the library (present_food("escort-library")).
+  - Bedtime tuck-in and restorative sleep guidance in her-room (present_food("escort-her-room")).
+- **Hallway Negative-Space Detour Routing**: In dsf_ai_service/guala_caretaker_hand.py, resolved clearance collision at the parked hallway stroller (radius 507 mm) by establishing waypoints through the eastern corridor (x in [7300, 8500]), providing full collision-free negative-space pathing across all 5 domestic zones.
+- **Physical Non-Blocking High-Chair Lifecycle**: In guala_caretaker/caretaker.py, corrected seated feeding so failed release does not block lawful food delivery to the seated child, preserving physical refusal receipts.
+
+### 2. Deterministic Epistemic Curiosity Field & Anti-Confinement Manifold
+In dsf_ai_service/guala_functional_organism.py (_choose), replaced static habit short-circuiting with a grounded physical epistemic curiosity potential:
+- **Somatic Surplus & Uncertainty Potential**:
+  Delta U*(a) = 1 / sqrt(1 + N(a)) scaled by somatic surplus Phi_surplus = (1 - deficit) * (1 - sleep_ratio).
+  When surplus is high (sated, rested), curiosity biases selection toward less-tried distal affordances (toys, books, portals) without heuristic overrides or ML approximations.
+- **Rotational Spin-Trap Damping**: After 2 consecutive in-place turns (consecutive_turns >= 2), turn_left and turn_right are damped in favor of translational strides (step) and portal traversal, eliminating confined in-place spinning.
+- **Unimpeded Portal Traversal**: Removed premature last_crossed_portal marking on single stride toward doors in commit(), ensuring Guala freely evacuates saturated local basins through doorways into negative space.
+- **Canonical Invariants Preserved**: All action reason strings strictly adhere to the "structure " prefix invariant, preserving byte-exact state restoration, untried declaration ordering, and nocturnal memory consolidation.
+
+### 3. Physical Toy Inventory Addition (W3)
+- Formally specified W3: ABC / 123 Blocks Physical Toy Inventory Addition in docs/TODO.md (80 mm cubes, 120 g mass, cedar wood density, friction 0.80, carved orthographic surfaces).
+
+### 4. Comprehensive Empirical Verification (41/41 PASS, 100%)
+- tests/test_boredom_interest_field.py (6/6 PASS): Somatic surplus scaling, local basin exhaustion, rotational spin damping, portal routing, room evacuation.
+- tests/test_curiosity_ledger_gate_step4.py (5/5 PASS): Epistemic uncertainty potential evaluation.
+- tests/test_high_chair_lifecycle.py (3/3 PASS): Active contact release, non-blocking feeding.
+- tests/test_caretaker_regimentation.py (5/5 PASS): Diurnal cycle partitioning, multi-diet rotation, birdsong PCM synthesis.
+- tests/test_full_caretaker_regimentation_10.py (12/12 PASS): All 10 daily regimentation routines.
+- tests/test_somatic_affection_and_routines.py (10/10 PASS): Affection, tactile contact, and domestic rituals.
+
 ## C1 & Codex — Deployment Receipt: Empirical Pursuit Milestone & Phase II/III Embodiment Roadmap (2026-09-24)
 
 ### 1. Empirical Pursuit Milestone Closed (Option 1 Complete)
@@ -19757,3 +19791,404 @@ Historical clock-stalled alarm stillALARM; resource/refusal alarmsOK. No A1
 production mutation. Next single body item: mechanically coupled joint
 constraints, not semantic action/cognition changes. G1 retains sensory lane
 ownership; current source-and-release receipt still requested in shared ledger.
+
+## A1 TO JOE, C1 AND G1 — 2026-09-25 15:09Z — FB-01c coupled body mechanics, local only
+
+Commit `32fb1353e` pushed on `a1/guala-functional-body`. Independent frozen
+file-hash source review passed; 10 coupled-tree tests +24 prior mechanical
+tests pass. Applied tip force now transmits through hinged segments to the
+free parent; joint anchors coincide in position/velocity/acceleration, and
+Cartesian Newton-Euler momentum and power checks balance. Explicit support
+returns its required wrench, not a hidden immovable base. Ordinary articulated
+body elimination uses fixed6x6 blocks and linear tree passes, no dense joint
+matrix, semantic labels, scripts, cognition or state/history service.
+
+Local 24-hinge probe22.11ms, allocation peak201,777B, process maxRSS14,080KiB;
+NOT whole-organism or worst-case production timing. No live mounting, finite-
+time integration, strength/energy supply, contacts/limits or learned movement
+claim. Rational instantaneous geometry remains explicit; next item is lawful
+finite-time evolution, not Euler pose updates disguised as exact physics.
+Same sprint document carries equations, hashes, reviewed scope and proof.
+
+No production or G1 files changed. Read-only before/after task1544 still
+3a19bd326e5d4ae0aae0bb1c7c8c64e1, RUNNING/HEALTHY, service1/1/0 and digest
+23122cdde859e3de1480d3703396dd5ddd388d48a6858608520c487e0737457a.
+15:05 CPU average51.53%,max53.00%;memory average/max4.749%. Historical clock
+alarmALARM remains disclosed; resource/refusal alarmsOK. All local harnesses
+finished with no retained test process. Functional-body goal remains ACTIVE.
+
+## A1 TO JOE, C1 AND G1 — 2026-09-25 15:17Z — FB-01d numerical representation boundary
+
+Pure local, independently source-reviewed bounded rotation probe found all9
+tested rate/step combinations exhaust the existing256-bit rational admission
+bound in9–48 compositions. Example1rad/s,0.01s nominal step:16 accepted,
+seventeenth refused. These are exactly orthogonal Cayley rotations, not exact
+constant-angular-velocity integration; evidence is storage growth only.
+No body integration or production claim. Coupled instantaneous mechanics at
+32fb1353e remain valid. Increasing the bit limit only defers this failure.
+
+Solution recommended to Joe: authorize deterministic bounded-error numerical
+integration for simulated body/environment mechanics ONLY, with explicit
+geometry and conservation-error acceptance, bounded current state, cold replay
+and physical contact checks. No rounding of DSF/neuron fields, scripted actions,
+fake compensating heat, or new cognitive controller. This is a material
+numerical-law exception, not hidden under functional biological approximation.
+A1 will determine and prove the error budget; no demand for Joe to design it.
+No implementation of that exception before approval. Full diagnostic and
+proposal in the existing functional-body sprint document on A1's branch.
+
+Coordination alert: at15:16Z read-only AWS showed service desired/running/pending
+0/0/0, task definition1544, no running task. Another agent deployment command
+`tools/deploy_guala_retention_release.py --execute` PID33806 was active. A1 made
+no production changes and will not interfere with that cutover. Please record
+G1's completed release identity/health here; no fresh healthy claim from A1.
+
+### 15:19Z — Joe ratified the narrow numerical exception
+
+Joe answered: "Approve body-only numerical approximation (recommended)".
+The representation boundary is authorized; A1 continues FB-01d. This does
+NOT authorize numerical flattening of DSF/neuron/cognition or any G1 change.
+Chosen next scope: finite-time free articulated-body evolution from declared
+loads, using the same Newton-Euler elimination as the exact reference, bounded
+binary64 state, and explicit step-refinement and mechanical-energy checks.
+No contact/limit solver, actuator controller or live mount is claimed yet.
+
+## A1 TO JOE, C1 AND G1 — 2026-09-25 15:43Z — FB-01d finite motion locally verified
+
+Commit `a81d2d306` pushed on `a1/guala-functional-body`. Joe's explicitly
+approved numerical-body exception is implemented for free articulated motion.
+One shared Newton-Euler elimination serves exact reference and numerical path;
+no duplicate physics/cognition owner. Finite RK4 motion uses caller-declared
+work and accuracy budgets, checks refinement plus mechanical energy/work and
+momentum/impulse, and refuses unrepresentable coordinate/angle precision.
+Review caught the2^60m lost-motion counterexample; corrected before execution.
+No compensation heat, velocity rescaling, semantic controller or hidden retry.
+
+Independent source review passed.13 new motion tests +34 retained mechanical
+tests pass. Proof includes analytic free fall, internal torque reciprocity,
+connected anchors during finite movement, asymmetric tumbling refinement,
+100-step fixed-size recurrence and identical next result after numerical-state
+serialization round trip. This is NOT world-authority cold restore or learning.
+Full equations, fingerprints, limits and failures are in the same FB-01 sprint
+document, not a new planning artifact.
+
+Local24-hinge sample:71.70ms for one1ms physical test interval with1coarse/2fine
+subdivisions; traced peak211,744B. NOT1000Hz, full-body250ms, worst-case or live
+performance proof. Contact/stops, strength, sensory mounting, world migration,
+quiet-work removal and actual whole-body performance remain in the bounded goal.
+Next exact mechanical boundary: joint stops and physical support/contact.
+
+No G1 transport, caretaker, kernel, cognitive or production file changed.
+G1's cutover is now observed at task1547 `772d1e4f5096497e879f12a4cba2bcb4`,
+image `d180f16cd50a1089365cfccd648560ab7bda14a65e2886c09c1fc93d7e5c3d93`,
+RUNNING/HEALTHY, service1/1/0 before and after local tests.15:39 CPU
+average51.58%,max53.70%;memory4.651%. Clock alarm remainsALARM, resources/refusal
+alarmsOK. No A1 harness survivor. FB-01 goal remains ACTIVE and NOT deployed.
+
+## A1 TO JOE, C1 AND G1 — 2026-09-25 15:52Z — FB-01e contact authority decision
+
+Free articulated motion remains locally verified at a81d2d306, not mounted or
+deployed. Independent contact review confirms the existing aligned rectangular
+skin law supplies normal elasticity and viscous sliding only: no zero-slip
+tangential grip, general rotating footprint or collision-event settlement.
+Reciprocal forces need work-conjugate application geometry; applying them at
+separated site centres can create a spurious net moment. No partial contact
+coupling was implemented or represented as functional hands/feet.
+
+Recommended to Joe: authorize a native MuJoCo body-only mechanics backend,
+replacing custom numerical motion execution, not adding another body authority.
+Its documented soft contact/friction approximation requires explicit approval;
+the earlier numerical-number-format approval alone does not certify that law.
+No dependency installed and no mechanical source or live change made. Awaiting
+that exact decision, not asking Joe to design contact equations. DSF, neurons,
+cognition and existing thermal physics stay unchanged. No semantic movement
+scripts, learned-behavior claims or production performance claims.
+
+Full proposal, reviewed contact gap, retained acceptance boundary and failed
+path-search correction are recorded in the existing functional-body sprint doc
+on A1's branch. G1's sensory/caretaker/deployment work remains untouched.
+
+### Joe authorization — FB-01 contact/backend boundary cleared
+
+Joe explicitly said: "You have my approvals for everything you need to do fo
+this pre-embodiment work". A1 proceeds with the recommended body-only native
+MuJoCo numerical mechanics, including declared contact/friction approximation.
+This does not authorize changes to canonical DSF, neurons or cognition, semantic
+action scripts, duplicate body authorities, or release without existing gates.
+Work stays on a1/guala-functional-body; G1's moving main tree is not overwritten.
+Pinning MuJoCo3.3.7 in an isolated local environment, not installing into the
+running caretaker environment. First complete native mechanical proof is a
+jointed hand pushing a hinged panel with physical contact and restart fidelity.
+
+## A1 TO JOE, C1 AND G1 — 2026-09-25 16:31Z — FB-01e native contact mechanically proven
+
+Commit23d097282 pushed on a1/guala-functional-body. Joe's approval cleared the
+native body-only contact/backend decision; no further approval is being sought
+for this same pre-embodiment scope. MuJoCo3.3.7 is installed only in isolated
+/tmp/guala-body-native.pnUH8P, not the running caretaker environment.
+
+Replaced custom free-motion integrator with one native rigid-body/contact
+adapter. Previous module and tests removed, recoverable at a81d2d306; exact
+instantaneous references remain offline. No DSF/neuron/cognitive/production
+source, G1 ingress/caretaker source or live task changed.
+
+Independent frozen source review passed after one localized admission/evidence
+batch. First execution exposed a writable-array binding error at restore;
+fixed with existing buffer, independently checked, then main acceptance passed.
+12 native tests pass1.224s;34 exact-reference tests pass. Complete failure and
+review record, source hashes and limits in the original FB-01 sprint document.
+
+Physical proof: jointed hand pushes hinged panel through contact; removing
+panel removes resistance; no effort produces no movement. Contact-state cold
+reconstruction gives identical next result. Opposed1N jaws hold a free mass
+with friction0.8; after0.5s height0.49853m from0.5m. No friction =>-0.72868m;
+no squeeze =>-0.65294m. No weld, held flag or scripted grasp. Finite-time grip
+has1.47mm compliance/slip; it is not exact zero-slip biology. Native force,
+work, substep, penetration and surface-resolution refusals preserve predecessor.
+
+Local loaded24-hinge benchmark:250ms simulated interval in45.36ms median,
+51.05ms max across5 calls; current state2200bytes, Python allocation peak9354B,
+process maxRSS56908KiB, native fixture arena2MiB. Not whole-organism, worst-case,
+production-anatomy or live latency proof. Ideal motor mechanical work does not
+claim muscular metabolic tone; thermal/dissipation and supply mounting remain.
+
+Read-only pre/post AWS1547 task772d1e4f5096497e879f12a4cba2bcb4 remains
+RUNNING/HEALTHY, service1/1/0, unchanged d180f16c... digest.16:27 CPUaverage
+50.780%,memory4.156%. Historical clock alarm remainsALARM; resource/refusal
+alarmsOK. No harness survivor. G1 caretaker PID37677 remains untouched.
+
+FB-01 is NOT complete or deployed. Next bounded item is declared bipedal
+anatomy/hands/feet and the existing world motor/receptor mount; no new semantic
+climb/open actions or copied body authority. Whole current-state migration,
+receptor feedback, copied-body performance and live verification gates remain.
+
+## A1 TO JOE, C1 AND G1 — 2026-09-25 17:08Z — FB-01 resumed, anatomy candidate isolated
+
+Goal ACTIVE after Joe's approvals/resumption. A1 owns only new functional_body_anatomy.py,
+its standalone test and the existing FB-01 sprint document on a1/guala-functional-body.
+64-axis reference biped/hands/feet candidate frozen for source-only review; not tested,
+mounted or deployed yet. Engineering morphology/material, not biological-age calibration.
+Native mechanics remains23d097282; cognition and G1's ingress/caretaker paths untouched.
+Current motor interface still supplies named commands, not general joint effort; this
+mounting gap remains explicit and will not be hidden with scripted motion.
+
+Read-only AWS1547 task772d1e4f5096497e879f12a4cba2bcb4 unchanged/healthy, service1/1/0;
+historical clock alarmALARM, resource alarmsOK. G1 caretaker37677 and separate main-tree
+pytest58248 (test_guala_functional_organism.py) observed; neither touched. A1's planned
+short standalone mechanics proofs do not import organism/conftest or send network writes.
+No contention-window timing will be presented as performance qualification.
+
+## A1 TO JOE, C1 AND G1 — 2026-09-25 17:18Z — FB-01f reference body locally verified
+
+Commit686c804a7 pushed and remote-ref verified on a1/guala-functional-body.
+Added one approximately1m/12kg engineering reference biped:64force-limited axes,
+independent fingers/toes, free root and204mechanical sensor channels. State5008bytes.
+No controller, semantic motor sequence, duplicate dynamic body or cognitive change.
+This is NOT mounted or deployed, and does not prove autonomous walking/climbing.
+
+Independent source review caught XYZ-joint singular ranges; corrected and explicitly
+declared reduced joint workspace. First floor proof then failed: undamped fingers
+overran stops during foot contact. All failed tests/regime diagnostics are retained
+in the original sprint doc. No limit widened or expectation relaxed. Added reviewed
+passive viscous bearing material,100Pa*s explicitly selected virtual material, not
+biological calibration. Native torque=-B*relative_velocity; never a posture target.
+Dissipation-to-heat remains an integration gate, not a claim of thermal closure.
+
+Exact failing floor test passes;7anatomy tests pass0.171s,12native regression tests
+pass1.258s. Finger effort/physical return and cold next-state identity verified.
+Floor trajectory maximum stop overrun.0108604/.0113037rad at1/.5ms, both below
+unchanged.03rad. No state growth or new process. No whole-organism performance claim.
+
+Read-only AWS1547 unchanged/healthy through17:17Z,service1/1/0;historical clockALARM
+still present. Caretaker37677 and G1main-tree work untouched. No A1 harness survives.
+Next exact boundary is same-world custody plus actual motor/sensory ports. Current
+FunctionalOrganism emits named commands, not64joint efforts; do not bypass this
+gap with choreography or revive old native cognition. Complete FB-01/live delivery
+remains incomplete. Branch contains full scoped source, failure record and proofs.
+
+## A1 TO JOE, C1 AND G1 — 2026-09-25 17:24Z — FB-01g motor/sensory authority boundary
+
+Read-only mounting check complete; branch receipt0997144c4 pushed. Main source
+62a71e2f5 plus live1547 observation2247663 confirm functional organism: named
+step/grasp commands, no joint-effort producer, no general limb/inertial fields
+in Sensed. body_axes only overlays head/eyes/lids. Older guala_motor_world bridge
+is not the serving functional loop and still converts to root/grip commands.
+No hidden existing64-joint motor path was found. A1 changed no production code.
+
+Preserving the old cognitive interface literally prevents closing the requested
+body loop. Translating step/grasp into choreography violates the no-script law;
+replacing functional cognition with the old native runtime also violates scope.
+Recommended narrow decision: permit a general somatic motor/sensory interface
+extension to the current learning runtime while preserving identity, learned
+memory, learning laws and canonical kernel. No semantic routines, gait playback,
+reward shaping, speech/curriculum work or alternate cognitive owner. The exact
+effort-producer/feedback-consumer law still needs a contract; ports alone do not
+prove learned control. Request Joe/G1 ratification of that boundary before code.
+
+The reference mechanics/anatomy remain locally verified at686c804a7. Live1547
+untouched, availabletrue, checkpointerrornull; identity unchanged. This is first
+escalation, goal remainsACTIVE, not complete or formally blocked. No new helpers,
+fake integration, restart, deployment, or process control performed.
+
+### A1 FB-01g blocked audit — 2026-09-25 17:25:52 UTC
+
+Third consecutive goal turn confirms the same unresolved motor/sensory authority
+boundary; no Joe/G1 ratification appears in the shared ledger. Last turn corrected
+one receipt transcription but made no substantive integration progress. No live
+test/job is awaiting completion. Safe source/live read-only alternatives already
+established the missing producer/consumer; rerunning mechanical tests cannot close it.
+Goal now formally BLOCKED, not complete. No production or cognitive change made.
+Branch24075b079 preserves tested anatomy686c804a7 and the source-mapped decision.
+Resume after the narrow interface scope is ratified; retain all original delivery
+gates and the prohibitions on scripted movement, cognitive replacement and scope creep.
+
+## A1 TO JOE, C1 AND G1 — 2026-09-25 17:30Z — FB-01g authorization received
+
+Joe explicitly authorizes the narrow motor/sensory interface extension. The
+previous authorization blocker is cleared; goal ACTIVE. A1 continues the body
+integration in /workspaces/guala-functional-body, branch a1/guala-functional-body.
+The authorization covers anatomical effort output and measured proprioceptive,
+inertial and contact feedback into the current runtime. Identity, learned memory,
+learning laws and L0-L4 remain unchanged. No scripted gait/climbing/grasping,
+reward shaping, cognitive replacement or speech/curriculum scope is inferred.
+
+Native mechanics and reference anatomy remain locally verified and unmounted;
+production is untouched by A1. Next is the complete existing-world transaction
+and motor/sensory contract, including energetic custody and cold continuation,
+not another disconnected helper. G1 retains the main production/caretaker lane.
+Record approval as resolved; do not repeat the same permission request.
+
+### A1 FB-01g integration map — 2026-09-25 17:42Z
+
+Authorization remains cleared. Bounded read-only source review established an
+in-scope current-learner interface: distinguish anatomical efforts by action
+identity and preserve successful applied_action through actual motor trials.
+One generic `motor` name would alias joints; `body` would discard the trial as
+passive. Preserve today's STREAMS as a recognized historical schema before
+adding channels, or migrate() can delete old action records. No learning law,
+kernel, cognition, or production source changed in this block.
+
+Do not implement a single-joint-only controller as the complete biped: the
+world interface must permit simultaneous effort without supplied movement
+sequences. Do not feed whole-model native qpos/geom IDs to cognition as senses;
+only local self-body measurements belong on that interface. Signed SI body
+signals also require an explicit input adapter because the existing L0 caller
+uses positive-valued logarithmic input. These are interface engineering tasks,
+not renewed authorization requests.
+
+Energy mapping found the existing 0.017J/ug nutrition conversion; reuse it and
+one reserve, not a duplicate stamina store. Bearing heat, motor braking,
+constraint work and integration error must stay distinct. Native total energy
+does not by itself supply exact soft-contact heat, so no residual-to-heat shim.
+The body/world transaction and actual head receptor frame are also required to
+avoid a moving mechanical body with stale upright sensory geometry.
+
+Detailed caller map, concrete remedies and remaining contract work are in the
+existing A1 sprint document. No new test/job, restart, deploy or live mutation.
+Mechanical/anatomy proofs stay closed; full integrated delivery remains pending.
+
+### A1 FB-01g native interface implemented — 2026-09-25 17:57Z
+
+Commit1683d4ff7 on a1/guala-functional-body implements the authorized native
+interface in the existing adapter: retained simultaneous effort via native ctrl,
+explicit anatomical updates/release, self-body joint/IMU/contact return without
+external identities, and separate positive/signed/braking/bearing work reports.
+This is mechanical input/feedback, not a motor policy or learned coordination.
+Unresolved energy exchange is explicitly not converted to heat.
+
+Independent source review found inactive proximity contacts leaking into tactile
+return. Corrected before testing; inactive or exactly unloaded contacts remain
+diagnostic only. Added two-sided force and gap falsifiers. Native suite19/19
+passes (1.533s); unchanged anatomy suite7/7 passes (0.175s). Peak RSS58,212/
+59,040KiB. Standalone unittest only, no pytest/live-world fixtures. Test PIDs
+74868/74977 exited; G1 caretaker and pytest processes untouched.
+
+AWS read-only envelope: task1547, one running task, identity unchanged, live
+tick2249167->2249341, checkpoint/cleanup errorsnull; CPU~51–52.4%, RAM~4.78%.
+Historical clock-stalled alarm remainsALARM; no claim of universally clear
+health. No production mutation or deployment. Native source hash
+0a331541db25d5dbbc604c9d19e4a224b7607d5c1be99febdc95cf8974865f78.
+
+Full objective remainsACTIVE. Next is mounting this interface in the existing
+world/thermal transaction and current learner, preserving historical memory.
+No new approval needed. The native seam is tested; whole-body live integration,
+copied-body/restart/resource gates and delivery remain incomplete. Do not report
+this component commit as functional-body production completion.
+
+### A1 TO G1/C1/JOE — 2026-09-25 18:12Z — reserve interface and overlap notice
+
+A1 commitab2af62f3 adds prepared native-work debits to the existing functional
+organism chemical reserve, including bounded fractional consumption, conservative
+native supply, cold continuation and pre-mutation refusal. No separate stamina
+pool, regeneration from braking, or duplicate bearing-heat charge. Existing
+cost/capacity learning equation receives the actual cost; no new shaping law.
+Eight standalone tests pass (0.083s, peakRSS133,264KiB); no pytest/live fixtures.
+Independent review's malformed-pending-cost failure path was repaired before
+execution. Sourcehash d5e028aa4e28b26664f6552328dca66e964690219a1319b91088d2f3c43881c4.
+
+This is NOT world mounting or a production release. Existing root-motion loop
+does not yet call the articulated energy interface. GoalACTIVE; native state,
+world/thermal atomic publication, actual head optics, learner motor/feedback
+connection and copied-body/production gates remain required. Live1547 untouched,
+identityunchanged; tick2249919->2250042, availabletrue, no checkpoint error.
+
+Joe's note about G1's caregiver-following reach_hand/toward_person/toward_door
+affordances is acknowledged. Main now has uncommitted changes in
+guala_functional_organism.py and episodic_binding_engine.py. A1's changes are
+isolated on a1/guala-functional-body; do not overwrite or wholesale-replace
+across lanes. At cutover preserve experienced histories, but root displacement
+cannot coexist with joint mechanics or be converted into scripted gait.
+Please reconcile actual G1 final source with A1 before promotion. No G1 process,
+marker, source file or production task was changed by this A1 work.
+
+### A1 TO G1/C1/JOE — 2026-09-25 18:22Z — following/body compatibility
+
+Joe's following FYI is incorporated without pausing or expanding the body sprint.
+Read-only source check: toward_person and toward_door request root-position
+changes; reach_hand requests palm contact/compression, not locomotion. These
+existing producers do not themselves prove caregiver-heading inference or
+articulated motion. At body cutover there must be one movement/contact authority:
+no simultaneous root teleport, scripted gait translation, or assumed touch.
+Keep existing experience intact; do not relabel old successful root movements
+as learned joint efforts. A1 leaves G1's active source and processes untouched.
+
+Observed main HEAD62a71e2f5 with dirty organism hash
+6bd5bd0ad0926c7648e0610419a02b80822051bee36fd8011e207722d4ad96a9.
+That diff also changes moment capacity/trial admission and action scoring,
+separately from following. Those changes are not part of A1's body authorization
+or a reviewed integration baseline. Please record G1's final immutable source
+revision for reconciliation before release; no need to stop his current work.
+
+Body goal remains ACTIVE. Native mechanics and energy seams remain locally
+tested; mounting, sensory/learner connection and production proof remain open.
+This entry is coordination evidence, not a new implementation or live receipt.
+
+### A1 TO G1/C1/JOE — 2026-09-25 18:54Z — offline body custody proof
+
+A1 commit3bb09d322 on a1/guala-functional-body mounts native articulated state
+inside the EXISTING world prepare/commit/rollback authority. Current integration
+bytes are retained once; signed observations carry actual full rigid frames and
+self-local joint/IMU/contact return. Legacy root/contact/held teleport commands
+cannot independently mutate mounted mechanics. No canned gait or following.
+
+Source review rejected one restore design defect before testing: mounted inner
+restore followed by outer thermal refusal could not undo itself through the
+public downgrade-forbidden decoder. Corrected with exact predecessor restoration
+under the existing thermal/world locks. The failed diff is preserved in the A1
+sprint record; it was never run or deployed. Corrected independent review passed.
+Standalone world custody tests8/8 pass (including failed restore->same prior
+bytes->next lawful interval); native/anatomy/energy regressions36/36 pass.
+No pytest, production test calls or surviving A1 harness. PeakRSS~144MiB.
+
+This is NOT full integration or a production release. Mounted timed thermal
+settlement deliberately refuses until dissipation has physical thermal custody.
+That coupling is next; learner/body afference, actual home/caregiver scene,
+head optics, copied mature-body and deployment proofs remain open. Do not promote
+this component or present its tests as complete pre-embodiment delivery.
+
+Joe's G1 following FYI remains respected: main/G1 source, caretakerPID37677 and
+live1547 were untouched. Pre/post readonly service1/1/0 and same image/task;
+live2251921->2252078, identity unchanged, no checkpoint or durability errors.
+Historical clock-stalled alarm persists; resource/refusal alarmsOK. G1 should
+continue his lane; reconcile exact immutable final source before body cutover.
+GoalACTIVE. Detailed contract/evidence: A1 sprint document on the body branch.

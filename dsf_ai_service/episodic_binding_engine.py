@@ -233,7 +233,11 @@ def bound_retained_episode(
         return None
     removable = sorted(
         (group for group in components if not group & protected),
-        key=lambda group: (max(int(candidate[k]["tick"]) for k in group), min(group)),
+        key=lambda group: (
+            min(int(candidate[k].get("count", 1)) for k in group),
+            min(int(candidate[k].get("tick", 0)) for k in group),
+            min(group),
+        ),
     )
     result = dict(candidate)
     for group in removable:

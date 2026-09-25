@@ -60,6 +60,13 @@
   - Inter-room causal affordance planning across doorway topologies.
   _File: `tests/test_multi_region_spatial_navigation.py` (5/5 tests pass, 100% regression verified)_
 
+- [ ] **W3: ABC / 123 Blocks Physical Toy Inventory Addition**
+  Introduce physical wooden alphabet and number blocks (`toy-block-a`, `toy-block-b`, `toy-block-c`, `toy-block-1`, `toy-block-2`, `toy-block-3`) into Guala's physical toy chest / playpen inventory:
+  - Exact physical dimensions ($80\text{ mm} \times 80\text{ mm} \times 80\text{ mm}$ cubes, radius $56\text{ mm}$, mass $120\text{ g}$).
+  - Physical materials: natural cedar/pine wood density, friction $0.80$, cedar aromatic terpene release, tactile wood grain roughness.
+  - Optical surfaces: engraved orthographic letter/numeral glyphs rendered via 4,935-site retinal raycasting.
+  - Physical affordances: graspable, transportable, knockable, and vertically stackable contact surfaces without heuristics.
+
 ---
 
 ## LONGITUDINAL MONITORING & STABILITY AUDIT
@@ -83,5 +90,3 @@
 - **Zero statistical ML, neural networks, or deep learning in the cognitive core**: No YOLO, no Whisper, no CNNs, no embedding models dictating internal decisions.
 - **Zero canned text, template strings, or narrative injection**: Guala has no text generation script. She possesses only physical airway motor drives (`SYLLABLE_DRIVES`). All vocalization emerges purely from physical motor actuation and acoustic resonance.
 - **Zero heuristic smoothing or teleportation**: Movement is strictly physical strides and continuous boundary clearance.
-
-

@@ -259,13 +259,14 @@ def stray_core(snapshot: Any, her: Any, near: PositionMM | None = None) -> Any |
 
     cores = [item for item in snapshot.objects if _is_stray_apple(her, item)]
     if near is not None:
-        close = [item for item in cores if _distance_mm(near, item.position) <= 800]
+        close = [item for item in cores if _is_core(her, item) and _distance_mm(near, item.position) <= 800]
         if close:
             return min(close, key=lambda item: _distance_mm(near, item.position))
     in_door = core_in_a_doorway(snapshot, her)
     if in_door is not None:
         return in_door
-    return min(cores, key=lambda item: item.object_id) if cores else None
+    only_cores = [item for item in cores if _is_core(her, item)]
+    return min(only_cores, key=lambda item: item.object_id) if only_cores else None
 
 
 def withdraw(world: Any) -> dict[str, object] | None:
@@ -308,8 +309,8 @@ def withdraw(world: Any) -> dict[str, object] | None:
         held_id = person.held_object_id
         if record["home"] and held_id is not None:
             held = next((item for item in world.observation_snapshot().objects if item.object_id == held_id), None)
-            if held is not None and held_id.startswith("apple"):
-                # An eaten core or stray discarded apple goes out at the world's boundary: the bin.
+            if held is not None and (held_id == "apple-core" or (held_id.startswith("apple") and nothing_left_to_bite(person, held))):
+                # An eaten core or stray discarded core goes out at the world's boundary: the bin.
                 world.admit_authored_departure(held_id)
                 record["binned"] = held_id
             elif hand.set_down(held_id):
@@ -374,7 +375,7 @@ def _negative_space_path_for_hand(snapshot: Any, person: Any, origin: PositionMM
             continue
         room_obs.append((other.pose.position, int(other.radius_mm)))
 
-    if not any(_straight_path_intersects_disc(origin, goal, opos, carried_radius + orad) for opos, orad in room_obs if _distance_mm(opos, goal) > carried_radius + orad + 50):
+    if not any(_straight_path_intersects_disc(origin, goal, opos, carried_radius + orad) for opos, orad in room_obs):
         return [origin, goal]
 
     bounds = here.bounds
@@ -403,7 +404,7 @@ def _negative_space_path_for_hand(snapshot: Any, person: Any, origin: PositionMM
     step_y = (max_y - min_y) // 6
     if step_x > 0 and step_y > 0:
         for ix in range(1, 6):
-            for iy in (1, 5):
+            for iy in range(1, 6):
                 wp = PositionMM(min_x + ix * step_x, min_y + iy * step_y, origin.z)
                 if not any(_distance_mm(wp, opos) < carried_radius + orad + 50 for opos, orad in room_obs):
                     waypoints.append(wp)
@@ -414,11 +415,9 @@ def _negative_space_path_for_hand(snapshot: Any, person: Any, origin: PositionMM
             w2 = waypoints[j]
             blocked = False
             for opos, orad in room_obs:
-                if (w1 == goal or w2 == goal) and _distance_mm(opos, goal) <= carried_radius + orad + 50:
+                if (w1 == goal or w2 == goal) and _distance_mm(opos, goal) <= carried_radius + orad + 50 and _distance_mm(w1, w2) <= 800:
                     continue
-                if (w1 == origin or w2 == origin) and _distance_mm(opos, origin) <= carried_radius + orad + 50:
-                    continue
-                req_r = carried_radius + orad if (w1 == origin or w2 == origin or w1 == goal or w2 == goal) else (carried_radius + orad + 50)
+                req_r = carried_radius + orad
                 if _straight_path_intersects_disc(w1, w2, opos, req_r):
                     blocked = True
                     break
@@ -1178,6 +1177,9 @@ def present_food(world: Any, object_id: str) -> dict[str, object]:
         return release_from_playpen(world)
     if object_id == "joint-clean-up":
         return joint_clean_up(world)
+    if object_id.startswith("escort-"):
+        dest_room = object_id.replace("escort-", "")
+        return escort_to_room(world, dest_room)
     if object_id == "stroller-carriage":
         return stroller_excursion(world)
     if object_id in CARRY_IDS:
@@ -1288,6 +1290,7 @@ __all__ = (
     "ladder_challenge",
     "playpen_challenge",
     "stroller_excursion",
+    "escort_to_room",
 )
 
 
@@ -1747,3 +1750,41 @@ def stroller_excursion(world: Any) -> dict[str, object]:
         "schema": "guala.caregiver_presentation.v1",
         "steps": steps,
     }
+
+
+def escort_to_room(world: Any, dest_room: str) -> dict[str, object]:
+    """Caregiver approaches Guala, delivers reassuring hand-holding contact,
+    and walks through the doorway into dest_room, scaffolding Guala's movement
+    and establishing multi-room attractor basins."""
+    hand = _Hand(world, f"escort-{dest_room}")
+    steps = []
+    try:
+        snapshot = hand.snapshot()
+        her, person = hand.bodies(snapshot)
+        if hand.reach_her(her):
+            steps.extend(hand.steps)
+            touch_her(world, "touch-hold-hand")
+            walked = hand.walk_to_region(dest_room)
+            steps.extend(hand.steps)
+            return {
+                "object_id": f"escort-{dest_room}",
+                "presented": walked,
+                "schema": "guala.caregiver_presentation.v1",
+                "steps": steps,
+            }
+        else:
+            steps.extend(hand.steps)
+            return {
+                "object_id": f"escort-{dest_room}",
+                "presented": False,
+                "schema": "guala.caregiver_presentation.v1",
+                "steps": steps,
+            }
+    except Exception as e:
+        steps.append({"operation": "escort", "reason": str(e), "to": None})
+        return {
+            "object_id": f"escort-{dest_room}",
+            "presented": False,
+            "schema": "guala.caregiver_presentation.v1",
+            "steps": steps,
+        }
