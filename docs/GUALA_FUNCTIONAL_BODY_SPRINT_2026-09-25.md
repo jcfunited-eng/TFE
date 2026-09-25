@@ -462,3 +462,141 @@ FB-01 remains incomplete and not deployed. No numerical integration source
 has been authored under the proposed exception. The immediate next item is
 ratification of that one body-only representation change, not new diagnostics,
 kernel changes or biological micro-simulation.
+
+### 15:19Z ratification and FB-01d implementation contract
+
+Joe explicitly answered "Approve body-only numerical approximation
+(recommended)". The exact-rational recurrence proposal is retired. The pure
+instantaneous exact reference remains; the numerical approximation is confined
+to the mechanical body and cannot become a DSF/neuron/cognitive reduction.
+
+Single candidate: factor the existing joint-tree elimination into one shared
+arithmetic core in functional_body_articulation.py. Keep its exact public
+inputs/results and previous proofs unchanged. New functional_body_evolution.py
+uses binary64 vectors/quaternions and generalized hinge angles/rates to feed
+that same core, never a second dynamics law. New standalone
+test_functional_body_evolution.py exercises finite motion only.
+
+Immutable anatomy is mass/inertia, parent order, anchors, hinge axes and rest
+orientation. Current state is exact integer microsecond time, root position,
+unit quaternion, root linear/angular velocity, joint angles/rates. Child poses
+are derived from hinge constraints; no independent drifting endpoints and no
+history, world identity, memory, semantic controller or cache. Applied loads
+are held constant in world axes about each COM for the requested interval;
+joint efforts are constant. Root is free: no hidden floor/support. Contact,
+limits, capacity/metabolic supply and changing-load event detection are not
+implemented by this free-motion seam and cannot be claimed on its evidence.
+
+Classical fourth-order Runge-Kutta integrates this finite smooth free-motion
+interval. Quaternion derivative is 1/2 times [0,omega_world] * q; normalize
+orientations for frame evaluation and the final state. Fixed caller-declared
+subdivision count, no adaptive retry loop; run N and 2N subdivisions to expose
+step-refinement differences. Caller supplies maximum subdivision budget and
+physical tolerances explicitly; no production tolerance is invented. Refuse
+non-finite/invalid state, budget exhaustion, excessive pose/rate difference or
+energy-work residual before returning any successor. Step-refinement is an
+error indicator, NOT a certified universal error bound or contact guarantee.
+Mechanical work is integrated with the same RK stages; energy error is reported
+and checked, never converted to heat or hidden by rescaling velocities.
+
+Determinism claim is bit-repeatability on the same arithmetic/runtime, including
+after reconstructing identical serialized current state. Cross-platform libm
+identity and world-authority cold restore remain unproven. No new standalone
+persistent store or codec: actual world-schema integration remains later.
+
+Verification: zero-load rest/free drift, gravity and loaded analytic cases,
+joint-constraint closure, torque-driven two-body momentum/energy, exact-reference
+instantaneous comparisons, timestep refinement for asymmetric tumbling, long
+recurrence without fraction growth, replay from copied serialized state,
+non-finite/budget/error refusal and unchanged predecessor. All proof values are
+test mechanics, not invented Guala anatomy or production accuracy thresholds.
+Complexity O(links * subdivisions), fixed binary64 scalar width and O(links)
+temporary storage, no retained timestep history. Independent frozen source
+review precedes all execution. No production integration or deployment gate
+is waived by this mechanical-only proof.
+
+### FB-01d frozen source review / execution admission
+
+Independent body_force_review found one localized precision defect before any
+execution: at position2^60m, velocity1m/s, coarse and fine integration could both
+lose the one-metre displacement because binary64 spacing is256m. Added necessary
+ULP-resolution admission against caller SI tolerances at every RK stage and
+endpoint, including unwrapped hinge angles and derived body-site geometry.
+This is not a rigorous accumulated-error enclosure. Added those exact refusal
+tests and a rotated nonparallel-hinge comparison with the exact reference.
+
+Final review also caught a test-only ordering mismatch: its1e-15 angular-rate
+tolerance was below the initial omega=(2,3,4) combined spacing1.088e-15.
+The test's angular-rate tolerance alone is now1e-12; its energy/angle1e-15
+acceptance remains strict. Reviewer verified that exact correction and final
+hashes, with PASS to focused tests and no outstanding source finding.
+No architecture/review loop or execution was used to discover the force law.
+
+Frozen source SHA: articulation
+`d1fc865c0d688adedd384ed00bf133409862df473737a9cb7e40ccf70d559351`;
+evolution `0230b14043c24491aaf56c68f8613009a43d542bbfebb1cde878a7e770d79884`;
+test `00fece4ce590632f524a9f7ff1d953d02b6e4b3927c060fb9d3a604cb8174fbb`.
+Review is file-hash scoped; absent historical whole-tree helper remains disclosed.
+One tooling failure occurred before edits: apply_patch rejected delete-and-add
+of the same path in one patch. No source changed in that failed operation;
+subsequent replacements used one full-file Update patch instead. Do not repeat.
+
+Before execution: at15:37Z task1547 `772d1e4f5096497e879f12a4cba2bcb4`
+RUNNING/HEALTHY, service1/1/0, digest
+`d180f16cd50a1089365cfccd648560ab7bda14a65e2886c09c1fc93d7e5c3d93`.
+15:35 CPU average51.59%,max52.91%;memory average4.643%,max4.724%.
+Historical clock alarm remainsALARM; resource/refusal alarmsOK. G1's cutover
+is separate. Current process census shows its caretaker PID37677; no A1 test
+process or orphan. Standalone tests import no application/world/network fixture.
+
+### FB-01d local result — 15:41Z
+
+13 evolution tests passed in0.549s. Exact articulation10 tests in0.028s,
+forces12 in0.016s and kinematics12 in0.011s all pass unchanged. Total47 focused
+mechanical tests, not47 organism/production tests. Standalone commands used
+PYTHONDONTWRITEBYTECODE=1, PYTHONPATH=. and timeout60s (evolution) or30s
+(foundations); no pytest, world, caretaker or API fixture import.
+Final reviewed hashes unchanged after all execution. Same-runtime JSON
+round-trip of the numerical state reproduces the exact next result; this does
+not prove existing world-authority migration/cold restore or cross-platform libm.
+
+Bounded local resource sample used unit-mass/inertia straight chains with
+root angular rate0.1rad/s and every hinge rate0.1rad/s, zero external/joint
+loads. Physical interval1000us, one coarse/two fine RK4 subdivisions, explicit
+1e-7 SI test tolerances (NOT production defaults):
+
+| hinges | elapsed ms | position refinement m | energy/work residual J |
+| --- | --- | --- | --- |
+| 1 | 4.370493 | 3.312e-22 | 0 |
+| 3 | 9.592924 | 2.168e-19 | -4.441e-16 |
+| 12 | 36.755156 | 3.990e-17 | 3.411e-13 |
+| 24 | 71.702919 | 1.804e-15 | 5.457e-12 |
+
+Separate24-hinge traced call: current96,720B,peak211,744B; process maxRSS
+14,880KiB. No retained trajectory, checkpoints or raw sensory data. These are
+one-call local measurements, not worst-case,1000Hz real-time, full-body250ms
+or production latency evidence. Actual anatomy, contact events and required
+subdivision cost remain to be measured before mounting.
+
+Lean closure: one shared elimination, no parallel dynamics owner, history,
+cache, registry, worker, codec or network boundary. Numeric inertia and immutable
+anatomy conversion happen once; stage work follows the physically coupled tree.
+Known residual work to handle in the body mounting slice, not as a second
+optimization sprint: all-zero free-body rest currently runs RK stages despite
+an exact zero derivative, and diagnostic endpoint kinematics computes transform
+blocks it does not use. Do not claim zero-work quiescence/full cost closure yet.
+Retire this unnecessary work when mounting recurrent body settlement, with the
+same successor and resource proof; do not hide it behind a cache or new thread.
+
+Post-run process census: only G1 caretaker python PID37677, no test/timeout
+survivor. AWS remained1547, task772d1e4f5096497e879f12a4cba2bcb4,
+RUNNING/HEALTHY, service1/1/0, unchanged d180f16c... image.15:39 CPU
+average51.58%,max53.70%;memory average/max4.651%. Historical clock alarm still
+ALARM; resource/refusal alarmsOK. No A1 production mutation.
+
+Finite-time free-motion candidate is locally verified, NOT live and NOT a
+complete body. Next mechanical boundary is joint stops and physical support/
+contact; numeric integration cannot be used to cross a floor, hand-object
+surface or anatomical limit merely because free-motion tests pass. Keep the
+remaining strength, sensory mounting, world migration and production proofs
+in the original FB-01 objective; no cognition or G1 ingress expansion.

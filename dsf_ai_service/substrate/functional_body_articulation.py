@@ -1,16 +1,16 @@
-"""Exact instantaneous forward dynamics for a massive revolute-joint tree.
+"""Instantaneous massive revolute-tree mechanics in world coordinates.
 
-World-frame Newton-Euler elimination, fixed 6x6 blocks and O(number of links)
-arithmetic operations. No joint-space dense matrix, timestep, controller,
-retained history, default gravity, strength, or contact/limit policy. Callers
-supply ALL external loads including gravity and actual hinge configurations.
-This is unmounted mechanical infrastructure, not a complete body or cognition.
+The public exact wrapper preserves bounded rational geometry. The shared
+private elimination also accepts finite binary64 operands for the explicitly
+ratified numerical-body path. One Newton-Euler law; neither path is cognition,
+a contact solver, an actuator controller or a production-mounted body.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
 from fractions import Fraction as F
+from math import isfinite
 
 from dsf_ai_service.substrate.body_surface_contact import (
     ExactVector3, ZERO_VECTOR, _require_fraction, _validate_vector,
@@ -26,6 +26,10 @@ _ONE = F(1)
 
 
 def _bounded(value):
+    if type(value) is float:
+        if not isfinite(value):
+            raise ValueError("non-finite numerical articulated mechanics")
+        return value
     return _require_fraction(value, "articulated mechanics")
 
 
@@ -66,9 +70,8 @@ def _matrix_add(a, b):
     return tuple(_add(x, y) for x, y in zip(a, b))
 
 
-def _translation(r):
+def _translation_components(x, y, z):
     # [alpha; a] -> [alpha; a + alpha cross r], all in world axes.
-    x, y, z = r.x, r.y, r.z
     return (
         (_ONE, _ZERO, _ZERO, _ZERO, _ZERO, _ZERO),
         (_ZERO, _ONE, _ZERO, _ZERO, _ZERO, _ZERO),
@@ -79,20 +82,25 @@ def _translation(r):
     )
 
 
-def _inertia(properties, basis):
-    axes = tuple((v.x, v.y, v.z) for v in (basis.x, basis.y, basis.z))
-    principal = properties.principal_inertia_kilogram_metres_squared
-    moments = (principal.x, principal.y, principal.z)
+def _inertia_components(mass, moments, axes):
+    """Principal moments and rotation COLUMNS -> world COM spatial inertia."""
     rotation = tuple(tuple(_bounded(sum((moments[k] * axes[k][i] * axes[k][j]
                                        for k in range(3)), _ZERO))
                            for j in range(3)) for i in range(3))
     return tuple(tuple(rotation[i][j] if i < 3 and j < 3 else
-                       properties.mass_kilograms if i == j and i >= 3 else _ZERO
+                       mass if i == j and i >= 3 else _ZERO
                        for j in range(6)) for i in range(6))
 
 
+def _inertia(properties, basis):
+    axes = tuple((v.x, v.y, v.z) for v in (basis.x, basis.y, basis.z))
+    principal = properties.principal_inertia_kilogram_metres_squared
+    return _inertia_components(properties.mass_kilograms,
+                               (principal.x, principal.y, principal.z), axes)
+
+
 def _solve_root(matrix, rhs):
-    """Six SPD equations only. Exact elimination, no tolerance or iteration."""
+    """Six SPD equations only, fixed elimination order and no iteration."""
     rows = [list(row) + [b] for row, b in zip(matrix, rhs)]
     for k in range(6):
         pivot = rows[k][k]
@@ -110,16 +118,52 @@ def _solve_root(matrix, rhs):
     return tuple(result)
 
 
+def _eliminate_tree(inertias, forces, transforms, subspaces, biases, parents,
+                    joint_efforts, root_acceleration):
+    """Shared exact/numerical ABA. Consumes temporary inertia/force lists.
+
+    Inputs are dimensionally validated by their mechanical wrapper.
+    Fixed 6x6 blocks, two linear passes; no joint-space dense matrix.
+    No external state is mutated and no history is retained.
+    """
+    n = len(parents)
+    eliminated = [None] * n
+    for j in range(n - 1, -1, -1):
+        i, parent = j + 1, parents[j]
+        inertia, force, axis = inertias[i], forces[i], subspaces[j]
+        u_column = _mv(inertia, axis)
+        d = _dot(axis, u_column)
+        if d <= 0:
+            raise ValueError("non-positive hinge effective inertia")
+        u = _bounded(joint_efforts[j] - _dot(axis, force))
+        reduced = tuple(tuple(_bounded(inertia[a][b] - u_column[a] * u_column[b] / d)
+                              for b in range(6)) for a in range(6))
+        reduced_force = _add(_add(force, _mv(reduced, biases[j])), _scale(u_column, u / d))
+        transform = transforms[j]
+        transpose = _transpose(transform)
+        inertias[parent] = _matrix_add(inertias[parent], _mm(_mm(transpose, reduced), transform))
+        forces[parent] = _add(forces[parent], _mv(transpose, reduced_force))
+        eliminated[j] = (u_column, d, u)
+    acceleration = (_solve_root(inertias[0], _scale(forces[0], F(-1)))
+                    if root_acceleration is None else root_acceleration)
+    accelerations, joint_accelerations = [acceleration], []
+    for j, parent in enumerate(parents):
+        a = _add(_mv(transforms[j], accelerations[parent]), biases[j])
+        u_column, d, u = eliminated[j]
+        qdd = _bounded((u - _dot(u_column, a)) / d)
+        accelerations.append(_add(a, _scale(subspaces[j], qdd)))
+        joint_accelerations.append(qdd)
+    return accelerations, joint_accelerations
+
+
 @dataclass(frozen=True, slots=True)
 class HingeSegment:
-    """One child's mass/hinge geometry and actual relative orientation.
+    """Child mass/hinge geometry and actual relative orientation.
 
-    Parent indices name positions in this mechanical tree, NOT world object
-    identities or cognitive labels. Root is 0; each parent precedes its child.
-    Origins are COMs and link axes are principal inertia axes. Coincident joint
-    anchors determine child COM position; aligned axes constrain its orientation.
+    Parent indices are mechanical-tree positions, not object identities.
+    Root is 0; each parent precedes its child. Origins are COMs and axes are
+    principal inertia axes. Coincident anchors determine child COM position.
     """
-
     parent: int
     properties: MassProperties
     parent_anchor_metres: ExactVector3
@@ -149,27 +193,14 @@ class ArticulatedAcceleration:
     root_support_wrench_about_com: Wrench
 
 
-def solve_hinge_tree(
-    root_properties: MassProperties,
-    root_motion: RigidMotion,
-    segments: tuple[HingeSegment, ...],
-    joint_rates: tuple[F, ...],
-    joint_efforts: tuple[F, ...],
-    external_loads: tuple[Wrench, ...],
-    root_acceleration: tuple[ExactVector3, ExactVector3] | None,
-) -> ArticulatedAcceleration:
-    """Actual instantaneous accelerations and reactions of the entire tree.
+def solve_hinge_tree(root_properties, root_motion, segments, joint_rates,
+                     joint_efforts, external_loads, root_acceleration):
+    """Exact instantaneous accelerations/reactions, no time advancement.
 
-    Root motion provides time, pose and velocity; its old acceleration is not
-    a load. `root_acceleration=None` means a free base, NOT fixed to the floor.
-    Otherwise caller explicitly prescribes (angular, COM linear) acceleration
-    and receives the required physical support reaction. External loads are
-    world-frame loads about each COM, in root-then-child order. Joint efforts
-    are N m, rates rad/s; these are applied physical inputs, not desired angles.
-
-    All input tuples are immutable and no result is published until complete.
-    Caller owns anatomy/input-length admission; no whole-world traversal occurs.
-    Arithmetic bound is the same as the existing exact contact scalar boundary.
+    Inputs are unchanged from FB-01c. Root motion gives time/pose/velocity;
+    old accelerations are not loads. None root_acceleration means free base;
+    otherwise explicit (angular, linear COM) acceleration returns the required
+    support reaction. Loads are world-frame COM wrenches including gravity.
     """
     if not isinstance(root_properties, MassProperties) or not isinstance(root_motion, RigidMotion):
         raise TypeError("root needs declared mass and actual motion")
@@ -190,7 +221,6 @@ def solve_hinge_tree(
             raise ValueError("tree parent must precede child")
         _require_fraction(joint_rates[i - 1], "hinge rate")
         _require_fraction(joint_efforts[i - 1], "hinge effort")
-
     zero_acceleration = replace(root_motion.origin, acceleration_metres_per_second_squared=ZERO_VECTOR)
     motions = [replace(root_motion, origin=zero_acceleration,
                        angular_acceleration_radians_per_second_squared=ZERO_VECTOR)]
@@ -216,11 +246,10 @@ def solve_hinge_tree(
             parent.origin.position_metres + r,
             parent.origin.velocity_metres_per_second + _cross(omega, r) + relative_v,
             ZERO_VECTOR), basis, omega + relative_omega, ZERO_VECTOR))
-        transforms.append(_translation(r))
+        transforms.append(_translation_components(r.x, r.y, r.z))
         subspaces.append(_six(axis, linear_axis))
         biases.append(_six(bias_angular, bias_linear))
         offsets.append(r)
-
     properties = (root_properties,) + tuple(link.properties for link in segments)
     inertias = [_inertia(prop, body.basis) for prop, body in zip(properties, motions)]
     forces = []
@@ -229,41 +258,15 @@ def solve_hinge_tree(
         momentum = body.basis.to_parent(prop.momentum(omega_local))
         gyro = _cross(body.angular_velocity_radians_per_second, momentum)
         forces.append(_six(gyro - load.torque_newton_metres, load.force_newtons.scaled(F(-1))))
-
-    eliminated = [None] * n
-    for j in range(n - 1, -1, -1):
-        i, parent = j + 1, segments[j].parent
-        inertia, force, axis = inertias[i], forces[i], subspaces[j]
-        u_column = _mv(inertia, axis)
-        d = _dot(axis, u_column)
-        if d <= 0:
-            raise ValueError("non-positive hinge effective inertia")
-        u = _bounded(joint_efforts[j] - _dot(axis, force))
-        reduced = tuple(tuple(_bounded(inertia[a][b] - u_column[a] * u_column[b] / d)
-                              for b in range(6)) for a in range(6))
-        reduced_force = _add(_add(force, _mv(reduced, biases[j])), _scale(u_column, u / d))
-        transform = transforms[j]
-        transpose = _transpose(transform)
-        inertias[parent] = _matrix_add(inertias[parent], _mm(_mm(transpose, reduced), transform))
-        forces[parent] = _add(forces[parent], _mv(transpose, reduced_force))
-        eliminated[j] = (u_column, d, u)
-
-    acceleration = (_solve_root(inertias[0], _scale(forces[0], F(-1)))
-                    if root_acceleration is None else _six(*root_acceleration))
-    accelerations, joint_accelerations = [acceleration], []
-    for j, link in enumerate(segments):
-        a = _add(_mv(transforms[j], accelerations[link.parent]), biases[j])
-        u_column, d, u = eliminated[j]
-        qdd = _bounded((u - _dot(u_column, a)) / d)
-        accelerations.append(_add(a, _scale(subspaces[j], qdd)))
-        joint_accelerations.append(qdd)
+    accelerations, joint_accelerations = _eliminate_tree(
+        inertias, forces, transforms, subspaces, biases,
+        tuple(link.parent for link in segments), joint_efforts,
+        None if root_acceleration is None else _six(*root_acceleration))
     solved = []
     for body, a in zip(motions, accelerations):
         angular, linear = _parts(a)
         solved.append(replace(body, origin=replace(body.origin, acceleration_metres_per_second_squared=linear),
                               angular_acceleration_radians_per_second_squared=angular))
-
-    # Actual bearing reactions are needed for joint/tactile return, not a log.
     reactions = [required_wrench(prop, body) + load.opposite()
                  for prop, body, load in zip(properties, solved, external_loads)]
     for j in range(n - 1, -1, -1):
