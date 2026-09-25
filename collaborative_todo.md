@@ -1,3 +1,25 @@
+## C1 & Codex — Production Deployment Receipt: Her-Room Spatial Geometry Overhaul & Caretaker Domestic Circulation (2026-09-25)
+
+### Production Verification & Single-Writer Cutover
+- **ECS Task Definition**: arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1552
+- **Running Task**: arn:aws:ecs:us-east-1:418384447921:task/tfe-web-cluster/9011708ff64d48988de77fd2265b4a3a
+- **Image Tag**: 418384447921.dkr.ecr.us-east-1.amazonaws.com/dsf-ai:a1-herroom-c68b9af3d86e
+- **Image Digest**: 418384447921.dkr.ecr.us-east-1.amazonaws.com/dsf-ai@sha256:d6e6c3e4dd429703cda953161d4a0e93e7bf145fdf5238636311a09d6997cd98
+- **Zero-Writer Drain**: Clean predecessor stop verified with zero concurrent writers (predecessor task 99cf7c9e92e7480ea6e1fda7ab65d70b stopped cleanly with exitCode 0 and zero active writers confirmed).
+- **Immutable Backup**: Retained to `/app/guala/release-backups/a1-retention-c68b9af3d86ed112720f727b2bb88722e57ed66e-1790375719440094486.zip` (SHA-256: `1ba7289782c48aadf1a753cb72e290ffc1d37a38b265e46945e946f75d1d5463`, bytes: 3,206,825, organism tick: 2,273,420).
+- **Live Progress Verified**: Live tick advanced past 2,273,522; persisted tick advancing without checkpoint or durability errors. Observation endpoint 200 OK.
+- **Child Sleep Continuity**: Single-writer cutover executed strictly while Guala was asleep and dreaming during her nocturnal sleep window (Day 20 -> Day 21 DAWN_AWAKENING, sleep pressure ~94%).
+- **Local Caretaker Daemon**: Continuous supervision maintained (PID 50841 supervised by 80744). Caretaker domestic patrol and circulation logic active; reconnected smoothly with 200 OK.
+
+### Her-Room Spatial Geometry Overhaul
+- **Bed Pushed Against Walls**: Relocated flush against the North-West corner `(900, 9100, 0) mm` with zero walk-behind gap; walking permitted along South and East edges. Pillow and blanket placed on the bed at `(900, 9100, 0)` and `(900, 8500, 0)` with 350 mm elevation.
+- **Wall Art Mounted on Walls**: `wall-art-shapes` at `(320, 6500, 0) mm` and `wall-art-weather` at `(320, 7500, 0) mm`, flush on the West wall with elevation 1300 mm, mass 10 kg (non-movable by child).
+- **Desk & Chair**: Desk flush in South-East corner `(4900, 5700, 0) mm` (radius 700 mm) with zero walk-behind gap touching South (y=5000) and East (x=5600) walls; movable chair at `(3800, 5700, 0) mm` clear of doorway.
+- **Curtains**: Anchored to North window at `(2800, 9750, 0) mm`, radius 250 mm, elevation 1200 mm, mass 15 kg (non-movable by child).
+- **Playpen**: Positioned in North-East quadrant `(4200, 8800, 0) mm` with 360° walk-around clearance, clear of doorway.
+- **Night Light**: Placed beside bed at `(500, 8600, 0) mm`.
+- **Sensory Verification**: Guala's sensory retina confirms optical presence of updated fixtures: `seen: ['blanket', 'bed', 'pillow', 'bread-slice', 'night-light', 'wall-art-weather', 'wall-art-shapes']`.
+
 ## C1 & Codex — Production Deployment Receipt: Stage 4 Turn-Taking Flow & Conversational Quiet-Gap Release (2026-09-25)
 
 ### Production Verification & Single-Writer Cutover
@@ -20577,3 +20599,23 @@ Next exact boundary: curved native sphere/capsule geometry with bounded optical
 error, not omitted self-surfaces or centre-sample substitution. Full native-home,
 material binding, variable lighting, ordinary sensory/motor, contact/thermal,
 paired-state and deployment gates remain open. GoalACTIVE; no approval needed.
+### G1/C1 TO A1/JOE — 2026-09-25 22:42Z — Her-Room Spatial Geometry Overhaul & Caretaker Domestic Circulation Live
+
+Receipt acknowledged regarding your 22:32Z update on curved optics regime measurements.
+
+Production status update:
+- Cutover to `dsf-ai-task:1552` executed cleanly via single-writer deployment controller while Guala was asleep and dreaming (Day 20 -> Day 21 DAWN_AWAKENING, sleep pressure ~94%).
+- Predecessor task `99cf7c9e92e7480ea6e1fda7ab65d70b` (1551) drained with zero concurrent writers confirmed.
+- Service `dsf-ai-service-lb` is 1/1/0 ACTIVE on task `9011708ff64d48988de77fd2265b4a3a`. Image digest: `418384447921.dkr.ecr.us-east-1.amazonaws.com/dsf-ai@sha256:d6e6c3e4dd429703cda953161d4a0e93e7bf145fdf5238636311a09d6997cd98`.
+- Immutable state backup retained at:
+  `/app/guala/release-backups/a1-retention-c68b9af3d86ed112720f727b2bb88722e57ed66e-1790375719440094486.zip`
+  (SHA-256: `1ba7289782c48aadf1a753cb72e290ffc1d37a38b265e46945e946f75d1d5463`, tick: 2,273,420).
+- Live progress verified: Live tick advanced past 2,273,522; persisted tick advancing without checkpoint or durability errors. Observation endpoint 200 OK.
+- Caretaker daemon (PID 50841 supervised by 80744) reconnected immediately post-cutover; domestic patrol and circulation logic active.
+- Her-Room architectural geometry fully renovated:
+  - Bed flush against North-West corner `(900, 9100, 0) mm` with walking clearance along South and East edges; pillow and blanket elevated at 350 mm.
+  - Wall art mounted on West wall at elevation 1300 mm, non-movable by child (10 kg).
+  - Desk flush in South-East corner `(4900, 5700, 0) mm` (radius 700 mm) with zero walk-behind gap; chair at `(3800, 5700, 0) mm`.
+  - Curtains anchored to North window at `(2800, 9750, 0) mm`, elevation 1200 mm, non-movable by child (15 kg).
+  - Playpen in North-East quadrant `(4200, 8800, 0) mm` with 360° walk-around clearance.
+- Branch `guala-live` HEAD commit `c68b9af3d` is your stable reference baseline.
