@@ -174,3 +174,93 @@ energy, position and actual support/contact, feeding this same frame law. Do
 not replace that work with calling this module on desired poses or mounting an
 ideal inertial sample as a biological/neural experience by itself. No new
 semantic action, score, logging hierarchy or neuron law is authorized.
+
+## FB-01b — Force transmission and mechanical energy (active)
+
+Joe resumed the bounded functional-body goal. FB-01a stays locally verified,
+not live; this advances its next mechanical dependency, not cognition. G1's
+main-tree transport changes remain excluded. Authorized new files are
+`substrate/functional_body_dynamics.py` and its standalone test only.
+
+The biological function is load-bearing segments transmitting contact forces
+and opposing joint torques; its reduced mechanical equivalent is rigid-link
+Newton-Euler dynamics. Use mass and principal inertia supplied as morphology,
+not an age multiplier or guessed strength. No microscopic muscle kinetics,
+deformable link modes or chemical efficiency are claimed. Principal-axis
+coordinates retain the complete rigid-link inertia, not a scalar DSF proxy.
+
+Physical contract: a force/torque pair at a declared origin shifts to another
+origin by `tau_new = tau_old + (old_origin-new_origin) cross force`.
+Power is `force dot velocity + torque dot angular_velocity`. Opposing joint
+torques transfer power according to relative angular velocity, not an action
+name. For a link whose origin is its centre of mass and axes its principal
+axes, `force = mass * acceleration` and
+`torque_body = I * alpha_body + omega_body cross (I * omega_body)`.
+Forward acceleration inverts this same law; all force/torque arguments include
+gravity and contacts explicitly. Kinetic energy is
+`(mass * v dot v + omega_body dot (I * omega_body))/2`.
+The gyroscopic term must remain: it changes angular acceleration without doing
+work. Positive principal inertias must satisfy the mass-distribution triangle
+inequalities. No full population/world scan or dense joint matrix is introduced.
+
+Impact/evidence path for this slice: external physical load + declared segment
+mass/inertia + actual current motion -> exact instantaneous force/acceleration
+and power -> FB-01a site acceleration/inertial evidence. This stops at a local
+mechanical return. No native observation, Sensed input, API, codec or UI changes;
+every output remains backend-only and unmounted. It supplies a necessary
+primitive for the whole-FB panel/contact acceptance, not a replacement for it.
+It does not yet solve coupled joints, integrate orientations, enforce strength,
+consume metabolic reserves or claim finite-interval energy conservation.
+
+Inputs are immutable; outputs are prepared completely before return. Arithmetic
+uses the existing Fraction/vector 256-bit boundary; overflow refuses without
+mutation. No stored record, secondary clock, identity, cache or new persistence
+schema. Fixed operation count per reached segment or load; no recurrence growth.
+First-use and repeated calls obey the same pure contract; restart means no
+module state to reconstruct, NOT proof of organism cold continuation.
+
+Exit proofs: exact Newton-Euler round trip, non-principal spin/gyroscopic term,
+power versus kinetic-energy derivative, origin-shift power invariance, rational
+frame covariance, equal/opposite joint torque power, supported rest versus
+gravity-only fall through existing inertial evidence, invalid inertia, overflow
+and deterministic input immutability. Freeze source for independent review
+before executing tests; no world, caretaker, network or application test fixture.
+
+Derivation checked against the primary Modern Robotics rigid-body chapter:
+https://modernrobotics.northwestern.edu/nu-gm-book-resource/8-2-dynamics-of-a-single-rigid-body-part-1-of-2/
+This is standard mechanics, not a new DSF or neuronal learning law.
+
+### FB-01b result — 2026-09-25 14:55Z
+
+Independent source-only review by `body_force_review` passed with no required
+corrections. The reviewer verified both file hashes before/after; this is a
+file-hash-scoped review, not a whole-worktree freeze or release approval. The
+historical root validator again requires a handoff absent in this branch;
+review explicitly used the verified git worktree and named dependencies.
+
+- Source SHA-256: `2ba1a8c671e749b39fe1b28781a391d593dcc6a99321b4990bb52a9c81544ddb`.
+- Test SHA-256: `5b859533cb044eaad53f0326ccd146e48c1b170222706a73fb529b31db174659`.
+- Standalone `test_functional_body_dynamics.py -v`: 12 passed, 0.015 s.
+  Includes 54 exact round-trip regimes, off-centre force -> segment
+  acceleration -> site inertial reading, and the falsifiers specified above.
+- Existing standalone kinematics: 12 passed, 0.010 s. Both used
+  `PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. timeout 30s python3`; no pytest,
+  application/world/caretaker imports, live requests or retained test state.
+- Test process completed synchronously; post-run census has no test/timeout
+  child. One pre-existing python3 process remains untouched. Candidate hashes
+  match pre-review values; `git diff --check` passes.
+- Read-only AWS before/after: service desired/running/pending 1/1/0, task1544
+  `3a19bd326e5d4ae0aae0bb1c7c8c64e1` RUNNING/HEALTHY, digest
+  `23122cdde859e3de1480d3703396dd5ddd388d48a6858608520c487e0737457a`.
+  14:50 CloudWatch bucket after test: CPU average50.72%, maximum51.21%; memory
+  average4.734%, maximum4.944%. Historical clock-stalled alarm remains ALARM;
+  CPU, memory, EFS and refusal-loop alarms are OK. Aggregate metrics are
+  coarse operational context, not a local-mechanics performance comparison.
+
+FB-01b is locally exercised/unmounted. No strength limit, finite-time energy
+transfer, body schema, contact support, live sensory mounting or autonomous
+movement has been certified. The next exact dependency is coupled joint
+constraints: do not apply isolated-segment accelerations independently to
+connected limbs. Existing EmbodiedBody has no mass/inertia fields; its 250-mm
+radius and 800-mm reach do not determine anatomy or strength. Carry this known
+missing morphology boundary forward rather than inferring cognitive age.
