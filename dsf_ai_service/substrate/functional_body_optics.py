@@ -54,17 +54,17 @@ def _wrap(h):
     return (h + math.pi) % (2 * math.pi) - math.pi
 
 
-def _dot_extrema(n, apertures, geometry):
-    """Extrema of n dot d over a rectangular (h,sin(v)) aperture."""
+def _dot_extrema(planes, apertures, parameters):
+    """The same dot extrema for a bounded plane-by-aperture matrix."""
     a, b, lo, hi = apertures.T
-    nx, ny, nz = n
-    radius, phi = math.hypot(nx, ny), math.atan2(ny, nx)
-    ca, sa, cb, sb, c_lo, c_hi = geometry
-    first, last = nx * ca + ny * sa, nx * cb + ny * sb
+    nx, ny, nz = (p[:, None] for p in planes.T)
+    radius, phi, opposite = (p[:, None] for p in parameters)
+    first = nx * np.cos(a) + ny * np.sin(a)
+    last = nx * np.cos(b) + ny * np.sin(b)
     amin, amax = np.minimum(first, last), np.maximum(first, last)
     amax = np.where((a <= phi) & (phi <= b), radius, amax)
-    opposite = _wrap(phi + math.pi)
     amin = np.where((a <= opposite) & (opposite <= b), -radius, amin)
+    c_lo, c_hi = np.sqrt(1 - lo * lo), np.sqrt(1 - hi * hi)
     minimum = np.minimum(amin * c_lo + nz * lo, amin * c_hi + nz * hi)
     maximum = np.maximum(amax * c_lo + nz * lo, amax * c_hi + nz * hi)
     norm_min, norm_max = np.hypot(amin, nz), np.hypot(amax, nz)
@@ -73,7 +73,6 @@ def _dot_extrema(n, apertures, geometry):
     minimum = np.where((amin < 0) & (lo <= at_min) & (at_min <= hi), -norm_min, minimum)
     maximum = np.where((amax > 0) & (lo <= at_max) & (at_max <= hi), norm_max, maximum)
     return minimum, maximum
-
 
 def _boundary_integral(n, a, b):
     """Integral of the great-circle edge's mu(h); stable angle difference."""
@@ -116,38 +115,37 @@ def aperture_solid_angles(normals, apertures, *, max_cells):
             or np.any(lo >= hi)):
         raise ValueError("invalid forward receptor aperture")
     total = (b - a) * (hi - lo)
-    # Aperture geometry is shared by all boundary planes of this occurrence.
-    # Once any plane excludes an aperture, later planes cannot restore it.
-    geometry = (np.cos(a), np.sin(a), np.cos(b), np.sin(b),
-                np.sqrt(1 - lo * lo), np.sqrt(1 - hi * hi))
-    inside = np.ones(len(a), dtype=bool)
-    remaining = np.arange(len(a))
-    result = np.zeros(len(a))
-    for n in planes:
-        if not len(remaining):
-            return result
-        lower, upper = _dot_extrema(n, apertures[remaining],
-                                   tuple(g[remaining] for g in geometry))
-        inside[remaining] &= lower >= 0
-        remaining = remaining[upper > 0]
-    complete = remaining[inside[remaining]]
-    result[complete] = total[complete]
-    active = remaining[~inside[remaining]]
+    # Scalar constants preserve the predecessor's math.hypot/atan2 rounding.
+    radius = np.array([math.hypot(n[0], n[1]) for n in planes])
+    phi = np.array([math.atan2(n[1], n[0]) for n in planes])
+    opposite = np.array([_wrap(float(p) + math.pi) for p in phi])
+    parameters = radius, phi, opposite
+    inside, outside = np.ones(len(a), dtype=bool), np.zeros(len(a), dtype=bool)
+    classification_batch = max_cells // k
+    for begin in range(0, len(a), classification_batch):
+        end = min(begin + classification_batch, len(a))
+        lower, upper = _dot_extrema(planes, apertures[begin:end], parameters)
+        inside[begin:end] = np.all(lower >= 0, axis=0)
+        outside[begin:end] = np.any(upper <= 0, axis=0)
+    result = np.where(inside & ~outside, total, 0.)
+    active = np.flatnonzero(~inside & ~outside)
     if not len(active):
         return result
 
     fixed = []
     for i, n in enumerate(planes):
-        phi = math.atan2(n[1], n[0])
-        fixed.extend((_wrap(phi - math.pi / 2), _wrap(phi + math.pi / 2)))
+        p = float(phi[i])
+        fixed.extend((_wrap(p - math.pi / 2), _wrap(p + math.pi / 2)))
+        nx, ny, nz = map(float, n)
         for other in planes[i + 1:]:
-            # Only the intersection longitude is needed. Do not allocate a
-            # three-vector and generic axis machinery for this scalar pair.
-            nx, ny, nz = map(float, n)
+            # Only the intersection longitude is needed.
             ox, oy, oz = map(float, other)
             px, py = ny * oz - nz * oy, nz * ox - nx * oz
             h = math.atan2(py, px)
             fixed.extend((h, _wrap(h + math.pi)))
+    fixed = np.asarray(fixed)
+    positive, negative = np.flatnonzero(planes[:, 2] > 0), np.flatnonzero(planes[:, 2] < 0)
+    vertical = planes[:, 2] == 0
     batch = max_cells // event_count
     for begin in range(0, len(active), batch):
         ids = active[begin:begin + batch]
@@ -155,41 +153,55 @@ def aperture_solid_angles(normals, apertures, *, max_cells):
         cuts = np.empty((len(ids), event_count))
         cuts[:, 0], cuts[:, 1] = aa, bb
         end = 2 + len(fixed)
-        cuts[:, 2:end] = np.clip(np.asarray(fixed)[None, :], aa[:, None], bb[:, None])
-        for n in planes:
-            radius, phi = math.hypot(n[0], n[1]), math.atan2(n[1], n[0])
+        cuts[:, 2:end] = np.clip(fixed[None, :], aa[:, None], bb[:, None])
+        for n, r, p in zip(planes, radius, phi):
             for mu in (ll, hh):
-                if radius == 0:
+                if r == 0:
                     cuts[:, end:end + 2] = aa[:, None]
                     end += 2
                     continue
-                ratio = -n[2] * mu / (radius * np.sqrt(1 - mu * mu))
+                ratio = -n[2] * mu / (r * np.sqrt(1 - mu * mu))
                 exists = np.abs(ratio) <= 1
                 delta = np.arccos(np.clip(ratio, -1, 1))
                 for sign in (-1, 1):
-                    cuts[:, end] = np.where(exists, np.clip(_wrap(phi + sign * delta), aa, bb), aa)
+                    cuts[:, end] = np.where(exists, np.clip(_wrap(p + sign * delta), aa, bb), aa)
                     end += 1
         cuts.sort(axis=1)
         left, right = cuts[:, :-1], cuts[:, 1:]
         mid = (left + right) / 2
-        cosine, sine = np.cos(mid), np.sin(mid)
-        lower = np.broadcast_to(ll[:, None], mid.shape).copy()
-        upper = np.broadcast_to(hh[:, None], mid.shape).copy()
         lower_id, upper_id = np.full(mid.shape, -1), np.full(mid.shape, -1)
         valid = right > left
-        for i, n in enumerate(planes):
-            horizontal = n[0] * cosine + n[1] * sine
-            if n[2] == 0:
-                valid &= horizontal >= 0
-                continue
-            boundary = -math.copysign(1., n[2]) * horizontal / np.hypot(horizontal, n[2])
-            if n[2] > 0:
-                update = boundary > lower
-                lower, lower_id = np.where(update, boundary, lower), np.where(update, i, lower_id)
-            else:
-                update = boundary < upper
-                upper, upper_id = np.where(update, boundary, upper), np.where(update, i, upper_id)
-        valid &= upper > lower
+        # Duplicate/clipped events have zero width and no integral. Evaluate
+        # only actual intervals, with at most max_cells plane-interval pairs.
+        intervals = np.flatnonzero(valid)
+        slab = max_cells // k
+        bottom = np.broadcast_to(ll[:, None], mid.shape).ravel()
+        top = np.broadcast_to(hh[:, None], mid.shape).ravel()
+        for offset in range(0, len(intervals), slab):
+            selected = intervals[offset:offset + slab]
+            h = mid.ravel()[selected]
+            horizontal = (planes[:, 0, None] * np.cos(h)
+                          + planes[:, 1, None] * np.sin(h))
+            allowed = np.all(horizontal[vertical] >= 0, axis=0)
+            lower, upper = bottom[selected].copy(), top[selected].copy()
+            columns = np.arange(len(selected))
+            if len(positive):
+                boundaries = (-horizontal[positive]
+                              / np.hypot(horizontal[positive], planes[positive, 2, None]))
+                owner = np.argmax(boundaries, axis=0)
+                value = boundaries[owner, columns]
+                update = value > lower
+                lower[update] = value[update]
+                lower_id.ravel()[selected[update]] = positive[owner[update]]
+            if len(negative):
+                boundaries = (horizontal[negative]
+                              / np.hypot(horizontal[negative], planes[negative, 2, None]))
+                owner = np.argmin(boundaries, axis=0)
+                value = boundaries[owner, columns]
+                update = value < upper
+                upper[update] = value[update]
+                upper_id.ravel()[selected[update]] = negative[owner[update]]
+            valid.ravel()[selected] = allowed & (upper > lower)
         integral_lower = ll[:, None] * (right - left)
         integral_upper = hh[:, None] * (right - left)
         for i, n in enumerate(planes):

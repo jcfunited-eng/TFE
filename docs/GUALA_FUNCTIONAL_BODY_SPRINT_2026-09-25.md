@@ -2722,3 +2722,64 @@ Resource/refusalalarmsOK,historicalclockalarmALARM. Diagnostic21:15CPUavg
 max3.070068->3.204346%. Verificationpre21:15CPUavg51.638880%,max52.575919%,
 RAMavg3.098551%,max3.204346%. Censuses show only caretaker95907, no34073 or
 35175 survivor. No production mutations. Active candidate is local-only.
+
+Verificationpost21:23:04live2266115,persisted2266111. Latest21:20CPUavg
+51.731792%,max52.504170%;RAMavg3.151449%,max3.198242%. Diagnostic and
+verification windows remain health observations, not causal AWSspeedup claims.
+
+### FB-01p — bounded plane-by-aperture arithmetic
+
+Continue same latency item after accepted FB-01o. Exact previous image hashes,
+visibility/native/material tests remain unchanged. Only aperture numeric
+evaluation and this ledger change. Body/DSF/cognition/world laws stay frozen.
+
+Remaining source waste: every one-aperture visibility query constructs many
+tiny array operations per plane; sliced events also evaluate every plane at
+zero-width intervals created by clipped/duplicate boundaries. These intervals
+provably have zero integral and were always discarded at final sum. No new
+physical law is needed. Retain scalar math.hypot/atan2 per normal, compute them
+once per call, and evaluate independent plane/aperture pairs in bounded arrays.
+This replaces repeated Python dispatch, not equations or a numerical stencil.
+
+Contract: same scalar formula/order for each pair, same normalized planes,
+fixed roots, clip/sort order, strict lower/upper selection and first-plane tie
+semantics. max_cells bounds each plane-by-aperture/interval matrix as well as
+the original event matrices. Keep original K-derived event admission unchanged.
+Only positive-width event intervals enter boundary selection; others retain
+zero contribution. For positive/negative-nz planes take exact max/min geometric
+boundaries; those extrema are the existing intersection law, not a DSF score
+or heuristic selection. No semantic classification or posterior threshold.
+All temporary arrays die with this read-only call. No extra observer, cache,
+allocator dependency, state schema, live caller or startup/migration changes.
+
+Acceptance remains9standalone geometry tests, exact two predecessor imageSHA,
+same cold native observation/next-state bytes, actual slanted face/head movement,
+independent area partition and resource refusals. Same pinned local numerical
+runtime; unprofiled wall/RAM recorded. Independent frozen source review precedes
+execution. No loose tolerance or scene simplification if byte witness fails.
+
+FB-01p reviewPASS,b8c6d1e1c52525722a1943d11626abb77412d321b7eb4f74e48ed20a39d4769d,
+no findings. PID36613/session26726exit0,9/9PASS,2.265stest,2.378142swall,
+user2.350478s,system.039974s,peak80972KiB. Exactimagebytes preserved; initial
+scene.382480028s,moved.288681361s. Singlebox7.37-8.39ms,sameerrors/coldproof.
+This is still too slow for250ms totalclock; performancegate staysopen.
+
+Remainder profile36990exit0,wall.658973s,user.658004s,system.016048s,
+peak71852KiB,sameimageSHA. 412257calls,.513sprofileincludingretinal_apertures
+construction(.064s,notpartofearlierframebenchmark); radiance.449s,
+visibility.205s,220areaqueries. Dotextrema384calls/.199scumulative,mostof
+retinal integration cost;17624clipsremain. First implementation's exclusion
+short-circuit was replaced by full bounded plane blocks inFB-01p; cheap local
+one-aperturequeries improved but the19k-aperture case computes planes on sites
+alreadyexcluded. Preserve batched equation once, restore the smallercausal
+frontier for multipleapertures. Rootcrossings still dispatch4callsperplaneper
+batch despite sharing same aperture endpoints. These are next measured waste.
+
+AWSpre21:26:38/post21:28:40(proof),pre21:28:40/post21:30:03(profile): same1549
+solehealthy1/1/0,task478e055e5f0146789dd2ba0642bb578b,digestc883967dae9703796245db6408d12ec03a7591dbb48c8c0c4188bdc2d1a837b8.
+Sameidentity,availabletrue,checkpoint/cleanupnull,durabilityblockedfalse;
+live2266432->2266621,persisted2266399->2266591 atfirsttworeads.
+Resource/refusalalarmsOK,historicalclockalarmALARM. Pre21:20CPUavg51.680055%,
+max52.696888%;RAMavg3.153890%,max3.222656%;latest21:25RAMavg3.145345%,max3.186035%.
+Post/profilingpre21:25CPUavg51.884236%,max52.618212%;RAMavg3.148736%,max3.186035%.
+Censuses: no36613/36990 or A1survivor,caretaker95907untouched.
