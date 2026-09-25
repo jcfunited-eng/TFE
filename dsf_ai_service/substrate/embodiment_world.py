@@ -4294,7 +4294,24 @@ class EmbodimentWorldAuthority:
             if region is None:
                 raise ValueError("target position outside lawful room bounds")
             bodies = tuple(
-                replace(b, pose=target_pose) if b.body_id == body_id else b
+                replace(
+                    b,
+                    pose=target_pose,
+                    active_contact=None,
+                )
+                if b.body_id == body_id
+                else replace(
+                    b,
+                    active_contact=(
+                        None
+                        if (
+                            b.active_contact is not None
+                            and body.held_object_id is not None
+                            and b.active_contact.object_id == body.held_object_id
+                        )
+                        else b.active_contact
+                    ),
+                )
                 for b in world.bodies
             )
             if world.revision >= MAX_REVISION:

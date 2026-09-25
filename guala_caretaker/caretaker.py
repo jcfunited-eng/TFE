@@ -421,7 +421,7 @@ def sing_block(pcm: bytes) -> dict | None:
     body = json.dumps({"kind": "sensory", "payload": {"source": "microphone", "pcm_s16le_base64": base64.b64encode(pcm).decode()}}).encode()
     req = urllib.request.Request(f"{BASE}/occurrence", data=body, headers=_occurrence_headers(), method="POST")
     try:
-        with urllib.request.urlopen(req, timeout=60) as r:
+        with urllib.request.urlopen(req, timeout=10) as r:
             return json.load(r)
     except Exception as err:  # noqa: BLE001
         log(f"sing block refused: {err}")
@@ -767,16 +767,13 @@ def maybe_read(o: dict, st: dict) -> None:
             log("reading: interrupted by caretaker stop or teaching signal")
             break
         r = None
-        for attempt in range(READ_BLOCK_RETRIES + 1):
+        for attempt in range(2):
             if os.path.exists(STOP) or os.path.exists(TEACHING):
                 break
             r = sing_block(pcm)
             if r is not None:
                 break
-            for _ in range(int(READ_BLOCK_RETRY_S * 10)):
-                if os.path.exists(STOP) or os.path.exists(TEACHING):
-                    break
-                time.sleep(0.1)
+            time.sleep(0.2)
         if os.path.exists(STOP) or os.path.exists(TEACHING):
             log("reading: interrupted by caretaker stop or teaching signal during retries")
             break
@@ -865,7 +862,7 @@ def play_block(pcm: bytes, from_object: str) -> dict | None:
     body = json.dumps({"kind": "sensory", "payload": {"source": "thing-sound", "from_object": from_object, "pcm_s16le_base64": base64.b64encode(pcm).decode()}}).encode()
     req = urllib.request.Request(f"{BASE}/occurrence", data=body, headers=_occurrence_headers(), method="POST")
     try:
-        with urllib.request.urlopen(req, timeout=60) as r:
+        with urllib.request.urlopen(req, timeout=10) as r:
             return json.load(r)
     except Exception as err:  # noqa: BLE001
         log(f"radio block refused: {err}")
@@ -914,13 +911,13 @@ def maybe_music(o: dict, st: dict) -> None:
         track_index = int(st.get("music_track") or 0) % len(tracks)
         track = tracks[track_index]
         pcm_path = media.fetch_track(archive, track["name"], licence)
-        blocks = media.blocks(pcm_path)[:MUSIC_MAX_BLOCKS]
+        total_blocks = min(media.block_count(pcm_path), MUSIC_MAX_BLOCKS)
     except Exception as err:  # noqa: BLE001
         log(f"radio: the library could not give the piece: {err}")
         return
 
     cur_block = int(st.get("music_block_index") or 0)
-    if cur_block >= len(blocks):
+    if cur_block >= total_blocks:
         if track_index + 1 >= len(tracks):
             st["music_index"] = index + 1
             st["music_track"] = 0
@@ -930,39 +927,40 @@ def maybe_music(o: dict, st: dict) -> None:
         st["music_next_tick"] = tick + MUSIC_EVERY_TICKS
         with open(STATE, "w") as f:
             json.dump(st, f)
-        log(f"radio: piece finished ({len(blocks)} beats); next at {st['music_next_tick']}")
+        log(f"radio: piece finished ({total_blocks} beats); next at {st['music_next_tick']}")
         return
 
-    pcm = blocks[cur_block]
-    r = None
-    for attempt in range(READ_BLOCK_RETRIES + 1):
+    # Service audio blocks at acoustic cadence without stretching chronology across 25 minutes;
+    # delivers a burst of consecutive blocks (up to 8 blocks = 2.0s), yielding on refusal or interruption
+    delivered_in_pass = 0
+    max_burst = 8
+    while cur_block < total_blocks and delivered_in_pass < max_burst:
         if os.path.exists(STOP) or os.path.exists(TEACHING):
             break
-        r = play_block(pcm, "radio")
-        if r is not None:
+        pcm = media.read_block(pcm_path, cur_block)
+        if pcm is None:
             break
-        for _ in range(int(READ_BLOCK_RETRY_S * 10)):
-            if os.path.exists(STOP) or os.path.exists(TEACHING):
-                break
-            time.sleep(0.1)
-
-    if r is None:
-        log(f"radio: block {cur_block + 1}/{len(blocks)} refused; radio goes quiet")
-        st["music_block_index"] = 0
-        st["music_next_tick"] = tick + MUSIC_EVERY_TICKS
-    else:
-        st["music_block_index"] = cur_block + 1
+        r = play_block(pcm, "radio")
+        if r is None:
+            log(f"radio: block {cur_block + 1}/{total_blocks} refused; yielding to maintain responsive care")
+            st["music_retry"] = True
+            break
+        cur_block += 1
+        delivered_in_pass += 1
+        st["music_block_index"] = cur_block
+        st["music_retry"] = False
         ob = r.get("observation") or {}
         MINE.append(ob.get("live_tick") or 0)
         MINE.append((ob.get("last_occurrence") or {}).get("native_tick"))
-        if cur_block == 0:
-            log(f"radio: {archive} — {track['name']} ({len(blocks)} beats) begins; beat 1 delivered")
-        if (cur_block + 1) % 50 == 0:
-            log(f"radio: playing beat {cur_block + 1}/{len(blocks)}")
-        if (cur_block + 1) % READ_KEEP_EVERY_BLOCKS == 0 and asleep(ob):
+        if cur_block == 1:
+            log(f"radio: {archive} — {track['name']} ({total_blocks} beats) begins; beat 1 delivered")
+        if cur_block % 50 == 0:
+            log(f"radio: playing beat {cur_block}/{total_blocks}")
+        if cur_block % READ_KEEP_EVERY_BLOCKS == 0 and asleep(ob):
             log("radio: she fell asleep; the radio goes quiet")
             st["music_block_index"] = 0
             st["music_next_tick"] = tick + MUSIC_EVERY_TICKS
+            break
 
     with open(STATE, "w") as f:
         json.dump(st, f)
@@ -1178,6 +1176,7 @@ def maybe_feed(o: dict, st: dict) -> None:
             rel_res = present_food("high-chair-release")
             rel_pres = _extract_presentation(rel_res)
             rel_applied = bool(rel_pres.get("presented", False))
+            rel_steps = rel_pres.get("steps") or []
             if rel_applied:
                 st["seated_for_meal"] = False
                 st["food_delivered_for_meal"] = False
@@ -1188,11 +1187,21 @@ def maybe_feed(o: dict, st: dict) -> None:
                     st["meal_retry"] = True
                 else:
                     log(f"meal: meal interval elapsed ({release_reason}); Guala released from high-chair to floor at (2700, 1500) — applied=True")
+                with open(STATE, "w") as f:
+                    json.dump(st, f)
+                return
             else:
-                log(f"meal: high-chair release ({release_reason}) refused or pending at tick {tick}")
-            with open(STATE, "w") as f:
-                json.dump(st, f)
-            return
+                # Preserve exact refusal receipt with detailed steps and reason
+                rel_refusal = next((s.get("reason") for s in rel_steps if s.get("operation") == "release_from_high_chair" and s.get("reason") != "applied"), None)
+                log(f"meal: high-chair release ({release_reason}) refused or pending at tick {tick}: steps={rel_steps} refusal={rel_refusal}")
+                if not hungry:
+                    with open(STATE, "w") as f:
+                        json.dump(st, f)
+                    return
+                # Non-blocking for lawful food delivery: child is seated in high chair and hungry.
+                # Do NOT early-return; proceed directly to present food to the seated child.
+                st["food_delivered_for_meal"] = False
+                st["meal_retry"] = True
 
         if at_mouth:
             # Child is currently seated and actively eating from food at her mouth
@@ -1202,8 +1211,9 @@ def maybe_feed(o: dict, st: dict) -> None:
             return
 
     # 4. Child is NOT in high chair: check interval and hunger eligibility
-    if tick < (st.get("meal_tick") or 0) + MEAL_TICKS and not st.get("meal_retry"):
-        return
+    if not child_in_chair:
+        if tick < (st.get("meal_tick") or 0) + MEAL_TICKS and not st.get("meal_retry"):
+            return
 
     if not hungry:
         if st.get("not_hungry_logged") != tick // 2000:
@@ -1240,8 +1250,6 @@ def maybe_feed(o: dict, st: dict) -> None:
     food = foods[0]
 
     res = present_food(food)
-    st["meal_tick"] = tick
-    st["meal_retry"] = False
 
     if res is None:
         # Interrupted delivery: release child immediately so she is not stranded in high chair
@@ -1252,6 +1260,7 @@ def maybe_feed(o: dict, st: dict) -> None:
             if rel_applied:
                 st["seated_for_meal"] = False
             log(f"meal: food presentation failed (None); released child to avoid stranding — applied={rel_applied}")
+        st["meal_retry"] = True
         with open(STATE, "w") as f:
             json.dump(st, f)
         return
@@ -1264,6 +1273,8 @@ def maybe_feed(o: dict, st: dict) -> None:
     presented = bool(pres.get("presented", False))
 
     if presented:
+        st["meal_tick"] = tick
+        st["meal_retry"] = False
         st["food_delivered_for_meal"] = True
         mat = "ceramic" if "milk" in food else "wood"
         impact_pcm = material_impact_pcm(mat, intensity=0.7)
@@ -1280,9 +1291,9 @@ def maybe_feed(o: dict, st: dict) -> None:
             if rel_applied:
                 st["seated_for_meal"] = False
             log(f"meal: food presentation refused; released child to avoid stranding — applied={rel_applied}")
+        st["meal_retry"] = True
         if food not in MEAL_DELIVERY_CYCLE and food != DELIVERY_ID:
             st["unreachable"] = sorted(skip | {food})
-            st["meal_retry"] = len(foods) > 1
 
     with open(STATE, "w") as f:
         json.dump(st, f)

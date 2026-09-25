@@ -1635,6 +1635,8 @@ def _commit_world_successor(
             portals=ordered_portals,
             objects=ordered_objects,
         )
+    if hasattr(authority, "_validate_world"):
+        authority._validate_world(new_world)
     if hasattr(authority, "_observation_for"):
         new_obs = authority._observation_for(new_world)
         authority._state = replace(authority._state, world=new_world, observation=new_obs)
@@ -1766,7 +1768,7 @@ def nocturnal_house_tidying(authority: Any) -> None:
                     elif obj.object_id == "garden-bird":
                         updated.append(replace(obj, position=PositionMM(14_000, 15_500, 0), elevation_mm=1_800))
                     elif obj.object_id == "garden-butterfly":
-                        updated.append(replace(obj, position=PositionMM(16_500, 11_500, 0), elevation_mm=180))
+                        updated.append(replace(obj, position=PositionMM(16_500, 11_000, 0), elevation_mm=450))
                     elif obj.object_id in LIBRARY_BOOK_SHELVES and obj.position is not None:
                         bx, by, bz, target_elev = LIBRARY_BOOK_SHELVES[obj.object_id]
                         updated.append(replace(obj, position=PositionMM(bx, by, bz), elevation_mm=target_elev))
@@ -1801,6 +1803,8 @@ def flutter_garden_fauna(authority: Any) -> bool:
                 # Strictly clamp butterfly within garden flora bounds: x in [11_000, 18_000], y in [10_500, 15_500], z in [100, 1_200]
                 target_x = max(11_000, min(18_000, obj.position.x + delta))
                 target_y = max(10_500, min(15_500, obj.position.y + (50 if rev % 3 == 0 else -50)))
+                if abs(target_x - 16_500) < 200 and abs(target_y - 11_500) < 200:
+                    target_y = 11_000
                 target_elev = max(100, min(1_200, 450 + (50 if rev % 2 == 0 else -50)))
                 new_pos = PositionMM(target_x, target_y, 0)
                 updated.append(replace(obj, position=new_pos, elevation_mm=target_elev))

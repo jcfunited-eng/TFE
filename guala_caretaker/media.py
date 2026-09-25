@@ -156,6 +156,28 @@ def _convert_word(source: str, pcm_path: str) -> None:
         out.write(scaled + b"\0" * pad)
 
 
+def block_count(pcm_path: str) -> int:
+    """Total whole acoustic blocks in a pcm file without loading it into memory."""
+    try:
+        return os.path.getsize(pcm_path) // BLOCK_BYTES
+    except OSError:
+        return 0
+
+
+def read_block(pcm_path: str, block_index: int) -> bytes | None:
+    """Read one specific acoustic block directly by byte offset."""
+    offset = block_index * BLOCK_BYTES
+    try:
+        with open(pcm_path, "rb") as source:
+            source.seek(offset)
+            data = source.read(BLOCK_BYTES)
+            if len(data) == BLOCK_BYTES:
+                return data
+            return None
+    except OSError:
+        return None
+
+
 def blocks(pcm_path: str) -> list[bytes]:
     """The chapter as beats of sound, whole blocks only."""
 
@@ -289,4 +311,4 @@ def commons_word(word: str, accent: str = "en-us") -> str | None:
         return None
 
 
-__all__ = ("LIBRARY", "BLOCK_BYTES", "BOOK_CATALOG", "MUSIC_ITEMS", "blocks", "chapters", "commons_word", "fetch_chapter", "fetch_track", "librivox_book", "tracks")
+__all__ = ("LIBRARY", "BLOCK_BYTES", "BOOK_CATALOG", "MUSIC_ITEMS", "block_count", "blocks", "chapters", "commons_word", "fetch_chapter", "fetch_track", "librivox_book", "read_block", "tracks")
