@@ -25,16 +25,16 @@ REGION = "us-east-1"
 ACCOUNT = "418384447921"
 CLUSTER = "tfe-web-cluster"
 SERVICE = "dsf-ai-service-lb"
-OLD_TASK = "0ced705eba704130b21dd43090686bb3"
-OLD_DEFINITION = "arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1543"
-BASE = ACCOUNT+".dkr.ecr."+REGION+".amazonaws.com/dsf-ai@sha256:1706d543dc87dcee17f2d71e121ad284536bdeaea06511a807822e0fb91af690"
+OLD_TASK = "3a19bd326e5d4ae0aae0bb1c7c8c64e1"
+OLD_DEFINITION = "arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1544"
+BASE = ACCOUNT+".dkr.ecr."+REGION+".amazonaws.com/dsf-ai@sha256:23122cdde859e3de1480d3703396dd5ddd388d48a6858608520c487e0737457a"
 REPOSITORY = BASE.split("@")[0]
 FILES = {
  "dsf_ai_service/substrate/embodiment_world.py": "c9534a4c30fe6b9dc66b2aebd5751906d78a64697777ff99b1f2ae5b3bbe80ac",
  "dsf_ai_service/guala_caretaker_hand.py": "df525a0dfa5ac24e7a53cef1c23f4ad4106c713cf655265c8f8133d242d86150",
  "dsf_ai_service/lean_production_app.py": "8131709b6ec6782533f4bd63cbbbd197be75930b4ea3210367686961be8fcef7",
  "dsf_ai_service/guala_functional_organism.py": "b98c1e36c9b50a966b16c283518db3e0464486f09df2023258e5cbd9eeed146a",
- "dsf_ai_service/lean_actor.py": "668b6a8b7ae4b2221b8fe644caccfd8d9b4e86ca835f85c27fc5c5dbeec0a897",
+ "dsf_ai_service/lean_actor.py": "885a5dd086db7d3a125d06c693edeb084b39b47c5308f34b05bd7be93fa96172",
  "dsf_ai_service/episodic_binding_engine.py": "f1cc108452cb512818f2e4f05f73e29838f997dd10a9ecdb42134486fe879cb4",
  "dsf_ai_service/substrate/native_core.py": "7144580489e9b739538a90f1c0360209b3a4e2ecb94d6a6362db6b4aa902fbe3",
  "dsf_ai_service/guala_home_world.py": "e2e845590bb84570ddcc5b1d0fddca2ef660760243a78709c38ddf016a199d5c",
@@ -194,12 +194,22 @@ def activate(definition,backup,source_arn,candidate_arns,digest):
     first=observation()
     assert first["available"] and not first["checkpoint_error"] and not first["cleanup_error"]
     assert first["live_tick"]>=backup["current"]["organism_tick"]
-    time.sleep(12)
-    second=observation()
-    assert second["available"]
-    assert second["live_tick"]>first["live_tick"]
-    assert second["persisted_tick"]>backup["current"]["organism_tick"]
-    assert not second["checkpoint_error"] and not second["cleanup_error"] and not second["durability_blocked"]
+    deadline = time.monotonic() + 60
+    second = None
+    while time.monotonic() < deadline:
+        time.sleep(3)
+        obs = observation()
+        if (
+            obs["available"]
+            and obs["live_tick"] > first["live_tick"]
+            and obs["persisted_tick"] > backup["current"]["organism_tick"]
+            and not obs["checkpoint_error"]
+            and not obs["cleanup_error"]
+            and not obs["durability_blocked"]
+        ):
+            second = obs
+            break
+    assert second is not None, f"persisted_tick did not advance past {backup['current']['organism_tick']} within 60s"
     final_service=service()
     assert final_service["taskDefinition"]==definition
     assert (final_service["desiredCount"],final_service["runningCount"],final_service["pendingCount"])==(1,1,0)

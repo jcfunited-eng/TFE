@@ -5,6 +5,7 @@ from __future__ import annotations
 from concurrent.futures import Future
 from dataclasses import dataclass, replace
 import base64
+import collections
 import hashlib
 import hmac
 from queue import Empty, Full, Queue
@@ -26,6 +27,8 @@ MAX_PRESSURE_BYTES = 8_000
 MAX_HELD_PRESSURE_BYTES = 256_000
 MAX_HELD_PRESSURES = MAX_HELD_PRESSURE_BYTES // MAX_PRESSURE_BYTES
 MAX_PRESSURE_BATCH = 8
+
+from dsf_ai_service.lean_sensory_occurrence import LeanSensoryOccurrence
 
 
 class PhysicalSettlementFailure(RuntimeError):
@@ -94,15 +97,6 @@ class ActorObservation:
         }
 
 
-@dataclass(slots=True)
-class _ActorMessage:
-    occurrence: PhysicalOccurrence
-    result: Future[SettlementResult]
-
-
-_STOP = object()
-
-
 class LeanOrganismActor:
     """The only object permitted to call or mutate the runtime and world."""
 
@@ -139,9 +133,7 @@ class LeanOrganismActor:
         self._pointer = pointer
         self._store = store
         self._physical = physical
-        self._mailbox: Queue[_ActorMessage | object] = Queue(
-            maxsize=mailbox_capacity
-        )
+        self._mailbox_capacity = mailbox_capacity
         self._checkpoint_every = checkpoint_every_intervals
         self._pending_ceiling = checkpoint_every_intervals * 2
         self._maximum_occurrence_intervals = maximum
@@ -158,6 +150,13 @@ class LeanOrganismActor:
         self._observation = self._make_observation()
         self._published = threading.Condition()
         self._startup_complete = threading.Event()
+        self._stop_event = threading.Event()
+        self._wake_event = threading.Event()
+        self._lock = threading.Lock()
+        self._staged_visual: tuple[PhysicalOccurrence, list[Future[SettlementResult]]] | None = None
+        self._staged_audio: collections.deque[tuple[PhysicalOccurrence, Future[SettlementResult]]] = collections.deque(maxlen=16)
+        self._staged_caregiver: collections.deque[tuple[PhysicalOccurrence, Future[SettlementResult]]] = collections.deque(maxlen=mailbox_capacity)
+        self._staged_legacy: collections.deque[tuple[PhysicalOccurrence, Future[SettlementResult]]] = collections.deque(maxlen=mailbox_capacity)
         self._thread = threading.Thread(
             target=self._run,
             name="guala-organism",
@@ -177,7 +176,7 @@ class LeanOrganismActor:
             raise RuntimeError("organism restore verification failed") from self._fatal
 
     def offer(self, occurrence: PhysicalOccurrence) -> Future[SettlementResult]:
-        """Offer one occurrence without adding a web-server worker thread."""
+        """Offer one occurrence through independent sensory admission lanes."""
 
         if not self._started or not self._thread.is_alive():
             if self._fatal is not None:
@@ -186,11 +185,41 @@ class LeanOrganismActor:
         if not isinstance(occurrence, PhysicalOccurrence):
             raise TypeError("actor occurrence changed type")
         future: Future[SettlementResult] = Future()
-        try:
-            self._mailbox.put_nowait(_ActorMessage(occurrence, future))
-        except Full as error:
-            raise RuntimeError("organism mailbox is full") from error
-        return future
+        with self._lock:
+            payload = occurrence.payload
+            if occurrence.kind == "sensory" and isinstance(payload, LeanSensoryOccurrence):
+                if payload.source == "camera":
+                    if self._staged_visual is not None:
+                        _, waiting = self._staged_visual
+                        waiting.append(future)
+                        self._staged_visual = (occurrence, waiting)
+                    else:
+                        self._staged_visual = (occurrence, [future])
+                    self._wake_event.set()
+                    return future
+                elif payload.source == "microphone":
+                    if len(self._staged_audio) >= self._staged_audio.maxlen:
+                        raise RuntimeError("acoustic admission queue is full")
+                    self._staged_audio.append((occurrence, future))
+                    self._wake_event.set()
+                    return future
+                elif (
+                    payload.present_food is not None
+                    or payload.from_object is not None
+                    or payload.guided_vocal_drives is not None
+                    or payload.source in ("guided-vocal-microphone", "guided-body-microphone", "card-microphone")
+                ):
+                    if len(self._staged_caregiver) >= self._staged_caregiver.maxlen:
+                        raise RuntimeError("caregiver admission queue is full")
+                    self._staged_caregiver.append((occurrence, future))
+                    self._wake_event.set()
+                    return future
+
+            if len(self._staged_legacy) >= self._staged_legacy.maxlen:
+                raise RuntimeError("organism mailbox is full")
+            self._staged_legacy.append((occurrence, future))
+            self._wake_event.set()
+            return future
 
     def submit(
         self,
@@ -282,7 +311,8 @@ class LeanOrganismActor:
             self._checkpoint.close()
             return
         if self._thread.is_alive():
-            self._mailbox.put(_STOP)
+            self._stop_event.set()
+            self._wake_event.set()
             self._thread.join()
         self._started = False
         if self._fatal is not None:
@@ -319,8 +349,56 @@ class LeanOrganismActor:
             > self._pending_ceiling
         )
 
+    def _extract_settlement_work(self) -> tuple[PhysicalOccurrence, list[Future[SettlementResult]]] | None:
+        with self._lock:
+            # Caregiver lane takes precedence for intentional tactile/nutritional care
+            if self._staged_caregiver:
+                occ, fut = self._staged_caregiver.popleft()
+                return (occ, [fut])
+
+            # Legacy queue
+            if self._staged_legacy:
+                occ, fut = self._staged_legacy.popleft()
+                return (occ, [fut])
+
+            # Simultaneous visual + acoustic streams unite into time-aligned occurrence
+            if self._staged_visual is not None and self._staged_audio:
+                vis_occ, vis_futures = self._staged_visual
+                self._staged_visual = None
+                aud_occ, aud_future = self._staged_audio.popleft()
+                vis_payload = vis_occ.payload
+                aud_payload = aud_occ.payload
+                assert isinstance(vis_payload, LeanSensoryOccurrence)
+                assert isinstance(aud_payload, LeanSensoryOccurrence)
+                united = LeanSensoryOccurrence(
+                    source="camera-microphone",
+                    retina_rgb_u8=vis_payload.retina_rgb_u8,
+                    pressure_s16le=aud_payload.pressure_s16le,
+                    guided_vocal_drives=None,
+                    present_food=None,
+                    from_object=None,
+                    focal_origin=vis_payload.focal_origin,
+                    focal_pitch_millidegrees=vis_payload.focal_pitch_millidegrees,
+                    focal_crop_dimensions=vis_payload.focal_crop_dimensions,
+                    t_capture_ms=aud_payload.t_capture_ms or vis_payload.t_capture_ms,
+                )
+                return (PhysicalOccurrence("sensory", united), [*vis_futures, aud_future])
+
+            # Visual only
+            if self._staged_visual is not None:
+                vis_occ, vis_futures = self._staged_visual
+                self._staged_visual = None
+                return (vis_occ, vis_futures)
+
+            # Acoustic only
+            if self._staged_audio:
+                aud_occ, aud_future = self._staged_audio.popleft()
+                return (aud_occ, [aud_future])
+
+            return None
+
     def _run(self) -> None:
-        next_unattended = time.monotonic() + self._unattended_seconds
+        next_interval = time.monotonic() + self._unattended_seconds
         try:
             self._verify_restored_authorities()
             self._startup_complete.set()
@@ -332,36 +410,39 @@ class LeanOrganismActor:
                     self._refresh_observation(self._live_tick())
                     self._receive_required_checkpoint()
                     continue
-                wait = max(0.0, next_unattended - time.monotonic())
-                try:
-                    message = self._mailbox.get(timeout=wait)
-                except Empty:
-                    message = None
-                if message is _STOP:
+
+                if self._stop_event.is_set():
                     self._finish_checkpoint()
                     return
-                if message is None:
+
+                wait = max(0.0, next_interval - time.monotonic())
+                if self._stop_event.wait(timeout=wait):
+                    self._finish_checkpoint()
+                    return
+
+                now = time.monotonic()
+                if now < next_interval:
+                    continue
+
+                next_interval = max(now, next_interval + self._unattended_seconds)
+
+                work = self._extract_settlement_work()
+                if work is None:
                     self._settle_unattended()
-                    next_unattended = max(
-                        time.monotonic(),
-                        next_unattended + self._unattended_seconds,
-                    )
                     continue
-                assert isinstance(message, _ActorMessage)
-                if not message.result.set_running_or_notify_cancel():
-                    continue
+
+                occurrence, futures = work
+                active_futures = [f for f in futures if f.set_running_or_notify_cancel()]
                 try:
-                    result = self._settle(message.occurrence)
+                    result = self._settle(occurrence)
                 except BaseException as error:
-                    message.result.set_exception(error)
+                    for f in active_futures:
+                        f.set_exception(error)
                     if isinstance(error, PhysicalSettlementFailure):
                         raise
                 else:
-                    message.result.set_result(result)
-                next_unattended = max(
-                    time.monotonic(),
-                    next_unattended + self._unattended_seconds,
-                )
+                    for f in active_futures:
+                        f.set_result(result)
         except BaseException as error:
             self._fatal = error
             # The cause of an actor's death is written where it can be read
@@ -544,10 +625,18 @@ class LeanOrganismActor:
         )
 
     def _fail_queued_messages(self, error: BaseException) -> None:
-        while True:
-            try:
-                message = self._mailbox.get_nowait()
-            except Empty:
-                return
-            if isinstance(message, _ActorMessage):
-                message.result.set_exception(error)
+        with self._lock:
+            if self._staged_visual is not None:
+                _, futures = self._staged_visual
+                for f in futures:
+                    f.set_exception(error)
+                self._staged_visual = None
+            while self._staged_audio:
+                _, f = self._staged_audio.popleft()
+                f.set_exception(error)
+            while self._staged_caregiver:
+                _, f = self._staged_caregiver.popleft()
+                f.set_exception(error)
+            while self._staged_legacy:
+                _, f = self._staged_legacy.popleft()
+                f.set_exception(error)
