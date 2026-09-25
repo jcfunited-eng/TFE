@@ -678,3 +678,167 @@ actual native Cargo manifest, service lock and substrate paths; no matches for
 an existing MuJoCo/PyBullet/Rapier/PhysX integration in that bounded slice.
 Do not repeat guessed paths. pip show reported MuJoCo absent. No harness,
 installation, background process, test or AWS mutation occurred in this block.
+
+## FB-01e authorized native implementation contract
+
+Joe explicitly approved everything needed within this pre-embodiment scope;
+the contact/backend decision is cleared. No DSF, cognitive or semantic-policy
+change follows from that authorization. Resume implementation, not another
+approval loop. Native dependency pinned to MuJoCo3.3.7 (not an unpinned latest).
+Local isolated venv: /tmp/guala-body-native.pnUH8P. No caretaker package altered.
+
+One native settlement authority replaces functional_body_evolution.py and its
+standalone test. Prior accepted commit preserves that superseded implementation;
+exact instantaneous kinematic/force references remain offline differential
+oracles, never parallel runtime solvers. New functional_body_native.py and
+test_functional_body_native.py are the only mechanical candidate files.
+
+Input: trusted immutable MJCF anatomy/environment, direct bounded scalar joint
+efforts, integer elapsed microseconds, a caller-supplied mechanical-work budget,
+and the complete preceding native integration state. Output: immutable next
+integration state plus SI joint/pose/inertial/contact observations and actual
+numerically integrated actuator work. No target pose, behavior names, action
+sequence, reward, optimization of cognition, second clock or background worker.
+Motor law is ideal effort-limited actuation, not microscopic muscle metabolism;
+mechanical work is not a claim of isometric metabolic expenditure.
+
+Use one MjModel and reusable MjData scratch. The caller retains the authoritative
+state, not the workspace. Restore full mjSTATE_INTEGRATION before each candidate;
+return a successor only after all fallible checks. Exceptions publish nothing,
+and the next call restores its explicit predecessor. Cold replay uses the same
+version/model/runtime and complete state including solver warm-start. Compiled
+model digest distinguishes anatomy; no full-brain serialization. No external
+XML assets/plugins/mocap/controllers. Motor transmission is unit-gear direct
+hinge/slide effort with no actuator dynamics or bias; require finite limits.
+Explicit solver timestep, iteration limit, arena and tolerance are anatomy/
+numerical configuration, not learning rules.
+
+Native numerical approximation is soft contact/friction and finite timestep
+collision sampling, not existing exact rectangular skin-contact equivalence.
+Fixed caller-declared maximum substeps, penetration, joint-limit overrun and
+surface travel per substep; refuse native warnings/non-finite states/automatic
+reset, excess work or mechanical-resolution breach. No retries, resets, invented
+heat or energy rescaling. Endpoint travel checks and refinement tests are
+numerical checks, not continuous collision certificates. Per-substep positive
+actuator-work quadrature is an approximation; compare resolution and report it
+as mechanical work, not exact biochemical intake.
+
+State has bounded O(body+joint) size; contact scratch is constrained by compiled
+arena and warning rejection, solver iterations and interval substeps. Store no
+history. Contacts are native instantaneous geometric patches and force/torque
+in the declared contact frame; observations are backend-only physical evidence,
+not neural sensing until existing receptor and world mount is verified. Surface
+temperature/conduction is untouched, not supplied by this new contact solver.
+
+Frozen acceptance: hand effort -> physical panel hinge displacement with contact
+force; no effort/no contact controls; gravity support versus free-fall inertial
+return; finite joint limits; effort/work/penetration/substep refusal preserves
+predecessor; cold contact restart gives identical next state; repeated stepping
+does not grow state. Measure bounded native compute and memory. Model fixture
+is declared bench geometry/material, NOT invented production Guala anatomy.
+Production body/world migration, force supply accounting, receptor mapping and
+deployment remain required FB-01 work, not waived by local acceptance.
+
+### FB-01e source review and local execution — 16:29Z
+
+Independent frozen source review found localized admission/evidence omissions:
+joint force caps, actuator group disabling and gravity compensation could
+invalidate requested-effort work; callbacks could alter unretained dynamics;
+deformable models exceeded rigid refresh; derived evidence needed finite
+checks. Corrected as one batch, added admission/refusal/grip falsifiers and
+identified actual hand/panel contacts. Reviewer passed the final candidate.
+Pinned upstream3.3.7 source confirmed mj_forward does not overwrite warm-start
+or advance time, and collision refresh is safe here because forces are exposed
+only after a subsequent full forward evaluation.
+
+First test run:1 passed,11 errors, all at the same restore binding before any
+motion. Python mj_setState requires writable float64 storage although its C
+input is const; np.frombuffer(bytes) is readonly. Local correction reuses the
+already allocated state buffer, preserving all input bytes and adding no
+allocation. Independently confirmed before rerun. This was an interface error,
+not11 independent physical failures. One earlier tool orchestration call had a
+JavaScript syntax error before executing anything; no file changed in that
+failed call. Both failures are retained here, not omitted from the receipt.
+
+Frozen final source SHA256:
+- native: d82a5312c264aa1602aec795d56554ffd3b5eff24332c41cb9535c005a7396f0
+- tests: 98c319ac98086aad0d67b0a98236a19d2af8f69e4c0b8abcc89b8790014208b2
+- requirements: 323480714843c153d25b88090bdeac9a4176e0e7412d64b9641b6444c458e5b7
+- installed libmujoco.so.3.3.7:
+  23841520ecf60ad648405674a757f260949f7cf6b44deb284398b9851b3f061d
+
+Executed the complete panel/contact/restart acceptance first:1 passed0.149s.
+Then12 native tests passed1.224s with no assertion relaxed or expected failure.
+Exact-reference articulation10 passed0.030s, dynamics12 passed0.017s,
+kinematics12 passed0.011s.46 retained/current mechanical tests total; the
+superseded13 free-integrator tests were removed with their execution module,
+recoverable at a81d2d306. This is not46 organism or production tests.
+
+Commands used standalone unittest modules under PYTHONDONTWRITEBYTECODE=1,
+PYTHONPATH=. and timeout60s (native) or30s (references). No pytest/conftest,
+world authority, caretaker, live API write or simulated cognitive loop.
+
+Evidence:
+- Jointed hand effort physically moves the separate hinged panel; no-effort
+  control does not. Removing the panel removes its resistance.
+- Current contact state restored into a fresh engine gives an identical
+  complete next result, not merely matching joint position.
+- Supported rest reports weight/specific force; free fall reports zero specific
+  force. Analytic free-fall position/energy error is bounded by the expected
+  timestep error and halves under timestep refinement.
+- Joint stops, motor capacity, mechanical supply, interval budget, penetration,
+  surface travel, altered motor authorities and installed callbacks refuse as
+  declared. Refusal leaves the caller's predecessor usable and unchanged.
+- Two opposed jaws hold an independent free mass through friction. After0.5s,
+  initial object height0.5m: squeeze1N/jaw and friction0.8 =>0.498532987m;
+  friction0 =>-0.728682660m; squeeze0 =>-0.652939644m. No weld, held flag,
+  kinematic object pose or hidden support. All three states remain512bytes.
+  This is finite-time approximate grip with1.47mm vertical compliance/slip,
+  NOT zero-slip permanence or biological muscle efficiency. Ideal static
+  effort has nearly zero positive mechanical work; metabolic tone is absent.
+
+Bounded local timing sample: five identical250ms intervals per chain,1ms fixed
+native steps,0.0001Nm on each hinge,0.1kg per link, gravity0,2MiB native arena.
+This is declared test anatomy, NOT Guala's eventual reference body or worst-case.
+
+| joints | median ms | max ms | current state bytes | Python allocation peak bytes |
+| --- | --- | --- | --- | --- |
+| 1 | 40.953 | 42.817 | 176 | 2867 |
+| 3 | 44.708 | 52.204 | 352 | 3171 |
+| 12 | 46.424 | 50.582 | 1144 | 5282 |
+| 24 | 45.360 | 51.054 | 2200 | 9354 |
+
+Process maxRSS56,908KiB; Python tracemalloc does not measure native allocations.
+Native compiled arena fixed2MiB per fixture. Isolated venv161MiB includes SDK
+and dependencies; no change to caretaker's installed environment. Only MuJoCo
+is pinned in the new requirements input; full transitive artifact locking and
+release packaging remain required before deployment. No GPU/rendering/controller
+was used. Source hashes unchanged after execution; no harness/timeout survivor.
+
+Before16:25Z and after16:28Z AWS task1547
+772d1e4f5096497e879f12a4cba2bcb4 remained RUNNING/HEALTHY, service1/1/0, image
+d180f16cd50a1089365cfccd648560ab7bda14a65e2886c09c1fc93d7e5c3d93.
+16:26/27 CPU average50.759/50.780%,max51.267/51.237%;memory average
+4.175/4.156%,max4.181%. Earlier16:15 CPU51.482%,memory4.317%.
+Clock-stalled alarm remainsALARM; CPU/memory/storage/refusal alarmsOK. This
+is a read-only envelope, not a new whole-organism health or latency claim.
+Caretaker PID37677 remained; no production mutation by A1.
+
+Lean/integration disposition: no parallel body solver, retained trajectory,
+worker, controller or cognition. The new module does not import the exact
+reference modules. Those remain offline evidence and must not become a second
+production body authority. Per-step Python geometry/limit checks and observation
+copies are bounded but are not a proved minimum-cost full-body mount; quiescent
+analytical advancement remains an explicit mounting obligation, not a hidden
+claim of zero work. Step sampling is not continuous collision certification.
+Contact dissipation/thermal transfer, metabolic supply and complete body/world
+custody are NOT closed by this proof.
+
+Next bounded item: declare reference articulated biped/hands/feet morphology
+and map the existing world's actuator and receptor boundaries into this one
+mechanical authority. The source map already shows functional Decision carries
+named world commands, body_axes only moves head/eyes/lids, and EmbodiedBody has
+no articulated state. No 'climb/open' command, prerecorded movement or fake
+neuronal return may be introduced to hide those mounting gaps. Numeric body
+parameters are declared engineering anatomy, never derived from cognitive age.
+Full FB-01 and live delivery remain incomplete; approved work continues.
