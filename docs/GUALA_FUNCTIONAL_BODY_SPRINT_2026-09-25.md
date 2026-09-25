@@ -378,3 +378,87 @@ support, collision avoidance or energy remain exact. Current rational bases
 represent instantaneous orientations; arbitrary finite rotations need an
 explicit numerical/physical representation, not silently rounded coordinates.
 FB-01 remains active and NOT deployed; this is not learned locomotion.
+
+## FB-01d — Finite-time representation boundary (active)
+
+Previous turn was progress: coupled-mechanics commit32fb1353e, source review,
+34 passing mechanical tests. Before authoring time integration, probe whether
+the admitted exact rational orientation can actually recur within its fixed
+storage bound. Source reality: existing world poses are millimetre positions
+and millidegree headings; native kinematics enforces a floor disc. Existing
+rounding/trigonometry in unrelated sky/path code is NOT authority for a new
+whole-body integration accuracy or energy law. No relevant finite-time
+articulated integrator was found in the inspected slice.
+
+Authorized diagnostic: `tools/probe_functional_body_rotation_bounds.py`, outside
+the production path. It uses FB-01a RigidBasis only; zero world/caretaker/API
+construction, writes or subprocesses. Sweep declared angular rates1/10,1,10
+rad/s and nominal durations1/1000,1/100,1/4s, each at most128 compositions.
+Each Cayley step is exactly rational and orthogonal, using
+`c=(1-h^2)/(1+h^2), s=2h/(1+h^2), h=rate*dt/2`.
+Its actual rotation angle is2atan(h), not rate*dt: this is solely a storage
+growth probe, not a proposed accepted integrator. It stops only on the existing
+specific256-bit refusal; every other exception propagates. Output records
+accepted/rejected composition counts and the nominal elapsed interval.
+
+Independent read-only source review by body_force_review passed without defect
+on SHA0e9e29b45b8993275faf317f5b3f21fa9bb1288dc1cef001a431fcd6181c5cc3,
+unchanged before/after. It can refute indefinite recurrence of these sequences,
+not prove impossibility of all numerical representations. No rounding, bound
+increase, new body state or force-law change is authorized by the probe itself.
+
+One read-only search incorrectly named absent embodiment_kinematics.py and
+embodiment_commands.py paths; rg reported both missing, with no mutation. Do
+not repeat those guessed paths. Verified actual world/native source instead.
+
+### FB-01d diagnostic result and bounded corrective proposal
+
+Standalone command, exit0:
+`PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. timeout 10s python3 tools/probe_functional_body_rotation_bounds.py`.
+Reviewed source hash remained unchanged. All nine cases hit the existing
+256-bit admission bound. Accepted compositions before refusal:
+
+| nominal rate rad/s | dt=0.001s | dt=0.01s | dt=0.25s |
+| --- | --- | --- | --- |
+| 0.1 | 8 | 11 | 20 |
+| 1 | 11 | 16 | 42 |
+| 10 | 16 | 29 | 47 |
+
+These are representation failures, not observed physical instability. For the
+1rad/s,0.01s case the seventeenth composition refuses after0.16 nominal seconds.
+The Cayley-angle qualification above still applies. No claim that this proves
+all exact representations impossible; it rejects repeatedly composing this
+rational basis as the sustained-motion representation. Raising the bound is
+not the proposed correction. Existing instantaneous mechanics remain accepted.
+
+Recommended correction: explicitly allow deterministic bounded-error numerical
+integration for the simulated mechanical body/environment only. Keep immutable
+anatomy and finite current generalized position/velocity state; derive limb
+poses from the connected joint geometry, not independent unconstrained endpoint
+updates. Carry no motion-history store. Specify spatial/angular accuracy from
+the actual supported contact/joint geometry, fixed execution order, bounded
+step work, and energy/momentum error acceptance before implementation. Test
+convergence, long recurrence, cold restart and collision-boundary cases. Do not
+convert integration error into invented heat or metabolic intake; do not call
+numerical conservation exact. An unresolved numerical contact must not be
+reported as verified collision-free motion.
+
+This is a proposed numerical body law, not a completed solver or approved
+accuracy budget. It does not touch DSF, neuron arithmetic, cognition, semantic
+action selection, G1 transport, or live state. Joe authorized minimal functional
+approximations, but the existing body contract explicitly deferred this
+numerical-law decision. A1 requests the narrow numerical-approximation exception
+before changing that contract. The quantitative error budget and integration
+implementation remain A1's engineering responsibility, not a task for Joe.
+
+Health qualification: pre-probe task1544 service1/1/0 was recorded. At15:16Z
+post-probe AWS service was0/0/0 on1544 and task list empty; another agent's
+`tools/deploy_guala_retention_release.py --execute` was active (PID33806).
+A1 performed no production mutation. Do not call this a healthy before/after
+production envelope or attribute the cutover to the pure local diagnostic.
+Process census contains no remaining rotation-probe or timeout child.
+
+FB-01 remains incomplete and not deployed. No numerical integration source
+has been authored under the proposed exception. The immediate next item is
+ratification of that one body-only representation change, not new diagnostics,
+kernel changes or biological micro-simulation.
