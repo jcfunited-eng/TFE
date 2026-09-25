@@ -2092,7 +2092,7 @@ Source reconciliation is closed. Full-body goal remains ACTIVE and not live.
 Next is native geometry -> existing optical material/radiance/aperture consumer,
 within the approved motor/sensory interface. No new cognitive law or behavior.
 
-### FB-01k — optical-law boundary and proposed correction — 2026-09-25 20:02Z
+### FB-01k — optical-law boundary and proposed correction — 2026-09-25 20:00Z
 
 Previous goal turn PROGRESS: immutable integration69e43bf31 pushed,57 standalone
 checks passed, checked Slack receipt19:57:19. Current branch clean on entry.
