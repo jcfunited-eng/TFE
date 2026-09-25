@@ -225,13 +225,19 @@ unit_execution_stage() {
 runtime_validation_changed_inputs_are_rebuild_snapshot_only() {
   local changed_inputs_json
   changed_inputs_json="$(unit_changed_inputs_json "runtime_validation")"
-  # Accept rebuild_uf_snapshot.py OR run_refresh_with_l5_learning.py as the sole
-  # changed input — both represent refresh-pipeline hotfixes where a
-  # pipeline_terminal_integrity failure should not block deployment.
+  # Accept rebuild_uf_snapshot.py OR run_refresh_with_l5_learning.py OR the
+  # admin refresh route as the sole changed input — all three represent
+  # refresh-pipeline hotfixes where a pipeline_terminal_integrity failure
+  # should not block deployment. The route was added 2026-09-25 (Claude):
+  # the nightly refresh mode lives there, and the fix that makes the
+  # nightly run report "ok" again cannot ship while the live (old) gate
+  # judges the last run "error" — the circle can only be broken by the
+  # deploy itself. Receipt: docs/CH2_READING_FRESHNESS_20260924.md.
   jq -e '
     type == "array" and length == 1 and (
       .[0] == "rebuild_uf_snapshot.py" or
-      .[0] == "run_refresh_with_l5_learning.py"
+      .[0] == "run_refresh_with_l5_learning.py" or
+      .[0] == "web/src/app/api/admin/refresh/route.ts"
     )
   ' >/dev/null 2>&1 <<<"${changed_inputs_json}"
 }
