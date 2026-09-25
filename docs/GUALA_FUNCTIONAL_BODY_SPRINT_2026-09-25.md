@@ -3117,3 +3117,127 @@ Use the accepted native primitive interface and approved bounded numerical
 optics, with explicit error/work refusal. Native source/world material binding,
 spatially varying lighting and full ordinary-body integration remain open;
 no physical feature is deleted to fit the current component proof.
+
+### FB-01u — curved-primitive numerical regime, outside production
+
+Previous user-comment turn: no implementation progress; no scope change.
+Continue FB-01g from accepted0f3a62d12. Single item: map conservative cone/depth
+bounds for actual finite native primitives before selecting a curved-aperture
+integration law. New file tools/guala_body_curved_optical_regime.py only, plus
+this ledger. No native/body/cognition/schema edits, no new live interface.
+
+Requested architecture: complete moving body geometry participates in sight,
+under Joe's approved numerical optics, without centre-only sampling or omitted
+self. Current reality: planar charts/materials proven; curved coverage is open.
+Conflict: YES if planar-only or native point-ray misses were promoted as complete
+retinal coverage. Do not extend those shortcuts. Full DSF is not evaluated here;
+this is floating-point optical geometry, with no reduced DSF decision proxy.
+
+Source-derived correction to the working hypothesis: MuJoCo3.3.7 engine_ray.c
+ray_quad rejects discriminants below mjMINVAL; ray_plane uses its native
+rendered rectangle and one-sided visibility. Thus mju_rayGeom misses cannot
+serve as mathematical empty-cone certificates, and native ray witnesses do not
+prove infinite collision-plane optical coverage. Exported plane sizes remain
+unchanged; the eventual world-material binding must explicitly resolve physical
+surface extent. This diagnostic handles finite primitives only and does not
+silently discard a plane from a whole-scene claim.
+Primary source: https://raw.githubusercontent.com/google-deepmind/mujoco/3.3.7/src/engine/engine_ray.c
+
+Diagnostic law (float64 analytical bounds, NOT formal directed-rounding proof):
+For aperture(hlo,hhi,mulo,muhi), dOmega=dh*dmu. d0 is its central unit direction;
+epsilon is the maximum chord to its corners (dot is concave in mu and minimized
+at a longitude edge). A primitive's possible hit distance is bounded by
+T=norm(centre)+bounding_radius, tightened by each bounding-box slab whose ray
+component keeps one sign over the aperture. Then delta=T*epsilon bounds ray
+separation. Expanded primitive contains K+ball(delta); contracted primitive lies
+inside K eroded by ball(delta). Central-ray solid entry into the expansion is
+a lower first-hit bound; entry into a nonempty contraction before T is an
+all-rays-hit upper bound. Sphere/capsule radii expand/contract; box half-extents
+and cylinder radius/halfheight do likewise. Ellipsoid axes use homothety
+1+/-delta/min_axis, NOT axes+/-delta (the latter is not a dilation enclosure).
+Finite-shape ray intervals are derived from quadratic and slab inequalities;
+no native miss/threshold becomes a certificate. Origin inside a solid explicitly
+refuses this outside-eye diagnostic. Native point rays are independent sampled
+witnesses only. Floating-point discrepancy is measured, not claimed impossible.
+
+Bounded scene classification streams primitive bounds rather than retaining
+Nsite*Ngeom results. A patch is resolved only when its all-hit upper depth is
+strictly below all other possible lower depths; disjoint unknown patches remain
+unknown. Constant six-band radiances are diagnostic emitters, not production
+lighting. Unknown solid angle bounds radiance error; subdivision operates only
+on unresolved patches. All patches of a receptor share one residual-error
+budget. Explicit node/depth limits refuse, never omit geometry or publish a
+partially converged image. No state, persistent cache, world mutation, cold
+schema or downstream production consumer. Identical input repeats identically.
+
+Regime: finite sphere/capsule/ellipsoid/cylinder/box, multiple sizes/rotations,
+grazing apertures and sub-aperture silhouettes; compare interval classifications
+to native sampled ray witnesses and independent analytic sphere coverage;
+include the real articulated native roster, moved head and cold same state.
+Measure rays/cells/time/peakRSS and interval error. This determines viability,
+not a deployment gate. Source-only frozen review precedes execution; readonly
+AWS envelope and process closure accompany run. Production optics not changed.
+
+FB-01u first frozen review16b0014e6ebd32269b8b4687d834363747f3829db52258d7cb5112b18460a593:
+three localized diagnostic findings, no architectural finding. One batch corrects
+complete roster-array shapes (zip cannot truncate), confines optical-refusal
+catch to integrate alone (cold/motor failures propagate), admits only finite
+integer work/depth budgets and positive representable root/subpatch areas.
+Four direct refusal checks added. No candidate execution before final review.
+Native sampled witness tolerance1e-10m is explicitly diagnostic comparison only;
+it is NOT adopted as a production accuracy guarantee or formal roundoff proof.
+
+FB-01u final source review PASS, no remaining finding; frozen
+789f9da389dd85115e6b33b26bed5a22670b9bf60602890a0ef4019b2ff58f5a
+verified before/after review and before run. Diagnostic SHA256
+9e841c64601622fbb56a6d54f8da6b44c8e947b2a0aa2ad11d370bdac146c679.
+PID53712/session60008 terminalexit0;4.346007329s,peak201128KiB.
+36,000 sampled native ray witnesses across5finite shapes,3distances,3rotations
+showed0enclosure discrepancies at the disclosed comparison tolerance. Analytic
+axis-centred sphere aperture fraction .19684288451874393 was bounded by computed
+midpoint .19684600830078125 +/- .00115966796875;9893nodes,depth10. Four malformed
+roster/budget/underflow requests refused as intended.
+
+Full47-shape/19335-site scenes FAILED the declared resource acceptance: initial
+refused after2.071052464s at149131visited +153600nextnodes,depth4; moved head
+refused after2.115773669s at150491visited +145920nextnodes,depth4. Both exceed
+262144node budget. These are correct refusal receipts, NOT passing renderer or
+realtime proofs. Cold rendered-image/next-motor branch was NOT reached because
+integration refused. No production law accepted from this measurement.
+
+Bounded attribution probe (same reviewed source,PID54249/session32682,exit0):
+initial dark-panel possible19335/all-hit14200/unresolved5135;
+emissive-panel possible9675/all-hit0/unresolved9675; totalresolved7100,
+unresolved12235. No other geometry had a possible forward hit in that initial
+pose. Thus this full-roster scene does not prove a visible curved self-surface;
+the independent shape sweep/sphere integral are the curved evidence. Neither
+self exclusion nor an increased node budget is a remedy.
+
+Exact next correction: the thin broad planar box faces are unnecessarily being
+expanded/eroded as volumes. Use their existing native original PlanarSurface
+charts, aperture halfspaces and inverse-depth plane: for each physical front
+face, dot extrema bound t=1/(inverse[0] dot d); full-chart angular inclusion
+proves all-hit, exclusion proves no hit. Stream their lower/all-hit upper depths
+into the same visibility comparison. Reserve volumetric curved refinement for
+curved primitives. No centre sampling, painter sort, new opacity threshold,
+increased budget or law/state/cognition change. Next diagnostic must include a
+native curved foreground object and small off-centre silhouette, not merely
+the current body's out-of-view curved geometry. Preserve this unsuccessful
+regime by commit before changing the diagnostic.
+
+Read-only AWS pre22:28:19/post22:30:08/22:31:05: G1 now serves1551, sole task
+99cf7c9e92e7480ea6e1fda7ab65d70b,1/1/0,RUNNING/HEALTHY,digest
+05f9fe61d68a3a29077dd7b49c2434bc00e272bc68c7090f08fe057262fa9486.
+Task1551 declares2048CPU/8192MiB,uvicorn lean_production_app single worker;
+GUALA_PAIRED_ROOT=/app/guala/paired-current-gen2,maxworldbytes16777216.
+Identityunchanged,live2272606->2272875->2273016,persisted2272591->2273007;
+availabletrue,checkpoint/cleanupnull,durabilityfalse. Resource/refusalalarmsOK;
+historicalclockalarmALARM. Latest22:26CPUavg51.476263878%,max52.169040561%;
+RAMavg/max2.783203125%. Caretaker50841,G1retentionproof53618 andG1deploy54362
+belong to main and were left untouched. Both A1 PIDs absent on final census.
+This service observation is not A1 deployment approval or a G1 cutover audit.
+
+GoalACTIVE. Curved optical integration remains open; accepted body/material
+source unchanged. No contact/proprioceptive channel, live source or cognitive
+mechanism changed. Full ordinary-loop, restart, performance and production
+acceptance remain mandatory; diagnostic terminalexit0 is not their substitute.
