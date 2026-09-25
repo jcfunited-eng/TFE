@@ -264,3 +264,117 @@ constraints: do not apply isolated-segment accelerations independently to
 connected limbs. Existing EmbodiedBody has no mass/inertia fields; its 250-mm
 radius and 800-mm reach do not determine anatomy or strength. Carry this known
 missing morphology boundary forward rather than inferring cognitive age.
+
+## FB-01c — Coupled hinge-tree acceleration (active)
+
+Previous turn: progress, commit ff1c28f26 and local force proofs. This advances
+coupling, not a reopening of those laws. Requested architecture: one physical
+articulated body, no independently accelerated disconnected limbs. Current
+reality: kinematics and isolated segment forces exist; coupling is missing.
+Conflict: yes, the requested full body is not implemented. Do not extend
+semantic motor choice, G1 ingress, floor-disc collision, or kernel code. Next
+item: exact instantaneous acceleration/reaction of a free or explicitly
+supported tree of massive segments connected by physical revolute hinges.
+This is reduced rigid mechanics; no DSF field is consumed or compressed.
+Deformable tissue, friction, joint limits and finite-time integration remain
+outside this slice and are not silently approximated by this solver.
+
+Files: new `substrate/functional_body_articulation.py` and standalone test.
+Reuse mass, motion, basis, wrench and vector laws from FB-01a/b. Each child's
+COM pose follows coincident physical joint anchors; its actual relative basis
+must map the child hinge axis onto the parent hinge axis exactly. Parent
+indices precede children, defining one acyclic tree rooted at the actual base.
+No object labels, cognitive command names, desired-pose controller, motion
+script, phantom mass or joint-strength constants. Multiple finger/limb branches
+use the same law. This first joint type is a hinge, not a full shoulder/hip.
+
+Use spatial columns [angular acceleration; COM acceleration] in WORLD axes,
+not DSF fields. For parent-to-child COM displacement r and child hinge-to-COM
+lever l, axis s, relative angular rate qd:
+
+    X * [alpha; a] = [alpha; a + alpha cross r]
+    S = [s; s cross l]
+    omega_child = omega_parent + s * qd
+    v_child = v_parent + omega_parent cross r + (s cross l) * qd
+    c_angular = omega_parent cross (s * qd)
+    c_linear = omega_parent cross (omega_parent cross r)
+               + 2 * omega_parent cross ((s cross l) * qd)
+               + s cross (s cross l) * qd^2
+    A_child = X A_parent + S qdd + c
+
+At each COM, I is the 6x6 rigid inertia (rotational tensor in world axes and
+mass times identity), p = [omega cross I_rot omega; 0] - external_load.
+Leaf-to-root articulated elimination:
+
+    U = I_A S; d = S^T U; u = effort - S^T p_A
+    I_reduced = I_A - U U^T/d
+    p_reduced = p_A + I_reduced c + U u/d
+    I_parent += X^T I_reduced X; p_parent += X^T p_reduced
+
+Solve the floating root's six equations once, or use explicitly supplied
+physical base acceleration and return its required support wrench. Then
+root-to-leaf qdd=(u-U^T(X A_parent+c))/d. This is the standard articulated-body
+elimination derived from Newton-Euler, implemented independently; no external
+source code copied. Fixed-size (6x6) blocks per segment, linear tree passes,
+no n-by-n joint matrix, dense world scan, timestep loop or persistent cache.
+Primary algorithm reference: https://royfeatherstone.org/papers/icra00.pdf
+
+Return actual COM motion and bearing wrenches through the existing force law.
+These are reusable physical proprioceptive/contact inputs, not new receptors.
+Root and child state remain immutable; prepare the complete result before
+return. Input/operation/result rationals retain the existing bit bound, with
+explicit side-effect-free refusal on overflow. Repeated calls retain no state.
+Neither this module nor its tests boot any organism or world. No new persistence
+format or production call path is mounted in this slice.
+
+Acceptance: coupled two-link off-centre force accelerates the parent (unlike
+isolated segments); joint anchors match position, velocity and acceleration;
+free-body total momentum and power obey applied loads; explicit support reports
+its reaction; asymmetric spin, nonzero joint rates and rotated axes work;
+branches preserve reactions and power; malformed graph/axes and overflow refuse
+without mutation. Cross-check the returned whole-tree motion by independent
+Newton-Euler back-substitution and energy-rate balance. Existing a/b proofs
+remain. Only after the new module passes independent frozen-source review may
+the bounded standalone tests run. Whole-FB mounting and live acceptance stay
+open; no coupled limb motion is to be claimed from this source-only milestone.
+
+### FB-01c result — 2026-09-25 15:08Z
+
+Independent file-hash-scoped source review by `body_force_review` passed with
+no required corrections. Derivation rechecked world-coordinate acceleration
+conventions, hinge anchor constraints, elimination, support reaction and power.
+The historical missing root-handoff/whole-tree-freeze limitation remains.
+Source SHA `f2ff14ffc73976e592c7fef506367129814bb1beabe0b2004c5e5b0f6ba2a6cc`;
+test SHA `e05616d7f5eac7e91f40f8a97193f5a6a679391cd51eafebddc5a358b16b43ef`.
+Both unchanged after review and test.
+
+Standalone articulation tests: **10 passed in0.029s**. Existing force tests:
+12 passed in0.017s; kinematics:12 passed in0.011s. Commands used
+`PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. timeout 30s python3 <test>`, no pytest
+or application/world import. Off-centre unit-force proof produced parent
+acceleration1/4 and child3/4 m/s^2, with equal joint-anchor acceleration;
+isolated-body solution differs. Moving asymmetric branches satisfy Cartesian
+Newton-Euler, anchor position/velocity/acceleration, actual effort projection
+and instantaneous energy-rate balance. Free fall produces no fake joint motion.
+
+Bounded local resource probe, same unit-mass/inertia straight chain with
+1rad/s at each joint and a unit tip force: 1 hinge1.57ms,3 hinges2.96ms,
+12 hinges13.02ms,24 hinges22.11ms. One separate tracemalloc24-hinge call:
+current88,816B,peak201,777B, process maxRSS14,080KiB. This does not establish
+worst-case input cost or full-body production latency; numerical size, contacts,
+finite-time integration and neural return remain outside the measurement.
+Stored/admitted scalars are checked at256bits; fixed-depth temporary Fraction
+expressions can be wider. No claim that every intermediate is256bits.
+
+No harness child/timeout remains in the post-run census. Git whitespace check
+clean. Read-only AWS service stayed1/1/0 on1544, task
+3a19bd326e5d4ae0aae0bb1c7c8c64e1 RUNNING/HEALTHY, unchanged digest23122cdd...
+Before test,15:00 CPU average51.30%,max53.57%,memory average/max4.749%.
+Historical clock-stalled remainsALARM, resource/refusal alarmsOK. No live writes.
+
+Next boundary: finite-time evolution with geometry, energy and limit/contact
+handling. Do not simply add accelerations to poses and claim that joints,
+support, collision avoidance or energy remain exact. Current rational bases
+represent instantaneous orientations; arbitrary finite rotations need an
+explicit numerical/physical representation, not silently rounded coordinates.
+FB-01 remains active and NOT deployed; this is not learned locomotion.
