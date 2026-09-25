@@ -25,19 +25,21 @@ REGION = "us-east-1"
 ACCOUNT = "418384447921"
 CLUSTER = "tfe-web-cluster"
 SERVICE = "dsf-ai-service-lb"
-OLD_TASK = "394db6aa32df455fa7d451e43228bfdb"
-OLD_DEFINITION = "arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1542"
-BASE = ACCOUNT+".dkr.ecr."+REGION+".amazonaws.com/dsf-ai@sha256:8c9a0a042651acc9f6fddb798f24381358e3a2b7232342fffb13573d923cef11"
+OLD_TASK = "0ced705eba704130b21dd43090686bb3"
+OLD_DEFINITION = "arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1543"
+BASE = ACCOUNT+".dkr.ecr."+REGION+".amazonaws.com/dsf-ai@sha256:1706d543dc87dcee17f2d71e121ad284536bdeaea06511a807822e0fb91af690"
 REPOSITORY = BASE.split("@")[0]
 FILES = {
  "dsf_ai_service/substrate/embodiment_world.py": "c9534a4c30fe6b9dc66b2aebd5751906d78a64697777ff99b1f2ae5b3bbe80ac",
  "dsf_ai_service/guala_caretaker_hand.py": "df525a0dfa5ac24e7a53cef1c23f4ad4106c713cf655265c8f8133d242d86150",
- "dsf_ai_service/lean_production_app.py": "d157b4b89c2c0b14bdf2344ee18582cd9be7ca3e9b15a669ac2751e8772af20d",
+ "dsf_ai_service/lean_production_app.py": "8131709b6ec6782533f4bd63cbbbd197be75930b4ea3210367686961be8fcef7",
  "dsf_ai_service/guala_functional_organism.py": "b98c1e36c9b50a966b16c283518db3e0464486f09df2023258e5cbd9eeed146a",
- "dsf_ai_service/lean_actor.py": "7bcb4658caeeead8c507f902698cb8bfa99f840d6ce0d0155c3d95f424ed5e7f",
+ "dsf_ai_service/lean_actor.py": "668b6a8b7ae4b2221b8fe644caccfd8d9b4e86ca835f85c27fc5c5dbeec0a897",
  "dsf_ai_service/episodic_binding_engine.py": "f1cc108452cb512818f2e4f05f73e29838f997dd10a9ecdb42134486fe879cb4",
  "dsf_ai_service/substrate/native_core.py": "7144580489e9b739538a90f1c0360209b3a4e2ecb94d6a6362db6b4aa902fbe3",
  "dsf_ai_service/guala_home_world.py": "e2e845590bb84570ddcc5b1d0fddca2ef660760243a78709c38ddf016a199d5c",
+ "dsf_ai_service/lean_sensory_occurrence.py": "cb7ebef4b506c04f1f87e0f2dc593d53d21dd3d76badf3d41d514c8dc93f8b6d",
+ "dsf_ai_service/static/gualaloom.html": "14a7f966a8a42e417cdab45ad040b21212f616a87ed58bd826b425a307e825f7",
 }
 IDENTITY = "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1"
 ROOT = Path(__file__).resolve().parents[1]

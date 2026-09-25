@@ -130,6 +130,7 @@ class LeanSensoryOccurrence:
     focal_origin: tuple[float, float] | None = None
     focal_pitch_millidegrees: tuple[int, int] | None = None
     focal_crop_dimensions: tuple[int, int] | None = None
+    t_capture_ms: int | None = None
 
     def __post_init__(self) -> None:
         if self.source not in SOURCES:
@@ -244,6 +245,12 @@ class LeanSensoryOccurrence:
             or not all(isinstance(v, int) and v >= 24 for v in self.focal_crop_dimensions)
         ):
             raise ValueError("focal crop dimensions left bounded size")
+        if self.t_capture_ms is not None and (
+            isinstance(self.t_capture_ms, bool)
+            or not isinstance(self.t_capture_ms, int)
+            or self.t_capture_ms < 0
+        ):
+            raise ValueError("capture timestamp is not a non-negative integer")
 
     @property
     def source_receipt_sha256(self) -> str:
@@ -279,6 +286,8 @@ class LeanSensoryOccurrence:
             body += f"\0focal_pitch:{self.focal_pitch_millidegrees[0]},{self.focal_pitch_millidegrees[1]}".encode("ascii")
         if self.focal_crop_dimensions is not None:
             body += f"\0focal_dims:{self.focal_crop_dimensions[0]},{self.focal_crop_dimensions[1]}".encode("ascii")
+        if self.t_capture_ms is not None:
+            body += f"\0t_capture:{self.t_capture_ms}".encode("ascii")
         return hashlib.sha256(body).hexdigest()
 
 
