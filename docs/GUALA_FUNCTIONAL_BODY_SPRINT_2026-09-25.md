@@ -2302,3 +2302,116 @@ aperture integration, retaining native visibility and fixed surface coordinates.
 Use the recorded edge/strip failures as falsifiers; do not install the diagnostic
 midpoint sampler or invent a sample-agreement threshold as production truth.
 No new user approval needed. Whole-body objective ACTIVE, still not delivered.
+
+### FB-01l — convex physical-surface aperture integration contract
+
+Previous turn PROGRESS:48d3e8ef3 supplied32 measured regimes and ruled out uniform
+supersampling/sample-agreement as an optical error guarantee. This is the next
+necessary numerical optical operation, not another sampler-count sweep.
+
+Requested architecture: integrate actual projected surface area, including
+subsample-width strips, under arbitrary head-frame rotations. Current reality:
+native rays give actual hit geometry but no aperture area; uniform midpoint
+coverage aliases. Conflict YES if that rejected sampler were promoted. No DSF,
+cognition, anatomy, live runtime or physical state is changed by this slice.
+The body/optics are reduced numerical models, not full-field cognitive evidence.
+
+Scope: dsf_ai_service/substrate/functional_body_optics.py,
+tests/test_functional_body_optics.py and this ledger. Existing diagnostic scene
+is reused by offline tests, not copied into a new world. One owner A1; frozen
+independent source review before imports/tests. No new native package/build.
+
+Input: a convex surface's directed spherical halfspaces n dot d>=0, expressed
+in the actual eye frame, and the unchanged rectangular angular receptor apertures
+(h_lo,h_hi,mu_lo,mu_hi), mu=sin(v). Output: each aperture's covered solid angle.
+This operation neither chooses visibility nor assigns a material/object identity.
+World/native visibility and fixed material charts must still supply and compose
+the surfaces before this becomes a complete renderer. It must never be used to
+sum mutually occluded surfaces or call a convex cone a recognized object.
+
+For each halfspace set A(h)=n_x*cos(h)+n_y*sin(h). If n_z>0 the lower boundary
+is mu>=-A/sqrt(A*A+n_z*n_z); if n_z<0 it is the upper boundary with the opposite
+sign; n_z=0 gives a horizontal angular interval. Split at actual great-circle
+intersections and crossings with the receptor's constant-mu edges. Between those
+events the active upper/lower boundaries cannot change. Integrate analytically:
+F(h)=-sign(n_z)*asin(R*sin(h-phi)/sqrt(R*R+n_z*n_z)),
+R=hypot(n_x,n_y),phi=atan2(n_y,n_x). Use stable angle differences to avoid
+subtracting near-equal inverse-trig values. Constant boundaries integrate as
+mu*delta_h. dOmega=dh*dmu, so no ignored angular Jacobian.
+
+Cheap exact-domain extrema of each halfspace over a receptor classify wholly
+inside/outside cells; only intersected boundary cells need subdivision. These
+are geometric inequalities, not salience/distance scores or guessed similarity
+thresholds. All operations use approved float64 optical numerics; this is not
+formal exact-real interval arithmetic. Reject non-finite/malformed domains.
+
+Work: caller supplies max_cells for temporary interval work. Derive the finite
+per-aperture event ceiling from the supplied plane count before allocation;
+chunk affected apertures within that explicit limit. No retained scene, cache,
+ray image, history, physical update or global authority. O(site_count*planes)
+classification followed by work on boundary cells; source has no runtime caller
+until full material/visibility integration is implemented and verified.
+
+Acceptance: reuse the actual finite native luminous boxes and all19335 apertures
+from the prior failure. Sum only the analytically disjoint visible faces of each
+convex emissive box (not arbitrary overlapping objects), compare to independent
+finite-box bounds, and require the strip's nonzero response. Test arbitrary
+rotations of face coordinates, native ray coverage of known interior directions,
+complement partitions, full/empty aperture cases, input/work refusal and no
+source-state mutation. Measure work/time/RAM; do not claim complete optics or
+250ms production from this component. Preserve all prior failure data unchanged.
+
+#### FB-01l verification — 2026-09-25 20:37Z
+
+Independent frozen source review found two localized issues, corrected in one
+batch: centroid winding did not prove convexity; native interior-ray witnesses
+were absent. Nonincident-vertex halfspace validation now rejects the concave
+face, and all four scenes verify independent bright/dark native hits. Final
+review passed fingerprint
+59de37e71767c6f7fa8c2f613b42d96fb1b2914bcb4fad6847c64cd60147bf22,
+unchanged before/after execution. No architectural rejection or test-driven
+candidate revisions. One tool-script syntax error before patch invocation made
+no file changes; corrected before the one batch was applied.
+
+Standalone unittest/runpy, no pytest/conftest/live writes: **5 passed** in0.444s.
+PID22618/session73210 completed exit0; processwall0.615794s,user0.598258s,
+system0.03638s,peakRSS87484KiB. Pinned existing MuJoCo3.3.7 and numpy2.4.6;
+single-thread BLAS, no package installation or compiled rebuild. The test process
+created no children; post-run PID census found no surviving harness process.
+
+| Native scene | Apertures | Measured integration ms | Error outside independent finite-box reference |
+|---|---:|---:|---:|
+| edge0.117deg |19335|9.443599|5.35637312282e-10|
+| edge0.499deg |19335|10.018189|2.83360113151e-10|
+| edge4.999deg |19335|9.762063|5.05404496032e-10|
+| strip0.02–0.04deg |19335|9.549199|1.62786450986e-14|
+
+These timings cover one convex luminous box, not full scene visibility or
+production latency. The strip now produces its physical nonzero aperture area.
+Tests also prove complement/full/empty area, chunk-equivalent outputs, rotated
+surface area against independent spherical-triangle formula, opposite winding,
+concave/domain/work refusal, unchanged native observation, actual head-effort
+light change, bit-identical fresh native reconstruction and next motor successor.
+This is locally exercised numerical geometry, not a complete optical renderer,
+recognition, full DSF evaluation, or production-body delivery.
+
+SHA256:
+- functional_body_optics.py:1c0c700e168af7c2adb4144b3fc2bceefa05c2914d3567fc108fbc0fa466cf43
+- test_functional_body_optics.py:810ca36b3e86daf14782a83f3d493b5b5c3986c93355ee8ddcfad632d0383824
+
+AWS read-only pre20:36:12/post20:37:18:1549 sole task
+478e055e5f0146789dd2ba0642bb578b,service1/1/0,RUNNING/HEALTHY,digest
+c883967dae9703796245db6408d12ec03a7591dbb48c8c0c4188bdc2d1a837b8.
+Identity1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1 unchanged;
+live2261394->2261502,persisted2261375->2261471,availabletrue,
+checkpoint/cleanupnull,durabilityblockedfalse. CPU20:30avg51.444%,max52.387%;
+20:35avg51.348%,max51.701%. RAM20:30avg3.110%,max3.180%;
+20:35avg3.080%,max3.113%. Resource/refusalalarmsOK; historicalclockalarmALARM
+unchanged. Caretaker95907 untouched. G1's separate pursuit pytest was visible
+in the pre-run census; no heavy A1 workload or process interference occurred.
+
+Next exact item: visible-surface/material composition using this aperture
+primitive and authoritative native geometry. Occlusion, surface-attached
+textures, curved surfaces and ordinary-loop optical mounting remain open. Do not
+sum overlapping faces, substitute centre rays as area, revive rejected uniform
+sampling, or claim the whole functional-body objective complete. GoalACTIVE.
