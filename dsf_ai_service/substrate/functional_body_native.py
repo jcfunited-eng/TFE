@@ -82,6 +82,19 @@ class BodyFeedback:
 
 
 @dataclass(frozen=True)
+class WorldFrame:
+    """Rigid transform for world custody/optics, never an organism sensation.
+
+    Columns of the row-major rotation map local x/y/z axes into world axes:
+    world_point = position_m + rotation_world @ local_point. No pose rounding
+    or yaw-only reconstruction is allowed at this boundary.
+    """
+    name: str
+    position_m: tuple[float, float, float]
+    rotation_world: tuple[float, ...]
+
+
+@dataclass(frozen=True)
 class MechanicalObservation:
     # Whole-world custody/diagnostics. Only self_feedback is organism afference.
     time_s: float
@@ -92,6 +105,7 @@ class MechanicalObservation:
     potential_j: float
     kinetic_j: float
     self_feedback: BodyFeedback | None
+    world_frames: tuple[WorldFrame, ...]
 
 
 @dataclass(frozen=True)
@@ -185,6 +199,14 @@ class NativeBody:
                                 for i in range(m.ngeom))
         self._sensor_names = tuple(mj.mj_id2name(m, mj.mjtObj.mjOBJ_SENSOR, i) or str(i)
                                    for i in range(m.nsensor))
+        # Static anatomical addresses, compiled once. These frames let the
+        # existing world own body/object geometry and mount head receptors.
+        # They are explicitly outside BodyFeedback; no hidden object identity
+        # is delivered to cognition as a new sense.
+        self._world_frame_bodies = tuple(
+            (i, name) for i in range(1, m.nbody)
+            if (name := mj.mj_id2name(m, mj.mjtObj.mjOBJ_BODY, i)) is not None
+        )
         self._sensory_root = sensory_root
         self._self_sensors, self._self_geoms = self._sensory_membership(sensory_root)
         self._data = mj.MjData(m)
@@ -196,6 +218,11 @@ class NativeBody:
         if any(m.jnt_type[i] not in (mj.mjtJoint.mjJNT_HINGE, mj.mjtJoint.mjJNT_SLIDE)
                for i in self._limited):
             raise ValueError("limited ball joints require a separate error metric")
+
+    @property
+    def model_identity(self) -> str:
+        """Binding already sealed into every native integration state."""
+        return self._header.hex()
 
     def _sensory_membership(self, root_name):
         m = self._model
@@ -318,9 +345,14 @@ class NativeBody:
         feedback = (None if self._sensory_root is None else
                     BodyFeedback(float(d.time), tuple(sensors[i] for i in self._self_sensors),
                                  tuple(local)))
+        if not np.isfinite(d.xpos).all() or not np.isfinite(d.xmat).all():
+            raise ValueError("non-finite world-frame projection")
+        frames = tuple(WorldFrame(name, tuple(float(x) for x in d.xpos[i]),
+                                  tuple(float(x) for x in d.xmat[i]))
+                       for i, name in self._world_frame_bodies)
         return MechanicalObservation(float(d.time), tuple(d.qpos), tuple(d.qvel),
                                      sensors, tuple(contacts), float(d.energy[0]),
-                                     float(d.energy[1]), feedback)
+                                     float(d.energy[1]), feedback, frames)
 
     def observe(self, state):
         self._restore(state)

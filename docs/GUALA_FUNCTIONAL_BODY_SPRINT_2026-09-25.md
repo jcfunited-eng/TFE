@@ -1489,3 +1489,171 @@ currently have masses and visual parts but no authored anchoring/joint model;
 optics currently supports yaw/pitch, not the native head's full orientation.
 These are the remaining mount interfaces, not evidence that mounting is done.
 No test or harness was started, and no deployment claim is made. GoalACTIVE.
+
+### FB-01g current-world custody candidate — 2026-09-25, in progress
+
+Continuing the same world-mount item, not reopening the native mechanics or
+existing-reserve proofs. Parent owns native world-frame projection, thermal
+transaction wrapper and standalone tests. body_force_review owns only
+embodiment_world.py. No candidate tests/imports/compilation before the owner
+finishes and one source-only frozen review passes. Production is untouched.
+
+Implementation contract for this offline custody boundary:
+- Existing EmbodimentWorldAuthority remains sole publisher. _WorldState holds
+  one immutable model declaration and current native integration bytes. Native
+  solver scratch is not a second retained body. Historical observations carry
+  signed model/state digests, rigid transforms and local feedback, not another
+  integration-state copy. Restore regenerates current evidence from real bytes;
+  historical observations are not decoded into fabricated native worlds.
+- NativeWorldMount binds every declared body/object to a named native body and
+  binds actuators to their physical body. In this first bench all driven motors
+  belong to self; other participants are explicitly fixed/passive. Aggregate
+  motor work must not debit Guala for another participant. This does NOT yet
+  simulate caregiver articulation or convert the live home geometry.
+- AnatomicalEffortCommand carries addressed efforts and an elapsed interval.
+  NativeBody advances caller-owned bytes once, returns actual local joint,
+  inertial and contact evidence, measured work, and full world rigid transforms.
+  WorldFrame maps local points as position+rotation@point; it is world/optical
+  geometry, never an omniscient sensory channel. No yaw-only reconstruction.
+- All fallible native settlement, projection, validation, receipt and capacity
+  work precedes publication. Failed preparation or discard leaves the exact
+  predecessor bytes. Existing committed rollback restores those same bytes.
+  Fresh restore must reproduce the next actual effort successor byte-for-byte.
+- Legacy root movement, held-object teleportation, prescribed surface contact
+  and authored body transport cannot independently mutate a mounted native body.
+  Retained historical learning is not reclassified as learned joint effort.
+- Zero-time mount stages under the existing thermal-then-world lock order,
+  preserves temperatures and fractional heat, and retires only the obsolete
+  latest transition receipt. Rollback restores the prior receipt and state.
+  Timed native settlement on the thermal wrapper is explicitly UNAVAILABLE
+  until motor/bearing/contact dissipation has a physical node mapping. Neither
+  numerical residual nor unspecified losses may be relabeled skin heat. This
+  guard means the candidate is not production-releasable.
+
+Acceptance/evidence map (all backend-only, not UI/live evidence):
+1. Actual native xpos/xmat -> immutable WorldFrame -> world observation/receipt
+   -> current encoded custody -> fresh observation and equal next successor.
+2. Actual joint effort/rate and site signals -> BodyFeedback -> signed native
+   observation. No external identity/global frame injected into self feedback.
+3. Prepared native state/work -> existing prepared capability -> atomic publish
+   or discard/rollback. No current-state mutation during preparation.
+4. Prior thermal transition -> zero-time mount -> unchanged heat/new world
+   receipt -> exact rollback and fresh authority restoration.
+Learner integration, head optics consumer, timed thermal work, actual home and
+caregiver conversion, mature copied-body proof and live delivery remain OPEN.
+
+Named source-only tests authored (not run): two native rigid-frame tests and
+seven tests in test_functional_body_world.py. The latter use the real biped and
+authority with explicitly declared zero-gravity bench, fixed external entities
+and a five-node thermal bench. They do not prove home collisions, autonomous
+motion, food supply, full field cognition or production safety. Tests cover
+first installation and retained/rollback/fresh-cold continuation branches.
+
+Pre-execution correction/recurrence record:
+- Parent's text assembly malformed the thermal mount method declaration and
+  placed a duplicate port-command header ahead of it. Source diff caught this
+  before any import/test. Rebuilt the complete file with explicit method
+  boundaries and inspected the resulting declaration/lock/guard ordering.
+- apply_patch rejected delete+add of one path in one patch; no edit occurred.
+  Full-file Update is the supported replacement form; do not repeat that form.
+- Guessed existing thermal test filename and test glob were absent. Do not
+  repeat those guesses; the declared standalone test is now the exact target.
+- Renamed the insufficient-work test so its title does not claim a future-food
+  experiment it does not execute. Future-intake exclusion remains covered by
+  the already closed existing-reserve energy tests, not this world bench.
+
+No unit-suite counts, production identity, steady-state resource or delivery
+claims follow from this unexecuted source. Goal remains ACTIVE.
+
+### FB-01g mount contract correction — source review, before execution
+
+Rejected the first mount candidate before import/compile/test. Exact rejected
+diff (including the new test) is retained in
+GUALA_FUNCTIONAL_BODY_MOUNT_REJECTED_2026-09-25.patch; all five executable/test
+files were restored to their accepted HEAD before beginning the corrected
+candidate. This is A1-owned work only; no G1 or production file was reverted.
+
+Architectural failure: public mounted-to-unmounted restore correctly refuses
+silent reversion to floor-disc mechanics. The thermal decoder previously used
+that same public restore to undo an inner-world success followed by outer
+thermal rejection. A fresh-authority restore could therefore retain half of a
+rejected pair. The corrected contract performs ONE rollback at the outermost
+thermal/world lock boundary, restoring the exact immutable predecessor world,
+recorded declaration, thermal state/residue, revision/receipt, latest transition,
+physical return and pending/committed thermal references. No decoding or
+re-encoding is needed to undo a rejected private transaction. Native engine
+scratch is not custody; subsequent native calls restore authoritative bytes.
+The inner decoder no longer recursively invokes public restore for rollback.
+
+Localized source findings included a malformed constructor insertion in the
+world file (before any import) and a bench other-body orientation that did not
+preserve its actual predecessor yaw. Correct the constructor layout and give
+the bench body its existing pi yaw; do not relax pose preservation. Add the
+decisive fresh-authority failure falsifier: authenticated mounted inner world,
+mismatched outer thermal revision -> rejection -> exact predecessor encoding
+and next lawful unmounted interval. Recheck both ordinary and mounted cold
+restore. Existing chemical/sensory physics and timed thermal unavailability
+are unchanged. Parent now owns the complete corrected candidate; prior owner
+has stopped editing. No production health or completion claim.
+
+Corrected source freeze (manual exact hashes; fingerprint script remains
+unavailable as previously recorded). Independent source-only review assigned
+to mount_custody_review; parent will not edit these files during review:
+world 7c323c1b430896007f33763dbba98575d051c47bb881f4ca7ccef8aa5b9f1aec
+thermal 9ec9464cbc6ebd9d269fb2e3583741ff0c7537437e53651fb0dad206b0f68e35
+native 1034f386e7f180051ee132504c5c5007d1714b683c9ea2a71ed51208ac1b96b5
+native-test 2a6e77106880821d3c925f156dd2a655cf0ccb0431ca4275d950d39d1c8f0bda
+world-test b762ad46a5a0f12dea2ffa9e3f180646f9152fd27bd88433f05c22d03860a1ed
+
+Readonly pre-execution envelope at18:50Z: actual service dsf-ai-service-lb in
+tfe-web-cluster/us-east-1, desired/running/pending1/1/0, task1547 and running
+task772d1e4f5096497e879f12a4cba2bcb4. Observer identity unchanged,
+live2251921/persisted2251910, availabletrue, checkpoint/cleanupnull and
+durability_blockedfalse. CPU five-minute averages51.44/51.84%, RAM4.69%; old
+clock-stalled alarm remainsALARM sinceSep8, resource/refusal alarmsOK. This is
+an operational envelope, not a body integration or benchmark result.
+Preflight mistake: omitted -lb from service name, yielding no described service
+and ServiceNotFound on task listing. Resolved using readonly list-services;
+record exact dsf-ai-service-lb for later envelopes, never retry guessed name.
+No test or native import has run on this candidate yet.
+
+### FB-01g offline world custody verified — 2026-09-25 18:54Z
+
+Independent source-only review passed the corrected frozen candidate with no
+blocking findings; all five hashes matched before/after review and execution.
+The reviewer did not import, test, edit or touch production.
+
+Focused standalone checks (no pytest/conftest, no live requests from tests):
+- test_functional_body_world.py:8/8 passed in0.506s. Whole process1.128s,
+  peakRSS143,852KiB, user1.065s/system0.080s; PID89226 exited.
+- Native frame/mechanics plus unchanged anatomy/energy consumers:36/36 passed
+  in2.233s. Whole process2.632s, peakRSS142,800KiB,
+  user2.610s/system0.036s; PID89327 exited.
+- Source imported from this worktree using systemPython and pinned existing
+  MuJoCo3.3.7 environment, bytecode writes disabled, numerical thread count1.
+  No package install, new daemon, production-body import or network test call.
+- Process census after both checks shows no A1 harness survivor; G1 caretaker
+  PID37677(parent760) remains unchanged. git diff --check passes.
+
+This closes OFFLINE native state custody/transaction/cold continuation only:
+real articulated effort -> existing world prepare -> immutable fullframe/local
+feedback/work receipt -> commit -> cold restore -> equal next native successor.
+Failed preparation/discard/committed rollback and failed coupled restore preserve
+the exact predecessor. The additional test verifies the corrected fresh-restore
+failure and its next normal interval, not merely a dictionary comparison.
+
+Readonly AWS after: same task1547/772d1e4f5096497e879f12a4cba2bcb4,
+RUNNING/HEALTHY, desired/running/pending1/1/0; digest
+d180f16cd50a1089365cfccd648560ab7bda14a65e2886c09c1fc93d7e5c3d93.
+Observer identity unchanged; live2251921->2252078 and
+persisted2251910->2252070, availabletrue, errorsnull, durability_blockedfalse.
+CPU reporting-window average51.33%, RAM4.699%; old clock-stalledALARM remains
+separate from current advancing ticks. Shared-host short-test timing is NOT
+production body latency or long-run compute certification.
+
+Remaining required next boundary: physically located native dissipation in the
+existing thermal transaction (timed mounted thermal calls currently refuse).
+Actual home/caregiver conversion, learner effector and signed feedback interface,
+head optics, copied mature body, packaging, restart and live acceptance remain
+open. No production delivery, autonomous following, gait or climbing is claimed.
+G1's affordance/curriculum work is untouched. Full goal remains ACTIVE.

@@ -5,8 +5,9 @@ body is the substrate's self-body. Every body has a separate physical command
 port, while one non-body environment port can advance only mounted material
 time. Those ports are control topology, never names, language meanings, or
 sensory identity. The authority does not choose actions or assign meaning to
-them. It executes canonical typed commands arriving as opaque bytes on exact
-ports, using exact integer geometry. Each accepted transition is atomic and
+them. Unmounted ports use the predecessor integer geometry. An explicitly
+mounted native model instead owns continuous rigid frames and current-only
+integration bytes under this same authority. Each accepted transition is atomic and
 produces authenticated before/after observations and an authenticated
 execution receipt.
 
@@ -57,6 +58,17 @@ EXECUTION_SCHEMA = "guala.embodiment.execution.v6"
 STATE_SCHEMA = "guala.embodiment.state.v7"
 ENVELOPE_SCHEMA = "guala.embodiment.state.hmac.v7"
 MIGRATION_SCHEMA = "guala.embodiment.optical_surface_migration.v6"
+# Mounted mechanics has separate authenticated schemas; absent mounts keep every
+# predecessor command, observation and persistence encoding unchanged.
+NATIVE_COMMAND_SCHEMA = "guala.embodiment.command.native.v1"
+NATIVE_OBSERVATION_SCHEMA = "guala.embodiment.observation.native.v1"
+NATIVE_EXECUTION_SCHEMA = "guala.embodiment.execution.native.v1"
+NATIVE_STATE_SCHEMA = "guala.embodiment.state.native.v1"
+NATIVE_ENVELOPE_SCHEMA = "guala.embodiment.state.hmac.native.v1"
+NATIVE_OBSERVATION_DOMAIN = b"guala-embodiment-observation-native-v1\0"
+NATIVE_EXECUTION_DOMAIN = b"guala-embodiment-execution-native-v1\0"
+NATIVE_STATE_DOMAIN = b"guala-embodiment-state-native-v1\0"
+
 
 V6_STATE_SCHEMA = "guala.embodiment.state.v6"
 V6_ENVELOPE_SCHEMA = "guala.embodiment.state.hmac.v6"
@@ -1847,12 +1859,23 @@ class BodySurfaceContactCommand:
 
 
 @dataclass(frozen=True, slots=True)
+class AnatomicalEffortCommand:
+    """Sparse absolute effort settings; unchanged components remain native ctrl."""
+    updates: tuple[tuple[str, float], ...]
+    duration_microseconds: int
+
+
+
+
+
+@dataclass(frozen=True, slots=True)
 class AdvancePhysicalTimeCommand:
     duration_microseconds: int
 
 
 EmbodimentCommand = (
-    MoveCommand
+    AnatomicalEffortCommand
+    | MoveCommand
     | PickCommand
     | GraspContactCommand
     | ReleaseHeldObjectCommand
@@ -1868,6 +1891,27 @@ EmbodimentCommand = (
 
 
 def command_record(command: EmbodimentCommand) -> dict[str, object]:
+    if isinstance(command, AnatomicalEffortCommand):
+        if not isinstance(command.updates, tuple) or not command.updates:
+            raise ValueError("anatomical effort requires immutable sparse updates")
+        updates = []
+        for pair in command.updates:
+            if not isinstance(pair, tuple) or len(pair) != 2:
+                raise ValueError("anatomical effort update fields changed")
+            name = _identifier(pair[0], "native actuator address")
+            value = _native_vector((pair[1],), 1, "native effort")[0]
+            updates.append([name, value])
+        names = tuple(pair[0] for pair in updates)
+        if names != tuple(sorted(set(names))):
+            raise ValueError("anatomical efforts need canonical unique addresses")
+        return {
+            "schema": NATIVE_COMMAND_SCHEMA, "operation": "anatomical_effort",
+            "updates": updates,
+            "duration_microseconds": _bounded_integer(
+                command.duration_microseconds, "physical action duration",
+                minimum=MIN_MATERIAL_ACTION_DURATION_US,
+                maximum=MAX_MATERIAL_ACTION_DURATION_US),
+        }
     if isinstance(command, MoveCommand):
         command.target_pose.verify()
         return {
@@ -2056,6 +2100,7 @@ def _command_elapsed_nanoseconds(
     if isinstance(
         command,
         (
+            AnatomicalEffortCommand,
             MoveCommand,
             PickCommand,
             GraspContactCommand,
@@ -2114,6 +2159,19 @@ def decode_command(payload: bytes, *, max_command_bytes: int = DEFAULT_MAX_COMMA
         decoded = json.loads(payload.decode("utf-8"))
     except (UnicodeDecodeError, json.JSONDecodeError) as error:
         raise ValueError("embodiment command is not canonical JSON") from error
+    if isinstance(decoded, Mapping) and decoded.get("schema") == NATIVE_COMMAND_SCHEMA:
+        if (set(decoded) != {"schema", "operation", "updates", "duration_microseconds"}
+                or decoded.get("operation") != "anatomical_effort"
+                or not isinstance(decoded.get("updates"), list)):
+            raise ValueError("anatomical effort command fields changed")
+        pairs = decoded["updates"]
+        if any(not isinstance(pair, list) or len(pair) != 2 for pair in pairs):
+            raise ValueError("anatomical effort update fields changed")
+        native_command = AnatomicalEffortCommand(
+            tuple(tuple(pair) for pair in pairs), decoded["duration_microseconds"])
+        if _canonical(command_record(native_command)) != payload:
+            raise ValueError("anatomical effort command is not canonical")
+        return native_command
     if not isinstance(decoded, Mapping) or decoded.get("schema") != COMMAND_SCHEMA:
         raise ValueError("embodiment command schema changed")
     operation = decoded.get("operation")
@@ -2346,6 +2404,263 @@ def decode_command(payload: bytes, *, max_command_bytes: int = DEFAULT_MAX_COMMA
     return result
 
 
+_NATIVE_LIMIT_FIELDS = (
+    "step_us", "max_substeps", "max_penetration_m", "max_hinge_overrun_rad",
+    "max_slide_overrun_m", "max_surface_travel_m",
+)
+
+
+def _native_pairs(value: object, label: str) -> tuple[tuple[str, str], ...]:
+    if not isinstance(value, tuple):
+        raise ValueError(label + " must be immutable")
+    for pair in value:
+        if not isinstance(pair, tuple) or len(pair) != 2:
+            raise ValueError(label + " requires address pairs")
+        _identifier(pair[0], label)
+        _identifier(pair[1], label)
+    if tuple(sorted(value)) != value or len({p[0] for p in value}) != len(value):
+        raise ValueError(label + " must have unique canonical addresses")
+    return value
+
+
+def _native_vector(value: object, extent: int, label: str) -> tuple[float, ...]:
+    if not isinstance(value, (tuple, list)) or len(value) != extent:
+        raise ValueError(label + " extent changed")
+    if any(isinstance(x, bool) or not isinstance(x, (int, float))
+           or not math.isfinite(x) for x in value):
+        raise ValueError(label + " must be finite physical values")
+    return tuple(float(x) for x in value)
+
+
+@dataclass(frozen=True, slots=True)
+class NativeWorldMount:
+    """Immutable construction anatomy, never rebuilt from moving projections.
+
+    Native frame origins are the declared entity reference points. They need
+    not be centres of mass. Every motor in this candidate belongs to self:
+    one aggregate work supply cannot fund independently powered other actors.
+    """
+    xml: str
+    limits: object
+    sensory_root: str
+    body_frames: tuple[tuple[str, str], ...]
+    object_frames: tuple[tuple[str, str], ...]
+    actuator_owners: tuple[tuple[str, str], ...]
+
+    def __post_init__(self):
+        # Lazy import keeps the unmounted predecessor independent of MuJoCo.
+        from dsf_ai_service.substrate.functional_body_native import MechanicalLimits
+        if (not isinstance(self.xml, str) or not self.xml
+                or len(self.xml.encode("utf-8")) > DEFAULT_MAX_ENCODED_STATE_BYTES
+                or type(self.limits) is not MechanicalLimits):
+            raise ValueError("bounded immutable native model and limits required")
+        _identifier(self.sensory_root, "native sensory root")
+        _native_pairs(self.body_frames, "native body mapping")
+        _native_pairs(self.object_frames, "native object mapping")
+        _native_pairs(self.actuator_owners, "native actuator ownership")
+        frames = [p[1] for p in self.body_frames + self.object_frames]
+        if len(set(frames)) != len(frames):
+            raise ValueError("one native entity frame cannot have two owners")
+
+    def as_record(self):
+        return {
+            "schema": "guala.native.world-mount.v1", "xml": self.xml,
+            "limits": {name: getattr(self.limits, name) for name in _NATIVE_LIMIT_FIELDS},
+            "sensory_root": self.sensory_root,
+            "body_frames": [list(p) for p in self.body_frames],
+            "object_frames": [list(p) for p in self.object_frames],
+            "actuator_owners": [list(p) for p in self.actuator_owners],
+        }
+
+    @classmethod
+    def from_record(cls, value):
+        from dsf_ai_service.substrate.functional_body_native import MechanicalLimits
+        expected = {"schema", "xml", "limits", "sensory_root", "body_frames",
+                    "object_frames", "actuator_owners"}
+        if (not isinstance(value, Mapping) or set(value) != expected
+                or value["schema"] != "guala.native.world-mount.v1"
+                or not isinstance(value["limits"], Mapping)
+                or set(value["limits"]) != set(_NATIVE_LIMIT_FIELDS)):
+            raise ValueError("native mount declaration fields changed")
+        pairs = {}
+        for key in ("body_frames", "object_frames", "actuator_owners"):
+            raw = value[key]
+            if not isinstance(raw, list) or any(not isinstance(p, list) for p in raw):
+                raise ValueError("native mount address encoding changed")
+            pairs[key] = tuple(tuple(p) for p in raw)
+        result = cls(value["xml"], MechanicalLimits(**value["limits"]),
+                     value["sensory_root"], **pairs)
+        if result.as_record() != dict(value):
+            raise ValueError("native mount declaration is not canonical")
+        return result
+
+
+@dataclass(frozen=True, slots=True)
+class NativeWorldState:
+    mount: NativeWorldMount
+    integration_state: bytes
+
+    def __post_init__(self):
+        if (not isinstance(self.mount, NativeWorldMount)
+                or type(self.integration_state) is not bytes
+                or not 32 < len(self.integration_state) <= DEFAULT_MAX_ENCODED_STATE_BYTES):
+            raise ValueError("bounded model-bound current native state required")
+
+    def as_record(self):
+        return {"schema": "guala.native.world-state.v1",
+                "mount": self.mount.as_record(),
+                "integration_state_base64": base64.b64encode(self.integration_state).decode("ascii")}
+
+    @classmethod
+    def from_record(cls, value):
+        if (not isinstance(value, Mapping)
+                or set(value) != {"schema", "mount", "integration_state_base64"}
+                or value["schema"] != "guala.native.world-state.v1"):
+            raise ValueError("native current state fields changed")
+        try:
+            state = base64.b64decode(value["integration_state_base64"], validate=True)
+        except (TypeError, ValueError) as error:
+            raise ValueError("native integration bytes are invalid") from error
+        result = cls(NativeWorldMount.from_record(value["mount"]), state)
+        if result.as_record() != dict(value):
+            raise ValueError("native current state is not canonical")
+        return result
+
+
+@dataclass(frozen=True, slots=True)
+class NativeWorldObservation:
+    """Authenticated physical projection. No integration bytes or hidden ctrl."""
+    model_identity: str
+    state_sha256: str
+    time_s: float
+    body_frames: tuple[tuple[str, str], ...]
+    object_frames: tuple[tuple[str, str], ...]
+    world_frames: tuple[object, ...]
+    self_feedback: object
+
+    def as_record(self):
+        _sha256_identity(self.model_identity, "native model identity")
+        _sha256_identity(self.state_sha256, "native state identity")
+        _native_vector((self.time_s,), 1, "native time")
+        if self.time_s < 0:
+            raise ValueError("native time cannot precede its mount")
+        _native_pairs(self.body_frames, "native observed body mapping")
+        _native_pairs(self.object_frames, "native observed object mapping")
+        frames = []
+        names = set()
+        for frame in self.world_frames:
+            _identifier(frame.name, "native rigid frame")
+            if frame.name in names:
+                raise ValueError("duplicate native rigid frame")
+            names.add(frame.name)
+            frames.append({"name": frame.name,
+                           "position_m": list(_native_vector(frame.position_m, 3, "native position")),
+                           "rotation_world": list(_native_vector(frame.rotation_world, 9, "native rotation"))})
+        mapped = [p[1] for p in self.body_frames + self.object_frames]
+        if len(set(mapped)) != len(mapped) or not set(mapped) <= names:
+            raise ValueError("native observed entity frames changed")
+        feedback = self.self_feedback
+        if feedback is None or feedback.time_s != self.time_s:
+            raise ValueError("native self feedback must share the mechanical endpoint")
+        sensor_names = set()
+        sensors = []
+        for name, values in feedback.sensors:
+            _identifier(name, "native self sensor")
+            if name in sensor_names or len(values) not in (1, 3):
+                raise ValueError("native self sensor extent or identity changed")
+            sensor_names.add(name)
+            sensors.append([name, list(_native_vector(values, len(values), "native self sensor"))])
+        contacts = []
+        for contact in feedback.contacts:
+            _identifier(contact.surface, "native touched surface")
+            contacts.append({"surface": contact.surface,
+                             "position_m": list(_native_vector(contact.position_m, 3, "native local contact")),
+                             "force_n": list(_native_vector(contact.force_n, 3, "native local force")),
+                             "couple_nm": list(_native_vector(contact.couple_nm, 3, "native local couple"))})
+        return {"schema": "guala.native.world-observation.v1",
+                "model_identity": self.model_identity, "state_sha256": self.state_sha256,
+                "time_s": self.time_s, "body_frames": [list(p) for p in self.body_frames],
+                "object_frames": [list(p) for p in self.object_frames],
+                "world_frames": frames,
+                "self_feedback": {"time_s": feedback.time_s, "sensors": sensors, "contacts": contacts}}
+
+    @classmethod
+    def from_record(cls, value):
+        from dsf_ai_service.substrate.functional_body_native import BodyFeedback, LocalContact, WorldFrame
+        expected = {"schema", "model_identity", "state_sha256", "time_s",
+                    "body_frames", "object_frames", "world_frames", "self_feedback"}
+        if (not isinstance(value, Mapping) or set(value) != expected
+                or value["schema"] != "guala.native.world-observation.v1"):
+            raise ValueError("native observation fields changed")
+        frames = []
+        if not isinstance(value["world_frames"], list):
+            raise ValueError("native frames must be a bounded record list")
+        for item in value["world_frames"]:
+            if not isinstance(item, Mapping) or set(item) != {"name", "position_m", "rotation_world"}:
+                raise ValueError("native frame fields changed")
+            frames.append(WorldFrame(item["name"], _native_vector(item["position_m"], 3, "native position"),
+                                     _native_vector(item["rotation_world"], 9, "native rotation")))
+        raw = value["self_feedback"]
+        if not isinstance(raw, Mapping) or set(raw) != {"time_s", "sensors", "contacts"}:
+            raise ValueError("native self feedback fields changed")
+        if not isinstance(raw["sensors"], list) or not isinstance(raw["contacts"], list):
+            raise ValueError("native self feedback arrays changed")
+        sensors = []
+        for item in raw["sensors"]:
+            if not isinstance(item, list) or len(item) != 2 or not isinstance(item[1], list):
+                raise ValueError("native sensor record changed")
+            sensors.append((item[0], _native_vector(item[1], len(item[1]), "native self sensor")))
+        contacts = []
+        for item in raw["contacts"]:
+            if not isinstance(item, Mapping) or set(item) != {"surface", "position_m", "force_n", "couple_nm"}:
+                raise ValueError("native contact record changed")
+            contacts.append(LocalContact(item["surface"], _native_vector(item["position_m"], 3, "native contact"),
+                                         _native_vector(item["force_n"], 3, "native force"),
+                                         _native_vector(item["couple_nm"], 3, "native couple")))
+        pairs = {}
+        for name in ("body_frames", "object_frames"):
+            if not isinstance(value[name], list) or any(not isinstance(p, list) for p in value[name]):
+                raise ValueError("native observed mappings changed")
+            pairs[name] = tuple(tuple(p) for p in value[name])
+        result = cls(value["model_identity"], value["state_sha256"], value["time_s"],
+                     pairs["body_frames"], pairs["object_frames"], tuple(frames),
+                     BodyFeedback(raw["time_s"], tuple(sensors), tuple(contacts)))
+        if result.as_record() != dict(value):
+            raise ValueError("native observation is not canonical")
+        return result
+
+
+@dataclass(frozen=True, slots=True)
+class NativeMechanicalWork:
+    """Numerical quadratures, not a heat allocation or chemical reservoir."""
+    positive_motor_work_j: float
+    signed_motor_work_j: float
+    motor_braking_work_j: float
+    bearing_dissipation_j: float
+    unresolved_energy_exchange_j: float
+
+    def as_record(self):
+        result = {name: getattr(self, name) for name in (
+            "positive_motor_work_j", "signed_motor_work_j", "motor_braking_work_j",
+            "bearing_dissipation_j", "unresolved_energy_exchange_j")}
+        _native_vector(tuple(result.values()), 5, "native work")
+        if any(result[name] < 0 for name in (
+                "positive_motor_work_j", "motor_braking_work_j", "bearing_dissipation_j")):
+            raise ValueError("native nonnegative work component changed")
+        return result
+
+    @classmethod
+    def from_record(cls, value):
+        expected = {"positive_motor_work_j", "signed_motor_work_j", "motor_braking_work_j",
+                    "bearing_dissipation_j", "unresolved_energy_exchange_j"}
+        if not isinstance(value, Mapping) or set(value) != expected:
+            raise ValueError("native work fields changed")
+        result = cls(**value)
+        result.as_record()
+        return result
+
+
+
 @dataclass(frozen=True, slots=True)
 class _WorldState:
     revision: int
@@ -2356,6 +2671,7 @@ class _WorldState:
     self_body_id: str
     bodies: tuple[EmbodiedBody, ...]
     objects: tuple[EmbodiedObject, ...]
+    native: NativeWorldState | None = None
 
     def as_record(self) -> dict[str, object]:
         return {
@@ -2367,6 +2683,7 @@ class _WorldState:
             "regions": [item.as_record() for item in self.regions],
             "portals": [item.as_record() for item in self.portals],
             "self_body_id": self.self_body_id,
+            **({"native": self.native.as_record()} if self.native is not None else {}),
         }
 
     def _canonical_record(self) -> dict[str, object]:
@@ -2379,6 +2696,7 @@ class _WorldState:
             "regions": [item.as_record() for item in self.regions],
             "portals": [item.as_record() for item in self.portals],
             "self_body_id": self.self_body_id,
+            **({"native": self.native.as_record()} if self.native is not None else {}),
         }
 
 
@@ -2395,6 +2713,7 @@ class ObservationSnapshot:
     state_sha256: str
     authority_hmac_sha256: str
     authority_receipt_sha256: str
+    native: NativeWorldObservation | None = None
 
     def unsigned_record(self) -> dict[str, object]:
         return {
@@ -2405,7 +2724,8 @@ class ObservationSnapshot:
             "room_id": self.room_id,
             "regions": [item.as_record() for item in self.regions],
             "portals": [item.as_record() for item in self.portals],
-            "schema": OBSERVATION_SCHEMA,
+            "schema": NATIVE_OBSERVATION_SCHEMA if self.native is not None else OBSERVATION_SCHEMA,
+            **({"native": self.native.as_record()} if self.native is not None else {}),
             "self_body_id": self.self_body_id,
             "state_sha256": self.state_sha256,
         }
@@ -2426,7 +2746,8 @@ class ObservationSnapshot:
             "room_id": self.room_id,
             "regions": [item.as_record() for item in self.regions],
             "portals": [item.as_record() for item in self.portals],
-            "schema": OBSERVATION_SCHEMA,
+            "schema": NATIVE_OBSERVATION_SCHEMA if self.native is not None else OBSERVATION_SCHEMA,
+            **({"native": self.native.as_record()} if self.native is not None else {}),
             "self_body_id": self.self_body_id,
             "state_sha256": self.state_sha256,
         }
@@ -2457,6 +2778,7 @@ class ActionExecutionReceipt:
     after: ObservationSnapshot
     authority_hmac_sha256: str
     authority_receipt_sha256: str
+    native_work: NativeMechanicalWork | None = None
 
     def unsigned_record(self) -> dict[str, object]:
         return {
@@ -2472,7 +2794,9 @@ class ActionExecutionReceipt:
             "observed_revision": self.observed_revision,
             "port_id": self.port_id,
             "reason": self.reason,
-            "schema": EXECUTION_SCHEMA,
+            "schema": NATIVE_EXECUTION_SCHEMA if self.after.native is not None else EXECUTION_SCHEMA,
+            **({"native_work": self.native_work.as_record() if self.native_work is not None else None}
+               if self.after.native is not None else {}),
         }
 
     def as_record(self) -> dict[str, object]:
@@ -2496,7 +2820,9 @@ class ActionExecutionReceipt:
             "observed_revision": self.observed_revision,
             "port_id": self.port_id,
             "reason": self.reason,
-            "schema": EXECUTION_SCHEMA,
+            "schema": NATIVE_EXECUTION_SCHEMA if self.after.native is not None else EXECUTION_SCHEMA,
+            **({"native_work": self.native_work.as_record() if self.native_work is not None else None}
+               if self.after.native is not None else {}),
         }
 
     def _canonical_record(self) -> dict[str, object]:
@@ -2529,6 +2855,7 @@ class PreparedActionExecution:
     _candidate_state: _AuthorityState = field(repr=False)
     _construction_authority: object = field(repr=False)
     body_surface_contacts: tuple[PreparedBodySurfaceContact, ...] = ()
+    native_work: NativeMechanicalWork | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -3658,8 +3985,11 @@ class EmbodimentWorldAuthority:
         solar_coupling: SolarCoupling | None = None,
         departed_object_ids: tuple[str, ...] = (),
         screen_broadcasts: Sequence[ScreenBroadcast] = (),
+        native_mount: NativeWorldMount | None = None,
     ) -> None:
         self._key = _authority_key(authority_key)
+        self._native_scratch_mount = None
+        self._native_scratch = None
         # Twelve places and sixteen doors bound the renovated home; the
         # authority still validates every declared plan inside these caps.
         self._max_regions = _bounded_integer(
@@ -3895,6 +4225,8 @@ class EmbodimentWorldAuthority:
         self._validate_world(world)
         # The exact declared home, retained for the one authenticated
         # topology migration a renovation release may perform.
+        if native_mount is not None:
+            world = self._native_mount_world(world, native_mount)
         self._declared_genesis_world = world
         # Things the declaration has taken away: a renovation removes them if they still
         # stand in the lived world (a thing arrives by a declaration or a hand, and leaves
@@ -3981,6 +4313,232 @@ class EmbodimentWorldAuthority:
         )
         self._encoded_state_for(self._state)
 
+    def _native_engine_for(self, mount: NativeWorldMount):
+        """One replaceable scratch engine; current bytes remain in _WorldState."""
+        if not isinstance(mount, NativeWorldMount):
+            raise ValueError("typed native world mount required")
+        if self._native_scratch_mount != mount:
+            from dsf_ai_service.substrate.functional_body_native import NativeBody
+            candidate = NativeBody(mount.xml, mount.limits, sensory_root=mount.sensory_root)
+            self._native_scratch_mount, self._native_scratch = mount, candidate
+        return self._native_scratch
+
+    def _validate_native_bindings(self, world: _WorldState, mount: NativeWorldMount, engine):
+        import mujoco as mj
+        body_map, object_map = dict(mount.body_frames), dict(mount.object_frames)
+        if (set(body_map) != {b.body_id for b in world.bodies}
+                or set(object_map) != {o.object_id for o in world.objects}
+                or body_map.get(world.self_body_id) != mount.sensory_root):
+            raise ValueError("native mount must bind every entity and the actual self root")
+        if (any(b.held_object_id is not None or b.active_contact is not None for b in world.bodies)
+                or any(o.held_by_body_id is not None or o.position is None for o in world.objects)):
+            raise ValueError("native mount cannot discard legacy held/contact state")
+        m = engine._model
+        roots = {}
+        for name in body_map.values():
+            roots[name] = int(mj.mj_name2id(m, mj.mjtObj.mjOBJ_BODY, name))
+        for name in object_map.values():
+            roots[name] = int(mj.mj_name2id(m, mj.mjtObj.mjOBJ_BODY, name))
+        if any(i <= 0 for i in roots.values()):
+            raise ValueError("every entity needs an existing non-world native rigid frame")
+        root_ids = set(roots.values())
+        for node in root_ids:
+            parent = int(m.body_parentid[node])
+            while parent:
+                if parent in root_ids:
+                    raise ValueError("native entity subtrees cannot share ownership")
+                parent = int(m.body_parentid[parent])
+        owners = dict(mount.actuator_owners)
+        if (set(owners) != set(engine.actuator_names)
+                or any(owner != world.self_body_id for owner in owners.values())):
+            raise ValueError("aggregate motor supply permits only self-owned actuators")
+        self_root = roots[mount.sensory_root]
+        for index, name in enumerate(engine.actuator_names):
+            node = int(m.jnt_bodyid[m.actuator_trnid[index, 0]])
+            while node and node != self_root:
+                node = int(m.body_parentid[node])
+            if node != self_root:
+                raise ValueError("motor ownership differs from its physical body subtree")
+
+    @staticmethod
+    def _native_display_pose(frame) -> PoseMM:
+        position = PositionMM(*(round(float(x) * 1000) for x in frame.position_m))
+        rotation = frame.rotation_world
+        heading = round(math.degrees(math.atan2(rotation[3], rotation[0])) * 1000) % 360_000
+        # This rounded record is for legacy display only, never native geometry.
+        return PoseMM(position, heading)
+
+    @staticmethod
+    def _native_region(regions, frame):
+        x, y = frame.position_m[:2]
+        matches = tuple(r for r in regions
+                        if r.bounds.minimum.x <= x * 1000 < r.bounds.maximum.x
+                        and r.bounds.minimum.y <= y * 1000 < r.bounds.maximum.y)
+        if len(matches) != 1:
+            raise ValueError("native entity reference has no unique declared region")
+        return matches[0]
+
+    def _native_project_world(self, world: _WorldState, native: NativeWorldState, observation):
+        frames = {frame.name: frame for frame in observation.world_frames}
+        mount = native.mount
+        body_map, object_map = dict(mount.body_frames), dict(mount.object_frames)
+        try:
+            bodies = tuple(replace(body, pose=self._native_display_pose(frames[body_map[body.body_id]]))
+                           for body in world.bodies)
+            objects = []
+            for item in world.objects:
+                pose = self._native_display_pose(frames[object_map[item.object_id]])
+                heading = 0 if item.shape == "sphere" else (pose.heading_millidegrees + 180_000) % 360_000 - 180_000
+                objects.append(replace(item, position=pose.position, heading_millidegrees=heading))
+            region = self._native_region(world.regions, frames[body_map[world.self_body_id]])
+            # Other named entity reference points retain ordinary region custody;
+            # the native geometry, not their footprint discs, settles contact.
+            for name in (*body_map.values(), *object_map.values()):
+                self._native_region(world.regions, frames[name])
+        except KeyError as error:
+            raise ValueError("native observation lost an entity frame") from error
+        return replace(world, bodies=bodies, objects=tuple(objects),
+                       room_id=region.region_id, room_bounds=region.bounds, native=native)
+
+    def _native_mount_world(self, world: _WorldState, mount: NativeWorldMount):
+        engine = self._native_engine_for(mount)
+        self._validate_native_bindings(world, mount, engine)
+        native = NativeWorldState(mount, engine.initial_state())
+        observed = engine.observe(native.integration_state)
+        if observed.time_s != 0:
+            raise ValueError("native anatomical genesis must not advance time")
+        frames = {frame.name: frame for frame in observed.world_frames}
+        for body in world.bodies:
+            frame = frames[dict(mount.body_frames)[body.body_id]]
+            if frame.position_m[:2] != (body.pose.position.x / 1000, body.pose.position.y / 1000):
+                raise ValueError("native mount must preserve horizontal body placement")
+            if self._native_display_pose(frame).heading_millidegrees != body.pose.heading_millidegrees:
+                raise ValueError("native mount must preserve body yaw")
+        for item in world.objects:
+            frame = frames[dict(mount.object_frames)[item.object_id]]
+            if frame.position_m[:2] != (item.position.x / 1000, item.position.y / 1000):
+                raise ValueError("native mount must preserve horizontal object placement")
+        return self._native_project_world(world, native, observed)
+
+    def _validate_native_world(self, world: _WorldState):
+        _bounded_integer(world.revision, "world revision", minimum=0, maximum=MAX_REVISION)
+        self._validate_physical_topology(world.regions, world.portals)
+        if (not 2 <= len(world.bodies) <= self._max_bodies
+                or not 1 <= len(world.objects) <= self._max_objects):
+            raise ValueError("native entity inventory exceeds world capacity")
+        for items, attribute in ((world.bodies, "body_id"), (world.objects, "object_id")):
+            names = tuple(getattr(item, attribute) for item in items)
+            if names != tuple(sorted(set(names))):
+                raise ValueError("native world entities require unique canonical identities")
+            for item in items:
+                item.verify()
+        if world.self_body_id not in {b.body_id for b in world.bodies}:
+            raise ValueError("native world lost self body")
+        self._validate_port_topology(world.self_body_id, world.bodies, self._actor_ports)
+        engine = self._native_engine_for(world.native.mount)
+        self._validate_native_bindings(world, world.native.mount, engine)
+        observed = engine.observe(world.native.integration_state)
+        if self._native_project_world(world, world.native, observed) != world:
+            raise ValueError("native-derived world display projection changed")
+        self._validate_contact_optical_surface_sequences(world)
+        return observed
+
+    def _native_observation_for(self, world: _WorldState, observed=None):
+        engine = self._native_engine_for(world.native.mount)
+        if observed is None:
+            observed = engine.observe(world.native.integration_state)
+        projection = NativeWorldObservation(
+            engine.model_identity, _sha256(world.native.integration_state), observed.time_s,
+            world.native.mount.body_frames, world.native.mount.object_frames,
+            observed.world_frames, observed.self_feedback)
+        projection.as_record()
+        unsigned = {
+            "revision": world.revision, "room_id": world.room_id,
+            "room_bounds": world.room_bounds.as_record(),
+            "regions": [r.as_record() for r in world.regions],
+            "portals": [p.as_record() for p in world.portals],
+            "self_body_id": world.self_body_id,
+            "bodies": [b.as_record() for b in world.bodies],
+            "objects": [o._canonical_record() for o in world.objects],
+            "native": projection.as_record(),
+        }
+        state_sha = _digest(unsigned)
+        unsigned.update(schema=NATIVE_OBSERVATION_SCHEMA, state_sha256=state_sha)
+        signature = _sign(self._key, NATIVE_OBSERVATION_DOMAIN, unsigned)
+        receipt = _digest({"authority_hmac_sha256": signature, "payload": unsigned})
+        return ObservationSnapshot(
+            world.revision, world.room_id, world.room_bounds, world.regions,
+            world.portals, world.self_body_id, world.bodies, world.objects,
+            state_sha, signature, receipt, projection)
+
+    def _native_transition(self, world, actor_body_id, command, available_motor_work_j):
+        if not isinstance(command, (AnatomicalEffortCommand, AdvancePhysicalTimeCommand, VocalizeCommand)):
+            return None, "native_geometry_requires_physical_effort", None
+        if available_motor_work_j is None:
+            raise ValueError("mounted physical time requires pre-interval chemical supply")
+        engine = self._native_engine_for(world.native.mount)
+        updates = ()
+        if isinstance(command, AnatomicalEffortCommand):
+            owners = dict(world.native.mount.actuator_owners)
+            if any(owners.get(name) != actor_body_id for name, _ in command.updates):
+                return None, "native_actuator_not_owned_by_port", None
+            updates = tuple((engine.actuator_names.index(name), value) for name, value in command.updates)
+        elapsed_ns = _command_elapsed_nanoseconds(command)
+        if elapsed_ns % 1000:
+            return None, "native_interval_requires_microsecond_lattice", None
+        result = engine.advance(world.native.integration_state, None, elapsed_ns // 1000,
+                                available_motor_work_j, effort_updates=updates)
+        native = NativeWorldState(world.native.mount, result.state)
+        advanced = self._advance_material_time(world, elapsed_ns)
+        projected = self._native_project_world(advanced, native, result.observation)
+        work = NativeMechanicalWork(
+            result.positive_motor_work_j, result.signed_motor_work_j,
+            result.motor_braking_work_j, result.bearing_dissipation_j,
+            result.unresolved_energy_exchange_j)
+        work.as_record()
+        return projected, "applied", work
+
+    def prepare_native_mount(self, mount: NativeWorldMount, *, expected_revision: int,
+                             causal_intent_receipt_sha256: str) -> PreparedActionExecution:
+        """Zero-time anatomical cutover, prepared through the existing capability.
+
+        The thermal wrapper must preserve heat and supply at this zero-time
+        boundary. No old held/contact state is erased and no motion is claimed.
+        """
+        intent = _sha256_identity(causal_intent_receipt_sha256, "native mount intent")
+        with self._lock:
+            self._require_public_visibility_locked()
+            if self._prepared_action_execution is not None:
+                raise RuntimeError("world already has a prepared action")
+            prior = self._state
+            if (type(expected_revision) is not int or expected_revision != prior.world.revision
+                    or expected_revision == MAX_REVISION or prior.world.native is not None):
+                raise ValueError("native mount requires the exact unmounted predecessor")
+            world = replace(self._native_mount_world(prior.world, mount),
+                            revision=expected_revision + 1)
+            observed = self._validate_world(world)
+            after = self._observation_for(world, native_observed=observed)
+            receipt = self._execution_receipt(
+                port_id=ENVIRONMENT_PORT_ID, actor_body_id=None,
+                causal_intent_receipt_sha256=intent,
+                command_sha256=_digest({"operation": "native_mount", "mount": mount.as_record()}),
+                expected_revision=expected_revision, disposition="applied", reason="applied",
+                elapsed_nanoseconds=0,
+                lifecycle=("received", "environment_port_validated", "native_mount_validated", "applied"),
+                before=prior.observation, after=after)
+            candidate = _AuthorityState(world, after, (), prior.migration_receipt)
+            self._verify_state_capacity_for(candidate)
+            prepared = PreparedActionExecution(receipt, prior, candidate,
+                                               _PREPARED_ACTION_EXECUTION_AUTHORITY)
+            self._require_prepared_action_execution_locked(prepared, require_live=False)
+            self._prepared_action_execution = prepared
+            return prepared
+
+    def _require_unmounted_topology(self):
+        if self._state.world.native is not None:
+            raise ValueError("mounted native topology requires explicit physical state reconciliation")
+
+
     def _validate_contact_optical_surface_sequences(
         self,
         world: _WorldState,
@@ -4011,6 +4569,7 @@ class EmbodimentWorldAuthority:
         sequence.verify()
         with self._lock:
             self._require_public_visibility_locked()
+            self._require_unmounted_topology()
             prior = self._contact_optical_surface_sequences.get(
                 sequence.object_id
             )
@@ -4094,6 +4653,7 @@ class EmbodimentWorldAuthority:
 
         with self._lock:
             self._require_public_visibility_locked()
+            self._require_unmounted_topology()
             if self._prepared_action_execution is not None:
                 raise RuntimeError(
                     "body receptor anatomy cannot migrate during an action"
@@ -4181,6 +4741,7 @@ class EmbodimentWorldAuthority:
 
         with self._lock:
             self._require_public_visibility_locked()
+            self._require_unmounted_topology()
             if self._prepared_action_execution is not None:
                 raise RuntimeError("a departure cannot happen during an action")
             prior = self._state
@@ -4235,6 +4796,7 @@ class EmbodimentWorldAuthority:
 
         with self._lock:
             self._require_public_visibility_locked()
+            self._require_unmounted_topology()
             if self._prepared_action_execution is not None:
                 raise RuntimeError("an arrival cannot land during an action")
             prior = self._state
@@ -4280,6 +4842,7 @@ class EmbodimentWorldAuthority:
         """
         with self._lock:
             self._require_public_visibility_locked()
+            self._require_unmounted_topology()
             if self._prepared_action_execution is not None:
                 raise RuntimeError("a body transport cannot happen during an action")
             prior = self._state
@@ -4358,6 +4921,7 @@ class EmbodimentWorldAuthority:
 
         with self._lock:
             self._require_public_visibility_locked()
+            self._require_unmounted_topology()
             if self._prepared_action_execution is not None:
                 raise RuntimeError(
                     "home topology cannot migrate during an action"
@@ -4689,6 +5253,7 @@ class EmbodimentWorldAuthority:
 
         with self._lock:
             self._require_public_visibility_locked()
+            self._require_unmounted_topology()
             if self._prepared_action_execution is not None:
                 raise RuntimeError(
                     "material transport cannot migrate during an action"
@@ -5065,6 +5630,10 @@ class EmbodimentWorldAuthority:
             region.region_id: index
             for index, region in enumerate(regions)
         }
+        native_frames = None
+        if world.native is not None:
+            native_observation = self._native_engine_for(world.native.mount).observe(world.native.integration_state)
+            native_frames = {frame.name: frame for frame in native_observation.world_frames}
         air_mass = [
             (
                 list(region.air.odorant_mass_nanograms)
@@ -5089,11 +5658,11 @@ class EmbodimentWorldAuthority:
                 raise ValueError(
                     "material object has no physical transport position"
                 )
-            region = self._region_containing(
-                world.regions,
-                position,
-                0,
-            )
+            if native_frames is None:
+                region = self._region_containing(world.regions, position, 0)
+            else:
+                frame_name = dict(world.native.mount.object_frames)[item.object_id]
+                region = self._native_region(world.regions, native_frames[frame_name])
             if region is None:
                 raise ValueError(
                     "material object left signed air topology"
@@ -5287,6 +5856,8 @@ class EmbodimentWorldAuthority:
         return replace(world, regions=tuple(regions))
 
     def _validate_world(self, world: _WorldState) -> None:
+        if world.native is not None:
+            return self._validate_native_world(world)
         _bounded_integer(world.revision, "world revision", minimum=0, maximum=MAX_REVISION)
         self._validate_physical_topology(world.regions, world.portals)
         region_by_id = {item.region_id: item for item in world.regions}
@@ -5484,7 +6055,9 @@ class EmbodimentWorldAuthority:
                     raise ValueError("placed objects intersect each other")
         self._validate_contact_optical_surface_sequences(world)
 
-    def _observation_for(self, world: _WorldState) -> ObservationSnapshot:
+    def _observation_for(self, world: _WorldState, *, native_observed=None) -> ObservationSnapshot:
+        if world.native is not None:
+            return self._native_observation_for(world, native_observed)
         state_record = world._canonical_record()
         state_sha = _digest(state_record)
         unsigned = {
@@ -5560,6 +6133,7 @@ class EmbodimentWorldAuthority:
         lifecycle: tuple[str, ...],
         before: ObservationSnapshot,
         after: ObservationSnapshot,
+        native_work: NativeMechanicalWork | None = None,
     ) -> ActionExecutionReceipt:
         elapsed = _bounded_integer(
             elapsed_nanoseconds,
@@ -5580,9 +6154,11 @@ class EmbodimentWorldAuthority:
             "observed_revision": before.revision,
             "port_id": port_id,
             "reason": reason,
-            "schema": EXECUTION_SCHEMA,
+            "schema": NATIVE_EXECUTION_SCHEMA if after.native is not None else EXECUTION_SCHEMA,
+            **({"native_work": native_work.as_record() if native_work is not None else None}
+               if after.native is not None else {}),
         }
-        signature = _sign(self._key, EXECUTION_DOMAIN, unsigned)
+        signature = _sign(self._key, NATIVE_EXECUTION_DOMAIN if after.native is not None else EXECUTION_DOMAIN, unsigned)
         receipt = _digest({"authority_hmac_sha256": signature, "payload": unsigned})
         return ActionExecutionReceipt(
             port_id=port_id,
@@ -5599,6 +6175,7 @@ class EmbodimentWorldAuthority:
             after=after,
             authority_hmac_sha256=signature,
             authority_receipt_sha256=receipt,
+            native_work=native_work,
         )
 
     def _reject(
@@ -6611,6 +7188,7 @@ class EmbodimentWorldAuthority:
         command_payload: bytes,
         causal_intent_receipt_sha256: str,
         expected_revision: int,
+        available_motor_work_j: float | None = None,
     ) -> PreparedActionExecution | ActionExecutionReceipt:
         """Prepare one opaque command without changing live physical state.
 
@@ -6709,7 +7287,8 @@ class EmbodimentWorldAuthority:
                 )
             lifecycle += ("command_decoded",)
             body_surface_contacts: tuple[PreparedBodySurfaceContact, ...] = ()
-            if isinstance(command, BodySurfaceContactCommand):
+            native_work = None
+            if before_state.world.native is None and isinstance(command, BodySurfaceContactCommand):
                 try:
                     body_surface_contacts = self._settle_body_surface_command(
                         before_state.world,
@@ -6727,9 +7306,14 @@ class EmbodimentWorldAuthority:
                         lifecycle=lifecycle + ("geometry_rejected",),
                         before=before,
                     )
-            transitioned, reason = self._transition(
-                before_state.world, actor_body_id, command
-            )
+            if before_state.world.native is not None:
+                transitioned, reason, native_work = self._native_transition(
+                    before_state.world, actor_body_id, command, available_motor_work_j)
+            elif isinstance(command, AnatomicalEffortCommand):
+                transitioned, reason = None, "native_mechanics_unavailable"
+            else:
+                transitioned, reason = self._transition(
+                    before_state.world, actor_body_id, command)
             if transitioned is None:
                 return self._reject(
                     port_id=port,
@@ -6742,7 +7326,9 @@ class EmbodimentWorldAuthority:
                     before=before,
                 )
             transitioned = replace(transitioned, revision=before.revision + 1)
-            if isinstance(command, VocalizeCommand):
+            if isinstance(command, AnatomicalEffortCommand):
+                consequence_lifecycle = "native_effort_validated"
+            elif isinstance(command, VocalizeCommand):
                 consequence_lifecycle = "vocal_commitment_validated"
             elif isinstance(
                 command,
@@ -6759,8 +7345,8 @@ class EmbodimentWorldAuthority:
                 )
             else:
                 consequence_lifecycle = "geometry_validated"
-            self._validate_world(transitioned)
-            after = self._observation_for(transitioned)
+            observed = self._validate_world(transitioned)
+            after = self._observation_for(transitioned, native_observed=observed)
             receipt = self._execution_receipt(
                 port_id=port,
                 actor_body_id=actor_body_id,
@@ -6775,6 +7361,7 @@ class EmbodimentWorldAuthority:
                 lifecycle=lifecycle + (consequence_lifecycle, "applied"),
                 before=before,
                 after=after,
+                native_work=native_work,
             )
             # Applied body receipts are transaction authorities, not material
             # world state.  The next ordinary environment boundary retires
@@ -6821,6 +7408,7 @@ class EmbodimentWorldAuthority:
                     _PREPARED_ACTION_EXECUTION_AUTHORITY
                 ),
                 body_surface_contacts=body_surface_contacts,
+                native_work=native_work,
             )
             self._require_prepared_action_execution_locked(
                 prepared,
@@ -6848,6 +7436,8 @@ class EmbodimentWorldAuthority:
                 "prepared embodiment action execution changed custody"
             )
         receipt = prepared.execution_receipt
+        if prepared.native_work is not receipt.native_work:
+            raise ValueError("prepared native work changed custody")
         body_surface_lifecycle = (
             receipt.lifecycle[-2:]
             == ("body_surface_contact_validated", "applied")
@@ -7113,6 +7703,40 @@ class EmbodimentWorldAuthority:
             self._verify_observation(observation)
 
     def _verify_observation(self, observation: ObservationSnapshot) -> None:
+        if observation.native is not None:
+            projection = observation.native.as_record()
+            _bounded_integer(observation.revision, "native observation revision", minimum=0, maximum=MAX_REVISION)
+            self._validate_physical_topology(observation.regions, observation.portals)
+            self._validate_port_topology(observation.self_body_id, observation.bodies, self._actor_ports)
+            for entity in (*observation.bodies, *observation.objects):
+                entity.verify()
+            if (not 2 <= len(observation.bodies) <= self._max_bodies
+                    or not 1 <= len(observation.objects) <= self._max_objects
+                    or tuple(b.body_id for b in observation.bodies) != tuple(sorted(dict(observation.native.body_frames)))
+                    or tuple(o.object_id for o in observation.objects) != tuple(sorted(dict(observation.native.object_frames)))):
+                raise ValueError("native observation entity inventory changed")
+            frames = {frame.name: frame for frame in observation.native.world_frames}
+            body_map, object_map = dict(observation.native.body_frames), dict(observation.native.object_frames)
+            if any(body.pose != self._native_display_pose(frames[body_map[body.body_id]])
+                   or body.held_object_id is not None or body.active_contact is not None
+                   for body in observation.bodies):
+                raise ValueError("native observation body display changed")
+            for item in observation.objects:
+                pose = self._native_display_pose(frames[object_map[item.object_id]])
+                heading = 0 if item.shape == "sphere" else (pose.heading_millidegrees + 180_000) % 360_000 - 180_000
+                if item.position != pose.position or item.heading_millidegrees != heading or item.held_by_body_id is not None:
+                    raise ValueError("native observation object display changed")
+            region = self._native_region(observation.regions, frames[body_map[observation.self_body_id]])
+            if observation.room_id != region.region_id or observation.room_bounds != region.bounds:
+                raise ValueError("native observation region changed")
+            unsigned = observation._canonical_unsigned_record()
+            state_record = {k: v for k, v in unsigned.items() if k not in ("schema", "state_sha256")}
+            signature = _sign(self._key, NATIVE_OBSERVATION_DOMAIN, unsigned)
+            if (observation.state_sha256 != _digest(state_record)
+                    or not hmac.compare_digest(signature, observation.authority_hmac_sha256)
+                    or observation.authority_receipt_sha256 != _digest({"authority_hmac_sha256": signature, "payload": unsigned})):
+                raise ValueError("native observation authentication changed")
+            return
         world = _WorldState(
             revision=observation.revision,
             room_id=observation.room_id,
@@ -7132,6 +7756,8 @@ class EmbodimentWorldAuthority:
         if receipt.disposition != "applied" or receipt.reason != "applied":
             raise ValueError("retained execution must be applied")
         if receipt.lifecycle[-2:] not in (
+            ("native_mount_validated", "applied"),
+            ("native_effort_validated", "applied"),
             ("geometry_validated", "applied"),
             ("vocal_commitment_validated", "applied"),
             ("material_contact_geometry_validated", "applied"),
@@ -7146,6 +7772,7 @@ class EmbodimentWorldAuthority:
             maximum=MAX_MATERIAL_ACTION_DURATION_US * 1_000,
         )
         timed_lifecycles = {
+            ("native_effort_validated", "applied"),
             ("geometry_validated", "applied"),
             ("vocal_commitment_validated", "applied"),
             ("material_contact_geometry_validated", "applied"),
@@ -7173,7 +7800,7 @@ class EmbodimentWorldAuthority:
                 receipt.actor_body_id is not None
                 or "environment_port_validated" not in receipt.lifecycle
                 or receipt.lifecycle[-2:]
-                != ("physical_time_transport_validated", "applied")
+                not in (("physical_time_transport_validated", "applied"), ("native_mount_validated", "applied"))
             ):
                 raise ValueError("environment interval authority changed")
         elif port_actor is None or receipt.actor_body_id != port_actor:
@@ -7188,8 +7815,24 @@ class EmbodimentWorldAuthority:
             or receipt.after.revision != receipt.before.revision + 1
         ):
             raise ValueError("retained execution revision chain changed")
+        mounted = receipt.after.native is not None
+        mounting = receipt.lifecycle[-2:] == ("native_mount_validated", "applied")
+        if mounting:
+            if not mounted or receipt.before.native is not None or elapsed != 0 or receipt.native_work is not None:
+                raise ValueError("native mount lifecycle changed")
+        elif mounted:
+            if receipt.before.native is None or receipt.native_work is None:
+                raise ValueError("mounted interval lacks predecessor or measured work")
+            receipt.native_work.as_record()
+            if (receipt.before.native.model_identity != receipt.after.native.model_identity
+                    or receipt.before.native.body_frames != receipt.after.native.body_frames
+                    or receipt.before.native.object_frames != receipt.after.native.object_frames
+                    or receipt.after.native.time_s <= receipt.before.native.time_s):
+                raise ValueError("mounted interval changed anatomy or failed to advance")
+        elif receipt.before.native is not None or receipt.native_work is not None:
+            raise ValueError("native mechanics cannot disappear in a physical interval")
         unsigned = receipt._canonical_unsigned_record()
-        expected_hmac = _sign(self._key, EXECUTION_DOMAIN, unsigned)
+        expected_hmac = _sign(self._key, NATIVE_EXECUTION_DOMAIN if mounted else EXECUTION_DOMAIN, unsigned)
         if not hmac.compare_digest(expected_hmac, receipt.authority_hmac_sha256):
             raise ValueError("execution HMAC changed")
         expected_receipt = _digest({"authority_hmac_sha256": expected_hmac, "payload": unsigned})
@@ -7356,6 +7999,7 @@ class EmbodimentWorldAuthority:
             "regions": [self._compact_region_record(item, catalog) for item in world.regions],
             "portals": [item.as_record() for item in world.portals],
             "self_body_id": world.self_body_id,
+            **({"native": world.native.as_record()} if world.native is not None else {}),
         }
 
     def _compact_observation_record(
@@ -7407,7 +8051,7 @@ class EmbodimentWorldAuthority:
                 for content_sha, surface in catalog.items()
             ],
             "recent_applied_receipts": [],
-            "schema": STATE_SCHEMA,
+            "schema": NATIVE_STATE_SCHEMA if state.world.native is not None else STATE_SCHEMA,
             # The compact world record carries no fragments: encoded once here, spliced
             # verbatim, so the canonical walk touches the catalog and the top level only.
             "world": _CanonicalJsonFragment(_canonical_plain(self._compact_world_record(state.world, catalog))),
@@ -7473,11 +8117,11 @@ class EmbodimentWorldAuthority:
         payload = _canonical(self._state_payload_for(state))
         if len(payload) > self._max_encoded_state_bytes:
             raise ValueError("embodiment state exceeds its exact byte capacity")
-        signature = hmac.new(self._key, STATE_DOMAIN + payload, hashlib.sha256).hexdigest()
+        signature = hmac.new(self._key, (NATIVE_STATE_DOMAIN if state.world.native is not None else STATE_DOMAIN) + payload, hashlib.sha256).hexdigest()
         envelope = {
             "authority_hmac_sha256": signature,
             "payload_base64": base64.b64encode(payload).decode("ascii"),
-            "schema": ENVELOPE_SCHEMA,
+            "schema": NATIVE_ENVELOPE_SCHEMA if state.world.native is not None else ENVELOPE_SCHEMA,
         }
         encoded = _canonical(envelope)
         if len(encoded) > self._max_encoded_state_bytes:
@@ -7501,6 +8145,10 @@ class EmbodimentWorldAuthority:
             (payload_byte_count + 2) // 3
         )
         empty_envelope_byte_count = self._empty_envelope_byte_count
+        if state.world.native is not None:
+            empty_envelope_byte_count = len(_canonical({
+                "authority_hmac_sha256": "0" * 64, "payload_base64": "",
+                "schema": NATIVE_ENVELOPE_SCHEMA}))
         encoded_byte_count = (
             empty_envelope_byte_count + payload_base64_byte_count
         )
@@ -7529,7 +8177,10 @@ class EmbodimentWorldAuthority:
             "self_body_id",
             "state_sha256",
         }
-        if not isinstance(value, Mapping) or set(value) != expected or value.get("schema") != OBSERVATION_SCHEMA:
+        mounted = isinstance(value, Mapping) and value.get("schema") == NATIVE_OBSERVATION_SCHEMA
+        if mounted:
+            expected.add("native")
+        if not isinstance(value, Mapping) or set(value) != expected or value.get("schema") != (NATIVE_OBSERVATION_SCHEMA if mounted else OBSERVATION_SCHEMA):
             raise ValueError("observation record fields changed")
         raw_objects = value.get("objects")
         raw_bodies = value.get("bodies")
@@ -7553,6 +8204,7 @@ class EmbodimentWorldAuthority:
             state_sha256=_sha256_identity(value.get("state_sha256"), "observation state identity"),
             authority_hmac_sha256=_sha256_identity(value.get("authority_hmac_sha256"), "observation HMAC"),
             authority_receipt_sha256=_sha256_identity(value.get("authority_receipt_sha256"), "observation receipt"),
+            native=NativeWorldObservation.from_record(value["native"]) if mounted else None,
         )
         if result.as_record() != dict(value):
             raise ValueError("observation record is not canonical")
@@ -7577,7 +8229,10 @@ class EmbodimentWorldAuthority:
             "reason",
             "schema",
         }
-        if not isinstance(value, Mapping) or set(value) != expected or value.get("schema") != EXECUTION_SCHEMA:
+        mounted = isinstance(value, Mapping) and value.get("schema") == NATIVE_EXECUTION_SCHEMA
+        if mounted:
+            expected.add("native_work")
+        if not isinstance(value, Mapping) or set(value) != expected or value.get("schema") != (NATIVE_EXECUTION_SCHEMA if mounted else EXECUTION_SCHEMA):
             raise ValueError("execution record fields changed")
         lifecycle = value.get("lifecycle")
         if not isinstance(lifecycle, list) or not lifecycle or any(not isinstance(item, str) for item in lifecycle):
@@ -7608,6 +8263,7 @@ class EmbodimentWorldAuthority:
             after=self._observation_from_record(value.get("after")),
             authority_hmac_sha256=_sha256_identity(value.get("authority_hmac_sha256"), "execution HMAC"),
             authority_receipt_sha256=_sha256_identity(value.get("authority_receipt_sha256"), "execution receipt"),
+            native_work=NativeMechanicalWork.from_record(value["native_work"]) if mounted and value["native_work"] is not None else None,
         )
         if result.as_record() != dict(value):
             raise ValueError("execution record is not canonical")
@@ -7707,10 +8363,13 @@ class EmbodimentWorldAuthority:
             "portals", "regions", "revision", "room_bounds", "room_id",
             "schema", "self_body_id", "state_sha256",
         }
+        mounted = isinstance(value, Mapping) and value.get("schema") == NATIVE_OBSERVATION_SCHEMA
+        if mounted:
+            expected.add("native")
         if (
             not isinstance(value, Mapping)
             or set(value) != expected
-            or value.get("schema") != OBSERVATION_SCHEMA
+            or value.get("schema") != (NATIVE_OBSERVATION_SCHEMA if mounted else OBSERVATION_SCHEMA)
         ):
             raise ValueError("compact observation record changed")
         raw_objects = value.get("objects")
@@ -7739,6 +8398,7 @@ class EmbodimentWorldAuthority:
             state_sha256=_sha256_identity(value.get("state_sha256"), "observation state identity"),
             authority_hmac_sha256=_sha256_identity(value.get("authority_hmac_sha256"), "observation HMAC"),
             authority_receipt_sha256=_sha256_identity(value.get("authority_receipt_sha256"), "observation receipt"),
+            native=NativeWorldObservation.from_record(value["native"]) if mounted else None,
         )
         self._verify_observation(result)
         canonical = self._compact_observation_record(result, self._catalog_with_looks(catalog, result.regions))
@@ -7761,7 +8421,10 @@ class EmbodimentWorldAuthority:
             "elapsed_nanoseconds", "expected_revision", "lifecycle", "observed_revision",
             "port_id", "reason", "schema",
         }
-        if not isinstance(value, Mapping) or set(value) != expected or value.get("schema") != EXECUTION_SCHEMA:
+        mounted = isinstance(value, Mapping) and value.get("schema") == NATIVE_EXECUTION_SCHEMA
+        if mounted:
+            expected.add("native_work")
+        if not isinstance(value, Mapping) or set(value) != expected or value.get("schema") != (NATIVE_EXECUTION_SCHEMA if mounted else EXECUTION_SCHEMA):
             raise ValueError("compact execution record changed")
         lifecycle = value.get("lifecycle")
         if not isinstance(lifecycle, list) or not lifecycle or any(not isinstance(item, str) for item in lifecycle):
@@ -7792,6 +8455,7 @@ class EmbodimentWorldAuthority:
             after=after,
             authority_hmac_sha256=_sha256_identity(value.get("authority_hmac_sha256"), "execution HMAC"),
             authority_receipt_sha256=_sha256_identity(value.get("authority_receipt_sha256"), "execution receipt"),
+            native_work=NativeMechanicalWork.from_record(value["native_work"]) if mounted and value["native_work"] is not None else None,
         )
         self._verify_execution(result)
         canonical = self._compact_execution_record(result, self._catalog_with_looks(catalog, result.before.regions + result.after.regions))
@@ -7819,6 +8483,8 @@ class EmbodimentWorldAuthority:
             "bodies", "objects", "portals", "regions", "revision",
             "room_bounds", "room_id", "self_body_id"
         }
+        if isinstance(value, Mapping) and "native" in value:
+            expected.add("native")
         if not isinstance(value, Mapping) or set(value) != expected:
             raise ValueError("compact world state fields changed")
         raw_objects = value.get("objects")
@@ -7844,6 +8510,7 @@ class EmbodimentWorldAuthority:
             self_body_id=_identifier(value.get("self_body_id"), "self body id"),
             bodies=tuple(_body_from(item) for item in raw_bodies),
             objects=objects,
+            native=NativeWorldState.from_record(value["native"]) if "native" in value else None,
         )
         self._validate_world(world)
         canonical = self._compact_world_record(world, self._catalog_with_looks(catalog, world.regions))
@@ -7860,6 +8527,8 @@ class EmbodimentWorldAuthority:
             "bodies", "objects", "portals", "regions", "revision",
             "room_bounds", "room_id", "self_body_id"
         }
+        if isinstance(value, Mapping) and "native" in value:
+            expected.add("native")
         if not isinstance(value, Mapping) or set(value) != expected:
             raise ValueError("world state fields changed")
         raw_objects = value.get("objects")
@@ -7881,6 +8550,7 @@ class EmbodimentWorldAuthority:
             self_body_id=_identifier(value.get("self_body_id"), "self body id"),
             bodies=tuple(_body_from(item) for item in raw_bodies),
             objects=tuple(_object_from(item) for item in raw_objects),
+            native=NativeWorldState.from_record(value["native"]) if "native" in value else None,
         )
         self._validate_world(world)
         if world.as_record() != dict(value):
@@ -9071,6 +9741,68 @@ class EmbodimentWorldAuthority:
             preserve_material=True,
         )
 
+    def _restore_native_encoded(self, encoded: bytes) -> None:
+        """Restore current integration bytes, then regenerate its signed projection.
+
+        Historical receipt observations authenticate their immutable projections;
+        none carries a second mechanics state. No topology migration or numerical
+        reset is implicit in restore.
+        """
+        with self._lock:
+            self._require_public_visibility_locked()
+            if self._prepared_action_execution is not None:
+                raise RuntimeError("cannot restore during a prepared native transaction")
+            decoded, _ = self._decode_authenticated_envelope(
+                encoded, envelope_schema=NATIVE_ENVELOPE_SCHEMA,
+                domain=NATIVE_STATE_DOMAIN, limit=self._max_encoded_state_bytes)
+            expected = {"actor_ports", "limits", "migration_receipt",
+                        "optical_surface_catalog", "recent_applied_receipts", "schema", "world"}
+            if (set(decoded) - {"declaration_sha256"} != expected
+                    or decoded.get("schema") != NATIVE_STATE_SCHEMA):
+                raise ValueError("native world state fields changed")
+            limits = {
+                "max_regions": self._max_regions, "max_portals": self._max_portals,
+                "max_bodies": self._max_bodies, "max_command_bytes": self._max_command_bytes,
+                "max_encoded_state_bytes": self._max_encoded_state_bytes,
+                "max_objects": self._max_objects, "receipt_capacity": self._receipt_capacity}
+            if decoded["limits"] != limits:
+                raise ValueError("native world capacity changed")
+            if decoded["actor_ports"] != [item.as_record() for item in self._actor_ports]:
+                raise ValueError("native world actor ownership changed")
+            declaration = (None if "declaration_sha256" not in decoded else
+                           _sha256_identity(decoded["declaration_sha256"], "declaration identity"))
+            raw_world = decoded["world"]
+            if not isinstance(raw_world, Mapping) or "native" not in raw_world:
+                raise ValueError("mounted envelope lost its current native state")
+            catalog = self._optical_surface_catalog_from_record(decoded["optical_surface_catalog"])
+            world = self._world_from_compact_record(raw_world, catalog)
+            if self._state.world.native is not None and self._state.world.native.mount != world.native.mount:
+                raise ValueError("native restore cannot replace a mounted anatomy")
+            raw_receipts = decoded["recent_applied_receipts"]
+            if not isinstance(raw_receipts, list) or len(raw_receipts) > self._receipt_capacity:
+                raise ValueError("native retained receipt capacity changed")
+            receipts = tuple(self._execution_from_compact_record(item, catalog) for item in raw_receipts)
+            if any(item.after.native is None for item in receipts):
+                raise ValueError("native receipt tail cannot contain unmounted intervals")
+            observation = self._observation_for(world)
+            self._verify_retained_execution_order(receipts, observation)
+            migration = (None if decoded["migration_receipt"] is None else
+                         self._migration_from_record(decoded["migration_receipt"], world))
+            candidate = _AuthorityState(world, observation, receipts, migration)
+            # This declaration belongs to the envelope, not to the scratch
+            # engine. Stage it only while checking the candidate's encoding.
+            previous_declaration = self._recorded_declaration_sha256
+            try:
+                self._recorded_declaration_sha256 = declaration
+                canonical = self._encoded_state_for(candidate)
+            finally:
+                self._recorded_declaration_sha256 = previous_declaration
+            if canonical != encoded:
+                raise ValueError("native world state is not canonical")
+            self._commit_authority_state(candidate)
+            self._recorded_declaration_sha256 = declaration
+
+
     def restore_encoded(
         self,
         encoded: bytes,
@@ -9086,6 +9818,11 @@ class EmbodimentWorldAuthority:
             envelope_probe = json.loads(encoded.decode("utf-8"))
         except (UnicodeDecodeError, json.JSONDecodeError) as error:
             raise ValueError("embodiment state envelope is not canonical JSON") from error
+        if isinstance(envelope_probe, Mapping) and envelope_probe.get("schema") == NATIVE_ENVELOPE_SCHEMA:
+            self._restore_native_encoded(encoded)
+            return
+        if self._state.world.native is not None:
+            raise ValueError("mounted current state cannot silently restore floor-disc authority")
         if isinstance(envelope_probe, Mapping) and envelope_probe.get("schema") == LEGACY_ENVELOPE_SCHEMA:
             self._restore_legacy_encoded(encoded)
             return
@@ -9144,6 +9881,8 @@ class EmbodimentWorldAuthority:
         }
         if not isinstance(decoded, Mapping) or set(decoded) - {"declaration_sha256"} != expected_state or decoded.get("schema") != STATE_SCHEMA:
             raise ValueError("embodiment state fields changed")
+        if isinstance(decoded.get("world"), Mapping) and "native" in decoded["world"]:
+            raise ValueError("legacy envelope cannot carry mounted mechanics")
         # The declaration the world was last built or renovated under, if it recorded one.
         self._recorded_declaration_sha256 = (
             None if "declaration_sha256" not in decoded
@@ -9304,6 +10043,15 @@ class EmbodimentWorldAuthority:
 
 
 __all__ = [
+    "AnatomicalEffortCommand",
+    "NativeWorldMount",
+    "NativeWorldObservation",
+    "NativeMechanicalWork",
+    "NATIVE_COMMAND_SCHEMA",
+    "NATIVE_OBSERVATION_SCHEMA",
+    "NATIVE_EXECUTION_SCHEMA",
+    "NATIVE_STATE_SCHEMA",
+    "NATIVE_ENVELOPE_SCHEMA",
     "ActionExecutionReceipt",
     "AdvanceContactOpticalSurfaceCommand",
     "AdvancePhysicalTimeCommand",

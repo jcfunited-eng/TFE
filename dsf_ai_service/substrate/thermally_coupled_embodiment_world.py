@@ -436,7 +436,7 @@ class _PendingThermal:
     candidate_body_surface_heat_residue_nanojoules: Fraction
     candidate_world_revision: int
     candidate_world_observation_receipt_sha256: str
-    receipt: ThermalTransitionReceipt
+    receipt: ThermalTransitionReceipt | None
     prior_latest_transition: ThermalTransitionReceipt | None
     prior_physical_return: PendingPhysicalReturn | None
     candidate_physical_return: PendingPhysicalReturn | None
@@ -627,8 +627,63 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
         )
         return replace(transition, successor=successor), whole_microjoules, residue
 
+    def prepare_native_mount(self, mount, *, expected_revision: int,
+                             causal_intent_receipt_sha256: str):
+        """Prepare zero-time body anatomy installation in the same transaction.
+
+        No heat or chemical stock is reset and no transition duration is
+        invented. Timed native/thermal dissipation coupling is a separate,
+        required integration boundary; until present it fails closed below.
+        """
+        with self._thermal_lock, self._lock:
+            if self._pending_thermal is not None:
+                raise RuntimeError("thermal embodiment already has a prepared action")
+            self._require_no_physical_return_for_renovation()
+            before = super().observation_snapshot()
+            if (before.revision != self._thermal_world_revision
+                    or before.authority_receipt_sha256
+                    != self._thermal_world_observation_receipt_sha256):
+                raise RuntimeError("thermal body lost current world custody")
+            prepared = super().prepare_native_mount(
+                mount, expected_revision=expected_revision,
+                causal_intent_receipt_sha256=causal_intent_receipt_sha256,
+            )
+            execution = prepared.execution_receipt
+            try:
+                if execution.elapsed_nanoseconds != 0:
+                    raise ValueError("anatomy installation cannot manufacture elapsed time")
+                pending = _PendingThermal(
+                    prepared_world=prepared,
+                    prior_state=self._thermal_state,
+                    candidate_state=self._thermal_state,
+                    prior_body_surface_heat_residue_nanojoules=(
+                        self._body_surface_heat_residue_nanojoules
+                    ),
+                    candidate_body_surface_heat_residue_nanojoules=(
+                        self._body_surface_heat_residue_nanojoules
+                    ),
+                    candidate_world_revision=execution.after.revision,
+                    candidate_world_observation_receipt_sha256=(
+                        execution.after.authority_receipt_sha256
+                    ),
+                    receipt=None,
+                    prior_latest_transition=self._latest_thermal_transition,
+                    prior_physical_return=None,
+                    candidate_physical_return=None,
+                )
+                self._verify_coupled_capacity(pending)
+            except BaseException:
+                super().discard_prepared_action(prepared)
+                raise
+            self._pending_thermal = pending
+            return prepared
+
     def prepare_port_command(self, **parameters: object):
-        with self._thermal_lock:
+        with self._thermal_lock, self._lock:
+            if self._state.world.native is not None:
+                # Native loss terms need a physical thermal-node mapping.
+                # This offline custody candidate is not a production release.
+                raise RuntimeError("native thermal dissipation coupling is not mounted")
             if self._pending_thermal is not None:
                 raise RuntimeError("thermal embodiment already has a prepared action")
             prepared = super().prepare_port_command(**parameters)
@@ -766,7 +821,7 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
         expected_physical_return: PendingPhysicalReturn | None = None,
         physical_return: PendingPhysicalReturn | None = None,
     ) -> ActionExecutionReceipt:
-        with self._thermal_lock:
+        with self._thermal_lock, self._lock:
             pending = self._require_pending(prepared)
             if self._physical_return is not expected_physical_return or pending.prior_physical_return is not expected_physical_return:
                 raise RuntimeError("world action did not consume its exact physical return")
@@ -815,7 +870,7 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
                         tail.prior_body_surface_heat_residue_nanojoules
                     )
                     self._thermal_world_revision = (
-                        tail.receipt.world_revision_before
+                        prepared.execution_receipt.before.revision
                     )
                     self._thermal_world_observation_receipt_sha256 = (
                         prepared.execution_receipt.before.authority_receipt_sha256
@@ -1085,6 +1140,7 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
             candidate = self._pending_thermal or self._committed_thermal_tail
             if (
                 candidate is None
+                or candidate.receipt is None
                 or candidate.prepared_world.execution_receipt is not execution
             ):
                 raise ValueError("world execution has no coupled thermal tail")
@@ -1114,15 +1170,35 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
         allow_legacy_thermal_genesis: bool = False,
         allow_physical_return_migration: bool = False,
     ) -> None:
-        with self._thermal_lock:
-            self._restore_encoded_locked(
-                encoded,
-                allow_authenticated_physical_manifest_migration=(
-                    allow_authenticated_physical_manifest_migration
-                ),
-                allow_legacy_thermal_genesis=allow_legacy_thermal_genesis,
-                allow_physical_return_migration=allow_physical_return_migration,
+        with self._thermal_lock, self._lock:
+            # One rollback boundary for both authorities. In particular, a
+            # fresh floor-disc authority must undo a mounted inner restore
+            # whose outer thermal binding fails without using public downgrade.
+            prior = (
+                self._state, self._recorded_declaration_sha256,
+                self._thermal_state, self._body_surface_heat_residue_nanojoules,
+                self._thermal_world_revision, self._thermal_world_observation_receipt_sha256,
+                self._latest_thermal_transition, self._physical_return,
+                self._pending_thermal, self._committed_thermal_tail,
             )
+            try:
+                self._restore_encoded_locked(
+                    encoded,
+                    allow_authenticated_physical_manifest_migration=(
+                        allow_authenticated_physical_manifest_migration
+                    ),
+                    allow_legacy_thermal_genesis=allow_legacy_thermal_genesis,
+                    allow_physical_return_migration=allow_physical_return_migration,
+                )
+            except BaseException:
+                (
+                    self._state, self._recorded_declaration_sha256,
+                    self._thermal_state, self._body_surface_heat_residue_nanojoules,
+                    self._thermal_world_revision, self._thermal_world_observation_receipt_sha256,
+                    self._latest_thermal_transition, self._physical_return,
+                    self._pending_thermal, self._committed_thermal_tail,
+                ) = prior
+                raise
 
     def _restore_encoded_locked(
         self,
@@ -1148,23 +1224,18 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
         if envelope_schema not in {COUPLED_SCHEMA, V2_COUPLED_SCHEMA, LEGACY_COUPLED_SCHEMA}:
             if not allow_legacy_thermal_genesis:
                 raise ValueError("bare world requires explicit thermal genesis migration")
-            prior_world = super().encoded_snapshot()
-            try:
-                super().restore_encoded(
-                    encoded,
-                    allow_authenticated_physical_manifest_migration=(
-                        allow_authenticated_physical_manifest_migration
-                    ),
-                )
-                if allow_authenticated_physical_manifest_migration:
-                    super().migrate_declared_home_topology()
-                observation = super().observation_snapshot()
-                self._thermal_anatomy.verify(
-                    tuple(item.region_id for item in observation.regions)
-                )
-            except BaseException:
-                super().restore_encoded(prior_world)
-                raise
+            super().restore_encoded(
+                encoded,
+                allow_authenticated_physical_manifest_migration=(
+                    allow_authenticated_physical_manifest_migration
+                ),
+            )
+            if allow_authenticated_physical_manifest_migration:
+                super().migrate_declared_home_topology()
+            observation = super().observation_snapshot()
+            self._thermal_anatomy.verify(
+                tuple(item.region_id for item in observation.regions)
+            )
             self._thermal_state = self._thermal_anatomy.genesis_state()
             self._physical_return = None
             self._body_surface_heat_residue_nanojoules = Fraction(0)
@@ -1253,117 +1324,100 @@ class ThermallyCoupledEmbodimentWorldAuthority(EmbodimentWorldAuthority):
             or physical_return.world_observation_receipt_sha256 != receipt
         ):
             raise ValueError("physical return does not bind the restored world")
-        prior_world = super().encoded_snapshot()
-        prior_state = self._thermal_state
-        prior_body_surface_heat_residue_nanojoules = (
-            self._body_surface_heat_residue_nanojoules
-        )
-        prior_revision = self._thermal_world_revision
-        prior_receipt = self._thermal_world_observation_receipt_sha256
-        try:
-            super().restore_encoded(
-                world_encoded,
-                allow_authenticated_physical_manifest_migration=(
-                    allow_authenticated_physical_manifest_migration
-                ),
-            )
-            renovated = False
-            if allow_authenticated_physical_manifest_migration:
-                prior_region_ids = tuple(
-                    item.region_id
-                    for item in super().observation_snapshot().regions
-                )
-                # The declared home may differ from the lived one in any
-                # part of its anatomy (walls, doors, ceilings, paint,
-                # windows): the renovation carries the lived state into
-                # it with a receipt, or does nothing when they agree.
-                renovated = super().migrate_declared_home_topology()
-            if renovation and not renovated:
-                raise ValueError(
-                    "coupled thermal anatomy changed without a declared "
-                    "home renovation"
-                )
-            if renovated and physical_return is not None:
-                raise ValueError("world migration cannot discard pending physical experience")
-            if renovated:
-                observation = super().observation_snapshot()
-                self._thermal_anatomy.verify(
-                    tuple(item.region_id for item in observation.regions)
-                )
-                # The prior anatomy's node order is its own convention:
-                # room airs sorted by region id, then skin, then core. The
-                # renovation carries the LIVED body heat exactly and any
-                # room whose name survives; new rooms start at their
-                # declared genesis and the receipt-bearing world says so.
-                prior_order = (
-                    *(f"air:{region_id}" for region_id in sorted(prior_region_ids)),
-                    "body:cutaneous-shell",
-                    "body:core",
-                )
-                if len(state.nodes) != len(prior_order):
-                    raise ValueError(
-                        "prior thermal state does not match its own anatomy"
-                    )
-                prior_energy = dict(zip(prior_order, state.nodes))
-                genesis = self._thermal_anatomy.genesis_state()
-                carried_nodes = []
-                for node_id, node in zip(
-                    self._thermal_anatomy.node_ids, genesis.nodes
-                ):
-                    lived = prior_energy.get(node_id)
-                    if (
-                        lived is not None
-                        and lived.capacity_microjoules_per_millikelvin
-                        == node.capacity_microjoules_per_millikelvin
-                    ):
-                        carried_nodes.append(lived)
-                    else:
-                        carried_nodes.append(node)
-                state = replace(genesis, nodes=tuple(carried_nodes))
-                revision = observation.revision
-                receipt = observation.authority_receipt_sha256
-                latest = None
-            else:
-                observation = super().observation_snapshot()
-                self._thermal_anatomy.verify(
-                    tuple(item.region_id for item in observation.regions)
-                )
-            state.verify(
-                self._thermal_anatomy.conductive_edges(observation.room_id),
-                self._thermal_anatomy.bath_edges,
-                self._thermal_anatomy.power_sources,
-            )
-            if (
+        super().restore_encoded(
+            world_encoded,
+            allow_authenticated_physical_manifest_migration=(
                 allow_authenticated_physical_manifest_migration
-                and observation.revision == revision + 1
-            ):
-                # The authenticated one-way world migration changes only its
-                # declared immutable physical manifest.  It has no elapsed
-                # time and therefore preserves the exact thermal stock and
-                # fractional contact-heat residue while retiring the prior
-                # latest-transition tail at the new world revision.
-                revision = observation.revision
-                receipt = observation.authority_receipt_sha256
-                latest = None
-            if (
-                revision != observation.revision
-                or receipt != observation.authority_receipt_sha256
-            ):
-                raise ValueError("thermal state does not bind the restored world")
-            if latest is not None and (
-                latest.world_revision_after != revision
-                or latest.thermal_state_after_sha256 != _digest(_state_record(state))
-            ):
-                raise ValueError("latest thermal transition does not end at current state")
-        except BaseException:
-            super().restore_encoded(prior_world)
-            self._thermal_state = prior_state
-            self._body_surface_heat_residue_nanojoules = (
-                prior_body_surface_heat_residue_nanojoules
+            ),
+        )
+        renovated = False
+        if allow_authenticated_physical_manifest_migration:
+            prior_region_ids = tuple(
+                item.region_id
+                for item in super().observation_snapshot().regions
             )
-            self._thermal_world_revision = prior_revision
-            self._thermal_world_observation_receipt_sha256 = prior_receipt
-            raise
+            # The declared home may differ from the lived one in any
+            # part of its anatomy (walls, doors, ceilings, paint,
+            # windows): the renovation carries the lived state into
+            # it with a receipt, or does nothing when they agree.
+            renovated = super().migrate_declared_home_topology()
+        if renovation and not renovated:
+            raise ValueError(
+                "coupled thermal anatomy changed without a declared "
+                "home renovation"
+            )
+        if renovated and physical_return is not None:
+            raise ValueError("world migration cannot discard pending physical experience")
+        if renovated:
+            observation = super().observation_snapshot()
+            self._thermal_anatomy.verify(
+                tuple(item.region_id for item in observation.regions)
+            )
+            # The prior anatomy's node order is its own convention:
+            # room airs sorted by region id, then skin, then core. The
+            # renovation carries the LIVED body heat exactly and any
+            # room whose name survives; new rooms start at their
+            # declared genesis and the receipt-bearing world says so.
+            prior_order = (
+                *(f"air:{region_id}" for region_id in sorted(prior_region_ids)),
+                "body:cutaneous-shell",
+                "body:core",
+            )
+            if len(state.nodes) != len(prior_order):
+                raise ValueError(
+                    "prior thermal state does not match its own anatomy"
+                )
+            prior_energy = dict(zip(prior_order, state.nodes))
+            genesis = self._thermal_anatomy.genesis_state()
+            carried_nodes = []
+            for node_id, node in zip(
+                self._thermal_anatomy.node_ids, genesis.nodes
+            ):
+                lived = prior_energy.get(node_id)
+                if (
+                    lived is not None
+                    and lived.capacity_microjoules_per_millikelvin
+                    == node.capacity_microjoules_per_millikelvin
+                ):
+                    carried_nodes.append(lived)
+                else:
+                    carried_nodes.append(node)
+            state = replace(genesis, nodes=tuple(carried_nodes))
+            revision = observation.revision
+            receipt = observation.authority_receipt_sha256
+            latest = None
+        else:
+            observation = super().observation_snapshot()
+            self._thermal_anatomy.verify(
+                tuple(item.region_id for item in observation.regions)
+            )
+        state.verify(
+            self._thermal_anatomy.conductive_edges(observation.room_id),
+            self._thermal_anatomy.bath_edges,
+            self._thermal_anatomy.power_sources,
+        )
+        if (
+            allow_authenticated_physical_manifest_migration
+            and observation.revision == revision + 1
+        ):
+            # The authenticated one-way world migration changes only its
+            # declared immutable physical manifest.  It has no elapsed
+            # time and therefore preserves the exact thermal stock and
+            # fractional contact-heat residue while retiring the prior
+            # latest-transition tail at the new world revision.
+            revision = observation.revision
+            receipt = observation.authority_receipt_sha256
+            latest = None
+        if (
+            revision != observation.revision
+            or receipt != observation.authority_receipt_sha256
+        ):
+            raise ValueError("thermal state does not bind the restored world")
+        if latest is not None and (
+            latest.world_revision_after != revision
+            or latest.thermal_state_after_sha256 != _digest(_state_record(state))
+        ):
+            raise ValueError("latest thermal transition does not end at current state")
         self._thermal_state = state
         self._physical_return = physical_return
         self._body_surface_heat_residue_nanojoules = (

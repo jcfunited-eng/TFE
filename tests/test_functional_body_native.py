@@ -290,6 +290,43 @@ def sensory_bench(*, other_x=5.0, root="self"):
 
 
 class NativeInterfaceTests(unittest.TestCase):
+    def test_world_frames_are_rigid_geometry_not_extra_sensory_channels(self):
+        engine = sensory_bench(other_x=5)
+        state = engine.initial_state()
+        observed = engine.observe(state)
+        frames = {frame.name: frame for frame in observed.world_frames}
+        self.assertEqual(set(frames), {"self", "outsider"})
+        self.assertEqual(frames["self"].position_m, (0., 0., .1))
+        expected_rotation = (1., 0., 0., 0., 0., -1., 0., 1., 0.)
+        for actual, expected in zip(frames["self"].rotation_world, expected_rotation):
+            self.assertAlmostEqual(actual, expected, places=14)
+        self.assertEqual(frames["outsider"].position_m, (5., 0., 2.))
+        self.assertEqual(engine.model_identity, state[:32].hex())
+        self.assertNotEqual(engine.model_identity, sensory_bench(other_x=7).model_identity)
+        self.assertFalse(hasattr(observed.self_feedback, "world_frames"))
+        self.assertEqual(observed, sensory_bench(other_x=5).observe(state))
+
+    def test_world_frames_follow_actual_joint_transform_without_yaw_reconstruction(self):
+        engine = apparatus(panel=False)
+        state = engine.initial_state()
+        before = engine.observe(state)
+        result = engine.advance(state, (.3,), 100000, 1)
+        frames = {frame.name: frame for frame in result.observation.world_frames}
+        theta = result.observation.qpos[0]
+        phi = result.observation.qpos[1]
+        c, s, cp, sp = math.cos(theta), math.sin(theta), math.cos(phi), math.sin(phi)
+        for actual, expected in zip(frames["palm"].position_m, (.35 * c, .35 * s, 1.)):
+            self.assertAlmostEqual(actual, expected, places=14)
+        expected_rotation = (c * cp, -s, c * sp, s * cp, c, s * sp, -sp, 0., cp)
+        for actual, expected in zip(frames["palm"].rotation_world, expected_rotation):
+            self.assertAlmostEqual(actual, expected, places=14)
+        self.assertGreater(theta, 0)
+        self.assertEqual(before, engine.observe(state))  # Returned frames aren't scratch views.
+        self.assertEqual(result.observation, apparatus(panel=False).observe(result.state))
+        self.assertEqual(engine.advance(result.state, None, 1000, 1),
+                         apparatus(panel=False).advance(result.state, None, 1000, 1))
+        self.assertEqual(len(state), len(result.state))
+
     def test_incremental_commands_preserve_simultaneous_effort_and_cold_state(self):
         engine = gripper(.8)
         initial = engine.initial_state()
