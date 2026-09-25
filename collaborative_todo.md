@@ -19694,3 +19694,66 @@ Single-writer deployment controller tools/deploy_guala_retention_release.py stag
 5. episodic_binding_engine.py (SHA f1cc108452cb512818f2e4f05f73e29838f997dd10a9ecdb42134486fe879cb4)
 
 **Cutover evidence:** Single-writer release controller tools/deploy_guala_retention_release.py executed. Fargate rehearsal passed. Predecessor task 27205e5e00d941edb4b1736409c0b8e8 drained and stopped cleanly with exitCode 0 and complete uvicorn shutdown. Exact zero writers verified. Immutable final backup archive verified on EFS: /app/guala/release-backups/a1-retention-e310b247aa26cbcb6f861213de61523ff3c1fa2e-1790255252801592320.zip (3,416,984 bytes, SHA 9fbd38b1ffb74cdb50129f88a81a43b60e4bd2ed3ec9b6e3f890bc5e2afabf5c). Candidate definition staged at desiredCount=0, rollout completed, then raised to 1. New task started, verified exact startup hashes, and ticks advance smoothly.
+
+## A1 TO JOE, C1 AND G1 — 2026-09-25 14:41Z — FB-01 functional-body work started, NOT deployed
+
+Joe authorized a bounded humanlike functional pre-embodiment body, physical
+proprioceptive/tactile/inertial return, no scripted climbing/opening or cognition
+rewrite, and parallel work while G1 repairs sensory admission. A1 works on
+`a1/guala-functional-body` in `/workspaces/guala-functional-body`, based on
+`guala-live` commit `8f8b6b83a`. G1's transport files and main branch are not
+changed by this work; this appended coordination entry is the sole shared edit.
+
+First source commit: `9539486ba`. Three new files only: functional-body sprint
+contract, `substrate/functional_body_kinematics.py`, and standalone mechanical
+tests. Exact instantaneous link/site frame composition includes angular,
+centripetal and Coriolis terms, and gravity-relative specific-force evidence.
+Reuses existing exact contact vectors/admission; no actor, world, clock, action
+policy, stored history, neuron law, or new vector implementation. Rational
+instantaneous rigid mechanics is explicitly reduced relative to full biological
+mechanics; not a full DSF evaluation or an implemented inner ear.
+
+12 standalone unittest proofs passed in 0.010 s, without caretaker/world/network
+boot. Local small-rational microcheck: 500 compositions+samples in 0.154486 s;
+separate allocation probe peak 3,720 B, process max RSS 12,792 KiB. Not a
+production performance or resource-bound certification. Source/test hashes and
+full source-to-consequence map are in
+`docs/GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md` on that branch.
+
+Still NOT mounted: joint-force dynamics, 3-D support/collision, receptor/organism
+return, persistent body migration and live UI. No autonomous movement or
+observational-learning claim. Next boundary is force/energy-bearing joint and
+segment mechanics; no new semantic action. Independent review remains a release
+gate; the opening-block formula review was A1 self-review, not another agent.
+
+Coordination: AWS read-only entry at 14:34 showed task1543 service1/1/0. G1's
+independent sensory cutover then stopped1543 and staged1544 at0/0/0; A1 neither
+caused nor modified it. Do not treat that interval as a body-code benchmark.
+The shared ledger tail before this entry still ended at Sept24/task1535 despite
+later release receipts in conversation; please append the sensory release's
+actual receipt here so the two lanes coordinate from current evidence.
+
+## A1 TO JOE, C1 AND G1 — 2026-09-25 14:56Z — FB-01b force mechanics locally verified
+
+Joe explicitly resumed the bounded functional-body objective; it is ACTIVE,
+not the old whole-project/speech goal. A1 branch `a1/guala-functional-body`
+commit `ff1c28f26` is pushed. No G1 transport, live body, caretaker, task or
+kernel file changed. New rigid-segment Newton-Euler force/torque, origin-shift
+power, complete principal inertia, and equal/opposite joint torque mechanics
+reuse FB-01a. This is reduced rigid mechanics, NOT full biological/DSF
+evaluation and NOT independent-limb forward dynamics of a connected body.
+
+Frozen file-hash independent source review passed; 12 standalone force tests
+passed in0.015s and 12 existing kinematic tests in0.010s. No runtime/network
+fixture execution. Proof includes off-centre applied force -> actual segment
+acceleration -> site inertial evidence, gyroscopic response and mechanical
+power identity. Finite-time energy, strength, joint constraints, live mounting,
+restart and learned action remain unproven. Full hashes/impact/results in the
+same functional-body sprint document; no second body history/store introduced.
+
+Read-only before/after AWS: task1544 `3a19bd326e5d4ae0aae0bb1c7c8c64e1`
+RUNNING/HEALTHY, service1/1/0, digest23122cdde859e3de1480d3703396dd5ddd388d48a6858608520c487e0737457a.
+Historical clock-stalled alarm stillALARM; resource/refusal alarmsOK. No A1
+production mutation. Next single body item: mechanically coupled joint
+constraints, not semantic action/cognition changes. G1 retains sensory lane
+ownership; current source-and-release receipt still requested in shared ledger.

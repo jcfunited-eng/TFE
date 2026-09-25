@@ -31,7 +31,7 @@ BASE = ACCOUNT+".dkr.ecr."+REGION+".amazonaws.com/dsf-ai@sha256:23122cdde859e3de
 REPOSITORY = BASE.split("@")[0]
 FILES = {
  "dsf_ai_service/substrate/embodiment_world.py": "c9534a4c30fe6b9dc66b2aebd5751906d78a64697777ff99b1f2ae5b3bbe80ac",
- "dsf_ai_service/guala_caretaker_hand.py": "df525a0dfa5ac24e7a53cef1c23f4ad4106c713cf655265c8f8133d242d86150",
+ "dsf_ai_service/guala_caretaker_hand.py": "6151dcdf52e47c4ff933a1f535b68e75942199d476f6135da1dfcf375d09fc53",
  "dsf_ai_service/lean_production_app.py": "8131709b6ec6782533f4bd63cbbbd197be75930b4ea3210367686961be8fcef7",
  "dsf_ai_service/guala_functional_organism.py": "b98c1e36c9b50a966b16c283518db3e0464486f09df2023258e5cbd9eeed146a",
  "dsf_ai_service/lean_actor.py": "885a5dd086db7d3a125d06c693edeb084b39b47c5308f34b05bd7be93fa96172",

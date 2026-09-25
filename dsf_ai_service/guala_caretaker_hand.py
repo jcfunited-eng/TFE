@@ -374,7 +374,7 @@ def _negative_space_path_for_hand(snapshot: Any, person: Any, origin: PositionMM
             continue
         room_obs.append((other.pose.position, int(other.radius_mm)))
 
-    if not any(_straight_path_intersects_disc(origin, goal, opos, carried_radius + orad) for opos, orad in room_obs):
+    if not any(_straight_path_intersects_disc(origin, goal, opos, carried_radius + orad) for opos, orad in room_obs if _distance_mm(opos, goal) > carried_radius + orad + 50):
         return [origin, goal]
 
     bounds = here.bounds
@@ -385,6 +385,8 @@ def _negative_space_path_for_hand(snapshot: Any, person: Any, origin: PositionMM
 
     waypoints = [origin, goal]
     for pos, rad in room_obs:
+        if _distance_mm(pos, goal) <= carried_radius + rad + 50:
+            continue
         rc = carried_radius + rad + 150
         for k in range(16):
             ang = 2 * math.pi * k / 16.0
@@ -412,6 +414,10 @@ def _negative_space_path_for_hand(snapshot: Any, person: Any, origin: PositionMM
             w2 = waypoints[j]
             blocked = False
             for opos, orad in room_obs:
+                if (w1 == goal or w2 == goal) and _distance_mm(opos, goal) <= carried_radius + orad + 50:
+                    continue
+                if (w1 == origin or w2 == origin) and _distance_mm(opos, origin) <= carried_radius + orad + 50:
+                    continue
                 req_r = carried_radius + orad if (w1 == origin or w2 == origin or w1 == goal or w2 == goal) else (carried_radius + orad + 50)
                 if _straight_path_intersects_disc(w1, w2, opos, req_r):
                     blocked = True
