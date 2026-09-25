@@ -1096,3 +1096,50 @@ resumed run, not enough to mark goal blocked. No new code/migration/deploy.
 Next action after ratification: freeze one complete motor output -> force/contact
 -> sensory return -> same-world/body custody contract, then implement that path.
 Do not create more unmounted helper components while this authority is unresolved.
+
+## FB-01g — Joe authorizes narrow motor/sensory interface extension
+
+2026-09-25 17:30Z. Joe's explicit instruction: "I authorize the narrow
+motor/sensory interface extension". This clears the preceding scope blocker;
+the goal is ACTIVE. No further approval is required for this same extension.
+The reference mechanics/anatomy evidence remains closed at686c804a7; this
+continues integration, not a new morphology or cognitive redesign.
+
+Authorized boundary: extend the current organism's motor and sensory interface
+with anatomical joint effort and physically measured limb/contact/inertial
+feedback. Preserve identity, retained experience, existing learning laws and
+canonical L0-L4. The body-only numerical approximation is already approved.
+No action-name-to-gait translator, prerecorded climbing/grasping, new reward
+law, replacement brain, semantic controller or speech/curriculum expansion.
+
+Current implementation classification remains locally exercised, unmounted.
+The approved body mechanics are a reduced numerical model, not full neuronal
+or seven-field DSF evaluation. Authorizing ports does not demonstrate learned
+coordination, balance, climbing or observational imitation.
+
+One next contract: current organism motor output -> existing world authority's
+single prepared mechanical successor -> actual contact and energetic effects
+-> same-organism sensory return -> atomic paired persistence and cold restart.
+The native integration bytes remain world-owned; no independent state owner,
+clock or live shadow body. Anatomical identifiers name actuators/receptors,
+not behavioral goals. Missing body feedback cannot be fabricated as zeros.
+Old root-displacement commands may not remain an alternative movement authority
+once the articulated body is mounted. Historical experience must remain intact,
+but it cannot be relabeled as newly executed joint-motion experience.
+
+Motor output and sensory input must have actual executable consumers. Merely
+adding fields to Decision/Sensed is insufficient. Before edits, finish the
+existing caller/migration/thermal transaction map, including the real motor
+supply and dissipative heat destination. Acceptance is one copied-body ordinary
+interval with applied effort, measured joint/contact/inertial return, unchanged
+identity/retained memories, cold restore and the next identical successor;
+then the original resource/package/live gates. No claim of production delivery
+is made by this authorization record.
+
+Read-only source check this turn located existing generic action history and
+selection at _choose/commit, and the auditory-specific sensorimotor mesh import
+at dsf_ai_service/substrate/guala_sensorimotor_mesh.py. An attempted display of
+dsf_ai_service/guala_sensorimotor_mesh.py failed (wrong directory); do not retry
+that path. No mesh extension or learning-law alteration is authorized by this
+record. Source is not frozen for implementation until the complete boundary
+contract is settled; no tests, production writes or process control this turn.
