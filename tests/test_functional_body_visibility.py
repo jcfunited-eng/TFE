@@ -1,4 +1,5 @@
 """Standalone direct-constraint optics proofs, not full-body/live vision."""
+import hashlib
 import math
 import time
 import unittest
@@ -108,7 +109,11 @@ class DirectVisibilityTests(unittest.TestCase):
                          for v in np.radians(np.linspace(-10.33, 10.33, 8))
                          for h in np.radians(np.linspace(-12.37, 12.37, 10))])
         images = []
-        for state in (initial, moved):
+        expected_hashes = (
+            "d53a40d0d3e6d26ce2785e87cc6ff7b65bfcb3c807d3b443fcbdec094dbd1373",
+            "b446fa182e541c378feacf12c85deb8005498902ca09ab223e07f28da6b5a2e8",
+        )
+        for state, expected_hash in zip((initial, moved), expected_hashes):
             surfaces, ids, colors = native_surfaces(engine, state)
             before = engine.observe(state)
             started = time.perf_counter()
@@ -118,6 +123,9 @@ class DirectVisibilityTests(unittest.TestCase):
             self.assertTrue(np.isfinite(image).all())
             self.assertGreaterEqual(float(image.min()), -1e-10)
             self.assertLessEqual(float(image.max()), 1.+1e-10)
+            # Exact pre-optimization numerical output, alongside independent
+            # native physical witnesses below. No tolerance relaxation.
+            self.assertEqual(hashlib.sha256(image.tobytes()).hexdigest(), expected_hash)
             images.append(image)
             hits = engine.ray_geometry(state, 'guala/head', ORIGIN, rays, max_rays=len(rays))
             chosen, coverage = np.full(len(rays), -1), np.zeros(len(rays), dtype=np.int64)

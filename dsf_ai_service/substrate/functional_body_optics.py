@@ -54,17 +54,17 @@ def _wrap(h):
     return (h + math.pi) % (2 * math.pi) - math.pi
 
 
-def _dot_extrema(n, apertures):
+def _dot_extrema(n, apertures, geometry):
     """Extrema of n dot d over a rectangular (h,sin(v)) aperture."""
     a, b, lo, hi = apertures.T
     nx, ny, nz = n
     radius, phi = math.hypot(nx, ny), math.atan2(ny, nx)
-    first, last = nx * np.cos(a) + ny * np.sin(a), nx * np.cos(b) + ny * np.sin(b)
+    ca, sa, cb, sb, c_lo, c_hi = geometry
+    first, last = nx * ca + ny * sa, nx * cb + ny * sb
     amin, amax = np.minimum(first, last), np.maximum(first, last)
     amax = np.where((a <= phi) & (phi <= b), radius, amax)
     opposite = _wrap(phi + math.pi)
     amin = np.where((a <= opposite) & (opposite <= b), -radius, amin)
-    c_lo, c_hi = np.sqrt(1 - lo * lo), np.sqrt(1 - hi * hi)
     minimum = np.minimum(amin * c_lo + nz * lo, amin * c_hi + nz * hi)
     maximum = np.maximum(amax * c_lo + nz * lo, amax * c_hi + nz * hi)
     norm_min, norm_max = np.hypot(amin, nz), np.hypot(amax, nz)
@@ -116,13 +116,23 @@ def aperture_solid_angles(normals, apertures, *, max_cells):
             or np.any(lo >= hi)):
         raise ValueError("invalid forward receptor aperture")
     total = (b - a) * (hi - lo)
-    inside, outside = np.ones(len(a), dtype=bool), np.zeros(len(a), dtype=bool)
+    # Aperture geometry is shared by all boundary planes of this occurrence.
+    # Once any plane excludes an aperture, later planes cannot restore it.
+    geometry = (np.cos(a), np.sin(a), np.cos(b), np.sin(b),
+                np.sqrt(1 - lo * lo), np.sqrt(1 - hi * hi))
+    inside = np.ones(len(a), dtype=bool)
+    remaining = np.arange(len(a))
+    result = np.zeros(len(a))
     for n in planes:
-        lower, upper = _dot_extrema(n, apertures)
-        inside &= lower >= 0
-        outside |= upper <= 0
-    result = np.where(inside & ~outside, total, 0.)
-    active = np.flatnonzero(~inside & ~outside)
+        if not len(remaining):
+            return result
+        lower, upper = _dot_extrema(n, apertures[remaining],
+                                   tuple(g[remaining] for g in geometry))
+        inside[remaining] &= lower >= 0
+        remaining = remaining[upper > 0]
+    complete = remaining[inside[remaining]]
+    result[complete] = total[complete]
+    active = remaining[~inside[remaining]]
     if not len(active):
         return result
 
@@ -131,27 +141,35 @@ def aperture_solid_angles(normals, apertures, *, max_cells):
         phi = math.atan2(n[1], n[0])
         fixed.extend((_wrap(phi - math.pi / 2), _wrap(phi + math.pi / 2)))
         for other in planes[i + 1:]:
-            p = np.cross(n, other)
-            h = math.atan2(p[1], p[0])
+            # Only the intersection longitude is needed. Do not allocate a
+            # three-vector and generic axis machinery for this scalar pair.
+            nx, ny, nz = map(float, n)
+            ox, oy, oz = map(float, other)
+            px, py = ny * oz - nz * oy, nz * ox - nx * oz
+            h = math.atan2(py, px)
             fixed.extend((h, _wrap(h + math.pi)))
     batch = max_cells // event_count
     for begin in range(0, len(active), batch):
         ids = active[begin:begin + batch]
         aa, bb, ll, hh = apertures[ids].T
-        events = [aa, bb]
-        events.extend(np.clip(h, aa, bb) for h in fixed)
+        cuts = np.empty((len(ids), event_count))
+        cuts[:, 0], cuts[:, 1] = aa, bb
+        end = 2 + len(fixed)
+        cuts[:, 2:end] = np.clip(np.asarray(fixed)[None, :], aa[:, None], bb[:, None])
         for n in planes:
             radius, phi = math.hypot(n[0], n[1]), math.atan2(n[1], n[0])
             for mu in (ll, hh):
                 if radius == 0:
-                    events.extend((aa, aa))
+                    cuts[:, end:end + 2] = aa[:, None]
+                    end += 2
                     continue
                 ratio = -n[2] * mu / (radius * np.sqrt(1 - mu * mu))
                 exists = np.abs(ratio) <= 1
                 delta = np.arccos(np.clip(ratio, -1, 1))
                 for sign in (-1, 1):
-                    events.append(np.where(exists, np.clip(_wrap(phi + sign * delta), aa, bb), aa))
-        cuts = np.sort(np.stack(events, axis=1), axis=1)
+                    cuts[:, end] = np.where(exists, np.clip(_wrap(phi + sign * delta), aa, bb), aa)
+                    end += 1
+        cuts.sort(axis=1)
         left, right = cuts[:, :-1], cuts[:, 1:]
         mid = (left + right) / 2
         cosine, sine = np.cos(mid), np.sin(mid)

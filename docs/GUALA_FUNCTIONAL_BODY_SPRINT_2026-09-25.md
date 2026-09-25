@@ -2656,3 +2656,69 @@ Post-window21:10CPUavg51.266329%,max52.533359%;RAMavg3.099060%,max3.192139%.
 CloudWatch window still filling, not a before/after causal performance claim.
 No new immutable G1 source/deployment receipt since1549; dirty staged main tree
 and sleep-window plan left intact. GoalACTIVE; complete body not deployed.
+
+### FB-01o — remove measured aperture-event execution waste
+
+Continue optics latency after6c8324a5a; previous turnPROGRESS. Authorized scope:
+functional_body_optics.py, existing visibility test, this ledger only. Preserve
+all visibility/source chart laws and actual native acceptance; no anatomy,
+material, world/cognition/persistence or production change. Numerical-optics
+approval remains sufficient. Component-only, not full DSF evaluation.
+
+Unchanged-source diagnostic34073/session16812 exit0,wall2.693573s,
+user2.676489s,system.03215s,peak74056KiB. Initial imageSHA
+d53a40d0d3e6d26ce2785e87cc6ff7b65bfcb3c807d3b443fcbdec094dbd1373,
+movedSHA b446fa182e541c378feacf12c85deb8005498902ca09ab223e07f28da6b5a2e8.
+Initial22regions with12,13,15,16,14,15,17,12,14,15,16,17,14,13,15,12,14,11,10,11,8,11
+constraint rows; moved17regions with12,13,15,16,14,15,17,7,9,10,11,12,9,12,14,5,5.
+Profiled(not baseline wall timing) initial2,390,145calls/1.470s;
+moved1,686,745calls/1.002s. Initial220areaqueries(198visibility/22radiance),
+18341tiny np.cross calls,.543s cumulative;60926np.clip calls;2822dot-extrema
+calls,.347s cumulative. Moved162queries,12804cross,43187clip,2012extrema.
+
+Waste register: pair intersection only needs x,y to compute longitude, but each
+pair constructs a3-vector and invokes generic np.cross/moveaxis machinery.
+Each fixed scalar event is separately converted, clipped and stacked for every
+aperture batch. Every plane also recomputes identical aperture trig and checks
+apertures already proved outside earlier constraints. None changes physics.
+
+Replacement contract: retain exact input/normal order and equations. Compute
+the two pair determinants directly with binary64 multiplications/subtraction
+and original math.atan2/wrap. Fill one bounded event matrix; clip all fixed
+events as a packed operation and sort in place. Reuse aperture endpoint trig
+within each call and stop classification for already excluded apertures. The
+same original boundary integral, event ceiling, root calculations and physical
+constraints remain authoritative. No epsilon, feature cull, plane reduction,
+new event law, field flattening or output quantization. Zero retained cache.
+
+Input->output path: visible_planar_regions.area and caller radiance ->
+aperture_solid_angles -> same normalized directed planes, analytic crossings,
+boundary integral -> solid-angle values. New scratch is per-call only; no body,
+thermal, material, sensory or native state mutation. Refusal remains before
+publication; no new persistence/crash/restore branch. Scratch remains O(N)+
+O(max_cells), not history. Preserve event-count refusal on original K. Exact
+tested predecessor image bytes, native head/cold/next-state witness, all5prior
+aperture tests and4visibility tests are frozen acceptance. Explicit additional
+assertions pin the two measured image hashes. Source-only review before tests.
+Performance must be measured unprofiled; passing hashes is not latency success.
+
+FB-01o frozen source review03f0fcf486f4e70e298cb56653e6d76f6620c1ed03f0c54fbe96d8ecebab2ff5
+passed with no findings. Verification35175/session39873 exit0,9/9PASS in2.700s;
+wholewall2.874158s,user2.809699s,system.076154s,peak90436KiB. Both exact
+predecessor image hashes match. Native5-surface scene .471428819s(initial),
+.378948266s(moved), versus .867981043/.656413103 before. Four single-box
+scenes8.27-9.61ms, same independent error bounds. Speed improved but250ms
+remains unachieved, so no deployment. OpticsSHA91ae9d066814c3351c1898b416bc62e1151b32647b31a2ffa33a38ab81f77502;
+testSHA67f89883ddbbb7568811c44a6e82dcaa01dd0980992187fddcce2919dff79184.
+
+Diagnostic AWS pre21:17:09/post21:18:49, verificationpre21:21:30/post21:23:04:
+sameus-east-1,tfe-web-cluster,dsf-ai-service-lb,sole1549 task478e055e5f0146789dd2ba0642bb578b,
+RUNNING/HEALTHY,1/1/0,digestc883967dae9703796245db6408d12ec03a7591dbb48c8c0c4188bdc2d1a837b8.
+Sameidentity1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1,availabletrue,
+checkpoint/cleanupnull,durabilityblockedfalse. Diagnosticlive2265580->2265731,
+persisted2265567->2265727; verificationprelive2265974,persisted2265951.
+Resource/refusalalarmsOK,historicalclockalarmALARM. Diagnostic21:15CPUavg
+52.095218->52.056995%,max52.573161->52.575919%;RAMavg3.031413->3.070747%,
+max3.070068->3.204346%. Verificationpre21:15CPUavg51.638880%,max52.575919%,
+RAMavg3.098551%,max3.204346%. Censuses show only caretaker95907, no34073 or
+35175 survivor. No production mutations. Active candidate is local-only.
