@@ -1105,6 +1105,7 @@ def candidates(
     conserved_objects: dict[str, Any] | None = None,
     pending_chain: list[str] | None = None,
     last_crossed_portal: tuple[str, int] | None = None,
+    sound_heard: bool = False,
 ) -> list[tuple[str, str, tuple[Any, ...], str | None, tuple[int, int, int] | None]]:
     """What her body can do this beat, across every sensed target: each entry is
     (act, detail, world commands tried in order, target, voice drive).
@@ -1245,8 +1246,9 @@ def candidates(
         out.append(("step", "one stride ahead", (MoveCommand(PoseMM(ahead, heading), BEAT_MICROSECONDS),), None, None))
         for name, sign in (("turn_left", 1), ("turn_right", -1)):
             out.append((name, "", (MoveCommand(PoseMM(position, (heading + sign * TURN_MILLIDEGREES) % 360_000), BEAT_MICROSECONDS),), None, None))
-    drive = say_drive if say_drive is not None else DEFAULT_DRIVE
-    out.append(("say", say_detail, (), None, drive))
+    if not sound_heard:
+        drive = say_drive if say_drive is not None else DEFAULT_DRIVE
+        out.append(("say", say_detail, (), None, drive))
     out.append(("rest", "", (), None, None))
 
     assert len(out) <= MAX_CANDIDATES
@@ -1867,9 +1869,11 @@ class FunctionalOrganism:
             energy = sum(heard_now) / len(heard_now)
             sound_heard = energy >= HEARD_ENERGY_FLOOR
 
-        if sound_source is not None and sound_heard:
-            state["gaze_target"] = sound_source
-            state["attended_tick"] = tick
+        if sound_heard:
+            state["last_sound_heard_tick"] = tick
+            if sound_source is not None:
+                state["gaze_target"] = sound_source
+                state["attended_tick"] = tick
 
         # Cognitive Asset 5: Social Joint Attention & Caregiver Gaze Vector Tracking
         caregiver = next((b for b in snapshot.bodies if b.body_id != snapshot.self_body_id), None)
@@ -2101,7 +2105,7 @@ class FunctionalOrganism:
         sleepy = int(state.get("sleep_pressure", 0)) >= SLEEP_PRESSURE_CEILING // 2
         p_chain = list(state.get("pending_chain") or [])
         state["body_pos"] = (int(body.pose.position.x), int(body.pose.position.y), int(body.pose.position.z))
-        options = candidates(snapshot, body, held, offered, seen, tick, say_drive=say_drive, say_detail=say_reason, feeding=feeding, sleepy=sleepy, conserved_objects=conserved, pending_chain=p_chain, last_crossed_portal=state.get("last_crossed_portal"))
+        options = candidates(snapshot, body, held, offered, seen, tick, say_drive=say_drive, say_detail=say_reason, feeding=feeding, sleepy=sleepy, conserved_objects=conserved, pending_chain=p_chain, last_crossed_portal=state.get("last_crossed_portal"), sound_heard=sound_heard)
 
         # Cognitive Asset 1: Learned Closed-Loop Continuation Selector
         # When an internal demand is active, searches the empirical transition graph for supported continuation
@@ -2176,13 +2180,16 @@ class FunctionalOrganism:
         sleep_ratio = round(float(state.get("sleep_pressure", 0)) / SLEEP_PRESSURE_CEILING, 6)
         contact_ratio = round(float(state.get("contact_pressure", 0)) / CONTACT_PRESSURE_CEILING, 6)
         state["pending_act"] = {"key": key, "regimes": regimes, "act": act, "deficit": deficit, "sleep_ratio": sleep_ratio, "contact_ratio": contact_ratio, "intake": 0, "refused": False}
-        if act == "say" or (sound_heard and drive is None):
+        if act == "say":
             drive = say_drive
             state["pending_act"]["syllable"], state["pending_act"]["context"] = say_name, say_context   # valued by what follows, under its context
             state["pending_act"]["drive"] = list(say_drive)
             target = state.get("heard_speech_target")
             if target and target.get("envelopes"):
                 target["consumed"] = True
+        elif sound_heard and drive is None and commands and getattr(sensed, "sound_source_id", None) == "person-body-1":
+            # Multimodal acoustic acknowledgement during active motor stride when directly hailed by person-body-1
+            drive = say_drive
             # Cognitive Asset 5: Combinatorial Demand Chaining
             chain = state.get("pending_chain")
             if chain:
@@ -2707,6 +2714,13 @@ class FunctionalOrganism:
             non_turns = [a for a in acts if a not in ("turn_left", "turn_right")]
             if non_turns:
                 acts = non_turns
+
+        # Cognitive Asset 7: Stage 4 Conversational Turn-Taking Flow
+        # Calibrated 250ms quiet gap following speaker cessation releases vocal turn response
+        target = self._state.get("heard_speech_target")
+        quiet_gap = self.live_organism_tick - int(self._state.get("last_sound_heard_tick", -999))
+        if quiet_gap == 1 and target and not target.get("consumed") and "say" in acts:
+            return "say", f"{label}: conversational turn release after 250ms quiet gap"
 
         # Cognitive Asset 6: Unified Structural Boredom & Distal Interest Potential Manifold
         dwell_beats = int(self._state.get("room_dwell_beats", 0))
