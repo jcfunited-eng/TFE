@@ -1,0 +1,477 @@
+# REJECTED FB-01m candidate — not executable source or accepted architecture
+# Final rejected fingerprint: 2a3a69271bd683dee1bacfc546471a3243b57963dcdf44736692c03b0f157760
+# Native visibility test still fails surface_cone: degenerate or not ordered convex.
+# Preserve solely as reproducible failure evidence; do not restore into runtime.
+
+--- /dev/null
++++ b/dsf_ai_service/substrate/functional_body_visibility.py
+@@ -0,0 +1,251 @@
++"""Bounded float64 planar visibility, not a complete native-scene renderer.
++
++Input patches must come from authoritative planar surface geometry. A patch is
++origin + u*axis[0] + v*axis[1]; its material chart stays in (u,v), not eye pixels.
++Curved geometry, shading and material sampling are NOT approximated here.
++No physical state is changed, retained or inferred from rendering addresses.
++"""
++from __future__ import annotations
++
++from dataclasses import dataclass
++
++import numpy as np
++
++from .functional_body_optics import surface_cone
++
++
++@dataclass(frozen=True)
++class PlanarPatch:
++    origin: np.ndarray
++    axes: np.ndarray
++    boundary_uv: np.ndarray
++
++    def points(self, uv):
++        return self.origin + uv @ self.axes
++
++
++@dataclass(frozen=True)
++class VisibleRegion:
++    patch_index: int
++    boundary_uv: np.ndarray
++
++
++def _packed(a, shape):
++    return (isinstance(a, np.ndarray) and a.dtype == np.dtype(np.float64)
++            and a.shape == shape and np.isfinite(a).all())
++
++
++def _area2(uv):
++    # Translation before the shoelace sum avoids cancellation from UV origin.
++    relative = uv - uv[0]
++    following = np.roll(relative, -1, axis=0)
++    area = float(np.sum(relative[:, 0] * following[:, 1]
++                        - relative[:, 1] * following[:, 0]))
++    if not np.isfinite(relative).all() or not np.isfinite(area):
++        raise ValueError("nonfinite planar area")
++    return area
++
++
++def visible_planar_regions(patches, *, max_vertices, max_work):
++    """Return convex, non-overlapping visible pieces of opaque planar patches.
++
++    Only the forward hemisphere x>=0 is delivered. max_vertices bounds all
++    vertices in each prepared/output/active pool (total storage O(max_vertices));
++    max_work bounds accumulated
++    vertex geometry evaluations, including convexity and broad-phase checks. Limits are
++    resource declarations, not perceptual cutoffs. A refusal returns no result.
++    Array inputs are borrowed read-only during this call; output arrays own their
++    storage. No ordering by object centre, distance score or material is used.
++    Coincident overlapping surfaces refuse because their radiance is ambiguous.
++    """
++    if (type(max_vertices) is not int or max_vertices <= 0
++            or type(max_work) is not int or max_work <= 0):
++        raise ValueError("positive integer visibility work/residency limits required")
++    if not isinstance(patches, tuple):
++        raise ValueError("finite tuple of planar patches required")
++    count = 0
++    for patch in patches:
++        if (not isinstance(patch, PlanarPatch)
++                or not _packed(patch.origin, (3,)) or not _packed(patch.axes, (2, 3))
++                or not isinstance(patch.boundary_uv, np.ndarray)
++                or patch.boundary_uv.ndim != 2 or patch.boundary_uv.shape[1] != 2
++                or not _packed(patch.boundary_uv, patch.boundary_uv.shape)
++                or len(patch.boundary_uv) < 3):
++            raise ValueError("finite packed planar geometry required")
++        count += len(patch.boundary_uv)
++        if count > max_vertices:
++            raise ValueError("input patch vertices exceed visibility residency")
++    work = 0
++
++    def charge(n):
++        nonlocal work
++        work += n
++        if work > max_work:
++            raise ValueError("visibility work exhausted")
++
++    def keep(uv):
++        if len(uv) < 3 or _area2(uv) == 0:
++            return None
++        # Remove only exactly redundant UV corners, not small optical features.
++        # Coordinates on the surviving edges retain the same material chart.
++        while len(uv) >= 3:
++            charge(len(uv))
++            before, after = uv - np.roll(uv, 1, axis=0), np.roll(uv, -1, axis=0) - uv
++            turns = before[:, 0] * after[:, 1] - before[:, 1] * after[:, 0]
++            if not np.isfinite(turns).all() or not np.isfinite(before).all() or not np.isfinite(after).all():
++                raise ValueError("nonfinite planar corner geometry")
++            redundant = np.flatnonzero(turns == 0)
++            if not len(redundant):
++                break
++            # Retain the middle point only if the path reverses along the edge;
++            # reversal is invalid ordering, not a redundant convex corner.
++            i = int(redundant[0])
++            if np.any((before[i] > 0) & (after[i] < 0)) or np.any((before[i] < 0) & (after[i] > 0)):
++                raise ValueError("planar boundary reverses along an edge")
++            uv = np.delete(uv, i, axis=0)
++        if len(uv) < 3 or _area2(uv) == 0:
++            return None
++        return uv
++
++    def clip(uv, patch, normal):
++        if uv is None:
++            return None
++        charge(len(uv))
++        # Signed plane is evaluated at the same attached coordinates used by
++        # material sampling. Interpolation cannot move a cut off its face.
++        coefficient = patch.axes @ normal
++        offset = patch.origin @ normal
++        sides = uv @ coefficient + offset
++        if not np.isfinite(sides).all():
++            raise ValueError("nonfinite optical clipping geometry")
++        if np.all(sides >= 0):
++            return uv
++        if np.all(sides <= 0):
++            return None
++        if len(uv) + 1 > max_vertices:
++            raise ValueError("clipping scratch exceeds vertex residency")
++        vertices = []
++        for i, point in enumerate(uv):
++            previous, before, after = uv[i - 1], sides[i - 1], sides[i]
++            if (before < 0 < after) or (after < 0 < before):
++                scale = max(abs(before), abs(after))
++                b, a = before / scale, after / scale
++                weight = b / (b - a)
++                intersection = (1. - weight) * previous + weight * point
++                if not np.isfinite(intersection).all():
++                    raise ValueError("nonfinite clipping intersection")
++                vertices.append(intersection)
++            if after >= 0:
++                vertices.append(point)
++        return keep(np.asarray(vertices, dtype=np.float64))
++
++    # Prepare each projected convex cone once, not once per receptor or pair.
++    prepared = []
++    prepared_vertices = 0
++    for patch in patches:
++        uv = keep(patch.boundary_uv)
++        if uv is None:
++            raise ValueError("degenerate planar boundary")
++        winding = _area2(uv)
++        if winding == 0:
++            raise ValueError("degenerate planar boundary")
++        for i in range(len(uv)):
++            charge(len(uv))
++            edge, delta = uv[(i + 1) % len(uv)] - uv[i], uv - uv[i]
++            sides = (edge[0] * delta[:, 1] - edge[1] * delta[:, 0]) * np.sign(winding)
++            if not np.isfinite(sides).all() or not np.isfinite(delta).all() or not np.isfinite(edge).all():
++                raise ValueError("nonfinite convexity geometry")
++            if np.any(sides < 0) or np.all(edge == 0):
++                raise ValueError("planar boundary must be ordered convex")
++        normal = np.cross(patch.axes[0], patch.axes[1])
++        scale = float(np.max(np.abs(normal)))
++        if not np.isfinite(normal).all() or scale == 0:
++            raise ValueError("degenerate planar coordinate frame")
++        normal = normal / scale
++        distance = float(normal @ patch.origin)
++        if not np.isfinite(distance):
++            raise ValueError("nonfinite planar distance")
++        if distance < 0:
++            normal, distance = -normal, -distance
++        front = clip(uv, patch, np.array((1., 0., 0.)))
++        if front is None or distance == 0:
++            prepared.append(None)
++            continue
++        prepared_vertices += len(front)
++        if prepared_vertices > max_vertices:
++            raise ValueError("prepared geometry exceeds vertex residency")
++        charge(len(front) * (len(front) + 1))
++        cone = surface_cone(patch.points(front))
++        prepared.append((front, cone, normal, distance))
++
++    answer = []
++    answer_vertices = 0
++    for index, source in enumerate(prepared):
++        if source is None:
++            continue
++        patch = patches[index]
++        front, _cone, normal, distance = source
++        regions = [front]
++        for other_index, blocker in enumerate(prepared):
++            if other_index == index or blocker is None:
++                continue
++            _front_b, cone_b, normal_b, distance_b = blocker
++            depth = distance * normal_b - distance_b * normal
++            if not np.isfinite(depth).all():
++                raise ValueError("nonfinite depth-order geometry")
++            coincident = not np.any(depth)
++            planes = cone_b if coincident else np.vstack((cone_b, depth))
++            successor = []
++            resident = answer_vertices + sum(len(p) for p in regions)
++            for region in regions:
++                # Any separating plane disproves overlap; no split is needed.
++                points = patch.points(region)
++                separated = False
++                for plane in planes:
++                    charge(len(region))
++                    if np.all(points @ plane <= 0):
++                        separated = True
++                        break
++                if separated:
++                    successor.append(region)
++                    continue
++                inside, pieces, piece_vertices = region, [], 0
++                for plane in planes:
++                    outside = clip(inside, patch, -plane)
++                    if outside is not None:
++                        piece_vertices += len(outside)
++                        if resident - len(region) + piece_vertices > max_vertices:
++                            raise ValueError("visible fragments exceed residency")
++                        pieces.append(outside)
++                    inside = clip(inside, patch, plane)
++                    if inside is None:
++                        break
++                if coincident and inside is not None:
++                    raise ValueError("overlapping coplanar optical surfaces are ambiguous")
++                resident += sum(len(p) for p in pieces) - len(region)
++                if resident > max_vertices:
++                    raise ValueError("visible fragments exceed residency")
++                successor.extend(pieces)
++            regions = successor
++            if not regions:
++                break
++        for region in regions:
++            charge(len(region))
++            points = patch.points(region)
++            if not np.isfinite(points).all():
++                raise ValueError("nonfinite visible surface coordinates")
++            # A representable UV sliver can collapse when converted to the
++            # actual float64 physical coordinates (e.g. 1e-17m at x=2m).
++            # Remove exactly coincident consecutive points, never a small
++            # feature threshold. Fewer than three points has zero optical area.
++            distinct = np.any(points != np.roll(points, 1, axis=0), axis=1)
++            region = region[distinct]
++            if len(region) < 3:
++                continue
++            owned = region.copy()
++            owned.setflags(write=False)
++            answer.append(VisibleRegion(index, owned))
++            answer_vertices += len(owned)
++            if answer_vertices > max_vertices:
++                raise ValueError("visible output exceeds residency")
++    return tuple(answer)
+
+--- /dev/null
++++ b/tests/test_functional_body_visibility.py
+@@ -0,0 +1,214 @@
++"""Offline planar visibility/material-chart proofs; no live world or API writes."""
++import math
++import time
++import unittest
++import xml.etree.ElementTree as ET
++
++import numpy as np
++
++from dsf_ai_service.substrate.functional_body_native import NativeBody
++from dsf_ai_service.substrate.functional_body_optics import aperture_solid_angles, surface_cone
++from dsf_ai_service.substrate.functional_body_visibility import PlanarPatch, visible_planar_regions
++from tools.guala_body_optical_regime import BANDS, LIMITS, ORIGIN, retinal_apertures, scene
++
++
++QUAD = np.array(((-1., -1.), (1., -1.), (1., 1.), (-1., 1.)))
++BOUNDS = dict(max_vertices=32768, max_work=1048576)
++CELLS = 32768
++
++
++def panel(x, half_y, half_z, y=0., z=0.):
++    return PlanarPatch(np.array((x, y, z)), np.array(((0., half_y, 0.), (0., 0., half_z))), QUAD)
++
++
++def radiance(patches, colors, sites):
++    regions = visible_planar_regions(patches, **BOUNDS)
++    image = np.zeros((len(sites), 6))
++    for region in regions:
++        patch = patches[region.patch_index]
++        area = aperture_solid_angles(surface_cone(patch.points(region.boundary_uv)), sites, max_cells=CELLS)
++        image += area[:, None] * colors[region.patch_index]
++    omega = (sites[:, 1] - sites[:, 0]) * (sites[:, 3] - sites[:, 2])
++    return image / omega[:, None], regions
++
++
++def native_box_patches(engine, state):
++    """This bench reads only its three declared boxes; native rays see all geoms.
++
++    Returning source-local UV axes preserves the material chart. No second
++    scene/model is created, and no curved native geometry is claimed rendered.
++    """
++    observation = engine.observe(state)
++    head = next(f for f in observation.world_frames if f.name == "guala/head")
++    rotation = np.array(head.rotation_world).reshape(3, 3)
++    eye = np.array(head.position_m) + rotation @ ORIGIN
++    patches, ids, colors = [], [], []
++    for name, color in (("dark-panel", np.zeros(6)), ("emissive-panel", BANDS),
++                        ("occluder", BANDS[::-1].copy())):
++        geom = engine.geom_names.index(name)
++        size = engine._model.geom_size[geom]
++        centre = engine._data.geom_xpos[geom]
++        frame = engine._data.geom_xmat[geom].reshape(3, 3)
++        eye_local = frame.T @ (eye - centre)
++        for axis in range(3):
++            others = [i for i in range(3) if i != axis]
++            for sign in (-1, 1):
++                if sign * eye_local[axis] <= size[axis]:
++                    continue
++                origin = (centre + frame[:, axis] * sign * size[axis] - eye) @ rotation
++                axes = np.array([frame[:, a] * size[a] for a in others]) @ rotation
++                patches.append(PlanarPatch(origin, axes, QUAD))
++                ids.append(geom)
++                colors.append(color)
++    return tuple(patches), ids, colors
++
++
++class FunctionalBodyVisibilityTests(unittest.TestCase):
++    def test_occlusion_area_not_centre_sorting_and_permutation(self):
++        sites = retinal_apertures()
++        near, far = panel(1., .1, .1), panel(2., .8, .8)
++        colors = (BANDS, BANDS[::-1].copy())
++        actual, _ = radiance((near, far), colors, sites)
++        omega = (sites[:, 1] - sites[:, 0]) * (sites[:, 3] - sites[:, 2])
++        a = aperture_solid_angles(surface_cone(near.points(QUAD)), sites, max_cells=CELLS)
++        b = aperture_solid_angles(surface_cone(far.points(QUAD)), sites, max_cells=CELLS)
++        expected = (a[:, None] * colors[0] + (b-a)[:, None] * colors[1]) / omega[:, None]
++        np.testing.assert_allclose(actual, expected, atol=1e-10, rtol=0)
++        reverse, _ = radiance((far, near), colors[::-1], sites)
++        np.testing.assert_allclose(actual, reverse, atol=1e-10, rtol=0)
++
++        # Two physical planes cross: each is nearest on one side. Neither
++        # a global centre ordering nor alpha coverage can produce this split.
++        left = PlanarPatch(np.array((2., 0., 0.)), np.array(((.4, .8, 0.), (0., 0., .8))), QUAD)
++        right = PlanarPatch(np.array((2., 0., 0.)), np.array(((-.4, .8, 0.), (0., 0., .8))), QUAD)
++        _, regions = radiance((left, right), colors, sites[135:])
++        for region in regions:
++            points = (left, right)[region.patch_index].points(region.boundary_uv)
++            if region.patch_index == 0:
++                self.assertLessEqual(float(points[:, 1].max()), 1e-14)
++            else:
++                self.assertGreaterEqual(float(points[:, 1].min()), -1e-14)
++
++    def test_native_visibility_head_motion_and_cold_successor(self):
++        xml, _ = scene(.117, None)
++        root = ET.fromstring(xml)
++        ET.SubElement(root.find("worldbody"), "geom", name="occluder", type="box",
++                      pos="1.2 0 0.96", size=".02 .15 .15", euler=".13 -.11 .21")
++        xml = ET.tostring(root, encoding="unicode")
++        engine = NativeBody(xml, LIMITS, sensory_root="guala/pelvis")
++        initial = engine.initial_state()
++        updates = tuple(sorted((engine.actuator_names.index(name), value) for name, value in (
++            ("guala/head/roll/effort", .02), ("guala/head/pitch/effort", .015),
++            ("guala/head/yaw/effort", -.01))))
++        moved = engine.advance(initial, None, 50000, 1., effort_updates=updates).state
++        rays = np.array([(math.cos(v)*math.cos(h), math.cos(v)*math.sin(h), math.sin(v))
++                         for v in np.radians(np.linspace(-10.33, 10.33, 8))
++                         for h in np.radians(np.linspace(-12.37, 12.37, 10))])
++        images = []
++        for state in (initial, moved):
++            patches, ids, colors = native_box_patches(engine, state)
++            before = engine.observe(state)
++            started = time.perf_counter()
++            image, regions = radiance(patches, colors, retinal_apertures())
++            print(f"native_planar_visibility patches={len(patches)} fragments={len(regions)} "
++                  f"seconds={time.perf_counter()-started:.9f}", flush=True)
++            images.append(image)
++            hits = engine.ray_geometry(state, "guala/head", ORIGIN, rays, max_rays=len(rays))
++            coverage = np.zeros(len(rays), dtype=np.int64)
++            chosen = np.full(len(rays), -1, dtype=np.int64)
++            for region in regions:
++                p = patches[region.patch_index]
++                cone = surface_cone(p.points(region.boundary_uv))
++                inside = np.all(rays @ cone.T > 0, axis=1)
++                coverage += inside
++                chosen[inside] = ids[region.patch_index]
++            np.testing.assert_array_equal(coverage, 1)
++            np.testing.assert_array_equal(chosen, hits.geom_indices)
++            self.assertEqual(engine.observe(state), before)
++            fresh = NativeBody(xml, LIMITS, sensory_root="guala/pelvis")
++            cold_patches, _, cold_colors = native_box_patches(fresh, state)
++            cold_image, _ = radiance(cold_patches, cold_colors, retinal_apertures())
++            np.testing.assert_array_equal(image, cold_image)
++            self.assertEqual(engine.advance(state, None, 1000, 1.), fresh.advance(state, None, 1000, 1.))
++        self.assertGreater(float(np.max(np.abs(images[0] - images[1]))), 1/255)
++
++    def test_attached_material_coordinates_and_common_rotation(self):
++        # Two coplanar, adjacent material regions on one surface. A blocker
++        # cuts through both. UV remains fixed on the original physical plane.
++        left_uv = np.array(((-1., -1.), (0., -1.), (0., 1.), (-1., 1.)))
++        right_uv = np.array(((0., -1.), (1., -1.), (1., 1.), (0., 1.)))
++        base = panel(2., .4, .3)
++        patches = (PlanarPatch(base.origin, base.axes, left_uv),
++                   PlanarPatch(base.origin, base.axes, right_uv), panel(1., .1, .1))
++        before = tuple((p.origin.copy(), p.axes.copy(), p.boundary_uv.copy()) for p in patches)
++        regions = visible_planar_regions(patches, **BOUNDS)
++        a = .23
++        rotation = np.array(((1., 0., 0.), (0., math.cos(a), -math.sin(a)),
++                             (0., math.sin(a), math.cos(a))))
++        rotated = tuple(PlanarPatch(p.origin @ rotation.T, p.axes @ rotation.T, p.boundary_uv) for p in patches)
++        changed = visible_planar_regions(rotated, **BOUNDS)
++        # Compare per-material physical area; pieces may be split differently
++        # by floating arithmetic, but may not change material ownership.
++        for i, patch in enumerate(patches):
++            def uv_area(parts):
++                total = 0.
++                for r in parts:
++                    if r.patch_index != i:
++                        continue
++                    q = r.boundary_uv
++                    total += abs(float(np.sum(q[:,0]*np.roll(q[:,1], -1)-q[:,1]*np.roll(q[:,0], -1)))) / 2
++                    self.assertFalse(q.flags.writeable)
++                    self.assertTrue(np.all(q >= patch.boundary_uv.min(axis=0)-1e-14))
++                    self.assertTrue(np.all(q <= patch.boundary_uv.max(axis=0)+1e-14))
++                return total
++            self.assertAlmostEqual(uv_area(regions), uv_area(changed), places=12)
++            for actual, original in zip((patch.origin, patch.axes, patch.boundary_uv), before[i]):
++                np.testing.assert_array_equal(actual, original)
++
++    def test_collinear_material_boundary_and_finite_overflow(self):
++        p = panel(2., .4, .3)
++        redundant = PlanarPatch(p.origin, p.axes, np.array((
++            (-1., -1.), (0., -1.), (1., -1.), (1., 1.), (-1., 1.))))
++        blocker = panel(1., .1, .1)
++        sites = retinal_apertures()
++        expected, _ = radiance((p, blocker), (BANDS, BANDS[::-1]), sites)
++        actual, regions = radiance((redundant, blocker), (BANDS, BANDS[::-1]), sites)
++        np.testing.assert_allclose(actual, expected, atol=1e-12, rtol=0)
++        for region in regions:
++            # The downstream aperture boundary must accept every clipped piece.
++            owner = (redundant, blocker)[region.patch_index]
++            self.assertTrue(np.isfinite(surface_cone(owner.points(region.boundary_uv))).all())
++        crossing = PlanarPatch(np.array((0., 1., 0.)),
++                               np.array(((1e308, 0., 0.), (0., 0., 1.))), QUAD)
++        with np.errstate(over="ignore", invalid="ignore"):
++            visible = visible_planar_regions((crossing,), **BOUNDS)
++        self.assertEqual(len(visible), 1)
++        self.assertTrue(np.isfinite(visible[0].boundary_uv).all())
++        self.assertTrue(np.all(crossing.points(visible[0].boundary_uv)[:, 0] >= 0))
++        bad = PlanarPatch(p.origin, p.axes, QUAD * 1e200)
++        with np.errstate(over="ignore", invalid="ignore"), self.assertRaises(ValueError):
++            visible_planar_regions((bad,), **BOUNDS)
++        # Geometry preparation, not just clipping, consumes the stated budget.
++        with self.assertRaisesRegex(ValueError, "work"):
++            visible_planar_regions((p,), max_vertices=100, max_work=30)
++
++    def test_forward_crossing_empty_ambiguity_and_work_refusal(self):
++        crossing = PlanarPatch(np.array((0., 1., 0.)), np.array(((1., 0., 0.), (0., 0., 1.))), QUAD)
++        regions = visible_planar_regions((crossing,), **BOUNDS)
++        self.assertEqual(len(regions), 1)
++        self.assertTrue(np.all(crossing.points(regions[0].boundary_uv)[:, 0] >= 0))
++        self.assertEqual(visible_planar_regions((panel(-2., .1, .1),), **BOUNDS), ())
++        p = panel(2., .4, .4)
++        with self.assertRaisesRegex(ValueError, "coplanar"):
++            visible_planar_regions((p, p), **BOUNDS)
++        for kwargs in (dict(max_vertices=3, max_work=1000), dict(max_vertices=100, max_work=1),
++                       dict(max_vertices=True, max_work=1000)):
++            with self.assertRaises(ValueError):
++                visible_planar_regions((p,), **kwargs)
++        concave = PlanarPatch(p.origin, p.axes, np.array(((-1., -1.), (1., -1.), (-.1, 0.), (-1., 1.))))
++        with self.assertRaises(ValueError):
++            visible_planar_regions((concave,), **BOUNDS)
++
++
++if __name__ == "__main__":
++    unittest.main()

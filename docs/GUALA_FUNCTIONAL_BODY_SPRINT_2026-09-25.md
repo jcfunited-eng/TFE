@@ -2415,3 +2415,141 @@ primitive and authoritative native geometry. Occlusion, surface-attached
 textures, curved surfaces and ordinary-loop optical mounting remain open. Do not
 sum overlapping faces, substitute centre rays as area, revive rejected uniform
 sampling, or claim the whole functional-body objective complete. GoalACTIVE.
+
+### FB-01m — bounded planar visibility and material-coordinate continuity
+
+Previous turn PROGRESS:2dac2bb39 closes convex aperture integration locally.
+This continues the same approved optical correction; live1549 is unchanged.
+Requested architecture: actual near-surface occlusion and surface-attached
+material coordinates from authoritative body/world geometry. Current reality:
+the accepted component integrates one projected region but does not remove
+occluded overlap; the legacy renderer sorts by centre depth and contains
+view-facing material charts. ConflictYES if those paths were used for native
+body sight. Neither legacy path is extended. This is numerical optical
+geometry, NOT full DSF evaluation or a change to DSF/cognition.
+
+Single item: a transient planar visibility operator in
+dsf_ai_service/substrate/functional_body_visibility.py, with standalone tests
+in tests/test_functional_body_visibility.py. No native model, world state,
+mechanical solver or production caller change in this component. Curved native
+surfaces, complete shading/material law and ordinary-loop mounting remain open;
+the component must not silently tessellate or drop those shapes.
+
+Input: float64 planar patches in the actual eye frame: origin, two physical
+surface axes, and an ordered convex UV boundary. The caller derives these from
+native planar geometry. This represents each plane once, without splitting a
+box face into coplanar triangles or adding a planarity-tolerance test. Explicit
+transient work/residency limits bound each call. Output: disjoint visible convex
+fragments, each carrying its source patch index and attached UV coordinates. These indices are temporary world-rendering
+addresses, never afference, object recognition or cognition. Surface material
+coordinates interpolate from the same original surface; moving an eye cannot
+reassign a material cell to a different physical point.
+
+For each source patch with plane n_s dot p=c_s, orient n_s so c_s>0.
+Clip geometry to forward x>=0; a plane through the eye has zero angular area.
+For blocker b, points on overlapping positive rays are nearer when
+(c_s*n_b-c_b*n_s) dot d>0, derived from t=c/(n dot d).
+Its occluding cone is the blocker boundary's directed edge halfspaces intersected
+with this depth halfspace. Subtract that convex set by successively clipping
+the source fragment: emit the outside piece, retain the inside piece for the
+next boundary. This partitions rather than alpha-blends overlap, and handles
+depth order that changes across intersecting planes. Exact coplanar overlapping
+surfaces have no unique material owner and must refuse, not use array order.
+No centre-distance ranking, minimum apparent size, salience or sampling law.
+
+Clip vertices in source UV coordinates, with point=origin+u*axis0+v*axis1. Retain no scene/history/cache;
+no source mutation, publication, rollback or checkpoint schema is introduced.
+Reject malformed/nonfinite/degenerate geometry and resource exhaustion before
+returning an image; never return a partially occluded approximation on overflow.
+Finite per-call clipping work and resident fragment vertices are explicitly
+bounded by caller limits, not hidden fixed counts. The unmounted consumer must
+not expose stale successful data as this occurrence's light on a refusal.
+
+Acceptance: near/far overlapping patches partition aperture area; input
+permutation preserves material radiance; coplanar ambiguity refuses; native
+box face fragments agree with independent native rays, including slanted
+blockers and actual head effort. Attached UV coordinates reconstruct the original
+surface point through rotation/translation; cold state yields the same light
+and next physical successor. Test forward-plane crossing, empty/hidden faces,
+resource refusal and immutable input. Use the existing aperture primitive to
+check finite strip visibility, not point hits as an area estimate. Before any
+execution, freeze and obtain one source-only independent review. AWS read-only
+envelope and process/resource census remain required. Component evidence cannot
+close complete optics, the ordinary copied-body path or production delivery.
+
+#### FB-01m rejected after native execution — 2026-09-25 20:59Z
+
+This candidate is NOT accepted or production-ready. Its two newly authored
+source/test files were removed from executable paths; their complete final diff
+is preserved in docs/evidence/FB01M_REJECTED_PLANAR_VISIBILITY_2026-09-25.diff.
+Accepted runtime baseline remains2dac2bb39. No prior user's/G1 source removed.
+
+Independent frozen review found three localized defects: potentially overflowing
+clipping arithmetic; collinear UV corners incompatible with the downstream
+strict cone validator; omitted preparation work charges. One correction batch
+addressed all three, final source review passed166020de...c22be54. Execution then
+falsified the complete numerical translation, despite that source review:
+
+|Attempt|Frozen candidate|Actual result|
+|---|---|---|
+|1|166020de713cc9e8ffe693aa6fa40ebb6205e481e32533c60be9332fcf22be54|first common-rotation testERROR: planar boundary reverses along an edge|
+|2|a62de9744e52f220586a027ea33db4f99fbd6b8dcb0478380894cc522e002f98|three testsPASS; native geometry testERROR: zero surface edges|
+|3|2a3a69271bd683dee1bacfc546471a3243b57963dcdf44736692c03b0f157760|three testsPASS; native geometry testERROR: surface is degenerate or not ordered convex|
+
+First diagnostic: a rotated adjacent-material clip returned exactly
+UV[(0,0),(0,1),(0,1)]. Zero-area dismissal ran after edge-reversal validation.
+The local correction moved the existing exact zero-area test before validation;
+independent review confirmed it. No tolerance was introduced.
+Second diagnostic: native side-face sliver at origin(1.934,.003939091417123564,0),
+axes(.005,0,0)/(0,0,100000), UV u=-1 versus-.9999999999999963 produced
+four corners but only two distinct float64 physical points, both x1.929.
+Exact duplicate-point removal closed that reported translation defect and passed
+source review, but the next native execution still failed cone convexity.
+Therefore no more incremental exception/tolerance repairs are admitted to this
+representation. The reconstructed UV->point->unit-direction->edge-plane round
+trip is numerically unsuitable for this acceptance scene. It must be replaced,
+not called verified because simpler tests pass. No performance claim is made.
+
+Process receipts (all standalone, no pytest/conftest/application startup):
+- attempt1 PID27474 exit1,wall.126526s,user.132676s,system.008041s,peak53564KiB.
+- diagnostic1 PID27600 exit0 (captured failure, NOT acceptance),wall.193335s,
+  user.150082s,system.04288s,peak54212KiB.
+- attempt2 PID28133/session84370 exit1,wall.465367s,user.424556s,
+  system.056073s,peak72880KiB.
+- diagnostic2 PID28382 exit0 (captured failure),wall.410882s,user.399316s,
+  system.016133s,peak70240KiB.
+- attempt3 PID28930/session27108 exit1,wall.508981s,user.427126s,
+  system.096707s,peak73160KiB.
+All handles collected; post-census no A1 harness remains. Other observed pytest
+children belong to G1 parent760 and were not interrupted. Caretaker95907 intact.
+Final rejected source SHA147e7e1f3fbe4022dd2fc880f3bbf80ff654b51f44abe9872a7c2e237e2e9523;
+test SHA87034e92e97523eb79bbc61d5168ad7796c336a2a50880685f107193fc8112d4.
+
+Read-only AWS envelope: pre20:48:15, refreshed20:53:16,20:53:49,20:55:25,
+20:56:43,20:58:03,post20:59:44. All observed service counts1/1/0 and same
+task1549,478e055e5f0146789dd2ba0642bb578b,RUNNING/HEALTHY; sole task census
+at20:48,20:53,20:55,20:59. Digestc883967dae9703796245db6408d12ec03a7591dbb48c8c0c4188bdc2d1a837b8.
+Sameidentity1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1; live ticks
+2262678,2263205,2263262,2263429,2263565,2263712,2263893; persisted
+2262655,2263199,2263231,2263423,2263551,2263679,2263871.
+Availabletrue,checkpoint/cleanupnull,durabilityblockedfalse throughout.
+Resource/refusalalarmsOK; historicalclockalarmALARM unchanged.
+CPU latest20:50avg51.562%,max52.392%;20:55avg51.713%,max52.393%.
+RAM20:50avg3.054%,max3.125%;20:55avg3.089%,max3.143%.
+These are a diagnostic health envelope, not a complete production health audit.
+
+Joe's touch/proprioception comment adds no scope change. Actual contact/force,
+joint/inertial feedback remain required body outputs; optical visibility cannot
+substitute for grasp/contact success. Continue the optical seam as requested.
+
+Next exact correction, NOT implemented or yet frozen: retain directed geometric
+halfspaces through visibility subtraction and feed those same constraints to
+aperture_solid_angles directly. Keep the original planar material chart once;
+do not reconstruct visible corners and infer new edge planes from them.
+Convex subtraction is A minus B = disjoint regions
+(A intersect not b0), (A intersect b0 intersect not b1), ... .
+Plane-depth order remains the physical t=c/(n dot d) inequality. Resource and
+numerical error bounds, coplanar/zero-area treatment and actual native acceptance
+must be closed in the replacement contract before freezing it. No guessed epsilon,
+centre-depth painter, uniform supersampling or failed representation may return.
+GoalACTIVE; optics/body integration and production delivery remain incomplete.
