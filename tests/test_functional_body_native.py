@@ -263,5 +263,160 @@ class NativeBodyTests(unittest.TestCase):
                          engine.observe(state).qpos)
 
 
+def sensory_bench(*, other_x=5.0, root="self"):
+    # Engineering test apparatus: a rotated instrumented sphere on a floor,
+    # plus a distant, unobserved hinged object. This is not an organism policy.
+    return NativeBody(f'''<mujoco>
+      <size memory="2M"/>
+      <option integrator="implicitfast" iterations="100" tolerance="1e-10" gravity="0 0 -9.81"/>
+      <default><geom solref="0.01 1" solimp="0.95 0.99 0.001"/></default>
+      <worldbody><geom name="floor" type="plane" size="2 2 .1"/>
+        <body name="self" pos="0 0 .1" euler="90 0 0">
+          <freejoint/><geom name="skin" type="sphere" size=".1" mass="1"/>
+          <site name="inertial" size=".001"/>
+        </body>
+        <body name="outsider" pos="{other_x} 0 2">
+          <joint name="external-hinge" axis="0 0 1"/>
+          <geom name="external-surface" type="sphere" size=".1" mass="1"/>
+        </body>
+      </worldbody>
+      <sensor>
+        <accelerometer name="self-acceleration" site="inertial"/>
+        <gyro name="self-angular-rate" site="inertial"/>
+        <framepos name="forbidden-global-position" objtype="body" objname="self"/>
+        <jointpos name="forbidden-external-angle" joint="external-hinge"/>
+      </sensor>
+    </mujoco>''', LIMITS, sensory_root=root)
+
+
+class NativeInterfaceTests(unittest.TestCase):
+    def test_incremental_commands_preserve_simultaneous_effort_and_cold_state(self):
+        engine = gripper(.8)
+        initial = engine.initial_state()
+        first = engine.advance(initial, None, 1000, 1, effort_updates=((0, .5),))
+        both = engine.advance(first.state, None, 1000, 1, effort_updates=((1, .5),))
+        explicit = engine.advance(first.state, (.5, .5), 1000, 1)
+        self.assertEqual(both, explicit)
+        self.assertEqual(engine.advance(both.state, None, 1000, 1),
+                         gripper(.8).advance(both.state, (.5, .5), 1000, 1))
+        released = engine.advance(both.state, None, 1000, 1, effort_updates=((0, 0.),))
+        self.assertEqual(released, engine.advance(both.state, (0., .5), 1000, 1))
+        self.assertEqual(len(initial), len(released.state))
+
+    def test_bad_partial_commands_refuse_without_changing_authoritative_bytes(self):
+        engine = gripper(.8)
+        state = engine.initial_state()
+        expected = engine.advance(state, None, 1000, 1, effort_updates=((0, .5),))
+        for updates in (((0, .1), (0, .2)), ((2, 0.),), ((True, .1),),
+                        ((0, math.nan),), ((0, 3.),)):
+            with self.assertRaises(ValueError):
+                engine.advance(state, None, 1000, 1, effort_updates=updates)
+            self.assertEqual(engine.advance(state, None, 1000, 1,
+                                             effort_updates=((0, .5),)), expected)
+        with self.assertRaises(ValueError):
+            engine.advance(state, (0., 0.), 1000, 1, effort_updates=((0, .5),))
+
+    def test_local_feedback_has_no_external_identity_or_global_position(self):
+        a, b = sensory_bench(other_x=5), sensory_bench(other_x=7)
+        ra = a.advance(a.initial_state(), (), 100000, 0)
+        rb = b.advance(b.initial_state(), (), 100000, 0)
+        self.assertEqual(ra.observation.self_feedback, rb.observation.self_feedback)
+        self.assertEqual(set(dict(ra.observation.self_feedback.sensors)),
+                         {"self-acceleration", "self-angular-rate"})
+        self.assertIn("forbidden-global-position", dict(ra.observation.sensors))
+        self.assertIn("forbidden-external-angle", dict(ra.observation.sensors))
+        self.assertTrue(ra.observation.self_feedback.contacts)
+        for contact in ra.observation.self_feedback.contacts:
+            self.assertEqual(contact.surface, "skin")
+            self.assertFalse(hasattr(contact, "geom_pair"))
+            self.assertFalse(hasattr(contact, "world_position"))
+        self.assertFalse(hasattr(ra.observation.self_feedback, "qpos"))
+        self.assertIsNone(falling_body().observe(falling_body().initial_state()).self_feedback)
+        with self.assertRaises(ValueError):
+            sensory_bench(root="absent")
+
+    def test_rotated_contact_returns_local_force_and_retains_restart_evidence(self):
+        engine = sensory_bench()
+        result = engine.advance(engine.initial_state(), (), 500000, 0)
+        sensed = result.observation.self_feedback
+        # The sphere's +local-y axis is world up after a 90deg x rotation.
+        force = tuple(sum(c.force_n[i] for c in sensed.contacts) for i in range(3))
+        self.assertAlmostEqual(force[0], 0, delta=.02)
+        self.assertAlmostEqual(force[1], 9.81, delta=.02)
+        self.assertAlmostEqual(force[2], 0, delta=.02)
+        self.assertLess(sensed.contacts[0].position_m[1], -.09)
+        self.assertEqual(sensed, sensory_bench().observe(result.state).self_feedback)
+        self.assertEqual(engine.advance(result.state, None, 1000, 0),
+                         sensory_bench().advance(result.state, None, 1000, 0))
+
+    def test_bearing_heat_braking_and_energy_residual_are_separate(self):
+        errors = []
+        for step in (1000, 500):
+            engine = NativeBody(direct_model(joint_attributes='damping="0.02"'),
+                                replace(LIMITS, step_us=step))
+            before = engine.observe(engine.initial_state())
+            result = engine.advance(engine.initial_state(), (.3,), 100000, 1)
+            self.assertGreater(result.bearing_dissipation_j, 0)
+            self.assertEqual(result.motor_braking_work_j, 0)
+            self.assertAlmostEqual(result.positive_motor_work_j,
+                                   result.signed_motor_work_j, places=14)
+            delta = (result.observation.kinetic_j + result.observation.potential_j
+                     - before.kinetic_j - before.potential_j)
+            self.assertAlmostEqual(result.signed_motor_work_j,
+                delta + result.bearing_dissipation_j + result.unresolved_energy_exchange_j,
+                places=14)
+            # No contacts, other damping or springs: only quadrature/integration
+            # error remains. Implicit Euler viscous evolution converges in dt.
+            self.assertEqual(result.observation.contacts, ())
+            errors.append(abs(result.unresolved_energy_exchange_j))
+            braking = engine.advance(result.state, (-.3,), 1000, 0)
+            self.assertEqual(braking.positive_motor_work_j, 0)
+            self.assertLess(braking.signed_motor_work_j, 0)
+            self.assertGreater(braking.motor_braking_work_j, 0)
+            self.assertAlmostEqual(-braking.signed_motor_work_j,
+                                   braking.motor_braking_work_j, places=14)
+            self.assertGreater(braking.bearing_dissipation_j, 0)
+        self.assertLess(errors[1], .55 * errors[0])
+
+    def test_inactive_proximity_is_not_tactile_contact(self):
+        xml = '''<mujoco><size memory="2M"/>
+          <option integrator="implicitfast" iterations="100" tolerance="1e-10" gravity="0 0 0"/>
+          <worldbody>
+            <geom name="floor" type="plane" size="2 2 .1" margin=".01" gap=".008"/>
+            <body name="self" pos="0 0 .105"><freejoint/>
+              <geom name="skin" type="sphere" size=".1" mass="1"/>
+            </body>
+          </worldbody></mujoco>'''
+        engine = NativeBody(xml, LIMITS, sensory_root="self")
+        observation = engine.observe(engine.initial_state())
+        self.assertTrue(observation.contacts)  # Within detection margin.
+        self.assertTrue(all(c.separation_m > 0 for c in observation.contacts))
+        self.assertTrue(all(c.efc_address < 0 for c in engine._data.contact))
+        self.assertEqual(observation.self_feedback.contacts, ())
+
+    def test_both_contact_sides_receive_opposite_local_forces(self):
+        xml = '''<mujoco><size memory="2M"/>
+          <option integrator="implicitfast" iterations="100" tolerance="1e-10" gravity="0 0 0"/>
+          <worldbody><body name="self">
+            <body name="left" pos="-.025 0 .5">
+              <joint type="slide" axis="1 0 0"/>
+              <geom name="left-skin" type="sphere" size=".026" mass=".1"/>
+            </body>
+            <body name="right" pos=".025 0 .5">
+              <joint type="slide" axis="1 0 0"/>
+              <geom name="right-skin" type="sphere" size=".026" mass=".1"/>
+            </body>
+          </body></worldbody></mujoco>'''
+        engine = NativeBody(xml, LIMITS, sensory_root="self")
+        observation = engine.observe(engine.initial_state())
+        sensed = {c.surface: c for c in observation.self_feedback.contacts}
+        self.assertEqual(set(sensed), {"left-skin", "right-skin"})
+        self.assertLess(sensed["left-skin"].force_n[0], 0)
+        self.assertGreater(sensed["right-skin"].force_n[0], 0)
+        for i in range(3):
+            self.assertAlmostEqual(sensed["left-skin"].force_n[i],
+                                   -sensed["right-skin"].force_n[i], places=14)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -62,7 +62,28 @@ class ContactEvidence:
 
 
 @dataclass(frozen=True)
+class LocalContact:
+    # Anatomical surface only; no counterparty identity or hidden world state.
+    surface: str
+    # Link-local contact position. Force and couple at that point, expressed
+    # in the same link axes; NOT a resultant torque about the link origin.
+    position_m: tuple[float, ...]
+    force_n: tuple[float, ...]
+    couple_nm: tuple[float, ...]
+
+
+@dataclass(frozen=True)
+class BodyFeedback:
+    time_s: float
+    # Joint angle/rate, actual motor effort, site-frame accelerometer and gyro.
+    # Uninstrumented quantities are absent, never fabricated as zero.
+    sensors: tuple[tuple[str, tuple[float, ...]], ...]
+    contacts: tuple[LocalContact, ...]
+
+
+@dataclass(frozen=True)
 class MechanicalObservation:
+    # Whole-world custody/diagnostics. Only self_feedback is organism afference.
     time_s: float
     qpos: tuple[float, ...]
     qvel: tuple[float, ...]
@@ -70,6 +91,7 @@ class MechanicalObservation:
     contacts: tuple[ContactEvidence, ...]
     potential_j: float
     kinetic_j: float
+    self_feedback: BodyFeedback | None
 
 
 @dataclass(frozen=True)
@@ -80,6 +102,11 @@ class MechanicalSuccessor:
     positive_motor_work_j: float
     signed_motor_work_j: float
     max_surface_travel_m: float
+    motor_braking_work_j: float
+    bearing_dissipation_j: float
+    # Wmotor - delta(K+U) - Qbearing. Includes unaccounted constraint/fluid/
+    # other damping work and numerical error. NEVER deposit this as heat.
+    unresolved_energy_exchange_j: float
 
 
 class NativeBody:
@@ -89,9 +116,13 @@ class NativeBody:
     XML is a trusted internal model, not an upload format. State is not a public
     deserialization authority: the existing world custody layer must authenticate
     it. The prefix binds it to the exact model, engine and numerical limits.
+
+    sensory_root identifies the anatomical subtree at model construction. It is
+    not a perceptual object identifier. Whole-model diagnostics must stay outside
+    cognitive input. Sensor membership is compiled once, not inferred each beat.
     """
 
-    def __init__(self, xml: str, limits: MechanicalLimits):
+    def __init__(self, xml: str, limits: MechanicalLimits, *, sensory_root: str | None = None):
         if mj.__version__ != ENGINE_VERSION:
             raise ValueError("unverified body engine version")
         _no_callbacks()
@@ -122,6 +153,8 @@ class NativeBody:
             raise ValueError("finite solver work and convergence limits required")
         if np.any(m.sensor_noise):
             raise ValueError("random sensor noise is not enabled")
+        if not np.isfinite(m.dof_damping).all() or np.any(m.dof_damping < 0):
+            raise ValueError("nonnegative finite passive bearing coefficients required")
         self._motor_dof = []
         for i in range(m.nu):
             joint = int(m.actuator_trnid[i, 0])
@@ -150,15 +183,56 @@ class NativeBody:
         self.qpos_addresses = tuple(int(x) for x in m.jnt_qposadr)
         self.geom_names = tuple(mj.mj_id2name(m, mj.mjtObj.mjOBJ_GEOM, i)
                                 for i in range(m.ngeom))
+        self._sensor_names = tuple(mj.mj_id2name(m, mj.mjtObj.mjOBJ_SENSOR, i) or str(i)
+                                   for i in range(m.nsensor))
+        self._sensory_root = sensory_root
+        self._self_sensors, self._self_geoms = self._sensory_membership(sensory_root)
         self._data = mj.MjData(m)
         self._size = mj.mj_stateSize(m, STATE_KIND)
-        self._header = sha256((ENGINE_VERSION + repr(limits) + xml).encode()).digest()
+        self._header = sha256((ENGINE_VERSION + repr(limits) + repr(sensory_root) + xml).encode()).digest()
         self.state_bytes = 32 + self._size * 8
         self._state_buffer = np.empty(self._size, dtype=np.float64)
         self._limited = tuple(i for i in range(m.njnt) if m.jnt_limited[i])
         if any(m.jnt_type[i] not in (mj.mjtJoint.mjJNT_HINGE, mj.mjtJoint.mjJNT_SLIDE)
                for i in self._limited):
             raise ValueError("limited ball joints require a separate error metric")
+
+    def _sensory_membership(self, root_name):
+        m = self._model
+        if root_name is None:
+            return (), {}
+        if not isinstance(root_name, str) or not root_name:
+            raise ValueError("named self-body root required")
+        root = mj.mj_name2id(m, mj.mjtObj.mjOBJ_BODY, root_name)
+        if root <= 0:
+            raise ValueError("self-body root must exist and cannot be the world")
+        bodies = {root}
+        # Native model bodies are ordered parent before child.
+        for i in range(root + 1, m.nbody):
+            if int(m.body_parentid[i]) in bodies:
+                bodies.add(i)
+        geoms = {}
+        for i, body in enumerate(m.geom_bodyid):
+            if int(body) in bodies:
+                if self.geom_names[i] is None:
+                    raise ValueError("instrumented body surfaces require anatomical names")
+                geoms[i] = int(body)
+        sensors = []
+        for i, kind in enumerate(m.sensor_type):
+            obj = int(m.sensor_objid[i])
+            if kind in (mj.mjtSensor.mjSENS_JOINTPOS, mj.mjtSensor.mjSENS_JOINTVEL):
+                body = int(m.jnt_bodyid[obj])
+            elif kind == mj.mjtSensor.mjSENS_ACTUATORFRC:
+                body = int(m.jnt_bodyid[m.actuator_trnid[obj, 0]])
+            elif kind in (mj.mjtSensor.mjSENS_ACCELEROMETER, mj.mjtSensor.mjSENS_GYRO):
+                body = int(m.site_bodyid[obj])
+            else:
+                # Global poses, rangefinders, frame sensors etc are NOT included
+                # by proximity, name prefix or site attachment.
+                continue
+            if body in bodies:
+                sensors.append(i)
+        return tuple(sensors), geoms
 
     def _capture(self):
         mj.mj_getState(self._model, self._data, self._state_buffer, STATE_KIND)
@@ -175,8 +249,7 @@ class NativeBody:
         if not np.isfinite(values).all():
             raise ValueError("non-finite body state")
         mj.mj_resetData(self._model, self._data)
-        # The pinned Python binding requires writable storage even though the C
-        # API consumes this state. Reuse the existing buffer; preserve input bytes.
+        # Pinned binding requires writable storage although C consumes the state.
         self._state_buffer[:] = values
         mj.mj_setState(self._model, self._data, self._state_buffer, STATE_KIND)
         mj.mj_forward(self._model, self._data)
@@ -212,7 +285,7 @@ class NativeBody:
         m, d = self._model, self._data
         if not np.isfinite(d.energy).all() or not np.isfinite(d.sensordata).all():
             raise ValueError("non-finite mechanical sensory/energy observation")
-        contacts = []
+        contacts, local = [], []
         for i, c in enumerate(d.contact):
             force = np.empty(6)
             mj.mj_contactForce(m, d, i, force)
@@ -221,51 +294,99 @@ class NativeBody:
                 raise ValueError("non-finite physical contact observation")
             contacts.append(ContactEvidence(tuple(int(x) for x in c.geom),
                             tuple(c.pos), tuple(c.frame), float(c.dist), tuple(force)))
-        sensors = tuple((mj.mj_id2name(m, mj.mjtObj.mjOBJ_SENSOR, i) or str(i),
-                         tuple(d.sensordata[a:a + m.sensor_dim[i]]))
-                        for i, a in enumerate(m.sensor_adr))
+            # Inactive margin/gap records are proximity queries, not touch.
+            # An exactly unloaded constraint likewise supplies no tactile load.
+            # Preserve both in diagnostics; do not expose their locations as
+            # bodily sensation. No arbitrary pressure threshold is introduced.
+            if c.efc_address < 0 or not np.any(force):
+                continue
+            for side, geom in enumerate(c.geom):
+                link = self._self_geoms.get(int(geom))
+                if link is None:
+                    continue
+                # Contact axes are rows in c.frame; body axes are columns in
+                # xmat. Wrench on geom1 is the negative of that on geom2.
+                rotation = d.xmat[link].reshape(3, 3)
+                transform = rotation.T @ c.frame.reshape(3, 3).T
+                sign = -1 if side == 0 else 1
+                local.append(LocalContact(self.geom_names[geom],
+                    tuple(rotation.T @ (c.pos - d.xpos[link])),
+                    tuple(sign * transform @ force[:3]),
+                    tuple(sign * transform @ force[3:])))
+        sensors = tuple((name, tuple(d.sensordata[a:a + m.sensor_dim[i]]))
+                        for i, (name, a) in enumerate(zip(self._sensor_names, m.sensor_adr)))
+        feedback = (None if self._sensory_root is None else
+                    BodyFeedback(float(d.time), tuple(sensors[i] for i in self._self_sensors),
+                                 tuple(local)))
         return MechanicalObservation(float(d.time), tuple(d.qpos), tuple(d.qvel),
                                      sensors, tuple(contacts), float(d.energy[0]),
-                                     float(d.energy[1]))
+                                     float(d.energy[1]), feedback)
 
     def observe(self, state):
         self._restore(state)
         return self._observation()
 
-    def advance(self, state: bytes, efforts: tuple[float, ...], elapsed_us: int,
-                available_work_j: float) -> MechanicalSuccessor:
+    def advance(self, state: bytes, efforts: tuple[float, ...] | None, elapsed_us: int,
+                available_work_j: float, *,
+                effort_updates: tuple[tuple[int, float], ...] = ()) -> MechanicalSuccessor:
+        """Advance one interval with full-vector or sparse anatomical input.
+
+        Full vector replaces every command. None retains the previously applied
+        vector; optional updates replace distinct addressed components. Constant
+        effort is a declared zero-order-held mechanical input, NOT a posture
+        servo, muscle metabolic model, chosen movement or learned coordination.
+        Zero effort explicitly releases a motor. Sleep/depletion policy belongs
+        to the existing caller, not this solver. No duplicate command store:
+        ctrl is already part of the single native integration state.
+        """
         lim, m, d = self.limits, self._model, self._data
         if (type(elapsed_us) is not int or elapsed_us <= 0
                 or elapsed_us % lim.step_us or elapsed_us // lim.step_us > lim.max_substeps):
             raise ValueError("interval exceeds declared fixed-step budget")
-        effort = np.asarray(efforts, dtype=np.float64)
+        if not math.isfinite(available_work_j) or available_work_j < 0:
+            raise ValueError("finite nonnegative mechanical supply required")
+        if type(effort_updates) is not tuple or len(effort_updates) > m.nu:
+            raise ValueError("bounded unique anatomical effort updates required")
+        if efforts is not None and effort_updates:
+            raise ValueError("full vector and incremental effort updates are exclusive")
+        addressed = set()
+        for item in effort_updates:
+            if (type(item) is not tuple or len(item) != 2 or type(item[0]) is not int
+                    or not 0 <= item[0] < m.nu or item[0] in addressed):
+                raise ValueError("bounded unique anatomical effort updates required")
+            addressed.add(item[0])
+        self._restore(state)
+        effort = d.ctrl.copy() if efforts is None else np.asarray(efforts, dtype=np.float64)
+        for index, value in effort_updates:
+            effort[index] = value
         if (effort.shape != (m.nu,) or not np.isfinite(effort).all()
                 or np.any(effort < m.actuator_forcerange[:, 0])
                 or np.any(effort > m.actuator_forcerange[:, 1])):
             raise ValueError("effort exceeds physical motor capacity")
-        if not math.isfinite(available_work_j) or available_work_j < 0:
-            raise ValueError("finite nonnegative mechanical supply required")
-        self._restore(state)
         d.ctrl[:] = effort
-        # State stores the old command; refresh acceleration/sensors for this effort.
         mj.mj_forward(m, d)
+        initial_energy = float(sum(d.energy))
         initial_time = float(d.time)
         if math.ulp(initial_time) > m.opt.timestep:
             raise ValueError("mechanical time cannot represent this interval")
-        positive_work = signed_work = travel_peak = 0.0
+        positive_work = signed_work = braking_work = bearing_heat = travel_peak = 0.0
         for _ in range(elapsed_us // lim.step_us):
             position, rotation = d.geom_xpos.copy(), d.geom_xmat.copy().reshape(-1, 3, 3)
             power_before = effort * d.qvel[self._motor_dof]
+            bearing_before = float(np.dot(m.dof_damping, d.qvel**2))
             mj.mj_step(m, d)
-            # Refresh only geometry/collision here; full sensory forces at final time.
             mj.mj_kinematics(m, d)
             mj.mj_collision(m, d)
             self._check()
             power_after = effort * d.qvel[self._motor_dof]
-            signed_work += float(np.sum(power_before + power_after)) * m.opt.timestep / 2
+            dt_half = m.opt.timestep / 2
+            signed_work += float(np.sum(power_before + power_after)) * dt_half
             positive_work += float(np.sum(np.maximum(power_before, 0)
-                                         + np.maximum(power_after, 0))) * m.opt.timestep / 2
-            if not math.isfinite(positive_work) or not math.isfinite(signed_work):
+                                         + np.maximum(power_after, 0))) * dt_half
+            braking_work += float(np.sum(np.maximum(-power_before, 0)
+                                        + np.maximum(-power_after, 0))) * dt_half
+            bearing_heat += (bearing_before + float(np.dot(m.dof_damping, d.qvel**2))) * dt_half
+            if not all(math.isfinite(x) for x in (positive_work, signed_work, braking_work, bearing_heat)):
                 raise ValueError("non-finite mechanical work")
             if positive_work > available_work_j:
                 raise ValueError("mechanical energy supply exhausted; no successor")
@@ -283,6 +404,9 @@ class NativeBody:
             raise ValueError("native mechanical time diverged")
         mj.mj_forward(m, d)
         self._check()
-        successor = self._capture()
-        return MechanicalSuccessor(successor, self._observation(), positive_work,
-                                   signed_work, travel_peak)
+        observation = self._observation()
+        residual = signed_work - (observation.kinetic_j + observation.potential_j - initial_energy) - bearing_heat
+        if not math.isfinite(residual):
+            raise ValueError("non-finite mechanical energy balance")
+        return MechanicalSuccessor(self._capture(), observation, positive_work,
+                                   signed_work, travel_peak, braking_work, bearing_heat, residual)

@@ -1296,3 +1296,91 @@ Source fingerprints at this mapping:
 One read command incorrectly included uf_core/sev.py; actual import points to
 uf_core/layer0.py and that source was read. No source file, process or production
 state was changed by the read failure. Do not repeat the guessed path.
+
+### FB-01g native interface candidate — 2026-09-25 (awaiting source review)
+
+This is implementation progress toward the authorized interface, not mounted
+organism integration or a production candidate. Changes stay in the existing
+native adapter and its standalone proof, with no new solver, state owner,
+reservoir, decision equation, or cognitive authority.
+
+- Full-vector effort remains supported. Sparse anatomical updates change
+  distinct components of native ctrl, already retained in mjSTATE_INTEGRATION;
+  None explicitly holds that vector. Explicit zero releases a component.
+  Thus sequential anatomical inputs can coexist without authored coordination
+  arrays or an exponential action catalogue. This zero-order hold is a declared
+  mechanical input approximation, not muscle physiology or an automatic posture
+  controller. Existing caller must explicitly release effort for sleep/depletion;
+  its integration remains pending. No isometric metabolic cost is claimed.
+- Only the declared self-body subtree contributes joint angle/rate, actual
+  effort and site-frame IMU channels. Contact point, force and couple return in
+  each contacted link's own axes with the correct opposing-side sign. External
+  object identities, global frame sensors and whole-world qpos remain diagnostic
+  only. No self-body declaration means absent feedback, not fabricated zeros.
+- Positive/signed motor work, motor braking and viscous bearing dissipation
+  are separate trapezoidal power quadratures. The unresolved energy exchange
+  is reported separately: native energy omits retained soft-contact elasticity,
+  so the remainder is NOT asserted to be heat or a pure numerical error.
+  No reserve debit or thermal-state mutation is implemented by this adapter.
+  The existing world/thermal transaction remains the sole intended mount.
+- Model binding now includes sensory-root declaration. These native snapshots
+  are offline only; no live predecessor uses this adapter. Same candidate
+  model/root restores identically; prior native bench states require regeneration,
+  not a silent runtime fallback.
+- Static sensor membership is compiled once. Native state extent and sole
+  physics clock are unchanged. Per-step new work is motor/bearing power
+  quadrature; local sensory projection occurs only on observation.
+
+Frozen source:
+native 4b3cba586627d42c434182bc581b03eaff6d9322576400499b7dddb2698ef8b6
+test df5f453031c4d44afb7bc52068b8a5dec5096cccfd92cd389f4f009a56ceaa6e
+
+Named checks: incremental/full-vector equivalence, simultaneous effort after
+fresh-engine restore, explicit release, bounded/refused command immutability,
+no unobserved-object/global-pose leakage, rotated contact-frame sign, separate
+bearing/braking work and numerical refinement on an isolated viscous joint.
+Existing native mechanics and anatomical regression tests protect their direct
+caller against changed return/state semantics. No pytest or production actions.
+Independent source-only review precedes execution.
+
+Still required: actual world/thermal transaction mount, old movement authority
+replacement, learner motor vocabulary and signed sensory inputs with memory
+migration, head receptor frame, copied-body full-loop proof and production gates.
+These tests cannot close those requirements.
+
+### FB-01g native interface verification — 2026-09-25 17:57Z
+
+Independent source review found one localized afference leak: inactive native
+margin/gap proximity contacts were projected as touch. Corrected in one batch:
+diagnostics retain them, but self-body tactile return excludes efc_address<0
+and exactly zero six-component wrenches. No pressure threshold added. Added
+inactive-gap falsifier and equal/opposite geom1/geom2 contact proofs.
+
+Verified standalone, not pytest and not a live world:
+- native mechanics/interface: 19 passed in 1.533s; process elapsed1.776s,
+  peak RSS58,212KiB, user3.245s/system0.133s; PID74868 exited.
+- anatomy regressions: 7 passed in0.175s; process elapsed0.348s,
+  peak RSS59,040KiB, user1.958s/system0.024s; PID74977 exited.
+- Existing anatomy test/source unchanged. git diff --check clean.
+- No A1 harness survives. G1-owned pytest74602 (parent760) and caretaker37677
+  remain untouched. These short shared-host checks are not production latency
+  or long-run resource certification.
+- /usr/bin/time is absent (preflight caught this before invocation). Use the
+  retained session handle and resource.getrusage for these standalone processes;
+  do not retry the absent executable.
+
+Read-only AWS before/after: task1547 unchanged; desired/running/pending1/1/0.
+Identity1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1; live tick2249167->2249341,
+persisted2249158->2249318; availabletrue, checkpoint/cleanup errorsnull,
+durability_blockedfalse. Five-minute CPU samples ~51–52.4% average/<54% peak,
+memory4.76–4.785%; overlapping reporting windows are not causal performance
+measurements. Historical guala-clock-stalled alarm remainsALARM sinceSep8;
+resource/refusal alarmsOK. No production write, restart or deployment.
+
+Verified candidate fingerprints:
+native 0a331541db25d5dbbc604c9d19e4a224b7607d5c1be99febdc95cf8974865f78
+test 7db78acaedad3ad4e4d083ab2dd2e009004780d7229d91ee03b5d29a83fd59e5
+
+This closes only the native input/local-feedback/work-reporting seam. It does
+not close world mounting, energetic transaction, memory-safe learner connection,
+actual head optics, copied-body proof or production delivery. Goal ACTIVE.
