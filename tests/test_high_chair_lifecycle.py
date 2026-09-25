@@ -3,9 +3,11 @@ from dataclasses import replace
 from unittest.mock import patch
 
 from dsf_ai_service.guala_home_world import home_world_authority
-from dsf_ai_service.guala_caretaker_hand import place_in_high_chair, release_from_high_chair
+from dsf_ai_service.guala_caretaker_hand import place_in_high_chair, release_from_high_chair, _negative_space_path_for_hand
 from dsf_ai_service.substrate.embodiment_world import (
     BodyContactState,
+    PositionMM,
+    PoseMM,
     _derived_contact_patch_square_mm,
     _receptor_position,
 )
@@ -163,3 +165,28 @@ def test_caretaker_failed_release_non_blocking_for_hungry_child():
     assert "apple-1" in calls
     assert st["food_delivered_for_meal"] is True
     assert st["meal_retry"] is False
+
+
+def test_negative_space_path_approach_collision_exclusion():
+    world = home_world_authority(identity=str(uuid.uuid4()))
+    origin = PositionMM(4800, 5600, 0)
+    goal = PositionMM(2630, 8349, 0)
+    world._state = replace(
+        world._state,
+        world=replace(
+            world._state.world,
+            bodies=tuple(
+                replace(b, pose=PoseMM(PositionMM(2058, 8530, 0), 0))
+                if b.body_id == "guala-body-1"
+                else replace(b, pose=PoseMM(origin, 0))
+                for b in world._state.world.bodies
+            ),
+        ),
+    )
+    snap = world.observation_snapshot()
+    person = next(b for b in snap.bodies if b.body_id != "guala-body-1")
+    path = _negative_space_path_for_hand(snap, person, origin, goal)
+    assert path is not None
+    assert path[0] == origin
+    assert path[-1] == goal
+    assert len(path) > 2

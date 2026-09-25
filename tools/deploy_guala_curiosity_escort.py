@@ -1,6 +1,7 @@
-"""Bounded retention release, one image, one definition, one writer cutover.
+"""Epistemic Curiosity & Caretaker Multi-Room Escorting release, one image, one definition, one writer cutover.
 
-Includes full release (tick acceleration + refusal suppression + mailbox expansion + caretaker hand fix).
+Includes full release (epistemic curiosity field + anti-confinement rotational damping +
+corridor-cleared negative-space escorting to all 5 rooms + high-chair lifecycle fixes).
 Invoke --plan first; --execute runs this same plan after local proof clearance.
 """
 import argparse
@@ -25,17 +26,17 @@ REGION = "us-east-1"
 ACCOUNT = "418384447921"
 CLUSTER = "tfe-web-cluster"
 SERVICE = "dsf-ai-service-lb"
-OLD_TASK = "3a19bd326e5d4ae0aae0bb1c7c8c64e1"
-OLD_DEFINITION = "arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1544"
-BASE = ACCOUNT+".dkr.ecr."+REGION+".amazonaws.com/dsf-ai@sha256:23122cdde859e3de1480d3703396dd5ddd388d48a6858608520c487e0737457a"
+OLD_TASK = "772d1e4f5096497e879f12a4cba2bcb4"
+OLD_DEFINITION = "arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1547"
+BASE = ACCOUNT+".dkr.ecr."+REGION+".amazonaws.com/dsf-ai@sha256:d180f16cd50a1089365cfccd648560ab7bda14a65e2886c09c1fc93d7e5c3d93"
 REPOSITORY = BASE.split("@")[0]
 FILES = {
  "dsf_ai_service/substrate/embodiment_world.py": "c9534a4c30fe6b9dc66b2aebd5751906d78a64697777ff99b1f2ae5b3bbe80ac",
- "dsf_ai_service/guala_caretaker_hand.py": "6151dcdf52e47c4ff933a1f535b68e75942199d476f6135da1dfcf375d09fc53",
+ "dsf_ai_service/guala_caretaker_hand.py": "2009d4aecb24d89ce8fc93624c5bbd2af759086c811a21c5dbbc7e3d3b69d17e",
  "dsf_ai_service/lean_production_app.py": "8131709b6ec6782533f4bd63cbbbd197be75930b4ea3210367686961be8fcef7",
- "dsf_ai_service/guala_functional_organism.py": "b98c1e36c9b50a966b16c283518db3e0464486f09df2023258e5cbd9eeed146a",
+ "dsf_ai_service/guala_functional_organism.py": "face45423b65908078a019031459439818784799914a8886e7143ffa99d3d1d1",
  "dsf_ai_service/lean_actor.py": "885a5dd086db7d3a125d06c693edeb084b39b47c5308f34b05bd7be93fa96172",
- "dsf_ai_service/episodic_binding_engine.py": "f1cc108452cb512818f2e4f05f73e29838f997dd10a9ecdb42134486fe879cb4",
+ "dsf_ai_service/episodic_binding_engine.py": "610902fcbe9573a823ba74cc9b37d9bd727b7507fa9f58a2bfc73b2e50dfdae8",
  "dsf_ai_service/substrate/native_core.py": "7144580489e9b739538a90f1c0360209b3a4e2ecb94d6a6362db6b4aa902fbe3",
  "dsf_ai_service/guala_home_world.py": "e2e845590bb84570ddcc5b1d0fddca2ef660760243a78709c38ddf016a199d5c",
  "dsf_ai_service/lean_sensory_occurrence.py": "cb7ebef4b506c04f1f87e0f2dc593d53d21dd3d76badf3d41d514c8dc93f8b6d",
@@ -146,8 +147,6 @@ def records(messages,schema):
     return found
 
 def activate(definition,backup,source_arn,candidate_arns,digest):
-    # Changing the definition and raising count together can race an ACTIVE
-    # predecessor deployment. Install and converge the definition at ZERO first.
     zero_writers([source_arn])
     ecs.update_service(cluster=CLUSTER,service=SERVICE,taskDefinition=definition,desiredCount=0)
     deadline=time.monotonic()+300
@@ -268,11 +267,11 @@ def main():
          memory_candidate_included=True)
     if not args.execute:
         return
-    folder=ROOT/"backups/runtime"/("a1-retention-release-"+datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ"))
+    folder=ROOT/"backups/runtime"/("a1-curiosity-escort-release-"+datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ"))
     folder.mkdir()
     journal=folder/"receipt.jsonl"
     emit("release_start",commit=commit)
-    context=Path(tempfile.mkdtemp(prefix="a1-retention-build-"))
+    context=Path(tempfile.mkdtemp(prefix="a1-curiosity-build-"))
     dockerfile=["FROM "+BASE,"ARG RELEASE_COMMIT","ENV GIT_SHA=${RELEASE_COMMIT}"]
     for path in FILES:
         destination=context/path
@@ -284,7 +283,7 @@ def main():
         shutil.copyfile(ROOT/source,context/name)
         dockerfile.append("COPY "+name+" /opt/"+name)
     (context/"Dockerfile").write_text("\n".join(dockerfile)+"\n")
-    tag=REPOSITORY+":a1-retention-"+commit[:12]
+    tag=REPOSITORY+":a1-curiosity-"+commit[:12]
     with (folder/"build.log").open("w") as output:
         subprocess.run(["docker","build","--build-arg","RELEASE_COMMIT="+commit,"-t",tag,str(context)],
                        stdout=output,stderr=subprocess.STDOUT,check=True,timeout=600)

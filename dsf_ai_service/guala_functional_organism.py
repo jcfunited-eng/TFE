@@ -249,7 +249,7 @@ EVENT_RECORD_CAPACITY = 4096
 # in eighths and the figure under her gaze (the physical invariants, A1's §6); her hunger,
 # taste and the caregiver's touch at that beat ride in the record as context, not the key.
 # Level 3: what followed a moment within the window, by count: the next moment, and a bite.
-MOMENT_RECORD_CAPACITY = 8192
+MOMENT_RECORD_CAPACITY = 128
 FOLLOW_WINDOW_BEATS = 16
 FOLLOW_CAPACITY = 32
 # The night for moments, as for acts: each sleeping beat moves the most recurrent moment
@@ -1146,6 +1146,7 @@ def candidates(
     conserved_objects: dict[str, Any] | None = None,
     pending_chain: list[str] | None = None,
     last_crossed_portal: tuple[str, int] | None = None,
+    sound_heard: bool = False,
 ) -> list[tuple[str, str, tuple[Any, ...], str | None, tuple[int, int, int] | None]]:
     """What her body can do this beat, across every sensed target: each entry is
     (act, detail, world commands tried in order, target, voice drive).
@@ -1169,7 +1170,7 @@ def candidates(
         out.append(("take", offered.object_id + " from a hand", (TakeContactHeldObjectCommand(BEAT_MICROSECONDS),), offered.object_id, None))
 
     # 2. Grasp (one reachable object per world grasp law) and touch reachable things
-    if held is None and len(reachable) == 1 and (handleable(reachable[0]) or _is_food(reachable[0])):
+    if held is None and len(reachable) == 1 and ((handleable(reachable[0]) and not reachable[0].object_id.startswith("apple")) or (_is_food(reachable[0]) and not nothing_left_to_bite(body, reachable[0]))):
         out.append(("grasp", reachable[0].object_id, (GraspContactCommand(BEAT_MICROSECONDS),), reachable[0].object_id, None))
     if held is None:
         for item in reachable:
@@ -1209,9 +1210,9 @@ def candidates(
                                     first_portal = route[0]
                                     before_door, _past = door_crossing(snapshot, first_portal, here.region_id)
                                     if _distance_mm(position, before_door) <= ARRIVAL_MM + STEP_MM // 2:
-                                        conserved_food.append((dist, obj_id, f"through {first_portal.portal_id} toward {obj_id}", door_crossing_commands(snapshot, first_portal, here.region_id)))
+                                        conserved_food.append((dist, obj_id, f"through {first_portal.portal_id} toward {obj_id} (conserved)", door_crossing_commands(snapshot, first_portal, here.region_id)))
                                     else:
-                                        conserved_food.append((dist, obj_id, f"toward {first_portal.portal_id} toward {obj_id}", move_commands_toward(snapshot, before_door, 0)))
+                                        conserved_food.append((dist, obj_id, f"toward {first_portal.portal_id} toward {obj_id} (conserved)", move_commands_toward(snapshot, before_door, 0)))
                                     continue
                             conserved_food.append((dist, obj_id, f"{obj_id} (conserved)", move_commands_toward(snapshot, pos, stop)))
             conserved_food.sort(key=lambda x: (x[0], x[1]))
@@ -1286,8 +1287,9 @@ def candidates(
         out.append(("step", "one stride ahead", (MoveCommand(PoseMM(ahead, heading), BEAT_MICROSECONDS),), None, None))
         for name, sign in (("turn_left", 1), ("turn_right", -1)):
             out.append((name, "", (MoveCommand(PoseMM(position, (heading + sign * TURN_MILLIDEGREES) % 360_000), BEAT_MICROSECONDS),), None, None))
-    drive = say_drive if say_drive is not None else DEFAULT_DRIVE
-    out.append(("say", say_detail, (), None, drive))
+    if not sound_heard:
+        drive = say_drive if say_drive is not None else DEFAULT_DRIVE
+        out.append(("say", say_detail, (), None, drive))
     out.append(("rest", "", (), None, None))
 
     assert len(out) <= MAX_CANDIDATES
@@ -1959,9 +1961,11 @@ class FunctionalOrganism:
             energy = sum(heard_now) / len(heard_now)
             sound_heard = energy >= HEARD_ENERGY_FLOOR
 
-        if sound_source is not None and sound_heard:
-            state["gaze_target"] = sound_source
-            state["attended_tick"] = tick
+        if sound_heard:
+            state["last_sound_heard_tick"] = tick
+            if sound_source is not None:
+                state["gaze_target"] = sound_source
+                state["attended_tick"] = tick
 
         # Cognitive Asset 5: Social Joint Attention & Caregiver Gaze Vector Tracking
         caregiver = next((b for b in snapshot.bodies if b.body_id != snapshot.self_body_id), None)
@@ -2067,36 +2071,49 @@ class FunctionalOrganism:
         if pending_trans:
             action = pending_trans.get("applied_action")
             if action and action != "body" and "start_tick" in pending_trans:
-                moments = state.setdefault("moments", {})
-                trial_key = f"motor:{pending_trans['start_tick']}"
-                trial = {
-                    "key": trial_key,
-                    "start_tick": pending_trans["start_tick"], "end_tick": tick,
-                    "pre": pending_trans["pre_key"], "post": current_sensory_key,
-                    "action": action, "target": pending_trans["target_id"],
-                    "observed_subject": pending_trans["observed_subject"],
-                    "refusal": pending_trans.get("refusal"),
-                    "intake": int(pending_trans.get("intake", 0)),
-                    "previous": None,
-                }
-                previous = pending_trans.get("previous")
-                predecessor_entry = moments.get(previous) or state.get("meanings", {}).get(previous) or {}
-                predecessor = predecessor_entry.get("motor_transition")
-                if (predecessor is not None
-                        and predecessor["end_tick"] == trial["start_tick"]
-                        and predecessor["post"] == trial["pre"]
-                        and predecessor["target"] == trial["target"]):
-                    trial["previous"] = previous
-                moments[trial_key] = {
-                    "count": 1, "tick": tick, "salience": float(pending_trans.get("salience", 0.0)),
-                    "motor_transition": trial,
-                }
+                intake_ug = int(pending_trans.get("intake", 0))
+                sal = float(pending_trans.get("salience", 0.0))
                 outcome = pending_trans.get("outcome_key")
-                if outcome in moments:
-                    moments[outcome]["episode_tail"] = trial_key
-                state["last_motor_trial"] = trial_key
-                while len(moments) > MOMENT_RECORD_CAPACITY:
-                    del moments[min(moments, key=lambda k: (int(moments[k]["tick"]), k))]
+                if sal > 0.0 or outcome is not None or intake_ug > 0:
+                    moments = state.setdefault("moments", {})
+                    trial_key = f"motor:{pending_trans['start_tick']}"
+                    trial = {
+                        "key": trial_key,
+                        "start_tick": pending_trans["start_tick"], "end_tick": tick,
+                        "pre": pending_trans["pre_key"], "post": current_sensory_key,
+                        "action": action, "target": pending_trans["target_id"],
+                        "observed_subject": pending_trans["observed_subject"],
+                        "refusal": pending_trans.get("refusal"),
+                        "intake": intake_ug,
+                        "previous": None,
+                    }
+                    previous = pending_trans.get("previous")
+                    predecessor_entry = moments.get(previous) or state.get("meanings", {}).get(previous) or {}
+                    predecessor = predecessor_entry.get("motor_transition")
+                    if (predecessor is not None
+                            and predecessor["end_tick"] == trial["start_tick"]
+                            and predecessor["post"] == trial["pre"]
+                            and predecessor["target"] == trial["target"]):
+                        trial["previous"] = previous
+                    moments[trial_key] = {
+                        "count": 1, "tick": tick, "salience": sal,
+                        "held": "none",
+                        "figure": "none",
+                        "room": state.get("room_now") or "unknown",
+                        "source": "motor",
+                        "context": [0, 0, 0],
+                        "next": {},
+                        "acts": {},
+                        "fed": intake_ug,
+                        "motor_transition": trial,
+                    }
+                    if outcome in moments:
+                        moments[outcome]["episode_tail"] = trial_key
+                    state["last_motor_trial"] = trial_key
+                    while len(moments) > MOMENT_RECORD_CAPACITY:
+                        del moments[min(moments, key=lambda k: (int(moments[k]["tick"]), k))]
+                else:
+                    state["last_motor_trial"] = None
             else:
                 # Passive time is not a rehearsed act and cannot bridge an
                 # unobserved interval into an experience sequence.
@@ -2119,7 +2136,7 @@ class FunctionalOrganism:
 
         def decision(act: str, reason: str, commands: tuple[Any, ...] = (), target: str | None = None, drive: tuple[int, int, int] | None = None) -> Decision:
             if not sound_heard:
-                state["gaze_target"] = target   # what she acts on is what her head turns to next beat
+                state["gaze_target"] = target if target is not None else body.held_object_id   # what she acts on (or what she holds) is what her head turns to next beat
             state["pending_transition"] = {
                 "pre_key": current_sensory_key,
                 "start_tick": tick,
@@ -2180,7 +2197,7 @@ class FunctionalOrganism:
         sleepy = int(state.get("sleep_pressure", 0)) >= SLEEP_PRESSURE_CEILING // 2
         p_chain = list(state.get("pending_chain") or [])
         state["body_pos"] = (int(body.pose.position.x), int(body.pose.position.y), int(body.pose.position.z))
-        options = candidates(snapshot, body, held, offered, seen, tick, say_drive=say_drive, say_detail=say_reason, feeding=feeding, sleepy=sleepy, conserved_objects=conserved, pending_chain=p_chain, last_crossed_portal=state.get("last_crossed_portal"))
+        options = candidates(snapshot, body, held, offered, seen, tick, say_drive=say_drive, say_detail=say_reason, feeding=feeding, sleepy=sleepy, conserved_objects=conserved, pending_chain=p_chain, last_crossed_portal=state.get("last_crossed_portal"), sound_heard=sound_heard)
 
         # Cognitive Asset 1: Learned Closed-Loop Continuation Selector
         # When an internal demand is active, searches the empirical transition graph for supported continuation
@@ -2255,13 +2272,16 @@ class FunctionalOrganism:
         sleep_ratio = round(float(state.get("sleep_pressure", 0)) / SLEEP_PRESSURE_CEILING, 6)
         contact_ratio = round(float(state.get("contact_pressure", 0)) / CONTACT_PRESSURE_CEILING, 6)
         state["pending_act"] = {"key": key, "regimes": regimes, "act": act, "deficit": deficit, "sleep_ratio": sleep_ratio, "contact_ratio": contact_ratio, "intake": 0, "refused": False}
-        if act == "say" or (sound_heard and drive is None):
+        if act == "say":
             drive = say_drive
             state["pending_act"]["syllable"], state["pending_act"]["context"] = say_name, say_context   # valued by what follows, under its context
             state["pending_act"]["drive"] = list(say_drive)
             target = state.get("heard_speech_target")
             if target and target.get("envelopes"):
                 target["consumed"] = True
+        elif sound_heard and drive is None and commands and getattr(sensed, "sound_source_id", None) == "person-body-1":
+            # Multimodal acoustic acknowledgement during active motor stride when directly hailed by person-body-1
+            drive = say_drive
             # Cognitive Asset 5: Combinatorial Demand Chaining
             chain = state.get("pending_chain")
             if chain:
@@ -2447,7 +2467,7 @@ class FunctionalOrganism:
                 "tick": tick,
                 "key": event.key,
                 "profile": list(ev_prof) if ev_prof is not None else None,
-                "envelopes": [list(e) for e in ev_envs] if ev_envs else [],
+                "envelopes": [list(e) for e in ev_envs[:32]] if ev_envs else [],
                 "bands": ear_bands(ev_prof),
             }
 
@@ -2606,7 +2626,8 @@ class FunctionalOrganism:
         self._retention_refused = successor is None  # transient diagnostic, not cognition
         if successor is None:
             return
-        state["meanings"] = successor
+        state["meanings"].clear()
+        state["meanings"].update(successor)
         for episode_key in retained:
             moments.pop(episode_key)
 
@@ -2784,6 +2805,20 @@ class FunctionalOrganism:
             if viable_acts and len(viable_acts) < len(acts):
                 acts = viable_acts
 
+        # Rotational spin trap damping: after 2 consecutive turns, damp in-place turns
+        consec_turns = int(self._state.get("consecutive_turns", 0))
+        if consec_turns >= 2:
+            non_turns = [a for a in acts if a not in ("turn_left", "turn_right")]
+            if non_turns:
+                acts = non_turns
+
+        # Cognitive Asset 7: Stage 4 Conversational Turn-Taking Flow
+        # Calibrated 250ms quiet gap following speaker cessation releases vocal turn response
+        target = self._state.get("heard_speech_target")
+        quiet_gap = self.live_organism_tick - int(self._state.get("last_sound_heard_tick", -999))
+        if quiet_gap == 1 and target and not target.get("consumed") and "say" in acts:
+            return "say", f"{label}: conversational turn release after 250ms quiet gap"
+
         # Cognitive Asset 6: Unified Structural Boredom & Distal Interest Potential Manifold
         dwell_beats = int(self._state.get("room_dwell_beats", 0))
         deficit = float(self.deficit)
@@ -2805,12 +2840,12 @@ class FunctionalOrganism:
             if is_barren:
                 phi_barren = math.tanh(max(0.0, float(dwell_beats - 16)) / 16.0)
                 if phi_barren > 0.25 and "toward_door" in acts and not door_refused:
-                    return "toward_door", f"barren basin exhaustion ({phi_barren:.2f} over {dwell_beats} dwell beats in {cur_room}): evacuating toward negative space"
+                    return "toward_door", f"{label}: barren basin exhaustion ({phi_barren:.2f} over {dwell_beats} dwell beats in {cur_room}): evacuating toward negative space"
 
         surplus = max(0.0, min(1.0, (1.0 - deficit) * (1.0 - sleep_ratio)))
         boredom = max(0.35 if self.live_organism_tick > 100 else 0.0, surplus) * math.tanh(max(0.0, float(dwell_beats - 32)) / 24.0)
         if boredom > 0.25 and "toward_door" in acts and not door_refused:
-            return "toward_door", f"structural boredom ({boredom:.2f} over {dwell_beats} dwell beats): evacuating saturated basin toward negative space"
+            return "toward_door", f"{label}: structural boredom ({boredom:.2f} over {dwell_beats} dwell beats): evacuating saturated basin toward negative space"
 
         # Physical execution feedback: an act refused on the previous beat yields to alternative viable acts
         if refused_act and len(acts) > 1:
@@ -2820,6 +2855,29 @@ class FunctionalOrganism:
 
         entry = self._state.setdefault("acts", {}).get(key)
         label = "structure " + key[:6]
+
+        # Epistemic Curiosity & Somatic Affordance Evaluation
+        learned = self._state.setdefault("learned", {}).get(situation)
+        learned_acts = learned["acts"] if (learned is not None and "acts" in learned) else {}
+        today_acts = entry["acts"] if (entry is not None and "acts" in entry) else {}
+        totals = self._state.get("act_totals", {})
+
+        def affordance_potential(act: str) -> tuple[float, float, int]:
+            if act in today_acts:
+                tries, net_r = int(today_acts[act][0]), float(today_acts[act][1])
+                mean_r = net_r / tries if tries > 0 else 0.0
+            elif act in learned_acts:
+                tries, net_r = int(learned_acts[act][0]), float(learned_acts[act][1])
+                mean_r = net_r / tries if tries > 0 else 0.0
+            else:
+                tries = 0
+                mean_r = 0.0
+            n_obs = tries + int(totals.get(act, 0))
+            delta_u = 1.0 / math.sqrt(1.0 + float(n_obs))
+            curiosity_bonus = 0.50 * surplus * delta_u
+            v_structural = mean_r + curiosity_bonus
+            return (round(v_structural, 4), round(mean_r, 4), n_obs)
+
         if entry is None:
             learned = self._state.setdefault("learned", {}).get(situation)
             known = [act for act in acts if learned is not None and act in learned["acts"]]
@@ -2834,17 +2892,12 @@ class FunctionalOrganism:
             totals = self._state.get("act_totals", {})
             act = min(acts, key=lambda a: (int(totals.get(a, 0)), acts.index(a)))
             return act, label + ": first try of " + act + f" (tried {int(totals.get(act, 0))} times in her life)"
-
         tried = entry["acts"]
         untried = [act for act in acts if act not in tried]
         if untried:
-            # Among the acts not yet tried under this structure, the one she has
-            # tried least in her whole life comes first (her own counts, not a
-            # written order): a fixed order sent her round grasp and release
-            # forever, each flipping what her eye saw into a "new" structure.
-            totals = self._state.get("act_totals", {})
-            untried.sort(key=lambda a: (int(totals.get(a, 0)), acts.index(a)))
-            return untried[0], label + ": first try of " + untried[0] + f" (tried {int(totals.get(untried[0], 0))} times in her life)"
+            untried_sorted = sorted(untried, key=lambda a: (int(totals.get(a, 0)), acts.index(a)))
+            best_untried = untried_sorted[0]
+            return best_untried, label + ": first try of " + best_untried + f" (tried {int(totals.get(best_untried, 0))} times in her life)"
 
         visits = sum(int(tried[act][0]) for act in acts)
         if uncertain is True:
@@ -2854,10 +2907,13 @@ class FunctionalOrganism:
             act = min(acts, key=lambda a: (int(tried[a][0]), acts.index(a)))
             return act, label + ": least tried, " + act
 
-        # One-step predictive foresight through recorded successors
+        # One-step predictive foresight through recorded successors augmented with epistemic curiosity
         def _score(a: str) -> float:
             tries = int(tried[a][0])
             mean_immediate = float(tried[a][1]) / tries if tries > 0 else 0.0
+            n_tot = tries + int(totals.get(a, 0))
+            delta_u = 1.0 / math.sqrt(1.0 + float(n_tot))
+            curiosity = 0.50 * surplus * delta_u
             successors = entry.get("successors", {}).get(a, {})
             v_next = 0.0
             if successors:
@@ -2867,7 +2923,7 @@ class FunctionalOrganism:
                     next_means = [float(t[1]) / int(t[0]) for t in next_entry["acts"].values() if int(t[0]) > 0]
                     if next_means:
                         v_next = max(next_means)
-            return mean_immediate + 0.5 * v_next
+            return mean_immediate + curiosity + 0.5 * v_next
 
         act = max(acts, key=lambda a: (_score(a), -acts.index(a)))
         mean = float(tried[act][1]) / int(tried[act][0])
@@ -3024,8 +3080,6 @@ class FunctionalOrganism:
             state["sleep_pressure"] = int(state.get("sleep_pressure", 0)) + 1
         if applied_action in MOVES and refusal is None:
             state["strides"] += 1
-            if decision.act == "toward_door" and decision.target_object_id:
-                state["last_crossed_portal"] = (decision.target_object_id, tick_now)
         if applied_action in ("grasp", "take") and refusal is None:
             state["handled"] = int(state.get("handled", 0)) + 1
         if refusal is not None:

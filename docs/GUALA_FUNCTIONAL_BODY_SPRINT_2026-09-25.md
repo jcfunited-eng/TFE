@@ -1981,3 +1981,113 @@ sampling/learning/kernel remain unchanged. Full functional-body goalACTIVE;
 contact thermal coupling, home/caregiver conversion, ordinary afference/effort,
 outer atomic publication, mature-body and production acceptance remain open.
 No additional user approval is requested for the already-ratified boundary.
+
+
+### FB-01j — reconcile immutable G1 handoff before sensory integration — 2026-09-25 19:48Z
+
+Previous goal turn PROGRESS:0b7bbe162,57 offline checks and checked Slack receipt.
+No body mechanism is live. No-progress/block counter does not apply.
+
+New authoritative dependency: G1 posted the stable source baseline5f3300a46
+and source-identical ledger successor d7580460f at19:42Z. The handoff reports
+task1549, imagec883967dae9703796245db6408d12ec03a7591dbb48c8c0c4188bdc2d1a837b8.
+This entry is source reconciliation, NOT independent acceptance of that release's
+behavioral claims. The new source must be preserved before ordinary body-loop
+integration rather than overwritten with this branch's older functional runtime.
+
+Source-only inspection also confirms the next optical consumer is not merely
+a yaw/roll parameter: existing spherical material charts and portal aperture
+rectangles depend on upright geometry. No radiance law or sampling approximation
+is introduced here. The geometric query remains closed; optical material/
+aperture coupling is open. Do not create a second scene or silently replace
+finite aperture integration by centre-ray sampling.
+
+One bounded item: integrate exact Guala-only immutable handoff files into this
+isolated branch, preserving A1's already-reviewed mechanics and energy patch.
+Common ancestor8f8b6b83ab74095eebc43389cb602ddc5fb1e547; current A1 HEAD0b7bbe162.
+Git's source-only merge-tree6e3eca3f8252f6558e746f8b6707e17b715aeed6 has no
+text conflicts. Exclude unrelated docs/CH2_PROFIT_TAKE_20260925.md, docs/TODO.md,
+and tools/deploy_after_close_once.sh. Do not merge or mutate the moving main tree.
+
+Authorized files from that immutable merge tree:
+collaborative_todo.md;
+dsf_ai_service/episodic_binding_engine.py;
+dsf_ai_service/guala_caretaker_hand.py;
+dsf_ai_service/guala_functional_organism.py;
+dsf_ai_service/lean_actor.py;
+dsf_ai_service/lean_production_app.py;
+dsf_ai_service/lean_sensory_occurrence.py;
+dsf_ai_service/static/gualaloom.html;
+guala_caretaker/caretaker.py;
+tests/test_conversational_turn_taking.py;
+tests/test_high_chair_lifecycle.py;
+tests/test_sensory_lane_separation.py;
+tools/deploy_guala_curiosity_escort.py;
+tools/deploy_guala_retention_release.py;
+tools/deploy_guala_turn_taking.py;
+tools/guala_retention_actor_proof.py.
+
+All above files except functional organism must equal G1 byte-for-byte.
+Functional organism's only difference from G1 must be the previously accepted
+body-energy patch (constant units, typed prepared debit, same chemical reserve,
+fractional debit, existing cost law). Preserve all G1 selection/speech/following
+changes without relabeling them as A1-approved emergence. Native anatomy,
+mechanics, world, thermal law, current state, codecs and kernel remain unchanged.
+This is not a body deployment or an authorization to run imported release tools.
+
+Acceptance: one frozen source-only overlap review; all immutable G1 blobs match
+the declared source, all A1 body source blobs remain unchanged, L0-L4 unchanged,
+excluded TFE files unchanged/absent; then existing standalone57 body tests with
+the reconciled organism import. No pytest/conftest, live test endpoints,
+caretaker start/stop or application startup. These tests check body integration
+compatibility, not the validity of G1's speech or cognitive claims. No production
+body is loaded or migrated. A copied production/startup/restart proof is still
+required before eventual release.
+
+Mutation/custody: full-file replacements only in clean A1 worktree, no running
+organism mutation. Git ancestry retains both exact immutable baselines; no state
+schema, persistent cache, new mechanism, controller or duplicate authority is
+introduced. Temporary merge-tree objects only, no live branch checkout/reset.
+No numerical coefficient or physical law changes; no regime sweep needed.
+Offline test work is wrapped in read-only AWS health snapshots as before.
+
+#### FB-01j acceptance — 2026-09-25 19:57Z
+
+Frozen independent source review (mount_custody_review): PASS, no localized or
+architectural finding. The only organism delta from G1 is the accepted A1 energy
+patch; reciprocal comparison preserves G1's changes. This does not endorse G1's
+cognitive claims or prove production compatibility of the new body.
+
+Exact post-test source checks: all selected non-organism files equal d7580460f;
+A1 native anatomy/mechanics/world/thermal/tests and uf_core equal 0b7bbe162.
+Merged organism SHA256:
+87e4f013f3eb405624dff2ffc28d51e54743a10699ba58c6261779e30dca960c.
+Unrelated TFE files excluded. Git ancestry retains both immutable baselines.
+
+Standalone runpy/unittest regression PID7432 (session63979): 57 passed in3.778s;
+whole-process wall4.551s,user4.465s,system0.120s,peakRSS145808KiB. Existing pinned
+MuJoCo3.3.7 and one-thread settings; no pytest/conftest, no copied live body or
+network writes. Post-run census confirms PID7432 absent, no harness survivors.
+This is component integration evidence only, not mature-body or live acceptance.
+
+Read-only AWS envelope19:51:53/19:56:12: service1549 desired/running/pending1/1/0,
+task478e055e5f0146789dd2ba0642bb578b RUNNING/HEALTHY,
+digestc883967dae9703796245db6408d12ec03a7591dbb48c8c0c4188bdc2d1a837b8.
+Identity1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1 unchanged;
+live2256682->2257155,persisted2256671->2257151; availabletrue, checkpoint/cleanup
+errorsnull,durabilityblockedfalse. CPU19:50 finalavg51.539%,max52.532%;
+RAMavg3.123%,max3.149%. Resource/refusalalarmsOK; oldclockalarm remainsALARM,
+so do not claim all alarms clear. Caretaker95907 remains active and untouched.
+No A1 production write or restart.
+
+Operator corrections: full-file restoration of the merge-only docs/TODO.md
+change initially omitted a final blank line. Exact diff caught it; restored
+that one file to clean premerge HEAD, with no user change discarded. Copied TFE
+new files were excluded and remain recoverable in G1 history. Source whitespace
+checks pass; exact upstream collaborative_todo.md retains its existing extra
+EOF blank line, which blanket git diff --check reports. Do not silently rewrite
+the immutable shared evidence to suppress that warning.
+
+Source reconciliation is closed. Full-body goal remains ACTIVE and not live.
+Next is native geometry -> existing optical material/radiance/aperture consumer,
+within the approved motor/sensory interface. No new cognitive law or behavior.

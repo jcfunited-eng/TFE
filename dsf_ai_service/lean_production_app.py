@@ -134,6 +134,7 @@ class SensoryBody(BaseModel):
     focal_pitch_millidegrees: tuple[int, int] | None = None
     focal_rgb_base64: str | None = None
     focal_crop_dimensions: tuple[int, int] | None = None
+    t_capture_ms: int | None = Field(default=None, ge=0)
 
 
 class OccurrenceBody(BaseModel):
@@ -336,6 +337,7 @@ def _physical_occurrence(body: OccurrenceBody) -> PhysicalOccurrence:
             focal_origin=payload.focal_origin,
             focal_pitch_millidegrees=payload.focal_pitch_millidegrees,
             focal_crop_dimensions=crop_dims,
+            t_capture_ms=payload.t_capture_ms,
         ),
     )
 
@@ -447,7 +449,7 @@ def create_lean_production_app(
             result = await asyncio.wrap_future(offered)
         except (RuntimeError, ValueError) as error:
             raise HTTPException(status_code=409, detail=str(error)) from error
-        return {
+        response_data = {
             "native_interval_count": result.native_interval_count,
             "observation": actor.observation(),
             "pressure_sha256": (
@@ -455,6 +457,9 @@ def create_lean_production_app(
             ),
             "schema": "guala.lean_occurrence_result.v1",
         }
+        if body.payload is not None and body.payload.t_capture_ms is not None:
+            response_data["t_capture_ms"] = body.payload.t_capture_ms
+        return response_data
 
     @application.get(PRESSURE_FEED_ROUTE)
     async def pressure_feed(
