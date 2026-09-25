@@ -600,3 +600,81 @@ contact; numeric integration cannot be used to cross a floor, hand-object
 surface or anatomical limit merely because free-motion tests pass. Keep the
 remaining strength, sensory mounting, world migration and production proofs
 in the original FB-01 objective; no cognition or G1 ingress expansion.
+
+## FB-01e — Contact/support boundary, 2026-09-25 15:52Z
+
+This continues FB-01 after locally accepted finite free motion at a81d2d306.
+No test, production, dependency or mechanical source change in this block.
+Joe's body-only numerical approximation approval remains ratified; it does
+not automatically ratify a different contact constitutive law.
+
+Independent source-only contact review found the precise missing boundary:
+body_surface_contact.py settles prescribed linear trajectories between opposed,
+aligned rectangular patches. Its normal spring and viscous tangential law is
+
+    K = area * series_normal_stiffness
+    D = area * series_tangential_damping
+    delta = max(-gap, 0)
+    F = K*delta*n - D*v_t
+    U = K*delta^2/2
+
+At zero slip, tangential force is zero; the existing law cannot sustain a
+frictional pinch grip or friction-dependent stance. Normal support requires
+K*delta=mg AND torque balance, and no normal damping currently establishes
+settling. General rotating footprints, pressure moments and collision events
+are absent. These are body mechanics gaps, not absent cognitive intentions.
+
+The contact receipt also lacks a work-conjugate contact application point or
+couples. Applying opposite forces at separated site centres creates a net
+moment (x_B-x_A) cross F. A lawful coupling needs common interaction geometry,
+reciprocal COM wrenches and stage-consistent motion/force evaluation. Merely
+feeding endpoint forces into free RK4 is rejected: contact onset, containment
+and alignment can change inside an interval. Refinement alone does not certify
+absence of those events. No such partial coupling was implemented.
+
+### Recommended single decision: native body mechanics backend
+
+Ask Joe to authorize MuJoCo as the body-only numerical mechanics backend for
+joints, collisions and friction. This is a proposed replacement of the custom
+motion execution path, not a second clock, service, controller or cognitive
+authority. No installation or dependency edit has occurred. The existing
+instantaneous exact mechanics may serve as offline reference evidence, never
+as a second concurrently executing body solver.
+
+This recommendation avoids developing a new general collision/friction engine.
+It is NOT a claim of contact-law equivalence: MuJoCo documents a soft convex
+contact model, not the existing aligned spring/viscous skin law or a strict
+hard-contact complementarity model. Numerical optimization of mechanical
+constraints is not learned action selection. Contact parameters, penetration,
+slip and energy residuals must be explicit and verified; default parameters
+may not be represented as measured Guala material properties.
+
+Primary references inspected:
+- https://mujoco.readthedocs.io/en/stable/computation/index.html
+- https://mujoco.readthedocs.io/en/stable/programming/simulation.html
+
+Version must be pinned before implementation; stable documentation is not a
+version guarantee. The package is not installed in this environment. No native
+performance or body/world integration proof exists yet.
+
+If approved, one bounded native body/contact candidate must prove a loaded
+articulated hand physically transfers force to a hinged panel, contact
+reciprocity and support, declared joint/capacity limits, error-budget refusal,
+and exact same-runtime restart from the complete integration state (including
+solver warm-start state if used). No supplied open/climb routine, position
+servo impersonating cognition, automatic reset to default pose, or dropping
+contacts on resource overflow. One world mechanical authority and no retained
+step history. Existing thermal mechanics and full DSF/neuron/cognition remain
+unchanged; any unavailable general thermal contact mapping stays explicit.
+
+The decisive complete FB-01 live acceptance above is unchanged. This proposal
+does not close the motor/receptor mounting, authority migration, strength,
+resource or production gates. Dependency choice and approximation authority
+are the only question now; Joe is not being asked to design equations.
+
+Process/command honesty: a preliminary source search included nonexistent root
+pyproject.toml and requirements.txt and returned path errors. Corrected to the
+actual native Cargo manifest, service lock and substrate paths; no matches for
+an existing MuJoCo/PyBullet/Rapier/PhysX integration in that bounded slice.
+Do not repeat guessed paths. pip show reported MuJoCo absent. No harness,
+installation, background process, test or AWS mutation occurred in this block.
