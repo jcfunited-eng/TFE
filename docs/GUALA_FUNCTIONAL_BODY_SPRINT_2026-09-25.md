@@ -1448,3 +1448,44 @@ Test d91d119fc8a2663971aa3d01c329362b2d36023c14364e25ee6bb4934e6a4b7a
 Full objective remainsACTIVE. Next: existing world/thermal prepare/commit mount,
 with native state canonical custody, actual root/head/object projection and
 no competing old movement/contact authority. No production delivery claimed.
+
+### FB-01g G1 following compatibility boundary — 2026-09-25 18:22Z
+
+Joe's FYI does not pause or widen this sprint. Source-only coordination completed;
+no production, caretaker, learning, or mechanical source was changed this turn.
+G1's main tree remains moving and dirty on HEAD62a71e2f5, not a reviewed release.
+Observed organism hash6bd5bd0ad0926c7648e0610419a02b80822051bee36fd8011e207722d4ad96a9.
+
+Exact candidate producers in current main guala_functional_organism.py:
+- candidates:1218 toward_person calls move_commands_toward with the sensed
+  person's position. It requests a root pose; it does not issue joint effort.
+- candidates:1220-1224 reach_hand emits BodySurfaceContactCommand for declared
+  palm sites. It is a contact/compression request, NOT a locomotion command.
+- candidates:1237-1239 toward_door calls door_crossing_commands or
+  move_commands_toward. The source does not by itself establish that Guala
+  infers or follows a caregiver heading vector across rooms.
+
+Cutover consequence: these requests cannot remain independent position/contact
+authorities beside articulated mechanics, and their historical successful trials
+cannot be relabeled as experienced anatomical effort trials. Preserve histories;
+do not synthesize a gait, interpret an external heading as proprioception, or
+claim palm contact unless the mounted body actually reaches the other surface.
+G1 may continue the present runtime; this is a release compatibility boundary,
+not a request to stop or rewrite his lane.
+
+Main's current uncommitted organism diff also changes moment capacity8192->128,
+motor-trial admission, gaze retention and action scoring. Those are separate
+from following and from A1's approved body-only interface. They are not adopted,
+reverted, or certified here. Require G1's final immutable revision for the merge;
+do not wholesale-replace his file with A1's older baseline.
+
+World-mount source boundary reconfirmed without reopening native mechanics:
+_WorldState and its canonical decoder contain floor-disc bodies/objects only;
+_validate_world requires floor-level positions; root/held-object commands
+publish through prepare_port_command. The thermal subclass already stages its
+successor over that same prepared world. Native integration state belongs in
+this canonical transaction, not an adapter-side retained body. Home objects
+currently have masses and visual parts but no authored anchoring/joint model;
+optics currently supports yaw/pitch, not the native head's full orientation.
+These are the remaining mount interfaces, not evidence that mounting is done.
+No test or harness was started, and no deployment claim is made. GoalACTIVE.
