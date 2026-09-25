@@ -3028,3 +3028,92 @@ material inputs, not identities for cognition. Curved native surfaces must not
 be omitted or replaced by centre samples. Full-home surface integration,
 ordinary sensory/motor ports, coupled contact heat/feeding, paired commit,
 copied-body/cold resource/rehearsal/live gates remain open. Goal ACTIVE.
+
+### FB-01t — attach existing six-band material cells to physical planar charts
+
+Previous turn PROGRESS:9966fa2d7,105 offline proofs. Continue the material
+connection, not a new vision-resolution or cognition task. Requested architecture:
+existing world reflectance/emission/palette cells remain fixed to actual surface
+coordinates under head/object movement. Current reality: accepted visibility
+preserves native planar charts, but integration caller supplies uniform bench
+colors; ObjectOpticalSurface and source material fields exist in world custody.
+Conflict: do not extend view-facing material reconstruction as native physics.
+L0–L4, cognition, fixed actuator/body schema, production and G1 files unchanged.
+This evaluates six-band optical geometry, not full DSF; no DSF projection is
+substituted. Uniform illumination is an explicitly limited physical input, not
+a claim that variable direct light, shadows or curved surfaces are completed.
+
+Single change: functional_body_materials.planar_material_radiance accepts actual
+PlanarSurface charts, transient PlanarMaterial declarations (six exact ppm
+reflectance/emission bands, optional existing immutable ObjectOpticalSurface,
+six nonnegative uniform incident irradiances), and the unchanged retinal angular
+apertures. Printed rectangles use the physical chart [0,1]x[0,1], columns toward
++u and rows toward -v. Require that patterned surface really is that rectangle;
+no guessing chart axes from viewpoint, texture dilation or shape labels.
+
+Path: source material -> verified palette/physical chart -> existing complete
+planar visibility partition -> intersect visible region with attached cell
+halfspaces -> same disjoint_surface_radiance -> six-band mean radiance. For
+cell c, L[c,b]=reflectance[c,b]/1e6*irradiance[b]+emission[b]/1e6. RLE merges only
+consecutive identical palette indices within one physical row, an exact union;
+never resample the pattern or pick a cell by receptor centre. Pattern cells are
+not occluders. Visibility/depth executes once on original physical surfaces.
+No color clipping/8-bit quantization here; receptor transduction remains later.
+
+No state owner/cache or format migration. Inputs untouched, no world/organism
+publication; failure yields no image. Cold repeat of same native chart/material
+must return identical bytes and leave next mechanical state unchanged. Output
+is N*6*8 bytes. Explicit max_sites,max_material_cells,max_halfspaces,max_work,
+max_cells bound aperture count, declared texture inventory, expanded geometric
+rows, visibility work and numeric matrices. Preflight texture count before
+cell work; check halfspace count before allocating each intersection. Whole
+work is bounded by declared source/pattern/aperture limits, never history.
+No copied whole-image per cell, no persistent catalog or per-site Python codec.
+
+Acceptance: use real ObjectOpticalSurface and native box full transforms;
+nonuniform material survives head/object rotation with its original chart;
+occluded marking is actually occluded; known constant/partition solid angles
+agree; zero illumination removes reflection while emission survives; no scene
+mutation and identical cold next mechanical successor; exact bounds refuse.
+Full-scene curved optics and spatially varying illumination remain later gates,
+not silently dropped features. Supporting component test cannot authorize live.
+
+Authorized files: new functional_body_materials.py and standalone corresponding
+test, this ledger only. A1 owner, independent frozen review before imports/tests,
+AWS read-only envelope and process closure. Native/world source stays unchanged.
+
+FB-01t source review PASS, no findings, frozen
+37ad54fa745a939a813453154c0916933a89767d9cd2bea10702c4076bb6d3a6
+verified before/after review and before execution. TestPID48104/session95388
+completedexit0:14/14pass in2.389s;whole2.584878s,user2.540667s,system.060015s,
+peak98336KiB. SourceSHA2b8a4b5e2bbb2277579bbfafb3d863b5003a3b67a44a1a8187c318afbb76ff91;
+testSHA2c62f6bb44b2b845a11ed6d198f761d7da97f82f59ad25abe4dc58906c7e3a89.
+
+Physical cell positions agree with independently placed planar cell extents;
+opaque front surface hides the pattern; zero incident light removes reflection,
+but emission remains. Exact repeated-column material representation yields the
+same bytes after equal-index union. Full native head transforms, actual native
+ray occlusion witnesses, nonmutation and fresh cold next-successor all pass.
+Five-surface two-by-two pattern bench with19200focal apertures measured
+.110813043s/.165914985s. This is NOT a dense-texture/full-home/full19335-site or
+production timing proof. Existing optics exactimagehashes remain unchanged;
+its original19335-site uniform-material frames .146254338/.132269421s.
+
+AWS read-only pre22:08:30/post22:08:56: sole1549task
+478e055e5f0146789dd2ba0642bb578b,RUNNING/HEALTHY,1/1/0,samec883967d...digest;
+identity1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1,live2270387->2270436,
+persisted2270367->2270431,availabletrue,checkpoint/cleanupnull,durabilityfalse.
+Resource/refusalalarmsOK,historicalclockalarmALARM. Latest22:03CPUavg
+50.709340->50.716908%,max51.218408->51.316790%;RAMavg3.259277->3.269450%,
+max3.363037%. G1's caretaker nowPID47452(parent80744); G1 deployment script
+tools/deploy_guala_her_room_layout.py PID47795 running at pre/post snapshots.
+Neither was touched. A1 test terminal, no survivor. G1's deployment may change
+the service after this snapshot; these samples are not a cutover completion.
+
+GoalACTIVE. Next exact optical boundary is curved native geometry: existing
+anatomy has spheres/capsules and cannot be rendered by omitting them, converting
+them to billboards, or relabeling a centre sample as an aperture integral.
+Use the accepted native primitive interface and approved bounded numerical
+optics, with explicit error/work refusal. Native source/world material binding,
+spatially varying lighting and full ordinary-body integration remain open;
+no physical feature is deleted to fit the current component proof.
