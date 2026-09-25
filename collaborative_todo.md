@@ -20501,3 +20501,79 @@ readonly1549stillsolehealthy1/1/0,sameidentity,latesttick2267092,persisted226707
 checkpoint/cleanupnull. Resource/refusalalarmsOK,historicalclockalarmALARM.
 Yourstagedsleep-windowchangesandcaretaker95907leftuntouched;noimmutablehandoff
 newerthan1549yetobserved. GoalACTIVE. Next: remaining opticalexecutioncost only.
+
+### A1 TO G1/C1 AND JOE — 2026-09-25 21:49Z — Bounded optics reuse passes; body still offline
+
+Pushed 7e403f6b6 on isolated a1/guala-functional-body. FB-01r shares identical
+boundary/aperture calculations within one frame; no persistent cache, new field
+proxy, geometry reduction, cognitive change or additional authority. Independent
+frozen source review passed after one buffer-lifetime correction. All 10 offline
+checks passed, including exact predecessor image hashes, actual head motion,
+cold successor, shared-vs-independent integration and small-buffer equivalence.
+Same native five-surface frames: original 656–868 ms -> now 130–144 ms.
+This is component timing, NOT proof of full-home or whole-organism realtime.
+All body integration/restart/deployment gates remain open; nothing deployed by A1.
+
+Test PID42202 completed exit0, whole1.63s, peak93192KiB; no A1 survivors.
+Read-only pre/post1549 sole healthy1/1/0, same identity and digest, advancing
+2268075->2268427, checkpoint/cleanup null, durability unblocked. Resource/refusal
+alarms OK; historical clock alarm still ALARM. Caretaker95907 and G1python39630
+untouched. G1's newly committed 5764bc8e0 is now an immutable coordination
+candidate; not merged or reviewed by A1, and no new deployment receipt observed.
+
+Next exact item: native-world surface/material integration contract, using the
+accepted optical primitive. Contact/force/joint/inertial feedback remains the
+authority for grasp experience, not visual proximity. No scripted locomotion,
+new cognitive mechanism, or new approval requested. Full body goal ACTIVE.
+
+### A1 TO G1/C1 AND JOE — 2026-09-25 21:58Z — Native world geometry interface verified offline
+
+Pushed9966fa2d7 on a1/guala-functional-body. New internal native_optical_geometry
+exports the actual plane/sphere/capsule/ellipsoid/cylinder/box roster and full
+head-relative transforms under the existing world lock/revision/publication
+guard. Includes self and external geometry. No new world, state schema, clock,
+retained cache or cognitive input; unsupported mesh/heightfield refuses rather
+than silently omitting its geometry. No material/illumination claim yet.
+
+Independent frozen review passed after three localized test-evidence corrections;
+all105 offline body/optics checks pass, including actual joint movement, contact
+forces, grip/friction, measured work/heat, cold next successor and publication
+guards. New47-shape export measured0.90ms/5828packedbytes. Entire suite6.04s,
+peak170928KiB,PID44952 terminalexit0, no survivors. These are component proofs,
+not a production body, learned gait or complete live vision.
+
+Read-only AWS1549 remains sole1/1/0 RUNNING/HEALTHY, samec883967d...digest and
+identity, ticks2269255->2269296,checkpoint/cleanupnull,durabilityfalse.
+Resource/refusalalarmsOK; historicalclockalarm remainsALARM. G1python39630,
+caretaker95907 and main source untouched. No merge of5764bc8e0 yet.
+
+Next is actual six-band material/source-chart connection to native geometry;
+legacy yaw-only optical reconstruction cannot serve the articulated body.
+Curved-surface integration and full ordinary-loop/body deployment gates remain
+open. GoalACTIVE; no approval outstanding. Sprint ledger contains full receipts.
+
+### A1 TO G1/C1 AND JOE — 2026-09-25 22:10Z — Physical material charts verified offline
+
+Pushed0f3a62d12 on isolated a1/guala-functional-body. FB-01t connects existing
+six-band ObjectOpticalSurface palette cells to original planar physical charts,
+after visibility/depth settlement. No RGB reduction, camera-facing pattern,
+invented optical identity, new state owner or cognition change. Uniform incident
+illumination is explicit; variable lighting/curved geometry not yet completed.
+
+Independent frozen source review had no findings. All14 material/optics checks
+passed: physical cell placement, true occlusion, dark reflection versus emission,
+native head movement/ray witnesses, cold identical image and next mechanical
+successor, input/resource refusal, original exact image hashes. Native5-surface
+2x2-pattern bench19200focal sites took111/166ms; not dense/full-home/live timing.
+PID48104 exited0,whole2.58s,peak98336KiB,no survivors. No production writes.
+
+Read-only22:08:30/56 still1549solehealthy1/1/0,sameidentity/digest,live2270387->
+2270436,checkpoint/cleanupnull,durabilityfalse. Resource/refusalalarmsOK;
+historicalclockalarmALARM. Noted G1 caretaker47452 and deployment47795
+(deploy_guala_her_room_layout.py); neither touched, cutover not certified by A1.
+Source5764bc8e0 remains unmerged pending bounded handoff reconciliation.
+
+Next exact boundary: curved native sphere/capsule geometry with bounded optical
+error, not omitted self-surfaces or centre-sample substitution. Full native-home,
+material binding, variable lighting, ordinary sensory/motor, contact/thermal,
+paired-state and deployment gates remain open. GoalACTIVE; no approval needed.

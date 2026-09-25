@@ -88,6 +88,7 @@ print(json.dumps({"authenticated_predecessor": descriptor, "exact_startup": True
 start = time.monotonic()
 actor.start()
 bite = False
+first_presentation = None
 try:
     for index in range(8):
         occurrence = (PhysicalOccurrence("sensory", LeanSensoryOccurrence(
@@ -96,16 +97,17 @@ try:
         result = actor.submit(occurrence, timeout=45)
         ob = result.observation
         if index == 0:
-            assert ob.get("caregiver_presentation") is not None
-            assert ob["caregiver_presentation"]["schema"] == "guala.caregiver_presentation.v1"
-            assert "steps" in ob["caregiver_presentation"]
+            first_presentation = ob.get("caregiver_presentation")
+            assert first_presentation is not None
+            assert first_presentation["schema"] == "guala.caregiver_presentation.v1"
+            assert "steps" in first_presentation
         bite = bite or ob.get("her_act") == "bite"
         print(json.dumps({"interval": index, "act": ob.get("her_act"),
             "presentation": ob.get("caregiver_presentation")}, default=str), flush=True)
 finally:
     actor.close()
 after = persisted(actor, store)
-if initial_feeding and ob.get("caregiver_presentation", {}).get("presented"):
+if initial_feeding and (first_presentation or {}).get("presented"):
     assert bite, "no physical bite occurred while hungry and food presented"
     assert actor._runtime.reserve_micrograms > initial_reserves
 else:
