@@ -2783,3 +2783,62 @@ Resource/refusalalarmsOK,historicalclockalarmALARM. Pre21:20CPUavg51.680055%,
 max52.696888%;RAMavg3.153890%,max3.222656%;latest21:25RAMavg3.145345%,max3.186035%.
 Post/profilingpre21:25CPUavg51.884236%,max52.618212%;RAMavg3.148736%,max3.186035%.
 Censuses: no36613/36990 or A1survivor,caretaker95907untouched.
+
+Profilepost21:30:03live2266745,persisted2266719;21:25CPUavg51.939882%,
+max52.618212%;RAMavg3.158569%,max3.192139%. OpticssourceSHA
+abf8513d2d628a7e3d1410a76dde3ea75ac150935b84a856a20d68c332273529.
+
+### FB-01q — reached aperture frontier and packed latitude roots
+
+One same local performance item; no new geometry law or body capability.
+Restore exclusion short-circuiting for multi-aperture inputs while retaining
+the single shared batched dot-extrema equation. A one-aperture domain has no
+remaining-aperture frontier to compact, so all its planes use one matrix;
+multiple apertures apply each plane to the surviving sites only. This is
+execution layout, not a selection threshold. All matrices remain max_cells
+bounded; original event admission remains fixed. Aperture endpoint trig computed
+once per call. Selected indices preserve order. Scalar constants unchanged.
+
+Compute all constant-latitude roots in one batch-by-plane-by-edge matrix.
+Preserve n order, lower/uppermu order, negative/positive root order. Zero-radius
+planes still emit aperture-start duplicates rather than roots; safe divide's
+where mask avoids their undefined ratio. Same arccos/clipping/existence law,
+same fixed-event/sort/integration arithmetic; no new epsilon or extrapolation.
+Totalrootcells4*K*batch <= event_count*batch <= max_cells. Per-call only,
+no output until completion, no state/retention/migration/live changes.
+
+Authorization onlyoptics source+ledger; tests unchanged. Same9tests andexact
+images/nonmutation/coldnext-state witnesses. Frozen review first, oneexecution
+withhealthenvelope, measured cadence and residency. No production claim.
+
+FB-01q source reviewPASS withno findings; fingerprint
+032a9c82bad81e068e8111d06294811393141daf75c6c977d3d275b3de1b95b8
+verifiedbyreviewerbefore/afterandbeforeexecution. PID38095/session28958exit0,
+9/9PASSin1.996s,wholewall2.121008s,user2.072804s,system.064024s,peak89256KiB.
+Both exactpredecessor imageSHAunchanged, retainednative/head/material/coldnext
+proofsunchanged. Initial5-surface22-regionframe .297629732s; moved17-region
+frame .242652590s. Original .867981043/.656413103s, so observed about2.7-2.9x
+faster. Singlebox8.33-10.84ms remainswithinpreviousregime. Noimage/detail
+reductionandnodeletedphysicalfeature. Slowestframe still>250msbeforewholebody,
+so latencygateNOTclosed and fullbodyNOTdeployable. No further polishing claim.
+
+OpticssourceSHA44b54e4f0da0ad6ad256b65dfc6b00a13665d93e6816d49b24ccc35520e466c0;
+visibilitytestSHA67f89883ddbbb7568811c44a6e82dcaa01dd0980992187fddcce2919dff79184.
+Preserved accepted commits814206710(FB-01o),bc258206d(FB-01p); all candidates
+passedfrozenreviewandtheir unchangedgeometry/byteproofs, notexceptionpatches
+toafailingrepresentation. No uncommittedworkfromG1wasmerged.
+
+Read-onlyAWSpre21:32:31/post21:33:47: sole1549task478e055e5f0146789dd2ba0642bb578b,
+RUNNING/HEALTHY,1/1/0,digestc883967dae9703796245db6408d12ec03a7591dbb48c8c0c4188bdc2d1a837b8;
+sameidentity1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1,live2266975->2267092,
+persisted2266943->2267071,availabletrue,checkpoint/cleanupnull,durabilityfalse.
+Resource/refusalalarmsOK,historicalclockalarmALARM. Latest21:30CPUavg
+51.024672->51.054786%,max51.443812->51.569362%;RAMavg3.163656->3.176541%,
+max3.234863->3.240967%. Still-fillingmetricwindows,notcausalAWSspeedup.
+NoA1harnesssurvivors;caretaker95907intact. No live writes or process interference.
+No newG1immutablehandoffasof21:33; their sleep-windowplananddirtysourcepreserved.
+
+Next exact action: measure remaining visibility-domain work versus full-retina
+integration on this accepted code, then remove the dominant repeated work.
+Do not call243msproof productionrealtime; do not broaden into newrendererfeatures,
+alterbody/cognition,loosenbyte/accuracyacceptance, or startlivecutover. GoalACTIVE.

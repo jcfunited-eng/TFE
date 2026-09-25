@@ -54,17 +54,17 @@ def _wrap(h):
     return (h + math.pi) % (2 * math.pi) - math.pi
 
 
-def _dot_extrema(planes, apertures, parameters):
+def _dot_extrema(planes, apertures, parameters, geometry):
     """The same dot extrema for a bounded plane-by-aperture matrix."""
     a, b, lo, hi = apertures.T
     nx, ny, nz = (p[:, None] for p in planes.T)
     radius, phi, opposite = (p[:, None] for p in parameters)
-    first = nx * np.cos(a) + ny * np.sin(a)
-    last = nx * np.cos(b) + ny * np.sin(b)
+    ca, sa, cb, sb, c_lo, c_hi = geometry
+    first = nx * ca + ny * sa
+    last = nx * cb + ny * sb
     amin, amax = np.minimum(first, last), np.maximum(first, last)
     amax = np.where((a <= phi) & (phi <= b), radius, amax)
     amin = np.where((a <= opposite) & (opposite <= b), -radius, amin)
-    c_lo, c_hi = np.sqrt(1 - lo * lo), np.sqrt(1 - hi * hi)
     minimum = np.minimum(amin * c_lo + nz * lo, amin * c_hi + nz * hi)
     maximum = np.maximum(amax * c_lo + nz * lo, amax * c_hi + nz * hi)
     norm_min, norm_max = np.hypot(amin, nz), np.hypot(amax, nz)
@@ -120,13 +120,27 @@ def aperture_solid_angles(normals, apertures, *, max_cells):
     phi = np.array([math.atan2(n[1], n[0]) for n in planes])
     opposite = np.array([_wrap(float(p) + math.pi) for p in phi])
     parameters = radius, phi, opposite
+    geometry = (np.cos(a), np.sin(a), np.cos(b), np.sin(b),
+                np.sqrt(1 - lo * lo), np.sqrt(1 - hi * hi))
     inside, outside = np.ones(len(a), dtype=bool), np.zeros(len(a), dtype=bool)
-    classification_batch = max_cells // k
-    for begin in range(0, len(a), classification_batch):
-        end = min(begin + classification_batch, len(a))
-        lower, upper = _dot_extrema(planes, apertures[begin:end], parameters)
-        inside[begin:end] = np.all(lower >= 0, axis=0)
-        outside[begin:end] = np.any(upper <= 0, axis=0)
+    remaining = np.arange(len(a))
+    # One domain aperture: all planes in one array. Receptor arrays: stop
+    # visiting a site after a boundary excludes it. Both use the same law.
+    plane_batch = k if len(a) == 1 else 1
+    for first in range(0, k, plane_batch):
+        last = min(first + plane_batch, k)
+        sample_batch = max_cells // (last - first)
+        for begin in range(0, len(remaining), sample_batch):
+            ids = remaining[begin:begin + sample_batch]
+            lower, upper = _dot_extrema(
+                planes[first:last], apertures[ids],
+                tuple(p[first:last] for p in parameters),
+                tuple(g[ids] for g in geometry))
+            inside[ids] &= np.all(lower >= 0, axis=0)
+            outside[ids] |= np.any(upper <= 0, axis=0)
+        remaining = remaining[~outside[remaining]]
+        if not len(remaining):
+            break
     result = np.where(inside & ~outside, total, 0.)
     active = np.flatnonzero(~inside & ~outside)
     if not len(active):
@@ -154,18 +168,20 @@ def aperture_solid_angles(normals, apertures, *, max_cells):
         cuts[:, 0], cuts[:, 1] = aa, bb
         end = 2 + len(fixed)
         cuts[:, 2:end] = np.clip(fixed[None, :], aa[:, None], bb[:, None])
-        for n, r, p in zip(planes, radius, phi):
-            for mu in (ll, hh):
-                if r == 0:
-                    cuts[:, end:end + 2] = aa[:, None]
-                    end += 2
-                    continue
-                ratio = -n[2] * mu / (r * np.sqrt(1 - mu * mu))
-                exists = np.abs(ratio) <= 1
-                delta = np.arccos(np.clip(ratio, -1, 1))
-                for sign in (-1, 1):
-                    cuts[:, end] = np.where(exists, np.clip(_wrap(p + sign * delta), aa, bb), aa)
-                    end += 1
+        # Same n / lower-upper latitude / negative-positive root order,
+        # emitted directly into the event matrix instead of scalar arrays.
+        mu = np.stack((ll, hh), axis=1)[:, None, :]
+        denominator = radius[None, :, None] * np.sqrt(1 - mu * mu)
+        ratio = np.divide(-planes[None, :, 2, None] * mu, denominator,
+                          out=np.zeros((len(ids), k, 2)),
+                          where=radius[None, :, None] != 0)
+        exists = (radius[None, :, None] != 0) & (np.abs(ratio) <= 1)
+        delta = np.arccos(np.clip(ratio, -1, 1))
+        roots = cuts[:, end:].reshape(len(ids), k, 2, 2)
+        for root_index, sign in enumerate((-1, 1)):
+            roots[:, :, :, root_index] = np.where(
+                exists, np.clip(_wrap(phi[None, :, None] + sign * delta),
+                                aa[:, None, None], bb[:, None, None]), aa[:, None, None])
         cuts.sort(axis=1)
         left, right = cuts[:, :-1], cuts[:, 1:]
         mid = (left + right) / 2
