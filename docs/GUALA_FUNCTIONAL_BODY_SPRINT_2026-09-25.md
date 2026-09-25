@@ -1022,3 +1022,80 @@ organism, turn intent names into choreography, or describe generic sensors as
 neural experience. Establish the smallest lawful mounting contract; disclose
 any material authority gap before touching cognition. No production release
 until the original FB-01 integration, restart, safety and resource gates pass.
+
+## FB-01g — Confirmed motor/sensory authority boundary (first escalation)
+
+Previous goal turn was progress:686c804a7 added/tested reference morphology.
+This turn continues the requested full integration gate, not another helper.
+A1 worktree clean at entry. Current G1 main source at62a71e2f5 was inspected
+read-only; no moving G1 file changed. AWS task1547 still uses lean_production_app,
+oneuvicorn worker,2048CPU/8192MiB. No production writes or test execution.
+
+Concrete causal map, current main source:
+- lean_production_app._restore_production_actor:201–266 mounts FunctionalOrganism
+  plus FunctionalPhysicalLoop, not NativeResidentOrganism.
+- guala_functional_organism.Sensed:381: vision/acoustic/skin fields; no limb joint
+  angle/rate/effort or3-axis inertial/contact field input.
+- Decision:403,decide:1773/2044,candidates:1094: action names,world commands and
+  voice drive. A step constructs MoveCommand with target root pose. Grasp uses
+  GraspContactCommand. No articulated effort vector or physical motor supply.
+- body_axes:1480 overlays head/eyes/lids on constant anatomical declarations;
+  declared shoulder/hip names are not actuated joint states.
+- guala_functional_loop._advance:318–602 creates Sensed, calls decide, applies
+  world command, commits world then organism, publishes result to lean actor.
+  Body_consequence_count and physically_transitioned_neuron_count are both0
+  in this functional reporting path.
+- EmbodimentWorldAuthority.prepare_port_command:6607 dispatches existing command
+  union. EmbodiedBody/_body_from:1435/2954 have no articulated primary state.
+  Commit/persistence at6947/7472/7512 authenticate world state under existing
+  authority. No separate body owner may be inserted alongside that custody.
+- ThermallyCoupledEmbodimentWorldAuthority.prepare_port_command:630 prepares
+  thermal successor against same world revision; adding mechanics must include
+  measured work, supply and dissipation in that same prepared transaction.
+- Old guala_motor_world.prepare_motor_consequence:212 consumes native recruitment
+  evidence but translates it into root Move/grip/oral commands. It is not the
+  mounted functional loop or a ready64-joint effort producer. Reinstating it
+  would not supply the missing active motor-learning interface.
+
+Source fingerprints:
+functional_organism b98c1e36c9b50a966b16c283518db3e0464486f09df2023258e5cbd9eeed146a
+functional_loop 8e725716d3e55757cb33745c9cad587ea66da4ebba1ba8861399d28814797424
+lean_app 8131709b6ec6782533f4bd63cbbbd197be75930b4ea3210367686961be8fcef7
+motor_world a9a49fe6acda630ecc6db15ce40d57c639afdb2d1e74d3b2d0ea7c680682
+Correction: exact motor_world digest from command output is
+a9a49fe6acda630ecc6db15ce40d57c639afdb2d1e74d3e2b7b2d0ea7c680682.
+The shorter transcription above is not authoritative.
+
+Live GET observation, identity1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1,
+tick2247663,persisted2247654,availabletrue,checkpointerrornull:
+last_occurrence.organism_kind=functional,physically_transitioned_neuron_count=0,
+body_consequence_count=0,her_act=step. This supports live functional-runtime
+classification, not a claim all cognition is absent. First GET selected wrong
+nesting and returned no occurrence fields; inspected ActorObservation.record
+then used last_occurrence. No retry/write/organism action performed.
+
+Material boundary: preserving the existing cognitive interface literally cannot
+produce generalized joint effort or consume new proprioceptive/inertial evidence.
+A physics solver cannot invent either side. Translating named step/grasp into
+prewritten limb motion would violate the no-script condition; silently mounting
+the old neuron runtime would replace cognition and jeopardize learned continuity.
+Do neither. Full FB-01 acceptance remains unachieved.
+
+Recommended exact scope decision: authorize a bounded general somatic
+motor/sensory INTERFACE extension to the current learning runtime, retaining
+identity, memory and learning laws, rather than freezing its old input/action
+vocabulary. Mechanical motor addresses and forces are permitted; semantic climb,
+walk/open/escape routines, canned motion, reward shaping, new speech/curriculum,
+or alternative cognitive owners remain prohibited. This requires an executable
+interface/learning contract before code—not assurance that writing a port alone
+creates learned motor control. If preserving current cognitive mechanisms also
+means no such interface extension, production integration is blocked; preserve
+the working organism and existing mechanics branch.
+
+Request Joe/G1 decision on this narrow boundary. General permission for body
+numerical approximation is not silently treated as permission to replace or
+rewrite cognition. This is the first explicit boundary escalation after the
+resumed run, not enough to mark goal blocked. No new code/migration/deploy.
+Next action after ratification: freeze one complete motor output -> force/contact
+-> sensory return -> same-world/body custody contract, then implement that path.
+Do not create more unmounted helper components while this authority is unresolved.
