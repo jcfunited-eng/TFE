@@ -588,6 +588,138 @@ class NativeOpticalGeometryTests(unittest.TestCase):
         print(f"native_optical_batch rays={len(rays)} output_bytes={size} "
               f"query_seconds={times}", flush=True)
 
+    def scene_query(self, authority, **overrides):
+        parameters = dict(
+            expected_revision=authority.observation_snapshot().revision,
+            frame_name="guala/head", origin_local_m=self.ORIGIN, max_geoms=256,
+        )
+        parameters.update(overrides)
+        return authority.native_optical_geometry(**parameters)
+
+    def test_complete_primitive_geometry_and_buffer_custody(self):
+        authority = world()
+        mount(authority)
+        before = authority.encoded_snapshot()
+        started = time.perf_counter()
+        result = self.scene_query(authority)
+        elapsed = time.perf_counter() - started
+        engine = authority._native_scratch
+        model = engine._model
+        self.assertEqual(len(result.kinds), model.ngeom)
+        np.testing.assert_array_equal(result.kinds, model.geom_type)
+        np.testing.assert_array_equal(result.sizes_m, model.geom_size)
+        rotation = np.asarray(result.rotation_world).reshape(3, 3)
+        np.testing.assert_allclose(
+            result.positions_eye_m @ rotation.T + result.origin_world_m,
+            engine._data.geom_xpos, rtol=0, atol=1e-15)
+        np.testing.assert_allclose(rotation @ result.rotations_eye,
+            engine._data.geom_xmat.reshape(-1, 3, 3), rtol=0, atol=1e-15)
+        # An independent native ray witnesses the object's analytic sphere.
+        object_index = engine.geom_names.index("bench-object-surface")
+        head_index = engine.geom_names.index("guala/head/surface")
+        for index in (object_index, head_index):
+            direction = result.positions_eye_m[index]
+            hit = self.query(authority, (tuple(direction),))
+            self.assertEqual(hit.geom_indices[0], index)
+            self.assertAlmostEqual(hit.distances_m[0],
+                np.linalg.norm(direction) - result.sizes_m[index, 0], places=12)
+        arrays = (result.kinds, result.sizes_m, result.positions_eye_m, result.rotations_eye)
+        retained = tuple(a.copy() for a in arrays)
+        for array in arrays:
+            self.assertTrue(array.flags.owndata)
+            self.assertFalse(array.flags.writeable)
+        self.assertEqual(sum(a.nbytes for a in arrays), 124 * model.ngeom)
+        self.scene_query(authority, origin_local_m=(.09, 0., .03))
+        for a, expected in zip(arrays, retained):
+            np.testing.assert_array_equal(a, expected)
+        self.assertEqual(authority.encoded_snapshot(), before)
+        print(f"native_primitive_geometry count={model.ngeom} "
+              f"output_bytes={sum(a.nbytes for a in arrays)} seconds={elapsed}", flush=True)
+
+    def test_primitive_geometry_real_head_motion_cold_and_next_successor(self):
+        authority = world()
+        mount(authority)
+        initial = self.scene_query(authority)
+        command = AnatomicalEffortCommand((
+            ("guala/head/pitch/effort", .015),
+            ("guala/head/roll/effort", .02),
+            ("guala/head/yaw/effort", -.01),
+        ), 50000)
+        prepared = authority.prepare_port_command(
+            port_id=PORT_ID, command_payload=encode_command(command),
+            causal_intent_receipt_sha256=INTENT,
+            expected_revision=authority.observation_snapshot().revision,
+            available_motor_work_j=1.,
+        )
+        authority.commit_prepared_action(prepared)
+        encoded = authority.encoded_snapshot()
+        result = self.scene_query(authority)
+        rotation = np.asarray(result.rotation_world).reshape(3, 3)
+        engine = authority._native_scratch
+        np.testing.assert_allclose(
+            result.positions_eye_m @ rotation.T + result.origin_world_m,
+            engine._data.geom_xpos, rtol=0, atol=1e-15)
+        np.testing.assert_allclose(rotation @ result.rotations_eye,
+            engine._data.geom_xmat.reshape(-1, 3, 3), rtol=0, atol=1e-15)
+        self.assertGreater(np.max(np.abs(result.positions_eye_m - initial.positions_eye_m)), 1e-6)
+        self.assertGreater(np.max(np.abs(result.rotations_eye - initial.rotations_eye)), 1e-6)
+        restored = world()
+        restored.restore_encoded(encoded)
+        cold = self.scene_query(restored)
+        self.assertEqual(cold.origin_world_m, result.origin_world_m)
+        self.assertEqual(cold.rotation_world, result.rotation_world)
+        for name in ("kinds", "sizes_m", "positions_eye_m", "rotations_eye"):
+            np.testing.assert_array_equal(getattr(cold, name), getattr(result, name))
+        self.assertEqual(authority.encoded_snapshot(), encoded)
+        for item in (authority, restored):
+            item.commit_prepared_action(prepare_effort(item))
+        self.assertEqual(authority.encoded_snapshot(), restored.encoded_snapshot())
+
+    def test_primitive_geometry_refusals_and_hidden_publication(self):
+        authority = world()
+        before = authority.encoded_snapshot()
+        with self.assertRaisesRegex(ValueError, "not mounted"):
+            self.scene_query(authority)
+        self.assertEqual(authority.encoded_snapshot(), before)
+        mount(authority)
+        before = authority.encoded_snapshot()
+        for override in (
+            {"max_geoms": 1}, {"max_geoms": True}, {"max_geoms": 0},
+            {"expected_revision": 0}, {"frame_name": "bench-other"},
+            {"frame_name": "missing"}, {"origin_local_m": (math.inf, 0., 0.)},
+            {"origin_local_m": (1e11, 0., 0.)},
+        ):
+            with self.subTest(override=override):
+                with self.assertRaises(ValueError):
+                    self.scene_query(authority, **override)
+                self.assertEqual(authority.encoded_snapshot(), before)
+        prepared = prepare_effort(authority)
+        with authority.prepared_action_visibility_transaction(prepared):
+            authority.commit_prepared_action(prepared)
+            with self.assertRaisesRegex(RuntimeError, "visibility transaction"):
+                authority.native_optical_geometry(
+                    expected_revision=prepared.execution_receipt.after.revision,
+                    frame_name="guala/head", origin_local_m=self.ORIGIN, max_geoms=256)
+        with authority.committed_prepared_action_rollback_transaction(prepared) as rollback:
+            rollback()
+        self.assertEqual(authority.encoded_snapshot(), before)
+
+    def test_primitive_geometry_does_not_silently_drop_mesh(self):
+        from dsf_ai_service.substrate.functional_body_native import NativeBody
+        declared = declaration()
+        root = ET.fromstring(declared.xml)
+        asset = ET.SubElement(root, "asset")
+        ET.SubElement(asset, "mesh", name="tetra",
+                      vertex="0 0 0  0.1 0 0  0 0.1 0  0 0 0.1")
+        ET.SubElement(root.find("worldbody"), "geom", name="mesh-obstacle",
+                      type="mesh", mesh="tetra", pos="3 3 0")
+        engine = NativeBody(ET.tostring(root, encoding="unicode"), LIMITS,
+                            sensory_root="guala/pelvis")
+        state = engine.initial_state()
+        with self.assertRaisesRegex(ValueError, "actual mesh/heightfield"):
+            engine.optical_geometry(state, "guala/head", self.ORIGIN, max_geoms=256)
+        self.assertEqual(engine._capture(), state)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -2929,3 +2929,102 @@ ordinary-loop/body/resource gate remains unproven. Next exact item: reconcile
 the accepted optical primitive with the actual native-world surface/material
 contract, keeping body mechanics and contact evidence authoritative. No claim
 of full-home rendering, curved-surface correctness, cognition or live20/20.
+
+### FB-01s — native primitive geometry transport for world optics
+
+Previous turn PROGRESS: accepted7e403f6b6 preserves predecessor pixels and reduces
+the measured component below250ms. Advance to native surface interface, not a
+reopening of the closed planar integration law. Production baseline1549 remains
+unchanged; G1's immutable5764bc8e0 is separate and not merged. Bootstrap still
+rejects the absent historical HANDOFF_2026-07-31 file (known branch distinction,
+not evidence of a new workspace): git verifies a1/guala-functional-body at the
+explicit /workspaces/guala-functional-body root, with this sprint ledger.
+
+Requested architecture: use actual native collision shapes and full head motion
+for optical geometry, with no second world. Current reality: ray_geometry has
+lawful revision-locked native queries; planar tests read selected box geometry
+through private scratch. That selected test helper cannot become a complete
+production scene. Conflict: no new conflicting mechanism will be extended;
+full-world optical integration is incomplete. Canonical kernel/cognition and
+ray collision laws remain unchanged. This is numerical geometry transport,
+not DSF evaluation or a substituted field. No DSF structure is lost here.
+
+Single next change/source map: NativeBody.optical_geometry authenticates current
+native state through the existing restore, resolves the actual self-link frame
+and local eye offset by the same helper used by ray_geometry, and returns packed
+primitive types, native size parameters, centre positions and full rotations in
+eye coordinates. Row index is a world-only transient native geometry address;
+there are no semantic identifiers, colors, recognition flags or new sensation.
+All native geometry participates, including self, static world and other actors.
+Plane/sphere/capsule/ellipsoid/cylinder/box primitives are represented directly;
+mesh/heightfield require their actual geometry and will refuse, never disappear.
+Native plane size is retained as native metadata, not an invented finite plane.
+
+EmbodimentWorldAuthority.native_optical_geometry holds the existing lock, rejects
+hidden publication and stale revision, requires mounted state, then calls the
+same scratch engine. No new owner, persistent schema, codec, migration, lock,
+clock, motor policy or state commit. Failures can only alter reusable scratch;
+authoritative native bytes/world revision stay unchanged. Fresh restore and
+post-query next mechanical successor must be byte-identical. Outputs own their
+buffers, are marked read-only, and never alias scratch. No retained frame cache.
+
+Bounds: caller max_geoms admission precedes restore and output allocation;
+packed output is N*(4+8*(3+3+9))=124*N bytes, plus fixed origin3 and rotation9
+binary64 values. O(N) transform work and transient storage within that bound;
+native fixed model and scratch remain the existing authority. No per-receptor
+world copies, no per-ray wrapper calls. Entire primitive roster is necessary
+geometry input at this boundary, not a brain/population scan. No approximation
+to primitive shape introduced; binary64 transforms use approved body optics.
+
+Acceptance: ordinary mounted-world query contains complete native roster;
+geometry matches native witnesses before and after actual head effort; samples
+do not mutate world or cold next successor; stale/missing/hidden/capacity and
+unsupported-shape cases refuse; buffer bytes/ownership are explicit. Existing
+geometry, body-custody and optics tests remain supporting gates. Backend-only
+component, no API/UI or live vision claim. Later radiance consumer must retain
+six-band world materials and handle curved surfaces; neither is asserted here.
+
+Authorized source files: functional_body_native.py, embodiment_world.py;
+test_functional_body_world.py and this ledger. Owner A1. Whole-file source
+replacement, frozen independent review before import/test. No main-tree edits,
+live actions or G1 process interference. Tests remain standalone, with read-only
+AWS pre/post envelope, retained PID/session and terminal census.
+
+FB-01s reviewed first at e381398b94968545a1b73303a77caf0d24ed6d223a5faca514ebe3c8363032c5.
+No source architecture defect. Three localized proof gaps corrected in one
+batch: call new API directly under hidden publication rather than failing in
+the snapshot helper; compare mesh refusal with non-resetting _capture; check
+moved geometry against actual native transforms as well as cold equality.
+Final source review PASS at aef89143e90b0529e95077bb2858798596cf49a72cef302839ee9427b68d547f,
+verified before/after review and before execution. No imports before review.
+
+PID44952/session91971 exit0: all105 standalone checks passed in5.425s;
+wholewall6.038159s,user5.939589s,system.112143s,peak170928KiB. Four decisive
+new interface tests ran first. Existing native/body/energy/custody/optics and
+earlier exact-physics supporting benches all passed. No test implies learned
+locomotion, complete rendering or production integration. Native47-primitive
+snapshot .000896519s,5828packedbytes plus96fixed numeric bytes; same19335ray
+batch4.75–4.94ms, same exact optical scene images122–140ms. No comparison of
+these component timings to complete live interval performance is warranted.
+
+Native sourceSHA87fc3b65a9b8f105dd1a7dd8b244a67d90a314e37ba2618574816a2a183682bc;
+worldSHA b170c502c4435240eeaf199e06bc1b605b872d39d2821bc78c363179186604ca;
+testSHA ee31b72461edf5d359870cd970ef01340e3612f31eda61ef7bf22603a984da1f.
+
+Read-only AWS pre21:56:58/post21:57:22: sole1549 task
+478e055e5f0146789dd2ba0642bb578b,1/1/0,RUNNING/HEALTHY,digestc883967d...,
+sameidentity1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1. Live2269255->2269296,
+persisted2269247->2269279,availabletrue,checkpoint/cleanupnull,durabilityfalse.
+Resource/refusalalarmsOK; historicalclockalarmALARM. Same latest21:52metric
+window CPUavg51.277704%,max52.335438%;RAMavg3.356425%,max3.417969%.
+NoA1harness survivors. G1python39630 andcaretaker95907 untouched. No live writes.
+
+Next exact boundary: connect physical six-band materials and source charts to
+this actual native geometry before ordinary retinal integration. Source trace
+finds existing w1_physical_receptors._lit_surfaces_focal reconstructs yaw-only
+legacy boxes/parts and a room-plane view; it cannot be reused as native geometry.
+Its world reflectance/emission/ObjectOpticalSurface records remain physical
+material inputs, not identities for cognition. Curved native surfaces must not
+be omitted or replaced by centre samples. Full-home surface integration,
+ordinary sensory/motor ports, coupled contact heat/feeding, paired commit,
+copied-body/cold resource/rehearsal/live gates remain open. Goal ACTIVE.

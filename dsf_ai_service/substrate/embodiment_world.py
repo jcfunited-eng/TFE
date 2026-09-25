@@ -4479,6 +4479,25 @@ class EmbodimentWorldAuthority:
             world.portals, world.self_body_id, world.bodies, world.objects,
             state_sha, signature, receipt, projection)
 
+    def native_optical_geometry(self, *, expected_revision: int, frame_name: str,
+                                origin_local_m: tuple[float, float, float],
+                                max_geoms: int):
+        """Read-only primitive geometry from the same published native world.
+
+        This is internal world optics, not an organism sense or public object
+        catalogue. The geometry rows must never become cognitive identities.
+        """
+        with self._lock:
+            self._require_public_visibility_locked()
+            world = self._state.world
+            if type(expected_revision) is not int or expected_revision != world.revision:
+                raise ValueError("optical query revision differs from current world")
+            if world.native is None:
+                raise ValueError("native optical geometry is not mounted")
+            return self._native_engine_for(world.native.mount).optical_geometry(
+                world.native.integration_state, frame_name, origin_local_m,
+                max_geoms=max_geoms)
+
     def native_ray_geometry(self, *, expected_revision: int, frame_name: str,
                             origin_local_m: tuple[float, float, float],
                             directions_local, max_rays: int):

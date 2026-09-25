@@ -109,6 +109,24 @@ class RayGeometry:
 
 
 @dataclass(frozen=True)
+class OpticalGeometry:
+    """World-only native primitives, never sensory identity or a new world.
+
+    Row order is the native geometry order. A primitive-local point p maps to
+    eye axes as positions_eye_m[i] + rotations_eye[i] @ p. Plane size keeps its
+    native meaning; it does not turn the native infinite plane into a box.
+    No material/lighting model is asserted by this geometry-only transport.
+    Arrays own storage, are read-only, and have no reference to native scratch.
+    """
+    origin_world_m: tuple[float, float, float]
+    rotation_world: tuple[float, ...]
+    kinds: np.ndarray
+    sizes_m: np.ndarray
+    positions_eye_m: np.ndarray
+    rotations_eye: np.ndarray
+
+
+@dataclass(frozen=True)
 class MechanicalObservation:
     # Whole-world custody/diagnostics. Only self_feedback is organism afference.
     time_s: float
@@ -379,6 +397,67 @@ class NativeBody:
         self._restore(state)
         return self._observation()
 
+    def _optical_pose(self, state, frame_name, origin_local_m):
+        """Common current-state optical transform; no retained observer frame."""
+        if (type(origin_local_m) is not tuple or len(origin_local_m) != 3
+                or any(type(x) not in (int, float) or not math.isfinite(x)
+                       for x in origin_local_m)):
+            raise ValueError("finite link-local optical origin required")
+        m = self._model
+        if type(frame_name) is not str or self._sensory_root is None:
+            raise ValueError("declared self optical frame required")
+        frame = int(mj.mj_name2id(m, mj.mjtObj.mjOBJ_BODY, frame_name))
+        root = int(mj.mj_name2id(m, mj.mjtObj.mjOBJ_BODY, self._sensory_root))
+        ancestor = frame
+        while ancestor > 0 and ancestor != root:
+            ancestor = int(m.body_parentid[ancestor])
+        if frame <= 0 or ancestor != root:
+            raise ValueError("optical frame must belong to the self body")
+
+        self._restore(state)
+        d = self._data
+        rotation = d.xmat[frame].reshape(3, 3)
+        origin = d.xpos[frame] + rotation @ np.asarray(origin_local_m)
+        if not np.isfinite(origin).all() or not np.isfinite(rotation).all():
+            raise ValueError("non-finite optical world transform")
+        # Preserve the same admitted spatial domain as native multiRay.
+        if np.any(np.abs(d.geom_xpos - origin) > mj.mjMAXVAL / math.sqrt(3)):
+            raise ValueError("optical scene exceeds native ray range")
+        return origin, rotation
+
+    def optical_geometry(self, state: bytes, frame_name: str,
+                         origin_local_m: tuple[float, float, float], *,
+                         max_geoms: int) -> OpticalGeometry:
+        """Packed complete primitive roster for a bounded world optical caller.
+
+        No visibility filtering, self removal, material guess, triangulation,
+        time advancement or output retention. Mesh/heightfield geometry cannot
+        be represented by primitive sizes and therefore explicitly refuses.
+        """
+        m = self._model
+        if type(max_geoms) is not int or max_geoms <= 0 or m.ngeom > max_geoms:
+            raise ValueError("native optical geometry exceeds declared primitive bound")
+        supported = (mj.mjtGeom.mjGEOM_PLANE, mj.mjtGeom.mjGEOM_SPHERE,
+                     mj.mjtGeom.mjGEOM_CAPSULE, mj.mjtGeom.mjGEOM_ELLIPSOID,
+                     mj.mjtGeom.mjGEOM_CYLINDER, mj.mjtGeom.mjGEOM_BOX)
+        if not np.isin(m.geom_type, supported).all():
+            raise ValueError("native optical geometry requires actual mesh/heightfield data")
+        if not np.isfinite(m.geom_size).all() or np.any(m.geom_size < 0):
+            raise ValueError("invalid native primitive sizes")
+        origin, rotation = self._optical_pose(state, frame_name, origin_local_m)
+        d = self._data
+        kinds = np.array(m.geom_type, dtype=np.int32, copy=True)
+        sizes = np.array(m.geom_size, dtype=np.float64, copy=True)
+        positions = (d.geom_xpos - origin) @ rotation
+        rotations = rotation.T @ d.geom_xmat.reshape(-1, 3, 3)
+        if not np.isfinite(positions).all() or not np.isfinite(rotations).all():
+            raise ValueError("non-finite native primitive optical transform")
+        for array in (kinds, sizes, positions, rotations):
+            array.setflags(write=False)
+        return OpticalGeometry(tuple(float(x) for x in origin),
+                               tuple(float(x) for x in rotation.ravel()),
+                               kinds, sizes, positions, rotations)
+
     def ray_geometry(self, state: bytes, frame_name: str,
                      origin_local_m: tuple[float, float, float],
                      directions_local: np.ndarray, *, max_rays: int) -> RayGeometry:
@@ -398,20 +477,6 @@ class NativeBody:
             raise ValueError("bounded packed float64 ray directions required")
         if not np.isfinite(directions_local).all():
             raise ValueError("finite ray directions required")
-        if (type(origin_local_m) is not tuple or len(origin_local_m) != 3
-                or any(type(x) not in (int, float) or not math.isfinite(x)
-                       for x in origin_local_m)):
-            raise ValueError("finite link-local optical origin required")
-        m = self._model
-        if type(frame_name) is not str or self._sensory_root is None:
-            raise ValueError("declared self optical frame required")
-        frame = int(mj.mj_name2id(m, mj.mjtObj.mjOBJ_BODY, frame_name))
-        root = int(mj.mj_name2id(m, mj.mjtObj.mjOBJ_BODY, self._sensory_root))
-        ancestor = frame
-        while ancestor > 0 and ancestor != root:
-            ancestor = int(m.body_parentid[ancestor])
-        if frame <= 0 or ancestor != root:
-            raise ValueError("optical frame must belong to the self body")
 
         # Rescale before taking a norm: finite subnormal/large directions must
         # neither underflow to zero nor overflow merely during normalization.
@@ -420,19 +485,11 @@ class NativeBody:
             raise ValueError("zero optical direction")
         unit = directions_local / scale[:, None]
         unit /= np.linalg.norm(unit, axis=1)[:, None]
-        self._restore(state)
-        d = self._data
-        rotation = d.xmat[frame].reshape(3, 3)
-        origin = d.xpos[frame] + rotation @ np.asarray(origin_local_m)
+        origin, rotation = self._optical_pose(state, frame_name, origin_local_m)
+        m, d = self._model, self._data
         directions = np.ascontiguousarray(unit @ rotation.T)
-        if not np.isfinite(origin).all() or not np.isfinite(directions).all():
+        if not np.isfinite(directions).all():
             raise ValueError("non-finite optical world transform")
-        # Pinned multiRay culls geoms whose centre distance exceeds cutoff +
-        # radius. Bound every centre inside the cutoff using the L-infinity
-        # envelope ||delta||_2 <= sqrt(3) * ||delta||_inf. Otherwise refuse:
-        # range culling must never be reported as a physical optical miss.
-        if np.any(np.abs(d.geom_xpos - origin) > mj.mjMAXVAL / math.sqrt(3)):
-            raise ValueError("optical scene exceeds native ray range")
         count = len(directions)
         geoms = np.empty(count, dtype=np.int32)
         distances = np.empty(count, dtype=np.float64)
