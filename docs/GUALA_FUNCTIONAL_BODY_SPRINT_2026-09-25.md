@@ -842,3 +842,183 @@ no articulated state. No 'climb/open' command, prerecorded movement or fake
 neuronal return may be introduced to hide those mounting gaps. Numeric body
 parameters are declared engineering anatomy, never derived from cognitive age.
 Full FB-01 and live delivery remain incomplete; approved work continues.
+
+## FB-01f — Reference morphology and physical addresses
+
+Goal resumed ACTIVE; previous status-only turn was no progress, not a verified
+wait. FB-01e remains locally proven at23d097282 and is not reopened. The one
+next dependency is declared reference anatomy assembled into the same native
+world model. No runtime/body-state migration or cognitive output rewrite in
+this candidate. Whole FB-01 acceptance remains unchanged and incomplete.
+
+Implementation owner A1; frozen new files functional_body_anatomy.py and
+test_functional_body_anatomy.py only. Contract was stated in working discussion
+before implementation; this durable transcription follows source creation and
+precedes independent review/any execution. This ordering is disclosed, not
+represented as a pre-code ledger receipt. One failed source search used an
+absent guala_body*.py glob; source symbols were found in the already recorded
+files. Do not repeat that glob.
+
+Reference: roughly1m neutral-standing biped, geometry in SI units, xforward,
+yleft,zup; one unactuated free root,64 independently effort-limited hinge axes,
+two arms/hands with five two-link digits including opposed thumb axis each,
+two legs/feet with five independent toe axes each, trunk and head. Individual
+bones, deforming flesh, muscular chemistry, growth and age-specific anatomy are
+not modeled. Rigid link geometry is the sole mass/inertia source with declared
+uniform virtual density1000kg/m3. Capacity is declared engineering material:
+200000Pa effective actuator stress * pi*segment_radius^2 * radius/2 lever arm.
+These parameters are choices of virtual material, not derived cognitive age,
+claimed human muscle measurements, optimized behavior scores or strength proof.
+
+One append_reference_biped call adds geometry, motors and sensor sites to the
+caller's existing MJCF world/actuator/sensor elements. It creates no engine,
+clock, physics owner, controller or alternate persistent state. It requires
+caller-declared radian compiler, solver/contact configuration and world poses.
+NativeBody continues to be sole dynamic authority; authoritative integration
+bytes stay caller-owned. XML assembly is pre-runtime trusted anatomy, not live
+world mutation. Reject duplicate anatomy before mutation. No cached history,
+keyframes, equality welds, mocap, root movement servo or semantic actions.
+Current state persistence/restart uses the already proved native encoding.
+
+Physical output:64joint angle/rate/actual actuator-force channels and six
+inertial sites (pelvis, head, both palms, both feet); contact geometry/forces
+remain NativeBody evidence. No Boolean balance/grasp or fabricated receptor
+signal. These are mechanical channels ONLY, not mounted sensory/neural return.
+Required production mapping still spans actual motor output -> effort command
+-> same world settlement -> Sensed/receptor input -> current-only persistence.
+The current functional runtime has no general joint-effort output. Do not hide
+that gap with authored motor sequences or map named intentions to choreography.
+
+Frozen acceptance: shape count and geometry-derived inertia/capacity; unpowered
+free fall and zero specific force (no hidden balance); independent digit effort
+changes its real joint readings with body reaction; exact next successor after
+cold restart; ground contact supplies force; duplicate assembly side-effect-free
+refusal. No standalone test creates an organism or imports project fixtures.
+Source-only review before execution, then decisive physical trajectory first.
+Reference anatomy has no live import; no production-shaped interpretation.
+
+Numerics: inherited authorized soft contacts/finite stepping, no new solver.
+The8MiB bench arena and1ms step are declared test resources, not final release
+bounds. No steady standing/walking, whole-body learning, fatigue, thermal
+closure, complete integration or real-time production claim from these proofs.
+
+Pre-review source hashes:
+a6443833da7168df2d6142e37acf7f8f272fda602c02e70c19c7d032f4cb8851 anatomy
+e7e555a57b87aab1ec9d4590a0a4a5a66b17657d3b5720b3442168f5aba5fd29 tests
+
+### FB-01f source review and first physical failure
+
+Independent review identified a localized three-axis singularity: co-located
+XYZ hinges with middle pitch crossing pi/2 lose rank. Corrected hip pitch to
+[-1.4,.6] and shoulder pitch to[-1.4,1.4], with explicit reduced-workspace
+disclosure. An added test checks entire permitted interval plus.03rad overrun
+excludes the interior singularity and checks Jacobian rank at extrema/zero.
+Final source review passed. Finger response/cold continuation passed0.042s.
+Full run stopped at floor support:2 passed,1error at46ms; eight proximal finger
+angles -.242..-.247rad violated the -.2 lower limit by more than.03rad.
+No error was hidden and no limit/expectation relaxed. Native regression did not
+execute because the preceding command failed.
+
+One diagnostic regime sequence (not source edits): stop response2/4/8/20ms at
+1/.5ms steps all refuse around46–49.5ms. Stronger impedance.999 plus2/4ms
+response at.25/.1/.05ms still refuses46.5–49.6ms. At2ms/.1ms, distal finger
+q=-.03090rad,velocity-23.56rad/s,braking acceleration+34044rad/s². The reference
+had wholly undamped tiny links: foot landing excited them. Finer timestep alone
+did not resolve the declared stop requirement. No controller was introduced.
+
+Contract amendment BEFORE passive-law source change: add explicitly selected
+virtual Newtonian bearing material viscosity100Pa*s, not a measured biological
+coefficient or uniquely derived value. For segment radius r, bearing ri=r/2,
+ro=.55r,L=r, use analytical concentric-cylinder drag:
+B=4*pi*mu*L*ri²*ro²/(ro²-ri²), torque=-B*qdot, dissipated power=B*qdot²>=0.
+Ideal constitutive reduction omits fluid inertia/end effects; no new fluid
+state or fluid solver. This is declared virtual-body material, no static
+holding torque, no target angle, no anatomy mass duplication. Native damping
+uses relative generalized velocity with reciprocal parent reactions. Its
+thermal energy sink must be connected in the whole-world integration gate;
+no complete thermal/metabolic claim from this model.
+
+Diagnostic mu1/10/100Pa*s at1/.5ms:1and10 refuse46–51ms;100 admits100ms with
+root heights.534926638/.534927261m. This supports only the tested material/load,
+not whole-body stability or biological fidelity. Independent reviewer accepts
+this as localized passive-mechanics addition, requires formula/passivity proof,
+native opposing damping force and peak joint overrun at both resolutions.
+Retain all prior acceptance assertions. No more threshold sweep or silent
+relaxation; add one declared law, review narrow diff and run acceptance.
+
+All diagnostics were standalone no-network processes, terminal with no children.
+AWS1547 same task/image still healthy17:14Z; G1 caretaker37677 untouched.
+
+### FB-01f final source review and local proof — 17:17Z
+
+Reviewer classified viscous bearing addition as localized, confirmed analytic
+law, reviewed amended source and passivity test, and released focused testing.
+Final frozen hashes unchanged after execution:
+- anatomy881c52d2fa32e4d51b87f468a2a0da69ea60bf4ab73434e170ba4d02d369923c
+- tests26c48b279466b3a491ee3f99f3584e6629c2cf58fa780ff830d43ed4f3051840
+- NativeBody unchanged d82a5312c264aa1602aec795d56554ffd3b5eff24332c41cb9535c005a7396f0
+
+Ran the exact previously failing floor-contact test first:passed0.078s.
+Then7 anatomy tests passed0.171s and12 unchanged native tests passed1.258s.
+Standalone unittest, PYTHONDONTWRITEBYTECODE=1, isolated pinned venv, timeout45s;
+no pytest, caretaker imports, live writes or cognitive fixture. Execution session
+55995 exited0. Diagnostic resolution session75476 and later probes exited0.
+No further assertion or stop tolerance changed.
+
+Observed body:64 hinge effort axes,1free root,45moving rigidlinks,71qpos/70qvel,
+204named sensors (joint angle/rate/effort and six3-axis inertial sites).
+Geometry-derived mass11.99773211069814kg, authoritative native state5008bytes.
+Engineering geometry approximately1.03m tall at nominal placement. This is a
+declared roughly12kg virtual body, not a cognitive-age-to-strength prescription.
+
+Material/refinement witness,100ms initial gravity/ground contact sampled at every
+physical substep via ordinary immutable NativeBody advances:
+-1ms: maximum joint overrun.010860422358rad; final root z.534926637999m.
+-.5ms: maximum joint overrun.011303697735rad; final root z.534927260585m.
+Both below unchanged.03rad limit. Peak difference.000443275377rad; root difference
+.000000622586m. This is local resolution evidence for this trajectory, not a
+global stability/convergence certificate. Neither threshold nor motion chosen
+to fabricate balancing. Unpowered free fall returns zero specific force;
+floor force derives from native contact; joint motor effort changes real angle,
+rate and measured force; full cold next successor matches. Native damping
+opposes actual velocity, dissipates rather than creates mechanical power, and
+does not damp the free root. No learned motion is proved. Body reaction was not
+separately asserted and is not claimed as an independent test result.
+
+Probe process maxRSS57752KiB; state remains5008bytes.8MiB native arena is declared.
+Sampling every1/.5ms incurred197/373ms walltime for100ms physical because each
+sample restores/observes/encodes the complete body; this is NOT a production
+performance benchmark or intended runtime call pattern. Do not import that
+probe loop into production. Wholebody performance remains unqualified.
+
+Read-only AWS envelope17:04–17:17Z: unchanged1547,task
+772d1e4f5096497e879f12a4cba2bcb4,image d180f16c...5c3d93,
+RUNNING/HEALTHY,service1/1/0.17:03CPUavg50.757%,max51.185%,memory4.663%;
+17:15CPUavg51.787%,max53.224%,memoryavg4.679%,max4.681%. Historical clock
+alarmALARM persists; CPU/memory/storage/refusal alarmsOK. No A1 productionchange.
+Main-tree G1 pytest58248 completed independently; new G1python63689 under
+parent760/mainworktree and caretaker37677 remain. No A1 harness child survives.
+
+Primary implementation reference: pinned MuJoCo3.3.7 XMLreference
+https://mujoco.readthedocs.io/en/3.3.7/XMLreference.html
+(native geometry-derived inertia, viscous passive joint force). Bearing law
+follows laminar concentric-cylinder Couette shear with declared constitutive
+assumptions, not a fitted cognitive or behavioral rule.
+
+The anatomy assembler is reachable only from its mechanical tests so far.
+Not packaged, mounted, deployed or claimed as Guala's actual body. Canonical
+DSF/cognition unchanged. Main world mounting must consume this anatomy once
+rather than duplicate it in another body controller.
+
+Next FB-01 boundary is the authoritative body/world transaction and its actual
+motor/sensory ports, not more isolated morphology refinements. Revalidated:
+lean_production_app._restore_production_actor mounts FunctionalOrganism and
+FunctionalPhysicalLoop. Decision carries named commands; body_axes changes
+head/eyes/lids only. Old guala_motor_world.prepare_motor_consequence reads
+native recruitment evidence then produces root MoveCommand/grip/oral commands;
+it is not a mounted64-joint effort producer. A new native solver cannot supply
+missing cognitive motor authority. Do not silently revive the old native
+organism, turn intent names into choreography, or describe generic sensors as
+neural experience. Establish the smallest lawful mounting contract; disclose
+any material authority gap before touching cognition. No production release
+until the original FB-01 integration, restart, safety and resource gates pass.
