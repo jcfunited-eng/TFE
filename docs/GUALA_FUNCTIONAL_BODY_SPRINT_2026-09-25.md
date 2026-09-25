@@ -2091,3 +2091,79 @@ the immutable shared evidence to suppress that warning.
 Source reconciliation is closed. Full-body goal remains ACTIVE and not live.
 Next is native geometry -> existing optical material/radiance/aperture consumer,
 within the approved motor/sensory interface. No new cognitive law or behavior.
+
+### FB-01k — optical-law boundary and proposed correction — 2026-09-25 20:02Z
+
+Previous goal turn PROGRESS: immutable integration69e43bf31 pushed,57 standalone
+checks passed, checked Slack receipt19:57:19. Current branch clean on entry.
+This continues the sensory consumer, not reopening native hit geometry or G1's
+caregiving. No source edits, imports, tests, deployment or process interference
+in this investigation. Scope authority for motor/sensory ports remains approved.
+
+Architecture honesty gate: requested actual articulated-head sight; current
+consumer only accepts root pose plus yaw/pitch and combines several incompatible
+optical projections; conflict YES for mounting that consumer unchanged. Do not
+extend the upright projection with a cosmetic roll, hide self geometry, retain
+a second collision scene, or route native body poses through rounded root yaw.
+Single next decision is the optical approximation below. This is reduced virtual
+optics, not full DSF evaluation; no DSF field or cognitive law is being changed.
+
+Exact evidence:
+- guala_functional_loop.py:_world_retina_u8 calls retinal_carriage then the old
+  retinal_irradiance_field. Native observation exists but this caller does not
+  consume its complete head transform or the native ray query.
+- w1_physical_receptors.py:_lit_surfaces_focal constructs directions from
+  horizontal/vertical angles only. Its box normals and texture chart use yaw
+  alone. A physical roll with unchanged root heading cannot rotate this view.
+- _portal_aperture_background forms horizontal/vertical angular rectangles and
+  blends their rectangular overlap. This is an approximation of doorway light,
+  not integration over actual native geometry. It cannot be carried unchanged
+  through arbitrary head rotation.
+- _retinal_projection's patterned sphere uses pixel offsets from its projected
+  centre to select material cells. Thus the texture is camera-facing: the same
+  native surface point has no persistent material-cell binding. ObjectOpticalSurface
+  declares a palette grid, not the missing sphere surface chart.
+- NativeWorldMount declares body/object frame ownership but no optical material
+  chart or eye mount. Reference anatomy has a head inertial site, not an optical
+  aperture. Passing the inertial-site origin as an eye would start inside the
+  opaque head. The prior query deliberately takes an explicit local origin.
+- The current 135 coarse sites use finite aperture blending; the19200 focal
+  sites mostly use centre rays/discs. Replacing every site with one ray would
+  silently delete the coarse receptor's area response. The count alone is not
+  evidence of equivalent sight.
+
+Recommended bounded correction, PROPOSAL NOT IMPLEMENTED:
+Use one explicitly declared head-mounted optical aperture with the retained
+native head transform, and the existing native scene for visibility/self-occlusion.
+Bind current six-band reflectance/emission data to that scene's material frames;
+declare fixed local surface coordinates instead of camera-facing texture charts.
+Keep the same19335 output sites, six-band input material units, external camera
+contract, pupil/eyelid/quantization/saturation transport and cognitive consumer.
+Numerically integrate each declared receptor aperture rather than silently
+shrinking coarse apertures to point samples. The numerical optical error and
+work bound must be declared and verified before selecting a production sampler;
+neither a guessed supersampling count nor a favorable image is a proof.
+
+The actual optical changes are explicit: actual geometric occlusion replaces
+billboard/portal rectangle compositing; fixed material charts replace view-facing
+charts; aperture integration replaces the current mixed approximations. These
+cannot be claimed byte-equivalent to the old renderer. Do not describe them as
+merely a motor-port extension or as exact human optics. No increased acuity,
+recognition engine, object-ID cognition, gaze targeting or new learning rule.
+No general renderer framework, GPU dependency or second scene is requested.
+
+Acceptance for this correction: real head effort changes retinal light through
+the same native geometry; stationary material markings stay attached to their
+surfaces across viewpoints; hand/head self-occlusion is retained; a common rigid
+transform of scene, light and eye preserves the image within the declared
+numerical error; aperture-edge cases measure that error; fresh restore gives the
+same image and next physical successor; current-only state and bounded work are
+preserved. Then exercise the same path through the ordinary loop on a copied
+production body. Isolated ray tests cannot substitute for those gates.
+
+Authority status: the prior narrow exception explicitly permits numerical body
+motion. This correction changes the optical sampling/material law as well, so
+seek that exact extension rather than stretching the body-only exception. All
+existing body/interface approvals stand; no reapproval requested for them.
+First occurrence of this distinct authority blocker, not a three-turn blocked
+condition. Goal stays ACTIVE and incomplete. No claim of a new live capability.
