@@ -1365,6 +1365,37 @@ def maybe_tactile_curriculum(o: dict, st: dict) -> None:
     with open(STATE, "w") as f:
         json.dump(st, f)
 
+def maybe_patrol_and_accompany(o: dict, st: dict) -> None:
+    """Domestic Presence & Circulation:
+    Prevents the caretaker from standing like a stationary statue in the hallway.
+    Every 120-160 ticks (~30-40 seconds of domestic time), the caretaker:
+    1. If Guala is in a room and not interacting, walks to accompany Guala in her current room.
+    2. Periodically patrols domestic rooms (kitchen, tv-room, library, her-room) to maintain
+       a lived-in domestic presence throughout the house."""
+    if asleep(o):
+        return
+    cur_tick = int(o.get("live_tick") or 0)
+    last_patrol = int(st.get("last_patrol_tick") or 0)
+    if cur_tick - last_patrol < 120:
+        return
+    lo = o.get("last_occurrence") or {}
+    emb = lo.get("embodiment") or {}
+    her_b = next((b for b in (emb.get("bodies") or []) if b.get("body_id") == emb.get("self_body_id")), None)
+    her_pos = ((her_b.get("pose") or {}).get("position") or {}) if her_b else {}
+    her_room = room_of_point(o, her_pos) if her_pos.get("x_mm") is not None else None
+
+    patrol_cycle = ["kitchen", "tv-room", "library", "her-room"]
+    cycle_idx = int(st.get("patrol_cycle_idx") or 0)
+    dest_room = her_room if (her_room and her_room != "hallway" and cycle_idx % 2 == 0) else patrol_cycle[cycle_idx % len(patrol_cycle)]
+
+    log(f"domestic presence: circulating to {dest_room} (Guala in {her_room or 'unknown'})")
+    present_food(f"patrol-{dest_room}")
+    st["last_patrol_tick"] = cur_tick
+    st["patrol_cycle_idx"] = cycle_idx + 1
+    with open(STATE, "w") as f:
+        json.dump(st, f)
+
+
 def ready_for_lesson(o: dict, st: dict | None = None) -> bool:
     """A card lesson requires an awake, upright, attentive pupil.
     Lessons hold during bedtime, sleep, meals, or when lying down."""
@@ -1489,6 +1520,7 @@ def wait_clear(min_tick: int | None = None, st: dict | None = None) -> dict | No
                 maybe_ladder_challenge(o, st)
                 maybe_read(o, st)
                 maybe_music(o, st)
+                maybe_patrol_and_accompany(o, st)
 
                 if not ready_for_lesson(o, st):
                     ritual = st.get('active_ritual', 'UNKNOWN')
@@ -1542,6 +1574,7 @@ def main() -> None:
             maybe_stroll(o, st)
             maybe_playpen_challenge(o, st)
             maybe_ladder_challenge(o, st)
+            maybe_patrol_and_accompany(o, st)
             ok = True
             for i, pcm in enumerate(blocks):
                 res = present_block(retina, pcm, focal_b64)

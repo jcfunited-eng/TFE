@@ -250,7 +250,7 @@ FOLLOW_CAPACITY = 32
 MEANING_CAPACITY = 4096
 # Cognitive Asset 4: Spatial Object Permanence & Occlusion Conservation (The Piaget Invariant)
 OBJECT_PERMANENCE_CAPACITY = 64
-PERMANENCE_FIXTURES = (BED_ID, "desk", "toy-chest", "radio", "window", "mirror", "bookshelf", "blanket")
+PERMANENCE_FIXTURES = (BED_ID, "desk", "toy-chest", "radio", "window", "mirror", "bookshelf", "blanket", "curtains", "wall-art-shapes", "wall-art-weather", "playpen")
 DISCREPANCY_VERIFICATION_DISTANCE_MM = 1_000
 
 # Cognitive Asset 5: Joint Attention & Caregiver Gaze Vector Tracking
@@ -1859,9 +1859,10 @@ class FunctionalOrganism:
         # Sound Attunement: When an external sound is heard, or a speaker is speaking,
         # her acoustic orienting reflex turns her neck and eyes to face the speaker.
         sound_source = getattr(sensed, "sound_source_id", None)
-        caregiver = next((b for b in snapshot.bodies if b.body_id != snapshot.self_body_id), None)
-        if sound_source is None and caregiver is not None:
-            sound_source = caregiver.body_id
+        if sound_source is None:
+            cg_seen = caregiver_in_sight(snapshot)
+            if cg_seen is not None:
+                sound_source = cg_seen.object_id
 
         heard_now = sensed.heard_profile
         sound_heard = False
@@ -1876,7 +1877,8 @@ class FunctionalOrganism:
                 state["attended_tick"] = tick
 
         # Cognitive Asset 5: Social Joint Attention & Caregiver Gaze Vector Tracking
-        caregiver = next((b for b in snapshot.bodies if b.body_id != snapshot.self_body_id), None)
+        cg_seen = caregiver_in_sight(snapshot)
+        caregiver = next((b for b in snapshot.bodies if b.body_id == cg_seen.object_id), None) if cg_seen is not None else None
         joint_target = None
         if caregiver is not None and body.held_object_id is None:
             joint_info = project_caregiver_gaze_ray(caregiver.pose, snapshot, conserved_objects=conserved)
@@ -1889,6 +1891,12 @@ class FunctionalOrganism:
         else:
             state["joint_attention_target"] = None
 
+        feeding = state.get("feeding", False) or self.reserve_micrograms < CAPACITY_MICROGRAMS * HUNGRY_BELOW
+        if self.reserve_micrograms >= CAPACITY_MICROGRAMS * SATED_ABOVE:
+            feeding = False
+        planned_food = state.get("planned_target_id") if (feeding and state.get("planned_target_id") in conserved and conserved[state["planned_target_id"]].get("is_food")) else None
+        if planned_food and not sound_heard:
+            state["gaze_target"] = planned_food
         target_id = body.held_object_id or state.get("gaze_target") or state.get("joint_attention_target") or (seen[0].object_id if seen else None)
         point = None if state.get("asleep") else _target_point(snapshot, body, target_id, conserved_objects=conserved)   # asleep, eyes closed, the head rests
         state["gaze"] = None
@@ -1982,46 +1990,43 @@ class FunctionalOrganism:
                 intake_ug = int(pending_trans.get("intake", 0))
                 sal = float(pending_trans.get("salience", 0.0))
                 outcome = pending_trans.get("outcome_key")
-                if sal > 0.0 or outcome is not None or intake_ug > 0:
-                    moments = state.setdefault("moments", {})
-                    trial_key = f"motor:{pending_trans['start_tick']}"
-                    trial = {
-                        "key": trial_key,
-                        "start_tick": pending_trans["start_tick"], "end_tick": tick,
-                        "pre": pending_trans["pre_key"], "post": current_sensory_key,
-                        "action": action, "target": pending_trans["target_id"],
-                        "observed_subject": pending_trans["observed_subject"],
-                        "refusal": pending_trans.get("refusal"),
-                        "intake": intake_ug,
-                        "previous": None,
-                    }
-                    previous = pending_trans.get("previous")
-                    predecessor_entry = moments.get(previous) or state.get("meanings", {}).get(previous) or {}
-                    predecessor = predecessor_entry.get("motor_transition")
-                    if (predecessor is not None
-                            and predecessor["end_tick"] == trial["start_tick"]
-                            and predecessor["post"] == trial["pre"]
-                            and predecessor["target"] == trial["target"]):
-                        trial["previous"] = previous
-                    moments[trial_key] = {
-                        "count": 1, "tick": tick, "salience": sal,
-                        "held": "none",
-                        "figure": "none",
-                        "room": state.get("room_now") or "unknown",
-                        "source": "motor",
-                        "context": [0, 0, 0],
-                        "next": {},
-                        "acts": {},
-                        "fed": intake_ug,
-                        "motor_transition": trial,
-                    }
-                    if outcome in moments:
-                        moments[outcome]["episode_tail"] = trial_key
-                    state["last_motor_trial"] = trial_key
-                    while len(moments) > MOMENT_RECORD_CAPACITY:
-                        del moments[min(moments, key=lambda k: (int(moments[k]["tick"]), k))]
-                else:
-                    state["last_motor_trial"] = None
+                moments = state.setdefault("moments", {})
+                trial_key = f"motor:{pending_trans['start_tick']}"
+                trial = {
+                    "key": trial_key,
+                    "start_tick": pending_trans["start_tick"], "end_tick": tick,
+                    "pre": pending_trans["pre_key"], "post": current_sensory_key,
+                    "action": action, "target": pending_trans["target_id"],
+                    "observed_subject": pending_trans["observed_subject"],
+                    "refusal": pending_trans.get("refusal"),
+                    "intake": intake_ug,
+                    "previous": None,
+                }
+                previous = pending_trans.get("previous")
+                predecessor_entry = moments.get(previous) or state.get("meanings", {}).get(previous) or {}
+                predecessor = predecessor_entry.get("motor_transition")
+                if (predecessor is not None
+                        and predecessor["end_tick"] == trial["start_tick"]
+                        and predecessor["post"] == trial["pre"]
+                        and predecessor["target"] == trial["target"]):
+                    trial["previous"] = previous
+                moments[trial_key] = {
+                    "count": 1, "tick": tick, "salience": sal,
+                    "held": "none",
+                    "figure": "none",
+                    "room": state.get("room_now") or "unknown",
+                    "source": "motor",
+                    "context": [0, 0, 0],
+                    "next": {},
+                    "acts": {},
+                    "fed": intake_ug,
+                    "motor_transition": trial,
+                }
+                if outcome in moments:
+                    moments[outcome]["episode_tail"] = trial_key
+                state["last_motor_trial"] = trial_key
+                while len(moments) > MOMENT_RECORD_CAPACITY:
+                    del moments[min(moments, key=lambda k: (int(moments[k]["tick"]), k))]
             else:
                 # Passive time is not a rehearsed act and cannot bridge an
                 # unobserved interval into an experience sequence.

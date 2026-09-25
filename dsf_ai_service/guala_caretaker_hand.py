@@ -886,7 +886,7 @@ def deliver_apple(world: Any) -> str | None:
 
 BEDTIME_ID = "bedtime"
 BED_ID = "bed"
-BEDDING_MM = (("pillow", (-400, -600)), ("blanket", (400, -600)))
+BEDDING_MM = (("pillow", (0, 0)), ("blanket", (0, -600)))
 
 
 def _passes_through(origin: PositionMM, spot: PositionMM, target: PositionMM, clearance_mm: int) -> bool:
@@ -1171,6 +1171,9 @@ def present_food(world: Any, object_id: str) -> dict[str, object]:
         return place_in_high_chair(world)
     if object_id == "high-chair-release":
         return release_from_high_chair(world)
+    if object_id == "domestic-patrol" or object_id.startswith("patrol-"):
+        dest = object_id.replace("patrol-", "") if object_id.startswith("patrol-") else None
+        return domestic_patrol(world, dest)
     if object_id == "playpen-containment":
         return place_in_playpen(world)
     if object_id == "playpen-release":
@@ -1284,6 +1287,7 @@ __all__ = (
     "deictic_orientation_millidegrees",
     "place_in_high_chair",
     "release_from_high_chair",
+    "domestic_patrol",
     "place_in_playpen",
     "release_from_playpen",
     "joint_clean_up",
@@ -1479,18 +1483,21 @@ def release_from_high_chair(world: Any) -> dict[str, object]:
 
 def place_in_playpen(world: Any) -> dict[str, object]:
     """Caregiver approaches Guala, provides grounding contact,
-    and places Guala safely inside the playpen enclosure at (2050, 6700, 0),
+    and places Guala safely inside the playpen enclosure at its dynamic world position,
     creating spatial boundary impedance that drives vocal signaling."""
     hand = _Hand(world, "playpen-containment")
     steps = []
     try:
         snapshot = hand.snapshot()
         her, person = hand.bodies(snapshot)
+        playpen = next((o for o in snapshot.objects if o.object_id == "playpen"), None)
+        pen_x = playpen.position.x if (playpen is not None and playpen.position is not None) else 4200
+        pen_y = playpen.position.y if (playpen is not None and playpen.position is not None) else 8800
         if hand.reach_her(her):
             touch_her(world, "touch-hold-hand")
-            target_pose = PoseMM(PositionMM(2050, 6700, 0), her.pose.heading_millidegrees)
+            target_pose = PoseMM(PositionMM(pen_x, pen_y, 0), her.pose.heading_millidegrees)
             world.admit_authored_body_transport(her.body_id, target_pose)
-            steps.append({"operation": "place_in_playpen", "reason": "applied", "to": [2050, 6700]})
+            steps.append({"operation": "place_in_playpen", "reason": "applied", "to": [pen_x, pen_y]})
         else:
             steps.append({"operation": "place_in_playpen", "reason": "unreachable", "to": None})
     except Exception as e:
@@ -1504,8 +1511,29 @@ def place_in_playpen(world: Any) -> dict[str, object]:
     }
 
 
+def domestic_patrol(world: Any, target_room: str | None = None) -> dict[str, object]:
+    """Caregiver circulates domestically across rooms, providing ongoing domestic presence
+    and inspecting spaces without standing still like a statue."""
+    hand = _Hand(world, "domestic-patrol")
+    steps = []
+    try:
+        snapshot = hand.snapshot()
+        dest_room = target_room or ("library" if snapshot.room_id != "library" else "tv-room")
+        hand.walk_to_region(dest_room)
+        steps.append({"operation": "patrol", "room": dest_room, "reason": "applied"})
+    except Exception as e:
+        steps.append({"operation": "patrol", "reason": str(e)})
+    applied = any(s.get("reason") == "applied" for s in steps)
+    return {
+        "object_id": "domestic-patrol",
+        "presented": applied,
+        "schema": "guala.caregiver_presentation.v1",
+        "steps": steps,
+    }
+
+
 def release_from_playpen(world: Any) -> dict[str, object]:
-    """Caregiver lifts Guala out of the playpen enclosure to (2600, 6700, 0) in her-room,
+    """Caregiver lifts Guala out of the playpen enclosure to safe walk-around space in her-room,
     immediately delivering an affection hug (touch-hug) for homeostatic down-regulation
     and stress recovery."""
     hand = _Hand(world, "playpen-release")
@@ -1514,11 +1542,15 @@ def release_from_playpen(world: Any) -> dict[str, object]:
         snapshot = hand.snapshot()
         her, person = hand.bodies(snapshot)
         playpen = next((o for o in snapshot.objects if o.object_id == "playpen"), None)
+        pen_x = playpen.position.x if (playpen is not None and playpen.position is not None) else 4200
+        pen_y = playpen.position.y if (playpen is not None and playpen.position is not None) else 8800
+        out_x = max(1000, pen_x - 700)
+        out_y = pen_y
         if playpen is not None and playpen.position is not None:
             hand.stand_before(playpen.position, distance_mm=700)
-        target_pose = PoseMM(PositionMM(2600, 6700, 0), her.pose.heading_millidegrees)
+        target_pose = PoseMM(PositionMM(out_x, out_y, 0), her.pose.heading_millidegrees)
         world.admit_authored_body_transport(her.body_id, target_pose)
-        steps.append({"operation": "release_from_playpen", "reason": "applied", "to": [2600, 6700]})
+        steps.append({"operation": "release_from_playpen", "reason": "applied", "to": [out_x, out_y]})
         hug_res = touch_her(world, "touch-hug")
         steps.extend(hug_res.get("steps") or [])
     except Exception as e:

@@ -169,7 +169,7 @@ def test_caretaker_failed_release_non_blocking_for_hungry_child():
 
 def test_negative_space_path_approach_collision_exclusion():
     world = home_world_authority(identity=str(uuid.uuid4()))
-    origin = PositionMM(4800, 5600, 0)
+    origin = PositionMM(3500, 6500, 0)
     goal = PositionMM(2630, 8349, 0)
     world._state = replace(
         world._state,

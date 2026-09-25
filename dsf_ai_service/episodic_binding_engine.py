@@ -271,7 +271,7 @@ def find_supported_continuation(
     if active_demand != "feeding" or not current_sensory_key:
         return None
     # A room/reach category alone cannot recognize the target of an experience.
-    if current_figure in (None, "none") and current_held != "held":
+    if current_figure in (None, "none") and current_held != "held" and not current_target_id:
         return None
     supported: set[str] = set()
     visited: set[str] = set()

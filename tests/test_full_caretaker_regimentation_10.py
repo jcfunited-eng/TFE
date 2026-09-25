@@ -395,17 +395,17 @@ def test_routine_5_ladder_tool_affordance_challenge() -> None:
 
 def test_routine_6_playpen_containment_impedance() -> None:
     world = home_world_authority(identity=str(uuid.uuid4()))
-    # 1. Place in playpen at (2050, 6700)
+    # 1. Place in playpen at (4200, 8800)
     res_contain = present_food(world, "playpen-containment")
     assert res_contain["presented"] is True
     snap = world.observation_snapshot()
     her = next(b for b in snap.bodies if b.body_id == snap.self_body_id)
-    assert her.pose.position.x == 2050
-    assert her.pose.position.y == 6700
+    assert her.pose.position.x == 4200
+    assert her.pose.position.y == 8800
     assert snap.room_id == "her-room"
 
     # 2. Movement INSIDE playpen is permitted (interior step within 450mm radius)
-    valid_step = PoseMM(PositionMM(2060, 6700, 0), her.pose.heading_millidegrees)
+    valid_step = PoseMM(PositionMM(4210, 8800, 0), her.pose.heading_millidegrees)
     prep_valid = world.prepare_port_command(
         port_id=PORT_ID,
         command_payload=encode_command(MoveCommand(valid_step, 100_000)),
@@ -416,7 +416,7 @@ def test_routine_6_playpen_containment_impedance() -> None:
     world.discard_prepared_action(prep_valid)
 
     # 3. Stepping OUT of playpen hits boundary perimeter impedance and is rejected
-    blocked_step = PoseMM(PositionMM(2500, 6700, 0), her.pose.heading_millidegrees)
+    blocked_step = PoseMM(PositionMM(4700, 8800, 0), her.pose.heading_millidegrees)
     prep_blocked = world.prepare_port_command(
         port_id=PORT_ID,
         command_payload=encode_command(MoveCommand(blocked_step, 100_000)),
@@ -471,8 +471,8 @@ def test_routine_9_affection_and_stress_recovery_hug() -> None:
     assert any(s.get("operation") == "touch" and s.get("reason") == "applied" for s in steps)
     snap = world.observation_snapshot()
     her = next(b for b in snap.bodies if b.body_id == snap.self_body_id)
-    assert her.pose.position.x == 2600
-    assert her.pose.position.y == 6700
+    assert her.pose.position.x == 3500
+    assert her.pose.position.y == 8800
 
     # Diurnal thermal conduction
     temp_dawn = diurnal_thermal_reference_millikelvin(0)
