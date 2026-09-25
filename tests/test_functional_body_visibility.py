@@ -8,7 +8,7 @@ import xml.etree.ElementTree as ET
 import numpy as np
 
 from dsf_ai_service.substrate.functional_body_native import NativeBody
-from dsf_ai_service.substrate.functional_body_optics import aperture_solid_angles
+from dsf_ai_service.substrate.functional_body_optics import aperture_solid_angles, disjoint_surface_radiance
 from dsf_ai_service.substrate.functional_body_visibility import PlanarSurface, visible_planar_regions
 from tools.guala_body_optical_regime import BANDS, LIMITS, ORIGIN, retinal_apertures, scene
 
@@ -32,12 +32,11 @@ def domain_of(sites):
 
 def radiance(surfaces, colors, sites):
     regions = visible_planar_regions(surfaces, domain_of(sites), **BOUNDS)
-    image = np.zeros((len(sites), 6))
-    for region in regions:
-        area = aperture_solid_angles(region.halfspaces, sites, max_cells=BOUNDS['max_cells'])
-        image += area[:, None] * colors[region.surface_index]
-    omega = (sites[:,1]-sites[:,0])*(sites[:,3]-sites[:,2])
-    return image / omega[:, None], regions
+    image = disjoint_surface_radiance(
+        tuple(r.halfspaces for r in regions),
+        np.array([colors[r.surface_index] for r in regions], dtype=np.float64).reshape(-1, 6),
+        sites, max_cells=BOUNDS['max_cells'], max_halfspaces=BOUNDS['max_halfspaces'])
+    return image, regions
 
 
 def native_surfaces(engine, state):
@@ -168,6 +167,29 @@ class DirectVisibilityTests(unittest.TestCase):
             np.testing.assert_allclose(reciprocal[1:]/reciprocal[0], uv, atol=1e-15, rtol=0)
             self.assertTrue(np.all(s.material_halfspaces(cells[1], max_corners=16) @ p >= 0))
             self.assertFalse(np.all(s.material_halfspaces(cells[0], max_corners=16) @ p >= 0))
+
+    def test_shared_classification_matches_independent_areas_and_small_blocks(self):
+        sites = retinal_apertures()[9000:9500]
+        surfaces = (panel(1., .1, .1), panel(2., .8, .8))
+        regions = visible_planar_regions(surfaces, domain_of(sites), **BOUNDS)
+        planes = tuple(r.halfspaces for r in regions)
+        colors = np.array([BANDS if r.surface_index == 0 else BANDS[::-1] for r in regions])
+        expected = np.zeros((len(sites), 6))
+        for n, color in zip(planes, colors):
+            expected += aperture_solid_angles(n, sites, max_cells=32768)[:, None] * color
+        expected /= ((sites[:,1]-sites[:,0])*(sites[:,3]-sites[:,2]))[:,None]
+        for cells in (32768, 400):
+            measured = disjoint_surface_radiance(
+                planes, colors, sites, max_cells=cells, max_halfspaces=32768)
+            np.testing.assert_array_equal(measured, expected)
+        with self.assertRaises(ValueError):
+            disjoint_surface_radiance(planes, colors, sites, max_cells=32768, max_halfspaces=1)
+        with self.assertRaises(ValueError):
+            disjoint_surface_radiance(planes, np.full_like(colors, np.nan), sites,
+                                     max_cells=32768, max_halfspaces=32768)
+        np.testing.assert_array_equal(
+            disjoint_surface_radiance((), np.empty((0,6)), sites,
+                                     max_cells=32768, max_halfspaces=32768), 0.)
 
     def test_empty_forward_crossing_coplanar_and_budget_refusal(self):
         sites = retinal_apertures(); domain = domain_of(sites)

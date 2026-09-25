@@ -2842,3 +2842,90 @@ Next exact action: measure remaining visibility-domain work versus full-retina
 integration on this accepted code, then remove the dominant repeated work.
 Do not call243msproof productionrealtime; do not broaden into newrendererfeatures,
 alterbody/cognition,loosenbyte/accuracyacceptance, or startlivecutover. GoalACTIVE.
+
+### FB-01r — share repeated boundary/aperture geometry within one frame
+
+Previous turnPROGRESS,acceptedfea1260d9. Continue optics latency only. Existing
+approved numerical optics is a body/environment approximation, not a reduced
+DSF authority; canonical kernel/cognition untouched. No aperture/feature removal.
+
+DiagnosticPID39560exit0,wall.821170s,user.795206s,system.039960s,peak73440KiB.
+SameinitialnativeimageSHA d53a40d0d3e6d26ce2785e87cc6ff7b65bfcb3c807d3b443fcbdec094dbd1373.
+Unprofiledvisibility.076058566s,retinalintegration.200721540s. Profiled
+.117318238/.228339710s,168950calls,total.339sunderprofiler.220areaqueries;
+493dot-extremaqueries,.120scumulative.22regionscarry295halfspacerows butonly
+44distinctexactdirectedrows. Repeatedgeometricalqueriesacrossregionsaredominant
+avoidablework. NewAPIbelow deletes those repeated computations rather than
+retaining a cross-frame cache or changing numerical physics.
+
+Contract/source map: `disjoint_surface_radiance` in functional_body_optics.py
+accepts the already-derived tuple of disjoint directed plane arrays, one six-band
+uniform radiance per region, and the existing receptor apertures. It normalizes
+each row exactly as the old area call, interns identical normalized bit-patterns
+for this call only, and retains each region's original row order/multiplicity.
+Signed zeros remain distinct. Plane indices are transient geometric addresses,
+not object identities, semantic descriptors, neural keys or memory.
+
+For a bounded aperture block, compute each distinct plane's aperture extrema
+once. Pack exact inside/outside booleans, combine them by geometric intersection
+in each region, then call the SAME analytical boundary integrator for unresolved
+apertures. Do not remove repeated constraints or events within that integrator:
+event order and final summation order remain byte-comparable. Accumulate region
+radiance in original order and divide by original aperture solid angle. No
+clipping of image values or guessed ray samples. Old aperture_solid_angles API
+delegates to the same internal preparation/classification/integration laws.
+
+Bounds: max_halfspaces limits input/normalized rows and per-call plane addresses.
+max_cells still limits each event/matrix buffer. Packed classification scratch
+must be <=8*max_cells bytes (one float64 event-buffer equivalent); select an
+aperture block by exact byte arithmetic 2*distinct_planes*ceil(block/8). With
+more planes use smaller blocks, never remove a plane or site. Output is6*N
+binary64 values; input/output/scratch are distinct. All local data die with the
+call, no state schema/cache/checkpoint/world authority introduced. Refuse
+invalid/nonfinite input or insufficient declared storage before image return.
+
+Authorized files: optics source, existing visibility test/caller, sprintledger.
+Standalone visibility test will use the new shared-radiance API so its same
+native ray/head/coldnext-state and original image hashes cover the new path.
+Add one bounded proof of shared-vs-independent area accumulation, small-block
+equivalence and capacity refusal. All9existing geometric tests stay intact.
+No ordinary/live caller yet; component timing never proves full-body cadence.
+Independent frozen source review before imports/tests, sameAWS envelope/PID
+accounting. No home/curved geometry, cognition or body/controller expansion.
+
+FB-01r final source review passed at frozen candidate
+3b7965c95d144aba2f9d80e2e7d98ef443327253bacc3a6d1c25e2f156286b39.
+Initial review found one localized allocation-lifetime error: replacing packed
+buffers can briefly retain old and new allocations. Corrected once, before any
+candidate import/test: allocate both plane tables and both masks once, then fill
+views in place. The literal packed-byte bound includes masks:
+2*(distinct_planes+1)*ceil(block/8) <= 8*max_cells. No architecture findings.
+
+PID42202/session49641 completed exit0:10/10 standalone tests passed in1.499s;
+wholewall1.629923s,user1.573850s,system.071901s,peak93192KiB. No pytest or live
+authority imports. Exact initial/moved image hashes remain unchanged:
+d53a40d0d3e6d26ce2785e87cc6ff7b65bfcb3c807d3b443fcbdec094dbd1373,
+b446fa182e541c378feacf12c85deb8005498902ca09ab223e07f28da6b5a2e8.
+Same5-surface native frames now .144424262/.129808641s, versus predecessor
+.297629732/.242652590s and original .867981043/.656413103s. New small-block
+shared/independent array equality and bound/refusal checks pass. This measures
+one optical component, not full-body or production cadence; no live deployment.
+SourceSHA4b4685271b1d06123f3409b993c53f1675cb5f0435bf808cd2faa8af1590af4d;
+testSHAf9839818f92afb5387de148a7c368ca2bcefa29fc137458460d078d8dea8434d.
+
+Read-only AWS pre21:44:24/post21:48:04: sole1549task
+478e055e5f0146789dd2ba0642bb578b RUNNING/HEALTHY,1/1/0,samec883967d...digest,
+identity1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1. Live2268075->2268427,
+persisted2268063->2268415,availabletrue,checkpoint/cleanupnull,durabilityfalse.
+Resource/refusalalarmsOK; historicalclockalarm remainsALARM. Latest reported
+windows21:39/21:43 CPUavg51.266595/51.856490%,max51.895673/52.579812%;
+RAMavg3.234355/3.205872%,max3.289795/3.332520%. Not an AWS performance claim.
+No A1 test/profile survivors; caretaker95907 and G1python39630 untouched.
+Earlier diagnostic envelope21:36:24/21:39:13 also retained same1549 custody,
+live2267330->2267590,persisted2267295->2267583,checkpoint/cleanupnull.
+
+Goal ACTIVE. Optical component now fits250ms in this small scene, but complete
+ordinary-loop/body/resource gate remains unproven. Next exact item: reconcile
+the accepted optical primitive with the actual native-world surface/material
+contract, keeping body mechanics and contact evidence authoritative. No claim
+of full-home rendering, curved-surface correctness, cognition or live20/20.

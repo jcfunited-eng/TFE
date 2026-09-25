@@ -85,15 +85,7 @@ def _boundary_integral(n, a, b):
     return -math.copysign(1., nz) * np.arctan2(sb * ca - sa * cb, cb * ca + sb * sa)
 
 
-def aperture_solid_angles(normals, apertures, *, max_cells):
-    """Integrate intersection of n dot d >= 0 with each receptor aperture.
-
-    Apertures are float64 rows (h_lo,h_hi,mu_lo,mu_hi), radians and mu=sin(v).
-    Forward horizontal hemisphere only, with vertical endpoints strictly inside
-    the poles. max_cells bounds temporary event-matrix cells, not numerical
-    accuracy or cognitive capacity. Errors/refusals cannot change physical state.
-    Float64 evaluation is not formal exact-real interval arithmetic.
-    """
+def _prepare_planes(normals, max_cells):
     if type(max_cells) is not int or max_cells <= 0:
         raise ValueError("positive temporary event-cell budget required")
     if not isinstance(normals, np.ndarray) or normals.ndim != 2:
@@ -105,6 +97,10 @@ def aperture_solid_angles(normals, apertures, *, max_cells):
     if event_count > max_cells:
         raise ValueError("surface events exceed temporary cell budget")
     planes = _unit_rows(normals, "surface normals")
+    return planes
+
+
+def _validate_apertures(apertures):
     if (not isinstance(apertures, np.ndarray) or apertures.dtype != np.dtype(np.float64)
             or apertures.ndim != 2 or apertures.shape[1] != 4
             or not np.isfinite(apertures).all()):
@@ -114,14 +110,24 @@ def aperture_solid_angles(normals, apertures, *, max_cells):
             or np.any(a >= b) or np.any(lo <= -1) or np.any(hi >= 1)
             or np.any(lo >= hi)):
         raise ValueError("invalid forward receptor aperture")
-    total = (b - a) * (hi - lo)
+
+
+def _plane_parameters(planes):
     # Scalar constants preserve the predecessor's math.hypot/atan2 rounding.
     radius = np.array([math.hypot(n[0], n[1]) for n in planes])
     phi = np.array([math.atan2(n[1], n[0]) for n in planes])
     opposite = np.array([_wrap(float(p) + math.pi) for p in phi])
-    parameters = radius, phi, opposite
-    geometry = (np.cos(a), np.sin(a), np.cos(b), np.sin(b),
-                np.sqrt(1 - lo * lo), np.sqrt(1 - hi * hi))
+    return radius, phi, opposite
+
+
+def _aperture_geometry(apertures):
+    a, b, lo, hi = apertures.T
+    return (np.cos(a), np.sin(a), np.cos(b), np.sin(b),
+            np.sqrt(1 - lo * lo), np.sqrt(1 - hi * hi))
+
+
+def _classify_apertures(planes, apertures, parameters, geometry, max_cells):
+    k, a = len(planes), apertures[:, 0]
     inside, outside = np.ones(len(a), dtype=bool), np.zeros(len(a), dtype=bool)
     remaining = np.arange(len(a))
     # One domain aperture: all planes in one array. Receptor arrays: stop
@@ -141,6 +147,15 @@ def aperture_solid_angles(normals, apertures, *, max_cells):
         remaining = remaining[~outside[remaining]]
         if not len(remaining):
             break
+    return inside, outside
+
+
+def _integrate_apertures(planes, apertures, parameters, inside, outside, max_cells):
+    a, b, lo, hi = apertures.T
+    total = (b - a) * (hi - lo)
+    radius, phi, opposite = parameters
+    k = len(planes)
+    event_count = k * (k - 1) + 6 * k + 2
     result = np.where(inside & ~outside, total, 0.)
     active = np.flatnonzero(~inside & ~outside)
     if not len(active):
@@ -231,4 +246,105 @@ def aperture_solid_angles(normals, apertures, *, max_cells):
         # Roundoff projection only; the exact geometric result lies in [0,Omega].
         # No salience threshold or minimum visible feature size is introduced.
         result[ids] = np.clip(integrated, 0., total[ids])
+    return result
+
+
+def aperture_solid_angles(normals, apertures, *, max_cells):
+    """Convex halfspace areas; read-only numerical body optics, not cognition.
+
+    max_cells bounds event/matrix scratch. Apertures are float64 rows
+    (h_lo,h_hi,mu_lo,mu_hi), radians and mu=sin(v), in the forward hemisphere.
+    The supplied planes must describe one convex region, not overlapping faces.
+    """
+    planes = _prepare_planes(normals, max_cells)
+    _validate_apertures(apertures)
+    parameters = _plane_parameters(planes)
+    inside, outside = _classify_apertures(
+        planes, apertures, parameters, _aperture_geometry(apertures), max_cells)
+    return _integrate_apertures(planes, apertures, parameters, inside, outside, max_cells)
+
+
+def disjoint_surface_radiance(regions, values, apertures, *, max_cells, max_halfspaces):
+    """Six-band aperture means of caller-proved disjoint visible regions.
+
+    Shared plane classification exists only in this call. Exact normalized
+    plane bytes (including signed zero) identify duplicated geometry work, not
+    an object, perceptual identity, memory or learned association. Original
+    region row order and multiplicity remain intact in the area integrator.
+
+    Input/index residency is O(max_halfspaces), output is 6*N float64 values.
+    Packed classification tables plus two masks occupy <=8*max_cells bytes;
+    every numeric/event matrix is also max_cells-bounded. No persistent cache.
+    """
+    if (type(max_cells) is not int or max_cells <= 0
+            or type(max_halfspaces) is not int or max_halfspaces <= 0
+            or not isinstance(regions, tuple)):
+        raise ValueError("bounded region tuple required")
+    _validate_apertures(apertures)
+    if (not isinstance(values, np.ndarray) or values.dtype != np.dtype(np.float64)
+            or values.shape != (len(regions), 6) or not np.isfinite(values).all()
+            or np.any(values < 0)):
+        raise ValueError("finite nonnegative six-band radiances required")
+    total = ((apertures[:, 1] - apertures[:, 0])
+             * (apertures[:, 3] - apertures[:, 2]))
+    if np.any(total <= 0):
+        raise ValueError("aperture area underflows numerical domain")
+    addresses, unique, index, rows = [], [], {}, 0
+    for normals in regions:
+        if not isinstance(normals, np.ndarray) or normals.ndim != 2:
+            raise ValueError("packed region planes required")
+        rows += len(normals)
+        if rows > max_halfspaces:
+            raise ValueError("region halfspace residency exceeded")
+        prepared = _prepare_planes(normals, max_cells)
+        ids = []
+        for n in prepared:
+            key = n.tobytes()
+            if key not in index:
+                index[key] = len(unique)
+                unique.append(n.copy())
+            ids.append(index[key])
+        addresses.append(np.array(ids, dtype=np.intp))
+    result = np.zeros((len(apertures), 6))
+    if not unique:
+        return result
+    planes = np.array(unique)
+    del unique, index
+    parameters = _plane_parameters(planes)
+    width_budget = (8 * max_cells) // (2 * (len(planes) + 1))
+    if not width_budget:
+        raise ValueError("shared classification residency exceeded")
+    batch = min(max_cells, 8 * width_budget)
+    maximum_width = (min(batch, len(apertures)) + 7) // 8
+    packed_inside = np.empty((len(planes), maximum_width), dtype=np.uint8)
+    packed_outside = np.empty_like(packed_inside)
+    all_inside_mask = np.empty(maximum_width, dtype=np.uint8)
+    all_outside_mask = np.empty(maximum_width, dtype=np.uint8)
+    for begin in range(0, len(apertures), batch):
+        end = min(begin + batch, len(apertures))
+        block = apertures[begin:end]
+        geometry = _aperture_geometry(block)
+        width = (len(block) + 7) // 8
+        inside_bits, outside_bits = packed_inside[:, :width], packed_outside[:, :width]
+        inside_mask, outside_mask = all_inside_mask[:width], all_outside_mask[:width]
+        for i in range(len(planes)):
+            lower, upper = _dot_extrema(
+                planes[i:i + 1], block, tuple(p[i:i + 1] for p in parameters), geometry)
+            inside_bits[i] = np.packbits(lower[0] >= 0)
+            outside_bits[i] = np.packbits(upper[0] <= 0)
+        for region_index, ids in enumerate(addresses):
+            inside_mask.fill(255)
+            outside_mask.fill(0)
+            for i in ids:
+                np.bitwise_and(inside_mask, inside_bits[i], out=inside_mask)
+                np.bitwise_or(outside_mask, outside_bits[i], out=outside_mask)
+            inside = np.unpackbits(inside_mask, count=len(block)).astype(bool)
+            outside = np.unpackbits(outside_mask, count=len(block)).astype(bool)
+            area = _integrate_apertures(
+                planes[ids], block, tuple(p[ids] for p in parameters),
+                inside, outside, max_cells)
+            result[begin:end] += area[:, None] * values[region_index]
+        result[begin:end] /= total[begin:end, None]
+    if not np.isfinite(result).all():
+        raise ValueError("radiance exceeds numerical domain")
     return result
