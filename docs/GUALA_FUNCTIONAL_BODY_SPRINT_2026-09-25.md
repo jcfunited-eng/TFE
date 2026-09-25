@@ -14,8 +14,9 @@ labels on a root-position controller. Initial reference morphology is stable
 and child-sized; capacity is declared mechanically, never inferred from a
 purported cognitive age. This document does not invent its numeric anatomy.
 
-The present commit scope is **FB-01a: exact frame composition and passive
-inertial evidence**. It is a dependency of the body, not the whole deliverable.
+The active scope is **FB-01g: authorized motor/sensory and world integration**.
+FB-01a through FB-01f below are retained implementation/proof history, not the
+current next item. None alone constitutes the whole deliverable.
 Opening work block budget: 90 minutes for source mapping, implementation, focused
 proof and a truthful handoff. Do not spend the block expanding cognition or UI.
 No background operation or completion date is implied by this budget.
@@ -1143,3 +1144,155 @@ dsf_ai_service/guala_sensorimotor_mesh.py failed (wrong directory); do not retry
 that path. No mesh extension or learning-law alteration is authorized by this
 record. Source is not frozen for implementation until the complete boundary
 contract is settled; no tests, production writes or process control this turn.
+
+## FB-01g — Executable interface and custody source map, 2026-09-25 17:42Z
+
+This continuation completes new source analysis; it does not repeat the scope
+request. Joe's authorization remains effective. Independent read-only review by
+body_force_review agrees that anatomical motor vocabulary can use the current
+learner without a new selection/reward equation. No source candidate or test
+was run this block. The full body delivery remains ACTIVE and incomplete.
+
+### Concrete motor/feedback connection
+
+1. Each distinguishable anatomical effort needs its own action identity.
+   decide deduplicates options by option[0]; putting every effort under one
+   `motor` label would silently alias different joints and their experience.
+   Use a mechanical address plus signed effort, never a semantic climb/open/
+   escape label. The existing _choose, pending_act, _settle and _credit path
+   accepts arbitrary action identifiers; its equations need not be rewritten.
+   Preserve the successful identifier in applied_action: commit currently
+   treats `body` as passive time and excludes it from motor-transition trials.
+2. The world motor contract must accept a full bounded effort vector in native
+   actuator order. Do not restrict the physical interface to single-joint
+   motion. The review's minimal signed-capacity candidates are sufficient to
+   prove individual action availability, but alone do not supply simultaneous
+   recruitment or prove locomotion. Do not freeze that narrower candidate set
+   as satisfaction of the functional-biped objective. No canned coordinated
+   vectors, gait library or hidden posture servo may fill the gap.
+3. Afferent evidence is the actual native joint angle/rate/effort and site-frame
+   specific force/angular rate, plus locality-resolved contact points/wrenches.
+   Native MechanicalObservation also contains whole-model qpos/qvel and geom
+   IDs. These are world diagnostic/custody evidence, NOT organism senses.
+   Passing that object wholesale would expose other objects' hidden state.
+   Project only self-body receptors; preserve contact sign and local frame,
+   and exclude external simulator identity from sensory recognition authority.
+4. Actual somatic predecessor/successor evidence must accompany the performed
+   motor trial. It cannot be synthesized from the requested command. Missing
+   receptors are unavailable, not zero. The native mechanical state is the
+   source of body axes and inertial evidence; static BODY_AXES is not a second
+   pose authority after mounting.
+
+### Memory and input-domain continuity
+
+The reviewer found a concrete migration deletion hazard: migrate() compares
+stored regimes through choice_key and deletes acts entries when their key
+differs. Before appending channels, retain today's entire STREAMS tuple as a
+recognized historical schema in _streams_for. Initialize only new windows
+empty; preserve old history and records byte-for-byte. Do not relabel root-step
+experience as joint practice. Preserve CONSOLIDATED_STREAMS and sleep equations;
+their existing coarse consolidation does not retain all posture distinctions.
+
+Adding body channels to decision context changes which sensed situations match,
+and hence the existing novelty/uncertainty/exploration response, even without
+changing any learning equation. This is an explicit effect of the authorized
+sensory-interface extension, not evidence that learning is unchanged in output.
+Keeping all body channels out of context would instead leave the learner blind
+to posture; transport alone is not an acceptable integration claim.
+
+Further source check: uf_core/layer0.py:97–146 uses log(F_raw+1e-8).
+Raw signed angular rates, forces or accelerations cannot simply be appended to
+the present positive-input streams. Do not take absolute value (loses direction)
+or guess an offset/clip range. A lossless candidate adapter is a signed pair,
+F+=(max(x,0)/u), F-=(max(-x,0)/u), retaining the original SI sample and its
+declared unit u, with the existing positive stream floor applied only at the
+kernel input. x=u(F+-F-) establishes its information boundary. This is a
+candidate input-coordinate mapping, not a biological receptor law or a change
+to L0-L4. Its channel cost and actual caller must be checked before adoption.
+Current per-stream regime/sign projection remains reduced cognition; do not
+claim full joint DSF/neuron delivery. No new scalar body/balance score.
+
+### World, thermal and persistence ownership
+
+Existing prepare_port_command validates the opaque command, runs _transition,
+constructs the single _AuthorityState candidate and signs its observation.
+commit_prepared_action publishes that candidate. Its rollback transaction
+restores _prior_state. Native integration bytes must therefore belong to the
+same world's canonical state and predecessor/successor, not an attribute held
+only on a Python adapter. The native MjData remains reusable scratch.
+
+ThermallyCoupledEmbodimentWorldAuthority already stages _PendingThermal under
+thermal-lock -> world-lock order; discard, commit and rollback share the world
+candidate. Mechanical supply/work/heat must join that same transaction. Do not
+commit motion and later mutate reserves/temperature as a second authority.
+FunctionalPhysicalLoop currently commits world before organism.commit and
+relies on PhysicalSettlementFailure + paired-checkpoint recovery. The new
+candidate must prepare all fallible body/thermal/organism outputs before
+publication, retaining the existing actor's one paired checkpoint path.
+
+The current world validates every body as a floor disc and every held object
+as a reciprocal one-object relation. Do not bypass these checks and call it
+articulation. Mounted mechanics must replace the corresponding movement/contact
+authority, with native root/object poses being the sole source of legacy UI
+projections. Old Move/Grasp/Release placement cannot secretly act alongside
+native contact. This includes caregiver transport and world mutations, not
+just Guala's own step command. The old source remains live until safe cutover.
+
+Camera consequence is also on this causal path: w1_physical_receptors currently
+uses a fixed receptor offset plus root yaw and separate head yaw/pitch. A tilted
+native head cannot truthfully return the old upright view. The new receptor
+origin/basis must come from actual head mechanics. This is body-frame mounting,
+not authority to redesign vision, increase pixel counts, or alter learning.
+
+### Energy contract: reuse existing units, do not fabricate heat
+
+embodiment_world.py:832 declares nutrition extraction density 1.7e19 zJ/ug,
+equivalent to 17,000 uJ/ug = 0.017 J/ug. Reuse this conversion rather than a
+new stamina reservoir. Existing integer reserve and any sub-microgram work
+remainder must represent one supply, never two independently spendable stores.
+For mounted joint effort, replace action-name effort burn with measured motor
+work while preserving the separately declared basal cost; do not charge both
+the old movement multiplier and physical work. Refusal cannot debit unperformed
+work. Negative mechanical motor work is not automatically food replenishment.
+
+Bearing dissipation is measurable from the already-declared law B*qdot^2.
+The native work quadrature currently reports only positive and signed motor
+work. Do not call signed work, positive work, energy error and thermal heat the
+same quantity. In particular, MuJoCo3.3.7 mj_energyPos accounts for gravity and
+joint/tendon/flex springs, not a retained soft-contact elastic-energy state.
+Thus W_motor - delta(K+U) cannot simply be poured into a thermal node as exact
+contact heat. Contact work, passive dissipation, braking and numerical residual
+need explicit separation/error treatment at this boundary. This is necessary
+body-energy integration, not permission to invent heat or rewrite neuron physics.
+
+Primary implementation evidence for this last distinction:
+https://github.com/google-deepmind/mujoco/blob/3.3.7/src/engine/engine_sensor.c
+(mj_energyPos/mj_energyVel). The pinned documentation URL was unavailable via
+the web reader; the pinned official source was inspected read-only instead.
+
+### Acceptance / next implementation boundary
+
+The full acceptance stays: same authenticated copied organism; a genuine motor
+selection -> one native world interval -> actual body/object consequence ->
+local self-body feedback consumed by that organism -> retained motor trial ->
+paired save/cold restore -> identical next successor, under bounded resources.
+Severing effort must remove its force contribution without removing gravity or
+contact; severing feedback must not pass as sensed movement. Historical memory
+must survive channel migration. Passive/sleep intervals still obey mechanics.
+No deployment before the original mature-body, restart and live safety gates.
+
+Next implementation contract must resolve simultaneous effort representation,
+signed channel admission and the mechanical-to-thermal work split together;
+these are now exact source boundaries, not renewed permission questions. Do
+not run old passing anatomy suites or add more disconnected mechanical helpers.
+
+Source fingerprints at this mapping:
+- functional_organism b98c1e36c9b50a966b16c283518db3e0464486f09df2023258e5cbd9eeed146a
+- functional_loop 8e725716d3e55757cb33745c9cad587ea66da4ebba1ba8861399d28814797424
+- embodiment_world c9534a4c30fe6b9dc66b2aebd5751906d78a64697777ff99b1f2ae5b3bbe80ac
+- thermally_coupled_world b048c39e50030e4f22f04a122b7d976d8b769c24d82a2323d3080d5514fb968b
+- functional_body_native d82a5312c264aa1602aec795d56554ffd3b5eff24332c41cb9535c005a7396f0
+
+One read command incorrectly included uf_core/sev.py; actual import points to
+uf_core/layer0.py and that source was read. No source file, process or production
+state was changed by the read failure. Do not repeat the guessed path.
