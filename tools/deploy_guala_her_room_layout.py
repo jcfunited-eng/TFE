@@ -28,19 +28,19 @@ REGION = "us-east-1"
 ACCOUNT = "418384447921"
 CLUSTER = "tfe-web-cluster"
 SERVICE = "dsf-ai-service-lb"
-OLD_TASK = "478e055e5f0146789dd2ba0642bb578b"
-OLD_DEFINITION = "arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1549"
-BASE = ACCOUNT+".dkr.ecr."+REGION+".amazonaws.com/dsf-ai@sha256:c883967dae9703796245db6408d12ec03a7591dbb48c8c0c4188bdc2d1a837b8"
+OLD_TASK = "99cf7c9e92e7480ea6e1fda7ab65d70b"
+OLD_DEFINITION = "arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1551"
+BASE = ACCOUNT+".dkr.ecr."+REGION+".amazonaws.com/dsf-ai@sha256:05f9fe61d68a3a29077dd7b49c2434bc00e272bc68c7090f08fe057262fa9486"
 REPOSITORY = BASE.split("@")[0]
 FILES = {
  "dsf_ai_service/substrate/embodiment_world.py": "c9534a4c30fe6b9dc66b2aebd5751906d78a64697777ff99b1f2ae5b3bbe80ac",
  "dsf_ai_service/guala_caretaker_hand.py": "2512faa1379003af65c707ab0873f20826373dcef7d276ada32601a4b2512cfd",
- "dsf_ai_service/lean_production_app.py": "8131709b6ec6782533f4bd63cbbbd197be75930b4ea3210367686961be8fcef7",
+ "dsf_ai_service/lean_production_app.py": "ce3a2f6b9d25227f96a4b5ff08228e3849a7300bb0a667e67528aeeeb7e5cdcc",
  "dsf_ai_service/guala_functional_organism.py": "7e7ebb76988ee640348a4e6b0f5ea5f57c2b8c0a771678fb48bfbba49981ce8c",
  "dsf_ai_service/lean_actor.py": "885a5dd086db7d3a125d06c693edeb084b39b47c5308f34b05bd7be93fa96172",
  "dsf_ai_service/episodic_binding_engine.py": "c50cd1454ce54fc9621ac06b5c7bfa49f5547d57d1ef23dfce07d8b1d6c93a83",
  "dsf_ai_service/substrate/native_core.py": "7144580489e9b739538a90f1c0360209b3a4e2ecb94d6a6362db6b4aa902fbe3",
- "dsf_ai_service/guala_home_world.py": "0dca6059d952622f499fed402d245b79b2ab3390c058c34a90db92edf161e631",
+ "dsf_ai_service/guala_home_world.py": "bd12fd7d0cbc994b0703428d3f498258b78b73ca5fb9c48cf345589257db1962",
  "dsf_ai_service/lean_sensory_occurrence.py": "cb7ebef4b506c04f1f87e0f2dc593d53d21dd3d76badf3d41d514c8dc93f8b6d",
  "dsf_ai_service/static/gualaloom.html": "14a7f966a8a42e417cdab45ad040b21212f616a87ed58bd826b425a307e825f7",
 }

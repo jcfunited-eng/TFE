@@ -200,7 +200,7 @@ def _restore_production_actor() -> LeanOrganismActor:
 
     from dsf_ai_service.guala_functional_loop import FunctionalPhysicalLoop
     from dsf_ai_service.guala_functional_organism import FunctionalOrganism, MAGIC as FUNCTIONAL_MAGIC
-    from dsf_ai_service.guala_home_world import home_world_authority
+    from dsf_ai_service.guala_home_world import home_world_authority, renovate_her_room_layout
     from dsf_ai_service.paired_current_store import PairedCurrentStore
     from dsf_ai_service.substrate.native_resident_resource_admission import (
         derive_native_resident_resource_admission,
@@ -235,6 +235,7 @@ def _restore_production_actor() -> LeanOrganismActor:
         # and home renovation are separate authorized operations, not startup.
         migrate_physical_return=False,
     )
+    renovate_her_room_layout(world)
     current_world = bytes(world.encoded_snapshot())
     # One startup-only receipt of the validated bytes actually read. It precedes
     # any migration publication and never participates in cognition or identity.

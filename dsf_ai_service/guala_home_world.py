@@ -1136,6 +1136,9 @@ def _home_rooms_and_things() -> tuple[list[Any], list[Any], list[Any]]:
         "desk": ("box", (1_200, 600, 750), 0, 0),
         "wall-art-shapes": ("box", (50, 600, 760), 0, 1_300),
         "wall-art-weather": ("box", (50, 600, 760), 0, 1_300),
+        "curtains": ("sphere", (), 0, 1_200),
+        "pillow": ("sphere", (), 0, 350),
+        "blanket": ("sphere", (), 0, 350),
         "mailbox": ("box", (200, 300, 450), 0, 800),
         "garden-ladder": ("box", (450, 400, 550), 0, 0),
         "garden-apple": ("sphere", (), 0, 850),
@@ -2257,3 +2260,74 @@ def expand_exterior_walkway(authority: Any) -> Any:
                 new_anatomy = _home_thermal_anatomy(new_regions, new_portals)
             _commit_world_successor(authority, new_world, new_anatomy=new_anatomy)
     return authority
+
+
+from dsf_ai_service.substrate.embodiment_world import PositionMM
+
+HER_ROOM_LAYOUT = {
+    "bed": PositionMM(900, 9100, 0),
+    "pillow": PositionMM(900, 9100, 0),
+    "blanket": PositionMM(900, 8500, 0),
+    "desk": PositionMM(4900, 5700, 0),
+    "desk-chair": PositionMM(3800, 5700, 0),
+    "curtains": PositionMM(2800, 9750, 0),
+    "wall-art-shapes": PositionMM(320, 6500, 0),
+    "wall-art-weather": PositionMM(320, 7500, 0),
+    "playpen": PositionMM(4200, 8800, 0),
+    "night-light": PositionMM(500, 8600, 0),
+}
+HER_ROOM_RADII = {
+    "desk": 700,
+    "curtains": 250,
+    "playpen": 450,
+    "bed": 900,
+}
+HER_ROOM_ELEVATIONS = {
+    "pillow": 350,
+    "blanket": 350,
+    "curtains": 1200,
+    "wall-art-shapes": 1300,
+    "wall-art-weather": 1300,
+}
+HER_ROOM_MASSES = {
+    "curtains": 15_000,
+    "wall-art-shapes": 10_000,
+    "wall-art-weather": 10_000,
+    "playpen": 15_000,
+}
+
+
+def renovate_her_room_layout(authority: Any) -> bool:
+    """Reposition and renovate Her-Room furniture and fixtures to exact architectural layout."""
+    with _world_thermal_transaction(authority):
+        if not hasattr(authority, "_state") or not hasattr(authority._state, "world"):
+            return False
+        cur_world = authority._state.world
+        needs_update = False
+        for obj in cur_world.objects:
+            if obj.object_id in HER_ROOM_LAYOUT and obj.position != HER_ROOM_LAYOUT[obj.object_id]:
+                needs_update = True
+                break
+            if obj.object_id in HER_ROOM_RADII and obj.radius_mm != HER_ROOM_RADII[obj.object_id]:
+                needs_update = True
+                break
+            if obj.object_id in HER_ROOM_ELEVATIONS and obj.elevation_mm != HER_ROOM_ELEVATIONS[obj.object_id]:
+                needs_update = True
+                break
+            if obj.object_id in HER_ROOM_MASSES and obj.mass_grams != HER_ROOM_MASSES[obj.object_id]:
+                needs_update = True
+                break
+        if not needs_update:
+            return False
+        from dataclasses import replace
+        from dsf_ai_service.substrate.embodiment_world import PositionMM
+        updated = []
+        for obj in cur_world.objects:
+            pos = HER_ROOM_LAYOUT.get(obj.object_id, obj.position)
+            radius = HER_ROOM_RADII.get(obj.object_id, obj.radius_mm)
+            elev = HER_ROOM_ELEVATIONS.get(obj.object_id, obj.elevation_mm)
+            mass = HER_ROOM_MASSES.get(obj.object_id, obj.mass_grams)
+            updated.append(replace(obj, position=pos, radius_mm=radius, elevation_mm=elev, mass_grams=mass))
+        new_world = replace(cur_world, revision=cur_world.revision + 1, objects=tuple(updated))
+        _commit_world_successor(authority, new_world)
+        return True

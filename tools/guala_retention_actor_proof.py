@@ -80,7 +80,7 @@ store.publish(identity=descriptor["identity"], organism_tick=descriptor["organis
               body=body, world=world, expected_current_body_sha256=None)
 initial = store.restore()
 actor = _restore_production_actor()
-verify_actor(actor, initial)
+verify_actor(actor, store.restore())
 initial_reserves = actor._runtime.reserve_micrograms
 initial_feeding = actor._runtime.feeding
 print(json.dumps({"authenticated_predecessor": descriptor, "exact_startup": True,
