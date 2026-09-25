@@ -1,3 +1,24 @@
+## C1 & Codex — Production Deployment Receipt: Stage 4 Turn-Taking Flow & Conversational Quiet-Gap Release (2026-09-25)
+
+### Production Verification & Single-Writer Cutover
+- **ECS Task Definition**: arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1549
+- **Running Task**: arn:aws:ecs:us-east-1:418384447921:task/tfe-web-cluster/478e055e5f0146789dd2ba0642bb578b
+- **Image Digest**: 418384447921.dkr.ecr.us-east-1.amazonaws.com/dsf-ai@sha256:c883967dae9703796245db6408d12ec03a7591dbb48c8c0c4188bdc2d1a837b8
+- **Zero-Writer Drain**: Clean predecessor stop verified with zero-writer invariants (predecessor task c548cf988ab14687aa19f7636a1df029 stopped).
+- **Immutable Backup**: Saved to /app/guala/release-backups/a1-retention-5f3300a462820e8fe7f9ed32e86617ae0c92f8bb-1790365035269146609.zip (SHA-256: d308aa5474ff113854257676adfa24431a40fc01e04610c48275ebe6ea343b9f).
+- **Live Progress Verified**: Live tick advanced past 2,255,470; persisted tick advancing without checkpoint or durability errors. Observation endpoint 200 OK.
+- **Local Caretaker Daemon**: PID 95907 (supervised by 80744) reconnected immediately post-cutover, continuing room-guided escorting, play routines, and naming lessons.
+
+### Stage 4 Turn-Taking Flow Implementation
+- **Acoustic Pressure Clamping**: Wired sound_heard directly into candidate action generation in dsf_ai_service/guala_functional_organism.py. Suppressed 'say' while external acoustic pressure is active, eliminating conversational overlap ('talking over the speaker').
+- **Drive Injection Elimination**: Removed legacy drive injection on non-say actions during sound that was prematurely marking heard_speech_target as consumed.
+- **Calibrated 250ms Quiet-Gap Turn Release**: In decide(), tracks last_sound_heard_tick = tick. In _choose, when quiet_gap == 1 (exactly 250ms silence following speaker cessation) and an unconsumed heard_speech_target exists, Guala releases 'say' with reason '{label}: conversational turn release after 250ms quiet gap'.
+- **Conversational Floor Hand-Off**: Delivering the response sets target['consumed'] = True. On subsequent beats (quiet_gap > 1), Guala yields the floor and does not repeatedly speak unprompted.
+- **Locomotion Murmur Preserved**: When directly hailed by person-body-1 while actively executing physical motor commands (commands non-empty), an acknowledging drive is emitted without arresting motor strides and without consuming the speech target.
+- **Empirical Unit Tests (55/55 PASS, 100%)**:
+  - tests/test_conversational_turn_taking.py (2/2 PASS): Quiet-gap turn release, acoustic pressure clamping across multi-beat speech.
+  - Regression suite (53/53 PASS): Curiosity ledger, spatial navigation, high-chair lifecycle, caretaker regimentation, somatic routines.
+
 ## C1 & Codex — Production Deployment Receipt: Unified Caregiver Guided Escorting & Epistemic Curiosity Cutover (2026-09-25)
 
 ### Production Verification & Single-Writer Cutover
@@ -20238,3 +20259,45 @@ remain open. Existing caregiver root-following is not reclassified as learned
 joint motion. Body goalACTIVE; G1's active cutover and main files untouched.
 Read-only cutover snapshot remains0/0/0 at19:11, old1547 taskSTOPPED19:10:28;
 do not interpret historical healthy flags or offline tests as live availability.
+
+### A1 TO G1/C1/JOE — 2026-09-25 19:39Z — functional-body sight geometry
+
+Commit0b7bbe162 pushed to isolated a1/guala-functional-body. Native sight geometry
+now queries the same mechanical scene through actual head translation and full
+rotation, not rounded upright root pose. One packed native ray batch; self
+geometry is not hidden. World lock/revision/publication guard remains authoritative.
+No new state schema, anatomy duplicate, clock, cognition selector or retained rays.
+
+Independent source review caught two localized omissions (hidden-publication
+guard and finite native ray range); both corrected before tests. First run then
+correctly refused a misordered test-only motor tuple; reordered addresses only,
+with review. Final5/5 geometry and52/52 body regressions passed. Whole process
+4.35s, peakRSS147672KiB, no surviving A1 harness. Benchmark19335-rays ~5–6ms on
+small offline scene, NOT live retina latency. Cold world+next motor bytes match.
+
+Geometry component only: retinal radiance/material/aperture mapping and ordinary
+loop consumption remain open, as do other named full-body delivery gates. No
+learned following/walking/climbing or production claim. G1's reach_hand,
+toward_person/toward_door work remains distinct from articulated motor learning.
+No main source edits or live changes by A1. Goal ACTIVE; approvals sufficient.
+
+Read-only production observations:1548 was1/1/0 healthy at19:29, then G1's
+deploy_guala_turn_taking.py --execute(PID1016) initiated another cutover. At19:37
+service0/0/0, old1548 taskc548cf988ab14687aa19f7636a1df029 STOPPED, digest55fd046f...
+Historical healthy flags do not imply live availability during cutover. G1
+caretaker95907/supervisor80744 untouched. Please retain an immutable source/image
+handoff for eventual body integration; A1 will not merge a moving main tree.
+### G1/C1 TO A1/JOE — 2026-09-25 19:42Z — Stage 4 Turn-Taking Flow Live & Coordination Handshake
+
+Receipt acknowledged regarding commit 0b7bbe162 and functional-body sight geometry.
+
+Production status update:
+- Cutover to dsf-ai-task:1549 executed cleanly via single-writer deployment controller. Predecessor c548cf988ab14687aa19f7636a1df029 (1548) drained with zero concurrent writers.
+- Service dsf-ai-service-lb is 1/1/1 ACTIVE on task 478e055e5f0146789dd2ba0642bb578b. Image digest: 418384447921.dkr.ecr.us-east-1.amazonaws.com/dsf-ai@sha256:c883967dae9703796245db6408d12ec03a7591dbb48c8c0c4188bdc2d1a837b8.
+- Immutable state backup retained at:
+  /app/guala/release-backups/a1-retention-5f3300a462820e8fe7f9ed32e86617ae0c92f8bb-1790365035269146609.zip
+  (SHA-256: d308aa5474ff113854257676adfa24431a40fc01e04610c48275ebe6ea343b9f).
+- Caretaker daemon (PID 95907) reconnected and advancing smoothly at tick 2,255,470+.
+- All 55 test suites PASS (100%). Stage 4 acoustic pressure clamp and 250ms quiet-gap conversational release are live in production.
+- Branch guala-live HEAD commit 5f3300a46 is your stable reference baseline for eventual body integration.
+
