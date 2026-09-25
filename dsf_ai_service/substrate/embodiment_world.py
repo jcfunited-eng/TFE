@@ -4479,6 +4479,27 @@ class EmbodimentWorldAuthority:
             world.portals, world.self_body_id, world.bodies, world.objects,
             state_sha, signature, receipt, projection)
 
+    def native_ray_geometry(self, *, expected_revision: int, frame_name: str,
+                            origin_local_m: tuple[float, float, float],
+                            directions_local, max_rays: int):
+        """Read-only optics on current mounted geometry, not a cognitive input.
+
+        Internal optical callers must bind their query to the observation they
+        are rendering. Never accept an old revision with newly moved geometry.
+        Uses the existing world lock and scratch model, no second authority or
+        retained frame. The returned hit indices remain inside world optics.
+        """
+        with self._lock:
+            self._require_public_visibility_locked()
+            world = self._state.world
+            if type(expected_revision) is not int or expected_revision != world.revision:
+                raise ValueError("optical query revision differs from current world")
+            if world.native is None:
+                raise ValueError("native optical geometry is not mounted")
+            return self._native_engine_for(world.native.mount).ray_geometry(
+                world.native.integration_state, frame_name, origin_local_m,
+                directions_local, max_rays=max_rays)
+
     def _native_transition(self, world, actor_body_id, command, available_motor_work_j):
         if not isinstance(command, (AnatomicalEffortCommand, AdvancePhysicalTimeCommand, VocalizeCommand)):
             return None, "native_geometry_requires_physical_effort", None

@@ -15,8 +15,12 @@ and child-sized; capacity is declared mechanically, never inferred from a
 purported cognitive age. This document does not invent its numeric anatomy.
 
 The active scope is **FB-01g: authorized motor/sensory and world integration**.
-FB-01a through FB-01f below are retained implementation/proof history, not the
-current next item. None alone constitutes the whole deliverable.
+Its measured internal-heat (FB-01h) and native sight-geometry (FB-01i) components
+are proven offline; ordinary sensory/motor consumption and live delivery remain
+open. Next bounded boundary: native scene hits into the existing optical light
+calculation without upright-root reconstruction. FB-01a through FB-01f below
+are retained implementation/proof history, not the current next item. None alone
+constitutes the whole deliverable.
 Opening work block budget: 90 minutes for source mapping, implementation, focused
 proof and a truthful handoff. Do not spend the block expanding cognition or UI.
 No background operation or completion date is implied by this budget.
@@ -1812,3 +1816,168 @@ effort and local afference mapping, head optics, single outer organism/world
 publication, copied mature-body/restart/resource and production gates. No new
 approval needed within ratified body/interface scope. No gait/climbing/speech
 claim and no deployment; full objective remains ACTIVE.
+
+
+### FB-01i — native read-only sight geometry contract — 2026-09-25 19:28Z
+
+Continuing the approved body/interface objective after offline FB-01h, not
+reopening heat, learning, kernel, or G1's caregiver-following changes. Current
+baseline is 26a516c37. This slice closes physical ray geometry only; it does
+NOT close retinal radiometry, body/learner integration, or live delivery.
+
+Exact defect: mounted motion retains a full head rotation, while the ordinary
+retina uses rounded upright root geometry plus legacy neck offsets. Updating
+only yaw/pitch would discard roll; updating the Python focal rays alone would
+leave native rays, portal rectangles and spherical texture coordinates wrong.
+No speculative roll correction or second geometric authority will be added.
+
+Input -> output: authenticated current native world bytes and exact revision ->
+one existing NativeBody scratch restored from those bytes -> declared link-local
+optical origin and bounded local ray directions -> complete native rigid
+transform -> pinned MuJoCo 3.3.7 mj_multiRay -> nearest native visible surface
+index and distance, or explicit miss. Native geometry indices are internal
+world optical evidence, never object-recognition or cognitive input.
+
+Scope: functional_body_native.py, embodiment_world.py, and the existing
+standalone test_functional_body_world.py. One implementation owner, A1.
+NativeBody.ray_geometry supplies a typed transient batch; the existing world
+authority exposes native_ray_geometry under its existing lock and revision
+check. The origin's frame must belong to the organism's actual native subtree.
+The optical origin is declared input, not a new anatomical location silently
+inferred from a rounded root pose. No new eye anatomy is claimed in this slice.
+
+Each direction is finite and nonzero, normalized without overflow and transformed
+by the complete link rotation. The caller supplies the finite ray-count bound
+from its optical sampling contract. Arrays are packed float64/int32 batches,
+not per-pixel records. One native call per batch; all static/dynamic visible
+native geoms are included, with no body, group or semantic exclusion. Native
+opaque geometric intersection only: no radiance interpolation, texture
+reconstruction, aperture integration, clipped-light inference or DSF reduction.
+
+Read-only lifecycle: no integration step, elapsed time, effort, world mutation,
+thermal mutation, receipt or persistent cache. Results own their storage and
+cannot alias native scratch. Wrong revision/unmounted/wrong frame/malformed or
+over-capacity rays fail without a world successor. Fresh restore must return
+identical geometry and the same next actual motor successor, including after
+intervening queries. Immutable mount and current integration bytes remain the
+sole geometry authority. Existing codecs and model identities are unchanged.
+
+Acceptance: existing authority mounts the full reference body; actual head effort
+changes the batch rays through measured full head geometry; analytical scene hits
+and physical occlusion agree; self geometry is not masked; zero-time world bytes
+are unchanged; fresh-authority restart reproduces the ray result and the next
+motor interval. Include invalid-input and stale-revision refusal, bulk19335-ray
+resource evidence, and no retained-state growth. This is an offline geometric
+component test, not an ordinary learner, copied production or live vision proof.
+Optical radiance/material mapping and ordinary-loop consumption remain named
+unclosed boundaries; helpers cannot authorize deployment.
+
+Lean closure: reuse the admitted native collision scene, no second ray mesh,
+native model, motion state, contact solver, eye tracker, cognition selector,
+process, receipt schema, per-ray hash/tuple or retained frame history. Temporary
+memory scales linearly with the declared ray count, native scene with admitted
+anatomy. Query work cannot be represented as zero cost; measure batch cost.
+
+Coordination: G1's main tree and live cutover untouched. His root-level following
+commands do not become joint experience. Main ledger still has no newer immutable
+handoff after A1 19:13Z. Source-only inspection found that optics.rs does not exist;
+actual native legacy ray source is optical_raycast.rs. Absent path not retried.
+Pinned local mujoco.h confirms 3.3.7 multiRay signature; latest-version normal-output
+signatures are not used. No candidate tests/imports have run before this contract.
+
+### FB-01i frozen review correction batch — 2026-09-25 19:35Z
+
+Independent reviewer found two localized omissions, no architecture replacement:
+(1) reuse existing public-visibility guard during hidden world publication;
+(2) mjMAXVAL is finite1e10, not an infinite optical reach. Both corrected together
+before imports/tests. Added hidden committed read refusal + rollback proof and
+finite out-of-domain query refusal. No broader redesign.
+
+Range contract: every native geom centre must lie inside the L-infinity cube
+of radius mjMAXVAL/sqrt(3) around the ray origin. This sufficient envelope puts
+all centres within the pinned engine's range-culling distance. Otherwise the
+query refuses rather than presenting engine range culling as a physical miss.
+No new scene cache or clipping threshold enters cognition. Pinned3.3.7
+engine_ray.c mju_multiRayPrepare uses centre distance > cutoff+geom_rbound.
+This conservative numerical-domain guard is disclosed, not a claim of an
+unbounded optical engine.
+
+Translation review: local origin + directions carry full measured head rotation;
+origin/world unit rays and packed hit/distance arrays carry every queried
+geometric quantity. Hit identity is world-internal; no new organism sensory
+field is asserted. Native world/revision and existing visibility transaction
+remain authoritative. Observing a prepared/hidden state is forbidden even if
+the caller knows its revision. Authenticated current-state and all codecs
+remain unchanged. Scene and ray batches remain bounded; no integration calls
+are added by the query.
+
+Frozen hashes after the single batch:
+native078ec2f4025e3742614907e42982e9bdbd8c3bbb654406b9a27045d783395d47
+world58883b34009f712b8f09d6fe232cc70bd27acfefe09e02a2bf996787a790cf5d
+testsda5bc5647dc303e5f69a6721626a91bb2d8d7a719c322eea7c3c118951a9a12a
+
+Tool-only failure preserved: first full-file construction used JS index instead
+of indexOf and threw before any source write. Corrected operator code, no
+partial file or tested candidate resulted. All source edits use full-file
+apply_patch replacements. No tests, imports or compilation run yet.
+
+### FB-01i offline geometry proof — 2026-09-25 19:38Z
+
+Independent frozen source review passed after one batch of two localized
+corrections. Production source stayed unchanged through all tests:
+native078ec2f4025e3742614907e42982e9bdbd8c3bbb654406b9a27045d783395d47
+world58883b34009f712b8f09d6fe232cc70bd27acfefe09e02a2bf996787a790cf5d.
+
+First focused run:4pass/1error. The test supplied head effort addresses in
+roll,pitch,yaw order; the existing command codec correctly refused this
+noncanonical ordering before physical action. No physics assertion failed.
+Corrected test ordering to pitch,roll,yaw without changing values/duration,
+then independent source-only reviewer verified the fixture-only change.
+Final testSHAea87f7004e494ac650200f692307a5789628499ab6e8aa553122e9dac34dc210.
+Failed run0.815s, peakRSS143580KiB, PID2080 exited; failure preserved here.
+
+Final focused5/5 passed in0.333s, then52 body/world/heat/anatomy/energy regressions
+passed in3.373s. Entire standalone process4.349s, user4.286s/system0.076s,
+peakRSS147672KiB, PID2443 exited. No pytest/conftest/network or production body.
+Existing pinnedMuJoCo3.3.7, systemPython, numericalthreads1, bytecodewritesoff.
+Postrun census shows no A1 harness/orphan. All frozen source hashes matched.
+
+Physical evidence: actual externally applied head effort rotates the full native
+head frame (including roll); analytic target-sphere/self-head distances and
+misses agree; native state query never hides self geometry. Hidden committed
+world reads refuse under existing publication guard, then rollback preserves
+exact predecessor. Fresh authority restore reproduces geometry arrays exactly,
+and intervening queries preserve the same next actual motor successor.
+This is external bench effort, not learned action or mounted vision.
+
+Batch19335 rays (current sample-count envelope) produces696060 bytes of transient
+packed results. Three measured full query calls5.906ms/5.580ms/5.421ms, including
+this test's observation/revision acquisition. No state-byte growth, retained
+ray history, new geometry mesh, per-ray Python FFI call, persistent hash, clock,
+or cognitive record. This small scene benchmark is NOT live retina latency or
+a proof of performance at larger home-scene complexity.
+
+AWS read-only health envelope:
+-19:29:45 service1548 was1/1/0, sole taskc548cf988ab14687aa19f7636a1df029
+ RUNNING/HEALTHY; digest55fd046f41d22b26d84fa01fe34ba2fdc7f6f1b01a3ded702d79dbbe56577179;
+ identity1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1; observedlive2254716/persisted2254710,
+ availabletrue/errorsnull/durabilityfalse.
+-Immediately pretest19:35 and between/posttest19:36/19:37, G1's
+ deploy_guala_turn_taking.py --execute PID1016(parent760) was cutting over:
+ service1548 desired/running/pending0/0/0, no service task, old1548
+ DEACTIVATING then STOPPED. Historical HEALTHY is not live availability.
+-CPU matching service windows19:30 avg51.494%,max52.461%;19:35 avg51.216%,
+ max51.324%; memoryavg3.663%/3.687%,max3.674%/3.687%. Cutover metrics are not
+ a healthy-running-task proof. Resource/refusalalarmsOK; oldclockalarmALARM
+ sinceSep8. G1 caretaker95907/supervisor80744 left untouched.
+-A1 made no production, process, teaching marker or main-source change.
+ Offline tests have no production-parity/deployment interpretation.
+
+This closes native geometric querying only. The actual optical origin/ray grid
+must still be bound in the ordinary receptor caller, and radiance, material
+coordinates, aperture integration and organism consumption must use this same
+physical scene without claiming old upright rays are correct. Existing source
+sampling/learning/kernel remain unchanged. Full functional-body goalACTIVE;
+contact thermal coupling, home/caregiver conversion, ordinary afference/effort,
+outer atomic publication, mature-body and production acceptance remain open.
+No additional user approval is requested for the already-ratified boundary.

@@ -9,6 +9,9 @@ ordinary learner integration, home conversion and live delivery remain open.
 from fractions import Fraction
 import base64
 import json
+import math
+import time
+import numpy as np
 import unittest
 import xml.etree.ElementTree as ET
 
@@ -426,6 +429,164 @@ class NativeInternalHeatTests(unittest.TestCase):
         for invalid in ((True,), (-1,), (1.5,), (), [0], (10**100,)):
             with self.assertRaises(ValueError):
                 advance_bounded_thermal_state(state, **kwargs, source_energy_nanojoules=invalid)
+
+
+
+
+class NativeOpticalGeometryTests(unittest.TestCase):
+    # A declared test optical point 1 cm in front of this bench's spherical
+    # head. NOT a mounted production eye, biological receptor or radiance law.
+    ORIGIN = (.08, 0., .03)
+
+    def query(self, authority, directions, **overrides):
+        parameters = dict(
+            expected_revision=authority.observation_snapshot().revision,
+            frame_name="guala/head", origin_local_m=self.ORIGIN,
+            directions_local=np.asarray(directions, dtype=np.float64),
+            max_rays=19335,  # existing 160x120 focal + 135 surround sites
+        )
+        parameters.update(overrides)
+        return authority.native_ray_geometry(**parameters)
+
+    def test_native_occlusion_self_visibility_and_misses(self):
+        authority = world()
+        mount(authority)
+        before = authority.encoded_snapshot()
+        origin = np.array((1.08, 1., .96))
+        target = np.array((1.5, 1., .1))
+        result = self.query(authority, ((1., 0., 0.), (-1., 0., 0.),
+                                        tuple(target - origin)))
+        engine = authority._native_scratch
+        self.assertEqual(result.geom_indices[0], -1)
+        self.assertEqual(result.distances_m[0], -1)
+        # Looking back hits actual own head: no invisible-self exclusion.
+        self.assertEqual(engine.geom_names[result.geom_indices[1]], "guala/head/surface")
+        self.assertAlmostEqual(result.distances_m[1], .01, places=12)
+        self.assertEqual(engine.geom_names[result.geom_indices[2]], "bench-object-surface")
+        self.assertAlmostEqual(result.distances_m[2], np.linalg.norm(target - origin) - .1,
+                               places=12)
+        np.testing.assert_allclose(result.origin_world_m, origin, atol=1e-15, rtol=0)
+        self.assertEqual(authority.encoded_snapshot(), before)
+        self.assertFalse(result.distances_m.flags.writeable)
+        self.assertFalse(result.directions_world.flags.writeable)
+        held = result.distances_m.copy()
+        self.query(authority, ((0., 0., 1.),))
+        np.testing.assert_array_equal(result.distances_m, held)
+
+    def test_real_head_effort_full_frame_restore_and_next_successor(self):
+        authority = world()
+        mount(authority)
+        directions = np.array(((1., .2, .3), (1., -.2, -.3), (1., 0., 0.)))
+        initial = self.query(authority, directions)
+        command = AnatomicalEffortCommand((
+            ("guala/head/pitch/effort", .015),
+            ("guala/head/roll/effort", .02),
+            ("guala/head/yaw/effort", -.01),
+        ), 50000)
+        prepared = authority.prepare_port_command(
+            port_id=PORT_ID, command_payload=encode_command(command),
+            causal_intent_receipt_sha256=INTENT,
+            expected_revision=authority.observation_snapshot().revision,
+            available_motor_work_j=1.,
+        )
+        authority.commit_prepared_action(prepared)
+        encoded = authority.encoded_snapshot()
+        observed = authority.observation_snapshot()
+        frame = next(f for f in observed.native.world_frames if f.name == "guala/head")
+        rotation = np.array(frame.rotation_world).reshape(3, 3)
+        result = self.query(authority, directions)
+        np.testing.assert_allclose(result.origin_world_m,
+                                   np.array(frame.position_m) + rotation @ self.ORIGIN,
+                                   atol=1e-15, rtol=0)
+        expected = (directions / np.linalg.norm(directions, axis=1)[:, None]) @ rotation.T
+        np.testing.assert_allclose(result.directions_world, expected, atol=1e-15, rtol=0)
+        self.assertGreater(np.max(np.abs(result.directions_world - initial.directions_world)), 1e-6)
+        self.assertGreater(abs(rotation[2, 1]), 1e-6)  # real roll, not yaw-only
+        self.assertEqual(authority.encoded_snapshot(), encoded)
+        restored = world()
+        restored.restore_encoded(encoded)
+        cold = self.query(restored, directions)
+        self.assertEqual(cold.origin_world_m, result.origin_world_m)
+        np.testing.assert_array_equal(cold.directions_world, result.directions_world)
+        np.testing.assert_array_equal(cold.geom_indices, result.geom_indices)
+        np.testing.assert_array_equal(cold.distances_m, result.distances_m)
+        # Additional observations cannot change a subsequent actual interval.
+        self.query(authority, ((-1., 0., 0.),))
+        for item in (authority, restored):
+            item.commit_prepared_action(prepare_effort(item))
+        self.assertEqual(authority.encoded_snapshot(), restored.encoded_snapshot())
+
+    def test_failures_preserve_world_and_normalization_handles_extremes(self):
+        authority = world()
+        before = authority.encoded_snapshot()
+        with self.assertRaisesRegex(ValueError, "not mounted"):
+            self.query(authority, ((1., 0., 0.),))
+        self.assertEqual(authority.encoded_snapshot(), before)
+        mount(authority)
+        before = authority.encoded_snapshot()
+        cases = (
+            {"expected_revision": 0},
+            {"frame_name": "bench-other"},
+            {"frame_name": "missing"},
+            {"origin_local_m": (math.inf, 0., 0.)},
+            {"origin_local_m": (1e11, 0., 0.)},
+            {"directions_local": np.zeros((1, 3))},
+            {"directions_local": np.full((1, 3), math.nan)},
+            {"directions_local": np.ones((2, 3)), "max_rays": 1},
+            {"directions_local": np.ones((1, 2))},
+            {"directions_local": np.ones((1, 3), dtype=np.float32)},
+            {"max_rays": True},
+        )
+        for override in cases:
+            with self.subTest(override=tuple(override)):
+                with self.assertRaises(ValueError):
+                    self.query(authority, ((1., 0., 0.),), **override)
+                self.assertEqual(authority.encoded_snapshot(), before)
+        result = self.query(authority, ((1e308, 0., 0.), (5e-324, 0., 0.)))
+        np.testing.assert_array_equal(result.directions_world, ((1., 0., 0.), (1., 0., 0.)))
+        self.assertEqual(authority.encoded_snapshot(), before)
+
+    def test_hidden_committed_geometry_is_not_observable(self):
+        authority = world()
+        mount(authority)
+        before = authority.encoded_snapshot()
+        prepared = prepare_effort(authority)
+        with authority.prepared_action_visibility_transaction(prepared):
+            authority.commit_prepared_action(prepared)
+            with self.assertRaisesRegex(RuntimeError, "visibility transaction"):
+                # Use the actual candidate revision: this must refuse on
+                # publication, not pass merely because revision matches.
+                authority.native_ray_geometry(
+                    expected_revision=prepared.execution_receipt.after.revision,
+                    frame_name="guala/head", origin_local_m=self.ORIGIN,
+                    directions_local=np.array(((1., 0., 0.),)), max_rays=1,
+                )
+        with authority.committed_prepared_action_rollback_transaction(prepared) as rollback:
+            rollback()
+        self.assertEqual(authority.encoded_snapshot(), before)
+        self.query(authority, ((1., 0., 0.),))
+
+    def test_full_existing_ray_count_is_batched_current_only(self):
+        authority = world()
+        mount(authority)
+        before = authority.encoded_snapshot()
+        # Deterministic grid sampling an empty forward hemisphere; this is a
+        # geometric throughput test, not a retina/radiance equivalence claim.
+        rays = np.ones((19335, 3), dtype=np.float64)
+        rays[:, 1] = np.linspace(-.5, .5, len(rays))
+        rays[:, 2] = .2
+        times = []
+        for _ in range(3):
+            started = time.perf_counter()
+            result = self.query(authority, rays)
+            times.append(time.perf_counter() - started)
+            self.assertEqual(len(result.geom_indices), len(rays))
+            self.assertEqual(authority.encoded_snapshot(), before)
+        size = sum(a.nbytes for a in (result.directions_world, result.geom_indices,
+                                     result.distances_m))
+        self.assertEqual(size, 19335 * (3 * 8 + 4 + 8))
+        print(f"native_optical_batch rays={len(rays)} output_bytes={size} "
+              f"query_seconds={times}", flush=True)
 
 
 if __name__ == "__main__":

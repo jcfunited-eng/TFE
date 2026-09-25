@@ -95,6 +95,20 @@ class WorldFrame:
 
 
 @dataclass(frozen=True)
+class RayGeometry:
+    """Transient world optics, NOT organism afference or recognized identities.
+
+    Distances are metres along unit directions; (-1, -1) denotes a miss.
+    Packed arrays own their storage and do not alias native scratch. They are
+    not serialized or retained by the mechanical/world authority.
+    """
+    origin_world_m: tuple[float, float, float]
+    directions_world: np.ndarray
+    geom_indices: np.ndarray
+    distances_m: np.ndarray
+
+
+@dataclass(frozen=True)
 class MechanicalObservation:
     # Whole-world custody/diagnostics. Only self_feedback is organism afference.
     time_s: float
@@ -364,6 +378,74 @@ class NativeBody:
     def observe(self, state):
         self._restore(state)
         return self._observation()
+
+    def ray_geometry(self, state: bytes, frame_name: str,
+                     origin_local_m: tuple[float, float, float],
+                     directions_local: np.ndarray, *, max_rays: int) -> RayGeometry:
+        """Read native visible geometry from the self body's full rigid frame.
+
+        The optical caller declares the origin and sampling grid; this method
+        neither selects gaze nor supplies a radiance model. All visible native
+        geometry, including the observer, participates. No yaw-only proxy, body
+        exclusion, time advancement or per-ray Python/native crossing.
+        """
+        if type(max_rays) is not int or max_rays <= 0:
+            raise ValueError("positive declared optical sample bound required")
+        if (not isinstance(directions_local, np.ndarray)
+                or directions_local.dtype != np.dtype(np.float64)
+                or directions_local.ndim != 2 or directions_local.shape[1] != 3
+                or not 0 < directions_local.shape[0] <= max_rays):
+            raise ValueError("bounded packed float64 ray directions required")
+        if not np.isfinite(directions_local).all():
+            raise ValueError("finite ray directions required")
+        if (type(origin_local_m) is not tuple or len(origin_local_m) != 3
+                or any(type(x) not in (int, float) or not math.isfinite(x)
+                       for x in origin_local_m)):
+            raise ValueError("finite link-local optical origin required")
+        m = self._model
+        if type(frame_name) is not str or self._sensory_root is None:
+            raise ValueError("declared self optical frame required")
+        frame = int(mj.mj_name2id(m, mj.mjtObj.mjOBJ_BODY, frame_name))
+        root = int(mj.mj_name2id(m, mj.mjtObj.mjOBJ_BODY, self._sensory_root))
+        ancestor = frame
+        while ancestor > 0 and ancestor != root:
+            ancestor = int(m.body_parentid[ancestor])
+        if frame <= 0 or ancestor != root:
+            raise ValueError("optical frame must belong to the self body")
+
+        # Rescale before taking a norm: finite subnormal/large directions must
+        # neither underflow to zero nor overflow merely during normalization.
+        scale = np.max(np.abs(directions_local), axis=1)
+        if np.any(scale == 0):
+            raise ValueError("zero optical direction")
+        unit = directions_local / scale[:, None]
+        unit /= np.linalg.norm(unit, axis=1)[:, None]
+        self._restore(state)
+        d = self._data
+        rotation = d.xmat[frame].reshape(3, 3)
+        origin = d.xpos[frame] + rotation @ np.asarray(origin_local_m)
+        directions = np.ascontiguousarray(unit @ rotation.T)
+        if not np.isfinite(origin).all() or not np.isfinite(directions).all():
+            raise ValueError("non-finite optical world transform")
+        # Pinned multiRay culls geoms whose centre distance exceeds cutoff +
+        # radius. Bound every centre inside the cutoff using the L-infinity
+        # envelope ||delta||_2 <= sqrt(3) * ||delta||_inf. Otherwise refuse:
+        # range culling must never be reported as a physical optical miss.
+        if np.any(np.abs(d.geom_xpos - origin) > mj.mjMAXVAL / math.sqrt(3)):
+            raise ValueError("optical scene exceeds native ray range")
+        count = len(directions)
+        geoms = np.empty(count, dtype=np.int32)
+        distances = np.empty(count, dtype=np.float64)
+        mj.mj_multiRay(m, d, origin, directions.reshape(-1), None, 1, -1,
+                      geoms, distances, count, mj.mjMAXVAL)
+        if (not np.isfinite(distances).all() or np.any(geoms < -1)
+                or np.any(geoms >= m.ngeom)
+                or np.any((geoms == -1) != (distances == -1))
+                or np.any((geoms >= 0) & (distances < 0))):
+            raise ValueError("invalid native optical intersection")
+        for array in (directions, geoms, distances):
+            array.setflags(write=False)
+        return RayGeometry(tuple(float(x) for x in origin), directions, geoms, distances)
 
     def advance(self, state: bytes, efforts: tuple[float, ...] | None, elapsed_us: int,
                 available_work_j: float, *,
