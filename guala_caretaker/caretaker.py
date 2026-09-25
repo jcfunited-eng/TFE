@@ -362,8 +362,6 @@ BEDTIME_FRACTION = 0.9   # of her sleep-pressure ceiling: the caretaker makes he
 BEDDING = frozenset({"pillow", "blanket"})
 READ_EVERY_TICKS = 12_000     # about an hour of her beats between readings
 READ_KEEP_EVERY_BLOCKS = 96   # the book is shown beside her again this often, so the caregiver stays through the chapter
-READ_BLOCK_RETRIES = 40       # a block her service refused is tried again this many times, three seconds apart: longer than a cutover's blip
-READ_BLOCK_RETRY_S = 3
 READ_BOOK = "Alice's Adventures in Wonderland"   # the first book; the next titles follow when this one is read through
 MUSIC_EVERY_TICKS = 12_000    # about an hour of her beats between pieces of music on the radio
 MUSIC_MAX_BLOCKS = 2_400      # ten minutes of a piece at most in one sitting
@@ -787,6 +785,15 @@ def maybe_read(o: dict, st: dict) -> None:
         if asleep(ob):
             log("reading: she fell asleep; the book closes")
             break
+
+        # Interleave hunger care: yield if hunger arises
+        lo = ob.get("last_occurrence") or {}
+        deficit = lo.get("metabolic_need_reserve_deficit") or [0, 1]
+        hungry = (deficit[0] / deficit[1]) > HUNGRY_DEFICIT if (deficit and len(deficit) == 2 and deficit[1]) else False
+        if hungry:
+            log(f"reading: pausing at beat {heard}/{len(blocks)} to yield for mealtime")
+            break
+
         if (i + 1) % READ_KEEP_EVERY_BLOCKS == 0:
             kept = {}
             for attempt in range(3):
@@ -870,8 +877,10 @@ def play_block(pcm: bytes, from_object: str) -> dict | None:
 
 
 def maybe_music(o: dict, st: dict) -> None:
-    """Music on the radio: delivered block-by-block, yielding each beat so feeding
-    and safe release remain reachable. Quiets upon sleep."""
+    """Music on the radio: delivered continuously at acoustic cadence (4 blocks/second).
+    Reads required blocks directly from kept sound without whole-file reconstruction.
+    Yields immediately on failure, sleep, or hunger so responsive care is never delayed,
+    preserving exact block index so playback remains seamlessly resumable."""
     import media
     sleep = her_sleep(o)
     if sleep.get("asleep"):
@@ -930,11 +939,10 @@ def maybe_music(o: dict, st: dict) -> None:
         log(f"radio: piece finished ({total_blocks} beats); next at {st['music_next_tick']}")
         return
 
-    # Service audio blocks at acoustic cadence without stretching chronology across 25 minutes;
-    # delivers a burst of consecutive blocks (up to 8 blocks = 2.0s), yielding on refusal or interruption
-    delivered_in_pass = 0
-    max_burst = 8
-    while cur_block < total_blocks and delivered_in_pass < max_burst:
+    # Service audio blocks continuously at native acoustic cadence without stretching chronology.
+    # Reads each required block directly by byte offset.
+    # Yields immediately on refusal, sleep, or hunger so responsive care is never delayed.
+    while cur_block < total_blocks:
         if os.path.exists(STOP) or os.path.exists(TEACHING):
             break
         pcm = media.read_block(pcm_path, cur_block)
@@ -942,11 +950,10 @@ def maybe_music(o: dict, st: dict) -> None:
             break
         r = play_block(pcm, "radio")
         if r is None:
-            log(f"radio: block {cur_block + 1}/{total_blocks} refused; yielding to maintain responsive care")
+            log(f"radio: block {cur_block + 1}/{total_blocks} refused; returning control to maintain responsive care")
             st["music_retry"] = True
             break
         cur_block += 1
-        delivered_in_pass += 1
         st["music_block_index"] = cur_block
         st["music_retry"] = False
         ob = r.get("observation") or {}
@@ -956,11 +963,32 @@ def maybe_music(o: dict, st: dict) -> None:
             log(f"radio: {archive} — {track['name']} ({total_blocks} beats) begins; beat 1 delivered")
         if cur_block % 50 == 0:
             log(f"radio: playing beat {cur_block}/{total_blocks}")
-        if cur_block % READ_KEEP_EVERY_BLOCKS == 0 and asleep(ob):
+
+        # Check sleep: quiet immediately
+        if asleep(ob):
             log("radio: she fell asleep; the radio goes quiet")
             st["music_block_index"] = 0
             st["music_next_tick"] = tick + MUSIC_EVERY_TICKS
             break
+
+        # Check hunger: interleave care without losing playback position
+        lo = ob.get("last_occurrence") or {}
+        deficit = lo.get("metabolic_need_reserve_deficit") or [0, 1]
+        hungry = (deficit[0] / deficit[1]) > HUNGRY_DEFICIT if (deficit and len(deficit) == 2 and deficit[1]) else False
+        if hungry:
+            log(f"radio: pausing music at beat {cur_block}/{total_blocks} to yield for mealtime")
+            break
+
+    # If the track completed during this continuous streaming pass
+    if cur_block >= total_blocks:
+        if track_index + 1 >= len(tracks):
+            st["music_index"] = index + 1
+            st["music_track"] = 0
+        else:
+            st["music_track"] = track_index + 1
+        st["music_block_index"] = 0
+        st["music_next_tick"] = tick + MUSIC_EVERY_TICKS
+        log(f"radio: piece finished ({total_blocks} beats); next at {st['music_next_tick']}")
 
     with open(STATE, "w") as f:
         json.dump(st, f)
@@ -1385,7 +1413,7 @@ def wait_clear(min_tick: int | None = None, st: dict | None = None) -> dict | No
             if not teaching_logged:
                 log("TEACHING marker present: a person is teaching; lessons hold until it is removed")
                 teaching_logged = True
-            time.sleep(POLL_S)
+            time.sleep(min(POLL_S, 5))
             continue
         if teaching_logged:
             log("TEACHING marker removed; lessons resume at the saved place")
@@ -1397,10 +1425,11 @@ def wait_clear(min_tick: int | None = None, st: dict | None = None) -> dict | No
                 hold = other + PERSON_HOLD_TICKS
                 log(f"unannounced feed by someone else (tick {other}); safety hold until her tick {hold}")
             if hold is not None and (o.get("live_tick") or 0) < hold:
-                time.sleep(POLL_S)
+                rem = hold - (o.get("live_tick") or 0)
+                time.sleep(min(POLL_S, max(0.2, rem * 0.25)))
                 continue
             if not gates_clear(o):
-                time.sleep(POLL_S)
+                time.sleep(min(1.0, POLL_S))
                 continue
             if st is not None:
                 cur_tick = int(o.get("live_tick") or 0)
@@ -1424,7 +1453,7 @@ def wait_clear(min_tick: int | None = None, st: dict | None = None) -> dict | No
                 if st is not None:
                     maybe_feed(o, st)
                     maybe_housekeeping(o, st)
-                time.sleep(POLL_S)
+                time.sleep(min(POLL_S, 5))
                 continue
             if st is not None and st.get("asleep_logged"):
                 log(f"she is awake (tick {o.get('live_tick')}); the caretaker resumes")
@@ -1475,14 +1504,14 @@ def wait_clear(min_tick: int | None = None, st: dict | None = None) -> dict | No
                         log(f'lesson holding: pupil not in attentive learning state (ritual={ritual}, asleep={asleep(o)})')
                         st['lesson_hold_logged'] = True
                         st['lesson_hold_ritual'] = ritual
-                    time.sleep(POLL_S)
+                    time.sleep(min(POLL_S, 5))
                     continue
                 if st.get('lesson_hold_logged'):
                     log('lesson resumed: pupil alert and ready for learning')
                     st['lesson_hold_logged'] = False
                     st['lesson_hold_ritual'] = None
             return o
-        time.sleep(POLL_S)
+        time.sleep(min(POLL_S, 2))
 
 
 def main() -> None:
