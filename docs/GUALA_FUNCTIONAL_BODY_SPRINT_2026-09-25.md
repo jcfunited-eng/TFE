@@ -2553,3 +2553,106 @@ numerical error bounds, coplanar/zero-area treatment and actual native acceptanc
 must be closed in the replacement contract before freezing it. No guessed epsilon,
 centre-depth painter, uniform supersampling or failed representation may return.
 GoalACTIVE; optics/body integration and production delivery remain incomplete.
+
+### FB-01n — direct homogeneous visibility and material charts
+
+Previous turn PROGRESS:5279bfbba preserved the native falsifier and restored
+accepted executable baseline2dac2bb39. This is a replacement contract, not a
+further patch to rejected FB-01m. New files functional_body_visibility.py and
+test_functional_body_visibility.py remain the scoped component; no live caller,
+mechanical law, sensory anatomy, DSF or cognitive state changes.
+
+Represent each original planar surface once with eye-frame origin O, axes U,V,
+and a convex UV boundary. Form H=[O U V]. For a positive ray p=t*d,
+H^-1*d=(1/t,u/t,v/t). Thus the original UV inequality a*u+b*v+c>=0 maps
+directly to (a*row1+b*row2+c*row0) dot d>=0, along with row0 dot d>0.
+Plane-depth order uses (row0_blocker-row0_source) dot d>0. H is computed once
+per source surface. Reject singular/nonfinite input rather than inventing a
+chart. Degenerate planar geometry is unavailable, not a new mechanical surface.
+
+Carry these directed halfspaces through set subtraction, never reconstructing
+UV or physical corner polygons. Feed the same constraints to the accepted
+aperture_solid_angles primitive. A minus intersection(b_i) partitions into
+A intersect(-b0), A intersect(b0,-b1), ... . Area-zero pieces under the declared
+numerical integrator do not contribute. No epsilon, size filter, average-depth
+sorting or sample-agreement threshold. Coplanar overlapping geometry refuses;
+materials are not separate occluders. Different material cells of one physical
+surface are UV constraints integrated AFTER geometric visibility.
+
+Output is transient source-surface index + owned directed constraint array,
+valid only within the caller's declared enclosing angular aperture. Material
+addresses remain world-only. They cannot enter afference or cognition. No
+retained scene, secondary mechanical model, history, checkpoint state or partial
+image publication. On work/storage/conditioning refusal, return no image.
+
+Bounds: explicitly limit retained halfspace rows, integrated event-work and
+temporary integration cells. Charge the known event ceiling K*(K-1)+6*K+2 for
+each one-domain area query before execution. Count input preparation and pair
+depth work too. Storage is O(max_halfspaces) plus the explicitly capped
+integrator scratch and immutable input. No observer process or new dependency.
+This component does not yet render curved shapes, full shading or a home world;
+these are still required before ordinary-body/cold/production acceptance.
+
+Acceptance: repeat the rejected native slanted-box/head-effort/cold-state scene
+without relaxing its native ray witness; independent near/far area partition,
+crossing depth order, input permutation, common rotation, source-fixed two-cell
+material division, resource refusal and nonfinite/singular inputs. Actual source
+chart coordinates and six-band materials must survive visibility unchanged.
+Measure the native scene work/time/RAM honestly; helper timing is not production
+cadence. Frozen source review precedes execution. Any failure in representation
+again rejects this candidate rather than restarting the special-case loop.
+
+#### FB-01n execution receipt — 2026-09-25 21:15Z
+
+Independent source review of f5f53545985db3da17c0325750e1815762ada3c6deba66d29867bd0f1ff047ce
+found one localized omission: material_halfspaces did not forward max_corners.
+One correction batch forwarded that bound. Final source-only review PASS,
+fingerprint f30a1ded9a396233a427c1b7eed95b549e330da34a9536f72dd0b1daa95ef834
+verified before/after by reviewer and again before execution. No architectural
+finding, no imports/tests before review, no changed acceptance assertions.
+
+Standalone unittest/runpy process33005/session54619: exit0,4/4PASS in3.721s;
+whole process wall3.840081s,user3.808173s,system.052002s,peak82376KiB.
+Correctness evidence: independent near/far area partition and input permutation;
+intersecting-plane depth selection; attached material-cell area partition and
+original UV continuity under rotation; empty/forward-crossing/coplanar/invalid/
+budget refusals. The exact prior rejected native slanted-box scene now passes:
+80 interior rays agree with the full native scene, every witness covered once,
+actual motor-driven head movement changes radiance, fresh native restoration
+returns identical image bytes and next mechanical successor. All19335 existing
+apertures and six material bands are evaluated. This is a planar component,
+not the full home/body renderer or live receptor proof.
+
+Performance is NOT accepted for deployment: five input surfaces yielded22visible
+regions in.867981043s before head movement,17regions in.656413103s afterward.
+Both exceed250ms before ordinary-loop/cognitive work. Correct numerical output
+does not close the latency requirement. No claim of a production speedup.
+Next exact item: isolate and remove repeated geometric/integration work on this
+same accepted representation while preserving its native falsifier and material
+partition. Do not add curved-scene features, weaken accuracy, enlarge queues,
+or swap in centre sorting/uniform sampling to evade this measured cost.
+
+Bounds clarification: original chart preparation is separately bounded by
+max_corners (convexity O(max_corners^2)); visibility max_work charges prepared
+input rows, pair operations and each integral's event ceiling. This is not a
+claim that max_work counts every CPU instruction or constructor operation.
+No persistent visibility cache, new scene authority, state schema or live caller.
+
+Source SHA8407971c6e2ce7b71a7e4441651628b46ed57355e19c6aca21dc7f4f31bb4c01;
+test SHA7825de7d1b3095630641889290d532d94ee3bc8961d0155316b082b0589e9d85.
+Post-census21:14:34 and21:15 shows no harness33005 or A1 Python survivor;
+only G1 caretaker95907 remains, untouched. No pytest/conftest/app startup or
+live write, marker change, caretaker interruption, or deployment.
+
+Read-only AWS envelope pre21:13:30/post21:14:34: us-east-1,tfe-web-cluster,
+dsf-ai-service-lb,desired/running/pending1/1/0,sole1549 task
+478e055e5f0146789dd2ba0642bb578b RUNNING/HEALTHY,image
+c883967dae9703796245db6408d12ec03a7591dbb48c8c0c4188bdc2d1a837b8.
+Same identity1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1;live2265242->2265338,
+persisted2265215->2265311,availabletrue,checkpoint/cleanupnull,
+durabilityblockedfalse. Resource/refusalalarmsOK;historicalclockalarmALARM.
+Pre-window21:10CPUavg51.297766%,max52.533359%;RAMavg3.084988%,max3.161621%.
+Post-window21:10CPUavg51.266329%,max52.533359%;RAMavg3.099060%,max3.192139%.
+CloudWatch window still filling, not a before/after causal performance claim.
+No new immutable G1 source/deployment receipt since1549; dirty staged main tree
+and sleep-window plan left intact. GoalACTIVE; complete body not deployed.
