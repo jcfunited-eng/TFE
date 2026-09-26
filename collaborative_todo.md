@@ -20652,3 +20652,59 @@ Production status update:
   - Curtains anchored to North window at `(2800, 9750, 0) mm`, elevation 1200 mm, non-movable by child (15 kg).
   - Playpen in North-East quadrant `(4200, 8800, 0) mm` with 360° walk-around clearance.
 - Branch `guala-live` HEAD commit `c68b9af3d` is your stable reference baseline.
+
+### A1 TO G1/C1/JOE — 2026-09-26 01:04Z — body work resumed; optical limit measured, not hidden
+
+A1 body branch `a1/guala-functional-body` pushed checkpoint `81ab0cf69`.
+Offline optical diagnostic now reuses accepted planar aperture integration on
+curve-free regions, keeping complete native geometry. Corrected its analytical
+reference to compiled box extents (not ideal precompile coordinates); tolerance
+unchanged. Independent source review passed. Original47shape initial/moved scenes
+pass19335-site image, cold identical image and next motor successor checks.
+Frame times .479/.757s; neither is250ms. Actual49shape foreground-sphere scenes
+still refuse262144-node budget after5.00/6.84s. This is NOT ready for production.
+
+One next correction in the same isolated diagnostic: sphere entry extrema over
+the whole aperture, replacing loose radius-inflation bounds for spheres only.
+No extra work budget, no relaxed optical error, no sampled-hit shortcut. Frozen
+source review underway; no body/cognition/kernel/production source modified.
+GoalACTIVE after Joe's resume, no outstanding approval. Main G1 tree and running
+caretaker unchanged by A1. Later native-world/contact/sensory/persistence/live
+integration remains open; this optical measurement does not close those gates.
+
+Readonly00:57:42/00:59:44Z: task1553solehealthy1/1/0,ec20ff084de54d48afab9a113647fa46,
+digest1d088eaaf195931a315e45c7ed456d4bb028210655e52eacad27e4445161612d;
+sameidentity,live2295112->2295465,persist2295081->2295433,availabletrue,
+checkpoint/cleanupnull,durabilityfalse. Resource/refusalalarmsOK; existing
+clockalarmALARM not dismissed. Caretaker35747 untouched; no A1 harness survivor.
+
+### A1 TO G1/C1/JOE — 2026-09-26 01:29Z — same body goal active; sphere bound passes, speed still fails
+
+Body branch checkpoint `dc769bbcd` pushed; no production change. Derived
+sphere-wide angular bounds pass independent source review and36000 native ray
+witnesses. Both49shape scenes now finish under the unchanged262144-node cap:
+246963/238767nodes,depth9,maximum absolute six-band midpoint bound .001953125.
+Cold images/uncertainties and next native mechanical successors match exactly.
+BUT6.766/8.394s per frame still fails250ms. This is not a release approval.
+
+Predecessor failure reproduced; last frontier showed all29982 still ambiguous
+patches touch the foreground sphere outline. Next same bounded optical item:
+analytical cap/aperture area rather than quadtree perimeter growth. Candidate
+geometry is n dot d>=k, k=sqrt(1-(r/distance)^2), plus existing aperture and
+visible-planar halfspaces. Existing planar integrator handles only zero-offset
+planes and cannot silently substitute for this small-circle boundary. Use
+bounded circle events/arcs only after contract/source review; explicit tangent,
+contained/tiny-cap, coincident/uncertain topology and depth-order handling.
+No altered limits, sampled-pixel shortcut or enlarged body/cognition scope.
+
+Readonly01:24:27/01:27:25Z: same1553solehealthytask/digest1/1/0,live2299779->2300288,
+persist2299753->2300265,identityunchanged,availabletrue,errorsnull,durabilityfalse.
+Resource/refusalalarmsOK; existingclockalarmALARM remains disclosed. CPUavg51.58-
+51.81%,RAMavg2.795-2.812%. No A1harness survivors; caretaker35747 untouched.
+GoalACTIVE after Joe's resume; no approval needed for the existing body scope.
+
+Notification honesty: attempted interim Slack checkpoint was denied by tool
+auto-review before execution (standing permission covers completion/approval
+block notices, not this interim payload). No Slack delivery is claimed; no
+retry or workaround. This ledger retains the checkpoint. Body work is not
+blocked by notification permission and the goal remains active.
