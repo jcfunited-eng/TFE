@@ -1,8 +1,7 @@
 """Six-band material integration on physical planar charts.
 
-Approved numerical optics; no perception/identity, retained scene, curved-shape
-substitute or complete lighting claim. Each surface has declared uniform incident
-irradiance. Spatially varying illumination needs its own physical integration.
+Approved numerical optics. Uniform incident irradiance is an explicit input,
+not a claim of spatially varying illumination or complete world mounting.
 """
 from __future__ import annotations
 
@@ -22,12 +21,11 @@ _UNIT_RECTANGLE.setflags(write=False)
 
 @dataclass(frozen=True)
 class PlanarMaterial:
-    """Transient references/values from world material custody, not a new owner.
+    """World-owned physical material inputs, never a recognition identity.
 
-    Units: exact integer ppm reflectance/emission, and incident irradiance in
-    the world's declared retinal-reference units. Pattern columns run toward
-    +u, rows toward -v on a full [0,1] physical rectangle. No material/object
-    identifiers are exported to an organism by this type.
+    Six exact ppm reflectance/emission bands and declared incident irradiance.
+    Pattern columns run toward +u and rows toward -v on the original [0,1]
+    physical rectangular surface chart. References are transient, not custody.
     """
     reflectance_ppm: tuple[int, ...]
     emission_ppm: tuple[int, ...]
@@ -48,45 +46,28 @@ class PlanarMaterial:
             self.pattern.verify()
 
 
-def planar_material_radiance(surfaces, materials, apertures, *, max_sites,
-                             max_material_cells, max_halfspaces, max_work,
-                             max_cells):
-    """Integrate actual material cells AFTER physical visibility/depth ordering.
+def _prepare_material(material):
+    """Single physical radiance law, after one material trust-boundary check."""
+    if not isinstance(material, PlanarMaterial):
+        raise ValueError("typed physical material required")
+    material.verify()
+    pattern = material.pattern
+    paint = ((material.reflectance_ppm,) if pattern is None
+             else pattern.palette_reflectance_ppm)
+    values = (np.asarray(paint, dtype=np.float64) / 1_000_000
+              * np.asarray(material.incident_irradiance, dtype=np.float64)
+              + np.asarray(material.emission_ppm, dtype=np.float64) / 1_000_000)
+    if not np.isfinite(values).all():
+        raise ValueError("derived material radiance exceeds numerical domain")
+    return pattern, values
 
-    No billboard texture, centre sampling, guessed UV axis or palette reduction.
-    Adjacent equal indices within a row become one exact rectangle. The input
-    surfaces must represent the complete planar scene; this cannot certify a
-    scene with omitted curved or other occluding geometry.
+
+def _material_regions(surfaces, prepared, visible, *, max_halfspaces):
+    """One post-visibility composer shared by planar and native geometry.
+
+    Inputs were admitted by the caller; prepared entries are (physical pattern
+    or None, six-band radiances). Material cells never become occluding solids.
     """
-    if any(type(n) is not int or n <= 0 for n in (
-            max_sites, max_material_cells, max_halfspaces, max_work, max_cells)):
-        raise ValueError("positive optical resource bounds required")
-    if (type(surfaces) is not tuple or type(materials) is not tuple
-            or len(surfaces) != len(materials) or len(surfaces) > max_halfspaces):
-        raise ValueError("one material per bounded physical surface required")
-    if (not isinstance(apertures, np.ndarray) or apertures.ndim != 2
-            or not 0 < len(apertures) <= max_sites):
-        raise ValueError("retinal site bound exceeded")
-    _validate_apertures(apertures)
-    cell_count = 0
-    for surface, material in zip(surfaces, materials):
-        if not isinstance(surface, PlanarSurface) or not isinstance(material, PlanarMaterial):
-            raise ValueError("typed physical planar surface and material required")
-        material.verify()
-        pattern = material.pattern
-        if pattern is not None:
-            cell_count += pattern.rows * pattern.columns
-            if cell_count > max_material_cells:
-                raise ValueError("declared material cell bound exceeded")
-            rectangle = surface.material_halfspaces(_UNIT_RECTANGLE, max_corners=4)
-            if (surface.halfspaces.shape != (5, 3)
-                    or not np.array_equal(surface.halfspaces[1:], rectangle)):
-                raise ValueError("pattern requires the original unit rectangular chart")
-
-    domain = np.array(((apertures[:, 0].min(), apertures[:, 1].max(),
-                        apertures[:, 2].min(), apertures[:, 3].max()),))
-    visible = visible_planar_regions(surfaces, domain, max_halfspaces=max_halfspaces,
-                                     max_work=max_work, max_cells=max_cells)
     planes, radiances, rows = [], [], 0
 
     def append(region, cell_planes, value):
@@ -98,20 +79,19 @@ def planar_material_radiance(surfaces, materials, apertures, *, max_sites,
         planes.append(region if cell_planes is None else np.vstack((region, cell_planes)))
         radiances.append(value)
 
-    for index, (surface, material) in enumerate(zip(surfaces, materials)):
+    for index, (surface, (pattern, values)) in enumerate(zip(surfaces, prepared)):
+        if pattern is not None:
+            rectangle = surface.material_halfspaces(_UNIT_RECTANGLE, max_corners=4)
+            if (surface.halfspaces.shape != (5, 3)
+                    or not np.array_equal(surface.halfspaces[1:], rectangle)):
+                raise ValueError("pattern requires the original unit rectangular chart")
         regions = tuple(r.halfspaces for r in visible if r.surface_index == index)
         if not regions:
             continue
-        light = np.asarray(material.incident_irradiance, dtype=np.float64)
-        emission = np.asarray(material.emission_ppm, dtype=np.float64) / 1_000_000
-        pattern = material.pattern
         if pattern is None:
-            value = np.asarray(material.reflectance_ppm, dtype=np.float64) / 1_000_000 * light + emission
             for region in regions:
-                append(region, None, value)
+                append(region, None, values[0])
             continue
-        palette = np.asarray(pattern.palette_reflectance_ppm, dtype=np.float64) / 1_000_000
-        values = palette * light + emission
         for row in range(pattern.rows):
             start = row * pattern.columns
             column = 0
@@ -128,6 +108,39 @@ def planar_material_radiance(surfaces, materials, apertures, *, max_sites,
                 for region in regions:
                     append(region, boundaries, values[selected])
                 column = end
-    return disjoint_surface_radiance(
-        tuple(planes), np.asarray(radiances, dtype=np.float64).reshape(-1, 6),
-        apertures, max_cells=max_cells, max_halfspaces=max_halfspaces)
+    return tuple(planes), np.asarray(radiances, dtype=np.float64).reshape(-1, 6)
+
+
+def planar_material_radiance(surfaces, materials, apertures, *, max_sites,
+                             max_material_cells, max_halfspaces, max_work,
+                             max_cells):
+    """Integrate actual attached paint AFTER complete planar depth ordering."""
+    if any(type(n) is not int or n <= 0 for n in (
+            max_sites, max_material_cells, max_halfspaces, max_work, max_cells)):
+        raise ValueError("positive optical resource bounds required")
+    if (type(surfaces) is not tuple or type(materials) is not tuple
+            or len(surfaces) != len(materials) or len(surfaces) > max_halfspaces):
+        raise ValueError("one material per bounded physical surface required")
+    if (not isinstance(apertures, np.ndarray) or apertures.ndim != 2
+            or not 0 < len(apertures) <= max_sites):
+        raise ValueError("retinal site bound exceeded")
+    _validate_apertures(apertures)
+    prepared, cell_count = [], 0
+    for surface, material in zip(surfaces, materials):
+        if not isinstance(surface, PlanarSurface):
+            raise ValueError("typed physical planar surface required")
+        value = _prepare_material(material)
+        pattern = value[0]
+        if pattern is not None:
+            cell_count += pattern.rows * pattern.columns
+            if cell_count > max_material_cells:
+                raise ValueError("declared material cell bound exceeded")
+        prepared.append(value)
+    domain = np.array(((apertures[:, 0].min(), apertures[:, 1].max(),
+                        apertures[:, 2].min(), apertures[:, 3].max()),))
+    visible = visible_planar_regions(surfaces, domain, max_halfspaces=max_halfspaces,
+                                     max_work=max_work, max_cells=max_cells)
+    planes, values = _material_regions(surfaces, prepared, visible,
+                                       max_halfspaces=max_halfspaces)
+    return disjoint_surface_radiance(planes, values, apertures,
+                                     max_cells=max_cells, max_halfspaces=max_halfspaces)

@@ -226,3 +226,4 @@ def cap_solid_angles(centre, radius, apertures, normals, *, max_cells=32768):
         # No geometric feature threshold or widened comparison tolerance.
         areas[index] = np.clip(area+unknown/2, 0., (b-a)*(hi-lo))
     return areas, uncertainty
+

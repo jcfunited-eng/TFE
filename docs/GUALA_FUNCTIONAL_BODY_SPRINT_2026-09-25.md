@@ -3691,3 +3691,103 @@ and receptor aperture integration. Inspect that seam before an integration
 edit; no new cognitive/perceptual identity model, no source exclusion shortcut.
 Full native-home,contact/conduction/oral,sensory/motor,paired-state,cold/live
 gates remain open. GoalACTIVE; Joe's bedtime message adds no missing approval.
+
+### FB-01y — one native visibility/material aperture operator
+
+Previous turn PROGRESS:5b4815390,FB-01x diagnostic closed by source review,
+analytic/native/cold proof and20renders below250ms. Advance the same optical
+connection; do not reopen the accepted geometry law. Production baseline1553,
+sameec20ff task remains independent. GoalACTIVE,whole body not complete.
+Requested architecture: native geometry and fixed physical material charts
+produce six-band receptor-aperture means under full head transforms. Current
+reality: native visibility and planar material integration are separate tested
+components; neither is ordinary-loop mounted. ConflictYES if old view-facing
+textures/upright-root reconstruction were reused. Those are not extended.
+Do not modify cognition,L0-L4,world/native schemas,body motion,UI or production.
+Single exact item: join the accepted material-cell law to native visibility.
+Reduced numerical optics only; uniform incident irradiance per declared
+surface remains an explicit limitation. No DSF field projection/substitution.
+
+Source/ownership: A1 alone edits functional_body_renderer.py and
+functional_body_sphere_cap.py (move reviewed laws out of tools, not copies),
+functional_body_materials.py (one shared post-visibility material composer),
+tools/guala_body_curved_optical_regime.py (driver only), focused standalone
+test and this ledger. Independent review has accepted the contract boundaries;
+freeze/source review must precede any import/test. No retained optical state,
+second scene,authority,receipt,cache,controller,or schema migration.
+
+Input: complete authenticated native geometry snapshot,one typed existing
+PlanarMaterial per native primitive,explicit optional box-face overrides
+(native row,local axis,side,material),retinal apertures and finite work bounds.
+Base/curved patterns refuse: no guessed sphere chart. Duplicate/invalid face
+addresses and hidden oversized patterns refuse before culling. Fixed face UV
+uses original box local axes and unitrectangle; it never follows gaze.
+Physical radiance=L=rho*incident+emission without clipping. Black surfaces
+remain opaque. Derived nonfinite values refuse. Existing palette/RLE law
+executes ONCE after original surface visibility, shared with planar caller.
+Resolved box patches use material-cell integration,not constant base color.
+Curved-cap subtraction uses the same material cells. Every residual bound
+includes palette/override/emission peaks; no base-only error understatement.
+
+Output: existing bounded six-band midpoint,explicit uncertainty,local work and
+unresolved fraction; no physical/cognitive state mutation. Failure returns no
+image. Cold proof restores native geometry AND identical external material
+inputs; native bytes alone do not serialize these inputs. Actual world-custody
+material binding,spatially varying lighting,ordinary-loop mount and full paired
+body/world publication remain required later gates,not claimed by this module.
+
+Acceptance: retain existing geometry/refusal/independent-reference/cold proofs;
+uniform-material path reproduces prior values; actual attached palette remains
+on original native box under head and common rigid transforms; native sphere
+occludes its patterned backdrop; zero illumination removes reflection while
+emission survives; palette peaks enter bounds even above1; bad/duplicate/
+curved/hidden oversized material requests refuse; next physical successor and
+cold image/error unchanged; bounded timing/RAM and no process survivors.
+No pytest/conftest/network writes or production authority construction.
+
+Known bootstrap recurrence: require-guala-root expects removed historical
+HANDOFF_2026-07-31 file and fails on this modern body branch,as FB-01s recorded.
+The Sept05 parsimony document is also absent here. Do not retry those absent
+paths or fabricate authority documents; use current user approvals,skills,
+AGENTS.md,explicit git worktree/branch and this durable ledger. Preflight file
+existence before optional historical reads. No architectural authority changed.
+
+FB-01y verification receipt — 2026-09-26 02:49Z.
+Frozen9b04bb review found one localized overflow-domain defect. Batched source
+correction refuses nonfinite cap composition, accumulated radiance and final
+image/radius; no clipping or relaxed error. Final source reviewe07b1e PASS.
+Initial standalone session21620:7PASS/1fixtureERROR; ObjectOpticalSurface
+correctly rejected unused palette colors before renderer invocation. Failure
+retained; no renderer workaround. Test-only correction uses real white/black
+halves and analytical incident*(.5-shadow)+emission*(1-shadow); all original
+accuracy/resource assertions preserved. Narrow independent confirmation PASS.
+Final exact fingerprint9fd3ef0f0c273c769c530bfc7ee1c95fd1c8c227a64b87f7df057c507b9aac3e
+verified again after all executions, before releasing freeze for this receipt.
+
+Standalone session86821 terminal0:8native-material checks PASS,1.675041s,
+91584KiB peak;48nativegeoms,19335sites,painted/sphere frame.106221s. Fixed
+physical-chart independent reference, real head torque/motion, common world
+rigid transform, cold image/error/residual and nextmotor successor, darkness,
+emission>1,no clipping, cylinder analytical shadow/residual palette peak,
+hidden-invalid/budget refusal,finite-input intermediate overflow refusal PASS.
+Existing planar material suite58763 terminal0:4PASS1.103s;frame.129/.187s.
+Geometry diagnostic71196 terminal0:36000native sampled witnesses,6refusals,
+9analytic cap laws,exact predecessor containment and3mixed finer-reference
+roots,cold physical successor PASS;19335sites original47geom.0775/.0872s,
+curved49geom.1913/.1582s. Full diagnostic7.397524s,183832KiB includes retained
+predecessor reference and cold instances. No production timing claim.
+
+Read-only before/after02:45:25/02:49:10Z same1553/ec20ff sole task,digest1d088e...
+counts1/1/0,live2314314->2314991,persist2314281->2314985,identityunchanged,
+availabletrue,checkpoint/cleanupnull,durabilityfalse. ExistingclockALARM still
+raised;CPU/RAM/storage/refusalalarmsOK,CPUavg51.5%,RAM2.84%. Caretaker35747
+untouched. Every A1 diagnostic session terminal,no survivors,no network writes.
+G1 diagnostic processes were observed independently and never signalled.
+
+Outcome: native material/visibility seam demonstrated offline,one composer/
+one geometry law,no duplicate scene/state. Full goalACTIVE. Next exact item:
+bind actual world-owned materials and illumination to this native operator;
+inspect the existing authority boundary before authoring. Variable illumination,
+actual native home/caregiver/object/contact/oral integration,ordinary motor/
+sensory mount,paired publication and final restart/release gates remain open.
+No interim Slack retry after prior denial; not overall task completion.
