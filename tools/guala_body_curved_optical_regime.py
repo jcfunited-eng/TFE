@@ -242,9 +242,23 @@ def entry_bounds(kind, size, centre, rotation, patches, prepared, faces=None):
             result[hit] = a/(q[hit] + np.sqrt(np.maximum(q[hit]*q[hit]-a, 0.)))
             return result
         return entry(high[0]), entry(low[0])
+    half, radius = radii(kind, size)
+    original_count = len(patches)
+    rows = np.arange(original_count)
+    with np.errstate(over='ignore', invalid='ignore'):
+        enclosure_offset = float(centre @ centre-radius*radius)
+    if math.isfinite(enclosure_offset) and enclosure_offset > 0:
+        # A ray missing this enclosing sphere cannot hit the contained solid.
+        # The maximum covers the ENTIRE aperture, not a sampled central ray.
+        _, high = _dot_extrema(centre[None,:], patches,
+                               _plane_parameters(centre[None,:]), angular)
+        rows = np.flatnonzero(high[0] >= math.sqrt(enclosure_offset))
+        if not len(rows):
+            return np.full(original_count, np.inf), np.full(original_count, np.inf)
+        patches, direction, epsilon = patches[rows], direction[rows], epsilon[rows]
+        angular = tuple(a[rows] for a in angular)
     origin = -centre @ rotation
     velocity = direction @ rotation
-    half, radius = radii(kind, size)
     tmax = np.full(len(patches), np.linalg.norm(centre)+radius)
     low, high = _dot_extrema(rotation.T, patches, _plane_parameters(rotation.T), angular)
     for axis in range(3):
@@ -271,12 +285,14 @@ def entry_bounds(kind, size, centre, rotation, patches, prepared, faces=None):
     possible = (hi >= lower) & (lower <= tmax)
     lower = np.where(possible, lower, np.inf)
     upper = np.full(len(patches), np.inf)
-    rows = np.flatnonzero(nonempty & possible)
-    if len(rows):
-        a, b = interval(kind, contracted[rows], origin, velocity[rows])
+    inner = np.flatnonzero(nonempty & possible)
+    if len(inner):
+        a, b = interval(kind, contracted[inner], origin, velocity[inner])
         entry = np.maximum(a, 0)
-        upper[rows] = np.where((b >= entry) & (entry <= tmax[rows]), entry, np.inf)
-    return lower, upper
+        upper[inner] = np.where((b >= entry) & (entry <= tmax[inner]), entry, np.inf)
+    all_lower, all_upper = np.full(original_count, np.inf), np.full(original_count, np.inf)
+    all_lower[rows], all_upper[rows] = lower, upper
+    return all_lower, all_upper
 
 
 def classify(geometry, patches, boxes, curved):

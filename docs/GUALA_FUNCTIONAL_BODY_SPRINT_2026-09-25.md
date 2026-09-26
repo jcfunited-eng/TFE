@@ -3619,3 +3619,75 @@ retain original work. No source edit yet. Profile identified classifier .230s
 of .377s; removed planar-pair work alone did not meet250ms. No larger work
 limits, tolerance changes, semantic exclusions, learned-state or clock changes.
 GoalACTIVE, same objective and full integration gates remain open.
+
+FB-01x same-item speed correction, after accepted comparison commit2d932830d.
+Requested architecture: same bounded numerical native optics/body precursor.
+Current code reality: .45-.50s curved frames; full-aperture solid interval work
+dominates classifier. Conflict with requested architecture:no;250ms gate unmet.
+Will not extend: kernel/cognition,semantic exclusions,larger budgets,sampling,
+persistent cache,production/world/body authority. Single next item: exact
+enclosing-sphere angular rejection before expensive convex interval equations.
+This is reduced numerical optics, not evaluation/flattening of DSF fields.
+
+Existing radii() gives a containing sphere: capsule radius+halfshaft,cylinder
+hypot(radius,halfheight),ellipsoid largest axis. For finite a=|c|²-R²>0,
+a forward ray can intersect that sphere only if c dot d>=sqrt(a). Original
+whole-aperture dot maximum<sqrt(a) therefore proves NO physical solid hit.
+Preserve tangent/uncertain rows and original shape admission. Eye-inside or
+nonfinite enclosing offset retains the original equations on all rows. Execute
+unchanged expanded/contracted native interval bounds only on remaining rows;
+scatter to original order with infinity for proven misses. No approximation
+of the retained shape or new geometry. Same witnesses/cap/reference/cold gates,
+same resource ceilings. Frozen source review required before the next run.
+
+Frozen c41e170a0fa8f3b2c08ec421de177a61b788bbd052336576ff92c2d382e5c434
+passed source review and unchanged verification. Session60924 exit0,7.041545s,
+176628KiB peakRSS including reference/cold. All prior witnesses,analytic,
+admission,3mixed independent reference and cold/nextmotor checks PASS.
+Original frames .074787/.095600s; curved frames .281891/.224253s. Initial
+curved case still misses250ms: not a complete speed or production gate pass.
+Same-source profile isolates remaining cost in cap_solid_angles:48calls,
+.303s of .479s instrumented; classifier .027s,prepare_scene .063s.
+
+Next localized speed correction uses existing exact halfspace extrema, one
+plane at a time to bound temporary arrays. Any original plane maximum<0 proves
+empty intersection for that aperture. All minima>=0 proves ALL planar
+constraints redundant there. Fullcap+admittedplanes returns aperture area;
+partialcap+admittedplanes uses the same cap integral with empty plane list,
+one-level recursion terminating at count0. Actual boundary-crossing apertures
+retain existing event/ownership integration. No numerical threshold,sampling,
+newcache,increased error/work budget,geometry substitution or cognition change.
+This eliminates irrelevant plane events, not visible physical features. Same
+independent geometry/cold/performance proof after frozen source review.
+
+Frozen4bc9b533752011c0e2dead56983864349544ce82b87e83e281d6d16f0ff34584
+source review PASS,unchanged verification. Session31483 exit0,6.947658s,
+181396KiB peakRSS INCLUDING older independent reference/cold copies. All36000
+sampledwitnesses,6refusals,9analyticlaws,analytic interval containment,3mixed
+finer-reference proofs and exact cold image/radius/residual/nextmotor PASS.
+Measured frames: original .087044/.110781s; curved .170814/.247080s.
+The latter is near the250ms boundary; one sample is not a latency guarantee.
+
+Bounded same-source repeat probe93754 exit0:5 renders each of the same4 native
+scene/pose states,20total; no retained cache or state advance. Every repeated
+image/radius/residual bit-identical. Original initial min/max .070683/.086267s,
+moved .088368/.103656s. Curved initial .186660/.201550s,moved .169590/.189801s.
+PeakRSS87472KiB without predecessor/cold copies. All20measured render samples
+under250ms; this closes only the offline finite-geometry diagnostic latency
+witness, not whole-body/live throughput, variable illumination or general-case
+worst-time guarantee. No actor/world/cognition/kernel/production code changes.
+
+Read-only02:16:11/02:18:04Z:same1553solehealthyec20ff,digest unchanged,1/1/0,
+live2309031->2309367,persist2309001->2309353,identityunchanged,availabletrue,
+checkpoint/cleanupnull,durabilityfalse;clock-stalledALARM remains disclosed,
+resource/refusalalarmsOK,CPU51.4-51.5%,RAM2.832%;caretaker35747 untouched.
+All A1 runs have terminal receipts; no surviving diagnostic or live mutation.
+
+Progress classification: substantive bounded progress; FB-01x analytic curved
+visibility now meets its offline comparison/restart/performance witness.
+Next exact item: map this verified native visibility operator to the existing
+body optical material/illumination boundary, preserving whole native geometry
+and receptor aperture integration. Inspect that seam before an integration
+edit; no new cognitive/perceptual identity model, no source exclusion shortcut.
+Full native-home,contact/conduction/oral,sensory/motor,paired-state,cold/live
+gates remain open. GoalACTIVE; Joe's bedtime message adds no missing approval.

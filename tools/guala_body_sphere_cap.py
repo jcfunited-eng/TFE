@@ -87,11 +87,28 @@ def cap_solid_angles(centre, radius, apertures, normals, *, max_cells=32768):
     full, outside = low[0] >= k, high[0] < k
     areas = np.zeros(len(apertures))
     uncertainty = np.zeros(len(apertures))
-    if full.any():
-        rows = apertures[full]
-        areas[full] = (aperture_solid_angles(planes, rows, max_cells=max_cells)
-                       if count else (rows[:,1]-rows[:,0])*(rows[:,3]-rows[:,2]))
-    active = np.flatnonzero(~full & ~outside)
+    admitted = np.ones(len(apertures), dtype=bool)
+    for plane in planes:
+        # One original halfspace at a time keeps workspace linear in sites.
+        # If an entire aperture obeys it, no boundary ownership can change
+        # there; if all rays violate it, this intersection is empty.
+        minimum, maximum = _dot_extrema(plane[None,:], apertures,
+                                        _plane_parameters(plane[None,:]), geometry)
+        outside |= maximum[0] < 0
+        admitted &= minimum[0] >= 0
+    complete = full & admitted & ~outside
+    rows = apertures[complete]
+    areas[complete] = (rows[:,1]-rows[:,0])*(rows[:,3]-rows[:,2])
+    clipped = full & ~admitted & ~outside
+    if clipped.any():
+        areas[clipped] = aperture_solid_angles(planes, apertures[clipped], max_cells=max_cells)
+    unconstrained = ~full & admitted & ~outside if count else np.zeros(len(apertures), dtype=bool)
+    if unconstrained.any():
+        # These apertures still intersect the curved cap, but all planar
+        # constraints are proven redundant. Recursion terminates at count=0.
+        areas[unconstrained], uncertainty[unconstrained] = cap_solid_angles(
+            centre, radius, apertures[unconstrained], np.empty((0,3)), max_cells=max_cells)
+    active = np.flatnonzero(~full & ~outside & ~unconstrained)
     if not len(active):
         return areas, uncertainty
     horizontal = np.array(((n[0], n[1], 0.),))
