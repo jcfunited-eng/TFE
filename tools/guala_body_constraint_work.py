@@ -12,6 +12,109 @@ import mujoco as mj
 import numpy as np
 
 
+class DiscreteWork:
+    """Actual implicitfast update, scoped to verified bearing-only derivatives."""
+
+    def __init__(self, engine):
+        self.engine, self.pending = engine, None
+        m = engine._model
+        if m.opt.integrator != mj.mjtIntegrator.mjINT_IMPLICITFAST:
+            raise AssertionError("discrete measurement requires implicitfast")
+        self.expected_derivative = np.zeros(m.nD)
+        self.expected_derivative[m.D_rowadr + m.D_diag] = -m.dof_damping
+        self.product = np.empty(m.nv)
+        self.max_impulse_residual = np.zeros(m.nv)
+        self.max_force_composition_residual = np.zeros(m.nv)
+        self.sum_abs_impulse_energy_bound = 0.
+        self.max_abs_energy_closure = self.sum_abs_energy_closure = 0.
+        self.work = defaultdict(float)
+        self.completed_steps = 0
+
+    def finish(self, data):
+        if self.pending is None:
+            return
+        pre_k, pre_u, post_k_at_pre_metric, work = self.pending
+        post_u, post_k = map(float, data.energy)
+        metric = post_k - post_k_at_pre_metric
+        delta_k, delta_u = post_k-pre_k, post_u-pre_u
+        model_delta_k = math.fsum(work[k] for k in
+            ("actuator", "constraint", "passive", "negative_bias", "implicit")) + metric
+        closure = delta_k - model_delta_k
+        if not all(math.isfinite(x) for x in (metric, delta_k, delta_u, closure)):
+            raise AssertionError("nonfinite discrete energy measurement")
+        self.max_abs_energy_closure = max(self.max_abs_energy_closure, abs(closure))
+        self.sum_abs_energy_closure += abs(closure)
+        for key, value in work.items():
+            self.work[key] += value
+        self.work["metric"] += metric
+        self.work["potential_change"] += delta_u
+        self.work["kinetic_change"] += delta_k
+        self.work["energy_closure"] += closure
+        self.completed_steps += 1
+        self.pending = None
+
+    def step(self, pre_v, post_v):
+        m, d = self.engine._model, self.engine._data
+        if self.pending is not None:
+            raise AssertionError("previous discrete step was not finished")
+        if not np.array_equal(d.qDeriv, self.expected_derivative):
+            raise AssertionError("compiled derivative is not bearing-only -B")
+        if not np.array_equal(d.qfrc_passive, -m.dof_damping*pre_v):
+            raise AssertionError("passive forces are not solely declared bearings")
+        dt = m.opt.timestep
+        delta_v, mean_v = post_v-pre_v, (pre_v+post_v)/2
+        force = d.qfrc_smooth + d.qfrc_constraint
+        composition = d.qfrc_actuator + d.qfrc_passive - d.qfrc_bias
+        self.max_force_composition_residual = np.maximum(
+            self.max_force_composition_residual, np.abs(d.qfrc_smooth-composition))
+        # qM and solved forces still belong to pre-step q, not advanced qpos.
+        # mj_mulM is a const-data product; no extra forward/constraint solve.
+        mj.mj_mulM(m, d, self.product, delta_v)
+        residual = self.product + dt*m.dof_damping*delta_v - dt*force
+        self.max_impulse_residual = np.maximum(self.max_impulse_residual, np.abs(residual))
+        self.sum_abs_impulse_energy_bound += float(np.sum(np.abs(mean_v*residual)))
+        mj.mj_mulM(m, d, self.product, post_v)
+        post_k_at_pre_metric = .5*float(np.dot(post_v, self.product))
+        work = {key: dt*float(np.dot(mean_v, vector)) for key, vector in (
+            ("actuator", d.qfrc_actuator), ("constraint", d.qfrc_constraint),
+            ("passive", d.qfrc_passive), ("negative_bias", -d.qfrc_bias),
+            ("implicit", -m.dof_damping*delta_v))}
+        work["bearing_trapezoid"] = dt/2 * float(np.dot(m.dof_damping, pre_v**2 + post_v**2))
+        if (not np.isfinite(residual).all() or not math.isfinite(post_k_at_pre_metric)
+                or not all(math.isfinite(x) for x in work.values())):
+            raise AssertionError("nonfinite discrete impulse measurement")
+        self.pending = (float(d.energy[1]), float(d.energy[0]), post_k_at_pre_metric, work)
+
+    def report(self, result, trapezoidal_constraint_work):
+        if self.pending is not None:
+            raise AssertionError("final discrete endpoint missing")
+        w = self.work
+        physical_remaining = (w["actuator"] + w["constraint"] - w["bearing_trapezoid"]
+                              - w["kinetic_change"] - w["potential_change"])
+        explained_remaining = -math.fsum(w[k] for k in (
+            "bearing_trapezoid", "passive", "implicit", "negative_bias",
+            "metric", "potential_change", "energy_closure"))
+        return {
+            "scope": "integrator-consistent exchange; NOT a heat law or continuous-error bound",
+            "bearing_only_derivative_and_force_exact_each_step": True,
+            "completed_steps": self.completed_steps,
+            "work_j": dict(w),
+            "max_absolute_impulse_residual_by_dof": self.max_impulse_residual.tolist(),
+            "max_absolute_force_composition_residual_by_dof": self.max_force_composition_residual.tolist(),
+            "sum_absolute_impulse_energy_residual_bound_j": self.sum_abs_impulse_energy_bound,
+            "sum_absolute_discrete_energy_closure_j": self.sum_abs_energy_closure,
+            "max_absolute_discrete_energy_closure_j": self.max_abs_energy_closure,
+            "constraint_trapezoid_minus_discrete_j": trapezoidal_constraint_work-w["constraint"],
+            "bearing_trapezoid_plus_passive_and_implicit_j":
+                w["bearing_trapezoid"] + w["passive"] + w["implicit"],
+            "physical_balance_with_discrete_constraint_j": physical_remaining,
+            "explained_physical_balance_j": explained_remaining,
+            "explanation_disagreement_j": physical_remaining-explained_remaining,
+            "actuator_work_minus_ordinary_j": w["actuator"]-result.signed_motor_work_j,
+            "bearing_quadrature_minus_ordinary_j": w["bearing_trapezoid"]-result.bearing_dissipation_j,
+        }
+
+
 class ConstraintWork:
     def __init__(self, engine):
         self.engine = engine
@@ -28,9 +131,11 @@ class ConstraintWork:
         self.events, self.trajectory = [], []
         self.step_count = 0
         self.previous_active = None
+        self.discrete = DiscreteWork(engine)
 
     def sample(self, qpos, qvel, elapsed_us):
         m, d = self.engine._model, self.engine._data
+        self.discrete.finish(d)
         # Contact indices are only meaningful in this same, unrefreshed solve.
         powers = defaultdict(float)
         active = set()
@@ -135,6 +240,7 @@ class ConstraintWork:
             "event_scope": "active type/entity groups; internal contact-row/manifold churn is not measured",
             "trajectory_every_10ms": self.trajectory,
             "substeps": self.step_count,
+            "discrete_update": self.discrete.report(result, constraint),
         }
 
 
@@ -152,6 +258,7 @@ def advance_with_constraint_work(engine, state, elapsed_us, supply_j, *, effort_
         # Its energy, efc and qfrc fields still describe this PRE-step state.
         original(model, data)
         audit.sample(qpos, velocity, audit.step_count * engine.limits.step_us)
+        audit.discrete.step(velocity, data.qvel)
         audit.step_count += 1
 
     try:

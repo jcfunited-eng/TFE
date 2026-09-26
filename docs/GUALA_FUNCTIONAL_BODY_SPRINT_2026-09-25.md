@@ -5724,3 +5724,90 @@ RAM2.9785%. Prior clockALARM remains,other4alarmsOK. Caretaker35747 untouched;
 unrelated heartbeat22563 owned by9628 was observed, not killed.
 Production/cold/mature-body/interface/home gates remainOPEN. GitHub push still
 permission-blocked; no bypass. GoalACTIVE. No completion or live-body claim.
+
+### FB-01aj discrete-update accounting — bounded continuation contract
+
+Predecessor22e70b53f closes signed-force measurement only. The measured force
+trapezoid is not the integrator's applied impulse work. Source authority:
+MuJoCo3.3.7 engine_forward.c:923-977 and engine_derivative.c:1287-1385.
+
+One authorized diagnostic file: tools/guala_body_constraint_work.py. Runtime,
+actuation, damping, numerical coefficients, caller schema and heat stay frozen.
+For each real implicitfast step, measure
+(M-hD)delta_v=h(qfrc_smooth+qfrc_constraint).
+Verify this compiled bench D=-diag(B) and passive=-B*v exactly each step;
+otherwise abort this scoped diagnostic, never silently assume a different law.
+
+Measure actuator, constraint, passive and negative-bias impulse work with
+h*(vpre+vpost)/2 dot each PRE-step force. Record h*vbar dot D*delta_v.
+Read-only mj_mulM on existing pre-step inertia obtains Mpre*delta_v and
+vpost^T*Mpre*vpost; no dense matrix, solve, callback or native state mutation.
+Next existing forward sample supplies Kpost/Upost. Keep only one pendingstep.
+Metric work=Kpost-.5*vpost^T*Mpre*vpost; do not invent gyroscopic dissipation.
+
+Independent checks: per-DOF impulse residual maxima; sum absolute |vbar_i*r_i|;
+sum/max absolute complete discrete energy closure. Compare existing bearing
+quadrature to actual passive+implicit exchange, never substitute signed
+accounting for nonnegative physical bearing heat. Retain former trapezoidal
+constraint work and expose its difference from applied impulse work.
+
+All successors and former motor/bearing sums must remain exactly unchanged.
+No loss assigned to heat, no continuous-error bound claimed from algebra.
+Contract scope is numerical-measurement correctness, not a new accepted bodylaw.
+One frozen source-only review precedes paired8x3 execution. Evidence output
+single-case compressed to avoid the proven terminal truncation. Pre/post
+read-only AWS/census; zero runtime or G1 mutation. GoalACTIVE.
+
+### FB-01aj discrete accounting closed; motion/thermal qualification open — 2026-09-26 10:13Z
+
+Candidate56b82c901 source-only PASS, no findings. Session92793 exit0:
+24/24 full native successors, every prior raw non-walltime record (including
+trajectory, group events, old work) and existing motor/bearing witnesses exact.
+Every substep verified actual compiled derivativeD=-B and passive=-B*v; no
+assumption substituted for that check. Every compressed new record authenticated.
+
+Discrete equation residual: maximum summed absolute energy closure2.2141342e-11J;
+maximum single-step closure1.5781994e-13J; maximum summed absolute impulse-energy
+residual bound2.2133979e-11J. The independent residual checks establish the
+accounting identity to measured rounding, not continuous-solution accuracy.
+Explanation_disagreement includes measured closure and is not an independent
+physical accuracy test. Peak152172KiB; all handles terminal.
+
+Torso negative-capacity results:
+step_us | applied constraint impulse work J | motor+constraint-Qbearing-deltaE J
+100 | -10.144237191 | -.017286570110
+50  | -10.137249365 | -.001972195704
+25  | -10.131405989 | +.000047972572
+
+The old force trapezoid adds -13.742508/-4.494226/-1.756082J compared with the
+actual applied constraint impulse: new braking force was being assigned to a
+preceding interval where it was not applied. The remaining measured balance is
+explicitly decomposed into bearing quadrature, negative bias, changing inertia,
+potential change and tiny equation residual. No force/pose/energy stock changed.
+Across all eight loads the largest |physical balance| is .01728657/.00197220/
+.000383904J at100/50/25us. Do NOT declare that a chosen tolerance was passed.
+
+Also disclosed: outward distal-stop cases have positive net numerical constraint
+exchange16.53/4.45/.854microjoules. This is not proved released stored energy;
+soft-constraint passivity/heat allocation remains unqualified. No residual,
+positive constraint work, metric term or algorithmic correction enters heat.
+
+Data: docs/evidence/FB-01aj-discrete-work.json stores all24 new compressed raw
+records, script, source fingerprint, session and pre/post health. Prior full
+trajectories are referenced once by exact-field comparison and artifact SHA256
+d3da6a5047551f9cd9a1c591da94ffe80d070473482e3171af6e515101a9b3e7.
+No need to repeat the bookkeeping investigation or blame the former13J gap on
+unknown physical heat. Source helperd3e8f712... is offline only; runtime remains
+210996faa... . Whole-body active numerical law is NOT promoted by this proof.
+
+Next exact physical item: derive limit/contact numerical resolution from the
+existing declared geometry and force/inertia envelope, and qualify same-law
+trajectory error and passivity before selecting any timestep/constraint law.
+Do not tune a coefficient merely until the ordinary-loop test passes. Existing
+100/50/25us trajectories and full128load results remain the control evidence;
+do not reopen their measured outcome or run the archived integration candidate.
+
+Post10:10:34Z same1553/ec20ff/digest1d088e,counts1/1/0HEALTHY,sameidentity,
+live2378051,persist2378025,errorsnull,durabilityfalse,CPU51.22%,RAM2.991%.
+Prior clockALARM remains;other4alarmsOK. Caretaker35747 untouched; no diagnostic
+orphan. Full functional-body goalACTIVE; no deployment, push or completion.
