@@ -51,9 +51,13 @@ def prior_records():
     return records
 
 
-def engine_at(step_us):
+def engine_at(step_us, *, integrator="implicitfast"):
     declared = declaration()
     root = ET.fromstring(declared.xml)
+    if integrator not in ("implicitfast", "implicit"):
+        raise ValueError("only the two declared native integration schemes are in scope")
+    if integrator != "implicitfast":
+        root.find("option").set("integrator", integrator)
     for tag, response_key, impedance_key in (
         ("joint", "solreflimit", "solimplimit"),
         ("geom", "solref", "solimp"),
@@ -67,8 +71,8 @@ def engine_at(step_us):
     return NativeBody(xml, limits, sensory_root=declared.sensory_root), xml, limits
 
 
-def run_case(name, sign, step_us, prior):
-    engine, xml, limits = engine_at(step_us)
+def run_case(name, sign, step_us, prior, *, integrator="implicitfast"):
+    engine, xml, limits = engine_at(step_us, integrator=integrator)
     m, d = engine._model, engine._data
     index = engine.actuator_names.index(name)
     force = float(m.actuator_forcerange[index, 0 if sign < 0 else 1])
@@ -80,6 +84,16 @@ def run_case(name, sign, step_us, prior):
                initial_state_sha256=hashlib.sha256(state).hexdigest(),
                initial_supply_j=supply, phases=[],
                scope="zero-gravity bench; fixed prescribed test loads; no behavioral claim")
+    if integrator == "implicit":
+        reference, _, _ = engine_at(step_us)
+        reference_state = reference.initial_state()
+        # Compare, never transplant/rewrite, the complete initial physical
+        # integration payload. Each engine keeps its own numerical-law header.
+        if state[len(engine._header):] != reference_state[len(reference._header):]:
+            raise AssertionError("integration method changed initial physical state")
+        row.update(integrator=integrator, initial_physical_payload_exact=True,
+            initial_physical_payload_sha256=hashlib.sha256(state[len(engine._header):]).hexdigest())
+        del reference
     for label, multiplier in PHASES:
         effort = multiplier * force
         before = state
@@ -92,7 +106,8 @@ def run_case(name, sign, step_us, prior):
             row["failure"] = dict(phase=label, error=str(error), native_time_s=float(d.time))
             break
         elapsed = time.perf_counter() - started
-        if label == "load" and report["discrete_update"] != prior[name, step_us, force]:
+        if (label == "load" and integrator == "implicitfast"
+                and report["discrete_update"] != prior[name, step_us, force]):
             raise AssertionError("first load diverged from accepted prior measurement")
         # Fresh model/data must continue the complete same native state,
         # including contacts/warm start. No pose/velocity rewriting.
@@ -124,7 +139,8 @@ def run_case(name, sign, step_us, prior):
                 float(d.qpos[m.jnt_qposadr[j]]-m.jnt_range[j, 1])) for j in engine._limited],
             max_surface_travel_m=result.max_surface_travel_m,
             ordinary_and_observed_seconds=elapsed, cold_advance_seconds=cold_seconds,
-            cold_successor_exact=True, first_load_prior_exact=(label == "load"),
+            cold_successor_exact=True,
+            first_load_prior_exact=(label == "load" and integrator == "implicitfast"),
             report=report)
         row["phases"].append(phase)
         state = result.state
@@ -136,7 +152,7 @@ def run_case(name, sign, step_us, prior):
         for p in row["phases"])
     row["max_rss_kib"] = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
     raw = canonical(row)
-    return dict(name=name, step_us=step_us, completed=row["completed"],
+    return dict(name=name, step_us=step_us, integrator=integrator, completed=row["completed"],
         failure=row.get("failure"), phases=len(row["phases"]),
         net_constraint_work_j=row["net_constraint_work_j"],
         sum_absolute_equation_closure_j=row["sum_absolute_equation_closure_j"],
@@ -148,6 +164,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--step-us", type=int, choices=(100, 50, 25), required=True)
     parser.add_argument("--load-index", type=int, choices=range(len(LOADS)), required=True)
+    parser.add_argument("--integrator", choices=("implicitfast", "implicit"), default="implicitfast")
     args = parser.parse_args()
     name, sign = LOADS[args.load_index]
-    print(json.dumps(run_case(name, sign, args.step_us, prior_records()), allow_nan=False), flush=True)
+    print(json.dumps(run_case(name, sign, args.step_us, prior_records(),
+        integrator=args.integrator), allow_nan=False), flush=True)

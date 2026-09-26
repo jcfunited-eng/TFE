@@ -13,13 +13,26 @@ import numpy as np
 
 
 class DiscreteWork:
-    """Actual implicitfast update, scoped to verified bearing-only derivatives."""
+    """Actual implicit update; native nonsymmetric derivative, no extra solve."""
 
     def __init__(self, engine):
         self.engine, self.pending = engine, None
         m = engine._model
-        if m.opt.integrator != mj.mjtIntegrator.mjINT_IMPLICITFAST:
-            raise AssertionError("discrete measurement requires implicitfast")
+        self.full_implicit = m.opt.integrator == mj.mjtIntegrator.mjINT_IMPLICIT
+        if not self.full_implicit and m.opt.integrator != mj.mjtIntegrator.mjINT_IMPLICITFAST:
+            raise AssertionError("discrete measurement requires implicit or implicitfast")
+        if self.full_implicit:
+            if m.ntendon or m.nflex or m.opt.density or m.opt.viscosity:
+                raise AssertionError("full derivative probe excludes tendon/flex/fluid forces")
+            if (np.any(m.D_rownnz <= 0)
+                    or not np.array_equal(m.D_rowadr,
+                        np.cumsum(np.r_[0, m.D_rownnz[:-1]]))
+                    or int(np.sum(m.D_rownnz)) != m.nD):
+                raise AssertionError("native derivative rows are not packed nonempty CSR")
+            self.bias_max = np.zeros(m.nv)
+            self.bias_abs_sum = np.zeros(m.nv)
+            self.same_state_witness_max = np.zeros(m.nv)
+            self.bias_samples = []
         self.expected_derivative = np.zeros(m.nD)
         self.expected_derivative[m.D_rowadr + m.D_diag] = -m.dof_damping
         self.product = np.empty(m.nv)
@@ -57,7 +70,7 @@ class DiscreteWork:
         m, d = self.engine._model, self.engine._data
         if self.pending is not None:
             raise AssertionError("previous discrete step was not finished")
-        if not np.array_equal(d.qDeriv, self.expected_derivative):
+        if not self.full_implicit and not np.array_equal(d.qDeriv, self.expected_derivative):
             raise AssertionError("compiled derivative is not bearing-only -B")
         if not np.array_equal(d.qfrc_passive, -m.dof_damping*pre_v):
             raise AssertionError("passive forces are not solely declared bearings")
@@ -70,7 +83,30 @@ class DiscreteWork:
         # qM and solved forces still belong to pre-step q, not advanced qpos.
         # mj_mulM is a const-data product; no extra forward/constraint solve.
         mj.mj_mulM(m, d, self.product, delta_v)
-        residual = self.product + dt*m.dof_damping*delta_v - dt*force
+        if self.full_implicit:
+            # Native qDeriv is the FULL nonsymmetric CSR matrix, not its
+            # lower triangle or a symmetrized/bearing-only approximation.
+            derivative_delta = np.add.reduceat(
+                d.qDeriv * delta_v[m.D_colind], m.D_rowadr)
+            residual = self.product - dt*derivative_delta - dt*force
+            bias_impulse = dt*(derivative_delta + m.dof_damping*delta_v)
+            fast_equation_at_this_increment = (
+                self.product + dt*m.dof_damping*delta_v - dt*force)
+            witness = fast_equation_at_this_increment - bias_impulse
+            if not all(np.isfinite(v).all() for v in (derivative_delta, bias_impulse, witness)):
+                raise AssertionError("nonfinite native derivative evidence")
+            self.bias_max = np.maximum(self.bias_max, np.abs(bias_impulse))
+            self.bias_abs_sum += np.abs(bias_impulse)
+            self.same_state_witness_max = np.maximum(self.same_state_witness_max, np.abs(witness))
+            elapsed_us = self.completed_steps*self.engine.limits.step_us
+            if elapsed_us % 10000 == 0:
+                self.bias_samples.append(dict(elapsed_us=elapsed_us,
+                    impulse_by_dof=bias_impulse.tolist(),
+                    signed_work_j=float(np.dot(mean_v, bias_impulse))))
+        else:
+            # Keep the previously proved fast arithmetic/order exactly.
+            derivative_delta = -m.dof_damping*delta_v
+            residual = self.product + dt*m.dof_damping*delta_v - dt*force
         self.max_impulse_residual = np.maximum(self.max_impulse_residual, np.abs(residual))
         self.sum_abs_impulse_energy_bound += float(np.sum(np.abs(mean_v*residual)))
         mj.mj_mulM(m, d, self.product, post_v)
@@ -78,7 +114,10 @@ class DiscreteWork:
         work = {key: dt*float(np.dot(mean_v, vector)) for key, vector in (
             ("actuator", d.qfrc_actuator), ("constraint", d.qfrc_constraint),
             ("passive", d.qfrc_passive), ("negative_bias", -d.qfrc_bias),
-            ("implicit", -m.dof_damping*delta_v))}
+            ("implicit", derivative_delta))}
+        if self.full_implicit:
+            work["implicit_bias_derivative"] = float(np.dot(mean_v, bias_impulse))
+            work["implicit_bearing"] = dt*float(np.dot(mean_v, -m.dof_damping*delta_v))
         work["bearing_trapezoid"] = dt/2 * float(np.dot(m.dof_damping, pre_v**2 + post_v**2))
         if (not np.isfinite(residual).all() or not math.isfinite(post_k_at_pre_metric)
                 or not all(math.isfinite(x) for x in work.values())):
@@ -94,7 +133,7 @@ class DiscreteWork:
         explained_remaining = -math.fsum(w[k] for k in (
             "bearing_trapezoid", "passive", "implicit", "negative_bias",
             "metric", "potential_change", "energy_closure"))
-        return {
+        report = {
             "scope": "integrator-consistent exchange; NOT a heat law or continuous-error bound",
             "bearing_only_derivative_and_force_exact_each_step": True,
             "completed_steps": self.completed_steps,
@@ -113,6 +152,18 @@ class DiscreteWork:
             "actuator_work_minus_ordinary_j": w["actuator"]-result.signed_motor_work_j,
             "bearing_quadrature_minus_ordinary_j": w["bearing_trapezoid"]-result.bearing_dissipation_j,
         }
+        if self.full_implicit:
+            del report["bearing_only_derivative_and_force_exact_each_step"]
+            report.update(
+                integrator="implicit",
+                passive_force_equals_declared_bearings_each_step=True,
+                derivative_source="actual native nonsymmetric qDeriv; no finite-difference solve",
+                bias_derivative_max_absolute_impulse_by_dof=self.bias_max.tolist(),
+                bias_derivative_sum_absolute_impulse_by_dof=self.bias_abs_sum.tolist(),
+                same_state_algebraic_witness_max_residual_by_dof=self.same_state_witness_max.tolist(),
+                bias_derivative_samples_every_10ms=self.bias_samples,
+                witness_scope="same-state algebraic isolation, NOT a counterfactual trajectory")
+        return report
 
 
 class ConstraintWork:

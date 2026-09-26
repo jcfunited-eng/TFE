@@ -5929,3 +5929,132 @@ Neither command error changed source physics or lost measured evidence.
 
 Complete functional-body goalACTIVE. This is a local qualification result, not
 deployment; GitHub push remains permission-blocked. G1 main files untouched.
+
+### FB-01aj fixed-law integrator comparison contract — 2026-09-26 10:49Z
+
+Previous goal turn PROGRESS:ea874c88d closes tested recurrence/cold/non-growth,
+not trajectory accuracy or production. Source and shared-ledger state rechecked;
+G1 has no newer entry. No pending diagnostic handle. This continues the same
+numerical mechanics gate, preserving all body/cognitive/thermal authority.
+
+Pinned engine_forward.c:933–970 and engine_derivative.c:1370–1385 define:
+(M-hD)dv=hF, F=qfrc_smooth+qfrc_constraint.
+implicitfast usesD=-B on this verified bearing-only model.
+implicit usesD=-B-d(qfrc_bias)/dv with nonsymmetric sparse LU.
+Both use the same current constraint solve; neither implicitly resolves future
+contact-force derivatives. Omitting that derivative is a hypothesis, not diagnosis.
+Source:https://github.com/google-deepmind/mujoco/blob/3.3.7/src/engine/engine_forward.c
+Source:https://github.com/google-deepmind/mujoco/blob/3.3.7/src/engine/engine_derivative.c
+
+Authorized files only: tools/guala_body_constraint_work.py and
+tools/guala_body_load_release.py; main owns full-file replacements.
+NativeBody, anatomy, contactresponse.2ms/impedance.999, forces, bearings, finite
+supply, guards, interval and initialphysicalstate remain unchanged.
+No kernel/cognition/lived-body/production source edits.
+
+Observer adds full implicit actual sparseD*dv, never symmetrizes it or solves
+again. Retain the exact old fast arithmetic and report. Both branches still
+require passive=-Bv every step. Full branch verifies no extra declared tendon/
+fluid/activation effects, reads native derivative, records max/sumabsolute bias
+derivative impulse h(D+B)dv by DOF and10ms samples. Same-state algebraic witness:
+(M+hB)dv-hF-h(D+B)dv=0; report residual, not an independent counterfactual solve.
+Use h*vbar^T*Ddv in existing discrete work identity. Metric/bias/constraint terms
+remain signed accounting, never heat or invented stored energy.
+
+Runner selects only implicitfast orimplicit at model creation; headers must stay
+distinct. Compare initial integration payloads explicitly to the fast model
+without transplanting bytes or changing either body. Within each integrator,
+ordinary/observed and fresh-engine cold successors must remain exactly equal.
+No full-implicit report is stamped with the old bearing-only derivative claim.
+First-load prior match is asserted only for the fast controls, not falsely for
+a physically identical body under a different integration algorithm.
+
+Execute three archived100us fast recurrence controls first and require every
+prior non-walltime field exact, then nine implicit cases (3loads x3timesteps,
+4retained phases). Retain raw evidence bounded/lossless as in prior probe.
+Stop a physical case on refusal; no retuning or retry. Parameter ranges frozen.
+Compare fixed-law trajectory, work, event-group histories and cost. An energy-
+damped quieter path is not proof of greater accuracy;10ms evidence cannot prove
+substep first-cause chronology or internal contact-row churn.
+
+Source-only freeze/review precedes execution; read-only AWS/census pre/post.
+Runtimezero new work/state. No production claim or GitHub push authorized.
+
+Source review ccde2faaa: mathematicsPASS, one localized execution-contract
+clarification. Archived max_rss_kib is a process high-water cost, not physics.
+Fast raw comparison excludes only max_rss_kib and per-phase elapsed-time fields;
+every deterministic physical/state/work value stays exactly compared. New costs
+are retained separately. No source change was needed; this is the single batch.
+
+### FB-01aj full-implicit comparison measured — 2026-09-26 11:12Z
+
+Frozen source fingerprint 7187bad6d48d2b0054e176b0e105bd29fa92439fd870e1dcb0f25302aac70efb
+passed the final independent review and verified unchanged after execution.
+Diagnostic-only source hashes: constraint observer 4ea3c15513fe697f...,
+load/release probe fbe353a1a66c527c...; NativeBody remains 210996faa48c0508...
+No runtime numerical law, anatomy, force, guard, cognition or production change.
+
+Three 100us implicitfast controls reproduced EVERY archived deterministic
+physical/state/work field exactly (only elapsed time and process peak RSS
+excluded and retained separately). Full implicit then completed 9/9 cases,
+36/36 intervals: ordinary-versus-observed complete successors exact, fresh
+engine cold successors exact, initial physical integration payload equal across
+integrators, state 5152 bytes throughout, finite decreasing motor budget.
+Peak 147748 KiB; maximum summed absolute discrete energy closure 8.901033e-11 J.
+This proves the named bench invariants, NOT real-time or trajectory accuracy.
+
+Result: reject full implicit as the proposed accuracy/cost correction.
+Torso max sampled hinge difference at 100->50 / 50->25us:
+0.17623896 / 0.20036646 rad; finer sampling does not uniformly converge.
+The 50->25us torso joint-rate difference remains 37.04455 rad/s.
+Upper-arm hinge differences 0.18116675 / 0.06226318 rad;
+finger 0.00304314 / 0.00066831 rad.
+These are pairwise trajectories, not certified exact-solution errors.
+Full implicit costs 0.4415–0.5182 / 0.8965–1.2752 / 1.6904–2.6946 seconds
+per simulated 250ms at 100/50/25us: worse than implicitfast.
+
+Actual native bias-derivative impulse is nonzero (torso100us reverse max
+0.16546 generalized impulse); same-state algebraic witness residual <=6.90e-14
+in that torso case. It changes the dynamics, but including it does not remove
+the measured trajectory sensitivity. Constraint-group histories differ; counts
+are not an internal contact-row first-cause proof. Full implicit torso100us
+reverse physical balance -0.06347994 J is worse than prior fast -0.03160073 J.
+Do not infer an improvement from a quieter trajectory or tiny equation closure.
+Keep signed constraint work explicit; do not invent heat or contact passivity.
+
+Complete 9-case raw evidence is retained once, compressed and SHA256-verified,
+in docs/evidence/FB-01aj-integrator-comparison.json (3,012,954 bytes at creation).
+It contains control receipts, analysis, exact collection/analysis scripts,
+source hashes and health envelopes. The previous fast raw evidence is referenced
+rather than duplicated. All uncompressed record lengths and hashes verified.
+
+Collector failures are operational evidence, not hidden:
+session23520 exited1 after one complete full-implicit record and three controls;
+ACK transfer timed out after 260000/329843 characters of the second record.
+Continuation78484 exited1 with five complete records retained, while transferring
+the50us finger record (10000/326681 characters captured). That case's simulation
+had completed before output began. No incomplete record was counted as evidence.
+Only uncaptured cases reran; no coefficient or physical refusal was retried.
+Final collector83862 wrote generated diagnostics into explicit /tmp artifacts,
+finished exit0, and avoided interactive ACK coupling. Recurrence guard: never
+make long diagnostic evidence depend on model/tool acknowledgement latency.
+Use bounded local generated artifacts; report compact hashes and summaries.
+No future harness should repeat this failed transfer protocol.
+
+Read-only snapshots10:53/10:58/11:05/11:08Z preserve same task1553/ec20ff,
+digest1d088e, sole1/1/0 HEALTHY; live ticks2384560->2386852,
+persisted2384553->2386825, sameidentity, checkpoint/cleanupnull, durabilityfalse.
+CPU~51%, RAM~2.98%; existing clock-stalled ALARM remains, other four alarmsOK.
+Host census after83862 confirms no A1 proof child/orphan. Caretaker35747 and
+supervisor831 untouched. No G1 source, marker, process, or production mutation.
+
+Next bounded action: remove the already measured Python per-substep execution
+overhead with one native interval path that preserves the accepted implicitfast
+algorithm, guard/refusal ordering, state bytes, work terms and sensory return.
+First trace/profile that exact path and freeze the contract; no new force law,
+motor controller, timestep retuning or cognitive mechanism. This can enable
+affordable qualification but DOES NOT resolve the still-open accuracy gate.
+Do not blindly shrink timesteps or repeat this rejected integrator comparison.
+Home/gravity/concurrent-motor, ordinary organism integration and live delivery
+gates remain open. Full functional-body goal ACTIVE; no production qualification.
+GitHub push remains permission-blocked; retain local commits, do not retry/bypass.
