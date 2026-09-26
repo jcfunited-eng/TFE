@@ -6612,3 +6612,111 @@ outputs and resolve remaining contact-transition integration. Do not confuse
 safety penetration/overrun guards with accuracy, or relax equal-SI diagnostic
 requests into a claimed production requirement. No return to force reduction,
 extra damping, geometry exemptions, scripted posture, or cognition. FB-01 ACTIVE.
+### FB-01aj constraint/damping split contract — 2026-09-26 18:08Z
+
+Previous turn is PROGRESS:444762c67 adds a proved closed-stop numerical law.
+Do not reopen its180case proof. Body tree clean at that commit; shared G1 ledger
+still ends with A1's18:01 support entry. Autonomy findings remain separately open.
+
+Archived corrected100/50/25us prefixes identify largest startup rate differences
+at DOFs26/24/22/20: left distal digits3/2/1/0. For DOF26 at100us elapsed,
+rates are+.0368271/-.1132853/-.0342476rad/s. Sign changes alone do not prove a
+constraint error: the approved soft stop allows finite penetration.
+
+Pinned engine_forward.c reveals a distinct operator split: mj_fwdAcceleration
+and mj_fwdConstraint solve against physical inertia M; mj_implicitSkip then
+advances with H=M+hB against forces already selected using M. The official3.3.7
+documentation explicitly omits constraint-force derivatives from implicit
+integration. Independent source/math review confirms H^-1 M need not preserve
+the solved constrained-coordinate response. Actual body causation still needs
+a same-step residual witness, not inference from scalar speed differences.
+
+New diagnostic only tools/guala_body_constraint_split.py. One existing100us
+torso step, no changed law/coefficient/pose/effort/guard. Intercept return of the
+single original mj_step before kinematics/collision refresh. Retain pre-velocity;
+read same-solve J,R,aref,lambda and qacc; compare unilateral residuals using
+(a) qacc and(b) actual delta-v/h. Verify physical impulse equation
+M*delta-v+h*B*delta-v=h*(F+J^Tlambda), and derivative exactly-Diag(B).
+Final full successor hash must equal the already authenticated closed-boundary
+100us receipt. Zero warnings, finite rows/state, no extra solve or scratch
+publication. Only this first causal step is missing from saved evidence.
+
+Analytic control is an exactly representable two-coordinate system:
+M=[[2,1],[1,1]],h=1,B=diag(0,1),F=(-2,-1),J=(1,0),R=1/999,aref=0.
+Original force999/1000 gives solved acceleration(-1,-999)/1000. Applying
+implicit damping afterward gives(-334,-333)/1000 and active residual-1/3.
+Jointly choosing force against H gives999/667 and acceleration(-1,-333)/667;
+residual exactly0. Fraction arithmetic here is a tiny bounded offline proof,
+not restored rational-body dynamics. This does not assert the full body is a
+two-coordinate system.
+
+If actual body confirms the split, next numerical correction must use one
+consistent discrete operator for smooth acceleration, constraints, warmstart/
+islands and final integration, while preserving physical M for kinetic energy
+and preserving R/reference/cones. Recomputing softness from H, double-applying
+damping, or globally overwriting physical inertia is forbidden. No runtime
+candidate is authorized by merely writing these equations; full native caller/
+sensor/work/cold identity closure must be specified first. This is body-only
+numerical integration, not new DSF/cognition or a motion controller.
+
+Source freeze and independent review, one tiny process cappedCPU30s/wall45s/
+addressspace1GiB, same immutable custom library, no rebuild/pytest/broad suites.
+Read-only AWS pre/post and owned-process cleanup. Preserve raw per-row residuals
+and exact algebra with authenticated hashes. No manufactured accuracy threshold
+or claim of whole-body convergence. Existing first100us error requests remain
+diagnostic only; production accuracy budget and later impacts remain open.
+
+Diagnostic correction18:16Z: first one-step process exited1 in0.61s because my
+analytic control mistakenly asserted split residual-1/3. Exact arithmetic is
+-334/1000+(1/999)*(999/1000)=-333/1000. The body observation and full-successor
+assertions had completed before this late analytic assertion; no artifact was
+published, so these are not accepted numeric measurements. Correct the one
+assertion and move analytic verification BEFORE body construction, preventing
+lost body work on future algebra errors. Review this localized correction once;
+rerun only the single100us step, not previous suites or build. No runtime edits.
+
+### FB-01aj same-step split proved — 2026-09-26 18:30Z
+
+Final source-only review PASS1840be26dc7c8f6479ebc6f1b017e11129e5b441c759ed9dcee628f074159382;
+fingerprint verified after the diagnostic. Corrected one-step process exit0,
+0.594s wall,148100KiB peakRSS. First failed assertion retained in evidence.
+Full prior successor44782dea2b7a0092a57c53742c8e8a4d4fe4359f6e1911a2f34114b11be2f4df exact.
+14joint-limit rows,7positive reactions, no contacts/warnings. D=-diag(B) and
+passive force=-B*v exact. Maximum active residual before integration4.44e-16,
+after integration378.275519rad/s^2; physical impulse residual2.17e-17.
+The actual body's damping split is now demonstrated, not inferred from a
+generic counterexample. Raw5040bytes SHAa497602033da1a4a6e834ee487abf5d63799529ec1a1964b7a1921dbb92f0fd0
+in docs/evidence/FB-01aj-constraint-split.json. This is diagnostic evidence,
+NOT a corrected runtime or whole-body trajectory qualification.
+
+AWS1553/taskec20ff.../digest1d088e... unchanged; same identity,1/1/0 HEALTHY.
+Pre18:17:20 live2442938/persist2442921; post18:18:22 live2443066/persist2443049.
+CPU51.12->50.91%,RAM3.23->3.24%; errorsnull/durabilityfalse. Existing
+clock-stalled ALARM remains; other four alarmsOK. Exact process handles exited;
+host census confirms no diagnostic child/orphan. G1/TFE/IDE untouched.
+
+Next solution seam mapped with independent source review, no implementation yet:
+Newton's CGContext already centralizes inertia. Add explicit step-local
+diagonal shift s=hB to its metric multiply and all dense/sparse Hessian
+construction/reconstruction paths; map s through existing island DOF indices.
+Form smooth acceleration with H=M+diag(s), evaluate warmstart under H, pass
+same shift through constraint/island dispatch, then advance once with solved
+acceleration. Preserve physical M/qLD/island inertia, physical stopping-scale
+normalization, R,D,aref,friction cones, and standalone instantaneous mj_forward.
+This avoids a second solver, duplicate anatomy and separate island factors.
+Current interval calls mj_step; restore/final observation use mj_forward.
+Work quadrature, sensory return, integration-state bytes and atomic caller
+publication retain their existing roles; finite-step law needs a new identity.
+
+Complete implementation contract must explicitly admit Newton/zero-noslip
+and D=-B body profile; non-supported CG/PGS/fluid/tendon damping must refuse,
+not silently use split dynamics. Close mj_step2/direct integrator/fwd-inverse
+routes before coding. Dense/sparse and island variants need local equation
+falsifiers before any longer impact replay. No production accuracy tolerance
+is inferred from penetration safety guards or previous arbitrary SI probes.
+
+Joe requested G1 audit during this work. Read-only original-pair inventory
+found garden-apple and fruit-bowl already present; _is_food's semantic name
+gate excludes both. Recorded exact evidence and bounded repair recommendation
+in shared ledger18:30Z. No edits to G1's runtime files or new acquisition run.
+FB-01 remains ACTIVE; no additional user approval is presently needed.

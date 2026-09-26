@@ -1,0 +1,160 @@
+{
+  "scope": "FB-01aj single-step constraint/implicit-bearing split diagnostic; not a runtime correction or production proof",
+  "frozen_fingerprint": "1840be26dc7c8f6479ebc6f1b017e11129e5b441c759ed9dcee628f074159382",
+  "library_sha256": "4425152fa68de19c39b0bacf433349c2e0679f066ccd5fec38f9c3d76517a5ff",
+  "first_failed_run": {
+    "chunk_id": "e05e2e",
+    "wall_time_seconds": 0.611273202,
+    "exit_code": 1,
+    "original_token_count": 145,
+    "output": "Traceback (most recent call last):\n  File \"/workspaces/guala-functional-body/tools/guala_body_constraint_split.py\", line 138, in <module>\n    main()\n  File \"/workspaces/guala-functional-body/tools/guala_body_constraint_split.py\", line 128, in main\n    evidence.update(exact_counterexample=exact_counterexample(),\n                                         ^^^^^^^^^^^^^^^^^^^^^^\n  File \"/workspaces/guala-functional-body/tools/guala_body_constraint_split.py\", line 51, in exact_counterexample\n    assert split_residual == Q(-1,3)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n"
+  },
+  "corrected_run": {
+    "chunk_id": "0ca3b9",
+    "wall_time_seconds": 0.594126701,
+    "exit_code": 0,
+    "original_token_count": 485
+  },
+  "health_pre": {
+    "utc": "2026-09-26T18:17:20.765734+00:00",
+    "service": {
+      "counts": [
+        1,
+        1,
+        0
+      ],
+      "taskDefinition": "arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1553",
+      "tasks": [
+        {
+          "arn": "arn:aws:ecs:us-east-1:418384447921:task/tfe-web-cluster/ec20ff084de54d48afab9a113647fa46",
+          "status": "RUNNING",
+          "health": "HEALTHY",
+          "digests": [
+            "sha256:1d088eaaf195931a315e45c7ed456d4bb028210655e52eacad27e4445161612d"
+          ]
+        }
+      ]
+    },
+    "alarms": [
+      {
+        "name": "guala-clock-stalled",
+        "state": "ALARM"
+      },
+      {
+        "name": "guala-cpu-runaway",
+        "state": "OK"
+      },
+      {
+        "name": "guala-efs-storage-runaway",
+        "state": "OK"
+      },
+      {
+        "name": "guala-interval-refusal-loop",
+        "state": "OK"
+      },
+      {
+        "name": "guala-memory-runaway",
+        "state": "OK"
+      }
+    ],
+    "cpu": [
+      {
+        "Timestamp": "2026-09-26T18:15:00+00:00",
+        "Average": 51.11753651499748,
+        "Maximum": 51.740181386470795,
+        "Unit": "Percent"
+      }
+    ],
+    "memory": [
+      {
+        "Timestamp": "2026-09-26T18:15:00+00:00",
+        "Average": 3.2307942708333335,
+        "Maximum": 3.23486328125,
+        "Unit": "Percent"
+      }
+    ],
+    "observation": {
+      "available": true,
+      "identity": "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1",
+      "live_tick": 2442938,
+      "persisted_tick": 2442921,
+      "checkpoint_error": null,
+      "cleanup_error": null,
+      "durability_blocked": false
+    }
+  },
+  "health_post": {
+    "utc": "2026-09-26T18:18:22.862147+00:00",
+    "service": {
+      "counts": [
+        1,
+        1,
+        0
+      ],
+      "taskDefinition": "arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1553",
+      "tasks": [
+        {
+          "arn": "arn:aws:ecs:us-east-1:418384447921:task/tfe-web-cluster/ec20ff084de54d48afab9a113647fa46",
+          "status": "RUNNING",
+          "health": "HEALTHY",
+          "digests": [
+            "sha256:1d088eaaf195931a315e45c7ed456d4bb028210655e52eacad27e4445161612d"
+          ]
+        }
+      ]
+    },
+    "alarms": [
+      {
+        "name": "guala-clock-stalled",
+        "state": "ALARM"
+      },
+      {
+        "name": "guala-cpu-runaway",
+        "state": "OK"
+      },
+      {
+        "name": "guala-efs-storage-runaway",
+        "state": "OK"
+      },
+      {
+        "name": "guala-interval-refusal-loop",
+        "state": "OK"
+      },
+      {
+        "name": "guala-memory-runaway",
+        "state": "OK"
+      }
+    ],
+    "cpu": [
+      {
+        "Timestamp": "2026-09-26T18:16:00+00:00",
+        "Average": 50.90929634372393,
+        "Maximum": 51.127915143966675,
+        "Unit": "Percent"
+      }
+    ],
+    "memory": [
+      {
+        "Timestamp": "2026-09-26T18:16:00+00:00",
+        "Average": 3.2389322916666665,
+        "Maximum": 3.253173828125,
+        "Unit": "Percent"
+      }
+    ],
+    "observation": {
+      "available": true,
+      "identity": "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1",
+      "live_tick": 2443066,
+      "persisted_tick": 2443049,
+      "checkpoint_error": null,
+      "cleanup_error": null,
+      "durability_blocked": false
+    }
+  },
+  "evidence": {
+    "payload_zlib_base64": "eNq9mNty2zgMhl/Fo9uNZYAgQTJ9lM6OR5bpRFvZ8kh22m4m776/nHMs2cmmk4tOYwkUoI8/DtRtVpS76ibN2+Znl136i6xs1ts67dK825dl6rqmnadfMMoud+0+XWRpc1Vt0vwmtV3VbLLLTHLJ/V9X+6Iu8rJuurSc1tW62nU5ZzDv187LZr/ZpRY/+odnl7dws8dfy+zyezblmaqH7VREDn/+ffF4f14X68WygJsY44PZ4602ddUSbnGTcLmp31gzUX+9a+qbJ0cP16ZP9+Gq29bV7v6++pm7N+hDeWXw0t3z3buLbF38mj9ArPCSV22xexWc+JAb7xxHtuzIq7xacx/eC3ubW0shGooBsajRhLjul7x4/k33uLLANtUJVw/bwRJ8bsRStBKckDx4217/7qqyqOfVeruvu/TCoclZgyUr1kaPt4pw6A+r2q6b/6gWeKoNuIFrzTLV8+66ME7BoVCXfGFsCiKF07T0gRYceOkWoSyt89ExSVqUC/YLMY7LSFy6BXlDvDCu37W2gp4QV7dL2zkCrCFDvsigx3vV9M4PP3H9+222atoSAqIc0bzA8U+DH29R5J5DBEIBDxHm8GrJM4Ahw8MD8YoHXc/qtNrN4DoV7XqW6kXzE6G3aQVJb8r0xu8htjZd7euirf5NbU/YBWLxznqyJpJ9VOVg3JT7iGisExN8ZGF5Mn+O+djo7uIlHSLG+zg1EoOaELyYs8AQYI4n4mHOqSWOI7yGFD3Aa4md3U0J/3e7op6t6vSrd/MRcNCvF/jyFvyiC6onyU1hiyXBuwDhOW+dG0A3HcywY3zwKuKjMRbubXwHPoNNCWDuANA5M4pPc3KOkChAh5w7QY8/Rw+x5xzEqtVeLOfpYd+x90o+WuuNHRQeHaOKbFBRARNlR9W+AxXlzpIiH/q1J5QmecB+eqssUfAqJ1iZz7IyeJkAVUjs9X+WVQxsvBKkiUzUd6KCLFkJjYxsNCrhPCrtkw1cIcjI7iCXEVacQ8uIHUljDFLgBCv5ZFaq5t6xZytsrDnLCoUI9Q8JTJ5CiAOs3pGTZ1GZQDbHZojhQAiLR0gN2I2Csp8DZRkJaKNS9NFrcCdBoTAAq4dCPKyNuqHCf2z0VmMGAu6FGdT1GdbXzDPgppQDRlBBPTeQJUaBEXT3lkx4LGqX9M3iLTw09Ouva5bTwyuj4KNUqIsMBWnw70nG83LCIJA7AyYYYxQtwI3pacBwiMmfaYgfST1x5GCNVi2YvDwK6ZCijow+Coq8xQiljIFDMEuSjoEaMBwHxV9YzzH3xRxTqY0E3SnGmiFQR0YfBiXIH7RLCNZCpsGPgjo2HAdlvnBIkL4lo5BZ9RyhHDJDoI6MPgiKI04xaJWKSUqR0W50dB8wHAclXziLipDPUYEtzmEYXSwPcnpjczQuGJxIsP8sUDNOJucrOY5p/RCqARMA9VP/GLlp9DlGXMwihtAHYX+K3Fe2QcwLHi3mMFrBllT+17zAEbOS6Q+1OKbg3zvOi9YpRicAJ+wvWx09LzpUYcLRCgUYHTiYwQGiu642sx+blD4Ei3LLiFcCGqxDn2dxZxsgphjM38aKwUFe1PyR9hcoN+SgOgz2aqKOCWnAbkhHX0MjoOajOaLiq3NiB8fyI5u7/htP2WwBJms2aQKht7v9dtJ/kvg2WVbF1abpdlU5aTb172+TTTPZ7Nep7T+nTJp28vhpZVIXPyfldbG5Ssv+u9PT97On7yU4UwWzTIVZ+AIHH1M4Xzrx1pQhhcIu7SpZcXGlCUdrLsxK+rdfMC+SWdnlKrv7D/QoHNg=",
+    "raw_bytes": 5040,
+    "raw_sha256": "a497602033da1a4a6e834ee487abf5d63799529ec1a1964b7a1921dbb92f0fd0"
+  },
+  "cleanup": "Host census after exit found no diagnostic python/taskset/timeout child; unrelated TFE/IDE/G1 processes untouched."
+}
