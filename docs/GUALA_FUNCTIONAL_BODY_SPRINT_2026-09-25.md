@@ -6338,3 +6338,47 @@ all original data remained in authenticated files, then a bounded summary was
 computed without rerunning physics. Default sandbox ps sees its own namespace,
 not the host; do not treat it as a production/shared-host census. No simulation
 or heavy process launched in this recovery block. Push restriction unchanged.
+
+### FB-01aj first-contact localization measured — 2026-09-26 17:05Z
+
+Native interval/evidence custody committed00b0a4e97 locally; no push. New source-
+only observer tools/guala_body_contact_onset.py frozen db0859e8fad8f252cf315c590
+68824de7cba8d0e873b91dbe73fd2c252c865d9, independent review PASS/no findings.
+Whole-tree fingerprint unchanged before/after diagnostic. Script observes the
+existing mj_step return before geometry refresh, never invokes another solve
+or changes controls/state. No runtime source changed in this diagnostic.
+
+Session58668exit0: three30ms torso prefixes at100/50/25us, 300/600/1200steps.
+Each observed complete successor equals ordinary execution exactly; each prior
+archive0/10/20/30ms position/velocity sample matches bit-for-bit. Native impulse
+power row/DOF identity disagreement <=2.9104e-11W. PeakRSS144996KiB. Observed
+loops .0446/.0854/.1696s; not a production throughput benchmark. Full raw evidence
+authenticated in docs/evidence/FB-01aj-contact-onset.json, rawSHA41bf10d038bfb63c
+bb736a371aaa4f370f7acce84e56161162c519e889c04725. No truncated evidence or rerun.
+
+Physical localization: right forearm contacts torso at21.5ms at all resolutions;
+peak native constraint-row force4625.94/4362.85/4231.22N. Left palm contacts left
+thigh at21.8ms; peak1362.35/1295.80/1262.19N. Native row forces are not summed as
+a resultant contact wrench. Fastest sampled joint is left digit4 distal flexion,
+267.93/211.69/201.79rad/s around21.9–22.0ms; its own generalized constraint force
+is zero at those samples. Coupled body motion matters: absence of a direct
+constraint on that DOF is not absence of mechanical impulse through the body.
+The right forearm/torso nonzero contact lasts one100us sampled step in coarse
+execution but250–275us across finer resolutions. Group power integrals are
+left-endpoint diagnostics only, not heat or integrator-consistent impulse work.
+
+This narrows the accuracy investigation to resolved self-impact impulses and
+their transmission to low-inertia digits. It does NOT certify a new law or prove
+contact is the sole root cause. Next: derive a same-contact accuracy/step bound
+using this impact window, preserving actual force capacities and joint geometry;
+do not blindly shrink every step, add damping to force a pass, relax guards,
+reclassify surfaces, or introduce body-motor decisions. General thermal mapping,
+gravity/load integration and copied mature-body/live delivery remain OPEN.
+
+Read-only AWS before17:00:48/after17:02:41Z: same1553/ec20ff/digest1d088e,
+service1/1/0HEALTHY,sameidentity,live2432975->2433220,persist2432969->2433193,
+checkpoint/cleanupnull,durabilityclear; CPU~51%,RAM~3.21%. Existing clockALARM
+persists, otherfourOK. G1's prior15-step diagnosticPID34306 was terminal before
+this run; no A1 diagnostic/timeout child remains at host census. No live writes.
+G1 movement16:50 corrections reviewed and concrete remaining corrections filed
+in shared ledger while body work continued; autonomy not abandoned or certified.
