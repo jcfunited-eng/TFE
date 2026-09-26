@@ -1584,7 +1584,30 @@ def home_world_authority(
         for obj in cur_w.objects
         if obj.held_by_body_id is not None
     }
-    if any(b.held_object_id != held_by_body.get(b.body_id) for b in cur_w.bodies):
+    def _body_needs_reconciliation(b):
+        if b.held_object_id != held_by_body.get(b.body_id):
+            return True
+        if b.active_contact is not None:
+            target_obj = next((o for o in cur_w.objects if o.object_id == b.active_contact.object_id), None)
+            if target_obj is None:
+                return True
+            if b.active_contact.kind == "oral" and not (
+                (b.held_object_id == target_obj.object_id and target_obj.held_by_body_id == b.body_id)
+                or (
+                    target_obj.position is None
+                    and target_obj.held_by_body_id is not None
+                    and target_obj.held_by_body_id != b.body_id
+                    and any(
+                        other.body_id == target_obj.held_by_body_id
+                        and other.held_object_id == target_obj.object_id
+                        for other in cur_w.bodies
+                    )
+                )
+            ):
+                return True
+        return False
+
+    if any(_body_needs_reconciliation(b) for b in cur_w.bodies):
         _commit_world_successor(authority, cur_w)
     if expand_library:
         expand_library_books(authority)
@@ -1669,8 +1692,27 @@ def _commit_world_successor(
     bodies_changed = False
     for b in new_world.bodies:
         actual_held = held_by_body.get(b.body_id)
-        if b.held_object_id != actual_held:
-            corrected_bodies.append(replace(b, held_object_id=actual_held))
+        actual_contact = b.active_contact
+        if actual_contact is not None:
+            target_obj = next((o for o in new_world.objects if o.object_id == actual_contact.object_id), None)
+            if target_obj is None:
+                actual_contact = None
+            elif actual_contact.kind == "oral" and not (
+                (b.held_object_id == target_obj.object_id and target_obj.held_by_body_id == b.body_id)
+                or (
+                    target_obj.position is None
+                    and target_obj.held_by_body_id is not None
+                    and target_obj.held_by_body_id != b.body_id
+                    and any(
+                        other.body_id == target_obj.held_by_body_id
+                        and other.held_object_id == target_obj.object_id
+                        for other in new_world.bodies
+                    )
+                )
+            ):
+                actual_contact = None
+        if b.held_object_id != actual_held or b.active_contact != actual_contact:
+            corrected_bodies.append(replace(b, held_object_id=actual_held, active_contact=actual_contact))
             bodies_changed = True
         else:
             corrected_bodies.append(b)

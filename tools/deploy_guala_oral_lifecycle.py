@@ -32,20 +32,20 @@ REGION = "us-east-1"
 ACCOUNT = "418384447921"
 CLUSTER = "tfe-web-cluster"
 SERVICE = "dsf-ai-service-lb"
-OLD_TASK = "94aceb296dda454b8a3bc33f2b1f8a8b"
-OLD_DEFINITION = "arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1554"
+OLD_TASK = "45ffe3b701ab4a2d8ec9fd907f8409c6"
+OLD_DEFINITION = "arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1555"
 BASE = ACCOUNT + ".dkr.ecr." + REGION + ".amazonaws.com/dsf-ai@sha256:c7e7bd50e6bda938318564caf47d7c5585c15d097d784999a2198b0f0bf6b7f4"
 REPOSITORY = BASE.split("@")[0]
 FILES = {
-    "dsf_ai_service/substrate/embodiment_world.py": "2c58d0d8ffc92e6aa2797a3a82bb1885ea2f15d3ace31b3d9288c26b5db9e4a8",
-    "dsf_ai_service/guala_caretaker_hand.py": "0232b723d642c4b576c1af4307812130ea869e23a8e782d2882d7b249d483b6b",
+    "dsf_ai_service/substrate/embodiment_world.py": "4cfc2b57a914fc130e99e00ea28b9b5a7f405a22f33da92c37d0a168a87c2325",
+    "dsf_ai_service/guala_caretaker_hand.py": "26d3f449f8a9f8b4bf73913ba0e138828e215b8297be040cb4cf6dd0bf4435c8",
     "dsf_ai_service/lean_production_app.py": "8131709b6ec6782533f4bd63cbbbd197be75930b4ea3210367686961be8fcef7",
     "dsf_ai_service/guala_functional_organism.py": "bc4de47c32bf10de509be67c9ff03d4c8e521e2a563c61b59e1e96dd9e27fd19",
     "dsf_ai_service/guala_functional_loop.py": "505f2d1ed231cfc3b5ada0757bc05618db05092fdb067d9452546b1fdf347a9c",
     "dsf_ai_service/lean_actor.py": "885a5dd086db7d3a125d06c693edeb084b39b47c5308f34b05bd7be93fa96172",
     "dsf_ai_service/episodic_binding_engine.py": "dda3b1be483a0867a61f277b84b7d723beda63d05791584fc0a59b3f3590bb37",
     "dsf_ai_service/substrate/native_core.py": "7144580489e9b739538a90f1c0360209b3a4e2ecb94d6a6362db6b4aa902fbe3",
-    "dsf_ai_service/guala_home_world.py": "ee67805bd79f23dbe4d7cbee86b1b28e142da94908ac1c3057a5068b02f8c3f5",
+    "dsf_ai_service/guala_home_world.py": "d88f2f7c81c573436bf97ccd45be1dc46c171c811de4461b901dd81b280ab108",
     "dsf_ai_service/lean_sensory_occurrence.py": "cb7ebef4b506c04f1f87e0f2dc593d53d21dd3d76badf3d41d514c8dc93f8b6d",
     "dsf_ai_service/static/gualaloom.html": "bbf5268f70b930a469b49212dc6ee5ecdadc0b89985d440ef9f103c805f480f8",
 }

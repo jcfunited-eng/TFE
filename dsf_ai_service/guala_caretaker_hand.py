@@ -825,8 +825,18 @@ def deliver_thing(world: Any, template_id: str) -> str | None:
     from dsf_ai_service.substrate.embodiment_world import EmbodiedObject
 
     snapshot = world.observation_snapshot()
-    if any(item.object_id == template_id for item in snapshot.objects):
-        return template_id
+    existing = next((item for item in snapshot.objects if item.object_id == template_id), None)
+    if existing is not None:
+        mat = existing.material
+        digestible_mass = mat.digestible_mass_micrograms if (mat and hasattr(mat, "digestible_mass_micrograms")) else 0
+        edible_tastant = sum(mat.tastant_mass_micrograms) if (mat and hasattr(mat, "tastant_mass_micrograms")) else getattr(existing, "tastant_remaining_micrograms", 0)
+        if template_id not in ("bread-slice", "bottle-milk") or (digestible_mass > 0 and edible_tastant > 0):
+            return template_id
+        if existing.held_by_body_id != snapshot.self_body_id:
+            try:
+                world.admit_authored_departure(template_id)
+            except Exception:
+                pass
     _regions, _portals, declared = _home_rooms_and_things()
     template = next((item for item in declared if item.object_id == template_id), None)
     if template is None:

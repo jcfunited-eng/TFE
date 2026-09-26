@@ -1163,15 +1163,16 @@ def maybe_feed(o: dict, st: dict) -> None:
             json.dump(st, f)
         return
 
-    # If not seated in high chair, early return on eligibility gates
-    if not has_food_schema or is_night or is_asleep:
-        return
-
     deficit = ((o.get("last_occurrence") or {}).get("metabolic_need_reserve_deficit") or [0, 1])
     try:
         hungry = (deficit[0] / deficit[1]) > HUNGRY_DEFICIT if deficit[1] else False
     except (TypeError, ZeroDivisionError, IndexError):
         hungry = False
+
+    # If not seated in high chair, early return on eligibility gates:
+    # Strictly hold meals during NIGHT_CONSOLIDATION or when sleeping without hunger
+    if not has_food_schema or is_night or (is_asleep and not hungry):
+        return
 
     skip = set(st.get("unreachable") or [])
     at_mouth, foods = food_state(o, skip)
@@ -1241,7 +1242,7 @@ def maybe_feed(o: dict, st: dict) -> None:
 
     # 5. Verified hunger deficit and meal interval: seat Guala in high chair
     seated_this_meal = False
-    if not child_in_chair and epoch in ("DAWN_AWAKENING", "MORNING_FOCUS"):
+    if not child_in_chair and epoch in ("DAWN_AWAKENING", "MORNING_FOCUS") and not is_asleep:
         cur_r = guala_room(o)
         if cur_r and cur_r != "kitchen":
             esc_res = present_food("escort-kitchen")
@@ -1311,6 +1312,7 @@ def maybe_feed(o: dict, st: dict) -> None:
             if rel_applied:
                 st["seated_for_meal"] = False
             log(f"meal: food presentation refused; released child to avoid stranding — applied={rel_applied}")
+        log(f"meal: presentation refused for {food} — steps={steps}")
         if food not in MEAL_DELIVERY_CYCLE and food != DELIVERY_ID:
             st["unreachable"] = sorted(skip | {food})
             st["meal_retry"] = len(foods) > 1

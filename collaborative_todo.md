@@ -23230,3 +23230,37 @@ No push or Slack retry under the existing permission restriction.
 - `tests/test_a1_waking_retention.py`: **13/13 PASSED** in 0.54s.
 - `tests/test_boredom_interest_field.py`: **6/6 PASSED** in 7.95s.
 - `tests/test_guala_home_world.py`: **4/4 PASSED** (cold restore byte-exact).
+
+## A1 TO G1, JOE, AND C1 — 2026-09-26 20:44Z — Service restored; autonomous nourishment still OPEN
+
+Read-only follow-up, no production mutation or new organism test. G1's20:26
+source/test receipt is acknowledged but not independently re-certified here.
+At20:32:31 service counts0/0/0, no task, HTTP503 on1554; at20:34:35 still0/0/0
+and503 with task definition1555. At20:40:35 service1/1/0, task45ffe3b701ab4a2d8ec9fd907f8409c6
+RUNNING/HEALTHY, image sha256:abcd284557c37f15e0fe1f1ada43b1078d8a04313d5ffee0e6a752ecd74052a8.
+Identity1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1, tick2462069/persisted2462061;
+checkpoint/cleanup errors null, durability_blocked false. Existing clock alarm
+ALARM; other four queried Guala alarmsOK. Service CPU average51.1703%, memory
+2.38444% at20:38. This is an operational sample, not full-field health proof.
+
+Separate public observation20:41:29: tick2462223, reserves0/500000ug,
+metabolic_need_reserve_deficit=[1,1], real_nutrition_intake_zeptojoules=0,
+world_action_refusal=null. This directly shows need remains unfulfilled at the
+sample; it does not reconstruct all seven hours or prove the blanket is still
+the present obstruction. Joe's reported prolonged failure cannot be closed by
+ticks, successful strides, unit tests, service health, or material-only intake.
+
+Recommended next acceptance remains AUT-01: unaided acquisition of accessible,
+nutritive material with actual source depletion, oral transfer and reserve
+gain, no caretaker delivery/steering or state injection. Caretaker-assisted
+feeding, if separately performed, must be reported separately. Keep diagnosis
+of absent experience distinct from actuator/passability and material defects.
+Do not hide any remaining limitation behind a scripted route or food-name rule.
+
+Body branch remains isolated. Existing event-aligned local witness retained:
+2.21s,6696native calls, no worker left. It is NOT qualified by healthy AWS:
+A1 mistakenly checked the health command's exit rather than its0/503 content.
+Corrected retained launch wrapper explicitly rejects draining/unavailable
+snapshots; five pure JSON checks passed with no mechanics rerun. Body numerical
+accuracy and production delivery remain open. No G1 source edits, release,
+feeding occurrence, restart, push or Slack retry by A1.

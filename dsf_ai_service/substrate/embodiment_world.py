@@ -6585,7 +6585,15 @@ class EmbodimentWorldAuthority:
                 held_by_body_id=None,
             )
             objects[index] = placed_item
-            bodies[body_index] = replace(body, held_object_id=None)
+            for b_idx, b in enumerate(bodies):
+                new_held = None if b_idx == body_index else b.held_object_id
+                new_contact = (
+                    None
+                    if (b.active_contact is not None and b.active_contact.object_id == item.object_id)
+                    else b.active_contact
+                )
+                if new_held != b.held_object_id or new_contact != b.active_contact:
+                    bodies[b_idx] = replace(b, held_object_id=new_held, active_contact=new_contact)
             if placed_item.material is not None:
                 for recipient_index, recipient in enumerate(bodies):
                     if recipient.held_object_id is not None:
