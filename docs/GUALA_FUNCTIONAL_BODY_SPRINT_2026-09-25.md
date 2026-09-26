@@ -7447,3 +7447,199 @@ tests or treating lack of a reply as authorization. No source or deploy is
 blocked on a worker; there is no active diagnostic process. Goal remains
 ACTIVE pending the reply/third-turn blocker audit. Push/Slack restrictions
 remain respected. No notification retry or remote publication.
+
+### FB-01aj current-world nutrition compatibility contract — 2026-09-26
+
+Previous turn PROGRESS83f9dd99e. Numerical accuracy remains UNRATIFIED/open.
+The third-turn blocker audit found safe required integration work: this branch
+predates G1's committed material schema, so a blanket goal-block would be false.
+Continue the required world/body custody path inside FB-01aj; do not mark
+numerical acceptance closed or run another resolution sweep.
+
+Requested: preserve the same body's real material and metabolic state through
+the future native mount. Current branch lacks digestible_mass_micrograms and
+transferred_digestible_micrograms, rejects their positive encoded records,
+and still sums tasted material as nutrition in loop._oral_intake_micrograms.
+Conflict:YES. Single next correction: carry G1's material/receipt/consumer
+separation into the isolated body branch, with exact retained-state proof.
+No kernel/cognition/behavior/controller/precision change; reduced body/world
+model, not biological digestion or full DSF verification. No G1 source edits.
+
+Donor is immutablefb9e54f3525d77bfe87ef938f87548e885b80716, not a moving worktree.
+Authorized changes only: substrate/embodiment_world.py (typed material/contact
+fields, canonical codecs, existing geometric oral mass transfer),
+guala_functional_loop.py (intake reader), guala_home_world.py (the donor's
+initial material declarations only), and a focused offline body-custody test.
+Do not port donor housekeeping/custody auto-repair, cognitive suppression,
+caretaker, curriculum, or deployment changes. No bare compatibility getattr:
+current typed records own the new field; absent serialized zero remains the
+donor's explicit canonical encoding. Never infer calories from a taste signal.
+
+Causal map: declared material -> existing oral patch fraction -> source debit
+and BodyContactState receipt -> applied-bite-only loop intake -> unchanged
+metabolic law. Material/contact as_record and strict decoders carry quantities
+through observation, authenticated encoded world, retained receipt, cold
+restore. _native_project_world uses dataclass replace for poses and therefore
+must preserve material quantities; _advance_material_time must likewise retain
+them. Native mount/effort does not authorize oral contact or create nutrition.
+Publication remains the existing prepared world transaction; no second owner,
+state cache, material copy, retry or new persisted authority. Constant two
+integer fields per existing material/contact; snapshot byte caps unchanged.
+
+Localized donor defect to correct in this port and report to G1:
+BodyContactState.verify checks transferred mass only under value>0. Negative
+values and False can otherwise vanish in as_record. Validate integer/range
+unconditionally, then reject nonzero transfer on non-oral contact. No widening
+of valid records. Canonical zero omission must reproduce predecessor bytes;
+positive values must survive physical debit, public receipt and cold restore.
+
+Acceptance before wider integration: real world Pick/Oral/Place command
+receipts conserve declared nutrient mass; tasted non-nutrient gives0 intake;
+the native mount, one ordinary native interval, encoded cold restore and next
+same interval preserve remaining material exactly. These are explicitly driven
+mechanical/custody trials, not autonomous acquisition, mature-body proof or a
+resolution-accuracy qualification. Malformed/negative/noninteger masses refuse.
+Read-only fixtures only; no pytest/conftest, network writes or live checkpoint.
+Source freeze and independent review precede execution; reuse installed engine
+and existing bench, no compilation or broad regression. Preserve any failure.
+
+Read-only command errors: one guessed test_tfe_embodiment_world.py path was
+absent; another sed range used a nonexistent end-symbol and over-read source.
+Neither changed state. Exact paths and both range endpoints must be discovered
+before bounded display; no repeated guessed tests or open-ended range reads.
+
+### FB-01aj nutrition translation review and acceptance map — 2026-09-26
+
+Resumed at83f9dd99e with the four earlier uncommitted port files intact.
+Previous user-audit turn produced new live/G1 evidence; it did not close this
+body slice. No numerical approval has arrived. Scope and donor remain unchanged.
+
+Owner source review: ObjectMaterialState -> EmbodiedObject material record ->
+_material_from; oral geometric debit -> BodyContactState -> _contact_from;
+prepared execution.after -> loop._oral_intake_micrograms ONLY when _apply
+reports applied bite. No nutrient-specific input reaches L0–L4 or selection.
+Pick and Place preserve material via dataclass replacement; _advance_material_time
+changes only odorant reservoirs; _native_project_world replaces poses, not
+material. _native_observation_for carries the same object record; native cold
+restore decodes it with _world_from_compact_record and authenticates the current
+envelope plus bounded retained receipts. commit_prepared_action reinstates the
+prior state on failure; discard and committed rollback reuse existing custody.
+
+Evidence map (backend-only, no new UI/API fields):
+- declared source/debit -> material.digestible_mass_micrograms -> receipt's
+  before/after objects -> canonical records/decoder -> identical cold world;
+- removed nutrient -> active_contact.transferred_digestible_micrograms ->
+  applied oral execution.after -> unchanged intake reader caller;
+- sensory taste -> dissolved_tastant_micrograms remains separate even when
+  nutrients are zero; zero taste also cannot erase positive nutrient transfer;
+- mount/interval -> unchanged material on projected native world -> signed
+  observation -> native envelope -> next same interval after fresh restore;
+- failure/discard -> exact predecessor envelope, not a second nutrient debit.
+No browser assertion or whole-organism feeding claim is part of this proof.
+
+New focused unittest file reuses the existing world-custody native anatomy and
+its effort command. Source preflight caught that the generic legacy oral radius
+250mm would consume the100mm specimen wholly. The bench explicitly uses the
+home's already-declared60mm mouth (home_world_authority), giving patch3600mm^2
+and a first nutrient transfer4320ug from12000ug, leaving7680ug for recurrence
+and mounting. This is disclosed fixture anatomy, not a runtime parameter tune.
+All placement/holding/contact changes occur through real prepared commands.
+There is no manual reserve, memory, source refill, or production checkpoint.
+
+Four bounded checks: canonical malformed/zero/positive fields; three physical
+material cases (taste-only, nutrient+taste, nutrient-only) with subsequent
+restored bite; positive bitten material across mount/native interval/restore;
+and prepared bite discard/rollback. Native work is three10ms low-effort bench
+intervals, not a250ms loaded-motion accuracy proof. Gross rigid mass/inertia
+and digestive chemistry are not coupled by this port; conserved quantities
+here are declared nutrient/tastant ledgers and the exact transfer receipt.
+The generic unmounted oral law is not a claim of articulated jaw mechanics.
+
+Waste/closure: two scalar integer material/contact fields on existing records,
+no per-tick data structure or new owner/call; existing decoder and command paths
+only. No full world producer rebuild, learned-state migration, native compile,
+housekeeping/custody auto-repair, or broad pytest run. Empty legacy nutrient
+fields remain zero, not calories inferred from names or taste. This preserves
+format compatibility, not missing old-world nutritional provenance; G1's
+AUT-01 migration/material issue remains separately owned.
+
+Candidate now freezes for one independent source-only review before importing
+or executing the new proof. Execution budget: existing single-thread native
+runtime,2 affinity CPUs,1GiB address space,30s CPU and45s wall; exact test process
+tracked to exit with child census. These are harness containment ceilings, not
+runtime physics/precision choices. Fresh read-only AWS service/task/observation
+content must pass immediately before launch; take the same envelope after.
+Do not infer launch permission from wrapper exit0 or an earlier healthy read.
+
+Frozen source review bda4b32bf66784a47d14d4c672badeb874acdc82c6ba9cd10edf78fa548bbcf8
+completed with one LOCALIZED finding, no architectural findings. Existing
+migrate_declared_material_transport compared live digestive mass against the
+initial declaration instead of preserving it alongside depleted odor/taste.
+This would reject a lawful partially consumed object when the hook is used.
+The single batch adds the field to that comparison's existing replacement and
+asserts the hook is a byte-preserving no-op after both unmounted and native
+depleted-state restore in the existing four-test suite. It adds no mutation,
+refill, prior-checkpoint nutrient inference or new migration owner. Owner impact
+map now explicitly includes this existing declaration-comparison branch.
+Full-file source/test replacements applied; no imports or test execution yet.
+Final source confirmation uses a newly frozen candidate. G1 should receive the
+same preservation finding for its independently owned nutrient port.
+
+Final source confirmation of591183c9e59afd93a150b934579d927bd59b9e0e8619895f030c55b332bf0be5
+accepted the nutrient-preservation law and exposed one localized TEST expectation:
+mounted native topology deliberately refuses the legacy migration hook. Correct
+the preceding ledger's 'no-op after native restore' assertion: unmounted restore
+requires a no-op; native restore requires the existing explicit topology refusal
+and byte-identical retained state. Production guard is unchanged. The fixture
+now asserts that precise ValueError then unchanged saved bytes. No new law,
+topology allowance, mechanism, test case, import or execution was added. This
+finishes the review correction batch; source fingerprint is refreshed before
+the existing four-test proof, not a third architectural redesign/review cycle.
+
+### FB-01aj nutrient custody verified locally — 2026-09-26 21:39Z
+
+Final localized-correction confirmation PASS from body_force_review; source
+fingerprint946520f7279bcc87d423cca8bb09e967a5ea2f88047b2b732ced4c8e0bc3f38a
+verified before/after review and proof. No production/kernel/cognitive edits.
+Existing custom engine3.3.7+guala.coupled-step.1 loaded from the previously
+reviewed interval/native environment; immutable libmujoco SHA256
+d3787b131b2532168dfff52c226ba07fa0de4ffc4b57bc40b7a87b73a2cc1801.
+Both loaded world source and test module were verified inside this worktree.
+
+Standalone offline unittest:4/4 PASS in0.338s; total child wall1.584983772s.
+Three real-contact material variants: taste without nutrient gives zero intake;
+nutrient with taste and nutrient without taste give the declared geometric
+debit. Remaining material plus successive oral transfers conserves the original
+quantity, including after fresh restore. Native mount and three10ms effort
+intervals preserve depleted material; a fresh successor repeats the exact next
+native receipt/state. Migration remains a no-op only while unmounted; mounted
+topology refuses unchanged. Prepare/discard and committed rollback consume no
+material. Canonical omitted zero and positive mass round-trip; malformed and
+nonoral nutrient transfer refuse. No tests rerun, new build or broad pytest.
+
+Contained proof PID16398, session2873, exit0, affinity[0,1], CPU ceiling30s,
+address-space ceiling1GiB, wall ceiling45s. Network connects/sendto prohibited
+inside the proof. No surviving process-group members after completion. Peak
+RUSAGE_CHILDREN154220KiB includes read-only preflight children and must not be
+represented as exact isolated test peak. The logical added state is still only
+one nutrient integer per material and one transfer integer per contact.
+
+Read-only AWS envelope21:39:25.458737Z ->21:39:30.183501Z:
+us-east-1/tfe-web-cluster/dsf-ai-service-lb, counts1/1/0 both;
+task1556 /5cb1fece1cac4f32b6d2f9b53b61b9ab RUNNING/HEALTHY unchanged;
+image sha256:dc9ba00725d886110346c59ccdb36d1856d9cb316ea4f074a5bc88d9c9c794f7;
+identity1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1 unchanged;
+ticks2472483 ->2472498, persisted2472473 both; available true,
+checkpoint_error/cleanup_error null, durability_blocked false.
+Latest CloudWatch21:37 average CPU51.2469538%, max51.8305663%; memory2.6489258%.
+Clock-stalled alarm was ALARM before/after; CPU/memory/storage/refusal alarms OK.
+Clock alarm is unresolved external evidence, not hidden behind healthy HTTP.
+Only read-only describe/list/metric/observation calls were used.
+
+This closes the LOCAL nutrient-custody prerequisite, not FB-01aj numerical
+accuracy, articulated oral mechanics, mature-world integration, biological
+digestion, autonomous foraging, or live body delivery. Native anatomy and loaded
+solver unchanged. The material-migration correction and G1 audit recommendations
+are shared in collaborative_todo.md:23447; no overlapping main source edit.
+Numerical accuracy proposal remains unratified; no timestep/force tolerances
+were selected to pass these tests. Publication/Slack restrictions still apply.

@@ -1031,6 +1031,13 @@ def _home_rooms_and_things() -> tuple[list[Any], list[Any], list[Any]]:
         ("garden-apple",      14_000, 14_100,    90,     180, (850_000, 120_000,  90_000,  70_000,  60_000,  50_000)),
         ("garden-ladder",     14_000, 11_800,   250,   4_000, (320_000, 260_000, 180_000, 120_000,  90_000,  80_000)),
     )
+    digestible_mass_of = {
+        "apple": 140_000,
+        "garden-apple": 140_000,
+        "bread-slice": 50_000,
+        "bottle-milk": 20_000,
+        "bowl": 30_000,
+    }
     material_of = {
         # Kitchen
         "kitchen-counter":   ((0, 0, 0, 600, 50, 0, 0, 100), (0, 0, 0, 1_500, 0),        294_000, 40_000, 30, 20_000),
@@ -1172,6 +1179,7 @@ def _home_rooms_and_things() -> tuple[list[Any], list[Any], list[Any]]:
                 compliance_ppm=material_of[name][3],
                 roughness_micrometers=material_of[name][4],
                 moisture_ppm=material_of[name][5],
+                digestible_mass_micrograms=digestible_mass_of.get(name, 0),
             ),
             shape=shapes_of[name][0] if name in shapes_of else "sphere",
             size_mm=shapes_of[name][1] if name in shapes_of else (),
