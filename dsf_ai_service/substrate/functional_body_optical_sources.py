@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from .embodiment_world import _identifier, _physical_bands
+from .embodiment_world import LOOK_FACES, _identifier, _physical_bands
 
 
 @dataclass(frozen=True)
@@ -17,6 +17,8 @@ class NativeOpticalBinding:
     source_kind: str
     source_id: str
     part_index: int | None = None
+    # Explicit environmental paint registration, never an inferred object ID.
+    region_faces: tuple[tuple[int, int, str], ...] = ()
 
     def __post_init__(self):
         _identifier(self.geom_name, "native optical geometry")
@@ -28,17 +30,46 @@ class NativeOpticalBinding:
                 raise ValueError("object part requires its physical index")
         elif self.part_index is not None:
             raise ValueError("only a part source has a part index")
+        if (type(self.region_faces) is not tuple or len(self.region_faces) > 6
+                or (self.region_faces and self.source_kind != "region")):
+            raise ValueError("bounded region-only native face registration required")
+        for face in self.region_faces:
+            if (type(face) is not tuple or len(face) != 3
+                    or type(face[0]) is not int or face[0] not in (0, 1, 2)
+                    or type(face[1]) is not int or face[1] not in (-1, 1)
+                    or type(face[2]) is not str or face[2] not in LOOK_FACES):
+                raise ValueError("native axis, signed face and physical room face required")
+        addresses = tuple((axis, side) for axis, side, _ in self.region_faces)
+        if addresses != tuple(sorted(set(addresses))):
+            raise ValueError("unique canonical native region faces required")
 
     def as_record(self):
         return dict(geom_name=self.geom_name, source_kind=self.source_kind,
-                    source_id=self.source_id, part_index=self.part_index)
+                    source_id=self.source_id, part_index=self.part_index,
+                    **({"region_faces": [list(face) for face in self.region_faces]}
+                       if self.region_faces else {}))
 
     @classmethod
     def from_record(cls, value):
-        if type(value) is not dict or set(value) != {
-                "geom_name", "source_kind", "source_id", "part_index"}:
+        base = {"geom_name", "source_kind", "source_id", "part_index"}
+        if type(value) is not dict or set(value) not in (base, base | {"region_faces"}):
             raise ValueError("native optical source fields changed")
-        return cls(**value)
+        if "region_faces" not in value:
+            return cls(**value)
+        raw = value["region_faces"]
+        if (type(raw) is not list or not raw or len(raw) > 6
+                or any(type(face) is not list or len(face) != 3 for face in raw)):
+            raise ValueError("nonempty canonical region-face record required")
+        return cls(value["geom_name"], value["source_kind"], value["source_id"],
+                   value["part_index"], tuple(tuple(face) for face in raw))
+
+
+def _look_axes(face):
+    """Existing room-surface coordinate convention, not a face detector."""
+    if face in ("floor", "ceiling"):
+        return 0, 1, 2, (1 if face == "floor" else -1)
+    normal = 0 if face[0] == "x" else 1
+    return 1-normal, 2, normal, (1 if face.endswith("min") else -1)
 
 
 def validate_declaration(bindings, body_reflectance):
@@ -69,6 +100,7 @@ def compile_bindings(mount, engine):
     room surfaces must belong to worldbody, not a moving entity.
     """
     import mujoco as mj
+    import numpy as np
 
     bindings = mount.optical_bindings
     if not bindings:
@@ -103,6 +135,18 @@ def compile_bindings(mount, engine):
         if binding.source_kind == "region":
             if node != 0 or kind not in (int(mj.mjtGeom.mjGEOM_PLANE), int(mj.mjtGeom.mjGEOM_BOX)):
                 raise ValueError("region material requires a static native plane or box")
+            if binding.region_faces:
+                if kind != int(mj.mjtGeom.mjGEOM_BOX):
+                    raise ValueError("region paint registration requires original BOX faces")
+                # Fixed world-body anatomy: use native quaternion conversion once,
+                # not eye-frame reconstruction or a guessed normal threshold.
+                matrix = np.empty(9)
+                mj.mju_quat2Mat(matrix, model.geom_quat[index])
+                rotation = matrix.reshape(3, 3)
+                for axis, side, face in binding.region_faces:
+                    _, _, normal_axis, inward = _look_axes(face)
+                    if side*rotation[normal_axis, axis]*inward <= 0:
+                        raise ValueError("region chart is singular or faces away from the room")
         elif owners[node] != expected:
             raise ValueError("native material source differs from physical subtree owner")
         if binding.source_kind in ("object", "part"):
@@ -120,8 +164,8 @@ class NativeMaterialSource:
 
     box_pattern belongs to EVERY original local box face (existing box law).
     Region looks keep physical world subrectangles and first-match ordering;
-    they are NOT unit-face patterns. Their lighting/chart integration is not
-    supplied by this source resolver.
+    they are NOT unit-face patterns. Native face registration is in the same
+    binding; chart clipping and spatial-light integration remain downstream.
     """
     reflectance_ppm: tuple[int, ...]
     emission_ppm: tuple[int, ...]
@@ -168,7 +212,8 @@ def resolve_materials(world, compiled, *, max_material_cells):
     primitive = {"sphere": int(mj.mjtGeom.mjGEOM_SPHERE),
                  "box": int(mj.mjtGeom.mjGEOM_BOX),
                  "cylinder": int(mj.mjtGeom.mjGEOM_CYLINDER)}
-    materials, patterns, admitted_regions, cells = [], set(), set(), 0
+    materials, patterns, cells = [], set(), 0
+    registered_faces, required_faces = {}, {}
 
     def account(pattern, address):
         nonlocal cells
@@ -186,10 +231,13 @@ def resolve_materials(world, compiled, *, max_material_cells):
                 source = NativeMaterialSource(coatings[binding.source_id], (0,) * 6)
             elif binding.source_kind == "region":
                 region = regions[binding.source_id]
-                if region.region_id not in admitted_regions:
+                registered_faces.setdefault(region.region_id, set()).update(
+                    face for _, _, face in binding.region_faces)
+                if region.region_id not in required_faces:
+                    required_faces[region.region_id] = set()
                     for index, look in enumerate(region.looks):
+                        required_faces[region.region_id].add(look.face)
                         account(look.surface, ("region", region.region_id, index))
-                    admitted_regions.add(region.region_id)
                 source = NativeMaterialSource(region.reflectance_ppm, (0,) * 6,
                                               region_looks=region.looks)
             else:
@@ -216,5 +264,65 @@ def resolve_materials(world, compiled, *, max_material_cells):
             materials.append(source)
     except KeyError as error:
         raise ValueError("native material source is absent from current world") from error
+    if (any(region.looks and region.region_id not in required_faces for region in regions.values())
+            or any(not needed <= registered_faces[region]
+                   for region, needed in required_faces.items())):
+        raise ValueError("room pattern has no declared native surface registration")
     emitters = tuple(o for o in world.objects if any(o.emission_ppm))
     return tuple(materials), emitters
+
+
+def region_face_charts(sources, receiver_row, axis, side, *, max_charts):
+    """Attach ordered room looks to one explicitly registered native BOX face.
+
+    This prepares physical paint coordinates only. The caller must clip to the
+    actual panel and preserve first-match order; these charts never occlude.
+    The source view was admitted by the existing world query. No state changes.
+    """
+    import numpy as np
+    from .functional_body_renderer import BOX
+    from .functional_body_visibility import PlanarSurface
+
+    geometry = sources.geometry
+    if (type(max_charts) is not int or max_charts < 0
+            or type(receiver_row) is not int or not 0 <= receiver_row < len(sources.bindings)
+            or type(axis) is not int or axis not in (0, 1, 2)
+            or type(side) is not int or side not in (-1, 1)):
+        raise ValueError("bounded original native face request required")
+    binding, kind = sources.bindings[receiver_row]
+    if binding.source_kind != "region" or kind != BOX or geometry.kinds[receiver_row] != BOX:
+        raise ValueError("registered native region BOX face required")
+    looks = sources.materials[receiver_row].region_looks
+    if len(looks) > max_charts:
+        raise ValueError("region chart input exceeds declared bound")
+    face = next((face for a, b, face in binding.region_faces
+                 if (a, b) == (axis, side)), None)
+    if face is None:
+        return ()  # this physical face carries only its base coating
+    selected = tuple(look for look in looks if look.face == face)
+    if not selected:
+        return ()
+    along, up, _, _ = _look_axes(face)
+    rotation = np.asarray(geometry.rotation_world).reshape(3, 3)
+    origin = np.asarray(geometry.origin_world_m)
+    normal = side*geometry.rotations_eye[receiver_row, :, axis]
+    centre = (geometry.positions_eye_m[receiver_row] +
+              normal*geometry.sizes_m[receiver_row, axis])
+    matrix = np.stack((normal, rotation[along], rotation[up]))
+    try:
+        inverse = np.linalg.inv(matrix)
+    except np.linalg.LinAlgError as error:
+        raise ValueError("singular registered room-pattern chart") from error
+    fixed = inverse @ np.array((normal @ centre, -origin[along], -origin[up]))
+    u, v = inverse[:, 1], inverse[:, 2]
+    if not np.isfinite(inverse).all() or not np.isfinite(fixed).all():
+        raise ValueError("registered chart exceeds numerical domain")
+    quad = np.array(((0., 0.), (1., 0.), (1., 1.), (0., 1.)))
+    result = []
+    for look in selected:
+        point = fixed + u*(look.from_mm/1000) + v*(look.low_mm/1000)
+        axes = np.array((u*((look.to_mm-look.from_mm)/1000),
+                         v*((look.high_mm-look.low_mm)/1000)))
+        chart = PlanarSurface.from_chart(point, axes, quad, max_corners=4)
+        result.append((chart, look.surface))
+    return tuple(result)

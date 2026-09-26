@@ -4518,3 +4518,180 @@ finite aperture response, source-fixed markings, self-occlusion and complete
 native head transform. Owner-root room lighting remains the existing W1 law,
 not newly claimed cross-room radiative transport. Ordinary loop/home/caregiver,
 copied-body/restart/resource/rehearsal/live gates stay open. GoalACTIVE.
+
+## FB-01af — Native region-pattern chart registration — 2026-09-26 05:47Z
+Previous turn PROGRESS3028f4cbd;56offline proofs, production unchanged1553.
+Advance the first missing input of full spatial-light/aperture integration;
+do not reopen accepted hit/light laws or start another optical optimizer.
+Requested native retinal output needs the existing room wall/floor markings.
+Current NativeOpticalBinding supplies a region ID, not the original native
+face carrying a SurfaceLookMM. Material source transports looks in order, but
+renderer cannot attach them without guessing which native face is meant.
+Conflict YES if such a guess or dropped pattern were used. No DSF evaluation
+or reduction here; approved numerical world optics only, cognition untouched.
+
+Rejected before code: infer wall identity from nearest plane, name substring,
+rounding positions to millimetres, cosine/angle threshold, or a guessed float
+matching tolerance. These infer anatomy absent from the declaration. Also
+reject floating-world-coordinate coincidence as an exact semantic address:
+eye-frame transformations may round, and a region binding can contain several
+physical wall/floor panels. No source geometry or pigmentation is fabricated.
+
+Single correction: extend the existing immutable NativeOpticalBinding with
+region_faces: bounded canonical tuple of (native local box axis, signed face,
+existing room face name). At most6, unique native face, only region sources.
+This is authored environmental anatomy/material registration, NOT recognition,
+identity, action selection or a second scene. It says exactly where the existing
+room paint is attached. Other native faces retain the declared base coating.
+Only native BOX faces are supported by this registration; unsupported mappings
+refuse at compile, before publication. No default/inferred address.
+
+Coordinate law for each declared face: actual face centre c and normal n come
+from the same native BOX geometry in the eye frame. Existing room look axes are
+world (x,y) for floor/ceiling, (y,z) for x walls, (x,z) for y walls. Intersect
+n dot p=n dot c with the two declared world-coordinate planes. One 3x3 inverse
+per reached face maps the exact existing along/up coordinates into that native
+surface's chart. Its columns define fixed physical U,V axes; each look reuses
+that map with its declared origin, width and height. Singular/nonfinite maps
+refuse; no angle epsilon, nearest-face choice, sampled paint or stretching to
+fit the whole panel. A native panel clips this chart later; the chart itself
+is NOT another occluder. Ordered looks remain ordered for first-match painting.
+This registration is explicitly declared, not an assertion that arbitrary
+native walls were already geometrically identical to the old ideal room plane.
+
+Lifecycle/call map: NativeOpticalBinding constructor -> mount.validate_declaration
+-> mount.as_record/from_record (conditional field only when nonempty) ->
+compile_bindings on existing native engine -> current resolve_materials ->
+NativeOpticalSources.bindings plus borrowed region_looks -> region_face_charts
+-> pending full material/light/aperture integration -> ordinary world retina.
+Nonregion/empty chart records retain their existing bytes; absence means no
+registered room patterns, never infer them. New nonempty records fail in old
+four-field decoders. Authenticated mount/world custody includes the declaration;
+restore rebuilds the same native addresses. No second codec/current owner/cache.
+Source resolution visits each current look once and fails if its room face has
+no registered native face anywhere in that room's physical binding roster.
+Unavailable registration cannot be hidden by gaze or current occlusion.
+
+Authorized files: functional_body_optical_sources.py, existing standalone
+source-custody test, this sprint ledger. Existing fixture declares wall local
++x as room x-min; no body pose, motor, lighting or world conservation change.
+No material pixels copied into mount or learned memory. Six entries maximum per
+native primitive derives from six BOX faces; <=256 existing primitive bound.
+Registration adds O(G) small immutable anatomy only; query uses bounded current
+look references and O(L) transient chart arrays, no lifetime growth. Per-face
+matrix computed once, no per-pixel inverse or source encoding/hash work.
+State mutation occurs only via existing atomic native mount/rollback; chart
+query is read-only and errors discard locals. No production mount/deploy here.
+
+Decisive proof of THIS source boundary: actual native source view with two
+overlapping retained SurfaceLookMM patterns -> declared native wall face ->
+fixed physical charts. Independent world-coordinate points on the native face
+must map to the expected pattern coordinates before/after real head effort and
+fresh cold restore. Refuse absent/duplicate/wrong-kind/degenerate registrations,
+verify same native next-motor successor, unchanged encoded query bytes, original
+body records, first-match order and once-per-region look iteration. Existing
+56 optical/world checks remain regression evidence, not full-body acceptance.
+Whole retinal composition, room pattern clipping, ordinary-loop/home/caregiver,
+copied-body/restart/resource/rehearsal/live gates remain required and OPEN.
+
+FB-01af translation/lean preflight — 2026-09-26 05:59Z.
+Physical participants: static region BOX material faces only; self/neuron/body
+records remain unchanged. Added declaration crosses existing mount canonical
+codec and compiled binding tuple without a parallel source/scene owner. New
+field omitted when empty, nonempty encoding unique; old consumers fail closed
+on the new field. Missing pattern coverage is an optical-query refusal, while
+singular/back-facing/wrong primitive registration fails mount compilation.
+A mechanical-only mount is not claimed to have a working retina.
+
+The declared coordinate mapping is authored world paint anatomy, not a runtime
+identity match. Compile uses native model quaternion conversion once per mapped
+primitive; positive inward normal component is the nonsingular coordinate-plane
+orientation condition, not a cosine-similarity threshold. Query computes one
+3x3 inverse per reached face, then existing PlanarSurface inverses per actual
+look (needed downstream for its own different chart). No per-pixel matrix work.
+Required/registered face sets are transient source completeness evidence; the
+old redundant admitted_regions set is removed rather than retained alongside
+required_faces. Current looks still visited once per physical room, including
+hidden declarations; entirely unmapped rooms with looks also refuse.
+
+Proof path: authenticated offline world/current materials -> real native mount
+with6room planes -> read-only sources -> seven fixed charts -> actual head
+motor interval -> same point coordinates under new eye -> encoded fresh restore
+-> byte-identical charts and next motor successor. No simulated cognition,
+photograph substitution, recognition claim or production calls. Unit-coordinate
+residual tolerance2e-12 is test falsification only, never runtime registration.
+Three added tests plus8existing source tests; existing48other optical/world
+checks remain required. Whole retinal image integration remains OPEN.
+No compile/test/import before frozen independent SOURCE review.
+
+Operator failure preserved: an orchestration JavaScript block had a parse-time
+for-of typo before execution. It wrote no files, started no process and changed
+no candidate. Corrected the tool expression; not a physical/test failure.
+
+
+FB-01af localized SOURCE correction — 2026-09-26 06:07Z.
+Initial frozen fingerprint0771c5ca8bf528fa30510e5a9221c664cf5f9fede717a55afe0b6fb6a8e9dab1
+received SOURCE PASS, then owner identified a cold-fixture environment mismatch.
+Independent reviewer confirmed LOCALIZED and withdrew the unqualified PASS:
+new six-face test constructs initial world with no screen broadcasts, but its
+fresh=world() helper supplies ScreenBroadcast(card,...). _screen_broadcasts is
+constructor-owned and not replaced by restore; equal persisted bytes alone
+would not establish equal next-action environment laws. Single local batch:
+construct the fresh authority with identical original declared objects/regions,
+key and receipt capacity, still genuinely fresh. No source/codec/physics edit,
+no weakened assertions, no tests/imports had executed. Refreeze and final SOURCE
+review precede bounded proofs. This is a fixture correction, not a new work item.
+
+
+FB-01af first proof failure preserved — 2026-09-26 06:09Z.
+Final SOURCE fingerprint9540dd14367138ea5c4cc17a4884c094fdfce2f785a2bb312d7e9898b47e68b9
+passed review. Standalone run terminal exit1:10PASS,1ERROR,0.692348s,75420KiB.
+The six-face/seven-chart real head-motion, fresh cold-restore and next-motor
+successor proof PASSED (1344 transient chart-array bytes). One negative fixture
+failed BEFORE its intended optical refusal: it omitted default region C while
+replacing region B, violating unchanged world minimum of three regions and its
+two-portal topology (embodiment_world.py:4163). Correct only that constructor to
+preserve *base.regions[2:]. No production source, tolerance or assertion change.
+Remaining branches preflighted against native PLANE support and compile order.
+This follows the first execution failure; it does not reopen the reviewed law.
+Read-only06:07/06:09 same1553/ec20ff/digest1d088e,counts1/1/0,
+live2343725->2343899,errorsnull;existing clock ALARM remains,CPU~51.6%,RAM2.94%.
+Proof process terminal, caretaker35747 untouched, no A1 harness survivor.
+
+
+FB-01af bounded source-chart proof CLOSED LOCALLY — 2026-09-26 06:11Z.
+Accepted SOURCE law unchanged; final fixture fingerprint
+2cb35a34714fc677189623587ed9b651d0d2a2bfaedad741c4d2192d6b9b2754
+verified unchanged after execution. Independent source-only reviewer confirmed
+both localized fixture defects and remaining refusal-branch setup. Original
+failures are preserved above; no assertions, tolerances or physical laws relaxed.
+Standalone source test terminal0:11PASS,0.697613s,74248KiB peak. Six native room
+faces/seven retained looks keep chart coordinates through actual three-axis
+head effort, fresh cold restore, and byte-identical next motor/world successor.
+1344 transient chart-array bytes, no persisted paint duplicate. Missing mapping,
+singular/back-facing/PLANE registration and bounded work all refuse explicitly.
+Other standalone tests (session78474 terminal0): illumination14PASS2.217644s,
+native materials8PASS1.526767s, solar custody5PASS0.558440s, world21PASS1.635s.
+Total59PASS. Highest observed process peak154072KiB.19335-site material timing
+92.148ms is the existing UNIFORM-light path, not the unimplemented full spatial
+illumination/material/aperture consumer. No full-frame realtime claim.
+
+Read-only health envelope06:07:47 through06:10:47: us-east-1,
+tfe-web-cluster/dsf-ai-service-lb,1553/taskec20ff084de54d48afab9a113647fa46,
+image1d088eaaf195931a315e45c7ed456d4bb028210655e52eacad27e4445161612d,
+counts1/1/0,RUNNING/HEALTHY,identity1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1,
+live2343725->2344131,persist2343721->2344105,availabletrue,errorsnull,
+durabilityfalse. CPU~51.5%,RAM~2.95%;existing guala-clock-stalled ALARM remains,
+other four Guala alarmsOK. Caretaker35747 remained active, no A1 proof survivor.
+No writes to live organism/service, no G1 source changes or process interference.
+
+Next within SAME functional-body objective: compose registered pattern regions
+with native surface illumination and finite-aperture material response. Do not
+reopen source registration or use charts as occluders; clipping/first-match paint
+remain consumer responsibilities. This seam is local backend-only evidence.
+Ordinary body/home/caregiver/motor/sensory integration, copied-body restart,
+resource/rehearsal/live acceptance remain OPEN. No new cognitive mechanism.
+Goal ACTIVE; remote GitHub publication still permission-blocked, no retry.
+Bedtime permission question sent for code/tests/engineering-ledger push only to
+jcfunited-eng/TFE:a1/guala-functional-body, excluding credentials/checkpoints.
+No answer as of this receipt; local work is not blocked by that external gate.

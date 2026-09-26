@@ -24,7 +24,7 @@ from dsf_ai_service.substrate.embodiment_world import (
 from dsf_ai_service.substrate.functional_body_anatomy import append_reference_biped
 from dsf_ai_service.substrate.functional_body_native import MechanicalLimits
 from dsf_ai_service.substrate.functional_body_optical_sources import (
-    NativeOpticalBinding, resolve_materials,
+    NativeOpticalBinding, region_face_charts, resolve_materials,
 )
 from dsf_ai_service.substrate.functional_body_materials import PlanarMaterial
 from dsf_ai_service.substrate.functional_body_renderer import integrate_materials
@@ -62,7 +62,8 @@ def declaration():
     bindings = [NativeOpticalBinding(g.get("name"), "body", "guala-body-1")
                 for g in guala.iter("geom")]
     bindings.extend((
-        NativeOpticalBinding("wall", "region", "W1-region-A"),
+        NativeOpticalBinding("wall", "region", "W1-region-A",
+                             region_faces=((0, 1, "x-min"),)),
         NativeOpticalBinding("other/surface", "body", "w1-body-2"),
         NativeOpticalBinding("card/surface", "object", "card"),
         NativeOpticalBinding("lamp/a", "part", "lamp", 0),
@@ -323,6 +324,174 @@ class SourceCustodyTests(unittest.TestCase):
                 os.environ.pop("GUALA_SOLAR_UTC_OVERRIDE", None)
             else:
                 os.environ["GUALA_SOLAR_UTC_OVERRIDE"] = old_clock
+
+
+    def test_registered_room_charts_follow_head_motion_and_cold_restore(self):
+        # Authored physical shell with all six registered inner faces.
+        entries = (
+            ("x-min", "wall", 0, 1, 0., 1, 2, None, None),
+            ("x-max", "wall-xmax", 0, -1, 5., 1, 2, "5.005 2.5 1.5", ".005 2.5 1.5"),
+            ("y-min", "wall-ymin", 1, 1, 0., 0, 2, "2.5 -.005 1.5", "2.5 .005 1.5"),
+            ("y-max", "wall-ymax", 1, -1, 5., 0, 2, "2.5 5.005 1.5", "2.5 .005 1.5"),
+            ("floor", "floor", 2, 1, 0., 0, 1, "2.5 2.5 -.005", "2.5 2.5 .005"),
+            ("ceiling", "ceiling", 2, -1, 3., 0, 1, "2.5 2.5 3.005", "2.5 2.5 .005"),
+        )
+        base = world(looks=True)._state.world
+        looks = base.regions[0].looks + tuple(
+            SurfaceLookMM(face, 200, 400, 500, 700, PATTERN)
+            for face, *_ in entries[1:])
+        regions = (replace(base.regions[0], looks=looks), *base.regions[1:])
+        authority = EmbodimentWorldAuthority(authority_key=KEY, receipt_capacity=2,
+            initial_objects=base.objects, regions=regions)
+        declared = declaration()
+        root = ET.fromstring(declared.xml)
+        bindings = list(declared.optical_bindings)
+        for face, name, axis, side, _, _, _, position, size in entries[1:]:
+            ET.SubElement(root.find("worldbody"), "geom", name=name, type="box",
+                          pos=position, size=size)
+            bindings.append(NativeOpticalBinding(name, "region", "W1-region-A",
+                                                 region_faces=((axis, side, face),)))
+        declared = replace(declared, xml=ET.tostring(root, encoding="unicode"),
+                            optical_bindings=tuple(sorted(bindings, key=lambda b: b.geom_name)))
+        mount(authority, declared)
+
+        def check(auth):
+            before = auth.encoded_snapshot()
+            view = query(auth, max_material_cells=32)
+            rotation = np.asarray(view.geometry.rotation_world).reshape(3, 3)
+            eye = np.asarray(view.geometry.origin_world_m)
+            charts, byte_count = [], 0
+            for face, name, axis, side, coordinate, along, up, _, _ in entries:
+                row = next(i for i, (b, _) in enumerate(view.bindings) if b.geom_name == name)
+                actual = region_face_charts(view, row, axis, side, max_charts=7)
+                selected = tuple(look for look in auth._state.world.regions[0].looks
+                                 if look.face == face)
+                self.assertEqual(len(actual), len(selected))
+                for (chart, pattern), look in zip(actual, selected):
+                    self.assertIs(pattern, look.surface)
+                    for u, v in ((0., 0.), (1., 0.), (0., 1.), (.5, .5)):
+                        point = np.zeros(3)
+                        point[axis] = coordinate
+                        point[along] = (look.from_mm + u*(look.to_mm-look.from_mm))/1000
+                        point[up] = (look.low_mm + v*(look.high_mm-look.low_mm))/1000
+                        eye_point = (point-eye) @ rotation
+                        np.testing.assert_allclose(chart.inverse @ eye_point, (1., u, v),
+                                                   rtol=0, atol=2e-12)
+                    charts.append(chart)
+                    byte_count += chart.inverse.nbytes + chart.halfspaces.nbytes
+            self.assertEqual(len(charts), 7)  # overlapping x-min looks kept in source order
+            self.assertEqual(auth.encoded_snapshot(), before)
+            return view, charts, byte_count
+
+        prior, _, _ = check(authority)
+        command = AnatomicalEffortCommand(tuple(sorted((
+            ("guala/head/roll/effort", .02), ("guala/head/pitch/effort", .015),
+            ("guala/head/yaw/effort", -.01)))), 50000)
+        prepared = authority.prepare_port_command(port_id=PORT_ID,
+            command_payload=encode_command(command), expected_revision=authority._state.world.revision,
+            causal_intent_receipt_sha256=INTENT, available_motor_work_j=1.)
+        authority.commit_prepared_action(prepared)
+        moved, charts, byte_count = check(authority)
+        self.assertNotEqual(prior.geometry.rotation_world, moved.geometry.rotation_world)
+        encoded = authority.encoded_snapshot()
+        fresh = EmbodimentWorldAuthority(authority_key=KEY, receipt_capacity=2,
+            initial_objects=base.objects, regions=regions)
+        fresh.restore_encoded(encoded)
+        restored, cold_charts, cold_bytes = check(fresh)
+        self.assertEqual(fresh.encoded_snapshot(), encoded)
+        self.assertEqual(restored.native_state.mount, moved.native_state.mount)
+        for first, second in zip(charts, cold_charts):
+            np.testing.assert_array_equal(first.inverse, second.inverse)
+            np.testing.assert_array_equal(first.halfspaces, second.halfspaces)
+        self.assertEqual(byte_count, cold_bytes)
+        a, b = advance(authority, motor=True), advance(fresh, motor=True)
+        self.assertEqual(a.execution_receipt, b.execution_receipt)
+        authority.commit_prepared_action(a)
+        fresh.commit_prepared_action(b)
+        self.assertEqual(authority.encoded_snapshot(), fresh.encoded_snapshot())
+        print(dict(registered_room_faces=6, retained_look_charts=7,
+                   transient_chart_array_bytes=byte_count), flush=True)
+
+    def test_region_face_record_bounds_and_unchanged_nonregion_bytes(self):
+        plain = NativeOpticalBinding("body-surface", "body", "guala-body-1")
+        self.assertEqual(plain.as_record(), dict(geom_name="body-surface",
+            source_kind="body", source_id="guala-body-1", part_index=None))
+        self.assertEqual(NativeOpticalBinding.from_record(plain.as_record()), plain)
+        registered = NativeOpticalBinding("wall", "region", "W1-region-A",
+                                          region_faces=((0, 1, "x-min"),))
+        record = registered.as_record()
+        self.assertEqual(record["region_faces"], [[0, 1, "x-min"]])
+        self.assertEqual(NativeOpticalBinding.from_record(record), registered)
+        invalid = (
+            [(0, 1, "x-min")], ((True, 1, "x-min"),), ((3, 1, "x-min"),),
+            ((0, 0, "x-min"),), ((0, 1, "unregistered-wall"),),
+            ((0, 1, "x-min"), (0, 1, "x-max")),
+            ((1, 1, "y-min"), (0, 1, "x-min")),
+            ((0, 1, "x-min"),)*7,
+        )
+        for faces in invalid:
+            with self.assertRaises(ValueError):
+                replace(registered, region_faces=faces)
+        with self.assertRaises(ValueError):
+            replace(plain, region_faces=registered.region_faces)
+        for altered in (
+            dict(record, region_faces=[]),
+            dict(record, region_faces=[(0, 1, "x-min")]),
+            dict(record, region_faces=[[0, 1, "x-min", "extra"]]),
+            dict(record, unknown=True),
+        ):
+            with self.assertRaises(ValueError):
+                NativeOpticalBinding.from_record(altered)
+
+    def test_missing_singular_and_wrong_shape_region_registration_refuses(self):
+        original = declaration()
+        missing = replace(original, optical_bindings=tuple(
+            replace(b, region_faces=()) if b.source_kind == "region" else b
+            for b in original.optical_bindings))
+        authority = world(looks=True)
+        mount(authority, missing)  # body mechanics can exist without admitted optics
+        before = authority.encoded_snapshot()
+        with self.assertRaisesRegex(ValueError, "no declared native surface"):
+            query(authority, max_material_cells=12)
+        self.assertEqual(authority.encoded_snapshot(), before)
+        # A room without any native material row must not hide its declared paint.
+        base = world()._state.world
+        other = replace(base.regions[1], looks=(
+            SurfaceLookMM("floor", 6200, 6400, 500, 700, PATTERN),))
+        absent_room = EmbodimentWorldAuthority(authority_key=KEY, receipt_capacity=2,
+            initial_objects=base.objects, regions=(base.regions[0], other, *base.regions[2:]))
+        mount(absent_room)
+        before = absent_room.encoded_snapshot()
+        with self.assertRaisesRegex(ValueError, "no declared native surface"):
+            query(absent_room, max_material_cells=12)
+        self.assertEqual(absent_room.encoded_snapshot(), before)
+        for faces in (((1, 1, "x-min"),), ((0, -1, "x-min"),)):
+            candidate = replace(original, optical_bindings=tuple(
+                replace(b, region_faces=faces) if b.source_kind == "region" else b
+                for b in original.optical_bindings))
+            auth = world(looks=True)
+            before = auth.encoded_snapshot()
+            with self.assertRaisesRegex(ValueError, "singular or faces away"):
+                mount(auth, candidate)
+            self.assertEqual(auth.encoded_snapshot(), before)
+        root = ET.fromstring(original.xml)
+        root.find("./worldbody/geom[@name='wall']").set("type", "plane")
+        candidate = replace(original, xml=ET.tostring(root, encoding="unicode"))
+        auth = world(looks=True)
+        before = auth.encoded_snapshot()
+        with self.assertRaisesRegex(ValueError, "original BOX faces"):
+            mount(auth, candidate)
+        self.assertEqual(auth.encoded_snapshot(), before)
+
+        auth = world(looks=True)
+        mount(auth)
+        before = auth.encoded_snapshot()
+        view = query(auth, max_material_cells=12)
+        row = next(i for i, (b, _) in enumerate(view.bindings) if b.geom_name == "wall")
+        with self.assertRaisesRegex(ValueError, "exceeds declared bound"):
+            region_face_charts(view, row, 0, 1, max_charts=1)
+        self.assertEqual(region_face_charts(view, row, 1, 1, max_charts=2), ())
+        self.assertEqual(auth.encoded_snapshot(), before)
 
     def test_old_mount_bytes_and_current_mount_codec_are_unambiguous(self):
         current = declaration()
