@@ -378,12 +378,35 @@ def motion_prefix():
     return dict(startup_dyadic_errors=startup,prefixes=records,comparisons=comparisons,
         scope="30ms load/contact diagnostic; convergence indicators, not continuum error bounds or production qualification")
 
+def motion_work():
+    """Attribute the existing 25us prefix; no force law or runtime changes."""
+    from guala_body_constraint_work import advance_with_constraint_work
+    engine, xml, _ = engine_at(25)
+    c = archived_controls()[25]
+    assert hashlib.sha256(xml.encode()).hexdigest() == c["model_sha256"]
+    state = engine.initial_state()
+    result, report = advance_with_constraint_work(engine,state,30000,c["initial_supply_j"],
+        effort_updates=((engine.actuator_names.index(c["name"]),c["phases"][0]["effort_nm"]),))
+    successor = hashlib.sha256(result.state).hexdigest()
+    # Authenticated prior receipt: FB-01aj-coupled-motion.json, 25us prefix.
+    assert successor == "40511baac90cd99c3f6b3390f0a43e5bb8f6120037a2b81514a8f11b97ee4186"
+    return dict(h_us=25,elapsed_us=30000,model_sha256=c["model_sha256"],
+        successor_sha256=successor,prior_successor_exact=True,report=report,
+        constraint_type_names={int(value):name for name,value in mj.mjtConstraint.__members__.items()},
+        joint_names=[engine._model.joint(i).name for i in range(engine._model.njnt)],
+        geom_names=engine.geom_names)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--motion-prefix",action="store_true")
+    modes = parser.add_mutually_exclusive_group()
+    modes.add_argument("--motion-prefix",action="store_true")
+    modes.add_argument("--motion-work",action="store_true")
     args = parser.parse_args()
     assert mj.__version__ == VERSION and mj.mj_versionString() == VERSION
-    if args.motion_prefix:
+    if args.motion_work:
+        result = dict(engine_version=VERSION,motion_work=motion_work())
+    elif args.motion_prefix:
         result = dict(engine_version=VERSION,motion=motion_prefix())
     else:
         result = dict(engine_version=VERSION,exact_control=exact_counterexample(),

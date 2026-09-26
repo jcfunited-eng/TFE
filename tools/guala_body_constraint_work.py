@@ -13,11 +13,13 @@ import numpy as np
 
 
 class DiscreteWork:
-    """Actual implicit update; native nonsymmetric derivative, no extra solve."""
+    """Actual discrete update from native solve arrays; no additional solve."""
 
     def __init__(self, engine):
         self.engine, self.pending = engine, None
         m = engine._model
+        self.coupled_step = (mj.mj_versionString() == "3.3.7+guala.coupled-step.1"
+                             and m.opt.integrator == mj.mjtIntegrator.mjINT_IMPLICITFAST)
         self.full_implicit = m.opt.integrator == mj.mjtIntegrator.mjINT_IMPLICIT
         if not self.full_implicit and m.opt.integrator != mj.mjtIntegrator.mjINT_IMPLICITFAST:
             raise AssertionError("discrete measurement requires implicit or implicitfast")
@@ -41,6 +43,9 @@ class DiscreteWork:
         self.sum_abs_impulse_energy_bound = 0.
         self.max_abs_energy_closure = self.sum_abs_energy_closure = 0.
         self.work = defaultdict(float)
+        self.constraint_row_work = defaultdict(float)
+        self.max_row_work_disagreement = 0.
+        self.max_coupled_acceleration_disagreement = 0.
         self.completed_steps = 0
 
     def finish(self, data):
@@ -70,12 +75,18 @@ class DiscreteWork:
         m, d = self.engine._model, self.engine._data
         if self.pending is not None:
             raise AssertionError("previous discrete step was not finished")
-        if not self.full_implicit and not np.array_equal(d.qDeriv, self.expected_derivative):
+        if not self.full_implicit and not self.coupled_step and not np.array_equal(d.qDeriv, self.expected_derivative):
             raise AssertionError("compiled derivative is not bearing-only -B")
         if not np.array_equal(d.qfrc_passive, -m.dof_damping*pre_v):
             raise AssertionError("passive forces are not solely declared bearings")
         dt = m.opt.timestep
         delta_v, mean_v = post_v-pre_v, (pre_v+post_v)/2
+        if self.coupled_step:
+            disagreement = float(np.max(np.abs(delta_v/dt-d.qacc),initial=0))
+            if not math.isfinite(disagreement):
+                raise AssertionError("nonfinite coupled acceleration measurement")
+            self.max_coupled_acceleration_disagreement = max(
+                self.max_coupled_acceleration_disagreement, disagreement)
         force = d.qfrc_smooth + d.qfrc_constraint
         composition = d.qfrc_actuator + d.qfrc_passive - d.qfrc_bias
         self.max_force_composition_residual = np.maximum(
@@ -119,6 +130,21 @@ class DiscreteWork:
             work["implicit_bias_derivative"] = float(np.dot(mean_v, bias_impulse))
             work["implicit_bearing"] = dt*float(np.dot(mean_v, -m.dof_damping*delta_v))
         work["bearing_trapezoid"] = dt/2 * float(np.dot(m.dof_damping, pre_v**2 + post_v**2))
+        row_velocity = np.empty(d.nefc)
+        mj.mj_mulJacVec(m,d,row_velocity,mean_v)
+        row_work = dt*row_velocity*d.efc_force
+        if not np.isfinite(row_work).all():
+            raise AssertionError("nonfinite constraint row work")
+        contact_types = (mj.mjtConstraint.mjCNSTR_CONTACT_FRICTIONLESS,
+                         mj.mjtConstraint.mjCNSTR_CONTACT_PYRAMIDAL,
+                         mj.mjtConstraint.mjCNSTR_CONTACT_ELLIPTIC)
+        for i,value in enumerate(row_work):
+            kind, ident = int(d.efc_type[i]), int(d.efc_id[i])
+            physical = (tuple(int(g) for g in d.contact[ident].geom)
+                        if kind in contact_types else (ident,))
+            self.constraint_row_work[(kind,*physical)] += float(value)
+        self.max_row_work_disagreement = max(self.max_row_work_disagreement,
+            abs(math.fsum(map(float,row_work))-work["constraint"]))
         if (not np.isfinite(residual).all() or not math.isfinite(post_k_at_pre_metric)
                 or not all(math.isfinite(x) for x in work.values())):
             raise AssertionError("nonfinite discrete impulse measurement")
@@ -152,6 +178,16 @@ class DiscreteWork:
             "actuator_work_minus_ordinary_j": w["actuator"]-result.signed_motor_work_j,
             "bearing_quadrature_minus_ordinary_j": w["bearing_trapezoid"]-result.bearing_dissipation_j,
         }
+        report["constraint_midpoint_work_by_type_and_physical_id"] = [
+            {"constraint_type":k[0], "physical_id":k[1:], "signed_j":v}
+            for k,v in sorted(self.constraint_row_work.items())]
+        report["max_row_generalized_work_disagreement_j"] = self.max_row_work_disagreement
+        if self.coupled_step:
+            del report["bearing_only_derivative_and_force_exact_each_step"]
+            report.update(integrator="coupled Newton/implicitfast",
+                passive_force_equals_declared_bearings_each_step=True,
+                max_solved_integrated_acceleration_disagreement=self.max_coupled_acceleration_disagreement,
+                derivative_source="declared diagonal H=M+hB; stale native qDeriv not consumed")
         if self.full_implicit:
             del report["bearing_only_derivative_and_force_exact_each_step"]
             report.update(
@@ -268,6 +304,12 @@ class ConstraintWork:
         return {
             "scope": "signed constraint exchange; NOT heat or certified continuous-solution error",
             "ordinary_successor_exact": True,
+            "constraint_endpoint_estimate_scope": (
+                "Hybrid diagnostic: coupled step-start forces plus final instantaneous physical "
+                "forward force. Trapezoidal constraint/remaining-closure fields are NOT discrete "
+                "work attribution; use discrete_update."
+                if self.discrete.coupled_step else
+                "Trapezoidal endpoint-force estimate; discrete_update is integrator-consistent."),
             "signed_motor_work_j": result.signed_motor_work_j,
             "positive_motor_work_j": result.positive_motor_work_j,
             "motor_braking_work_j": result.motor_braking_work_j,

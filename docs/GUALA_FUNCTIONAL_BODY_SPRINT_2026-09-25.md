@@ -6943,3 +6943,84 @@ CPU51.06%, RAM3.24%. Proof ran in sandbox PID141, handle56646 terminal; host
 process census has no guala_body_coupled_step worker. No production writes.
 G1's separate food-boundary audit recorded at19:15 in shared ledger; no takeover
 of cognition or duplicate autonomous-acquisition trial.
+
+### FB-01aj coupled work attribution contract — 2026-09-26 19:31Z
+
+Previous goal turn PROGRESS96480fb8c. Continue the same mechanical acceptance
+path, not a new body/controller or an accuracy claim. Current30ms residual
+includes intentionally unaccounted constraints; it cannot be called energy
+loss, heat or integration error before separation. Full DSF/cognition untouched.
+The exact next item is one25us/30ms read-only work attribution using existing
+tools/guala_body_constraint_work.py from tools/guala_body_coupled_step.py.
+
+For the admitted coupled law, M*dv = h*(actuator + constraint - bias - B*v_next).
+Dot with(v_pre+v_next)/2 and add the measured inertia-metric change to obtain
+the exact discrete kinetic-energy identity. Keep positional potential and
+ordinary trapezoidal bearing quadrature separate. Native qDeriv is not updated
+by this coupled path, so the old implicitfast qDeriv assertion is inapplicable;
+check solved acceleration equals dv/h instead, retaining the impulse residual.
+Aggregate constraint work h*(J*v_mean)[i]*lambda[i] by actual constraint type
+and physical joint/contact identity from THAT solve. No new solve or heat law.
+Compare row sum with generalized constraint work and report finite residuals.
+
+Only these two offline tools plus evidence/ledger change. Existing advance,
+operator, coefficients, state format, anatomy, supply and safety guards stay
+byte-identical. The observer invokes mj_step once per original substep and
+must equal the whole ordinary successor; its state SHA must match the already
+retained25us motion prefix40511baa... . No startup sweep, equation suite or
+other loads are repeated. Source-only frozen review,1GiB/30CPU-second/45wall-
+second bound, raw receipt before decoding, AWS pre/post and process cleanup.
+No production or borrowed live state. A failed first causal check stops this
+diagnostic without changing the physical law. Continuous accuracy and thermal
+interpretation remain unqualified until evidence supports them.
+
+Recurrence lapse recorded: attempted to read nonexistent
+tools/guala_body_discrete_work.py despite the prior no-retry note; no execution
+or state change resulted. All current paths are now validated from rg output;
+reuse only tools/guala_body_constraint_work.py. Do not repeat that lookup.
+
+Frozen work review1ce87b6c... found two localized reporting/dispatch issues,
+no architectural finding. Coupled-path selection now requires both known version
+and implicitfast (does not double-select historical fullimplicit diagnostics).
+The old trapezoidal constraint/remaining-closure fields are explicitly labelled
+hybrid estimates pairing coupled step-start forces with the adapter's final
+instantaneous physical forward sample. Only discrete_update is used for work
+attribution. No operator/source law or additional runtime call introduced.
+
+### FB-01aj discrete work attribution measured — 2026-09-26 19:38Z
+
+Final review PASS7b404ca4... verified unchanged before run. One25us/30ms trace,
+1200substeps,1.112s wall/1.111s CPU/150184KiB RSS,2cores, no timeout/error.
+Whole ordinary and observed successors match, as does the previously committed
+motion prefix state40511baa... . Exact raw envelope/health/process receipts in
+docs/evidence/FB-01aj-coupled-work.json. No engine rebuild or broad tests.
+
+Discrete measured work: actuator14.24522345J; constraint-10.05181170J;
+passive-3.39989309J; implicit bearing increment-0.00019647J;
+negative bias-1.05439282J; changing inertia metric+1.05386526J;
+kinetic change+0.79279464J. Ordinary bearing quadrature3.40042717J.
+Sum absolute per-step discrete closure2.0532e-11J; peak1.2643e-13J.
+Peak impulse residual4.1757e-15; peak row/generalized work disagreement1.11e-16J.
+The prior10.05200165J unassigned remainder is almost entirely constraint work,
+NOT10J of lost energy or evidence of thermal dissipation. Including measured
+constraint work leaves.00018995J from already separated quadrature/bias/metric
+terms; their algebra explains it within3.10e-15J. No heat is assigned.
+
+Constraint attribution: torso roll limit-9.17631906J; left palm/thigh contact
+-.51695544J; right forearm/torso-.31957696J; left palm roll limit-.03557543J;
+remaining groups are in artifact. Solver max5iterations, never at cap. Thus
+joint/contact exchange, not an unresolved force-solve residual, owns the energy
+gap. Hybrid endpoint-force constraint quadrature differs by-1.7432J and is NOT
+used as attribution. Its scope label prevents false heat/error interpretation.
+
+Body numerical accuracy and lawful heat/storage partition remain open. The next
+motion task stays at the resolved21.5–22ms self-impact and low-inertia digit
+response: derive a bounded contact-aware accuracy method without force/anatomy
+tuning, a blind global timestep decrease or promotion of arbitrary equal-SI
+probe tolerances. The energy finding does not require reopening the coupled
+operator or changing the kernel, and it does not authorize production.
+
+AWS pre19:34:44/post19:35:36Z same1553 task/image/identity,1/1/0HEALTHY,
+ticks2452421->2452519,errorsnull,durabilityfalse; existing clockALARM remains.
+Diagnostic sandbox PID137/session72149 terminal, no host body-worker orphan.
+No live write, caretaking change or repeat acquisition witness.
