@@ -5518,3 +5518,71 @@ refinement and all motors, without promoting eight diagnostic successes as a
 body law. Preserve actual force/work, collision, cold and energy-residual
 evidence. Do not change the learning/action vocabulary to conceal failures.
 Full body goal ACTIVE; remote push blocked, no production modification.
+
+### FB-01aj full active-load coverage and fixed-response refinement contract
+
+Predecessor034cee249 exact guard correction is CLOSED with58local checks and
+unchanged successors. This stage continues active-load qualification; it does
+not reopen the guard, optics, learning or field laws. Production stays1553.
+
+Only tools/guala_body_active_load_regime.py changes: named configuration selection
+avoids rerunning rejected cases; final qpos/qvel and their model address roster
+provide dimensional terminal convergence evidence. Add50us and25us fixed .2ms
+response/.999 impedance cases alongside the existing100us control. Keep response,
+force, mass, geometry, bearing material, solver convergence settings, error
+bounds and250ms duration constant for this refinement (2h clamp not crossed).
+All recorded representative control trajectories must reproduce exactly.
+
+Stage1: all128 capacity endpoints at100us/.2ms/.999 from the same pristine body,
+not an ordinary learner and not claimed sustained gait. Stage2: eight original
+representatives at50us and25us, same response; quantify terminal hinge, root
+position/rotation, velocity, work and residual differences with declared units.
+Passing geometric safety is not yet conservation/physical convergence. Terminal
+comparison does not establish a uniform whole-trajectory error bound. No numeric
+coefficient is promoted into production anatomy/physics by this diagnostic.
+
+One source-only frozen review before execution. Same bounded one-process env,
+pre/post AWS health and terminal child census; no concurrent G1 benchmark.
+This extends the existing regime map only, not runtime code or a second model.
+All-motor results and refinement decide the next first failure; full gravity,
+simultaneous/recurrent load, energetic/cold integration and live gates remain.
+
+FB-01aj full-load/refinement evidence — 2026-09-26 09:35Z.
+Final source-only gate PASS at unchanged
+c6a85e07ef178aee724f1722e8e4f0d0a2bfd25d5d7ec54a5e381a9f77a3521c.
+One localized correction compares ALL archived control keys except wall_seconds;
+streamed JSON rows preserve raw evidence without terminal truncation. No runtime
+physics change. Script SHA e0f1c06c705b9124485f219b4f6c3603e32010b87a9626f04e493964ef316b31.
+
+Stage1 session42061 exit0:128/128 capacity endpoints geometrically admitted at
+100us/.2ms/.999,42.4983s total trial time,135456KiB peak; perinterval
+.298355–.553054s. Original baseline128/128 refused. Terminal maxima: joint
+overrun5.85580618e-5rad,penetration4.08036580e-8m. These are TERMINAL maxima,
+not whole-trajectory peaks; every substep still enforced original safety limits.
+Do not conflate successful admission with convergence, calibration or learning.
+
+Stage2 session88697 exit0:8/8 at50us and8/8 at25us, response held .2ms/.999,
+135340KiB peak. Original controls exactly reproduced; no clamp change.
+Terminal100->50us then50->25us differences:
+- thigh: maximum hinge coordinate .0733693 then .0286758rad;
+  root position .755348 then .370499mm.
+- torso: hinge .0278736 then .0215585rad; work differences .0167963 then
+  .0691196J (non-monotonic; do not claim numerical convergence).
+- torso work14.53661/14.51981/14.45069J with residual10.12695/10.13528/10.13145J.
+  Persistent residual is NOT proved numerical error or bodily heat. It contains
+  unaccounted constraint exchange as already labeled by NativeBody.
+All144 measured rows, joint/address roster, dimensional terminal comparisons
+and pre/between/post-health in docs/evidence/FB-01aj-fixed-response-loads.json.
+
+09:30:29->09:32:02->09:33:17 read-only same1553/ec20ff/digest1d088e,1/1/0
+HEALTHY,live2372168->2372379->2372549,persist2372137->2372361->2372521,
+errorsnull,CPU~51.1–51.3%,RAM~2.985–2.991%;oldclockALARM remains,other4OK.
+Caretaker35747 untouched. Both diagnostic processes terminal, post-census
+no proof child. Source fingerprint unchanged; no production mutation.
+
+Disposition: load-domain feasibility now measured, NOT an accepted solver law.
+Next exact causal item is constraint-work/elastic-storage accounting and numerical
+error qualification on these same loads, before selecting response/resolution or
+reinserting the rejected ordinary integration. Source-only force review requested
+to identify missing work terms; it may not invent heat partitions or controllers.
+No broader anatomy, optics, cognition or curriculum work. Full goal ACTIVE.

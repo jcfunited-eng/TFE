@@ -31,6 +31,8 @@ CASES = (
     ("resolved_constant_impedance", 250, .0005, .999),
     ("finer_constant_impedance", 100, .0002, .999),
     ("finest_constant_impedance", 50, .0001, .999),
+    ("fixed_response_half_step", 50, .0002, .999),
+    ("fixed_response_quarter_step", 25, .0002, .999),
 )
 REPRESENTATIVES = (
     ("guala/torso/roll/effort", -1), ("guala/torso/roll/effort", 1),
@@ -43,14 +45,18 @@ REPRESENTATIVES = (
 )
 
 
-def run(all_motors=False):
+def run(all_motors=False, configurations=None, stream=False):
     declared = declaration()
     supply = FunctionalOrganism.genesis(identity="offline-load-budget", organism_tick=100).available_motor_work_j
     previous = json.loads((Path(__file__).resolve().parents[1] /
         "docs/evidence/FB-01aj-endpoint-loads.json").read_text())
     prior = {(r["name"], r["effort"]): r for r in previous["rows"]}
+    known = json.loads((Path(__file__).resolve().parents[1] /
+        "docs/evidence/FB-01aj-active-load-map.json").read_text())
+    controls = {(r["configuration"], r["name"], r["effort"]): r for r in known["cases"]}
     rows = []
-    for label, step_us, response, impedance in CASES:
+    cases = CASES if configurations is None else tuple(c for c in CASES if c[0] in configurations)
+    for label, step_us, response, impedance in cases:
         root = ET.fromstring(declared.xml)
         if response is not None:
             for joint in root.findall(".//joint"):
@@ -80,7 +86,9 @@ def run(all_motors=False):
                                         effort_updates=((index, force),))
                 row.update(result="accepted", time_s=result.observation.time_s,
                            positive_work_j=result.positive_motor_work_j,
-                           unresolved_energy_exchange_j=result.unresolved_energy_exchange_j)
+                           unresolved_energy_exchange_j=result.unresolved_energy_exchange_j,
+                           terminal_qpos=list(result.observation.qpos),
+                           terminal_qvel=list(result.observation.qvel))
             except ValueError as error:
                 row.update(result=str(error), time_s=float(data.time))
             row["terminal_max_hinge_overrun_rad"] = max(
@@ -94,17 +102,35 @@ def run(all_motors=False):
                 expected = prior[name, force]
                 if (row["result"], row["time_s"]) != (expected["result"], expected["time_s"]):
                     raise AssertionError("diagnostic does not reproduce frozen predecessor")
+            control = controls.get((label, name, force))
+            if control is not None:
+                keys = tuple(k for k in control if k != "wall_seconds")
+                if any(row[k] != control[k] for k in keys):
+                    raise AssertionError("diagnostic diverged from recorded control trajectory")
             rows.append(row)
+            if stream:
+                print(json.dumps({"load": row}, allow_nan=False), flush=True)
         print(json.dumps({"completed": label,
             "counts": dict(collections.Counter(r["result"] for r in rows if r["configuration"] == label))}),
             flush=True)
     return dict(scope="diagnostic only; accepted is numerical admissibility, not production proof",
                 all_motors=all_motors, supply_j=supply, cases=rows,
+                joint_names=list(engine.joint_names), qpos_addresses=list(engine.qpos_addresses),
+                dof_addresses=[int(x) for x in model.jnt_dofadr],
                 peak_rss_kib=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--all-motors", action="store_true")
+    parser.add_argument("--configuration", action="append", choices=[c[0] for c in CASES],
+                        help="Run only named diagnostic cases; repeat for a bounded stage.")
+    parser.add_argument("--jsonl", action="store_true",
+                        help="Emit each measured load as completed to preserve bounded output chunks.")
     args = parser.parse_args()
-    print(json.dumps(run(args.all_motors)), flush=True)
+    result = run(args.all_motors, args.configuration, args.jsonl)
+    if args.jsonl:
+        del result["cases"]  # Raw cases have already been emitted, never summarized away.
+        print(json.dumps({"summary": result}, allow_nan=False), flush=True)
+    else:
+        print(json.dumps(result, allow_nan=False), flush=True)
