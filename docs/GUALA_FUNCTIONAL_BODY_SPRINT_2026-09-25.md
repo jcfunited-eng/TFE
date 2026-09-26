@@ -6382,3 +6382,107 @@ persists, otherfourOK. G1's prior15-step diagnosticPID34306 was terminal before
 this run; no A1 diagnostic/timeout child remains at host census. No live writes.
 G1 movement16:50 corrections reviewed and concrete remaining corrections filed
 in shared ledger while body work continued; autonomy not abandoned or certified.
+### FB-01aj bounded local refinement contract — 2026-09-26 17:19Z
+
+Continue from232af24c0. Contact-onset localization, compiled equivalence and
+discrete work accounting remain closed. G1's failed independent food acquisition
+is reviewed separately in shared ledger17:14; no cognition work added here.
+
+Independent source-only numerical recommendation: local dyadic step doubling
+with unchanged implicitfast, NOT an XML-only RK4 switch. RK4 treats damping
+explicitly and current wrapper does not check its internal stages. Implicitfast
+omits future constraint-force derivatives, so reevaluation during shorter steps
+addresses the measured seam without changing force law. Source:
+https://mujoco.readthedocs.io/en/3.3.7/computation/index.html#integrators
+https://mujoco.readthedocs.io/en/3.3.7/modeling.html#solver-parameters
+
+This is an OFFLINE solution qualification, not runtime admission. New only:
+tools/guala_body_local_refinement.py. No NativeBody/model/schema/cognitive edit.
+One original30ms torso prefix from authenticated archive; maxcoarsestep100us,
+fixed tau.2ms/impedance.999, implicitfast, same effort/capacity/supply/guards.
+No step exceeds100us, so timeconst>=2h safeguard cannot retune the contact law.
+
+At every candidate node restore identical complete native integration state;
+compare one h step with two h/2 steps. Both use the existing compiled interval
+law, including each actual step's guards and work. Retain the fine trajectory,
+never extrapolate coordinates/velocities/warmstart. Disagreement bisects, at most
+five levels below100us; finest performed step1.5625us. Count ALL trial steps:
+three per node, at most3*(2^6-1)*300=56700 per prefix. Scratch O(depth*nstate),
+no persistent history or separate physical authority. Any native, finite,
+geometry or energy-supply refusal terminates the whole diagnostic case; it is
+not retried at weaker limits. Rejected numerical branches debit no physical
+work. Only accepted half-step receipts carry forward supply/heat diagnostics.
+
+Accuracy measures remain separate SI quantities: free translation; root/joint
+angular difference using native quaternion differentiation; linear and angular
+velocity difference; each motor/bearing work component. No weighted score.
+Two explicit diagnostic precision requests1e-4 and1e-5 in their respective SI
+units map sensitivity/cost. These are NOT derived production accuracy limits,
+biological thresholds or correctness certificates. Existing .03rad/.008m guards
+are not repurposed as error budgets. Step disagreement is only a local indicator;
+both paths can miss an event. Preserve archived25us comparisons at10ms samples
+to disclose accumulated differences, not call that trajectory exact truth.
+
+Preflight ordinary100us30ms control against archive exactly. Fresh-engine repeat
+must reproduce every accepted integration state, work value, and subdivision
+decision; no model-header substitution or published variable-step body bytes.
+Only mjSTATE_INTEGRATION scratch arrays are restored within this offline model.
+Runtime model timestep is restored on exit. Source freeze/review before run.
+Two precision cases plus one fresh repeat each, CPU60s/wall90s/RAM1GiB cap;
+one process, no pytest/conftest, no native rebuild, before/after read-only AWS
+and host cleanup census. A finite failure is retained, not a tolerance-tuning
+loop. No claimed real-time pass: minimum three native steps per comparison.
+
+Lookup failures this turn: functional_body_sensory.py and
+functional_body_world.py do not exist. Discovered actual world boundary in
+embodiment_world.py; no guessed path retried. Printing receipt head reached a
+large compressed payload and truncated; future reads select JSON metadata only.
+### FB-01aj refinement result — 2026-09-26 17:29Z
+
+Source review found two localized evidence defects before execution: abandoned
+left-subtree stats could outrun the committed prefix, and the fresh-repeat trace
+did not authenticate individual accepted receipts. Both corrected, including
+clearing rollback markers after each complete chunk. Final source-only PASS,
+fingerprint fc7fd02f3fb04aeba90bdc81cb5e84370215f8cca6f6d063be71e956225b1030
+verified before/after run. Source6b152fef0338287e... . No runtime source changed.
+
+Session52750exit0; authenticated archived100us control exact. Both precision
+requests failed at the first100us chunk:18charged native steps,6rejected
+comparisons, zero accepted prefix and zero work/heat debit. Refinement reached
+the declared1.5625us fine-step floor without satisfying the requested precision.
+Each fresh-engine repeat reproduced the complete failure/state/trace/evidence.
+PeakRSS144920KiB. Trial loops.0027-.0050s, not a realtime mechanical qualification.
+No parameter relaxation or heavier rerun made.
+
+Max observed disagreement across each failed search:
+translation5.57813129e-8m; angle1.5557702148e-5rad;
+linear rate5.8007584973e-5m/s; angular rate.19160964180480722rad/s;
+work1.4517324165e-7J.
+Those are maxima across attempted nodes, NOT the finest-node error. Do not infer
+the latter from this record. Both cases stopped BEFORE the21.5ms self-impact,
+so this run DOES NOT test whether adaptation resolves that impact. It proves
+only bounded refusal and exact replay for these explicit diagnostic requests.
+It is not a successful numerical solution, and an exit0 receipt means the
+experiment completed, not that body accuracy passed.
+
+Full output2397bytes authenticated SHA
+5f938822ee4bad3082719522f72391811dd204f8be1ef87ae2f0897d7554b42c
+in docs/evidence/FB-01aj-local-refinement.json. Preserve this failure; do not
+repeat it as new evidence or serially loosen experimental tolerances until green.
+
+Next body boundary is the actual motion/feedback accuracy contract and the
+initial joint-boundary response, before promoting variable steps or another
+integrator. This does not reopen native solver accounting/byte-equivalence.
+Declared collision/joint-overrun safety limits do not define permissible
+trajectory or velocity error. The tested equal-SI precision probes were not
+production requirements. Derive numerical resolution from supported mechanical
+and sensory outputs, and distinguish discontinuous contact/limit activation
+from smooth-phase error. No new cognition, damping, reduced force or surface
+exemption is authorized by this result. Body goal ACTIVE, not complete.
+
+AWS pre17:22:16/post17:26:27Z: same1553/ec20ff/digest1d088e,1/1/0HEALTHY,
+sameidentity, live2435784->2436335,persist2435753->2436329,errorsnull,
+durabilityfalse,CPU51.04->51.07%,RAM3.206%. Clock-stalledALARM remains,
+otherfourOK. Host census has no diagnostic Python/timeout child. No live write.
+Shared G1 ledger17:14 records acquisition failure, unaccepted stale movement
+filter and small recommended correction; no autonomy or feeding closure claim.

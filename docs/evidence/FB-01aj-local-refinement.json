@@ -1,0 +1,151 @@
+{
+  "schema": "guala.functional-body.local-refinement-receipt.v1",
+  "frozen_candidate": "fc7fd02f3fb04aeba90bdc81cb5e84370215f8cca6f6d063be71e956225b1030",
+  "source_sha256": "6b152fef0338287e3458e311773a4de356ef51e9136a765c6d0171817191fc3e",
+  "command": "set -e\ntest -f /tmp/guala-body-interval.Hdyavt/python/guala_body_interval.cpython-311-x86_64-linux-gnu.so\ntest -d /tmp/guala-body-native.pnUH8P/lib/python3.11/site-packages\npython3 -B /root/.codex/skills/guala-project-truth/scripts/fingerprint-guala-candidate.py verify /workspaces/guala-functional-body fc7fd02f3fb04aeba90bdc81cb5e84370215f8cca6f6d063be71e956225b1030\nulimit -v 1048576\nulimit -t 60\nexec timeout --kill-after=5s 90s taskset -c 18,19 env PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=/tmp/guala-body-interval.Hdyavt/python:/tmp/guala-body-optics-native.U8I8en/python:/tmp/guala-body-native.pnUH8P/lib/python3.11/site-packages:.:tests:tools OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 python3 -B tools/guala_body_local_refinement.py",
+  "session_id": 52750,
+  "exit_code": 0,
+  "health_before": {
+    "utc": "2026-09-26T17:22:16.275345+00:00",
+    "service": {
+      "counts": [
+        1,
+        1,
+        0
+      ],
+      "taskDefinition": "arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1553",
+      "tasks": [
+        {
+          "arn": "arn:aws:ecs:us-east-1:418384447921:task/tfe-web-cluster/ec20ff084de54d48afab9a113647fa46",
+          "status": "RUNNING",
+          "health": "HEALTHY",
+          "digests": [
+            "sha256:1d088eaaf195931a315e45c7ed456d4bb028210655e52eacad27e4445161612d"
+          ]
+        }
+      ]
+    },
+    "alarms": [
+      {
+        "name": "guala-clock-stalled",
+        "state": "ALARM"
+      },
+      {
+        "name": "guala-cpu-runaway",
+        "state": "OK"
+      },
+      {
+        "name": "guala-efs-storage-runaway",
+        "state": "OK"
+      },
+      {
+        "name": "guala-interval-refusal-loop",
+        "state": "OK"
+      },
+      {
+        "name": "guala-memory-runaway",
+        "state": "OK"
+      }
+    ],
+    "cpu": [
+      {
+        "Timestamp": "2026-09-26T17:20:00+00:00",
+        "Average": 51.037920912106834,
+        "Maximum": 51.69318804144859,
+        "Unit": "Percent"
+      }
+    ],
+    "memory": [
+      {
+        "Timestamp": "2026-09-26T17:20:00+00:00",
+        "Average": 3.2063802083333335,
+        "Maximum": 3.21044921875,
+        "Unit": "Percent"
+      }
+    ],
+    "observation": {
+      "available": true,
+      "identity": "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1",
+      "live_tick": 2435784,
+      "persisted_tick": 2435753,
+      "checkpoint_error": null,
+      "cleanup_error": null,
+      "durability_blocked": false
+    }
+  },
+  "measurement": {
+    "raw_bytes": 2397,
+    "raw_sha256": "5f938822ee4bad3082719522f72391811dd204f8be1ef87ae2f0897d7554b42c",
+    "payload_zlib_base64": "eNrtVNtu2zAM/RXDz44hybrmJ/YBw2DQMp1o822S3TUY+u+j3axN13YPwx4bIEBEMuQ5h5efOUR/DnfY1pyxNdV+Gpc49TXeg1/y4xJXLHIPCVN+/PwzB+9xXig6oscwU8RnVrLije+X4jk4LTinurnU65bl1rNE8FinMwil82OOVcO8lMLZznPPpYOu6aS3zumucUIKAyg5Si1d4yrpQTrlHG+MVaKxSuXFMx+hdjrDDDGkabxW9meIp71wgP4RWH7klhwU2eOC+bGDPuGzoa3niF2438GzIsce5rSRQtKq3WwlY9JZ5bRhnBmhhCvyDkK/RsqWt+h7iNhmXRgxLYetZkYpfUhhGrNxWrIBF0LeRUxnEnZGWF7qH8YF47jjheVGLrBcofOtcl4Kjk6YSgJWzNoOlLEIHRPaOKbbzmhkWgCAsgwYtq3kzlDRAe7rp270k6cibUhwiogDjoSAej6eeqwjtDvVYnuvxIgsy26u09XRE8Hf9uHJSi0eUw8Lka2Hq+3HFL/VX/fHwyOGhaQhBH+pzUullDFMcGk5tyQ4Hph6Dw53XDOnJbdMWmqKeAOeKi1jRlnpTEUdNI/5/sCrSlKSV1w4Jhg1mFOUfWbAS6m4qYTkWjEjmSS3+c3pdsYUTQcxf2o8Nfr7SqRfK8wYf1fk3feWzrvjtdS7+UZtehO4iF/Rb3K/WA+9OQYIYxhPdVrnub9s/5LayNJJt3n30Xwx+FXlBG0i4/SDOV7ph+LjSrx3JYSRghFe+tA0aCs/7sTHnfi3O8HfJ3V1vaLB38R9tT7h3J7/+URIbTUpRwOvpdBSP3x55B1Tqr+FhopK6QSRHhC2zDSxn7puw59tohzaaW3odbrZhqsoqdj3Yo5Tu/qNUUYzutK1uGR9GMLmP/VTA31GeO6Qdnr0WGQJxzTFCxkjZVxo3ShwipQV+sMSBsy+r9CHLvhdppLmP/kzESdkJ/JA2a3jXo/im6m9lPtGHLYLMO4zWd7x/OEXjqIEzQ=="
+  },
+  "health_after": {
+    "utc": "2026-09-26T17:26:27.205885+00:00",
+    "service": {
+      "counts": [
+        1,
+        1,
+        0
+      ],
+      "taskDefinition": "arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1553",
+      "tasks": [
+        {
+          "arn": "arn:aws:ecs:us-east-1:418384447921:task/tfe-web-cluster/ec20ff084de54d48afab9a113647fa46",
+          "status": "RUNNING",
+          "health": "HEALTHY",
+          "digests": [
+            "sha256:1d088eaaf195931a315e45c7ed456d4bb028210655e52eacad27e4445161612d"
+          ]
+        }
+      ]
+    },
+    "alarms": [
+      {
+        "name": "guala-clock-stalled",
+        "state": "ALARM"
+      },
+      {
+        "name": "guala-cpu-runaway",
+        "state": "OK"
+      },
+      {
+        "name": "guala-efs-storage-runaway",
+        "state": "OK"
+      },
+      {
+        "name": "guala-interval-refusal-loop",
+        "state": "OK"
+      },
+      {
+        "name": "guala-memory-runaway",
+        "state": "OK"
+      }
+    ],
+    "cpu": [
+      {
+        "Timestamp": "2026-09-26T17:24:00+00:00",
+        "Average": 51.067322005828224,
+        "Maximum": 51.126974910497665,
+        "Unit": "Percent"
+      }
+    ],
+    "memory": [
+      {
+        "Timestamp": "2026-09-26T17:24:00+00:00",
+        "Average": 3.2063802083333335,
+        "Maximum": 3.21044921875,
+        "Unit": "Percent"
+      }
+    ],
+    "observation": {
+      "available": true,
+      "identity": "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1",
+      "live_tick": 2436335,
+      "persisted_tick": 2436329,
+      "checkpoint_error": null,
+      "cleanup_error": null,
+      "durability_blocked": false
+    }
+  },
+  "cleanup": "Host census after completion contains no Python/timeout body diagnostic process. Other agents/IDE/sleep processes untouched.",
+  "disposition": "Both diagnostic precision requests failed before the first 100us chunk. Numerical-disagreement refusal and fresh replay verified; no impact accuracy, convergence, production tolerance or realtime result established. No parameter-relaxation rerun authorized by this receipt."
+}
