@@ -3362,3 +3362,74 @@ this solves the measured case, instrument the last admitted frontier to count
 which primitives remain ambiguous and how many patches this tightens. This is
 the next diagnostic proposal, NOT a mounted physical law or measured fix.
 Full body integration/restart/performance/live gates remain open; goalACTIVE.
+
+### FB-01w — direct sphere angular bounds, same optical budget
+
+Continue the same bounded numerical-optics failure, predecessor81ab0cf69
+preserves FB-01v failure. Requested architecture: complete native geometry,
+bounded optical integration without hidden surface omission. Current reality:
+general cone radius inflation/erosion admits excess ambiguity for spheres;
+full49primitive test still refuses. Conflict: yes, resource acceptance not met.
+Do not extend budgets, tolerances, cognition, L0-L4, production renderer or
+world custody. Single next item: the derived sphere entry extrema above.
+Reduced numerical geometry with constant diagnostic radiances only; no DSF
+field reduction/decision claim, no variable lighting claim.
+
+Impact map is exclusively entry_bounds->prepare_scene/classify->integrate in
+the offline tool. Same native geometry inputs; no persistent state, cache,
+schema, new authority or production consumer. Sphere rotation has no effect
+on sphere geometry; all other shapes preserve the reviewed law. Forward hit
+threshold sqrt(a) is the sphere tangent, not an authored tolerance. Existing
+outside-eye restriction applies. Low/high reciprocal entry bounds converge
+with aperture refinement; no sampled hit declares an entire patch resolved.
+Conservation role is unchanged aperture solid-angle radiance integration.
+All fallible work is local; refusal returns no image and cannot mutate native
+state. Cold image and next motor successor checks remain the same.
+
+Before interpreting performance, compare admitted unresolved-frontier counts
+against predecessor in the same scene. The ordinary diagnostic includes the
+native sampled witness sweep, analytic full/tiny sphere area, native panel,
+complete49shape scenes, moved eye and cold branch. Keep262144nodes/20depth,
+1/510error and1e-10diagnostic comparison tolerance. Source-only review before
+execution. A passing numerical regime is not live delivery or a proof of250ms.
+
+FB-01w frozen source review PASS; fingerprint4a8b0759859148394969e6bff214d56e6b4bbd01404f75be58f053b2a717d82c
+verified before/after review and both executions. Tool SHA256
+146b532a56b85633128c748f5b3e8a4e428f5ee99e4d76a4a22982b11e2c6137.
+Predecessor attribution session55264 exited0,8.945528106s,peak131708KiB.
+Executed reviewed81ab0cf69 diagnostic from git in memory, observed classification
+without changing its return values/physics; reproduced exactly165103visited+
+133264nextnodes refusal atdepth8. At that last admitted frontier,35674patches
+were unresolved; direct sphere bounds leave29982. Newly certified patches:
+coarse76,wide146,focal5470. Every remaining patch has curved-foreground possible
+but no all-hit certificate; dark-panel covers all29982, emissive-panel possibly
+covers28240/all-hit28210. This isolates the actual silhouette rather than other
+body geometry. No synthetic organism state or world authority was involved.
+
+Same ordinary regime session6026 exited0,32.669127744s,peak187916KiB.
+All36000sampled witnesses, analytic sphere/tiny-cap integrals and4refusals pass.
+Analytic sphere .19684288451874393 is inside .19684600830078125 +/- .00196075439453125
+(4197nodes,depth9); tinycap .028495173787268745 is inside .02865600585937509 +/-
+.0014953613281249378 (821nodes). Original47shape initial/moved frames19335nodes,
+depth0,times .528889714/.887187350s,geometric residual0.
+
+Both49shape actual curved scenes NOW FINISH within unchanged262144node budget:
+initial246963nodes,depth9,6.766402427s; moved238767nodes,depth9,8.394075765s;
+maximum absolute six-band midpoint error bound .0019531250000000026 (<1/510).
+Both complete cold bit-identical image/uncertainty and next native motor
+successor proofs, as do original scenes. No native state mutation by rendering.
+All four frame times still FAIL250ms; no real-time or deployment claim.
+
+ReadonlyAWS01:24:27/01:27:25Z:1553sole1/1/0,RUNNING/HEALTHY,same task/digest/
+identity,live2299779->2300288,persist2299753->2300265,availabletrue,
+checkpoint/cleanupnull,durabilityfalse. CPUavg51.577->51.811%,max52.309%;
+RAMavg2.795->2.812%,max2.820%. Resource/refusalalarmsOK, existingclockalarmALARM.
+Caretaker35747 untouched; both A1 sessions exited and final census has no A1
+harness. No AWS writes. GoalACTIVE, Joe explicitly pressed resume.
+
+Next same optical boundary: settle the curved silhouette area without quadtree
+growth along its entire perimeter. Investigate analytical intersection of the
+sphere's angular cap with the existing aperture/planar halfspaces; preserve
+front-to-back physical visibility, finite shapes, sub-aperture coverage and
+declared numerical error. Do not increase limits or hide a slower full frame.
+This remains offline numerical optics; body integration/live proof stays open.

@@ -212,6 +212,21 @@ def entry_bounds(kind, size, centre, rotation, patches, prepared, faces=None):
     if kind == BOX:
         return box_entry_bounds(box_faces(size, centre, rotation) if faces is None else faces,
                                 patches, angular)
+    if kind == SPHERE:
+        # For an exterior eye, t(q)=a/(q+sqrt(q*q-a)), q=c dot d,
+        # a=|c|^2-r^2. Forward entry exists iff q>=sqrt(a), and t
+        # decreases with q. Aperture-wide extrema avoid radius inflation.
+        a = float(centre @ centre - size[0]*size[0])
+        if a <= 0:
+            raise ValueError('exterior-eye sphere required')
+        vectors = centre[None, :]
+        low, high = _dot_extrema(vectors, patches, _plane_parameters(vectors), angular)
+        def entry(q):
+            result = np.full(len(patches), np.inf)
+            hit = q >= math.sqrt(a)
+            result[hit] = a/(q[hit] + np.sqrt(np.maximum(q[hit]*q[hit]-a, 0.)))
+            return result
+        return entry(high[0]), entry(low[0])
     origin = -centre @ rotation
     velocity = direction @ rotation
     half, radius = radii(kind, size)
@@ -232,7 +247,7 @@ def entry_bounds(kind, size, centre, rotation, patches, prepared, faces=None):
         contracted *= (1-scale[:, None])
         nonempty = scale < 1
     else:
-        changed = (0,) if kind in (SPHERE, CAPSULE) else (0, 1) if kind == CYLINDER else (0, 1, 2)
+        changed = (0,) if kind == CAPSULE else (0, 1) if kind == CYLINDER else (0, 1, 2)
         expanded[:, changed] += delta[:, None]
         contracted[:, changed] -= delta[:, None]
         nonempty = np.all(contracted[:, changed] > 0, axis=1)
