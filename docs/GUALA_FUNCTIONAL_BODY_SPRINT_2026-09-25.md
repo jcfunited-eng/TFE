@@ -4944,3 +4944,156 @@ spatial-light path and preserve exact physical interval output before ordinary
 retinal-loop mounting. Do not reopen source custody/paint law or expand sight
 anatomy/cognition. No weakening error/resource/occlusion to claim250ms.
 GoalACTIVE; local commit only; remote push permission remains outstanding.
+
+## FB-01ah — Compiled body-optics primitive evaluation — 2026-09-26
+
+Previous turn PROGRESS:5b3900e06,80offline checks, complete variable-light
+field526.773ms. Continue SAME body-optics latency boundary; no reopening
+source custody, geometry, paint, lighting, error budgets or cognitive scope.
+Current clean source verified. Requested unchanged physical output at lower
+cost. Conflict: elapsed cost exceeds250ms, not a missing physical law.
+No DSF is evaluated/reduced. Body-only float64 approximation already approved.
+
+Measured diagnostic1730 exit0:303161calls,0.599profiled seconds,35383nodes/
+8depths,170816KiB. NativeIllumination._visibility_bounds326ms, paired primitive
+intervals266ms, sphere_interval201ms, NumPy reductions95ms. A second bounded
+count12539 exit0 showed16887/16942 receiver rows have positive possible direct
+light; dropping proven-dark rows removes55only. Do NOT repeat rejected FB-01ac
+row compaction or add geometric culling tolerances. Both probes leave world
+bytes unchanged; no live calls except read-only AWS envelope.
+
+Exact correction: port the ALREADY ACCEPTED analytic convex primitive
+interval/normal law to one pure bounded function in the EXISTING guala_core
+compiled extension. No MuJoCo shadow-model mutation or second physics service.
+NumPy still supplies the same full-shaped world-to-primitive transforms, so
+matrix-rounding order stays unchanged. Only local root/normal arithmetic moves.
+Sphere/capsule/cylinder paired radii share identical ray coefficients; ellipsoid
+scaled rays remain distinct. Expanded and contracted roots computed separately;
+no inclusion inference, AABB, epsilon, fast-math, fused multiply-add, or missing
+intersections. Preserve np min/max NaN and tie/signed-zero semantics, source
+operation order, cap union and cylinder/box normal ownership.
+
+Impact path: NativeOpticalSources -> same NativeIllumination and renderer
+entry/surface geometry -> interval/interval_pair -> packed-buffer body kernel
+-> same interval arrays -> same shadow/retinal light/radius/node trajectory.
+Single and paired optical callers use the SAME primitive law. Retire old Python
+root/primitive implementation from runtime; retain exact predecessor ONLY in
+standalone differential evidence. Original legacy optical_raycast and canonical
+DSF/neuron functions are not reused or modified. Existing library registration
+adds only the new body function.
+
+FFI contract: one primitive kind, finite original local origins/velocities,
+positive admitted dimensions, optional paired dimensions, optional exact
+surface normal request. Native float64 contiguous buffers, shared1row or Nrow
+origins/sizes; N<=262144, at most2intervals or1surface record per row. No
+per-point Python tuple/float unpack, no array-to-list conversion. GIL retained
+while borrowing input buffers (no concurrent pointer access or callbacks).
+One immutable packed byte result; NumPy views it without a second data copy.
+All temporary scalar state is per ray; no retained scene/cache/owner/threads.
+Output bounded by2*N*2*8 orN*8*8bytes. Invalid input or allocation/normal failure
+returns before any state publication; world/read side stays mutation-free.
+
+Cold/persistence: no schema or law/state header changes. Source geometry and
+body bytes unchanged; exact image, radiance intervals, refinement counts, cold
+next motor and existing conservation proofs must remain equal. No production
+fallback to Python if the compiled function is missing. Docker's existing
+native-builder already copies/builds the complete native/guala_core tree;
+only two registration statements in lib.rs may change. Build an isolated
+temporary wheel/target; never overwrite G1's installed extension or task.
+Existing published production code remains untouched.
+
+Authorized files: new native/guala_core/src/body_optics.rs; src/lib.rs(module
+and registration only); functional_body_renderer.py(retire interpreter root
+dispatch/use packed kernel); tests-only predecessor reference; existing
+standalone illumination proof(adapter for moved reference and work evidence);
+new standalone native-kernel contract proof; this sprint ledger. No Cargo
+dependency/kernel/DSF/law changes, no caretaker/organism/state/interface change.
+
+Acceptance: frozen independent SOURCE gate before compile. Compile isolated
+locked/offline existing Rust crate. Prove loaded extension path is that build.
+Compare accepted Python intervals and normals bit-for-bit on all five shapes,
+common/per-ray origins, paired radii, finite/parallel/missing/tangent and adjacent
+float cases, capsule junctions, rotations, invalid buffer/shape/bound refusal.
+One native batch per primitive; no per-ray Python dispatch or persistent work.
+Run same actual-world head/cold/material/illumination/retinal proofs; paired
+complete19335-site resource comparison with accepted5b3900e06 through its exact
+test-only predecessor implementation. Require image/error/node/depth/unknown
+arrays identical and improved total time, not just a microkernel result.
+No250ms claim unless complete measured path passes. Full home/ordinary-body/
+copied-production/restart/rehearsal/live gates remain OPEN.
+
+Read-only06:56:22/06:56:57/07:01:33 same1553/ec20ff/digest1d088e,counts1/1/0,
+live2350737->2350821->2351494,persist2351465last,errorsnull,CPU~51%,RAM~2.97%;
+oldclockALARM persists. Caretaker35747 active, allA1probehandles terminal.
+Other-agent small diagnostic40827/41922 observed and ended; not signalled.
+Operator path miss preserved: guessed rootDockerfile/pyproject and historical
+deploymanifest absent, rgexit2; stopped that path and resolved exact files via
+rg--files. Actual closure dsf_ai_service/Dockerfile and native/guala_core/
+pyproject.toml; do not reuse guesses. No networkwrites or GitHub push.
+
+FB-01ah implementation preflight — 2026-09-26.
+Pure compiled primitive source replaces107lines of interpreter interval/root
+dispatch with one buffer adapter; old arithmetic lives only in tests reference.
+Existing lib.rs diff is exactly module+registration; no dependency or canonical
+function body changed. All world-to-local transforms, geometry/paint/light and
+retinal area/subdivision code unchanged. Native borrows finite typed buffers
+under held GIL, initializes bounded bytes, calls no Python, stores nothing.
+All source/test callers of removed helpers resolved; illumination's independent
+predecessor imports tests-only reference. Old dot-call count proof replaced by
+actual packed-native-batch count and zero per-array Python primitive dispatch,
+still requiring predecessor visibility equality. Native proof requires exact
+candidate-extension path and byte equality including signed zero, not tolerance.
+Full output/persistence/refinement equivalence and whole-path resource proof
+remain mandatory. No candidate compile/import/test has occurred yet.
+
+FB-01ah accepted locally — 2026-09-26 07:24Z.
+Independent SOURCE review classified one LOCALIZED finding: normal admission
+wrongly rejected infinite exit range despite finite positive entry. Preserved
+the accepted law exactly; added finite-input overflow/NaN and infinite-exit
+byte comparisons. One correction batch, final SOURCE PASS, no architecture
+rejection or tolerance change. Final freeze and post-proof verify identical:
+558261063e0e29b1a7a34c6116806944378b5d92c62131328ca07e7a1c06e621.
+
+Isolated locked/offline release build session45295 exit0,19.00s,one Cargo job.
+Root /tmp/guala-body-optics-native.U8I8en; no global/G1 extension overwrite.
+Rust1.97.1,maturin1.14.1,CPython3.11,existing PyO3 0.23.5. Wheel SHA256
+efc7cc445f18edef9cde9dcf57b2c91e4d16ac49954601866ed63e433da29fae;
+loaded guala_core/guala_core.cpython-311-x86_64-linux-gnu.so SHA256
+b3d1c01707bbbb9609486dbfe7a9516fa8336e3a5f627a81c4e69431469176bd.
+Direct path printed from isolated extension, not prior installed candidate.
+Build target78MiB retained for active integration recompilation; wheel368KiB,
+installed candidate904KiB. No background compiler/proof survivors.
+
+Native boundary5PASS/0FAIL,0.01489s:28800 primitive bound values byte-identical,
+allfive normal laws, zero/parallel/tangent/missing/adjacent-float, finite overflow,
+invalid buffers/resources. Whole actual-lamp paired comparison session65481 exit0:
+same19335sites,50geoms,35383nodes,depth8,maxradius0.0019094197425049142,
+zero unknown area. Accepted Python514.177ms; compiled288.646ms (1.78134x).
+EVERY image/radius/unknown byte and refinement count identical; world bytes
+unchanged. Peak172020KiB. This is a local shared-host measurement, NOT250ms
+or full-home/ordinary-body/production timing. Error/resource limits unchanged.
+
+Remaining standalone regression batch8022 exit0:80PASS
+(14illumination+7retinal+5optics+5visibility+4materials+8native-materials+
+11source+5solar+21world). Together85PASS including newnative5.375 independent
+native ray witnesses, physical head movement, fresh cold image and next motor
+remain valid. Illumination's paired512-row proof calls49 packed native batches
+instead of120832 interpreted dot-row work; no per-ray Python dispatch.
+Max measured regression peak175904KiB. No pytest/conftest/live test authority.
+
+Read-only AWS07:18:46/07:21:17/07:22:09/07:23:03 same1553/ec20ff/digest1d088e,
+counts1/1/0,RUNNINGHEALTHY;live2354025->2354662,persist2354633last,
+identity unchanged,errorsnull,durabilityfalse;CPU~51%,RAM2.966%.
+Existing clock-stalled ALARM remains; otherfouralarmsOK. Caretaker35747active.
+All A1 handles terminal; host census shows no proof/compiler survivors.
+No G1 source/process or live service change; remote push still permission-blocked.
+
+Disposition: compiled same-law primitive execution LOCALLY EXERCISED and closed.
+No further helper-only optimization pass. Next bounded FB-01ai is ordinary
+native retinal consumption: preserve real head geometry/current sources and
+existing pupil/gain/clipping/saturation contract, retire any upright-root
+reconstruction for mounted bodies, prove the same ordinary sensory consumer.
+The remaining latency gap stays OPEN in the full body acceptance; integration
+does not grant production permission or erase it. Full home/body/caregiver,
+motor/sensory, copied mature-body, restart, resource, rehearsal and live
+acceptance remain required. No speech/cognition/retina expansion. GoalACTIVE.

@@ -37,6 +37,7 @@ use num_complex::Complex64;
 use pyo3::prelude::*;
 
 mod auditory;
+mod body_optics;
 mod auditory_reachability;
 mod kinematics;
 mod optical_raycast;
@@ -608,6 +609,7 @@ fn psi_settle(
 #[pymodule]
 fn guala_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     auditory::register(m)?;
+    body_optics::register(m)?;
     auditory_reachability::register(m)?;
     optical_raycast::register(m)?;
     kinematics::register(m)?;

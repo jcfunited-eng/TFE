@@ -22,9 +22,10 @@ from dsf_ai_service.substrate.functional_body_illumination import NativeIllumina
 from dsf_ai_service.substrate.functional_body_native import OpticalGeometry
 from dsf_ai_service.substrate.functional_body_renderer import (
     BOX, CAPSULE, CYLINDER, ELLIPSOID, SPHERE, interval, interval_pair,
-    slab, sphere_interval, entry_bounds, patch_geometry, surface_patch_geometry, directions,
+    entry_bounds, patch_geometry, surface_patch_geometry, directions,
 )
 from dsf_ai_service.substrate import functional_body_renderer as renderer
+from functional_body_optics_reference import slab, sphere_interval
 from dsf_ai_service.substrate.functional_body_illumination import _dilate
 from test_functional_body_optical_sources import (
     KEY, advance, declaration, mount, query, world,
@@ -391,7 +392,7 @@ class IlluminationTests(unittest.TestCase):
                                 np.testing.assert_array_equal(a, b,
                                     err_msg=f"kind={kind} radius={radius} interval={near, far}")
 
-    def test_shared_ray_coefficients_are_computed_once_not_cached(self):
+    def test_native_batches_retire_per_array_python_dispatch(self):
         authority = bench()
         view = query(authority)
         field = NativeIllumination(view)
@@ -406,16 +407,19 @@ class IlluminationTests(unittest.TestCase):
         direction = vector/distance[:, None]
         receiver = np.full(count, next(i for i, (b, _) in enumerate(view.bindings)
                                      if b.geom_name == "wall"), dtype=int)
-        original = renderer.sphere_interval
-        examined = []
+        reference_sphere = sphere_interval
+        native = renderer._native_intervals
+        examined, batches = [], []
         def measured(origin, velocity, radius):
-            # Each row computes the same three original ray dot products.
             examined.append(int(np.prod(np.broadcast_shapes(
                 origin.shape[:-1], velocity.shape[:-1]))))
-            return original(origin, velocity, radius)
+            return reference_sphere(origin, velocity, radius)
+        def measured_native(kind, origin, velocity, sizes, paired, normal):
+            batches.append((len(velocity), paired is not None))
+            return native(kind, origin, velocity, sizes, paired, normal)
         try:
-            renderer.sphere_interval = measured
             globals()["sphere_interval"] = measured
+            renderer._native_intervals = measured_native
             for radius in (0., .02):
                 delta = np.full(count, radius)
                 near = distance*(1-.25/(distance-delta))
@@ -425,16 +429,20 @@ class IlluminationTests(unittest.TestCase):
                 expected = _predecessor_visibility(*args)
                 prior_rows = sum(examined)
                 examined.clear()
+                batches.clear()
                 actual = _visibility_bounds(*args)
-                current_rows = sum(examined)
                 for a, b in zip(expected, actual):
                     np.testing.assert_array_equal(a, b)
-                self.assertLess(current_rows, prior_rows)
-                print(dict(shadow_patch_radius=radius, predecessor_dot_rows=prior_rows,
-                           candidate_dot_rows=current_rows), flush=True)
+                self.assertGreater(prior_rows, 0)
+                self.assertEqual(examined, [])
+                self.assertGreater(len(batches), 0)
+                self.assertLessEqual(len(batches), len(view.geometry.kinds))
+                self.assertTrue(all(n == count and pair == (radius != 0.) for n, pair in batches))
+                print(dict(shadow_patch_radius=radius, predecessor_python_dot_rows=prior_rows,
+                           candidate_python_dot_rows=0, packed_native_batches=len(batches)), flush=True)
         finally:
-            renderer.sphere_interval = original
-            globals()["sphere_interval"] = original
+            renderer._native_intervals = native
+            globals()["sphere_interval"] = reference_sphere
         self.assertEqual(authority.encoded_snapshot(), before)
 
     def test_paired_capsule_rejects_different_segment_lengths(self):
