@@ -2446,6 +2446,8 @@ class NativeWorldMount:
     body_frames: tuple[tuple[str, str], ...]
     object_frames: tuple[tuple[str, str], ...]
     actuator_owners: tuple[tuple[str, str], ...]
+    optical_bindings: tuple = ()
+    body_reflectance: tuple = ()
 
     def __post_init__(self):
         # Lazy import keeps the unmounted predecessor independent of MuJoCo.
@@ -2461,15 +2463,21 @@ class NativeWorldMount:
         frames = [p[1] for p in self.body_frames + self.object_frames]
         if len(set(frames)) != len(frames):
             raise ValueError("one native entity frame cannot have two owners")
+        from .functional_body_optical_sources import validate_declaration
+        validate_declaration(self.optical_bindings, self.body_reflectance)
 
     def as_record(self):
         return {
-            "schema": "guala.native.world-mount.v1", "xml": self.xml,
+            "schema": ("guala.native.world-mount.v2" if self.optical_bindings
+                       else "guala.native.world-mount.v1"), "xml": self.xml,
             "limits": {name: getattr(self.limits, name) for name in _NATIVE_LIMIT_FIELDS},
             "sensory_root": self.sensory_root,
             "body_frames": [list(p) for p in self.body_frames],
             "object_frames": [list(p) for p in self.object_frames],
             "actuator_owners": [list(p) for p in self.actuator_owners],
+            **({"optical_bindings": [b.as_record() for b in self.optical_bindings],
+                "body_reflectance": [[name, list(bands)] for name, bands in self.body_reflectance]}
+               if self.optical_bindings else {}),
         }
 
     @classmethod
@@ -2477,8 +2485,11 @@ class NativeWorldMount:
         from dsf_ai_service.substrate.functional_body_native import MechanicalLimits
         expected = {"schema", "xml", "limits", "sensory_root", "body_frames",
                     "object_frames", "actuator_owners"}
+        optical = isinstance(value, Mapping) and value.get("schema") == "guala.native.world-mount.v2"
+        if optical:
+            expected.update(("optical_bindings", "body_reflectance"))
         if (not isinstance(value, Mapping) or set(value) != expected
-                or value["schema"] != "guala.native.world-mount.v1"
+                or value["schema"] not in ("guala.native.world-mount.v1", "guala.native.world-mount.v2")
                 or not isinstance(value["limits"], Mapping)
                 or set(value["limits"]) != set(_NATIVE_LIMIT_FIELDS)):
             raise ValueError("native mount declaration fields changed")
@@ -2488,6 +2499,15 @@ class NativeWorldMount:
             if not isinstance(raw, list) or any(not isinstance(p, list) for p in raw):
                 raise ValueError("native mount address encoding changed")
             pairs[key] = tuple(tuple(p) for p in raw)
+        if optical:
+            from .functional_body_optical_sources import NativeOpticalBinding
+            bindings, coatings = value["optical_bindings"], value["body_reflectance"]
+            if (type(bindings) is not list or not bindings or type(coatings) is not list
+                    or any(type(p) is not list or len(p) != 2 or type(p[1]) is not list
+                           for p in coatings)):
+                raise ValueError("native optical anatomy encoding changed")
+            pairs["optical_bindings"] = tuple(NativeOpticalBinding.from_record(b) for b in bindings)
+            pairs["body_reflectance"] = tuple((name, tuple(bands)) for name, bands in coatings)
         result = cls(value["xml"], MechanicalLimits(**value["limits"]),
                      value["sensory_root"], **pairs)
         if result.as_record() != dict(value):
@@ -4327,7 +4347,9 @@ class EmbodimentWorldAuthority:
             raise ValueError("typed native world mount required")
         if self._native_scratch_mount != mount:
             from dsf_ai_service.substrate.functional_body_native import NativeBody
+            from .functional_body_optical_sources import compile_bindings
             candidate = NativeBody(mount.xml, mount.limits, sensory_root=mount.sensory_root)
+            candidate.optical_source_bindings = compile_bindings(mount, candidate)
             self._native_scratch_mount, self._native_scratch = mount, candidate
         return self._native_scratch
 
@@ -4497,6 +4519,36 @@ class EmbodimentWorldAuthority:
             return self._native_engine_for(world.native.mount).optical_geometry(
                 world.native.integration_state, frame_name, origin_local_m,
                 max_geoms=max_geoms)
+
+    def native_optical_sources(self, *, expected_revision: int, frame_name: str,
+                               origin_local_m: tuple[float, float, float],
+                               max_geoms: int, max_material_cells: int):
+        """One current world/native optical source view, not a second scene.
+
+        Materials and geometry share the existing publication lock and full
+        inventory, never a horizon-filtered observation. This is internal
+        world optics only, NOT an organism input or complete lighting result.
+        Solar direction has no retained causal sample yet: report that absence
+        explicitly rather than reading wall time or silently inferring night.
+        """
+        from .functional_body_optical_sources import NativeOpticalSources, resolve_materials
+        with self._lock:
+            self._require_public_visibility_locked()
+            world = self._state.world
+            if type(expected_revision) is not int or expected_revision != world.revision:
+                raise ValueError("optical query revision differs from current world")
+            if world.native is None:
+                raise ValueError("native optical geometry is not mounted")
+            engine = self._native_engine_for(world.native.mount)
+            if type(max_geoms) is not int or max_geoms <= 0 or engine._model.ngeom > max_geoms:
+                raise ValueError("native optical geometry exceeds declared primitive bound")
+            materials, emitters = resolve_materials(
+                world, engine.optical_source_bindings, max_material_cells=max_material_cells)
+            geometry = engine.optical_geometry(world.native.integration_state, frame_name,
+                                               origin_local_m, max_geoms=max_geoms)
+            return NativeOpticalSources(world.revision, world.native, geometry, materials,
+                                        world.regions, emitters,
+                                        "absent" if self._solar_coupling is None else "unretained")
 
     def native_ray_geometry(self, *, expected_revision: int, frame_name: str,
                             origin_local_m: tuple[float, float, float],

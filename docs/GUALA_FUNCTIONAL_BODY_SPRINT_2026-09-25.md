@@ -3791,3 +3791,128 @@ inspect the existing authority boundary before authoring. Variable illumination,
 actual native home/caregiver/object/contact/oral integration,ordinary motor/
 sensory mount,paired publication and final restart/release gates remain open.
 No interim Slack retry after prior denial; not overall task completion.
+
+### FB-01z — current world material sources on mounted native geometry
+
+Continue from accepted076e0a7c5; no reopening FB-01y. Single deliverable is
+same-state source custody, not variable-light integration or a live renderer.
+Production1553 is unchanged. One implementation owner A1. Authorized files:
+new functional_body_optical_sources.py, NativeWorldMount/scratch/query seams in
+embodiment_world.py, standalone test_functional_body_optical_sources.py, this
+ledger. No cognition, kernel, motion, actor, caretaker or production changes.
+
+Requested: existing world material state on actual native surfaces. Reality:
+mount maps entity frames but no material source; renderer accepts external
+material tuples. ConflictYES for guessed colors, view-facing charts, ambient
+substitution or wall-clock sunlight. Those paths will not be extended. This is
+approved numerical body optics/world-only I/O, not DSF evaluation/reduction.
+Next exact change: explicit immutable native-geometry material source addresses
+and a read-only source view paired under the existing world lock.
+
+Contract: mount.v2 adds canonical geom->(object/part/region/body,source,index)
+bindings and explicitly declared uniform six-band body coatings, stored once
+per body. Existing v1 encoding remains byte-identical and cannot supply the new
+source view. No default coating, material-name inference or inferred front face.
+Compiled geometry addresses/subtree membership derive once from native anatomy;
+all geometry including static/self must be covered, with no duplicate/wrong
+owner. Object/part native primitive kind must agree with the authoritative
+material source. Actual object box patterns apply to all six original local
+faces, preserving existing box law; curved/assembled patterned charts refuse.
+Region looks preserve original world-coordinate subrectangles and tuple order
+(source is FIRST-match, not last-match); no stretching to a complete wall.
+
+Input: published full world (not horizon-filtered observation), current native
+integration bytes/mount, receptor frame/offset, expected revision, finite geom
+and material-cell budgets. Output: transient native geometry plus immutable
+references to current reflectance/emission/patterns/region looks, regions and
+each emitting object ONCE. Source addresses never enter organism senses.
+Material references are not a second retained scene, palette or color cache.
+All fallible resolution/native projection precedes return; query never mutates
+world state/time. Existing world HMAC/atomic prepare/commit/rollback/restore
+covers mount.v2. Cold instances compile the same source addresses; each read
+resolves successor materials anew. No optical receipts/digests/history.
+
+Lighting boundary: solar_sun() currently reads wall time independently, while
+_settle_solar_illumination retains ambient/emission but not causal sun time or
+direction. Source view must distinguish ABSENT solar coupling from UNRETAINED
+sun evidence; it never calls solar_sun or infers night. Original six-band region
+illumination/windows and emitting-object references remain intact, not baked
+into per-object radiance. Full rendering still requires retained solar phase
+and spatially varying lamp/window/shadow integration; this slice cannot certify
+it. No ambient-only complete-home claim or new solar law is introduced.
+
+Evidence map: world-owned materials + native mount -> atomic current world ->
+existing-lock native_optical_sources -> transient geometry/material source view
+-> focused offline optical material consumer. Backend-only; ordinary sensory
+loop/UI not mounted. Fresh/experienced branches: mount, read, real timed screen
+emission successor, read again, cold restore into fresh authority, next motor.
+Acceptance: actual source refs, no stale emission after successor, exact cold
+source/geometry/next action, hidden/unbound/duplicate/wrong-owner/wrong-kind/
+unsupported pattern/budget refusal, query/failed preparation no mutation, v1
+unchanged and new optics unavailable, original uniform material renderer proof
+using explicit bench illumination only. Retain room looks/emitter multiplicity
+and no wallclock reads. Bound O(native geometry + source inventory + chart
+cells), immutable source refs not per-pixel reconstruction; no process survivor.
+Independent source-only frozen review precedes imports/tests.
+
+Inspection failures retained: guessed functional_body_mount.py,
+functional_body_world.py, thermal_embodiment.py and test_native_world_mount.py
+do not exist. Actual mount is embodiment_world.py; actual test is
+test_functional_body_world.py. Use rg --files to resolve future paths.
+
+FB-01z proof receipt — 2026-09-26 03:19Z.
+Initial frozenf0969353 independent review found two localized work-bound
+defects: geometry capacity was checked after source resolution; repeated
+region wall rows re-scanned identical look tuples. One correction batch moves
+the original primitive bound before source work and admits each region's
+look tuple once through a transient query-local set. No retained cache/colors.
+Final frozen cb63a836ff1f6265bee9496f87b0a48d06803df903a4ed3c49063ee4ea631e79
+passed source-only review and before/after proof fingerprint verification.
+No architecture rejection or weakened assertion. Owner released freeze only
+after both proof commands terminated, for this receipt and commit.
+
+Standalone source test command cfb94f terminal0:8PASS,.369731s,72720KiB peakRSS.
+50nativegeometries,source query.001035s,complete encoded bench101593bytes.
+Fresh full-roster/current refs,explicit body coatings,part inheritance,
+original box patterns/region subrectangles and order,one emitter per physical
+object,real timed screen emission successor,changed image,exact cold source/
+geometry/image/error/nextmotor and unchanged queries PASS. Source-only paint
+replacement and CountedLooks are explicitly disclosed instrumentation,not
+autonomous behavior or published physical outcomes. Missing/duplicate/wrong
+owner/wrongkind/hidden unsupportedchart/budget/oldrevision/v1-optics/unretained
+sun boundaries refuse. Original v1 mount encoding remains unchanged; no guessed
+sunlight or coating. Source accounting uses stable physical chart addresses,
+not Python object identity, so cold catalog interning cannot change capacity.
+
+Existing standalone world/thermal custody suite session18290 terminal0:
+21PASS1.509s,including prepare/publish/discard/rollback/cold successor,
+measured internal heat,legacy transport refusal,native optics and scratch
+buffer custody.47primitive export1.152ms/5828bytes;19335ray batch4.85–5.16ms.
+No pytest/conftest/live authority imports or network writes in A1 proofs.
+
+Read-only before/after03:17:28/03:18:36Z:same1553/ec20ff solehealthy task,
+digest1d088eaaf195931a315e45c7ed456d4bb028210655e52eacad27e4445161612d,
+counts1/1/0,live2320087->2320285,persist2320073->2320265,identityunchanged,
+availabletrue,checkpoint/cleanupnull,durabilityfalse. ExistingclockALARM stays
+disclosed;resource/refusalalarmsOK,CPUavg51.4–51.6%,RAM2.85–2.856%.
+Caretaker35747 unchanged. All A1 sessions terminal,no proof survivor. G1's
+separate selected organism pytest40231 observed afterproof,not touched or
+counted as A1 evidence. No interim Slack retry after prior notification denial.
+
+Outcome: source-custody seam complete OFFLINE; body goal remainsACTIVE and
+production unchanged. No new second scene,material authority,color history,
+cognitive state,DSF change or behavior script. Next exact item: retain the
+causative sun sample at the existing world transition boundary so same-state
+optics and cold restore cannot use independently sampled walltime. This is a
+required input to existing variable-light integration,not a new weather model.
+Whole native-home,contact/conduction/oral,motor/sensory,paired-state/rehearsal/
+live release gates remain open; this proof does not close those gates.
+
+Publication safety receipt03:20Z: combined add/commit/push request was denied
+by auto-review before execution because destination trust was not explicit in
+that tool request. Source remained uncommitted and intact. Read-only git
+configuration verifies origin=https://github.com/jcfunited-eng/TFE.git,
+tracking origin/a1/guala-functional-body,whose existing remote-tracking head
+is the previously delivered076e0a7c5. No alternate destination/credentials or
+indirect export attempted. Local commit is an unaffected safe action; remote
+publication requires the explicit verified destination check.
