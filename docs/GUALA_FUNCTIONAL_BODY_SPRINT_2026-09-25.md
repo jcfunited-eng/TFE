@@ -7209,3 +7209,118 @@ been replaced with a date-only header; actual receipt UTCs are authoritative.
 An eight-line artifact preview exposed part of the compressed payload; no
 evidence was lost, and subsequent inspection used decoded retained data only.
 Push and Slack restrictions remain; neither was retried or bypassed.
+
+### FB-01aj event-aligned numerical witness contract — 2026-09-26 20:25Z
+
+Previous turn PROGRESS, local477424d4a. Continue the same open body-accuracy
+gate; coupled algebra/work and the disproved manifold-switch hypothesis remain
+closed. Requested: force/energy-limited mechanics with bounded numerical error.
+Current reality: rapid impact onset gives finite-step force/state disagreement.
+Conflict: YES with a qualified production body, not with the declared force law.
+No anatomy, friction, impedance, forces, kernel, cognition, thermal law, live
+controls or production code changes. Single next item: test event-aligned
+subdivision on the retained20–22ms mechanical witness. Reduced numerical rigid
+body approximation; continuous tissue/full DSF and exact trajectories unavailable.
+
+Physics/numerical contract: signed separation g is queried by mj_geomDistance.
+Source engine_support.c:447 dispatches capsule/box to the SAME analytic primitive
+used for contact generation, with a query cutoff derived from centers/radii.
+No second geometry approximation, changed contact margin or force is introduced.
+For a proposed step with g(start)>=0 and g(end)<0, bisect the native one-step
+trial flow from one unchanged full integration predecessor. Use absolute native
+clock coordinates; stop only at adjacent representable binary64 times with
+the two observed signs. At most53 binary bisections within one exponent bin.
+This brackets that NUMERICAL trial-flow crossing, not an exact continuous root
+or a general first-impact/continuous-collision guarantee.
+
+Commit the crossing-side trial's full native state, work and impulses ONCE;
+discard all other trial successors. Settle the remaining original step duration
+with the same engine. No force clipping, changed body time, fabricated contact,
+or second settlement authority. The existing compiled interval checks every
+trial for warnings, finite state/work, supply, travel, penetration and limits.
+An unsafe trial terminates the witness; no catch-and-relax retry. Retained supply
+is debited only for accepted mechanical pieces; all computational trials count
+against the diagnostic resource bound. Full integration restore is checked
+byte-exact; no serialized header is transplanted and no state is published.
+
+Scope is ONLY the two measured, separated capsule/box onsets. Simultaneous or
+more than two onsets refuse. No body-wide collision policy is claimed. Source
+tools/guala_body_event_resolution.py imports existing prefix/endpoint/geometry/
+work helpers. One ordinary25us single-step control must exactly reproduce the
+prior whole state, work and contact integrals before interpreting new output.
+Then25/12.5/6.25/3.125/1.5625us schedules compare impulse, pose/rate, geometry and
+work; every schedule repeats in fresh native model/data including full retained
+state, sensors, event brackets and receipts. Preserve failures without rerun.
+One shadow comparison alone will not certify full-body accuracy or a timestep.
+
+Bound800prefix+80control+2*sum(80*2^level+2*(53+3))=6960 native calls;
+two cores,1GiB,30CPU seconds,45wall seconds. Raw child stdout retained before
+decoding; pre/post AWS and exact host process cleanup required. Frozen source
+review precedes all imports/compilation/execution. Initial unexecuted source
+draft preceded this durable contract entry; no execution occurred in that gap.
+Do not repeat that ordering: subsequent implementation contracts must be logged
+before creating their source. No broad suite, engine build or organism trial.
+
+Source review d2056100... found no architectural defect; one localized batch:
+preserve native contact-point addition order, require exactly both distinct
+onsets, retain structured failure context before re-raising and emit completed
+control/case frames, and compare union-of-contact groups with finite impulse
+norms. Main and independent findings were batched before execution. No physical
+law, scope or acceptance weakening. Re-freeze once for final source verification.
+
+### FB-01aj event-aligned witness retained — 2026-09-26 20:44Z
+
+Final frozen independent source review PASS a35e2ea0..., verified unchanged
+before/after execution. New evidence retained once in
+docs/evidence/FB-01aj-event-resolution.json. Raw final measurement9184bytes,
+SHAa498db53e982ddc8d27a281284e69426be407eeb93b1584982c862f3cf6ede30.
+Source SHAd8a9cdcad00009f36934bb6e0c45668b79406b2d3ad2594b735788a50c48e89c.
+One run2.209013s wall/2.208278CPU/148144KiB;6696native calls<=6960.
+Ordinary control reproduces the accepted predecessor exactly. Five aligned
+schedules each repeat exactly in fresh native state. Session2955/PID137 exit0;
+host census after completion found no diagnostic child/orphan. No broad tests,
+engine rebuild, copied production body, process signals or production mutation.
+
+Adjacent-clock brackets measure the numerical trial flow, NOT exact physical
+collision time. Right-onset estimates21.4761664->21.4766379ms converge across
+25/12.5/6.25/3.125/1.5625us schedules. Pairwise right-contact impulse differences
+.0563918,.0227857,.00762294,.00375299Ns now decrease monotonically. Geometry
+differences21.4178,10.4567,5.2551,2.6514um; joint-rate differences2.46976,
+1.29106,.694253,.365422rad/s also decrease. Coarse right-contact disagreement
+is LARGER than the prior unaligned witness: previous cancellation concealed
+some differences. This is not proof of uniform improvement or a continuum
+error bound. No production timestep or general collision policy is accepted.
+Body accuracy/performance, heat/storage partition and live integration stay OPEN.
+
+Operational mistake: immediate pre20:32:31 AWS snapshot had service0/0/0,
+task1554/no running task and HTTP503; post20:34:35 had1555/0/0/0 and HTTP503.
+The launch wrapper checked shell exit0, not the partial-safe health contents,
+and incorrectly started the isolated diagnostic. User informed. Keep its local
+mechanics evidence but exclude production-health qualification. No production
+change was made by A1. The retained execution wrapper now requires explicit
+GUALA_BODY_HEALTH_SNAPSHOT content and checks service counts, one running healthy
+task/image, available observation, identity/tick and absence of durability/
+checkpoint errors before spawning. Its exact executable function is retained
+in the evidence artifact. Pure JSON checks: recovered snapshot admitted;
+both actual0/503 snapshots, missing and partial evidence REFUSED. No mechanics
+rerun. A fresh immediate snapshot is still required for every future launch;
+this service-readiness check does not certify cognition or clear existing alarms.
+
+Read-only follow-up20:40:35:1555 task45ffe3b7..., digestabcd2845...,1/1/0HEALTHY,
+same organism identity, tick2462069. At20:41:29 tick2462223 still reserves0/500000,
+deficit[1,1], current nutrition0. G1 deployment recovery is not autonomous feeding.
+Existing clock ALARM persists; four other queried alarmsOK. No handoff claim
+of nutrition closure accepted. G1 retains AUT-ORAL/AUT-01 ownership.
+
+Known bootstrap mistake repeated read-only: legacy root validator expects
+absent HANDOFF_2026-07-31. It exited65 without state change. Exact git root and
+HEAD477424d4a resolved the already-documented branch distinction. Future root
+preflight must test that legacy authority file exists before invoking the old
+validator; otherwise use this explicit git root and sprint authority. Do not
+repeat the known missing-file path. Process census unnecessarily included
+unrelated agent command arguments; future cleanup queries must select only the
+owned diagnostic executable and emit PID/PPID, not unrelated command strings.
+
+Next body item remains deriving bounded numerical accuracy/performance from
+this retained transient, not another global sweep or production release.
+Push and Slack restrictions remain; neither was retried or bypassed.

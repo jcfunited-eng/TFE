@@ -1,0 +1,385 @@
+{
+  "schema": "guala.functional-body.event-resolution-evidence.v1",
+  "classification": "isolated mechanical diagnostic; NOT production-health qualification",
+  "source": {
+    "file": "tools/guala_body_event_resolution.py",
+    "sha256": "d8a9cdcad00009f36934bb6e0c45668b79406b2d3ad2594b735788a50c48e89c",
+    "reviewed_fingerprint": "a35e2ea024706a08d491982de44168287281abfa3107e0e1f01f1221d891df20",
+    "native_library_sha256": "d3787b131b2532168dfff52c226ba07fa0de4ffc4b57bc40b7a87b73a2cc1801"
+  },
+  "run": {
+    "pid": 137,
+    "exit_code": 0,
+    "timed_out": false,
+    "wall_s": 2.209013229003176,
+    "cpu_s": 2.208278,
+    "maxrss_kib": 148144,
+    "stdout_bytes": 10366,
+    "stdout_sha256": "8a9545bbcec73c659c31f8d535bc1f7cc015b2701bff647e6ece34448c002a2e",
+    "stderr": ""
+  },
+  "raw_measurement": {
+    "payload_zlib_base64": "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",
+    "raw_bytes": 9184,
+    "raw_sha256": "a498db53e982ddc8d27a281284e69426be407eeb93b1584982c862f3cf6ede30"
+  },
+  "progress": [
+    "ordinary_control_passed",
+    "aligned_case_passed",
+    "aligned_case_passed",
+    "aligned_case_passed",
+    "aligned_case_passed",
+    "aligned_case_passed"
+  ],
+  "cleanup": {
+    "census": "host ps -eo pid,ppid,pgid,etime,pcpu,rss,args",
+    "event_worker_found": false,
+    "orphan_found": false,
+    "caretaker_seen": {
+      "supervisor": 76763,
+      "worker": 76768
+    },
+    "signals_sent": false,
+    "observation_window_utc": [
+      "2026-09-26T20:40:35Z",
+      "2026-09-26T20:41:29Z"
+    ]
+  },
+  "production_envelope": {
+    "before": {
+      "utc": "2026-09-26T20:32:31.008477+00:00",
+      "service": {
+        "counts": [
+          0,
+          0,
+          0
+        ],
+        "taskDefinition": "arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1554",
+        "tasks": []
+      },
+      "alarms": [
+        {
+          "name": "guala-clock-stalled",
+          "state": "ALARM"
+        },
+        {
+          "name": "guala-cpu-runaway",
+          "state": "OK"
+        },
+        {
+          "name": "guala-efs-storage-runaway",
+          "state": "OK"
+        },
+        {
+          "name": "guala-interval-refusal-loop",
+          "state": "OK"
+        },
+        {
+          "name": "guala-memory-runaway",
+          "state": "OK"
+        }
+      ],
+      "cpu": [
+        {
+          "Timestamp": "2026-09-26T20:30:00+00:00",
+          "Average": 51.17910113930702,
+          "Maximum": 51.70371305942535,
+          "Unit": "Percent"
+        }
+      ],
+      "memory": [
+        {
+          "Timestamp": "2026-09-26T20:30:00+00:00",
+          "Average": 2.8645833333333335,
+          "Maximum": 2.9052734375,
+          "Unit": "Percent"
+        }
+      ],
+      "observation": {
+        "unavailable": true,
+        "error_type": "HTTPError",
+        "error": "HTTP Error 503: Service Temporarily Unavailable",
+        "http_status": 503
+      }
+    },
+    "after": {
+      "utc": "2026-09-26T20:34:35.264075+00:00",
+      "service": {
+        "counts": [
+          0,
+          0,
+          0
+        ],
+        "taskDefinition": "arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1555",
+        "tasks": []
+      },
+      "alarms": [
+        {
+          "name": "guala-clock-stalled",
+          "state": "ALARM"
+        },
+        {
+          "name": "guala-cpu-runaway",
+          "state": "OK"
+        },
+        {
+          "name": "guala-efs-storage-runaway",
+          "state": "OK"
+        },
+        {
+          "name": "guala-interval-refusal-loop",
+          "state": "OK"
+        },
+        {
+          "name": "guala-memory-runaway",
+          "state": "OK"
+        }
+      ],
+      "cpu": [
+        {
+          "Timestamp": "2026-09-26T20:32:00+00:00",
+          "Average": 0.33966487646102905,
+          "Maximum": 0.33966487646102905,
+          "Unit": "Percent"
+        }
+      ],
+      "memory": [
+        {
+          "Timestamp": "2026-09-26T20:32:00+00:00",
+          "Average": 0.52490234375,
+          "Maximum": 0.52490234375,
+          "Unit": "Percent"
+        }
+      ],
+      "observation": {
+        "unavailable": true,
+        "error_type": "HTTPError",
+        "error": "HTTP Error 503: Service Temporarily Unavailable",
+        "http_status": 503
+      }
+    }
+  },
+  "preflight_defect": "Launcher mistook successful health-command exit for healthy content; production was draining. No production mutations.",
+  "preflight_correction": {
+    "scope": "diagnostic launch wrapper only; no live authority; existing clock alarm not certified cleared",
+    "code": "def require_live_body_health(snapshot):\n    # Diagnostic launch preflight only; never an organism or cognitive gate.\n    if not isinstance(snapshot, dict):\n        raise ValueError(\"missing health snapshot\")\n    service = snapshot.get(\"service\", {})\n    observation = snapshot.get(\"observation\", {})\n    if not isinstance(service, dict) or not isinstance(observation, dict):\n        raise ValueError(\"unavailable health components\")\n    tasks = service.get(\"tasks\", [])\n    if service.get(\"counts\") != [1, 1, 0] or not isinstance(tasks, list) or len(tasks) != 1:\n        raise ValueError(\"production is draining, unavailable, or not single-task\")\n    task = tasks[0]\n    if not isinstance(task, dict) or task.get(\"status\") != \"RUNNING\" or task.get(\"health\") != \"HEALTHY\":\n        raise ValueError(\"production task is not running and healthy\")\n    digests = task.get(\"digests\", [])\n    if not digests or any(not isinstance(d, str) or not d.startswith(\"sha256:\") or len(d) != 71 for d in digests):\n        raise ValueError(\"immutable image evidence unavailable\")\n    if observation.get(\"available\") is not True or observation.get(\"durability_blocked\") is not False:\n        raise ValueError(\"observation unavailable or durability blocked\")\n    if any(k not in observation or observation[k] is not None for k in (\"checkpoint_error\", \"cleanup_error\")):\n        raise ValueError(\"checkpoint or cleanup error unavailable/non-null\")\n    if not observation.get(\"identity\") or not isinstance(observation.get(\"live_tick\"), int):\n        raise ValueError(\"organism identity or tick unavailable\")\n",
+    "cases": [
+      {
+        "name": "service_recovered",
+        "snapshot": {
+          "utc": "2026-09-26T20:40:35.017573+00:00",
+          "service": {
+            "counts": [
+              1,
+              1,
+              0
+            ],
+            "taskDefinition": "arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1555",
+            "tasks": [
+              {
+                "arn": "arn:aws:ecs:us-east-1:418384447921:task/tfe-web-cluster/45ffe3b701ab4a2d8ec9fd907f8409c6",
+                "status": "RUNNING",
+                "health": "HEALTHY",
+                "digests": [
+                  "sha256:abcd284557c37f15e0fe1f1ada43b1078d8a04313d5ffee0e6a752ecd74052a8"
+                ]
+              }
+            ]
+          },
+          "alarms": [
+            {
+              "name": "guala-clock-stalled",
+              "state": "ALARM"
+            },
+            {
+              "name": "guala-cpu-runaway",
+              "state": "OK"
+            },
+            {
+              "name": "guala-efs-storage-runaway",
+              "state": "OK"
+            },
+            {
+              "name": "guala-interval-refusal-loop",
+              "state": "OK"
+            },
+            {
+              "name": "guala-memory-runaway",
+              "state": "OK"
+            }
+          ],
+          "cpu": [
+            {
+              "Timestamp": "2026-09-26T20:38:00+00:00",
+              "Average": 51.17027138670286,
+              "Maximum": 51.71491041779518,
+              "Unit": "Percent"
+            }
+          ],
+          "memory": [
+            {
+              "Timestamp": "2026-09-26T20:38:00+00:00",
+              "Average": 2.3844401041666665,
+              "Maximum": 2.410888671875,
+              "Unit": "Percent"
+            }
+          ],
+          "observation": {
+            "available": true,
+            "identity": "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1",
+            "live_tick": 2462069,
+            "persisted_tick": 2462061,
+            "checkpoint_error": null,
+            "cleanup_error": null,
+            "durability_blocked": false
+          }
+        },
+        "expected_ready": true
+      },
+      {
+        "name": "zero_service_503_pre",
+        "snapshot": {
+          "utc": "2026-09-26T20:32:31.008477+00:00",
+          "service": {
+            "counts": [
+              0,
+              0,
+              0
+            ],
+            "taskDefinition": "arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1554",
+            "tasks": []
+          },
+          "alarms": [
+            {
+              "name": "guala-clock-stalled",
+              "state": "ALARM"
+            },
+            {
+              "name": "guala-cpu-runaway",
+              "state": "OK"
+            },
+            {
+              "name": "guala-efs-storage-runaway",
+              "state": "OK"
+            },
+            {
+              "name": "guala-interval-refusal-loop",
+              "state": "OK"
+            },
+            {
+              "name": "guala-memory-runaway",
+              "state": "OK"
+            }
+          ],
+          "cpu": [
+            {
+              "Timestamp": "2026-09-26T20:30:00+00:00",
+              "Average": 51.17910113930702,
+              "Maximum": 51.70371305942535,
+              "Unit": "Percent"
+            }
+          ],
+          "memory": [
+            {
+              "Timestamp": "2026-09-26T20:30:00+00:00",
+              "Average": 2.8645833333333335,
+              "Maximum": 2.9052734375,
+              "Unit": "Percent"
+            }
+          ],
+          "observation": {
+            "unavailable": true,
+            "error_type": "HTTPError",
+            "error": "HTTP Error 503: Service Temporarily Unavailable",
+            "http_status": 503
+          }
+        },
+        "expected_ready": false
+      },
+      {
+        "name": "zero_service_503_post",
+        "snapshot": {
+          "utc": "2026-09-26T20:34:35.264075+00:00",
+          "service": {
+            "counts": [
+              0,
+              0,
+              0
+            ],
+            "taskDefinition": "arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1555",
+            "tasks": []
+          },
+          "alarms": [
+            {
+              "name": "guala-clock-stalled",
+              "state": "ALARM"
+            },
+            {
+              "name": "guala-cpu-runaway",
+              "state": "OK"
+            },
+            {
+              "name": "guala-efs-storage-runaway",
+              "state": "OK"
+            },
+            {
+              "name": "guala-interval-refusal-loop",
+              "state": "OK"
+            },
+            {
+              "name": "guala-memory-runaway",
+              "state": "OK"
+            }
+          ],
+          "cpu": [
+            {
+              "Timestamp": "2026-09-26T20:32:00+00:00",
+              "Average": 0.33966487646102905,
+              "Maximum": 0.33966487646102905,
+              "Unit": "Percent"
+            }
+          ],
+          "memory": [
+            {
+              "Timestamp": "2026-09-26T20:32:00+00:00",
+              "Average": 0.52490234375,
+              "Maximum": 0.52490234375,
+              "Unit": "Percent"
+            }
+          ],
+          "observation": {
+            "unavailable": true,
+            "error_type": "HTTPError",
+            "error": "HTTP Error 503: Service Temporarily Unavailable",
+            "http_status": 503
+          }
+        },
+        "expected_ready": false
+      },
+      {
+        "name": "missing",
+        "snapshot": {},
+        "expected_ready": false
+      },
+      {
+        "name": "partial",
+        "snapshot": {
+          "service": {
+            "counts": [
+              1,
+              1,
+              0
+            ],
+            "tasks": []
+          },
+          "observation": {
+            "available": true
+          }
+        },
+        "expected_ready": false
+      }
+    ],
+    "result": "all five pure-JSON cases passed; no body execution"
+  },
+  "interpretation": "Pairwise differences decrease monotonically in this limited window; coarse right-contact disagreement is larger than the unaligned witness. No continuum error bound, exact contact root, general CCD, production timestep, or full-body acceptance is established."
+}
