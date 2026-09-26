@@ -272,11 +272,12 @@ def box_entry_bounds(faces, patches, angular):
     return lower, upper
 
 
-def prepare_scene(geometry, apertures, radiance, face_materials):
+def scene_geometry(geometry, apertures):
+    """One physical face/visibility preparation, preserving native addresses."""
     domain = np.array(((apertures[:,0].min(), apertures[:,1].max(),
                         apertures[:,2].min(), apertures[:,3].max()),))
     domain_geometry = patch_geometry(domain)
-    boxes, curved, surfaces, prepared = {}, [], [], []
+    boxes, curved, surfaces, addresses = {}, [], [], []
     input_halfspaces = 0
     for i, (kind, size, centre, rotation) in enumerate(zip(
             geometry.kinds, geometry.sizes_m, geometry.positions_eye_m, geometry.rotations_eye)):
@@ -294,15 +295,22 @@ def prepare_scene(geometry, apertures, radiance, face_materials):
                     # it can neither illuminate nor occlude this domain.
                     continue
                 surfaces.append(face)
-                prepared.append(face_materials.get((i, axis, sign), (None, radiance[i:i+1])))
+                addresses.append((i, axis, sign))
         else:
             lower, _ = entry_bounds(kind, size, centre, rotation, domain, domain_geometry)
             if np.isfinite(lower[0]):
                 curved.append(i)
     regions = visible_planar_regions(tuple(surfaces), domain, max_halfspaces=32768,
                                      max_work=1048576, max_cells=32768)
+    return boxes, tuple(curved), tuple(surfaces), tuple(addresses), regions
+
+
+def prepare_scene(geometry, apertures, radiance, face_materials):
+    boxes, curved, surfaces, addresses, regions = scene_geometry(geometry, apertures)
+    prepared = tuple(face_materials.get(address, (None, radiance[address[0]:address[0]+1]))
+                     for address in addresses)
     planes, values = _material_regions(surfaces, prepared, regions, max_halfspaces=32768)
-    return boxes, tuple(curved), planes, values
+    return boxes, curved, planes, values
 
 
 def entry_bounds(kind, size, centre, rotation, patches, prepared, faces=None):
@@ -428,7 +436,7 @@ def classify(geometry, patches, boxes, curved):
             low, _ = _dot_extrema(horizontal, patches[selected], _plane_parameters(horizontal),
                                   tuple(a[selected] for a in prepared[2]))
             foreground_cap[selected[low[0] > 0]] = index
-    return settled, curve_count == 0, foreground_cap
+    return settled, curve_count == 0, foreground_cap, prepared, first, upper
 
 
 def integrate(geometry, apertures, radiance, error, *, max_nodes=262144, max_depth=20,
@@ -482,7 +490,7 @@ def integrate(geometry, apertures, radiance, error, *, max_nodes=262144, max_dep
         patch_area = (nodes[:, 1]-nodes[:, 0])*(nodes[:, 3]-nodes[:, 2])
         if not np.isfinite(patch_area).all() or np.any(patch_area <= 0):
             raise ValueError('positive representable patch areas required')
-        resolved, planar_only, foreground_cap = classify(geometry, nodes, boxes, curved)
+        resolved, planar_only, foreground_cap, *_ = classify(geometry, nodes, boxes, curved)
         hit = resolved >= 0
         planar_only[hit] |= geometry.kinds[resolved[hit]] == BOX
         area = patch_area / total[owners]

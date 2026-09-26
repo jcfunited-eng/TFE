@@ -4695,3 +4695,252 @@ Goal ACTIVE; remote GitHub publication still permission-blocked, no retry.
 Bedtime permission question sent for code/tests/engineering-ledger push only to
 jcfunited-eng/TFE:a1/guala-functional-body, excluding credentials/checkpoints.
 No answer as of this receipt; local work is not blocked by that external gate.
+
+## FB-01ag — Current native sources to finite-aperture retinal light — 2026-09-26
+
+Continue a3486d2b2 accepted source registration; previous goal turn PROGRESS.
+Requested architecture: one native body/world geometry and current physical
+materials/light produce six-band finite-aperture retinal evidence. No cognition,
+identity inference, camera replacement or scripted motor change. Current reality:
+uniform-light integrate_materials works; NativeOpticalSources, spatial lighting,
+surface-patch geometry and room-chart registration are locally proved but not
+yet composed. Conflict: missing consumer, not authority to substitute uniform
+light. Approved float64 body optics only; no DSF evaluation/reduction. Existing
+room-uniform ambient/single-bounce and point/directional-source approximation
+remain explicit, not complete biological/global illumination.
+
+Single correction: native_retinal_radiance(sources, apertures, error, bounds)
+composes the existing physical laws. Source view comes from the one world
+publication at expected_revision, full unfiltered native/material roster,
+borrowed pattern objects, retained sun sample and original articulated frames.
+One scene_geometry helper supplies existing native BOX faces, their original
+primitive/axis/side addresses, curved primitives and planar visibility to both
+the old uniform calibration operator and this actual-source consumer. No second
+ray/visibility authority or retained scene.
+
+Paint: retain native face ownership through existing disjoint planar regions.
+Existing object patterns cover original unit BOX faces. Existing ordered room
+looks attach only through explicit region_faces. Intersect each chart with the
+actual visible panel, subtract its covered portion from subsequent looks, then
+paint the remaining base coat. Reuse one convex-halfspace subtraction law with
+visibility, and existing _material_regions for real cell boundaries. Paint is
+never an occluding surface. Clip before summing; no overlapping double exposure.
+Pattern palette values are reflectance coefficients; emission is the same
+parent physical material emission, independent of paint. No pattern pixel
+copy into the mount/organism, no silent registration fallback.
+
+Integral law per surface contribution:
+  mean_L = (1/Omega) integral_visible (R(q)*I(q) + E) dOmega.
+The existing analytic halfspace integrator emits each region's area once via a
+bounded transient generator; uniform radiance and real source composition share
+that area law and packed plane classification. Native composition accumulates
+reflectance-area and visible-area by actual face. On each reached patch the
+existing illumination law supplies I_lower,I_upper, yielding lower/upper means
+without losing paint/light correlation: R>=0, so integrated R times those
+incident bounds encloses the true weighted contribution. No 2D point sampling,
+invented clipped light or nominal camera preview.
+
+Planar illumination patch: native face normal fixed. Its physical corner extent
+bounds distance from face centre. Existing aperture dot extrema bound positive
+plane entry; intersect with the actual finite face's radial extent. The central
+plane intersection plus depth/chord bounds encloses every reached surface point,
+even where the central ray misses the finite panel. If the enclosing whole-face
+ball is tighter, use that ball and its own centre, not a mismatched smaller
+radius. This is choosing between proved physical enclosures, not a heuristic
+normal/identity threshold. Receiver row excludes only its own convex solid.
+
+Curved resolved patches use the already-proved native surface_bounds with the
+SAME classify entry enclosures and angular preparation. The sphere foreground
+cap path retains analytic area and overlap uncertainty; conservative room/light
+material bounds enclose unresolved cap surface lighting. Other unresolved
+geometry uses [0, physical maximum radiance] and subdivides. No shape omitted.
+
+Error/work: each receptor keeps an integral interval. Sum current frontier
+intervals plus exact settled contributions; stop only when each six-band radius
+is <= caller error. Otherwise split only uncertain remaining patches. Geometry
+can remain partially unresolved only when its integrated physical contribution
+fits that same error. Derive global maxima from material reflectance <=1,
+declared emission, room ambient/bounce, lamp near-gain bound and retained sun.
+No intensity clipping; overflow refuses. Float64 analytic bounds are NOT formal
+directed-rounding certification; same approved numerical domain as predecessor.
+Existing limits: <=256 primitives,19335 receptors,262144 total nodes,20 depths,
+32768 halfspace/event scratch. Explicit shadow-work budget charged cumulatively
+before each call, not reset every patch. Transient source/plane/area arrays only,
+no persistent cache, extra clock, per-pixel decoding/hashing or lifetime growth.
+
+Authorized files: functional_body_renderer.py (share scene/depth evidence),
+functional_body_visibility.py (share existing convex difference),
+functional_body_optics.py (share analytic region-area stream),
+new functional_body_retinal.py (single physical consumer),
+new standalone test_functional_body_retinal.py, this sprint ledger.
+No functional organism, ordinary loop, neural kernel, anatomy, native state
+schema, world mutation, caretaker, main G1 source or deployment change here.
+Existing numerical primitives, lighting and material cell laws stay unchanged.
+Uniform calibration is test-only explicit input, never fallback for unavailable
+live native light. Production route must exclusively call actual-source consumer.
+
+Lifecycle/field map: world.native_optical_sources(expected_revision) ->
+immutable geometry/material/sun view -> transient geometry/paint/light integral ->
+six-band image + radiance-error + work/depth evidence. Entire call read-only.
+Refusal discards locals, world bytes unchanged. Fresh cold restore under SAME
+declared environment reconstitutes view and must give byte-identical output and
+next motor successor. Ordinary retinal RGB/pupil/motor wiring is not yet
+connected; backend-only output must not be described as live sight.
+
+Decisive offline path: real authenticated mechanical bench with complete native
+biped, actual world lamp and retained materials -> finite-aperture image; real
+head motor -> changed optical projection; cold fresh authority -> identical
+image/error and next-motor successor. Independent analytic ambient-pattern
+reference (including overlapping room paint and curved occlusion) and independent
+MuJoCo ray intersections plus existing point lighting falsify variable-light
+enclosures on small apertures; point samples are diagnostic only. Dark/emissive,
+shadow, source-severed, unchanged bytes, hidden material admission, node/depth/
+shadow-bound refusal covered. Regression uniform/native lighting/world/source
+proofs stay mandatory. No pytest/network/production actions. Read-only AWS and
+process envelope surrounds every proof block; retain exact handles to terminal.
+Full19335 receptor timing is measured without claiming250ms in advance.
+
+Translation/lean preflight: new source view contains no semantic sensory IDs;
+primitive/face addresses remain internal world mechanics only. Six physical
+bands retained to output, no DSF flattened. Share depth/angle calculations rather
+than recompute. Share planar visibility and cell/solid-angle law; remove inlined
+copies when extracting helper. Do not store diagnostic history. Nonblocking
+findings stay ledger-only. Full native home/caregiver/motor/body-sensory,
+copied-production-body/restart/resource/rehearsal/live gates remain OPEN.
+
+FB-01ag completed implementation preflight — 2026-09-26 06:30Z.
+One original geometry preparer now retains (primitive,axis,side) alongside native
+faces; uniform calibrations and current-world consumer share it. classify exposes
+its already-computed angular/depth enclosures without another solve. Existing
+convex visibility difference extracted once and reused for paint precedence.
+Analytic area stream reuses packed unique-plane classification, without storing
+an all-region/all-pixel area matrix. Original uniform multiplication/sum order is
+retained; division occurs after complete accumulation rather than per yielded
+block, same float operation per output element.
+
+New _CurrentLightIntegral is call-local physical operands only, not another
+world owner or persistable scene. Ordered paint clips against actual native
+panels; black zero-emission pieces are omitted only AFTER their physical geometry
+has occluded the background. Current immutable pattern refs remain in world
+custody; coefficient/halfspace arrays are bounded transient optical work. Planar
+light groups by actual native face, only positive-reflectance rows request shadow
+work; no reflected work for pure emission. Cap overlaps skip proven zero-area
+pieces. Cumulative shadow count is a conservative primitive/source-row work
+upper bound, not claimed walltime or exact native calls.
+
+Added five standalone tests. The complete19,335-site ambient comparison reuses
+the accepted explicit-uniform operator only as reference against a real no-lamp
+world. Room paint has independent world-coordinate rectangles, overlap subtraction
+and native ray occlusion witnesses. Variable light uses actual native ray distances
+and the accepted point-light law, not injected sensation or body state. Applied
+head motor, exact fresh constructor laws, cold image and next motor tested.
+No runtime tests/imports/compiles executed before freeze. Existing world-source
+proof helper is reused; no pytest/conftest. Whole ordinary-body acceptance stays
+open. Independent frozen SOURCE gate is next; owner stops edits during review.
+
+FB-01ag single localized SOURCE batch — 2026-09-26 06:39Z.
+Independent review of frozen ce8f49eb625ca8352b2b18b4dfbf27a48912f848c772a0494ed67b6b9a7b436f
+found no architectural defect. Corrections batched before any test/import:
+(1) cheap packed shape/count/scalar/node admission BEFORE aperture value scans;
+positive representable areas BEFORE scene/lighting construction. Added a no-scan
+array sentinel and invalid-area-before-source-access falsifier, not a behavioral
+mock. (2) Cold-image test targets were both black cells under row-down physical
+paint, so small motion could truthfully leave the image zero. Target the two
+actual white cells instead; preserve head effort and every cold/nextmotor check.
+(3) Add actual zero-reflectance, positive-emission card in zero-ambient world,
+with no other lamps and zero shadow-work budget. The card is itself a physical
+emitter; neither it nor its light is invented/suppressed. Preserve world bytes.
+Seven focused tests now; no new runtime law, authority or parameter adjustment.
+
+Operator misses preserved: owner guessed absent test_functional_body_renderer.py;
+reviewer guessed absent docs/guala_functional_body_sprint_impact_ledger.md.
+Both read-only rg exit2; no tests or state changes. Actual paths resolved by
+rg --files / git status before execution. A default sandbox ps exposed only its
+PID namespace, not host processes; no host-terminal inference used. Corrected
+with escalated read-only host census06:30 (only caretaker35747). Read-only
+AWS06:29 same1553/ec20ff,live2346746,errorsnull,existingclockALARM.
+Final freeze/source check next; owner stops after this one localized batch.
+
+FB-01ag first focused execution — 2026-09-26 06:41–06:44Z.
+Exact session15073 terminal exit1: seven tests, five PASS, two fixture ERRORs;
+0.627s,161400KiB peak. Runtime source unchanged from frozen SOURCE gate
+10db4bf79ad71797a6c59971531d840cfbd638d7782bee15d00f43479d5f7bdc.
+(1) Ambient reference passed numpy.float64 values where PlanarMaterial requires
+Python float/int. Explicitly convert the independent reference inputs to float.
+(2) Ordered-room test declared a one-color one-cell ObjectOpticalSurface, but
+existing world law requires >=2 unique colors, all used. Replace with actual
+2-column RED/GREEN and GREEN/RED patterns; independent world-coordinate cell
+rectangles compute ordered overlap. Admit exact8 unique source cells (card4+
+looks2+2), no resource-law change. No acceptance assertion/tolerance weakened;
+all source, optical, bodily, sleep/cognitive and production laws untouched.
+These two fixture failures do NOT prove/refute the full-retina consumer yet.
+Five already-executed source/severance/resource/head/cold checks passed.
+Read-only AWS06:40/06:44 same1553/ec20ff/digest1d088e,live2348409->2348998,
+persist2348393->2348969,errorsnull,counts1/1/0; CPU51.28%,RAM2.915%; existing
+clockALARM persists. Caretaker35747 active; only observer/no A1 proof survivors.
+Correct fixture declarations only, preserve failure, then rerun exact focused
+suite before any broader proofs or integration.
+
+FB-01ag second focused result and exact occlusion diagnostic — 06:47–06:49Z.
+Session20426 terminal exit1:6PASS/1FAIL. Complete19335 ambient image agreed with
+accepted physical integral in54.331ms,depth0,nodes19335,radius6.94e-17. Total
+0.765s,peak173640KiB. Remaining failure was the independent native-ray guard:
+room-look pencil hit the real nearer card, invalidating the unoccluded reference.
+Bounded9ray diagnostic exit0 proved6/9 hits card/surface at0.419–0.427m rather
+than wall-xmax. Eye(1.08,1,.96),cardfrontx1.49,y[.9,1.1]. Actual renderer
+correctly included foreground-card light; no runtime error hidden by the guard.
+Move the declared two room looks and their diagnostic targets/independent
+rectangles exactly+2m in worldy, keeping dimensions/palette/overlap/aperture.
+New minimum pencil azimuth atan(1.9/3.92)-.045 > .406rad, yielding card-plane
+y > 1+.41*tan(.406) > 1.176m, strictly outside cardy<=1.1. Thus all pencil
+rays clear that blocker without excluding/removing it. Native all-wall guard
+remains unchanged; production occlusion and source files remain unchanged.
+Read-only06:47:49 same1553/ec20ff,live2349474,persist2349449,errorsnull;
+CPU50.87%,RAM2.956%;oldclockALARM;caretaker35747active,noA1survivors.
+Other-agent short diagnostic37158 and publisher37203 appeared in preceding
+06:47:13 census and ended before06:47:49; no signals sent or authority claimed.
+
+FB-01ag accepted local source/physical consumer — 2026-09-26 06:53Z.
+Final SOURCE check and post-proof freeze unchanged:
+5eb7c53ba55dad57a64ab1effe189a8f4797c01a71e0b418e9dd8a338ce9cf5f.
+Runtime source was not changed after first independent final SOURCE acceptance;
+only the disclosed invalid proof declarations were corrected. Source retinal
+SHA2561330e169e71713783e43c94d8f2bd58d4218c8918f8015c8dbe1de0ab91a570b;
+test28fe6dedd2df7728f06943d540e0c0114465f0c987d0462a512005ea1f4d8859.
+
+Focused session59206 exit0:7PASS/0FAIL,0.746s,173516KiB peak.
+Complete actual-source ambient field19335sites48.948ms,19335nodes,depth0,
+maxradiance-radius6.94e-17; independent accepted uniform reference agrees.
+Ordered two-color overlapping room paint uses independent world rectangles;
+all native wall-ray witnesses clear actual nearer objects. Actual lamp
+witnesses, dark/emissive/source-severed cases, cheap admission, resource refusal,
+real head effort, unchanged state, cold image and next motor all pass.
+Existing standalone regressions session68609 exit0:73PASS (5optics+5visibility+
+4materials+8native-material+14illumination+11sources+5solar+21world). Together80.
+No pytest/conftest, network transport or live authority imported/executed.
+
+One complete VARIABLE-light resource proof session94139 exit0:
+actual bench(), query(), retinal_apertures(), draw(sources,apertures) with
+default ERROR1/510,max_shadow_tests20000000,max_nodes262144,depth20; no altered
+anatomy or uniform-light substitution. 50nativegeoms,1actualworldemitter,
+19335receptors. 526.773ms,35383visitednodes,depth8,maxradius0.0019094197425,
+zero unknown-geometry area,peak169720KiB. Six-bandmax0.7328170558, all finite
+nonnegative; encoded world unchanged. This is NOT250ms, production latency,
+a full-home benchmark or ordinary-organism integration proof. Bounded scratch
+and work refusal observed; no retained frame/cache/state added.
+
+Read-only AWS06:50:58/06:52:50 same1553/ec20ff/digest1d088e,counts1/1/0;
+live2349944->2350221,persist2349929->2350217,errorsnull,availabletrue,
+durabilityfalse; CPU51.19%,RAM2.94%; oldclockALARM remains. Caretaker35747
+continues; all A1 handles terminal, no A1 proof survivors/signals/live writes.
+Other-agent diagnostic39875 observed at postcheck; did not alter/interfere.
+Measured timing is local shared-host evidence, not exclusive-core throughput.
+
+Disposition: current-source optical consumer LOCALLY EXERCISED; ordinary-loop
+mounting, actual complete home/caregiver/motor/body-sensory integration, copied
+production body, restart/resource/rehearsal/live acceptance remain OPEN.
+Next bounded FB-01ah: identify/remove proved non-causal work on this complete
+spatial-light path and preserve exact physical interval output before ordinary
+retinal-loop mounting. Do not reopen source custody/paint law or expand sight
+anatomy/cognition. No weakening error/resource/occlusion to claim250ms.
+GoalACTIVE; local commit only; remote push permission remains outstanding.

@@ -86,6 +86,29 @@ class VisibleRegion:
     halfspaces: np.ndarray
 
 
+def subtract_convex(region, clip, area, *, max_halfspaces):
+    """One convex difference law for depth occlusion and ordered surface paint.
+
+    area is the caller's charged analytic solid-angle evaluator. Returned
+    pieces are disjoint up to zero-area boundaries; no clipping vertices.
+    """
+    overlap = np.vstack((region, clip))
+    if area(overlap) == 0:
+        return None, (region,)
+    remaining, pieces, rows = region, [], 0
+    for plane in clip:
+        outside = np.vstack((remaining, -plane))
+        if area(outside) > 0:
+            rows += len(outside)
+            if rows > max_halfspaces:
+                raise ValueError("convex difference residency exceeded")
+            pieces.append(outside)
+        remaining = np.vstack((remaining, plane))
+        if area(remaining) == 0:
+            break
+    return overlap, tuple(pieces)
+
+
 def visible_planar_regions(surfaces, domain, *, max_halfspaces, max_work, max_cells):
     """Partition visible directions within one declared enclosing aperture.
 
@@ -142,25 +165,14 @@ def visible_planar_regions(surfaces, domain, *, max_halfspaces, max_work, max_ce
                          np.vstack((blocker.halfspaces, _unit_rows(depth[None, :], "depth boundary"))))
             successor, resident = [], retained + sum(len(r) for r in regions)
             for region in regions:
-                overlap = np.vstack((region, occlusion))
-                if area(overlap) == 0:
-                    successor.append(region)
-                    continue
                 if coincident:
-                    raise ValueError("overlapping coplanar surfaces have ambiguous material")
-                remaining = region
-                pieces, piece_rows = [], 0
-                for plane in occlusion:
-                    outside = np.vstack((remaining, -plane))
-                    if area(outside) > 0:
-                        piece_rows += len(outside)
-                        if resident - len(region) + piece_rows > max_halfspaces:
-                            raise ValueError("visible region residency exceeded")
-                        pieces.append(outside)
-                    remaining = np.vstack((remaining, plane))
-                    if area(remaining) == 0:
-                        break
-                resident += piece_rows - len(region)
+                    if area(np.vstack((region, occlusion))) > 0:
+                        raise ValueError("overlapping coplanar surfaces have ambiguous material")
+                    pieces = (region,)
+                else:
+                    _, pieces = subtract_convex(region, occlusion, area,
+                        max_halfspaces=max_halfspaces-resident+len(region))
+                resident += sum(len(piece) for piece in pieces) - len(region)
                 successor.extend(pieces)
             regions = successor
             if not regions:

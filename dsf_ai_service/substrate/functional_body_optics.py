@@ -264,15 +264,15 @@ def aperture_solid_angles(normals, apertures, *, max_cells):
     return _integrate_apertures(planes, apertures, parameters, inside, outside, max_cells)
 
 
-def disjoint_surface_radiance(regions, values, apertures, *, max_cells, max_halfspaces):
-    """Six-band aperture means of caller-proved disjoint visible regions.
+def disjoint_region_areas(regions, apertures, *, max_cells, max_halfspaces):
+    """Stream bounded analytic areas of caller-proved disjoint visible regions.
 
     Shared plane classification exists only in this call. Exact normalized
     plane bytes (including signed zero) identify duplicated geometry work, not
     an object, perceptual identity, memory or learned association. Original
     region row order and multiplicity remain intact in the area integrator.
 
-    Input/index residency is O(max_halfspaces), output is 6*N float64 values.
+    Input/index residency is O(max_halfspaces), one bounded area block at a time.
     Packed classification tables plus two masks occupy <=8*max_cells bytes;
     every numeric/event matrix is also max_cells-bounded. No persistent cache.
     """
@@ -281,10 +281,6 @@ def disjoint_surface_radiance(regions, values, apertures, *, max_cells, max_half
             or not isinstance(regions, tuple)):
         raise ValueError("bounded region tuple required")
     _validate_apertures(apertures)
-    if (not isinstance(values, np.ndarray) or values.dtype != np.dtype(np.float64)
-            or values.shape != (len(regions), 6) or not np.isfinite(values).all()
-            or np.any(values < 0)):
-        raise ValueError("finite nonnegative six-band radiances required")
     total = ((apertures[:, 1] - apertures[:, 0])
              * (apertures[:, 3] - apertures[:, 2]))
     if np.any(total <= 0):
@@ -305,9 +301,8 @@ def disjoint_surface_radiance(regions, values, apertures, *, max_cells, max_half
                 unique.append(n.copy())
             ids.append(index[key])
         addresses.append(np.array(ids, dtype=np.intp))
-    result = np.zeros((len(apertures), 6))
     if not unique:
-        return result
+        return iter(())
     planes = np.array(unique)
     del unique, index
     parameters = _plane_parameters(planes)
@@ -320,31 +315,48 @@ def disjoint_surface_radiance(regions, values, apertures, *, max_cells, max_half
     packed_outside = np.empty_like(packed_inside)
     all_inside_mask = np.empty(maximum_width, dtype=np.uint8)
     all_outside_mask = np.empty(maximum_width, dtype=np.uint8)
-    for begin in range(0, len(apertures), batch):
-        end = min(begin + batch, len(apertures))
-        block = apertures[begin:end]
-        geometry = _aperture_geometry(block)
-        width = (len(block) + 7) // 8
-        inside_bits, outside_bits = packed_inside[:, :width], packed_outside[:, :width]
-        inside_mask, outside_mask = all_inside_mask[:width], all_outside_mask[:width]
-        for i in range(len(planes)):
-            lower, upper = _dot_extrema(
-                planes[i:i + 1], block, tuple(p[i:i + 1] for p in parameters), geometry)
-            inside_bits[i] = np.packbits(lower[0] >= 0)
-            outside_bits[i] = np.packbits(upper[0] <= 0)
-        for region_index, ids in enumerate(addresses):
-            inside_mask.fill(255)
-            outside_mask.fill(0)
-            for i in ids:
-                np.bitwise_and(inside_mask, inside_bits[i], out=inside_mask)
-                np.bitwise_or(outside_mask, outside_bits[i], out=outside_mask)
-            inside = np.unpackbits(inside_mask, count=len(block)).astype(bool)
-            outside = np.unpackbits(outside_mask, count=len(block)).astype(bool)
-            area = _integrate_apertures(
-                planes[ids], block, tuple(p[ids] for p in parameters),
-                inside, outside, max_cells)
-            result[begin:end] += area[:, None] * values[region_index]
-        result[begin:end] /= total[begin:end, None]
+    def stream():
+        for begin in range(0, len(apertures), batch):
+            end = min(begin + batch, len(apertures))
+            block = apertures[begin:end]
+            geometry = _aperture_geometry(block)
+            width = (len(block) + 7) // 8
+            inside_bits, outside_bits = packed_inside[:, :width], packed_outside[:, :width]
+            inside_mask, outside_mask = all_inside_mask[:width], all_outside_mask[:width]
+            for i in range(len(planes)):
+                lower, upper = _dot_extrema(
+                    planes[i:i + 1], block, tuple(p[i:i + 1] for p in parameters), geometry)
+                inside_bits[i] = np.packbits(lower[0] >= 0)
+                outside_bits[i] = np.packbits(upper[0] <= 0)
+            for region_index, ids in enumerate(addresses):
+                inside_mask.fill(255)
+                outside_mask.fill(0)
+                for i in ids:
+                    np.bitwise_and(inside_mask, inside_bits[i], out=inside_mask)
+                    np.bitwise_or(outside_mask, outside_bits[i], out=outside_mask)
+                inside = np.unpackbits(inside_mask, count=len(block)).astype(bool)
+                outside = np.unpackbits(outside_mask, count=len(block)).astype(bool)
+                area = _integrate_apertures(
+                    planes[ids], block, tuple(p[ids] for p in parameters),
+                    inside, outside, max_cells)
+                yield begin, end, region_index, area
+    return stream()
+
+
+def disjoint_surface_radiance(regions, values, apertures, *, max_cells, max_halfspaces):
+    """Six-band means using the same bounded, once-computed region areas."""
+    if (not isinstance(regions, tuple) or not isinstance(values, np.ndarray)
+            or values.dtype != np.dtype(np.float64)
+            or values.shape != (len(regions), 6) or not np.isfinite(values).all()
+            or np.any(values < 0)):
+        raise ValueError("finite nonnegative six-band radiances required")
+    areas = disjoint_region_areas(regions, apertures, max_cells=max_cells,
+                                  max_halfspaces=max_halfspaces)
+    result = np.zeros((len(apertures), 6))
+    for begin, end, region_index, area in areas:
+        result[begin:end] += area[:, None] * values[region_index]
+    total = (apertures[:, 1]-apertures[:, 0])*(apertures[:, 3]-apertures[:, 2])
+    result /= total[:, None]
     if not np.isfinite(result).all():
         raise ValueError("radiance exceeds numerical domain")
     return result
