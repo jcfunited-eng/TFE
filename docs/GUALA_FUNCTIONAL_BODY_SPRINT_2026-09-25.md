@@ -5586,3 +5586,40 @@ error qualification on these same loads, before selecting response/resolution or
 reinserting the rejected ordinary integration. Source-only force review requested
 to identify missing work terms; it may not invent heat partitions or controllers.
 No broader anatomy, optics, cognition or curriculum work. Full goal ACTIVE.
+
+### FB-01aj next causal correction: signed constraint work (source-only finding)
+
+Independent body-force review and pinned MuJoCo3.3.7 source agree:
+NativeBody.advance presently integrates motor and viscous-bearing work only.
+mj_energyPos counts gravity and declared springs, not soft-limit/contact storage.
+Unresolved exchange therefore cannot be described solely as numerical error.
+
+Measure Pc = v_pre dot qfrc_constraint = efc_vel dot efc_force per solved state,
+grouped by constraint type and physical ID. Keep both positive and negative
+signed work. In the current implicitfast path mj_step leaves force/efc fields
+at the pre-integration solve while qvel has advanced. Capture immediately after
+mj_step BEFORE NativeBody's kinematics/collision refresh, retaining pre-step
+velocity; sampling after refresh pairs new contacts with old forces and is wrong.
+Successive solve samples plus the already existing final mj_forward permit
+endpoint quadrature without extra solves or altered warmstart history.
+No diagnostic native callbacks/controller, no simulator timestep reordering.
+
+Report signed motor work, braking, bearings, delta(K+U), Wconstraint and
+epsilon = existing_residual + Wconstraint. Compare synchronized trajectories,
+contact/limit event timing and work under the fixed response law. Per-step
+absolute accounting imbalance can expose cancellation but is NOT a bound on
+the continuous trajectory error. Constraint solver convergence must be separated
+from time-integration/quadrature error. No heat partition or stored elastic
+energy may be invented: solref stiffness is acceleration-level, so 1/2*k*r^2
+and -Wconstraint are not justified constitutive heat/storage laws.
+
+Pinned primary sources inspected:
+https://github.com/google-deepmind/mujoco/blob/3.3.7/src/engine/engine_sensor.c#L1277
+https://github.com/google-deepmind/mujoco/blob/3.3.7/src/engine/engine_forward.c#L1078
+https://github.com/google-deepmind/mujoco/blob/3.3.7/src/engine/engine_core_constraint.c#L2056
+
+Next work is this single non-perturbing diagnostic/physical-accounting boundary.
+It must reproduce accepted native successor bytes and retain raw measured terms.
+No runtime physics edit authorized by a mere diagnostic finding; existing
+body-only numerical approval covers derivation/verification, not fabricated
+heat, relaxed checks or a claim of 250ms. Live production remains untouched.
