@@ -45,7 +45,7 @@ REPRESENTATIVES = (
 )
 
 
-def run(all_motors=False, configurations=None, stream=False):
+def run(all_motors=False, configurations=None, stream=False, constraint_work=False):
     declared = declaration()
     supply = FunctionalOrganism.genesis(identity="offline-load-budget", organism_tick=100).available_motor_work_j
     previous = json.loads((Path(__file__).resolve().parents[1] /
@@ -82,8 +82,14 @@ def run(all_motors=False, configurations=None, stream=False):
                        impedance=impedance, model_sha256=hashlib.sha256(xml.encode()).hexdigest(),
                        name=name, effort=force)
             try:
-                result = engine.advance(state, None, 250000, supply,
-                                        effort_updates=((index, force),))
+                if constraint_work:
+                    from guala_body_constraint_work import advance_with_constraint_work
+                    result, work_report = advance_with_constraint_work(
+                        engine, state, 250000, supply, effort_updates=((index, force),))
+                    row["constraint_work"] = work_report
+                else:
+                    result = engine.advance(state, None, 250000, supply,
+                                            effort_updates=((index, force),))
                 row.update(result="accepted", time_s=result.observation.time_s,
                            positive_work_j=result.positive_motor_work_j,
                            unresolved_energy_exchange_j=result.unresolved_energy_exchange_j,
@@ -127,8 +133,10 @@ if __name__ == "__main__":
                         help="Run only named diagnostic cases; repeat for a bounded stage.")
     parser.add_argument("--jsonl", action="store_true",
                         help="Emit each measured load as completed to preserve bounded output chunks.")
+    parser.add_argument("--constraint-work", action="store_true",
+                        help="Compare unchanged successor with non-perturbing signed-work observation.")
     args = parser.parse_args()
-    result = run(args.all_motors, args.configuration, args.jsonl)
+    result = run(args.all_motors, args.configuration, args.jsonl, args.constraint_work)
     if args.jsonl:
         del result["cases"]  # Raw cases have already been emitted, never summarized away.
         print(json.dumps({"summary": result}, allow_nan=False), flush=True)

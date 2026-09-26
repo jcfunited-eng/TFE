@@ -5623,3 +5623,104 @@ It must reproduce accepted native successor bytes and retain raw measured terms.
 No runtime physics edit authorized by a mere diagnostic finding; existing
 body-only numerical approval covers derivation/verification, not fabricated
 heat, relaxed checks or a claim of 250ms. Live production remains untouched.
+
+### FB-01aj signed constraint work: frozen diagnostic contract — 2026-09-26
+
+Previous goal turn PROGRESS:034cee249 exact execution andf2a586d3e full-load map;
+accepted sourceHEAD4aef50dae; one active FB-01aj physical acceptance. Continuing
+the unresolved energy boundary, not changing optics/anatomy/cognition/production.
+
+Authorized files: tools/guala_body_active_load_regime.py and new diagnostic-only
+tools/guala_body_constraint_work.py. The ordinary native/world modules stay
+unchanged. The wrapper calls original mj_step exactly once, retaining pre-step
+qpos/qvel and sampling its solve before NativeBody's geometry refresh; no native
+callback or extra forward/dynamics solve. Restore the original Python binding
+in finally. Compare the complete MechanicalSuccessor with an uninstrumented
+run from identical bytes; any mismatch aborts. One isolated process only.
+
+Power equality witness: pre_v dot qfrc_constraint and sum(efc_vel*efc_force),
+report raw disagreement without an invented tolerance. Group by actual constraint
+type and physical joint/geometry IDs before contact-index refresh; preserve signed,
+positive and negative exchange. Pyramidal rows are NOT declared pure friction.
+Use successive solved samples and the existing final forward endpoint for
+trapezoidal work; exactly reproduce ordinary motor/bearing reduction order.
+Also measure other passive work and reject unexplained applied external forces.
+epsilon = old residual + constraint work + other passive work. No heat deposition,
+no solref-as-spring-energy guess, no continuous-error certification from algebra.
+
+Keep every substep in work and absolute/signed discrete-imbalance accounting.
+Retain10ms trajectory snapshots and exact sampled active-constraint event changes;
+this is bounded diagnostic evidence, NOT sensory filtering or a new clock.
+For each250ms trial at smallest25us:10001samples,26state snapshots,at most10001
+event changes; no cumulative runtime/organism history. Group/work storage is
+bounded by this immutable anatomy's joint and geometry-pair roster. Native solver
+iteration count is reported separately, not mistaken for a KKT error bound.
+
+Named execution: eight representatives ×100/50/25us at fixed .2ms/.999 response,
+each compared to one unchanged run. Must preserve prior recorded controls,
+full successors and exact motor/bearing work; inspect same-time trajectory,
+constraint events, Wc and remaining closure before choosing any accepted law.
+Per-step absolute accounting imbalance detects cancellation, not true-solution
+error. Body thermal closure, copied-body/cold/home/live and real-time gates remain
+open. Source-only independent freeze/review before execution; pre/post AWS/census.
+No GitHub push authorized; no runtime changes; goalACTIVE.
+
+Source review d7cc8d998:two localized findings, zero architectural findings.
+One correction batch excludes conservative qfrc_spring from other passive work
+(already in native potential energy); event output explicitly names active
+constraint groups, not individual contact rows/manifolds. No dynamics changes.
+Pinned mjdata.h confirms qfrc_spring. Final source-only review precedes execution.
+Read-only path correction: functional_body_world.py does not exist; actual body
+work projection is embodiment_world.py. Resolve file roster before reading.
+
+### FB-01aj constraint-work measurement completed — 2026-09-26 10:02Z
+
+Final frozen source331aa091e PASS after one localized batch. Diagnostic34846
+exit0:24/24 paired full successors exact, original motor/bearing work exact,
+unchanged controls reproduced. All100/50/25us cases numerically admitted;
+143060KiB peak. Runtime source210996faa unchanged. No accepted-law edits.
+
+Evidence in docs/evidence/FB-01aj-constraint-work.json:16 complete original
+records +8 lossless zlib/base64 replay records, rawSHA256 verified. The first
+stdout capture exceeded the tool's per-chunk token budget and truncated8records,
+despite60000 requested tokens. Only those8cases were replayed unchanged with
+compressed single-case output; all8exact. Command/output transport failure,
+not physical failure. Future large trajectory evidence must use compressed,
+single-case bounded capture, not several uncompressed JSON rows per poll.
+Every proof process is terminal; no A1 child/orphan remains.
+
+Measured Wconstraint = integral(v dot qfrc_constraint) agrees with summed
+constraint-row power to max2.910383e-11W. Other passive work zero and no solver
+sample hit its iteration cap (max9 iterations; this is NOT a KKT guarantee).
+Constraint work is signed exchange, NOT assigned heat or spring storage.
+
+Torso negative-capacity case, fixed response .2ms/impedance .999:
+step_us | old residual J | signed constraint work J | remaining discrete closure J
+100 | 10.126950621 | -23.886744948 | -13.759794327
+50  | 10.135277169 | -14.631475365 | -4.496198196
+25  | 10.131453962 | -11.887487903 | -1.756033942
+
+Thigh remaining closure: -3.904605/-1.315257/-.566193J.
+Upper arm: -.258019/-.084292/-.036095J.
+Every case's absolute remaining closure falls with refinement, but this is
+not a certified bound or permission to promote coefficients. Sum of absolute
+per-step imbalance still3.534176J for torso25us: cancellation is disclosed.
+
+The26 synchronized10ms snapshots are retained. Largest hinge differences shrink,
+but root trajectory differences are not uniformly monotone: torso position
+100->50us .186870mm,50->25us .187734mm; thigh root orientation .0046483 then
+.0052422rad. These samples cannot certify unsampled peaks or global convergence.
+Active-group events are retained; internal contact-manifold row churn absent.
+
+Conclusion: measuring omitted constraint work does NOT close energy accuracy.
+Do not apply the residual to a thermal source. Next source-derived check is the
+actual implicitfast velocity/force update: distinguish continuous trapezoidal
+force quadrature from the impulse work of the solver's actual discrete update.
+No smaller timestep or altered constitutive law is selected merely to pass.
+
+Read-only post09:59:44Z task1553/ec20ff/digest1d088e remains sole1/1/0HEALTHY,
+live2376400,persist2376393,sameidentity,errorsnull,durabilityfalse;CPU51.20%,
+RAM2.9785%. Prior clockALARM remains,other4alarmsOK. Caretaker35747 untouched;
+unrelated heartbeat22563 owned by9628 was observed, not killed.
+Production/cold/mature-body/interface/home gates remainOPEN. GitHub push still
+permission-blocked; no bypass. GoalACTIVE. No completion or live-body claim.
