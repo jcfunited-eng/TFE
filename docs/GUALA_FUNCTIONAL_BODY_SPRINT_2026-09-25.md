@@ -3916,3 +3916,124 @@ tracking origin/a1/guala-functional-body,whose existing remote-tracking head
 is the previously delivered076e0a7c5. No alternate destination/credentials or
 indirect export attempted. Local commit is an unaffected safe action; remote
 publication requires the explicit verified destination check.
+
+### FB-01aa — retained causal sunlight (2026-09-26)
+
+Requested architecture: one current native body/world state with lighting
+evidence from the same physical transaction. Current source independently
+samples wall time in solar_sun, although ambient and screen emission are
+already retained by _settle_solar_illumination. Conflict: yes, reading the
+same restored state can change direct sunlight. Do not extend that mounted
+query path. Single next item: retain the existing producer's sampled solar
+phase/sky/direction, not a new weather/lighting law or optical cache.
+Approved numerical optics only; no DSF field, neuron or cognition changes.
+
+Contract before implementation: NativeSolarSample is a fixed-size immutable
+record of second_of_day, sky_ppm and direction_to_sun (None at observed night).
+The existing source samples the clock once for screen, ambient and this
+record in _settle_solar_illumination. NativeWorldState owns the optional sample;
+NativeWorldObservation carries the same record inside its existing signed
+projection. v1 codecs remain byte-identical when no sample exists; v2 codecs
+require the complete validated record. No optical history, independent clock,
+receipt, configuration authority or second scene. The sample is source evidence,
+not biological afference or an object identity.
+
+An unsampled zero-time mount keeps its authored light and reports unretained;
+it never invents daylight/night. Absence of a declared sun differs from sampled
+night. Each elapsed native transition retains new lighting even when sky
+rounding yields the same ambient bytes. _native_transition replaces integration
+bytes on the advanced native state (must not overwrite its new sample).
+All fallible sampling/validation happens in the existing prepared successor;
+discard, rollback and coupled publication retain their whole-state ownership.
+Mounted solar_sun uses the public-visibility lock and saved evidence only,
+refusing configured-but-unretained sun. The source query exposes the current
+sample reference. Legacy unmounted behavior is unchanged in this bounded item.
+
+Cold decode authenticates actual sampled values, not a new wall-clock query.
+Future transitions still require the same declared environmental law and the
+same external clock input to reproduce a successor; this is not a weather-law
+migration or a claim that different external times produce identical worlds.
+The present SolarCoupling remains the existing authored daily approximation,
+not astronomical ephemerides. No false full-physical-field claim.
+
+Evidence map: existing environmental clock input -> existing ambient/screen
+producer + solar sample -> prepared native world -> signed observation and
+encoded world -> current-only optical source query. Ordinary native sensory
+renderer is not yet integrated. Required proof: fresh unknown/absent/night,
+single producer sample aligned with ambient/screens, same-ambient changed sun,
+no clock read on queries, prepare/discard/commit/rollback, public-visibility
+refusal, fresh-authority cold state/sources and next motor, strict malformed
+codecs and signed-observation binding, bounded constant-size evidence, unchanged
+v1 and unmounted state. No production mutation/test network activity. Freeze
+and independent source-only review before imports; one local correction batch.
+
+Preimplementation independent source review accepted this bounded contract.
+Clarifications incorporated: the inner native state_sha256 remains a mechanical
+digest; outer observation HMAC binds sun. Decoded samples must exactly match
+the existing declared SolarCoupling output at their saved phase (no invented
+unit-vector tolerance, no fresh time). Restoring sampled sunlight into a world
+without that law refuses. A separate latest solar_sun read is NOT atomic pairing
+with an older observation: native optics must consume the sample already on
+its observation/source view. Legacy sensorium split-call behavior is not claimed
+fixed. No need to alter it before the native retina is actually integrated.
+
+Tool receipts: first documentation patch failed due to an incomplete context
+line, then applied with the correct existing line; no source was lost. Initial
+read-only health check could not reach AWS inside sandbox and terminated; an
+approved read-only network retry completed03:32:04Z (not a production change).
+Same1553/ec20ff task,digest1d088e...,counts1/1/0,live2322641,persist2322633,
+identityunchanged,availabletrue,errorsnull,durabilityfalse. ExistingclockALARM,
+resource/refusalalarmsOK,CPUavg51.57%,RAM2.877%,caretaker35747 unchanged.
+
+Frozen source review f2d8674f found a localized compatibility defect: the new
+solar_sun publication guard was before its native branch, changing unmounted
+visibility behavior. One correction batch moves it inside the native branch,
+adds a legacy pending-visibility falsifier and corrects the stale source-view
+comment. No other findings or architecture rejection; no imports/tests yet.
+
+Final source811b2bfba6695458a47454ce1b0d76520d7912bced6ee3886e66aed066eb1b11
+passed independent review. First standalone proof session52069 terminal1:
+4testsPASS; cold proof plain-world passed, thermal subcase errored before its
+action because the reused optical helper omitted required basal heat (and its
+thermal fixture lacked the declared core source). .437296s,147548KiB peakRSS.
+No production-source defect or weakened assertion. Fingerprint still matched.
+Reviewer confirmed fixture-only repair: reuse measured_core=True declaration,
+pass explicit zero basal heat for this zero-basal externally-work-supplied
+retention bench. Commands/durations/work and all assertions remain unchanged.
+This is not a biological heat/metabolism claim; accepted actual-reserve/heat
+suite will run unchanged. Source production files remain at accepted bytes.
+
+Read-only process check: no A1 proof survivor. Sandbox login startup displayed
+fresh maintenance jobs; host census shows only pre-existing maintenance loops
+9554/9628/9721 (age3h53m),caretaker35747 unchanged. Subsequent commands use
+non-login shells to avoid startup side effects; no unrelated process signaled.
+
+FB-01aa verified offline — 2026-09-26 03:46Z.
+Fixture-only final frozen8c9de6d34fc28362a1569ff7b8f22a1d8436686f3577532eff7b1465c4695be4
+passed independent source review and after-proof fingerprint verification.
+Owner releases freeze only for this evidence append and local commit.
+Standalone solar session93857 terminal0:5PASS,.593682s,149048KiB peakRSS;
+includes ordinary+thermal fresh cold continuation, both old and v2 codecs,
+equal-ambient/different-direction sample retention, signed tamper refusal,
+discard/rollback/failed preparation and hidden-publication checks. Test thermal
+input zero basal is explicitly controlled; no physiological inference made.
+Unchanged optical-source command e59358:8PASS,.368886s,73048KiB;50geometry
+source query1.066ms. Unchanged world/thermal session64497:21PASS,1.534s,
+including actual-reserve/internal-heat custody. Native geometry47rows/.980ms;
+19335ray samples12.87/5.65/5.71ms are offline geometry,not full live vision.
+No pytest/conftest/network calls/live authority in A1 proof runs; all terminal.
+
+Read-only before03:41:22/after03:45:52Z: same1553/ec20ff task/digest1d088e...,
+counts1/1/0,live2324279->2325048,persist2324265->2325033,sameidentity,
+availabletrue,checkpoint/cleanupnull,durabilityfalse. ExistingclockALARM
+remains;resource/refusalalarmsOK,CPUavg51.54->51.33%,RAM~2.88%.
+Caretaker35747 unchanged; G1 organism pytest56395 observed afterproof,
+not A1 evidence and not touched. No A1 proof survives. Production unchanged.
+
+This closes only retained lighting-source custody. Approved native-body goal
+remainsACTIVE; native spatially varying illumination/window/lamp/shadow
+integration, complete home/caregiver/contact/oral dynamics, ordinary motor/
+sensory pairing, restart/rehearsal and production verification remain open.
+Next exact item is consume these retained sources in the existing material
+integrator's spatially varying illumination, not a new world or sun model.
+GitHub push remains awaiting explicit permission; local commit only.

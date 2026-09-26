@@ -137,8 +137,13 @@ class NativeOpticalSources:
     materials: tuple[NativeMaterialSource, ...]
     regions: tuple
     emitters: tuple
-    # "unretained" is NOT night/zero light. No available sample exists yet.
+    # "unretained" is NOT night/zero light; "retained" may include sampled night.
     solar_evidence: str
+
+    @property
+    def solar_sample(self):
+        """The same world's retained producer sample, not duplicated custody."""
+        return self.native_state.solar_sample
 
 
 def resolve_materials(world, compiled, *, max_material_cells):

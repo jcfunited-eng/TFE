@@ -2516,32 +2516,87 @@ class NativeWorldMount:
 
 
 @dataclass(frozen=True, slots=True)
+class NativeSolarSample:
+    """One retained environmental input, not a new sun or clock authority.
+
+    None direction means sampled night; a missing whole sample means unknown.
+    The existing SolarCoupling produces the direction. Native world validation
+    checks against that declared law at the saved phase, never wall time.
+    """
+    second_of_day: int
+    sky_ppm: int
+    direction_to_sun: tuple[float, float, float] | None
+
+    def __post_init__(self):
+        _bounded_integer(self.second_of_day, "sampled solar second", minimum=0, maximum=86399)
+        _bounded_integer(self.sky_ppm, "sampled sky light", minimum=0, maximum=1000000)
+        if self.direction_to_sun is not None:
+            direction = _native_vector(self.direction_to_sun, 3, "sampled sun direction")
+            if (type(self.direction_to_sun) is not tuple
+                    or any(abs(v) > 1 for v in direction) or not any(direction)):
+                raise ValueError("sampled solar direction is outside its physical domain")
+
+    @classmethod
+    def from_coupling(cls, coupling: SolarCoupling, second: int):
+        sun = coupling.sun_vector(second)
+        return cls(second, coupling.sky_ppm(second) if sun is None else sun[3],
+                   None if sun is None else sun[:3])
+
+    def as_record(self):
+        return {"second_of_day": self.second_of_day, "sky_ppm": self.sky_ppm,
+                "direction_to_sun": (None if self.direction_to_sun is None
+                                     else list(self.direction_to_sun))}
+
+    @classmethod
+    def from_record(cls, value):
+        if not isinstance(value, Mapping) or set(value) != {
+                "second_of_day", "sky_ppm", "direction_to_sun"}:
+            raise ValueError("retained solar sample fields changed")
+        raw = value["direction_to_sun"]
+        if raw is not None and type(raw) is not list:
+            raise ValueError("retained solar direction encoding changed")
+        return cls(value["second_of_day"], value["sky_ppm"],
+                   None if raw is None else _native_vector(raw, 3, "sampled sun direction"))
+
+
+@dataclass(frozen=True, slots=True)
 class NativeWorldState:
     mount: NativeWorldMount
     integration_state: bytes
+    solar_sample: NativeSolarSample | None = None
 
     def __post_init__(self):
         if (not isinstance(self.mount, NativeWorldMount)
                 or type(self.integration_state) is not bytes
                 or not 32 < len(self.integration_state) <= DEFAULT_MAX_ENCODED_STATE_BYTES):
             raise ValueError("bounded model-bound current native state required")
+        if self.solar_sample is not None and type(self.solar_sample) is not NativeSolarSample:
+            raise ValueError("typed retained solar evidence required")
 
     def as_record(self):
-        return {"schema": "guala.native.world-state.v1",
+        return {"schema": ("guala.native.world-state.v2" if self.solar_sample is not None
+                           else "guala.native.world-state.v1"),
                 "mount": self.mount.as_record(),
-                "integration_state_base64": base64.b64encode(self.integration_state).decode("ascii")}
+                "integration_state_base64": base64.b64encode(self.integration_state).decode("ascii"),
+                **({"solar_sample": self.solar_sample.as_record()}
+                   if self.solar_sample is not None else {})}
 
     @classmethod
     def from_record(cls, value):
+        sampled = isinstance(value, Mapping) and value.get("schema") == "guala.native.world-state.v2"
+        fields = {"schema", "mount", "integration_state_base64"}
+        if sampled:
+            fields.add("solar_sample")
         if (not isinstance(value, Mapping)
-                or set(value) != {"schema", "mount", "integration_state_base64"}
-                or value["schema"] != "guala.native.world-state.v1"):
+                or set(value) != fields
+                or value["schema"] not in ("guala.native.world-state.v1", "guala.native.world-state.v2")):
             raise ValueError("native current state fields changed")
         try:
             state = base64.b64decode(value["integration_state_base64"], validate=True)
         except (TypeError, ValueError) as error:
             raise ValueError("native integration bytes are invalid") from error
-        result = cls(NativeWorldMount.from_record(value["mount"]), state)
+        result = cls(NativeWorldMount.from_record(value["mount"]), state,
+                     NativeSolarSample.from_record(value["solar_sample"]) if sampled else None)
         if result.as_record() != dict(value):
             raise ValueError("native current state is not canonical")
         return result
@@ -2549,7 +2604,11 @@ class NativeWorldState:
 
 @dataclass(frozen=True, slots=True)
 class NativeWorldObservation:
-    """Authenticated physical projection. No integration bytes or hidden ctrl."""
+    """Authenticated projection; state_sha256 is mechanical bytes only.
+
+    The outer world observation digest/HMAC binds ALL fields including solar
+    evidence. No integration bytes, hidden ctrl or new optical receipt.
+    """
     model_identity: str
     state_sha256: str
     time_s: float
@@ -2557,8 +2616,11 @@ class NativeWorldObservation:
     object_frames: tuple[tuple[str, str], ...]
     world_frames: tuple[object, ...]
     self_feedback: object
+    solar_sample: NativeSolarSample | None = None
 
     def as_record(self):
+        if self.solar_sample is not None and type(self.solar_sample) is not NativeSolarSample:
+            raise ValueError("typed observed solar evidence required")
         _sha256_identity(self.model_identity, "native model identity")
         _sha256_identity(self.state_sha256, "native state identity")
         _native_vector((self.time_s,), 1, "native time")
@@ -2597,20 +2659,26 @@ class NativeWorldObservation:
                              "position_m": list(_native_vector(contact.position_m, 3, "native local contact")),
                              "force_n": list(_native_vector(contact.force_n, 3, "native local force")),
                              "couple_nm": list(_native_vector(contact.couple_nm, 3, "native local couple"))})
-        return {"schema": "guala.native.world-observation.v1",
+        return {"schema": ("guala.native.world-observation.v2" if self.solar_sample is not None
+                           else "guala.native.world-observation.v1"),
                 "model_identity": self.model_identity, "state_sha256": self.state_sha256,
                 "time_s": self.time_s, "body_frames": [list(p) for p in self.body_frames],
                 "object_frames": [list(p) for p in self.object_frames],
                 "world_frames": frames,
-                "self_feedback": {"time_s": feedback.time_s, "sensors": sensors, "contacts": contacts}}
+                "self_feedback": {"time_s": feedback.time_s, "sensors": sensors, "contacts": contacts},
+                **({"solar_sample": self.solar_sample.as_record()}
+                   if self.solar_sample is not None else {})}
 
     @classmethod
     def from_record(cls, value):
         from dsf_ai_service.substrate.functional_body_native import BodyFeedback, LocalContact, WorldFrame
         expected = {"schema", "model_identity", "state_sha256", "time_s",
                     "body_frames", "object_frames", "world_frames", "self_feedback"}
+        sampled = isinstance(value, Mapping) and value.get("schema") == "guala.native.world-observation.v2"
+        if sampled:
+            expected.add("solar_sample")
         if (not isinstance(value, Mapping) or set(value) != expected
-                or value["schema"] != "guala.native.world-observation.v1"):
+                or value["schema"] not in ("guala.native.world-observation.v1", "guala.native.world-observation.v2")):
             raise ValueError("native observation fields changed")
         frames = []
         if not isinstance(value["world_frames"], list):
@@ -2644,7 +2712,8 @@ class NativeWorldObservation:
             pairs[name] = tuple(tuple(p) for p in value[name])
         result = cls(value["model_identity"], value["state_sha256"], value["time_s"],
                      pairs["body_frames"], pairs["object_frames"], tuple(frames),
-                     BodyFeedback(raw["time_s"], tuple(sensors), tuple(contacts)))
+                     BodyFeedback(raw["time_s"], tuple(sensors), tuple(contacts)),
+                     NativeSolarSample.from_record(value["solar_sample"]) if sampled else None)
         if result.as_record() != dict(value):
             raise ValueError("native observation is not canonical")
         return result
@@ -4452,6 +4521,11 @@ class EmbodimentWorldAuthority:
 
     def _validate_native_world(self, world: _WorldState):
         _bounded_integer(world.revision, "world revision", minimum=0, maximum=MAX_REVISION)
+        sample = world.native.solar_sample
+        if sample is not None:
+            if (self._solar_coupling is None or sample != NativeSolarSample.from_coupling(
+                    self._solar_coupling, sample.second_of_day)):
+                raise ValueError("retained sunlight differs from the declared environmental law")
         self._validate_physical_topology(world.regions, world.portals)
         if (not 2 <= len(world.bodies) <= self._max_bodies
                 or not 1 <= len(world.objects) <= self._max_objects):
@@ -4480,7 +4554,7 @@ class EmbodimentWorldAuthority:
         projection = NativeWorldObservation(
             engine.model_identity, _sha256(world.native.integration_state), observed.time_s,
             world.native.mount.body_frames, world.native.mount.object_frames,
-            observed.world_frames, observed.self_feedback)
+            observed.world_frames, observed.self_feedback, world.native.solar_sample)
         projection.as_record()
         unsigned = {
             "revision": world.revision, "room_id": world.room_id,
@@ -4528,8 +4602,8 @@ class EmbodimentWorldAuthority:
         Materials and geometry share the existing publication lock and full
         inventory, never a horizon-filtered observation. This is internal
         world optics only, NOT an organism input or complete lighting result.
-        Solar direction has no retained causal sample yet: report that absence
-        explicitly rather than reading wall time or silently inferring night.
+        Sunlight is the retained producer sample in native_state, not a second
+        wall-clock query. No sample after a zero-time mount is explicitly unknown.
         """
         from .functional_body_optical_sources import NativeOpticalSources, resolve_materials
         with self._lock:
@@ -4548,6 +4622,7 @@ class EmbodimentWorldAuthority:
                                                origin_local_m, max_geoms=max_geoms)
             return NativeOpticalSources(world.revision, world.native, geometry, materials,
                                         world.regions, emitters,
+                                        "retained" if world.native.solar_sample is not None else
                                         "absent" if self._solar_coupling is None else "unretained")
 
     def native_ray_geometry(self, *, expected_revision: int, frame_name: str,
@@ -4588,8 +4663,8 @@ class EmbodimentWorldAuthority:
             return None, "native_interval_requires_microsecond_lattice", None
         result = engine.advance(world.native.integration_state, None, elapsed_ns // 1000,
                                 available_motor_work_j, effort_updates=updates)
-        native = NativeWorldState(world.native.mount, result.state)
         advanced = self._advance_material_time(world, elapsed_ns)
+        native = replace(advanced.native, integration_state=result.state)
         projected = self._native_project_world(advanced, native, result.observation)
         work = NativeMechanicalWork(
             result.positive_motor_work_j, result.signed_motor_work_j,
@@ -5878,16 +5953,28 @@ class EmbodimentWorldAuthority:
         return result
 
     def solar_sun(self) -> tuple[float, float, float, int] | None:
-        """Where the sun is now for her world eye (the same clock and law that write
-        the sky's light into her rooms): a unit vector toward it and the sky's light in
-        ppm; None at night or in a home without a sun."""
+        """Current sun; mounted worlds use only their published producer sample.
 
-        coupling = self._solar_coupling
-        if coupling is None:
-            return None
-        override = os.environ.get("GUALA_SOLAR_UTC_OVERRIDE", "").strip()
-        second_of_day = (int(override) if override else int(time.time())) % 86_400
-        return coupling.sun_vector(second_of_day)
+        Native optics must consume the sample on its observation/source view
+        for revision pairing, not combine this latest read with an older view.
+        The unmounted predecessor retains its existing wall-clock behavior.
+        """
+        with self._lock:
+            coupling = self._solar_coupling
+            if self._state.world.native is not None:
+                self._require_public_visibility_locked()
+                sample = self._state.world.native.solar_sample
+                if sample is not None:
+                    return (None if sample.direction_to_sun is None
+                            else (*sample.direction_to_sun, sample.sky_ppm))
+                if coupling is None:
+                    return None
+                raise ValueError("native sunlight has not been sampled by a physical transition")
+            if coupling is None:
+                return None
+            override = os.environ.get("GUALA_SOLAR_UTC_OVERRIDE", "").strip()
+            second_of_day = (int(override) if override else int(time.time())) % 86_400
+            return coupling.sun_vector(second_of_day)
 
     def _settle_solar_illumination(self, world: _WorldState) -> _WorldState:
         """Write the real sun's current light into the declared places.
@@ -5924,7 +6011,12 @@ class EmbodimentWorldAuthority:
                 world = replace(world, objects=tuple(objects))
         if coupling is None:
             return world
-        sky = coupling.sky_ppm(second_of_day)
+        if world.native is not None:
+            sample = NativeSolarSample.from_coupling(coupling, second_of_day)
+            world = replace(world, native=replace(world.native, solar_sample=sample))
+            sky = sample.sky_ppm
+        else:
+            sky = coupling.sky_ppm(second_of_day)
         window_share = dict(coupling.window_share_ppm_by_region_id)
         authored = {
             region.region_id: region.illumination_ppm
