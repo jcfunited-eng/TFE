@@ -4390,3 +4390,131 @@ or changed sensor resolution. Existing body mechanics/sensory/persistence and
 full ordinary-world/copy/rehearsal/live gates remain mandatory follow-through.
 Any newly proved unrelated issue goes to later work, not this active goal.
 GitHub permission remains outstanding; local work can continue; goalACTIVE.
+
+## FB-01ae — Aperture-to-physical-surface handoff — 2026-09-26
+Previous turn PROGRESS local2d6ee69ac,53offline checks. Clean tree verified.
+Continue the required native retinal integration; do not reopen its accepted
+source/material/solar/primitive laws or broaden into cognition/G1 ingress.
+Existing whole-body acceptance and latency gates stay open.
+
+First missing producer/consumer seam, source-derived:
+renderer.patch_geometry supplies centre direction q0 and chord enclosure eta;
+renderer.entry_bounds/classify computes lower/upper physical entry distances.
+NativeIllumination.bounds requires actual surface point p0, outward normal n0,
+position-ball radius delta and normal-vector radius epsilon. No producer
+currently makes this handoff for native curved limbs/objects. Existing
+integrate/integrate_materials still use declared constant radiance; they do
+NOT consume the spatial field. Full integration/region-look composition is
+still required after this physical handoff. No centre-ray image substitute.
+
+Exact geometry contract, metres and unit directions in the SAME native eye:
+For all rays q in an aperture, |q-q0|<=eta and t in [l,u], with finite positive
+central entry t0 through the original solid, p0=t0*q0 and
+delta=max(|l-t0|,|u-t0|)+u*eta encloses all actual surface intersections.
+This inequality is the triangle inequality, not sampled fitting.
+SPHERE normal variation<=delta/r. CAPSULE normal is (p-proj_segment(p))/r;
+I-proj_segment is nonexpansive, giving the same delta/r bound.
+ELLIPSOID uses normalized A*p, A=diag(1/a^2), with |A*p|>=1/max(a) on its
+surface, hence epsilon<=min(2,2*max(a)*delta/min(a)^2).
+BOX: constant face normal only if the ball cannot reach another face;
+otherwise bound2 covers every unit normal. CYLINDER: same for a cap;
+on the barrel delta/r applies only if the ball cannot reach a cap,
+otherwise bound2. No invented normal continuity at sharp rims.
+
+Single physical root authority: extend the existing primitive evaluator's
+internal result to optionally return its actual hit normal. Box face and
+cylinder cap/barrel come from the SAME slab/quadratic winner, never a nearest
+face guess, name parsing, or a second raycast. Existing interval/interval_pair
+keep their exact outputs and do no normal work. The surface helper consumes
+already computed direction/depth enclosures; does NOT rerun aperture clipping,
+replace visibility, choose gaze, or assert a selected solid is foremost.
+Unresolved/infinite depth and central miss refuse explicitly for caller
+subdivision, rather than manufacturing a surface.
+
+NativeIllumination.surface_bounds is the actual consumer for this seam:
+packed direction/depth arrays -> original primitive position/normal bounds ->
+existing six-band ambient/bounce/lamp/retained-sun bounds. Resolve the region
+from the SAME native binding's body/object reference frame, or bound region
+address, using the existing _native_region law; never rounded display pose.
+All source IDs remain internal physical addresses, not organism identities.
+Shared owner region is derived once in the transient light view, not per ray.
+Return the two six-band bounds only; no point/normal record persisted.
+
+Authorized files: existing functional_body_renderer.py, existing
+functional_body_illumination.py, existing standalone illumination test, sprint
+ledger. O(N) scratch per reached primitive, same max_points/shadow admission
+before geometric work; no additional world, codec, timer, cache or process.
+Errors discard locals; world/native/current-only bytes are unchanged.
+No modifications to classify/integrate consumers yet: truthful field-wide
+retinal integration remains next, not passed by this intermediate proof.
+
+Acceptance: actual NativeOpticalSources supplies native geometry and retained
+light; finite angular apertures intersect real primitives; new handoff into
+illumination encloses independently sampled actual per-ray hit illumination;
+samples are falsifiers only, never runtime quadrature. Cover all five shapes,
+rotations, curved normals, sharp rims, near/far enclosures and depth refusal;
+repeat actual native cold restore/next motor tests and full previous intervals.
+Require exact unchanged single/paired interval evidence; no pixel, DSF or
+learning approximation added. This is approved float64 optics, not formal
+directed-rounding certification or a production frame. One frozen source
+review before any imports/tests; pre/post AWS envelope for proof.
+
+FB-01ae translation/lean preflight — 2026-09-26.
+Continuation after bedtime status turn (no implementation progress that turn).
+Actual input map: prepared native angular/depth arrays -> same primitive root
+and winning normal -> position/normal enclosures -> shared illumination _evaluate
+-> two six-band arrays. Numerical delta retains |q0| explicitly, correcting the
+unit-vector shorthand above for floating trigonometric directions. No second
+ray solve, point reconstruction or persisted sample store. Region derived once
+per native physical owner; bounds and surface_bounds share one work admission
+and one illumination evaluator. Existing fixture default orientation retained;
+only the new explicit rotation cases change it. No codec/startup changes; this
+handoff remains backend-only and unmounted. Existing source/solar/cold-next-motor
+proofs must remain true; whole retina and body acceptance remain open.
+Source-only independent frozen review precedes imports/tests. Proposed proof:
+14 focused tests, including 375 independent native ray intersection witnesses
+across five shapes and three rotations. Samples falsify derived bounds; they
+are not runtime quadrature or full-frame proof. No GitHub push authorized yet.
+
+FB-01ae first execution failure and sole localized batch — 2026-09-26 05:27Z.
+Frozen406473d950f1b1a66f65548c0da561144bda4ec9aaa000d4902c80d9339b3466
+passed independent SOURCE review; verify unchanged after first run.
+Handle30443 terminal1:13PASS/1ERROR,1.544498s,154116KiBpeak. New15-scene proof
+stopped before optical computation: native mount must preserve body yaw.
+Cause: new fixture rotated the signed other-body root (original yaw180deg).
+Correction is TEST-ONLY: retain root pose and rotate the physical geom locally.
+No production or candidate geometry law changes, no relaxed mount invariant.
+Re-freeze and require source review of this one localized batch before rerun.
+Reviewer limitation: owner-root room selects the existing W1 light law for
+all its surfaces. Not point-local cross-room limb/face radiative transport;
+not a claim that full retinal integration or production sight is complete.
+
+FB-01ae accepted local handoff proof — 2026-09-26 05:30Z.
+FinalSOURCE gate PASS at e5348479a650c8872a14de7041967d92fd0745d03ed03fa8ba1326d5578cf658;
+verified identical after all execution. Owner releases freeze for receipt only.
+Sole localized test-fixture correction above; runtime law never retuned.
+41829terminal0:14PASS in2.208226s,154360KiBpeak,375actual native MuJoCo hit
+witnesses across all5shapes/3rotations inside position/normal/light enclosures.
+Original shadow/single-pair outputs unchanged; coefficientrows120832->60416.
+46608terminal0:material8PASS1.527s/source8PASS.366s/solar5PASS.645s/
+world21PASS1.476s. Total56PASS. Existing19335site uniform-light material scene
+96.764ms; explicitly NOT spatial-light full-frame timing or production proof.
+Head movement/source successor/retained sun/cold restore/next motor unchanged.
+No new persistence, background task, geometry cache or cognitive authority.
+
+Read-only envelopes05:23:40,05:28:19,05:29:45Z: same1553/ec20ff/digest1d088e,
+counts1/1/0,RUNNINGHEALTHY,sameidentity,live2337913->2338533->2338732,
+persist2337897->2338505->2338697,errorsnull,durabilityfalse,
+CPU51.20->50.90%,RAM2.94->2.93%. ExistingclockALARM remains, othersOK.
+Caretaker35747untouched. Other-agent diagnostic3539 observed and ended before
+cwd inspection (readlink exited1); later4210 separate probe observed. Neither
+is an A1-owned harness; no signals or changes. AllA1proofsessions terminal,
+postcensus no matching A1 descendants/orphans. Shared-host timing is supporting
+local evidence only, not production-capacity qualification.
+
+Remaining next integration: compose actual planar/curved material footprints
+with these spatial-light bounds into each existing retinal aperture. Preserve
+finite aperture response, source-fixed markings, self-occlusion and complete
+native head transform. Owner-root room lighting remains the existing W1 law,
+not newly claimed cross-room radiative transport. Ordinary loop/home/caregiver,
+copied-body/restart/resource/rehearsal/live gates stay open. GoalACTIVE.

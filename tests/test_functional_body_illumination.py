@@ -13,6 +13,7 @@ import unittest
 import xml.etree.ElementTree as ET
 
 import numpy as np
+import mujoco as mj
 
 from dsf_ai_service.substrate.embodiment_world import (
     EmbodimentWorldAuthority, PositionMM, WindowMM,
@@ -21,7 +22,7 @@ from dsf_ai_service.substrate.functional_body_illumination import NativeIllumina
 from dsf_ai_service.substrate.functional_body_native import OpticalGeometry
 from dsf_ai_service.substrate.functional_body_renderer import (
     BOX, CAPSULE, CYLINDER, ELLIPSOID, SPHERE, interval, interval_pair,
-    slab, sphere_interval,
+    slab, sphere_interval, entry_bounds, patch_geometry, surface_patch_geometry, directions,
 )
 from dsf_ai_service.substrate import functional_body_renderer as renderer
 from dsf_ai_service.substrate.functional_body_illumination import _dilate
@@ -33,7 +34,8 @@ from test_functional_body_optical_sources import (
 BANDS = (100000, 200000, 300000, 400000, 500000, 600000)
 
 
-def bench(*, solar=False, closed_window=False, tilted=False, card_y=1., lamp_y=1., window_from=0):
+def bench(*, solar=False, closed_window=False, tilted=False, card_y=1., lamp_y=1.,
+          window_from=0, other_kind="sphere", other_angle=None):
     base = world(solar=solar)
     current = base._state.world
     objects = (replace(current.objects[0], position=PositionMM(1500, int(card_y*1000), 0)),
@@ -56,6 +58,14 @@ def bench(*, solar=False, closed_window=False, tilted=False, card_y=1., lamp_y=1
     root.find("./worldbody/body[@name='card']").set("pos", f"1.5 {card_y} 0")
     if closed_window:
         root.find("./worldbody/geom[@name='wall']").set("pos", "5.005 2.5 1.5")
+    other = root.find("./worldbody/body[@name='other']")
+    other_geom = other.find("geom")
+    if other_angle is not None:
+        # Rotate the physical surface inside the unchanged signed body frame.
+        other_geom.set("quat", f"{math.cos(other_angle/2)} 0 {math.sin(other_angle/2)} 0")
+    other_geom.set("type", other_kind)
+    other_geom.set("size", {"sphere": ".25", "capsule": ".18 .22",
+        "cylinder": ".2 .28", "ellipsoid": ".25 .18 .3", "box": ".25 .18 .3"}[other_kind])
     mount(auth, replace(declared, xml=ET.tostring(root, encoding="unicode")))
     return auth
 
@@ -433,6 +443,111 @@ class IlluminationTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "equal half-lengths"):
             interval_pair(CAPSULE, outer, inner, np.array(((-2., 0., 0.),)),
                           np.array(((1., 0., 0.),)))
+
+    def test_native_aperture_surface_handoff_encloses_actual_hits_and_light(self):
+        witnessed = 0
+        for name in ("sphere", "capsule", "cylinder", "ellipsoid", "box"):
+            for angle in (0., .6, math.pi/2):
+                authority = bench(other_kind=name, other_angle=angle)
+                field = NativeIllumination(query(authority))
+                before = authority.encoded_snapshot()
+                geometry = field.sources.geometry
+                row = next(i for i, (b, _) in enumerate(field.sources.bindings)
+                           if b.geom_name == "other/surface")
+                kind, size = geometry.kinds[row], geometry.sizes_m[row]
+                centre, rotation = geometry.positions_eye_m[row], geometry.rotations_eye[row]
+                h = math.atan2(centre[1], centre[0])
+                mu = centre[2]/np.linalg.norm(centre)
+                apertures = np.array(((h-.001, h+.001, mu-.001, mu+.001),))
+                prepared = patch_geometry(apertures)
+                low, high = entry_bounds(kind, size, centre, rotation, apertures, prepared)
+                p, n, delta, epsilon = surface_patch_geometry(
+                    kind, size, centre, rotation, prepared[0], prepared[1], low, high)
+                received = field.surface_bounds(row, prepared[0], prepared[1], low, high,
+                                                max_points=1, max_shadow_tests=100000)
+                rays = np.array([directions(np.array(h+.001*a), np.array(mu+.001*b))
+                                 for a in (-1., -.5, 0., .5, 1.)
+                                 for b in (-1., -.5, 0., .5, 1.)])
+                # Independent native solid intersections, not our interval function.
+                distances = np.array([mj.mju_rayGeom(centre, rotation.ravel(), size,
+                    np.zeros(3), q, int(kind)) for q in rays])
+                self.assertTrue(np.all(distances > 0))
+                points = distances[:, None]*rays
+                local = (points-centre) @ rotation
+                if kind == SPHERE:
+                    normals = local/size[0]
+                elif kind == ELLIPSOID:
+                    normals = local/(size*size)
+                elif kind == CAPSULE:
+                    normals = local.copy()
+                    normals[:, 2] -= np.clip(local[:, 2], -size[1], size[1])
+                elif kind == CYLINDER:
+                    # Independent analytic surface gradient: compare native hit
+                    # residuals to the cap plane and radial cylinder surface.
+                    radial = np.linalg.norm(local[:, :2], axis=1)
+                    cap = np.abs(np.abs(local[:, 2])-size[1]) < np.abs(radial-size[0])
+                    normals = np.column_stack((local[:, :2], np.zeros(len(local))))
+                    normals[cap] = 0
+                    normals[cap, 2] = np.sign(local[cap, 2])
+                else:
+                    axis = np.argmin(np.abs(np.abs(local)-size), axis=1)
+                    normals = np.zeros_like(local)
+                    np.put_along_axis(normals, axis[:, None],
+                        np.sign(np.take_along_axis(local, axis[:, None], axis=1)), axis=1)
+                normals = normals @ rotation.T
+                normals /= np.linalg.norm(normals, axis=1)[:, None]
+                centre_normal = n/np.linalg.norm(n, axis=1)[:, None]
+                self.assertTrue(np.all(np.linalg.norm(points-p, axis=1) <= delta[0]+1e-10))
+                self.assertTrue(np.all(np.linalg.norm(normals-centre_normal, axis=1)
+                                       <= epsilon[0]+1e-10))
+                sampled = field.bounds(field.surface_regions[row], points, normals,
+                    position_radius_m=np.zeros(len(points)), normal_radius=np.zeros(len(points)),
+                    receiver_rows=np.full(len(points), row, dtype=int),
+                    max_points=len(points), max_shadow_tests=100000)
+                for values in sampled:
+                    self.assertTrue(np.all(values >= received[0]-1e-10))
+                    self.assertTrue(np.all(values <= received[1]+1e-10))
+                self.assertEqual(authority.encoded_snapshot(), before)
+                witnessed += len(rays)
+        print(dict(native_surface_ray_witnesses=witnessed), flush=True)
+
+    def test_surface_handoff_requires_resolved_depth_and_admits_before_work(self):
+        authority = bench()
+        field = NativeIllumination(query(authority))
+        geometry = field.sources.geometry
+        row = next(i for i, (b, _) in enumerate(field.sources.bindings)
+                   if b.geom_name == "card/surface")
+        centre = geometry.positions_eye_m[row]
+        q = (centre/np.linalg.norm(centre))[None, :]
+        args = (row, q, np.zeros(1), np.ones(1), np.full(1, np.inf))
+        with self.assertRaisesRegex(ValueError, "finite surface entry"):
+            field.surface_bounds(*args, max_points=1, max_shadow_tests=100000)
+        with self.assertRaisesRegex(ValueError, "ordered surface entry"):
+            field.surface_bounds(row, q, np.zeros(1), np.full(1, 3.), np.full(1, 1.),
+                                 max_points=1, max_shadow_tests=100000)
+        class MustNotScan(np.ndarray):
+            def __array_ufunc__(self, *args, **kwargs):
+                raise AssertionError("unadmitted surface input must not be scanned")
+        with self.assertRaisesRegex(ValueError, "work bound"):
+            field.surface_bounds(row, q.view(MustNotScan), np.zeros(1), np.ones(1),
+                                 np.ones(1), max_points=1, max_shadow_tests=0)
+        with self.assertRaisesRegex(ValueError, "surface-patch arrays"):
+            field.surface_bounds(row, np.repeat(q, 2, axis=0).view(MustNotScan),
+                                 np.zeros(2), np.ones(2), np.ones(2),
+                                 max_points=1, max_shadow_tests=100000)
+
+    def test_sharp_surface_edges_keep_full_normal_cone(self):
+        # These intervals deliberately enclose a larger patch than its central
+        # ray; all dimensions are explicit geometry, not fabricated sensations.
+        direction = np.array(((1., 0., 0.),))
+        for kind, size, rotation in (
+                (BOX, np.array((.2, .3, .4)), np.eye(3)),
+                (CYLINDER, np.array((.2, .3, 0.)), np.eye(3)),
+                (CYLINDER, np.array((.2, .3, 0.)),
+                 np.array(((0., 0., 1.), (0., 1., 0.), (-1., 0., 0.))))):
+            result = surface_patch_geometry(kind, size, np.array((1.5, 0., 0.)), rotation,
+                direction, np.zeros(1), np.array((.5,)), np.array((2.5,)))
+            np.testing.assert_array_equal(result[3], (2.,))
 
     def test_budget_refusal_and_bounded_repeated_read(self):
         authority = bench()

@@ -60,19 +60,19 @@ def sphere_interval(origin, velocity, radius):
                      np.sum(origin*velocity, axis=-1), np.sum(origin*origin, axis=-1)-radius*radius)
 
 
-def _primitive_interval(kind, origin, velocity, radius, half, axes):
-    """One primitive law; a leading radius/axis dimension can share ray terms."""
+def _primitive_interval(kind, origin, velocity, radius, half, axes, *, normal=False):
+    """One primitive law; optional surface normals reuse the winning roots."""
     if kind == SPHERE:
-        return sphere_interval(origin, velocity, radius)
-    if kind == ELLIPSOID:
-        return sphere_interval(origin / axes, velocity / axes, 1.)
-    if kind == BOX:
-        lo, hi = slab(origin, velocity, axes)
-        return np.max(lo, axis=-1), np.min(hi, axis=-1)
-    if kind in (CAPSULE, CYLINDER):
-        lo, hi = sphere_interval(origin[..., :2], velocity[..., :2], radius)
-        zlo, zhi = slab(origin[..., 2], velocity[..., 2], half)
-        lo, hi = np.maximum(lo, zlo), np.minimum(hi, zhi)
+        lo, hi = sphere_interval(origin, velocity, radius)
+    elif kind == ELLIPSOID:
+        lo, hi = sphere_interval(origin / axes, velocity / axes, 1.)
+    elif kind == BOX:
+        axis_entry, axis_exit = slab(origin, velocity, axes)
+        lo, hi = np.max(axis_entry, axis=-1), np.min(axis_exit, axis=-1)
+    elif kind in (CAPSULE, CYLINDER):
+        radial_entry, hi = sphere_interval(origin[..., :2], velocity[..., :2], radius)
+        cap_entry, cap_exit = slab(origin[..., 2], velocity[..., 2], half)
+        lo, hi = np.maximum(radial_entry, cap_entry), np.minimum(hi, cap_exit)
         valid = lo <= hi
         lo, hi = np.where(valid, lo, np.inf), np.where(valid, hi, -np.inf)
         if kind == CAPSULE:
@@ -81,8 +81,34 @@ def _primitive_interval(kind, origin, velocity, radius, half, axes):
                 shifted[..., 2] -= sign*half
                 a, b = sphere_interval(shifted, velocity, radius)
                 lo, hi = np.minimum(lo, a), np.maximum(hi, b)
+    else:
+        raise ValueError('finite primitive required; no silent geometry exclusion')
+    if not normal:
         return lo, hi
-    raise ValueError('finite primitive required; no silent geometry exclusion')
+    if not np.isfinite(lo).all() or np.any(lo <= 0) or np.any(hi < lo):
+        raise ValueError('finite exterior central surface hit required')
+    point = origin + lo[..., None]*velocity
+    if kind == SPHERE:
+        outward = point/radius[..., None]
+    elif kind == ELLIPSOID:
+        outward = point/(axes*axes)
+    elif kind == CAPSULE:
+        outward = point.copy()
+        outward[..., 2] -= np.clip(point[..., 2], -half, half)
+        outward /= radius[..., None]
+    elif kind == CYLINDER:
+        outward = np.zeros_like(point)
+        outward[..., :2] = point[..., :2]/radius[..., None]
+        cap = cap_entry >= radial_entry
+        outward[cap] = 0
+        outward[..., 2] = np.where(cap, -np.sign(velocity[..., 2]), 0.)
+    else:
+        # The same winning slab defines the normal; no nearest-face estimate.
+        axis = np.argmax(axis_entry, axis=-1)
+        outward = np.zeros_like(point)
+        sign = -np.sign(np.take_along_axis(velocity, axis[..., None], axis=-1))
+        np.put_along_axis(outward, axis[..., None], sign, axis=-1)
+    return lo, hi, point, outward
 
 
 def interval(kind, sizes, origin, velocity):
@@ -108,6 +134,48 @@ def interval_pair(kind, expanded, contracted, origin, velocity):
     elif kind == CYLINDER:
         half = np.stack((expanded[..., 1], contracted[..., 1]))
     return _primitive_interval(kind, origin, velocity, radius, half, axes)
+
+
+def surface_patch_geometry(kind, size, centre, rotation, direction, angular_radius,
+                           entry_lower, entry_upper):
+    """Enclose this solid's surface intersections, not foreground visibility.
+
+    The caller supplies bounded prepared apertures and their existing entry
+    enclosures. Unknown/partially missing intersections require subdivision.
+    Float64 geometry, not a directed-rounding certificate or point quadrature.
+    """
+    if (not np.isfinite(entry_lower).all() or not np.isfinite(entry_upper).all()
+            or np.any(entry_lower < 0) or np.any(entry_upper < entry_lower)
+            or np.any(angular_radius < 0)):
+        raise ValueError('finite ordered surface entry enclosure required')
+    origin = -centre @ rotation
+    velocity = direction @ rotation
+    distance, _, local, normal = _primitive_interval(
+        kind, origin, velocity, size[None, 0], size[None, 1], size[None, :], normal=True)
+    point = distance[:, None]*direction
+    # |t*q-t0*q0| <= |t-t0|*|q0| + t*|q-q0|. Keep |q0| explicitly;
+    # a trig-constructed float64 centre need not have exactly unit norm.
+    delta = (np.maximum(np.abs(entry_lower-distance), np.abs(entry_upper-distance))
+             * np.linalg.norm(direction, axis=1) + entry_upper*angular_radius)
+    if kind in (SPHERE, CAPSULE):
+        epsilon = np.minimum(2., delta/size[0])
+    elif kind == ELLIPSOID:
+        epsilon = np.minimum(2., 2*max(size)*delta/min(size)**2)
+    elif kind == BOX:
+        axis = np.argmax(np.abs(normal), axis=1)
+        clearance = size-np.abs(local)
+        np.put_along_axis(clearance, axis[:, None], np.inf, axis=1)
+        epsilon = np.where(delta < np.min(clearance, axis=1), 0., 2.)
+    else:
+        cap = normal[:, 2] != 0
+        cap_clearance = size[0]-np.linalg.norm(local[:, :2], axis=1)
+        side_clearance = size[1]-np.abs(local[:, 2])
+        epsilon = np.where(cap, np.where(delta < cap_clearance, 0., 2.),
+                           np.where(delta < side_clearance,
+                                    np.minimum(2., delta/size[0]), 2.))
+    if not np.isfinite(point).all() or not np.isfinite(delta).all():
+        raise ValueError('surface enclosure exceeds numerical domain')
+    return point, normal @ rotation.T, delta, epsilon
 
 
 def radii(kind, size):
