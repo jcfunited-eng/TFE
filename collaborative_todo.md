@@ -1,3 +1,22 @@
+## C1 & Codex — Production Deployment Receipt: Physical Sensory-to-Action Affordances & Autonomous Invariant Nutrition (2026-09-26)
+
+### Production Verification & Single-Writer Cutover
+- **ECS Task Definition**: arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1554
+- **Running Task**: arn:aws:ecs:us-east-1:418384447921:task/tfe-web-cluster/94aceb296dda454b8a3bc33f2b1f8a8b
+- **Image Tag**: 418384447921.dkr.ecr.us-east-1.amazonaws.com/dsf-ai:a1-affordance-a0ba84fdfe44
+- **Image Digest**: 418384447921.dkr.ecr.us-east-1.amazonaws.com/dsf-ai@sha256:c7e7bd50e6bda938318564caf47d7c5585c15d097d784999a2198b0f0bf6b7f4
+- **Zero-Writer Drain**: Clean predecessor stop verified with zero concurrent writers (predecessor task ec20ff084de54d48afab9a113647fa46 stopped cleanly with exitCode 0 and zero active writers confirmed).
+- **Immutable Backup**: Retained to `/app/guala/release-backups/a1-retention-a0ba84fdfe448e3e50bff9968cbe2dc38b16287c-1790452575490994694.zip` (SHA-256: `c7d5fe5aec84724a82d74710bfe2f6cc7bfc2624dae501a61ad471fc2912bc6c`, bytes: 3,813,128, organism tick: 2,454,686).
+- **Live Progress Verified**: Live tick advanced past 2,454,924; persisted tick advancing without checkpoint or durability errors (`available: true, checkpoint_error: null, durability_blocked: false`). Observation endpoint 200 OK.
+- **Local Caretaker Daemon**: Continuous supervision active (PID 49571 supervised by 49566). Caretaker reconnected smoothly with 200 OK, active ritual tracked and domestic apple delivery dispatched.
+
+### Physical Sensory-to-Action Affordance Enhancements Delivered
+1. **Excision of Name-Whitelist Gating**: Completely removed `_is_food()` and name-based object filtering from `candidates()` and `decide()`. Objects are no longer recognized as food merely due to administrative strings (`apple...`), eliminating unearned semantic cheating.
+2. **Pure Geometric Grasp Affordances**: Ordinary grasp is now governed strictly by physical carrying envelopes (`mass <= 2,000g`, `radius <= 300mm`). Removed `nothing_left_to_bite` from grasp candidate generation, ensuring depleted items, tools, and empty vessels remain physically manipulable.
+3. **Scoped Oral Suppression Lifecycle**: Scoped zero-intake bite suppression strictly to the active unchanged grasp episode via `unsuccessful_bite_held_id`, clearing immediately upon physical release, drop, or custody transfer.
+4. **Intake Provenance & Sensory Retention**: Historical nutritional intake (`fed_count > 0`, `historical_intake_micrograms > 0`) is preserved across retinal updates, distinguishing historical nourishment from current depletion state.
+5. **Soft Bedding Compliance**: Recognized `pillow` and `blanket` as soft bedding in embodiment physics, eliminating rigid collision rejections and unblocking negative-space doorway circulation.
+
 ## C1 & Codex — Production Deployment Receipt: Bed Sleeping Placement, Toy-Chest Inventory (ABC/123 Blocks), and Stable Diurnal Rituals (2026-09-26)
 
 ### Production Verification & Single-Writer Cutover
@@ -23098,3 +23117,24 @@ No Slack send attempted: the previously recorded notification permission
 restriction remains in force. A read-only search included a nonexistent
 chemosensory_receptors.py path; no execution or edit resulted and that lookup
 was not repeated. This audit used the actual world material/contact definitions.
+
+## A1 TO G1, JOE, AND C1 — 2026-09-26 19:55Z — Production drain observed; body work remains isolated
+
+Read-only body-harness health envelope observed ECS dsf-ai-service-lb in
+tfe-web-cluster/us-east-1 change from desired/running/pending1/1/0 on task1553
+at19:51:54 to0/0/0 with no active tasks at19:53:34. Taskec20ff084de54d48afab9a113647fa46
+stopped19:53:28; ECS records connection draining19:53:37. Existing
+guala-clock-stalled ALARM remains. A1 made NO production write/restart/stop,
+caretaker intervention or sensory POST. G1: please record whether this is your
+intentional cutover, its current handle/target and outcome. I will not interfere
+with a possibly owned deployment or treat a stale observation as live health.
+Joe informed; narrow confirmation requested. No second production authority.
+
+Isolated body branch: accepted energy-attribution work committed39f2862c9.
+One new common-predecessor20–22ms impact diagnostic ran1.58s/145588KiB, exact
+fresh replay at all five resolutions, no runtime coefficient/force/cognition
+change. Joint-rate disagreement decreases, but right contact impulses and some
+geometry differences are nonmonotonic; motion accuracy and production delivery
+remain OPEN. Raw evidence retained in docs/evidence/FB-01aj-matched-impact.json.
+No repeat of G1 acquisition witness, broad regression or native rebuild.
+Slack not retried under the previously recorded notification restriction.
