@@ -1088,6 +1088,21 @@ def project_caregiver_gaze_ray(
     return target_id, target_pos
 
 
+
+def _consequence_grounded_food_ids(state: dict[str, Any]) -> set[str]:
+    """Recover food target IDs supported by actual retained feeding consequences in meanings."""
+    foods = set()
+    for m in state.get("meanings", {}).values():
+        if isinstance(m, dict):
+            c = m.get("consequences", {})
+            if isinstance(c, dict):
+                for act_c in c.values():
+                    if isinstance(act_c, dict) and act_c.get("relief") == "feeding":
+                        tid = act_c.get("target_id")
+                        if tid:
+                            foods.add(tid)
+    return foods
+
 def candidates(
     snapshot: Any,
     body: Any,
@@ -1103,6 +1118,7 @@ def candidates(
     pending_chain: list[str] | None = None,
     last_crossed_portal: tuple[str, int] | None = None,
     sound_heard: bool = False,
+    consequence_food_ids: set[str] | None = None,
 ) -> list[tuple[str, str, tuple[Any, ...], str | None, tuple[int, int, int] | None]]:
     """What her body can do this beat, across every sensed target: each entry is
     (act, detail, world commands tried in order, target, voice drive).
@@ -1152,7 +1168,7 @@ def candidates(
         if feeding and conserved_objects:
             conserved_food = []
             for obj_id, c_entry in conserved_objects.items():
-                has_nourished = bool(c_entry.get("is_food")) or int(c_entry.get("fed_count", 0)) > 0 or int(c_entry.get("historical_intake_micrograms", 0)) > 0
+                has_nourished = int(c_entry.get("fed_count", 0)) > 0 or int(c_entry.get("historical_intake_micrograms", 0)) > 0 or (consequence_food_ids is not None and obj_id in consequence_food_ids)
                 is_viable = has_nourished and not c_entry.get("currently_depleted", False)
                 if is_viable and obj_id not in seen_food_ids:
                     snap_obj = _object(snapshot, obj_id)
@@ -1776,9 +1792,10 @@ class FunctionalOrganism:
         state = self._state
         snapshot = sensed.snapshot
         body = _self_body(snapshot)
+        consequence_foods = _consequence_grounded_food_ids(state)
         known_foods = set()
         for obj_id, c_data in state.get("conserved_objects", {}).items():
-            has_nourished = bool(c_data.get("is_food")) or int(c_data.get("fed_count", 0)) > 0 or int(c_data.get("historical_intake_micrograms", 0)) > 0
+            has_nourished = int(c_data.get("fed_count", 0)) > 0 or int(c_data.get("historical_intake_micrograms", 0)) > 0 or (obj_id in consequence_foods)
             if has_nourished and not c_data.get("currently_depleted", False):
                 known_foods.add(obj_id)
         seen = things_in_sight(snapshot, known_food_ids=known_foods)
@@ -1823,7 +1840,7 @@ class FunctionalOrganism:
                     "last_seen_tick": tick,
                     "confidence": 1.0,
                 })
-                has_nourished = bool(entry.get("is_food")) or int(entry.get("fed_count", 0)) > 0 or int(entry.get("historical_intake_micrograms", 0)) > 0
+                has_nourished = int(entry.get("fed_count", 0)) > 0 or int(entry.get("historical_intake_micrograms", 0)) > 0 or (thing.object_id in consequence_foods)
                 entry["is_food"] = bool(has_nourished and not entry.get("currently_depleted", False))
                 fig = state.get("sight_figure")
                 if fig and fig != "none" and (state.get("gaze_target") == thing.object_id or (body.held_object_id == thing.object_id) or (seen and seen[0].object_id == thing.object_id)):
@@ -2133,7 +2150,7 @@ class FunctionalOrganism:
         p_chain = list(state.get("pending_chain") or [])
         state["body_pos"] = (int(body.pose.position.x), int(body.pose.position.y), int(body.pose.position.z))
         state["body_heading"] = int(body.pose.heading_millidegrees)
-        options = candidates(snapshot, body, held, offered, seen, tick, say_drive=say_drive, say_detail=say_reason, feeding=feeding, sleepy=sleepy, conserved_objects=conserved, pending_chain=p_chain, last_crossed_portal=state.get("last_crossed_portal"), sound_heard=sound_heard)
+        options = candidates(snapshot, body, held, offered, seen, tick, say_drive=say_drive, say_detail=say_reason, feeding=feeding, sleepy=sleepy, conserved_objects=conserved, pending_chain=p_chain, last_crossed_portal=state.get("last_crossed_portal"), sound_heard=sound_heard, consequence_food_ids=consequence_foods)
 
         # Cognitive Asset 1: Learned Closed-Loop Continuation Selector
         # When an internal demand is active, searches the empirical transition graph for supported continuation

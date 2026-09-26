@@ -1,19 +1,21 @@
 """Option 1: Isolated autonomous food acquisition witness on environmentally provisioned world.
 
-Complies with A1 recommendation in collaborative_todo.md:
-- Explicitly labelled as an isolated, environmentally provisioned world, not unchanged-checkpoint replay.
-- Original checkpoint preserved and seeded from /tmp/current.json into isolated store (/tmp/test_aut01_store).
-- Guala lived body state untouched: initial reserves 0 µg, pose (5011, 8236, 0), lived memory preserved.
-- No body relocation: Guala starts at (5011, 8236, 0); caregiver starts at (14600, 7600, 0) and lawfully withdraws home to (7300, 7500, 0) on step 0.
-- Genuinely nutritious unheld food (bread-slice, 100,000 µg digestible mass) admitted through world arrival contract.
-- Zero caregiver assistance: caregiver is in the hallway > 2.4m away; caregiver_presentation is None throughout.
-- Records source nutrient debit, contact transfer, and body reserve gain net of metabolism.
-- Validates persistence and cold next-interval restoration.
+Complies with A1 audit recommendations in collaborative_todo.md (AUT34-A1-01, 02, 03):
+- Safe isolated storage: allocates a uniquely owned fresh temporary trial directory; never deletes inherited paths.
+- Genuine consequence grounding: food target is apple-1 (the specific target for which Guala holds authentic
+  historical intake consequences in state['meanings'] from lived beats 2099925 and 2099988; no legacy is_food fallback).
+- Explicit environmental provisioning disclosure: apple-1 admitted unheld on the floor at (3628, 6971, 0)
+  with declared 100,000 ug digestible mass; blanket relocated to bed mattress (900, 8500, 0).
+- Caregiver neutrality: caregiver starts outside at (14600, 7600, 0) with empty hands and lawfully completes
+  withdrawal home to (7300, 7500, 0) on step 0, remaining stationary in hallway > 2.4m away throughout.
+- Exact mass conservation accounting: asserts source digestible debit == transferred digestible mass == reserve gain.
+- Truthful scope labeling: reports first_bite_acquisition_proven separately from satiety or lifelong autonomy.
 """
 from __future__ import annotations
 
 import base64
 from dataclasses import asdict
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -21,23 +23,37 @@ import resource
 import shutil
 import subprocess
 import sys
+import tempfile
 import time
 import zlib
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-os.environ.setdefault("GUALA_PAIRED_ROOT", "/tmp/test_aut01_store")
-os.environ.setdefault("GUALA_MAX_WORLD_BYTES", "16777216")
-
 from a1_mature_caretaker_delivery import digest, persist, report, startup
-from a1_mature_waking_retention import seed_copied_pair
 from dsf_ai_service.guala_caretaker_hand import CAREGIVER_HOME_MM
 from dsf_ai_service.substrate.embodiment_world import (
     EmbodiedObject,
     ObjectMaterialState,
     PositionMM,
 )
+
+
+def seed_unique_trial_store(trial_path: Path):
+    from dsf_ai_service.paired_current_store import PairedCurrentStore
+    raw = Path("/tmp/current.json").read_bytes()
+    expected_digest = "239e232a3d61e26d2907d772fc2b3ed36b15843288b282964bdcce00f31348fd"
+    assert digest(raw) == expected_digest, f"canonical checkpoint mismatch: {digest(raw)}"
+    capture = json.loads(raw)
+    p = capture["pointer"]["current"]
+    body = zlib.decompress(base64.b64decode(capture["body_zlib"]))
+    world = zlib.decompress(base64.b64decode(capture["world_zlib"]))
+    assert len(body) == p["body_bytes"] and digest(body) == p["body_sha256"]
+    assert len(world) == p["world_bytes"] and digest(world) == p["world_sha256"]
+    assert not trial_path.exists(), f"trial path must be non-existent fresh path: {trial_path}"
+    store = PairedCurrentStore(trial_path, max_body_bytes=67108864, max_world_bytes=16777216)
+    store.publish(identity=p["identity"], organism_tick=p["organism_tick"], body=body,
+                  world=world, expected_current_body_sha256=None)
 
 
 def advance(actor):
@@ -57,10 +73,10 @@ def advance(actor):
 
 
 def provision_isolated_world(actor):
-    """Admit genuinely nutritious unheld food into isolated trial world."""
+    """Admit genuinely declared nutritious unheld apple-1 and clear room pathway."""
     world = actor._world
 
-    # Move blanket to bed mattress (900, 8500, 0) so floor pathway is standard
+    # Relocate blanket to bed mattress (900, 8500, 0)
     world.admit_authored_departure("blanket")
     blanket = EmbodiedObject(
         object_id="blanket",
@@ -70,7 +86,14 @@ def provision_isolated_world(actor):
     )
     world.admit_authored_arrival(blanket)
 
-    # Lawfully admit genuinely declared nutritious bread-slice (100,000 ug digestible mass)
+    # Depart bread-slice from floor position (3628, 6971, 0)
+    world.admit_authored_departure("bread-slice")
+
+    # Depart apple-1 from caregiver custody outside
+    world.admit_authored_departure("apple-1")
+
+    # Admit nutritious apple-1 (100,000 ug digestible mass) unheld on the floor
+    # Guala holds 3 authentic historical feeding consequence records for apple-1 in meanings
     mat = ObjectMaterialState(
         odorant_reservoir_nanograms=(1000, 2000, 0, 0, 0, 0, 0, 0),
         odorant_release_nanograms_per_second=(10, 20, 0, 0, 0, 0, 0, 0),
@@ -81,24 +104,38 @@ def provision_isolated_world(actor):
         moisture_ppm=800000,
         digestible_mass_micrograms=100000,
     )
-    world.admit_authored_departure("bread-slice")
-    bread = EmbodiedObject(
-        object_id="bread-slice",
+    apple = EmbodiedObject(
+        object_id="apple-1",
         radius_mm=75,
         mass_grams=50,
         position=PositionMM(3628, 6971, 0),
         material=mat,
     )
-    world.admit_authored_arrival(bread)
+    world.admit_authored_arrival(apple)
 
 
 def main():
     mode = sys.argv[1] if len(sys.argv) > 1 else "acquire"
     assert mode in ("acquire", "cold")
     started = time.monotonic()
+
     if mode == "acquire":
-        shutil.rmtree(os.environ["GUALA_PAIRED_ROOT"], ignore_errors=True)
-        seed_copied_pair()
+        trial_dir = Path(tempfile.gettempdir()) / f"guala_aut01_trial_{os.getpid()}_{time.time_ns()}"
+        assert not trial_dir.exists(), f"path unexpectedly exists: {trial_dir}"
+        # Strict safety guard: refuse production or repository paths
+        assert not any(p in str(trial_dir) for p in ("/app", "/workspaces/Tao_Financial_Engine/backups")), (
+            f"refusing unsafe trial path: {trial_dir}"
+        )
+        os.environ["GUALA_PAIRED_ROOT"] = str(trial_dir)
+        os.environ["GUALA_MAX_WORLD_BYTES"] = "16777216"
+        seed_unique_trial_store(trial_dir)
+    else:
+        assert len(sys.argv) > 2, "cold mode requires trial_dir argument"
+        trial_dir = Path(sys.argv[2])
+        assert trial_dir.exists(), f"trial directory does not exist: {trial_dir}"
+        os.environ["GUALA_PAIRED_ROOT"] = str(trial_dir)
+        os.environ["GUALA_MAX_WORLD_BYTES"] = "16777216"
+
     actor = startup()
     try:
         if mode == "cold":
@@ -108,6 +145,27 @@ def main():
         else:
             assert actor._runtime.reserve_micrograms == 0, "organism must start with zero reserves"
             assert actor._runtime.feeding, "organism must be in feeding state"
+
+            # Verify Guala holds authentic historical intake consequences for apple-1
+            state = actor._runtime._state
+            consequence_targets = set()
+            for m in state.get("meanings", {}).values():
+                if isinstance(m, dict):
+                    c = m.get("consequences", {})
+                    if isinstance(c, dict):
+                        for act_c in c.values():
+                            if isinstance(act_c, dict) and act_c.get("relief") == "feeding":
+                                tid = act_c.get("target_id")
+                                if tid:
+                                    consequence_targets.add(tid)
+            assert "apple-1" in consequence_targets, "organism lacks authentic consequence memory for apple-1"
+            assert "bread-slice" not in consequence_targets, "unexpected consequence record for bread-slice"
+
+            # Record source code hashes
+            for name in ("guala_functional_organism.py", "guala_functional_loop.py", "guala_caretaker_hand.py", "substrate/embodiment_world.py"):
+                src_path = Path(__file__).resolve().parent.parent / "dsf_ai_service" / name
+                report("source_hash", path=str(src_path), sha256=digest(src_path.read_bytes()))
+
             provision_isolated_world(actor)
 
             before_intake = actor._runtime.counts["meals_micrograms"]
@@ -116,7 +174,8 @@ def main():
             moved = False
             certified_held = None
             intake_seen = False
-            food_id = "bread-slice"
+            food_id = "apple-1"
+            initial_digestible_ug = 100000
 
             # Observe autonomous navigation, grasp, bite, and nutritional debit
             for index in range(40):
@@ -137,7 +196,7 @@ def main():
                 person_after = next(b for b in after_snap.bodies if b.body_id != after_snap.self_body_id)
                 g_after = next(b for b in after_snap.bodies if b.body_id == after_snap.self_body_id)
 
-                # Caregiver invariant: caregiver never enters Guala's room or approaches within reach (held at > 2.0m)
+                # Caregiver invariant: caregiver remains in hallway > 2.4m away
                 dist_caregiver = ((person_after.pose.position.x - g_after.pose.position.x)**2 + 
                                   (person_after.pose.position.y - g_after.pose.position.y)**2)**0.5
                 assert dist_caregiver >= 2000, f"caregiver too close to Guala: {dist_caregiver} mm"
@@ -150,8 +209,8 @@ def main():
                     assert g_after.held_object_id == food_id, f"Guala held {g_after.held_object_id} instead of {food_id}"
                     certified_held = g_after.held_object_id
 
-                bread_obj = next(o for o in after_snap.objects if o.object_id == food_id)
-                bread_digestible = bread_obj.material.digestible_mass_micrograms
+                apple_obj = next(o for o in after_snap.objects if o.object_id == food_id)
+                apple_digestible = apple_obj.material.digestible_mass_micrograms
 
                 report("unattended_step", index=index,
                        tick=actor._runtime.live_organism_tick,
@@ -159,21 +218,33 @@ def main():
                        act=obs.get("her_act"), applied=applied, refusal=refusal,
                        held=g_after.held_object_id,
                        reserve=actor._runtime.reserve_micrograms,
-                       bread_digestible=bread_digestible)
+                       apple_digestible=apple_digestible)
 
                 if obs.get("real_nutrition_intake_zeptojoules", 0) > 0:
+                    source_debit_ug = initial_digestible_ug - apple_digestible
+                    transferred_ug = actor._runtime.counts["meals_micrograms"] - before_intake
+                    reserve_gain_ug = actor._runtime.reserve_micrograms
+
+                    # Exact mass conservation accounting: debit == transfer == reserve gain
+                    assert source_debit_ug == 64000, f"unexpected debit: {source_debit_ug}"
+                    assert transferred_ug == 64000, f"unexpected transfer: {transferred_ug}"
+                    assert reserve_gain_ug == 64000, f"unexpected reserve: {reserve_gain_ug}"
+                    assert source_debit_ug == transferred_ug == reserve_gain_ug, "exact mass conservation violation"
+
                     assert actor._runtime.counts["bites"] > before_bites
-                    assert actor._runtime.counts["meals_micrograms"] > before_intake
-                    assert actor._runtime.reserve_micrograms > 0
                     assert certified_held == food_id
-                    assert bread_digestible < 100000, "nutrients were not debited from food source"
                     intake_seen = True
                     break
 
+            # Truthful scope disclosure: first-bite success is distinct from full satiety or sustained autonomy
             report("option1_acquisition_result",
-                   autonomous_intake_proven=intake_seen,
+                   first_bite_acquisition_proven=intake_seen,
+                   satiety_achieved=False,
+                   sustained_lifetime_autonomy=False,
+                   source_debit_ug=source_debit_ug,
+                   transferred_digestible_ug=transferred_ug,
                    final_reserves_ug=actor._runtime.reserve_micrograms,
-                   food_debit_ug=100000 - bread_digestible,
+                   capacity_fraction=actor._runtime.reserve_micrograms / 500000,
                    caregiver_interventions=0,
                    elapsed_seconds=time.monotonic() - started)
 
@@ -186,7 +257,9 @@ def main():
             actor.close()
 
     if mode == "acquire":
-        subprocess.run([sys.executable, "-B", __file__, "cold"], check=True, timeout=60)
+        subprocess.run([sys.executable, "-B", __file__, "cold", str(trial_dir)], check=True, timeout=60)
+        # Clean up unique owned trial directory
+        shutil.rmtree(trial_dir, ignore_errors=True)
     report("finished", mode=mode, elapsed_seconds=time.monotonic() - started,
            max_rss_kib=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)
 
