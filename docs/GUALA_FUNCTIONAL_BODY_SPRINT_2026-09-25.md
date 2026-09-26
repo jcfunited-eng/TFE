@@ -3433,3 +3433,189 @@ sphere's angular cap with the existing aperture/planar halfspaces; preserve
 front-to-back physical visibility, finite shapes, sub-aperture coverage and
 declared numerical error. Do not increase limits or hide a slower full frame.
 This remains offline numerical optics; body integration/live proof stays open.
+
+### FB-01x — integrate spherical silhouettes by boundary events
+
+Previous turn PROGRESS:dc769bbcd completes fixed-budget curved images/cold
+continuation, but6.8-8.4s fails250ms. Continue, not reopen, same optical boundary.
+Requested architecture: complete native geometry with bounded numerical optical
+area, preserved physical visibility and unchanged error/work ceilings. Current
+code uses quadtree area uncertainty along the entire sphere perimeter. Conflict:
+yes, speed acceptance unmet. No production mechanism, body law, DSF, cognition,
+persistent state, schema or deployment changes. Reduced numerical optics only;
+constant diagnostic emitter bands still omit variable physical illumination.
+Single next item: analytical cap/aperture intersection in the offline regime.
+
+Authorized files: tools/guala_body_sphere_cap.py (new diagnostic helper),
+tools/guala_body_curved_optical_regime.py and this ledger. One implementation
+owner A1; mathematical source review agreed the primitive before code. Reuse
+existing longitude-event integration, not reconstructed vertices or general
+topology bookkeeping. For c/r, n=c/|c|,s=r/|c|,k=sqrt(1-s*s),sphere silhouette is
+n dot d>=k. Prove horizontal A=nx cosh+ny sinh>0 across each admitted patch;
+other cases retain existing conservative geometry, not a centre-ray estimate.
+D=A*A+nz*nz, y=hypot(nx,ny)*sin(h-phi). Mu roots=(k*nz +/- A*sqrt(D-k*k))/D.
+Concavity makes one allowed interval. Lower=-1 if nz<=-k; upper=1 if nz>=k,
+otherwise use the respective roots (avoid extraneous squared roots).
+
+With eta=s*s/(1+k), Q=sqrt((s-|y|)*(s+|y|)), primitive F+/-=k*alpha +/- J:
+alpha=atan2(nz*sin(u),cos(u)); J=atan2(eta*y*Q,Q*Q+k*y*y)+eta*atan2(k*y,Q).
+dF/dh is the corresponding mu boundary. Use angle differences for delta-alpha;
+when both cap bounds own the slab use2*delta-J directly. Events cover existing
+plane-plane/vertical/latitude crossings plus cap-plane, cap-latitude and cap
+longitude tangencies. Midpoints select a proven unchanged boundary branch
+between all events; they are NOT samples substituted for pixel integration.
+No visibility epsilon. Event/float domain uncertainty refuses instead of
+guessing topology. Exact-form float64, not a directed-rounding certificate.
+
+Visibility: apply cap settlement only to a patch with exactly one possible
+curved primitive, that primitive a sphere, and every possible box entry
+strictly farther than sqrt(|c|^2-r^2), the maximum forward sphere entry.
+The sphere need not hit the whole patch. Integrate sphere cap area, subtract
+its intersections with existing disjoint visible planar regions, and add
+sphere radiance on that same angular area. Other geometry retains the reviewed
+depth/refinement path. Never add overlapping cap contributions or assume a
+depth order. Pure-planar patches do not need box-depth tests a second time;
+compute curved participation first and visit box depths only on reached sites.
+
+No retained frame/cache/world identity. All arrays/work are local and bounded
+by existing32768event-cell/halfspace and262144node/20depth limits. Same1/510
+residual budget and numerical comparison tolerance. Any failure publishes no
+image or native successor. Acceptance: independent analytic whole/half/tiny
+cap, split-aperture additivity, former interval image containment, original and
+curved native scenes, moved head, cold exact image/next motor, runtime/peakRAM.
+Source-only frozen review then readonlyAWS-envelope execution; no live claim.
+
+First frozen10520ca263ba1c2b7400b4d5d30b296c320125622eb34c20976aefae75a7f427
+source review found three localized groups, no architectural defect. One batch:
+admit normal count/event bound before allocating normalized planes; shared
+sphere-parameter arithmetic admission before scene culling and direct cap
+classification (finite squared distance/radius/offset,0<a<c²,0<s<1,0<k<1);
+and replace predecessor overlap checks with actual interval-subset assertions.
+Unrepresentable tangency refuses rather than inventing zero coverage. Add two
+direct pre-cull refusal cases for under-resolved/overflow sphere geometry.
+No comparison tolerance, physical budget, visibility law or production change.
+
+Final source review PASS on d82fcff754d6be9f5f7ddc2104c22e1b38d02c82bee86dcb221ea6b41f894c7d,
+verified before/after review and run. Session47804 exited1 at half-cap proof:
+"cap event resolution exhausted". Prior36000 native witnesses/six admission
+refusals pass; full sphere measured .19684288451874438 vs .19684288451874393,
+tiny cap .02849517378726875 vs .028495173787268745, each settled in ONE node
+with no residual geometric area. No full-scene/cold/performance claim yet.
+
+Focused same-source read-only probe exited0: the tilted half-cap test computed
+one vertical boundary at .07130746478529026 via its original normal and again
+at .07130746478529033/.07130746478529035 via cap intersection 3-D points;
+the tiny-cap half test similarly produced .04097704947678782/.040977049476787826.
+These are duplicate mathematical longitudes, not distinct physical regions.
+Correction deletes the redundant cap-plane longitude computation for vertical
+planes (their original events already cover it), and skips plane-pair polar/
+zero-vector intersections which have no longitude in this non-polar domain.
+No merging epsilon or weakened resolution guard. Same exact event law, no
+geometry approximation/visibility change. Narrow frozen source check precedes
+the same run. This is the first causal test failure, not a new workstream.
+
+Narrow vertical-event review PASS on7a1c2e3e800c89465dc90543e945fef4a6247e71f0214f22499a33419a90d025.
+Session97627 exited0 as diagnostic measurement, not complete acceptance:
+36000rays,sixrefusals,ninewhole/half/partitioncap laws pass. Original47shape
+frames pass cold/nextmotor, .418846812/.527195396s. Curved initial refused
+"cap area outside physical aperture"; moved refused event resolution.
+
+Same-source probe session30936 exited0 and isolates two numerical/work-domain
+issues. Initial plane-region overlap area=-6.61744490042422e-24sr for aperture
+1.070912970647579e-05sr (relative -6.18e-19); all four computed spans are zero
+except that signed cancellation. Adopt the SAME geometric range projection
+already accepted in functional_body_optics._integrate_apertures, bounded by
+zero and the physical support aperture area. No epsilon/error-budget change.
+The independent predecessor containment gate stays mandatory and unchanged.
+
+Moved tiny-cap support is[-.1815166871518814,-.18043641249286013]rad, while
+the failing near-duplicate plane events are around-.227697675587192rad,
+strictly outside that support. Intersect each partial aperture with its
+analytically derived cap-longitude support BEFORE collecting/evaluating plane
+events. A>0 proves the relevant branch; when s<R the support is phi+/-asin(s/R),
+otherwise the whole admitted forward longitude domain. This deletes work
+where the physical cap contributes identically zero; not an angular tolerance,
+feature deletion or topology guess. Keep resolution refusal for relevant
+events. Frozen source-only review before the same proof; no production edit.
+
+d1c43de47dc3e1daf7e378de25c0e98a59d44df9200778902b1913044c977824 passed
+source review. Diagnostic session27982 exited0,4.332886s,92176KiB peakRSS;
+36000 sampled ray witnesses,6 refusals,9 cap laws pass. Original47shape
+initial/moved .432785/.503143s,19335nodes/depth0,cold/nextmotor exact.
+Curved49shape moved .737105s,19339nodes/depth1,cold/nextmotor exact; initial
+still refuses cap-event resolution. Not full acceptance or250ms compliance.
+Minimal initial probe: support[-.1770116369288958,-.17593128650107645],
+endpoint slab[-.17593128650107648,-.17593128650107645] has no representable
+midpoint. Its entire possible area is1.436734315421577e-17sr within a
+.18068978015626763sr receptor. This is numerical resolution, not visibility.
+
+Bounded numerical correction: return cap-area midpoint and explicit radius.
+For an event span without a representable interior, enclose its contribution
+in[0,width*(hi-lo)] and evaluate no guessed boundary owner. Carry positive
+cap radiance AND subtracted overlap radiance uncertainties using absolute
+coefficients; sum with existing unresolved geometric coverage in the SAME
+1/510 receptor budget. Refuse if numerical uncertainty alone exceeds that
+budget. No tolerance change, frame sampling, increased work budget, geometry
+removal or production edit. Float64 analytic rounding remains covered only by
+the unchanged comparison tolerance, not a directed-rounding proof claim.
+The same cap laws, predecessor interval containment, cold/restart/nextmotor
+checks remain. Source-only frozen review precedes isolated execution.
+Read-only AWS envelope01:59:19Z: sole1553/ec20ff taskHEALTHY,live2305985,
+persist2305961,no checkpoint/cleanup/block errors; clock-stalledALARM remains,
+other Guala resource/refusal alarmsOK;CPU51.27%,RAM2.832%;caretaker35747.
+No live writes/signals or diagnostic survivors; current goal remains active.
+
+Frozen2f041c991715f2a05e60b7032731eab066ee3a9decb117a924899c75881c115d
+passed independent source review. Session62549 exited1 at predecessor interval
+subset assertion. All9cap laws/sixrefusals/36000native witnesses pass; original
+frames .257505/.345162s,cold/nextmotor exact. Probe96399 finds only3 nonnested
+roots(13,72,90),all with residual quadtree coverage. NO disjoint intervals
+beyond1.44e-19 roundoff; e.g root72 new .7160729902+/-.001953125,
+prior .7147684241+/-.001493454. Independent reviewer acknowledges earlier
+subset recommendation assumed fully analytic results. Independently stopped
+adaptive bounds need not nest. This failure is preserved, not called a pass.
+
+Proof correction: expose existing unresolved area fraction (no new retained
+state), preserve exact subset check wherever it is zero. For only nonnested
+mixed roots, require an independent predecessor reference at error/16 to fit
+INSIDE the candidate interval, unchanged node/depth ceilings. Mere overlap is
+not accepted. Refusal or inconclusive comparison remains nonacceptance.
+No reference participates in runtime decisions or modifies rendering output.
+
+Same-source read-only profile of original scene: .377s including profiler,
+classify .230s,prepare_scene .104s,visibility .088s. Apply reviewed strict
+impossible-face exclusion before visibility pair work: all native geometry
+and original face construction/admission retained; charge original halfspace
+residency before filtering; retain boxes[i] for curved-depth work. Exclude a
+face from optical pair work only when a physical halfspace's maximum dot over
+the enclosing aperture is strictly negative. Such a face can neither emit nor
+block any admitted ray. Preserve order/material indices. No tolerance, self
+exclusion, geometry replacement, persistent cache or increased budget. Exact
+next item remains this same isolated optics proof, not production deployment.
+Read-only02:03:44/02:05:00Z: same1553solehealthy1/1/0,live2306787->2307015,
+persist2306761->2306985,identityunchanged,errorsnull,durabilityfalse; existing
+clockALARM/resourcealarmsOK. Caretaker35747 untouched. An unrelated existing
+tools/ch3_recovery_engine.py process96993 appeared; not signaled or modified.
+
+Frozen05a8fef6c7313393c3f0951aafb2f76625e4f2b9daf3fedfeb585875dd26dd00
+passed independent source review and unchanged verification. Session99478
+exited0 in8.967355s,180672KiB peakRSS INCLUDING independent predecessor and
+cold copies. 36000native sampled witnesses,6refusals,9analyticcap laws pass.
+Original47shape initial/moved:19335nodes,depth0,.253689/.316546s,zero geometric
+bound. Curved49shape initial:19531nodes,depth6,.504229s,maxbound.001953125;
+moved:19339nodes,depth1,.449104s,maxbound0. The3mixed reference intervals at
+error/16 fit inside candidate intervals under unchanged work/depth ceilings.
+Fully resolved analytic roots fit predecessor intervals. Every scene/pose
+passes exact cold image,uncertainty,residual and next native motor successor.
+This closes the diagnostic comparison failure, NOT250ms/performance/live
+acceptance. All source bodies, eyes and native geometry remain admitted.
+
+Next same optics speed item: current classifier still applies costly convex
+solid equations to every aperture for every potentially participating curved
+shape. Derive a conservative enclosing-sphere angular rejection BEFORE those
+equations: any ray missing that sphere necessarily misses its contained native
+solid. Strict geometric exclusion only; eye-inside/enclosure uncertainty must
+retain original work. No source edit yet. Profile identified classifier .230s
+of .377s; removed planar-pair work alone did not meet250ms. No larger work
+limits, tolerance changes, semantic exclusions, learned-state or clock changes.
+GoalACTIVE, same objective and full integration gates remain open.
