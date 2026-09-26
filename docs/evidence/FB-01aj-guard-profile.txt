@@ -1,0 +1,34 @@
+         273746 function calls in 1.514 seconds
+
+   Ordered by: cumulative time
+   List reduced from 76 to 24 due to restriction <24>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.145    0.145    1.514    1.514 /workspaces/guala-functional-body/dsf_ai_service/substrate/functional_body_native.py:537(advance)
+     2502    0.538    0.000    1.004    0.000 /workspaces/guala-functional-body/dsf_ai_service/substrate/functional_body_native.py:341(_check)
+     5005    0.007    0.000    0.419    0.000 {built-in method builtins.any}
+    22518    0.239    0.000    0.239    0.000 /workspaces/guala-functional-body/dsf_ai_service/substrate/functional_body_native.py:343(<genexpr>)
+     2500    0.184    0.000    0.184    0.000 {built-in method mujoco._functions.mj_step}
+     2520    0.174    0.000    0.174    0.000 /workspaces/guala-functional-body/dsf_ai_service/substrate/functional_body_native.py:351(<genexpr>)
+     2500    0.049    0.000    0.049    0.000 {built-in method mujoco._functions.mj_collision}
+    25017    0.040    0.000    0.040    0.000 {method 'reduce' of 'numpy.ufunc' objects}
+     5002    0.005    0.000    0.039    0.000 {built-in method builtins.all}
+     7500    0.008    0.000    0.034    0.000 /tmp/guala-body-native.pnUH8P/lib/python3.11/site-packages/numpy/_core/fromnumeric.py:2304(sum)
+    10000    0.011    0.000    0.031    0.000 /tmp/guala-body-native.pnUH8P/lib/python3.11/site-packages/numpy/_core/fromnumeric.py:66(_wrapreduction)
+    10008    0.013    0.000    0.030    0.000 /workspaces/guala-functional-body/dsf_ai_service/substrate/functional_body_native.py:345(<genexpr>)
+    10013    0.004    0.000    0.023    0.000 {method 'all' of 'numpy.ndarray' objects}
+     2500    0.013    0.000    0.021    0.000 /tmp/guala-body-native.pnUH8P/lib/python3.11/site-packages/numpy/linalg/_linalg.py:2599(norm)
+    10013    0.004    0.000    0.019    0.000 /tmp/guala-body-native.pnUH8P/lib/python3.11/site-packages/numpy/_core/_methods.py:64(_all)
+     2500    0.003    0.000    0.015    0.000 /tmp/guala-body-native.pnUH8P/lib/python3.11/site-packages/numpy/_core/fromnumeric.py:2207(clip)
+     2500    0.001    0.000    0.014    0.000 /tmp/guala-body-native.pnUH8P/lib/python3.11/site-packages/numpy/_core/einsumfunc.py:1244(einsum)
+     2504    0.003    0.000    0.014    0.000 /tmp/guala-body-native.pnUH8P/lib/python3.11/site-packages/numpy/_core/fromnumeric.py:2436(any)
+     2500    0.013    0.000    0.013    0.000 {built-in method numpy._core._multiarray_umath.c_einsum}
+     2500    0.002    0.000    0.012    0.000 /tmp/guala-body-native.pnUH8P/lib/python3.11/site-packages/numpy/_core/fromnumeric.py:48(_wrapfunc)
+     2504    0.005    0.000    0.012    0.000 /tmp/guala-body-native.pnUH8P/lib/python3.11/site-packages/numpy/_core/fromnumeric.py:86(_wrapreduction_any_all)
+     2500    0.002    0.000    0.011    0.000 /tmp/guala-body-native.pnUH8P/lib/python3.11/site-packages/numpy/_core/fromnumeric.py:3011(max)
+     2500    0.001    0.000    0.009    0.000 {method 'clip' of 'numpy.ndarray' objects}
+     2500    0.008    0.000    0.008    0.000 {built-in method mujoco._functions.mj_kinematics}
+
+
+{'positive_work_j': 14.536610559898364, 'native_time_s': 0.2499999999999888, 'scope': 'one diagnostic load; profiler adds overhead; no production claim'}
+

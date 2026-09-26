@@ -252,6 +252,17 @@ class NativeBody:
         if any(m.jnt_type[i] not in (mj.mjtJoint.mjJNT_HINGE, mj.mjtJoint.mjJNT_SLIDE)
                for i in self._limited):
             raise ValueError("limited ball joints require a separate error metric")
+        # Compile immutable anatomical addresses/bounds once. This is the exact
+        # scalar check below expressed over native arrays, not reduced sampling:
+        # every warning, contact and limited joint is checked every substep.
+        joints = np.asarray(self._limited, dtype=np.intp)
+        tolerance = np.where(m.jnt_type[joints] == mj.mjtJoint.mjJNT_HINGE,
+                             limits.max_hinge_overrun_rad, limits.max_slide_overrun_m)
+        self._limit_qpos = m.jnt_qposadr[joints].copy()
+        self._limit_lower = m.jnt_range[joints, 0] - tolerance
+        self._limit_upper = m.jnt_range[joints, 1] + tolerance
+        for array in (self._limit_qpos, self._limit_lower, self._limit_upper):
+            array.setflags(write=False)
 
     @property
     def model_identity(self) -> str:
@@ -339,8 +350,8 @@ class NativeBody:
         return self._capture()
 
     def _check(self):
-        m, d, lim = self._model, self._data, self.limits
-        if any(w.number for w in d.warning):
+        d, lim = self._data, self.limits
+        if d.warning.number.any():
             raise ValueError("native mechanics warning; no successor admitted")
         if not all(np.isfinite(x).all() for x in (d.qpos, d.qvel, d.qacc)):
             raise ValueError("non-finite mechanical state")
@@ -348,14 +359,11 @@ class NativeBody:
             raise ValueError("non-finite mechanical time")
         if np.any(np.spacing(np.abs(d.geom_xpos)) > lim.max_surface_travel_m):
             raise ValueError("body coordinates exceed declared numerical resolution")
-        if any(c.dist < -lim.max_penetration_m for c in d.contact):
+        if (d.contact.dist < -lim.max_penetration_m).any():
             raise ValueError("contact penetration exceeds declared resolution")
-        for i in self._limited:
-            q = d.qpos[m.jnt_qposadr[i]]
-            tolerance = (lim.max_hinge_overrun_rad if m.jnt_type[i] == mj.mjtJoint.mjJNT_HINGE
-                         else lim.max_slide_overrun_m)
-            if not m.jnt_range[i, 0] - tolerance <= q <= m.jnt_range[i, 1] + tolerance:
-                raise ValueError("joint limit overrun exceeds declared resolution")
+        q = d.qpos[self._limit_qpos]
+        if not ((self._limit_lower <= q) & (q <= self._limit_upper)).all():
+            raise ValueError("joint limit overrun exceeds declared resolution")
 
     def _observation(self):
         m, d = self._model, self._data

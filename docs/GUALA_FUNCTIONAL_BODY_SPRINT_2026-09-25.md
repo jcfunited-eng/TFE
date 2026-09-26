@@ -5306,3 +5306,215 @@ paired cold successor. Preserve historical learned records, no aliasing root
 acts into joint experience, no scripted gait/controller or separate brain.
 Fullhome/caregiver/copied mature-body/resource/rehearsal/live gates required.
 GoalACTIVE, remote publication permission still outstanding; no retry/bypass.
+## FB-01aj — Ordinary anatomical motor/feedback integration contract — 2026-09-26
+
+Previous goal response was NO PROGRESS (bedtime permission/status reply).
+This resumes the approved FB-01g port extension from clean c2c7f219a.
+FB-01ai remains closed by its 82 local checks; its 292.893ms optics result
+does not meet 250ms. No further isolated optical tuning in this item.
+
+SOURCE findings: FunctionalOrganism still has 22 fixed streams, a 64-choice
+ceiling, old root-pose candidates, and migrate() deletes unfamiliar streams.
+The native body already supplies 228 scalar self-sensor components, localized
+contacts, and sparse absolute effort commands whose unmentioned settings persist.
+Zero effort must therefore be available for every motor. No command is a gait.
+Body numerical approximation and this interface are approved. Existing per-stream
+regime/sign reduction and scalar learner remain explicitly reduced cognition;
+neither is being certified as full joint DSF or neuronal learning.
+
+Single implementation owner A1. Authorized source: functional_body_native.py,
+one small functional_body_interface.py for typed anatomical coordinates,
+embodiment_world.py (read-only mounted interface accessor), functional_organism.py
+(port binding, streams, native candidate branch, preserved historical keys),
+functional_loop.py (same-world feedback, measured supply/heat and commit order).
+Focused standalone test plus the existing retinal consumer's required new Sensed
+arguments. No kernel, learning equation, caretaker, ingest, UI or deployment edits.
+
+Contract:
+- Native compiler derives immutable sensor kind/unit/dimension, anatomical
+  surface addresses and actual direct motor limits once. One bounded roster is
+  retained by the organism to interpret its rolling windows after restart.
+  Equal component counts do not establish anatomical identity. Changed rosters
+  refuse; existing STREAMS and all historical choice keys remain unchanged.
+- Actual signed SI samples enter paired nonnegative coordinates (positive and
+  negative parts, unit scale one SI unit) before the unchanged positive-input
+  kernel. No abs-only, clipping, guessed offsets, synthetic readings, or added
+  sensory rounding. Legacy six-decimal rounding and sleep law remain unchanged.
+- Contact input is a declared surface-level load approximation: each actual
+  point force and moment about its link origin is split by sign before summing.
+  Opposing pressures do not cancel. Raw point contacts remain in Sensed/native
+  observation and pre/post trial evidence. This projection loses fine pressure
+  distribution in the DSF context, not the raw physical evidence. It is NOT
+  caregiver affection, material texture or a new emotion/reward scalar.
+- Three direct absolute settings per motor (declared lower, zero, upper),
+  each with a distinct anatomical action ID. Omitted settings persist, allowing
+  multiple recruited joints across ordinary decisions; no sequence/composition
+  controller. The bound is derived from actual motor count, not truncated at64.
+  Old root Move/Grasp/Release candidates are absent on a mounted body. Existing
+  oral/reflex world refusals stay truthful until their separate mount is lawful.
+  Empty-command rest/sleep/voice preserves effort and is NOT claimed relaxed.
+- Same prepared world/thermal authority advances exactly one existing beat,
+  with available work and basal heat from the existing organism reserve.
+  All fallible voice/energy/organism commit preparation occurs before world
+  publication. The single actor publishes/checkpoints only successful results.
+  Any failure is fatal to that in-memory pair; it is restored from its existing
+  paired checkpoint, not continued or newly checkpointed. No per-beat brain copy
+  or new transaction owner. Native scratch is reusable, never authoritative.
+- If a new command is refused, its unchanged persistent motor settings may still
+  do physical work during the passive interval. Account for that measured work,
+  preserve the refusal, and do NOT record the refused command as executed.
+- Actual predecessor/successor local feedback accompanies recorded transitions;
+  no external geom IDs/global frames/hidden positions are new body senses.
+  Current memory/sleep/admission/eviction equations remain unchanged. No automatic
+  retention bonus or claim that mere movement learns balance/climbing.
+
+Proof required before this seam is closed: ordinary unmodified decide/choose
+selects distinct anatomical effort, actual mechanics/energy/heat advance, next
+ordinary sense consumes measured local return, recorded performed action keeps
+its identity; paired fresh cold restore yields identical next world/organism.
+Also old memory keys/bytes survive admission; missing/stale/mismatched feedback
+refuses; all zero choices exist; persistent other efforts survive; no legacy
+root motion candidates; no full-field/neuron/gait claims. Quantify full roster,
+encoded bytes, runtime/memory and mature-window cost rather than claiming250ms.
+Use a real isolated declared world first, not mocked decisions. Production-copy,
+complete home/caregiver/contact/oral/resource/rehearsal/live gates stay required.
+No pytest/conftest/live-write imports. Freeze then independent source review,
+then bounded proof under before/after read-only AWS/process health.
+
+GitHub publishing remains permission-blocked. No retry or bypass.
+
+### FB-01aj rejected by ordinary execution — 2026-09-26 08:55Z
+
+Final SOURCE review passed frozen58de7561cd1438256c3c1dbfccf15dd9343bb323f007465175c6727e3c58fbb8
+after one localized batch (finite moment check, linear exact hashes, compact
+lossless raw evidence, ns timing proof, truthful requested motion and refusal proof).
+That SOURCE result did NOT predict successful execution.
+
+First decisive ordinary-loop test session50914 exit1,0.719s:
+test_ordinary_motor_return_energy_trial_and_paired_cold_successor failed at
+world_action_refusal:joint limit overrun exceeds declared resolution.
+Actual ordinary selection:torso roll -28.627763055836986N m. No execution
+assertion was weakened. Subsequent unchanged six-decision diagnostic78326 exit0:
+roll−/zero/+ thenpitch−/zero/+; all nonzero refused, zero passed; actual motion
+and motor work stayed zero; basal work remained real and debited.
+
+Bounded unchanged-law endpoint census30463 exit0,1.233656643s,peak149056KiB:
+64motors ×2actual capacity endpoints ×250ms, same pristine zero-gravity bench,
+actual organism motor supply. All128 refused:120joint-limit,8penetration.
+Earliest refusal1ms; latest81ms. Torso roll reaches-.532852257rad at27ms,
+past-.5rad stop by.032852257rad (declared tolerance.03rad).
+Complete measurements: docs/evidence/FB-01aj-endpoint-loads.json.
+These are diagnostic refused candidates, NOT lived action evidence.
+
+Disposition: reject FB-01aj as an executable integration candidate; preserve
+complete source patch at docs/evidence/FB-01aj-rejected-source.patch and restore
+ONLY A1 candidate executable files to accepted c2c7f219a. The two new candidate
+files are removed from executable paths and recoverable from that patch.
+No production/G1 source/process change. Do not promote the three-level
+zero/full-strength vocabulary or simply lower forces/raise safety tolerances.
+
+First cause to resolve inside the same body objective: declared direct effort,
+held over250ms, is incompatible with current soft stop/contact response and
+numerical resolution. ExistingFB-01f proof covered passive ground contact and
+small digit effort only; it explicitly did not certify these active loads.
+Its old2/4/8/20ms stop and .05–1ms floor tests are NOT repeated as new findings.
+A source-only seam audit cannot certify a physical load domain.
+
+Single next item: a bounded offline active-load response map, preserving forces,
+mass,geometry,damping and error tolerances, varying only explicitly reported
+joint/contact response and integration resolution. The default model must
+reproduce the above refusals. No new gait, pulse policy, decision law, reordered
+actions, cold schema or production mechanics until a derived numerical contract
+and full end-to-end body proof exist. Body-only numerical approximation remains
+authorized; no joint DSF/neuron/cognitive authority claim.
+
+Read-only AWS08:45:38->08:51:53: same1553/ec20ff/digest1d088e,1/1/0HEALTHY,
+live2366305->2367047,persist2366281->2367017,errorsnull,CPU~51.2%,RAM~2.98%.
+OldclockALARM persists,other4OK; caretaker35747 untouched. All three A1test/
+diagnostic handles terminal; health census found no proof/compiler survivor.
+No general resource or production claim. GoalACTIVE; GitHubpush still blocked.
+
+### FB-01aj numerical map and exact guard-execution correction — 2026-09-26
+
+Previous goal turn was status only (no progress). Continue FB-01aj mechanics
+load qualification, not another optics/cognition project. Baseline remains
+c2c7f219a, live1553/ec20ff/digest1d088e. GitHub push still permission-blocked.
+
+48-case offline diagnostic completed session94027 exit0. Baseline and
+resolution-only:0/8 admitted, exactly reproducing archived predecessor.
+250us/.5ms/defaultimpedance:4/8;250us/.5ms/.999:3/8.
+100us/.2ms/.999 and50us/.1ms/.999 each8/8 admitted. Raw artifact:
+docs/evidence/FB-01aj-active-load-map.json;135332KiB peak. Admissible does NOT
+mean biologically calibrated, converged, full-load qualified or deployable.
+100us intervals took1.3908–1.6262s;50us2.7066–3.0467s for250ms physical time.
+Changing response with timestep is not same-law convergence.
+Unresolved energy exchange remains explicit; NEVER relabel/deposit it as heat.
+
+One100us torso-load cProfile34761 exit0:273746calls,1.514s total;
+_check2502calls1.004s, mj_step2500calls.184s,collision.049s.
+_check's warning/contact wrappers consumed.239/.174s, scalar joint loop
+dominates its own.538s. This is repeated Python representation of exact native
+arrays, not physical work. Native stepping, collision refresh, energy integration,
+surface travel and every per-step refusal remain necessary and untouched.
+Full profile preserved at docs/evidence/FB-01aj-guard-profile.txt.
+
+Frozen correction contract: only NativeBody.__init__ and _check in
+substrate/functional_body_native.py. Compile limited-joint qpos addresses and
+exact lower/upper tolerance bounds from immutable model once; read warning.number
+and contact.dist native arrays directly. The same checks, order, comparisons and
+per-substep frequency remain. No reduced sampling/caching of evolving state.
+No new runtime path/schema/controller, no changed force/solver/error coefficient.
+Additional immutable storage O(limited joints), temporary comparisons bounded by
+current arrays; eliminates Python joint/warning/contact object iteration.
+Restore/initial/eachstep/final still call _check; failed preparation never commits
+world/organism bytes. Model hash, state bytes, cold successor unchanged.
+
+Proof: tests/test_functional_body_guard_equivalence.py keeps accepted scalar
+checker ONLY as a test oracle. Compare every guard class, IEEE boundary and
+precedence; real recurrent hand/panel contacts + fresh cold next interval;
+all128 refused active endpoints at identical physical times and scratch bytes;
+eight already recorded admissible diagnostic loads with exact complete successors,
+observations, work/residual, cold observations and measured cost. Existing native
+bench remains required. This is body-only numerical execution, NOT full joint
+DSF/neuron/cognition or mature-body/live acceptance. Full ordinary-loop, coupled
+energy, home/caregiver, copied-body, resource/rehearsal/live gates remain open.
+Source-only independent freeze/review precedes execution; no pytest/conftest.
+
+09:09:06Z post-map/profile AWS: same1553/ec20ff/digest1d088e,1/1/0 HEALTHY;
+live2369285,persist2369257,errorsnull,CPU51.19%,RAM2.979%;oldclockALARM,
+otherfourOK. Caretaker35747 untouched; no diagnostic/compiler orphan.
+Read preflight miss: package has no _structs.pyi; stopped guessed path, enumerated
+package and introspected actual pinned native class fields WITHOUT constructing a
+body. _MjContactList.dist/_MjWarningStatList.number present; no future pyi guess.
+
+FB-01aj exact guard execution proof — 2026-09-26 09:24Z.
+One localized source-review batch preserved unordered-bound refusal through the
+exact inclusive comparison. Final independent SOURCE PASS/frozen
+61dc3ee39232a2256d4c6a85cd329a8fcdbd26f91d8f333a31ce07f501b1d8f4.
+No edits during review/proof; fingerprint verified unchanged after execution.
+
+Standalone22682 exit0:5 focused tests,14.512s,139492KiB peak. All128 refused
+endpoints preserved exact error/time/scratch. Eight admitted diagnostic loads
+preserved complete successor bytes, sensory output, work/residual and cold
+observations. Real recurrent panel contact + fresh cold next interval identical.
+NaN bounds, hinge/slide boundaries, warnings, finite state/time/coordinate and
+penetration guards preserve exact refusal semantics and order.
+Same eight loads: array2.937230348s vs scalar9.696179851s (3.30x). Mean body-only
+interval367.15ms remains above250ms; NOT a realtime or whole-organism claim.
+Standalone99971 exit0:53 existing native/anatomy/world tests passed in2.068s.
+No predecessor test weakened/deleted. Raw proof/health:
+docs/evidence/FB-01aj-guard-equivalence.json.
+
+Pre/post09:21:48->09:23:25 same1553/ec20ff/digest1d088e,1/1/0HEALTHY,
+live2370985->2371206,persist2370953->2371177,errorsnull,CPU51.30->50.90%,
+RAM2.991%;oldclockALARM remains,otherfourOK. Caretaker35747 untouched.
+All exact test/health handles terminal; post-census shows no proof child.
+
+Disposition: accept only exact guard-execution correction. This is not another
+helper-optimization cycle: return now to active-load numerical qualification.
+The128-endpoint failure remains open. Next use the faster unchanged checks to
+qualify the surviving numerical region at fixed response across timestep
+refinement and all motors, without promoting eight diagnostic successes as a
+body law. Preserve actual force/work, collision, cold and energy-residual
+evidence. Do not change the learning/action vocabulary to conceal failures.
+Full body goal ACTIVE; remote push blocked, no production modification.

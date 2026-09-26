@@ -1,0 +1,2076 @@
+{
+  "counts": {
+    "joint limit overrun exceeds declared resolution": 120,
+    "contact penetration exceeds declared resolution": 8
+  },
+  "rows": [
+    {
+      "name": "guala/torso/roll/effort",
+      "effort": -28.627763055836986,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.027000000000000017,
+      "joints": [
+        [
+          "guala/torso/roll",
+          -0.5328522573922062,
+          -0.5,
+          0.5,
+          0.03285225739220621
+        ]
+      ]
+    },
+    {
+      "name": "guala/torso/roll/effort",
+      "effort": 28.627763055836986,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.027000000000000017,
+      "joints": [
+        [
+          "guala/torso/roll",
+          0.5328522573922052,
+          -0.5,
+          0.5,
+          0.03285225739220521
+        ]
+      ]
+    },
+    {
+      "name": "guala/torso/pitch/effort",
+      "effort": -28.627763055836986,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.025000000000000015,
+      "joints": [
+        [
+          "guala/torso/pitch",
+          -0.7627051313719784,
+          -0.7,
+          0.7,
+          0.06270513137197842
+        ]
+      ]
+    },
+    {
+      "name": "guala/torso/pitch/effort",
+      "effort": 28.627763055836986,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.025000000000000015,
+      "joints": [
+        [
+          "guala/torso/pitch",
+          0.7520198305640762,
+          -0.7,
+          0.7,
+          0.05201983056407622
+        ]
+      ]
+    },
+    {
+      "name": "guala/torso/yaw/effort",
+      "effort": -28.627763055836986,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.02000000000000001,
+      "joints": [
+        [
+          "guala/torso/yaw",
+          -0.7609022802049035,
+          -0.7,
+          0.7,
+          0.060902280204903514
+        ]
+      ]
+    },
+    {
+      "name": "guala/torso/yaw/effort",
+      "effort": 28.627763055836986,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.02000000000000001,
+      "joints": [
+        [
+          "guala/torso/yaw",
+          0.7609022802049032,
+          -0.7,
+          0.7,
+          0.06090228020490329
+        ]
+      ]
+    },
+    {
+      "name": "guala/head/roll/effort",
+      "effort": -2.5132741228718345,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.037000000000000026,
+      "joints": [
+        [
+          "guala/head/roll",
+          -0.5453307913852711,
+          -0.5,
+          0.5,
+          0.045330791385271074
+        ]
+      ]
+    },
+    {
+      "name": "guala/head/roll/effort",
+      "effort": 2.5132741228718345,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.037000000000000026,
+      "joints": [
+        [
+          "guala/head/roll",
+          0.5453307913852709,
+          -0.5,
+          0.5,
+          0.04533079138527085
+        ]
+      ]
+    },
+    {
+      "name": "guala/head/pitch/effort",
+      "effort": -2.5132741228718345,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.04200000000000003,
+      "joints": [
+        [
+          "guala/head/pitch",
+          -0.7376352522958021,
+          -0.7,
+          0.7,
+          0.03763525229580211
+        ]
+      ]
+    },
+    {
+      "name": "guala/head/pitch/effort",
+      "effort": 2.5132741228718345,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.04200000000000003,
+      "joints": [
+        [
+          "guala/head/pitch",
+          0.7349139414278173,
+          -0.7,
+          0.7,
+          0.03491394142781734
+        ]
+      ]
+    },
+    {
+      "name": "guala/head/yaw/effort",
+      "effort": -2.5132741228718345,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.05300000000000004,
+      "joints": [
+        [
+          "guala/head/yaw",
+          -1.2569260509004434,
+          -1.2,
+          1.2,
+          0.05692605090044345
+        ]
+      ]
+    },
+    {
+      "name": "guala/head/yaw/effort",
+      "effort": 2.5132741228718345,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.05300000000000004,
+      "joints": [
+        [
+          "guala/head/yaw",
+          1.2569260509004434,
+          -1.2,
+          1.2,
+          0.05692605090044345
+        ]
+      ]
+    },
+    {
+      "name": "guala/left/thigh/roll/effort",
+      "effort": -10.294370807283032,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.05300000000000004,
+      "joints": [
+        [
+          "guala/left/digit-4/distal/flexion",
+          -0.03280205152785998,
+          0,
+          1.5,
+          0.03280205152785998
+        ]
+      ]
+    },
+    {
+      "name": "guala/left/thigh/roll/effort",
+      "effort": 10.294370807283032,
+      "result": "contact penetration exceeds declared resolution",
+      "time_s": 0.04500000000000003,
+      "joints": []
+    },
+    {
+      "name": "guala/left/thigh/pitch/effort",
+      "effort": -10.294370807283032,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.05300000000000004,
+      "joints": [
+        [
+          "guala/left/thigh/pitch",
+          -1.4388079114981929,
+          -1.4,
+          0.6,
+          0.03880791149819296
+        ]
+      ]
+    },
+    {
+      "name": "guala/left/thigh/pitch/effort",
+      "effort": 10.294370807283032,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.027000000000000017,
+      "joints": [
+        [
+          "guala/left/shin/knee",
+          -0.030180004531395042,
+          0,
+          2.2,
+          0.030180004531395042
+        ]
+      ]
+    },
+    {
+      "name": "guala/left/thigh/yaw/effort",
+      "effort": -10.294370807283032,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.012000000000000004,
+      "joints": [
+        [
+          "guala/left/thigh/yaw",
+          -0.7380275846328743,
+          -0.7,
+          0.7,
+          0.03802758463287437
+        ]
+      ]
+    },
+    {
+      "name": "guala/left/thigh/yaw/effort",
+      "effort": 10.294370807283032,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.013000000000000005,
+      "joints": [
+        [
+          "guala/left/thigh/yaw",
+          0.8178771856410949,
+          -0.7,
+          0.7,
+          0.11787718564109495
+        ]
+      ]
+    },
+    {
+      "name": "guala/left/shin/knee/effort",
+      "effort": -5.521663247949419,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.023000000000000013,
+      "joints": [
+        [
+          "guala/left/shin/knee",
+          -0.03055299947739468,
+          0,
+          2.2,
+          0.03055299947739468
+        ]
+      ]
+    },
+    {
+      "name": "guala/left/shin/knee/effort",
+      "effort": 5.521663247949419,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.08100000000000006,
+      "joints": [
+        [
+          "guala/left/shin/knee",
+          2.2442932402037012,
+          0,
+          2.2,
+          0.04429324020370107
+        ]
+      ]
+    },
+    {
+      "name": "guala/left/foot/roll/effort",
+      "effort": -4.908738521234053,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.007,
+      "joints": [
+        [
+          "guala/left/foot/roll",
+          -0.5560573662331852,
+          -0.45,
+          0.45,
+          0.10605736623318524
+        ]
+      ]
+    },
+    {
+      "name": "guala/left/foot/roll/effort",
+      "effort": 4.908738521234053,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.007,
+      "joints": [
+        [
+          "guala/left/foot/roll",
+          0.5546518937651342,
+          -0.45,
+          0.45,
+          0.10465189376513423
+        ]
+      ]
+    },
+    {
+      "name": "guala/left/foot/pitch/effort",
+      "effort": -4.908738521234053,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.012000000000000004,
+      "joints": [
+        [
+          "guala/left/toe-0/flexion",
+          0.8715096624914533,
+          -0.5,
+          0.8,
+          0.0715096624914533
+        ],
+        [
+          "guala/left/toe-1/flexion",
+          0.8715478917925918,
+          -0.5,
+          0.8,
+          0.0715478917925918
+        ],
+        [
+          "guala/left/toe-2/flexion",
+          0.8715861343972959,
+          -0.5,
+          0.8,
+          0.07158613439729589
+        ],
+        [
+          "guala/left/toe-3/flexion",
+          0.8716243902832213,
+          -0.5,
+          0.8,
+          0.0716243902832212
+        ],
+        [
+          "guala/left/toe-4/flexion",
+          0.8716626594281014,
+          -0.5,
+          0.8,
+          0.07166265942810135
+        ]
+      ]
+    },
+    {
+      "name": "guala/left/foot/pitch/effort",
+      "effort": 4.908738521234053,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.007,
+      "joints": [
+        [
+          "guala/left/toe-0/flexion",
+          -0.5403927033482536,
+          -0.5,
+          0.8,
+          0.04039270334825362
+        ],
+        [
+          "guala/left/toe-1/flexion",
+          -0.5402076707190464,
+          -0.5,
+          0.8,
+          0.04020767071904641
+        ],
+        [
+          "guala/left/toe-2/flexion",
+          -0.5400227049595405,
+          -0.5,
+          0.8,
+          0.04002270495954052
+        ],
+        [
+          "guala/left/toe-3/flexion",
+          -0.539837806059341,
+          -0.5,
+          0.8,
+          0.03983780605934095
+        ],
+        [
+          "guala/left/toe-4/flexion",
+          -0.5396529740080072,
+          -0.5,
+          0.8,
+          0.03965297400800716
+        ]
+      ]
+    },
+    {
+      "name": "guala/left/toe-0/flexion/effort",
+      "effort": -0.020106192982974672,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.006,
+      "joints": [
+        [
+          "guala/left/toe-0/flexion",
+          -0.6513334596946978,
+          -0.5,
+          0.8,
+          0.1513334596946978
+        ]
+      ]
+    },
+    {
+      "name": "guala/left/toe-0/flexion/effort",
+      "effort": 0.020106192982974672,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.008,
+      "joints": [
+        [
+          "guala/left/toe-0/flexion",
+          0.973906672370087,
+          -0.5,
+          0.8,
+          0.17390667237008695
+        ]
+      ]
+    },
+    {
+      "name": "guala/left/toe-1/flexion/effort",
+      "effort": -0.020106192982974672,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.006,
+      "joints": [
+        [
+          "guala/left/toe-1/flexion",
+          -0.650921269778579,
+          -0.5,
+          0.8,
+          0.150921269778579
+        ]
+      ]
+    },
+    {
+      "name": "guala/left/toe-1/flexion/effort",
+      "effort": 0.020106192982974672,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.008,
+      "joints": [
+        [
+          "guala/left/toe-1/flexion",
+          0.9735320773079994,
+          -0.5,
+          0.8,
+          0.17353207730799936
+        ]
+      ]
+    },
+    {
+      "name": "guala/left/toe-2/flexion/effort",
+      "effort": -0.020106192982974672,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.006,
+      "joints": [
+        [
+          "guala/left/toe-2/flexion",
+          -0.6507837083219149,
+          -0.5,
+          0.8,
+          0.1507837083219149
+        ]
+      ]
+    },
+    {
+      "name": "guala/left/toe-2/flexion/effort",
+      "effort": 0.020106192982974672,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.008,
+      "joints": [
+        [
+          "guala/left/toe-2/flexion",
+          0.9734075770273372,
+          -0.5,
+          0.8,
+          0.1734075770273371
+        ]
+      ]
+    },
+    {
+      "name": "guala/left/toe-3/flexion/effort",
+      "effort": -0.020106192982974672,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.006,
+      "joints": [
+        [
+          "guala/left/toe-3/flexion",
+          -0.6509209422073062,
+          -0.5,
+          0.8,
+          0.15092094220730623
+        ]
+      ]
+    },
+    {
+      "name": "guala/left/toe-3/flexion/effort",
+      "effort": 0.020106192982974672,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.008,
+      "joints": [
+        [
+          "guala/left/toe-3/flexion",
+          0.9735333013329215,
+          -0.5,
+          0.8,
+          0.17353330133292144
+        ]
+      ]
+    },
+    {
+      "name": "guala/left/toe-4/flexion/effort",
+      "effort": -0.020106192982974672,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.006,
+      "joints": [
+        [
+          "guala/left/toe-4/flexion",
+          -0.6513328076505834,
+          -0.5,
+          0.8,
+          0.15133280765058343
+        ]
+      ]
+    },
+    {
+      "name": "guala/left/toe-4/flexion/effort",
+      "effort": 0.020106192982974672,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.008,
+      "joints": [
+        [
+          "guala/left/toe-4/flexion",
+          0.9739091318496753,
+          -0.5,
+          0.8,
+          0.17390913184967527
+        ]
+      ]
+    },
+    {
+      "name": "guala/left/upper-arm/roll/effort",
+      "effort": -3.345167857542411,
+      "result": "contact penetration exceeds declared resolution",
+      "time_s": 0.04000000000000003,
+      "joints": []
+    },
+    {
+      "name": "guala/left/upper-arm/roll/effort",
+      "effort": 3.345167857542411,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.05300000000000004,
+      "joints": [
+        [
+          "guala/left/digit-0/distal/flexion",
+          -0.03006599446964949,
+          0,
+          1.5,
+          0.03006599446964949
+        ]
+      ]
+    },
+    {
+      "name": "guala/left/upper-arm/pitch/effort",
+      "effort": -3.345167857542411,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.014000000000000005,
+      "joints": [
+        [
+          "guala/left/forearm/elbow",
+          -0.03131022009928806,
+          0,
+          2.3,
+          0.03131022009928806
+        ]
+      ]
+    },
+    {
+      "name": "guala/left/upper-arm/pitch/effort",
+      "effort": 3.345167857542411,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.03200000000000002,
+      "joints": [
+        [
+          "guala/left/palm/pitch",
+          0.8426101918434156,
+          -0.8,
+          0.8,
+          0.042610191843415524
+        ]
+      ]
+    },
+    {
+      "name": "guala/left/upper-arm/yaw/effort",
+      "effort": -3.345167857542411,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.014000000000000005,
+      "joints": [
+        [
+          "guala/left/upper-arm/yaw",
+          -1.5450448267527077,
+          -1.5,
+          1.5,
+          0.04504482675270771
+        ]
+      ]
+    },
+    {
+      "name": "guala/left/upper-arm/yaw/effort",
+      "effort": 3.345167857542411,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.014000000000000005,
+      "joints": [
+        [
+          "guala/left/upper-arm/yaw",
+          1.544583746482287,
+          -1.5,
+          1.5,
+          0.04458374648228691
+        ]
+      ]
+    },
+    {
+      "name": "guala/left/forearm/elbow/effort",
+      "effort": -1.8321768355735668,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.008,
+      "joints": [
+        [
+          "guala/left/forearm/elbow",
+          -0.03061705392510424,
+          0,
+          2.3,
+          0.03061705392510424
+        ]
+      ]
+    },
+    {
+      "name": "guala/left/forearm/elbow/effort",
+      "effort": 1.8321768355735668,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.017000000000000008,
+      "joints": [
+        [
+          "guala/left/digit-0/distal/flexion",
+          -0.030544394200227407,
+          0,
+          1.5,
+          0.030544394200227407
+        ],
+        [
+          "guala/left/digit-1/distal/flexion",
+          -0.030820578358567545,
+          0,
+          1.5,
+          0.030820578358567545
+        ],
+        [
+          "guala/left/digit-2/distal/flexion",
+          -0.03108490643925182,
+          0,
+          1.5,
+          0.03108490643925182
+        ],
+        [
+          "guala/left/digit-3/distal/flexion",
+          -0.031345312695225114,
+          0,
+          1.5,
+          0.031345312695225114
+        ]
+      ]
+    },
+    {
+      "name": "guala/left/forearm/pronation/effort",
+      "effort": -1.8321768355735668,
+      "result": "contact penetration exceeds declared resolution",
+      "time_s": 0.014000000000000005,
+      "joints": []
+    },
+    {
+      "name": "guala/left/forearm/pronation/effort",
+      "effort": 1.8321768355735668,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.016000000000000007,
+      "joints": [
+        [
+          "guala/left/forearm/pronation",
+          1.5505826447248445,
+          -1.5,
+          1.5,
+          0.05058264472484453
+        ]
+      ]
+    },
+    {
+      "name": "guala/left/palm/roll/effort",
+      "effort": -0.5428672105403163,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.006,
+      "joints": [
+        [
+          "guala/left/digit-4/proximal/flexion",
+          -0.2535221731269275,
+          -0.2,
+          1.5,
+          0.053522173126927475
+        ]
+      ]
+    },
+    {
+      "name": "guala/left/palm/roll/effort",
+      "effort": 0.5428672105403163,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.008,
+      "joints": [
+        [
+          "guala/left/digit-0/proximal/flexion",
+          -0.23218531464814354,
+          -0.2,
+          1.5,
+          0.03218531464814353
+        ],
+        [
+          "guala/left/digit-0/distal/flexion",
+          -0.030866261769162674,
+          0,
+          1.5,
+          0.030866261769162674
+        ]
+      ]
+    },
+    {
+      "name": "guala/left/palm/pitch/effort",
+      "effort": -0.5428672105403163,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.02000000000000001,
+      "joints": [
+        [
+          "guala/left/palm/pitch",
+          -0.873748492567556,
+          -0.8,
+          0.8,
+          0.073748492567556
+        ]
+      ]
+    },
+    {
+      "name": "guala/left/palm/pitch/effort",
+      "effort": 0.5428672105403163,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.006,
+      "joints": [
+        [
+          "guala/left/digit-0/distal/flexion",
+          -0.03607490621706175,
+          0,
+          1.5,
+          0.03607490621706175
+        ],
+        [
+          "guala/left/digit-1/distal/flexion",
+          -0.036037310021779935,
+          0,
+          1.5,
+          0.036037310021779935
+        ],
+        [
+          "guala/left/digit-2/distal/flexion",
+          -0.03600160936620943,
+          0,
+          1.5,
+          0.03600160936620943
+        ],
+        [
+          "guala/left/digit-3/distal/flexion",
+          -0.03596775868292652,
+          0,
+          1.5,
+          0.03596775868292652
+        ]
+      ]
+    },
+    {
+      "name": "guala/left/digit-0/proximal/flexion/effort",
+      "effort": -0.039269908169872414,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.005,
+      "joints": [
+        [
+          "guala/left/digit-0/proximal/flexion",
+          -0.3098178331172097,
+          -0.2,
+          1.5,
+          0.10981783311720966
+        ]
+      ]
+    },
+    {
+      "name": "guala/left/digit-0/proximal/flexion/effort",
+      "effort": 0.039269908169872414,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.001,
+      "joints": [
+        [
+          "guala/left/digit-0/distal/flexion",
+          -0.047256725008390614,
+          0,
+          1.5,
+          0.047256725008390614
+        ]
+      ]
+    },
+    {
+      "name": "guala/left/digit-0/distal/flexion/effort",
+      "effort": -0.020106192982974672,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.001,
+      "joints": [
+        [
+          "guala/left/digit-0/distal/flexion",
+          -0.12698464230040082,
+          0,
+          1.5,
+          0.12698464230040082
+        ]
+      ]
+    },
+    {
+      "name": "guala/left/digit-0/distal/flexion/effort",
+      "effort": 0.020106192982974672,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.010000000000000002,
+      "joints": [
+        [
+          "guala/left/digit-0/distal/flexion",
+          1.5860087875523419,
+          0,
+          1.5,
+          0.08600878755234187
+        ]
+      ]
+    },
+    {
+      "name": "guala/left/digit-1/proximal/flexion/effort",
+      "effort": -0.039269908169872414,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.005,
+      "joints": [
+        [
+          "guala/left/digit-1/proximal/flexion",
+          -0.3055502516783601,
+          -0.2,
+          1.5,
+          0.10555025167836007
+        ]
+      ]
+    },
+    {
+      "name": "guala/left/digit-1/proximal/flexion/effort",
+      "effort": 0.039269908169872414,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.001,
+      "joints": [
+        [
+          "guala/left/digit-1/distal/flexion",
+          -0.04705361429448838,
+          0,
+          1.5,
+          0.04705361429448838
+        ]
+      ]
+    },
+    {
+      "name": "guala/left/digit-1/distal/flexion/effort",
+      "effort": -0.020106192982974672,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.001,
+      "joints": [
+        [
+          "guala/left/digit-1/distal/flexion",
+          -0.12694552971226525,
+          0,
+          1.5,
+          0.12694552971226525
+        ]
+      ]
+    },
+    {
+      "name": "guala/left/digit-1/distal/flexion/effort",
+      "effort": 0.020106192982974672,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.010000000000000002,
+      "joints": [
+        [
+          "guala/left/digit-1/distal/flexion",
+          1.5858352634992858,
+          0,
+          1.5,
+          0.08583526349928583
+        ]
+      ]
+    },
+    {
+      "name": "guala/left/digit-2/proximal/flexion/effort",
+      "effort": -0.039269908169872414,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.005,
+      "joints": [
+        [
+          "guala/left/digit-2/proximal/flexion",
+          -0.30524037472708576,
+          -0.2,
+          1.5,
+          0.10524037472708575
+        ]
+      ]
+    },
+    {
+      "name": "guala/left/digit-2/proximal/flexion/effort",
+      "effort": 0.039269908169872414,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.001,
+      "joints": [
+        [
+          "guala/left/digit-2/distal/flexion",
+          -0.0470460556902131,
+          0,
+          1.5,
+          0.0470460556902131
+        ]
+      ]
+    },
+    {
+      "name": "guala/left/digit-2/distal/flexion/effort",
+      "effort": -0.020106192982974672,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.001,
+      "joints": [
+        [
+          "guala/left/digit-2/distal/flexion",
+          -0.1269447011530612,
+          0,
+          1.5,
+          0.1269447011530612
+        ]
+      ]
+    },
+    {
+      "name": "guala/left/digit-2/distal/flexion/effort",
+      "effort": 0.020106192982974672,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.010000000000000002,
+      "joints": [
+        [
+          "guala/left/digit-2/distal/flexion",
+          1.5858221099589551,
+          0,
+          1.5,
+          0.08582210995895512
+        ]
+      ]
+    },
+    {
+      "name": "guala/left/digit-3/proximal/flexion/effort",
+      "effort": -0.039269908169872414,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.005,
+      "joints": [
+        [
+          "guala/left/digit-3/proximal/flexion",
+          -0.30888818879634383,
+          -0.2,
+          1.5,
+          0.10888818879634382
+        ]
+      ]
+    },
+    {
+      "name": "guala/left/digit-3/proximal/flexion/effort",
+      "effort": 0.039269908169872414,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.001,
+      "joints": [
+        [
+          "guala/left/digit-3/distal/flexion",
+          -0.04723404919556477,
+          0,
+          1.5,
+          0.04723404919556477
+        ]
+      ]
+    },
+    {
+      "name": "guala/left/digit-3/distal/flexion/effort",
+      "effort": -0.020106192982974672,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.001,
+      "joints": [
+        [
+          "guala/left/digit-3/distal/flexion",
+          -0.12698215662278872,
+          0,
+          1.5,
+          0.12698215662278872
+        ]
+      ]
+    },
+    {
+      "name": "guala/left/digit-3/distal/flexion/effort",
+      "effort": 0.020106192982974672,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.010000000000000002,
+      "joints": [
+        [
+          "guala/left/digit-3/distal/flexion",
+          1.585969405104856,
+          0,
+          1.5,
+          0.08596940510485607
+        ]
+      ]
+    },
+    {
+      "name": "guala/left/digit-4/proximal/opposition/effort",
+      "effort": -0.039269908169872414,
+      "result": "contact penetration exceeds declared resolution",
+      "time_s": 0.009000000000000001,
+      "joints": []
+    },
+    {
+      "name": "guala/left/digit-4/proximal/opposition/effort",
+      "effort": 0.039269908169872414,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.016000000000000007,
+      "joints": [
+        [
+          "guala/left/digit-4/proximal/opposition",
+          1.6492944354044883,
+          -1.5,
+          1.5,
+          0.14929443540448828
+        ]
+      ]
+    },
+    {
+      "name": "guala/left/digit-4/proximal/flexion/effort",
+      "effort": -0.039269908169872414,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.005,
+      "joints": [
+        [
+          "guala/left/digit-4/proximal/flexion",
+          -0.3025028107539287,
+          -0.2,
+          1.5,
+          0.1025028107539287
+        ]
+      ]
+    },
+    {
+      "name": "guala/left/digit-4/proximal/flexion/effort",
+      "effort": 0.039269908169872414,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.001,
+      "joints": [
+        [
+          "guala/left/digit-4/distal/flexion",
+          -0.04728464437579566,
+          0,
+          1.5,
+          0.04728464437579566
+        ]
+      ]
+    },
+    {
+      "name": "guala/left/digit-4/distal/flexion/effort",
+      "effort": -0.020106192982974672,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.001,
+      "joints": [
+        [
+          "guala/left/digit-4/distal/flexion",
+          -0.12705701816389975,
+          0,
+          1.5,
+          0.12705701816389975
+        ]
+      ]
+    },
+    {
+      "name": "guala/left/digit-4/distal/flexion/effort",
+      "effort": 0.020106192982974672,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.010000000000000002,
+      "joints": [
+        [
+          "guala/left/digit-4/distal/flexion",
+          1.5858313663264845,
+          0,
+          1.5,
+          0.08583136632648447
+        ]
+      ]
+    },
+    {
+      "name": "guala/right/thigh/roll/effort",
+      "effort": -10.294370807283032,
+      "result": "contact penetration exceeds declared resolution",
+      "time_s": 0.04500000000000003,
+      "joints": []
+    },
+    {
+      "name": "guala/right/thigh/roll/effort",
+      "effort": 10.294370807283032,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.05300000000000004,
+      "joints": [
+        [
+          "guala/right/digit-4/distal/flexion",
+          -0.03280205152785965,
+          0,
+          1.5,
+          0.03280205152785965
+        ]
+      ]
+    },
+    {
+      "name": "guala/right/thigh/pitch/effort",
+      "effort": -10.294370807283032,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.05300000000000004,
+      "joints": [
+        [
+          "guala/right/thigh/pitch",
+          -1.4388079114981918,
+          -1.4,
+          0.6,
+          0.03880791149819185
+        ]
+      ]
+    },
+    {
+      "name": "guala/right/thigh/pitch/effort",
+      "effort": 10.294370807283032,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.027000000000000017,
+      "joints": [
+        [
+          "guala/right/shin/knee",
+          -0.030180004531394994,
+          0,
+          2.2,
+          0.030180004531394994
+        ]
+      ]
+    },
+    {
+      "name": "guala/right/thigh/yaw/effort",
+      "effort": -10.294370807283032,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.013000000000000005,
+      "joints": [
+        [
+          "guala/right/thigh/yaw",
+          -0.8178771856410949,
+          -0.7,
+          0.7,
+          0.11787718564109495
+        ]
+      ]
+    },
+    {
+      "name": "guala/right/thigh/yaw/effort",
+      "effort": 10.294370807283032,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.012000000000000004,
+      "joints": [
+        [
+          "guala/right/thigh/yaw",
+          0.7380275846328748,
+          -0.7,
+          0.7,
+          0.03802758463287481
+        ]
+      ]
+    },
+    {
+      "name": "guala/right/shin/knee/effort",
+      "effort": -5.521663247949419,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.023000000000000013,
+      "joints": [
+        [
+          "guala/right/shin/knee",
+          -0.030552999477394673,
+          0,
+          2.2,
+          0.030552999477394673
+        ]
+      ]
+    },
+    {
+      "name": "guala/right/shin/knee/effort",
+      "effort": 5.521663247949419,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.08100000000000006,
+      "joints": [
+        [
+          "guala/right/shin/knee",
+          2.2442932402037012,
+          0,
+          2.2,
+          0.04429324020370107
+        ]
+      ]
+    },
+    {
+      "name": "guala/right/foot/roll/effort",
+      "effort": -4.908738521234053,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.007,
+      "joints": [
+        [
+          "guala/right/foot/roll",
+          -0.5546518937651205,
+          -0.45,
+          0.45,
+          0.10465189376512046
+        ]
+      ]
+    },
+    {
+      "name": "guala/right/foot/roll/effort",
+      "effort": 4.908738521234053,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.007,
+      "joints": [
+        [
+          "guala/right/foot/roll",
+          0.5560573662331811,
+          -0.45,
+          0.45,
+          0.10605736623318113
+        ]
+      ]
+    },
+    {
+      "name": "guala/right/foot/pitch/effort",
+      "effort": -4.908738521234053,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.012000000000000004,
+      "joints": [
+        [
+          "guala/right/toe-0/flexion",
+          0.8716626594280826,
+          -0.5,
+          0.8,
+          0.07166265942808259
+        ],
+        [
+          "guala/right/toe-1/flexion",
+          0.8716243902832285,
+          -0.5,
+          0.8,
+          0.07162439028322842
+        ],
+        [
+          "guala/right/toe-2/flexion",
+          0.8715861343972924,
+          -0.5,
+          0.8,
+          0.07158613439729233
+        ],
+        [
+          "guala/right/toe-3/flexion",
+          0.8715478917925831,
+          -0.5,
+          0.8,
+          0.07154789179258303
+        ],
+        [
+          "guala/right/toe-4/flexion",
+          0.8715096624914289,
+          -0.5,
+          0.8,
+          0.07150966249142887
+        ]
+      ]
+    },
+    {
+      "name": "guala/right/foot/pitch/effort",
+      "effort": 4.908738521234053,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.007,
+      "joints": [
+        [
+          "guala/right/toe-0/flexion",
+          -0.5396529740080116,
+          -0.5,
+          0.8,
+          0.0396529740080116
+        ],
+        [
+          "guala/right/toe-1/flexion",
+          -0.5398378060593425,
+          -0.5,
+          0.8,
+          0.039837806059342507
+        ],
+        [
+          "guala/right/toe-2/flexion",
+          -0.5400227049595495,
+          -0.5,
+          0.8,
+          0.040022704959549515
+        ],
+        [
+          "guala/right/toe-3/flexion",
+          -0.5402076707190556,
+          -0.5,
+          0.8,
+          0.04020767071905562
+        ],
+        [
+          "guala/right/toe-4/flexion",
+          -0.5403927033482593,
+          -0.5,
+          0.8,
+          0.040392703348259285
+        ]
+      ]
+    },
+    {
+      "name": "guala/right/toe-0/flexion/effort",
+      "effort": -0.020106192982974672,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.006,
+      "joints": [
+        [
+          "guala/right/toe-0/flexion",
+          -0.651332807650601,
+          -0.5,
+          0.8,
+          0.15133280765060098
+        ]
+      ]
+    },
+    {
+      "name": "guala/right/toe-0/flexion/effort",
+      "effort": 0.020106192982974672,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.008,
+      "joints": [
+        [
+          "guala/right/toe-0/flexion",
+          0.973909131849675,
+          -0.5,
+          0.8,
+          0.17390913184967494
+        ]
+      ]
+    },
+    {
+      "name": "guala/right/toe-1/flexion/effort",
+      "effort": -0.020106192982974672,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.006,
+      "joints": [
+        [
+          "guala/right/toe-1/flexion",
+          -0.6509209422073062,
+          -0.5,
+          0.8,
+          0.15092094220730623
+        ]
+      ]
+    },
+    {
+      "name": "guala/right/toe-1/flexion/effort",
+      "effort": 0.020106192982974672,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.008,
+      "joints": [
+        [
+          "guala/right/toe-1/flexion",
+          0.9735333013329369,
+          -0.5,
+          0.8,
+          0.17353330133293687
+        ]
+      ]
+    },
+    {
+      "name": "guala/right/toe-2/flexion/effort",
+      "effort": -0.020106192982974672,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.006,
+      "joints": [
+        [
+          "guala/right/toe-2/flexion",
+          -0.6507837083219149,
+          -0.5,
+          0.8,
+          0.1507837083219149
+        ]
+      ]
+    },
+    {
+      "name": "guala/right/toe-2/flexion/effort",
+      "effort": 0.020106192982974672,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.008,
+      "joints": [
+        [
+          "guala/right/toe-2/flexion",
+          0.973407577027318,
+          -0.5,
+          0.8,
+          0.1734075770273179
+        ]
+      ]
+    },
+    {
+      "name": "guala/right/toe-3/flexion/effort",
+      "effort": -0.020106192982974672,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.006,
+      "joints": [
+        [
+          "guala/right/toe-3/flexion",
+          -0.6509212697785822,
+          -0.5,
+          0.8,
+          0.15092126977858222
+        ]
+      ]
+    },
+    {
+      "name": "guala/right/toe-3/flexion/effort",
+      "effort": 0.020106192982974672,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.008,
+      "joints": [
+        [
+          "guala/right/toe-3/flexion",
+          0.9735320773079994,
+          -0.5,
+          0.8,
+          0.17353207730799936
+        ]
+      ]
+    },
+    {
+      "name": "guala/right/toe-4/flexion/effort",
+      "effort": -0.020106192982974672,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.006,
+      "joints": [
+        [
+          "guala/right/toe-4/flexion",
+          -0.6513334596946985,
+          -0.5,
+          0.8,
+          0.15133345969469847
+        ]
+      ]
+    },
+    {
+      "name": "guala/right/toe-4/flexion/effort",
+      "effort": 0.020106192982974672,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.008,
+      "joints": [
+        [
+          "guala/right/toe-4/flexion",
+          0.9739066723700878,
+          -0.5,
+          0.8,
+          0.17390667237008772
+        ]
+      ]
+    },
+    {
+      "name": "guala/right/upper-arm/roll/effort",
+      "effort": -3.345167857542411,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.05300000000000004,
+      "joints": [
+        [
+          "guala/right/digit-3/distal/flexion",
+          -0.030065994469649616,
+          0,
+          1.5,
+          0.030065994469649616
+        ]
+      ]
+    },
+    {
+      "name": "guala/right/upper-arm/roll/effort",
+      "effort": 3.345167857542411,
+      "result": "contact penetration exceeds declared resolution",
+      "time_s": 0.04000000000000003,
+      "joints": []
+    },
+    {
+      "name": "guala/right/upper-arm/pitch/effort",
+      "effort": -3.345167857542411,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.014000000000000005,
+      "joints": [
+        [
+          "guala/right/forearm/elbow",
+          -0.03131022009928801,
+          0,
+          2.3,
+          0.03131022009928801
+        ]
+      ]
+    },
+    {
+      "name": "guala/right/upper-arm/pitch/effort",
+      "effort": 3.345167857542411,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.03200000000000002,
+      "joints": [
+        [
+          "guala/right/palm/pitch",
+          0.8426101918434152,
+          -0.8,
+          0.8,
+          0.04261019184341519
+        ]
+      ]
+    },
+    {
+      "name": "guala/right/upper-arm/yaw/effort",
+      "effort": -3.345167857542411,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.014000000000000005,
+      "joints": [
+        [
+          "guala/right/upper-arm/yaw",
+          -1.5445837464822867,
+          -1.5,
+          1.5,
+          0.04458374648228669
+        ]
+      ]
+    },
+    {
+      "name": "guala/right/upper-arm/yaw/effort",
+      "effort": 3.345167857542411,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.014000000000000005,
+      "joints": [
+        [
+          "guala/right/upper-arm/yaw",
+          1.5450448267527073,
+          -1.5,
+          1.5,
+          0.04504482675270727
+        ]
+      ]
+    },
+    {
+      "name": "guala/right/forearm/elbow/effort",
+      "effort": -1.8321768355735668,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.008,
+      "joints": [
+        [
+          "guala/right/forearm/elbow",
+          -0.03061705392510433,
+          0,
+          2.3,
+          0.03061705392510433
+        ]
+      ]
+    },
+    {
+      "name": "guala/right/forearm/elbow/effort",
+      "effort": 1.8321768355735668,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.017000000000000008,
+      "joints": [
+        [
+          "guala/right/digit-0/distal/flexion",
+          -0.03134531269522502,
+          0,
+          1.5,
+          0.03134531269522502
+        ],
+        [
+          "guala/right/digit-1/distal/flexion",
+          -0.03108490643925199,
+          0,
+          1.5,
+          0.03108490643925199
+        ],
+        [
+          "guala/right/digit-2/distal/flexion",
+          -0.03082057835856759,
+          0,
+          1.5,
+          0.03082057835856759
+        ],
+        [
+          "guala/right/digit-3/distal/flexion",
+          -0.03054439420022734,
+          0,
+          1.5,
+          0.03054439420022734
+        ]
+      ]
+    },
+    {
+      "name": "guala/right/forearm/pronation/effort",
+      "effort": -1.8321768355735668,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.016000000000000007,
+      "joints": [
+        [
+          "guala/right/forearm/pronation",
+          -1.550582644724845,
+          -1.5,
+          1.5,
+          0.05058264472484497
+        ]
+      ]
+    },
+    {
+      "name": "guala/right/forearm/pronation/effort",
+      "effort": 1.8321768355735668,
+      "result": "contact penetration exceeds declared resolution",
+      "time_s": 0.014000000000000005,
+      "joints": []
+    },
+    {
+      "name": "guala/right/palm/roll/effort",
+      "effort": -0.5428672105403163,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.008,
+      "joints": [
+        [
+          "guala/right/digit-3/proximal/flexion",
+          -0.2321853146481431,
+          -0.2,
+          1.5,
+          0.03218531464814309
+        ],
+        [
+          "guala/right/digit-3/distal/flexion",
+          -0.030866261769162524,
+          0,
+          1.5,
+          0.030866261769162524
+        ]
+      ]
+    },
+    {
+      "name": "guala/right/palm/roll/effort",
+      "effort": 0.5428672105403163,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.006,
+      "joints": [
+        [
+          "guala/right/digit-4/proximal/flexion",
+          -0.25352217312692826,
+          -0.2,
+          1.5,
+          0.05352217312692825
+        ]
+      ]
+    },
+    {
+      "name": "guala/right/palm/pitch/effort",
+      "effort": -0.5428672105403163,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.02000000000000001,
+      "joints": [
+        [
+          "guala/right/palm/pitch",
+          -0.8737484925675569,
+          -0.8,
+          0.8,
+          0.07374849256755689
+        ]
+      ]
+    },
+    {
+      "name": "guala/right/palm/pitch/effort",
+      "effort": 0.5428672105403163,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.006,
+      "joints": [
+        [
+          "guala/right/digit-0/distal/flexion",
+          -0.03596775868292635,
+          0,
+          1.5,
+          0.03596775868292635
+        ],
+        [
+          "guala/right/digit-1/distal/flexion",
+          -0.036001609366209525,
+          0,
+          1.5,
+          0.036001609366209525
+        ],
+        [
+          "guala/right/digit-2/distal/flexion",
+          -0.036037310021779956,
+          0,
+          1.5,
+          0.036037310021779956
+        ],
+        [
+          "guala/right/digit-3/distal/flexion",
+          -0.03607490621706175,
+          0,
+          1.5,
+          0.03607490621706175
+        ]
+      ]
+    },
+    {
+      "name": "guala/right/digit-0/proximal/flexion/effort",
+      "effort": -0.039269908169872414,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.005,
+      "joints": [
+        [
+          "guala/right/digit-0/proximal/flexion",
+          -0.308888188796344,
+          -0.2,
+          1.5,
+          0.10888818879634399
+        ]
+      ]
+    },
+    {
+      "name": "guala/right/digit-0/proximal/flexion/effort",
+      "effort": 0.039269908169872414,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.001,
+      "joints": [
+        [
+          "guala/right/digit-0/distal/flexion",
+          -0.04723404919556478,
+          0,
+          1.5,
+          0.04723404919556478
+        ]
+      ]
+    },
+    {
+      "name": "guala/right/digit-0/distal/flexion/effort",
+      "effort": -0.020106192982974672,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.001,
+      "joints": [
+        [
+          "guala/right/digit-0/distal/flexion",
+          -0.12698215662278872,
+          0,
+          1.5,
+          0.12698215662278872
+        ]
+      ]
+    },
+    {
+      "name": "guala/right/digit-0/distal/flexion/effort",
+      "effort": 0.020106192982974672,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.010000000000000002,
+      "joints": [
+        [
+          "guala/right/digit-0/distal/flexion",
+          1.5859694051048558,
+          0,
+          1.5,
+          0.08596940510485584
+        ]
+      ]
+    },
+    {
+      "name": "guala/right/digit-1/proximal/flexion/effort",
+      "effort": -0.039269908169872414,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.005,
+      "joints": [
+        [
+          "guala/right/digit-1/proximal/flexion",
+          -0.30524037472708576,
+          -0.2,
+          1.5,
+          0.10524037472708575
+        ]
+      ]
+    },
+    {
+      "name": "guala/right/digit-1/proximal/flexion/effort",
+      "effort": 0.039269908169872414,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.001,
+      "joints": [
+        [
+          "guala/right/digit-1/distal/flexion",
+          -0.047046055690213105,
+          0,
+          1.5,
+          0.047046055690213105
+        ]
+      ]
+    },
+    {
+      "name": "guala/right/digit-1/distal/flexion/effort",
+      "effort": -0.020106192982974672,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.001,
+      "joints": [
+        [
+          "guala/right/digit-1/distal/flexion",
+          -0.1269447011530612,
+          0,
+          1.5,
+          0.1269447011530612
+        ]
+      ]
+    },
+    {
+      "name": "guala/right/digit-1/distal/flexion/effort",
+      "effort": 0.020106192982974672,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.010000000000000002,
+      "joints": [
+        [
+          "guala/right/digit-1/distal/flexion",
+          1.5858221099589551,
+          0,
+          1.5,
+          0.08582210995895512
+        ]
+      ]
+    },
+    {
+      "name": "guala/right/digit-2/proximal/flexion/effort",
+      "effort": -0.039269908169872414,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.005,
+      "joints": [
+        [
+          "guala/right/digit-2/proximal/flexion",
+          -0.3055502516783601,
+          -0.2,
+          1.5,
+          0.10555025167836007
+        ]
+      ]
+    },
+    {
+      "name": "guala/right/digit-2/proximal/flexion/effort",
+      "effort": 0.039269908169872414,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.001,
+      "joints": [
+        [
+          "guala/right/digit-2/distal/flexion",
+          -0.04705361429448838,
+          0,
+          1.5,
+          0.04705361429448838
+        ]
+      ]
+    },
+    {
+      "name": "guala/right/digit-2/distal/flexion/effort",
+      "effort": -0.020106192982974672,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.001,
+      "joints": [
+        [
+          "guala/right/digit-2/distal/flexion",
+          -0.12694552971226525,
+          0,
+          1.5,
+          0.12694552971226525
+        ]
+      ]
+    },
+    {
+      "name": "guala/right/digit-2/distal/flexion/effort",
+      "effort": 0.020106192982974672,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.010000000000000002,
+      "joints": [
+        [
+          "guala/right/digit-2/distal/flexion",
+          1.5858352634992858,
+          0,
+          1.5,
+          0.08583526349928583
+        ]
+      ]
+    },
+    {
+      "name": "guala/right/digit-3/proximal/flexion/effort",
+      "effort": -0.039269908169872414,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.005,
+      "joints": [
+        [
+          "guala/right/digit-3/proximal/flexion",
+          -0.30981783311720945,
+          -0.2,
+          1.5,
+          0.10981783311720944
+        ]
+      ]
+    },
+    {
+      "name": "guala/right/digit-3/proximal/flexion/effort",
+      "effort": 0.039269908169872414,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.001,
+      "joints": [
+        [
+          "guala/right/digit-3/distal/flexion",
+          -0.047256725008390614,
+          0,
+          1.5,
+          0.047256725008390614
+        ]
+      ]
+    },
+    {
+      "name": "guala/right/digit-3/distal/flexion/effort",
+      "effort": -0.020106192982974672,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.001,
+      "joints": [
+        [
+          "guala/right/digit-3/distal/flexion",
+          -0.12698464230040082,
+          0,
+          1.5,
+          0.12698464230040082
+        ]
+      ]
+    },
+    {
+      "name": "guala/right/digit-3/distal/flexion/effort",
+      "effort": 0.020106192982974672,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.010000000000000002,
+      "joints": [
+        [
+          "guala/right/digit-3/distal/flexion",
+          1.5860087875523416,
+          0,
+          1.5,
+          0.08600878755234165
+        ]
+      ]
+    },
+    {
+      "name": "guala/right/digit-4/proximal/opposition/effort",
+      "effort": -0.039269908169872414,
+      "result": "contact penetration exceeds declared resolution",
+      "time_s": 0.009000000000000001,
+      "joints": []
+    },
+    {
+      "name": "guala/right/digit-4/proximal/opposition/effort",
+      "effort": 0.039269908169872414,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.016000000000000007,
+      "joints": [
+        [
+          "guala/right/digit-4/proximal/opposition",
+          1.6492944354044907,
+          -1.5,
+          1.5,
+          0.14929443540449072
+        ]
+      ]
+    },
+    {
+      "name": "guala/right/digit-4/proximal/flexion/effort",
+      "effort": -0.039269908169872414,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.005,
+      "joints": [
+        [
+          "guala/right/digit-4/proximal/flexion",
+          -0.30250281075392865,
+          -0.2,
+          1.5,
+          0.10250281075392864
+        ]
+      ]
+    },
+    {
+      "name": "guala/right/digit-4/proximal/flexion/effort",
+      "effort": 0.039269908169872414,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.001,
+      "joints": [
+        [
+          "guala/right/digit-4/distal/flexion",
+          -0.04728464437579566,
+          0,
+          1.5,
+          0.04728464437579566
+        ]
+      ]
+    },
+    {
+      "name": "guala/right/digit-4/distal/flexion/effort",
+      "effort": -0.020106192982974672,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.001,
+      "joints": [
+        [
+          "guala/right/digit-4/distal/flexion",
+          -0.12705701816389975,
+          0,
+          1.5,
+          0.12705701816389975
+        ]
+      ]
+    },
+    {
+      "name": "guala/right/digit-4/distal/flexion/effort",
+      "effort": 0.020106192982974672,
+      "result": "joint limit overrun exceeds declared resolution",
+      "time_s": 0.010000000000000002,
+      "joints": [
+        [
+          "guala/right/digit-4/distal/flexion",
+          1.5858313663264847,
+          0,
+          1.5,
+          0.08583136632648469
+        ]
+      ]
+    }
+  ],
+  "seconds": 1.2336566429876257,
+  "peak_rss_kib": 149056
+}

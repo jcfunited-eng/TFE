@@ -1,0 +1,1097 @@
+diff --git a/docs/GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md b/docs/GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md
+index 25d7936d2..a56935a5c 100644
+--- a/docs/GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md
++++ b/docs/GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md
+@@ -5306,3 +5306,79 @@ paired cold successor. Preserve historical learned records, no aliasing root
+ acts into joint experience, no scripted gait/controller or separate brain.
+ Fullhome/caregiver/copied mature-body/resource/rehearsal/live gates required.
+ GoalACTIVE, remote publication permission still outstanding; no retry/bypass.
++## FB-01aj — Ordinary anatomical motor/feedback integration contract — 2026-09-26
++
++Previous goal response was NO PROGRESS (bedtime permission/status reply).
++This resumes the approved FB-01g port extension from clean c2c7f219a.
++FB-01ai remains closed by its 82 local checks; its 292.893ms optics result
++does not meet 250ms. No further isolated optical tuning in this item.
++
++SOURCE findings: FunctionalOrganism still has 22 fixed streams, a 64-choice
++ceiling, old root-pose candidates, and migrate() deletes unfamiliar streams.
++The native body already supplies 228 scalar self-sensor components, localized
++contacts, and sparse absolute effort commands whose unmentioned settings persist.
++Zero effort must therefore be available for every motor. No command is a gait.
++Body numerical approximation and this interface are approved. Existing per-stream
++regime/sign reduction and scalar learner remain explicitly reduced cognition;
++neither is being certified as full joint DSF or neuronal learning.
++
++Single implementation owner A1. Authorized source: functional_body_native.py,
++one small functional_body_interface.py for typed anatomical coordinates,
++embodiment_world.py (read-only mounted interface accessor), functional_organism.py
++(port binding, streams, native candidate branch, preserved historical keys),
++functional_loop.py (same-world feedback, measured supply/heat and commit order).
++Focused standalone test plus the existing retinal consumer's required new Sensed
++arguments. No kernel, learning equation, caretaker, ingest, UI or deployment edits.
++
++Contract:
++- Native compiler derives immutable sensor kind/unit/dimension, anatomical
++  surface addresses and actual direct motor limits once. One bounded roster is
++  retained by the organism to interpret its rolling windows after restart.
++  Equal component counts do not establish anatomical identity. Changed rosters
++  refuse; existing STREAMS and all historical choice keys remain unchanged.
++- Actual signed SI samples enter paired nonnegative coordinates (positive and
++  negative parts, unit scale one SI unit) before the unchanged positive-input
++  kernel. No abs-only, clipping, guessed offsets, synthetic readings, or added
++  sensory rounding. Legacy six-decimal rounding and sleep law remain unchanged.
++- Contact input is a declared surface-level load approximation: each actual
++  point force and moment about its link origin is split by sign before summing.
++  Opposing pressures do not cancel. Raw point contacts remain in Sensed/native
++  observation and pre/post trial evidence. This projection loses fine pressure
++  distribution in the DSF context, not the raw physical evidence. It is NOT
++  caregiver affection, material texture or a new emotion/reward scalar.
++- Three direct absolute settings per motor (declared lower, zero, upper),
++  each with a distinct anatomical action ID. Omitted settings persist, allowing
++  multiple recruited joints across ordinary decisions; no sequence/composition
++  controller. The bound is derived from actual motor count, not truncated at64.
++  Old root Move/Grasp/Release candidates are absent on a mounted body. Existing
++  oral/reflex world refusals stay truthful until their separate mount is lawful.
++  Empty-command rest/sleep/voice preserves effort and is NOT claimed relaxed.
++- Same prepared world/thermal authority advances exactly one existing beat,
++  with available work and basal heat from the existing organism reserve.
++  All fallible voice/energy/organism commit preparation occurs before world
++  publication. The single actor publishes/checkpoints only successful results.
++  Any failure is fatal to that in-memory pair; it is restored from its existing
++  paired checkpoint, not continued or newly checkpointed. No per-beat brain copy
++  or new transaction owner. Native scratch is reusable, never authoritative.
++- If a new command is refused, its unchanged persistent motor settings may still
++  do physical work during the passive interval. Account for that measured work,
++  preserve the refusal, and do NOT record the refused command as executed.
++- Actual predecessor/successor local feedback accompanies recorded transitions;
++  no external geom IDs/global frames/hidden positions are new body senses.
++  Current memory/sleep/admission/eviction equations remain unchanged. No automatic
++  retention bonus or claim that mere movement learns balance/climbing.
++
++Proof required before this seam is closed: ordinary unmodified decide/choose
++selects distinct anatomical effort, actual mechanics/energy/heat advance, next
++ordinary sense consumes measured local return, recorded performed action keeps
++its identity; paired fresh cold restore yields identical next world/organism.
++Also old memory keys/bytes survive admission; missing/stale/mismatched feedback
++refuses; all zero choices exist; persistent other efforts survive; no legacy
++root motion candidates; no full-field/neuron/gait claims. Quantify full roster,
++encoded bytes, runtime/memory and mature-window cost rather than claiming250ms.
++Use a real isolated declared world first, not mocked decisions. Production-copy,
++complete home/caregiver/contact/oral/resource/rehearsal/live gates stay required.
++No pytest/conftest/live-write imports. Freeze then independent source review,
++then bounded proof under before/after read-only AWS/process health.
++
++GitHub publishing remains permission-blocked. No retry or bypass.
+diff --git a/dsf_ai_service/guala_functional_loop.py b/dsf_ai_service/guala_functional_loop.py
+index dcf2f2410..e43d3bb27 100644
+--- a/dsf_ai_service/guala_functional_loop.py
++++ b/dsf_ai_service/guala_functional_loop.py
+@@ -39,8 +39,9 @@ from dsf_ai_service.lean_sensory_occurrence import (
+     EXTERNAL_RGB_FOCAL_VALUE_COUNT, EXTERNAL_RGB_FULL_VALUE_COUNT, LeanSensoryOccurrence, focal_retina_luminance_u8,
+     rgb_retina_luminance_u8, transmitted_rgb_retina_u8,
+ )
++from dsf_ai_service.substrate.functional_body_interface import local_trial_evidence
+ from dsf_ai_service.substrate.embodiment_world import (
+-    ActionExecutionReceipt, NUTRITION_EXTRACTION_DENSITY_ZEPTOJOULES_PER_MICROGRAM,
++    ActionExecutionReceipt, AdvancePhysicalTimeCommand, NUTRITION_EXTRACTION_DENSITY_ZEPTOJOULES_PER_MICROGRAM,
+     PORT_ID, PreparedActionExecution, encode_command,
+ )
+ from dsf_ai_service.substrate.w1_physical_receptors import _EIGHT_BIT, retinal_irradiance_field
+@@ -280,12 +281,19 @@ def _caregiver_withdrawal(organism: FunctionalOrganism, world: Any) -> dict[str,
+     return record
+ 
+ 
+-def _apply(world: Any, decision: Decision, before: Any) -> tuple[PreparedActionExecution, str, str | None, list[str]]:
++def _apply(world: Any, decision: Decision, before: Any, *, motor_supply: tuple[float, int] | None = None) -> tuple[PreparedActionExecution, str, str | None, list[str]]:
+     """Offer her commands to the world in order; the first the world accepts
+     is prepared. When every one is refused, or she has none, the world only
+     advances time."""
+ 
+     refused = []
++    physical = {}
++    if before.native is not None:
++        if motor_supply is None:
++            raise ValueError("native interval needs the current chemical supply and basal heat")
++        physical = dict(available_motor_work_j=motor_supply[0], basal_heat_nanojoules=motor_supply[1])
++    elif motor_supply is not None:
++        raise ValueError("unmounted interval cannot spend native motor supply")
+     for command in decision.commands:
+         intent = _receipt({
+             "act": decision.act, "reason": decision.reason, "schema": "guala.functional_act_intent.v1",
+@@ -295,7 +303,7 @@ def _apply(world: Any, decision: Decision, before: Any) -> tuple[PreparedActionE
+         try:
+             prepared = world.prepare_port_command(
+                 port_id=PORT_ID, command_payload=encode_command(command),
+-                causal_intent_receipt_sha256=intent, expected_revision=before.revision,
++                causal_intent_receipt_sha256=intent, expected_revision=before.revision, **physical,
+             )
+         except ValueError as collision_error:
+             refused.append(str(collision_error))
+@@ -306,6 +314,17 @@ def _apply(world: Any, decision: Decision, before: Any) -> tuple[PreparedActionE
+         if not isinstance(prepared, PreparedActionExecution):
+             raise RuntimeError("functional act lost prepared custody")
+         return prepared, decision.act, None, refused
++    if before.native is not None:
++        prepared = world.prepare_port_command(
++            port_id=PORT_ID, command_payload=encode_command(AdvancePhysicalTimeCommand(BEAT_MICROSECONDS)),
++            expected_revision=before.revision, causal_intent_receipt_sha256=_receipt({
++                "schema": "guala.functional_passive_native.v1", "world_revision": before.revision,
++                "world_state_before_sha256": before.state_sha256}), **physical)
++        if not isinstance(prepared, PreparedActionExecution):
++            raise RuntimeError("native passive interval was not physically prepared")
++        # Old persistent efforts can do REAL work even when the NEW request was
++        # refused. It is a passive continuation, not execution of the refusal.
++        return prepared, "body", (refused[-1] if refused else None), refused
+     prepared = prepare_passive_world_interval(world)
+     return prepared, ("refused" if decision.commands else "body"), (refused[-1] if refused else None), refused
+ 
+@@ -362,6 +381,12 @@ class FunctionalPhysicalLoop:
+             if withdrawal is not None:
+                 returning = world.pending_physical_return
+             before = world.observation_snapshot()
++            body_interface = (None if before.native is None else
++                world.native_body_interface(expected_revision=before.revision))
++            body_feedback = None if before.native is None else before.native.self_feedback
++            basal = (None if before.native is None else organism.prepare_body_energy(
++                positive_motor_work_j=0., intake_micrograms=0))
++            motor_supply = None if basal is None else (organism.available_motor_work_j, basal.basal_nanojoules)
+             axes = organism.body_axes
+             if before.native is not None:
+                 world_retina, optical_evidence = _world_retina_u8(before, axes, world=world)
+@@ -469,9 +494,10 @@ class FunctionalPhysicalLoop:
+             touch_mk = max((int(c["surface_millikelvin"]) for c in contacts if c.get("surface_millikelvin") is not None), default=None)
+             sensed = Sensed(before, focal, source, heard_profile, self_profile, wide, skin_contact, skin_mk, touch_mk,
+                             heard_frames=heard_frames, own_frames=own_frames, sound_source_id=sound_source,
+-                            optical_evidence=optical_evidence, heard_envelopes=heard_envelopes, own_envelopes=own_envelopes)
++                            optical_evidence=optical_evidence, heard_envelopes=heard_envelopes, own_envelopes=own_envelopes,
++                            body_interface=body_interface, body_feedback=body_feedback)
+             decision = organism.decide(sensed)
+-            prepared, applied, refusal, refused = _apply(world, decision, before)
++            prepared, applied, refusal, refused = _apply(world, decision, before, motor_supply=motor_supply)
+             execution = prepared.execution_receipt
+             intake = _oral_intake_micrograms(execution) if applied == "bite" else 0
+             own_contact = 0.0
+@@ -514,17 +540,36 @@ class FunctionalPhysicalLoop:
+                     if target_item is not None and target_item.material is not None:
+                         own_contact_mk = int(target_item.material.surface_temperature_millikelvin)
+                         own_contact = 1.0
+-            with world.prepared_action_visibility_transaction(prepared):
+-                world.commit_prepared_action(prepared, expected_physical_return=returning, physical_return=None)
+-            prepared = None
++            # Prepare all new physical outputs before exposing the world successor.
+             spoke = syllable_pcm(decision.drive, start_tick) if decision.drive is not None else None
+             if spoke is not None and (len(spoke) > MAX_PRESSURE_BYTES or len(spoke) % 2):
+                 raise RuntimeError("her voice exceeded its transport bound")
+-            organism.commit(
+-                decision, applied_action=applied, refusal=refusal, intake_micrograms=intake, spoke=spoke,
+-                heard_profile=heard_profile, self_profile=self_profile, tick_now=start_tick, contact_fraction=own_contact,
+-                contact_millikelvin=own_contact_mk,
+-            )
++            energy = None
++            if before.native is not None:
++                if prepared.native_work is None or execution.elapsed_nanoseconds != BEAT_MICROSECONDS * 1000:
++                    raise RuntimeError("native body lost its work or canonical interval")
++                energy = organism.prepare_body_energy(
++                    positive_motor_work_j=prepared.native_work.positive_motor_work_j,
++                    intake_micrograms=intake)
++                if energy.basal_nanojoules != basal.basal_nanojoules:
++                    raise RuntimeError("native basal heat changed during preparation")
++            commit_arguments = dict(
++                applied_action=applied, refusal=refusal, intake_micrograms=intake, spoke=spoke,
++                heard_profile=heard_profile, self_profile=self_profile, tick_now=start_tick,
++                contact_fraction=own_contact, contact_millikelvin=own_contact_mk,
++                body_energy=energy)
++            with world.prepared_action_visibility_transaction(prepared):
++                if energy is not None:
++                    # The actor alone publishes/checkpoints success. A failure
++                    # anywhere here makes this pair unavailable and requires
++                    # the existing paired-checkpoint recovery, never continuation.
++                    organism.commit(decision, **commit_arguments)
++                    if organism.live_organism_tick != start_tick + 1:
++                        raise RuntimeError("native organism did not advance exactly one tick")
++                world.commit_prepared_action(prepared, expected_physical_return=returning, physical_return=None)
++            prepared = None
++            if energy is None:
++                organism.commit(decision, **commit_arguments)
+             if organism.live_organism_tick != start_tick + 1:
+                 raise RuntimeError("functional beat did not advance exactly one tick")
+             after = world.observation_snapshot()
+@@ -543,7 +588,13 @@ class FunctionalPhysicalLoop:
+                 "caregiver_withdrawal": withdrawal,
+                 "causal_transition_sha256": execution.authority_receipt_sha256,
+                 "dsf_delivery_count": decision.gate_count,
+-                "embodiment": lean_embodiment_observation(after, axes),
++                "embodiment": lean_embodiment_observation(after, axes if after.native is None else ()),
++                "native_self_feedback": (None if after.native is None else {
++                    "time_s": after.native.time_s,
++                    "local_measurements": local_trial_evidence(after.native.self_feedback)}),
++                "body_energy_nanojoules": (None if energy is None else {
++                    "before": energy.before_nanojoules, "motor_work": energy.work_nanojoules,
++                    "basal": energy.basal_nanojoules, "after": energy.after_nanojoules}),
+                 "external_guided_vocal_axis_count": 0,
+                 "external_heard_sample_count": external_heard,
+                 "external_retinal_port_count": external_sites,
+@@ -585,7 +636,7 @@ class FunctionalPhysicalLoop:
+                 "primary_causal_transition_sha256": execution.authority_receipt_sha256,
+                 "python_callback_count": 0,
+                 "real_nutrition_intake_zeptojoules": intake * NUTRITION_EXTRACTION_DENSITY_ZEPTOJOULES_PER_MICROGRAM,
+-                "requested_root_motion": motion,
++                "requested_root_motion": motion if after.native is None else None,
+                 "requested_world_action": applied,
+                 "reserve_micrograms": organism.reserve_micrograms,
+                 "reserve_capacity_micrograms": CAPACITY_MICROGRAMS,
+diff --git a/dsf_ai_service/guala_functional_organism.py b/dsf_ai_service/guala_functional_organism.py
+index 44e3adfe4..155c39c5a 100644
+--- a/dsf_ai_service/guala_functional_organism.py
++++ b/dsf_ai_service/guala_functional_organism.py
+@@ -17,6 +17,8 @@ encoded body is a few tens of kilobytes at any age.
+ 
+ from __future__ import annotations
+ 
++from dsf_ai_service.substrate.functional_body_interface import BodyInterface, local_trial_evidence
++
+ import base64
+ import copy
+ from dataclasses import dataclass
+@@ -405,6 +407,8 @@ class Sensed:
+     optical_evidence: OpticalEvidence | None = None
+     heard_envelopes: tuple[tuple[float, ...], ...] = ()
+     own_envelopes: tuple[tuple[float, ...], ...] = ()
++    body_interface: BodyInterface | None = None
++    body_feedback: Any = None
+ 
+ 
+ @dataclass(frozen=True, slots=True)
+@@ -1055,29 +1059,43 @@ def _syllable_reafference(syllable: str) -> tuple[float, ...] | None:
+         return None
+ 
+ 
+-def _streams_for(regimes: str) -> tuple[str, ...] | None:
++def _streams_for(regimes: str, body_interface: BodyInterface | None = None) -> tuple[str, ...] | None:
+     """Which stream tuple wrote a regimes string: told by its length, so a key or a
+     situation written under an earlier stream count still names the same streams."""
+ 
+     for streams in (STREAMS, STREAMS_V16, STREAMS_V15, STREAMS_V13, LEGACY_STREAMS):
+         if len(regimes) == len(streams):
+             return streams
++    if body_interface is not None:
++        streams = STREAMS + body_interface.channels
++        if len(regimes) == len(streams):
++            return streams
+     return None
+ 
+ 
+-def choice_key(regimes: str) -> str:
++def choice_key(regimes: str, body_interface: BodyInterface | None = None) -> str:
+     """The key of the structure she chooses under and remembers as met: the
+     regime letters of the choice streams, hashed."""
+ 
+-    streams = _streams_for(regimes)
+-    letters = "".join(regimes[streams.index(name)] for name in CHOICE_STREAMS if name in streams) if streams is not None else regimes
+-    return _sha256(" ".join(letters).encode("utf-8"))[:16]
+-
+-
+-def coarse_key(regimes: str) -> str:
++    streams = _streams_for(regimes, body_interface)
++    native = body_interface is not None and streams == STREAMS + body_interface.channels
++    # Preserve exactly the selected legacy prefix and the complete native
++    # suffix; no repeated linear search across the anatomical roster.
++    legacy_streams = STREAMS if native else streams
++    letters = ("".join(regimes[legacy_streams.index(name)] for name in CHOICE_STREAMS
++                       if name in legacy_streams) if legacy_streams is not None else regimes)
++    if native:
++        letters += regimes[len(STREAMS):]
++    encoded = " ".join(letters)
++    if native:
++        encoded = body_interface.namespace + ":" + encoded
++    return _sha256(encoded.encode("utf-8"))[:16]
++
++
++def coarse_key(regimes: str, body_interface: BodyInterface | None = None) -> str:
+     """Her situation: the regime letters of the consolidated streams only."""
+ 
+-    streams = _streams_for(regimes) or STREAMS
++    streams = _streams_for(regimes, body_interface) or STREAMS
+     return "".join(regimes[streams.index(name)] if len(regimes) == len(streams) and name in streams else "_" for name in CONSOLIDATED_STREAMS)
+ 
+ 
+@@ -1147,6 +1165,7 @@ def candidates(
+     pending_chain: list[str] | None = None,
+     last_crossed_portal: tuple[str, int] | None = None,
+     sound_heard: bool = False,
++    body_interface: BodyInterface | None = None,
+ ) -> list[tuple[str, str, tuple[Any, ...], str | None, tuple[int, int, int] | None]]:
+     """What her body can do this beat, across every sensed target: each entry is
+     (act, detail, world commands tried in order, target, voice drive).
+@@ -1157,6 +1176,19 @@ def candidates(
+         chain_drive = SYLLABLE_DRIVES.get(next_syl)
+         return [("say", f"combinatorial chain demand successor: {next_syl}", (), None, chain_drive)]
+ 
++    if snapshot.native is not None:
++        if body_interface is None:
++            raise ValueError("mounted body has no admitted motor interface")
++        out = body_interface.effort_options(BEAT_MICROSECONDS)
++        if not sound_heard:
++            out.append(("say", say_detail, (), None, say_drive if say_drive is not None else DEFAULT_DRIVE))
++        out.append(("rest", "no new effort; existing physical settings persist", (), None, None))
++        if len(out) > 3 * len(body_interface.motors) + 2:
++            raise RuntimeError("anatomical candidate count exceeded its derived bound")
++        return out
++    if body_interface is not None:
++        raise ValueError("articulated organism cannot use root-pose motor candidates")
++
+     out: list[tuple[str, str, tuple[Any, ...], str | None, tuple[int, int, int] | None]] = []
+     position, heading = body.pose.position, body.pose.heading_millidegrees
+     here = _region_of(snapshot, position, body.radius_mm)
+@@ -1300,7 +1332,7 @@ def candidates(
+ 
+ 
+ 
+-def _capture_sensory_key(snapshot: Any, body: Any, state: dict[str, Any], seen: tuple[SeenThing, ...]) -> str:
++def _capture_sensory_key(snapshot: Any, body: Any, state: dict[str, Any], seen: tuple[SeenThing, ...], body_feedback: Any = None, body_interface: BodyInterface | None = None) -> str:
+     """Exact available cue distinctions for this reduced episodic controller.
+ 
+     IDs resolve current sensory custody, but are not included as recognition keys.
+@@ -1317,16 +1349,19 @@ def _capture_sensory_key(snapshot: Any, body: Any, state: dict[str, Any], seen:
+         material.compliance_ppm, material.roughness_micrometers,
+         material.surface_temperature_millikelvin,
+     )
+-    return json.dumps(
+-        (state.get("room_now"), state.get("sight_figure"), body.held_object_id is not None, relation, tactile),
+-        separators=(",", ":"), ensure_ascii=False,
+-    )
++    evidence = (state.get("room_now"), state.get("sight_figure"), body.held_object_id is not None, relation, tactile)
++    if body_feedback is not None:
++        evidence += (local_trial_evidence(body_feedback, body_interface),)
++    return json.dumps(evidence, separators=(",", ":"), ensure_ascii=False, allow_nan=False)
+ 
+ class FunctionalOrganism:
+     """One organism: bounded state, pure decisions, exact encoding."""
+ 
+     def __init__(self, state: dict[str, Any]) -> None:
+         self._state = state
++        record = state.get("anatomical_interface")
++        self._body_interface = None if record is None else BodyInterface.restore(record)
++        self._stream_names = STREAMS + (() if self._body_interface is None else self._body_interface.channels)
+         # Old bodies have no fractional debit and remain byte-identical. New
+         # body-energy state must validate at construction/restore, not be erased
+         # or treated as a zero-cost legacy interval when corrupt.
+@@ -1337,6 +1372,27 @@ class FunctionalOrganism:
+             if type(cost) is not int or cost < 0:
+                 raise ValueError("invalid retained motor energy cost")
+ 
++    def _bind_body_interface(self, sensed: Sensed) -> None:
++        native = sensed.snapshot.native
++        if native is None:
++            if self._body_interface is not None or sensed.body_interface is not None or sensed.body_feedback is not None:
++                raise ValueError("retained articulated organism requires its mounted body")
++            return
++        interface = sensed.body_interface
++        feedback = sensed.body_feedback
++        if (not isinstance(interface, BodyInterface) or feedback is None
++                or feedback != native.self_feedback or feedback.time_s != native.time_s):
++            raise ValueError("body sense must be the current authenticated self feedback")
++        if self._body_interface is not None and self._body_interface != interface:
++            raise ValueError("anatomical port change requires an explicit migration")
++        if self._body_interface is None:
++            self._body_interface = interface
++            self._stream_names = STREAMS + interface.channels
++            self._state["anatomical_interface"] = interface.record()
++            for name in interface.channels:
++                self._state["streams"][name] = []
++        # No historical record/key/window is rewritten as joint experience.
++
+     @property
+     def _sensorimotor_mesh(self) -> GualaSensorimotorMesh:
+         mesh_dict = self._state.get("sensorimotor_mesh")
+@@ -1412,16 +1468,16 @@ class FunctionalOrganism:
+             if key not in state:
+                 state[key] = empty
+                 changed = True
+-        for name in STREAMS:
++        for name in self._stream_names:
+             if name not in state["streams"]:
+                 state["streams"][name] = []
+                 changed = True
+-        for name in [name for name in state["streams"] if name not in STREAMS]:
++        for name in [name for name in state["streams"] if name not in self._stream_names]:
+             del state["streams"][name]  # a stream this build does not read (e.g. a blend of two others)
+             changed = True
+         # A record entry keyed under a retired key law can never be met again:
+         # it is not her day's record. Drop it (idempotent: live entries match).
+-        stale = [k for k, entry in state.get("acts", {}).items() if entry.get("regimes") and choice_key(str(entry["regimes"])) != k]
++        stale = [k for k, entry in state.get("acts", {}).items() if entry.get("regimes") and choice_key(str(entry["regimes"]), self._body_interface) != k]
+         for k in stale:
+             del state["acts"][k]
+         changed = changed or bool(stale)
+@@ -1812,7 +1868,7 @@ class FunctionalOrganism:
+         sleep_ratio = _clamp(float(self._state.get("sleep_pressure", 0)) / SLEEP_PRESSURE_CEILING, 0.0, 1.0)
+         contact_ratio = _clamp(float(self._state.get("contact_pressure", 0)) / CONTACT_PRESSURE_CEILING, 0.0, 1.0)
+ 
+-        return {
++        measured = {
+             "sight_luminance": (total / len(focal) / 255) if focal else 0.0,
+             "sight_horizontal": horizontal,
+             "sight_vertical": vertical,
+@@ -1831,6 +1887,9 @@ class FunctionalOrganism:
+             "heading": body.pose.heading_millidegrees / 360_000,
+             "hand": 1.0 if body.held_object_id is not None else 0.0,
+         }
++        if self._body_interface is not None:
++            measured.update(self._body_interface.measure(sensed.body_feedback))
++        return measured
+ 
+     def _kernel(self) -> tuple[str, int]:
+         """Run L0-L4 over every stream's trailing window; the signature is the
+@@ -1839,7 +1898,7 @@ class FunctionalOrganism:
+ 
+         tokens = []
+         gates_total = 0
+-        for name in STREAMS:
++        for name in self._stream_names:
+             window = self._state["streams"][name]
+             if len(window) < KERNEL_MINIMUM:
+                 tokens.append("________")
+@@ -1865,6 +1924,7 @@ class FunctionalOrganism:
+         return " ".join(tokens), gates_total
+ 
+     def decide(self, sensed: Sensed) -> Decision:
++        self._bind_body_interface(sensed)
+         tick = self.live_organism_tick
+         state = self._state
+         snapshot = sensed.snapshot
+@@ -2024,16 +2084,16 @@ class FunctionalOrganism:
+         elif not state.get("asleep"):
+             contact_pressure = min(CONTACT_PRESSURE_CEILING, contact_pressure + 1)
+         state["contact_pressure"] = contact_pressure
+-        for name in STREAMS:
++        for name in self._stream_names:
+             window = state["streams"][name]
+-            window.append(round(measures[name], 6))
++            window.append(round(measures[name], 6) if name in STREAMS else measures[name])
+             del window[:-KERNEL_WINDOW]
+         signature, gate_count = self._kernel()
+         tokens = signature.split(" ")
+         uncertain = any(len(t) >= 5 and t[4] == "+" for t in tokens)
+         regimes = "".join(token[0] for token in tokens)
+-        key = choice_key(regimes)
+-        situation = coarse_key(regimes)
++        key = choice_key(regimes, self._body_interface)
++        situation = coarse_key(regimes, self._body_interface)
+         tick = self.live_organism_tick
+         novel = key not in state["familiarity"]
+ 
+@@ -2063,7 +2123,7 @@ class FunctionalOrganism:
+         self._form_moments(body, measures, tick)
+ 
+         # Pre-choice sensory observation captured before any action evaluation
+-        current_sensory_key = _capture_sensory_key(snapshot, body, state, seen)
++        current_sensory_key = _capture_sensory_key(snapshot, body, state, seen, sensed.body_feedback, self._body_interface)
+ 
+         # Finalize the prior actually executed trial with this observed successor.
+         # Each event has its own record: equal reach categories never splice lives.
+@@ -2197,7 +2257,7 @@ class FunctionalOrganism:
+         sleepy = int(state.get("sleep_pressure", 0)) >= SLEEP_PRESSURE_CEILING // 2
+         p_chain = list(state.get("pending_chain") or [])
+         state["body_pos"] = (int(body.pose.position.x), int(body.pose.position.y), int(body.pose.position.z))
+-        options = candidates(snapshot, body, held, offered, seen, tick, say_drive=say_drive, say_detail=say_reason, feeding=feeding, sleepy=sleepy, conserved_objects=conserved, pending_chain=p_chain, last_crossed_portal=state.get("last_crossed_portal"), sound_heard=sound_heard)
++        options = candidates(snapshot, body, held, offered, seen, tick, say_drive=say_drive, say_detail=say_reason, feeding=feeding, sleepy=sleepy, conserved_objects=conserved, pending_chain=p_chain, last_crossed_portal=state.get("last_crossed_portal"), sound_heard=sound_heard, body_interface=self._body_interface)
+ 
+         # Cognitive Asset 1: Learned Closed-Loop Continuation Selector
+         # When an internal demand is active, searches the empirical transition graph for supported continuation
+@@ -2588,7 +2648,7 @@ class FunctionalOrganism:
+         regimes = str(entry.get("regimes") or "")
+         if not regimes:
+             return None
+-        situation = coarse_key(regimes)
++        situation = coarse_key(regimes, self._body_interface)
+         learned = state.setdefault("learned", {})
+         target = learned.setdefault(situation, {"acts": {}, "tick": tick})
+         for act, (tries, total) in entry["acts"].items():
+@@ -3068,7 +3128,7 @@ class FunctionalOrganism:
+                 credit_val = round(float(intake / 100_000.0) if intake else float(contact_fraction), 4)
+                 sp_rec = state.setdefault("speech", {})
+                 toks = decision.signature.split(" ")
+-                sit = coarse_key("".join(t[0] for t in toks))
++                sit = coarse_key("".join(t[0] for t in toks), self._body_interface)
+                 ctx1 = f"{sit}:start"
+                 ctx2 = f"{sit}:{s1}"
+                 entry1 = sp_rec.setdefault(ctx1, {"syllables": {}, "tick": tick_now})["syllables"].setdefault(s1, [1, 0.0])
+@@ -3092,7 +3152,7 @@ class FunctionalOrganism:
+             state["last_refusal"] = (decision.act, applied_action, tick_now, refusal, prior_count + 1)
+         else:
+             state["last_refusal"] = None
+-        key = choice_key("".join(token[0] for token in decision.signature.split(" ")))
++        key = choice_key("".join(token[0] for token in decision.signature.split(" ")), self._body_interface)
+         familiarity = state["familiarity"]
+         entry = familiarity.get(key)
+         familiarity[key] = [1, tick_now] if entry is None else [int(entry[0]) + 1, tick_now]
+@@ -3128,7 +3188,7 @@ class FunctionalOrganism:
+             syl_name = next((name for name, d in SYLLABLE_DRIVES.items() if d == spoke_drive), DEFAULT_SYLLABLE)
+             state["syllable_totals"][syl_name] = int(state["syllable_totals"].get(syl_name, 0)) + 1
+             tokens_commit = decision.signature.split(" ")
+-            sit_commit = coarse_key("".join(t[0] for t in tokens_commit))
++            sit_commit = coarse_key("".join(t[0] for t in tokens_commit), self._body_interface)
+             last_prior = state.get("prior_syllable")
+             ctx_key = f"{sit_commit}:{last_prior if last_prior else 'start'}"
+             speech_rec = state.setdefault("speech", {})
+diff --git a/dsf_ai_service/substrate/embodiment_world.py b/dsf_ai_service/substrate/embodiment_world.py
+index d8f1d5b1a..0c6347e7c 100644
+--- a/dsf_ai_service/substrate/embodiment_world.py
++++ b/dsf_ai_service/substrate/embodiment_world.py
+@@ -4575,6 +4575,17 @@ class EmbodimentWorldAuthority:
+             world.portals, world.self_body_id, world.bodies, world.objects,
+             state_sha, signature, receipt, projection)
+ 
++    def native_body_interface(self, *, expected_revision: int):
++        """Immutable self sensor/motor anatomy from this same published world."""
++        with self._lock:
++            self._require_public_visibility_locked()
++            world = self._state.world
++            if type(expected_revision) is not int or expected_revision != world.revision:
++                raise ValueError("body interface query differs from current world")
++            if world.native is None:
++                raise ValueError("native body interface is not mounted")
++            return self._native_engine_for(world.native.mount).body_interface
++
+     def native_optical_geometry(self, *, expected_revision: int, frame_name: str,
+                                 origin_local_m: tuple[float, float, float],
+                                 max_geoms: int):
+diff --git a/dsf_ai_service/substrate/functional_body_native.py b/dsf_ai_service/substrate/functional_body_native.py
+index db34c0937..65d0b61ae 100644
+--- a/dsf_ai_service/substrate/functional_body_native.py
++++ b/dsf_ai_service/substrate/functional_body_native.py
+@@ -243,6 +243,7 @@ class NativeBody:
+         )
+         self._sensory_root = sensory_root
+         self._self_sensors, self._self_geoms, self._self_dofs = self._sensory_membership(sensory_root)
++        self._body_interface = None  # immutable compiled ports, created only by the functional caller
+         self._data = mj.MjData(m)
+         self._size = mj.mj_stateSize(m, STATE_KIND)
+         self._header = sha256((ENGINE_VERSION + repr(limits) + repr(sensory_root) + xml).encode()).digest()
+@@ -253,6 +254,45 @@ class NativeBody:
+                for i in self._limited):
+             raise ValueError("limited ball joints require a separate error metric")
+ 
++    @property
++    def body_interface(self):
++        """Declared self ports only; compiled metadata, never name interpretation."""
++        from .functional_body_interface import BodyInterface
++        if self._body_interface is not None:
++            return self._body_interface
++        m = self._model
++        sensors = []
++        for i in self._self_sensors:
++            kind, obj = int(m.sensor_type[i]), int(m.sensor_objid[i])
++            if kind in (int(mj.mjtSensor.mjSENS_JOINTPOS), int(mj.mjtSensor.mjSENS_JOINTVEL)):
++                hinge = m.jnt_type[obj] == mj.mjtJoint.mjJNT_HINGE
++                velocity = kind == int(mj.mjtSensor.mjSENS_JOINTVEL)
++                label = "joint_velocity" if velocity else "joint_position"
++                unit = ("rad" if hinge else "m") + ("/s" if velocity else "")
++                address = self.joint_names[obj]
++            elif kind == int(mj.mjtSensor.mjSENS_ACTUATORFRC):
++                label = "actuator_force"
++                joint = int(m.actuator_trnid[obj, 0])
++                unit = "N m" if m.jnt_type[joint] == mj.mjtJoint.mjJNT_HINGE else "N"
++                address = self.actuator_names[obj]
++            else:
++                gyro = kind == int(mj.mjtSensor.mjSENS_GYRO)
++                label, unit = ("angular_velocity", "rad/s") if gyro else ("specific_force", "m/s^2")
++                address = mj.mj_id2name(m, mj.mjtObj.mjOBJ_SITE, obj)
++            sensors.append((self._sensor_names[i], label, address, unit, int(m.sensor_dim[i])))
++        surfaces = tuple((self.geom_names[i], mj.mj_id2name(m, mj.mjtObj.mjOBJ_BODY, link))
++                         for i, link in self._self_geoms.items())
++        dofs = set(int(i) for i in self._self_dofs)
++        motors = []
++        for i, dof in enumerate(self._motor_dof):
++            if dof in dofs:
++                joint = int(m.actuator_trnid[i, 0])
++                motors.append((self.actuator_names[i], self.joint_names[joint],
++                    "N m" if m.jnt_type[joint] == mj.mjtJoint.mjJNT_HINGE else "N",
++                    float(m.actuator_forcerange[i, 0]), float(m.actuator_forcerange[i, 1])))
++        self._body_interface = BodyInterface(tuple(sensors), surfaces, tuple(motors))
++        return self._body_interface
++
+     @property
+     def model_identity(self) -> str:
+         """Binding already sealed into every native integration state."""
+diff --git a/tests/test_functional_body_retinal_consumption.py b/tests/test_functional_body_retinal_consumption.py
+index 6c2790f00..cdbebf4fb 100644
+--- a/tests/test_functional_body_retinal_consumption.py
++++ b/tests/test_functional_body_retinal_consumption.py
+@@ -87,7 +87,9 @@ class NativeRetinalConsumptionTests(unittest.TestCase):
+         wide = pixels[27*3:135*3]
+         wide = tuple(sum(wide[i:i+3])//3 for i in range(0, len(wide), 3))
+         sensed = Sensed(snapshot, pixels[-WORLD_FOCAL_VALUES:], "world", None, None,
+-                        wide, optical_evidence=evidence)
++                        wide, optical_evidence=evidence,
++                        body_interface=auth.native_body_interface(expected_revision=snapshot.revision),
++                        body_feedback=snapshot.native.self_feedback)
+         organism = FunctionalOrganism.genesis(identity="offline-native-retinal-consumption",
+                                               organism_tick=100)
+         decision = organism.decide(sensed)
+diff --git a/dsf_ai_service/substrate/functional_body_interface.py b/dsf_ai_service/substrate/functional_body_interface.py
+new file mode 100644
+index 000000000..e7b49389a
+--- /dev/null
++++ b/dsf_ai_service/substrate/functional_body_interface.py
+@@ -0,0 +1,165 @@
++"""Anatomical input coordinates and direct effort options, not a controller.
++
++The functional runtime's existing per-stream learner is preserved. Signed SI
++measurements use two nonnegative coordinates because its L0 input is positive.
++Contact loads are integrated per anatomical surface, sign-separated before
++summation; this is NOT a skin texture or full pressure-distribution model.
++Raw localized contacts remain available as the actual trial evidence.
++"""
++from __future__ import annotations
++
++from dataclasses import dataclass, field
++import hashlib
++import json
++import math
++
++
++# Kind -> (SI unit family, dimension). Joint/actuator unit comes from hinge/slide.
++_KINDS = {
++    "joint_position": (("rad", "m"), 1),
++    "joint_velocity": (("rad/s", "m/s"), 1),
++    "actuator_force": (("N m", "N"), 1),
++    "specific_force": (("m/s^2",), 3),
++    "angular_velocity": (("rad/s",), 3),
++}
++
++
++@dataclass(frozen=True)
++class BodyInterface:
++    # name, kind, anatomical address, SI unit, number of components
++    sensors: tuple[tuple[str, str, str, str, int], ...]
++    # named collision surface and its local link frame
++    surfaces: tuple[tuple[str, str], ...]
++    # motor name, joint address, SI unit, actual lower/upper physical capacity
++    motors: tuple[tuple[str, str, str, float, float], ...]
++    channels: tuple[str, ...] = field(init=False, compare=False)
++    namespace: str = field(init=False, compare=False)
++
++    def __post_init__(self):
++        for roster in (self.sensors, self.surfaces, self.motors):
++            if len({row[0] for row in roster}) != len(roster):
++                raise ValueError("duplicate anatomical port")
++            if any(not isinstance(row[0], str) or not row[0] for row in roster):
++                raise ValueError("named anatomical ports required")
++        if not self.sensors or not self.motors:
++            raise ValueError("instrumented and actuated body required")
++        for name, kind, address, unit, dimension in self.sensors:
++            specification = _KINDS.get(kind)
++            if (specification is None or unit not in specification[0]
++                    or type(dimension) is not int or dimension != specification[1]
++                    or not isinstance(address, str) or not address):
++                raise ValueError("sensor must retain compiled kind, address and SI unit")
++        for surface, frame in self.surfaces:
++            if not isinstance(frame, str) or not frame:
++                raise ValueError("contact surface requires its local anatomical frame")
++        for name, address, unit, low, high in self.motors:
++            if (not isinstance(address, str) or not address or unit not in ("N", "N m")
++                    or type(low) is not float or type(high) is not float
++                    or not math.isfinite(low) or not math.isfinite(high)
++                    or not low < high or not low <= 0 <= high):
++                raise ValueError("direct motor capacity must admit zero effort")
++        count = sum(row[4] for row in self.sensors) + 6 * len(self.surfaces)
++        object.__setattr__(self, "channels", tuple(
++            f"body:{i}:{sign}" for i in range(count) for sign in ("+", "-")))
++        encoded = json.dumps(self.record(), sort_keys=True, separators=(",", ":"),
++                             allow_nan=False).encode()
++        object.__setattr__(self, "namespace", hashlib.sha256(encoded).hexdigest())
++
++    def record(self):
++        return {"schema": "guala.anatomical-interface.v1",
++                "sensors": [list(row) for row in self.sensors],
++                "surfaces": [list(row) for row in self.surfaces],
++                "motors": [list(row) for row in self.motors]}
++
++    @classmethod
++    def restore(cls, record):
++        if (not isinstance(record, dict)
++                or set(record) != {"schema", "sensors", "surfaces", "motors"}
++                or record["schema"] != "guala.anatomical-interface.v1"):
++            raise ValueError("anatomical interface schema changed")
++        result = cls(tuple(tuple(r) for r in record["sensors"]),
++                     tuple(tuple(r) for r in record["surfaces"]),
++                     tuple(tuple(r) for r in record["motors"]))
++        if result.record() != record:
++            raise ValueError("noncanonical anatomical interface")
++        return result
++
++    def measure(self, feedback):
++        """Actual local evidence only. No poses, scene identity, or inferred load.
++
++        Each native SI unit is one coordinate unit; the unchanged kernel floor
++        is applied later. Component sign is split BEFORE surface integration,
++        so opposing forces do not disappear in a zero net resultant.
++        """
++        if feedback is None or not math.isfinite(feedback.time_s):
++            raise ValueError("mounted body feedback is unavailable")
++        if len(feedback.sensors) != len(self.sensors):
++            raise ValueError("mounted body sensor roster changed")
++        coordinates = []
++        for port, (name, values) in zip(self.sensors, feedback.sensors):
++            if name != port[0] or len(values) != port[4]:
++                raise ValueError("body reading differs from admitted anatomical port")
++            for value in values:
++                if not math.isfinite(value):
++                    raise ValueError("nonfinite measured body quantity")
++                coordinates.extend((max(0., float(value)), max(0., -float(value))))
++        surface_rows = {name: i for i, (name, frame) in enumerate(self.surfaces)}
++        loads = [[0.] * 12 for _ in self.surfaces]
++        for contact in feedback.contacts:
++            row = surface_rows.get(contact.surface)
++            if row is None:
++                raise ValueError("contact has no anatomical surface")
++            r, f, c = contact.position_m, contact.force_n, contact.couple_nm
++            if any(len(v) != 3 or not all(math.isfinite(x) for x in v)
++                   for v in (r, f, c)):
++                raise ValueError("invalid local physical contact")
++            # Contact couple is at r, so transport it to the shared link origin.
++            moment = (r[1]*f[2]-r[2]*f[1]+c[0],
++                      r[2]*f[0]-r[0]*f[2]+c[1],
++                      r[0]*f[1]-r[1]*f[0]+c[2])
++            if not all(math.isfinite(value) for value in moment):
++                raise ValueError("body contact moment overflow")
++            for j, value in enumerate((*f, *moment)):
++                loads[row][2*j] += max(0., float(value))
++                loads[row][2*j+1] += max(0., -float(value))
++        coordinates.extend(x for load in loads for x in load)
++        if not all(math.isfinite(x) for x in coordinates):
++            raise ValueError("body load coordinate overflow")
++        return dict(zip(self.channels, coordinates))
++
++    def effort_options(self, duration_microseconds):
++        """Mechanical vocabulary only; the unchanged learner selects an option.
++
++        Each command changes ONE setting; all other settings persist physically,
++        so independently selected settings can recruit several joints together.
++        This supplies no gait, force servo or learned coordination claim.
++        """
++        from .embodiment_world import AnatomicalEffortCommand
++        out = []
++        for name, joint, unit, low, high in self.motors:
++            for value in dict.fromkeys((low, 0., high)):
++                identity = "effort:" + json.dumps((name, value.hex()), separators=(",", ":"))
++                out.append((identity, f"{joint}: {value.hex()} {unit}",
++                    (AnatomicalEffortCommand(((name, value),), duration_microseconds),),
++                    None, None))
++        return out
++
++
++def local_trial_evidence(feedback, interface: BodyInterface | None = None):
++    """Actual local sample, with stable anatomy encoded once for retained trials.
++
++    Public observation keeps labels. Stored trials use the immutable roster
++    namespace, sensor arrays in roster order, and anatomical surface ordinals.
++    These are NOT ordinals of the changing contact list. Time is carried by
++    the enclosing transition; no world identity/pose or hidden ctrl is added.
++    """
++    if feedback is None:
++        raise ValueError("body trial is missing its measured evidence")
++    if interface is None:
++        return [[name, list(values)] for name, values in feedback.sensors], [
++            [c.surface, list(c.position_m), list(c.force_n), list(c.couple_nm)]
++            for c in feedback.contacts]
++    surfaces = {name: ordinal for ordinal, (name, frame) in enumerate(interface.surfaces)}
++    return (interface.namespace, [list(values) for name, values in feedback.sensors], [
++        [surfaces[c.surface], list(c.position_m), list(c.force_n), list(c.couple_nm)]
++        for c in feedback.contacts])
+diff --git a/tests/test_functional_body_ordinary_loop.py b/tests/test_functional_body_ordinary_loop.py
+new file mode 100644
+index 000000000..57734b7fc
+--- /dev/null
++++ b/tests/test_functional_body_ordinary_loop.py
+@@ -0,0 +1,288 @@
++"""FB-01aj standalone real ordinary-loop proof; no pytest/conftest/network.
++
++A declared zero-gravity bench isolates effort/reafference, not walking or a
++mature production body. The separate floor case uses actual contact mechanics.
++Migration fixtures and repeated measured-window cost probes are explicitly
++controlled checks, never fabricated learning evidence.
++"""
++from dataclasses import replace
++import copy
++import json
++import hashlib
++import math
++import resource
++import time
++import unittest
++
++from dsf_ai_service.guala_functional_loop import FunctionalPhysicalLoop, _apply
++from dsf_ai_service.guala_functional_organism import (
++    FunctionalOrganism, Sensed, STREAMS, CHOICE_STREAMS, KERNEL_WINDOW,
++    MOMENT_RECORD_CAPACITY, MEANING_CAPACITY, choice_key, coarse_key,
++)
++from dsf_ai_service.lean_actor import PhysicalOccurrence
++from dsf_ai_service.substrate.embodiment_world import (
++    AnatomicalEffortCommand,
++)
++from dsf_ai_service.substrate.functional_body_native import NativeBody
++from dsf_ai_service.substrate.functional_body_interface import local_trial_evidence
++from dsf_ai_service.substrate.thermally_coupled_embodiment_world import ThermallyCoupledEmbodimentWorldAuthority
++from test_functional_body_optical_sources import KEY, world as optical_world, declaration, mount
++from test_functional_body_world import world as thermal_world
++from test_functional_body_anatomy import model_xml, LIMITS
++
++
++UNATTENDED = PhysicalOccurrence("unattended", None)
++
++
++def ordinary_world():
++    source = optical_world()._state.world
++    thermal = thermal_world(thermal=True, measured_core=True)._thermal_anatomy
++    return ThermallyCoupledEmbodimentWorldAuthority(
++        authority_key=KEY, receipt_capacity=2, thermal_anatomy=thermal,
++        initial_objects=source.objects, regions=source.regions)
++
++
++def pair():
++    world = ordinary_world()
++    mount(world, declaration())
++    organism = FunctionalOrganism.genesis(identity="offline-ordinary-body-proof", organism_tick=100)
++    return organism, world
++
++
++def sensed_from(world, *, interface=True, feedback=True):
++    observation = world.observation_snapshot()
++    return Sensed(observation, (0,) * 57600, "world", None, None,
++        body_interface=world.native_body_interface(expected_revision=observation.revision) if interface else None,
++        body_feedback=observation.native.self_feedback if feedback else None)
++
++
++class OrdinaryBodyInterfaceTests(unittest.TestCase):
++    def test_ordinary_motor_return_energy_trial_and_paired_cold_successor(self):
++        organism, world = pair()
++        loop = FunctionalPhysicalLoop()
++        original_energy = organism.reserve_energy_nanojoules
++        before = world.observation_snapshot()
++        start = time.perf_counter()
++        first = loop.settle(organism, world, UNATTENDED)
++        elapsed = time.perf_counter() - start
++        self.assertTrue(first.observation["her_act"].startswith("effort:"))
++        self.assertIsNone(first.observation["world_action_refusal"])
++        self.assertEqual(first.observation["requested_world_action"], first.observation["her_act"])
++        self.assertEqual(first.native_interval_count, 1)
++        after = world.observation_snapshot()
++        self.assertEqual(world._state.recent_applied_receipts[-1].elapsed_nanoseconds, 250000000)
++        # This declared bench advances 250 steps of binary64 0.001 s.
++        # Bound accumulation error independently of the exact causal receipt.
++        self.assertLessEqual(abs(after.native.time_s-before.native.time_s-.25),
++                             250 * math.ulp(before.native.time_s+.25))
++        self.assertIsNone(first.observation["requested_root_motion"])
++        self.assertEqual(organism.live_organism_tick, 101)
++        self.assertNotEqual(before.native.self_feedback.sensors, after.native.self_feedback.sensors)
++        energy = first.observation["body_energy_nanojoules"]
++        self.assertGreater(energy["motor_work"], 0)
++        self.assertEqual(energy["before"], original_energy)
++        self.assertEqual(energy["after"], original_energy-energy["basal"]-energy["motor_work"])
++        self.assertEqual(energy["after"], organism.reserve_energy_nanojoules)
++        world.thermal_observation()  # coupled custody remains valid
++        self.assertEqual(first.observation["embodiment"]["native_body_axes"], [])
++        self.assertIsNotNone(first.observation["native_self_feedback"])
++        first_action = first.observation["her_act"]
++        expected_measurements = organism._body_interface.measure(after.native.self_feedback)
++        body_bytes, world_bytes = organism.encoded(), world.encoded_snapshot()
++        restored = FunctionalOrganism.restore(body_bytes)
++        fresh_world = ordinary_world()
++        fresh_world.restore_encoded(world_bytes)
++        self.assertEqual(restored.encoded(), body_bytes)
++        self.assertEqual(fresh_world.encoded_snapshot(), world_bytes)
++        a = loop.settle(organism, world, UNATTENDED)
++        b = FunctionalPhysicalLoop().settle(restored, fresh_world, UNATTENDED)
++        self.assertEqual(organism.encoded(), restored.encoded())
++        self.assertEqual(world.encoded_snapshot(), fresh_world.encoded_snapshot())
++        self.assertEqual(a.observation, b.observation)
++        for name, measured in expected_measurements.items():
++            self.assertEqual(organism._state["streams"][name][-1], measured)
++        self.assertTrue(any(first_action in entry["acts"] for entry in organism._state["acts"].values()))
++        pending = organism._state["pending_transition"]
++        compact = json.loads(pending["pre_key"])[-1]
++        interface = organism._body_interface
++        self.assertEqual(compact[0], interface.namespace)
++        expanded = (
++            [[port[0], values] for port, values in zip(interface.sensors, compact[1])],
++            [[interface.surfaces[c[0]][0], *c[1:]] for c in compact[2]],
++        )
++        labeled = local_trial_evidence(after.native.self_feedback)
++        self.assertEqual(expanded, labeled)
++        self.assertNotIn('"guala/', pending["pre_key"])  # no repeated anatomy strings
++        self.assertNotIn('"other"', pending["pre_key"])
++        labeled_bytes = len(json.dumps(labeled, separators=(",", ":")).encode())
++        compact_bytes = len(json.dumps(compact, separators=(",", ":")).encode())
++        self.assertLess(compact_bytes, labeled_bytes)
++        print(dict(measured_trial_sample_bytes=compact_bytes,
++            labeled_trial_sample_bytes=labeled_bytes,
++            sample_pre_post_bytes_at_moment_capacity=2*compact_bytes*MOMENT_RECORD_CAPACITY,
++            sample_pre_post_bytes_at_meaning_capacity=2*compact_bytes*MEANING_CAPACITY,
++            footprint_scope="this measured sample only; not a worst-contact byte bound"), flush=True)
++        self.assertEqual(len(organism._body_interface.motors), 64)
++        self.assertEqual(sum(s[4] for s in organism._body_interface.sensors), 228)
++        print(dict(ordinary_body_interval_s=elapsed,
++            body_streams=len(organism._body_interface.channels),
++            total_streams=len(organism._stream_names), organism_bytes=len(body_bytes),
++            world_bytes=len(world_bytes), peak_rss_kib=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss),
++            flush=True)
++
++    def test_actual_sensor_roster_zero_efforts_and_no_root_candidates(self):
++        organism, world = pair()
++        sensed = sensed_from(world)
++        decision = organism.decide(sensed)
++        interface = organism._body_interface
++        self.assertEqual(len(interface.effort_options(250000)), 192)
++        options = interface.effort_options(250000)
++        self.assertEqual(len(set(o[0] for o in options)), len(options))
++        for name, joint, unit, low, high in interface.motors:
++            values = {o[2][0].updates[0][1] for o in options if o[2][0].updates[0][0] == name}
++            self.assertEqual(values, {low, 0., high})
++        self.assertTrue(decision.act.startswith("effort:"))
++        self.assertEqual(len(decision.commands), 1)
++        self.assertEqual(len(decision.commands[0].updates), 1)
++        self.assertFalse(any(o[0] in ("step", "toward_door", "grasp", "release") for o in options))
++
++    def test_missing_stale_and_changed_anatomy_are_not_zero_senses(self):
++        organism, world = pair()
++        before = organism.encoded()
++        with self.assertRaises(ValueError):
++            organism.decide(sensed_from(world, feedback=False))
++        self.assertEqual(organism.encoded(), before)
++        sensed = sensed_from(world)
++        with self.assertRaises(ValueError):
++            organism.decide(replace(sensed, body_feedback=replace(sensed.body_feedback, time_s=99.)))
++        self.assertEqual(organism.encoded(), before)
++        organism.decide(sensed)
++        bound = organism.encoded()
++        interface = sensed.body_interface
++        sensor = interface.sensors[0]
++        changed = replace(interface, sensors=((sensor[0]+"-different", *sensor[1:]), *interface.sensors[1:]))
++        with self.assertRaises(ValueError):
++            organism.decide(replace(sensed, body_interface=changed))
++        self.assertEqual(organism.encoded(), bound)
++
++    def test_historical_keys_survive_anatomical_admission_and_restart(self):
++        # Controlled codec fixture ONLY, not claimed as an experienced action.
++        organism, world = pair()
++        regimes = "_" * len(STREAMS)
++        key = choice_key(regimes)
++        organism._state["acts"][key] = {"acts": {"step": [1, .25]}, "tick": 99, "visits": 1, "regimes": regimes}
++        organism._state["familiarity"][key] = [1, 99]
++        prior = copy.deepcopy(organism._state["acts"])
++        organism._bind_body_interface(sensed_from(world))
++        organism.migrate()
++        self.assertEqual(organism._state["acts"], prior)
++        self.assertEqual(choice_key(regimes, organism._body_interface), key)
++        self.assertEqual(coarse_key(regimes, organism._body_interface), coarse_key(regimes))
++        encoded = organism.encoded()
++        cold = FunctionalOrganism.restore(encoded)
++        self.assertEqual(cold.encoded(), encoded)
++        self.assertEqual(cold._state["acts"], prior)
++        extended = "_" * len(organism._stream_names)
++        self.assertNotEqual(choice_key(extended, organism._body_interface), key)
++        # Reference the original key expression as a bounded test oracle only.
++        # The corrected runtime must emit identical namespace and hash bytes.
++        streams = organism._stream_names
++        varied = "".join("DSM_"[i % 4] for i in range(len(streams)))
++        old_letters = "".join(varied[streams.index(name)]
++                              for name in CHOICE_STREAMS + organism._body_interface.channels
++                              if name in streams)
++        old_encoded = organism._body_interface.namespace + ":" + " ".join(old_letters)
++        self.assertEqual(choice_key(varied, organism._body_interface),
++                         hashlib.sha256(old_encoded.encode()).hexdigest()[:16])
++        shifted = extended[:-1] + "D"
++        self.assertNotEqual(choice_key(extended, organism._body_interface),
++                            choice_key(shifted, organism._body_interface))
++
++    def test_actual_floor_load_is_signed_body_input_not_social_comfort(self):
++        engine = NativeBody(model_xml(floor=True), LIMITS, sensory_root="guala/pelvis")
++        initial = engine.initial_state()
++        actual = engine.advance(initial, (0.,)*64, 50000, 0).observation.self_feedback
++        self.assertTrue(actual.contacts)
++        measured = engine.body_interface.measure(actual)
++        offset = 2 * sum(s[4] for s in engine.body_interface.sensors)
++        contact_channels = engine.body_interface.channels[offset:]
++        self.assertTrue(any(measured[name] > 0 for name in contact_channels))
++        self.assertNotIn("skin_contact", measured)
++        for port, (name, values) in zip(engine.body_interface.sensors, actual.sensors):
++            self.assertEqual(name, port[0])
++            self.assertEqual(len(values), port[4])
++
++
++    def test_nonfinite_derived_contact_moment_is_refused_not_zeroed(self):
++        engine = NativeBody(model_xml(floor=True), LIMITS, sensory_root="guala/pelvis")
++        actual = engine.advance(engine.initial_state(), (0.,)*64, 50000, 0).observation.self_feedback
++        self.assertTrue(actual.contacts)
++        # Controlled numerical falsifier, not a physically observed huge load.
++        # Every input is finite; r cross f would contain inf-minus-inf.
++        contact = replace(actual.contacts[0], position_m=(1e308,)*3,
++                          force_n=(1e308,)*3, couple_nm=(0.,)*3)
++        with self.assertRaisesRegex(ValueError, "contact moment overflow"):
++            engine.body_interface.measure(replace(actual, contacts=(contact,)))
++
++    def test_refused_new_effort_keeps_actual_work_without_executed_trial(self):
++        organism, world = pair()
++        FunctionalPhysicalLoop().settle(organism, world, UNATTENDED)
++        before = world.observation_snapshot()
++        decision = organism.decide(sensed_from(world))
++        self.assertTrue(decision.act.startswith("effort:"))
++        rejected_tick = organism.live_organism_tick
++        # Controlled actuator-boundary fault only. Real decision, world,
++        # mechanics, energy debit, commit and successor sensing are unchanged.
++        rejected = replace(decision, commands=(
++            AnatomicalEffortCommand((("unmounted-test-actuator", 0.),), 250000),))
++        basal = organism.prepare_body_energy(positive_motor_work_j=0., intake_micrograms=0)
++        prepared, applied, refusal, refused = _apply(world, rejected, before,
++            motor_supply=(organism.available_motor_work_j, basal.basal_nanojoules))
++        self.assertEqual(applied, "body")
++        self.assertIsNotNone(refusal)
++        self.assertEqual(refusal, refused[-1])
++        self.assertGreater(prepared.native_work.positive_motor_work_j, 0.)
++        self.assertEqual(prepared.execution_receipt.elapsed_nanoseconds, 250000000)
++        energy = organism.prepare_body_energy(
++            positive_motor_work_j=prepared.native_work.positive_motor_work_j, intake_micrograms=0)
++        with world.prepared_action_visibility_transaction(prepared):
++            organism.commit(rejected, applied_action=applied, refusal=refusal,
++                intake_micrograms=0, spoke=None, heard_profile=None, self_profile=None,
++                tick_now=rejected_tick, body_energy=energy)
++            world.commit_prepared_action(prepared)
++        self.assertEqual(organism.reserve_energy_nanojoules,
++                         energy.before_nanojoules-energy.basal_nanojoules-energy.work_nanojoules)
++        after = world.observation_snapshot()
++        ports = organism._body_interface.sensors
++        for port, old, new in zip(ports, before.native.self_feedback.sensors, after.native.self_feedback.sensors):
++            if port[1] == "actuator_force":
++                self.assertEqual(old, new)  # unchanged real settings continue
++        pending = organism._state["pending_transition"]
++        self.assertEqual(pending["applied_action"], "body")
++        self.assertEqual(pending["refusal"], refusal)
++        self.assertTrue(organism._state["pending_act"]["refused"])
++        world.thermal_observation()
++        organism.decide(sensed_from(world))
++        self.assertNotIn(f"motor:{rejected_tick}", organism._state["moments"])
++
++    def test_full_mature_window_work_and_storage_are_measured_not_assumed(self):
++        organism, world = pair()
++        organism.decide(sensed_from(world))
++        # Resource-only steady-input probe using measurements from real native
++        # physics, not an invented learning history or evidence of cognition.
++        for window in organism._state["streams"].values():
++            window[:] = [window[-1]] * KERNEL_WINDOW
++        start = time.perf_counter()
++        signature, count = organism._kernel()
++        elapsed = time.perf_counter()-start
++        self.assertEqual(len(signature.split()), len(organism._stream_names))
++        self.assertGreater(count, 0)
++        self.assertTrue(all(len(w) == KERNEL_WINDOW for w in organism._state["streams"].values()))
++        print(dict(full_body_kernel_64_samples_s=elapsed, streams=len(organism._stream_names),
++            organism_bytes=len(organism.encoded()), gates=count,
++            meets_250ms_for_kernel_only=elapsed <= .25,
++            peak_rss_kib=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss), flush=True)
++
++
++if __name__ == "__main__":
++    unittest.main()

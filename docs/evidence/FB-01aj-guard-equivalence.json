@@ -1,0 +1,32 @@
+{
+  "scope": "Local exact body safety-check execution; not acceptance of active-load solver variants or production delivery",
+  "baseline": "c2c7f219a89a3759db3007f456a6acee44d68621",
+  "review_fingerprint": "61dc3ee39232a2256d4c6a85cd329a8fcdbd26f91d8f333a31ce07f501b1d8f4",
+  "source_sha256": "210996faa48c0508b952d58c3e815a616053544d71691f10334d2057820431c4",
+  "test_sha256": "a8b15259bdeaf7e1d4742df2c8214a94a9ac4701cb15db404ef6e84d27b1e060",
+  "focused": {
+    "session": 22682,
+    "exit": 0,
+    "tests": 5,
+    "seconds": 14.512,
+    "array_seconds": 2.9372303480340634,
+    "scalar_seconds": 9.696179850958288,
+    "loads": 8,
+    "peak_rss_kib": 139492,
+    "checks": "128 refused endpoints same refusal,time,scratch; actual recurrent contact/cold continuation; guard boundaries/precedence/NaN bounds; eight admitted full successors/work/residual byte-exact"
+  },
+  "regressions": {
+    "session": 99971,
+    "exit": 0,
+    "tests": 53,
+    "seconds": 2.068,
+    "modules": [
+      "test_functional_body_native",
+      "test_functional_body_anatomy",
+      "test_functional_body_world"
+    ]
+  },
+  "health_before": "{\"utc\": \"2026-09-26T09:21:48.774365+00:00\", \"service\": {\"counts\": [1, 1, 0], \"taskDefinition\": \"arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1553\", \"tasks\": [{\"arn\": \"arn:aws:ecs:us-east-1:418384447921:task/tfe-web-cluster/ec20ff084de54d48afab9a113647fa46\", \"status\": \"RUNNING\", \"health\": \"HEALTHY\", \"digests\": [\"sha256:1d088eaaf195931a315e45c7ed456d4bb028210655e52eacad27e4445161612d\"]}]}, \"alarms\": [{\"name\": \"guala-clock-stalled\", \"state\": \"ALARM\"}, {\"name\": \"guala-cpu-runaway\", \"state\": \"OK\"}, {\"name\": \"guala-efs-storage-runaway\", \"state\": \"OK\"}, {\"name\": \"guala-interval-refusal-loop\", \"state\": \"OK\"}, {\"name\": \"guala-memory-runaway\", \"state\": \"OK\"}], \"cpu\": [{\"Timestamp\": \"2026-09-26T09:20:00+00:00\", \"Average\": 51.30265820026398, \"Maximum\": 51.76511606574059, \"Unit\": \"Percent\"}], \"memory\": [{\"Timestamp\": \"2026-09-26T09:20:00+00:00\", \"Average\": 2.99072265625, \"Maximum\": 2.99072265625, \"Unit\": \"Percent\"}], \"observation\": {\"available\": true, \"identity\": \"1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1\", \"live_tick\": 2370985, \"persisted_tick\": 2370953, \"checkpoint_error\": null, \"cleanup_error\": null, \"durability_blocked\": false}}\n 4174  4172  4172       00:02  3.9 22636 python3 -\n35747   831 35747    09:07:35  0.6 37460 python3 guala_caretaker/caretaker.py\n",
+  "health_after": "{\"utc\": \"2026-09-26T09:23:25.909383+00:00\", \"service\": {\"counts\": [1, 1, 0], \"taskDefinition\": \"arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1553\", \"tasks\": [{\"arn\": \"arn:aws:ecs:us-east-1:418384447921:task/tfe-web-cluster/ec20ff084de54d48afab9a113647fa46\", \"status\": \"RUNNING\", \"health\": \"HEALTHY\", \"digests\": [\"sha256:1d088eaaf195931a315e45c7ed456d4bb028210655e52eacad27e4445161612d\"]}]}, \"alarms\": [{\"name\": \"guala-clock-stalled\", \"state\": \"ALARM\"}, {\"name\": \"guala-cpu-runaway\", \"state\": \"OK\"}, {\"name\": \"guala-efs-storage-runaway\", \"state\": \"OK\"}, {\"name\": \"guala-interval-refusal-loop\", \"state\": \"OK\"}, {\"name\": \"guala-memory-runaway\", \"state\": \"OK\"}], \"cpu\": [{\"Timestamp\": \"2026-09-26T09:21:00+00:00\", \"Average\": 50.90013173222542, \"Maximum\": 51.81126779317856, \"Unit\": \"Percent\"}], \"memory\": [{\"Timestamp\": \"2026-09-26T09:21:00+00:00\", \"Average\": 2.99072265625, \"Maximum\": 2.99072265625, \"Unit\": \"Percent\"}], \"observation\": {\"available\": true, \"identity\": \"1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1\", \"live_tick\": 2371206, \"persisted_tick\": 2371177, \"checkpoint_error\": null, \"cleanup_error\": null, \"durability_blocked\": false}}\n 4726  4721  4721       00:02  3.1 23016 python3 -\n35747   831 35747    09:09:12  0.6 37460 python3 guala_caretaker/caretaker.py\n",
+  "open": "Ordinary body integration, full active-load/gravity/contact/energy numerical qualification, copied-body restart and resource proof, release rehearsal and production. Remote push permission not granted."
+}
