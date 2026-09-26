@@ -7,7 +7,8 @@ Verifies that:
 5. AUT-ORAL-01: Oral contact distinguishes sensory tastants from declared digestible material and conserves mass.
 6. AUT-ORAL-02: Unsuccessful bite suppression survives refused releases and suppresses unchanged caregiver offers.
 7. AUT-ORAL-03: Zero-intake bite sample records episode suppression without marking the whole object currently_depleted.
-8. AUT-ORAL-04: Matched-control twin verification demonstrates causal memory-directed pursuit of recognized food.
+8. AUT-ORAL-04: Frozen matched-control and ablation verification demonstrates causal memory-directed pursuit and trajectory divergence.
+9. AUT-ORAL-05: World material migration preserves depleted digestible nutrient mass across save and fresh restore without refill.
 """
 from __future__ import annotations
 
@@ -437,16 +438,20 @@ def test_zero_sample_does_not_declare_whole_source_depleted():
 
 def test_matched_control_memory_verification():
     """AUT-ORAL-04: Matched-control and ablation memory verification:
-    1. Phase 1: Twin A acquires nutritional recognition for 'tested-nourishment' through
-       ordinary sensorimotor grasp and oral contact (intake > 0) with zero manual injection.
-    2. Phase 2: Twin A and Twin B (matched unconditioned control) are placed in identical worlds
-       with identical object 'tested-nourishment' placed at 1200 mm (distal).
-       Twin A pursues the recognized food ('toward_food'); Twin B does not ('toward_thing').
-    3. Phase 3: In an ablated clone of Twin A where only the retained memory entry is removed,
-       the food-seeking pursuit is abolished, proving causal necessity."""
+    1. Phase 1: Organism acquires nutritional recognition for 'tested-nourishment' through
+       ordinary sensorimotor grasp and oral contact (intake > 0) with zero manual dictionary injection.
+    2. Phase 2: Trained organism state and canonical evaluation world are frozen before either comparison arm.
+       Two identical pairs are restored from the exact same world snapshot and identical initial body state.
+       Only the specific retained association in conserved_objects is removed from the ablated arm.
+       Predecessor state equality is explicitly verified across all other state fields before execution.
+    3. Phase 3: Identical sensory occurrences yield divergent behavioral trajectories and physical root motion.
+       Intact arm targets recognized food ('toward_food') with food stop margin;
+       Ablated arm treats object as non-food ('toward_thing') and diverges in trajectory (step 2 root motion).
+    Note: Target recognition uses administrative object_id in conserved_objects; this verifies causal
+    classification and path selection under matched conditions, not cross-view visual invariance."""
     loop = FunctionalPhysicalLoop()
 
-    # Phase 1: Authentic sensorimotor conditioning of Twin A (no dictionary injection)
+    # Phase 1: Authentic sensorimotor conditioning (no dictionary injection)
     world_cond = home_world_authority(identity=IDENTITY)
     snap_cond = world_cond.observation_snapshot()
     apple = next(item for item in snap_cond.objects if item.object_id == "apple")
@@ -463,91 +468,127 @@ def test_matched_control_memory_verification():
     )
     world_cond.admit_authored_arrival(food_cond)
 
-    twin_a = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
-    twin_a._state["reserve_micrograms"] = int(CAPACITY_MICROGRAMS * 0.3)
-    twin_a._state["feeding"] = True
+    twin_trained = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
+    twin_trained._state["reserve_micrograms"] = int(CAPACITY_MICROGRAMS * 0.3)
+    twin_trained._state["feeding"] = True
 
     # Beat 1: Ordinary grasp
-    r0 = loop.settle(twin_a, world_cond, UNATTENDED)
+    r0 = loop.settle(twin_trained, world_cond, UNATTENDED)
     assert r0.observation["requested_world_action"] == "grasp"
     assert _her(world_cond).held_object_id == "tested-nourishment"
 
     # Beat 2: Ordinary bite yielding genuine nutritional mass intake
-    r1 = loop.settle(twin_a, world_cond, UNATTENDED)
+    r1 = loop.settle(twin_trained, world_cond, UNATTENDED)
     assert r1.observation["her_act"] == "bite"
     assert r1.observation["real_nutrition_intake_zeptojoules"] > 0
 
-    entry_a = twin_a._state["conserved_objects"]["tested-nourishment"]
-    assert entry_a["fed_count"] == 1
-    assert entry_a["historical_intake_micrograms"] > 0
-    assert entry_a["is_food"] is True
+    entry_trained = twin_trained._state["conserved_objects"]["tested-nourishment"]
+    assert entry_trained["fed_count"] == 1
+    assert entry_trained["historical_intake_micrograms"] > 0
+    assert entry_trained["is_food"] is True
 
-    # Phase 2: Matched-control evaluation in identical sensory environments
-    world_a = home_world_authority(identity=IDENTITY)
-    world_b = home_world_authority(identity=IDENTITY)
-    body_a = _her(world_a)
-    body_b = _her(world_b)
+    # Freeze trained organism state
+    frozen_body_state = copy.deepcopy(twin_trained._state)
 
-    food_test_a = EmbodiedObject(
+    # Setup single canonical evaluation world and freeze it before either comparison arm
+    base_eval_world = home_world_authority(identity=IDENTITY)
+    body_eval = _her(base_eval_world)
+    distal_food = EmbodiedObject(
         "tested-nourishment",
         apple.radius_mm,
         apple.mass_grams,
-        PositionMM(body_a.pose.position.x + 1200, body_a.pose.position.y, 0),
+        PositionMM(body_eval.pose.position.x + 800, body_eval.pose.position.y, 0),
         held_by_body_id=None,
         reflectance_ppm=apple.reflectance_ppm,
         material=apple.material,
     )
-    food_test_b = EmbodiedObject(
-        "tested-nourishment",
-        apple.radius_mm,
-        apple.mass_grams,
-        PositionMM(body_b.pose.position.x + 1200, body_b.pose.position.y, 0),
-        held_by_body_id=None,
-        reflectance_ppm=apple.reflectance_ppm,
-        material=apple.material,
-    )
-    world_a.admit_authored_arrival(food_test_a)
-    world_b.admit_authored_arrival(food_test_b)
+    base_eval_world.admit_authored_arrival(distal_food)
+    frozen_world_bytes = bytes(base_eval_world.encoded_snapshot())
 
-    # Twin B is unconditioned genesis twin at matching tick and reserves
-    twin_b = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=twin_a.live_organism_tick)
-    twin_b._state["reserve_micrograms"] = twin_a.reserve_micrograms
-    twin_b._state["feeding"] = True
+    # Phase 2: Restore two strictly identical pairs
+    w_intact = home_world_authority(identity=IDENTITY, encoded_world=frozen_world_bytes)
+    w_ablated = home_world_authority(identity=IDENTITY, encoded_world=frozen_world_bytes)
+    assert bytes(w_intact.encoded_snapshot()) == bytes(w_ablated.encoded_snapshot())
 
-    res_a = loop.settle(twin_a, world_a, UNATTENDED)
-    res_b = loop.settle(twin_b, world_b, UNATTENDED)
+    twin_intact = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=twin_trained.live_organism_tick)
+    twin_intact._state = copy.deepcopy(frozen_body_state)
 
-    # Twin A recognizes food from lived intake and pursues it
-    assert res_a.observation["her_act"] == "toward_food"
-    assert res_a.observation["requested_world_action"] == "toward_food"
-    assert "tested-nourishment" in res_a.observation["act_reason"]
-
-    # Twin B lacks nutritional history for the object and does not pursue it as food
-    assert res_b.observation["her_act"] != "toward_food"
-    assert res_b.observation["requested_world_action"] != "toward_food"
-
-    entry_b = twin_b._state.get("conserved_objects", {}).get("tested-nourishment", {})
-    assert entry_b.get("is_food", False) is False
-    assert entry_b.get("fed_count", 0) == 0
-    assert entry_b.get("historical_intake_micrograms", 0) == 0
-
-    # Phase 3: Controlled ablation of Twin A's memory abolishes food pursuit
-    world_ablated = home_world_authority(identity=IDENTITY)
-    body_abl = _her(world_ablated)
-    food_test_abl = EmbodiedObject(
-        "tested-nourishment",
-        apple.radius_mm,
-        apple.mass_grams,
-        PositionMM(body_abl.pose.position.x + 1200, body_abl.pose.position.y, 0),
-        held_by_body_id=None,
-        reflectance_ppm=apple.reflectance_ppm,
-        material=apple.material,
-    )
-    world_ablated.admit_authored_arrival(food_test_abl)
-
-    twin_ablated = copy.deepcopy(twin_a)
+    twin_ablated = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=twin_trained.live_organism_tick)
+    twin_ablated._state = copy.deepcopy(frozen_body_state)
+    # Controlled ablation: remove ONLY the food association for tested-nourishment
     twin_ablated._state["conserved_objects"].pop("tested-nourishment", None)
-    res_abl = loop.settle(twin_ablated, world_ablated, UNATTENDED)
 
-    assert res_abl.observation["her_act"] != "toward_food"
-    assert res_abl.observation["requested_world_action"] != "toward_food"
+    # Invariant Verification: all other predecessor state is 100% identical before execution
+    for key in twin_intact._state:
+        if key != "conserved_objects":
+            assert twin_intact._state[key] == twin_ablated._state[key], f"Predecessor mismatch on state key {key}"
+
+    # Phase 3: Execute step 0 comparison
+    res_i0 = loop.settle(twin_intact, w_intact, UNATTENDED)
+    res_a0 = loop.settle(twin_ablated, w_ablated, UNATTENDED)
+
+    # Intact organism classifies and pursues object as recognized food
+    assert res_i0.observation["her_act"] == "toward_food"
+    assert res_i0.observation["requested_world_action"] == "toward_food"
+    assert "tested-nourishment" in res_i0.observation["act_reason"]
+
+    # Ablated organism lacks nutritional history and treats object as generic thing
+    assert res_a0.observation["her_act"] == "toward_thing"
+    assert res_a0.observation["requested_world_action"] == "toward_thing"
+
+    # Continue trajectory across sequential beats to verify physical divergence
+    _res_i1 = loop.settle(twin_intact, w_intact, UNATTENDED)
+    _res_a1 = loop.settle(twin_ablated, w_ablated, UNATTENDED)
+    res_i2 = loop.settle(twin_intact, w_intact, UNATTENDED)
+    res_a2 = loop.settle(twin_ablated, w_ablated, UNATTENDED)
+
+    # Step 2: Physical trajectory diverges in movement direction and motor actuation
+    assert res_i2.observation["her_act"] != res_a2.observation["her_act"]
+    assert res_i2.observation["actual_root_motion"] != res_a2.observation["actual_root_motion"]
+
+
+def test_material_migration_preserves_depleted_digestible_mass_across_restore():
+    """AUT-ORAL-05: World material migration hook preserves depleted digestible nutrient mass
+    across save and fresh restore without refilling from declared genesis values or raising ValueError."""
+    world = home_world_authority(identity=IDENTITY)
+    snap = world.observation_snapshot()
+    apple = next(item for item in snap.objects if item.object_id == "apple")
+    initial_digestible = apple.material.digestible_mass_micrograms
+    assert initial_digestible > 0
+
+    body = _her(world)
+    world.admit_authored_departure("apple")
+    bitten_apple = type(apple)(
+        "apple", apple.radius_mm, apple.mass_grams,
+        PositionMM(body.pose.position.x + 350, body.pose.position.y, 0),
+        None, apple.reflectance_ppm, apple.material,
+    )
+    world.admit_authored_arrival(bitten_apple)
+
+    org = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
+    org._state["reserve_micrograms"] = int(CAPACITY_MICROGRAMS * 0.3)
+    org._state["feeding"] = True
+
+    loop = FunctionalPhysicalLoop()
+    # Beat 1: Grasp
+    loop.settle(org, world, UNATTENDED)
+    # Beat 2: Bite and consume mass
+    loop.settle(org, world, UNATTENDED)
+
+    apple_after = next(item for item in world.observation_snapshot().objects if item.object_id == "apple")
+    depleted_mass = apple_after.material.digestible_mass_micrograms
+    assert depleted_mass < initial_digestible, "Digestible mass was not debited by bite!"
+
+    # Save/encode snapshot to bytes
+    encoded = bytes(world.encoded_snapshot())
+
+    # Fresh restore
+    restored_world = home_world_authority(identity=IDENTITY, encoded_world=encoded)
+    # Execute material migration hook
+    migrated_changed = restored_world.migrate_declared_material_transport()
+    assert migrated_changed is False, "Migration unexpectedly altered already mounted material anatomy!"
+
+    restored_apple = next(item for item in restored_world.observation_snapshot().objects if item.object_id == "apple")
+    assert restored_apple.material.digestible_mass_micrograms == depleted_mass, (
+        f"Lived depleted mass {depleted_mass} was refilled or altered to {restored_apple.material.digestible_mass_micrograms}!"
+    )

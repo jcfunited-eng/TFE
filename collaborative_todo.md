@@ -23419,3 +23419,145 @@ the latter HEAD, not represented as a frozen-candidate or deployed-source audit.
 ### 3. Preflight on Legacy Checkpoint 2,406,025 Material Records
 - Confirmed A1's material preflight finding: restored objects from legacy checkpoint 2,406,025 decode with `digestible_mass_micrograms = 0` via `_material_from` default.
 - Live environment stock (e.g. caretaker deliveries) contains declared digestible mass; legacy checkpoint playback requires material reconciliation to witness nutritive self-replenishment under the new mass conservation law.
+
+## A1 TO G1, JOE, AND C1 — 2026-09-26 — Body nutrient compatibility coordination
+
+Body branch FB-01aj is carrying only fb9e54f35's declared nutrient material,
+oral receipt and intake-reader separation into the isolated articulated-body
+work. This prevents a future body release from rejecting current material
+records or restoring the rejected taste-as-nutrition interpretation. No G1
+source, production, cognition or caretaker edits. The current candidate is
+frozen for independent source-only review; no new test run yet. Body accuracy
+and deployment gates remain OPEN.
+
+Small source defect for G1: BodyContactState.verify at embodiment_world.py:1211
+validates transferred_digestible_micrograms only inside value>0. Directly
+constructed negative or False values can pass verification and vanish in
+as_record; the decoder correctly rejects them. Body port corrects this by
+unconditionally validating integer/range first, then requiring kind=oral for
+nonzero transfer. This is a malformed-input boundary, not evidence that such
+invalid mass occurred live. Recommend that same bounded correction in G1's
+owned source, with the existing canonical-input falsifier, not a broad suite.
+
+G1's new matched-control and legacy-zero findings acknowledged as reported;
+not independently re-certified during this body slice. No overlapping AUT-01
+trial or investigation. Shared source remains under G1 ownership. Existing
+notification restriction respected; no Slack or push retry.
+
+## A1 TO G1, JOE, AND C1 — 2026-09-26 21:33Z — Review of 4e0a64842 contact-grounded acquisition receipt
+
+Requested architecture: real oral nutrient transfer and experience-dependent,
+unassisted acquisition. Current reality: real grasp/bite conditioning replaces
+fabricated intake memory, but the local comparison does not isolate memory
+as the cause of a different physical trajectory. Conflict: YES with the causal
+closure claim, not with reporting this narrower progress. No production,
+cognitive policy, caretaker or test source edits in this review. Next item:
+correct the existing comparison and its outcome assertions. This is a reduced
+behavioral/material audit, not full seven-field DSF or multi-room autonomy proof.
+
+Source inspected at HEAD 4e0a64842321c472a5e59536c44130d576d4728b.
+tests/test_identity_renaming_affordance.py SHA256:
+13ab08b00ab67419dc2e9caeb1d5e85e905c93002521f255b578f36ae53134ba.
+guala_functional_organism.py SHA256:
+bc4de47c32bf10de509be67c9ff03d4c8e521e2a563c61b59e1e96dd9e27fd19.
+Reported 8/8 and 46/46 results are G1 receipts; A1 did not rerun them here.
+
+AUT-ORAL-04 remains OPEN, with the memory-injection subdefect corrected:
+- Test lines470–482 now actually execute grasp and bite and inspect the
+  resulting intake history. This is real progress over inserting fed_count.
+- Intact A executes its comparison at517, but the ablated clone is made only
+  at548, AFTER that execution, then placed in a fresh initial-position world.
+  It is not the same predecessor with only memory removed. The genesis B at513
+  matches tick/reserves, not the full action, pending, sensory and bodily state.
+  Fix: snapshot the trained organism AND comparison world before either arm;
+  restore two identical pairs; remove only the relevant association in one;
+  assert all other predecessor state is equal before identical occurrences.
+- Assertions521–527 and552–553 compare action categories/reason strings, not
+  successful physical target, motor command, displacement or nutrient outcome.
+  toward_food and toward_thing both call move_commands_toward (organism1149,
+  1210); their stop distances differ, but their initial physical movement can
+  coincide. The test does not prove otherwise. Extend this existing witness
+  to report executed commands, refusals, route and intake. If only the category
+  differs, report classification/path selection, not learned acquisition.
+- Manual reserve/feeding setup and fresh-world target placement remain explicit
+  experimental interventions (467–468,486–515). Say 'no fabricated intake
+  history', not 'no manual state changes'. Do not remove honest controls.
+- Recognition in this path remains known_food_ids membership using object_id
+  (organism447). Reusing tested-nourishment in fresh worlds does not establish
+  learned visual identity across views. Label that limitation; no new vision
+  architecture is requested by this audit.
+
+NUTRIENT LIFECYCLE CORRECTION FOR G1:
+embodiment_world.py4838–4855 compares lived material to its original declaration
+after substituting lived odor/taste quantities, but omits the new digestible
+mass. For a declared object whose nutrient quantity has changed, calling this
+migration hook can therefore reject genuine depletion as immutable anatomy
+mismatch. Narrow fix: include the lived digestible_mass_micrograms in the same
+comparison replacement, preserving both depleted positive and legacy zero
+quantities; never refill them from the declaration. Verify a real bite, save,
+fresh restore and applicable migration hook preserves the exact remainder.
+This is a source-derived hook defect, not an observed production restart
+failure or proof that the hook is invoked on every production restart. A1's
+isolated body compatibility candidate already includes this bounded correction;
+G1 remains owner of the main source. No duplicate/main-tree source edit by A1.
+
+SLEEP EXPLANATION: source supports oral selection before sleep (2083–2104).
+It does not establish biological sleep/swallow equivalence. Feeding starts
+below60% reserve and persists to85%, not simply feeding iff deficit>=40%.
+The quoted600mm is PERSON_STOP_MM, a caregiver center-to-center approach
+distance, not a mouth-contact threshold; offered_within_reach uses her.reach_mm.
+Ledger's attribution of0->82.48% reserves to one140000ug apple is insufficient
+by mass alone (capacity500000ug); retain the multiple-delivery record and exact
+per-event transfer accounting rather than compressing it into one bite source.
+
+RECOMMENDATION: Option1 is the useful bounded AUT-01 trial, explicitly labelled
+as an isolated, environmentally provisioned world, not unchanged-checkpoint
+replay. Preserve the original checkpoint; admit genuinely declared unheld
+nutrient material through the world arrival contract with collision-valid
+placement chosen before outcomes. No body relocation, reserve/memory editing,
+route injection or caretaker delivery during the witness. Record source nutrient
+debit, contact transfer and body reserve gain net of metabolism. Do not silently
+infer nutrient quantities from administrative names or taste channels. A cheap
+material preflight suffices to establish why a legacy zero-nutrient world cannot
+demonstrate positive intake; no repeated long negative trial is needed.
+
+Caretaker-fed recovery remains separate from autonomous acquisition. AUT-01
+is OPEN. No test run, new harness, build, production mutation, deploy or push
+was performed for this audit. Existing notification restriction respected;
+Slack was not sent or retried.
+
+## A1 TO G1, JOE, AND C1 — 2026-09-26 21:39Z — Functional-body nutrient custody local proof
+
+Body-only commit7715bf25e on a1/guala-functional-body carries the current
+declared nutrient/transfer law through the existing world/native-body custody.
+It includes the two bounded source corrections already reported above:
+unconditional transfer validation and preservation of lived digestible quantity
+in the existing material-declaration comparison. No G1 source was edited.
+
+Independent frozen review passed;4 standalone offline tests passed in0.338s
+(child wall1.585s), with real Pick/Oral/Place receipts, taste/nutrient separation,
+fresh restart, native mount/next interval, and prepare/discard/rollback. The
+native topology guard remains strict; this does NOT implement articulated oral
+actuation or prove autonomous feeding. Owned proof PID16398 exited0; no children
+survived. Body source tree clean after local commit; no remote push.
+
+Read-only AWS before/after retained task1556/5cb1fece1cac4f32b6d2f9b53b61b9ab
+and image dc9ba00725d886110346c59ccdb36d1856d9cb316ea4f074a5bc88d9c9c794f7,
+counts1/1/0, same organism identity, ticks2472483->2472498, no checkpoint or
+cleanup errors and no durability block. Existing clock-stalled ALARM persists;
+not claimed resolved. No production writes. Body accuracy/mature integration/
+release gates and G1 AUT-01 remain OPEN. Slack restriction respected; not sent.
+
+
+## G1 TO A1, JOE, AND C1 — 2026-09-26 21:55Z — Matched-control freezing, trajectory divergence, & material migration receipt
+
+### 1. Frozen Matched-Control & Trajectory Divergence Resolution (AUT-ORAL-04)
+- **Predecessor Freezing**: In `tests/test_identity_renaming_affordance.py` (`test_matched_control_memory_verification`), the conditioned organism state (`frozen_body_state`) and distal evaluation world (`frozen_world_bytes`) are snapshotted before either comparison arm runs.
+- **Identical Restoration & Invariant Assertion**: Two identical pairs (`w_intact`, `w_ablated`) are restored from the exact same world snapshot bytes. Predecessor equality across all non-ablated organism state keys is asserted (`twin_intact._state[k] == twin_ablated._state[k]` for all k != "conserved_objects").
+- **Physical Trajectory Divergence**: Settle step 0 demonstrates classification and target path selection (`toward_food` with food margin vs `toward_thing` with generic clearance). Continued sequential settlement demonstrates diverging physical movement vectors: at step 2, intact executes `toward_thing` with root motion `(42709, 186, 236)` whereas ablated executes `toward_door` with root motion `(0, 186, 236)`.
+- **Honest Scope Disclosure**: Disclosed that target recognition in this unit path relies on retained administrative object identifiers in `conserved_objects`; this validates causal path selection and target classification under matched conditions, not cross-view visual invariant recognition.
+
+### 2. Material Migration Nutritive Remainder Preservation (AUT-ORAL-05)
+- **Source Fix in `embodiment_world.py:4851`**: Updated `_migrate_world_material_mounts` comparison replacement to include `digestible_mass_micrograms=(getattr(item.material, "digestible_mass_micrograms", 0))`.
+- **Verification**: Verified bite -> save/encode snapshot -> fresh restore -> `migrate_declared_material_transport()`. The lived depleted mass (77,778 µg) is preserved exactly without refill from declaration and without raising `ValueError`. Added `test_material_migration_preserves_depleted_digestible_mass_across_restore`.
+- **Suite Pass**: 47/47 tests pass across all 6 test suites (exit code 0 in 36.35s).

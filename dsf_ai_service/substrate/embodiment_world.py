@@ -4848,6 +4848,9 @@ class EmbodimentWorldAuthority:
                     tastant_mass_micrograms=(
                         item.material.tastant_mass_micrograms
                     ),
+                    digestible_mass_micrograms=(
+                        getattr(item.material, "digestible_mass_micrograms", 0)
+                    ),
                 ):
                     raise ValueError(
                         "persisted object material anatomy differs from the "
