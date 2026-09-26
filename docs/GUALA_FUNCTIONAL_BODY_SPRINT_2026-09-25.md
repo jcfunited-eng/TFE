@@ -7800,3 +7800,275 @@ memory2.648926%; clock-stalled ALARM persists, other four alarms OK.
 No live write, deploy, feeding, restart or cognitive source mutation.
 Joe reiterated no overengineering: reuse the existing diagnostic and narrow
 failed seam; no new subsystem, framework or scope expansion. Goal remains active.
+
+### FB-01aj midpoint correction contract — 2026-09-26
+
+Continue the same contact-accuracy defect, not a new body/cognition project.
+The existing endpoint mj_forward recomputes physical force and accelerometers;
+the failing convergence is not stale sensor transport. First-order integration
+is the current source cause. No new material constants, anatomy or tolerances.
+
+Owner A1; authorized delta: coupled_step.patch, interval.pyx, native adapter
+engine/ABI identity, and one bounded offline equation/accuracy witness. Builder
+continues using the existing pinned upstream plus the same two patch files.
+No changes to G1 source or production. Preserve archived first-order evidence.
+
+One midpoint law: vm=v0+h*a/2; qm=IntegratePos(q0,vm,h/2); rebuild native
+position/contact/inertia/reference/velocity/actuation at that same stage.
+Retain the actual physical smooth force and evaluate the native constraint law
+at jar=Jm*a-arefm. Accept ONLY if norm(Mm*a-Fphysical-Jm.T*lambda) divided by
+meaninertia*max(1,nv) meets the existing positive finite native tolerance.
+The native Newton small-cost-improvement exit is not outer convergence.
+If not converged, use the existing shifted Newton operator with shift=h*B/2
+and smooth RHS corrected by B*(vm-v0) to propose the next acceleration.
+This yields the physical equation Mm*a=Fnonbearing-B*vm+Jm.T*lambda at
+convergence. No extra contact solver or contact law. Zero constraints means
+zero constraint force. Nonfinite stage/residual or opt.iterations exhaustion
+refuses. Outer and inner bounds multiply; record cost rather than claiming
+the predecessor's work count. Second order in smooth regimes is not a
+discontinuity or continuum-error certificate.
+
+On convergence retain matching midpoint forces, restore q0/v0/time0, and
+advance once with accepted a and explicit vm. mj_step and mj_step1/mj_step2
+must use the same law; direct split implicitfast remains rejected. A new engine
+version and compiled interval ABI reject old integration envelopes/old heat
+accounting; there is no implicit live migration. State bytes remain caller-owned.
+Errors may leave native scratch invalid; NativeBody publishes no successor,
+and its next call restores authenticated predecessor bytes. No warmstart or
+extra persistent state is added. Endpoint observation remains mj_forward.
+
+Constant-effort signed work is h*tau.vm. Bearing loss is h*vm.T*B*vm, not
+the old trapezoidal endpoint loss (which adds h*delta_v.T*B*delta_v/4).
+Positive/braking motor work retains endpoint split accounting as a separately
+declared supply bound; no extra thermal energy is invented from quadrature.
+Joint stops/soft contacts still have unresolved energetic exchange, reported
+explicitly rather than called tissue heat. Existing native geometry/supply
+guards and cold body/world transaction boundaries are unchanged.
+
+Independent source/math review confirmed the residual and midpoint equations;
+no executable change was reviewed or run yet. Freeze one implementation,
+source-only review, one localized correction batch, then bounded native build
+and analytical equation/caller/refusal proof. Only after that passes, reuse
+the existing per-channel accuracy observer on the common impact. Whole250ms,
+gravity, mature-world and production qualification remain OPEN. Do not run
+broad tests or repeat the closed first-order diagnostic.
+
+Read-only lookup mistakes this slice: nonexistent functional_body_model.py,
+guala_body_discrete_work.py, native/functional_body/build_interval.py, and
+worktree scripts directory were queried. Correct existing builder is build.py;
+skill scripts require their actual skill directory. No execution/state damage.
+An attempted whole sprint-ledger read exceeded its output budget; discarded,
+using the already-known tail rather than rereading a large closed history.
+These are tooling mistakes, not physics failures; verify paths before access.
+
+### FB-01aj rejected candidate and exact heat-boundary correction
+
+Frozen129369969b2066c6569a039e4a826d8639c286037235f605330317527c3ad3a8
+was ARCHITECTURALLY REJECTED before any compile/test. Native stage, residual,
+step1/step2 and scratch custody review found no additional defect. The contract
+incorrectly treated motor_braking_work_j as a conservative supply quadrature:
+thermally_coupled_embodiment_world.prepare_port_command already deposits this
+field together with self_bearing_dissipation_j as native internal heat. At a
+within-step power sign reversal, the old endpoint split overstates midpoint
+braking and would feed extra heat. This is a missed existing consumer, not a
+reason to invent a second heat authority or loosen conservation.
+
+Rejected diff (including new proof) retained once as
+docs/evidence/FB-01aj-midpoint-rejected.patch. All three executable source files
+restored exactly to ce83797a3; new proof removed, recoverable in that diff.
+No native build or test was run on the rejected candidate.
+
+Corrected contract supersedes ONLY the prior positive/braking paragraph:
+for each actuator p_mid=tau*(v0+v1)/2, signed work=h*sum(p_mid), positive
+work=h*sum(max(p_mid,0)), braking loss=h*sum(max(-p_mid,0)). All work and
+bearing loss use the same midpoint quadrature as the discrete motion. This is
+body numerical approximation, not a certified integral across unresolved
+continuous sign changes. Existing per-work accuracy limits still apply.
+The existing reserve and thermal callers remain unchanged: positive work debits
+supply; measured self-bearing plus measured braking enters the heat receipt,
+with the existing single bounded nanojoule rounding. Neither diagnostic bounds
+nor error estimates enter heat, reserve or cognition. Add one sign-reversal
+control and verify the existing mounted heat-receipt boundary before claiming
+this closure. Retain the approved source residual/caller contract unchanged.
+
+Additional read-only path mistakes: deploy and functional_body_world.py do not
+exist in this tree; actual world/heat callers are embodiment_world.py and
+thermally_coupled_embodiment_world.py. Existing ABI1/predecessor equivalence
+tests explicitly target the former numerical law; they are not passing evidence
+for ABI2. Do not launch that heavy suite to rediscover known law differences.
+
+Corrected8e39741012408b810ffaa6d6c0f770a1edf8b466fd7b88d778beb124b9af7d12
+source review found the work/heat architecture sound. Two LOCALIZED findings
+batched before any build: the single-joint calorimetry fixture needed its
+physical self-surface name for the existing sensory-membership guard; the
+MechanicalSuccessor comment still called the new work rule trapezoidal.
+Named the actual surface and corrected the comment. No other native-law edit,
+new guard, constraint relaxation or fixture bypass. Final frozen confirmation
+precedes one bounded build and focused equation/caller/heat proof.
+
+### FB-01aj first native build and profiling-boundary refusal
+
+Final source review c06830bf2bd313ba2b26606d28b6170b9aa5141e9afc34c75879143c9d0bf298
+PASSED. Build succeeded in62.315s; interval compilation2.286s. The focused
+proof then refused on its first scalar call, before body advancement. Exact
+cause: upstream Python MjDataWrapper installs mjcb_time=GetTime automatically
+(structs_wrappers.cc:568-574). The new native callback prohibition incorrectly
+classified that ordinary profiling clock as a force/control callback. Python's
+existing no-user-callback guard correctly reports no installed user callback.
+
+One localized platform-boundary correction: remove only mjcb_time from the
+native physical-callback prohibition. Do not clear or override the installed
+clock. All force, actuation, sensory and contact callbacks remain refused;
+Python's user-callback prohibition remains untouched. Numerical equations,
+models, tolerances, heat, persistence and proof assertions remain unchanged.
+Reuse the fresh compiled build and recompile only the changed native object;
+do not clone/rebuild all dependencies or launch another test suite.
+
+Receipt retained docs/evidence/FB-01aj-midpoint-equations.json. Session97785,
+owned PID62133, exit1,66.827wall seconds, no survivor. Build directory
+/tmp/guala-body-midpoint.igj32n8c. Failed native library SHA
+b7f9b4a5bd9dddf881bf3d8e66dbd21c2724004f1d6ff7fc976fb6fb84f77c61;
+compiled ABI2 SHAa137418386a8288ac9e99324f0f7176674d14c0eb4b66d47ddc4104e589f2caf.
+Pre/post AWS22:48:21Z->22:49:31Z retained task1556, counts1/1/0,
+same organism and image; ticks2485829->2486054, no checkpoint/cleanup error,
+no durability block. CPU~51.2%, RAM2.65%; existing clock-stalled ALARM remains.
+No production write. Build preflight also located the already-installed Cython
+at /tmp/guala-body-interval.Hdyavt/build-deps after rejecting two wrong paths;
+no dependency reinstall or compilation occurred before that correction.
+
+
+### FB-01aj actual outer contact-cycle cause and bounded globalization
+
+Previous goal turn classified PROGRESS: new compilation/refusal evidence and
+the requested AUT-01 audit changed the next action; no body test was running
+during that audit. Continue FB-01aj, not upstream cognition or food finding.
+
+Timer-only corrected candidate63763f7d built successfully in30.522s but its
+first dense/no-island negative-force scalar control refused convergence.
+Session70956/PID68583 terminated, no survivor. Retained immutable receipt
+FB-01aj-midpoint-equations-timer-corrected.json; native SHA
+92a3437b373d0d1107b277a93a8357d1441db4705fe4d32df961bc929743d566.
+No later control/body/heat case ran; no equation-pass claim.
+
+One source-reviewed scalar scratch diagnostic(session70251/PID77087) now
+isolates the cause, retained in FB-01aj-midpoint-stall.json. No build, model
+change, tolerance change or second physical interval. Inner shifted residual
+1.0520552e-16 is below1e-10; the reconstructed actual midpoint residual is
+149.9464473. The previous inner-small-improvement hypothesis is falsified in
+this case. The native frozen-stage proposal crosses q_mid=0, alternately
+creating/removing the joint-limit row and changing its reference force.
+Last stage a=(-1,0,.999995,.0248125,-.5248099); proposal
+(.049625,-1.0496197,.999995,-.5,0). Both accurately solve their respective
+frozen subproblems, not the complete stage equation. Initial q/v/time/warmstart
+restore is byte-exact on refusal. Diagnostic5.16ms, whole child.533s,
+143864KiB peak, no survivor. Do not rerun this diagnostic to rediscover it.
+
+Read-only AWS23:09:09Z->23:09:12Z retained task1556, one healthy running task,
+same image/identity, ticks2489810->2489819, checkpoint/cleanup null,
+durability false. CPU51.49%avg/52.02%max, RAM2.648926%; existing clock-stalled
+ALARM remains. No live write. A resumed read used a guessed nonexistent
+PRECURSOR_SPRINT filename; actual ledger resolved from git status. Future
+reads use this exact tracked path; no new parallel ledger was created.
+
+Correction is confined to the numerical iteration of the already-ratified
+midpoint equation. Source reviewer independently recommends deterministic
+residual backtracking, not altered contact physics or another contact solver:
+retain accepted acceleration and its actual residual; compute the existing
+shifted native Newton proposal; try its direction at alpha1,1/2,1/4,...,
+rebuilding complete geometry/contact/inertia/reference/force every time.
+Accept a numerical iterate only on strict actual-residual decrease or existing
+tolerance satisfaction. ONLY tolerance satisfaction permits mj_advance.
+Binary subdivision is numerical search, not physical damping or a fitted
+coefficient. No residual, diagnostic bound or rejected stage becomes heat.
+
+Use existing opt.iterations for proposal count and opt.ls_iterations for
+backtracking count. The corrected bound is1+iterations*ls_iterations physical
+stage evaluations, plus at most iterations native Newton proposals (each
+already bounded by iterations per reached island). Retain no extra persistent
+state: two temporary nv-vectors hold trial/direction. Nonfinite values,
+unrepresentable motion, no improving trial or exhausted bounds refuse with no
+successor. This is not a universal convergence proof; no descent means explicit
+failure, never relaxed acceptance or fallback dynamics.
+
+Authorized delta: existing coupled_step.patch numerical loop and its existing
+equation proof (invalid line-search bound and truthful work-count metadata).
+Same midpoint work/thermal law, caller paths, numerical limits, body anatomy,
+engine/ABI candidate identity, integration schema, DSF and cognition unchanged.
+Existing small analytical controls, split/cold/refusal and heat-custody witness
+remain the exit proof; run them once after frozen source review. Only after
+they pass may the original per-channel impact accuracy test advance.
+Full250ms, gravity, mature-world and production qualification remain OPEN.
+
+### FB-01aj midpoint equation proof passed; unchanged impact acceptance next
+
+Frozen a659d78cea99dd52d4b6c6aaa66a2e14268077f4c172fda195e910d0f45b3f8e
+passed independent source-only review. Incremental native build and focused
+proof completed in session37991/PID83929, exit0,31.708wall seconds, no survivor.
+Eight analytical controls, four refusal cases, fresh cold continuation and
+work/heat reversal passed. Proof itself1.091166s; aggregate build/proof child
+CPU59.056309s (two parallel compiler processes, not a45s aggregate claim);
+peak150724KiB. Evidence: FB-01aj-midpoint-equations-backtracking.json.
+Native SHAde96a1766223905d26b1df0e68ce7bc97608cf2c6238acef8dcf8b344a3fd48f.
+ABI2 SHAa137418386a8288ac9e99324f0f7176674d14c0eb4b66d47ddc4104e589f2caf.
+Body signed work.0002480251495884925J; bearing2.3448356969093268e-7J;
+unresolved exchange5.355779288632913e-11J. Reversal heat0nJ is actual
+midpoint braking, not the rejected endpoint positive-work bound. State5152
+bytes, fresh thermal/world continuation exact; old-law restore refused.
+
+Read-only AWS23:19:39Z->23:20:15Z: task1556 unchanged, counts1/1/0,
+same identity, ticks2491849->2491966, checkpoint/cleanup null, durabilityfalse.
+CPU~51.12%, RAM2.66%. Existing clock-stalled ALARM remains; not resolved here.
+No production writes. Duplicate Delete/Add apply_patch was refused without
+writes; full-file Update hunk succeeded. Do not repeat duplicate target patches.
+A resumed rg included guessed guala_body_coupled_motion.py (absent); actual
+motion capture is motion_prefix in guala_body_coupled_step.py. No rerun needed.
+
+Next is the ORIGINAL2ms two-contact accuracy comparison, same anatomical model,
+material law and ratified per-channel limits. Extend only the existing offline
+event-resolution observer with a midpoint mode. A separately pinned accepted
+first-order process regenerates the archived20ms predecessor once (800steps),
+checks archived pose/rate, and transports raw integration bytes through a
+bounded pipe. Candidate verifies the FULL existing predecessor hash
+1724754864379da92fea0d65cdee9798f4116ba413ca04e7f9c739804aa60ee1,
+unchanged XMLhash and retained supply. No serialized runtime-header rewriting;
+this is an explicitly cross-law numerical initial-condition comparison, not
+cold migration or live body replacement.
+
+Reuse four existing resolutions1.5625/.78125/.390625/.1953125us and one finest
+repeat. Native midpoint version/ABI and source/library hashes are required.
+Do not require new-law successors to match the rejected first-order trajectory;
+archive matching remains unchanged in the old mode. Every accuracy ceiling,
+contact-point correspondence rule, sample/work path and event bracket stays
+unchanged. Capture failures too; first refusal terminates this batch. No broad
+suite, rebuild, new material parameter or runtime timestep policy. Per-process
+CPU60s,1GiB address-space,2CPU affinity,90s wall; retain exact handles and
+post-run census plus read-only AWS envelope. Native numerical iterations remain
+bounded by the already-reviewed current solver. Scope remains local numerical
+resolution evidence; full250ms/gravity/mature/production are still OPEN.
+
+### FB-01aj midpoint local impact comparison PASSED (not global closure)
+
+Frozen observer274b334afa09183f101223eb3ca9c3bb186ff5e7f34718fa13f407ccdfb92651
+passed independent source-only review. Session85741 completed exit0, with
+old-input producerPID92000 (800steps,.809532CPU/1.15135wall seconds) and
+candidatePID92010 (29829native calls,12.286127CPU/12.29226wall seconds),
+no survivors. Evidence FB-01aj-midpoint-impact-accuracy.json preserves exact
+old input, both native identities, all channels and pre/post read-only AWS.
+No rebuild. All three paired-resolution comparisons pass all ratified local
+limits; finest fresh repeat is exact. At.390625 vs.1953125us, worst tactile
+force disagreement.000702853N vs.749928N allowed (old first-order1.680884N
+failed); left-foot specific-force disagreement.000252662m/s2 vs.169868m/s2
+allowed (old.565863 failed). These are numerical-resolution disagreements,
+not continuum error enclosures. Other position/rate/work/impulse/onset limits
+passed. Separate couple-impulse requirement remains unqualified as before.
+Full250ms/gravity/load/mature integration/production acceptance remain OPEN.
+
+AWS23:30:32Z->23:30:48Z remained same task1556/image/identity,counts1/1/0;
+ticks2493980->2494032, checkpoint/cleanup null, durabilityfalse; CPU~51.15%,
+RAM2.648926%. Existing clock-stalled ALARM remains. No production writes.
+Other Python processes85505/85641/86277 belonged to G1's main worktree and
+were not signalled. New user receipt6d2fdea61 interrupted after this bounded
+proof launched. Completed the source-only AUT34 review and recorded it in
+shared ledger23:34Z; no further body test/build started during that audit.
+Next body exit item is the existing longer load/release/gravity accuracy and
+bounded cost qualification, not repetition of the now-passing local impact.

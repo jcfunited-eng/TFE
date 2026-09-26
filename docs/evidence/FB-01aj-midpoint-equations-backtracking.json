@@ -1,0 +1,177 @@
+{
+  "candidate_fingerprint": "a659d78cea99dd52d4b6c6aaa66a2e14268077f4c172fda195e910d0f45b3f8e",
+  "command_events": [
+    "BUILD_ROOT /tmp/guala-body-midpoint.igj32n8c",
+    "COMMAND_RESULT {\"command\": [\"/tmp/guala-body-native.pnUH8P/lib/python3.11/site-packages/cmake/data/bin/cmake\", \"--build\", \"/tmp/guala-body-midpoint.igj32n8c/build\"], \"exit\": 0, \"seconds\": 30.56911804599804, \"stderr_tail\": \"\"}",
+    "PROOF_STDERR "
+  ],
+  "execution": {
+    "exit": 0,
+    "owned_pid": 83929,
+    "survivors": [],
+    "timed_out": false,
+    "wall_seconds": 31.70827660500072
+  },
+  "production_post": {
+    "alarms": [
+      {
+        "name": "guala-clock-stalled",
+        "state": "ALARM"
+      },
+      {
+        "name": "guala-cpu-runaway",
+        "state": "OK"
+      },
+      {
+        "name": "guala-efs-storage-runaway",
+        "state": "OK"
+      },
+      {
+        "name": "guala-interval-refusal-loop",
+        "state": "OK"
+      },
+      {
+        "name": "guala-memory-runaway",
+        "state": "OK"
+      }
+    ],
+    "cpu": [
+      {
+        "Average": 51.12746531764666,
+        "Maximum": 51.61622026562691,
+        "Timestamp": "2026-09-26T23:18:00+00:00",
+        "Unit": "Percent"
+      }
+    ],
+    "memory": [
+      {
+        "Average": 2.6631673177083335,
+        "Maximum": 2.667236328125,
+        "Timestamp": "2026-09-26T23:18:00+00:00",
+        "Unit": "Percent"
+      }
+    ],
+    "observation": {
+      "available": true,
+      "checkpoint_error": null,
+      "cleanup_error": null,
+      "durability_blocked": false,
+      "identity": "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1",
+      "live_tick": 2491966,
+      "persisted_tick": 2491961
+    },
+    "service": {
+      "counts": [
+        1,
+        1,
+        0
+      ],
+      "taskDefinition": "arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1556",
+      "tasks": [
+        {
+          "arn": "arn:aws:ecs:us-east-1:418384447921:task/tfe-web-cluster/5cb1fece1cac4f32b6d2f9b53b61b9ab",
+          "digests": [
+            "sha256:dc9ba00725d886110346c59ccdb36d1856d9cb316ea4f074a5bc88d9c9c794f7"
+          ],
+          "health": "HEALTHY",
+          "status": "RUNNING"
+        }
+      ]
+    },
+    "utc": "2026-09-26T23:20:15.069257+00:00"
+  },
+  "production_pre": {
+    "alarms": [
+      {
+        "name": "guala-clock-stalled",
+        "state": "ALARM"
+      },
+      {
+        "name": "guala-cpu-runaway",
+        "state": "OK"
+      },
+      {
+        "name": "guala-efs-storage-runaway",
+        "state": "OK"
+      },
+      {
+        "name": "guala-interval-refusal-loop",
+        "state": "OK"
+      },
+      {
+        "name": "guala-memory-runaway",
+        "state": "OK"
+      }
+    ],
+    "cpu": [
+      {
+        "Average": 51.11925785740217,
+        "Maximum": 51.58588418364525,
+        "Timestamp": "2026-09-26T23:17:00+00:00",
+        "Unit": "Percent"
+      }
+    ],
+    "memory": [
+      {
+        "Average": 2.6611328125,
+        "Maximum": 2.6611328125,
+        "Timestamp": "2026-09-26T23:17:00+00:00",
+        "Unit": "Percent"
+      }
+    ],
+    "observation": {
+      "available": true,
+      "checkpoint_error": null,
+      "cleanup_error": null,
+      "durability_blocked": false,
+      "identity": "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1",
+      "live_tick": 2491849,
+      "persisted_tick": 2491833
+    },
+    "service": {
+      "counts": [
+        1,
+        1,
+        0
+      ],
+      "taskDefinition": "arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1556",
+      "tasks": [
+        {
+          "arn": "arn:aws:ecs:us-east-1:418384447921:task/tfe-web-cluster/5cb1fece1cac4f32b6d2f9b53b61b9ab",
+          "digests": [
+            "sha256:dc9ba00725d886110346c59ccdb36d1856d9cb316ea4f074a5bc88d9c9c794f7"
+          ],
+          "health": "HEALTHY",
+          "status": "RUNNING"
+        }
+      ]
+    },
+    "utc": "2026-09-26T23:19:39.784897+00:00"
+  },
+  "result": {
+    "build": {
+      "interval_sha256": "a137418386a8288ac9e99324f0f7176674d14c0eb4b66d47ddc4104e589f2caf",
+      "library": "/tmp/guala-body-midpoint.igj32n8c/build/lib/libmujoco.so.3.3.7",
+      "library_sha256": "de96a1766223905d26b1df0e68ce7bc97608cf2c6238acef8dcf8b344a3fd48f",
+      "source_sha256": {
+        "engine_core_constraint.c": "12fca84a4ed798e67bc68956c07de4bb79281d67e7ad642757c01eba22743037",
+        "engine_forward.c": "fb9ce9c54043111a3c36c38bacfd35e691e218c5eb29a8261316f66b6698362e",
+        "engine_solver.c": "4bd6b8d5e86b9782c7b0e52fd459771ef7c50c5421d2b960a0afe1e84c1f9c10",
+        "engine_solver.h": "ba34e8922b4ad8633c92f0ad1a9d5cc6596dc26e8097bd6379a47f957a19c793",
+        "engine_support.c": "af0635acec54000c345e1c728f644045995fc9ae172e8fe1c08a09e115c878ae"
+      }
+    },
+    "proof": {
+      "payload_zlib_base64": "eNrtWNlym0gU/RWKxwliel+UX5i3PE6lqAYaGRvRGkB2NCn/+5xGi+MtlpOJZx5ckl3Q9HLuPeceNf01LUO9S5df09K7oe1XxbqtN6Htp6IL41hcpkuWcyEMl8oqSyxnyvgF0VnauLbzdTFuN5tuVwy+Ctd+GNPlNGw9ng5+vCiq0NWF/+Kq6di+DrXvivHCManSZeqU9Nox4Q3nTipfa0NKamgtS1NVQmorKeG+rEqqS84krSyhlSyJZoSWTKZZGpfo3A0QNNvR18eFxnbVA946TGEobsJwFWMhOSGECUMwk7DSGGGZRN/JTb4od5MHfkklQ9O2qvw4YuwJqymJsJ7UdSlrKVXTKE1dzRqibGNLVTWM26ZmpBZeE1l6WTXCk9JRdK20ZsC67ZGW0F37mJXqwvUrH2HJnEuptWXGKM4s5X5B6W2WVqGfhtAB1J9fUwdAnR/c1IYeDYs5FqTHUEuRJGIVFTRDs7WWCE6NVJwTxUQ2N1kryRx8vMz2o4WWoFRqiZgjt7EZzyXDLTNUSST5c5Y6MNwCchOGyqfLBc1OajmKROaKGmu11pRTRphGBCoG8JD/GBJuT4wsZG4FZ1xTxRELoXGkyNJ27FxfI/LGdSPGXboqlK1D5Gnt+9EjmVdt76e2irPQnCIwA3UyBs1YiUlIlvZI1rUvpnbth6JyXVdAfJOL+aQZwUeI+CUZ5aeb+19E34dh7br27yimY23UvvExJpkTI5QwFrKFDPRMXJZuLnZji/UKIBym1hXbfk/2SZ2DRxL2RO4Jk5xqxTVmg/oOLCgIlBFijDTqcxzT+MH3kYIH7BNNKQWXD9nniqgz2If4pNGP6VeG8M+xOvyG3WfxyF7MO8ZapoTVNOo3Jv42e6RWmiPd898jMCSX8dFjnT0hMxbxWR2HU6Nxfa7M4tqv1lRcYA+Vx0tzpqgYPpDU4er0eUFKM8JXCeeBJM5K8Xe51HfJZfgvnuHyCedBAT/hPD9jPD9mO+oHbYfOSvrWdvbDXuc6wryl7RijqTBKScr1z9uOEfLddn6x7ZynqXfXOdd1sCN97DrUvr3tyB+0HeypX9ztjBs3vGg8b7nfkVxrqRVBFpX6aeORjIt343nz/c7Tqnq3nvM3PE+9ap2549HWMP0fb3m0EvSlLc851vOmb1pIINdKEYF8/xtbnodvWlpZLt6d51dued6N51njwaAL76YinlwVg4+naa6LR3OYYgukg698G4+O5l6968Nl2HbxyArxlIO7ivzdo8F/2SDiZ0Y8e0J3zNcm3CDvN4dTM+jecqsI40oqzQ1SGMZ2Jugbjd7ro+3+pHDwl3sYvj9MfURbhm1f7+XGhODGEqZRUoLBm4jM0msyr66FocwqLQ1FLXFMeU1haPEJ6lIRG4/yYElW3gK/+zJAw1dtCUQivpVBDv5mCv1huQ2i2gwB8JHUeLNXK3qTKIzjk7vOkcrD0/mQ0R1O5CoHJS/TdjpU3whZ+2EIAxqPWfyEscukCttN5+skHrYmx0cJCGhrMJvUbZ30YUK3Hqyv/EfcJacTyDTKubi7nXmKlX9Yv4OER5RvdfHq9f/atgCRNG2PIJKqC9VVlhwqIkFOTogg/GROyPgSmilEM4qF8j8AM8Lmpm+BXBbtGm1VO326ah9iAQy/2lN5BwdDIv9JGI6X9PfDBXt6+Vj81YVfOyy4Ar0ub2AucVbXLeJC+THoBRaZl1vctBNIHHPoOo4Om4j+jwCDSo59siRaIEwhSzySstolcH5kYUIhzekB2skNUxL6bvcxOfhy7LQdXLWbu0Dc9bY6BLh2bZ9se0zftQ1+DfK4tMe4aNz4feJEWkE4dE8ksUbN5+Qr/6gwUpp8SMJmyu8KIfltbujG4l5xREubHTXlOc/1h312TtmI0+U0vf0HI2BPrg==",
+      "raw_bytes": 6293,
+      "raw_sha256": "e5d2e5a76c17b2574c5cc08736f9688400fda193fbeef2deca6e95779152c4c0"
+    },
+    "proof_seconds": 1.091166146012256,
+    "resources": {
+      "cpu_seconds": 59.056309000000006,
+      "maxrss_kib": 150724
+    }
+  },
+  "schema": "guala.functional-body.midpoint-build-equation-receipt.v1",
+  "stderr_tail": ""
+}

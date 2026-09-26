@@ -1,7 +1,7 @@
 """Body-only numerical mechanics. No behavior controller or cognitive authority.
 
 MuJoCo 3.3.7 with closed hinge/slide limits and the versioned coupled Newton
-bearing/constraint step is the sole motion/contact solver. Its soft law and finite sampling are approved body-only
+midpoint bearing/constraint step is the sole motion/contact solver. Its soft law and finite sampling are approved body-only
 approximations, not exact skin thermodynamics. Caller integration bytes own state.
 Only direct, unit-gear, effort-limited hinge/slide motors are admitted.
 """
@@ -16,7 +16,7 @@ import mujoco as mj
 import numpy as np
 
 
-ENGINE_VERSION = "3.3.7+guala.coupled-step.1"
+ENGINE_VERSION = "3.3.7+guala.midpoint-step.1"
 STATE_KIND = mj.mjtState.mjSTATE_INTEGRATION
 _CALLBACK_GETTERS = (
     mj.get_mjcb_control, mj.get_mjcb_passive, mj.get_mjcb_contactfilter,
@@ -144,7 +144,7 @@ class MechanicalObservation:
 class MechanicalSuccessor:
     state: bytes
     observation: MechanicalObservation
-    # Trapezoidal power quadrature, not exact metabolic consumption.
+    # Midpoint power quadrature, not exact metabolic consumption.
     positive_motor_work_j: float
     signed_motor_work_j: float
     max_surface_travel_m: float
@@ -176,7 +176,7 @@ class NativeBody:
         _no_callbacks()
         # Body-only compiled execution; never a fallback solver or state owner.
         from guala_body_interval import INTERVAL_ABI, advance_interval
-        if INTERVAL_ABI != 1:
+        if INTERVAL_ABI != 2:
             raise ValueError("unverified body interval ABI")
         self._advance_interval = advance_interval
         root = ET.fromstring(xml)

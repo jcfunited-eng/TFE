@@ -380,16 +380,48 @@ def accuracy_comparison(engine, left, right):
                 scope="2ms common-predecessor resolution comparison; not continuum error, full250ms accuracy, full tactile history or production qualification")
 
 
-def accuracy_main():
-    assert mj.__version__ == mj.mj_versionString() == VERSION
-    engine, before, supply, model_sha = read_control()
+def midpoint_control():
+    """Authenticated old-law physical input only; NOT a runtime migration.
+
+    A separate pinned predecessor process supplies the raw integration array.
+    Its full hash and supply already exist in the immutable matched-impact
+    archive. The candidate never regenerates that input under its new law and
+    never rewrites a persisted NativeBody header.
+    """
+    from dsf_ai_service.substrate.functional_body_native import ENGINE_VERSION
+    assert mj.__version__ == mj.mj_versionString() == ENGINE_VERSION == "3.3.7+guala.midpoint-step.1"
+    reference = archived()
+    text = sys.stdin.read(65537)
+    assert len(text) <= 65536, "bounded predecessor transport exceeded"
+    supplied = json.loads(text)
+    assert supplied["schema"] == "guala.functional-body.raw-impact-predecessor.v1"
+    raw = base64.b64decode(supplied["integration_base64"], validate=True)
+    assert hashlib.sha256(raw).hexdigest() == reference["common_predecessor_sha256"]
+    assert supplied["model_sha256"] == reference["model_sha256"]
+    assert supplied["remaining_supply_j"] == reference["remaining_supply_j"]
+    engine, xml, _ = engine_at(BASE_US)
+    assert hashlib.sha256(xml.encode()).hexdigest() == reference["model_sha256"]
+    assert len(raw) == engine._state_buffer.nbytes
+    before = finite(np.frombuffer(raw, dtype="<f8").copy())
+    restore(engine, before)
+    assert np.array_equal(state_copy(engine), before)
+    return engine, before, reference["remaining_supply_j"], reference["model_sha256"]
+
+
+def accuracy_main(*, midpoint=False):
+    if midpoint:
+        engine, before, supply, model_sha = midpoint_control()
+    else:
+        assert mj.__version__ == mj.mj_versionString() == VERSION
+        engine, before, supply, model_sha = read_control()
     archive = json.loads((OLD.parent/"FB-01aj-event-resolution.json").read_text())["raw_measurement"]
     raw = zlib.decompress(base64.b64decode(archive["payload_zlib_base64"]))
     assert len(raw) == archive["raw_bytes"]
     assert hashlib.sha256(raw).hexdigest() == archive["raw_sha256"] == "a498db53e982ddc8d27a281284e69426be407eeb93b1584982c862f3cf6ede30"
     old = json.loads(raw)["cases"][-1]
     rows, comparisons, prior = [], [], None
-    calls = START_US//BASE_US
+    predecessor_calls = 0 if midpoint else START_US//BASE_US
+    calls = predecessor_calls
     for h_us in (1.5625, .78125, .390625, .1953125):
         sample, row = run(before, supply, h_us, True, trial_class=AccuracyTrial)
         feedback = accuracy_snapshot(engine, sample, h_us)
@@ -398,7 +430,7 @@ def accuracy_main():
                            force_n=list(p.force_n), couple_nm=list(p.couple_nm))
                       for p in feedback.contacts])
         calls += row["native_calls"]
-        if prior is None:
+        if prior is None and not midpoint:
             assert row["h_us"] == old["h_us"]
             for key in old:
                 if key not in ("elapsed_s", "fresh_schedule_repeat_exact", "contacts"):
@@ -424,10 +456,13 @@ def accuracy_main():
         k:v for k,v in rows[-1].items() if k not in ("elapsed_s", "endpoint_self_feedback")}
     assert repeated_feedback == prior[2]
     steps = [int(WINDOW_US/h) for h in (1.5625, .78125, .390625, .1953125, .1953125)]
-    bound = START_US//BASE_US + sum(n+len(PAIRS)*(BITS+3) for n in steps)
+    bound = predecessor_calls + sum(n+len(PAIRS)*(BITS+3) for n in steps)
     assert calls <= bound
     print(json.dumps(encode(dict(schema="guala.functional-body.ratified-accuracy-diagnostic.v1",
-        engine_version=VERSION, model_sha256=model_sha, archived_finest_control_exact=True,
+        engine_version=mj.mj_versionString(), model_sha256=model_sha,
+        archived_finest_control_exact=None if midpoint else True,
+        comparison_mode="midpoint-from-authenticated-old-input" if midpoint else "archived-law",
+        common_predecessor_sha256=hashlib.sha256(before.astype("<f8").tobytes()).hexdigest(),
         finest_fresh_repeat_exact=True, cases=rows, comparisons=comparisons,
         charged_native_calls=calls, native_call_bound=bound,
         maxrss_kib=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss,
@@ -438,10 +473,12 @@ def accuracy_main():
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--accuracy-contract", action="store_true")
+    modes = parser.add_mutually_exclusive_group()
+    modes.add_argument("--accuracy-contract", action="store_true")
+    modes.add_argument("--midpoint-accuracy", action="store_true")
     args = parser.parse_args()
-    if args.accuracy_contract:
-        accuracy_main()
+    if args.accuracy_contract or args.midpoint_accuracy:
+        accuracy_main(midpoint=args.midpoint_accuracy)
         return
     assert mj.__version__ == mj.mj_versionString() == VERSION
     engine,before,supply,model_sha = read_control()

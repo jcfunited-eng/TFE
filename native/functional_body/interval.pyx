@@ -10,7 +10,7 @@ from libc.math cimport isfinite
 import mujoco as mj
 import numpy as np
 
-INTERVAL_ABI = 1
+INTERVAL_ABI = 2
 
 
 def advance_interval(engine, effort, steps, available_work_j):
@@ -22,10 +22,7 @@ def advance_interval(engine, effort, steps, available_work_j):
     cdef double bearing_heat = 0.0
     cdef double self_bearing_heat = 0.0
     cdef double travel_peak = 0.0
-    cdef double sample_peak, dt_half
-    cdef double bearing_before, bearing_after
-    cdef double self_bearing_before = 0.0
-    cdef double self_bearing_after
+    cdef double sample_peak, dt
     cdef bint has_self = engine._sensory_root is not None
 
     m, d = engine._model, engine._data
@@ -38,30 +35,28 @@ def advance_interval(engine, effort, steps, available_work_j):
     motor_dofs = np.asarray(engine._motor_dof, dtype=np.intp)
     self_dofs = engine._self_dofs
     travel_limit = engine.limits.max_surface_travel_m
-    dt_half = m.opt.timestep / 2
-    power_before = effort * qvel[motor_dofs]
-    bearing_before = float(np.dot(damping, qvel**2))
-    if has_self:
-        self_bearing_before = float(np.dot(damping[self_dofs], qvel[self_dofs]**2))
+    dt = m.opt.timestep
 
     for _ in range(steps):
         position, rotation = geometry_position.copy(), geometry_rotation.copy()
+        velocity_before = qvel.copy()
         step(m, d)
         kinematics(m, d)
         collision(m, d)
         check()
-        power_after = effort * qvel[motor_dofs]
-        signed_work += float((power_before + power_after).sum()) * dt_half
-        positive_work += float((np.maximum(power_before, 0)
-                               + np.maximum(power_after, 0)).sum()) * dt_half
-        braking_work += float((np.maximum(-power_before, 0)
-                              + np.maximum(-power_after, 0)).sum()) * dt_half
-        bearing_after = float(np.dot(damping, qvel**2))
-        bearing_heat += (bearing_before + bearing_after) * dt_half
+        velocity_midpoint = (velocity_before + qvel) * 0.5
+        # Supply debit, signed work and braking heat share the motion law's
+        # midpoint quadrature. Conservative endpoint bounds are NOT heat.
+        midpoint_power = effort * velocity_midpoint[motor_dofs]
+        signed_work += float(midpoint_power.sum()) * dt
+        positive_work += float(np.maximum(midpoint_power, 0).sum()) * dt
+        braking_work += float(np.maximum(-midpoint_power, 0).sum()) * dt
+        # Endpoint bearing trapezoids would add h/4 * dv.T * B * dv.
+        # Only the midpoint law's own dissipation is passed to thermal custody.
+        bearing_heat += float(np.dot(damping, velocity_midpoint**2)) * dt
         if has_self:
-            self_bearing_after = float(np.dot(damping[self_dofs], qvel[self_dofs]**2))
-            self_bearing_heat += (self_bearing_before + self_bearing_after) * dt_half
-            self_bearing_before = self_bearing_after
+            self_bearing_heat += float(np.dot(
+                damping[self_dofs], velocity_midpoint[self_dofs]**2)) * dt
         if not (isfinite(positive_work) and isfinite(signed_work)
                 and isfinite(braking_work) and isfinite(bearing_heat)
                 and isfinite(self_bearing_heat)):
@@ -80,6 +75,5 @@ def advance_interval(engine, effort, steps, available_work_j):
             raise ValueError("non-finite surface motion")
         if travel_peak > travel_limit:
             raise ValueError("surface movement exceeds collision sampling resolution")
-        power_before, bearing_before = power_after, bearing_after
     return (positive_work, signed_work, travel_peak, braking_work,
             bearing_heat, self_bearing_heat)

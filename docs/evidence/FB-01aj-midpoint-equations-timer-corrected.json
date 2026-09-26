@@ -1,0 +1,171 @@
+{
+  "candidate_fingerprint": "63763f7dd3734d6f2d2f5a30afce1391fa4bd0d9f2948eaf23edf6774a0cb3d0",
+  "command_events": [
+    "BUILD_ROOT /tmp/guala-body-midpoint.igj32n8c",
+    "COMMAND_RESULT {\"command\": [\"/tmp/guala-body-native.pnUH8P/lib/python3.11/site-packages/cmake/data/bin/cmake\", \"--build\", \"/tmp/guala-body-midpoint.igj32n8c/build\"], \"exit\": 0, \"seconds\": 30.522373215993866, \"stderr_tail\": \"\"}",
+    "PROOF_STDERR Traceback (most recent call last):",
+    "  File \"<string>\", line 4, in <module>",
+    "  File \"<frozen runpy>\", line 291, in run_path",
+    "  File \"<frozen runpy>\", line 98, in _run_module_code",
+    "  File \"<frozen runpy>\", line 88, in _run_code",
+    "  File \"tools/guala_body_midpoint.py\", line 270, in <module>",
+    "    main()",
+    "  File \"tools/guala_body_midpoint.py\", line 257, in main",
+    "    rows = [control(jacobian,islands,force)",
+    "           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+    "  File \"tools/guala_body_midpoint.py\", line 257, in <listcomp>",
+    "    rows = [control(jacobian,islands,force)",
+    "            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+    "  File \"tools/guala_body_midpoint.py\", line 70, in control",
+    "    mj.mj_step(m, d)",
+    "mujoco.FatalError: midpointStep: coupled body midpoint residual did not converge; no successor",
+    "",
+    "PROOF_STDOUT_TAIL "
+  ],
+  "execution": {
+    "exit": 1,
+    "owned_pid": 68583,
+    "survivors": [],
+    "timed_out": false,
+    "wall_seconds": 31.140396572009195
+  },
+  "production_post": {
+    "alarms": [
+      {
+        "name": "guala-clock-stalled",
+        "state": "ALARM"
+      },
+      {
+        "name": "guala-cpu-runaway",
+        "state": "OK"
+      },
+      {
+        "name": "guala-efs-storage-runaway",
+        "state": "OK"
+      },
+      {
+        "name": "guala-interval-refusal-loop",
+        "state": "OK"
+      },
+      {
+        "name": "guala-memory-runaway",
+        "state": "OK"
+      }
+    ],
+    "cpu": [
+      {
+        "Average": 51.16438549757004,
+        "Maximum": 51.61891651153564,
+        "Timestamp": "2026-09-26T22:53:00+00:00",
+        "Unit": "Percent"
+      }
+    ],
+    "memory": [
+      {
+        "Average": 2.64892578125,
+        "Maximum": 2.64892578125,
+        "Timestamp": "2026-09-26T22:53:00+00:00",
+        "Unit": "Percent"
+      }
+    ],
+    "observation": {
+      "available": true,
+      "checkpoint_error": null,
+      "cleanup_error": null,
+      "durability_blocked": false,
+      "identity": "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1",
+      "live_tick": 2487165,
+      "persisted_tick": 2487161
+    },
+    "service": {
+      "counts": [
+        1,
+        1,
+        0
+      ],
+      "taskDefinition": "arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1556",
+      "tasks": [
+        {
+          "arn": "arn:aws:ecs:us-east-1:418384447921:task/tfe-web-cluster/5cb1fece1cac4f32b6d2f9b53b61b9ab",
+          "digests": [
+            "sha256:dc9ba00725d886110346c59ccdb36d1856d9cb316ea4f074a5bc88d9c9c794f7"
+          ],
+          "health": "HEALTHY",
+          "status": "RUNNING"
+        }
+      ]
+    },
+    "utc": "2026-09-26T22:55:18.926710+00:00"
+  },
+  "production_pre": {
+    "alarms": [
+      {
+        "name": "guala-clock-stalled",
+        "state": "ALARM"
+      },
+      {
+        "name": "guala-cpu-runaway",
+        "state": "OK"
+      },
+      {
+        "name": "guala-efs-storage-runaway",
+        "state": "OK"
+      },
+      {
+        "name": "guala-interval-refusal-loop",
+        "state": "OK"
+      },
+      {
+        "name": "guala-memory-runaway",
+        "state": "OK"
+      }
+    ],
+    "cpu": [
+      {
+        "Average": 51.16438549757004,
+        "Maximum": 51.61891651153564,
+        "Timestamp": "2026-09-26T22:53:00+00:00",
+        "Unit": "Percent"
+      }
+    ],
+    "memory": [
+      {
+        "Average": 2.64892578125,
+        "Maximum": 2.64892578125,
+        "Timestamp": "2026-09-26T22:53:00+00:00",
+        "Unit": "Percent"
+      }
+    ],
+    "observation": {
+      "available": true,
+      "checkpoint_error": null,
+      "cleanup_error": null,
+      "durability_blocked": false,
+      "identity": "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1",
+      "live_tick": 2487055,
+      "persisted_tick": 2487033
+    },
+    "service": {
+      "counts": [
+        1,
+        1,
+        0
+      ],
+      "taskDefinition": "arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1556",
+      "tasks": [
+        {
+          "arn": "arn:aws:ecs:us-east-1:418384447921:task/tfe-web-cluster/5cb1fece1cac4f32b6d2f9b53b61b9ab",
+          "digests": [
+            "sha256:dc9ba00725d886110346c59ccdb36d1856d9cb316ea4f074a5bc88d9c9c794f7"
+          ],
+          "health": "HEALTHY",
+          "status": "RUNNING"
+        }
+      ]
+    },
+    "utc": "2026-09-26T22:54:44.513032+00:00"
+  },
+  "result": null,
+  "schema": "guala.functional-body.midpoint-build-equation-receipt.v1",
+  "stderr_tail": "Traceback (most recent call last):\n  File \"<string>\", line 28, in <module>\nRuntimeError: midpoint proof failed, exit 1\n"
+}

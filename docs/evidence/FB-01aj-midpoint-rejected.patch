@@ -1,0 +1,825 @@
+diff --git a/docs/GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md b/docs/GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md
+index 0553e50af..ce3b90283 100644
+--- a/docs/GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md
++++ b/docs/GUALA_FUNCTIONAL_BODY_SPRINT_2026-09-25.md
+@@ -7800,3 +7800,63 @@ memory2.648926%; clock-stalled ALARM persists, other four alarms OK.
+ No live write, deploy, feeding, restart or cognitive source mutation.
+ Joe reiterated no overengineering: reuse the existing diagnostic and narrow
+ failed seam; no new subsystem, framework or scope expansion. Goal remains active.
++
++### FB-01aj midpoint correction contract — 2026-09-26
++
++Continue the same contact-accuracy defect, not a new body/cognition project.
++The existing endpoint mj_forward recomputes physical force and accelerometers;
++the failing convergence is not stale sensor transport. First-order integration
++is the current source cause. No new material constants, anatomy or tolerances.
++
++Owner A1; authorized delta: coupled_step.patch, interval.pyx, native adapter
++engine/ABI identity, and one bounded offline equation/accuracy witness. Builder
++continues using the existing pinned upstream plus the same two patch files.
++No changes to G1 source or production. Preserve archived first-order evidence.
++
++One midpoint law: vm=v0+h*a/2; qm=IntegratePos(q0,vm,h/2); rebuild native
++position/contact/inertia/reference/velocity/actuation at that same stage.
++Retain the actual physical smooth force and evaluate the native constraint law
++at jar=Jm*a-arefm. Accept ONLY if norm(Mm*a-Fphysical-Jm.T*lambda) divided by
++meaninertia*max(1,nv) meets the existing positive finite native tolerance.
++The native Newton small-cost-improvement exit is not outer convergence.
++If not converged, use the existing shifted Newton operator with shift=h*B/2
++and smooth RHS corrected by B*(vm-v0) to propose the next acceleration.
++This yields the physical equation Mm*a=Fnonbearing-B*vm+Jm.T*lambda at
++convergence. No extra contact solver or contact law. Zero constraints means
++zero constraint force. Nonfinite stage/residual or opt.iterations exhaustion
++refuses. Outer and inner bounds multiply; record cost rather than claiming
++the predecessor's work count. Second order in smooth regimes is not a
++discontinuity or continuum-error certificate.
++
++On convergence retain matching midpoint forces, restore q0/v0/time0, and
++advance once with accepted a and explicit vm. mj_step and mj_step1/mj_step2
++must use the same law; direct split implicitfast remains rejected. A new engine
++version and compiled interval ABI reject old integration envelopes/old heat
++accounting; there is no implicit live migration. State bytes remain caller-owned.
++Errors may leave native scratch invalid; NativeBody publishes no successor,
++and its next call restores authenticated predecessor bytes. No warmstart or
++extra persistent state is added. Endpoint observation remains mj_forward.
++
++Constant-effort signed work is h*tau.vm. Bearing loss is h*vm.T*B*vm, not
++the old trapezoidal endpoint loss (which adds h*delta_v.T*B*delta_v/4).
++Positive/braking motor work retains endpoint split accounting as a separately
++declared supply bound; no extra thermal energy is invented from quadrature.
++Joint stops/soft contacts still have unresolved energetic exchange, reported
++explicitly rather than called tissue heat. Existing native geometry/supply
++guards and cold body/world transaction boundaries are unchanged.
++
++Independent source/math review confirmed the residual and midpoint equations;
++no executable change was reviewed or run yet. Freeze one implementation,
++source-only review, one localized correction batch, then bounded native build
++and analytical equation/caller/refusal proof. Only after that passes, reuse
++the existing per-channel accuracy observer on the common impact. Whole250ms,
++gravity, mature-world and production qualification remain OPEN. Do not run
++broad tests or repeat the closed first-order diagnostic.
++
++Read-only lookup mistakes this slice: nonexistent functional_body_model.py,
++guala_body_discrete_work.py, native/functional_body/build_interval.py, and
++worktree scripts directory were queried. Correct existing builder is build.py;
++skill scripts require their actual skill directory. No execution/state damage.
++An attempted whole sprint-ledger read exceeded its output budget; discarded,
++using the already-known tail rather than rereading a large closed history.
++These are tooling mistakes, not physics failures; verify paths before access.
+diff --git a/dsf_ai_service/substrate/functional_body_native.py b/dsf_ai_service/substrate/functional_body_native.py
+index 46ee34d56..11660f013 100644
+--- a/dsf_ai_service/substrate/functional_body_native.py
++++ b/dsf_ai_service/substrate/functional_body_native.py
+@@ -1,7 +1,7 @@
+ """Body-only numerical mechanics. No behavior controller or cognitive authority.
+ 
+ MuJoCo 3.3.7 with closed hinge/slide limits and the versioned coupled Newton
+-bearing/constraint step is the sole motion/contact solver. Its soft law and finite sampling are approved body-only
++midpoint bearing/constraint step is the sole motion/contact solver. Its soft law and finite sampling are approved body-only
+ approximations, not exact skin thermodynamics. Caller integration bytes own state.
+ Only direct, unit-gear, effort-limited hinge/slide motors are admitted.
+ """
+@@ -16,7 +16,7 @@ import mujoco as mj
+ import numpy as np
+ 
+ 
+-ENGINE_VERSION = "3.3.7+guala.coupled-step.1"
++ENGINE_VERSION = "3.3.7+guala.midpoint-step.1"
+ STATE_KIND = mj.mjtState.mjSTATE_INTEGRATION
+ _CALLBACK_GETTERS = (
+     mj.get_mjcb_control, mj.get_mjcb_passive, mj.get_mjcb_contactfilter,
+@@ -176,7 +176,7 @@ class NativeBody:
+         _no_callbacks()
+         # Body-only compiled execution; never a fallback solver or state owner.
+         from guala_body_interval import INTERVAL_ABI, advance_interval
+-        if INTERVAL_ABI != 1:
++        if INTERVAL_ABI != 2:
+             raise ValueError("unverified body interval ABI")
+         self._advance_interval = advance_interval
+         root = ET.fromstring(xml)
+diff --git a/native/functional_body/coupled_step.patch b/native/functional_body/coupled_step.patch
+index 0e8b99a22..55530bd4e 100644
+--- a/native/functional_body/coupled_step.patch
++++ b/native/functional_body/coupled_step.patch
+@@ -1,26 +1,42 @@
+ --- a/src/engine/engine_forward.c
+ +++ b/src/engine/engine_forward.c
+-@@ -547,7 +547,7 @@
++@@ -14,6 +14,7 @@
+  
++ #include "engine/engine_forward.h"
+  
+- // add up all non-constraint forces, compute qacc_smooth
+++#include <math.h>
++ #include <stddef.h>
++ #include <stdio.h>
++ 
++@@ -546,8 +547,8 @@
++ }
++ 
++ 
++-// add up all non-constraint forces, compute qacc_smooth
+ -void mj_fwdAcceleration(const mjModel* m, mjData* d) {
+-+static void fwdAccelerationMetric(const mjModel* m, mjData* d, const mjtNum* shift) {
+++// Physical non-constraint forces, shared by observation and midpoint settlement.
+++static void smoothForce(const mjModel* m, mjData* d) {
+    int nv = m->nv;
+  
+    // qfrc_smooth = sum of all non-constraint forces
+-@@ -556,13 +556,31 @@
++@@ -555,14 +556,38 @@
++   mju_addTo(d->qfrc_smooth, d->qfrc_applied, nv);
+    mju_addTo(d->qfrc_smooth, d->qfrc_actuator, nv);
+    mj_xfrcAccumulate(m, d, d->qfrc_smooth);
+++}
+  
+ -  // qacc_smooth = M \ qfrc_smooth
+ -  mj_solveM(m, d, d->qacc_smooth, d->qfrc_smooth, 1);
+++
+++// Solve the existing physical or shifted inertia operator on the supplied RHS.
+++static void solveAccelerationMetric(const mjModel* m, mjData* d, const mjtNum* shift) {
+++  int nv = m->nv;
+ +  if (!shift) {
+ +    mj_solveM(m, d, d->qacc_smooth, d->qfrc_smooth, 1);
+ +    return;
+ +  }
+ +
+-+  // Step metric H=M+hB; physical M and its factor remain untouched.
+++  // Step metric H=M+hB/2; physical M and its factor remain untouched.
+ +  mju_copy(d->qH, d->M, m->nC);
+ +  for (int i=0; i < nv; i++) {
+ +    d->qH[m->M_rowadr[i] + m->M_rownnz[i] - 1] += shift[i];
+@@ -29,22 +45,23 @@
+ +  mju_copy(d->qacc_smooth, d->qfrc_smooth, nv);
+ +  mj_solveLD(d->qacc_smooth, d->qH, d->qHDiagInv, nv, 1,
+ +             m->M_rownnz, m->M_rowadr, m->M_colind);
+-+}
+-+
+-+
+-+// Instantaneous physical acceleration, never the discrete step metric.
+-+void mj_fwdAcceleration(const mjModel* m, mjData* d) {
+-+  fwdAccelerationMetric(m, d, NULL);
+  }
+  
+  
+++// Instantaneous physical acceleration, never the discrete step metric.
+++void mj_fwdAcceleration(const mjModel* m, mjData* d) {
+++  smoothForce(m, d);
+++  solveAccelerationMetric(m, d, NULL);
+++}
+++
+++
+  // warmstart/init solver
+ -static void warmstart(const mjModel* m, mjData* d) {
+ +static void warmstart(const mjModel* m, mjData* d, const mjtNum* shift) {
+    int nv = m->nv, nefc = d->nefc;
+  
+    // warmstart with best of (qacc_warmstart, qacc_smooth)
+-@@ -607,6 +625,9 @@
++@@ -607,6 +632,9 @@
+        // add Gauss to cost(qacc_warmstart)
+        mjtNum* Ma = mjSTACKALLOC(d, nv, mjtNum);
+        mj_mulM(m, d, Ma, d->qacc_warmstart);
+@@ -54,7 +71,7 @@
+        for (int i=0; i < nv; i++) {
+          cost_warmstart += 0.5*(Ma[i]-d->qfrc_smooth[i])*(d->qacc_warmstart[i]-d->qacc_smooth[i]);
+        }
+-@@ -646,6 +667,7 @@
++@@ -646,6 +674,7 @@
+    const mjModel* m;
+    mjData* d;
+    int island;
+@@ -62,7 +79,7 @@
+  };
+  typedef struct mjSolIslandArgs_ mjSolIslandArgs;
+  
+-@@ -659,12 +681,14 @@
++@@ -659,12 +688,14 @@
+  // extract arguments, pass to Newton solver
+  static void* Newton_wrapper(void* args) {
+    mjSolIslandArgs* solargs = (mjSolIslandArgs*) args;
+@@ -79,7 +96,7 @@
+    mj_markStack(d);
+    // allocate array of arguments to be passed to threads
+    mjSolIslandArgs* sol_island_args = mjSTACKALLOC(d, d->nisland, mjSolIslandArgs);
+-@@ -674,6 +698,7 @@
++@@ -674,6 +705,7 @@
+      sol_island_args[island].m = m;
+      sol_island_args[island].d = d;
+      sol_island_args[island].island = island;
+@@ -87,7 +104,7 @@
+  
+      mju_defaultTask(&tasks[island]);
+      tasks[island].func = flg_Newton ? Newton_wrapper : CG_wrapper;
+-@@ -690,7 +715,7 @@
++@@ -690,7 +722,7 @@
+  
+  
+  // compute efc_b, efc_force, qfrc_constraint; update qacc
+@@ -96,7 +113,7 @@
+    TM_START;
+    int nv = m->nv, nefc = d->nefc, nisland = d->nisland;
+  
+-@@ -710,7 +735,7 @@
++@@ -710,7 +742,7 @@
+    mju_subFrom(d->efc_b, d->efc_aref, nefc);
+  
+    // warmstart solver
+@@ -105,7 +122,7 @@
+    mju_zeroInt(d->solver_niter, mjNISLAND);
+  
+    // check if islands are supported
+-@@ -736,14 +761,14 @@
++@@ -736,14 +768,14 @@
+        // no threadpool, loop over islands
+        for (int island=0; island < nisland; island++) {
+          if (m->opt.solver == mjSOL_NEWTON) {
+@@ -122,7 +139,7 @@
+      }
+  
+  
+-@@ -765,7 +790,7 @@
++@@ -765,7 +797,7 @@
+        break;
+  
+      case mjSOL_NEWTON:                  // Newton
+@@ -131,38 +148,163 @@
+        break;
+  
+      default:
+-@@ -779,6 +804,30 @@
+-   }
++@@ -782,6 +814,12 @@
++ }
++ 
+  
+-   TM_END(mjTIMER_CONSTRAINT);
+-+}
+-+
+-+
+ +// Instantaneous constraint solution retains the physical inertia metric.
+ +void mj_fwdConstraint(const mjModel* m, mjData* d) {
+ +  fwdConstraintMetric(m, d, NULL);
+ +}
+ +
+ +
+-+// Body-only diagonal-bearing implicit step. No extra persistent state or solve.
+-+static void fwdCoupledStep(const mjModel* m, mjData* d) {
++ //-------------------------- integrators  ----------------------------------------------------------
++ 
++ // advance state and time given activation derivatives, acceleration, and optional velocity
++@@ -828,6 +866,142 @@
++   mju_copy(d->qacc_warmstart, d->qacc, m->nv);
++ }
++ 
+++// Finite algebraic quantities only; no new physical tolerance or clipping.
+++static int finiteVector(const mjtNum* values, int count) {
+++  for (int i=0; i < count; i++) {
+++    if (!isfinite(values[i])) return 0;
+++  }
+++  return 1;
+++}
+++
+++
+++// Implicit midpoint in the existing coupled contact/bearing law.
+++// Trial stages are scratch. mj_advance is reached once, only on true residual convergence.
+++static void midpointStep(const mjModel* m, mjData* d) {
+ +  if (m->opt.solver != mjSOL_NEWTON || mjDISABLED(mjDSBL_DAMPER) ||
+ +      m->opt.noslip_iterations || mjENABLED(mjENBL_FWDINV) || m->opt.viscosity || m->opt.density) {
+ +    mjERROR("coupled body step requires Newton, active bearings, zero no-slip/fluid, no forward-inverse comparison");
+ +  }
+++  if (m->na || m->nplugin || m->nmocap || m->nflex ||
+++      mjcb_control || mjcb_passive || mjcb_contactfilter || mjcb_sensor ||
+++      mjcb_act_dyn || mjcb_act_gain || mjcb_act_bias || mjcb_time) {
+++    mjERROR("coupled body midpoint excludes activation, plugins, mocap, flex and callbacks");
+++  }
+ +  for (int i=0; i < m->ntendon; i++) {
+ +    if (m->tendon_damping[i]) mjERROR("coupled body step excludes tendon damping");
+ +  }
+++  int nv = m->nv;
+++  mjtNum h = m->opt.timestep, t0 = d->time;
+++  mjtNum normalization = m->stat.meaninertia * mjMAX(1, nv);
+++  if (!isfinite(h) || h <= 0 || !isfinite(t0) || !isfinite(t0+h) || t0+h <= t0 ||
+++      !isfinite(normalization) || normalization <= 0 || m->opt.iterations <= 0 ||
+++      !isfinite(m->opt.tolerance) || m->opt.tolerance <= 0) {
+++    mjERROR("coupled body midpoint requires finite clock, inertia and convergence bounds");
+++  }
+++
+ +  mj_markStack(d);
+-+  mjtNum* shift = mjSTACKALLOC(d, m->nv, mjtNum);
+-+  for (int i=0; i < m->nv; i++) shift[i] = m->opt.timestep*m->dof_damping[i];
+-+  fwdAccelerationMetric(m, d, shift);
+-+  fwdConstraintMetric(m, d, shift);
+++  mjtNum* q0 = mjSTACKALLOC(d, m->nq, mjtNum);
+++  mjtNum* v0 = mjSTACKALLOC(d, nv, mjtNum);
+++  mjtNum* vm = mjSTACKALLOC(d, nv, mjtNum);
+++  mjtNum* a = mjSTACKALLOC(d, nv, mjtNum);
+++  mjtNum* shift = mjSTACKALLOC(d, nv, mjtNum);
+++  mjtNum* residual = mjSTACKALLOC(d, nv, mjtNum);
+++  mju_copy(q0, d->qpos, m->nq);
+++  mju_copy(v0, d->qvel, nv);
+++  mju_copy(a, d->qacc_warmstart, nv);
+++  for (int i=0; i < nv; i++) shift[i] = 0.5*h*m->dof_damping[i];
+++  int valid = finiteVector(q0, m->nq) && finiteVector(v0, nv) &&
+++              finiteVector(a, nv) && finiteVector(shift, nv);
+++  for (int i=0; i < nv; i++) valid = valid && m->dof_damping[i] >= 0;
+++  int converged = 0;
+++
+++  // At most iterations stages, each with at most iterations inner Newton steps
+++  // per reached island. Native timers count every stage and inner solver call.
+++  for (int iteration=0; valid && iteration < m->opt.iterations; iteration++) {
+++    mju_addScl(vm, v0, a, 0.5*h, nv);
+++    mju_copy(d->qpos, q0, m->nq);
+++    mju_copy(d->qvel, vm, nv);
+++    mj_integratePos(m, d->qpos, vm, 0.5*h);
+++    d->time = t0 + 0.5*h;
+++    if (!finiteVector(d->qpos, m->nq) || !finiteVector(vm, nv)) {
+++      valid = 0;
+++      break;
+++    }
+++
+++    // No skipped geometry, contact, inertia, impedance or velocity cache.
+++    mj_fwdPosition(m, d);
+++    mj_fwdVelocity(m, d);
+++    mj_fwdActuation(m, d);
+++    smoothForce(m, d);
+++    valid = finiteVector(d->M, m->nC) && finiteVector(d->qfrc_smooth, nv) &&
+++            finiteVector(d->efc_J, mj_isSparse(m) ? d->nJ : d->nefc*nv) &&
+++            finiteVector(d->efc_R, d->nefc) && finiteVector(d->efc_D, d->nefc) &&
+++            finiteVector(d->efc_aref, d->nefc);
+++    if (!valid) break;
+++
+++    mju_copy(d->qacc, a, nv);
+++    if (d->nefc) {
+++      mj_markStack(d);
+++      mjtNum* jar = mjSTACKALLOC(d, d->nefc, mjtNum);
+++      mj_mulJacVec(m, d, jar, a);
+++      mju_subFrom(jar, d->efc_aref, d->nefc);
+++      valid = finiteVector(jar, d->nefc);
+++      if (valid) mj_constraintUpdate(m, d, jar, NULL, 0);
+++      mj_freeStack(d);
+++      if (!valid) break;
+++    } else {
+++      mju_zero(d->qfrc_constraint, nv);
+++    }
+++    mj_mulM(m, d, residual, a);
+++    mju_subFrom(residual, d->qfrc_smooth, nv);
+++    mju_subFrom(residual, d->qfrc_constraint, nv);
+++    mjtNum defect = mju_norm(residual, nv) / normalization;
+++    valid = finiteVector(d->efc_force, d->nefc) &&
+++            finiteVector(d->qfrc_constraint, nv) && finiteVector(residual, nv) &&
+++            isfinite(defect);
+++    if (!valid) break;
+++    if (defect <= m->opt.tolerance) {
+++      converged = 1;
+++      break;  // retain THIS stage, a and constraint forces, not the next proposal
+++    }
+++
+++    // Frozen-stage proposal: M+hB/2 with F_nonbearing-B*v0.
+++    // Never change qfrc_passive or the public instantaneous observation law.
+++    for (int i=0; i < nv; i++) {
+++      d->qfrc_smooth[i] += m->dof_damping[i]*(vm[i]-v0[i]);
+++    }
+++    if (!finiteVector(d->qfrc_smooth, nv)) {
+++      valid = 0;
+++      break;
+++    }
+++    solveAccelerationMetric(m, d, shift);
+++    fwdConstraintMetric(m, d, shift);
+++    mju_copy(a, d->qacc, nv);
+++    valid = finiteVector(a, nv);
+++  }
+++
+++  if (converged) {
+++    if (mjENABLED(mjENBL_ENERGY)) {
+++      mj_energyPos(m, d);
+++      mj_energyVel(m, d);
+++    }
+++    mj_sensorPos(m, d);
+++    mj_sensorVel(m, d);
+++    mj_sensorAcc(m, d);
+++    mj_checkAcc(m, d);
+++  }
+++  mju_copy(d->qpos, q0, m->nq);
+++  mju_copy(d->qvel, v0, nv);
+++  d->time = t0;
+++  if (!converged) {
+++    mj_freeStack(d);
+++    mjERROR("coupled body midpoint residual did not converge; no successor");
+++  }
+++  mj_advance(m, d, d->act_dot, a, vm);
+ +  mj_freeStack(d);
+- }
+- 
+- 
+-@@ -994,6 +1043,9 @@
+++}
+++
+++
++ // Euler integrator, semi-implicit in velocity, possibly skipping factorisation
++ void mj_EulerSkip(const mjModel* m, mjData* d, int skipfactor) {
++   TM_START;
++@@ -994,8 +1168,11 @@
+  
+  // fully implicit in velocity, possibly skipping factorization
+  void mj_implicitSkip(const mjModel* m, mjData* d, int skipfactor) {
+@@ -173,7 +315,9 @@
+ -  int nv = m->nv, nD = m->nD, nC = m->nC;
+ +  int nv = m->nv, nD = m->nD;
+  
+-@@ -1025,29 +1077,8 @@
++   mj_markStack(d);
++   mjtNum* qfrc = mjSTACKALLOC(d, nv, mjtNum);
++@@ -1025,29 +1202,8 @@
+      mju_solveLUSparse(qacc, d->qLU, qfrc, nv, m->D_rownnz, m->D_rowadr, m->D_diag, m->D_colind);
+    }
+  
+@@ -205,89 +349,45 @@
+    }
+  
+    // advance state and time
+-@@ -1098,7 +1129,8 @@
+- //-------------------------- top-level API ---------------------------------------------------------
+- 
+- // forward dynamics with skip; skipstage is mjtStage
+--void mj_forwardSkip(const mjModel* m, mjData* d, int skipstage, int skipsensor) {
+-+static void forwardSkip(const mjModel* m, mjData* d, int skipstage, int skipsensor,
+-+                        int coupled_step) {
+-   TM_START;
+- 
+-   // position-dependent
+-@@ -1141,13 +1173,23 @@
+-   }
+- 
+-   mj_fwdActuation(m, d);
+--  mj_fwdAcceleration(m, d);
+--  mj_fwdConstraint(m, d);
+-+  if (coupled_step) {
+-+    fwdCoupledStep(m, d);
+-+  } else {
+-+    mj_fwdAcceleration(m, d);
+-+    mj_fwdConstraint(m, d);
+-+  }
+-   if (!skipsensor) {
+-     mj_sensorAcc(m, d);
+-   }
+- 
+-   TM_END(mjTIMER_FORWARD);
+-+}
+-+
+-+
+-+// Public observation remains the instantaneous physical calculation.
+-+void mj_forwardSkip(const mjModel* m, mjData* d, int skipstage, int skipsensor) {
+-+  forwardSkip(m, d, skipstage, skipsensor, 0);
+- }
+- 
+- 
+-@@ -1164,7 +1206,7 @@
++@@ -1164,6 +1320,11 @@
+    // common to all integrators
+    mj_checkPos(m, d);
+    mj_checkVel(m, d);
+--  mj_forward(m, d);
+-+  forwardSkip(m, d, mjSTAGE_NONE, 0, m->opt.integrator == mjINT_IMPLICITFAST);
+++  if (m->opt.integrator == mjINT_IMPLICITFAST) {
+++    midpointStep(m, d);
+++    TM_END(mjTIMER_STEP);
+++    return;
+++  }
++   mj_forward(m, d);
+    mj_checkAcc(m, d);
+  
+-   // compare forward and inverse solutions if enabled
+-@@ -1182,8 +1224,11 @@
+-     mj_RungeKutta(m, d, 4);
++@@ -1183,7 +1344,6 @@
+      break;
+  
+-+  case mjINT_IMPLICITFAST:
+-+    mj_advance(m, d, d->act_dot, d->qacc, NULL);
+-+    break;
+-+
+    case mjINT_IMPLICIT:
+ -  case mjINT_IMPLICITFAST:
+      mj_implicit(m, d);
+      break;
+  
+-@@ -1227,9 +1272,14 @@
++@@ -1227,6 +1387,12 @@
+  // advance simulation in two phases: after input is set by user
+  void mj_step2(const mjModel* m, mjData* d) {
+    TM_START;
+-+  int coupled_step = m->opt.integrator == mjINT_IMPLICITFAST;
+-   mj_fwdActuation(m, d);
+--  mj_fwdAcceleration(m, d);
+--  mj_fwdConstraint(m, d);
+-+  if (coupled_step) {
+-+    fwdCoupledStep(m, d);
+-+  } else {
+-+    mj_fwdAcceleration(m, d);
+-+    mj_fwdConstraint(m, d);
+++  if (m->opt.integrator == mjINT_IMPLICITFAST) {
+++    midpointStep(m, d);
+++    d->timer[mjTIMER_STEP].number--;
+++    TM_END(mjTIMER_STEP);
+++    return;
+ +  }
+-   mj_sensorAcc(m, d);
+-   mj_checkAcc(m, d);
+- 
+-@@ -1239,7 +1289,9 @@
++   mj_fwdActuation(m, d);
++   mj_fwdAcceleration(m, d);
++   mj_fwdConstraint(m, d);
++@@ -1239,7 +1405,7 @@
+    }
+  
+    // integrate with Euler or implicit; RK4 defaults to Euler
+ -  if (m->opt.integrator == mjINT_IMPLICIT || m->opt.integrator == mjINT_IMPLICITFAST) {
+-+  if (coupled_step) {
+-+    mj_advance(m, d, d->act_dot, d->qacc, NULL);
+-+  } else if (m->opt.integrator == mjINT_IMPLICIT) {
+++  if (m->opt.integrator == mjINT_IMPLICIT) {
+      mj_implicit(m, d);
+    } else {
+      mj_Euler(m, d);
+@@ -492,7 +592,7 @@
+  
+   #define mjVERSION 337
+ -#define mjVERSIONSTRING "3.3.7+guala.closed-limits.1"
+-+#define mjVERSIONSTRING "3.3.7+guala.coupled-step.1"
+++#define mjVERSIONSTRING "3.3.7+guala.midpoint-step.1"
+  
+  // names of disable flags
+  const char* mjDISABLESTRING[mjNDISABLE] = {
+diff --git a/native/functional_body/interval.pyx b/native/functional_body/interval.pyx
+index 9d5b5ce7a..34288e4c1 100644
+--- a/native/functional_body/interval.pyx
++++ b/native/functional_body/interval.pyx
+@@ -10,7 +10,7 @@ from libc.math cimport isfinite
+ import mujoco as mj
+ import numpy as np
+ 
+-INTERVAL_ABI = 1
++INTERVAL_ABI = 2
+ 
+ 
+ def advance_interval(engine, effort, steps, available_work_j):
+@@ -22,10 +22,7 @@ def advance_interval(engine, effort, steps, available_work_j):
+     cdef double bearing_heat = 0.0
+     cdef double self_bearing_heat = 0.0
+     cdef double travel_peak = 0.0
+-    cdef double sample_peak, dt_half
+-    cdef double bearing_before, bearing_after
+-    cdef double self_bearing_before = 0.0
+-    cdef double self_bearing_after
++    cdef double sample_peak, dt_half, dt
+     cdef bint has_self = engine._sensory_root is not None
+ 
+     m, d = engine._model, engine._data
+@@ -38,30 +35,32 @@ def advance_interval(engine, effort, steps, available_work_j):
+     motor_dofs = np.asarray(engine._motor_dof, dtype=np.intp)
+     self_dofs = engine._self_dofs
+     travel_limit = engine.limits.max_surface_travel_m
+-    dt_half = m.opt.timestep / 2
++    dt = m.opt.timestep
++    dt_half = dt / 2
+     power_before = effort * qvel[motor_dofs]
+-    bearing_before = float(np.dot(damping, qvel**2))
+-    if has_self:
+-        self_bearing_before = float(np.dot(damping[self_dofs], qvel[self_dofs]**2))
+ 
+     for _ in range(steps):
+         position, rotation = geometry_position.copy(), geometry_rotation.copy()
++        velocity_before = qvel.copy()
+         step(m, d)
+         kinematics(m, d)
+         collision(m, d)
+         check()
+         power_after = effort * qvel[motor_dofs]
+         signed_work += float((power_before + power_after).sum()) * dt_half
++        # Endpoint positive/braking splits remain conservative supply
++        # quadrature; they are not additional heat or cognitive reward.
+         positive_work += float((np.maximum(power_before, 0)
+                                + np.maximum(power_after, 0)).sum()) * dt_half
+         braking_work += float((np.maximum(-power_before, 0)
+                               + np.maximum(-power_after, 0)).sum()) * dt_half
+-        bearing_after = float(np.dot(damping, qvel**2))
+-        bearing_heat += (bearing_before + bearing_after) * dt_half
++        # The midpoint law dissipates h * vm.T * B * vm. Endpoint trapezoids
++        # would add h/4 * delta_v.T * B * delta_v as unearned thermal loss.
++        velocity_midpoint = (velocity_before + qvel) * 0.5
++        bearing_heat += float(np.dot(damping, velocity_midpoint**2)) * dt
+         if has_self:
+-            self_bearing_after = float(np.dot(damping[self_dofs], qvel[self_dofs]**2))
+-            self_bearing_heat += (self_bearing_before + self_bearing_after) * dt_half
+-            self_bearing_before = self_bearing_after
++            self_bearing_heat += float(np.dot(
++                damping[self_dofs], velocity_midpoint[self_dofs]**2)) * dt
+         if not (isfinite(positive_work) and isfinite(signed_work)
+                 and isfinite(braking_work) and isfinite(bearing_heat)
+                 and isfinite(self_bearing_heat)):
+@@ -80,6 +79,6 @@ def advance_interval(engine, effort, steps, available_work_j):
+             raise ValueError("non-finite surface motion")
+         if travel_peak > travel_limit:
+             raise ValueError("surface movement exceeds collision sampling resolution")
+-        power_before, bearing_before = power_after, bearing_after
++        power_before = power_after
+     return (positive_work, signed_work, travel_peak, braking_work,
+             bearing_heat, self_bearing_heat)
+diff --git a/tools/guala_body_midpoint.py b/tools/guala_body_midpoint.py
+new file mode 100644
+--- /dev/null
++++ b/tools/guala_body_midpoint.py
+@@ -0,0 +1,191 @@
++"""One bounded equation/caller witness for the body-only implicit midpoint law.
++
++Analytical constant-inertia controls and one existing 100us body input only.
++Not a contact-accuracy, continuum-error, mature-world or production certificate.
++The prior coupled-step evidence and its diagnostic remain historical controls.
++"""
++from __future__ import annotations
++
++import hashlib
++import json
++import resource
++import time
++import xml.etree.ElementTree as ET
++
++import mujoco as mj
++import numpy as np
++
++from dsf_ai_service.substrate.functional_body_native import ENGINE_VERSION
++from guala_body_contact_onset import archived_controls
++from guala_body_coupled_step import model_xml
++from guala_body_joint_boundary import encode, integration
++from guala_body_load_release import engine_at
++
++VERSION = "3.3.7+guala.midpoint-step.1"
++
++
++def close(actual, expected, atol=1e-9):
++    assert np.isfinite(actual).all() and np.isfinite(expected).all()
++    np.testing.assert_allclose(actual, expected, rtol=0, atol=atol)
++
++
++def control(jacobian, islands, force):
++    root = ET.fromstring(model_xml(jacobian))
++    option = root.find("option")
++    option.set("timestep", ".00001")
++    ET.SubElement(option, "flag", dict(refsafe="disable", autoreset="disable", energy="enable"))
++    m = mj.MjModel.from_xml_string(ET.tostring(root, encoding="unicode"))
++    if not islands:
++        m.opt.disableflags |= int(mj.mjtDisableBit.mjDSBL_ISLAND)
++    d = mj.MjData(m)
++    d.qfrc_applied[:] = [2*force, force, 1, force, force/2]
++    d.qacc_warmstart[:] = [.2, -.4, .6, -.8, 1]
++    mj.mj_forward(m, d)
++    before = integration(m, d)
++    h = m.opt.timestep
++    # Exact inertia of two pairs of unit-mass co-linear slides, plus one free slide.
++    mass = np.array([[2,1,0,0,0],[1,1,0,0,0],[0,0,1,0,0],
++                     [0,0,0,2,1],[0,0,0,1,1]], dtype=float)
++    physical = {k: getattr(d,k).copy() for k in ("M","qLD","qLDiagInv")}
++    operator = mass + np.diag(h*m.dof_damping/2)
++    # At either lower stop: qm=h²*a/4, vm=h*a/2.
++    # J*a + R*lambda - aref = 0, aref=-b*J*vm-k*I*J*qm.
++    # Native KBIP is independently checked against its declared material law;
++    # no discrete numerical solution feeds the reference acceleration.
++    assert d.nefc == 2
++    assert np.array_equal(d.efc_type,
++                          [mj.mjtConstraint.mjCNSTR_LIMIT_JOINT]*2)
++    close(d.efc_R, np.full(2, 1/999), 1e-12)
++    k, b, impedance = d.efc_KBIP[:,0].copy(), d.efc_KBIP[:,1].copy(), d.efc_KBIP[:,2].copy()
++    close(impedance, np.full(2, .999), 1e-12)
++    close(k, np.full(2, 1/(.999**2*.0002**2)), 1e-6)
++    close(b, np.full(2, 2/(.999*.0002)), 1e-8)
++    factor = 1 + h*b/2 + h*h*k*impedance/4
++    if force < 0:
++        for row, dof in enumerate((0,3)):
++            operator[dof,dof] += factor[row]/d.efc_R[row]
++    expected = np.linalg.solve(operator, d.qfrc_applied)
++    timers_before = [(float(t.duration), int(t.number)) for t in d.timer]
++    mj.mj_step(m, d)
++    assert not np.any(d.warning.number)
++    actual = d.qvel/h
++    close(d.qacc, expected)
++    close(actual, expected)
++    close(d.qpos, h*h*expected/2)
++    for name, values in physical.items():
++        assert np.array_equal(getattr(d, name), values), name
++    residual = mass @ d.qacc - d.qfrc_smooth - d.qfrc_constraint
++    defect = float(np.linalg.norm(residual)/(m.stat.meaninertia*max(1,m.nv)))
++    assert defect <= m.opt.tolerance
++    if force < 0:
++        close(d.efc_force, -factor*expected[[0,3]]/(1/999))
++    else:
++        assert d.nefc == 0
++    vm = h*d.qacc/2
++    work = h*float(vm @ d.qfrc_applied)
++    bearing = h*float((vm*vm) @ m.dof_damping)
++    contact_work = h*float(vm @ d.qfrc_constraint)
++    kinetic = float(d.qvel @ mass @ d.qvel)/2
++    close(np.array([work-bearing+contact_work]), np.array([kinetic]), 1e-12)
++    after = integration(m, d)
++    for two_phase in (False, True):
++        fresh = mj.MjData(m)
++        mj.mj_setState(m, fresh, before, mj.mjtState.mjSTATE_INTEGRATION)
++        if two_phase:
++            mj.mj_step1(m, fresh)
++            mj.mj_step2(m, fresh)
++        else:
++            mj.mj_step(m, fresh)
++        assert np.array_equal(integration(m,fresh), after)
++    return dict(jacobian=jacobian, islands=islands, applied_force=force,
++        acceleration=d.qacc.tolist(), reference=expected.tolist(),
++        reaction=d.efc_force.tolist(), normalized_midpoint_defect=defect,
++        work_j=work, bearing_loss_j=bearing, contact_work_j=contact_work,
++        kinetic_j=kinetic, cold_exact=True, step2_exact=True,
++        physical_inertia_unchanged=True,
++        native_timer_call_deltas=[int(t.number)-old[1]
++                                  for t,old in zip(d.timer,timers_before)])
++
++
++def refusal():
++    rows = []
++    for invalid in ("iterations", "tolerance", "split"):
++        m = mj.MjModel.from_xml_string(model_xml())
++        m.opt.timestep = .00001
++        d = mj.MjData(m)
++        d.qfrc_applied[:] = [-2,-1,1,-1,-.5]
++        if invalid == "iterations":
++            m.opt.iterations = 1
++        elif invalid == "tolerance":
++            m.opt.tolerance = float("nan")
++        before = integration(m,d)
++        try:
++            (mj.mj_implicit if invalid == "split" else mj.mj_step)(m,d)
++        except mj.FatalError as error:
++            expected = {"iterations": "residual did not converge",
++                        "tolerance": "convergence bounds",
++                        "split": "requires mj_step"}[invalid]
++            assert expected in str(error)
++            assert np.array_equal(before,integration(m,d))
++            rows.append(dict(case=invalid, error=str(error), no_successor=True))
++        else:
++            raise AssertionError("invalid midpoint operation accepted: "+invalid)
++    return rows
++
++
++def body():
++    e,xml,limits = engine_at(100)
++    c = archived_controls()[100]
++    assert hashlib.sha256(xml.encode()).hexdigest() == c["model_sha256"]
++    initial = e.initial_state()
++    command = dict(efforts=None, elapsed_us=100, available_work_j=c["initial_supply_j"],
++        effort_updates=((e.actuator_names.index(c["name"]),c["phases"][0]["effort_nm"]),))
++    before_v = e._data.qvel.copy()
++    result = e.advance(initial, **command)
++    vm = (before_v+e._data.qvel)/2
++    bearing = .0001*float(np.dot(e._model.dof_damping,vm**2))
++    assert result.bearing_dissipation_j == bearing
++    cold,_,_ = engine_at(100)
++    assert cold.advance(initial, **command) == result
++    # The old law may not enter through a substituted persistence identity.
++    prior_header = hashlib.sha256(("3.3.7+guala.coupled-step.1"+repr(limits)
++                                   +repr(e._sensory_root)+xml).encode()).digest()
++    try:
++        cold._restore(prior_header+initial[32:])
++    except ValueError as error:
++        assert str(error) == "body state/model mismatch"
++    else:
++        raise AssertionError("old numerical law restored")
++    # Failed supply does not publish or poison the next same-predecessor operation.
++    try:
++        cold.advance(initial, **(command | dict(available_work_j=0)))
++    except ValueError as error:
++        assert "supply exhausted" in str(error)
++    else:
++        raise AssertionError("unfunded mechanical work accepted")
++    assert cold.advance(initial, **command) == result
++    return dict(model_sha256=c["model_sha256"], state_bytes=len(result.state),
++        successor_sha256=hashlib.sha256(result.state).hexdigest(),
++        fresh_cold_exact=True, old_law_refused=True, failed_supply_recovers=True,
++        signed_motor_work_j=result.signed_motor_work_j,
++        bearing_midpoint_loss_j=bearing,
++        unresolved_exchange_j=result.unresolved_energy_exchange_j)
++
++
++def main():
++    assert mj.__version__ == mj.mj_versionString() == ENGINE_VERSION == VERSION
++    started = time.perf_counter()
++    rows = [control(jacobian,islands,force)
++            for jacobian in ("dense","sparse") for islands in (False,True)
++            for force in (-1,1)]
++    result = dict(schema="guala.functional-body.midpoint-equation-witness.v1",
++        version=VERSION, controls=rows, refusals=refusal(), body=body(),
++        seconds=time.perf_counter()-started,
++        maxrss_kib=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss,
++        stage_bound_per_step=100, newton_bound_per_stage_per_island=100,
++        scope="Local equation, callers, energy accounting and restart only; contact accuracy and production remain unqualified.")
++    print(json.dumps(encode(result), sort_keys=True))
++
++
++if __name__ == "__main__":
++    main()

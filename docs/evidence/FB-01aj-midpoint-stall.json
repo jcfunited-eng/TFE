@@ -1,0 +1,275 @@
+{
+  "diagnostic": {
+    "delta": [
+      1.0496249947519012,
+      -1.0496197466531683,
+      1.1102230246251565e-16,
+      -0.5248124973759507,
+      0.5248098733265838
+    ],
+    "maxrss_kib": 143864,
+    "normalization": 7.0,
+    "normalized_inner": 1.0520552017986136e-16,
+    "normalized_outer": 149.9464473149181,
+    "outer_residual": [
+      -1049.624999999999,
+      0.0,
+      0.0,
+      0.5248151214253174,
+      5.551115123125783e-17
+    ],
+    "proposal_acceleration": [
+      0.049624994751901276,
+      -1.0496197466531683,
+      0.999995000025,
+      -0.5,
+      -2.220446049250313e-16
+    ],
+    "proposal_reaction": [
+      1.0496302428506339
+    ],
+    "refusal": "midpointStep: coupled body midpoint residual did not converge; no successor",
+    "schema": "guala.functional-body.midpoint-stall-diagnostic.v1",
+    "seconds": 0.005155932012712583,
+    "shifted_proposal_residual": [
+      4.440892098500626e-16,
+      -4.440892098500626e-16,
+      2.220446049250313e-16,
+      -2.220446049250313e-16,
+      -2.220446049250313e-16
+    ],
+    "solver_gradient": [
+      0.15654334502321554,
+      8.97195690676443e-17,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "solver_improvement": [
+      0.047313432748847896,
+      0.0753423983517439,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "solver_nactive": [
+      1,
+      1,
+      0,
+      0,
+      0,
+      0
+    ],
+    "solver_nchange": [
+      1,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "solver_niter": [
+      2,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "stage_acceleration": [
+      -1.0,
+      0.0,
+      0.9999950000249999,
+      0.0248124973759507,
+      -0.524809873326584
+    ],
+    "stage_aref": [
+      0.05067567567567568
+    ],
+    "stage_reaction": [
+      1049.624999999999
+    ],
+    "state_restored_exact": true,
+    "timer_numbers": [
+      0,
+      1,
+      0,
+      101,
+      101,
+      0,
+      101,
+      0,
+      101,
+      101,
+      101,
+      101,
+      101,
+      101,
+      101
+    ],
+    "tolerance": 1e-10
+  },
+  "execution": {
+    "exit": 0,
+    "pid": 77087,
+    "survivors": [],
+    "timed_out": false,
+    "wall_seconds": 0.5331632659945171
+  },
+  "library_sha256": "92a3437b373d0d1107b277a93a8357d1441db4705fe4d32df961bc929743d566",
+  "production_post": {
+    "alarms": [
+      {
+        "name": "guala-clock-stalled",
+        "state": "ALARM"
+      },
+      {
+        "name": "guala-cpu-runaway",
+        "state": "OK"
+      },
+      {
+        "name": "guala-efs-storage-runaway",
+        "state": "OK"
+      },
+      {
+        "name": "guala-interval-refusal-loop",
+        "state": "OK"
+      },
+      {
+        "name": "guala-memory-runaway",
+        "state": "OK"
+      }
+    ],
+    "cpu": [
+      {
+        "Average": 51.48695142070452,
+        "Maximum": 52.02002134919167,
+        "Timestamp": "2026-09-26T23:07:00+00:00",
+        "Unit": "Percent"
+      }
+    ],
+    "memory": [
+      {
+        "Average": 2.64892578125,
+        "Maximum": 2.64892578125,
+        "Timestamp": "2026-09-26T23:07:00+00:00",
+        "Unit": "Percent"
+      }
+    ],
+    "observation": {
+      "available": true,
+      "checkpoint_error": null,
+      "cleanup_error": null,
+      "durability_blocked": false,
+      "identity": "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1",
+      "live_tick": 2489819,
+      "persisted_tick": 2489785
+    },
+    "service": {
+      "counts": [
+        1,
+        1,
+        0
+      ],
+      "taskDefinition": "arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1556",
+      "tasks": [
+        {
+          "arn": "arn:aws:ecs:us-east-1:418384447921:task/tfe-web-cluster/5cb1fece1cac4f32b6d2f9b53b61b9ab",
+          "digests": [
+            "sha256:dc9ba00725d886110346c59ccdb36d1856d9cb316ea4f074a5bc88d9c9c794f7"
+          ],
+          "health": "HEALTHY",
+          "status": "RUNNING"
+        }
+      ]
+    },
+    "utc": "2026-09-26T23:09:12.173938+00:00"
+  },
+  "production_pre": {
+    "alarms": [
+      {
+        "name": "guala-clock-stalled",
+        "state": "ALARM"
+      },
+      {
+        "name": "guala-cpu-runaway",
+        "state": "OK"
+      },
+      {
+        "name": "guala-efs-storage-runaway",
+        "state": "OK"
+      },
+      {
+        "name": "guala-interval-refusal-loop",
+        "state": "OK"
+      },
+      {
+        "name": "guala-memory-runaway",
+        "state": "OK"
+      }
+    ],
+    "cpu": [
+      {
+        "Average": 51.48695142070452,
+        "Maximum": 52.02002134919167,
+        "Timestamp": "2026-09-26T23:07:00+00:00",
+        "Unit": "Percent"
+      }
+    ],
+    "memory": [
+      {
+        "Average": 2.64892578125,
+        "Maximum": 2.64892578125,
+        "Timestamp": "2026-09-26T23:07:00+00:00",
+        "Unit": "Percent"
+      }
+    ],
+    "observation": {
+      "available": true,
+      "checkpoint_error": null,
+      "cleanup_error": null,
+      "durability_blocked": false,
+      "identity": "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1",
+      "live_tick": 2489810,
+      "persisted_tick": 2489785
+    },
+    "service": {
+      "counts": [
+        1,
+        1,
+        0
+      ],
+      "taskDefinition": "arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1556",
+      "tasks": [
+        {
+          "arn": "arn:aws:ecs:us-east-1:418384447921:task/tfe-web-cluster/5cb1fece1cac4f32b6d2f9b53b61b9ab",
+          "digests": [
+            "sha256:dc9ba00725d886110346c59ccdb36d1856d9cb316ea4f074a5bc88d9c9c794f7"
+          ],
+          "health": "HEALTHY",
+          "status": "RUNNING"
+        }
+      ]
+    },
+    "utc": "2026-09-26T23:09:09.230613+00:00"
+  },
+  "schema": "guala.functional-body.midpoint-stall-receipt.v1",
+  "stderr": "",
+  "stdout_error": null
+}

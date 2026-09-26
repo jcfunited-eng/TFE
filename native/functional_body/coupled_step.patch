@@ -1,26 +1,43 @@
 --- a/src/engine/engine_forward.c
 +++ b/src/engine/engine_forward.c
-@@ -547,7 +547,7 @@
+@@ -14,6 +14,7 @@
+ 
+ #include "engine/engine_forward.h"
+ 
++#include <math.h>
+ #include <stddef.h>
+ #include <stdio.h>
+ 
+@@ -546,8 +547,8 @@
+ }
  
  
- // add up all non-constraint forces, compute qacc_smooth
+-// add up all non-constraint forces, compute qacc_smooth
 -void mj_fwdAcceleration(const mjModel* m, mjData* d) {
-+static void fwdAccelerationMetric(const mjModel* m, mjData* d, const mjtNum* shift) {
++// Physical non-constraint forces, shared by observation and midpoint settlement.
++static void smoothForce(const mjModel* m, mjData* d) {
    int nv = m->nv;
  
    // qfrc_smooth = sum of all non-constraint forces
-@@ -556,13 +556,31 @@
+@@ -555,14 +556,38 @@
+   mju_addTo(d->qfrc_smooth, d->qfrc_applied, nv);
    mju_addTo(d->qfrc_smooth, d->qfrc_actuator, nv);
    mj_xfrcAccumulate(m, d, d->qfrc_smooth);
- 
+-
 -  // qacc_smooth = M \ qfrc_smooth
 -  mj_solveM(m, d, d->qacc_smooth, d->qfrc_smooth, 1);
++}
++
++
++// Solve the existing physical or shifted inertia operator on the supplied RHS.
++static void solveAccelerationMetric(const mjModel* m, mjData* d, const mjtNum* shift) {
++  int nv = m->nv;
 +  if (!shift) {
 +    mj_solveM(m, d, d->qacc_smooth, d->qfrc_smooth, 1);
 +    return;
 +  }
 +
-+  // Step metric H=M+hB; physical M and its factor remain untouched.
++  // Step metric H=M+hB/2; physical M and its factor remain untouched.
 +  mju_copy(d->qH, d->M, m->nC);
 +  for (int i=0; i < nv; i++) {
 +    d->qH[m->M_rowadr[i] + m->M_rownnz[i] - 1] += shift[i];
@@ -34,7 +51,8 @@
 +
 +// Instantaneous physical acceleration, never the discrete step metric.
 +void mj_fwdAcceleration(const mjModel* m, mjData* d) {
-+  fwdAccelerationMetric(m, d, NULL);
++  smoothForce(m, d);
++  solveAccelerationMetric(m, d, NULL);
  }
  
  
@@ -44,7 +62,7 @@
    int nv = m->nv, nefc = d->nefc;
  
    // warmstart with best of (qacc_warmstart, qacc_smooth)
-@@ -607,6 +625,9 @@
+@@ -607,6 +632,9 @@
        // add Gauss to cost(qacc_warmstart)
        mjtNum* Ma = mjSTACKALLOC(d, nv, mjtNum);
        mj_mulM(m, d, Ma, d->qacc_warmstart);
@@ -54,7 +72,7 @@
        for (int i=0; i < nv; i++) {
          cost_warmstart += 0.5*(Ma[i]-d->qfrc_smooth[i])*(d->qacc_warmstart[i]-d->qacc_smooth[i]);
        }
-@@ -646,6 +667,7 @@
+@@ -646,6 +674,7 @@
    const mjModel* m;
    mjData* d;
    int island;
@@ -62,7 +80,7 @@
  };
  typedef struct mjSolIslandArgs_ mjSolIslandArgs;
  
-@@ -659,12 +681,14 @@
+@@ -659,12 +688,14 @@
  // extract arguments, pass to Newton solver
  static void* Newton_wrapper(void* args) {
    mjSolIslandArgs* solargs = (mjSolIslandArgs*) args;
@@ -79,7 +97,7 @@
    mj_markStack(d);
    // allocate array of arguments to be passed to threads
    mjSolIslandArgs* sol_island_args = mjSTACKALLOC(d, d->nisland, mjSolIslandArgs);
-@@ -674,6 +698,7 @@
+@@ -674,6 +705,7 @@
      sol_island_args[island].m = m;
      sol_island_args[island].d = d;
      sol_island_args[island].island = island;
@@ -87,7 +105,7 @@
  
      mju_defaultTask(&tasks[island]);
      tasks[island].func = flg_Newton ? Newton_wrapper : CG_wrapper;
-@@ -690,7 +715,7 @@
+@@ -690,7 +722,7 @@
  
  
  // compute efc_b, efc_force, qfrc_constraint; update qacc
@@ -96,7 +114,7 @@
    TM_START;
    int nv = m->nv, nefc = d->nefc, nisland = d->nisland;
  
-@@ -710,7 +735,7 @@
+@@ -710,7 +742,7 @@
    mju_subFrom(d->efc_b, d->efc_aref, nefc);
  
    // warmstart solver
@@ -105,7 +123,7 @@
    mju_zeroInt(d->solver_niter, mjNISLAND);
  
    // check if islands are supported
-@@ -736,14 +761,14 @@
+@@ -736,14 +768,14 @@
        // no threadpool, loop over islands
        for (int island=0; island < nisland; island++) {
          if (m->opt.solver == mjSOL_NEWTON) {
@@ -122,7 +140,7 @@
      }
  
  
-@@ -765,7 +790,7 @@
+@@ -765,7 +797,7 @@
        break;
  
      case mjSOL_NEWTON:                  // Newton
@@ -131,7 +149,7 @@
        break;
  
      default:
-@@ -779,6 +804,30 @@
+@@ -779,6 +811,12 @@
    }
  
    TM_END(mjTIMER_CONSTRAINT);
@@ -141,28 +159,182 @@
 +// Instantaneous constraint solution retains the physical inertia metric.
 +void mj_fwdConstraint(const mjModel* m, mjData* d) {
 +  fwdConstraintMetric(m, d, NULL);
+ }
+ 
+ 
+@@ -828,6 +866,171 @@
+   mju_copy(d->qacc_warmstart, d->qacc, m->nv);
+ }
+ 
++// Finite algebraic quantities only; no new physical tolerance or clipping.
++static int finiteVector(const mjtNum* values, int count) {
++  for (int i=0; i < count; i++) {
++    if (!isfinite(values[i])) return 0;
++  }
++  return 1;
 +}
 +
 +
-+// Body-only diagonal-bearing implicit step. No extra persistent state or solve.
-+static void fwdCoupledStep(const mjModel* m, mjData* d) {
++// Rebuild and evaluate the physical midpoint equation at one algebraic trial.
++// Rejected trials remain scratch; no elapsed body time or work is committed here.
++static int midpointResidual(const mjModel* m, mjData* d,
++                            const mjtNum* q0, const mjtNum* v0,
++                            mjtNum t0, mjtNum h, const mjtNum* a,
++                            mjtNum* vm, mjtNum* residual, mjtNum* defect) {
++  int nv = m->nv;
++  mju_addScl(vm, v0, a, 0.5*h, nv);
++  mju_copy(d->qpos, q0, m->nq);
++  mju_copy(d->qvel, vm, nv);
++  mj_integratePos(m, d->qpos, vm, 0.5*h);
++  d->time = t0 + 0.5*h;
++  if (!finiteVector(d->qpos, m->nq) || !finiteVector(vm, nv)) return 0;
++
++  // Contact membership, inertia, impedance and reference are never frozen
++  // across residual evaluations, including rejected line-search trials.
++  mj_fwdPosition(m, d);
++  mj_fwdVelocity(m, d);
++  mj_fwdActuation(m, d);
++  smoothForce(m, d);
++  if (!finiteVector(d->M, m->nC) || !finiteVector(d->qfrc_smooth, nv) ||
++      !finiteVector(d->efc_J, mj_isSparse(m) ? d->nJ : d->nefc*nv) ||
++      !finiteVector(d->efc_R, d->nefc) || !finiteVector(d->efc_D, d->nefc) ||
++      !finiteVector(d->efc_aref, d->nefc)) return 0;
++
++  mju_copy(d->qacc, a, nv);
++  if (d->nefc) {
++    mj_markStack(d);
++    mjtNum* jar = mjSTACKALLOC(d, d->nefc, mjtNum);
++    mj_mulJacVec(m, d, jar, a);
++    mju_subFrom(jar, d->efc_aref, d->nefc);
++    int valid = finiteVector(jar, d->nefc);
++    if (valid) mj_constraintUpdate(m, d, jar, NULL, 0);
++    mj_freeStack(d);
++    if (!valid) return 0;
++  } else {
++    mju_zero(d->qfrc_constraint, nv);
++  }
++  mj_mulM(m, d, residual, a);
++  mju_subFrom(residual, d->qfrc_smooth, nv);
++  mju_subFrom(residual, d->qfrc_constraint, nv);
++  *defect = mju_norm(residual, nv) / (m->stat.meaninertia * mjMAX(1, nv));
++  return finiteVector(d->efc_force, d->nefc) &&
++         finiteVector(d->qfrc_constraint, nv) && finiteVector(residual, nv) &&
++         isfinite(*defect);
++}
++
++
++// Implicit midpoint in the existing coupled contact/bearing law.
++// Trial stages are scratch. mj_advance is reached once, only on true residual convergence.
++static void midpointStep(const mjModel* m, mjData* d) {
 +  if (m->opt.solver != mjSOL_NEWTON || mjDISABLED(mjDSBL_DAMPER) ||
 +      m->opt.noslip_iterations || mjENABLED(mjENBL_FWDINV) || m->opt.viscosity || m->opt.density) {
 +    mjERROR("coupled body step requires Newton, active bearings, zero no-slip/fluid, no forward-inverse comparison");
 +  }
++  if (m->na || m->nplugin || m->nmocap || m->nflex ||
++      mjcb_control || mjcb_passive || mjcb_contactfilter || mjcb_sensor ||
++      mjcb_act_dyn || mjcb_act_gain || mjcb_act_bias) {
++    mjERROR("coupled body midpoint excludes activation, plugins, mocap, flex and callbacks");
++  }
 +  for (int i=0; i < m->ntendon; i++) {
 +    if (m->tendon_damping[i]) mjERROR("coupled body step excludes tendon damping");
 +  }
++  int nv = m->nv;
++  mjtNum h = m->opt.timestep, t0 = d->time;
++  mjtNum normalization = m->stat.meaninertia * mjMAX(1, nv);
++  if (!isfinite(h) || h <= 0 || !isfinite(t0) || !isfinite(t0+h) || t0+h <= t0 ||
++      !isfinite(normalization) || normalization <= 0 || m->opt.iterations <= 0 || m->opt.ls_iterations <= 0 ||
++      !isfinite(m->opt.tolerance) || m->opt.tolerance <= 0) {
++    mjERROR("coupled body midpoint requires finite clock, inertia and convergence bounds");
++  }
++
 +  mj_markStack(d);
-+  mjtNum* shift = mjSTACKALLOC(d, m->nv, mjtNum);
-+  for (int i=0; i < m->nv; i++) shift[i] = m->opt.timestep*m->dof_damping[i];
-+  fwdAccelerationMetric(m, d, shift);
-+  fwdConstraintMetric(m, d, shift);
++  mjtNum* q0 = mjSTACKALLOC(d, m->nq, mjtNum);
++  mjtNum* v0 = mjSTACKALLOC(d, nv, mjtNum);
++  mjtNum* vm = mjSTACKALLOC(d, nv, mjtNum);
++  mjtNum* a = mjSTACKALLOC(d, nv, mjtNum);
++  mjtNum* shift = mjSTACKALLOC(d, nv, mjtNum);
++  mjtNum* direction = mjSTACKALLOC(d, nv, mjtNum);
++  mjtNum* trial = mjSTACKALLOC(d, nv, mjtNum);
++  mjtNum* residual = mjSTACKALLOC(d, nv, mjtNum);
++  mju_copy(q0, d->qpos, m->nq);
++  mju_copy(v0, d->qvel, nv);
++  mju_copy(a, d->qacc_warmstart, nv);
++  for (int i=0; i < nv; i++) shift[i] = 0.5*h*m->dof_damping[i];
++  int valid = finiteVector(q0, m->nq) && finiteVector(v0, nv) &&
++              finiteVector(a, nv) && finiteVector(shift, nv);
++  for (int i=0; i < nv; i++) valid = valid && m->dof_damping[i] >= 0;
++  int converged = 0;
++
++  // At most 1+iterations*ls_iterations physical stage evaluations and
++  // iterations bounded native Newton proposals per reached island.
++  mjtNum defect = 0;
++  if (valid) valid = midpointResidual(m, d, q0, v0, t0, h, a, vm, residual, &defect);
++  if (valid && defect <= m->opt.tolerance) converged = 1;
++  for (int iteration=0; valid && !converged && iteration < m->opt.iterations; iteration++) {
++    // Existing frozen-stage proposal: M+hB/2 with F_nonbearing-B*v0.
++    for (int i=0; i < nv; i++) {
++      d->qfrc_smooth[i] += m->dof_damping[i]*(vm[i]-v0[i]);
++    }
++    if (!finiteVector(d->qfrc_smooth, nv)) {
++      valid = 0;
++      break;
++    }
++    solveAccelerationMetric(m, d, shift);
++    fwdConstraintMetric(m, d, shift);
++    mju_sub(direction, d->qacc, a, nv);
++    valid = finiteVector(direction, nv);
++    if (!valid) break;
++
++    // Binary subdivision globalizes the algebraic proposal; it is not
++    // physical damping and introduces no material coefficient.
++    int accepted = 0;
++    mjtNum alpha = 1;
++    for (int search=0; valid && search < m->opt.ls_iterations; search++, alpha *= 0.5) {
++      mju_addScl(trial, a, direction, alpha, nv);
++      int distinct = 0;
++      for (int i=0; i < nv; i++) distinct = distinct || trial[i] != a[i];
++      valid = distinct && finiteVector(trial, nv);
++      if (!valid) break;
++      mjtNum trial_defect = 0;
++      valid = midpointResidual(m, d, q0, v0, t0, h, trial, vm, residual, &trial_defect);
++      if (!valid) break;
++      if (trial_defect <= m->opt.tolerance || trial_defect < defect) {
++        mju_copy(a, trial, nv);
++        defect = trial_defect;
++        accepted = 1;
++        converged = defect <= m->opt.tolerance;
++        break;  // retain this full physical stage and its forces
++      }
++    }
++    if (!accepted) valid = 0;
++  }
++
++  if (converged) {
++    if (mjENABLED(mjENBL_ENERGY)) {
++      mj_energyPos(m, d);
++      mj_energyVel(m, d);
++    }
++    mj_sensorPos(m, d);
++    mj_sensorVel(m, d);
++    mj_sensorAcc(m, d);
++    mj_checkAcc(m, d);
++  }
++  mju_copy(d->qpos, q0, m->nq);
++  mju_copy(d->qvel, v0, nv);
++  d->time = t0;
++  if (!converged) {
++    mj_freeStack(d);
++    mjERROR("coupled body midpoint residual did not converge; no successor");
++  }
++  mj_advance(m, d, d->act_dot, a, vm);
 +  mj_freeStack(d);
- }
- 
- 
-@@ -994,6 +1043,9 @@
++}
++
++
+ // Euler integrator, semi-implicit in velocity, possibly skipping factorisation
+ void mj_EulerSkip(const mjModel* m, mjData* d, int skipfactor) {
+   TM_START;
+@@ -994,8 +1197,11 @@
  
  // fully implicit in velocity, possibly skipping factorization
  void mj_implicitSkip(const mjModel* m, mjData* d, int skipfactor) {
@@ -173,7 +345,9 @@
 -  int nv = m->nv, nD = m->nD, nC = m->nC;
 +  int nv = m->nv, nD = m->nD;
  
-@@ -1025,29 +1077,8 @@
+   mj_markStack(d);
+   mjtNum* qfrc = mjSTACKALLOC(d, nv, mjtNum);
+@@ -1025,29 +1231,8 @@
      mju_solveLUSparse(qacc, d->qLU, qfrc, nv, m->D_rownnz, m->D_rowadr, m->D_diag, m->D_colind);
    }
  
@@ -205,89 +379,45 @@
    }
  
    // advance state and time
-@@ -1098,7 +1129,8 @@
- //-------------------------- top-level API ---------------------------------------------------------
- 
- // forward dynamics with skip; skipstage is mjtStage
--void mj_forwardSkip(const mjModel* m, mjData* d, int skipstage, int skipsensor) {
-+static void forwardSkip(const mjModel* m, mjData* d, int skipstage, int skipsensor,
-+                        int coupled_step) {
-   TM_START;
- 
-   // position-dependent
-@@ -1141,13 +1173,23 @@
-   }
- 
-   mj_fwdActuation(m, d);
--  mj_fwdAcceleration(m, d);
--  mj_fwdConstraint(m, d);
-+  if (coupled_step) {
-+    fwdCoupledStep(m, d);
-+  } else {
-+    mj_fwdAcceleration(m, d);
-+    mj_fwdConstraint(m, d);
-+  }
-   if (!skipsensor) {
-     mj_sensorAcc(m, d);
-   }
- 
-   TM_END(mjTIMER_FORWARD);
-+}
-+
-+
-+// Public observation remains the instantaneous physical calculation.
-+void mj_forwardSkip(const mjModel* m, mjData* d, int skipstage, int skipsensor) {
-+  forwardSkip(m, d, skipstage, skipsensor, 0);
- }
- 
- 
-@@ -1164,7 +1206,7 @@
+@@ -1164,6 +1349,11 @@
    // common to all integrators
    mj_checkPos(m, d);
    mj_checkVel(m, d);
--  mj_forward(m, d);
-+  forwardSkip(m, d, mjSTAGE_NONE, 0, m->opt.integrator == mjINT_IMPLICITFAST);
++  if (m->opt.integrator == mjINT_IMPLICITFAST) {
++    midpointStep(m, d);
++    TM_END(mjTIMER_STEP);
++    return;
++  }
+   mj_forward(m, d);
    mj_checkAcc(m, d);
  
-   // compare forward and inverse solutions if enabled
-@@ -1182,8 +1224,11 @@
-     mj_RungeKutta(m, d, 4);
+@@ -1183,7 +1373,6 @@
      break;
  
-+  case mjINT_IMPLICITFAST:
-+    mj_advance(m, d, d->act_dot, d->qacc, NULL);
-+    break;
-+
    case mjINT_IMPLICIT:
 -  case mjINT_IMPLICITFAST:
      mj_implicit(m, d);
      break;
  
-@@ -1227,9 +1272,14 @@
+@@ -1227,6 +1416,12 @@
  // advance simulation in two phases: after input is set by user
  void mj_step2(const mjModel* m, mjData* d) {
    TM_START;
-+  int coupled_step = m->opt.integrator == mjINT_IMPLICITFAST;
-   mj_fwdActuation(m, d);
--  mj_fwdAcceleration(m, d);
--  mj_fwdConstraint(m, d);
-+  if (coupled_step) {
-+    fwdCoupledStep(m, d);
-+  } else {
-+    mj_fwdAcceleration(m, d);
-+    mj_fwdConstraint(m, d);
++  if (m->opt.integrator == mjINT_IMPLICITFAST) {
++    midpointStep(m, d);
++    d->timer[mjTIMER_STEP].number--;
++    TM_END(mjTIMER_STEP);
++    return;
 +  }
-   mj_sensorAcc(m, d);
-   mj_checkAcc(m, d);
- 
-@@ -1239,7 +1289,9 @@
+   mj_fwdActuation(m, d);
+   mj_fwdAcceleration(m, d);
+   mj_fwdConstraint(m, d);
+@@ -1239,7 +1434,7 @@
    }
  
    // integrate with Euler or implicit; RK4 defaults to Euler
 -  if (m->opt.integrator == mjINT_IMPLICIT || m->opt.integrator == mjINT_IMPLICITFAST) {
-+  if (coupled_step) {
-+    mj_advance(m, d, d->act_dot, d->qacc, NULL);
-+  } else if (m->opt.integrator == mjINT_IMPLICIT) {
++  if (m->opt.integrator == mjINT_IMPLICIT) {
      mj_implicit(m, d);
    } else {
      mj_Euler(m, d);
@@ -492,7 +622,7 @@
  
   #define mjVERSION 337
 -#define mjVERSIONSTRING "3.3.7+guala.closed-limits.1"
-+#define mjVERSIONSTRING "3.3.7+guala.coupled-step.1"
++#define mjVERSIONSTRING "3.3.7+guala.midpoint-step.1"
  
  // names of disable flags
  const char* mjDISABLESTRING[mjNDISABLE] = {
