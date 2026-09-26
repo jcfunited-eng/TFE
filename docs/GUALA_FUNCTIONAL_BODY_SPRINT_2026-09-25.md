@@ -6486,3 +6486,129 @@ durabilityfalse,CPU51.04->51.07%,RAM3.206%. Clock-stalledALARM remains,
 otherfourOK. Host census has no diagnostic Python/timeout child. No live write.
 Shared G1 ledger17:14 records acquisition failure, unaccepted stale movement
 filter and small recommended correction; no autonomy or feeding closure claim.
+### FB-01aj closed joint-stop boundary correction contract — 2026-09-26 17:49Z
+
+Continue numerical-accuracy seam from b69c2ba69; accepted compiled interval,
+work accounting and optics are not reopened. Production1553 remains untouched.
+No new G1 receipt after shared17:14Z; its movement/intake findings remain open.
+
+Exact upstream source was downloaded to isolated /tmp/guala-body-mujoco-3.3.7-f1d45bd,
+commit f1d45bd5422c74beddfb0d1deb590a02583d21de. Pinned checkout, not web-rendered
+line numbers, is authoritative: engine_core_constraint.c728/1737 use strict
+dist<margin for hinge/slide instantiation/count. Initial closed lower limits
+therefore have no constraint row for the first finite integration step.
+Independent body_force_review confirms a closed <= boundary removes this
+unconstrained startup; it changes the pointwise force map. It is a declared
+closed-boundary extension of the existing APPROXIMATE soft law, not exact
+continuous equivalence or a general impact solution. At scalar rest/outward
+acceleration a0, impedance d yields a=(1-d)*a0 rather than a0. No attractive
+force is introduced by row admission; the original unilateral solver chooses
+reaction. Separating velocity, inward loading, upper/lower and dense/sparse
+cases must all be measured, not assumed.
+
+Single change: paired hinge/slide <= predicates and unique native version
+3.3.7+guala.closed-limits.1. No margin epsilon, initial pose displacement,
+motor capacity change, new damping, response-time/impedance retuning, timestep
+relaxation, force override, action controller, DSF or cognitive edit.
+Ball/tendon/contact predicates stay unchanged. Later between-step crossings
+and21.5ms self-impact remain open. Safety bounds are NOT accuracy tolerances.
+
+Complete closure: retained patch native/functional_body/closed_limits.patch,
+isolated reproducible builder native/functional_body/build_engine.py,
+NativeBody exact ENGINE_VERSION and existing model/header hashing bind the
+new law, tools/guala_body_joint_boundary.py supplies bounded proof. No old
+header rewrite/automatic migration; old-engine retained state must refuse.
+No functional body is mounted in production, so this slice performs no live
+migration. MjData remains scratch; caller bytes remain the one authority.
+No XML/schema/cognitive source change or duplicate solver. Build uses pinned
+upstream dependency commits and no installed shared-library replacement.
+
+Build/review: freeze tracked patch/builder/adapter/proof before compile.
+Builder validates clean exact upstream commit, applies only retained patch in
+the isolated checkout, and builds only mujoco target. Native version string
+is observable through existing Python binding and startup gate. Executable
+library hash is recorded separately from numerical-law version. Build flags
+disable fast-math/contraction; no global install. Two compiler jobs at most;
+wall/CPU/memory/process census and read-only AWS envelope.
+
+Proof: upstream wheel scalar control then patched scalar run; hinge/slide,
+lower/upper/interior/penetration, both velocity signs/zero, both force signs/
+zero, dense/sparse. Compare interior/penetrating scalar outputs exactly,
+reaction nonnegative, stationary unloaded/inward load no spurious reaction,
+outward rest response matches regularized equation, warnings zero and fresh
+state replay exact. The unmodified stock control must show absent equality
+rows; patched identity must be reported from the actually loaded library.
+Body proof uses unchanged archived torso-load XML, efforts, physical initial
+payload and100/50/25us100us prefixes; native cold successors exact; old header
+rejected. Also report all six original dyadic startup discrepancies down to
+1.5625us without selecting new tolerances. No full recurrence/suite rerun or
+production accuracy claim. Failure retains evidence and stops promotion.
+
+Tooling preflight found cmake/ninja absent. Install only pinned cmake3.31.6 in
+isolated body venv; use existing make. No missing build command is retried.
+Git download completed session8704exit0; no simulator ran during inspection.
+### FB-01aj closed joint-stop correction measured — 2026-09-26 18:01Z
+
+The versioned closed hinge/slide boundary is now compiled and LOCALLY PROVED.
+It is NOT a complete body pass, production deployment, or accuracy certificate.
+Frozen source review found one localized proof defect: post-step auto-reset
+could compare equal. Added zero-warning/finite full-state assertions after both
+ordinary/fresh steps; final PASS d35c1b91c2a13ae8b5cfb981b16710d76fee869078379
+fea4271a429627d8504, verified unchanged after execution. Proof SHA8a0c9383... .
+
+Build session1689exit0,58.511s wall,100.690s childCPU,394536KiB maximum childRSS
+(not simultaneous aggregate allocator peak), two pinnedCPUcores. Exact library:
+4425152fa68de19c39b0bacf433349c2e0679f066ccd5fec38f9c3d76517a5ff,
+4,294,840bytes, /tmp/guala-body-closed-limits-build/lib/libmujoco.so.3.3.7.
+Actual Python/native version3.3.7+guala.closed-limits.1 confirmed. Upstream
+source164MiB + build78MiB; isolated build artifacts retained for next mechanical
+qualification, not installed into stock package or deployed. No extra binary
+copy or whole upstream source vendored into repository. Retained patch only.
+
+Stock session19945exit0:180 scalar controls,55,820KiBRSS. Corrected session23922
+exit0:180 scalar cases pass,108 non-boundary cases INCLUDING complete step
+successor hashes EXACTLY equal stock. Lower/upper, hinge/slide, dense/sparse,
+positive/negative/zero velocity and force tested. Reactions remain unilateral;
+stationary inward/zero loads have zero reaction. Scalar unit outward effort
+at a closed hinge changes acceleration -250 -> -.250rad/s²; slide -1 -> -.001
+m/s². These agree with original .999 soft impedance, not a newly rigid stop.
+
+Body100/50/25us startup prefixes preserve initial physical payload and exact
+fresh-engine full successors. State remains5152bytes. Old-engine header is
+rejected without mutation; no automatic header transplant/migration. Archived
+XML, effort limits, initial pose, supply and guards unchanged.
+
+Whole-body motion accuracy remains OPEN. Initial one-step/two-half-step
+angular-rate differences at100/50/25/12.5/6.25/3.125us coarse steps are
+.1501124/.0807243/.0417979/.0212515/.0107128/.0053777rad/s. At the finest pair,
+angle difference9.232e-9rad, translation5.476e-11m, linear-rate2.825e-9m/s,
+work7.229e-12J. No tolerance was changed. This correction removes the identified
+unconstrained equality step but DOES NOT make the previous1e-4/1e-5 diagnostic
+requests pass, prove global convergence, or resolve later self-impact. Do not
+call the remaining full-body discrepancy this same closed-boundary defect.
+
+Authenticated controls/results, build and before/afterAWS receipts preserved in
+docs/evidence/FB-01aj-closed-joint-boundary.json. Corrected raw49,653bytes,
+SHA b73bdf6f2ba1e72619fcb78aa0ec0294f319c2c222d28e0f7f9d633ad0b5cad8.
+Corrected proofRSS152192KiB. No repeated broad suite or load/release matrix.
+
+AWS17:52:27->17:58:34Z same1553/ec20ff/digest1d088e,1/1/0HEALTHY,sameidentity,
+live2439756->2440562,persist2439721->2440553,errorsnull,durabilityfalse.
+CPU~51.05->51.04%,RAM~3.23%. Existing clock-stalledALARM still explicit,
+otherfourOK. Host census: no owned build/proof/compiler/timeout survivor.
+No caregiver/control/live-body writes. G1 still has no newer shared receipt;
+A1's requested small movement correction and existing-artifact review stand.
+
+Tooling failure preserved: /usr/bin/time was absent; wrapper exited127 before
+builder started. Replaced only that command wrapper with Python resource/
+subprocess measurement. No missing-executable retry, source reset, law change
+or extra build. The downloaded checkout is now intentionally patched; do not
+rerun the clean-checkout builder against it. Reuse immutable built library or
+a fresh authenticated checkout. Corrected source requires this exact variant;
+stock wheel alone is no longer the body candidate runtime dependency.
+
+Next exact item: bound motion/feedback error using the declared mechanical
+outputs and resolve remaining contact-transition integration. Do not confuse
+safety penetration/overrun guards with accuracy, or relax equal-SI diagnostic
+requests into a claimed production requirement. No return to force reduction,
+extra damping, geometry exemptions, scripted posture, or cognition. FB-01 ACTIVE.

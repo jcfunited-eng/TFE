@@ -1,0 +1,33 @@
+diff --git a/src/engine/engine_core_constraint.c b/src/engine/engine_core_constraint.c
+--- a/src/engine/engine_core_constraint.c
++++ b/src/engine/engine_core_constraint.c
+@@ -725,7 +725,7 @@ void mj_instantiateLimit(const mjModel* m, mjData* d) {
+           dist = side * (m->jnt_range[2*i+(side+1)/2] - value);
+ 
+           // detect joint limit
+-          if (dist < margin) {
++          if (dist <= margin) {
+             // prepare Jacobian: sparse or dense
+             if (issparse) {
+               jac[0] = -(mjtNum)side;
+@@ -1734,7 +1734,7 @@ static int mj_nl(const mjModel* m, const mjData* d, int *nnz) {
+       value = d->qpos[m->jnt_qposadr[i]];
+       for (side=-1; side <= 1; side+=2) {
+         dist = side * (m->jnt_range[2*i+(side+1)/2] - value);
+-        if (dist < margin) {
++        if (dist <= margin) {
+           nl += mj_addConstraintCount(m, 1, 1);
+           if (nnz) *nnz += 1;
+         }
+diff --git a/src/engine/engine_support.c b/src/engine/engine_support.c
+--- a/src/engine/engine_support.c
++++ b/src/engine/engine_support.c
+@@ -42,7 +42,7 @@
+ //-------------------------- Constants -------------------------------------------------------------
+ 
+  #define mjVERSION 337
+-#define mjVERSIONSTRING "3.3.7"
++#define mjVERSIONSTRING "3.3.7+guala.closed-limits.1"
+ 
+ // names of disable flags
+ const char* mjDISABLESTRING[mjNDISABLE] = {

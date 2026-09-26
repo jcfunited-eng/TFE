@@ -1,8 +1,8 @@
 """Body-only numerical mechanics. No behavior controller or cognitive authority.
 
-MuJoCo 3.3.7 is the sole motion/contact solver here. Its soft contact law and
-finite time sampling are approved approximations, not exact skin thermodynamics.
-Caller-owned integration bytes are authoritative; MjData is reusable scratch.
+MuJoCo 3.3.7 with the versioned closed hinge/slide limit boundary is the sole
+motion/contact solver. Its soft law and finite sampling are approved body-only
+approximations, not exact skin thermodynamics. Caller integration bytes own state.
 Only direct, unit-gear, effort-limited hinge/slide motors are admitted.
 """
 from __future__ import annotations
@@ -16,7 +16,7 @@ import mujoco as mj
 import numpy as np
 
 
-ENGINE_VERSION = "3.3.7"
+ENGINE_VERSION = "3.3.7+guala.closed-limits.1"
 STATE_KIND = mj.mjtState.mjSTATE_INTEGRATION
 _CALLBACK_GETTERS = (
     mj.get_mjcb_control, mj.get_mjcb_passive, mj.get_mjcb_contactfilter,
