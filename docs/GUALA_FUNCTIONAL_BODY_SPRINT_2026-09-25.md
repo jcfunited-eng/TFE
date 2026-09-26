@@ -7324,3 +7324,52 @@ owned diagnostic executable and emit PID/PPID, not unrelated command strings.
 Next body item remains deriving bounded numerical accuracy/performance from
 this retained transient, not another global sweep or production release.
 Push and Slack restrictions remain; neither was retried or bypassed.
+
+### FB-01aj numerical acceptance requirement — 2026-09-26 20:51Z
+
+Previous turn PROGRESS: a1ee7c6f1 retained reviewed event-resolution source,
+authenticated evidence and the diagnosed launch-preflight failure. Continue
+FB-01aj; do not reopen coupled settlement/work or the closed optical seams.
+Requested: bounded numerical body motion and truthful physical feedback.
+Current: safety guards and converging local diagnostics exist, but no finite
+output-accuracy requirement. Conflict:YES with claiming production accuracy.
+Do not extend cognition, DSF, anatomy/force retuning, sensory quantization, or
+the diagnostic's two-pair event handling into a general controller. Single
+next item: ratify a body-only engineering accuracy contract before timestep
+selection. Reduced rigid-body numerical mechanics; continuous tissue detail
+and a mathematically enclosed continuous trajectory remain unavailable.
+
+Source-only review independently confirmed no hidden accuracy contract:
+functional_body_native.py:36 limits admission/travel/penetration, not solution
+error; :393-420 forwards raw nonzero contact force and native sensor floats;
+functional_body_anatomy.py:74 declares channels, not bandwidth/resolution.
+embodiment_world.py:2616-2720 preserves these values without quantization.
+Native _native_transition(:4654) executes the fixed-step interval and carries
+work into world custody. Organism prepare_body_energy(:1634) rounds a measured
+work debit upward to nanojoules, but that serialization quantum is NOT an
+accuracy allowance for dynamics or quadrature. No biological precision inferred.
+
+Smallest proposed correction is a VERIFICATION contract, not new runtime state:
+one 250ms commanded interval; SI surface-position/orientation and rate errors;
+separate instantaneous contact force/onset timing and world-frame integrated
+impulse; separate positive motor work, signed work and bearing-loss errors.
+Require resource/refusal bounds and whole-state cold continuation as already
+specified. Integrated impulse agreement may not conceal a missed contact or
+different instantaneous tactile sample. No rounding, clipping or weakening of
+BodyFeedback is authorized by this proposal. Step-doubling remains an indicator,
+not a rigorous global enclosure. Numerical values cannot be manufactured from
+the observed differences or existing safety guards.
+
+Asked Joe one physical-fidelity choice: recommend explicit engineering targets
+for submillimetre handling with separately published force/energy error limits,
+or use his specific physical accuracy requirements. This is the first turn
+waiting on this requirement; goal remains ACTIVE, not paused/complete/blocked.
+No mechanical test/build or AWS mutation in this turn. Further resolution sweeps
+cannot determine the absent acceptance requirement and will not be run for that
+purpose. Independent source reviewer completed; no diagnostic job running.
+
+Read-only lookup error: a command guessed functional_body_native/anatomy/world
+at the service root. Actual body modules are under substrate, and world custody
+is in substrate/embodiment_world.py. The failed command made no changes; exact
+paths were resolved through rg --files before continuing. Retain those resolved
+paths rather than reconstructing basenames from memory.
