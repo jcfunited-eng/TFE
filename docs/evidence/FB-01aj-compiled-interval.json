@@ -1,0 +1,480 @@
+{
+  "schema": "guala.functional_body.compiled_interval_evidence.v1",
+  "scope": "Body-only exact execution optimization; not numerical-accuracy, 250-ms cadence, copied-production-body or deployment approval.",
+  "baseline": "e2b328240f2b381ede05db4800bb48338c2549c7",
+  "frozen_candidate": "58c85945c56bac32de1464361bb7f269ab46ff4e02c1d0df49a6e52138075675",
+  "compiled_binary_sha256": "d1600acfdb04a9f8d04580fd7d9a288018e28b7d09ce6150146e95fb6bec3be0",
+  "verification": {
+    "loaded_and_equivalence_tests": 9,
+    "existing_regression_tests": 61,
+    "exact_recurrent_successors": 36,
+    "exact_fresh_cold_successors": 36,
+    "exact_endpoint_refusals": 128,
+    "equivalence_session": 74798,
+    "regression_session": 27437,
+    "equivalence_seconds": 79.172,
+    "equivalence_peak_rss_kib": 150944,
+    "regression_seconds": 2.71966,
+    "regression_peak_rss_kib": 148988
+  },
+  "preserved_equivalence_output": {
+    "chunk_id": "c8a2da",
+    "wall_time_seconds": 0.000012987,
+    "exit_code": 0,
+    "original_token_count": 1121,
+    "output": "RECURRENCE [{\"step_us\": 100, \"name\": \"guala/torso/roll/effort\", \"phases\": [{\"phase\": \"load\", \"candidate_s\": 0.2848826220142655, \"predecessor_s\": 0.320779958012281}, {\"phase\": \"release\", \"candidate_s\": 0.28264184299041517, \"predecessor_s\": 0.34392851300071925}, {\"phase\": \"reverse\", \"candidate_s\": 0.2687289550085552, \"predecessor_s\": 0.32450828299624845}, {\"phase\": \"release_again\", \"candidate_s\": 0.34443517500767484, \"predecessor_s\": 0.5805158820003271}], \"state_bytes\": 5152}, {\"step_us\": 100, \"name\": \"guala/left/upper-arm/roll/effort\", \"phases\": [{\"phase\": \"load\", \"candidate_s\": 0.2835649760090746, \"predecessor_s\": 0.31493635100196116}, {\"phase\": \"release\", \"candidate_s\": 0.2718542439979501, \"predecessor_s\": 0.32088243000907823}, {\"phase\": \"reverse\", \"candidate_s\": 0.2661515249928925, \"predecessor_s\": 0.3136795040045399}, {\"phase\": \"release_again\", \"candidate_s\": 0.2681868129875511, \"predecessor_s\": 0.32888354200986214}], \"state_bytes\": 5152}, {\"step_us\": 100, \"name\": \"guala/left/digit-0/distal/flexion/effort\", \"phases\": [{\"phase\": \"load\", \"candidate_s\": 0.26589631201932207, \"predecessor_s\": 0.3157786890224088}, {\"phase\": \"release\", \"candidate_s\": 0.21101796999573708, \"predecessor_s\": 0.2658537969982717}, {\"phase\": \"reverse\", \"candidate_s\": 0.27398419298697263, \"predecessor_s\": 0.31006600201362744}, {\"phase\": \"release_again\", \"candidate_s\": 0.2443176099914126, \"predecessor_s\": 0.3138525710091926}], \"state_bytes\": 5152}, {\"step_us\": 50, \"name\": \"guala/torso/roll/effort\", \"phases\": [{\"phase\": \"load\", \"candidate_s\": 0.6512167860055342, \"predecessor_s\": 0.7507476969913114}, {\"phase\": \"release\", \"candidate_s\": 0.9330013350117952, \"predecessor_s\": 0.680659548001131}, {\"phase\": \"reverse\", \"candidate_s\": 0.5704281020152848, \"predecessor_s\": 0.6210427779878955}, {\"phase\": \"release_again\", \"candidate_s\": 0.5845582040201407, \"predecessor_s\": 0.6798565030039754}], \"state_bytes\": 5152}, {\"step_us\": 50, \"name\": \"guala/left/upper-arm/roll/effort\", \"phases\": [{\"phase\": \"load\", \"candidate_s\": 0.5474688230024185, \"predecessor_s\": 0.701203295000596}, {\"phase\": \"release\", \"candidate_s\": 0.5215218320081476, \"predecessor_s\": 0.6435878690099344}, {\"phase\": \"reverse\", \"candidate_s\": 0.5332289240031969, \"predecessor_s\": 1.068028214998776}, {\"phase\": \"release_again\", \"candidate_s\": 0.5358286830014549, \"predecessor_s\": 0.6319221559970174}], \"state_bytes\": 5152}, {\"step_us\": 50, \"name\": \"guala/left/digit-0/distal/flexion/effort\", \"phases\": [{\"phase\": \"load\", \"candidate_s\": 0.5317588140023872, \"predecessor_s\": 0.6430568939831574}, {\"phase\": \"release\", \"candidate_s\": 0.4588146469905041, \"predecessor_s\": 0.5440308520046528}, {\"phase\": \"reverse\", \"candidate_s\": 0.5371789990167599, \"predecessor_s\": 0.6319526490115095}, {\"phase\": \"release_again\", \"candidate_s\": 0.44966682500671595, \"predecessor_s\": 0.5485469900013413}], \"state_bytes\": 5152}, {\"step_us\": 25, \"name\": \"guala/torso/roll/effort\", \"phases\": [{\"phase\": \"load\", \"candidate_s\": 1.4469088210025802, \"predecessor_s\": 1.2512510569940787}, {\"phase\": \"release\", \"candidate_s\": 1.0623960570083, \"predecessor_s\": 1.2131289019889664}, {\"phase\": \"reverse\", \"candidate_s\": 1.08336839399999, \"predecessor_s\": 1.2394286890048534}, {\"phase\": \"release_again\", \"candidate_s\": 1.1961761369893793, \"predecessor_s\": 1.388585835986305}], \"state_bytes\": 5152}, {\"step_us\": 25, \"name\": \"guala/left/upper-arm/roll/effort\", \"phases\": [{\"phase\": \"load\", \"candidate_s\": 1.1170334889902733, \"predecessor_s\": 1.3454549929883797}, {\"phase\": \"release\", \"candidate_s\": 1.2320397979929112, \"predecessor_s\": 1.953599642001791}, {\"phase\": \"reverse\", \"candidate_s\": 1.2170677410031203, \"predecessor_s\": 1.3960240769956727}, {\"phase\": \"release_again\", \"candidate_s\": 1.1434801789873745, \"predecessor_s\": 1.3824949399859179}], \"state_bytes\": 5152}, {\"step_us\": 25, \"name\": \"guala/left/digit-0/distal/flexion/effort\", \"phases\": [{\"phase\": \"load\", \"candidate_s\": 1.5763205150142312, \"predecessor_s\": 1.2513293189986143}, {\"phase\": \"release\", \"candidate_s\": 0.8621379559917841, \"predecessor_s\": 1.0851390720054042}, {\"phase\": \"reverse\", \"candidate_s\": 1.1521175529924221, \"predecessor_s\": 1.2926163660013117}, {\"phase\": \"release_again\", \"candidate_s\": 1.0778615309973247, \"predecessor_s\": 1.1256867999909446}], \"state_bytes\": 5152}]\nok\n\n----------------------------------------------------------------------\nRan 9 tests in 79.172s\n\nOK\nPROOF_RESOURCE {\"elapsed_s\": 79.70811403100379, \"peak_kib\": 150944, \"user_s\": 79.545826, \"system_s\": 0.140363}\n"
+  },
+  "original_oracle_comparison": [
+    {
+      "step_us": 100,
+      "name": "guala/torso/roll/effort",
+      "phases": [
+        {
+          "phase": "load",
+          "candidate_s": 0.2848826220142655,
+          "predecessor_s": 0.320779958012281
+        },
+        {
+          "phase": "release",
+          "candidate_s": 0.28264184299041517,
+          "predecessor_s": 0.34392851300071925
+        },
+        {
+          "phase": "reverse",
+          "candidate_s": 0.2687289550085552,
+          "predecessor_s": 0.32450828299624845
+        },
+        {
+          "phase": "release_again",
+          "candidate_s": 0.34443517500767484,
+          "predecessor_s": 0.5805158820003271
+        }
+      ],
+      "state_bytes": 5152
+    },
+    {
+      "step_us": 100,
+      "name": "guala/left/upper-arm/roll/effort",
+      "phases": [
+        {
+          "phase": "load",
+          "candidate_s": 0.2835649760090746,
+          "predecessor_s": 0.31493635100196116
+        },
+        {
+          "phase": "release",
+          "candidate_s": 0.2718542439979501,
+          "predecessor_s": 0.32088243000907823
+        },
+        {
+          "phase": "reverse",
+          "candidate_s": 0.2661515249928925,
+          "predecessor_s": 0.3136795040045399
+        },
+        {
+          "phase": "release_again",
+          "candidate_s": 0.2681868129875511,
+          "predecessor_s": 0.32888354200986214
+        }
+      ],
+      "state_bytes": 5152
+    },
+    {
+      "step_us": 100,
+      "name": "guala/left/digit-0/distal/flexion/effort",
+      "phases": [
+        {
+          "phase": "load",
+          "candidate_s": 0.26589631201932207,
+          "predecessor_s": 0.3157786890224088
+        },
+        {
+          "phase": "release",
+          "candidate_s": 0.21101796999573708,
+          "predecessor_s": 0.2658537969982717
+        },
+        {
+          "phase": "reverse",
+          "candidate_s": 0.27398419298697263,
+          "predecessor_s": 0.31006600201362744
+        },
+        {
+          "phase": "release_again",
+          "candidate_s": 0.2443176099914126,
+          "predecessor_s": 0.3138525710091926
+        }
+      ],
+      "state_bytes": 5152
+    },
+    {
+      "step_us": 50,
+      "name": "guala/torso/roll/effort",
+      "phases": [
+        {
+          "phase": "load",
+          "candidate_s": 0.6512167860055342,
+          "predecessor_s": 0.7507476969913114
+        },
+        {
+          "phase": "release",
+          "candidate_s": 0.9330013350117952,
+          "predecessor_s": 0.680659548001131
+        },
+        {
+          "phase": "reverse",
+          "candidate_s": 0.5704281020152848,
+          "predecessor_s": 0.6210427779878955
+        },
+        {
+          "phase": "release_again",
+          "candidate_s": 0.5845582040201407,
+          "predecessor_s": 0.6798565030039754
+        }
+      ],
+      "state_bytes": 5152
+    },
+    {
+      "step_us": 50,
+      "name": "guala/left/upper-arm/roll/effort",
+      "phases": [
+        {
+          "phase": "load",
+          "candidate_s": 0.5474688230024185,
+          "predecessor_s": 0.701203295000596
+        },
+        {
+          "phase": "release",
+          "candidate_s": 0.5215218320081476,
+          "predecessor_s": 0.6435878690099344
+        },
+        {
+          "phase": "reverse",
+          "candidate_s": 0.5332289240031969,
+          "predecessor_s": 1.068028214998776
+        },
+        {
+          "phase": "release_again",
+          "candidate_s": 0.5358286830014549,
+          "predecessor_s": 0.6319221559970174
+        }
+      ],
+      "state_bytes": 5152
+    },
+    {
+      "step_us": 50,
+      "name": "guala/left/digit-0/distal/flexion/effort",
+      "phases": [
+        {
+          "phase": "load",
+          "candidate_s": 0.5317588140023872,
+          "predecessor_s": 0.6430568939831574
+        },
+        {
+          "phase": "release",
+          "candidate_s": 0.4588146469905041,
+          "predecessor_s": 0.5440308520046528
+        },
+        {
+          "phase": "reverse",
+          "candidate_s": 0.5371789990167599,
+          "predecessor_s": 0.6319526490115095
+        },
+        {
+          "phase": "release_again",
+          "candidate_s": 0.44966682500671595,
+          "predecessor_s": 0.5485469900013413
+        }
+      ],
+      "state_bytes": 5152
+    },
+    {
+      "step_us": 25,
+      "name": "guala/torso/roll/effort",
+      "phases": [
+        {
+          "phase": "load",
+          "candidate_s": 1.4469088210025802,
+          "predecessor_s": 1.2512510569940787
+        },
+        {
+          "phase": "release",
+          "candidate_s": 1.0623960570083,
+          "predecessor_s": 1.2131289019889664
+        },
+        {
+          "phase": "reverse",
+          "candidate_s": 1.08336839399999,
+          "predecessor_s": 1.2394286890048534
+        },
+        {
+          "phase": "release_again",
+          "candidate_s": 1.1961761369893793,
+          "predecessor_s": 1.388585835986305
+        }
+      ],
+      "state_bytes": 5152
+    },
+    {
+      "step_us": 25,
+      "name": "guala/left/upper-arm/roll/effort",
+      "phases": [
+        {
+          "phase": "load",
+          "candidate_s": 1.1170334889902733,
+          "predecessor_s": 1.3454549929883797
+        },
+        {
+          "phase": "release",
+          "candidate_s": 1.2320397979929112,
+          "predecessor_s": 1.953599642001791
+        },
+        {
+          "phase": "reverse",
+          "candidate_s": 1.2170677410031203,
+          "predecessor_s": 1.3960240769956727
+        },
+        {
+          "phase": "release_again",
+          "candidate_s": 1.1434801789873745,
+          "predecessor_s": 1.3824949399859179
+        }
+      ],
+      "state_bytes": 5152
+    },
+    {
+      "step_us": 25,
+      "name": "guala/left/digit-0/distal/flexion/effort",
+      "phases": [
+        {
+          "phase": "load",
+          "candidate_s": 1.5763205150142312,
+          "predecessor_s": 1.2513293189986143
+        },
+        {
+          "phase": "release",
+          "candidate_s": 0.8621379559917841,
+          "predecessor_s": 1.0851390720054042
+        },
+        {
+          "phase": "reverse",
+          "candidate_s": 1.1521175529924221,
+          "predecessor_s": 1.2926163660013117
+        },
+        {
+          "phase": "release_again",
+          "candidate_s": 1.0778615309973247,
+          "predecessor_s": 1.1256867999909446
+        }
+      ],
+      "state_bytes": 5152
+    }
+  ],
+  "original_oracle_summary": [
+    {
+      "step_us": 100,
+      "candidate_mean_s": 0.2721385198334853,
+      "original_oracle_mean_s": 0.33780546017320984,
+      "median_paired_speedup": 1.197584051280138
+    },
+    {
+      "step_us": 50,
+      "candidate_mean_s": 0.5712226645070283,
+      "original_oracle_mean_s": 0.6787196204992748,
+      "median_paired_speedup": 1.1825337045473596
+    },
+    {
+      "step_us": 25,
+      "candidate_mean_s": 1.180575680914141,
+      "original_oracle_mean_s": 1.3270616410785199,
+      "median_paired_speedup": 1.1455449614741382
+    }
+  ],
+  "immediate_predecessor_comparison": {
+    "baseline": "e2b328240f2b381ede05db4800bb48338c2549c7",
+    "baseline_source_sha256": "f9c86b73c7c1ac46fbb1a517f11c96913c3d234d2214fbbdd06ca7df4979c786",
+    "step_us": 100,
+    "pairs": 24,
+    "rows": [
+      {
+        "name": "guala/torso/roll/effort",
+        "phase": "load",
+        "compiled_s": [
+          0.27422247698996216,
+          0.28942474798532203
+        ],
+        "python_s": [
+          0.2877514869906008,
+          0.3444298979884479
+        ],
+        "exact": true
+      },
+      {
+        "name": "guala/torso/roll/effort",
+        "phase": "release",
+        "compiled_s": [
+          0.32098172800033353,
+          0.2848383570089936
+        ],
+        "python_s": [
+          0.27247719798469916,
+          0.30392817201209255
+        ],
+        "exact": true
+      },
+      {
+        "name": "guala/torso/roll/effort",
+        "phase": "reverse",
+        "compiled_s": [
+          0.26708771800622344,
+          0.6049143109994475
+        ],
+        "python_s": [
+          0.2958349469990935,
+          0.393628110003192
+        ],
+        "exact": true
+      },
+      {
+        "name": "guala/torso/roll/effort",
+        "phase": "release_again",
+        "compiled_s": [
+          0.4224607920041308,
+          0.2858986530045513
+        ],
+        "python_s": [
+          0.2912496750068385,
+          0.30876822498976253
+        ],
+        "exact": true
+      },
+      {
+        "name": "guala/left/upper-arm/roll/effort",
+        "phase": "load",
+        "compiled_s": [
+          0.27712508602417074,
+          0.2995158879784867
+        ],
+        "python_s": [
+          0.35611395101295784,
+          0.3655852610245347
+        ],
+        "exact": true
+      },
+      {
+        "name": "guala/left/upper-arm/roll/effort",
+        "phase": "release",
+        "compiled_s": [
+          0.25845032901270315,
+          0.29465968601289205
+        ],
+        "python_s": [
+          0.28826444598962553,
+          0.2936304959875997
+        ],
+        "exact": true
+      },
+      {
+        "name": "guala/left/upper-arm/roll/effort",
+        "phase": "reverse",
+        "compiled_s": [
+          0.2648179440002423,
+          0.2775044800073374
+        ],
+        "python_s": [
+          0.2976945060072467,
+          0.2721481879998464
+        ],
+        "exact": true
+      },
+      {
+        "name": "guala/left/upper-arm/roll/effort",
+        "phase": "release_again",
+        "compiled_s": [
+          0.2830778239876963,
+          0.28905475698411465
+        ],
+        "python_s": [
+          0.28540861600777134,
+          0.32035540501237847
+        ],
+        "exact": true
+      },
+      {
+        "name": "guala/left/digit-0/distal/flexion/effort",
+        "phase": "load",
+        "compiled_s": [
+          0.27833691201522015,
+          0.2596895349852275
+        ],
+        "python_s": [
+          0.27903073900961317,
+          0.26993698501610197
+        ],
+        "exact": true
+      },
+      {
+        "name": "guala/left/digit-0/distal/flexion/effort",
+        "phase": "release",
+        "compiled_s": [
+          0.21192912498372607,
+          0.20497563199023716
+        ],
+        "python_s": [
+          0.25639405800029635,
+          0.2387387610215228
+        ],
+        "exact": true
+      },
+      {
+        "name": "guala/left/digit-0/distal/flexion/effort",
+        "phase": "reverse",
+        "compiled_s": [
+          0.25013861400657333,
+          0.2664064840064384
+        ],
+        "python_s": [
+          0.2613250649883412,
+          0.27984250598819926
+        ],
+        "exact": true
+      },
+      {
+        "name": "guala/left/digit-0/distal/flexion/effort",
+        "phase": "release_again",
+        "compiled_s": [
+          0.312337174982531,
+          0.2506603969959542
+        ],
+        "python_s": [
+          0.5456828089954797,
+          0.30434633599361405
+        ],
+        "exact": true
+      }
+    ],
+    "compiled_mean": 0.29285452716552146,
+    "python_mean": 0.308856910001244,
+    "median_paired_speedup": 1.0735058514474247,
+    "wall_seconds": 14.539832463982748,
+    "peak_rss_kib": 143420
+  },
+  "immediate_predecessor_output": {
+    "chunk_id": "48db7c",
+    "wall_time_seconds": 0.000010903,
+    "exit_code": 0,
+    "original_token_count": 675,
+    "output": "INCREMENTAL {\"baseline\": \"e2b328240f2b381ede05db4800bb48338c2549c7\", \"baseline_source_sha256\": \"f9c86b73c7c1ac46fbb1a517f11c96913c3d234d2214fbbdd06ca7df4979c786\", \"step_us\": 100, \"pairs\": 24, \"rows\": [{\"name\": \"guala/torso/roll/effort\", \"phase\": \"load\", \"compiled_s\": [0.27422247698996216, 0.28942474798532203], \"python_s\": [0.2877514869906008, 0.3444298979884479], \"exact\": true}, {\"name\": \"guala/torso/roll/effort\", \"phase\": \"release\", \"compiled_s\": [0.32098172800033353, 0.2848383570089936], \"python_s\": [0.27247719798469916, 0.30392817201209255], \"exact\": true}, {\"name\": \"guala/torso/roll/effort\", \"phase\": \"reverse\", \"compiled_s\": [0.26708771800622344, 0.6049143109994475], \"python_s\": [0.2958349469990935, 0.393628110003192], \"exact\": true}, {\"name\": \"guala/torso/roll/effort\", \"phase\": \"release_again\", \"compiled_s\": [0.4224607920041308, 0.2858986530045513], \"python_s\": [0.2912496750068385, 0.30876822498976253], \"exact\": true}, {\"name\": \"guala/left/upper-arm/roll/effort\", \"phase\": \"load\", \"compiled_s\": [0.27712508602417074, 0.2995158879784867], \"python_s\": [0.35611395101295784, 0.3655852610245347], \"exact\": true}, {\"name\": \"guala/left/upper-arm/roll/effort\", \"phase\": \"release\", \"compiled_s\": [0.25845032901270315, 0.29465968601289205], \"python_s\": [0.28826444598962553, 0.2936304959875997], \"exact\": true}, {\"name\": \"guala/left/upper-arm/roll/effort\", \"phase\": \"reverse\", \"compiled_s\": [0.2648179440002423, 0.2775044800073374], \"python_s\": [0.2976945060072467, 0.2721481879998464], \"exact\": true}, {\"name\": \"guala/left/upper-arm/roll/effort\", \"phase\": \"release_again\", \"compiled_s\": [0.2830778239876963, 0.28905475698411465], \"python_s\": [0.28540861600777134, 0.32035540501237847], \"exact\": true}, {\"name\": \"guala/left/digit-0/distal/flexion/effort\", \"phase\": \"load\", \"compiled_s\": [0.27833691201522015, 0.2596895349852275], \"python_s\": [0.27903073900961317, 0.26993698501610197], \"exact\": true}, {\"name\": \"guala/left/digit-0/distal/flexion/effort\", \"phase\": \"release\", \"compiled_s\": [0.21192912498372607, 0.20497563199023716], \"python_s\": [0.25639405800029635, 0.2387387610215228], \"exact\": true}, {\"name\": \"guala/left/digit-0/distal/flexion/effort\", \"phase\": \"reverse\", \"compiled_s\": [0.25013861400657333, 0.2664064840064384], \"python_s\": [0.2613250649883412, 0.27984250598819926], \"exact\": true}, {\"name\": \"guala/left/digit-0/distal/flexion/effort\", \"phase\": \"release_again\", \"compiled_s\": [0.312337174982531, 0.2506603969959542], \"python_s\": [0.5456828089954797, 0.30434633599361405], \"exact\": true}], \"compiled_mean\": 0.29285452716552146, \"python_mean\": 0.308856910001244, \"median_paired_speedup\": 1.0735058514474247, \"wall_seconds\": 14.539832463982748, \"peak_rss_kib\": 143420}\n"
+  },
+  "immediate_predecessor_command": "test -f /tmp/guala-body-interval.Hdyavt/python/guala_body_interval.cpython-311-x86_64-linux-gnu.so && git cat-file -e e2b328240f2b381ede05db4800bb48338c2549c7:dsf_ai_service/substrate/functional_body_native.py && env PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=/tmp/guala-body-interval.Hdyavt/python:/tmp/guala-body-optics-native.U8I8en/python:/tmp/guala-body-native.pnUH8P/lib/python3.11/site-packages:.:tests:tools GUALA_BODY_INTERVAL_EXTENSION_ROOT=/tmp/guala-body-interval.Hdyavt/python GUALA_BODY_OPTICS_EXTENSION_ROOT=/tmp/guala-body-optics-native.U8I8en/python OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 timeout 60s python3 - <<'PY'\nimport ast,subprocess,time,json,resource,statistics,hashlib\nfrom types import MethodType\nimport dsf_ai_service.substrate.functional_body_native as native\nfrom guala_body_load_release import engine_at,LOADS,PHASES\nfrom test_functional_body_interval_equivalence import supply\nsource=subprocess.check_output(['git','show','e2b328240f2b381ede05db4800bb48338c2549c7:dsf_ai_service/substrate/functional_body_native.py'],text=True)\ncls=next(x for x in ast.parse(source).body if isinstance(x,ast.ClassDef) and x.name=='NativeBody')\nmethod=next(x for x in cls.body if isinstance(x,ast.FunctionDef) and x.name=='advance')\nnamespace=dict(vars(native))\nexec(compile(ast.Module(body=[method],type_ignores=[]),'<exact-e2b328240-advance-oracle>','exec'),namespace)\nrows=[]; start=time.perf_counter()\nfor name,sign in LOADS:\n    a,_,_=engine_at(100); b,_,_=engine_at(100)\n    b.advance=MethodType(namespace['advance'],b)\n    state=a.initial_state(); assert state==b.initial_state()\n    budget=supply(); index=a.actuator_names.index(name)\n    force=float(a._model.actuator_forcerange[index,0 if sign<0 else 1])\n    for phase,multiplier in PHASES:\n        command=dict(efforts=None,elapsed_us=250000,available_work_j=budget,effort_updates=((index,force*multiplier),))\n        outputs={}; timings={}\n        for order in (('compiled','python'),('python','compiled')):\n            for key in order:\n                engine=a if key=='compiled' else b\n                began=time.perf_counter(); result=engine.advance(state,**command); cost=time.perf_counter()-began\n                outputs[key]=result; timings.setdefault(key,[]).append(cost)\n            assert outputs['compiled']==outputs['python'],(name,phase,order)\n        rows.append(dict(name=name,phase=phase,compiled_s=timings['compiled'],python_s=timings['python'],exact=True))\n        state=outputs['compiled'].state; budget-=outputs['compiled'].positive_motor_work_j\n        assert budget>=0\ncompiled=[t for r in rows for t in r['compiled_s']]; prior=[t for r in rows for t in r['python_s']]\nprint('INCREMENTAL '+json.dumps(dict(baseline='e2b328240f2b381ede05db4800bb48338c2549c7',baseline_source_sha256=hashlib.sha256(source.encode()).hexdigest(),step_us=100,pairs=len(compiled),rows=rows,compiled_mean=statistics.mean(compiled),python_mean=statistics.mean(prior),median_paired_speedup=statistics.median(p/c for p,c in zip(prior,compiled)),wall_seconds=time.perf_counter()-start,peak_rss_kib=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)),flush=True)\nPY",
+  "operational_health": {
+    "pre_utc": "2026-09-26T12:07Z",
+    "post_utc": "2026-09-26T12:14Z",
+    "final_utc": "2026-09-26T12:19Z",
+    "task": "ec20ff084de54d48afab9a113647fa46",
+    "definition": "dsf-ai-task:1553",
+    "image_digest": "sha256:1d088eaaf195931a315e45c7ed456d4bb028210655e52eacad27e4445161612d",
+    "source": "Checked snapshots summarized in shared audit ledger; service was healthy while organism remained starved. No production mutation.",
+    "original_command": "test -x /usr/local/bin/aws && python3 - <<'PY'\nimport concurrent.futures, datetime, json, subprocess, urllib.request\nnow=datetime.datetime.now(datetime.timezone.utc)\ndef aws(*args):\n    return json.loads(subprocess.check_output(['/usr/local/bin/aws',*args,'--region','us-east-1','--output','json','--no-cli-pager'],text=True))\ndef service():\n    s=aws('ecs','describe-services','--cluster','tfe-web-cluster','--services','dsf-ai-service-lb')['services'][0]\n    arns=aws('ecs','list-tasks','--cluster','tfe-web-cluster','--service-name','dsf-ai-service-lb')['taskArns']\n    tasks=aws('ecs','describe-tasks','--cluster','tfe-web-cluster','--tasks',*arns)['tasks'] if arns else []\n    return {'counts':[s[k] for k in ('desiredCount','runningCount','pendingCount')], 'taskDefinition':s['taskDefinition'], 'tasks':[{'arn':t['taskArn'],'status':t['lastStatus'],'health':t.get('healthStatus'),'digests':[c.get('imageDigest') for c in t['containers']]} for t in tasks]}\ndef alarms():\n    return [{'name':x['AlarmName'],'state':x['StateValue']} for x in aws('cloudwatch','describe-alarms','--alarm-name-prefix','guala')['MetricAlarms']]\ndef metric(name):\n    r=aws('cloudwatch','get-metric-statistics','--namespace','AWS/ECS','--metric-name',name,'--dimensions','Name=ClusterName,Value=tfe-web-cluster','Name=ServiceName,Value=dsf-ai-service-lb','--start-time',(now-datetime.timedelta(minutes=10)).isoformat(),'--end-time',now.isoformat(),'--period','60','--statistics','Average','Maximum')\n    return sorted(r['Datapoints'],key=lambda x:x['Timestamp'])[-1:]\ndef observation():\n    with urllib.request.urlopen('https://dsf-ai.com/api/v1/guala/observation',timeout=20) as r: d=json.load(r)\n    return {k:d.get(k) for k in ('available','identity','live_tick','persisted_tick','checkpoint_error','cleanup_error','durability_blocked')}\nwith concurrent.futures.ThreadPoolExecutor(max_workers=4) as p:\n    jobs={k:p.submit(f) for k,f in [('service',service),('alarms',alarms),('cpu',lambda:metric('CPUUtilization')),('memory',lambda:metric('MemoryUtilization')),('observation',observation)]}\n    print(json.dumps({'utc':now.isoformat(),**{k:v.result() for k,v in jobs.items()}}))\nPY\n"
+  },
+  "warning": "Original-oracle speed ratios include the already-accepted duplicate-endpoint optimization. Only the immediate-e2b328240 comparison measures the incremental compiled-loop effect."
+}

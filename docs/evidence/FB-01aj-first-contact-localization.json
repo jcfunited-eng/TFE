@@ -1,0 +1,303 @@
+{
+  "schema": "guala.functional-body.archived-first-contact.v1",
+  "source": "docs/evidence/FB-01aj-load-release.json",
+  "source_sha256": "ee094938721e179aa40f497b2b31c8130257792e78a608b4068294b803203931",
+  "summaries": [
+    {
+      "step_us": 25,
+      "first_constraint": {
+        "active": [
+          [
+            3,
+            15
+          ],
+          [
+            3,
+            17
+          ],
+          [
+            3,
+            19
+          ],
+          [
+            3,
+            21
+          ],
+          [
+            3,
+            28
+          ],
+          [
+            3,
+            42
+          ],
+          [
+            3,
+            46
+          ]
+        ],
+        "elapsed_us": 25
+      },
+      "first_contact": {
+        "active": [
+          [
+            3,
+            28
+          ],
+          [
+            3,
+            57
+          ],
+          [
+            6,
+            22,
+            6
+          ]
+        ],
+        "elapsed_us": 21500
+      },
+      "joint_group_changes_before_contact": 113,
+      "solver_at_cap_samples": 0,
+      "max_solver_iterations": 6
+    },
+    {
+      "step_us": 50,
+      "first_constraint": {
+        "active": [
+          [
+            3,
+            15
+          ],
+          [
+            3,
+            17
+          ],
+          [
+            3,
+            19
+          ],
+          [
+            3,
+            21
+          ],
+          [
+            3,
+            28
+          ],
+          [
+            3,
+            42
+          ],
+          [
+            3,
+            46
+          ]
+        ],
+        "elapsed_us": 50
+      },
+      "first_contact": {
+        "active": [
+          [
+            3,
+            28
+          ],
+          [
+            3,
+            57
+          ],
+          [
+            6,
+            22,
+            6
+          ]
+        ],
+        "elapsed_us": 21500
+      },
+      "joint_group_changes_before_contact": 100,
+      "solver_at_cap_samples": 0,
+      "max_solver_iterations": 6
+    },
+    {
+      "step_us": 100,
+      "first_constraint": {
+        "active": [
+          [
+            3,
+            15
+          ],
+          [
+            3,
+            17
+          ],
+          [
+            3,
+            19
+          ],
+          [
+            3,
+            21
+          ],
+          [
+            3,
+            28
+          ],
+          [
+            3,
+            42
+          ],
+          [
+            3,
+            46
+          ]
+        ],
+        "elapsed_us": 100
+      },
+      "first_contact": {
+        "active": [
+          [
+            3,
+            28
+          ],
+          [
+            3,
+            57
+          ],
+          [
+            6,
+            22,
+            6
+          ]
+        ],
+        "elapsed_us": 21500
+      },
+      "joint_group_changes_before_contact": 80,
+      "solver_at_cap_samples": 0,
+      "max_solver_iterations": 6
+    }
+  ],
+  "comparisons": [
+    {
+      "step_us": [
+        100,
+        50
+      ],
+      "time_us": 0,
+      "max_hinge_delta_rad": 0,
+      "hinge_qpos_index": 7,
+      "max_joint_rate_delta_rad_s": 0,
+      "rate_dof_index": 6,
+      "root_displacement_delta_m": 0
+    },
+    {
+      "step_us": [
+        100,
+        50
+      ],
+      "time_us": 10000,
+      "max_hinge_delta_rad": 0.0003636009061753348,
+      "hinge_qpos_index": 7,
+      "max_joint_rate_delta_rad_s": 0.022461246265941703,
+      "rate_dof_index": 25,
+      "root_displacement_delta_m": 0.000003989859043615878
+    },
+    {
+      "step_us": [
+        100,
+        50
+      ],
+      "time_us": 20000,
+      "max_hinge_delta_rad": 0.0006098426317853733,
+      "hinge_qpos_index": 7,
+      "max_joint_rate_delta_rad_s": 0.03645091006588119,
+      "rate_dof_index": 65,
+      "root_displacement_delta_m": 0.000005497849528162285
+    },
+    {
+      "step_us": [
+        100,
+        50
+      ],
+      "time_us": 30000,
+      "max_hinge_delta_rad": 0.016548533836999002,
+      "hinge_qpos_index": 18,
+      "max_joint_rate_delta_rad_s": 46.02530965916308,
+      "rate_dof_index": 20,
+      "root_displacement_delta_m": 0.000027963879657907476
+    },
+    {
+      "step_us": [
+        100,
+        50
+      ],
+      "time_us": 40000,
+      "max_hinge_delta_rad": 0.0278047417002132,
+      "hinge_qpos_index": 29,
+      "max_joint_rate_delta_rad_s": 1.062266305643579,
+      "rate_dof_index": 28,
+      "root_displacement_delta_m": 0.000012523991904862807
+    },
+    {
+      "step_us": [
+        50,
+        25
+      ],
+      "time_us": 0,
+      "max_hinge_delta_rad": 0,
+      "hinge_qpos_index": 7,
+      "max_joint_rate_delta_rad_s": 0,
+      "rate_dof_index": 6,
+      "root_displacement_delta_m": 0
+    },
+    {
+      "step_us": [
+        50,
+        25
+      ],
+      "time_us": 10000,
+      "max_hinge_delta_rad": 0.00018193245709210992,
+      "hinge_qpos_index": 7,
+      "max_joint_rate_delta_rad_s": 0.06704087202636018,
+      "rate_dof_index": 38,
+      "root_displacement_delta_m": 0.000001997850159222014
+    },
+    {
+      "step_us": [
+        50,
+        25
+      ],
+      "time_us": 20000,
+      "max_hinge_delta_rad": 0.0003050839964908181,
+      "hinge_qpos_index": 7,
+      "max_joint_rate_delta_rad_s": 0.013519613209526993,
+      "rate_dof_index": 37,
+      "root_displacement_delta_m": 0.0000027536309780511796
+    },
+    {
+      "step_us": [
+        50,
+        25
+      ],
+      "time_us": 30000,
+      "max_hinge_delta_rad": 0.0070103633136892884,
+      "hinge_qpos_index": 26,
+      "max_joint_rate_delta_rad_s": 18.934066633018567,
+      "rate_dof_index": 20,
+      "root_displacement_delta_m": 0.00004467469778585372
+    },
+    {
+      "step_us": [
+        50,
+        25
+      ],
+      "time_us": 40000,
+      "max_hinge_delta_rad": 0.005478625874050168,
+      "hinge_qpos_index": 28,
+      "max_joint_rate_delta_rad_s": 0.18063299587707585,
+      "rate_dof_index": 17,
+      "root_displacement_delta_m": 0.000014778792828757993
+    }
+  ],
+  "scope": "Authenticated archived results only; no simulation or runtime change. Group events do not identify same-solve row impulses.",
+  "analysis_script": "import json,base64,zlib,hashlib,math\nfrom pathlib import Path\npath=Path('docs/evidence/FB-01aj-load-release.json')\ndata=json.loads(path.read_text())\nrows={}\nfor entry in data['measurements']:\n    raw=zlib.decompress(base64.b64decode(entry['payload_zlib_base64']))\n    assert len(raw)==entry['raw_bytes'] and hashlib.sha256(raw).hexdigest()==entry['raw_sha256']\n    row=json.loads(raw)\n    if row['name']=='guala/torso/roll/effort':\n        rows[row['step_us']]=row\nsummary=[]\nfor step,row in sorted(rows.items()):\n    report=row['phases'][0]['report']\n    events=report['active_constraint_group_events']\n    contact=next(e for e in events if any(k[0]>=5 for k in e['active']))\n    summary.append(dict(step_us=step,first_constraint=events[1],first_contact=contact,\n        joint_group_changes_before_contact=sum(e['elapsed_us']<contact['elapsed_us'] for e in events)-1,\n        solver_at_cap_samples=report['solver_at_cap_samples'],max_solver_iterations=report['max_solver_iterations']))\ncomparisons=[]\nfor coarse,fine in ((100,50),(50,25)):\n    a=rows[coarse]['phases'][0]['report']['trajectory_every_10ms']\n    b=rows[fine]['phases'][0]['report']['trajectory_every_10ms']\n    for x,y in zip(a,b):\n        assert x['elapsed_us']==y['elapsed_us']\n        if x['elapsed_us']>40000: break\n        q=[abs(u-v) for u,v in zip(x['qpos'][7:],y['qpos'][7:])]\n        v=[abs(u-w) for u,w in zip(x['qvel'][6:],y['qvel'][6:])]\n        comparisons.append(dict(step_us=[coarse,fine],time_us=x['elapsed_us'],\n            max_hinge_delta_rad=max(q),hinge_qpos_index=7+q.index(max(q)),\n            max_joint_rate_delta_rad_s=max(v),rate_dof_index=6+v.index(max(v)),\n            root_displacement_delta_m=math.dist(x['qpos'][:3],y['qpos'][:3])))\nprint(json.dumps(dict(schema='guala.functional-body.archived-first-contact.v1',\n    source=str(path),source_sha256=hashlib.sha256(path.read_bytes()).hexdigest(),\n    summaries=summary,comparisons=comparisons,\n    scope='Authenticated archived results only; no simulation or runtime change. Group events do not identify same-solve row impulses.')))\n",
+  "interpretation": "The first shared contact group occurs at 21.5ms. Hinge differences before20ms decrease under refinement; marked velocity differences exist by30ms. This localizes a measurement window, not the responsible contact impulse or a root-cause verdict. Solver iteration exhaustion is excluded in the archived initial load."
+}

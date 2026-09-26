@@ -174,6 +174,11 @@ class NativeBody:
         if mj.__version__ != ENGINE_VERSION:
             raise ValueError("unverified body engine version")
         _no_callbacks()
+        # Body-only compiled execution; never a fallback solver or state owner.
+        from guala_body_interval import INTERVAL_ABI, advance_interval
+        if INTERVAL_ABI != 1:
+            raise ValueError("unverified body interval ABI")
+        self._advance_interval = advance_interval
         root = ET.fromstring(xml)
         if any(e.tag in {"include", "extension", "plugin", "keyframe"}
                or "file" in e.attrib for e in root.iter()):
@@ -585,51 +590,9 @@ class NativeBody:
         initial_time = float(d.time)
         if math.ulp(initial_time) > m.opt.timestep:
             raise ValueError("mechanical time cannot represent this interval")
-        positive_work = signed_work = braking_work = bearing_heat = travel_peak = 0.0
-        self_bearing_heat = 0.0
-        motor_dofs = np.asarray(self._motor_dof, dtype=np.intp)
-        dt_half = m.opt.timestep / 2
-        # No physical change occurs between adjacent endpoint samples. Reuse
-        # that identical sample within this interval instead of recalculating it.
-        # These arrays/scalars never persist, schedule work or select actions.
-        power_before = effort * d.qvel[motor_dofs]
-        bearing_before = float(np.dot(m.dof_damping, d.qvel**2))
-        self_bearing_before = (0.0 if self._sensory_root is None else
-            float(np.dot(m.dof_damping[self._self_dofs], d.qvel[self._self_dofs]**2)))
-        for _ in range(elapsed_us // lim.step_us):
-            position, rotation = d.geom_xpos.copy(), d.geom_xmat.copy().reshape(-1, 3, 3)
-            mj.mj_step(m, d)
-            mj.mj_kinematics(m, d)
-            mj.mj_collision(m, d)
-            self._check()
-            power_after = effort * d.qvel[motor_dofs]
-            signed_work += float((power_before + power_after).sum()) * dt_half
-            positive_work += float((np.maximum(power_before, 0)
-                                   + np.maximum(power_after, 0)).sum()) * dt_half
-            braking_work += float((np.maximum(-power_before, 0)
-                                  + np.maximum(-power_after, 0)).sum()) * dt_half
-            bearing_after = float(np.dot(m.dof_damping, d.qvel**2))
-            bearing_heat += (bearing_before + bearing_after) * dt_half
-            if self._sensory_root is not None:
-                self_bearing_after = float(np.dot(
-                    m.dof_damping[self._self_dofs], d.qvel[self._self_dofs]**2))
-                self_bearing_heat += (self_bearing_before + self_bearing_after) * dt_half
-                self_bearing_before = self_bearing_after
-            if not all(math.isfinite(x) for x in (
-                    positive_work, signed_work, braking_work, bearing_heat, self_bearing_heat)):
-                raise ValueError("non-finite mechanical work")
-            if positive_work > available_work_j:
-                raise ValueError("mechanical energy supply exhausted; no successor")
-            new_rotation = d.geom_xmat.reshape(-1, 3, 3)
-            trace = np.einsum("ijk,ijk->i", rotation, new_rotation)
-            angle = np.arccos(((trace - 1) / 2).clip(-1, 1))
-            travel = np.linalg.norm(d.geom_xpos - position, axis=1) + m.geom_rbound * angle
-            travel_peak = max(travel_peak, float(travel.max(initial=0)))
-            if not np.isfinite(travel).all():
-                raise ValueError("non-finite surface motion")
-            if travel_peak > lim.max_surface_travel_m:
-                raise ValueError("surface movement exceeds collision sampling resolution")
-            power_before, bearing_before = power_after, bearing_after
+        (positive_work, signed_work, travel_peak, braking_work,
+         bearing_heat, self_bearing_heat) = self._advance_interval(
+             self, effort, elapsed_us // lim.step_us, available_work_j)
         expected = initial_time + elapsed_us / 1_000_000
         if abs(d.time - expected) > (elapsed_us // lim.step_us + 1) * math.ulp(expected):
             raise ValueError("native mechanical time diverged")

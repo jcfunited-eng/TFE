@@ -6178,3 +6178,163 @@ do not port/repeat deleted endpoint work, reopen constitutive laws, or claim
 smaller timesteps/fullimplicit already solve accuracy. Full body integration,
 home/caregiver/cold mature state, numerical qualification and live delivery
 remain open. GoalACTIVE; GitHub push remains blocked and has not been retried.
+
+### FB-01aj compiled interval contract — 2026-09-26 11:39Z
+
+Previous turn PROGRESS:e2b328240. Revalidated clean body branch and current shared
+ledger; no new G1 entry. Continue execution cost, not a new numerical/material
+law. The prior duplicate-endpoint deletion and failed fullimplicit comparison
+remain closed. Baseline100us mean269ms/250ms; finer steps still cost more.
+
+Requested architecture: the same authenticated body interval with less Python
+bytecode dispatch. Current reality: MuJoCo solves natively, but Python executes
+the interval loop/scalar accumulators. Conflict: yes, real-time and complete
+mechanical qualification remain unproved. Do not extend any force/controller,
+contact law, solver settings, approximate reduction, cognition or kernel files.
+Single next item: compiled same-law interval plus exact differential proof.
+No DSF evaluation/reduction is performed here; approved numerical body mechanics
+only, with no newly omitted physical structure.
+
+Use a small Cython3.1.2 build-only extension (no compiler runtime dependency).
+Preserve MuJoCo's public Python binding calls, including their native fatal-error
+conversion, rather than introducing unsafe raw model/data pointers or a second
+MuJoCo library. Preserve NumPy vector operations and reduction/transcendental
+order, rather than reimplementing dot/sum/acos in a different native library.
+Compile the control loop and float64 scalar accumulation with fast-math and
+FMA contraction disabled. No solver change, SIMD/FMA shortcut or GIL worker.
+Existing _check executes after every native step/kinematics/collision as before.
+Cache only interval-local references to stable native arrays/functions and
+halfstep. Geometry snapshots remain perstep; contact checks fetch current data.
+No model/data ownership, persistent cache, history, callbacks or new clock.
+
+Authorized files:
+native/functional_body/interval.pyx, native/functional_body/build.py,
+dsf_ai_service/substrate/functional_body_native.py (constructor binding and
+advance dispatch only), tests/test_functional_body_native_interval.py.
+Reuse accepted test_functional_body_interval_equivalence.py unchanged as the
+exact predecessor oracle; it matches e2b328240 transitively through prior proof.
+No native/guala_core/kernel edit or parallel cognition module.
+
+Boundary: existing advance validates elapsed/supply/effort, restores input,
+applies effort and runs initialforward/timecheck; one compiled call executes
+the existing bounded substeps and returns positive/signed/braking/bearing/self-
+bearing work and maximum surface travel. Existing expectedtime/finalforward/
+_check/_observation/_capture/residual remain in Python adapter unchanged.
+Compiled scalars are IEEE double; retain each multiplication/addition order.
+A NaN travel maximum must preserve Python max semantics before the existing
+non-finite-motion refusal. No native float fusion or reordered reductions.
+Missing/wrong-ABI extension refuses at NativeBody construction, no Python
+fallback. Unmounted world code retains its lazy NativeBody import boundary.
+
+No schema/header migration: input and complete output must remain byte exact.
+Exceptions propagate through the same caller; only scratch may have advanced.
+World/thermal/organism publication, rollback and freshcold continuation unchanged.
+Storage O(model-sized endpoint arrays), independent of lifetime/stepcount;
+calls remain bounded by substeps. This compiles dispatch rather than claiming
+all MuJoCo/NumPy calls disappear. No nanosecond or guaranteed speedup claim.
+
+Build output goes only to an explicit /tmp build directory. Pin compiler3.1.2,
+retain build command/compiler log/source+binary hashes. No generated C, object
+files or binary artifacts committed into source. Preserve isolated NumPy/MuJoCo
+3.3.7 runtime and existing optics extension; do not replace G1 packages.
+Build may depend on setuptools and Cython, not new runtime libraries.
+
+One frozen source-only review precedes compile. Then prove loaded extension
+origin/ABI, missing/bad backend refusal, existing6 exact interval proofs
+(36 recurrent/cold successors,128 refusals, work/observer/cost), and61 existing
+native/energy/anatomy/world regressions. No pytest or production occurrence.
+Copied-mature-body/production gates remain separate and open.
+Read-only AWS/host census before and after build/proof; no orphan child.
+
+Compiler reference (not a physical law):
+https://cython.readthedocs.io/en/3.1.x/src/userguide/source_files_and_compilation.html
+Pinned release:https://pypi.org/project/Cython/3.1.2/
+
+### FB-01aj compiled interval verified — preserved 2026-09-26 12:42Z
+
+Previous body work PROGRESS; Joe's intervening starvation audit produced separate
+live evidence, not a body-source change. Resume the original bounded body goal.
+Fingerprint58c85945c56bac32de1464361bb7f269ab46ff4e02c1d0df49a6e52138075675
+reverified unchanged. The reviewed runtime/test candidate has not moved while
+that audit ran. Independent body_force_review source review passed beforehand.
+
+Build session69804exit0: pinned Cython3.1.2,2.3296s,151024KiB; output only under
+/tmp/guala-body-interval.Hdyavt,18MiB at completion. Loaded extension SHA256
+d1600acfdb04a9f8d04580fd7d9a288018e28b7d09ce6150146e95fb6bec3be0,
+reverified now. No generated C/object/binary added to the repository.
+
+Session74798exit0:9/9 loader/ABI/exact-Fraction/unchanged interval proofs in
+79.172s,150944KiB. All36 recurrent and36 freshcold complete successors remain
+byte-exact;128 original endpoint refusals match error/time/scratchstate.
+Session27437exit0:61/61 unchanged native/energy/anatomy/world regressions in
+1.950s (wrapper2.71966s),148988KiB. No production-shaped claim from these cases.
+
+Direct immediate-e2b328240 comparison, session24532exit0:24 exact predecessor/
+compiled successor pairs, alternating order,3 loads x4 recurrent phases x2.
+100us step: compiled mean292.854527ms vsPython308.856910ms per250ms interval;
+median paired speedup1.07350585x.14.5398s total,143420KiB. Scheduler outliers
+retained. This is NOT a250ms throughput pass. The older9d8c778fe oracle ratios
+also include the previously accepted duplicate-work deletion; they must NOT
+be reported as the incremental Cython gain.
+
+Evidence preserved in docs/evidence/FB-01aj-compiled-interval.json: exact command,
+raw retained tool output, all paired rows, source/binary/frozen identifiers,
+verification results and health identity. Before/after12:07/12:14/12:19Z health
+remained1553/ec20ff/digest1d088e,1/1/0HEALTHY and unchanged organism identity,
+advancing live/persisted ticks, checkpoint/cleanupnull,durabilityfalse. Zero
+reserve remained an organism defect; AWS health never implied feeding success.
+All referenced proof/build handles terminal. No A1 test child/orphan at census.
+
+Accept this execution-only replacement; do not reopen its physics/byte-equivalence
+gate. Numerical motion accuracy, soft-contact passivity/thermal interpretation,
+home/gravity/concurrent loads, mature integration and live delivery remain OPEN.
+Next bounded question: which joint/contact event first produces the recurrent
+cross-timestep discrepancy? Use existing archived events first; only missing
+same-solve row evidence justifies another focused offline measurement. No blind
+timestep shrink, law retuning, force reduction, tolerance relaxation or cognitive
+work. Existing diagnostic tools/guala_body_constraint_work.py is authoritative;
+guessed tools/guala_body_discrete_work.py does not exist and will not be retried.
+
+Authority helper still expects the absent July31 handoff; this known skill/repo
+drift is unchanged, not a new worktree or permission blocker. Actual body branch,
+HEAD,diff,source and sprint ledger were inspected directly. Push restriction
+remains; no denied GitHub operation was retried.
+
+### FB-01aj resumed after explicit goal restart — 2026-09-26 16:55Z
+
+Joe resumed the bounded body goal and explicitly retains A1 help for G1.
+The previous turn was coordination only, not body progress. AUT-01 retention
+is separately committed/proven locally in a1/needs-fulfillment; G1 movement
+correction and combined independent acquisition acceptance remain open.
+Do not merge the moving main tree or abandon that bounded integration duty.
+
+Recovered existing compiled-interval proof without rerunning it. Its binary
+still hashes d1600acfdb04a9f8d04580fd7d9a288018e28b7d09ce6150146e95fb6bec3be0.
+Prior reviewer recovered the PASS/fingerprint58c85945... and verified current
+file hashes; the old receipt has whole-tree rather than per-file hashes, so
+no stronger historical per-file comparison is claimed. No implementation or
+test source changed during recovery. Preserve/commit accepted work and evidence.
+
+New evidence uses only authenticated archived load/release records, no simulator
+execution: docs/evidence/FB-01aj-first-contact-localization.json. Across100/50/
+25us, first contact group[6,22,6] starts at21.5ms; solver max6iterations and
+zero capped samples. At20ms,100->50/50->25us maximum hinge difference is
+.00060984/.00030508rad. By30ms, joint-speed differences are46.0253/18.9341rad/s.
+Joint-limit group churn precedes contact. This narrows the next diagnostic to
+the first30ms of one torso load, NOT a new full recurrence/refinement sweep.
+Archived group IDs lack same-solve contact rows/impulses, so they cannot yet
+establish which physical contact or constitutive term causes the divergence.
+
+No force reduction, tolerance relaxation, solver-law promotion or heat assignment.
+Next contract: observe the existing same-solve contact rows only over this small
+prefix, verify unchanged ordinary successor and archived10/20/30ms samples, and
+identify contact geometry/normal/friction and joint-limit contributions. This
+is a numerical-mechanics diagnostic, not a cognition or production experiment.
+
+Recovery tooling errors preserved: guessed setup.py/guala_body_interval.pyx
+were absent; actual discovered native/functional_body/build.py and interval.pyx
+read instead. No build retried. An overlarge archived-event print was truncated;
+all original data remained in authenticated files, then a bounded summary was
+computed without rerunning physics. Default sandbox ps sees its own namespace,
+not the host; do not treat it as a production/shared-host census. No simulation
+or heavy process launched in this recovery block. Push restriction unchanged.
