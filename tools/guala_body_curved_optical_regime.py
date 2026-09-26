@@ -13,6 +13,7 @@ import math
 import os
 import resource
 import time
+import xml.etree.ElementTree as ET
 from types import SimpleNamespace
 
 import mujoco as mj
@@ -21,8 +22,12 @@ import numpy as np
 from dsf_ai_service.substrate.functional_body_native import NativeBody
 from dsf_ai_service.substrate.functional_body_optics import (
     _aperture_geometry, _dot_extrema, _plane_parameters, _validate_apertures,
+    disjoint_surface_radiance,
 )
-from tools.guala_body_optical_regime import LIMITS, ORIGIN, retinal_apertures, scene
+from dsf_ai_service.substrate.functional_body_visibility import PlanarSurface, visible_planar_regions
+from tools.guala_body_optical_regime import (
+    LIMITS, ORIGIN, EYE_Z, BANDS, retinal_apertures, scene,
+)
 
 
 SPHERE, CAPSULE, ELLIPSOID, CYLINDER, BOX = (int(x) for x in (
@@ -144,8 +149,69 @@ def patch_geometry(patches):
     return centre, epsilon, _aperture_geometry(patches)
 
 
-def entry_bounds(kind, size, centre, rotation, patches, prepared):
+def box_faces(size, centre, rotation):
+    """Original physical unit charts, not reconstructed clipping vertices."""
+    eye = -centre @ rotation
+    quad = np.array(((0., 0.), (1., 0.), (1., 1.), (0., 1.)))
+    faces = []
+    for axis in range(3):
+        others = [a for a in range(3) if a != axis]
+        for sign in (-1, 1):
+            if sign*eye[axis] <= size[axis]:
+                continue
+            axes = np.array([rotation[:, a]*(2*size[a]) for a in others])
+            origin = centre + rotation[:, axis]*sign*size[axis] - axes.sum(axis=0)/2
+            faces.append(PlanarSurface.from_chart(origin, axes, quad, max_corners=4))
+    return tuple(faces)
+
+
+def box_entry_bounds(faces, patches, angular):
+    lower = np.full(len(patches), np.inf)
+    upper = lower.copy()
+    for face in faces:
+        lo, hi = _dot_extrema(face.halfspaces, patches,
+                              _plane_parameters(face.halfspaces), angular)
+        possible = np.all(hi >= 0, axis=0)
+        all_inside = np.all(lo >= 0, axis=0)
+        inverse = face.inverse[0:1]
+        near, far = _dot_extrema(inverse, patches, _plane_parameters(inverse), angular)
+        first = np.divide(1., far[0], out=np.full(len(patches), np.inf),
+                          where=possible & (far[0] > 0))
+        last = np.divide(1., near[0], out=np.full(len(patches), np.inf),
+                         where=all_inside & (near[0] > 0))
+        lower = np.minimum(lower, first)
+        upper = np.minimum(upper, last)
+    return lower, upper
+
+
+def prepare_scene(geometry, apertures, radiance):
+    domain = np.array(((apertures[:,0].min(), apertures[:,1].max(),
+                        apertures[:,2].min(), apertures[:,3].max()),))
+    domain_geometry = patch_geometry(domain)
+    boxes, curved, surfaces, native_indices = {}, [], [], []
+    for i, (kind, size, centre, rotation) in enumerate(zip(
+            geometry.kinds, geometry.sizes_m, geometry.positions_eye_m, geometry.rotations_eye)):
+        if kind == BOX:
+            faces = box_faces(size, centre, rotation)
+            boxes[i] = faces
+            surfaces.extend(faces)
+            native_indices.extend([i]*len(faces))
+        else:
+            lower, _ = entry_bounds(kind, size, centre, rotation, domain, domain_geometry)
+            if np.isfinite(lower[0]):
+                curved.append(i)
+    regions = visible_planar_regions(tuple(surfaces), domain, max_halfspaces=32768,
+                                     max_work=1048576, max_cells=32768)
+    values = np.array([radiance[native_indices[r.surface_index]] for r in regions],
+                      dtype=np.float64).reshape(-1, 6)
+    return boxes, tuple(curved), tuple(r.halfspaces for r in regions), values
+
+
+def entry_bounds(kind, size, centre, rotation, patches, prepared, faces=None):
     direction, epsilon, angular = prepared
+    if kind == BOX:
+        return box_entry_bounds(box_faces(size, centre, rotation) if faces is None else faces,
+                                patches, angular)
     origin = -centre @ rotation
     velocity = direction @ rotation
     half, radius = radii(kind, size)
@@ -183,16 +249,20 @@ def entry_bounds(kind, size, centre, rotation, patches, prepared):
     return lower, upper
 
 
-def classify(geometry, patches):
+def classify(geometry, patches, boxes, curved):
     """-1 background, -2 unresolved, otherwise original primitive row."""
     prepared = patch_geometry(patches)
     first = np.full(len(patches), np.inf)
     second, upper = first.copy(), first.copy()
     first_id = np.full(len(patches), -1, dtype=np.int32)
     winner = first_id.copy()
-    for index, (kind, size, centre, rotation) in enumerate(zip(
-            geometry.kinds, geometry.sizes_m, geometry.positions_eye_m, geometry.rotations_eye)):
-        lo, hi = entry_bounds(kind, size, centre, rotation, patches, prepared)
+    curved_possible = np.zeros(len(patches), dtype=bool)
+    for index in (*boxes, *curved):
+        kind, size = geometry.kinds[index], geometry.sizes_m[index]
+        centre, rotation = geometry.positions_eye_m[index], geometry.rotations_eye[index]
+        lo, hi = entry_bounds(kind, size, centre, rotation, patches, prepared, boxes.get(index))
+        if kind != BOX:
+            curved_possible |= np.isfinite(lo)
         replace = lo < first
         second = np.where(replace, first, np.minimum(second, lo))
         first = np.minimum(first, lo)
@@ -202,7 +272,7 @@ def classify(geometry, patches):
         winner = np.where(replace_upper, index, winner)
     competitors = np.where(winner == first_id, second, first)
     resolved = upper < competitors
-    return np.where(np.isinf(first), -1, np.where(resolved, winner, -2))
+    return np.where(np.isinf(first), -1, np.where(resolved, winner, -2)), ~curved_possible
 
 
 def integrate(geometry, apertures, radiance, error, *, max_nodes=262144, max_depth=20):
@@ -211,7 +281,7 @@ def integrate(geometry, apertures, radiance, error, *, max_nodes=262144, max_dep
     _validate_apertures(apertures)
     if type(max_nodes) is not int or not 0 < max_nodes <= 262144 or type(max_depth) is not int or not 0 <= max_depth <= 20:
         raise ValueError('positive integer node budget and bounded integer depth required')
-    if len(apertures) > 19335 or error <= 0 or not math.isfinite(error):
+    if not 0 < len(apertures) <= 19335 or error <= 0 or not math.isfinite(error):
         raise ValueError('bounded retinal/error request required')
     if radiance.shape != (len(geometry.kinds), 6) or not np.isfinite(radiance).all() or np.any(radiance < 0):
         raise ValueError('finite six-band diagnostic emitters required')
@@ -219,6 +289,7 @@ def integrate(geometry, apertures, radiance, error, *, max_nodes=262144, max_dep
     total = (apertures[:, 1]-apertures[:, 0])*(apertures[:, 3]-apertures[:, 2])
     if not np.isfinite(total).all() or np.any(total <= 0):
         raise ValueError('positive representable aperture areas required')
+    boxes, curved, regions, values = prepare_scene(geometry, apertures, radiance)
     exact = np.zeros((len(apertures), 6))
     uncertainty = np.zeros(len(apertures))
     nodes, owners = apertures.copy(), np.arange(len(apertures))
@@ -230,11 +301,15 @@ def integrate(geometry, apertures, radiance, error, *, max_nodes=262144, max_dep
         patch_area = (nodes[:, 1]-nodes[:, 0])*(nodes[:, 3]-nodes[:, 2])
         if not np.isfinite(patch_area).all() or np.any(patch_area <= 0):
             raise ValueError('positive representable patch areas required')
-        resolved = classify(geometry, nodes)
+        resolved, planar_only = classify(geometry, nodes, boxes, curved)
         area = patch_area / total[owners]
-        hit = resolved >= 0
+        if planar_only.any():
+            mean = disjoint_surface_radiance(regions, values, nodes[planar_only],
+                                            max_cells=32768, max_halfspaces=32768)
+            np.add.at(exact, owners[planar_only], area[planar_only, None]*mean)
+        hit = (resolved >= 0) & ~planar_only
         np.add.at(exact, owners[hit], area[hit, None]*radiance[resolved[hit]])
-        active = resolved == -2
+        active = (resolved == -2) & ~planar_only
         unknown = np.bincount(owners[active], weights=area[active], minlength=len(apertures))
         done = unknown*maximum.max()/2 <= error
         completed = done & (unknown > 0)
@@ -287,6 +362,33 @@ def one_geometry(kind, size, centre, angle):
                            positions_eye_m=np.array((centre,)), rotations_eye=np.array((rotation,)))
 
 
+def native_panel_bounds(geometry, index, apertures):
+    """Independent initial-bench silhouette from actual compiled box extents.
+
+    The huge finite panel loses picometres at centre-minus-halfsize. Using
+    its ideal pre-compilation edge instead compares two different scenes.
+    This reference uses corner angles, not the renderer's face-chart solver.
+    Outside the conservative vertical support, coverage remains an interval.
+    It is float64 geometry, not directed-rounding interval arithmetic.
+    """
+    assert geometry.kinds[index] == BOX
+    np.testing.assert_array_equal(geometry.rotations_eye[index], np.eye(3))
+    low = geometry.positions_eye_m[index] - geometry.sizes_m[index]
+    high = geometry.positions_eye_m[index] + geometry.sizes_m[index]
+    near, far = low[0], high[0]
+    vertical = min(-low[2], high[2])
+    assert 0 < near < far < vertical
+    assert np.all(np.abs(apertures[:, 2:]) <= math.sqrt(.5))
+    corners = [math.atan2(y, x) for x in (near, far) for y in (low[1], high[1])]
+    lo, hi = min(corners), max(corners)
+    hlo, hhi = apertures[:, 0], apertures[:, 1]
+    coverage = np.maximum(0., np.minimum(hhi, hi) - np.maximum(hlo, lo)) / (hhi-hlo)
+    safe_h = math.acos(far/vertical)
+    certain = np.maximum(0., np.minimum(hhi, min(hi, safe_h))
+                         - np.maximum(hlo, max(lo, -safe_h))) / (hhi-hlo)
+    return certain[:, None]*BANDS, coverage[:, None]*BANDS
+
+
 def main():
     started = time.perf_counter()
     print(json.dumps({'pid': os.getpid(), 'kind': 'offline float64 regime, not formal certified optics'}), flush=True)
@@ -326,33 +428,72 @@ def main():
         else:
             raise AssertionError('invalid numerical/geometry request admitted')
     print(json.dumps({'admission_refusals': len(cases)}), flush=True)
+    # Off-centre sub-aperture cap: translation in longitude preserves dOmega.
+    tiny = one_geometry(SPHERE, (.0004, 0., 0.), (.7*math.cos(.041), .7*math.sin(.041), 0.), 0.)
+    tiny_aperture = np.array(((.038, .044, -.003, .003),))
+    tiny_image, tiny_error, tiny_nodes, _ = integrate(tiny, tiny_aperture, np.ones((1, 6)), 1/510)
+    ratio = .0004/.7
+    # Stable form of 1-sqrt(1-ratio^2).
+    tiny_expected = 2*math.pi*ratio**2/(1+math.sqrt(1-ratio**2)) / (.006*.006)
+    assert abs(tiny_image[0,0]-tiny_expected) <= tiny_error[0,0]+1e-12
+    print(json.dumps({'off_centre_subaperture_cap': tiny_expected,
+                      'measured': tiny_image[0,0], 'bound': tiny_error[0,0],
+                      'nodes': tiny_nodes}), flush=True)
     # Real full finite roster, including all self surfaces; no plane removal.
-    xml, engine = scene(.117, None)
-    initial = engine.initial_state()
-    effort = ((engine.actuator_names.index('guala/head/yaw/effort'), .01),)
-    moved = engine.advance(initial, None, 50000, 1., effort_updates=effort).state
-    for label, state in (('initial', initial), ('moved', moved)):
-        geometry = engine.optical_geometry(state, 'guala/head', ORIGIN, max_geoms=256)
-        validate_geometry(geometry)
-        radiance = np.ones((len(geometry.kinds),6))
-        radiance[engine.geom_names.index('dark-panel')] = 0.
-        before = engine.observe(state)
-        begin = time.perf_counter()
-        try:
-            image, uncertainty, nodes, depth = integrate(geometry, sites, radiance, 1/510)
-        except ValueError as exc:
-            result = {'status': 'refused', 'reason': str(exc)}
-        else:
-            fresh = NativeBody(xml, LIMITS, sensory_root='guala/pelvis')
-            cold = fresh.optical_geometry(state, 'guala/head', ORIGIN, max_geoms=256)
-            second = integrate(cold, sites, radiance, 1/510)
-            np.testing.assert_array_equal(image, second[0])
-            assert engine.advance(state, None, 1000, 1.) == fresh.advance(state, None, 1000, 1.)
-            result = {'status': 'bounded', 'nodes': nodes, 'depth': depth,
-                      'max_absolute_bound': float(uncertainty.max())}
-        assert engine.observe(state) == before
-        print(json.dumps({'pose': label, 'geoms': len(geometry.kinds), 'sites': len(sites),
-                          'seconds_including_cold_when_bounded': time.perf_counter()-begin, **result}), flush=True)
+    base_xml, _ = scene(.117, None)
+    for scene_label in ('original', 'curved_foreground'):
+        root = ET.fromstring(base_xml)
+        if scene_label == 'curved_foreground':
+            ET.SubElement(root.find('worldbody'), 'geom', name='curved-foreground', type='sphere',
+                          pos=f'.8 .07 {EYE_Z}', size='.07')
+            ET.SubElement(root.find('worldbody'), 'geom', name='small-foreground', type='sphere',
+                          pos=f'.8 -.13 {EYE_Z+.07}', size='.0004')
+        xml = ET.tostring(root, encoding='unicode')
+        engine = NativeBody(xml, LIMITS, sensory_root='guala/pelvis')
+        initial = engine.initial_state()
+        effort = ((engine.actuator_names.index('guala/head/yaw/effort'), .01),)
+        moved = engine.advance(initial, None, 50000, 1., effort_updates=effort).state
+        for label, state in (('initial', initial), ('moved', moved)):
+            geometry = engine.optical_geometry(state, 'guala/head', ORIGIN, max_geoms=256)
+            validate_geometry(geometry)
+            radiance = np.ones((len(geometry.kinds),6))
+            radiance[engine.geom_names.index('dark-panel')] = 0.
+            radiance[engine.geom_names.index('emissive-panel')] = BANDS
+            if scene_label == 'curved_foreground':
+                radiance[engine.geom_names.index('curved-foreground')] = (.1, .3, .5, .7, .9, 1.)
+                radiance[engine.geom_names.index('small-foreground')] = (.9, .7, .5, .3, .1, 0.)
+                for name in ('curved-foreground', 'small-foreground'):
+                    # Authentic native point witness, not an aperture certificate.
+                    index = engine.geom_names.index(name)
+                    ray = geometry.positions_eye_m[index:index+1].copy()
+                    observed = engine.ray_geometry(state, 'guala/head', ORIGIN, ray, max_rays=1)
+                    assert observed.geom_indices[0] == index
+            before = engine.observe(state)
+            begin = time.perf_counter()
+            try:
+                image, uncertainty, nodes, depth = integrate(geometry, sites, radiance, 1/510)
+            except ValueError as exc:
+                result = {'status': 'refused', 'reason': str(exc)}
+            else:
+                elapsed = time.perf_counter()-begin
+                if scene_label == 'original' and label == 'initial':
+                    lower, upper = native_panel_bounds(
+                        geometry, engine.geom_names.index('emissive-panel'), sites)
+                    assert np.all(image-uncertainty <= upper+1e-10)
+                    assert np.all(image+uncertainty >= lower-1e-10)
+                fresh = NativeBody(xml, LIMITS, sensory_root='guala/pelvis')
+                cold = fresh.optical_geometry(state, 'guala/head', ORIGIN, max_geoms=256)
+                second = integrate(cold, sites, radiance, 1/510)
+                np.testing.assert_array_equal(image, second[0])
+                np.testing.assert_array_equal(uncertainty, second[1])
+                assert engine.advance(state, None, 1000, 1.) == fresh.advance(state, None, 1000, 1.)
+                result = {'status': 'bounded', 'nodes': nodes, 'depth': depth,
+                          'frame_seconds': elapsed, 'max_absolute_bound': float(uncertainty.max())}
+            assert engine.observe(state) == before
+            print(json.dumps({'scene': scene_label, 'pose': label, 'geoms': len(geometry.kinds),
+                              'sites': len(sites),
+                              'seconds_including_cold_when_bounded': time.perf_counter()-begin,
+                              **result}), flush=True)
     print(json.dumps({'seconds': time.perf_counter()-started,
                       'peak_rss_kib': resource.getrusage(resource.RUSAGE_SELF).ru_maxrss}), flush=True)
 

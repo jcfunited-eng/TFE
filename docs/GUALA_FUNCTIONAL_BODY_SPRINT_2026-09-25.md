@@ -3241,3 +3241,124 @@ GoalACTIVE. Curved optical integration remains open; accepted body/material
 source unchanged. No contact/proprioceptive channel, live source or cognitive
 mechanism changed. Full ordinary-loop, restart, performance and production
 acceptance remain mandatory; diagnostic terminalexit0 is not their substitute.
+
+### FB-01v — reuse planar settlement inside the finite-primitive regime
+
+Previous turn PROGRESS:ab8b784b6 measured a failed full-scene work regime and
+identified12235initial ambiguous apertures caused entirely by the two broad
+thin box panels. Continue the same optical integration boundary. A1 edits only
+the offline curved-regime tool and this ledger. Production source/state/schema,
+native motion/contact, L0–L4 and cognition remain unchanged. This is reduced
+numerical optical geometry only, not a DSF proxy or full-field cognition claim.
+
+Contract: prepare each original visible box face using the accepted physical
+PlanarSurface chart and full native transform, once per frame. Use existing
+visible_planar_regions for planar-to-planar occlusion; no painter order or new
+visibility engine. Existing disjoint_surface_radiance integrates the planar
+field exactly under its accepted float64 law wherever curved-cone bounds prove
+no curved primitive can participate. Else retain the reviewed curved-depth
+comparison/refinement and error budget. Box-depth bounds use each original
+face's inverse[0] dot d =1/t plus chart halfspace extrema, not expansion/erosion
+of a thin volume. Partial faces give lower possible depth; a wholly included
+face gives all-hit upper depth. Combine faces without semantic priority.
+
+Prepare physical charts only once per optical call, not per refinement. Curved
+primitives whose lower hit is infinite over the entire enclosing angular domain
+cannot participate and need no per-site query; their geometric exclusion, not
+an identity or arbitrary distance cap, is authoritative. Keep all originals
+in admission and witness data. No cache, state, source identity or history is
+retained between frames. Colours are still declared constant diagnostic emitters;
+no material/lighting/production claim. No approximation of physical skin force.
+
+Keep262144nodes/20depth,19335sites and1/510unit-radiance midpoint-error budget.
+Reuse prior planar limits32768halfspaces/32768numericcells/1048576visibilitywork;
+no enlarged bounds. New source cannot depend on a successful centre ray or
+silently remove an unsupported shape. Cold/error branches unchanged. Failure
+must still refuse, and cold/motor failures must still fail the whole harness.
+
+Decisive measurement: original47-primitive frame must no longer spend refinement
+on provably curve-free planar patches; compare its initial image to independent
+analytic panel aperture coverage. Add actual native foreground sphere and a
+sub-aperture off-centre sphere; prove native rays hit the former and the latter's
+whole angular area is retained in a matching small-aperture analytic check.
+Sweep previous shapes/rotations/distances, head movement and cold identical
+image/next-mechanical-successor. Record per-frame time separately from cold.
+No passing result alone authorizes production; full body integration staysopen.
+
+FB-01v resumed after session interruption, frozen17fddeb8980e058f7a4c34ac2825e4e10dc42f0d573c8c48b3030e642240f187
+verified before run. Source-only review passed. Session21741 exited1 at the
+initial-panel analytic comparison; no cold/foreground results claimed. All
+36000 sampled witnesses, sphere coverage and four refusal checks passed first.
+The off-centre cap measured .02853393554687511 +/- .0016174316406249235 against
+analytic .028495173787268745 (917 nodes). Original frame used19335nodes,depth0.
+
+Read-only diagnosis:120 edge sites differed by at most5.356372012599309e-10.
+Actual native panel edge .003939091417123564m differs from precompile ideal
+.003939091423921181m by -6.797617156661939e-12m, due to representation of the
+100000m finite panel. Actual corner angle .0020315038670628465 gives coverage
+.6896090729407816, matching the renderer. This is a reference-scene mismatch,
+not evidence permitting a looser rendering tolerance or changed geometry.
+
+Requested architecture: keep the approved bounded numerical optical law.
+Current code reality: the diagnostic compared compiled geometry to ideal input.
+Conflict: yes, that reference compared different scenes. Single next correction:
+derive independent analytic panel bounds from actual native box extents in this
+tool only. Production renderer, body physics, cognitive ports and L0-L4 are not
+extended. Reduced numerical optical geometry, not a DSF field evaluation;
+six constant diagnostic radiances do not model variable physical illumination.
+Keep the1e-10 comparison tolerance and every work/error limit unchanged.
+The reference asserts its axis-aligned initial-bench domain, derives angular
+coverage from original corners, and reports finite vertical-edge uncertainty.
+No chart-solver reuse or image-derived expected values. Re-freeze and narrow
+source-only review precede the same bounded run.
+
+Readonly AWS00:48:52/00:51:00Z:1553,sole ec20ff084de54d48afab9a113647fa46,
+1/1/0,RUNNING/HEALTHY,digest1d088eaaf195931a315e45c7ed456d4bb028210655e52eacad27e4445161612d.
+Sameidentity,live2293574->2293940,persist2293545->2293929,availabletrue,
+checkpoint/cleanupnull,durabilityfalse. Resource/refusalalarmsOK; historic
+clockalarmALARM. CPUavg51.565219438/max52.063812315%,RAMavg2.779541015625%.
+Unrelated caretaker35747 and nightly perception54872 left untouched. All A1
+probe handles completed; no surviving A1 harness. Goal currentlyACTIVE per
+fresh goal-tool read, no user approval outstanding. No production mutation.
+
+Final narrow reference review PASS; fingerprint5c45fbfe671023df943bee90f09ea1b970a36e7ddd0a3785fba19cf28d186950
+verified before/after source-only review and run. Tool SHA256
+f1a98307c9f6165b17fc07f943da33c3321f7782f93b689c8efc1f12eb8dbf09.
+Session75010 exited0,14.727781384s,peak159036KiB. Terminal0 means the regime
+measurement completed, NOT that every scene passed. No A1 harness survivor.
+Preflight found /usr/bin/time absent; used tool's existing monotonic time and
+getrusage output, with no install or additional process. Native environment
+/tmp/guala-body-native.pnUH8P/lib/python3.11/site-packages remains available.
+
+36000 native sampled witnesses, analytic sphere and off-centre tiny cap, and
+four malformed-request refusals passed. Original47geometry/19335site initial
+and moved frames now finish with19335nodes,depth0,geometric residual0;
+frame times .479088618/.757111240s. Independent native-extent panel comparison
+passed. Both cold images/uncertainties are bit-identical and next native motor
+successors match. No formal floating-point rounding certificate is claimed.
+
+Actual49geometry foreground-sphere scenes STILL FAIL budget: initial
+5.000668936s,165103visited+133264nextnodes,depth8; moved6.838832168s,
+167111visited+124780nextnodes,depth8. No cold-image proof exists for refused
+scenes. Even original-frame time exceeds250ms. This is not real-time or a
+production-ready renderer; no body code or optical law was deployed.
+
+Read-only AWS envelope00:57:42/00:59:44Z:1553 unchanged,sole task and digest
+as above,1/1/0,RUNNING/HEALTHY,identity unchanged,live2295112->2295465,
+persist2295081->2295433,availabletrue,checkpoint/cleanupnull,durabilityfalse.
+Resource/refusalalarmsOK; pre-existing guala-clock-stalledALARM remains and is
+not dismissed as proof of healthy clocking. Recent CPUavg51.28-51.60%,max52.10%;
+RAMavg2.785-2.795%,max2.795%. Caretaker35747 untouched, no surviving A1harness.
+These reads are observation only, not a production audit or cutover receipt.
+
+Single next item stays the same curved optical work-bound failure. Source
+review identifies exact sphere angular bounds as a tighter physical candidate:
+a=dot(c,c)-r*r>0; q=c dot unitray; qmin/qmax from existing aperture dot extrema.
+Forward hit iff q>=sqrt(a); entry t(q)=a/(q+sqrt(q*q-a)) decreases with q.
+Use t(qmax) as possible lower entry and t(qmin) as all-ray upper entry, with
+infinity when each respective hit condition fails. No radius-inflation loss,
+new threshold, extra nodes or missing sub-aperture silhouette. Before claiming
+this solves the measured case, instrument the last admitted frontier to count
+which primitives remain ambiguous and how many patches this tightens. This is
+the next diagnostic proposal, NOT a mounted physical law or measured fix.
+Full body integration/restart/performance/live gates remain open; goalACTIVE.
