@@ -581,6 +581,7 @@ class ObjectMaterialState:
     compliance_ppm: int
     roughness_micrometers: int
     moisture_ppm: int
+    digestible_mass_micrograms: int = 0
 
     def verify(self) -> None:
         _mass_channels(
@@ -622,10 +623,16 @@ class ObjectMaterialState:
             minimum=0,
             maximum=MAX_PHYSICAL_PPM,
         )
+        _bounded_integer(
+            self.digestible_mass_micrograms,
+            "object digestible mass",
+            minimum=0,
+            maximum=MAX_MATERIAL_MASS,
+        )
 
     def as_record(self) -> dict[str, object]:
         self.verify()
-        return {
+        record: dict[str, object] = {
             "compliance_ppm": self.compliance_ppm,
             "moisture_ppm": self.moisture_ppm,
             "odorant_release_nanograms_per_second": list(
@@ -642,6 +649,9 @@ class ObjectMaterialState:
                 self.tastant_mass_micrograms
             ),
         }
+        if self.digestible_mass_micrograms > 0:
+            record["digestible_mass_micrograms"] = self.digestible_mass_micrograms
+        return record
 
 
 @dataclass(frozen=True, slots=True)
@@ -1168,6 +1178,7 @@ class BodyContactState:
     # the bite took the object's last portion. Empty for touch contacts
     # and pre-bite records; old persisted worlds decode unchanged.
     dissolved_tastant_micrograms: tuple[int, ...] = ()
+    transferred_digestible_micrograms: int = 0
 
     def verify(self) -> None:
         if self.kind not in {"touch", "oral"}:
@@ -1197,6 +1208,17 @@ class BodyContactState:
                     minimum=0,
                     maximum=1_000_000_000_000,
                 )
+        if self.transferred_digestible_micrograms > 0:
+            if self.kind != "oral":
+                raise ValueError(
+                    "only an oral contact transfers digestible mass"
+                )
+            _bounded_integer(
+                self.transferred_digestible_micrograms,
+                "transferred digestible mass",
+                minimum=0,
+                maximum=MAX_MATERIAL_MASS,
+            )
 
     def as_record(self) -> dict[str, object]:
         self.verify()
@@ -1209,6 +1231,10 @@ class BodyContactState:
         if self.dissolved_tastant_micrograms:
             record["dissolved_tastant_micrograms"] = list(
                 self.dissolved_tastant_micrograms
+            )
+        if self.transferred_digestible_micrograms > 0:
+            record["transferred_digestible_micrograms"] = (
+                self.transferred_digestible_micrograms
             )
         return record
 
@@ -2798,8 +2824,19 @@ def _material_from(value: object) -> ObjectMaterialState:
         "surface_temperature_millikelvin",
         "tastant_mass_micrograms",
     }
-    if not isinstance(value, Mapping) or set(value) != expected:
+    allowed = expected | {"digestible_mass_micrograms"}
+    if not isinstance(value, Mapping) or not expected.issubset(set(value)) or not set(value).issubset(allowed):
         raise ValueError("object material fields changed")
+
+    raw_digestible = value.get("digestible_mass_micrograms", 0)
+    if (
+        isinstance(raw_digestible, bool)
+        or not isinstance(raw_digestible, int)
+        or not 0 <= raw_digestible <= MAX_MATERIAL_MASS
+    ):
+        raise ValueError("object material fields changed")
+    if "digestible_mass_micrograms" in value and raw_digestible == 0:
+        raise ValueError("zero digestible mass must be omitted from canonical record")
 
     def channels(field: str, count: int) -> tuple[int, ...]:
         raw = value.get(field)
@@ -2828,6 +2865,7 @@ def _material_from(value: object) -> ObjectMaterialState:
         compliance_ppm=value.get("compliance_ppm"),
         roughness_micrometers=value.get("roughness_micrometers"),
         moisture_ppm=value.get("moisture_ppm"),
+        digestible_mass_micrograms=raw_digestible,
     )
     result.verify()
     if result.as_record() != dict(value):
@@ -2925,10 +2963,8 @@ def _contact_from(value: object) -> BodyContactState:
         "kind",
         "object_id",
     }
-    if not isinstance(value, Mapping) or not (
-        set(value) == expected
-        or set(value) == expected | {"dissolved_tastant_micrograms"}
-    ):
+    allowed = expected | {"dissolved_tastant_micrograms", "transferred_digestible_micrograms"}
+    if not isinstance(value, Mapping) or not expected.issubset(set(value)) or not set(value).issubset(allowed):
         raise ValueError("body contact fields changed")
     raw_dissolved = value.get("dissolved_tastant_micrograms", ())
     if not isinstance(raw_dissolved, (list, tuple)) or any(
@@ -2936,6 +2972,15 @@ def _contact_from(value: object) -> BodyContactState:
         for mass in raw_dissolved
     ):
         raise ValueError("body contact fields changed")
+    raw_transferred = value.get("transferred_digestible_micrograms", 0)
+    if (
+        isinstance(raw_transferred, bool)
+        or not isinstance(raw_transferred, int)
+        or not 0 <= raw_transferred <= MAX_MATERIAL_MASS
+    ):
+        raise ValueError("body contact fields changed")
+    if "transferred_digestible_micrograms" in value and raw_transferred == 0:
+        raise ValueError("zero transferred digestible mass must be omitted from canonical record")
     result = BodyContactState(
         kind=value.get("kind"),
         object_id=value.get("object_id"),
@@ -2944,6 +2989,7 @@ def _contact_from(value: object) -> BodyContactState:
         ),
         duration_microseconds=value.get("duration_microseconds"),
         dissolved_tastant_micrograms=tuple(raw_dissolved),
+        transferred_digestible_micrograms=raw_transferred,
     )
     result.verify()
     if result.as_record() != dict(value):
@@ -5945,6 +5991,7 @@ class EmbodimentWorldAuthority:
             # nutrition law, so nothing is destroyed — it is eaten.
             eaten_objects = list(world.objects)
             dissolved_mouthful: tuple[int, ...] = ()
+            transferred_digestible: int = 0
             if isinstance(command, OralContactCommand) and item.material is not None:
                 cross_section = item.radius_mm * item.radius_mm
                 bitten = tuple(
@@ -5959,7 +6006,10 @@ class EmbodimentWorldAuthority:
                 )
                 if not any(dissolved_mouthful):
                     dissolved_mouthful = ()
-                if bitten != item.material.tastant_mass_micrograms:
+                dig_mass = getattr(item.material, "digestible_mass_micrograms", 0)
+                bitten_dig = dig_mass - min(dig_mass, (dig_mass * patch) // max(1, cross_section))
+                transferred_digestible = dig_mass - bitten_dig
+                if bitten != item.material.tastant_mass_micrograms or bitten_dig != dig_mass:
                     object_index = next(
                         index
                         for index, candidate in enumerate(eaten_objects)
@@ -5970,6 +6020,7 @@ class EmbodimentWorldAuthority:
                         material=replace(
                             item.material,
                             tastant_mass_micrograms=bitten,
+                            digestible_mass_micrograms=bitten_dig,
                         ),
                     )
                     item = eaten_objects[object_index]
@@ -5993,6 +6044,7 @@ class EmbodimentWorldAuthority:
                         command.duration_microseconds
                     ),
                     dissolved_tastant_micrograms=dissolved_mouthful,
+                    transferred_digestible_micrograms=transferred_digestible,
                 ),
             )
             return replace(

@@ -1049,6 +1049,13 @@ def _home_rooms_and_things() -> tuple[list[Any], list[Any], list[Any]]:
         ("garden-apple",      14_000, 14_100,    90,     180, (850_000, 120_000,  90_000,  70_000,  60_000,  50_000)),
         ("garden-ladder",     14_000, 11_800,   250,   4_000, (320_000, 260_000, 180_000, 120_000,  90_000,  80_000)),
     )
+    digestible_mass_of = {
+        "apple": 140_000,
+        "garden-apple": 140_000,
+        "bread-slice": 50_000,
+        "bottle-milk": 20_000,
+        "bowl": 30_000,
+    }
     material_of = {
         # Kitchen
         "kitchen-counter":   ((0, 0, 0, 600, 50, 0, 0, 100), (0, 0, 0, 1_500, 0),        294_000, 40_000, 30, 20_000),
@@ -1194,6 +1201,7 @@ def _home_rooms_and_things() -> tuple[list[Any], list[Any], list[Any]]:
                 compliance_ppm=material_of[name][3],
                 roughness_micrometers=material_of[name][4],
                 moisture_ppm=material_of[name][5],
+                digestible_mass_micrograms=digestible_mass_of.get(name, 0),
             ),
             shape=shapes_of[name][0] if name in shapes_of else "sphere",
             size_mm=shapes_of[name][1] if name in shapes_of else (),
@@ -1570,6 +1578,14 @@ def home_world_authority(
         for item in authority.global_objects()
     ):
         raise RuntimeError("the persistent home lost its physical book")
+    cur_w = authority._state.world
+    held_by_body = {
+        obj.held_by_body_id: obj.object_id
+        for obj in cur_w.objects
+        if obj.held_by_body_id is not None
+    }
+    if any(b.held_object_id != held_by_body.get(b.body_id) for b in cur_w.bodies):
+        _commit_world_successor(authority, cur_w)
     if expand_library:
         expand_library_books(authority)
     return authority
@@ -1642,6 +1658,24 @@ def _commit_world_successor(
     """Commit a new world successor into authority, synchronously updating thermal custody,
     expanding thermal anatomy if applicable, and rebinding pending physical return."""
     from dataclasses import replace
+    # Enforce canonical reciprocal custody between bodies and objects
+    remaining_ids = {obj.object_id for obj in new_world.objects}
+    held_by_body = {
+        obj.held_by_body_id: obj.object_id
+        for obj in new_world.objects
+        if obj.held_by_body_id is not None
+    }
+    corrected_bodies = []
+    bodies_changed = False
+    for b in new_world.bodies:
+        actual_held = held_by_body.get(b.body_id)
+        if b.held_object_id != actual_held:
+            corrected_bodies.append(replace(b, held_object_id=actual_held))
+            bodies_changed = True
+        else:
+            corrected_bodies.append(b)
+    if bodies_changed:
+        new_world = replace(new_world, bodies=tuple(corrected_bodies))
     # Enforce canonical identity ordering for regions, portals, and objects
     ordered_regions = tuple(sorted(new_world.regions, key=lambda item: item.region_id))
     ordered_portals = tuple(sorted(new_world.portals, key=lambda item: item.portal_id))
@@ -1807,10 +1841,20 @@ def nocturnal_house_tidying(authority: Any) -> None:
                             updated.append(obj)
                     elif obj.object_id.startswith("apple") and obj.position is not None:
                         # Clear stray abandoned floor apples during nocturnal house tidying so Guala wakes to a clean home
-                        continue
+                        if obj.held_by_body_id is not None:
+                            updated.append(obj)
+                        else:
+                            continue
                     else:
                         updated.append(obj)
-                new_world = replace(cur_world, revision=cur_world.revision + 1, objects=tuple(updated))
+                remaining_ids = {obj.object_id for obj in updated}
+                updated_bodies = tuple(
+                    replace(b, held_object_id=None)
+                    if b.held_object_id is not None and b.held_object_id not in remaining_ids
+                    else b
+                    for b in cur_world.bodies
+                )
+                new_world = replace(cur_world, revision=cur_world.revision + 1, objects=tuple(updated), bodies=updated_bodies)
                 _commit_world_successor(authority, new_world)
         except Exception:
             broadcast.channel = old_ch

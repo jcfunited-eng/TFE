@@ -151,7 +151,7 @@ def _oral_intake_micrograms(execution: ActionExecutionReceipt) -> int:
     contact = getattr(after, "active_contact", None)
     if contact is None or contact.kind != "oral":
         return 0
-    return sum(int(value) for value in contact.dissolved_tastant_micrograms)
+    return getattr(contact, "transferred_digestible_micrograms", 0)
 
 
 def _gaze_frame(sensory: Any, gaze: tuple[float, float]) -> list[float]:

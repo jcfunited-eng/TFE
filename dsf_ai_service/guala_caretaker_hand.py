@@ -585,8 +585,9 @@ class _Hand:
         _her, person = self.bodies(snapshot)
         carried = person.radius_mm
         if person.held_object_id is not None:
-            held = next(item for item in snapshot.objects if item.object_id == person.held_object_id)
-            carried = max(carried, held.radius_mm)
+            held = next((item for item in snapshot.objects if item.object_id == person.held_object_id), None)
+            if held is not None:
+                carried = max(carried, held.radius_mm)
         here = _region_of(snapshot, person.pose.position, carried)
         if here is None:
             self.steps.append({"operation": "route", "reason": "caregiver_region_unresolved"})
@@ -631,9 +632,11 @@ class _Hand:
 
         snapshot = self.snapshot()
         her, person = self.bodies(snapshot)
-        item = next((obj for obj in snapshot.objects if obj.object_id == object_id), None)
-        if item is None or person.held_object_id != object_id:
+        if person.held_object_id != object_id:
             return False
+        item = next((obj for obj in snapshot.objects if obj.object_id == object_id), None)
+        if item is None:
+            return True
         origin = person.pose.position
         region = _region_of(snapshot, origin, person.radius_mm)
         clearance_squared = (person.radius_mm + item.radius_mm) ** 2

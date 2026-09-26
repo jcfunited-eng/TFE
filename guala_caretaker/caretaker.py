@@ -1252,14 +1252,13 @@ def maybe_feed(o: dict, st: dict) -> None:
         chair_applied = bool(chair_pres.get("presented", False))
         log(f"meal: Guala placed in high-chair at (3500, 1500) for morning meal — applied={chair_applied}")
         if not chair_applied:
-            log("meal: high-chair seating refused; aborting meal presentation to honor physical refusal")
-            st["meal_retry"] = True
-            with open(STATE, "w") as f:
-                json.dump(st, f)
-            return
-        seated_this_meal = True
-        st["seated_for_meal"] = True
-        st["seated_meal_tick"] = tick
+            log("meal: high-chair seating refused; falling back to direct floor delivery at her position")
+            seated_this_meal = False
+            st["seated_for_meal"] = False
+        else:
+            seated_this_meal = True
+            st["seated_for_meal"] = True
+            st["seated_meal_tick"] = tick
 
     # 6. Food presentation
     foods = [f for f in foods if f not in skip]

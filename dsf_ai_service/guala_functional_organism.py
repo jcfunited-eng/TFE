@@ -2081,9 +2081,9 @@ class FunctionalOrganism:
             return Decision(act, reason, commands, target, drive, signature, novel, gate_count, seen)
 
         if feeding:
-            current_held_id = held.object_id if held is not None else None
-            unsuccessful_held = state.get("unsuccessful_bite_held_id")
-            if unsuccessful_held is not None and (current_held_id is None or current_held_id != unsuccessful_held):
+            active_oral_target = held.object_id if held is not None else (offered.object_id if offered is not None else None)
+            unsuccessful_target = state.get("unsuccessful_bite_held_id")
+            if unsuccessful_target is not None and (active_oral_target is None or active_oral_target != unsuccessful_target):
                 state["unsuccessful_bite_held_id"] = None
 
             for item in (held, offered):
@@ -2091,7 +2091,7 @@ class FunctionalOrganism:
                     if item.material is not None and int(item.material.surface_temperature_millikelvin) >= NOCICEPTION_MILLIKELVIN:
                         continue   # too hot to bite: the jaw waits for it to cool (the mouth's reflex)
                     if item.object_id == state.get("unsuccessful_bite_held_id"):
-                        continue   # suppressed only during unchanged unsuccessful oral contact episode on this held object
+                        continue   # suppressed only during unchanged unsuccessful oral contact episode on this item
                     return decision("bite", "held item at her mouth while feeding (the jaw's reflex)", (OralContactCommand(item.object_id, BEAT_MICROSECONDS),), item.object_id)
 
         pressure = int(state.get("sleep_pressure", 0))
@@ -2874,7 +2874,7 @@ class FunctionalOrganism:
         if tick_now != self.live_organism_tick:
             raise RuntimeError("functional organism tick left its line")
         # Skin on skin or object contact by her own act is felt on the next beat, at its temperature.
-        if applied_action in ("release", "drop") or decision.act in ("release", "drop"):
+        if applied_action in ("release", "drop") and refusal is None:
             state["unsuccessful_bite_held_id"] = None
         reached = applied_action in ("reach_hand", "touch", "grasp") and refusal is None
         state["pending_contact"] = round(float(contact_fraction), 6) if reached else 0.0
@@ -2925,11 +2925,6 @@ class FunctionalOrganism:
                 }
         elif applied_action == "bite" and decision.target_object_id:
             state["unsuccessful_bite_held_id"] = decision.target_object_id
-            conserved = state.get("conserved_objects", {})
-            if decision.target_object_id in conserved:
-                entry = conserved[decision.target_object_id]
-                entry["currently_depleted"] = True
-                entry["is_food"] = False
         geom = getattr(self, "_receptor_geometry", None)
         nociception_span = max(1, int(geom.touch_temperature_max_millikelvin) - NOCICEPTION_MILLIKELVIN) if geom is not None else 23_000
         action_pain = _clamp((contact_millikelvin - NOCICEPTION_MILLIKELVIN) / float(nociception_span), 0.0, 1.0) if contact_millikelvin is not None else 0.0
