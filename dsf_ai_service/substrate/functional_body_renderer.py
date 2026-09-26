@@ -60,29 +60,54 @@ def sphere_interval(origin, velocity, radius):
                      np.sum(origin*velocity, axis=-1), np.sum(origin*origin, axis=-1)-radius*radius)
 
 
-def interval(kind, sizes, origin, velocity):
-    """Line interval through the original analytic convex solid, in local axes."""
+def _primitive_interval(kind, origin, velocity, radius, half, axes):
+    """One primitive law; a leading radius/axis dimension can share ray terms."""
     if kind == SPHERE:
-        return sphere_interval(origin, velocity, sizes[..., 0])
+        return sphere_interval(origin, velocity, radius)
     if kind == ELLIPSOID:
-        return sphere_interval(origin / sizes, velocity / sizes, 1.)
+        return sphere_interval(origin / axes, velocity / axes, 1.)
     if kind == BOX:
-        lo, hi = slab(origin, velocity, sizes)
+        lo, hi = slab(origin, velocity, axes)
         return np.max(lo, axis=-1), np.min(hi, axis=-1)
     if kind in (CAPSULE, CYLINDER):
-        lo, hi = sphere_interval(origin[..., :2], velocity[..., :2], sizes[..., 0])
-        zlo, zhi = slab(origin[..., 2], velocity[..., 2], sizes[..., 1])
+        lo, hi = sphere_interval(origin[..., :2], velocity[..., :2], radius)
+        zlo, zhi = slab(origin[..., 2], velocity[..., 2], half)
         lo, hi = np.maximum(lo, zlo), np.minimum(hi, zhi)
         valid = lo <= hi
         lo, hi = np.where(valid, lo, np.inf), np.where(valid, hi, -np.inf)
         if kind == CAPSULE:
             for sign in (-1, 1):
                 shifted = np.broadcast_to(origin, velocity.shape).copy()
-                shifted[..., 2] -= sign*sizes[..., 1]
-                a, b = sphere_interval(shifted, velocity, sizes[..., 0])
+                shifted[..., 2] -= sign*half
+                a, b = sphere_interval(shifted, velocity, radius)
                 lo, hi = np.minimum(lo, a), np.maximum(hi, b)
         return lo, hi
     raise ValueError('finite primitive required; no silent geometry exclusion')
+
+
+def interval(kind, sizes, origin, velocity):
+    """Line interval through the original analytic convex solid, in local axes."""
+    return _primitive_interval(kind, origin, velocity, sizes[..., 0], sizes[..., 1], sizes)
+
+
+def interval_pair(kind, expanded, contracted, origin, velocity):
+    """Two independent solid intervals with identical ray terms evaluated once.
+
+    Capsule radial dilation leaves its segment half-length unchanged. Keeping
+    that common axis unexpanded avoids recomputing both end translations and
+    their dot products. Ellipsoids still have distinct scaled rays.
+    """
+    radius = (np.stack((expanded[..., 0], contracted[..., 0]))
+              if kind in (SPHERE, CAPSULE, CYLINDER) else None)
+    axes = np.stack((expanded, contracted)) if kind in (ELLIPSOID, BOX) else None
+    half = None
+    if kind == CAPSULE:
+        if not np.array_equal(expanded[..., 1], contracted[..., 1]):
+            raise ValueError('paired capsule radial dilation requires equal half-lengths')
+        half = expanded[..., 1]
+    elif kind == CYLINDER:
+        half = np.stack((expanded[..., 1], contracted[..., 1]))
+    return _primitive_interval(kind, origin, velocity, radius, half, axes)
 
 
 def radii(kind, size):

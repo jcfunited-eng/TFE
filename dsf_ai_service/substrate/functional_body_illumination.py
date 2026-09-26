@@ -13,7 +13,7 @@ import numpy as np
 
 from .embodiment_world import EmbodimentWorldAuthority
 from .functional_body_renderer import (
-    BOX, CAPSULE, CYLINDER, ELLIPSOID, SPHERE, interval, validate_geometry,
+    BOX, CAPSULE, CYLINDER, ELLIPSOID, SPHERE, interval, interval_pair, validate_geometry,
 )
 from .w1_physical_receptors import (
     LAMP_NEAR_GAIN, LAMP_REFERENCE_MM, _Light, _bounce_ppm,
@@ -45,27 +45,37 @@ def _dilate(kind, size, radius):
 
 
 def _visibility_bounds(geometry, points, direction, delta, near, far, receiver):
-    """True clear / possibly clear for all positive-incidence patch rays.
+    """Both original bounds, sharing identical ray terms without row copies.
 
-    For each convex receiver, an outward ray cannot re-enter that same
-    solid. Only that row is excluded, never other parts of its body/object.
-    Any patch members with non-positive incidence contribute zero anyway.
+    Convex outward receivers cannot shadow themselves. For positive patches,
+    independently rounded expanded/contracted roots remain independent: no
+    inference of float inclusion. No new tolerance, shadow law or scene cache.
     """
     certain = np.ones(len(points), dtype=bool)
     possible = certain.copy()
+    point_patches = not np.any(delta)
     for row, (kind, size, centre, rotation) in enumerate(zip(
             geometry.kinds, geometry.sizes_m, geometry.positions_eye_m,
             geometry.rotations_eye)):
+        own = receiver == row
+        if np.all(own):
+            continue
+        if not np.any(certain | possible):
+            break
         origin = (points-centre) @ rotation
         velocity = direction @ rotation
         expanded, _ = _dilate(kind, size, delta)
-        lo, hi = interval(kind, expanded, origin, velocity)
+        if point_patches:
+            lo, hi = interval(kind, expanded, origin, velocity)
+            inner_lo, inner_hi, nonempty = lo, hi, True
+        else:
+            contracted, nonempty = _dilate(kind, size, -delta)
+            (lo, inner_lo), (hi, inner_hi) = interval_pair(
+                kind, expanded, contracted, origin, velocity)
         intersects = (lo <= hi) & (hi > 0) & (lo < far) & (far > 0)
-        certain &= ~intersects | (receiver == row)
-        contracted, nonempty = _dilate(kind, size, -delta)
-        lo, hi = interval(kind, contracted, origin, velocity)
-        blocks = (nonempty & (lo <= hi) & (hi > 0) & (lo < near) &
-                  (near > 0) & (receiver != row))
+        certain &= ~intersects | own
+        blocks = (nonempty & (inner_lo <= inner_hi) & (inner_hi > 0) &
+                  (inner_lo < near) & (near > 0) & ~own)
         possible &= ~blocks
     return certain, possible
 

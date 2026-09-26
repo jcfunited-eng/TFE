@@ -4189,3 +4189,204 @@ Corrected explicit git -C body-tree diff --check passes; future Git commands
 use explicit tree. Another read-only preflight guessed nonexistent thermal
 test; enumerated actual files and ran only existing world.py. No failing
 body proof hidden. GitHub approval still outstanding; no push attempted.
+
+## FB-01ac — Exact shadow broad-phase omission — 2026-09-26
+
+Previous turn PROGRESS: local145876ae7,42offline checks and cost measurement.
+Active item advances measured waste, does not reopen FB-01ab lighting law.
+Same active body goal and last observed1553/ec20ff production baseline.
+No GitHub permission yet; no remote operation authorized by this continuation.
+
+Cause/cost: _visibility_bounds allocates transformed/dilated point arrays and
+solves expanded plus contracted exact solids for all N*G pairs, even obvious
+misses and own receiver rows. Measured light-only19335points/50geoms/one lamp
+.362-.382s,162920KiB processpeak; not a full retinal or production measurement.
+Delete these detailed solves only where immutable geometry proves no effect.
+No cache, worker, alternate physical authority, shadow bias or lost rays.
+
+Frozen implementation contract: packed points/directions/patch radii and
+near<=far endpoints -> existing primitive-local frame -> enclosing box of
+the SAME expanded primitive used by the accepted law -> detailed original
+intersections only on potential hits -> unchanged certain/possible arrays.
+Expanded sphere box=(r,r,r); capsule=(r,r,r+h); cylinder=(r,r,h);
+ellipsoid/box=their expanded axes. Do not use original bounding radius+delta
+for boxes/ellipsoids: it would omit parts of the accepted outer enclosure.
+A box miss proves both no expanded hit and no contracted hit over the shorter
+common prefix. A box HIT proves nothing; original analytic solid remains sole
+positive occlusion authority. For BOX reuse the exact box test as the expanded
+test, not compute it twice. Exclude own receiver before geometry, as already
+proved for positive incidence. Once both bounds are blocked, later geometry
+cannot change output, so omit those pairs. Preserve geometry order and original
+arithmetic on surviving rows; no approximate replacement of the primitive.
+
+No persisted/observed fields or physics outputs change. Same one publication,
+cold restore and input/commit/custody path. New call/work map remains
+NativeOpticalSources -> NativeIllumination.bounds -> _visibility_bounds
+-> original interval -> six-band bounds; exceptions discard transient arrays.
+O(NG) cheap rejection worst case, O(reached pairs) detailed solves,
+O(N+G) transient residency, no N*G tensor/history. Worst-case admission
+charges3*N*G per source (box broad test + two original tests), plus windows;
+box reuse is cheaper. Measured probe budget explicitly raised2m->3m to admit
+the same19335-point workload under that honest bound, not change light laws.
+
+Only illumination.py, its standalone test, this sprint ledger; no renderer,
+world, source schema, ordinary organism or G1 files. Source-only independent
+review before imports/tests. Test-only predecessor copied verbatim from
+145876ae7 (not runtime fallback): require exact bool and float array equality
+across all five solids, orientations, finite/infinite segments, zero/positive
+patch radii, tangencies, own receivers and already-blocked rays. Count actual
+primitive point-pairs to prove work absent, not hidden behind cache.
+Re-run same native world/cold/next motor proof and same fixed-size measurement
+under pre/post read-only AWS envelopes. No copied-live-body acceptance claim:
+this operator remains unmounted; full-body runtime/rehearsal/live still open.
+If timing remains over budget, record literal evidence, not tune physical
+coefficients/error/detail. One candidate, one localized review batch.
+
+Preimplementation lean correction (before source edits/imports): do NOT add
+the proposed enclosing-box stage. The existing expanded solid already gives
+the necessary rejection, and its exact result can be reused when delta=0.
+An independent AABB can change predecessor float results at a grazing boundary
+(e.g. a just-outside sphere component may still give rounded zero quadratic
+discriminant). No unreviewed numerical padding is permitted to conceal that.
+Retain original expanded primitive arithmetic, skip its disjoint contracted
+subset, reuse the identical zero-radius solution, omit own/already-blocked rows.
+This supersedes the AABB/3-work-unit paragraph above; worst-case remains
+2*N*G plus windows, original2m resource probe unchanged. No new tolerance,
+geometry representation, numerical law or dependency. Test adjacent-float
+tangencies explicitly against the verbatim predecessor; accepted float64
+approximation remains not a directed-rounding certificate.
+
+FB-01ac localized source-review correction — 2026-09-26 04:46Z.
+Previous goal turn was permission/status only (no implementation progress).
+Review of frozen df062959 found one LOCALIZED float-parity defect: real
+expanded/contracted inclusion does not establish separately rounded interval
+inclusion, especially ellipsoid rescaling. Corrected in one batch, not tuning
+a tolerance or altering the original numerical optics law.
+- Every reached positive-radius contraction remains independently solved.
+- Omit only own receiver or rays with BOTH output booleans already false.
+- Preserve full packed origin/velocity matrix shapes before row subsetting.
+- Reuse the identical interval only at exactly zero patch radius.
+- Extend comparison with actual per-primitive side/end silhouettes, adjacent
+  floats, rotated rays and capsule cap junctions.
+Supersedes expanded-miss omission in the previous contract. Worst-case work
+2*N*G unchanged. No persistence/caller/schema/world/kernel/cognition changes.
+Source correction only; no candidate imports/tests yet. Full-size paired
+resource probe compares both delta=0 and .02 against the accepted predecessor,
+all six-band bounds byte-identical. Its 12 bounded offline calls passed
+independent source-only review; cannot run before final candidate approval.
+Proof is still offline geometry/source evidence, not mature body or retinal
+delivery. No live modifications or GitHub push. One final frozen review next.
+
+FB-01ac rejected on measured cost, restored accepted source — 2026-09-26.
+Final source review d76c937... PASS; standalone70626 terminal0,10tests PASS
+in1.23858s,152604KiB. Native512-point50-geom count: old51200pairs; new25088
+at delta0,50176atdelta.02. Resource92733terminal0, complete six-band equality:
+19335points,50geoms,1856160outputbytes per call,3repeat calls each:
+old delta0 .368408/.348957/.348380s; candidate .215076/.214705/.220628s.
+old delta.02 .351648/.352087/.369034s; candidate .395391/.391353/.401611s.
+Processpeak165552KiB; worldbytesunchanged. Finite patches regressed despite
+point speedup: REJECT efficiency candidate, not a complete retinal acceptance.
+Preserved /tmp/guala-fb01ac-rejected-performance.patch; restored only A1-owned
+illumination/test files to145876ae7 by explicit full-file replacements.
+No tests hidden; no re-tuning, GitHub push, production or G1 edits.
+AWS04:47:37/04:50:15 same1553/ec20ff/digest1d088e,counts1/1/0,
+live2333251->2333608,persist2333225->2333577,identityunchanged,errorsnull,
+CPU51.12->51.21%,RAM2.91->2.93%,oldclockALARMpersists,otheralarmsOK.
+Caretaker35747untouched; separateG1probe86207observed, notA1. AllA1handles
+terminal and no surviving A1 proof processes.
+
+## FB-01ad — Shared primitive coefficients, no row-compaction — contract
+One active continuation of the measured body-optics cost barrier, not a new
+feature. Accepted source baseline145876ae7. No genuine blocker to local work;
+remote publication permission still pending independently.
+
+Cause: paired dilations repeatedly calculate identical ray quadratic
+coefficients (v dot v, o dot v, o dot o) and capsule end translations.
+FB-01ac removed only2%positive-patch work while copying packed rows, regressing.
+Causal difference now: evaluate the SAME two analytic solids through one
+broadcast primitive law, sharing only the identical origin/direction terms.
+Keep independent rounded roots; no expanded-miss inference, AABB, tolerance,
+scalar light substitute, cached scene, missing rays or downsampled receptors.
+
+Impact map: existing NativeOpticalSources -> NativeIllumination.bounds ->
+_visibility_bounds -> renderer.interval_pair -> shared _primitive_interval ->
+UNCHANGED sphere_interval/slab/quadratic -> independent lo/hi arrays -> exact
+same certain/possible -> exactsame six-band bounds. Single renderer.interval
+also calls that same law; original validation/entry_bounds/integrate/materials
+callers retain their inputs and outputs. These are diagnostic/unmounted optics,
+not ordinary-organism runtime. Production/persistence authority unaffected.
+Source schema, solar custody, cold restore and native read path unchanged.
+No allocation/state survives a call; exception discards locals.
+
+Exact contract: pair expanded and contracted dimensions along leading axis2.
+SPHERE/CYLINDER share radial dot products, ELLIPSOID retains distinct scaled
+rays, BOX retains distinct slabs, CAPSULE uses one unchanged half-length and
+two radii. Reject paired capsules with unequal half-lengths; never infer it.
+One shared implementation for both single and paired calls: no second physics
+solver. Original multiplication/addition order and full packed transforms.
+For all-zero position radii use the identical interval once. Whole-primitive
+receiver exclusion or all-ray output saturation may omit the entire solve;
+no per-row compact copies. Partial receiver rows still have original mask.
+Two roots per positive-radius pair remain independent and costed.
+O(NG) worst-case, O(N) transient arrays, no N*G storage/history/cache/thread.
+The pair axis is bounded2 and shares the same point/work admission ceiling.
+
+Authorized files: functional_body_renderer.py (interval routing/core only),
+functional_body_illumination.py (paired call only), existing standalone
+illumination test, this sprint ledger. Do not extend retina integration,
+mechanics, world codecs or cognition in this correction.
+Proof: verbatim predecessor interval+visibility retained TEST-ONLY; require
+bit-identical single/paired intervals, visibility and fullbands across all
+five shapes, rotation, silhouette/tangent, zero/positive/empty contractions,
+finite/infinite segments, original broadcast origin shape. Instrument true
+sphere_interval operand rows to prove common dot-product work removed, not
+just a renamed call. Same pre-reviewed12-call resource measurement over
+delta0/.02; both must improve without output drift. Existing native material,
+source/solar/world/cold-next-motor tests cover the shared renderer boundary.
+One new frozen SOURCE review before import/test; one localized batch maximum.
+Full body/retina/mature-copy/restart/rehearsal/live gates still mandatory.
+
+FB-01ad accepted local proof — 2026-09-26 05:00Z.
+SOURCE gate PASS at frozen e28ab474dc2e8fa51e93d70df4fb4d83e5302c9a6c330fb9c94abba670392afd,
+verified unchanged after all proofs. No localized correction required.
+Owner releases freeze only for this receipt/commit. No source retuning.
+
+Standalone89606terminal0:11PASS,1.738001s,153760KiBpeak. Exact single/pair
+intervals and visibility across all five solids, per-ray/shared origins and
+rotated tangencies; unchanged actual six-band fields, native movement/cold
+continuation. Genuine coefficient rows per512point/50geom scene:
+120832->60416 at BOTH delta0 anddelta.02. No cache or missing rays.
+Regression84741terminal0: native_material8PASS1.602s (19335site/48geom native
+pattern90.973ms),source8PASS.362s,solar5PASS.594s,world/heat21PASS1.490s.
+Total53tests PASS. Native material measurement is uniform-illumination scene,
+NOT complete variable-light sight, ordinary-loop integration or production.
+
+Paired resource58003terminal0, scriptSHA256
+2bba83aa354b3cf83b50ce2c4723fea3b8fbf897430a34fbab62d196e2127887:
+same19335points/50geoms/one lamp,1856160outputbytes,3repeats:
+delta0 predecessor .526355/.491089/.501278s; candidate .314722/.328660/.233430s.
+delta.02 predecessor .599145/.513087/.515672s; candidate .310697/.287827/.263196s.
+168224KiB processpeak; all complete six-band arrays identical, world unchanged.
+Both cases improved IN THIS PAIRED RUN, but timing varies from prior run.
+Positive-patch cost is STILL263–311ms, above250ms before retinal integration.
+No realtime/whole-frame/production claim. Keep this real exact-work deletion;
+do not declare the full body complete or start another isolated tuning loop.
+
+Read-only envelopes04:56:16/04:58:57Z: same1553/ec20ff/digest1d088e,
+counts1/1/0,RUNNINGHEALTHY,identityunchanged,live2334369->2334694,
+persist2334345->2334665,availabletrue,errorsnull,durabilityfalse,
+CPU51.22->51.20%,RAM2.91->2.93%. ExistingclockALARMpersists,othersOK.
+Caretaker35747untouched. All A1 proof handles terminal, post-census no survivors.
+No production writes, no G1 source edit, no remote push.
+
+Next active FB-01ae: complete the already-required native retinal integration
+of retained spatial illumination with physical material and aperture geometry.
+Do not repeat the closed primitive/source/custody proofs as new deliverables.
+First establish the narrow existing integrator-to-surface-patch map (actual
+receiver point/normal/region and aperture integration error), then integrate
+and measure the full source->actual native optical field path. No sampled
+pixel substitution, uniform illumination masquerading as spatial lighting,
+or changed sensor resolution. Existing body mechanics/sensory/persistence and
+full ordinary-world/copy/rehearsal/live gates remain mandatory follow-through.
+Any newly proved unrelated issue goes to later work, not this active goal.
+GitHub permission remains outstanding; local work can continue; goalACTIVE.

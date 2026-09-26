@@ -19,7 +19,12 @@ from dsf_ai_service.substrate.embodiment_world import (
 )
 from dsf_ai_service.substrate.functional_body_illumination import NativeIllumination, _visibility_bounds
 from dsf_ai_service.substrate.functional_body_native import OpticalGeometry
-from dsf_ai_service.substrate.functional_body_renderer import BOX
+from dsf_ai_service.substrate.functional_body_renderer import (
+    BOX, CAPSULE, CYLINDER, ELLIPSOID, SPHERE, interval, interval_pair,
+    slab, sphere_interval,
+)
+from dsf_ai_service.substrate import functional_body_renderer as renderer
+from dsf_ai_service.substrate.functional_body_illumination import _dilate
 from test_functional_body_optical_sources import (
     KEY, advance, declaration, mount, query, world,
 )
@@ -68,6 +73,53 @@ def bounds(field, points, normals, *, receiver="wall", delta=0., epsilon=0., **l
         position_radius_m=np.full(len(points), delta),
         normal_radius=np.full(len(points), epsilon),
         receiver_rows=np.full(len(points), row, dtype=int), **kwargs)
+
+
+# Accepted145876ae7 interval/visibility bodies, with test-local callee names.
+# The unchanged sphere/slab primitives remain shared; no runtime fallback.
+def _predecessor_interval(kind, sizes, origin, velocity):
+    """Line interval through the original analytic convex solid, in local axes."""
+    if kind == SPHERE:
+        return sphere_interval(origin, velocity, sizes[..., 0])
+    if kind == ELLIPSOID:
+        return sphere_interval(origin / sizes, velocity / sizes, 1.)
+    if kind == BOX:
+        lo, hi = slab(origin, velocity, sizes)
+        return np.max(lo, axis=-1), np.min(hi, axis=-1)
+    if kind in (CAPSULE, CYLINDER):
+        lo, hi = sphere_interval(origin[..., :2], velocity[..., :2], sizes[..., 0])
+        zlo, zhi = slab(origin[..., 2], velocity[..., 2], sizes[..., 1])
+        lo, hi = np.maximum(lo, zlo), np.minimum(hi, zhi)
+        valid = lo <= hi
+        lo, hi = np.where(valid, lo, np.inf), np.where(valid, hi, -np.inf)
+        if kind == CAPSULE:
+            for sign in (-1, 1):
+                shifted = np.broadcast_to(origin, velocity.shape).copy()
+                shifted[..., 2] -= sign*sizes[..., 1]
+                a, b = sphere_interval(shifted, velocity, sizes[..., 0])
+                lo, hi = np.minimum(lo, a), np.maximum(hi, b)
+        return lo, hi
+    raise ValueError('finite primitive required; no silent geometry exclusion')
+
+
+def _predecessor_visibility(geometry, points, direction, delta, near, far, receiver):
+    certain = np.ones(len(points), dtype=bool)
+    possible = certain.copy()
+    for row, (kind, size, centre, rotation) in enumerate(zip(
+            geometry.kinds, geometry.sizes_m, geometry.positions_eye_m,
+            geometry.rotations_eye)):
+        origin = (points-centre) @ rotation
+        velocity = direction @ rotation
+        expanded, _ = _dilate(kind, size, delta)
+        lo, hi = _predecessor_interval(kind, expanded, origin, velocity)
+        intersects = (lo <= hi) & (hi > 0) & (lo < far) & (far > 0)
+        certain &= ~intersects | (receiver == row)
+        contracted, nonempty = _dilate(kind, size, -delta)
+        lo, hi = _predecessor_interval(kind, contracted, origin, velocity)
+        blocks = (nonempty & (lo <= hi) & (hi > 0) & (lo < near) &
+                  (near > 0) & (receiver != row))
+        possible &= ~blocks
+    return certain, possible
 
 
 class IlluminationTests(unittest.TestCase):
@@ -258,6 +310,129 @@ class IlluminationTests(unittest.TestCase):
         sun = clear_field.sources.solar_sample
         np.testing.assert_allclose(clear[0]-blocked[0],
             (sun.sky_ppm/1e6*sun.direction_to_sun[0],)*6, atol=2e-15, rtol=0)
+
+
+    def test_shadow_frontier_is_byte_equal_to_predecessor_across_primitives(self):
+        sizes = {SPHERE: (.25, 0., 0.), CAPSULE: (.15, .3, 0.),
+                 CYLINDER: (.2, .3, 0.), ELLIPSOID: (.25, .15, .35),
+                 BOX: (.25, .15, .35)}
+        grid = np.linspace(-.6, .6, 9)
+        grid_points = np.array([(0., y, z) for y in grid for z in grid])
+        c, s = math.cos(.37), math.sin(.37)
+        rotations = (np.eye(3), np.array(((c, -s, 0.), (s, c, 0.), (0., 0., 1.))),
+                     np.array(((c, 0., s), (0., 1., 0.), (-s, 0., c))))
+        for kind, size in sizes.items():
+            # Genuine side/end silhouettes in each primitive's local axes,
+            # including adjacent IEEE values. No authored numerical tolerance.
+            side = size[0] if kind in (SPHERE, CAPSULE, CYLINDER) else size[1]
+            top = (size[0] if kind == SPHERE else
+                   size[0]+size[1] if kind == CAPSULE else
+                   size[1] if kind == CYLINDER else size[2])
+            local = []
+            for axis, edge in ((1, side), (2, top)):
+                for signed in (-edge, edge):
+                    for value in (np.nextafter(signed, -np.inf), signed,
+                                  np.nextafter(signed, np.inf)):
+                        point = [-1.5, 0., 0.]
+                        point[axis] = value
+                        local.append(point)
+            if kind == CAPSULE:
+                for z in (-size[1], size[1]):
+                    for y in (np.nextafter(side, -np.inf), side,
+                              np.nextafter(side, np.inf)):
+                        local.append((-1.5, y, z))
+            for rotation in rotations:
+                tangent = np.asarray(local) @ rotation.T + (1.5, 0., 0.)
+                points = np.concatenate((grid_points, tangent))
+                directions = np.array((3., 0., 0.))-points
+                directions /= np.linalg.norm(directions, axis=1)[:, None]
+                straight = np.concatenate((
+                    np.broadcast_to(np.array((1., 0., 0.)), grid_points.shape),
+                    np.broadcast_to(rotation[:, 0], tangent.shape)))
+                n = len(points)
+                geometry = OpticalGeometry((0., 0., 0.), tuple(np.eye(3).ravel()),
+                    np.array((BOX, kind, BOX)), np.array(((.005, 2., 2.), size, (.01, .1, .1))),
+                    np.array(((-.005, 0., 0.), (1.5, 0., 0.), (2.3, 0., 0.))),
+                    np.array((np.eye(3), rotation, np.eye(3))))
+                for direction in (directions, straight):
+                    for radius in (0., 1e-16, .02, .4):
+                        delta = np.full(n, radius)
+                        outer, _ = _dilate(kind, np.asarray(size), delta)
+                        inner, _ = _dilate(kind, np.asarray(size), -delta)
+                        origins = (points-np.array((1.5, 0., 0.))) @ rotation
+                        velocities = direction @ rotation
+                        # Both existing origin layouts: per-ray and one shared
+                        # origin as used by the aperture integration caller.
+                        for origin in (origins, origins[0]):
+                            pair = interval_pair(kind, outer, inner, origin, velocities)
+                            for which, dimensions in enumerate((outer, inner)):
+                                expected = _predecessor_interval(kind, dimensions, origin, velocities)
+                                single = interval(kind, dimensions, origin, velocities)
+                                for i in (0, 1):
+                                    np.testing.assert_array_equal(pair[i][which], expected[i])
+                                    np.testing.assert_array_equal(single[i], expected[i])
+                        for near, far in ((0., 0.), (0., 3.), (1.5, 2.75),
+                                          (2.75, 2.75), (np.inf, np.inf)):
+                            args = (geometry, points, direction, np.full(n, radius),
+                                    np.full(n, near), np.full(n, far), np.zeros(n, dtype=int))
+                            prior = _predecessor_visibility(*args)
+                            current = _visibility_bounds(*args)
+                            for a, b in zip(prior, current):
+                                np.testing.assert_array_equal(a, b,
+                                    err_msg=f"kind={kind} radius={radius} interval={near, far}")
+
+    def test_shared_ray_coefficients_are_computed_once_not_cached(self):
+        authority = bench()
+        view = query(authority)
+        field = NativeIllumination(view)
+        before = authority.encoded_snapshot()
+        count = 512
+        points_world = np.column_stack((np.zeros(count), np.linspace(2.5, 4., count),
+                                       np.linspace(.2, 2.8, count)))
+        points = (points_world-field.origin) @ field.rotation
+        centre = field.rooms["W1-region-A"][1][0][1]
+        vector = centre-points
+        distance = np.linalg.norm(vector, axis=1)
+        direction = vector/distance[:, None]
+        receiver = np.full(count, next(i for i, (b, _) in enumerate(view.bindings)
+                                     if b.geom_name == "wall"), dtype=int)
+        original = renderer.sphere_interval
+        examined = []
+        def measured(origin, velocity, radius):
+            # Each row computes the same three original ray dot products.
+            examined.append(int(np.prod(np.broadcast_shapes(
+                origin.shape[:-1], velocity.shape[:-1]))))
+            return original(origin, velocity, radius)
+        try:
+            renderer.sphere_interval = measured
+            globals()["sphere_interval"] = measured
+            for radius in (0., .02):
+                delta = np.full(count, radius)
+                near = distance*(1-.25/(distance-delta))
+                far = distance*(1-.25/(distance+delta))
+                args = (view.geometry, points, direction, delta, near, far, receiver)
+                examined.clear()
+                expected = _predecessor_visibility(*args)
+                prior_rows = sum(examined)
+                examined.clear()
+                actual = _visibility_bounds(*args)
+                current_rows = sum(examined)
+                for a, b in zip(expected, actual):
+                    np.testing.assert_array_equal(a, b)
+                self.assertLess(current_rows, prior_rows)
+                print(dict(shadow_patch_radius=radius, predecessor_dot_rows=prior_rows,
+                           candidate_dot_rows=current_rows), flush=True)
+        finally:
+            renderer.sphere_interval = original
+            globals()["sphere_interval"] = original
+        self.assertEqual(authority.encoded_snapshot(), before)
+
+    def test_paired_capsule_rejects_different_segment_lengths(self):
+        outer = np.array(((.4, .3, 0.),))
+        inner = np.array(((.2, .2, 0.),))
+        with self.assertRaisesRegex(ValueError, "equal half-lengths"):
+            interval_pair(CAPSULE, outer, inner, np.array(((-2., 0., 0.),)),
+                          np.array(((1., 0., 0.),)))
 
     def test_budget_refusal_and_bounded_repeated_read(self):
         authority = bench()
