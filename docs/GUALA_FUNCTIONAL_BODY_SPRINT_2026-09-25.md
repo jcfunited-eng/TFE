@@ -7108,3 +7108,104 @@ executed by this work. Stable live health cannot be certified; flagged to Joe
 and G1 ledger without interfering with a possible independent cutover. Worker
 139/session36727 terminal0; host process census shows no body diagnostic orphan.
 No new heavy work while this external lifecycle transition is unresolved.
+
+### FB-01aj contact-manifold isolation contract — 2026-09-26 (pre-run)
+
+Previous goal turn PROGRESS: reported new live1554 and measured continuing
+zero reserves; no body claim or production intervention. Body branch remains
+e05dc974a. Continue FB-01aj; coupled equation/work/restart evidence remains
+closed. Requested: accurate force-limited articulated mechanics and truthful
+self-sensory return. Current reality: local impact refinement leaves nonmonotonic
+impulse/geometry disagreement. Conflict: YES with completed body accuracy, not
+with the already-proved coupled algebra. No body law, force, anatomy, thermal
+assignment, cognition, kernel, production code or settings will be extended.
+Single next item: isolate same-solve contact geometry and friction-row states
+in the two already-measured finest windows. Reduced rigid-body/contact mechanics;
+no continuous tissue, neuronal or full seven-field evaluation is claimed.
+
+Source inspection: native capsule/box collision emits up to two sphere/box
+contacts based on the closest segment/face/edge feature. The contact tangent
+frame generator chooses a seed according to normal.y within(-.5,.5); the
+pyramidal constraint uses that frame. These are candidate causes, NOT a proved
+diagnosis. Retain the current law; do not switch friction cones or retune
+impedance merely to obtain agreement.
+
+Reuse tools/guala_body_impact_resolution.py with --manifold rather than adding
+another harness. Same authenticated20ms predecessor, unchanged3.125us and
+1.5625us2ms windows. Add read-only samples immediately after mj_step and before
+collision refresh: all right-forearm/torso contact points, including zero forces,
+box-local point positions, full world contact frames, signed separation,
+contact wrench, friction and efc_state. Native point indices are NOT persistent
+physical identities. Fractional steps remain unpublished scratch. Preserve all
+guards and the existing full integration/work/sensor/geometry fresh-repeat proof.
+Compare resulting state/work/impulses to the prior retained evidence so observer
+instrumentation cannot silently alter dynamics. No default resolution sweep.
+
+Bound:800prefix+2*(640+1280)=4640 native calls;1920 contact-frame records for
+one pair, at most2 points each. Same2cores/1GiB/30CPU/45wall envelope. Retain raw
+output before analysis; freeze and independent source-only review before run.
+Only offline analysis may summarize these samples; no diagnostic enters runtime.
+AWS pre/post and host cleanup census required. No new accuracy tolerance.
+
+Production transition now resolved observationally:1554 task94aceb29... is
+RUNNING/HEALTHY1/1/0 at20:03:51, digestc7e7bd50..., same identity, tick2455628,
+errorsnull,durabilityfalse. This does not certify feeding or code changes; live
+reserves remain0, recorded in shared ledger20:04. Clock alarm remainsALARM.
+The earlier GET503 is retained as transitional failure, not ignored. A sandbox
+process census exposed only its own namespace; use host-scoped read-only census
+for actual concurrency rather than treating that empty list as cleanup evidence.
+
+### FB-01aj contact-manifold cause isolation — 2026-09-26 20:15Z
+
+Source-only independent review PASS f9df4ac4..., verified unchanged before and
+after run. Required older-window comparison performed OFFLINE after raw stdout
+was retained: both complete integration state hashes, work, every contact pair's
+impulse/separation/time record, and pairwise comparisons are EXACTLY equal to
+FB-01aj-matched-impact. New observer does not change physical trajectory.
+One run1.43082s wall/1.42624CPU/146288KiB;4640 native calls; no warnings/errors.
+Raw measurement273334bytes SHAcefe49b347331f4ad644b58be3c391862df22cebeb0641db01e514a87ce3b927
+retained ONCE in docs/evidence/FB-01aj-contact-manifold.json. Source SHA
+ac60c887b2a177861072cef084f354c38512dc81b577fd1a5b164c1752fec021.
+
+Ruled out in this window: capsule-box manifold switching and tangent-frame seed
+switching. The right forearm/torso has exactly ONE contact point throughout its
+contact portion at both resolutions. Normal.y stays.999761–.999844; no crossing
+of the native+.5/-.5 tangent-seed boundary. Largest successive normal change
+contracts2.92759e-5->1.46515e-5rad, local point displacement2.120->1.077um.
+Do NOT change contact shape, friction cone, solver impedance or body anatomy on
+the disproved feature-switch hypothesis.
+
+Both schedules first detect this contact at21478.125us. The reaction jumps from
+zero to4872.889/4868.467N. First friction-edge deactivation is21812.5/21814.0625us;
+second21815.625/21817.1875; all edges inactive21865.625/21867.1875us. Most impulse
+disagreement is already in the all-four-active segment, so attributing it solely
+to late friction-state switches would be wrong. This is a rapidly varying
+onset transient with finite-step state and force-integration disagreement.
+
+Exact discrete-sum identity (coarse3.125us minus fine1.5625us):
+deltaI = h*sum(Fcoarse(t)-Ffine(t))
+       + h/2*sum(Ffine(t)-Ffine(t+h/2)).
+Total world components[.00007588981,-.00098287490,.00351865750]Ns;
+same-time force-state term[.00086415880,-.00456721782,.00383042225]Ns;
+fine within-step variation[-.00078826899,.00358434292,-.00031176475]Ns.
+Closure max2.25e-16Ns. Terms partly cancel: nonmonotonic totals alone do NOT prove
+a geometry defect. This decomposition is not a continuum error bound, nor a
+counterfactual proving that aligning onset alone repairs the whole trajectory.
+
+Next mechanical item: derive bounded contact-onset/time-integration refinement
+using the existing signed geometry, physical relative motion and unchanged
+coupled law. Qualify that narrow correction against this retained transient;
+do not repeat the global sweep or select an arbitrary acceptable timestep.
+Body motion accuracy, contact heat/storage, ordinary organism integration,
+performance and production release remain OPEN. No live body deployment.
+
+AWS pre20:09:38/post20:11:20 same1554 task94aceb29..., digestc7e7bd50...,
+1/1/0HEALTHY, ticks2456714->2457040, errorsnull,durabilityfalse. Existing clock
+ALARM remains; all four other queried alarmsOK. Local caretaker PID49571 in
+the main Guala tree was identified and untouched. Worker146/session32112
+terminal0, host census no body diagnostic child/orphan. No live writes.
+The pre-run contract's originally typed20:14 timestamp was clerical and has
+been replaced with a date-only header; actual receipt UTCs are authoritative.
+An eight-line artifact preview exposed part of the compressed payload; no
+evidence was lost, and subsequent inspection used decoded retained data only.
+Push and Slack restrictions remain; neither was retried or bypassed.

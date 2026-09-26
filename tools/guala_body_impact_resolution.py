@@ -6,6 +6,7 @@ Paired-step differences are indicators, not certified continuous-solution errors
 """
 from __future__ import annotations
 
+import argparse
 import base64
 import hashlib
 import json
@@ -68,7 +69,7 @@ def endpoint(engine):
         (d.qpos, d.qvel, d.geom_xpos, d.geom_xmat.reshape(-1, 3, 3), velocities))
 
 
-def run_case(before, supply, level):
+def run_case(before, supply, level, capture_manifold=False):
     h_us = BASE_US / 2**level
     steps = WINDOW_US * 2**level // BASE_US
     engine, _, _ = engine_at(BASE_US)
@@ -78,12 +79,15 @@ def run_case(before, supply, level):
     effort = d.ctrl.copy()
     original = mj.mj_step
     contacts, count = {}, 0
+    manifold = []
+    pair = ('guala/right/forearm/surface', 'guala/torso/surface')
 
     def observe(model, data):
         nonlocal count
         assert model is m and data is d
         original(model, data)
         assert not np.any(data.warning.number)
+        points = []
         for index in range(data.ncon):
             contact = data.contact[index]
             wrench = np.empty(6)
@@ -91,9 +95,28 @@ def run_case(before, supply, level):
             finite(wrench)
             finite(contact.frame)
             finite(contact.dist)
+            names = tuple(model.geom(int(g)).name for g in contact.geom)
+            if capture_manifold and names == pair:
+                # Same-solve geometry remains at the step's input pose here.
+                # Store every point, including zero-force contacts. Do not infer
+                # persistent point identity from native array indices.
+                address = int(contact.efc_address)
+                assert model.opt.cone == mj.mjtCone.mjCONE_PYRAMIDAL
+                width = 1 if contact.dim == 1 else 2 * (int(contact.dim) - 1)
+                assert address < 0 or address + width <= data.nefc
+                box = int(contact.geom[1])
+                local = data.geom_xmat[box].reshape(3, 3).T @ (
+                    contact.pos - data.geom_xpos[box])
+                points.append(dict(position_box_m=finite(local).tolist(),
+                    separation_m=float(contact.dist),
+                    frame_world=finite(contact.frame.copy()).tolist(),
+                    wrench_contact=finite(wrench.copy()).tolist(),
+                    friction=finite(contact.friction.copy()).tolist(),
+                    dimension=int(contact.dim), excluded=int(contact.exclude),
+                    efc_state=[] if address < 0 else
+                        data.efc_state[address:address+width].tolist()))
             if not np.any(wrench):
                 continue
-            names = tuple(model.geom(int(g)).name for g in contact.geom)
             key = "|".join(names)
             row = contacts.setdefault(key, dict(first_us=START_US + count*h_us,
                 last_us=START_US + count*h_us, impulse_world_ns=np.zeros(3),
@@ -107,6 +130,8 @@ def run_case(before, supply, level):
             finite(row["couple_impulse_world_nms"])
             row["last_us"] = START_US + count*h_us
             row["min_separation_m"] = min(row["min_separation_m"], float(contact.dist))
+        if capture_manifold:
+            manifold.append([START_US + count*h_us, points])
         count += 1
 
     started = time.perf_counter()
@@ -133,19 +158,26 @@ def run_case(before, supply, level):
     assert all(np.array_equal(a, b) for a, b in zip(sample, repeated_sample))
     rows = {key: {k: v.tolist() if isinstance(v, np.ndarray) else v
                   for k, v in row.items()} for key, row in contacts.items()}
-    return sample, dict(h_us=h_us, steps=steps, contacts=rows, work=list(work),
+    result = dict(h_us=h_us, steps=steps, contacts=rows, work=list(work),
         internal_state_sha256=hashlib.sha256(after.astype("<f8").tobytes()).hexdigest(),
         internal_state_bytes=after.nbytes, fresh_schedule_repeat_exact=True,
         elapsed_seconds=time.perf_counter()-started)
+    if capture_manifold:
+        result["manifold_pair"] = list(pair)
+        result["manifold_same_solve"] = manifold
+    return sample, result
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--manifold', action='store_true')
+    args = parser.parse_args()
     assert mj.__version__ == mj.mj_versionString() == VERSION
     engine, before, supply, model_sha = read_control()
     rows, comparisons = [], []
     previous = None
-    for level in range(LEVELS):
-        sample, row = run_case(before, supply, level)
+    for level in ((3, 4) if args.manifold else range(LEVELS)):
+        sample, row = run_case(before, supply, level, args.manifold)
         if previous is not None:
             old_sample, old_row = previous
             delta = difference(engine._model, old_sample[:2], sample[:2],
@@ -171,6 +203,7 @@ def main():
         rows.append(row)
         previous = sample, row
     record = dict(schema="guala.functional-body.matched-impact-resolution.v1",
+        mode="contact-manifold" if args.manifold else "resolution",
         engine_version=VERSION, model_sha256=model_sha, archived_20ms_pose_rate_exact=True,
         common_predecessor_sha256=hashlib.sha256(before.astype("<f8").tobytes()).hexdigest(),
         start_us=START_US, window_us=WINDOW_US, remaining_supply_j=supply,
@@ -182,4 +215,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
