@@ -5811,3 +5811,121 @@ Post10:10:34Z same1553/ec20ff/digest1d088e,counts1/1/0HEALTHY,sameidentity,
 live2378051,persist2378025,errorsnull,durabilityfalse,CPU51.22%,RAM2.991%.
 Prior clockALARM remains;other4alarmsOK. Caretaker35747 untouched; no diagnostic
 orphan. Full functional-body goalACTIVE; no deployment, push or completion.
+
+### FB-01aj load/release recurrence — bounded contract — 2026-09-26 10:29Z
+
+Previous response-only goal turn made no implementation progress. Resume this
+same mechanics gate from6246b3f65; discrete accounting is CLOSED, not reopened.
+Read FB-01e authority again: Joe already approved native soft contact and body-only
+numerical approximation, with unavailable general contact thermal mapping stated
+explicitly. Do not expand this into microscopic contact biology or new permission.
+
+Source-derived scalar reference (NOT a coupled-body bound): declared effort
+T=sigma*pi*r^3/2 and bearing B=(121/21)*pi*mu*r^3 give isolated terminal rate
+T/B=21*sigma/(242*mu)=173.55rad/s. For one scalar, constant-impedance, critically
+damped stop, xddot+2*xdot/tau+x/tau^2=(1-d)*a_free. Entry response obeys
+x_max <= (1-d)*a_free*tau^2+v_entry*tau/e while that scalar law is active.
+At the isolated reference rate, .2ms gives .0128rad entry penetration;20ms
+gives1.28rad. This explains the default-response failure, NOT a body-wide
+speed, compliance, error or passivity certificate. Coupled inertia/contact
+switching invalidate interpreting it as one. No physical constants promoted.
+
+Single next artifact tools/guala_body_load_release.py: offline nine-case
+recurrence using existing fixed .2ms/.999 diagnostic law,100/50/25us; torso-,
+upper-arm-, distal-finger- full capacity. Per case load250ms, zero250ms,
+reverse250ms, zero250ms; test-only mechanical challenge, not supplied cognition.
+Same scene/anatomy/bearings/capacities/safety bounds; same approved approximation.
+
+Each interval uses the already-reviewed observer, exact ordinary-successor
+comparison, then fresh engine cold replay from that interval's predecessor.
+Carry actual state and subtract positive work from a single finite bench budget;
+never reset between phases, refill, lower effort, loosen safety or retry refusal.
+First load must reproduce archived complete discrete report exactly. Failure
+stops only its case and is retained. Current-only native state size must not grow.
+Keep all per-interval work,10ms trajectories, group events, terminal nonzero
+constraint counts/penetrations/energy, state fingerprints and costs. Compress
+each complete case independently with raw SHA256 to prevent terminal truncation.
+
+Interpretation: signed constraint exchange is not invented heat or spring
+storage. Only a actually unloaded/released cycle can support a passivity
+inference; contact/limit states and remaining energy stay exposed. No zero-error
+or universal passivity claim, no runtime admission changes. Quantify fixed-law
+cross-resolution differences and recurrent/cold validity. A refusal is a new
+mechanical-domain boundary, not permission to change law until green.
+
+Lean impact: one offline tool only; no new runtime state/import/callback/owner,
+no duplicated live solver or body/cognitive authority. Existing helper reused;
+no broad test suite or native rebuild. One source-only frozen review before
+execution; pre/post read-only AWS plus host census. G1 source and caretaker,
+canonical kernel and pending GitHub push restriction remain untouched.
+
+### FB-01aj recurrence measured — 2026-09-26 10:44Z
+
+Frozen91df0d7b7 independent source PASS; fingerprint verified unchanged after
+execution. Probe e2a296bd856..., observer d3e8f712305..., runtime210996faa...
+unchanged. Session86727exit0: all9 cases complete all4 phases;36 exact fresh-engine
+cold successor comparisons and9 exact previous first-load discrete reports.
+Native state5152bytes in every interval; one decreasing finite work budget.
+No force reset between phases, no safety relaxation, and no live dynamics change.
+
+All9complete raw records retained as compressed JSON with verified byte lengths/
+SHA256 in docs/evidence/FB-01aj-load-release.json. Derived comparisons and their
+read-only reproduction scripts are in FB-01aj-load-release-analysis.json.
+Raw storage3,738,231B compresses to1,940,196base64characters; retained offline
+evidence only, zero new runtime memory/history. All36time-aligned10ms trajectories
+and per-step work/event records preserved. Output passed10000character acknowledged
+chunks after each completed simulation to avoid the previous truncation hazard.
+
+Established: recurrence safety/cold/non-growth in the tested domain. PeakRSS
+141784KiB; summedabsolute equationenergyclosure percycle<=8.892354e-11J.
+Signed total constraint exchange across fourphases remains negative in all9:
+torso -28.494111/-28.486001/-28.405360J; upperarm -3.038811/-3.010600/-3.010314J;
+finger -.001220437/-.001243705/-.001253786J at100/50/25us.
+These are signed exchange, NOT inferred heat or certified passivity.
+
+New quantitative boundary: positive outward finger stop/release exchange is
+still present. Many torso/arm final states retain active constraints and kinetic
+energy, so do not call those unloaded closed cycles. The full negative net
+exchange does not excuse the positive local numerical work.
+
+Fixed-law recurrent trajectory differences are materially larger than the
+earlier single loaded interval:
+max sampled hinge difference100->50us /50->25us:
+torso .21278386/.11308071rad (right upperarm pitch, final release);
+upperarm .18278827/.06781530rad (proximal fingers, reversal);
+finger .000548706/.000275528rad (proximal finger, final release).
+Torso rootposition3.30423/2.00595mm and rootorientation.0440226/.0158964rad.
+Torso thumb-tip angular-rate difference50->25us reaches101.21069rad/s during
+reverse160ms (12.3382vs113.5489rad/s); finer sampling does NOT uniformly reduce
+velocity differences. These are pairwise discrete trajectories, not exact
+solution errors or new acceptance tolerances. Do not promote this regime.
+
+Ordinary cold advance costs .263–.529s at100us, .545–.915s at50us,
+1.026–1.311s at25us per250ms interval. This candidate is NOT realtime.
+No claim that numerical admission alone qualifies proprioception/motion.
+The first new blocker is joint/contact event resolution under coupled reversal,
+not missing cognition and not the closed force accounting seam.
+
+Next bounded action: compare the same soft-constraint law using the native
+full implicit integrator versus implicitfast, which omits the bias-force velocity
+derivative. This is a numerical-causation test, NOT a proven diagnosis or
+permission to change the constitutive law. Source-derived update/work contract
+required before execution; retain exact fast controls. Do not lower force,
+relax .03rad/.008m guards, add behaviors, or demand microscopic thermal biology.
+If the integrator comparison cannot resolve accuracy/cost, record that boundary
+rather than serially reducing timestep without a bounded operating target.
+
+Read-only pre10:30:40/post10:37:49Z: task1553/ec20ff/digest1d088e sole1/1/0HEALTHY,
+sameidentity; ticks2381110->2382202, persisted2381097->2382185; allcheckpoint/
+cleanup errorsnull,durabilityfalse. CPU51.18->51.02%,RAM2.9785%.
+Prior clockALARM remains,other4alarmsOK. Caretaker35747/supervisor831 untouched;
+no A1 diagnostic child/orphan remains. No production-shaped interpretation.
+
+Command recurrence notes: apply_patch rejects Delete+Add for the same path in
+one patch; failed only in /tmp staging, then used complete-content Update.
+Orchestrator store(undefined) rejected after test start; session86727 remained
+live and was reattached, NOT restarted. Store nullable exit codes explicitly.
+Neither command error changed source physics or lost measured evidence.
+
+Complete functional-body goalACTIVE. This is a local qualification result, not
+deployment; GitHub push remains permission-blocked. G1 main files untouched.

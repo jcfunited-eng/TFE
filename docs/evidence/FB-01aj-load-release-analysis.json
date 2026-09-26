@@ -1,0 +1,729 @@
+{
+  "schema": "guala.functional-body.load-release-analysis.v1",
+  "source": "FB-01aj-load-release.json",
+  "analysis_script": "import base64, hashlib, json, math, zlib\nfrom pathlib import Path\nimport numpy as np\nd=json.loads(Path(\"docs/evidence/FB-01aj-load-release.json\").read_text())\nrows=[]\nfor rec in d[\"measurements\"]:\n raw=zlib.decompress(base64.b64decode(rec[\"payload_zlib_base64\"]))\n assert len(raw)==rec[\"raw_bytes\"] and hashlib.sha256(raw).hexdigest()==rec[\"raw_sha256\"]\n r=json.loads(raw); rows.append(r)\n print(json.dumps({\"name\":r[\"name\"],\"h_us\":r[\"step_us\"],\"completed\":r[\"completed\"],\n  \"peak_rss_kib\":r[\"max_rss_kib\"],\"net_constraint_j\":r[\"net_constraint_work_j\"],\n  \"phases\":[{\"phase\":p[\"phase\"],\"K_j\":p[\"kinetic_j\"],\n    \"force_rows\":p[\"terminal_nonzero_constraint_force_rows\"],\n    \"contact_min_m\":min(p[\"terminal_contact_separations_m\"],default=0.),\n    \"hinge_max_rad\":max(p[\"terminal_joint_overruns_rad\"],default=0.),\n    \"constraint_j\":p[\"report\"][\"discrete_update\"][\"work_j\"][\"constraint\"],\n    \"physical_balance_j\":p[\"report\"][\"discrete_update\"][\"physical_balance_with_discrete_constraint_j\"],\n    \"cold_seconds\":p[\"cold_advance_seconds\"],\"state_bytes\":p[\"state_bytes\"]}\n    for p in r[\"phases\"]]},allow_nan=False))\nfor name in sorted({r[\"name\"] for r in rows}):\n by={r[\"step_us\"]:r for r in rows if r[\"name\"]==name}\n for a,b in ((100,50),(50,25)):\n  maxima=dict(root_position_m=0.,root_orientation_rad=0.,hinge_position_rad=0.,\n    root_linear_speed_m_s=0.,root_angular_speed_rad_s=0.,joint_speed_rad_s=0.)\n  for p,q in zip(by[a][\"phases\"],by[b][\"phases\"]):\n   for x,y in zip(p[\"report\"][\"trajectory_every_10ms\"],q[\"report\"][\"trajectory_every_10ms\"]):\n    assert x[\"elapsed_us\"]==y[\"elapsed_us\"]\n    u,v=np.array(x[\"qpos\"]),np.array(y[\"qpos\"])\n    su,sv=np.array(x[\"qvel\"]),np.array(y[\"qvel\"])\n    quatdot=abs(float(np.dot(u[3:7],v[3:7])/(np.linalg.norm(u[3:7])*np.linalg.norm(v[3:7]))))\n    values=dict(root_position_m=float(np.linalg.norm(u[:3]-v[:3])),\n      root_orientation_rad=2*math.acos(min(1.,quatdot)),\n      hinge_position_rad=float(np.max(np.abs(u[7:]-v[7:]))),\n      root_linear_speed_m_s=float(np.linalg.norm(su[:3]-sv[:3])),\n      root_angular_speed_rad_s=float(np.linalg.norm(su[3:6]-sv[3:6])),\n      joint_speed_rad_s=float(np.max(np.abs(su[6:]-sv[6:]))))\n    for k,w in values.items(): maxima[k]=max(maxima[k],w)\n  print(json.dumps({\"comparison\":name,\"h_us\":[a,b],\"max_sampled_differences\":maxima}))\nprint(json.dumps({\"summary\":{\"cases\":len(rows),\"intervals\":sum(len(r[\"phases\"]) for r in rows),\n \"all_completed\":all(r[\"completed\"] for r in rows),\n \"all_cold_exact\":all(p[\"cold_successor_exact\"] for r in rows for p in r[\"phases\"]),\n \"state_sizes\":sorted({p[\"state_bytes\"] for r in rows for p in r[\"phases\"]}),\n \"max_cycle_absolute_energy_closure_j\":max(r[\"sum_absolute_equation_closure_j\"] for r in rows),\n \"max_peak_rss_kib\":max(r[\"max_rss_kib\"] for r in rows)}}))\n",
+  "results": [
+    {
+      "name": "guala/torso/roll/effort",
+      "h_us": 100,
+      "completed": true,
+      "peak_rss_kib": 136484,
+      "net_constraint_j": -28.494111483164065,
+      "phases": [
+        {
+          "phase": "load",
+          "K_j": 0.38920298858564323,
+          "force_rows": 4,
+          "contact_min_m": 0,
+          "hinge_max_rad": 6.940446750647311e-8,
+          "constraint_j": -10.144237190998986,
+          "physical_balance_j": -0.017286570110332466,
+          "cold_seconds": 0.33101102101500146,
+          "state_bytes": 5152
+        },
+        {
+          "phase": "release",
+          "K_j": 0.006883844031834339,
+          "force_rows": 6,
+          "contact_min_m": 0,
+          "hinge_max_rad": 1.3380940577789602e-8,
+          "constraint_j": -0.20119322074837123,
+          "physical_balance_j": -0.00024669373970986896,
+          "cold_seconds": 0.29811103802057914,
+          "state_bytes": 5152
+        },
+        {
+          "phase": "reverse",
+          "K_j": 0.12139689361783523,
+          "force_rows": 1,
+          "contact_min_m": 0,
+          "hinge_max_rad": 6.955468379032936e-8,
+          "constraint_j": -18.14836867134563,
+          "physical_balance_j": -0.03160073136277264,
+          "cold_seconds": 0.30688352999277413,
+          "state_bytes": 5152
+        },
+        {
+          "phase": "release_again",
+          "K_j": 0.05464093519688673,
+          "force_rows": 6,
+          "contact_min_m": -2.2317556781705477e-9,
+          "hinge_max_rad": 4.222982297186206e-9,
+          "constraint_j": -0.00031240007108016736,
+          "physical_balance_j": -0.000010834771749804184,
+          "cold_seconds": 0.32008137900265865,
+          "state_bytes": 5152
+        }
+      ]
+    },
+    {
+      "name": "guala/left/upper-arm/roll/effort",
+      "h_us": 100,
+      "completed": true,
+      "peak_rss_kib": 139204,
+      "net_constraint_j": -3.0388105853769267,
+      "phases": [
+        {
+          "phase": "load",
+          "K_j": 0.14637440719783276,
+          "force_rows": 5,
+          "contact_min_m": -4.0803657907345636e-8,
+          "hinge_max_rad": 1.0317133702919534e-8,
+          "constraint_j": -0.22357464390061396,
+          "physical_balance_j": -0.00014189001245332178,
+          "cold_seconds": 0.32012999500148,
+          "state_bytes": 5152
+        },
+        {
+          "phase": "release",
+          "K_j": 0.024114760065037173,
+          "force_rows": 2,
+          "contact_min_m": 0,
+          "hinge_max_rad": 6.565691323956457e-9,
+          "constraint_j": -0.003621439392904067,
+          "physical_balance_j": -0.00011010943600112122,
+          "cold_seconds": 0.3088753549964167,
+          "state_bytes": 5152
+        },
+        {
+          "phase": "reverse",
+          "K_j": 0.02684879423003668,
+          "force_rows": 2,
+          "contact_min_m": 0,
+          "hinge_max_rad": 1.18204750432227e-8,
+          "constraint_j": -2.811610006799083,
+          "physical_balance_j": -0.00623311266041611,
+          "cold_seconds": 0.2978836460097227,
+          "state_bytes": 5152
+        },
+        {
+          "phase": "release_again",
+          "K_j": 0.007714741646926056,
+          "force_rows": 2,
+          "contact_min_m": 0,
+          "hinge_max_rad": 4.847782175687598e-10,
+          "constraint_j": -0.000004495284325522238,
+          "physical_balance_j": -0.0000044393222477963346,
+          "cold_seconds": 0.3126145970018115,
+          "state_bytes": 5152
+        }
+      ]
+    },
+    {
+      "name": "guala/left/digit-0/distal/flexion/effort",
+      "h_us": 100,
+      "completed": true,
+      "peak_rss_kib": 139388,
+      "net_constraint_j": -0.0012204368772096223,
+      "phases": [
+        {
+          "phase": "load",
+          "K_j": 4.965990952784385e-16,
+          "force_rows": 1,
+          "contact_min_m": 0,
+          "hinge_max_rad": 0.000024403211501523628,
+          "constraint_j": 0.000016529689428772146,
+          "physical_balance_j": -0.000011643678073273717,
+          "cold_seconds": 0.29854206601157784,
+          "state_bytes": 5152
+        },
+        {
+          "phase": "release",
+          "K_j": 2.79556510624943e-16,
+          "force_rows": 0,
+          "contact_min_m": 0,
+          "hinge_max_rad": 0,
+          "constraint_j": 9.445811844085427e-11,
+          "physical_balance_j": -7.1566907155700064e-12,
+          "cold_seconds": 0.2632277329976205,
+          "state_bytes": 5152
+        },
+        {
+          "phase": "reverse",
+          "K_j": 1.2597111718183326e-9,
+          "force_rows": 1,
+          "contact_min_m": 0,
+          "hinge_max_rad": 0.000024403215063806272,
+          "constraint_j": -0.0012369668143454333,
+          "physical_balance_j": -0.00012000484965227325,
+          "cold_seconds": 0.5292093059979379,
+          "state_bytes": 5152
+        },
+        {
+          "phase": "release_again",
+          "K_j": 6.202747150611949e-10,
+          "force_rows": 1,
+          "contact_min_m": 0,
+          "hinge_max_rad": 1.7785001787712456e-13,
+          "constraint_j": 1.5324892037493842e-10,
+          "physical_balance_j": -9.418555773044256e-12,
+          "cold_seconds": 0.27882744700764306,
+          "state_bytes": 5152
+        }
+      ]
+    },
+    {
+      "name": "guala/torso/roll/effort",
+      "h_us": 50,
+      "completed": true,
+      "peak_rss_kib": 139864,
+      "net_constraint_j": -28.486000605686677,
+      "phases": [
+        {
+          "phase": "load",
+          "K_j": 0.3830300744903207,
+          "force_rows": 4,
+          "contact_min_m": 0,
+          "hinge_max_rad": 6.940925323384306e-8,
+          "constraint_j": -10.137249364879398,
+          "physical_balance_j": -0.0019721957042370675,
+          "cold_seconds": 0.6117589219938964,
+          "state_bytes": 5152
+        },
+        {
+          "phase": "release",
+          "K_j": 0.006743444197048442,
+          "force_rows": 5,
+          "contact_min_m": 0,
+          "hinge_max_rad": 6.562452670166863e-8,
+          "constraint_j": -0.1939882115123097,
+          "physical_balance_j": -0.000060239770606318466,
+          "cold_seconds": 0.5996263810084201,
+          "state_bytes": 5152
+        },
+        {
+          "phase": "reverse",
+          "K_j": 0.16693852820451002,
+          "force_rows": 1,
+          "contact_min_m": 0,
+          "hinge_max_rad": 6.963806820081686e-8,
+          "constraint_j": -18.152362112772835,
+          "physical_balance_j": -0.0009823245618903742,
+          "cold_seconds": 0.9149499589984771,
+          "state_bytes": 5152
+        },
+        {
+          "phase": "release_again",
+          "K_j": 0.06979017123646368,
+          "force_rows": 11,
+          "contact_min_m": -5.781147385461316e-9,
+          "hinge_max_rad": 4.769491518997413e-9,
+          "constraint_j": -0.0024009165221344536,
+          "physical_balance_j": -0.000003752512092655702,
+          "cold_seconds": 0.6563663219858427,
+          "state_bytes": 5152
+        }
+      ]
+    },
+    {
+      "name": "guala/left/upper-arm/roll/effort",
+      "h_us": 50,
+      "completed": true,
+      "peak_rss_kib": 141784,
+      "net_constraint_j": -3.010599799028901,
+      "phases": [
+        {
+          "phase": "load",
+          "K_j": 0.14620661069228208,
+          "force_rows": 6,
+          "contact_min_m": -6.18779398796343e-8,
+          "hinge_max_rad": 3.40582473334905e-9,
+          "constraint_j": -0.2241004728507456,
+          "physical_balance_j": 0.000004296709668338838,
+          "cold_seconds": 0.6301779570057988,
+          "state_bytes": 5152
+        },
+        {
+          "phase": "release",
+          "K_j": 0.021752222831548474,
+          "force_rows": 2,
+          "contact_min_m": 0,
+          "hinge_max_rad": 5.959643223363287e-9,
+          "constraint_j": -0.005086904194618287,
+          "physical_balance_j": -0.00005372711436298083,
+          "cold_seconds": 0.6131862899928819,
+          "state_bytes": 5152
+        },
+        {
+          "phase": "reverse",
+          "K_j": 0.02776804057614792,
+          "force_rows": 2,
+          "contact_min_m": 0,
+          "hinge_max_rad": 0.000005314916766579044,
+          "constraint_j": -2.781412357148447,
+          "physical_balance_j": -0.0017718818371369634,
+          "cold_seconds": 0.6221719129825942,
+          "state_bytes": 5152
+        },
+        {
+          "phase": "release_again",
+          "K_j": 0.007981649794226027,
+          "force_rows": 2,
+          "contact_min_m": 0,
+          "hinge_max_rad": 6.97259583404275e-10,
+          "constraint_j": -6.48350899235509e-8,
+          "physical_balance_j": -0.0000021727066180365906,
+          "cold_seconds": 0.6416379509901162,
+          "state_bytes": 5152
+        }
+      ]
+    },
+    {
+      "name": "guala/left/digit-0/distal/flexion/effort",
+      "h_us": 50,
+      "completed": true,
+      "peak_rss_kib": 141784,
+      "net_constraint_j": -0.0012437046282848163,
+      "phases": [
+        {
+          "phase": "load",
+          "K_j": 8.882000647373008e-17,
+          "force_rows": 1,
+          "contact_min_m": 0,
+          "hinge_max_rad": 0.000024403211502813493,
+          "constraint_j": 0.000004452710706926672,
+          "physical_balance_j": -0.0000014171287024940354,
+          "cold_seconds": 0.5890764479991049,
+          "state_bytes": 5152
+        },
+        {
+          "phase": "release",
+          "K_j": 4.883886934277153e-17,
+          "force_rows": 0,
+          "contact_min_m": 0,
+          "hinge_max_rad": 0,
+          "constraint_j": 9.41318521459908e-11,
+          "physical_balance_j": -1.589758457235497e-12,
+          "cold_seconds": 0.8280699040042236,
+          "state_bytes": 5152
+        },
+        {
+          "phase": "reverse",
+          "K_j": 7.659950720994163e-10,
+          "force_rows": 1,
+          "contact_min_m": 0,
+          "hinge_max_rad": 0.000024401558058162465,
+          "constraint_j": -0.0012481575758110602,
+          "physical_balance_j": -0.000023106225708050224,
+          "cold_seconds": 0.6468175280024298,
+          "state_bytes": 5152
+        },
+        {
+          "phase": "release_again",
+          "K_j": 3.6938392345452116e-10,
+          "force_rows": 0,
+          "contact_min_m": 0,
+          "hinge_max_rad": 0,
+          "constraint_j": 1.4268746521915807e-10,
+          "physical_balance_j": -1.6848895616939568e-12,
+          "cold_seconds": 0.5448243000137154,
+          "state_bytes": 5152
+        }
+      ]
+    },
+    {
+      "name": "guala/torso/roll/effort",
+      "h_us": 25,
+      "completed": true,
+      "peak_rss_kib": 141784,
+      "net_constraint_j": -28.405360350080603,
+      "phases": [
+        {
+          "phase": "load",
+          "K_j": 0.3892812537399293,
+          "force_rows": 4,
+          "contact_min_m": 0,
+          "hinge_max_rad": 6.940871966065743e-8,
+          "constraint_j": -10.131405988947215,
+          "physical_balance_j": 0.00004797257198219107,
+          "cold_seconds": 1.2398303780064452,
+          "state_bytes": 5152
+        },
+        {
+          "phase": "release",
+          "K_j": 0.006736285776952586,
+          "force_rows": 5,
+          "contact_min_m": 0,
+          "hinge_max_rad": 6.686845299697097e-9,
+          "constraint_j": -0.19897275202383957,
+          "physical_balance_j": -0.00001957330175283989,
+          "cold_seconds": 1.207640865992289,
+          "state_bytes": 5152
+        },
+        {
+          "phase": "reverse",
+          "K_j": 0.18600517962328597,
+          "force_rows": 1,
+          "contact_min_m": 0,
+          "hinge_max_rad": 6.963710563745451e-8,
+          "constraint_j": -18.073845616127837,
+          "physical_balance_j": 0.0011600093676651657,
+          "cold_seconds": 1.2200169769930653,
+          "state_bytes": 5152
+        },
+        {
+          "phase": "release_again",
+          "K_j": 0.07957550829217358,
+          "force_rows": 7,
+          "contact_min_m": -6.102431606942333e-9,
+          "hinge_max_rad": 5.6886030728115424e-9,
+          "constraint_j": -0.0011359929817126137,
+          "physical_balance_j": -5.691055499496001e-7,
+          "cold_seconds": 1.2349257970054168,
+          "state_bytes": 5152
+        }
+      ]
+    },
+    {
+      "name": "guala/left/upper-arm/roll/effort",
+      "h_us": 25,
+      "completed": true,
+      "peak_rss_kib": 141784,
+      "net_constraint_j": -3.0103144855926796,
+      "phases": [
+        {
+          "phase": "load",
+          "K_j": 0.1460828658475519,
+          "force_rows": 6,
+          "contact_min_m": -7.252139886879116e-8,
+          "hinge_max_rad": 5.44154965531618e-9,
+          "constraint_j": -0.22341796905362732,
+          "physical_balance_j": 0.000013370992056366271,
+          "cold_seconds": 1.2855134179990273,
+          "state_bytes": 5152
+        },
+        {
+          "phase": "release",
+          "K_j": 0.020905217560042825,
+          "force_rows": 2,
+          "contact_min_m": 0,
+          "hinge_max_rad": 5.8901388211296535e-9,
+          "constraint_j": -0.005757357147342253,
+          "physical_balance_j": -0.0000264108081342862,
+          "cold_seconds": 1.3110741159762256,
+          "state_bytes": 5152
+        },
+        {
+          "phase": "reverse",
+          "K_j": 0.02806323562327587,
+          "force_rows": 2,
+          "contact_min_m": 0,
+          "hinge_max_rad": 1.149382899967577e-8,
+          "constraint_j": -2.7811391034657693,
+          "physical_balance_j": -0.0005999550516215015,
+          "cold_seconds": 1.2072337059944402,
+          "state_bytes": 5152
+        },
+        {
+          "phase": "release_again",
+          "K_j": 0.008065033297201547,
+          "force_rows": 2,
+          "contact_min_m": 0,
+          "hinge_max_rad": 7.880245345148751e-10,
+          "constraint_j": -5.592594076916176e-8,
+          "physical_balance_j": -0.0000010800846488023819,
+          "cold_seconds": 1.2631011250196025,
+          "state_bytes": 5152
+        }
+      ]
+    },
+    {
+      "name": "guala/left/digit-0/distal/flexion/effort",
+      "h_us": 25,
+      "completed": true,
+      "peak_rss_kib": 141784,
+      "net_constraint_j": -0.0012537860996681245,
+      "phases": [
+        {
+          "phase": "load",
+          "K_j": 2.2716703159939803e-17,
+          "force_rows": 1,
+          "contact_min_m": 0,
+          "hinge_max_rad": 0.00002440321150304106,
+          "constraint_j": 8.54046982046729e-7,
+          "physical_balance_j": -1.7926291600507354e-7,
+          "cold_seconds": 1.2165848829899915,
+          "state_bytes": 5152
+        },
+        {
+          "phase": "release",
+          "K_j": 1.1981200931933832e-17,
+          "force_rows": 0,
+          "contact_min_m": 0,
+          "hinge_max_rad": 0,
+          "constraint_j": 9.406506327802765e-11,
+          "physical_balance_j": -3.8100863482064984e-13,
+          "cold_seconds": 1.0257174040016253,
+          "state_bytes": 5152
+        },
+        {
+          "phase": "reverse",
+          "K_j": 5.750272971871656e-10,
+          "force_rows": 1,
+          "contact_min_m": 0,
+          "hinge_max_rad": 0.000024403217156798718,
+          "constraint_j": -0.0012546403783804862,
+          "physical_balance_j": -0.000005908382700542837,
+          "cold_seconds": 1.2398916030069813,
+          "state_bytes": 5152
+        },
+        {
+          "phase": "release_again",
+          "K_j": 2.5802120976394733e-10,
+          "force_rows": 0,
+          "contact_min_m": 0,
+          "hinge_max_rad": 0,
+          "constraint_j": 1.3766525183112369e-10,
+          "physical_balance_j": -3.858496571032437e-13,
+          "cold_seconds": 1.0794055110018235,
+          "state_bytes": 5152
+        }
+      ]
+    },
+    {
+      "comparison": "guala/left/digit-0/distal/flexion/effort",
+      "h_us": [
+        100,
+        50
+      ],
+      "max_sampled_differences": {
+        "root_position_m": 1.9568649462014891e-7,
+        "root_orientation_rad": 0.0000031673293561792736,
+        "hinge_position_rad": 0.0005487062695099659,
+        "root_linear_speed_m_s": 6.067514603861571e-7,
+        "root_angular_speed_rad_s": 0.000009751535328616597,
+        "joint_speed_rad_s": 0.2476774837175384
+      }
+    },
+    {
+      "comparison": "guala/left/digit-0/distal/flexion/effort",
+      "h_us": [
+        50,
+        25
+      ],
+      "max_sampled_differences": {
+        "root_position_m": 9.607209211872765e-8,
+        "root_orientation_rad": 0.000001507302357721578,
+        "hinge_position_rad": 0.00027552823787134234,
+        "root_linear_speed_m_s": 4.2761232312091624e-7,
+        "root_angular_speed_rad_s": 0.000004251255940382259,
+        "joint_speed_rad_s": 0.659100205122467
+      }
+    },
+    {
+      "comparison": "guala/left/upper-arm/roll/effort",
+      "h_us": [
+        100,
+        50
+      ],
+      "max_sampled_differences": {
+        "root_position_m": 0.00024512413387122746,
+        "root_orientation_rad": 0.009243440759623162,
+        "hinge_position_rad": 0.18278826914409319,
+        "root_linear_speed_m_s": 0.0041395821176630435,
+        "root_angular_speed_rad_s": 0.06340353807494842,
+        "joint_speed_rad_s": 17.468555736771243
+      }
+    },
+    {
+      "comparison": "guala/left/upper-arm/roll/effort",
+      "h_us": [
+        50,
+        25
+      ],
+      "max_sampled_differences": {
+        "root_position_m": 0.00012642608252229888,
+        "root_orientation_rad": 0.003537962228066781,
+        "hinge_position_rad": 0.0678152972936571,
+        "root_linear_speed_m_s": 0.0031489049428025163,
+        "root_angular_speed_rad_s": 0.03751969092503322,
+        "joint_speed_rad_s": 12.515933981922798
+      }
+    },
+    {
+      "comparison": "guala/torso/roll/effort",
+      "h_us": [
+        100,
+        50
+      ],
+      "max_sampled_differences": {
+        "root_position_m": 0.003304228381337206,
+        "root_orientation_rad": 0.044022562431716664,
+        "hinge_position_rad": 0.21278386105241376,
+        "root_linear_speed_m_s": 0.08946536662253951,
+        "root_angular_speed_rad_s": 3.83253668250763,
+        "joint_speed_rad_s": 46.02530965916308
+      }
+    },
+    {
+      "comparison": "guala/torso/roll/effort",
+      "h_us": [
+        50,
+        25
+      ],
+      "max_sampled_differences": {
+        "root_position_m": 0.0020059471119482615,
+        "root_orientation_rad": 0.01589639863755536,
+        "hinge_position_rad": 0.11308070555464411,
+        "root_linear_speed_m_s": 0.04477793998266114,
+        "root_angular_speed_rad_s": 0.5593112573327365,
+        "joint_speed_rad_s": 101.21069283362394
+      }
+    },
+    {
+      "summary": {
+        "cases": 9,
+        "intervals": 36,
+        "all_completed": true,
+        "all_cold_exact": true,
+        "state_sizes": [
+          5152
+        ],
+        "max_cycle_absolute_energy_closure_j": 8.892353428374004e-11,
+        "max_peak_rss_kib": 141784
+      }
+    }
+  ],
+  "localization_script": "import base64,json,zlib\nfrom pathlib import Path\nimport numpy as np\ndata=json.loads(Path(\"docs/evidence/FB-01aj-load-release.json\").read_text())\nrows=[json.loads(zlib.decompress(base64.b64decode(r[\"payload_zlib_base64\"]))) for r in data[\"measurements\"]]\nmeta=json.loads(Path(\"docs/evidence/FB-01aj-fixed-response-loads.json\").read_text())[\"full\"]\nqn={a:n for a,n in zip(meta[\"qpos_addresses\"],meta[\"joint_names\"])}\nvn={a:n for a,n in zip(meta[\"dof_addresses\"],meta[\"joint_names\"])}\nout=[]\nfor name in sorted({r[\"name\"] for r in rows}):\n b={r[\"step_us\"]:r for r in rows if r[\"name\"]==name}\n for coarse,fine in ((100,50),(50,25)):\n  positions=[];velocities=[]\n  for ph,(p,q) in enumerate(zip(b[coarse][\"phases\"],b[fine][\"phases\"])):\n   for x,y in zip(p[\"report\"][\"trajectory_every_10ms\"],q[\"report\"][\"trajectory_every_10ms\"]):\n    du=np.abs(np.asarray(x[\"qpos\"])[7:]-np.asarray(y[\"qpos\"])[7:])\n    dv=np.abs(np.asarray(x[\"qvel\"])[6:]-np.asarray(y[\"qvel\"])[6:])\n    j=int(np.argmax(du))+7;k=int(np.argmax(dv))+6\n    positions.append((float(du[j-7]),qn[j],p[\"phase\"],x[\"elapsed_us\"],x[\"qpos\"][j],y[\"qpos\"][j]))\n    velocities.append((float(dv[k-6]),vn[k],p[\"phase\"],x[\"elapsed_us\"],x[\"qvel\"][k],y[\"qvel\"][k]))\n  out.append(dict(load=name,steps=[coarse,fine],angle_peak=max(positions),velocity_peak=max(velocities)))\nprint(json.dumps(out,indent=2))\n",
+  "localization": [
+    {
+      "load": "guala/left/digit-0/distal/flexion/effort",
+      "steps": [
+        100,
+        50
+      ],
+      "angle_peak": [
+        0.0005487062695099659,
+        "guala/left/digit-0/proximal/flexion",
+        "release_again",
+        250000,
+        0.0020320424363827294,
+        0.0014833361668727635
+      ],
+      "velocity_peak": [
+        0.2476774837175384,
+        "guala/left/digit-0/distal/flexion",
+        "reverse",
+        10000,
+        -18.890247911948553,
+        -18.642570428231014
+      ]
+    },
+    {
+      "load": "guala/left/digit-0/distal/flexion/effort",
+      "steps": [
+        50,
+        25
+      ],
+      "angle_peak": [
+        0.00027552823787134234,
+        "guala/left/digit-0/proximal/flexion",
+        "release_again",
+        250000,
+        0.0014833361668727635,
+        0.0012078079290014211
+      ],
+      "velocity_peak": [
+        0.659100205122467,
+        "guala/left/digit-0/distal/flexion",
+        "reverse",
+        10000,
+        -18.642570428231014,
+        -17.983470223108547
+      ]
+    },
+    {
+      "load": "guala/left/upper-arm/roll/effort",
+      "steps": [
+        100,
+        50
+      ],
+      "angle_peak": [
+        0.18278826914409319,
+        "guala/left/digit-0/proximal/flexion",
+        "reverse",
+        110000,
+        0.25020587835348046,
+        0.06741760920938729
+      ],
+      "velocity_peak": [
+        17.468555736771243,
+        "guala/left/palm/pitch",
+        "reverse",
+        110000,
+        0.1883745600043744,
+        17.656930296775617
+      ]
+    },
+    {
+      "load": "guala/left/upper-arm/roll/effort",
+      "steps": [
+        50,
+        25
+      ],
+      "angle_peak": [
+        0.0678152972936571,
+        "guala/left/digit-3/proximal/flexion",
+        "reverse",
+        120000,
+        0.3885649794900627,
+        0.3207496821964056
+      ],
+      "velocity_peak": [
+        12.515933981922798,
+        "guala/left/digit-4/proximal/flexion",
+        "reverse",
+        60000,
+        9.769472908331217,
+        -2.7464610735915813
+      ]
+    },
+    {
+      "load": "guala/torso/roll/effort",
+      "steps": [
+        100,
+        50
+      ],
+      "angle_peak": [
+        0.21278386105241376,
+        "guala/right/upper-arm/pitch",
+        "release_again",
+        250000,
+        1.0234510400126902,
+        1.236234901065104
+      ],
+      "velocity_peak": [
+        46.02530965916308,
+        "guala/left/digit-0/distal/flexion",
+        "load",
+        30000,
+        -3.5087688248066873,
+        42.51654083435639
+      ]
+    },
+    {
+      "load": "guala/torso/roll/effort",
+      "steps": [
+        50,
+        25
+      ],
+      "angle_peak": [
+        0.11308070555464411,
+        "guala/right/upper-arm/pitch",
+        "release_again",
+        250000,
+        1.236234901065104,
+        1.349315606619748
+      ],
+      "velocity_peak": [
+        101.21069283362394,
+        "guala/right/digit-4/distal/flexion",
+        "reverse",
+        160000,
+        12.338194190680477,
+        113.54888702430442
+      ]
+    }
+  ],
+  "interpretation": "Geometry admission and same-runtime recurrence/cold equivalence passed only in this bounded zero-gravity domain. Pairwise sampled trajectories are not rigorous continuous error bounds. Persistent constraint rows and residual kinetic energy forbid assuming all trials end in unloaded rest. Positive outward finger stop/release constraint exchange remains numerical exchange, not thermal deposition."
+}
