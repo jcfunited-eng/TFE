@@ -269,7 +269,7 @@ def main():
          memory_candidate_included=True)
     if not args.execute:
         return
-    folder=ROOT/"backups/runtime"/("a1-herroom-release-"+datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ"))
+    folder=ROOT/"backups/runtime"/("a1-bedtoys-release-"+datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ"))
     folder.mkdir()
     journal=folder/"receipt.jsonl"
     emit("release_start",commit=commit)
