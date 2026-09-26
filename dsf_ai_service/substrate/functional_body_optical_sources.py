@@ -139,6 +139,9 @@ class NativeOpticalSources:
     emitters: tuple
     # "unretained" is NOT night/zero light; "retained" may include sampled night.
     solar_evidence: str
+    # Borrow the same published transforms and immutable compiled addresses.
+    world_frames: tuple
+    bindings: tuple
 
     @property
     def solar_sample(self):

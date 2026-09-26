@@ -4623,7 +4623,9 @@ class EmbodimentWorldAuthority:
             return NativeOpticalSources(world.revision, world.native, geometry, materials,
                                         world.regions, emitters,
                                         "retained" if world.native.solar_sample is not None else
-                                        "absent" if self._solar_coupling is None else "unretained")
+                                        "absent" if self._solar_coupling is None else "unretained",
+                                        self._state.observation.native.world_frames,
+                                        engine.optical_source_bindings)
 
     def native_ray_geometry(self, *, expected_revision: int, frame_name: str,
                             origin_local_m: tuple[float, float, float],

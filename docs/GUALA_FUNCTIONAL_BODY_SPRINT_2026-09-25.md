@@ -4037,3 +4037,155 @@ sensory pairing, restart/rehearsal and production verification remain open.
 Next exact item is consume these retained sources in the existing material
 integrator's spatially varying illumination, not a new world or sun model.
 GitHub push remains awaiting explicit permission; local commit only.
+
+## FB-01ab — Native spatial illumination consumer — 2026-09-26
+
+Previous goal turn: NO PROGRESS (bedtime permission/status response). Revalidated
+clean d7658a6a5, two local-only commits; publication denial is not a local-work
+blocker. FB-01aa remains closed by frozen source review and its 34 recorded
+offline checks, not live delivery. Continue same functional-body goal; advance
+only its required light consumer. Last observed production baseline remains
+1553/ec20ff, not remeasured yet. No production or G1 source changes.
+
+Requested architecture: native articulated surfaces receive existing six-band
+world light in their actual frames. Current gap: material aperture integration
+accepts uniform incident light; retained source custody does not compute
+spatial illumination. Conflict: incomplete integration, not permission to use
+point samples as a full retinal aperture. L0-L4/cognition untouched. Approved
+float64 optics only: existing room-uniform single bounce and point/directional
+light laws retained; no global illumination, biological optics or full DSF claim.
+
+Single change: implement transient NativeIllumination.bounds over enclosed
+convex-surface patches, ready for the existing adaptive aperture integrator.
+Input = one published NativeOpticalSources view, region of receiving surface,
+patch centre/normal and enclosing position/normal radii, owning geometry row.
+Output = lower/upper incident radiance per six bands. This is not a completed
+retinal frame or ordinary motor/sensory integration. The next consumer must
+derive those patches from actual aperture/surface intersections; a centre
+sample cannot replace the patch enclosure.
+
+Authority/field map:
+existing world producer -> native successor -> signed NativeWorldObservation
+world_frames + saved solar_sample -> same locked native_optical_sources query
+-> transient light preparation -> same native primitive segment intersections
+-> six-band illumination bounds -> pending material/aperture integration.
+Only exact existing world_frames and compiled material-address references are
+added to the transient source view. No new encoding, state owner, clock,
+geometry cache, world copy or retained illumination history. Unknown sampled
+sun refuses, never darkens silently. Existing plain and thermal publication,
+rollback and cold restore remain sole authority. Old views remain immutable.
+
+Source law: normalized incident = (ambient_ppm + existing bounce_ppm +
+direct_ppm)/1e6; outgoing = reflectance_ppm*incident/1e6 + emission_ppm/1e6.
+Reuse _bounce_ppm, _Light, LAMP_REFERENCE_MM and LAMP_NEAR_GAIN; do not fork
+coefficients. Lamp centre is original local elevation/shape-height offset
+transformed by its exact owner frame, one per emitting physical object, not
+one per part. Region membership uses that native entity reference as existing
+_native_region does, never rounded display position or observer room.
+Lamp falloff min(4,(1m/d)^2), d centre distance; declared radius terminates the
+shadow segment, never changes attenuation distance. Lambert factor max(n.l,0).
+Sun uses saved direction/sky and declared window rectangles. Native opaque
+geometry must agree with actual openings: never omit a wall to fake a window.
+
+Bounds: for point-ball radius delta, d is in [max(0,d-delta),d+delta].
+Direction perturbation <= min(2,2delta/(d-delta)); normal perturbation is
+supplied enclosure epsilon. Bound incidence with their sum and distance law.
+A ray bundle to a fixed source stays within delta of its central segment.
+Expanded primitive miss certifies clear; contracted primitive intersection
+certifies blocked. Sphere/capsule use radial dilation; box uses each halfsize;
+cylinder uses radial and axial dilation; ellipsoid uses uniform scale
+1 +/- delta/min(semiaxes), a conservative Minkowski enclosure. Empty
+contractions cannot certify blockage. Ray segment ends are bounded using
+source-radius and distance intervals. Window coordinates/time are linear in
+origin at fixed solar direction; use their analytic interval extents.
+The receiving convex primitive may be omitted only for strictly positive
+incidence throughout its own enclosed surface patch; no whole body/object
+exclusion. Other parts/limbs and emitter geometry remain occluders.
+No epsilon shadow bias, bounding-sphere final occlusion, clipping or inferred
+radiance. Float64 enclosure arithmetic is not directed-rounding certification.
+
+Resource/custody: O(N*G*(L+W)) worst-case analytic intersections, transient
+O(N+G+L+W) storage, no N*G array or lifetime cache. Explicit point/test budgets
+refuse before work; windows count in the budget. No input mutation or state
+commit, so exceptions discard local scratch only. All six bands survive.
+
+Authorized files: functional_body_optical_sources.py (two references);
+embodiment_world.py (same locked constructor arguments only);
+new functional_body_illumination.py and standalone matching proof;
+this existing sprint ledger. No legacy light/renderer/cognition changes.
+Evidence: actual native view/frames -> light evaluation -> unchanged encoded
+world; cold restore and moved native light frame; analytical inverse-square,
+normal, shadow and window controls; positive-size patch bounds contain sampled
+physical points (samples falsify bounds, never define runtime integration);
+unknown sun and work-budget refusals. One source-only frozen independent review
+before imports/tests, read-only AWS envelope and no live test calls.
+Full native aperture, home integration, copied-body rehearsal and deployment
+remain mandatory follow-through, not replaced by these leaf proofs.
+
+Failed read paths preserved: previous turn guessed retinal_irradiance_field.py;
+actual retinal code is w1_physical_receptors.py. This turn a search included
+nonexistent functional_body_world.py; relevant world symbols are in
+embodiment_world.py. No source/test effect. Use enumerated source paths only.
+Historical authority docs remain absent in this tree as previously recorded;
+use explicit user approval, bundled laws and this durable active sprint.
+
+FB-01ab pre-freeze translation/lean review:
+NativeOpticalSources now borrows the SAME published world_frames and immutable
+compiled bindings. No codec fields/retained bytes or extra native observation.
+Candidate light law consumes all six bands, full lamp owner rotation, existing
+room bounce and retained sun. Corrected preimplementation ambiguity: solar
+window is an aperture test; directional shadow continues beyond it through all
+native solids, so a solid wall at the declared opening still blocks light.
+Receiver omission is justified only for that convex row's positive-incidence
+contribution; back-facing members have zero contribution. Other parts remain.
+Work budget counts 2*N*G*(lamps+sun) plus N*windows, not repeated sun shadow
+solves. Six standalone authored-scene tests cover the causal source query and
+cold motor continuation; they do not prove final retinal integration.
+Before freeze, manual source preflight caught a missing raise after the budget
+condition during a whole-file edit; restored it before any import/test.
+No production execution or kernel/cognition edit. Required independent review
+is next. Owner will stop editing until review completes.
+
+FB-01ab source/correctness verified offline — 2026-09-26 04:27Z.
+Single localized review batch: packed-array admission before conversion;
+sphere-normal, native card-shadow and window-edge controls; pure two-solid
+lamp-endpoint controls. Final frozenfdc01b0beb0efe645ec5959545416b42d4a52caf7e8e890bf0ef20cf90a29948
+PASS independently and unchanged after proofs. Owner releases freeze only
+for this receipt/local commit. No architectural finding; no physics retuning.
+
+Standalone59462 terminal0:8PASS,1.259s,151948KiB peakRSS. Unchanged regressions
+13346 terminal0:source8PASS(.374s),solar5PASS(.594s),world/heat21PASS(1.454s).
+Total42PASS. Actual native source frame, six bands, normal/incidence, shadow/
+window boundaries, cold restore and next motor covered at offline bench level.
+
+Reviewed resource probe /tmp/guala-fb01ab-resource-proof.py
+SHA256 024319ab167e2a27de256a2c4f4fcb5c6e0de28c88b879626cb40abdfc6040e6;
+session8361 terminal0. 19335 actual wall points,50geoms,1lamp,3calls:
+.379168/.382118/.361695s,output1856160bytes,whole-processpeak162920KiB.
+Results byte-identical; encoded world unchanged. Timing includes wrapper and
+light bounds, excludes setup; point throughput NOT retinal/frame latency.
+It exceeds250ms even before full retina. Do not ship or claim real-time.
+
+Next active lean item FB-01ac: remove unnecessary detailed primitive shadow
+tests by conservative geometric miss rejection, preserving every returned
+light bound byte on the same controlled scenes. Cost source is
+_visibility_bounds scanning two full primitive intersections per point/geom/
+source. A bounding volume may prove MISS only, never replace a hit/occluder.
+No reduced pixels, looser light error, cached frames or altered physics.
+Retain this verified candidate as correctness predecessor; then freeze one
+bounded optimization contract before editing. Complete aperture/ordinary body
+integration, copied-body/restart/rehearsal/live gates remain mandatory.
+
+Read-only envelopes04:21:23/04:23:52/04:25:50Z: same1553/ec20ff,digest1d088e,
+counts1/1/0,live2329885->2330190->2330436,persist2329865->2330185->2330409,
+identityunchanged,availabletrue,errorsnull,durabilityfalse. CPU51.49/51.22/51.69%,
+RAM2.86/2.89/2.86%. OldclockALARM persists;otheralarmsOK;caretaker35747untouched.
+SeparateG1pytest73057 observed, not ours or A1 evidence. All A1 proof sessions
+terminal; host census shows no A1 proof survivor. No production writes.
+
+Tool error preserved: trailing diff-check command after fingerprint ran from
+main tree, terminated97169exit2 on unrelated G1 whitespace. No edit there.
+Corrected explicit git -C body-tree diff --check passes; future Git commands
+use explicit tree. Another read-only preflight guessed nonexistent thermal
+test; enumerated actual files and ran only existing world.py. No failing
+body proof hidden. GitHub approval still outstanding; no push attempted.
