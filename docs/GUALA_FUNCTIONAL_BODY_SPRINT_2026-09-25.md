@@ -7373,3 +7373,77 @@ at the service root. Actual body modules are under substrate, and world custody
 is in substrate/embodiment_world.py. The failed command made no changes; exact
 paths were resolved through rg --files before continuing. Retain those resolved
 paths rather than reconstructing basenames from memory.
+
+### FB-01aj concrete engineering accuracy proposal — 2026-09-26 20:56Z
+
+Previous turn PROGRESS6116d6cf8. Same active accuracy contract; no solver,
+anatomy, receptor, cognition, kernel, thermal or production change. Required
+architecture is unchanged; current conflict is an unspecified acceptance
+requirement, not permission to redefine physical success. Numerical rigid-body
+approximation remains explicit. The single next item is the physical-fidelity
+choice already asked of Joe; this automatic continuation is not his approval.
+
+Recommended PROPOSAL ONLY, not ratified constants or a biological claim:
+
+| Physical quantity | Proposed verification error ceiling |
+| --- | --- |
+| Material surface position, including rotation | 0.1 mm |
+| Link/camera orientation | 0.01 degree, geodesic rotation angle |
+| Linear rate | 0.001 m/s + 0.1% of reference magnitude |
+| Joint/angular rate | 0.01 rad/s + 0.1% of reference magnitude |
+| Inertial specific force | 0.01 m/s^2 + 0.1% of reference magnitude |
+| Contact force | 0.01 N + 0.1% of reference magnitude |
+| Contact couple | 0.00001 N m + 0.1% of reference magnitude |
+| World-frame contact impulse | 0.000001 N s + 0.1% of reference integral of force magnitude |
+| Each motor-work/bearing-loss quantity | 0.000001 J + 0.1% of its corresponding gross-work integral |
+| Contact event-time uncertainty | 1 microsecond |
+
+These are proposed engineering fidelity requirements, NOT values derived as
+unique consequences of anatomy and NOT selected as passing thresholds. The
+smallest declared digit radius is4mm; 0.1mm is submillimetre handling relative
+to that represented geometry, not a claim to reproduce skin microstructure.
+Numerical accuracy is distinct from morphology/material-model accuracy.
+
+Define metrics before applying them: for a primitive enclosed within radius r
+of its reference frame, translation difference plus2*r*sin(rotation_error/2)
+is a conservative bound on corresponding material-point displacement. Report
+each primitive separately; centre displacement alone does not prove surface
+accuracy. Use body/world vector frames consistently and rotation angles, not
+quaternion-component differences. Rate/specific-force components and local
+contact wrenches remain separately observable; do not flatten them into a
+cognitive score. Work signs, positive input, braking and dissipation are not
+interchangeable; energy residual is never relabelled heat.
+
+At an onset/discontinuous force transition, finite event-time uncertainty can
+prevent a pointwise force comparison from being meaningful. Retain the event
+bracket, both one-sided loads and impulse; report the force range inside that
+bracket as unresolved rather than passing it by time-warping, averaging away a
+peak or emitting invented zero. The force-error ceiling applies outside those
+explicit brackets. This is verification evidence only: no new runtime filter,
+deadband, dropped sensory samples or alternate sensory values are proposed.
+Missed contact sequences or unbounded event brackets fail the proposed gate.
+
+Scope must cover the WHOLE250ms requested interval with real gravity, reachable
+contacts, load/release and retained state, not only the20-22ms witness. Cold
+continuation must remain byte-exact for a fixed numerical law. Actual resource
+qualification concerns the complete organism/world/sensory path on the target
+allocation;250ms is not independently available to each component. Reference
+comparison and mesh disagreement must be labeled numerical estimates unless
+a separate continuum bound is established. No finite comparison proves every
+possible future body trajectory. No new sweep is authorized merely to decide
+the proposed numbers.
+
+Offline authenticated existing-data read only: finest-pair centre discrepancy
+0.002651mm does not establish the surface limit; angular discrepancy0.010565deg
+is larger than the proposed orientation ceiling. Joint-rate disagreement is
+0.365422rad/s and right-contact impulse disagreement0.00375299Ns. Required
+reference magnitudes/whole-interval evidence are not all present, so do not
+infer other passes. This proposal does not convert the existing witness into
+acceptance and does not weaken a failed assertion. No mechanical run occurred.
+
+Same missing fidelity decision remains for a second consecutive goal turn;
+this turn makes its recommended requirements explicit rather than repeating
+tests or treating lack of a reply as authorization. No source or deploy is
+blocked on a worker; there is no active diagnostic process. Goal remains
+ACTIVE pending the reply/third-turn blocker audit. Push/Slack restrictions
+remain respected. No notification retry or remote publication.
