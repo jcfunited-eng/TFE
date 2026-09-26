@@ -7643,3 +7643,29 @@ solver unchanged. The material-migration correction and G1 audit recommendations
 are shared in collaborative_todo.md:23447; no overlapping main source edit.
 Numerical accuracy proposal remains unratified; no timestep/force tolerances
 were selected to pass these tests. Publication/Slack restrictions still apply.
+
+### FB-01 authority revalidation after nutrient closure — 2026-09-26
+
+Previous goal turn was PROGRESS:7715bf25e, four executed custody tests and
+read-only pre/post health. Current source and clean branch revalidated; G1 main
+remains4e0a64842 and has no newer coordinating ledger request. No test or build
+is running; sessions2873 and16942 completed normally. This is not a worker wait.
+
+The numerical fidelity choice recorded20:51Z and20:56Z remains unanswered,
+was retained explicitly through the nutrition turn, and is unchanged now.
+Safe independent nutrient integration is complete. Source confirms the joint
+consumer is still not mounted: prepare_body_energy has no ordinary-loop caller;
+native self feedback is exposed by the world but not consumed as the complete
+anatomical port in FunctionalPhysicalLoop. This agrees with the existing FB-01g
+contract, not a newly discovered cognition defect. Do not substitute passing
+custody/retinal tests for the required complete motion and feedback interval.
+
+No new numeric requirement, solver, sensory reduction, semantic motion policy,
+test suite, anatomy or production action is authorized by automatic continuation.
+The existing accuracy proposal remains PROPOSAL, not a derived biological law.
+Same authority gap has persisted across the recorded goal turns; with the safe
+independent work exhausted, request goal BLOCKED rather than loop on status,
+rerun diagnostics, or fill time with another audit. Required unblock: Joe's
+physical-fidelity choice for the proposed body-only verification contract.
+This does not revoke the already approved numerical approximation or narrow
+motor/sensory extension. It does not mark any deployment gate complete.
