@@ -1,20 +1,26 @@
 """Option 1: Isolated autonomous food acquisition witness on environmentally provisioned world.
 
 Complies with A1 audit recommendations in collaborative_todo.md (AUT34-A1-01, 02, 03):
-- Safe isolated storage: allocates a uniquely owned fresh temporary trial directory; never deletes inherited paths.
+- Safe isolated storage: atomically creates an owned temporary parent directory containing the paired store
+  and metadata pointer; strictly validates cold continuation path and pointer against that parent;
+  discloses cleanup failures rather than swallowing them.
 - Genuine consequence grounding: food target is apple-1 (the specific target for which Guala holds authentic
-  historical intake consequences in state['meanings'] from lived beats 2099925 and 2099988; no legacy is_food fallback).
-- Explicit environmental provisioning disclosure: apple-1 admitted unheld on the floor at (3628, 6971, 0)
-  with declared 100,000 ug digestible mass; blanket relocated to bed mattress (900, 8500, 0).
+  historical intake consequences with positive intake in state['meanings']; no legacy is_food fallback).
+- Actual experienced object preservation: preserves exact physical/material state of the experienced apple-1
+  from the checkpoint (radius 90mm, mass 180g, exact reflectance, odorant reservoir 3,551,525,631 ng,
+  tastant mass [140000, 200, 26000, 900, 300] ug, compliance 120,000 ppm, roughness 15 um, moisture 850,000 ppm);
+  declared digestible mass provisioned at 140,000 ug (matching declared home world apple in guala_home_world.py:1053)
+  with disclosed lawful floor placement at (3628, 6971, 0); blanket relocated to bed mattress (900, 8500, 0).
 - Caregiver neutrality: caregiver starts outside at (14600, 7600, 0) with empty hands and lawfully completes
   withdrawal home to (7300, 7500, 0) on step 0, remaining stationary in hallway > 2.4m away throughout.
-- Exact mass conservation accounting: asserts source digestible debit == transferred digestible mass == reserve gain.
+- Independent oral contact transfer & exact mass conservation: independently measures world active contact
+  transferred digestible mass and asserts source debit == world transfer == organism meal intake == reserve gain.
 - Truthful scope labeling: reports first_bite_acquisition_proven separately from satiety or lifelong autonomy.
 """
 from __future__ import annotations
 
 import base64
-from dataclasses import asdict
+from dataclasses import asdict, replace as dc_replace
 import hashlib
 import json
 import os
@@ -73,7 +79,7 @@ def advance(actor):
 
 
 def provision_isolated_world(actor):
-    """Admit genuinely declared nutritious unheld apple-1 and clear room pathway."""
+    """Preserve actual experienced apple-1 with declared lawful floor placement."""
     world = actor._world
 
     # Relocate blanket to bed mattress (900, 8500, 0)
@@ -89,29 +95,28 @@ def provision_isolated_world(actor):
     # Depart bread-slice from floor position (3628, 6971, 0)
     world.admit_authored_departure("bread-slice")
 
-    # Depart apple-1 from caregiver custody outside
+    # Retrieve actual experienced apple-1 from caregiver custody outside
+    full_before = world.canonical_observation_snapshot()
+    exp_apple = next(o for o in full_before.objects if o.object_id == "apple-1")
+
+    # Depart apple-1 from caregiver custody
     world.admit_authored_departure("apple-1")
 
-    # Admit nutritious apple-1 (100,000 ug digestible mass) unheld on the floor
-    # Guala holds 3 authentic historical feeding consequence records for apple-1 in meanings
-    mat = ObjectMaterialState(
-        odorant_reservoir_nanograms=(1000, 2000, 0, 0, 0, 0, 0, 0),
-        odorant_release_nanograms_per_second=(10, 20, 0, 0, 0, 0, 0, 0),
-        tastant_mass_micrograms=(0, 5000, 10000, 0, 0),
-        surface_temperature_millikelvin=293150,
-        compliance_ppm=50000,
-        roughness_micrometers=10,
-        moisture_ppm=800000,
-        digestible_mass_micrograms=100000,
-    )
-    apple = EmbodiedObject(
-        object_id="apple-1",
-        radius_mm=75,
-        mass_grams=50,
+    # Lawful floor placement preserving exact physical/material state of the experienced object:
+    # radius_mm=90, mass_grams=180, reflectance_ppm=(720000, 220000, 160000, 140000, 130000, 120000),
+    # odorant_reservoir=3551525631 ng, tastants=[140000, 200, 26000, 900, 300] ug, compliance=120000 ppm,
+    # roughness=15 um, moisture=850000 ppm, temperature=292000 mK.
+    # Declared digestible mass provisioned at 140,000 ug (matching declared home apple in guala_home_world.py:1053).
+    placed_apple = EmbodiedObject(
+        object_id=exp_apple.object_id,
+        radius_mm=exp_apple.radius_mm,
+        mass_grams=exp_apple.mass_grams,
         position=PositionMM(3628, 6971, 0),
-        material=mat,
+        reflectance_ppm=exp_apple.reflectance_ppm,
+        material=dc_replace(exp_apple.material, digestible_mass_micrograms=140000),
+        shape=exp_apple.shape,
     )
-    world.admit_authored_arrival(apple)
+    world.admit_authored_arrival(placed_apple)
 
 
 def main():
@@ -120,20 +125,35 @@ def main():
     started = time.monotonic()
 
     if mode == "acquire":
-        trial_dir = Path(tempfile.gettempdir()) / f"guala_aut01_trial_{os.getpid()}_{time.time_ns()}"
-        assert not trial_dir.exists(), f"path unexpectedly exists: {trial_dir}"
-        # Strict safety guard: refuse production or repository paths
-        assert not any(p in str(trial_dir) for p in ("/app", "/workspaces/Tao_Financial_Engine/backups")), (
-            f"refusing unsafe trial path: {trial_dir}"
+        trial_parent = Path(tempfile.mkdtemp(prefix="guala_aut01_trial_"))
+        assert not any(p in str(trial_parent) for p in ("/app", "/workspaces/Tao_Financial_Engine/backups")), (
+            f"refusing unsafe trial path: {trial_parent}"
         )
-        os.environ["GUALA_PAIRED_ROOT"] = str(trial_dir)
+        trial_store = trial_parent / "store"
+        meta = {
+            "trial_parent": str(trial_parent.resolve()),
+            "trial_store": str(trial_store.resolve()),
+            "pid": os.getpid(),
+            "created_ns": time.time_ns(),
+        }
+        (trial_parent / "trial_meta.json").write_text(json.dumps(meta))
+        os.environ["GUALA_PAIRED_ROOT"] = str(trial_store)
         os.environ["GUALA_MAX_WORLD_BYTES"] = "16777216"
-        seed_unique_trial_store(trial_dir)
+        seed_unique_trial_store(trial_store)
     else:
-        assert len(sys.argv) > 2, "cold mode requires trial_dir argument"
-        trial_dir = Path(sys.argv[2])
-        assert trial_dir.exists(), f"trial directory does not exist: {trial_dir}"
-        os.environ["GUALA_PAIRED_ROOT"] = str(trial_dir)
+        assert len(sys.argv) > 2, "cold mode requires trial_parent argument"
+        trial_parent = Path(sys.argv[2]).resolve()
+        assert trial_parent.exists(), f"trial parent directory does not exist: {trial_parent}"
+        assert not any(p in str(trial_parent) for p in ("/app", "/workspaces/Tao_Financial_Engine/backups")), (
+            f"refusing unsafe trial path: {trial_parent}"
+        )
+        meta_file = trial_parent / "trial_meta.json"
+        assert meta_file.exists(), f"trial metadata not found in {trial_parent}"
+        meta = json.loads(meta_file.read_text())
+        assert meta["trial_parent"] == str(trial_parent), "trial parent pointer mismatch"
+        trial_store = Path(meta["trial_store"])
+        assert trial_store.exists(), f"trial store directory does not exist: {trial_store}"
+        os.environ["GUALA_PAIRED_ROOT"] = str(trial_store)
         os.environ["GUALA_MAX_WORLD_BYTES"] = "16777216"
 
     actor = startup()
@@ -146,7 +166,7 @@ def main():
             assert actor._runtime.reserve_micrograms == 0, "organism must start with zero reserves"
             assert actor._runtime.feeding, "organism must be in feeding state"
 
-            # Verify Guala holds authentic historical intake consequences for apple-1
+            # Verify Guala holds authentic historical intake consequences for apple-1 with positive intake
             state = actor._runtime._state
             consequence_targets = set()
             for m in state.get("meanings", {}).values():
@@ -155,9 +175,11 @@ def main():
                     if isinstance(c, dict):
                         for act_c in c.values():
                             if isinstance(act_c, dict) and act_c.get("relief") == "feeding":
-                                tid = act_c.get("target_id")
-                                if tid:
-                                    consequence_targets.add(tid)
+                                intake = act_c.get("intake", 0)
+                                if isinstance(intake, (int, float)) and intake > 0:
+                                    tid = act_c.get("target_id")
+                                    if tid:
+                                        consequence_targets.add(tid)
             assert "apple-1" in consequence_targets, "organism lacks authentic consequence memory for apple-1"
             assert "bread-slice" not in consequence_targets, "unexpected consequence record for bread-slice"
 
@@ -170,12 +192,18 @@ def main():
 
             before_intake = actor._runtime.counts["meals_micrograms"]
             before_bites = actor._runtime.counts["bites"]
+            before_reserve = actor._runtime.reserve_micrograms
 
             moved = False
             certified_held = None
             intake_seen = False
             food_id = "apple-1"
-            initial_digestible_ug = 100000
+            initial_digestible_ug = 140000
+
+            source_debit_ug = 0
+            world_transferred_ug = 0
+            transferred_ug = 0
+            reserve_gain_ug = 0
 
             # Observe autonomous navigation, grasp, bite, and nutritional debit
             for index in range(40):
@@ -221,15 +249,31 @@ def main():
                        apple_digestible=apple_digestible)
 
                 if obs.get("real_nutrition_intake_zeptojoules", 0) > 0:
-                    source_debit_ug = initial_digestible_ug - apple_digestible
-                    transferred_ug = actor._runtime.counts["meals_micrograms"] - before_intake
-                    reserve_gain_ug = actor._runtime.reserve_micrograms
+                    apple_after_obj = next(o for o in after_snap.objects if o.object_id == food_id)
+                    apple_digestible = apple_after_obj.material.digestible_mass_micrograms
 
-                    # Exact mass conservation accounting: debit == transfer == reserve gain
-                    assert source_debit_ug == 64000, f"unexpected debit: {source_debit_ug}"
-                    assert transferred_ug == 64000, f"unexpected transfer: {transferred_ug}"
-                    assert reserve_gain_ug == 64000, f"unexpected reserve: {reserve_gain_ug}"
-                    assert source_debit_ug == transferred_ug == reserve_gain_ug, "exact mass conservation violation"
+                    # 1. World-side contact measurement
+                    assert g_after.active_contact is not None, "missing active contact on bite step"
+                    assert g_after.active_contact.kind == "oral", f"contact kind {g_after.active_contact.kind} is not oral"
+                    assert g_after.active_contact.object_id == food_id, f"contacted object {g_after.active_contact.object_id} != {food_id}"
+                    world_transferred_ug = g_after.active_contact.transferred_digestible_micrograms
+
+                    # 2. Source debit measurement
+                    source_debit_ug = initial_digestible_ug - apple_digestible
+
+                    # 3. Organism meal counter and bodily reserve measurement
+                    transferred_ug = actor._runtime.counts["meals_micrograms"] - before_intake
+                    reserve_gain_ug = actor._runtime.reserve_micrograms - before_reserve
+
+                    # Exact mass conservation accounting: source debit == world transfer == organism intake == reserve gain
+                    assert source_debit_ug == 62222, f"unexpected source debit: {source_debit_ug}"
+                    assert world_transferred_ug == 62222, f"unexpected world contact transfer: {world_transferred_ug}"
+                    assert transferred_ug == 62222, f"unexpected organism transfer: {transferred_ug}"
+                    assert reserve_gain_ug == 62222, f"unexpected reserve gain: {reserve_gain_ug}"
+                    assert source_debit_ug == world_transferred_ug == transferred_ug == reserve_gain_ug, (
+                        f"exact mass conservation violation: debit={source_debit_ug}, world={world_transferred_ug}, "
+                        f"organism={transferred_ug}, reserve={reserve_gain_ug}"
+                    )
 
                     assert actor._runtime.counts["bites"] > before_bites
                     assert certified_held == food_id
@@ -242,7 +286,9 @@ def main():
                    satiety_achieved=False,
                    sustained_lifetime_autonomy=False,
                    source_debit_ug=source_debit_ug,
+                   world_transferred_ug=world_transferred_ug,
                    transferred_digestible_ug=transferred_ug,
+                   reserve_gain_ug=reserve_gain_ug,
                    final_reserves_ug=actor._runtime.reserve_micrograms,
                    capacity_fraction=actor._runtime.reserve_micrograms / 500000,
                    caregiver_interventions=0,
@@ -257,9 +303,14 @@ def main():
             actor.close()
 
     if mode == "acquire":
-        subprocess.run([sys.executable, "-B", __file__, "cold", str(trial_dir)], check=True, timeout=60)
-        # Clean up unique owned trial directory
-        shutil.rmtree(trial_dir, ignore_errors=True)
+        subprocess.run([sys.executable, "-B", __file__, "cold", str(trial_parent)], check=True, timeout=60)
+        # Disclose cleanup cleanly; do not swallow errors silently
+        try:
+            shutil.rmtree(trial_parent)
+            report("trial_cleaned", path=str(trial_parent))
+        except Exception as exc:
+            report("trial_cleanup_failed", path=str(trial_parent), error=str(exc))
+            raise
     report("finished", mode=mode, elapsed_seconds=time.monotonic() - started,
            max_rss_kib=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)
 

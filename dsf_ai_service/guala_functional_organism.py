@@ -1098,10 +1098,27 @@ def _consequence_grounded_food_ids(state: dict[str, Any]) -> set[str]:
             if isinstance(c, dict):
                 for act_c in c.values():
                     if isinstance(act_c, dict) and act_c.get("relief") == "feeding":
-                        tid = act_c.get("target_id")
-                        if tid:
-                            foods.add(tid)
+                        intake = act_c.get("intake", 0)
+                        if isinstance(intake, (int, float)) and intake > 0:
+                            tid = act_c.get("target_id")
+                            if tid:
+                                foods.add(tid)
     return foods
+
+
+def _consequence_qualified_food_ids(state: dict[str, Any]) -> set[str]:
+    """Recover food object IDs supported by actual retained feeding consequences or verified physical intake."""
+    consequence_foods = _consequence_grounded_food_ids(state)
+    known_foods = set()
+    for obj_id, c_data in state.get("conserved_objects", {}).items():
+        has_nourished = (
+            int(c_data.get("fed_count", 0)) > 0
+            or int(c_data.get("historical_intake_micrograms", 0)) > 0
+            or (obj_id in consequence_foods)
+        )
+        if has_nourished and not c_data.get("currently_depleted", False):
+            known_foods.add(obj_id)
+    return known_foods
 
 def candidates(
     snapshot: Any,
@@ -1793,11 +1810,7 @@ class FunctionalOrganism:
         snapshot = sensed.snapshot
         body = _self_body(snapshot)
         consequence_foods = _consequence_grounded_food_ids(state)
-        known_foods = set()
-        for obj_id, c_data in state.get("conserved_objects", {}).items():
-            has_nourished = int(c_data.get("fed_count", 0)) > 0 or int(c_data.get("historical_intake_micrograms", 0)) > 0 or (obj_id in consequence_foods)
-            if has_nourished and not c_data.get("currently_depleted", False):
-                known_foods.add(obj_id)
+        known_foods = _consequence_qualified_food_ids(state)
         seen = things_in_sight(snapshot, known_food_ids=known_foods)
         here = _region_of(snapshot, body.pose.position, body.radius_mm)
         state["room_now"] = None if here is None else here.region_id
@@ -1917,7 +1930,7 @@ class FunctionalOrganism:
         feeding = state.get("feeding", False) or self.reserve_micrograms < CAPACITY_MICROGRAMS * HUNGRY_BELOW
         if self.reserve_micrograms >= CAPACITY_MICROGRAMS * SATED_ABOVE:
             feeding = False
-        planned_food = state.get("planned_target_id") if (feeding and state.get("planned_target_id") in conserved and conserved[state["planned_target_id"]].get("is_food")) else None
+        planned_food = state.get("planned_target_id") if (feeding and state.get("planned_target_id") in known_foods) else None
         if planned_food and not sound_heard:
             state["gaze_target"] = planned_food
         target_id = body.held_object_id or state.get("gaze_target") or state.get("joint_attention_target") or (seen[0].object_id if seen else None)
@@ -2786,8 +2799,9 @@ class FunctionalOrganism:
         if self.live_organism_tick > 100:
             needs_bed = sleep_ratio >= 0.5
             needs_food = deficit >= 0.6
+            known_foods = _consequence_qualified_food_ids(self._state)
             has_bed = any(c.get("room_id") == cur_room for o_id, c in conserved.items() if o_id == BED_ID) or (candidate_options is not None and any(opt[0] == "toward_bed" for opt in candidate_options))
-            has_food = any(c.get("is_food") and c.get("room_id") == cur_room for c in conserved.values()) or (candidate_options is not None and any(opt[0] == "toward_food" for opt in candidate_options))
+            has_food = any(o_id in known_foods and c.get("room_id") == cur_room for o_id, c in conserved.items()) or (candidate_options is not None and any(opt[0] == "toward_food" for opt in candidate_options))
             is_barren = (needs_bed and not has_bed) or (needs_food and not has_food)
             if is_barren:
                 phi_barren = math.tanh(max(0.0, float(dwell_beats - 16)) / 16.0)
