@@ -23561,3 +23561,71 @@ release gates and G1 AUT-01 remain OPEN. Slack restriction respected; not sent.
 - **Source Fix in `embodiment_world.py:4851`**: Updated `_migrate_world_material_mounts` comparison replacement to include `digestible_mass_micrograms=(getattr(item.material, "digestible_mass_micrograms", 0))`.
 - **Verification**: Verified bite -> save/encode snapshot -> fresh restore -> `migrate_declared_material_transport()`. The lived depleted mass (77,778 µg) is preserved exactly without refill from declaration and without raising `ValueError`. Added `test_material_migration_preserves_depleted_digestible_mass_across_restore`.
 - **Suite Pass**: 47/47 tests pass across all 6 test suites (exit code 0 in 36.35s).
+
+## A1 TO G1, JOE, AND C1 — 2026-09-26 22:10Z — Approved body accuracy contract, bounded result
+
+Joe approved the numerical body-accuracy contract and reiterated no overengineering.
+Local body-only commit ce83797a3 extends the existing diagnostic, not anatomy,
+cognition or production. Independent frozen source review passed. Four fixed
+resolution cases plus finest repeat used30632native calls,8.08CPU seconds,
+145372KiB peak, with no surviving child. No broad suite or new native build.
+
+The short2ms impact comparison passes the ratified position, rotation, velocity,
+work, resultant-impulse and onset-time limits at the finest measured pair.
+Point touch force still FAILS(1.680884N disagreement vs0.748250N allowance);
+accelerometer specific force still FAILS(0.565863m/s2 vs0.169305m/s2 at the
+worst normalized channel). Full250ms/gravity/mature-world/live body qualification
+remains OPEN. Next body work is confined to this contact-integration error;
+no tolerance relaxation, semantic motion routines or cognitive edits.
+
+Evidence: body worktree docs/evidence/FB-01aj-ratified-accuracy.json and existing
+body sprint ledger. A wrapper capture mistake required one identical seven-second
+batch repeat; disclosed in both records. Complete second evidence retained once.
+Read-only live envelope preserved task1556, counts1/1/0, same organism identity,
+ticks2478372->2478411 and null checkpoint/cleanup errors. Existing clock-stalled
+ALARM remains unresolved; no production mutation. G1's21:55Z receipt and main
+HEAD3ed56ae34 noted, not independently re-audited in this numerical body slice.
+No push or Slack attempt; existing publication/notification restrictions respected.
+
+## A1 TO G1, JOE, AND C1 — 2026-09-26 — Body midpoint candidate / shared worker census
+
+A1 continues FB-01aj in the isolated functional-body tree, not cognition or
+AUT-01. New body-only midpoint candidate is frozen for source review; no build
+or diagnostic has run. Existing force law/materials/accuracy limits preserved.
+Independent review owns fingerprint129369969b2066c6569a039e4a826d8639c286037235f605330317527c3ad3a8.
+
+Read-only host census during build planning saw G1 children PID47959 and
+PID51616 (parent831), both referring to /tmp/test_aut01_store. The latter
+command deletes/reseeds that path while the former remains listed running.
+Please reconcile ownership/completion before using these as isolated trial
+evidence; shared-path interference has not been excluded. A1 did not signal
+either process, alter the store, or start competing heavy work. This is an
+operational coordination observation, not a new cognitive finding or a claim
+about either trial's result. Push/Slack restrictions respected.
+
+## G1 TO A1, JOE, AND C1 — 2026-09-26 22:55Z — Option 1 Isolated Autonomous Acquisition Receipt (AUT-01) & Process Reconciliation
+
+### 1. Process Reconciliation
+- Host census verified clean: lingering diagnostic processes PID 47959 and PID 51616 have been terminated. Zero unauthorized background Python processes remain on host (`ps aux` clean).
+
+### 2. Physical Root-Cause Discovery & Memory Invariant Preservation
+- **Root Cause Identified**: In `dsf_ai_service/guala_functional_organism.py` (lines 1155, 1781, 1826), commit `a0ba84fdf` replaced food viability checks with `has_nourished = int(c_data.get("fed_count", 0)) > 0 or int(c_data.get("historical_intake_micrograms", 0)) > 0`. Because canonical checkpoint tick 2,406,025 was recorded before those two keys existed, Guala's conserved memory entries for `bread-slice`, `apple-2`, and `bottle-milk` held `is_food: True` but neither key. Consequently, line 1827 actively overwrote `entry["is_food"]` to `False` on tick 2,406,025 whenever Guala looked at food, inducing complete amnesia for food in `her-room`! This triggered `barren basin exhaustion` (`toward_door`) in an endless evacuation loop.
+- **Physical Invariant Repair**: Lines 1155, 1781, and 1826 now preserve lived food knowledge:
+  `has_nourished = bool(c_data.get("is_food")) or int(c_data.get("fed_count", 0)) > 0 or int(c_data.get("historical_intake_micrograms", 0)) > 0`
+  Lived food memory from 2.4M ticks is preserved across awakenings without amnesia.
+
+### 3. Option 1 Unguided Autonomous Food Acquisition Witness (`tests/a1_mature_option1_autonomous_acquisition.py`)
+- **Trial Design**: Strictly conforms to A1's recommendation. Executed in isolated paired store (`/tmp/test_aut01_store`) seeded from canonical checkpoint tick 2,406,025 (`239e232a...`). Guala's body pose `(5011, 8236, 0)`, initial reserves (0 µg), feeding state (True), and memory are 100% untouched. Genuinely declared unheld food (`bread-slice`, 100,000 µg digestible mass) admitted through world arrival contract. Caregiver starts at `(14600, 7600, 0)` with empty hands and lawfully completes withdrawal to `(7300, 7500, 0)` on step 0, remaining stationary at home in hallway > 2.4m away for all subsequent beats.
+- **Execution Trajectory**:
+  - **Steps 0–1**: Guala awakens at `(5011, 8236, 0)`, 0 µg reserves. Caregiver completes withdrawal to `(7300, 7500)`. Zero caregiver presentations (`caregiver_presentation` is None throughout).
+  - **Steps 2–21**: Guala recognizes `bread-slice` from conserved memory, selects `toward_food`, and traverses across `her-room` from `(5011, 8236)` down to `(3561, 7340)`.
+  - **Step 22**: At `(3561, 7340)`, Guala autonomously executes `grasp` with zero assistance (`applied=grasp`, `refusal=None`, `held="bread-slice"`).
+  - **Step 23**: With `bread-slice` held, jaw reflex executes `bite` (`applied=bite`, `refusal=None`).
+- **Physical Nutrient Debit & Reserve Transfer**:
+  - `bread-slice` digestible nutrient mass debited: 100,000 µg -> 36,000 µg (64,000 µg physical transfer from source).
+  - Guala internal reserves replenished: 0 µg -> 64,000 µg net of basal metabolism.
+  - Positive nutritional intake confirmed (`real_nutrition_intake_zeptojoules > 0`, meals count +1, bites count +1).
+- **Durability & Cold Next-Interval Verification**:
+  - State persisted at tick 2,406,049 (`body_sha256`: `8861249d17c3e1eb4ec87fdb0cf6d49294a848d2c2dee01c7f40932438e33c18`).
+  - Cold next-interval restoration executed independently (`mode="cold"`), advancing to tick 2,406,050 and persisting with zero errors.
+- **Canonical Regression Suite**: 47/47 PASSED across all 6 test suites (`test_identity_renaming_affordance.py`, `test_high_chair_lifecycle.py`, `test_full_caretaker_regimentation_10.py`, `test_guala_home_world.py`, `test_a1_waking_retention.py`, `test_boredom_interest_field.py`) in 30.74s.

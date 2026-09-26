@@ -1152,7 +1152,7 @@ def candidates(
         if feeding and conserved_objects:
             conserved_food = []
             for obj_id, c_entry in conserved_objects.items():
-                has_nourished = int(c_entry.get("fed_count", 0)) > 0 or int(c_entry.get("historical_intake_micrograms", 0)) > 0
+                has_nourished = bool(c_entry.get("is_food")) or int(c_entry.get("fed_count", 0)) > 0 or int(c_entry.get("historical_intake_micrograms", 0)) > 0
                 is_viable = has_nourished and not c_entry.get("currently_depleted", False)
                 if is_viable and obj_id not in seen_food_ids:
                     snap_obj = _object(snapshot, obj_id)
@@ -1778,7 +1778,7 @@ class FunctionalOrganism:
         body = _self_body(snapshot)
         known_foods = set()
         for obj_id, c_data in state.get("conserved_objects", {}).items():
-            has_nourished = int(c_data.get("fed_count", 0)) > 0 or int(c_data.get("historical_intake_micrograms", 0)) > 0
+            has_nourished = bool(c_data.get("is_food")) or int(c_data.get("fed_count", 0)) > 0 or int(c_data.get("historical_intake_micrograms", 0)) > 0
             if has_nourished and not c_data.get("currently_depleted", False):
                 known_foods.add(obj_id)
         seen = things_in_sight(snapshot, known_food_ids=known_foods)
@@ -1823,7 +1823,7 @@ class FunctionalOrganism:
                     "last_seen_tick": tick,
                     "confidence": 1.0,
                 })
-                has_nourished = int(entry.get("fed_count", 0)) > 0 or int(entry.get("historical_intake_micrograms", 0)) > 0
+                has_nourished = bool(entry.get("is_food")) or int(entry.get("fed_count", 0)) > 0 or int(entry.get("historical_intake_micrograms", 0)) > 0
                 entry["is_food"] = bool(has_nourished and not entry.get("currently_depleted", False))
                 fig = state.get("sight_figure")
                 if fig and fig != "none" and (state.get("gaze_target") == thing.object_id or (body.held_object_id == thing.object_id) or (seen and seen[0].object_id == thing.object_id)):
