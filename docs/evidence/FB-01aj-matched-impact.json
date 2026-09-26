@@ -1,0 +1,159 @@
+{
+  "schema": "guala.functional_body.matched_impact_resolution_evidence.v1",
+  "source_review_fingerprint": "e635ae3308ae9d9b84887ce9b129700a63c7b1557a3eb5d4fceab570f3ed49c0",
+  "engine_sha256": "d3787b131b2532168dfff52c226ba07fa0de4ffc4b57bc40b7a87b73a2cc1801",
+  "operator_commit": "c882904b6e477dc8900c46937d5c346fea665213",
+  "diagnostic_source_sha256": "7666fecac7a4664975d7da5314c96c37950e4e66de5a1c830d668b6b80236af2",
+  "packed_result": {
+    "payload_zlib_base64": "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",
+    "raw_bytes": 8114,
+    "raw_sha256": "987c2776b6fd4fc097e140e066d44c2f80c50a0482e1710a6a580479f656c745"
+  },
+  "run": {
+    "pid": 139,
+    "exit_code": 0,
+    "timed_out": false,
+    "wall_s": 1.5801838479819708,
+    "cpu_s": 1.579651,
+    "maxrss_kib": 145588,
+    "stdout_bytes": 3385,
+    "stdout_sha256": "79434c51ac27f4e4b008a4d8c029803deb7209087bae7450b5dc5632b7a0c945",
+    "stderr": ""
+  },
+  "health_pre": {
+    "utc": "2026-09-26T19:51:54.100672+00:00",
+    "service": {
+      "counts": [
+        1,
+        1,
+        0
+      ],
+      "taskDefinition": "arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1553",
+      "tasks": [
+        {
+          "arn": "arn:aws:ecs:us-east-1:418384447921:task/tfe-web-cluster/ec20ff084de54d48afab9a113647fa46",
+          "status": "RUNNING",
+          "health": "HEALTHY",
+          "digests": [
+            "sha256:1d088eaaf195931a315e45c7ed456d4bb028210655e52eacad27e4445161612d"
+          ]
+        }
+      ]
+    },
+    "alarms": [
+      {
+        "name": "guala-clock-stalled",
+        "state": "ALARM"
+      },
+      {
+        "name": "guala-cpu-runaway",
+        "state": "OK"
+      },
+      {
+        "name": "guala-efs-storage-runaway",
+        "state": "OK"
+      },
+      {
+        "name": "guala-interval-refusal-loop",
+        "state": "OK"
+      },
+      {
+        "name": "guala-memory-runaway",
+        "state": "OK"
+      }
+    ],
+    "cpu": [
+      {
+        "Timestamp": "2026-09-26T19:50:00+00:00",
+        "Average": 50.984605679909386,
+        "Maximum": 51.28445327281952,
+        "Unit": "Percent"
+      }
+    ],
+    "memory": [
+      {
+        "Timestamp": "2026-09-26T19:50:00+00:00",
+        "Average": 3.2368977864583335,
+        "Maximum": 3.25927734375,
+        "Unit": "Percent"
+      }
+    ],
+    "observation": {
+      "available": true,
+      "identity": "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1",
+      "live_tick": 2454381,
+      "persisted_tick": 2454377,
+      "checkpoint_error": null,
+      "cleanup_error": null,
+      "durability_blocked": false
+    }
+  },
+  "health_post": {
+    "utc": "2026-09-26T19:53:34.972376+00:00",
+    "service": {
+      "counts": [
+        0,
+        0,
+        0
+      ],
+      "taskDefinition": "arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1553",
+      "tasks": []
+    },
+    "alarms": [
+      {
+        "name": "guala-clock-stalled",
+        "state": "ALARM"
+      },
+      {
+        "name": "guala-cpu-runaway",
+        "state": "OK"
+      },
+      {
+        "name": "guala-efs-storage-runaway",
+        "state": "OK"
+      },
+      {
+        "name": "guala-interval-refusal-loop",
+        "state": "OK"
+      },
+      {
+        "name": "guala-memory-runaway",
+        "state": "OK"
+      }
+    ],
+    "cpu": [
+      {
+        "Timestamp": "2026-09-26T19:51:00+00:00",
+        "Average": 51.40147670110067,
+        "Maximum": 51.955635070800774,
+        "Unit": "Percent"
+      }
+    ],
+    "memory": [
+      {
+        "Timestamp": "2026-09-26T19:51:00+00:00",
+        "Average": 3.2389322916666665,
+        "Maximum": 3.240966796875,
+        "Unit": "Percent"
+      }
+    ],
+    "observation": {
+      "available": true,
+      "identity": "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1",
+      "live_tick": 2454570,
+      "persisted_tick": 2454537,
+      "checkpoint_error": null,
+      "cleanup_error": null,
+      "durability_blocked": false
+    }
+  },
+  "cleanup": {
+    "worker_session": 36727,
+    "sandbox_pid": 139,
+    "terminal_exit_code": 0,
+    "source_fingerprint_unchanged": true,
+    "host_census": "  PID  PPID  PGID ELAPSED %CPU   RSS COMMAND\n45973   492 45973       0 33.3  3040 bash\n 1097   329   228   74571  3.1 3097672 cloudcode_cli\n  329   239   228   74608  2.8 1085220 MainThread\n45963 45931   228       2  2.0  7360 git\n  492   329   228   74601  1.3 354500 codex\n  831   329   228   74590  1.3 1224212 agy\n45933 45932   228       4  0.6 18400 git-remote-http\n45931   329   228       4  0.6  7172 git\n 1202   329   228   74557  0.6 299684 claude\n43385   831 43385     179  0.4 58540 python3\n  648   329   228   74598  0.4 232784 claude\n  400   290   228   74605  0.1 39200 copilot-runtime\n  239   228   228   74609  0.1 167304 MainThread\n54335   492 54335   68840  0.0 149740 codex-code-mode\n  283     0   283   74608  0.0 76496 MainThread\n  289   239   228   74608  0.0 201792 MainThread\n  290   239   228   74608  0.0 148140 MainThread\n    1     0     1   74619  0.0  1440 sh\n42019     0 42019   46663  0.0 68684 MainThread\n  255     0   255   74609  0.0 70072 MainThread\n42161     0 42161     287  0.0 44960 MainThread\n  481   329   228   74601  0.0 186060 MainThread\n17135   329   228   71987  0.0 83064 MainThread\n  534   329   228   74599  0.0 73156 MainThread\n  219   198   198   74609  0.0 56252 MainThread\n 9628     1  9628   72258  0.0  2720 bash\n 9802     1  9802   72258  0.0  2880 bash\n 9477     1  9477   72258  0.0  3040 bash\n 9416     1  9416   72259  0.0  2880 bash\n   29     0    29   74618  0.0  1440 sh\n 9721     1  9721   72258  0.0  2880 bash\n 9554     1  9554   72258  0.0  2880 bash\n   22     0    22   74618  0.0  1440 sh\n   28    22    22   74618  0.0  1440 sh\n  198     0   198   74609  0.0  1600 sh\n  228     0   228   74609  0.0  1440 sh\n42302  9554  9554     258  0.0  1600 sleep\n42340  9416  9416     254  0.0  1600 sleep\n42510  9721  9721     231  0.0  1440 sleep\n45501  9802  9802      87  0.0  1600 sleep\n45607  9477  9477      73  0.0  1600 sleep\n45832  9628  9628      33  0.0  1600 sleep\n45932 45931   228       4  0.0  3520 git\n45965     1     1       0  0.0  1600 sleep\n45977     1 45973       0  0.0  2880 bash\n45979 45973 45973       0  0.0  4320 ps\ne635ae3308ae9d9b84887ce9b129700a63c7b1557a3eb5d4fceab570f3ed49c0\n"
+  },
+  "interpretation": "Deterministic local-resolution evidence only. Not a certified continuous error bound or production timestep. ECS was scaled to desired=0 during this work window by an action outside this diagnostic; no production writes were made here. Stable live health is NOT certified."
+}
+

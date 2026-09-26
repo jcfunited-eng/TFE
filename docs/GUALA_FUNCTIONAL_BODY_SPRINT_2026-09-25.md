@@ -7024,3 +7024,87 @@ AWS pre19:34:44/post19:35:36Z same1553 task/image/identity,1/1/0HEALTHY,
 ticks2452421->2452519,errorsnull,durabilityfalse; existing clockALARM remains.
 Diagnostic sandbox PID137/session72149 terminal, no host body-worker orphan.
 No live write, caretaking change or repeat acquisition witness.
+
+### FB-01aj matched impact-resolution contract — 2026-09-26 19:52Z
+
+Previous turn PROGRESS: closed work attribution committed39f2862c9; separate
+G1 audit updated shared ledger without touching G1 source or production.
+Continue mechanical-accuracy gate. Requested: a force/energy-limited body with
+truthful feedback and bounded numerical error. Current coupled step is internally
+consistent, but post-impact trajectory accuracy is unqualified; conflict remains
+with any claim of completed body delivery. No runtime, force, anatomy, cognition,
+kernel, heat law or production settings will be extended in this diagnostic.
+Reduced numerical rigid-body approximation; no continuum or full-DSF claim.
+
+One exact next item: tools/guala_body_impact_resolution.py reconstructs the
+same25us trajectory only to20ms, verifying qpos/qvel against authenticated
+FB-01aj-coupled-motion evidence. It saves the complete integration scratch once.
+Five subsequent2ms windows start from that IDENTICAL retained state at steps
+25/12.5/6.25/3.125/1.5625us. This separates local contact-resolution differences
+from inherited global errors. It is not a blind global timestep shrink or a
+production tolerance selection. No equal-SI thresholds are promoted.
+
+Impact map: archived model/load/supply -> existing NativeBody.advance prefix ->
+full integration array -> unchanged compiled interval/coupled solver/guards ->
+same-solve contact evidence -> endpoint kinematics/sensors -> compact offline
+receipt. Each window is repeated in fresh native model/data and must have
+identical whole integration bytes, work, sensors and geometric output. No
+serialized state headers are rewritten or published; fractional-microsecond
+timesteps exist ONLY in unpublished diagnostic scratch. No world is constructed.
+
+Per-pair force impulses sum all contact points in world axes from the same solve,
+before collision refresh. Intrinsic couples are labelled separately from torque
+about an origin. Contact times, joint angle/rate, geom-center displacement/rate,
+geom orientation/spin and work differences remain distinct SI quantities. No
+heat/storage claim. Finite checks precede all reductions. Error indicators are
+not certified accumulated/continuum bounds. Native calls are bounded at5760
+(800prefix +2*(80+160+320+640+1280)); arena1GiB, CPU30s, wall45s, two cores.
+Source-only frozen independent review precedes this one diagnostic. Preserve
+raw output before decoding; AWS read-only health before/after and exact child
+cleanup required. No equation suite, prior motion sweep or G1 witness repeated.
+
+Lookup mistake: an rg command included nonexistent functional_body.py; no file
+or runtime was changed. Actual body paths were subsequently resolved using
+rg --files. Do not retry that nonexistent path or print compressed evidence
+payloads to inspect metadata; decode the existing envelope directly.
+
+### FB-01aj local impact-resolution evidence — 2026-09-26 19:55Z
+
+Frozen source review PASS e635ae33..., unchanged before/after execution. One
+run1.580s wall/1.580s CPU/145588KiB, no warnings/errors, 5760 native steps.
+Authenticated raw8114bytes SHA987c2776... retained with full measurements and
+health envelope in docs/evidence/FB-01aj-matched-impact.json. Common20ms full
+integration predecessor SHA17247548..., archived pose/rate exact. Each schedule
+matched fresh-model replay in entire5120-byte integration state, work, sensors
+and geometric endpoint. These scratch records do not replace caller headers.
+
+Pairwise joint-angle differences25vs12.5 ->12.5vs6.25 ->6.25vs3.125 ->
+3.125vs1.5625us: .00142661/.00071723/.00019148/.00018165rad.
+Joint-rate differences2.71155/1.40481/.98750/.35679rad/s. Maximum geom-center
+differences21.82/10.63/1.04/2.62um and center-rate39.17/19.32/3.25/4.92mm/s
+are NOT fully monotonic. Right forearm/torso impulse differences
+.007342/.008687/.008055/.003654Ns; left palm/thigh
+.001929/.000927/.000610/.000204Ns. Each impulse is the sum of pair forces on
+its SECOND native geom, in world axes, sampled from the original solve.
+Intrinsic couple impulses exclude moment-arm torque. Right contact onset
+21500/21487.5/21481.25/21478.125/21478.125us; left onset
+21800/21800/21800/21796.875/21796.875us. No coefficient was tuned.
+
+Conclusion: impact-timing resolution contributes, but smaller steps alone do
+not yet qualify accuracy. Low-inertia digit-rate disagreement contracts while
+right contact impulse and some geometry observations vary non-monotonically.
+Do not select an arbitrary acceptable step, call a pairwise difference an
+error enclosure, or repeat the global load sweep. Next mechanical analysis is
+the existing contact-manifold/active-row transition and its local error estimate
+under the same law, using this retained measurement. No body integration or
+release is authorized by this result. No heat/storage partition is asserted.
+
+Production safety exception disclosed: pre19:51:54 same1553 running1/desired1;
+post19:53:34 desired/running/pending0/0/0, no active tasks. AWS events record
+taskec20ff... stopped19:53:28 and draining19:53:37. The sampled endpoint still
+reported tick2454570 at the boundary, which is NOT evidence of a running task
+after drain. Existing clockALARM persisted. No production-write command was
+executed by this work. Stable live health cannot be certified; flagged to Joe
+and G1 ledger without interfering with a possible independent cutover. Worker
+139/session36727 terminal0; host process census shows no body diagnostic orphan.
+No new heavy work while this external lifecycle transition is unresolved.
