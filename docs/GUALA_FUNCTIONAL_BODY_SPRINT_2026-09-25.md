@@ -6869,3 +6869,77 @@ accuracy is NOT closed. Next contracted item: compare the same body startup
 and30ms first-contact prefix at100/50/25us under this new law. No arbitrary
 precision threshold will be promoted to production and no old adaptive replay
 or broad test suite will be repeated. Production remains untouched.
+
+### FB-01aj post-correction motion witness contract — 2026-09-26 19:07Z
+
+c882904b6 commits the corrected operator and equation proof. That seam remains
+closed; this is its authorized next motion diagnostic, not another solver edit.
+Only tools/guala_body_coupled_step.py gains --motion-prefix plus this ledger.
+The exact same model XML and original initial physical payload are authenticated
+against existing controls; the new law header is never transplanted into old
+state. Same torque, supply, stiffness, damping and numerical safety guards.
+
+First record six startup dyadic comparisons using existing difference/restore
+helpers. Then30ms at100/50/25us with samples at10/20/30ms. Measure active contact
+wrenches with force/couple kept separately, first contact times, penetration,
+work quadrature/unresolved exchange, motion disagreement and native time/cost.
+The observer calls each native step exactly once and must match a fresh ordinary
+unobserved cold successor at each resolution. Failure propagates immediately;
+no force reduction, threshold adjustment, automatic retry or state publication.
+Scalar/control/refusal proof mode is NOT rerun. No new production accuracy
+claim: dyadic agreement is not an error enclosure. Same CPU30s/wall45s/1GiB
+bound, AWS pre/post, exact process cleanup. One source-only frozen review before
+this diagnostic, no rebuild. Non-goals: long replay, whole suite, cognition,
+body/world mounting and production cutover until mechanical gates actually pass.
+
+Frozen motion review db339f37... returned one localized measurement correction,
+no architectural finding. Wrench components, contact separation and their norms
+now must be finite before filtering or max/min aggregation. Grouped force/couple
+peaks are explicitly named peak_point_force_n/peak_point_couple_nm: maximum
+single contact-point wrenches, never summed geom-pair resultants. No runtime or
+solver change. Final source-only review precedes the one bounded diagnostic.
+Three temporary C source drafts (101KB) were removed after the committed patch
+and built source preserved their complete changes; reconstructible from upstream
+and c882904b6. No user/runtime state removed.
+
+### FB-01aj motion diagnostic retained — 2026-09-26 19:23Z
+
+Final source-only review PASS eeafa6ba...; unchanged library d3787b13... .
+Bounded30ms diagnostic complete,1.395s wall/1.394s CPU/147428KiB RSS,2cores,
+no warnings, no cold mismatch,5152statebytes at every resolution. No engine
+rebuild or equation/regression-suite repetition. Exact compressed measurement,
+run receipt, source review and AWS envelopes in
+docs/evidence/FB-01aj-coupled-motion.json.
+
+Startup dyadic100/50/25/12.5/6.25/3.125us disagreements decrease monotonically:
+joint angle7.616e-6 ->9.233e-9rad; joint speed.023719 ->.00004667rad/s.
+Pre-impact20ms angle differences100vs50=.00060985 and50vs25=.00030508rad,
+consistent with first-order refinement. Same-step consistency remains closed.
+After contact30ms differences100vs50=.017388rad/45.652rad/s;50vs25=.0070164rad/
+19.118rad/s. Root translation difference is not monotonic (27.96 then39.78um).
+Right forearm/torso onset21.5ms and left palm/thigh21.8ms agree at all steps;
+digit4/palm onset26.2/26.2/26.075ms. Maximum single-point forearm contact force
+7502/7088/6881N; these are not total pair forces or joint-row reactions.
+
+Signed work14.1488/14.1814/14.2452J; bearing quadrature3.4045/3.4097/3.4004J;
+unresolved exchange9.9317/9.9951/10.0520J. Unresolved exchange is NOT certified
+heat or numerical error. This receipt does not justify a production timestep
+or claim continuous body accuracy. Next causal item: resolve contact/limit
+energy and rapidly changing impact velocities under the unchanged law before
+choosing a bounded accuracy/performance contract. No force/damping tuning.
+
+Reporting failure disclosed: first child exited0 but the outer wrapper read
+the compressed envelope as plain result and raised KeyError(engine_version)
+before printing the raw receipt. That unretained run is not accepted evidence.
+Repeated this short diagnostic ONCE with raw receipt printed before decoding;
+no source/physical parameters changed. Durable recurrence: decode/authenticate
+encode()'s raw_bytes/raw_sha256/payload_zlib_base64 outside the execution wrapper;
+print raw execution receipt before optional interpretation. Never rerun merely
+because analysis of an already retained artifact fails.
+
+AWS1553 task/image/identity unchanged,1/1/0HEALTHY, ticks2450724->2450898,
+checkpoint/cleanupnull, durabilityfalse. Existing clock-stalled ALARM remains;
+CPU51.06%, RAM3.24%. Proof ran in sandbox PID141, handle56646 terminal; host
+process census has no guala_body_coupled_step worker. No production writes.
+G1's separate food-boundary audit recorded at19:15 in shared ledger; no takeover
+of cognition or duplicate autonomous-acquisition trial.

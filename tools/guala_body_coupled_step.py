@@ -6,12 +6,14 @@ startup load. This does not qualify whole-body accuracy or real-time delivery.
 """
 from __future__ import annotations
 
+import argparse
 import ctypes
 from fractions import Fraction as Q
 import hashlib
 import json
 from pathlib import Path
 import resource
+import time
 import xml.etree.ElementTree as ET
 
 import mujoco as mj
@@ -270,11 +272,123 @@ def body_case():
     return evidence
 
 
+
+def motion_prefix():
+    """Same authored body/load, new discrete law; no old-law successor assertions."""
+    from guala_body_local_refinement import difference, restore, state_copy
+    controls = archived_controls()
+    e, xml, _ = engine_at(100)
+    c = controls[100]
+    assert hashlib.sha256(xml.encode()).hexdigest() == c["model_sha256"]
+    e.initial_state()
+    efforts = e._data.ctrl.copy()
+    efforts[e.actuator_names.index(c["name"])] = c["phases"][0]["effort_nm"]
+    e._data.ctrl[:] = efforts
+    mj.mj_forward(e._model,e._data)
+    initial = state_copy(e)
+    startup = []
+    try:
+        for level in range(6):
+            h = 100./2**level
+            trials = []
+            for count in (1,2):
+                e._model.opt.timestep = h/count/1_000_000
+                restore(e,initial)
+                receipt = e._advance_interval(e,efforts,count,c["initial_supply_j"])
+                trials.append(((e._data.qpos.copy(),e._data.qvel.copy()),receipt))
+            startup.append(dict(coarse_step_us=h,**difference(e._model,
+                trials[0][0],trials[1][0],trials[0][1],trials[1][1])))
+    finally:
+        e._model.opt.timestep = .0001
+    records = []
+    for h in (100,50,25):
+        engine, xml, limits = engine_at(h)
+        c = controls[h]
+        assert hashlib.sha256(xml.encode()).hexdigest() == c["model_sha256"]
+        state = engine.initial_state()
+        # Only authenticate the unchanged initial physical payload against the
+        # historic header. Never submit the old-law record to the executing engine.
+        old_header = hashlib.sha256(("3.3.7"+repr(limits)+repr(engine._sensory_root)+xml).encode()).digest()
+        assert hashlib.sha256(old_header+state[32:]).hexdigest() == c["initial_state_sha256"]
+        command = dict(efforts=None,elapsed_us=30000,available_work_j=c["initial_supply_j"],
+            effort_updates=((engine.actuator_names.index(c["name"]),c["phases"][0]["effort_nm"]),))
+        original = mj.mj_step
+        contacts = {}
+        samples = []
+        steps = 0
+        started = time.perf_counter()
+        def observe(m,d):
+            nonlocal steps
+            assert m is engine._model and d is engine._data
+            before_us = steps*h
+            original(m,d)
+            assert np.all(d.warning.number == 0)
+            for index in range(d.ncon):
+                contact = d.contact[index]
+                wrench = np.empty(6)
+                mj.mj_contactForce(m,d,index,wrench)
+                assert np.all(np.isfinite(wrench)) and np.isfinite(contact.dist)
+                if not np.any(wrench):
+                    continue
+                force = float(np.linalg.norm(wrench[:3]))
+                couple = float(np.linalg.norm(wrench[3:]))
+                assert np.isfinite(force) and np.isfinite(couple)
+                names = [m.geom(int(g)).name for g in contact.geom]
+                key = "|".join(names)
+                # Each maximum is one contact-point wrench, not a summed pair resultant.
+                record = contacts.setdefault(key,dict(first_us=before_us,
+                    peak_point_force_n=0.,peak_point_couple_nm=0.,most_negative_separation_m=0.))
+                record["peak_point_force_n"] = max(record["peak_point_force_n"],force)
+                record["peak_point_couple_nm"] = max(record["peak_point_couple_nm"],couple)
+                record["most_negative_separation_m"] = min(record["most_negative_separation_m"],float(contact.dist))
+            steps += 1
+            if steps*h in (10000,20000,30000):
+                samples.append(dict(elapsed_us=steps*h,qpos=d.qpos.tolist(),qvel=d.qvel.tolist()))
+        try:
+            mj.mj_step = observe
+            result = engine.advance(state,**command)
+        finally:
+            mj.mj_step = original
+        observed_seconds = time.perf_counter()-started
+        assert steps == 30000//h and len(samples)==3
+        cold = NativeBody(xml,limits,sensory_root=engine._sensory_root)
+        started = time.perf_counter()
+        repeated = cold.advance(state,**command)
+        unobserved_seconds = time.perf_counter()-started
+        assert repeated == result
+        assert len(result.state)==len(state)
+        records.append(dict(h_us=h,steps=steps,samples=samples,contacts=contacts,
+            signed_motor_work_j=result.signed_motor_work_j,
+            positive_motor_work_j=result.positive_motor_work_j,
+            braking_work_j=result.motor_braking_work_j,bearing_quadrature_j=result.bearing_dissipation_j,
+            unresolved_exchange_j=result.unresolved_energy_exchange_j,
+            kinetic_j=result.observation.kinetic_j,potential_j=result.observation.potential_j,
+            max_surface_travel_m=result.max_surface_travel_m,
+            full_cold_successor_exact=True,unobserved_seconds=unobserved_seconds,
+            observed_seconds=observed_seconds,state_bytes=len(result.state),
+            successor_sha256=hashlib.sha256(result.state).hexdigest()))
+    comparisons = []
+    for coarse,fine in zip(records,records[1:]):
+        for a,b in zip(coarse["samples"],fine["samples"]):
+            metrics = difference(e._model,(np.asarray(a["qpos"]),np.asarray(a["qvel"])),
+                (np.asarray(b["qpos"]),np.asarray(b["qvel"])),(0.,)*6,(0.,)*6)
+            metrics.pop("work_j")
+            comparisons.append(dict(coarse_us=coarse["h_us"],fine_us=fine["h_us"],
+                elapsed_us=a["elapsed_us"],**metrics))
+    return dict(startup_dyadic_errors=startup,prefixes=records,comparisons=comparisons,
+        scope="30ms load/contact diagnostic; convergence indicators, not continuum error bounds or production qualification")
+
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--motion-prefix",action="store_true")
+    args = parser.parse_args()
     assert mj.__version__ == VERSION and mj.mj_versionString() == VERSION
-    result = dict(engine_version=VERSION,exact_control=exact_counterexample(),
-        controls=scalar_cases(),threaded=threaded_case(),refusals=refusal_cases(),body=body_case(),
-        scope="step consistency only; whole-body trajectory accuracy/realtime NOT qualified")
+    if args.motion_prefix:
+        result = dict(engine_version=VERSION,motion=motion_prefix())
+    else:
+        result = dict(engine_version=VERSION,exact_control=exact_counterexample(),
+            controls=scalar_cases(),threaded=threaded_case(),refusals=refusal_cases(),body=body_case(),
+            scope="step consistency only; whole-body trajectory accuracy/realtime NOT qualified")
     result["maxrss_kib"] = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
     print(json.dumps(encode(result),sort_keys=True))
 
