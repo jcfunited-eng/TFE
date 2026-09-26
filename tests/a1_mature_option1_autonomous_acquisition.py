@@ -2,15 +2,19 @@
 
 Complies with A1 audit recommendations in collaborative_todo.md (AUT34-A1-01, 02, 03):
 - Safe isolated storage: atomically creates an owned temporary parent directory containing the paired store
-  and metadata pointer; strictly validates cold continuation path and pointer against that parent;
+  and metadata pointer; derives child store path from owned parent rejecting symlinks and path escapes;
+  enforces explicit safety refusals before startup and strictly validates saved pointer before cold continuation;
   discloses cleanup failures rather than swallowing them.
 - Genuine consequence grounding: food target is apple-1 (the specific target for which Guala holds authentic
   historical intake consequences with positive intake in state['meanings']; no legacy is_food fallback).
-- Actual experienced object preservation: preserves exact physical/material state of the experienced apple-1
-  from the checkpoint (radius 90mm, mass 180g, exact reflectance, odorant reservoir 3,551,525,631 ng,
-  tastant mass [140000, 200, 26000, 900, 300] ug, compliance 120,000 ppm, roughness 15 um, moisture 850,000 ppm);
-  declared digestible mass provisioned at 140,000 ug (matching declared home world apple in guala_home_world.py:1053)
-  with disclosed lawful floor placement at (3628, 6971, 0); blanket relocated to bed mattress (900, 8500, 0).
+- Disclosed environmental provisioning: copies authentic apple-1 dimensions, appearance, and physical material
+  fields from checkpoint 2,406,025 (radius 90mm, mass 180g, exact reflectance, odorant reservoir 3,551,525,631 ng,
+  release 4,200 ng/s, tastants [140000, 200, 26000, 900, 300] ug, compliance 120,000 ppm, roughness 15 um,
+  moisture 850,000 ppm, temperature 292,000 mK).
+  The authenticated checkpoint carries 0 ug digestible mass for all objects (the field was absent in older schema
+  and decodes as 0 ug). For this first-bite witness, digestible nutrition is explicitly provisioned at 140,000 ug
+  (matching declared home world apple in guala_home_world.py:1053) with disclosed lawful floor placement at
+  (3628, 6971, 0); blanket relocated to bed mattress (900, 8500, 0).
 - Caregiver neutrality: caregiver starts outside at (14600, 7600, 0) with empty hands and lawfully completes
   withdrawal home to (7300, 7500, 0) on step 0, remaining stationary in hallway > 2.4m away throughout.
 - Independent oral contact transfer & exact mass conservation: independently measures world active contact
@@ -49,14 +53,18 @@ def seed_unique_trial_store(trial_path: Path):
     from dsf_ai_service.paired_current_store import PairedCurrentStore
     raw = Path("/tmp/current.json").read_bytes()
     expected_digest = "239e232a3d61e26d2907d772fc2b3ed36b15843288b282964bdcce00f31348fd"
-    assert digest(raw) == expected_digest, f"canonical checkpoint mismatch: {digest(raw)}"
+    if digest(raw) != expected_digest:
+        raise RuntimeError(f"canonical checkpoint mismatch: {digest(raw)}")
     capture = json.loads(raw)
     p = capture["pointer"]["current"]
     body = zlib.decompress(base64.b64decode(capture["body_zlib"]))
     world = zlib.decompress(base64.b64decode(capture["world_zlib"]))
-    assert len(body) == p["body_bytes"] and digest(body) == p["body_sha256"]
-    assert len(world) == p["world_bytes"] and digest(world) == p["world_sha256"]
-    assert not trial_path.exists(), f"trial path must be non-existent fresh path: {trial_path}"
+    if len(body) != p["body_bytes"] or digest(body) != p["body_sha256"]:
+        raise RuntimeError("checkpoint body corruption")
+    if len(world) != p["world_bytes"] or digest(world) != p["world_sha256"]:
+        raise RuntimeError("checkpoint world corruption")
+    if trial_path.exists():
+        raise RuntimeError(f"trial path must be non-existent fresh path: {trial_path}")
     store = PairedCurrentStore(trial_path, max_body_bytes=67108864, max_world_bytes=16777216)
     store.publish(identity=p["identity"], organism_tick=p["organism_tick"], body=body,
                   world=world, expected_current_body_sha256=None)
@@ -79,7 +87,18 @@ def advance(actor):
 
 
 def provision_isolated_world(actor):
-    """Preserve actual experienced apple-1 with declared lawful floor placement."""
+    """Disclosed environmental provisioning: authentic apple-1 identity and appearance
+    with externally provisioned digestible nutrition.
+
+    Preserves exact physical dimensions and material fields of the experienced apple-1
+    from checkpoint 2,406,025 (radius 90mm, mass 180g, exact reflectance, odorant
+    reservoir 3,551,525,631 ng, release 4,200 ng/s, tastants [140000, 200, 26000, 900, 300] ug,
+    compliance 120,000 ppm, roughness 15 um, moisture 850,000 ppm, temperature 292,000 mK).
+
+    Original checkpoint matter carries 0 ug digestible mass (the field was absent in older schema
+    and decodes as 0 ug). For this first-bite witness, digestible nutrition is explicitly
+    provisioned at 140,000 ug with lawful floor placement at (3628, 6971, 0).
+    """
     world = actor._world
 
     # Relocate blanket to bed mattress (900, 8500, 0)
@@ -102,18 +121,27 @@ def provision_isolated_world(actor):
     # Depart apple-1 from caregiver custody
     world.admit_authored_departure("apple-1")
 
-    # Lawful floor placement preserving exact physical/material state of the experienced object:
-    # radius_mm=90, mass_grams=180, reflectance_ppm=(720000, 220000, 160000, 140000, 130000, 120000),
-    # odorant_reservoir=3551525631 ng, tastants=[140000, 200, 26000, 900, 300] ug, compliance=120000 ppm,
-    # roughness=15 um, moisture=850000 ppm, temperature=292000 mK.
-    # Declared digestible mass provisioned at 140,000 ug (matching declared home apple in guala_home_world.py:1053).
+    # Record original vs provisioned material quantities
+    original_digestible_ug = getattr(exp_apple.material, "digestible_mass_micrograms", 0)
+    provisioned_digestible_ug = 140000
+
+    report("provisioned_material_disclosure",
+           object_id="apple-1",
+           original_checkpoint_digestible_ug=original_digestible_ug,
+           provisioned_digestible_ug=provisioned_digestible_ug,
+           placement_mm=(3628, 6971, 0),
+           radius_mm=exp_apple.radius_mm,
+           mass_grams=exp_apple.mass_grams)
+
+    # Lawful floor placement preserving exact physical/material state of the experienced object,
+    # with externally provisioned digestible nutrition (140,000 ug):
     placed_apple = EmbodiedObject(
         object_id=exp_apple.object_id,
         radius_mm=exp_apple.radius_mm,
         mass_grams=exp_apple.mass_grams,
         position=PositionMM(3628, 6971, 0),
         reflectance_ppm=exp_apple.reflectance_ppm,
-        material=dc_replace(exp_apple.material, digestible_mass_micrograms=140000),
+        material=dc_replace(exp_apple.material, digestible_mass_micrograms=provisioned_digestible_ug),
         shape=exp_apple.shape,
     )
     world.admit_authored_arrival(placed_apple)
@@ -121,38 +149,69 @@ def provision_isolated_world(actor):
 
 def main():
     mode = sys.argv[1] if len(sys.argv) > 1 else "acquire"
-    assert mode in ("acquire", "cold")
+    if mode not in ("acquire", "cold"):
+        raise RuntimeError(f"unrecognized mode: {mode}")
     started = time.monotonic()
 
     if mode == "acquire":
-        trial_parent = Path(tempfile.mkdtemp(prefix="guala_aut01_trial_"))
-        assert not any(p in str(trial_parent) for p in ("/app", "/workspaces/Tao_Financial_Engine/backups")), (
-            f"refusing unsafe trial path: {trial_parent}"
-        )
-        trial_store = trial_parent / "store"
+        trial_parent = Path(tempfile.mkdtemp(prefix="guala_aut01_trial_")).resolve()
+        if trial_parent.is_symlink():
+            raise RuntimeError(f"trial parent cannot be a symlink: {trial_parent}")
+        if any(p in str(trial_parent) for p in ("/app", "/workspaces/Tao_Financial_Engine/backups")):
+            raise RuntimeError(f"refusing unsafe trial path: {trial_parent}")
+
+        trial_store = (trial_parent / "store").resolve()
+        if trial_store.is_symlink():
+            raise RuntimeError(f"trial store cannot be a symlink: {trial_store}")
+        if trial_store.parent != trial_parent:
+            raise RuntimeError(f"path escape: trial store {trial_store} parent != {trial_parent}")
+
         meta = {
-            "trial_parent": str(trial_parent.resolve()),
-            "trial_store": str(trial_store.resolve()),
+            "trial_parent": str(trial_parent),
+            "trial_store": str(trial_store),
             "pid": os.getpid(),
             "created_ns": time.time_ns(),
+            "expected_pointer": None,
         }
         (trial_parent / "trial_meta.json").write_text(json.dumps(meta))
         os.environ["GUALA_PAIRED_ROOT"] = str(trial_store)
         os.environ["GUALA_MAX_WORLD_BYTES"] = "16777216"
         seed_unique_trial_store(trial_store)
     else:
-        assert len(sys.argv) > 2, "cold mode requires trial_parent argument"
+        if len(sys.argv) <= 2:
+            raise RuntimeError("cold mode requires trial_parent argument")
         trial_parent = Path(sys.argv[2]).resolve()
-        assert trial_parent.exists(), f"trial parent directory does not exist: {trial_parent}"
-        assert not any(p in str(trial_parent) for p in ("/app", "/workspaces/Tao_Financial_Engine/backups")), (
-            f"refusing unsafe trial path: {trial_parent}"
-        )
+        if not trial_parent.exists():
+            raise RuntimeError(f"trial parent directory does not exist: {trial_parent}")
+        if trial_parent.is_symlink():
+            raise RuntimeError(f"trial parent cannot be a symlink: {trial_parent}")
+        if any(p in str(trial_parent) for p in ("/app", "/workspaces/Tao_Financial_Engine/backups")):
+            raise RuntimeError(f"refusing unsafe trial path: {trial_parent}")
+
+        trial_store = (trial_parent / "store").resolve()
+        if trial_store.is_symlink():
+            raise RuntimeError(f"trial store cannot be a symlink: {trial_store}")
+        if trial_store.parent != trial_parent:
+            raise RuntimeError(f"path escape: trial store {trial_store} parent != {trial_parent}")
+        if not trial_store.exists():
+            raise RuntimeError(f"trial store directory does not exist: {trial_store}")
+
         meta_file = trial_parent / "trial_meta.json"
-        assert meta_file.exists(), f"trial metadata not found in {trial_parent}"
+        if not meta_file.exists():
+            raise RuntimeError(f"trial metadata not found in {trial_parent}")
         meta = json.loads(meta_file.read_text())
-        assert meta["trial_parent"] == str(trial_parent), "trial parent pointer mismatch"
-        trial_store = Path(meta["trial_store"])
-        assert trial_store.exists(), f"trial store directory does not exist: {trial_store}"
+        if meta.get("trial_parent") != str(trial_parent):
+            raise RuntimeError(f"trial parent pointer mismatch: {meta.get('trial_parent')} != {trial_parent}")
+        if meta.get("trial_store") != str(trial_store):
+            raise RuntimeError(f"trial store pointer mismatch: {meta.get('trial_store')} != {trial_store}")
+
+        from dsf_ai_service.paired_current_store import PairedCurrentStore
+        pre_store = PairedCurrentStore(trial_store, max_body_bytes=67108864, max_world_bytes=16777216)
+        actual_ptr = asdict(pre_store.read_pointer().current)
+        expected_ptr = meta.get("expected_pointer")
+        if expected_ptr is not None and actual_ptr != expected_ptr:
+            raise RuntimeError(f"cold restart pointer mismatch: expected {expected_ptr}, got {actual_ptr}")
+
         os.environ["GUALA_PAIRED_ROOT"] = str(trial_store)
         os.environ["GUALA_MAX_WORLD_BYTES"] = "16777216"
 
@@ -163,8 +222,10 @@ def main():
             persist(actor)
             report("cold_next_interval", tick=actor._runtime.live_organism_tick)
         else:
-            assert actor._runtime.reserve_micrograms == 0, "organism must start with zero reserves"
-            assert actor._runtime.feeding, "organism must be in feeding state"
+            if actor._runtime.reserve_micrograms != 0:
+                raise RuntimeError("organism must start with zero reserves")
+            if not actor._runtime.feeding:
+                raise RuntimeError("organism must be in feeding state")
 
             # Verify Guala holds authentic historical intake consequences for apple-1 with positive intake
             state = actor._runtime._state
@@ -180,8 +241,10 @@ def main():
                                     tid = act_c.get("target_id")
                                     if tid:
                                         consequence_targets.add(tid)
-            assert "apple-1" in consequence_targets, "organism lacks authentic consequence memory for apple-1"
-            assert "bread-slice" not in consequence_targets, "unexpected consequence record for bread-slice"
+            if "apple-1" not in consequence_targets:
+                raise RuntimeError("organism lacks authentic consequence memory for apple-1")
+            if "bread-slice" in consequence_targets:
+                raise RuntimeError("unexpected consequence record for bread-slice")
 
             # Record source code hashes
             for name in ("guala_functional_organism.py", "guala_functional_loop.py", "guala_caretaker_hand.py", "substrate/embodiment_world.py"):
@@ -213,7 +276,8 @@ def main():
 
                 obs = advance(actor)
                 # Caregiver must not present or interact
-                assert obs.get("caregiver_presentation") is None, "caregiver presentation occurred"
+                if obs.get("caregiver_presentation") is not None:
+                    raise RuntimeError("caregiver presentation occurred")
 
                 motion = obs["actual_root_motion"]
                 moved = moved or any(motion[1:])
@@ -227,14 +291,18 @@ def main():
                 # Caregiver invariant: caregiver remains in hallway > 2.4m away
                 dist_caregiver = ((person_after.pose.position.x - g_after.pose.position.x)**2 + 
                                   (person_after.pose.position.y - g_after.pose.position.y)**2)**0.5
-                assert dist_caregiver >= 2000, f"caregiver too close to Guala: {dist_caregiver} mm"
+                if dist_caregiver < 2000:
+                    raise RuntimeError(f"caregiver too close to Guala: {dist_caregiver} mm")
                 if index > 0:
-                    assert person_before.pose.position == person_after.pose.position == CAREGIVER_HOME_MM, "caregiver moved after withdrawal"
-                    assert person_after.held_object_id is None, "caregiver held object during autonomous trial"
+                    if person_before.pose.position != person_after.pose.position or person_after.pose.position != CAREGIVER_HOME_MM:
+                        raise RuntimeError("caregiver moved after withdrawal")
+                    if person_after.held_object_id is not None:
+                        raise RuntimeError("caregiver held object during autonomous trial")
 
                 acquired_now = applied in ("grasp", "take") and refusal is None
                 if acquired_now:
-                    assert g_after.held_object_id == food_id, f"Guala held {g_after.held_object_id} instead of {food_id}"
+                    if g_after.held_object_id != food_id:
+                        raise RuntimeError(f"Guala held {g_after.held_object_id} instead of {food_id}")
                     certified_held = g_after.held_object_id
 
                 apple_obj = next(o for o in after_snap.objects if o.object_id == food_id)
@@ -253,9 +321,12 @@ def main():
                     apple_digestible = apple_after_obj.material.digestible_mass_micrograms
 
                     # 1. World-side contact measurement
-                    assert g_after.active_contact is not None, "missing active contact on bite step"
-                    assert g_after.active_contact.kind == "oral", f"contact kind {g_after.active_contact.kind} is not oral"
-                    assert g_after.active_contact.object_id == food_id, f"contacted object {g_after.active_contact.object_id} != {food_id}"
+                    if g_after.active_contact is None:
+                        raise RuntimeError("missing active contact on bite step")
+                    if g_after.active_contact.kind != "oral":
+                        raise RuntimeError(f"contact kind {g_after.active_contact.kind} is not oral")
+                    if g_after.active_contact.object_id != food_id:
+                        raise RuntimeError(f"contacted object {g_after.active_contact.object_id} != {food_id}")
                     world_transferred_ug = g_after.active_contact.transferred_digestible_micrograms
 
                     # 2. Source debit measurement
@@ -266,17 +337,16 @@ def main():
                     reserve_gain_ug = actor._runtime.reserve_micrograms - before_reserve
 
                     # Exact mass conservation accounting: source debit == world transfer == organism intake == reserve gain
-                    assert source_debit_ug == 62222, f"unexpected source debit: {source_debit_ug}"
-                    assert world_transferred_ug == 62222, f"unexpected world contact transfer: {world_transferred_ug}"
-                    assert transferred_ug == 62222, f"unexpected organism transfer: {transferred_ug}"
-                    assert reserve_gain_ug == 62222, f"unexpected reserve gain: {reserve_gain_ug}"
-                    assert source_debit_ug == world_transferred_ug == transferred_ug == reserve_gain_ug, (
-                        f"exact mass conservation violation: debit={source_debit_ug}, world={world_transferred_ug}, "
-                        f"organism={transferred_ug}, reserve={reserve_gain_ug}"
-                    )
+                    if not (source_debit_ug == world_transferred_ug == transferred_ug == reserve_gain_ug == 62222):
+                        raise RuntimeError(
+                            f"exact mass conservation violation: debit={source_debit_ug}, world={world_transferred_ug}, "
+                            f"organism={transferred_ug}, reserve={reserve_gain_ug}"
+                        )
 
-                    assert actor._runtime.counts["bites"] > before_bites
-                    assert certified_held == food_id
+                    if actor._runtime.counts["bites"] <= before_bites:
+                        raise RuntimeError("bites count was not incremented")
+                    if certified_held != food_id:
+                        raise RuntimeError("object was not certified held on bite")
                     intake_seen = True
                     break
 
@@ -285,6 +355,8 @@ def main():
                    first_bite_acquisition_proven=intake_seen,
                    satiety_achieved=False,
                    sustained_lifetime_autonomy=False,
+                   original_checkpoint_digestible_ug=0,
+                   provisioned_digestible_ug=initial_digestible_ug,
                    source_debit_ug=source_debit_ug,
                    world_transferred_ug=world_transferred_ug,
                    transferred_digestible_ug=transferred_ug,
@@ -294,8 +366,12 @@ def main():
                    caregiver_interventions=0,
                    elapsed_seconds=time.monotonic() - started)
 
-            assert intake_seen, "no autonomous intake within observation budget"
+            if not intake_seen:
+                raise RuntimeError("no autonomous intake within observation budget")
             persist(actor)
+            saved_pointer = asdict(actor._store.read_pointer().current)
+            meta["expected_pointer"] = saved_pointer
+            (trial_parent / "trial_meta.json").write_text(json.dumps(meta))
     finally:
         try:
             actor._finish_checkpoint()
