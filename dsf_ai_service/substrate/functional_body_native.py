@@ -1,7 +1,7 @@
 """Body-only numerical mechanics. No behavior controller or cognitive authority.
 
-MuJoCo 3.3.7 with the versioned closed hinge/slide limit boundary is the sole
-motion/contact solver. Its soft law and finite sampling are approved body-only
+MuJoCo 3.3.7 with closed hinge/slide limits and the versioned coupled Newton
+bearing/constraint step is the sole motion/contact solver. Its soft law and finite sampling are approved body-only
 approximations, not exact skin thermodynamics. Caller integration bytes own state.
 Only direct, unit-gear, effort-limited hinge/slide motors are admitted.
 """
@@ -16,7 +16,7 @@ import mujoco as mj
 import numpy as np
 
 
-ENGINE_VERSION = "3.3.7+guala.closed-limits.1"
+ENGINE_VERSION = "3.3.7+guala.coupled-step.1"
 STATE_KIND = mj.mjtState.mjSTATE_INTEGRATION
 _CALLBACK_GETTERS = (
     mj.get_mjcb_control, mj.get_mjcb_passive, mj.get_mjcb_contactfilter,
@@ -204,6 +204,13 @@ class NativeBody:
         m.opt.timestep = limits.step_us / 1_000_000
         if m.opt.iterations <= 0 or not 0 < m.opt.tolerance < math.inf:
             raise ValueError("finite solver work and convergence limits required")
+        if (m.opt.integrator != mj.mjtIntegrator.mjINT_IMPLICITFAST
+                or m.opt.solver != mj.mjtSolver.mjSOL_NEWTON
+                or m.opt.noslip_iterations
+                or int(m.opt.enableflags) & int(mj.mjtEnableBit.mjENBL_FWDINV)):
+            raise ValueError("body requires coupled implicitfast/Newton without no-slip or forward-inverse comparison")
+        if m.opt.density or m.opt.viscosity or np.any(m.tendon_damping):
+            raise ValueError("coupled body step supports diagonal joint bearings, not fluid or tendon damping")
         if np.any(m.sensor_noise):
             raise ValueError("random sensor noise is not enabled")
         if not np.isfinite(m.dof_damping).all() or np.any(m.dof_damping < 0):

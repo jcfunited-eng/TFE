@@ -6720,3 +6720,152 @@ found garden-apple and fruit-bowl already present; _is_food's semantic name
 gate excludes both. Recorded exact evidence and bounded repair recommendation
 in shared ledger18:30Z. No edits to G1's runtime files or new acquisition run.
 FB-01 remains ACTIVE; no additional user approval is presently needed.
+
+### FB-01aj coupled Newton step implementation contract — 2026-09-26 18:34Z
+
+Continue, do not reopen closed joint-boundary proof. Previous turn PROGRESS:
+d2a6c7a3a authenticates the exact body's split residual. Clean tree at entry;
+G1 has the18:30 audit finding; no new requested body conflict in shared ledger.
+Requested accurate bounded mechanics; current split acceleration is inconsistent
+with solved constraints; conflict YES. Do not extend double settlement, adjust
+strength/damping/softness, relax travel limits, or touch cognition/L0-L4.
+Single item: a step-consistent Newton operator in the body-only native engine.
+Approved reduction: rigid-body numerical mechanics, not full joint DSF or
+microscopic muscle/skin biology; those domains are not evaluated or modified.
+
+Law and source seam (new finite-step law, same h->0 physical equation):
+F includes current bearing force-B*v. s_i=h*B_i, H=M+diag(s).
+Solve a_smooth=H^-1 F, then minimize the existing constraint potential plus
+0.5*(a-a_smooth)^T H*(a-a_smooth), keeping J,R,D,aref,friction and cones.
+Advance v+=h*a and q with the existing mj_advance ONCE. No mj_implicit second
+transform. Physical M remains kinetic-energy and stopping-normalization
+authority. Step shift is an explicit internal argument, never a global mode,
+physical inertia overwrite, new state field, controller, or parallel body.
+
+Authorized repository files: new native/functional_body/coupled_step.patch,
+build_engine.py, functional_body_native.py engine identity/profile admission,
+one tools/guala_body_coupled_step.py focused witness, this ledger/evidence.
+Vendor delta limited to engine_forward.c, engine_solver.c, engine_solver.h,
+and engine_support.c version string; closed_limits.patch retained unchanged.
+Builder authenticates all preimages and pinned commit before applying either
+patch to a NEW isolated source checkout/build. No production install/mount.
+
+engine_forward.c: split force accumulation from its physical acceleration
+solve for reuse without duplicate solve. A step-only acceleration helper forms
+s in existing bounded native stack, factors H in existing qH/qHDiagInv scratch,
+and supplies a_smooth plus s to the existing constraint dispatch. warmstart's
+Gauss cost adds s*x to M*x. Serial/threaded Newton calls carry s; all island
+tasks join before stack release. Existing no-constraint and unconstrained-DOF
+paths copy H-consistent a_smooth. Physical island inertia stays unchanged.
+
+engine_solver.c: add nullable step shift and existing island DOF map to
+CGContext. Central metric multiply supplies Ma and Mv including diag(s).
+Add s to EVERY sparse/dense MakeHessian and FactorizeHessian reconstruction
+diagonal. Incremental/cone updates inherit that base; no separate island
+H factor or altered physical stopping scale. Existing CG/PGS wrappers pass
+NULL; new internal shifted Newton entry invokes the SAME solver, not a clone.
+
+Caller closure: mj_step uses a private forward implementation with explicit
+step mode. Public mj_forward/mj_forwardSkip and NativeBody restore/final
+observation remain instantaneous physical solves. mj_step2 uses the same
+coupled helper and single advance. Direct mj_implicit[Skip] for implicitfast
+must refuse rather than reapply the old split. Forward/inverse comparison is
+not a supported discrete-step diagnostic and refuses before advancement.
+NativeBody admits implicitfast/Newton/zero-noslip and diagonal bearing-only
+velocity derivative: zero fluid density/viscosity, zero tendon damping;
+existing direct motor/no-plugin/no-flex/no-callback restrictions remain.
+Unused full-implicit/CG/PGS modes are explicitly unsupported for this candidate,
+not silently relabeled corrected. The previous implicit-mode equivalence
+probe is historical evidence, not authority to preserve an inaccurate path.
+
+State/transaction closure: version3.3.7+guala.coupled-step.1 binds header to
+new law; no new integration bytes or schema fields. All mutated MjData is
+caller-owned scratch restored from input before each attempt. No successor
+or supply debit is published before existing warning/geometry/work/time/
+finite-state checks. Error leaves caller's bytes authoritative; fresh restore
+must give the same next state. New scratch lifetime is one bounded step;
+allocation/factor work replaces old implicit scratch/factor, with O(nv) shift
+work only, no heap owner, copy of anatomy or second constraint solve.
+
+Acceptance order: source-only frozen review first; isolated build once. Exact
+two-slide control realizes M=[[2,1],[1,1]],B=diag(0,1),h=1,F=(-2,-1),R=1/999:
+new acceleration(-1,-333)/667, solved/integrated acceleration equal. Dense/
+sparse and island/monolithic variants, released/loaded boundaries, zero
+bearing and warm/cold restore exercise the common operator. Supported current
+body's archived100us input then must satisfy same-step constraint/impulse
+equations and fresh-instance exact continuation; no predecessor hash equality
+is expected across a declared new numerical law. Verify physical M and R
+unchanged by integration against a pre-step physical forward observation.
+The scalar control's error bound uses the declared solver tolerance and
+binary64 roundoff, not a fabricated production trajectory tolerance.
+Only after these pass run one bounded startup refinement/contact prefix to
+test the diagnosed whole-body error. Whole-body accuracy, ordinary organism
+mount, work conservation convergence, restart/safety and realtime remain open;
+no deployment is authorized by a helper's green result. AWS/host envelopes
+around execution and exact process cleanup remain required.
+
+Candidate continuation: the latest user audit completed by checking the original
+world/source without a rerun; food-name gate findings are already in shared
+ledger18:30Z. Functional-body scope resumes unchanged. Previous goal work was
+PROGRESS: the coupled source candidate was authored; no build was attempted.
+
+Pre-freeze command failures preserved: one oversized inline shell argument was
+rejected by the OS before execution. Source patch construction instead used
+explicit temporary full-source files and a small read-only diff command. A
+delete/add-same-file apply_patch transaction was rejected before mutation;
+whole-file Update File replacement is the supported operation. Two guessed
+engine_thread paths were absent; the known thread/thread_pool.cc contains the
+public pool implementation. No rerun, runtime mutation or lost proof resulted.
+The final patch removes the unused implicit-path nC local; no dead implicitfast
+split remains. Existing full-implicit compatibility diagnostics are historical
+and cannot qualify the newly admitted Newton/implicitfast-only wrapper.
+
+Focused witness now authored in tools/guala_body_coupled_step.py. Analytic pairs
+straddle an unconstrained global DOF to exercise nonidentity island indexing;
+dense/sparse, island/monolithic, loaded/released/free, zero-bearing, retained
+warmstart, cold and step1/step2 variants share the exact equation assertions.
+One two-worker public native pool case checks the threaded argument lifetime.
+Constructor and native refusals check unsupported modes without advancing
+integration state. Existing100us body input checks physical M/R unchanged,
+constraint residual, impulse equation, cold equality and old-law refusal.
+No new trajectory accuracy tolerance or physical parameter is introduced.
+The declared solver tolerance bounds the local equation falsifiers only.
+No compile/test has occurred. Candidate proceeds to one frozen source review.
+
+Frozen review1e9c992b...: one LOCALIZED finding, no architectural defect on
+admitted body path. Raw native mj_step could disable bearing force while the
+step metric retained hB. Native fwdCoupledStep now refuses mjDSBL_DAMPER;
+focused witness proves integration state unchanged on that refusal. Wrapper
+already refused disableflags. Both physical operator and coefficients stay
+unchanged. One final source-only review, no test/build before its result.
+
+### FB-01aj coupled step proved locally — 2026-09-26 19:04Z
+
+Final source review PASS fd07996e...; source fingerprint verified immediately
+before build/proof. Isolated library d3787b131b2532168dfff52c226ba07fa0de4ffc4b57bc40b7a87b73a2cc1801
+compiled once in59.48s wall/103.57s CPU/394372KiB peakRSS, two cores. No install.
+Coupled numerical law version3.3.7+guala.coupled-step.1. Native build output and
+patch/source hashes retained in docs/evidence/FB-01aj-coupled-step.json.
+
+Focused proof exit0 in0.894s wall/0.891s CPU/151288KiB peakRSS.16 exact control
+variants, mapped two-island threaded/serial exact equality, ordinary/two-phase
+stepping and fresh integration-state equality all pass. Eight unsupported
+wrapper profiles and five raw-native routes refuse without integration advance.
+The SAME body100us input has7 active rows: integrated constraint residual
+4.44e-16 (previous378.275519), physical impulse residual5.01e-17; physical M/R
+unchanged. Entire cold successor exact20973b5e574ef34e67b4069ad7346228e857bc1b6110680a833a989e4876b829,
+5152statebytes, old-law header refused. Raw10753bytes authenticated as
+b8bb13a6106172cd459e029fd83bb2b7fc672c7681058d3a726339f5003c1746.
+No coefficients, anatomy, kernel, cognition or physical supply were changed.
+
+Health envelopes in same evidence: AWS1553 same identity/task/image,1/1/0HEALTHY,
+advancing ticks, checkpoint/cleanupnull and durabilityfalse; existing
+clock-stalled ALARM remains. Host census confirms buildPID6997 and proofPID12999
+exited with no compiler/test worker orphan. TFE/G1/IDE unchanged. G1 received
+bounded source audit support in shared ledger18:59Z; autonomy not declared fixed.
+
+The diagnosed force/integration mismatch is CLOSED locally. Whole-body motion
+accuracy is NOT closed. Next contracted item: compare the same body startup
+and30ms first-contact prefix at100/50/25us under this new law. No arbitrary
+precision threshold will be promoted to production and no old adaptive replay
+or broad test suite will be repeated. Production remains untouched.

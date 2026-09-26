@@ -1,0 +1,498 @@
+--- a/src/engine/engine_forward.c
++++ b/src/engine/engine_forward.c
+@@ -547,7 +547,7 @@
+ 
+ 
+ // add up all non-constraint forces, compute qacc_smooth
+-void mj_fwdAcceleration(const mjModel* m, mjData* d) {
++static void fwdAccelerationMetric(const mjModel* m, mjData* d, const mjtNum* shift) {
+   int nv = m->nv;
+ 
+   // qfrc_smooth = sum of all non-constraint forces
+@@ -556,13 +556,31 @@
+   mju_addTo(d->qfrc_smooth, d->qfrc_actuator, nv);
+   mj_xfrcAccumulate(m, d, d->qfrc_smooth);
+ 
+-  // qacc_smooth = M \ qfrc_smooth
+-  mj_solveM(m, d, d->qacc_smooth, d->qfrc_smooth, 1);
++  if (!shift) {
++    mj_solveM(m, d, d->qacc_smooth, d->qfrc_smooth, 1);
++    return;
++  }
++
++  // Step metric H=M+hB; physical M and its factor remain untouched.
++  mju_copy(d->qH, d->M, m->nC);
++  for (int i=0; i < nv; i++) {
++    d->qH[m->M_rowadr[i] + m->M_rownnz[i] - 1] += shift[i];
++  }
++  mj_factorI(d->qH, d->qHDiagInv, nv, m->M_rownnz, m->M_rowadr, m->M_colind);
++  mju_copy(d->qacc_smooth, d->qfrc_smooth, nv);
++  mj_solveLD(d->qacc_smooth, d->qH, d->qHDiagInv, nv, 1,
++             m->M_rownnz, m->M_rowadr, m->M_colind);
++}
++
++
++// Instantaneous physical acceleration, never the discrete step metric.
++void mj_fwdAcceleration(const mjModel* m, mjData* d) {
++  fwdAccelerationMetric(m, d, NULL);
+ }
+ 
+ 
+ // warmstart/init solver
+-static void warmstart(const mjModel* m, mjData* d) {
++static void warmstart(const mjModel* m, mjData* d, const mjtNum* shift) {
+   int nv = m->nv, nefc = d->nefc;
+ 
+   // warmstart with best of (qacc_warmstart, qacc_smooth)
+@@ -607,6 +625,9 @@
+       // add Gauss to cost(qacc_warmstart)
+       mjtNum* Ma = mjSTACKALLOC(d, nv, mjtNum);
+       mj_mulM(m, d, Ma, d->qacc_warmstart);
++      if (shift) {
++        for (int i=0; i < nv; i++) Ma[i] += shift[i]*d->qacc_warmstart[i];
++      }
+       for (int i=0; i < nv; i++) {
+         cost_warmstart += 0.5*(Ma[i]-d->qfrc_smooth[i])*(d->qacc_warmstart[i]-d->qacc_smooth[i]);
+       }
+@@ -646,6 +667,7 @@
+   const mjModel* m;
+   mjData* d;
+   int island;
++  const mjtNum* shift;
+ };
+ typedef struct mjSolIslandArgs_ mjSolIslandArgs;
+ 
+@@ -659,12 +681,14 @@
+ // extract arguments, pass to Newton solver
+ static void* Newton_wrapper(void* args) {
+   mjSolIslandArgs* solargs = (mjSolIslandArgs*) args;
+-  mj_solNewton_island(solargs->m, solargs->d, solargs->island, solargs->m->opt.iterations);
++  mj_solNewton_shift(solargs->m, solargs->d, solargs->island,
++                     solargs->m->opt.iterations, solargs->shift);
+   return NULL;
+ }
+ 
+ // CG solver, multi-threaded over islands
+-static void solve_threaded(const mjModel* m, mjData* d, int flg_Newton) {
++static void solve_threaded(const mjModel* m, mjData* d, int flg_Newton,
++                           const mjtNum* shift) {
+   mj_markStack(d);
+   // allocate array of arguments to be passed to threads
+   mjSolIslandArgs* sol_island_args = mjSTACKALLOC(d, d->nisland, mjSolIslandArgs);
+@@ -674,6 +698,7 @@
+     sol_island_args[island].m = m;
+     sol_island_args[island].d = d;
+     sol_island_args[island].island = island;
++    sol_island_args[island].shift = shift;
+ 
+     mju_defaultTask(&tasks[island]);
+     tasks[island].func = flg_Newton ? Newton_wrapper : CG_wrapper;
+@@ -690,7 +715,7 @@
+ 
+ 
+ // compute efc_b, efc_force, qfrc_constraint; update qacc
+-void mj_fwdConstraint(const mjModel* m, mjData* d) {
++static void fwdConstraintMetric(const mjModel* m, mjData* d, const mjtNum* shift) {
+   TM_START;
+   int nv = m->nv, nefc = d->nefc, nisland = d->nisland;
+ 
+@@ -710,7 +735,7 @@
+   mju_subFrom(d->efc_b, d->efc_aref, nefc);
+ 
+   // warmstart solver
+-  warmstart(m, d);
++  warmstart(m, d, shift);
+   mju_zeroInt(d->solver_niter, mjNISLAND);
+ 
+   // check if islands are supported
+@@ -736,14 +761,14 @@
+       // no threadpool, loop over islands
+       for (int island=0; island < nisland; island++) {
+         if (m->opt.solver == mjSOL_NEWTON) {
+-          mj_solNewton_island(m, d, island, m->opt.iterations);
++          mj_solNewton_shift(m, d, island, m->opt.iterations, shift);
+         } else {
+           mj_solCG_island(m, d, island, m->opt.iterations);
+         }
+       }
+     } else {
+       // have threadpool, solve using threads
+-      solve_threaded(m, d, m->opt.solver == mjSOL_NEWTON);
++      solve_threaded(m, d, m->opt.solver == mjSOL_NEWTON, shift);
+     }
+ 
+ 
+@@ -765,7 +790,7 @@
+       break;
+ 
+     case mjSOL_NEWTON:                  // Newton
+-      mj_solNewton(m, d, m->opt.iterations);
++      mj_solNewton_shift(m, d, -1, m->opt.iterations, shift);
+       break;
+ 
+     default:
+@@ -779,6 +804,30 @@
+   }
+ 
+   TM_END(mjTIMER_CONSTRAINT);
++}
++
++
++// Instantaneous constraint solution retains the physical inertia metric.
++void mj_fwdConstraint(const mjModel* m, mjData* d) {
++  fwdConstraintMetric(m, d, NULL);
++}
++
++
++// Body-only diagonal-bearing implicit step. No extra persistent state or solve.
++static void fwdCoupledStep(const mjModel* m, mjData* d) {
++  if (m->opt.solver != mjSOL_NEWTON || mjDISABLED(mjDSBL_DAMPER) ||
++      m->opt.noslip_iterations || mjENABLED(mjENBL_FWDINV) || m->opt.viscosity || m->opt.density) {
++    mjERROR("coupled body step requires Newton, active bearings, zero no-slip/fluid, no forward-inverse comparison");
++  }
++  for (int i=0; i < m->ntendon; i++) {
++    if (m->tendon_damping[i]) mjERROR("coupled body step excludes tendon damping");
++  }
++  mj_markStack(d);
++  mjtNum* shift = mjSTACKALLOC(d, m->nv, mjtNum);
++  for (int i=0; i < m->nv; i++) shift[i] = m->opt.timestep*m->dof_damping[i];
++  fwdAccelerationMetric(m, d, shift);
++  fwdConstraintMetric(m, d, shift);
++  mj_freeStack(d);
+ }
+ 
+ 
+@@ -994,6 +1043,9 @@
+ 
+ // fully implicit in velocity, possibly skipping factorization
+ void mj_implicitSkip(const mjModel* m, mjData* d, int skipfactor) {
++  if (m->opt.integrator == mjINT_IMPLICITFAST) {
++    mjERROR("coupled body integration requires mj_step or mj_step1/mj_step2");
++  }
+   TM_START;
+-  int nv = m->nv, nD = m->nD, nC = m->nC;
++  int nv = m->nv, nD = m->nD;
+ 
+@@ -1025,29 +1077,8 @@
+     mju_solveLUSparse(qacc, d->qLU, qfrc, nv, m->D_rownnz, m->D_rowadr, m->D_diag, m->D_colind);
+   }
+ 
+-  // IMPLICITFAST
+-  else if (m->opt.integrator == mjINT_IMPLICITFAST) {
+-    if (!skipfactor) {
+-      // compute analytical derivative qDeriv; skip rne derivative
+-      mjd_smooth_vel(m, d, /* flg_bias = */ 0);
+-
+-      // modified mass matrix: gather qH <- qDeriv (full to lower)
+-      mju_gather(d->qH, d->qDeriv, m->mapD2M, nC);
+-
+-      // set qH = M - dt*qDeriv
+-      mju_addScl(d->qH, d->M, d->qH, -m->opt.timestep, nC);
+-
+-      // factorize in-place
+-      mj_factorI(d->qH, d->qHDiagInv, nv, m->M_rownnz, m->M_rowadr, m->M_colind);
+-    }
+-
+-    // solve for qacc: (M - dt*qDeriv) * qacc = qfrc
+-    mju_copy(qacc, qfrc, nv);
+-    mj_solveLD(qacc, d->qH, d->qHDiagInv, nv, 1,
+-               m->M_rownnz, m->M_rowadr, m->M_colind);
+-
+-  } else {
+-    mjERROR("integrator must be implicit or implicitfast");
++  else {
++    mjERROR("direct integrator must be implicit; coupled implicitfast uses mj_step");
+   }
+ 
+   // advance state and time
+@@ -1098,7 +1129,8 @@
+ //-------------------------- top-level API ---------------------------------------------------------
+ 
+ // forward dynamics with skip; skipstage is mjtStage
+-void mj_forwardSkip(const mjModel* m, mjData* d, int skipstage, int skipsensor) {
++static void forwardSkip(const mjModel* m, mjData* d, int skipstage, int skipsensor,
++                        int coupled_step) {
+   TM_START;
+ 
+   // position-dependent
+@@ -1141,13 +1173,23 @@
+   }
+ 
+   mj_fwdActuation(m, d);
+-  mj_fwdAcceleration(m, d);
+-  mj_fwdConstraint(m, d);
++  if (coupled_step) {
++    fwdCoupledStep(m, d);
++  } else {
++    mj_fwdAcceleration(m, d);
++    mj_fwdConstraint(m, d);
++  }
+   if (!skipsensor) {
+     mj_sensorAcc(m, d);
+   }
+ 
+   TM_END(mjTIMER_FORWARD);
++}
++
++
++// Public observation remains the instantaneous physical calculation.
++void mj_forwardSkip(const mjModel* m, mjData* d, int skipstage, int skipsensor) {
++  forwardSkip(m, d, skipstage, skipsensor, 0);
+ }
+ 
+ 
+@@ -1164,7 +1206,7 @@
+   // common to all integrators
+   mj_checkPos(m, d);
+   mj_checkVel(m, d);
+-  mj_forward(m, d);
++  forwardSkip(m, d, mjSTAGE_NONE, 0, m->opt.integrator == mjINT_IMPLICITFAST);
+   mj_checkAcc(m, d);
+ 
+   // compare forward and inverse solutions if enabled
+@@ -1182,8 +1224,11 @@
+     mj_RungeKutta(m, d, 4);
+     break;
+ 
++  case mjINT_IMPLICITFAST:
++    mj_advance(m, d, d->act_dot, d->qacc, NULL);
++    break;
++
+   case mjINT_IMPLICIT:
+-  case mjINT_IMPLICITFAST:
+     mj_implicit(m, d);
+     break;
+ 
+@@ -1227,9 +1272,14 @@
+ // advance simulation in two phases: after input is set by user
+ void mj_step2(const mjModel* m, mjData* d) {
+   TM_START;
++  int coupled_step = m->opt.integrator == mjINT_IMPLICITFAST;
+   mj_fwdActuation(m, d);
+-  mj_fwdAcceleration(m, d);
+-  mj_fwdConstraint(m, d);
++  if (coupled_step) {
++    fwdCoupledStep(m, d);
++  } else {
++    mj_fwdAcceleration(m, d);
++    mj_fwdConstraint(m, d);
++  }
+   mj_sensorAcc(m, d);
+   mj_checkAcc(m, d);
+ 
+@@ -1239,7 +1289,9 @@
+   }
+ 
+   // integrate with Euler or implicit; RK4 defaults to Euler
+-  if (m->opt.integrator == mjINT_IMPLICIT || m->opt.integrator == mjINT_IMPLICITFAST) {
++  if (coupled_step) {
++    mj_advance(m, d, d->act_dot, d->qacc, NULL);
++  } else if (m->opt.integrator == mjINT_IMPLICIT) {
+     mj_implicit(m, d);
+   } else {
+     mj_Euler(m, d);
+--- a/src/engine/engine_solver.c
++++ b/src/engine/engine_solver.c
+@@ -782,6 +782,8 @@
+   const mjtNum* M;
+   const mjtNum* qLD;
+   const mjtNum* qLDiagInv;
++  const mjtNum* step_shift;  // hB in global DOF order; NULL for physical solve
++  const int* step_dofs;      // existing island-to-global map; NULL if monolithic
+ 
+   // efc arrays
+   const mjtNum* efc_D;
+@@ -852,7 +854,8 @@
+ 
+ 
+ // set sizes and pointers to mjData arrays in mjCGContext
+-static void CGpointers(const mjModel* m, const mjData* d, mjCGContext* ctx, int island) {
++static void CGpointers(const mjModel* m, const mjData* d, mjCGContext* ctx, int island,
++                       const mjtNum* shift) {
+   // clear everything
+   memset(ctx, 0, sizeof(mjCGContext));
+ 
+@@ -861,6 +864,7 @@
+   ctx->is_elliptic = (m->opt.cone == mjCONE_ELLIPTIC);
+   ctx->contact = d->contact;
+   ctx->island = island;
++  ctx->step_shift = shift;
+ 
+   // set sizes and pointers (monolithic)
+   if (island < 0) {
+@@ -915,6 +919,7 @@
+ 
+     // dof arrays
+     int idofadr           = d->island_idofadr[island];
++    ctx->step_dofs        = d->map_idof2dof + idofadr;
+     ctx->qfrc_smooth      = d->ifrc_smooth       + idofadr;
+     ctx->qfrc_constraint  = d->ifrc_constraint   + idofadr;
+     ctx->qacc_smooth      = d->iacc_smooth       + idofadr;
+@@ -955,6 +960,38 @@
+ }
+ 
+ 
++// Only the discrete step adds hB. Physical inertia and its normalization stay intact.
++static mjtNum stepDiagonal(const mjCGContext* ctx, int i) {
++  return ctx->step_shift ? ctx->step_shift[ctx->step_dofs ? ctx->step_dofs[i] : i] : 0;
++}
++
++
++static void metricMultiply(const mjCGContext* ctx, mjtNum* out, const mjtNum* in) {
++  mju_mulSymVecSparse(out, ctx->M, in, ctx->nv,
++                      ctx->M_rownnz, ctx->M_rowadr, ctx->M_colind);
++  if (ctx->step_shift) {
++    for (int i=0; i < ctx->nv; i++) out[i] += stepDiagonal(ctx, i)*in[i];
++  }
++}
++
++
++// Called after EVERY construction/reconstruction, never on an already shifted factor.
++static void addStepDiagonal(mjCGContext* ctx) {
++  if (!ctx->step_shift) return;
++  for (int i=0; i < ctx->nv; i++) {
++    if (ctx->is_sparse) {
++      int begin = ctx->H_rowadr[i], end = begin + ctx->H_rownnz[i];
++      int j = begin;
++      while (j < end && ctx->H_colind[j] < i) j++;
++      if (j == end || ctx->H_colind[j] != i) mjERROR("step Hessian missing diagonal");
++      ctx->H[j] += stepDiagonal(ctx, i);
++    } else {
++      ctx->L[i*(ctx->nv+1)] += stepDiagonal(ctx, i);
++    }
++  }
++}
++
++
+ // allocate fixed-size arrays in mjCGContext
+ //  mj_{mark/free}Stack in calling function!
+ static void CGallocate(mjData* d, mjCGContext* ctx, int flg_Newton) {
+@@ -1344,8 +1381,7 @@
+   mjtNum slopescl = ctx->scale / snorm;
+ 
+   // compute Mv = M * v
+-  mju_mulSymVecSparse(ctx->Mv, ctx->M, ctx->search, nv,
+-                      ctx->M_rownnz, ctx->M_rowadr, ctx->M_colind);
++  metricMultiply(ctx, ctx->Mv, ctx->search);
+ 
+   // compute Jv = J * search  (dense or sparse)
+   if (!ctx->is_sparse) {
+@@ -1554,6 +1590,7 @@
+     mju_addToMatSparse(ctx->H, ctx->H_rownnz, ctx->H_rowadr, ctx->H_colind, nv,
+                        ctx->M, ctx->M_rownnz, ctx->M_rowadr, ctx->M_colind,
+                        ctx->buf_val, ctx->buf_ind);
++    addStepDiagonal(ctx);
+ 
+     // transiently compute H'; mju_cholFactorNNZ is memory-contiguous in upper triangle layout
+     mj_markStack(d);
+@@ -1616,6 +1653,7 @@
+     mju_addToSymSparse(ctx->L, ctx->M, ctx->nv,
+                        ctx->M_rownnz, ctx->M_rowadr, ctx->M_colind,
+                        /*flg_upper=*/ 0);
++    addStepDiagonal(ctx);
+   }
+ }
+ 
+@@ -1649,6 +1687,7 @@
+       mju_addToMatSparse(ctx->H, ctx->H_rownnz, ctx->H_rowadr, ctx->H_colind, nv,
+                          ctx->M, ctx->M_rownnz, ctx->M_rowadr, ctx->M_colind,
+                          ctx->buf_val, ctx->buf_ind);
++      addStepDiagonal(ctx);
+     }
+ 
+     // copy H lower-triangle into L, fill-in already accounted for
+@@ -1682,6 +1721,7 @@
+       mju_addToSymSparse(ctx->L, ctx->M, ctx->nv,
+                          ctx->M_rownnz, ctx->M_rowadr, ctx->M_colind,
+                          /*flg_upper=*/ 0);
++      addStepDiagonal(ctx);
+     }
+ 
+     // factorize H
+@@ -1844,7 +1884,8 @@
+ 
+ 
+ // driver
+-static void mj_solCGNewton(const mjModel* m, mjData* d, int island, int maxiter, int flg_Newton) {
++static void mj_solCGNewton(const mjModel* m, mjData* d, int island, int maxiter,
++                           int flg_Newton, const mjtNum* shift) {
+   int iter = 0;
+   mjtNum alpha, beta;
+   mjtNum *gradold = NULL, *Mgradold = NULL, *Mgraddif = NULL;
+@@ -1852,7 +1893,7 @@
+   mj_markStack(d);
+ 
+   // make context
+-  CGpointers(m, d, &ctx, island);
++  CGpointers(m, d, &ctx, island, shift);
+   CGallocate(d, &ctx, flg_Newton);
+ 
+   // local copies
+@@ -1868,8 +1909,7 @@
+   int* oldstate = mjSTACKALLOC(d, nefc, int);
+ 
+   // compute Ma = M * qacc
+-  mju_mulSymVecSparse(ctx.Ma, ctx.M, ctx.qacc, nv,
+-                      ctx.M_rownnz, ctx.M_rowadr, ctx.M_colind);
++  metricMultiply(&ctx, ctx.Ma, ctx.qacc);
+ 
+ 
+   // compute Jaref = J * qacc - aref  (dense or sparse)
+@@ -2006,23 +2046,30 @@
+ 
+ // CG entry point
+ void mj_solCG(const mjModel* m, mjData* d, int maxiter) {
+-  mj_solCGNewton(m, d, /*island=*/-1, maxiter, /*flg_Newton=*/0);
++  mj_solCGNewton(m, d, /*island=*/-1, maxiter, /*flg_Newton=*/0, NULL);
+ }
+ 
+ 
+ // CG entry point (one island)
+ void mj_solCG_island(const mjModel* m, mjData* d, int island, int maxiter) {
+-  mj_solCGNewton(m, d, island, maxiter, /*flg_Newton=*/0);
++  mj_solCGNewton(m, d, island, maxiter, /*flg_Newton=*/0, NULL);
+ }
+ 
+ 
+ // Newton entry point
+ void mj_solNewton(const mjModel* m, mjData* d, int maxiter) {
+-  mj_solCGNewton(m, d, /*island=*/-1, maxiter, /*flg_Newton=*/1);
++  mj_solCGNewton(m, d, /*island=*/-1, maxiter, /*flg_Newton=*/1, NULL);
+ }
+ 
+ 
+ // Newton entry point (one island)
+ void mj_solNewton_island(const mjModel* m, mjData* d, int island, int maxiter) {
+-  mj_solCGNewton(m, d, island, maxiter, /*flg_Newton=*/1);
+-}
++  mj_solCGNewton(m, d, island, maxiter, /*flg_Newton=*/1, NULL);
++}
++
++
++// Step-local Newton metric; the same solver and the same constraint law.
++void mj_solNewton_shift(const mjModel* m, mjData* d, int island, int maxiter,
++                        const mjtNum* shift) {
++  mj_solCGNewton(m, d, island, maxiter, /*flg_Newton=*/1, shift);
++}
+--- a/src/engine/engine_solver.h
++++ b/src/engine/engine_solver.h
+@@ -41,4 +41,8 @@
+ // Newton entry point
+ void mj_solNewton_island(const mjModel* m, mjData* d, int island, int maxiter);
+ 
++// Internal diagonal-bearing step metric; NULL is the ordinary physical metric.
++void mj_solNewton_shift(const mjModel* m, mjData* d, int island, int maxiter,
++                        const mjtNum* shift);
++
+ #endif  // MUJOCO_SRC_ENGINE_ENGINE_SOLVER_H_
+--- a/src/engine/engine_support.c
++++ b/src/engine/engine_support.c
+@@ -42,7 +42,7 @@
+ //-------------------------- Constants -------------------------------------------------------------
+ 
+  #define mjVERSION 337
+-#define mjVERSIONSTRING "3.3.7+guala.closed-limits.1"
++#define mjVERSIONSTRING "3.3.7+guala.coupled-step.1"
+ 
+ // names of disable flags
+ const char* mjDISABLESTRING[mjNDISABLE] = {
