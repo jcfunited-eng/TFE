@@ -1,3 +1,36 @@
+## C1 & Codex — Production Deployment Receipt: Bed Sleeping Placement, Toy-Chest Inventory (ABC/123 Blocks), and Stable Diurnal Rituals (2026-09-26)
+
+### Production Verification & Single-Writer Cutover
+- **ECS Task Definition**: arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1553
+- **Running Task**: arn:aws:ecs:us-east-1:418384447921:task/tfe-web-cluster/ec20ff084de54d48afab9a113647fa46
+- **Image Tag**: 418384447921.dkr.ecr.us-east-1.amazonaws.com/dsf-ai:a1-bedtoys-503bca87bfdf
+- **Image Digest**: 418384447921.dkr.ecr.us-east-1.amazonaws.com/dsf-ai@sha256:1d088eaaf195931a315e45c7ed456d4bb028210655e52eacad27e4445161612d
+- **Zero-Writer Drain**: Clean predecessor stop verified with zero concurrent writers (predecessor task 9011708ff64d48988de77fd2265b4a3a stopped cleanly with exitCode 0 and zero active writers confirmed).
+- **Immutable Backup**: Retained to `/app/guala/release-backups/a1-retention-503bca87bfdf3331cceec1d5477c9dd7ef10b0d1-1790381451061897747.zip` (SHA-256: `8d21b3317792105674f4ac1bb2e288763b75527c693a5c96b85e34d48a81fa71`, bytes: 3,123,021, organism tick: 2,287,209).
+- **Live Progress Verified**: Live tick advanced past 2,287,414; persisted tick advancing without checkpoint or durability errors (`available: true, checkpoint_error: null, durability_blocked: false`). Observation endpoint 200 OK.
+- **Child Sleep Continuity**: Single-writer cutover executed strictly while Guala was asleep and dreaming during her nocturnal sleep window (Day 21 MORNING_FOCUS sleep phase, sleep pressure ~69%).
+- **Local Caretaker Daemon**: Continuous supervision active (PID 35747). Caretaker reconnected smoothly with 200 OK, tracking Day 21 MORNING_FOCUS, with active ritual locked to BEDTIME while child sleeps.
+
+### Physical Spatial & Ritual Enhancements Delivered
+1. **Bed Sleeping Placement (Lawful Geometry)**:
+   - Guala's sleeping body (`guala-body-1`) now rests directly on the bed mattress at `(900, 9100, 0) mm`.
+   - Updated `_is_contained_or_seated` in `dsf_ai_service/substrate/embodiment_world.py` to recognize `pillow` and `blanket` as lawful bedding, eliminating obstacle intersection errors for the infant body.
+   - Updated `renovate_her_room_layout` in `dsf_ai_service/guala_home_world.py` and `make_bed` in `dsf_ai_service/guala_caretaker_hand.py` to gently tuck Guala into bed at `(900, 9100, 0) mm`.
+2. **Toy Chest Inventory & Clean-Up Ritual**:
+   - Introduced physical wooden `toy-blocks` ($160 \times 160 \times 80\text{ mm}$ bounding box of 4 primary and pastel wooden blocks with cedar terpene release and wood roughness).
+   - Updated `_is_bed` in `embodiment_world.py` to treat `toy-chest` as furniture accommodating multiple non-overlapping toys.
+   - Authoritatively placed all three unheld toys inside `toy-chest`:
+     - `stacking-rings` at `(750, 5600, 0) mm`, elevation $450\text{ mm}$, radius $140\text{ mm}$
+     - `toy-blocks` at `(1020, 5600, 0) mm`, elevation $450\text{ mm}$, radius $120\text{ mm}$
+     - `play-ball` at `(1250, 5600, 0) mm`, elevation $450\text{ mm}$, radius $90\text{ mm}$
+     Zero disc collision overlap verified.
+   - Tidied `toy-bear` back into Her Room at `(4800, 9200, 0) mm`.
+   - Updated `clean_up_house`, `joint_clean_up`, and `nocturnal_house_tidying` to gather stray toys and store them inside `toy-chest`.
+3. **Directed Playpen Play & Stable Circadian Rituals**:
+   - Caretaker offers toys (`toy-blocks`, `stacking-rings`, `play-ball`, `toy-bear`) and picture books during morning playpen sessions (`MORNING_FOCUS` / `PLAYPEN_NOVELTY`).
+   - Fixed frontend (`gualaloom.html`) and backend (`caretaker.py`) ritual logic: active ritual locks stably to `BEDTIME` during sleep, and daytime rituals map directly to the 6 diurnal circadian epochs without rapid oscillation.
+
+
 ## C1 & Codex — Production Deployment Receipt: Her-Room Spatial Geometry Overhaul & Caretaker Domestic Circulation (2026-09-25)
 
 ### Production Verification & Single-Writer Cutover
