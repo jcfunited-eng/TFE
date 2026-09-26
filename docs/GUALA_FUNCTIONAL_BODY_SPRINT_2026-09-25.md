@@ -6058,3 +6058,123 @@ Do not blindly shrink timesteps or repeat this rejected integrator comparison.
 Home/gravity/concurrent-motor, ordinary organism integration and live delivery
 gates remain open. Full functional-body goal ACTIVE; no production qualification.
 GitHub push remains permission-blocked; retain local commits, do not retry/bypass.
+
+### FB-01aj remove duplicate substep work — contract 2026-09-26 11:20Z
+
+Previous goal turn PROGRESS:9d8c778fe closes the full-implicit comparison with a
+negative accuracy/cost result. Current branch clean at9d8c778fe; shared main
+ledger has no newer G1 entry. Continue the same bounded execution-cost gate.
+
+Current one-interval profile (session37662 exit0): 250ms body at100us needs
+0.314024s unprofiled; 266126 calls/0.425s profiled. Native mj_step0.139s,
+collision0.032s, existing exact checks0.071s; advance Python self0.092s.
+The accepted runtime is already native for motion/contact. Reimplementing
+NumPy's reductions and transcendental functions would risk changing energy/
+guard results. Before a larger native port, delete the confirmed duplicate
+endpoint calculation: end-of-step power is exactly next-step start power.
+There is no intervening velocity, effort or damping mutation. No callback or
+concurrent writer is allowed by this adapter. This is deletion of duplicate
+work, not a cross-interval cache or altered sampling.
+
+Requested architecture: identical bounded body mechanics with less execution
+overhead. Current reality: repeated Python work and duplicate power/damping
+evaluation. Conflict: yes, measured interval misses250ms; no proven physical-law
+defect is being patched by this change. Do not extend fullimplicit trials,
+cognition, substrate fields, behaviors, constitutive laws or relaxed tolerances.
+Single next item: exact same-law duplicate-work deletion and equivalence proof.
+No DSF evaluation: body-only previously approved numerical approximation;
+all explicit DSF fields and cognitive mechanisms remain unchanged.
+
+Authorized runtime edit: only NativeBody.advance in
+dsf_ai_service/substrate/functional_body_native.py.
+Compile motor index array locally once per interval, not on each advanced-index
+lookup. Evaluate pre-step motor/bearing/self-bearing power once, then retain each
+just-computed endpoint only through the next substep. Keep the exact same NumPy
+multiply/dot/square operations and trapezoidal addition order. Move invariant
+half-timestep outside the loop. Call ndarray.sum/max/clip directly instead of
+generic np wrappers on known ndarray values; same reduction axes/dtypes/order.
+No state format, model header, retained model anatomy, observation, or safety
+predicate changes. No native solve, collision refresh, guard or sample omitted.
+
+Causal map: existing world._native_transition supplies authenticated integration
+bytes/effort/elapsed/supply -> NativeBody._restore -> same forward -> same steps
+and poststep kinematics/collision/check -> same work+travel -> same finalforward/
+check/observation/capture -> world materialtime/projected state -> existing
+NativeMechanicalWork -> current-only coupled world/thermal/organism publication.
+Failed advance still mutates only disposable scratch, never caller-owned bytes
+or a published world. Retry starts from authenticated input via _restore.
+No new physical data or observer field crosses a boundary; all successor fields
+must match bit-for-bit, including heat/work and therefore thermal consumers.
+
+Complexity: O(N*(nu+nv+geometry+native solve)) remains, no new retained bytes.
+Bearing dot calls shrink4N->2(N+1) for a self body,2N->N+1 otherwise.
+Motor pre-power reductions shrink2N->N+1 evaluations. This removes duplicate
+allocations/evaluations; it does not merely move them behind a persistent cache.
+All per-step guards and numerical uncertainty/accuracy gates remain intact.
+
+Proof file: tests/test_functional_body_interval_equivalence.py contains the
+9d8c778fe advance method as a TEST-ONLY oracle, not runtime fallback. Compare:
+nine existing100/50/25us x3load four-phase trajectories, fullsuccessors and cold;
+128 known baseline endpoint refusals including exact failuretime/scratchstate;
+zero-actuator gravity/contact and ordinary gripper sequences; sparse retained
+efforts and work exhaustion; countremoveddotcalls; existing constraint observer
+compatibility. No mocked organism experiences or live occurrence calls.
+Run standalone unittest, never pytest/conftest. Relevant native/energy/world
+regressions only after source-only frozen independent review.
+Pre/post read-only AWS and host census, bounded output artifacts. No interactive
+ACK collection. Profile/runtime proof is not copied-mature-body deployment proof.
+
+Lookup recurrence guard: pathuf_native and rootDockerfile glob do not exist;
+use discovered native/guala_core and dsf_ai_service/Dockerfile. Failed read-only
+queries caused no changes. No guessed path will be retried.
+
+### FB-01aj duplicate endpoint work removed — 2026-09-26 11:29Z
+
+Independent source-only review PASS, no findings, fingerprintbe06583c1a25...
+verified unchanged before/after execution. New runtime SHA256f9c86b73c7c1ac46...
+and proof623c77e26fe28022.... One runtime method changed; no new dependencies,
+persistent cache, field/schema, dynamics/force/guard, or production writes.
+
+Session82736exit0:6/6 standalone equivalence proofs in76.935s, peak147604KiB.
+All36 recurrent fullsuccessors and freshcold successors exactly match9d8c778fe;
+all128 original endpoint refusals match error, physicaltime and scratchstate.
+Gravity, friction/gripper, sparse held commands, energy depletion, one-step and
+bad-input recovery match. Existing discrete work observer remains exact; full
+implicit adapter compatibility also checked without promoting that scheme.
+State5152bytes unchanged. Dot-call falsifier confirms4N->2(N+1) with a self
+subtree and2N->N+1 without; zero retained fields added by an advance.
+
+Session56666exit0:61/61 existing native/energy/anatomy/world regressions in2.106s,
+peak149660KiB. Includes coupled heat+reserve, prepare/discard/rollback, fresh
+restart and next interval, contact ownership and actual head/world transforms.
+This is source/isolated integration proof, not copied live-body qualification.
+
+Measured paired recurrence costs (seconds per250ms):
+100us meancandidate.269482 vs predecessor.335544; medianpaired speedup1.1881x.
+50us mean.560283 vs.629047; median1.1295x.
+25us mean1.138649 vs1.265405; median1.1348x.
+Scheduler outliers retained, not hidden; totals/medians and every timing emitted
+in docs/evidence/FB-01aj-interval-execution.json. The100us candidate range is
+.221649–.293198s. NOT a250ms real-time pass, and unchanged trajectories retain
+the previously measured accuracy limitations. No native whole-interval port
+has been built or claimed by this change.
+
+Read-only proofpre11:22:56 /post11:25:14 /regressionpost11:26:18Z:
+same1553/ec20ff/digest1d088e,1/1/0HEALTHY,sameidentity,
+live2388949->2389456,persist2388937->2389449; checkpoint/cleanupnull,
+durabilityfalse; CPU~51%,RAM2.9907%; existing clockALARM,other4OK.
+Host census confirms both harnesses terminal, no A1 child/orphan.
+Caretaker35747/supervisor831 and G1 source/processes untouched.
+
+One output parser expected RECURRENCE at line start, but unittest stderr's
+unfinished progress prefix preceded it. Test had completed exit0 and full
+output was preserved. Parsing the token position recovered all9 rows; no rerun.
+This was an output parser failure, not a test failure or missing evidence.
+
+Disposition: accept exact duplicate-work deletion; this seam is closed.
+Next named action remains the native interval execution boundary, now based on
+the leaner baseline. Preserve NumPy rounding/work/guard outcomes explicitly;
+do not port/repeat deleted endpoint work, reopen constitutive laws, or claim
+smaller timesteps/fullimplicit already solve accuracy. Full body integration,
+home/caregiver/cold mature state, numerical qualification and live delivery
+remain open. GoalACTIVE; GitHub push remains blocked and has not been retried.
