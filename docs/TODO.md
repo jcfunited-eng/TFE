@@ -60,24 +60,12 @@
   - Inter-room causal affordance planning across doorway topologies.
   _File: `tests/test_multi_region_spatial_navigation.py` (5/5 tests pass, 100% regression verified)_
 
-- [x] **W3: ABC / 123 Blocks Physical Toy Inventory Addition (Delivered & Verified 2026-09-26)**
-  Introduce physical wooden alphabet and number blocks (`toy-blocks`) into Guala's physical toy chest / playpen inventory:
-  - Exact physical dimensions ($160\text{ mm} \times 160\text{ mm} \times 80\text{ mm}$ cluster, radius $120\text{ mm}$, mass $480\text{ g}$).
-  - Physical materials: natural cedar wood density, friction $0.80$, cedar aromatic terpene release, tactile wood grain roughness.
-  - Optical surfaces: 4 primary/pastel painted blocks rendered via raycasting.
-  - Physical affordances: stored inside `toy-chest` at elevation $450\text{ mm}$, graspable, transportable, stackable.
-  _Files: `dsf_ai_service/guala_home_world.py`, `dsf_ai_service/substrate/embodiment_world.py` (Deployed to live task 1553)_
-
----
-
-## FUTURE RESEARCH ROADMAP (Waking Semi-Conscious Cognitive Dynamics)
-
-- [ ] **R1: Day Dreaming — Semi-Conscious Waking Imagination & Counterfactual Scenario Synthesis**
-  *Physical Analogy: Waking Episodic Resonance & Generative Internal Modeling.*
-  A deterministic semi-conscious cognitive state that enables Guala to simulate, project, and visualize speculative scenarios without entering sleep.
-  - **Stimulus Trigger Coupling**: Stimulated by incoming real-time sensory cues (e.g. ambient acoustic phrases, retinal glimpses of picture books, domestic smells) that resonate with consolidated episodic memory traces in `dsf_ai_service/episodic_binding_engine.py`.
-  - **Non-Interfering Cognitive Invariant**: Operates as a parallel generative simulation that must never degrade or occlude real-time situational awareness, physical motor collision avoidance, somatic boundary protections, or metabolic urgency responsiveness.
-  - **Deterministic Physics Framing**: Layer 4 epistemic uncertainty potential ($\Delta U^*$) uncoupled from primary motor actuators, allowing low-threshold speculative state-space traversal without displacing primary somatic attention or issuing spurious physical strides.
+- [ ] **W3: ABC / 123 Blocks Physical Toy Inventory Addition**
+  Introduce physical wooden alphabet and number blocks (`toy-block-a`, `toy-block-b`, `toy-block-c`, `toy-block-1`, `toy-block-2`, `toy-block-3`) into Guala's physical toy chest / playpen inventory:
+  - Exact physical dimensions ($80\text{ mm} \times 80\text{ mm} \times 80\text{ mm}$ cubes, radius $56\text{ mm}$, mass $120\text{ g}$).
+  - Physical materials: natural cedar/pine wood density, friction $0.80$, cedar aromatic terpene release, tactile wood grain roughness.
+  - Optical surfaces: engraved orthographic letter/numeral glyphs rendered via 4,935-site retinal raycasting.
+  - Physical affordances: graspable, transportable, knockable, and vertically stackable contact surfaces without heuristics.
 
 ---
 

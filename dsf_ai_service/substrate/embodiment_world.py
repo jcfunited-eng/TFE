@@ -2582,10 +2582,11 @@ PUSH_CLEARANCE_MM = 40
 
 
 def _is_bed(item: EmbodiedObject) -> bool:
-    """A bed or toy chest: furniture that other things (bedding, toys) may lie
-    on or in. Nothing else in the world admits overlap."""
+    """A bed or toy chest, or soft floor bedding (pillow, blanket): furniture
+    and soft textiles that other things may lie on or in, and that do not block
+    walking kinematics as rigid obstacles. Nothing else in the world admits overlap."""
 
-    return item.object_id.startswith("bed") or item.object_id == "toy-chest"
+    return item.object_id.startswith("bed") or item.object_id in ("pillow", "blanket", "toy-chest")
 
 
 def _is_contained_or_seated(item: EmbodiedObject) -> bool:
@@ -2620,7 +2621,7 @@ def _push_aside(
     clearance = carried_radius_mm + item.radius_mm + PUSH_CLEARANCE_MM
     sides = (1, -1) if across >= 0 else (-1, 1)
     for side in sides:
-        for extra in (0, 60, 120, 200):
+        for extra in (0, 60, 120, 200, 300, 400):
             offset = side * (clearance + extra)
             candidate = PositionMM(
                 round(start.x + along * ux + offset * px),
@@ -4527,8 +4528,14 @@ class EmbodimentWorldAuthority:
             # new furniture. Deterministically stand the later-named of any
             # colliding pair at its authored place instead; two authored
             # placements colliding is a declaration defect and refuses.
+            BED_CONTAINED = {"bed", "pillow", "blanket", "toy-bear"}
+            CHEST_CONTAINED = {"toy-chest", "stacking-rings", "toy-blocks", "play-ball"}
             def collides(left, right) -> bool:
                 if left.position is None or right.position is None:
+                    return False
+                if {left.object_id, right.object_id}.issubset(BED_CONTAINED):
+                    return False
+                if {left.object_id, right.object_id}.issubset(CHEST_CONTAINED):
                     return False
                 dx = left.position.x - right.position.x
                 dy = left.position.y - right.position.y
@@ -6062,8 +6069,8 @@ class EmbodimentWorldAuthority:
                     carried_radius + item.radius_mm,
                     )
                 ):
-                    if item.object_id.startswith("bed") and body.body_id == world.self_body_id:
-                        continue  # her bed: she may step onto it and lie on it
+                    if (item.object_id.startswith("bed") or item.object_id in ("pillow", "blanket")) and body.body_id == world.self_body_id:
+                        continue  # her bed and bedding: she may step onto it, lie on it, and step off it
                     if item.object_id == "playpen" and body.body_id == world.self_body_id:
                         start_dist = math.hypot(body.pose.position.x - item.position.x, body.pose.position.y - item.position.y)
                         target_dist = math.hypot(target.position.x - item.position.x, target.position.y - item.position.y)

@@ -43,7 +43,7 @@ from dsf_ai_service.guala_eye_figure import FOCAL_COLUMNS, FOCAL_ROWS, Figure, f
 from dsf_ai_service.substrate.exact_lattice_rotation import rotate_lattice_offset
 from dsf_ai_service.guala_caretaker_hand import (
     _approach_point, _distance_mm, _heading_toward, _portal_points, _portal_route, _region_of,
-    nothing_left_to_bite, offered_within_reach,
+    offered_within_reach,
 )
 from dsf_ai_service.episodic_binding_engine import (
     compute_somatic_salience,
@@ -52,6 +52,9 @@ from dsf_ai_service.episodic_binding_engine import (
     should_consolidate,
     retained_episode_keys,
     bound_retained_episode,
+    bound_waking_moments,
+    consecutive_motor_trials,
+    qualifies_for_retention,
 )
 from dsf_ai_service.guala_voice import ONSETS, PITCHES_DECIHERTZ, VOWELS, syllable_pcm as airway_syllable_pcm
 from dsf_ai_service.substrate.embodiment_world import (
@@ -419,18 +422,11 @@ def _self_body(snapshot: Any) -> Any:
     return matches[0]
 
 
-def _is_food(item: Any) -> bool:
-    return item.material is not None and (
-        item.object_id.startswith("apple")
-        or item.object_id in ("bottle-milk", "bread-slice")
-    )
-
-
 def _bearing_offset(heading: int, bearing: int) -> int:
     return (bearing - heading + 180_000) % 360_000 - 180_000
 
 
-def things_in_sight(snapshot: Any) -> tuple[SeenThing, ...]:
+def things_in_sight(snapshot: Any, known_food_ids: set[str] | None = None) -> tuple[SeenThing, ...]:
     """What she can see: things on the floor of her own room, within her
     field of view and range, nearest first."""
 
@@ -448,7 +444,8 @@ def things_in_sight(snapshot: Any) -> tuple[SeenThing, ...]:
         bearing = _heading_toward(body.pose.position, item.position)
         if abs(_bearing_offset(body.pose.heading_millidegrees, bearing)) > FIELD_OF_VIEW_MILLIDEGREES:
             continue
-        seen.append(SeenThing(item.object_id, item.position, item.radius_mm, distance, bearing, _is_food(item)))
+        is_f = (item.object_id in known_food_ids) if known_food_ids is not None else False
+        seen.append(SeenThing(item.object_id, item.position, item.radius_mm, distance, bearing, is_f))
     return tuple(sorted(seen, key=lambda thing: (thing.distance_mm, thing.object_id)))
 
 
@@ -654,15 +651,15 @@ def _gaze_in_field(head: tuple[int, int], aim: tuple[int, int]) -> tuple[float, 
 
 
 def handleable_held(item: Any) -> bool:
-    """A thing in another hand she can take: light, small, not food."""
+    """A thing in another hand she can take: within physical carrying bounds (mass and radius)."""
 
-    return item is not None and not _is_food(item) and int(item.mass_grams) <= HANDLE_MASS_GRAMS and int(item.radius_mm) <= HANDLE_RADIUS_MM
+    return item is not None and int(item.mass_grams) <= HANDLE_MASS_GRAMS and int(item.radius_mm) <= HANDLE_RADIUS_MM
 
 
 def handleable(item: Any) -> bool:
-    """A thing she can pick up: light, small, on the floor, and not food."""
+    """A thing she can pick up: within physical carrying bounds (mass and radius), on the floor."""
 
-    return (item is not None and item.position is not None and not _is_food(item)
+    return (item is not None and item.position is not None
             and int(item.mass_grams) <= HANDLE_MASS_GRAMS and int(item.radius_mm) <= HANDLE_RADIUS_MM)
 
 
@@ -1129,7 +1126,7 @@ def candidates(
         out.append(("take", offered.object_id + " from a hand", (TakeContactHeldObjectCommand(BEAT_MICROSECONDS),), offered.object_id, None))
 
     # 2. Grasp (one reachable object per world grasp law) and touch reachable things
-    if held is None and len(reachable) == 1 and ((handleable(reachable[0]) and not reachable[0].object_id.startswith("apple")) or (_is_food(reachable[0]) and not nothing_left_to_bite(body, reachable[0]))):
+    if held is None and len(reachable) == 1 and handleable(reachable[0]):
         out.append(("grasp", reachable[0].object_id, (GraspContactCommand(BEAT_MICROSECONDS),), reachable[0].object_id, None))
     if held is None:
         for item in reachable:
@@ -1144,7 +1141,7 @@ def candidates(
 
     # 4. Toward every sensed food target, nearest first (the least strides to reach)
     if held is None and not in_high_chair:
-        food = sorted((thing for thing in seen if thing.is_food and not nothing_left_to_bite(body, _object(snapshot, thing.object_id))),
+        food = sorted((thing for thing in seen if thing.is_food),
                       key=lambda thing: (thing.distance_mm, thing.object_id))
         for item in food:
             stop = body.radius_mm + item.radius_mm + STOP_MARGIN_MM
@@ -1155,9 +1152,11 @@ def candidates(
         if feeding and conserved_objects:
             conserved_food = []
             for obj_id, c_entry in conserved_objects.items():
-                if c_entry.get("is_food") and obj_id not in seen_food_ids:
+                has_nourished = int(c_entry.get("fed_count", 0)) > 0 or int(c_entry.get("historical_intake_micrograms", 0)) > 0
+                is_viable = has_nourished and not c_entry.get("currently_depleted", False)
+                if is_viable and obj_id not in seen_food_ids:
                     snap_obj = _object(snapshot, obj_id)
-                    if snap_obj is not None and not nothing_left_to_bite(body, snap_obj):
+                    if snap_obj is not None:
                         pos = PositionMM(*c_entry["position"])
                         dist = _distance_mm(body.pose.position, pos)
                         stop = body.radius_mm + int(c_entry.get("radius_mm", 100)) + STOP_MARGIN_MM
@@ -1777,7 +1776,12 @@ class FunctionalOrganism:
         state = self._state
         snapshot = sensed.snapshot
         body = _self_body(snapshot)
-        seen = things_in_sight(snapshot)
+        known_foods = set()
+        for obj_id, c_data in state.get("conserved_objects", {}).items():
+            has_nourished = int(c_data.get("fed_count", 0)) > 0 or int(c_data.get("historical_intake_micrograms", 0)) > 0
+            if has_nourished and not c_data.get("currently_depleted", False):
+                known_foods.add(obj_id)
+        seen = things_in_sight(snapshot, known_food_ids=known_foods)
         here = _region_of(snapshot, body.pose.position, body.radius_mm)
         state["room_now"] = None if here is None else here.region_id
         cur_room = state.get("room_now")
@@ -1809,19 +1813,21 @@ class FunctionalOrganism:
         for thing in seen:
             if thing.position is not None:
                 is_fixture = thing.object_id in PERMANENCE_FIXTURES
-                conserved[thing.object_id] = {
+                entry = conserved.setdefault(thing.object_id, {})
+                entry.update({
                     "object_id": thing.object_id,
                     "position": (int(thing.position.x), int(thing.position.y), int(thing.position.z)),
                     "radius_mm": int(thing.radius_mm),
                     "room_id": current_room,
-                    "is_food": bool(thing.is_food),
                     "is_fixture": is_fixture,
                     "last_seen_tick": tick,
                     "confidence": 1.0,
-                }
+                })
+                has_nourished = int(entry.get("fed_count", 0)) > 0 or int(entry.get("historical_intake_micrograms", 0)) > 0
+                entry["is_food"] = bool(has_nourished and not entry.get("currently_depleted", False))
                 fig = state.get("sight_figure")
                 if fig and fig != "none" and (state.get("gaze_target") == thing.object_id or (body.held_object_id == thing.object_id) or (seen and seen[0].object_id == thing.object_id)):
-                    conserved[thing.object_id]["figure_key"] = fig
+                    entry["figure_key"] = fig
 
         # 2. Update held object position (moves with Guala's body)
         if body.held_object_id is not None and body.held_object_id in conserved:
@@ -1976,7 +1982,7 @@ class FunctionalOrganism:
         self._hear_own(sensed.own_frames, tick)
         self._sensorimotor_mesh.step_polarization(sensed.heard_frames)
         self._sync_sensorimotor_mesh()
-        self._form_moments(body, measures, tick)
+        admitted_moment_keys = self._form_moments(body, measures, tick)
 
         # Pre-choice sensory observation captured before any action evaluation
         current_sensory_key = _capture_sensory_key(snapshot, body, state, seen)
@@ -2005,11 +2011,10 @@ class FunctionalOrganism:
                 previous = pending_trans.get("previous")
                 predecessor_entry = moments.get(previous) or state.get("meanings", {}).get(previous) or {}
                 predecessor = predecessor_entry.get("motor_transition")
-                if (predecessor is not None
-                        and predecessor["end_tick"] == trial["start_tick"]
-                        and predecessor["post"] == trial["pre"]
-                        and predecessor["target"] == trial["target"]):
+                if consecutive_motor_trials(predecessor, trial):
                     trial["previous"] = previous
+                if trial_key not in moments:
+                    admitted_moment_keys.add(trial_key)
                 moments[trial_key] = {
                     "count": 1, "tick": tick, "salience": sal,
                     "held": "none",
@@ -2025,12 +2030,22 @@ class FunctionalOrganism:
                 if outcome in moments:
                     moments[outcome]["episode_tail"] = trial_key
                 state["last_motor_trial"] = trial_key
-                while len(moments) > MOMENT_RECORD_CAPACITY:
-                    del moments[min(moments, key=lambda k: (int(moments[k]["tick"]), k))]
             else:
                 # Passive time is not a rehearsed act and cannot bridge an
                 # unobserved interval into an experience sequence.
                 state["last_motor_trial"] = None
+
+        # Finalize real consequences before enforcing the shared waking bound.
+        # Otherwise sensory admission can erase an outcome before its tail binds.
+        moments = state["moments"]
+        bounded = bound_waking_moments(moments, MOMENT_RECORD_CAPACITY, admitted_moment_keys)
+        self._retention_refused = bool(admitted_moment_keys - bounded.keys())
+        state["moments"] = bounded
+        if state.get("last_motor_trial") not in bounded and state.get("last_motor_trial") not in state["meanings"]:
+            state["last_motor_trial"] = None
+        last_moment = state.get("last_moment")
+        if last_moment is not None and last_moment[0] not in bounded:
+            state["last_moment"] = None
 
         if sensed.self_profile is not None and sum(sensed.self_profile) > 0:
             pending = state.get("pending_act")
@@ -2066,11 +2081,18 @@ class FunctionalOrganism:
             return Decision(act, reason, commands, target, drive, signature, novel, gate_count, seen)
 
         if feeding:
+            current_held_id = held.object_id if held is not None else None
+            unsuccessful_held = state.get("unsuccessful_bite_held_id")
+            if unsuccessful_held is not None and (current_held_id is None or current_held_id != unsuccessful_held):
+                state["unsuccessful_bite_held_id"] = None
+
             for item in (held, offered):
-                if item is not None and _is_food(item) and not nothing_left_to_bite(body, item):
+                if item is not None:
                     if item.material is not None and int(item.material.surface_temperature_millikelvin) >= NOCICEPTION_MILLIKELVIN:
                         continue   # too hot to bite: the jaw waits for it to cool (the mouth's reflex)
-                    return decision("bite", "food at her mouth while feeding (the jaw's reflex)", (OralContactCommand(item.object_id, BEAT_MICROSECONDS),), item.object_id)
+                    if item.object_id == state.get("unsuccessful_bite_held_id"):
+                        continue   # suppressed only during unchanged unsuccessful oral contact episode on this held object
+                    return decision("bite", "held item at her mouth while feeding (the jaw's reflex)", (OralContactCommand(item.object_id, BEAT_MICROSECONDS),), item.object_id)
 
         pressure = int(state.get("sleep_pressure", 0))
         if state.get("asleep"):
@@ -2110,6 +2132,7 @@ class FunctionalOrganism:
         sleepy = int(state.get("sleep_pressure", 0)) >= SLEEP_PRESSURE_CEILING // 2
         p_chain = list(state.get("pending_chain") or [])
         state["body_pos"] = (int(body.pose.position.x), int(body.pose.position.y), int(body.pose.position.z))
+        state["body_heading"] = int(body.pose.heading_millidegrees)
         options = candidates(snapshot, body, held, offered, seen, tick, say_drive=say_drive, say_detail=say_reason, feeding=feeding, sleepy=sleepy, conserved_objects=conserved, pending_chain=p_chain, last_crossed_portal=state.get("last_crossed_portal"), sound_heard=sound_heard)
 
         # Cognitive Asset 1: Learned Closed-Loop Continuation Selector
@@ -2265,7 +2288,7 @@ class FunctionalOrganism:
 
     # ----- Level 2 and 3: the moment, and what followed it ------------------------------
 
-    def _form_moments(self, body: Any, measures: dict[str, float], tick: int) -> None:
+    def _form_moments(self, body: Any, measures: dict[str, float], tick: int) -> set[str]:
         """On a beat a sound event closed, or on a silent beat with somatic salience or visual figure:
         the moment's key from the physical invariants (the event, the held thing's texture and warmth
         in eighths, the figure under her gaze), its context (hunger, taste, the caregiver's touch, in eighths),
@@ -2273,8 +2296,9 @@ class FunctionalOrganism:
         as what followed it."""
 
         state = self._state
+        created: set[str] = set()
         if state.get("asleep"):
-            return
+            return created
         self._moment_formed = None
         said = state.get("last_said")
         closed = list(getattr(self, "_ear_closed", [])) + [f"own:{said}" for _key in getattr(self, "_own_closed", []) if said]
@@ -2307,11 +2331,12 @@ class FunctionalOrganism:
             if salience > 0.0 or is_phase_shift:
                 closed = [f"visual:{figure}"]
             else:
-                return
+                return created
         for event in closed:
             key = hashlib.sha256(f"{event}|{held}|{figure}".encode("ascii")).hexdigest()[:16]
             entry = moments.get(key)
             if entry is None:
+                created.add(key)
                 moments[key] = {
                     "count": 1,
                     "tick": tick,
@@ -2342,8 +2367,7 @@ class FunctionalOrganism:
                     del following[min(following, key=lambda k: (int(following[k]), k))]   # the least counted leaves
             state["last_moment"] = [key, tick]
             self._moment_formed = key
-        while len(moments) > MOMENT_RECORD_CAPACITY:
-            del moments[min(moments, key=lambda k: (int(moments[k]["tick"]), k))]   # recency admits fresh lived evidence; counts are unchanged
+        return created
 
     # ----- Level 1: the acoustic gate over her beat ------------------------------------
 
@@ -2518,7 +2542,10 @@ class FunctionalOrganism:
         moments = state.get("moments") or {}
         if not moments:
             return
-        key = max(moments, key=lambda k: (int(moments[k]["count"]), int(moments[k]["tick"]), k))
+        key = max(moments, key=lambda k: (
+            qualifies_for_retention(moments[k]),
+            int(moments[k]["count"]), int(moments[k]["tick"]), k,
+        ))
         retained = retained_episode_keys(moments, key)
         if not retained:
             moments.pop(key)
@@ -2751,7 +2778,7 @@ class FunctionalOrganism:
                     return "toward_door", f"{label}: barren basin exhaustion ({phi_barren:.2f} over {dwell_beats} dwell beats in {cur_room}): evacuating toward negative space"
 
         surplus = max(0.0, min(1.0, (1.0 - deficit) * (1.0 - sleep_ratio)))
-        boredom = max(0.35 if self.live_organism_tick > 100 else 0.0, surplus) * math.tanh(max(0.0, float(dwell_beats - 32)) / 24.0)
+        boredom = surplus * math.tanh(max(0.0, float(dwell_beats - 32)) / 24.0)
         if boredom > 0.25 and "toward_door" in acts and not door_refused:
             return "toward_door", f"{label}: structural boredom ({boredom:.2f} over {dwell_beats} dwell beats): evacuating saturated basin toward negative space"
 
@@ -2847,6 +2874,8 @@ class FunctionalOrganism:
         if tick_now != self.live_organism_tick:
             raise RuntimeError("functional organism tick left its line")
         # Skin on skin or object contact by her own act is felt on the next beat, at its temperature.
+        if applied_action in ("release", "drop") or decision.act in ("release", "drop"):
+            state["unsuccessful_bite_held_id"] = None
         reached = applied_action in ("reach_hand", "touch", "grasp") and refusal is None
         state["pending_contact"] = round(float(contact_fraction), 6) if reached else 0.0
         state["pending_contact_millikelvin"] = int(contact_millikelvin) if (reached and contact_millikelvin is not None) else None
@@ -2860,6 +2889,21 @@ class FunctionalOrganism:
             state["meals_micrograms"] += intake
             state["bites"] += 1
             state["taste_residue"] = min(1.0, float(state.get("taste_residue", 0.0)) + intake / 100_000.0)
+            if decision.target_object_id:
+                state["unsuccessful_bite_held_id"] = None
+                conserved = state.setdefault("conserved_objects", {})
+                entry = conserved.setdefault(decision.target_object_id, {
+                    "object_id": decision.target_object_id,
+                    "position": tuple(state.get("body_pos") or (0, 0, 0)),
+                    "radius_mm": 0,
+                    "room_id": state.get("room_now"),
+                    "last_seen_tick": tick_now,
+                    "confidence": 1.0,
+                })
+                entry["historical_intake_micrograms"] = int(entry.get("historical_intake_micrograms", 0)) + intake
+                entry["fed_count"] = int(entry.get("fed_count", 0)) + 1
+                entry["currently_depleted"] = False
+                entry["is_food"] = True
             last = state.get("last_moment")   # Level 3: a bite within the window is what followed the moment
             if last is not None and tick_now - int(last[1]) <= FOLLOW_WINDOW_BEATS and last[0] in (state.get("moments") or {}):
                 mom_entry = state["moments"][last[0]]
@@ -2867,9 +2911,6 @@ class FunctionalOrganism:
                 mom_entry["count"] = int(mom_entry.get("count", 1)) + 1
                 if decision.target_object_id:
                     mom_entry["target_object_id"] = decision.target_object_id
-                    conserved = state.get("conserved_objects", {})
-                    if decision.target_object_id in conserved:
-                        conserved[decision.target_object_id]["fed_count"] = int(conserved[decision.target_object_id].get("fed_count", 0)) + 1
                 intake_salience = compute_somatic_salience(reserve_delta_ug=intake)
                 mom_entry["salience"] = max(float(mom_entry.get("salience", 0.0)), intake_salience)
                 acts_rec = mom_entry.setdefault("acts", {})
@@ -2882,6 +2923,13 @@ class FunctionalOrganism:
                     "relief": "feeding",
                     "target_id": decision.target_object_id,
                 }
+        elif applied_action == "bite" and decision.target_object_id:
+            state["unsuccessful_bite_held_id"] = decision.target_object_id
+            conserved = state.get("conserved_objects", {})
+            if decision.target_object_id in conserved:
+                entry = conserved[decision.target_object_id]
+                entry["currently_depleted"] = True
+                entry["is_food"] = False
         geom = getattr(self, "_receptor_geometry", None)
         nociception_span = max(1, int(geom.touch_temperature_max_millikelvin) - NOCICEPTION_MILLIKELVIN) if geom is not None else 23_000
         action_pain = _clamp((contact_millikelvin - NOCICEPTION_MILLIKELVIN) / float(nociception_span), 0.0, 1.0) if contact_millikelvin is not None else 0.0

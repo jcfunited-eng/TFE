@@ -159,41 +159,118 @@ def evaluate_anticipatory_consequence(
     return 0.0, None
 
 
-def retained_episode_keys(moments: dict[str, Any], root: str) -> tuple[str, ...]:
-    """The qualified outcome and only its actually witnessed predecessor chain.
+def qualifies_for_retention(entry: dict[str, Any]) -> bool:
+    """Actual intake is retainable without manufacturing salience or recurrence.
 
-    This is the ratified bounded retention law, not extra trials or salience.
-    References into already consolidated/evicted state end this local traversal.
+    This is the ratified engineered retention law, not neuronal plasticity.
+    Other observations retain their existing recurrence/salience qualification.
+    """
+    trial = entry.get("motor_transition")
+    return (
+        isinstance(trial, dict)
+        and trial.get("refusal") is None
+        and int(trial.get("intake", 0)) > 0
+    ) or should_consolidate(float(entry.get("salience", 0.0)), int(entry["count"]))
+
+
+def consecutive_motor_trials(predecessor: Any, successor: Any) -> bool:
+    """A witnessed successful route edge, independent of waypoint names.
+
+    A refusal is not an executable route. Actual intake ends the prior relief
+    episode, preventing repeated meals from becoming one unbounded component.
+    Exact sensory and chronological continuity remain mandatory.
+    """
+    return (
+        isinstance(predecessor, dict) and isinstance(successor, dict)
+        and predecessor.get("refusal") is None
+        and successor.get("refusal") is None
+        and int(predecessor.get("intake", 0)) == 0
+        and predecessor["end_tick"] == successor["start_tick"]
+        and predecessor["post"] == successor["pre"]
+    )
+
+
+def retained_episode_keys(moments: dict[str, Any], root: str) -> tuple[str, ...]:
+    """A qualifying outcome and its available actually witnessed support.
+
+    Missing historical records end traversal. They are never reconstructed.
     """
     entry = moments[root]
-    if not should_consolidate(float(entry.get("salience", 0.0)), int(entry["count"])):
+    if not qualifies_for_retention(entry):
         return ()
     keys = [root]
     visited = {root}
-    tail = entry.get("episode_tail")
-    root_trial = entry.get("motor_transition")
-    if root_trial is not None:
-        previous = root_trial.get("previous")
-        predecessor = moments.get(previous, {}).get("motor_transition")
-        if (predecessor is not None and predecessor["end_tick"] == root_trial["start_tick"]
-                and predecessor["post"] == root_trial["pre"] and predecessor["target"] == root_trial["target"]):
-            tail = previous
+    successor = entry.get("motor_transition")
+    tail = successor.get("previous") if isinstance(successor, dict) else entry.get("episode_tail")
     while tail in moments and tail not in visited:
         trial = moments[tail].get("motor_transition")
-        if not isinstance(trial, dict):
+        if not isinstance(trial, dict) or trial.get("refusal") is not None:
+            break
+        if successor is not None and not consecutive_motor_trials(trial, successor):
             break
         visited.add(tail)
         keys.append(tail)
-        previous = trial.get("previous")
-        predecessor = moments.get(previous, {}).get("motor_transition")
-        if not isinstance(predecessor, dict):
-            break
-        if (predecessor["end_tick"] != trial["start_tick"]
-                or predecessor["post"] != trial["pre"]
-                or predecessor["target"] != trial["target"]):
-            break
-        tail = previous
+        successor = trial
+        tail = trial.get("previous")
     return tuple(keys)
+
+
+def bound_waking_moments(
+    moments: dict[str, Any], capacity: int, admitted_keys: set[str],
+) -> dict[str, Any]:
+    """Enforce existing waking storage without tearing a qualified route.
+
+    Actual newly created keys precede old evidence; refreshing an old record
+    does not make it new. Qualified episodes precede raw observations.
+    Existing count/tick/key order resolves equal storage classes,
+    never motor choice. An oversized component is rejected whole, not truncated
+    into a purported complete episode or retained beyond capacity.
+    """
+    if len(moments) <= capacity:
+        return moments
+    adjacent: dict[str, set[str]] = {key: set() for key in moments}
+    roots: set[str] = set()
+    for root in moments:
+        keys = retained_episode_keys(moments, root)
+        if not keys:
+            continue
+        roots.add(root)
+        for left, right in zip(keys, keys[1:]):
+            adjacent[left].add(right)
+            adjacent[right].add(left)
+    groups: list[set[str]] = []
+    remaining = set(moments)
+    for seed in sorted(moments):
+        if seed not in remaining:
+            continue
+        group: set[str] = set()
+        frontier = [seed]
+        while frontier:
+            key = frontier.pop()
+            if key in group:
+                continue
+            group.add(key)
+            frontier.extend(adjacent[key] - group)
+        remaining.difference_update(group)
+        groups.append(group)
+    groups.sort(key=lambda group: (
+        bool(group & admitted_keys), bool(group & roots),
+        min(int(moments[k]["count"]) for k in group),
+        min(int(moments[k]["tick"]) for k in group), min(group),
+    ))
+    result = dict(moments)
+    # Reject impossible groups first so they cannot displace every smaller
+    # qualified episode only to be refused themselves.
+    for group in groups:
+        if len(group) > capacity:
+            for key in group:
+                result.pop(key, None)
+    for group in groups:
+        if len(result) <= capacity:
+            break
+        for key in group:
+            result.pop(key, None)
+    return result
 
 
 def bound_retained_episode(
@@ -294,9 +371,7 @@ def find_supported_continuation(
             predecessor = meanings.get(previous, {}).get("motor_transition")
             if not isinstance(predecessor, dict):
                 break
-            if (predecessor["end_tick"] != trial["start_tick"]
-                    or predecessor["post"] != trial["pre"]
-                    or predecessor["target"] != trial["target"]):
+            if not consecutive_motor_trials(predecessor, trial):
                 break
             trial = predecessor
 
@@ -330,3 +405,4 @@ def find_supported_continuation(
         if candidate not in viable:
             viable.append(candidate)
     return viable[0] if len(viable) == 1 else None
+

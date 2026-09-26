@@ -586,7 +586,7 @@ HOME_LAMP_HEIGHTS = {
 HOME_DEPARTED = ("art-arch", "art-circle", "berries", "bread", "carrot", "cheese", "kitchen-cabinet", "milk", "plate")
 
 # Her room's nightlight.
-NIGHT_LIGHT = ("night-light",   500, 8_600, 80, 300, 250, (900_000,) * 6, (300_000,) * 6)
+NIGHT_LIGHT = ("night-light",   300, 8_000, 80, 300, 250, (900_000,) * 6, (300_000,) * 6)
 
 
 def _shaped(things: list[Any]) -> list[Any]:
@@ -986,7 +986,6 @@ def _home_rooms_and_things() -> tuple[list[Any], list[Any], list[Any]]:
         # --- 2. DINING ROOM (5 items) ---
         ("dining-table",       9_500, 2_500, 700, 35_000, (880_000, 880_000, 880_000, 880_000, 880_000, 880_000)),
         ("dining-chair",       9_500, 3_600, 260,  6_000, (50_000,   50_000,  50_000,  50_000,  50_000,  50_000)),
-        ("dining-chair-south", 9_500, 1_400, 260,  6_000, (50_000,   50_000,  50_000,  50_000,  50_000,  50_000)),
         ("sideboard",         11_300, 4_200, 450, 38_000, (220_000, 180_000, 150_000, 130_000, 120_000, 110_000)),
         ("dining-lamp",       11_400,   800, 220,  4_000, (900_000, 850_000, 750_000, 600_000, 500_000, 450_000)),
         ("bottle-milk",       8_000,  3_500,  50,    250, (920_000, 920_000, 920_000, 900_000, 880_000, 850_000)),

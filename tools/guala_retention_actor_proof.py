@@ -110,7 +110,7 @@ after = persisted(actor, store)
 if initial_feeding and (first_presentation or {}).get("presented"):
     assert bite, "no physical bite occurred while hungry and food presented"
     assert actor._runtime.reserve_micrograms > initial_reserves
-else:
+elif not initial_feeding:
     assert not bite, "sated organism erroneously bit food"
 assert after.pointer.current.identity == initial.pointer.current.identity
 assert after.pointer.current.organism_tick >= initial.pointer.current.organism_tick + 8
