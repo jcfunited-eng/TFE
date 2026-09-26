@@ -106,6 +106,11 @@ def append_reference_biped(worldbody: ET.Element, actuators: ET.Element,
         hinge(head, name, axis, bounds, .02)
     geom(head, "sphere", size=(.07,), pos=(0, 0, .03))
     inertial_site(head)
+    # One ideal mono retinal origin, fixed to the real head. Camera coordinates
+    # are right/up/back; the optical consumer converts to forward/left/up.
+    # It contributes no inertia, scene state, framebuffer or gaze controller.
+    ET.SubElement(head, "camera", name="guala/retina", mode="fixed",
+                  pos=".08 0 .03", xyaxes="0 -1 0 0 0 1")
 
     for side, sign in (("left", 1), ("right", -1)):
         thigh = body(pelvis, side + "/thigh", (0, sign * .065, -.04))

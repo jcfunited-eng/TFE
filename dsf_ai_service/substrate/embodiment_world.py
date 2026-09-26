@@ -4594,8 +4594,10 @@ class EmbodimentWorldAuthority:
                 world.native.integration_state, frame_name, origin_local_m,
                 max_geoms=max_geoms)
 
-    def native_optical_sources(self, *, expected_revision: int, frame_name: str,
-                               origin_local_m: tuple[float, float, float],
+    def native_optical_sources(self, *, expected_revision: int,
+                               frame_name: str | None = None,
+                               origin_local_m: tuple[float, float, float] | None = None,
+                               retinal_rotation: tuple[int, int] | None = None,
                                max_geoms: int, max_material_cells: int):
         """One current world/native optical source view, not a second scene.
 
@@ -4619,7 +4621,8 @@ class EmbodimentWorldAuthority:
             materials, emitters = resolve_materials(
                 world, engine.optical_source_bindings, max_material_cells=max_material_cells)
             geometry = engine.optical_geometry(world.native.integration_state, frame_name,
-                                               origin_local_m, max_geoms=max_geoms)
+                                               origin_local_m, max_geoms=max_geoms,
+                                               retinal_rotation=retinal_rotation)
             return NativeOpticalSources(world.revision, world.native, geometry, materials,
                                         world.regions, emitters,
                                         "retained" if world.native.solar_sample is not None else

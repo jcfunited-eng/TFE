@@ -19,7 +19,22 @@ from .functional_body_optics import (
 from .functional_body_renderer import BOX, classify, scene_geometry
 from .functional_body_sphere_cap import cap_solid_angles
 from .functional_body_visibility import VisibleRegion, subtract_convex
-from .w1_physical_receptors import LAMP_NEAR_GAIN
+from .w1_physical_receptors import LAMP_NEAR_GAIN, UPGRADED_RETINAL_SITE_GEOMETRY
+
+
+def _aperture_anatomy():
+    """One numeric representation of existing fixed receptor apertures."""
+    values = np.array([
+        (math.radians(float(h-dh)/1000), math.radians(float(h+dh)/1000),
+         math.sin(math.radians(float(v-dv)/1000)),
+         math.sin(math.radians(float(v+dv)/1000)))
+        for _, h, v, dh, dv in UPGRADED_RETINAL_SITE_GEOMETRY
+    ], dtype=np.float64)
+    values.setflags(write=False)
+    return values
+
+
+RETINAL_APERTURES = _aperture_anatomy()
 
 
 def _painted_regions(sources, surfaces, addresses, visible, domain):

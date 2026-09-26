@@ -78,31 +78,43 @@ def _self_body(snapshot: Any) -> Any:
     return next(body for body in snapshot.bodies if body.body_id == snapshot.self_body_id)
 
 
-def _world_retina_u8(snapshot: Any, axes: tuple[Any, ...], sun: tuple[float, float, float, int] | None = None, pupil: bool = True) -> tuple[tuple[int, ...], OpticalEvidence]:
-    """Her world retina at this beat in full RGB colour: 3 channels per site across all
-    19,335 sites (58,005 values). Red = mean(bands 0, 1), Green = mean(bands 2, 3),
-    Blue = mean(bands 4, 5)."""
+def _world_retina_u8(snapshot: Any, axes: tuple[Any, ...], sun: tuple[float, float, float, int] | None = None,
+                     pupil: bool = True, *, world: Any = None) -> tuple[tuple[int, ...], OpticalEvidence]:
+    """RGB transduction of the current world eye; native head pose is authoritative.
 
-    heading, pitch, transmission = retinal_carriage(axes)
-    pixels = retinal_irradiance_field(
-        snapshot, retinal_heading_offset_millidegrees=heading,
-        retinal_pitch_offset_millidegrees=pitch, include_focal=True, sun=sun,
-    )
-    # Every site's six bands at once: red is the mean of bands 0 and 1, green of 2 and 3,
-    # blue of 4 and 5, at the retina's eight-bit grain through the eyelid's transmission.
-    if _gc is not None and hasattr(_gc, "fast_pixels_to_bands_f64"):
-        raw = _gc.fast_pixels_to_bands_f64(pixels, _EIGHT_BIT)
-        bands = np.asarray(raw, dtype=np.float64).reshape(-1, 6)
+    Native optics is the approved numerical six-band field, with 1/510 radiance
+    radius. Pupil gain may amplify that error; this is not a claim of exact
+    final bytes against real optics. The legacy unmounted producer is unchanged.
+    """
+    mounted = getattr(snapshot, "native", None) is not None
+    heading, pitch, transmission = retinal_carriage(axes, include_neck=not mounted)
+    if mounted:
+        if world is None or sun is not None:
+            raise RuntimeError("native retina requires current world and retained sunlight")
+        from dsf_ai_service.substrate.functional_body_retinal import RETINAL_APERTURES, native_retinal_radiance
+        sources = world.native_optical_sources(
+            expected_revision=snapshot.revision, retinal_rotation=(heading, pitch),
+            max_geoms=256, max_material_cells=32768)
+        # Same accepted bounds as the complete optical consumer. Resource refusal
+        # never invokes old upright geometry or publishes a partial field.
+        bands, _radius, _nodes, _depth, _unknown = native_retinal_radiance(
+            sources, RETINAL_APERTURES, 1/510, max_shadow_tests=20000000, max_nodes=262144)
     else:
-        bands = np.array(pixels, dtype=np.float64)                         # sites x 6 (exact fractions become floats here, once)
+        pixels = retinal_irradiance_field(
+            snapshot, retinal_heading_offset_millidegrees=heading,
+            retinal_pitch_offset_millidegrees=pitch, include_focal=True, sun=sun,
+        )
+        if _gc is not None and hasattr(_gc, "fast_pixels_to_bands_f64"):
+            raw = _gc.fast_pixels_to_bands_f64(pixels, _EIGHT_BIT)
+            bands = np.asarray(raw, dtype=np.float64).reshape(-1, 6)
+        else:
+            bands = np.array(pixels, dtype=np.float64)
     rgb = np.stack(((bands[:, 0] + bands[:, 1]) / 2.0, (bands[:, 2] + bands[:, 3]) / 2.0, (bands[:, 4] + bands[:, 5]) / 2.0), axis=1)
-    if rgb.min() < 0.0 or rgb.max() > 1.0:
+    if not np.isfinite(rgb).all() or rgb.min() < 0.0 or (not mounted and rgb.max() > 1.0):
         raise RuntimeError("retinal observer left its physical range")
-    # THE PUPIL LAW: in a dark room the pupil opens, up to sixteen times, until the field's
-    # middle light reaches mid-range or all but its brightest fiftieth (a lamp's shade,
-    # the glow stars) reaches full, whichever comes first; in a bright room it stays at one. Declared once, decided by this beat's field
-    # alone (no state), the same field twice gives the same gain; only that fiftieth clips,
-    # so what her figure law reads is the raw field scaled, and what no light reaches stays dark.
+    # Existing pupil law: discrete gain from the same field's median and
+    # highlight percentile, without new adaptation state. Native radiance may
+    # already exceed unity: such channels saturate here even at unit gain.
     middle = float(np.median(rgb))
     bright = float(np.percentile(rgb, PUPIL_HIGHLIGHT_PERCENTILE))
     gain = 1.0
@@ -351,7 +363,10 @@ class FunctionalPhysicalLoop:
                 returning = world.pending_physical_return
             before = world.observation_snapshot()
             axes = organism.body_axes
-            world_retina, optical_evidence = _world_retina_u8(before, axes, _sun_of(world))
+            if before.native is not None:
+                world_retina, optical_evidence = _world_retina_u8(before, axes, world=world)
+            else:
+                world_retina, optical_evidence = _world_retina_u8(before, axes, _sun_of(world))
             external_rgb = None
             focal = world_retina[-WORLD_FOCAL_VALUES:]
             source = "world"

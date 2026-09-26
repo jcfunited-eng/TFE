@@ -260,6 +260,7 @@ class NativeBody:
 
     def _sensory_membership(self, root_name):
         m = self._model
+        self._retinal_camera = None
         if root_name is None:
             return (), {}, np.empty(0, dtype=np.intp)
         if not isinstance(root_name, str) or not root_name:
@@ -272,6 +273,15 @@ class NativeBody:
         for i in range(root + 1, m.nbody):
             if int(m.body_parentid[i]) in bodies:
                 bodies.add(i)
+        cameras = [i for i, body in enumerate(m.cam_bodyid) if int(body) in bodies]
+        if len(cameras) > 1:
+            raise ValueError("one declared mono retinal camera per self body required")
+        if cameras:
+            camera = cameras[0]
+            if (int(m.cam_mode[camera]) != int(mj.mjtCamLight.mjCAMLIGHT_FIXED)
+                    or int(m.cam_targetbodyid[camera]) != -1):
+                raise ValueError("retinal camera must be fixed without a tracking target")
+            self._retinal_camera = camera
         geoms = {}
         for i, body in enumerate(m.geom_bodyid):
             if int(body) in bodies:
@@ -397,37 +407,57 @@ class NativeBody:
         self._restore(state)
         return self._observation()
 
-    def _optical_pose(self, state, frame_name, origin_local_m):
-        """Common current-state optical transform; no retained observer frame."""
-        if (type(origin_local_m) is not tuple or len(origin_local_m) != 3
-                or any(type(x) not in (int, float) or not math.isfinite(x)
-                       for x in origin_local_m)):
-            raise ValueError("finite link-local optical origin required")
+    def _optical_pose(self, state, frame_name, origin_local_m, retinal_rotation=None):
+        """Current physical frame; native retina never reconstructs root yaw."""
         m = self._model
-        if type(frame_name) is not str or self._sensory_root is None:
-            raise ValueError("declared self optical frame required")
-        frame = int(mj.mj_name2id(m, mj.mjtObj.mjOBJ_BODY, frame_name))
-        root = int(mj.mj_name2id(m, mj.mjtObj.mjOBJ_BODY, self._sensory_root))
-        ancestor = frame
-        while ancestor > 0 and ancestor != root:
-            ancestor = int(m.body_parentid[ancestor])
-        if frame <= 0 or ancestor != root:
-            raise ValueError("optical frame must belong to the self body")
+        if retinal_rotation is None:
+            if (type(origin_local_m) is not tuple or len(origin_local_m) != 3
+                    or any(type(x) not in (int, float) or not math.isfinite(x)
+                           for x in origin_local_m)):
+                raise ValueError("finite link-local optical origin required")
+            if type(frame_name) is not str or self._sensory_root is None:
+                raise ValueError("declared self optical frame required")
+            frame = int(mj.mj_name2id(m, mj.mjtObj.mjOBJ_BODY, frame_name))
+            root = int(mj.mj_name2id(m, mj.mjtObj.mjOBJ_BODY, self._sensory_root))
+            ancestor = frame
+            while ancestor > 0 and ancestor != root:
+                ancestor = int(m.body_parentid[ancestor])
+            if frame <= 0 or ancestor != root:
+                raise ValueError("optical frame must belong to the self body")
+        else:
+            if (frame_name is not None or origin_local_m is not None
+                    or type(retinal_rotation) is not tuple or len(retinal_rotation) != 2
+                    or any(type(x) is not int or not -90000 <= x <= 90000
+                           for x in retinal_rotation)):
+                raise ValueError("exclusive typed eye-relative retinal rotation required")
+            if self._retinal_camera is None:
+                raise ValueError("self retinal camera is not mounted")
 
         self._restore(state)
         d = self._data
-        rotation = d.xmat[frame].reshape(3, 3)
-        origin = d.xpos[frame] + rotation @ np.asarray(origin_local_m)
+        if retinal_rotation is None:
+            rotation = d.xmat[frame].reshape(3, 3)
+            origin = d.xpos[frame] + rotation @ np.asarray(origin_local_m)
+        else:
+            camera = self._retinal_camera
+            c = d.cam_xmat[camera].reshape(3, 3)
+            rotation = np.column_stack((-c[:, 2], -c[:, 0], c[:, 1]))
+            yaw, pitch = (math.radians(x / 1000) for x in retinal_rotation)
+            cy, sy, cp, sp = math.cos(yaw), math.sin(yaw), math.cos(pitch), math.sin(pitch)
+            # Rz(yaw) Ry(-pitch): positive pitch looks up in forward/left/up.
+            eye = np.array(((cy*cp, -sy, -cy*sp),
+                            (sy*cp, cy, -sy*sp), (sp, 0., cp)))
+            rotation = rotation @ eye
+            origin = d.cam_xpos[camera]
         if not np.isfinite(origin).all() or not np.isfinite(rotation).all():
             raise ValueError("non-finite optical world transform")
-        # Preserve the same admitted spatial domain as native multiRay.
         if np.any(np.abs(d.geom_xpos - origin) > mj.mjMAXVAL / math.sqrt(3)):
             raise ValueError("optical scene exceeds native ray range")
         return origin, rotation
 
-    def optical_geometry(self, state: bytes, frame_name: str,
-                         origin_local_m: tuple[float, float, float], *,
-                         max_geoms: int) -> OpticalGeometry:
+    def optical_geometry(self, state: bytes, frame_name: str | None,
+                         origin_local_m: tuple[float, float, float] | None, *,
+                         max_geoms: int, retinal_rotation: tuple[int, int] | None = None) -> OpticalGeometry:
         """Packed complete primitive roster for a bounded world optical caller.
 
         No visibility filtering, self removal, material guess, triangulation,
@@ -444,7 +474,7 @@ class NativeBody:
             raise ValueError("native optical geometry requires actual mesh/heightfield data")
         if not np.isfinite(m.geom_size).all() or np.any(m.geom_size < 0):
             raise ValueError("invalid native primitive sizes")
-        origin, rotation = self._optical_pose(state, frame_name, origin_local_m)
+        origin, rotation = self._optical_pose(state, frame_name, origin_local_m, retinal_rotation)
         d = self._data
         kinds = np.array(m.geom_type, dtype=np.int32, copy=True)
         sizes = np.array(m.geom_size, dtype=np.float64, copy=True)

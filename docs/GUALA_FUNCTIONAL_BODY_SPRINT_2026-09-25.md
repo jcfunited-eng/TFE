@@ -5097,3 +5097,212 @@ The remaining latency gap stays OPEN in the full body acceptance; integration
 does not grant production permission or erase it. Full home/body/caregiver,
 motor/sensory, copied mature-body, restart, resource, rehearsal and live
 acceptance remain required. No speech/cognition/retina expansion. GoalACTIVE.
+
+## FB-01ai — Ordinary native retinal consumption — 2026-09-26 07:40Z
+
+Previous turn PROGRESS:bfe525bb4,85standalone passes, exact complete-field
+514.177->288.646ms. Continue authorized FB-01g body integration. No reopening
+of optical source/paint/light/interval laws; no further helper optimization.
+Requested architecture: actual articulated head pose -> current world light ->
+existing ocular transducer -> existing sensory consumer, one world revision.
+Current ordinary _world_retina_u8 still uses upright root plus legacy neck.
+Conflict:YES for a mounted articulated body. Do not extend upright rendering
+for native mounts or substitute a camera preview. Existing unmounted live body
+keeps its current law. No cognitive selection, speech, caretaker or ingress edit.
+This is approved bounded numerical body optics, NOT full joint DSF evaluation.
+Six spectral bands still enter the existing pairwise RGB transducer; no new
+DSF reduction. Fine geometry is the already-declared primitive/aperture model.
+
+Exact seam and ownership:
+- Add one fixed mono camera to reference anatomy XML on the actual head,
+  local origin(.08,0,.03)m,10mm in front of its .07m head surface.
+  This is declared virtual receptor placement, not human anatomical calibration.
+  Fixed camera right/up/back basis maps to optical forward/left/up as
+  [-C[:,2],-C[:,0],C[:,1]]. No rendered camera framebuffer is used.
+- NativeBody resolves the unique self-subtree fixed/no-target camera once from
+  immutable model anatomy. No new retained state, state schema, clock or owner.
+  Current cam_xpos/cam_xmat come from the same mj_forward endpoint as geometry.
+  Missing/multiple/tracking cameras explicitly refuse; never choose by name.
+- Eye-relative typed yaw/pitch compose Rhead-camera*Rz(yaw)*Ry(-pitch).
+  Existing neck axes MUST NOT be added again. retinal_carriage gains a typed
+  include_neck option(defaultTrue keeps all existing callers unchanged).
+  Lid validation/transmission and eye ranges remain the existing law.
+- Existing native_optical_sources admits an explicit retinal-rotation request
+  instead of diagnostic frame/origin. Shared source/query/publication lock,
+  current world revision, full native geometry, current materials and retained
+  solar sample; no new wall-clock sample, horizon roster or separate scene.
+- Existing canonical UPGRADED_RETINAL_SITE_GEOMETRY supplies fixed readonly
+  aperture anatomy once on native optical-module import. No new retinal sites
+  or per-beat grid rebuild. Test-only historical grid remains independent witness.
+- _world_retina_u8 branches ONLY on actual snapshot.native. Native requires
+  the authoritative world and mounted camera, obtains six-band radiance from
+  accepted native_retinal_radiance, then uses the SAME pupil/gain/pre_clip/
+  transmission/rint/saturation packing code. Ordinary _advance selects this
+  branch; legacy call signature and output remain unchanged.
+- Native radiance can exceed1 before the real RGB saturation stage. Unlike
+  old W1's intermediate clipped/quantized surface values, native input remains
+  nonnegative float64 until existing RGB/pupil saturation. This is an explicit
+  body-optical producer correction, not a claim of legacy-native image equality.
+  1/510 six-band radiance error remains; pupil gain can amplify it, and gain
+  thresholds are discontinuous. Do NOT claim half-bin/exact final-byte accuracy
+  against an exact real optical field. Mask is producer-origin for the admitted
+  numerical transducer value, not inferred from byte212 or claimed unclipped truth.
+- Existing focal/ambient slicing, camera replacement and OpticalEvidence reach
+  Sensed unchanged. Source geometry/camera addresses never become sensory labels.
+
+Cold/rollback: XML identity changes with declared camera. Fresh camera-equipped
+mounts restore exactly; camera-less old XML remains camera-less and refuses
+native retinal use. Never rebind old integration bytes to new XML. World source
+reads and transduction are read-only and finish before a result is exposed.
+No new persistence record or cached image. Full ordinary MOTOR/energy/feedback
+mounting remains separately required within FB-01g; this read path does not
+certify a complete native ordinary beat or autonomous head/motor learning.
+
+Authorized source: functional_body_anatomy.py, functional_body_native.py,
+embodiment_world.py(native optical query only), functional_body_retinal.py
+(fixed aperture anatomy only), guala_world_sensorium.py(retinal_carriage only),
+guala_functional_loop.py(retinal producer and its call only).
+One new standalone sensory-consumption proof and this existing ledger.
+No organism-state/choice/memory/energy law changes; no production mutation.
+
+Acceptance: independent SOURCE gate before import/tests. Actual mounted camera
+after real multi-axis head effort must change ordinary RGB, with point origin/
+basis agreeing with native transforms; eye-only turns compose once, changing
+legacy neck values alone cannot steer native sight. Real current light/patterns
+reach the existing Sensed/FunctionalOrganism.decide consumer; this is local
+sensory use, not full native settle or cognition evidence. Cold world/camera/
+pixel+mask equality and next motor remain exact. Missing/ambiguous/wrong-mode
+camera, stale revision, mixed query modes and absent world fail closed.
+Native oversaturation packs true producer bits; legacy pixels/evidence preserve
+their prior law. Whole19335-site caller measured once including conversion;
+resource limits unchanged. Source query cannot mutate world.
+No pytest/conftest/network execution. Pre/post AWS/process envelopes required.
+Copied mature-body, full-home/caregiver, joint-feedback/motor, paired restart,
+package/rehearsal and live gates remainOPEN, as does250ms on the complete path.
+
+Read-only preflight independent optical_reference_review confirmed camera basis,
+self ownership, exact installed MuJoCo header fields and XML identity change.
+Two owner path guesses failed before edits: functional_body_mount.py does not
+exist (mount is in embodiment_world.py); thermally_coupled_world.py does not
+exist (actual thermally_coupled_embodiment_world.py). Do not repeat guessed
+reads; resolve unknown file names with rg--files before named-file commands.
+
+### FB-01ai owner translation/preflight review — 2026-09-26
+
+Previous goal turn was status-only (NO PROGRESS). Current exact baseline
+bfe525bb4, a1/guala-functional-body. Source owner stops at freeze.
+One repeated bootstrap mistake: require-guala-root returned65 for the known
+absent July31 handoff. The existing FB-01y rule remains authoritative:
+preflight existence, use explicit Git root/HEAD and this modern sprint ledger;
+do not recreate old authority files. No runtime command ran from that failure.
+An earlier JS patch-construction SyntaxError occurred before any file write;
+corrected tool syntax only. Neither failure changes physical evidence.
+
+Translation/evidence map: immutable head camera -> current mj_forward
+cam_xpos/cam_xmat -> OpticalGeometry (world origin/basis, full primitive roster)
+-> same-revision NativeOpticalSources (retained materials/light) -> accepted
+six-band aperture mean -> existing pairwise RGB/pupil/pre_clip/mask -> unchanged
+Sensed focal/ambient/evidence fields -> existing real decide consumer.
+No camera/frame/primitive address enters cognitive identity. One static
+19335x4x8=618720byte aperture anatomy, not repeated per beat. Native transform
+restores scratch, does not write world. No persistent optical cache or schema.
+Head motion proof supplies declared external motor effort; not learned motor
+control. Test drives real producer/consumer, NOT a full ordinary native beat.
+The ordinary _advance call now selects the native producer; full motor/energy/
+feedback mounting is still required before end-to-end production proof.
+
+First-use camera anatomy and fresh restore use XML-bound native identity.
+Old camera-less bytes restore unchanged and refuse native retinal consumption.
+Camera-less fallback, ambiguous/tracking cameras, stale revisions and mixed
+query modes must fail without changing encoded world. Static resource ceilings
+are the accepted consumer envelope, not proof of full-home admissibility.
+Numerical interval radius is NOT final-byte/saturation certainty; no downstream
+radius field invented. Existing evidence describes admitted numerical producer.
+Pupil comment corrected to disclose native overrange clipping; law unchanged.
+
+SOURCE review precedes all imports/tests. The native primitive binary is the
+accepted bfe525bb4 isolated build, not the globally installed G1 extension.
+Proof environment must identify its actual loaded file; full new caller timing
+and peak RSS are local measurements. No live writes/pytest. Before/after AWS
+and exact process census required. Remote push remains blocked; no bypass.
+
+FB-01ai source/proof record before final execution:
+- SOURCE gate8f9ddfb4 PASS, owner edits stopped during independent review.
+- session44923:5PASS/1ERROR before head motion: test supplied roll,pitch instead
+  of canonical pitch,roll addresses. Corrected test only; same efforts/duration.
+  Final source confirmationc38a3b59 PASS. Removed unused import and relabeled
+  printed58005 count as u8_values, not Python allocation bytes.
+- session24683:5PASS/1FAIL. Actual multi-axis head motion changed retinal bytes;
+  fresh cold image/evidence and current world bytes identical. Final raw Python
+  receipt equality failed on lamp emission(0,0,0,0,0,0) versus().
+  Established EmbodiedObject.as_record/_canonical_record omit all-zero emission;
+  decoder restores(). Native source resolution expands both to identical zeros.
+  No runtime or codec change. Use complete authenticated as_record equality,
+  explicit only-zero-emission-alias assertion, exact native_work and next world
+  bytes. Independent reviewer classified LOCALIZED proof equality mismatch.
+- Diagnostic session48431 terminal0: complete receipt record equalityTRUE,
+  native_workTRUE,cold world bytesTRUE,next entire world bytesTRUE; raw Python
+  receipt equalityFALSE. No fields discarded and no physical law relaxed.
+- Both failed sessions retained; no broad regressions ran after first failure.
+  A read command also guessed absent tests/test_functional_body_mount.py.
+  Resolved actual test_functional_body_world.py with rg--files; no such guessed
+  path should recur. Runtime source remains identical to reviewed8f9ddfb4.
+
+Host coordination: other-agent pytest64546 initially active. Actual capacity
+20CPU,~24GiB available, no cgroup CPU/memory cap; focused3s/<218MiB correctness
+run safely coexisted, not a production timing qualification. Other suite was
+gone by07:55 census. No signaling. All A1proof handles terminal after runs.
+Read-only07:53:49..07:57:40 live1553/ec20ff/digest1d088e unchanged,counts1/1/0,
+live2359077->2359641,persist2359049->2359625,errorsnull. Caretaker35747 untouched.
+OldclockALARM remains, other4alarmsOK. Fullbody and250ms gates stillOPEN.
+
+### FB-01ai local verification — 2026-09-26 08:03Z
+
+Final source/test fingerprint5058ba2f91323cf56393d33e5da11c58633bb994ba01c007cf6cdd76a5199d1a
+independently confirmed, verified again after execution before this append.
+Runtime source unchanged after initial source PASS. Both test-only failures
+and their precise corrections are preserved above; no physics, codec or
+acceptance boundary changed to hide a failure.
+
+Standalone session83805 terminal0:82PASS in8.433355s,peak225160KiB:
+6new sensory-consumption,25native mechanics/interface,7anatomy,21world/heat/
+optical custody,11source custody,7retinal integration,5compiledprimitive.
+Loaded exact isolated bfe525bb4 native binary
+/tmp/guala-body-optics-native.U8I8en/python/guala_core/guala_core.cpython-311-x86_64-linux-gnu.so
+SHA256b3d1c01707bbbb9609486dbfe7a9516fa8336e3a5f627a81c4e69431469176bd.
+No pytest/conftest,network writes,global extension replacement or build.
+
+Actual19335-site mounted world -> ordinary RGB/mask producer -> real existing
+Sensed/decide path exercised. Complete producer292.892732ms,58005u8values,
+static aperture618720bytes. Real multi-axis head effort changes pixels;
+eye rotation applied once; old neck coordinates do not steer native camera;
+cold image/mask and complete authenticated next receipt/native work/world
+bytes identical. Missing/ambiguous/tracking camera/stale/mixed modes refuse.
+Legacy pixels/gain/masks unchanged. Native overrange radiance clips only at
+existing transducer. No local-preview substitution, output byte oracle or
+new cognitive decision law.28800primitive bound comparisons remain exact.
+
+292.9ms exceeds250ms: latency gateOPEN, not production/full-home timing or
+whole-body interval. Body camera is SOURCE/runtime-reachable/LOCALLY EXERCISED;
+no full native ordinary motor beat, learned gaze, autonomous climbing, full
+DSF-neuronal delivery or live mount is claimed. Fixedcamera changes XML-bound
+anatomy; old camera-less native snapshots are not silently migrated.
+
+Final before/after readonly AWS08:01:12..08:02:04,us-east-1,
+tfe-web-cluster/dsf-ai-service-lb,task1553/ec20ff084de54d48afab9a113647fa46,
+image1d088eaaf195931a315e45c7ed456d4bb028210655e52eacad27e4445161612d,
+counts1/1/0,RUNNINGHEALTHY,sameorganism1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1,
+live2360157->2360285,persist2360137->2360265,errorsnull,durabilityfalse.
+CPU51.07->51.23%,RAM2.979%;oldclockALARM persists,other4OK.
+No A1test/compiler/diagnostic survivor in08:02:20 escalated census.
+Caretaker35747 unchanged. No production or G1 source/process changes.
+
+Disposition: close FB-01ai only. Next FB-01aj connects the approved existing
+motor/feedback/energy seam through the ordinary functional loop. Reuse prior
+FB-01g source map; do not re-open optical law or add another helper-only pass.
+Acceptance remains authentic applied joint effort -> local measured afference
+consumed by the same organism -> retained performed trial and energy/heat ->
+paired cold successor. Preserve historical learned records, no aliasing root
+acts into joint experience, no scripted gait/controller or separate brain.
+Fullhome/caregiver/copied mature-body/resource/rehearsal/live gates required.
+GoalACTIVE, remote publication permission still outstanding; no retry/bypass.

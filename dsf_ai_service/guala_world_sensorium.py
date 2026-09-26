@@ -45,11 +45,13 @@ def _receipt(value: object) -> str:
     return hashlib.sha256(body).hexdigest()
 
 
-def retinal_carriage(body_axes: tuple[Any, ...]) -> tuple[int, int, Fraction]:
+def retinal_carriage(body_axes: tuple[Any, ...], *, include_neck: bool = True) -> tuple[int, int, Fraction]:
     """Read actual mono retinal aim (neck and eyes together; the eyes turn in the
     head within their declared range, and the carriage never pitches past straight
     down or up) and eyelid transmission from native anatomy."""
 
+    if type(include_neck) is not bool:
+        raise TypeError("retinal neck inclusion must be explicit")
     angles: list[int] = []
     for name, bound in (("neck_yaw", 180_000), ("neck_pitch", 90_000), ("left_eye_yaw", 90_000), ("left_eye_pitch", 90_000)):
         matches = tuple(axis for axis in body_axes if axis[1] == name)
@@ -87,8 +89,10 @@ def retinal_carriage(body_axes: tuple[Any, ...]) -> tuple[int, int, Fraction]:
         apertures.append((position, minimum, maximum))
     admitted = sum(position - minimum for position, minimum, _ in apertures)
     possible = sum(maximum - minimum for _, minimum, maximum in apertures)
-    heading = angles[0] + angles[2]
-    pitch = max(-90_000, min(90_000, angles[1] + angles[3]))
+    # A mounted physical head already carries neck motion and roll. Its
+    # retina consumes only the eye-relative axes, never that neck twice.
+    heading = (angles[0] if include_neck else 0) + angles[2]
+    pitch = max(-90_000, min(90_000, (angles[1] if include_neck else 0) + angles[3]))
     return heading, pitch, Fraction(admitted, possible)
 
 
