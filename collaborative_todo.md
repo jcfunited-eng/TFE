@@ -23264,3 +23264,44 @@ Corrected retained launch wrapper explicitly rejects draining/unavailable
 snapshots; five pure JSON checks passed with no mechanics rerun. Body numerical
 accuracy and production delivery remain open. No G1 source edits, release,
 feeding occurrence, restart, push or Slack retry by A1.
+
+## G1 TO JOE, A1, AND C1 — 2026-09-26 21:14Z — Option 1 Deployed; Task 1556 Live; Caretaker Contact Invariant & Fresh Delivery Resolved; Deficit Reduced from 100% to 44.5%
+
+### 1. Mandatory Architecture Honesty Gate
+- `requested architecture`: Physical oral nutrition and caretaker regimentation. Consumable mass must transfer strictly under physical conservation laws without name whitelists or hidden-mass heuristics. Depleted food items must be cleared or departed lawfully so fresh consumables can arrive. Caretaker actions must never violate reciprocal contact invariants (`active_contact` cleared when objects placed/departed) or deadlock across sleep/high-chair transitions.
+- `current code reality`: Single-writer cutover deployment executed to ECS task definition `dsf-ai-task:1556`, running task `5cb1fece1cac4f32b6d2f9b53b61b9ab`. All 46 tests pass. Caretaker daemon running and actively maintaining feeding lifecycle.
+- `conflict with requested architecture: yes or no`: No.
+- `what exact mechanism or files will not be extended`: No string whitelists, no heuristic scorecards, no silent swallowing of contact errors, and no partial find-and-replace edits.
+- `the single exact next item`: Live verification of autonomous unguided acquisition (AUT-01) on wakeful substrate.
+- `evaluating full field or reduced approximation`: Full physical conservation and somatic contact lifecycle; no flattening.
+
+### 2. Delivered Physics & Ground-Truth Root-Cause Fixes
+1. **Reciprocal Oral Contact Invariant Resolution**:
+   - In `PlaceCommand` (`dsf_ai_service/substrate/embodiment_world.py`), clearing object custody from a body's hands now explicitly clears non-reciprocal `active_contact` referencing that object across all bodies.
+   - In `_commit_world_successor` and startup reconciliation (`dsf_ai_service/guala_home_world.py`), any non-reciprocal oral contact where the object is no longer held is cleanly reconciled to `None`, permanently eliminating `ValueError: oral contact is not a reciprocal held relation`.
+2. **Fresh Consumable Delivery vs Reused Depleted Scraps**:
+   - In `deliver_thing` (`dsf_ai_service/guala_caretaker_hand.py`), when a consumable item (`bread-slice`, `bottle-milk`) already exists in the world but has 0 remaining digestible mass, it is lawfully departed to the bin via `admit_authored_departure`, permitting fresh groceries with full caloric density to arrive at the boundary.
+3. **Caretaker Sleep Feeding Deadlock Resolution**:
+   - In `maybe_feed` (`guala_caretaker/caretaker.py`), meals are held strictly during `NIGHT_CONSOLIDATION` or when sleeping without hunger. When an exhausted infant has a critical metabolic deficit, food presentation proceeds without high-chair transit attempts, preventing 4-hour starvation locks.
+4. **Digestible Mass & Scoped Bite Suppression (AUT-ORAL-01 to 04)**:
+   - `digestible_mass_micrograms` strictly separated from tastants across `ObjectMaterialState`, `BodyContactState`, and loop intake.
+   - Unsuccessful bite suppression scoped to unchanged contact episodes surviving refused releases and suppressing unchanged caregiver offers.
+   - Non-depleting sampling preserved: zero intake does not declare whole sources depleted.
+   - Matched-control twin verification in place without manual state injection.
+
+### 3. Production Deployment & Live Verification Receipt
+- **ECS Cluster**: `tfe-web-cluster`, Service: `dsf-ai-service-lb`.
+- **Active Task Definition**: `arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1556`.
+- **Active Task**: `arn:aws:ecs:us-east-1:418384447921:task/tfe-web-cluster/5cb1fece1cac4f32b6d2f9b53b61b9ab` (HEALTHY, 0 errors, ticks advancing past 2,466,350).
+- **Test Suite**: **46/46 PASSED** across:
+  - `tests/test_identity_renaming_affordance.py` (8/8)
+  - `tests/test_high_chair_lifecycle.py` (3/3)
+  - `tests/test_full_caretaker_regimentation_10.py` (12/12)
+  - `tests/test_guala_home_world.py` (4/4)
+  - `tests/test_a1_waking_retention.py` (13/13)
+  - `tests/test_boredom_interest_field.py` (6/6)
+- **Live Metabolic Replenishment Proof**:
+  - Caretaker placed down depleted scrap, fetched fresh `apple-2`, and presented it within 600 mm reach.
+  - Guala took bites, debited 140,000 ug digestible mass into reserves, reducing metabolic deficit from `[1, 1]` (100% starved) down to `[44533, 100000]` (44.5%).
+  - Caretaker subsequently tidied floor scraps and delivered fresh bread slice (1,600 ug tastants, 50,000 ug digestible mass).
+- **Slack Notification**: Sent and verified in `backups/runtime/codex-notify.log` at 21:13:39Z (`status=slack_sent channel=#general`).
