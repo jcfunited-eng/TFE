@@ -436,70 +436,118 @@ def test_zero_sample_does_not_declare_whole_source_depleted():
 
 
 def test_matched_control_memory_verification():
-    """AUT-ORAL-04: Matched-control memory verification:
-    Twin organisms placed in identical worlds under identical sensory conditions.
-    Twin A has retained nutritional intake history for the object; Twin B (control) has no intake history.
-    Twin A targets the recognized food source; Twin B does not, demonstrating causal memory control."""
+    """AUT-ORAL-04: Matched-control and ablation memory verification:
+    1. Phase 1: Twin A acquires nutritional recognition for 'tested-nourishment' through
+       ordinary sensorimotor grasp and oral contact (intake > 0) with zero manual injection.
+    2. Phase 2: Twin A and Twin B (matched unconditioned control) are placed in identical worlds
+       with identical object 'tested-nourishment' placed at 1200 mm (distal).
+       Twin A pursues the recognized food ('toward_food'); Twin B does not ('toward_thing').
+    3. Phase 3: In an ablated clone of Twin A where only the retained memory entry is removed,
+       the food-seeking pursuit is abolished, proving causal necessity."""
+    loop = FunctionalPhysicalLoop()
+
+    # Phase 1: Authentic sensorimotor conditioning of Twin A (no dictionary injection)
+    world_cond = home_world_authority(identity=IDENTITY)
+    snap_cond = world_cond.observation_snapshot()
+    apple = next(item for item in snap_cond.objects if item.object_id == "apple")
+    body_cond = _her(world_cond)
+
+    food_cond = EmbodiedObject(
+        "tested-nourishment",
+        apple.radius_mm,
+        apple.mass_grams,
+        PositionMM(body_cond.pose.position.x + 350, body_cond.pose.position.y, 0),
+        held_by_body_id=None,
+        reflectance_ppm=apple.reflectance_ppm,
+        material=apple.material,
+    )
+    world_cond.admit_authored_arrival(food_cond)
+
+    twin_a = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
+    twin_a._state["reserve_micrograms"] = int(CAPACITY_MICROGRAMS * 0.3)
+    twin_a._state["feeding"] = True
+
+    # Beat 1: Ordinary grasp
+    r0 = loop.settle(twin_a, world_cond, UNATTENDED)
+    assert r0.observation["requested_world_action"] == "grasp"
+    assert _her(world_cond).held_object_id == "tested-nourishment"
+
+    # Beat 2: Ordinary bite yielding genuine nutritional mass intake
+    r1 = loop.settle(twin_a, world_cond, UNATTENDED)
+    assert r1.observation["her_act"] == "bite"
+    assert r1.observation["real_nutrition_intake_zeptojoules"] > 0
+
+    entry_a = twin_a._state["conserved_objects"]["tested-nourishment"]
+    assert entry_a["fed_count"] == 1
+    assert entry_a["historical_intake_micrograms"] > 0
+    assert entry_a["is_food"] is True
+
+    # Phase 2: Matched-control evaluation in identical sensory environments
     world_a = home_world_authority(identity=IDENTITY)
     world_b = home_world_authority(identity=IDENTITY)
-
-    apple = next(item for item in world_a.observation_snapshot().objects if item.object_id == "apple")
     body_a = _her(world_a)
     body_b = _her(world_b)
 
-    food_a = EmbodiedObject(
-        "target-food-a",
+    food_test_a = EmbodiedObject(
+        "tested-nourishment",
         apple.radius_mm,
         apple.mass_grams,
-        PositionMM(body_a.pose.position.x + 350, body_a.pose.position.y, 0),
+        PositionMM(body_a.pose.position.x + 1200, body_a.pose.position.y, 0),
         held_by_body_id=None,
         reflectance_ppm=apple.reflectance_ppm,
         material=apple.material,
     )
-    food_b = EmbodiedObject(
-        "target-food-b",
+    food_test_b = EmbodiedObject(
+        "tested-nourishment",
         apple.radius_mm,
         apple.mass_grams,
-        PositionMM(body_b.pose.position.x + 350, body_b.pose.position.y, 0),
+        PositionMM(body_b.pose.position.x + 1200, body_b.pose.position.y, 0),
         held_by_body_id=None,
         reflectance_ppm=apple.reflectance_ppm,
         material=apple.material,
     )
-    world_a.admit_authored_arrival(food_a)
-    world_b.admit_authored_arrival(food_b)
+    world_a.admit_authored_arrival(food_test_a)
+    world_b.admit_authored_arrival(food_test_b)
 
-    twin_a = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
-    twin_b = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=1)
+    # Twin B is unconditioned genesis twin at matching tick and reserves
+    twin_b = FunctionalOrganism.genesis(identity=IDENTITY, organism_tick=twin_a.live_organism_tick)
+    twin_b._state["reserve_micrograms"] = twin_a.reserve_micrograms
+    twin_b._state["feeding"] = True
 
-    for twin in (twin_a, twin_b):
-        twin._state["reserve_micrograms"] = int(CAPACITY_MICROGRAMS * 0.3)
-        twin._state["feeding"] = True
-
-    # Twin A has retained lived nutritional experience for target-food-a
-    conserved_a = twin_a._state.setdefault("conserved_objects", {})
-    conserved_a["target-food-a"] = {
-        "object_id": "target-food-a",
-        "position": (body_a.pose.position.x + 350, body_a.pose.position.y, 0),
-        "radius_mm": apple.radius_mm,
-        "room_id": "her-room",
-        "last_seen_tick": 1,
-        "confidence": 1.0,
-        "historical_intake_micrograms": 10_000,
-        "fed_count": 1,
-        "currently_depleted": False,
-        "is_food": True,
-    }
-
-    loop = FunctionalPhysicalLoop()
-    # Execute ordinary decide/settle
     res_a = loop.settle(twin_a, world_a, UNATTENDED)
     res_b = loop.settle(twin_b, world_b, UNATTENDED)
 
-    # Twin A targets the recognized food (reach/grasp/approach/toward_food)
-    assert res_a.observation["requested_world_action"] in ("reach_hand", "grasp", "toward_food", "approach")
-    known_a = {k for k, v in twin_a._state.get("conserved_objects", {}).items() if v.get("is_food")}
-    assert "target-food-a" in known_a
+    # Twin A recognizes food from lived intake and pursues it
+    assert res_a.observation["her_act"] == "toward_food"
+    assert res_a.observation["requested_world_action"] == "toward_food"
+    assert "tested-nourishment" in res_a.observation["act_reason"]
 
-    # Twin B does NOT have food recognition for target-food-b in its known_foods
-    known_b = {k for k, v in twin_b._state.get("conserved_objects", {}).items() if v.get("is_food")}
-    assert "target-food-b" not in known_b
+    # Twin B lacks nutritional history for the object and does not pursue it as food
+    assert res_b.observation["her_act"] != "toward_food"
+    assert res_b.observation["requested_world_action"] != "toward_food"
+
+    entry_b = twin_b._state.get("conserved_objects", {}).get("tested-nourishment", {})
+    assert entry_b.get("is_food", False) is False
+    assert entry_b.get("fed_count", 0) == 0
+    assert entry_b.get("historical_intake_micrograms", 0) == 0
+
+    # Phase 3: Controlled ablation of Twin A's memory abolishes food pursuit
+    world_ablated = home_world_authority(identity=IDENTITY)
+    body_abl = _her(world_ablated)
+    food_test_abl = EmbodiedObject(
+        "tested-nourishment",
+        apple.radius_mm,
+        apple.mass_grams,
+        PositionMM(body_abl.pose.position.x + 1200, body_abl.pose.position.y, 0),
+        held_by_body_id=None,
+        reflectance_ppm=apple.reflectance_ppm,
+        material=apple.material,
+    )
+    world_ablated.admit_authored_arrival(food_test_abl)
+
+    twin_ablated = copy.deepcopy(twin_a)
+    twin_ablated._state["conserved_objects"].pop("tested-nourishment", None)
+    res_abl = loop.settle(twin_ablated, world_ablated, UNATTENDED)
+
+    assert res_abl.observation["her_act"] != "toward_food"
+    assert res_abl.observation["requested_world_action"] != "toward_food"
