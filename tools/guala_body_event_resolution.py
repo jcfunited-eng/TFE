@@ -7,6 +7,7 @@ certified continuous trajectory or general collision-detection algorithm.
 """
 from __future__ import annotations
 
+import argparse
 import base64
 import hashlib
 import json
@@ -145,10 +146,13 @@ def merge_contacts(total, update):
             target[field] += finite(row[field])
             finite(target[field])
         target["min_separation_m"] = min(target["min_separation_m"], row["min_separation_m"])
+        for field in ("force_path_ns", "couple_path_nms"):
+            if field in row:
+                target[field] = float(finite(target.get(field, 0.) + row[field]))
 
 
-def run(before, supply, h_us, aligned):
-    trial = Trial(before, h_us)
+def run(before, supply, h_us, aligned, *, trial_class=Trial):
+    trial = trial_class(before, h_us)
     d = trial.d
     contacts, events = {}, []
     work = (0.,)*6
@@ -212,7 +216,233 @@ def run(before, supply, h_us, aligned):
         internal_state_bytes=state.nbytes,elapsed_s=time.perf_counter()-started)
 
 
+
+class AccuracyTrial(Trial):
+    """Observation only: selected substeps carry their own gross impulse path."""
+    def observe(self, model, data):
+        super().observe(model, data)
+        totals = {}
+        for key, row in self.latest_contacts:
+            values = totals.setdefault(key, [np.zeros(3), np.zeros(3)])
+            values[0] += row["impulse_world_ns"]
+            values[1] += row["couple_impulse_world_nms"]
+        # One path increment for the pair resultant, not one duplicated copy
+        # per contact point. Pointwise tactile comparisons remain separate.
+        for key, row in self.latest_contacts:
+            values = totals.pop(key, None)
+            if values is not None:
+                row["force_path_ns"] = float(finite(np.linalg.norm(values[0])))
+                row["couple_path_nms"] = float(finite(np.linalg.norm(values[1])))
+
+
+def measure_limit(errors, limits, labels, references=None):
+    errors, limits = finite(np.asarray(errors)), finite(np.asarray(limits))
+    assert errors.shape == limits.shape == (len(labels),) and len(labels)
+    assert np.all(errors >= 0) and np.all(limits > 0)
+    if references is not None:
+        references = finite(np.asarray(references))
+        assert references.shape == errors.shape and np.all(references >= 0)
+    ratios = finite(errors / limits)
+    i = int(np.argmax(ratios))
+    channels = []
+    for j, label in enumerate(labels):
+        channel = dict(label=label, disagreement=float(errors[j]),
+                       allowed=float(limits[j]), ratio=float(ratios[j]),
+                       passed=bool(errors[j] <= limits[j]))
+        if references is not None:
+            channel["reference_magnitude"] = float(references[j])
+        channels.append(channel)
+    return dict(passed=bool(np.all(errors <= limits)), count=len(labels),
+                maximum_disagreement=float(np.max(errors)),
+                worst_label=labels[i], disagreement=float(errors[i]),
+                allowed=float(limits[i]), ratio=float(ratios[i]),
+                channels=channels)
+
+
+def vector_limit(a, b, absolute, relative, labels):
+    a, b = finite(np.asarray(a)), finite(np.asarray(b))
+    assert a.shape == b.shape and a.ndim == 2 and a.shape[0] == len(labels)
+    reference = np.linalg.norm(b, axis=1)
+    return measure_limit(np.linalg.norm(a-b, axis=1),
+                         absolute + relative*reference, labels, reference)
+
+
+def tactile_limits(a, b):
+    # This is diagnostic correspondence, not learned recognition. No native
+    # contact-array ordinal or convenient nearest point establishes identity.
+    groups = {}
+    for side, contacts in enumerate((a, b)):
+        for point in contacts:
+            groups.setdefault(point.surface, [[], []])[side].append(point)
+    paired, unresolved = [], []
+    for surface, (left, right) in sorted(groups.items()):
+        if not left or len(left) != len(right):
+            unresolved.append(dict(surface=surface, reason="point count changed",
+                                   counts=[len(left), len(right)]))
+            continue
+        distance = np.linalg.norm(
+            np.asarray([p.position_m for p in left])[:, None, :]
+            - np.asarray([p.position_m for p in right])[None, :, :], axis=2)
+        matches = finite(distance) <= .0001
+        if not (np.all(matches.sum(axis=0) == 1) and np.all(matches.sum(axis=1) == 1)):
+            unresolved.append(dict(surface=surface, reason="no unique position-bounded correspondence"))
+            continue
+        for i, point in enumerate(left):
+            paired.append((surface, point, right[int(np.flatnonzero(matches[i])[0])]))
+    if not paired:
+        return dict(complete=False, unresolved=unresolved, matched_points=0)
+    names = [p[0] for p in paired]
+    forces = vector_limit([p[1].force_n for p in paired],
+                          [p[2].force_n for p in paired], .01, .001, names)
+    couples = vector_limit([p[1].couple_nm for p in paired],
+                           [p[2].couple_nm for p in paired], .00001, .001, names)
+    return dict(complete=not unresolved, unresolved=unresolved,
+                matched_points=len(paired), force_n=forces, couple_nm=couples)
+
+
+def accuracy_snapshot(engine, sample, h_us):
+    # Same full integration bytes, same numerical schedule; no semantic state,
+    # pose, warm-start or diagnostic successor substituted into world custody.
+    engine._model.opt.timestep = h_us / 1_000_000
+    restore(engine, sample[1])
+    assert np.array_equal(state_copy(engine), sample[1])
+    observed = engine._observation()
+    assert observed.self_feedback is not None
+    return observed.self_feedback
+
+
+def accuracy_comparison(engine, left, right):
+    coarse, a, feedback_a = left
+    fine, b, feedback_b = right
+    m = engine._model
+    geom = np.asarray(sorted(engine._self_geoms), dtype=int)
+    assert len(geom) and np.isfinite(m.geom_rbound[geom]).all()
+    ca, cb = coarse[0], fine[0]
+    centres = np.linalg.norm(ca[2][geom]-cb[2][geom], axis=1)
+    trace = np.einsum("ijk,ijk->i", ca[3][geom], cb[3][geom])
+    angle = finite(np.arccos(np.clip((trace-1)/2, -1, 1)))
+    surfaces = finite(centres + 2*m.geom_rbound[geom]*np.sin(angle/2))
+    names = [engine.geom_names[i] for i in geom]
+    metrics = dict(
+        surface_position_m=measure_limit(surfaces, np.full(len(geom), .0001), names),
+        orientation_rad=measure_limit(angle, np.full(len(geom), math.radians(.01)), names),
+        linear_rate_m_s=vector_limit(ca[4][geom, 3:], cb[4][geom, 3:], .001, .001, names),
+        angular_rate_rad_s=vector_limit(ca[4][geom, :3], cb[4][geom, :3], .01, .001, names))
+    # This already-authenticated bench is one free root followed by hinges.
+    assert m.jnt_type[0] == mj.mjtJoint.mjJNT_FREE
+    assert np.all(m.jnt_type[1:] == mj.mjtJoint.mjJNT_HINGE)
+    dofs = list(engine._self_dofs)
+    angular_dofs = [i for i in dofs if i >= 3]
+    metrics["joint_and_root_angular_rate_rad_s"] = vector_limit(
+        ca[1][angular_dofs, None], cb[1][angular_dofs, None], .01, .001,
+        [str(i) for i in angular_dofs])
+    a_sensors, b_sensors = dict(feedback_a.sensors), dict(feedback_b.sensors)
+    for label, kind, absolute in (
+        ("specific_force_m_s2", mj.mjtSensor.mjSENS_ACCELEROMETER, .01),
+        ("gyro_rad_s", mj.mjtSensor.mjSENS_GYRO, .01)):
+        indices = [i for i in engine._self_sensors if m.sensor_type[i] == kind]
+        labels = [engine._sensor_names[i] for i in indices]
+        metrics[label] = vector_limit([a_sensors[n] for n in labels],
+                                      [b_sensors[n] for n in labels], absolute, .001, labels)
+    work_names = {0:"positive_motor_work_j", 1:"signed_motor_work_j",
+                  3:"braking_work_j", 4:"bearing_loss_j", 5:"self_bearing_loss_j"}
+    for i, label in work_names.items():
+        gross = abs(b["work"][i]) if i != 1 else b["work"][0]+b["work"][3]
+        metrics[label] = measure_limit([abs(a["work"][i]-b["work"][i])],
+                                      [.000001+.001*gross], [label], [gross])
+    for field, path_field, label in (
+        ("impulse_world_ns", "force_path_ns", "contact_impulse_ns"),
+        ("couple_impulse_world_nms", "couple_path_nms", "contact_couple_impulse_nms")):
+        keys = sorted(a["contacts"].keys() | b["contacts"].keys())
+        errors, limits, references = [], [], []
+        for key in keys:
+            av = np.asarray(a["contacts"].get(key, {}).get(field, [0., 0., 0.]))
+            bv = np.asarray(b["contacts"].get(key, {}).get(field, [0., 0., 0.]))
+            errors.append(float(np.linalg.norm(av-bv)))
+            # No approved couple-impulse ceiling: report it, do not invent one.
+            if field == "impulse_world_ns":
+                reference = b["contacts"].get(key, {}).get(path_field, 0.)
+                references.append(reference)
+                limits.append(.000001 + .001*reference)
+        if field == "impulse_world_ns":
+            metrics[label] = measure_limit(errors, limits, keys, references)
+        else:
+            metrics[label] = dict(qualified=False, reason="no separate couple-impulse requirement",
+                                  differences=dict(zip(keys, errors)))
+    events_a = {tuple(e["pair"]):e for e in a["events"]}
+    events_b = {tuple(e["pair"]):e for e in b["events"]}
+    assert events_a.keys() == events_b.keys() == set(PAIRS)
+    metrics["onset_time_disagreement_s"] = measure_limit(
+        [abs(events_a[k]["contact_time_s"]-events_b[k]["contact_time_s"]) for k in PAIRS],
+        [1e-6]*len(PAIRS), ["|".join(k) for k in PAIRS])
+    metrics["local_tactile_endpoints"] = tactile_limits(feedback_a.contacts, feedback_b.contacts)
+    return dict(coarse_us=a["h_us"], fine_us=b["h_us"], metrics=metrics,
+                scope="2ms common-predecessor resolution comparison; not continuum error, full250ms accuracy, full tactile history or production qualification")
+
+
+def accuracy_main():
+    assert mj.__version__ == mj.mj_versionString() == VERSION
+    engine, before, supply, model_sha = read_control()
+    archive = json.loads((OLD.parent/"FB-01aj-event-resolution.json").read_text())["raw_measurement"]
+    raw = zlib.decompress(base64.b64decode(archive["payload_zlib_base64"]))
+    assert len(raw) == archive["raw_bytes"]
+    assert hashlib.sha256(raw).hexdigest() == archive["raw_sha256"] == "a498db53e982ddc8d27a281284e69426be407eeb93b1584982c862f3cf6ede30"
+    old = json.loads(raw)["cases"][-1]
+    rows, comparisons, prior = [], [], None
+    calls = START_US//BASE_US
+    for h_us in (1.5625, .78125, .390625, .1953125):
+        sample, row = run(before, supply, h_us, True, trial_class=AccuracyTrial)
+        feedback = accuracy_snapshot(engine, sample, h_us)
+        endpoint_feedback = dict(sensors=[[n, list(v)] for n,v in feedback.sensors],
+            contacts=[dict(surface=p.surface, position_m=list(p.position_m),
+                           force_n=list(p.force_n), couple_nm=list(p.couple_nm))
+                      for p in feedback.contacts])
+        calls += row["native_calls"]
+        if prior is None:
+            assert row["h_us"] == old["h_us"]
+            for key in old:
+                if key not in ("elapsed_s", "fresh_schedule_repeat_exact", "contacts"):
+                    assert row[key] == old[key], key
+            assert row["contacts"].keys() == old["contacts"].keys()
+            for key, fields in old["contacts"].items():
+                for name, value in fields.items():
+                    assert row["contacts"][key][name] == value
+        row["endpoint_self_feedback"] = endpoint_feedback
+        current = sample, row, feedback
+        if prior is not None:
+            comparisons.append(accuracy_comparison(engine, prior, current))
+        rows.append(row)
+        prior = current
+        print(json.dumps(encode(dict(event="accuracy_case_measured", case=row,
+              comparison=comparisons[-1] if comparisons else None)),sort_keys=True),flush=True)
+    repeated, repeat = run(before, supply, rows[-1]["h_us"], True, trial_class=AccuracyTrial)
+    repeated_feedback = accuracy_snapshot(engine, repeated, rows[-1]["h_us"])
+    calls += repeat["native_calls"]
+    assert all(np.array_equal(a,b) for a,b in zip(prior[0][0],repeated[0]))
+    assert np.array_equal(prior[0][1],repeated[1]) and np.array_equal(prior[0][2],repeated[2])
+    assert {k:v for k,v in repeat.items() if k != "elapsed_s"} == {
+        k:v for k,v in rows[-1].items() if k not in ("elapsed_s", "endpoint_self_feedback")}
+    assert repeated_feedback == prior[2]
+    steps = [int(WINDOW_US/h) for h in (1.5625, .78125, .390625, .1953125, .1953125)]
+    bound = START_US//BASE_US + sum(n+len(PAIRS)*(BITS+3) for n in steps)
+    assert calls <= bound
+    print(json.dumps(encode(dict(schema="guala.functional-body.ratified-accuracy-diagnostic.v1",
+        engine_version=VERSION, model_sha256=model_sha, archived_finest_control_exact=True,
+        finest_fresh_repeat_exact=True, cases=rows, comparisons=comparisons,
+        charged_native_calls=calls, native_call_bound=bound,
+        maxrss_kib=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss,
+        full_contract_passed=False,
+        scope="Ratified limits applied to local numerical resolution; full250ms/gravity/load and production qualification remain open."
+    )),sort_keys=True),flush=True)
+
+
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--accuracy-contract", action="store_true")
+    args = parser.parse_args()
+    if args.accuracy_contract:
+        accuracy_main()
+        return
     assert mj.__version__ == mj.mj_versionString() == VERSION
     engine,before,supply,model_sha = read_control()
     old = archived()

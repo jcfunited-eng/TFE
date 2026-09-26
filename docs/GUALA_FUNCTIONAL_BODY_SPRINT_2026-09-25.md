@@ -7669,3 +7669,134 @@ rerun diagnostics, or fill time with another audit. Required unblock: Joe's
 physical-fidelity choice for the proposed body-only verification contract.
 This does not revoke the already approved numerical approximation or narrow
 motor/sensory extension. It does not mark any deployment gate complete.
+
+### FB-01aj accuracy contract RATIFIED — 2026-09-26
+
+Joe explicitly approved use of the preceding accuracy contract: 'you have me
+permission to use that contract>>>'. The goal is ACTIVE; the numerical-fidelity
+authority blocker is cleared. All numeric ceilings, distinct physical measures,
+event-bracket disclosures and full250ms/restart/resource requirements in the
+20:56 proposal now govern verification. They are engineering requirements,
+not biological facts. No need to seek that same approval again.
+
+Requested architecture: accurate, bounded numerical body and sensory mechanics.
+Current evidence: local two-contact convergence, not whole-interval qualification.
+Conflict:YES with declaring accuracy passed; no conflict with continuing this
+approved qualification. No kernel, cognition, anatomy, material coefficients,
+contact force law, solver or production source is changed in the next slice.
+Single next item: apply the ratified measures to the existing retained first
+impact before paying for a full interval. Reduced rigid-body numerical mechanics;
+continuous tissue microstructure and a rigorous continuum enclosure remain absent.
+
+Authenticated archived finest comparison3.125/1.5625us: angular-coordinate
+disagreement0.00018438972974027523rad (~0.010565deg) exceeds0.01deg;
+geometry centres differ2.6513740806um but surface/orientation combination was
+not recorded. Joint-rate difference0.3654221317rad/s lacks the corresponding
+reference magnitudes. Right-pair impulse difference0.0037529872Ns lacks its
+gross force-path integral. Do not pretend these missing quantities pass/fail.
+
+Bounded diagnostic contract: extend ONLY tools/guala_body_event_resolution.py
+with an explicit accuracy mode. Reuse the exact archived20ms predecessor and
+unchanged two-contact2ms trial. Verify the1.5625us archived successor/work again
+as the mode's instrumentation parity check; no repeat of earlier coarse maps.
+Measure schedules1.5625,.78125,.390625,.1953125us in one fixed bounded batch,
+plus one fresh finest repeat. No tuning in response to outputs. These are
+local diagnostic resolutions, not a production timestep choice; their range
+extends the existing dyadic map only to measure the ratified first-impact gate.
+
+Retain all self-geometry surface-displacement/rotation and rate comparisons,
+actual self accelerometer/gyro samples, each work/loss quantity, event times,
+contact impulse with the integral of corresponding resultant force magnitude,
+and local point wrenches. Match tactile points only when same anatomical surface
+and the approved position bound give an unambiguous one-to-one correspondence;
+otherwise label point-force evidence unresolved, never select a convenient
+nearest point or flatten it into total force. No time-warping of sensory samples.
+All measures remain separate; verification ratios never enter DSF or selection.
+Native pair-onset brackets remain numerical-trial brackets, not exact collision
+times. An endpoint comparison cannot establish the entire250ms or force history.
+
+Existing normal mode must remain byte-equivalent apart from elapsed/resource
+diagnostics. Optional instrumentation sums only actual selected substep receipts;
+rejected bisection proposals never contribute accepted impulse/work. No runtime
+state, sensor rounding, new anatomy, motor policy, new test suite or native build.
+Frozen independent source review before execution. Offline proof process bounded
+to2 CPUs/1GiB/60CPU seconds/90wall seconds; count all prefix/trial/repeat native
+calls, retain exact handle and child census, and require immediate read-only AWS
+health content before/after. A failed local measure is preserved; no automatic
+coefficient, tolerance or further-resolution retry is authorized by this batch.
+
+Translation preflight before freeze: LocalContact's actual members are
+position_m/force_n/couple_nm in link axes. Draft qualification names incorrectly
+included an extra '_link' suffix; corrected against the defining dataclass
+before import/execution. Actual endpoint sensors and local point wrenches are
+retained in each bounded diagnostic row for audit, not only pass Booleans.
+Native state, contact solver and the ordinary diagnostic path remain untouched.
+
+Frozen source review68d3382d7f9c54f2ada29e132cf62226049d88e451ba4dc1e6fe7054b301cfeb
+completed unchanged before/after. One LOCALIZED evidence finding: measure_limit
+kept only the worst comparison, preventing audit of each primitive/channel.
+Corrected in one batch: every label now retains its disagreement, allowance,
+ratio, pass result and, for relative limits, the finer-reference magnitude.
+Native observations, mechanics, schedules and accepted limits are unchanged.
+Removed unused couple-impulse allowance calculation; that diagnostic still has
+no invented pass criterion. Independent review found no other defect, confirmed
+observer parity and selected-only accumulation; complete native-call ceiling30800.
+Single next action: final frozen source confirmation, then one bounded offline
+accuracy batch with live read-only pre/post health. No production changes.
+
+### FB-01aj ratified first-impact measurement — 2026-09-26 22:10Z
+
+Final independent source confirmation PASSED, frozen fingerprint
+6ee49704d478ae447a9cfaf60f8cd51cc91d92bc48abf78e6db9275fd38905e3.
+Native library unchanged:d3787b131b2532168dfff52c226ba07fa0de4ffc4b57bc40b7a87b73a2cc1801.
+Four fixed schedules and finest fresh repeat completed. Archived1.5625us control
+and complete finest successor/repeat match exactly.30632native calls <=30800.
+Retained once in docs/evidence/FB-01aj-ratified-accuracy.json; decoded raw207922B,
+SHA7acb987a237e15c49b55cbb44f8195b0ee3c88a592c59ca8dd287dfeba462f97.
+
+Finest comparison0.390625/0.1953125us: surface bound0.843587um <=100um;
+rotation0.00159727deg <=0.01deg; every measured linear/angular/joint rate,
+gyro, work/bearing quantity, resultant impulse and onset-time comparison passes.
+Unqualified measures are NOT silently included among passes.
+FAIL: left-palm point force disagreement1.680884N >0.7482499N allowance (2.2464x).
+FAIL: left-foot specific-force disagreement0.5658626m/s2 >0.1693049m/s2
+allowance (3.3423x). These are the largest normalized discrepancies, not
+necessarily the largest raw values. All per-channel comparisons and actual
+endpoint sensory/contact samples remain in the artifact. Tactile correspondence
+is complete and unambiguous for both endpoint points. Couple impulse has no
+separate ratified ceiling and stays unqualified. First-order-like reduction
+across this fixed map is observed, not a continuum error certificate.
+
+This is a necessary2ms endpoint/contact-window check, NOT a full250ms or gravity
+proof. Surface/rotation/work success does not excuse force/specific-force failure.
+No runtime timestep, tolerances, contact coefficients, anatomy, DSF or cognition
+were altered. Do not launch further blanket timestep refinements or a broad
+suite in response; next bounded analysis is the existing contact-integration
+boundary that produces these two failed observables.
+
+Execution: session83295, child36566, exit0, wall8.208585s, CPU8.079603s,
+peak145372KiB,2CPU affinity,1GiB address bound,60CPU/90wall ceilings. No child
+or process-group survivor. Source fingerprint/native binary verified unchanged
+after execution, before adding this immutable evidence.
+
+Capture defect disclosed: initial identical batch(session24979/child34687,
+exit0,6.988975wall/6.895587CPU seconds) completed, but its wrapper expected an
+unpacked schema although existing encode() produces packed JSON. Fallback
+printing exceeded tool output and truncated raw evidence. No physical failure
+was inferred. One identical batch was repeated with envelope SHA/size validation
+and direct apply_patch retention; no source/limits/schedules changed. Its
+complete evidence is above; the damaged first artifact is not claimed usable.
+Recurrence: inspect the existing encode contract and decode/validate its envelope
+before schema selection; never fallback-print bulky proof stdout. No test
+framework or production code was added to solve this reporting defect.
+
+Read-only production envelope22:09:53.520413Z->22:10:05.712107Z:
+task1556/5cb1fece1cac4f32b6d2f9b53b61b9ab, same immutable image
+dc9ba00725d886110346c59ccdb36d1856d9cb316ea4f074a5bc88d9c9c794f7;
+counts1/1/0, RUNNING/HEALTHY, same identity1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1,
+ticks2478372->2478411, persisted2478361->2478393, available true, checkpoint/
+cleanup errors null, durability false. CPU22:08mean51.168866%/max51.664530%,
+memory2.648926%; clock-stalled ALARM persists, other four alarms OK.
+No live write, deploy, feeding, restart or cognitive source mutation.
+Joe reiterated no overengineering: reuse the existing diagnostic and narrow
+failed seam; no new subsystem, framework or scope expansion. Goal remains active.
