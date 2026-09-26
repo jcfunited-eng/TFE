@@ -380,6 +380,7 @@ HOME_SHAPES = {
     "blanket":          ((  380,   380,   150),      0,   350),   # resting on the bed mattress
     "curtains":         ((  480,    40, 2_000),      0,   300),   # a hanging panel by the north window
     "toy-chest":        ((  800,   450,   450),      0,     0),
+    "toy-blocks":       ((  160,   160,    80),      0,   450),   # resting in toy chest
     "desk":             ((1_200,   600,   750),      0,     0),
     "desk-chair":       ((  400,   400,   850),      0,     0),
     "wall-art-shapes":  ((   40,   560,   760),      0, 1_300),   # framed pictures flat on the west wall
@@ -508,10 +509,27 @@ def _play_ball():
     )
 
 
+def _toy_blocks():
+    # Set of 4 alphabet & number blocks arranged in a neat 2x2 cluster
+    # Natural wood painted with child-safe primary and pastel finishes
+    _BLOCK_RED = (900_000, 200_000, 150_000, 120_000, 100_000, 80_000)
+    _BLOCK_BLUE = (100_000, 250_000, 500_000, 750_000, 850_000, 900_000)
+    _BLOCK_YELLOW = (950_000, 850_000, 150_000, 100_000, 80_000, 60_000)
+    _BLOCK_GREEN = (150_000, 750_000, 250_000, 150_000, 100_000, 80_000)
+    return (
+        _P("box", -40, -40, 40, 75, 75, 75, _BLOCK_RED),
+        _P("box",  40, -40, 40, 75, 75, 75, _BLOCK_BLUE),
+        _P("box", -40,  40, 40, 75, 75, 75, _BLOCK_YELLOW),
+        _P("box",  40,  40, 40, 75, 75, 75, _BLOCK_GREEN),
+    )
+
+
+
 HOME_PARTS = {
     "high-chair": _high_chair(),
     "playpen": _playpen(),
     "stacking-rings": _stacking_rings(),
+    "toy-blocks": _toy_blocks(),
     "play-ball": _play_ball(),
     "toy-bear": (_P("sphere", 0, 0, 150, 300), _P("sphere", 0, 0, 380, 220), _P("sphere", -80, 0, 470, 90), _P("sphere", 80, 0, 470, 90),
                  _P("sphere", 0, -95, 390, 60, paint=_DARK),                                                    # the muzzle
@@ -987,7 +1005,7 @@ def _home_rooms_and_things() -> tuple[list[Any], list[Any], list[Any]]:
         ("bath-towel",        17_000, 3_700, 200,    800, (880_000, 880_000, 880_000, 880_000, 880_000, 880_000)),
         ("bath-mat",          18_600, 3_000, 350,  1_500, (80_000,   80_000,  80_000,  80_000,  80_000,  80_000)),
 
-        # --- 5. HER ROOM (14 items) ---
+        # --- 5. HER ROOM (15 items) ---
         ("bed",                  900, 9_100, 900, 40_000, (850_000, 850_000, 850_000, 850_000, 850_000, 850_000)),
         ("pillow",               900, 9_100, 260,  1_200, (920_000, 920_000, 920_000, 920_000, 920_000, 920_000)),
         ("blanket",              900, 8_500, 300,    900, (120_000, 120_000, 120_000, 120_000, 120_000, 120_000)),
@@ -1000,8 +1018,9 @@ def _home_rooms_and_things() -> tuple[list[Any], list[Any], list[Any]]:
         ("wall-art-weather",     320, 7_500, 310, 10_000, (880_000, 880_000, 880_000, 880_000, 880_000, 880_000)),
         ("glow-stars",         2_200, 9_700, 120,    300, (940_000, 930_000, 700_000, 400_000, 300_000, 260_000)),
         ("playpen",            4_200, 8_800, 450, 15_000, (840_000, 800_000, 720_000, 640_000, 580_000, 540_000)),
-        ("stacking-rings",     1_800, 5_800, 140,    600, (920_000, 300_000, 150_000, 650_000, 800_000, 850_000)),
-        ("play-ball",          2_250, 5_650,  90,    200, (950_000, 920_000, 200_000, 120_000, 100_000,  80_000)),
+        ("stacking-rings",       750, 5_600, 140,    600, (920_000, 300_000, 150_000, 650_000, 800_000, 850_000)),
+        ("toy-blocks",         1_020, 5_600, 120,    480, (880_000, 820_000, 400_000, 250_000, 200_000, 180_000)),
+        ("play-ball",          1_250, 5_600,  90,    200, (950_000, 920_000, 200_000, 120_000, 100_000,  80_000)),
 
         # --- 6. LIBRARY (4 items) ---
         ("shelf-a",           10_000, 9_500, 400, 30_000, (180_000, 180_000, 180_000, 180_000, 180_000, 180_000)),
@@ -1081,6 +1100,7 @@ def _home_rooms_and_things() -> tuple[list[Any], list[Any], list[Any]]:
         "glow-stars":         ((0, 0, 0, 0, 10, 0, 120, 0),    (0, 0, 0, 900, 0),          294_000, 30_000, 10, 3_000),
         "playpen":            ((0, 0, 0, 500, 300, 0, 0, 0),   (0, 0, 0, 1_200, 0),        294_000, 180_000, 35, 20_000),
         "stacking-rings":     ((0, 0, 0, 0, 100, 0, 0, 0),     (0, 0, 0, 500, 0),          294_000, 250_000, 15, 10_000),
+        "toy-blocks":         ((0, 0, 0, 800, 100, 0, 0, 0),   (0, 0, 0, 800, 0),          294_000, 200_000, 20, 12_000),
         "play-ball":          ((0, 0, 0, 0, 50, 0, 80, 0),      (0, 0, 0, 300, 0),          294_000, 850_000, 10, 5_000),
 
         # Library
@@ -1775,6 +1795,17 @@ def nocturnal_house_tidying(authority: Any) -> None:
                     elif obj.object_id in LIBRARY_BOOK_SHELVES and obj.position is not None:
                         bx, by, bz, target_elev = LIBRARY_BOOK_SHELVES[obj.object_id]
                         updated.append(replace(obj, position=PositionMM(bx, by, bz), elevation_mm=target_elev))
+                    elif obj.object_id == "stacking-rings" and obj.position is not None:
+                        updated.append(replace(obj, position=PositionMM(750, 5_600, 0), elevation_mm=450))
+                    elif obj.object_id == "toy-blocks" and obj.position is not None:
+                        updated.append(replace(obj, position=PositionMM(1_020, 5_600, 0), elevation_mm=450))
+                    elif obj.object_id == "play-ball" and obj.position is not None:
+                        updated.append(replace(obj, position=PositionMM(1_250, 5_600, 0), elevation_mm=450))
+                    elif obj.object_id == "toy-bear" and obj.position is not None:
+                        if obj.position.x > 5600 or obj.position.y < 5000:
+                            updated.append(replace(obj, position=PositionMM(4_800, 9_200, 0), elevation_mm=0))
+                        else:
+                            updated.append(obj)
                     elif obj.object_id.startswith("apple") and obj.position is not None:
                         # Clear stray abandoned floor apples during nocturnal house tidying so Guala wakes to a clean home
                         continue
@@ -2275,12 +2306,20 @@ HER_ROOM_LAYOUT = {
     "wall-art-weather": PositionMM(320, 7500, 0),
     "playpen": PositionMM(4200, 8800, 0),
     "night-light": PositionMM(500, 8600, 0),
+    "toy-chest": PositionMM(1000, 5600, 0),
+    "stacking-rings": PositionMM(750, 5600, 0),
+    "toy-blocks": PositionMM(1020, 5600, 0),
+    "play-ball": PositionMM(1250, 5600, 0),
 }
 HER_ROOM_RADII = {
     "desk": 700,
     "curtains": 250,
     "playpen": 450,
     "bed": 900,
+    "toy-chest": 500,
+    "stacking-rings": 140,
+    "toy-blocks": 120,
+    "play-ball": 90,
 }
 HER_ROOM_ELEVATIONS = {
     "pillow": 350,
@@ -2288,22 +2327,30 @@ HER_ROOM_ELEVATIONS = {
     "curtains": 1200,
     "wall-art-shapes": 1300,
     "wall-art-weather": 1300,
+    "stacking-rings": 450,
+    "toy-blocks": 450,
+    "play-ball": 450,
 }
 HER_ROOM_MASSES = {
     "curtains": 15_000,
     "wall-art-shapes": 10_000,
     "wall-art-weather": 10_000,
     "playpen": 15_000,
+    "toy-chest": 8_000,
+    "toy-blocks": 480,
 }
 
 
 def renovate_her_room_layout(authority: Any) -> bool:
-    """Reposition and renovate Her-Room furniture and fixtures to exact architectural layout."""
+    """Reposition and renovate Her-Room furniture, fixtures, toy-chest inventory, and place sleeping Guala on her bed."""
     with _world_thermal_transaction(authority):
         if not hasattr(authority, "_state") or not hasattr(authority._state, "world"):
             return False
         cur_world = authority._state.world
         needs_update = False
+        obj_ids = {obj.object_id for obj in cur_world.objects}
+        if "toy-blocks" not in obj_ids:
+            needs_update = True
         for obj in cur_world.objects:
             if obj.object_id in HER_ROOM_LAYOUT and obj.position != HER_ROOM_LAYOUT[obj.object_id]:
                 needs_update = True
@@ -2317,17 +2364,54 @@ def renovate_her_room_layout(authority: Any) -> bool:
             if obj.object_id in HER_ROOM_MASSES and obj.mass_grams != HER_ROOM_MASSES[obj.object_id]:
                 needs_update = True
                 break
+        bed_pos = HER_ROOM_LAYOUT["bed"]
+        for body in cur_world.bodies:
+            if body.body_id == cur_world.self_body_id and body.pose.position != bed_pos:
+                needs_update = True
+                break
         if not needs_update:
             return False
         from dataclasses import replace
-        from dsf_ai_service.substrate.embodiment_world import PositionMM
+        from dsf_ai_service.substrate.embodiment_world import PositionMM, PoseMM, EmbodiedObject, ObjectMaterialState
         updated = []
         for obj in cur_world.objects:
             pos = HER_ROOM_LAYOUT.get(obj.object_id, obj.position)
             radius = HER_ROOM_RADII.get(obj.object_id, obj.radius_mm)
             elev = HER_ROOM_ELEVATIONS.get(obj.object_id, obj.elevation_mm)
             mass = HER_ROOM_MASSES.get(obj.object_id, obj.mass_grams)
+            if obj.object_id == "toy-bear" and (obj.position.x > 5600 or obj.position.y < 5000):
+                pos = PositionMM(4800, 9200, 0)
+                elev = 0
             updated.append(replace(obj, position=pos, radius_mm=radius, elevation_mm=elev, mass_grams=mass))
-        new_world = replace(cur_world, revision=cur_world.revision + 1, objects=tuple(updated))
+        if "toy-blocks" not in obj_ids:
+            res_sec = 864_000
+            refl = (880_000, 820_000, 400_000, 250_000, 200_000, 180_000)
+            blocks = EmbodiedObject(
+                "toy-blocks",
+                HER_ROOM_RADII["toy-blocks"],
+                HER_ROOM_MASSES["toy-blocks"],
+                HER_ROOM_LAYOUT["toy-blocks"],
+                reflectance_ppm=refl,
+                material=ObjectMaterialState(
+                    odorant_reservoir_nanograms=tuple(rate * res_sec for rate in (0, 0, 0, 800, 100, 0, 0, 0)),
+                    odorant_release_nanograms_per_second=(0, 0, 0, 800, 100, 0, 0, 0),
+                    tastant_mass_micrograms=(0, 0, 0, 800, 0),
+                    surface_temperature_millikelvin=294_000,
+                    compliance_ppm=200_000,
+                    roughness_micrometers=20,
+                    moisture_ppm=12_000,
+                ),
+                shape="parts",
+                elevation_mm=HER_ROOM_ELEVATIONS["toy-blocks"],
+                parts=tuple(HOME_PARTS["toy-blocks"]),
+            )
+            updated.append(blocks)
+        updated_bodies = []
+        for body in cur_world.bodies:
+            if body.body_id == cur_world.self_body_id and body.pose.position != bed_pos:
+                updated_bodies.append(replace(body, pose=PoseMM(bed_pos, body.pose.heading_millidegrees)))
+            else:
+                updated_bodies.append(body)
+        new_world = replace(cur_world, revision=cur_world.revision + 1, bodies=tuple(updated_bodies), objects=tuple(updated))
         _commit_world_successor(authority, new_world)
         return True

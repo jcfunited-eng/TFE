@@ -346,9 +346,9 @@ def food_state(o: dict, skip: set[str]) -> tuple[bool, list[str]]:
 
 
 PLAY_TICKS = 240  # about a minute of her clock between offers of a toy
-TOYS = ("toy-bear", "stacking-rings", "play-ball", "book", "cup", "glow-stars")
+TOYS = ("toy-blocks", "stacking-rings", "play-ball", "toy-bear", "book", "cup", "glow-stars")
 WORD_FOR = {
-    "apple": "apple", "toy-bear": "bear", "glow-stars": "star", "book": "book", "cup": "cup",
+    "apple": "apple", "toy-blocks": "blocks", "toy-bear": "bear", "glow-stars": "star", "book": "book", "cup": "cup",
     "stacking-rings": "ring", "play-ball": "ball", "high-chair": "chair", "playpen": "playpen",
     "bread": "bread", "milk": "milk", "cheese": "cheese", "berries": "berries", "carrot": "carrot",
     "bowl": "bowl", "plate": "plate", "pot": "pot", "pan": "pan", "table": "table", "table-chair": "chair",
@@ -1474,6 +1474,10 @@ def wait_clear(min_tick: int | None = None, st: dict | None = None) -> dict | No
                     log(f"she is asleep (tick {o.get('live_tick')}); nocturnal housekeeping active")
                     st["asleep_logged"] = True
                 if st is not None:
+                    if st.get("active_ritual") != "BEDTIME":
+                        st["active_ritual"] = "BEDTIME"
+                        with open(STATE, "w") as f:
+                            json.dump(st, f)
                     maybe_feed(o, st)
                     maybe_housekeeping(o, st)
                 time.sleep(POLL_S)
@@ -1491,6 +1495,18 @@ def wait_clear(min_tick: int | None = None, st: dict | None = None) -> dict | No
                 her_room = room_of_point(o, her_pos) if her_pos.get("x_mm") is not None else None
 
                 if asleep(o) or (her_b and (her_b.get("pose") or {}).get("posture") == "lying") or ((her_sleep(o).get("sleep_pressure") or 0) > 0.85):
+                    ritual = "BEDTIME"
+                elif cur_epoch == "DAWN_AWAKENING":
+                    ritual = "MEALTIME"
+                elif cur_epoch == "MORNING_FOCUS":
+                    ritual = "PLAYPEN_NOVELTY"
+                elif cur_epoch == "MIDDAY_STROLL":
+                    ritual = "YARD_EXPLORATION"
+                elif cur_epoch == "AFTERNOON_EXPLORATION":
+                    ritual = "TV_AND_MEDIA"
+                elif cur_epoch == "EVENING_WINDDOWN":
+                    ritual = "STORY_AND_SONG"
+                elif cur_epoch == "NIGHT_CONSOLIDATION":
                     ritual = "BEDTIME"
                 elif hungry:
                     ritual = "MEALTIME"

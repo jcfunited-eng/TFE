@@ -968,6 +968,10 @@ def make_bed(world: Any) -> dict[str, object]:
     try:
         snapshot = home.snapshot()
         her, _person = home.bodies(snapshot)
+        if _distance_mm(her.pose.position, bed.position) > bed.radius_mm:
+            bed_pose = PoseMM(PositionMM(bed.position.x, bed.position.y, 0), her.pose.heading_millidegrees)
+            world.admit_authored_body_transport(her.body_id, bed_pose)
+            record["steps"].append({"operation": "tuck_in_bed", "reason": "applied", "to": [bed.position.x, bed.position.y]})
         home.walk_to_region("hallway")
         home.move(CAREGIVER_HOME_MM, _heading_toward(CAREGIVER_HOME_MM, her.pose.position))
     except _Bounded:
@@ -1576,7 +1580,7 @@ def joint_clean_up(world: Any) -> dict[str, object]:
         stray = None
         for item in snapshot.objects:
             if item.position is not None and item.held_by_body_id is None:
-                if item.object_id.startswith("apple") or item.object_id in ("play-ball", "stacking-rings"):
+                if item.object_id.startswith("apple") or item.object_id in ("play-ball", "stacking-rings", "toy-blocks", "toy-bear"):
                     stray = item
                     break
         if stray is not None:

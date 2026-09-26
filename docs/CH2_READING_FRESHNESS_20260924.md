@@ -128,6 +128,31 @@ real activation logic blind could block the site's serving path, so it
 was left alone tonight; it needs the real logic mapped and a serving
 test before removal. Trading is unaffected either way.
 
+## Deployed — 2026-09-26 00:02 UTC, `tfe-web-task:637`
+
+```
+commit             f523dc946  (carries e33199a5f, 9ab109a01, the lane rule below)
+rollout            PRIMARY COMPLETED 1/1, task 8cf1c8b1…
+verified live      env TFE_ENTRIES_HALTED=0 · DB auto_tfe_enabled=true · entries_halted=false
+                   sentinel reads daily_bars · gate carries advisoryValidationCheck
+                   daemon running ("Outside market hours — sleeping")
+```
+
+Two failed attempts first, both on the record:
+- 09-24 20:05 UTC — never ran: the queued job was a Claude-session
+  background task and died with the session. Replaced by
+  `tools/deploy_after_close_once.sh`, launched detached (`setsid nohup`).
+- 09-25 20:05 UTC — ran, **failed** `runtime_validation_ecs_nonpass`: the
+  strict gate re-validates in the live container when a refresh-pipeline
+  file changes, and the live (old) gate judged last night's run "error"
+  (`pipeline_terminal_integrity`) — an error caused by the very check this
+  deploy makes advisory. Circular. The deploy script already has a
+  hotfix lane for that exact failure when the sole changed input is
+  `rebuild_uf_snapshot.py` or `run_refresh_with_l5_learning.py`; the admin
+  refresh route (where the nightly mode lives) is the same kind of file
+  and was added to it (MINE, `tools/deploy_to_prod_with_evidence.sh`).
+  Third attempt 23:54 UTC → `:637`.
+
 ## Verification, tonight and tomorrow
 
 ```

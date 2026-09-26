@@ -2582,17 +2582,16 @@ PUSH_CLEARANCE_MM = 40
 
 
 def _is_bed(item: EmbodiedObject) -> bool:
-    """A bed (authored with the ``bed`` prefix): the one thing the self body may
-    lie on, and the one thing other things (her pillow, her blanket) may lie
-    on. Nothing else in the world admits overlap."""
+    """A bed or toy chest: furniture that other things (bedding, toys) may lie
+    on or in. Nothing else in the world admits overlap."""
 
-    return item.object_id.startswith("bed")
+    return item.object_id.startswith("bed") or item.object_id == "toy-chest"
 
 
 def _is_contained_or_seated(item: EmbodiedObject) -> bool:
     """Furniture that lawfully accommodates or contains the infant self-body:
-    her bed, her high-chair, and her playpen."""
-    return item.object_id.startswith("bed") or item.object_id in ("high-chair", "playpen")
+    her bed, her high-chair, and her playpen, as well as bedding resting on the bed."""
+    return item.object_id.startswith("bed") or item.object_id in ("high-chair", "playpen", "pillow", "blanket")
 
 
 def _push_aside(

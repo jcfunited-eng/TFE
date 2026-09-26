@@ -465,12 +465,29 @@ function render(value){
       ctTouch=t+(cDesc?" · "+cDesc:"");
     }
     let ctRitual="Playpen Novelty";
-    const loMet=(event&&event.metabolic_need_reserve_deficit&&event.metabolic_need_reserve_deficit[0])||0;
-    if(event.caregiver_presentation&&event.caregiver_presentation.reading){ctRitual="Story & Song"}
-    else if((event.caregiver_presentation&&(event.caregiver_presentation.object_id==="apple"||event.caregiver_presentation.object_id==="apple-delivery"||event.caregiver_presentation.object_id==="cup"))||loMet>300000){ctRitual="Mealtime (High Chair)"}
-    else if((event.caregiver_presentation&&(event.caregiver_presentation.object_id==="pillow"||event.caregiver_presentation.object_id==="blanket"))||(her&&her.pose&&her.pose.posture==="lying")){ctRitual="Bedtime (Crib)"}
-    else if(ctRoom==="backyard"){ctRitual="Yard Exploration"}
-    else if(event.caregiver_presentation&&(event.caregiver_presentation.object_id==="stacking-rings"||event.caregiver_presentation.object_id==="play-ball"||event.caregiver_presentation.object_id==="toy-bear")){ctRitual="Playpen Novelty (Toys)"}
+    const isAsleep=(event&&event.her_sleep&&event.her_sleep.asleep)||event.her_act==="sleep";
+    if(isAsleep){
+      ctRitual="Bedtime (Sleep)";
+    }else if(event.caregiver_presentation&&event.caregiver_presentation.reading){
+      ctRitual="Story & Song";
+    }else if(event.caregiver_presentation&&(event.caregiver_presentation.object_id==="apple"||event.caregiver_presentation.object_id==="apple-delivery"||event.caregiver_presentation.object_id==="cup"||event.caregiver_presentation.object_id==="high-chair-meal")){
+      ctRitual="Mealtime (High Chair)";
+    }else if(event.caregiver_presentation&&(event.caregiver_presentation.object_id==="pillow"||event.caregiver_presentation.object_id==="blanket"||event.caregiver_presentation.object_id==="bedtime")){
+      ctRitual="Bedtime (Tuck-in)";
+    }else if(ctRoom==="backyard"){
+      ctRitual="Yard Exploration";
+    }else if(event.caregiver_presentation&&(event.caregiver_presentation.object_id==="stacking-rings"||event.caregiver_presentation.object_id==="play-ball"||event.caregiver_presentation.object_id==="toy-bear"||event.caregiver_presentation.object_id==="toy-blocks"||event.caregiver_presentation.object_id==="playpen-containment")){
+      ctRitual="Playpen Novelty (Toys)";
+    }else{
+      const tick=event.native_tick||0;
+      const phase=tick%113600;
+      if(phase<14200)ctRitual="Dawn Awakening (Breakfast)";
+      else if(phase<37867)ctRitual="Playpen Novelty (Directed Play)";
+      else if(phase<56800)ctRitual="Midday Stroll (Yard Exploration)";
+      else if(phase<75733)ctRitual="Afternoon Challenge (Music & TV)";
+      else if(phase<94667)ctRitual="Evening Culture (Story & Tidying)";
+      else ctRitual="Bedtime (Sleep)";
+    }
     put("caretaker-ritual",ctRitual);
     put("caretaker-touch",ctTouch);
   }
