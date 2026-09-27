@@ -14,7 +14,7 @@ import numpy as np
 import guala_body_interval as interval
 from libc.math cimport fabs, isfinite, pow, sqrt, tan
 
-RADAU_LAW = "radau-iia3-secant-contact-estimator-v1"
+RADAU_LAW = "radau-iia3-secant-positive-embedded-v2"
 MAX_LINE = 16
 MAX_SECANT = 32
 STAGE_COUNT = 3
@@ -28,7 +28,12 @@ A = np.array((
     ((16-_root6)/36, (16+_root6)/36, 1./9),
 ))
 B = A[-1].copy()
-for _coefficient in (A, B, C):
+# Positive quadratic quadrature through the start, second Radau node and end.
+# These are integrated Lagrange weights, not fitted error tolerances.
+_a = float(C[1])
+E = np.array(((3*_a-1)/(6*_a), 1/(6*_a*(1-_a)), (2-3*_a)/(6*(1-_a))))
+_middle_scale = float(E[1]/B[1])
+for _coefficient in (A, B, C, E):
     _coefficient.flags.writeable = False
 cdef double MACHINE_EPS = 2.220446049250313e-16
 
@@ -292,12 +297,12 @@ class RadauProbe:
                        calls_start=self.calls,failure=None)
         self.steps.append(receipt)
         try:
-            # Compare Q_R=h*sum(b_i F_i) with Q_T=h*(F_0+F_end)/2.
-            # Both are passive impulse observations; neither replaces dynamics.
-            initial_impulse = interval._midpoint_impulses(m,d,dt/2)
+            # Compare the actual Radau impulse with a positive start-inclusive
+            # quadratic estimate. Neither estimator replaces force or dynamics.
+            initial_impulse = interval._midpoint_impulses(m,d,dt*E[0])
             solver = _Stages(e,base,dt,self)
             stages = solver.solve(receipt)
-            terminal_impulse = interval._midpoint_impulses(m,d,dt/2)
+            terminal_impulse = interval._midpoint_impulses(m,d,dt*E[2])
             work = interval._finite(dt*sum((B[i]*stages[i]['work'] for i in range(3)),start=np.zeros(6)))
             if work[0] > supply: raise ValueError('mechanical energy supply exhausted; no successor')
             if any(work[i] < 0 for i in (0,3,4,5)): raise ValueError('negative physical dissipative quadrature')
@@ -322,7 +327,11 @@ class RadauProbe:
             impulse = {}
             for stage in stages:
                 impulse = interval._impulse_add(impulse,stage['impulse'])
-            embedded = interval._impulse_add(initial_impulse,terminal_impulse)
+            # Reweight the existing middle-stage impulse; no new force solve.
+            middle = {pair:tuple(interval._finite(x*_middle_scale) for x in values)
+                      for pair,values in stages[1]['impulse'].items()}
+            embedded = interval._impulse_add(
+                interval._impulse_add(initial_impulse,middle),terminal_impulse)
             receipt['contact_impulse_estimator_passed'] = interval._impulses_close(embedded,impulse,dt)
             if not receipt['contact_impulse_estimator_passed']:
                 raise ValueError('contact impulse embedded quadrature unresolved')

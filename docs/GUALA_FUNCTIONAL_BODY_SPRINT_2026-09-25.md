@@ -12009,3 +12009,136 @@ impulse equivalence, known-error refusal, unchanged exact rollback and the
 original failed100us admission under the SAME162-trial allowance. Follow only
 that result. Gravity, sustained motion accuracy/cost, world mount, body sensory
 integration, cold restart and production remain open. Goal ACTIVE.
+
+### FB-01aj positive embedded estimator implementation contract — 2026-09-27 11:02Z
+
+Entry evidence is bf867fb7b's complete saved-refusal frontier. Nine of25 exact
+old refusals are accurate under two independent references and the derived
+positive quadratic estimator. The original trapezoid unnecessarily refines
+those states. This is a numerical-estimator defect only, not a force/sensory
+law defect. The prospective primitive trajectory and all actual Radau work/
+impulse remain identical; only the passive error indicator changes.
+
+Authorized source: native/functional_body/radau.pyx, constant coefficients and
+RadauProbe.step's embedded contact impulse only. For a=C[1], use weights
+w0=(3a-1)/(6a),wa=1/(6a(1-a)),w1=(2-3a)/(6(1-a)); exact integration of the
+quadratic Lagrange basis through0,a,1. All are positive and sum to1. c1 is not
+eligible because its start/end rule has a negative weight. Form initial/end
+impulses using existing calls with dt*w0 and dt*w1, and obtain the middle term
+by positive rescaling wa/B[1] of the EXISTING weighted stage impulse. No extra
+native force evaluation or persistent state. Four existing pair components
+(force, intrinsic couple, force path, couple path) all retain the same weight.
+Keep E read-only alongside A/B/C. Update the diagnostic numerical-law identity.
+Floating weighting is within the already authorized body-only approximation;
+the independent proof derives exact rational moments at the binary node.
+
+Causal path: RadauProbe.step -> existing _Stages.solve/evaluate -> actual native
+forces/three-stage state/work -> passive embedded impulse comparison -> existing
+same error/rollback on refusal -> unchanged RadauProbe.admit local whole-channel
+comparison and sampled-event gate. No biology/neuron/kernel/cognition/runtime
+mount, schema or body custody extension. Repository caller census confirms
+guala_body_radau is not imported by serving code; build.py only selects an
+isolated diagnostic extension. Production and main G1 files are out of scope.
+No new locks/owners/labels/controllers/decision tables or lifetime history.
+
+Mutations and rollback remain exactly as before: all stage trials unpublished,
+raw integration state and timestep restored on any failure, same energy/travel/
+residual limits, same162 admission trials. No artificial dissipation or state
+synchronization. O(reached contacts) transient reweighting only; no new contacts,
+stage solves, native force calls or retained body bytes. No stale v1 fallback.
+
+Acceptance before any full-history rerun: compile once after frozen source-only
+review; replay authenticated saved proposals and require the mapped verdicts,
+bit-exact raw prospective state, observations, actual Radau impulses, energetic
+work and stage-force-call count. Known inaccurate proposals stay refused with
+exact rollback. Prove coefficient moments independently. Then settle the exact
+previous21.8..21.9ms failed interval under the original162-trial allowance and
+compare it with two independently refined same-predecessor references. Include
+same-input replay plus zero-energy and exhausted-budget rollback. Preserve the
+first failure rather than tuning or raising limits. Internal2048primitive/20CPU
+measurement cap, existing offline2core/60CPU-process/1GiB-AS/90wall envelope and
+read-only AWS pre/post. No push, Slack, live writes, or broader source changes.
+Neither success nor compilation establishes sustained/global accuracy, real-time
+speed, mounted body/world mechanics or cold production continuation.
+
+### FB-01aj positive estimator result and local-refusal attribution — 2026-09-27 11:18Z
+
+The reviewed positive estimator preserves all37 saved prospective raw states,
+observations, actual Radau impulses, energetic work, iterations and force calls
+exactly. Known errors remain refused. The original100us admission nevertheless
+exhausts the SAME162 trials:72 fine pieces reach21.8875ms, then the whole interval
+rolls back exactly to21.8ms. New36 refinements are18 impulse,17 local/domain,
+one residual; old38 were27 impulse,10 local/domain,one residual. Fewer passive
+impulse refusals did not establish bounded interval completion. No reference,
+same-input admission replay, zero-energy or one-trial rollback subtest after
+that failure was reached. No sustained/global/performance claim follows.
+
+Receipt FB-01aj-radau3-positive-embedded-proof.json SHA256
+8bda9317bc0d3171c330d4420e4af4ead1e250c1e93efc4035d129b984531715;
+source cbc084a1dc775d2f555af7e07b7caf18bbf66b947ea67c7eef1ca4104e5616d3;
+binary1d25cfed911742bfef99d53a770754bc673f2fdffe6f3abc80b8992adc773937.
+Frozen source review0ddbd4e49cc303741afd027f84f7c700ac6d5bb88d83398b7109ae4a307d78bd PASS.
+Build14.092s,362360KiB RSS; numerical2.485s,199primitives4836forwards;
+full proof3.192s,282280KiB RSS. Owned groups91234/91339 terminal, independent
+censuses empty. AWS sole1559/same image/identity,ticks2596131->2596180,no
+custody errors; existing clock ALARM unchanged,other4OK. No production writes.
+
+Next is passive attribution of precisely17 saved local/domain refusals, not a
+new numerical law or full-history replay. Each predecessor comes from the
+authenticated accepted-prefix raw state, crosschecked against the next piece's
+predecessor SHA and recorded available work. Re-evaluate its exact coarse/left/
+right primitive once (51 total), separately report the unchanged sampled-domain
+event gate and every existing motion/sensor/work/impulse/contact comparison.
+Return no overridden gate result; leave solver, tolerances, anatomy,162-trial
+allowance and production untouched. Output is diagnostic, not accepted motion.
+Use existing binaries, no build;10CPU-second internal/51primitive limit and the
+existing offline2core/60CPU-process/1GiB-AS/90wall envelope with read-only AWS.
+No complete-history or previously proved37-case repeat. Independent source-only
+review precedes execution. The packed raw-state schema was checked before
+freeze; an apply_patch attempt to delete/add one path in a single patch refused
+without mutation. Full replacement must use separate patch operations. No
+numeric run was made with the draft unpacker. Goal ACTIVE; body remains unmounted.
+
+### FB-01aj local-refusal attribution outcome — 2026-09-27 11:33Z
+
+All17 saved local/domain refusals reproduced exactly. All17 pass the unchanged
+coarse/fine motion, sensory, energetic work, contact force and impulse checks;
+all17 fail only the existing sampled-domain timing gate. The largest non-impulse
+normalized error is0.0028507954573975397 of its existing allowance. These are
+not17 demonstrated inaccurate trajectories. They remain REFUSED because event
+timing is a separate required invariant, not because a successful endpoint
+comparison authorizes discarding a physical transition.
+
+Three cases include release of lower joint boundary57 and corresponding
+constraint-row removal. Thirteen cases contain constraint-state changes only;
+one case removes loaded pair(6,22), retaining(10,34). Geometry pairs otherwise
+remain unchanged. The broad any-domain-change test forces both half-intervals
+below1us even when state/work comparisons are comfortably within tolerance.
+Do not infer that all these events are artificial, delete their timing gate,
+increase the162 allowance, or relax the physical thresholds. Next single item:
+map chronological same-trajectory sampled event brackets against the already
+ratified1us uncertainty. Any event-local correction must retain all changed
+domain evidence, refuse unresolved brackets and preserve exact rollback. Reuse
+these saved observations before considering further numerical execution; do
+not rebuild or replay the complete history merely to inspect event timing.
+
+Receipt docs/evidence/FB-01aj-radau3-local-rejection.json,919830bytes,SHA256
+cbe9974c9988aad01dd2f0e41cf33c1b46048738247ee868e9087c262239c8e6.
+Proof ca4768043387b4eaab04b2a20b9b015ecbb0ee0b88f8db9d762d9d17a6922441;
+runner a59a42eee3b9cfe53c519b18d00f61ac837a62e2967f01492ba0f23358436ff9.
+Frozen tree ab06607d2e71048a533528f38765dfbab3a4d6f14e7313829b18434390e7c19e.
+Independent review found two localized diagnostic issues (retain branch evidence
+and restore case state on failure; reject nonfinite derived ratios). Both were
+corrected in one batch and final review PASS preceded the only execution.
+51primitives/1374forwards;0.735s numerical CPU,1.428s child wall/1.421s aggregate
+CPU,162104KiB peak RSS. Exact group99597 terminal, runner and independent host
+censuses empty. Sandbox /proc is namespace-local; host census uses the approved
+host context. An unrelated short G1 publish_channel_books.py process had ended
+before the guarded execution. No process was signaled.
+
+Read-only AWS11:30:28->11:30:32Z retained sole1559,identical image/identity,
+ticks2599678->2599687,CPU51.3768%,RAM3.125%,no custody errors. Existing clock
+ALARM remains,other4OK. No build, mounted change, push, Slack or production
+mutation. Positive estimator source remains compiled-unmounted; interval cost,
+sustained/global accuracy, gravity, world/sensory mount and restart are OPEN.
+Goal ACTIVE. This evidence closes attribution, not body qualification.
