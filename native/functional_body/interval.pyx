@@ -103,11 +103,47 @@ def _constraint_states(m, d):
     return tuple(d.efc_state)
 
 
+def _geometry_velocities(m, d):
+    """World-frame geometry motion, exactly the native object-velocity law.
+
+    MuJoCo 3.3.7 mj_objectVelocity(GEOM, local=0) followed by
+    mju_transformSpatial(motion, rotation=NULL). Read borrowed native arrays
+    once; preserve component ordering, subtraction order and static-body zeros.
+    No force evaluation, retained cache, body mutation or per-geometry FFI.
+    """
+    cdef const int[::1] geom_body = m.geom_bodyid
+    cdef const int[::1] body_weld = m.body_weldid
+    cdef const int[::1] body_root = m.body_rootid
+    cdef const double[:, ::1] position = d.geom_xpos
+    cdef const double[:, ::1] center = d.subtree_com
+    cdef const double[:, ::1] motion = d.cvel
+    cdef Py_ssize_t i, j, body, root, count = m.ngeom
+    cdef double dx, dy, dz, wx, wy, wz
+    result = np.empty((count, 6), dtype=np.float64)
+    cdef double[:, ::1] velocity = result
+    for i in range(count):
+        body = geom_body[i]
+        if body_weld[body] == 0:
+            for j in range(6):
+                velocity[i, j] = 0.
+        else:
+            root = body_root[body]
+            dx = position[i, 0] - center[root, 0]
+            dy = position[i, 1] - center[root, 1]
+            dz = position[i, 2] - center[root, 2]
+            wx, wy, wz = motion[body, 0], motion[body, 1], motion[body, 2]
+            velocity[i, 0] = wx
+            velocity[i, 1] = wy
+            velocity[i, 2] = wz
+            velocity[i, 3] = motion[body, 3] - (dy*wz - dz*wy)
+            velocity[i, 4] = motion[body, 4] - (dz*wx - dx*wz)
+            velocity[i, 5] = motion[body, 5] - (dx*wy - dy*wx)
+    return result
+
+
 def _snapshot(e):
     m, d = e._model, e._data
-    velocity = np.empty((m.ngeom, 6))
-    for i in range(m.ngeom):
-        mj.mj_objectVelocity(m, d, mj.mjtObj.mjOBJ_GEOM, i, velocity[i], 0)
+    velocity = _geometry_velocities(m, d)
     _finite(velocity)
     contacts = []
     geometric = []

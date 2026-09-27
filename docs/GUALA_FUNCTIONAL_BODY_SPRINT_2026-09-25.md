@@ -12838,3 +12838,130 @@ AWS13:38:37->41Z:sole1559/same identity and image,ticks2618515->2618525,
 no checkpoint/cleanup/durability errors. Existing clock ALARM,other4OK;
 CPU51.350934%average/51.780653%max,memory3.173828% at13:36Z. No production,
 G1 source, push or Slack changes. Goal ACTIVE; body compiled-unmounted.
+
+### FB-01aj native velocity boundary contract — 2026-09-27 13:52Z
+
+Previous turn PROGRESS:ea1f80911 retained exact saved controls and measured
+dispatch cost. Continuing the same accuracy/cost item, not reopening the
+solved-domain handoff. Requested bounded functional-body delivery is not yet
+qualified: current body is compiled-unmounted; conflict with delivery YES.
+No cognition, kernel, force law, tolerances, anatomy, runtime mount or G1 edits.
+Reduced numerical rigid-body mechanics only; no full biological/DSF claim.
+Single exact next item: verify equivalent native geometry-velocity traversal.
+
+Changed executable source: native/functional_body/interval.pyx only, full-file
+replacement. _snapshot -> _geometry_velocities borrows geom_bodyid, body_weldid,
+body_rootid, geom_xpos, subtree_com and cvel once, allocates the same ngeom*6
+float64 output, executes the unchanged native world-motion transform in typed
+loops. No per-geometry Python calls or NumPy row views. Read-only memoryviews
+retain no state after return. Static-body six positive zeros, angular component
+copies and linear subtraction/cross-product evaluation preserve native order.
+Default checked memoryviews retain shape/type/index failure behavior rather
+than introducing unchecked raw-pointer arithmetic. Existing _finite remains.
+
+Causal impact: midpoint _one_step/advance_interval and Radau stage/endpoint
+capture consume the same snapshot. _close, sampled-event comparison and the
+trajectory observer receive unchanged velocity, state, pose, contacts, solved
+constraint domain and sensory arrays. No force re-evaluation is deleted.
+Unchanged NativeBody capture/restore header and interval/Radau law strings:
+ABI3/v4, no state/schema migration. The correction cannot affect body state;
+any failure produces no output, and the existing caller owns transaction
+rollback. Ordinary cold state and the next step must match the saved control.
+No package/production integration is added; this remains an unmounted proof.
+No diagnostic data, recurrence cache or second physical authority is created.
+
+One reviewed build of interval only; reuse the unchanged authenticated Radau
+and MuJoCo binaries. Proof: ten original saved controls, fifty full snapshots
+compared byte-exactly to the accepted scalar snapshot from pinned ea1f80911;
+all geometry velocity rows, raw successors, work and force calls must match.
+The candidate path raises if it calls the old per-geometry getter. Disposable
+arithmetic scratch independently checks signed-zero and finite motion cases,
+explicitly not a physical organism trajectory. Two timed repetitions compare
+both implementations from identical saved inputs, reversing execution order;
+no profiling/measurement wrappers in timed steps. Timing never admits motion.
+One fresh cold restore/next step, one zero-energy and one force-budget refusal
+must preserve exact state.53primitive attempts/5CPU seconds maximum; do not
+repeat the sustained prefix. Small test count is scoped evidence, not full
+500ms accuracy or real-time qualification. No improvement claim before data.
+
+Same two-core,1GiB-AS/process,60CPU-s/process,90wall-s/group operational envelope;
+network denied in build/proof, read-only AWS pre/post, fingerprint/source hashes
+checked before and after, explicit handles and independent terminal census.
+No push/Slack/production mutation. No rollback fallback or tolerance changes.
+Source-only independent review required before any compilation or proof.
+
+Source SHA256 5d978491164774fc14b803232f00cdc0f9f98f94c7eeb8b9c9b5accf036f03e6.
+Probe /tmp/a1-body-velocity-boundary-proof-20260927.py SHA256
+2165a05ad37fb92c794df586ffe4e8ace34cc2e93731d3a814dd3fe523b12b83.
+Runner /tmp/a1-body-velocity-boundary-run-20260927.py SHA256
+aa885c44f60abe03aa71cbfcca45d873ba2a8ff41592dc26f4eb8990bd5d09e5.
+Pre-freeze source check corrected the draft proof's nonexistent max_calls
+attribute to the actual RadauProbe.ceiling before execution; no failed run.
+An upstream-header search for mju_cross returned no match in engine_util_blas.h;
+bounded source lookup located engine_util_spatial.c:357 instead. Native source
+was inspected, not inferred from the helper name. No new physical coefficient.
+
+Frozen review150520ad51dcf74499d66276aa514b043429797ccc2d65a0c64ac727545ee966:
+no architectural defect; native arithmetic/lifetimes pass. Two localized proof
+gaps corrected in one batch before any build: failed comparisons now retain
+actual/reference operands and active trial/custody state before assertions;
+the newly built interval binary joins the post-proof hash check. Failure
+packing includes byte states and signed float bits. Successful trial inputs
+remain referenced by authenticated hashes instead of repeated raw history.
+Compact console output omits raw custody payloads; receipt retains them.
+Native source unchanged by review. Final source-only review required once.
+Final probe SHA256
+4d667832f45a256f62e9a03b7ffdaacb317b741e93d5c42b332bb31059ea614b;
+final runner SHA256
+90bf798c4969f075a631556eb680667f4f0d4390797fc396f4bf372d9235426f.
+
+### FB-01aj native velocity boundary verified — 2026-09-27 14:00Z
+
+PROGRESS: final frozen source review395bac15f24cba515abad172bd43e2ddaca7264fa31c7792cd4d25109270c3b7
+PASS; both localized evidence gaps closed, no architectural finding. One
+interval build and one focused proof ran; no repeated sustained history.
+All53primitive attempts/1207forwards completed within0.339958numerical CPU
+seconds. All50full snapshots/2500geometry rows match the previous native getter
+bit-for-bit. Ten saved-state controls and40paired timing steps preserve raw
+successor, work, impulse, stages and exact force-call counts. Candidate snapshot
+cannot call the old per-geometry getter. Signed-zero/static and finite-motion
+arithmetic checks pass. Fresh cold restore/next step, zero-energy refusal and
+force-allowance refusal pass with exact state preservation. Source, binaries
+and frozen tree hashes rechecked after execution.
+
+Receipt docs/evidence/FB-01aj-velocity-boundary.json:42383bytes, SHA256
+dd0d5e5b2f2543cb282657980da3fb5a288271523555ee165c7b2acb01818606.
+Packed raw measurement:114521bytes, SHA256
+3e0c5462dbb42cb414600ac4f827beaf86bc159a3fed4609910a3ad0141fc246.
+New interval binary /tmp/guala-body-velocity.uw41fxqs/python/
+guala_body_interval.cpython-311-x86_64-linux-gnu.so SHA256
+04c168a94573c7b3282b9f1ea00e5821a00b8126357b8e6eb7f0d38b4b67a4f9.
+Same Radau wxenj18y binary, MuJoCo midpoint library, law/ABI3/v4 and state header.
+Build11.899wall/11.878aggregate CPU seconds,342428KiB peak RSS.
+Proof1.315wall/0.906aggregate CPU seconds,145992KiB peak RSS; no timeout.
+
+Unprofiled short paired timing (20same-state steps each): scalar reference
+70.195ms wall/84.004ms process CPU; candidate66.896ms wall/64.120ms process CPU.
+Reversing order also reduced wall time in each repetition (35.544->33.379ms;
+34.650->33.517ms). This is a small local measurement, not a sustained benchmark
+or real-time guarantee; clock/scheduling effects limit extrapolation. The
+removed250getter dispatches per primitive are proved absent, not merely hidden.
+All physics work and evidence rows remain. Native force-solver cost is still
+substantial and open; no claim this modest correction solves the total budget.
+
+Session59890 and child groups58341/58402 terminal, independent host census empty.
+Preflight briefly saw unowned PID58232 (python tools/publish_channel_books.py,
+PPID/PGID351); it had exited before follow-up inspection. No signal was sent;
+do not claim the shared host was idle throughout. It was not a body proof child.
+AWS13:59:15->30Z:sole1559/same identity/image,ticks2621541->2621578,
+persisted2621516->2621548,no checkpoint/cleanup/durability errors. Existing
+clock ALARM,other4OK. CPU51.340716%average/51.814559%max,memory3.175863%
+at13:57Z. No G1 source, push, Slack or production change.
+
+Close this exact observation-dispatch seam; do not re-review or retest its
+settled arithmetic. Next: resume the preserved sustained v4 histories, first
+complete half68.4->68.5ms against the already-completed coarse interval, then
+advance without replay, synchronization, tolerance changes or duplicated
+prefix evidence. Same bounded execution envelope; preserve partials on budget
+exit. Body remains compiled-unmounted. Full500ms accuracy, sustained cost,
+gravity, integration and restart remain OPEN; objective ACTIVE.
