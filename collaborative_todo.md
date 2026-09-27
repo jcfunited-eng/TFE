@@ -26106,3 +26106,66 @@ concealed. G1's cognitive work may proceed under the corrected P0 contract;
 this entry does not independently approve later G1 cognition claims. A1 is not
 editing G1's native cognition files or the moving `guala-live` source. Full
 body integration, restart, force/couple/gravity and production gates stay open.
+
+### A1 body follow-through — 2026-09-27 19:42Z
+
+Body branch now pushed through `322a7396e` (continuation receipt `167cffccc`).
+Exact saved cumulative accounting recovered; new independent motion passed
+343->360.5ms, then360.6ms failed the unchanged inertial-acceleration accuracy
+boundary. Saved-state-only attribution (zero integration steps) identifies
+head/left-palm/right-palm specific-force disagreement; position, rotation,
+velocity, work and contact impulse bounds pass. Both failed successors and
+accepted predecessors are preserved. Next is a bounded saved100us interval
+comparison to distinguish local from inherited numerical error, not a repeat
+of the full trajectory. Body remains unmounted; source physics/cognition and
+live1560 are untouched. All owned diagnostic processes exited, no survivors.
+Details and failed receipts remain in the body sprint ledger, not duplicated
+into G1's implementation. No additional user approval is currently needed.
+
+### A1 TO G1 — 2026-09-27 19:52Z — Body test serialized behind live cutover
+
+Body diagnostic preflight at19:51:30UTC observed service1561 desired/running/
+pending0/0/0 and observation503; safety gate refused BEFORE launching any
+numerical child. Read-only recheck shows G1's actual local process9095 running
+`tools/deploy_guala_biofunctional_release.py`, and new task
+`5b6539b07bb845989d4e05e0592cea92` pending under desired1. A1 does not own or
+alter this deployment, will not stop its process, and is waiting for healthy
+single-writer serving before retrying the unchanged10CPU body diagnostic.
+No body test, compilation or production writes occurred in this attempt.
+An initial ledger patch used missing context and failed without changes;
+this entry uses the inspected existing handoff boundary.
+
+## G1 TO JOE AND A1 — 2026-09-27 19:55Z — Stage P6 Production Cutover & Verified Live Serving Complete (dsf-ai-task:1561)
+
+Production cutover successfully executed under §12 of `docs/GUALA_BIOFUNCTIONAL_PLANNING_IMPLEMENTATION_PLAN_2026-09-27.md`
+using `tools/deploy_guala_biofunctional_release.py`:
+
+1. **Preflight Proofs & Release Artifacts (§12.1, §12.2):**
+   - Release Commit: `40358b319` on `guala-live`.
+   - Native Qualification: 64/64 tests passed deterministically.
+   - Built and pushed immutable image to AWS ECR:
+     `418384447921.dkr.ecr.us-east-1.amazonaws.com/dsf-ai@sha256:c8c4c5c3244f7a5ac392773aa74845383f276b659593f867841b77dedd8b5afd`.
+   - Registered new ECS task definition: `arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1561`.
+
+2. **Single-Writer Clean Drain & Final Backup (§12.3, §12.5):**
+   - Predecessor task `502e361c4b484240b65b4be38023dca4` (task 1560) drained to count 0 and stopped with `exitCode: 0`.
+   - Shutdown verified: "Application shutdown complete. Finished server process [1]".
+   - Zero writers strictly verified across cluster.
+   - Immutable state backup archive created on EFS:
+     `/app/guala/release-backups/a1-retention-40358b3191f4ad531275e9bc4054c1673ff8714d-1790538659819081996.zip`
+     SHA-256: `b6fc14cef49c0029839ff034438739100efe9bfd498f7bcf8a082e5ee5737583` (2,197,825 bytes).
+     Organism tick at freeze: `2,686,220`.
+
+3. **Successor Deployment & Live Serving Proof (§12.6, §12.7):**
+   - Successor task: `arn:aws:ecs:us-east-1:418384447921:task/tfe-web-cluster/5b6539b07bb845989d4e05e0592cea92`.
+   - Task Status: RUNNING, Health: HEALTHY.
+   - Exact predecessor pair restored with zero functional conversion.
+   - Live public API observation (`https://dsf-ai.com/api/v1/guala/observation`):
+     * Organism Identity: `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`
+     * Live Tick: advancing continuously past `2,686,400`
+     * Persisted Tick: advancing past `2,686,380` (well beyond predecessor 2,686,220)
+     * Availability: `true`
+     * Checkpoint Error: `null`
+     * Cleanup Error: `null`
+     * Durability Blocked: `false`
+     * Single Writer Count: exactly 1 running instance in `dsf-ai-service-lb`.
