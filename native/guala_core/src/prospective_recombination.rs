@@ -247,8 +247,12 @@ impl LateralCompetitionEngine {
 
                 let hysteresis_margin = max_mom - self.channels[second_chan].prior_activation_momentum;
 
-                // Enforce physical lockout on non-winner effector
-                self.channels[second_chan].effector_gated = true;
+                // Enforce physical lockout on all non-winner effectors
+                for &idx in &active_channels {
+                    if idx != best_chan {
+                        self.channels[idx].effector_gated = true;
+                    }
+                }
 
                 Ok(ExclusivityStatus::CollisionResolved {
                     winner_id: best_chan,
@@ -723,5 +727,69 @@ mod tests {
                 restored.channels[i].prior_activation_momentum
             );
         }
+    }
+
+    #[test]
+    fn test_four_channel_simultaneous_collision_stress() {
+        let mut engine = LateralCompetitionEngine::new(
+            4,
+            &["Forward", "TurnLeft", "TurnRight", "Reverse"],
+        ).unwrap();
+
+        // Fully-connected mutual lateral inhibition network (all 6 pairs)
+        let g_inhib = 25.0e-9;
+        for i in 0..4 {
+            for j in (i + 1)..4 {
+                engine.add_mutual_inhibition(i, j, g_inhib).unwrap();
+            }
+        }
+
+        let dt = 0.001;
+        let mut total_collisions = 0;
+        let mut single_winners = 0;
+
+        for step in 0..10_000 {
+            // Apply independent oscillatory current drives to all 4 channels
+            let drive_0 = 1.8e-9 * ((step as f64 * 0.07).sin().abs());
+            let drive_1 = 1.6e-9 * ((step as f64 * 0.05 + 1.0).cos().abs());
+            let drive_2 = 1.7e-9 * ((step as f64 * 0.09 + 2.0).sin().abs());
+            let drive_3 = 1.5e-9 * ((step as f64 * 0.04 + 3.0).cos().abs());
+
+            let gating = if (step / 200) % 2 == 0 { -1.5e-8 } else { 0.0 };
+
+            let status = engine.step(
+                dt,
+                &[drive_0, drive_1, drive_2, drive_3],
+                gating,
+            ).unwrap();
+
+            match status {
+                ExclusivityStatus::Quiescent => {}
+                ExclusivityStatus::SingleWinner { channel_id, .. } => {
+                    assert!(channel_id < 4);
+                    single_winners += 1;
+                }
+                ExclusivityStatus::CollisionResolved { winner_id, suppressed_id, hysteresis_margin } => {
+                    assert!(winner_id < 4);
+                    assert!(suppressed_id < 4);
+                    assert_ne!(winner_id, suppressed_id);
+                    assert!(hysteresis_margin >= 0.0);
+                    total_collisions += 1;
+                }
+            }
+
+            // Invariant: at no point can multiple effectors be published simultaneously
+            let active_published: Vec<usize> = engine
+                .channels
+                .iter()
+                .enumerate()
+                .filter(|(_, c)| !c.effector_gated && c.is_active())
+                .map(|(i, _)| i)
+                .collect();
+            assert!(active_published.len() <= 1, "Effector exclusivity violated: multiple effectors published!");
+        }
+
+        assert!(single_winners > 0, "Substrate must produce single winners");
+        assert!(total_collisions > 0, "Substrate must encounter and resolve simultaneous collisions");
     }
 }
