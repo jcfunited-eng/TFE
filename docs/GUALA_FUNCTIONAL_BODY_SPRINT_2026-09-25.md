@@ -10778,3 +10778,114 @@ clock-stalled ALARM remains despite advancing samples; other four alarms OK.
 CPU51.2825 percent average, RAM3.0640 percent. No live health repair claimed.
 No push, Slack, production or G1-owned cognition/food/caretaker changes.
 The complete functional-body goal remains ACTIVE and incomplete.
+
+### FB-01aj changed-solver sustained-motion qualification contract — 2026-09-27
+
+Previous turn PROGRESS: local commit8f3f47fb2 reduced force calls on three matched
+steps while preserving physical limits and exact refusal rollback. Continue
+FB-01aj, not a reopened cognition or body-authority design. The compiled solver
+now needs accumulated-motion evidence; saved single steps cannot supply it.
+
+One no-build offline proof will reuse the earlier paired common-genesis motion
+contract: nominal100/50us histories, unchanged benchmark force/anatomy/supply,
+pose/rate/sensor/work/tactile limits, intended48/250/500ms checkpoints, and real
+effort removal at250ms if reached. Stop on the first actual accuracy, event,
+numerical or resource failure. Keep30000 primitive/162 local-trial allowances,
+50CPU-second internal deadline,60CPU/1GiBAS-per-process/90wall group limits,
+two-core affinity, offline socket denial and read-only AWS pre/post snapshots.
+No old solver/control rerun, build, tolerance increase or changed physical law.
+
+The observer carries actual start and Radau stage hinge position/velocity
+operands on changed hinge segments only. It uses the already-proven integrated
+quadratic and rounded-node polynomial envelope to localize monotone lower/upper
+activation/release times with exact rational diagnostic arithmetic. Validate
+the helper first against both authenticated prior segment enclosures and
+sign-reflected polynomial cases, without replaying mechanics. Unsupported
+nonmonotone or nonbracketed segments explicitly refuse; no guessed crossing.
+Non-hinge contact events retain conservative sampled intervals. Compare exact
+time-enclosure unions to the existing1us bound; this does NOT enclose continuum
+truncation error or certify contact behavior between all sampled nodes.
+
+The observer never changes admission, effort, integration mesh or body state.
+Raw accepted successors/work are recorded before subsequent evidence checks;
+all prefixes and first failure remain in one receipt. Source and compiled
+identities must match before/after. Same numerical source and ABI as8f3f47fb2.
+Independent source-only review precedes this single bounded execution.
+No production/cognition/care change, push or Slack. Full body goal stays open.
+
+### FB-01aj observer startup-boundary correction — 2026-09-27 08:08Z
+
+The first changed-solver sustained probe stopped after0.1ms in the coarse lane,
+before any paired sample: the observer tried to localize EVERY hinge crossing.
+Several joints start exactly on their limits; the first released hinge's dense
+quadratic is not monotone on the entire accepted segment. The localizer refused
+honestly. No motion-channel failure was measured. Native admission had already
+accepted that100us interval; this is not a solver failure or whole-motion pass.
+Receipt FB-01aj-radau-secant-motion.json SHA256
+682a525726c8d6446a23eaf1b051073f89fc0f48d44a854635398ecef93db5d9
+preserves raw successor, work, actual stage operands and refusal. Child21254
+finished in0.816s; exact host census confirms no survivor. No heavy history ran.
+
+Localized observer correction: retain the original conservative sampled event
+interval when the paired union ALREADY satisfies1us. Only when that union is
+wider must the validated monotone hinge construction establish a tighter bound;
+failure then remains failure. This preserves prior acceptance, does not guess a
+nonmonotone root, and avoids extending to a new polynomial root solver. Persist
+the event-correspondence records and any exact tighter bounds in the receipt.
+All physical source, limits, budgets and compiled binaries are unchanged.
+One final frozen source review, then one corrected bounded probe. The earlier
+failure stays intact. No production or cognitive modification is authorized.
+
+### FB-01aj sustained motion reaches first real contact-impulse failure — 2026-09-27 08:12Z
+
+PROGRESS, not qualification. Final frozen source-only review passed for
+fingerprint b0c2a111d059c135f7b1bfb240ef3d5871790f3576d50aa127b29fb8b7e788cb,
+proof5c8a5d9e12fde670cd228ceb87a09edffac6e31d3d79af834626fa62dfe4f3bc,
+runnerd253bb2e608f69e0332d67c8494d6d394a2e98aa7f2a0d12cd32281edc9acdf2.
+One corrected run completed normally and stopped at the FIRST physical failure,
+26ms in both histories; no48/250/500ms checkpoint or release phase was reached.
+The two prior exact event operands and four sign-symmetry checks passed. The
+earlier20.4ms knee timing boundary passed without changing its1us limit.
+
+First failure is accumulated force impulse for native pair(10,20), left palm
+and left digit4 distal surface. Disagreement2.9074546504203697e-5 N*s exceeds
+allowed2.0336853058625396e-6 N*s (14.29648 times the limit), with reference
+integrated force magnitude0.0010336853058625396 N*s. This is not a negligible
+roundoff discrepancy and is NOT accepted. Motion/rate/proprioception/inertial,
+work and instantaneous tactile comparisons still pass; event correspondence
+reports PASS. Intrinsic couple impulse remains explicitly UNQUALIFIED.
+
+Saved evidence isolates the failing contact to the last100us interval. Pair
+contact begins inside[25.9470703125,25.9472656250]ms in both histories, far within
+the unchanged timing bound. After25.95ms the coarse history accepts two25us
+pieces; the half history uses four6.25us pieces followed by two12.5us pieces.
+Both ordinary local checks passed, yet their cumulative impulses disagree.
+This alone does not establish whether the cause is time-integration error,
+inherited physical-state sensitivity, or contact-feature changes. Do not guess
+or relax impulse accuracy. All authentic saved predecessors remain available.
+
+Receipt docs/evidence/FB-01aj-radau-secant-motion-v2.json SHA256
+6fb55748bbb472b84c5a5b89f77295611edd72c3cf96214e6a0dbf9c3278aebc
+retains complete accepted prefixes, event operands/enclosures, work, impulses,
+first failure, source/ABI hashes and resource/health evidence. Candidate source
+and force laws remain unchanged from8f3f47fb2. No rebuild or old-control replay.
+5610 primitive proposals,104516 solver forwards plus2084 outside forwards.
+Native force time7.42755s; numerical proof19.25498s wall/19.24398s CPU; complete
+child20.18261s wall/20.15179s aggregate CPU,241388KiB peak single-process RSS.
+The candidate is still not real-time-qualified. Diagnostic process limits held.
+Session42775/child22452 are terminal; separate exact host census has no survivor.
+
+Read-only AWS08:09:32->08:09:55Z retains sole task1559/same image/identity,
+ticks2570212->2570265, no checkpoint/cleanup error or durability block. Existing
+clock-stalled ALARM persists; other4OK. CPU51.15->51.07percent average,
+RAM3.07617percent. No production health repair or new live body capability.
+
+Single next item: saved-contact attribution only. From each authenticated
+25.95ms predecessor, compare identical remaining50us physical intervals with
+1/2/4/8/16 fixed numerical pieces, unchanged force/work/feedback laws, and exact
+coarse accepted two-piece replay as the control. This separates discretization
+from inherited-state effects without restarting26ms histories. Treat fixed-grid
+trials as diagnostic, not admitted body successors. If needed, inspect actual
+contact normals/features on those same stages rather than inventing smoothing.
+No change to physics or acceptance until this exact cause is established.
+No push,Slack,production,cognition,food or caretaker changes. Goal ACTIVE.
