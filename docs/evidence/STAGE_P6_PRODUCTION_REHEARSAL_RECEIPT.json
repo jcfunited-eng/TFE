@@ -1,0 +1,59 @@
+{
+  "timestamp_utc": "2026-09-27T19:19:45Z",
+  "stage": "P6",
+  "live_environment": {
+    "task_definition": "arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1560",
+    "container_image": "418384447921.dkr.ecr.us-east-1.amazonaws.com/dsf-ai@sha256:45b4591c43a6067eb7367bda2be2e08fd26429e2f43c46055c1b99d249da39ed",
+    "identity": "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1",
+    "live_tick": 2680208,
+    "persisted_tick": 2680204,
+    "persisted_body_sha256": "1bfcedf471f4787d30633958e6c583bd231113d742afb2672e097d2663e8ab47",
+    "persisted_world_sha256": "042c4d75098867e240d4412df2d00b71f94a8e5488571c78ec29eb6ef89456dc",
+    "cloudwatch_alarms": [
+      {
+        "AlarmName": "guala-clock-stalled",
+        "StateValue": "ALARM"
+      },
+      {
+        "AlarmName": "guala-cpu-runaway",
+        "StateValue": "OK"
+      },
+      {
+        "AlarmName": "guala-efs-storage-runaway",
+        "StateValue": "OK"
+      },
+      {
+        "AlarmName": "guala-interval-refusal-loop",
+        "StateValue": "OK"
+      },
+      {
+        "AlarmName": "guala-memory-runaway",
+        "StateValue": "OK"
+      }
+    ]
+  },
+  "release_candidate": {
+    "branch": "guala-live",
+    "commit_sha": "b1aa9859d5dd7553b113caf83a11827416eaa3f5",
+    "native_tests_passing": 62,
+    "zero_heuristics": true,
+    "domain_agnostic_l0_l4_untouched": true
+  },
+  "isolated_rehearsal": {
+    "rehearsal_success": true,
+    "initial_tick": 2678500,
+    "advanced_tick": 2678501,
+    "identity": "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1",
+    "t_publish_seconds": 0.03557593699952122,
+    "body_bytes": 1032,
+    "world_bytes": 74,
+    "cold_restart_verified": true,
+    "conflict_fail_closed_verified": true
+  },
+  "cutover_policy": {
+    "single_writer_mandate": true,
+    "fail_closed_on_conflict": true,
+    "no_erased_history": true,
+    "current_live_task_retained": "dsf-ai-task:1560"
+  }
+}

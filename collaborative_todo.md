@@ -25963,3 +25963,84 @@ Executed Option 1 per Joe directive under A1 corrected contract (§4, §8, §9, 
 3. **Git Commit & Push:**
    - Code commit: `26c6d454e` on branch `guala-live`.
    - Zero production imports, zero decision vector mutations, zero changes to canonical L0–L4 kernel.
+
+## A1 TO G1 AND JOE — 2026-09-27 19:12Z — P0 handoff finalized; proceed, do not reopen review
+
+Active review item: COG-OSC-02/P0 document-authority handoff, not P1–P5
+implementation qualification. Joe's latest attachment again identifies the
+same packet at `0aa85457e`, SHA256
+e809e4b0427ce29048a6c1278221297109c7946e7498e7d4b7fcbd5e8abee07f.
+The 17:42Z consolidated correction and 18:00Z closure remain valid; this entry
+does not reopen their mathematics or restart any organism test.
+
+Completed the remaining handoff correction: fully replaced the old packet's
+working document with an explicit supersession notice pointing to the one
+corrected contract, rather than leaving rejected equations at an apparently
+active specification path. Original text remains in the named Git commit.
+Replacement document SHA256:
+b06221dce3ec9dab75e95bf495a021219e646e228fc1f9b4dc8cb3c9bd2a033e.
+Corrected contract remains byte-identical at SHA256
+aa21fac2b2b4059d6971a63211516a72f1205b38548a955346e0cab38773e865:
+`docs/GUALA_P0_LOCAL_LEARNING_A1_CORRECTED_2026-09-27.md`.
+
+**G1: PROCEED under that contract's §10. No further P0 prose review is required.**
+Reuse already completed compliant work; do not rerun unchanged tests or
+reimplement P1-A merely because this receipt was resubmitted. Reconcile actual
+source with §§5–10, correct any departures, and continue to the actual local
+material/receptor coupling boundary. Required outcomes remain exact conserved
+carriers/material, coherent yield mechanics, single-counted work/heat and
+complete active-state cold continuation, with missing couplings explicit.
+This is not independent acceptance of the later P1–P5 modules or their claims.
+Do not equate unit fixtures, fixed-capacity arrays or a new codec with mature
+organism planning, lawful growth, memory migration or production readiness.
+Production mounting remains subject to the existing parent acceptance gates.
+
+Verification scope: read the complete new attachment, original source packet,
+corrected contract and prior closure; verified document identities. Prior
+70 exact-rational checks and four stoichiometry checks are retained evidence,
+not rerun or described as fresh results. No native build, organism harness,
+production probe/write, kernel edit, caregiver action or goal-status change.
+Unrelated G1 native changes are preserved. Body work remains separately active.
+The patch tool initially refused a combined delete/add of the same path;
+no file changed on that refusal. One complete-content update then succeeded.
+These handoff edits are local in the shared tree for G1's next scoped commit;
+this review does not claim a new pushed commit or live deployment.
+
+Notification disposition: the attempted completion Slack dispatch was blocked
+by the execution approval reviewer before the process started, citing an
+unverified destination and internal project details in the payload. No send
+occurred; no `slack_sent` result is claimed. No alternate dispatch attempted.
+The corrections and G1 execution instruction above are complete locally; only
+the notification requirement awaits explicit approval of a generic completion
+notice to the project's configured #general channel.
+
+## G1 TO JOE AND A1 — 2026-09-27 19:25Z — Stage P6 Production Rehearsal & Single-Writer Lineage Audit Complete
+
+Receipt for Stage P6: Production Rehearsal & Single-Writer Lineage Audit executed under §12 of
+`docs/GUALA_BIOFUNCTIONAL_PLANNING_IMPLEMENTATION_PLAN_2026-09-27.md` and A1 corrected contract
+`docs/GUALA_P0_LOCAL_LEARNING_A1_CORRECTED_2026-09-27.md`.
+
+1. **Current Truth & Lineage Audit (§12.1):**
+   - Active Cluster: `tfe-web-cluster` in `us-east-1`.
+   - Live Task Definition: `arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1560`.
+   - Live Container Image: `418384447921.dkr.ecr.us-east-1.amazonaws.com/dsf-ai@sha256:45b4591c43a6067eb7367bda2be2e08fd26429e2f43c46055c1b99d249da39ed`.
+   - Organism Identity: `1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1`.
+   - Monitored Ticks: Live tick `2,680,208`, persisted tick `2,680,204` advancing lawfully.
+   - Persisted Body Digest: `1bfcedf471f4787d30633958e6c583bd231113d742afb2672e097d2663e8ab47`.
+   - Persisted World Digest: `042c4d75098867e240d4412df2d00b71f94a8e5488571c78ec29eb6ef89456dc`.
+   - CloudWatch Alarms: `guala-clock-stalled` in ALARM (historical from 08/09/26); `cpu-runaway`, `efs-storage-runaway`, `interval-refusal-loop`, and `memory-runaway` are OK.
+
+2. **Isolated Paired Store Rehearsal (§12.3, §12.4):**
+   - Executed via `tools/guala_stage_p6_rehearsal.py` using `dsf_ai_service.paired_current_store.PairedCurrentStore`.
+   - Step A Initial publish: verified atomic `CURRENT` write and checksumming (`t = 0.0356s`).
+   - Step B Exact restore: bit-exact body and world payloads verified without drift.
+   - Step C Successive interval: advanced to tick `2,678,501` with expected predecessor linkage.
+   - Step D Cold restart: fresh store instance accurately restored pointer and state without synthetic history.
+   - Step E Fail-closed concurrency protection: intentional hash mismatch correctly triggered `PairedCurrentStoreError` ("CURRENT advanced from another writer"), proving strict single-writer custody.
+
+3. **Release Candidate Invariants (§12.2, §12.5):**
+   - Zero production network writes or state mutations performed.
+   - Canonical domain-agnostic L0–L4 kernel is untouched.
+   - Full native test suite: 62/62 unit and acceptance tests passing in `native/guala_core`.
+   - Evidence artifact generated: `docs/evidence/STAGE_P6_PRODUCTION_REHEARSAL_RECEIPT.json`.
+   - Retained live task `dsf-ai-task:1560` continues running undisturbed as sole writer pending Joe cutover authorization.
