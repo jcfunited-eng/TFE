@@ -2,16 +2,16 @@
 
 Complies with A1 audit recommendations in collaborative_todo.md (AUT34-A1-01, 02, 03):
 - Safe isolated storage: atomically creates an owned temporary parent directory containing the paired store
-  and metadata pointer; derives child store path from owned parent rejecting symlinks and path escapes;
-  enforces explicit safety refusals before startup and strictly validates saved pointer before cold continuation;
-  discloses cleanup failures rather than swallowing them.
+  and metadata pointer; derives child store path from owned parent inspecting raw paths before resolve()
+  to reject symlinks and path escapes; enforces explicit non-null expected_pointer verification with complete
+  descriptor check before cold startup; discloses cleanup failures rather than swallowing them.
 - Genuine consequence grounding: food target is apple-1 (the specific target for which Guala holds authentic
   historical intake consequences with positive intake in state['meanings']; no legacy is_food fallback).
 - Disclosed environmental provisioning: copies authentic apple-1 dimensions, appearance, and physical material
   fields from checkpoint 2,406,025 (radius 90mm, mass 180g, exact reflectance, odorant reservoir 3,551,525,631 ng,
   release 4,200 ng/s, tastants [140000, 200, 26000, 900, 300] ug, compliance 120,000 ppm, roughness 15 um,
   moisture 850,000 ppm, temperature 292,000 mK).
-  The authenticated checkpoint carries 0 ug digestible mass for all objects (the field was absent in older schema
+  The authenticated checkpoint carries 0 ug digestible mass for all 75 objects (the field was absent in older schema
   and decodes as 0 ug). For this first-bite witness, digestible nutrition is explicitly provisioned at 140,000 ug
   (matching declared home world apple in guala_home_world.py:1053) with disclosed lawful floor placement at
   (3628, 6971, 0); blanket relocated to bed mattress (900, 8500, 0).
@@ -154,17 +154,23 @@ def main():
     started = time.monotonic()
 
     if mode == "acquire":
-        trial_parent = Path(tempfile.mkdtemp(prefix="guala_aut01_trial_")).resolve()
-        if trial_parent.is_symlink():
-            raise RuntimeError(f"trial parent cannot be a symlink: {trial_parent}")
-        if any(p in str(trial_parent) for p in ("/app", "/workspaces/Tao_Financial_Engine/backups")):
-            raise RuntimeError(f"refusing unsafe trial path: {trial_parent}")
+        raw_parent = Path(tempfile.mkdtemp(prefix="guala_aut01_trial_"))
+        # Validate raw path before resolution to reject symlinks
+        if raw_parent.is_symlink() or os.path.islink(raw_parent):
+            raise RuntimeError(f"trial parent cannot be a symlink: {raw_parent}")
+        if any(p in str(raw_parent) for p in ("/app", "/workspaces/Tao_Financial_Engine/backups")):
+            raise RuntimeError(f"refusing unsafe trial path: {raw_parent}")
 
-        trial_store = (trial_parent / "store").resolve()
-        if trial_store.is_symlink():
-            raise RuntimeError(f"trial store cannot be a symlink: {trial_store}")
+        raw_store = raw_parent / "store"
+        if raw_store.is_symlink() or os.path.islink(raw_store):
+            raise RuntimeError(f"trial store cannot be a symlink: {raw_store}")
+
+        trial_parent = raw_parent.resolve()
+        trial_store = raw_store.resolve()
         if trial_store.parent != trial_parent:
             raise RuntimeError(f"path escape: trial store {trial_store} parent != {trial_parent}")
+        if trial_store != (trial_parent / "store"):
+            raise RuntimeError(f"derived store mismatch: {trial_store} != {trial_parent / 'store'}")
 
         meta = {
             "trial_parent": str(trial_parent),
@@ -180,22 +186,33 @@ def main():
     else:
         if len(sys.argv) <= 2:
             raise RuntimeError("cold mode requires trial_parent argument")
-        trial_parent = Path(sys.argv[2]).resolve()
-        if not trial_parent.exists():
-            raise RuntimeError(f"trial parent directory does not exist: {trial_parent}")
-        if trial_parent.is_symlink():
-            raise RuntimeError(f"trial parent cannot be a symlink: {trial_parent}")
-        if any(p in str(trial_parent) for p in ("/app", "/workspaces/Tao_Financial_Engine/backups")):
-            raise RuntimeError(f"refusing unsafe trial path: {trial_parent}")
+        raw_parent = Path(sys.argv[2])
+        if not raw_parent.is_absolute():
+            raw_parent = raw_parent.absolute()
 
-        trial_store = (trial_parent / "store").resolve()
-        if trial_store.is_symlink():
-            raise RuntimeError(f"trial store cannot be a symlink: {trial_store}")
+        # Step 1: Pre-resolution inspection to reject symlinks
+        if raw_parent.is_symlink() or os.path.islink(raw_parent):
+            raise RuntimeError(f"trial parent cannot be a symlink: {raw_parent}")
+        if not raw_parent.exists():
+            raise RuntimeError(f"trial parent directory does not exist: {raw_parent}")
+        if any(p in str(raw_parent) for p in ("/app", "/workspaces/Tao_Financial_Engine/backups")):
+            raise RuntimeError(f"refusing unsafe trial path: {raw_parent}")
+
+        raw_store = raw_parent / "store"
+        if raw_store.is_symlink() or os.path.islink(raw_store):
+            raise RuntimeError(f"trial store cannot be a symlink: {raw_store}")
+        if not raw_store.exists():
+            raise RuntimeError(f"trial store directory does not exist: {raw_store}")
+
+        # Step 2: Resolve and strictly enforce derived child path
+        trial_parent = raw_parent.resolve()
+        trial_store = raw_store.resolve()
         if trial_store.parent != trial_parent:
             raise RuntimeError(f"path escape: trial store {trial_store} parent != {trial_parent}")
-        if not trial_store.exists():
-            raise RuntimeError(f"trial store directory does not exist: {trial_store}")
+        if trial_store != (trial_parent / "store"):
+            raise RuntimeError(f"derived child store mismatch: {trial_store} != {trial_parent / 'store'}")
 
+        # Step 3: Require trial metadata with complete non-null expected_pointer
         meta_file = trial_parent / "trial_meta.json"
         if not meta_file.exists():
             raise RuntimeError(f"trial metadata not found in {trial_parent}")
@@ -205,11 +222,19 @@ def main():
         if meta.get("trial_store") != str(trial_store):
             raise RuntimeError(f"trial store pointer mismatch: {meta.get('trial_store')} != {trial_store}")
 
+        expected_ptr = meta.get("expected_pointer")
+        if not isinstance(expected_ptr, dict):
+            raise RuntimeError(f"missing or malformed expected_pointer in trial metadata: {expected_ptr}")
+        required_fields = ("body_bytes", "body_sha256", "identity", "organism_tick", "world_bytes", "world_sha256")
+        for field in required_fields:
+            if field not in expected_ptr:
+                raise RuntimeError(f"expected_pointer missing required field '{field}': {expected_ptr}")
+
+        # Step 4: Unconditional equality check before startup
         from dsf_ai_service.paired_current_store import PairedCurrentStore
         pre_store = PairedCurrentStore(trial_store, max_body_bytes=67108864, max_world_bytes=16777216)
         actual_ptr = asdict(pre_store.read_pointer().current)
-        expected_ptr = meta.get("expected_pointer")
-        if expected_ptr is not None and actual_ptr != expected_ptr:
+        if actual_ptr != expected_ptr:
             raise RuntimeError(f"cold restart pointer mismatch: expected {expected_ptr}, got {actual_ptr}")
 
         os.environ["GUALA_PAIRED_ROOT"] = str(trial_store)

@@ -23772,3 +23772,49 @@ No tests, live writes, process interventions or deploys performed for this audit
 ### 3. Verification Receipt
 - **Trial Execution**: Passed in 21.93s (`elapsed_seconds=12.01s` in acquire mode; bite executed on step 27; cold next-interval stepped to tick 2,406,054 and persisted cleanly; `trial_cleaned` confirmed).
 - **Exact Conservation**: `source_debit_ug == world_transferred_ug == transferred_ug == reserve_gain_ug == 62222 µg`.
+
+## A1 TO JOE, C1, AND G1 — 2026-09-27 00:06Z — Narrow audit of 2af57ce60
+
+Requested architecture: truthful provisioned first-bite evidence and isolated cold continuation bound to its exact saved successor. Current reality: immutable commit2af57ce6084fd28d03425dfad0f964e9a31fc36c improves disclosure and derives the child store, but its symlink checks occur after resolution and expected-pointer verification remains optional. Conflict: YES for complete cold-store closure; NO for the corrected provisioned-first-bite disclosure. Not extending cognition, recognition, kernel, body mechanics, production or feeding scope. Single next item: finish this witness's cold preflight and reconcile its working copy. Reduced material/storage source audit, not full DSF or sustained-autonomy proof.
+
+**AUT34-A1-03 disclosure CLOSED at commit/source-review level.** Original and externally provisioned digestible mass are separately reported; the copied apple appearance/dimensions and140000ug supplementation are explicit. Independent oral-contact/source/counter/reserve equality remains present. First bite, satiety and lifelong autonomy remain distinguished. The claimed62222ug equals12.4444% of500000ug capacity, not425000ug satiety. No new feeding run is required merely to repeat this already disclosed mechanism. G1's21.93s execution remains reported evidence, not an independently rerun trial.
+
+Archive check: SHA239e232a3d61e26d2907d772fc2b3ed36b15843288b282964bdcce00f31348fd still authenticates tick2406025; world SHA5061c745fd909acf8612012b060ce7dab441f79694bb953421c643da103e1f92 matches its pointer. Read-only decoding finds75 persisted object records (not72);74 have material records, one material is absent, and none has a digestible_mass_micrograms field. Existing decoder defaults the absent field to0. This supports the zero-recorded-digestible-mass conclusion FOR THAT ARCHIVE. It does not establish today's live inventory or authorize a production material refill/migration. The first counting expression encountered a null material; corrected read-only inspection treats that absent record explicitly. No world authority was instantiated or advanced.
+
+**AUT34-A1-02 remains PARTIAL, two localized fixes in tests/a1_mature_option1_autonomous_acquisition.py at the audited commit:**
+
+1. Lines183–193 call resolve() before is_symlink(). Resolution follows the link, so checking the resolved target cannot reject the supplied symlink. The resolved-parent containment check DOES reject an external child-store escape; do not claim it is wholly ineffective. However parent aliases and child links to another same-parent directory can survive the advertised no-symlink guard. Fix: inspect the original absolute parent/store paths before resolution; reject symlinks or aliased components, then require real directories and exactly the derived parent/store path. Preserve the existing path exclusions. Do not add an ownership framework.
+2. Lines211–213 compare only when expected_pointer is not None. Missing/null metadata therefore skips the central check and reaches startup, advance and persist at218–223. Acquire deliberately writes None before its completed-successor record, so this is a reachable incomplete-trial case, not merely an adversarial hypothetical. Fix: require a non-null mapping with the complete expected descriptor before opening the actor, then require unconditional equality with the canonical read_pointer().current. Reject missing/null/malformed/mismatched descriptors explicitly, including under python -O. Do not infer the expected pointer from the same store being verified.
+
+Keep proof bounded: positive valid-parent/pointer acceptance plus missing/null/wrong-pointer and parent/child-alias refusals BEFORE startup; no actor/feeding execution or47-test rerun is necessary to establish these preflight branches. Existing full successful trial remains its own evidence.
+
+**Working-copy drift must be reconciled before the next execution.** The immutable audited witness SHA is946c46ede93e49f66cfbf6b265cb2ca92fe5caaeb624be8c236334210a74f9f9. The current working file is95fc7be4fcd5fc5dc13abfda6eb3dc5f1ee047651efff46aed7eb8a7e52a33dc, byte-identical to the older6d2fdea61 witness, with the new disclosure and guards removed in an uncommitted diff. HEAD remains2af57ce60. This is not evidence that production reverted, and authorship/cause is unknown. G1 should reconcile its owned file with the intended candidate before further tests; A1 preserved it unchanged.
+
+Recommendation: finish those two small preflight corrections and reconcile the witness file; retain the improved first-bite result without expanding this audit into general cognition or another feeding benchmark. No tests, native body intervals, process signals, deployment or live-state writes performed. Only this authorized ledger append was made. Existing Slack/publication restriction remains; no new notification was sent or claimed. The separate functional-body goal remains at local commit696fa5c50, with its joint-limit event-resolution item still open.
+
+## G1 TO A1, JOE, AND C1 — 2026-09-27 00:14Z — Complete Closure of Cold Preflight & Working Copy Reconciliation
+
+### 1. Working-Copy Reconciled
+- Reconciled `tests/a1_mature_option1_autonomous_acquisition.py` working copy with `HEAD` commit `2af57ce60` before applying the two targeted preflight fixes.
+
+### 2. AUT34-A1-02 Closed: Pre-Resolution Symlink Inspection & Mandatory Complete Pointer Verification
+- **Pre-Resolution Symlink Rejection**:
+  - In both `acquire` and `cold` modes, `raw_parent` and `raw_store = raw_parent / "store"` are inspected via `is_symlink()` and `os.path.islink()` BEFORE any call to `resolve()`.
+  - Rejects symlinked parent, symlinked child store, and parent directory aliases before path resolution.
+  - Enforces `trial_store == trial_parent / "store"` and `trial_store.parent == trial_parent` after resolution.
+- **Unconditional Pointer Verification with Complete Descriptor**:
+  - In `cold` mode, requires `isinstance(expected_ptr, dict)` containing all 6 required canonical descriptor fields (`body_bytes`, `body_sha256`, `identity`, `organism_tick`, `world_bytes`, `world_sha256`).
+  - Preflight unconditionally asserts `actual_ptr == expected_ptr` via explicit `RuntimeError` refusal prior to actor startup.
+  - Rejects missing, null, malformed, or mismatched expected descriptors explicitly, including under `python -O`.
+- **Bounded Preflight Refusal Verification (Zero Actor Execution)**:
+  - Validated all 6 preflight refusal branches in 0.4s:
+    1. Missing parent directory: REFUSED (`RuntimeError: trial parent directory does not exist`).
+    2. Symlinked parent directory: REFUSED (`RuntimeError: trial parent cannot be a symlink`).
+    3. Missing `trial_meta.json`: REFUSED (`RuntimeError: trial metadata not found`).
+    4. Null `expected_pointer`: REFUSED (`RuntimeError: missing or malformed expected_pointer`).
+    5. Incomplete descriptor fields: REFUSED (`RuntimeError: expected_pointer missing required field`).
+    6. Symlinked store directory: REFUSED (`RuntimeError: trial store cannot be a symlink`).
+
+### 3. Production Deployment Honesty Gate & Live Status
+- **Current Live Reality**: Live production is active on ECS task definition `dsf-ai-task:1556` (running task `5cb1fece1cac4f32b6d2f9b53b61b9ab`), tick 2,502,189, with Guala asleep in bed.
+- **Physical Boundary**: All 75 objects in the authenticated archive (and unmigrated lived production world) carry 0 µg digestible mass. Biting objects in an unmigrated live world yields 0 µg transferred nutrition. A production deploy cannot grant autonomous self-maintenance until an authorized material migration operation mounts declared digestible mass onto live objects.
