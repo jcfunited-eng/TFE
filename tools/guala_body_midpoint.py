@@ -528,7 +528,8 @@ def stalled_step(event_refusal=False):
 
 
 
-def joint_event_case(body_state, supply, width_us):
+def joint_event_case(body_state, supply, width_us, *, end_s=None,
+                     initial_refusal=None, call_ceiling=107):
     """Partition one saved interval by measured joint-domain changes, offline."""
     from guala_body_local_refinement import restore, state_copy, add_receipts
     e, _, _ = engine_at(100)
@@ -536,7 +537,16 @@ def joint_event_case(body_state, supply, width_us):
     m, d = e._model, e._data
     initial = state_copy(e)
     effort = d.ctrl.copy()
-    start, end = float(d.time), float(d.time)+.0001
+    start = float(d.time)
+    end = start+.0001 if end_s is None else end_s
+    assert np.isfinite(end) and start < end <= start+.0001
+    assert type(call_ceiling) is int and 0 <= call_ceiling <= 107
+    if initial_refusal is not None:
+        assert initial_refusal["start_s"] == start and initial_refusal["end_s"] == end
+        assert initial_refusal["dt"] == end-start
+        assert base64.b64decode(initial_refusal["predecessor_base64"], validate=True) == initial.astype("<f8").tobytes()
+        assert initial_refusal["primary_rollback_byte_exact"] is True
+        assert "midpoint residual did not converge" in initial_refusal["native_refusal"]
     joints = [i for i in range(m.njnt) if m.jnt_limited[i]]
     assert joints and all(m.jnt_type[i] == mj.mjtJoint.mjJNT_HINGE for i in joints)
     boundaries = [(i,side) for i in joints for side in (0,1)]
@@ -574,7 +584,7 @@ def joint_event_case(body_state, supply, width_us):
         nonlocal calls,last_attempt
         dt=stop-before["end"]
         assert np.isfinite(dt) and dt>0 and before["end"]+dt==stop
-        assert calls<107, "bounded joint-event numerical work exhausted"
+        assert calls<call_ceiling, "bounded joint-event numerical work exhausted"
         m.opt.timestep=dt
         restore(e,before["state"])
         assert state_copy(e).astype("<f8").tobytes()==before["state"].astype("<f8").tobytes()
@@ -601,12 +611,16 @@ def joint_event_case(body_state, supply, width_us):
             bracket=None
             signature=domain(current)
             candidate=None
-            try:
-                candidate=trial(current,end,remaining)
-            except mj.FatalError as error:
-                if "midpoint residual did not converge" not in str(error):
-                    raise
-                refused.append(dict(last_attempt))
+            if initial_refusal is not None:
+                refused.append(dict(initial_refusal))
+                initial_refusal = None  # already executed and charged by the outer caller
+            else:
+                try:
+                    candidate=trial(current,end,remaining)
+                except mj.FatalError as error:
+                    if "midpoint residual did not converge" not in str(error):
+                        raise
+                    refused.append(dict(last_attempt))
             if candidate is not None and domain(candidate)==signature:
                 accepted=candidate
             else:
@@ -708,6 +722,151 @@ def joint_events():
         scope="One saved100us interval; observed joint-domain partition, no earliest-continuum-event guarantee, full accuracy or runtime event policy.")
 
 
+
+def continued_motion_case(body_state, supply, effort_name, saved_step_s):
+    """Offline remaining load/release, reusing the accepted prefix exactly."""
+    from guala_body_local_refinement import state_copy, restore, add_receipts
+    e, _, _ = engine_at(100)
+    m, d = e._model, e._data
+    m.opt.timestep = saved_step_s
+    e._restore(body_state)
+    assert e._capture() == body_state
+    motor = e.actuator_names.index(effort_name)
+    initial_time = float(d.time)
+    assert 0 < initial_time < .25
+    calls, ordinary_steps = 0, 0
+    total = (0.,)*6
+    remaining = supply
+    phases, events = [], []
+    trace = hashlib.sha256()
+    phase = stage = "start"
+    last_attempt = partition = None
+    try:
+        for phase, finish in (("continued_load", .25), ("release", .5)):
+            if phase == "release":
+                # Mechanical bench input, not a programmed organism action.
+                d.ctrl[motor] = 0.
+                mj.mj_forward(m, d)
+                e._check()
+            effort = d.ctrl.copy()
+            phase_work = (0.,)*6
+            phase_start = float(d.time)
+            while float(d.time) < finish:
+                stage = "ordinary_step"
+                assert calls < 5642, "bounded full-interval native work exhausted"
+                start = float(d.time)
+                stop = min(finish, start+.0001)
+                dt = stop-start
+                assert dt > 0 and start+dt == stop
+                m.opt.timestep = dt
+                before = state_copy(e)
+                last_attempt = dict(start_s=start, end_s=stop, dt=dt,
+                    predecessor_base64=base64.b64encode(before.astype("<f8").tobytes()).decode())
+                calls += 1
+                partition = None
+                try:
+                    work = e._advance_interval(e, effort, 1, remaining)
+                    ordinary_steps += 1
+                except mj.FatalError as error:
+                    exact = state_copy(e).astype("<f8").tobytes() == before.astype("<f8").tobytes()
+                    last_attempt.update(native_refusal=str(error), primary_rollback_byte_exact=exact)
+                    assert exact, "refused step changed full primary state"
+                    if "midpoint residual did not converge" not in str(error):
+                        raise
+                    stage = "joint_domain_partition"
+                    partition = joint_event_case(e._capture(), remaining, 1.,
+                        end_s=stop, initial_refusal=last_attempt,
+                        call_ceiling=min(107, 5642-calls))
+                    calls += partition["calls"]
+                    if not partition["completed"]:
+                        raise RuntimeError("joint-domain continuation failed: "+partition["failure"])
+                    raw = base64.b64decode(partition["endpoint_state_base64"], validate=True)
+                    after = np.frombuffer(raw, dtype="<f8").copy()
+                    restore(e, after)
+                    assert state_copy(e).astype("<f8").tobytes() == raw
+                    work = tuple(partition["work_receipt"])
+                    events.append(dict(start_s=start, end_s=stop, calls=partition["calls"],
+                        refused_trials=len(partition["refused_trials"]),
+                        brackets=[{k:v for k,v in s["bracket"].items()
+                                   if k not in ("low_gaps_rad", "high_gaps_rad")}
+                                  for s in partition["segments"] if s["bracket"]],
+                        accepted_segments=len(partition["segments"])))
+                assert float(d.time) == stop
+                assert np.isfinite(work).all()
+                total = add_receipts(total, work)
+                phase_work = add_receipts(phase_work, work)
+                remaining = supply-total[0]
+                assert np.isfinite(remaining) and remaining >= 0
+                # Digest has observation-only authority; it cannot alter motion.
+                trace.update(state_copy(e).astype("<f8").tobytes())
+                trace.update(np.asarray(work, dtype="<f8").tobytes())
+            stage = "phase_endpoint"
+            if phase == "release":
+                assert phase_work[0] == phase_work[1] == phase_work[3] == 0.
+            mj.mj_forward(m, d)
+            e._check()
+            state = e._capture()
+            phases.append(dict(phase=phase, start_s=phase_start, end_s=float(d.time),
+                work_receipt=phase_work, state_base64=base64.b64encode(state).decode(),
+                state_sha256=hashlib.sha256(state).hexdigest(),
+                remaining_supply_j=remaining, observation=asdict(e._observation())))
+        return dict(completed=True, calls=calls, ordinary_steps=ordinary_steps,
+            phases=phases, events=events, work_receipt=total,
+            remaining_supply_j=remaining, accepted_step_sha256=trace.hexdigest())
+    except Exception as error:
+        return dict(completed=False, calls=calls, ordinary_steps=ordinary_steps,
+            phase=phase, stage=stage, failure_type=type(error).__name__, failure=str(error),
+            phases=phases, events=events, work_receipt=total, remaining_supply_j=remaining,
+            last_attempt=last_attempt, failed_partition=partition,
+            unpublished_scratch_base64=base64.b64encode(state_copy(e).astype("<f8").tobytes()).decode(),
+            accepted_step_sha256=trace.hexdigest())
+
+
+def continued_motion():
+    """Authenticate the completed1.7ms prefix; never replay or re-energize it."""
+    import pathlib, zlib
+    from guala_body_local_refinement import restore, state_copy
+    path = pathlib.Path("docs/evidence/FB-01aj-midpoint-joint-events.json")
+    raw_receipt = path.read_bytes()
+    receipt_sha = hashlib.sha256(raw_receipt).hexdigest()
+    assert receipt_sha == "af2dda02925dd22e16717625326ead2fbd7cae5ce267dfb5c789de8ec415d71d"
+    receipt = json.loads(raw_receipt)
+    packed = receipt["raw_measurement"]
+    raw = zlib.decompress(base64.b64decode(packed["payload_zlib_base64"], validate=True))
+    assert len(raw) == packed["raw_bytes"] and hashlib.sha256(raw).hexdigest() == packed["raw_sha256"]
+    prior = json.loads(raw)
+    saved = prior["cases"][0]
+    assert saved["width_us"] == 1. and saved["completed"] and saved["fresh_repeat_exact"]
+    e, _, original, _, _ = saved_motion_refusal()
+    assert all(x["completed"] and x["fresh_repeat_exact"] for x in prior["cases"])
+    last = saved["segments"][-1]
+    saved_step = last["end_s"]-last["start_s"]
+    e._model.opt.timestep = saved_step
+    state_bytes = base64.b64decode(saved["endpoint_state_base64"], validate=True)
+    restore(e, np.frombuffer(state_bytes, dtype="<f8").copy())
+    assert state_copy(e).astype("<f8").tobytes() == state_bytes
+    assert json.loads(json.dumps(asdict(e._observation()))) == saved["endpoint"]["observation"]
+    body_state = e._capture()
+    supply = saved["remaining_supply_j"]
+    assert np.isfinite(supply) and supply >= 0
+    assert prior["prefix"]["remaining_supply_j"]-saved["work_receipt"][0] == supply
+    args = (body_state, supply, original["effort_name"], saved_step)
+    measured = continued_motion_case(*args)
+    print(json.dumps(encode(dict(event="continued_motion_measured", case=measured))), flush=True)
+    if measured["completed"]:
+        repeat = continued_motion_case(*args)
+        exact = repeat == measured
+    else:
+        repeat, exact = None, None
+    return dict(schema="guala.functional-body.midpoint-continued-motion.v1",
+        input_receipt_sha256=receipt_sha, input_state_sha256=hashlib.sha256(body_state).hexdigest(),
+        input_time_s=e._data.time, input_supply_j=supply, case=measured,
+        fresh_repeat_exact=exact, fresh_repeat=repeat if exact is not True else None,
+        all_completed=measured["completed"] and exact is True, native_call_ceiling=11284,
+        full_body_qualification=False,
+        scope="Saved1.7ms successor to250ms load and500ms release; numerical feasibility only, not full-history accuracy, gravity or mounted world qualification.")
+
+
 def main():
     assert mj.__version__ == mj.mj_versionString() == ENGINE_VERSION == VERSION
     parser = argparse.ArgumentParser(description=__doc__)
@@ -715,7 +874,11 @@ def main():
     parser.add_argument("--stalled-step", action="store_true")
     parser.add_argument("--joint-events", action="store_true")
     parser.add_argument("--event-stall", action="store_true")
+    parser.add_argument("--continued-motion", action="store_true")
     args = parser.parse_args()
+    if args.continued_motion:
+        print(json.dumps(encode(continued_motion()), sort_keys=True), flush=True)
+        return
     if args.event_stall:
         print(json.dumps(encode(stalled_step(event_refusal=True)),sort_keys=True),flush=True)
         return

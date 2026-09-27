@@ -8527,3 +8527,81 @@ with original remaining supply, sole native settlement and explicit bounded
 failure evidence. Reuse the completed prefix; do not rerun prior diagnostics.
 This continuation remains offline until full accuracy, restart, integration
 and safety gates pass. The functional-body goal remains ACTIVE/incomplete.
+
+### FB-01aj continued load/release contract — 2026-09-27
+
+From locald6ef3ba67, continue ONLY the still-open full mechanical interval.
+Reuse authenticated1us-bracket successor at1.7ms and its measured remaining
+supply from af2dda02925dd22e16717625326ead2fbd7cae5ce267dfb5c789de8ec415d71d.
+Never replay the accepted0-1.7ms prefix or reset energy. Validate saved full
+integration bytes and final observation under its original last substep.
+Retain current model/library/ABI/source identity, effort and thermal work law.
+
+Single tools/guala_body_midpoint.py extension: continue same torso load to
+absolute .25s then release exactly that actuator to zero through .5s. Fixed
+nominal step100us, shortening only the final step to meet the phase endpoint.
+Use the sole native interval settlement. A successful ordinary step remains
+unchanged. On the already-characterized midpoint-convergence refusal, require
+byte-exact primary rollback and invoke the existing joint-domain partition
+on exactly that refused step with its real remaining allowance. Supply the
+recorded initial refusal so it is NOT executed twice. No physical/safety
+refusal is retried; any surface-contact constraint in the joint-only partition
+remains a disclosed unsupported boundary and ends this candidate measurement.
+No force/coefficient/tolerance change and no generic contact-law claim.
+
+Sum only accepted positive/signed/braking/bearing work, travel is a maximum;
+remaining supply subtracts actual accepted positive work. No rejected-trial
+work or scratch becomes a published body. Every accepted segment strictly
+advances represented time; each phase ends at its original exact endpoint.
+Bound each ordinary case by5000 nominal calls plus existing642 diagnostic
+calls (5642 total), including refused calls. A successful case gets one exact
+fresh-instance replay from SAME saved1.7ms predecessor;11284 total-call ceiling.
+Original2CPU/1GiB/60CPU/90wall wrapper remains. Failure records current complete
+integration state, last attempt, partition evidence, work and supply for the
+next causal diagnosis; no full-history/earlier-prefix rerun is needed.
+
+Retain only phase endpoints, compact event brackets, an ordered accepted-step
+digest and the exact last failure; do not serialize full body/sensors for every
+successful100us step. Fresh replay must match all deterministic output including
+the accepted-step digest, work and sensory endpoint. Warm start, time, controls
+and all integration fields remain included. This is offline feasibility/cost
+and fresh numerical continuation, not mounted world cold restart, full250ms
+accuracy, gravity, receptor-history qualification or production delivery.
+Review the frozen sole-file implementation before its one bounded execution.
+
+### FB-01aj continued interval measured — 2026-09-27 01:03Z
+
+Source-only review PASS, fingerprintc997d1c25431b396b9084a382c0807d0a5a2eec3672bdb0a5995a68f38df9c2b.
+One execution session3955/child51696,0.851113s wall/.848480s aggregateCPU,
+147104KiB maxRSS, exit0/no survivors. Exit0 is diagnostic completion, NOT a
+full-interval pass. Artifact FB-01aj-midpoint-continued-motion.json SHA
+8d0ea545e1d1bd00a5698c7546f4f786c9fa9c27be42f79ecce3e53429a8b8f5.
+
+198 successful100us steps carry the saved1.7ms successor to21.5ms. The199th
+native call,21.5->21.6ms, refuses midpoint convergence with BYTE-EXACT primary
+rollback. Joint-domain helper correctly refuses the already-present surface
+contact at zero additional native calls. No phase reaches250ms, no release or
+cold repeat is claimed. Accepted continuation positive/signed work
+9.947940203258739J, braking0, bearing/self-bearing1.9544323273666238J;
+remaining supply4664.930067304892J. Full last predecessor and attempted dt,
+complete integration scratch, partial work and refusal cause are preserved.
+Do not replay the198 accepted steps or earlier1.7ms prefix.
+
+This isolates the next numerical boundary to SURFACE-CONTACT convergence, not
+joint-only onset or resource exhaustion. The prior joint resolution remains
+closed locally. Earlier local-refinement source used the PREDECESSOR integrator
+and stopped rather than subdividing a native convergence refusal; it cannot
+be reused as evidence about this midpoint solve. Earlier current-law2ms impact
+measurement demonstrates finer midpoint steps at surface contact, but used a
+different authenticated predecessor. It is not proof for this new21.5ms state.
+
+AWS01:02:49.885221Z->01:02:53.092931Z: same1557task/image/organismidentity,
+counts1/1/0,ticks2511022->2511031,persisted2511013, errorsnull,durabilityfalse.
+CPUaverage51.140824%,maximum51.612756%,RAMaverage2.518717%,maximum2.520752%.
+Existing clock-stalled ALARM remains,other4OK. No production write or competing
+body process; shared host IDE/TFE processes preserved. The first sandbox-only
+census observed only its own namespace; used a read-only host census instead.
+
+Tooling-only failed proposal construction: JavaScript rejected Python-style
+triple quotes before any source write. Corrected to JavaScript template strings,
+then applied the full source file once; no mechanical execution was duplicated.
