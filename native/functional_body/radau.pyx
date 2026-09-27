@@ -45,6 +45,21 @@ def packed_numbers(value):
                 float64_le_base64=base64.b64encode(a.tobytes()).decode())
 
 
+def _record_domain(domain):
+    return tuple(
+        tuple(bool(x) for x in row) if index < 2 else
+        tuple(int(x) for x in row) if index < 5 else
+        tuple(tuple(int(x) for x in pair) for pair in row)
+        for index,row in enumerate(domain))
+
+
+def _record_impulses(impulses):
+    return [dict(pair=pair,force=packed_numbers(values[0]),
+                 couple=packed_numbers(values[1]),
+                 force_path=float(values[2]),couple_path=float(values[3]))
+            for pair,values in sorted(impulses.items())]
+
+
 cdef double norm2(double[::1] a) except *:
     cdef Py_ssize_t i
     cdef double s = 0
@@ -493,6 +508,10 @@ class RadauProbe:
                                     predecessor_sha256=hashlib.sha256(piece['predecessor'].astype('<f8').tobytes()).hexdigest(),
                                     state=packed_numbers(value[0]['state']),work=value[1],
                                     available_work_j=piece['supply'],
+                                    event_sequence=tuple(_record_domain(domain) for domain in
+                                        sampled_event_path(
+                                            before if piece_index == 0 else left['value'][0],
+                                            (value,))['sequence']),
                                     event_brackets=[event for event in event_test['fine_brackets']
                                                     if event['piece_index'] == piece_index]))
                             before = r[0]
@@ -510,8 +529,9 @@ class RadauProbe:
             m.opt.timestep = original_dt
             self.forward(e)
             e._check()
+            successor = interval._snapshot(e)
             report.update(completed=True,work=total,remaining_supply_j=supply-total[0])
-            return interval._snapshot(e),total,impulses,report
+            return successor,total,impulses,report
         except BaseException as error:
             report['failure'] = repr(error)
             interval._restore(e,initial,original_dt)
@@ -520,3 +540,172 @@ class RadauProbe:
             if not report['rollback_exact']:
                 raise AssertionError('Radau admission rollback differs') from error
             raise
+
+
+    def admit_trajectory(self, e, stop, supply, nominal_dt, sample_dt,
+                         max_trials, max_refinements):
+        """Two independent meshes over one unpublished physical interval.
+
+        Local admission still controls residuals, force/work quadrature and
+        sampled events. This outer guard preserves BOTH numerical histories
+        across common observations. Disagreement retries only from the original
+        uncommitted predecessor. No historical synchronization, double debit,
+        changed forces or relaxed tolerances. Sample agreement is not a
+        continuum enclosure or a production cost certificate.
+        """
+        m, d = e._model, e._data
+        start, original_dt = float(d.time), float(m.opt.timestep)
+        if not (math.isfinite(stop) and start < stop
+                and stop-start <= e.limits.max_substeps*e.limits.step_us/1e6
+                and math.isfinite(nominal_dt) and math.isfinite(sample_dt)
+                and 0 < nominal_dt <= sample_dt <= e.limits.step_us/1e6):
+            raise ValueError('invalid bounded trajectory interval')
+        if not math.isfinite(supply) or supply < 0:
+            raise ValueError('invalid trajectory work supply')
+        if (type(max_trials) is not int or max_trials <= 0
+                or type(max_refinements) is not int
+                or not 0 <= max_refinements <= int(np.finfo(float).nmant)):
+            raise ValueError('invalid trajectory numerical work allowance')
+        initial = interval._snapshot(e)
+        report = dict(law='radau-iia3-independent-history-v1',
+            start_s=start, stop_s=stop, nominal_dt_s=nominal_dt,
+            sample_dt_s=sample_dt, max_trials=max_trials,
+            max_refinements=max_refinements, trials=0, rounds=[],
+            completed=False, failure=None, rollback_exact=None)
+        self.last_trajectory_admission = report
+
+        def path(local, first_domain):
+            sequence, brackets = [_record_domain(first_domain)], []
+            for piece in local['accepted']:
+                events = piece['event_sequence']
+                if (not events or events[0] != sequence[-1]
+                        or len(events)-1 != len(piece['event_brackets'])):
+                    raise AssertionError('accepted event chronology differs')
+                sequence.extend(events[1:])
+                brackets.extend(piece['event_brackets'])
+            return tuple(sequence), brackets
+
+        try:
+            for refinement in range(max_refinements+1):
+                coarse_dt = math.ldexp(nominal_dt,-refinement)
+                fine_dt = coarse_dt/2
+                if not 0 < fine_dt < coarse_dt:
+                    raise ValueError('unrepresentable trajectory refinement')
+                interval._restore(e,initial['state'],original_dt)
+                lanes = [dict(snapshot=initial,work=(0.,)*6,impulses={})
+                         for _ in range(2)]
+                entry = dict(refinement=refinement,coarse_dt_s=coarse_dt,
+                    fine_dt_s=fine_dt,observations=0,accepted=False,
+                    disagreement=None)
+                report['rounds'].append(entry)
+                now = start
+                while now < stop:
+                    duration = stop-now
+                    target = stop if duration <= sample_dt else (
+                        now+duration/2 if duration <= 2*sample_dt else now+sample_dt)
+                    if target-now > sample_dt:
+                        target = math.nextafter(target,now)
+                    if not now < target <= stop:
+                        raise ValueError('unrepresentable trajectory sample')
+                    for index,(lane,h) in enumerate(zip(lanes,(coarse_dt,fine_dt))):
+                        report['active_attempt'] = dict(
+                            phase='lane_restore',refinement=refinement,
+                            lane='coarse' if index == 0 else 'fine',
+                            start_s=now,target_s=target,
+                            predecessor=packed_numbers(lane['snapshot']['state']),
+                            prior_work=lane['work'],available_work_j=supply-lane['work'][0])
+                        self.last_admission = None
+                        allowance = max_trials-report['trials']
+                        if allowance <= 0:
+                            raise RuntimeError('trajectory trial allowance exhausted')
+                        before = lane['snapshot']
+                        interval._restore(e,before['state'],original_dt)
+                        if interval._state(e).tobytes() != before['state'].tobytes():
+                            raise AssertionError('trajectory lane restore differs')
+                        remaining = supply-lane['work'][0]
+                        if not math.isfinite(remaining) or remaining < 0:
+                            raise ValueError('trajectory work supply exhausted')
+                        # admit always creates its report before attempting motion.
+                        # Count failed as well as successful local trials.
+                        report['active_attempt']['phase'] = 'local_admission'
+                        try:
+                            snap,work,impulses,local = self.admit(
+                                e,target,remaining,h,allowance)
+                        except BaseException:
+                            report['failed_local_admission'] = self.last_admission
+                            raise
+                        finally:
+                            local_report = self.last_admission
+                            if local_report is not None:
+                                report['trials'] += local_report['trials']
+                        lane['snapshot'] = snap
+                        lane['work'] = interval._work_add(lane['work'],work)
+                        lane['impulses'] = interval._impulse_add(lane['impulses'],impulses)
+                        lane['sequence'],lane['brackets'] = path(local,before['domain'])
+                        if snap['time'] != target or lane['work'][0] > supply:
+                            raise ValueError('trajectory lane custody differs')
+                    report['active_attempt']['phase'] = 'history_comparison'
+                    agreement = trajectory_agreement(e,lanes[0],lanes[1],target-start)
+                    entry['observations'] += 1
+                    if not agreement['passed']:
+                        entry['disagreement'] = dict(time_s=target,**agreement,
+                            coarse_state=packed_numbers(lanes[0]['snapshot']['state']),
+                            fine_state=packed_numbers(lanes[1]['snapshot']['state']),
+                            coarse_work=lanes[0]['work'],fine_work=lanes[1]['work'],
+                            coarse_sequence=lanes[0]['sequence'],fine_sequence=lanes[1]['sequence'],
+                            coarse_brackets=lanes[0]['brackets'],fine_brackets=lanes[1]['brackets'],
+                            coarse_impulses=_record_impulses(lanes[0]['impulses']),
+                            fine_impulses=_record_impulses(lanes[1]['impulses']))
+                        break
+                    now = target
+                if now == stop:
+                    fine = lanes[1]
+                    report['active_attempt']['phase'] = 'successor_preparation'
+                    interval._restore(e,fine['snapshot']['state'],original_dt)
+                    if interval._state(e).tobytes() != fine['snapshot']['state'].tobytes():
+                        raise AssertionError('trajectory successor restore differs')
+                    successor = interval._snapshot(e)
+                    if successor['state'].tobytes() != fine['snapshot']['state'].tobytes():
+                        raise AssertionError('prepared trajectory successor differs')
+                    entry['accepted'] = True
+                    report.update(completed=True,work=fine['work'],
+                        remaining_supply_j=supply-fine['work'][0],active_attempt=None)
+                    return successor,fine['work'],fine['impulses'],report
+            raise ValueError('independent trajectory histories remain unresolved')
+        except BaseException as error:
+            report.update(completed=False,failure=repr(error))
+            if report['rounds']:
+                report['rounds'][-1]['accepted'] = False
+            interval._restore(e,initial['state'],original_dt)
+            report['rollback_exact'] = (
+                interval._state(e).tobytes() == initial['state'].tobytes())
+            if not report['rollback_exact']:
+                raise AssertionError('trajectory rollback differs') from error
+            raise
+
+
+def trajectory_agreement(e, coarse, fine, elapsed):
+    """Compare actual history returns, not two resets to a shared current state."""
+    if not math.isfinite(elapsed) or elapsed <= 0:
+        raise ValueError('positive physical history interval required')
+    a,b = coarse['snapshot'],fine['snapshot']
+    if a['time'] != b['time']:
+        raise ValueError('trajectory observation clocks differ')
+    state_passed = interval._close(e,a,b,coarse['work'],fine['work'],
+                                  coarse['impulses'],fine['impulses'],elapsed)
+    same_sequence = coarse['sequence'] == fine['sequence']
+    ab,bb = coarse['brackets'],fine['brackets']
+    if (len(coarse['sequence']) != len(ab)+1
+            or len(fine['sequence']) != len(bb)+1):
+        raise ValueError('trajectory event evidence incomplete')
+    bounded = len(ab)==len(bb) and all(
+        math.isfinite(v['start_s']) and math.isfinite(v['end_s'])
+        and 0 < v['end_s']-v['start_s'] <= interval.EVENT_S
+        for v in (*ab,*bb))
+    paired = same_sequence and bounded and all(
+        max(x['end_s'],y['end_s'])-min(x['start_s'],y['start_s']) <= interval.EVENT_S
+        for x,y in zip(ab,bb))
+    return dict(passed=state_passed and same_sequence and paired,
+                state_work_impulse_passed=state_passed,
+                same_event_sequence=same_sequence,
+                paired_event_brackets_within_limit=paired)

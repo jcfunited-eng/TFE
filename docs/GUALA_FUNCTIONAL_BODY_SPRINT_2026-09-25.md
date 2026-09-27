@@ -13187,3 +13187,215 @@ ticks2626508->2626520,persisted2626476->2626508; no custody errors.
 Existing clock alarm persists; other4alarms OK. No G1/production source,
 push or Slack. Goal ACTIVE. Sustained accuracy/cost, gravity, integration,
 cold lifecycle and final production delivery remain open.
+
+### FB-01aj resumed earlier-event attribution contract — 2026-09-27 17:05Z
+
+Joe resumed the functional-body goal after the COG-OSC-02 plan handoff to G1.
+Continue the same accuracy/cost boundary from f195d058c; do not reopen the
+closed velocity getter or final100us palm diagnostic. Candidate remains
+compiled-unmounted. Cognition, DSF, force laws, sensory tolerances and G1's
+production source remain unchanged. Reduced articulated mechanics, not full
+biological anatomy. Current production-qualified body claim conflicts: YES.
+
+The final173.4--173.5ms interval is already cleared as the source of local
+discretization error. The incoming paths differ. Next bounded input: retained
+common intervals26.7--26.8ms and59.6--59.7ms, identified in the prior raw-history
+analysis, with each lane restored from its own authenticated predecessor.
+The latter includes the lower-limit11 crossing. Compare H/{1,2,4,8} within
+each input and matched resolutions across inputs. No full-history numerical
+replay, state synchronization, accepted winner, or production successor.
+
+Historical supply must not be reconstructed by reversing subtraction. This
+diagnostic replays only recorded forward work arithmetic: paired accepted
+fine pieces -> original common-observation transaction sum -> remaining
+supply. Verify every predecessor hash and piece supply; require final state,
+total work and remaining supply match the complete authenticated parent
+exactly before using any selected intermediate predecessor. This accounting
+read executes no body motion. Original H/coarse and H/2/half intervals must
+reproduce raw endpoints, work and supply exactly before refined comparisons
+are interpreted. Record actual input/output observations and accelerations;
+exceptions retain attached row operands and ordinary admission rollback.
+
+Input receipt FB-01aj-radau3-solved-genesis.json SHA256
+c243a427cb3344d7ff1ebde75f1aaef353e4fad4d50ad2d1e791c3a1e974e85d.
+Proof /tmp/a1-body-earlier-events-20260927.py reuses the fingerprinted v4
+local mechanics/observer and reviewed bounded runner. Two intervals,16rows,
+<=3000primitive attempts,10numerical CPU seconds; existing two-core,1GiB-AS,
+60CPU-s/process,90wall-s/group envelope. Immutable source/binaries,
+network-denied child, read-only AWS pre/post, owned-process census. No build.
+
+Frozen independent source review precedes execution. Exit evidence identifies
+whether earlier local event discretization or inherited state separation
+dominates; it does not certify the complete trajectory or a new event law.
+Only after that distinction may the event-accuracy implementation contract
+change. Full motion accuracy/cost, gravity, body/world mount, restart and live
+delivery remain open. Functional-body goal ACTIVE; no new user decision needed.
+
+### FB-01aj earlier-event diagnostic result — 2026-09-27 17:15Z
+
+Independent frozen source review PASS from body_force_review; no source edits
+or numerical work in review. Frozen tree
+5beb24f5498034ea72a066e8dc4c2f46f4e0a07704efe3aa24d10e088ad49ff5,
+script d53a0223834b9389e0ae5b5aebd4c90c0eea7d416651f2f7c9e70fee7470ed57.
+Receipt docs/evidence/FB-01aj-earlier-event-attribution.json SHA256
+7c08f70a523cd47a2f30d88643fdface5321aab825ac8657d045ca7cea2571fc.
+
+16/16 saved-state rows completed; all original-resolution controls reproduced
+exact state, work and supply. Forward-only work accounting reproduced both
+complete parent histories before selecting intermediate predecessors. No
+whole-history dynamics replay. 304 primitives,7934 probe-forward calls,
+2.644488 numerical CPU seconds,2.650845 numerical wall seconds; child process
+CPU3.780497s and wall3.797110s, exit0, no survivors. Existing force law,
+source/binaries, timestep ceiling and all acceptance tolerances unchanged.
+
+At26.7--26.8ms, same-input H versus H/2 changed palm specific force by
+0.0021855174m/s2; H/2 versus H/4 by0.0000349012; H/4 versus H/8 by0.0000016388.
+Matching resolution across inherited inputs differed by only3.898e-6m/s2.
+This interval introduces measurable local discretization difference, within
+the existing local tolerance (about6.5419m/s2 at this large acceleration).
+At59.6--59.7ms, matching-resolution cross-input difference remained
+0.00790675698m/s2 at every refinement. Same-input refinement changed it by
+at most1.74e-10m/s2. Thus refinement of this later crossing does not erase
+the inherited difference. Neither result certifies the entire trajectory or
+proves that this single earlier interval explains every later difference.
+
+The prior173.5ms whole-trajectory palm failure remains OPEN. Next mechanics
+work must account for propagation of earlier local defects through later
+constraint transitions; do not repeat the cleared final-interval matrix or
+synchronize the two independent histories. No tolerance relaxation, artificial
+damping, force alteration, whole-body qualification or production mount.
+
+Read-only pre/post production envelope at17:08:44--51UTC remained task1560,
+same image45b4591c43a6067eb7367bda2be2e08fd26429e2f43c46055c1b99d249da39ed,
+same organism identity, ticks2653920->2653942, paired durability unblocked,
+errors null, service1/1/0. Existing clock-stalled alarm remained ALARM while
+ticks advanced; the other four listed alarms were OK. Do not describe this as
+an all-alarm-green production audit. No live writes were made.
+
+Joe added a P0 cognitive-contract review request during the running diagnostic.
+That review is separate documentation-only work in the main Guala checkout;
+body ownership and ACTIVE goal are unchanged. No additional body test running
+after this completed bounded diagnostic; exact-child exit and host census
+confirmed. Evidence is retained for the next numerical correction.
+
+### FB-01aj independent-history admission candidate — 2026-09-27 17:24Z
+
+Previous goal turn: PROGRESS (saved earlier-event attribution and P0 review
+handoff). Current physical candidate still unmounted/unqualified. Continue
+body-only numerical work; no cognition, kernel, physical force, material,
+coefficient, sensory tolerance, or G1 source change.
+
+Source cause: local admission compares Phi_h(x) with Phi_h/2(Phi_h/2(x))
+from the SAME current x, then discards the coarse history. That indicator
+cannot constrain later Phi_h(x_coarse)-Phi_h/2^2(x_fine) when x_coarse and
+x_fine have diverged. The saved26.7ms and59.6ms controls now demonstrate this
+distinction. A small local discrepancy is not a sustained accuracy proof.
+
+Bounded correction in native/functional_body/radau.pyx: keep existing local
+v4 stage/residual/force law intact and add admit_trajectory with separate
+radau-iia3-independent-history-v1 admission identity. Two numerical paths
+start from the identical last committed body predecessor, retain their own
+states through the entire UNPUBLISHED requested interval, and compare on the
+fixed common observation grid. Compare existing pose/velocity/sensory/contact
+tolerances, accumulated actual work and impulse, full sampled event-domain
+sequence, and corresponding event bracket union<=1us. Local accepted pieces
+now expose their already-computed event sequence; no additional force solve.
+
+On disagreement, halve both meshes and retry from the original open-interval
+predecessor only. Never synchronize the paths mid-history or replace an
+already committed life. Independent fine work alone may be returned/debited
+after success. Failed trials do not advance live time or spend real reserves.
+Bound both total primitive trials and refinement rounds; any unresolved or
+unrepresentable interval, physical failure or exhausted allowance restores
+the exact original integration state/timestep. One anatomy/engine is reused
+serially, with two transient numerical state buffers, not two body owners.
+This is numerical error control, not an organism heuristic or motor decision.
+
+This strengthens admission at actual sample points. It is not a continuum
+error enclosure, intrinsic-couple qualification, real-time cost pass, gravity
+proof, body/world integration or production authorization. Those gates remain
+open. Persistent serialization/mount authority is unchanged because this new
+candidate method is not connected to NativeBody.advance or production.
+
+Native candidate SHA256
+4273a731a7177dfbf297ab766f34e98c2bad9883fb7caac2835aa07d80b65756.
+Next source-only frozen review precedes build. The first bounded proof will
+use archived local predecessors and exact accepted controls, plus retained
+173.5ms disagreement to exercise the comparator without replaying history.
+Prove real bounded local trajectory, unchanged original-step results, exact
+rollback on work/compute refusal, and finer-only accounting before any longer
+changed-mesh trajectory. No unchanged full-motion rerun.
+
+### FB-01aj independent-history admission proof — 2026-09-27 17:52Z
+
+Previous turn: PROGRESS (reviewed native correction and bounded G1 P0 document
+handoff). This turn: PROGRESS. The same FB-01aj numerical-accuracy item
+continues; no closed optical, force, kernel, cognitive or material law reopened.
+
+Native source-only review found localized reporting defects: preserve actual
+event/impulse disagreement operands and failing lane context; prepare the final
+snapshot before declaring success. Corrected together, including plain-Python
+event-domain encoding. Final reviewer PASS; source SHA256
+2353d94561e2c2249d4a04fe89f95f7f384fccc60f3b34b50ae48cd3e4e3fe83.
+Frozen worktree823b4bb7733b4fb3bab139b0b59d5fd32d5aa0d6d12527b6cda6a90a0498aa2e.
+No force/residual law, coefficient, tolerance, release time or production mount
+was changed. Local and outer snapshot-before-success ordering are now truthful.
+
+Proof source /tmp/a1-body-history-admission-20260927.py SHA256
+df92e4e82dd9727ebf9bacd43f3234c602ff01c3d0603d3409ee2162b8e554ec,
+retained in the receipt. Its separate source review strengthened failure-safe
+operands, full observation/impulse controls, per-lane entry/exit custody, and
+post-proof binary hashing. One reviewer scope concern was disproved by the
+existing global declaration and withdrawn; no change was made for it.
+Final source-review PASS preceded all execution.
+
+One Radau-only isolated build succeeded:26.8748 aggregate child CPU seconds,
+26.9002 wall seconds. Artifact:
+/tmp/guala-body-history.wufobn6a/python/guala_body_radau.cpython-311-x86_64-linux-gnu.so
+SHA25637a8624240d9e81f7911f9cf780e34beedcddffb9b2f45a9b8f5021476071dba.
+The prior interval binary and physical native library were reused unchanged.
+
+Receipt docs/evidence/FB-01aj-independent-history-admission.json SHA256
+b82306f7848e436ef972b842e527ce7cb870c0f31802a08bcfc8ae4ad16d0418.
+All five cases PASSED:
+-26.7--26.8ms saved control: exact fine state, complete observation, impulse,
+ work and supply match; fine work returned/debited once (12 primitives).
+-26.7--26.9ms: two distinct independent histories each resume their own prior
+ successor through two observations; no synchronization (114 primitives).
+-One-trial allowance refusal: exact whole-interval state/timestep rollback,
+ false completion/acceptance and correct failed-lane evidence (1 primitive).
+-Zero available work: actual energetic refusal and exact rollback, no fake
+ accepted motion or duplicate debit (1 primitive).
+-Retained173.4--173.5ms inputs: exact prior endpoint/observation/impulse controls
+ reproduce; actual event sequences and brackets agree, but the new history
+ comparator correctly rejects state/sensory accuracy (74 primitives).
+
+Total202 primitives,5324 probe forward calls,1.7977801 numerical CPU seconds,
+1.8182225 numerical wall seconds. Full proof child2.644743 aggregate CPU seconds,
+2.670627 wall seconds; reported peak single-process RSS165372KiB. No whole
+trajectory replay. Refinement-loop recovery after an actual whole-history
+disagreement was not exercised by these positive cases; do not claim it was.
+The old sustained173.5ms failure is DETECTED, not erased or globally solved.
+
+Process preflight found G1 cargo45663/rustc45999; both exited before this build.
+Exact owned build49391/proof49546 exited0 with no process-group survivors;
+post-run host census confirmed both absent and no body compiler/test remaining.
+Bounds:2 cores,1GiB address space/process,60 CPU seconds/process,90 wall seconds
+per owned group; numerical10 CPU seconds/3000 primitive allowance. Aggregate
+allocator peak is not enforced or claimed. Build artifacts remain scoped under
+the recorded unique temporary directory for continuation, not installed.
+
+Read-only production envelope17:50:54--17:51:26UTC: same task1560, task
+502e361c4b484240b65b4be38023dca4, same45b4591c... image and organism identity,
+ticks2662374->2662482, persisted2662348->2662476, service1/1/0 HEALTHY,
+checkpoint/cleanup null and durability unblocked. CPU51.26%,RAM2.99% from
+the matching latest available CloudWatch sample. Existing clock-stalled ALARM
+remained while ticks advanced; other four listed alarms OK. No live writes.
+
+Next: test accumulated accuracy with ONE genuinely finer independent history
+against the authenticated retained50us reference, reusing the existing reference
+states/work/events rather than replaying its dynamics. Start from the same
+genesis; never splice the failed173.5ms states into a shared predecessor.
+Freeze/review that bounded continuation proof before execution. Preserve full
+500ms/release, gravity, tactile-couple, cost, integration and restart gates as
+OPEN. Neither these five cases nor compilation authorizes production delivery.
