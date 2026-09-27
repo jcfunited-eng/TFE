@@ -12965,3 +12965,112 @@ advance without replay, synchronization, tolerance changes or duplicated
 prefix evidence. Same bounded execution envelope; preserve partials on budget
 exit. Body remains compiled-unmounted. Full500ms accuracy, sustained cost,
 gravity, integration and restart remain OPEN; objective ACTIVE.
+
+### FB-01aj saved-history continuation contract — 2026-09-27 14:10Z
+
+Previous turn PROGRESS:f55ae5926 closes the exact velocity-dispatch correction.
+Requested architecture remains the full bounded functional-body precursor.
+Current reality compiled-unmounted; conflict with production-ready delivery YES.
+This continues sustained accuracy/cost, does not reopen the getter arithmetic.
+No native source, physical force, anatomy, tolerance, time-step ceiling, kernel,
+cognition, G1 or production changes. Reduced numerical body mechanics, not
+full biological anatomy or DSF evaluation. Single next item: continue saved
+coarse/half v4 histories without replaying or synchronizing their predecessors.
+
+Authoritative input: docs/evidence/FB-01aj-radau3-solved-genesis.json SHA256
+c243a427cb3344d7ff1ebde75f1aaef353e4fad4d50ad2d1e791c3a1e974e85d.
+Coarse at0.06849999999999876s, half at0.06839999999999877s, last common sample
+0.06839999999999877s (685comparisons). Their separate5120byte physical states,
+remaining work supplies, cumulative motor/bearing work and contact impulses
+are authoritative. Restore each independently under the same header/law;
+prove raw state, time and whole body observation equal the saved values before
+any new numerical interval. Never reconstruct supply by a different subtraction
+order, copy a lane's state into the other or discard the extra coarse interval.
+Complete half to the saved coarse endpoint first, then compare before proceeding.
+
+Reuse authenticated v4 observer/admission source prefix unchanged. No new motion,
+event, error or force operator. Coarse100us/half50us proposals, same<=100us
+common observations,48/250/500ms checkpoints and one torque release at250ms.
+Continue cumulative channel maxima and unresolved-status evidence so an earlier
+failure cannot disappear across chunks. Material event correspondence remains
+cumulative; raw accepted/refused paths and contact-stage history in the new
+receipt contain only newly executed intervals. Parent history is retained once
+by content-addressed reference, not replayed or copied wholesale. Compact
+previous-attempt metadata remains available if a lane has not yet advanced.
+Same initial control/anatomy must regenerate the saved genesis identity; no
+genesis trajectory is executed. Old law/state mismatch and non-budget failure
+are not resumable. A mismatch retains exact restored operands or the failed
+comparison states; ordinary admission retains failed interval rollback evidence.
+
+One reviewed offline continuation, no build. Max30000primitive attempts,
+50CPU seconds,162trials/admission; unchanged two-core/1GiB-AS per process,
+60CPU-s/process and90wall-s/group. Read-only AWS pre/post, frozen/source/binary
+hash checks and exact terminal census. A budget exit preserves independently
+advanced lanes and last proved common time, reports incomplete, and permits
+continuation only when no accuracy/event/refusal-integrity failure occurred.
+Do not reinterpret chunk budgets as a real-time performance pass. No push,
+Slack, production mutation or G1 edit. Full objective remains ACTIVE.
+
+Compiled interval remains uw41fxqs SHA256
+04c168a94573c7b3282b9f1ea00e5821a00b8126357b8e6eb7f0d38b4b67a4f9;
+Radau wxenj18y and midpoint native library unchanged. Interval directory comes
+first on import path so the old interval co-located with Radau cannot shadow it.
+Probe /tmp/a1-body-radau3-continuation-20260927.py SHA256
+e562695dd44281f122125b3b2009bd795aa4d794f1e3027d73171948c83ab711;
+runner /tmp/a1-body-radau3-continuation-run-20260927.py SHA256
+148095b2747517c2f3c13b5992d95f858ca2a25f865496c32748cb35fad3f3df.
+Source-only independent review before execution. One receipt inspection
+mistakenly printed complete metric channel dictionaries, producing truncated
+console output; no numerical work was repeated. Later readers must select
+status/counts/maxima explicitly, not emit whole channel maps.
+
+### FB-01aj continuation result — 2026-09-27 14:27Z
+
+Frozen source review PASS. One continuation executed from the two independent
+saved states; no build, source change, synchronization or predecessor replay.
+The last passing common observation advanced from68.4ms to173.4ms. The next
+observation at173.5ms FAILS the existing left-palm specific-force bound:
+error0.04354165409228073m/s^2, allowed0.042863499434688285m/s^2,
+reference32.86349943468828m/s^2, ratio1.0158212620653095. Do not relax this
+bound or label the failed prefix resumable. Other measured channel groups and
+material-event correspondence PASS there; intrinsic-couple impulse remains
+explicitly UNQUALIFIED. The full500ms protocol and sustained runtime cost remain
+open. This is a measured accuracy rejection, not a resource-limit exit.
+
+Receipt docs/evidence/FB-01aj-radau3-continuation-1.json:
+16553316bytes, SHA256
+0dde7d4af486bf88ff89de9c91b84a7c0161fda16c8ec0329c3367b89ab645af.
+Authenticated raw payload48551131bytes, SHA256
+5fd13e890db5c29e8f854a811c8c4be197981102bcba99d88e96739e8bffd97d.
+Both exact failed states and their separate173.4ms predecessors are retained.
+No saved accepted prefix is to be discarded or promoted to a new law.
+
+New execution:10081primitives/255840probe forwards/259255total forwards;
+42.43608992numerical CPU seconds,43.739676child wall seconds,
+43.601184child self CPU,320500KiB peak RSS. The two lanes accepted2244/4312
+new pieces and13new event pieces each; old history remains content-addressed.
+Primitive wall33.761086s includes16.572814s native forces; observer2.749185s.
+These are offline qualification costs, not a claim of viable production speed.
+
+First causal boundary to investigate, without replay: lower joint-limit index9
+activates near173.4954ms, immediately before the acceleration disagreement.
+The retained coarse event bracket is
+[0.17349543846658372,0.17349550781248718]s; half bracket is
+[0.17349531249998718,0.173495433633601]s. Their union fits the unchanged1us
+event allowance, while the pointwise acceleration allowance fails. This is
+an observed association, not yet proof of which numerical operation causes
+the discrepancy. Next isolate this one100us interval from both independent
+173.4ms predecessors, distinguishing inherited state error from local event
+integration error. No global step/tolerance/force changes and no heavy restart.
+
+Owned group65607 exited normally, no survivors; independent host census empty.
+Read-only AWS14:19:47->14:20:34 retains sole1559/same image/identity;
+ticks2624476->2624586, persisted2624460->2624556, no custody errors.
+Existing clock-stalled alarm persists; other4alarms OK. No production/G1 writes,
+push or Slack. Objective ACTIVE; compiled-unmounted body remains unqualified.
+
+Inspection hygiene: one compactness mistake emitted saved base64 states and
+another emitted whole event-domain arrays; a scalar common-sample value was
+also treated as a mapping by a read-only inspection and raised TypeError.
+These did not execute mechanics or change evidence. Subsequent inspection
+selected scalar bounds, changed indices and digests only. Do not repeat them.
