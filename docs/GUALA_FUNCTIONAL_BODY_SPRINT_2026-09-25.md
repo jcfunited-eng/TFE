@@ -14137,3 +14137,126 @@ Preserve the sparse historical comparison limitation. Later qualification
 must account explicitly for missing between-endpoint reference evidence;
 no claim that endpoint agreement proves all intervening states. Full500ms,
 gravity/couple, performance, mount/restart and live acceptance remain OPEN.
+
+### FB-01aj paired25us/12.5us suffix contract — 2026-09-27
+
+Continuing, not reopening, activeFB-01aj after pushed d1627038d. Clean branch,
+unchanged compiled source/ABI revalidated. One proof-only source
+/tmp/a1-body-quarter-eighth-continuation-20260927.py reuses the accepted paired
+runner and native admit_history_pair without a build. Inputs are exactly the
+actual25us360.6ms refused predecessor successor in receipt0f1e812... and the
+independent12.5us360.6ms successor in receipt960a5e11...; archived finer proof
+must match both actual operands before continuation. No state substitution.
+
+Unchanged forces, energy supply, limits, zero-gravity bench, existing torque
+release retained. Same cumulative work and impulses restored through explicit
+packed/plain vector decoding and exact force/sensory controls. Every<=100us
+new pair passes native full state/work/impulse plus LOCAL event-path/timing
+comparison; inherited-state failure refuses, event-only width may use existing
+bounded local refinement. Retain every new raw common endpoint, cumulative
+work/impulse, and local event evidence once, preventing the343->360ms evidence
+omission from recurring. Preserve known sparse comparison before360.6ms;
+even a500ms completion cannot by itself close full historical qualification.
+
+Lifecycle: attach restore expectations before mutation; capture both actual
+successors before fallible observation; keep previous accepted pair after
+refusal with native exact rollback. Resume only authenticated CPU/trial-bound
+unfinished receipts with passed prior comparisons and exact own history.
+Terminal evidence extraction errors invalidate completion rather than masking
+the original error. No cognitive or live state changes. Same50numericalCPU/
+30000primitives per chunk,60CPU/90wall/1GiB child/two-core affinity, read-only
+AWS envelope and exact process-group cleanup. Source-only review precedes run.
+
+Localized review corrections batched before execution: compare the archived
+12.5us cumulative impulse operand byte-exactly against its resumed lane after
+the existing packed/plain decoder; retain per-engine expected hash/time before
+comparison or terminal restore, and actual raw state/time on any failure.
+Keep successful endpoint bytes once, and retain the original restore/observation
+exception if secondary evidence extraction also fails. Evidence extraction
+failure after an otherwise successful operation invalidates the diagnostic.
+No dynamics, acceptance limits, or body source change. The first attempted
+full-file replacement was rejected by apply_patch because delete/add targeted
+one file in one patch; it changed nothing. Separate explicit replacement
+operations succeeded. One final source-only review follows this batch.
+
+Final source-only review PASS at tree6545e586... and proof fe51e694... .
+Continuation receipt FB-01aj-quarter-eighth-continuation.json SHA
+3ee3c7f37099f3e8a5d52e95fe0a092362d5ccef636c7d5613a0a05c53105ed8
+retains44 accepted new intervals360.6->365.0ms. At365.1ms both local paths
+settled, matching event sequence/brackets, but the outer state/work/impulse
+comparison refused. Exact native rollback and both terminal raw restores pass.
+No physics limits changed. Child35153 exited0/no survivors; diagnostic itself
+is FAILED (not complete),1964primitives/43386forwards,12.507004492numericalCPU,
+13.182184childCPU,308644KiB peakRSS. This is not a CPU-only resumable receipt.
+Read-only envelope20:47:48->20:48:05UTC: same sole1561/task5b6539...,
+no custody errors, clock-stalledALARM, publictick unchanged2693405. No live
+mutation; previously handed G1 clock concern remains unresolved.
+
+Next bounded causal measurement: proof-only365.0->365.1ms local-error map,
+/tmp/a1-body-365ms-error-map-20260927.py, reuses reviewed 10CPU/3000primitive
+map envelope and current compiled mechanics. Restore BOTH own saved raw states,
+work and impulse histories; reproduce actual failed successors exactly at
+nominal25us/12.5us; then measure1/2/4/8 meshes only over this100us interval.
+Preserve all failed channels, actual raw states, original errors and rollback
+receipts. This distinguishes inherited history discrepancy from local event
+resolution before another history is considered. No genesis replay/build,
+state synchronization, accepted-limit changes, cognition or live changes.
+Initial map helper hash declaration was corrected to its measured SHA before
+freeze/execution; no command ran against the incorrect declaration.
+
+365ms diagnostic source review PASS but first proof stopped on its own
+packed-descriptor equality: runtime shape tuple differs from archived JSON
+shape list. Authenticated output comparison proves raw state bytes, every
+work component and cumulative impulses match exactly; all20 local accepted
+substeps also match. This is a test representation defect, not physics failure.
+Preserve FB-01aj-365ms-error-map.json unchanged; child37404 exited0/no survivors,
+42primitives/823forwards,0.345331037numericalCPU/1.015289processCPU.
+One localized correction compares state bytes plus canonical shape and finite
+flag explicitly; next distinct receipt suffix-corrected preserves this failure.
+No complete-history replay or mechanics change. Final source review required.
+
+Correction before any rerun: source inspection and final reviewer identify
+the exact tuple/list mismatch in impulse PAIR identifiers, not state shape
+(packed_numbers already emits shape=list). The preceding shape diagnosis was
+incorrect and its unneeded shape normalization is removed. Original raw state
+descriptor/work equality remains; expected impulses pass through the existing
+decoder and native recorder, preserving their exact vectors/path totals while
+canonicalizing pair representation. Final review rejected only this local
+proof check; no further diagnostic executed between these corrections.
+
+### FB-01aj365.1ms inherited discrepancy isolated — 2026-09-27 20:56Z
+
+Corrected local map source passed final source-only review. Receipt
+FB-01aj-365ms-error-map-corrected.json SHA
+0f23d072122aba04501e099e00bc5a329f94cf03787bca813a3ba5ff50f26ec9
+completed=true/failure=None: both actual25us/12.5us failed controls reproduce
+exactly, all four dyadic meshes measured. In every case the ONLY measured
+channel failure is left-palm specific force. At nominal mesh error
+0.10342396901419523m/s^2 exceeds0.06399520447747102m/s^2 (ratio1.616120612).
+At1/2,1/4,1/8 the ratios are1.616120490,1.616120491,1.616120521:
+local refinement does not resolve inherited history error. Every matching
+event sequence and timing bracket passes. This does not qualify the motion.
+
+Corrected map681primitives/12797forwards,3.880770093numericalCPU,
+4.453444childCPU,166204KiB peakRSS; exact group38820 terminal/no survivors.
+Failed proof receipt8230ae28e1ed10c76539d155d7ba0056fd08f34c9fa367feae6a1cdec957c763
+is retained. Its0.922075childCPU differs from parent aggregate1.015289 noted
+above; both measurements remain literal. Three receipts total1763702bytes.
+All three child groups35153/37404/38820 exited without survivors; host census
+confirms no diagnostic processes. No mechanics build or whole-history replay
+occurred in this work block, and no cognition/kernel/live source changed.
+
+Latest read-only envelope20:54:36->20:54:43UTC remains sole1561 with sameimage/
+identity; tick2693729->2693736, persisted2693708, no custody errors. Clock-stalled
+is stillALARM; runtime progression is not declared normal. G1 owns that issue.
+
+Next single FB-01aj action: independent-history refinement, reusing the existing
+12.5us trajectory as reference without executing its completed prefix again.
+A new genuinely finer history is needed by the unchanged outer law; local
+100us retries are now explicitly ruled out at365.1ms. Preserve its independent
+initial condition and all common endpoint evidence, reuse the compiled law,
+and keep bounded CPU-only continuation. No adjusted forces, tolerance widening,
+state synchronization, new body anatomy, cognition or production deployment.
+Full500ms qualification, prior dense-history coverage, gravity/couple cases,
+runtime cost and body integration/restart/live gates remain OPEN. Evidence of
+endpoint refinement must not be mislabeled a body-ready or real-time claim.
