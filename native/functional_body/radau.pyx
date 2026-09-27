@@ -15,7 +15,7 @@ import numpy as np
 import guala_body_interval as interval
 from libc.math cimport fabs, isfinite, pow, sqrt, tan
 
-RADAU_LAW = "radau-iia2-secant-candidate-v1"
+RADAU_LAW = "radau-iia2-secant-contact-estimator-v1"
 MAX_LINE = 16
 MAX_SECANT = 32
 B = np.array((.75, .25))
@@ -268,6 +268,9 @@ class RadauProbe:
                        calls_start=self.calls,failure=None)
         self.steps.append(receipt)
         try:
+            # Start-inclusive passive-integral estimator; no dynamics/work replacement.
+            # Q_T-Q_R = h*(F_0/2 - 3*F_1/4 + F_2/4), with existing impulse tolerances.
+            initial_impulse = interval._midpoint_impulses(m,d,dt/2)
             solver = _Stages(e,base,dt,self)
             stages = solver.solve(receipt)
             work = interval._finite(dt*sum((B[i]*stages[i]['work'] for i in range(2)),start=np.zeros(6)))
@@ -292,6 +295,11 @@ class RadauProbe:
             if work[2] > e.limits.max_surface_travel_m:
                 raise ValueError('sampled surface travel exceeds existing limit')
             impulse = interval._impulse_add(stages[0]['impulse'],stages[1]['impulse'])
+            embedded = interval._impulse_add(initial_impulse,
+                interval._impulse_add(stages[1]['impulse'],stages[1]['impulse']))
+            receipt['contact_impulse_estimator_passed'] = interval._impulses_close(embedded,impulse,dt)
+            if not receipt['contact_impulse_estimator_passed']:
+                raise ValueError('contact impulse embedded quadrature unresolved')
             receipt.update(converged=True,calls=self.calls-receipt['calls_start'],
                 sampled_domain_unchanged=before['domain']==stages[0]['snapshot']['domain']==endpoint['domain'],
                 work=work.tolist(),sampled_surface_travel_m=travel)
@@ -332,6 +340,7 @@ class RadauProbe:
             'coupled Radau residual failed to decrease',
             'bounded inverse-secant iterations exhausted',
             'captured coupled stage residual differs',
+            'contact impulse embedded quadrature unresolved',
         }
 
         def trial(end, remaining):

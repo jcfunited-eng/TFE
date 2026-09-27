@@ -170,6 +170,19 @@ def _contacts_close(a, b):
     return True
 
 
+def _impulses_close(coarse_impulse, fine_impulse, dt):
+    zero = (np.zeros(3), np.zeros(3), 0., 0.)
+    for pair in coarse_impulse.keys() | fine_impulse.keys():
+        a, b = coarse_impulse.get(pair, zero), fine_impulse.get(pair, zero)
+        if float(_finite(np.linalg.norm(_finite(a[0]-b[0])))) > 1e-6+.001*b[2]:
+            return False
+        # Integrate the already-ratified instantaneous couple tolerance:
+        # (1e-5 Nm)*dt + .001*integral|couple|dt, units Nm*s.
+        if float(_finite(np.linalg.norm(_finite(a[1]-b[1])))) > .00001*dt+.001*b[3]:
+            return False
+    return True
+
+
 def _close(e, coarse, fine, coarse_work, fine_work, coarse_impulse, fine_impulse, dt):
     trace = np.einsum("ijk,ijk->i", coarse["rotation"], fine["rotation"])
     angle = _finite(np.arccos(np.clip((trace-1)/2, -1, 1)))
@@ -190,16 +203,8 @@ def _close(e, coarse, fine, coarse_work, fine_work, coarse_impulse, fine_impulse
         gross = float(_finite(fine_work[0]+fine_work[3] if i == 1 else abs(fine_work[i])))
         if abs(coarse_work[i]-fine_work[i]) > 1e-6+.001*gross:
             return False
-    zero = (np.zeros(3), np.zeros(3), 0., 0.)
-    for pair in coarse_impulse.keys() | fine_impulse.keys():
-        a, b = coarse_impulse.get(pair, zero), fine_impulse.get(pair, zero)
-        if float(_finite(np.linalg.norm(_finite(a[0]-b[0])))) > 1e-6+.001*b[2]:
-            return False
-        # Integrate the already-ratified instantaneous couple tolerance:
-        # (1e-5 Nm)*dt + .001*integral|couple|dt, units Nm*s.
-        if float(_finite(np.linalg.norm(_finite(a[1]-b[1])))) > .00001*dt+.001*b[3]:
-            return False
-    return _contacts_close(coarse["contacts"], fine["contacts"])
+    return (_impulses_close(coarse_impulse, fine_impulse, dt) and
+            _contacts_close(coarse["contacts"], fine["contacts"]))
 
 
 def _one_step(e, effort, remaining, stop):

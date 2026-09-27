@@ -10984,3 +10984,132 @@ RAM3.07617percent. No production health correction is claimed.
 Body remains compiled-unmounted, not real-time or fully qualified. Gravity,
 world integration, restart and remaining safety/performance gates remain open.
 No push, Slack, production, cognition, food or caretaker changes. Goal ACTIVE.
+
+### FB-01aj contact quadrature correction contract — 2026-09-27
+
+Continue32a4b0053's authenticated false-convergence case. Requested architecture:
+force/energy-limited body motion with truthful tactile impulse. Current compiled
+unmounted Radau candidate can miss an early contact transient in both coarse and
+half-step quadratures. Conflict:YES with qualified mechanics. Do not extend
+force smoothing, softened anatomy, cognitive controls, relaxed tolerances or
+production. Single next change: add a start-inclusive embedded contact-impulse
+comparison to the existing bounded numerical primitive and its normal refinement.
+This is authorized body-only numerical approximation, not evaluation or reduction
+of the seven-field DSF; no cognitive field is being substituted.
+
+Derivation, separately for each world-frame contact pair and force/couple:
+Radau's Q_R=h*(3*F_1/4+F_2/4), at abscissae1/3 and1, remains the physical
+quadrature. Endpoint trapezoid Q_T=h*(F_0+F_2)/2 is exact for affine force in time.
+Q_T-Q_R=h*(F_0/2-3*F_1/4+F_2/4), an independent O(h^3) smooth-trajectory indicator.
+Read F_0 from already settled predecessor contact data, without an extra forward
+solve. Reuse the actual converged final Radau stage for F_2. Apply the SAME
+force/couple impulse allowances already in interval._close, with Q_R's existing
+integrated resultant magnitude as relative reference. No new coefficient or
+numerical tolerance. A finite local indicator cannot certify arbitrary hidden
+transients or global error; sustained-motion and event qualification remain
+mandatory. It can reject the demonstrated one/two-grid false agreement.
+
+This is a passive contact-integral estimator on the Radau trajectory, NOT a new
+trapezoidal dynamics solver or a replacement for work/energy accounting. Standard
+Radau error-estimation precedent is documented at
+https://drake.mit.edu/doxygen_cxx/classdrake_1_1systems_1_1_radau_integrator.html
+(Drake solves an implicit trapezoid for full-state estimation; this narrower
+passive-integral calculation does not claim to reproduce that implementation).
+
+Bounded impact: native/functional_body/interval.pyx extracts its unchanged
+impulse comparison into _impulses_close; _close delegates to that same authority.
+native/functional_body/radau.pyx reads starting contact resultant, compares the
+embedded integral, and raises a named numerical refusal on mismatch. Existing
+admit recognizes that refusal and subdivides; existing state/timestep rollback
+and accepted-only work debit remain authoritative. No new persistent state,
+codec, anatomy, observer authority, API, world caller or production mount.
+Existing Radau evaluation/stage solve must remain byte-identical. Extra work is
+two sparse contact-pair reductions/comparisons per attempted primitive, no extra
+force evaluations. Shared helper prevents a second tolerance implementation.
+
+Focused acceptance from existing saved evidence: both false-converged50us
+primitives must refuse with exact raw/timestep rollback; resolved final fine
+primitives must reproduce archived successors/work exactly; ordinary admission
+from each original predecessor must meet the unchanged complete endpoint/work/
+contact comparison against its authenticated16-piece reference. Fresh repeat
+must be exact. Zero supply and force-budget exhaustion must roll back. Bound
+trials by the prior3*(float-mantissa-bits+2) allowance, one two-module build and
+one proof,2cores/60CPU-per-process/1GiBAS-per-process/90wall each exact child group,
+read-only AWS before/after and survivor census. No long-history run in this gate.
+No runtime or production delivery claim, push, Slack, cognition or G1 edits.
+
+Implementation source preflight: complete _Stages solver/evaluation class is
+byte-identical to32a4b0053. Only contact integral comparison and its named
+refinement refusal are added. Interval comparator is extracted without changing
+its arithmetic. One edit-script line guard stopped before touching radau.pyx;
+re-read the actual numbered line and applied that file once, preserving the
+completed interval/doc edits. No compile or physics execution occurred there.
+
+Frozen proof paths:/tmp/a1-body-contact-estimator-proof-20260927.py and
+/tmp/a1-body-contact-estimator-run-20260927.py. Proof reuses authenticated controls
+from658a31bd14ba9d2fc44ae328463bd8563c6bb680f6183d1914574d1f23593e4b,
+not a re-execution of the old matrix. At most3*MAX_TRIALS+6 primitives, with
+MAX_TRIALS=3*(float64 mantissa bits+2)=162. Force bound is that count times the
+existing(5+32*2*16) per-primitive solver bound, plus the one-call refusal and
+2*MAX_ATTEMPTS+24 outside forwards. CPU/wall limits remain independent hard
+limits. Two serial isolated native builds, one bounded proof, no background run.
+
+Independent source-only review found no estimator/physics/rollback architecture
+defect. One localized proof correction attaches actual admission report and raw
+successor/work/impulses before fallible observation or comparisons; resolved
+primitive, repeat and refusal operands are likewise retained before assertions.
+Source solver/helper and all numerical limits remain unchanged. Re-freeze and
+final source confirmation are required before the first build/proof.
+
+### FB-01aj contact quadrature correction verified locally — 2026-09-27 08:42Z
+
+PROGRESS: final source review passed. Frozen candidate
+cda09ec9d2bff702091a853d00aa47b6d1806e2117ac5110f00b9b8b10835b15 built once;
+one focused proof completed. Both saved inaccurate50us primitives now refuse
+with exact raw-state/timestep rollback. Each already-resolved final fine step
+reproduces its archived successor and work exactly. Ordinary admission from
+each authenticated25.95ms predecessor resolves the remaining50us in15 trials,
+8 accepted pieces,3 numerical rejections. Complete endpoint/sensory/contact/work
+comparison against each authenticated16-piece reference passes, unchanged limits.
+Force impulse errors4.94619e-9/4.94609e-9N*s have ratios0.002499 of their existing
+allowances, versus the predecessor coarse result's14.6286/14.6631. Fresh full
+admission repeat and its accepted path are exact. Zero energy and one-call
+force-budget refusals restore exactly. No synthetic impulse or work is published.
+
+This closes the demonstrated saved-contact quadrature defect only. It does not
+prove global-error control, sustained motion, intrinsic couple impulse, gravity,
+world mounting, restart integration or production performance. The stage solver,
+physical contact laws, anatomy, force limits and acceptance allowances did not
+change. Existing midpoint law still uses the same extracted comparison.
+
+Source hashes:
+interval.pyx8391d81b1147e1973e1b147fc63c456176b46bc39137e8afa8f6fa2f118b7119;
+radau.pyx605d88391082809cdebdfc6a9b2ed888103114d59d5e08ebdc5cbed16adfd92b.
+Compiled modules in/tmp/guala-body-contact-estimator.qmush2pu/python:
+interval102b1db8cdf60bb2808117bb685eb907c9a449c2c1ea9d1bb9a826799a80580d;
+radau3f2525fa5e9a7b4bebf1ead9a88fe3efabf06bf652fb73eae56061f9d0f50d61.
+Law is radau-iia2-secant-contact-estimator-v1. Source/proof/runner, native ABI,
+resource and read-only health evidence are embedded in
+ docs/evidence/FB-01aj-contact-estimator-proof.json, SHA256
+42d4f6c3567871f56dd91db89e2ab22fdf1f7ec2607c59beb3bb3f90cf260fb3.
+
+51 primitive attempts,1065 solver forwards plus55 outside. Numerical proof
+0.3606s wall/0.3600s CPU; full child1.0200s wall/1.0134s aggregate CPU,
+154588KiB peak single-process RSS. Two serial builds took8.4025/13.0045s wall,
+8.3816/12.9798s aggregate CPU,340588/361340KiB peak single-process RSS.
+Session91245 and exact owned groups35194/35232/35286 are terminal, with separate
+host census confirming no survivors. No build repeat or old history replay.
+
+Read-only AWS08:41:30->08:41:54Z retains sole task1559/same image/identity,
+ticks2574807->2574869, checkpoint/cleanup null, durability false. Existing
+clock-stalled ALARM remains; other4OK. CPU51.1355->51.3242percent averages,
+RAM3.0782->3.0762percent. No production remediation claimed.
+
+Single next item: sustained-motion accuracy/cost qualification with these
+compiled modules, preserving this focused success and its predecessors. Use
+saved authenticated checkpoints where appropriate; explicitly distinguish a
+continued copied trajectory from a fresh new-law genesis history. Do not claim
+an unchanged prior prefix was checked by this new estimator merely because it
+passed the old law. Keep existing event/localization limits and cost ceilings.
+No new build is required. No push, Slack, production, cognition or G1 changes.
+The full body goal remains ACTIVE and incomplete.
