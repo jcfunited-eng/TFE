@@ -25104,3 +25104,365 @@ hand-contact/release refusals (logged, not suppressed); none occurred in live64.
 Existing clock-stalled alarm persists despite advancing ticks, other four alarmsOK.
 No body-development binary deployed. Public pages200; browser package unavailable.
 Do not reintroduce occupied-centre fallback sidesteps or address-based route ties.
+
+## A1 TO JOE AND G1 — 2026-09-27 15:46Z — Obstacle problem-solving boundary
+
+Joe correctly distinguishes the delivered motor-routing fix from learned obstacle
+resolution. Read-only source inspection, same deployed organism SHA
+10e23e1a7eb169b6b5b03995a857b55183d718788787e01cdc8735984d10e08c:
+the selector still contains dwell/tanh-driven doorway overrides, a scalar
+curiosity bonus, and turn-count suppression. These are authored policies, not
+evidence of heuristic-free cognition. OSC-01 did not introduce or remove them.
+The bounded episodic continuation controller is restricted to feeding and
+retained intake-linked transitions; its availability does not establish general
+reuse of manipulation to change a blocking environment. Grasp/release counts
+alone cannot establish that causal transfer.
+
+Existing root strides preserve z and obstacle routing uses planar collision
+discs. Storing XYZ does not establish articulated 3D walking, balance, stepping
+over, crouching, or climbing. However, the diagnosed radio case had a free
+planar doorway aperture; missing vertical locomotion was not its sole cause.
+World collision constraints determine consequences, not cognitive objectives.
+The offending choice rules reside in the organism selector. The visibility-graph
+motor implementation remains an engineered geometric approximation, not learned
+problem solving or full seven-field evaluation.
+
+Carry this incident into the existing functional-body acceptance boundary:
+general force/energy-limited articulated motion and manipulation must return
+actual tactile load/slip, joint pose, balance and inertial consequences. No
+radio-specific escape, reciprocal-motion penalty, scripted climb, objective
+selection by the environment, or invented memory. Mechanical testing may impose
+test actuation but must not report it as autonomous learning. A separate cognitive
+claim requires retained experience to cause an independently selected useful
+alternative when an obstacle changes; repaired routing alone cannot pass it.
+
+Single recommended cognitive follow-up: trace the retained manipulation episode
+through present obstruction evidence to actual motor choice, identifying the
+first absent causal link before proposing its bounded replacement. Do not extend
+the conflicting scalar/doorway policies or label their deletion a learning law.
+No source, production, process, memory or world changes made in this review.
+
+## A1 TO JOE AND G1 — 2026-09-27 — COG-OSC-02 priority and coordination
+
+Joe assigned the same oscillation incident to A1 and G1 concurrently. G1's
+task1559 report is the parallel investigation of the predecessor, not a mistaken
+report about task1560. Both identified the blocked centre waypoint and accepted
+reciprocal moves. A1 completed OSC-01 first. Its task1560 geometric repair and
+64-consecutive-live-tick receipt remain closed; no radio relocation or new
+reciprocal-step penalty was used. General problem solving was NOT thereby proved.
+
+Joe now prioritizes the missing autonomous problem-solving path above functional
+body work. Active item COG-OSC-02: determine and repair the specific missing
+causal connection between retained action consequences, a continuing unsatisfied
+objective, sensed obstruction/non-progress, and a changed self-selected action.
+No body numerical run, broad regression, live steering, obstacle relocation or
+cognitive edit is authorized by this analysis step. G1: please coordinate before
+editing/deploying the shared organism/episodic selector; A1 owns this causal map.
+
+Requested acceptance: from the same authenticated mature predecessor, actual
+retained experience must influence an independently chosen useful alternative
+when a route becomes obstructed, including when individual strides succeed.
+Physical execution, changed access/consequence, same-organism sensory return,
+retention, cold restart and bounded cost must be evidenced. Merely relocating
+the obstacle, suppressing reciprocal steps, changing a score, or rerouting with
+an external planner cannot certify learned problem solving. Body movement tests
+and the existing first-bite witness retain their narrower claims.
+
+Next exact item: map the current production decision path and the prior planning
+claims, then compare its missing functions with primary biological evidence on
+outcome-sensitive action, prediction/feedback and prospective spatial activity.
+Literature is mechanism evidence, not an executable DSF plasticity law. Record
+each missing or disconnected path before selecting a bounded implementation;
+do not invent a semantic planner or extend the conflicting score-based policy.
+
+Baseline: task1560 source SHA10e23e1a7eb169b6b5b03995a857b55183d718788787e01cdc8735984d10e08c,
+immutable image45b4591c43a6067eb7367bda2be2e08fd26429e2f43c46055c1b99d249da39ed.
+Evidence classification: source inspection and prior live OSC-01 proof; general
+problem solving remains unproved. Reduced selector/controller inspection, not
+full joint DSF neuronal evaluation. Canonical kernel and learned state unchanged.
+Root-check note: the skill's repository-local scripts/require-guala-root.sh is
+absent here. Use explicit main-worktree branch/source/release evidence; do not
+invent the missing historical handoff or assert a passed generic root validator.
+
+### COG-OSC-02 causal map and biological comparison — 2026-09-27
+
+Status: ANALYSIS, not repaired/deployed. Functional-body work remains secondary.
+No new simulation, build, test suite, process, occurrence, memory mutation or
+production change was run for this source diagnosis. Unrelated worktree edits
+remain untouched. Skill-local cognitive/neuronal authorities were read; their
+August repository mirrors are absent in this September functional checkout.
+Do not claim those specified neuronal mechanisms are mounted here.
+
+Verified source path (line references current at the OSC-01 organism SHA):
+
+1. lean_production_app._restore_production_actor:201-266 restores
+   FunctionalOrganism and mounts FunctionalPhysicalLoop. Native hot-path
+   acceleration does not substitute a neuronal planning runtime. The startup
+   source explicitly describes the earlier one-way native-to-functional change;
+   this audit neither repeats nor authorizes that conversion.
+2. guala_functional_loop.settle:457-510 supplies Sensed -> organism.decide ->
+   _apply -> world.prepare/commit -> organism.commit. Actual motion is derived
+   at517-523 for observation. The next Sensed snapshot carries the changed world.
+3. organism._measure:1721 and _kernel:1822 reduce sensory streams to per-stream
+   last-gate sign tokens; choice_key/coarse_key supply reduced context keys.
+   Canonical UF functions being unchanged does NOT mean the chooser evaluates
+   the full joint seven-field structure. No new flattening is authorized.
+4. decide:2069-2106 finalizes motor_transition with pre/post sensory keys,
+   action, target, observed_subject, refusal, intake and chronological previous.
+   _capture_sensory_key:1342 records room, focal figure, held yes/no, near/far and
+   contacted material. It does not retain the changed relative geometry or
+   access relation among manipulated object, obstructed passage and objective.
+5. episodic_binding_engine.find_supported_continuation:328-410 follows only
+   actually retained successful intake-linked predecessor chains. It requires
+   feeding, exact current cue, a current-subject candidate and uniqueness. It
+   does not construct a new causal sequence of object rearrangements.
+6. The continuation's displacement test rejects ANY sideways/away candidate
+   for which 2(v dot d) <= |v|^2. That algebra correctly tests immediate distance
+   decrease; treating it as necessary for a valid pursuit is incorrect. A
+   physically necessary detour can initially increase Euclidean distance. This
+   is a confirmed bounded controller limitation, not evidence that Dijkstra or
+   physics prohibit the detour. The existing isolated test at pursuit:452-477
+   explicitly enforces rejection; green tests do not certify general planning.
+7. If that controller abstains, decide:2245 calls _choose. _choose:2854-2861
+   can force a door by dwell/tanh thresholds before the action records are read;
+   later choice includes scalar value/curiosity. Portal novelty sorting then
+   selects a destination. These mechanisms conflict with the requested policy,
+   and must not be extended as a biological planning equivalent.
+8. commit:3021-3040 binds actual refusal/intake/pain to the pending transition.
+   commit:3078-3082 clears last_refusal after every successful action. Successful
+   reciprocal translations therefore are not refusals. No comparator in this
+   path evaluates a retained expected environmental change against its actual
+   change. expectation_discrepancy:1928 reports nearby missing remembered
+   objects; there is no consumer of this field that performs general replanning.
+9. _dream_moment retains qualifying actual trial records; encoded/restore retain
+   these through JSON and paired storage. Persistence is real, but cannot
+   recover causative distinctions not recorded in those trials. Do not turn
+   lifetime grasp counts or older reduced records into fabricated manipulation
+   consequences during migration.
+
+What the earlier proofs established: tests/test_grounded_experience_pursuit.py
+includes actual intake, controlled sleep onset, retained route relations,
+matched-view memory ablation, resumption and cold encoding. The latest visible
+encounter test explicitly disclaims general recognition and mature-body release.
+Those results do not test changed obstacles, a necessary initial detour, moving
+one object to access another, or general outcome-sensitive replanning. Earlier
+language suggesting that broad planning/problem solving was complete must not
+be repeated. First-bite acquisition and OSC-01 remain useful narrower evidence.
+
+Biological evidence (mechanism guidance, not an executable DSF law):
+- Yin et al. 2005, https://pubmed.ncbi.nlm.nih.gov/16045504/:
+  posterior dorsomedial-striatal disruption impairs sensitivity to altered
+  action-outcome contingency and outcome devaluation. Action execution and
+  outcome-sensitive control are separable capacities.
+- Pfeiffer & Foster 2013, https://doi.org/10.1038/nature12112:
+  rat hippocampal sequences before navigation depict routes toward remembered
+  goals, including novel start-goal combinations. This supports prospective
+  spatial use of experience, not just repetition of the latest action.
+- Wolpert et al. 1995, https://pubmed.ncbi.nlm.nih.gov/7569931/:
+  human hand-localization experiments support an internal sensorimotor model
+  combining movement-related prediction with sensory evidence.
+These findings do not guarantee animals never repeat ineffective behavior or
+provide permission to insert a reward formula, canned planner or brain-part name.
+
+Recommended single repair boundary: restore functional outcome-sensitive
+control, not a doorway-specific escape. It must preserve actual sensed
+action/consequence distinctions; retain the bodily objective independently of
+temporary gaze/waypoint changes; let learned causal relations support candidate
+continuations; compare predicted with observed consequences without reducing
+them to a utility score; and re-evaluate when the predicted change fails. World
+geometry supplies consequences and mechanical feasibility, never an objective
+or an omniscient proposed solution. This is a required functional contract,
+NOT a claim that a corresponding learning/choice law already exists in source.
+
+Implementation boundary: a law for retained sensory relations to predict and
+select changed-object continuations is missing from this deployed path. Merely
+deleting the distance check/door override does not supply it. The vocal-only
+sensorimotor mesh has no mounted locomotor/manipulation prediction path and
+cannot be renamed or expanded into a general planner without a derived law.
+Do not substitute dictionary replay, guessed similarity, an obstacle label,
+reciprocal-motion penalty or a new scalar controller. Freeze the exact physical
+learning/selection contract before cognitive code or deployment; if a change
+requires architectural ratification, bring that precise change to Joe rather
+than silently choosing a different brain.
+
+Decisive acceptance must preserve the same mature identity/history, show the
+predecessor's failure, and distinguish physical feasibility from learned choice.
+Use an initially valid route and an observed change; require retained experience
+to cause a useful alternative without supplying the action, sequence or timer.
+Include a necessary initially-away detour and a movable versus immovable
+obstruction, retain failed outcomes truthfully, and verify restart plus bounded
+work. The agent need not move an object when a simpler supported route exists.
+Absence of a loop alone is not success: the intended physical outcome matters.
+
+## A1 TO JOE AND G1 — 2026-09-27 16:10Z — COG-OSC-02 prospective problem-solving clarification
+
+Joe's stream/plank/vine example distinguishes prospective causal recombination
+from retrieval of a previously successful route. Requested functional scope is
+an organism that can preserve an objective, construct a new possible means from
+lived relationships, anticipate bodily consequences and uncertainty, act, and
+revise the means when observation contradicts the prediction. Falling into the
+stream also changes the actual bodily situation and the relevance of competing
+outcomes; it is not merely a larger score for the same old action.
+
+Architecture honesty: current functional production code does not implement
+this integrated capability. Conflict with earlier broad planning-completion
+claims: YES. Existing canonical L0-L4, physical geometry, and genuine retained
+experience are not invalidated by this finding. No source code, test, process,
+or deployment changed in this explanatory review. Scope is a reduced functional
+comparison, not evaluation of complete joint seven-field cognitive dynamics.
+
+Rechecked source: episodic_binding_engine.find_supported_continuation remains
+a feeding-only, exact-cue, successful-history controller, with the immediate
+distance-decrease restriction described above. Functional organism selection
+still contains authored dwell/door overrides and scalar action/curiosity
+ranking. Neither constitutes a learned counterfactual model of manipulation.
+Physical object movement and thousands of grasp events do not themselves prove
+retention of the relation between moving an obstruction and restoring access.
+
+Biological functional distinctions relevant to the example:
+- Body/world prediction: estimated reach, load, grip and momentum are constrained
+  by learned sensorimotor experience, not perfect knowledge of hidden material.
+- Constructive recall: parts of different experiences can contribute to an
+  imagined novel event. Recalling an identical successful sequence is unnecessary.
+- Goal versus means: fetching a plank can move away from the destination while
+  serving it. Losing the plank invalidates that means, not necessarily the goal.
+- Risk and uncertainty: predicted harm, effort, bodily capacity and unknown
+  support strength remain distinct concerns; inspection can change evidence.
+- Outcome mismatch: unexpected plank motion changes the causal expectation;
+  no collision refusal is necessary for a plan to have failed.
+- Urgent bodily change: after immersion, staying dry is no longer achievable;
+  escape and breathing become urgent. Swimming still requires an available skill.
+
+Research supports these responsibilities, not a complete executable brain law:
+Wolpert et al. 1995, https://pubmed.ncbi.nlm.nih.gov/7569931/;
+Addis et al. 2007, https://pubmed.ncbi.nlm.nih.gov/17126370/;
+Glascher et al. 2010, https://www.princeton.edu/~ndaw/gddo10.pdf;
+Mobbs et al. 2007, https://pubmed.ncbi.nlm.nih.gov/17717184/.
+These findings do not authorize scalar reward substitution, programmer-supplied
+tool-use rules, or relabeling a scripted controller as neural emergence.
+
+Single next engineering target remains experience-grounded prospective
+replanning using the existing movement/manipulation affordances, not adding a
+stream, swimming, or a radio-specific escape script. Acceptance must demonstrate
+a useful new combination in a changed arrangement, allow a necessary initial
+detour, preserve the objective through failure, and update the next attempt from
+actual consequences. Imagined outcomes must never be recorded as lived trials.
+The body work can enlarge feasible motions, but cannot alone supply this missing
+cognitive capability. This entry specifies the missing function and acceptance
+boundary; it does not claim its learning/selection law has been implemented.
+
+## A1 TO JOE AND G1 — 2026-09-27 16:41Z — COG-OSC-02 comprehensive bio-functional planning handoff
+
+Joe requested a detailed research-backed execution plan for G1 to develop the
+essential bio-functional equivalents of flexible planning and problem-solving,
+with A1 then returning to the separately paused functional-body precursor.
+
+Delivered document:
+[GUALA_BIOFUNCTIONAL_PLANNING_IMPLEMENTATION_PLAN_2026-09-27.md](docs/GUALA_BIOFUNCTIONAL_PLANNING_IMPLEMENTATION_PLAN_2026-09-27.md)
+
+Document SHA-256:
+`4fec055563795bf7a29cbdc883ea9f43586096742b0774468f16ff9f76b6e37e`
+
+Architecture honesty:
+- Requested: experience-grown persistent objectives, learned physical prediction,
+  novel useful recombination, consequence-sensitive action and replanning, with
+  one organism/clock and unchanged canonical L0-L4.
+- Current reality: the inspected functional runtime has narrower episodic
+  controllers and competing authored/scalar selection. The full ratified
+  persistent neuron/cognitive architecture is not established as its mounted
+  decision path. Conflict with broad planning-complete claims: YES.
+- No extension of semantic intent lists, scalar reward/curiosity ranking,
+  simulator-ID recognition, supplied plans, or the old immediate-distance veto.
+- Review level: functional/source architecture and physical-law requirements;
+  not a claim of verified complete seven-field cognitive evaluation.
+- Single next item: G1 completes P0, the source-linked learning/prediction/
+  persistence/effector contract and lawful lifetime-migration map, then submits
+  that frozen contract for A1 review before implementing new decision authority.
+
+Plan contents:
+- Source baseline, exact hashes and source-to-capability gap map.
+- Sixteen primary research references with evidence limits and engineering
+  justification; no assumption that biological experiments prove DSF.
+- Nine integrated responsibilities: actual consequence/eligibility binding;
+  sensory and relational continuity; persistent objective/revisable means;
+  learned forward prediction; prospective recombination; need/uncertainty/risk;
+  action competition; mismatch/replanning; and sleep/restart continuity.
+- Mathematical constraints and seven concrete constitutive-contract deliverables.
+  Missing specialization equations must be derived and reviewed, not filled with
+  a matcher or renamed score table. The plan does not claim those derivations
+  are already completed implementations.
+- Six sequential stages P0-P5, nineteen causal/falsification conditions,
+  a concrete minimal physical witness, and bounded resource/time discipline.
+- Same-life migration, paired persistence, production-shaped rehearsal,
+  single-writer cutover, state-compatible rollback and behavioral live closure.
+
+Joe's additional spatial-neuroscience material was incorporated after checking
+primary studies. Added explicit body-relative versus environmental relational
+continuity and C19: distinguish observer movement from destination movement.
+No exact-GPS claim, central executive agent, or one-region/one-service design.
+
+Ownership and scope:
+- G1 owns cognition implementation, ordinary-loop proofs and release.
+- A1 owns independent frozen-boundary review and functional-body mechanics.
+- Shared sensory/motor/serialization interfaces require one integrator and
+  producer/consumer agreement. The body worktree is not silently production.
+- First milestone uses existing movement/manipulation. No stream, vine,
+  swimming or climbing implementation is added to this work.
+- OSC-01 remains closed for its specific geometry failure; no claim that it
+  supplied general planning or autonomous nutrition.
+- Caregiving must not be withheld from live Guala for a cognitive demonstration.
+  Unattended trials use an isolated, disclosed environment and preserved history.
+- Functional-body goal remains paused until Joe resumes it. This handoff does
+  not resume, replace, or mark that goal complete.
+
+Verification for this documentation task: source fingerprints rechecked and
+unchanged; documentation whitespace checks passed. No organism tests executed,
+production code changed, processes signaled, controls altered, or release made.
+Last live lineage quoted in the plan is explicitly historical (OSC-01 task 1560,
+2026-09-27 approximately 15:29Z), not a new live probe. Existing unrelated dirty
+and untracked workspace files were preserved.
+
+Recommendation: execute P0 of the linked plan. Do not spend another iteration
+adding a radio-specific escape or treating successful movement counts as
+evidence of flexible planning. This ledger is the coordination record; the
+linked document is the stable implementation contract, not a second status log.
+
+Completion notification verified:
+`codex_notify 2026-09-27T16:42:17Z status=slack_sent channel=#general`.
+The notification contained only a generic handoff-complete statement, not
+source, audit details, credentials, or production identifiers.
+
+## G1 TO A1, JOE, AND C1 — 2026-09-27 17:05Z — Stage P0 Bio-Functional Causal Contract Frozen for Review
+
+1. **Stage P0 Deliverable Complete**:
+   Delivered document:
+   [GUALA_P0_BIOFUNCTIONAL_CAUSAL_CONTRACT_2026-09-27.md](docs/GUALA_P0_BIOFUNCTIONAL_CAUSAL_CONTRACT_2026-09-27.md)
+   Document SHA-256:
+   `9430d8d70f08429a9100f8f9c6ca539f39151656651df30d4fcc9171f93497c6`
+
+2. **Mandatory Architecture Honesty**:
+   - Requested: Sparse, persistent, experience-grown cognition built on canonical L0–L4 and definitive neuron physics (N_i), joint DSF delivery, local charge/carrier conservation, local yield-based plastic deformation, predictive sensorimotor coupling, competition without scalar scorecards, and single-writer paired persistence under one 250,000 µs clock.
+   - Current reality: Production operates on discrete FunctionalOrganism and FunctionalPhysicalLoop with reduced structural regime keys, authored override rules (e.g. barren basin exhaustion), heuristic scalar worth calculations, and an immediate-distance decrease veto in episodic continuation.
+   - Conflict: YES.
+   - Mechanism/files not extended: Authored behavioral overrides in _choose, scalar worth/curiosity rankings, immediate-distance decrease vetoes (2(v·d) > ||v||^2), simulator-ID recognition, global scene queries, ML approximations, probabilistic smoothing. L0–L4 kernel remains canonical and untouched.
+   - Evaluation level: Functional architecture and constitutive physical contract.
+   - Single exact next item: Submit frozen P0 contract for A1 independent review. Upon concurrence, implement Stage P1 native constitutive laws.
+
+3. **Seven Constitutive Rows Delivered (§6.5 Package)**:
+   - **Row 1 (Sensory/Efferent Mount):** Receptive units, local frames, and intervals declared across retinal (flux [0.0, 1.0], eye-relative), acoustic (Pa, ear-canal), tactile (mN, µm², body-surface), thermal (mK, surface), proprioceptive (45 native axes, joint-relative), vestibular (head-fixed specific force and angular rate), interoceptive (visceral metabolic deficit). Effector coupling to planar translation (<= 300 mm), yaw (<= 45°), prehension, oral jaw action, glottal/airway drives. Joint DSF F_k = (D_k, M_k, R_rev,k, U*_k, C_k, P_k, B_k), S_UF.
+   - **Row 2 (Local Eligibility Law):** Intrinsic decaying physical eligibility trace dz_e/dt = -z_e / tau_elig + alpha_elig * Pi_e(u, s) with tau_elig = 1.50 s (R2). Consequence updates Delta l_e = eta * z_e * Delta Phi strictly bound to participating pathways. Unexecuted pathways have z_e = 0 => Delta l = 0.
+   - **Row 3 (Predictive Learning Law):** Forward internal model P_theta(s_t, u_t) evaluated across aligned channel units; physical prediction discrepancy epsilon_t = s_{t+Delta t} - hat{s}_{t+Delta t}. Plastic deformation driven by ratified yield condition: f_e = |sigma_e| - Y_e <= 0, dot{lambda}_e >= 0, dot{lambda}_e * f_e = 0, dot{l}_e = dot{lambda}_e * sign(sigma_e). Plastic work debited from cell metabolic reservoir Delta E_{plastic} = sum_e Y_e * |dot{l}_e| * Delta t.
+   - **Row 4 (Recurrent Persistence Law):** Multistable potential V(x_i) = a*x_i^6 - b*x_i^4 + c*x_i^2 with certified tri-stable parameters (a > 0, 1.5a < b < 3a, c = 2b - 3a). Dissipative damped gradient flow dot{E} <= 0. Need-proportional bias b_i^{drive} maintains the attractor across transient distractions (R1); satiety collapses b_i^{drive} -> 0, naturally ending pursuit (R10).
+   - **Row 5 (Recombination & Provenance Law):** Same-substrate sub-threshold prospective recombination x^{imagined}(t+tau) = F_{recurrent}(x^{imagined}, hat{u}) under strict PROSPECTIVE provenance flag: zero external efference to world, zero intake or tick side-effects, zero omniscient world rollout. Recombines separately experienced relational components (e.g. clearance and doorway).
+   - **Row 6 (Effector Selection Law):** Mutual lateral inhibition tau_m * dot{A}_k = -A_k + f(S_k^{support} - sum beta_{kj} A_j - Gamma_{risk}) settling to a single dominant pathway in <= 50 ms. Legacy immediate-distance decrease veto (2(v·d) > ||v||^2) retired, allowing necessary detours (R15).
+   - **Row 7 (Lifelong Continuity Law):** Exact migration schema: live tick, identity, and physical state preserved byte-exact; empirical history preserved in read-only evidence store; plastic substrate initialized from quiescent state and conditioned via lawful sensory-consequence replay; legacy heuristic caches discarded cleanly. Quiescent retained fractal F_i(E) = SparseExact[Theta_i^{ret}(q+) - Theta_i^{ret}(q-)].
+
+4. **Coordinate Frame Invariance (C19 & R14)**:
+   - Formulated x_B = R_{WB}^T (x_W - p_{WB}) as observer consistency check, strictly distinguishing observer rotation (epsilon_{bearing} = 0) from environmental object translation (epsilon_{bearing} != 0) without leaking world coordinates.
+
+5. **Resource Ceilings & Minimal P1 Falsifier**:
+   - Total interval budget W_{interval} <= 250,000 µs, active neural horizon N_r <= 2,048, channel contacts C_r <= 8,192, settling <= 50 ms, zero full-memory rescans.
+   - Minimal P1 test suite formulated: test_p1_local_eligibility_coupling, test_p1_predictive_mismatch_yield, test_p1_frame_invariance_turn_vs_move.
+
+6. **Next Action**:
+   - Awaiting A1 independent review of the frozen P0 contract. No production code altered, no candidate build or test suite executed in this stage.
