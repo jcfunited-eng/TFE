@@ -9475,3 +9475,55 @@ existing accepted-trajectory tool with the v3 compiled library for the single
 whole-motion qualification. Do not reopen the saved comparison, add proximity
 merging, or alter the force law. Full500ms,gravity,intrinsic-couple-impulse,
 continuum-enclosure,world integration/restart/performance/live remain OPEN.
+
+### FB-01aj v3 whole-motion check: contact-onset disagreement — 2026-09-27 03:44Z
+
+One unchanged-source accepted-trajectory witness reused the compiled v3 ABI;
+no build and no broad regression. Frozen tree
+4135db62d83a08bac34f8027bb1616768c0fec03006a0090c5685d349d496ee1.
+Source and ABI hashes match the preceding reviewed proof. The test passed the
+former22.278ms refusal and sampled qualification through47.9ms, then stopped
+at48.0ms with all_completed=False. Runtime accepted both states; this is an
+accuracy failure, not a successful qualification or another contact-count refusal.
+
+9984 native calls,19.212s child wall,19.198s aggregateCPU,152512KiBpeakRSS.
+The unchanged48860-call ceiling extrapolated from prior9.021s/4372calls to
+100.82s; operational limits were120CPU/180wall seconds,2CPU,1GiB. No physics or
+tolerance changed. Session30548/child20570 exited; exact group census and final
+host census prove no proof/build survivor. AWS reads only, no production writes.
+
+Failure is concentrated at right palm/digit-4 distal contact pair(23,33).
+The100us nominal mesh brackets its loaded onset at47.964453125–47.964843750ms;
+the50us mesh brackets it at47.981640625–47.982031250ms. Each bracket is only
+0.390625us wide, but their onset times differ17.1875us. Therefore narrow LOCAL
+event brackets do not establish agreement of independently evolved trajectories.
+This is an observed distinction, not yet a proven cause of the accumulated error.
+
+At48ms: distal linear-rate error0.009209414m/s exceeds0.002688715 allowance;
+proximal angular-rate error0.290831959rad/s exceeds0.019807508;
+distal joint-rate error0.252252937rad/s exceeds0.010792406;
+local contact force error0.110152921N exceeds0.010743032;
+pair impulse error1.16814368e-5Ns exceeds1.89603625e-6;
+palm specific-force error0.261746091m/s2 exceeds0.026270996.
+Position,orientation,joint angles,gyro and work comparisons remained within
+their limits. Full500ms/load-release,gravity and production qualification remain
+OPEN. Intrinsic-couple impulse and continuum enclosure remain unqualified.
+
+Exact states/events retained once in
+docs/evidence/FB-01aj-midpoint-accepted-trajectory-v3.json
+SHA25ca41a761e715243770425b6c7e383f93838b1750ef059ca28348dc04788c5e.
+Next single diagnostic: branch both nominal meshes from the SAME authenticated
+saved pre-onset state, measure the short contact interval, and distinguish local
+integration error from error accumulated before contact. Use saved bytes, not
+genesis replay. Do not loosen thresholds or change the force law without that
+causal result. No new body/cognitive mechanism is authorized by this failure.
+
+Read-only AWS03:42:03Z->03:42:25Z: sole1559task/image/identity unchanged,
+counts1/1/0,RUNNING/HEALTHY,ticks2531623->2531675,persisted2531596->2531660,
+checkpoint/cleanupnull,durabilityfalse. CPU51.16%,RAM3.064%;existing
+clock-stalledALARM persists,other4OK. This is not a claim that all live organism
+health gates pass. No push or Slack. G1 ownership remains unchanged.
+
+Read-only inspection correction: first_failure_states is a LIST, not a mapping;
+one summary command raised AttributeError without altering evidence or running
+physics. Subsequent inspection checked the type before accessing its contents.
