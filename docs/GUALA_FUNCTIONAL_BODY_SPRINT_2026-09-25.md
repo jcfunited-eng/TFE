@@ -8605,3 +8605,117 @@ census observed only its own namespace; used a read-only host census instead.
 Tooling-only failed proposal construction: JavaScript rejected Python-style
 triple quotes before any source write. Corrected to JavaScript template strings,
 then applied the full source file once; no mechanical execution was duplicated.
+
+### FB-01aj contact-capable numerical subdivision contract — 2026-09-27
+
+Single next correction is numerical convergence at saved21.5ms, not a new
+contact constitutive law. Replace the full-interval witness's joint-only
+recovery restriction with chronological time subdivision of ONLY the named
+midpoint-nonconvergence refusal. The same native solver still computes every
+force and accepted successor; geometry/contact/supply/safety refusals end the
+run. This is body-only deterministic numerical approximation, not cognition.
+
+Authenticate the retained continued-motion receipt
+8d0ea545e1d1bd00a5698c7546f4f786c9fa9c27be42f79ecce3e53429a8b8f5,
+its source predecessor, complete failed-step bytes, actual dt, primary rollback
+and remaining supply. Start exactly at21.5ms; reuse its known failed100us
+attempt without executing it again. Old1.7ms prefix and198 good steps are not
+rerun. Original load endpoint .25s and release endpoint .5s remain fixed.
+
+On a numerical refusal, retain the SAME full integration predecessor and
+split only its attempted duration at the represented midpoint. Execute the
+left subinterval, then the right from its genuine accepted successor. A failed
+right branch must not replay the accepted left. Debit only successful
+subinterval work once. No temporal extrapolation, omitted contact, pose clamp,
+force smoothing, altered residual tolerance or invented heat. Strictly ordered
+representable times plus existing5642 total native-call budget bound all
+subdivision, successful and refused. Pending time stack capped by53 binary
+time refinements; unrepresentable split or exhausted resource bounds refuses.
+
+No failed native trial is treated as measured contact/event evidence. This
+algorithm establishes convergence-feasibility only: it does NOT certify event
+brackets, detect hidden in/out contact, or replace the separately ratified
+whole-history accuracy comparison. Native equation convergence is necessary
+but insufficient for physical integration accuracy. Retain that limitation
+in every receipt. General contact-history/error verification remains required
+before runtime mounting. Remove now-unused joint-only helper options added for
+the previous continuation; preserve its original historical diagnostic mode.
+
+Bounded evidence: accepted endpoint and work, compact subdivision timing/counts,
+ordered trace digest, exact first failing numerical predecessor/scratch and
+partial accepted-only work. One successful full run gets one fresh exact
+continuation under the identical schedule/law; no repeat on failure. Same
+2CPU/1GiB/60CPU/90wall and read-only AWS envelope, no build/native source change.
+One source-only frozen review precedes the single execution.
+
+Frozen67a7427a88bda723cd68ae88aa2bb8da4efaa18cd5078c23f9140a27549b9504
+review found one LOCALIZED caller defect before execution: native refusal
+restores primary integration bytes but leaves midpoint derived geom_xpos/xmat.
+The interval travel sampler would copy those stale derived arrays. Corrected
+in one batch: set trial dt, restore the actual predecessor through the existing
+native restore/forward helper, assert exact primary bytes, THEN charge/execute
+the next subdivision trial. Retain latest refused derived geometry separately
+as bounded unpublished diagnostic evidence before rebuilding it. No geometry
+override, force-law change or rejected work debit. No harness ran on67a7427a.
+
+### FB-01aj full endpoint continuation PASSED — 2026-09-27 01:13Z
+
+Final source-only review PASS5073decead9ae86849c7144d534b38ad83c852eae9507f1045b512e5573ea798.
+Executed once, session8364/child57236. 14.801630s wall/14.797957s aggregateCPU,
+143532KiB maxRSS, exit0/no timeout/no survivors. Artifact
+docs/evidence/FB-01aj-midpoint-subdivided-motion.json SHA
+aa640b34086a7ca5b9c6ce5a35130a6fc6a83aae34cd64653fafaeb2a4591bf4.
+Source and native library/ABI fingerprints held before/after. No production
+source, state, actuator, caregiver or service mutation.
+
+The saved21.5ms predecessor (bodySHA
+7cff1d656c7a4155627cfd595689b9b7f791be3daac79abef53fc7bbb47f2427)
+reaches original250ms load and500ms release endpoints. Fresh-instance replay
+of the SAME continuation matches complete deterministic result, full state,
+sensors, work, event/refusal counts and trace DIGEST EXACTLY. Each case5180
+native calls, two cases10360 below11284. Ordinary accepted steps4635;
+152 nominal steps subdivided,349 accepted smaller steps,394 added native
+trials.197 recorded numerical refusals include the already-archived initial
+refusal; that first failed call was NOT repeated. Finest accepted subdivision
+1.5624999999963585us. No failed-trial work was debited.
+
+Remaining supply4664.930067304892->4660.354104427842J. Continued load work:
+positive4.575962877050519J, signed4.294950819749095J,
+braking.2810120573014244J,bearing/self-bearing1.872831499218862J.
+Release work: positive/signed/braking EXACTLY0; bearing/self-bearing
+.18671530388407198J. Total continuation positive4.575962877050519J,
+signed4.294950819749095J,braking.2810120573014244J,bearing2.0595468031029336J.
+Maximum substep surface travel .0006661204419389405m. Endpoint bodySHA:
+250ms2d831f6bed11034534b201f77212ecfdd54bcc0f37dfa1f0574ff9e7d9f72c46;
+500msc4a63075332ce0a798303f5872f0a7fa5f8bf2eda6073a77e8348b00e992f435.
+Kinetic energy .40165810979482475J at250ms, .006827685139227984J at500ms;
+zero-gravity potential0. Endpoint contact counts0 do NOT mean no earlier
+contacts. Unassigned constraint/numerical energy remains unassigned; kinetic
+loss beyond measured bearing/braking is NOT relabelled heat.
+
+Acceptance meaning is strictly bounded: successful load/release continuation
+and same-numerical-law fresh-instance reproduction, from its authenticated
+prefix. NOT a from-genesis single-policy proof, continuum enclosure, complete
+contact-event/sensory-history accuracy, real-gravity proof, body/world paired
+cold restore, whole-organism mounting, real-time performance or live delivery.
+The14.8s contains both instrumented continuations; no pure native solver timing
+or production latency is inferred. Original objective remains ACTIVE/open.
+
+AWS01:12:48.711851Z->01:13:05.932976Z: same sole1557task/image/identity,
+counts1/1/0,ticks2512899->2512952,persisted2512869->2512933;
+checkpoint/cleanupnull,durabilityfalse. CPUaverage51.220748%,maximum51.730308%,
+RAMaverage2.530924%,maximum2.532959%. Existing clock-stalled ALARM persists,
+other4OK. No required approval is outstanding for the next bounded body work.
+
+Single next acceptance item: qualify the complete load/release numerical path
+from one authenticated initial body under the SAME general integration rule,
+against the RATIFIED physical accuracy contract. Preserve all required surface,
+rate, inertial, contact/event and separate work evidence during that measurement
+so a later missing-observation audit does not force a repeated full run. Reuse
+existing exact analytical controls and archived onset evidence without reruns;
+neither convergence nor endpoint agreement alone replaces history accuracy.
+Include solver-vs-observation cost attribution in that same measurement.
+Only then mount a qualified minimal native time-integration implementation;
+do not promote the offline Python diagnostic, its history digests, or its
+test-only resource caps into cognitive/body authority. Gravity/world mounting
+and live delivery remain original required gates, not waived deliverables.
