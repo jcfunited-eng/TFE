@@ -1,9 +1,8 @@
-"""Compiled, unmounted two-stage Radau body candidate.
+"""Compiled, unmounted three-stage Radau IIA body candidate.
 
-Same instantaneous forces, coupled stage residual and physical acceptance.
-Bounded inverse-secant correction reuses only actual residual differences within
-one primitive solve. No persistent solver memory, controller or motor plan.
-The low-rank inverse is a numerical proposal, never successor authority.
+Same instantaneous forces, bounded coupled residual, and physical acceptance.
+Fifth-order collocation is a numerical approximation, not a trajectory-wide
+error guarantee. No persistent solver memory, controller, or motor plan.
 """
 import base64
 import hashlib
@@ -15,12 +14,23 @@ import numpy as np
 import guala_body_interval as interval
 from libc.math cimport fabs, isfinite, pow, sqrt, tan
 
-RADAU_LAW = "radau-iia2-secant-contact-estimator-v1"
+RADAU_LAW = "radau-iia3-secant-contact-estimator-v1"
 MAX_LINE = 16
 MAX_SECANT = 32
-B = np.array((.75, .25))
+STAGE_COUNT = 3
+# Integrals of the Lagrange basis at the right-Radau nodes. Positive final-row
+# weights integrate polynomials through degree four; the final node is the end.
+_root6 = math.sqrt(6.)
+C = np.array(((4-_root6)/10, (4+_root6)/10, 1.))
+A = np.array((
+    ((88-7*_root6)/360, (296-169*_root6)/1800, (-2+3*_root6)/225),
+    ((296+169*_root6)/1800, (88+7*_root6)/360, (-2-3*_root6)/225),
+    ((16-_root6)/36, (16+_root6)/36, 1./9),
+))
+B = A[-1].copy()
+for _coefficient in (A, B, C):
+    _coefficient.flags.writeable = False
 cdef double MACHINE_EPS = 2.220446049250313e-16
-
 
 def packed_numbers(value):
     if value is None:
@@ -53,11 +63,14 @@ cdef double norm_inf(double[::1] a) except *:
     return peak
 
 
+
 cdef class _Stages:
     cdef object e, m, d, owner, base, q_array, sigma_array
     cdef object x_array, r_array, last_value, last_residual
     cdef double dt, t0, tolerance
     cdef Py_ssize_t n, size, kmax, rank
+    cdef const double[:,::1] tableau
+    cdef const double[::1] nodes
     cdef double[::1] q0, v0, q, v, acceleration, sigma_buffer
     cdef double[::1] x, residual, scale, update, delta_x, delta_r, image
     cdef double[::1] trial, trial_residual
@@ -70,7 +83,8 @@ cdef class _Stages:
         if not isfinite(self.tolerance) or self.tolerance <= 0:
             raise ValueError('invalid existing residual tolerance')
         self.n = self.m.nv
-        self.size = 2*self.n+6
+        self.size = 3*self.n+9
+        self.tableau, self.nodes = A, C
         self.kmax = min(self.size, MAX_SECANT)
         self.rank = 0
         self.q0 = self.d.qpos.copy()
@@ -85,34 +99,34 @@ cdef class _Stages:
         self.update = np.empty(self.size)
         self.delta_x, self.delta_r, self.image = np.empty(self.size), np.empty(self.size), np.empty(self.size)
         self.trial, self.trial_residual = np.empty(self.size), np.empty(self.size)
-        self.acc, self.tangent = np.empty((2, self.n)), np.empty((2, 3))
+        self.acc, self.tangent = np.empty((3, self.n)), np.empty((3, 3))
         self.inverse_left = np.empty((self.kmax, self.size))
         self.inverse_right = np.empty((self.kmax, self.size))
         self.last_value = self.last_residual = None
         cdef Py_ssize_t i, j
         cdef double linear_scale = .001+.001*sqrt(
             self.v0[0]*self.v0[0]+self.v0[1]*self.v0[1]+self.v0[2]*self.v0[2])
-        for i in range(2):
+        for i in range(3):
             for j in range(self.n):
                 self.x[i*self.n+j] = self.v0[j]
                 self.scale[i*self.n+j] = linear_scale if j < 3 else .01+.001*fabs(self.v0[j])
             for j in range(3):
-                self.x[2*self.n+3*i+j] = dt*(1./3 if i == 0 else 1.)*self.v0[j+3]
-                self.scale[2*self.n+3*i+j] = interval.ANGLE_RAD
+                self.x[3*self.n+3*i+j] = dt*self.nodes[i]*self.v0[j+3]
+                self.scale[3*self.n+3*i+j] = interval.ANGLE_RAD
         for j in range(self.size):
             if not isfinite(self.scale[j]) or self.scale[j] <= 0 or not isfinite(self.x[j]):
                 raise ValueError('nonfinite or invalid coupled variable scale')
 
     cdef object evaluate(self, double[::1] values, double[::1] out, bint capture):
-        cdef Py_ssize_t i, j, s, a, n = self.n
+        cdef Py_ssize_t i, j, k, s, a, n = self.n
         cdef double sx, sy, sz, wx, wy, wz, cx, cy, cz, theta, square, coefficient
-        cdef double first, second, stage_time
+        cdef double total, stage_time
         self.last_value, self.last_residual = values, None
         for j in range(self.size):
             if not isfinite(values[j]):
                 raise ValueError('nonfinite coupled trial')
-        for i in range(2):
-            s, a = 2*n+3*i, i*n+3
+        for i in range(3):
+            s, a = 3*n+3*i, i*n+3
             sx, sy, sz = values[s], values[s+1], values[s+2]
             wx, wy, wz = values[a], values[a+1], values[a+2]
             square = sx*sx+sy*sy+sz*sz
@@ -128,20 +142,25 @@ cdef class _Stages:
             self.tangent[i,1] = wy+cy/2+coefficient*(sz*cx-sx*cz)
             self.tangent[i,2] = wz+cz/2+coefficient*(sx*cy-sy*cx)
         stages = [] if capture else None
-        for i in range(2):
-            first, second = (5./12, -1./12) if i == 0 else (.75, .25)
+        for i in range(3):
             mj.mj_setState(self.m, self.d, self.base, interval.STATE_KIND)
             for j in range(self.q.shape[0]):
                 self.q[j] = self.q0[j]
             for j in range(3):
-                self.q[j] += self.dt*(first*values[j]+second*values[n+j])
-                self.sigma_buffer[j] = values[2*n+3*i+j]
+                total = 0.
+                for k in range(3):
+                    total += self.tableau[i,k]*values[k*n+j]
+                self.q[j] += self.dt*total
+                self.sigma_buffer[j] = values[3*n+3*i+j]
             for j in range(6, n):
-                self.q[j+1] += self.dt*(first*values[j]+second*values[n+j])
+                total = 0.
+                for k in range(3):
+                    total += self.tableau[i,k]*values[k*n+j]
+                self.q[j+1] += self.dt*total
             mj.mju_quatIntegrate(self.q_array[3:7], self.sigma_array, 1.)
             for j in range(n):
                 self.v[j] = values[i*n+j]
-            stage_time = self.t0+(1./3 if i == 0 else 1.)*self.dt
+            stage_time = self.t0+self.nodes[i]*self.dt
             self.d.time = stage_time
             self.owner.forward(self.e)
             for j in range(n):
@@ -156,14 +175,19 @@ cdef class _Stages:
                     qpos=self.d.qpos.copy(),qvel=self.d.qvel.copy(),qacc=self.d.qacc.copy(),
                     work=interval._finite(work),
                     impulse=interval._midpoint_impulses(self.m,self.d,self.dt*B[i])))
-        for i in range(2):
-            first, second = (5./12, -1./12) if i == 0 else (.75, .25)
+        for i in range(3):
             for j in range(n):
+                total = 0.
+                for k in range(3):
+                    total += self.tableau[i,k]*self.acc[k,j]
                 s = i*n+j
-                out[s] = (values[s]-self.v0[j]-self.dt*(first*self.acc[0,j]+second*self.acc[1,j]))/self.scale[s]
+                out[s] = (values[s]-self.v0[j]-self.dt*total)/self.scale[s]
             for j in range(3):
-                s = 2*n+3*i+j
-                out[s] = (values[s]-self.dt*(first*self.tangent[0,j]+second*self.tangent[1,j]))/self.scale[s]
+                total = 0.
+                for k in range(3):
+                    total += self.tableau[i,k]*self.tangent[k,j]
+                s = 3*n+3*i+j
+                out[s] = (values[s]-self.dt*total)/self.scale[s]
         self.last_residual = out
         norm_inf(out)
         return stages
@@ -268,15 +292,16 @@ class RadauProbe:
                        calls_start=self.calls,failure=None)
         self.steps.append(receipt)
         try:
-            # Start-inclusive passive-integral estimator; no dynamics/work replacement.
-            # Q_T-Q_R = h*(F_0/2 - 3*F_1/4 + F_2/4), with existing impulse tolerances.
+            # Compare Q_R=h*sum(b_i F_i) with Q_T=h*(F_0+F_end)/2.
+            # Both are passive impulse observations; neither replaces dynamics.
             initial_impulse = interval._midpoint_impulses(m,d,dt/2)
             solver = _Stages(e,base,dt,self)
             stages = solver.solve(receipt)
-            work = interval._finite(dt*sum((B[i]*stages[i]['work'] for i in range(2)),start=np.zeros(6)))
+            terminal_impulse = interval._midpoint_impulses(m,d,dt/2)
+            work = interval._finite(dt*sum((B[i]*stages[i]['work'] for i in range(3)),start=np.zeros(6)))
             if work[0] > supply: raise ValueError('mechanical energy supply exhausted; no successor')
             if any(work[i] < 0 for i in (0,3,4,5)): raise ValueError('negative physical dissipative quadrature')
-            d.qacc_warmstart[:] = stages[1]['qacc']
+            d.qacc_warmstart[:] = stages[-1]['qacc']
             self.forward(e)
             e._check()
             if float(d.time) != end: raise ValueError('Radau endpoint clock differs')
@@ -294,14 +319,16 @@ class RadauProbe:
             interval._finite(work)
             if work[2] > e.limits.max_surface_travel_m:
                 raise ValueError('sampled surface travel exceeds existing limit')
-            impulse = interval._impulse_add(stages[0]['impulse'],stages[1]['impulse'])
-            embedded = interval._impulse_add(initial_impulse,
-                interval._impulse_add(stages[1]['impulse'],stages[1]['impulse']))
+            impulse = {}
+            for stage in stages:
+                impulse = interval._impulse_add(impulse,stage['impulse'])
+            embedded = interval._impulse_add(initial_impulse,terminal_impulse)
             receipt['contact_impulse_estimator_passed'] = interval._impulses_close(embedded,impulse,dt)
             if not receipt['contact_impulse_estimator_passed']:
                 raise ValueError('contact impulse embedded quadrature unresolved')
             receipt.update(converged=True,calls=self.calls-receipt['calls_start'],
-                sampled_domain_unchanged=before['domain']==stages[0]['snapshot']['domain']==endpoint['domain'],
+                sampled_domain_unchanged=all(before['domain']==s['snapshot']['domain'] for s in stages)
+                    and before['domain']==endpoint['domain'],
                 work=work.tolist(),sampled_surface_travel_m=travel)
             m.opt.timestep = original_dt
             return endpoint,tuple(work),impulse,stages

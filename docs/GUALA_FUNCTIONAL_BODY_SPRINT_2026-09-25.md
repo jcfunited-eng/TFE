@@ -11538,3 +11538,132 @@ or more efficient convergent solver; do not repeat these closed attributions.
 Any further full-origin run requires a causally different reviewed numerical
 candidate, not another execution of this unchanged failing law. Full objective
 ACTIVE/incomplete. No push, Slack, production, kernel or G1-owned source edits.
+
+### FB-01aj higher-order numerical candidate contract — 2026-09-27
+
+Continues accumulated-error correction, not a new anatomy/cognition project.
+Predecessor56910e85f isolates accumulated trajectory error: the same-initial
+final100us mesh pairs pass, but inherited-state pairs fail. No force or foot
+sensor correction is justified. Existing sustained qualification remains open.
+
+One bounded numerical replacement: three-stage fifth-order right-Radau IIA
+collocation in native/functional_body/radau.pyx. Inputs remain raw mechanical
+state, admitted efforts, physical duration and available mechanical work. Outputs
+remain numerical successor, independently measured physical work, passive contact
+impulses, stage observations and exact refusal rollback. Same native force law,
+joint/skin geometry, SO(3) right-inverse chart, residual tolerance, bounded inverse
+secant iteration and dyadic local admission. No DSF/kernel/cognition/world mount,
+stored-state schema or physical coefficient changes.
+
+Derive nodes c=((4-sqrt(6))/10,(4+sqrt(6))/10,1) from
+10*c^3-18*c^2+9*c-1=0. For Lagrange basis l_j at these nodes,
+A_ij=integral_0^c_i l_j(s)ds and b_j=integral_0^1 l_j(s)ds=A_3j.
+Positive b=((16-sqrt(6))/36,(16+sqrt(6))/36,1/9) integrate through degree4.
+The scalar linear stability function is
+(1+2z/5+z^2/20)/(1-3z/5+3z^2/20-z^3/60), decaying to0 for stiff negative z.
+This is not the rejected explicit RK4 or midpoint Richardson extrapolation
+(which amplifies stiff decay to5/3). It is not the rejected dt/H allocation
+(which required256 pieces per100us), a duplicate runtime trajectory, or a new
+acceptance threshold. General reference for this method:
+https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.Radau.html
+That reference is not evidence of Guala accuracy.
+
+All three coupled stages evaluate the actual native forces. Terminal stage owns
+the endpoint and warmstart. Work and impulse weights use all three positive b.
+The separate start-inclusive passive trapezoid comparison remains:
+Q_R=h*sum(b_i F_i), Q_T=h*(F_0+F_end)/2. Endpoint trapezoid is sampled directly
+at the final collocation stage, not by reusing the old two-stage weight.
+No energy residual is converted to heat and no negative work is clipped.
+Every numerical refusal restores exact predecessor and original timestep;
+admission retains its current atomic rollback. Stage arrays are per-primitive,
+O(3*nv) with secant rank bounded by32. No new persistent state or solver history.
+
+Evidence ladder: source-only frozen review, then one offline bounded build and
+a small saved-state panel before another whole-origin trajectory. Panel covers
+genesis/free motion, saved loaded contact, saved lower-joint-limit state,
+same-input deterministic replay, depleted energy refusal, and primitive/admission
+rollback. Compare100/50/25us nominal admission of the same saved physical input
+with the existing full channelwise comparator; retain refusals and cost. Fixed
+saved prefixes are numerical diagnostics, not new learned experience or proof
+of accumulated accuracy. Validate tableau identities and positive quadrature
+before interpreting native results. Stop on first causal failure.
+
+Higher order alone does not prove any global error bound. The named exit
+remains SAME-genesis/current-law sustained trajectory and physical sensory/event
+accuracy under the existing limits, followed by affordable compute. Do not reset
+histories or relax tolerances to get that result. The two-stage quadratic hinge
+event observer is inapplicable to three stages: it must not be reused unchanged.
+Use truthful accepted-piece event brackets for the initial panel; if a later
+sustained comparison needs tighter localization, derive cubic collocation
+enclosures from the three-stage operands before claiming timing compliance.
+
+Current translation boundary: this Radau module is compiled-unmounted. The
+ordinary engine still invokes the accepted interval module. No production caller,
+persistence decoder, interface or motor authority is changed in this candidate.
+Runtime mounting, gravity, restart integration, intrinsic-couple impulse and full
+cost remain open. A successful panel only permits the next sustained proof.
+
+Operational envelope remains offline2-core/60CPU/1GiB-per-process-AS/90s-wall,
+read-only AWS pre/post and exact child-group census. No push, Slack or live writes.
+One implementation owner; one frozen source review and one localized correction
+batch at most. Body branch source only. Record all outcomes in this same ledger.
+
+Preflight correction: a read glob tools/guala_body_radau* and the subsequently
+guessed native/functional_body/build_radau.py did not exist. Both reads failed
+without mutation or execution. The actual verified builder is build.py with
+--module radau. Future build preflight checks that exact file and dependencies.
+
+### FB-01aj Radau3 saved-state panel passed — 2026-09-27 10:11Z
+
+PROGRESS, not body completion. Frozen candidate
+aa1694d3c9cf68a4bcdb32796c2bb1aeaa0c96d0efd50f0c3dec8b27ff4ad386
+passed independent source review. The solver required no review correction.
+The two proof corrections retained failed admission and full impulse operands/
+exact replay comparison. The separately supplied runner required final measured
+CPU/attempt checks and a post-run binary hash check; both were confirmed before
+any build. These were evidence-only corrections, not numerical retuning.
+
+One build, no prior trajectory rerun. Source radau.pyx SHA256
+78000f1994293cd4eab63eed4438d02bb7f5bfc2c103bddb5e25dcecbd3d7a5e.
+Compiled candidate at /tmp/guala-body-radau3.mys5pg2b/python/
+guala_body_radau.cpython-311-x86_64-linux-gnu.so SHA256
+963c8047874be40142b3629a909d29c392244d926b12c7cf63196527587e76fa.
+Existing interval ABI3, engine, optics and physical model unchanged.
+Proof /tmp/a1-body-radau3-panel-20260927.py SHA256
+8e6ca55ea98b49c8dc25ca4581b80cd0ad8b1b2ab7880c4b740ab280197e498f;
+runner /tmp/a1-body-radau3-panel-run-20260927.py SHA256
+db3d71c536c4594d8da129e7ebbb03fa93aac36bde1c79ba1e8416744dab079f.
+Receipt docs/evidence/FB-01aj-radau3-saved-regimes.json,838203bytes,SHA256
+7f62ca5c19929b7948d2f36f40866921304aafaf2958d9fa45c916dff203d10d.
+
+Exact Q(sqrt6) derivation confirms collocation integrals and quadrature degrees0..4.
+All six100/50/25us same-initial comparisons pass existing state/sensory/work/
+impulse/tactile limits. Inputs are saved genesis,25.949999999999862ms contact
+state and31.9999999999998ms lower-limit predecessor; each interval is100us.
+Worst reported channel ratios are below0.000401; orientation comparison near
+floating-point floor dominates. This is not a sustained-history result.
+Exact repeated input reproduces state, work, supply, impulses and observation.
+Zero-energy and exhausted-admission-budget refusal both restore exact raw state
+and timestep. Changed sampled domains have accepted pieces<=1us. Inter-lane
+event timing, hidden crossings and intrinsic-couple impulse remain unqualified.
+
+331 primitives,8020 solver forwards;1.96943s panel wall/1.96595s CPU,
+0.55127s native force evaluation,1.20395s primitive transition work. Individual
+100us physical intervals cost0.111..0.183s in this diagnostic; therefore this
+does NOT establish real-time feasibility or a speed improvement. Full proof
+child2.60487s wall/2.59335s aggregate CPU,259108KiB peak RSS. Build13.55287s
+wall/13.52948s aggregate CPU,360024KiB peak RSS. Session73456 terminal; exact
+owned groups68793/68853 terminal, separate host census confirms no survivors.
+
+Read-only AWS10:09:50->10:10:08Z: sole1559/same image/identity,
+ticks2587778->2587823, no checkpoint/cleanup/durability errors. Existing
+clock-stalled ALARM persists; other4OK. CPU50.9323percent average,RAM3.07617percent.
+No production state, caretaker, food, cognition, kernel, push or Slack change.
+
+Single next item: sustained SAME-genesis/current-three-stage-law comparison
+with stage-correct event observation and explicit cost reporting. Do not reuse
+the two-stage quadratic hinge localizer. A cubic collocation numerical enclosure
+or truthful accepted-piece timing bracket must be used, with unresolved timing
+left unresolved. No second local-panel run, no body-force/threshold change, no
+claimed all-future trajectory bound. Reuse the new binary; no rebuild without a
+causal source change. Full objective remains ACTIVE/incomplete.
