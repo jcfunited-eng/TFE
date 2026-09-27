@@ -22,6 +22,7 @@
 //!  13. coupled_synapse  -- Stage P1-B unmounted coupled material-and-receptor transition
 //!  14. frame_observability -- Stage P1-C C19 frame-invariance and observability controls
 //!  15. persistence_prediction -- Stage P2 state persistence, bodily-need coupling, forward prediction
+//!  16. prospective_recombination -- Stage P3 prospective recombination, lateral competition, reversible means
 //!
 //! Design rules:
 //!   - EXACT Python operation order is preserved (e.g. `(omega_0 + kappa*s)
@@ -46,6 +47,7 @@ pub mod constitutive;
 pub mod coupled_synapse;
 pub mod frame_observability;
 pub mod persistence_prediction;
+pub mod prospective_recombination;
 mod kinematics;
 mod optical_raycast;
 
