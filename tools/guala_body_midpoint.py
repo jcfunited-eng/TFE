@@ -7,6 +7,9 @@ The prior coupled-step evidence and its diagnostic remain historical controls.
 from __future__ import annotations
 
 from fractions import Fraction
+from dataclasses import asdict
+import argparse
+import base64
 import hashlib
 import json
 import resource
@@ -254,8 +257,248 @@ def heat_reversal():
         expected_heat_nanojoules=expected_heat,fresh_cold_exact=True)
 
 
+
+def motion_intervals():
+    """Existing full-body load, three fixed rates, then release; no new anatomy.
+
+    This is a zero-gravity mechanical bench and a bounded feasibility/cost
+    measurement, not whole-history accuracy or production qualification.
+    No failed interval is published. Other predeclared rates are independent
+    cases, not retries of a live body.
+    """
+    from guala_body_local_refinement import state_copy
+    controls = archived_controls()
+    rows = []
+    for h_us in (100, 50, 25):
+        e, xml, limits = engine_at(h_us)
+        c = controls[h_us]
+        assert hashlib.sha256(xml.encode()).hexdigest() == c["model_sha256"]
+        state = e.initial_state()
+        # Authenticate genesis physical bytes against the original archive.
+        # Do not submit this old numerical identity to the candidate decoder.
+        header = hashlib.sha256(("3.3.7"+repr(limits)+repr(e._sensory_root)+xml).encode()).digest()
+        assert hashlib.sha256(header+state[32:]).hexdigest() == c["initial_state_sha256"]
+        supply = c["initial_supply_j"]
+        motor = e.actuator_names.index(c["name"])
+        row = dict(h_us=h_us, model_sha256=c["model_sha256"],
+                   effort_name=c["name"], initial_supply_j=supply,
+                   native_step_ceiling=4*250000//h_us, phases=[], failure=None)
+        print(json.dumps(encode(dict(event="motion_case_started", h_us=h_us))),flush=True)
+        for phase, multiplier in (("load", 1), ("release", 0)):
+            effort = multiplier*c["phases"][0]["effort_nm"]
+            command = dict(efforts=None, elapsed_us=250000, available_work_j=supply,
+                           effort_updates=((motor, effort),))
+            phase_started = time.perf_counter()
+            result = repeated = cold = None
+            stage = "ordinary"
+            try:
+                result = e.advance(state, **command)
+                ordinary_seconds = time.perf_counter()-phase_started
+                stage = "cold"
+                cold, _, _ = engine_at(h_us)
+                started = time.perf_counter()
+                repeated = cold.advance(state, **command)
+                cold_seconds = time.perf_counter()-started
+                stage = "comparison"
+                assert repeated == result, "fresh cold continuation changed the mechanical successor"
+                assert len(result.state) == len(state)
+                if multiplier == 0:
+                    assert result.positive_motor_work_j == result.signed_motor_work_j == result.motor_braking_work_j == 0
+                next_supply = supply-result.positive_motor_work_j
+                assert np.isfinite(next_supply) and next_supply >= 0
+            except Exception as error:
+                active = cold if cold is not None and stage != "ordinary" else e
+                scratch = state_copy(active).astype("<f8").tobytes()
+                def result_evidence(value):
+                    if value is None:
+                        return None
+                    data = asdict(value)
+                    data["state_base64"] = base64.b64encode(data.pop("state")).decode()
+                    return data
+                row["failure"] = dict(phase=phase, stage=stage,
+                    type=type(error).__name__, error=str(error),
+                    attempted_seconds=time.perf_counter()-phase_started,
+                    command=command, predecessor_sha256=hashlib.sha256(state).hexdigest(),
+                    predecessor_base64=base64.b64encode(state).decode(),
+                    native_time_repr=repr(float(active._data.time)),
+                    ordinary_result=result_evidence(result), cold_result=result_evidence(repeated),
+                    unpublished_scratch_sha256=hashlib.sha256(scratch).hexdigest(),
+                    unpublished_scratch_base64=base64.b64encode(scratch).decode())
+                break
+            supply = next_supply
+            measured = dict(phase=phase, effort_nm=effort, native_steps=250000//h_us,
+                ordinary_seconds=ordinary_seconds, fresh_repeat_seconds=cold_seconds,
+                successor_sha256=hashlib.sha256(result.state).hexdigest(), state_bytes=len(state),
+                positive_motor_work_j=result.positive_motor_work_j,
+                signed_motor_work_j=result.signed_motor_work_j,
+                bearing_loss_j=result.bearing_dissipation_j,
+                braking_work_j=result.motor_braking_work_j,
+                unresolved_exchange_j=result.unresolved_energy_exchange_j,
+                remaining_supply_j=supply, observation=asdict(result.observation),
+                fresh_cold_exact=True)
+            row["phases"].append(measured)
+            state=result.state
+            print(json.dumps(encode(dict(event="motion_phase_measured",h_us=h_us,phase=measured))),flush=True)
+        row["completed"] = len(row["phases"]) == 2 and row["failure"] is None
+        rows.append(row)
+        print(json.dumps(encode(dict(event="motion_case_measured",case=row))),flush=True)
+    return dict(schema="guala.functional-body.midpoint-motion-feasibility.v1",
+        version=VERSION, cases=rows, all_intervals_completed=all(r["completed"] for r in rows),
+        native_step_ceiling=sum(r["native_step_ceiling"] for r in rows),
+        maxrss_kib=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss,
+        scope="Existing zero-gravity full-torque250ms load then250ms release; NOT full-history accuracy, gravity or production acceptance.")
+
+
+
+def stalled_step():
+    """Inspect ONE retained full-body refusal; no trajectory or runtime edits."""
+    import pathlib
+    import zlib
+    from guala_body_local_refinement import restore, state_copy
+    path = pathlib.Path("docs/evidence/FB-01aj-midpoint-full-interval.json")
+    receipt_bytes = path.read_bytes()
+    assert hashlib.sha256(receipt_bytes).hexdigest() == "27e6197df42bd9a60ddf9b6dc30f71559c4ff5a2f84f82b96614f9c66b9a939a"
+    packed = json.loads(receipt_bytes)["raw_measurement"]
+    raw = zlib.decompress(base64.b64decode(packed["payload_zlib_base64"], validate=True))
+    assert len(raw) == packed["raw_bytes"]
+    assert hashlib.sha256(raw).hexdigest() == packed["raw_sha256"]
+    case = json.loads(raw)["cases"][0]
+    assert case["h_us"] == 100 and case["failure"]["stage"] == "ordinary"
+    fail = case["failure"]
+    state_bytes = base64.b64decode(fail["unpublished_scratch_base64"], validate=True)
+    assert hashlib.sha256(state_bytes).hexdigest() == fail["unpublished_scratch_sha256"]
+    e, xml, _ = engine_at(100)
+    assert hashlib.sha256(xml.encode()).hexdigest() == case["model_sha256"]
+    m, d = e._model, e._data
+    state = np.frombuffer(state_bytes, dtype="<f8").copy()
+    assert state.size == mj.mj_stateSize(m, mj.mjtState.mjSTATE_INTEGRATION)
+    restore(e, state)
+    assert np.array_equal(state_copy(e), state)
+    q0, v0, t0, a0 = d.qpos.copy(), d.qvel.copy(), float(d.time), d.qacc_warmstart.copy()
+    counters = [int(t.number) for t in d.timer]
+    try:
+        mj.mj_step(m, d)
+    except mj.FatalError as error:
+        assert "midpoint residual did not converge" in str(error)
+        assert np.array_equal(state_copy(e), state)
+        refusal = str(error)
+    else:
+        raise AssertionError("saved failed step no longer refuses")
+    final_a = d.qacc.copy()
+    timers = [int(t.number)-c for t,c in zip(d.timer,counters)]
+    solver_niter = d.solver_niter.copy().tolist()
+    native_r = np.empty(m.nv)
+    mj.mj_mulM(m,d,native_r,final_a)
+    native_r -= d.qfrc_smooth
+    native_r -= d.qfrc_constraint
+    native_nefc = d.nefc
+    normalization = m.stat.meaninertia*max(1,m.nv)
+    calls = 0
+    def residual(a):
+        nonlocal calls
+        calls += 1
+        d.qpos[:] = q0
+        d.qvel[:] = v0+.5*m.opt.timestep*a
+        mj.mj_integratePos(m,d.qpos,d.qvel,.5*m.opt.timestep)
+        d.time = t0+.5*m.opt.timestep
+        mj.mj_fwdPosition(m,d)
+        mj.mj_fwdVelocity(m,d)
+        mj.mj_fwdActuation(m,d)
+        # Calls the SAME native smoothForce used by midpointResidual; its
+        # extra unconstrained solve is diagnostic-only, not another body law.
+        mj.mj_fwdAcceleration(m,d)
+        d.qacc[:] = a
+        if d.nefc:
+            jar = np.empty(d.nefc)
+            mj.mj_mulJacVec(m,d,jar,a)
+            jar -= d.efc_aref
+            mj.mj_constraintUpdate(m,d,jar,None,0)
+        else:
+            d.qfrc_constraint[:] = 0
+        r = np.empty(m.nv)
+        mj.mj_mulM(m,d,r,a)
+        r -= d.qfrc_smooth
+        r -= d.qfrc_constraint
+        assert np.isfinite(r).all()
+        return r
+    r_final = residual(final_a)
+    assert native_nefc == d.nefc
+    assert np.array_equal(r_final,native_r), "observer did not reproduce native final residual"
+    final_constraints = dict(types=d.efc_type.copy().tolist(), ids=d.efc_id.copy().tolist(),
+        state=d.efc_state.copy().tolist(), force=d.efc_force.copy().tolist(),
+        aref=d.efc_aref.copy().tolist(), position=d.efc_pos.copy().tolist())
+    r_initial = residual(a0)
+    baseline = dict(schema="guala.functional-body.midpoint-single-stall.v1",
+        input_receipt_sha256=hashlib.sha256(receipt_bytes).hexdigest(),
+        failed_input_sha256=fail["unpublished_scratch_sha256"], model_sha256=case["model_sha256"],
+        time=t0, timestep=m.opt.timestep, dofs=m.nv, refusal=refusal,
+        no_successor=True, native_timer_call_deltas=timers, solver_niter=solver_niter,
+        tolerance=m.opt.tolerance, normalized_initial_residual=float(np.linalg.norm(r_initial)/normalization),
+        normalized_final_residual=float(np.linalg.norm(r_final)/normalization),
+        final_acceleration=final_a.tolist(), initial_acceleration=a0.tolist(),
+        final_residual=r_final.tolist(), native_residual_reproduced_exactly=True,
+        final_constraints=final_constraints,
+        scope="One saved unpublished failed native step; sensitivity only, no modified physics or trajectory.")
+    # Preserve the complete native replay even if offline sensitivity fails.
+    print(json.dumps(encode(dict(event="stalled_step_baseline", baseline=baseline))),flush=True)
+    # Offline sensitivity diagnostic only. Two predeclared roundoff-derived
+    # central-difference resolutions; neither defines runtime acceptance.
+    finite_difference = []
+    for scale in (1., .5):
+        row = dict(scale=scale, trials=[])
+        location = dict(stage="jacobian", coordinate=None, alpha=None)
+        try:
+            delta = scale*np.cbrt(np.finfo(float).eps)*np.maximum(1.,np.abs(final_a))
+            assert np.isfinite(delta).all() and (delta > 0).all()
+            jac = np.empty((m.nv,m.nv))
+            for i in range(m.nv):
+                location["coordinate"] = i
+                plus, minus = final_a.copy(), final_a.copy()
+                plus[i] += delta[i]
+                minus[i] -= delta[i]
+                jac[:,i] = (residual(plus)-residual(minus))/(2*delta[i])
+            assert np.isfinite(jac).all(), "nonfinite diagnostic Jacobian"
+            row["jacobian_sha256"] = hashlib.sha256(jac.astype("<f8").tobytes()).hexdigest()
+            location = dict(stage="conditioning", coordinate=None, alpha=None)
+            condition = float(np.linalg.cond(jac))
+            row["condition"] = condition if np.isfinite(condition) else None
+            row["condition_status"] = "finite" if np.isfinite(condition) else repr(condition)
+            location["stage"] = "linear_solve"
+            direction = np.linalg.solve(jac,-r_final)
+            assert np.isfinite(direction).all(), "nonfinite diagnostic direction"
+            linear_error = float(np.linalg.norm(jac@direction+r_final)/normalization)
+            assert np.isfinite(linear_error), "nonfinite diagnostic linear residual"
+            row["newton_direction"] = direction.tolist()
+            row["linear_solve_residual"] = linear_error
+            location["stage"] = "direction_trial"
+            for k in range(8):
+                alpha = 2.**-k
+                location["alpha"] = alpha
+                trial = final_a+alpha*direction
+                assert np.isfinite(trial).all(), "nonfinite diagnostic trial"
+                norm = float(np.linalg.norm(residual(trial))/normalization)
+                assert np.isfinite(norm), "nonfinite diagnostic trial residual"
+                row["trials"].append(dict(alpha=alpha,normalized_residual=norm))
+        except Exception as error:
+            row["failure"] = dict(**location,type=type(error).__name__,error=str(error))
+        finite_difference.append(row)
+    return dict(**baseline, sensitivity=finite_difference, residual_evaluations=calls,
+                residual_evaluation_ceiling=2+4*m.nv+16)
+
+
+
 def main():
     assert mj.__version__ == mj.mj_versionString() == ENGINE_VERSION == VERSION
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--motion-intervals", action="store_true")
+    parser.add_argument("--stalled-step", action="store_true")
+    args = parser.parse_args()
+    if args.stalled_step:
+        print(json.dumps(encode(stalled_step()), sort_keys=True), flush=True)
+        return
+    if args.motion_intervals:
+        print(json.dumps(encode(motion_intervals()), sort_keys=True), flush=True)
+        return
     started = time.perf_counter()
     rows = [control(jacobian,islands,force)
             for jacobian in ("dense","sparse") for islands in (False,True)

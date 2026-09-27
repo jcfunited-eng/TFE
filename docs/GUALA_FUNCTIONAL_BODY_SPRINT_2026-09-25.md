@@ -8072,3 +8072,141 @@ proof launched. Completed the source-only AUT34 review and recorded it in
 shared ledger23:34Z; no further body test/build started during that audit.
 Next body exit item is the existing longer load/release/gravity accuracy and
 bounded cost qualification, not repetition of the now-passing local impact.
+
+### FB-01aj longer-interval feasibility and cost gate
+
+Previous goal turn PROGRESS: local impact evidence passed; AUT34 audit delivered.
+Reviewed midpoint implementation/evidence committed locallyea9b82054; no push or
+deployment. ContinueFB-01aj; short impact and analytical controls stay closed.
+
+Requested: bounded articulated mechanics with truthful sensory return over the
+whole250ms command. Current reality: midpoint local impact meets ratified
+limits, but longer loaded motion and end-to-end cost remain unproved. Conflict:
+YES with completion claims, not with this bounded next test. No cognition,
+L0-L4, body anatomy/material, runtime solver, optical policy or production edit.
+Single next item: establish longer loaded motion feasibility BEFORE expensive
+whole-history/gravity verification. Reduced numerical rigid-body mechanics;
+no micro-tissue model or full DSF evaluation.
+
+Extend ONLY existing tools/guala_body_midpoint.py with motion-intervals mode.
+Reuse authenticated existing complete biped and maximum torso load at fixed
+100/50/25us, each250ms load followed by250ms effort release. Unchanged existing
+200us contact response and.999 impedance. This is the existing zero-gravity
+bench, not a new world or gravity proof. Three independent rates form one fixed
+regime map; no rate/tolerance/material retry in response to results. Stop each
+case at its first refusal and retain exact unpublished failure input. Fresh
+native instance repeats each successful phase from its authentic same-law
+predecessor; compare complete receipt/state. No failed numerical state is
+published or transplanted into world custody.
+
+Measure uninstrumented ordinary advance time separately from cold repeat;
+actual endpoint pose, rates, contacts, sensors, work/bearing/braking, unresolved
+exchange and remaining physical supply. Release must have zero motor work.
+Retain native-call ceiling70000 across all three rates/load/release/repeats,
+unchanged5152-byte-state requirement, exact input/model/source/library hashes.
+Passing this scan is NOT instantaneous-force/history/gravity/global accuracy
+or production performance; it decides the next required full-body check.
+Per-process60CPU/90wall seconds,1GiB and2CPU affinity; read-onlyAWS before/after,
+owned handles and survivor census. No build, broad regression or G1 source edit.
+Source-only frozen review before execution per skill. Budget exhaustion is
+retained failure evidence, never an excuse to loosen physics.
+
+Frozen73b9775079 source review found one LOCALIZED diagnostic failure-capture
+gap, no architecture findings. The initial draft retained only ordinary-stage
+scratch; a release/cold mismatch lacked its exact phase predecessor and failed
+stage. One correction batch records original phase state/hash, complete command
+and supply, ordinary/cold/comparison stage, available complete result evidence,
+and appropriate unpublished raw scratch; numerical time uses repr so NaN cannot
+erase the original exception. All three execution stages share this catch.
+Successful physics, immutable predecessor, work debit, rates and limits remain
+unchanged. This is proof evidence only, not runtime error recovery or retry.
+
+### FB-01aj longer motion failure retained; single-step diagnosis
+
+Frozen77aa565730 source review passed. Session25223/PID2168 exited0 (diagnostic
+completed, NOT physical qualification). All three rates failed the first load
+interval at native times100us:.0016s,50us:.00165s,25us:.001625s, with
+"midpointStep: coupled body midpoint residual did not converge; no successor".
+Release and cold repetition were never reached. Aggregate1.039852CPU,
+1.048926wall seconds; max144000KiB; no survivors. Evidence
+FB-01aj-midpoint-full-interval.json includes complete unpublished scratch and
+phase predecessor. No failed body was published. AWS23:44:22Z->23:44:26Z same
+task1556/image/identity,counts1/1/0,ticks2496689->2496699; checkpoint/cleanup
+null,durabilityfalse. Existing clock-stalled ALARM remains. No production write.
+
+Continue SAME accuracy item. Do not rerun whole interval or short-impact proof,
+raise iteration/tolerance limits, change material or build a candidate yet.
+Bounded diagnosis in existing tools/guala_body_midpoint.py (--stalled-step)
+authenticates one saved100us failed-step state, replays that single native step,
+checks no successor, and independently reconstructs the native midpoint residual
+using the SAME native position/velocity/actuation/smooth-force/constraint laws.
+Require bit-exact residual reproduction before interpreting the observer.
+Capture proposal/position call counts, terminal constraints and residual.
+Two predeclared central-difference spacings (cuberoot(machine epsilon) times
+coordinate scale, and half) measure the local residual Jacobian and eight binary
+fractions of its Newton direction. These are offline sensitivity measurements,
+NOT a new solver, material coefficient, relaxation or acceptance threshold.
+Bound: one existing native step plus2+4*nv+16 residual evaluations;2CPU,1GiB,
+60CPU/90wall seconds; frozen source review then one run with AWS envelope.
+No field/cognition/world/production source change or geometry simplification.
+
+Frozenfd228d6e source review found one LOCALIZED evidence issue: singular or
+nonfinite sensitivity could make JSON encoding discard the earlier native
+rollback/residual measurement. One correction batch streams that baseline
+first, captures sensitivity stage/coordinate/alpha on error, checks finite
+Jacobian/direction/trial norms, and represents infinite conditioning explicitly
+as null plus status. No physics or loop bound changed. A prior ledger append
+missed its exact context line and made no write; corrected against actual line.
+
+### FB-01aj saved-step cause localized — 2026-09-27 00:00Z
+
+Frozened296a304171297d2db6fbf14add081b150c73aab61fd0fe0af7a7d57afcfa3a
+passed final source review. Session62023/PID11428 completed exit0,0.572184wall,
+0.566817aggregateCPU seconds,143644KiB peak; no survivors. Evidence
+FB-01aj-midpoint-single-stall.json. One failed100us step only, NOT a trajectory
+rerun or build. Native inputSHA073eda5a5809a9d58d1bebdfdbb9eb369eac72aba201409b71c46d7579a7b5fb
+restored exactly; refusal left complete integration state unchanged.
+Public native stage functions reproduced the terminal residual BIT-EXACTLY.
+
+Measured:70DOF,29 frozen-stage proposals,703 position evaluations, final inner
+Newton1iteration. Normalized residual decreases .0168902476744 to
+.00173488174605, then cannot reach original1e-10 threshold. Terminal joint-limit
+row37 is at signed gap-1.3552527156068805e-20rad with reference acceleration
+5055.46675015504rad/s2 and positive reaction .06781645935731388Nm.
+Other rows28/39/42/46 remain recorded. This is NOT a mere near-tolerance
+roundoff stall or proof that more iterations would solve it.
+
+Source cause boundary: engine_core_constraint.c:728 instantiates a hinge row
+only at gap<=margin; :2224 gives a_ref=-B*v-K*I*(gap-margin). At zero gap with
+incoming velocity, this damping reference is finite. The row disappears just
+outside the limit. Thus the midpoint algebra encounters a discontinuous force
+activation, not only the smooth bearing/contact equation used by the earlier
+scalar control. Binary backtracking of a frozen-stage proposal cannot guarantee
+a root or descent across that boundary. Prior short-impact proof remains valid
+for its measured state, NOT this different boundary.
+
+Independent offline central-difference Jacobians at two declared resolutions
+have condition~3.3692e8 and nearly identical trial residuals. A1/16 Newton
+fraction reduces residual to7.78868e-6; full direction increases it to.00710157.
+This demonstrates a better local direction exists, but does NOT establish a
+converged root, continuous solution, certified error or a runtime solver fix.
+Do not promote that diagnostic Jacobian, relax tolerance, add damping, or
+declare convergence from reduction alone.
+
+AWS23:58:14Z->23:58:17Z unchanged sole task1556/image/identity,counts1/1/0,
+ticks2499402->2499411; errorsnull,durabilityfalse. CPU51.131064%,RAM2.661133%.
+Clock-stalled ALARM persists. No live writes. Publication/Slack restrictions
+remain unchanged and were not retried.
+
+Single next numerical solution item: resolve the first actual joint-limit onset
+in time, using the existing signed joint-gap geometry and SAME constitutive law,
+before asking one midpoint equation to span both inactive and active regimes.
+First qualify this on the SAME saved failed100us interval only; preserve exact
+total elapsed time, all generalized forces, signed work, positive work, bearing
+loss, motor braking, contact sensory return and original tolerances. Numerical
+event trials are disposable scratch, never lived actions or heat. Require a
+bounded crossing bracket and one-sided force evidence under the ratified1us
+event contract; no universal collision-policy claim. The previous two-contact
+event witness is reference machinery, not permission to run a broad replay.
+Complete this source-derived event contract before any new solver edit/build.
+General250ms/load/release/gravity/body mounting/production remain OPEN.
