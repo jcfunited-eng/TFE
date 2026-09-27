@@ -13399,3 +13399,147 @@ genesis; never splice the failed173.5ms states into a shared predecessor.
 Freeze/review that bounded continuation proof before execution. Preserve full
 500ms/release, gravity, tactile-couple, cost, integration and restart gates as
 OPEN. Neither these five cases nor compilation authorizes production delivery.
+
+### FB-01aj single finer history contract — 2026-09-27 18:07Z
+
+Continue FB-01aj from9ca5fea; previous body turn PROGRESS. Five saved-state
+checks remain closed. Current action: one new25us independent history from
+the exact same genesis, compared to the authenticated saved50us trajectory
+through173.5ms. No force/tolerance/material/DSF/cognition edit, no rebuild,
+no reference dynamics replay, no synchronization of divergent histories.
+The root-check helper still requires a historical handoff absent from this
+worktree; actual branch, HEAD, clean status and this current sprint ledger
+identify the active tree. No missing historical file is invented.
+
+Proof /tmp/a1-body-finer-history-20260927.py reconstructs only recorded
+forward work arithmetic and predecessor custody from the two committed
+reference receipts. It verifies both complete reference endpoints and their
+full force/sensory observations before using the recorded common samples.
+At each sample it compares the unchanged channelwise state/work/tactile
+limits and the actual complete sampled event sequence and1us bracket unions.
+Reference cumulative impulses exist only at the archived endpoints; intermediate
+impulse evidence stays explicitly unavailable. New fine impulses remain intact
+and are compared at those endpoints using the native history comparator.
+Do not call this a complete intermediate-impulse or continuum proof.
+
+Unchanged50numerical CPU seconds,30000primitive limit,2core/1GiB address-space,
+60CPU seconds/process and90wall seconds/group. Bound exhaustion preserves the
+new lane's actual accepted state/work/impulses/events for continuation, never
+restarts a completed prefix. A discrepancy records both real operands and stops.
+Frozen source review precedes one execution under read-only AWS pre/post health
+and exact owned-process census. No production mutation or body mount.
+Full500ms/release, gravity, real-time cost, integration and restart stay OPEN.
+
+### FB-01aj finer-history prefix result and continuation — 2026-09-27 18:14Z
+
+Source-only review found two localized proof-report issues (pre-attach endpoint
+operands; enforce measured terminal CPU/trial limits). Corrected in one batch,
+final PASS before execution. Tree d3930a56b28b9bfad775b1624fb3c3936bb653c4056ebbc52051fb3f465adbd0,
+proof0f745cf616f0d5624fb1579792d815bf1792a26f604fa864f33edc84c4350df6.
+Reference dynamics were not replayed; both archive endpoint states, full
+observations and forward work/supply reproduced exactly before comparison.
+
+Receipt FB-01aj-finer-independent-history.json SHA256
+bff735c9e59f3e0ca5931456b191a9aa2ceaba4c5d3ca66d2e9e1b50bbda4ed5.
+566 common samples through56.5ms passed every evaluated pose/rate/sensory/
+work/tactile channel and the complete sampled event sequence/1us timing.
+No physical accuracy failure. Numerical CPU50.007907s hit the50s guard during
+the next open interval; exact rollback restored56.5ms with its own retained
+state/work/impulses/supply. 9472primitives/211074forward calls. Child58856
+exited0 without survivors; parent exit1 correctly denotes incomplete proof.
+Full childCPU51.474446s,wall51.52347s,RSS411052KiB. No completion/real-time claim.
+Read-only18:09:52--18:10:46UTC same1560/same identity, ticks2666186->2666368,
+service1/1/0healthy, errorsnull, durabilityunblocked. Existing clock alarm
+remained ALARM; other4OK. No production writes, no process orphan.
+
+Continuation adds one resume branch to the same offline proof, not the body
+solver. Authenticate this receipt, require budget-only failure and passing
+accepted prefix, restore its own exact physical state and full observation,
+carry work/supply/impulses and actual event history, then execute only times
+after56.5ms. Compact accumulated event sequences and metric maxima cross
+continuations; bulk raw prefixes remain in their original receipt. Never
+replace the new25us state with an old50us state. Same independent histories,
+force/tolerance limits and bounded run envelope; no rebuild or prior-prefix
+numerical replay. Focused source review covers this lifecycle extension only.
+A draft apply_patch context mismatch made no file changes or test execution;
+the exact current text was inspected before the corrected draft was applied.
+
+### FB-01aj finer-history resume result — 2026-09-27 18:19Z
+
+Resume-source review found one localized empty-new-sample lifecycle edge;
+preserved the authenticated last attempt and qualified event boundary outside
+the delta-only sample list. Final PASS before execution. Proof SHA256
+8751eecb97ae1e30449576b567812b810d857be6f9a3fccc16f2a8af69021586,
+tree1a945eb46ec56edeca3dc15aa36fd548cbc68f201fc02f1b2617bf3e216c17f8.
+Own raw state and full observation restored exactly from56.5ms; no completed
+motion replay.761new samples pass through132.6ms; no accuracy or event failure.
+At68.4ms the native complete history comparator also passes cumulative work,
+impulse, state and full sampled event correspondence against the archive.
+
+Receipt FB-01aj-finer-independent-history-bff735c9e59f.json SHA256
+daf2ed50914ec0b4741fb42fa4db5f64ddca5fd76ab2851aa460fb5083348c9d.
+9380primitives/190717forwards;50.004466 numerical CPU seconds triggers the
+same bound, exact current-open-interval rollback to132.6ms. Native-forward
+wall15.8134s, primitive-call wall37.3561s, observer wall3.49195s; these scopes
+overlap, so do not add them or call the diagnostic real-time. Full childCPU
+51.4647s,wall51.5237s,exit0,no survivors. Parentexit1 means incomplete.
+Production pre/post18:18:04--18:18:58UTC unchanged1560/same identity,
+ticks2667840->2668023,1/1/0healthy,custodyerrorsnull,clockalarmstillALARM.
+
+Continue the remaining40.9ms with this exact reviewed resume branch and saved
+receipt; source/binaries/limits stay unchanged. Re-freeze only the added
+evidence/ledger tree. No new compile, architecture review or prior-prefix
+test is required. Whole-body/production qualification remains OPEN.
+
+### FB-01aj inherited-error witness cleared at finer resolution — 2026-09-27 18:22Z
+
+The unchanged reviewed resume proof completed the remaining132.6--173.5ms:
+409new samples,5108primitives,109122forward calls,27.129505 numerical CPU
+seconds. Child65222 exited0,28.214152 aggregate CPU seconds,28.23890wall,
+peak RSS416328KiB, no survivors; parentexit0. Exact own-state and full
+observation restore passed. No reference dynamics or new fine prefix replay.
+
+Final receipt FB-01aj-finer-independent-history-daf2ed50914e.json SHA256
+ad9c3eb0b17518c70e52a991b76e10bf4d96f116838e870b7025b0de575a908c.
+It references the preceding receipt rather than copying its raw motion.
+The173.5ms native history comparator PASSES state/work/impulse, full sampled
+event sequence and corresponding bracket unions<=1us. Across all1736 common
+observations, every evaluated pose/rate/inertial/proprioceptive/work/tactile
+channel passes. Intermediate reference impulses remain unavailable; intrinsic
+couple impulse is still explicitly UNQUALIFIED in this legacy observer.
+
+At the known left-palm boundary,50us/25us history error is
+0.0013737609120377365m/s2 against0.04286217781775329 allowed (ratio0.03205),
+versus the rejected100us/50us discrepancy0.04354165409228073m/s2. This is
+genuine independent-history convergence through that failure, not synchronized
+states, weakened sensory tolerance or a changed material/force law. The
+independent-history guard detects the old pair and accepts the finer endpoint.
+The native automatic outer-refinement execution itself was not run for the
+whole173.5ms; do not conflate these measured two paths with that API proof.
+
+Total new trajectory work across bounded continuations:23960primitives,
+510913forwards,127.141878069 numerical CPU seconds. This diagnostic is NOT
+real-time; even its separately measured primitive/native cost must still be
+qualified/removed where waste is proved. No performance waiver is granted.
+No body, cognitive, kernel or production source changed this turn; only
+reviewed offline evidence/lifecycle handling and the sprint record advanced.
+
+Final read-only production envelope18:20:14--18:20:45UTC unchanged sole
+task1560/same image/identity, ticks2668276->2668378,1/1/0healthy, custody
+errorsnull. Clock-stalled alarm persisted despite advancing ticks; other4OK.
+All three exact owned proof processes are terminal and host census confirms
+no body test/compiler remains. No live writes or interrupted caregiving.
+
+Next mechanical accuracy item: continue the two retained independent50us and
+25us states from173.5ms toward the original500ms load-release witness,
+including physical effort release at250ms. Do not rerun either genesis or
+the cleared173.5ms prefix. Preserve actual cumulative work, impulse and event
+history on each lane and stop at its first discrepancy. Before interpreting
+whole-body readiness, separately close runtime cost, gravity/contact-couple,
+body/world integration, cold lifecycle and production safety. Goal ACTIVE.
+
+Operational correction: the first final-ledger append used a mismatched full
+line and failed, while its shell continued to an unpublished evidence commit.
+Inspected the actual tail and own commit, appended this result under set-e,
+and amended only that unpublished A1 commit. No evidence, physics or test was
+lost/repeated; future edit-and-commit command groups must stop on first error.
