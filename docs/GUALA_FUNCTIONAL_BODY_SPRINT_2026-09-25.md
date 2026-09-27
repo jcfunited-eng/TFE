@@ -11240,3 +11240,103 @@ endpoint tolerance does not establish that equivalence. Do not rerun the closed
 final-window proof. Preserve all failed and passed evidence; no tolerance change,
 force smoothing, new controller, cognition, production, push or Slack. Full body
 integration, gravity, sustained accuracy, performance and restart remain open.
+
+### FB-01aj crossed-history attribution contract — 2026-09-27 09:12Z
+
+Previous turn PROGRESS:cf8051a2e isolates inherited pre47.9ms contact discrepancy.
+Continue FB-01aj sustained mechanical accuracy/cost, not closed local contact proof.
+Requested architecture: bounded articulated mechanics with truthful feedback.
+Current code: compiled-unmounted numerical body; global accuracy/cost unqualified.
+Conflict:YES with claiming delivered mechanics. Do not extend forces, anatomy,
+tolerances, cognitive rules, production custody or world mounting in this step.
+Single next item: isolate initial-state versus discretization contributions.
+This is body-only numerical evidence; no seven-field DSF evaluation or reduction.
+
+Use the existing2x2 experiment. Original receipt2b1c53fdc2ab498ac4658e9d94d50402482a8c6d306eb237f5f11c610a108caa
+already supplies coarse-start/coarse-step and half-start/half-step outcomes from
+26ms to47.95ms. DO NOT rerun those cells. Run only coarse-start/half-step and
+half-start/coarse-step from the byte-exact saved26ms bodies and their respective
+remaining energy. Native/source hashes and existing observed Radau admission
+remain unchanged. Reuse the exact220 archived common endpoints; no genesis replay.
+
+Compare same-initial-state/different-step results separately from same-step/
+different-initial-state results, with existing full endpoint/work/impulse/sensory
+limits and event-correspondence law. Restoring the original diagonal endpoints
+must reproduce their archived full observations exactly. Retain both new paths,
+initial/final state and observations, work/supply, event brackets, refinements,
+failure and cost evidence. Terminal comparisons are causal attribution, NOT an
+all-time or continuum accuracy certificate. If matched initial states disagree,
+the post-restart numerical paths contribute error; if only different initial
+states disagree, earlier inherited history is implicated. Report mixed outcomes
+literally rather than forcing either hypothesis.
+
+At most30000 primitives/162 per admission/50CPU seconds internally, existing
+2core/60CPU/1GiB-AS/90wall child limits, no network from child, read-only AWS
+before/after and exact process-group census. One no-build run after independent
+frozen source review. No physics source edits, push, Slack, or live mutation.
+Proof:/tmp/a1-body-contact-crossed-history-20260927.py. Helper source is reused
+only after exact hash authentication; no rejected mechanism is reintroduced.
+
+Authority recovery: body root/branch/HEAD verified directly; archived August
+handoff/authority/parsimony documents remain absent as previously recorded.
+An abbreviated embodiment-curriculum.md reference was attempted once and is
+absent; canonical-routes inspection resolves the real skill reference as
+embodiment-curriculum-ui.md, read completely. No command from that failed read
+executed, and no missing authority contents were invented.
+
+### FB-01aj crossed-history attribution measured — 2026-09-27 09:18Z
+
+PROGRESS: one source review and one localized reference-evidence correction,
+then final PASS, preceded one no-build two-cell diagnostic. Expected and actual
+reference raw/time/observation operands now survive failed comparisons. Freeze
+73a3e267add2bd37024ee864db81378012b0e7ddf6b88087824b114b158cbc0d;
+proof4c726da576d4c55d6c498260d6ad9ed6501879830a7b4198a407180c47d202a9;
+runner794c53b09b15e9571cea8eafd0acc9cf6ac3f6e6999e8c8d4e6168f086706f35.
+Receipt docs/evidence/FB-01aj-contact-crossed-history.json SHA256
+e090f15727f976dbbf0929a6a7358afae2e9ea942ff3a3490f924db6d9c77453.
+
+Both archived diagonal references restored exact raw states, clock, remaining
+energy and full observations. Only the two missing crossed cells ran, through
+the220 exact archived common endpoints. Both reach47.95ms with completed native
+admission and retained full trajectories. At that terminal boundary, SAME initial
+state/different step sizes pass all measured physical channels, including work,
+impulse, tactile correspondence, angular motion, proprioception and inertial
+return. Worst joint-rate ratios0.65124/0.31729 are below the unchanged allowance.
+Intrinsic couple impulse remains separately UNQUALIFIED as before.
+
+Different initial states at SAME step size still fail angular-rate, joint-rate,
+local force and specific-force comparisons. Joint-rate ratios3.83507/3.50219;
+geometric contact-onset separation is at least1.5625us/1.953125us, exceeding1us.
+Thus pre26ms inherited differences materially drive the demonstrated discrepancy.
+This contradicts blaming the post-restart force law alone. No physical-source
+correction is justified by that attribution; nothing physical was edited.
+
+Same-initial-state contact timing remains UNRESOLVED, not demonstrated compliant:
+sampled bracket unions1.171875us/1.5625us exceed1us, but their minimum separation
+is0. The existing observer labels the failed upper-bound gate FAIL; scientifically
+these intervals do not prove that the actual numerical event difference exceeds
+1us. For intervals[a,b] and[c,d], the separation range is
+[max(0,a-d,c-b), max(b-c,d-a)]. Passing requires upper<=1us; proven excessive
+separation requires lower>1us. Ambiguous brackets remain fail-closed. No threshold
+or acceptance requirement has been weakened. Do not equate upper-bound failure
+with a proved force-law defect or report all-time trajectory accuracy.
+
+4077 primitives,76271 solver forwards/77816 total;14.0714s numerical wall,
+14.0320s CPU,5.3036s native forward. Full child15.0306s wall/14.9688s aggregate
+CPU,263980KiB peak single-process RSS. Session38849/group47909 terminal; independent
+host census empty. No rebuild or replay of known diagonal controls/genesis.
+Read-only AWS09:14:53->09:15:10Z retains sole1559/same image/identity,
+ticks2579783->2579827; checkpoint/cleanup null, durability false. Existing
+clock-stalled ALARM remains, other4OK. CPU51.2897percent average/RAM3.08024percent
+latest samples. No production health repair claimed.
+
+Single next item: resolve the ambiguous same-initial contact-time measurement
+from its saved event predecessors. Preserve the admitted histories; do not rerun
+the26..47.95ms crossed matrix or change mechanics merely to fit broad observer
+brackets. Use tighter justified numerical event enclosures, or explicitly tighter
+accepted event pieces with their altered successors disclosed. Existing final-
+window and crossed-history receipts are reusable controls, not new experiments.
+Future sustained qualification must use one exact initial state/energy per matched
+comparison. The pre26ms history has NOT been requalified under the new estimator;
+full new-law history, gravity, performance, world mounting and restart remain open.
+No push, Slack, production, cognition, food or caretaker changes. Goal ACTIVE.
