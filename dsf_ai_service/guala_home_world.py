@@ -1036,7 +1036,7 @@ def _home_rooms_and_things() -> tuple[list[Any], list[Any], list[Any]]:
 
         # --- 9. HALLWAY (1 item) ---
         ("mailbox",            8_200,  9_200, 220, 12_000, (220_000, 180_000, 150_000, 130_000, 120_000, 110_000)),
-        ("stroller-carriage",  9_600,  5_600, 350,  8_500, (140_000, 180_000, 320_000, 260_000, 180_000, 140_000)),
+        ("stroller-carriage",  9_550,  6_200, 350,  8_500, (140_000, 180_000, 320_000, 260_000, 180_000, 140_000)),
 
         # --- 8. BACKYARD (9 items: slide, swing, sandbox, garden-patch, oak, pine, apple tree, hanging apple, ladder) ---
         ("slide",              3_000, 13_500,   900,  25_000, (700_000, 720_000, 740_000, 700_000, 650_000, 600_000)),
@@ -1862,7 +1862,7 @@ def nocturnal_house_tidying(authority: Any) -> None:
                     elif obj.object_id == "tv-remote":
                         updated.append(replace(obj, position=PositionMM(15_600, 7_600, 0)))
                     elif obj.object_id == "stroller-carriage":
-                        updated.append(replace(obj, position=PositionMM(9_600, 5_600, 0)))
+                        updated.append(replace(obj, position=PositionMM(9_550, 6_200, 0)))
                     elif obj.object_id == "garden-bird":
                         updated.append(replace(obj, position=PositionMM(14_000, 15_500, 0), elevation_mm=1_800))
                     elif obj.object_id == "garden-butterfly":

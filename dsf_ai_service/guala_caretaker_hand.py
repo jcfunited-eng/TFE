@@ -1844,7 +1844,7 @@ def escort_to_room(world: Any, dest_room: str) -> dict[str, object]:
 
 def park_stroller_library(world: Any) -> dict[str, object]:
     """Park the stroller-carriage in the south-west corner of the library."""
-    target_pos = PositionMM(9_600, 5_600, 0)
+    target_pos = PositionMM(9_550, 6_200, 0)
     cur_world = world._state.world
     updated_objs = []
     found = False
@@ -1867,7 +1867,7 @@ def park_stroller_library(world: Any) -> dict[str, object]:
     return {
         "object_id": "park-stroller-library",
         "presented": True,
-        "position": [9_600, 5_600, 0],
+        "position": [9_550, 6_200, 0],
         "schema": "guala.caregiver_presentation.v1",
-        "steps": [{"operation": "park_stroller", "reason": "applied", "position": [9_600, 5_600, 0]}],
+        "steps": [{"operation": "park_stroller", "reason": "applied", "position": [9_550, 6_200, 0]}],
     }

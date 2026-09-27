@@ -1,11 +1,11 @@
-"""Stroller Library Parking & Caretaker Deployment (Task 1558), one image, one definition, one writer cutover.
+"""Stroller Library Parking & Caretaker Deployment (Task 1559), one image, one definition, one writer cutover.
 
 Includes full release:
-- Stroller carriage relocated to south-west corner of library (9600, 5600, 0) across home world definitions.
+- Stroller carriage relocated to south-west corner of library (9550, 6200, 0) across home world definitions.
 - Caretaker presentation dispatch for park-stroller-library / stroller-park.
 - Nocturnal house tidying maintains stroller parking perch in library south-west corner.
 - Library expansion books aligned to bookshelf perches with zero floor disc collisions.
-- Single-writer cutover from task definition dsf-ai-task:1557 to task definition 1558.
+- Single-writer cutover from task definition dsf-ai-task:1558 to task definition 1559.
 
 Invoke --plan first; --execute runs this same plan after local proof clearance.
 """
@@ -31,20 +31,20 @@ REGION = "us-east-1"
 ACCOUNT = "418384447921"
 CLUSTER = "tfe-web-cluster"
 SERVICE = "dsf-ai-service-lb"
-OLD_TASK = "b35c96647179444cabf98b6441c30fed"
-OLD_DEFINITION = "arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1557"
-BASE = ACCOUNT + ".dkr.ecr." + REGION + ".amazonaws.com/dsf-ai@sha256:b5925e5fcaab71bac3fefcbaada587f85f62bad6b0a3153c1b7f74b04e655fa7"
+OLD_TASK = "44ab2c9f9e2e47038b53fe2db37a9a92"
+OLD_DEFINITION = "arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1558"
+BASE = ACCOUNT + ".dkr.ecr." + REGION + ".amazonaws.com/dsf-ai@sha256:1beed08ca837acc5312fabc32f93e1892520247a945cbf99e7c90b950d67692a"
 REPOSITORY = BASE.split("@")[0]
 FILES = {
     "dsf_ai_service/substrate/embodiment_world.py": "ebb7b69f726098fae70f9a75f801c2f7265829e40ff09001ff7941652b0b1a93",
-    "dsf_ai_service/guala_caretaker_hand.py": "68ab2985906ef73730ab295b9ed9c6a806999c5d5132b81c9781b7a5cafe0427",
+    "dsf_ai_service/guala_caretaker_hand.py": "f85b4a73392ed881e419003948fd4cd313b6e09ca036a147ea2834a1a7162ba9",
     "dsf_ai_service/lean_production_app.py": "8131709b6ec6782533f4bd63cbbbd197be75930b4ea3210367686961be8fcef7",
     "dsf_ai_service/guala_functional_organism.py": "60702d21cb72742b0bc64d94c30764b8b31981e895f1b886e1b4adf4ba5b01f8",
     "dsf_ai_service/guala_functional_loop.py": "505f2d1ed231cfc3b5ada0757bc05618db05092fdb067d9452546b1fdf347a9c",
     "dsf_ai_service/lean_actor.py": "885a5dd086db7d3a125d06c693edeb084b39b47c5308f34b05bd7be93fa96172",
     "dsf_ai_service/episodic_binding_engine.py": "dda3b1be483a0867a61f277b84b7d723beda63d05791584fc0a59b3f3590bb37",
     "dsf_ai_service/substrate/native_core.py": "7144580489e9b739538a90f1c0360209b3a4e2ecb94d6a6362db6b4aa902fbe3",
-    "dsf_ai_service/guala_home_world.py": "7c84e0635b1b23d226c0246d1a0bb6ecd242df5c05c4de48b3edab6172a43ab0",
+    "dsf_ai_service/guala_home_world.py": "87cfdf57d420fdbc935be3a37f7b620eb14163542d80b2ee1c7f831a371b62a5",
     "dsf_ai_service/lean_sensory_occurrence.py": "cb7ebef4b506c04f1f87e0f2dc593d53d21dd3d76badf3d41d514c8dc93f8b6d",
     "dsf_ai_service/static/gualaloom.html": "bbf5268f70b930a469b49212dc6ee5ecdadc0b89985d440ef9f103c805f480f8",
 }
@@ -191,99 +191,85 @@ def records(messages, schema):
 
 def activate(definition, backup, source_arn, candidate_arns, digest):
     zero_writers([source_arn])
-    backup_path = backup["output_zip"]
-    operator_task = backup["source_task_arn"]
-    emit(
-        "final_backup_verified",
-        backup=backup_path,
-        operator_task=operator_task,
-        digest=backup["zip_sha256"],
-        persisted_tick=backup["current"]["organism_tick"],
-    )
-    emit("service_update_definition", definition=definition)
-    ecs.update_service(
-        cluster=CLUSTER,
-        service=SERVICE,
-        taskDefinition=definition,
-        desiredCount=0,
-    )
-    emit("candidate_restore_from_backup_start", backup=backup_path)
-    restore_messages = oneoff(
-        definition,
-        service()["networkConfiguration"],
-        "restore",
-        ["python3", "/opt/a1_retention_release_operator.py", "restore", backup_path],
-    )
-    restores = records(restore_messages, "a1.retention.restore_receipt.v1")
-    assert len(restores) == 1
-    restore = restores[0]
-    assert restore["backup_zip"] == backup_path
-    assert restore["restored_identity"] == IDENTITY
-    assert restore["restored_tick"] == backup["current"]["organism_tick"]
-    emit("candidate_restore_from_backup_verified", receipt=restore)
-    zero_writers([source_arn])
-    emit("service_desired_count_one", definition=definition)
-    ecs.update_service(
-        cluster=CLUSTER,
-        service=SERVICE,
-        taskDefinition=definition,
-        desiredCount=1,
-    )
-    candidate_arn = None
-    for _ in range(60):
-        current_running = ecs.list_tasks(
-            cluster=CLUSTER,
-            serviceName=SERVICE,
-            desiredStatus="RUNNING",
-        )["taskArns"]
-        candidates = [arn for arn in current_running if arn != source_arn]
-        if len(candidates) == 1:
-            candidate_arn = candidates[0]
-            candidate_arns.add(candidate_arn)
-            break
-        time.sleep(2)
-    assert candidate_arn, "candidate did not reach RUNNING status"
-    emit("candidate_running", task=candidate_arn)
-    candidate = task(candidate_arn)
-    assert next(c for c in candidate["containers"] if c["name"] == "dsf-ai")["imageDigest"] == digest
-    live = None
-    for _ in range(60):
-        try:
-            live = observation()
+    ecs.update_service(cluster=CLUSTER, service=SERVICE, taskDefinition=definition, desiredCount=0)
+    deadline = time.monotonic() + 300
+    while time.monotonic() < deadline:
+        s = service()
+        deployments = s["deployments"]
+        if (
+            s["taskDefinition"] == definition
+            and (s["desiredCount"], s["runningCount"], s["pendingCount"]) == (0, 0, 0)
+            and len(deployments) == 1
+        ):
+            d = deployments[0]
             if (
-                live["available"]
-                and not live["checkpoint_error"]
-                and not live["durability_blocked"]
-                and live["persisted_tick"] >= backup["current"]["organism_tick"]
+                d["status"] == "PRIMARY"
+                and d["taskDefinition"] == definition
+                and d.get("rolloutState") == "COMPLETED"
+                and (d["desiredCount"], d["runningCount"], d["pendingCount"]) == (0, 0, 0)
             ):
                 break
-        except Exception:
-            pass
-        time.sleep(2)
-    assert live is not None
-    assert live["identity"] == IDENTITY
-    assert not live["checkpoint_error"]
-    assert not live["durability_blocked"]
-    assert live["persisted_tick"] >= backup["current"]["organism_tick"]
-    ticks = []
-    for _ in range(4):
-        time.sleep(2)
-        ticks.append(observation()["live_tick"])
-    assert len(set(ticks)) > 1 and ticks[-1] > ticks[0]
-    emit("candidate_live_and_advancing", initial=live, ticks=ticks)
-    proof_messages = oneoff(definition, service()["networkConfiguration"], "proof")
-    proofs = records(proof_messages, "a1.retention.proof.v1")
-    assert len(proofs) == 1
-    proof = proofs[0]
-    assert proof["proof_string"] == "RETENTION_MATURE_CAUSAL_PERSISTENCE_FRESH_PROCESS_PASS"
-    emit("candidate_memory_proof_verified", proof=proof)
+        emit("waiting_zero_definition_convergence", definition=definition)
+        time.sleep(10)
+    else:
+        raise RuntimeError("zero-count candidate deployment did not converge")
+    zero_writers([source_arn])
+    ecs.update_service(cluster=CLUSTER, service=SERVICE, desiredCount=1)
+    emit("candidate_start_requested", definition=definition, backup=backup)
+    deadline = time.monotonic() + 600
+    live = None
+    while time.monotonic() < deadline:
+        listed = ecs.list_tasks(cluster=CLUSTER, serviceName=SERVICE, desiredStatus="RUNNING")["taskArns"]
+        candidate_arns.update(listed)
+        for arn in listed:
+            value = task(arn)
+            assert value["taskDefinitionArn"] == definition
+            if value["lastStatus"] == "RUNNING" and value.get("healthStatus") == "HEALTHY":
+                live = value
+        if live is not None:
+            break
+        emit("waiting_candidate", tasks=listed)
+        time.sleep(10)
+    assert live is not None, "candidate failed to become healthy"
+    assert len(ecs.list_tasks(cluster=CLUSTER, serviceName=SERVICE, desiredStatus="RUNNING")["taskArns"]) == 1
+    assert next(c for c in live["containers"] if c["name"] == "dsf-ai")["imageDigest"] == digest
+    receipts = records(log_messages(live["taskArn"]), "guala.paired_predecessor.v1")
+    assert len(receipts) == 1
+    for key in ("identity", "organism_tick", "body_sha256", "body_bytes", "world_sha256", "world_bytes"):
+        assert receipts[0][key] == backup["current"][key], key
+    assert receipts[0]["functional_conversion"] is False
+    first = observation()
+    assert first["available"] and not first["checkpoint_error"] and not first["cleanup_error"]
+    assert first["live_tick"] >= backup["current"]["organism_tick"]
+    deadline = time.monotonic() + 60
+    second = None
+    while time.monotonic() < deadline:
+        time.sleep(3)
+        obs = observation()
+        if (
+            obs["available"]
+            and obs["live_tick"] > first["live_tick"]
+            and obs["persisted_tick"] > backup["current"]["organism_tick"]
+            and not obs["checkpoint_error"]
+            and not obs["cleanup_error"]
+            and not obs["durability_blocked"]
+        ):
+            second = obs
+            break
+    assert second is not None, f"persisted_tick did not advance past {backup['current']['organism_tick']} within 60s"
+    final_service = service()
+    assert final_service["taskDefinition"] == definition
+    assert (final_service["desiredCount"], final_service["runningCount"], final_service["pendingCount"]) == (1, 1, 0)
+    final_task = task(live["taskArn"])
+    assert final_task["lastStatus"] == "RUNNING" and final_task.get("healthStatus") == "HEALTHY"
+    assert ecs.list_tasks(cluster=CLUSTER, serviceName=SERVICE, desiredStatus="RUNNING")["taskArns"] == [live["taskArn"]]
     emit(
-        "release_complete",
-        task_definition=definition,
-        running_task=candidate_arn,
-        image_digest=digest,
-        final_backup=backup_path,
-        persisted_tick=live["persisted_tick"],
+        "live_restore_and_progress_verified",
+        task=live["taskArn"],
+        definition=definition,
+        digest=digest,
+        first=first,
+        second=second,
     )
 
 

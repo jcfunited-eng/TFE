@@ -40,8 +40,8 @@ def test_stroller_carriage_physical_entity() -> None:
 
     stroller = next((item for item in snapshot.objects if item.object_id == "stroller-carriage"), None)
     assert stroller is not None, "stroller-carriage missing from home world snapshot"
-    assert stroller.position.x == 9_600
-    assert stroller.position.y == 5_600
+    assert stroller.position.x == 9_550
+    assert stroller.position.y == 6_200
     assert stroller.position.z == 0
     assert stroller.mass_grams == 8_500
     assert stroller.radius_mm > 0
@@ -109,7 +109,7 @@ def test_plan_vehicle_journey_outdoor_walk() -> None:
     affordances = extract_affordances(snapshot.objects, snapshot.portals, regions=snapshot.regions)
 
     # Guala starts in library near stroller
-    guala_pos = (9_800, 5_800, 0)
+    guala_pos = (9_750, 6_400, 0)
     journey_plan = plan_vehicle_journey(
         affordances=affordances,
         self_pos=guala_pos,
@@ -195,6 +195,6 @@ def test_nocturnal_tidying_resets_stroller_position() -> None:
     # Run Caretaker Nocturnal Tidying
     nocturnal_house_tidying(world)
 
-    # Verify stroller returned to library south-west corner parking perch (9_600, 5_600, 0)
+    # Verify stroller returned to library south-west corner parking perch (9_550, 6_200, 0)
     reset_stroller = next(o for o in world.observation_snapshot().objects if o.object_id == "stroller-carriage")
-    assert reset_stroller.position.x == 9_600 and reset_stroller.position.y == 5_600
+    assert reset_stroller.position.x == 9_550 and reset_stroller.position.y == 6_200
