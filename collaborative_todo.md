@@ -25786,3 +25786,38 @@ Executed Option 1 per Joe directive under A1 corrected contract (§4, §8, §9, 
 3. **Git Commit & Push:**
    - Commit: `a8c620619` on branch `guala-live`, pushed to `origin/guala-live`.
    - Zero production imports, zero decision vector mutations, zero changes to canonical L0–L4 kernel.
+
+## G1 TO A1 AND JOE — 2026-09-27 18:24Z — Stage P3 Receipt: Prospective recombination, lateral competition, effector exclusivity, detour (C05), obstacle accommodation (C06), novel recombination (C04) verified
+
+Executed Stage P3 per Joe directive under A1 corrected contract (§4, §8, §9, §10) and Bio-Functional Implementation Plan (Stage P3):
+
+1. **Stage P3 Unmounted Native Module (`native/guala_core/src/prospective_recombination.rs`):**
+   - **Lateral Inhibitory Competition & Effector Exclusivity Contract (§9):**
+     Competing action channels inhibit each other via mutual inhibitory synapses (E_inhib = -80 mV, g_inhib = 30 nS). Effector exclusivity contract strictly resolves:
+     * Quiescent: neither channel active -> no motor publication.
+     * Single winner: dominant active channel wins -> publishes only if gating interneuron is disinhibited.
+     * Collision conflict (both channels simultaneously above threshold): lawfully resolved by accumulated physical momentum/hysteresis (integral of (V - V_thresh) dt). The winner hyperpolarizes and repolarizes the loser to V_reset, strictly avoiding Python argmax or list order.
+   - **Prospective Internal Activity with Output-Inhibition Gating (§9):**
+     Tonic gating interneuron at rest (V_gate = -50 mV > -65 mV) holds efference strictly in internal custody during prospective internal simulation. Disinhibitory drive hyperpolarizes the gate keeper below -65 mV (E_GABA = -80 mV), unlocking physical effector publication.
+   - **Reversible Means Selection (C05 Detour & C06 Obstacle Discrimination):**
+     * **C05 Detour**: When direct approach is blocked by barrier, substrate selects detour (moving initially away from target) via lateral affordance drive, without suppression by an artificial "always decrease distance" heuristic.
+     * **C06 Obstacle Discrimination**: Movable yielding obstacle (F_sensed < F_yield) is pushed through; rigid obstacle (F_sensed >= F_yield) generates contact prediction error that dynamically suppresses the push means and shifts to detour without deleting the overarching target objective.
+   - **C04 Novel Useful Recombination:**
+     Two independently retained primitives (lateral shift and forward reach) are sequentially composed under novel compound obstacle arrangement without a supplied composite sequence script.
+   - **Lossless Continuation Serialization (§8):**
+     Full state serialization and restoration (GUAP3STA magic + CRC32 validation). Channel voltages and physical momentum restore bit-exact.
+
+2. **Test Command & Receipt:**
+   - Command: `cargo test` in `native/guala_core`
+   - Result: `test result: ok. 35 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.91s`
+   - Stage P3 tests:
+     * `prospective_recombination::tests::test_lateral_competition_and_effector_exclusivity ... ok`
+     * `prospective_recombination::tests::test_prospective_gated_efference ... ok`
+     * `prospective_recombination::tests::test_c05_detour_selection_without_distance_heuristic ... ok`
+     * `prospective_recombination::tests::test_c06_obstacle_resistance_means_revision ... ok`
+     * `prospective_recombination::tests::test_c04_novel_recombination_of_learned_primitives ... ok`
+     * `prospective_recombination::tests::test_p3_continuation_serialization ... ok`
+
+3. **Git Commit & Push:**
+   - Commit: `ef4288179` on branch `guala-live`, pushed to `origin/guala-live`.
+   - Zero production imports, zero decision vector mutations, zero changes to canonical L0–L4 kernel.
