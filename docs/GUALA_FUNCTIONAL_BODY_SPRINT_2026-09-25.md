@@ -10415,3 +10415,113 @@ outputs/cost, without resetting earlier history at19.1ms. Preserve exact first
 failure and accepted prefixes. No rebuild unless a new source defect demands
 it; no reopening the completed saved-state proof. Full-body gravity/world
 integration/runtime restart/resource qualification and production stay open.
+
+
+### FB-01aj uninterrupted admitted-motion contract — 2026-09-27
+
+Previous turn was PROGRESS (local commit c5df9ec70, passing bounded admission
+receipt0868ef58...b4ce). Continue FB-01aj; do not reopen that saved-state seam.
+Requested: unchanged-force whole-motion accuracy and measured cost. Reality:
+compiled-unmounted local admission only. Conflict: YES with full-motion claims.
+No cognition, DSF, care, food, optics, anatomy, force/tolerance changes or live
+mounting. Reduced numerical body mechanics only; full joint DSF fields and
+cognition are not evaluated, not altered. Single next action: one bounded
+uninterrupted paired loaded/released trajectory using the compiled admission.
+
+Use the original authenticated zero-gravity mechanical bench, common genesis,
+same control and supply. Nominal100us and50us lanes independently advance using
+RadauProbe.admit; compare existing physical/sensory/work/contact limits every
+common100us endpoint. Retain complete accepted prefixes and separate observed
+event brackets, not only final agreement. No reset at19.1ms or after any other
+boundary. Targets remain48ms,250ms loaded, then250ms unloaded, not smaller
+replacement success criteria. Subsample agreement is not continuum enclosure.
+
+Offline observer wraps the actual primitive step only to retain before/two
+stage/after domains and associate accepted fine pieces by exact predecessor,
+endpoint and supply. It does not select/refine steps or change physical state.
+Only successful admission contributes work and impulse; failed admission keeps
+last accepted interval state and exact failure operands. Existing stage-only
+unresolved events remain a qualification failure. Capture all native-forward
+calls, observer overhead, trial counts, CPU/RSS and accepted grids. Clear trial
+traces between common intervals; retain only necessary accepted history and
+last failure, bounded by diagnostic duration/trial/CPU limits. No production
+custody decoder is applied to new-law states.
+
+The prior cost already warns that real-time operation is NOT established.
+One diagnostic is limited to50sCPU (60shard),1GiBAS,2cores,90swall and30000
+primitive proposals. A budget stop is explicitly incomplete, never a full
+500ms pass. Retain completed history so no identical run is restarted to hide
+failure or extend limits. No rebuild; source/module hashes are checked before
+and after. Read-only AWS pre/post and exact process cleanup are mandatory.
+
+Source-only reviewer confirmed one LOCALIZED proof-accounting-order finding:
+a successful native admission must publish returned work/impulse/supply into
+the offline record before any fallible event reconstruction. Corrected once;
+interval outputs retained immediately and cumulative fields assigned together.
+No native/force/admission source changed. Reviewer reported event keying,
+canonical domains and independent-history flow consistent; review was stopped
+after that bounded finding to avoid prolonging inspection. Root reverified
+unchanged original fingerprint before edits; final delta confirmation follows.
+
+
+### FB-01aj uninterrupted motion exposes event-resolution and cost limits — 2026-09-27 07:07Z
+
+PROGRESS: one bounded continuous-history diagnostic completed with a physical
+qualification failure, preserved intact. No native source change or rebuild.
+Independent source review identified the one local accounting-order issue;
+after that correction the primary agent performed final source/hash/AST-order
+confirmation, with fingerprint52b851f28aa457dadd61706bc423facbf97e4ed7148a8c72d58ba78c859d86b3
+verified before/after. The reviewer was stopped rather than allowing the narrow
+confirmation to prolong the turn. Do not claim independent final approval.
+
+Receipt docs/evidence/FB-01aj-radau-admitted-motion.json SHA256
+5dbde1bf559b6218487a42113265e216d9c4629de7837632baa20c61f651c73b
+retains exact proof/runner, both original-genesis histories, all1786accepted
+pieces, first failure operands, stage-domain evidence and resource envelope.
+The histories passed the previous19.2ms acceleration failure with local
+admission. At20.4ms all ratified sensory, pose, motion, work and tactile groups
+still pass. Largest ratio0.53513935 is right-foot acceleration:
+error0.02280292821m/s2, allowance0.04261119716m/s2. Intrinsic couple impulse
+remains UNQUALIFIED; no new authority is inferred from other passing fields.
+
+Stop is observed-event correspondence at lower-limit index56/native joint57
+(guala/right/shin/knee), reactivation after release at~20.082ms. Coarse event
+bracket[20.3750000000,20.3753906250]ms; half bracket[20.3742187500,20.3750000000]ms.
+Each is narrower than1us, but their union spans1.171875us, exceeding the required
+worst-case1us bound. This proves INSUFFICIENT event-time evidence; it does NOT
+prove actual crossings differ by1.171875us. No physical contacts are present
+there.26observed event rows per lane. Coarse634pieces/113refinements/1168trials;
+half1152pieces/94refinements/1915trials. Neither48ms nor250/500ms was completed.
+
+3083primitive trials;120353probe forwards+1114outside=121467total. Native force
+7.940227s; observed primitive13.547791s; observer metadata0.817019s; diagnostic
+15.620962swall/15.618119sCPU. Whole child16.392051swall/16.376923aggregateCPU,
+204840KiBRSS. Thus CPU cost is itself unqualified: even native forces alone cost
+~194.6wall seconds per accumulated simulated second across these two histories.
+This is a local benchmark ratio, NOT live-production timing or a general
+constant extrapolation. Removing observer output alone cannot fix that cost.
+Do not restart the500ms test unchanged or merely raise its diagnostic budgets.
+
+Session37183/child97439 terminal; exact host census97768 confirms no survivor.
+Read-only AWS07:05:54->07:06:13Z retains sole1559task/image/identity,counts1/1/0,
+ticks2560984->2561031,checkpoint/cleanupnull,durabilityfalse,CPU51.1308percent,
+RAM3.0762percent. Existingclock-stalledALARM persists;other4OK. No production,
+cognition, food/care, force-law, threshold, push or Slack changes.
+
+Single next bounded analysis: use the two retained event segments to distinguish
+wide sampling brackets from genuine timing separation without replaying either
+history. Native _Stages.evaluate already provides the actual hinge qpos/qvel
+at Radau nodes1/3and1. Its hinge path is the integrated collocation polynomial
+q(theta)=q0+h*((3theta/2-3theta^2/4)*v1+(3theta^2/4-theta/2)*v2).
+This reproduces A rows(5/12,-1/12)and(3/4,1/4); joint-limit boundary remains
+exactly range_lower+margin. A two-segment diagnostic can first reproduce each
+saved accepted successor exactly, then inspect that numerical path's crossing,
+including arithmetic uncertainty. Do NOT replace uncertainty with midpoint
+estimates, relax1us, reset histories, or call the polynomial an enclosure of
+the exact continuum. If event evidence can be tightened faithfully, keep it
+separate from the remaining accumulated-state and serious force-call-cost
+qualification. The next source correction must follow those operands, not a
+new scene-specific tuning or cosmetic throughput claim.
+
+Full goal remains ACTIVE/incomplete: body/world mounting, gravity, runtime
+custody/restart, performance and live production are still not qualified.
