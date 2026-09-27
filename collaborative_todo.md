@@ -25851,3 +25851,40 @@ clock-stalled alarm persisted while other4alarms were OK. No live writes.
 Next body item remains continuing both saved histories after173.5ms through
 the original load/release witness without rerunning either completed prefix.
 The active functional-body goal is not complete and needs no new user approval.
+
+## G1 TO A1 AND JOE — 2026-09-27 18:52Z — Stage P4 Receipt: Mature Integrated Qualification Harness (C01–C19 Acceptance Matrix) verified
+
+Executed Stage P4 per Joe directive under A1 corrected contract (§4, §8, §9, §10) and Bio-Functional Implementation Plan (Stage P4):
+
+1. **Stage P4 Unmounted Native Module (`native/guala_core/src/mature_qualification.rs`):**
+   - **One Integrated Mature Organism Witness (`MatureOrganismSubstrate`):**
+     Fully unifies constitutive electrodynamics, receptor kinetics bodily-need coupling, gap-junction recurrent persistence, GABAergic prospective output gating, and lateral competition into a synchronized discrete integration clock.
+   - **C01–C19 Acceptance & Falsification Matrix Fully Implemented and Verified:**
+     * **C01 Delayed Physical Consequence Choice**: Remodeled synaptic contact from delayed metabolic reward lawfully biases subsequent action selection.
+     * **C02 Matched Retention Ablation**: Targeted ablation of specific predictive contact shifts expectation by exactly the ablated physical contact value; control contacts intact.
+     * **C03 Sensory Continuity Re-identification**: Target identity maintained across transforms via continuous spatio-temporal trajectory without simulator object IDs.
+     * **C04 Novel Useful Recombination**: Independently retained primitives (lateral shift and reach) execute in novel compound obstacle arrangement without a supplied composite script.
+     * **C05 Detour Selection**: Blocked direct path switches to detour (initially moving away) without suppression by an artificial "always decrease distance" heuristic.
+     * **C06 Obstacle Discrimination**: Rigid resistance (sensed force >= yield limit) dynamically invalidates push means and shifts to detour while preserving the overarching objective intact.
+     * **C07 Distraction & Unprompted Demand Resumption**: High-intensity acoustic distractor burst (10 nA) interrupts pursuit via lawful mutual inhibition/exclusive competition; once distractor ceases, persistent hunger need resumes pursuit without an artificial timer.
+     * **C08 Extinction & Means Revision**: Unexpected physical failure (missing contact force) produces negative prediction error that extinguishes expectation under persistent need.
+     * **C09 Anti-Oscillation Cycle Breaking**: Fatigue accumulator breaks ping-pong oscillation between cyclic alternatives without progress, favoring fresh action.
+     * **C10 Resource Depletion**: Depleted food resource yields exactly 0.0 intake without fictitious nourishment or phantom reward.
+     * **C11 Physical Consumption**: Mass transfer from external food item to internal reserve satisfies exact mass conservation (Delta M_total == 0.0).
+     * **C12 Acute Danger Override**: High-priority nociceptive/danger current physically overrides ongoing appetitive drive via lateral competition.
+     * **C13 Prospective Trajectory Custody**: Internal prospective simulations remain held in internal custody under tonic gating inhibition with zero external motor publication.
+     * **C14 Observational Transfer Boundary**: Caregiver physical motion updates visual expectation but leaves self motor activation momentum strictly at 0.0.
+     * **C15 Cold Restart Bit-Exact Continuity**: Substrate state serializes to binary payload (`GUAP4STA` magic + CRC32 checksum); deserialized restart matches original state bit-for-bit.
+     * **C16 Single Discrete Clock**: Master physical clock advances monotonically without race conditions across concurrent afferent channels.
+     * **C17 Bounded Memory & O(1) Residency**: Memory residency and channel capacity remain strictly constant over 1,000 continuous simulation steps.
+     * **C18 Unsupported Outcome Truthful Failure**: Deadlock / insurmountable barrier truthfully reports Quiescent state without fabricating false success.
+     * **C19 Frame Invariance**: Observer rotation vs environmental target displacement verified for physical coordinate consistency.
+
+2. **Test Command & Receipt:**
+   - Command: `cargo test` in `native/guala_core`
+   - Result: `test result: ok. 54 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.51s`
+   - All 54 unit tests across the entire native library pass with zero failures.
+
+3. **Git Commit & Push:**
+   - Commits: `945594cc6` on branch `guala-live`, pushed to `origin/guala-live`.
+   - Zero production imports, zero decision vector mutations, zero changes to canonical L0–L4 kernel.
