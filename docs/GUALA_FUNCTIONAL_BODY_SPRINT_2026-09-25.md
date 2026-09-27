@@ -9737,3 +9737,102 @@ Hairer/Wanner's stiff-integrator materials describe the Radau family, not this
 body's qualification: https://www.unige.ch/~hairer/preprints/coimbra.pdf .
 No framework upgrade, new cognitive state, force softening, tolerance relaxation
 or authorization request is needed for this bounded numerical investigation.
+
+### FB-01aj Radau saved-state primitive measured — 2026-09-27 04:58Z
+
+PROGRESS: the reviewed offline two-stage Radau primitive now has executable
+evidence. This continues the existing body-only numerical accuracy/cost defect;
+it is NOT runtime integration, a complete body, or production qualification.
+Frozen source tree was 4d18163d1ea7bfd1d33c2ef8766561baff4bbdeb3d462fbfd147af9e014c4ed2.
+No physical force, anatomy, material, cognition or acceptance tolerance changed.
+
+One source-only review found localized diagnostic-evidence gaps. A single batch
+added finite aggregate work/travel checks, retained partial-case state and failed
+nonlinear operands, complete sensory/impulse repeat comparison, and separate
+counts for stage forwards, setup/restore forwards and the archived native step.
+Final frozen source-only review passed before execution. Exact sources are
+retained inside the receipt (including the stage module), not organism memory:
+
+- /tmp/a1-body-radau-stage-20260927.py:
+  462edb5d8fbaabb7b61ac6fd7c571a4ec7775595240d731d61882b69414811d4.
+- /tmp/a1-body-radau-regime-20260927.py:
+  2714aaba48aaf9ba0b2497d4bf3b1f7336628874f3eb03fd90a796eebe1c8e21.
+- docs/evidence/FB-01aj-radau-stage-regime.json:
+  15ed890c9604b7ac5a45372b722d1655c835503cc8e9c2c01e3ed59007e6ad4f.
+
+The saved event-80 predecessor is at 31.016406249999864 ms. Three fresh copies
+advance the same 25 us with 1, 2 and 4 pieces. All complete; sampled constraint
+domains agree. This is only sampled-domain evidence, not continuous absence of
+an unobserved event. Controls reproduce the archived native stage exactly and
+the current instantaneous acceleration/sensory law exactly. The rotation-chart
+inverse satisfies its algebraic control. A fresh repeat is exact in full retained
+state, work, impulse and complete endpoint sensory/contact observation. Positive
+work with zero supply refuses and restores the complete predecessor exactly.
+
+All ratified local comparison channels pass; intrinsic couple impulse remains
+UNQUALIFIED because no separate ceiling was ratified. The principal joint-rate
+discrepancy falls from 2.2107801019188855e-5 to 2.82007443330734e-6 rad/s on
+refinement, about 7.84-fold. Contact impulse discrepancy falls from
+1.3558961653503096e-9 to 1.7285579758269116e-10 Ns. These are numerical estimates,
+not an exact continuum enclosure or the required whole-motion result. Existing
+near-zero acos orientation observations are not evidence of exactly zero
+rotation error. No accumulated-error allocation or long-interval pass is claimed.
+
+Cost is explicitly unacceptable as a production implementation: 12351 stage
+forwards (under 33310), 21 setup/restore forwards (under 21), one archived native
+step. The single 25 us trajectory requires 1763 forwards and three Newton
+updates; finer steps each require 1177 forwards and two updates. A 146-variable
+central-difference Jacobian takes 584 stage forwards per Newton update. This
+dense diagnostic differentiation dominates the work; a higher call ceiling or
+repeated broad trajectory is not the next correction. Internal native constraint
+iterations are not mislabeled as separately counted calls. Stage forward wall
+time is 0.905945 s; complete child wall 2.603997 s, aggregate child CPU 2.599964 s,
+peak RSS 166880 KiB. Session 96625 / exact child 48419 exited 0, no timeout,
+no group survivors and no exact-command survivor in final host census.
+
+Next single item: source-map the smallest efficient way to solve these SAME
+coupled residuals, retaining the existing actual residual/finite/work/rollback
+checks. Compare any available native instantaneous derivative with bounded
+matrix-free numerical solving; do not substitute derivatives of a different
+integrator, a softened force, stale physical feedback, a guessed contact law,
+or a production dense solver. The primitive stays offline until its work and
+whole-motion error are qualified. No further user authorization is needed for
+this already-approved body-only numerical question.
+
+Read-only AWS 04:56:22Z -> 04:56:27Z: sole task 1559 / task
+5b56802a81ba4978a36aafb995e829a3, image 3c9fce0c...2e4b5d, same organism identity,
+counts 1/1/0 and RUNNING/HEALTHY. Ticks 2542346 -> 2542357; checkpoint/cleanup
+errors null; durability false. CPU average 50.9391%, RAM 3.0660%. Existing
+clock-stalled ALARM remains; other four alarms OK. This is not full health
+clearance. No live mutation, push or Slack. G1 ownership is unchanged.
+
+Operational mistakes retained rather than hidden: an initial Delete+Add patch
+for the same scratch path was rejected without mutation, then replaced through
+separate apply_patch calls; source lookup guessed two nonexistent paths before
+using rg --files; the already-known legacy root-validator failure was repeated
+read-only and must NOT be repeated again (preflight its historical handoff first;
+otherwise use the exact git root/branch/HEAD and this sprint authority). An initial
+process census and metric print were too broad; subsequent census selected only
+the owned group/command and result extraction emits channel maxima only. None
+of these errors launched a second physical test or changed production state.
+
+05:00Z source-grounded next mechanism: independent review recommends bounded
+matrix-free Newton-GMRES on the SAME coupled Radau residual. Pinned MuJoCo
+engine_derivative_fd.c:538 differentiates mj_step, so mjd_transitionFD is the
+wrong target. engine_derivative.c:1485 mjd_smooth_vel covers only smooth-force
+velocity derivatives, not complete constrained acceleration/position dependence.
+engine_derivative_fd.c:601 mjd_inverseFD is instantaneous but still coordinate-
+wise finite differencing and needs an inverse-to-forward derivative solve plus
+the rotation-chart chain rule; it is not a verified drop-in shortcut. Owner
+read these exact source boundaries; no production derivative substitution made.
+
+The narrow candidate for OFFLINE qualification is a centered directional
+product Jp = [R(x+epsilon*p)-R(x-epsilon*p)]/(2*epsilon), in dimensionless scaled
+coordinates, with roundoff-derived perturbation and bounded Krylov dimension.
+Each product needs four stage forwards instead of four times all 146 unknowns
+for a complete Jacobian. Retain the actual nonlinear residual, line search,
+Newton/call ceilings, identical stage work/impulse integration and full rollback.
+Predicted Krylov improvement can never admit a successor. Compare against the
+retained dense-Radau result, complete sensory/contact output and work before
+any longer run. Reduced cost is plausible, not measured or accepted. No new
+numerical contract, implementation, source review or run is claimed yet.
