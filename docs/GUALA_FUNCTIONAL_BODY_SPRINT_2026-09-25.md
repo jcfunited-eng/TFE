@@ -8924,3 +8924,62 @@ Same authenticated1700us input, efforts, supply and native law. Compare all
 approved sensory/mechanical/work channels and actual constraint-domain evidence.
 A local convergence map guides minimal numerical-error-controlled advancement;
 it cannot certify full500msaccuracy, contacts, gravity or production.
+
+Local resolution-map implementation contract: extend ONLY the existing offline
+first-divergence tool with --refinement. Authenticate the saved3callreceipt,
+reuse its50us endpoint with its exact recorded timestep/work, and integrate
+the same saved1700us predecessor at25/12.5/6.25/3.125us(60newcalls total).
+Compare adjacent meshes in ALL existing physical/sensory/work metrics. Record
+joint gaps/constraint roster/support before and after every substep; preserve
+any changed boundary and exact endpoint/partial failure state. Emit each
+completed case independently, retain nonfinite/failure-safe records through the
+reviewed observer. No adaptive threshold, fitted coefficient, new law or runtime
+mount in this measurement. A missing contact channel is not a claimed contact
+qualification. Same bounded network-denied child and read-only AWS envelope.
+
+Source-only review69a90b98cca4562d366f2317ee19c2ea47322db1e27ad9bcb420ee550e87cb16
+identified two LOCALIZED omissions before execution: refinement entry must check
+actual loaded-native version as main() already does; interrupted cases must
+retain accumulated joint-boundary changes, last observed boundary and attempted
+substep, not only primary state. Batched both corrections once. No mechanics,
+coefficient, tolerance, candidate matrix or runtime change. Re-freeze and final
+source-only review required before the fixed60call measurement. The intervening
+user feeding-witness audit remained read-only and did not reopen body work.
+First ledger append had an incomplete context line; apply_patch refused without
+modification. Corrected from the actual tail; no diagnostic was executed.
+
+### FB-01aj local resolution map completed — 2026-09-27 02:05Z
+
+Final source-only review PASSb51d58ea4f59ffaa5019f284e6c6ec033621ff36ed3c815707efdba5932bc2c0.
+Same1700us archived predecessor, saved50us result reused without replay.
+All60new native calls complete:4/8/16/32 at25/12.5/6.25/3.125us. No refusal,
+no observed joint/support boundary changes, no surface contact. Adjacent mesh
+proprioceptive-rate differences(rad/s):.0025281271089792057,
+.0006246044451357347,.00015569525154893182,.00003889394614314812.
+Ratios to unchanged ratified limits:.249358,.061603,.015356,.003836.
+All measured local sensory/mechanical/work comparisons pass; approximately4x
+error reduction on halving steps supports second-order discretization here.
+This is NOT a continuum enclosure, contact qualification or fullmotion pass.
+Intrinsic-couple impulse retains UNQUALIFIED status; absent contact is not proof.
+
+Artifact docs/evidence/FB-01aj-midpoint-first-divergence-refinement.json
+SHAad25ecfae7475907043f2f192f5769fc3dda75b5c6533e5f3b01e999bf808eb3.
+Source SHA7afa81ac22fb1c184cb6bbeaffaf5e9cc7bd32f111bcc3ef00d058c6c9ad77c5.
+Session86006,child89690,exit0,no survivors;wall.992747s,aggregateCPU.990175s,
+childCPU.907950s,peakRSS152680KiB. Unchanged native library and interval hashes.
+No fulltrajectory replay, native compilation, force/material change or livewrite.
+
+AWS02:04:46.252737Z->02:04:49.839772Z:same sole1557task
+b35c96647179444cabf98b6441c30fed,imageb5925e5f...655fa7,
+identity1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1,counts1/1/0,
+ticks2521261->2521265,persisted2521253,errorsnull,durabilityfalse;
+CPUmean51.369301%,RAM2.734375%;existing clock-stalled ALARM persists,4othersOK.
+
+Next correction is numerical-error-controlled advancement of the SAME force
+law, not another force fit, tolerance relaxation or uniform tiny-step policy.
+Use shared-predecessor coarse/fine steps as a local discrepancy estimator,
+retain only accepted fine physical state/work and restore all rejected trial
+state. Native residual convergence alone cannot admit a physical interval.
+Boundary changes and full-motion qualification remain separate required gates;
+local mesh agreement is not an exact global-error bound. Define complete
+transaction/call-budget/rollback contract before editing the advancement path.

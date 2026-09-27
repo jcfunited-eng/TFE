@@ -8,6 +8,7 @@ from __future__ import annotations
 import base64
 import hashlib
 import json
+import sys
 from pathlib import Path
 import time
 import zlib
@@ -150,5 +151,113 @@ def main():
     ))), flush=True)
 
 
+def refinement():
+    """One fixed local resolution matrix, reusing the archived 50us endpoint."""
+    assert mj.mj_versionString() == mj.__version__ == VERSION
+    isolation = read_receipt((
+        "FB-01aj-midpoint-first-divergence.json",
+        "df2887df851390b2d6a8db95d2d66411495bb2495546ef9f9ff95ebf7162c8d4"))
+    joint = read_receipt(JOINT)
+    assert isolation["all_completed"] and isolation["calls"] == 3
+    selected = next(row for row in joint["cases"] if row["width_us"] == .25)
+    raw = base64.b64decode(selected["endpoint_state_base64"], validate=True)
+    assert hashlib.sha256(raw).hexdigest() == isolation["predecessor_sha256"]
+    physical = np.frombuffer(raw, dtype="<f8").copy()
+    assert np.isfinite(physical).all()
+    control = archived_controls()[100]
+    prior = Trajectory(50, control)
+    saved = next(row for row in isolation["cases"] if row["h_us"] == 50)
+    prior.m.opt.timestep = saved["native_dt_s"]
+    assert np.isfinite(prior.m.opt.timestep) and prior.m.opt.timestep > 0
+    state = base64.b64decode(saved["state_base64"], validate=True)
+    prior.e._restore(state)
+    assert prior.e._capture() == state and not saved["impulses"]
+    prior.work = tuple(saved["work"])
+    prior.supply = saved["remaining_supply_j"]
+    prior_snapshot = prior.snapshot()
+    start, finish = isolation["start_s"], isolation["end_s"]
+    assert finish == start + .0001
+    rows, comparisons = [], []
+    failure = None
+    cases = []
+    common_boundary = None
+    active_case = None
+    changes, before, attempted_step = [], None, None
+
+    def signature(record):
+        return (tuple((j["joint_id"], *(g <= 0 for g in j["gaps"])) for j in record["joints"]),
+                tuple(record["constraint_type"]), tuple(record["constraint_id"]), record["support"])
+
+    try:
+        for h_us in (25., 12.5, 6.25, 3.125):
+            active_case = None
+            changes, before, attempted_step = [], None, None
+            case = Trajectory(h_us, control)
+            active_case = case
+            cases.append(case)
+            steps = int(100 / h_us)
+            assert steps * h_us == 100
+            case.ceiling = steps
+            case.m.opt.timestep = .0001
+            restore(case.e, physical)
+            assert primary(case.e) == raw and float(case.d.time) == start
+            case.work = (0.,) * 6
+            case.initial_supply = case.supply = selected["remaining_supply_j"]
+            case.last_accepted = base64.b64encode(case.e._capture()).decode()
+            case.initial = case.last_accepted
+            case.support = contact_support(case.e)
+            before = boundaries(case)
+            if common_boundary is None:
+                common_boundary = before
+            else:
+                assert before == common_boundary
+            changes = []
+            for index in range(1, steps + 1):
+                stop = finish if index == steps else start + index * h_us / 1_000_000
+                attempted_step = dict(index=index, target_s=stop)
+                case.m.opt.timestep = stop - float(case.d.time)
+                assert np.isfinite(case.m.opt.timestep) and case.m.opt.timestep > 0
+                work = case.e._advance_interval(case.e, case.d.ctrl.copy(), 1, case.supply)
+                case.work = add_receipts(case.work, work)
+                case.supply = case.initial_supply - case.work[0]
+                assert np.isfinite(case.work).all() and case.supply >= 0
+                assert float(case.d.time) == stop
+                after = boundaries(case)
+                if signature(after) != signature(before):
+                    changes.append(dict(before=before, after=after))
+                before = after
+            current_snapshot = case.snapshot()
+            comparison = Errors()
+            comparison.compare(prior, case, prior_snapshot, current_snapshot, 1800)
+            comparisons.append(dict(coarse_us=prior.h_us, fine_us=h_us,
+                metrics=comparison.result(), first_failure=comparison.first_failure,
+                worst_disagreement=comparison.worst_failure))
+            rows.append(dict(result=case.record(include_events=True),
+                final_boundary=before, observed_boundary_changes=changes))
+            prior, prior_snapshot = case, current_snapshot
+            print(json.dumps(encode(dict(event="local_refinement_measured",
+                case=rows[-1], comparison=comparisons[-1]))), flush=True)
+    except Exception as error:
+        failure = dict(type=type(error).__name__, message=str(error))
+    print(json.dumps(encode(dict(
+        schema="guala.functional-body.first-divergence-refinement.v1",
+        version=VERSION, predecessor_sha256=isolation["predecessor_sha256"],
+        start_s=start, end_s=finish, baseline_50us_replayed=False,
+        new_native_calls=sum(c.calls for c in cases), native_call_ceiling=60,
+        all_completed=len(rows) == 4 and failure is None, failure=failure,
+        common_boundary=common_boundary, cases=rows, comparisons=comparisons,
+        interrupted_case=(dict(result=active_case.record(include_events=True),
+            observed_boundary_changes=changes, last_observed_boundary=before,
+            attempted_substep=attempted_step) if failure and active_case is not None else None),
+        continuum_error_enclosure=False, full_body_qualification=False,
+        scope="Same1700us predecessor; fixed four-resolution local map only. Endpoint branch observations do not exclude hidden crossings; no fulltrajectory, continuum or live qualification."
+    ))), flush=True)
+
+
 if __name__ == "__main__":
-    main()
+    if sys.argv[1:] == ["--refinement"]:
+        refinement()
+    elif not sys.argv[1:]:
+        main()
+    else:
+        raise ValueError("expected no argument or --refinement")
