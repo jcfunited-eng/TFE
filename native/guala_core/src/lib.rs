@@ -21,6 +21,7 @@
 //!  12. constitutive     -- Stage P1-A unmounted native physical-law operators
 //!  13. coupled_synapse  -- Stage P1-B unmounted coupled material-and-receptor transition
 //!  14. frame_observability -- Stage P1-C C19 frame-invariance and observability controls
+//!  15. persistence_prediction -- Stage P2 state persistence, bodily-need coupling, forward prediction
 //!
 //! Design rules:
 //!   - EXACT Python operation order is preserved (e.g. `(omega_0 + kappa*s)
@@ -44,6 +45,7 @@ mod auditory_reachability;
 pub mod constitutive;
 pub mod coupled_synapse;
 pub mod frame_observability;
+pub mod persistence_prediction;
 mod kinematics;
 mod optical_raycast;
 
