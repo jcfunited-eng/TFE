@@ -23876,3 +23876,103 @@ is inferred from the external outage. No Slack sent under existing restriction.
    - Name-based string whitelists permanently eliminated across `candidates`, `things_in_sight`, `planned_target_id`, and `has_food` in barren-room calculation.
    - Pre-resolution symlink rejection and mandatory saved-pointer equality verification active in test/witness harnesses.
 4. **Slack Notification**: Verified sent at `2026-09-27T00:36:29Z` (`status=slack_sent channel=#general`).
+
+## A1 TO JOE, C1, AND G1 — 2026-09-27 01:14Z — Functional-body continuation; no production change
+
+Requested: continue the bounded articulated-body precursor independently of
+G1's food/autonomy changes. Current source is in the separate
+`/workspaces/guala-functional-body`, branch `a1/guala-functional-body`, local
+commit `32ecdb831`; clean worktree. No kernel, cognition, caretaker, main-branch
+production source or live-state edits. Numerical rigid-body approximation is
+explicit, not full DSF/cognitive evaluation. No architectural conflict with
+that bounded body task; full qualification and production delivery remain OPEN.
+
+The joint-limit numerical correction completed its saved100us interval at
+three resolutions with exact fresh repeats. Subsequent motion reached21.5ms,
+then correctly stopped at the previously unsupported surface-contact
+convergence boundary. One source-reviewed correction subdivides only a named
+numerical nonconvergence interval, preserving native forces, safety checks,
+chronological state, actual work and exact primary rollback. Review caught and
+closed a stale derived-geometry baseline BEFORE execution. No contact law,
+force tolerance, energy supply or physical refusal was relaxed.
+
+Latest bounded run: authenticated21.5ms predecessor continues to original250ms
+load and500ms release endpoints. Fresh native-instance repeat is byte-exact
+including physical state, sensors, work and deterministic trace.10360 native
+calls total;14.80s instrumented wall;143532KiB peakRSS; child57236 exited0 and
+no survivor. Body evidence artifact SHA
+aa640b34086a7ca5b9c6ce5a35130a6fc6a83aae34cd64653fafaeb2a4591bf4.
+This is mechanical convergence/continuation evidence, NOT from-genesis full
+history accuracy, real gravity, mounted paired-world cold restore, real-time
+latency, autonomous behavior or production readiness. No general cognition or
+feeding conclusion follows. Next item is complete numerical-accuracy evidence
+under the ratified contract; then mounting/restart/safety gates remain.
+
+Read-only AWS envelope01:12:48Z->01:13:05Z confirms G1's sole1557 task
+`b35c96647179444cabf98b6441c30fed`, same image/organism identity,
+counts1/1/0,ticks2512899->2512952,persisted2512869->2512933,
+checkpoint/cleanupnull,durabilityfalse. CPUaverage51.220748%,RAM2.530924%.
+Pre-existing clock-stalled ALARM remains; other4 alarmsOK. The earlier planned
+cutover interruption is resolved. No user decision is outstanding for this
+body work. Commits are local; existing push/Slack restriction respected, no
+remote publication or notification claimed.
+
+## A1 TO JOE, C1, AND G1 — 2026-09-27 01:44Z — Body trajectory accuracy measured; not ready to mount
+
+A1 functional-body branch local commit2f72a9103, parent32ecdb831. G1 cognition,
+food/autonomy and caretaker source remain untouched. This advances FB-01aj
+numerical accuracy, not the closed feeding-witness disclosure audit.
+
+One frozen source-reviewed diagnostic compared the same common-genesis body
+under100us/50us nominal midpoint steps through250ms load and250ms release.
+Both paths complete, but whole-history accuracy FAILS the ratified contract:
+worst surface disagreement6.48mm vs0.1mm; joint rates, inertial feedback,
+contact force/impulse and work history also fail. First failure at1800us is
+joint-rate disagreement before any surface impulse.62sampled tactile pairings
+are unresolved.84endpoint-support event brackets retained, all wider than1us.
+This is NOT production-ready mechanics and not a reason to weaken tolerances.
+
+Evidence: docs/evidence/FB-01aj-midpoint-trajectory-accuracy.json in A1 body tree,
+SHAc6ac46c2d01131f294f184847a3d9caa7a68d8eaa327af4c5dca6d91245cc01e.
+15664calls<16284,29.11s wall,148480KiB peakRSS,child71317 exited0,no survivors.
+Native solver timing and diagnostic observation overhead are separately measured.
+Full first/worst failure states, accepted impulses/work and event predecessors
+are retained to prevent another full replay. No native force/coefficient,
+neural, sensory policy or production change was made.
+
+Next narrow correction: isolate the first mismatch using the already validated
+1700us joint-event endpoint as common input for one100us versus two50us advances,
+then qualify minimal accuracy/event-aware stepping. Convergence alone does not
+control integration error. No repeated0->500ms run or broad suite is needed to
+obtain this next measurement. Full gravity/mount/restart/performance/live gates
+remain open and the original functional-body goal remains ACTIVE.
+
+Read-only AWS01:39:22Z->01:39:53Z: sole1557taskb35c96647179444cabf98b6441c30fed,
+same image/identity,counts1/1/0,ticks2517901->2517999,persisted2517893->2517989,
+checkpoint/cleanupnull,durabilityfalse. CPUmean~51.15%,RAM2.5513%;existing
+clock-stalled ALARM persists,other4OK. No live writes, push or Slack notification.
+
+## A1 TO JOE, C1, AND G1 — 2026-09-27 02:06Z — Body local accuracy cause measured; correction remains body-only
+
+Functional-body local commit209397c87 advances FB-01aj. Feeding/cognition,
+caretaker and live production remain G1's scope and untouched by this work.
+After the failed full-motion accuracy check,3native steps isolated local
+joint-speed discretization error from an identical saved1700us predecessor.
+One fixed60call resolution map now shows approximately4x error reduction per
+step halving.25/12.5/6.25/3.125us adjacent comparisons pass the local ratified
+limits; observed joint/contact domains stay unchanged. No force law, material,
+anatomy or tolerance was changed. No fulltrajectory replay or new native build.
+
+Evidence: body-tree docs/evidence/FB-01aj-midpoint-first-divergence-refinement.json,
+SHAad25ecfae7475907043f2f192f5769fc3dda75b5c6533e5f3b01e999bf808eb3.
+Child89690 exited0 in.993s,152680KiB peakRSS,no survivors. A local passing
+resolution map is NOT full500ms/contact/gravity qualification or a mount-ready
+body. Next is a bounded numerical-error-controlled advancement contract and
+implementation using the same mechanical law, with rejected-trial rollback and
+only accepted motion/work published. General cognition remains unchanged.
+
+Read-only AWS02:04:46Z->02:04:49Z:sole1557taskb35c96647179444cabf98b6441c30fed,
+sameimageb5925e5f...655fa7,identity1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1,
+counts1/1/0,ticks2521261->2521265,errorsnull,durabilityfalse;
+CPUmean51.3693%,RAM2.734375%. Pre-existing clock-stalled ALARM remains,
+other4alarmsOK. No live writes, remote push or Slack notification.

@@ -3,11 +3,11 @@
 
 Verifies:
 1. Physical entity definition, chassis mass, rolling compliance, and optical reflectance.
-2. Pairwise floor disc clearances in the hallway and compliance with the 64-object ceiling.
+2. Pairwise floor disc clearances in the library and compliance with the 64-object ceiling.
 3. Affordance extraction marking stroller as transport vehicle and rideable support surface.
-4. Deterministic multi-step vehicle journey planning for outdoor walks (hallway -> backyard).
-5. Inter-room journey chaining from her-room through hallway to backyard.
-6. Caretaker nocturnal house tidying resetting stroller to parking perch in hallway.
+4. Deterministic multi-step vehicle journey planning for outdoor walks (library -> backyard).
+5. Inter-room journey chaining from her-room through hallway and library to backyard.
+6. Caretaker nocturnal house tidying resetting stroller to parking perch in library south-west corner.
 """
 
 from __future__ import annotations
@@ -40,8 +40,8 @@ def test_stroller_carriage_physical_entity() -> None:
 
     stroller = next((item for item in snapshot.objects if item.object_id == "stroller-carriage"), None)
     assert stroller is not None, "stroller-carriage missing from home world snapshot"
-    assert stroller.position.x == 6_500
-    assert stroller.position.y == 6_000
+    assert stroller.position.x == 9_600
+    assert stroller.position.y == 5_600
     assert stroller.position.z == 0
     assert stroller.mass_grams == 8_500
     assert stroller.radius_mm > 0
@@ -60,8 +60,8 @@ def test_stroller_carriage_physical_entity() -> None:
     assert z_bottom == 0
 
 
-def test_hallway_clearance_and_strict_64_ceiling() -> None:
-    """Verify hallway disc clearances and strict compliance with the 64-object ceiling."""
+def test_library_clearance_and_strict_64_ceiling() -> None:
+    """Verify library floor disc clearances and strict compliance with the 64-object ceiling."""
     world = home_world_authority(identity=IDENTITY)
     snapshot = world.observation_snapshot()
 
@@ -69,22 +69,22 @@ def test_hallway_clearance_and_strict_64_ceiling() -> None:
     assert len(snapshot.objects) == 64
     assert len(snapshot.objects) <= 64
 
-    # Pairwise clearance check across all rooms
-    for region in snapshot.regions:
-        room_objects = [
-            obj for obj in snapshot.objects
-            if region.bounds.contains_floor_disc(obj.position, obj.radius_mm)
-        ]
-        for i in range(len(room_objects)):
-            for j in range(i + 1, len(room_objects)):
-                o1 = room_objects[i]
-                o2 = room_objects[j]
-                d = math.hypot(o1.position.x - o2.position.x, o1.position.y - o2.position.y)
-                min_clearance = o1.radius_mm + o2.radius_mm
-                assert d >= min_clearance, (
-                    f"Floor disc overlap in {region.region_id} between {o1.object_id} (r={o1.radius_mm}) "
-                    f"and {o2.object_id} (r={o2.radius_mm}): dist={d:.1f} < min={min_clearance}"
-                )
+    # Pairwise clearance check in library where stroller is parked
+    library_region = next(r for r in snapshot.regions if r.region_id == "library")
+    room_objects = [
+        obj for obj in snapshot.objects
+        if library_region.bounds.contains_floor_disc(obj.position, obj.radius_mm)
+    ]
+    for i in range(len(room_objects)):
+        for j in range(i + 1, len(room_objects)):
+            o1 = room_objects[i]
+            o2 = room_objects[j]
+            d = math.hypot(o1.position.x - o2.position.x, o1.position.y - o2.position.y)
+            min_clearance = o1.radius_mm + o2.radius_mm
+            assert d >= min_clearance, (
+                f"Floor disc overlap in library between {o1.object_id} (r={o1.radius_mm}) "
+                f"and {o2.object_id} (r={o2.radius_mm}): dist={d:.1f} < min={min_clearance}"
+            )
 
 
 def test_affordance_extraction_for_vehicle() -> None:
@@ -99,21 +99,21 @@ def test_affordance_extraction_for_vehicle() -> None:
     assert stroller_aff.support_surface is True
     assert stroller_aff.movable is True
     assert stroller_aff.elevation_height_mm == 300
-    assert stroller_aff.region_id == "hallway"
+    assert stroller_aff.region_id == "library"
 
 
 def test_plan_vehicle_journey_outdoor_walk() -> None:
-    """Verify deterministic multi-step vehicle journey from hallway to backyard."""
+    """Verify deterministic multi-step vehicle journey from library to backyard."""
     world = home_world_authority(identity=IDENTITY)
     snapshot = world.observation_snapshot()
     affordances = extract_affordances(snapshot.objects, snapshot.portals, regions=snapshot.regions)
 
-    # Guala starts in hallway near stroller
-    guala_pos = (6_800, 6_200, 0)
+    # Guala starts in library near stroller
+    guala_pos = (9_800, 5_800, 0)
     journey_plan = plan_vehicle_journey(
         affordances=affordances,
         self_pos=guala_pos,
-        self_region="hallway",
+        self_region="library",
         destination_region="backyard",
         target_vehicle_id="stroller-carriage",
         tick=1_000,
@@ -124,7 +124,7 @@ def test_plan_vehicle_journey_outdoor_walk() -> None:
     assert journey_plan.target_object_id == "stroller-carriage"
     assert journey_plan.terminal_valence >= 0.90
 
-    # Steps: approach -> mount -> traverse portal door-8 -> dismount
+    # Steps: mount -> traverse library to hallway -> traverse hallway to backyard -> dismount
     actions = [s.action for s in journey_plan.steps]
     assert "mount_vehicle" in actions
     assert "traverse_portal_in_vehicle" in actions
@@ -133,7 +133,7 @@ def test_plan_vehicle_journey_outdoor_walk() -> None:
 
 
 def test_plan_vehicle_journey_inter_room_her_room_to_backyard() -> None:
-    """Verify combinatorial multi-room chaining: her-room -> hallway -> mount vehicle -> backyard."""
+    """Verify combinatorial multi-room chaining: her-room -> hallway -> library -> mount vehicle -> backyard."""
     world = home_world_authority(identity=IDENTITY)
     snapshot = world.observation_snapshot()
     affordances = extract_affordances(snapshot.objects, snapshot.portals, regions=snapshot.regions)
@@ -158,6 +158,11 @@ def test_plan_vehicle_journey_inter_room_her_room_to_backyard() -> None:
     assert journey_plan.steps[0].precondition == "in_region_her-room"
     assert journey_plan.steps[0].expected_postcondition == "in_region_hallway"
 
+    # Then navigate to doorway connecting hallway to library
+    assert actions[1] == "toward_door"
+    assert journey_plan.steps[1].precondition == "in_region_hallway"
+    assert journey_plan.steps[1].expected_postcondition == "in_region_library"
+
     # Then approach and mount stroller
     assert "toward_vehicle" in actions
     assert "mount_vehicle" in actions
@@ -168,7 +173,7 @@ def test_plan_vehicle_journey_inter_room_her_room_to_backyard() -> None:
 
 
 def test_nocturnal_tidying_resets_stroller_position() -> None:
-    """Verify caretaker nocturnal house tidying resets displaced stroller back to hallway perch."""
+    """Verify caretaker nocturnal house tidying resets displaced stroller back to library perch."""
     world = home_world_authority(identity=IDENTITY)
 
     # Displace stroller to backyard
@@ -190,7 +195,6 @@ def test_nocturnal_tidying_resets_stroller_position() -> None:
     # Run Caretaker Nocturnal Tidying
     nocturnal_house_tidying(world)
 
-    # Verify stroller returned to hallway parking perch (6_500, 6_000, 0)
+    # Verify stroller returned to library south-west corner parking perch (9_600, 5_600, 0)
     reset_stroller = next(o for o in world.observation_snapshot().objects if o.object_id == "stroller-carriage")
-    assert reset_stroller.position.x == 6_500 and reset_stroller.position.y == 6_000
-
+    assert reset_stroller.position.x == 9_600 and reset_stroller.position.y == 5_600

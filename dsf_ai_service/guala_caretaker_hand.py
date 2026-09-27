@@ -1202,6 +1202,8 @@ def present_food(world: Any, object_id: str) -> dict[str, object]:
         return escort_to_room(world, dest_room)
     if object_id == "stroller-carriage":
         return stroller_excursion(world)
+    if object_id in ("park-stroller-library", "stroller-park"):
+        return park_stroller_library(world)
     if object_id in CARRY_IDS:
         thing_id = CARRY_IDS[object_id]
         outcome = present_food(world, thing_id)
@@ -1312,6 +1314,7 @@ __all__ = (
     "playpen_challenge",
     "stroller_excursion",
     "escort_to_room",
+    "park_stroller_library",
 )
 
 
@@ -1837,3 +1840,34 @@ def escort_to_room(world: Any, dest_room: str) -> dict[str, object]:
             "schema": "guala.caregiver_presentation.v1",
             "steps": steps,
         }
+
+
+def park_stroller_library(world: Any) -> dict[str, object]:
+    """Park the stroller-carriage in the south-west corner of the library."""
+    target_pos = PositionMM(9_600, 5_600, 0)
+    cur_world = world._state.world
+    updated_objs = []
+    found = False
+    for obj in cur_world.objects:
+        if obj.object_id == "stroller-carriage":
+            updated_objs.append(replace(obj, position=target_pos))
+            found = True
+        else:
+            updated_objs.append(obj)
+    if not found:
+        return {
+            "object_id": "park-stroller-library",
+            "presented": False,
+            "schema": "guala.caregiver_presentation.v1",
+            "steps": [{"operation": "park_stroller", "reason": "stroller_not_found"}],
+        }
+    from dsf_ai_service.guala_home_world import _commit_world_successor, _world_thermal_transaction
+    with _world_thermal_transaction(world):
+        _commit_world_successor(world, replace(cur_world, revision=cur_world.revision + 1, objects=tuple(updated_objs)))
+    return {
+        "object_id": "park-stroller-library",
+        "presented": True,
+        "position": [9_600, 5_600, 0],
+        "schema": "guala.caregiver_presentation.v1",
+        "steps": [{"operation": "park_stroller", "reason": "applied", "position": [9_600, 5_600, 0]}],
+    }
