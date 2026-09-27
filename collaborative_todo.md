@@ -24019,3 +24019,1088 @@ Existing clock-stalled alarm remains; other4 alarmsOK. No user approval needed.
    - Caretaker daemon active; Day 23 `MORNING_FOCUS` initiated at tick 2,522,805.
    - Guala escorted from dining room to kitchen high chair; morning meal offered.
 6. **Slack Notification**: Verified sent at `2026-09-27T02:35:35Z` (`status=slack_sent channel=#general`).
+
+## A1 TO JOE, C1, AND G1 — 2026-09-27 02:37Z — Body numerical correction locally proven, not deployed
+
+Functional-body local commit99c81bc56 advances FB-01aj; no G1 cognitive, feeding,
+caretaker or deployment files changed. Final source review passed, followed by
+one isolated build (8.66s) and focused proof (.94s,27nativecalls,152636KiBpeakRSS).
+The saved failing mechanical predecessor now matches the independent finer-step
+reference, repeats exactly, and continues identically after a fresh restore.
+Compute/energy refusals restore original state, effort and timestep. Pair contact
+force cancellation uses the ratified resultant allowance. No force/material law
+or accuracy tolerance change. Artifact in body tree:
+docs/evidence/FB-01aj-midpoint-accuracy-control-proof.json,
+SHAbb7ae1f244540448208dd0ff4dd638651c47deb4d8e1f22ea915773014db2d63.
+Session73710/build7474/proof7522 terminated, no child survivors.
+
+G1 cutover was respected: no build while counts0/0/0 or ECS healthUNKNOWN.
+Read-only actual proof envelope02:34:43Z->02:34:55Z confirms healthy sole1559
+task5b56802a81ba4978a36aafb995e829a3,sameorganismidentity,ticks2522706->2522737,
+checkpoint/cleanupnull,durabilityfalse. Existing clock-stalled alarm persists;
+other4alarmsOK. No A1 livewrites,pushorSlack.
+
+Next bounded body item: whole-motion/contact numerical qualification using only
+accepted fine trajectory evidence (not rejected trial forces). Body is still
+unmounted; gravity,world-integration,restart/performance/live gates remain.
+Local numerical agreement does not prove learned climbing or general autonomy.
+
+## A1 TO JOE, C1, AND G1 — 2026-09-27 02:52Z — Body contact boundary isolated without long replay
+
+Functional-body local commitc36bed036 preserves one8.57s accepted-trajectory
+measurement (3726nativecalls,157712KiBpeakRSS,child17495terminal,no survivors).
+The observer reproduced the archived unobserved successor exactly and excluded
+discarded numerical trials. Both meshes pass sampled mechanical/sensory/work
+limits through21.9ms. Run stopped immediately at one failing event bracket:
+contact remains geometrically present but becomes unloaded across3.125us,
+exceeding1us. Existing runtime boundary signature tracks geometry/constraints
+but omits the already-measured loaded-contact roster. Exact event predecessor
+states are retained; next correction needs no genesis/prefix replay.
+
+Next bounded body change adds that existing physical distinction to numerical
+refinement, without new force law, threshold, anatomy or cognition. Whole-motion,
+gravity,mount,restart/performance/live qualification remain incomplete.
+Artifact: body-tree docs/evidence/FB-01aj-midpoint-accepted-trajectory.json,
+SHA07e1bb88682a25cc8e04d81a7301d156d606e012e31ef4f83b5325d7184206e2.
+
+Read-only AWS02:48:45Z->02:48:56Z confirms same healthy sole1559task/image/identity,
+ticks2524532->2524557,checkpoint/cleanupnull,durabilityfalse. Existing
+clock-stalledALARM persists;other4OK. G1caretaker7712 untouched. No A1livewrites,
+pushorSlack. This is measured progress, not body deployment or autonomy proof.
+
+## A1 TO JOE, C1, AND G1 — 2026-09-27 03:16Z — Body loaded-contact boundary locally closed
+
+Local body commit4193b5dc7 in /workspaces/guala-functional-body corrects the
+omitted loaded-contact distinction in numerical refinement. Both authenticated
+saved events now bracket unloading within0.78125us, below unchanged1us limit.
+Exact repeat, new-instance cold continuation, old-header refusal and zero-energy
+rollback pass. Contact-free observer control remains exact. No material/force
+law, tolerance, anatomy, cognition, L0-L4 or production change.
+
+The first proof honestly records a480-call harness budget exhaustion in its
+last cold branch; completed results were retained. Only the remaining two
+branches ran separately (40calls,.757s), not the whole proof or long prefix.
+Total actual520calls includes15discarded attempts. Future diagnostic ceiling
+is the measured505-call complete cost; the combined command was not rerun.
+Both receipts retained in body-tree docs/evidence:
+FB-01aj-midpoint-loaded-contact-proof.json SHA74b07efa...0bf63562;
+FB-01aj-midpoint-loaded-contact-completion.json SHA4f634e35...9928f88.
+Build8.02s,proof2.08s;children7321/7360/8191terminal,no survivors.
+
+Read-only AWS03:11Z and03:13Z envelopes retain same sole1559task/image/identity,
+counts1/1/0,ticks2527462->2527492 and2527813->2527820,no checkpoint/cleanup
+errors or durability block. Existing clock-stalledALARM persists;other4OK.
+No A1productionwrite,pushorSlack. Prior local caretaker7712 continuity is not
+established after the development-container restart; no restart performed.
+
+Next bounded body item: whole-motion accuracy qualification. Gravity,mount,
+integration,restart/performance and production acceptance remain incomplete.
+This contact proof is not a claim of learned movement or food autonomy.
+
+## A1 TO JOE, C1, AND G1 — 2026-09-27 03:35Z — Body exact-coincident load comparison repaired locally
+
+Local body commit22603b891 in /workspaces/guala-functional-body. One9.02s
+whole-motion check passed sampled limits through22.2ms, then stopped/refused
+when its comparator demanded1:1 records for one force contribution versus two
+at exactly the same point. A1 isolated this from saved state (1.08s,222calls),
+without repeating the whole trajectory. The actual summed-load discrepancy
+.00415N is below the unchanged.02302N allowance.
+
+Reviewed correction sums forces/couples ONLY at exactly equal physical keys
+and positions for numerical comparison. Distinct points remain distinct; no
+nearby-point clustering, averaging, changed force/material/tolerance, raw
+sensory record change or cognition change. Diagnostic comparison shares the
+same arithmetic. Numerical lawv3 remains compiled-unmounted, not live.
+
+One focused proof passed in1.324s/333calls: saved failing predecessor advances,
+force/moment/power preserved, distinct points/keys and excessive loads rejected,
+exact repeat/cold continuation, old-header refusal and zero-energy rollback.
+Artifact body-tree docs/evidence/FB-01aj-midpoint-coincident-contact-proof.json
+SHAa35cf28f...05ffe02. Build16936/proof16980terminal,no survivors.
+Read-only03:33:20Z->03:33:32Z verifies same sole1559task/image/identity,
+ticks2530379->2530407,no checkpoint/cleanup errors or durability block.
+Existing clock-stalledALARM remains;other4OK. No livewrite,pushorSlack.
+
+Next is the existing whole-motion qualification with the v3 library; full
+functional-body/gravity/mount/performance/production acceptance remains open.
+This does not change G1 ownership of feeding, cognition, caretaker or deployment.
+
+## A1 TO JOE, C1, AND G1 — 2026-09-27 03:44Z — Body whole-motion accuracy remains open
+
+Local body commit292e08c7d retains one v3 whole-motion witness, using the
+already-reviewed compiled library with no rebuild or production write.
+Former22.278ms contact-count refusal is cleared. Sampled trajectory agreement
+holds through47.9ms, then fails at48ms around right-palm/digit-4 contact.
+Both local event brackets are0.390625us wide, but independent trajectories
+place contact onset17.1875us apart; finger rates,contact force/impulse and palm
+specific force exceed unchanged acceptance limits. Position/angle/work remain
+within limits. Narrow local bracketing is NOT global trajectory agreement.
+
+Receipt: body-tree docs/evidence/FB-01aj-midpoint-accepted-trajectory-v3.json,
+SHA25ca41a761e715243770425b6c7e383f93838b1750ef059ca28348dc04788c5e.
+9984calls,19.212s wall,19.198sCPU,152512KiBpeakRSS;child20570 terminal,
+no process-group or host-census survivor. Next is only a same-saved-predecessor
+short contact comparison, separating local integration from accumulated error.
+No tolerance relaxation, new physical law, broad-suite restart or cognition work.
+Full-body qualification and deployment remain incomplete.
+
+Read-only03:42:03Z->03:42:25Z retains sole1559task/image/identity,
+ticks2531623->2531675,errorsnull,durabilityfalse. Existingclock-stalledALARM
+persists;other4OK. No A1productionwrite,pushorSlack. G1 ownership unchanged.
+
+## A1 TO JOE, C1, AND G1 — 2026-09-27 03:58Z — Body error follows retained pre-contact state
+
+Local body commit3e08b0c4b records two bounded diagnostics; no runtime change.
+Both nominal meshes produce byte-identical successors when advanced from
+the SAME saved pre-onset state near48ms (128calls,0.99s). Restoring the SAME
+earlier31.468ms release state and advancing16.7ms at100/50/25us also passes all
+ratified comparisons; all three contact-onset brackets agree (4286calls,8.03s).
+Therefore the original48ms failure is carried by differing incoming states
+already present at/before31.468ms, not a new contact matcher defect or evidence
+requiring a blanket free-flight timestep reduction. Exact earlier causal source
+is not yet established; full-body accuracy is NOT passed.
+
+Receipts in body-tree docs/evidence:
+FB-01aj-midpoint-common-predecessor-onset.json SHA41fc5be1...243b8390;
+FB-01aj-midpoint-freeflight-resolution-map.json SHA1d7a816b...966f15dc.
+Next bounded item is retained state/impulse/work divergence around the preceding
+30.704–31.468ms contact, using those saved states rather than genesis replay.
+No tolerance relaxation, force change, new cognition or deployment.
+
+Children23101/24909 terminal; exact groups and host census have no survivors.
+Read-only AWS envelopes retain sole1559task/image/identity, advancingticks,
+null checkpoint/cleanup errors,no durability block. Existingclock-stalledALARM
+persists;other4OK. No A1productionwrite,pushorSlack. G1 ownership unchanged.
+
+## A1 TO JOE, C1, AND G1 — 2026-09-27 04:28Z — Body numerical correction: accuracy versus compute
+
+A1 remains on FB-01aj in /workspaces/guala-functional-body; no cognition,
+caregiver, food, production or shared source changes. Three retained diagnostics
+show that locally admitted motion error can survive into later contact. The
+preceding contact itself passes local checks; another contact special case is
+not supported by the evidence.
+
+A proposed dt/H error allocation does complete the saved 100 us interval, but
+requires 638/636 native calls and 256 fine pieces. Native computation alone is
+about 0.22 seconds per 100 microseconds simulated. This is NOT a viable real-time
+fix and has not been promoted to runtime. Increasing the CPU ceiling or weakening
+the accepted accuracy limits is not the remedy.
+
+A new 109-call, 0.872-second saved-state check reproduces the archived physical
+stage exactly and measures expected cubic local-error reduction across three
+predecessors and twelve dyadic step sizes. The slow requirement is not explained
+by a floating-point floor. A source-only review is checking the smallest
+stiff-stable higher-order numerical alternative; no new law is accepted yet.
+Naive midpoint extrapolation is explicitly rejected because it can amplify
+stiff decaying modes. Full-body accuracy and delivery remain open.
+
+Receipts in body-tree docs/evidence: FB-01aj-midpoint-prior-contact-map.json
+(15e21854...35aa56), FB-01aj-midpoint-error-allocation-feasibility.json
+(f4626dc4...ffe0b), FB-01aj-midpoint-truncation-regime.json
+(1b0a9fef...4c2f). Exact sources, states, limits and resource/health receipts
+are retained there, not in organism memory.
+
+All proof children are terminal; final host census has no proof/build/caretaker
+survivor. AWS GET/read-only envelope retains sole task 1559 and same identity;
+ticks 2537602 -> 2537610, no checkpoint/cleanup error or durability block.
+Existing clock-stalled ALARM remains; other four alarms OK. No deployment,
+push or Slack. G1 ownership remains unchanged.
+
+04:36Z follow-up: local body commit 96f5fc9da preserves all three receipts and
+the reviewed next numerical contract. The reviewer recommends two-stage Radau
+IIA for bounded qualification: unchanged physical forces, chart-correct rotation,
+coupled stage residuals and positive-weight physical work/impulse accounting.
+It is a numerical proposal, not measured performance or a shipped body. No
+runtime source changed in this commit. Next is the small saved-state stage
+primitive, not another full-history replay or a production experiment.
+
+## A1 TO JOE, C1, AND G1 — 2026-09-27 04:58Z — Body numerical primitive passes local check; cost remains open
+
+A1 continues FB-01aj in the isolated body worktree. The reviewed offline Radau
+motion primitive reproduces the saved force law, passes all ratified local
+comparisons over a 25 us saved-contact interval, repeats full state/work/contact
+impulse/sensory evidence exactly, and rolls back exactly on zero energy supply.
+Refinement reduces the main joint-rate discrepancy about 7.84-fold. This is NOT
+a whole-motion, gravity, mounted-world, restart or production performance pass.
+Intrinsic couple impulse remains explicitly unqualified, not silently certified.
+
+The dense diagnostic Jacobian is too expensive to ship: 12351 stage forwards,
+21 setup/restore forwards, one archived native step; 2.604 s wall and 166880 KiB
+peak RSS. Source-level efficient solution of the SAME residuals is the next
+bounded item. No new physical law, anatomy, cognition, food or caregiver change.
+Body receipt: docs/evidence/FB-01aj-radau-stage-regime.json,
+SHA256 15ed890c9604b7ac5a45372b722d1655c835503cc8e9c2c01e3ed59007e6ad4f.
+Exact sources, failure operands, comparisons and resource evidence are retained.
+
+Session96625/child48419 terminal with no survivors. Read-only AWS retains sole
+1559task/image/identity, ticks2542346->2542357, no checkpoint/cleanup error or
+durability block. Existingclock-stalledALARM remains; other4OK. No live write,
+push or Slack. G1's ownership and ongoing substrate work remain undisturbed.
+
+05:03Z follow-up: local body commit ed237ce5a preserves the receipt and source-
+grounded next solver question. No push. Next qualification will target bounded
+matrix-free solution of the same Radau residual; native transition derivatives
+were rejected because they differentiate the predecessor integrator, not this
+residual. No new force law or runtime algorithm has been shipped.
+
+## A1 TO JOE, C1, AND G1 — 2026-09-27 05:33Z — Body solver cost reduced; whole-motion gate still open
+
+A1 remains on FB-01aj in /workspaces/guala-functional-body. Same coupled
+Radau residual and physical forces: matrix-free correction reduces361 versus
+12351 stage forwards in the saved-state protocol. All qualified comparisons
+against the retained dense result, exact repeat and zero-supply rollback pass.
+This is a34.2x call reduction, NOT a production speedup or real-time pass.
+
+Completed contact map:31of32 sampled comparisons pass; one100us point exceeds
+the distal finger rate limit by1.17percent. Its50us counterpart already passes.
+The two clock-rounded endpoint refusals were rechecked without relaxing the
+step ceiling; one now passes and the other exposes that genuine rate failure.
+No successful matrix point was replayed. Next: whole-motion accumulated error
+and cost qualification, not new cognition, food, care, optics or force tuning.
+
+Body receipts: FB-01aj-radau-krylov-regime.json (0cd08113...7009),
+FB-01aj-radau-contact-map.json (1d69fb48...9f1c),
+FB-01aj-radau-endpoint-check.json (2808e9a2...5721). Exact sources and raw
+states/work/sensory output retained. No runtime or live source changed.
+All three children terminal; exact process/group census no survivors.
+Read-only AWS envelopes retain task1559/image/identity and advancing ticks;
+checkpoint/cleanupnull,durabilityfalse. Existingclock-stalledALARM persists,
+other4OK. No push,Slack or live mutation. G1 ownership is unchanged.
+
+## A1 TO JOE, C1, AND G1 — 2026-09-27 06:14Z — Body full-motion check not yet qualified
+
+A1 remains solely on FB-01aj in the isolated functional-body worktree.
+Compiled numerical algebra passes its saved-state references, exact repetition
+and energy/compute rollback. That is NOT a full-body or real-time pass.
+One common-genesis paired motion test now stops at19.2ms: right-foot inertial
+acceleration disagreement0.14817m/s2 exceeds its0.06185m/s2 allowance. Other
+measured ratified groups and observed event correspondence pass to that point.
+The preceding event is a joint-limit activation, not a contact with bedding.
+This is local body numerical qualification, NOT a diagnosed live Guala defect.
+
+Both complete accepted histories and first failure operands are retained in
+body receipt docs/evidence/FB-01aj-radau-whole-motion-v2.json,
+SHA0c6ce5ebb1b450e8d5a37ddd7cccdeac54ad134a11e596bb8a6b0a1b8afbe077.
+The first6.299s attempt lost its physics report to a NumPy Boolean JSON error;
+that failure is retained separately. Only the evidence conversion was fixed
+for the6.735s rerun. No hidden pass or full-suite rerun. Native solver unchanged.
+Next is the exact saved-state acceleration discrepancy, not new cognition,
+food, caretaking or policy work. No body source is mounted in production.
+
+Localchildren75882/77339 terminal; exact host census confirms no survivors.
+Read-onlyAWS retains sole1559task/image/identity, ticks2553288->2553309 with
+checkpoint/cleanupnull,durabilityfalse. Existingclock-stalledALARM remains;
+other4OK. No push,Slack or live mutation. G1's scope is undisturbed.
+
+Local-only body commit5fd4152cb preserves the compiled-unmounted candidate and
+all four new success/failure receipts; body worktree is clean. The next bounded
+map uses only saved19.1ms states to separate last-step numerical error from
+inherited-state and zero-time force-solve sensitivity. No full-history rerun,
+native rebuild or production change is planned for that attribution check.
+
+## A1 TO JOE, C1, AND G1 — 2026-09-27 06:25Z — Body acceleration discrepancy isolated
+
+One saved-state attribution map completed in0.863s without replaying history.
+Both archived successors reproduce exactly. The0.14817m/s2 balance-feedback
+discrepancy is dominated by the last100us numerical step during a knee-limit
+transient; inherited-state contribution is0.00000641m/s2. Zero-time force
+controls vary solver starting estimates while preserving physical state;
+changes remain below9e-13m/s2, excluding that as the relevant source here.
+
+The correction is generic error-controlled numerical stepping using existing
+body sensor/work/contact limits—not softer joints, relaxed tolerances or a
+learned-behavior override. No native source has changed yet. Whole-body
+accuracy and performance remain open. Full evidence is in the body tree:
+docs/evidence/FB-01aj-radau-force-attribution.json,
+SHA336d81a0d4a081e24e0dbbba2fb2b75658bdafedc5991407c5898ebb3d4e81e6.
+Child82191 terminal, host census has no survivor. Read-only production remains
+sole1559/sameidentity with advancing ticks, no checkpoint/cleanup error or
+durability block; existingclock-stalledALARM persists, other4OK.
+No push,Slack or live mutation. G1 retains cognition/food/care ownership.
+
+## A1 TO JOE, C1, AND G1 — 2026-09-27 06:48Z — Body local numerical correction verified
+
+A1 remains solely on FB-01aj in /workspaces/guala-functional-body. Generic
+error-controlled numerical stepping is implemented and independently reviewed,
+without changing physical forces, joint softness, accuracy limits or cognition.
+One bounded build and focused saved-failure proof passed. The inaccurate100us
+step is rejected; accepted motion uses four25us pieces. Both tested nominal
+schedules select the same grid: exact agreement is determinism evidence, NOT
+independent continuum convergence or whole-body qualification.
+
+Both recorded starting histories now agree within existing sensor/work limits.
+Fresh replay, raw restored next-interval continuation and energy/compute refusal
+rollback pass exactly. This is NOT runtime cold-restart qualification. Receipt
+docs/evidence/FB-01aj-radau-admission-proof.json in the body tree, SHA256
+0868ef58ef81aa32a5b1728f25ec73e0a8f423006d9572ef065c42070dd3b4ce.
+Proof child1.097s,154192KiBRSS;2541probe+52outside force calls. Build/proof
+children90637/90691 are terminal; exact host census confirms no survivors.
+
+Next is uninterrupted common-genesis motion accuracy and cost using the same
+compiled correction. No broad suite replay or completed-seam re-audit. Body
+world integration, runtime restart, performance and production delivery remain
+open. No source has been mounted live. Read-only AWS retains sole1559task/image/
+identity, ticks2558277->2558318, no checkpoint/cleanup error or durability block.
+Existingclock-stalledALARM persists; other4OK. No push, Slack or live mutation.
+G1 cognition/food/caretaker ownership remains unchanged.
+
+Local-only body commit c5df9ec70 records this correction and proof; the body
+worktree is clean. No push or deployment. The active body goal remains incomplete.
+
+## A1 TO JOE, C1, AND G1 — 2026-09-27 07:07Z — Continuous body motion remains unqualified
+
+One bounded uninterrupted paired motion test completed in16.39s, without a
+rebuild or history reset. It passes the previous19.2ms acceleration failure.
+At20.4ms the measured motion, sensory, work and tactile channels still pass,
+but the two knee-limit activation brackets jointly span1.171875us against
+the required1us timing bound. Actual crossing separation is not yet established;
+the current brackets are insufficient evidence. The complete failure is kept,
+not converted into a pass or a live-production claim.
+
+The test also exposes serious local compute cost:120353force calls inside
+the solver,7.94s native-force time for two20.4ms histories. The candidate is
+not real-time-qualified. No500ms completion, body mounting or production release.
+Next: inspect the two saved event segments through their actual collocation
+path to resolve timing uncertainty without restarting the histories or relaxing
+limits; preserve the separate force-call-cost problem for numerical correction.
+
+Body evidence docs/evidence/FB-01aj-radau-admitted-motion.json SHA256
+5dbde1bf559b6218487a42113265e216d9c4629de7837632baa20c61f651c73b.
+Child97439 terminal, exact host census has no survivor. Read-only production
+remains sole1559/sameimage/identity, ticks2560984->2561031, no checkpoint/cleanup
+error or durability block. Existingclock-stalledALARM remains;other4OK.
+No live writes, push, Slack, cognition/food/caretaker changes. G1 scope unchanged.
+
+Local-only body commit171425b66 preserves this failure and next-step contract;
+body worktree is clean. The full functional-body objective remains active.
+
+## A1 TO JOE, C1, AND G1 — 2026-09-27 07:31Z — Saved body event timing verified, compute cost still open
+
+A1 remains on the bounded functional-body precursor, not cognition or food.
+One independently reviewed offline diagnostic replayed only the two saved
+knee-limit event segments. Both successors, work, domains and clocks reproduced
+exactly; both predecessor states and timesteps restored exactly. Numerical
+crossing separation is enclosed within 0.79482724 microseconds, below the
+unchanged 1-microsecond limit. The earlier sampled-bracket failure was insufficient
+timing evidence, not proof that the numerical crossings exceeded the limit.
+This result does NOT qualify continuum error, later whole motion or production.
+
+No rebuild or heavy history rerun: 38 solver force calls plus 8 setup/restore,
+0.783 seconds complete child wall time, 190360 KiB maximum RSS. Owned child/group
+5568 exited; exact host census confirms no survivor. Local-only body commit
+622d55154 preserves the source-reviewed proof and receipt:
+docs/evidence/FB-01aj-radau-event-localization.json, SHA256
+c8c14d5b35c54c9a09ebc1ca6bb1a4cd71a8c3a7eba72c0480f494d5794f7a9a.
+
+Compute remains a real qualification failure. Read-only reanalysis of the saved
+last 29 primitive proposals attributes 644 of 903 force calls to centered
+finite-difference Krylov directions. Next: source-map a bounded numerical
+correction to that measured repeated work, preserving force laws and existing
+accuracy limits. Do not restart unchanged long histories or claim that removing
+logging alone makes the candidate real-time.
+
+Read-only AWS retains sole task1559/same task/image/identity, ticks2563983->2563991,
+no checkpoint/cleanup error or durability block. Existing clock-stalled ALARM
+persists; other four alarms OK. No production, push, Slack, cognition, food or
+caretaker changes. Body integration, gravity, restart and performance remain
+open; goal ACTIVE/incomplete. G1 ownership remains unchanged.
+
+## A1 TO JOE, C1, AND G1 — 2026-09-27 08:01Z — Bounded body compute correction verified locally
+
+A1 continues FB-01aj in the isolated functional-body worktree. Local-only commit
+8f3f47fb2 preserves the reviewed inverse-secant numerical correction and both
+proof receipts. The same body force equations, physical coefficients, accuracy
+limits and feedback channels remain authoritative; no cognitive law changes.
+
+Three matched saved-state steps now require 79 force evaluations versus 191
+with the old solver (58.64 percent fewer in these cases), while passing unchanged
+physical comparison limits and matching stage constraint domains. A fourth
+adaptive interval also passes against its authenticated admitted reference.
+This is NOT a whole-body wall-time speedup or real-time qualification. Fourth
+case cross-history event timing, intrinsic couple impulse, gravity, sustained
+motion, world mounting and runtime restart remain open.
+
+Fresh repeat is exact; energy and force-budget refusals restore raw state and
+timestep exactly. Entire continuation child: 1.035s wall, 1.029s aggregate CPU,
+174952KiB peak single-process RSS. 708 solver calls including the limited refusal,
+plus 40 outside calls. Child/group15867 terminal; exact host census finds no
+survivor. No rebuild or completed-control replay. The earlier mistaken fourth
+control reference and its honest refusal remain preserved, not erased.
+
+Evidence in body tree docs/evidence/FB-01aj-radau-secant-proof-v2.json, SHA256
+436deba429bb4f40588f721870b8ea3aa436a5f4b16212c2b09eaac2fc3e6a2f.
+Next is bounded sustained-motion accuracy/cost qualification using this changed
+solver, preserving completed evidence and avoiding unchanged heavy reruns.
+
+Read-only AWS07:53:27->07:53:30Z retained sole task1559/same image/identity,
+ticks2567892->2567900, no checkpoint/cleanup error or durability block. Existing
+clock-stalled ALARM persists; other four alarms OK. No live repair claimed.
+No push, Slack, production, cognition, food or caretaker changes. G1 ownership
+unchanged. Body worktree clean after local commit; complete goal ACTIVE/incomplete.
+
+## A1 TO JOE, C1, AND G1 — 2026-09-27 08:12Z — Body contact-impulse qualification remains open
+
+A1 continues FB-01aj. Local commit f556e8773 preserves sustained-motion evidence,
+not a production claim. The changed solver passes the earlier20.4ms event-timing
+boundary, then fails accumulated contact impulse at26ms between the left palm
+and distal digit4: disagreement2.90745e-5N*s versus2.03369e-6N*s allowed. Other
+measured motion, sensory, work and instantaneous tactile channels pass. Event
+timing also passes; intrinsic couple impulse remains unqualified. No limits
+were relaxed and the run stopped at its first physical mismatch.
+
+The failure is retained in body-tree docs/evidence/FB-01aj-radau-secant-motion-v2.json,
+SHA2566fb55748bbb472b84c5a5b89f77295611edd72c3cf96214e6a0dbf9c3278aebc.
+Complete child20.183s wall/20.152s aggregate CPU,241388KiB peak single-process
+RSS;104516 solver forwards. Child/group22452 terminated cleanly with exact host
+census confirming no survivor. The initial observer-only startup refusal is
+also preserved separately. No rebuild or old-control history rerun occurred.
+
+Next is a bounded comparison of the saved final50us contact segment, using both
+authenticated predecessors and numerical subdivisions to distinguish integration
+error from inherited-state sensitivity. Do not rerun the26ms history, soften
+contact, remove tactile evidence or claim real-time qualification.
+
+Read-only AWS retains sole task1559/same image/identity, ticks2570212->2570265,
+no checkpoint/cleanup error or durability block. Existing clock-stalled ALARM
+persists; other4OK. No production mutation, push, Slack or cognition/food/care
+changes. G1 ownership unchanged. Body goal remains ACTIVE and incomplete.
+
+## A1 TO JOE, C1, AND G1 — 2026-09-27 08:28Z — Saved body contact error isolated
+
+A1 body-only local commit32a4b0053 preserves one independently reviewed saved-
+contact diagnostic. Both original contact tails replayed raw-state/work/observation
+exactly. Finer subdivision isolates the dominant26ms impulse mismatch to the
+coarse integration grid, not inherited body-state differences. Same-predecessor
+coarse error2.89563e-5N*s; fine-grid inherited difference8.12263e-8N*s.
+Four-piece results pass the existing local comparison;8-versus16 disagreement
+is1.7056e-9N*s. This is numerical evidence, not a continuum accuracy certificate.
+
+Concrete remaining defect: the current one-versus-two local admission check can
+agree spuriously on a short contact transient. All sampled constraint domains
+remain unchanged; domain-label changes alone cannot fix it. Next is a bounded
+contact-impulse admission correction using the same saved50us predecessors,
+unchanged physical forces and accuracy limits. No26ms-history rerun or arbitrary
+contact smoothing. Whole-body integration/performance qualification remains open.
+
+Evidence in body-tree docs/evidence/FB-01aj-contact-impulse-attribution.json,
+SHA256658a31bd14ba9d2fc44ae328463bd8563c6bb680f6183d1914574d1f23593e4b.
+68primitives,1302 solver forwards plus28 outside; complete child1.1204s wall,
+1.1166s aggregate CPU,216048KiB peak single-process RSS. Child/group29028
+terminated; exact host census confirms no survivors. No rebuild or heavy rerun.
+
+Read-only AWS retains sole task1559/same image/identity, ticks2572531->2572540,
+no checkpoint/cleanup error or durability block. Existing clock-stalled ALARM
+persists; other4OK. No production health correction is claimed. No push, Slack,
+production, cognition, food or caretaker changes. G1 ownership unchanged.
+Body worktree clean after local commit; full goal ACTIVE/incomplete.
+
+## A1 TO JOE, C1, AND G1 — 2026-09-27 08:44Z — Contact integration correction passed locally
+
+Body-only local commit1bb861e5a corrects the demonstrated contact quadrature
+blind spot. Existing Radau motion/work remains authoritative; a start-inclusive
+passive contact-integral estimate uses the same force/couple impulse tolerances
+and sends unresolved steps through the existing bounded subdivision/rollback.
+No physical softness, anatomy, cognitive law, new tolerance or production mount.
+
+One frozen source review and localized proof-evidence correction preceded the
+build. Both old false-converged cases now refuse exactly; resolved fine steps
+reproduce archived raw successors/work. Ordinary admission from both saved
+predecessors passes the complete unchanged local endpoint/work/contact/sensory
+comparison against authenticated16-piece references. Force impulse error is
+about4.946e-9N*s (0.002499 of allowance), versus14.6 times allowance before.
+Fresh repeat, zero-energy and force-budget rollback checks pass.
+
+Receipt: body-tree docs/evidence/FB-01aj-contact-estimator-proof.json,
+SHA25642d4f6c3567871f56dd91db89e2ab22fdf1f7ec2607c59beb3bb3f90cf260fb3.
+Two sequential builds8.40/13.00s; one proof1.020s full child wall,1.013s aggregate
+CPU,154588KiB peak single-process RSS.51 primitives,1065 solver forwards plus55
+outside. Exact groups35194/35232/35286 are terminal; host census has no survivors.
+
+Next is sustained-motion accuracy/cost qualification with the same binaries,
+not a rebuild or repeated focused proof. This local defect closure does not
+close full body qualification, gravity, world mounting, restart or performance.
+Read-only AWS retains sole task1559/same image/identity, ticks2574807->2574869,
+no checkpoint/cleanup error or durability block. Existing clock-stalled ALARM
+persists; other4OK. No production remediation is claimed. No push, Slack,
+production, cognition, food or caretaker changes. G1 ownership unchanged.
+Body goal ACTIVE/incomplete; isolated worktree clean after local commit.
+
+## A1 TO JOE, C1, AND G1 — 2026-09-27 08:56Z — Sustained body continuation remains unqualified
+
+One independently approved no-build continuation stopped at47.95ms on real
+paired-resolution disagreement, beginning from authenticated26ms successors.
+Saved receipt in body-tree docs/evidence/FB-01aj-contact-estimator-motion.json,
+SHA2562b1c53fdc2ab498ac4658e9d94d50402482a8c6d306eb237f5f11c610a108caa.
+Right palm/little-finger contact timing bracket union3.90625us exceeds1us;
+angular motion, joint-speed, contact force, specific-force and impulse comparisons
+fail. Position/orientation/work checks pass. This does not yet establish whether
+the error is accumulated in the earlier trajectory or local to the final50us.
+The earlier saved-contact correction remains proved only within its local scope.
+
+4079 primitives,77735 total forwards;14.62s complete child wall,14.60s aggregate
+CPU,223748KiB peak single-process RSS. This is21.95ms simulated continuation,
+NOT real-time readiness. Session60788/group38800 terminal; separate host census
+confirms no survivors. AWS read-only08:50:31->08:50:48Z retained sole1559/same
+image/identity, ticks2576141->2576182; checkpoint/cleanup null, durability false.
+Existing clock-stalled ALARM remains, other4OK. No live correction claimed.
+
+Next is a bounded saved-final-window attribution, not a rebuild or full rerun:
+replay accepted final50us only, compare two finer grids from each authenticated
+predecessor, and distinguish local error from inherited trajectory divergence.
+No physical-force, tolerance, cognition, food, caretaker or production changes.
+Independent source review is underway. No push or Slack in A1 body-only scope.
+The full functional-body goal remains ACTIVE and incomplete.
+
+## A1 TO JOE, C1, AND G1 — 2026-09-27 09:05Z — Final-contact attribution preserved locally
+
+Body-only local commit cf8051a2e preserves the failed sustained continuation and
+one narrowly scoped follow-up. No physical or cognitive source changes this turn.
+Both saved final50us tails reproduce raw states/work and full observations exactly.
+128-versus256-piece refinement from each SAME predecessor passes existing limits.
+The two DIFFERENT histories still disagree on onset by2.93..3.32us at the fine
+grid: the timing discrepancy is inherited before47.9ms, not cured by refining
+only this last contact. Saved gaps already differ by59.716nm at47.9ms.
+
+This does not yet determine whether the mismatch entered before the26ms restart
+or accumulated afterward. Do not claim a new mechanics defect solely from comparing
+different initial states. Next: resolve that distinction at saved common boundaries
+before any global numerical-error-control change. No force or tolerance relaxation,
+synthetic feedback, motor plan, whole-history restart, or repeat of this closed proof.
+
+Receipt: body-tree docs/evidence/FB-01aj-contact-time-attribution.json SHA256
+230a64146221e91a8e4ae748267d9a2f35c50c47c734b688af91b1454de39a72.
+One independent review, one localized observation-evidence correction, final PASS;
+792 primitives,8144 total forwards;2.776s complete child wall/2.773s aggregate
+CPU,203656KiB peak single-process RSS. Exact group43290 exited; host census empty.
+No rebuild. Read-only AWS retained sole1559/same image/identity,ticks2577930->2577944,
+no checkpoint/cleanup error or durability block. Existing clock-stalled ALARM
+remains; other4OK. No live health correction claimed.
+
+Body worktree clean after local commit. Full goal ACTIVE/incomplete: sustained
+accuracy, performance, gravity, world mounting and restart integration remain open.
+No push, Slack, production, food or caretaker changes; G1 ownership unchanged.
+
+## A1 TO JOE, C1, AND G1 — 2026-09-27 09:20Z — Body contact discrepancy causally separated
+
+Local body commit d2b14d430 preserves one crossed initial-state/step-size
+diagnostic. Original two trajectories were reused, not rerun; only the missing
+two cells executed. Both original endpoints restored byte/time/observation exactly.
+At47.95ms, matched initial states pass all measured terminal physical channels
+at coarse/half step sizes. Different initial states at the SAME step size still
+fail motion/force feedback and have contact-time separation lower bounds above1us.
+Pre26ms inherited trajectory differences therefore materially affect this event;
+the current post-restart physical force law alone is not its demonstrated cause.
+
+One boundary remains unresolved for matched initial states: sampled contact-time
+brackets permit differences ranging from0 to1.17/1.56us. Their upper bound fails
+the1us gate, but does not prove the actual event error exceeds1us. No tolerance
+was relaxed and no success is claimed. Next is tighter event evidence from saved
+event predecessors, not another26..47.95ms run or a speculative force-law patch.
+Whole-history accuracy, performance, gravity, mounting and restart remain open.
+
+Receipt: body-tree docs/evidence/FB-01aj-contact-crossed-history.json SHA256
+e090f15727f976dbbf0929a6a7358afae2e9ea942ff3a3490f924db6d9c77453.
+Independent frozen source review, one localized evidence-retention correction,
+final PASS.4077 primitives/77816 forwards; full child15.03s wall/14.97s aggregate
+CPU,263980KiB peak single-process RSS. Exact group47909 exited; host census empty.
+No rebuild or physical/cognitive source change. Read-only AWS retains sole1559,
+same image/identity,ticks2579783->2579827, no checkpoint/cleanup/durability error.
+Existing clock-stalled ALARM remains; other4OK. No production remediation claimed.
+
+Body branch clean after local commit. Goal ACTIVE/incomplete. No push, Slack,
+production, cognition, food or caretaker changes; G1 ownership unchanged.
+
+## A1 TO JOE, C1, AND G1 — 2026-09-27 09:34Z — Matched-start contact timing closed locally
+
+Local body commit605c3758c records the two missing final50us comparisons. Both
+same26ms-start paths agree within0.781250us for the measured contact onset,
+below the unchanged1us gate; all measured terminal motion/work/impulse/tactile/
+proprioceptive/inertial limits pass. Both recorded controls reproduce raw/work/
+observation exactly, and the existing original fine trajectories were reused
+without reintegration. This resolves the prior ambiguous contact measurement.
+
+These finer tails have changed numerical successors; this is NOT a retroactive
+certificate of earlier trajectories or a full-body/continuum claim. The inherited
+pre26ms history remains unqualified under the corrected estimator. Next is a
+same-initial-state accuracy path under the current law, not another final-tail
+rerun. Gravity, sustained cost, ordinary mount and restart remain open.
+
+Receipt: body-tree docs/evidence/FB-01aj-matched-contact-tail.json SHA256
+f6d17a2a7adf6f43ed13f8c6128654e1d84fcba79762ba2421bd908bc4c0a4d1.
+Independent review, one localized failure-evidence ordering batch, final PASS.
+794primitives/8172total forwards,3.155s full child wall/3.149s aggregate CPU,
+246984KiB peak RSS. Group54504 exited; separate host census empty. No rebuild.
+Read-only AWS retained sole1559/same image/identity,ticks2582187->2582200,
+no checkpoint/cleanup/durability errors. Existing clock-stalled ALARM remains;
+other4OK. No live health fix claimed. No force/kernel/cognition/source change,
+push, Slack or production mutation. G1 ownership unchanged; full goal ACTIVE.
+
+## A1 TO JOE, C1, AND G1 — 2026-09-27 09:51Z — Whole-path numerical accuracy remains open
+
+Local body commit56910e85f preserves a fresh identical-genesis/current-law run
+and one short causal follow-up. The new history fails at32.4ms on left-foot
+specific force:0.0503621m/s2 disagreement vs0.0495030m/s2 allowed. Other measured
+motion/work/contact/feedback channels and event timing pass. This is a genuine
+current-law accumulated-error boundary, not the earlier contact-time ambiguity.
+
+Only the last100us was replayed for attribution:20 primitives, exact raw/work/
+observation controls. Same initial state with different final meshes passes;
+different incoming states with the SAME final mesh still fail. Error accumulated
+before that final calculation and amplifies as the relative allowance contracts.
+The correction belongs to interval-wide numerical accuracy control, not force
+retuning, sensor suppression, synthetic state synchronization or weaker limits.
+Current local substep checks alone are insufficient. No mechanics fix is falsely
+claimed complete. The next numerical candidate must address accumulated error
+and cost before any further full-origin qualification run.
+
+Evidence in body worktree:
+docs/evidence/FB-01aj-current-law-genesis.json SHA256
+f2a5cbd29eaed4ab8a9974f8bddac8ff4a52aaa63ed85f8440a156ef6cb10ca0;
+docs/evidence/FB-01aj-acceleration-attribution.json SHA256
+46b8e8d60544b4d7fd85648687efba935de7400c673c675c27360f3f8988731a.
+Both frozen independent reviews PASS. Full genesis child28.78s/262648KiB RSS;
+short attribution1.322s/279752KiB RSS. Groups57349/60689 terminal and separate
+host censuses empty. No build or production mutation. Read-only AWS retains
+sole1559/same image/identity, advancing ticks, no checkpoint/cleanup/durability
+error; existing clock-stalled ALARM persists, other4OK. Runtime speed remains
+unqualified, as do gravity, body/world mounting and restart integration.
+Goal ACTIVE. No push or Slack in body-only scope; G1 ownership unchanged.
+
+## A1 functional-body numerical correction — 2026-09-27 10:08Z
+
+FB-01aj only; no live/cognitive/food/caretaker edits. The saved-history attribution
+in56910e85f shows accumulated numerical drift, not a final-step force or sensor
+defect. One offline candidate now uses three-stage fifth-order Radau IIA instead
+of two-stage order3, retaining the same native forces, anatomy, SO(3) mechanics,
+energy accounting, tolerances and refusal rollback. It is not a global accuracy
+certificate and remains unmounted. Do not read this as production readiness.
+
+Body worktree frozen aa1694d3c9cf68a4bcdb32796c2bb1aeaa0c96d0efd50f0c3dec8b27ff4ad386.
+Source78000f1994293cd4eab63eed4438d02bb7f5bfc2c103bddb5e25dcecbd3d7a5e.
+The review found no architectural issue and two localized proof-report gaps;
+failed admission and full impulse/replay evidence are now preserved. Final
+source-only gate is underway before one build and saved-state panel. No new
+whole-history run yet. Physics limits and body scope remain unchanged. The
+panel covers authentic saved free/contact/limit states plus exact replay and
+energy/budget rollback; runtime cost will be reported, not assumed improved.
+
+## A1 body numerical panel result — 2026-09-27 10:11Z
+
+The single Radau3 saved-state panel PASSED all six resolution comparisons,
+exact state/work/impulse/observation replay, and energy/budget refusal rollback.
+Proof child2.605s wall,259108KiB peak RSS; build13.553s,360024KiB.331primitives,
+8020solver forwards. Full source-only review passed before execution. All exact
+owned child groups68793/68853 are gone, independently verified on the host.
+
+Receipt in body worktree docs/evidence/FB-01aj-radau3-saved-regimes.json SHA256
+7f62ca5c19929b7948d2f36f40866921304aafaf2958d9fa45c916dff203d10d.
+Current source78000f1994293cd4eab63eed4438d02bb7f5bfc2c103bddb5e25dcecbd3d7a5e;
+compiled-unmounted Radau963c8047874be40142b3629a909d29c392244d926b12c7cf63196527587e76fa.
+No force, anatomy, tolerance, cognitive, food, caretaker or production change.
+Read-only AWS retains sole1559/same identity/digest,ticks2587778->2587823,
+no custody errors; the existing clock-stalled ALARM persists,other4OK.
+
+This does NOT prove sustained accuracy or real-time motion: individual100us
+physical intervals cost0.111..0.183s in this diagnostic. Next is the same-origin
+three-stage sustained trajectory with stage-correct event observation and cost.
+No repeat local panel or rebuild without a new causal source change. Gravity,
+body/world mounting, restart and production qualification remain open. Goal active;
+no push or Slack in body-only scope. G1 ownership unchanged.
+
+## A1 body sustained numerical result — 2026-09-27 10:21Z
+
+FB-01aj: Radau3 same-genesis comparison passes all completed accuracy/event
+checks through21.8ms. The following100us interval hits its162-trial work ceiling
+and rolls back exactly. This is an incomplete sustained proof, not a pass or
+a deployed body.27/38 refinements came from passive contact-impulse estimation;
+the next bounded diagnosis will distinguish actual impulse error from unnecessary
+lower-order-estimator refinement using the saved failing interval. No simple
+budget increase or unchanged full-origin replay.
+
+Receipt in body worktree docs/evidence/FB-01aj-radau3-genesis.json SHA256
+5a2827aa1c371e346c5e1612cb76accee8576fed7f0232b9e006497a8dc849fb.
+Frozen source-only review PASS; no rebuild or numerical/physical source edit.
+3937primitives/99062solver forwards,full child18.071s/214828KiB peak RSS.
+Group72517 terminal; separate host census empty. AWS read-only envelope retains
+sole1559/same image/identity,ticks2589080->2589131,no custody errors; existing
+clock-stalled ALARM persists,other4OK. No production, cognitive, food, caretaker,
+push or Slack change. Body/world integration and performance remain unqualified.
+
+## A1 body contact-estimator attribution — 2026-09-27 10:38Z
+
+FB-01aj only. The passive saved-state diagnostic stopped at an unresolved
+reference-contact transition; it did NOT validate a replacement estimator.
+The50us proposal from21.8ms fails both original and alternative estimates.
+Even the first0.390625us reference grid meets a contact-impulse refusal on
+its18th piece and rolls back exactly. Two refined reference paths therefore
+did not complete; no true-error attribution or old-counterexample PASS is
+claimed. All available raw evidence is preserved; no native source changed.
+
+Receipt in body worktree docs/evidence/FB-01aj-radau3-impulse-attribution.json
+SHA2563b1f624bd4f8b97346c23870516a345919c777d6840fbb7a6a59d0327c0e826b.
+Final frozen source-only review PASS.19primitives/391forwards; full child0.974s,
+193024KiB peak RSS. Exact group79493 terminal and independent host census empty.
+Read-only AWS retains sole1559/same image/identity,ticks2591812->2591821 with
+no custody errors. Existing clock-stalled ALARM persists,other4OK.
+
+Next: resolve only the saved reference transition using the unchanged refusal
+law and bounded dyadic subdivision, before interpreting estimator accuracy.
+No tolerance weakening, budget increase, unchanged full-history replay, push,
+Slack or production mutation. G1-owned autonomy/care/deployment remains separate.
+Functional body still compiled-unmounted; full delivery and performance OPEN.
+
+## A1 functional-body numerical evidence — 2026-09-27 10:56Z
+
+FB-01aj progressed from the saved contact-step refusal to a bounded regime map.
+Two independently refined references agree across nine larger loaded proposals:
+seven genuinely fail and two pass but both estimators are over-conservative.
+That run hit its existing2500-trial ceiling only on the final quiet control;
+the incomplete control is not called a pass and was not replayed.
+
+Then the exact saved rejection frontier was tested:25 authenticated actual
+refusals plus two smaller old-state controls,27/27 completed. The derived
+positive0,c2,1 estimator admits nine previously refused proposals; all nine
+pass full motion/sensory/work/contact and local impulse comparisons against
+two independent refined paths. All known inaccurate proposals remain refused.
+This supports a narrow numerical-estimator correction, NOT a physical-law
+change, tolerance relaxation, real-time claim, or mounted production body.
+
+Evidence in body worktree:
+docs/evidence/FB-01aj-radau3-refined-impulse-attribution.json SHA256
+c7ea6decfea2ba92c95b3d1b7928f5e4b89223c4b5ad862443347d4e7fb6948e;
+docs/evidence/FB-01aj-radau3-refusal-frontier.json SHA256
+273771de2bb0a2be2470022d299292bd583af69569a8c704f16df3f80a7aa20b.
+Both final source-only reviews passed. Exact groups83418/86457 terminal with
+independent host censuses empty. Frontier child7.619s/301652KiB RSS,1169trials.
+Read-only AWS remains sole1559/same image/identity, advancing ticks and no
+custody errors; pre-existing clock-stalled ALARM remains,other4OK.
+
+Next: apply only the supported estimator and qualify the original failed100us
+interval under the unchanged162-trial allowance before any full-history replay.
+Kernel/cognition/food/caretaker ownership untouched. No live changes, push or
+Slack. Full functional-body delivery and performance remain open; goal ACTIVE.
+
+## A1 functional-body numerical evidence — 2026-09-27 11:33Z
+
+FB-01aj: implemented the supported positive quadratic impulse estimator only.
+All37 saved primitive cases preserve exact prospective body state, observations,
+actual Radau impulses, energetic work and force-call counts. The original100us
+interval STILL exceeds its unchanged162-trial allowance and rolls back exactly;
+this is not reported as a completed performance fix or body delivery.
+
+A single follow-up attribution used saved predecessors, existing binaries and
+51primitive calls, not a full simulation replay. All17 local/domain rejections
+pass the unchanged physical error comparisons; all17 fail the separate sampled
+event-timing gate. They involve actual joint/constraint/loaded-contact changes,
+so their timing requirement must not simply be removed. Next: use the saved
+chronological stage evidence to localize those transitions under the same1us
+uncertainty. No larger budget, weaker tolerances or new behavior rules.
+
+Body-worktree receipts:
+FB-01aj-radau3-positive-embedded-proof.json SHA256
+8bda9317bc0d3171c330d4420e4af4ead1e250c1e93efc4035d129b984531715;
+FB-01aj-radau3-local-rejection.json SHA256
+cbe9974c9988aad01dd2f0e41cf33c1b46048738247ee868e9087c262239c8e6.
+Independent final source review PASS. Attribution child1.428s,162104KiB RSS;
+owned group99597 terminal and independent host census empty. Read-only AWS
+retains sole1559/same image/identity,ticks2599678->2599687,no custody errors.
+Pre-existing clock-stalled ALARM remains;other4OK. No production mutation,
+push or Slack. G1 cognition/food/caretaker/deployment source untouched.
+Body remains compiled-unmounted; complete mechanics/integration/restart/cost
+qualification remains OPEN. Goal ACTIVE.
+
+## A1 TO JOE AND G1 — 2026-09-27 12:00Z — FB-01aj contact timing proof
+
+Local body commit b1dba6cf3, branch a1/guala-functional-body. Chronological
+event admission now completes the previously failing21.8->21.9ms interval in
+139 of the unchanged162trials. Two independent finer references agree on body
+motion, sensory/contact return, work, impulse and material-event timing;
+largest combined event bracket0.765466us under unchanged1us. Exact replay,
+zero-energy refusal and budget-exhaustion rollback pass. Seventeen saved cases
+were classified without replay; ambiguous sequences remain refused.
+
+One independent review/localized proof correction batch/final PASS, one build,
+one offline proof. Receipt in body tree:
+docs/evidence/FB-01aj-radau3-stage-events-proof.json SHA256
+23f8610650dd716e8241307d412d4af48bf18793206584426a1d0fda9c36974e.
+Proof1078primitives/5.505numerical CPU seconds; child6.418s,282348KiB RSS.
+Owned groups10167/10244 exited; exact host census empty. Initial substring
+census matched only its own shell; exact argv/group check corrected that
+inspection defect without rerunning physics or signaling any process.
+
+Read-only AWS11:57Z retains sole1559/same image/identity,ticks2603522->2603580,
+no custody errors. Existing clock-stalled ALARM persists;other4OK. No production
+mutation, push or Slack. G1 source untouched. Local timing defect closed;
+sustained accuracy/performance, gravity, body/world integration and restart
+remain OPEN. Next: use the accepted chronological evidence in sustained
+same-genesis qualification, not repeat the completed local proof. Goal ACTIVE.
+
+## A1 TO JOE AND G1 — 2026-09-27 12:18Z — FB-01aj sustained accuracy remains open
+
+Body-only, isolated, no G1 source or production changes. The v3 sustained proof
+passes .048s but fails at58.2ms: palm angular-rate discrepancy0.0342484rad/s
+exceeds0.0161171 allowance; joint-limit event differs by at least3.18501us
+against1us. Local contact-timing closure was not whole-trajectory qualification.
+
+Saved-state attribution reused the16 verified control steps after correcting an
+observer-only floating work-reduction order mismatch. Only52 remaining steps
+ran; no repeat of the46second sustained proof. Both native controls reproduced
+exactly. Crossed tails establish BOTH inherited drift causing angular-rate
+failure and local mesh-dependent acceleration error. A passing incoming pose
+comparison does not guarantee equal later joint-limit timing. No accuracy
+thresholds, physical forces, trial bounds, cognition or kernel were changed.
+
+Body-worktree evidence:
+docs/evidence/FB-01aj-radau3-stage-genesis.json SHA256
+49a444a5aa038e6368546cc70949d9b7291ae5fa9178216f3d12f8293f997c1d;
+docs/evidence/FB-01aj-radau3-stage-tail.json SHA256
+61e98c5ae4ccb89adc2b1f330f869b87142459289aefc6e57b5ff625e79c4647;
+docs/evidence/FB-01aj-radau3-stage-tail-remaining.json SHA256
+82279b50c431ddb9261146360320c436bd1a6601145b58cc2410af60b79c34b2.
+Final diagnostic0.616numerical CPU seconds, child1.202s/281744KiB RSS.
+Owned group18762 terminal; independent exact host census empty. Read-only AWS
+retains sole1559/same image/identity,ticks2606663->2606671,no custodyerrors.
+Pre-existing clock-stalled ALARM remains;other4OK. No push, Slack or production
+mutation. Next: bounded trajectory-error analysis from saved evidence; no
+unchanged whole-history rerun. Body compiled-unmounted, integration NOT ready.
+Goal ACTIVE; sustained accuracy/cost, gravity, integration and restart OPEN.
+
+Evidence saved locally as body commit82e4b2aa5; body worktree clean after commit.
+Native radau/interval source hashes remain unchanged. No push or deployment.
+
+## A1 TO JOE AND G1 — 2026-09-27 12:47Z — FB-01aj diagnostic result, no production change
+
+The saved-state force diagnostic completed: all68 primitive controls reproduced
+their original successor and work exactly. The proposed extra all-force local
+error check rejects none of them, including pieces in the later failed motion.
+It is therefore NOT a sufficient fix and will not be added as one. No weaker
+tolerance, force change, new controller, or whole-history rerun was used.
+
+Body-tree evidence: docs/evidence/FB-01aj-radau3-all-force-observer.json,
+SHA256 ad0d1893f86f4acb677a3f6e4eba48d04b39d4efeb0dad31a0efc3349f8b6026.
+68primitives/1523native forward calls/0.765304numerical CPU seconds;
+child1.614203wall,281108KiB peak RSS. Owned group27304 terminal; independent
+host census empty. Read-only AWS retains sole1559/same image/identity,
+ticks2609910->2609920,no custody errors. Existing clock alarm persists,other4OK.
+
+Continuing the same sustained body-accuracy item: accumulated pose/rate error
+changes later joint-limit timing, and local sensory discrepancy remains too.
+No numerical correction is claimed qualified. Native body source is unchanged;
+compiled-unmounted, NOT production-ready. No G1 cognition, food, caretaker or
+deployment source touched; no push, Slack or production writes. Full delivery
+still requires sustained accuracy/cost, gravity, integration and restart proof.
+
+Diagnostic and sprint record saved locally as body commit161119812. No push or
+deployment; native body source unchanged.
+
+## A1 TO JOE AND G1 — 2026-09-27 13:15Z — FB-01aj solved contact-state handoff
+
+Body-only correction, not production or cognition. Found an exact native
+handoff defect: island solver updates final constraint states in iefc_state,
+but the observer read stale warmstart efc_state. The corrected observer maps
+final states into native row order under the native solver's own predicate;
+no force law, threshold, sensor value or physical state is modified.
+
+Independent frozen source review passed; one bounded build/proof completed.
+All11 saved primitive controls reproduce raw successor/work/call count exactly.
+All6 solver-branch checks preserve physical state. The previously missed
+joint-limit release is now observed. The local24.1->24.2ms interval agrees
+with64/128piece references on motion, sensory return, work and impulse.
+Replay, cold body state, old-law refusal, energy and trial-ceiling rollback pass.
+345primitives/2.143numerical CPU seconds; child2.994wall,280984KiB RSS.
+
+Body-tree receipt docs/evidence/FB-01aj-solved-domain-proof.json SHA256
+d1e5de4d9372b944c89253c5a3f567c4c042afc7ff07ddb36df7d4ed48a9abc0.
+Owned build/proof groups40365/40454/40549 exited; independent census empty.
+Read-only AWS13:14Z: sole1559/same image/identity,ticks2614948->2615018,
+no custody errors. Existing clock alarm persists,other4OK.
+
+This closes a local reporting defect, NOT sustained accuracy or real-time cost.
+Body remains compiled-unmounted. Next: fresh same-genesis v4 qualification;
+do not relabel old v3 histories as corrected-law evidence. No G1 source, push,
+Slack or production writes. Goal ACTIVE; gravity, integration/restart and
+sustained numerical qualification remain open.
+
+Verified correction and evidence saved locally as body commit0b1f55c7c on
+a1/guala-functional-body. No push or deployment.
+
+## A1 TO JOE AND G1 — 2026-09-27 13:28Z — FB-01aj sustained accuracy progresses; cost open
+
+One reviewed offline v4 run, no rebuild. Both independent histories agree on
+motion/sensory/work and material-event timing through68.4ms, passing the old
+58.2ms failure point. The run then stopped at the unchanged50CPU-second limit.
+This is a retained accurate prefix, NOT completed500ms qualification or live
+readiness. Coarse is at68.5ms, half rolled back exactly to68.4ms; both histories
+are preserved for continuation without replay or synchronization.
+
+Body-tree receipt docs/evidence/FB-01aj-radau3-solved-genesis.json SHA256
+c243a427cb3344d7ff1ebde75f1aaef353e4fad4d50ad2d1e791c3a1e974e85d.
+10890primitives/283648force calls/50.006CPU seconds; child51.391wall,
+354212KiB RSS. Primitive work41.702s includes19.403s native forces; observer
+3.578s. Removing observation alone cannot qualify cost. No force, accuracy,
+event, anatomy, cognition or kernel limits weakened.
+
+The next bounded step is cost attribution from saved v4 states, not another
+whole-history rerun or larger timestep. A larger step would trigger MuJoCo's
+2*dt response clamp and alter the fixed force law, so it is not a neutral speed
+setting. Earlier rejected integrators remain rejected.
+
+Owned group44229 exited; exact host census empty. Read-only AWS13:22->23Z
+retains sole1559/same image/identity,ticks2616211->2616343,no custody errors.
+Existing clock alarm persists,other4OK. No G1 edits, push, Slack or production
+mutation. Goal ACTIVE; full sustained accuracy/cost, gravity, integration and
+restart remain open.
+
+Sustained v4 evidence saved locally as body commitec5e374bd. No push or
+deployment; native source remains at the locally verified0b1f55c7c correction.
+
+## A1 TO JOE AND G1 — 2026-09-27 13:45Z — FB-01aj measured call-boundary cost
+
+Ten saved-state controls all reproduce physical state, work and force-call
+counts exactly. The diagnostic took1.256wall seconds,296744KiB RSS; its owned
+process exited and independent host census is empty. No history replay or
+source/law change. Body evidence SHA256
+ad02b9997b47d7c2531e3b3a73f134e9a772bf50cc14916c1786943213c963b3
+(docs/evidence/FB-01aj-radau3-cost-profile.json in the body worktree).
+
+The snapshot currently makes250separate geometry-velocity calls per primitive.
+Next bounded correction is one typed traversal preserving every native velocity
+bit, snapshot and numerical successor. No evidence rows, force evaluations or
+accuracy checks will be removed. Instrumented wrapper time is NOT production
+cost, and this local correction is NOT a claim that real-time cost is solved.
+The substantial force-solver cost remains separately measured and open.
+
+Read-only AWS13:38Z retains sole1559/same identity/image,ticks2618515->2618525,
+no custody errors; existing clock alarm persists. No G1 edits, push, Slack or
+production mutation. Functional-body objective ACTIVE, compiled-unmounted;
+sustained accuracy/cost, gravity, integration and restart remain open.
+
+## A1 TO JOE AND G1 — 2026-09-27 14:00Z — FB-01aj exact body observation cost correction
+
+The body-only native velocity traversal now replaces250separate geometry getter
+calls per numerical primitive. Independent frozen source review passed. One
+build/proof verified all2500geometry rows and saved physical successors exactly;
+cold next-step and energy/force-budget rollback pass. No force law, tolerance,
+cognition, sensory value or schema changes. No production mount or G1 edits.
+
+Body-tree receipt docs/evidence/FB-01aj-velocity-boundary.json SHA256
+dd0d5e5b2f2543cb282657980da3fb5a288271523555ee165c7b2acb01818606.
+53primitives/0.340numerical CPU seconds. Short paired wall time70.195->66.896ms
+for20steps; this is modest local improvement, NOT real-time qualification.
+Force-solver cost remains open. No unchanged heavy test rerun.
+
+Owned groups58341/58402 exited; exact host census empty. Read-only AWS13:59Z
+retains sole1559/same identity/image,ticks2621541->2621578,no custody errors;
+existing clock alarm persists. No push, Slack or production mutation.
+Next resume saved68.4/68.5ms histories without restarting or synchronizing them.
+Body objective ACTIVE, compiled-unmounted; sustained accuracy/cost, gravity,
+integration and restart still open.
+
+## A1 TO JOE AND G1 — 2026-09-27 14:27Z — FB-01aj continuation exposes acceleration limit
+
+One reviewed offline continuation, no build or source change. Independent saved
+histories agree through173.4ms; at173.5ms the left-palm acceleration feedback
+disagrees by0.0435416541m/s^2 against an allowed0.0428634994m/s^2. This FAILS
+the unchanged accuracy gate. Other measured groups/event correspondence pass;
+intrinsic-couple impulse remains unqualified. No body readiness claim.
+
+Receipt in the body worktree docs/evidence/FB-01aj-radau3-continuation-1.json
+SHA256 0dde7d4af486bf88ff89de9c91b84a7c0161fda16c8ec0329c3367b89ab645af.
+Both failed states and independent173.4ms predecessors retained. New work:
+10081primitives,42.436numerical CPU seconds,43.740child wall,320500KiB RSS.
+Owned group65607 exited; independent host census empty.
+
+Next bounded diagnosis is the saved100us interval around the newly activated
+joint limit, not a whole-history rerun or weaker accuracy threshold. The event
+timing gate passes despite the pointwise acceleration failure; the causal
+numerical operation has not yet been isolated. Sustained real-time cost remains
+open separately. No cognition, G1, kernel, force-law or production changes.
+
+Read-only AWS14:19->20Z retains sole1559/same identity/image,
+ticks2624476->2624586, no custody errors; existing clock alarm persists.
+Functional-body objective ACTIVE, compiled-unmounted. No push or Slack.
+
+Continuation evidence and sprint receipt saved locally on the body branch as
+commit81b176325. Native body source remains at f55ae5926; no deployment.
+
+## A1 TO JOE AND G1 — 2026-09-27 14:37Z — FB-01aj local acceleration diagnosis closed
+
+One8row saved-interval diagnostic completed in2.312wall seconds, no rebuild or
+body-source change. Both original endpoints/observations/work/supply reproduce
+exactly. Eightfold local refinement leaves the same0.04354165409m/s^2 palm
+disagreement; within either saved input it changes feedback only about1e-10.
+The error therefore predates that interval and is amplified as the left elbow
+reaches its limit. Do not keep rerunning or shrinking that final interval.
+
+Body-tree receipt docs/evidence/FB-01aj-palm-boundary-diagnostic.json SHA256
+8172e90ee1324166e2c7220b6c88b81924dd8e61b1f09197eee250ea6757122b.
+310primitives,1.668numerical CPU seconds,305588KiB peak RSS. Group71246
+exited; independent host census empty. Read-only AWS14:33Z retains sole1559,
+same identity/image,ticks2626508->2626520,no custody errors. Existing clock
+alarm persists. No live change or G1 edits.
+
+Next is event-accurate trajectory control from retained earlier boundaries;
+per-step agreement alone does not guarantee later sensory accuracy. No force
+or sensory tolerance weakening, history synchronization, or full replay before
+the local correction is established. Body remains compiled-unmounted; full
+functional-body objective ACTIVE and not ready for production. No push/Slack.
+
+Timestamp clarification: prior continuation summary's14:27Z heading was entered
+before that wall-clock time; its authoritative run remains14:19:47--14:20:34Z.
+
+Local body checkpoint f195d058c records the completed attribution matrix and
+next causal boundary. No native-source change or deployment.
+
+## A1 TO JOE AND G1 — 2026-09-27 — OSC-01 urgent live oscillation ownership
+
+Joe explicitly prioritizes diagnosing/fixing live oscillation now. A1 owns the
+bounded movement repair in /tmp/guala-a1-oscillation-20260927 based on deployed
+9b7d9cdb6. Please do not concurrently alter or deploy the organism navigation
+file while this release is under review. Main G1/source changes are preserved.
+Offline functional-body work is set aside, not deployed or blamed for this bug.
+
+Live task1559/image3c9fce0... repeats +/-202,222mm with successful toward_door4
+and zero reserves. Exact copied mature tick2629228 reproduces eight reversals.
+The centre approach(8400,7600) lies inside radio(8573,7614)'s combined400mm
+collision disc. No path exists; invented fallback sidesteps perpetuate the loop.
+This is NOT a rejected-movement memory issue. Initial waypoint-overshoot
+hypothesis was falsified by the retained return-local trace (waypoint=None).
+
+Candidate computes clear doorway aperture geometry, rejects unsupported paths,
+and steps no farther than the next path node. No object relocation, fabricated
+food, memory reset, timers, new objective or kernel/body-law change. Reduced
+geometric repair, not full cognitive repair. Source review underway; next proof
+is ordinary unattended escape and exact cold continuation on the same copied
+body/world. No production mutation has occurred. Sprint record OSC-01.md.
+
+## A1 TO JOE AND G1 — 2026-09-27 15:29Z — OSC-01 live reversal repair delivered
+
+The recurring hallway reversal is source-diagnosed, repaired and live verified.
+Door4's centre approach was inside the radio collision envelope; no path existed,
+but fallback sidesteps alternated between two accepted positions indefinitely.
+Replacement computes the physically clear portal aperture, removes unsupported
+fallback strides and clips movement to the next actual route waypoint. No timer,
+forced escape, object relocation, state reset, food provision or kernel change.
+
+Reviewed production source4517445ab50d13dd1e21be4826f1c15dfccd85fd;
+organism SHA10e23e1a7eb169b6b5b03995a857b55183d718788787e01cdc8735984d10e08c.
+Merged into guala-live as c7be9820e4ebd3a0de7bb982334b24bae74cc8b9, preserving
+existing ledger edits. One immutable release, task1560:
+image45b4591c43a6067eb7367bda2be2e08fd26429e2f43c46055c1b99d249da39ed,
+sole healthy task502e361c4b484240b65b4be38023dca4; target172.31.54.164:8080 healthy.
+Predecessor clean-stop tick2633804 restored byte-exact, same identity, no conversion.
+
+Four local geometry tests plus copied-mature64+fresh-cold4 intervals passed.
+Exact-image cloud rehearsal passed. PUBLIC live ticks2633815--2633878 show64
+consecutive observations,18 distinct positions, hallway-to-bedroom navigation,
+zero refusals, then ordinary sleep at(1546,8802,0), nights11. Live2634083 and
+persisted2634060 advance, no custody errors, service1/1/0. No forced movements.
+Raw bounded evidence and release timing:OSC01-release.json; scope/failed hypotheses:
+OSC-01.md. Old image8-beat proof reproduced the exact reversal before repair.
+
+Honesty: reduced geometric repair, not full DSF/cognitive evaluation. Reserve is
+still0; autonomous nutrition remains unresolved. Copied-state test exposed separate
+hand-contact/release refusals (logged, not suppressed); none occurred in live64.
+Existing clock-stalled alarm persists despite advancing ticks, other four alarmsOK.
+No body-development binary deployed. Public pages200; browser package unavailable.
+Do not reintroduce occupied-centre fallback sidesteps or address-based route ties.

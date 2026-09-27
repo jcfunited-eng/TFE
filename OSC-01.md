@@ -128,3 +128,24 @@ shutdown log (RF066). Both corrected before packaging. No behavioral rerun.
 Proof log is separately SHA256-bound because repository ignores *.log:
 174cc1e5b597abf94d6601dc2cab00cfbd3d33113be283dc3ec24546d77ec926.
 It will be explicitly committed with this candidate.
+
+LIVE CLOSED — 2026-09-27 15:29Z. Independent release review passed both guards.
+Source commit4517445ab50d13dd1e21be4826f1c15dfccd85fd, same organism SHA above.
+One build/push/definition/rehearsal/cutover; release clock15:19:32--15:28:09Z.
+Task1560/image45b4591c43a6067eb7367bda2be2e08fd26429e2f43c46055c1b99d249da39ed
+sole RUNNING/HEALTHY502e361c4b484240b65b4be38023dca4; ALB172.31.54.164:8080 healthy.
+Cloud copied-state64+4 proof passed38.56wall seconds,196628KiB RSS.
+Clean final predecessor2633804 exactly restored with no conversion, same identity.
+Its body a1e7f52f1e43e5335e5afbc9e7ce190645e8992c5bfbb64e8fef62d5c8076250
+and world37960337aaa5a72516391edee82773ddf847e00d469e6a59eb647b98dcffe000
+match the startup predecessor receipt. No historical test copy restored live.
+
+Public live trace2633815--2633878:64 consecutive ticks,18 distinct positions,
+hallway to her-room, no refusals/custody errors. Ends asleep, nights11, at
+(1546,8802,0); the original two-position hallway trap is gone. Reserves still0.
+Final read15:29Z live2634083/persisted2634060, available true, no checkpoint/
+cleanup errors or durability block. Both public pages200; no browser automation
+package installed, so no claim of a browser interaction test. Existing clock
+alarm remains ALARM despite advancing ticks; other four resource/refusal alarmsOK.
+Complete release events and exact64 public observations:OSC01-release.json.
+Body/source unrelated work remains unmounted; no feeding/cognitive closure claim.
