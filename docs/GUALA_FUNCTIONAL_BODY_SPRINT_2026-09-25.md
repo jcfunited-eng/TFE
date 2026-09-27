@@ -13839,3 +13839,86 @@ authenticated accepted pieces, then carry forward already measured refined
 rounded totals, replay accepted intervals, reset inherited error or fabricate
 missing impulse history. Body/world mounting, gravity/couple evidence, bounded
 runtime and lifecycle/production acceptance remain OPEN. Active goal continues.
+
+### FB-01aj saved-history continuation preflight — 2026-09-27
+
+Component source/evidence pushed at0b36b4198; no production cutover. Continue
+the same500ms witness, not another mechanism. Frozen no-build diagnostic
+/tmp/a1-body-paired-refined-continuation-20260927.py reads the authenticated
+294.1/294.2ms parent and342.9ms rejected boundary. Reconstructs cumulative work
+in the original arithmetic order: accepted half-pair -> admitted100us interval
+-> prior cumulative total. Every raw-state SHA link and endpoint must match;
+the reconstructed failed total must be byte-identical before recovering342.8ms.
+No subtraction of totals and no recomputation of accepted motion.
+
+Impulse inheritance is admissible only because authenticated changed-event
+records plus starting domain show no geometric/loaded contacts across this
+suffix, and recorded cumulative impulses remain identical. Already measured
+refined342.9ms and343ms successors retain their own raw states; add each actual
+interval work in order to the reconstructed prefix and recheck the full
+cumulative state/work/impulse/event comparator. The smaller local measurement
+origin in the component proof is never passed off as full historical work.
+
+Original source budget minus retained positive debit is the new pair API's
+available allowance. Report old repeated-subtraction availability alongside
+this value so its floating rounding difference is visible. Both restored
+controls must be exactly zero and new accepted intervals must consume zero
+positive motor work; no energy is injected or retroactively erased.
+
+Only after the restored cumulative comparisons pass may new motion start
+at343ms toward500ms, preserving both independent histories at every common
+observation. Same native error limits and per-channel sensory/tactile observer;
+intrinsic-couple ceiling, continuum enclosure and real-time cost remain
+unqualified. Save both last accepted lanes and exact failed attempt on refusal.
+Clear trial-only trace each common interval; do not grow a primitive history.
+50s numericalCPU/30000primitive ceiling, same offline two-core/1GiB/60CPU/90wall
+child and read-only AWS pre/post envelope. Source-only review before one run.
+
+Continuation source review found two localized evidence-capture omissions,
+not a mechanics/accounting architecture defect: restore expectations must be
+attached before restoration; both returned successor operands must survive a
+later comparison failure. Corrected together, with guarded direct raw state
+capture so extraction cannot replace the originating exception. No build or
+numerical execution occurred before these proof-only corrections.
+
+### FB-01aj continuation measured; new inherited-state boundary — 2026-09-27 19:38Z
+
+Final independent proof-source review PASS, tree
+ec8d01bcf9b7685dbbb6ba6f4cc14695ad7fdb802042f5f360f7aa47dfe31b94,
+proof72c9a2a5f77664a75419c8527ce0b1793fd64ff17f106d05936b9e7a282c2d29.
+No build or mechanics source change. Receipt
+FB-01aj-paired-refined-continuation.json SHA
+0f1e812f60245c087c3d153659d8fe44c39397981291873afde3bf94e86770b6
+is honestly FAILED/unfinished overall, not a500ms acceptance.
+
+Exact cumulative reconstruction passed both histories (2104/4028 accepted
+pieces,487/488 intervals); all six final totals and raw-state ancestry match
+the authenticated parent. Contact domains and unchanged cumulative impulses
+support impulse inheritance. Reused measured342.9/343ms states passed full
+cumulative comparison; zero prefix motion was replayed. Original-source
+minus cumulative debit differs from previous repeated subtraction by about
+4e-12/1e-11J, explicitly recorded; no new positive work was consumed.
+
+175 NEW common observations passed through360.5ms. An additional local
+event-only retry at343.2->343.3ms took seven paired mesh levels and passed
+unchanged bounds. Next360.5->360.6ms was correctly REFUSED after one round:
+state_work_impulse_passed=False, same_event_sequence=True,
+paired_event_brackets_within_limit=True. Thus this is NOT another unresolved
+event-width-only case; local timing retry must not conceal it. Both failed
+successors and both accepted360.5ms predecessors are retained, exact scratch
+rollback confirmed. First_failure is null because the native pair guard
+refused before the channelwise observer; null is not evidence of accuracy.
+
+5693primitives/110915forwards,32.581174777numericalCPU; child4222:
+33.603977aggregateCPU/33.633398wall,366056KiBRSS,exit0,no survivors.
+Read-only AWS19:37:57--19:38:34UTC same sole1560/image/identity,
+ticks2683883->2684006,no custodyerrors;clockalarmstillALARM,
+otherfouralarmsOK,CPU51.271094%,memory3.0029296875%. No production writes.
+
+Next exact item: restore ONLY the two saved refused360.6ms successors for
+read-only physical/sensory channel comparison, locating the exact failed
+state/work/impulse component before selecting any numerical correction.
+No repeated long test, no relaxed bound, no invented impulse or synchronized
+history, no source edit justified merely by this refusal. Existing source
+already fails closed as required.500ms witness and all downstream body gates
+remain OPEN; the goal is ACTIVE and this turn made measured progress.
