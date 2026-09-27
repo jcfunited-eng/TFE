@@ -1,0 +1,178 @@
+{
+  "candidate_fingerprint": "2cf1d73657087803aece0569a6d6728e13f4dc01869130c72df969823f4b4ddb",
+  "child_output_when_no_measurement": "CHILD_RESOURCES {\"cpu_seconds\": 6.205711, \"maxrss_kib\": 164228}\n",
+  "child_resources": {
+    "cpu_seconds": 6.205711,
+    "maxrss_kib": 164228
+  },
+  "execution": {
+    "cpu_seconds": 6.296322,
+    "exit_code": 1,
+    "label": "radau-whole-motion",
+    "owned_pid": 75882,
+    "stderr": "Traceback (most recent call last):\n  File \"<string>\", line 11, in <module>\n  File \"<frozen runpy>\", line 291, in run_path\n  File \"<frozen runpy>\", line 98, in _run_module_code\n  File \"<frozen runpy>\", line 88, in _run_code\n  File \"/tmp/a1-body-radau-whole-motion-20260927.py\", line 273, in <module>\n    print(json.dumps(encode(result)), flush=True)\n                     ^^^^^^^^^^^^^^\n  File \"/workspaces/guala-functional-body/tools/guala_body_joint_boundary.py\", line 31, in encode\n    raw = canonical(value)\n          ^^^^^^^^^^^^^^^^\n  File \"/workspaces/guala-functional-body/tools/guala_body_joint_boundary.py\", line 27, in canonical\n    return json.dumps(value, sort_keys=True, separators=(\",\", \":\"), allow_nan=False).encode()\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.11/json/__init__.py\", line 238, in dumps\n    **kw).encode(obj)\n          ^^^^^^^^^^^\n  File \"/usr/local/lib/python3.11/json/encoder.py\", line 200, in encode\n    chunks = self.iterencode(o, _one_shot=True)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.11/json/encoder.py\", line 258, in iterencode\n    return _iterencode(o, 0)\n           ^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.11/json/encoder.py\", line 180, in default\n    raise TypeError(f'Object of type {o.__class__.__name__} '\nTypeError: Object of type bool is not JSON serializable\n",
+    "stdout_bytes": 64,
+    "survivors": [],
+    "timed_out": false,
+    "wall_seconds": 6.2994290749993525
+  },
+  "full_body_qualification": false,
+  "health_error": null,
+  "mounted": false,
+  "offline_probe_source": "\"\"\"One offline paired load/release trajectory; no runtime or organism imports.\"\"\"\nimport base64\nfrom collections import Counter\nfrom dataclasses import asdict\nimport hashlib\nimport json\nimport math\nimport os\nfrom pathlib import Path\nimport time\nimport traceback\nimport zlib\n\nimport mujoco as mj\nimport numpy as np\nimport guala_body_interval as interval\nimport guala_body_radau as radau\nfrom guala_body_contact_onset import archived_controls\nfrom guala_body_joint_boundary import encode\nfrom guala_body_trajectory_accuracy import Trajectory, Errors, primary\n\nSCHEMA = 'guala.functional-body.radau-whole-motion.v1'\nMAX_ATTEMPTS = 30000\nCPU_LIMIT = 50.\nH = .0001\nEVENT = .000001\nstarted_cpu, started_wall = time.process_time(), time.perf_counter()\nassert Path(radau.__file__).resolve() == Path(os.environ['GUALA_RADAU_PROOF_ABI']).resolve(strict=True)\nassert radau.RADAU_LAW == 'radau-iia2-krylov-candidate-v1'\nassert mj.__version__ == mj.mj_versionString() == '3.3.7+guala.midpoint-step.1'\nprobe = radau.RadauProbe(MAX_ATTEMPTS*(5+radau.MAX_NEWTON*(4*radau.MAX_KRYLOV+2*radau.MAX_LINE)))\nattempts = 0\n\n\ndef budget():\n    if attempts >= MAX_ATTEMPTS or time.process_time()-started_cpu >= CPU_LIMIT:\n        raise RuntimeError('offline whole-motion diagnostic budget exhausted; qualification incomplete')\n\n\ndef raw(state):\n    return base64.b64encode(state).decode()\n\n\ndef decode_receipt(name, sha):\n    body = Path('docs/evidence', name).read_bytes()\n    assert hashlib.sha256(body).hexdigest() == sha\n    packed = json.loads(body)['raw_measurement']\n    body = zlib.decompress(base64.b64decode(packed['payload_zlib_base64'], validate=True))\n    assert len(body) == packed['raw_bytes'] and hashlib.sha256(body).hexdigest() == packed['raw_sha256']\n    return json.loads(body)\n\n\ndef material_domain(domain):\n    values = {}\n    for k in (0, 1):\n        for i, present in enumerate(domain[k]):\n            if present:\n                values[('lower' if k == 0 else 'upper', i)] = 1\n    for k in (5, 6):\n        for pair, count in Counter(tuple(sorted(pair)) for pair in domain[k]).items():\n            values[('geometric' if k == 5 else 'loaded', *pair)] = count\n    return values\n\n\ndef middle(begin, end):\n    value = begin+(end-begin)/2\n    if not begin < value < end:\n        raise ValueError('common interval cannot be bisected representably')\n    return value\n\n\ndef next_sample(begin, boundary):\n    remaining = boundary-begin\n    if remaining <= H:\n        end = boundary\n    elif remaining <= 2*H:\n        end = middle(begin, boundary)\n    else:\n        end = begin+H\n    # Directed endpoint rounding, never epsilon enlargement of the step law.\n    for _ in range(16):\n        mid = middle(begin, end)\n        if end-begin <= H and max(mid-begin, end-mid) <= H/2:\n            return end, mid\n        end = middle(begin, boundary) if end == boundary else math.nextafter(end, begin)\n    raise ValueError('no common representable bounded pair endpoint')\n\n\nclass Lane:\n    def __init__(self, label, control):\n        self.label = label\n        self.c = Trajectory(100, control)\n        self.genesis = raw(primary(self.c.e))\n        self.prefix, self.refinements, self.events = [], [], []\n        self.by_key = {}\n        self.last_attempt = None\n        self.release = None\n\n    def advance(self, target):\n        global attempts\n        c = self.c\n        pending = [target]\n        while pending:\n            budget()\n            stop = pending.pop()\n            begin = float(c.d.time)\n            base, old_dt = interval._state(c.e), float(c.m.opt.timestep)\n            before = interval._snapshot(c.e)\n            before_bytes = primary(c.e)\n            self.last_attempt = dict(start_s=begin, end_s=stop, predecessor_base64=raw(before_bytes),\n                                     supply_j=c.supply, completed=False)\n            attempts += 1\n            probe.steps.clear()\n            try:\n                endpoint, work, impulse, stages = probe.step(c.e, stop-begin, c.supply)\n            except ValueError as error:\n                self.last_attempt['solver'] = list(probe.steps)\n                self.last_attempt['error'] = str(error)\n                # Only numerical nonlinear failures may subdivide; physical refusals remain failures.\n                refinable = str(error) in {\n                    'bounded matrix-free Krylov directions exhausted',\n                    'coupled Radau residual failed to decrease',\n                    'bounded coupled Radau iterations exhausted',\n                    'captured coupled stage residual differs',\n                }\n                assert primary(c.e) == before_bytes\n                if not refinable:\n                    raise\n                self.refinements.append(dict(self.last_attempt))\n                mid = middle(begin, stop)\n                pending.extend((stop, mid))\n                continue\n            except Exception:\n                self.last_attempt['solver'] = list(probe.steps)\n                raise\n            self.last_attempt.update(completed=True, solver=list(probe.steps))\n            stage_domain = stages[0]['snapshot']['domain']\n            changed = before['domain'] != stage_domain or stage_domain != endpoint['domain']\n            if changed and stop-begin > EVENT:\n                interval._restore(c.e, base, old_dt)\n                assert primary(c.e) == before_bytes\n                self.refinements.append(dict(start_s=begin, end_s=stop, reason='sampled constraint domain changed'))\n                mid = middle(begin, stop)\n                pending.extend((stop, mid))\n                continue\n            next_work = interval._work_add(c.work, work)\n            next_impulses = interval._impulse_add(c.impulses, impulse)\n            supply = c.initial_supply-next_work[0]\n            assert math.isfinite(supply) and supply >= 0 and float(c.d.time) == stop\n            successor = primary(c.e)\n            if changed:\n                event = dict(start_s=begin, end_s=stop, width_s=stop-begin,\n                    before_domain=before['domain'], stage_domain=stage_domain,\n                    after_domain=endpoint['domain'], predecessor_base64=raw(before_bytes),\n                    successor_base64=raw(successor))\n                self.events.append(event)\n                a, b = material_domain(before['domain']), material_domain(endpoint['domain'])\n                for key in sorted(a.keys() | b.keys()):\n                    if a.get(key, 0) != b.get(key, 0):\n                        self.by_key.setdefault(key, []).append(dict(start_s=begin, end_s=stop,\n                            before=a.get(key, 0), after=b.get(key, 0)))\n            c.work, c.impulses, c.supply = next_work, next_impulses, supply\n            self.prefix.append(dict(start_s=begin, end_s=stop, predecessor_sha256=hashlib.sha256(before_bytes).hexdigest(),\n                successor_base64=raw(successor), work=work, remaining_supply_j=supply,\n                calls=probe.steps[-1]['calls'], residual=probe.steps[-1]['final_residual']))\n            if changed and before['domain'] == endpoint['domain'] and before['domain'] != stage_domain:\n                raise ValueError('stage-only constraint change lacks accepted-trajectory event correspondence')\n\n    def record(self):\n        c = self.c\n        state = raw(primary(c.e))\n        observation, observation_error = None, None\n        try:\n            observation = asdict(c.e._observation())\n        except Exception as error:\n            observation_error = dict(type=type(error).__name__, error=str(error))\n        return dict(label=self.label, genesis_base64=self.genesis, time_s=float(c.d.time),\n            state_base64=state, remaining_supply_j=c.supply, work=c.work,\n            observation=observation, observation_error=observation_error,\n            prefix=self.prefix, refinements=self.refinements,\n            events=self.events, release=self.release, last_attempt=self.last_attempt,\n            impulses=[dict(pair=k, force=v[0].tolist(), couple=v[1].tolist(), force_path=v[2], couple_path=v[3])\n                      for k, v in sorted(c.impulses.items())])\n\n\ndef event_agreement(left, right, now):\n    pending = []\n    for key in sorted(left.by_key.keys() | right.by_key.keys()):\n        a, b = left.by_key.get(key, []), right.by_key.get(key, [])\n        for x, y in zip(a, b):\n            if (x['before'], x['after']) != (y['before'], y['after']):\n                return dict(status='UNRESOLVED', key=key, left=x, right=y, reason='different event transition')\n            # Worst possible time separation from observed brackets, not midpoint guessing.\n            span = max(x['end_s'], y['end_s'])-min(x['start_s'], y['start_s'])\n            if span > EVENT:\n                return dict(status='FAIL', key=key, left=x, right=y, max_separation_s=span)\n        if len(a) != len(b):\n            rest = (a if len(a) > len(b) else b)[min(len(a), len(b)):]\n            for row in rest:\n                if now-row['start_s'] > EVENT:\n                    return dict(status='UNRESOLVED', key=key, event=row, reason='unmatched event older than allowed timing')\n                pending.append(dict(key=key, event=row))\n    return dict(status='PENDING' if pending else 'PASS', pending=pending)\n\n\nresult = dict(schema=SCHEMA, completed=False, failure=None, full_body_qualification=False,\n    mounted=False, continuum_enclosure=False, intrinsic_couple_impulse_qualified=False,\n    limits=dict(attempts=MAX_ATTEMPTS, cpu_seconds=CPU_LIMIT), common_samples=[], checkpoints={})\nlanes, errors = [], Errors()\ncontrols = archived_controls()\ntry:\n    reference = decode_receipt('FB-01aj-radau-compiled-proof-v2.json',\n        '18307f40e5fdd9022c6e7688e0d9f799562b2c1e637d9a55bbfabd3140f415a8')\n    archive = decode_receipt('FB-01aj-midpoint-accepted-trajectory-v3.json',\n        '25ca41a761e715243770425b6c7e383f93838b1750ef059ca28348dc04788c5e')\n    control = Trajectory(100, controls[100])\n    event = archive['cases'][0]['events'][80]\n    control.e._restore(control.e._header+base64.b64decode(event['successor_base64'], validate=True))\n    control.supply = event['available_work_j']-event['accepted_work'][0]\n    expected = reference['cases'][0]['last_accepted']\n    attempts += 1\n    endpoint, work, impulse, stages = probe.step(control.e, expected['end_s']-control.d.time, control.supply)\n    assert raw(primary(control.e)) == expected['raw_successor_base64']\n    assert list(work) == expected['work']\n    assert json.dumps(asdict(control.e._observation()), sort_keys=True) == json.dumps(expected['observation'], sort_keys=True)\n    result['saved_compiled_reference_exact'] = True\n    del control, reference, archive\n    lanes = [Lane(label, controls[100]) for label in ('coarse', 'half')]\n    assert lanes[0].genesis == lanes[1].genesis\n    boundaries = (.048, .25, .5)\n    for boundary in boundaries:\n        while float(lanes[0].c.d.time) < boundary:\n            begin = float(lanes[0].c.d.time)\n            assert begin == float(lanes[1].c.d.time)\n            stop, mid = next_sample(begin, boundary)\n            lanes[0].advance(stop)\n            lanes[1].advance(mid)\n            lanes[1].advance(stop)\n            a, b = (lane.c for lane in lanes)\n            errors.compare(a, b, a.snapshot(), b.snapshot(), stop*1e6)\n            agreement = event_agreement(*lanes, stop)\n            result['common_samples'].append(stop)\n            result['event_agreement'] = agreement\n            metrics = errors.result()\n            if (any(v['status'] != 'PASS' for k, v in metrics.items() if k != 'intrinsic_couple_impulse')\n                    or agreement['status'] in ('FAIL', 'UNRESOLVED')):\n                raise ValueError('first whole-motion accuracy or event correspondence failure')\n        result['checkpoints'][str(boundary)] = [dict(time_s=float(l.c.d.time), state_base64=raw(primary(l.c.e)),\n            work=l.c.work, remaining_supply_j=l.c.supply) for l in lanes]\n        if boundary == .25:\n            for lane in lanes:\n                c = lane.c\n                before = primary(c.e)\n                c.d.ctrl[c.motor] = 0.\n                after_control = primary(c.e)\n                probe.forward(c.e)\n                assert primary(c.e) == after_control and float(c.d.time) == .25\n                lane.release = dict(time_s=.25, before_base64=raw(before), after_base64=raw(after_control))\n    if result['event_agreement']['status'] != 'PASS':\n        raise ValueError('unmatched terminal event; qualification incomplete')\n    budget()\n    result['completed'] = True\nexcept Exception as error:\n    result['failure'] = dict(type=type(error).__name__, error=str(error), traceback=traceback.format_exc(limit=8))\nfinally:\n    result.update(lanes=[lane.record() for lane in lanes], metrics=errors.result(), first_failure=errors.first_failure,\n        attempts=attempts, calls=probe.calls, native_seconds=probe.native_seconds,\n        last_solver=list(probe.steps), cpu_seconds=time.process_time()-started_cpu,\n        wall_seconds=time.perf_counter()-started_wall)\n    if result['completed'] and (result['cpu_seconds'] >= CPU_LIMIT or attempts >= MAX_ATTEMPTS):\n        result['completed'] = False\n        result['failure'] = dict(type='BudgetExceeded', error='terminal measured budget exceeded; qualification incomplete')\nprint(json.dumps(encode(result)), flush=True)\n",
+  "offline_runner_source": "\"\"\"No-build, network-isolated paired-body qualification with read-only AWS envelope.\"\"\"\nfrom pathlib import Path\nimport hashlib\nimport sys\n\nhelper = Path('/tmp/a1-loaded-contact-run-20260927.py').read_bytes()\nassert hashlib.sha256(helper).hexdigest() == 'a75f28ae491567cd010e5ff4d50118d1b2cbe41298c9e9867055f3432acabb91'\nprefix, _ = helper.decode().split('\\nassert Path.cwd()==ROOT and not TARGET.exists()', 1)\nexec(compile(prefix, '<reviewed bounded operational helpers>', 'exec'))\nFP = '2cf1d73657087803aece0569a6d6728e13f4dc01869130c72df969823f4b4ddb'\nTARGET = ROOT/'docs/evidence/FB-01aj-radau-whole-motion.json'\nPROOF = Path('/tmp/a1-body-radau-whole-motion-20260927.py')\nABI = Path('/tmp/guala-body-coincident.f_yh3n0n/python/guala_body_interval.cpython-311-x86_64-linux-gnu.so')\nRADAU = Path('/tmp/guala-body-radau.vnxyh_1c/python/guala_body_radau.cpython-311-x86_64-linux-gnu.so')\nSOURCE = ROOT/'native/functional_body/radau.pyx'\nexpected = {\n    PROOF: '681b0e201bf163f706fb3635e1d00dfec0624fc9be5168e92b7a6fb820ab2945',\n    SOURCE: 'e8aab7e679773049067f501f8a707fdf2639651a2f84121d78c82d27b953534b',\n    ABI: '13a29c323d79bf9a617209f9db9605dbc985d61fb4273ead87a9539df53e996b',\n    RADAU: '7dcfd6b997aa6311537cfa9ec830782a8c07f0d7494306e0a3c054545236c6d2', LIB: LIB_SHA,\n}\nassert Path.cwd() == ROOT and not TARGET.exists()\nfor path, sha in expected.items():\n    assert path.is_file() and hashlib.sha256(path.read_bytes()).hexdigest() == sha, str(path)\nassert Path('/usr/local/bin/aws').is_file()\nfingerprint()\npre = health()\nprint('PRE_HEALTH', json.dumps(pre), flush=True)\nrequire_health(pre)\nenv = dict(os.environ, PYTHONDONTWRITEBYTECODE='1', OPENBLAS_NUM_THREADS='1', OMP_NUM_THREADS='1',\n    MKL_NUM_THREADS='1', LD_LIBRARY_PATH=str(LIB.parent), GUALA_RADAU_PROOF_ABI=str(RADAU),\n    PYTHONPATH=str(RADAU.parent)+':'+str(ABI.parent)+':/tmp/guala-body-optics-native.U8I8en/python:'\n               '/tmp/guala-body-native.pnUH8P/lib/python3.11/site-packages:.:tests:tools')\ncode = \"\"\"import socket\ndef deny(*a,**k):raise RuntimeError('offline child forbids network')\nsocket.socket.connect=deny\nsocket.socket.connect_ex=deny\nsocket.socket.sendto=deny\nimport json,resource,runpy\nimport mujoco as mj,guala_body_interval as interval\nassert mj.__version__==mj.mj_versionString()=='3.3.7+guala.midpoint-step.1'\nassert interval.__file__==\"\"\"+repr(str(ABI))+\"\\n\"+\"\"\"try:\n runpy.run_path(\"\"\"+repr(str(PROOF))+\"\"\",run_name='__main__')\nfinally:\n r=resource.getrusage(resource.RUSAGE_SELF)\n print('CHILD_RESOURCES',json.dumps(dict(cpu_seconds=r.ru_utime+r.ru_stime,maxrss_kib=r.ru_maxrss)))\n\"\"\"\nexecution, out = child(code, env, 'radau-whole-motion')\npost = health()\nprint('POST_HEALTH', json.dumps(post), flush=True)\nhealth_error = None\ntry:\n    require_health(post)\n    assert pre['observation']['identity'] == post['observation']['identity']\n    assert post['observation']['live_tick'] >= pre['observation']['live_tick']\nexcept Exception as error:\n    health_error = repr(error)\nfingerprint()\nfor path, sha in expected.items():\n    assert hashlib.sha256(path.read_bytes()).hexdigest() == sha\npacked = result = resources = None\nfor line in out.splitlines():\n    if line.startswith('CHILD_RESOURCES '):\n        resources = json.loads(line.split(' ', 1)[1])\n        continue\n    if not line.startswith('{'):\n        continue\n    value = json.loads(line)\n    raw = zlib.decompress(base64.b64decode(value['payload_zlib_base64'], validate=True))\n    assert len(raw) == value['raw_bytes'] and hashlib.sha256(raw).hexdigest() == value['raw_sha256']\n    decoded = json.loads(raw)\n    assert packed is None and decoded['schema'] == 'guala.functional-body.radau-whole-motion.v1'\n    packed, result = value, decoded\npassed = (result is not None and result.get('completed') is True and result.get('failure') is None\n          and result.get('cpu_seconds', float('inf')) < 50 and result.get('attempts', 30000) < 30000)\nreceipt = dict(schema='guala.functional-body.radau-whole-motion.v1.receipt', candidate_fingerprint=FP,\n    source_sha256={str(p):s for p,s in expected.items()}, production_pre=pre, production_post=post,\n    execution=execution, child_resources=resources, health_error=health_error, raw_measurement=packed,\n    child_output_when_no_measurement=out if packed is None else None,\n    offline_probe_source=PROOF.read_text(), offline_runner_source=Path(__file__).read_text(),\n    mounted=False, full_body_qualification=False, paired_motion_passed=passed,\n    resource_limits=dict(affinity_cores=2, cpu_seconds_per_process=60,\n        address_space_bytes_per_process=1024**3, wall_seconds_per_group=90,\n        aggregate_memory_enforced=False, peak_rss_scope='single process'))\ncontent = json.dumps(receipt, indent=2, sort_keys=True)+'\\n'\npatch = '*** Begin Patch\\n*** Add File: '+str(TARGET)+'\\n'+'\\n'.join('+'+s for s in content.splitlines())+'\\n*** End Patch\\n'\nsubprocess.run(['apply_patch'], input=patch, text=True, check=True)\nsummary = ({k:result.get(k) for k in ('completed','attempts','calls','failure','first_failure','cpu_seconds','wall_seconds')}\n           if result is not None else dict(no_measurement=True))\nif result is not None:\n    summary['last_common_s'] = result['common_samples'][-1:] or [0.]\n    summary['lanes'] = [dict(label=c['label'], time_s=c['time_s'], accepted=len(c['prefix']),\n                             refinements=len(c['refinements']), events=len(c['events'])) for c in result['lanes']]\nprint('RESULT', json.dumps(summary), flush=True)\nsys.exit(0 if execution['exit_code'] == 0 and execution['cpu_seconds'] <= 60 and passed and health_error is None else 1)\n",
+  "paired_motion_passed": false,
+  "production_post": {
+    "alarms": [
+      {
+        "name": "guala-clock-stalled",
+        "state": "ALARM"
+      },
+      {
+        "name": "guala-cpu-runaway",
+        "state": "OK"
+      },
+      {
+        "name": "guala-efs-storage-runaway",
+        "state": "OK"
+      },
+      {
+        "name": "guala-interval-refusal-loop",
+        "state": "OK"
+      },
+      {
+        "name": "guala-memory-runaway",
+        "state": "OK"
+      }
+    ],
+    "cpu": [
+      {
+        "Average": 51.13868426283201,
+        "Maximum": 51.79511308670044,
+        "Timestamp": "2026-09-27T06:07:00+00:00",
+        "Unit": "Percent"
+      }
+    ],
+    "memory": [
+      {
+        "Average": 3.076171875,
+        "Maximum": 3.076171875,
+        "Timestamp": "2026-09-27T06:07:00+00:00",
+        "Unit": "Percent"
+      }
+    ],
+    "observation": {
+      "available": true,
+      "checkpoint_error": null,
+      "cleanup_error": null,
+      "durability_blocked": false,
+      "identity": "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1",
+      "live_tick": 2552861,
+      "persisted_tick": 2552844
+    },
+    "service": {
+      "counts": [
+        1,
+        1,
+        0
+      ],
+      "taskDefinition": "arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1559",
+      "tasks": [
+        {
+          "arn": "arn:aws:ecs:us-east-1:418384447921:task/tfe-web-cluster/5b56802a81ba4978a36aafb995e829a3",
+          "digests": [
+            "sha256:3c9fce0ce0eaed2196b883a061b424d27c7f1d1709f433039394fba51d2e4b5d"
+          ],
+          "health": "HEALTHY",
+          "status": "RUNNING"
+        }
+      ]
+    },
+    "utc": "2026-09-27T06:09:27.266581+00:00"
+  },
+  "production_pre": {
+    "alarms": [
+      {
+        "name": "guala-clock-stalled",
+        "state": "ALARM"
+      },
+      {
+        "name": "guala-cpu-runaway",
+        "state": "OK"
+      },
+      {
+        "name": "guala-efs-storage-runaway",
+        "state": "OK"
+      },
+      {
+        "name": "guala-interval-refusal-loop",
+        "state": "OK"
+      },
+      {
+        "name": "guala-memory-runaway",
+        "state": "OK"
+      }
+    ],
+    "cpu": [
+      {
+        "Average": 51.13868426283201,
+        "Maximum": 51.79511308670044,
+        "Timestamp": "2026-09-27T06:07:00+00:00",
+        "Unit": "Percent"
+      }
+    ],
+    "memory": [
+      {
+        "Average": 3.076171875,
+        "Maximum": 3.076171875,
+        "Timestamp": "2026-09-27T06:07:00+00:00",
+        "Unit": "Percent"
+      }
+    ],
+    "observation": {
+      "available": true,
+      "checkpoint_error": null,
+      "cleanup_error": null,
+      "durability_blocked": false,
+      "identity": "1cc4e70a-f2a0-44c5-a111-f4a5bc915cc1",
+      "live_tick": 2552842,
+      "persisted_tick": 2552812
+    },
+    "service": {
+      "counts": [
+        1,
+        1,
+        0
+      ],
+      "taskDefinition": "arn:aws:ecs:us-east-1:418384447921:task-definition/dsf-ai-task:1559",
+      "tasks": [
+        {
+          "arn": "arn:aws:ecs:us-east-1:418384447921:task/tfe-web-cluster/5b56802a81ba4978a36aafb995e829a3",
+          "digests": [
+            "sha256:3c9fce0ce0eaed2196b883a061b424d27c7f1d1709f433039394fba51d2e4b5d"
+          ],
+          "health": "HEALTHY",
+          "status": "RUNNING"
+        }
+      ]
+    },
+    "utc": "2026-09-27T06:09:18.591524+00:00"
+  },
+  "raw_measurement": null,
+  "resource_limits": {
+    "address_space_bytes_per_process": 1073741824,
+    "affinity_cores": 2,
+    "aggregate_memory_enforced": false,
+    "cpu_seconds_per_process": 60,
+    "peak_rss_scope": "single process",
+    "wall_seconds_per_group": 90
+  },
+  "schema": "guala.functional-body.radau-whole-motion.v1.receipt",
+  "source_sha256": {
+    "/tmp/a1-body-radau-whole-motion-20260927.py": "681b0e201bf163f706fb3635e1d00dfec0624fc9be5168e92b7a6fb820ab2945",
+    "/tmp/guala-body-coincident.f_yh3n0n/python/guala_body_interval.cpython-311-x86_64-linux-gnu.so": "13a29c323d79bf9a617209f9db9605dbc985d61fb4273ead87a9539df53e996b",
+    "/tmp/guala-body-midpoint.igj32n8c/build/lib/libmujoco.so.3.3.7": "de96a1766223905d26b1df0e68ce7bc97608cf2c6238acef8dcf8b344a3fd48f",
+    "/tmp/guala-body-radau.vnxyh_1c/python/guala_body_radau.cpython-311-x86_64-linux-gnu.so": "7dcfd6b997aa6311537cfa9ec830782a8c07f0d7494306e0a3c054545236c6d2",
+    "/workspaces/guala-functional-body/native/functional_body/radau.pyx": "e8aab7e679773049067f501f8a707fdf2639651a2f84121d78c82d27b953534b"
+  }
+}

@@ -10065,3 +10065,163 @@ force control before new comparisons. No broad test until this passes. Raw
 reference outcomes including event86 failure cannot be silently discarded.
 Resource envelope2CPU/1GiB/60CPU/90wall, read-only AWS before/after and exact
 process census remain mandatory. Any failure remains evidence, not admission.
+
+05:50Z compiled candidate/source review: one localized diagnostic correction
+was made before build (never report uninitialized/stale Krylov residuals).
+Test-only proof retains actual and expected operands before a cold-reference
+mismatch assertion. Runner success now requires actual completed proof and
+all ratified reference comparisons, not just child exit0. Resource wording
+corrected:60CPU-seconds/1GiBaddress-space limits are PER PROCESS;90wall-seconds
+applies to the group. AggregateCPU is measured and must be<=60 for acceptance;
+aggregate memory is NOT enforced/measured by maximum single-process RSS.
+Do not repeat a stronger memory-cap claim. Two-core affinity remains inherited.
+
+First compile failed before physical execution: Cython3.1.2 interprets
+typed-double ** fractional exponent as potentially complex, refusing ordered
+comparison at radau.pyx:127. Source-only review missed this compile boundary.
+Receipt FB-01aj-radau-compiled-proof.json SHA995298e2ce16ef47312721be82c9fa7f7b911d8f7af52f3e5676b30280940a9d
+preserves exact source/compiler failure, no body motion result. Build0.857swall,
+0.847saggregateCPU,161432KiBsingle-processpeak. Child68218 and session92706
+terminal; exact host group/command census no survivors. No broad tests ran.
+Narrow compile correction: use libc real pow for positive MACHINE_EPS^(1/6)
+and MACHINE_EPS^(1/3). Same operands/exponents/physical laws/limits; no complex
+domain is needed or permitted here. Fresh frozen review before rebuilding.
+
+AWS05:48:20Z->05:48:23Z keeps sole1559task/image/identity,counts1/1/0,
+ticks2549801->2549808,errorsnull,durabilityfalse,CPU51.1383%,RAM3.0762%.
+Existingclock-stalledALARM remains;other4OK. No push,Slack or live mutation.
+
+### FB-01aj compiled algebra qualified locally — 2026-09-27 05:55Z
+
+Compiled-source proof PASS, receipt FB-01aj-radau-compiled-proof-v2.json
+SHA18307f40e5fdd9022c6e7688e0d9f799562b2c1e637d9a55bbfabd3140f415a8.
+All7 retained reference observations restore exactly; candidate successors pass
+all ratified reference comparisons. Fresh same-implementation repetition and
+zero-supply/call-ceiling rollback are exact. Cross-implementation outputs are
+numerically equivalent, not claimed byte-identical. The known100us event86
+rate failure remains visible. No physical tolerance or law has changed.
+
+Build10.710swall/10.697saggregateCPU/348412KiBmax-single-processRSS;
+proof1.298swall/1.290saggregateCPU/168032KiBRSS.716stageforwards plus43outside
+and1archivedstep; native-forward time0.060199s. Cost improvement is mixed:
+event80 1/2/4piece stage wall0.013900/0.011041/0.024707s versus prior
+0.009632/0.018512/0.029171s; first-call overhead is not separated. Event84
+100us costs0.005719s and event86 costs0.009449s. No real-time claim.
+Compiled unmounted artifact:/tmp/guala-body-radau.vnxyh_1c/python/
+guala_body_radau.cpython-311-x86_64-linux-gnu.so,
+SHA7dcfd6b997aa6311537cfa9ec830782a8c07f0d7494306e0a3c054545236c6d2.
+Source SHAe8aab7e679773049067f501f8a707fdf2639651a2f84121d78c82d27b953534b.
+Children69495/69536 terminal; exact host census no survivors.
+
+Read-onlyAWS05:50:57Z->05:51:11Z keeps sole1559task/image/identity,counts1/1/0,
+ticks2550174->2550209,errorsnull,durabilityfalse,CPU51.4055%,RAM3.0762%.
+Existingclock-stalledALARM remains;other4OK. No push,Slack or live mutation.
+
+Next single proof (independently reviewed design): paired common-genesis
+250ms load+250ms release, with100us coarse and two half-step fine proposals.
+No cross-copy reset, no reset of work/impulses at release, no local full-error
+allowance misrepresented as global accuracy. Compare actual complete histories
+at common endpoints<=100us apart, including48ms inside the SAME run. Refine
+observed internal/contact/joint-domain changes to accepted endpoint brackets
+<=1us; collocation stages are never called accepted physical trajectory states.
+Corresponding physical contact/joint brackets compared across histories; no
+claim of hidden-event exclusion or continuum enclosure. Stop at first failed
+ratified group, unresolved correspondence, physical refusal or resource limit.
+Keep accepted prefixes, full current/attempted states, accumulated work/impulses
+and event evidence. No separate48ms trial or replay of passed prefixes.
+
+Diagnostic execution budget is30,000 stage attempts (twice the15,000 nominal
+whole histories), not a biological/accuracy coefficient. Stop at50CPU-seconds
+inside the single proof process, leaving10seconds under its inherited60second
+hard limit for failure serialization. Same90wall ceiling/2core affinity/1GiB
+per-process address-space. Whole completion is NOT presumed within this budget;
+budget failure is incomplete qualification, never a pass or hidden split run.
+Native source will NOT be rebuilt for this observer. All numeric/safety limits
+and frozen canonical cognition stay unchanged.
+
+### FB-01aj whole-motion diagnostic evidence transport refusal — 2026-09-27 06:10Z
+
+Reviewed driver ran once under freeze2cf1d736...f4b4ddb; child75882 exited1
+in6.299s wall/6.296s CPU, no surviving PID/group. Its final evidence encoding
+rejected numpy.bool_ in captured constraint-domain flags. The actual physical
+stop reason and full trajectory were not serialized and are UNAVAILABLE, not
+claimed passing. Native source/artifact remained unchanged. Failure retained in
+FB-01aj-radau-whole-motion.json SHA08baee59845a046665a1046f42c9f88c1468cca7221fcf07489e1d12c60ce4ba.
+This reporting bug survived source review; no numerical conclusion follows.
+
+Bounded correction is evidence-only: existing plain_domain canonicalizes the
+three captured domain tuples from native bool/int to Python bool/int without
+changing comparison, force, state, trajectory, or acceptance. One same-budget
+rerun is needed because the first child did not retain recoverable physics
+output. No compiled rebuild, broad suite, new law, or hidden repeated success.
+The earlier05:55Z section was moved to its chronological position; its content
+and all prior evidence are preserved.
+
+Read-onlyAWS06:09:18Z->06:09:27Z retains sole1559task/image/identity,counts1/1/0,
+ticks2552842->2552861, checkpoint/cleanupnull,durabilityfalse. Existing
+clock-stalledALARM remains;other4OK. No push,Slack or live mutation.
+
+### FB-01aj paired whole-motion first physical accuracy failure — 2026-09-27 06:14Z
+
+Reporting-only correction was independently source-reviewed, frozen and run once.
+Receipt FB-01aj-radau-whole-motion-v2.json SHA256
+0c6ce5ebb1b450e8d5a37ddd7cccdeac54ad134a11e596bb8a6b0a1b8afbe077.
+The saved compiled-reference state/work/observation reproduces exactly. Two
+fresh common-genesis histories advance without resets to19.2ms, then stop at
+first ratified failure: right-foot specific force error0.14816675301907373m/s2
+versus allowance0.061846197831344034m/s2, ratio2.3957293773034807.
+Every other measured ratified group passes through that sample. Surface
+position worst ratio0.000154931; joint rate0.115529; cumulative positive work
+0.000020571; local tactile correspondence PASS (no physical contact pairs yet).
+Intrinsic couple impulse remains UNQUALIFIED, not certified by empty contacts.
+Both histories have17 observed domain changes and event correspondence PASS.
+The last at19.02890625ms activates lower joint-limit index56 / native joint57;
+no external or self-contact patch is present. Its exact causal contribution is
+not yet established. No48ms,250msrelease or500ms completion claim is made.
+
+Coarse accepted287pieces with95refinements; half-path470pieces/86refinements.
+All757 accepted endpoints, predecessor hashes, raw successors, per-piece work,
+actual remaining supply, complete event brackets, last solver operands and
+both current full observations are retained. No failed-prefix reset or
+archived midpoint state was substituted for either history.
+939stage attempts;43307 probe force forwards (constructor/restore calls are
+outside this count),3.021067s native-forward time. Wholechild6.735409swall,
+6.707927saggregateCPU;167720KiBRSS. Diagnosticbody19.2ms is NOT real-time.
+Child77339/session81393 completed with no survivor in final host group census.
+
+Local correction command preflight also caught an off-by-one source-line index
+before writing the rerun helper; zero file mutation occurred. Verified line
+positions were then used in one whole-file replacement. No test was launched
+by the failed edit guard. Reporting failures and this guard remain disclosed.
+
+Read-onlyAWS06:12:34Z->06:12:43Z retains sole1559task/image/identity,counts1/1/0,
+ticks2553288->2553309,checkpoint/cleanupnull,durabilityfalse. CPU51.0731percent,
+RAM3.0762percent. Existingclock-stalledALARM persists;other4OK. No push,Slack,
+production write, cognition/food/caretaker change, or numerical-tolerance change.
+
+Single next item: explain this right-foot inertial discrepancy using retained
+19.1ms predecessors and exact force law, distinguishing incoming-history error,
+last-step truncation and force/warmstart dependence. No full-history replay,
+material retuning, new semantic mechanism or broader suite. The numerical
+candidate stays compiled-unmounted; fullbody goal remains ACTIVE/incomplete.
+
+06:16Z source/receipt attribution review (no new physical execution): next
+single map is2x2 over the final100us using each retained19.1ms predecessor,
+its complete actual state and remaining supply. One100us versus two50us
+steps to the SAME saved19.2ms endpoint,6totalRadau steps. Archived coarse
+and half successors must reproduce before interpreting the two new cross
+combinations. No common-state reset of earlier histories or full replay.
+Record vector decomposition, not sum of norms:
+A(C,100)-A(F,50)=[A(C,100)-A(C,50)]+[A(C,50)-A(F,50)], and its opposite.
+This separates final-step mesh and inherited-state sensitivity; neither
+constitutes a continuum error bound.
+At each archived endpoint perform three scratch zero-time force evaluations
+with retained, zero and other-lane warmstart. Physical pose/velocity/control/
+time fixed; no work debit or lived-state mutation. Retained warmstart must
+reproduce archived feedback first. Preserve specific-force and qacc vectors,
+constraint state/force, solver iterations and M*a-qfrc_smooth-qfrc_constraint;
+restore exact input bytes afterward. This tests native force-solve sensitivity
+not excluded by the small outer Radau residual. No new solver, physical law,
+tolerance, material coefficient or production exposure. Use existing same
+resource/health envelope with no native rebuild,6Radau steps+6scratchforces,
+explicit setup/restore accounting, and exact first-failure operands.
