@@ -11,7 +11,7 @@ import mujoco as mj
 import numpy as np
 
 INTERVAL_ABI = 3
-INTERVAL_LAW = "midpoint-dyadic-accuracy-v3"
+INTERVAL_LAW = "midpoint-dyadic-accuracy-v4-solved-domain"
 ANGLE_RAD = math.radians(.01)
 POSITION_M = .0001
 EVENT_S = .000001
@@ -87,6 +87,22 @@ def _midpoint_impulses(m, d, dt):
     # Relative allowances use each pair's resultant, not pointwise magnitudes.
     return _pair_impulses(_midpoint_wrenches(m, d), dt)
 
+def _constraint_states(m, d):
+    """Final constraint states after completed mj_forward, in native row order.
+
+    MuJoCo 3.3.7 gathers island forces back but leaves efc_state at warmstart.
+    Match fwdConstraintMetric's exact solver branch; never recompute reactions.
+    This is not an accessor for intermediate midpoint-residual scratch.
+    """
+    if not d.nefc:
+        return ()
+    if (not (m.opt.disableflags & mj.mjtDisableBit.mjDSBL_ISLAND)
+            and d.nisland > 0 and m.opt.noslip_iterations == 0
+            and m.opt.solver in (mj.mjtSolver.mjSOL_CG, mj.mjtSolver.mjSOL_NEWTON)):
+        return tuple(d.iefc_state[d.map_efc2iefc])
+    return tuple(d.efc_state)
+
+
 def _snapshot(e):
     m, d = e._model, e._data
     velocity = np.empty((m.ngeom, 6))
@@ -122,7 +138,7 @@ def _snapshot(e):
     joints = np.asarray(e._limited, dtype=np.intp)
     domain = (tuple(q <= m.jnt_range[joints, 0]+m.jnt_margin[joints]),
               tuple(q >= m.jnt_range[joints, 1]-m.jnt_margin[joints]),
-              tuple(d.efc_type), tuple(d.efc_id), tuple(d.efc_state),
+              tuple(d.efc_type), tuple(d.efc_id), _constraint_states(m, d),
               tuple(sorted(geometric)), tuple(sorted(loaded)))
     return dict(state=_state(e), time=float(d.time), dt=float(m.opt.timestep),
         position=_finite(d.geom_xpos).copy(), rotation=_finite(d.geom_xmat).reshape(-1, 3, 3).copy(),

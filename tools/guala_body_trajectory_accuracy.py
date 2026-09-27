@@ -75,7 +75,7 @@ def current_domain(e, support):
     return plain_domain((
         q <= m.jnt_range[joints, 0]+m.jnt_margin[joints],
         q >= m.jnt_range[joints, 1]-m.jnt_margin[joints],
-        d.efc_type, d.efc_id, d.efc_state,
+        d.efc_type, d.efc_id, interval._constraint_states(m, d),
         sorted(tuple(int(g) for g in c.geom) for c in d.contact if c.efc_address >= 0),
         tuple(pair for pair, count in support[1] for _ in range(count))))
 
@@ -400,7 +400,7 @@ def observer_control(case):
 
 def main():
     assert mj.mj_versionString() == mj.__version__ == VERSION
-    assert interval.INTERVAL_ABI == 3 and interval.INTERVAL_LAW == "midpoint-dyadic-accuracy-v3"
+    assert interval.INTERVAL_ABI == 3 and interval.INTERVAL_LAW == "midpoint-dyadic-accuracy-v4-solved-domain"
     controls = archived_controls()
     cases, errors = [], Errors()
     control_result = control_failure_state = failure = first_failure_states = None

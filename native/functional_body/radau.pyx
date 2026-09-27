@@ -14,7 +14,7 @@ import numpy as np
 import guala_body_interval as interval
 from libc.math cimport fabs, isfinite, pow, sqrt, tan
 
-RADAU_LAW = "radau-iia3-secant-stage-events-v3"
+RADAU_LAW = "radau-iia3-secant-solved-domain-v4"
 MAX_LINE = 16
 MAX_SECANT = 32
 STAGE_COUNT = 3

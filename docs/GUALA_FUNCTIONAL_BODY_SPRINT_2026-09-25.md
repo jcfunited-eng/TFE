@@ -12524,3 +12524,115 @@ is yet qualified. Force sensitivities and their cost must be established before
 selecting one. Native radau/interval remain byte-identical at714391817f60... and
 8391d81b1147... respectively. Sustained accuracy/cost, gravity, integration and
 restart remain OPEN; goal ACTIVE.
+
+### FB-01aj solved-constraint state handoff contract — 2026-09-27 12:56Z
+
+Previous goal turn PROGRESS:161119812 rejects the ineffective all-force check.
+New saved-state evidence, not a physics replay: at24.175ms maximum lane rate
+disagreement is6.19077e-6; at24.2ms it becomes0.005058517rad/s. During this last
+25us coarse piece, joint23 reaction falls0.00940817->0Nm while the recorded
+constraint state remains SATISFIED throughout. The prior joint57 onset has
+already occurred, so another onset-only numerical correction is not the next
+causal repair. One-sided event quadrature remains an unimplemented analytical
+possibility, not a chosen solution or explanation for this first error growth.
+
+Exact producer defect: patched MuJoCo3.3.7 engine_solver.c:945 writes final island
+states to iefc_state; engine_forward.c:748-785 gathers back qacc/qfrc/efc_force,
+but not efc_state. The latter is left from warmstart. engine_island.c:558-562
+defines map_efc2iefc. interval._snapshot and trajectory.current_domain read the
+stale array, so admission misses actual solved active-set transitions. Existing
+same-state force/trajectory receipts remain valid as motion evidence; their
+constraint-state/event-completeness claims are not corrected-law evidence.
+
+Single correction: after a completed physical mj_forward, read final constraint
+states in native row order from iefc_state[map_efc2iefc] when the EXACT native
+islands-supported predicate is true; otherwise efc_state. No constraint rows or
+forces are edited and no force solve is repeated. Zero rows return empty. One
+helper in native/functional_body/interval.pyx serves both its _snapshot and
+tools/guala_body_trajectory_accuracy.py current_domain. All these callsites
+follow completed mj_forward; do not apply it to midpointResidual scratch.
+radau.pyx numerical law identity and interval law identity advance because mesh
+admission changes. ABI/layout and physical integration payload do not change;
+NativeBody's existing law-bound header prevents silently restoring an old law.
+No cognition/L0-L4/body/world schema/production changes. Reduced body mechanics,
+not DSF evaluation. Physics, timing/accuracy thresholds and bounds unchanged.
+
+Proof: eleven archived primitives (eight free controls and three first-error
+pieces) preserve exact raw successor/work/native calls but expose the missed
+transition. Validate island and ordinary solver-state branches without modifying
+live state; assert the getter changes no raw state/force/sensor bytes. Then two
+admissions from the SAME saved24.1ms predecessor with100/50us proposals, plus
+64/128-piece independent references over just100us. Retain all physical/sensory/
+work/impulse comparisons, chronological event brackets, exact replay/rollback
+and law-bound cold-state rejection. No whole-history replay. Bound proof to
+527 primitive attempts (11+2*162+64+128),8numerical CPU seconds; any additional
+replay/rollback primitives require reducing reference/control allocation rather
+than exceeding this bound. One frozen independent source review, two selected
+extension builds, one offline proof;2cores/1GiB-AS/60CPU-process/90wall group.
+Read-only AWS pre/post and exact host census. No push/Slack/production writes.
+The helper adds only O(nefc) native-row mapping during existing snapshots, no
+persistent state or duplicate physics. Full-body sustained accuracy/cost remains
+open until separately qualified; this repair cannot be declared a global cure.
+
+Command hygiene: a guessed setup.py path failed before any action, and a broad
+/tmp name search hit an unrelated unreadable daemon directory. Actual builder is
+native/functional_body/build.py. Future discovery uses that explicit directory
+and known proof paths, not a broad /tmp search or guessed build filenames.
+
+Frozen source review872ec77d09dd... found no architectural defect. Two localized
+proof corrections batched before compilation: canonicalize native scalar types
+in event sequences, and pre-attach control/custody records so failed assertions
+retain actual state, forces, path and cold comparison operands. Native source is
+unchanged by this batch. Exact full-file proof replacement and one final review;
+no test, numerical run or build has occurred yet.
+
+### FB-01aj solved-state handoff locally verified — 2026-09-27 13:15Z
+
+Requested architecture remains bounded body mechanics and truthful sensory
+return; cognition and L0-L4 stay unchanged. Current reality: v4 observer repair
+is compiled and locally verified, not mounted. Conflict with claiming complete
+body qualification: YES. No extension of force laws, tolerances, resource caps,
+cognitive policy or production. Reduced numerical rigid-body model, not full
+DSF/biology. Single next item: sustained same-genesis qualification under v4,
+using the existing witness and fresh corrected-law histories, not relabeling v3.
+
+Final source-only review passed after fixing the already-identified cold-proof
+recording order: raw restored bytes are recorded before observation; observation
+errors cannot replace a primary restore failure. Proof SHA256
+b7919ead40281bc51ab91d79e26ca8cd86520ff15ab956d9bba555867c8fbbb8;
+runner3ceaab9fec9a43e104f1f4b598d122b221570328888e117b0a445cea384a8dc6;
+frozen body candidatead91e7b78351aa1d02f565f364eb4c50f4ebd4f2e8152ff88ff705527392603f.
+
+One build of each affected extension and one offline proof completed. All11
+archived controls preserve exact raw successor, work and native call count.
+All6 native solver branches report their final states without mutating physical
+state, force or sensory arrays. The saved coarse24.175->24.2ms piece now detects
+one real solved-state change: [1,1,1] becomes[0,1,1], whereas stale warmstart
+reported[0,1,1] throughout. This is measured evidence of the missing handoff.
+
+From the SAME saved24.1ms predecessor,100us/50us proposal admissions complete
+in48/44primitive attempts. Both agree with independent64/128piece references
+on motion, orientation, proprioception, inertia, contact, work and impulses
+under unchanged tolerances. Exact replay, fresh-engine body bytes/observation,
+old-law restore rejection, zero-energy refusal and trial-ceiling whole-interval
+rollback all pass. This does NOT establish global trajectory accuracy or speed.
+
+Receipt docs/evidence/FB-01aj-solved-domain-proof.json:1252255bytes,
+SHA256 d1e5de4d9372b944c89253c5a3f567c4c042afc7ff07ddb36df7d4ed48a9abc0.
+345primitives/8015native calls/2.143183numerical CPU seconds;
+child2.993772wall/2.977366aggregate CPU seconds,280984KiB peak RSS.
+Builds8.763253/14.640401wall seconds; peak process RSS343132/364000KiB.
+Owned build groups40365/40454 and proof40549 terminal with no survivors;
+independent exact host census empty. Offline extensions retained only in
+/tmp/guala-body-solved-domain.wxenj18y/python; no runtime mount or installation.
+Interval binaryc537507b0da41416c554965863325abaee2f3e01002f6d46ee44e2d27cd2c788;
+Radau binaryafdbb787d93fd83b16fd03108821cb32be260c8a6e7c503cbcd5adf7ba5cfd80.
+
+Read-only AWS13:14:05->34Z: sole1559/same image/identity,
+ticks2614948->2615018,no checkpoint/cleanup/durability errors. Existing
+clock-stalled ALARM persists,other4OK. No G1 source changes, push, Slack or
+production writes. Goal ACTIVE. Sustained accuracy/cost, gravity, body/world
+integration and restart remain OPEN. A later receipt inspection accidentally
+printed the admission lists instead of their lengths; it changed no state and
+did not trigger a rerun. Future evidence readers must inspect field types and
+print counts, not nested admission histories.
