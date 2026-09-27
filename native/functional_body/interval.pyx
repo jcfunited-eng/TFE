@@ -11,7 +11,7 @@ import mujoco as mj
 import numpy as np
 
 INTERVAL_ABI = 3
-INTERVAL_LAW = "midpoint-dyadic-accuracy-v2"
+INTERVAL_LAW = "midpoint-dyadic-accuracy-v3"
 ANGLE_RAD = math.radians(.01)
 POSITION_M = .0001
 EVENT_S = .000001
@@ -136,7 +136,22 @@ def _vectors_close(a, b, absolute, relative):
     return bool(np.all(error <= allowed))
 
 
+def _contact_resultants(contacts):
+    """Sum exact-coincident validated inputs; never merge nearby points."""
+    groups = {}
+    for key, position, force, couple in contacts:
+        position = np.asarray(position)
+        force = np.asarray(force)
+        couple = np.asarray(couple)
+        identity = (key, tuple(position))
+        old = groups.get(identity)
+        groups[identity] = ((key, position, force, couple) if old is None else
+                           (key, old[1], _finite(old[2]+force), _finite(old[3]+couple)))
+    return list(groups.values())
+
+
 def _contacts_close(a, b):
+    a, b = _contact_resultants(a), _contact_resultants(b)
     if len(a) != len(b):
         return False
     used = set()

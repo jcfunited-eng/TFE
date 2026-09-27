@@ -37,7 +37,7 @@ def comparison_operand(value):
 
 def main():
     assert mj.__version__ == mj.mj_versionString() == VERSION
-    assert interval.INTERVAL_ABI == 3 and interval.INTERVAL_LAW == "midpoint-dyadic-accuracy-v2"
+    assert interval.INTERVAL_ABI == 3 and interval.INTERVAL_LAW == "midpoint-dyadic-accuracy-v3"
     prior, controls = read(ARCHIVE), archived_controls()
     rows = []
     calls = 0

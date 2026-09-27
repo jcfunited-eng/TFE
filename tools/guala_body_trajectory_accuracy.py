@@ -400,7 +400,7 @@ def observer_control(case):
 
 def main():
     assert mj.mj_versionString() == mj.__version__ == VERSION
-    assert interval.INTERVAL_ABI == 3 and interval.INTERVAL_LAW == "midpoint-dyadic-accuracy-v2"
+    assert interval.INTERVAL_ABI == 3 and interval.INTERVAL_LAW == "midpoint-dyadic-accuracy-v3"
     controls = archived_controls()
     cases, errors = [], Errors()
     control_result = control_failure_state = failure = first_failure_states = None

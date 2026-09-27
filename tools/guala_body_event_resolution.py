@@ -19,6 +19,7 @@ import time
 import zlib
 
 import mujoco as mj
+import guala_body_interval as interval
 import numpy as np
 
 from guala_body_coupled_step import VERSION
@@ -268,12 +269,13 @@ def vector_limit(a, b, absolute, relative, labels):
 
 
 def tactile_limits(a, b):
-    # This is diagnostic correspondence, not learned recognition. No native
-    # contact-array ordinal or convenient nearest point establishes identity.
+    # Compare the same physical point loads, independent of exact-coincident
+    # solver-row splitting. Distinct nearby points are never merged.
     groups = {}
     for side, contacts in enumerate((a, b)):
-        for point in contacts:
-            groups.setdefault(point.surface, [[], []])[side].append(point)
+        rows = ((p.surface, p.position_m, p.force_n, p.couple_nm) for p in contacts)
+        for surface, position, force, couple in interval._contact_resultants(rows):
+            groups.setdefault(surface, [[], []])[side].append((position, force, couple))
     paired, unresolved = [], []
     for surface, (left, right) in sorted(groups.items()):
         if not left or len(left) != len(right):
@@ -281,8 +283,8 @@ def tactile_limits(a, b):
                                    counts=[len(left), len(right)]))
             continue
         distance = np.linalg.norm(
-            np.asarray([p.position_m for p in left])[:, None, :]
-            - np.asarray([p.position_m for p in right])[None, :, :], axis=2)
+            np.asarray([p[0] for p in left])[:, None, :]
+            - np.asarray([p[0] for p in right])[None, :, :], axis=2)
         matches = finite(distance) <= .0001
         if not (np.all(matches.sum(axis=0) == 1) and np.all(matches.sum(axis=1) == 1)):
             unresolved.append(dict(surface=surface, reason="no unique position-bounded correspondence"))
@@ -292,10 +294,10 @@ def tactile_limits(a, b):
     if not paired:
         return dict(complete=False, unresolved=unresolved, matched_points=0)
     names = [p[0] for p in paired]
-    forces = vector_limit([p[1].force_n for p in paired],
-                          [p[2].force_n for p in paired], .01, .001, names)
-    couples = vector_limit([p[1].couple_nm for p in paired],
-                           [p[2].couple_nm for p in paired], .00001, .001, names)
+    forces = vector_limit([p[1][1] for p in paired],
+                          [p[2][1] for p in paired], .01, .001, names)
+    couples = vector_limit([p[1][2] for p in paired],
+                           [p[2][2] for p in paired], .00001, .001, names)
     return dict(complete=not unresolved, unresolved=unresolved,
                 matched_points=len(paired), force_n=forces, couple_nm=couples)
 

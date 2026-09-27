@@ -9356,3 +9356,122 @@ boundary evidence included. Full500ms, gravity, intrinsic-couple impulse,
 continuum enclosure, mounting and production qualification remain OPEN.
 Do not reopen the closed saved-event correction or rerun completed proof
 branches. Preserve approved numerical approximations and frozen cognition.
+
+### FB-01aj v2 trajectory and exact-coincidence contract — 2026-09-27 03:25Z
+
+Previous goal turn PROGRESS4193b5dc7; this continues whole-motion accuracy.
+One unchanged v2 witness reached22,200us with all sampled channels PASS and
+all observed event brackets<=1us, then refused22,200->22,300us because no
+representable subdivision remained. Primary predecessor rollback is exact.
+4372nativecalls,9.021s wall,9.011s aggregateCPU,150344KiBpeakRSS;child10545,
+session31338terminal,no survivors. No rebuild or broad suite.
+Artifact FB-01aj-midpoint-accepted-trajectory-v2.json SHA
+988fd726ae61716c5beebefa2347fd2035484683da1f8ed0dd773da35aaba224.
+
+One observer-only replay of that saved100us interval (not genesis) established
+the exact predicate:39 contact-correspondence refusals,1 upstream accuracy
+refusal,222nativecalls,1.079s wall,1.073sCPU;child11928/session92059terminal.
+At the last comparison, one constraint contribution versus two EXACTLY
+coincident contributions at pair34/10, both sides. Coarse magnitude13.013449N;
+fine contributions6.508800N each. Identical per-side local positions. Summed
+force difference.004151661N < unchanged allowance.023017601N. Raw1:2 record
+cardinality causes _contacts_close to return False down to dt6.94e-18s.
+Artifact FB-01aj-midpoint-contact-comparison-diagnostic.json SHA
+bbd0e5ee803b7e24bd33d9ac4d9698478d290f243b281bfd70e3f9fd81f35e7c.
+Both receipts retain exact states, observer source and read-only AWS envelopes.
+
+This is NEW evidence at22.278ms under the midpoint law; it does not reopen the
+September26 older-window finding that ruled out capsule/box manifold switching
+there. No shape, friction, stiffness, solver, impulse law or anatomy change.
+
+Requested architecture: numerical comparison independent of how native solver
+partitions a force into exact-coincident contributions. Current reality:
+_contacts_close and diagnostic tactile_limits require raw1:1 point records.
+Conflict:YES with that representation-independent mechanical comparison.
+Do not extend row-cardinality identity or add proximity clustering. Exact next
+change: one shared numerical _contact_resultants primitive groups ONLY equal
+physical key and exactly equal local position; sums vector force and intrinsic
+couple. Separate points and keys remain separate. No averaging, rounding,
+nearest-point matching, new thresholds, force replacement or time adjustment.
+
+Conservation: for common point r, sum(r cross F_i + tau_i) equals
+r cross sum(F_i) + sum(tau_i); power at common local rigid velocity similarly
+adds. This is exact mechanical load representation, not a DSF reduction.
+The approved rigid-body model does not represent microscopic tissue stress;
+all raw tactile contributions remain in actual BodyFeedback and world codec.
+
+Bounded source map: NativeBody.advance -> advance_interval -> _snapshot ->
+_close -> _contacts_close -> new scratch resultants -> existing unique
+position-bounded comparison -> accepted fine state/work -> MechanicalSuccessor
+-> NativeBody._observation -> NativeWorldObservation.as_record/from_record.
+Only numerical comparison changes. _snapshot and actual contacts/BodyFeedback,
+native force solver, impulse accumulation, world codec and cognition unchanged.
+Diagnostic tactile_limits uses the SAME primitive, not a second arithmetic law.
+Runtime scratch O(current contact rows), no persistent/cross-beat state.
+Numerical law v2->v3 rejects old unmounted headers; diagnostic raw states stay
+explicit, authenticated input. No implicit restore migration.
+
+Authorized files: native/functional_body/interval.pyx; diagnostic contact
+comparison in tools/guala_body_event_resolution.py; current law assertions in
+accuracy_control_proof, trajectory_accuracy and loaded_contact_proof tools;
+one bounded saved-predecessor proof. Preserve all prior receipts.
+Acceptance: exact coincident sum invariants; distinct points/keys and excessive
+force still refuse; saved22.2ms predecessor advances through former refusal;
+exact repeat/cold continuation and energy rollback; raw tactile rows unchanged.
+No full trajectory rerun before this narrow acceptance. Source-only frozen
+review before compile, interval-only build, resource and read-only AWS envelope.
+
+Read-only03:18:47Z->03:18:58Z and03:21:41Z->03:21:44Z retain sole1559task/image,
+sameidentity,counts1/1/0,ticks2528482->2528509 and2528857->2528864,
+errorsnull,durabilityfalse. CPU~51%,RAM~3.1%;existingclockALARM,other4OK.
+No livewrites,pushorSlack. Operational read mistakes retained: broad /tmp glob
+hit an unrelated permission-denied socket directory; no launch followed.
+functional_body.py does not exist; actual projection is functional_body_native.py
+and embodiment_world.py. Subsequent reads used resolved source matches only.
+
+Frozen source review4cd94896...dda77631 identified one LOCALIZED lean issue:
+the new helper repeated three input finiteness scans already performed by the
+physical producer. Removed only those scans, retained array conversion and
+both summed-vector overflow checks; documented the validated-input precondition.
+Physical equivalence, distinct-point/key separation, rollback, identity and
+proof evidence otherwise passed source review. Final freeze/review follows;
+no candidate compilation or execution yet.
+
+### FB-01aj exact-coincident comparison verified — 2026-09-27 03:34Z
+
+Final frozen source review PASS
+0a17ae91cf810809f9c6b169378667862bfe5fc9305c158d3c198656055fc181.
+One interval-only build:8.404s wall,8.388s aggregateCPU,330424KiBpeakRSS.
+One saved-state proof:333nativecalls under10105ceiling,1.324s wall,
+1.307s aggregateCPU,144644KiBpeakRSS. completed=True. No broad regression
+or repeated full trajectory; the exact22.2ms predecessor was the input.
+
+The former contact-cardinality failure now advances100us through the event.
+Coincident load algebra preserves force, moment and power; distinct keys and
+even one-ULP-separated points remain separate. Saved coarse/fine load error
+.004151661N is within the unchanged.023017601N allowance. Excessive force and
+displaced contact points refuse. Actual feedback rows and world codecs remain
+unchanged. Full MechanicalSuccessor repeats exactly and cold continuation agrees
+exactly; energy refusal leaves predecessor unchanged. Oldv2 header refuses.
+No implicit header migration, averaged force, softened constraint or new field.
+
+Proof artifact docs/evidence/FB-01aj-midpoint-coincident-contact-proof.json SHA
+a35cf28f453b603d507f1a6439f46013117ca0b70df1aead94b37a0d905ffe02.
+Proof sourceaca90644bcf5b787545ab1785f8115253aa4c0eb6bf895adcf44e70d1ad5f3d8.
+Compiled interval
+/tmp/guala-body-coincident.f_yh3n0n/python/guala_body_interval.cpython-311-x86_64-linux-gnu.so
+SHA13a29c323d79bf9a617209f9db9605dbc985d61fb4273ead87a9539df53e996b.
+Same force libraryde96a176...a3fd48f, version3.3.7+guala.midpoint-step.1.
+ABI3, lawmidpoint-dyadic-accuracy-v3. Session95894,build16936/proof16980
+terminal; exact process-group census confirms no survivors.
+
+Read-only AWS03:33:20Z->03:33:32Z retains sole1559task/image/identity,
+counts1/1/0,RUNNING/HEALTHY,ticks2530379->2530407,persisted2530348->2530380,
+checkpoint/cleanupnull,durabilityfalse. CPUmean51.34%,RAM3.10%;existing
+clock-stalledALARM remains,other4OK. No livewrites,pushorSlack.
+
+This closes ONLY exact-coincident numerical correspondence. Next use the
+existing accepted-trajectory tool with the v3 compiled library for the single
+whole-motion qualification. Do not reopen the saved comparison, add proximity
+merging, or alter the force law. Full500ms,gravity,intrinsic-couple-impulse,
+continuum-enclosure,world integration/restart/performance/live remain OPEN.
