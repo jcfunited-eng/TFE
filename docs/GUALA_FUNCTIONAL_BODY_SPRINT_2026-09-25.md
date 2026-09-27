@@ -8856,3 +8856,71 @@ accuracy/event-aware native advancement. Do not rerun the0->500ms proof or
 already closed joint-event construction to obtain this input. Contact-event
 qualification, gravity, whole-world mount, paired restart, performance and live
 delivery remain required. Goal ACTIVE, no user decision outstanding.
+
+### FB-01aj first-discrepancy isolation contract — 2026-09-27
+
+Previous goal turn PROGRESS:2f72a9103 records completed but accuracy-failing
+500ms trajectories, exact retained states and the unchanged live health envelope.
+Advance the same accuracy item; do not reopen or regenerate the accepted
+joint-event witness. Single diagnostic tools/guala_body_first_divergence.py
+reads authenticated joint-events and trajectory-accuracy artifacts. Reobserve
+their two original1800us states without advancing, then restore the SAME finest
+(.25us event bracket)1700us native endpoint into two existing100us-body engines.
+One100us versus two50us advances, same actual effort/supply/time, at most3native
+calls, no subdivision/retry on failure. Reuse the reviewed Trajectory observer,
+Errors channels and native interval; no new integrator or force law.
+
+Record actual original first-error magnitudes, complete limited-joint gaps,
+rates, active constraint types/IDs/forces, same-start/step endpoints, separate
+work/supply, primary bytes and comparison limits. This distinguishes accumulated
+predecessor differences from error generated inside the next100us window;
+it does not alone prove which earlier event generated the inherited difference.
+A local pass is not a full-trajectory pass. No tolerance, safety, material,
+cognitive or world-mount change.2CPU/1GiB/60CPU/90wall outer ceilings preserved
+but only3physical steps allowed. Read-only AWS before/after and child census
+required. Freeze/source review before this first execution.
+
+Source-only review9afec526dfb28723dbd53c50cd99f7a73bc10ac5e1c3d629e1d67abae541c588
+found one LOCALIZED custody omission: explicitly restore each archived
+observation's native_dt_s and reset both common-predecessor engines to the shared
+100us timestep before derived-state reconstruction. Corrected before any run;
+finite/positive checks retained. Read archived controls once instead of twice.
+No force/trajectory/persistence identity change. No architectural redesign.
+
+### FB-01aj same-predecessor isolation — 2026-09-27 01:51Z
+
+Final frozen source review PASSdb2eb52c344ab0d139bd324804105d191df10fbf19bf30d5fd83963ac3b1cb26.
+Executed exactly3native steps, session56150/child79662,0.722265s wall,
+.718365s aggregateCPU,153724KiB peakRSS,exit0,no survivors.
+Artifact docs/evidence/FB-01aj-midpoint-first-divergence.json SHA
+df2887df851390b2d6a8db95d2d66411495bb2495546ef9f9ff95ebf7162c8d4;
+source SHAe188d8c8ac06fa2c9da2c34ce10065d220aa22d931b8a72c692d56bc90134bec.
+Input raw integration SHA0e5dd67cb3ba20fd0f00aafb3edf186223207210d66646904f429683077c4b46.
+All original/archive fingerprints, actual timesteps and primary state checks hold.
+
+Local window1700.0000000000006us->1800.0000000000006us completes without
+numerical refusal. Native observed joint-constraint IDs remain
+[28,33,35,37,39,42,46] before/after all3steps; no surface contact/impulse.
+Yet one100us versus two50us steps produces proprioceptive-rate disagreement
+.01061525773131966rad/s versus.01013601529895023allowed,ratio1.047281.
+Original differing-history states reproduced the same first failure category:
+.010351732655144968vs.010137464931870342,ratio1.021136.
+Thus inherited state difference or event-location error ALONE does not explain
+the first failure: local time-discretization disagreement exists even with an
+identical predecessor and unchanged observed endpoint constraint roster.
+This does not prove absence of hidden intra-step changes or the exact continuum
+solution. Other measured channels pass this local window, not the fullmotion.
+
+Local positive work.008549183206751458J/.008549238096674888J;
+bearing.0002661312869229646J/.0002661913415761766J; braking0.
+Native step time~.00450s total. Neither prefix nor fulltrajectory was replayed.
+AWS01:50:43.637120Z->01:50:46.669606Z same1557task/image/identity,counts1/1/0,
+ticks2519608->2519612,persisted2519589,errorsnull,durabilityfalse;
+CPUmean51.058302%,RAM2.681478%;pre-existing clock-stalled ALARM remains.
+
+Next bounded item: one predeclared local resolution map25/12.5/6.25/3.125us
+(4+8+16+32=60calls), reusing the saved50us result rather than replaying it.
+Same authenticated1700us input, efforts, supply and native law. Compare all
+approved sensory/mechanical/work channels and actual constraint-domain evidence.
+A local convergence map guides minimal numerical-error-controlled advancement;
+it cannot certify full500msaccuracy, contacts, gravity or production.
