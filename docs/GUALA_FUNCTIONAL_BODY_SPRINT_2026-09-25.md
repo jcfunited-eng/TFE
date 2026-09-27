@@ -14260,3 +14260,62 @@ state synchronization, new body anatomy, cognition or production deployment.
 Full500ms qualification, prior dense-history coverage, gravity/couple cases,
 runtime cost and body integration/restart/live gates remain OPEN. Evidence of
 endpoint refinement must not be mislabeled a body-ready or real-time claim.
+
+### FB-01aj independent6.25us history contract — 2026-09-27
+
+Previous turn was PROGRESS: pushed f3658d3fe, independently reproduced365.1ms
+left-palm error and ruled out1/2/4/8 final100us refinement. ContinueFB-01aj;
+mechanics/source/ABI, physical inputs, tolerances and L0-L4/cognition unchanged.
+One proof /tmp/a1-body-sixteenth-history-20260927.py runs a NEW6.25us history
+from the same genesis to365.1ms, referencing authenticated saved12.5us states
+without executing reference dynamics. Uses ten12.5us history receipts plus
+the44 accepted suffix endpoints and actual refused365.1ms successor in3ee3c7f.
+Join actual event paths across the360.6ms suffix boundary; no missing-event
+defaults. Independent states are never synchronized or substituted.
+
+The existing50numericalCPU/30000primitive chunk and60CPU/90wall/1GiB/two-core
+offline envelope remains, with read-only AWS pre/post and exact child cleanup.
+Resume only authenticated CPU/trial-only stops with exact raw/sensory/work/
+impulse custody. Retain the250ms command release with zero time/work change.
+Compare state, all sensory channels, work, impulses and sampled events under
+unchanged laws at each actual archived reference endpoint. Sparse comparison
+before360.6ms is explicit; no full-historical or continuum qualification claim.
+
+Bounded evidence correction: retain EACH new common raw endpoint, cumulative
+work/impulses, and changed-event stage evidence; clear only Lane.prefix after
+its existing per-piece assertions and endpoint capture. Source inspection of
+Lane.advance/record confirms prefix is an append-only proof output, never read
+by mechanics, future stepping, energy, impulses, events or cold continuation.
+The last local-admission receipt remains in last_attempt for restart/rollback.
+Omit duplicate ordinary intermediate snapshots, not causal physical state or
+any required comparison endpoint. Observer memory is not organism memory.
+Fallible terminal extraction invalidates completion and preserves raw actual
+state/error. One frozen source-only review precedes this no-build run.
+
+### FB-01aj frozen review and external execution hold — 2026-09-27
+
+Independent source-only review PASS for the preceding6.25us proof at worktree
+fingerprint1c3817e1480511f7a674bcbe9507df71b799f59bf38d7dc9af0ab529ba173adb;
+proof SHA78e1d55b2f28bc5071def1a2f1898164ceeb3e5da16fa7ba11b15822150f9ca4.
+Reviewer verified archive mappings, event-path join, release/resume custody
+and endpoint retention; Lane.prefix is proof-only and mechanics never reads
+it. No compile, numerical execution, mount or production claim accompanies
+this source review. Fingerprint and proof hash independently rechecked.
+
+Execution was serialized behind G1's main-worktree releasePID43849. That
+exact process is now absent; read-only ECS confirms1562 desired/running/
+pending0/0/0. Successor startup failed in replenish_home_food -> successor
+world validation (signed contact geometry mismatch). G1 owns recovery. A1
+posted the exact source correction handoff in collaborative_todo.md, including
+the separate authored cognitive food flags on ordinary restore. A1 changed no
+production, world, body or cognitive state. The body remains UNMOUNTED.
+
+The existing run envelope requires healthy single-writer serving before this
+shared-environment diagnostic; do not weaken that gate during recovery. Next
+action remains the reviewed6.25us independent-history run, not another model,
+rebuild, completed-reference replay or tolerance change. Re-freeze the body
+tree after this ledger-only update; proof/source hashes remain unchanged.
+The root-locator script names an absent older July handoff in this isolated
+body worktree; record that preflight mismatch without manufacturing the file.
+Actual git root/branch/HEAD and the reviewed fingerprint identify the approved
+body tree. No body harness child was started during the external hold.
