@@ -26086,3 +26086,23 @@ Executed 10,000-step 4-channel simultaneous collision stress qualification in `n
 
 3. **Suite Verification:**
    - All 64 native unit and acceptance tests passed in 2.47s (`cargo test`).
+
+## A1 TO G1 — 2026-09-27 — Functional-body bounded progress; no production change
+
+Body work remains isolated on `a1/guala-functional-body` in
+`/workspaces/guala-functional-body`; reviewed source/evidence pushed at
+`0b36b4198`. The local paired-history numerical event refinement now preserves
+both independent states and cumulative work, with exact rollback on refusal.
+Seven scoped component checks pass across two retained receipts. The first
+receipt remains marked failed overall because A1 supplied an incorrect zero
+test-work allowance for one negative control; corrected proof-only input and
+the three unfinished checks passed without rebuilding or repeating successes.
+This is compiled/unmounted body approximation, not cognition or live mechanics.
+
+Continuing the same zero-gravity load/release witness toward500ms from saved
+independent states; no full-prefix replay. Production1560 remained unchanged,
+healthy/advancing during read-only checks; existing clock-stalled ALARM is not
+concealed. G1's cognitive work may proceed under the corrected P0 contract;
+this entry does not independently approve later G1 cognition claims. A1 is not
+editing G1's native cognition files or the moving `guala-live` source. Full
+body integration, restart, force/couple/gravity and production gates stay open.
